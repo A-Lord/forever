@@ -10,7 +10,7 @@ import (
 )
 
 func init() {
-	testagent.RegisterAsDpsWarrior((*testagent.Agent).EnableMelee)
+	testagent.RegisterAsDpsWarrior()
 }
 
 func bulkSimTestRequest(simIterations int32, candidateCount int) *proto.BulkSimRequest {

@@ -25,13 +25,14 @@ func changeReport(old, fresh *storeInputs, only SpellDataGroups, version string)
 	}
 
 	oldOwners, freshOwners := ownersOf(old), ownersOf(fresh)
-	inOld, inFresh := map[int32]bool{}, map[int32]bool{}
-	for _, id := range oldOwners.ids {
-		inOld[id] = true
+	ids := slices.Collect(maps.Keys(oldOwners.reached))
+	for id := range freshOwners.reached {
+		if !oldOwners.has(id) {
+			ids = append(ids, id)
+		}
 	}
-	for _, id := range freshOwners.ids {
-		inFresh[id] = true
-	}
+	slices.Sort(ids)
+	oldPoints, freshPoints := talentPointsBySpell(old), talentPointsBySpell(fresh)
 
 	type groupChanges struct{ added, changed, removed []string }
 	changes := map[string]*groupChanges{}
@@ -46,18 +47,21 @@ func changeReport(old, fresh *storeInputs, only SpellDataGroups, version string)
 				id, name, how, strings.Join(untaken, ", ")))
 		}
 	}
-	for _, id := range slices.Sorted(maps.Keys(mergeSets(inOld, inFresh))) {
+	for _, id := range ids {
 		switch {
-		case inFresh[id] && !inOld[id]:
+		case freshOwners.has(id) && !oldOwners.has(id):
 			group, others := homeGroup(freshOwners, id, only)
 			changes[group].added = append(changes[group].added, fmt.Sprintf("  + %d %s", id, fresh.Names[id]))
 			noteShared(id, fresh.Names[id], "added", group, others)
-		case inOld[id] && !inFresh[id]:
+		case oldOwners.has(id) && !freshOwners.has(id):
 			group, others := homeGroup(oldOwners, id, only)
 			changes[group].removed = append(changes[group].removed, fmt.Sprintf("  - %d %s", id, old.Names[id]))
 			noteShared(id, old.Names[id], "removed", group, others)
 		default:
-			tables := changedTables(old, fresh, id)
+			tables := changedTables(&old.spellTables, &fresh.spellTables, id)
+			if !reflect.DeepEqual(oldPoints[id], freshPoints[id]) {
+				tables = append(tables, "TraitPoints")
+			}
 			if len(tables) == 0 {
 				continue
 			}
@@ -98,40 +102,26 @@ func homeGroup(o rowOwners, id int32, only SpellDataGroups) (string, []string) {
 	return home, slices.DeleteFunc(reached, func(p string) bool { return p == home })
 }
 
-func mergeSets(a, b map[int32]bool) map[int32]bool {
-	merged := maps.Clone(a)
-	maps.Copy(merged, b)
-	return merged
-}
-
-// The tables whose row for the id differs between the two sets of inputs, by their field names, and
-// TraitPoints where a talent node granting the spell is priced differently.
-func changedTables(old, fresh *storeInputs, id int32) []string {
+// The tables whose row for the id differs between the two, by their field names.
+func changedTables(old, fresh *spellTables, id int32) []string {
 	var tables []string
-	o, f := reflect.ValueOf(old.spellTables), reflect.ValueOf(fresh.spellTables)
-	key := reflect.ValueOf(id)
-	for i := 0; i < o.NumField(); i++ {
-		if !o.Type().Field(i).IsExported() || o.Field(i).Kind() != reflect.Map {
-			continue
-		}
+	o, f, key := reflect.ValueOf(old).Elem(), reflect.ValueOf(fresh).Elem(), reflect.ValueOf(id)
+	for _, i := range tableFields() {
 		before, after := o.Field(i).MapIndex(key), f.Field(i).MapIndex(key)
 		if before.IsValid() != after.IsValid() ||
 			(before.IsValid() && !reflect.DeepEqual(before.Interface(), after.Interface())) {
 			tables = append(tables, o.Type().Field(i).Name)
 		}
 	}
-	if !reflect.DeepEqual(talentPoints(old, id), talentPoints(fresh, id)) {
-		tables = append(tables, "TraitPoints")
-	}
 	return tables
 }
 
-func talentPoints(in *storeInputs, id int32) []map[int32]map[int32]float64 {
-	var points []map[int32]map[int32]float64
+// What the talent nodes granting each spell price it at, so a curve that changes reports the spell
+// under TraitPoints.
+func talentPointsBySpell(in *storeInputs) map[int32][]map[int32]map[int32]float64 {
+	points := map[int32][]map[int32]map[int32]float64{}
 	for _, node := range in.TraitNodes {
-		if node.SpellID == id {
-			points = append(points, in.TraitPoints[node.DefinitionID])
-		}
+		points[node.SpellID] = append(points[node.SpellID], in.TraitPoints[node.DefinitionID])
 	}
 	return points
 }

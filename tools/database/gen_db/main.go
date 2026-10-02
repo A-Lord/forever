@@ -35,10 +35,6 @@ func main() {
 	flag.Parse()
 
 	database.DatabasePath = *dbPath
-	only, err := database.ParseSpellDataGroups(*classes, false)
-	if err != nil {
-		log.Fatalf("-classes: %v", err)
-	}
 
 	if *outDir == "" {
 		panic("outDir flag is required!")
@@ -78,14 +74,12 @@ func main() {
 	}
 	defer helper.Close()
 
-	if only == nil {
-		var behind []string
-		if only, behind, err = database.DefaultSpellDataGroups(helper); err != nil {
-			log.Fatalf("failed to read the committed spell data groups: %v", err)
-		}
-		for _, line := range behind {
-			fmt.Fprintf(os.Stderr, "talent files kept, not ported: %s\n", line)
-		}
+	only, behind, err := database.ResolveSpellDataGroups(helper, *classes, false)
+	if err != nil {
+		log.Fatalf("spell data groups: %v", err)
+	}
+	for _, line := range behind {
+		fmt.Fprintf(os.Stderr, "talent files kept, not ported: %s\n", line)
 	}
 
 	if err := database.RunOverrides(helper, "tools/database/overrides"); err != nil {

@@ -14,7 +14,7 @@ import (
 )
 
 func init() {
-	testagent.RegisterAsDpsWarrior((*testagent.Agent).EnableMelee)
+	testagent.RegisterAsDpsWarrior()
 }
 
 func warriorWithFlask(t *testing.T, flaskID int32) *core.Character {

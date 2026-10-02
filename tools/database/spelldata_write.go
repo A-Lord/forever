@@ -159,7 +159,11 @@ func goTool() string {
 // they are what lets the store be regenerated and checked without the game files database, so they are
 // written from the same pass that wrote it and only once that pass has landed.
 func GenerateSpellDataFiles(helper *DBHelper, unchecked bool, only SpellDataGroups) error {
-	files, inputs, err := renderSpellDataFiles(helper, only)
+	committed, err := loadCommittedInputs()
+	if err != nil {
+		return err
+	}
+	files, inputs, err := renderSpellDataFiles(helper, only, committed)
 	if err != nil {
 		return err
 	}
@@ -182,14 +186,15 @@ func CheckSpellDataFiles(helper *DBHelper) (stale []string, behind []string, err
 		return nil, nil, err
 	}
 	var only SpellDataGroups
-	committed, err := readStoreInputs(spellStoreInputsPath)
-	if err == nil {
-		only, behind = currentSpellDataGroups(committed, version)
-	} else if _, missing := os.Stat(spellStoreInputsPath); !os.IsNotExist(missing) {
+	committed, err := loadCommittedInputs()
+	if err != nil {
 		return nil, nil, err
 	}
+	if committed != nil {
+		only, behind = currentSpellDataGroups(committed.Builds, version)
+	}
 
-	files, inputs, err := renderSpellDataFiles(helper, only)
+	files, inputs, err := renderSpellDataFiles(helper, only, committed)
 	if err != nil {
 		return nil, nil, err
 	}

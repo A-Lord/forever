@@ -67,16 +67,17 @@ func everyClassSpellQuery() string {
 // merely existing.
 //
 // One pass over everything already reached is enough: the relation is the name and subtext, so a
-// sibling's siblings are the ones already in hand.
-func siblingSpells(db *sql.DB, ids []int32) ([]int32, error) {
+// sibling's siblings are the ones already in hand. The siblings come back by the spell they are
+// siblings of, so one query serves every spell data group's reach.
+func siblingSpells(db *sql.DB, ids []int32) (map[int32][]int32, error) {
 	list := make([]string, len(ids))
 	for i, id := range ids {
 		list[i] = strconv.Itoa(int(id))
 	}
 
-	var siblings []int32
+	siblings := map[int32][]int32{}
 	err := eachRow(db, `
-		SELECT DISTINCT b.Spell
+		SELECT DISTINCT a.Spell, b.Spell
 		FROM SkillLineAbility a
 		JOIN SkillLineAbility b ON b.Spell != a.Spell AND (a.ClassMask & b.ClassMask) != 0
 		JOIN SpellName na ON na.ID = a.Spell
@@ -85,11 +86,11 @@ func siblingSpells(db *sql.DB, ids []int32) ([]int32, error) {
 		JOIN Spell sb ON sb.ID = b.Spell AND sb.NameSubtext_lang = sa.NameSubtext_lang
 		WHERE a.Spell IN (`+strings.Join(list, ", ")+`)
 		ORDER BY b.Spell`, func(rows *sql.Rows) error {
-		var id int32
-		if err := rows.Scan(&id); err != nil {
+		var of, id int32
+		if err := rows.Scan(&of, &id); err != nil {
 			return err
 		}
-		siblings = append(siblings, id)
+		siblings[of] = append(siblings[of], id)
 		return nil
 	})
 	return siblings, err

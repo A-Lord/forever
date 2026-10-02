@@ -15,7 +15,7 @@ import (
 )
 
 func init() {
-	testagent.RegisterAsDpsWarrior((*testagent.Agent).EnableMelee)
+	testagent.RegisterAsDpsWarrior()
 }
 
 // The consumables a browser request carries for the spec, the way the UI's

@@ -43,11 +43,11 @@ func Register(emptyOptions any, spec proto.Spec, specSetter core.SpecSetter, set
 }
 
 // Registers the agent as the DPS warrior's spec: a player built from a warrior's proto, gear and
-// consumables, with none of the warrior's own code.
-func RegisterAsDpsWarrior(setup func(*Agent)) {
+// consumables, swinging its weapons, with none of the warrior's own code.
+func RegisterAsDpsWarrior() {
 	Register(proto.Player_DpsWarrior{}, proto.Spec_SpecDpsWarrior, func(player *proto.Player, spec any) {
 		player.Spec = spec.(*proto.Player_DpsWarrior)
-	}, setup)
+	}, (*Agent).EnableMelee)
 }
 
 // Registers the agent as the protection warrior's spec, the way RegisterAsDpsWarrior does.

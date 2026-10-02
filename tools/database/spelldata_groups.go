@@ -5,11 +5,11 @@ import (
 	"database/sql"
 	"fmt"
 	"maps"
-	"os"
 	"reflect"
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
@@ -111,22 +111,22 @@ func buildVersion(helper *DBHelper) (string, error) {
 // The groups whose committed build is the one the database was extracted from, which is what -check
 // renders: a group on another build is not ported yet, not stale. Inputs that record no builds are
 // checked whole.
-func currentSpellDataGroups(committed *storeInputs, version string) (only SpellDataGroups, behind []string) {
-	if committed.Builds == nil {
+func currentSpellDataGroups(builds map[string]string, version string) (only SpellDataGroups, behind []string) {
+	if builds == nil {
 		return nil, nil
 	}
 	only = SpellDataGroups{groupItems: true, groupShared: true}
 	for _, p := range allSpellDataGroups() {
-		build, recorded := committed.Builds[p]
-		switch {
-		case !recorded || build == version:
+		build, recorded := builds[p]
+		if !recorded || build == version {
 			only[p] = true
-		case only[p]:
-			behind = append(behind, fmt.Sprintf("%s is on %s, the game files database is %s; it is always taken, so it is compared with the database",
-				p, describeBuild(build), version))
-		default:
-			behind = append(behind, fmt.Sprintf("%s is on %s, the game files database is %s", p, describeBuild(build), version))
+			continue
 		}
+		suffix := ""
+		if only[p] {
+			suffix = "; it is always taken, so it is compared with the database"
+		}
+		behind = append(behind, fmt.Sprintf("%s is on %s, the game files database is %s%s", p, describeBuild(build), version, suffix))
 	}
 	return only, behind
 }
@@ -135,27 +135,34 @@ func currentSpellDataGroups(committed *storeInputs, version string) (only SpellD
 // every group, that is all of them: a full regeneration. Once a partial update has left groups on
 // different builds, it is the ones on the database's build, so a run that names no groups never
 // moves a class that has not been ported.
-func DefaultSpellDataGroups(helper *DBHelper) (SpellDataGroups, []string, error) {
-	if _, err := os.Stat(spellStoreInputsPath); os.IsNotExist(err) {
-		return nil, nil, nil
-	}
-	committed, err := readStoreInputs(spellStoreInputsPath)
+func defaultSpellDataGroups(helper *DBHelper) (SpellDataGroups, []string, error) {
+	builds, err := readCommittedBuilds()
 	if err != nil {
 		return nil, nil, err
 	}
-	builds := map[string]bool{}
-	for _, build := range committed.Builds {
-		builds[build] = true
+	distinct := map[string]bool{}
+	for _, build := range builds {
+		distinct[build] = true
 	}
-	if len(builds) <= 1 {
+	if len(distinct) <= 1 {
 		return nil, nil, nil
 	}
 	version, err := buildVersion(helper)
 	if err != nil {
 		return nil, nil, err
 	}
-	only, behind := currentSpellDataGroups(committed, version)
+	only, behind := currentSpellDataGroups(builds, version)
 	return only, behind, nil
+}
+
+// The groups a run takes: the ones -classes and -racials name, or, naming neither, the default groups,
+// with a line for each group the default leaves on its committed build.
+func ResolveSpellDataGroups(helper *DBHelper, classes string, racials bool) (SpellDataGroups, []string, error) {
+	only, err := ParseSpellDataGroups(classes, racials)
+	if err != nil || only != nil {
+		return only, nil, err
+	}
+	return defaultSpellDataGroups(helper)
 }
 
 // The ids each group is rooted at: its captured roots, plus the hand-kept extra spells and buff
@@ -206,12 +213,20 @@ func familyGroup(family int32) (string, bool) {
 
 // The group each row of a set of inputs belongs to.
 type rowOwners struct {
-	ids     []int32            // every id the store carries
 	forced  map[int32]string   // a racials extra's own row, or a row stating a class family
 	reached map[int32][]string // the groups whose seeds reach a row, in allSpellDataGroups order
 }
 
+// Whether the store the inputs render carries the id.
+func (o rowOwners) has(id int32) bool {
+	return len(o.reached[id]) > 0
+}
+
+// Worked out once per set of inputs: the merge and the change report both ask.
 func ownersOf(in *storeInputs) rowOwners {
+	if in.owners != nil {
+		return *in.owners
+	}
 	t := &in.spellTables
 	seeds := groupSeeds(in.SpellDataGroupRoots)
 	o := rowOwners{forced: map[int32]string{}, reached: map[int32][]string{}}
@@ -229,8 +244,17 @@ func ownersOf(in *storeInputs) rowOwners {
 			o.forced[id] = p
 		}
 	}
-	o.ids = slices.Sorted(maps.Keys(o.reached))
+	in.owners = &o
 	return o
+}
+
+// Every group's roots in one sorted list, as storeInputs.Roots holds them.
+func rootUnion(t *spellTables, roots map[string][]int32) []int32 {
+	var lists [][]int32
+	for _, p := range allSpellDataGroups() {
+		lists = append(lists, roots[p])
+	}
+	return namedIDs(t, lists...)
 }
 
 // A committed root of a group that is not taken never moves: that group's committed class file
@@ -272,10 +296,6 @@ func mergeStoreInputs(old, fresh *storeInputs, only SpellDataGroups, version str
 	}
 
 	oldOwners, freshOwners := ownersOf(old), ownersOf(fresh)
-	inFresh := map[int32]bool{}
-	for _, id := range freshOwners.ids {
-		inFresh[id] = true
-	}
 
 	// The committed store's ids are the ones its inputs carry rows for: Names holds every spell of the
 	// build, so a hand-kept seed added since is named there without being carried. A taken row takes the
@@ -283,22 +303,20 @@ func mergeStoreInputs(old, fresh *storeInputs, only SpellDataGroups, version str
 	// were not captured then, and the committed row stays for the kept rows that still reach it.
 	oldIDs := map[int32]bool{}
 	moved := map[int32]bool{}
-	for _, id := range oldOwners.ids {
+	for id := range oldOwners.reached {
 		if !hasRows(&old.spellTables, id) {
 			continue
 		}
 		oldIDs[id] = true
 		_, named := fresh.Names[id]
-		if oldOwners.taken(id, only, kept) && (inFresh[id] || !named) {
+		if oldOwners.taken(id, only, kept) && (freshOwners.has(id) || !named) {
 			moved[id] = true
 		}
 	}
-
-	for _, id := range freshOwners.ids {
-		if !freshOwners.taken(id, only, kept) {
-			continue
+	for id := range freshOwners.reached {
+		if freshOwners.taken(id, only, kept) {
+			moved[id] = true
 		}
-		moved[id] = true
 	}
 
 	roots := map[string][]int32{}
@@ -308,10 +326,8 @@ func mergeStoreInputs(old, fresh *storeInputs, only SpellDataGroups, version str
 		}
 		return old
 	}
-	var rootLists [][]int32
 	for _, p := range allSpellDataGroups() {
 		roots[p] = source(p).SpellDataGroupRoots[p]
-		rootLists = append(rootLists, roots[p])
 	}
 
 	// A spell the committed store does not carry, which a taken row or root, a hand-kept extra spell or
@@ -332,7 +348,7 @@ func mergeStoreInputs(old, fresh *storeInputs, only SpellDataGroups, version str
 	for len(queue) > 0 {
 		id := queue[0]
 		queue = queue[1:]
-		if followed[id] || !inFresh[id] {
+		if followed[id] || !freshOwners.has(id) {
 			continue
 		}
 		followed[id] = true
@@ -359,17 +375,19 @@ func mergeStoreInputs(old, fresh *storeInputs, only SpellDataGroups, version str
 			t.Descriptions[grant] = description
 		}
 	}
-	union := namedIDs(t, rootLists...)
+	union := rootUnion(t, roots)
 
 	// A moved row can name an id the committed store's build names and does not carry, where the new
 	// build names it no longer: the name is dropped, so the store carries no row of a name alone.
+	var ids []int32
 	for {
 		extended, err := withExtraIDs(t, union)
 		if err != nil {
 			return nil, nil, err
 		}
+		ids = reachableSpells(t, extended)
 		changed := false
-		for _, id := range reachableSpells(t, extended) {
+		for _, id := range ids {
 			if oldIDs[id] || moved[id] {
 				continue
 			}
@@ -398,11 +416,7 @@ func mergeStoreInputs(old, fresh *storeInputs, only SpellDataGroups, version str
 	}
 	slices.SortStableFunc(nodes, func(a, b traitNode) int { return cmp.Compare(a.TreeID, b.TreeID) })
 
-	extended, err := withExtraIDs(t, union)
-	if err != nil {
-		return nil, nil, err
-	}
-	merged := captureStoreInputs(t, union, reachableSpells(t, extended), nodes, points)
+	merged := captureStoreInputs(t, union, ids, nodes, points)
 	merged.SpellDataGroupRoots = roots
 	merged.ItemRoots = source(groupItems).ItemRoots
 	merged.Forms = source(groupShared).Forms
@@ -427,6 +441,7 @@ func mergeStoreInputs(old, fresh *storeInputs, only SpellDataGroups, version str
 // are unrecorded.
 func adoptSpellDataGroups(old, fresh *storeInputs) (*storeInputs, []string, error) {
 	adopted := *old
+	adopted.owners = nil
 
 	freshNodes := map[int32]traitNode{}
 	classTree := map[string]int{}
@@ -536,94 +551,72 @@ func racialBuildWarnings(in *storeInputs) []string {
 	return warnings
 }
 
-func cloneTables(t *spellTables) *spellTables {
-	return &spellTables{
-		Names:            cloneMap(t.Names),
-		Subtexts:         cloneMap(t.Subtexts),
-		Descriptions:     cloneMap(t.Descriptions),
-		Misc:             cloneMap(t.Misc),
-		Levels:           cloneMap(t.Levels),
-		Cooldowns:        cloneMap(t.Cooldowns),
-		Categories:       cloneMap(t.Categories),
-		AuraOptions:      cloneMap(t.AuraOptions),
-		ClassOptions:     cloneMap(t.ClassOptions),
-		Interrupts:       cloneMap(t.Interrupts),
-		Shapeshift:       cloneMap(t.Shapeshift),
-		AuraRestrictions: cloneMap(t.AuraRestrictions),
-		Targets:          cloneMap(t.Targets),
-		CreatureType:     cloneMap(t.CreatureType),
-		Requirements:     cloneMap(t.Requirements),
-		Equipped:         cloneMap(t.Equipped),
-		Labels:           cloneMap(t.Labels),
-		Powers:           cloneMap(t.Powers),
-		Effects:          cloneMap(t.Effects),
-		EnchantGrants:    cloneMap(t.EnchantGrants),
-		EnchantChances:   cloneMap(t.EnchantChances),
+// The positions of spellTables' tables: its exported maps, every one keyed by spell id. Walking them
+// rather than naming them keeps a table added later in the clone, the move and the report.
+var tableFields = sync.OnceValue(func() []int {
+	tables := reflect.TypeFor[spellTables]()
+	var fields []int
+	for i := range tables.NumField() {
+		if tables.Field(i).IsExported() && tables.Field(i).Type.Kind() == reflect.Map {
+			fields = append(fields, i)
+		}
 	}
-}
+	return fields
+})
 
-func cloneMap[V any](m map[int32]V) map[int32]V {
-	if m == nil {
-		return map[int32]V{}
+func cloneTables(t *spellTables) *spellTables {
+	clone := newSpellTables()
+	from, into := reflect.ValueOf(t).Elem(), reflect.ValueOf(clone).Elem()
+	for _, i := range tableFields() {
+		rows := from.Field(i).MapRange()
+		for rows.Next() {
+			into.Field(i).SetMapIndex(rows.Key(), rows.Value())
+		}
 	}
-	return maps.Clone(m)
+	return clone
 }
 
 // The id's rows in into become the ones in from, and a table from has no row for loses it.
 func moveRow(into, from *spellTables, id int32) {
-	moveValue(into.Names, from.Names, id)
-	moveValue(into.Subtexts, from.Subtexts, id)
-	moveValue(into.Descriptions, from.Descriptions, id)
-	moveValue(into.Misc, from.Misc, id)
-	moveValue(into.Levels, from.Levels, id)
-	moveValue(into.Cooldowns, from.Cooldowns, id)
-	moveValue(into.Categories, from.Categories, id)
-	moveValue(into.AuraOptions, from.AuraOptions, id)
-	moveValue(into.ClassOptions, from.ClassOptions, id)
-	moveValue(into.Interrupts, from.Interrupts, id)
-	moveValue(into.Shapeshift, from.Shapeshift, id)
-	moveValue(into.AuraRestrictions, from.AuraRestrictions, id)
-	moveValue(into.Targets, from.Targets, id)
-	moveValue(into.CreatureType, from.CreatureType, id)
-	moveValue(into.Requirements, from.Requirements, id)
-	moveValue(into.Equipped, from.Equipped, id)
-	moveValue(into.Labels, from.Labels, id)
-	moveValue(into.Powers, from.Powers, id)
-	moveValue(into.Effects, from.Effects, id)
-	moveValue(into.EnchantGrants, from.EnchantGrants, id)
-	moveValue(into.EnchantChances, from.EnchantChances, id)
+	to, source, key := reflect.ValueOf(into).Elem(), reflect.ValueOf(from).Elem(), reflect.ValueOf(id)
+	for _, i := range tableFields() {
+		to.Field(i).SetMapIndex(key, source.Field(i).MapIndex(key))
+	}
 }
 
 // Whether the tables carry any row of the id besides its name.
 func hasRows(t *spellTables, id int32) bool {
-	tables, key := reflect.ValueOf(*t), reflect.ValueOf(id)
-	for i := range tables.NumField() {
-		field := tables.Type().Field(i)
-		if field.IsExported() && field.Name != "Names" && tables.Field(i).Kind() == reflect.Map &&
-			tables.Field(i).MapIndex(key).IsValid() {
+	tables, key := reflect.ValueOf(t).Elem(), reflect.ValueOf(id)
+	for _, i := range tableFields() {
+		if tables.Type().Field(i).Name != "Names" && tables.Field(i).MapIndex(key).IsValid() {
 			return true
 		}
 	}
 	return false
 }
 
-func moveValue[V any](into, from map[int32]V, id int32) {
-	if v, ok := from[id]; ok {
-		into[id] = v
-	} else {
-		delete(into, id)
-	}
-}
-
 // The siblings of each group's reach, added to that group's roots: a rank that reads its number
 // off a same-name sibling belongs to the group of the rank.
 func withSiblings(db *sql.DB, t *spellTables, roots map[string][]int32) (map[string][]int32, error) {
 	seeds := groupSeeds(roots)
+	reaches := map[string][]int32{}
+	reached := map[int32]bool{}
+	for _, p := range allSpellDataGroups() {
+		reaches[p] = reachableSpells(t, namedIDs(t, seeds[p]))
+		for _, id := range reaches[p] {
+			reached[id] = true
+		}
+	}
+	siblingsOf, err := siblingSpells(db, slices.Sorted(maps.Keys(reached)))
+	if err != nil {
+		return nil, err
+	}
+
 	out := map[string][]int32{}
 	for _, p := range allSpellDataGroups() {
-		siblings, err := siblingSpells(db, reachableSpells(t, namedIDs(t, seeds[p])))
-		if err != nil {
-			return nil, fmt.Errorf("%s: %w", p, err)
+		var siblings []int32
+		for _, id := range reaches[p] {
+			siblings = append(siblings, siblingsOf[id]...)
 		}
 		out[p] = namedIDs(t, roots[p], siblings)
 	}

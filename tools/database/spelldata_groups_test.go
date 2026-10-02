@@ -441,7 +441,7 @@ func TestParseSpellDataGroups(t *testing.T) {
 func TestCurrentSpellDataGroupsChecksOnlyTheExtractedBuild(t *testing.T) {
 	in := groupWorld(1, 1)
 	in.Builds["warrior"] = "new"
-	only, behind := currentSpellDataGroups(in, "new")
+	only, behind := currentSpellDataGroups(in.Builds, "new")
 	if !only.Takes("warrior") || only.Takes("mage") || !only.Takes(groupItems) {
 		t.Errorf("checked groups = %v, want the warrior, items and shared", only)
 	}

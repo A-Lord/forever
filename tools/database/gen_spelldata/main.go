@@ -38,11 +38,7 @@ func main() {
 	database.DatabasePath = *dbPath
 	database.EveryClassSpell = *everyClassSpell
 
-	only, err := database.ParseSpellDataGroups(*classes, *racials)
-	if err != nil {
-		log.Fatalf("-classes: %v", err)
-	}
-	if only != nil && (*check || *everyClassSpell) {
+	if (*classes != "" || *racials) && (*check || *everyClassSpell) {
 		log.Fatalf("-classes and -racials do not combine with -check or -everyClassSpell")
 	}
 
@@ -69,10 +65,11 @@ func main() {
 		return
 	}
 
-	if only == nil && !*everyClassSpell {
+	var only database.SpellDataGroups
+	if !*everyClassSpell {
 		var behind []string
-		if only, behind, err = database.DefaultSpellDataGroups(helper); err != nil {
-			log.Fatalf("failed to read the committed spell data groups: %v", err)
+		if only, behind, err = database.ResolveSpellDataGroups(helper, *classes, *racials); err != nil {
+			log.Fatalf("spell data groups: %v", err)
 		}
 		for _, line := range behind {
 			fmt.Fprintf(os.Stderr, "kept, not ported: %s\n", line)

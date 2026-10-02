@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"go/format"
+	"io"
 	"maps"
 	"math"
-	"os"
 	"regexp"
 	"sort"
 	"strconv"
@@ -1204,14 +1204,24 @@ func overrideReplacements(db *sql.DB, ids map[int32]bool) (map[int32]bool, error
 // happens to them is writeSpellDataFiles' business, and -check's business is that nothing does.
 //
 // A spell data group only does not take keeps the committed inputs' rows, and a class it does not take
-// keeps its committed class file, which is therefore not among the files returned.
-func renderSpellDataFiles(helper *DBHelper, only SpellDataGroups) (map[string][]byte, *storeInputs, error) {
+// keeps its committed class file, which is therefore not among the files returned. committed is nil
+// where no inputs are committed yet.
+func renderSpellDataFiles(helper *DBHelper, only SpellDataGroups, committed *storeInputs) (map[string][]byte, *storeInputs, error) {
 	if err := RequireSpellCastTimes(helper); err != nil {
 		return nil, nil, err
 	}
 	version, err := buildVersion(helper)
 	if err != nil {
 		return nil, nil, err
+	}
+	if committed == nil && !only.all() {
+		return nil, nil, fmt.Errorf("%s is missing, so there is nothing to keep the groups not taken from", spellStoreInputsPath)
+	}
+	if committed != nil {
+		if later := groupsOnALaterBuild(committed, only, version); len(later) > 0 {
+			return nil, nil, fmt.Errorf("the game files database is %s, and %s already record a later build: "+
+				"extract the later build, or leave those groups out", version, strings.Join(later, ", "))
+		}
 	}
 
 	// Rendered in full before anything is written, so a class that fails validation cannot leave half
@@ -1236,7 +1246,7 @@ func renderSpellDataFiles(helper *DBHelper, only SpellDataGroups) (map[string][]
 		return nil, nil, err
 	}
 	for _, class := range dbc.Classes {
-		pkg := strings.ToLower(dbc.ClassNameFromDBC(class))
+		pkg := classGroup(class)
 		out, files, roots, err := discoverClass(helper.db, class, pkg, trees, runeOnly)
 		if err != nil {
 			// A class the run does not take keeps its committed rows and files, so a new build it cannot
@@ -1261,20 +1271,7 @@ func renderSpellDataFiles(helper *DBHelper, only SpellDataGroups) (map[string][]
 	if err != nil {
 		return nil, nil, err
 	}
-	var committed *storeInputs
-	if _, statErr := os.Stat(spellStoreInputsPath); statErr == nil {
-		if committed, err = readStoreInputs(spellStoreInputsPath); err != nil {
-			return nil, nil, err
-		}
-		if later := groupsOnALaterBuild(committed, only, version); len(later) > 0 {
-			return nil, nil, fmt.Errorf("the game files database is %s, and %s already record a later build: "+
-				"extract the later build, or leave those groups out", version, strings.Join(later, ", "))
-		}
-	}
 	if !only.all() {
-		if committed == nil {
-			return nil, nil, fmt.Errorf("%s is missing, so there is nothing to keep the groups not taken from", spellStoreInputsPath)
-		}
 		var notes []string
 		inputs, notes, err = mergeStoreInputs(committed, inputs, only, version)
 		if err != nil {
@@ -1284,7 +1281,7 @@ func renderSpellDataFiles(helper *DBHelper, only SpellDataGroups) (map[string][]
 			fmt.Fprintf(progress, "spelldata: %s\n", note)
 		}
 	}
-	if committed != nil {
+	if committed != nil && progress != io.Discard {
 		for _, line := range changeReport(committed, inputs, only, version) {
 			fmt.Fprintf(progress, "spelldata: %s\n", line)
 		}
