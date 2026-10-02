@@ -256,8 +256,7 @@ endif
 # CLASSES and RACIALS choose what `make db`, `make ptrdb` and `make spelldata` take from the extracted
 # build. `make db CLASSES=druid` takes the druid and keeps every other class as committed;
 # `CLASSES=all` and `CLASSES=none` name every class or none. `RACIALS=1` takes the racials. With
-# neither set, the run takes the default spell data groups. See "Taking a new game build one spell data group at a time" in
-# docs/spell_data.md.
+# neither set, the run takes the default spell data groups. See docs/spell_data/partial-updates.md.
 CLASSES ?=
 RACIALS ?=
 SPELLDATA_FLAGS := $(if $(CLASSES),-classes=$(CLASSES)) $(if $(filter 1 true yes,$(RACIALS)),-racials)

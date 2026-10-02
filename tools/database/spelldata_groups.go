@@ -98,7 +98,7 @@ func (only SpellDataGroups) all() bool {
 func buildVersion(helper *DBHelper) (string, error) {
 	if !helper.tableExists("BuildInfo") {
 		return "", fmt.Errorf("the game files database names no game build (no BuildInfo table): stamp the build it holds " +
-			"(see \"Taking a new game build one spell data group at a time\" in docs/spell_data.md), or extract it again with `make db`")
+			"(see docs/spell_data/partial-updates.md), or extract it again with `make db`")
 	}
 	var version string
 	if err := helper.db.QueryRow(`SELECT Version FROM BuildInfo`).Scan(&version); err != nil {
