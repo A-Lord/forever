@@ -301,9 +301,20 @@ func applyExpansiveMind(character *Character) {
 	}
 }
 
-// What every Eureka! row states: idx0 SPELLMOD_COST -10%, idx1 SPELLMOD_DAMAGE +10%, idx2 SPELLMOD_DOT +10%.
-const eurekaCostReduction = 0.1
-const eurekaDamageBonus = 0.1
+// One class's Eureka! row: the class mask and the fraction of its idx0 SPELLMOD_COST, idx1
+// SPELLMOD_DAMAGE and idx2 SPELLMOD_DOT, zero where the row states no SPELLMOD_DOT.
+type EurekaMods struct {
+	CostFlags, DamageFlags, ChannelFlags ClassFlags
+	Cost, Damage, Channel                float64
+}
+
+var eurekaMods func(spellID int32) EurekaMods
+
+// The rows sit in the spell store, which imports core, so sim/core/buffs registers their reader from
+// its init.
+func RegisterEurekaMods(read func(spellID int32) EurekaMods) {
+	eurekaMods = read
+}
 
 // Eureka! scopes its mods to each class's abilities by the game files' class masks: idx0 of each row
 // names the spells whose cost it lowers, idx1 the ones whose direct damage it raises, and idx2, on the
@@ -312,62 +323,53 @@ const eurekaDamageBonus = 0.1
 func applyEureka(character *Character) {
 	var spellID int32
 	var resourceType proto.ResourceType
-	var costFlags, damageFlags, channelFlags ClassFlags
 	procMask := ProcMaskSpecial
 	spendCallback := CallbackOnSpellHitDealt
 
 	switch character.Class {
 	case proto.Class_ClassRogue:
 		spellID, resourceType = 1259812, proto.ResourceType_ResourceTypeEnergy
-		costFlags = ClassFlags{Family: 8, Mask: [4]uint32{100794910, 2097408}}
-		damageFlags = costFlags
 	case proto.Class_ClassWarrior:
 		spellID, resourceType = 1259813, proto.ResourceType_ResourceTypeRage
-		costFlags = ClassFlags{Family: 4, Mask: [4]uint32{1784679630, 5, 1}}
-		damageFlags = costFlags
 	case proto.Class_ClassMage:
 		spellID, resourceType = 1259817, proto.ResourceType_ResourceTypeMana
-		costFlags = ClassFlags{Family: 3, Mask: [4]uint32{549591799, 4096}}
-		damageFlags = ClassFlags{Family: 3, Mask: [4]uint32{551688947, 4096, 0, 8}}
 	case proto.Class_ClassWarlock:
 		spellID, resourceType = 1259821, proto.ResourceType_ResourceTypeMana
-		costFlags = ClassFlags{Family: 5, Mask: [4]uint32{541165, 8650880}}
-		damageFlags = ClassFlags{Family: 5, Mask: [4]uint32{524773, 8388736}}
-		channelFlags = ClassFlags{Family: 5, Mask: [4]uint32{16392, 262144}}
 	case proto.Class_ClassPriest:
 		spellID, resourceType = 1259823, proto.ResourceType_ResourceTypeMana
-		costFlags = ClassFlags{Family: 6, Mask: [4]uint32{150224528, 8388614}}
-		damageFlags = ClassFlags{Family: 6, Mask: [4]uint32{150224528, 8486918}}
-		channelFlags = ClassFlags{Family: 6, Mask: [4]uint32{10485760, 98304}}
 		procMask |= ProcMaskSpellHealing
 		spendCallback |= CallbackOnHealDealt
 	default:
 		return
 	}
 
+	if eurekaMods == nil {
+		panic(`no Eureka! rows are registered: import _ "github.com/wowsims/forever/sim/core/buffs"`)
+	}
+	mods := eurekaMods(spellID)
 	actionID := ActionID{SpellID: spellID}
 
 	costMod := character.AddDynamicMod(SpellModConfig{
 		Kind:         SpellMod_PowerCost_Pct,
-		ClassFlags:   costFlags,
+		ClassFlags:   mods.CostFlags,
 		ProcMask:     procMask,
 		ResourceType: resourceType,
-		FloatValue:   -eurekaCostReduction,
+		FloatValue:   mods.Cost,
 	})
 	damageMod := character.AddDynamicMod(SpellModConfig{
 		Kind:       SpellMod_DirectDamageDone_Flat,
-		ClassFlags: damageFlags,
+		ClassFlags: mods.DamageFlags,
 		ProcMask:   procMask,
-		FloatValue: eurekaDamageBonus,
+		FloatValue: mods.Damage,
 	})
 	// TODO: Ingame test needed: whether a channel that spends a stack keeps the bonus on all of its
 	// ticks once the aura has ended, the last stack included.
 	isEurekaChannel := func(spell *Spell) bool {
 		return spell.Flags.Matches(SpellFlagChanneled) && !spell.Flags.Matches(SpellFlagNoSpellMods) &&
-			spell.MatchesFlags(channelFlags) && procMask.Matches(spell.ProcMask)
+			spell.MatchesFlags(mods.ChannelFlags) && procMask.Matches(spell.ProcMask)
 	}
 	var boostedChannels map[*Dot]bool
-	if !channelFlags.IsZero() {
+	if !mods.ChannelFlags.IsZero() {
 		boostedChannels = make(map[*Dot]bool)
 		// The channel's own expire hook comes first, so its final tick keeps the bonus.
 		character.OnSpellRegistered(func(spell *Spell) {
@@ -380,7 +382,7 @@ func applyEureka(character *Character) {
 				}
 				dot.ApplyOnExpire(func(_ *Aura, _ *Simulation) {
 					if boostedChannels[dot] {
-						dot.PeriodicDamageMultiplier /= 1 + eurekaDamageBonus
+						dot.PeriodicDamageMultiplier /= 1 + mods.Channel
 						delete(boostedChannels, dot)
 					}
 				})
@@ -407,9 +409,9 @@ func applyEureka(character *Character) {
 		},
 	})
 
-	spendFlags := costFlags
+	spendFlags := mods.CostFlags
 	for i := range spendFlags.Mask {
-		spendFlags.Mask[i] |= damageFlags.Mask[i]
+		spendFlags.Mask[i] |= mods.DamageFlags.Mask[i]
 	}
 
 	aura.AttachProcTrigger(ProcTrigger{
@@ -431,7 +433,7 @@ func applyEureka(character *Character) {
 					dot = spell.Dot(result.Target)
 				}
 				if dot != nil && dot.IsActive() && !boostedChannels[dot] {
-					dot.PeriodicDamageMultiplier *= 1 + eurekaDamageBonus
+					dot.PeriodicDamageMultiplier *= 1 + mods.Channel
 					boostedChannels[dot] = true
 				}
 			}
