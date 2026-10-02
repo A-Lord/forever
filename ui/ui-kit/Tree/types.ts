@@ -4,7 +4,6 @@ import type { ReactNode } from 'react';
 export type TreeDensity = 'default' | 'compact';
 /** `inline` puts the body on the header row, between the title and the trigger. */
 export type TreeLayout = 'default' | 'inline';
-export type TreeOrientation = 'vertical' | 'horizontal';
 
 export interface TreeRef {
 	group: string;
@@ -35,9 +34,6 @@ export interface TreeSortable {
 	canDrop?: (from: TreeRef, to: TreeDropRef) => boolean;
 }
 
-/** `handle`: a press on `Tree.Item.Handle` starts a drag; `header`: a press anywhere on the header outside a text field. */
-export type TreeHandle = 'handle' | 'header';
-
 interface TreePartProps {
 	className?: string;
 	testId?: string;
@@ -54,11 +50,8 @@ export interface TreeRootProps extends TreePartProps {
 	/** Nested roots inherit it. */
 	density?: TreeDensity;
 	layout?: TreeLayout;
-	orientation?: TreeOrientation;
 	/** Makes the items draggable. The topmost sortable root owns the drag; the roots nested under it share it and ignore their own. */
 	sortable?: TreeSortable;
-	/** Nested roots inherit it. */
-	handle?: TreeHandle;
 	/** Nested roots inherit it. */
 	disabled?: boolean;
 	children: ReactNode;
@@ -71,10 +64,6 @@ export interface TreeItemsProps extends TreePartProps {
 export interface TreeItemProps extends TreePartProps {
 	/** Stable identity, used for moves and as the `parentId` of the items nested under it. */
 	id: string;
-	/** Omit for an uncontrolled item, which starts from `defaultOpen`. */
-	open?: boolean;
-	defaultOpen?: boolean;
-	onOpenChange?: (open: boolean) => void;
 	disabled?: boolean;
 	/** Fades the handle and title while the item stays movable and openable; for a row whose body is switched off. */
 	muted?: boolean;

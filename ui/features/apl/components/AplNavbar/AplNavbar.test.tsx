@@ -1,6 +1,6 @@
 import { Tabs } from '@base-ui/react/tabs';
 import type { AplPaneId } from '@features/apl/model/apl_panes';
-import { FakeIntersectionObserver } from '@features/apl/testing_dom';
+import { FakeIntersectionObserver } from '@testing/apl/dom';
 import { fireEvent, render } from '@testing-library/react';
 import { act } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

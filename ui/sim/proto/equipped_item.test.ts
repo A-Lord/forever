@@ -2,7 +2,7 @@ import { GemColor, ItemType } from '@generated/proto/common';
 import { UIEnchant as Enchant, UIGem as Gem, UIItem as Item } from '@generated/proto/ui';
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('@i18n/localization', async () => (await import('./testing')).localizationStub);
+vi.mock('@i18n/localization', async () => (await import('@testing/sim/localization')).localizationStub);
 
 import { EquippedItem } from './equipped_item';
 

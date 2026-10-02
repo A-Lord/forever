@@ -27,16 +27,12 @@ const ToastStory = ({ variant, ...props }: ToastStoryProps) => {
 	return <ToastArea {...props} manager={manager} />;
 };
 
-const InlineStory = (props: ToastStoryProps) => {
-	const [host, setHost] = useState<HTMLDivElement | null>(null);
-	return (
-		<div className="w-86">
-			<p>The area renders in flow, inside this column:</p>
-			<div ref={setHost} />
-			{host && <ToastStory {...props} container={host} inline />}
-		</div>
-	);
-};
+const InlineStory = (props: ToastStoryProps) => (
+	<div className="w-86">
+		<p>The area renders in flow, inside this column:</p>
+		<ToastStory {...props} inline />
+	</div>
+);
 
 const StackStory = (props: Omit<ToastAreaProps, 'manager'>) => {
 	const [manager] = useState(createToastManager);
@@ -63,7 +59,6 @@ const meta = {
 	args: { variant: 'info' },
 	argTypes: {
 		variant: { control: 'select', options: Object.keys(BODIES) },
-		container: { control: false },
 	},
 } satisfies Meta<typeof ToastStory>;
 

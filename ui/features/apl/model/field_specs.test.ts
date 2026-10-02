@@ -17,7 +17,6 @@ import {
 	executePhaseThresholdFieldConfig,
 	groupNameFieldConfig,
 	groupReferenceVariablesFieldConfig,
-	hotwStrategyFieldConfig,
 	itemSwapSetFieldConfig,
 	makeUseDotBaseValueCheckbox,
 	mathOperatorFieldConfig,
@@ -42,7 +41,6 @@ describe('resolveField kinds', () => {
 	it('resolves the fixed-enum descriptor types to kind enum', () => {
 		const descriptors = [
 			eclipseTypeFieldConfig('f'),
-			hotwStrategyFieldConfig('f'),
 			curseTypeFieldConfig('f'),
 			autoTypeFieldConfig('f'),
 			autoSwingTypeFieldConfig('f'),

@@ -20,8 +20,6 @@ const meta = {
 		side: { control: 'select', options: SIDES },
 		trigger: { control: false },
 		children: { control: false },
-		headerChildren: { control: false },
-		title: { control: 'text' },
 		style: { control: false },
 		ignoreOutsidePress: { control: false },
 	},
@@ -36,17 +34,10 @@ export const Sides: Story = {
 	render: args => (
 		<div className="flex gap-2">
 			{SIDES.map(side => (
-				<Drawer key={side} {...args} side={side} title={`${side} drawer`} trigger={<Button>Open {side}</Button>} />
+				<Drawer key={side} {...args} side={side} trigger={<Button>Open {side}</Button>} />
 			))}
 		</div>
 	),
-};
-
-export const WithHeader: Story = {
-	args: {
-		title: 'Filters',
-		headerChildren: <span className="ml-auto text-sm text-border">3 active</span>,
-	},
 };
 
 export const NonModal: Story = {
@@ -54,11 +45,10 @@ export const NonModal: Story = {
 };
 
 export const Opens: Story = {
-	args: { title: 'Filters' },
 	play: async ({ args, canvasElement }) => {
 		const canvas = within(canvasElement);
 		await userEvent.click(canvas.getByRole('button', { name: 'Open drawer' }));
-		const drawer = await canvas.findByRole('dialog', { name: 'Filters' });
+		const drawer = await canvas.findByRole('dialog');
 		await expect(canvasElement.querySelector('[data-testid="storybook-portal"]')?.contains(drawer)).toBe(true);
 		await expect(args.onOpenChange).toHaveBeenCalledWith(true);
 	},

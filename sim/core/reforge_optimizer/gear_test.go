@@ -3,8 +3,10 @@
 package reforgeoptimizer
 
 import (
+	"slices"
 	"testing"
 
+	assetsdb "github.com/wowsims/forever/assets/database"
 	"github.com/wowsims/forever/sim"
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
@@ -127,7 +129,7 @@ func TestMinimizeRegemsKeepsDifferentStatSocketBonus(t *testing.T) {
 // against. They are kept rather than deleted -- the behaviour they pin is still correct.
 func requireSocketedItems(t *testing.T) {
 	t.Helper()
-	if len(core.ItemsWithSockets()) > 0 {
+	if slices.ContainsFunc(assetsdb.Load().Items, func(item *proto.UIItem) bool { return len(item.GemSockets) > 0 }) {
 		return
 	}
 	t.Skip("no socketed items in the database - Forever encrypts item stats until discovery")

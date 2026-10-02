@@ -7,7 +7,7 @@ import { useTreeItems } from './hooks/useTreeItems';
 import { useTreeRoot } from './hooks/useTreeRoot';
 import type { TreeItemProps } from './types';
 
-export const Item = ({ id, open: openProp, defaultOpen = true, onOpenChange, disabled, muted, className, testId, children }: TreeItemProps) => {
+export const Item = ({ id, disabled, muted, className, testId, children }: TreeItemProps) => {
 	const root = useTreeRoot();
 	const { register, unregister, indexOf, check } = useTreeItems();
 	const key = useId();
@@ -21,16 +21,7 @@ export const Item = ({ id, open: openProp, defaultOpen = true, onOpenChange, dis
 
 	useLayoutEffect(() => check(key, index));
 
-	const [ownOpen, setOwnOpen] = useState(defaultOpen);
-	const controlled = openProp !== undefined;
-	const open = controlled ? openProp : ownOpen;
-	const setOpen = useCallback(
-		(next: boolean) => {
-			if (!controlled) setOwnOpen(next);
-			onOpenChange?.(next);
-		},
-		[controlled, onOpenChange],
-	);
+	const [open, setOpen] = useState(true);
 
 	const [parts, setParts] = useState({ body: false, children: false });
 	const mountPart = useCallback((part: 'body' | 'children') => {
@@ -42,12 +33,10 @@ export const Item = ({ id, open: openProp, defaultOpen = true, onOpenChange, dis
 	const controls = [parts.body && bodyId, parts.children && childrenId].filter(Boolean).join(' ') || undefined;
 
 	const itemDisabled = root.disabled || !!disabled;
-	const { armed, drag, drop, itemProps, handleProps, headerProps, childrenProps } = useItemSortable({
+	const { armed, drag, drop, itemProps, handleProps, childrenProps } = useItemSortable({
 		key,
 		element,
 		place: { group: root.group, id, index, parentId: root.parentId },
-		orientation: root.orientation,
-		header: root.handle === 'header',
 		disabled: itemDisabled,
 	});
 	const value = useMemo<TreeItemContextValue>(
@@ -64,10 +53,9 @@ export const Item = ({ id, open: openProp, defaultOpen = true, onOpenChange, dis
 			controls,
 			mountPart,
 			handleProps,
-			headerProps,
 			childrenProps,
 		}),
-		[id, index, root.parentId, open, setOpen, drag, itemDisabled, bodyId, childrenId, controls, mountPart, handleProps, headerProps, childrenProps],
+		[id, index, root.parentId, open, setOpen, drag, itemDisabled, bodyId, childrenId, controls, mountPart, handleProps, childrenProps],
 	);
 
 	return (

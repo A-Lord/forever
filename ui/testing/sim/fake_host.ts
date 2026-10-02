@@ -1,5 +1,5 @@
-import type { IndividualSimHost } from './sim_host';
-import type { StoreSubscribe } from './state/subscriptions';
+import type { IndividualSimHost } from '@sim/sim_host';
+import type { StoreSubscribe } from '@sim/state/subscriptions';
 
 // No vitest import here or below: Storybook loads this module in the browser through the story fixtures.
 

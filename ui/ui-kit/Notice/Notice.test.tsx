@@ -23,16 +23,4 @@ describe('Notice', () => {
 		expect(notice.firstElementChild).toBe(icon(notice));
 		expect(icon(notice).getAttribute('data-icon')).toBe(glyph);
 	});
-
-	it('renders inline as a span, so it can sit inside a sentence', () => {
-		render(
-			<p>
-				Before{' '}
-				<Notice level="warning" inline testId="notice">
-					inline
-				</Notice>
-			</p>,
-		);
-		expect(screen.getByTestId('notice').tagName).toBe('SPAN');
-	});
 });

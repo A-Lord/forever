@@ -1,7 +1,7 @@
 import { AplProvider } from '@features/apl/context/AplContext';
 import { actionKindOptions } from '@features/apl/model/kind_options';
-import { makePlayer } from '@features/apl/testing';
 import { APLAction, APLRotation } from '@generated/proto/apl';
+import { makePlayer } from '@testing/apl/player';
 import { act, render } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -17,7 +17,7 @@ const source = vi.hoisted(() => {
 	};
 });
 
-vi.mock('@sim/state/subscriptions', async () => (await import('@sim/testing')).mockSubscriptions(source.subscribe));
+vi.mock('@sim/state/subscriptions', async () => (await import('@testing/sim/subscriptions')).mockSubscriptions(source.subscribe));
 vi.mock('@i18n/config', () => ({ default: { t: (key: string) => key } }));
 
 let rotation: APLRotation;

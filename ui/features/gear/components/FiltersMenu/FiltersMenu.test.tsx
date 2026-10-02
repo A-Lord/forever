@@ -1,17 +1,19 @@
 import { ArmorType, ItemSlot, RangedWeaponType, WeaponType } from '@generated/proto/common';
 import { DatabaseFilters, SourceFilterOption, UIItem_FactionRestriction } from '@generated/proto/ui';
 import { SimHostProvider } from '@sim/context/SimHostContext';
-import { fakeHost } from '@sim/testing';
+import { storeSource as store } from '@testing/gear';
 import { renderWithHost } from '@testing/react';
+import { fakeHost } from '@testing/sim/fake_host';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PortalContainerContext } from '@ui-kit/hooks/usePortalContainer';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { storeSource as store } from '../../testing';
 import type { FiltersMenuViewProps } from './FiltersMenu';
 
-vi.mock('@sim/state/subscriptions', async () => (await import('@sim/testing')).mockSubscriptions((await import('../../testing')).storeSource.subscribe));
+vi.mock('@sim/state/subscriptions', async () =>
+	(await import('@testing/sim/subscriptions')).mockSubscriptions((await import('@testing/gear')).storeSource.subscribe),
+);
 
 const { FiltersMenu, FiltersMenuView } = await import('./FiltersMenu');
 
@@ -148,13 +150,13 @@ const renderView = (props: Partial<FiltersMenuViewProps> = {}) => {
 	return { onFiltersChange, lastEdit };
 };
 
-const sections = () => screen.getAllByTestId('menu-section-title').map(node => node.textContent);
+const viewSections = () => screen.getAllByTestId('menu-section-title').map(node => node.textContent);
 const input = (id: string) => document.getElementById(id) as HTMLInputElement;
 
 describe('FiltersMenuView', () => {
 	it('gives an armor slot the armor type section after the general, source and raid ones', () => {
 		renderView();
-		expect(sections()).toEqual([
+		expect(viewSections()).toEqual([
 			'gear_tab.gear_picker.filters.general',
 			'gear_tab.gear_picker.filters.source',
 			'gear_tab.gear_picker.filters.raids',
@@ -164,13 +166,13 @@ describe('FiltersMenuView', () => {
 
 	it('gives a weapon slot the weapon sections, with off hand speeds for a dual wielder', () => {
 		renderView({ slot: ItemSlot.ItemSlotMainHand, canDualWield: true });
-		expect(sections().slice(3)).toEqual(['gear_tab.gear_picker.weapon_type', 'gear_tab.gear_picker.weapon_speed']);
+		expect(viewSections().slice(3)).toEqual(['gear_tab.gear_picker.weapon_type', 'gear_tab.gear_picker.weapon_speed']);
 		expect(input('filters-min-oh-weapon-speed')).not.toBeNull();
 	});
 
 	it('gives the ranged slot the ranged sections', () => {
 		renderView({ slot: ItemSlot.ItemSlotRanged });
-		expect(sections().slice(3)).toEqual(['gear_tab.gear_picker.ranged_weapon_type', 'gear_tab.gear_picker.ranged_weapon_speed']);
+		expect(viewSections().slice(3)).toEqual(['gear_tab.gear_picker.ranged_weapon_type', 'gear_tab.gear_picker.ranged_weapon_speed']);
 	});
 
 	// One type is no choice at all, so the section is not worth the space.
@@ -179,7 +181,7 @@ describe('FiltersMenuView', () => {
 		['ranged', { slot: ItemSlot.ItemSlotRanged, rangedWeaponTypes: [RangedWeaponType.RangedWeaponTypeGun] }],
 	] as const)('leaves the %s type section out for a class with a single type', (_kind, props) => {
 		renderView(props);
-		expect(sections()).toEqual(['gear_tab.gear_picker.filters.general', 'gear_tab.gear_picker.filters.source', 'gear_tab.gear_picker.filters.raids']);
+		expect(viewSections()).toEqual(['gear_tab.gear_picker.filters.general', 'gear_tab.gear_picker.filters.source', 'gear_tab.gear_picker.filters.raids']);
 	});
 
 	it('shows the filters it is handed', async () => {

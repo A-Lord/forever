@@ -2,8 +2,4 @@
 	.ui-notice {
 		@apply flex items-baseline gap-2;
 	}
-
-	.ui-notice-inline {
-		@apply inline-flex items-baseline gap-1;
-	}
 }

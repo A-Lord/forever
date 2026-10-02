@@ -78,10 +78,10 @@ export interface SpellStats {
 /**
  * Drops the rank from every id no other entry shares at another rank, so only a spell the sim
  * registers at several ranks reads "(Rank N)" and gets a rank submenu. Entries are the same spell
- * when they share `nameOf` and the tag.
+ * when they share the base name and the tag.
  */
-export const dropLoneRanks = <T extends { id: ActionId }>(entries: Array<T>, nameOf: (id: ActionId) => string = id => id.baseName): Array<T> => {
-	const keyOf = (id: ActionId) => `${nameOf(id)}|${id.tag}`;
+const dropLoneRanks = <T extends { id: ActionId }>(entries: Array<T>): Array<T> => {
+	const keyOf = (id: ActionId) => `${id.baseName}|${id.tag}`;
 	const ranks = new Map<string, Set<number>>();
 	for (const { id } of entries) {
 		if (!id.hasRank) continue;
@@ -237,7 +237,7 @@ export function registerSpecConfig<SpecType extends Spec>(spec: SpecType, config
 	SPEC_CONFIGS[spec] = config;
 }
 
-export function getSpecConfig<SpecType extends Spec>(spec: SpecType): PlayerConfig<SpecType> {
+function getSpecConfig<SpecType extends Spec>(spec: SpecType): PlayerConfig<SpecType> {
 	const config = SPEC_CONFIGS[spec] as PlayerConfig<SpecType>;
 	if (!config) {
 		throw new Error('No config registered for Spec: ' + spec);

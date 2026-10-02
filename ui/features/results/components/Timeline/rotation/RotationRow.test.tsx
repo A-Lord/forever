@@ -1,3 +1,4 @@
+import { actionId, castItem, castRow } from '@testing/timeline_rotation';
 import { fireEvent, render } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -5,7 +6,6 @@ import type { ContentRow, HeaderRow, ResourceRow, SeparatorRow } from '../../../
 import { RotationHeaderRow } from './RotationHeaderRow';
 import { RotationRow } from './RotationRow';
 import { RotationSeparatorRow } from './RotationSeparatorRow';
-import { actionId, castItem, castRow } from './testing';
 
 vi.mock('./RotationRowIcon', () => ({
 	RotationRowIcon: ({ tooltip }: { tooltip?: string }) => <a data-testid="rotation-row-icon" data-tooltip-kind={tooltip ?? 'none'} />,

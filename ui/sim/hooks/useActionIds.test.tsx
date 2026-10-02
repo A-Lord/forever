@@ -1,8 +1,8 @@
 import { ActionId } from '@sim/proto/action_id';
+import { deferFill, filled } from '@testing/sim/hooks';
 import { act, render } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { deferFill, filled } from './testing';
 import { useActionIds } from './useActionIds';
 
 const seen: Array<ReturnType<typeof useActionIds>> = [];

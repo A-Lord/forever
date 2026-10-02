@@ -265,11 +265,9 @@ describe('BulkItemPicker on the frozen main-hand cell when the player swaps that
 	});
 });
 
-const ITEM = { id: 1 } as unknown as EquippedItem;
-
 const renderPicker = (state: BulkItemPickerState, onRemove?: () => void) => {
 	const onOpen = vi.fn();
-	render(<BulkItemPickerView slot={ItemSlot.ItemSlotFinger1} item={ITEM} state={state} onOpen={onOpen} onRemove={onRemove} />);
+	render(<BulkItemPickerView slot={ItemSlot.ItemSlotFinger1} item={BATCHED} state={state} onOpen={onOpen} onRemove={onRemove} />);
 	return { onOpen, cell: screen.getByTestId('bulk-item-picker') };
 };
 

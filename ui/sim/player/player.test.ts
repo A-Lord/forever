@@ -1,10 +1,11 @@
+import { AuraStats as AuraStatsProto, SpellStats as SpellStatsProto, UnitMetadata as UnitMetadataProto } from '@generated/proto/api';
 import { Debuffs } from '@generated/proto/buffs';
-import { PseudoStat, Stat } from '@generated/proto/common';
-import { describe, expect, it } from 'vitest';
+import { ActionID as ActionIdProto, PseudoStat, Stat } from '@generated/proto/common';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ActionId } from '../proto/action_id';
 import { Stats } from '../proto/stats';
-import { dropLoneRanks, Player } from './player';
+import { Player, UnitMetadata } from './player';
 
 // getDebuffStats reads nothing but the raid's debuffs, so the method is called against that one
 // dependency rather than against a constructed Player, which needs a whole sim behind it.
@@ -36,25 +37,39 @@ describe('Player.getDebuffStats', () => {
 	});
 });
 
-describe('dropLoneRanks', () => {
-	// Spell ids stand in for names: 2120 and 2121 are two ranks of one spell, 25304 has only one.
+describe('UnitMetadata ranks', () => {
+	// 2120 and 2121 are two ranks of Flamestrike, 25304 the only rank of Frostbolt the sim registers.
 	const names: Record<number, string> = { 2120: 'Flamestrike', 2121: 'Flamestrike', 25304: 'Frostbolt' };
-	const ranksOf = (ids: Array<ActionId>) =>
-		dropLoneRanks(
-			ids.map(id => ({ id })),
-			id => names[id.spellId],
-		).map(({ id }) => id.rank);
-
-	it('keeps the ranks of a spell registered at several', () => {
-		expect(ranksOf([ActionId.fromSpellId(2120, 1), ActionId.fromSpellId(2121, 2)])).toEqual([1, 2]);
+	beforeEach(() => {
+		vi.spyOn(ActionId, 'getTooltipData').mockImplementation(async id => ({ id: id.spellId, name: names[id.spellId], icon: '' }) as never);
 	});
 
-	it('drops the rank of a spell registered at one', () => {
-		expect(ranksOf([ActionId.fromSpellId(25304, 11), ActionId.fromSpellId(2120, 1), ActionId.fromSpellId(2121, 2)])).toEqual([0, 1, 2]);
+	const actionId = (spellId: number, rank: number, tag = 0) => ActionIdProto.create({ rawId: { oneofKind: 'spellId', spellId }, rank, tag });
+	const ranksOf = async (ids: Array<ActionIdProto>) => {
+		const metadata = new UnitMetadata();
+		await metadata.update(
+			UnitMetadataProto.create({
+				spells: ids.map(id => SpellStatsProto.create({ id })),
+				auras: ids.map(id => AuraStatsProto.create({ id })),
+			}),
+		);
+		const rankMap = (entries: Array<{ id: ActionId }>) => Object.fromEntries(entries.map(({ id }) => [`${id.spellId}|${id.tag}`, id.rank]));
+		return { spells: rankMap(metadata.getSpells()), auras: rankMap(metadata.getAuras()) };
+	};
+
+	it('keeps the ranks of a spell registered at several', async () => {
+		const ranks = { '2120|0': 1, '2121|0': 2 };
+		expect(await ranksOf([actionId(2120, 1), actionId(2121, 2)])).toEqual({ spells: ranks, auras: ranks });
+	});
+
+	it('drops the rank of a spell registered at one', async () => {
+		const ranks = { '25304|0': 0, '2120|0': 1, '2121|0': 2 };
+		expect(await ranksOf([actionId(25304, 11), actionId(2120, 1), actionId(2121, 2)])).toEqual({ spells: ranks, auras: ranks });
 	});
 
 	// A spell and its DoT, registered as a second spell under another tag, count apart.
-	it('counts one spell under two tags as two', () => {
-		expect(ranksOf([ActionId.fromSpellId(25304, 11), ActionId.fromSpellId(25304, 11, 1)])).toEqual([0, 0]);
+	it('counts one spell under two tags as two', async () => {
+		const ranks = { '25304|0': 0, '25304|1': 0 };
+		expect(await ranksOf([actionId(25304, 11), actionId(25304, 11, 1)])).toEqual({ spells: ranks, auras: ranks });
 	});
 });

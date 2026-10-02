@@ -1,4 +1,4 @@
-import { FakeSource } from '@features/inputs/testing';
+import { FakeSource } from '@testing/inputs';
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ChoiceOption } from '@ui-kit/ChoiceField';

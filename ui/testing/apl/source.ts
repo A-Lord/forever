@@ -7,8 +7,8 @@
  *
  * ```ts
  * vi.mock('@sim/state/subscriptions', async () => {
- * 	const { mockSubscriptions } = await import('@sim/testing');
- * 	return mockSubscriptions((await import('@features/apl/testing_source')).source.subscribe);
+ * 	const { mockSubscriptions } = await import('@testing/sim/subscriptions');
+ * 	return mockSubscriptions((await import('@testing/apl/source')).source.subscribe);
  * });
  * ```
  *

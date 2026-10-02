@@ -11,7 +11,7 @@ export const formatSearchQuery = (value: string): string =>
 		.toLowerCase()
 		.replaceAll(/[^\p{L}\p{N}\s]/gu, '');
 
-export const itemSourceSearchNames = <T extends ItemListType>(itemData: ItemDataFields<T>, getNpcName: NpcNameLookup): string[] => {
+const itemSourceSearchNames = <T extends ItemListType>(itemData: ItemDataFields<T>, getNpcName: NpcNameLookup): string[] => {
 	if (!('item' in itemData) || typeof itemData.item != 'object' || !('sources' in itemData.item)) return [];
 	return itemData.item.sources
 		.map(src => {

@@ -12,8 +12,6 @@ import type { GearChangeIconViewProps } from './GearChangeIcon';
 vi.mock('@sim/hooks/useActionId', () => ({ useActionId: () => ({ iconUrl: 'icon.png', name: 'Item', href: 'https://wowhead/item', ready: true }) }));
 vi.mock('@sim/hooks/useWowheadDataset', () => ({ useWowheadDataset: () => ({}) }));
 vi.mock('@sim/proto/action_id/tooltip_data', () => ({ equippedItemWowheadTooltipData: () => Promise.resolve('') }));
-vi.mock('../../model/empty_slot_icons', () => ({ getEmptySlotIconUrl: () => 'empty-slot.png' }));
-vi.mock('@sim/proto/gems', () => ({ getEmptyGemSocketIconUrl: (color: number) => `socket-${color}.png` }));
 
 const { GearChangeIcon, GearChangeIconView } = await import('./GearChangeIcon');
 const { enchantChanged, gearChangeSockets } = await import('./utils');
@@ -33,7 +31,9 @@ describe('GearChangeIcon', () => {
 	it('renders the empty frame for a slot with no item', () => {
 		const { container } = renderIcon({ slot: ItemSlot.ItemSlotHead });
 
-		expect(container.querySelector('[data-testid="item-picker-icon-wrapper"]')?.getAttribute('style')).toContain('empty-slot.png');
+		expect(container.querySelector('[data-testid="item-picker-icon-wrapper"]')?.getAttribute('style')).toContain(
+			getEmptySlotIconUrl(ItemSlot.ItemSlotHead),
+		);
 		expect(container.querySelector('[data-testid="gear-change-icon-link"]')?.getAttribute('href')).toBeNull();
 		expect(container.querySelectorAll('[data-testid="gem-socket-container"]')).toHaveLength(0);
 	});
