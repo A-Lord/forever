@@ -83,7 +83,7 @@ const mount = () => {
 
 	const clickAdd = (group: string) =>
 		fireEvent.click(
-			within(container.querySelector<HTMLElement>(`[data-gear-group="${group}"]`)!).getByRole('button', { name: 'bulk_tab.picker.add_item' }),
+			within(container.querySelector<HTMLElement>(`[data-gear-group="${group}"]`)!).getByRole('button', { name: 'bulk_tab.picker.add_items_to' }),
 		);
 
 	return { player, clickAdd, modal: () => modal! };

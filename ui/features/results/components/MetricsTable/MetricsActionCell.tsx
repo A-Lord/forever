@@ -38,10 +38,7 @@ export const MetricsActionCell = ({ name, actionId, useBuffAura, expandable, exp
 					className="relative z-1 ml-auto border-0 bg-transparent p-0 text-inherit focus-visible:focus-ring"
 					aria-expanded={expanded}
 					aria-label={name}
-					onClick={event => {
-						event.stopPropagation();
-						onToggle();
-					}}>
+					onClick={onToggle}>
 					<Icon name={expanded ? 'caret-down' : 'caret-right'} style="base" />
 				</Button>
 			)}

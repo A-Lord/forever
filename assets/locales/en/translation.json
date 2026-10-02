@@ -1019,7 +1019,8 @@
 		},
 		"picker": {
 			"no_items": "No items selected.",
-			"add_item": "Add items",
+			"add_items": "Add items",
+			"add_items_to": "Add items to {{slot}}",
 			"remove_tooltip": "Remove this item from the batch.",
 			"frozen_tooltip": "This slot is frozen: the batch keeps this item.",
 			"failed_update": "Failed to update item, please report this issue.",

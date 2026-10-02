@@ -31,12 +31,13 @@ describe('LocaleHtml', () => {
 	it('logs no missing key for markup that is already translated', () => {
 		const { logger } = (i18n as unknown as { translator: { logger: { debug: boolean } } }).translator;
 		const log = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+		const debug = logger.debug;
 		logger.debug = true;
 		try {
 			html('<span className="bold">Batch</span> plain');
 			expect(log.mock.calls.flat().join(' ')).not.toContain('missingKey');
 		} finally {
-			logger.debug = false;
+			logger.debug = debug;
 			log.mockRestore();
 		}
 	});

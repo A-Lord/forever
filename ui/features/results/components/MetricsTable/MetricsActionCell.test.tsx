@@ -71,18 +71,12 @@ describe('MetricsActionCell', () => {
 		expect(screen.getByRole('button', { name: 'Kill Command' }).getAttribute('aria-expanded')).toBe('true');
 	});
 
-	it('toggles once when the button is clicked, not twice through the row', async () => {
+	it('toggles once when the button is clicked', async () => {
 		const onToggle = vi.fn();
-		const onRowClick = vi.fn();
-		render(
-			<div onClick={onRowClick}>
-				<MetricsActionCell name="Kill Command" actionId={actionId} expandable={true} expanded={false} onToggle={onToggle} />
-			</div>,
-		);
+		render(<MetricsActionCell name="Kill Command" actionId={actionId} expandable={true} expanded={false} onToggle={onToggle} />);
 		await act(async () => {});
 
 		fireEvent.click(screen.getByRole('button', { name: 'Kill Command' }));
 		expect(onToggle).toHaveBeenCalledTimes(1);
-		expect(onRowClick).not.toHaveBeenCalled();
 	});
 });

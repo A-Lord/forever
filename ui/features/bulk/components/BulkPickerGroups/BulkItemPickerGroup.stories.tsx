@@ -8,7 +8,7 @@ const meta = {
 	title: 'Features/Bulk/BulkPickerGroups/Components/BulkItemPickerGroup',
 	component: BulkItemPickerGroup,
 	tags: ['autodocs'],
-	args: { bulkSlot: BulkSimItemSlot.ItemSlotFinger, entries: [], onAddItem: fn() },
+	args: { bulkSlot: BulkSimItemSlot.ItemSlotFinger, entries: [], onAddItem: fn(), addTooltipId: 'bulk-add-items-tooltip' },
 	argTypes: { entries: { control: false } },
 } satisfies Meta<typeof BulkItemPickerGroup>;
 

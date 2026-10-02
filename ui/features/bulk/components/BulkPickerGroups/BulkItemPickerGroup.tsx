@@ -7,8 +7,7 @@ import { Box } from '@ui-kit/Box';
 import { Button } from '@ui-kit/Button';
 import { ContentBlock } from '@ui-kit/ContentBlock';
 import { Icon } from '@ui-kit/Icon';
-import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
-import { useId } from 'react';
+import { tooltipAnchorProps } from '@ui-kit/Tooltip';
 
 import { BulkItemPicker } from './BulkItemPicker';
 
@@ -16,12 +15,12 @@ export interface BulkItemPickerGroupProps {
 	bulkSlot: BulkSimItemSlot;
 	entries: readonly BulkPickerEntry[];
 	onAddItem: () => void;
+	addTooltipId: string;
 }
 
-export const BulkItemPickerGroup = ({ bulkSlot, entries, onAddItem }: BulkItemPickerGroupProps) => {
+export const BulkItemPickerGroup = ({ bulkSlot, entries, onAddItem, addTooltipId }: BulkItemPickerGroupProps) => {
 	const slotKey = getBulkSlotI18nKey(bulkSlot);
 	const slotName = translateBulkSlotName(bulkSlot);
-	const addTooltipId = useId();
 
 	return (
 		<Box padding="sm">
@@ -29,17 +28,14 @@ export const BulkItemPickerGroup = ({ bulkSlot, entries, onAddItem }: BulkItemPi
 				rootDataAttributes={{ 'data-gear-group': slotKey.replace(/_/g, '-') }}
 				config={{ header: { title: slotName, className: 'border-b-0 mb-0 pb-0' }, bodyClassName: 'gap-2' }}
 				headerChildren={
-					<>
-						<Button
-							iconOnly
-							className="ml-auto self-center"
-							aria-label={i18n.t('bulk_tab.picker.add_item')}
-							onClick={onAddItem}
-							{...tooltipAnchorProps(addTooltipId)}>
-							<Icon name="plus" />
-						</Button>
-						<Tooltip id={addTooltipId} content={i18n.t('bulk_tab.picker.add_item')} />
-					</>
+					<Button
+						iconOnly
+						className="ml-auto self-center"
+						aria-label={i18n.t('bulk_tab.picker.add_items_to', { slot: slotName })}
+						onClick={onAddItem}
+						{...tooltipAnchorProps(addTooltipId)}>
+						<Icon name="plus" />
+					</Button>
 				}
 				flush>
 				{entries.length ? (
