@@ -83,8 +83,13 @@ jobs:
 
             # gen_db imports the Go protos, so they are generated from the committed .proto files
             # first. Taking no class, gen_db rewrites no .proto file, so they need no second pass.
-            - name: Bootstrap the Go protos and the dist stub 🧬
-              run: make sim/core/proto/api.pb.go binary_dist/dist.go
+            # The UI type-check below reads the TS protos and the go-to-ts constants, which are not
+            # committed; gen_db is called directly because on a fresh checkout `make go-to-ts`
+            # considers its outputs up to date.
+            - name: Bootstrap the protos, the TS constants and the dist stub 🧬
+              run: |
+                  make sim/core/proto/api.pb.go ui/generated/proto/api.ts binary_dist/dist.go
+                  go run ./tools/database/gen_db -gen=go-to-ts
 
             # db2tool warns (and carries on) when the hotfix cache is for another build than the CDN
             # serves, which happens around a build push; the pull request says which it was. The
