@@ -234,13 +234,17 @@ func (priest *Priest) applyShadowform() {
 		},
 		// Casting any holy-school spell breaks Shadowform.
 		OnCastComplete: func(aura *core.Aura, sim *core.Simulation, spell *core.Spell) {
-			if spell.SpellSchool.Matches(core.SpellSchoolHoly) {
+			if spell.ClassSpellMask&PriestHealingSpells != 0 {
 				aura.Deactivate(sim)
 			}
 		},
 	}).AttachSpellMod(core.SpellModConfig{
 		Kind:       core.SpellMod_DamageDone_Flat,
-		FloatValue: 0.15,
+		FloatValue: 0.10,
+		ClassMask:  PriestShadowSpells,
+	}).AttachSpellMod(core.SpellModConfig{
+		Kind:       core.SpellMod_CritMultiplier_Pct,
+		FloatValue: 1.0,
 		ClassMask:  PriestShadowSpells,
 	}).AttachMultiplicativePseudoStatBuff(
 		&priest.PseudoStats.SchoolDamageTakenMultiplier[stats.SchoolIndexPhysical], 0.85,
@@ -254,7 +258,7 @@ func (priest *Priest) applyShadowform() {
 		ClassSpellMask: PriestSpellShadowform,
 		ClassFlags:     spellData.Shadowform.Highest().ClassFlags,
 		ManaCost: core.ManaCostOptions{
-			BaseCostPercent: 32,
+			BaseCostPercent: 50,
 		},
 		Cast: core.CastConfig{
 			DefaultCast: core.Cast{

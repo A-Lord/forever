@@ -178,6 +178,24 @@ const (
 	PriestSpellDivineGrace
 	PriestSpellPenance
 
+	// Priest Healing Spells for Shadowform (and eventual healing sim?)
+	PriestSpellLesserHeal
+	PriestSpellHeal
+	PriestSpellGreaterHeal
+	PriestSpellFlashHeal
+	PriestSpellBindingHeal
+	PriestSpellDesperatePrayer
+	PriestSpellPrayerOfHealing
+	PriestSpellPrayerOfMending
+	PriestSpellRenew
+	PriestSpellLightwell
+	PriestSpellPowerWordShield
+
+	PriestSpellCureDisease
+	PriestSpellAbolishDisease
+	PriestSpellDispelMagic
+	PriestSpellFearWard
+
 	PriestSpellLast
 	PriestSpellsAll    = PriestSpellLast<<1 - 1
 	PriestSpellDoT     = PriestSpellDevouringPlague | PriestSpellHolyFire | PriestSpellMindFlay | PriestSpellShadowWordPain | PriestSpellStarshards
@@ -200,5 +218,22 @@ const (
 		PriestSpellMindBlast |
 		PriestSpellShadowFiend |
 		PriestSpellVampiricEmbrace
-	PriestHolySpells = PriestSpellSmite | PriestSpellHolyFire | PriestSpellHolyNova
+	PriestHolySpells    = PriestSpellSmite | PriestSpellHolyFire | PriestSpellHolyNova
+	PriestHealingSpells = PriestSpellLesserHeal |
+		PriestSpellHeal |
+		PriestSpellGreaterHeal |
+		PriestSpellFlashHeal |
+		PriestSpellBindingHeal |
+		PriestSpellDesperatePrayer |
+		PriestSpellPrayerOfHealing |
+		PriestSpellPrayerOfMending |
+		PriestSpellPenance |
+		PriestSpellPowerWordShield |
+		PriestSpellRenew |
+		PriestSpellLightwell |
+		PriestSpellPowerWordShield |
+		PriestSpellCureDisease |
+		PriestSpellAbolishDisease |
+		PriestSpellDispelMagic |
+		PriestSpellFearWard
 )
