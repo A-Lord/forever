@@ -31,12 +31,6 @@ var (
 	rockbiterWeaponPassive   = spellData.RockbiterWeapon.Highest().Refs()[0]
 )
 
-// The game files state no chance for Frostbrand Weapon: enchant 1668 is a combat spell enchant with
-// 0 in its amount.
-//
-// TODO: Ingame test needed: the procs per minute.
-const frostbrandWeaponPPM = 9.0
-
 // Each imbue registers only where the main hand, equipped or in the swap set, carries it.
 func (shaman *Shaman) registerImbues() {
 	shaman.RegisterWindfuryImbue()
@@ -202,7 +196,7 @@ func (shaman *Shaman) RegisterFrostbrandImbue() {
 		frostbrandSpell.Cast(sim, result.Target)
 	}, spelldata.WeaponProc(), func(character *core.Character, trigger *core.ProcTrigger) {
 		trigger.ProcChance = 0
-		trigger.DPM = character.NewDynamicLegacyProcForTempEnchant(frostbrandEnchantID, frostbrandWeaponPPM, func(core.ProcMask) float64 { return 0 })
+		trigger.DPM = character.NewDynamicLegacyProcForTempEnchant(frostbrandEnchantID, float64(frostbrandWeaponAttack.RPPM), func(core.ProcMask) float64 { return 0 })
 	})
 	trigger.Name = "Frostbrand Weapon Trigger"
 	trigger.TriggerImmediately = true

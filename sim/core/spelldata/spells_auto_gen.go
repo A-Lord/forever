@@ -13290,11 +13290,11 @@ var generatedSpells = []Spell{
 			{ID: 693489, SpellID: 16352, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_DECREASE_SPEED, BasePoints: -25, BaseLevel: 48, MaxLevel: 56, PvpMult: 1, ChainAmp: 1, Mechanic: 11, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 			{ID: 693490, SpellID: 16352, Index: 1, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 127, PPL: 4, BaseLevel: 48, MaxLevel: 56, SPCoef: 0.10000000149011612, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		}},
-	{ID: 16353, Name: "Frostbrand Attack", Rank: "Rank 5", School: 16, Attr: [17]uint32{1: 0x88, 2: 0x1000000, 13: 0x80, 15: 0x2000}, SpellLevel: 58, BaseLevel: 58, MaxLevel: 66, DurationMs: 8000, MaxRange: 100, DefenseType: 1, ClassFlags: core.ClassFlags{Family: 11, Mask: [4]uint32{0: 16777216}}, Labels: []int16{24},
+	{ID: 16353, Name: "Frostbrand Attack", Rank: "Rank 5", School: 16, Attr: [17]uint32{1: 0x88, 2: 0x1000000, 13: 0x80, 15: 0x2000}, SpellLevel: 58, BaseLevel: 58, MaxLevel: 66, DurationMs: 8000, MaxRange: 100, DefenseType: 1, RPPM: 9, ClassFlags: core.ClassFlags{Family: 11, Mask: [4]uint32{0: 16777216}}, Labels: []int16{24}, ProcChanceSource: ProcChancePPM,
 		Effects: []Effect{
 			{ID: 693661, SpellID: 16353, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_DECREASE_SPEED, BasePoints: -25, BaseLevel: 58, MaxLevel: 66, PvpMult: 1, ChainAmp: 1, Mechanic: 11, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 			{ID: 693662, SpellID: 16353, Index: 1, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 158, PPL: 5.599999904632568, BaseLevel: 58, MaxLevel: 66, SPCoef: 0.10000000149011612, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
-		}},
+		}}, // override: PPM 9 -- Frostbrand Weapon: enchant 1668 casts 16353 with 0 in its amount, and 16353 has no proc row
 	{ID: 16355, Name: "Frostbrand Weapon", Rank: "Rank 4", School: 16, Attr: [17]uint32{0: 0x50200, 15: 0x2000}, SpellLevel: 48, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, PreventionType: 1, EquipClass: 2, EquipSubclass: 173555, RefIDs: []int32{16352},
 		Effects: []Effect{
 			{ID: 694640, SpellID: 16355, Type: dbcenums.E_360, BasePoints: 1800, PvpMult: 1, Misc: 1667, ChainAmp: 1},
