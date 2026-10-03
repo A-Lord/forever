@@ -1,29 +1,49 @@
 import { WeaponSkill } from '@generated/proto/common';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { NumberField } from '@ui-kit/TextField';
 import { useState } from 'react';
-import { fn } from 'storybook/test';
 
-import { type WeaponSkillField, WeaponSkillsView, type WeaponSkillsViewProps } from './WeaponSkillsView';
+import { BonusLink } from './BonusLink';
+import { type WeaponSkillRow, WeaponSkillsView, type WeaponSkillsViewProps } from './WeaponSkillsView';
 
-const PALADIN_FIELDS: Array<WeaponSkillField> = [
-	{ skill: WeaponSkill.WeaponSkillAxes, label: 'Axes', value: 300 },
-	{ skill: WeaponSkill.WeaponSkillTwoHandedAxes, label: 'Two-Handed Axes', value: 300 },
-	{ skill: WeaponSkill.WeaponSkillMaces, label: 'Maces', value: 305 },
-	{ skill: WeaponSkill.WeaponSkillTwoHandedMaces, label: 'Two-Handed Maces', value: 300 },
-	{ skill: WeaponSkill.WeaponSkillSwords, label: 'Swords', value: 300 },
-	{ skill: WeaponSkill.WeaponSkillTwoHandedSwords, label: 'Two-Handed Swords', value: 310 },
-	{ skill: WeaponSkill.WeaponSkillPolearms, label: 'Polearms', value: 1 },
+const MAXIMUM = 300;
+
+const row = (skill: WeaponSkill, label: string, value: number): WeaponSkillRow => ({ skill, label, value, bonus: value - MAXIMUM });
+
+const PALADIN_ROWS: Array<WeaponSkillRow> = [
+	row(WeaponSkill.WeaponSkillAxes, 'Axes', 300),
+	row(WeaponSkill.WeaponSkillTwoHandedAxes, 'Two-Handed Axes', 300),
+	row(WeaponSkill.WeaponSkillMaces, 'Maces', 305),
+	row(WeaponSkill.WeaponSkillTwoHandedMaces, 'Two-Handed Maces', 300),
+	row(WeaponSkill.WeaponSkillSwords, 'Swords', 300),
+	row(WeaponSkill.WeaponSkillTwoHandedSwords, 'Two-Handed Swords', 310),
+	row(WeaponSkill.WeaponSkillPolearms, 'Polearms', 285),
 ];
 
-const StatefulView = ({ fields: initialFields, onChange }: WeaponSkillsViewProps) => {
-	const [fields, setFields] = useState(initialFields);
+const StatefulView = ({ rows: initialRows }: WeaponSkillsViewProps) => {
+	const [rows, setRows] = useState(initialRows);
+	const setBonus = (skill: WeaponSkill, bonus: number) =>
+		setRows(current => current.map(entry => (entry.skill === skill ? row(skill, entry.label, MAXIMUM + bonus) : entry)));
 	return (
 		<WeaponSkillsView
-			fields={fields}
-			onChange={(skill, value) => {
-				setFields(current => current.map(field => (field.skill === skill ? { ...field, value } : field)));
-				onChange(skill, value);
-			}}
+			rows={rows.map(entry => ({
+				...entry,
+				bonusLink: (
+					<BonusLink
+						label={`Bonus ${entry.label}`}
+						picker={onCommit => (
+							<NumberField
+								label={`Bonus ${entry.label}`}
+								value={entry.bonus}
+								onChange={bonus => {
+									setBonus(entry.skill, bonus);
+									onCommit();
+								}}
+							/>
+						)}
+					/>
+				),
+			}))}
 		/>
 	);
 };
@@ -32,8 +52,8 @@ const meta = {
 	title: 'Features/CharacterStats/Components/WeaponSkillsView',
 	component: WeaponSkillsView,
 	tags: ['autodocs'],
-	args: { fields: PALADIN_FIELDS, onChange: fn() },
-	argTypes: { fields: { control: false } },
+	args: { rows: PALADIN_ROWS },
+	argTypes: { rows: { control: false } },
 	render: args => <StatefulView {...args} />,
 	decorators: [
 		Story => (

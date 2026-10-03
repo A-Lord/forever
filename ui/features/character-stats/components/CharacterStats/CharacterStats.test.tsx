@@ -1,8 +1,11 @@
 // The loading state of the sheet. The crit-cap row is the last row of the Physical group for this
 // display-stat list, so it is the last row either way; what is pinned here is that it skeletons
 // with its siblings instead of reading as settled while the stats are still in flight.
-import { Class, PseudoStat, Race, Stat } from '@generated/proto/common';
+import { Class, PseudoStat, Race, Stat, WeaponSkill } from '@generated/proto/common';
 import i18n from '@i18n/config';
+import { translateWeaponSkill } from '@i18n/localization';
+import { getClassWeaponSkills } from '@sim/player/classes/capabilities';
+import { WeaponSkillGroup, weaponSkillsInGroups } from '@sim/player/weapon_skill_groups';
 import { Stats, UnitStat } from '@sim/proto/stats';
 import { createSimStore, PLAYER_FIELDS, type PlayerSlice, seedKeyed, zeroVersions } from '@sim/state/sim_store';
 import { renderWithHost } from '@testing/react';
@@ -36,12 +39,13 @@ const CRIT_CAP_INFO = {
 
 interface SheetSetup {
 	displayStats: Array<UnitStat>;
+	displayWeaponSkillGroups?: Array<WeaponSkillGroup>;
 	currentStats: object;
 	inFrontOfTarget?: boolean;
 	player: Record<string, unknown>;
 }
 
-const renderSheet = ({ displayStats, currentStats, inFrontOfTarget = false, player }: SheetSetup) => {
+const renderSheet = ({ displayStats, displayWeaponSkillGroups, currentStats, inFrontOfTarget = false, player }: SheetSetup) => {
 	const store = createSimStore();
 	seedKeyed(store, 'players', KEY, {
 		name: 'P',
@@ -67,7 +71,7 @@ const renderSheet = ({ displayStats, currentStats, inFrontOfTarget = false, play
 			...player,
 		},
 		sim: { store },
-		individualConfig: { displayStats },
+		individualConfig: { displayStats, displayWeaponSkillGroups },
 		getStorageKey: (keyPart: string) => `test${keyPart}`,
 	});
 	const rows = Array.from(view.container.querySelectorAll('[data-testid="character-stats-table-row"]'));
@@ -205,6 +209,50 @@ describe('CharacterStats groups', () => {
 		renderStats(true);
 		showAll();
 		expect(expandedGroups()).toEqual([groupTrigger('physical'), groupTrigger('spell')]);
+	});
+});
+
+describe('CharacterStats weapon skills', () => {
+	afterEach(() => {
+		window.localStorage.clear();
+	});
+
+	const renderWeaponSkills = (playerClass: Class, displayWeaponSkillGroups?: Array<WeaponSkillGroup>) =>
+		renderSheet({
+			displayStats: DISPLAY_STATS,
+			displayWeaponSkillGroups,
+			currentStats: statsWhen(true),
+			player: {
+				getClass: () => playerClass,
+				getPlayerSpec: () => ({ isTankSpec: false, isMeleeDpsSpec: true }),
+				getMeleeCritCap: () => CRIT_CAP_DELTA,
+				getMeleeCritCapInfo: () => CRIT_CAP_INFO,
+				getBaseDefense: () => 300,
+			},
+		});
+	const shownSkills = (playerClass: Class) => getClassWeaponSkills(playerClass).filter(skill => screen.queryByText(translateWeaponSkill(skill)));
+
+	it.each([
+		['a hunter', Class.ClassHunter, [WeaponSkillGroup.Melee, WeaponSkillGroup.Ranged], WeaponSkill.WeaponSkillThrown],
+		['a warrior', Class.ClassWarrior, [WeaponSkillGroup.Melee], WeaponSkill.WeaponSkillBows],
+	])('shows %s the spec weapon skill groups on Key and every class weapon skill on All', (_spec, playerClass, groups, keyHidden) => {
+		renderWeaponSkills(playerClass, groups);
+		fireEvent.click(groupTrigger('weapon-skill'));
+
+		const keySkills = weaponSkillsInGroups(groups);
+		expect(shownSkills(playerClass)).toEqual(getClassWeaponSkills(playerClass).filter(skill => keySkills.includes(skill)));
+		expect(shownSkills(playerClass)).not.toContain(keyHidden);
+
+		showAll();
+		expect(shownSkills(playerClass)).toEqual(getClassWeaponSkills(playerClass));
+	});
+
+	it('leaves the weapon skill item out on Key for a spec that names no weapon skills', () => {
+		renderWeaponSkills(Class.ClassWarrior);
+		expect(screen.queryByTestId('character-stats-group-weapon-skill-trigger')).toBeNull();
+
+		showAll();
+		expect(screen.queryByTestId('character-stats-group-weapon-skill-trigger')).not.toBeNull();
 	});
 });
 

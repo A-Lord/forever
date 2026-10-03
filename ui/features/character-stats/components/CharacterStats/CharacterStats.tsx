@@ -169,7 +169,7 @@ export const CharacterStats = ({ className }: CharacterStatsProps) => {
 						{table(group.rows)}
 					</AccordionItem>
 				))}
-				<WeaponSkills />
+				<WeaponSkills mode={mode} />
 			</Accordion>
 		</CharacterStatsPanelView>
 	);

@@ -68,7 +68,7 @@ import { PlayerClass } from './player_class';
 import { PlayerSpec } from './player_spec';
 import { PlayerSpecs } from './specs';
 
-const MAX_WEAPON_SKILL = Mechanics.CHARACTER_LEVEL * 5;
+export const MAX_WEAPON_SKILL = Mechanics.CHARACTER_LEVEL * 5;
 
 export const weaponSkillValue = (weaponSkills: ReadonlyArray<WeaponSkillValue>, skill: WeaponSkill): number =>
 	weaponSkills.find(entry => entry.skill == skill)?.value ?? MAX_WEAPON_SKILL;
