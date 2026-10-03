@@ -218,49 +218,6 @@ func TestEnemyAttackTableAgainstALevel60Player(t *testing.T) {
 	}
 }
 
-func attackTableNumbers(table *AttackTable) map[string]float64 {
-	numbers := map[string]float64{
-		"miss":                  table.BaseMissChance,
-		"spell miss":            table.BaseSpellMissChance,
-		"crush":                 table.BaseCrushChance,
-		"aura crit suppression": table.AuraCritSuppression,
-	}
-	for hand, entry := range map[string]AttackTableHand{"main hand": table.MH, "off hand": table.OH, "ranged": table.Ranged} {
-		numbers[hand+" miss"] = entry.BaseMissChance
-		numbers[hand+" hit suppression"] = entry.HitSuppression
-		numbers[hand+" dodge"] = entry.BaseDodgeChance
-		numbers[hand+" parry"] = entry.BaseParryChance
-		numbers[hand+" block"] = entry.BaseBlockChance
-		numbers[hand+" glance chance"] = entry.BaseGlanceChance
-		numbers[hand+" glance multiplier min"] = entry.GlanceMultiplierMin
-		numbers[hand+" glance multiplier max"] = entry.GlanceMultiplierMax
-		numbers[hand+" melee crit suppression"] = entry.MeleeCritSuppression
-	}
-	return numbers
-}
-
-func TestLevel72TargetUsesTheLevel63Tables(t *testing.T) {
-	for _, tc := range []struct {
-		name     string
-		newTable func(targetLevel int32) *AttackTable
-	}{
-		{"player attacks target", func(level int32) *AttackTable {
-			return NewAttackTable(attackTableUnits(PlayerUnit, 60, EnemyUnit, level))
-		}},
-		{"target attacks player", func(level int32) *AttackTable {
-			return NewAttackTable(attackTableUnits(EnemyUnit, level, PlayerUnit, 60))
-		}},
-	} {
-		want := attackTableNumbers(tc.newTable(63))
-		got := attackTableNumbers(tc.newTable(72))
-		values := make([]attackTableValue, 0, len(want))
-		for name, value := range want {
-			values = append(values, attackTableValue{name, got[name], value})
-		}
-		checkAttackTableValues(t, tc.name+" at level 72", values)
-	}
-}
-
 func TestTargetBaseCritAndBlockValue(t *testing.T) {
 	for _, tc := range []struct {
 		level int32

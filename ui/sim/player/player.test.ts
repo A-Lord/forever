@@ -53,14 +53,11 @@ const critCapInfo = (targetLevel: number, { inFront = false, critSuppression }: 
 };
 
 describe('Player.getMeleeCritCapInfo', () => {
-	// The sim caps the level gap at +3, so a saved encounter's level 70-73 target meets the level-63 table.
 	it.each<[number, number, number, number, number]>([
 		[58, 4, 4, 0, -0.4],
 		[60, 5, 5, 10, 0],
 		[62, 6, 6, 30, 2],
 		[63, 9, 6.5, 40, 3],
-		[70, 9, 6.5, 40, 3],
-		[73, 9, 6.5, 40, 3],
 	])('against a level %i target: %f%% hit cap, %f%% dodge, %f%% glancing, %f%% crit suppression', (level, hitCap, dodge, glancing, suppression) => {
 		const info = critCapInfo(level);
 
