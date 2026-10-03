@@ -7041,7 +7041,36 @@
 						"hunter": {
 							"type": "object",
 							"properties": {
-								"melee_weave": {
+								"playstyle": {
+									"type": "object",
+									"properties": {
+										"label": {
+											"type": "string"
+										},
+										"tooltip": {
+											"type": "string"
+										},
+										"values": {
+											"type": "object",
+											"properties": {
+												"turret": {
+													"type": "string"
+												},
+												"weave": {
+													"type": "string"
+												},
+												"melee": {
+													"type": "string"
+												}
+											},
+											"additionalProperties": false,
+											"required": ["turret", "weave", "melee"]
+										}
+									},
+									"additionalProperties": false,
+									"required": ["label", "tooltip", "values"]
+								},
+								"time_to_weave": {
 									"type": "object",
 									"properties": {
 										"label": {
@@ -7054,7 +7083,7 @@
 									"additionalProperties": false,
 									"required": ["label", "tooltip"]
 								},
-								"time_to_weave": {
+								"use_aimed": {
 									"type": "object",
 									"properties": {
 										"label": {
@@ -7092,10 +7121,36 @@
 									},
 									"additionalProperties": false,
 									"required": ["label", "tooltip"]
+								},
+								"use_sniper": {
+									"type": "object",
+									"properties": {
+										"label": {
+											"type": "string"
+										},
+										"tooltip": {
+											"type": "string"
+										}
+									},
+									"additionalProperties": false,
+									"required": ["label", "tooltip"]
+								},
+								"use_hawk": {
+									"type": "object",
+									"properties": {
+										"label": {
+											"type": "string"
+										},
+										"tooltip": {
+											"type": "string"
+										}
+									},
+									"additionalProperties": false,
+									"required": ["label", "tooltip"]
 								}
 							},
 							"additionalProperties": false,
-							"required": ["melee_weave", "time_to_weave", "use_multi", "use_arcane"]
+							"required": ["playstyle", "time_to_weave", "use_aimed", "use_multi", "use_arcane", "use_sniper", "use_hawk"]
 						},
 						"warrior": {
 							"type": "object",

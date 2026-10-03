@@ -87,11 +87,12 @@ var DefaultOptions = &proto.Player_Hunter{
 
 // Every pet family, fully trained, on one race, talent set and rotation: the pet's own suite, so
 // that each family's abilities run without multiplying the hunter's. The talents are Beast Mastery,
-// the pet's tree, and the default rotation sends a hawk ahead of each Arcane Shot, the two sharing a cooldown.
+// the pet's tree, and the rotation sends two hawks for each Arcane Shot, the two spells sharing a cooldown.
 func TestHunterPets(t *testing.T) {
 	turretRotation := core.GetAplRotation("../../ui/specs/hunter/dps/apls", "default")
 	turretRotation.Label = "turret"
 	stopWeaving(turretRotation.Rotation)
+	setVariable(turretRotation.Rotation, "Use Summon Hawk", "true")
 
 	families := petOptions()
 	core.RunTestSuite(t, t.Name(), core.FullCharacterTestSuiteGenerator([]core.CharacterSuiteConfig{
@@ -298,9 +299,13 @@ func TestTheHuntersOwnMarkCarriesTheMarkTag(t *testing.T) {
 // One combo per pet family, fully trained.
 // The default rotation with its "Melee weave" variable turned off: the hunter stays at range.
 func stopWeaving(rotation *proto.APLRotation) {
+	setVariable(rotation, "Melee weave", "false")
+}
+
+func setVariable(rotation *proto.APLRotation, name string, value string) {
 	for _, variable := range rotation.ValueVariables {
-		if variable.Name == "Melee weave" {
-			variable.Value = &proto.APLValue{Value: &proto.APLValue_Const{Const: &proto.APLValueConst{Val: "false"}}}
+		if variable.Name == name {
+			variable.Value = &proto.APLValue{Value: &proto.APLValue_Const{Const: &proto.APLValueConst{Val: value}}}
 		}
 	}
 }

@@ -158,6 +158,14 @@ jobs:
                   } >> "$GITHUB_OUTPUT"
                   exit "$status"
 
+            # Runs even when a step above failed, so the build log always ends with
+            # what the run changed; a failed run opens no pull request to show it.
+            - name: List what changed 📋
+              if: always()
+              run: |
+                  git status --short
+                  git diff --stat
+
             - name: Set date
               id: date
               run: echo "date=$(date -u +'%Y-%m-%d')" >> "$GITHUB_OUTPUT"

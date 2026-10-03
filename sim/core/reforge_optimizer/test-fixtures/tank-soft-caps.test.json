@@ -129,7 +129,8 @@
 						"buffs": {
 							"greaterBlessingOfKings": true,
 							"greaterBlessingOfWisdom": 2,
-							"greaterBlessingOfMight": 2
+							"greaterBlessingOfMight": 2,
+							"thorns": true
 						},
 						"cooldowns": {
 							"hpPercentForDefensives": 0.4
@@ -253,8 +254,7 @@
 			"prayerOfFortitude": 2,
 			"prayerOfShadowProtection": true,
 			"prayerOfSpirit": 2,
-			"giftOfTheWild": 2,
-			"thorns": 2
+			"giftOfTheWild": 2
 		},
 		"debuffs": {
 			"judgementOfWisdom": true,
