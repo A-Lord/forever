@@ -258,16 +258,17 @@ func (spell *Spell) SpellHitChance(target *Unit) float64 {
 }
 func (spell *Spell) SpellChanceToMiss(attackTable *AttackTable) float64 {
 	// https://royalgiraffe.github.io/resist-guide (Binary spells)
-	// hitChance = baseLevelHit * (1 - 0.75*resistCoeff) + spellHitBonus, capped at 99%.
+	// hitChance = baseLevelHit * (1 - 0.75*resistCoeff) + spellHitBonus, with no miss floor:
+	// Forever has no 1% minimum miss.
 	// The level-based hit is reduced by the resistance roll first, then the spell hit
 	// bonus is added afterwards, which is why spell hit above the level-based miss
-	// counteracts resistance for binary spells. The 1% miss floor applies after both.
+	// counteracts resistance for binary spells.
 	baseHitChance := 1 - attackTable.BaseSpellMissChance
 	if spell.Flags.Matches(SpellFlagBinary) {
 		baseHitChance *= attackTable.GetBinaryHitChance(spell)
 	}
 	hitChance := baseHitChance + spell.SpellHitChance(attackTable.Defender)
-	return math.Max(0.01, 1-hitChance)
+	return math.Max(0, 1-hitChance)
 }
 func (spell *Spell) MagicHitCheck(sim *Simulation, attackTable *AttackTable) bool {
 	return sim.Proc(1.0-spell.SpellChanceToMiss(attackTable), "Magical Hit Roll")
