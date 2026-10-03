@@ -253,6 +253,16 @@ WOW_DIR ?=
 ifneq ($(WOW_DIR),)
 DB2TOOL_FLAGS += --basedir "$(WOW_DIR)"
 endif
+# CLASSES, RACIALS and SHARED choose what `make db`, `make ptrdb` and `make spelldata` take from the
+# extracted build. `make db CLASSES=druid` takes the druid and keeps every other class as committed;
+# `CLASSES=all` and `CLASSES=none` name every class or none. `RACIALS=1` takes the racials, and
+# `SHARED=0` keeps the shared group as committed, so `CLASSES=none SHARED=0` takes the items alone.
+# With none set, the run takes the default spell data groups. See docs/spell_data/partial-updates.md.
+CLASSES ?=
+RACIALS ?=
+SHARED ?=
+SPELLDATA_FLAGS := $(if $(CLASSES),-classes=$(CLASSES)) $(if $(filter 1 true yes,$(RACIALS)),-racials) $(if $(filter 0 false no,$(SHARED)),-shared=false)
+GEN_DB_FLAGS := $(if $(CLASSES),-classes=$(CLASSES))
 
 # The spell store is regenerated before the item database, and the order is load-bearing: gen_db
 # classifies every item and enchant proc from the store compiled into it, so running it against a
@@ -263,15 +273,15 @@ db:
 	@echo "Extracting game files data"
 	go run ./tools/db2tool -s $(CLIENTDATA_SETTINGS) --output $(CLIENTDATA_OUTPUT) $(DB2TOOL_FLAGS)
 	@echo "Regenerating the spell store"
-	go run ./tools/database/gen_spelldata
+	go run ./tools/database/gen_spelldata $(SPELLDATA_FLAGS)
 	@echo "Running DBC generation tool"
-	go run tools/database/gen_db/*.go -outDir=./assets -gen=db
+	go run tools/database/gen_db/*.go -outDir=./assets -gen=db $(GEN_DB_FLAGS)
 
 # Regenerates sim/<class>/spell_data_auto_gen.go from tools/database/wowsims.db, so it
 # runs after `make db` and from the repo root.
 .PHONY: spelldata
 spelldata:
-	go run ./tools/database/gen_spelldata
+	go run ./tools/database/gen_spelldata $(SPELLDATA_FLAGS)
 
 # Regenerates sim/core/base_stats_auto_gen.go and ui/sim/constants/mechanics.ts from
 # the same numbers, so the sim and the UI cannot disagree about a rating conversion.
@@ -286,9 +296,9 @@ ptrdb:
 	@echo "Extracting game files data"
 	go run ./tools/db2tool -s $(CLIENTDATAPTR_SETTINGS) --output $(CLIENTDATA_OUTPUT) $(DB2TOOL_FLAGS)
 	@echo "Regenerating the spell store"
-	go run ./tools/database/gen_spelldata
+	go run ./tools/database/gen_spelldata $(SPELLDATA_FLAGS)
 	@echo "Running DBC generation tool"
-	go run tools/database/gen_db/*.go -outDir=./assets -gen=db
+	go run tools/database/gen_db/*.go -outDir=./assets -gen=db $(GEN_DB_FLAGS)
 
 # The same order as `db`, and for the same reason: this rule depends on tools/database/*.go, so a
 # change to the store generator triggers it, and gen_db has to read a store written by that change.
@@ -323,7 +333,8 @@ update-tests:
 
 # Names the generated spell data files that are not what tools/database/gen_spelldata writes
 # today, and writes nothing. Exits 1 with the paths when the committed files have drifted, which a
-# game files update or a hand edit both do. Needs tools/database/wowsims.db.
+# game files update or a hand edit both do. A spell data group the inputs record on a different game
+# build from the database's is printed as not ported, and the check still passes. Needs tools/database/wowsims.db.
 .PHONY: spelldata-check
 spelldata-check:
 	go run ./tools/database/gen_spelldata -check
