@@ -5,6 +5,7 @@ import (
 
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/simsignals"
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
@@ -287,5 +288,25 @@ func TestSheetCritSuppressionIsTheAutosAgainstTheTarget(t *testing.T) {
 			}
 		}
 		character.AddStatDynamic(sim, stats.PhysicalCritPercent, -tc.buffCrit)
+	}
+}
+
+func TestSheetMainHandWeaponSkillIsTheMainHandWeaponsSkill(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		mainHand int32
+		want     float64
+	}{
+		{"a sword", WeaponTestSwordID, 285},
+		{"an axe", weaponTestAxeID, 300},
+		{"no weapon", 0, 0},
+	} {
+		raid := weaponTestRaid(proto.Race_RaceUndead, WeaponTestSlots(tc.mainHand, 0, 0), nil)
+		raid.Parties[0].Players[0].WeaponSkills = []*proto.WeaponSkillValue{{Skill: proto.WeaponSkill_WeaponSkillSwords, Value: 285}}
+		sim := NewSim(&proto.RaidSimRequest{SimOptions: &proto.SimOptions{RandomSeed: 1}, Raid: raid, Encounter: weaponTestEncounter()}, simsignals.CreateSignals())
+		character := sim.Raid.Parties[0].Players[0].GetCharacter()
+		if got := character.GetPseudoStatsProto()[proto.PseudoStat_PseudoStatMainHandWeaponSkill]; got != tc.want {
+			t.Errorf("285 sword skill with %s in the main hand: the sheet shows %v main-hand weapon skill, want %v", tc.name, got, tc.want)
+		}
 	}
 }

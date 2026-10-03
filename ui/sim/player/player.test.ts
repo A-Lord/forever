@@ -37,10 +37,14 @@ describe('Player.getDebuffStats', () => {
 });
 
 // A rogue with one weapon and no hit, expertise or crit, behind the target unless placed in front.
-// A suppression left out is a pseudo-stat the sim has not sent.
-const critCapInfo = (targetLevel: number, { inFront = false, critSuppression }: { inFront?: boolean; critSuppression?: number } = {}) => {
+// A suppression or weapon skill left out is a pseudo-stat the sim has not sent.
+const critCapInfo = (
+	targetLevel: number,
+	{ inFront = false, critSuppression, weaponSkill }: { inFront?: boolean; critSuppression?: number; weaponSkill?: number } = {},
+) => {
 	const pseudoStats: Array<number> = [];
 	if (critSuppression !== undefined) pseudoStats[PseudoStat.PseudoStatMeleeCritSuppressionPercent] = critSuppression;
+	if (weaponSkill !== undefined) pseudoStats[PseudoStat.PseudoStatMainHandWeaponSkill] = weaponSkill;
 	return Player.prototype.getMeleeCritCapInfo.call({
 		slice: () => ({ currentStats: { finalStats: { pseudoStats } } }),
 		getDebuffStats: () => new Stats(),
@@ -58,7 +62,7 @@ describe('Player.getMeleeCritCapInfo', () => {
 		[60, 5, 5, 10, 0],
 		[62, 6, 6, 30, 2],
 		[63, 9, 6.5, 40, 3],
-	])('against a level %i target: %f%% hit cap, %f%% dodge, %f%% glancing, %f%% crit suppression', (level, hitCap, dodge, glancing, suppression) => {
+	])('against a level %i target: %s hit cap, %s dodge, %s glancing, %s crit suppression', (level, hitCap, dodge, glancing, suppression) => {
 		const info = critCapInfo(level);
 
 		expect(info.meleeHitCap).toBeCloseTo(hitCap);
@@ -72,12 +76,30 @@ describe('Player.getMeleeCritCapInfo', () => {
 		expect(critCapInfo(63, { inFront: true }).expertiseCap).toBeCloseTo(6.5 + 14);
 	});
 
-	it.each([4.8, 0])('takes the crit suppression the sim sends, %f%%, over the level table', critSuppression => {
+	it.each([4.8, 0])('takes the crit suppression the sim sends, %s, over the level table', critSuppression => {
 		const info = critCapInfo(63, { critSuppression });
 
 		expect(info.suppression).toBe(critSuppression);
 		expect(info.baseCritCap).toBeCloseTo(100 - 40 + critSuppression - 9 - 6.5);
 	});
+
+	// Skill above 300 narrows miss and dodge, while glance chance and crit suppression stay on 300 skill.
+	// A 0 skill is the sim's value for no main-hand weapon.
+	it.each<[number, number, number, number, number]>([
+		[285, 15, 8, 70, 6],
+		[305, 6, 6, 40, 3],
+		[0, 9, 6.5, 40, 3],
+	])(
+		'with %i main-hand weapon skill against a level 63 target: hit cap %f, dodge %f, glancing %f, crit suppression %f',
+		(weaponSkill, hitCap, dodge, glancing, suppression) => {
+			const info = critCapInfo(63, { weaponSkill });
+
+			expect(info.meleeHitCap).toBeCloseTo(hitCap);
+			expect(info.expertiseCap).toBeCloseTo(dodge);
+			expect(info.glancing).toBeCloseTo(glancing);
+			expect(info.suppression).toBeCloseTo(suppression);
+		},
+	);
 });
 
 describe('dropLoneRanks', () => {

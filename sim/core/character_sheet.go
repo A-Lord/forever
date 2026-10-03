@@ -65,6 +65,10 @@ func (character *Character) GetPseudoStatsProto() []float64 {
 	if character.AutoAttacks.IsDualWielding {
 		offHand = character.sheetAttackStats(ProcMaskMeleeOHAuto)
 	}
+	var mainHandWeaponSkill float64
+	if weapon := character.GetMHWeapon(); weapon != nil {
+		mainHandWeaponSkill = float64(character.Level*5) + GetWeaponSkill(&character.Unit, weapon)
+	}
 	pseudoStats := []float64{
 		proto.PseudoStat_PseudoStatMainHandDps: character.AutoAttacks.MH().DPS(),
 		proto.PseudoStat_PseudoStatOffHandDps:  character.AutoAttacks.OH().DPS(),
@@ -109,6 +113,8 @@ func (character *Character) GetPseudoStatsProto() []float64 {
 
 		proto.PseudoStat_PseudoStatMeleeCritSuppressionPercent:  mainHand.CritSuppressionPercent,
 		proto.PseudoStat_PseudoStatRangedCritSuppressionPercent: ranged.CritSuppressionPercent,
+
+		proto.PseudoStat_PseudoStatMainHandWeaponSkill: mainHandWeaponSkill,
 	}
 	for school := stats.SchoolIndexArcane; school < stats.SchoolLen; school++ {
 		pseudoStats[SchoolHitPseudoStats[school]] = character.GetStat(stats.SpellHitPercent) + character.PseudoStats.SchoolBonusHitChance[school]

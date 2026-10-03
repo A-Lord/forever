@@ -816,6 +816,9 @@
 						"ranged_crit_suppression": {
 							"type": "string"
 						},
+						"main_hand_weapon_skill": {
+							"type": "string"
+						},
 						"healing_power": {
 							"type": "string"
 						},
@@ -943,6 +946,7 @@
 						"ranged_crit_rating",
 						"melee_crit_suppression",
 						"ranged_crit_suppression",
+						"main_hand_weapon_skill",
 						"healing_power",
 						"spell_damage",
 						"arcane_damage",

@@ -34,7 +34,7 @@ export const CLASS_WEAPON_TYPES: Record<number, EligibleWeaponType[]> = {
 export const CLASS_RANGED_WEAPON_TYPES: Record<number, RangedWeaponType[]> = {
 	[Class.ClassWarrior]: [RangedWeaponType.RangedWeaponTypeBow, RangedWeaponType.RangedWeaponTypeCrossbow, RangedWeaponType.RangedWeaponTypeGun, RangedWeaponType.RangedWeaponTypeThrown],
 	[Class.ClassPaladin]: [RangedWeaponType.RangedWeaponTypeLibram],
-	[Class.ClassHunter]: [RangedWeaponType.RangedWeaponTypeBow, RangedWeaponType.RangedWeaponTypeCrossbow, RangedWeaponType.RangedWeaponTypeGun, RangedWeaponType.RangedWeaponTypeThrown],
+	[Class.ClassHunter]: [RangedWeaponType.RangedWeaponTypeBow, RangedWeaponType.RangedWeaponTypeCrossbow, RangedWeaponType.RangedWeaponTypeGun],
 	[Class.ClassRogue]: [RangedWeaponType.RangedWeaponTypeBow, RangedWeaponType.RangedWeaponTypeCrossbow, RangedWeaponType.RangedWeaponTypeGun, RangedWeaponType.RangedWeaponTypeThrown],
 	[Class.ClassPriest]: [RangedWeaponType.RangedWeaponTypeWand],
 	[Class.ClassShaman]: [RangedWeaponType.RangedWeaponTypeTotem],
@@ -46,7 +46,7 @@ export const CLASS_RANGED_WEAPON_TYPES: Record<number, RangedWeaponType[]> = {
 export const CLASS_WEAPON_SKILLS: Record<number, WeaponSkill[]> = {
 	[Class.ClassWarrior]: [WeaponSkill.WeaponSkillAxes, WeaponSkill.WeaponSkillTwoHandedAxes, WeaponSkill.WeaponSkillMaces, WeaponSkill.WeaponSkillTwoHandedMaces, WeaponSkill.WeaponSkillSwords, WeaponSkill.WeaponSkillTwoHandedSwords, WeaponSkill.WeaponSkillPolearms, WeaponSkill.WeaponSkillStaves, WeaponSkill.WeaponSkillDaggers, WeaponSkill.WeaponSkillFistWeapons, WeaponSkill.WeaponSkillBows, WeaponSkill.WeaponSkillCrossbows, WeaponSkill.WeaponSkillGuns, WeaponSkill.WeaponSkillThrown],
 	[Class.ClassPaladin]: [WeaponSkill.WeaponSkillAxes, WeaponSkill.WeaponSkillTwoHandedAxes, WeaponSkill.WeaponSkillMaces, WeaponSkill.WeaponSkillTwoHandedMaces, WeaponSkill.WeaponSkillSwords, WeaponSkill.WeaponSkillTwoHandedSwords, WeaponSkill.WeaponSkillPolearms],
-	[Class.ClassHunter]: [WeaponSkill.WeaponSkillAxes, WeaponSkill.WeaponSkillTwoHandedAxes, WeaponSkill.WeaponSkillSwords, WeaponSkill.WeaponSkillTwoHandedSwords, WeaponSkill.WeaponSkillPolearms, WeaponSkill.WeaponSkillStaves, WeaponSkill.WeaponSkillDaggers, WeaponSkill.WeaponSkillFistWeapons, WeaponSkill.WeaponSkillBows, WeaponSkill.WeaponSkillCrossbows, WeaponSkill.WeaponSkillGuns, WeaponSkill.WeaponSkillThrown],
+	[Class.ClassHunter]: [WeaponSkill.WeaponSkillAxes, WeaponSkill.WeaponSkillTwoHandedAxes, WeaponSkill.WeaponSkillSwords, WeaponSkill.WeaponSkillTwoHandedSwords, WeaponSkill.WeaponSkillPolearms, WeaponSkill.WeaponSkillStaves, WeaponSkill.WeaponSkillDaggers, WeaponSkill.WeaponSkillFistWeapons, WeaponSkill.WeaponSkillBows, WeaponSkill.WeaponSkillCrossbows, WeaponSkill.WeaponSkillGuns],
 	[Class.ClassRogue]: [WeaponSkill.WeaponSkillAxes, WeaponSkill.WeaponSkillMaces, WeaponSkill.WeaponSkillSwords, WeaponSkill.WeaponSkillDaggers, WeaponSkill.WeaponSkillFistWeapons, WeaponSkill.WeaponSkillBows, WeaponSkill.WeaponSkillCrossbows, WeaponSkill.WeaponSkillGuns, WeaponSkill.WeaponSkillThrown],
 	[Class.ClassPriest]: [WeaponSkill.WeaponSkillMaces, WeaponSkill.WeaponSkillStaves, WeaponSkill.WeaponSkillDaggers],
 	[Class.ClassShaman]: [WeaponSkill.WeaponSkillAxes, WeaponSkill.WeaponSkillTwoHandedAxes, WeaponSkill.WeaponSkillMaces, WeaponSkill.WeaponSkillTwoHandedMaces, WeaponSkill.WeaponSkillStaves, WeaponSkill.WeaponSkillDaggers, WeaponSkill.WeaponSkillFistWeapons],

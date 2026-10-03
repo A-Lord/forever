@@ -417,3 +417,31 @@ func TestExpectedWhiteDamageUsesTheGlanceMidpoint(t *testing.T) {
 		t.Errorf("expected white damage %v, want %v from the 0.65 midpoint", result.Damage, want)
 	}
 }
+
+func TestExpectedWeaponSpecialDamageBlocksNoMoreThanTheDamage(t *testing.T) {
+	attacker := &Unit{PseudoStats: stats.NewPseudoStats()}
+	attacker.PseudoStats.InFrontOfTarget = true
+	target := &Unit{PseudoStats: stats.NewPseudoStats()}
+	table := &AttackTable{
+		Attacker:       attacker,
+		Defender:       target,
+		CritMultiplier: 1,
+		MH:             AttackTableHand{BaseBlockChance: 0.05},
+	}
+	spell := &Spell{Unit: attacker, ProcMask: ProcMaskMeleeMHSpecial, DefenseType: DefenseTypeMelee, CritMultiplierPct: 1}
+
+	for _, tc := range []struct {
+		blockValue, damage, want float64
+	}{
+		{20, 100, 99},
+		{200, 100, 95},
+		{200, 0, 0},
+	} {
+		target.stats[stats.BlockValue] = tc.blockValue
+		result := &SpellResult{Target: target, Damage: tc.damage}
+		spell.OutcomeExpectedMeleeWeaponSpecialHitAndCrit(nil, result, table)
+		if math.Abs(result.Damage-tc.want) > 1e-9 {
+			t.Errorf("%v block value against %v damage: expected damage %v, want %v", tc.blockValue, tc.damage, result.Damage, tc.want)
+		}
+	}
+}

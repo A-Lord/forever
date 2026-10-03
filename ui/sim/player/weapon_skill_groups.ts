@@ -6,7 +6,7 @@ export enum WeaponSkillGroup {
 	Thrown,
 }
 
-export const WEAPON_SKILL_GROUPS: Record<WeaponSkillGroup, WeaponSkill[]> = {
+const WEAPON_SKILL_GROUPS: Record<WeaponSkillGroup, WeaponSkill[]> = {
 	[WeaponSkillGroup.Melee]: [
 		WeaponSkill.WeaponSkillAxes,
 		WeaponSkill.WeaponSkillTwoHandedAxes,

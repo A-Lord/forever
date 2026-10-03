@@ -877,7 +877,11 @@ func (spell *Spell) OutcomeExpectedMeleeWeaponSpecialHitAndCrit(_ *Simulation, r
 	parryChance := TernaryFloat64(spell.Unit.PseudoStats.InFrontOfTarget, max(0, hand.BaseParryChance-spell.DodgeParrySuppression()), 0)
 	blockChance := TernaryFloat64(spell.Unit.PseudoStats.InFrontOfTarget, hand.BaseBlockChance, 0)
 	critChance := spell.PhysicalCritChance(attackTable)
+	blockedFraction := 0.0
+	if result.Damage > 0 {
+		blockedFraction = min(result.Target.BlockDamageReduction(), result.Damage) / result.Damage
+	}
 	averageMultiplier := (1.0-missChance-dodgeChance-parryChance-blockChance)*(1.0+(spell.CritDamageMultiplier(attackTable)-1)*critChance) +
-		blockChance*(1.0-result.Target.BlockDamageReduction()/result.Damage)
+		blockChance*(1.0-blockedFraction)
 	result.Damage *= averageMultiplier
 }
