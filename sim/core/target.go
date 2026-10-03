@@ -369,7 +369,7 @@ type AttackTable struct {
 	BaseCrushChance     float64
 
 	MeleeCritSuppression float64 // The crit the defender's level takes off every physical attack.
-	AuraCritSuppression  float64 // The most of the attacker's crit beyond base and Agility crit that a defender 3 or more levels above takes off.
+	AuraCritSuppression  float64 // The most of the attacker's crit beyond base and Agility crit that a higher-level defender takes off.
 
 	MH     AttackTableHand
 	OH     AttackTableHand
@@ -434,8 +434,9 @@ func NewAttackTable(attacker *Unit, defender *Unit) *AttackTable {
 		} else {
 			table.MeleeCritSuppression = defenseDiff * 0.0004
 		}
-		if levelDiff >= 3 {
-			table.AuraCritSuppression = 0.018
+		if levelDiff > 0 {
+			// TODO: only the 1.8% against +3 targets is measured; 0.6% a level against +1 and +2 is assumed.
+			table.AuraCritSuppression = 0.006 * float64(levelDiff)
 		}
 
 		table.setWeapons(nil, nil, nil)

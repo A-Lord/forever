@@ -76,7 +76,9 @@ func TestPhysicalCritSuppressionCountsOnlyAuraCrit(t *testing.T) {
 		{name: "5% crit of the ability's own is aura crit", agility: 100, bonusCrit: 5, wantCrit: 5.2, wantSuppression: 4.8},
 		{name: "6% crit of the ability's own caps at 1.8%", agility: 100, bonusCrit: 6, wantCrit: 6.2, wantSuppression: 4.8},
 		{name: "2% crit from a target aura for the caster", agility: 100, critByCaster: 2, wantCrit: 2.2, wantSuppression: 4.8},
-		{name: "level 62 target, 5% aura crit", targetLevel: 62, agility: 100, auraCrit: 5, wantCrit: 8.0, wantSuppression: 2.0},
+		{name: "level 62 target, 5% aura crit", targetLevel: 62, agility: 100, auraCrit: 5, wantCrit: 6.8, wantSuppression: 3.2},
+		{name: "level 62 target, 1% aura crit", targetLevel: 62, agility: 100, auraCrit: 1, wantCrit: 3.0, wantSuppression: 3.0},
+		{name: "level 61 target, 5% aura crit", targetLevel: 61, agility: 100, auraCrit: 5, wantCrit: 8.4, wantSuppression: 1.6},
 		{name: "negative aura crit adds no crit back", agility: 200, auraCrit: -2, wantCrit: 5.0, wantSuppression: 3.0},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
