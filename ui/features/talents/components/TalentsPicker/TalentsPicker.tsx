@@ -1,17 +1,18 @@
 import { useInput } from '@features/inputs/hooks/useInput';
 import type { InputConfig } from '@features/inputs/input';
+import i18n from '@i18n/config';
 import { usePlayer } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
 import type { TalentsConfig } from '@sim/talents/config';
 import type { TalentPoints } from '@sim/talents/talents_string';
 import { parseTalentsString, serializeTalentsString, totalPointsSpent } from '@sim/talents/talents_string';
+import { CopyButton } from '@ui-kit/CopyButton';
 import { Field } from '@ui-kit/Field';
 import { useWowheadTooltipRefresh } from '@ui-kit/hooks/useWowheadTooltipRefresh';
 import { useCallback, useEffect, useId, useMemo, useRef } from 'react';
 
 import { MAX_POINTS_PLAYER } from '../../model/can_set_points';
 import { buildTalentGraph } from '../../model/tree_graph';
-import { TalentsHeaderView } from './TalentsHeaderView';
 import { TalentTreePicker } from './TalentTreePicker';
 
 export interface TalentsPickerConfig<ModObject, TalentsProto> extends InputConfig<ModObject, string> {
@@ -21,6 +22,29 @@ export interface TalentsPickerConfig<ModObject, TalentsProto> extends InputConfi
 export interface TalentsPickerProps<TalentsProto> {
 	config: TalentsPickerConfig<Player<any>, TalentsProto>;
 }
+
+export interface TalentsHeaderViewProps {
+	pointsRemaining: number;
+	getTalentsString: () => string;
+}
+
+export const TalentsHeaderView = ({ pointsRemaining, getTalentsString }: TalentsHeaderViewProps) => (
+	<div className="mb-1 flex w-full items-center">
+		<label>
+			{i18n.t('talents_tab.points_remaining', { defaultValue: 'Points Remaining' })}: {pointsRemaining}
+		</label>
+		<div className="ml-auto" data-testid="talents-picker-actions">
+			<CopyButton
+				getContent={getTalentsString}
+				variant="outline-primary"
+				size="sm"
+				className="w-24"
+				text={i18n.t('talents_tab.copy_button.label')}
+				tooltip={i18n.t('talents_tab.copy_button.tooltip')}
+			/>
+		</div>
+	</div>
+);
 
 // The picker opens on the middle tree. Below `lg` the three scroll-snap horizontally, so that
 // is a scroll position rather than a selection, and the browser drives it from there.

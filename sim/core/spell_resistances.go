@@ -72,34 +72,24 @@ func (unit *Unit) resistCoeff(spell *Spell, attacker *Unit, binary bool) float64
 	resistance := 0.0
 	if stat, ok := spell.SpellSchool.ResistanceStat(); ok {
 		piercing := attacker.stats[stats.SpellPiercing] + attacker.PseudoStats.SchoolSpellPiercing[spell.SchoolIndex]
-		resistance = unit.GetStat(stat) - piercing
+		resistance = max(0, unit.GetStat(stat)-piercing)
 	}
-	if resistance <= 0 {
-		// Level-based resistance does not apply to binary spells.
-		if binary {
-			return 0
-		}
-		return unit.levelBasedResist(attacker)
-	}
-
 	resistanceCap := float64(attacker.Level * 5)
 	resistanceCoef := resistance / resistanceCap
 
+	if spell.Flags.Matches(SpellFlagPureDot) {
+		resistanceCoef /= 10
+	}
+
+	// Level-based resistance does not apply to binary spells.
 	if !binary && unit.Type == EnemyUnit && unit.Level > attacker.Level {
-		avgMitigationAdded := unit.levelBasedResist(attacker)
+		// 2% average mitigation per level difference
+		avgMitigationAdded := 0.02 * float64(combatLevelDiff(attacker, unit))
 		// coef is scaled 0 to 1, not 0 to 0.75
 		resistanceCoef += avgMitigationAdded * 1 / 0.75
 	}
 
 	return min(1, resistanceCoef)
-}
-
-func (unit *Unit) levelBasedResist(attacker *Unit) float64 {
-	if unit.Type == EnemyUnit && unit.Level > attacker.Level {
-		// 2% average mitigation per level difference
-		return 0.02 * float64(unit.Level-attacker.Level)
-	}
-	return 0
 }
 
 func (unit *Unit) binaryHitChance(spell *Spell, attacker *Unit) float64 {

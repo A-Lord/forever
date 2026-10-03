@@ -28,7 +28,7 @@ import type { RotationFrame } from './utils';
 import { EMPTY_FRAME, nextFrame } from './utils';
 import { DEFAULT_PPS, ZoomController } from './zoom';
 
-export interface RotationViewProps {
+export interface RotationTrackProps {
 	model: RotationModel | null;
 	active: boolean;
 }
@@ -60,7 +60,7 @@ const padScrollport =
 const PADDED_ELEMENT_RECT = padScrollport(observeElementRect);
 const PADDED_WINDOW_RECT = padScrollport(WINDOW_SCROLLER.observeElementRect!);
 
-export const RotationView = ({ model, active }: RotationViewProps) => {
+export const RotationTrack = ({ model, active }: RotationTrackProps) => {
 	const rootRef = useRef<HTMLDivElement>(null);
 	const cornerRef = useRef<HTMLDivElement>(null);
 	const rulerViewportRef = useRef<HTMLDivElement>(null);

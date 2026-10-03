@@ -153,15 +153,9 @@ func NewWarrior(character *core.Character, options *proto.WarriorOptions, talent
 	})
 
 	warrior.PseudoStats.CanParry = true
-	// TODO: In-game testing required
-	warrior.PseudoStats.BaseDodgeChance += 0.0075
-	warrior.PseudoStats.BaseParryChance += 0.05
-	warrior.PseudoStats.BaseBlockChance += 0.05
 
 	warrior.AddStatDependency(stats.Strength, stats.AttackPower, 2)
-	warrior.AddStatDependency(stats.Strength, stats.BlockValue, 1/20.0)
 	warrior.AddStatDependency(stats.Agility, stats.PhysicalCritPercent, core.CritPerAgiMaxLevel[character.Class])
-	warrior.AddStatDependency(stats.Agility, stats.DodgeRating, core.DodgeRatingPerAgility[character.Class])
 	warrior.AddStatDependency(stats.BonusArmor, stats.Armor, 1)
 
 	return warrior

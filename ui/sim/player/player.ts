@@ -25,6 +25,8 @@ import {
 	Stat,
 	UnitReference,
 	UnitStats,
+	WeaponSkill,
+	WeaponSkillValue,
 } from '@generated/proto/common';
 import { SimDatabase } from '@generated/proto/db';
 import {
@@ -59,12 +61,17 @@ import { Sim } from '../sim';
 import { batch } from '../state/batch';
 import { deleteKeyed, patchKeyed, PLAYER_FIELDS, PlayerField, PlayerSlice, seedKeyed, zeroVersions } from '../state/sim_store';
 import { playerTalentStringToProto } from '../talents/factory';
-import { omitDeep, stringComparator } from '../utils/collections';
+import { arrayEquals, omitDeep, stringComparator } from '../utils/collections';
 import { sum } from '../utils/math';
 import { WorkerProgressCallback } from '../workers/worker_pool';
 import { PlayerClass } from './player_class';
 import { PlayerSpec } from './player_spec';
 import { PlayerSpecs } from './specs';
+
+export const MAX_WEAPON_SKILL = Mechanics.CHARACTER_LEVEL * 5;
+
+export const weaponSkillValue = (weaponSkills: ReadonlyArray<WeaponSkillValue>, skill: WeaponSkill): number =>
+	weaponSkills.find(entry => entry.skill == skill)?.value ?? MAX_WEAPON_SKILL;
 
 export interface AuraStats {
 	data: AuraStatsProto;
@@ -353,6 +360,7 @@ export class Player<SpecType extends Spec> {
 			channelClipDelay: 0,
 			inFrontOfTarget: false,
 			distanceFromTarget: 0,
+			weaponSkills: [],
 			healingModel: HealingModel.create(),
 			epWeights: new Stats(),
 			epRatios: new Array<number>(Player.numEpRatios).fill(0),
@@ -878,19 +886,17 @@ export class Player<SpecType extends Spec> {
 		const meleeCrit = (currentStats.finalStats?.pseudoStats[PseudoStat.PseudoStatMeleeCritPercent] || 0) + debuffCrit;
 		const meleeHit = (currentStats.finalStats?.pseudoStats[PseudoStat.PseudoStatMeleeHitPercent] || 0) + debuffHit;
 		const expertise = currentStats.finalStats?.pseudoStats[PseudoStat.PseudoStatExpertisePercent] || 0;
-		const targetLevel = this.sim.encounter.primaryTarget.level;
-		const critSuppression = { 68: 0, 70: 0, 71: 1, 72: 2, 73: 4.8 }[targetLevel] ?? 0;
-		const hitSuppression = { 68: 0, 70: 0, 71: 0, 72: 0, 73: 1 }[targetLevel] ?? 0;
-		const glancing = { 68: 0, 70: 6, 71: 12, 72: 18, 73: 24 }[targetLevel] ?? 0;
+		const critSuppression = currentStats.finalStats?.pseudoStats[PseudoStat.PseudoStatMeleeCritSuppressionPercent] || 0;
+		const glancing = currentStats.finalStats?.pseudoStats[PseudoStat.PseudoStatMainHandGlancePercent] || 0;
 
-		const oneHandHitCap = ({ 68: 4, 70: 5, 71: 6, 72: 7, 73: 8 }[targetLevel] ?? 4) + hitSuppression;
+		const oneHandHitCap = currentStats.finalStats?.pseudoStats[PseudoStat.PseudoStatMainHandMissPercent] || 0;
 		// DW Penalty is a fixed 19%
 		const dualWieldHitCap = oneHandHitCap + 19;
 		const hasOffhandWeapon = this.isDualWielding();
-		// Due to warrior HS bug, hit cap for crit cap calculation should be 8% instead of 27%
+		// Due to warrior HS bug, hit cap for crit cap calculation is the one-hand hit cap, not the dual-wield one
 		const meleeHitCap = hasOffhandWeapon && this.getClass() != Class.ClassWarrior ? dualWieldHitCap : oneHandHitCap;
-		const dodgeCap = { 68: 4, 70: 5, 71: 5.5, 72: 6, 73: 6.5 }[targetLevel] ?? 4;
-		const parryCap = this.getInFrontOfTarget() ? ({ 68: 4, 70: 5, 71: 5.5, 72: 6, 73: 14 }[targetLevel] ?? 4) : 0;
+		const dodgeCap = currentStats.finalStats?.pseudoStats[PseudoStat.PseudoStatMainHandDodgePercent] || 0;
+		const parryCap = this.getInFrontOfTarget() ? currentStats.finalStats?.pseudoStats[PseudoStat.PseudoStatMainHandParryPercent] || 0 : 0;
 		const expertiseCap = dodgeCap + parryCap;
 
 		const remainingMeleeHitCap = Math.max(meleeHitCap - meleeHit, 0.0);
@@ -1106,6 +1112,27 @@ export class Player<SpecType extends Spec> {
 		if (newDistanceFromTarget == this.getDistanceFromTarget()) return;
 
 		this.patch('distanceFromTarget', newDistanceFromTarget);
+	}
+
+	getWeaponSkills(): Array<WeaponSkillValue> {
+		return this.slice().weaponSkills.map(entry => WeaponSkillValue.clone(entry));
+	}
+
+	setWeaponSkills(newWeaponSkills: Array<WeaponSkillValue>) {
+		const current = this.slice().weaponSkills;
+		const sorted = newWeaponSkills.map(entry => WeaponSkillValue.clone(entry)).sort((a, b) => a.skill - b.skill);
+		if (arrayEquals(sorted, current, WeaponSkillValue.equals)) return;
+
+		this.patch('weaponSkills', sorted);
+	}
+
+	getWeaponSkill(skill: WeaponSkill): number {
+		return weaponSkillValue(this.slice().weaponSkills, skill);
+	}
+
+	setWeaponSkill(skill: WeaponSkill, value: number) {
+		const others = this.slice().weaponSkills.filter(entry => entry.skill != skill);
+		this.setWeaponSkills(value == MAX_WEAPON_SKILL ? others : [...others, WeaponSkillValue.create({ skill, value })]);
 	}
 
 	setDefaultHealingParams(hm: HealingModel) {
@@ -1536,6 +1563,7 @@ export class Player<SpecType extends Spec> {
 				channelClipDelayMs: this.getChannelClipDelay(),
 				inFrontOfTarget: this.getInFrontOfTarget(),
 				distanceFromTarget: this.getDistanceFromTarget(),
+				weaponSkills: this.getWeaponSkills(),
 				healingModel: this.getHealingModel(),
 			});
 			player = withSpec(this.getSpec(), player, this.getSpecOptions());
@@ -1587,6 +1615,7 @@ export class Player<SpecType extends Spec> {
 				this.setChannelClipDelay(proto.channelClipDelayMs);
 				this.setInFrontOfTarget(proto.inFrontOfTarget);
 				this.setDistanceFromTarget(proto.distanceFromTarget);
+				this.setWeaponSkills(proto.weaponSkills);
 				this.setHealingModel(proto.healingModel || HealingModel.create());
 			}
 			if (loadCategory(SimSettingCategories.External)) {
@@ -1616,6 +1645,7 @@ export class Player<SpecType extends Spec> {
 				}),
 			);
 			this.setBonusStats(new Stats());
+			this.setWeaponSkills([]);
 		});
 	}
 

@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
-import { ItemListToolbarView } from './ItemListToolbarView';
+import { ItemListToolbarView } from './ItemList';
 
 const toggle = (name: string, label: string, value: boolean) => ({
 	id: `show-${name}-selector`,
@@ -12,7 +12,7 @@ const toggle = (name: string, label: string, value: boolean) => ({
 });
 
 const meta = {
-	title: 'Features/Gear/SelectorModal/Components/ItemListToolbarView',
+	title: 'Features/Gear/SelectorModal/Components/ItemList',
 	component: ItemListToolbarView,
 	tags: ['autodocs'],
 	args: {

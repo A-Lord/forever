@@ -17,6 +17,7 @@ import {
 	type ItemSpec,
 	Target as TargetProto,
 	UnitReference,
+	type WeaponSkillValue,
 	type WeaponType,
 } from '@generated/proto/common';
 import { type BulkEnchantPreset, DatabaseFilters } from '@generated/proto/ui';
@@ -115,6 +116,8 @@ export interface PlayerSlice {
 	channelClipDelay: number;
 	inFrontOfTarget: boolean;
 	distanceFromTarget: number;
+	// Only the skills not at the maximum for the level; a missing skill is at the maximum.
+	weaponSkills: Array<WeaponSkillValue>;
 	healingModel: HealingModel;
 	epWeights: Stats;
 	epRatios: Array<number>;
@@ -147,6 +150,7 @@ export const PLAYER_FIELDS = [
 	'channelClipDelay',
 	'inFrontOfTarget',
 	'distanceFromTarget',
+	'weaponSkills',
 	'healingModel',
 	'epWeights',
 	'epRatios',

@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';
 
-import { LogRunnerHeaderView, LogRunnerNoMatches } from './LogRunnerHeaderView';
+import { LogRunnerHeaderView, LogRunnerNoMatches } from './LogRunner';
 
 const meta = {
-	title: 'Features/Results/LogRunner/Components/LogRunnerHeaderView',
+	title: 'Features/Results/LogRunner/LogRunner',
 	component: LogRunnerHeaderView,
 	tags: ['autodocs'],
 	args: { searchText: '', onSearchChange: fn() },

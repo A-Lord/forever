@@ -3,7 +3,7 @@ import { warriorRotationModel } from '@testing/storybook/fixtures/results-views'
 import { type ReactNode, useState } from 'react';
 
 import { DrStickySlotContext } from '../../DetailedResults/context/DrStickySlotContext';
-import { RotationView } from './RotationView';
+import { RotationTrack } from './RotationTrack';
 
 // The ruler and the zoom buttons portal into the detailed results' sticky slot.
 const StickySlot = ({ children }: { children: ReactNode }) => {
@@ -17,8 +17,8 @@ const StickySlot = ({ children }: { children: ReactNode }) => {
 };
 
 const meta = {
-	title: 'Features/Results/Timeline/Components/RotationView',
-	component: RotationView,
+	title: 'Features/Results/Timeline/Components/RotationTrack',
+	component: RotationTrack,
 	tags: ['autodocs'],
 	args: { model: warriorRotationModel(), active: true },
 	argTypes: { model: { control: false } },
@@ -29,7 +29,7 @@ const meta = {
 			</StickySlot>
 		),
 	],
-} satisfies Meta<typeof RotationView>;
+} satisfies Meta<typeof RotationTrack>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

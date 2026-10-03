@@ -5,6 +5,7 @@ import { Cooldowns, HandType, ItemSlot, PseudoStat, Spec, Stat } from '@generate
 import { Hunter_Rotation_Playstyle as Playstyle } from '@generated/proto/hunter';
 import { PlayerClasses } from '@sim/player/classes';
 import { Player } from '@sim/player/player';
+import { WeaponSkillGroup } from '@sim/player/weapon_skill_groups';
 import * as AplUtils from '@sim/proto/apl_utils';
 import { SpecRotation } from '@sim/proto/spec_types';
 import { StatCap, Stats, UnitStat } from '@sim/proto/stats';
@@ -70,6 +71,7 @@ export default defineSpec<Spec.SpecHunter>({
 			PseudoStat.PseudoStatExpertisePercent,
 		],
 	),
+	displayWeaponSkillGroups: [WeaponSkillGroup.Melee, WeaponSkillGroup.Ranged],
 	itemSwapSlots: [ItemSlot.ItemSlotMainHand, ItemSlot.ItemSlotOffHand, ItemSlot.ItemSlotRanged, ItemSlot.ItemSlotTrinket1, ItemSlot.ItemSlotTrinket2],
 	defaults: {
 		// Default equipped gear.

@@ -51,7 +51,7 @@ func (paladin *Paladin) registerConsecration(n int32, rank *spelldata.Spell) {
 		SpellSchool:    rank.SpellSchool(),
 		DefenseType:    rank.DefenseTypeCore(),
 		ProcMask:       core.ProcMaskSpellDamage,
-		Flags:          core.SpellFlagAPL,
+		Flags:          core.SpellFlagAPL | core.SpellFlagPureDot,
 		ClassSpellMask: SpellMaskConsecration,
 		Rank:           rank.RankNumber(),
 

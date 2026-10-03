@@ -10,7 +10,7 @@ import { buildRotationModel } from '../../model/timeline/rotation';
 import { chartSpec } from './chart/build';
 import { TimelineChart } from './chart/TimelineChart';
 import { ChartViewPicker } from './ChartViewPicker';
-import { RotationView } from './rotation/RotationView';
+import { RotationTrack } from './rotation/RotationTrack';
 import type { ChartView } from './utils';
 import { resultKey } from './utils';
 
@@ -90,7 +90,7 @@ export const Timeline = ({ active }: TimelineProps) => {
 					</div>
 				) : (
 					<div className="m-auto" data-testid="rotation-plot">
-						<RotationView model={model} active={active} />
+						<RotationTrack model={model} active={active} />
 					</div>
 				)}
 			</div>

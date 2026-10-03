@@ -8,6 +8,7 @@ import { DpsWarriorSpec, WarriorSunder } from '@generated/proto/warrior';
 import * as Mechanics from '@sim/constants/mechanics';
 import { PlayerClasses } from '@sim/player/classes';
 import { Player } from '@sim/player/player';
+import { WeaponSkillGroup } from '@sim/player/weapon_skill_groups';
 import { SpecRotation } from '@sim/proto/spec_types';
 import { DEFAULT_MELEE_GEM_STATS, StatCap, Stats, UnitStat } from '@sim/proto/stats';
 import { defineSpec } from '@sim/spec_config';
@@ -64,6 +65,7 @@ export default defineSpec<Spec.SpecDpsWarrior>({
 			PseudoStat.PseudoStatExpertisePercent,
 		],
 	),
+	displayWeaponSkillGroups: [WeaponSkillGroup.Melee],
 
 	defaults: {
 		// Default equipped gear.

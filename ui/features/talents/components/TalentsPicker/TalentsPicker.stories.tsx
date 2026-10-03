@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
-import { TalentsHeaderView } from './TalentsHeaderView';
+import { TalentsHeaderView } from './TalentsPicker';
 
 const meta = {
-	title: 'Features/Talents/TalentsPicker/Components/TalentsHeaderView',
+	title: 'Features/Talents/TalentsPicker/TalentsPicker',
 	component: TalentsHeaderView,
 	tags: ['autodocs'],
 	args: { pointsRemaining: 51, getTalentsString: fn(() => '-0505') },

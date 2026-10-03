@@ -3,7 +3,7 @@ import { Table, TableCell, TableRow } from '@ui-kit/Table';
 import { useState } from 'react';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
-import { CharacterStatsPanelView, type CharacterStatsPanelViewProps } from './CharacterStatsPanelView';
+import { CharacterStatsHeaderView, type CharacterStatsHeaderViewProps, CharacterStatsPanelView, type CharacterStatsPanelViewProps } from './CharacterStats';
 
 const ROWS = [
 	['Strength', '320'],
@@ -41,9 +41,24 @@ const StatefulPanel = ({ mode: initialMode, onModeChange, ...props }: CharacterS
 	);
 };
 
+const StatefulHeader = ({ mode: initial, onModeChange, ...props }: CharacterStatsHeaderViewProps) => {
+	const [mode, setMode] = useState(initial);
+	return (
+		<CharacterStatsHeaderView
+			{...props}
+			mode={mode}
+			onModeChange={next => {
+				setMode(next);
+				onModeChange(next);
+			}}
+		/>
+	);
+};
+
 const meta = {
-	title: 'Features/CharacterStats/Components/CharacterStatsPanelView',
+	title: 'Features/CharacterStats/CharacterStats',
 	component: CharacterStatsPanelView,
+	subcomponents: { CharacterStatsHeaderView },
 	tags: ['autodocs'],
 	args: {
 		mode: 'key',
@@ -70,3 +85,15 @@ export const Default: Story = {
 		await expect(args.onModeChange).toHaveBeenCalledWith('all');
 	},
 };
+
+export const HeaderKey: Story = {
+	render: args => <StatefulHeader {...args} />,
+	play: async ({ args, canvasElement }) => {
+		const all = within(canvasElement).getByRole('button', { name: 'All' });
+		await userEvent.click(all);
+		await expect(args.onModeChange).toHaveBeenCalledWith('all');
+		await expect(all).toHaveAttribute('aria-pressed', 'true');
+	},
+};
+
+export const HeaderAll: Story = { render: args => <StatefulHeader {...args} />, args: { mode: 'all' } };

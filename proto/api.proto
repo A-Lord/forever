@@ -18,7 +18,7 @@ import "shaman.proto";
 import "warlock.proto";
 import "warrior.proto";
 
-// NextIndex: 59
+// NextIndex: 62
 message Player {
 	// Proto version at the time Player were saved.
 	// A "breaking change" here is defined as anything that will break saved
@@ -92,6 +92,8 @@ message Player {
 	double distance_from_target = 48;
 	double dark_intent_uptime = 52;
 	bool challenge_mode = 58;
+	// A weapon skill missing from the list is at the maximum for the player's level.
+	repeated WeaponSkillValue weapon_skills = 61;
 
 	HealingModel healing_model = 49;
 

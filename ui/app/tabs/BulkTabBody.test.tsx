@@ -2,7 +2,7 @@ import { REPO_RELEASES_URL } from '@sim/constants/other';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { BulkTabActionsView, type BulkTabActionsViewProps } from './BulkTabActionsView';
+import { BulkTabActionsView, type BulkTabActionsViewProps } from './BulkTabBody';
 
 vi.mock('@i18n/config', () => ({ default: { t: (key: string) => key } }));
 

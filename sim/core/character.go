@@ -143,7 +143,13 @@ func NewCharacter(party *Party, partyIndex int, player *proto.Player) Character 
 	character.baseStats = BaseStats[BaseStatsKey{Race: character.Race, Class: character.Class}]
 
 	character.AddStats(character.baseStats)
+	character.AddStat(stats.Health, 20-10*20)
 	character.addUniversalStatDependencies()
+	character.AddStatDependency(stats.Agility, stats.DodgePercent, dodgePerAgility(character.Class))
+	character.PseudoStats.BaseDodgeChance += ClassBaseDodge[character.Class]
+	if _, ok := ClassWeaponTypeCapabilities[character.Class][proto.WeaponType_WeaponTypeShield]; ok {
+		character.PseudoStats.BlockValuePerStrength = 0.05
+	}
 
 	if player.BonusStats != nil {
 		if player.BonusStats.Stats != nil {
@@ -170,6 +176,7 @@ func NewCharacter(party *Party, partyIndex int, player *proto.Player) Character 
 		}
 	}
 	character.PseudoStats.InFrontOfTarget = player.InFrontOfTarget
+	character.applyWeaponSkills(player.WeaponSkills)
 
 	if player.EnableItemSwap && player.ItemSwap != nil {
 		character.enableItemSwap(player.ItemSwap)
@@ -471,6 +478,8 @@ func (character *Character) Finalize() {
 	}
 
 	character.Unit.finalize()
+	character.basePhysicalCritPercent = character.baseStats[stats.PhysicalCritPercent]
+	character.critPerAgility = character.GetStatDependencyCoeff(stats.Agility, stats.PhysicalCritPercent)
 
 	character.majorCooldownManager.finalize()
 }

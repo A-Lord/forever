@@ -1,19 +1,19 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { BuffSectionView, type BuffSectionViewProps } from './BuffSectionView';
+import { BuffSection, type BuffSectionProps } from './BuffSection';
 
-const renderSection = (props: Omit<BuffSectionViewProps, 'children'>) =>
+const renderSection = (props: Omit<BuffSectionProps, 'children'>) =>
 	render(
-		<BuffSectionView {...props}>
+		<BuffSection {...props}>
 			<span data-testid="buff-pickers" />
-		</BuffSectionView>,
+		</BuffSection>,
 	);
 
 const block = (name: string) => document.querySelector(`[data-block="${name}"]`) as HTMLElement;
 
-describe('BuffSectionView', () => {
-	it.each<[BuffSectionViewProps['section'], string, string | null]>([
+describe('BuffSection', () => {
+	it.each<[BuffSectionProps['section'], string, string | null]>([
 		['raid_buffs', 'buffs-settings', 'settings_tab.raid_buffs.description'],
 		['party_buffs', 'party-buffs-settings', 'settings_tab.party_buffs.description'],
 		['debuffs', 'debuffs-settings', null],
