@@ -291,22 +291,30 @@ func TestSheetCritSuppressionIsTheAutosAgainstTheTarget(t *testing.T) {
 	}
 }
 
-func TestSheetMainHandWeaponSkillIsTheMainHandWeaponsSkill(t *testing.T) {
+func TestSheetMainHandTableIsTheMainHandAutoAgainstTheTarget(t *testing.T) {
 	for _, tc := range []struct {
-		name     string
-		mainHand int32
-		want     float64
+		swordSkill                 int32
+		miss, dodge, parry, glance float64
 	}{
-		{"a sword", WeaponTestSwordID, 285},
-		{"an axe", weaponTestAxeID, 300},
-		{"no weapon", 0, 0},
+		{300, 9, 6.5, 14, 40},
+		{285, 15, 8, 23, 70},
 	} {
-		raid := weaponTestRaid(proto.Race_RaceUndead, WeaponTestSlots(tc.mainHand, 0, 0), nil)
-		raid.Parties[0].Players[0].WeaponSkills = []*proto.WeaponSkillValue{{Skill: proto.WeaponSkill_WeaponSkillSwords, Value: 285}}
+		raid := weaponTestRaid(proto.Race_RaceUndead, WeaponTestSlots(WeaponTestSwordID, 0, 0), nil)
+		raid.Parties[0].Players[0].WeaponSkills = []*proto.WeaponSkillValue{{Skill: proto.WeaponSkill_WeaponSkillSwords, Value: tc.swordSkill}}
 		sim := NewSim(&proto.RaidSimRequest{SimOptions: &proto.SimOptions{RandomSeed: 1}, Raid: raid, Encounter: weaponTestEncounter()}, simsignals.CreateSignals())
-		character := sim.Raid.Parties[0].Players[0].GetCharacter()
-		if got := character.GetPseudoStatsProto()[proto.PseudoStat_PseudoStatMainHandWeaponSkill]; got != tc.want {
-			t.Errorf("285 sword skill with %s in the main hand: the sheet shows %v main-hand weapon skill, want %v", tc.name, got, tc.want)
+		pseudoStats := sim.Raid.Parties[0].Players[0].GetCharacter().GetPseudoStatsProto()
+		for _, row := range []struct {
+			pseudoStat proto.PseudoStat
+			want       float64
+		}{
+			{proto.PseudoStat_PseudoStatMainHandMissPercent, tc.miss},
+			{proto.PseudoStat_PseudoStatMainHandDodgePercent, tc.dodge},
+			{proto.PseudoStat_PseudoStatMainHandParryPercent, tc.parry},
+			{proto.PseudoStat_PseudoStatMainHandGlancePercent, tc.glance},
+		} {
+			if got := pseudoStats[row.pseudoStat]; !WithinToleranceFloat64(row.want, got, 1e-9) {
+				t.Errorf("%d sword skill against a level 63 target: the sheet shows %v for %s, want %v", tc.swordSkill, got, row.pseudoStat, row.want)
+			}
 		}
 	}
 }

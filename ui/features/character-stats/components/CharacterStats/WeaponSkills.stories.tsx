@@ -1,4 +1,5 @@
 import { WeaponSkill } from '@generated/proto/common';
+import { MAX_WEAPON_SKILL } from '@sim/player/player';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { NumberField } from '@ui-kit/TextField';
 import { useState } from 'react';
@@ -6,9 +7,7 @@ import { useState } from 'react';
 import { BonusLink } from './BonusLink';
 import { type WeaponSkillRow, WeaponSkillsView, type WeaponSkillsViewProps } from './WeaponSkills';
 
-const MAXIMUM = 300;
-
-const row = (skill: WeaponSkill, label: string, value: number): WeaponSkillRow => ({ skill, label, value, bonus: value - MAXIMUM });
+const row = (skill: WeaponSkill, label: string, value: number): WeaponSkillRow => ({ skill, label, value });
 
 const PALADIN_ROWS: Array<WeaponSkillRow> = [
 	row(WeaponSkill.WeaponSkillAxes, 'Axes', 300),
@@ -23,7 +22,7 @@ const PALADIN_ROWS: Array<WeaponSkillRow> = [
 const StatefulView = ({ rows: initialRows }: WeaponSkillsViewProps) => {
 	const [rows, setRows] = useState(initialRows);
 	const setBonus = (skill: WeaponSkill, bonus: number) =>
-		setRows(current => current.map(entry => (entry.skill === skill ? row(skill, entry.label, MAXIMUM + bonus) : entry)));
+		setRows(current => current.map(entry => (entry.skill === skill ? row(skill, entry.label, MAX_WEAPON_SKILL + bonus) : entry)));
 	return (
 		<WeaponSkillsView
 			rows={rows.map(entry => ({
@@ -34,7 +33,7 @@ const StatefulView = ({ rows: initialRows }: WeaponSkillsViewProps) => {
 						picker={onCommit => (
 							<NumberField
 								label={`Bonus ${entry.label}`}
-								value={entry.bonus}
+								value={entry.value - MAX_WEAPON_SKILL}
 								onChange={bonus => {
 									setBonus(entry.skill, bonus);
 									onCommit();

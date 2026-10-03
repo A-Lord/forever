@@ -61,7 +61,7 @@ import { Sim } from '../sim';
 import { batch } from '../state/batch';
 import { deleteKeyed, patchKeyed, PLAYER_FIELDS, PlayerField, PlayerSlice, seedKeyed, zeroVersions } from '../state/sim_store';
 import { playerTalentStringToProto } from '../talents/factory';
-import { omitDeep, stringComparator } from '../utils/collections';
+import { arrayEquals, omitDeep, stringComparator } from '../utils/collections';
 import { sum } from '../utils/math';
 import { WorkerProgressCallback } from '../workers/worker_pool';
 import { PlayerClass } from './player_class';
@@ -187,26 +187,6 @@ export class UnitMetadataList {
 		return this.metadatas.slice();
 	}
 }
-
-// The attack table, in percent, a weapon of this skill meets against a target of this level, as
-// NewAttackTable and newAttackTableHand in sim/core/target.go build it. The sim caps the level gap at
-// +3, so any higher level reads as +3. Parry, glance chance and crit suppression count the skill only
-// up to the level-based maximum. The crit suppression is the skill-gap part alone; the sim's
-// PseudoStatMeleeCritSuppressionPercent carries the whole of it.
-const attackTableAgainst = (targetLevel: number, skill: number) => {
-	const levelSkillGap = Math.min(targetLevel - Mechanics.CHARACTER_LEVEL, 3) * 5;
-	const bonusSkill = skill - Mechanics.CHARACTER_LEVEL * 5;
-	const skillGap = levelSkillGap - bonusSkill;
-	const baseSkillGap = levelSkillGap - Math.min(bonusSkill, 0);
-	return {
-		miss: 5 + skillGap * (skillGap > 10 ? 0.2 : 0.1),
-		hitSuppression: Math.max(skillGap - 10, 0) * 0.2,
-		dodge: 5 + skillGap * 0.1,
-		parry: 5 + baseSkillGap * (baseSkillGap > 10 ? 0.6 : 0.1),
-		glancing: Math.min(Math.max(10 + baseSkillGap * 2, 0), 100),
-		critSuppression: baseSkillGap * (baseSkillGap > 0 ? 0.2 : 0.04),
-	};
-};
 
 export interface MeleeCritCapInfo {
 	meleeCrit: number;
@@ -895,19 +875,17 @@ export class Player<SpecType extends Spec> {
 		const meleeCrit = (currentStats.finalStats?.pseudoStats[PseudoStat.PseudoStatMeleeCritPercent] || 0) + debuffCrit;
 		const meleeHit = (currentStats.finalStats?.pseudoStats[PseudoStat.PseudoStatMeleeHitPercent] || 0) + debuffHit;
 		const expertise = currentStats.finalStats?.pseudoStats[PseudoStat.PseudoStatExpertisePercent] || 0;
-		const weaponSkill = currentStats.finalStats?.pseudoStats[PseudoStat.PseudoStatMainHandWeaponSkill] || Mechanics.CHARACTER_LEVEL * 5;
-		const attackTable = attackTableAgainst(this.sim.encounter.primaryTarget.level, weaponSkill);
-		const critSuppression = currentStats.finalStats?.pseudoStats[PseudoStat.PseudoStatMeleeCritSuppressionPercent] ?? attackTable.critSuppression;
-		const glancing = attackTable.glancing;
+		const critSuppression = currentStats.finalStats?.pseudoStats[PseudoStat.PseudoStatMeleeCritSuppressionPercent] || 0;
+		const glancing = currentStats.finalStats?.pseudoStats[PseudoStat.PseudoStatMainHandGlancePercent] || 0;
 
-		const oneHandHitCap = attackTable.miss + attackTable.hitSuppression;
+		const oneHandHitCap = currentStats.finalStats?.pseudoStats[PseudoStat.PseudoStatMainHandMissPercent] || 0;
 		// DW Penalty is a fixed 19%
 		const dualWieldHitCap = oneHandHitCap + 19;
 		const hasOffhandWeapon = this.isDualWielding();
 		// Due to warrior HS bug, hit cap for crit cap calculation is the one-hand hit cap, not the dual-wield one
 		const meleeHitCap = hasOffhandWeapon && this.getClass() != Class.ClassWarrior ? dualWieldHitCap : oneHandHitCap;
-		const dodgeCap = attackTable.dodge;
-		const parryCap = this.getInFrontOfTarget() ? attackTable.parry : 0;
+		const dodgeCap = currentStats.finalStats?.pseudoStats[PseudoStat.PseudoStatMainHandDodgePercent] || 0;
+		const parryCap = this.getInFrontOfTarget() ? currentStats.finalStats?.pseudoStats[PseudoStat.PseudoStatMainHandParryPercent] || 0 : 0;
 		const expertiseCap = dodgeCap + parryCap;
 
 		const remainingMeleeHitCap = Math.max(meleeHitCap - meleeHit, 0.0);
@@ -1132,9 +1110,13 @@ export class Player<SpecType extends Spec> {
 	setWeaponSkills(newWeaponSkills: Array<WeaponSkillValue>) {
 		const current = this.slice().weaponSkills;
 		const sorted = newWeaponSkills.map(entry => WeaponSkillValue.clone(entry)).sort((a, b) => a.skill - b.skill);
-		if (sorted.length == current.length && sorted.every((entry, i) => WeaponSkillValue.equals(entry, current[i]))) return;
+		if (arrayEquals(sorted, current, WeaponSkillValue.equals)) return;
 
 		this.patch('weaponSkills', sorted);
+	}
+
+	getWeaponSkill(skill: WeaponSkill): number {
+		return weaponSkillValue(this.slice().weaponSkills, skill);
 	}
 
 	setWeaponSkill(skill: WeaponSkill, value: number) {

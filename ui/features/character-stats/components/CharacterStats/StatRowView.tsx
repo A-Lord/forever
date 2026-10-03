@@ -10,7 +10,7 @@ import { type ReactNode, useId } from 'react';
 
 import { type ShowStat, StatTooltipBody } from './StatTooltipBody';
 import type { DisplayStat } from './utils/rows';
-import { bonusStatClass } from './utils/stat_display';
+import { bonusStatClass, bonusTone } from './utils/stat_display';
 
 /** The weapons whose speed the effective-weapon-speed tooltip row is meaningful for. */
 const HUNTER_RANGED_TYPES = [RangedWeaponType.RangedWeaponTypeBow, RangedWeaponType.RangedWeaponTypeCrossbow, RangedWeaponType.RangedWeaponTypeGun];
@@ -48,7 +48,7 @@ export const StatRowView = ({
 			? bonusStats.getPseudoStat(unitStat.getPseudoStat())
 			: 0;
 	const contextualClass = bonusStatClass(bonusStatValue);
-	const tone = bonusStatValue === 0 ? 'neutral' : bonusStatValue > 0 ? 'positive' : 'negative';
+	const tone = bonusTone(bonusStatValue);
 
 	const showEffectiveWeaponSpeed =
 		playerClass === Class.ClassHunter &&

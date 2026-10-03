@@ -2,7 +2,7 @@ import { ConnectedNumberField } from '@features/inputs/components/ConnectedTextF
 import type { NumberFieldConfig } from '@features/inputs/configs';
 import type { WeaponSkill } from '@generated/proto/common';
 import { usePlayer } from '@sim/context/SimHostContext';
-import { MAX_WEAPON_SKILL, type Player, weaponSkillValue } from '@sim/player/player';
+import { MAX_WEAPON_SKILL, type Player } from '@sim/player/player';
 import { useMemo } from 'react';
 
 // The bonus is on top of the level 60 maximum; the skill may go past it, to 350, for theorycrafting.
@@ -24,7 +24,7 @@ export const WeaponSkillPicker = ({ skill, label, onCommit }: WeaponSkillPickerP
 			label,
 			inputClassName: 'm-0 w-32 flex-1',
 			storeField: 'weaponSkills',
-			getValue: subject => weaponSkillValue(subject.getWeaponSkills(), skill) - MAX_WEAPON_SKILL,
+			getValue: subject => subject.getWeaponSkill(skill) - MAX_WEAPON_SKILL,
 			setValue: (subject, bonus) => {
 				subject.setWeaponSkill(skill, Math.min(Math.max(MAX_WEAPON_SKILL + bonus, LOWEST_WEAPON_SKILL), HIGHEST_WEAPON_SKILL));
 				onCommit();

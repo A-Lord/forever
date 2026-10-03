@@ -257,7 +257,7 @@ enum Stat {
 // between the UI and backend. It's also OK to include things here which aren't
 // in the PseudoStats struct.
 //
-// NextIndex: 39;
+// NextIndex: 42;
 enum PseudoStat {
 	PseudoStatMainHandDps = 0;
 	PseudoStatOffHandDps = 1;
@@ -309,7 +309,11 @@ enum PseudoStat {
 	PseudoStatRangedCritRating = 35;
 	PseudoStatMeleeCritSuppressionPercent = 36;
 	PseudoStatRangedCritSuppressionPercent = 37;
-	PseudoStatMainHandWeaponSkill = 38; // The main-hand weapon's skill, 0 without a main-hand weapon.
+	// The main-hand auto attack's table against the current target, 0 before the attack tables exist.
+	PseudoStatMainHandMissPercent = 38; // The miss hit has to cover: the base miss plus the hit the skill gap suppresses.
+	PseudoStatMainHandDodgePercent = 39;
+	PseudoStatMainHandParryPercent = 40; // The target's parry against attacks from in front, not the character's own.
+	PseudoStatMainHandGlancePercent = 41;
 }
 
 message UnitStats {

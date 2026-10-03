@@ -147,7 +147,10 @@ export const pseudoStatI18nKeys: Record<PseudoStat, string> = {
 	[PseudoStat.PseudoStatRangedCritRating]: 'ranged_crit_rating',
 	[PseudoStat.PseudoStatMeleeCritSuppressionPercent]: 'melee_crit_suppression',
 	[PseudoStat.PseudoStatRangedCritSuppressionPercent]: 'ranged_crit_suppression',
-	[PseudoStat.PseudoStatMainHandWeaponSkill]: 'main_hand_weapon_skill',
+	[PseudoStat.PseudoStatMainHandMissPercent]: 'main_hand_miss',
+	[PseudoStat.PseudoStatMainHandDodgePercent]: 'main_hand_dodge',
+	[PseudoStat.PseudoStatMainHandParryPercent]: 'main_hand_parry',
+	[PseudoStat.PseudoStatMainHandGlancePercent]: 'main_hand_glance',
 };
 
 export const spellSchoolI18nKeys: Record<SpellSchool, string> = {

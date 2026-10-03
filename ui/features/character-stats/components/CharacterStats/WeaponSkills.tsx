@@ -12,15 +12,13 @@ import type { ReactNode } from 'react';
 
 import { BonusLink } from './BonusLink';
 import type { CharacterStatsMode } from './CharacterStatsHeaderView';
-import { bonusStatClass } from './utils/stat_display';
+import { bonusStatClass, bonusTone } from './utils/stat_display';
 import { WeaponSkillPicker } from './WeaponSkillPicker';
 
 export interface WeaponSkillRow {
 	skill: WeaponSkill;
 	label: string;
 	value: number;
-	/** The value's distance from the level maximum, which colours it. */
-	bonus: number;
 	bonusLink?: ReactNode;
 }
 
@@ -31,17 +29,20 @@ export interface WeaponSkillsViewProps {
 export const WeaponSkillsView = ({ rows }: WeaponSkillsViewProps) => (
 	<Table variant="plain" flush>
 		<tbody>
-			{rows.map(row => (
-				<TableRow key={row.skill} className="ui-character-stats-row">
-					<TableCell className="ui-character-stats-label">{row.label}</TableCell>
-					<TableCell className="ui-character-stats-value">
-						<div className="ui-stat-value-link-container" data-tone={row.bonus === 0 ? 'neutral' : row.bonus > 0 ? 'positive' : 'negative'}>
-							<span className={bonusStatClass(row.bonus)}>{row.value}</span>
-						</div>
-						{row.bonusLink}
-					</TableCell>
-				</TableRow>
-			))}
+			{rows.map(row => {
+				const bonus = row.value - MAX_WEAPON_SKILL;
+				return (
+					<TableRow key={row.skill} className="ui-character-stats-row">
+						<TableCell className="ui-character-stats-label">{row.label}</TableCell>
+						<TableCell className="ui-character-stats-value">
+							<div className="ui-stat-value-link-container" data-tone={bonusTone(bonus)}>
+								<span className={bonusStatClass(bonus)}>{row.value}</span>
+							</div>
+							{row.bonusLink}
+						</TableCell>
+					</TableRow>
+				);
+			})}
 		</tbody>
 	</Table>
 );
@@ -63,12 +64,10 @@ export const WeaponSkills = ({ mode }: WeaponSkillsProps) => {
 	const rows = shown.map(skill => {
 		const label = translateWeaponSkill(skill);
 		const bonusLabel = `${bonusPrefix} ${label}`;
-		const value = weaponSkillValue(weaponSkills, skill);
 		return {
 			skill,
 			label,
-			value,
-			bonus: value - MAX_WEAPON_SKILL,
+			value: weaponSkillValue(weaponSkills, skill),
 			bonusLink: <BonusLink label={bonusLabel} picker={onCommit => <WeaponSkillPicker skill={skill} label={bonusLabel} onCommit={onCommit} />} />,
 		};
 	});
