@@ -31,8 +31,8 @@ func TestCritChanceSubtractsCritTakenReduction(t *testing.T) {
 	}
 }
 
-// Defense lowers physical crit only; the rest of the crit taken reduction lowers spell crit too.
-func TestCritTakenReductionFromDefenseLowersPhysicalCritOnly(t *testing.T) {
+// Reduced crit taken, from Defense or bonus stats, lowers physical crit only.
+func TestCritTakenReductionLowersPhysicalCritOnly(t *testing.T) {
 	attacker := &Unit{Type: EnemyUnit}
 	attacker.stats[stats.PhysicalCritPercent] = 20
 	attacker.stats[stats.SpellCritPercent] = 20
@@ -45,7 +45,7 @@ func TestCritTakenReductionFromDefenseLowersPhysicalCritOnly(t *testing.T) {
 	if got := spell.PhysicalCritChance(attacker.AttackTables[0]); math.Abs(got-0.15) > 1e-9 {
 		t.Errorf("physical crit chance %v, want 0.15", got)
 	}
-	if got := spell.SpellCritChance(defender); math.Abs(got-0.19) > 1e-9 {
-		t.Errorf("spell crit chance %v, want 0.19", got)
+	if got := spell.SpellCritChance(defender); math.Abs(got-0.2) > 1e-9 {
+		t.Errorf("spell crit chance %v, want 0.2", got)
 	}
 }

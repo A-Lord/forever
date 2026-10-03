@@ -280,8 +280,8 @@ func (spell *Spell) SpellCritChance(target *Unit) float64 {
 		spell.BonusCritPercent +
 		attackTable.BonusSpellCritPercent +
 		attackTable.critChanceByCaster(spell)
-	// Defense lowers the chance to be crit by melee and ranged attacks only, so spells leave its part out.
-	return max(critPercent/100-target.PseudoStats.BaseReducedCritTakenPercent, 0)
+	// Reduced crit taken, like Defense, lowers the chance to be crit by melee and ranged attacks only.
+	return max(critPercent/100, 0)
 }
 func (spell *Spell) MagicCritCheck(sim *Simulation, target *Unit) bool {
 	critChance := spell.SpellCritChance(target)
