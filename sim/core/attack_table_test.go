@@ -186,6 +186,29 @@ func TestWeaponSkillAboveTheTargetsDefenseLowersItsBlock(t *testing.T) {
 	}
 }
 
+func TestFeralCombatSkillReplacesTheWeaponsSkillInAForm(t *testing.T) {
+	staff := &Item{WeaponType: proto.WeaponType_WeaponTypeStaff, HandType: proto.HandType_HandTypeTwoHand}
+	for _, tc := range []struct {
+		name        string
+		inForm      bool
+		feralSkill  float64
+		weapon      *Item
+		weaponSkill float64
+	}{
+		{"feral skill at the maximum", true, 0, staff, 0},
+		{"no weapon in a form", true, -10, nil, -10},
+		{"out of a form", false, -10, staff, -20},
+	} {
+		unit := &Unit{PseudoStats: stats.NewPseudoStats()}
+		unit.PseudoStats.WeaponSkills[proto.WeaponSkill_WeaponSkillStaves] = -20
+		unit.PseudoStats.FeralCombatEnabled = tc.inForm
+		unit.PseudoStats.FeralCombatSkill = tc.feralSkill
+		if got := GetWeaponSkill(unit, tc.weapon); got != tc.weaponSkill {
+			t.Errorf("%s: weapon skill %v, want %v", tc.name, got, tc.weaponSkill)
+		}
+	}
+}
+
 func TestEnemyAttackTableAgainstALevel60Player(t *testing.T) {
 	for _, tc := range []struct {
 		level                                       int32
@@ -240,59 +263,29 @@ func TestTargetBaseCritAndBlockValue(t *testing.T) {
 }
 
 func TestItemSwapRecomputesTheHandEntries(t *testing.T) {
-	const swordID, maceID int32 = 991501, 991502
+	sim, character := NewWeaponTestSim(t, proto.Race_RaceUndead,
+		WeaponTestSlots(WeaponTestSwordID, 0, 0),
+		WeaponTestSlots(WeaponTestDaggerID, 0, 0),
+		func(character *Character) {
+			character.PseudoStats.WeaponSkills[proto.WeaponSkill_WeaponSkillSwords] = 5
+		})
+	table := character.AttackTables[character.CurrentTarget.UnitIndex]
 
-	oneHander := func(id int32, weaponType proto.WeaponType) *proto.SimItem {
-		return &proto.SimItem{
-			Id:             id,
-			Name:           "Test Weapon",
-			Type:           proto.ItemType_ItemTypeWeapon,
-			WeaponType:     weaponType,
-			HandType:       proto.HandType_HandTypeOneHand,
-			WeaponSpeed:    2.6,
-			ScalingOptions: map[int32]*proto.ScalingItemProperties{0: {WeaponDamageMin: 50, WeaponDamageMax: 90}},
-		}
+	for _, step := range []struct {
+		when string
+		swap func()
+		miss float64
+	}{
+		{"sword in the main hand", func() {}, 0.06},
+		{"dagger swapped into the main hand", func() { character.ItemSwap.SwapItems(sim, proto.APLActionItemSwap_Swap1, false) }, 0.08},
+		{"reset to the sword", func() { character.ItemSwap.reset(sim) }, 0.06},
+	} {
+		step.swap()
+		checkAttackTableValues(t, step.when, []attackTableValue{
+			{"main hand miss", table.MH.BaseMissChance, step.miss},
+			{"table miss", table.BaseMissChance, step.miss},
+		})
 	}
-	addToDatabase(&proto.SimDatabase{
-		Items: []*proto.SimItem{oneHander(swordID, proto.WeaponType_WeaponTypeSword), oneHander(maceID, proto.WeaponType_WeaponTypeMace)},
-	})
-
-	mainHand := func(item *proto.ItemSpec) []*proto.ItemSpec {
-		items := make([]*proto.ItemSpec, proto.ItemSlot_ItemSlotMainHand+1)
-		for i := range items {
-			items[i] = &proto.ItemSpec{}
-		}
-		items[proto.ItemSlot_ItemSlotMainHand] = item
-		return items
-	}
-
-	agent := &FakeAgent{Character: NewCharacter(&Party{}, 0, &proto.Player{
-		Name:           "Swap Tester",
-		Class:          proto.Class_ClassWarrior,
-		Race:           proto.Race_RaceUndead,
-		Spec:           &proto.Player_DpsWarrior{DpsWarrior: &proto.DpsWarrior{}},
-		Equipment:      &proto.EquipmentSpec{Items: mainHand(&proto.ItemSpec{Id: swordID})},
-		EnableItemSwap: true,
-		ItemSwap:       &proto.ItemSwap{Items: mainHand(&proto.ItemSpec{Id: maceID})},
-		WeaponSkills:   []*proto.WeaponSkillValue{{Skill: proto.WeaponSkill_WeaponSkillSwords, Value: 305}},
-	})}
-	character := &agent.Character
-	character.ItemSwap.initialize(character)
-
-	target := &Unit{Type: EnemyUnit, Level: 63, PseudoStats: stats.NewPseudoStats()}
-	character.AttackTables = []*AttackTable{NewAttackTable(&character.Unit, target)}
-	character.updateAttackTableWeapons()
-	table := character.AttackTables[0]
-	checkAttackTableValues(t, "sword in the main hand", []attackTableValue{
-		{"main hand miss", table.MH.BaseMissChance, 0.06},
-		{"table miss", table.BaseMissChance, 0.06},
-	})
-
-	character.ItemSwap.swapItem(nil, proto.ItemSlot_ItemSlotMainHand, true, false)
-	checkAttackTableValues(t, "mace swapped into the main hand", []attackTableValue{
-		{"main hand miss", table.MH.BaseMissChance, 0.08},
-		{"table miss", table.BaseMissChance, 0.08},
-	})
 }
 
 func TestAttackTableHandFollowsTheProcMask(t *testing.T) {
@@ -418,7 +411,7 @@ func TestExpectedWhiteDamageUsesTheGlanceMidpoint(t *testing.T) {
 	}
 }
 
-func TestExpectedWeaponSpecialDamageBlocksNoMoreThanTheDamage(t *testing.T) {
+func TestExpectedMeleeDamageBlocksNoMoreThanTheDamage(t *testing.T) {
 	attacker := &Unit{PseudoStats: stats.NewPseudoStats()}
 	attacker.PseudoStats.InFrontOfTarget = true
 	target := &Unit{PseudoStats: stats.NewPseudoStats()}
@@ -430,18 +423,24 @@ func TestExpectedWeaponSpecialDamageBlocksNoMoreThanTheDamage(t *testing.T) {
 	}
 	spell := &Spell{Unit: attacker, ProcMask: ProcMaskMeleeMHSpecial, DefenseType: DefenseTypeMelee, CritMultiplierPct: 1}
 
-	for _, tc := range []struct {
-		blockValue, damage, want float64
-	}{
-		{20, 100, 99},
-		{200, 100, 95},
-		{200, 0, 0},
+	for name, outcome := range map[string]OutcomeApplier{
+		"white":          spell.OutcomeExpectedMeleeWhite,
+		"weapon special": spell.OutcomeExpectedMeleeWeaponSpecialHitAndCrit,
 	} {
-		target.stats[stats.BlockValue] = tc.blockValue
-		result := &SpellResult{Target: target, Damage: tc.damage}
-		spell.OutcomeExpectedMeleeWeaponSpecialHitAndCrit(nil, result, table)
-		if math.Abs(result.Damage-tc.want) > 1e-9 {
-			t.Errorf("%v block value against %v damage: expected damage %v, want %v", tc.blockValue, tc.damage, result.Damage, tc.want)
+		for _, tc := range []struct {
+			blockValue, damage, want float64
+		}{
+			{20, 100, 99},
+			{200, 100, 95},
+			{200, 0, 0},
+			{0, 0, 0},
+		} {
+			target.stats[stats.BlockValue] = tc.blockValue
+			result := &SpellResult{Target: target, Damage: tc.damage}
+			outcome(nil, result, table)
+			if !(math.Abs(result.Damage-tc.want) <= 1e-9) {
+				t.Errorf("%s, %v block value against %v damage: expected damage %v, want %v", name, tc.blockValue, tc.damage, result.Damage, tc.want)
+			}
 		}
 	}
 }

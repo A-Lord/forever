@@ -866,7 +866,7 @@ func (spell *Spell) OutcomeExpectedMeleeWhite(_ *Simulation, result *SpellResult
 	blockChance := TernaryFloat64(spell.Unit.PseudoStats.InFrontOfTarget, hand.BaseBlockChance, 0)
 	whiteCritCap := 1.0 - missChance - dodgeChance - parryChance - glanceChance - blockChance
 	critChance := min(spell.PhysicalCritChance(attackTable), whiteCritCap)
-	averageMultiplier := 1.0 - missChance - dodgeChance - parryChance + (spell.CritDamageMultiplier(attackTable)-1)*critChance - glanceChance*(1.0-(hand.GlanceMultiplierMin+hand.GlanceMultiplierMax)/2) - (blockChance * (result.Target.BlockDamageReduction() / result.Damage))
+	averageMultiplier := 1.0 - missChance - dodgeChance - parryChance + (spell.CritDamageMultiplier(attackTable)-1)*critChance - glanceChance*(1.0-(hand.GlanceMultiplierMin+hand.GlanceMultiplierMax)/2) - blockChance*result.blockedFraction()
 	result.Damage *= averageMultiplier
 }
 
@@ -877,11 +877,14 @@ func (spell *Spell) OutcomeExpectedMeleeWeaponSpecialHitAndCrit(_ *Simulation, r
 	parryChance := TernaryFloat64(spell.Unit.PseudoStats.InFrontOfTarget, max(0, hand.BaseParryChance-spell.DodgeParrySuppression()), 0)
 	blockChance := TernaryFloat64(spell.Unit.PseudoStats.InFrontOfTarget, hand.BaseBlockChance, 0)
 	critChance := spell.PhysicalCritChance(attackTable)
-	blockedFraction := 0.0
-	if result.Damage > 0 {
-		blockedFraction = min(result.Target.BlockDamageReduction(), result.Damage) / result.Damage
-	}
 	averageMultiplier := (1.0-missChance-dodgeChance-parryChance-blockChance)*(1.0+(spell.CritDamageMultiplier(attackTable)-1)*critChance) +
-		blockChance*(1.0-blockedFraction)
+		blockChance*(1.0-result.blockedFraction())
 	result.Damage *= averageMultiplier
+}
+
+func (result *SpellResult) blockedFraction() float64 {
+	if result.Damage <= 0 {
+		return 0
+	}
+	return min(result.Target.BlockDamageReduction(), result.Damage) / result.Damage
 }

@@ -6,12 +6,12 @@ import (
 
 // GetWeaponSkill returns the unit's bonus weapon skill for the weapon, on top of its level-based skill.
 func GetWeaponSkill(unit *Unit, weapon *Item) float64 {
-	if weapon == nil {
-		return 0
+	if unit.PseudoStats.FeralCombatEnabled {
+		return unit.PseudoStats.FeralCombatSkill
 	}
 
-	if unit.PseudoStats.FeralCombatEnabled && unit.PseudoStats.FeralCombatSkill != 0 {
-		return unit.PseudoStats.FeralCombatSkill
+	if weapon == nil {
+		return 0
 	}
 
 	return unit.PseudoStats.WeaponSkills[weaponSkillOf(weapon)]
