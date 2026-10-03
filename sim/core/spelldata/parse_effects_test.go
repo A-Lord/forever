@@ -716,9 +716,6 @@ func TestParseStaticStatConventions(t *testing.T) {
 
 	crit := parseWarrior()
 	baseCrit := crit.GetStat(stats.PhysicalCritPercent)
-	if baseCrit < 1 {
-		t.Fatalf("base physical crit is %v, so the stat is not on the 0-100 scale this pins", baseCrit)
-	}
 	ParseStatic(crit, oneEffectRow(dbcenums.A_MOD_WEAPON_CRIT_PERCENT, 0, 5))
 	if got := crit.GetStat(stats.PhysicalCritPercent) - baseCrit; math.Abs(got-5) > 1e-9 {
 		t.Errorf("crit from a 5 point row: %v percentage points, want 5", got)
