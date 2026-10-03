@@ -342,10 +342,28 @@ func (spell *Spell) outcomeMeleeWeaponSpecialNoParry(sim *Simulation, result *Sp
 }
 
 func (spell *Spell) OutcomeMeleeWeaponSpecialHitAndCrit(sim *Simulation, result *SpellResult, attackTable *AttackTable) {
-	spell.outcomeMeleeSpecialHitAndCrit(sim, result, attackTable, true)
+	spell.outcomeMeleeWeaponSpecialHitAndCrit(sim, result, attackTable, true)
 }
 func (spell *Spell) OutcomeMeleeWeaponSpecialHitAndCritNoHitCounter(sim *Simulation, result *SpellResult, attackTable *AttackTable) {
-	spell.outcomeMeleeSpecialHitAndCrit(sim, result, attackTable, false)
+	spell.outcomeMeleeWeaponSpecialHitAndCrit(sim, result, attackTable, false)
+}
+
+// Like OutcomeMeleeSpecialHitAndCrit, but blocks prevent crits (all weapon damage based attacks).
+func (spell *Spell) outcomeMeleeWeaponSpecialHitAndCrit(sim *Simulation, result *SpellResult, attackTable *AttackTable, countHits bool) {
+	if spell.Unit.PseudoStats.InFrontOfTarget {
+		roll := sim.RandomFloat("White Hit Table")
+		chance := 0.0
+
+		if !result.applyAttackTableMissNoDWPenalty(spell, attackTable, roll, &chance) &&
+			!result.applyAttackTableDodge(spell, attackTable, roll, &chance) &&
+			!result.applyAttackTableParry(spell, attackTable, roll, &chance) &&
+			!result.applyAttackTableBlock(spell, attackTable, roll, &chance) &&
+			!result.applyAttackTableCritSeparateRoll(sim, spell, attackTable, countHits) {
+			result.applyAttackTableHit(spell, countHits)
+		}
+	} else {
+		spell.outcomeMeleeSpecialHitAndCrit(sim, result, attackTable, countHits)
+	}
 }
 
 func (spell *Spell) OutcomeMeleeWeaponSpecialNoCrit(sim *Simulation, result *SpellResult, attackTable *AttackTable) {
@@ -428,15 +446,12 @@ func (spell *Spell) outcomeMeleeSpecialBlockAndCrit(sim *Simulation, result *Spe
 	if spell.Unit.PseudoStats.InFrontOfTarget {
 		roll := sim.RandomFloat("White Hit Table")
 		chance := 0.0
-
-		if !result.applyAttackTableCritSeparateRoll(sim, spell, attackTable, countHits) &&
-			!result.applyAttackTableBlock(spell, attackTable, roll, &chance) {
-			result.applyAttackTableHit(spell, countHits)
+		if result.applyAttackTableBlock(spell, attackTable, roll, &chance) {
+			return
 		}
-	} else {
-		if !result.applyAttackTableCritSeparateRoll(sim, spell, attackTable, countHits) {
-			result.applyAttackTableHit(spell, countHits)
-		}
+	}
+	if !result.applyAttackTableCritSeparateRoll(sim, spell, attackTable, countHits) {
+		result.applyAttackTableHit(spell, countHits)
 	}
 }
 
@@ -862,7 +877,7 @@ func (spell *Spell) OutcomeExpectedMeleeWeaponSpecialHitAndCrit(_ *Simulation, r
 	parryChance := TernaryFloat64(spell.Unit.PseudoStats.InFrontOfTarget, max(0, hand.BaseParryChance-spell.DodgeParrySuppression()), 0)
 	blockChance := TernaryFloat64(spell.Unit.PseudoStats.InFrontOfTarget, hand.BaseBlockChance, 0)
 	critChance := spell.PhysicalCritChance(attackTable)
-	averageMultiplier := (1.0 - missChance - dodgeChance - parryChance) * (1.0 + (spell.CritDamageMultiplier(attackTable)-1)*critChance)
-	averageMultiplier -= blockChance * (result.Target.BlockDamageReduction() / result.Damage)
+	averageMultiplier := (1.0-missChance-dodgeChance-parryChance-blockChance)*(1.0+(spell.CritDamageMultiplier(attackTable)-1)*critChance) +
+		blockChance*(1.0-result.Target.BlockDamageReduction()/result.Damage)
 	result.Damage *= averageMultiplier
 }

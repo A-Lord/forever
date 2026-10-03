@@ -392,39 +392,48 @@ func TestGlanceDamageRollsWithinTheHandsRange(t *testing.T) {
 	}
 }
 
-// In front of the target, a weapon special rolls block on the attack table and crit on its own roll, so
-// blocked attacks crit as often as unblocked ones.
-func TestWeaponSpecialCanBeABlockedCrit(t *testing.T) {
+// In front of the target, a weapon damage special rolls block on the attack table before its crit roll, so a
+// blocked attack never crits and blocks come at the full block chance.
+func TestWeaponSpecialBlockPreventsTheCrit(t *testing.T) {
 	attacker, defender := attackTableUnits(PlayerUnit, 60, EnemyUnit, 63)
 	attacker.PseudoStats.InFrontOfTarget = true
 	attacker.stats[stats.PhysicalHitPercent] = 20
 	attacker.stats[stats.PhysicalCritPercent] = 50
 	table := NewAttackTable(attacker, defender)
-	sim := &Simulation{rand: NewSplitMix(42)}
-	spell := &Spell{Unit: attacker, ProcMask: ProcMaskMeleeMHSpecial, DefenseType: DefenseTypeMelee, CritMultiplierPct: 1, SpellMetrics: make([]SpellMetrics, 1)}
+	crit := (&Spell{Unit: attacker, ProcMask: ProcMaskMeleeMHSpecial}).PhysicalCritChance(table)
+	landed := 1 - table.MH.BaseDodgeChance - table.MH.BaseParryChance - table.MH.BaseBlockChance
 
-	const n = 100000
-	for range n {
-		spell.OutcomeMeleeWeaponSpecialHitAndCrit(sim, &SpellResult{Target: defender, Damage: 100}, table)
-	}
-
-	metrics := spell.SpellMetrics[0]
-	crit := spell.PhysicalCritChance(table)
-	if metrics.Misses != 0 {
-		t.Errorf("%d misses with 20%% hit, want none", metrics.Misses)
-	}
-	if metrics.BlockedCrits == 0 {
-		t.Fatalf("no blocked crits in %d attacks", n)
-	}
 	for _, tc := range []struct {
 		name      string
-		got, want float64
+		outcome   func(*Spell) OutcomeApplier
+		wantCrits float64
 	}{
-		{"crits and blocked crits", float64(metrics.Crits+metrics.BlockedCrits) / n, (1 - table.MH.BaseDodgeChance - table.MH.BaseParryChance) * crit},
-		{"blocked crits", float64(metrics.BlockedCrits) / n, table.MH.BaseBlockChance * crit},
+		{"weapon special", func(spell *Spell) OutcomeApplier { return spell.OutcomeMeleeWeaponSpecialHitAndCrit }, landed * crit},
+		{"block and crit only", func(spell *Spell) OutcomeApplier { return spell.OutcomeMeleeSpecialBlockAndCrit }, (1 - table.MH.BaseBlockChance) * crit},
 	} {
-		if math.Abs(tc.got-tc.want) > 0.005 {
-			t.Errorf("%s: %v of attacks, want %v", tc.name, tc.got, tc.want)
+		sim := &Simulation{rand: NewSplitMix(42)}
+		spell := &Spell{Unit: attacker, ProcMask: ProcMaskMeleeMHSpecial, DefenseType: DefenseTypeMelee, CritMultiplierPct: 1, SpellMetrics: make([]SpellMetrics, 1)}
+		outcome := tc.outcome(spell)
+
+		const n = 100000
+		for range n {
+			outcome(sim, &SpellResult{Target: defender, Damage: 100}, table)
+		}
+
+		metrics := spell.SpellMetrics[0]
+		if metrics.BlockedCrits != 0 {
+			t.Errorf("%s: %d blocked crits, want none", tc.name, metrics.BlockedCrits)
+		}
+		for _, check := range []struct {
+			name      string
+			got, want float64
+		}{
+			{"blocks", float64(metrics.Blocks) / n, table.MH.BaseBlockChance},
+			{"crits", float64(metrics.Crits) / n, tc.wantCrits},
+		} {
+			if math.Abs(check.got-check.want) > 0.005 {
+				t.Errorf("%s: %s %v of attacks, want %v", tc.name, check.name, check.got, check.want)
+			}
 		}
 	}
 }

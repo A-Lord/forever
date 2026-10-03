@@ -1546,9 +1546,9 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-SwitchInFrontOfTarget-Default"
  value: {
-  dps: 191.954
-  tps: 112.75885
+  dps: 190.09318
+  tps: 111.73068
   dtps: 2.90588
-  hps: 10.64539
+  hps: 10.35832
  }
 }
