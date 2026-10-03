@@ -181,6 +181,22 @@ export class UnitMetadataList {
 	}
 }
 
+// The attack table, in percent, a character with no bonus weapon skill meets against a target of
+// this level, as NewAttackTable and newAttackTableHand in sim/core/target.go build it. The sim caps
+// the level gap at +3, so any higher level reads as +3. The crit suppression is the skill-gap part
+// alone; the sim's PseudoStatMeleeCritSuppressionPercent carries the whole of it.
+const attackTableAgainst = (targetLevel: number) => {
+	const skillGap = Math.min(targetLevel - Mechanics.CHARACTER_LEVEL, 3) * 5;
+	return {
+		miss: 5 + skillGap * (skillGap > 10 ? 0.2 : 0.1),
+		hitSuppression: Math.max(skillGap - 10, 0) * 0.2,
+		dodge: 5 + skillGap * 0.1,
+		parry: 5 + skillGap * (skillGap > 10 ? 0.6 : 0.1),
+		glancing: Math.max(10 + skillGap * 2, 0),
+		critSuppression: skillGap * (skillGap > 0 ? 0.2 : 0.04),
+	};
+};
+
 export interface MeleeCritCapInfo {
 	meleeCrit: number;
 	meleeHit: number;
@@ -867,19 +883,18 @@ export class Player<SpecType extends Spec> {
 		const meleeCrit = (currentStats.finalStats?.pseudoStats[PseudoStat.PseudoStatMeleeCritPercent] || 0) + debuffCrit;
 		const meleeHit = (currentStats.finalStats?.pseudoStats[PseudoStat.PseudoStatMeleeHitPercent] || 0) + debuffHit;
 		const expertise = currentStats.finalStats?.pseudoStats[PseudoStat.PseudoStatExpertisePercent] || 0;
-		const targetLevel = this.sim.encounter.primaryTarget.level;
-		const critSuppression = { 68: 0, 70: 0, 71: 1, 72: 2, 73: 4.8 }[targetLevel] ?? 0;
-		const hitSuppression = { 68: 0, 70: 0, 71: 0, 72: 0, 73: 1 }[targetLevel] ?? 0;
-		const glancing = { 68: 0, 70: 6, 71: 12, 72: 18, 73: 24 }[targetLevel] ?? 0;
+		const attackTable = attackTableAgainst(this.sim.encounter.primaryTarget.level);
+		const critSuppression = currentStats.finalStats?.pseudoStats[PseudoStat.PseudoStatMeleeCritSuppressionPercent] ?? attackTable.critSuppression;
+		const glancing = attackTable.glancing;
 
-		const oneHandHitCap = ({ 68: 4, 70: 5, 71: 6, 72: 7, 73: 8 }[targetLevel] ?? 4) + hitSuppression;
+		const oneHandHitCap = attackTable.miss + attackTable.hitSuppression;
 		// DW Penalty is a fixed 19%
 		const dualWieldHitCap = oneHandHitCap + 19;
 		const hasOffhandWeapon = this.isDualWielding();
-		// Due to warrior HS bug, hit cap for crit cap calculation should be 8% instead of 27%
+		// Due to warrior HS bug, hit cap for crit cap calculation is the one-hand hit cap, not the dual-wield one
 		const meleeHitCap = hasOffhandWeapon && this.getClass() != Class.ClassWarrior ? dualWieldHitCap : oneHandHitCap;
-		const dodgeCap = { 68: 4, 70: 5, 71: 5.5, 72: 6, 73: 6.5 }[targetLevel] ?? 4;
-		const parryCap = this.getInFrontOfTarget() ? ({ 68: 4, 70: 5, 71: 5.5, 72: 6, 73: 14 }[targetLevel] ?? 4) : 0;
+		const dodgeCap = attackTable.dodge;
+		const parryCap = this.getInFrontOfTarget() ? attackTable.parry : 0;
 		const expertiseCap = dodgeCap + parryCap;
 
 		const remainingMeleeHitCap = Math.max(meleeHitCap - meleeHit, 0.0);
