@@ -254,3 +254,38 @@ func TestSheetRangedOffsetsLeaveOutTheMainHandsMods(t *testing.T) {
 		t.Errorf("ranged hit and a ranged hit mod moved the ranged hit offset by %v, want 3", got)
 	}
 }
+
+// The weapon tester has no crit beyond its base crit, so the level 63 target takes 3% off its autos
+// and up to 1.8% more of any crit a buff adds. The sheet's crit less the suppression is the autos' crit.
+func TestSheetCritSuppressionIsTheAutosAgainstTheTarget(t *testing.T) {
+	sim, character := NewWeaponTestSim(t, proto.Race_RaceUndead, WeaponTestSlots(WeaponTestSwordID, WeaponTestDaggerID, WeaponTestBowID), nil, nil)
+	table := character.AttackTables[character.CurrentTarget.UnitIndex]
+	for _, tc := range []struct {
+		buffCrit, want float64
+	}{
+		{0, 3.0},
+		{1, 4.0},
+		{2, 4.8},
+		{20, 4.8},
+	} {
+		character.AddStatDynamic(sim, stats.PhysicalCritPercent, tc.buffCrit)
+		pseudoStats := character.GetPseudoStatsProto()
+		for _, row := range []struct {
+			name              string
+			suppression, crit proto.PseudoStat
+			auto              *Spell
+		}{
+			{"melee", proto.PseudoStat_PseudoStatMeleeCritSuppressionPercent, proto.PseudoStat_PseudoStatMeleeCritPercent, character.AutoAttacks.MHAuto()},
+			{"ranged", proto.PseudoStat_PseudoStatRangedCritSuppressionPercent, proto.PseudoStat_PseudoStatRangedCritPercent, character.AutoAttacks.RangedAuto()},
+		} {
+			if got := pseudoStats[row.suppression]; !WithinToleranceFloat64(tc.want, got, 1e-9) {
+				t.Errorf("%v%% crit buff: the %s row shows %v%% suppression, want %v%%", tc.buffCrit, row.name, got, tc.want)
+			}
+			shown := max(pseudoStats[row.crit]-pseudoStats[row.suppression]-table.Defender.PseudoStats.ReducedCritTakenPercent*100, 0)
+			if rolled := row.auto.PhysicalCritChance(table) * 100; !WithinToleranceFloat64(rolled, shown, 1e-9) {
+				t.Errorf("%v%% crit buff: the %s row shows %v%% crit after suppression, the auto rolls %v%%", tc.buffCrit, row.name, shown, rolled)
+			}
+		}
+		character.AddStatDynamic(sim, stats.PhysicalCritPercent, -tc.buffCrit)
+	}
+}

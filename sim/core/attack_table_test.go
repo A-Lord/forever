@@ -34,12 +34,12 @@ func TestPlayerAttackTableAgainstEachTargetLevel(t *testing.T) {
 		level                                   int32
 		miss, hitSuppression, dodge, parry      float64
 		glance, glanceMin, glanceMax, critSuppr float64
-		spellMiss                               float64
+		auraCritSuppr, spellMiss                float64
 	}{
-		{60, 0.05, 0, 0.05, 0.05, 0.10, 0.91, 0.99, 0, 0.04},
-		{61, 0.055, 0, 0.055, 0.055, 0.20, 0.91, 0.99, 0.01, 0.05},
-		{62, 0.06, 0, 0.06, 0.06, 0.30, 0.80, 0.90, 0.02, 0.06},
-		{63, 0.08, 0.01, 0.065, 0.14, 0.40, 0.55, 0.75, 0.048, 0.17},
+		{60, 0.05, 0, 0.05, 0.05, 0.10, 0.91, 0.99, 0, 0, 0.04},
+		{61, 0.055, 0, 0.055, 0.055, 0.20, 0.91, 0.99, 0.01, 0, 0.05},
+		{62, 0.06, 0, 0.06, 0.06, 0.30, 0.80, 0.90, 0.02, 0, 0.06},
+		{63, 0.08, 0.01, 0.065, 0.14, 0.40, 0.55, 0.75, 0.03, 0.018, 0.17},
 	} {
 		attacker, defender := attackTableUnits(PlayerUnit, 60, EnemyUnit, tc.level)
 		table := NewAttackTable(attacker, defender)
@@ -58,6 +58,7 @@ func TestPlayerAttackTableAgainstEachTargetLevel(t *testing.T) {
 		}
 		checkAttackTableValues(t, fmt.Sprintf("level 60 against %d", tc.level), []attackTableValue{
 			{"table miss", table.BaseMissChance, tc.miss},
+			{"aura crit suppression", table.AuraCritSuppression, tc.auraCritSuppr},
 			{"spell miss", table.BaseSpellMissChance, tc.spellMiss},
 		})
 	}
@@ -91,7 +92,7 @@ func TestWeaponSkillSettingSetsTheSwordHandsTableAgainstALevel63Target(t *testin
 		BaseGlanceChance:     0.40,
 		GlanceMultiplierMin:  0.55,
 		GlanceMultiplierMax:  0.75,
-		MeleeCritSuppression: 0.048,
+		MeleeCritSuppression: 0.03,
 	}
 
 	for _, tc := range []struct {
@@ -107,7 +108,7 @@ func TestWeaponSkillSettingSetsTheSwordHandsTableAgainstALevel63Target(t *testin
 			BaseGlanceChance:     0.70,
 			GlanceMultiplierMin:  0.01,
 			GlanceMultiplierMax:  0.30,
-			MeleeCritSuppression: 0.078,
+			MeleeCritSuppression: 0.06,
 		}},
 		{300, level63},
 		{305, AttackTableHand{
@@ -118,7 +119,7 @@ func TestWeaponSkillSettingSetsTheSwordHandsTableAgainstALevel63Target(t *testin
 			BaseGlanceChance:     0.40,
 			GlanceMultiplierMin:  0.80,
 			GlanceMultiplierMax:  0.90,
-			MeleeCritSuppression: 0.048,
+			MeleeCritSuppression: 0.03,
 		}},
 		{315, AttackTableHand{
 			BaseMissChance:       0.05,
@@ -128,7 +129,7 @@ func TestWeaponSkillSettingSetsTheSwordHandsTableAgainstALevel63Target(t *testin
 			BaseGlanceChance:     0.40,
 			GlanceMultiplierMin:  0.91,
 			GlanceMultiplierMax:  0.99,
-			MeleeCritSuppression: 0.048,
+			MeleeCritSuppression: 0.03,
 		}},
 	} {
 		character := NewCharacter(&Party{}, 0, &proto.Player{
@@ -146,7 +147,10 @@ func TestWeaponSkillSettingSetsTheSwordHandsTableAgainstALevel63Target(t *testin
 		values := handValues("sword hand", table.MH, tc.sword)
 		values = append(values, handValues("mace hand", table.OH, level63)...)
 		values = append(values, handValues("ranged", table.Ranged, level63)...)
-		values = append(values, attackTableValue{"table miss", table.BaseMissChance, tc.sword.BaseMissChance})
+		values = append(values,
+			attackTableValue{"table miss", table.BaseMissChance, tc.sword.BaseMissChance},
+			attackTableValue{"aura crit suppression", table.AuraCritSuppression, 0.018},
+		)
 		checkAttackTableValues(t, fmt.Sprintf("%d sword skill", tc.skill), values)
 	}
 }
@@ -216,9 +220,10 @@ func TestEnemyAttackTableAgainstALevel60Player(t *testing.T) {
 
 func attackTableNumbers(table *AttackTable) map[string]float64 {
 	numbers := map[string]float64{
-		"miss":       table.BaseMissChance,
-		"spell miss": table.BaseSpellMissChance,
-		"crush":      table.BaseCrushChance,
+		"miss":                  table.BaseMissChance,
+		"spell miss":            table.BaseSpellMissChance,
+		"crush":                 table.BaseCrushChance,
+		"aura crit suppression": table.AuraCritSuppression,
 	}
 	for hand, entry := range map[string]AttackTableHand{"main hand": table.MH, "off hand": table.OH, "ranged": table.Ranged} {
 		numbers[hand+" miss"] = entry.BaseMissChance

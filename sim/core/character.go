@@ -467,6 +467,7 @@ func (character *Character) Finalize() {
 		})
 	}
 
+	character.basePhysicalCritPercent = character.baseStats[stats.PhysicalCritPercent]
 	character.Unit.finalize()
 
 	character.majorCooldownManager.finalize()

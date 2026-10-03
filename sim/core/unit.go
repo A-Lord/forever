@@ -99,6 +99,9 @@ type Unit struct {
 	// Ranged swing speed without any temporary effects.
 	initialRangedSwingSpeed float64
 
+	basePhysicalCritPercent float64 // The base physical crit of the class or pet, which no defender suppresses.
+	critPerAgility          float64 // The physical crit per point of Agility, which no defender suppresses.
+
 	// Provides aura tracking behavior.
 	auraTracker
 
@@ -852,6 +855,7 @@ func (unit *Unit) finalize() {
 	unit.initialRangedSwingSpeed = unit.TotalRangedHasteMultiplier()
 
 	unit.StatDependencyManager.FinalizeStatDeps()
+	unit.critPerAgility = unit.GetStatDependencyCoeff(stats.Agility, stats.PhysicalCritPercent)
 	unit.initialStats = unit.ApplyStatDependencies(unit.initialStatsWithoutDeps).FloorGameStats()
 	unit.statsWithoutDeps = unit.initialStatsWithoutDeps
 	unit.stats = unit.initialStats

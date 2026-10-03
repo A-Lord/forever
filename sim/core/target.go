@@ -365,6 +365,8 @@ type AttackTable struct {
 	BaseSpellMissChance float64
 	BaseCrushChance     float64
 
+	AuraCritSuppression float64 // The most of the attacker's crit beyond base and Agility crit that a defender 3 or more levels above takes off.
+
 	MH     AttackTableHand
 	OH     AttackTableHand
 	Ranged AttackTableHand
@@ -414,6 +416,10 @@ func NewAttackTable(attacker *Unit, defender *Unit) *AttackTable {
 		levelDiff := combatLevelDiff(attacker, defender)
 
 		table.BaseSpellMissChance = UnitLevelFloat64(levelDiff, 0.04, 0.05, 0.06, 0.17)
+		// Era logs show no aura crit suppression against targets 1 or 2 levels above.
+		if levelDiff >= 3 {
+			table.AuraCritSuppression = 0.018
+		}
 
 		table.setWeapons(nil, nil, nil)
 	} else {
@@ -487,9 +493,6 @@ func newAttackTableHand(attacker *Unit, defender *Unit, weapon *Item) AttackTabl
 		hand.MeleeCritSuppression = baseSkillDiff * 0.002
 	} else {
 		hand.MeleeCritSuppression = baseSkillDiff * 0.0004
-	}
-	if levelDiff >= 3 {
-		hand.MeleeCritSuppression += 0.018
 	}
 	return hand
 }

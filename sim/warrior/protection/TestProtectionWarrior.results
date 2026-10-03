@@ -910,25 +910,25 @@ dps_results: {
 dps_results: {
  key: "TestProtectionWarrior-Settings-Human-p1_bis-Protection-default-NoBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 2487.89478
-  tps: 4208.14442
-  dtps: 131346.93832
+  dps: 2504.11966
+  tps: 4233.42716
+  dtps: 131335.01312
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-Settings-Human-p1_bis-Protection-default-NoBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 378.67432
-  tps: 591.15237
-  dtps: 5069.02909
+  dps: 381.75415
+  tps: 595.99251
+  dtps: 5059.9541
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-Settings-Human-p1_bis-Protection-default-NoBuffs-0.0yards-ShortSingleTarget"
  value: {
-  dps: 366.73401
-  tps: 584.02684
-  dtps: 4720.83887
+  dps: 369.43667
+  tps: 588.04649
+  dtps: 4728.02022
  }
 }
 dps_results: {
@@ -961,25 +961,25 @@ dps_results: {
 dps_results: {
  key: "TestProtectionWarrior-Settings-Human-preraid-Protection-default-NoBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 2487.89478
-  tps: 4208.14442
-  dtps: 131346.93832
+  dps: 2504.11966
+  tps: 4233.42716
+  dtps: 131335.01312
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-Settings-Human-preraid-Protection-default-NoBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 378.67432
-  tps: 591.15237
-  dtps: 5069.02909
+  dps: 381.75415
+  tps: 595.99251
+  dtps: 5059.9541
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-Settings-Human-preraid-Protection-default-NoBuffs-0.0yards-ShortSingleTarget"
  value: {
-  dps: 366.73401
-  tps: 584.02684
-  dtps: 4720.83887
+  dps: 369.43667
+  tps: 588.04649
+  dtps: 4728.02022
  }
 }
 dps_results: {

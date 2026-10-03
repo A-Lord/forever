@@ -145,6 +145,8 @@ export const pseudoStatI18nKeys: Record<PseudoStat, string> = {
 	[PseudoStat.PseudoStatOffHandCritRating]: 'off_hand_crit_rating',
 	[PseudoStat.PseudoStatRangedHitRating]: 'ranged_hit_rating',
 	[PseudoStat.PseudoStatRangedCritRating]: 'ranged_crit_rating',
+	[PseudoStat.PseudoStatMeleeCritSuppressionPercent]: 'melee_crit_suppression',
+	[PseudoStat.PseudoStatRangedCritSuppressionPercent]: 'ranged_crit_suppression',
 };
 
 export const spellSchoolI18nKeys: Record<SpellSchool, string> = {

@@ -244,6 +244,8 @@
 			"off_hand_crit_rating": "Off Hand Crit Rating",
 			"ranged_hit_rating": "Ranged Hit Rating",
 			"ranged_crit_rating": "Ranged Crit Rating",
+			"melee_crit_suppression": "Melee Crit Suppression",
+			"ranged_crit_suppression": "Ranged Crit Suppression",
 			"healing_power": "Healing Power",
 			"spell_damage": "Spell Damage",
 			"arcane_damage": "Arcane Spell Damage",
