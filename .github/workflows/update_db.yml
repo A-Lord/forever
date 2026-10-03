@@ -90,7 +90,8 @@ jobs:
 
             # db2tool warns (and carries on) when the hotfix cache is for another
             # build than the CDN serves, which happens around a build push; the
-            # pull request says which it was.
+            # pull request says which it was. The spell data change report goes
+            # into the pull request body.
             - name: Extract game files data and regenerate the database 🔧
               id: db
               run: |
@@ -101,6 +102,11 @@ jobs:
                   else
                       echo "hotfixes=$(grep -m1 'Loaded hotfixes' "$RUNNER_TEMP/db.log" | sed 's/.*for build/applied, DBCache.bin for build/')" >> "$GITHUB_OUTPUT"
                   fi
+                  {
+                      echo "report<<REPORT_EOF"
+                      python3 tools/spelldata_report_markdown.py < "$RUNNER_TEMP/db.log" || echo "The spell data change report could not be formatted; the build log has it."
+                      echo "REPORT_EOF"
+                  } >> "$GITHUB_OUTPUT"
 
             # In dependency order: the base stats and spell tables read
             # wowsims.db; the protos pick up the rewritten .proto files; the TS
@@ -138,6 +144,8 @@ jobs:
                       - Build: ${{ steps.build.outputs.version }}
                       - Hotfixes: ${{ steps.db.outputs.hotfixes }} (from ${{ env.DBCACHE_URL }})
                       - Ran `make db --cdn`, `make basestats`, `gen_spelldata`, `make proto` and `go-to-ts`; the Go builds, the generator tests pass and the UI type-checks
+
+                      ${{ steps.db.outputs.report }}
 
     # The pull request checks do not run for a pull request the workflow token
     # opened, so run the same test suite against the branch here.

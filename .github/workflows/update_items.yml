@@ -95,7 +95,7 @@ jobs:
                   fi
                   {
                       echo "report<<REPORT_EOF"
-                      grep -E '^(spelldata: (items |  [+~-] |shared row |row |spell )|kept, not ported)' "$RUNNER_TEMP/db.log" | head -n 200 || true
+                      python3 tools/spelldata_report_markdown.py < "$RUNNER_TEMP/db.log" || echo "The spell data change report could not be formatted; the build log has it."
                       echo "REPORT_EOF"
                   } >> "$GITHUB_OUTPUT"
 
@@ -123,6 +123,4 @@ jobs:
                       - Hotfixes: ${{ steps.db.outputs.hotfixes }} (from ${{ env.DBCACHE_URL }})
                       - Ran `make db CLASSES=none SHARED=0 --cdn`; the Go builds, the generator tests pass and the UI type-checks
 
-                      ```
                       ${{ steps.db.outputs.report }}
-                      ```
