@@ -376,19 +376,28 @@ func TestMergeAdoptsInputsThatRecordNoSpellDataGroups(t *testing.T) {
 	}
 }
 
-// The committed inputs merged with themselves, one group at a time, are the committed inputs again.
+// The committed inputs merged with themselves, one group at a time, are the committed inputs again,
+// apart from the build stamped on the groups the merge takes: with the groups on different builds,
+// items and shared take the stamp of the group the run names.
 func TestMergeOfTheCommittedInputsWithThemselvesChangesNothing(t *testing.T) {
 	inRepositoryRoot(t)
 	committed := committedInputs(t)
 	if committed.Builds == nil {
 		t.Skip("the committed inputs record no spell data groups")
 	}
-	want, err := json.Marshal(committed)
-	if err != nil {
-		t.Fatal(err)
-	}
 	for _, group := range []string{"warrior", "hunter", "druid", groupRacials, groupItems} {
-		merged, _, err := mergeStoreInputs(committedInputs(t), committedInputs(t), groupsOf(t, group), committed.Builds[group])
+		only, version := groupsOf(t, group), committed.Builds[group]
+		merged, _, err := mergeStoreInputs(committedInputs(t), committedInputs(t), only, version)
+		if err != nil {
+			t.Fatal(err)
+		}
+		expected := committedInputs(t)
+		for _, p := range allSpellDataGroups() {
+			if only.Takes(p) {
+				expected.Builds[p] = version
+			}
+		}
+		want, err := json.Marshal(expected)
 		if err != nil {
 			t.Fatal(err)
 		}
