@@ -143,6 +143,23 @@
 			"thrown": "Thrown",
 			"wand": "Wand"
 		},
+		"weapon_skills": {
+			"unknown": "Unknown",
+			"axes": "Axes",
+			"two_handed_axes": "Two-Handed Axes",
+			"maces": "Maces",
+			"two_handed_maces": "Two-Handed Maces",
+			"swords": "Swords",
+			"two_handed_swords": "Two-Handed Swords",
+			"polearms": "Polearms",
+			"staves": "Staves",
+			"daggers": "Daggers",
+			"fist_weapons": "Fist Weapons",
+			"bows": "Bows",
+			"crossbows": "Crossbows",
+			"guns": "Guns",
+			"thrown": "Thrown"
+		},
 		"spell_schools": {
 			"physical": "Physical",
 			"arcane": "Arcane",
@@ -2541,6 +2558,7 @@
 				"off": "OH"
 			},
 			"melee_crit_cap": "Melee Crit Cap",
+			"weapon_skill": "Weapon Skill",
 			"tooltip": {
 				"base": "Base:",
 				"gear": "Gear:",

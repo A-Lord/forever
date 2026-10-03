@@ -26,6 +26,7 @@ import {
 	shouldShowMeleeCritCap,
 	statDisplayString,
 } from './utils/stat_display';
+import { WeaponSkills } from './WeaponSkills';
 
 // buildRows drops the stats it has no row for, so the full list yields every row the sheet can show.
 const ALL_STATS = UnitStat.getAll();
@@ -168,6 +169,7 @@ export const CharacterStats = ({ className }: CharacterStatsProps) => {
 						{table(group.rows)}
 					</AccordionItem>
 				))}
+				<WeaponSkills />
 			</Accordion>
 		</CharacterStatsPanelView>
 	);

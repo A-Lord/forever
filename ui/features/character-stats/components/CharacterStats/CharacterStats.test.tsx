@@ -49,6 +49,7 @@ const renderSheet = ({ displayStats, currentStats, inFrontOfTarget = false, play
 		gear: { id: 'gear' },
 		bonusStats: new Stats(),
 		inFrontOfTarget,
+		weaponSkills: [],
 		currentStats,
 		v: zeroVersions(PLAYER_FIELDS),
 	} as unknown as PlayerSlice);

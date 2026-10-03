@@ -25,6 +25,8 @@ import {
 	Stat,
 	UnitReference,
 	UnitStats,
+	WeaponSkill,
+	WeaponSkillValue,
 } from '@generated/proto/common';
 import { SimDatabase } from '@generated/proto/db';
 import {
@@ -65,6 +67,11 @@ import { WorkerProgressCallback } from '../workers/worker_pool';
 import { PlayerClass } from './player_class';
 import { PlayerSpec } from './player_spec';
 import { PlayerSpecs } from './specs';
+
+const MAX_WEAPON_SKILL = Mechanics.CHARACTER_LEVEL * 5;
+
+export const weaponSkillValue = (weaponSkills: ReadonlyArray<WeaponSkillValue>, skill: WeaponSkill): number =>
+	weaponSkills.find(entry => entry.skill == skill)?.value ?? MAX_WEAPON_SKILL;
 
 export interface AuraStats {
 	data: AuraStatsProto;
@@ -351,6 +358,7 @@ export class Player<SpecType extends Spec> {
 			channelClipDelay: 0,
 			inFrontOfTarget: false,
 			distanceFromTarget: 0,
+			weaponSkills: [],
 			healingModel: HealingModel.create(),
 			epWeights: new Stats(),
 			epRatios: new Array<number>(Player.numEpRatios).fill(0),
@@ -1097,6 +1105,23 @@ export class Player<SpecType extends Spec> {
 		this.patch('distanceFromTarget', newDistanceFromTarget);
 	}
 
+	getWeaponSkills(): Array<WeaponSkillValue> {
+		return this.slice().weaponSkills.map(entry => WeaponSkillValue.clone(entry));
+	}
+
+	setWeaponSkills(newWeaponSkills: Array<WeaponSkillValue>) {
+		const current = this.slice().weaponSkills;
+		const sorted = newWeaponSkills.map(entry => WeaponSkillValue.clone(entry)).sort((a, b) => a.skill - b.skill);
+		if (sorted.length == current.length && sorted.every((entry, i) => WeaponSkillValue.equals(entry, current[i]))) return;
+
+		this.patch('weaponSkills', sorted);
+	}
+
+	setWeaponSkill(skill: WeaponSkill, value: number) {
+		const others = this.slice().weaponSkills.filter(entry => entry.skill != skill);
+		this.setWeaponSkills(value == MAX_WEAPON_SKILL ? others : [...others, WeaponSkillValue.create({ skill, value })]);
+	}
+
 	setDefaultHealingParams(hm: HealingModel) {
 		const boss = this.sim.encounter.primaryTarget;
 		const dualWield = boss.dualWield;
@@ -1518,6 +1543,7 @@ export class Player<SpecType extends Spec> {
 				channelClipDelayMs: this.getChannelClipDelay(),
 				inFrontOfTarget: this.getInFrontOfTarget(),
 				distanceFromTarget: this.getDistanceFromTarget(),
+				weaponSkills: this.getWeaponSkills(),
 				healingModel: this.getHealingModel(),
 			});
 			player = withSpec(this.getSpec(), player, this.getSpecOptions());
@@ -1568,6 +1594,7 @@ export class Player<SpecType extends Spec> {
 				this.setChannelClipDelay(proto.channelClipDelayMs);
 				this.setInFrontOfTarget(proto.inFrontOfTarget);
 				this.setDistanceFromTarget(proto.distanceFromTarget);
+				this.setWeaponSkills(proto.weaponSkills);
 				this.setHealingModel(proto.healingModel || HealingModel.create());
 			}
 			if (loadCategory(SimSettingCategories.External)) {
@@ -1597,6 +1624,7 @@ export class Player<SpecType extends Spec> {
 				}),
 			);
 			this.setBonusStats(new Stats());
+			this.setWeaponSkills([]);
 		});
 	}
 
