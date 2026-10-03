@@ -35,11 +35,20 @@ func (character *Character) sheetAttackStats(probe ProcMask) sheetAttackStats {
 // The crit the sim takes off the auto attack against the current target, in percent. The sheet's
 // crit percents keep it in; before the attack tables exist it is 0.
 func (character *Character) sheetCritSuppressionPercent(probe ProcMask, scoped ScopedPercents, critPercent float64) float64 {
-	if character.CurrentTarget == nil || int(character.CurrentTarget.UnitIndex) >= len(character.AttackTables) {
+	table := character.sheetAttackTable()
+	if table == nil {
 		return 0
 	}
 	probeSpell := &Spell{Unit: &character.Unit, ProcMask: probe, BonusCritPercent: scoped.Crit}
-	return probeSpell.physicalCritSuppression(character.AttackTables[character.CurrentTarget.UnitIndex], critPercent) * 100
+	return probeSpell.physicalCritSuppression(table, critPercent) * 100
+}
+
+// The attack table against the current target, nil before the attack tables exist.
+func (character *Character) sheetAttackTable() *AttackTable {
+	if character.CurrentTarget == nil || int(character.CurrentTarget.UnitIndex) >= len(character.AttackTables) {
+		return nil
+	}
+	return character.AttackTables[character.CurrentTarget.UnitIndex]
 }
 
 // Which of block and parry the character sheet shows: a character that cannot block or parry shows
@@ -64,6 +73,10 @@ func (character *Character) GetPseudoStatsProto() []float64 {
 	var offHand sheetAttackStats
 	if character.AutoAttacks.IsDualWielding {
 		offHand = character.sheetAttackStats(ProcMaskMeleeOHAuto)
+	}
+	var mainHandTable AttackTableHand
+	if table := character.sheetAttackTable(); table != nil {
+		mainHandTable = table.MH
 	}
 	pseudoStats := []float64{
 		proto.PseudoStat_PseudoStatMainHandDps: character.AutoAttacks.MH().DPS(),
@@ -109,6 +122,11 @@ func (character *Character) GetPseudoStatsProto() []float64 {
 
 		proto.PseudoStat_PseudoStatMeleeCritSuppressionPercent:  mainHand.CritSuppressionPercent,
 		proto.PseudoStat_PseudoStatRangedCritSuppressionPercent: ranged.CritSuppressionPercent,
+
+		proto.PseudoStat_PseudoStatMainHandMissPercent:   (mainHandTable.BaseMissChance + mainHandTable.HitSuppression) * 100,
+		proto.PseudoStat_PseudoStatMainHandDodgePercent:  mainHandTable.BaseDodgeChance * 100,
+		proto.PseudoStat_PseudoStatMainHandParryPercent:  mainHandTable.BaseParryChance * 100,
+		proto.PseudoStat_PseudoStatMainHandGlancePercent: mainHandTable.BaseGlanceChance * 100,
 	}
 	for school := stats.SchoolIndexArcane; school < stats.SchoolLen; school++ {
 		pseudoStats[SchoolHitPseudoStats[school]] = character.GetStat(stats.SpellHitPercent) + character.PseudoStats.SchoolBonusHitChance[school]

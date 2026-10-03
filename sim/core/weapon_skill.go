@@ -1,6 +1,8 @@
 package core
 
-import "github.com/wowsims/forever/sim/core/proto"
+import (
+	"github.com/wowsims/forever/sim/core/proto"
+)
 
 // GetWeaponSkill returns the unit's bonus weapon skill for the weapon, on top of its level-based skill.
 func GetWeaponSkill(unit *Unit, weapon *Item) float64 {
@@ -12,54 +14,30 @@ func GetWeaponSkill(unit *Unit, weapon *Item) float64 {
 		return unit.PseudoStats.FeralCombatSkill
 	}
 
+	return unit.PseudoStats.WeaponSkills[weaponSkillOf(weapon)]
+}
+
+func weaponSkillOf(weapon *Item) proto.WeaponSkill {
 	if weapon.HandType == proto.HandType_HandTypeTwoHand {
-		switch weapon.WeaponType {
-		case proto.WeaponType_WeaponTypeAxe:
-			return unit.PseudoStats.TwoHandedAxesSkill
-		case proto.WeaponType_WeaponTypeMace:
-			return unit.PseudoStats.TwoHandedMacesSkill
-		case proto.WeaponType_WeaponTypeSword:
-			return unit.PseudoStats.TwoHandedSwordsSkill
-		case proto.WeaponType_WeaponTypePolearm:
-			return unit.PseudoStats.PolearmsSkill
-		case proto.WeaponType_WeaponTypeStaff:
-			return unit.PseudoStats.StavesSkill
-		default:
-			return 0
-		}
+		return twoHandWeaponSkills[weapon.WeaponType]
 	}
-
 	if weapon.RangedWeaponType != proto.RangedWeaponType_RangedWeaponTypeUnknown {
-		switch weapon.RangedWeaponType {
-		case proto.RangedWeaponType_RangedWeaponTypeBow:
-			return unit.PseudoStats.BowsSkill
-		case proto.RangedWeaponType_RangedWeaponTypeCrossbow:
-			return unit.PseudoStats.CrossbowsSkill
-		case proto.RangedWeaponType_RangedWeaponTypeGun:
-			return unit.PseudoStats.GunsSkill
-		case proto.RangedWeaponType_RangedWeaponTypeThrown:
-			return unit.PseudoStats.ThrownSkill
-		default:
-			return 0
-		}
+		return rangedWeaponSkills[weapon.RangedWeaponType]
 	}
-
 	switch weapon.HandType {
 	case proto.HandType_HandTypeMainHand, proto.HandType_HandTypeOneHand, proto.HandType_HandTypeOffHand:
-		switch weapon.WeaponType {
-		case proto.WeaponType_WeaponTypeAxe:
-			return unit.PseudoStats.AxesSkill
-		case proto.WeaponType_WeaponTypeFist:
-			return unit.PseudoStats.UnarmedSkill
-		case proto.WeaponType_WeaponTypeMace:
-			return unit.PseudoStats.MacesSkill
-		case proto.WeaponType_WeaponTypeSword:
-			return unit.PseudoStats.SwordsSkill
-		case proto.WeaponType_WeaponTypeDagger:
-			return unit.PseudoStats.DaggersSkill
+		return oneHandWeaponSkills[weapon.WeaponType]
+	}
+	return proto.WeaponSkill_WeaponSkillUnknown
+}
+
+// Sets each listed skill's bonus over the level-based skill; a skill the list leaves out stays at the maximum.
+func (character *Character) applyWeaponSkills(weaponSkills []*proto.WeaponSkillValue) {
+	for _, weaponSkill := range weaponSkills {
+		if weaponSkill.Skill > proto.WeaponSkill_WeaponSkillUnknown && int(weaponSkill.Skill) < len(character.PseudoStats.WeaponSkills) {
+			character.PseudoStats.WeaponSkills[weaponSkill.Skill] = float64(weaponSkill.Value - character.Level*5)
 		}
 	}
-	return 0
 }
 
 func (character *Character) updateAttackTableWeapons() {

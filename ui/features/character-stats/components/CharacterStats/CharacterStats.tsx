@@ -26,6 +26,7 @@ import {
 	shouldShowMeleeCritCap,
 	statDisplayString,
 } from './utils/stat_display';
+import { WeaponSkills } from './WeaponSkills';
 
 // buildRows drops the stats it has no row for, so the full list yields every row the sheet can show.
 const ALL_STATS = UnitStat.getAll();
@@ -53,9 +54,8 @@ export const CharacterStats = ({ className }: CharacterStatsProps) => {
 	const talentsString = usePlayerStore('talentsString');
 	const inFrontOfTarget = usePlayerStore('inFrontOfTarget');
 	// Not player state, but read by the facade getters below: getDebuffStats and getMissChanceInfo
-	// go through raid.debuffs, and getMeleeCritCapInfo through the primary target's level.
+	// go through raid.debuffs.
 	const debuffs = useStore(host.sim.store, s => s.raid.debuffs);
-	const targets = useStore(host.sim.store, s => s.encounter.targets);
 
 	const snapshot = useMemo(() => {
 		const attribution = computeStatAttribution(
@@ -76,20 +76,7 @@ export const CharacterStats = ({ className }: CharacterStatsProps) => {
 			critImmunity: isTank ? { info: player.getCritImmunityInfo(), text: critImmunityCapDisplayString(player) } : null,
 		};
 		// eslint-disable-next-line react-hooks/exhaustive-deps -- every store value below reaches the body through the player/sim facades rather than by name; they are the invalidation keys, and dropping one stales the snapshot.
-	}, [
-		player,
-		currentStats,
-		bonusStats,
-		gear,
-		race,
-		consumables,
-		talentsString,
-		inFrontOfTarget,
-		debuffs,
-		targets,
-		modifyDisplayStats,
-		overwriteDisplayStats,
-	]);
+	}, [player, currentStats, bonusStats, gear, race, consumables, talentsString, inFrontOfTarget, debuffs, modifyDisplayStats, overwriteDisplayStats]);
 
 	const { pending, attribution, rangedWeapon, critCap, miss, avoidance, critImmunity } = snapshot;
 	const show = (deltaStats: Stats, unitStat: UnitStat, includeBase?: boolean) => statDisplayString(player, deltaStats, unitStat, includeBase);
@@ -168,6 +155,7 @@ export const CharacterStats = ({ className }: CharacterStatsProps) => {
 						{table(group.rows)}
 					</AccordionItem>
 				))}
+				<WeaponSkills mode={mode} />
 			</Accordion>
 		</CharacterStatsPanelView>
 	);

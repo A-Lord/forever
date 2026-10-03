@@ -202,13 +202,13 @@ func (spell *Spell) PhysicalCritChance(attackTable *AttackTable) float64 {
 	return max(critPercent/100-attackTable.Defender.PseudoStats.ReducedCritTakenPercent-spell.physicalCritSuppression(attackTable, critPercent), 0)
 }
 
-// The crit a physical attack with critPercent in total loses to the defender's level: the skill part,
-// and the aura crit up to AuraCritSuppression. Aura crit is all of critPercent but the attacker's base
-// and Agility crit.
+// The crit a physical attack with critPercent in total loses to the defender's level: the skill part of
+// the attacking hand, and the aura crit up to AuraCritSuppression. Aura crit is all of critPercent but the
+// attacker's base and Agility crit.
 func (spell *Spell) physicalCritSuppression(attackTable *AttackTable, critPercent float64) float64 {
 	unit := spell.Unit
 	auraCritPercent := critPercent - unit.basePhysicalCritPercent - unit.stats[stats.Agility]*unit.critPerAgility
-	return attackTable.MeleeCritSuppression + Clamp(auraCritPercent/100, 0, attackTable.AuraCritSuppression)
+	return attackTable.Hand(spell).MeleeCritSuppression + Clamp(auraCritPercent/100, 0, attackTable.AuraCritSuppression)
 }
 func (spell *Spell) PhysicalCritCheck(sim *Simulation, attackTable *AttackTable) bool {
 	return sim.RandomFloat("Physical Crit Roll") < spell.PhysicalCritChance(attackTable)
@@ -267,7 +267,8 @@ func (spell *Spell) SpellHitChance(target *Unit) float64 {
 }
 func (spell *Spell) SpellChanceToMiss(attackTable *AttackTable) float64 {
 	// https://royalgiraffe.github.io/resist-guide (Binary spells)
-	// hitChance = baseLevelHit * (1 - 0.75*resistCoeff) + spellHitBonus, with no miss floor.
+	// hitChance = baseLevelHit * (1 - 0.75*resistCoeff) + spellHitBonus, with no miss floor:
+	// Forever has no 1% minimum miss.
 	// The level-based hit is reduced by the resistance roll first, then the spell hit
 	// bonus is added afterwards, which is why spell hit above the level-based miss
 	// counteracts resistance for binary spells.
@@ -288,7 +289,8 @@ func (spell *Spell) SpellCritChance(target *Unit) float64 {
 		spell.BonusCritPercent +
 		attackTable.BonusSpellCritPercent +
 		attackTable.critChanceByCaster(spell)
-	return max(critPercent/100-target.PseudoStats.ReducedCritTakenPercent, 0)
+	// Reduced crit taken, like Defense, lowers the chance to be crit by melee and ranged attacks only.
+	return max(critPercent/100, 0)
 }
 func (spell *Spell) MagicCritCheck(sim *Simulation, target *Unit) bool {
 	critChance := spell.SpellCritChance(target)

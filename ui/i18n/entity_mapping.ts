@@ -12,6 +12,7 @@ import {
 	Spec,
 	SpellSchool,
 	Stat,
+	WeaponSkill,
 	WeaponType,
 } from '@generated/proto/common';
 import { ResourceType } from '@generated/proto/spell';
@@ -146,6 +147,10 @@ export const pseudoStatI18nKeys: Record<PseudoStat, string> = {
 	[PseudoStat.PseudoStatRangedCritRating]: 'ranged_crit_rating',
 	[PseudoStat.PseudoStatMeleeCritSuppressionPercent]: 'melee_crit_suppression',
 	[PseudoStat.PseudoStatRangedCritSuppressionPercent]: 'ranged_crit_suppression',
+	[PseudoStat.PseudoStatMainHandMissPercent]: 'main_hand_miss',
+	[PseudoStat.PseudoStatMainHandDodgePercent]: 'main_hand_dodge',
+	[PseudoStat.PseudoStatMainHandParryPercent]: 'main_hand_parry',
+	[PseudoStat.PseudoStatMainHandGlancePercent]: 'main_hand_glance',
 };
 
 export const spellSchoolI18nKeys: Record<SpellSchool, string> = {
@@ -367,6 +372,24 @@ export const rangedWeaponTypeI18nKeys: Record<RangedWeaponType, string> = {
 	[RangedWeaponType.RangedWeaponTypeSigil]: 'sigil',
 };
 
+export const weaponSkillI18nKeys: Record<WeaponSkill, string> = {
+	[WeaponSkill.WeaponSkillUnknown]: 'unknown',
+	[WeaponSkill.WeaponSkillAxes]: 'axes',
+	[WeaponSkill.WeaponSkillTwoHandedAxes]: 'two_handed_axes',
+	[WeaponSkill.WeaponSkillMaces]: 'maces',
+	[WeaponSkill.WeaponSkillTwoHandedMaces]: 'two_handed_maces',
+	[WeaponSkill.WeaponSkillSwords]: 'swords',
+	[WeaponSkill.WeaponSkillTwoHandedSwords]: 'two_handed_swords',
+	[WeaponSkill.WeaponSkillPolearms]: 'polearms',
+	[WeaponSkill.WeaponSkillStaves]: 'staves',
+	[WeaponSkill.WeaponSkillDaggers]: 'daggers',
+	[WeaponSkill.WeaponSkillFistWeapons]: 'fist_weapons',
+	[WeaponSkill.WeaponSkillBows]: 'bows',
+	[WeaponSkill.WeaponSkillCrossbows]: 'crossbows',
+	[WeaponSkill.WeaponSkillGuns]: 'guns',
+	[WeaponSkill.WeaponSkillThrown]: 'thrown',
+};
+
 export const slotNamesI18nKeys: Record<ItemSlot, string> = {
 	[ItemSlot.ItemSlotHead]: 'head',
 	[ItemSlot.ItemSlotNeck]: 'neck',
@@ -444,6 +467,8 @@ export const getWeaponTypeI18nKey = (weaponType: WeaponType): string => weaponTy
 
 export const getRangedWeaponTypeI18nKey = (rangedWeaponType: RangedWeaponType): string =>
 	rangedWeaponTypeI18nKeys[rangedWeaponType] || RangedWeaponType[rangedWeaponType].toLowerCase();
+
+export const getWeaponSkillI18nKey = (weaponSkill: WeaponSkill): string => weaponSkillI18nKeys[weaponSkill] || WeaponSkill[weaponSkill].toLowerCase();
 
 export const getSlotNameI18nKey = (slot: ItemSlot): string => slotNamesI18nKeys[slot] || ItemSlot[slot].toLowerCase();
 

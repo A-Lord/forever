@@ -363,13 +363,9 @@ type AttackTable struct {
 	BaseMissChance float64
 
 	BaseSpellMissChance float64
-	BaseBlockChance     float64
-	BaseParryChance     float64
-	BaseGlanceChance    float64
 	BaseCrushChance     float64
 
-	MeleeCritSuppression float64 // The crit the defender's level takes off every physical attack.
-	AuraCritSuppression  float64 // The most of the attacker's crit beyond base and Agility crit that a defender 3 or more levels above takes off.
+	AuraCritSuppression float64 // The most of the attacker's crit beyond base and Agility crit that a defender 3 or more levels above takes off.
 
 	MH     AttackTableHand
 	OH     AttackTableHand
@@ -418,22 +414,8 @@ func NewAttackTable(attacker *Unit, defender *Unit) *AttackTable {
 
 	if defender.Type == EnemyUnit {
 		levelDiff := combatLevelDiff(attacker, defender)
-		defenseDiff := float64(levelDiff) * 5
 
-		if defenseDiff > 10 {
-			table.BaseParryChance = 0.05 + defenseDiff*0.006
-		} else {
-			table.BaseParryChance = 0.05 + defenseDiff*0.001
-		}
 		table.BaseSpellMissChance = UnitLevelFloat64(levelDiff, 0.04, 0.05, 0.06, 0.17)
-		table.BaseBlockChance = 0.05
-		table.BaseGlanceChance = Clamp(0.1+defenseDiff*0.02, 0, 1)
-
-		if defenseDiff > 0 {
-			table.MeleeCritSuppression = defenseDiff * 0.002
-		} else {
-			table.MeleeCritSuppression = defenseDiff * 0.0004
-		}
 		// Era logs show no aura crit suppression against targets 1 or 2 levels above.
 		if levelDiff >= 3 {
 			table.AuraCritSuppression = 0.018
@@ -444,14 +426,18 @@ func NewAttackTable(attacker *Unit, defender *Unit) *AttackTable {
 		levelDiff := combatLevelDiff(defender, attacker)
 		levelDelta := -0.002 * float64(levelDiff)
 
-		table.BaseSpellMissChance = 0.05
-		table.BaseBlockChance = 0.05 + levelDelta
-		table.BaseParryChance = 0.05 + levelDelta
+		if levelDiff > 0 {
+			table.BaseSpellMissChance = 0.04 - 0.01*float64(levelDiff)
+		} else {
+			table.BaseSpellMissChance = UnitLevelFloat64(-levelDiff, 0.04, 0.05, 0.06, 0.17)
+		}
 		table.BaseCrushChance = UnitLevelFloat64(levelDiff, 0, 0, 0, 0.15)
 
 		table.MH = AttackTableHand{
 			BaseMissChance:  0.05 + levelDelta,
 			BaseDodgeChance: levelDelta,
+			BaseParryChance: 0.05 + levelDelta,
+			BaseBlockChance: 0.05 + levelDelta,
 		}
 		table.OH = table.MH
 		table.Ranged = table.MH
@@ -467,18 +453,28 @@ func combatLevelDiff(attacker *Unit, defender *Unit) int32 {
 
 // The parts of an attack table that depend on the weapon skill of the attacking hand.
 type AttackTableHand struct {
-	BaseMissChance      float64
-	HitSuppression      float64
-	BaseDodgeChance     float64
-	GlanceMultiplierMin float64
-	GlanceMultiplierMax float64
+	BaseMissChance       float64
+	HitSuppression       float64
+	BaseDodgeChance      float64
+	BaseParryChance      float64
+	BaseBlockChance      float64
+	BaseGlanceChance     float64
+	GlanceMultiplierMin  float64
+	GlanceMultiplierMax  float64
+	MeleeCritSuppression float64
 }
 
 func newAttackTableHand(attacker *Unit, defender *Unit, weapon *Item) AttackTableHand {
-	skillDiff := float64(combatLevelDiff(attacker, defender)*5) - GetWeaponSkill(attacker, weapon)
+	levelDiff := combatLevelDiff(attacker, defender)
+	bonus := GetWeaponSkill(attacker, weapon)
+	skillDiff := float64(levelDiff*5) - bonus
+	// Parry, glance chance and crit suppression count skill only up to the level-based maximum.
+	baseSkillDiff := float64(levelDiff*5) - min(bonus, 0)
 
 	hand := AttackTableHand{
 		BaseDodgeChance:     0.05 + skillDiff*0.001,
+		BaseBlockChance:     min(0.05, 0.05+skillDiff*0.001),
+		BaseGlanceChance:    Clamp(0.1+baseSkillDiff*0.02, 0, 1),
 		GlanceMultiplierMin: max(min(1.3-0.05*skillDiff, 0.91), 0.01),
 		GlanceMultiplierMax: max(min(1.2-0.03*skillDiff, 0.99), 0.2),
 	}
@@ -487,6 +483,16 @@ func newAttackTableHand(attacker *Unit, defender *Unit, weapon *Item) AttackTabl
 		hand.HitSuppression = (skillDiff - 10) * 0.002
 	} else {
 		hand.BaseMissChance = 0.05 + skillDiff*0.001
+	}
+	if baseSkillDiff > 10 {
+		hand.BaseParryChance = 0.05 + baseSkillDiff*0.006
+	} else {
+		hand.BaseParryChance = 0.05 + baseSkillDiff*0.001
+	}
+	if baseSkillDiff > 0 {
+		hand.MeleeCritSuppression = baseSkillDiff * 0.002
+	} else {
+		hand.MeleeCritSuppression = baseSkillDiff * 0.0004
 	}
 	return hand
 }

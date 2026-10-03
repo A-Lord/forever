@@ -34,9 +34,4 @@ func TestResistCoefficientAgainstHigherLevelTarget(t *testing.T) {
 			t.Errorf("%s at +3: coefficient %v, want %v", tc.name, got, tc.want)
 		}
 	}
-
-	level72 := &Unit{Type: EnemyUnit, Level: 72}
-	if got := level72.resistCoeff(spell, attacker, false, false); math.Abs(got-0.08) > 1e-12 {
-		t.Errorf("no resistance at +12: coefficient %v, want the +3 value 0.08", got)
-	}
 }

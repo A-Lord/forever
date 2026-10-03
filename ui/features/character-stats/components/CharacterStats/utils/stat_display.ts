@@ -106,8 +106,12 @@ export const critImmunityCapDisplayString = (player: Player<any>): string => {
 	return `${prefix} ${Math.abs(critImmuneDelta).toFixed(2)}%`;
 };
 
-export const bonusStatClass = (bonusStatValue: number): string =>
-	bonusStatValue === 0 ? 'text-white' : TONE_TEXT[bonusStatValue > 0 ? 'positive' : 'negative'];
+export const bonusTone = (value: number): 'neutral' | 'positive' | 'negative' => (value === 0 ? 'neutral' : value > 0 ? 'positive' : 'negative');
+
+export const bonusStatClass = (bonusStatValue: number): string => {
+	const tone = bonusTone(bonusStatValue);
+	return tone === 'neutral' ? 'text-white' : TONE_TEXT[tone];
+};
 
 /** The melee crit cap reads the other way round: over the cap is bad. */
 export const critCapClass = (capDelta: number): string => (capDelta === 0 ? 'text-white' : TONE_TEXT[capDelta > 0 ? 'negative' : 'positive']);

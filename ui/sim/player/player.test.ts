@@ -36,50 +36,59 @@ describe('Player.getDebuffStats', () => {
 	});
 });
 
+// The main-hand table the sim sends against a level 63 target, in percent; miss includes the suppressed hit.
+interface SheetTable {
+	miss: number;
+	dodge: number;
+	parry: number;
+	glance: number;
+	suppression: number;
+}
+const LEVEL_63_AT_300: SheetTable = { miss: 9, dodge: 6.5, parry: 14, glance: 40, suppression: 3 };
+const LEVEL_63_AT_285: SheetTable = { miss: 15, dodge: 8, parry: 23, glance: 70, suppression: 6 };
+
 // A rogue with one weapon and no hit, expertise or crit, behind the target unless placed in front.
-// A suppression left out is a pseudo-stat the sim has not sent.
-const critCapInfo = (targetLevel: number, { inFront = false, critSuppression }: { inFront?: boolean; critSuppression?: number } = {}) => {
+const critCapInfo = (table: SheetTable, { inFront = false, dualWield = false, playerClass = Class.ClassRogue } = {}) => {
 	const pseudoStats: Array<number> = [];
-	if (critSuppression !== undefined) pseudoStats[PseudoStat.PseudoStatMeleeCritSuppressionPercent] = critSuppression;
+	pseudoStats[PseudoStat.PseudoStatMainHandMissPercent] = table.miss;
+	pseudoStats[PseudoStat.PseudoStatMainHandDodgePercent] = table.dodge;
+	pseudoStats[PseudoStat.PseudoStatMainHandParryPercent] = table.parry;
+	pseudoStats[PseudoStat.PseudoStatMainHandGlancePercent] = table.glance;
+	pseudoStats[PseudoStat.PseudoStatMeleeCritSuppressionPercent] = table.suppression;
 	return Player.prototype.getMeleeCritCapInfo.call({
 		slice: () => ({ currentStats: { finalStats: { pseudoStats } } }),
 		getDebuffStats: () => new Stats(),
-		sim: { encounter: { primaryTarget: { level: targetLevel } } },
-		isDualWielding: () => false,
-		getClass: () => Class.ClassRogue,
+		isDualWielding: () => dualWield,
+		getClass: () => playerClass,
 		getInFrontOfTarget: () => inFront,
 		getSpec: () => Spec.SpecRogue,
 	} as unknown as Player<any>);
 };
 
 describe('Player.getMeleeCritCapInfo', () => {
-	// The sim caps the level gap at +3, so a saved encounter's level 70-73 target meets the level-63 table.
-	it.each<[number, number, number, number, number]>([
-		[58, 4, 4, 0, -0.4],
-		[60, 5, 5, 10, 0],
-		[62, 6, 6, 30, 2],
-		[63, 9, 6.5, 40, 3],
-		[70, 9, 6.5, 40, 3],
-		[73, 9, 6.5, 40, 3],
-	])('against a level %i target: %f%% hit cap, %f%% dodge, %f%% glancing, %f%% crit suppression', (level, hitCap, dodge, glancing, suppression) => {
-		const info = critCapInfo(level);
+	it.each<[number, SheetTable]>([
+		[300, LEVEL_63_AT_300],
+		[285, LEVEL_63_AT_285],
+	])('with %i main-hand weapon skill against a level 63 target, caps hit, dodge and crit on the table the sim sends', (_skill, table) => {
+		const info = critCapInfo(table);
 
-		expect(info.meleeHitCap).toBeCloseTo(hitCap);
-		expect(info.expertiseCap).toBeCloseTo(dodge);
-		expect(info.glancing).toBeCloseTo(glancing);
-		expect(info.suppression).toBeCloseTo(suppression);
-		expect(info.baseCritCap).toBeCloseTo(100 - glancing + suppression - hitCap - dodge);
+		expect(info.meleeHitCap).toBeCloseTo(table.miss);
+		expect(info.expertiseCap).toBeCloseTo(table.dodge);
+		expect(info.glancing).toBeCloseTo(table.glance);
+		expect(info.suppression).toBeCloseTo(table.suppression);
+		expect(info.baseCritCap).toBeCloseTo(100 - table.glance + table.suppression - table.miss - table.dodge);
 	});
 
-	it('adds the parry of a level 63 target to the expertise cap from in front', () => {
-		expect(critCapInfo(63, { inFront: true }).expertiseCap).toBeCloseTo(6.5 + 14);
+	it.each<[number, SheetTable]>([
+		[300, LEVEL_63_AT_300],
+		[285, LEVEL_63_AT_285],
+	])('with %i main-hand weapon skill, adds the parry of a level 63 target to the expertise cap from in front', (_skill, table) => {
+		expect(critCapInfo(table, { inFront: true }).expertiseCap).toBeCloseTo(table.dodge + table.parry);
 	});
 
-	it.each([4.8, 0])('takes the crit suppression the sim sends, %f%%, over the level table', critSuppression => {
-		const info = critCapInfo(63, { critSuppression });
-
-		expect(info.suppression).toBe(critSuppression);
-		expect(info.baseCritCap).toBeCloseTo(100 - 40 + critSuppression - 9 - 6.5);
+	it('adds the dual-wield miss to the hit cap, except for a warrior', () => {
+		expect(critCapInfo(LEVEL_63_AT_300, { dualWield: true }).meleeHitCap).toBeCloseTo(9 + 19);
+		expect(critCapInfo(LEVEL_63_AT_300, { dualWield: true, playerClass: Class.ClassWarrior }).meleeHitCap).toBeCloseTo(9);
 	});
 });
 

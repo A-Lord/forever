@@ -474,6 +474,74 @@
 					"additionalProperties": false,
 					"required": ["unknown", "bow", "crossbow", "gun", "thrown", "wand"]
 				},
+				"weapon_skills": {
+					"type": "object",
+					"properties": {
+						"unknown": {
+							"type": "string"
+						},
+						"axes": {
+							"type": "string"
+						},
+						"two_handed_axes": {
+							"type": "string"
+						},
+						"maces": {
+							"type": "string"
+						},
+						"two_handed_maces": {
+							"type": "string"
+						},
+						"swords": {
+							"type": "string"
+						},
+						"two_handed_swords": {
+							"type": "string"
+						},
+						"polearms": {
+							"type": "string"
+						},
+						"staves": {
+							"type": "string"
+						},
+						"daggers": {
+							"type": "string"
+						},
+						"fist_weapons": {
+							"type": "string"
+						},
+						"bows": {
+							"type": "string"
+						},
+						"crossbows": {
+							"type": "string"
+						},
+						"guns": {
+							"type": "string"
+						},
+						"thrown": {
+							"type": "string"
+						}
+					},
+					"additionalProperties": false,
+					"required": [
+						"unknown",
+						"axes",
+						"two_handed_axes",
+						"maces",
+						"two_handed_maces",
+						"swords",
+						"two_handed_swords",
+						"polearms",
+						"staves",
+						"daggers",
+						"fist_weapons",
+						"bows",
+						"crossbows",
+						"guns",
+						"thrown"
+					]
+				},
 				"spell_schools": {
 					"type": "object",
 					"properties": {
@@ -748,6 +816,18 @@
 						"ranged_crit_suppression": {
 							"type": "string"
 						},
+						"main_hand_miss": {
+							"type": "string"
+						},
+						"main_hand_dodge": {
+							"type": "string"
+						},
+						"main_hand_parry": {
+							"type": "string"
+						},
+						"main_hand_glance": {
+							"type": "string"
+						},
 						"healing_power": {
 							"type": "string"
 						},
@@ -875,6 +955,10 @@
 						"ranged_crit_rating",
 						"melee_crit_suppression",
 						"ranged_crit_suppression",
+						"main_hand_miss",
+						"main_hand_dodge",
+						"main_hand_parry",
+						"main_hand_glance",
 						"healing_power",
 						"spell_damage",
 						"arcane_damage",
@@ -1069,6 +1153,7 @@
 				"armor_types",
 				"weapon_types",
 				"ranged_weapon_types",
+				"weapon_skills",
 				"spell_schools",
 				"resource_types",
 				"item_qualities",
@@ -8972,6 +9057,9 @@
 						"melee_crit_cap": {
 							"type": "string"
 						},
+						"weapon_skill": {
+							"type": "string"
+						},
 						"tooltip": {
 							"type": "object",
 							"properties": {
@@ -9157,6 +9245,7 @@
 						"groups",
 						"hands",
 						"melee_crit_cap",
+						"weapon_skill",
 						"tooltip",
 						"attack_table",
 						"crit_cap",
