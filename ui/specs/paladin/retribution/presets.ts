@@ -36,7 +36,6 @@ export const DefaultRaidBuffs = RaidBuffs.create({
 	giftOfTheWild: true,
 	prayerOfFortitude: true,
 	prayerOfShadowProtection: true,
-	thorns: true,
 });
 
 export const DefaultPartyBuffs = PartyBuffs.create({
@@ -48,6 +47,7 @@ export const DefaultPartyBuffs = PartyBuffs.create({
 });
 
 export const DefaultIndividualBuffs = IndividualBuffs.create({
+	thorns: true,
 	greaterBlessingOfKings: true,
 	greaterBlessingOfWisdom: true,
 	greaterBlessingOfMight: true,

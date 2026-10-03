@@ -861,7 +861,7 @@ func TestGeneratedWindfuryTotemHoldsOverFlametongueTotem(t *testing.T) {
 // A generated damage shield deals the game files' damage back to whoever lands a
 // melee hit, and nothing to a spell.
 func TestGeneratedThornsStrikesBackAtAMeleeHit(t *testing.T) {
-	sim := setupFakeSimWithBuffs(&proto.RaidBuffs{Thorns: true}, &proto.PartyBuffs{}, &proto.IndividualBuffs{})
+	sim := setupFakeSimWithBuffs(&proto.RaidBuffs{}, &proto.PartyBuffs{}, &proto.IndividualBuffs{Thorns: true})
 	char := sim.Raid.Parties[0].Players[0].GetCharacter()
 	attacker := sim.Encounter.AllTargetUnits[0]
 
@@ -874,7 +874,7 @@ func TestGeneratedThornsStrikesBackAtAMeleeHit(t *testing.T) {
 		t.Fatalf("no aura is labelled %q; the unit has %v", "Thorns (External)", auraLabels(char))
 	}
 	if !aura.IsActive() {
-		t.Fatal("the raid's Thorns is not up at the start of the fight")
+		t.Fatal("the individual Thorns is not up at the start of the fight")
 	}
 
 	shield := char.GetSpell(core.ActionID{SpellID: 9910, Tag: 1})

@@ -36,16 +36,6 @@ var Raid = []BuffSpec{
 		},
 	},
 	{
-		Field:      "thorns",
-		SpellID:    9910,
-		Category:   "Thorns",
-		SingleAura: true,
-		Stats: []proto.Stat{
-			proto.Stat_StatDefenseRating,
-			proto.Stat_StatStamina,
-		},
-	},
-	{
 		Field:   "prayer_of_fortitude",
 		SpellID: 21564,
 		Stats: []proto.Stat{
@@ -402,6 +392,16 @@ var Individual = []BuffSpec{
 			proto.Stat_StatHealingPower,
 		},
 		Label: "Power Infusions",
+	},
+	{
+		Field:      "thorns",
+		SpellID:    9910,
+		Category:   "Thorns",
+		SingleAura: true,
+		Stats: []proto.Stat{
+			proto.Stat_StatDefenseRating,
+			proto.Stat_StatStamina,
+		},
 	},
 }
 

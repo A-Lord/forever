@@ -1589,7 +1589,7 @@ own value and a name for it in both emitters.
 
 `buffmanifest.Scopes` is Party, Raid, Individual, Debuffs: the rows resolve, render and apply in that
 order, each scope in slice order. The apply order is the order the auras register in, and the results
-follow it. The party's Retribution Aura and the raid's Thorns are both damage shields, and a hit taken
+follow it. The party's Retribution Aura and the individual Thorns are both damage shields, and a hit taken
 reaches them in the order they activate, which is the order they registered, so the protection suites' results hold with Party first.
 `proto/buffs.proto` keeps its own message order: Raid, Party, Individual, Debuffs.
 
@@ -1721,7 +1721,7 @@ the row's `isPlayer=false` copy whenever the proto field is set, so a class port
 `AddPartyBuffs`/`AddRaidBuffs`, or the row states a `Category` with `SingleAura` and the two copies bid
 against each other, so the character sheet shows the buff once. The higher bid deactivates the other
 copy; on a tie the incumbent keeps the category when its remaining duration is the longer one, which
-is why a druid casting its own Thorns is turned away while the raid's permanent copy is up - both deal
+is why a druid casting its own Thorns is turned away while the settings' permanent copy is up - both deal
 the same 22, so the character strikes back for the same either way. Battle Shout is the worked example:
 neither copy is permanent, and the two are worth the same unless one side wears the tier 2 set, so
 `TestPlayerBattleShoutTakesTheCategoryOnATie` holds the player's own to the tie and
