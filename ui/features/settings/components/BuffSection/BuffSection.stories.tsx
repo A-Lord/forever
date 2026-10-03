@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { storyIcon, StoryIconToggle } from '@testing/storybook/fixtures/settings_reforge_bulk';
 
-import { BuffSectionView } from './BuffSectionView';
+import { BuffSection } from './BuffSection';
 
 const BUFFS = [
 	<StoryIconToggle key="kings" icon={storyIcon('spell_magic_magearmor', 'Blessing of Kings', 'spell', 20217)} initial={1} />,
@@ -15,12 +15,12 @@ const DEBUFFS = [
 ];
 
 const meta = {
-	title: 'Features/Settings/BuffSectionView',
-	component: BuffSectionView,
+	title: 'Features/Settings/BuffSection',
+	component: BuffSection,
 	tags: ['autodocs'],
 	args: { section: 'raid_buffs', empty: false, children: BUFFS },
 	argTypes: { section: { control: 'select', options: ['raid_buffs', 'party_buffs', 'debuffs'] }, children: { control: false } },
-} satisfies Meta<typeof BuffSectionView>;
+} satisfies Meta<typeof BuffSection>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

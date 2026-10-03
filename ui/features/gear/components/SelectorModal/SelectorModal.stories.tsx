@@ -6,9 +6,9 @@ import { fn } from 'storybook/test';
 
 import { ItemListSortBy } from '../../model/item_sort';
 import { SelectorModalTabs } from '../../types';
+import { ItemListToolbarView } from './ItemList';
 import { ItemListHeaderRow } from './ItemListHeaderRow';
 import { ItemListRowView } from './ItemListRow';
-import { ItemListToolbarView } from './ItemListToolbarView';
 import { SelectorModalView } from './SelectorModal';
 
 const ROWS = [

@@ -2,21 +2,21 @@ import i18n from '@i18n/config';
 import { ContentBlock } from '@ui-kit/ContentBlock';
 import type { ReactNode } from 'react';
 
-export type BuffSection = 'raid_buffs' | 'party_buffs' | 'debuffs';
+export type BuffSectionKind = 'raid_buffs' | 'party_buffs' | 'debuffs';
 
-export interface BuffSectionViewProps {
-	section: BuffSection;
+export interface BuffSectionProps {
+	section: BuffSectionKind;
 	empty: boolean;
 	children: ReactNode;
 }
 
-const BLOCK: Record<BuffSection, string> = {
+const BLOCK: Record<BuffSectionKind, string> = {
 	raid_buffs: 'buffs-settings',
 	party_buffs: 'party-buffs-settings',
 	debuffs: 'debuffs-settings',
 };
 
-const sectionText = (section: BuffSection): { title: string; tooltip: string; description?: string } => {
+const sectionText = (section: BuffSectionKind): { title: string; tooltip: string; description?: string } => {
 	switch (section) {
 		case 'raid_buffs':
 			return {
@@ -35,7 +35,7 @@ const sectionText = (section: BuffSection): { title: string; tooltip: string; de
 	}
 };
 
-export const BuffSectionView = ({ section, empty, children }: BuffSectionViewProps) => {
+export const BuffSection = ({ section, empty, children }: BuffSectionProps) => {
 	const { title, tooltip, description } = sectionText(section);
 	return (
 		<ContentBlock

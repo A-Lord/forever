@@ -11,7 +11,7 @@ import { Table, TableCell, TableRow } from '@ui-kit/Table';
 import type { ReactNode } from 'react';
 
 import { BonusLink } from './BonusLink';
-import type { CharacterStatsMode } from './CharacterStatsHeaderView';
+import type { CharacterStatsMode } from './CharacterStats';
 import { bonusStatClass, bonusTone } from './utils/stat_display';
 import { WeaponSkillPicker } from './WeaponSkillPicker';
 

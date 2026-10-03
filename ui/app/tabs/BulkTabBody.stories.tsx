@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
-import { BulkTabActionsView } from './BulkTabActionsView';
+import { BulkTabActionsView } from './BulkTabBody';
 
 const meta = {
-	title: 'App/Tabs/Components/BulkTabActionsView',
+	title: 'App/Tabs/BulkTabBody',
 	component: BulkTabActionsView,
 	tags: ['autodocs'],
 	args: {

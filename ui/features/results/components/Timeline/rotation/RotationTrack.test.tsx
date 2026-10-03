@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { DrStickySlotContext } from '../../DetailedResults/context/DrStickySlotContext';
-import { RotationView } from './RotationView';
+import { RotationTrack } from './RotationTrack';
 
 vi.mock('@sim/state/subscriptions', async () => mockSubscriptions());
 
@@ -71,7 +71,7 @@ const Wrapper = ({ children }: { children: ReactNode }) => {
 const mount = async (model = MODEL) => {
 	const view = render(
 		<Wrapper>
-			<RotationView model={model} active />
+			<RotationTrack model={model} active />
 		</Wrapper>,
 	);
 	const scroller = view.container.querySelector<HTMLElement>('[data-testid="rotation-scroller"]')!;
@@ -86,7 +86,7 @@ const mount = async (model = MODEL) => {
 
 const rowKeys = (container: HTMLElement) => [...container.querySelectorAll('[data-testid="rotation-row"]')].map(row => row.getAttribute('data-row-key'));
 
-describe('RotationView', () => {
+describe('RotationTrack', () => {
 	it('mounts the ordered rows between the two spacers, and only the items inside the track window', async () => {
 		const { container } = await mount();
 		expect(rowKeys(container)).toEqual(['header:player', 'cast:a', 'cast:b']);

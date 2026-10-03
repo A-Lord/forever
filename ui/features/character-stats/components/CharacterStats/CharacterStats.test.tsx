@@ -9,10 +9,10 @@ import { WeaponSkillGroup, weaponSkillsInGroups } from '@sim/player/weapon_skill
 import { Stats, UnitStat } from '@sim/proto/stats';
 import { createSimStore, PLAYER_FIELDS, type PlayerSlice, seedKeyed, zeroVersions } from '@sim/state/sim_store';
 import { renderWithHost } from '@testing/react';
-import { fireEvent, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { CharacterStats } from './CharacterStats';
+import { CharacterStats, CharacterStatsHeaderView, type CharacterStatsMode, CharacterStatsPanelView } from './CharacterStats';
 import { buildRows } from './utils/rows';
 import { statDisplayString } from './utils/stat_display';
 
@@ -368,5 +368,60 @@ describe('CharacterStats combined melee hand rows', () => {
 		fireEvent.mouseEnter(links[index]);
 		expect((await screen.findByTestId('character-stats-tooltip-hand')).textContent).toBe(label);
 		expect((await screen.findAllByText(value)).length).toBeGreaterThan(1);
+	});
+});
+
+const LABELS = { title: 'Stats', modeAriaLabel: 'Stats shown', key: 'Key', all: 'All' };
+
+const mount = (mode: CharacterStatsMode) => {
+	const onModeChange = vi.fn();
+	return { onModeChange, ...render(<CharacterStatsHeaderView mode={mode} onModeChange={onModeChange} labels={LABELS} />) };
+};
+
+const pressed = () => screen.getAllByRole('button').map(button => [button.textContent, button.getAttribute('aria-pressed')]);
+
+describe('CharacterStatsHeaderView', () => {
+	it('sets the heading beside a labelled Key/All group', () => {
+		mount('key');
+
+		expect(screen.getByTestId('character-stats-label').textContent).toBe('Stats');
+		expect(screen.getByRole('group', { name: 'Stats shown' })).toBeTruthy();
+	});
+
+	it.each<[CharacterStatsMode, string, string]>([
+		['key', 'true', 'false'],
+		['all', 'false', 'true'],
+	])('presses the mode it is given (%s)', (mode, key, all) => {
+		mount(mode);
+		expect(pressed()).toEqual([
+			['Key', key],
+			['All', all],
+		]);
+	});
+
+	it('reports the other mode on a click, and nothing for the one already shown', () => {
+		const { onModeChange } = mount('key');
+
+		fireEvent.click(screen.getByRole('button', { name: 'Key' }));
+		expect(onModeChange).not.toHaveBeenCalled();
+		fireEvent.click(screen.getByRole('button', { name: 'All' }));
+		expect(onModeChange).toHaveBeenCalledWith('all');
+	});
+});
+
+describe('CharacterStatsPanelView', () => {
+	it('shows the title above its content, and reports a mode change from the Key/All group', () => {
+		const onModeChange = vi.fn();
+		render(
+			<CharacterStatsPanelView mode="key" onModeChange={onModeChange} labels={LABELS}>
+				<table data-testid="stats-table" />
+			</CharacterStatsPanelView>,
+		);
+
+		const title = screen.getByTestId('character-stats-label');
+		expect(title.textContent).toBe('Stats');
+		expect(title.compareDocumentPosition(screen.getByTestId('stats-table')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+		fireEvent.click(screen.getByRole('button', { name: 'All' }));
+		expect(onModeChange).toHaveBeenCalledWith('all');
 	});
 });

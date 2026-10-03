@@ -12,7 +12,7 @@ vi.mock('@sim/hooks/useActionId', () => ({
 	useActionId: () => ({ iconUrl: '', name: '', href: '', ready: true }),
 }));
 
-const { TalentsPicker } = await import('./TalentsPicker');
+const { TalentsHeaderView, TalentsPicker } = await import('./TalentsPicker');
 
 type Fake = Record<string, never>;
 
@@ -167,5 +167,12 @@ describe('TalentsPicker trees', () => {
 		expect(href).toContain(`spell=${talent.spellId}`);
 		expect(href).toContain(`def=${talent.definitionId}`);
 		expect(href).toContain('rank=2');
+	});
+});
+
+describe('TalentsHeaderView', () => {
+	it('shows the points left to spend', () => {
+		render(<TalentsHeaderView pointsRemaining={36} getTalentsString={() => ''} />);
+		expect(document.querySelector('label')!.textContent!.match(/\d+$/)?.[0]).toBe('36');
 	});
 });
