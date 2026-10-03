@@ -4,6 +4,17 @@ import (
 	"github.com/wowsims/forever/sim/core/proto"
 )
 
+const (
+	DenseSharpeningStoneID int32 = 12404
+	DenseWeightstoneID     int32 = 12643
+)
+
+// The weapon types a sharpening stone fits, and those a weightstone fits.
+var (
+	SharpWeaponTypes = []proto.WeaponType{proto.WeaponType_WeaponTypeAxe, proto.WeaponType_WeaponTypeDagger, proto.WeaponType_WeaponTypePolearm, proto.WeaponType_WeaponTypeSword}
+	BluntWeaponTypes = []proto.WeaponType{proto.WeaponType_WeaponTypeFist, proto.WeaponType_WeaponTypeMace, proto.WeaponType_WeaponTypeStaff}
+)
+
 // Puts the temporary enchant each imbue the spec names on its hand, where the enchant takes that
 // hand's weapon. It runs before the weapons are built, and a weapon built from a hand's item takes
 // the enchant's flat weapon damage. The consumable's registered effect then applies the rest of the

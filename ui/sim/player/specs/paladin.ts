@@ -1,6 +1,7 @@
 import { Class, Spec } from '@generated/proto/common';
 
 import { CURRENT_PHASE, getSpecSitePath, LaunchStatus } from '../../constants/other';
+import { isSpecDualWieldCapable } from '../classes/capabilities';
 import { IconSize } from '../player_class';
 import { PlayerSpec, SimStatus } from '../player_spec';
 
@@ -16,7 +17,7 @@ export class HolyPaladin extends PlayerSpec<Spec.SpecHolyPaladin> {
 	static isRangedDpsSpec = false;
 	static isMeleeDpsSpec = false;
 
-	static canDualWield = false;
+	static canDualWield = isSpecDualWieldCapable(HolyPaladin.specID);
 
 	static launch: SimStatus = {
 		phase: CURRENT_PHASE,
@@ -59,7 +60,7 @@ export class ProtectionPaladin extends PlayerSpec<Spec.SpecProtectionPaladin> {
 	static isRangedDpsSpec = false;
 	static isMeleeDpsSpec = false;
 
-	static canDualWield = false;
+	static canDualWield = isSpecDualWieldCapable(ProtectionPaladin.specID);
 
 	static launch: SimStatus = {
 		phase: CURRENT_PHASE,
@@ -101,7 +102,7 @@ export class RetributionPaladin extends PlayerSpec<Spec.SpecRetributionPaladin> 
 	static isHealingSpec = false;
 	static isRangedDpsSpec = false;
 	static isMeleeDpsSpec = true;
-	static canDualWield = false;
+	static canDualWield = isSpecDualWieldCapable(RetributionPaladin.specID);
 
 	static launch: SimStatus = {
 		phase: CURRENT_PHASE,
