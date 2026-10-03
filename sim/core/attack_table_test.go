@@ -49,6 +49,7 @@ func TestPlayerAttackTableAgainstEachTargetLevel(t *testing.T) {
 				{"hit suppression", entry.HitSuppression, tc.hitSuppression},
 				{"dodge", entry.BaseDodgeChance, tc.dodge},
 				{"parry", entry.BaseParryChance, tc.parry},
+				{"block", entry.BaseBlockChance, 0.05},
 				{"glance chance", entry.BaseGlanceChance, tc.glance},
 				{"glance multiplier min", entry.GlanceMultiplierMin, tc.glanceMin},
 				{"glance multiplier max", entry.GlanceMultiplierMax, tc.glanceMax},
@@ -57,7 +58,6 @@ func TestPlayerAttackTableAgainstEachTargetLevel(t *testing.T) {
 		}
 		checkAttackTableValues(t, fmt.Sprintf("level 60 against %d", tc.level), []attackTableValue{
 			{"table miss", table.BaseMissChance, tc.miss},
-			{"block", table.BaseBlockChance, 0.05},
 			{"spell miss", table.BaseSpellMissChance, tc.spellMiss},
 		})
 	}
@@ -69,6 +69,7 @@ func handValues(hand string, got, want AttackTableHand) []attackTableValue {
 		{hand + " hit suppression", got.HitSuppression, want.HitSuppression},
 		{hand + " dodge", got.BaseDodgeChance, want.BaseDodgeChance},
 		{hand + " parry", got.BaseParryChance, want.BaseParryChance},
+		{hand + " block", got.BaseBlockChance, want.BaseBlockChance},
 		{hand + " glance chance", got.BaseGlanceChance, want.BaseGlanceChance},
 		{hand + " glance multiplier min", got.GlanceMultiplierMin, want.GlanceMultiplierMin},
 		{hand + " glance multiplier max", got.GlanceMultiplierMax, want.GlanceMultiplierMax},
@@ -76,7 +77,7 @@ func handValues(hand string, got, want AttackTableHand) []attackTableValue {
 	}
 }
 
-// Skill below the level-based maximum widens the sword hand's whole table. Skill above it narrows miss,
+// Skill below the level-based maximum widens the sword hand's table except block. Skill above it narrows miss,
 // dodge and glancing damage, while parry, glance chance and crit suppression stay on the level-based skill.
 func TestWeaponSkillSettingSetsTheSwordHandsTableAgainstALevel63Target(t *testing.T) {
 	sword := &Item{WeaponType: proto.WeaponType_WeaponTypeSword, HandType: proto.HandType_HandTypeOneHand}
@@ -86,6 +87,7 @@ func TestWeaponSkillSettingSetsTheSwordHandsTableAgainstALevel63Target(t *testin
 		HitSuppression:       0.01,
 		BaseDodgeChance:      0.065,
 		BaseParryChance:      0.14,
+		BaseBlockChance:      0.05,
 		BaseGlanceChance:     0.40,
 		GlanceMultiplierMin:  0.55,
 		GlanceMultiplierMax:  0.75,
@@ -101,6 +103,7 @@ func TestWeaponSkillSettingSetsTheSwordHandsTableAgainstALevel63Target(t *testin
 			HitSuppression:       0.04,
 			BaseDodgeChance:      0.08,
 			BaseParryChance:      0.23,
+			BaseBlockChance:      0.05,
 			BaseGlanceChance:     0.70,
 			GlanceMultiplierMin:  0.01,
 			GlanceMultiplierMax:  0.30,
@@ -111,6 +114,7 @@ func TestWeaponSkillSettingSetsTheSwordHandsTableAgainstALevel63Target(t *testin
 			BaseMissChance:       0.06,
 			BaseDodgeChance:      0.06,
 			BaseParryChance:      0.14,
+			BaseBlockChance:      0.05,
 			BaseGlanceChance:     0.40,
 			GlanceMultiplierMin:  0.80,
 			GlanceMultiplierMax:  0.90,
@@ -120,6 +124,7 @@ func TestWeaponSkillSettingSetsTheSwordHandsTableAgainstALevel63Target(t *testin
 			BaseMissChance:       0.05,
 			BaseDodgeChance:      0.05,
 			BaseParryChance:      0.14,
+			BaseBlockChance:      0.05,
 			BaseGlanceChance:     0.40,
 			GlanceMultiplierMin:  0.91,
 			GlanceMultiplierMax:  0.99,
@@ -146,28 +151,62 @@ func TestWeaponSkillSettingSetsTheSwordHandsTableAgainstALevel63Target(t *testin
 	}
 }
 
+// Weapon skill above the target's defense lowers its block by 0.1% a point; skill below it leaves block at 5%.
+func TestWeaponSkillAboveTheTargetsDefenseLowersItsBlock(t *testing.T) {
+	sword := &Item{WeaponType: proto.WeaponType_WeaponTypeSword, HandType: proto.HandType_HandTypeOneHand}
+	for _, tc := range []struct {
+		skill, targetLevel int32
+		block              float64
+	}{
+		{320, 63, 0.045},
+		{305, 60, 0.045},
+		{300, 63, 0.05},
+		{285, 63, 0.05},
+	} {
+		character := NewCharacter(&Party{}, 0, &proto.Player{
+			Name:         "Block Tester",
+			Class:        proto.Class_ClassWarrior,
+			Race:         proto.Race_RaceUndead,
+			Spec:         &proto.Player_DpsWarrior{DpsWarrior: &proto.DpsWarrior{}},
+			Equipment:    &proto.EquipmentSpec{},
+			WeaponSkills: []*proto.WeaponSkillValue{{Skill: proto.WeaponSkill_WeaponSkillSwords, Value: tc.skill}},
+		})
+		defender := &Unit{Type: EnemyUnit, Level: tc.targetLevel, PseudoStats: stats.NewPseudoStats()}
+		table := NewAttackTable(&character.Unit, defender)
+		table.setWeapons(sword, nil, nil)
+		spell := &Spell{Unit: &character.Unit, ProcMask: ProcMaskMeleeMHSpecial}
+		checkAttackTableValues(t, fmt.Sprintf("%d sword skill against level %d", tc.skill, tc.targetLevel), []attackTableValue{
+			{"main hand block", table.MH.BaseBlockChance, tc.block},
+			{"total block", defender.GetTotalBlockChanceAsDefender(spell, table), tc.block},
+		})
+	}
+}
+
 func TestEnemyAttackTableAgainstALevel60Player(t *testing.T) {
 	for _, tc := range []struct {
-		level                            int32
-		miss, dodge, parry, block, crush float64
+		level                                       int32
+		miss, dodge, parry, block, crush, spellMiss float64
 	}{
-		{60, 0.05, 0, 0.05, 0.05, 0},
-		{62, 0.046, -0.004, 0.046, 0.046, 0},
-		{63, 0.044, -0.006, 0.044, 0.044, 0.15},
+		{58, 0.054, 0.004, 0.054, 0.054, 0, 0.06},
+		{59, 0.052, 0.002, 0.052, 0.052, 0, 0.05},
+		{60, 0.05, 0, 0.05, 0.05, 0, 0.04},
+		{61, 0.048, -0.002, 0.048, 0.048, 0, 0.03},
+		{62, 0.046, -0.004, 0.046, 0.046, 0, 0.02},
+		{63, 0.044, -0.006, 0.044, 0.044, 0.15, 0.01},
 	} {
 		attacker, defender := attackTableUnits(EnemyUnit, tc.level, PlayerUnit, 60)
 		table := NewAttackTable(attacker, defender)
 		values := []attackTableValue{
 			{"miss", table.BaseMissChance, tc.miss},
-			{"block", table.BaseBlockChance, tc.block},
 			{"crush", table.BaseCrushChance, tc.crush},
-			{"spell miss", table.BaseSpellMissChance, 0.05},
+			{"spell miss", table.BaseSpellMissChance, tc.spellMiss},
 		}
 		for hand, entry := range map[string]AttackTableHand{"main hand": table.MH, "off hand": table.OH, "ranged": table.Ranged} {
 			values = append(values,
 				attackTableValue{hand + " miss", entry.BaseMissChance, tc.miss},
 				attackTableValue{hand + " dodge", entry.BaseDodgeChance, tc.dodge},
 				attackTableValue{hand + " parry", entry.BaseParryChance, tc.parry},
+				attackTableValue{hand + " block", entry.BaseBlockChance, tc.block},
 				attackTableValue{hand + " hit suppression", entry.HitSuppression, 0},
 			)
 		}
@@ -179,7 +218,6 @@ func attackTableNumbers(table *AttackTable) map[string]float64 {
 	numbers := map[string]float64{
 		"miss":       table.BaseMissChance,
 		"spell miss": table.BaseSpellMissChance,
-		"block":      table.BaseBlockChance,
 		"crush":      table.BaseCrushChance,
 	}
 	for hand, entry := range map[string]AttackTableHand{"main hand": table.MH, "off hand": table.OH, "ranged": table.Ranged} {
@@ -187,6 +225,7 @@ func attackTableNumbers(table *AttackTable) map[string]float64 {
 		numbers[hand+" hit suppression"] = entry.HitSuppression
 		numbers[hand+" dodge"] = entry.BaseDodgeChance
 		numbers[hand+" parry"] = entry.BaseParryChance
+		numbers[hand+" block"] = entry.BaseBlockChance
 		numbers[hand+" glance chance"] = entry.BaseGlanceChance
 		numbers[hand+" glance multiplier min"] = entry.GlanceMultiplierMin
 		numbers[hand+" glance multiplier max"] = entry.GlanceMultiplierMax
@@ -349,6 +388,43 @@ func TestGlanceDamageRollsWithinTheHandsRange(t *testing.T) {
 		}
 		if spread := tc.max - tc.min; lowest > tc.min+spread/10 || highest < tc.max-spread/10 {
 			t.Errorf("%s: glancing damage ranged %v to %v, want it to cover %v to %v", tc.name, lowest, highest, tc.min, tc.max)
+		}
+	}
+}
+
+// In front of the target, a weapon special rolls block on the attack table and crit on its own roll, so
+// blocked attacks crit as often as unblocked ones.
+func TestWeaponSpecialCanBeABlockedCrit(t *testing.T) {
+	attacker, defender := attackTableUnits(PlayerUnit, 60, EnemyUnit, 63)
+	attacker.PseudoStats.InFrontOfTarget = true
+	attacker.stats[stats.PhysicalHitPercent] = 20
+	attacker.stats[stats.PhysicalCritPercent] = 50
+	table := NewAttackTable(attacker, defender)
+	sim := &Simulation{rand: NewSplitMix(42)}
+	spell := &Spell{Unit: attacker, ProcMask: ProcMaskMeleeMHSpecial, DefenseType: DefenseTypeMelee, CritMultiplierPct: 1, SpellMetrics: make([]SpellMetrics, 1)}
+
+	const n = 100000
+	for range n {
+		spell.OutcomeMeleeWeaponSpecialHitAndCrit(sim, &SpellResult{Target: defender, Damage: 100}, table)
+	}
+
+	metrics := spell.SpellMetrics[0]
+	crit := spell.PhysicalCritChance(table)
+	if metrics.Misses != 0 {
+		t.Errorf("%d misses with 20%% hit, want none", metrics.Misses)
+	}
+	if metrics.BlockedCrits == 0 {
+		t.Fatalf("no blocked crits in %d attacks", n)
+	}
+	for _, tc := range []struct {
+		name      string
+		got, want float64
+	}{
+		{"crits and blocked crits", float64(metrics.Crits+metrics.BlockedCrits) / n, (1 - table.MH.BaseDodgeChance - table.MH.BaseParryChance) * crit},
+		{"blocked crits", float64(metrics.BlockedCrits) / n, table.MH.BaseBlockChance * crit},
+	} {
+		if math.Abs(tc.got-tc.want) > 0.005 {
+			t.Errorf("%s: %v of attacks, want %v", tc.name, tc.got, tc.want)
 		}
 	}
 }

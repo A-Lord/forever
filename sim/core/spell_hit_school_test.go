@@ -31,21 +31,40 @@ func TestSpellHitChanceAddsEachSchoolsHit(t *testing.T) {
 	}
 }
 
-func TestSpellHitRemovesTheWholeMiss(t *testing.T) {
+func TestSpellHitLeavesAOnePercentMiss(t *testing.T) {
 	unit := &Unit{}
 	table := &AttackTable{BaseSpellMissChance: 0.17}
 	for _, tc := range []struct {
 		hitPercent, want float64
 	}{
 		{0, 0.17},
+		{15, 0.02},
 		{16, 0.01},
-		{17, 0},
-		{20, 0},
+		{17, 0.01},
+		{20, 0.01},
 	} {
 		unit.stats[stats.SpellHitPercent] = tc.hitPercent
 		spell := &Spell{Unit: unit}
 		if got := spell.SpellChanceToMiss(table); math.Abs(got-tc.want) > 1e-9 {
 			t.Errorf("%v%% spell hit against a 17%% miss: miss %v, want %v", tc.hitPercent, got, tc.want)
+		}
+	}
+
+	for _, tc := range []struct {
+		name        string
+		targetLevel int32
+		hitPercent  float64
+		flags       SpellFlag
+	}{
+		{"20% hit against level 63", 63, 20, 0},
+		{"10% hit against level 60", 60, 10, 0},
+		{"binary spell, 20% hit against level 63 with no resistance", 63, 20, SpellFlagBinary},
+	} {
+		attacker, defender := attackTableUnits(PlayerUnit, 60, EnemyUnit, tc.targetLevel)
+		attacker.stats[stats.SpellHitPercent] = tc.hitPercent
+		spell := &Spell{Unit: attacker, SpellSchool: SpellSchoolFrost, SchoolIndex: stats.SchoolIndexFrost, Flags: tc.flags}
+		if got := spell.SpellChanceToMiss(NewAttackTable(attacker, defender)); math.Abs(got-0.01) > 1e-9 {
+			t.Errorf("%s: miss %v, want 0.01", tc.name, got)
 		}
 	}
 }

@@ -34,6 +34,19 @@ func TestArmorDamageReductionCap(t *testing.T) {
 	}
 }
 
+func TestLevel72AttackerUsesTheLevel63ArmorConstant(t *testing.T) {
+	modifierFromLevel := func(level int32) float64 {
+		attacker := Unit{Type: EnemyUnit, Level: level}
+		defender := Unit{Type: PlayerUnit, Level: 60, PseudoStats: stats.NewPseudoStats()}
+		defender.stats[stats.Armor] = 8000
+		return NewAttackTable(&attacker, &defender).GetArmorDamageModifier(nil)
+	}
+
+	if got, want := modifierFromLevel(72), modifierFromLevel(63); !WithinToleranceFloat64(want, got, 1e-9) {
+		t.Fatalf("8000 armor against a level 72 attacker leaves %.4f damage, want the level 63 %.4f", got, want)
+	}
+}
+
 func TestArmorReductionFromLevel60Attacker(t *testing.T) {
 	attacker := Unit{Type: PlayerUnit, Level: 60}
 	defender := Unit{Type: EnemyUnit, Level: 63, PseudoStats: stats.NewPseudoStats()}

@@ -120,7 +120,11 @@ func (at *AttackTable) GetArmorDamageModifier(spell *Spell) float64 {
 
 	ignoreArmorFactor := Clamp(at.ArmorIgnoreFactor, 0.0, 1.0)
 
-	armorConstant := 400 + 85*float64(at.Attacker.Level)
+	attackerLevel := at.Attacker.Level
+	if at.Attacker.Type == EnemyUnit {
+		attackerLevel = at.Defender.Level + combatLevelDiff(at.Defender, at.Attacker)
+	}
+	armorConstant := 400 + 85*float64(attackerLevel)
 	defenderArmor := at.Defender.Armor() - (at.Defender.Armor() * ignoreArmorFactor)
 	// TODO: Forever possibly has different rules as there is Armor Piercing Flat and % values
 	defenderArmor = max(defenderArmor-at.Attacker.stats[stats.ArmorPenetration], 0)

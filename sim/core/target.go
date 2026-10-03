@@ -363,7 +363,6 @@ type AttackTable struct {
 	BaseMissChance float64
 
 	BaseSpellMissChance float64
-	BaseBlockChance     float64
 	BaseCrushChance     float64
 
 	MH     AttackTableHand
@@ -415,21 +414,24 @@ func NewAttackTable(attacker *Unit, defender *Unit) *AttackTable {
 		levelDiff := combatLevelDiff(attacker, defender)
 
 		table.BaseSpellMissChance = UnitLevelFloat64(levelDiff, 0.04, 0.05, 0.06, 0.17)
-		table.BaseBlockChance = 0.05
 
 		table.setWeapons(nil, nil, nil)
 	} else {
 		levelDiff := combatLevelDiff(defender, attacker)
 		levelDelta := -0.002 * float64(levelDiff)
 
-		table.BaseSpellMissChance = 0.05
-		table.BaseBlockChance = 0.05 + levelDelta
+		if levelDiff > 0 {
+			table.BaseSpellMissChance = 0.04 - 0.01*float64(levelDiff)
+		} else {
+			table.BaseSpellMissChance = UnitLevelFloat64(-levelDiff, 0.04, 0.05, 0.06, 0.17)
+		}
 		table.BaseCrushChance = UnitLevelFloat64(levelDiff, 0, 0, 0, 0.15)
 
 		table.MH = AttackTableHand{
 			BaseMissChance:  0.05 + levelDelta,
 			BaseDodgeChance: levelDelta,
 			BaseParryChance: 0.05 + levelDelta,
+			BaseBlockChance: 0.05 + levelDelta,
 		}
 		table.OH = table.MH
 		table.Ranged = table.MH
@@ -449,6 +451,7 @@ type AttackTableHand struct {
 	HitSuppression       float64
 	BaseDodgeChance      float64
 	BaseParryChance      float64
+	BaseBlockChance      float64
 	BaseGlanceChance     float64
 	GlanceMultiplierMin  float64
 	GlanceMultiplierMax  float64
@@ -464,6 +467,7 @@ func newAttackTableHand(attacker *Unit, defender *Unit, weapon *Item) AttackTabl
 
 	hand := AttackTableHand{
 		BaseDodgeChance:     0.05 + skillDiff*0.001,
+		BaseBlockChance:     min(0.05, 0.05+skillDiff*0.001),
 		BaseGlanceChance:    Clamp(0.1+baseSkillDiff*0.02, 0, 1),
 		GlanceMultiplierMin: max(min(1.3-0.05*skillDiff, 0.91), 0.01),
 		GlanceMultiplierMax: max(min(1.2-0.03*skillDiff, 0.99), 0.2),

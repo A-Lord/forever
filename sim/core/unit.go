@@ -1062,9 +1062,9 @@ func (unit *Unit) GetTotalChanceToBeMissedAsDefender(atkTable *AttackTable) floa
 	return math.Max(chance, 0.0)
 }
 
-func (unit *Unit) GetTotalBlockChanceAsDefender(atkTable *AttackTable) float64 {
+func (unit *Unit) GetTotalBlockChanceAsDefender(spell *Spell, atkTable *AttackTable) float64 {
 	chance := unit.PseudoStats.BaseBlockChance +
-		atkTable.BaseBlockChance +
+		atkTable.Hand(spell).BaseBlockChance +
 		unit.GetBlockFromRating()
 	return math.Max(chance, 0.0)
 }
@@ -1078,6 +1078,6 @@ func (unit *Unit) GetTotalAvoidanceChance(spell *Spell, atkTable *AttackTable) f
 	miss := unit.GetTotalChanceToBeMissedAsDefender(atkTable)
 	dodge := unit.GetTotalDodgeChanceAsDefender(spell, atkTable)
 	parry := unit.GetTotalParryChanceAsDefender(spell, atkTable)
-	block := unit.GetTotalBlockChanceAsDefender(atkTable)
+	block := unit.GetTotalBlockChanceAsDefender(spell, atkTable)
 	return miss + dodge + parry + block
 }
