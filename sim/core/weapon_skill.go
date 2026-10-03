@@ -1,6 +1,9 @@
 package core
 
-import "github.com/wowsims/forever/sim/core/proto"
+import (
+	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/stats"
+)
 
 // GetWeaponSkill returns the unit's bonus weapon skill for the weapon, on top of its level-based skill.
 func GetWeaponSkill(unit *Unit, weapon *Item) float64 {
@@ -60,6 +63,49 @@ func GetWeaponSkill(unit *Unit, weapon *Item) float64 {
 		}
 	}
 	return 0
+}
+
+func weaponSkillPseudoStat(pseudoStats *stats.PseudoStats, skill proto.WeaponSkill) *float64 {
+	switch skill {
+	case proto.WeaponSkill_WeaponSkillAxes:
+		return &pseudoStats.AxesSkill
+	case proto.WeaponSkill_WeaponSkillTwoHandedAxes:
+		return &pseudoStats.TwoHandedAxesSkill
+	case proto.WeaponSkill_WeaponSkillMaces:
+		return &pseudoStats.MacesSkill
+	case proto.WeaponSkill_WeaponSkillTwoHandedMaces:
+		return &pseudoStats.TwoHandedMacesSkill
+	case proto.WeaponSkill_WeaponSkillSwords:
+		return &pseudoStats.SwordsSkill
+	case proto.WeaponSkill_WeaponSkillTwoHandedSwords:
+		return &pseudoStats.TwoHandedSwordsSkill
+	case proto.WeaponSkill_WeaponSkillPolearms:
+		return &pseudoStats.PolearmsSkill
+	case proto.WeaponSkill_WeaponSkillStaves:
+		return &pseudoStats.StavesSkill
+	case proto.WeaponSkill_WeaponSkillDaggers:
+		return &pseudoStats.DaggersSkill
+	case proto.WeaponSkill_WeaponSkillFistWeapons:
+		return &pseudoStats.UnarmedSkill
+	case proto.WeaponSkill_WeaponSkillBows:
+		return &pseudoStats.BowsSkill
+	case proto.WeaponSkill_WeaponSkillCrossbows:
+		return &pseudoStats.CrossbowsSkill
+	case proto.WeaponSkill_WeaponSkillGuns:
+		return &pseudoStats.GunsSkill
+	case proto.WeaponSkill_WeaponSkillThrown:
+		return &pseudoStats.ThrownSkill
+	}
+	return nil
+}
+
+// Sets each listed skill's bonus over the level-based skill; a skill the list leaves out stays at the maximum.
+func (character *Character) applyWeaponSkills(weaponSkills []*proto.WeaponSkillValue) {
+	for _, weaponSkill := range weaponSkills {
+		if bonus := weaponSkillPseudoStat(&character.PseudoStats, weaponSkill.Skill); bonus != nil {
+			*bonus = float64(weaponSkill.Value - character.Level*5)
+		}
+	}
 }
 
 func (character *Character) updateAttackTableWeapons() {

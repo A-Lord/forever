@@ -199,7 +199,7 @@ func (spell *Spell) PhysicalCritChance(attackTable *AttackTable) float64 {
 		critPercent += spell.Unit.stats[stats.RangedCritPercent]
 	}
 
-	return max(critPercent/100-attackTable.Defender.PseudoStats.ReducedCritTakenPercent-attackTable.MeleeCritSuppression, 0)
+	return max(critPercent/100-attackTable.Defender.PseudoStats.ReducedCritTakenPercent-attackTable.Hand(spell).MeleeCritSuppression, 0)
 }
 func (spell *Spell) PhysicalCritCheck(sim *Simulation, attackTable *AttackTable) bool {
 	return sim.RandomFloat("Physical Crit Roll") < spell.PhysicalCritChance(attackTable)

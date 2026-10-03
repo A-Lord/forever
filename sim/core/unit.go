@@ -1047,7 +1047,7 @@ func (unit *Unit) GetTotalDodgeChanceAsDefender(spell *Spell, atkTable *AttackTa
 
 func (unit *Unit) GetTotalParryChanceAsDefender(spell *Spell, atkTable *AttackTable) float64 {
 	chance := unit.PseudoStats.BaseParryChance +
-		atkTable.BaseParryChance +
+		atkTable.Hand(spell).BaseParryChance +
 		unit.GetParryFromRating() -
 		spell.DodgeParrySuppression()
 	return math.Max(chance, 0.0)
