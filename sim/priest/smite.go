@@ -1,6 +1,7 @@
 package priest
 
 import (
+	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
@@ -9,7 +10,28 @@ var SmiteRankMap = spellData.Smite
 // TODO: To be implemented. Smite already has a full Forever rank ladder (spellData.Smite); the TBC body
 // needs review before it's uncommented.
 func (priest *Priest) registerSmiteSpell(rank *spelldata.Spell) {
-	panic("To be implemented")
+	// panic("To be implemented")
+
+	baseDamage := rank.DamageEffect()
+
+	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))
+
+	config.ActionID = core.ActionID{SpellID: rank.ID}
+	config.ClassSpellMask = PriestSpellSmite
+
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		damageMod := 1.0
+		if target.HasAuraWithTag("Holy Fire") {
+			damageMod *= 1 + 0.1*float64(priest.Talents.PowerInLight)
+		}
+		spell.CalcAndDealDamage(sim, target, baseDamage.Roll(sim)*damageMod, spell.OutcomeMagicHitAndCrit)
+	}
+
+	config.ExpectedInitialDamage = func(sim *core.Simulation, target *core.Unit, spell *core.Spell, _ bool) *core.SpellResult {
+		return spell.CalcDamage(sim, target, baseDamage.Average(), spell.OutcomeExpectedMagicHitAndCrit)
+	}
+
+	priest.RegisterSpell(config)
 
 	// The TBC implementation, kept for the port:
 	// priest.RegisterSpell(core.SpellConfig{

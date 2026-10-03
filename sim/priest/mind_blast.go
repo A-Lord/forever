@@ -10,8 +10,32 @@ var MindBlastRankMap = spellData.MindBlast
 // TODO: To be implemented. Mind Blast already has a full Forever rank ladder (spellData.MindBlast); the
 // TBC body needs review before it's uncommented.
 func (priest *Priest) registerMindBlastSpell(rank *spelldata.Spell, cdTimer *core.Timer) {
-	panic("To be implemented")
+	// panic("To be implemented")
 
+	baseDamage := rank.DamageEffect()
+
+	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))
+
+	config.ActionID = core.ActionID{SpellID: rank.ID}
+	config.ClassSpellMask = PriestSpellMindBlast
+
+	config.Cast.CD = core.Cooldown{
+		Timer:    cdTimer,
+		Duration: max(rank.Cooldown(), rank.CategoryCooldown()),
+	}
+
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		result := spell.CalcAndDealDamage(sim, target, baseDamage.Roll(sim), spell.OutcomeMagicHitAndCrit)
+		if result.Landed() {
+			spell.Dot(target).Apply(sim)
+		}
+	}
+
+	config.ExpectedInitialDamage = func(sim *core.Simulation, target *core.Unit, spell *core.Spell, _ bool) *core.SpellResult {
+		return spell.CalcDamage(sim, target, baseDamage.Average(), spell.OutcomeExpectedMagicHitAndCrit)
+	}
+
+	priest.RegisterSpell(config)
 	// The TBC implementation, kept for the port:
 	//
 	// priest.RegisterSpell(core.SpellConfig{

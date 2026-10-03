@@ -10,8 +10,30 @@ var ShadowWordDeathRankMap = spellData.ShadowWordDeath
 // TODO: To be implemented. Shadow Word: Death already has a full Forever rank ladder
 // (spellData.ShadowWordDeath); the TBC body needs review before it's uncommented.
 func (priest *Priest) registerShadowWordDeathSpell(rank *spelldata.Spell, cdTimer *core.Timer) {
-	panic("To be implemented")
+	// panic("To be implemented")
 
+	baseDamage := rank.DamageEffect()
+
+	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))
+
+	config.ActionID = core.ActionID{SpellID: rank.ID}
+	config.ClassSpellMask = PriestSpellShadowWordDeath
+	config.Cast.CD = core.Cooldown{
+		Timer:    cdTimer,
+		Duration: max(rank.Cooldown(), rank.CategoryCooldown()),
+	}
+
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		spell.CalcAndDealDamage(sim, target, baseDamage.Roll(sim), spell.OutcomeMagicHitAndCrit)
+		character := priest.GetCharacter()
+		character.RemoveHealth(sim, character.MaxHealth()*0.1)
+	}
+
+	config.ExpectedInitialDamage = func(sim *core.Simulation, target *core.Unit, spell *core.Spell, _ bool) *core.SpellResult {
+		return spell.CalcDamage(sim, target, baseDamage.Average(), spell.OutcomeExpectedMagicHitAndCrit)
+	}
+
+	priest.RegisterSpell(config)
 	// The TBC implementation, kept for the port:
 	// priest.RegisterSpell(core.SpellConfig{
 	// 	ActionID:       core.ActionID{SpellID: rank.ID},

@@ -12,7 +12,32 @@ var StarshardsRankMap = spellData.Starshards
 // TODO: To be implemented. Starshards already has a full Forever rank ladder (spellData.Starshards); the
 // TBC body needs review before it's uncommented.
 func (priest *Priest) registerStarshardsSpell(rank *spelldata.Spell, cdTimer *core.Timer) {
-	panic("To be implemented")
+	// panic("To be implemented")
+
+	starShardTick := rank.PeriodicEffect()
+
+	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))
+
+	config.ActionID = core.ActionID{SpellID: rank.ID}
+	config.ClassSpellMask = PriestSpellStarshards
+	config.Flags = core.SpellFlagChanneled | core.SpellFlagAPL
+
+	config.Dot = spelldata.DotConfig(rank, starShardTick)
+	config.Dot.Aura.Tag = "Starshards"
+	config.Dot.OnTick = spelldata.PeriodicDamageTick(starShardTick, rank.TickOutcomeHitRolled)
+
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		result := spell.CalcOutcome(sim, target, spell.OutcomeMagicHitNoHitCounter)
+		if result.Landed() {
+			spell.Dot(target).Apply(sim)
+		}
+	}
+
+	config.ExpectedTickDamage = func(sim *core.Simulation, target *core.Unit, spell *core.Spell, useSnapshot bool) *core.SpellResult {
+		return spell.CalcPeriodicDamage(sim, target, starShardTick.Average(), spell.OutcomeExpectedMagicAlwaysHit)
+	}
+
+	priest.RegisterSpell(config)
 
 	// The TBC implementation, kept for the port:
 	// tick := rank.PeriodicEffect()

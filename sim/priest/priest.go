@@ -19,8 +19,9 @@ type Priest struct {
 	ShadowfiendAura *core.Aura
 	ShadowfiendPet  *Shadowfiend
 
-	Shadowfiend    *core.Spell
-	InnerFocusAura *core.Aura
+	Shadowfiend     *core.Spell
+	InnerFocusAura  *core.Aura
+	HolyPurposeAura *core.Aura
 
 	VampiricEmbrace *core.Spell
 }
@@ -45,6 +46,9 @@ func (priest *Priest) Initialize() {
 	mindblastCDTimer := priest.NewTimer()
 	shadowWordDeathCDTimer := priest.NewTimer()
 
+	HolyFireRankMap.Each(func(_ int32, rank *spelldata.Spell) {
+		priest.registerHolyFireSpell(rank)
+	})
 	MindBlastRankMap.Each(func(_ int32, rank *spelldata.Spell) {
 		priest.registerMindBlastSpell(rank, mindblastCDTimer)
 	})
@@ -67,8 +71,19 @@ func (priest *Priest) Initialize() {
 	}
 	if priest.Race == proto.Race_RaceUndead {
 		devouringPlagueCDTimer := priest.NewTimer()
+		darkSacrificeCDTimer := priest.NewTimer()
+
+		spellData.DarkSacrifice.Each(func(_ int32, rank *spelldata.Spell) {
+			priest.registerDarkSacrifice(rank, darkSacrificeCDTimer)
+		})
 		DevouringPlagueRankMap.Each(func(_ int32, rank *spelldata.Spell) {
 			priest.registerDevouringPlagueSpell(rank, devouringPlagueCDTimer)
+		})
+	}
+	if priest.Race == proto.Race_RaceDwarf {
+		chastiseCDTimer := priest.NewTimer()
+		spellData.Chastise.Each(func(_ int32, rank *spelldata.Spell) {
+			priest.registerChastise(rank, chastiseCDTimer)
 		})
 	}
 }
@@ -153,6 +168,7 @@ const (
 	PriestSpellVampiricEmbrace
 	PriestSpellFade
 	PriestSpellSmite
+	PriestSpellInnerFire
 
 	// TODO: Forever abilities the sim does not model yet; see the stub file named for each.
 	PriestSpellChastise
@@ -160,6 +176,7 @@ const (
 	PriestSpellContingencyPlan
 	PriestSpellDarkSacrifice
 	PriestSpellDivineGrace
+	PriestSpellPenance
 
 	PriestSpellLast
 	PriestSpellsAll    = PriestSpellLast<<1 - 1
