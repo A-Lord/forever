@@ -4,7 +4,7 @@ import { NumberField } from '@ui-kit/TextField';
 import { useState } from 'react';
 
 import { BonusLink } from './BonusLink';
-import { type WeaponSkillRow, WeaponSkillsView, type WeaponSkillsViewProps } from './WeaponSkillsView';
+import { type WeaponSkillRow, WeaponSkillsView, type WeaponSkillsViewProps } from './WeaponSkills';
 
 const MAXIMUM = 300;
 
@@ -49,7 +49,7 @@ const StatefulView = ({ rows: initialRows }: WeaponSkillsViewProps) => {
 };
 
 const meta = {
-	title: 'Features/CharacterStats/Components/WeaponSkillsView',
+	title: 'Features/CharacterStats/Components/WeaponSkills',
 	component: WeaponSkillsView,
 	tags: ['autodocs'],
 	args: { rows: PALADIN_ROWS },
