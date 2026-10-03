@@ -202,17 +202,24 @@ var ClassBaseStats = map[proto.Class]stats.Stats{
 	},
 }
 
+// ClassBaseDodge is each class's dodge chance before Agility; a class missing here has none.
+var ClassBaseDodge = map[proto.Class]float64{
+	proto.Class_ClassPaladin: 0.007,
+	proto.Class_ClassPriest:  0.03,
+	proto.Class_ClassShaman:  0.017,
+	proto.Class_ClassMage:    0.032,
+	proto.Class_ClassWarlock: 0.02,
+	proto.Class_ClassDruid:   0.009,
+}
+
 // Dodge percent per point of Agility at level 60: the game files' crit per Agility
 // (PlayerExpectedStat), which rogues and hunters get twice over.
-var DodgePerAgiMaxLevel = func() map[proto.Class]float64 {
-	perAgi := make(map[proto.Class]float64, len(CritPerAgiMaxLevel))
-	for class, crit := range CritPerAgiMaxLevel {
-		perAgi[class] = crit
+func dodgePerAgility(class proto.Class) float64 {
+	if class == proto.Class_ClassRogue || class == proto.Class_ClassHunter {
+		return 2 * CritPerAgiMaxLevel[class]
 	}
-	perAgi[proto.Class_ClassRogue] *= 2
-	perAgi[proto.Class_ClassHunter] *= 2
-	return perAgi
-}()
+	return CritPerAgiMaxLevel[class]
+}
 
 // The LEVEL 60 rows of GameTables/SpellScaling.txt. Only tools/tooltip reads this
 // (dbc_data_provider.go:249), so the sim is unaffected either way, but tooltip spell

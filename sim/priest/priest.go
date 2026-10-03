@@ -95,8 +95,6 @@ func New(char *core.Character, selfBuffs SelfBuffs, talents string) *Priest {
 		priest.AddStat(stats.Armor, 1580)
 	}
 	priest.AddStatDependency(stats.Agility, stats.PhysicalCritPercent, core.CritPerAgiMaxLevel[char.Class])
-	priest.AddStatDependency(stats.Agility, stats.DodgePercent, core.DodgePerAgiMaxLevel[char.Class])
-	priest.PseudoStats.BaseDodgeChance += 0.03
 	priest.ShadowfiendPet = priest.NewShadowfiend()
 
 	return priest

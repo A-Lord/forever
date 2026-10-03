@@ -8,11 +8,12 @@ import (
 )
 
 func TestDefenseRaisesChanceToBeMissed(t *testing.T) {
-	table := &AttackTable{BaseMissChance: 0.056}
+	table := &AttackTable{MH: AttackTableHand{BaseMissChance: 0.056}}
+	spell := &Spell{ProcMask: ProcMaskMeleeMHAuto}
 	missedWith := func(defenseRating float64) float64 {
 		unit := &Unit{PseudoStats: stats.NewPseudoStats()}
 		unit.stats[stats.DefenseRating] = defenseRating
-		return unit.GetTotalChanceToBeMissedAsDefender(table)
+		return unit.GetTotalChanceToBeMissedAsDefender(spell, table)
 	}
 
 	if got := missedWith(0); math.Abs(got-0.056) > 1e-12 {

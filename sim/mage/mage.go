@@ -129,8 +129,6 @@ func NewMage(character *core.Character, options *proto.Player) *Mage {
 	mage.EnableManaBar()
 	mage.AddStatDependency(stats.Strength, stats.AttackPower, 1)
 	mage.AddStatDependency(stats.Agility, stats.PhysicalCritPercent, core.CritPerAgiMaxLevel[character.Class])
-	mage.AddStatDependency(stats.Agility, stats.DodgePercent, core.DodgePerAgiMaxLevel[character.Class])
-	mage.PseudoStats.BaseDodgeChance += 0.032
 
 	// TODO: Forever drops Summon Water Elemental; the pet is never created until we know
 	// whether the talent moved elsewhere.

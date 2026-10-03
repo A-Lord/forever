@@ -359,9 +359,6 @@ type AttackTable struct {
 	Attacker *Unit
 	Defender *Unit
 
-	// The main hand entry's miss, read by the defender's avoidance.
-	BaseMissChance float64
-
 	BaseSpellMissChance float64
 	BaseCrushChance     float64
 
@@ -431,7 +428,7 @@ func NewAttackTable(attacker *Unit, defender *Unit) *AttackTable {
 		} else {
 			table.BaseSpellMissChance = UnitLevelFloat64(-levelDiff, 0.04, 0.05, 0.06, 0.17)
 		}
-		table.BaseCrushChance = UnitLevelFloat64(levelDiff, 0, 0, 0, 0.15)
+		table.BaseCrushChance = TernaryFloat64(levelDiff >= 3, 0.15, 0)
 
 		table.MH = AttackTableHand{
 			BaseMissChance:  0.05 + levelDelta,
@@ -441,7 +438,6 @@ func NewAttackTable(attacker *Unit, defender *Unit) *AttackTable {
 		}
 		table.OH = table.MH
 		table.Ranged = table.MH
-		table.BaseMissChance = table.MH.BaseMissChance
 	}
 
 	return table
@@ -475,8 +471,8 @@ func newAttackTableHand(attacker *Unit, defender *Unit, weapon *Item) AttackTabl
 		BaseDodgeChance:     0.05 + skillDiff*0.001,
 		BaseBlockChance:     min(0.05, 0.05+skillDiff*0.001),
 		BaseGlanceChance:    Clamp(0.1+baseSkillDiff*0.02, 0, 1),
-		GlanceMultiplierMin: max(min(1.3-0.05*skillDiff, 0.91), 0.01),
-		GlanceMultiplierMax: max(min(1.2-0.03*skillDiff, 0.99), 0.2),
+		GlanceMultiplierMin: Clamp(1.3-0.05*skillDiff, 0.01, 0.91),
+		GlanceMultiplierMax: Clamp(1.2-0.03*skillDiff, 0.2, 0.99),
 	}
 	if skillDiff > 10 {
 		hand.BaseMissChance = 0.05 + skillDiff*0.002
@@ -502,7 +498,6 @@ func (at *AttackTable) setWeapons(mh *Item, oh *Item, ranged *Item) {
 	at.MH = newAttackTableHand(at.Attacker, at.Defender, mh)
 	at.OH = newAttackTableHand(at.Attacker, at.Defender, oh)
 	at.Ranged = newAttackTableHand(at.Attacker, at.Defender, ranged)
-	at.BaseMissChance = at.MH.BaseMissChance
 }
 
 // Hand returns the entry of the hand the spell attacks with.

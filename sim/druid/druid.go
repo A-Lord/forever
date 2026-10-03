@@ -266,8 +266,6 @@ func New(char *core.Character, form DruidForm, selfBuffs SelfBuffs, talents stri
 	druid.AddStatDependency(stats.Strength, stats.AttackPower, 2)
 	druid.AddStatDependency(stats.BonusArmor, stats.Armor, 1)
 	druid.AddStatDependency(stats.Agility, stats.PhysicalCritPercent, core.CritPerAgiMaxLevel[char.Class])
-	druid.AddStatDependency(stats.Agility, stats.DodgePercent, core.DodgePerAgiMaxLevel[char.Class])
-	druid.PseudoStats.BaseDodgeChance += 0.009
 
 	return druid
 }

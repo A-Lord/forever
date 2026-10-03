@@ -24,11 +24,7 @@ func weaponSkillOf(weapon *Item) proto.WeaponSkill {
 	if weapon.RangedWeaponType != proto.RangedWeaponType_RangedWeaponTypeUnknown {
 		return rangedWeaponSkills[weapon.RangedWeaponType]
 	}
-	switch weapon.HandType {
-	case proto.HandType_HandTypeMainHand, proto.HandType_HandTypeOneHand, proto.HandType_HandTypeOffHand:
-		return oneHandWeaponSkills[weapon.WeaponType]
-	}
-	return proto.WeaponSkill_WeaponSkillUnknown
+	return oneHandWeaponSkills[weapon.WeaponType]
 }
 
 // Sets each listed skill's bonus over the level-based skill; a skill the list leaves out stays at the maximum.

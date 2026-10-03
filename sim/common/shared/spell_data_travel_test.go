@@ -16,7 +16,6 @@ func TestMissileDamageLandsAfterItsTravelTime(t *testing.T) {
 	sim, caster := newOnUseSim(t, NewSpellDataDamageOnUse, map[int32]*proto.ItemEffect{itemID: testOnUse(15712, 180000, 0, 0)})
 	target := sim.Encounter.ActiveTargetUnits[0]
 	table := caster.AttackTables[target.UnitIndex]
-	table.BaseMissChance = 0
 	for _, hand := range []*core.AttackTableHand{&table.MH, &table.OH, &table.Ranged} {
 		hand.BaseMissChance, hand.BaseDodgeChance, hand.BaseParryChance, hand.BaseBlockChance = 0, 0, 0, 0
 	}

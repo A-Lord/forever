@@ -43,24 +43,25 @@ func TestPlayerAttackTableAgainstEachTargetLevel(t *testing.T) {
 	} {
 		attacker, defender := attackTableUnits(PlayerUnit, 60, EnemyUnit, tc.level)
 		table := NewAttackTable(attacker, defender)
-		for hand, entry := range map[string]AttackTableHand{"main hand": table.MH, "off hand": table.OH, "ranged": table.Ranged} {
-			checkAttackTableValues(t, fmt.Sprintf("level 60 against %d, %s", tc.level, hand), []attackTableValue{
-				{"miss", entry.BaseMissChance, tc.miss},
-				{"hit suppression", entry.HitSuppression, tc.hitSuppression},
-				{"dodge", entry.BaseDodgeChance, tc.dodge},
-				{"parry", entry.BaseParryChance, tc.parry},
-				{"block", entry.BaseBlockChance, 0.05},
-				{"glance chance", entry.BaseGlanceChance, tc.glance},
-				{"glance multiplier min", entry.GlanceMultiplierMin, tc.glanceMin},
-				{"glance multiplier max", entry.GlanceMultiplierMax, tc.glanceMax},
-				{"melee crit suppression", entry.MeleeCritSuppression, tc.critSuppr},
-			})
+		want := AttackTableHand{
+			BaseMissChance:       tc.miss,
+			HitSuppression:       tc.hitSuppression,
+			BaseDodgeChance:      tc.dodge,
+			BaseParryChance:      tc.parry,
+			BaseBlockChance:      0.05,
+			BaseGlanceChance:     tc.glance,
+			GlanceMultiplierMin:  tc.glanceMin,
+			GlanceMultiplierMax:  tc.glanceMax,
+			MeleeCritSuppression: tc.critSuppr,
 		}
-		checkAttackTableValues(t, fmt.Sprintf("level 60 against %d", tc.level), []attackTableValue{
-			{"table miss", table.BaseMissChance, tc.miss},
+		values := []attackTableValue{
 			{"aura crit suppression", table.AuraCritSuppression, tc.auraCritSuppr},
 			{"spell miss", table.BaseSpellMissChance, tc.spellMiss},
-		})
+		}
+		for hand, entry := range map[string]AttackTableHand{"main hand": table.MH, "off hand": table.OH, "ranged": table.Ranged} {
+			values = append(values, handValues(hand, entry, want)...)
+		}
+		checkAttackTableValues(t, fmt.Sprintf("level 60 against %d", tc.level), values)
 	}
 }
 
@@ -147,10 +148,7 @@ func TestWeaponSkillSettingSetsTheSwordHandsTableAgainstALevel63Target(t *testin
 		values := handValues("sword hand", table.MH, tc.sword)
 		values = append(values, handValues("mace hand", table.OH, level63)...)
 		values = append(values, handValues("ranged", table.Ranged, level63)...)
-		values = append(values,
-			attackTableValue{"table miss", table.BaseMissChance, tc.sword.BaseMissChance},
-			attackTableValue{"aura crit suppression", table.AuraCritSuppression, 0.018},
-		)
+		values = append(values, attackTableValue{"aura crit suppression", table.AuraCritSuppression, 0.018})
 		checkAttackTableValues(t, fmt.Sprintf("%d sword skill", tc.skill), values)
 	}
 }
@@ -223,19 +221,18 @@ func TestEnemyAttackTableAgainstALevel60Player(t *testing.T) {
 	} {
 		attacker, defender := attackTableUnits(EnemyUnit, tc.level, PlayerUnit, 60)
 		table := NewAttackTable(attacker, defender)
+		want := AttackTableHand{
+			BaseMissChance:  tc.miss,
+			BaseDodgeChance: tc.dodge,
+			BaseParryChance: tc.parry,
+			BaseBlockChance: tc.block,
+		}
 		values := []attackTableValue{
-			{"miss", table.BaseMissChance, tc.miss},
 			{"crush", table.BaseCrushChance, tc.crush},
 			{"spell miss", table.BaseSpellMissChance, tc.spellMiss},
 		}
 		for hand, entry := range map[string]AttackTableHand{"main hand": table.MH, "off hand": table.OH, "ranged": table.Ranged} {
-			values = append(values,
-				attackTableValue{hand + " miss", entry.BaseMissChance, tc.miss},
-				attackTableValue{hand + " dodge", entry.BaseDodgeChance, tc.dodge},
-				attackTableValue{hand + " parry", entry.BaseParryChance, tc.parry},
-				attackTableValue{hand + " block", entry.BaseBlockChance, tc.block},
-				attackTableValue{hand + " hit suppression", entry.HitSuppression, 0},
-			)
+			values = append(values, handValues(hand, entry, want)...)
 		}
 		checkAttackTableValues(t, fmt.Sprintf("level %d against 60", tc.level), values)
 	}
@@ -283,7 +280,6 @@ func TestItemSwapRecomputesTheHandEntries(t *testing.T) {
 		step.swap()
 		checkAttackTableValues(t, step.when, []attackTableValue{
 			{"main hand miss", table.MH.BaseMissChance, step.miss},
-			{"table miss", table.BaseMissChance, step.miss},
 		})
 	}
 }

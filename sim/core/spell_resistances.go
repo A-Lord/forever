@@ -36,7 +36,7 @@ func (spell *Spell) ResistanceMultiplier(sim *Simulation, isPeriodic bool, attac
 
 	resistanceRoll := sim.RandomFloat("Partial Resist")
 
-	threshold00, threshold25, threshold50 := attackTable.GetPartialResistThresholds(spell, spell.Flags.Matches(SpellFlagPureDot))
+	threshold00, threshold25, threshold50 := attackTable.GetPartialResistThresholds(spell)
 	//if sim.Log != nil {
 	//	sim.Log("Resist thresholds: %0.04f, %0.04f, %0.04f", threshold00, threshold25, threshold50)
 	//}
@@ -53,8 +53,8 @@ func (spell *Spell) ResistanceMultiplier(sim *Simulation, isPeriodic bool, attac
 	}
 }
 
-func (at *AttackTable) GetPartialResistThresholds(spell *Spell, pureDot bool) (float64, float64, float64) {
-	return at.Defender.partialResistRollThresholds(spell, at.Attacker, pureDot)
+func (at *AttackTable) GetPartialResistThresholds(spell *Spell) (float64, float64, float64) {
+	return at.Defender.partialResistRollThresholds(spell, at.Attacker)
 }
 
 func (at *AttackTable) GetBinaryHitChance(spell *Spell) float64 {
@@ -64,7 +64,7 @@ func (at *AttackTable) GetBinaryHitChance(spell *Spell) float64 {
 // All of the following calculations are based on this guide:
 // https://royalgiraffe.github.io/resist-guide
 
-func (unit *Unit) resistCoeff(spell *Spell, attacker *Unit, binary bool, pureDot bool) float64 {
+func (unit *Unit) resistCoeff(spell *Spell, attacker *Unit, binary bool) float64 {
 	if spell.SchoolIndex <= stats.SchoolIndexPhysical {
 		return 0
 	}
@@ -77,7 +77,7 @@ func (unit *Unit) resistCoeff(spell *Spell, attacker *Unit, binary bool, pureDot
 	resistanceCap := float64(attacker.Level * 5)
 	resistanceCoef := resistance / resistanceCap
 
-	if pureDot {
+	if spell.Flags.Matches(SpellFlagPureDot) {
 		resistanceCoef /= 10
 	}
 
@@ -93,13 +93,13 @@ func (unit *Unit) resistCoeff(spell *Spell, attacker *Unit, binary bool, pureDot
 }
 
 func (unit *Unit) binaryHitChance(spell *Spell, attacker *Unit) float64 {
-	resistCoeff := unit.resistCoeff(spell, attacker, true, false)
+	resistCoeff := unit.resistCoeff(spell, attacker, true)
 	return 1 - 0.75*resistCoeff
 }
 
 // Roll threshold for each type of partial resist.
-func (unit *Unit) partialResistRollThresholds(spell *Spell, attacker *Unit, pureDot bool) (float64, float64, float64) {
-	resistCoeff := unit.resistCoeff(spell, attacker, false, pureDot)
+func (unit *Unit) partialResistRollThresholds(spell *Spell, attacker *Unit) (float64, float64, float64) {
+	resistCoeff := unit.resistCoeff(spell, attacker, false)
 
 	// Based on the piecewise linear regression estimates at https://royalgiraffe.github.io/partial-resist-table.
 	if val := resistCoeff * 3; val <= 1 {

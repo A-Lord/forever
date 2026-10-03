@@ -855,7 +855,6 @@ func (unit *Unit) finalize() {
 	unit.initialRangedSwingSpeed = unit.TotalRangedHasteMultiplier()
 
 	unit.StatDependencyManager.FinalizeStatDeps()
-	unit.critPerAgility = unit.GetStatDependencyCoeff(stats.Agility, stats.PhysicalCritPercent)
 	unit.initialStats = unit.ApplyStatDependencies(unit.initialStatsWithoutDeps).FloorGameStats()
 	unit.statsWithoutDeps = unit.initialStatsWithoutDeps
 	unit.stats = unit.initialStats
@@ -1057,10 +1056,10 @@ func (unit *Unit) GetTotalParryChanceAsDefender(spell *Spell, atkTable *AttackTa
 	return math.Max(chance, 0.0)
 }
 
-func (unit *Unit) GetTotalChanceToBeMissedAsDefender(atkTable *AttackTable) float64 {
+func (unit *Unit) GetTotalChanceToBeMissedAsDefender(spell *Spell, atkTable *AttackTable) float64 {
 	// ReducedPhysicalHitTakenChance is stored in percent points, BaseMissChance as a fraction.
 	defense := math.Floor(unit.stats[stats.DefenseRating] / DefenseRatingPerDefenseLevel)
-	chance := atkTable.BaseMissChance +
+	chance := atkTable.Hand(spell).BaseMissChance +
 		unit.PseudoStats.ReducedPhysicalHitTakenChance/100 +
 		defense*MissDodgeParryBlockCritChancePerDefense/100
 	return math.Max(chance, 0.0)
@@ -1079,7 +1078,7 @@ func (unit *Unit) updateReducedCritTakenPercent() {
 }
 
 func (unit *Unit) GetTotalAvoidanceChance(spell *Spell, atkTable *AttackTable) float64 {
-	miss := unit.GetTotalChanceToBeMissedAsDefender(atkTable)
+	miss := unit.GetTotalChanceToBeMissedAsDefender(spell, atkTable)
 	dodge := unit.GetTotalDodgeChanceAsDefender(spell, atkTable)
 	parry := unit.GetTotalParryChanceAsDefender(spell, atkTable)
 	block := unit.GetTotalBlockChanceAsDefender(spell, atkTable)

@@ -99,7 +99,7 @@ func TestPetsGetTenHealthPerStaminaFromTheFirstPoint(t *testing.T) {
 	}
 }
 
-func TestNakedWarriorHealthAndAttackPower(t *testing.T) {
+func TestNakedWarriorHealth(t *testing.T) {
 	_, sheet := nakedSheet(t, proto.Class_ClassWarrior, proto.Race_RaceHuman)
 
 	stamina := sheet[stats.Stamina]
@@ -109,9 +109,6 @@ func TestNakedWarriorHealthAndAttackPower(t *testing.T) {
 	if want := 1689 + 20 + (stamina-20)*10; sheet[stats.Health] != want {
 		t.Errorf("health %v, want %v: 10 per stamina beyond the first 20", sheet[stats.Health], want)
 	}
-	if want := 160 + 2*sheet[stats.Strength]; sheet[stats.AttackPower] != want {
-		t.Errorf("attack power %v, want %v", sheet[stats.AttackPower], want)
-	}
 }
 
 func TestNakedAttackPowerPerClass(t *testing.T) {
@@ -120,6 +117,7 @@ func TestNakedAttackPowerPerClass(t *testing.T) {
 		race        proto.Race
 		attackPower func(s stats.Stats) float64
 	}{
+		{class: proto.Class_ClassWarrior, race: proto.Race_RaceHuman, attackPower: func(s stats.Stats) float64 { return 160 + 2*s[stats.Strength] }},
 		{class: proto.Class_ClassPaladin, race: proto.Race_RaceHuman, attackPower: func(s stats.Stats) float64 { return 160 + 2*s[stats.Strength] }},
 		{class: proto.Class_ClassPriest, race: proto.Race_RaceHuman, attackPower: func(s stats.Stats) float64 { return -10 + s[stats.Strength] }},
 		{class: proto.Class_ClassShaman, race: proto.Race_RaceOrc, attackPower: func(s stats.Stats) float64 { return 100 + 2*s[stats.Strength] }},

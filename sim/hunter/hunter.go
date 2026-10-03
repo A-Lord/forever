@@ -97,7 +97,6 @@ func NewHunter(character *core.Character, options *proto.Player, hunterOptions *
 	hunter.AddStatDependency(stats.Agility, stats.AttackPower, 1)
 	hunter.AddStatDependency(stats.Agility, stats.RangedAttackPower, 2)
 	hunter.AddStatDependency(stats.Agility, stats.PhysicalCritPercent, core.CritPerAgiMaxLevel[hunter.Class])
-	hunter.AddStatDependency(stats.Agility, stats.DodgePercent, core.DodgePerAgiMaxLevel[hunter.Class])
 
 	hunter.Pet = hunter.NewHunterPet()
 
