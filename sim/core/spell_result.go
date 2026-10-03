@@ -204,11 +204,10 @@ func (spell *Spell) PhysicalCritChance(attackTable *AttackTable) float64 {
 
 // The crit a physical attack with critPercent in total loses to the defender's level: the skill part,
 // and the aura crit up to AuraCritSuppression. Aura crit is all of critPercent but the attacker's base
-// and Agility crit and the crit mods on the ability that do not count as aura crit.
+// and Agility crit.
 func (spell *Spell) physicalCritSuppression(attackTable *AttackTable, critPercent float64) float64 {
 	unit := spell.Unit
-	auraCritPercent := critPercent - (spell.BonusCritPercent - spell.auraBonusCritPercent) -
-		unit.basePhysicalCritPercent - unit.stats[stats.Agility]*unit.critPerAgility
+	auraCritPercent := critPercent - unit.basePhysicalCritPercent - unit.stats[stats.Agility]*unit.critPerAgility
 	return attackTable.MeleeCritSuppression + Clamp(auraCritPercent/100, 0, attackTable.AuraCritSuppression)
 }
 func (spell *Spell) PhysicalCritCheck(sim *Simulation, attackTable *AttackTable) bool {

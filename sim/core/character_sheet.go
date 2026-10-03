@@ -38,7 +38,7 @@ func (character *Character) sheetCritSuppressionPercent(probe ProcMask, scoped S
 	if character.CurrentTarget == nil || int(character.CurrentTarget.UnitIndex) >= len(character.AttackTables) {
 		return 0
 	}
-	probeSpell := &Spell{Unit: &character.Unit, ProcMask: probe, BonusCritPercent: scoped.Crit, auraBonusCritPercent: scoped.AuraCrit}
+	probeSpell := &Spell{Unit: &character.Unit, ProcMask: probe, BonusCritPercent: scoped.Crit}
 	return probeSpell.physicalCritSuppression(character.AttackTables[character.CurrentTarget.UnitIndex], critPercent) * 100
 }
 

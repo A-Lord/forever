@@ -156,7 +156,6 @@ type Spell struct {
 
 	BonusHitPercent          float64
 	BonusCritPercent         float64
-	auraBonusCritPercent     float64 // The part of BonusCritPercent that a higher-level defender counts as aura crit.
 	BonusSpellDamage         float64
 	BonusExpertisePercent    float64
 	CastTimeMultiplier       float64

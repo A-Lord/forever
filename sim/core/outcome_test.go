@@ -50,7 +50,7 @@ func TestCritTakenReductionLowersPhysicalAndSpellCritByItsPercent(t *testing.T) 
 }
 
 // A level 60 attacker with 0.05 crit per Agility against a level 63 target loses 3% to the level and
-// up to 1.8% more of the crit beyond its base and Agility crit.
+// up to 1.8% more of the crit beyond its base and Agility crit, from any source.
 func TestPhysicalCritSuppressionCountsOnlyAuraCrit(t *testing.T) {
 	for _, tc := range []struct {
 		name            string
@@ -61,7 +61,6 @@ func TestPhysicalCritSuppressionCountsOnlyAuraCrit(t *testing.T) {
 		auraCrit        float64
 		rangedCrit      float64
 		bonusCrit       float64
-		auraBonusCrit   float64
 		critByCaster    float64
 		wantCrit        float64
 		wantSuppression float64
@@ -73,9 +72,9 @@ func TestPhysicalCritSuppressionCountsOnlyAuraCrit(t *testing.T) {
 		{name: "base crit and 1% aura crit", agility: 100, baseCrit: 3, auraCrit: 1, wantCrit: 5.0, wantSuppression: 4.0},
 		{name: "3% ranged crit on a ranged auto", procMask: ProcMaskRangedAuto, agility: 100, rangedCrit: 3, wantCrit: 3.2, wantSuppression: 4.8},
 		{name: "3% ranged crit on a melee auto", agility: 100, rangedCrit: 3, wantCrit: 2.0, wantSuppression: 3.0},
-		{name: "1% crit of the ability's own is not aura crit", agility: 100, bonusCrit: 1, wantCrit: 3.0, wantSuppression: 3.0},
-		{name: "5% weapon crit on the attack is aura crit", agility: 100, bonusCrit: 5, auraBonusCrit: 5, wantCrit: 5.2, wantSuppression: 4.8},
-		{name: "1% weapon crit and 5% of the ability's own", agility: 100, bonusCrit: 6, auraBonusCrit: 1, wantCrit: 7.0, wantSuppression: 4.0},
+		{name: "1% crit of the ability's own is aura crit", agility: 100, bonusCrit: 1, wantCrit: 2.0, wantSuppression: 4.0},
+		{name: "5% crit of the ability's own is aura crit", agility: 100, bonusCrit: 5, wantCrit: 5.2, wantSuppression: 4.8},
+		{name: "6% crit of the ability's own caps at 1.8%", agility: 100, bonusCrit: 6, wantCrit: 6.2, wantSuppression: 4.8},
 		{name: "2% crit from a target aura for the caster", agility: 100, critByCaster: 2, wantCrit: 2.2, wantSuppression: 4.8},
 		{name: "level 62 target, 5% aura crit", targetLevel: 62, agility: 100, auraCrit: 5, wantCrit: 8.0, wantSuppression: 2.0},
 		{name: "negative aura crit adds no crit back", agility: 200, auraCrit: -2, wantCrit: 5.0, wantSuppression: 3.0},
@@ -100,7 +99,7 @@ func TestPhysicalCritSuppressionCountsOnlyAuraCrit(t *testing.T) {
 			if tc.critByCaster != 0 {
 				EnableCritChanceByCaster(0, 1, table, func(*Spell) float64 { return tc.critByCaster })
 			}
-			spell := &Spell{Unit: attacker, ProcMask: procMask, BonusCritPercent: tc.bonusCrit, auraBonusCritPercent: tc.auraBonusCrit}
+			spell := &Spell{Unit: attacker, ProcMask: procMask, BonusCritPercent: tc.bonusCrit}
 
 			totalCrit := attacker.stats[stats.PhysicalCritPercent] + tc.bonusCrit + tc.critByCaster
 			if procMask.Matches(ProcMaskRanged) {
@@ -119,8 +118,8 @@ func TestPhysicalCritSuppressionCountsOnlyAuraCrit(t *testing.T) {
 }
 
 // A 5% crit mod on the weapon tester, which has no crit beyond its base crit, against the level 63
-// target: a mod bound to a weapon or converted from a rating is aura crit, one on the attack alone is not.
-func TestCritModsCountAsAuraCritByTheirScope(t *testing.T) {
+// target: every crit mod is aura crit, whatever its scope.
+func TestEveryCritModCountsAsAuraCrit(t *testing.T) {
 	for _, tc := range []struct {
 		name             string
 		mod              SpellModConfig
@@ -133,7 +132,7 @@ func TestCritModsCountAsAuraCritByTheirScope(t *testing.T) {
 		{"a ranged rating mod", SpellModConfig{ProcMask: ProcMaskRanged, DefenseType: DefenseTypeRanged, FromRating: true},
 			true, 4.8, proto.PseudoStat_PseudoStatRangedCritSuppressionPercent},
 		{"a mod on the main-hand auto alone", SpellModConfig{ProcMask: ProcMaskMeleeMHAuto},
-			false, 3.0, proto.PseudoStat_PseudoStatMeleeCritSuppressionPercent},
+			false, 4.8, proto.PseudoStat_PseudoStatMeleeCritSuppressionPercent},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			_, character := NewWeaponTestSim(t, proto.Race_RaceUndead, WeaponTestSlots(WeaponTestSwordID, WeaponTestDaggerID, WeaponTestBowID), nil, nil)
