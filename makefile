@@ -253,13 +253,15 @@ WOW_DIR ?=
 ifneq ($(WOW_DIR),)
 DB2TOOL_FLAGS += --basedir "$(WOW_DIR)"
 endif
-# CLASSES and RACIALS choose what `make db`, `make ptrdb` and `make spelldata` take from the extracted
-# build. `make db CLASSES=druid` takes the druid and keeps every other class as committed;
-# `CLASSES=all` and `CLASSES=none` name every class or none. `RACIALS=1` takes the racials. With
-# neither set, the run takes the default spell data groups. See docs/spell_data/partial-updates.md.
+# CLASSES, RACIALS and SHARED choose what `make db`, `make ptrdb` and `make spelldata` take from the
+# extracted build. `make db CLASSES=druid` takes the druid and keeps every other class as committed;
+# `CLASSES=all` and `CLASSES=none` name every class or none. `RACIALS=1` takes the racials, and
+# `SHARED=0` keeps the shared group as committed, so `CLASSES=none SHARED=0` takes the items alone.
+# With none set, the run takes the default spell data groups. See docs/spell_data/partial-updates.md.
 CLASSES ?=
 RACIALS ?=
-SPELLDATA_FLAGS := $(if $(CLASSES),-classes=$(CLASSES)) $(if $(filter 1 true yes,$(RACIALS)),-racials)
+SHARED ?=
+SPELLDATA_FLAGS := $(if $(CLASSES),-classes=$(CLASSES)) $(if $(filter 1 true yes,$(RACIALS)),-racials) $(if $(filter 0 false no,$(SHARED)),-shared=false)
 GEN_DB_FLAGS := $(if $(CLASSES),-classes=$(CLASSES))
 
 # The spell store is regenerated before the item database, and the order is load-bearing: gen_db

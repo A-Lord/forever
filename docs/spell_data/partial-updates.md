@@ -1,7 +1,7 @@
 # Taking a new game build one spell data group at a time
 
 A new game build moves every class at once: talents leave the trees, rows change, and each class's
-code has to follow before its tests pass. `-classes` and `-racials` take some spell data groups of the
+code has to follow before its tests pass. `-classes`, `-racials` and `-shared` take some spell data groups of the
 database and keep every other row as the committed inputs state it, so each class moves onto the build
 in its own pull request:
 
@@ -11,18 +11,20 @@ go run ./tools/database/gen_spelldata -classes=druid -racials
 go run tools/database/gen_db/*.go -outDir=./assets -gen=db -classes=druid
 ```
 
-A run chooses which of the nine classes it takes (by package name) and whether it takes `racials`. Two more
-spell data groups cannot be chosen: every run takes `items` (the item, enchant and set-bonus rows,
-with the item database `gen_db` writes) and `shared` (the shapeshift forms, and the extra spells and
-buff manifest rows no class owns) from the database, because the item database is not split and the
-store's item rows have to match it. So `-classes=druid` moves the druid, the items and the shared rows,
-and `-racials` moves the racials, the items and the shared rows.
+A run chooses which of the nine classes it takes (by package name), whether it takes `racials`, and
+whether it takes `shared` (the shapeshift forms, and the extra spells and buff manifest rows no class
+owns). `shared` is taken unless `-shared=false` keeps it as committed. One spell data group cannot be
+chosen: every run takes `items` (the item, enchant and set-bonus rows, with the item database `gen_db`
+writes) from the database, because the item database is not split and the store's item rows have to
+match it. So `-classes=druid` moves the druid, the items and the shared rows, `-racials` moves the
+racials, the items and the shared rows, and `-classes=none -shared=false` moves the items alone.
 
-| Spell data group                                                                        | Chosen with                      |
-| --------------------------------------------------------------------------------------- | -------------------------------- |
-| `warrior`, `paladin`, `hunter`, `rogue`, `priest`, `shaman`, `mage`, `warlock`, `druid` | `-classes` (`CLASSES=` in make)  |
-| `racials`                                                                               | `-racials` (`RACIALS=1` in make) |
-| `items`, `shared`                                                                       | not chosen: every run takes them |
+| Spell data group                                                                        | Chosen with                                       |
+| --------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| `warrior`, `paladin`, `hunter`, `rogue`, `priest`, `shaman`, `mage`, `warlock`, `druid` | `-classes` (`CLASSES=` in make)                   |
+| `racials`                                                                               | `-racials` (`RACIALS=1` in make)                  |
+| `shared`                                                                                | taken unless `-shared=false` (`SHARED=0` in make) |
+| `items`                                                                                 | not chosen: every run takes it                    |
 
 A row belongs to the first of these that holds:
 
@@ -70,7 +72,7 @@ different build from the class whose flags it states is printed as a warning.
 
 `-check` renders the groups whose recorded build is the database's and compares those. A group on
 another build is printed as not ported and does not fail the check. Its class file is not compared,
-since only its own build could render it. Items and shared are always compared. Hotfixes within one game
+since only its own build could render it. Items are always compared. Hotfixes within one game
 build are not recorded, so a re-extraction that picked up new ones fails `-check` on the current groups
 until they are regenerated. Inputs that record no groups are split the way the database splits the
 same ids, and a root that names no group there is printed as adopted into `shared`.
@@ -82,9 +84,10 @@ is deterministic.
 ## Commands
 
 `-classes` takes `warrior`, `paladin`, `hunter`, `rogue`, `priest`, `shaman`, `mage`, `warlock` and
-`druid`, comma-separated, or `all` or `none`; `-racials` takes the racials. Either one makes the run a
-partial update, and `-racials` with no `-classes` takes no class. Neither flag can leave out `items` or
-`shared`: every run, partial or full, takes both from the database.
+`druid`, comma-separated, or `all` or `none`; `-racials` takes the racials; `-shared=false` keeps the
+shared group as committed. Any of them makes the run a partial update, and `-racials` or
+`-shared=false` with no `-classes` takes no class. No flag can leave out `items`: every run, partial
+or full, takes it from the database.
 
 ```
 make db                                   # extract, then gen_spelldata and gen_db, default groups
@@ -92,6 +95,7 @@ make db CLASSES=druid                     # take the druid, with items and share
 make db CLASSES=druid,mage RACIALS=1
 make db RACIALS=1                         # the racials, with items and shared, no class
 make db CLASSES=none                      # items and shared alone
+make db CLASSES=none SHARED=0             # the items alone, as the Update Items workflow runs it
 make db CLASSES=all RACIALS=1             # every group, also while the builds are mixed
 make db CLASSES=warrior WOW_DIR="/mnt/e/World of Warcraft"
 make db CLASSES=mage DB2TOOL_FLAGS="--cdn --dbcache caches/DBCache.bin"
@@ -105,6 +109,7 @@ go run ./tools/database/gen_spelldata                               # default gr
 go run ./tools/database/gen_spelldata -classes=druid
 go run ./tools/database/gen_spelldata -classes="druid, mage" -racials
 go run ./tools/database/gen_spelldata -racials
+go run ./tools/database/gen_spelldata -classes=none -shared=false   # the items alone
 go run ./tools/database/gen_spelldata -classes=druid -unchecked     # write without the type-check
 go run ./tools/database/gen_spelldata -check                        # compare, write nothing
 go run ./tools/database/gen_spelldata -dbPath /path/to/other.db -classes=druid
@@ -113,8 +118,12 @@ go run tools/database/gen_db/*.go -outDir=./assets -gen=db                 # tal
 go run tools/database/gen_db/*.go -outDir=./assets -gen=db -classes=druid  # the druid's talent files only
 ```
 
-`-classes` and `-racials` do not combine with `-check` or `-everyClassSpell`. `gen_db` takes only
-`-classes`, since it has no racial files, and always writes the item database.
+`-classes`, `-racials` and `-shared` do not combine with `-check` or `-everyClassSpell`. `gen_db`
+takes only `-classes`, since it has no racial or shared files, and always writes the item database.
+
+The Update Items workflow (`.github/workflows/update_items.yml`) extracts the current build from the
+CDN with the latest hotfixes and runs `make db CLASSES=none SHARED=0`, so its pull request moves the
+items and leaves every class, the racials and the shared rows on their committed builds.
 
 `db2tool` writes the `BuildInfo` table on every extraction. In offline mode pass the full version,
 `--build 1.60.1.70170`; a bare build number is recorded as given, with a warning. Stamp a database

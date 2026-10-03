@@ -78,12 +78,16 @@ func mergeInputs(t *testing.T, old, fresh *storeInputs, list string) (*storeInpu
 	return merged, notes
 }
 
-// One group as the flags name it: racials through -racials, a class through -classes.
+// One group as the flags name it: racials through -racials, items through -classes=none -shared=false,
+// a class through -classes.
 func groupsOf(t *testing.T, group string) SpellDataGroups {
 	t.Helper()
-	only, err := ParseSpellDataGroups(group, false)
-	if group == groupRacials {
-		only, err = ParseSpellDataGroups("", true)
+	only, err := ParseSpellDataGroups(group, false, true)
+	switch group {
+	case groupRacials:
+		only, err = ParseSpellDataGroups("", true, true)
+	case groupItems:
+		only, err = ParseSpellDataGroups("none", false, false)
 	}
 	if err != nil {
 		t.Fatal(err)
@@ -134,6 +138,29 @@ func TestMergeTakesOnlyTheSelectedClass(t *testing.T) {
 	}
 	if merged.Builds["mage"] != "new" || merged.Builds["warrior"] != "old" || merged.Builds[groupItems] != "new" {
 		t.Errorf("builds = %v, want mage and items on new, warrior on old", merged.Builds)
+	}
+}
+
+func TestMergeOfTheItemsAloneKeepsSharedAndEveryClass(t *testing.T) {
+	old, fresh := groupWorld(1, 1), groupWorld(2, 2)
+	for _, in := range []*storeInputs{old, fresh} {
+		points := rowBuilds(in)[100]
+		addRow(in, 600, 0, points)
+		in.SpellDataGroupRoots[groupShared] = []int32{600}
+		in.Forms = []formRow{{ID: 1, Name: "form", Flags: int64(points)}}
+	}
+	merged, _ := mergeInputs(t, old, fresh, groupItems)
+	want := map[int32]float64{100: 1, 101: 1, 200: 1, 300: 2, 301: 1, 400: 2, 500: 1, 600: 1, eureka: 1}
+	if got := rowBuilds(merged); !reflect.DeepEqual(got, want) {
+		t.Errorf("rows by build = %v, want %v", got, want)
+	}
+	if merged.Forms[0].Flags != 1 {
+		t.Errorf("forms = %v, want the committed ones: shared is not taken", merged.Forms)
+	}
+	for p, build := range merged.Builds {
+		if want := map[bool]string{true: "new", false: "old"}[p == groupItems]; build != want {
+			t.Errorf("%s is on %s, want %s", p, build, want)
+		}
 	}
 }
 
@@ -360,7 +387,7 @@ func TestMergeOfTheCommittedInputsWithThemselvesChangesNothing(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, group := range []string{"warrior", "hunter", "druid", groupRacials} {
+	for _, group := range []string{"warrior", "hunter", "druid", groupRacials, groupItems} {
 		merged, _, err := mergeStoreInputs(committedInputs(t), committedInputs(t), groupsOf(t, group), committed.Builds[group])
 		if err != nil {
 			t.Fatal(err)
@@ -404,35 +431,39 @@ func TestParseSpellDataGroups(t *testing.T) {
 	for _, c := range []struct {
 		classes string
 		racials bool
+		shared  bool
 		takes   []string
 		leaves  []string
 	}{
-		{"warrior, mage", false, []string{"warrior", "mage", groupItems, groupShared}, []string{"druid", groupRacials}},
-		{"druid", true, []string{"druid", groupRacials}, []string{"warrior"}},
-		{"", true, []string{groupRacials, groupItems, groupShared}, []string{"warrior", "druid"}},
-		{"none", false, []string{groupItems, groupShared}, []string{"warrior", groupRacials}},
-		{"all", false, []string{"warrior", "druid", "hunter"}, []string{groupRacials}},
+		{"warrior, mage", false, true, []string{"warrior", "mage", groupItems, groupShared}, []string{"druid", groupRacials}},
+		{"druid", true, true, []string{"druid", groupRacials}, []string{"warrior"}},
+		{"", true, true, []string{groupRacials, groupItems, groupShared}, []string{"warrior", "druid"}},
+		{"none", false, true, []string{groupItems, groupShared}, []string{"warrior", groupRacials}},
+		{"all", false, true, []string{"warrior", "druid", "hunter"}, []string{groupRacials}},
+		{"none", false, false, []string{groupItems}, []string{"warrior", groupRacials, groupShared}},
+		{"", false, false, []string{groupItems}, []string{"warrior", groupRacials, groupShared}},
+		{"druid", false, false, []string{"druid", groupItems}, []string{"warrior", groupShared}},
 	} {
-		only, err := ParseSpellDataGroups(c.classes, c.racials)
+		only, err := ParseSpellDataGroups(c.classes, c.racials, c.shared)
 		if err != nil {
-			t.Fatalf("-classes=%q -racials=%v: %v", c.classes, c.racials, err)
+			t.Fatalf("-classes=%q -racials=%v -shared=%v: %v", c.classes, c.racials, c.shared, err)
 		}
 		for _, p := range c.takes {
 			if !only.Takes(p) {
-				t.Errorf("-classes=%q -racials=%v leaves %s, want it taken", c.classes, c.racials, p)
+				t.Errorf("-classes=%q -racials=%v -shared=%v leaves %s, want it taken", c.classes, c.racials, c.shared, p)
 			}
 		}
 		for _, p := range c.leaves {
 			if only.Takes(p) {
-				t.Errorf("-classes=%q -racials=%v takes %s, want it left", c.classes, c.racials, p)
+				t.Errorf("-classes=%q -racials=%v -shared=%v takes %s, want it left", c.classes, c.racials, c.shared, p)
 			}
 		}
 	}
-	if only, _ := ParseSpellDataGroups("", false); !only.all() {
+	if only, _ := ParseSpellDataGroups("", false, true); !only.all() {
 		t.Errorf("naming nothing takes %v, want the default selection", only)
 	}
 	for _, list := range []string{"items", "shared", groupRacials, "deathknight"} {
-		if _, err := ParseSpellDataGroups(list, false); err == nil {
+		if _, err := ParseSpellDataGroups(list, false, true); err == nil {
 			t.Errorf("-classes=%s succeeds, want it refused", list)
 		}
 	}
@@ -442,8 +473,8 @@ func TestCurrentSpellDataGroupsChecksOnlyTheExtractedBuild(t *testing.T) {
 	in := groupWorld(1, 1)
 	in.Builds["warrior"] = "new"
 	only, behind := currentSpellDataGroups(in.Builds, "new")
-	if !only.Takes("warrior") || only.Takes("mage") || !only.Takes(groupItems) {
-		t.Errorf("checked groups = %v, want the warrior, items and shared", only)
+	if !only.Takes("warrior") || only.Takes("mage") || only.Takes(groupShared) || !only.Takes(groupItems) {
+		t.Errorf("checked groups = %v, want the warrior and items", only)
 	}
 	if !slices.ContainsFunc(behind, func(b string) bool { return strings.HasPrefix(b, "mage is on old") }) {
 		t.Errorf("behind = %q, want mage named", behind)

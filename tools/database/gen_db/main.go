@@ -74,7 +74,7 @@ func main() {
 	}
 	defer helper.Close()
 
-	only, behind, err := database.ResolveSpellDataGroups(helper, *classes, false)
+	only, behind, err := database.ResolveSpellDataGroups(helper, *classes, false, true)
 	if err != nil {
 		log.Fatalf("spell data groups: %v", err)
 	}

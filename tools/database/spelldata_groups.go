@@ -30,8 +30,8 @@ import (
 //     bonus, an enchant's class buff), because its flags are that class's;
 //   - any other row belongs to the groups whose roots reach it, and moves when any of them is taken.
 //
-// Every run takes items and shared. gen_db writes the item database whole, and the store's item rows
-// have to match it.
+// Every run takes items. gen_db writes the item database whole, and the store's item rows have to
+// match it. Every run takes shared as well unless -shared=false leaves it out.
 const (
 	groupItems   = "items"
 	groupRacials = "racials"
@@ -57,16 +57,16 @@ func allSpellDataGroups() []string {
 // The groups a run takes from the game files database. Nil means every group: a full regeneration.
 type SpellDataGroups map[string]bool
 
-// The groups -classes and -racials name, plus items and shared, which every run takes. classes is a
-// comma-separated list of class package names, "all" or "none". With neither flag set it returns nil,
-// the default selection.
-func ParseSpellDataGroups(classes string, racials bool) (SpellDataGroups, error) {
+// The groups -classes, -racials and -shared name, plus items, which every run takes. classes is a
+// comma-separated list of class package names, "all" or "none". With no flag set (shared stays true)
+// it returns nil, the default selection.
+func ParseSpellDataGroups(classes string, racials, shared bool) (SpellDataGroups, error) {
 	classes = strings.TrimSpace(classes)
-	if classes == "" && !racials {
+	if classes == "" && !racials && shared {
 		return nil, nil
 	}
 
-	only := SpellDataGroups{groupItems: true, groupShared: true, groupRacials: racials}
+	only := SpellDataGroups{groupItems: true, groupShared: shared, groupRacials: racials}
 	var names []string
 	switch classes {
 	case "", "none":
@@ -78,7 +78,7 @@ func ParseSpellDataGroups(classes string, racials bool) (SpellDataGroups, error)
 	for _, name := range names {
 		name = strings.TrimSpace(name)
 		if !slices.Contains(classGroups(), name) {
-			return nil, fmt.Errorf("unknown class %q: one of %s, all or none; racials are taken with -racials",
+			return nil, fmt.Errorf("unknown class %q: one of %s, all or none; racials are taken with -racials and shared with -shared",
 				name, strings.Join(slices.Sorted(slices.Values(classGroups())), ", "))
 		}
 		only[name] = true
@@ -113,7 +113,7 @@ func currentSpellDataGroups(builds map[string]string, version string) (only Spel
 	if builds == nil {
 		return nil, nil
 	}
-	only = SpellDataGroups{groupItems: true, groupShared: true}
+	only = SpellDataGroups{groupItems: true}
 	for _, p := range allSpellDataGroups() {
 		build, recorded := builds[p]
 		if !recorded || build == version {
@@ -153,10 +153,10 @@ func defaultSpellDataGroups(helper *DBHelper) (SpellDataGroups, []string, error)
 	return only, behind, nil
 }
 
-// The groups a run takes: the ones -classes and -racials name, or the default groups when neither is
-// set, with a line for each group the default leaves on its committed build.
-func ResolveSpellDataGroups(helper *DBHelper, classes string, racials bool) (SpellDataGroups, []string, error) {
-	only, err := ParseSpellDataGroups(classes, racials)
+// The groups a run takes: the ones -classes, -racials and -shared name, or the default groups when
+// none is set, with a line for each group the default leaves on its committed build.
+func ResolveSpellDataGroups(helper *DBHelper, classes string, racials, shared bool) (SpellDataGroups, []string, error) {
+	only, err := ParseSpellDataGroups(classes, racials, shared)
 	if err != nil || only != nil {
 		return only, nil, err
 	}
