@@ -1,5 +1,5 @@
 import { Debuffs } from '@generated/proto/buffs';
-import { PseudoStat, Stat } from '@generated/proto/common';
+import { Class, PseudoStat, Spec, Stat } from '@generated/proto/common';
 import { describe, expect, it } from 'vitest';
 
 import { ActionId } from '../proto/action_id';
@@ -33,6 +33,53 @@ describe('Player.getDebuffStats', () => {
 	it("credits Hunter's Mark with the ranged attack power spell 14325 states", () => {
 		expect(debuffStats({ huntersMark: true }).getStat(Stat.StatRangedAttackPower)).toBe(71);
 		expect(debuffStats({ huntersMark: false }).getStat(Stat.StatRangedAttackPower)).toBe(0);
+	});
+});
+
+// A rogue with one weapon and no hit, expertise or crit, behind the target unless placed in front.
+// A suppression left out is a pseudo-stat the sim has not sent.
+const critCapInfo = (targetLevel: number, { inFront = false, critSuppression }: { inFront?: boolean; critSuppression?: number } = {}) => {
+	const pseudoStats: Array<number> = [];
+	if (critSuppression !== undefined) pseudoStats[PseudoStat.PseudoStatMeleeCritSuppressionPercent] = critSuppression;
+	return Player.prototype.getMeleeCritCapInfo.call({
+		slice: () => ({ currentStats: { finalStats: { pseudoStats } } }),
+		getDebuffStats: () => new Stats(),
+		sim: { encounter: { primaryTarget: { level: targetLevel } } },
+		isDualWielding: () => false,
+		getClass: () => Class.ClassRogue,
+		getInFrontOfTarget: () => inFront,
+		getSpec: () => Spec.SpecRogue,
+	} as unknown as Player<any>);
+};
+
+describe('Player.getMeleeCritCapInfo', () => {
+	// The sim caps the level gap at +3, so a saved encounter's level 70-73 target meets the level-63 table.
+	it.each<[number, number, number, number, number]>([
+		[58, 4, 4, 0, -0.4],
+		[60, 5, 5, 10, 0],
+		[62, 6, 6, 30, 2],
+		[63, 9, 6.5, 40, 3],
+		[70, 9, 6.5, 40, 3],
+		[73, 9, 6.5, 40, 3],
+	])('against a level %i target: %f%% hit cap, %f%% dodge, %f%% glancing, %f%% crit suppression', (level, hitCap, dodge, glancing, suppression) => {
+		const info = critCapInfo(level);
+
+		expect(info.meleeHitCap).toBeCloseTo(hitCap);
+		expect(info.expertiseCap).toBeCloseTo(dodge);
+		expect(info.glancing).toBeCloseTo(glancing);
+		expect(info.suppression).toBeCloseTo(suppression);
+		expect(info.baseCritCap).toBeCloseTo(100 - glancing + suppression - hitCap - dodge);
+	});
+
+	it('adds the parry of a level 63 target to the expertise cap from in front', () => {
+		expect(critCapInfo(63, { inFront: true }).expertiseCap).toBeCloseTo(6.5 + 14);
+	});
+
+	it.each([4.8, 0])('takes the crit suppression the sim sends, %f%%, over the level table', critSuppression => {
+		const info = critCapInfo(63, { critSuppression });
+
+		expect(info.suppression).toBe(critSuppression);
+		expect(info.baseCritCap).toBeCloseTo(100 - 40 + critSuppression - 9 - 6.5);
 	});
 });
 

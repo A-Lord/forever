@@ -7,6 +7,7 @@ import (
 
 type sheetAttackStats struct {
 	HitPercent, CritPercent, HitRating, CritRating float64
+	CritSuppressionPercent                         float64
 }
 
 // The hit and crit the character sheet shows for the auto attack with this proc mask: the physical
@@ -21,12 +22,24 @@ func (character *Character) sheetAttackStats(probe ProcMask) sheetAttackStats {
 		channelHit, channelCrit = character.GetStat(stats.RangedHitPercent), character.GetStat(stats.RangedCritPercent)
 	}
 	scoped := character.ScopedPercents(probe)
-	return sheetAttackStats{
+	attack := sheetAttackStats{
 		HitPercent:  character.GetStat(stats.PhysicalHitPercent) + channelHit + scoped.Hit,
 		CritPercent: character.GetStat(stats.PhysicalCritPercent) + channelCrit + scoped.Crit,
 		HitRating:   character.GetStat(stats.HitRating) + (channelHit+scoped.HitFromRating)*HitRatingPerHitPercent,
 		CritRating:  character.GetStat(stats.CritRating) + (channelCrit+scoped.CritFromRating)*CritRatingPerCritPercent,
 	}
+	attack.CritSuppressionPercent = character.sheetCritSuppressionPercent(probe, scoped, attack.CritPercent)
+	return attack
+}
+
+// The crit the sim takes off the auto attack against the current target, in percent. The sheet's
+// crit percents keep it in; before the attack tables exist it is 0.
+func (character *Character) sheetCritSuppressionPercent(probe ProcMask, scoped ScopedPercents, critPercent float64) float64 {
+	if character.CurrentTarget == nil || int(character.CurrentTarget.UnitIndex) >= len(character.AttackTables) {
+		return 0
+	}
+	probeSpell := &Spell{Unit: &character.Unit, ProcMask: probe, BonusCritPercent: scoped.Crit}
+	return probeSpell.physicalCritSuppression(character.AttackTables[character.CurrentTarget.UnitIndex], critPercent) * 100
 }
 
 // Which of block and parry the character sheet shows: a character that cannot block or parry shows
@@ -93,6 +106,9 @@ func (character *Character) GetPseudoStatsProto() []float64 {
 		proto.PseudoStat_PseudoStatRangedCritPercent:  ranged.CritPercent,
 		proto.PseudoStat_PseudoStatRangedHitRating:    ranged.HitRating,
 		proto.PseudoStat_PseudoStatRangedCritRating:   ranged.CritRating,
+
+		proto.PseudoStat_PseudoStatMeleeCritSuppressionPercent:  mainHand.CritSuppressionPercent,
+		proto.PseudoStat_PseudoStatRangedCritSuppressionPercent: ranged.CritSuppressionPercent,
 	}
 	for school := stats.SchoolIndexArcane; school < stats.SchoolLen; school++ {
 		pseudoStats[SchoolHitPseudoStats[school]] = character.GetStat(stats.SpellHitPercent) + character.PseudoStats.SchoolBonusHitChance[school]

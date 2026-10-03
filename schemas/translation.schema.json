@@ -742,6 +742,12 @@
 						"ranged_crit_rating": {
 							"type": "string"
 						},
+						"melee_crit_suppression": {
+							"type": "string"
+						},
+						"ranged_crit_suppression": {
+							"type": "string"
+						},
 						"healing_power": {
 							"type": "string"
 						},
@@ -867,6 +873,8 @@
 						"off_hand_crit_rating",
 						"ranged_hit_rating",
 						"ranged_crit_rating",
+						"melee_crit_suppression",
+						"ranged_crit_suppression",
 						"healing_power",
 						"spell_damage",
 						"arcane_damage",
