@@ -22,6 +22,7 @@ type Consumable struct {
 	ClassMask          int
 	RaceMask           int64
 	RequiredSkill      int
+	RequiredSkillRank  int
 	TemporaryEnchant   TemporaryEnchant
 }
 
@@ -92,6 +93,7 @@ func (c *Consumable) ToProto() *proto.Consumable {
 		Type:               c.consumableType(enchant, category),
 		Stats:              c.GetStatModifiers().ToProtoArray(),
 		Name:               c.Name,
+		Lvl:                int32(c.ItemLevel),
 		BuffsMainStat:      false, // Todo: Should be food currently, might be more in MoP, figure out how to tell
 		CategoryId:         int32(c.SpellCategoryID),
 		EffectIds:          c.GetNonStatEffectIds(),
@@ -101,6 +103,14 @@ func (c *Consumable) ToProto() *proto.Consumable {
 	}
 	if category > 0 {
 		consumable.CategoryId = category
+	}
+	// A required level of 1 requires nothing: the EZ-Thro and SAF-T bombs and the Restored potions
+	// state 1 beside item levels up to 60.
+	if c.RequiredLevel > 1 {
+		consumable.Lvl = int32(c.RequiredLevel)
+	}
+	if consumable.RequiredProfession != proto.Profession_ProfessionUnknown {
+		consumable.ReqProfRank = int32(c.RequiredSkillRank)
 	}
 	if c.RaceMask != -1 && c.RaceMask != 0 {
 		consumable.RaceAllowlist = GetRacesFromRaceMask(c.RaceMask)
@@ -217,8 +227,10 @@ func (s ConsumableClass) ToProto() proto.ConsumableType {
 // A consumable's effects that restore a resource rather than grant a stat, which the sim wires up
 // separately.
 var consumableRestoreEffectTypes = map[SpellEffectType]bool{
-	dbcenums.E_HEAL:     true,
-	dbcenums.E_ENERGIZE: true,
+	dbcenums.E_HEAL:         true,
+	dbcenums.E_HEAL_PCT:     true,
+	dbcenums.E_ENERGIZE:     true,
+	dbcenums.E_ENERGIZE_PCT: true,
 }
 
 func (consumable *Consumable) GetNonStatEffectIds() []int32 {

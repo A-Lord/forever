@@ -57,7 +57,6 @@ var FullRaidBuffs = &proto.RaidBuffs{
 	PrayerOfFortitude:        true,
 	PrayerOfSpirit:           true,
 	GiftOfTheWild:            true,
-	Thorns:                   true,
 	PrayerOfShadowProtection: true,
 }
 
@@ -89,6 +88,7 @@ var FullIndividualBuffs = &proto.IndividualBuffs{
 	GreaterBlessingOfWisdom:    true,
 	GreaterBlessingOfMight:     true,
 	GreaterBlessingOfLight:     true,
+	Thorns:                     true,
 }
 
 var FullTankIndividualBuffs = &proto.IndividualBuffs{
@@ -96,6 +96,7 @@ var FullTankIndividualBuffs = &proto.IndividualBuffs{
 	GreaterBlessingOfWisdom: true,
 	GreaterBlessingOfMight:  true,
 	GreaterBlessingOfLight:  true,
+	Thorns:                  true,
 }
 
 var FullDebuffs = &proto.Debuffs{

@@ -1,18 +1,21 @@
-import { Class, GemColor, ItemQuality, ItemSlot, ScalingItemProperties } from '@generated/proto/common';
-import { DatabaseFilters, UIItem as Item } from '@generated/proto/ui';
+import { Class, GemColor, ItemQuality, ItemSlot, ItemType, ScalingItemProperties, Stat } from '@generated/proto/common';
+import { ItemEffect } from '@generated/proto/spell';
+import { DatabaseFilters, UIEnchant as Enchant, UIItem as Item } from '@generated/proto/ui';
 import { SimHostProvider } from '@sim/context/SimHostContext';
 import type { EquippedItem } from '@sim/proto/equipped_item';
 import type { IndividualSimHost } from '@sim/sim_host';
 import { createSimStore, patchSlice, type SimStore } from '@sim/state/sim_store';
-import { fakeHost } from '@sim/testing';
+import { storeSource as store } from '@testing/gear';
+import { fakeHost } from '@testing/sim/fake_host';
 import { act, fireEvent, render } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { storeSource as store } from '../../testing';
 import { type ItemData, type ItemListType, SelectorModalTabs } from '../../types';
 import type { SelectorTab } from './utils';
 
-vi.mock('@sim/state/subscriptions', async () => (await import('@sim/testing')).mockSubscriptions((await import('../../testing')).storeSource.subscribe));
+vi.mock('@sim/state/subscriptions', async () =>
+	(await import('@testing/sim/subscriptions')).mockSubscriptions((await import('@testing/gear')).storeSource.subscribe),
+);
 
 // Every row, so the assertions are about what the list selected rather than what it windowed.
 vi.mock('@ui-kit/VirtualList', () => ({
@@ -28,12 +31,12 @@ vi.mock('@ui-kit/VirtualList', () => ({
 }));
 
 vi.mock('./ItemListRow', () => ({
-	ItemListRow: ({ itemData, active, itemEP, equippedEP, favourited, onToggleFavourite }: any) => (
+	ItemListRow: ({ itemData, active, ep, favourited, onToggleFavourite }: any) => (
 		<span
 			data-row={itemData.name}
 			data-active={active ? '' : undefined}
-			data-ep={itemEP}
-			data-equipped-ep={String(equippedEP)}
+			data-ep={ep?.ep}
+			data-equipped-ep={String(ep?.equippedEP)}
 			data-favourited={String(favourited)}>
 			<button type="button" data-toggle={itemData.name} onClick={onToggleFavourite} />
 		</span>
@@ -50,6 +53,9 @@ vi.mock('../FiltersMenu', () => ({
 }));
 
 const { ItemList } = await import('./ItemList');
+const { Player } = await import('@sim/player/player');
+const { Stats } = await import('@sim/proto/stats');
+const { isEnchantRelevantFor } = await import('@sim/settings/consumables');
 
 // `sortItemIdxs` reads the base scaling entry, not `ilvl`, whenever it sorts by item level.
 const item = (id: number, name: string, ilvl: number) =>
@@ -76,6 +82,20 @@ const row = (id: number, name: string, ilvl: number, phase = 1): ItemData<ItemLi
 });
 
 const ROWS = [row(1, 'Alpha', 500), row(2, 'Beta', 520), row(3, 'Gamma', 510)];
+
+const enchantRow = (enchant: Enchant): ItemData<ItemListType, string> => ({
+	item: enchant as unknown as ItemListType,
+	name: enchant.name,
+	searchText: enchant.name,
+	id: enchant.effectId,
+	actionId: { spellId: enchant.effectId } as any,
+	quality: ItemQuality.ItemQualityEpic,
+	phase: 1,
+	ilvl: 0,
+	ignoreEPFilter: false,
+	nameDescription: '',
+	onEquip: () => undefined,
+});
 
 describe('ItemList', () => {
 	let filters: DatabaseFilters;
@@ -171,6 +191,30 @@ describe('ItemList', () => {
 		const head = setup();
 		expect(head.container.querySelector('[data-testid="selector-modal-show-ep-values"]')).not.toBeNull();
 		expect(head.container.querySelector('#show-ep-values-selector')).not.toBeNull();
+		expect(head.container.querySelector('[data-testid="ep-label"]')).not.toBeNull();
+	});
+
+	it('lists enchants by lvl, highest first with ties in the order given, and offers no EP on the enchants tab', () => {
+		const enchants = [
+			Enchant.create({ effectId: 1, name: 'Low', lvl: 20 }),
+			Enchant.create({ effectId: 2, name: 'HighFirst', lvl: 60 }),
+			Enchant.create({ effectId: 3, name: 'Mid', lvl: 40 }),
+			Enchant.create({ effectId: 4, name: 'HighSecond', lvl: 60 }),
+		];
+		const computeEP = vi.fn((candidate: any) => (candidate.effectId === 1 ? 100 : 0));
+		const { container } = setup({
+			label: SelectorModalTabs.Enchants,
+			slot: ItemSlot.ItemSlotMainHand,
+			over: { itemData: enchants.map(enchantRow), computeEP },
+		});
+		expect(names(container)).toEqual(['HighFirst', 'HighSecond', 'Mid', 'Low']);
+		expect(computeEP).not.toHaveBeenCalled();
+		expect(container.querySelector('[data-testid="ep-label"]')).toBeNull();
+		expect(container.querySelector('[data-testid="selector-modal-show-ep-values"]')).toBeNull();
+		expect(container.querySelector('[data-testid="selector-modal-show-all-enchants"]')).not.toBeNull();
+
+		act(() => container.querySelector<HTMLElement>('[data-testid="ilvl-label"] button')!.click());
+		expect(names(container)).toEqual(['Low', 'Mid', 'HighFirst', 'HighSecond']);
 	});
 
 	it('renders the matching-gems option on a gem tab and nowhere else', () => {
@@ -266,6 +310,28 @@ describe('ItemList', () => {
 		patchSlice(realStore, 'ui', { showEPValues: false });
 		const { container } = setup();
 		expect(container.querySelector('[data-testid="selector-modal-list"]')!.hasAttribute('data-hide-ep')).toBe(true);
+	});
+
+	it('lists the enchants worth something to the spec, the procs and the equipped one, and every enchant once Show All is ticked', () => {
+		const head = (effectId: number, name: string, over: Partial<Enchant> = {}) => Enchant.create({ effectId, name, type: ItemType.ItemTypeHead, ...over });
+		const granting = (stat: Stat) => ({ stats: new Stats().withStat(stat, 3).asProtoArray() });
+		const relevant = head(1, 'Relevant', granting(Stat.StatStrength));
+		const worthless = head(2, 'Worthless', granting(Stat.StatIntellect));
+		const proc = head(3, 'Proc', { enchantEffects: [ItemEffect.create()] });
+		const equipped = head(4, 'Equipped', granting(Stat.StatIntellect));
+		Object.assign(host.player, {
+			getEquippedItem: () => ({ item: Item.create({ type: ItemType.ItemTypeHead }), enchant: equipped }),
+			filterEnchantData: Player.prototype.filterEnchantData,
+			isEnchantRelevant: (enchant: Enchant) => isEnchantRelevantFor(enchant, { epStats: [Stat.StatStrength], epPseudoStats: [], displayStats: [] }),
+		});
+
+		const { container } = setup({ label: SelectorModalTabs.Enchants, over: { itemData: [relevant, worthless, proc, equipped].map(enchantRow) } });
+		expect(names(container).sort()).toEqual(['Equipped', 'Proc', 'Relevant']);
+
+		act(() => container.querySelector<HTMLElement>('#show-all-enchants-selector')!.click());
+		expect(setFilters.mock.calls[0][0].showAllEnchants).toBe(true);
+		act(() => store.notify());
+		expect(names(container).sort()).toEqual(['Equipped', 'Proc', 'Relevant', 'Worthless']);
 	});
 
 	it('re-reads the rows when the sim announces a filter change', () => {

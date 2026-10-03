@@ -1,6 +1,6 @@
 import { ResourceType } from '@generated/proto/spell';
-import { mockSubscriptions } from '@sim/testing';
 import { renderWithHost } from '@testing/react';
+import { mockSubscriptions } from '@testing/sim/subscriptions';
 import { describe, expect, it, vi } from 'vitest';
 
 import type { AuraItem, CastItem, ResourceItem, RowItem, TickItem } from '../../../model/timeline/rotation';
@@ -60,6 +60,16 @@ describe('RowItemTooltip', () => {
 		expect(withDamage).toContain('Total: 4500.00 (3000.00 DPET)');
 		expect(withDamage).toContain('1.50s - Hit [Target 1] for 3000.00 damage');
 		expect(withDamage).toContain('(40.3 results_tab.details.timeline.tooltips.threat)');
+	});
+
+	it('lists the damage of every cast in a stack and totals it over their effective time', () => {
+		const first = { ...cast().log, timestamp: 1.9, effectiveTime: 1 };
+		const last = { ...cast().log, effectiveTime: 1, damageDealtLogs: [damage(3000)] };
+		const stacked = text({ ...cast(), log: last, stack: [{ ...first, damageDealtLogs: [damage(1000)] }, last] } as CastItem);
+		expect(stacked).toContain('2 casts from 1.90s to 2.00s');
+		expect(stacked).toContain('Total: 4000.00 (2000.00 DPET)');
+		expect(stacked).toContain('for 1000.00 damage');
+		expect(stacked).toContain('for 3000.00 damage');
 	});
 
 	it('leaves the total out of a cast that dealt none', () => {

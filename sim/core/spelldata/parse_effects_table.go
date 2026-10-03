@@ -549,7 +549,7 @@ var flatModTable = map[dbcenums.SpellModOp]row{
 		return p.modInt("SpellMod_BuffMaxStacks_Flat", p.modConfig(e, core.SpellMod_BuffMaxStacks_Flat), v)
 	},
 	dbcenums.SPELLMOD_RANGE: func(p *parser, e *Effect, v float64) *attachment {
-		return p.modFloat("SpellMod_Range_Flat", p.modConfig(e, core.SpellMod_Range_Flat), v)
+		return p.rangeMod("SpellMod_Range_Flat", p.modConfig(e, core.SpellMod_Range_Flat), v)
 	},
 	// The chance of the procs the class mask names, in percentage points: the rows the mask names are
 	// the proc auras themselves, and a trigger built from one rolls at the raised chance, wherever it
@@ -599,7 +599,7 @@ var pctModTable = map[dbcenums.SpellModOp]row{
 		return p.modFloat("SpellMod_GlobalCooldown_Pct", p.modConfig(e, core.SpellMod_GlobalCooldown_Pct), v)
 	},
 	dbcenums.SPELLMOD_RANGE: func(p *parser, e *Effect, v float64) *attachment {
-		return p.modFloat("SpellMod_Range_Pct", p.modConfig(e, core.SpellMod_Range_Pct), v)
+		return p.rangeMod("SpellMod_Range_Pct", p.modConfig(e, core.SpellMod_Range_Pct), v)
 	},
 	dbcenums.SPELLMOD_EFFECT1: pctEffectAmount,
 	dbcenums.SPELLMOD_EFFECT2: pctEffectAmount,
@@ -821,6 +821,23 @@ func (p *parser) modFloat(kind string, cfg core.SpellModConfig, v float64) *atta
 	return p.mod(kind, cfg, v, func(mod *core.SpellMod, level float64) {
 		mod.UpdateFloatValue(v * level)
 	})
+}
+
+// A range mod moves the ranged auto attack's reach with it, so the auto attack checks its range again
+// whenever the mod turns on or off.
+func (p *parser) rangeMod(kind string, cfg core.SpellModConfig, v float64) *attachment {
+	a := p.modFloat(kind, cfg, v)
+	if a.set == nil {
+		return a
+	}
+	set := a.set
+	a.set = func(sim *core.Simulation, level float64) {
+		set(sim, level)
+		if sim != nil {
+			p.unit.AutoAttacks.UpdateRangedRange(sim)
+		}
+	}
+	return a
 }
 
 func (p *parser) modInt(kind string, cfg core.SpellModConfig, v float64) *attachment {

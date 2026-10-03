@@ -70,8 +70,27 @@ var UnsupportedAbsorbBySpellID = map[int32]string{
 var OtherItemIdsToFetch = []string{}
 var ConsumableOverrides = []*proto.Consumable{}
 
-// Empty: all 26 entries were TBC items absent from the game files.
-var ItemOverrides = []*proto.UIItem{}
+// Each Atiesh comes from its own class's quest, and nothing in the game files ties a staff to a class:
+// AllowableClass is -1 on all four, and no spell creates them. The class follows the party aura each
+// one carries.
+var ItemOverrides = []*proto.UIItem{
+	{
+		Id:             22589, // Atiesh, Greatstaff of the Guardian: party spell crit
+		ClassAllowlist: []proto.Class{proto.Class_ClassMage},
+	},
+	{
+		Id:             22630, // Atiesh, Greatstaff of the Guardian: party spell damage
+		ClassAllowlist: []proto.Class{proto.Class_ClassWarlock},
+	},
+	{
+		Id:             22631, // Atiesh, Greatstaff of the Guardian: party healing
+		ClassAllowlist: []proto.Class{proto.Class_ClassPriest},
+	},
+	{
+		Id:             22632, // Atiesh, Greatstaff of the Guardian: party mana regeneration
+		ClassAllowlist: []proto.Class{proto.Class_ClassDruid},
+	},
+}
 
 // Keep these sorted by item ID.
 var ItemAllowList = map[int32]struct{}{
@@ -1322,4 +1341,7 @@ var EnchantOverrides = []*proto.UIEnchant{
 	{EffectId: 2681, ItemId: 22635, SpellId: 28162, Name: "Savage Guard", Stats: stats.Stats{stats.NatureResistance: 10}.ToProtoArray()},
 	{EffectId: 2682, ItemId: 22636, SpellId: 28164, Name: "Ice Guard", Stats: stats.Stats{stats.FrostResistance: 10}.ToProtoArray()},
 	{EffectId: 2683, ItemId: 22638, SpellId: 28166, Name: "Shadow Guard", Stats: stats.Stats{stats.ShadowResistance: 10}.ToProtoArray()},
+	// 13419 names the cloak inventory type but the weapon item class in the game files; every other
+	// cloak enchant names the armor class.
+	{EffectId: 247, ItemId: 11039, SpellId: 7778, Name: "Enchant Cloak - Minor Agility", Type: proto.ItemType_ItemTypeBack},
 }

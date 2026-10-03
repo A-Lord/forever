@@ -81,9 +81,7 @@ type Shaman struct {
 	// The expiration time of each totem (earth, air, fire, water).
 	TotemExpirations [4]time.Duration
 
-	LightningBoltOverloads map[int32]*core.Spell
-
-	ChainLightningOverloads map[int32][]*core.Spell
+	LavaBurst *core.Spell
 
 	Stormstrike           *core.Spell
 	StormstrikeCastResult *core.SpellResult
@@ -98,18 +96,14 @@ type Shaman struct {
 
 	StormStrikeDebuffAuras core.AuraArray
 
-	TotemOfWrath *core.Spell
 	MagmaTotem   *core.Spell
+	SearingTotem *core.Spell
+	FireNova     *core.Spell
 	// Always nil: its registrar is commented out in totems.go, upstream of the fork.
 	HealingStreamTotem *core.Spell
-	SearingTotem       *core.Spell
-	TremorTotem        *core.Spell
-	FireNovaTotemPA    *core.PendingAction
-	SearingReplaced    bool // Used for cancelling searing dot if the totem is replaced during prepull
 
-	EarthTotemAura *core.Aura
-	WaterTotemAura *core.Aura
-	AirTotemAura   *core.Aura
+	// The aura of the totem standing in each element's slot, indexed like TotemExpirations.
+	TotemAuras [4]*core.Aura
 }
 
 // Implemented by each Shaman spec.
@@ -133,7 +127,7 @@ func (shaman *Shaman) Initialize() {
 	shaman.registerShieldsSpells()
 	shaman.registerMagmaTotemSpell()
 	shaman.registerSearingTotemSpell()
-	shaman.registerFireNovaTotemSpell()
+	shaman.registerFireNovaSpell()
 	shaman.registerWindfuryTotemSpell()
 	shaman.registerStrengthOfEarthTotemSpell()
 	shaman.registerGraceOfAirTotemSpell()
@@ -158,10 +152,9 @@ func (shaman *Shaman) OnEncounterStart(sim *core.Simulation) {
 	shaman.startShieldProcPeriodicAction(sim)
 }
 
+// The chance is the talent's ranked dummy, 3/7/10, which the tooltip of 408438 reads as $m1; the
+// effect's base points, 30, are what the talent's ranks replace.
 func (shaman *Shaman) GetOverloadChance() float64 {
-	if shaman.Talents.LightningOverload == 0 {
-		return 0.0
-	}
 	return spellData.LightningOverload.FractionAt(shaman.Talents.LightningOverload)
 }
 
@@ -177,7 +170,7 @@ const (
 	SpellMaskLightningShield
 	SpellMaskMagmaTotem
 	SpellMaskSearingTotem
-	SpellMaskFireNovaTotem
+	SpellMaskFireNova
 	SpellMaskFlametongueTotem
 	SpellMaskStormstrikeCast
 	SpellMaskStormstrikeDamage
@@ -199,7 +192,7 @@ const (
 	SpellMaskFrost       = SpellMaskFrostShock
 	SpellMaskOverload    = SpellMaskLightningBoltOverload | SpellMaskChainLightningOverload
 	SpellMaskShock       = SpellMaskFlameShock | SpellMaskEarthShock | SpellMaskFrostShock
-	SpellMaskFireTotem   = SpellMaskMagmaTotem | SpellMaskSearingTotem | SpellMaskFireNovaTotem
+	SpellMaskFireTotem   = SpellMaskMagmaTotem | SpellMaskSearingTotem
 	SpellMaskTotem       = SpellMaskFireTotem | SpellMaskBasicTotem
 	SpellMaskImbue       = SpellMaskFrostbrandWeapon | SpellMaskWindfuryWeapon | SpellMaskFlametongueWeapon | SpellMaskRockbiterWeapon
 )

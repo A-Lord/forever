@@ -199,7 +199,8 @@ type Unit struct {
 	SecondaryTarget *Unit // Only used for NPCs in tank swap AIs currently.
 
 	// The currently-channeled DOT spell, otherwise nil.
-	ChanneledDot *Dot
+	ChanneledDot       *Dot
+	channelEndHandlers []func(sim *Simulation)
 
 	// Data about the most recently queued spell, otherwise nil.
 	QueuedSpell *QueuedSpell
@@ -522,6 +523,11 @@ func (unit *Unit) InitialCastSpeed() float64 {
 
 func (unit *Unit) IsChanneling() bool {
 	return unit.ChanneledDot != nil
+}
+
+// Runs the handler each time one of the unit's channels ends, run out or cut short, after its last tick.
+func (unit *Unit) OnChannelEnd(handler func(sim *Simulation)) {
+	unit.channelEndHandlers = append(unit.channelEndHandlers, handler)
 }
 
 func (unit *Unit) SpellGCD() time.Duration {

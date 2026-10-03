@@ -134,7 +134,8 @@
 						},
 						"buffs": {
 							"greaterBlessingOfKings": true,
-							"greaterBlessingOfMight": 2
+							"greaterBlessingOfMight": 2,
+							"thorns": true
 						},
 						"cooldowns": {},
 						"healingModel": {
@@ -256,8 +257,7 @@
 		"buffs": {
 			"prayerOfFortitude": 2,
 			"prayerOfShadowProtection": true,
-			"giftOfTheWild": 2,
-			"thorns": 1
+			"giftOfTheWild": 2
 		},
 		"debuffs": {
 			"improvedSealOfTheCrusader": 2,

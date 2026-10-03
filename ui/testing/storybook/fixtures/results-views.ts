@@ -267,17 +267,21 @@ export const rotationTrackStyle = (row: Row, duration = 30): CSSProperties => ({
 	...rowStyle(row),
 });
 
-export const castRowItem = (start: number, overrides: Partial<CastItem> = {}): CastItem => ({
-	kind: 'cast',
-	start,
-	end: start + 1.5,
-	outcome: 'hit',
-	cancelled: false,
-	travelStart: null,
-	travelDuration: null,
-	log: castLog(start),
-	...overrides,
-});
+export const castRowItem = (start: number, overrides: Partial<CastItem> = {}): CastItem => {
+	const log = overrides.log ?? castLog(start);
+	return {
+		kind: 'cast',
+		start,
+		end: start + 1.5,
+		outcome: 'hit',
+		cancelled: false,
+		travelStart: null,
+		travelDuration: null,
+		log,
+		stack: [log],
+		...overrides,
+	};
+};
 
 export const delayRowItem = (start: number, end: number): DelayItem => ({
 	kind: 'delay',

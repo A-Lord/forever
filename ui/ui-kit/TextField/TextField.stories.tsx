@@ -2,9 +2,8 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Fragment, useState } from 'react';
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 
-import { stringCodec } from './codecs';
-import { NumberField, NumberListField, SearchField, StringField, TextField } from './TextField';
-import type { TextFieldCommit, TextFieldProps } from './types';
+import { NumberField, NumberListField, SearchField, StringField } from './TextField';
+import type { StringFieldProps, TextFieldCommit } from './types';
 
 const useStoryValue = <V,>(initial: NoInfer<V>, onChange: (next: V) => void) => {
 	const [value, setValue] = useState(initial);
@@ -17,30 +16,26 @@ const useStoryValue = <V,>(initial: NoInfer<V>, onChange: (next: V) => void) => 
 	};
 };
 
-const TextFieldStory = ({ value, onChange, ...props }: TextFieldProps<string>) => <TextField {...props} {...useStoryValue(value, onChange)} />;
+const TextFieldStory = ({ value, onChange, ...props }: StringFieldProps) => <StringField {...props} {...useStoryValue(value, onChange)} />;
 
 const meta = {
 	title: 'Kit/TextField',
-	component: TextField<string>,
+	component: StringField,
 	tags: ['autodocs'],
 	args: {
 		id: 'text-field-story',
 		label: 'Rotation Name',
-		codec: stringCodec,
 		value: 'Default',
 		onChange: fn(),
 	},
 	argTypes: {
 		layout: { control: 'select', options: [undefined, 'inline', 'split'] },
 		disabled: { control: 'boolean' },
-		autosize: { control: 'boolean' },
-		commit: { control: false },
-		codec: { control: false },
 		value: { control: false },
 		className: { control: 'text' },
 	},
 	render: args => <TextFieldStory {...args} />,
-} satisfies Meta<typeof TextField<string>>;
+} satisfies Meta<typeof StringField>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -109,9 +104,11 @@ const COMMITS: ReadonlyArray<[string, TextFieldCommit]> = [
 	['debounced', { debounceMs: 300 }],
 ];
 
-const MatrixCell = ({ label, commit, onChange }: { label?: string; commit: TextFieldCommit; onChange: (next: string) => void }) => (
-	<TextField codec={stringCodec} label={label} commit={commit} autosize {...useStoryValue('Typhoon', onChange)} />
-);
+const MatrixCell = ({ label, commit, onChange }: { label?: string; commit: TextFieldCommit; onChange: (next: string) => void }) => {
+	const value = useStoryValue('Typhoon', onChange);
+	if (commit === 'blur') return <StringField label={label} {...value} />;
+	return <SearchField label={label} debounceMs={commit === 'input' ? undefined : commit.debounceMs} {...value} />;
+};
 
 export const Matrix: Story = {
 	render: args => (

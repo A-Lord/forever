@@ -23,8 +23,9 @@ const targetResult = (...targets: Array<Array<ActionMetrics>>) =>
 	({
 		filter: {},
 		result: {
-			getRaidIndexedPlayers: () => [{ unitIndex: 0, getDamageActions: () => [] }],
+			getRaidIndexedPlayers: () => [{ unitIndex: 0, totalDamageTaken: 400 }],
 			getTargets: () => targets.map(actions => ({ getDamageActions: () => actions })),
+			getOwnSideDamageOn: () => [],
 		},
 	}) as unknown as SimResultData;
 
@@ -49,6 +50,13 @@ describe('DtpsMetricsTable', () => {
 		expect(rows(container).map(row => [row.cells[0].textContent, row.hasAttribute('data-parent'), row.hasAttribute('data-child')])).toEqual([
 			['Melee', false, false],
 		]);
+	});
+
+	it("gives each row its share of the player's damage taken", () => {
+		result = targetResult([metric('Melee', { avgDamage: 100 })]);
+		const { container } = render(<DtpsMetricsTable />);
+
+		expect(rows(container)[0].cells[1].textContent).toContain('25%');
 	});
 
 	it('merges the same ability across targets into one parent with a child per target', () => {

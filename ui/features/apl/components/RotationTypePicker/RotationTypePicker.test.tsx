@@ -1,14 +1,14 @@
-import { source } from '@features/apl/testing_source';
 import { APLRotation_Type as APLRotationType } from '@generated/proto/apl';
+import { source } from '@testing/apl/source';
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { RotationTypePicker } from './RotationTypePicker';
+import { RotationTypePicker, RotationTypePickerView } from './RotationTypePicker';
 
 vi.mock('@sim/state/subscriptions', async () => {
-	const { mockSubscriptions } = await import('@sim/testing');
-	return mockSubscriptions((await import('@features/apl/testing_source')).source.subscribe);
+	const { mockSubscriptions } = await import('@testing/sim/subscriptions');
+	return mockSubscriptions((await import('@testing/apl/source')).source.subscribe);
 });
 vi.mock('@i18n/config', () => ({
 	default: {
@@ -91,5 +91,37 @@ describe('RotationTypePicker', () => {
 
 		act(() => player.modifyAplRotation(rotation => (rotation.type = APLRotationType.TypeSimple)));
 		expect(trigger().textContent).toBe('Simple');
+	});
+});
+
+describe('RotationTypePickerView', () => {
+	it('offers Auto, Simple and APL when the spec has a simple rotation', async () => {
+		render(<RotationTypePickerView value={APLRotationType.TypeAuto} hasSimple onChange={() => {}} />);
+		await open();
+
+		expect(items().map(item => item.textContent)).toEqual(['Auto', 'Simple', 'APL']);
+	});
+
+	it('offers Auto and APL alone otherwise', async () => {
+		render(<RotationTypePickerView value={APLRotationType.TypeAuto} hasSimple={false} onChange={() => {}} />);
+		await open();
+
+		expect(items().map(item => item.textContent)).toEqual(['Auto', 'APL']);
+	});
+
+	it('shows the given type on the trigger, which carries the fixed id', () => {
+		render(<RotationTypePickerView value={APLRotationType.TypeAPL} hasSimple onChange={() => {}} />);
+
+		expect(trigger().textContent).toBe('APL');
+		expect(trigger().id).toBe('rotation-tab-rotation-type');
+	});
+
+	it('hands the chosen type to onChange', async () => {
+		const onChange = vi.fn();
+		render(<RotationTypePickerView value={APLRotationType.TypeAuto} hasSimple onChange={onChange} />);
+		await open();
+
+		await userEvent.click(items()[1]);
+		expect(onChange).toHaveBeenCalledWith(APLRotationType.TypeSimple);
 	});
 });

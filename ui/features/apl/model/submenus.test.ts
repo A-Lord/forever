@@ -1,7 +1,7 @@
 import type { ChoiceEntry, ChoiceOption } from '@ui-kit/ChoiceField';
 import { describe, expect, it, vi } from 'vitest';
 
-import { choiceTree, pathChoices, type PathOption, submenuLabel } from './submenus';
+import { pathChoices, type PathOption } from './submenus';
 
 // Only `resources` is translated here, so the untranslated branch is exercised too.
 vi.mock('@i18n/config', () => ({ default: { t: (key: string) => (key === 'rotation_tab.apl.submenus.resources' ? 'Resources' : key) } }));
@@ -18,25 +18,30 @@ const shape = <V>(entries: ReadonlyArray<ChoiceEntry<V>>): string =>
 		})
 		.join(',');
 
-describe('submenuLabel', () => {
+const choiceTree = <V>(options: ReadonlyArray<PathOption<V>>, equals: (a: V, b: V) => boolean) => pathChoices(options, equals).optionTree!();
+
+describe('submenu labels', () => {
+	const filed = (segment: string) => choiceTree([{ value: 'a', label: 'a', submenu: [segment] }], sameId)[0].label;
+
 	it('translates a lowercase_underscore segment through the APL submenu namespace', () => {
-		expect(submenuLabel('resources')).toBe('Resources »');
+		expect(filed('resources')).toBe('Resources »');
 	});
 
 	it('leaves an already-worded segment alone but still marks it as a submenu', () => {
-		expect(submenuLabel('Groups')).toBe('Groups »');
+		expect(filed('Groups')).toBe('Groups »');
 	});
 
 	it('falls back to the segment when the namespace has no entry', () => {
-		expect(submenuLabel('logic')).toBe('logic »');
+		expect(filed('logic')).toBe('logic »');
 	});
 
 	it('has nothing to say about a value segment, whose own option labels the submenu instead', () => {
-		expect(submenuLabel({ id: 1 })).toBe('');
+		const tree = choiceTree([{ value: { type: 2 }, label: 'Pet', submenu: [{ type: 1 }] }], (a, b) => a.type === b.type);
+		expect(tree[0].label).toBe('');
 	});
 });
 
-describe('choiceTree', () => {
+describe('option tree', () => {
 	const option = (value: string, submenu?: Array<string>, extra: Partial<PathOption<string>> = {}): PathOption<string> => ({
 		value,
 		label: value,
@@ -44,8 +49,8 @@ describe('choiceTree', () => {
 		...extra,
 	});
 
-	it('keeps flat options in order at the root', () => {
-		expect(shape(choiceTree([option('a'), option('b')], sameId))).toBe('a,b');
+	it('keeps options without a path in order at the root', () => {
+		expect(shape(choiceTree([option('a'), option('b'), option('c', ['logic'])], sameId))).toBe('a,b,logic »(c)');
 	});
 
 	it('files an option under the category its path names', () => {

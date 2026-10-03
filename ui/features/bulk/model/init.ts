@@ -2,9 +2,9 @@ import { ItemSlot } from '@generated/proto/common';
 import { BULK_SIM_ITEM_SLOT_TO_ITEM_SLOT_PAIRS, BulkSimItemSlot } from '@sim/bulk/utils';
 import type { Player } from '@sim/player/player';
 import type { EquippedItem } from '@sim/proto/equipped_item';
-import { loadStoredBulkSettings, seedBulkSettings, storeBulkSettings } from '@sim/settings/bulk_settings';
+import { loadStoredBulkSettings, loadStoredEnchantPresets, patchBulkState, seedBulkSettings, storeBulkSettings } from '@sim/settings/bulk_settings';
 import type { IndividualSimHost } from '@sim/sim_host';
-import { subscribeBulkChange, subscribePlayerField } from '@sim/state/subscriptions';
+import { subscribeAll, subscribeBulkChange, subscribePlayerField } from '@sim/state/subscriptions';
 
 import { addBulkItems, loadEquippedBulkItems, seedBulkPickerGroups } from './items';
 import { refreshBulkCombinations } from './run';
@@ -33,6 +33,11 @@ const loadSettings = (player: Player<any>) => {
 		setBulkWeaponTypeFilter(player, ItemSlot.ItemSlotMainHand, settings.freezeMainhandWeaponSlots);
 		setBulkWeaponTypeFilter(player, ItemSlot.ItemSlotOffHand, settings.freezeOffhandWeaponSlots);
 	}
+
+	const enchantPresets = loadStoredEnchantPresets(player);
+	if (enchantPresets != null) {
+		patchBulkState(player, { enchantPresets: enchantPresets.presets }, ['settings']);
+	}
 };
 
 /**
@@ -50,6 +55,8 @@ export const initBulk = (host: IndividualSimHost<any>) => {
 		subscribePlayerField(player, 'gear')(() => loadEquippedBulkItems(player));
 		subscribeBulkChange(player)(() => storeBulkSettings(player, createBulkSettingsProto(player)));
 		subscribeBulkChange(player)(() => void refreshBulkCombinations(host));
+		// Enchanting unlocks enchants, so it can change the enchant pool.
+		subscribeAll([subscribePlayerField(player, 'profession1'), subscribePlayerField(player, 'profession2')])(() => void refreshBulkCombinations(host));
 
 		loadEquippedBulkItems(player);
 		void refreshBulkCombinations(host);

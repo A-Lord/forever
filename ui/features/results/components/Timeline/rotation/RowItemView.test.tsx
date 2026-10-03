@@ -7,11 +7,14 @@ import { RowItemView } from './RowItemView';
 const mount = (item: RowItem, index = 3, iconUrl = 'bolt.png', cssName = 'mana') =>
 	render(<RowItemView item={item} index={index} iconUrl={iconUrl} cssName={cssName} />).container.firstElementChild as HTMLElement;
 
+const cast = (item: Partial<CastItem>) =>
+	({ kind: 'cast', outcome: 'hit', cancelled: false, travelStart: null, travelDuration: null, stack: [], ...item }) as CastItem;
+
 const vars = (element: HTMLElement) => ({ t: element.style.getPropertyValue('--t'), dur: element.style.getPropertyValue('--dur') });
 
 describe('RowItemView', () => {
 	it('draws a cast as a bar carrying its outcome, its span and the row’s icon', () => {
-		const element = mount({ kind: 'cast', start: 2, end: 3.5, outcome: 'crit', cancelled: false, travelStart: null, travelDuration: null } as CastItem);
+		const element = mount(cast({ start: 2, end: 3.5, outcome: 'crit' }));
 		expect(element.dataset.outcome).toBe('crit');
 		expect(vars(element)).toEqual({ t: '2', dur: '1.5' });
 		expect(element.dataset.itemIndex).toBe('3');
@@ -20,11 +23,18 @@ describe('RowItemView', () => {
 	});
 
 	it('marks a cancelled cast and shows the travel leg when there is one', () => {
-		const element = mount({ kind: 'cast', start: 0, end: 1, outcome: 'none', cancelled: true, travelStart: 1, travelDuration: 0.4 } as CastItem);
+		const element = mount(cast({ start: 0, end: 1, outcome: 'none', cancelled: true, travelStart: 1, travelDuration: 0.4 }));
 		expect(element.dataset.outcome).toBe('cancelled');
 		const travel = element.querySelector<HTMLElement>('[data-testid="rotation-item-travel"]')!;
 		expect(travel.hidden).toBe(false);
 		expect(vars(travel)).toEqual({ t: '1', dur: '0.4' });
+	});
+
+	it('counts the casts a stack hides under its icon, and leaves a lone cast unmarked', () => {
+		const stacked = (count: number) =>
+			mount(cast({ start: 2, end: 2, stack: Array(count).fill({}) })).querySelector('[data-testid="rotation-item-stack-count"]');
+		expect(stacked(3)!.textContent).toBe('3');
+		expect(stacked(1)).toBeNull();
 	});
 
 	it('draws a tick as a mark at its own time, with no span', () => {

@@ -1,8 +1,8 @@
+import { castRow, rotationModel } from '@testing/timeline_rotation';
 import { fireEvent, render } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { RotationRowsToolbar } from './RotationRowsToolbar';
-import { castRow, rotationModel } from './testing';
 
 const MODEL = rotationModel(['Alpha', 'Beta', 'Gamma', 'Delta'].map((label, index) => castRow(`cast:${index}`, label, [])));
 

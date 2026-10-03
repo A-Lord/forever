@@ -239,14 +239,22 @@ func TestSheetRangedRatingShowsTheRangedOnlyPercent(t *testing.T) {
 	})
 }
 
+// The ranged offsets the test suite's stats snapshot records: the sheet's ranged row less the physical
+// percent.
+func sheetRangedOffsets(character *Character) (hit, crit float64) {
+	pseudoStats := character.GetPseudoStatsProto()
+	return pseudoStats[proto.PseudoStat_PseudoStatRangedHitPercent] - character.GetStat(stats.PhysicalHitPercent),
+		pseudoStats[proto.PseudoStat_PseudoStatRangedCritPercent] - character.GetStat(stats.PhysicalCritPercent)
+}
+
 func TestSheetRangedOffsetsLeaveOutTheMainHandsMods(t *testing.T) {
 	sim, character := NewWeaponTestSim(t, proto.Race_RaceUndead, WeaponTestSlots(WeaponTestSwordID, WeaponTestDaggerID, WeaponTestBowID), nil, nil)
-	hitBefore, critBefore := character.sheetRangedOffsets()
+	hitBefore, critBefore := sheetRangedOffsets(character)
 	character.AddStaticMod(SpellModConfig{Kind: SpellMod_BonusCrit_Percent, FloatValue: 5, ProcMask: ProcMaskMelee,
 		EquipSubclass: WeaponSubclassMask(proto.WeaponType_WeaponTypeSword)})
 	character.AddStatDynamic(sim, stats.RangedHitPercent, 2)
 	character.AddStaticMod(SpellModConfig{Kind: SpellMod_BonusHit_Percent, FloatValue: 1, ProcMask: ProcMaskRanged, EquipSubclass: dbcenums.ITEM_SUBCLASS_MASK_WEAPON_SHOOTING})
-	hitAfter, critAfter := character.sheetRangedOffsets()
+	hitAfter, critAfter := sheetRangedOffsets(character)
 
 	if got := critAfter - critBefore; got != 0 {
 		t.Errorf("a sword's crit moved the ranged crit offset by %v, want 0", got)

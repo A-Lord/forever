@@ -1,5 +1,5 @@
-import { noopSubscribe } from '@sim/testing';
 import { renderWithHost } from '@testing/react';
+import { noopSubscribe } from '@testing/sim/fake_host';
 import { fireEvent, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 

@@ -22,7 +22,7 @@ export const MetricsActionCell = ({ name, actionId, useBuffAura, expandable, exp
 		<div data-testid="metrics-action" className="flex items-center gap-2 whitespace-normal">
 			<WowheadIcon
 				testId="metrics-action-icon"
-				className="mr-1 h-6 w-6 align-middle"
+				className="z-1 mr-1 h-6 w-6 align-middle"
 				label={name}
 				href={href || undefined}
 				iconUrl={iconUrl}
@@ -35,13 +35,10 @@ export const MetricsActionCell = ({ name, actionId, useBuffAura, expandable, exp
 				<Button
 					variant="unstyled"
 					data-testid="expand-toggle"
-					className="ml-auto border-0 bg-transparent p-0 text-inherit focus-visible:focus-ring"
+					className="relative z-1 ml-auto border-0 bg-transparent p-0 text-inherit focus-visible:focus-ring"
 					aria-expanded={expanded}
 					aria-label={name}
-					onClick={event => {
-						event.stopPropagation();
-						onToggle();
-					}}>
+					onClick={onToggle}>
 					<Icon name={expanded ? 'caret-down' : 'caret-right'} style="base" />
 				</Button>
 			)}

@@ -119,7 +119,6 @@ func (warrior *Warrior) registerDeepWounds() {
 	share := spellData.DeepWounds.FractionAt(warrior.Talents.DeepWounds)
 	tick := deepWoundsBleed.EffectN(1)
 
-	// TODO: Test in-game for behavior
 	// A crit casts the bleed, but it does not take spelldata.Proc(): that marks the spell passive,
 	// and the metrics aggregator counts no cast for a passive spell, while the sim reports every
 	// application as a cast.
@@ -139,16 +138,25 @@ func (warrior *Warrior) registerDeepWounds() {
 		TickLength:    tick.Period(),
 
 		OnTick: func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-			baseDamage := warrior.AutoAttacks.MH().CalculateAverageWeaponDamage(dot.Spell.MeleeAttackPower(target))
-			dot.Spell.CalcAndDealPeriodicDamage(sim, target, baseDamage/float64(dot.HastedTickCount())*share, deepWoundsBleed.TickOutcome(dot))
+			dot.Spell.CalcAndDealPeriodicDamage(sim, target, dot.SnapshotBaseDamage, deepWoundsBleed.TickOutcome(dot))
 		},
 	}
 
+	// A crit while the bleed is up adds the unticked damage to the new application and spreads the sum
+	// over a full set of ticks; the ticks keep the first application's timer.
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		spell.CalcAndDealOutcome(sim, target, spell.OutcomeAlwaysHitNoHitCounter)
 		dot := spell.Dot(target)
-		dot.Deactivate(sim)
-		dot.Apply(sim)
+		// TODO: Ingame test needed -- which weapon damage one application scales off: the main hand's average
+		// with Attack Power, without it, or the critting weapon's (off-hand crits apply the bleed too).
+		totalDamage := dot.OutstandingDmg() + warrior.AutoAttacks.MH().CalculateAverageWeaponDamage(spell.MeleeAttackPower(target))*share
+
+		if dot.IsActive() {
+			dot.DurationExtend(sim, deepWoundsBleed.Duration())
+		} else {
+			dot.Apply(sim)
+		}
+		dot.SnapshotBaseDamage = totalDamage / float64(dot.RemainingTicks())
 	}
 
 	warrior.DeepWounds = warrior.RegisterSpell(config)

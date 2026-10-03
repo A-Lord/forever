@@ -6,6 +6,7 @@ package druid
 var faerieFireRank = spellData.FaerieFire.Highest()
 
 // TODO: To be implemented.
+// TODO: Faerie Fire does not reset the swing timer.
 func (druid *Druid) registerFaerieFireSpell() {
 	panic("To be implemented")
 

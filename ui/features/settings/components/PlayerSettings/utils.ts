@@ -14,10 +14,15 @@ export const raceInput = (player: Player<any>): ChoiceFieldConfig<Player<any>> =
 	setValue: (modObject, newValue) => modObject.setRace(newValue),
 });
 
+// The game files have no Jewelcrafting or Inscription skill line.
+const ABSENT_PROFESSIONS = [Profession.Jewelcrafting, Profession.Inscription];
+
 export const professionInput = (which: 1 | 2): ChoiceFieldConfig<Player<any>> => ({
 	id: `simui-profession${which}`,
 	label: i18n.t(`settings_tab.player.profession_${which}`),
-	values: (getEnumValues(Profession) as Array<Profession>).map(profession => ({ name: translateProfession(profession), value: profession })),
+	values: (getEnumValues(Profession) as Array<Profession>)
+		.filter(profession => !ABSENT_PROFESSIONS.includes(profession))
+		.map(profession => ({ name: translateProfession(profession), value: profession })),
 	storeField: ['profession1', 'profession2'] as const,
 	getValue: modObject => (which === 1 ? modObject.getProfession1() : modObject.getProfession2()),
 	setValue: (modObject, newValue) => (which === 1 ? modObject.setProfession1(newValue) : modObject.setProfession2(newValue)),

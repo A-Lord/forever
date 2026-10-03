@@ -1,10 +1,10 @@
 import { AplProvider, type AplProviderProps } from '@features/apl/context/AplContext';
-import { type AplTestPlayer, makePlayer } from '@features/apl/testing';
 import { APLRotation, type APLRotation_Type as APLRotationType } from '@generated/proto/apl';
 import { SimHostProvider } from '@sim/context/SimHostContext';
 import type { IndividualSimHost } from '@sim/sim_host';
 import { patchKeyed } from '@sim/state/sim_store';
 import type { Decorator } from '@storybook/react-vite';
+import { type AplTestPlayer, makePlayer } from '@testing/apl/player';
 import { type ReactNode, useState } from 'react';
 
 import { makeStubHost } from './models';
@@ -13,7 +13,7 @@ import { makeAplRotation } from './protos';
 const touchRotation = (host: IndividualSimHost<any>) => patchKeyed(host.sim.store, 'players', host.player.storeKey, {}, ['rotation']);
 
 /**
- * `makePlayer` from `@features/apl/testing`, on a store with a seeded player slice: a rotation write
+ * `makePlayer` from `@testing/apl/player`, on a store with a seeded player slice: a rotation write
  * bumps the slice's `rotation` version, so the pickers subscribed to it re-read and a story stays
  * editable.
  */

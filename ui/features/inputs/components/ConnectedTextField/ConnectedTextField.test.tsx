@@ -1,4 +1,4 @@
-import { FakeSource } from '@features/inputs/testing';
+import { FakeSource } from '@testing/inputs';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 

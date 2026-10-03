@@ -101,7 +101,6 @@ export default defineSpec<Spec.SpecProtectionWarrior>({
 		// Default raid/party buffs settings.
 		raidBuffs: RaidBuffs.create({
 			...WarriorPresets.DefaultRaidBuffs,
-			thorns: true,
 			prayerOfShadowProtection: true,
 		}),
 		partyBuffs: PartyBuffs.create({
@@ -111,6 +110,7 @@ export default defineSpec<Spec.SpecProtectionWarrior>({
 		}),
 		individualBuffs: IndividualBuffs.create({
 			...WarriorPresets.DefaultIndividualBuffs,
+			thorns: true,
 		}),
 		debuffs: Debuffs.create({
 			...WarriorPresets.DefaultDebuffs,

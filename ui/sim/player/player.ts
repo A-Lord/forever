@@ -55,7 +55,7 @@ import { Stats, UnitStat } from '../proto/stats';
 import { AL_CATEGORY_HARD_MODE, emptyUnitReference, getTalentTreePoints, newUnitReference, raceToFaction } from '../proto/utils';
 import { MAX_PARTY_SIZE, Party } from '../raid/party';
 import { Raid } from '../raid/raid';
-import { ConsumableSlot, relevantConsumableIds } from '../settings/consumables';
+import { ConsumableSlot, isEnchantRelevantFor, relevantConsumableIds } from '../settings/consumables';
 import { ItemSwapSettings } from '../settings/item_swap_settings';
 import { Sim } from '../sim';
 import { batch } from '../state/batch';
@@ -85,10 +85,10 @@ export interface SpellStats {
 /**
  * Drops the rank from every id no other entry shares at another rank, so only a spell the sim
  * registers at several ranks reads "(Rank N)" and gets a rank submenu. Entries are the same spell
- * when they share `nameOf` and the tag.
+ * when they share the base name and the tag.
  */
-export const dropLoneRanks = <T extends { id: ActionId }>(entries: Array<T>, nameOf: (id: ActionId) => string = id => id.baseName): Array<T> => {
-	const keyOf = (id: ActionId) => `${nameOf(id)}|${id.tag}`;
+const dropLoneRanks = <T extends { id: ActionId }>(entries: Array<T>): Array<T> => {
+	const keyOf = (id: ActionId) => `${id.baseName}|${id.tag}`;
 	const ranks = new Map<string, Set<number>>();
 	for (const { id } of entries) {
 		if (!id.hasRank) continue;
@@ -244,7 +244,7 @@ export function registerSpecConfig<SpecType extends Spec>(spec: SpecType, config
 	SPEC_CONFIGS[spec] = config;
 }
 
-export function getSpecConfig<SpecType extends Spec>(spec: SpecType): PlayerConfig<SpecType> {
+function getSpecConfig<SpecType extends Spec>(spec: SpecType): PlayerConfig<SpecType> {
 	const config = SPEC_CONFIGS[spec] as PlayerConfig<SpecType>;
 	if (!config) {
 		throw new Error('No config registered for Spec: ' + spec);
@@ -348,6 +348,8 @@ export class Player<SpecType extends Spec> {
 			race: this.playerClass.races[0],
 			profession1: 0,
 			profession2: 0,
+			prof1Rank: 0,
+			prof2Rank: 0,
 			buffs: IndividualBuffs.create(),
 			consumables: ConsumesSpec.create(),
 			bonusStats: new Stats(),
@@ -658,7 +660,7 @@ export class Player<SpecType extends Spec> {
 	}
 	setProfession1(newProfession: Profession) {
 		if (newProfession != this.getProfession1()) {
-			this.patch('profession1', newProfession);
+			this.write({ profession1: newProfession, prof1Rank: 0 }, ['profession1', 'prof1Rank']);
 		}
 	}
 	getProfession2(): Profession {
@@ -666,7 +668,7 @@ export class Player<SpecType extends Spec> {
 	}
 	setProfession2(newProfession: Profession) {
 		if (newProfession != this.getProfession2()) {
-			this.patch('profession2', newProfession);
+			this.write({ profession2: newProfession, prof2Rank: 0 }, ['profession2', 'prof2Rank']);
 		}
 	}
 	getProfessions(): Array<Profession> {
@@ -678,8 +680,16 @@ export class Player<SpecType extends Spec> {
 			this.setProfession2(newProfessions[1] || Profession.ProfessionUnknown);
 		});
 	}
-	hasProfession(prof: Profession): boolean {
-		return this.getProfessions().includes(prof);
+	// Skill ranks in profession1 and profession2; 0 is the maximum.
+	setProfessionRanks(prof1Rank: number, prof2Rank: number) {
+		const current = this.slice();
+		const changed = [...(prof1Rank != current.prof1Rank ? ['prof1Rank' as const] : []), ...(prof2Rank != current.prof2Rank ? ['prof2Rank' as const] : [])];
+		if (changed.length) this.write({ prof1Rank, prof2Rank }, changed);
+	}
+	hasProfession(prof: Profession, rank = 0): boolean {
+		const { profession1, profession2, prof1Rank, prof2Rank } = this.slice();
+		const meets = (held: number, heldRank: number) => held == prof && prof != Profession.ProfessionUnknown && (heldRank == 0 || heldRank >= rank);
+		return meets(profession1, prof1Rank) || meets(profession2, prof2Rank);
 	}
 
 	getFaction(): Faction {
@@ -701,7 +711,8 @@ export class Player<SpecType extends Spec> {
 	getConsumes(forSimming?: boolean): ConsumesSpec {
 		if (forSimming) {
 			const db = this.sim.db;
-			const key = [this.getSpec(), this.getClass(), this.getRace(), this.getProfession1(), this.getProfession2()].join(':');
+			const { prof1Rank, prof2Rank } = this.slice();
+			const key = [this.getSpec(), this.getClass(), this.getRace(), this.getProfession1(), this.getProfession2(), prof1Rank, prof2Rank].join(':');
 			let cache = this.relevantConsumablesCache;
 			if (cache?.key !== key || cache.db !== db) {
 				const consumables = db.getConsumables();
@@ -1212,6 +1223,10 @@ export class Player<SpecType extends Spec> {
 		return this.computeStatsEP(getWeaponDpsStatsBySlot(1, slot));
 	}
 
+	isEnchantRelevant(enchant: Enchant): boolean {
+		return isEnchantRelevantFor(enchant, this.getSpecConfig());
+	}
+
 	computeRandomSuffixEP(randomSuffix: ItemRandomSuffix): number {
 		if (this.randomSuffixEPCache.has(randomSuffix.id)) {
 			return this.randomSuffixEPCache.get(randomSuffix.id)!;
@@ -1450,7 +1465,8 @@ export class Player<SpecType extends Spec> {
 			return enchantData;
 		}
 
-		//const filters = this.sim.getFilters();
+		const filters = this.sim.getFilters();
+		const equippedEffectId = currentEquippedItem.enchant?.effectId;
 
 		return enchantData.filter(enchantElem => {
 			const enchant = getEnchantFunc(enchantElem);
@@ -1459,7 +1475,7 @@ export class Player<SpecType extends Spec> {
 				return false;
 			}
 
-			return true;
+			return filters.showAllEnchants || enchant.effectId === equippedEffectId || this.isEnchantRelevant(enchant);
 		});
 	}
 
@@ -1541,6 +1557,8 @@ export class Player<SpecType extends Spec> {
 				race: this.getRace(),
 				profession1: this.getProfession1(),
 				profession2: this.getProfession2(),
+				prof1Rank: this.slice().prof1Rank,
+				prof2Rank: this.slice().prof2Rank,
 				reactionTimeMs: this.getReactionTime(),
 				channelClipDelayMs: this.getChannelClipDelay(),
 				inFrontOfTarget: this.getInFrontOfTarget(),
@@ -1592,6 +1610,7 @@ export class Player<SpecType extends Spec> {
 				this.setRace(proto.race);
 				this.setProfession1(proto.profession1);
 				this.setProfession2(proto.profession2);
+				this.setProfessionRanks(proto.prof1Rank, proto.prof2Rank);
 				this.setReactionTime(proto.reactionTimeMs);
 				this.setChannelClipDelay(proto.channelClipDelayMs);
 				this.setInFrontOfTarget(proto.inFrontOfTarget);

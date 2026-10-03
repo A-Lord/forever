@@ -25,6 +25,7 @@ import {
 } from '@generated/proto/api';
 import {
 	ArmorType,
+	ConsumableType,
 	EquipmentSpec,
 	Faction,
 	GemColor,
@@ -523,7 +524,7 @@ export class Sim {
 			const cachedOptimizedGearSets = bulkReforgeCacheData?.cachedOptimizedGearSets ?? [];
 			const bulkGearDatabase =
 				backendBuildCandidates && bulkSettings
-					? makeBulkItemDatabaseFromSpecs(this.db, baselineGear, bulkSettings.items)
+					? makeBulkItemDatabaseFromSpecs(this.db, baselineGear, bulkSettings)
 					: makeBulkGearDatabase(this.db, [baselineGear, ...preparedGearSets, ...cachedOptimizedGearSets]);
 			if (bulkReforgeRequest) {
 				this.augmentDatabaseForReforge(bulkGearDatabase, bulkReforgeRequest.gemOptions);
@@ -618,7 +619,7 @@ export class Sim {
 		const player = baseRequest.raid!.parties[0].players[0];
 		const isEnchanter = [player.profession1, player.profession2].includes(Profession.Enchanting);
 		const baselineGear = Sim.prepareGear(this.raid.getActivePlayers()[0].getGear(), isEnchanter);
-		const bulkGearDatabase = makeBulkItemDatabaseFromSpecs(this.db, baselineGear, bulkSettings.items);
+		const bulkGearDatabase = makeBulkItemDatabaseFromSpecs(this.db, baselineGear, bulkSettings);
 		player.database = player.database ? Database.mergeSimDatabases(player.database, bulkGearDatabase) : bulkGearDatabase;
 		player.equipment = baselineGear.asSpec();
 		baseRequest.raid!.parties[0].players[0] = player;
@@ -902,6 +903,18 @@ export class Sim {
 	getFilters(): DatabaseFilters {
 		// Make a defensive copy
 		return DatabaseFilters.clone(this.store.getState().sim.filters);
+	}
+	// The consumable pickers' minimum level by ConsumableType, where the filters set none.
+	static readonly DEFAULT_MIN_CONSUMABLE_LVL: Partial<Record<ConsumableType, number>> = {
+		[ConsumableType.ConsumableTypePotion]: 40,
+		[ConsumableType.ConsumableTypeFlask]: 0,
+		[ConsumableType.ConsumableTypeElixir]: 40,
+		[ConsumableType.ConsumableTypeScroll]: 40,
+		[ConsumableType.ConsumableTypeExplosive]: 30,
+		[ConsumableType.ConsumableTypeImbue]: 40,
+	};
+	getMinConsumableLvl(type: ConsumableType): number {
+		return this.store.getState().sim.filters.minConsumableLvl[type] ?? Sim.DEFAULT_MIN_CONSUMABLE_LVL[type] ?? 0;
 	}
 	setFilters(newFilters: DatabaseFilters) {
 		if (DatabaseFilters.equals(newFilters, this.store.getState().sim.filters)) {

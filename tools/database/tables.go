@@ -195,12 +195,56 @@ func LoadAndWriteRawItems(dbHelper *DBHelper, filter string, inputsDir string) (
 		fmt.Println("Error loading items:", err.Error())
 		return nil, err
 	}
+	if err := applyCreatorClassMasks(dbHelper, items, func(item *dbc.Item) (int, *int) { return item.Id, &item.ClassMask }); err != nil {
+		return nil, err
+	}
 	json, _ := json.Marshal(items)
 	if err := dbc.WriteGzipFile(fmt.Sprintf("%s/dbc/items.json", inputsDir), json); err != nil {
 		panic(fmt.Sprintf("Error loading DBC data %v", err))
 	}
 
 	return items, nil
+}
+
+// The class mask of each soulbound item the game files leave open to every class while only class
+// spells create it, such as the warlock's Firestone and the mage's mana gems: the creating spells'
+// SkillLineAbility class bits, ORed. A soulbound item never leaves the character who made it. A
+// tradable one (Healthstone, Conjured Water, Blinding Powder) stays open to every class.
+func LoadCreatorClassMasks(dbHelper *DBHelper) (map[int]int, error) {
+	type creator struct{ itemID, classMask int }
+	creators, err := LoadRows(dbHelper.db, fmt.Sprintf(`
+		SELECT DISTINCT e.EffectItemType, sla.ClassMask
+		FROM SpellEffect e
+		JOIN SkillLineAbility sla ON sla.Spell = e.SpellID AND sla.ClassMask != 0
+		JOIN ItemSparse s ON s.ID = e.EffectItemType
+		WHERE e.Effect = %d AND s.Bonding = %d AND s.AllowableClass IN (-1, 0)`,
+		dbcenums.E_CREATE_ITEM, dbc.BIND_ON_ACQUIRE),
+		func(rows *sql.Rows) (creator, error) {
+			var c creator
+			return c, rows.Scan(&c.itemID, &c.classMask)
+		})
+	if err != nil {
+		return nil, fmt.Errorf("error loading creator class masks: %w", err)
+	}
+	masks := make(map[int]int, len(creators))
+	for _, c := range creators {
+		masks[c.itemID] |= c.classMask
+	}
+	return masks, nil
+}
+
+// Each row's class mask becomes the one LoadCreatorClassMasks derives for its item, where it derives one.
+func applyCreatorClassMasks[T any](dbHelper *DBHelper, rows []T, classMaskOf func(*T) (int, *int)) error {
+	masks, err := LoadCreatorClassMasks(dbHelper)
+	if err != nil {
+		return err
+	}
+	for i := range rows {
+		if id, classMask := classMaskOf(&rows[i]); masks[id] != 0 {
+			*classMask = masks[id]
+		}
+	}
+	return nil
 }
 
 //ItemStatEffects
@@ -477,6 +521,7 @@ func ScanEnchantsTable(rows *sql.Rows) (dbc.Enchant, error) {
 	var effectPointsString string
 	var effectArgsString string
 	var spellItemEnchantmentFlags dbc.SpellItemEnchantmentFlags
+	var spellItemLevel int
 	err := rows.Scan(
 		&raw.EffectId,
 		&raw.Name,
@@ -496,10 +541,12 @@ func ScanEnchantsTable(rows *sql.Rows) (dbc.Enchant, error) {
 		&raw.EffectName,
 		&spellItemEnchantmentFlags,
 		&raw.IsLive,
+		&spellItemLevel,
 	)
 	if err != nil {
 		return raw, fmt.Errorf("scanning enchant data for effect ID %d: %w", raw.EffectId, err)
 	}
+	raw.Lvl = enchantLvl(spellItemLevel)
 
 	raw.Effects, err = parseIntArrayField(effectsString, 3)
 	if err != nil {
@@ -526,6 +573,22 @@ func ScanEnchantsTable(rows *sql.Rows) (dbc.Enchant, error) {
 	return raw, nil
 }
 
+// The highest item level of an item outside the Season of Discovery range that applies or teaches the
+// enchant's spell; 0 where every such item is level 1, as the Forever enchant scrolls are.
+func enchantLvl(spellItemLevel int) int {
+	if spellItemLevel > 1 {
+		return spellItemLevel
+	}
+	return 0
+}
+
+// Season of Discovery items occupy this id range in the game files; an enchant only they carry is left
+// out, and none of them gives an enchant its level.
+const (
+	sodItemIDMin = 202251
+	sodItemIDMax = 244460
+)
+
 func LoadAndWriteRawEnchants(dbHelper *DBHelper, inputsDir string) ([]dbc.Enchant, error) {
 	query := `
 		SELECT DISTINCT
@@ -548,9 +611,14 @@ func LoadAndWriteRawEnchants(dbHelper *DBHelper, inputsDir string) ([]dbc.Enchan
 				WHEN sie.Effect_2 IN (1, 3) THEN sie.EffectArg_2
 				ELSE se.SpellID
 			END AS spellId,
-			-- The lowest item the game files ship (it has an ItemSparse row), else the lowest item. This is the
-			-- query's only aggregate, so the bare columns (icon and quality among them) come from its row.
-			COALESCE(MIN(CASE WHEN isp.ID IS NULL THEN ixie.ItemID + 1000000000 ELSE ixie.ItemID END) % 1000000000, 0) as ItemId,
+			-- The lowest item the game files ship (it has an ItemSparse row), else the lowest item, an item in
+			-- the Season of Discovery range last. This is the query's only aggregate, so the bare columns (icon
+			-- and quality among them) come from its row.
+			COALESCE(MIN(
+				CASE WHEN ixie.ItemID BETWEEN ` + strconv.Itoa(sodItemIDMin) + ` AND ` + strconv.Itoa(sodItemIDMax) + ` THEN 2000000000 ELSE 0 END
+				+ CASE WHEN isp.ID IS NULL THEN 1000000000 ELSE 0 END
+				+ ixie.ItemID
+			) % 1000000000, 0) as ItemId,
 			sie.RequiredSkillID as professionId,
 			sie.Effect as Effect,
 			sie.EffectPointsMin as EffectPoints,
@@ -575,7 +643,14 @@ func LoadAndWriteRawEnchants(dbHelper *DBHelper, inputsDir string) ([]dbc.Enchan
 						JOIN ItemXItemEffect lixie ON lixie.ItemEffectID = lie.ID
 						JOIN ItemSparse lisp ON lisp.ID = lixie.ItemID
 					WHERE lie.SpellID = se.SpellID AND ` + notPlaceholderItemName("lisp.Display_lang") + `
-				) AS IsLive
+				) AS IsLive,
+			COALESCE((
+				SELECT MAX(lisp.ItemLevel) FROM ItemEffect lie
+					JOIN ItemXItemEffect lixie ON lixie.ItemEffectID = lie.ID
+					JOIN ItemSparse lisp ON lisp.ID = lixie.ItemID
+				WHERE lie.SpellID = se.SpellID
+					AND lixie.ItemID NOT BETWEEN ` + strconv.Itoa(sodItemIDMin) + ` AND ` + strconv.Itoa(sodItemIDMax) + `
+			), 0) AS SpellItemLevel
 		FROM SpellEffect se
 			JOIN Spell s ON se.SpellID = s.ID
 			JOIN SpellName sn ON se.SpellID = sn.ID
@@ -932,6 +1007,7 @@ func ScanConsumable(rows *sql.Rows) (dbc.Consumable, error) {
 		&consumable.ClassMask,
 		&consumable.RaceMask,
 		&consumable.RequiredSkill,
+		&consumable.RequiredSkillRank,
 		&consumable.TemporaryEnchant.ID,
 		&consumable.TemporaryEnchant.Effects[0],
 		&consumable.TemporaryEnchant.Effects[1],
@@ -1031,6 +1107,7 @@ func LoadAndWriteConsumables(dbHelper *DBHelper, inputsDir string) ([]dbc.Consum
 				s.AllowableClass,
 				(s.AllowableRace_1 << 32) | (s.AllowableRace_0 & 0xFFFFFFFF) AS RaceMask,
 				s.RequiredSkill,
+				s.RequiredSkillRank,
 				COALESCE(tsie.ID, 0),
 				COALESCE(tsie.Effect_0, 0), COALESCE(tsie.Effect_1, 0), COALESCE(tsie.Effect_2, 0),
 				COALESCE(tsie.EffectPointsMin_0, 0), COALESCE(tsie.EffectPointsMin_1, 0), COALESCE(tsie.EffectPointsMin_2, 0),
@@ -1059,6 +1136,9 @@ func LoadAndWriteConsumables(dbHelper *DBHelper, inputsDir string) ([]dbc.Consum
 	consumables, err := LoadRows(dbHelper.db, query, ScanConsumable)
 	if err != nil {
 		return nil, fmt.Errorf("error loading consumables: %w", err)
+	}
+	if err := applyCreatorClassMasks(dbHelper, consumables, func(c *dbc.Consumable) (int, *int) { return c.Id, &c.ClassMask }); err != nil {
+		return nil, err
 	}
 
 	fmt.Println("Loaded Consumables:", len(consumables))

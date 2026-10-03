@@ -1,5 +1,7 @@
 import { SimHostProvider } from '@sim/context/SimHostContext';
-import { fakeHost, mockSubscriptions } from '@sim/testing';
+import { fakeHost } from '@testing/sim/fake_host';
+import { mockSubscriptions } from '@testing/sim/subscriptions';
+import { castItem, castRow, rotationModel } from '@testing/timeline_rotation';
 import { act, fireEvent, render } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
@@ -7,7 +9,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { DrStickySlotContext } from '../../DetailedResults/context/DrStickySlotContext';
 import { RotationView } from './RotationView';
-import { castItem, castRow, rotationModel } from './testing';
 
 vi.mock('@sim/state/subscriptions', async () => mockSubscriptions());
 

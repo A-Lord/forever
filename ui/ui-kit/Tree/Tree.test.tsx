@@ -53,10 +53,10 @@ const StoreRows = ({ order }: { order: ReturnType<typeof createOrder> }) => {
 	return ids.map(id => <Row key={id} id={id} />);
 };
 
-const Collapsible = ({ open, defaultOpen, onOpenChange }: { open?: boolean; defaultOpen?: boolean; onOpenChange?: (open: boolean) => void }) => (
+const Collapsible = () => (
 	<Tree.Root>
 		<Tree.Items>
-			<Tree.Item id="a" open={open} defaultOpen={defaultOpen} onOpenChange={onOpenChange}>
+			<Tree.Item id="a">
 				<Tree.Item.Header>
 					<Tree.Item.Title>Row A</Tree.Item.Title>
 					<Tree.Item.Trigger label="Toggle row A" />
@@ -133,13 +133,12 @@ describe('Tree', () => {
 		expect(root.getAttribute('data-orientation')).toBe('vertical');
 
 		rerender(
-			<Tree.Root density="compact" layout="inline" orientation="horizontal">
+			<Tree.Root density="compact" layout="inline">
 				<Tree.Items>{null}</Tree.Items>
 			</Tree.Root>,
 		);
 		expect(root.getAttribute('data-density')).toBe('compact');
 		expect(root.getAttribute('data-layout')).toBe('inline');
-		expect(root.getAttribute('data-orientation')).toBe('horizontal');
 	});
 
 	// The index comes from DOM order, so wrappers, fragments and a wrapper that reorders or drops
@@ -180,7 +179,7 @@ describe('Tree', () => {
 		expect(indices()).toEqual(['0:-', '1:-', null, '4:-', '3:-', '5:-']);
 	});
 
-	it('toggles an uncontrolled item from its trigger, and hides the body while closed', () => {
+	it('toggles an item from its trigger, and hides the body while closed', () => {
 		render(<Collapsible />);
 		const item = screen.getByRole('listitem');
 		const body = screen.getByTestId('body-a');
@@ -200,34 +199,14 @@ describe('Tree', () => {
 		expect(body.hidden).toBe(false);
 	});
 
-	it('starts closed with defaultOpen false', () => {
-		render(<Collapsible defaultOpen={false} />);
-		expect(screen.getByRole('listitem').hasAttribute('data-open')).toBe(false);
-		expect(screen.getByTestId('body-a').hidden).toBe(true);
-	});
-
-	it('follows the open prop when controlled, and reports the toggle through onOpenChange', () => {
-		const onOpenChange = vi.fn();
-		const { rerender } = render(<Collapsible open={false} onOpenChange={onOpenChange} />);
-		const item = screen.getByRole('listitem');
-		expect(item.hasAttribute('data-open')).toBe(false);
-
-		fireEvent.click(trigger());
-		expect(onOpenChange).toHaveBeenCalledWith(true);
-		expect(item.hasAttribute('data-open')).toBe(false);
-		expect(screen.getByTestId('body-a').hidden).toBe(true);
-
-		rerender(<Collapsible open onOpenChange={onOpenChange} />);
-		expect(item.hasAttribute('data-open')).toBe(true);
-		expect(trigger().getAttribute('aria-expanded')).toBe('true');
-		expect(screen.getByTestId('body-a').hidden).toBe(false);
-	});
-
 	it('hides the children with the body when an item closes', () => {
 		render(
 			<Tree.Root>
 				<Tree.Items>
-					<Tree.Item id="a" defaultOpen={false}>
+					<Tree.Item id="a">
+						<Tree.Item.Header>
+							<Tree.Item.Trigger label="Toggle row A" />
+						</Tree.Item.Header>
 						<Tree.Item.Children testId="children-a">
 							<Tree.Items>
 								<Row id="a1" />
@@ -237,6 +216,9 @@ describe('Tree', () => {
 				</Tree.Items>
 			</Tree.Root>,
 		);
+		expect(screen.getByTestId('children-a').hidden).toBe(false);
+
+		fireEvent.click(trigger());
 		expect(screen.getByTestId('children-a').hidden).toBe(true);
 	});
 

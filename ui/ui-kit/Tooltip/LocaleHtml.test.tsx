@@ -1,10 +1,9 @@
-import '@i18n/config';
-
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import i18n from '@i18n/config';
 import { render } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { LocaleHtml } from './LocaleHtml';
 
@@ -27,6 +26,20 @@ describe('LocaleHtml', () => {
 		['a separator-bearing sentence intact', 'Stats: haste. Then <span className="bold">more</span>', 'Stats: haste. Then <span class="bold">more</span>'],
 	])('renders %s', (_, markup, expected) => {
 		expect(html(markup)).toBe(expected);
+	});
+
+	it('logs no missing key for markup that is already translated', () => {
+		const { logger } = (i18n as unknown as { translator: { logger: { debug: boolean } } }).translator;
+		const log = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+		const debug = logger.debug;
+		logger.debug = true;
+		try {
+			html('<span className="bold">Batch</span> plain');
+			expect(log.mock.calls.flat().join(' ')).not.toContain('missingKey');
+		} finally {
+			logger.debug = debug;
+			log.mockRestore();
+		}
 	});
 });
 

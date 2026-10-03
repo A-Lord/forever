@@ -18,7 +18,7 @@ import "shaman.proto";
 import "warlock.proto";
 import "warrior.proto";
 
-// NextIndex: 60
+// NextIndex: 62
 message Player {
 	// Proto version at the time Player were saved.
 	// A "breaking change" here is defined as anything that will break saved
@@ -76,6 +76,9 @@ message Player {
 	string talents_string = 39;
 	Profession profession1 = 41;
 	Profession profession2 = 42;
+	// Skill in profession1 and profession2; 0 means the maximum.
+	int32 prof1_rank = 59;
+	int32 prof2_rank = 60;
 	Cooldowns cooldowns = 43;
 
 	APLRotation rotation = 44;
@@ -90,7 +93,7 @@ message Player {
 	double dark_intent_uptime = 52;
 	bool challenge_mode = 58;
 	// A weapon skill missing from the list is at the maximum for the player's level.
-	repeated WeaponSkillValue weapon_skills = 59;
+	repeated WeaponSkillValue weapon_skills = 61;
 
 	HealingModel healing_model = 49;
 
@@ -436,7 +439,8 @@ message BulkSimRequest {
 	repeated BulkGearCandidate candidates = 3;
 	repeated BulkGearCandidate optimized_candidates = 4;
 	int32 top_results = 5;
-	int32 high_stage_iterations = 6;
+	reserved 6;
+	reserved "high_stage_iterations";
 	ReforgeOptimizeRequest reforge_request = 7;
 	BulkSettings bulk_settings = 8;
 }
@@ -758,13 +762,22 @@ message ProgressMetrics {
 
 message BulkSettings {
 	repeated ItemSpec items = 1;
-	int32 iterations_per_combo = 2;
+	reserved 2;
+	reserved "iterations_per_combo";
 
 	int32 freeze_ring_slot = 3;
 	int32 freeze_trinket_slot = 4;
 	int32 freeze_weapon_slot = 5;
 	repeated WeaponType freeze_mainhand_weapon_slots = 6;
 	repeated WeaponType freeze_offhand_weapon_slots = 7;
+
+	// Enchants to cross with the candidate items, per slot. Finger1 serves both fingers.
+	repeated BulkEnchantSlotOptions enchants = 8;
+}
+
+message BulkEnchantSlotOptions {
+	ItemSlot slot = 1;
+	repeated int32 effect_ids = 2;
 }
 
 message BulkGearCandidate {

@@ -157,6 +157,10 @@ export function getEligibleEnchantSlots(enchant: Enchant): Array<ItemSlot> {
 		.flat();
 }
 
+export function isOffHandOnlyEnchant(enchant: Enchant): boolean {
+	return enchant.enchantType === EnchantType.EnchantTypeShield || enchant.enchantType === EnchantType.EnchantTypeOffHand;
+}
+
 export function enchantAppliesToItem(enchant: Enchant, item: Item): boolean {
 	const sharedSlots = intersection(getEligibleEnchantSlots(enchant), getEligibleItemSlots(item));
 	if (!sharedSlots.length) return false;

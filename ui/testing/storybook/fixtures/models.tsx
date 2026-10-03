@@ -2,12 +2,12 @@ import { PlayerStats } from '@generated/proto/api';
 import { IndividualBuffs } from '@generated/proto/buffs';
 import { ConsumesSpec, HealingModel } from '@generated/proto/common';
 import { SimHostProvider } from '@sim/context/SimHostContext';
-import { fakeHost, type FakeHostParts } from '@sim/fake_host';
 import { Gear, ItemSwapGear } from '@sim/proto/gear';
 import { Stats } from '@sim/proto/stats';
 import type { IndividualSimHost } from '@sim/sim_host';
 import { createSimStore, PLAYER_FIELDS, type PlayerSlice, seedKeyed, zeroVersions } from '@sim/state/sim_store';
 import type { Decorator } from '@storybook/react-vite';
+import { fakeHost, type FakeHostParts } from '@testing/sim/fake_host';
 import { type ReactNode, useState } from 'react';
 
 export type StubHostParts = FakeHostParts & { playerSlice?: Partial<PlayerSlice> };
@@ -20,6 +20,8 @@ const defaultPlayerSlice = (): PlayerSlice => ({
 	race: 0,
 	profession1: 0,
 	profession2: 0,
+	prof1Rank: 0,
+	prof2Rank: 0,
 	buffs: IndividualBuffs.create(),
 	consumables: ConsumesSpec.create(),
 	bonusStats: new Stats(),

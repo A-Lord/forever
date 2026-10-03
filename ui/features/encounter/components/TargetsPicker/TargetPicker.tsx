@@ -4,10 +4,11 @@ import { ConnectedNumberField } from '@features/inputs/components/ConnectedTextF
 import { Target as TargetProto } from '@generated/proto/common';
 import { useDisplayMetrics } from '@sim/hooks/useDisplayMetrics';
 import type { Encounter } from '@sim/raid/encounter';
-import { useMemo } from 'react';
+import { Field } from '@ui-kit/Field';
+import { FieldGrid } from '@ui-kit/FieldGrid';
+import { type ReactNode, useMemo } from 'react';
 
 import { TargetInputsPicker } from './TargetInputsPicker';
-import { TargetPickerView } from './TargetPickerView';
 import {
 	aiConfig,
 	ALL_TARGET_STATS,
@@ -21,6 +22,26 @@ import {
 	tankIndexConfig,
 	type TargetFieldContext,
 } from './utils/configs';
+
+export interface TargetPickerViewProps {
+	/** Who the target is: NPC preset, AI, level, mob type, tank and the target's own inputs. */
+	identity: ReactNode;
+	stats: ReactNode;
+	/** The fields only a threat sim reads; without them an empty column keeps the three-column grid. */
+	threat?: ReactNode;
+}
+
+export const TargetPickerView = ({ identity, stats, threat }: TargetPickerViewProps) => (
+	<Field testId="target-picker-root" className="grid grid-cols-1 gap-2 xl:grid-cols-3">
+		<FieldGrid data-testid="target-picker-section">{identity}</FieldGrid>
+		<FieldGrid data-testid="target-picker-section">{stats}</FieldGrid>
+		{threat ? (
+			<FieldGrid data-testid="target-picker-section">{threat}</FieldGrid>
+		) : (
+			<div className="hidden xl:block" data-testid="target-picker-section-placeholder" aria-hidden="true" />
+		)}
+	</Field>
+);
 
 export interface TargetPickerProps {
 	encounter: Encounter;

@@ -18,7 +18,9 @@ type Hunter struct {
 	Talents *proto.HunterTalents
 	Options *proto.HunterOptions
 
-	Pet *HunterPet
+	Pet      *HunterPet
+	Hawks    []*HawkPet
+	nextHawk int // The hawk the next Summon Hawk sends.
 
 	RapidFire    *core.Spell
 	RaptorStrike *core.Spell
@@ -99,6 +101,7 @@ func NewHunter(character *core.Character, options *proto.Player, hunterOptions *
 	hunter.AddStatDependency(stats.Agility, stats.PhysicalCritPercent, core.CritPerAgiMaxLevel[hunter.Class])
 
 	hunter.Pet = hunter.NewHunterPet()
+	hunter.Hawks = hunter.newHawks()
 
 	return hunter
 }
@@ -149,6 +152,7 @@ func (hunter *Hunter) AddPartyBuffs(partyBuffs *proto.PartyBuffs) {
 }
 
 func (hunter *Hunter) Reset(_ *core.Simulation) {
+	hunter.nextHawk = 0
 }
 
 func (hunter *Hunter) OnEncounterStart(sim *core.Simulation) {

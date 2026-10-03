@@ -19,13 +19,12 @@ const BUFFS = [
 	icon('spell_nature_lightningshield', 'Trueshot Aura', 20906),
 ];
 
-const MultiIconPickerStory = ({ onClear, clearLabel, initial }: Pick<MultiIconPickerProps, 'onClear' | 'clearLabel'> & { initial: Array<number> }) => {
+const MultiIconPickerStory = ({ onClear, initial }: Pick<MultiIconPickerProps, 'onClear'> & { initial: Array<number> }) => {
 	const [values, setValues] = useState(initial);
 	const first = values.findIndex(value => value > 0);
 	return (
 		<MultiIconPicker
 			label="Misc"
-			clearLabel={clearLabel}
 			icon={first >= 0 ? BUFFS[first] : undefined}
 			active={first >= 0}
 			onClear={() => {
@@ -59,7 +58,7 @@ const meta = {
 		icon: { control: false },
 		children: { control: false },
 	},
-	render: ({ onClear, clearLabel }) => <MultiIconPickerStory onClear={onClear} clearLabel={clearLabel} initial={[0, 0, 0]} />,
+	render: ({ onClear }) => <MultiIconPickerStory onClear={onClear} initial={[0, 0, 0]} />,
 } satisfies Meta<typeof MultiIconPicker>;
 
 export default meta;
@@ -82,11 +81,4 @@ export const Open: Story = {
 };
 export const Active: Story = {
 	render: ({ onClear }) => <MultiIconPickerStory onClear={onClear} initial={[0, 1, 1]} />,
-};
-export const ClearLabel: Story = {
-	args: { clearLabel: 'No stat buff' },
-	play: async ({ canvasElement }) => {
-		await userEvent.hover(within(canvasElement).getByTestId('multi-icon-picker-root'));
-		await expect(await within(canvasElement.ownerDocument.body).findByLabelText('No stat buff')).toBeTruthy();
-	},
 };

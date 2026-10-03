@@ -7,7 +7,7 @@ import (
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-var TalentTreeSizes = [3]int{16, 19, 16}
+var TalentTreeSizes = [3]int{16, 20, 16}
 
 type Druid struct {
 	core.Character
@@ -48,7 +48,6 @@ type Druid struct {
 	Rip                  *DruidSpell
 	Shred                *DruidSpell
 	Starfire             []*DruidSpell
-	TigersFury           *DruidSpell
 	Swipe                *DruidSpell
 	Wrath                *DruidSpell
 
@@ -66,7 +65,6 @@ type Druid struct {
 	MangleAuras              core.AuraArray
 	MoonkinFormAura          *core.Aura
 	ProwlAura                *core.Aura
-	TigersFuryAura           *core.Aura
 
 	form DruidForm
 
@@ -106,7 +104,6 @@ const (
 	DruidSpellThorns
 	DruidSpellWrath
 	DruidSpellEnrage
-	DruidSpellTigersFury
 	DruidSpellCatForm
 	DruidSpellBearForm
 
@@ -228,7 +225,6 @@ func (druid *Druid) RegisterFeralCatSpells() {
 	druid.registerFerociousBiteSpell()
 	// TODO: Forever drops Faerie Fire (Feral); see registerFaerieFireFeralSpell.
 	druid.registerShredSpell()
-	druid.registerTigersFurySpell()
 }
 
 func (druid *Druid) RegisterFeralTankSpells() {
