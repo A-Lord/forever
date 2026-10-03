@@ -22,6 +22,15 @@ NOTE = re.compile(r'^spelldata: (.+)$')
 
 KINDS = {'+': 'Added', '~': 'Changed', '-': 'Removed'}
 
+SPELL_URL = 'https://www.wowhead.com/forever/spell='
+
+
+def linked(entry):
+    spell_id, _, rest = entry.partition(' ')
+    if not spell_id.isdigit():
+        return entry
+    return f'[`{spell_id}`]({SPELL_URL}{spell_id}) {rest}'.rstrip()
+
 
 def parse(lines):
     groups, shared, not_ported, notes = [], [], [], []
@@ -57,12 +66,12 @@ def render(groups, shared, not_ported, notes):
         for kind, label in KINDS.items():
             if g['entries'][kind]:
                 out.append(f'- [ ] {label}')
-                out += [f'  - [ ] {entry}' for entry in g['entries'][kind]]
+                out += [f'  - [ ] {linked(entry)}' for entry in g['entries'][kind]]
         out.append('')
     if unchanged:
         out += [f"Unchanged: {', '.join(unchanged)}", '']
     if shared:
-        out += ['### Shared rows', ''] + [f'- [ ] {row}' for row in shared] + ['']
+        out += ['### Shared rows', ''] + [f'- [ ] {linked(row)}' for row in shared] + ['']
     if not_ported:
         out += ['### Kept, not ported', ''] + [f'- {line}' for line in not_ported] + ['']
     if notes:
