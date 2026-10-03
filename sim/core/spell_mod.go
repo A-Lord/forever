@@ -336,9 +336,10 @@ func (unit *Unit) refilterEquipMods() {
 
 // The sums of the active hit and crit mods that reach every attack with this proc mask: those naming
 // no ClassMask, ClassFlags, school or spell flag, whose proc mask and weapon match the attack's.
-// HitFromRating and CritFromRating are the part the mods converted from a rating give.
+// HitFromRating and CritFromRating are the part the mods converted from a rating give, AuraCrit the
+// part of Crit that counts as aura crit.
 type ScopedPercents struct {
-	Hit, Crit, HitFromRating, CritFromRating float64
+	Hit, Crit, HitFromRating, CritFromRating, AuraCrit float64
 }
 
 func (unit *Unit) ScopedPercents(probe ProcMask) ScopedPercents {
@@ -362,6 +363,9 @@ func (unit *Unit) ScopedPercents(probe ProcMask) ScopedPercents {
 		*total += mod.floatValue
 		if mod.FromRating {
 			*fromRating += mod.floatValue
+		}
+		if mod.Kind == SpellMod_BonusCrit_Percent && mod.isAuraCrit() {
+			scoped.AuraCrit += mod.floatValue
 		}
 	}
 	return scoped
@@ -913,12 +917,24 @@ func removeCastTimeFlat(mod *SpellMod, spell *Spell) {
 	spell.DefaultCast.CastTime -= mod.timeValue
 }
 
+// Whether a crit mod's crit counts as aura crit against a higher-level defender: a mod bound to a
+// weapon or converted from a rating does, a mod on the abilities it names does not.
+func (mod *SpellMod) isAuraCrit() bool {
+	return !mod.Equip.IsZero() || mod.FromRating
+}
+
 func applyBonusCritPercent(mod *SpellMod, spell *Spell) {
 	spell.BonusCritPercent += mod.floatValue
+	if mod.isAuraCrit() {
+		spell.auraBonusCritPercent += mod.floatValue
+	}
 }
 
 func removeBonusCritPercent(mod *SpellMod, spell *Spell) {
 	spell.BonusCritPercent -= mod.floatValue
+	if mod.isAuraCrit() {
+		spell.auraBonusCritPercent -= mod.floatValue
+	}
 }
 
 func applyBonusHitPercent(mod *SpellMod, spell *Spell) {

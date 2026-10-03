@@ -34,12 +34,12 @@ func TestPlayerAttackTableAgainstEachTargetLevel(t *testing.T) {
 		level                                   int32
 		miss, hitSuppression, dodge, parry      float64
 		glance, glanceMin, glanceMax, critSuppr float64
-		spellMiss                               float64
+		auraCritSuppr, spellMiss                float64
 	}{
-		{60, 0.05, 0, 0.05, 0.05, 0.10, 0.91, 0.99, 0, 0.04},
-		{61, 0.055, 0, 0.055, 0.055, 0.20, 0.91, 0.99, 0.01, 0.05},
-		{62, 0.06, 0, 0.06, 0.06, 0.30, 0.80, 0.90, 0.02, 0.06},
-		{63, 0.08, 0.01, 0.065, 0.14, 0.40, 0.55, 0.75, 0.048, 0.17},
+		{60, 0.05, 0, 0.05, 0.05, 0.10, 0.91, 0.99, 0, 0, 0.04},
+		{61, 0.055, 0, 0.055, 0.055, 0.20, 0.91, 0.99, 0.01, 0, 0.05},
+		{62, 0.06, 0, 0.06, 0.06, 0.30, 0.80, 0.90, 0.02, 0, 0.06},
+		{63, 0.08, 0.01, 0.065, 0.14, 0.40, 0.55, 0.75, 0.03, 0.018, 0.17},
 	} {
 		attacker, defender := attackTableUnits(PlayerUnit, 60, EnemyUnit, tc.level)
 		table := NewAttackTable(attacker, defender)
@@ -58,6 +58,7 @@ func TestPlayerAttackTableAgainstEachTargetLevel(t *testing.T) {
 			{"block", table.BaseBlockChance, 0.05},
 			{"glance chance", table.BaseGlanceChance, tc.glance},
 			{"melee crit suppression", table.MeleeCritSuppression, tc.critSuppr},
+			{"aura crit suppression", table.AuraCritSuppression, tc.auraCritSuppr},
 			{"spell miss", table.BaseSpellMissChance, tc.spellMiss},
 		})
 	}
@@ -93,7 +94,8 @@ func TestWeaponSkillNarrowsTheHandsTableAgainstALevel63Target(t *testing.T) {
 			{"mace hand hit suppression", table.OH.HitSuppression, 0.01},
 			{"parry", table.BaseParryChance, 0.14},
 			{"glance chance", table.BaseGlanceChance, 0.40},
-			{"melee crit suppression", table.MeleeCritSuppression, 0.048},
+			{"melee crit suppression", table.MeleeCritSuppression, 0.03},
+			{"aura crit suppression", table.AuraCritSuppression, 0.018},
 		})
 	}
 }
@@ -136,6 +138,7 @@ func attackTableNumbers(table *AttackTable) map[string]float64 {
 		"glance chance":          table.BaseGlanceChance,
 		"crush":                  table.BaseCrushChance,
 		"melee crit suppression": table.MeleeCritSuppression,
+		"aura crit suppression":  table.AuraCritSuppression,
 	}
 	for hand, entry := range map[string]AttackTableHand{"main hand": table.MH, "off hand": table.OH, "ranged": table.Ranged} {
 		numbers[hand+" miss"] = entry.BaseMissChance
