@@ -210,15 +210,25 @@ export const ReforgePanel = ({ model, options }: ReforgePanelProps) => {
 				maxWidth="max-w-76"
 				// The limits are read per open.
 				render={() => {
-					if (needsPreset) return i18n.t('sidebar.buttons.suggest_reforges.no_enchant_preset');
+					const title = i18n.t('sidebar.buttons.suggest_reforges.title');
+					if (needsPreset)
+						return (
+							<>
+								<p className="mb-1 font-semibold">{title}</p>
+								<p className="mb-0">{i18n.t('sidebar.buttons.suggest_reforges.no_enchant_preset')}</p>
+							</>
+						);
 					const softCaps = model.softCapsConfigWithLimits;
-					if (!softCaps?.length) return null;
+					if (!softCaps?.length) return title;
 					return (
-						<ReforgeSoftCapsTooltip
-							playerClass={player.getClass()}
-							softCaps={softCaps}
-							additionalInformation={options?.additionalSoftCapTooltipInformation ?? {}}
-						/>
+						<>
+							<p className="mb-1 font-semibold">{title}</p>
+							<ReforgeSoftCapsTooltip
+								playerClass={player.getClass()}
+								softCaps={softCaps}
+								additionalInformation={options?.additionalSoftCapTooltipInformation ?? {}}
+							/>
+						</>
 					);
 				}}
 			/>
@@ -226,12 +236,12 @@ export const ReforgePanel = ({ model, options }: ReforgePanelProps) => {
 				<ProgressTrackerDialog
 					open
 					testId="reforge-optimizer-progress-tracker"
-					title="Optimizing Gear"
+					title="Optimizing Enchants"
 					state={{ stage: 'initializing' }}
 					warning={
 						<>
 							<p>
-								Gear optimization can be a lengthy process, especially as specific stat caps and breakpoints come into play for classes. This
+								Enchant optimization can be a lengthy process, especially as specific stat caps and breakpoints come into play for classes. This
 								may take a while, but be assured that the calculation will eventually complete.
 							</p>
 							<p className="mb-0">You may cancel this operation at any time using the button below.</p>
