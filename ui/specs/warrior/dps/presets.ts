@@ -1,11 +1,14 @@
 import * as PresetUtils from '@app/preset_utils';
-import { ConsumesSpec, HandType, ItemSlot, Profession, Race, Spec } from '@generated/proto/common';
+import { ConsumesSpec, HandType, ItemSlot, Profession, Race, Spec, Stat } from '@generated/proto/common';
+import { SavedTalents } from '@generated/proto/ui';
 import { DpsWarrior_Options as WarriorOptions, DpsWarrior_Rotation, DpsWarriorSpec, WarriorStance, WarriorSunder } from '@generated/proto/warrior';
 import { Player } from '@sim/player/player';
+import { Stats } from '@sim/proto/stats';
 
 import * as WarriorPresets from '../shared/presets';
 import DefaultArmsApl from './apls/arms.apl.json';
 import DefaultFuryApl from './apls/fury.apl.json';
+import PreBiSFuryGearJson from './gear_sets/prebis_fury.gear.json';
 
 // Preset options for this spec.
 // Eventually we will import these values for the raid sim too, so its good to
@@ -20,6 +23,24 @@ export const isFurySpec = (player: Player<Spec.SpecDpsWarrior>) =>
 	player.getTalents().bloodthirst ||
 	player.getEquippedItem(ItemSlot.ItemSlotMainHand)?.item.handType === HandType.HandTypeMainHand ||
 	player.getEquippedItem(ItemSlot.ItemSlotMainHand)?.item.handType === HandType.HandTypeOneHand;
+
+// Dungeon drops, the dungeon tier sets and crafted items whose reagents include no raid materials.
+export const PreBiSFuryGear = PresetUtils.makePresetGear('Pre-BiS Fury', PreBiSFuryGearJson);
+
+// The best build found on the Pre-BiS Fury gear over a three minute fight.
+export const FuryTalents = PresetUtils.makePresetTalents('Fury', SavedTalents.create({ talentsString: '30305213-25053005150110501' }));
+
+// Measured on the Pre-BiS Fury gear with the Fury talents.
+export const PreBiSFuryEpWeights = PresetUtils.makePresetEpWeights(
+	'Pre-BiS Fury',
+	Stats.fromMap({
+		[Stat.StatStrength]: 2.2,
+		[Stat.StatAgility]: 2.87,
+		[Stat.StatAttackPower]: 1,
+		[Stat.StatHitRating]: 2.75,
+		[Stat.StatCritRating]: 3.72,
+	}),
+);
 
 export const FURY_DEFAULT_ROTATION = PresetUtils.makePresetAPLRotation('Fury', DefaultFuryApl);
 export const ARMS_DEFAULT_ROTATION = PresetUtils.makePresetAPLRotation('Arms', DefaultArmsApl);
