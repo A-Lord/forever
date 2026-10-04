@@ -37,7 +37,7 @@ func FreshDefaultTargetConfig() *proto.Target {
 	return &proto.Target{
 		Level: CharacterLevel + 3,
 		Stats: stats.Stats{
-			stats.Armor:       7685,
+			stats.Armor:       3731,
 			stats.AttackPower: 320,
 		}.ToProtoArray(),
 		MobType: proto.MobType_MobTypeMechanical,
