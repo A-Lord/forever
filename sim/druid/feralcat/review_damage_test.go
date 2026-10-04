@@ -106,6 +106,9 @@ func TestCatShippedPresetRuns(t *testing.T) {
 			t.Fatalf("shipped preset never casts %d", id)
 		}
 	}
+	if n := castsOf(player.Actions, 22812); n != 0 {
+		t.Fatalf("shipped preset casts Barkskin %d times", n)
+	}
 }
 
 func TestCatStealthPresetsRun(t *testing.T) {

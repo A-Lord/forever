@@ -169,6 +169,11 @@ func (druid *Druid) RegisterFeralCatSpells() {
 
 func (druid *Druid) RegisterFeralTankSpells() {
 	druid.registerFeralKit()
+	// A cat would spend a 1.5s GCD on it whenever it comes off cooldown.
+	druid.AddMajorCooldown(core.MajorCooldown{
+		Spell: druid.Barkskin.Spell,
+		Type:  core.CooldownTypeSurvival,
+	})
 }
 
 func (druid *Druid) registerFeralKit() {
