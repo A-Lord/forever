@@ -299,7 +299,7 @@
 			"other_settings": "Other Settings",
 			"buffs": "Buffs",
 			"debuffs": "Debuffs",
-			"reforge_settings": "Gear Optimizer Settings"
+			"reforge_settings": "Enchants Optimizer Settings"
 		}
 	},
 	"sim": {
@@ -318,7 +318,7 @@
 		},
 		"gear_planner": {
 			"title": "Gear planning only.",
-			"message": "Gear, enchants, talents and the gear optimizer work for this spec. There's no simulation planned."
+			"message": "Gear, enchants, talents and the enchants optimizer work for this spec. There's no simulation planned."
 		},
 		"unlaunched": {
 			"title": "This sim is currently not supported.",
@@ -952,8 +952,8 @@
 			"groups": {
 				"enchants": "Enchants",
 				"frozen_slots": "Frozen slots",
-				"reforge": "Gear optimizer settings",
-				"reforge_description": "These are the same settings the Optimize Gear button uses. The batch sim applies them to every gear set it simulates."
+				"reforge": "Enchants optimizer settings",
+				"reforge_description": "These are the same settings the Optimize Enchants button uses. The batch sim applies them to every gear set it simulates."
 			},
 			"iterations": "Iterations",
 			"freeze_ring": {
@@ -996,7 +996,7 @@
 			"total_combinations": "{{count}} total combinations.",
 			"restoring_reforges_from_cache": "Restoring optimized gear sets from cache",
 			"building_candidate_gear_sets": "Building candidate gear sets",
-			"reforging_iteration_rounds": "Optimizing gear",
+			"reforging_iteration_rounds": "Optimizing enchants",
 			"baseline_round": "Running baseline round",
 			"refining_rounds": "Running refining rounds",
 			"low_iteration_rounds": "Running low iteration rounds",
@@ -2336,7 +2336,7 @@
 		"github": "Contribute on GitHub",
 		"status": {
 			"unlaunched": "This sim is a WORK IN PROGRESS. It is not fully developed and should not be used for general purposes.",
-			"gear_planner": "This sim is a GEAR PLANNER only. Gear, enchants, talents and the gear optimizer work. There's no simulation planned for this spec.",
+			"gear_planner": "This sim is a GEAR PLANNER only. Gear, enchants, talents and the enchants optimizer work. There's no simulation planned for this spec.",
 			"alpha": "This sim is in ALPHA. Bugs are expected; please let us know if you find one!",
 			"beta": "This sim is in BETA. There may still be a few bugs; please let us know if you find one!"
 		},
@@ -2472,8 +2472,8 @@
 				}
 			},
 			"suggest_reforges": {
-				"title": "Optimize Gear",
-				"tooltip": "Change Gear Optimizer settings",
+				"title": "Optimize Enchants",
+				"tooltip": "Change Enchants Optimizer settings",
 				"use_soft_cap_breakpoints": "Use soft cap breakpoints",
 				"any": "Any",
 				"freeze_item_slots_tooltip": "Flag one or more item slots to be \"frozen\", which will prevent the optimizer from changing that slot from its current settings. This can be useful for hybrid classes who use the same gear piece for multiple raid roles.",
@@ -2487,8 +2487,8 @@
 				"no_limit_set": "No limit set",
 				"breakpoints_implemented": "The following breakpoints have been implemented for this spec:",
 				"post_cap_ep": "Post cap EP",
-				"reforge_optimization_failed": "Gear optimization failed. Please try again, or report the issue if it persists.",
-				"reforge_optimization_cancelled": "Gear optimization cancelled.",
+				"reforge_optimization_failed": "Enchant optimization failed. Please try again, or report the issue if it persists.",
+				"reforge_optimization_cancelled": "Enchant optimization cancelled.",
 				"use_custom": "Use custom EP Weights",
 				"enable_modification": "This will enable modification of the default EP weights and setting custom stat caps.",
 				"modify_in_editor": "Ep weights can be modified in the Stat Weights editor.",
@@ -2504,7 +2504,7 @@
 				"go_to_batch_sim": "Go to batch sim",
 				"use_enchant_presets": "Use enchant presets",
 				"use_enchant_presets_tooltip": "Pick enchants only from the checked enchant presets, the same presets the Batch Sim uses. A slot no checked preset lists keeps its enchant.",
-				"no_enchant_preset": "Check at least one enchant preset to optimize gear."
+				"no_enchant_preset": "Check at least one enchant preset to optimize enchants."
 			}
 		},
 		"header": {
