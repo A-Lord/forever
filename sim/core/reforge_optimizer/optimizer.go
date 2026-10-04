@@ -165,7 +165,8 @@ func (o *reforgeOptimizer) setBaseRaid(baseRaid *proto.Raid) error {
 }
 
 // optimizeReforges picks one static enchant per listed slot. The baseline is the input gear with
-// those slots' enchants cleared, so each candidate's coefficients are its full contribution.
+// those slots' static enchants cleared, so each candidate's coefficients are its full contribution. The
+// score is the objective of the picks over that baseline, not their gain over the input gear.
 func (o *reforgeOptimizer) optimizeReforges() (*proto.EquipmentSpec, float64, error) {
 	candidates := o.enchantCandidates(o.baseGear)
 	if len(candidates) == 0 {

@@ -3,6 +3,7 @@
 package reforgeoptimizer
 
 import (
+	"math"
 	"testing"
 
 	"github.com/wowsims/forever/sim/core/proto"
@@ -27,8 +28,13 @@ func wrist(ids ...int32) *proto.BulkEnchantSlotOptions {
 // of it breaks the cap. A cap the request does not list as an undershoot cap is a target instead.
 func capAgilityAtTheSheet(t *testing.T, request *proto.ReforgeOptimizeRequest) {
 	t.Helper()
+	capAgilityBelowTheSheet(t, request, 0)
+}
+
+func capAgilityBelowTheSheet(t *testing.T, request *proto.ReforgeOptimizeRequest, below float64) {
+	t.Helper()
 	caps := &proto.UnitStats{Stats: make([]float64, len(proto.Stat_name))}
-	caps.Stats[proto.Stat_StatAgility] = sheetStats(t, request.Raid).Stats[stats.Agility]
+	caps.Stats[proto.Stat_StatAgility] = sheetStats(t, request.Raid).Stats[stats.Agility] - below
 	request.Settings.StatCaps = caps
 	upperBound := &proto.UnitStats{Stats: make([]float64, len(proto.Stat_name))}
 	upperBound.Stats[proto.Stat_StatAgility] = 1
@@ -79,6 +85,41 @@ func TestOptimizeLeavesASlotEmptyWhenEveryCandidateBreaksACap(t *testing.T) {
 	capAgilityAtTheSheet(t, request)
 	if got := slotEnchant(optimize(t, request), proto.ItemSlot_ItemSlotWrist); got != 0 {
 		t.Errorf("wrist enchant %d, want none", got)
+	}
+}
+
+// The baseline already exceeds the ceiling, so the ceiling only stops more Agility.
+func TestOptimizeAllowsACeilingTheBaselineExceeds(t *testing.T) {
+	request := enchantRequest(protectionWarriorRaid("preraid"), agilityOverStrength, wrist(927, 1887))
+	capAgilityBelowTheSheet(t, request, 10)
+	if got := slotEnchant(optimize(t, request), proto.ItemSlot_ItemSlotWrist); got != 927 {
+		t.Errorf("wrist enchant %d, want 927 (Greater Strength)", got)
+	}
+}
+
+// Minor Speed gives no stats, so the boots keep it when the only candidate breaks the cap.
+func TestOptimizeKeepsAPermanentEffectEnchantWhenNothingIsPicked(t *testing.T) {
+	raid := protectionWarriorRaid("preraid")
+	raid.Parties[0].Players[0].Equipment.Items[proto.ItemSlot_ItemSlotFeet].Enchant = 911
+	feet := &proto.BulkEnchantSlotOptions{Slot: proto.ItemSlot_ItemSlotFeet, EffectIds: []int32{1887}}
+	request := enchantRequest(raid, map[proto.Stat]float64{proto.Stat_StatAgility: 2}, feet)
+	capAgilityAtTheSheet(t, request)
+	if got := slotEnchant(optimize(t, request), proto.ItemSlot_ItemSlotFeet); got != 911 {
+		t.Errorf("feet enchant %d, want 911 (Minor Speed)", got)
+	}
+}
+
+// Might of the Scourge's 1% melee and ranged crit is one percent of crit rating: 26 AP + 14 × 4 = 82,
+// against Zandalar Signet of Might's 30 AP.
+func TestOptimizeValuesAPercentEnchantThroughItsRating(t *testing.T) {
+	weights := map[proto.Stat]float64{proto.Stat_StatStrength: 2.2, proto.Stat_StatAttackPower: 1, proto.Stat_StatCritRating: 4}
+	shoulder := &proto.BulkEnchantSlotOptions{Slot: proto.ItemSlot_ItemSlotShoulder, EffectIds: []int32{2606, 2717}}
+	result := optimize(t, enchantRequest(protectionWarriorRaid("preraid"), weights, shoulder))
+	if got := slotEnchant(result, proto.ItemSlot_ItemSlotShoulder); got != 2717 {
+		t.Errorf("shoulder enchant %d, want 2717 (Might of the Scourge)", got)
+	}
+	if got := result.GetScore(); math.Abs(got-82) > 1e-9 {
+		t.Errorf("score %v, want 82", got)
 	}
 }
 

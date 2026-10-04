@@ -159,9 +159,10 @@ func (o *reforgeOptimizer) checkCaps(
 		if cap != 0 && value > cap && !constraints.has(statName) {
 			anyCapsExceeded = true
 			// Stats treated as upper bounds get a ceiling; the rest are pinned at the cap and lose
-			// their EP so the solver stops chasing them.
+			// their EP so the solver stops chasing them. Enchants only add stats, so a ceiling the
+			// baseline already exceeds allows none of that stat.
 			if getUnitStat(o.undershootCaps, unitStat) != 0 {
-				updatedConstraints.set(statName, lessEq(cap))
+				updatedConstraints.set(statName, lessEq(math.Max(cap, 0)))
 			} else {
 				updatedConstraints.set(statName, greaterEq(cap))
 				updatedWeights = setUnitStat(updatedWeights, unitStat, 0)
