@@ -61,9 +61,9 @@ func (character *Character) EnableManaBarWithModifier() {
 		ActionID: ActionID{OtherID: proto.OtherAction_OtherActionManaGain},
 	})
 
-	// Spirit restores 15 + Spirit/5 mana every 2 s tick, 12.5 + Spirit/4 for priests and mages.
+	// Spirit restores 15 + Spirit/5 mana every 2 s tick, 12.5 + Spirit/4 for priests, mages and warlocks.
 	character.spiritRegenBase, character.spiritRegenPerSpirit = 7.5, 1.0/10
-	if character.Class == proto.Class_ClassPriest || character.Class == proto.Class_ClassMage {
+	if character.Class == proto.Class_ClassPriest || character.Class == proto.Class_ClassMage || character.Class == proto.Class_ClassWarlock {
 		character.spiritRegenBase, character.spiritRegenPerSpirit = 6.25, 1.0/8
 	}
 
