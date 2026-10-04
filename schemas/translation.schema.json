@@ -8786,6 +8786,15 @@
 								"freeze_item_slots": {
 									"type": "string"
 								},
+								"settings": {
+									"type": "string"
+								},
+								"frozen_slots": {
+									"type": "string"
+								},
+								"enchants": {
+									"type": "string"
+								},
 								"skipped_slots_title": {
 									"type": "string"
 								},
@@ -8830,6 +8839,9 @@
 								"hard_cap_info",
 								"edit_weights",
 								"freeze_item_slots",
+								"settings",
+								"frozen_slots",
+								"enchants",
 								"skipped_slots_title",
 								"skipped_slot",
 								"skipped_slot_unlisted",

@@ -5,8 +5,9 @@ import { SavedEpWeights } from '@features/stat-weights/components/SavedEpWeights
 import { useOpenEpWeights } from '@features/stat-weights/hooks/useEpWeightsDialog';
 import i18n from '@i18n/config';
 import { useSimHost, useSpecConfig } from '@sim/context/SimHostContext';
+import { Accordion, AccordionItem } from '@ui-kit/Accordion';
 import { Button } from '@ui-kit/Button';
-import { type ReactNode, useMemo } from 'react';
+import { type ReactNode, useMemo, useState } from 'react';
 
 import { trackEvent } from '../../../../tracking/utils';
 import { useReforgeField } from '../../hooks/useReforgeField';
@@ -40,27 +41,39 @@ export const ReforgeSettingsPanelView = ({
 	skippedSlots,
 	savedEpWeights,
 	onEditWeights,
-}: ReforgeSettingsPanelViewProps) => (
-	<>
-		{customEpToggle}
-		{showEpHelp && (
-			<div className="mb-0">
-				<p>{i18n.t('sidebar.buttons.suggest_reforges.enable_modification')}</p>
-				<p>{i18n.t('sidebar.buttons.suggest_reforges.modify_in_editor')}</p>
-				<p>{i18n.t('sidebar.buttons.suggest_reforges.hard_cap_info')}</p>
-			</div>
-		)}
-		{statCaps}
-		{softCaps}
-		{freezeSlots}
-		{enchantPresets}
-		{skippedSlots}
-		{savedEpWeights}
-		<Button variant="outline-primary" className="mt-2" data-testid="reforge-edit-weights" onClick={onEditWeights}>
-			{i18n.t('sidebar.buttons.suggest_reforges.edit_weights')}
-		</Button>
-	</>
-);
+}: ReforgeSettingsPanelViewProps) => {
+	const [openGroups, setOpenGroups] = useState<string[]>(['settings', 'frozen-slots', 'enchants']);
+
+	return (
+		<>
+			<Accordion value={openGroups} onValueChange={setOpenGroups} variant="boxed" className="mb-2" testId="reforge-settings-accordion">
+				<AccordionItem value="settings" title={i18n.t('sidebar.buttons.suggest_reforges.settings')} testId="reforge-settings">
+					{customEpToggle}
+					{showEpHelp && (
+						<div className="mb-0">
+							<p>{i18n.t('sidebar.buttons.suggest_reforges.enable_modification')}</p>
+							<p>{i18n.t('sidebar.buttons.suggest_reforges.modify_in_editor')}</p>
+							<p>{i18n.t('sidebar.buttons.suggest_reforges.hard_cap_info')}</p>
+						</div>
+					)}
+					{statCaps}
+					{softCaps}
+				</AccordionItem>
+				<AccordionItem value="frozen-slots" title={i18n.t('sidebar.buttons.suggest_reforges.frozen_slots')} testId="reforge-frozen-slots-group">
+					{freezeSlots}
+				</AccordionItem>
+				<AccordionItem value="enchants" title={i18n.t('sidebar.buttons.suggest_reforges.enchants')} testId="reforge-enchants">
+					{enchantPresets}
+					{skippedSlots}
+				</AccordionItem>
+			</Accordion>
+			{savedEpWeights}
+			<Button variant="outline-primary" className="mt-2" data-testid="reforge-edit-weights" onClick={onEditWeights}>
+				{i18n.t('sidebar.buttons.suggest_reforges.edit_weights')}
+			</Button>
+		</>
+	);
+};
 
 export interface ReforgeSettingsPanelProps {
 	model: ReforgeOptimizerModel;
