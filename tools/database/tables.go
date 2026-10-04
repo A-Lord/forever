@@ -522,6 +522,7 @@ func ScanEnchantsTable(rows *sql.Rows) (dbc.Enchant, error) {
 	var effectArgsString string
 	var spellItemEnchantmentFlags dbc.SpellItemEnchantmentFlags
 	var spellItemLevel int
+	var itemClassMasks string
 	err := rows.Scan(
 		&raw.EffectId,
 		&raw.Name,
@@ -535,6 +536,7 @@ func ScanEnchantsTable(rows *sql.Rows) (dbc.Enchant, error) {
 		&raw.InventoryType,
 		&raw.SubClassMask,
 		&raw.ClassMask,
+		&itemClassMasks,
 		&raw.FDID,
 		&raw.Quality,
 		&raw.RequiredProfession,
@@ -547,6 +549,20 @@ func ScanEnchantsTable(rows *sql.Rows) (dbc.Enchant, error) {
 		return raw, fmt.Errorf("scanning enchant data for effect ID %d: %w", raw.EffectId, err)
 	}
 	raw.Lvl = enchantLvl(spellItemLevel)
+
+	// A class may use the enchant when it may use any item that applies it; AllowableClass -1 is every class.
+	if itemClassMasks != "" {
+		for _, field := range strings.Split(itemClassMasks, ",") {
+			mask, err := strconv.Atoi(field)
+			if err != nil {
+				return raw, fmt.Errorf("parsing item class masks for enchant %d (%s): %w", raw.EffectId, itemClassMasks, err)
+			}
+			if mask <= 0 {
+				mask = -1
+			}
+			raw.ClassMask |= mask
+		}
+	}
 
 	raw.Effects, err = parseIntArrayField(effectsString, 3)
 	if err != nil {
@@ -630,6 +646,14 @@ func LoadAndWriteRawEnchants(dbHelper *DBHelper, inputsDir string) ([]dbc.Enchan
 			COALESCE(sei.EquippedItemInvTypes, 0) as InvTypes,
 			COALESCE(sei.EquippedItemSubclass, 0),
 			COALESCE(sla.ClassMask, 0),
+			-- The AllowableClass of every item that applies an enchant no skill line teaches.
+			CASE WHEN sla.ID IS NULL THEN COALESCE((
+				SELECT group_concat(DISTINCT lisp.AllowableClass) FROM ItemEffect lie
+					JOIN ItemXItemEffect lixie ON lixie.ItemEffectID = lie.ID
+					JOIN ItemSparse lisp ON lisp.ID = lixie.ItemID
+				WHERE lie.SpellID = se.SpellID
+					AND lixie.ItemID NOT BETWEEN ` + strconv.Itoa(sodItemIDMin) + ` AND ` + strconv.Itoa(sodItemIDMax) + `
+			), '') ELSE '' END AS ItemClassMasks,
 			COALESCE(it.IconFileDataID, 0),
 			COALESCE(isp.OverallQualityID, 1),
 			COALESCE(sla.SkillLine, 0) as RequiredProfession,
