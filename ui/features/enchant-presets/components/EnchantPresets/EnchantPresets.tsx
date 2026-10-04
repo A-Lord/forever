@@ -97,12 +97,9 @@ export const EnchantPresets = () => {
 			onEdit={name => openDialog(presets.find(preset => preset.name === name) ?? null)}
 			onDelete={name => deleteEnchantPreset(player, name)}
 			dialog={
-				<EnchantPresetDialog
-					key={dialog.key}
-					open={dialog.open}
-					preset={dialog.preset}
-					onClose={() => setDialog(current => ({ ...current, open: false }))}
-				/>
+				dialog.open && (
+					<EnchantPresetDialog key={dialog.key} open preset={dialog.preset} onClose={() => setDialog(current => ({ ...current, open: false }))} />
+				)
 			}
 		/>
 	);
