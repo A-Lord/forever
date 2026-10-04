@@ -29,7 +29,7 @@ const missingEffectNotice = (effectKind: 'item' | 'enchant', tooltips: string[])
 	) : (
 		<>
 			<p className="font-bold">{`The following ${effectKind} effect (on-use or proc) is not implemented!`}</p>
-			<ul>
+			<ul className="list-disc pl-4">
 				{tooltips
 					.filter(tooltip => !!tooltip)
 					.map(tooltip => (
@@ -88,7 +88,7 @@ export const registerSetBonusNotices = (db: Database) => {
 		const noticeContent = (
 			<>
 				<p className="mb-1"> This item set has the following warnings:</p>
-				<ul className="mb-0">
+				<ul className="mb-0 list-disc pl-4">
 					{Array.from(noticeData.keys()).map(pieceCount => (
 						<li key={pieceCount}>
 							{pieceCount.toFixed(0)}-piece: {noticeData.get(pieceCount)!}
@@ -117,7 +117,7 @@ export const registerAreaStatsNotices = (db: Database) => {
 			item.id,
 			<>
 				<p className="mb-1">Only while the encounter is in one of these areas:</p>
-				<ul className="mb-0">
+				<ul className="mb-0 list-disc pl-4">
 					{areaStats.map(bonus => (
 						<li key={bonus.areaType}>
 							{translateAreaType(bonus.areaType)}:{' '}

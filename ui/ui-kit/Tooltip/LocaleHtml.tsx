@@ -10,7 +10,7 @@ const OPENING_TAG = /<([a-zA-Z][a-zA-Z0-9-]*)/g;
 
 const componentsIn = (html: string): Record<string, ReactElement> => {
 	const components: Record<string, ReactElement> = {};
-	for (const [, name] of html.matchAll(OPENING_TAG)) components[name] ??= createElement(name);
+	for (const [, name] of html.matchAll(OPENING_TAG)) components[name] ??= createElement(name, name === 'ul' ? { className: 'list-disc pl-4' } : undefined);
 	return components;
 };
 
