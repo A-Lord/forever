@@ -225,11 +225,7 @@ describe('TargetsPicker', () => {
 			mount(
 				new FakeEncounter(
 					[defaultTarget()],
-					[
-						preset('Molten Core/Lucifron', 12118),
-						preset('Molten Core/Lucifron (alternate)', 12118),
-						preset('x/Ragnaros', 11502),
-					],
+					[preset('Molten Core/Lucifron', 12118), preset('Molten Core/Lucifron (alternate)', 12118), preset('x/Ragnaros', 11502)],
 				),
 			);
 
