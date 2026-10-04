@@ -80,6 +80,12 @@ func bleedAuraOpt() spelldata.AuraOpt {
 	}
 }
 
+func (druid *Druid) breakProwl(sim *core.Simulation) {
+	if druid.ProwlAura != nil && druid.ProwlAura.IsActive() {
+		druid.ProwlAura.Deactivate(sim)
+	}
+}
+
 func (druid *Druid) registerProwlBreakingCasts() {
 	druid.OnSpellRegistered(func(spell *core.Spell) {
 		if spell.ApplyEffects == nil || spell.Flags.Matches(core.SpellFlagPassiveSpell|core.SpellFlagProc) {
@@ -103,12 +109,6 @@ func (druid *Druid) registerProwlBreakingCasts() {
 			apply(sim, target, spell)
 		}
 	})
-}
-
-func (druid *Druid) breakProwl(sim *core.Simulation) {
-	if druid.ProwlAura != nil && druid.ProwlAura.IsActive() {
-		druid.ProwlAura.Deactivate(sim)
-	}
 }
 
 // berserkTargets is the number of targets Primal Bite strikes under Berserk, the primary included:

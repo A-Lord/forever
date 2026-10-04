@@ -10,8 +10,6 @@ import (
 	"github.com/wowsims/forever/sim/core/simsignals"
 )
 
-// Heart of the wild, feral instinct, thick hide, feral charge, primal bite,
-// leader of the pack, natural reaction.
 const bearTalents = "0000000000000000-05030300100100010500-0000000000000000"
 
 func TestBearSimpleRotationDealsDamage(t *testing.T) {
@@ -29,6 +27,21 @@ func TestBearSimpleRotationDealsDamage(t *testing.T) {
 	}
 	if casts == 0 {
 		t.Fatal("primal bite, lacerate, maul and swipe were never cast")
+	}
+}
+
+func TestBearShippedAplRuns(t *testing.T) {
+	req := bearSimpleRequest()
+	req.Raid.Parties[0].Players[0].Rotation = core.GetAplRotation("../../../ui/specs/druid/feralbear/apls", "default").Rotation
+	result := core.RunSim(req, nil, simsignals.CreateSignals())
+	if result.Error != nil {
+		t.Fatalf("sim error: %s", result.Error.Message)
+	}
+	player := result.RaidMetrics.Parties[0].Players[0]
+	for _, id := range []int32{1238073, 9881, 22812} {
+		if bearCastsOf(player.Actions, id) == 0 {
+			t.Fatalf("shipped bear APL never casts %d", id)
+		}
 	}
 }
 

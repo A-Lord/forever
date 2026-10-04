@@ -171,6 +171,10 @@ func (druid *Druid) RegisterFeralCatSpells() {
 func (druid *Druid) RegisterFeralTankSpells() {
 	druid.registerFeralKit()
 	druid.registerBarkskin()
+	druid.AddMajorCooldown(core.MajorCooldown{
+		Spell: druid.Barkskin.Spell,
+		Type:  core.CooldownTypeSurvival,
+	})
 }
 
 func (druid *Druid) registerFeralKit() {

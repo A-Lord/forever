@@ -3,6 +3,7 @@ on:
     pull_request:
         branches:
             - master
+            - druid/feral-foundation
     # Reusable from other workflows (deploy, release). Their runs on master also
     # prime the Go/npm caches that pull request runs restore from.
     workflow_call:

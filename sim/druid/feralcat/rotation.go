@@ -98,6 +98,11 @@ func (cat *FeralDruid) doRotation(sim *core.Simulation) bool {
 	if cat.BehindTarget() {
 		builder = cat.Shred
 	}
+	if cat.Consumables.GetConjuredId() == 7676 {
+		if tea := cat.GetSpell(core.ActionID{ItemID: 7676}); tea != nil && cat.CurrentEnergy() <= 20 && tea.CanCast(sim, &cat.Unit) {
+			tea.Cast(sim, &cat.Unit)
+		}
+	}
 	if cat.wantShift(sim, target, builder) {
 		if shiftDecided {
 			return cat.ShiftingPower.Cast(sim, target)

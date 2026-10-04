@@ -22,52 +22,38 @@
 	],
 	"priorityList": [
 		{ "action": { "autocastOtherCooldowns": {} } },
-		{ "action": { "castSpell": { "spellId": { "spellId": 20271 } } } },
 		{
 			"action": {
 				"condition": {
 					"or": {
 						"vals": [
 							{
-								"cmp": {
-									"op": "OpEq",
-									"lhs": {
-										"spellCastTime": {
-											"spellId": {
-												"spellId": 24239,
-												"rank": 3
-											}
+								"not": {
+									"val": {
+										"variableRef": {
+											"name": "Only judge SoC"
 										}
-									},
-									"rhs": { "const": { "val": "0s" } }
+									}
 								}
 							},
 							{
-								"cmp": {
-									"op": "OpLt",
-									"lhs": {
-										"autoTimeSinceLast": {
-											"autoType": "MainHandAuto"
-										}
-									},
-									"rhs": { "const": { "val": "0.2s" } }
+								"auraIsActive": {
+									"auraId": { "spellId": 20920, "rank": 5 }
+								}
+							},
+							{
+								"auraIsActive": {
+									"auraId": { "spellId": 20308, "rank": 6 }
 								}
 							}
 						]
 					}
 				},
-				"castSpell": { "spellId": { "spellId": 24239, "rank": 3 } }
+				"castSpell": { "spellId": { "spellId": 20271 } }
 			}
 		},
 		{
 			"action": {
-				"condition": {
-					"cmp": {
-						"op": "OpGt",
-						"lhs": { "currentTime": {} },
-						"rhs": { "const": { "val": "0.5s" } }
-					}
-				},
 				"castSpell": { "spellId": { "spellId": 10333, "rank": 8 } }
 			}
 		},
@@ -119,6 +105,20 @@
 			"action": {
 				"condition": { "variableRef": { "name": "Use Consecration" } },
 				"groupReference": { "groupName": "Consecration" }
+			}
+		},
+		{
+			"action": {
+				"condition": {
+					"cmp": {
+						"op": "OpGt",
+						"lhs": {
+							"autoTimeToNext": { "autoType": "MainHandAuto" }
+						},
+						"rhs": { "const": { "val": "1.5s" } }
+					}
+				},
+				"castSpell": { "spellId": { "spellId": 24239, "rank": 3 } }
 			}
 		},
 		{
@@ -208,6 +208,7 @@
 	],
 	"valueVariables": [
 		{ "name": "Use Exorcism", "value": { "const": { "val": "true" } } },
-		{ "name": "Use Consecration", "value": { "const": { "val": "true" } } }
+		{ "name": "Use Consecration", "value": { "const": { "val": "true" } } },
+		{ "name": "Only judge SoC", "value": { "const": { "val": "false" } } }
 	]
 }

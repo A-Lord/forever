@@ -1,0 +1,51 @@
+{
+  "priorityList": [
+    {
+      "action": {
+        "castSpell": {
+          "spellId": {
+            "spellId": 9867
+          }
+        },
+        "condition": {
+          "auraIsActive": {
+            "auraId": {
+              "spellId": 9913
+            }
+          }
+        }
+      }
+    },
+    {
+      "action": {
+        "autocastOtherCooldowns": {}
+      }
+    },
+    {
+      "action": {
+        "catOptimalRotationAction": {
+          "ripMinComboPoints": 5,
+          "biteMinComboPoints": 5,
+          "rakeTrick": true
+        }
+      }
+    }
+  ],
+  "prepullActions": [
+    {
+      "doAtValue": {
+        "const": {
+          "val": "-1s"
+        }
+      },
+      "action": {
+        "castSpell": {
+          "spellId": {
+            "spellId": 9913
+          }
+        }
+      }
+    }
+  ],
+  "type": "TypeAPL"
+}
