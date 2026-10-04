@@ -260,15 +260,14 @@ enum SourceFilterOption {
 
 enum RaidFilterOption {
 	RaidUnknown = 0;
-	RaidKara = 1;
-	RaidGruul = 2;
-	RaidMag = 3;
-	RaidTK = 4;
-	RaidSSC = 5;
-	RaidMH = 6;
-	RaidBT = 7;
-	RaidZA = 8;
-	RaidSWP = 9;
+	reserved 1 to 9;
+	RaidMC = 10;
+	RaidOny = 11;
+	RaidBWL = 12;
+	RaidZG = 13;
+	RaidAQ20 = 14;
+	RaidAQ40 = 15;
+	RaidNaxx = 16;
 }
 
 // NextIndex: 26

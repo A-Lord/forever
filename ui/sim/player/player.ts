@@ -1324,15 +1324,13 @@ export class Player<SpecType extends Spec> {
 	};
 
 	static readonly RAID_IDS: Partial<Record<RaidFilterOption, number>> = {
-		[RaidFilterOption.RaidKara]: 3457,
-		[RaidFilterOption.RaidGruul]: 3923,
-		[RaidFilterOption.RaidMag]: 3836,
-		[RaidFilterOption.RaidTK]: 3845,
-		[RaidFilterOption.RaidSSC]: 3607,
-		[RaidFilterOption.RaidMH]: 3606,
-		[RaidFilterOption.RaidBT]: 3959,
-		[RaidFilterOption.RaidZA]: 3805,
-		[RaidFilterOption.RaidSWP]: 4075,
+		[RaidFilterOption.RaidMC]: 2717,
+		[RaidFilterOption.RaidOny]: 2159,
+		[RaidFilterOption.RaidBWL]: 2677,
+		[RaidFilterOption.RaidZG]: 1977,
+		[RaidFilterOption.RaidAQ20]: 3429,
+		[RaidFilterOption.RaidAQ40]: 3428,
+		[RaidFilterOption.RaidNaxx]: 3456,
 	};
 
 	filterItemData<T>(itemData: Array<T>, getItemFunc: (val: T) => Item, slot: ItemSlot): Array<T> {
