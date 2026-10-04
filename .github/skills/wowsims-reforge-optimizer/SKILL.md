@@ -17,11 +17,12 @@ Comments, docs, commit messages and PR text follow `wowsims-conventions`: "game 
 The optimizer picks one static enchant per listed slot to maximize EP within the stat caps. There are no gems or sockets.
 
 - Candidates come from `ReforgeOptimizeRequest.enchant_options`, built by ui/features/reforge/model/enchant_options.ts. Per equipped, unfrozen slot it lists the enchants the player can use on that item (class and Enchanting gated, bulk's fit rule `core.EnchantRowAppliesToItem`) that are static (`proc_kind` None, with stats, pseudo-stats or weapon damage) and worth EP > 0 on the optimizer's pre-cap weights.
-- A slot whose item can take a Combat proc enchant, or a Survival proc on a tank spec, is skipped and listed in the panel ("Simulated, not optimized"). Every melee weapon takes Crusader, so weapon slots are skipped.
+- A slot whose item can take a proc enchant the sim implements (a combat proc for every spec, a survival proc for tanks) is skipped and listed in the panel ("Simulated, not optimized"). A proc enchant in `MISSING_ENCHANT_EFFECTS` (ui/sim/constants/missing_effects_auto_gen.ts) blocks nothing; it has no stats, so it is never a candidate either. Every melee weapon takes Crusader, so weapon slots are skipped.
 - `proc_kind` comes from gen_db (tools/database/dbc/enchant.go; overrides in `enchantProcKindOverrides` there).
-- Go side (enchants.go): one binary per (slot, candidate) with a per-slot row <= 1, so a slot may end with no enchant when every candidate breaks a ceiling. The baseline is the gear with those slots' enchants cleared. Go drops non-static, unfit and frozen-slot candidates. No candidate returns the gear unchanged with score 0.
+- Go side (enchants.go): one binary per (slot, candidate) with a per-slot row <= 1, so a slot may end with no pick when every candidate breaks a ceiling. The baseline is the gear with those slots' static enchants cleared; an enchant that is not static (Minor Speed, a proc) stays, so a slot with no pick keeps it; a slot with no pick whose input enchant was static ends empty. Go drops non-static, unfit and frozen-slot candidates. No candidate returns the gear unchanged with score 0. The score is the objective over that baseline, not the gain over the input gear.
+- A candidate's percent pseudo-stats are valued as `Stats.computeEP` (ui/sim/proto/stats.ts) values them: by the percent's own weight when it has one, otherwise as rating under the root rating's weight; the part all three channels of a hit, crit or haste rating share counts once at the rating, and one rating's fallbacks count once, as the largest.
 - Flat weapon damage counts as the hand's (or ranged) DPS at the item's speed.
-- `StatCaps` are targets; `UndershootCaps` make them ceilings.
+- `StatCaps` are targets; `UndershootCaps` make them ceilings. A ceiling the baseline already exceeds allows no more of that stat.
 
 ## Architecture
 
