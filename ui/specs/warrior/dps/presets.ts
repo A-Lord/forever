@@ -1,5 +1,5 @@
 import * as PresetUtils from '@app/preset_utils';
-import { ConsumesSpec, HandType, ItemSlot, Profession, Race, Spec, Stat } from '@generated/proto/common';
+import { ConsumesSpec, HandType, ItemSlot, Profession, PseudoStat, Race, Spec, Stat } from '@generated/proto/common';
 import { SavedTalents } from '@generated/proto/ui';
 import { DpsWarrior_Options as WarriorOptions, DpsWarrior_Rotation, DpsWarriorSpec, WarriorStance, WarriorSunder } from '@generated/proto/warrior';
 import { Player } from '@sim/player/player';
@@ -33,13 +33,22 @@ export const FuryTalents = PresetUtils.makePresetTalents('Fury', SavedTalents.cr
 // Measured on the Pre-BiS Fury gear with the Fury talents.
 export const PreBiSFuryEpWeights = PresetUtils.makePresetEpWeights(
 	'Pre-BiS Fury',
-	Stats.fromMap({
-		[Stat.StatStrength]: 2.2,
-		[Stat.StatAgility]: 2.87,
-		[Stat.StatAttackPower]: 1,
-		[Stat.StatHitRating]: 2.75,
-		[Stat.StatCritRating]: 3.72,
-	}),
+	Stats.fromMap(
+		{
+			[Stat.StatStrength]: 2.2,
+			[Stat.StatAgility]: 2.87,
+			[Stat.StatAttackPower]: 1,
+			[Stat.StatArmorPenetration]: 0.32,
+			[Stat.StatHitRating]: 2.75,
+			[Stat.StatHasteRating]: 2.75,
+			[Stat.StatCritRating]: 3.72,
+			[Stat.StatExpertiseRating]: 3.43,
+		},
+		{
+			[PseudoStat.PseudoStatMainHandDps]: 9.26,
+			[PseudoStat.PseudoStatOffHandDps]: 2.14,
+		},
+	),
 );
 
 export const FURY_DEFAULT_ROTATION = PresetUtils.makePresetAPLRotation('Fury', DefaultFuryApl);
