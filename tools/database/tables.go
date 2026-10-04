@@ -605,6 +605,11 @@ const (
 	sodItemIDMax = 244460
 )
 
+// The SQL condition that the item id in column is in the Season of Discovery range.
+func sodItemID(column string) string {
+	return column + ` BETWEEN ` + strconv.Itoa(sodItemIDMin) + ` AND ` + strconv.Itoa(sodItemIDMax)
+}
+
 func LoadAndWriteRawEnchants(dbHelper *DBHelper, inputsDir string) ([]dbc.Enchant, error) {
 	query := `
 		SELECT DISTINCT
@@ -631,7 +636,7 @@ func LoadAndWriteRawEnchants(dbHelper *DBHelper, inputsDir string) ([]dbc.Enchan
 			-- the Season of Discovery range last. This is the query's only aggregate, so the bare columns (icon
 			-- and quality among them) come from its row.
 			COALESCE(MIN(
-				CASE WHEN ixie.ItemID BETWEEN ` + strconv.Itoa(sodItemIDMin) + ` AND ` + strconv.Itoa(sodItemIDMax) + ` THEN 2000000000 ELSE 0 END
+				CASE WHEN ` + sodItemID("ixie.ItemID") + ` THEN 2000000000 ELSE 0 END
 				+ CASE WHEN isp.ID IS NULL THEN 1000000000 ELSE 0 END
 				+ ixie.ItemID
 			) % 1000000000, 0) as ItemId,
@@ -651,8 +656,7 @@ func LoadAndWriteRawEnchants(dbHelper *DBHelper, inputsDir string) ([]dbc.Enchan
 				SELECT group_concat(DISTINCT lisp.AllowableClass) FROM ItemEffect lie
 					JOIN ItemXItemEffect lixie ON lixie.ItemEffectID = lie.ID
 					JOIN ItemSparse lisp ON lisp.ID = lixie.ItemID
-				WHERE lie.SpellID = se.SpellID
-					AND lixie.ItemID NOT BETWEEN ` + strconv.Itoa(sodItemIDMin) + ` AND ` + strconv.Itoa(sodItemIDMax) + `
+				WHERE lie.SpellID = se.SpellID AND NOT ` + sodItemID("lixie.ItemID") + `
 			), '') ELSE '' END AS ItemClassMasks,
 			COALESCE(it.IconFileDataID, 0),
 			COALESCE(isp.OverallQualityID, 1),
@@ -672,8 +676,7 @@ func LoadAndWriteRawEnchants(dbHelper *DBHelper, inputsDir string) ([]dbc.Enchan
 				SELECT MAX(lisp.ItemLevel) FROM ItemEffect lie
 					JOIN ItemXItemEffect lixie ON lixie.ItemEffectID = lie.ID
 					JOIN ItemSparse lisp ON lisp.ID = lixie.ItemID
-				WHERE lie.SpellID = se.SpellID
-					AND lixie.ItemID NOT BETWEEN ` + strconv.Itoa(sodItemIDMin) + ` AND ` + strconv.Itoa(sodItemIDMax) + `
+				WHERE lie.SpellID = se.SpellID AND NOT ` + sodItemID("lixie.ItemID") + `
 			), 0) AS SpellItemLevel
 		FROM SpellEffect se
 			JOIN Spell s ON se.SpellID = s.ID
