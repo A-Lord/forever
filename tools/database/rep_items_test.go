@@ -22,7 +22,7 @@ INSERT INTO ItemSparse (ID, MinFactionID, MinReputation) VALUES
 `
 
 func TestRepItemsReadFactionStandingAndSide(t *testing.T) {
-	db, err := sql.Open("sqlite", filepath.Join(t.TempDir(), "client.db"))
+	db, err := sql.Open("sqlite", filepath.Join(t.TempDir(), "factions.db"))
 	if err != nil {
 		t.Fatal(err)
 	}

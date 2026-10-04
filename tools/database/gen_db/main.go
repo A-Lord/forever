@@ -217,7 +217,7 @@ func main() {
 	database.AddConsumableIcons(db, consumables, instance, iconsMap)
 	leftovers := db.Clone()
 	ApplyNonSimmableFilters(leftovers)
-	addRepFactions(leftovers, factionNames)
+	applyRepSources(leftovers, factionNames)
 	leftovers.WriteBinaryAndJson(fmt.Sprintf("%s/leftover_db.bin", dbDir), fmt.Sprintf("%s/leftover_db.json", dbDir))
 	ApplySimmableFilters(db)
 
@@ -279,10 +279,6 @@ func main() {
 					item.RequiredProfession = crafted.Profession
 				}
 			}
-
-			if rep := source.GetRep(); rep != nil {
-				item.FactionRestriction = proto.UIItem_FactionRestriction(rep.FactionId)
-			}
 		}
 
 		// Forever's content phases are not known yet, so every item is phase 1.
@@ -298,15 +294,18 @@ func main() {
 	if err := database.LoadZoneAreas(db, helper); err != nil {
 		log.Fatal(err)
 	}
-	addRepFactions(db, factionNames)
+	applyRepSources(db, factionNames)
 	db.WriteBinaryAndJson(fmt.Sprintf("%s/db.bin", dbDir), fmt.Sprintf("%s/db.json", dbDir))
 }
 
-func addRepFactions(db *database.WowDatabase, factionNames map[int32]string) {
+func applyRepSources(db *database.WowDatabase, factionNames map[int32]string) {
 	for _, item := range db.Items {
 		for _, source := range item.Sources {
 			if rep := source.GetRep(); rep != nil {
 				db.MergeFaction(&proto.UIFaction{Id: rep.RepFactionId, Name: factionNames[rep.RepFactionId]})
+				if rep.FactionId != proto.Faction_Unknown {
+					item.FactionRestriction = proto.UIItem_FactionRestriction(rep.FactionId)
+				}
 			}
 		}
 	}

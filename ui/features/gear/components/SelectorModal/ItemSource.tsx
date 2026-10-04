@@ -106,7 +106,7 @@ export const ItemSource = ({ item, sim }: ItemSourceProps): ReactNode => {
 		return (
 			<SourceLink href={ActionId.makeItemUrl(item.id)}>
 				<span>
-					{sim.db.getFaction(src.repFactionId)?.name ?? 'Unknown'} - {REP_LEVEL_NAMES[src.repLevel]}
+					{sim.db.getFaction(src.repFactionId)?.name || 'Unknown'} - {REP_LEVEL_NAMES[src.repLevel]}
 					<FactionIcon restriction={item.factionRestriction} />
 				</span>
 			</SourceLink>
