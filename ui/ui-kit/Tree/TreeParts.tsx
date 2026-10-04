@@ -32,9 +32,9 @@ export const Header = ({ className, testId, children }: TreeItemHeaderProps) => 
 };
 
 export const Handle = ({ label, className, testId }: TreeItemHandleProps) => {
-	const { disabled, handleProps } = useTreeItem();
+	const { disabled } = useTreeItem();
 	return (
-		<Button iconOnly className={clsx('ui-tree-item-handle', className)} aria-label={label} disabled={disabled} data-testid={testId} {...handleProps}>
+		<Button iconOnly className={clsx('ui-tree-item-handle', className)} aria-label={label} disabled={disabled} data-testid={testId}>
 			<Icon name="grip-lines" size="sm" />
 		</Button>
 	);
