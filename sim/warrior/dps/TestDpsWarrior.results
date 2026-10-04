@@ -272,8 +272,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-AllItems-EverlookPathcarver-274759"
  value: {
-  dps: 466.9825
-  tps: 270.01053
+  dps: 469.75461
+  tps: 271.56292
   dtps: 2.90588
  }
 }
@@ -400,16 +400,16 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-AllItems-JomGabbar-23570"
  value: {
-  dps: 466.9825
-  tps: 270.01053
+  dps: 489.55431
+  tps: 282.65075
   dtps: 2.90588
  }
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-KissoftheSpider-22954"
  value: {
-  dps: 484.38176
-  tps: 279.91682
+  dps: 505.79693
+  tps: 291.99692
   dtps: 2.90588
  }
 }
@@ -544,8 +544,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-AllItems-ShardoftheFallenStar-21891"
  value: {
-  dps: 466.9825
-  tps: 270.01053
+  dps: 468.84805
+  tps: 271.04274
   dtps: 2.90588
  }
 }
