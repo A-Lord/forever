@@ -7,11 +7,7 @@ const meta = {
 	component: ReforgeSkippedSlotsView,
 	tags: ['autodocs'],
 	args: {
-		slots: [
-			{ slot: 'Main Hand', enchant: 'Enchant Weapon - Crusader' },
-			{ slot: 'Chest', enchant: 'Enchant Chest - Lesser Absorption' },
-			{ slot: 'Head' },
-		],
+		slots: [{ slot: 'Main Hand', enchant: 'Enchant Weapon - Crusader' }, { slot: 'Chest', enchant: 'Enchant Chest - Lesser Absorption' }, { slot: 'Head' }],
 	},
 	decorators: [
 		Story => (

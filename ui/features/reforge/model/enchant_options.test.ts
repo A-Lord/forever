@@ -237,7 +237,10 @@ describe('buildEnchantOptions from the checked enchant presets', () => {
 		const withStats = makePresetPlayer({ Raid: [[ItemSlot.ItemSlotChest, [CHEST_UNIMPLEMENTED.effectId, CHEST_STATS.effectId]]] }, { enchants });
 		const procOnly = makePresetPlayer({ Raid: [[ItemSlot.ItemSlotChest, [CHEST_UNIMPLEMENTED.effectId]]] }, { enchants });
 
-		expect(fromPresets(withStats, chest)).toEqual({ options: [BulkEnchantSlotOptions.create({ slot: ItemSlot.ItemSlotChest, effectIds: [1891] })], skipped: [] });
+		expect(fromPresets(withStats, chest)).toEqual({
+			options: [BulkEnchantSlotOptions.create({ slot: ItemSlot.ItemSlotChest, effectIds: [1891] })],
+			skipped: [],
+		});
 		expect(fromPresets(procOnly, chest)).toEqual({ options: [], skipped: [] });
 	});
 

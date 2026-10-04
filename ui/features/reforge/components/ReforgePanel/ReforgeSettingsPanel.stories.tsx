@@ -133,13 +133,6 @@ export const PresetEpValues: Story = {
 export const EnchantPresets: Story = {
 	args: {
 		enchantPresets: ENCHANT_PRESETS,
-		skippedSlots: (
-			<ReforgeSkippedSlotsView
-				slots={[
-					{ slot: 'Main Hand', enchant: 'Enchant Weapon - Crusader' },
-					{ slot: 'Head' },
-				]}
-			/>
-		),
+		skippedSlots: <ReforgeSkippedSlotsView slots={[{ slot: 'Main Hand', enchant: 'Enchant Weapon - Crusader' }, { slot: 'Head' }]} />,
 	},
 };

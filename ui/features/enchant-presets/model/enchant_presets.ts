@@ -40,11 +40,7 @@ export const enchantPresetPool = (player: Player<any>): BulkEnchantSlotOptions[]
 	});
 };
 
-export const validateEnchantPresetName = (
-	presets: readonly BulkEnchantPreset[],
-	name: string,
-	previousName?: string,
-): EnchantPresetNameProblem | null => {
+export const validateEnchantPresetName = (presets: readonly BulkEnchantPreset[], name: string, previousName?: string): EnchantPresetNameProblem | null => {
 	const trimmed = name.trim();
 	if (!trimmed) return 'empty';
 	if (presets.some(preset => preset.name === trimmed && preset.name !== previousName)) return 'duplicate';
