@@ -1,8 +1,20 @@
-import { ErrorOutcome, ErrorOutcomeType, RaidSimRequest, RaidSimResult } from '@generated/proto/api';
-import { ConsumableType, Profession } from '@generated/proto/common';
+import {
+	BulkEnchantSlotOptions,
+	ErrorOutcome,
+	ErrorOutcomeType,
+	Raid as RaidProto,
+	RaidSimRequest,
+	RaidSimResult,
+	ReforgeOptimizeResult,
+	ReforgeSettings,
+} from '@generated/proto/api';
+import { ConsumableType, ItemSlot, ItemType, Profession } from '@generated/proto/common';
+import { UIEnchant } from '@generated/proto/ui';
+import { makeEquippedItem } from '@testing/storybook/fixtures/gear';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { Gear } from './proto/gear';
+import { Gear } from './proto/gear';
+import { Stats } from './proto/stats';
 import { Sim, SimError } from './sim';
 import type { Env } from './state/env';
 
@@ -12,6 +24,8 @@ const mocks = vi.hoisted(() => ({
 	isWasm: vi.fn(() => Promise.resolve(false)),
 	getNumWorkers: vi.fn(() => 1),
 	computeStats: vi.fn(() => new Promise(() => {})),
+	reforgeOptimizeAsync: vi.fn(),
+	db: {} as Record<string, unknown>,
 }));
 
 vi.mock('./workers/worker_pool', () => ({
@@ -22,6 +36,7 @@ vi.mock('./workers/worker_pool', () => ({
 		isWasm = mocks.isWasm;
 		raidSimAsync = mocks.raidSimAsync;
 		computeStats = mocks.computeStats;
+		reforgeOptimizeAsync = mocks.reforgeOptimizeAsync;
 	},
 }));
 
@@ -32,7 +47,7 @@ vi.mock('./wasm', () => ({
 }));
 
 vi.mock('./proto/database', () => ({
-	Database: { get: () => Promise.resolve({}) },
+	Database: { get: () => Promise.resolve(mocks.db) },
 }));
 
 const makeEnv = (): Env => ({
@@ -273,6 +288,34 @@ describe('Sim.updateCharacterStats', () => {
 		await stale;
 
 		expect(crashes).toEqual([]);
+	});
+});
+
+describe('Sim.reforgeOptimize', () => {
+	it('ships every row of each enchant the optimizer may pick, beside the equipped ones', async () => {
+		const crusader = UIEnchant.create({ effectId: 1900, itemId: 1, name: 'Enchant Weapon - Crusader', type: ItemType.ItemTypeWeapon });
+		const lesserImpact = UIEnchant.create({ effectId: 1897, itemId: 2, name: 'Enchant 2H Weapon - Lesser Impact', type: ItemType.ItemTypeWeapon });
+		const superiorStriking = UIEnchant.create({ effectId: 1897, itemId: 3, name: 'Enchant Weapon - Superior Striking', type: ItemType.ItemTypeWeapon });
+		Object.assign(mocks.db, {
+			getItemEffectRandPropPoints: () => undefined,
+			getEnchantsByEffectId: (effectId: number) => [crusader, lesserImpact, superiorStriking].filter(enchant => enchant.effectId === effectId),
+		});
+		mocks.reforgeOptimizeAsync.mockReset().mockResolvedValue(ReforgeOptimizeResult.create());
+		const sim = makeSim();
+		vi.spyOn(sim, 'getModifiedRaidProto').mockReturnValue(RaidProto.create({ parties: [{ players: [{}] }] }));
+
+		await sim.reforgeOptimize({
+			gear: new Gear({ [ItemSlot.ItemSlotMainHand]: makeEquippedItem({ enchant: crusader }) }),
+			preCapEPWeights: new Stats(),
+			undershootCaps: new Stats(),
+			settings: ReforgeSettings.create(),
+			softCaps: [],
+			enchantOptions: [BulkEnchantSlotOptions.create({ slot: ItemSlot.ItemSlotMainHand, effectIds: [1897] })],
+		});
+
+		const [request] = mocks.reforgeOptimizeAsync.mock.calls[0];
+		const shipped = request.raid.parties[0].players[0].database.enchants.map((enchant: { name: string }) => enchant.name).sort();
+		expect(shipped).toEqual([crusader.name, lesserImpact.name, superiorStriking.name].sort());
 	});
 });
 

@@ -685,7 +685,13 @@ export class Sim {
 			await this.waitForInit();
 			const raid = this.getModifiedRaidProto();
 			const player = raid.parties[0].players[0];
-			player.database = config.gear.toDatabase(this.db);
+			// The WASM sim has no enchant table of its own, so the enchants the optimizer may pick ship with the gear.
+			player.database = makeBulkGearDatabase(
+				this.db,
+				[config.gear],
+				[],
+				config.enchantOptions.flatMap(options => options.effectIds),
+			);
 			player.equipment = config.gear.asSpec();
 			raid.parties[0].players[0] = player;
 
