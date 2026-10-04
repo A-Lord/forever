@@ -1,9 +1,5 @@
 @layer components {
 	.ui-reforge-sidebar-actions {
 		--reforge-cols: auto var(--settings-button-width);
-
-		& > .ui-button ~ .ui-button {
-			@apply -ml-px;
-		}
 	}
 }

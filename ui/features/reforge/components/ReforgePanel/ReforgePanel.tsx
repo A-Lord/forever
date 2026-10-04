@@ -161,8 +161,7 @@ export const ReforgePanel = ({ model, options }: ReforgePanelProps) => {
 		<>
 			<Button
 				variant="outline-primary"
-				size="none"
-				className="peer -mr-(--settings-button-width) grow py-2 pr-settings-button-inset pl-2"
+				className="peer col-span-full row-start-1 pr-settings-button-inset"
 				aria-label={i18n.t('sidebar.buttons.suggest_reforges.title')}
 				data-testid="suggest-reforges-action-button"
 				data-sidebar-action=""
@@ -171,7 +170,10 @@ export const ReforgePanel = ({ model, options }: ReforgePanelProps) => {
 				loading={isRunning}
 				onClick={onOptimize}
 				{...tooltipAnchorProps(softCapsTooltipId)}>
-				<Icon name="screwdriver-wrench" />
+				{/* One line box tall, so the pair is as tall as a text action such as Simulate. */}
+				<span className="flex h-lh items-center">
+					<Icon name="screwdriver-wrench" />
+				</span>
 			</Button>
 			<Popover
 				open={open}
@@ -191,7 +193,7 @@ export const ReforgePanel = ({ model, options }: ReforgePanelProps) => {
 				triggerRender={
 					<Button
 						variant="outline-primary"
-						className="w-(--settings-button-width) border-transparent bg-transparent peer-hover:peer-not-data-disabled:text-primary-foreground hover:border-primary-hover hover:bg-primary-hover focus-visible:border-primary-hover focus-visible:bg-primary-hover active:border-primary-active active:bg-primary-active active:text-primary-foreground data-popup-open:border-primary-active data-popup-open:bg-primary-active data-popup-open:text-primary-foreground"
+						className="col-start-2 row-start-1 w-(--settings-button-width) border-transparent bg-transparent peer-hover:peer-not-data-disabled:text-primary-foreground hover:border-primary-hover hover:bg-primary-hover focus-visible:border-primary-hover focus-visible:bg-primary-hover active:border-primary-active active:bg-primary-active active:text-primary-foreground data-popup-open:border-primary-active data-popup-open:bg-primary-active data-popup-open:text-primary-foreground"
 					/>
 				}
 				triggerTestId="suggest-reforges-button-settings"
