@@ -52,6 +52,12 @@ export const ConsumesPicker = ({ encounterConsumes = true }: ConsumesPickerProps
 					<Pickers player={player} configs={configs.groups} />
 				</IconRow>
 			</ConsumeRow>
+			<ConsumeRow name="holiday" configs={[...configs.holidayGroups, ...configs.holiday]}>
+				<IconRow className="justify-end" data-testid="consumes-holiday">
+					<Pickers player={player} configs={configs.holidayGroups} />
+					<Toggles player={player} toggles={configs.holiday} />
+				</IconRow>
+			</ConsumeRow>
 			{encounterConsumes && (
 				<ConsumeRow name="engineering" configs={[configs.explosive, ...configs.explosiveExtras]}>
 					<IconRow className="justify-end" data-testid="consumes-engi">
