@@ -82,7 +82,7 @@ const OVERLAY_PORTAL_EXCEPTIONS: Record<string, string> = {
 	'app/SimTabs.tsx': 'a layout slot for the tab panes, not an overlay',
 	'features/results/components/LogRunner/LogRunner.tsx':
 		"portals its sticky header into DrStickySlotContext's dr-sticky-slot, a layout slot in DetailedResults.tsx, not an overlay",
-	'features/results/components/Timeline/rotation/RotationView.tsx':
+	'features/results/components/Timeline/rotation/RotationTrack.tsx':
 		"portals its sticky header into DrStickySlotContext's dr-sticky-slot, a layout slot in DetailedResults.tsx, not an overlay",
 };
 

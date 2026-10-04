@@ -234,10 +234,10 @@ export class Encounter {
 			level: Mechanics.BOSS_LEVEL,
 			mobType: MobType.MobTypeMechanical,
 			stats: Stats.fromMap({
-				[Stat.StatArmor]: 7685,
+				[Stat.StatArmor]: 3731,
 				[Stat.StatAttackPower]: 320,
 				[Stat.StatBlockValue]: 54,
-				[Stat.StatHealth]: 6070400,
+				[Stat.StatHealth]: 1299000,
 			}).asProtoArray(),
 			minBaseDamage: 15113,
 			damageSpread: 0.5,

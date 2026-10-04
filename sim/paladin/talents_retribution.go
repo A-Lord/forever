@@ -358,7 +358,8 @@ func (paladin *Paladin) applyInstrumentOfLaw() {
 // Echo. Your next melee attack applies the replaced Seal's effects, consuming the Echo.
 //
 // Each seal leaves its own Echo (Echo of Command, of Fury, of Righteousness, of Justice): one
-// charge, no duration, consumed by the next auto attack that lands.
+// charge, no duration, consumed by the next auto attack that lands. Only one Echo is up at a time:
+// gaining one drops whichever other Echo was up.
 func (paladin *Paladin) applyTwistOfLight() {
 	if !paladin.Talents.TwistOfLight {
 		return
@@ -379,7 +380,9 @@ func (paladin *Paladin) applyTwistOfLight() {
 			Label:    fmt.Sprintf("Echo (%d)%s", id, paladin.Label),
 			ActionID: core.ActionID{SpellID: id},
 			Duration: core.NeverExpires,
-		}).AttachProcTrigger(core.ProcTrigger{
+		})
+		echo.aura.NewExclusiveEffect(EchoCategory, true, core.ExclusiveEffect{})
+		echo.aura.AttachProcTrigger(core.ProcTrigger{
 			Callback:           core.CallbackOnSpellHitDealt,
 			ProcMask:           core.ProcMaskMeleeWhiteHit,
 			Outcome:            core.OutcomeLanded,

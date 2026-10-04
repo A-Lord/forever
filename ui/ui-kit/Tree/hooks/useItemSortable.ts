@@ -25,8 +25,8 @@ export const useItemSortable = ({ key, element, place, disabled }: ItemSortableO
 	}, [sortable, key]);
 
 	const status = useSortableStatus(sortable, key);
-	const handleProps = useMemo(() => (sortable && !disabled ? sortable.armProps(key) : undefined), [sortable, disabled, key]);
+	const armProps = useMemo(() => (sortable && !disabled ? sortable.armProps(key) : undefined), [sortable, disabled, key]);
 	const childrenProps = useMemo(() => sortable?.childrenProps(key), [sortable, key]);
 	const itemProps = useMemo(() => sortable?.itemProps(key), [sortable, key]);
-	return { ...status, itemProps, childrenProps, handleProps };
+	return { ...status, itemProps, childrenProps, armProps };
 };

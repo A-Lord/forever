@@ -28,16 +28,10 @@ TS_OUTPUT_PATH = "ui/sim/constants/mechanics.ts"
 CONSTANTS_PATH = "sim/core/constants.go"
 DB_PATH = "tools/database/wowsims.db"
 
-# The beta does not ship the two base-crit gametables either, so these stay
-# checked in by hand. Their values are the flat per-class crit a character has
-# before any agility/intellect contribution, and nothing here can confirm them
-# for Forever. What is known: they are unchanged from the TBC sim, the MoP-era
-# extraction they came from carries them verbatim, and the placeholder 0.2 in
-# its Death Knight and Monk columns shows that table was inherited rather than
-# refitted. wowsims' vanilla sim independently carries per-class base crit in
-# the same range -- its spell column agrees within about a tenth of a percent
-# for most classes (hunter 3.6 against 3.602, warlock 1.7 exactly), though its
-# melee column differs, notably a 0 where this table has warrior 1.14.
+# Neither the Forever nor the Era game files ship the two base-crit gametables,
+# so these stay checked in by hand. They hold the vanilla per-class crit a
+# character has before any agility/intellect contribution; warrior, hunter and
+# rogue have no base melee crit. The Death Knight and Monk columns are unused.
 MELEE_CRIT_BASE = "chancetomeleecritbase.txt"
 SPELL_CRIT_BASE = "chancetospellcritbase.txt"
 COMBAT_RATINGS = "combatratings.txt"

@@ -1,6 +1,6 @@
 package database
 
-// The proc shapes docs/spell_data.md names, read off the game files database the way the store's rows
+// The proc shapes docs/spell_data/procs.md names, read off the game files database the way the store's rows
 // are. Which shape a spell has is a reading of its tooltip, and a reading is what silently changes
 // when a matcher is widened: Flurry states "$m1%" for its attack speed and Unbridled Wrath states
 // "$m1% chance" for its rage, and only the second is a roll.

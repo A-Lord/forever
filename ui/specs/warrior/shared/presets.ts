@@ -24,14 +24,12 @@ export const DefaultDebuffs = Debuffs.create({
 	faerieFire: true,
 	sunderArmor: true,
 	curseOfRecklessness: true,
-	huntersMark: true,
 });
 
 export const DefaultConsumables = ConsumesSpec.create({
 	potId: Consumables.MajorFrenzyPotion.id,
-	flaskId: Consumables.FlaskOfNaturalAggression.id,
 	foodId: Consumables.SmokedDesertDumplings.id,
-	explosiveId: Consumables.EzThroDynamiteII.id,
-	ohImbueId: Consumables.DenseSharpeningStone.id,
-	extraIds: [Consumables.GoblinSapperCharge.id, Consumables.ScrollOfAgilityIV.id, Consumables.ScrollOfStrengthIV.id],
+	explosiveId: Consumables.EZThroDarkBomb.id,
+	elixirIds: [Consumables.ElixirOfFerocity.id, Consumables.ElixirOfTheMongoose.id],
+	extraIds: [Consumables.GoblinSapperCharge.id],
 });

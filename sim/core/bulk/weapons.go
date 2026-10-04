@@ -7,33 +7,10 @@ import (
 	"github.com/wowsims/forever/sim/core/proto"
 )
 
-const (
-	denseSharpeningStoneID int32 = 12404
-	denseWeightstoneID     int32 = 12643
-)
-
-func isSharpWeaponType(wt proto.WeaponType) bool {
-	switch wt {
-	case proto.WeaponType_WeaponTypeAxe, proto.WeaponType_WeaponTypeDagger, proto.WeaponType_WeaponTypePolearm, proto.WeaponType_WeaponTypeSword:
-		return true
-	default:
-		return false
-	}
-}
-
-func isBluntWeaponType(wt proto.WeaponType) bool {
-	switch wt {
-	case proto.WeaponType_WeaponTypeFist, proto.WeaponType_WeaponTypeMace, proto.WeaponType_WeaponTypeStaff:
-		return true
-	default:
-		return false
-	}
-}
-
 // Swaps the Dense sharpening stone and weightstone to match the weapon, 0 when neither fits it;
 // any other imbue passes through.
 func adjustWeaponImbueID(imbueID int32, weapon *proto.ItemSpec) int32 {
-	if imbueID != denseSharpeningStoneID && imbueID != denseWeightstoneID {
+	if imbueID != core.DenseSharpeningStoneID && imbueID != core.DenseWeightstoneID {
 		return imbueID
 	}
 	if weapon == nil || weapon.Id == 0 {
@@ -43,11 +20,11 @@ func adjustWeaponImbueID(imbueID int32, weapon *proto.ItemSpec) int32 {
 	if item == nil {
 		return 0
 	}
-	if isSharpWeaponType(item.WeaponType) {
-		return denseSharpeningStoneID
+	if slices.Contains(core.SharpWeaponTypes, item.WeaponType) {
+		return core.DenseSharpeningStoneID
 	}
-	if isBluntWeaponType(item.WeaponType) {
-		return denseWeightstoneID
+	if slices.Contains(core.BluntWeaponTypes, item.WeaponType) {
+		return core.DenseWeightstoneID
 	}
 	return 0
 }

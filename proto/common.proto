@@ -123,7 +123,8 @@ enum Profession {
 	Engineering = 4;
 	Herbalism = 5;
 	Inscription = 6;
-	Jewelcrafting = 7;
+	reserved 7;
+	reserved "Jewelcrafting";
 	Leatherworking = 8;
 	Mining = 9;
 	Skinning = 10;
@@ -257,7 +258,7 @@ enum Stat {
 // between the UI and backend. It's also OK to include things here which aren't
 // in the PseudoStats struct.
 //
-// NextIndex: 36;
+// NextIndex: 42;
 enum PseudoStat {
 	PseudoStatMainHandDps = 0;
 	PseudoStatOffHandDps = 1;
@@ -307,6 +308,13 @@ enum PseudoStat {
 	PseudoStatOffHandCritRating = 33;
 	PseudoStatRangedHitRating = 34;
 	PseudoStatRangedCritRating = 35;
+	PseudoStatMeleeCritSuppressionPercent = 36;
+	PseudoStatRangedCritSuppressionPercent = 37;
+	// The main-hand auto attack's table against the current target, 0 before the attack tables exist.
+	PseudoStatMainHandMissPercent = 38; // The miss hit has to cover.
+	PseudoStatMainHandDodgePercent = 39;
+	PseudoStatMainHandParryPercent = 40; // The target's parry against attacks from in front, not the character's own.
+	PseudoStatMainHandGlancePercent = 41;
 }
 
 message UnitStats {
@@ -385,6 +393,29 @@ enum RangedWeaponType {
 	RangedWeaponTypeSigil = 9;
 }
 
+enum WeaponSkill {
+	WeaponSkillUnknown = 0;
+	WeaponSkillAxes = 1;
+	WeaponSkillTwoHandedAxes = 2;
+	WeaponSkillMaces = 3;
+	WeaponSkillTwoHandedMaces = 4;
+	WeaponSkillSwords = 5;
+	WeaponSkillTwoHandedSwords = 6;
+	WeaponSkillPolearms = 7;
+	WeaponSkillStaves = 8;
+	WeaponSkillDaggers = 9;
+	WeaponSkillFistWeapons = 10;
+	WeaponSkillBows = 11;
+	WeaponSkillCrossbows = 12;
+	WeaponSkillGuns = 13;
+	WeaponSkillThrown = 14;
+}
+
+message WeaponSkillValue {
+	WeaponSkill skill = 1;
+	int32 value = 2; // The full skill, level-based part included (300 is the maximum at level 60).
+}
+
 // All slots on the gear menu where a single item can be worn.
 enum ItemSlot {
 	ItemSlotHead = 0;
@@ -415,18 +446,6 @@ enum ItemQuality {
 	ItemQualityLegendary = 5;
 	ItemQualityArtifact = 6;
 	ItemQualityHeirloom = 7;
-}
-
-enum GemColor {
-	GemColorUnknown = 0;
-	GemColorMeta = 1;
-	GemColorRed = 2;
-	GemColorBlue = 3;
-	GemColorYellow = 4;
-	GemColorGreen = 5;
-	GemColorOrange = 6;
-	GemColorPurple = 7;
-	GemColorPrismatic = 8;
 }
 
 enum SpellSchool {
@@ -604,10 +623,8 @@ message ItemSpec {
 	int32 id = 1;
 	int32 random_suffix = 2;
 	int32 enchant = 3;
-	repeated int32 gems = 4;
-	// Set by the UI when the socketed meta gem's requirements are not met. The gem stays in its
-	// socket so the item's socket bonus still applies, but contributes no stats and no effect.
-	bool meta_gem_disabled = 5;
+	reserved 4, 5;
+	reserved "gems", "meta_gem_disabled";
 }
 
 

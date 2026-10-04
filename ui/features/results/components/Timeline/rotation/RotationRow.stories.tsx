@@ -1,10 +1,21 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { rotationTrackStyle, warriorRotationModel } from '@testing/storybook/fixtures/results-views';
+import {
+	auraRowItem,
+	castRotationRow,
+	castRowItem,
+	delayRowItem,
+	gcdSegmentRowItem,
+	MORTAL_STRIKE,
+	resourceRowItem,
+	rotationTrackStyle,
+	tickRowItem,
+	warriorRotationModel,
+} from '@testing/storybook/fixtures/results-views';
 import { Tooltip } from '@ui-kit/Tooltip';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
 import type { ContentRow } from '../../../model/timeline/rotation';
-import { RotationRow } from './RotationRow';
+import { RotationRow, RowItemView } from './RotationRow';
 
 const MODEL = warriorRotationModel();
 const rowOf = (key: string) => MODEL.rows[MODEL.byKey.get(key)!] as ContentRow;
@@ -14,6 +25,7 @@ const HIDE_TOOLTIP_ID = 'story-rotation-hide';
 const meta = {
 	title: 'Features/Results/Timeline/Components/RotationRow',
 	component: RotationRow,
+	subcomponents: { RowItemView },
 	tags: ['autodocs'],
 	args: { row: rowOf('cast:Mortal Strike'), items: allItems(rowOf('cast:Mortal Strike')), onHide: fn(), hideTooltipId: HIDE_TOOLTIP_ID },
 	argTypes: { row: { control: false }, items: { control: false } },
@@ -44,3 +56,34 @@ export const Rage: Story = { args: { row: rowOf('resource:rage'), items: allItem
 export const GcdStrip: Story = { args: { row: rowOf('gcd:player'), items: allItems(rowOf('gcd:player')) } };
 
 export const WindowedToTheFirstTwo: Story = { args: { items: [0, 1] } };
+
+type ItemStory = StoryObj<typeof RowItemView>;
+
+const item: ItemStory = {
+	args: { item: castRowItem(1), index: 0, iconUrl: MORTAL_STRIKE.iconUrl, cssName: '' },
+	argTypes: { item: { control: false } },
+	render: args => <RowItemView {...args} />,
+	decorators: [
+		Story => (
+			<div className="ui-timeline-row" style={rotationTrackStyle(castRotationRow(MORTAL_STRIKE, []), 6)}>
+				<div className="ui-timeline-row-track">
+					<Story />
+				</div>
+			</div>
+		),
+	],
+};
+
+export const ItemCast: ItemStory = item;
+
+export const ItemDelay: ItemStory = { ...item, args: { ...item.args, item: delayRowItem(1, 1.4) } };
+
+export const ItemGcdExtension: ItemStory = { ...item, args: { ...item.args, item: { kind: 'gcdExtension', start: 1, end: 2.5 } } };
+
+export const ItemGcdSegment: ItemStory = { ...item, args: { ...item.args, item: gcdSegmentRowItem(1) } };
+
+export const ItemTick: ItemStory = { ...item, args: { ...item.args, item: tickRowItem(2) } };
+
+export const ItemAura: ItemStory = { ...item, args: { ...item.args, item: auraRowItem(1, 5, [{ offset: 0, duration: 4, stacks: 2 }]) } };
+
+export const ItemResource: ItemStory = { ...item, args: { ...item.args, item: resourceRowItem(1, 4, 60), cssName: 'rage' } };

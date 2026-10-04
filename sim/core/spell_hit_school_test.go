@@ -30,3 +30,22 @@ func TestSpellHitChanceAddsEachSchoolsHit(t *testing.T) {
 		}
 	}
 }
+
+func TestSpellHitRemovesTheWholeMiss(t *testing.T) {
+	unit := &Unit{}
+	table := &AttackTable{BaseSpellMissChance: 0.17}
+	for _, tc := range []struct {
+		hitPercent, want float64
+	}{
+		{0, 0.17},
+		{16, 0.01},
+		{17, 0},
+		{20, 0},
+	} {
+		unit.stats[stats.SpellHitPercent] = tc.hitPercent
+		spell := &Spell{Unit: unit}
+		if got := spell.SpellChanceToMiss(table); math.Abs(got-tc.want) > 1e-9 {
+			t.Errorf("%v%% spell hit against a 17%% miss: miss %v, want %v", tc.hitPercent, got, tc.want)
+		}
+	}
+}

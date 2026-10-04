@@ -36,16 +36,6 @@ var Raid = []BuffSpec{
 		},
 	},
 	{
-		Field:      "thorns",
-		SpellID:    9910,
-		Category:   "Thorns",
-		SingleAura: true,
-		Stats: []proto.Stat{
-			proto.Stat_StatDefenseRating,
-			proto.Stat_StatStamina,
-		},
-	},
-	{
 		Field:   "prayer_of_fortitude",
 		SpellID: 21564,
 		Stats: []proto.Stat{
@@ -403,6 +393,16 @@ var Individual = []BuffSpec{
 		},
 		Label: "Power Infusions",
 	},
+	{
+		Field:      "thorns",
+		SpellID:    9910,
+		Category:   "Thorns",
+		SingleAura: true,
+		Stats: []proto.Stat{
+			proto.Stat_StatDefenseRating,
+			proto.Stat_StatStamina,
+		},
+	},
 }
 
 var Debuffs = []BuffSpec{
@@ -412,7 +412,6 @@ var Debuffs = []BuffSpec{
 		Category: "HuntersMark",
 		Stats: []proto.Stat{
 			proto.Stat_StatRangedAttackPower,
-			proto.Stat_StatAttackPower,
 		},
 	},
 	// The Holy damage taken is applied by NewSpellDataJudgementOfTheCrusaderAuraRank in debuffs.go,

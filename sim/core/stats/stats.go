@@ -546,6 +546,10 @@ type PseudoStats struct {
 	IncreasedMissChance float64 // Insect Swarm and Scorpid Sting
 	DodgeReduction      float64 // Used by Warrior talent 'Weapon Mastery' and SWP boss auras.
 
+	WeaponSkills       [proto.WeaponSkill_WeaponSkillThrown + 1]float64 // Bonus skill over the level-based maximum per weapon skill, which a skill below it makes negative.
+	FeralCombatSkill   float64
+	FeralCombatEnabled bool // While set, FeralCombatSkill replaces the skill of the equipped weapon.
+
 	ThreatMultiplier float64 // Modulates the threat generated. Affected by things like salv.
 
 	DamageDealtMultiplier          float64            // All damage
@@ -560,7 +564,8 @@ type PseudoStats struct {
 	BonusAttackPower       float64 // Also Hunter's Mark
 
 	// Important when unit is attacker or target
-	BlockValueMultiplier float64
+	BlockValueMultiplier  float64
+	BlockValuePerStrength float64
 
 	// Only used for NPCs, governs variance in enemy auto-attack damage
 	DamageSpread float64
@@ -569,7 +574,7 @@ type PseudoStats struct {
 	// Crowd control effects. See sim/core/incapacitate.go.
 	///////////////////////////////////////////////////
 
-	Incapacitated bool // Under crowd control (e.g. Archimonde's Fear); cannot cast or queue any spell. Procs still fire.
+	Incapacitated bool // Under crowd control (e.g. a boss's Fear); cannot cast or queue any spell. Procs still fire.
 	Stunned       bool // Prevents blocks, dodges, and parries. Read while this unit is the target.
 	FearImmune    bool // Fear effects cannot be applied to this unit. (ie. Berserker Rage)
 	StunImmune    bool // Stun effects cannot be applied to this unit.

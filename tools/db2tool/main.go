@@ -50,6 +50,7 @@ type options struct {
 	db2Dir       string   // offline mode only
 	dbdDir       string   // offline mode override
 	buildNumber  uint32   // nonzero → offline mode
+	buildArg     string   // the --build value as given, recorded as the game version in offline mode
 	dbCaches     []string // explicit DBCache files, overriding the default scan
 	noHotfixes   bool     // skip hotfix application entirely
 	keyFile      string   // community TACT key list; empty → tools/db2tool/TACTKeys.txt
@@ -113,6 +114,7 @@ func parseArgs(args []string) (options, error) {
 					return opts, fmt.Errorf("invalid --build %q: want a build number like 68571 or a version like 5.5.4.68571", v)
 				}
 				opts.buildNumber = uint32(b)
+				opts.buildArg = v
 			}
 		default:
 			return opts, fmt.Errorf("unknown argument %q", args[i])
@@ -171,12 +173,18 @@ func run(args []string) error {
 	}
 
 	var buildNumber uint32
+	var version string
 	var openTable func(tableName string) (*wdc.Table, error)
 	var build *tact.Build // local-CASC and CDN modes only
 
 	if opts.buildNumber != 0 {
 		// Offline mode: pre-extracted .db2 files.
 		buildNumber = opts.buildNumber
+		version = opts.buildArg
+		if !strings.Contains(version, ".") {
+			fmt.Printf("Warning: BuildInfo records the game build as %q; pass the full version, such as 1.60.1.70170, so it matches an install or CDN extraction\n",
+				version)
+		}
 		db2Dir := opts.db2Dir
 		if db2Dir == "" {
 			db2Dir = filepath.Join(toolHome, "dbfilesclient")
@@ -198,6 +206,7 @@ func run(args []string) error {
 			return err
 		}
 		buildNumber = build.BuildNumber
+		version = build.Entry.Version
 		source := "local install"
 		if opts.cdn {
 			source = opts.region + " CDN"
@@ -376,6 +385,9 @@ func run(args []string) error {
 		if err := sqlite.InsertRows(db, t.def, t.decoded); err != nil {
 			return err
 		}
+	}
+	if err := sqlite.WriteBuildInfo(db, version, settings.Settings.Product); err != nil {
+		return err
 	}
 
 	fmt.Println("Processing completed.")
