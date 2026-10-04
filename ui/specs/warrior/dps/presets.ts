@@ -24,7 +24,8 @@ export const isFurySpec = (player: Player<Spec.SpecDpsWarrior>) =>
 	player.getEquippedItem(ItemSlot.ItemSlotMainHand)?.item.handType === HandType.HandTypeMainHand ||
 	player.getEquippedItem(ItemSlot.ItemSlotMainHand)?.item.handType === HandType.HandTypeOneHand;
 
-// Dungeon drops, the dungeon tier sets and crafted items whose reagents include no raid materials.
+// Dungeon drops, the dungeon tier sets, crafted items whose reagents include no raid materials and
+// vendor trinkets.
 export const PreBiSFuryGear = PresetUtils.makePresetGear('Pre-BiS Fury', PreBiSFuryGearJson);
 
 // The best build found on the Pre-BiS Fury gear over a three minute fight.
@@ -36,17 +37,17 @@ export const PreBiSFuryEpWeights = PresetUtils.makePresetEpWeights(
 	Stats.fromMap(
 		{
 			[Stat.StatStrength]: 2.2,
-			[Stat.StatAgility]: 2.87,
+			[Stat.StatAgility]: 2.94,
 			[Stat.StatAttackPower]: 1,
-			[Stat.StatArmorPenetration]: 0.32,
-			[Stat.StatHitRating]: 2.75,
-			[Stat.StatHasteRating]: 2.75,
-			[Stat.StatCritRating]: 3.72,
-			[Stat.StatExpertiseRating]: 3.43,
+			[Stat.StatArmorPenetration]: 0.33,
+			[Stat.StatHitRating]: 2.77,
+			[Stat.StatHasteRating]: 2.78,
+			[Stat.StatCritRating]: 3.82,
+			[Stat.StatExpertiseRating]: 3.5,
 		},
 		{
-			[PseudoStat.PseudoStatMainHandDps]: 9.26,
-			[PseudoStat.PseudoStatOffHandDps]: 2.14,
+			[PseudoStat.PseudoStatMainHandDps]: 9.23,
+			[PseudoStat.PseudoStatOffHandDps]: 2.13,
 		},
 	),
 );
