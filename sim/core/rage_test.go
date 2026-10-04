@@ -66,7 +66,18 @@ func NewFakeRageWarrior(char *Character, _ *proto.Player, _ *proto.Raid) Agent {
 }
 
 func SetupFakeRageSim() *Simulation {
-	sim := NewSim(&proto.RaidSimRequest{
+	return setupFakeRageSimFrom(fakeRageSimRequest())
+}
+
+func setupFakeRageSimFrom(request *proto.RaidSimRequest) *Simulation {
+	sim := NewSim(request, simsignals.CreateSignals())
+	sim.Reset()
+
+	return sim
+}
+
+func fakeRageSimRequest() *proto.RaidSimRequest {
+	return &proto.RaidSimRequest{
 		SimOptions: &proto.SimOptions{
 			RandomSeed: 100,
 		},
@@ -94,10 +105,7 @@ func SetupFakeRageSim() *Simulation {
 			},
 			Duration: 180,
 		},
-	}, simsignals.CreateSignals())
-	sim.Reset()
-
-	return sim
+	}
 }
 
 // Feeds a hand-crafted auto attack result to the Rage bar and returns the Rage gained from it.
