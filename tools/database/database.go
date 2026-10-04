@@ -52,7 +52,6 @@ type WowDatabase struct {
 	Items          map[int32]*proto.UIItem
 	RandomSuffixes map[int32]*proto.ItemRandomSuffix
 	Enchants       map[EnchantDBKey]*proto.UIEnchant
-	Gems           map[int32]*proto.UIGem
 
 	Zones map[int32]*proto.UIZone
 	Npcs  map[int32]*proto.UINPC
@@ -72,7 +71,6 @@ func NewWowDatabase() *WowDatabase {
 		Items:          make(map[int32]*proto.UIItem),
 		RandomSuffixes: make(map[int32]*proto.ItemRandomSuffix),
 		Enchants:       make(map[EnchantDBKey]*proto.UIEnchant),
-		Gems:           make(map[int32]*proto.UIGem),
 		Zones:          make(map[int32]*proto.UIZone),
 		Npcs:           make(map[int32]*proto.UINPC),
 
@@ -90,7 +88,6 @@ func (db *WowDatabase) Clone() *WowDatabase {
 		Items:          maps.Clone(db.Items),
 		RandomSuffixes: maps.Clone(db.RandomSuffixes),
 		Enchants:       maps.Clone(db.Enchants),
-		Gems:           maps.Clone(db.Gems),
 		Zones:          maps.Clone(db.Zones),
 		Npcs:           maps.Clone(db.Npcs),
 
@@ -119,10 +116,6 @@ func (db *WowDatabase) MergeItem(src *proto.UIItem) {
 			dst.PseudoStats = src.PseudoStats
 			src.PseudoStats = nil
 		}
-		if src.SocketBonus != nil {
-			dst.SocketBonus = src.SocketBonus
-			src.SocketBonus = nil
-		}
 		googleProto.Merge(dst, src)
 	} else {
 		db.Items[src.Id] = src
@@ -150,24 +143,6 @@ func (db *WowDatabase) MergeEnchant(src *proto.UIEnchant) {
 		googleProto.Merge(dst, src)
 	} else {
 		db.Enchants[key] = src
-	}
-}
-
-func (db *WowDatabase) MergeGems(arr []*proto.UIGem) {
-	for _, gem := range arr {
-		db.MergeGem(gem)
-	}
-}
-func (db *WowDatabase) MergeGem(src *proto.UIGem) {
-	if dst, ok := db.Gems[src.Id]; ok {
-		// googleproto.Merge concatenates lists, but we want replacement, so do them manually.
-		if src.Stats != nil {
-			dst.Stats = src.Stats
-			src.Stats = nil
-		}
-		googleProto.Merge(dst, src)
-	} else {
-		db.Gems[src.Id] = src
 	}
 }
 
@@ -293,7 +268,6 @@ func (db *WowDatabase) ToUIProto() *proto.UIDatabase {
 		Items:                    mapToSlice(db.Items),
 		RandomSuffixes:           mapToSlice(db.RandomSuffixes),
 		Enchants:                 enchants,
-		Gems:                     mapToSlice(db.Gems),
 		Encounters:               db.Encounters,
 		Zones:                    mapToSlice(db.Zones),
 		Npcs:                     mapToSlice(db.Npcs),
@@ -334,7 +308,6 @@ func ReadDatabaseFromJson(jsonStr string) *WowDatabase {
 		Items:                    sliceToMap(dbProto.Items),
 		RandomSuffixes:           sliceToMap(dbProto.RandomSuffixes),
 		Enchants:                 enchants,
-		Gems:                     sliceToMap(dbProto.Gems),
 		Zones:                    sliceToMap(dbProto.Zones),
 		Npcs:                     sliceToMap(dbProto.Npcs),
 		ItemIcons:                sliceToMap(dbProto.ItemIcons),
@@ -396,8 +369,6 @@ func (db *WowDatabase) toJsonBytes() []byte {
 	tools.WriteProtoArrayToBuffer(uidb.RandomSuffixes, buffer, "randomSuffixes")
 	buffer.WriteString(",\n")
 	tools.WriteProtoArrayToBuffer(uidb.Enchants, buffer, "enchants")
-	buffer.WriteString(",\n")
-	tools.WriteProtoArrayToBuffer(uidb.Gems, buffer, "gems")
 	buffer.WriteString(",\n")
 	tools.WriteProtoArrayToBuffer(uidb.Zones, buffer, "zones")
 	buffer.WriteString(",\n")
