@@ -550,6 +550,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		8225, // Tainted Pierce
+		[
+			"Corrupts the target, causing 63 damage over 3s.", // 13530 - https://www.wowhead.com/forever/spell=13530
+		]
+	],
+	[
 		8346, // Gauntlets of the Sea
 		[
 			"Heal friendly target for 400.", // 10577 - https://www.wowhead.com/forever/spell=10577
