@@ -9,10 +9,6 @@ func (druid *Druid) registerGrowlSpell() {
 	druid.Growl = druid.registerBearUtility(spellData.Growl.Highest())
 }
 
-func (druid *Druid) registerChallengingRoarSpell() {
-	druid.ChallengingRoar = druid.registerBearUtility(spellData.ChallengingRoar.Highest())
-}
-
 // A taunt: castable from an APL, with no effect the sim models.
 func (druid *Druid) registerBearUtility(rank *spelldata.Spell) *DruidSpell {
 	config := spelldata.SpellConfig(&druid.Unit, rank)
