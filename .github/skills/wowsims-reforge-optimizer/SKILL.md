@@ -14,7 +14,14 @@ Comments, docs, commit messages and PR text follow `wowsims-conventions`: "game 
 - Endpoint path /reforgeOptimizeAsync and worker integration.
 - HiGHS-backed MIP solving under stat caps.
 
-The optimizer has no decision variables: the game has no gems or sockets. `optimizeReforges` returns the input gear unchanged without calling HiGHS; `TestOptimizeReturnsTheGearUnchanged` pins that. The EP scoring, cap/soft-cap machinery, LP serialization and HiGHS bridges have no production caller.
+The optimizer picks one static enchant per listed slot to maximize EP within the stat caps. There are no gems or sockets.
+
+- Candidates come from `ReforgeOptimizeRequest.enchant_options`, built by ui/features/reforge/model/enchant_options.ts. Per equipped, unfrozen slot it lists the enchants the player can use on that item (class and Enchanting gated, bulk's fit rule `core.EnchantRowAppliesToItem`) that are static (`proc_kind` None, with stats, pseudo-stats or weapon damage) and worth EP > 0 on the optimizer's pre-cap weights.
+- A slot whose item can take a Combat proc enchant, or a Survival proc on a tank spec, is skipped and listed in the panel ("Simulated, not optimized"). Every melee weapon takes Crusader, so weapon slots are skipped.
+- `proc_kind` comes from gen_db (tools/database/dbc/enchant.go; overrides in `enchantProcKindOverrides` there).
+- Go side (enchants.go): one binary per (slot, candidate) with a per-slot row <= 1, so a slot may end with no enchant when every candidate breaks a ceiling. The baseline is the gear with those slots' enchants cleared. Go drops non-static, unfit and frozen-slot candidates. No candidate returns the gear unchanged with score 0.
+- Flat weapon damage counts as the hand's (or ranged) DPS at the item's speed.
+- `StatCaps` are targets; `UndershootCaps` make them ceilings.
 
 ## Architecture
 
@@ -26,7 +33,8 @@ Files (all under sim/core/reforge_optimizer/):
 - Solve + cap-refinement loop: solver.go.
 - Soft caps / gap-to-cap conversion + cap-detection helpers: caps.go.
 - Stat/UnitStat math: reforge_stats.go.
-- Gear helpers (clone, frozen slots): gear.go.
+- Enchant candidates, per-slot binaries and baseline: enchants.go.
+- Gear helpers (clone, frozen slots, applying the picked enchants): gear.go.
 - HiGHS bridge:
     - Go non-browser (embedded, pooled wazero): highswasm.go. (Do NOT rename to highs_wasm.go — the `_wasm.go` suffix is an implicit GOARCH=wasm constraint that breaks the native build.)
     - Browser wasm: highs_js.go.
@@ -48,6 +56,7 @@ Files (all under sim/core/reforge_optimizer/):
 
 ## Bulk Sim Integration Contract
 
+- Bulk does not run the optimizer pre-pass while `BULK_GEAR_OPTIMIZER_ENABLED` (ui/features/bulk/model/run.ts) is false; bulk crosses enchants through its presets.
 - Bulk Sim uses ReforgeOptimizeRequest mode for bulk operations; avoid duplicate optimizer config types.
 - Cache keys represent input identity; cached values are optimized output gear (plain `equipmentSpec:` proto JSON).
 - Bulk runs derive their RNG seed from content including the cache-relevant optimizer config — see the wowsims-bulk-sim skill for the staged/finalist pipeline.
@@ -61,7 +70,10 @@ Files (all under sim/core/reforge_optimizer/):
 ## Validation Commands
 
 ```bash
+go test -tags with_db -count=1 -run 'TestOptimize' ./sim/core/reforge_optimizer
 go test -tags with_db -count=1 ./sim/core/reforge_optimizer
+go test -tags with_db -count=1 -run TestEnchantProcKind ./tools/database
+npx vitest run ui/features/reforge/model/enchant_options.test.ts
 npm run type-check
 ```
 

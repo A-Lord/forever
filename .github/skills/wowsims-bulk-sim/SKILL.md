@@ -11,7 +11,7 @@ Comments, docs, commit messages and PR text follow `wowsims-conventions`: "game 
 ## Scope
 
 - Bulk candidate generation and staged simulation flow (low/medium/high + finalist).
-- Bulk optimizer pre-pass integration and cache behavior ("reforge" naming is inherited from MoP; there is no reforging). The optimizer has no decision variables and returns each candidate's gear unchanged.
+- Bulk optimizer pre-pass integration and cache behavior ("reforge" naming is inherited from MoP; there is no reforging). The optimizer pre-pass is off: `BULK_GEAR_OPTIMIZER_ENABLED` in ui/features/bulk/model/run.ts is false and the "Gear optimizer settings" group is hidden. Bulk crosses enchants through its enchant presets. The pre-pass code (sim/web/bulk.go, ui/sim/wasm/bulk_sim/reforge.ts) stays. Bulk's enchant fit rule lives in sim/core (`core.EnchantAppliesToItem`, `core.EnchantRowAppliesToItem`), shared with the gear optimizer.
 - Deterministic content-derived seeding and statistical result display.
 - Progress, abort semantics, and local vs WASM orchestration.
 
