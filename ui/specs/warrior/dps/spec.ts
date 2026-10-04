@@ -2,7 +2,7 @@ import * as BuffDebuffInputs from '@features/settings/model/buffs_debuffs';
 import * as OtherInputs from '@features/settings/model/other_inputs';
 import { StatCapType } from '@generated/proto/api';
 import { APLRotation, APLRotation_Type, SimpleRotation } from '@generated/proto/apl';
-import { Cooldowns, EquipmentSpec, HandType, ItemSlot, PseudoStat, Spec, Stat } from '@generated/proto/common';
+import { Cooldowns, HandType, ItemSlot, PseudoStat, Spec, Stat } from '@generated/proto/common';
 import { DpsWarriorSpec, WarriorSunder } from '@generated/proto/warrior';
 import * as Mechanics from '@sim/constants/mechanics';
 import { PlayerClasses } from '@sim/player/classes';
@@ -68,7 +68,7 @@ export default defineSpec<Spec.SpecDpsWarrior>({
 
 	defaults: {
 		// Default equipped gear.
-		gear: EquipmentSpec.create(),
+		gear: Presets.PreBiSFuryGear.gear,
 		// Default EP weights for sorting gear in the gear picker.
 		epWeights: Presets.PreBiSFuryEpWeights.epWeights,
 		statCaps: (() => {
