@@ -1,16 +1,7 @@
 import { EquipmentSpec, GemColor, ItemRandomSuffix, ItemSlot, ItemSpec, ItemSwap, PresetEncounter, PresetTarget } from '@generated/proto/common';
 import { Consumable, ItemEffectRandPropPoints, SimDatabase } from '@generated/proto/db';
 import { SpellEffect } from '@generated/proto/spell';
-import {
-	IconData,
-	UIDatabase,
-	UIEnchant as Enchant,
-	UIFaction,
-	UIGem as Gem,
-	UIItem as Item,
-	UINPC as Npc,
-	UIZone as Zone,
-} from '@generated/proto/ui';
+import { IconData, UIDatabase, UIEnchant as Enchant, UIFaction, UIGem as Gem, UIItem as Item, UINPC as Npc, UIZone as Zone } from '@generated/proto/ui';
 
 import { CacheHandler } from '../cache/cache_handler';
 import { CHARACTER_LEVEL } from '../constants/mechanics';
