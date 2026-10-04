@@ -1,4 +1,7 @@
 {
 	"type": "TypeAPL",
-	"priorityList": []
+	"priorityList": [
+		{"action":{"autocastOtherCooldowns":{}}},
+		{"action":{"bearOptimalRotationAction":{"maintainFaerieFire":true,"maintainDemoralizingRoar":true,"maulRageThreshold":50,"swipeUsage":"SwipeUsage_WithEnoughAP","swipeApThreshold":2700}}}
+	]
 }

@@ -84,10 +84,8 @@ export default defineSpec<Spec.SpecFeralBearDruid>({
 		consumables: Presets.DefaultConsumables,
 		rotationType: APLRotationType.TypeAuto,
 		simpleRotation: Presets.DefaultSimpleRotation,
-		// Heart of the wild, feral instinct, thick hide, feral charge, primal bite,
-		// leader of the pack, natural reaction.
 		talents: SavedTalents.create({
-			talentsString: '0000000000000000-05030300100100010500-0000000000000000',
+			talentsString: '0000000000000000-55230302120130012551-0550000000000000',
 		}),
 		specOptions: Presets.DefaultOptions,
 		raidBuffs: RaidBuffs.create({
