@@ -53,7 +53,7 @@ export default defineSpec<Spec.SpecElementalShaman>({
 		// Default EP weights for sorting gear in the gear picker.
 		epWeights: new Stats(),
 		statCaps: (() => {
-			return new Stats().withPseudoStat(PseudoStat.PseudoStatSchoolHitPercentNature, 16);
+			return new Stats().withPseudoStat(PseudoStat.PseudoStatSchoolHitPercentNature, 17);
 		})(),
 		// Default consumes settings.
 		consumables: Presets.DefaultConsumables,

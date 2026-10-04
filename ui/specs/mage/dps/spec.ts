@@ -95,7 +95,7 @@ export default defineSpec<Spec.SpecMage>({
 		// Default EP weights for sorting gear in the gear picker.
 		epWeights: new Stats(),
 		statCaps: (() => {
-			return new Stats().withPseudoStat(PseudoStat.PseudoStatSchoolHitPercentArcane, 16);
+			return new Stats().withPseudoStat(PseudoStat.PseudoStatSchoolHitPercentArcane, 17);
 		})(),
 		// Default consumes settings.
 		consumables: DefaultConsumables,
