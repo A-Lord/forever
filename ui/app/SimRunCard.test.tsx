@@ -1,9 +1,9 @@
+import { TabActivationContext } from '@features/hooks/useActivateTab';
 import { fireEvent, render } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { SimHostObject } from './individual_sim_ui';
 import { SimRunCard } from './SimRunCard';
-import { TabActivationContext } from './tab_activation';
 
 vi.mock('@features/results/components/IterationsPicker', () => ({ IterationsPicker: () => <div data-testid="iterations-picker" /> }));
 vi.mock('@features/results/components/SimulateAction', () => ({ SimulateAction: () => <button data-testid="dps-action" /> }));

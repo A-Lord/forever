@@ -12,7 +12,6 @@ import { type ReactNode, useMemo, useState } from 'react';
 import { trackEvent } from '../../../../tracking/utils';
 import { useReforgeField } from '../../hooks/useReforgeField';
 import { DEFAULT_REFORGE_ID_PREFIX, ReforgeIdPrefixContext } from './context/ReforgeIdPrefixContext';
-import { useReforgeOpenBatchSim } from './context/ReforgeOpenBatchSimContext';
 import { ReforgeBreakpointLimits } from './ReforgeBreakpointLimits';
 import { ReforgeFrozenSlots } from './ReforgeFrozenSlots';
 import { ReforgeSkippedSlots } from './ReforgeSkippedSlots';
@@ -85,13 +84,12 @@ export interface ReforgeSettingsPanelProps {
 	idPrefix?: string;
 }
 
-/** The reforge settings body, shared by the sidebar popover and the Batch Sim sidebar. In the popover it is mounted only while that is open, so every section is built per open. */
+/** The reforge settings body of the sidebar popover. It is mounted only while the popover is open, so every section is built per open. */
 export const ReforgeSettingsPanel = ({ model, options, onClose, idPrefix = DEFAULT_REFORGE_ID_PREFIX }: ReforgeSettingsPanelProps) => {
 	const host = useSimHost();
 	const player = host.player;
 	const individualConfig = useSpecConfig();
 	const openEpWeights = useOpenEpWeights();
-	const openBatchSim = useReforgeOpenBatchSim();
 	const settings = model.settings;
 
 	const useCustomEPValues = useReforgeField(settings, 'useCustomEPValues', () => settings.useCustomEPValues);
@@ -208,19 +206,7 @@ export const ReforgeSettingsPanel = ({ model, options, onClose, idPrefix = DEFAU
 						)}
 					</>
 				}
-				skippedSlots={
-					<ReforgeSkippedSlots
-						model={model}
-						player={player}
-						onOpenBatchSim={
-							openBatchSim &&
-							(() => {
-								openBatchSim();
-								onClose?.();
-							})
-						}
-					/>
-				}
+				skippedSlots={<ReforgeSkippedSlots model={model} player={player} onClose={onClose} />}
 				savedEpWeights={<SavedEpWeights className="mt-4" loadOnly presetsOnly={!useCustomEPValues} />}
 				onEditWeights={() => {
 					openEpWeights();

@@ -3368,16 +3368,10 @@
 								},
 								"frozen_slots": {
 									"type": "string"
-								},
-								"reforge": {
-									"type": "string"
-								},
-								"reforge_description": {
-									"type": "string"
 								}
 							},
 							"additionalProperties": false,
-							"required": ["enchants", "frozen_slots", "reforge", "reforge_description"]
+							"required": ["enchants", "frozen_slots"]
 						},
 						"iterations": {
 							"type": "string"

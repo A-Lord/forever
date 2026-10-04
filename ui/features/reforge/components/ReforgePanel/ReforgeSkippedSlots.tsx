@@ -1,9 +1,11 @@
+import { BULK_TAB_ID, useActivateTab } from '@features/hooks/useActivateTab';
 import type { ReforgeOptimizerModel } from '@features/reforge/model/reforge_optimizer';
 import i18n from '@i18n/config';
 import { translateSlotName } from '@i18n/localization';
+import { useSimHost } from '@sim/context/SimHostContext';
 import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
 import type { Player } from '@sim/player/player';
-import { subscribeAll, subscribeBulkField, subscribePlayerChange, subscribeReforgeField } from '@sim/state/subscriptions';
+import { subscribeAll, subscribeBulkField, subscribePlayerField, subscribeReforgeField } from '@sim/state/subscriptions';
 import { Button } from '@ui-kit/Button';
 import { Icon } from '@ui-kit/Icon';
 import { useMemo } from 'react';
@@ -18,7 +20,7 @@ export interface ReforgeSkippedSlotsViewProps {
 }
 
 const SlotList = ({ slots }: { slots: ReadonlyArray<string> }) => (
-	<ul className="mb-0 list-disc pl-4">
+	<ul className="mb-0">
 		{slots.map(slot => (
 			<li key={slot}>{slot}</li>
 		))}
@@ -55,18 +57,25 @@ export const ReforgeSkippedSlotsView = ({ procSlots, unlistedSlots, onOpenBatchS
 export interface ReforgeSkippedSlotsProps {
 	model: ReforgeOptimizerModel;
 	player: Player<any>;
-	onOpenBatchSim?: () => void;
+	/** Closes the popover the panel sits in once the Batch Sim tab opens. */
+	onClose?: () => void;
 }
 
 /**
  * The equipped slots the optimizer leaves alone: those whose item can take a proc enchant the sim
  * implements, and with the enchant presets on, those no checked preset lists.
  */
-export const ReforgeSkippedSlots = ({ model, player, onOpenBatchSim }: ReforgeSkippedSlotsProps) => {
+export const ReforgeSkippedSlots = ({ model, player, onClose }: ReforgeSkippedSlotsProps) => {
+	const host = useSimHost();
+	const activateTab = useActivateTab();
 	const subscribe = useMemo(
 		() =>
 			subscribeAll([
-				subscribePlayerChange(player),
+				subscribePlayerField(player, 'gear'),
+				// The enchants the player can take depend on Enchanting.
+				subscribePlayerField(player, 'profession1'),
+				subscribePlayerField(player, 'profession2'),
+				// Freezing or unfreezing a slot bumps the freezeItemSlots counter too.
 				subscribeReforgeField(model.settings, 'freezeItemSlots'),
 				subscribeReforgeField(model.settings, 'useEnchantPresets'),
 				// Ticking, saving or deleting a checked enchant preset bumps the batch settings counter.
@@ -76,6 +85,12 @@ export const ReforgeSkippedSlots = ({ model, player, onOpenBatchSim }: ReforgeSk
 	);
 	const skipped = useStoreSubscribe(subscribe, () => model.getSkippedEnchantSlots(player.getGear()));
 	const slotsFor = (reason: 'proc' | 'unlisted') => skipped.filter(skip => skip.reason === reason).map(skip => translateSlotName(skip.slot));
+	const openBatchSim = host.simDisabled
+		? undefined
+		: () => {
+				activateTab(BULK_TAB_ID);
+				onClose?.();
+			};
 
-	return <ReforgeSkippedSlotsView procSlots={slotsFor('proc')} unlistedSlots={slotsFor('unlisted')} onOpenBatchSim={onOpenBatchSim} />;
+	return <ReforgeSkippedSlotsView procSlots={slotsFor('proc')} unlistedSlots={slotsFor('unlisted')} onOpenBatchSim={openBatchSim} />;
 };

@@ -4,7 +4,6 @@ import { BulkSimReforgeCacheProgress } from '@sim/bulk/reforge_cache';
 import { BulkSimProgressConfig, TopGearResult } from '@sim/bulk/types';
 import { bulkSimStageToOptimisationStage, cleanBulkDpsMetrics, getCoreBulkSimTrackingMetrics } from '@sim/bulk/utils';
 import { Gear } from '@sim/proto/gear';
-import { ReforgeOptimizeConfig } from '@sim/sim';
 import type { IndividualSimHost } from '@sim/sim_host';
 
 export interface CoreBulkSimContext {
@@ -28,7 +27,6 @@ export async function runCoreBulkSim(
 	context: CoreBulkSimContext,
 	gearSets: Gear[],
 	signal: AbortSignal,
-	reforgeConfig?: ReforgeOptimizeConfig,
 	bulkSettings?: BulkSettings,
 ): Promise<CoreBulkSimResult> {
 	context.throwIfBulkAborted(signal);
@@ -56,7 +54,7 @@ export async function runCoreBulkSim(
 	};
 
 	const result = await context.runWithBulkAbort(
-		context.simUI.sim.runBulkSim(gearSets, updateProgress, reforgeConfig, bulkSettings, progress => context.setCacheRestoreProgress?.(progress), signal),
+		context.simUI.sim.runBulkSim(gearSets, updateProgress, undefined, bulkSettings, progress => context.setCacheRestoreProgress?.(progress), signal),
 		signal,
 	);
 	if (!result || (result && 'type' in result)) {

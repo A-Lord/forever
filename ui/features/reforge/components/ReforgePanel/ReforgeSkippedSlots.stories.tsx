@@ -31,7 +31,7 @@ export const Default: Story = {
 	},
 };
 
-/** In the Batch Sim tab's own copy of the panel there is no tab to open. */
+/** A gear planner page has no Batch Sim tab to open. */
 export const WithoutBatchSimLink: Story = {
 	args: { onOpenBatchSim: undefined },
 };

@@ -58,7 +58,7 @@ Files (all under sim/core/reforge_optimizer/):
 
 ## Bulk Sim Integration Contract
 
-- Bulk does not run the optimizer pre-pass while `BULK_GEAR_OPTIMIZER_ENABLED` (ui/features/bulk/model/run.ts) is false; bulk crosses enchants through its presets.
+- The UI's bulk sim does not run the optimizer pre-pass; bulk crosses enchants through its presets. The pre-pass code (sim/web/bulk.go, ui/sim/wasm/bulk_sim/reforge.ts) is unreachable from the UI.
 - Bulk Sim uses ReforgeOptimizeRequest mode for bulk operations; avoid duplicate optimizer config types.
 - Cache keys represent input identity; cached values are optimized output gear (plain `equipmentSpec:` proto JSON).
 - Bulk runs derive their RNG seed from content including the cache-relevant optimizer config — see the wowsims-bulk-sim skill for the staged/finalist pipeline.

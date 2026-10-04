@@ -4,6 +4,7 @@ import { watchTargetDummies } from '@features/encounter/model/target_dummies';
 import { repairTargetInputs } from '@features/encounter/model/target_inputs';
 import { registerAreaStatsNotices, registerSetBonusNotices } from '@features/gear/item_notices';
 import { createLink } from '@features/import-export';
+import { ReforgeSidebarGroup } from '@features/reforge/components/ReforgePanel';
 import { createReforgeOptimizer, type ReforgeOptimizerModel, type ReforgeOptimizerOptions } from '@features/reforge/model/reforge_optimizer';
 import { ResultsPanelStore } from '@features/results/components/SimResultsPanel';
 import { defaultSimWarnings } from '@features/results/model/default_warnings';
@@ -49,7 +50,6 @@ import { createElement } from 'react';
 
 import { reportSimCrash } from './crash_report';
 import { CrashReportOpener } from './crash_report_opener';
-import { ReforgeSidebarEntry } from './ReforgeSidebarEntry';
 import { PRESET_FILTER_STORAGE_KEY } from './storage_keys';
 import type { ShellDom } from './types/shell_dom';
 
@@ -172,8 +172,7 @@ export class SimHostObject<SpecType extends Spec> implements IndividualSimHost<S
 			});
 			this.sidebar.add({
 				id: 'suggest-reforges',
-				render: () =>
-					createElement(ReforgeSidebarEntry, { model: this.reforger!, options: this.reforgeOptions ?? undefined, hasBatchSim: !this.simDisabled }),
+				render: () => createElement(ReforgeSidebarGroup, { model: this.reforger!, options: this.reforgeOptions ?? undefined }),
 			});
 		}
 		for (const derived of config.derivedSettings || []) {

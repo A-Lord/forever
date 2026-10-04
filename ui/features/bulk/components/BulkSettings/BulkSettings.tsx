@@ -1,5 +1,4 @@
 import { EnchantPresets } from '@features/enchant-presets/components/EnchantPresets';
-import { ReforgeSettingsPanel } from '@features/reforge/components/ReforgePanel';
 import { ItemSlot } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { BulkSimItemSlot, getBulkPlayerCanDualWield } from '@sim/bulk/utils';
@@ -17,7 +16,7 @@ import { BULK_SETTINGS_GROUP, useBulkSettingsGroups } from '../../hooks/useBulkS
 import { useBulkState } from '../../hooks/useBulkState';
 import { bulkCombinationsLimit } from '../../model/limits';
 import { frozenItemSlot } from '../../model/picker_groups';
-import { BULK_GEAR_OPTIMIZER_ENABLED, runBulkBatch } from '../../model/run';
+import { runBulkBatch } from '../../model/run';
 import { canRunBatch } from '../../model/selectors';
 import { setBulkFrozenItem, setBulkFrozenWeaponSlot } from '../../model/settings';
 import { CombinationsCount } from './CombinationsCount';
@@ -35,8 +34,6 @@ export interface BulkSettingsViewProps {
 	onRun: () => void;
 	openGroups: string[];
 	onOpenGroupsChange: (groups: string[]) => void;
-	/** Null for a spec without a reforge optimizer. */
-	reforgeSettings: ReactNode;
 	enchants: ReactNode;
 	frozenItems: ReadonlyArray<ChoiceFieldProps<number>>;
 	/** Null for a player who cannot dual wield. */
@@ -50,7 +47,6 @@ export const BulkSettingsView = ({
 	onRun,
 	openGroups,
 	onOpenGroupsChange,
-	reforgeSettings,
 	enchants,
 	frozenItems,
 	weaponFreeze,
@@ -69,15 +65,6 @@ export const BulkSettingsView = ({
 					{combinationsCount}
 				</RunCard>
 				<Accordion value={openGroups} onValueChange={onOpenGroupsChange} variant="boxed">
-					{reforgeSettings && (
-						<AccordionItem
-							value={BULK_SETTINGS_GROUP.reforge}
-							title={i18n.t('bulk_tab.settings.groups.reforge')}
-							testId="bulk-settings-group-reforge">
-							<p className="mb-4 text-sm">{i18n.t('bulk_tab.settings.groups.reforge_description')}</p>
-							{reforgeSettings}
-						</AccordionItem>
-					)}
 					<AccordionItem
 						value={BULK_SETTINGS_GROUP.enchants}
 						title={i18n.t('bulk_tab.settings.groups.enchants')}
@@ -179,10 +166,6 @@ export const BulkSettings = () => {
 			onRun={() => void runBulkBatch(host)}
 			openGroups={openGroups}
 			onOpenGroupsChange={setOpenGroups}
-			reforgeSettings={
-				BULK_GEAR_OPTIMIZER_ENABLED &&
-				host.reforger && <ReforgeSettingsPanel model={host.reforger} options={host.reforgeOptions ?? undefined} idPrefix="bulk-reforge-optimizer" />
-			}
 			enchants={<EnchantPresets />}
 			frozenItems={FROZEN_PAIRS.map(freezeItemProps)}
 			weaponFreeze={

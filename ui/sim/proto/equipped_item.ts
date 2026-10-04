@@ -23,6 +23,13 @@ export const getWeaponDpsStatsBySlot = (weaponDps: number, slot: ItemSlot): Stat
 	return stats;
 };
 
+// Flat weapon damage is worth the DPS it adds at the enchanted weapon's speed, as a weapon's own damage is.
+export const enchantWeaponDamageEP = (enchant: Enchant, weaponSpeed: number, epPerWeaponDps: number): number =>
+	enchant.weaponDamage && weaponSpeed ? (enchant.weaponDamage / weaponSpeed) * epPerWeaponDps : 0;
+
+export const enchantEP = (enchant: Enchant, weights: Stats, weaponSpeed: number, epPerWeaponDps: number): number =>
+	new Stats(enchant.stats, enchant.pseudoStats).computeEP(weights) + enchantWeaponDamageEP(enchant, weaponSpeed, epPerWeaponDps);
+
 export const getWeaponStatsBySlot = (item: Item, slot: ItemSlot, upgradeStep: 0) => {
 	if (item.weaponSpeed > 0) {
 		return getWeaponDpsStatsBySlot(getWeaponDPS(item, upgradeStep), slot);

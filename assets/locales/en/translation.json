@@ -951,9 +951,7 @@
 			"total_iterations_tooltip": "The batch sims at least this many iterations. The error target adds more as it runs.",
 			"groups": {
 				"enchants": "Enchants",
-				"frozen_slots": "Frozen slots",
-				"reforge": "Enchants optimizer settings",
-				"reforge_description": "These are the same settings the Optimize Enchants button uses. The batch sim applies them to every gear set it simulates."
+				"frozen_slots": "Frozen slots"
 			},
 			"iterations": "Iterations",
 			"freeze_ring": {

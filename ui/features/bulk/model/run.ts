@@ -8,7 +8,6 @@ import type { Player } from '@sim/player/player';
 import { Gear } from '@sim/proto/gear';
 import { getGearIdentityKey } from '@sim/proto/items';
 import { bulkState, patchBulkState } from '@sim/settings/bulk_settings';
-import type { ReforgeOptimizeConfig } from '@sim/sim';
 import type { IndividualSimHost } from '@sim/sim_host';
 import { RequestTypes } from '@sim/sim_signal_manager';
 import { bulkSimHighStageFloor } from '@sim/wasm/bulk_sim/estimate';
@@ -19,9 +18,6 @@ import { type CoreBulkSimResult, runCoreBulkSim as runCoreBulkSimImpl } from './
 import { BulkProgress, candidateGearProgress, simProgress } from './progress';
 import { createBulkSettingsProto } from './settings';
 import { buildTieChains } from './tie_chains';
-
-// Off: bulk sim crosses enchants through its presets; the gear optimizer does not run per candidate.
-export const BULK_GEAR_OPTIMIZER_ENABLED = false;
 
 // The stored settings plus the enchant pool, which is derived from the presets and never stored.
 const bulkRequestSettings = (player: Player<any>): BulkSettings => ({ ...createBulkSettingsProto(player), enchants: enchantPresetPool(player) });
@@ -160,13 +156,7 @@ const setCacheRestoreProgress = (player: Player<any>, cacheProgress: BulkSimRefo
 	});
 };
 
-const runCoreBulkSim = async (
-	host: IndividualSimHost<any>,
-	gearSets: Gear[],
-	signal: AbortSignal,
-	reforgeConfig?: ReforgeOptimizeConfig,
-	bulkSettings?: BulkSettings,
-): Promise<CoreBulkSimResult> => {
+const runCoreBulkSim = async (host: IndividualSimHost<any>, gearSets: Gear[], signal: AbortSignal, bulkSettings?: BulkSettings): Promise<CoreBulkSimResult> => {
 	const { player } = host;
 	return runCoreBulkSimImpl(
 		{
@@ -179,7 +169,6 @@ const runCoreBulkSim = async (
 		},
 		gearSets,
 		signal,
-		reforgeConfig,
 		bulkSettings,
 	);
 };
@@ -274,12 +263,10 @@ export const runBulkBatch = async (host: IndividualSimHost<any>) => {
 			patchBulkState(player, { combinations: bulkCandidatesResult.combinations });
 		}
 
-		const reforgeConfig = host.reforger && BULK_GEAR_OPTIMIZER_ENABLED ? host.reforger.getReforgeOptimizeConfig(baseGear) : undefined;
-		// With the gear optimizer every candidate is submitted; without it duplicates are culled up front.
-		const gearSets = reforgeConfig ? candidateGearSets : dedupeGearSets(candidateGearSets, [baseGear]);
+		const gearSets = dedupeGearSets(candidateGearSets, [baseGear]);
 
 		run.simStart = new Date().getTime();
-		const bulkSimResult = await runCoreBulkSim(host, gearSets, abortSignal, reforgeConfig, backendBulkSettings);
+		const bulkSimResult = await runCoreBulkSim(host, gearSets, abortSignal, backendBulkSettings);
 		const { referenceDpsMetrics, topGearResults } = bulkSimResult;
 
 		const originalGearKey = getGearIdentityKey(baseGear.asSpec());

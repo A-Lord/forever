@@ -40,6 +40,8 @@ export const enchantPresetPool = (player: Player<any>): BulkEnchantSlotOptions[]
 	});
 };
 
+export const enchantPresetPoolSlot = (slot: ItemSlot): ItemSlot => (slot === ItemSlot.ItemSlotFinger2 ? ItemSlot.ItemSlotFinger1 : slot);
+
 export const validateEnchantPresetName = (presets: readonly BulkEnchantPreset[], name: string, previousName?: string): EnchantPresetNameProblem | null => {
 	const trimmed = name.trim();
 	if (!trimmed) return 'empty';

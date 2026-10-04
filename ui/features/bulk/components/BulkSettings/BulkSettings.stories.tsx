@@ -56,7 +56,6 @@ const meta = {
 		onRun: fn(),
 		openGroups: ['freezes'],
 		onOpenGroupsChange: fn(),
-		reforgeSettings: null,
 		enchants: (
 			<EnchantPresetsView
 				presets={[
@@ -79,7 +78,6 @@ const meta = {
 	},
 	argTypes: {
 		combinationsCount: { control: false },
-		reforgeSettings: { control: false },
 		enchants: { control: false },
 		frozenItems: { control: false },
 		weaponFreeze: { control: false },
@@ -92,12 +90,5 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 
 export const DualWield: Story = { args: { weaponFreeze: { value: -1, weaponTypes: WEAPON_TYPES } } };
-
-export const WithReforge: Story = {
-	args: {
-		openGroups: ['reforge'],
-		reforgeSettings: <StoryBoolean id="story-bulk-reforge-custom-ep" label="Use custom EP values" layout="inline" />,
-	},
-};
 
 export const CannotRun: Story = { args: { canRun: false } };

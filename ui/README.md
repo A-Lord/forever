@@ -26,8 +26,8 @@ ui/
                      helpers that are neither a component nor DOM-free). The thirteen are
                      apl, bulk, character-stats, enchant-presets, encounter, gear, import-export,
                      item-swap, reforge, results, settings, stat-weights, talents. alias @features
-  features/hooks/    React hooks several features share and none owns (useSavedPanel), one
-                     per file, beside the thirteen capability folders
+  features/hooks/    React hooks several features share and none owns (useSavedPanel,
+                     useActivateTab), one per file, beside the thirteen capability folders
   features/inputs/   the binding layer between the store and ui-kit's controlled pickers:
                      input.ts (InputConfig, StoreBinding, InputFrame), hooks/ (useInput,
                      useConnectedField, useHideZeroRestore), components/Connected*/ (one adapter per
@@ -40,7 +40,7 @@ ui/
                      GearPresets/, PresetConfigurationPicker/, PresetGroupPicker/,
                      PresetBuildChip.tsx, PresetBuildTooltip.tsx, the sidebar and import/export pieces,
                      shell_classes, browser_env, known_issues, preset_utils,
-                     sidebar_registry.ts, tab_activation.ts, and individual_sim_ui.tsx — the
+                     sidebar_registry.ts, and individual_sim_ui.tsx — the
                      host object the React tree reaches through useSimHost(). types/ holds
                      app-level type modules. alias @app
   i18n/              LEAF: framework-agnostic i18next config + localization tables

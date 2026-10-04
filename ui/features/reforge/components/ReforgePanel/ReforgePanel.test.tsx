@@ -1,11 +1,9 @@
 import { saveEnchantPreset, setEnchantPresetChecked } from '@features/enchant-presets/model/enchant_presets';
 import { ItemSlot } from '@generated/proto/common';
 import type { Player } from '@sim/player/player';
-import { PlayerSpecs } from '@sim/player/specs';
-import { seedBulkSettings } from '@sim/settings/bulk_settings';
 import { ReforgeSettings } from '@sim/settings/reforge_settings';
-import { createSimStore } from '@sim/state/sim_store';
 import { renderWithHost } from '@testing/react';
+import { makeBulkPlayer } from '@testing/sim/bulk_player';
 import { act, fireEvent } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -26,17 +24,7 @@ const renderPanel = () => renderWithHost(<ReforgePanel model={model} />, { playe
 beforeEach(() => {
 	trackPageView.mockClear();
 	runState.isRunning = false;
-	player = {
-		storeKey: 0,
-		sim: {
-			store: createSimStore(),
-			runs: { isRunning: () => false },
-			env: { storage: { getItem: () => null, setItem: () => {}, removeItem: () => {} } },
-		},
-		getPlayerSpec: () => PlayerSpecs.DpsWarrior,
-		getEnchants: () => [],
-	} as unknown as Player<any>;
-	seedBulkSettings(player);
+	player = makeBulkPlayer({ sim: { runs: { isRunning: () => false } }, getEnchants: () => [] });
 	model = { settings: new ReforgeSettings(player, {}), softCapsConfigWithLimits: [], previousGear: null, optimizeReforges: vi.fn() };
 });
 
