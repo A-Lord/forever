@@ -433,21 +433,19 @@ func GetEnchantByEffectID(effectID int32) *Enchant {
 	return &enchant
 }
 
-// The game files carry several rows under some effect ids (1897 is both 2H Lesser Impact and
-// Superior Striking), differing in the items they fit. fits runs under the read lock, so
-// nothing it calls may take dbMu.
-func AnyEnchantRow(effectID int32, fits func(Enchant) bool) bool {
-	dbMu.RLock()
-	defer dbMu.RUnlock()
-	return slices.ContainsFunc(enchantRowsByEffectID[effectID], fits)
-}
-
 // The first row under effectID that fits item, for the stats an enchant gives that item.
 func FittingEnchantRow(effectID int32, item Item) (Enchant, bool) {
 	dbMu.RLock()
 	defer dbMu.RUnlock()
+	return fittingEnchantRow(effectID, item)
+}
+
+// The game files carry several rows under some effect ids (1897 is both 2H Lesser Impact and
+// Superior Striking), differing in the items they fit. Takes no lock: it runs under the read
+// lock in FittingEnchantRow and NewItem.
+func fittingEnchantRow(effectID int32, item Item) (Enchant, bool) {
 	for _, row := range enchantRowsByEffectID[effectID] {
-		if EnchantRowAppliesToItem(row, item) {
+		if enchantRowAppliesToItem(row, item) {
 			return row, true
 		}
 	}
@@ -463,16 +461,12 @@ func (enchant Enchant) IsStatic() bool {
 }
 
 func EnchantAppliesToItem(effectID int32, item Item) bool {
-	if effectID == 0 {
-		return false
-	}
-	return AnyEnchantRow(effectID, func(enchant Enchant) bool {
-		return EnchantRowAppliesToItem(enchant, item)
-	})
+	_, ok := FittingEnchantRow(effectID, item)
+	return ok
 }
 
-// Takes no lock: it runs under the read lock in FittingEnchantRow and AnyEnchantRow.
-func EnchantRowAppliesToItem(enchant Enchant, item Item) bool {
+// Takes no lock: it runs under the read lock through fittingEnchantRow.
+func enchantRowAppliesToItem(enchant Enchant, item Item) bool {
 	if enchant.EnchantType == proto.EnchantType_EnchantTypeTwoHand && item.HandType != proto.HandType_HandTypeTwoHand {
 		return false
 	}
@@ -591,7 +585,9 @@ func NewItem(itemSpec ItemSpec) Item {
 	}
 
 	if itemSpec.Enchant != 0 {
-		if enchant, ok := enchantsByEffectID[itemSpec.Enchant]; ok {
+		if enchant, ok := fittingEnchantRow(itemSpec.Enchant, item); ok {
+			item.Enchant = enchant
+		} else if enchant, ok := enchantsByEffectID[itemSpec.Enchant]; ok {
 			item.Enchant = enchant
 		}
 		// else {
