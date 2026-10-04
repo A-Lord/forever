@@ -18,7 +18,7 @@ export interface ReforgeSkippedSlotsViewProps {
 }
 
 const SlotList = ({ slots }: { slots: ReadonlyArray<string> }) => (
-	<ul className="mb-0 pl-0">
+	<ul className="mb-0 list-disc pl-4">
 		{slots.map(slot => (
 			<li key={slot}>{slot}</li>
 		))}
