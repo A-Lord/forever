@@ -9,7 +9,7 @@ import { PlayerClasses } from '@sim/player/classes';
 import { Player } from '@sim/player/player';
 import { WeaponSkillGroup } from '@sim/player/weapon_skill_groups';
 import { SpecRotation } from '@sim/proto/spec_types';
-import { DEFAULT_MELEE_GEM_STATS, StatCap, Stats, UnitStat } from '@sim/proto/stats';
+import { StatCap, Stats, UnitStat } from '@sim/proto/stats';
 import { defineSpec } from '@sim/spec_config';
 
 import * as WarriorInputs from '../shared/inputs';
@@ -39,7 +39,6 @@ export default defineSpec<Spec.SpecDpsWarrior>({
 	epPseudoStats: [PseudoStat.PseudoStatMainHandDps, PseudoStat.PseudoStatOffHandDps],
 	// Reference stat against which to calculate EP. I think all classes use either spell power or attack power.
 	epReferenceStat: Stat.StatStrength,
-	gemStats: DEFAULT_MELEE_GEM_STATS,
 	// Which stats to display in the Character Stats section, at the bottom of the left-hand sidebar.
 	displayStats: UnitStat.createDisplayStatArray(
 		[

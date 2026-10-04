@@ -1261,8 +1261,6 @@
 {"effectId":8693,"itemId":274377,"spellId":1293808,"name":"Warden's Signet of Caution","icon":"inv_60pvp_trinket1c","type":1,"stats":[0,0,30,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"quality":1},
 {"effectId":8694,"itemId":274378,"spellId":1293809,"name":"Warden's Signet of Recovery","icon":"inv_60pvp_trinket1d","type":1,"stats":[0,0,0,0,66,22,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"quality":1}
 ],
-"gems":[
-],
 "zones":[
 ],
 "npcs":[

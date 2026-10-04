@@ -8704,8 +8704,6 @@
 {"effectId":8720,"itemId":279272,"spellId":1310308,"name":"SAF-T Ultra Precision Scope","icon":"inv_engineering_90_scope_blue","type":14,"stats":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"pseudoStats":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"quality":3,"lvl":65},
 {"effectId":8721,"itemId":249480,"spellId":1248761,"name":"Enchant Weapon - Recovery","icon":"inv_misc_note_01","type":13,"stats":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"quality":2,"lvl":28}
 ],
-"gems":[
-],
 "zones":[
 {"id":1,"name":"Dun Morogh","areaTypes":[1,2,3]},
 {"id":3,"name":"Badlands","areaTypes":[2,4,6]},

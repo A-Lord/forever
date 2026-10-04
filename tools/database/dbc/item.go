@@ -10,44 +10,40 @@ import (
 const UPGRADE_SYSTEM_ACTIVE = false
 
 type Item struct {
-	Id                     int
-	Name                   string
-	InventoryType          int
-	ItemDelay              int
-	OverallQuality         ItemQuality
-	DmgVariance            float64
-	ItemLevel              int
-	ItemClass              int
-	ItemSubClass           int
-	StatAlloc              []float64
-	BonusStat              []int
-	ArmorValue             int
-	FireResistance         int
-	NatureResistance       int
-	FrostResistance        int
-	ShadowResistance       int
-	ArcaneResistance       int
-	SocketEnchantmentId    int
-	Flags0                 ItemStaticFlags0
-	Flags1                 ItemStaticFlags1
-	Flags2                 ItemStaticFlags2
-	Flags3                 ItemStaticFlags3
-	FDID                   int
-	ItemSetName            string
-	ItemSetId              int
-	ClassMask              int
-	RaceMask               int
-	QualityModifier        float64
-	RandomSuffixOptions    []int32
-	StatPercentageOfSocket []float64
-	BonusAmountCalculated  []float64
-	Sockets                []int
-	SocketModifier         []float64 // Todo: Figure out if this is socket modifier in disguise or something else - I call it that for now.
-	NameDescription        string    // Contains information for i.E. Thunderforging. Normal = Thunderforged, HC = Heroic Thunderforged
-	UpgradeID              int
-	UpgradePath            []int
-	LimitCategory          int
-	Bonding                int
+	Id                    int
+	Name                  string
+	InventoryType         int
+	ItemDelay             int
+	OverallQuality        ItemQuality
+	DmgVariance           float64
+	ItemLevel             int
+	ItemClass             int
+	ItemSubClass          int
+	StatAlloc             []float64
+	BonusStat             []int
+	ArmorValue            int
+	FireResistance        int
+	NatureResistance      int
+	FrostResistance       int
+	ShadowResistance      int
+	ArcaneResistance      int
+	Flags0                ItemStaticFlags0
+	Flags1                ItemStaticFlags1
+	Flags2                ItemStaticFlags2
+	Flags3                ItemStaticFlags3
+	FDID                  int
+	ItemSetName           string
+	ItemSetId             int
+	ClassMask             int
+	RaceMask              int
+	QualityModifier       float64
+	RandomSuffixOptions   []int32
+	BonusAmountCalculated []float64
+	NameDescription       string // Contains information for i.E. Thunderforging. Normal = Thunderforged, HC = Heroic Thunderforged
+	UpgradeID             int
+	UpgradePath           []int
+	LimitCategory         int
+	Bonding               int
 }
 
 func (item *Item) ToUIItem() *proto.UIItem {
@@ -70,8 +66,6 @@ func (item *Item) ToScaledUIItem(itemLevel int) *proto.UIItem {
 		HandType:            handType,
 		WeaponType:          weaponType,
 		WeaponSpeed:         float64(item.ItemDelay) / 1000,
-		GemSockets:          item.GetGemSlots(),
-		SocketBonus:         NullFloat(item.GetGemBonus().ToProtoArray()),
 		NameDescription:     item.NameDescription,
 		LimitCategory:       int32(item.LimitCategory),
 		QualityModifier:     item.GetWeaponQualityModifier(),
@@ -198,56 +192,10 @@ func (item *Item) GetScaledStat(index int, itemLevel int) float64 {
 		if item.StatAlloc[index] > 0 && itemBudget > 0 {
 			rawValue := math.Round(item.StatAlloc[index] * itemBudget * 0.0001)
 
-			//Todo: Figure out if this does anything in MoP
-			//Not used right now in Cata
-			//socket_penalty := math.RoundNearby item.StatPercentageOfSocket[index] * SocketCost(itemLevel)
-			return rawValue - item.SocketModifier[index] // Todo: Could this be a calculated socket penalty?
+			return rawValue
 		}
 	}
 	return 0
-}
-
-func (item *Item) GetGemSlots() []proto.GemColor {
-	sockets := []proto.GemColor{}
-	for _, socketType := range item.Sockets {
-		if socketType == 0 {
-			continue
-		}
-		var gemType = MapSocketTypeToGemColor[socketType]
-		sockets = append(sockets, gemType)
-	}
-	return sockets
-}
-
-func (item *Item) GetGemBonus() stats.Stats {
-	stats := stats.Stats{}
-	if item.SocketEnchantmentId == 0 {
-		return stats
-	}
-	bonus := GetDBC().ItemStatEffects[item.SocketEnchantmentId]
-
-	for i, effectStat := range bonus.EffectArg {
-		if effectStat == 0 {
-			continue
-		}
-		if !bonus.EffectIsAura {
-			mapped, success := MapBonusStatIndexToStats(effectStat)
-			if !success {
-				return stats
-			}
-			value := bonus.EffectPointsMin[i]
-			for _, stat := range mapped {
-				stats[stat] = float64(value)
-			}
-		} else {
-			// This socket bonus in an Aura, need to loop over the raw SpellEffect data
-			// effectStat is the SpellID
-			for _, effectAura := range GetDBC().SpellEffects[effectStat] {
-				addEquipEffectStat(&stats, effectAura, effectAura.EffectBasePoints)
-			}
-		}
-	}
-	return stats
 }
 
 func (item *Item) WeaponDmgMin(itemLevel int) float64 {
