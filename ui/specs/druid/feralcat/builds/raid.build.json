@@ -1,0 +1,119 @@
+{
+  "player": {
+    "talentsString": "05002-55000032021032212051-055",
+    "buffs": {
+      "greaterBlessingOfKings": true,
+      "greaterBlessingOfMight": true
+    },
+    "profession2": "Enchanting",
+    "class": "ClassDruid",
+    "equipment": {
+      "items": [
+        {
+          "id": 8345
+        },
+        {
+          "id": 18404
+        },
+        {
+          "id": 271955
+        },
+        {
+          "id": 272414
+        },
+        {
+          "id": 252483
+        },
+        {
+          "id": 19587
+        },
+        {
+          "id": 271948
+        },
+        {
+          "id": 272396
+        },
+        {
+          "id": 15065
+        },
+        {
+          "id": 20715
+        },
+        {
+          "id": 19325
+        },
+        {
+          "id": 275981
+        },
+        {
+          "id": 19120
+        },
+        {},
+        {
+          "id": 21188
+        },
+        {},
+        {
+          "id": 272427
+        }
+      ]
+    },
+    "profession1": "Engineering",
+    "name": "Raid Cat",
+    "consumables": {
+      "elixirIds": [
+        13452
+      ],
+      "foodId": 250072
+    },
+    "feralCatDruid": {
+      "options": {}
+    },
+    "race": "RaceNightElf",
+    "reactionTimeMs": 250,
+    "inFrontOfTarget": false,
+    "rotation": {
+      "type": "TypeAPL",
+      "priorityList": [
+        {
+          "action": {
+            "autocastOtherCooldowns": {}
+          }
+        },
+        {
+          "action": {
+            "catOptimalRotationAction": {
+              "ripMinComboPoints": 4,
+              "rakeTrick": false,
+              "maintainFaerieFire": true,
+              "biteMinComboPoints": 5,
+              "finishingMove": "Rip"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "tanks": [],
+  "partyBuffs": {
+    "battleShout": "TristateEffectRegular",
+    "windfuryTotem": true,
+    "manaSpringTotem": "TristateEffectRegular",
+    "strengthOfEarthTotem": true
+  },
+  "raidBuffs": {
+    "arcaneBrilliance": true,
+    "prayerOfSpirit": true,
+    "giftOfTheWild": true,
+    "prayerOfFortitude": true,
+    "prayerOfShadowProtection": true
+  },
+  "debuffs": {
+    "exposeArmor": true,
+    "judgementOfWisdom": true,
+    "curseOfRecklessness": true,
+    "faerieFire": true,
+    "sunderArmor": true,
+    "giftOfArthas": true
+  }
+}

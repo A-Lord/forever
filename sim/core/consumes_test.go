@@ -50,17 +50,18 @@ func TestSelectedConsumableIDsKeepTheFirstOfEachGroup(t *testing.T) {
 }
 
 func TestHandWrittenConsumableEffectReplacesDataDriven(t *testing.T) {
-	const majorHealingPotion = 13446
+	const testConsumable = 990407
+	addToDatabase(&proto.SimDatabase{Consumables: []*proto.Consumable{{Id: testConsumable}}})
 	unregister := func() {
-		delete(consumableEffects, majorHealingPotion)
-		delete(dataDrivenConsumableEffects, majorHealingPotion)
+		delete(consumableEffects, testConsumable)
+		delete(dataDrivenConsumableEffects, testConsumable)
 	}
 	t.Cleanup(unregister)
 
 	for _, handFirst := range []bool{true, false} {
 		applied := ""
-		hand := func() { NewConsumableEffect(majorHealingPotion, func(Agent) { applied = "hand" }) }
-		dataDriven := func() { NewSpellDataConsumableEffect(majorHealingPotion, func(Agent) { applied = "rows" }) }
+		hand := func() { NewConsumableEffect(testConsumable, func(Agent) { applied = "hand" }) }
+		dataDriven := func() { NewSpellDataConsumableEffect(testConsumable, func(Agent) { applied = "rows" }) }
 		if handFirst {
 			hand()
 			dataDriven()
@@ -69,10 +70,10 @@ func TestHandWrittenConsumableEffectReplacesDataDriven(t *testing.T) {
 			hand()
 		}
 
-		if !HasConsumableEffect(majorHealingPotion) {
-			t.Fatalf("hand first %v: %d has no effect registered", handFirst, majorHealingPotion)
+		if !HasConsumableEffect(testConsumable) {
+			t.Fatalf("hand first %v: %d has no effect registered", handFirst, testConsumable)
 		}
-		apply, _ := consumableEffect(majorHealingPotion)
+		apply, _ := consumableEffect(testConsumable)
 		apply(nil)
 		if applied != "hand" {
 			t.Errorf("hand first %v: the %s effect applied, want the hand-written one", handFirst, applied)
@@ -82,24 +83,25 @@ func TestHandWrittenConsumableEffectReplacesDataDriven(t *testing.T) {
 }
 
 func TestASecondEffectOfTheSameOriginPanics(t *testing.T) {
-	const majorHealingPotion = 13446
+	const testConsumable = 990408
+	addToDatabase(&proto.SimDatabase{Consumables: []*proto.Consumable{{Id: testConsumable}}})
 	for name, register := range map[string]func(int32, ApplyEffect){
 		"hand-written": NewConsumableEffect,
 		"data-driven":  NewSpellDataConsumableEffect,
 	} {
 		t.Run(name, func(t *testing.T) {
 			t.Cleanup(func() {
-				delete(consumableEffects, majorHealingPotion)
-				delete(dataDrivenConsumableEffects, majorHealingPotion)
+				delete(consumableEffects, testConsumable)
+				delete(dataDrivenConsumableEffects, testConsumable)
 			})
 
-			register(majorHealingPotion, func(Agent) {})
+			register(testConsumable, func(Agent) {})
 			defer func() {
 				if recover() == nil {
 					t.Errorf("a second %s effect for one consumable registered without a panic", name)
 				}
 			}()
-			register(majorHealingPotion, func(Agent) {})
+			register(testConsumable, func(Agent) {})
 		})
 	}
 }

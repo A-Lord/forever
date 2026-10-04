@@ -80,6 +80,31 @@ func bleedAuraOpt() spelldata.AuraOpt {
 	}
 }
 
+func (druid *Druid) registerProwlBreakingCasts() {
+	druid.OnSpellRegistered(func(spell *core.Spell) {
+		if spell.ApplyEffects == nil || spell.Flags.Matches(core.SpellFlagPassiveSpell|core.SpellFlagProc) {
+			return
+		}
+		if spell.DefaultCast == (core.Cast{}) && spell.CD.Timer == nil && spell.SharedCD.Timer == nil && !spell.Flags.Matches(core.SpellFlagAPL) {
+			return
+		}
+		row := spelldata.Find(spell.SpellID)
+		if spell.ItemID != 0 {
+			if effects := core.GetConsumableByID(spell.ItemID).OnUseEffects(); len(effects) > 0 {
+				row = spelldata.Find(effects[0].GetBuffId())
+			}
+		}
+		if row.IsPassive() || row.HasAttr(dbcenums.ATTR_INDEX_EX_1, dbcenums.ATTR_EX_1_NO_STEALTH_BREAK) || spellData.Prowl.Contains(spell) {
+			return
+		}
+		apply := spell.ApplyEffects
+		spell.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+			druid.breakProwl(sim)
+			apply(sim, target, spell)
+		}
+	})
+}
+
 func (druid *Druid) breakProwl(sim *core.Simulation) {
 	if druid.ProwlAura != nil && druid.ProwlAura.IsActive() {
 		druid.ProwlAura.Deactivate(sim)

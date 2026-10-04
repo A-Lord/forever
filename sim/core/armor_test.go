@@ -44,3 +44,16 @@ func TestArmorReductionFromLevel60Attacker(t *testing.T) {
 		t.Fatalf("3731 armor against a level 60 attacker reduces damage by %.4f, want 0.4042", reduction)
 	}
 }
+
+func TestLevel60PhysicalDamageUsesDefaultTargetArmor(t *testing.T) {
+	attacker := Unit{Type: PlayerUnit, Level: 60, PseudoStats: stats.NewPseudoStats()}
+	target := NewTarget(FreshDefaultTargetConfig(), 0)
+	if armor := target.Armor(); armor != 3731 {
+		t.Fatalf("default target armor %v, want 3731", armor)
+	}
+
+	modifier := NewAttackTable(&attacker, &target.Unit).GetArmorDamageModifier(nil)
+	if !WithinToleranceFloat64(0.59581844, modifier, 1e-8) {
+		t.Fatalf("default target leaves %.8f physical damage, want 0.59581844", modifier)
+	}
+}

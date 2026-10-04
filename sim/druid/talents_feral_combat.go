@@ -2,6 +2,7 @@ package druid
 
 import (
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
@@ -65,19 +66,35 @@ func (druid *Druid) applyThickHide() {
 		return
 	}
 	row := spellData.ThickHide.Rank(druid.Talents.ThickHide)
-	// Dummy 3 is armor per level while in a form. Dummy 200 / 100 is armor per point of defense
-	// skill above 5 per level. TODO: Ingame research needed -- defense skill is not modelled (#70),
-	// so the second term is 0, and whether the form's armor multiplier applies to this bonus.
-	bonus := float64(druid.level()) * row.EffectN(2).BaseValue()
-	for _, aura := range []*core.Aura{druid.CatFormAura, druid.BearFormAura, druid.DireBearFormAura} {
-		if aura != nil {
-			aura.AttachStatBuff(stats.Armor, bonus)
+	// The tooltip prices both base-armor terms before the form's armor multiplier.
+	for _, form := range []struct {
+		aura    *core.Aura
+		passive *spelldata.Spell
+	}{
+		{druid.CatFormAura, spellData.CatFormTriggered.Highest()},
+		{druid.BearFormAura, spellData.BearFormTriggered.Highest()},
+		{druid.DireBearFormAura, spellData.DireBearFormTriggered.Highest()},
+	} {
+		if form.aura == nil {
+			continue
 		}
+		multiplier := 1.0
+		for _, effect := range form.passive.Effects {
+			if effect.Aura == dbcenums.A_MOD_BASE_RESISTANCE_PCT && effect.Misc == 1 {
+				multiplier = 1 + effect.Percent()
+			}
+		}
+		form.aura.AttachStatBuff(stats.Armor, float64(druid.level())*row.EffectN(2).BaseValue()*multiplier)
+		form.aura.AttachStatDependency(druid.NewDynamicStatDependency(stats.DefenseRating, stats.Armor,
+			row.EffectN(1).Percent()/core.DefenseRatingPerDefenseLevel*multiplier))
 	}
 }
 
 func (druid *Druid) applyFeralSwiftness() {
 	druid.parseTalent(druid.Talents.FeralSwiftness, spellData.FeralSwiftness)
+	if druid.Talents.FeralSwiftness > 0 && druid.CatFormAura != nil {
+		druid.CatFormAura.NewPassiveMovementSpeedEffect(spellData.FeralSwiftness.EffectAt(2).FractionAt(druid.Talents.FeralSwiftness))
+	}
 }
 
 func (druid *Druid) applySharpenedClaws() {
@@ -179,12 +196,14 @@ func (druid *Druid) applyNaturalReaction() {
 	metrics := druid.NewRageMetrics(core.ActionID{SpellID: rageSpell.ID})
 	// TODO: Ingame research needed -- the proc mask has no dodge bit. The handler keeps dodges only.
 	// The triggered spell restores 5 rage; whether a lower rank restores less is not on that spell.
-	druid.MakeProcTriggerAura(spelldata.ProcTrigger(&druid.Character, row, func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
+	trigger := spelldata.ProcTrigger(&druid.Character, row, func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
 		if !druid.InForm(Bear) || !result.Outcome.Matches(core.OutcomeDodge) {
 			return
 		}
 		druid.AddRage(sim, rageSpell.EnergizeEffect().Tenths(), metrics)
-	}))
+	})
+	trigger.Outcome = core.OutcomeEmpty
+	druid.MakeProcTriggerAura(trigger)
 }
 
 func (druid *Druid) applyFeralCharge() {

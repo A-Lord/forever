@@ -1,3 +1,5 @@
+//go:build with_db
+
 package feralcat
 
 import (
@@ -14,131 +16,30 @@ func init() {
 }
 
 func TestFeralCat(t *testing.T) {
-	t.Skip("gear sets and APL presets are not part of the feral foundation; " +
-		"TestFeralCatCoverage casts the abilities with the rotation written in the test")
-	core.RunTestSuite(t, t.Name(), core.FullCharacterTestSuiteGenerator([]core.CharacterSuiteConfig{
-		{
-			Class:      proto.Class_ClassDruid,
-			Race:       proto.Race_RaceNightElf,
-			OtherRaces: []proto.Race{proto.Race_RaceTauren},
+	generators := core.FullCharacterTestSuiteGenerator([]core.CharacterSuiteConfig{starterConfig()})
+	generators = append(generators, &core.SingleDpsTestGenerator{Name: "StarterCasts", Request: starterRequest(t)})
+	core.RunTestSuite(t, t.Name(), generators)
+}
 
-			GearSet: core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "p1_realistic_6p"),
-			OtherGearSets: []core.GearSetCombo{
-				core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "pre_raid"),
-				core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "p1_realistic_9p"),
-				core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "p1_bis_6p"),
-				core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "p1_bis_9p"),
-				core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "p1_alt_6p"),
-				core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "p1_alt_9p"),
-				core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "p2_6p"),
-				core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "p2_9p"),
-				core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "p2_alt_6p"),
-				core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "p2_alt_9p"),
-				core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "p3_6p"),
-				core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "p3_9p"),
-				core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "p4_6p"),
-				core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "p4_9p"),
-				core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "p5"),
+func starterConfig() core.CharacterSuiteConfig {
+	reference := proto.Stat_StatAttackPower
+	weigh := []proto.Stat{proto.Stat_StatStrength, proto.Stat_StatAgility, proto.Stat_StatStamina}
+	config := core.GetTestBuildFromJSON(
+		proto.Class_ClassDruid, "../../../ui/specs/druid/feralcat/builds", "starter",
+		core.ItemFilter{
+			ArmorType: proto.ArmorType_ArmorTypeLeather,
+			WeaponTypes: []proto.WeaponType{
+				proto.WeaponType_WeaponTypeDagger, proto.WeaponType_WeaponTypeFist,
+				proto.WeaponType_WeaponTypeMace, proto.WeaponType_WeaponTypeStaff,
 			},
-
-			Talents: DefaultTalents,
-			OtherTalentSets: []core.TalentsCombo{
-				{Label: "Monocat", Talents: MonocatTalents},
-			},
-
-			SpecOptions: core.SpecOptionsCombo{Label: "Standard", SpecOptions: DefaultSpecOptions},
-
-			Rotation: core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "default"),
-			OtherRotations: []core.RotationCombo{
-				{
-					Label: "Simple",
-					Rotation: &proto.APLRotation{
-						Type: proto.APLRotation_TypeSimple,
-					},
-				},
-			},
-
-			Consumables: DefaultConsumables,
-
-			Profession1: proto.Profession_Engineering,
-			Profession2: proto.Profession_Enchanting,
-
-			ItemFilter: core.ItemFilter{
-				ArmorType: proto.ArmorType_ArmorTypeLeather,
-				WeaponTypes: []proto.WeaponType{
-					proto.WeaponType_WeaponTypeDagger,
-					proto.WeaponType_WeaponTypeFist,
-					proto.WeaponType_WeaponTypeMace,
-					proto.WeaponType_WeaponTypeStaff,
-				},
-				RangedWeaponTypes: []proto.RangedWeaponType{
-					proto.RangedWeaponType_RangedWeaponTypeIdol,
-				},
-			},
-
-			EPReferenceStat: proto.Stat_StatAttackPower,
-			StatsToWeigh: []proto.Stat{
-				proto.Stat_StatAgility,
-				proto.Stat_StatStrength,
-				proto.Stat_StatAttackPower,
-				proto.Stat_StatFeralAttackPower,
-				proto.Stat_StatHitRating,
-				proto.Stat_StatExpertiseRating,
-				proto.Stat_StatCritRating,
-				proto.Stat_StatHasteRating,
-				proto.Stat_StatArmorPenetration,
-			},
-		},
-	}))
+			RangedWeaponTypes: []proto.RangedWeaponType{proto.RangedWeaponType_RangedWeaponTypeIdol},
+		}, &reference, &weigh,
+	)
+	config.OtherRaces = []proto.Race{proto.Race_RaceTauren}
+	config.OtherRotations = []core.RotationCombo{core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "default")}
+	return config
 }
 
 func BenchmarkSimulate(b *testing.B) {
-	rsr := &proto.RaidSimRequest{
-		Raid: core.SinglePlayerRaidProto(
-			&proto.Player{
-				Class:         proto.Class_ClassDruid,
-				Race:          proto.Race_RaceNightElf,
-				TalentsString: DefaultTalents,
-				Equipment:     core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "p1_realistic_6p").GearSet,
-				Consumables:   DefaultConsumables,
-				Spec:          DefaultSpecOptions,
-				Rotation: &proto.APLRotation{
-					Type: proto.APLRotation_TypeSimple,
-				},
-			},
-			nil, nil, nil,
-		),
-		Encounter: &proto.Encounter{
-			Duration: 300,
-			Targets:  []*proto.Target{core.NewDefaultTarget()},
-		},
-		SimOptions: core.AverageDefaultSimTestOptions,
-	}
-
-	core.RaidBenchmark(b, rsr)
-}
-
-const DefaultTalents = "05002-55000032021032212051-055"
-const MonocatTalents = "-55000032021032212051-05503"
-
-var DefaultSpecOptions = &proto.Player_FeralCatDruid{
-	FeralCatDruid: &proto.FeralCatDruid{
-		Rotation: &proto.FeralCatDruid_Rotation{
-			FinishingMove:      proto.FeralCatDruid_Rotation_Rip,
-			RipMinComboPoints:  5,
-			BiteMinComboPoints: 5,
-			RakeTrick:          true,
-		},
-		Options: &proto.FeralCatDruid_Options{},
-	},
-}
-
-var DefaultConsumables = &proto.ConsumesSpec{
-	PotId:      250943,                // Major Frenzy Potion
-	ElixirIds:  []int32{13452, 13447}, // Elixir of the Mongoose, Elixir of the Sages
-	FoodId:     250072,                // Swiftstrike Steak
-	MhImbueId:  12643,                 // Dense Weightstone
-	ConjuredId: 12662,                 // Demonic Rune
-	// Goblin Sapper Charge, Scroll of Agility IV, Scroll of Strength IV
-	ExtraIds: []int32{10646, 10309, 10310},
+	core.CharacterBenchmark(b, starterConfig())
 }

@@ -6,42 +6,48 @@ type ItemDamageTable struct {
 }
 
 func (item *Item) WeaponDps(itemLevel int) float64 {
+	dps, _ := dbcInstance.WeaponDPS(item, itemLevel)
+	return dps
+}
+
+// WeaponDPS preserves whether the game files contain the selected quality cell.
+func (d *DBC) WeaponDPS(item *Item, itemLevel int) (float64, bool) {
 	quality := item.OverallQuality
-	if item.OverallQuality > 6 {
-		quality = 4 // Heirlooms = epic
+	if quality > 6 {
+		quality = 4
 	}
-
-	ilvl := 0
-	if itemLevel > 0 {
-		ilvl = itemLevel
-	} else {
-		ilvl = item.ItemLevel
+	if itemLevel <= 0 {
+		itemLevel = item.ItemLevel
 	}
+	table := item.weaponDamageTable()
+	row, present := d.ItemDamageTable[table][itemLevel]
+	if !present || quality < 0 || int(quality) >= len(row.Quality) {
+		return 0, false
+	}
+	return row.Quality[quality], true
+}
 
+func (item *Item) weaponDamageTable() string {
 	switch item.InventoryType {
 	case INVTYPE_WEAPON, INVTYPE_WEAPONMAINHAND, INVTYPE_WEAPONOFFHAND:
-		{
-			if item.Flags1.Has(CASTER_WEAPON) {
-				return dbcInstance.ItemDamageTable["ItemDamageOneHandCaster"][ilvl].Quality[quality]
-			} else {
-				return dbcInstance.ItemDamageTable["ItemDamageOneHand"][ilvl].Quality[quality]
-			}
+		if item.Flags1.Has(CASTER_WEAPON) {
+			return "ItemDamageOneHandCaster"
 		}
+		return "ItemDamageOneHand"
 	case INVTYPE_2HWEAPON:
 		if item.Flags1.Has(CASTER_WEAPON) {
-			return dbcInstance.ItemDamageTable["ItemDamageTwoHandCaster"][ilvl].Quality[quality]
-		} else {
-			return dbcInstance.ItemDamageTable["ItemDamageTwoHand"][ilvl].Quality[quality]
+			return "ItemDamageTwoHandCaster"
 		}
+		return "ItemDamageTwoHand"
 	case INVTYPE_RANGED, INVTYPE_THROWN, INVTYPE_RANGEDRIGHT:
 		switch item.ItemSubClass {
 		case ITEM_SUBCLASS_WEAPON_BOW, ITEM_SUBCLASS_WEAPON_GUN, ITEM_SUBCLASS_WEAPON_CROSSBOW:
-			return dbcInstance.ItemDamageTable["ItemDamageRanged"][ilvl].Quality[quality]
+			return "ItemDamageRanged"
 		case ITEM_SUBCLASS_WEAPON_THROWN:
-			return dbcInstance.ItemDamageTable["ItemDamageThrown"][ilvl].Quality[quality]
+			return "ItemDamageThrown"
 		case ITEM_SUBCLASS_WEAPON_WAND:
-			return dbcInstance.ItemDamageTable["ItemDamageWand"][ilvl].Quality[quality]
+			return "ItemDamageWand"
 		}
 	}
-	return 0
+	return ""
 }

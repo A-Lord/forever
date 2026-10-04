@@ -1,5 +1,7 @@
 package druid
 
+import "github.com/wowsims/forever/sim/core"
+
 func (druid *Druid) registerRestorationTalents() {
 	// Tier 1
 	druid.applyNaturesFocus()
@@ -40,38 +42,25 @@ func (druid *Druid) applyNaturalist() {
 	druid.parseTalent(druid.Talents.Naturalist, spellData.Naturalist)
 }
 
-// TODO: To be implemented.
 func (druid *Druid) applySubtlety() {
 	if druid.Talents.Subtlety == 0 {
 		return
 	}
 
-	// The TBC implementation, kept for the port:
-	// if druid.Talents.Subtlety == 0 {
-	// 	return
-	// }
-	//
-	// // Reduces the threat caused by healing/damage spells by 4/8/12/16/20% per rank.
-	// druid.AddStaticMod(core.SpellModConfig{
-	// 	ClassMask:  DruidHealingSpells | DruidDamagingSpells,
-	// 	Kind:       core.SpellMod_ThreatMultiplier_Pct,
-	// 	FloatValue: -0.04 * float64(druid.Talents.Subtlety),
-	// })
+	effect := spellData.Subtlety.Rank(druid.Talents.Subtlety).EffectN(1)
+	// A_MOD_THREAT's school mask limits both damage threat and flat threat to Nature and Arcane;
+	// ParseStatic's global threat multiplier does not preserve that mask.
+	for _, kind := range []core.SpellModType{core.SpellMod_ThreatMultiplier_Pct, core.SpellMod_FlatThreatBonus_Pct} {
+		druid.AddStaticMod(core.SpellModConfig{
+			School:     core.SpellSchool(effect.Misc),
+			Kind:       kind,
+			FloatValue: effect.Percent(),
+		})
+	}
 }
 
-// TODO: To be implemented.
 func (druid *Druid) applyLivingSpirit() {
-	if druid.Talents.LivingSpirit == 0 {
-		return
-	}
-
-	// The TBC implementation, kept for the port:
-	// if druid.Talents.LivingSpirit == 0 {
-	// 	return
-	// }
-	//
-	// // Increases total Spirit by 5/10/15% per rank.
-	// druid.MultiplyStat(stats.Spirit, spellData.LivingSpirit.MultiplierAt(druid.Talents.LivingSpirit))
+	druid.parseTalent(druid.Talents.LivingSpirit, spellData.LivingSpirit)
 }
 
 // applyNaturesFocus implements Nature's Focus, new in Forever.
@@ -88,14 +77,8 @@ func (druid *Druid) applyFuror() {
 	// Entering Cat Form and the bear forms reads the rank (forms.go). There is no aura to attach.
 }
 
-// applyReflection implements Reflection, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
 func (druid *Druid) applyReflection() {
-	if druid.Talents.Reflection == 0 {
-		return
-	}
+	druid.parseTalent(druid.Talents.Reflection, spellData.Reflection)
 }
 
 // applyGiftOfNature implements Gift of Nature, new in Forever.

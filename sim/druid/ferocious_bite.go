@@ -14,7 +14,6 @@ func (druid *Druid) registerFerociousBiteSpell() {
 	config := spelldata.SpellConfig(&druid.Unit, rank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 	config.ExtraCastCondition = druid.requiresComboPoints(rank)
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		druid.breakProwl(sim)
 		cp := float64(druid.ComboPoints())
 		extra := druid.CurrentEnergy()
 		damage := damageEffect.RollAt(sim, druid.level()) + float64(damageEffect.PointsPerResource)*cp

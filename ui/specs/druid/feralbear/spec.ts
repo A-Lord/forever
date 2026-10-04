@@ -2,9 +2,8 @@ import * as BuffDebuffInputs from '@features/settings/model/buffs_debuffs';
 import * as OtherInputs from '@features/settings/model/other_inputs';
 import { APLAction, APLListItem, APLRotation, APLRotation_Type as APLRotationType } from '@generated/proto/apl';
 import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
-import { Cooldowns, EquipmentSpec, ItemSlot, PseudoStat, Spec, Stat, TristateEffect } from '@generated/proto/common';
+import { Cooldowns, ItemSlot, PseudoStat, Spec, Stat, TristateEffect } from '@generated/proto/common';
 import { FeralBearDruid_Rotation as DruidRotation } from '@generated/proto/druid';
-import { SavedTalents } from '@generated/proto/ui';
 import { PlayerClasses } from '@sim/player/classes';
 import { Player } from '@sim/player/player';
 import { Stats, UnitStat } from '@sim/proto/stats';
@@ -72,7 +71,7 @@ export default defineSpec<Spec.SpecFeralBearDruid>({
 	),
 
 	defaults: {
-		gear: EquipmentSpec.create(),
+		gear: Presets.STARTER_GEAR.gear,
 		epWeights: new Stats(),
 		statCaps: (() => {
 			const hitCap = new Stats().withPseudoStat(PseudoStat.PseudoStatMeleeHitPercent, 8);
@@ -84,11 +83,7 @@ export default defineSpec<Spec.SpecFeralBearDruid>({
 		consumables: Presets.DefaultConsumables,
 		rotationType: APLRotationType.TypeAuto,
 		simpleRotation: Presets.DefaultSimpleRotation,
-		// Heart of the wild, feral instinct, thick hide, feral charge, primal bite,
-		// leader of the pack, natural reaction.
-		talents: SavedTalents.create({
-			talentsString: '0000000000000000-05030300100100010500-0000000000000000',
-		}),
+		talents: Presets.STARTER_TALENTS.data,
 		specOptions: Presets.DefaultOptions,
 		raidBuffs: RaidBuffs.create({
 			arcaneBrilliance: true,
@@ -144,14 +139,14 @@ export default defineSpec<Spec.SpecFeralBearDruid>({
 		showExecuteProportion: false,
 	},
 
+	defaultBuild: Presets.STARTER_BUILD,
+
 	presets: {
+		builds: [Presets.STARTER_BUILD],
 		epWeights: [],
-		talents: [],
-		// ROTATION_SIMPLE is kept in presets.ts for reference but omitted here —
-		// the APL rotation is more user-friendly and handles CDs, re-shifting, and
-		// on-use items more easily.
+		talents: [Presets.STARTER_TALENTS],
 		rotations: [Presets.ROTATION_DEFAULT],
-		gear: [],
+		gear: [Presets.STARTER_GEAR],
 	},
 
 	autoRotation: (player: Player<Spec.SpecFeralBearDruid>): APLRotation => {
@@ -170,6 +165,6 @@ function bearSimpleRotation(simple: DruidRotation): APLRotation {
 		`{"bearOptimalRotationAction":{"maintainFaerieFire":${simple.maintainFaerieFire},"maintainDemoralizingRoar":${simple.maintainDemoralizingRoar},"maulRageThreshold":${simple.maulRageThreshold || 50},"swipeUsage":${simple.swipeUsage},"swipeApThreshold":${simple.swipeApThreshold || 2700}}}`,
 	);
 	return APLRotation.create({
-		priorityList: [APLListItem.create({ action: APLAction.fromJsonString(`{"autocastOtherCooldowns":{}}`) }), APLListItem.create({ action: doRotation })],
+		priorityList: [APLListItem.create({ action: APLAction.fromJsonString('{"autocastOtherCooldowns":{}}') }), APLListItem.create({ action: doRotation })],
 	});
 }

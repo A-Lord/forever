@@ -179,6 +179,7 @@ type Item struct {
 	WeaponDamageMax  float64
 	SwingSpeed       float64
 	QualityModifier  float64 // Per-item offset to weapon "average damage"; negative for caster weapons.
+	WeaponTableDPS   *float64
 
 	Name          string
 	Stats         stats.Stats // Stats applied to wearer
@@ -511,6 +512,7 @@ func NewItem(itemSpec ItemSpec) Item {
 	item.WeaponDamageMax = scalingOptions.WeaponDamageMax
 	item.WeaponDamageMin = scalingOptions.WeaponDamageMin
 	item.RandPropPoints = scalingOptions.RandPropPoints
+	item.WeaponTableDPS = scalingOptions.WeaponTableDps
 
 	if itemSpec.RandomSuffix != 0 {
 		if randomSuffix, ok := randomSuffixesByID[itemSpec.RandomSuffix]; ok {

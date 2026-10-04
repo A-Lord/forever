@@ -15,7 +15,6 @@ func (druid *Druid) registerShiftingPowerSpell() {
 		return druid.Talents.ShiftingPower
 	}
 	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, _ *core.Spell) {
-		druid.breakProwl(sim)
 		druid.AddEnergy(sim, energy+druid.WolfsheadEnergyBonus, metrics)
 	}
 	druid.ShiftingPower = druid.RegisterSpell(config)

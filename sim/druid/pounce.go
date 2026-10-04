@@ -9,9 +9,10 @@ func (druid *Druid) registerPounceSpell() {
 	rank := spellData.Pounce.Highest()
 	bleedRank := spellData.PounceBleed.Highest()
 
-	// TODO: Ingame research needed -- Genesis names Pounce 9827 by its class flags, and the bleed 9826
-	// states none, so the bleed here takes no class-flag modifier.
 	bleedConfig := spelldata.SpellConfig(&druid.Unit, bleedRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial), spelldata.Proc())
+	// Genesis names the parent Pounce in its periodic-damage mask. The triggered bleed row carries no
+	// class flags of its own, so it inherits the parent's identity for that modifier.
+	bleedConfig.ClassFlags = rank.ClassFlags
 	bleedConfig.Dot = spelldata.DotConfig(bleedRank, bleedRank.PeriodicDamageEffect(), bleedAuraOpt())
 	druid.PounceBleed = druid.RegisterSpell(bleedConfig)
 
@@ -24,7 +25,6 @@ func (druid *Druid) registerPounceSpell() {
 		return druid.ProwlAura != nil && druid.ProwlAura.IsActive() && druid.BehindTarget()
 	}
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		druid.breakProwl(sim)
 		result := spell.CalcAndDealOutcome(sim, target, spell.OutcomeMeleeSpecialHit)
 		if result.Landed() {
 			stuns.Get(target).Activate(sim)

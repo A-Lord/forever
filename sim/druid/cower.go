@@ -14,7 +14,6 @@ func (druid *Druid) registerCowerSpell() {
 		config.FlatThreatBonus = threat.AverageAt(druid.level())
 	}
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		druid.breakProwl(sim)
 		result := spell.CalcAndDealDamage(sim, target, 0, spell.OutcomeMeleeSpecialHit)
 		druid.refundOnMiss(sim, spell, result)
 	}

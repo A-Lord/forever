@@ -1,3 +1,5 @@
+//go:build with_db
+
 package feralbear
 
 import (
@@ -14,125 +16,29 @@ func init() {
 }
 
 func TestFeralBear(t *testing.T) {
-	t.Skip("gear sets and APL presets are not part of the feral foundation; " +
-		"TestFeralBearCoverage casts the abilities with the rotation written in the test")
-	core.RunTestSuite(t, t.Name(), core.FullCharacterTestSuiteGenerator([]core.CharacterSuiteConfig{
-		{
-			Class:      proto.Class_ClassDruid,
-			Race:       proto.Race_RaceNightElf,
-			OtherRaces: []proto.Race{proto.Race_RaceTauren},
+	generators := core.FullCharacterTestSuiteGenerator([]core.CharacterSuiteConfig{starterConfig()})
+	generators = append(generators, &core.SingleDpsTestGenerator{Name: "StarterCasts", Request: starterRequest(t)})
+	core.RunTestSuite(t, t.Name(), generators)
+}
 
-			GearSet: core.GetGearSet("../../../ui/specs/druid/feralbear/gear_sets", "p1"),
-			OtherGearSets: []core.GearSetCombo{
-				core.GetGearSet("../../../ui/specs/druid/feralbear/gear_sets", "preraid"),
-				core.GetGearSet("../../../ui/specs/druid/feralbear/gear_sets", "p2_survival"),
-				core.GetGearSet("../../../ui/specs/druid/feralbear/gear_sets", "p2_balanced"),
-				core.GetGearSet("../../../ui/specs/druid/feralbear/gear_sets", "p2_offensive"),
-				core.GetGearSet("../../../ui/specs/druid/feralbear/gear_sets", "p2_warden"),
-				core.GetGearSet("../../../ui/specs/druid/feralbear/gear_sets", "p2_hydross_frost"),
-				core.GetGearSet("../../../ui/specs/druid/feralbear/gear_sets", "p2_hydross_nature"),
-				core.GetGearSet("../../../ui/specs/druid/feralbear/gear_sets", "p3"),
-				core.GetGearSet("../../../ui/specs/druid/feralbear/gear_sets", "p4"),
-				core.GetGearSet("../../../ui/specs/druid/feralbear/gear_sets", "p5"),
+func starterConfig() core.CharacterSuiteConfig {
+	reference := proto.Stat_StatAttackPower
+	weigh := []proto.Stat{proto.Stat_StatStrength, proto.Stat_StatAgility, proto.Stat_StatStamina}
+	config := core.GetTestBuildFromJSON(
+		proto.Class_ClassDruid, "../../../ui/specs/druid/feralbear/builds", "starter",
+		core.ItemFilter{
+			ArmorType: proto.ArmorType_ArmorTypeLeather,
+			WeaponTypes: []proto.WeaponType{
+				proto.WeaponType_WeaponTypeDagger, proto.WeaponType_WeaponTypeFist,
+				proto.WeaponType_WeaponTypeMace, proto.WeaponType_WeaponTypeStaff,
 			},
-
-			Talents: DefaultTalents,
-			OtherTalentSets: []core.TalentsCombo{
-				{Label: "DemoRoar", Talents: DemoRoarTalents},
-			},
-
-			SpecOptions: core.SpecOptionsCombo{Label: "Standard", SpecOptions: DefaultSpecOptions},
-
-			Rotation: core.RotationCombo{
-				Label: "Default",
-				Rotation: &proto.APLRotation{
-					Type: proto.APLRotation_TypeSimple,
-				},
-			},
-
-			Consumables: DefaultConsumables,
-
-			Profession1: proto.Profession_Engineering,
-			Profession2: proto.Profession_Enchanting,
-
-			IndividualBuffs: core.FullTankIndividualBuffs,
-
-			IsTank:          true,
-			InFrontOfTarget: true,
-
-			ItemFilter: core.ItemFilter{
-				ArmorType: proto.ArmorType_ArmorTypeLeather,
-				WeaponTypes: []proto.WeaponType{
-					proto.WeaponType_WeaponTypeDagger,
-					proto.WeaponType_WeaponTypeFist,
-					proto.WeaponType_WeaponTypeMace,
-					proto.WeaponType_WeaponTypeStaff,
-				},
-				RangedWeaponTypes: []proto.RangedWeaponType{
-					proto.RangedWeaponType_RangedWeaponTypeIdol,
-				},
-			},
-
-			EPReferenceStat: proto.Stat_StatAgility,
-			StatsToWeigh: []proto.Stat{
-				proto.Stat_StatHealth,
-				proto.Stat_StatStamina,
-				proto.Stat_StatAgility,
-				proto.Stat_StatStrength,
-				proto.Stat_StatAttackPower,
-				proto.Stat_StatArmor,
-				proto.Stat_StatBonusArmor,
-				proto.Stat_StatDodgeRating,
-				proto.Stat_StatDefenseRating,
-				proto.Stat_StatHitRating,
-				proto.Stat_StatExpertiseRating,
-			},
-		},
-	}))
+			RangedWeaponTypes: []proto.RangedWeaponType{proto.RangedWeaponType_RangedWeaponTypeIdol},
+		}, &reference, &weigh,
+	)
+	config.OtherRaces = []proto.Race{proto.Race_RaceTauren}
+	return config
 }
 
 func BenchmarkSimulate(b *testing.B) {
-	rsr := &proto.RaidSimRequest{
-		Raid: core.SinglePlayerRaidProto(
-			&proto.Player{
-				Class:         proto.Class_ClassDruid,
-				Race:          proto.Race_RaceNightElf,
-				TalentsString: DefaultTalents,
-				Equipment:     core.GetGearSet("../../../ui/specs/druid/feralbear/gear_sets", "p1").GearSet,
-				Consumables:   DefaultConsumables,
-				Spec:          DefaultSpecOptions,
-				Rotation: &proto.APLRotation{
-					Type: proto.APLRotation_TypeSimple,
-				},
-			},
-			nil, nil, nil,
-		),
-		Encounter: &proto.Encounter{
-			Duration: 300,
-			Targets:  []*proto.Target{core.NewDefaultTarget()},
-		},
-		SimOptions: core.AverageDefaultSimTestOptions,
-	}
-
-	core.RaidBenchmark(b, rsr)
-}
-
-const DefaultTalents = "0000000000000000-05030300100100010500-0000000000000000"
-const DemoRoarTalents = DefaultTalents
-
-var DefaultSpecOptions = &proto.Player_FeralBearDruid{
-	FeralBearDruid: &proto.FeralBearDruid{
-		Options: &proto.FeralBearDruid_Options{
-			StartingRage: 25,
-		},
-	},
-}
-
-var DefaultConsumables = &proto.ConsumesSpec{
-	PotId:      13455,                // Greater Stoneshield Potion
-	ElixirIds:  []int32{13452, 9088}, // Elixir of the Mongoose, Gift of Arthas
-	FoodId:     21023,                // Dirge's Kickin' Chimaerok Chops
-	ConjuredId: 9421,                 // Major Healthstone
-	// Goblin Sapper Charge, Scroll of Agility IV, Scroll of Strength IV, Scroll of Protection IV
-	ExtraIds: []int32{10646, 10309, 10310, 10305},
+	core.CharacterBenchmark(b, starterConfig())
 }

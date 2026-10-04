@@ -1,6 +1,8 @@
 package druid
 
 import (
+	"time"
+
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
@@ -19,59 +21,77 @@ type Druid struct {
 
 	CannotShredTarget bool
 
-	WolfsheadEnergyBonus float64 // Wolfshead Helm (8345): +20 energy on shift into Cat Form
-	WolfsheadRageBonus   float64 // Wolfshead Helm (8345): +5 rage on shift into Bear Form
+	// Wolfshead Helm (8345): energy added to Shifting Power, and the share added to Enrage's instant rage.
+	WolfsheadEnergyBonus float64
+	WolfsheadEnrageBonus float64
 
 	MHAutoSpell *core.Spell
 
 	Barkskin             *DruidSpell
+	Bash                 *DruidSpell
+	Berserk              *DruidSpell
+	ChallengingRoar      *DruidSpell
+	Claw                 *DruidSpell
+	Cower                *DruidSpell
 	Dash                 *DruidSpell
 	DemoralizingRoar     *DruidSpell
 	FaerieFire           *DruidSpell
-	FaerieFireFeral      *DruidSpell
+	FeralCharge          *DruidSpell
 	FerociousBite        *DruidSpell
 	Enrage               *DruidSpell
 	EnrageAura           *core.Aura
 	FrenziedRegeneration *DruidSpell
+	Growl                *DruidSpell
 	Hurricane            *DruidSpell
 	Innervate            *DruidSpell
 	InsectSwarm          *DruidSpell
 	Lacerate             *DruidSpell
-	MangleBear           *DruidSpell
 	Maul                 *DruidSpell
 	Moonfire             *DruidSpell
 	NaturesSwiftness     *DruidSpell
+	Pounce               *DruidSpell
+	PounceBleed          *DruidSpell
+	PrimalBite           *DruidSpell
 	Prowl                *DruidSpell
 	Rake                 *DruidSpell
 	Ravage               *DruidSpell
 	Rejuvenation         *DruidSpell
 	Rip                  *DruidSpell
+	ShiftingPower        *DruidSpell
 	Shred                *DruidSpell
 	Starfire             []*DruidSpell
+	Thorns               *DruidSpell
 	Swipe                *DruidSpell
 	Wrath                *DruidSpell
 
-	CatForm     *DruidSpell
-	BearForm    *DruidSpell
-	MoonkinForm *DruidSpell
+	CatForm      *DruidSpell
+	BearForm     *DruidSpell
+	DireBearForm *DruidSpell
+	MoonkinForm  *DruidSpell
 
 	BearFormAura             *core.Aura
+	BerserkAura              *core.Aura
 	CatFormAura              *core.Aura
 	ClearcastingAura         *core.Aura
+	DireBearFormAura         *core.Aura
 	DashAura                 *core.Aura
 	FrenziedRegenerationAura *core.Aura
 	DemoralizingRoarAuras    core.AuraArray
 	FaerieFireAuras          core.AuraArray
-	MangleAuras              core.AuraArray
 	MoonkinFormAura          *core.Aura
 	ProwlAura                *core.Aura
 
 	form DruidForm
 
-	IntensityEnrageRageBonus float64
-
-	// Furor: chance to gain energy/rage when shifting into Cat/Bear Form.
-	FurorProcChance float64
+	// Energy left when cat form dropped, when it was dropped, and the time spent in bear forms since.
+	// Reset clears them.
+	furorStoredEnergy float64
+	furorStoredValid  bool
+	furorLeftCatAt    time.Duration
+	furorBearTime     time.Duration
+	furorEnergyMetric *core.ResourceMetrics
+	furorRageMetric   *core.ResourceMetrics
+	enrageMetric      *core.ResourceMetrics
 
 	// Maul queue (fires on next auto-attack swing, like warrior Heroic Strike)
 	maulQueueAura  *core.Aura
@@ -80,60 +100,12 @@ type Druid struct {
 }
 
 const (
-	DruidSpellFlagNone        int64 = 0
-	DruidSpellEntanglingRoots int64 = 1 << iota
-	DruidSpellDemoralizingRoar
-	DruidSpellFaerieFire
-	DruidSpellFaerieFireFeral
-	DruidSpellHurricane
-	DruidSpellFerociousBite
-	DruidSpellFrenziedRegeneration
-	DruidSpellInnervate
-	DruidSpellInsectSwarm
-	DruidSpellLacerate
-	DruidSpellMangleBear
-	DruidSpellMaul
-	DruidSpellMoonfireInitial
+	// Feral abilities are identified with spellData ladders, not these masks. The masks that remain
+	// are the ones a balance item effect still names.
+	DruidSpellMoonfireInitial int64 = 1 << iota
 	DruidSpellMoonfireDoT
-	DruidSpellRake
-	DruidSpellRavage
-	DruidSpellRip
-	DruidSpellShred
-	DruidSpellStarfire
-	DruidSpellSwipe
-	DruidSpellThorns
-	DruidSpellWrath
-	DruidSpellEnrage
-	DruidSpellCatForm
-	DruidSpellBearForm
 
-	DruidSpellHealingTouch
-	DruidSpellRegrowth
-	DruidSpellLifebloom
-	DruidSpellRejuvenation
-	DruidSpellTranquility
-	DruidSpellMarkOfTheWild
-	DruidSpellSwiftmend
-	DruidSpellCenarionWard
-
-	// TODO: Forever abilities the sim does not model yet; see the stub file named for each.
-	DruidSpellRevive
-
-	DruidSpellLast
-	DruidSpellsAll = DruidSpellLast<<1 - 1
-
-	DruidSpellMoonfire           = DruidSpellMoonfireInitial | DruidSpellMoonfireDoT
-	DruidSpellDoT                = DruidSpellMoonfireDoT | DruidSpellInsectSwarm
-	DruidSpellHoT                = DruidSpellRejuvenation | DruidSpellLifebloom | DruidSpellRegrowth
-	DruidSpellInstant            = DruidSpellMoonfire | DruidSpellFaerieFire
-	DruidSpellMangle             = DruidSpellMangleBear
-	DruidSpellBuilder            = DruidSpellMangle | DruidSpellShred | DruidSpellRake | DruidSpellRavage
-	DruidSpellFinisher           = DruidSpellFerociousBite | DruidSpellRip
-	DruidArcaneSpells            = DruidSpellMoonfire | DruidSpellMoonfireDoT | DruidSpellStarfire
-	DruidNatureSpells            = DruidSpellWrath | DruidSpellHurricane | DruidSpellInsectSwarm
-	DruidHealingNonInstantSpells = DruidSpellHealingTouch | DruidSpellRegrowth
-	DruidHealingSpells           = DruidHealingNonInstantSpells | DruidSpellRejuvenation | DruidSpellLifebloom | DruidSpellSwiftmend
-	DruidDamagingSpells          = DruidArcaneSpells | DruidNatureSpells
+	DruidSpellMoonfire = DruidSpellMoonfireInitial | DruidSpellMoonfireDoT
 )
 
 type SelfBuffs struct {
@@ -159,6 +131,7 @@ func (druid *Druid) RegisterSpell(config core.SpellConfig) *DruidSpell {
 func (druid *Druid) Initialize() {
 	druid.setForm(druid.StartingForm)
 	druid.AutoUnshift = druid.ClearForm
+	druid.registerProwlBreakingCasts()
 
 	druid.Env.RegisterPostFinalizeEffect(func() {
 		druid.MHAutoSpell = druid.AutoAttacks.MHAuto()
@@ -179,33 +152,8 @@ func (druid *Druid) Initialize() {
 func (druid *Druid) RegisterBaselineSpells() {
 	druid.registerInnervateCD()
 	druid.registerThornsSpell()
-	druid.registerFormBreakingConsumes()
-}
-
-// TODO: To be implemented.
-// registerFormBreakingConsumes patches ApplyEffects on potions, conjured items,
-// and engineering explosives to drop Bear/Cat form when used. These spells all
-// carry SpellFlagNoOnCastComplete, so OnCastComplete aura hooks never fire for
-// them — we must wrap ApplyEffects directly instead.
-func (druid *Druid) registerFormBreakingConsumes() {
-	panic("To be implemented")
-
-	// The TBC implementation, kept for the port:
-	// druid.Env.RegisterPostFinalizeEffect(func() {
-	// 	breakFlags := core.SpellFlagPotion | core.SpellFlagConjured | core.SpellFlagExplosive
-	// 	for _, spell := range druid.Spellbook {
-	// 		if !spell.Flags.Matches(breakFlags) {
-	// 			continue
-	// 		}
-	// 		prev := spell.ApplyEffects
-	// 		spell.ApplyEffects = func(sim *core.Simulation, target *core.Unit, sp *core.Spell) {
-	// 			prev(sim, target, sp)
-	// 			if druid.InForm(Bear) || druid.InForm(Cat) {
-	// 				druid.ClearForm(sim)
-	// 			}
-	// 		}
-	// 	}
-	// })
+	druid.registerFaerieFireSpell()
+	druid.registerOmenOfClarity()
 }
 
 func (druid *Druid) RegisterBalanceSpells() {
@@ -213,35 +161,51 @@ func (druid *Druid) RegisterBalanceSpells() {
 	druid.registerMoonfireSpell()
 	druid.registerWrathSpell()
 	druid.registerHurricaneSpell()
-	druid.registerFaerieFireSpell()
 }
 
 func (druid *Druid) RegisterFeralCatSpells() {
-	druid.registerCatFormSpell()
-
-	// Forever has no Cat-form Mangle.
-	druid.registerRakeSpell()
-	druid.registerRipSpell()
-	druid.registerFerociousBiteSpell()
-	// TODO: Forever drops Faerie Fire (Feral); see registerFaerieFireFeralSpell.
-	druid.registerShredSpell()
+	druid.registerFeralKit()
+	druid.registerBarkskin()
 }
 
 func (druid *Druid) RegisterFeralTankSpells() {
-	druid.registerBearFormSpell()
+	druid.registerFeralKit()
 	druid.registerBarkskin()
-	druid.registerDemoralizingRoarSpell()
-	// TODO: Forever drops Faerie Fire (Feral); see registerFaerieFireFeralSpell.
-	druid.registerEnrageSpell()
-	druid.registerFrenziedRegenerationSpell()
-	druid.registerLacerateSpell()
-	druid.registerPrimalBiteSpell()
+}
+
+func (druid *Druid) registerFeralKit() {
+	druid.registerCatFormSpell()
+	druid.registerBearFormSpell()
+	druid.registerClawSpell()
+	druid.registerShredSpell()
+	druid.registerRavageSpell()
+	druid.registerRakeSpell()
+	druid.registerProwlSpell()
+	druid.registerPounceSpell()
+	druid.registerRipSpell()
+	druid.registerFerociousBiteSpell()
+	druid.registerCowerSpell()
+	druid.registerDashSpell()
 	druid.registerMaulSpell()
 	druid.registerSwipeBearSpell()
+	druid.registerLacerateSpell()
+	druid.registerPrimalBiteSpell()
+	druid.registerShiftingPowerSpell()
+	druid.registerEnrageSpell()
+	druid.registerFrenziedRegenerationSpell()
+	druid.registerDemoralizingRoarSpell()
+	druid.registerBashSpell()
+	druid.registerGrowlSpell()
+	druid.registerChallengingRoarSpell()
+	druid.registerFeralChargeSpell()
 }
 
 func (druid *Druid) Reset(_ *core.Simulation) {
-	druid.setForm(druid.StartingForm)
+	druid.furorStoredValid = false
+	druid.furorStoredEnergy = 0
+	druid.furorLeftCatAt = 0
+	druid.furorBearTime = 0
+	druid.setForm(Humanoid)
 }
 
 func (druid *Druid) OnEncounterStart(sim *core.Simulation) {
@@ -268,11 +232,6 @@ func New(char *core.Character, form DruidForm, selfBuffs SelfBuffs, talents stri
 
 type DruidSpell struct {
 	*core.Spell
-
-	// Optional fields used in snapshotting calculations
-	CurrentSnapshotPower float64
-	NewSnapshotPower     float64
-	ShortName            string
 }
 
 func (ds *DruidSpell) IsReady(sim *core.Simulation) bool {
@@ -294,26 +253,6 @@ func (ds *DruidSpell) IsEqual(s *core.Spell) bool {
 		return false
 	}
 	return ds.Spell == s
-}
-
-func (druid *Druid) UpdateBleedPower(bleedSpell *DruidSpell, sim *core.Simulation, target *core.Unit, updateCurrent bool, updateNew bool) {
-	snapshotPower := bleedSpell.ExpectedTickDamage(sim, target)
-
-	if updateCurrent {
-		bleedSpell.CurrentSnapshotPower = snapshotPower
-
-		if sim.Log != nil {
-			druid.Log(sim, "%s Snapshot Power: %.1f", bleedSpell.ShortName, snapshotPower)
-		}
-	}
-
-	if updateNew {
-		bleedSpell.NewSnapshotPower = snapshotPower
-
-		if (sim.Log != nil) && !updateCurrent {
-			druid.Log(sim, "%s Projected Power: %.1f", bleedSpell.ShortName, snapshotPower)
-		}
-	}
 }
 
 // Agent is a generic way to access underlying druid on any of the agents (for example balance druid.)

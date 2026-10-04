@@ -2069,12 +2069,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		272427, // Howling Idol
-		[
-			"Reduces the cooldown of your Shifting Power ability by 1 sec.", // 1291059 - https://www.wowhead.com/forever/spell=1291059
-		]
-	],
-	[
 		272428, // Enraged Idol
 		[
 			"Your Enrage ability generates an additional 10 Rage over its duration.", // 1291060 - https://www.wowhead.com/forever/spell=1291060

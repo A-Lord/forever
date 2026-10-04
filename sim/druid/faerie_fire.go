@@ -16,7 +16,6 @@ func (druid *Druid) registerFaerieFireSpell() {
 	// Cost, cooldown and GCD in cat or bear come from the form passive's spell mods. A cast on a target
 	// that has the debuff refreshes it; when to refresh is the rotation's.
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		druid.breakProwl(sim)
 		result := spell.CalcAndDealOutcome(sim, target, spell.OutcomeMagicHit)
 		if result.Landed() {
 			druid.FaerieFireAuras.Get(target).Activate(sim)

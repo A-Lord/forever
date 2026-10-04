@@ -5,16 +5,17 @@ package feralcat
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"testing"
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/stats"
+	"google.golang.org/protobuf/encoding/protojson"
+	goproto "google.golang.org/protobuf/proto"
 )
 
-// Prints DPS EP for the default cat: Level 60 gear, Rip at 5, Rake kept, normalized to agility.
-// Pass the UI's iteration count; stat weights then split it above and below the baseline.
 func TestDefaultEp(t *testing.T) {
 	if os.Getenv("EP_SWEEP") == "" {
 		t.Skip("set EP_SWEEP=1 (and EP_SWEEP_ITERATIONS) to compute default EP")
@@ -23,7 +24,9 @@ func TestDefaultEp(t *testing.T) {
 	if n, err := strconv.Atoi(os.Getenv("EP_SWEEP_ITERATIONS")); err == nil && n > 0 {
 		iterations = int32(n)
 	}
-	base := sweepRequest(powershiftTalents, defaultCatRotation(), false, iterations)
+	base := buildRequest(t, "raid")
+	base.SimOptions.Iterations = iterations
+	base.SimOptions.RandomSeed = 101
 	// IsTest caps the sim at 3 workers. Labeled RNG is turned on inside stat weights.
 	base.SimOptions.IsTest = false
 	weigh := []proto.Stat{
@@ -38,7 +41,7 @@ func TestDefaultEp(t *testing.T) {
 		proto.Stat_StatHasteRating,
 		proto.Stat_StatArmorPenetration,
 	}
-	result := core.StatWeights(&proto.StatWeightsRequest{
+	request := &proto.StatWeightsRequest{
 		Player:          base.Raid.Parties[0].Players[0],
 		RaidBuffs:       base.Raid.Buffs,
 		PartyBuffs:      base.Raid.Parties[0].Buffs,
@@ -47,7 +50,10 @@ func TestDefaultEp(t *testing.T) {
 		SimOptions:      base.SimOptions,
 		StatsToWeigh:    weigh,
 		EpReferenceStat: proto.Stat_StatAgility,
-	})
+	}
+	writeCatEvidence(t, "ep-request", request)
+	result := core.StatWeights(request)
+	writeCatEvidence(t, "ep-result", result)
 	if result.Error != nil {
 		t.Fatal(result.Error.Message)
 	}
@@ -58,5 +64,23 @@ func TestDefaultEp(t *testing.T) {
 			stats.Stat(s).StatName(),
 			result.Dps.Weights.Stats[i], result.Dps.WeightsStdev.Stats[i],
 			result.Dps.EpValues.Stats[i], result.Dps.EpValuesStdev.Stats[i])
+	}
+}
+
+func writeCatEvidence(t testing.TB, name string, message goproto.Message) {
+	t.Helper()
+	dir := os.Getenv("CAT_EVIDENCE_DIR")
+	if dir == "" {
+		return
+	}
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	data, err := (protojson.MarshalOptions{Indent: "  "}).Marshal(message)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, name+".json"), data, 0644); err != nil {
+		t.Fatal(err)
 	}
 }

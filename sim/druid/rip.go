@@ -26,7 +26,6 @@ func (druid *Druid) registerRipSpell() {
 		dot.Spell.CalcAndDealPeriodicDamage(sim, target, damage, rank.TickOutcome(dot))
 	}
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		druid.breakProwl(sim)
 		result := spell.CalcAndDealOutcome(sim, target, spell.OutcomeMeleeSpecialHit)
 		if result.Landed() {
 			spell.Dot(target).Apply(sim)

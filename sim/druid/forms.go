@@ -4,6 +4,7 @@ import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/spelldata"
+	"github.com/wowsims/forever/sim/core/stats"
 )
 
 type DruidForm uint8
@@ -72,50 +73,29 @@ func (druid *Druid) ClearForm(sim *core.Simulation) {
 	}
 }
 
-func (druid *Druid) GetCatWeapon() core.Weapon {
-	unscaledWeapon := druid.WeaponFromMainHand()
-	return core.Weapon{
-		BaseDamageMin:        unscaledWeapon.BaseDamageMin / unscaledWeapon.SwingSpeed,
-		BaseDamageMax:        unscaledWeapon.BaseDamageMax / unscaledWeapon.SwingSpeed,
-		SwingSpeed:           1.0,
-		NormalizedSwingSpeed: 1.0,
-		AttackPowerPerDPS:    core.DefaultAttackPowerPerDPS,
-		MaxRange:             core.MaxMeleeRange,
-	}
-}
-
-func (druid *Druid) GetBearWeapon() core.Weapon {
-	unscaledWeapon := druid.WeaponFromMainHand()
-	return core.Weapon{
-		BaseDamageMin:        unscaledWeapon.BaseDamageMin / unscaledWeapon.SwingSpeed * 2.5,
-		BaseDamageMax:        unscaledWeapon.BaseDamageMax / unscaledWeapon.SwingSpeed * 2.5,
-		SwingSpeed:           2.5,
-		NormalizedSwingSpeed: 2.5,
-		AttackPowerPerDPS:    core.DefaultAttackPowerPerDPS,
-		MaxRange:             core.MaxMeleeRange,
-	}
-}
-
 func (druid *Druid) RegisterCatFormAura() {
 	form := spellData.CatForm.Highest()
 	druid.CatFormAura = druid.registerFormAura(form, druid.StartingForm.Matches(Cat))
 	spelldata.ParseEffects(&druid.Character, druid.CatFormAura, spellData.CatFormTriggered.Highest())
+	druid.CatFormAura.AttachStatDependency(druid.NewDynamicStatDependency(stats.FeralAttackPower, stats.AttackPower, 1))
 
 	druid.CatFormAura.ApplyOnGain(func(_ *core.Aura, sim *core.Simulation) {
 		druid.setForm(Cat)
+		druid.SetFeralCombat(true, 0)
 		druid.SetCurrentPowerBar(core.EnergyBar)
 		if !druid.Env.MeasuringStats {
 			druid.AutoAttacks.SetMH(druid.GetCatWeapon())
-			druid.snakeWeaveSwing(sim)
 		}
 		druid.restoreCatEnergy(sim)
 	})
 	druid.CatFormAura.ApplyOnExpire(func(_ *core.Aura, sim *core.Simulation) {
 		druid.rememberCatEnergy(sim)
 		druid.breakProwl(sim)
+		druid.SetFeralCombat(false, 0)
 		druid.restoreHumanoidBody()
 	})
 	druid.CatFormAura.ApplyOnReset(func(_ *core.Aura, _ *core.Simulation) {
+		druid.furorStoredValid = false
 		druid.furorStoredEnergy = 0
 		druid.furorLeftCatAt = 0
 		druid.furorBearTime = 0
@@ -129,6 +109,7 @@ func (druid *Druid) RegisterBearFormAura() {
 
 func (druid *Druid) registerBearAura(form *spelldata.Spell, passive *spelldata.Spell, kind DruidForm, starting bool) *core.Aura {
 	aura := druid.registerFormAura(form, starting)
+	aura.AttachStatDependency(druid.NewDynamicStatDependency(stats.FeralAttackPower, stats.AttackPower, 1))
 	// A_MOD_BONUS_ARMOR_PCT is not parsed. Armor from items, health, attack power and the Faerie
 	// Fire spell mods are.
 	// TODO: Ingame research needed -- effect 4 of Bear Form and Dire Bear Form is aura 668, which core
@@ -136,17 +117,16 @@ func (druid *Druid) registerBearAura(form *spelldata.Spell, passive *spelldata.S
 	spelldata.ParseEffects(&druid.Character, aura, passive)
 	aura.ApplyOnGain(func(_ *core.Aura, sim *core.Simulation) {
 		druid.setForm(kind)
+		druid.SetFeralCombat(true, 0)
 		druid.SetCurrentPowerBar(core.RageBar)
 		if !druid.Env.MeasuringStats {
 			druid.AutoAttacks.SetMH(druid.GetBearWeapon())
 		}
 		druid.furorRageOnEnterBear(sim)
-		if ClearCatEnergyOnBearEnter {
-			druid.furorStoredEnergy = 0
-		}
 	})
 	aura.ApplyOnExpire(func(_ *core.Aura, sim *core.Simulation) {
 		druid.furorBearTime += sim.CurrentTime - aura.StartedAt()
+		druid.SetFeralCombat(false, 0)
 		druid.restoreHumanoidBody()
 	})
 	return aura
@@ -192,28 +172,6 @@ func (druid *Druid) registerShapeshiftSpell(rank *spelldata.Spell, aura *core.Au
 	return druid.RegisterSpell(config)
 }
 
-// SnakeWeaveOnCatReturn restarts the main-hand swing when Cat Form is gained and the pending swing
-// is further away than one cat swing. Entering bear does not touch the timer, so the swing that was
-// already coming still lands, on the bear weapon. The bear's next swing is then 2.5s out; without
-// this, that wait follows the druid back into cat. MoP resets it the same way, with an albino snake.
-// The bear-weave sweep sets this. A cat that never leaves form is unchanged.
-var SnakeWeaveOnCatReturn bool
-
-// ClearCatEnergyOnBearEnter drops the energy Furor would give back, at the moment Bear Form is
-// entered. Tooltip 17056 does not say this. The class preview does, as the reason bear-weaving
-// should not pay. The bear-weave sweep sets this. Left unset, the stored energy is restored.
-var ClearCatEnergyOnBearEnter bool
-
-func (druid *Druid) snakeWeaveSwing(sim *core.Simulation) {
-	if !SnakeWeaveOnCatReturn {
-		return
-	}
-	speed := druid.AutoAttacks.MainhandSwingSpeed()
-	if druid.AutoAttacks.NextAttackAt()-sim.CurrentTime > speed {
-		druid.AutoAttacks.StopMeleeUntil(sim, sim.CurrentTime)
-	}
-}
-
 // furorFraction is the rage chance, the tooltip's $m1: 0.2 at 1/5 through 1 at 5/5.
 func (druid *Druid) furorFraction() float64 {
 	return spellData.Furor.EffectAt(1).FractionAt(druid.Talents.Furor)
@@ -224,6 +182,7 @@ func (druid *Druid) rememberCatEnergy(sim *core.Simulation) {
 		return
 	}
 	druid.furorStoredEnergy = druid.CurrentEnergy()
+	druid.furorStoredValid = true
 	druid.furorLeftCatAt = sim.CurrentTime
 	druid.furorBearTime = 0
 }
@@ -241,7 +200,7 @@ func (druid *Druid) restoreCatEnergy(sim *core.Simulation) {
 	// The energy bar ticks in every form, so the first entry of an iteration keeps the pull's bar.
 	// TODO: Ingame research needed -- what death or cancelling the form does to the stored energy, and
 	// what a first entry later in the fight starts with.
-	if druid.furorLeftCatAt == 0 && druid.furorStoredEnergy == 0 {
+	if !druid.furorStoredValid {
 		return
 	}
 	seconds := max(0, (sim.CurrentTime - druid.furorLeftCatAt - druid.furorBearTime).Seconds())

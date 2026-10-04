@@ -13,7 +13,6 @@ func (druid *Druid) registerRakeSpell() {
 	config := spelldata.SpellConfig(&druid.Unit, rank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 	config.Dot = spelldata.DotConfig(rank, rank.PeriodicDamageEffect(), bleedAuraOpt())
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		druid.breakProwl(sim)
 		initial := rank.DamageEffect().AverageAt(druid.level()) * druid.rendAndTearMultiplier(target)
 		result := spell.CalcAndDealDamage(sim, target, initial, spell.OutcomeMeleeSpecialHitAndCrit)
 		if result.Landed() {

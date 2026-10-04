@@ -15,11 +15,6 @@ const RipEndThresh = time.Second * 10
 // points are not spent on a Rip that is about to fall off. Rip lasts 12s, so this is the first 4s.
 const biteWithRipLeft = 8 * time.Second
 
-// shiftEnergyLimit is the energy below which the rotation spends Shifting Power.
-// 0 uses the builder's own cost, so the shift happens only when that builder cannot be cast.
-// The rotation sweep sets it; the shipped rotation leaves it at 0.
-var shiftEnergyLimit float64
-
 type FeralDruidRotation struct {
 	RipCP              int32
 	BiteCP             int32
@@ -51,7 +46,7 @@ func (cat *FeralDruid) setupRotation(rotation *proto.FeralCatDruid_Rotation) {
 func (cat *FeralDruid) OnGCDReady(_ *core.Simulation) {}
 
 // One decision of the cat rotation. Finishers first, then Rake while it is down, then the builder, and
-// Shifting Power when the bar is under shiftEnergyLimit. Bite beside Rip only while Rip has more than
+// Shifting Power when the builder is unaffordable. Bite beside Rip only while Rip has more than
 // 8s left. When nothing is castable it returns without waiting, so the APL looks again one reaction
 // time later.
 func (cat *FeralDruid) doRotation(sim *core.Simulation) bool {
@@ -62,7 +57,7 @@ func (cat *FeralDruid) doRotation(sim *core.Simulation) bool {
 	// Shifting Power is the mana check that opens an OOM event. This rotation bails out before
 	// casting, so it drives the event pair itself to keep the measured OOM time accurate.
 	shiftCost := cat.ShiftingPower.Cost.GetCurrentCost()
-	if cat.CurrentMana() < shiftCost {
+	if cat.Talents.ShiftingPower && cat.CurrentMana() < shiftCost {
 		if !cat.IsOOM() {
 			cat.StartOOMEvent(sim, shiftCost, false)
 		}
@@ -79,7 +74,7 @@ func (cat *FeralDruid) doRotation(sim *core.Simulation) bool {
 
 	rotation := &cat.Rotation
 	target := cat.CurrentTarget
-	if rotation.MaintainFaerieFire && !cat.FaerieFireAuras.Get(target).IsActive() && cat.FaerieFire.CanCast(sim, target) {
+	if rotation.MaintainFaerieFire && cat.FaerieFire.ShouldRefreshExclusiveEffects(sim, target, 0) && cat.FaerieFire.CanCast(sim, target) {
 		return cat.FaerieFire.Cast(sim, target)
 	}
 
@@ -117,23 +112,10 @@ func (cat *FeralDruid) doRotation(sim *core.Simulation) bool {
 	return false
 }
 
-// wantShift is true when Shifting Power is castable and the bar is under shiftEnergyLimit.
-// A limit at or under the builder's cost still lets the builder go first. A higher limit
-// spends the shift instead of the builder.
+// Shifting Power restores energy after the builder becomes unaffordable.
 func (cat *FeralDruid) wantShift(sim *core.Simulation, target *core.Unit, builder *druid.DruidSpell) bool {
 	if !cat.ShiftingPower.CanCast(sim, target) {
 		return false
 	}
-	builderCost := builder.Cost.GetCurrentCost()
-	limit := shiftEnergyLimit
-	if limit <= 0 {
-		limit = builderCost
-	}
-	if cat.CurrentEnergy() >= limit {
-		return false
-	}
-	if limit <= builderCost && builder.CanCast(sim, target) {
-		return false
-	}
-	return true
+	return cat.CurrentEnergy() < builder.Cost.GetCurrentCost() && !builder.CanCast(sim, target)
 }

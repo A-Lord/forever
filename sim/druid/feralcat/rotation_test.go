@@ -13,8 +13,7 @@ import (
 // Same tree as the cat UI default. Shifting Power is the 11th feral talent.
 const powershiftTalents = "05002-55000032021032212051-055"
 
-// The rotation the cat UI sends by default: Rip at 5 combo points, Rake kept up.
-func defaultCatRotation() *proto.APLRotation {
+func rakeRipRotation() *proto.APLRotation {
 	return catRotation(&proto.FeralCatDruid_Rotation{
 		FinishingMove:      proto.FeralCatDruid_Rotation_Rip,
 		RipMinComboPoints:  5,
@@ -23,8 +22,8 @@ func defaultCatRotation() *proto.APLRotation {
 	})
 }
 
-func TestDefaultRotationStaysInCatForm(t *testing.T) {
-	player := runCat(t, catPowershiftRequest(powershiftTalents, defaultCatRotation(), false))
+func TestRakeRipRotationStaysInCatForm(t *testing.T) {
+	player := runCat(t, catPowershiftRequest(powershiftTalents, rakeRipRotation(), false))
 	for _, c := range []struct {
 		name string
 		id   int32
@@ -58,7 +57,7 @@ func TestMaintainRakeKeepsRakeUp(t *testing.T) {
 }
 
 func TestRotationWithoutShiftingPowerTalent(t *testing.T) {
-	player := runCat(t, catPowershiftRequest(withFeralDigit(powershiftTalents, 10, '0'), defaultCatRotation(), false))
+	player := runCat(t, catPowershiftRequest(withFeralDigit(powershiftTalents, 10, '0'), rakeRipRotation(), false))
 	if got := castsOf(player.Actions, 1322605); got != 0 {
 		t.Fatalf("shifting power casts = %d, the talent is not taken", got)
 	}
@@ -68,7 +67,7 @@ func TestRotationWithoutShiftingPowerTalent(t *testing.T) {
 }
 
 func TestRotationClawsWhenShredCannotLand(t *testing.T) {
-	player := runCat(t, catPowershiftRequest(powershiftTalents, defaultCatRotation(), true))
+	player := runCat(t, catPowershiftRequest(powershiftTalents, rakeRipRotation(), true))
 	if got := castsOf(player.Actions, 9830); got != 0 {
 		t.Errorf("shred casts = %d against a target that cannot be shredded", got)
 	}

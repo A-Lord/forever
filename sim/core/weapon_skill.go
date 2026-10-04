@@ -44,3 +44,10 @@ func (character *Character) updateAttackTableWeapons() {
 		}
 	}
 }
+
+// SetFeralCombat makes the form's skill replace equipped weapon skill and refreshes existing attack tables.
+func (character *Character) SetFeralCombat(enabled bool, bonusSkill float64) {
+	character.PseudoStats.FeralCombatEnabled = enabled
+	character.PseudoStats.FeralCombatSkill = bonusSkill
+	character.updateAttackTableWeapons()
+}

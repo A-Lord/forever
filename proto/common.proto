@@ -35,6 +35,9 @@ message ScalingItemProperties {
 
 	// Stats that only apply while the encounter is in that kind of area.
 	repeated AreaStats area_stats = 7;
+	optional double weapon_table_dps = 8;
+	reserved 9;
+	reserved "caster_weapon";
 }
 
 message AreaStats {

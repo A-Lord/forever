@@ -2084,21 +2084,6 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
-	// Reduces the cooldown of your Shifting Power ability by 1 sec.
-	// https://www.wowhead.com/forever/spell=1291059
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 272427, ItemName: "Howling Idol"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
 	// Your Enrage ability generates an additional 10 Rage over its duration.
 	// https://www.wowhead.com/forever/spell=1291060
 	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
