@@ -8,16 +8,21 @@ import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/stats"
-	googleProto "google.golang.org/protobuf/proto"
 )
 
 // enchants.go turns the request's enchant options into LP variables: one binary per (slot,
 // enchant) and a per-slot row allowing at most one of them.
 
 type enchantCandidate struct {
-	slot    proto.ItemSlot
-	enchant core.Enchant
+	slot     proto.ItemSlot
+	enchant  core.Enchant
+	equipped bool // The candidate is the slot's enchant in the input gear.
 }
+
+// enchantTieBreak is the objective bonus that breaks EP ties toward giving a slot an enchant, and
+// twice it toward keeping the equipped one. It sits far below any real EP difference and above
+// HiGHS's default absolute MIP gap (1e-6); the reported score leaves it out.
+const enchantTieBreak = 1e-4
 
 func enchantVariableKey(slot proto.ItemSlot, effectID int32) string {
 	return fmt.Sprintf("Enchant_%d_%d", int(slot), effectID)
@@ -28,7 +33,8 @@ func enchantSlotKey(slot proto.ItemSlot) string {
 }
 
 // The static enchants that fit each listed, unfrozen, occupied slot, in slot then effect id order.
-// The fitting row gives the stats, since an effect id can carry rows for different items.
+// The fitting row gives the stats, since an effect id can carry rows for different items. A slot
+// holding a proc enchant the sim implements is simulated, not optimized, so it lists none.
 func (o *reforgeOptimizer) enchantCandidates(gear *proto.EquipmentSpec) []enchantCandidate {
 	var candidates []enchantCandidate
 	options := slices.Clone(o.request.GetEnchantOptions())
@@ -42,31 +48,49 @@ func (o *reforgeOptimizer) enchantCandidates(gear *proto.EquipmentSpec) []enchan
 		if item == nil {
 			continue
 		}
+		equipped := gear.GetItems()[slot].GetEnchant()
+		if row, ok := core.FittingEnchantRow(equipped, *item); ok && row.ProcKind != proto.EnchantProcKind_EnchantProcKindNone && core.HasEnchantEffect(equipped) {
+			continue
+		}
 		ids := slices.Clone(option.GetEffectIds())
 		slices.Sort(ids)
 		for _, id := range slices.Compact(ids) {
 			if row, ok := core.FittingEnchantRow(id, *item); ok && row.IsStatic() {
-				candidates = append(candidates, enchantCandidate{slot: slot, enchant: row})
+				candidates = append(candidates, enchantCandidate{slot: slot, enchant: row, equipped: id == equipped})
 			}
 		}
 	}
 	return candidates
 }
 
-// rebaseWithoutEnchants makes the baseline the current gear with every candidate slot's static
-// enchant cleared. An enchant that is not static gives no stats, so it stays and a slot with no
-// pick keeps it.
-func (o *reforgeOptimizer) rebaseWithoutEnchants(candidates []enchantCandidate) error {
-	raid := googleProto.Clone(o.baseRaidProto).(*proto.Raid)
-	items := raid.Parties[0].Players[0].Equipment.Items
+// clearStaticEnchants clears every candidate slot's static enchant, which makes the gear the
+// baseline. An enchant that is not static gives no stats, so it stays and a slot with no pick
+// keeps it.
+func clearStaticEnchants(gear *proto.EquipmentSpec, candidates []enchantCandidate) {
+	slots := make([]proto.ItemSlot, 0, len(candidates))
 	for _, candidate := range candidates {
-		item := items[candidate.slot]
+		slots = append(slots, candidate.slot)
+	}
+	for _, slot := range slices.Compact(slots) {
+		item := gear.Items[slot]
 		if row, ok := core.FittingEnchantRow(item.GetEnchant(), *core.GetItemByID(item.GetId())); ok && !row.IsStatic() {
 			continue
 		}
 		item.Enchant = 0
 	}
-	return o.setBaseRaid(raid)
+}
+
+// The candidate's share of enchantTieBreak. A slot that keeps an enchant which is not static
+// already has one, so a candidate there gets no bonus for filling it.
+func (o *reforgeOptimizer) tieBreak(candidate enchantCandidate) float64 {
+	switch {
+	case candidate.equipped:
+		return 2 * enchantTieBreak
+	case o.baseGear.GetItems()[candidate.slot].GetEnchant() == 0:
+		return enchantTieBreak
+	default:
+		return 0
+	}
 }
 
 func (o *reforgeOptimizer) buildEnchantModel(candidates []enchantCandidate, weights core.UnitStats) (*lpVariables, *lpConstraints) {
@@ -82,10 +106,10 @@ func (o *reforgeOptimizer) buildEnchantModel(candidates []enchantCandidate, weig
 		capDelta := core.NewUnitStats()
 		capDelta.Stats = candidate.enchant.Stats.Add(stats.FromPseudoStatsProto(pseudoStats))
 		copy(capDelta.PseudoStats, pseudoStats)
-		capCoeffs := o.resolveCapCoeffsUnit(capDelta)
+		capCoeffs := o.resolveCapCoeffs(capDelta)
 		capCoeffs[enchantSlotKey(candidate.slot)] = 1
 
-		objCoeffs := map[string]float64{}
+		objCoeffs := map[string]float64{tieBreakCoeffKey: o.tieBreak(candidate)}
 		for statIdx := 0; statIdx < int(stats.ProtoStatsLen); statIdx++ {
 			if value := candidate.enchant.Stats[statIdx]; value != 0 {
 				o.applyReforgeStat(objCoeffs, stats.Stat(statIdx), value, weights)
@@ -176,14 +200,11 @@ func isChannelPseudoStat(pseudoStat proto.PseudoStat) bool {
 
 // percentRootRating is the rating a percent outside the rating channels belongs to, as
 // UnitStat.getRootStat gives it: hit and crit rating for the off hand's percents, and the expertise,
-// dodge, parry and block ratings for theirs. Defense and the per-school hit percents have none.
+// dodge, parry and block ratings for theirs.
 func percentRootRating(pseudoStat proto.PseudoStat) (stats.Stat, bool) {
-	if slices.Contains(schoolHitPercents, pseudoStat) {
-		return 0, false
-	}
-	for _, conversion := range core.RatingConversions {
-		if conversion.Rating != stats.DefenseRating && slices.Contains(sheetPseudoStats(conversion.Percent), pseudoStat) {
-			return conversion.Rating, true
+	for _, entry := range ratingPercents {
+		if entry.root && entry.percent == pseudoStat {
+			return entry.rating, true
 		}
 	}
 	return 0, false

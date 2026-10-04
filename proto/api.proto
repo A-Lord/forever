@@ -483,9 +483,7 @@ message ReforgeSettings {
 	UnitStats breakpoint_limits = 6;
 	reserved 7, 8, 9;
 	reserved "max_gem_phase", "max_gem_quality", "disable_unique_gems";
-	// The stats this spec is willing to optimize for. Specs list stats they weight at 0 (Stamina,
-	// spell penetration) so options carrying them stay selectable, which is why it cannot be
-	// derived from the pre-cap EPs.
+	// The stats the spec's EP covers, sent by the UI. The optimizer does not read it.
 	repeated Stat ep_stats = 10;
 	// The UI builds enchant_options from the checked enchant presets instead of every usable enchant.
 	bool use_enchant_presets = 11;

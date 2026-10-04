@@ -89,7 +89,7 @@ func (o *reforgeOptimizer) solveModel(
 	updatedVariables := o.updateReforgeScores(variables, weights)
 	model := &lpModel{
 		direction:   "maximize",
-		objective:   scoreCoeffKey,
+		objective:   objectiveCoeffKey,
 		constraints: constraints,
 		variables:   updatedVariables,
 		binaries:    true,

@@ -69,16 +69,6 @@ var hasteSpeedMultipliers = map[proto.PseudoStat]proto.PseudoStat{
 	proto.PseudoStat_PseudoStatSpellHastePercent:  proto.PseudoStat_PseudoStatCastSpeedMultiplier,
 }
 
-func rawUnitStatsFromStats(statValues stats.Stats) core.UnitStats {
-	unitStats := core.NewUnitStats()
-	for statIdx := 0; statIdx < int(stats.ProtoStatsLen); statIdx++ {
-		if statValues[statIdx] != 0 {
-			unitStats.Stats[statIdx] = statValues[statIdx]
-		}
-	}
-	return unitStats
-}
-
 // resolveStatDelta applies the character's stat dependency graph to delta, resolving
 // conversions such as HitRating→Hit%, CritRating→Crit%, Agility→PhysicalCritPercent.
 // It also mirrors the resolved Stats values back to their corresponding PseudoStats
@@ -182,13 +172,42 @@ func sheetPseudoStats(percent stats.Stat) []proto.PseudoStat {
 	return pseudoStats
 }
 
+// ratingPercent is one sheet percent a rating moves through a core rating conversion.
+type ratingPercent struct {
+	rating           stats.Stat
+	percent          proto.PseudoStat
+	ratingPerPercent float64
+	root             bool // The rating is the percent's root stat, as UnitStat.getRootStat gives it.
+}
+
+// ratingPercents lists every core rating conversion's sheet percents, in the order
+// core.RatingConversions lists them.
+var ratingPercents = buildRatingPercents()
+
+// Defense is no percent's root: dodge, parry and block have their own ratings. The per-school hit
+// percents have no root either.
+func buildRatingPercents() []ratingPercent {
+	var lookup []ratingPercent
+	for _, conversion := range core.RatingConversions {
+		for _, percent := range sheetPseudoStats(conversion.Percent) {
+			lookup = append(lookup, ratingPercent{
+				rating:           conversion.Rating,
+				percent:          percent,
+				ratingPerPercent: conversion.RatingPerPercent,
+				root:             conversion.Rating != stats.DefenseRating && !slices.Contains(schoolHitPercents, percent),
+			})
+		}
+	}
+	return lookup
+}
+
 // childPseudoStats returns the percent pseudo-stats a rating moves, from the core rating conversions
 // in the order core.RatingConversions lists them, then the channels without a back-end percent Stat.
 func childPseudoStats(parent stats.Stat) []proto.PseudoStat {
 	var children []proto.PseudoStat
-	for _, conversion := range core.RatingConversions {
-		if conversion.Rating == parent {
-			children = append(children, sheetPseudoStats(conversion.Percent)...)
+	for _, entry := range ratingPercents {
+		if entry.rating == parent {
+			children = append(children, entry.percent)
 		}
 	}
 	if channels, ok := core.RatingChannelsOf(parent); ok && !channels.HasPercentStats {
@@ -198,9 +217,9 @@ func childPseudoStats(parent stats.Stat) []proto.PseudoStat {
 }
 
 func ratingPerPseudoStatPercent(pseudoStat proto.PseudoStat, parent stats.Stat) float64 {
-	for _, conversion := range core.RatingConversions {
-		if conversion.Rating == parent && slices.Contains(sheetPseudoStats(conversion.Percent), pseudoStat) {
-			return conversion.RatingPerPercent
+	for _, entry := range ratingPercents {
+		if entry.rating == parent && entry.percent == pseudoStat {
+			return entry.ratingPerPercent
 		}
 	}
 	if channels, ok := core.RatingChannelsOf(parent); ok && slices.Contains(channels.Channels(), pseudoStat) {

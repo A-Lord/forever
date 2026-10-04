@@ -100,7 +100,7 @@ func TestCapSpaceDeltaMatchesTheSheet(t *testing.T) {
 				bonusRaid := protopkg.Clone(character.raid).(*proto.Raid)
 				bonusRaid.Parties[0].Players[0].BonusStats = &proto.UnitStats{Stats: delta[:stats.ProtoStatsLen]}
 				sheetDelta := subtractUnitStats(sheetStats(t, bonusRaid), o.baseStats)
-				capCoeffs := o.resolveCapCoeffs(delta)
+				capCoeffs := o.resolveCapCoeffs(rawUnitStatsFromStats(delta))
 
 				for _, pseudoStat := range []proto.PseudoStat{block, dodge, parry, critTaken} {
 					moves := slices.Contains(test.moves, pseudoStat) &&

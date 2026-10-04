@@ -6,6 +6,7 @@ import (
 	"math"
 	"testing"
 
+	_ "github.com/wowsims/forever/sim/common" // the enchant effects the sim implements, which keep a proc enchant's slot out of the optimizer
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/simsignals"
 	"github.com/wowsims/forever/sim/core/stats"
@@ -134,6 +135,32 @@ func TestOptimizeDropsProcCandidates(t *testing.T) {
 	}
 	if got := slotEnchant(result, proto.ItemSlot_ItemSlotWrist); got != 1887 {
 		t.Errorf("wrist enchant %d, want 1887 (Greater Agility)", got)
+	}
+}
+
+// Crusader's effect is implemented, so the main hand is simulated, not optimized, and keeps it.
+func TestOptimizeKeepsAnImplementedProcEnchant(t *testing.T) {
+	raid := protectionWarriorRaid("preraid")
+	raid.Parties[0].Players[0].Equipment.Items[proto.ItemSlot_ItemSlotMainHand].Enchant = 1900
+	agility := &proto.BulkEnchantSlotOptions{Slot: proto.ItemSlot_ItemSlotMainHand, EffectIds: []int32{2564}}
+	result := optimize(t, enchantRequest(raid, agilityOverStrength, agility))
+	if got := slotEnchant(result, proto.ItemSlot_ItemSlotMainHand); got != 1900 {
+		t.Errorf("main hand enchant %d, want 1900 (Crusader)", got)
+	}
+}
+
+// With no EP on either stat, the wrist keeps Greater Stamina rather than switching or ending empty.
+func TestOptimizeKeepsTheEquippedEnchantOnATie(t *testing.T) {
+	for _, options := range [][]int32{{929, 1887}, {929}} {
+		raid := protectionWarriorRaid("preraid")
+		raid.Parties[0].Players[0].Equipment.Items[proto.ItemSlot_ItemSlotWrist].Enchant = 929
+		result := optimize(t, enchantRequest(raid, nil, wrist(options...)))
+		if got := slotEnchant(result, proto.ItemSlot_ItemSlotWrist); got != 929 {
+			t.Errorf("options %v: wrist enchant %d, want 929 (Greater Stamina)", options, got)
+		}
+		if got := result.GetScore(); got != 0 {
+			t.Errorf("options %v: score %v, want 0", options, got)
+		}
 	}
 }
 

@@ -109,13 +109,14 @@ type reforgeOptimizer struct {
 	statDeps *stats.StatDependencyManager
 	sheet    core.SheetAvoidance
 
+	candidates    []enchantCandidate
 	baseRaidProto *proto.Raid
 	baseGear      *proto.EquipmentSpec
 	baseStats     core.UnitStats
 }
 
-// newReforgeOptimizer builds the optimizer context from the request: computes the base stats and
-// the stat dependency manager for the input gear.
+// newReforgeOptimizer builds the optimizer context from the request: the enchant candidates of the
+// input gear, then the base stats and the stat dependency manager for the baseline.
 func newReforgeOptimizer(request *proto.ReforgeOptimizeRequest, signals simsignals.Signals) (*reforgeOptimizer, error) {
 	settings := request.GetSettings()
 	if settings == nil {
@@ -135,7 +136,11 @@ func newReforgeOptimizer(request *proto.ReforgeOptimizeRequest, signals simsigna
 		frozenSlots:    frozenItemSlots(settings),
 		undershootCaps: protoToCoreUnitStats(request.GetUndershootCaps()),
 	}
-	if err := o.setBaseRaid(googleProto.Clone(request.Raid).(*proto.Raid)); err != nil {
+	baseRaid := googleProto.Clone(request.Raid).(*proto.Raid)
+	gear := baseRaid.Parties[0].Players[0].Equipment
+	o.candidates = o.enchantCandidates(gear)
+	clearStaticEnchants(gear, o.candidates)
+	if err := o.setBaseRaid(baseRaid); err != nil {
 		return nil, err
 	}
 	return o, nil
@@ -145,8 +150,8 @@ func newReforgeOptimizer(request *proto.ReforgeOptimizeRequest, signals simsigna
 func (o *reforgeOptimizer) setBaseRaid(baseRaid *proto.Raid) error {
 	player := baseRaid.Parties[0].Players[0]
 
-	// One environment build yields both FinalStats and the finalized StatDependencyManager,
-	// instead of building the character twice for the same base raid.
+	// The optimizer's one environment build yields both FinalStats and the finalized
+	// StatDependencyManager of the baseline.
 	baseResult, baseSDM, sheet := computeReforgeStatsAndDeps(&proto.ComputeStatsRequest{Raid: baseRaid})
 	if baseResult.ErrorResult != "" {
 		return errors.New(baseResult.ErrorResult)
@@ -166,14 +171,11 @@ func (o *reforgeOptimizer) setBaseRaid(baseRaid *proto.Raid) error {
 
 // optimizeReforges picks one static enchant per listed slot. The baseline is the input gear with
 // those slots' static enchants cleared, so each candidate's coefficients are its full contribution. The
-// score is the objective of the picks over that baseline, not their gain over the input gear.
+// score is the EP of the picks over that baseline, without the tie-break, not their gain over the input gear.
 func (o *reforgeOptimizer) optimizeReforges() (*proto.EquipmentSpec, float64, error) {
-	candidates := o.enchantCandidates(o.baseGear)
+	candidates := o.candidates
 	if len(candidates) == 0 {
 		return o.baseGear, 0, nil
-	}
-	if err := o.rebaseWithoutEnchants(candidates); err != nil {
-		return nil, 0, err
 	}
 
 	reforgeCaps := computeStatCapsDelta(o.baseStats, protoToCoreUnitStats(o.settings.GetStatCaps()))
