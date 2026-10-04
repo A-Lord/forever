@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
-import { composeStories, type Meta, setProjectAnnotations, type StoryObj } from '@storybook/react-vite';
+
 import { UIDatabase } from '@generated/proto/ui';
+import { composeStories, type Meta, setProjectAnnotations, type StoryObj } from '@storybook/react-vite';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import * as preview from '../../../.storybook/preview';
