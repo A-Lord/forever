@@ -1,7 +1,7 @@
 import { EquipmentSpec, GemColor, ItemRandomSuffix, ItemSlot, ItemSpec, ItemSwap, PresetEncounter, PresetTarget } from '@generated/proto/common';
 import { Consumable, ItemEffectRandPropPoints, SimDatabase } from '@generated/proto/db';
 import { SpellEffect } from '@generated/proto/spell';
-import { IconData, UIDatabase, UIEnchant as Enchant, UIGem as Gem, UIItem as Item, UINPC as Npc, UIZone as Zone } from '@generated/proto/ui';
+import { IconData, UIDatabase, UIEnchant as Enchant, UIFaction, UIGem as Gem, UIItem as Item, UINPC as Npc, UIZone as Zone } from '@generated/proto/ui';
 
 import { CacheHandler } from '../cache/cache_handler';
 import { CHARACTER_LEVEL } from '../constants/mechanics';
@@ -104,6 +104,7 @@ export class Database {
 	private readonly gems = new Map<number, Gem>();
 	private readonly npcs = new Map<number, Npc>();
 	private readonly zones = new Map<number, Zone>();
+	private readonly factions = new Map<number, UIFaction>();
 	private readonly presetEncounters = new Map<string, PresetEncounter>();
 	private readonly presetTargets = new Map<string, PresetTarget>();
 	private readonly itemIcons: Record<number, IconData> = {};
@@ -150,6 +151,7 @@ export class Database {
 
 		db.npcs.forEach(npc => this.npcs.set(npc.id, npc));
 		db.zones.forEach(zone => this.zones.set(zone.id, zone));
+		db.factions.forEach(faction => this.factions.set(faction.id, faction));
 		db.encounters.forEach(encounter => this.presetEncounters.set(encounter.path, encounter));
 		db.encounters
 			.map(e => e.targets)
@@ -237,6 +239,9 @@ export class Database {
 	}
 	getZone(zoneId: number): Zone | null {
 		return this.zones.get(zoneId) || null;
+	}
+	getRepFaction(factionId: number): UIFaction | null {
+		return this.factions.get(factionId) || null;
 	}
 	getAllZones(): Array<Zone> {
 		return Array.from(this.zones.values());

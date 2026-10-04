@@ -2337,7 +2337,7 @@ func LoadCraftedItems(dbHelper *DBHelper) (
 	return sourcesByItem
 }
 
-func ScanRepItems(rows *sql.Rows) (itemID int, ds *proto.RepSource, err error) {
+func ScanRepItems(rows *sql.Rows) (itemID int, factionName string, ds *proto.RepSource, err error) {
 	var (
 		minReputation      int
 		rep                proto.RepSource
@@ -2347,52 +2347,63 @@ func ScanRepItems(rows *sql.Rows) (itemID int, ds *proto.RepSource, err error) {
 	err = rows.Scan(
 		&itemID,
 		&rep.RepFactionId,
+		&factionName,
 		&reputationRaceMask,
 		&minReputation,
 	)
+	if err != nil {
+		return 0, "", nil, fmt.Errorf("scanning rep row: %w", err)
+	}
 
-	if dbc.AlliedRaces.Matches(reputationRaceMask) {
+	// A side's faction names that side's races in its first race mask (the other side starts Hated in the
+	// second); a first mask naming races of both sides is every race's faction.
+	alliance := dbc.AlliedRaces.Matches(reputationRaceMask)
+	horde := dbc.HordeRaces.Matches(reputationRaceMask)
+	if alliance && !horde {
 		rep.FactionId = proto.Faction_Alliance
-	} else if dbc.HordeRaces.Matches(reputationRaceMask) {
+	} else if horde && !alliance {
 		rep.FactionId = proto.Faction_Horde
 	}
 
 	rep.RepLevel = dbc.GetRepLevel(minReputation)
-	if err != nil {
-		return 0, nil, fmt.Errorf("scanning rep row: %w", err)
-	}
-	return itemID, &rep, nil
+	return itemID, factionName, &rep, nil
 }
 
+// The items whose ItemSparse row asks for a standing with a faction, and the names of those factions.
 func LoadRepItems(dbHelper *DBHelper) (
 	sourcesByItem map[int][]*proto.RepSource,
+	factionNames map[int32]string,
+	err error,
 ) {
 	const query = `
-		SELECT isp.ID, fa.ID, COALESCE(fa.ReputationRaceMasks0_0, 0) AS ReputationRaceMask, isp.MinReputation FROM ItemSparse isp
-		LEFT JOIN Faction fa on fa.ID = isp.MinFactionID
-		WHERE fa.ParentFactionID=980
+		SELECT isp.ID, fa.ID, fa.Name_lang,
+			(COALESCE(fa.ReputationRaceMasks0_1, 0) << 32) | (COALESCE(fa.ReputationRaceMasks0_0, 0) & 0xFFFFFFFF) AS ReputationRaceMask,
+			isp.MinReputation FROM ItemSparse isp
+		JOIN Faction fa on fa.ID = isp.MinFactionID
+		WHERE isp.MinFactionID > 0
     `
 
 	rows, err := dbHelper.db.Query(query)
 	if err != nil {
-		return nil
+		return nil, nil, fmt.Errorf("querying rep items: %w", err)
 	}
 	defer rows.Close()
 
 	sourcesByItem = make(map[int][]*proto.RepSource)
+	factionNames = make(map[int32]string)
 
 	for rows.Next() {
-		itemID, ds, scanErr := ScanRepItems(rows)
+		itemID, factionName, ds, scanErr := ScanRepItems(rows)
 		if scanErr != nil {
-			return nil
+			return nil, nil, scanErr
 		}
 		sourcesByItem[itemID] = append(sourcesByItem[itemID], ds)
+		factionNames[ds.RepFactionId] = factionName
 	}
 	if err = rows.Err(); err != nil {
-		return nil
+		return nil, nil, fmt.Errorf("reading rep items: %w", err)
 	}
-	fmt.Println("Loaded rep items", len(sourcesByItem))
-	return sourcesByItem
+	return sourcesByItem, factionNames, nil
 }
 
 func ScanItemUpgradePath(rows *sql.Rows) (UpgradeID int, upgradePathID int, ilvl int, err error) {

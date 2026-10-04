@@ -161,7 +161,16 @@ export const ItemList = ({ tab, slot, equippedItem }: ItemListProps) => {
 			idxs = player.filterGemData(idxs, index => itemData[index].item as unknown as Gem, slot, socketColor);
 		}
 
-		idxs = idxs.filter(index => itemData[index].phase <= phase && matchesSearch(search, itemData[index], npcId => sim.db.getNpc(npcId)?.name));
+		idxs = idxs.filter(
+			index =>
+				itemData[index].phase <= phase &&
+				matchesSearch(
+					search,
+					itemData[index],
+					npcId => sim.db.getNpc(npcId)?.name,
+					factionId => sim.db.getRepFaction(factionId)?.name,
+				),
+		);
 		return sortItemIdxs(idxs, itemData, { sortBy, sortDirection, computeEP, isFavourited });
 		// `filters` is named here even though the body never reads it: `player.filterItemData`,
 		// `player.filterEnchantData` and `player.filterGemData` reach `sim.getFilters()` internally, so a filter change has to

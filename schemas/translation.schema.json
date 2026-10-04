@@ -359,36 +359,30 @@
 						"unknown": {
 							"type": "string"
 						},
-						"kara": {
+						"mc": {
 							"type": "string"
 						},
-						"gruuls": {
+						"ony": {
 							"type": "string"
 						},
-						"mag": {
+						"bwl": {
 							"type": "string"
 						},
-						"tk": {
+						"zg": {
 							"type": "string"
 						},
-						"ssc": {
+						"aq20": {
 							"type": "string"
 						},
-						"mh": {
+						"aq40": {
 							"type": "string"
 						},
-						"bt": {
-							"type": "string"
-						},
-						"za": {
-							"type": "string"
-						},
-						"swp": {
+						"naxx": {
 							"type": "string"
 						}
 					},
 					"additionalProperties": false,
-					"required": ["unknown", "kara", "gruuls", "mag", "tk", "ssc", "mh", "bt", "za", "swp"]
+					"required": ["unknown", "mc", "ony", "bwl", "zg", "aq20", "aq40", "naxx"]
 				},
 				"armor_types": {
 					"type": "object",

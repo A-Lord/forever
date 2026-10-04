@@ -98,6 +98,7 @@ func main() {
 		names           map[int]string
 		craftingSources map[int][]*proto.CraftedSource
 		repSources      map[int][]*proto.RepSource
+		factionNames    map[int32]string
 		atlaslootDB     *database.WowDatabase
 		iconsMap        map[int]string
 		icons           map[int]database.SpellIcon
@@ -127,7 +128,7 @@ func main() {
 	})
 	g.Go(func() (err error) { icons, err = database.LoadSpellIcons(helper); return })
 	g.Go(func() error { craftingSources = database.LoadCraftedItems(helper); return nil })
-	g.Go(func() error { repSources = database.LoadRepItems(helper); return nil })
+	g.Go(func() (err error) { repSources, factionNames, err = database.LoadRepItems(helper); return })
 	g.Go(func() error {
 		//Todo: See if we cant get rid of these as well
 		atlaslootDB = database.ReadDatabaseFromJson(tools.ReadFile(fmt.Sprintf("%s/atlasloot_db.json", inputsDir)))
@@ -174,7 +175,7 @@ func main() {
 
 	for _, atlaslootItem := range atlaslootDB.Items {
 		if dbItem, ok := db.Items[atlaslootItem.Id]; ok {
-			firstDBRepFaction := proto.RepFaction(-1)
+			firstDBRepFaction := int32(-1)
 
 			for _, dbItemSource := range dbItem.Sources {
 				if dbRepSource := dbItemSource.GetRep(); dbRepSource != nil {
@@ -216,6 +217,7 @@ func main() {
 	database.AddConsumableIcons(db, consumables, instance, iconsMap)
 	leftovers := db.Clone()
 	ApplyNonSimmableFilters(leftovers)
+	applyRepSources(leftovers, factionNames)
 	leftovers.WriteBinaryAndJson(fmt.Sprintf("%s/leftover_db.bin", dbDir), fmt.Sprintf("%s/leftover_db.json", dbDir))
 	ApplySimmableFilters(db)
 
@@ -277,10 +279,6 @@ func main() {
 					item.RequiredProfession = crafted.Profession
 				}
 			}
-
-			if rep := source.GetRep(); rep != nil {
-				item.FactionRestriction = proto.UIItem_FactionRestriction(rep.FactionId)
-			}
 		}
 
 		// Forever's content phases are not known yet, so every item is phase 1.
@@ -296,7 +294,26 @@ func main() {
 	if err := database.LoadZoneAreas(db, helper); err != nil {
 		log.Fatal(err)
 	}
+	applyRepSources(db, factionNames)
 	db.WriteBinaryAndJson(fmt.Sprintf("%s/db.bin", dbDir), fmt.Sprintf("%s/db.json", dbDir))
+}
+
+func applyRepSources(db *database.WowDatabase, factionNames map[int32]string) {
+	for _, item := range db.Items {
+		sides := make(map[proto.Faction]bool)
+		for _, source := range item.Sources {
+			if rep := source.GetRep(); rep != nil {
+				db.MergeFaction(&proto.UIFaction{Id: rep.RepFactionId, Name: factionNames[rep.RepFactionId]})
+				sides[rep.FactionId] = true
+			}
+		}
+		// A side's restriction holds only when every rep source names that side.
+		if len(sides) == 1 && !sides[proto.Faction_Unknown] {
+			for side := range sides {
+				item.FactionRestriction = database.AtlasLootFactionRestrictions[side]
+			}
+		}
+	}
 }
 
 func processItems(instance *dbc.DBC,
@@ -358,8 +375,8 @@ func processItems(instance *dbc.DBC,
 					Source: &proto.UIItemSource_Rep{Rep: repItem},
 				})
 			}
-			parsed.Sources = sources
-			sourceMap[parsed.Name] = sources
+			parsed.Sources = append(parsed.Sources, sources...)
+			sourceMap[parsed.Name] = parsed.Sources
 		}
 
 		parsedItems = append(parsedItems, parsed)

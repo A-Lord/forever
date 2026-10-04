@@ -574,7 +574,7 @@ type PseudoStats struct {
 	// Crowd control effects. See sim/core/incapacitate.go.
 	///////////////////////////////////////////////////
 
-	Incapacitated bool // Under crowd control (e.g. Archimonde's Fear); cannot cast or queue any spell. Procs still fire.
+	Incapacitated bool // Under crowd control (e.g. a boss's Fear); cannot cast or queue any spell. Procs still fire.
 	Stunned       bool // Prevents blocks, dodges, and parries. Read while this unit is the target.
 	FearImmune    bool // Fear effects cannot be applied to this unit. (ie. Berserker Rage)
 	StunImmune    bool // Stun effects cannot be applied to this unit.

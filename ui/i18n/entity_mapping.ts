@@ -327,15 +327,13 @@ export const sourceFilterI18nKeys: Record<SourceFilterOption, string> = {
 
 export const raidFilterI18nKeys: Record<RaidFilterOption, string> = {
 	[RaidFilterOption.RaidUnknown]: 'unknown',
-	[RaidFilterOption.RaidKara]: 'kara',
-	[RaidFilterOption.RaidGruul]: 'gruuls',
-	[RaidFilterOption.RaidMag]: 'mag',
-	[RaidFilterOption.RaidTK]: 'tk',
-	[RaidFilterOption.RaidSSC]: 'ssc',
-	[RaidFilterOption.RaidMH]: 'mh',
-	[RaidFilterOption.RaidBT]: 'bt',
-	[RaidFilterOption.RaidZA]: 'za',
-	[RaidFilterOption.RaidSWP]: 'swp',
+	[RaidFilterOption.RaidMC]: 'mc',
+	[RaidFilterOption.RaidOny]: 'ony',
+	[RaidFilterOption.RaidBWL]: 'bwl',
+	[RaidFilterOption.RaidZG]: 'zg',
+	[RaidFilterOption.RaidAQ20]: 'aq20',
+	[RaidFilterOption.RaidAQ40]: 'aq40',
+	[RaidFilterOption.RaidNaxx]: 'naxx',
 };
 
 export const armorTypeI18nKeys: Record<ArmorType, string> = {

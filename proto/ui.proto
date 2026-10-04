@@ -20,6 +20,7 @@ message UIDatabase {
 
 	repeated UIZone zones = 8;
 	repeated UINPC npcs = 9;
+	repeated UIFaction factions = 16;
 
 	// Entities for which we just need a name/icon.
 	repeated IconData item_icons = 4;
@@ -42,6 +43,10 @@ message UINPC {
 	int32 id = 1;
 	string name = 2;
 	int32 zone_id = 3;
+}
+message UIFaction {
+	int32 id = 1;
+	string name = 2;
 }
 
 // Contains all information about an Item needed by the UI.
@@ -141,21 +146,6 @@ enum RepLevel {
 	RepLevelExalted 	= 8;
 }
 
-// Use the faction ID for the field index
-enum RepFaction {
-	RepFactionUnknown = 0;
-	RepFactionTheConsortium = 933;
-	RepFactionTheMagHar = 941;
-	RepFactionCenarionExpedition = 942;
-	RepFactionHonorHold = 946;
-	RepFactionThrallmar = 947;
-	RepFactionSporeggar = 970;
-	RepFactionKurenai = 978;
-	RepFactionAshtongueDeathsworn = 1012;
-	RepFactionNetherwing = 1015;
-	RepFactionOgriLa = 1038;
-}
-
 message UIItemSource {
 	oneof source {
 		CraftedSource crafted = 1;
@@ -186,7 +176,7 @@ message SoldBySource {
 	int32 zone_id = 3;
 }
 message RepSource {
-	RepFaction rep_faction_id = 1;
+	int32 rep_faction_id = 1; // Faction.ID in the game files; UIDatabase.factions carries its name.
 	RepLevel rep_level = 2;
 	Faction faction_id = 3;
 }
@@ -260,15 +250,14 @@ enum SourceFilterOption {
 
 enum RaidFilterOption {
 	RaidUnknown = 0;
-	RaidKara = 1;
-	RaidGruul = 2;
-	RaidMag = 3;
-	RaidTK = 4;
-	RaidSSC = 5;
-	RaidMH = 6;
-	RaidBT = 7;
-	RaidZA = 8;
-	RaidSWP = 9;
+	reserved 1 to 9;
+	RaidMC = 10;
+	RaidOny = 11;
+	RaidBWL = 12;
+	RaidZG = 13;
+	RaidAQ20 = 14;
+	RaidAQ40 = 15;
+	RaidNaxx = 16;
 }
 
 // NextIndex: 26

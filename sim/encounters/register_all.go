@@ -4,9 +4,6 @@ import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/stats"
-	battleformounthyjal "github.com/wowsims/forever/sim/encounters/battle_for_mount_hyjal"
-	magtheridonslair "github.com/wowsims/forever/sim/encounters/magtheridons_lair"
-	serpentshrinecavern "github.com/wowsims/forever/sim/encounters/serpent_shrine_cavern"
 )
 
 func init() {
@@ -14,16 +11,6 @@ func init() {
 	addMovementAI()
 	addDynamicAddsAI()
 	addCustomBossAI()
-	magtheridonslair.Register()
-	serpentshrinecavern.Register()
-	battleformounthyjal.Register()
-}
-
-func AddSingleTargetBossEncounter(presetTarget *core.PresetTarget) {
-	core.AddPresetTarget(presetTarget)
-	core.AddPresetEncounter(presetTarget.Config.Name, []string{
-		presetTarget.Path(),
-	})
 }
 
 func AddDefaultPresetEncounter() {
