@@ -48,15 +48,15 @@ export const Level60Gear = PresetUtils.makePresetGear('Level 60', Level60GearJso
 // Feral attack power is unread, so it stays 0. Armor penetration is 0 because
 // Sunder, Expose and Faerie Fire already remove the target's armor.
 export const Level60Ep = Stats.fromMap({
-	[Stat.StatStrength]: 0.492,
+	[Stat.StatStrength]: 1.0065,
 	[Stat.StatAgility]: 1,
-	[Stat.StatAttackPower]: 0.41,
+	[Stat.StatAttackPower]: 0.4026,
 	[Stat.StatFeralAttackPower]: 0,
-	[Stat.StatPhysicalDamage]: 4.635,
-	[Stat.StatHitRating]: 0.736,
-	[Stat.StatExpertiseRating]: 0.736,
-	[Stat.StatCritRating]: 0.714,
-	[Stat.StatHasteRating]: 0.611,
+	[Stat.StatPhysicalDamage]: 3.9494,
+	[Stat.StatHitRating]: 0.2215,
+	[Stat.StatExpertiseRating]: 0.7306,
+	[Stat.StatCritRating]: 0.7234,
+	[Stat.StatHasteRating]: 0.4717,
 	[Stat.StatArmorPenetration]: 0,
 });
 
