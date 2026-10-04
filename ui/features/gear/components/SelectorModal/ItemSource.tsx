@@ -1,7 +1,7 @@
-import { RepFaction, UIItem as Item, UIItem_FactionRestriction } from '@generated/proto/ui';
+import { UIItem as Item, UIItem_FactionRestriction } from '@generated/proto/ui';
 import { ActionId } from '@sim/proto/action_id';
 import { getPVPSeasonFromItem, isPVPItem } from '@sim/proto/items';
-import { difficultyNames, professionNames, REP_FACTION_NAMES, REP_FACTION_QUARTERMASTERS, REP_LEVEL_NAMES } from '@sim/proto/names';
+import { difficultyNames, professionNames, REP_LEVEL_NAMES } from '@sim/proto/names';
 import type { Sim } from '@sim/sim';
 import { WowheadAnchor } from '@ui-kit/WowheadAnchor';
 import type { ReactNode } from 'react';
@@ -102,22 +102,13 @@ export const ItemSource = ({ item, sim }: ItemSourceProps): ReactNode => {
 	}
 
 	if ((source = item.sources.find(entry => entry.source.oneofKind === 'rep') ?? source).source.oneofKind === 'rep') {
-		const factionNames = item.sources
-			.filter(entry => entry.source.oneofKind === 'rep')
-			.map(entry =>
-				entry.source.oneofKind === 'rep' ? REP_FACTION_NAMES[entry.source.rep.repFactionId] : REP_FACTION_NAMES[RepFaction.RepFactionUnknown],
-			);
 		const src = source.source.rep;
 		return (
-			<SourceLink href={ActionId.makeNpcUrl(REP_FACTION_QUARTERMASTERS[src.repFactionId])}>
-				{factionNames.map((name, index) => (
-					<span key={`${name}-${index}`}>
-						{name}
-						<FactionIcon restriction={item.factionRestriction} />
-						<br />
-					</span>
-				))}
-				<span>{REP_LEVEL_NAMES[src.repLevel]}</span>
+			<SourceLink href={ActionId.makeItemUrl(item.id)}>
+				<span>
+					{sim.db.getFaction(src.repFactionId)?.name ?? 'Unknown'} - {REP_LEVEL_NAMES[src.repLevel]}
+					<FactionIcon restriction={item.factionRestriction} />
+				</span>
 			</SourceLink>
 		);
 	}

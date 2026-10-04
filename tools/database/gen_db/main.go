@@ -98,6 +98,7 @@ func main() {
 		names           map[int]string
 		craftingSources map[int][]*proto.CraftedSource
 		repSources      map[int][]*proto.RepSource
+		factionNames    map[int32]string
 		atlaslootDB     *database.WowDatabase
 		iconsMap        map[int]string
 		icons           map[int]database.SpellIcon
@@ -127,7 +128,7 @@ func main() {
 	})
 	g.Go(func() (err error) { icons, err = database.LoadSpellIcons(helper); return })
 	g.Go(func() error { craftingSources = database.LoadCraftedItems(helper); return nil })
-	g.Go(func() error { repSources = database.LoadRepItems(helper); return nil })
+	g.Go(func() (err error) { repSources, factionNames, err = database.LoadRepItems(helper); return })
 	g.Go(func() error {
 		//Todo: See if we cant get rid of these as well
 		atlaslootDB = database.ReadDatabaseFromJson(tools.ReadFile(fmt.Sprintf("%s/atlasloot_db.json", inputsDir)))
@@ -174,7 +175,7 @@ func main() {
 
 	for _, atlaslootItem := range atlaslootDB.Items {
 		if dbItem, ok := db.Items[atlaslootItem.Id]; ok {
-			firstDBRepFaction := proto.RepFaction(-1)
+			firstDBRepFaction := int32(-1)
 
 			for _, dbItemSource := range dbItem.Sources {
 				if dbRepSource := dbItemSource.GetRep(); dbRepSource != nil {
@@ -216,6 +217,7 @@ func main() {
 	database.AddConsumableIcons(db, consumables, instance, iconsMap)
 	leftovers := db.Clone()
 	ApplyNonSimmableFilters(leftovers)
+	addRepFactions(leftovers, factionNames)
 	leftovers.WriteBinaryAndJson(fmt.Sprintf("%s/leftover_db.bin", dbDir), fmt.Sprintf("%s/leftover_db.json", dbDir))
 	ApplySimmableFilters(db)
 
@@ -296,7 +298,18 @@ func main() {
 	if err := database.LoadZoneAreas(db, helper); err != nil {
 		log.Fatal(err)
 	}
+	addRepFactions(db, factionNames)
 	db.WriteBinaryAndJson(fmt.Sprintf("%s/db.bin", dbDir), fmt.Sprintf("%s/db.json", dbDir))
+}
+
+func addRepFactions(db *database.WowDatabase, factionNames map[int32]string) {
+	for _, item := range db.Items {
+		for _, source := range item.Sources {
+			if rep := source.GetRep(); rep != nil {
+				db.MergeFaction(&proto.UIFaction{Id: rep.RepFactionId, Name: factionNames[rep.RepFactionId]})
+			}
+		}
+	}
 }
 
 func processItems(instance *dbc.DBC,
