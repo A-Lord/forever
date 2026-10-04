@@ -1081,7 +1081,7 @@ export class Sim {
 				filters.sources = Sim.ALL_SOURCES.slice();
 			}
 			// A binary link keeps raid values the enum reserves.
-			filters.raids = filters.raids.filter(raid => Sim.ALL_RAIDS.includes(raid));
+			filters.raids = filters.raids.filter(raid => Sim.ALL_RAIDS.some(known => known === raid));
 			if (filters.raids.length == 0) {
 				filters.raids = Sim.ALL_RAIDS.slice();
 			}
