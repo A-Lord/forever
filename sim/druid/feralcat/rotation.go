@@ -11,10 +11,6 @@ import (
 // A Rip cast with less of the fight left than this does not tick out.
 const RipEndThresh = time.Second * 10
 
-// Bite beside an active Rip only while that Rip still has longer than this left, so the combo
-// points are not spent on a Rip that is about to fall off. Rip lasts 12s, so this is the first 4s.
-const biteWithRipLeft = 8 * time.Second
-
 type FeralDruidRotation struct {
 	RipCP              int32
 	BiteCP             int32
@@ -46,9 +42,8 @@ func (cat *FeralDruid) setupRotation(rotation *proto.FeralCatDruid_Rotation) {
 func (cat *FeralDruid) OnGCDReady(_ *core.Simulation) {}
 
 // One decision of the cat rotation. Finishers first, then Rake while it is down, then the builder, and
-// Shifting Power when the builder is unaffordable. Bite beside Rip only while Rip has more than
-// 8s left. When nothing is castable it returns without waiting, so the APL looks again one reaction
-// time later.
+// Shifting Power when the builder is unaffordable. Bite-weaving bites whenever Rip is up. When
+// nothing is castable it returns without waiting, so the APL looks again one reaction time later.
 func (cat *FeralDruid) doRotation(sim *core.Simulation) bool {
 	if !cat.GCD.IsReady(sim) {
 		return false
@@ -85,8 +80,7 @@ func (cat *FeralDruid) doRotation(sim *core.Simulation) bool {
 		cat.Rip.CanCast(sim, target) {
 		return cat.Rip.Cast(sim, target)
 	}
-	// Bite as the finisher does not wait on Rip. Bite beside Rip waits until Rip has time left.
-	biteWindow := rotation.BiteOverRip || (ripUp && ripDot.RemainingDuration(sim) > biteWithRipLeft)
+	biteWindow := rotation.BiteOverRip || ripUp
 	if rotation.UseBite && cp >= rotation.BiteCP && biteWindow && cat.FerociousBite.CanCast(sim, target) {
 		return cat.FerociousBite.Cast(sim, target)
 	}

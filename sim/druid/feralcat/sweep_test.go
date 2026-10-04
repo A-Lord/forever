@@ -29,8 +29,7 @@ func TestRotationSweep(t *testing.T) {
 		costCat.Shred.Cost.GetCurrentCost(), costCat.Claw.Cost.GetCurrentCost(), costCat.Rip.Cost.GetCurrentCost(),
 		costCat.FerociousBite.Cost.GetCurrentCost(), costCat.Rake.Cost.GetCurrentCost(), costCat.ShiftingPower.Cost.GetCurrentCost())
 
-	// Rake stays up. Rip is the finisher. Bite, while enabled, requires 5 combo points and a Rip
-	// with more than 8s left.
+	// Rake stays up. Rip is the finisher. Bite, while enabled, requires 5 combo points and an active Rip.
 	rot := func(ripCP int32, rake, ff, bite bool) *proto.FeralCatDruid_Rotation {
 		return &proto.FeralCatDruid_Rotation{
 			FinishingMove:      proto.FeralCatDruid_Rotation_Rip,
