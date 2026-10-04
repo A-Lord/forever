@@ -1,121 +1,43 @@
 package rogue
 
-// var PVPSet = core.NewItemSet(core.ItemSet{
-// 	Name: "Gladiator's Vestments",
-// 	ID:   577,
-// 	Bonuses: map[int32]core.ApplySetBonus{
-// 		4: func(agent core.Agent, setBonusAura *core.Aura) {
-// 			rogue := agent.(RogueAgent).GetRogue()
-// 			rogue.HasPvpEnergy = true
-// 		},
-// 	},
-// })
+import (
+	"github.com/wowsims/forever/sim/common/shared"
+	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
+	"github.com/wowsims/forever/sim/core/stats"
+)
 
-// var Dungeon3 = core.NewItemSet(core.ItemSet{
-// 	Name: "Assassination Armor",
-// 	ID:   620,
-// 	Bonuses: map[int32]core.ApplySetBonus{
-// 		2: func(agent core.Agent, setBonusAura *core.Aura) {
-// 			// Your Cheap Shot and Kidney Shot attacks grant you 160 haste rating for 6 sec.
-// 			// NYI
-// 		},
-// 		4: func(agent core.Agent, setBonusAura *core.Aura) {
-// 			// Your Eviscerate ability costs 10 less energy.
-// 			setBonusAura.AttachSpellMod(core.SpellModConfig{
-// 				Kind:      core.SpellMod_PowerCost_Flat,
-// 				ClassMask: RogueSpellEviscerate,
-// 				IntValue:  -10,
-// 			})
-// 		},
-// 	},
-// })
+var (
+	scraftResist         = spelldata.MustFind(18679)
+	scraftAttackPower    = spelldata.MustFind(9336)
+	scraftEnergyProc     = spelldata.MustFind(27787)
+	scraftEnergyEnergize = spelldata.MustFind(27788)
+)
 
-// var Tier4 = core.NewItemSet(core.ItemSet{
-// 	Name: "Netherblade",
-// 	ID:   621,
-// 	Bonuses: map[int32]core.ApplySetBonus{
-// 		2: func(agent core.Agent, setBonusAura *core.Aura) {
-// 			setBonusAura.
-// 				ApplyOnGain(func(aura *core.Aura, sim *core.Simulation) {
-// 					agent.(RogueAgent).GetRogue().SliceAndDiceBonusDuration += time.Second * 3
-// 				}).
-// 				ApplyOnExpire(func(aura *core.Aura, sim *core.Simulation) {
-// 					agent.(RogueAgent).GetRogue().SliceAndDiceBonusDuration -= time.Second * 3
-// 				})
-// 		},
-// 		4: func(agent core.Agent, setBonusAura *core.Aura) {
-// 			rogue := agent.(RogueAgent).GetRogue()
-// 			pointMetrics := rogue.NewComboPointMetrics(core.ActionID{SpellID: 37168})
-// 			setBonusAura.AttachProcTrigger(core.ProcTrigger{
-// 				Name:           "Netherblade Combo Point",
-// 				ActionID:       core.ActionID{SpellID: 37168},
-// 				ProcChance:     0.15,
-// 				ClassSpellMask: RogueSpellFinisher,
-// 				Callback:       core.CallbackOnApplyEffects,
-// 				Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-// 					rogue.AddComboPoints(sim, 1, pointMetrics)
-// 				},
-// 			})
+var ItemSetShadowCraft = core.NewItemSet(core.ItemSet{
+	Name: "Shadowcraft Armor",
+	ID:   184,
+	Bonuses: map[int32]core.ApplySetBonus{
+		2: func(agent core.Agent, setBonusAura *core.Aura) {
+			setBonusAura.AttachStatBuff(stats.ArcaneResistance, scraftResist.EffectN(1).BaseValue())
+			setBonusAura.AttachStatBuff(stats.FireResistance, scraftResist.EffectN(1).BaseValue())
+			setBonusAura.AttachStatBuff(stats.FrostResistance, scraftResist.EffectN(1).BaseValue())
+			setBonusAura.AttachStatBuff(stats.NatureResistance, scraftResist.EffectN(1).BaseValue())
+			setBonusAura.AttachStatBuff(stats.ShadowResistance, scraftResist.EffectN(1).BaseValue())
+		},
+		3: func(agent core.Agent, setBonusAura *core.Aura) {
+			setBonusAura.AttachStatBuff(stats.AttackPower, scraftAttackPower.EffectN(1).BaseValue())
+			setBonusAura.AttachStatBuff(stats.RangedAttackPower, scraftAttackPower.EffectN(1).BaseValue())
+		},
+		// 4 Skipped as it provides no sim benefit
+		5: func(agent core.Agent, setBonusAura *core.Aura) {
+			rogue := agent.(RogueAgent).GetRogue()
+			gain := shared.FiredSpellHandler(&rogue.Character, core.ActionID{SpellID: scraftEnergyEnergize.ID}, scraftEnergyProc)
 
-// 		},
-// 	},
-// })
-
-// var Tier5 = core.NewItemSet(core.ItemSet{
-// 	Name: "Deathmantle",
-// 	Bonuses: map[int32]core.ApplySetBonus{
-// 		2: func(agent core.Agent, setBonusAura *core.Aura) {
-// 			agent.(RogueAgent).GetRogue().DeathmantleBonus = 40
-// 		},
-// 		4: func(agent core.Agent, setBonusAura *core.Aura) {
-// 			rogue := agent.(RogueAgent).GetRogue()
-// 			mod := rogue.GetOrRegisterAura(core.Aura{
-// 				Label:    "Coup de Grace",
-// 				Duration: time.Second * 15,
-// 				ActionID: core.ActionID{SpellID: 37171},
-// 				OnApplyEffects: func(aura *core.Aura, sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-// 					if spell.Matches(RogueSpellFinisher) {
-// 						aura.Deactivate(sim)
-// 					}
-// 				},
-// 			}).AttachSpellMod(core.SpellModConfig{
-// 				Kind:       core.SpellMod_PowerCost_Pct_Add,
-// 				ClassMask:  RogueSpellFinisher,
-// 				FloatValue: -1,
-// 			})
-// 			setBonusAura.AttachProcTrigger(core.ProcTrigger{
-// 				Name:             "Deathmantle Proc Trigger",
-// 				CanProcFromProcs: true, // 37171 carries the bit.
-// 				ProcMask:         core.ProcMaskMelee,
-// 				Outcome:          core.OutcomeLanded,
-// 				Callback:         core.CallbackOnSpellHitDealt,
-// 				DPM:              rogue.NewLegacyPPMManager(0.5, core.ProcMaskMelee),
-// 				Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-// 					mod.Activate(sim)
-// 				},
-// 			})
-// 		},
-// 	},
-// })
-
-// var Tier6 = core.NewItemSet(core.ItemSet{
-// 	Name: "Slayer's Armor",
-// 	Bonuses: map[int32]core.ApplySetBonus{
-// 		2: func(agent core.Agent, setBonusAura *core.Aura) {
-// 			setBonusAura.
-// 				ApplyOnGain(func(aura *core.Aura, sim *core.Simulation) {
-// 					agent.(RogueAgent).GetRogue().SliceAndDiceBonusFlat += 0.05
-// 				}).
-// 				ApplyOnExpire(func(aura *core.Aura, sim *core.Simulation) {
-// 					agent.(RogueAgent).GetRogue().SliceAndDiceBonusFlat -= 0.05
-// 				})
-// 		},
-// 		4: func(agent core.Agent, setBonusAura *core.Aura) {
-// 			setBonusAura.AttachSpellMod(core.SpellModConfig{
-// 				Kind:       core.SpellMod_DamageDone_Flat,
-// 				ClassMask:  RogueSpellBackstab | RogueSpellSinisterStrike | RogueSpellMutilate | RogueSpellHemorrhage,
-// 				FloatValue: 0.06,
-// 			})
-// 		},
-// 	},
-// })
+			trigger := spelldata.ProcTrigger(&rogue.Character, scraftEnergyProc, gain, spelldata.PPM(1.0))
+			trigger.Name = "Shadowcraft 5-piece Proc"
+			setBonusAura.AttachProcTrigger(trigger)
+		},
+		// 6 Skipped as it provides no sim benefit
+	},
+})
