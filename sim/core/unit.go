@@ -196,7 +196,7 @@ type Unit struct {
 
 	CurrentTarget   *Unit
 	defaultTarget   *Unit
-	SecondaryTarget *Unit // Only used for NPCs in tank swap AIs currently.
+	SecondaryTarget *Unit // An NPC's second tank assignment; counts that tank as tanking for chance of death.
 
 	// The currently-channeled DOT spell, otherwise nil.
 	ChanneledDot       *Dot

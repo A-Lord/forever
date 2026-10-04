@@ -33,7 +33,7 @@ export const Item = ({ id, disabled, muted, className, testId, children }: TreeI
 	const controls = [parts.body && bodyId, parts.children && childrenId].filter(Boolean).join(' ') || undefined;
 
 	const itemDisabled = root.disabled || !!disabled;
-	const { armed, drag, drop, itemProps, handleProps, childrenProps } = useItemSortable({
+	const { armed, drag, drop, itemProps, armProps, childrenProps } = useItemSortable({
 		key,
 		element,
 		place: { group: root.group, id, index, parentId: root.parentId },
@@ -52,10 +52,9 @@ export const Item = ({ id, disabled, muted, className, testId, children }: TreeI
 			childrenId,
 			controls,
 			mountPart,
-			handleProps,
 			childrenProps,
 		}),
-		[id, index, root.parentId, open, setOpen, drag, itemDisabled, bodyId, childrenId, controls, mountPart, handleProps, childrenProps],
+		[id, index, root.parentId, open, setOpen, drag, itemDisabled, bodyId, childrenId, controls, mountPart, childrenProps],
 	);
 
 	return (
@@ -70,7 +69,8 @@ export const Item = ({ id, disabled, muted, className, testId, children }: TreeI
 				data-muted={muted ? '' : undefined}
 				data-testid={testId ?? 'tree-item'}
 				draggable={armed || undefined}
-				{...itemProps}>
+				{...itemProps}
+				{...armProps}>
 				<TreeBodyContext.Provider value={false}>{children}</TreeBodyContext.Provider>
 			</li>
 		</TreeItemContext.Provider>

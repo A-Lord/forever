@@ -106,15 +106,13 @@
 		},
 		"raids": {
 			"unknown": "Unknown",
-			"kara": "Karazhan",
-			"gruuls": "Gruul's Lair",
-			"mag": "Magtheridon",
-			"tk": "Tempest Keep",
-			"ssc": "Serpentshrine Cavern",
-			"mh": "Mount Hyjal",
-			"bt": "Black Temple",
-			"za": "Zul'Aman",
-			"swp": "Sunwell Plateu"
+			"mc": "Molten Core",
+			"ony": "Onyxia's Lair",
+			"bwl": "Blackwing Lair",
+			"zg": "Zul'Gurub",
+			"aq20": "Ruins of Ahn'Qiraj",
+			"aq40": "Temple of Ahn'Qiraj",
+			"naxx": "Naxxramas"
 		},
 		"armor_types": {
 			"unknown": "Unknown",

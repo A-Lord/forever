@@ -53,8 +53,9 @@ type WowDatabase struct {
 	RandomSuffixes map[int32]*proto.ItemRandomSuffix
 	Enchants       map[EnchantDBKey]*proto.UIEnchant
 
-	Zones map[int32]*proto.UIZone
-	Npcs  map[int32]*proto.UINPC
+	Zones    map[int32]*proto.UIZone
+	Npcs     map[int32]*proto.UINPC
+	Factions map[int32]*proto.UIFaction
 
 	ItemIcons                map[int32]*proto.IconData
 	SpellIcons               map[int32]*proto.IconData
@@ -73,6 +74,7 @@ func NewWowDatabase() *WowDatabase {
 		Enchants:       make(map[EnchantDBKey]*proto.UIEnchant),
 		Zones:          make(map[int32]*proto.UIZone),
 		Npcs:           make(map[int32]*proto.UINPC),
+		Factions:       make(map[int32]*proto.UIFaction),
 
 		ItemIcons:                make(map[int32]*proto.IconData),
 		SpellIcons:               make(map[int32]*proto.IconData),
@@ -90,6 +92,7 @@ func (db *WowDatabase) Clone() *WowDatabase {
 		Enchants:       maps.Clone(db.Enchants),
 		Zones:          maps.Clone(db.Zones),
 		Npcs:           maps.Clone(db.Npcs),
+		Factions:       maps.Clone(db.Factions),
 
 		ItemIcons:                maps.Clone(db.ItemIcons),
 		SpellIcons:               maps.Clone(db.SpellIcons),
@@ -170,6 +173,14 @@ func (db *WowDatabase) MergeNpc(src *proto.UINPC) {
 		googleProto.Merge(dst, src)
 	} else {
 		db.Npcs[src.Id] = src
+	}
+}
+
+func (db *WowDatabase) MergeFaction(src *proto.UIFaction) {
+	if dst, ok := db.Factions[src.Id]; ok {
+		googleProto.Merge(dst, src)
+	} else {
+		db.Factions[src.Id] = src
 	}
 }
 
@@ -271,6 +282,7 @@ func (db *WowDatabase) ToUIProto() *proto.UIDatabase {
 		Encounters:               db.Encounters,
 		Zones:                    mapToSlice(db.Zones),
 		Npcs:                     mapToSlice(db.Npcs),
+		Factions:                 mapToSlice(db.Factions),
 		ItemIcons:                mapToSlice(db.ItemIcons),
 		SpellIcons:               mapToSlice(db.SpellIcons),
 		ItemEffectRandPropPoints: mapToSliceByIlvl(db.ItemEffectRandPropPoints),
@@ -310,6 +322,7 @@ func ReadDatabaseFromJson(jsonStr string) *WowDatabase {
 		Enchants:                 enchants,
 		Zones:                    sliceToMap(dbProto.Zones),
 		Npcs:                     sliceToMap(dbProto.Npcs),
+		Factions:                 sliceToMap(dbProto.Factions),
 		ItemIcons:                sliceToMap(dbProto.ItemIcons),
 		SpellIcons:               sliceToMap(dbProto.SpellIcons),
 		ItemEffectRandPropPoints: iLvlKeyedSliceToMap(dbProto.ItemEffectRandPropPoints),
@@ -373,6 +386,8 @@ func (db *WowDatabase) toJsonBytes() []byte {
 	tools.WriteProtoArrayToBuffer(uidb.Zones, buffer, "zones")
 	buffer.WriteString(",\n")
 	tools.WriteProtoArrayToBuffer(uidb.Npcs, buffer, "npcs")
+	buffer.WriteString(",\n")
+	tools.WriteProtoArrayToBuffer(uidb.Factions, buffer, "factions")
 	buffer.WriteString(",\n")
 	tools.WriteProtoArrayToBuffer(uidb.ItemEffectRandPropPoints, buffer, "itemEffectRandPropPoints")
 	buffer.WriteString(",\n")

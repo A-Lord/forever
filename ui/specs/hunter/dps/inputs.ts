@@ -70,7 +70,7 @@ export const PetTypeInput = <SpecType extends HunterSpecs>() =>
 			{ value: HunterOptions_PetType.Cat, actionId: ActionId.fromPetName('Cat'), tooltip: i18n.t('settings_tab.other.pet_type.cat') },
 			{ value: HunterOptions_PetType.CoreHound, actionId: ActionId.fromPetName('Core Hound'), tooltip: i18n.t('settings_tab.other.pet_type.core_hound') },
 			{ value: HunterOptions_PetType.Crab, actionId: ActionId.fromPetName('Crab'), tooltip: i18n.t('settings_tab.other.pet_type.crab') },
-			{ value: HunterOptions_PetType.Crocilisk, actionId: ActionId.fromPetName('Crocolisk'), tooltip: i18n.t('settings_tab.other.pet_type.crocolisk') },
+			{ value: HunterOptions_PetType.Crocilisk, actionId: ActionId.fromPetName('Crocilisk'), tooltip: i18n.t('settings_tab.other.pet_type.crocolisk') },
 			{ value: HunterOptions_PetType.Fox, actionId: ActionId.fromPetName('Fox'), tooltip: i18n.t('settings_tab.other.pet_type.fox') },
 			{ value: HunterOptions_PetType.Gorilla, actionId: ActionId.fromPetName('Gorilla'), tooltip: i18n.t('settings_tab.other.pet_type.gorilla') },
 			{ value: HunterOptions_PetType.Hyena, actionId: ActionId.fromPetName('Hyena'), tooltip: i18n.t('settings_tab.other.pet_type.hyena') },

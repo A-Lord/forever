@@ -384,6 +384,7 @@ func ScanEnchantsTable(rows *sql.Rows) (dbc.Enchant, error) {
 	var effectArgsString string
 	var spellItemEnchantmentFlags dbc.SpellItemEnchantmentFlags
 	var spellItemLevel int
+	var itemClassMasks string
 	err := rows.Scan(
 		&raw.EffectId,
 		&raw.Name,
@@ -397,6 +398,7 @@ func ScanEnchantsTable(rows *sql.Rows) (dbc.Enchant, error) {
 		&raw.InventoryType,
 		&raw.SubClassMask,
 		&raw.ClassMask,
+		&itemClassMasks,
 		&raw.FDID,
 		&raw.Quality,
 		&raw.RequiredProfession,
@@ -409,6 +411,20 @@ func ScanEnchantsTable(rows *sql.Rows) (dbc.Enchant, error) {
 		return raw, fmt.Errorf("scanning enchant data for effect ID %d: %w", raw.EffectId, err)
 	}
 	raw.Lvl = enchantLvl(spellItemLevel)
+
+	// A class may use the enchant when it may use any item that applies it; AllowableClass -1 is every class.
+	if itemClassMasks != "" {
+		for _, field := range strings.Split(itemClassMasks, ",") {
+			mask, err := strconv.Atoi(field)
+			if err != nil {
+				return raw, fmt.Errorf("parsing item class masks for enchant %d (%s): %w", raw.EffectId, itemClassMasks, err)
+			}
+			if mask <= 0 {
+				mask = -1
+			}
+			raw.ClassMask |= mask
+		}
+	}
 
 	raw.Effects, err = parseIntArrayField(effectsString, 3)
 	if err != nil {
@@ -451,6 +467,11 @@ const (
 	sodItemIDMax = 244460
 )
 
+// The SQL condition that the item id in column is in the Season of Discovery range.
+func sodItemID(column string) string {
+	return column + ` BETWEEN ` + strconv.Itoa(sodItemIDMin) + ` AND ` + strconv.Itoa(sodItemIDMax)
+}
+
 func LoadAndWriteRawEnchants(dbHelper *DBHelper, inputsDir string) ([]dbc.Enchant, error) {
 	query := `
 		SELECT DISTINCT
@@ -477,7 +498,7 @@ func LoadAndWriteRawEnchants(dbHelper *DBHelper, inputsDir string) ([]dbc.Enchan
 			-- the Season of Discovery range last. This is the query's only aggregate, so the bare columns (icon
 			-- and quality among them) come from its row.
 			COALESCE(MIN(
-				CASE WHEN ixie.ItemID BETWEEN ` + strconv.Itoa(sodItemIDMin) + ` AND ` + strconv.Itoa(sodItemIDMax) + ` THEN 2000000000 ELSE 0 END
+				CASE WHEN ` + sodItemID("ixie.ItemID") + ` THEN 2000000000 ELSE 0 END
 				+ CASE WHEN isp.ID IS NULL THEN 1000000000 ELSE 0 END
 				+ ixie.ItemID
 			) % 1000000000, 0) as ItemId,
@@ -492,6 +513,13 @@ func LoadAndWriteRawEnchants(dbHelper *DBHelper, inputsDir string) ([]dbc.Enchan
 			COALESCE(sei.EquippedItemInvTypes, 0) as InvTypes,
 			COALESCE(sei.EquippedItemSubclass, 0),
 			COALESCE(sla.ClassMask, 0),
+			-- The AllowableClass of every item that applies an enchant no skill line teaches.
+			CASE WHEN sla.ID IS NULL THEN COALESCE((
+				SELECT group_concat(DISTINCT lisp.AllowableClass) FROM ItemEffect lie
+					JOIN ItemXItemEffect lixie ON lixie.ItemEffectID = lie.ID
+					JOIN ItemSparse lisp ON lisp.ID = lixie.ItemID
+				WHERE lie.SpellID = se.SpellID AND NOT ` + sodItemID("lixie.ItemID") + `
+			), '') ELSE '' END AS ItemClassMasks,
 			COALESCE(it.IconFileDataID, 0),
 			COALESCE(isp.OverallQualityID, 1),
 			COALESCE(sla.SkillLine, 0) as RequiredProfession,
@@ -510,8 +538,7 @@ func LoadAndWriteRawEnchants(dbHelper *DBHelper, inputsDir string) ([]dbc.Enchan
 				SELECT MAX(lisp.ItemLevel) FROM ItemEffect lie
 					JOIN ItemXItemEffect lixie ON lixie.ItemEffectID = lie.ID
 					JOIN ItemSparse lisp ON lisp.ID = lixie.ItemID
-				WHERE lie.SpellID = se.SpellID
-					AND lixie.ItemID NOT BETWEEN ` + strconv.Itoa(sodItemIDMin) + ` AND ` + strconv.Itoa(sodItemIDMax) + `
+				WHERE lie.SpellID = se.SpellID AND NOT ` + sodItemID("lixie.ItemID") + `
 			), 0) AS SpellItemLevel
 		FROM SpellEffect se
 			JOIN Spell s ON se.SpellID = s.ID
@@ -2172,7 +2199,7 @@ func LoadCraftedItems(dbHelper *DBHelper) (
 	return sourcesByItem
 }
 
-func ScanRepItems(rows *sql.Rows) (itemID int, ds *proto.RepSource, err error) {
+func ScanRepItems(rows *sql.Rows) (itemID int, factionName string, ds *proto.RepSource, err error) {
 	var (
 		minReputation      int
 		rep                proto.RepSource
@@ -2182,52 +2209,63 @@ func ScanRepItems(rows *sql.Rows) (itemID int, ds *proto.RepSource, err error) {
 	err = rows.Scan(
 		&itemID,
 		&rep.RepFactionId,
+		&factionName,
 		&reputationRaceMask,
 		&minReputation,
 	)
+	if err != nil {
+		return 0, "", nil, fmt.Errorf("scanning rep row: %w", err)
+	}
 
-	if dbc.AlliedRaces.Matches(reputationRaceMask) {
+	// A side's faction names that side's races in its first race mask (the other side starts Hated in the
+	// second); a first mask naming races of both sides is every race's faction.
+	alliance := dbc.AlliedRaces.Matches(reputationRaceMask)
+	horde := dbc.HordeRaces.Matches(reputationRaceMask)
+	if alliance && !horde {
 		rep.FactionId = proto.Faction_Alliance
-	} else if dbc.HordeRaces.Matches(reputationRaceMask) {
+	} else if horde && !alliance {
 		rep.FactionId = proto.Faction_Horde
 	}
 
 	rep.RepLevel = dbc.GetRepLevel(minReputation)
-	if err != nil {
-		return 0, nil, fmt.Errorf("scanning rep row: %w", err)
-	}
-	return itemID, &rep, nil
+	return itemID, factionName, &rep, nil
 }
 
+// The items whose ItemSparse row asks for a standing with a faction, and the names of those factions.
 func LoadRepItems(dbHelper *DBHelper) (
 	sourcesByItem map[int][]*proto.RepSource,
+	factionNames map[int32]string,
+	err error,
 ) {
 	const query = `
-		SELECT isp.ID, fa.ID, COALESCE(fa.ReputationRaceMasks0_0, 0) AS ReputationRaceMask, isp.MinReputation FROM ItemSparse isp
-		LEFT JOIN Faction fa on fa.ID = isp.MinFactionID
-		WHERE fa.ParentFactionID=980
+		SELECT isp.ID, fa.ID, fa.Name_lang,
+			(COALESCE(fa.ReputationRaceMasks0_1, 0) << 32) | (COALESCE(fa.ReputationRaceMasks0_0, 0) & 0xFFFFFFFF) AS ReputationRaceMask,
+			isp.MinReputation FROM ItemSparse isp
+		JOIN Faction fa on fa.ID = isp.MinFactionID
+		WHERE isp.MinFactionID > 0
     `
 
 	rows, err := dbHelper.db.Query(query)
 	if err != nil {
-		return nil
+		return nil, nil, fmt.Errorf("querying rep items: %w", err)
 	}
 	defer rows.Close()
 
 	sourcesByItem = make(map[int][]*proto.RepSource)
+	factionNames = make(map[int32]string)
 
 	for rows.Next() {
-		itemID, ds, scanErr := ScanRepItems(rows)
+		itemID, factionName, ds, scanErr := ScanRepItems(rows)
 		if scanErr != nil {
-			return nil
+			return nil, nil, scanErr
 		}
 		sourcesByItem[itemID] = append(sourcesByItem[itemID], ds)
+		factionNames[ds.RepFactionId] = factionName
 	}
 	if err = rows.Err(); err != nil {
-		return nil
+		return nil, nil, fmt.Errorf("reading rep items: %w", err)
 	}
-	fmt.Println("Loaded rep items", len(sourcesByItem))
-	return sourcesByItem
+	return sourcesByItem, factionNames, nil
 }
 
 func ScanItemUpgradePath(rows *sql.Rows) (UpgradeID int, upgradePathID int, ilvl int, err error) {

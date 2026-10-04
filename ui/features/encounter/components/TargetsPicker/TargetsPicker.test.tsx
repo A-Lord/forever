@@ -225,15 +225,11 @@ describe('TargetsPicker', () => {
 			mount(
 				new FakeEncounter(
 					[defaultTarget()],
-					[
-						preset('Karazhan/Attumen the Huntsman', 16152),
-						preset('Karazhan/Attumen the Huntsman (heroic)', 16152),
-						preset('x/Prince Malchezaar', 15690),
-					],
+					[preset('Molten Core/Lucifron', 12118), preset('Molten Core/Lucifron (alternate)', 12118), preset('x/Ragnaros', 11502)],
 				),
 			);
 
-			expect(await aiOptions()).toEqual(['common.none', 'Karazhan/Attumen the Huntsman', 'x/Prince Malchezaar']);
+			expect(await aiOptions()).toEqual(['common.none', 'Molten Core/Lucifron', 'x/Ragnaros']);
 		});
 
 		it('keeps the preset the sim resolves the id to, which is the first one registered', async () => {
