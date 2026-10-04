@@ -36,5 +36,11 @@ export const RotationInputs = {
 			showWhen: player => isFurySpec(player) || isArmsKebabSpec(player),
 			storeField: ['rotation', 'talentsString', 'gear'] as const,
 		}),
+		InputHelpers.makeRotationBooleanInput<Spec.SpecDpsWarrior>({
+			fieldName: 'useRend',
+			label: i18n.t('rotation_tab.options.warrior.dps.use_rend.label'),
+			showWhen: player => isFurySpec(player),
+			storeField: ['rotation', 'talentsString', 'gear'] as const,
+		}),
 	],
 };

@@ -115,6 +115,7 @@ export default defineSpec<Spec.SpecDpsWarrior>({
 			WarriorInputs.StartingRage(),
 			WarriorInputs.StanceSnapshot(),
 			OtherInputs.DistanceFromTarget,
+			WarriorInputs.QueueDelay(),
 			OtherInputs.InputDelay,
 			OtherInputs.TankAssignment,
 			OtherInputs.InFrontOfTarget,
@@ -127,13 +128,13 @@ export default defineSpec<Spec.SpecDpsWarrior>({
 	},
 
 	presets: {
-		epWeights: [Presets.PreBiSFuryEpWeights],
+		epWeights: [Presets.PreBiSFuryEpWeights, Presets.PreBiSArmsEpWeights],
 		// Preset talents that the user can quickly select.
-		talents: [Presets.FuryTalents],
+		talents: [Presets.FuryTalents, Presets.ArmsTalents],
 		// Preset rotations that the user can quickly select.
-		rotations: [Presets.SIMPLE_DEFAULT_ROTATION, Presets.FURY_DEFAULT_ROTATION, Presets.ARMS_DEFAULT_ROTATION],
+		rotations: [Presets.SIMPLE_DEFAULT_ROTATION, Presets.FURY_DEFAULT_ROTATION, Presets.ARMS_DEFAULT_ROTATION, Presets.ARMS_STANCE_DANCE_ROTATION],
 		// Preset gear configurations that the user can quickly select.
-		gear: [Presets.PreBiSFuryGear],
+		gear: [Presets.PreBiSFuryGear, Presets.PreBiSArmsGear],
 	},
 
 	autoRotation: (player: Player<Spec.SpecDpsWarrior>): APLRotation => {
@@ -145,7 +146,7 @@ export default defineSpec<Spec.SpecDpsWarrior>({
 	},
 
 	simpleRotation: (player: Player<Spec.SpecDpsWarrior>, simple: SpecRotation<Spec.SpecDpsWarrior>, _: Cooldowns): APLRotation => {
-		let { spec, sunderArmor = WarriorSunder.WarriorSunderHelp, useOverpower = true, useRecklessness = false } = simple;
+		let { spec, sunderArmor = WarriorSunder.WarriorSunderHelp, useOverpower = true, useRend = true, useRecklessness = false } = simple;
 
 		if (!spec) {
 			if (Presets.isArmsSpec(player) || Presets.isArmsKebabSpec(player)) {
@@ -174,6 +175,11 @@ export default defineSpec<Spec.SpecDpsWarrior>({
 		);
 		if (opWeaveAction) opWeaveAction.hide = !useOverpower;
 
+		const rendWeaveAction = rotation.priorityList.find(
+			action => action.action?.action.oneofKind === 'groupReference' && action.action?.action.groupReference.groupName === 'Rend Weaving ON/OFF',
+		);
+		if (rendWeaveAction) rendWeaveAction.hide = !useRend;
+
 		return APLRotation.create({
 			simple: SimpleRotation.create({}),
 			...rotation,
@@ -197,7 +203,7 @@ export default defineSpec<Spec.SpecDpsWarrior>({
 					softCapToModify.breakpoints = ctx.defaults.softCapBreakpoints?.[0].breakpoints || [];
 					softCapToModify.postCapEPs = ctx.defaults.softCapBreakpoints?.[0].postCapEPs || [];
 				} else {
-					softCapToModify.breakpoints = [9];
+					softCapToModify.breakpoints = [8];
 					softCapToModify.postCapEPs = [0];
 				}
 			}

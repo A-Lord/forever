@@ -597,6 +597,10 @@
 				"label": "Battle Shout: Battlegear of Wrath",
 				"tooltip": "Three pieces of Battlegear of Wrath add 30 attack power to Battle Shout. Set this when the pieces arrive through an item swap rather than the worn set."
 			},
+			"queue_delay": {
+				"label": "HS/Cleave Queue Delay (ms)",
+				"tooltip": "How long (in milliseconds) to delay re-queueing Heroic Strike/Cleave in order to simulate real reaction time and game delay."
+			},
 			"assume_bleed_active": {
 				"label": "Assume Bleed Always Active",
 				"tooltip": "Assume bleed always exists for 'Rend and Tear' calculations. Otherwise will only calculate based on own rip/rake/lacerate."
@@ -2046,6 +2050,9 @@
 					},
 					"use_overpower": {
 						"label": "Use Overpower"
+					},
+					"use_rend": {
+						"label": "Weave Rend"
 					}
 				}
 			}

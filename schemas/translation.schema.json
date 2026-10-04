@@ -2099,6 +2099,19 @@
 							"additionalProperties": false,
 							"required": ["label", "tooltip"]
 						},
+						"queue_delay": {
+							"type": "object",
+							"properties": {
+								"label": {
+									"type": "string"
+								},
+								"tooltip": {
+									"type": "string"
+								}
+							},
+							"additionalProperties": false,
+							"required": ["label", "tooltip"]
+						},
 						"has_bs_tier_2": {
 							"type": "object",
 							"properties": {
@@ -2417,6 +2430,7 @@
 						"starting_rage",
 						"stance_snapshot",
 						"has_bs_tier_2",
+						"queue_delay",
 						"assume_bleed_active",
 						"cannot_shred_target",
 						"okf_uptime",
@@ -7222,10 +7236,20 @@
 											},
 											"additionalProperties": false,
 											"required": ["label"]
+										},
+										"use_rend": {
+											"type": "object",
+											"properties": {
+												"label": {
+													"type": "string"
+												}
+											},
+											"additionalProperties": false,
+											"required": ["label"]
 										}
 									},
 									"additionalProperties": false,
-									"required": ["spec", "use_recklessness", "use_overpower"]
+									"required": ["spec", "use_recklessness", "use_overpower", "use_rend"]
 								}
 							},
 							"additionalProperties": false,
