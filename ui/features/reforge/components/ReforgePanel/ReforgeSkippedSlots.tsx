@@ -37,7 +37,7 @@ export const ReforgeSkippedSlotsView = ({ procSlots, unlistedSlots, onOpenBatchS
 					<SlotList slots={procSlots} />
 					{onOpenBatchSim && (
 						<Button variant="link" size="sm" data-testid="reforge-open-batch-sim" onClick={onOpenBatchSim}>
-							{i18n.t('bulk_tab.title')}
+							{i18n.t('sidebar.buttons.suggest_reforges.go_to_batch_sim')}
 							<Icon name="arrow-right" />
 						</Button>
 					)}

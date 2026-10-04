@@ -8804,6 +8804,9 @@
 								"skipped_slots_unlisted": {
 									"type": "string"
 								},
+								"go_to_batch_sim": {
+									"type": "string"
+								},
 								"use_enchant_presets": {
 									"type": "string"
 								},
@@ -8845,6 +8848,7 @@
 								"skipped_slots_title",
 								"skipped_slots_description",
 								"skipped_slots_unlisted",
+								"go_to_batch_sim",
 								"use_enchant_presets",
 								"use_enchant_presets_tooltip",
 								"no_enchant_preset"
