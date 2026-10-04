@@ -2499,7 +2499,7 @@
 				"frozen_slots": "Frozen slots",
 				"enchants": "Enchants",
 				"skipped_slots_title": "Simulated, not optimized",
-				"skipped_slots_proc": "These slots need to be simmed because they contain dynamic item effects (such as procs):",
+				"skipped_slots_description": "These slots need to be simmed because they contain dynamic item effects (such as procs):",
 				"skipped_slots_unlisted": "No checked enchant preset lists these slots:",
 				"use_enchant_presets": "Use enchant presets",
 				"use_enchant_presets_tooltip": "Pick enchants only from the checked enchant presets, the same presets the Batch Sim uses. A slot no checked preset lists keeps its enchant.",

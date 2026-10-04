@@ -33,7 +33,7 @@ export const ReforgeSkippedSlotsView = ({ procSlots, unlistedSlots, onOpenBatchS
 			<h6 className="mb-0">{i18n.t('sidebar.buttons.suggest_reforges.skipped_slots_title')}</h6>
 			{procSlots.length > 0 && (
 				<div className="flex flex-col items-start gap-1" data-testid="reforge-skipped-slots-proc">
-					<p className="mb-0">{i18n.t('sidebar.buttons.suggest_reforges.skipped_slots_proc')}</p>
+					<p className="mb-0">{i18n.t('sidebar.buttons.suggest_reforges.skipped_slots_description')}</p>
 					<SlotList slots={procSlots} />
 					{onOpenBatchSim && (
 						<Button variant="link" size="sm" data-testid="reforge-open-batch-sim" onClick={onOpenBatchSim}>
