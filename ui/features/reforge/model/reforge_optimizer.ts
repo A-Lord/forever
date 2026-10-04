@@ -19,6 +19,7 @@ import { SimRunKind } from '@sim/state/sim_store';
 import { subscribeAll, subscribePlayerField, subscribeReforgeField } from '@sim/state/subscriptions';
 import { isDevMode } from '@sim/utils/env';
 
+import { buildEnchantOptions, type SkippedEnchantSlot } from './enchant_options';
 import { applyBreakpointLimits, clearSoftCappedStats, toRelativeSoftCaps } from './utils';
 
 // Handed to the option callbacks below so a spec config can reach the optimizer and
@@ -70,6 +71,8 @@ export interface ReforgeOptimizerModel {
 	readonly processedStatCaps: Stats;
 	setUseSoftCapBreakpoints(newValue: boolean): void;
 	getReforgeOptimizeConfig(gear: Gear): ReforgeOptimizeConfig;
+	/** The slots left to the sim because their item can take a proc enchant. */
+	getSkippedEnchantSlots(gear: Gear): SkippedEnchantSlot[];
 	optimizeReforges(gear?: Gear): Promise<Gear>;
 	abortReforgeOptimization(): Promise<void>;
 	updateGear(gear: Gear): Promise<Stats>;
@@ -119,9 +122,13 @@ export const createReforgeOptimizer = (sim: Sim, player: Player<any>, options: R
 
 	const processedStatCaps = () => (isAllowedToOverrideStatCaps() ? settings.statCaps : clearSoftCappedStats(settings.statCaps, softCapsConfigWithLimits()));
 
+	const enchantOptionsFor = (gear: Gear, proto: ReforgeSettings) =>
+		buildEnchantOptions(player, gear, proto.freezeItemSlots ? proto.frozenItemSlots : [], preCapEPs());
+
 	const getReforgeOptimizeConfig = (gear: Gear): ReforgeOptimizeConfig => {
 		const proto = settings.toProto();
 		proto.statCaps = processedStatCaps().toProto();
+		const { options } = enchantOptionsFor(gear, proto);
 
 		return {
 			gear,
@@ -129,6 +136,7 @@ export const createReforgeOptimizer = (sim: Sim, player: Player<any>, options: R
 			undershootCaps: settings.undershootCaps,
 			settings: proto,
 			softCaps: softCapsConfigWithLimits(),
+			enchantOptions: options,
 		};
 	};
 
@@ -198,6 +206,7 @@ export const createReforgeOptimizer = (sim: Sim, player: Player<any>, options: R
 		},
 		setUseSoftCapBreakpoints: newValue => settings.setUseSoftCapBreakpoints(newValue),
 		getReforgeOptimizeConfig,
+		getSkippedEnchantSlots: gear => enchantOptionsFor(gear, settings.toProto()).skipped,
 		optimizeReforges: gear => sim.runs.start(SimRunKind.ReforgeOptimize, () => runReforgeOptimization(gear)),
 		// Left unconditional rather than routed through `SimRuns.abort`: bulk's pre-pass registers under
 		// this type without going through `start`, so a store-gated abort would silently miss it.

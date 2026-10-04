@@ -3,6 +3,7 @@ import {
 	BulkCandidatesResult,
 	BulkCombinationCountRequest,
 	BulkCombinationCountResult,
+	BulkEnchantSlotOptions,
 	BulkGearCandidate,
 	BulkSettings,
 	BulkSimRequest,
@@ -81,6 +82,7 @@ export type ReforgeOptimizeConfig = {
 	undershootCaps: Stats;
 	settings: ReforgeSettings;
 	softCaps: StatCap[];
+	enchantOptions: BulkEnchantSlotOptions[];
 	debug?: boolean;
 };
 

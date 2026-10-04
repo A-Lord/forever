@@ -15,7 +15,10 @@ vi.mock('@sim/bulk/utils', async () => {
 	const actual = await vi.importActual<typeof import('@sim/bulk/utils')>('@sim/bulk/utils');
 	return { ...actual, getBulkPlayerCanDualWield: () => true, getBulkFreezeWeaponTypes: () => [] };
 });
-vi.mock('../../model/run', () => ({ runBulkBatch: vi.fn() }));
+vi.mock('../../model/run', async () => ({
+	BULK_GEAR_OPTIMIZER_ENABLED: (await vi.importActual<typeof import('../../model/run')>('../../model/run')).BULK_GEAR_OPTIMIZER_ENABLED,
+	runBulkBatch: vi.fn(),
+}));
 
 const reforgePanelProps = vi.fn();
 vi.mock('@features/reforge/components/ReforgePanel', () => ({
@@ -94,14 +97,11 @@ describe('BulkSettings', () => {
 		expect(container.querySelector('[data-testid="bulk-settings-group-reforge"]')).toBeNull();
 	});
 
-	it('runs the reforge settings under their own id prefix', () => {
-		const reforger = { settings: {} };
-		const { container, openGroup } = mount(reforger);
+	it('renders no reforge group while the bulk gear optimizer is off, even for a spec with a reforge optimizer', () => {
+		const { container } = mount({ settings: {} });
 
-		openGroup('reforge');
-
-		expect(container.querySelector('[data-testid="reforge-settings-body"]')).not.toBeNull();
-		expect(reforgePanelProps).toHaveBeenCalledWith(expect.objectContaining({ model: reforger, idPrefix: 'bulk-reforge-optimizer' }));
+		expect(container.querySelector('[data-testid="bulk-settings-group-reforge"]')).toBeNull();
+		expect(reforgePanelProps).not.toHaveBeenCalled();
 	});
 });
 

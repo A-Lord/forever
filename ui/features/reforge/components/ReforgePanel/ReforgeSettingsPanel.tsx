@@ -12,6 +12,7 @@ import { useReforgeField } from '../../hooks/useReforgeField';
 import { DEFAULT_REFORGE_ID_PREFIX, ReforgeIdPrefixContext } from './context/ReforgeIdPrefixContext';
 import { ReforgeBreakpointLimits } from './ReforgeBreakpointLimits';
 import { ReforgeFrozenSlots } from './ReforgeFrozenSlots';
+import { ReforgeSkippedSlots } from './ReforgeSkippedSlots';
 import { ReforgeStatCaps } from './ReforgeStatCaps';
 import { buildStatTooltips } from './utils';
 
@@ -22,6 +23,7 @@ export interface ReforgeSettingsPanelViewProps {
 	statCaps: ReactNode;
 	softCaps: ReactNode;
 	freezeSlots: ReactNode;
+	skippedSlots: ReactNode;
 	savedEpWeights: ReactNode;
 	onEditWeights: () => void;
 }
@@ -32,6 +34,7 @@ export const ReforgeSettingsPanelView = ({
 	statCaps,
 	softCaps,
 	freezeSlots,
+	skippedSlots,
 	savedEpWeights,
 	onEditWeights,
 }: ReforgeSettingsPanelViewProps) => (
@@ -47,6 +50,7 @@ export const ReforgeSettingsPanelView = ({
 		{statCaps}
 		{softCaps}
 		{freezeSlots}
+		{skippedSlots}
 		{savedEpWeights}
 		<Button variant="outline-primary" className="mt-2" data-testid="reforge-edit-weights" onClick={onEditWeights}>
 			{i18n.t('sidebar.buttons.suggest_reforges.edit_weights')}
@@ -159,6 +163,7 @@ export const ReforgeSettingsPanel = ({ model, options, onClose, idPrefix = DEFAU
 						<ReforgeFrozenSlots settings={settings} player={player} freezeItemSlots={freezeItemSlots} />
 					</>
 				}
+				skippedSlots={<ReforgeSkippedSlots model={model} player={player} />}
 				savedEpWeights={<SavedEpWeights className="mt-4" loadOnly presetsOnly={!useCustomEPValues} />}
 				onEditWeights={() => {
 					openEpWeights();

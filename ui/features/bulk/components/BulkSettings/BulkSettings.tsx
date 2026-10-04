@@ -16,7 +16,7 @@ import { BULK_SETTINGS_GROUP, useBulkSettingsGroups } from '../../hooks/useBulkS
 import { useBulkState } from '../../hooks/useBulkState';
 import { bulkCombinationsLimit } from '../../model/limits';
 import { frozenItemSlot } from '../../model/picker_groups';
-import { runBulkBatch } from '../../model/run';
+import { BULK_GEAR_OPTIMIZER_ENABLED, runBulkBatch } from '../../model/run';
 import { canRunBatch } from '../../model/selectors';
 import { setBulkFrozenItem, setBulkFrozenWeaponSlot } from '../../model/settings';
 import { BulkEnchants } from '../BulkEnchants';
@@ -180,6 +180,7 @@ export const BulkSettings = () => {
 			openGroups={openGroups}
 			onOpenGroupsChange={setOpenGroups}
 			reforgeSettings={
+				BULK_GEAR_OPTIMIZER_ENABLED &&
 				host.reforger && <ReforgeSettingsPanel model={host.reforger} options={host.reforgeOptions ?? undefined} idPrefix="bulk-reforge-optimizer" />
 			}
 			enchants={<BulkEnchants />}

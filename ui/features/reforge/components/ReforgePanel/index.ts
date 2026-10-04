@@ -4,6 +4,7 @@ export { ReforgeFrozenSlots, type ReforgeFrozenSlotsProps } from './ReforgeFroze
 export { ReforgePanel, type ReforgePanelProps } from './ReforgePanel';
 export { ReforgeSettingsPanel, type ReforgeSettingsPanelProps } from './ReforgeSettingsPanel';
 export { ReforgeSidebarGroup, type ReforgeSidebarGroupProps } from './ReforgeSidebarGroup';
+export { ReforgeSkippedSlots, type ReforgeSkippedSlotsProps } from './ReforgeSkippedSlots';
 export { ReforgeSoftCapsTooltip, type ReforgeSoftCapsTooltipProps } from './ReforgeSoftCapsTooltip';
 export { ReforgeStatCapRow, type ReforgeStatCapRowProps } from './ReforgeStatCapRow';
 export { ReforgeStatCaps, type ReforgeStatCapsProps } from './ReforgeStatCaps';

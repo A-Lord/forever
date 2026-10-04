@@ -20,6 +20,9 @@ import { BulkProgress, candidateGearProgress, simProgress } from './progress';
 import { createBulkSettingsProto } from './settings';
 import { buildTieChains } from './tie_chains';
 
+// Off: bulk sim crosses enchants through its presets; the gear optimizer does not run per candidate.
+export const BULK_GEAR_OPTIMIZER_ENABLED = false;
+
 // The stored settings plus the enchant pool, which is derived from the presets and never stored.
 const bulkRequestSettings = (player: Player<any>): BulkSettings => ({ ...createBulkSettingsProto(player), enchants: bulkEnchantPool(player) });
 
@@ -271,7 +274,7 @@ export const runBulkBatch = async (host: IndividualSimHost<any>) => {
 			patchBulkState(player, { combinations: bulkCandidatesResult.combinations });
 		}
 
-		const reforgeConfig = host.reforger ? host.reforger.getReforgeOptimizeConfig(baseGear) : undefined;
+		const reforgeConfig = host.reforger && BULK_GEAR_OPTIMIZER_ENABLED ? host.reforger.getReforgeOptimizeConfig(baseGear) : undefined;
 		// With the gear optimizer every candidate is submitted; without it duplicates are culled up front.
 		const gearSets = reforgeConfig ? candidateGearSets : dedupeGearSets(candidateGearSets, [baseGear]);
 

@@ -8785,6 +8785,12 @@
 								},
 								"freeze_item_slots": {
 									"type": "string"
+								},
+								"skipped_slots_title": {
+									"type": "string"
+								},
+								"skipped_slot": {
+									"type": "string"
 								}
 							},
 							"additionalProperties": false,
@@ -8811,7 +8817,9 @@
 								"modify_in_editor",
 								"hard_cap_info",
 								"edit_weights",
-								"freeze_item_slots"
+								"freeze_item_slots",
+								"skipped_slots_title",
+								"skipped_slot"
 							]
 						}
 					},

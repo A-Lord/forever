@@ -5,6 +5,7 @@ import { expect, fn, userEvent, within } from 'storybook/test';
 import { ReforgeBreakpointLimitsView } from './ReforgeBreakpointLimits';
 import { ReforgeFrozenSlotsView } from './ReforgeFrozenSlots';
 import { ReforgeSettingsPanelView } from './ReforgeSettingsPanel';
+import { ReforgeSkippedSlotsView } from './ReforgeSkippedSlots';
 import { ReforgeStatCapRowView } from './ReforgeStatCapRow';
 import { ReforgeStatCapsView } from './ReforgeStatCaps';
 
@@ -70,6 +71,7 @@ const meta = {
 		statCaps: STAT_CAPS,
 		softCaps: SOFT_CAPS,
 		freezeSlots: FREEZE_SLOTS,
+		skippedSlots: <ReforgeSkippedSlotsView slots={[{ slot: 'Main Hand', enchant: 'Enchant Weapon - Crusader' }]} />,
 		savedEpWeights: null,
 		onEditWeights: fn(),
 	},
@@ -78,6 +80,7 @@ const meta = {
 		statCaps: { control: false },
 		softCaps: { control: false },
 		freezeSlots: { control: false },
+		skippedSlots: { control: false },
 		savedEpWeights: { control: false },
 	},
 	decorators: [

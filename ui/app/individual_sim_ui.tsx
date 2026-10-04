@@ -69,8 +69,8 @@ export { PRESET_FILTER_STORAGE_KEY } from './storage_keys';
 
 const ALL_SETTING_CATEGORIES = getEnumValues<SimSettingCategories>(SimSettingCategories);
 
-// Off: the gear optimizer has nothing to choose between. A spec's `reforge` config is read only when this is on.
-const REFORGE_OPTIMIZER_ENABLED = false;
+// On: the gear optimizer picks static enchants. A spec's `reforge` config is read only when this is on.
+const REFORGE_OPTIMIZER_ENABLED = true;
 
 // The individual sim's host: the registries, openers and cross-cutting actions the React tree
 // reaches through `useSimHost()`. `SimShell` owns every element handed to the constructor.

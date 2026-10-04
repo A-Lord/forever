@@ -76,5 +76,6 @@ export function makeReforgeConfigRequestFields(config: ReforgeOptimizeConfig) {
 			capType: softCap.capType,
 			postCapEPs: softCap.postCapEPs.slice(),
 		})),
+		enchantOptions: config.enchantOptions,
 	};
 }
