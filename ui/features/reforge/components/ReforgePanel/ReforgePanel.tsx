@@ -191,7 +191,7 @@ export const ReforgePanel = ({ model, options }: ReforgePanelProps) => {
 				triggerRender={
 					<Button
 						variant="outline-primary"
-						className="w-(--settings-button-width) border-transparent bg-transparent peer-hover:text-primary-foreground hover:border-primary-hover hover:bg-primary-hover focus-visible:border-primary-hover focus-visible:bg-primary-hover active:border-primary-active active:bg-primary-active active:text-primary-foreground data-popup-open:border-primary-active data-popup-open:bg-primary-active data-popup-open:text-primary-foreground"
+						className="w-(--settings-button-width) border-transparent bg-transparent peer-hover:peer-not-data-disabled:text-primary-foreground hover:border-primary-hover hover:bg-primary-hover focus-visible:border-primary-hover focus-visible:bg-primary-hover active:border-primary-active active:bg-primary-active active:text-primary-foreground data-popup-open:border-primary-active data-popup-open:bg-primary-active data-popup-open:text-primary-foreground"
 					/>
 				}
 				triggerTestId="suggest-reforges-button-settings"

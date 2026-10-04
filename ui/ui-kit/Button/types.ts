@@ -39,7 +39,10 @@ export type ButtonAsButton = ButtonBaseProps &
 		as?: 'button';
 		href?: never;
 		ref?: Ref<HTMLButtonElement>;
-		/** While disabled, sets `aria-disabled` instead of `disabled`, so the button still takes focus and hover and a tooltip on it can say why. */
+		/**
+		 * While disabled, sets `aria-disabled` instead of `disabled`, so the button still takes focus and hover and a tooltip on it can say why.
+		 * Only the variants with a `[data-disabled]` colour rule (primary, link, link-danger, outline-primary) hold their colour on hover.
+		 */
 		focusableWhenDisabled?: boolean;
 	};
 

@@ -43,7 +43,7 @@ const presetPoolSlot = (slot: ItemSlot) => (slot === ItemSlot.ItemSlotFinger2 ? 
 // the sim implements is left to the sim: a combat proc for every spec, a survival proc for tanks.
 // With a preset pool, a slot draws only on the enchants the checked presets list for it: a listed proc the
 // sim implements leaves it to the sim for every spec, survival included, every listed static enchant is a
-// candidate whatever its EP, and a slot with no listed enchant that fits is left alone.
+// candidate whatever its EP, and a slot that can take an enchant but none the presets list is left alone.
 export function buildEnchantOptions(
 	player: Player<any>,
 	gear: Gear,
@@ -58,7 +58,7 @@ export function buildEnchantOptions(
 		const equipped = gear.getEquippedItem(slot);
 		if (!equipped || frozenSlots.includes(slot)) continue;
 		let fitting = player.getEnchants(slot).filter(enchant => enchantAppliesToItem(enchant, equipped.item));
-		if (presetPool) {
+		if (presetPool && fitting.length) {
 			const listed = presetPool.find(pooled => pooled.slot === presetPoolSlot(slot))?.effectIds ?? [];
 			fitting = fitting.filter(enchant => listed.includes(enchant.effectId));
 			if (!fitting.length) {

@@ -160,10 +160,16 @@ describe('buildEnchantOptions from the checked enchant presets', () => {
 		});
 	});
 
-	it('reports a slot whose listed enchants do not fit the item as unlisted', () => {
+	it('says nothing about a slot whose item takes no enchant, even one a preset lists', () => {
 		const player = makePresetPlayer({ Raid: [[ItemSlot.ItemSlotRanged, [SCOPE.effectId]]] });
 
-		expect(fromPresets(player, makeGear({ [ItemSlot.ItemSlotRanged]: WAND }))).toEqual({
+		expect(fromPresets(player, makeGear({ [ItemSlot.ItemSlotRanged]: WAND }))).toEqual({ options: [], skipped: [] });
+	});
+
+	it('reports a slot that takes enchants when the presets list none of them', () => {
+		const player = makePresetPlayer({ Raid: [[ItemSlot.ItemSlotWrist, [WRIST_STRENGTH.effectId]]] });
+
+		expect(fromPresets(player, makeGear({ [ItemSlot.ItemSlotRanged]: BOW }))).toEqual({
 			options: [],
 			skipped: [{ slot: ItemSlot.ItemSlotRanged, reason: 'unlisted' }],
 		});

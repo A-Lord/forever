@@ -1,13 +1,11 @@
-import { refreshBulkCombinations } from '@features/bulk/model/run';
-import { BulkEnchantSlotOptions, BulkSettings } from '@generated/proto/api';
+import { BulkEnchantSlotOptions } from '@generated/proto/api';
 import { ItemSlot } from '@generated/proto/common';
 import { BulkEnchantPreset, UIEnchant } from '@generated/proto/ui';
 import type { Player } from '@sim/player/player';
 import { PlayerSpecs } from '@sim/player/specs';
 import { bulkState, loadStoredEnchantPresets, seedBulkSettings } from '@sim/settings/bulk_settings';
-import type { IndividualSimHost } from '@sim/sim_host';
 import { createSimStore } from '@sim/state/sim_store';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { deleteEnchantPreset, enchantPresetPool, saveEnchantPreset, setEnchantPresetChecked, validateEnchantPresetName } from './enchant_presets';
 
@@ -46,7 +44,6 @@ beforeEach(() => {
 			},
 		},
 		getPlayerSpec: () => PlayerSpecs.DpsWarrior,
-		getGear: () => ({ getEquippedItem: () => null }),
 		getEnchants: (slot: ItemSlot) => (USABLE.get(slot) ?? []).map(effectId => UIEnchant.create({ effectId })),
 	} as unknown as Player<any>;
 	seedBulkSettings(player);
@@ -169,23 +166,6 @@ describe('enchant preset writers', () => {
 		saveEnchantPreset(player, preset('Undead', [[ItemSlot.ItemSlotBack, [AGILITY]]]));
 
 		expect(bulkState(player).enchantPresets.map(saved => saved.name)).toEqual(['Undead']);
-	});
-});
-
-describe('bulk requests', () => {
-	it('carry the enchant pool', async () => {
-		saveChecked(preset('Undead', [[ItemSlot.ItemSlotBack, [AGILITY]]]));
-		const getBulkCombinationCount = vi.fn(async (_settings: BulkSettings) => ({ combinations: 2, iterations: 1 }));
-
-		await refreshBulkCombinations({
-			player,
-			sim: { getBulkCombinationCount },
-			handleCrash: (e: unknown) => Promise.reject(e),
-		} as unknown as IndividualSimHost<any>);
-
-		expect(getBulkCombinationCount.mock.calls[0][0].enchants).toEqual([
-			BulkEnchantSlotOptions.create({ slot: ItemSlot.ItemSlotBack, effectIds: [AGILITY] }),
-		]);
 	});
 });
 

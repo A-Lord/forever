@@ -974,7 +974,7 @@
 				"tooltip": "Leave all unchecked to allow any weapon type for this slot."
 			},
 			"enchant_presets": {
-				"description": "Select one or multiple enchant presets to apply to your selected items.",
+				"description": "Check one or more enchant presets to choose the enchants to try.",
 				"empty": "No enchant presets yet.",
 				"new": "New preset",
 				"edit": "Edit {{name}}",
