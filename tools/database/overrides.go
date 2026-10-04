@@ -1149,6 +1149,21 @@ var ConsumableExclusiveGroups = []ConsumableGroup{
 	}},
 }
 
+// The world events by the ItemSparse.RequiredHoliday ids the items state.
+var HolidayNames = map[int]string{
+	324: "Hallow's End",
+	327: "Lunar Festival",
+	335: "Love is in the Air",
+}
+
+// Holiday consumables whose item states no RequiredHoliday: the Midsummer Fire Festival food only
+// expires 14 days after it is bought.
+var HolidayConsumables = map[int32]string{
+	23211: "Midsummer Fire Festival", // Toasted Smorc
+	23326: "Midsummer Fire Festival", // Midsummer Sausage
+	23327: "Midsummer Fire Festival", // Fire-toasted Bun
+}
+
 // Raid buffs / debuffs
 var SharedSpellsIcons = []int32{
 	// Registered CD's

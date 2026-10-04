@@ -23,6 +23,7 @@ type Consumable struct {
 	RaceMask           int64
 	RequiredSkill      int
 	RequiredSkillRank  int
+	RequiredHoliday    int // ItemSparse.RequiredHoliday, 0 when the item names no world event.
 	TemporaryEnchant   TemporaryEnchant
 }
 
@@ -270,6 +271,16 @@ func (consumable *Consumable) GetStatModifiers() *stats.Stats {
 				for _, spellEffect := range spellEffects {
 					if stat, ok := spellEffect.ParseStatEffect(spellEffect.Coefficient != 0, 0); ok {
 						stats.AddInplace(&stat)
+					}
+					// A periodic trigger with a value hands its amount to every effect of the spell it
+					// triggers: Nutritious Food 1248401 states Well Fed 1248422's Strength that way.
+					if spellEffect.EffectAura == dbcenums.A_PERIODIC_TRIGGER_SPELL_WITH_VALUE {
+						for _, triggered := range dbcInstance.SpellEffects[spellEffect.EffectTriggerSpell] {
+							triggered.EffectBasePoints = spellEffect.EffectBasePoints
+							if stat, ok := triggered.ParseStatEffect(false, 0); ok {
+								stats.AddInplace(&stat)
+							}
+						}
 					}
 				}
 			}
