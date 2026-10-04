@@ -8795,9 +8795,6 @@
 								"enchants": {
 									"type": "string"
 								},
-								"skipped_slots_title": {
-									"type": "string"
-								},
 								"skipped_slots_description": {
 									"type": "string"
 								},
@@ -8845,7 +8842,6 @@
 								"settings",
 								"frozen_slots",
 								"enchants",
-								"skipped_slots_title",
 								"skipped_slots_description",
 								"skipped_slots_unlisted",
 								"go_to_batch_sim",
