@@ -8,96 +8,61 @@ import (
 	"github.com/wowsims/forever/sim/druid"
 )
 
-// Ported from https://github.com/NerdEgghead/TBC_cat_sim
-
-const BiteTrickCP = int32(2)
-const BiteTrickMax = 39.0
-const BiteTime = time.Duration(0)
-const RipTrickMin = 52.0
+// A Rip cast with less of the fight left than this does not tick out.
 const RipEndThresh = time.Second * 10
-const MaxWaitTime = time.Second * 1
+
+// Bite beside an active Rip only while that Rip still has longer than this left, so the combo
+// points are not spent on a Rip that is about to fall off. Rip lasts 12s, so this is the first 4s.
+const biteWithRipLeft = 8 * time.Second
+
+// shiftEnergyLimit is the energy below which the rotation spends Shifting Power.
+// 0 uses the builder's own cost, so the shift happens only when that builder cannot be cast.
+// The rotation sweep sets it; the shipped rotation leaves it at 0.
+var shiftEnergyLimit float64
 
 type FeralDruidRotation struct {
-	RipCP        int32
-	BiteCP       int32
-	RipTrickCP   int32
-	UseBite      bool
-	BiteOverRip  bool
-	UseRipTrick  bool
-	UseRakeTrick bool
-	Wolfshead    bool
-
+	RipCP              int32
+	BiteCP             int32
+	UseBite            bool
+	BiteOverRip        bool
+	UseRakeTrick       bool
 	MaintainFaerieFire bool
 }
 
 func (cat *FeralDruid) setupRotation(rotation *proto.FeralCatDruid_Rotation) {
-	useBite := (rotation.Biteweave && rotation.FinishingMove == proto.FeralCatDruid_Rotation_Rip) ||
-		rotation.FinishingMove == proto.FeralCatDruid_Rotation_Bite
-	ripCP := rotation.RipMinComboPoints
-
-	if rotation.FinishingMove != proto.FeralCatDruid_Rotation_Rip {
-		ripCP = 6
+	ripFinisher := rotation.FinishingMove == proto.FeralCatDruid_Rotation_Rip
+	biteFinisher := rotation.FinishingMove == proto.FeralCatDruid_Rotation_Bite
+	// A Rip needs more combo points than the bar holds when the rotation never casts it.
+	ripCP := int32(6)
+	if ripFinisher || (biteFinisher && rotation.Ripweave) {
+		ripCP = rotation.RipMinComboPoints
 	}
 
 	cat.Rotation = FeralDruidRotation{
-		RipCP:        ripCP,
-		BiteCP:       rotation.BiteMinComboPoints,
-		RipTrickCP:   rotation.RipMinComboPoints,
-		UseBite:      useBite,
-		BiteOverRip:  useBite && rotation.FinishingMove != proto.FeralCatDruid_Rotation_Rip,
-		UseRipTrick:  rotation.Ripweave,
-		UseRakeTrick: rotation.RakeTrick,
-		Wolfshead:    cat.HasItemEquipped(8345, []proto.ItemSlot{proto.ItemSlot_ItemSlotHead}),
-
+		RipCP:              ripCP,
+		BiteCP:             rotation.BiteMinComboPoints,
+		UseBite:            biteFinisher || (ripFinisher && rotation.Biteweave),
+		BiteOverRip:        biteFinisher,
+		UseRakeTrick:       rotation.RakeTrick,
 		MaintainFaerieFire: rotation.MaintainFaerieFire,
 	}
 }
 
 func (cat *FeralDruid) OnGCDReady(_ *core.Simulation) {}
 
-func (cat *FeralDruid) shift(sim *core.Simulation) bool {
-	cat.waitingForTick = false
-
-	// If we have just now decided to shift, then we do not execute the
-	// shift immediately, but instead trigger an input delay for realism.
-	if !cat.readyToShift {
-		cat.readyToShift = true
-		return false
-	}
-
-	cat.readyToShift = false
-
-	// Drop form, fire all ready cooldowns (potions, sappers, runes) while out
-	// of form so their form-cancelling side-effects are irrelevant, then
-	// immediately reshift. Mirrors PowerShiftCat from the old TBC sim.
-	cat.ClearForm(sim)
-	for _, mcd := range cat.GetMajorCooldowns() {
-		if !mcd.IsReady(sim) {
-			continue
-		}
-		mcd.TryActivate(sim, &cat.Character)
-	}
-
-	if !cat.GCD.IsReady(sim) {
-		return true
-	}
-	return cat.CatForm.Cast(sim, nil)
-}
-
+// One decision of the cat rotation. Finishers first, then Rake while it is down, then the builder, and
+// Shifting Power when the bar is under shiftEnergyLimit. Bite beside Rip only while Rip has more than
+// 8s left. When nothing is castable it returns without waiting, so the APL looks again one reaction
+// time later.
 func (cat *FeralDruid) doRotation(sim *core.Simulation) bool {
 	if !cat.GCD.IsReady(sim) {
 		return false
 	}
 
-	// The APL opens an OOM event by attempting the shift and failing the mana
-	// check. This rotation bails out before casting, so drive the event pair
-	// explicitly to keep the measured OOM time accurate. It has to sit above the
-	// early returns below: an event opened here must be able to close on the
-	// same evaluation paths, or a reshift, a readyToShift tick or a Faerie Fire
-	// refresh leaves it open and inflates the measured OOM time.
-	shiftCost := cat.CatForm.Cost.GetCurrentCost()
-	oom := cat.CurrentMana() < shiftCost
-	if oom {
+	// Shifting Power is the mana check that opens an OOM event. This rotation bails out before
+	// casting, so it drives the event pair itself to keep the measured OOM time accurate.
+	shiftCost := cat.ShiftingPower.Cost.GetCurrentCost()
+	if cat.CurrentMana() < shiftCost {
 		if !cat.IsOOM() {
 			cat.StartOOMEvent(sim, shiftCost, false)
 		}
@@ -105,161 +70,70 @@ func (cat *FeralDruid) doRotation(sim *core.Simulation) bool {
 		cat.EndOOMEvent(sim, false)
 	}
 
-	// If we're out of form always shift back in.
+	shiftDecided := cat.readyToShift
+	cat.readyToShift = false
+
 	if !cat.InForm(druid.Cat) {
 		return cat.CatForm.Cast(sim, nil)
 	}
 
-	// If we previously decided to shift, execute now after input delay.
-	if cat.readyToShift {
-		return cat.shift(sim)
-	}
-
 	rotation := &cat.Rotation
-
-	// Maintain Faerie Fire (Feral) before other decisions.
-	if rotation.MaintainFaerieFire && cat.FaerieFireFeral != nil &&
-		cat.FaerieFireAuras != nil &&
-		!cat.FaerieFireAuras.Get(cat.CurrentTarget).IsActive() &&
-		cat.FaerieFireFeral.CanCast(sim, cat.CurrentTarget) {
-		return cat.FaerieFireFeral.Cast(sim, cat.CurrentTarget)
+	target := cat.CurrentTarget
+	if rotation.MaintainFaerieFire && !cat.FaerieFireAuras.Get(target).IsActive() && cat.FaerieFire.CanCast(sim, target) {
+		return cat.FaerieFire.Cast(sim, target)
 	}
 
-	energy := cat.CurrentEnergy()
 	cp := cat.ComboPoints()
 	ripDot := cat.Rip.CurDot()
-	ripDebuff := ripDot.IsActive()
-	ripEnd := core.NeverExpires
-	if ripDebuff {
-		ripEnd = ripDot.ExpiresAt()
+	ripUp := ripDot.IsActive()
+	if cp >= rotation.RipCP && !ripUp && sim.GetRemainingDuration() >= RipEndThresh &&
+		cat.Rip.CanCast(sim, target) {
+		return cat.Rip.Cast(sim, target)
 	}
-	mangleAura := cat.MangleAuras.Get(cat.CurrentTarget)
-	mangleDebuff := mangleAura.IsActive()
-	mangleEnd := core.NeverExpires
-	if mangleDebuff {
-		mangleEnd = mangleAura.ExpiresAt()
+	// Bite as the finisher does not wait on Rip. Bite beside Rip waits until Rip has time left.
+	biteWindow := rotation.BiteOverRip || (ripUp && ripDot.RemainingDuration(sim) > biteWithRipLeft)
+	if rotation.UseBite && cp >= rotation.BiteCP && biteWindow && cat.FerociousBite.CanCast(sim, target) {
+		return cat.FerociousBite.Cast(sim, target)
 	}
-	rakeDebuff := cat.Rake.CurDot().IsActive()
-	nextTick := cat.NextEnergyTickAt()
-	omenProc := cat.ClearcastingAura.IsActive()
-
-	ripCost := cat.CurrentRipCost()
-	biteCost := cat.CurrentFerociousBiteCost()
-	shredCost := cat.CurrentShredCost()
-	// TODO: these thresholds were tuned against TBC's 45-energy Mangle (Cat)
-	// cycle; Forever has no Cat-form Mangle, so 45 is now a fixed constant
-	// rather than a measured cost. Re-tune when the Forever cat rotation is
-	// revisited.
-	mangleCost := 45.0
-
-	ripNow := cp >= rotation.RipCP && !ripDebuff
-	ripweaveNow := rotation.UseRipTrick &&
-		cp >= rotation.RipTrickCP &&
-		!ripDebuff &&
-		energy >= RipTrickMin
-
-	remainingDuration := sim.GetRemainingDuration()
-	ripNow = (ripNow || ripweaveNow) && remainingDuration >= RipEndThresh
-
-	biteAtEnd := cp >= rotation.BiteCP &&
-		(remainingDuration < RipEndThresh ||
-			(ripDebuff && sim.Duration-ripEnd < RipEndThresh))
-
-	biteBeforeRip := ripDebuff && rotation.UseBite &&
-		ripEnd-sim.CurrentTime >= BiteTime
-
-	biteNow := (biteBeforeRip || rotation.BiteOverRip) &&
-		cp >= rotation.BiteCP
-
-	ripNext := (ripNow || (cp >= rotation.RipCP && ripEnd <= nextTick)) &&
-		sim.Duration-nextTick >= RipEndThresh
-
-	mangleNext := !ripNext && mangleEnd <= nextTick
-
-	waitToMangle := mangleNext || (!rotation.Wolfshead && mangleCost <= 38)
-
-	biteBeforeRipNext := biteBeforeRip && ripEnd-nextTick >= BiteTime
-
-	timeToNextTick := nextTick - sim.CurrentTime
-	cat.waitingForTick = true
-
-	if oom {
-		// No-shift rotation when OOM.
-		if ripNow && (energy >= ripCost || omenProc) {
-			return cat.Rip.Cast(sim, cat.CurrentTarget)
-		} else if biteNow && (energy >= biteCost || omenProc) {
-			return cat.FerociousBite.Cast(sim, cat.CurrentTarget)
-		} else if energy >= shredCost || omenProc {
-			return cat.Shred.Cast(sim, cat.CurrentTarget)
-		}
-	} else if energy < 10 {
-		cat.shift(sim)
-	} else if ripNow {
-		if energy >= ripCost || omenProc {
-			cat.Rip.Cast(sim, cat.CurrentTarget)
-			cat.waitingForTick = false
-		} else if timeToNextTick > MaxWaitTime {
-			cat.shift(sim)
-		}
-	} else if biteNow || biteAtEnd {
-		cutoffMod := 20.0
-		if timeToNextTick <= time.Second {
-			cutoffMod = 0.0
-		}
-		if energy >= shredCost+15.0+cutoffMod || (energy >= 15+cutoffMod && omenProc) {
-			return cat.Shred.Cast(sim, cat.CurrentTarget)
-		}
-		if energy >= biteCost {
-			return cat.FerociousBite.Cast(sim, cat.CurrentTarget)
-		}
-		wait := false
-		if energy >= 22 && biteBeforeRip && !biteBeforeRipNext {
-			wait = true
-		} else if energy >= 15 && (!biteBeforeRip || biteBeforeRipNext || biteAtEnd) {
-			wait = true
-		} else if !ripNext && (energy < 20 || !mangleNext) {
-			wait = false
-			cat.shift(sim)
-		} else {
-			wait = true
-		}
-		if wait && timeToNextTick > MaxWaitTime {
-			cat.shift(sim)
-		}
-	} else if energy >= biteCost && energy <= BiteTrickMax &&
-		rotation.UseRakeTrick &&
-		timeToNextTick > cat.ReactionTime &&
-		!omenProc &&
-		cp >= BiteTrickCP {
-		return cat.FerociousBite.Cast(sim, cat.CurrentTarget)
-	} else if energy >= biteCost && energy < mangleCost &&
-		rotation.UseRakeTrick &&
-		timeToNextTick > time.Second+cat.ReactionTime &&
-		!rakeDebuff &&
-		!omenProc {
-		return cat.Rake.Cast(sim, cat.CurrentTarget)
-	} else if energy >= 22 {
-		if omenProc {
-			return cat.Shred.Cast(sim, cat.CurrentTarget)
-		}
-		if energy >= shredCost {
-			return cat.Shred.Cast(sim, cat.CurrentTarget)
-		}
-		if timeToNextTick > MaxWaitTime {
-			cat.shift(sim)
-		}
-	} else if !ripNext && (energy < mangleCost-20 || !waitToMangle) {
-		cat.shift(sim)
-	} else if timeToNextTick > MaxWaitTime {
-		cat.shift(sim)
+	if rotation.UseRakeTrick && !cat.Rake.CurDot().IsActive() && cat.Rake.CanCast(sim, target) {
+		return cat.Rake.Cast(sim, target)
 	}
 
-	// Model input latency: delay GCD trigger after a power shift or energy tick.
-	if cat.readyToShift {
-		cat.WaitUntil(sim, sim.CurrentTime+cat.ReactionTime)
-	} else if cat.waitingForTick {
-		cat.WaitUntil(sim, sim.CurrentTime+timeToNextTick+cat.ReactionTime)
+	builder := cat.Claw
+	if cat.BehindTarget() {
+		builder = cat.Shred
 	}
-
+	if cat.wantShift(sim, target, builder) {
+		if shiftDecided {
+			return cat.ShiftingPower.Cast(sim, target)
+		}
+		// The next decision, one reaction time later, spends it.
+		cat.readyToShift = true
+		return false
+	}
+	if builder.CanCast(sim, target) {
+		return builder.Cast(sim, target)
+	}
 	return false
+}
+
+// wantShift is true when Shifting Power is castable and the bar is under shiftEnergyLimit.
+// A limit at or under the builder's cost still lets the builder go first. A higher limit
+// spends the shift instead of the builder.
+func (cat *FeralDruid) wantShift(sim *core.Simulation, target *core.Unit, builder *druid.DruidSpell) bool {
+	if !cat.ShiftingPower.CanCast(sim, target) {
+		return false
+	}
+	builderCost := builder.Cost.GetCurrentCost()
+	limit := shiftEnergyLimit
+	if limit <= 0 {
+		limit = builderCost
+	}
+	if cat.CurrentEnergy() >= limit {
+		return false
+	}
+	if limit <= builderCost && builder.CanCast(sim, target) {
+		return false
+	}
+	return true
 }

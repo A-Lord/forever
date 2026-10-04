@@ -38,7 +38,6 @@ func (cat *FeralDruid) newActionCatOptimalRotationAction(_ *core.APLRotation, co
 		Ripweave:           config.Ripweave,
 		RipMinComboPoints:  config.RipMinComboPoints,
 		BiteMinComboPoints: config.BiteMinComboPoints,
-		MangleTrick:        config.MangleTrick,
 		RakeTrick:          config.RakeTrick,
 		MaintainFaerieFire: config.MaintainFaerieFire,
 	}

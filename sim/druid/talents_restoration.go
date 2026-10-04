@@ -32,38 +32,12 @@ func (druid *Druid) registerRestorationTalents() {
 	druid.applyWildGrowth()
 }
 
-// TODO: To be implemented.
 func (druid *Druid) applyNaturalShapeshifter() {
-	if druid.Talents.NaturalShapeshifter == 0 {
-		return
-	}
-
-	// The TBC implementation, kept for the port:
-	// if druid.Talents.NaturalShapeshifter == 0 {
-	// 	return
-	// }
-	//
-	// druid.AddStaticMod(core.SpellModConfig{
-	// 	ClassMask:  DruidSpellCatForm | DruidSpellBearForm,
-	// 	Kind:       core.SpellMod_PowerCost_Pct_Add,
-	// 	FloatValue: -0.1 * float64(druid.Talents.NaturalShapeshifter),
-	// })
+	druid.parseTalent(druid.Talents.NaturalShapeshifter, spellData.NaturalShapeshifter)
 }
 
-// TODO: To be implemented.
 func (druid *Druid) applyNaturalist() {
-	if druid.Talents.Naturalist == 0 {
-		return
-	}
-
-	// The TBC implementation, kept for the port:
-	// if druid.Talents.Naturalist == 0 {
-	// 	return
-	// }
-	//
-	// // Forever states the damage bonus against every school (mask 127) instead of physical
-	// // only; the sim keeps it on physical, which is all a feral druid deals.
-	// druid.PseudoStats.SchoolDamageDealtMultiplier[stats.SchoolIndexPhysical] *= spellData.Naturalist.Effect(dbcenums.A_MOD_DAMAGE_PERCENT_DONE, 127).MultiplierAt(druid.Talents.Naturalist)
+	druid.parseTalent(druid.Talents.Naturalist, spellData.Naturalist)
 }
 
 // TODO: To be implemented.
@@ -110,19 +84,8 @@ func (druid *Druid) applyNaturesFocus() {
 	}
 }
 
-// TODO: To be implemented.
 func (druid *Druid) applyFuror() {
-	if druid.Talents.Furor == 0 {
-		return
-	}
-
-	// The TBC implementation, kept for the port:
-	// if druid.Talents.Furor == 0 {
-	// 	return
-	// }
-	//
-	// // Both dummy effects carry the same ladder, one per form, so either answers the chance.
-	// druid.FurorProcChance = spellData.Furor.EffectAt(1).FractionAt(druid.Talents.Furor)
+	// Entering Cat Form and the bear forms reads the rank (forms.go). There is no aura to attach.
 }
 
 // applyReflection implements Reflection, new in Forever.

@@ -516,10 +516,9 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 // A_ADD_FLAT_MODIFIER: the game files' own amount, in the property's units.
 var flatModTable = map[dbcenums.SpellModOp]row{
 	dbcenums.SPELLMOD_COST: func(p *parser, e *Effect, v float64) *attachment {
-		// The game files state rage on a 0-1000 bar, so a -30 here is 3 rage. The caster's bar
-		// stands in for the power type of the spells the modifier reaches, which the effect does
-		// not state.
-		if p.unit.HasRageBar() {
+		// The game files state rage on a 0-1000 bar, so a -30 here is 3 rage, and energy as it is
+		// (Shredding Attacks takes 18 Energy off Shred and 30 off Lacerate's 150 Rage).
+		if p.namesRageCosts(e) {
 			v /= 10
 		}
 		return p.modInt("SpellMod_PowerCost_Flat", p.modConfig(e, core.SpellMod_PowerCost_Flat), v)
@@ -731,6 +730,35 @@ func (p *parser) namesSpell(e *Effect) func(*core.Spell) bool {
 	return func(spell *core.Spell) bool {
 		return spell.MatchesFlags(flags)
 	}
+}
+
+// Whether the power a flat cost modifier lowers is rage. The effect does not state a power type, so the
+// rows its class flags name do: rage when every costed row it names costs rage. Where they mix powers,
+// or name no costed row, the caster's bar decides.
+func (p *parser) namesRageCosts(e *Effect) bool {
+	flags := p.classFlags(e)
+	var rage, other bool
+	if !flags.IsZero() {
+		for _, s := range All() {
+			if !flags.Matches(s.ClassFlags) {
+				continue
+			}
+			for _, power := range s.Powers {
+				if power.Cost == 0 && power.CostPct == 0 {
+					continue
+				}
+				if power.Type == dbcenums.POWER_RAGE {
+					rage = true
+				} else {
+					other = true
+				}
+			}
+		}
+	}
+	if rage != other {
+		return rage
+	}
+	return p.unit.HasRageBar()
 }
 
 // WeaponScope, narrowed to the hand OnHand names for a row bound to a weapon. Answers false for a row

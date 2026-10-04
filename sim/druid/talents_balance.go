@@ -145,15 +145,7 @@ func (druid *Druid) applyVengeance() {
 }
 
 func (druid *Druid) applyNaturesReach() {
-	if druid.Talents.NaturesReach == 0 {
-		return
-	}
-
-	// druid.AddStaticMod(core.SpellModConfig{
-	// 	ClassMask:  DruidSpellsBalance | DruidSpellFearieFireFeral,
-	// 	Kind:       ****BONUS RANGE**** most likely irrelevant for sim
-	// 	FloatValue: 10.0 * float64(druid.Talents.NaturesReach),
-	// })
+	druid.parseTalent(druid.Talents.NaturesReach, spellData.NaturesReach)
 }
 
 func (druid *Druid) applyInsectSwarm() {
@@ -200,24 +192,14 @@ func (druid *Druid) applyImprovedWrath() {
 	}
 }
 
-// applyGenesis implements Genesis, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
+// Genesis raises periodic damage on the class flags it names, which reach Rip, Rake, Lacerate and Pounce.
 func (druid *Druid) applyGenesis() {
-	if druid.Talents.Genesis == 0 {
-		return
-	}
+	druid.parseTalent(druid.Talents.Genesis, spellData.Genesis)
 }
 
-// applyNaturesMajesty implements Nature's Majesty, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
+// Nature's Majesty is spell and melee critical strike chance, in every form.
 func (druid *Druid) applyNaturesMajesty() {
-	if druid.Talents.NaturesMajesty == 0 {
-		return
-	}
+	druid.parseTalent(druid.Talents.NaturesMajesty, spellData.NaturesMajesty)
 }
 
 // applyImprovedEntanglingRoots implements Improved Entangling Roots, new in Forever.

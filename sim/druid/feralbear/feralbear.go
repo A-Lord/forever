@@ -29,7 +29,7 @@ func NewFeralBearDruid(character *core.Character, options *proto.Player) *Guardi
 	selfBuffs := druid.SelfBuffs{}
 
 	bear := &GuardianDruid{
-		Druid:   druid.New(character, druid.Bear, selfBuffs, options.TalentsString),
+		Druid:   druid.New(character, druid.DireBear, selfBuffs, options.TalentsString),
 		Options: tankOptions.Options,
 	}
 
@@ -81,9 +81,7 @@ func (bear *GuardianDruid) ApplyTalents() {
 }
 
 func (bear *GuardianDruid) AddPartyBuffs(partyBuffs *proto.PartyBuffs) {
-	if bear.Talents.LeaderOfThePack {
-		partyBuffs.LeaderOfThePack = true
-	}
+	bear.Druid.AddPartyBuffs(partyBuffs)
 }
 
 func (bear *GuardianDruid) Initialize() {
@@ -94,7 +92,7 @@ func (bear *GuardianDruid) Initialize() {
 func (bear *GuardianDruid) Reset(sim *core.Simulation) {
 	bear.Druid.Reset(sim)
 	bear.Druid.ClearForm(sim)
-	bear.BearFormAura.Activate(sim)
+	bear.DireBearFormAura.Activate(sim)
 	bear.Druid.PseudoStats.Stunned = false
 }
 

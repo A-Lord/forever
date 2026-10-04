@@ -42,11 +42,11 @@ func (bear *GuardianDruid) doRotation(sim *core.Simulation) {
 	}
 
 	// Maintain Faerie Fire.
-	if rot.MaintainFaerieFire && bear.FaerieFireFeral != nil &&
+	if rot.MaintainFaerieFire && bear.FaerieFire != nil &&
 		bear.FaerieFireAuras != nil &&
 		!bear.FaerieFireAuras.Get(bear.CurrentTarget).IsActive() &&
-		bear.FaerieFireFeral.CanCast(sim, bear.CurrentTarget) {
-		bear.FaerieFireFeral.Cast(sim, bear.CurrentTarget)
+		bear.FaerieFire.CanCast(sim, bear.CurrentTarget) {
+		bear.FaerieFire.Cast(sim, bear.CurrentTarget)
 		bear.tryQueueMaul(sim)
 		return
 	}
@@ -59,9 +59,9 @@ func (bear *GuardianDruid) doRotation(sim *core.Simulation) {
 		return
 	}
 
-	// Mangle on cooldown.
-	if bear.MangleBear.CanCast(sim, bear.CurrentTarget) {
-		bear.MangleBear.Cast(sim, bear.CurrentTarget)
+	// Primal Bite on cooldown.
+	if bear.PrimalBite.CanCast(sim, bear.CurrentTarget) {
+		bear.PrimalBite.Cast(sim, bear.CurrentTarget)
 		bear.tryQueueMaul(sim)
 		return
 	}
@@ -95,9 +95,9 @@ func (bear *GuardianDruid) doRotation(sim *core.Simulation) {
 		return
 	}
 
-	// Wait for Mangle if nothing else to do.
-	if !bear.MangleBear.IsReady(sim) {
-		bear.WaitUntil(sim, bear.MangleBear.ReadyAt())
+	// Wait for Primal Bite if nothing else to do.
+	if !bear.PrimalBite.IsReady(sim) {
+		bear.WaitUntil(sim, bear.PrimalBite.ReadyAt())
 	}
 
 	bear.tryQueueMaul(sim)

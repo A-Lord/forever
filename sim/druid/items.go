@@ -2,6 +2,7 @@ package druid
 
 import (
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
 func init() {
@@ -21,20 +22,28 @@ func init() {
 		character.ItemSwap.RegisterProc(32330, aura)
 	})
 
-	// Wolfshead Helm (8345): When shapeshifting into Cat form the Druid gains 20 energy,
-	// when shapeshifting into Bear form the Druid gains 5 rage.
+	// Howling Idol (272427): its equip spell lowers Shifting Power's cooldown.
+	core.NewItemEffect(272427, func(agent core.Agent) {
+		spelldata.ParseStatic(agent.GetCharacter(), spelldata.MustFind(1291059))
+	})
+
+	// Wolfshead Helm (8345). Effect 1 raises effect 2 of Enrage, its instant rage, which the parser
+	// would read as damage. Effect 2 is the energy Shifting Power adds; the row states it as a dummy.
 	core.NewItemEffect(8345, func(agent core.Agent) {
 		druid := agent.(DruidAgent).GetDruid()
+		row := spelldata.MustFind(17768)
+		energy := row.EffectN(2).BaseValue()
+		enrage := row.EffectN(1).Percent()
 		core.MakePermanent(druid.RegisterAura(core.Aura{
 			Label:    "Wolfshead Helm",
-			ActionID: core.ActionID{SpellID: 17768},
+			ActionID: core.ActionID{SpellID: row.ID},
 			OnGain: func(_ *core.Aura, _ *core.Simulation) {
-				druid.WolfsheadEnergyBonus += 20
-				druid.WolfsheadRageBonus += 5
+				druid.WolfsheadEnergyBonus += energy
+				druid.WolfsheadEnrageBonus += enrage
 			},
 			OnExpire: func(_ *core.Aura, _ *core.Simulation) {
-				druid.WolfsheadEnergyBonus -= 20
-				druid.WolfsheadRageBonus -= 5
+				druid.WolfsheadEnergyBonus -= energy
+				druid.WolfsheadEnrageBonus -= enrage
 			},
 		}))
 	})

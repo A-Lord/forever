@@ -2,7 +2,7 @@ import * as BuffDebuffInputs from '@features/settings/model/buffs_debuffs';
 import * as OtherInputs from '@features/settings/model/other_inputs';
 import { APLAction, APLListItem, APLRotation, APLRotation_Type as APLRotationType } from '@generated/proto/apl';
 import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
-import { Cooldowns, EquipmentSpec, ItemSlot, PseudoStat, Spec, Stat, TristateEffect } from '@generated/proto/common';
+import { Cooldowns, ItemSlot, PseudoStat, Spec, Stat, TristateEffect } from '@generated/proto/common';
 import { FeralCatDruid_Rotation as DruidRotation } from '@generated/proto/druid';
 import { SavedTalents } from '@generated/proto/ui';
 import { PlayerClasses } from '@sim/player/classes';
@@ -69,9 +69,9 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 
 	defaults: {
 		// Default equipped gear.
-		gear: EquipmentSpec.create(),
+		gear: Presets.Level60Gear.gear,
 		// Default EP weights for sorting gear in the gear picker.
-		epWeights: new Stats(),
+		epWeights: Presets.Level60Ep,
 		statCaps: (() => {
 			return new Stats().withPseudoStat(PseudoStat.PseudoStatMeleeHitPercent, 8).withPseudoStat(PseudoStat.PseudoStatExpertisePercent, 6.5);
 		})(),
@@ -80,8 +80,14 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 		consumables: Presets.DefaultConsumables,
 		// Default rotation settings.
 		rotationType: APLRotationType.TypeAuto,
-		// Default talents.
-		talents: SavedTalents.create(),
+		simpleRotation: Presets.DefaultRotation,
+		// Genesis, nature's majesty, ferocity, heart of the wild, shredding attacks,
+		// savage fury, sharpened claws, shifting power, predatory strikes, blood frenzy,
+		// improved shifting power, leader of the pack, predatory instincts, rend and tear,
+		// berserk, furor, naturalist. Shifting Power is absent until that talent is taken.
+		talents: SavedTalents.create({
+			talentsString: '05002-55000032021032212051-055',
+		}),
 		// Default spec-specific settings.
 		specOptions: Presets.DefaultOptions,
 		// Default raid/party buffs settings.
@@ -136,31 +142,36 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 	},
 
 	presets: {
-		epWeights: [],
+		epWeights: [Presets.Level60EpWeights],
 		// Preset talents that the user can quickly select.
 		talents: [],
 		rotations: [Presets.SIMPLE, Presets.APL],
 		// Preset gear configurations that the user can quickly select.
-		gear: [],
+		gear: [Presets.Level60Gear],
 	},
 
-	autoRotation: (_player: Player<Spec.SpecFeralCatDruid>): APLRotation => {
-		return Presets.APL.rotation.rotation!;
+	autoRotation: (player: Player<Spec.SpecFeralCatDruid>): APLRotation => {
+		return catPowershiftRotation(player.getSimpleRotation());
 	},
 
 	simpleRotation: (_player: Player<Spec.SpecFeralCatDruid>, simple: DruidRotation, _cooldowns: Cooldowns): APLRotation => {
-		// All cooldowns (potions, sappers, runes) are fired by the Go rotation
-		// during power shifts (ClearForm → fire MCDs → CatForm), not through the APL.
-		const doRotation = APLAction.fromJsonString(
-			`{"catOptimalRotationAction":{"finishingMove":${simple.finishingMove},"biteweave":${simple.biteweave},"ripweave":${simple.ripweave},"ripMinComboPoints":${simple.ripMinComboPoints},"biteMinComboPoints":${simple.biteMinComboPoints},"mangleTrick":${simple.mangleTrick},"rakeTrick":${simple.rakeTrick},"maintainFaerieFire":${simple.maintainFaerieFire}}}`,
-		);
-
-		return APLRotation.create({
-			priorityList: [APLListItem.create({ action: doRotation })],
-		});
+		return catPowershiftRotation(simple);
 	},
 
 	hiddenMCDs: [],
 
 	reforge: {},
 });
+
+// Major cooldowns (Berserk, trinkets, potions) fire on cooldown ahead of the cat rotation; core refuses
+// one that would leave cat form. The rotation keeps Rake up, finishes with Rip, and casts Shifting
+// Power when the builder is unaffordable.
+function catPowershiftRotation(simple: DruidRotation): APLRotation {
+	const doRotation = APLAction.fromJsonString(
+		`{"catOptimalRotationAction":{"finishingMove":${simple.finishingMove},"biteweave":${simple.biteweave},"ripweave":${simple.ripweave},"ripMinComboPoints":${simple.ripMinComboPoints || 5},"biteMinComboPoints":${simple.biteMinComboPoints || 5},"rakeTrick":${simple.rakeTrick},"maintainFaerieFire":${simple.maintainFaerieFire}}}`,
+	);
+
+	return APLRotation.create({
+		priorityList: [APLListItem.create({ action: APLAction.fromJsonString(`{"autocastOtherCooldowns":{}}`) }), APLListItem.create({ action: doRotation })],
+	});
+}

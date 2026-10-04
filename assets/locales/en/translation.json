@@ -1917,11 +1917,11 @@
 					},
 					"biteweave": {
 						"label": "Enable Bite-weaving",
-						"tooltip": "Spend Combo Points on Ferocious Bite when Rip is already active on the target."
+						"tooltip": "Spend Combo Points on Ferocious Bite when Rip is up and still has more than 8 seconds left."
 					},
 					"ripweave": {
 						"label": "Enable Rip-weaving",
-						"tooltip": "Spend Combo Points on Rip when at 52 Energy or above, even when Bite is the primary finisher."
+						"tooltip": "With Ferocious Bite as the primary finisher, also spend Combo Points on Rip whenever Rip is not on the target."
 					},
 					"rip_min_combo_points": {
 						"label": "Rip CP Threshold",
@@ -1931,17 +1931,13 @@
 						"label": "Bite CP Threshold",
 						"tooltip": "Minimum Combo Points to accumulate before casting Ferocious Bite."
 					},
-					"mangle_trick": {
-						"label": "Use Mangle trick",
-						"tooltip": "Cast Mangle rather than Shred when between 50–56 Energy with 2pT6, or 60–61 Energy without, with less than 1 second until the next Energy tick."
-					},
 					"rake_trick": {
-						"label": "Use Rake/Bite tricks",
-						"tooltip": "Cast Rake or Ferocious Bite rather than powershifting when between 35–39 Energy without 2pT6, with more than 1 second until the next Energy tick."
+						"label": "Maintain Rake",
+						"tooltip": "Cast Rake before Shred whenever Rake is not on the target."
 					},
 					"maintain_faerie_fire": {
 						"label": "Maintain Faerie Fire",
-						"tooltip": "Use Faerie Fire (Feral) whenever it is not active on the target."
+						"tooltip": "Cast Faerie Fire whenever your Faerie Fire is not on the target."
 					}
 				},
 				"feral_bear": {
