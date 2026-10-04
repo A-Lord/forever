@@ -8791,6 +8791,18 @@
 								},
 								"skipped_slot": {
 									"type": "string"
+								},
+								"skipped_slot_unlisted": {
+									"type": "string"
+								},
+								"use_enchant_presets": {
+									"type": "string"
+								},
+								"use_enchant_presets_tooltip": {
+									"type": "string"
+								},
+								"no_enchant_preset": {
+									"type": "string"
 								}
 							},
 							"additionalProperties": false,
@@ -8819,7 +8831,11 @@
 								"edit_weights",
 								"freeze_item_slots",
 								"skipped_slots_title",
-								"skipped_slot"
+								"skipped_slot",
+								"skipped_slot_unlisted",
+								"use_enchant_presets",
+								"use_enchant_presets_tooltip",
+								"no_enchant_preset"
 							]
 						}
 					},

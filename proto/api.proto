@@ -487,6 +487,8 @@ message ReforgeSettings {
 	// spell penetration) so options carrying them stay selectable, which is why it cannot be
 	// derived from the pre-cap EPs.
 	repeated Stat ep_stats = 10;
+	// The UI builds enchant_options from the checked enchant presets instead of every usable enchant.
+	bool use_enchant_presets = 11;
 }
 
 message StatCapConfig {

@@ -3,6 +3,7 @@
 // owns every button, tooltip, toast and modal.
 //
 // There is no item reforging: "reforge" is only the optimizer's name.
+import { enchantPresetPool } from '@features/enchant-presets/model/enchant_presets';
 import { ReforgeOptimizeRequest, ReforgeSettings } from '@generated/proto/api';
 import { Spec, Stat } from '@generated/proto/common';
 import { ReforgeGearCache } from '@sim/cache/reforge_cache';
@@ -72,8 +73,8 @@ export interface ReforgeOptimizerModel {
 	setUseSoftCapBreakpoints(newValue: boolean): void;
 	getReforgeOptimizeConfig(gear: Gear): ReforgeOptimizeConfig;
 	/**
-	 * The slots left to the sim because their item can take a proc enchant the sim implements: a combat
-	 * proc for every spec, a survival proc for tanks.
+	 * The slots whose enchant the optimizer leaves alone: those whose item can take a proc enchant the sim
+	 * implements (see buildEnchantOptions), and with the enchant presets on, those no checked preset lists.
 	 */
 	getSkippedEnchantSlots(gear: Gear): SkippedEnchantSlot[];
 	optimizeReforges(gear?: Gear): Promise<Gear>;
@@ -126,7 +127,13 @@ export const createReforgeOptimizer = (sim: Sim, player: Player<any>, options: R
 	const processedStatCaps = () => (isAllowedToOverrideStatCaps() ? settings.statCaps : clearSoftCappedStats(settings.statCaps, softCapsConfigWithLimits()));
 
 	const enchantOptionsFor = (gear: Gear, proto: ReforgeSettings) =>
-		buildEnchantOptions(player, gear, proto.freezeItemSlots ? proto.frozenItemSlots : [], preCapEPs());
+		buildEnchantOptions(
+			player,
+			gear,
+			proto.freezeItemSlots ? proto.frozenItemSlots : [],
+			preCapEPs(),
+			proto.useEnchantPresets ? enchantPresetPool(player) : undefined,
+		);
 
 	const getReforgeOptimizeConfig = (gear: Gear): ReforgeOptimizeConfig => {
 		const proto = settings.toProto();

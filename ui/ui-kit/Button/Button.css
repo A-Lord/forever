@@ -10,6 +10,11 @@
 			@apply pointer-events-none opacity-65;
 		}
 
+		/* Also a `focusableWhenDisabled` button, which keeps its pointer events so a tooltip on it can say why. */
+		&[data-disabled] {
+			@apply cursor-default opacity-65;
+		}
+
 		&[aria-busy] {
 			@apply relative;
 		}
@@ -35,6 +40,10 @@
 
 		&:disabled {
 			@apply pointer-events-none text-gray-600 opacity-65;
+		}
+
+		&[data-disabled] {
+			@apply cursor-default text-gray-600 opacity-65;
 		}
 	}
 
@@ -65,7 +74,8 @@
 			@apply border-primary-active bg-primary-active;
 		}
 
-		&:disabled {
+		&:disabled,
+		&[data-disabled] {
 			@apply border-primary-disabled bg-primary-disabled;
 		}
 	}
@@ -129,7 +139,8 @@
 			@apply text-foreground shadow-focus-link-danger;
 		}
 
-		&:disabled {
+		&:disabled,
+		&[data-disabled] {
 			@apply text-foreground-disabled;
 		}
 	}
@@ -149,8 +160,9 @@
 			@apply border-primary-active bg-primary-active text-primary-foreground;
 		}
 
-		&:disabled {
-			@apply border-primary text-primary;
+		&:disabled,
+		&[data-disabled] {
+			@apply border-primary bg-transparent text-primary;
 		}
 	}
 

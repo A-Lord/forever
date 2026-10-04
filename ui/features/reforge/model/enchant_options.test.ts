@@ -1,9 +1,13 @@
+import { enchantPresetPool, saveEnchantPreset, setEnchantPresetChecked } from '@features/enchant-presets/model/enchant_presets';
 import { BulkEnchantSlotOptions } from '@generated/proto/api';
 import { EnchantProcKind, HandType, ItemSlot, ItemType, PseudoStat, RangedWeaponType, Stat, WeaponType } from '@generated/proto/common';
 import type { UIEnchant, UIItem } from '@generated/proto/ui';
 import type { Player } from '@sim/player/player';
+import { PlayerSpecs } from '@sim/player/specs';
 import { Gear } from '@sim/proto/gear';
 import { Stats } from '@sim/proto/stats';
+import { seedBulkSettings } from '@sim/settings/bulk_settings';
+import { createSimStore } from '@sim/state/sim_store';
 import { makeEquippedItem } from '@testing/storybook/fixtures/gear';
 import { makeUIEnchant } from '@testing/storybook/fixtures/protos';
 import { describe, expect, it, vi } from 'vitest';
@@ -48,6 +52,30 @@ const makePlayer = ({ isTankSpec = false, enchants = ALL_ENCHANTS }: { isTankSpe
 const makeGear = (items: Partial<Record<ItemSlot, Partial<UIItem>>>) =>
 	new Gear(Object.fromEntries(Object.entries(items).map(([slot, item]) => [slot, makeEquippedItem({ item })])));
 
+const RING_STAMINA = enchant(7301, 'Enchant Ring - Stamina', ItemType.ItemTypeFinger, { stats: stats(Stat.StatStamina, 4) });
+const CHEST_UNIMPLEMENTED = enchant(7223, 'Enchant Chest - Retricutioner', ItemType.ItemTypeChest, { procKind: EnchantProcKind.EnchantProcKindCombat });
+
+type PresetSlots = Array<[ItemSlot, number[]]>;
+
+// The pool comes from the enchant preset model over a real store, so the slot mapping is the one the batch sim uses.
+const makePresetPlayer = (checked: Record<string, PresetSlots>, { enchants = ALL_ENCHANTS, unchecked = {} as Record<string, PresetSlots> } = {}) => {
+	const player = {
+		...makePlayer({ enchants }),
+		storeKey: 0,
+		sim: { store: createSimStore(), env: { storage: { getItem: () => null, setItem: () => {}, removeItem: () => {} } } },
+		getPlayerSpec: () => PlayerSpecs.DpsWarrior,
+	} as unknown as Player<any>;
+	seedBulkSettings(player);
+	const save = (presets: Record<string, PresetSlots>) =>
+		Object.entries(presets).forEach(([name, slots]) => saveEnchantPreset(player, { name, slots: slots.map(([slot, effectIds]) => ({ slot, effectIds })) }));
+	save(checked);
+	save(unchecked);
+	Object.keys(checked).forEach(name => setEnchantPresetChecked(player, name, true));
+	return player;
+};
+
+const fromPresets = (player: Player<any>, gear: Gear) => buildEnchantOptions(player, gear, [], WEIGHTS, enchantPresetPool(player));
+
 describe('buildEnchantOptions', () => {
 	it('lists the fitting static enchants with EP above 0, ids sorted and deduplicated', () => {
 		const duplicate = makeUIEnchant({ ...WRIST_STRENGTH, name: 'Enchant Bracer - Superior Strength (second row)' });
@@ -63,7 +91,7 @@ describe('buildEnchantOptions', () => {
 		const result = buildEnchantOptions(makePlayer(), makeGear({ [ItemSlot.ItemSlotMainHand]: {} }), [], WEIGHTS);
 
 		expect(result.options).toEqual([]);
-		expect(result.skipped).toEqual([{ slot: ItemSlot.ItemSlotMainHand, blockingEnchant: CRUSADER }]);
+		expect(result.skipped).toEqual([{ slot: ItemSlot.ItemSlotMainHand, reason: 'proc', blockingEnchant: CRUSADER }]);
 	});
 
 	it('skips a slot that can take a survival proc for a tank spec only', () => {
@@ -73,7 +101,7 @@ describe('buildEnchantOptions', () => {
 		const dps = buildEnchantOptions(makePlayer(), gear, [], WEIGHTS);
 
 		expect(tank.options).toEqual([]);
-		expect(tank.skipped).toEqual([{ slot: ItemSlot.ItemSlotChest, blockingEnchant: CHEST_ABSORPTION }]);
+		expect(tank.skipped).toEqual([{ slot: ItemSlot.ItemSlotChest, reason: 'proc', blockingEnchant: CHEST_ABSORPTION }]);
 		expect(dps.options).toEqual([BulkEnchantSlotOptions.create({ slot: ItemSlot.ItemSlotChest, effectIds: [1891] })]);
 		expect(dps.skipped).toEqual([]);
 	});
@@ -87,7 +115,7 @@ describe('buildEnchantOptions', () => {
 		const simulated = buildEnchantOptions(makePlayer({ enchants: [implemented, CHEST_STATS] }), gear, [], WEIGHTS);
 
 		expect(missing).toEqual({ options: [BulkEnchantSlotOptions.create({ slot: ItemSlot.ItemSlotChest, effectIds: [1891] })], skipped: [] });
-		expect(simulated).toEqual({ options: [], skipped: [{ slot: ItemSlot.ItemSlotChest, blockingEnchant: implemented }] });
+		expect(simulated).toEqual({ options: [], skipped: [{ slot: ItemSlot.ItemSlotChest, reason: 'proc', blockingEnchant: implemented }] });
 	});
 
 	it('leaves frozen and empty slots out of both lists', () => {
@@ -118,5 +146,101 @@ describe('buildEnchantOptions', () => {
 		expect(scoped).toEqual({ options: [BulkEnchantSlotOptions.create({ slot: ItemSlot.ItemSlotRanged, effectIds: [664] })], skipped: [] });
 		expect(noRangedWeight).toEqual({ options: [], skipped: [] });
 		expect(wand).toEqual({ options: [], skipped: [] });
+	});
+});
+
+describe('buildEnchantOptions from the checked enchant presets', () => {
+	it('leaves a slot no checked preset lists alone, and reports it', () => {
+		const player = makePresetPlayer({ Raid: [[ItemSlot.ItemSlotWrist, [WRIST_STRENGTH.effectId]]] });
+		const gear = makeGear({ [ItemSlot.ItemSlotWrist]: armor(ItemType.ItemTypeWrist), [ItemSlot.ItemSlotBack]: armor(ItemType.ItemTypeBack) });
+
+		expect(fromPresets(player, gear)).toEqual({
+			options: [BulkEnchantSlotOptions.create({ slot: ItemSlot.ItemSlotWrist, effectIds: [1885] })],
+			skipped: [{ slot: ItemSlot.ItemSlotBack, reason: 'unlisted' }],
+		});
+	});
+
+	it('reports a slot whose listed enchants do not fit the item as unlisted', () => {
+		const player = makePresetPlayer({ Raid: [[ItemSlot.ItemSlotRanged, [SCOPE.effectId]]] });
+
+		expect(fromPresets(player, makeGear({ [ItemSlot.ItemSlotRanged]: WAND }))).toEqual({
+			options: [],
+			skipped: [{ slot: ItemSlot.ItemSlotRanged, reason: 'unlisted' }],
+		});
+	});
+
+	it('leaves a slot to the sim when a preset lists an implemented proc beside static enchants', () => {
+		const player = makePresetPlayer({ Raid: [[ItemSlot.ItemSlotMainHand, [CRUSADER.effectId, WEAPON_AGILITY.effectId]]] });
+
+		expect(fromPresets(player, makeGear({ [ItemSlot.ItemSlotMainHand]: {} }))).toEqual({
+			options: [],
+			skipped: [{ slot: ItemSlot.ItemSlotMainHand, reason: 'proc', blockingEnchant: CRUSADER }],
+		});
+	});
+
+	it('blocks on a listed survival proc for a spec that does not tank', () => {
+		const player = makePresetPlayer({ Raid: [[ItemSlot.ItemSlotChest, [CHEST_ABSORPTION.effectId, CHEST_STATS.effectId]]] });
+
+		expect(fromPresets(player, makeGear({ [ItemSlot.ItemSlotChest]: armor(ItemType.ItemTypeChest) }))).toEqual({
+			options: [],
+			skipped: [{ slot: ItemSlot.ItemSlotChest, reason: 'proc', blockingEnchant: CHEST_ABSORPTION }],
+		});
+	});
+
+	it('offers exactly the listed static enchants, one worth 0 EP included', () => {
+		const player = makePresetPlayer({ Raid: [[ItemSlot.ItemSlotWrist, [WRIST_STRENGTH.effectId, WRIST_SPIRIT.effectId]]] });
+
+		expect(fromPresets(player, makeGear({ [ItemSlot.ItemSlotWrist]: armor(ItemType.ItemTypeWrist) }))).toEqual({
+			options: [BulkEnchantSlotOptions.create({ slot: ItemSlot.ItemSlotWrist, effectIds: [1883, 1885] })],
+			skipped: [],
+		});
+	});
+
+	it('applies the Finger 1 list to both rings and the Weapons list to both hands', () => {
+		const player = makePresetPlayer(
+			{
+				Raid: [
+					[ItemSlot.ItemSlotFinger1, [RING_STAMINA.effectId]],
+					[ItemSlot.ItemSlotMainHand, [WEAPON_AGILITY.effectId]],
+				],
+			},
+			{ enchants: [RING_STAMINA, WEAPON_AGILITY] },
+		);
+		const gear = makeGear({
+			[ItemSlot.ItemSlotFinger1]: armor(ItemType.ItemTypeFinger),
+			[ItemSlot.ItemSlotFinger2]: armor(ItemType.ItemTypeFinger),
+			[ItemSlot.ItemSlotMainHand]: {},
+			[ItemSlot.ItemSlotOffHand]: {},
+		});
+
+		expect(fromPresets(player, gear)).toEqual({
+			options: [
+				BulkEnchantSlotOptions.create({ slot: ItemSlot.ItemSlotFinger1, effectIds: [7301] }),
+				BulkEnchantSlotOptions.create({ slot: ItemSlot.ItemSlotFinger2, effectIds: [7301] }),
+				BulkEnchantSlotOptions.create({ slot: ItemSlot.ItemSlotMainHand, effectIds: [2564] }),
+				BulkEnchantSlotOptions.create({ slot: ItemSlot.ItemSlotOffHand, effectIds: [2564] }),
+			],
+			skipped: [],
+		});
+	});
+
+	it('neither blocks on nor offers a listed proc the sim does not implement', () => {
+		const chest = makeGear({ [ItemSlot.ItemSlotChest]: armor(ItemType.ItemTypeChest) });
+		const enchants = [...ALL_ENCHANTS, CHEST_UNIMPLEMENTED];
+
+		const withStats = makePresetPlayer({ Raid: [[ItemSlot.ItemSlotChest, [CHEST_UNIMPLEMENTED.effectId, CHEST_STATS.effectId]]] }, { enchants });
+		const procOnly = makePresetPlayer({ Raid: [[ItemSlot.ItemSlotChest, [CHEST_UNIMPLEMENTED.effectId]]] }, { enchants });
+
+		expect(fromPresets(withStats, chest)).toEqual({ options: [BulkEnchantSlotOptions.create({ slot: ItemSlot.ItemSlotChest, effectIds: [1891] })], skipped: [] });
+		expect(fromPresets(procOnly, chest)).toEqual({ options: [], skipped: [] });
+	});
+
+	it('offers nothing while no preset is checked', () => {
+		const player = makePresetPlayer({}, { unchecked: { Raid: [[ItemSlot.ItemSlotWrist, [WRIST_STRENGTH.effectId]]] } });
+
+		expect(fromPresets(player, makeGear({ [ItemSlot.ItemSlotWrist]: armor(ItemType.ItemTypeWrist) }))).toEqual({
+			options: [],
+			skipped: [{ slot: ItemSlot.ItemSlotWrist, reason: 'unlisted' }],
+		});
 	});
 });

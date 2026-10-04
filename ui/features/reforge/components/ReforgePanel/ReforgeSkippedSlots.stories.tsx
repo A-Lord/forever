@@ -10,6 +10,7 @@ const meta = {
 		slots: [
 			{ slot: 'Main Hand', enchant: 'Enchant Weapon - Crusader' },
 			{ slot: 'Chest', enchant: 'Enchant Chest - Lesser Absorption' },
+			{ slot: 'Head' },
 		],
 	},
 	decorators: [

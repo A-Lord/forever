@@ -43,6 +43,7 @@ export class ReforgeSettings {
 			softCapBreakpoints: [],
 			freezeItemSlots: false,
 			frozenItemSlots: [],
+			useEnchantPresets: false,
 			undershootCaps: new Stats(),
 			v: zeroVersions(REFORGE_FIELDS),
 		});
@@ -80,6 +81,9 @@ export class ReforgeSettings {
 	// Snapshot view; mutate through setFrozenItemSlot(s).
 	get frozenItemSlots(): Set<ItemSlot> {
 		return new Set(this.slice.frozenItemSlots as ItemSlot[]);
+	}
+	get useEnchantPresets(): boolean {
+		return this.slice.useEnchantPresets;
 	}
 	get undershootCaps(): Stats {
 		return this.slice.undershootCaps;
@@ -140,6 +144,12 @@ export class ReforgeSettings {
 		return (this.slice.frozenItemSlots as ItemSlot[]).includes(slot);
 	}
 
+	setUseEnchantPresets(newValue: boolean) {
+		if (this.useEnchantPresets !== newValue) {
+			this.write({ useEnchantPresets: newValue }, ['useEnchantPresets']);
+		}
+	}
+
 	// A preset build carries a *partial* ReforgeSettings — vanilla's type was literally
 	// `Partial<ReforgeSettings>` — so each field is applied only when the preset actually
 	// sets it, and anything it leaves out keeps the value `applyDefaults()` gave it.
@@ -157,6 +167,7 @@ export class ReforgeSettings {
 			// guard here empties the slots a user pinned in the optimizer on every preset click.
 			if (proto.frozenItemSlots.length) this.setFrozenItemSlots(proto.frozenItemSlots);
 			if (proto.breakpointLimits) this.setBreakpointLimits(Stats.fromProto(proto.breakpointLimits));
+			if (proto.useEnchantPresets) this.setUseEnchantPresets(proto.useEnchantPresets);
 		});
 	}
 
@@ -168,6 +179,7 @@ export class ReforgeSettings {
 			this.setFreezeItemSlots(proto.freezeItemSlots);
 			this.setFrozenItemSlots(proto.frozenItemSlots);
 			this.setBreakpointLimits(Stats.fromProto(proto.breakpointLimits));
+			this.setUseEnchantPresets(proto.useEnchantPresets);
 		});
 	}
 
@@ -180,6 +192,7 @@ export class ReforgeSettings {
 			breakpointLimits: this.breakpointLimits.toProto(),
 			statCaps: this.statCaps.toProto(),
 			epStats: [...this.epStats],
+			useEnchantPresets: this.useEnchantPresets,
 		});
 	}
 
@@ -191,6 +204,7 @@ export class ReforgeSettings {
 			this.setStatCaps(this.defaults.statCaps || new Stats());
 			this.setBreakpointLimits(this.defaults.breakpointLimits || new Stats());
 			this.setSoftCapBreakpoints(this.defaults.softCapBreakpoints || []);
+			this.setUseEnchantPresets(false);
 		});
 	}
 }

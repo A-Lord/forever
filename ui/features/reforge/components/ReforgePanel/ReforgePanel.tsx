@@ -1,3 +1,4 @@
+import { useEnchantPresets } from '@features/enchant-presets/hooks/useEnchantPresets';
 import type { ReforgeOptimizerModel, ReforgeOptimizerOptions } from '@features/reforge/model/reforge_optimizer';
 import type { ItemSlot } from '@generated/proto/common';
 import i18n from '@i18n/config';
@@ -15,6 +16,7 @@ import { Tooltip, tooltipAnchorProps, type TooltipRefProps } from '@ui-kit/Toolt
 import { type ReactNode, useCallback, useId, useRef, useState } from 'react';
 
 import { trackEvent, trackPageView } from '../../../../tracking/utils';
+import { useReforgeField } from '../../hooks/useReforgeField';
 import { ReforgeDoneToast } from './ReforgeDoneToast';
 import { ReforgeSettingsPanel } from './ReforgeSettingsPanel';
 import { ReforgeSoftCapsTooltip } from './ReforgeSoftCapsTooltip';
@@ -41,6 +43,9 @@ export const ReforgePanel = ({ model, options }: ReforgePanelProps) => {
 	const isCancelling = useRef(false);
 
 	const { isRunning } = useSimRun(SimRunKind.ReforgeOptimize);
+	const presetsOn = useReforgeField(model.settings, 'useEnchantPresets', () => model.settings.useEnchantPresets);
+	const presets = useEnchantPresets();
+	const needsPreset = presetsOn && !presets.some(preset => preset.checked);
 	const softCapsTooltipId = useId();
 	const settingsTooltipId = useId();
 	const settingsTooltipRef = useRef<TooltipRefProps>(null);
@@ -161,7 +166,8 @@ export const ReforgePanel = ({ model, options }: ReforgePanelProps) => {
 				aria-label={i18n.t('sidebar.buttons.suggest_reforges.title')}
 				data-testid="suggest-reforges-action-button"
 				data-sidebar-action=""
-				disabled={isRunning}
+				disabled={isRunning || needsPreset}
+				focusableWhenDisabled={needsPreset}
 				loading={isRunning}
 				onClick={onOptimize}
 				{...tooltipAnchorProps(softCapsTooltipId)}>
@@ -202,6 +208,7 @@ export const ReforgePanel = ({ model, options }: ReforgePanelProps) => {
 				maxWidth="max-w-76"
 				// The limits are read per open.
 				render={() => {
+					if (needsPreset) return i18n.t('sidebar.buttons.suggest_reforges.no_enchant_preset');
 					const softCaps = model.softCapsConfigWithLimits;
 					if (!softCaps?.length) return null;
 					return (

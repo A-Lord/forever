@@ -1,3 +1,4 @@
+import { EnchantPresets } from '@features/enchant-presets/components/EnchantPresets';
 import { ConnectedBooleanPicker } from '@features/inputs/components/ConnectedBooleanPicker';
 import type { ReforgeOptimizerModel, ReforgeOptimizerOptions } from '@features/reforge/model/reforge_optimizer';
 import { SavedEpWeights } from '@features/stat-weights/components/SavedEpWeights';
@@ -23,6 +24,7 @@ export interface ReforgeSettingsPanelViewProps {
 	statCaps: ReactNode;
 	softCaps: ReactNode;
 	freezeSlots: ReactNode;
+	enchantPresets: ReactNode;
 	skippedSlots: ReactNode;
 	savedEpWeights: ReactNode;
 	onEditWeights: () => void;
@@ -34,6 +36,7 @@ export const ReforgeSettingsPanelView = ({
 	statCaps,
 	softCaps,
 	freezeSlots,
+	enchantPresets,
 	skippedSlots,
 	savedEpWeights,
 	onEditWeights,
@@ -50,6 +53,7 @@ export const ReforgeSettingsPanelView = ({
 		{statCaps}
 		{softCaps}
 		{freezeSlots}
+		{enchantPresets}
 		{skippedSlots}
 		{savedEpWeights}
 		<Button variant="outline-primary" className="mt-2" data-testid="reforge-edit-weights" onClick={onEditWeights}>
@@ -78,6 +82,7 @@ export const ReforgeSettingsPanel = ({ model, options, onClose, idPrefix = DEFAU
 	const useCustomEPValues = useReforgeField(settings, 'useCustomEPValues', () => settings.useCustomEPValues);
 	const useSoftCapBreakpoints = useReforgeField(settings, 'useSoftCapBreakpoints', () => settings.useSoftCapBreakpoints);
 	const freezeItemSlots = useReforgeField(settings, 'freezeItemSlots', () => settings.freezeItemSlots);
+	const useEnchantPresets = useReforgeField(settings, 'useEnchantPresets', () => settings.useEnchantPresets);
 
 	const statTooltips = useMemo(() => buildStatTooltips(options?.statTooltips), [options]);
 	const softCapsConfig = model.softCapsConfig;
@@ -161,6 +166,31 @@ export const ReforgeSettingsPanel = ({ model, options, onClose, idPrefix = DEFAU
 							}}
 						/>
 						<ReforgeFrozenSlots settings={settings} player={player} freezeItemSlots={freezeItemSlots} />
+					</>
+				}
+				enchantPresets={
+					<>
+						<ConnectedBooleanPicker
+							modObject={player}
+							config={{
+								extraClassNames: ['mb-2'],
+								id: `${idPrefix}-use-enchant-presets`,
+								label: i18n.t('sidebar.buttons.suggest_reforges.use_enchant_presets'),
+								labelTooltip: i18n.t('sidebar.buttons.suggest_reforges.use_enchant_presets_tooltip'),
+								layout: 'inline',
+								storeField: 'reforge:useEnchantPresets',
+								getValue: () => settings.useEnchantPresets,
+								setValue: (_player, newValue) => {
+									trackEvent({ action: 'settings', category: 'reforging', label: 'use_enchant_presets', value: newValue });
+									settings.setUseEnchantPresets(newValue);
+								},
+							}}
+						/>
+						{useEnchantPresets && (
+							<div className="mb-2">
+								<EnchantPresets />
+							</div>
+						)}
 					</>
 				}
 				skippedSlots={<ReforgeSkippedSlots model={model} player={player} />}

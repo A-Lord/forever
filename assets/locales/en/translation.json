@@ -2496,7 +2496,11 @@
 				"edit_weights": "Change weights",
 				"freeze_item_slots": "Freeze item slots",
 				"skipped_slots_title": "Simulated, not optimized",
-				"skipped_slot": "{{slot}}: {{enchant}} is simulated, not optimized"
+				"skipped_slot": "{{slot}}: {{enchant}} is simulated, not optimized",
+				"skipped_slot_unlisted": "{{slot}}: listed by no enchant preset",
+				"use_enchant_presets": "Use enchant presets",
+				"use_enchant_presets_tooltip": "Pick enchants only from the checked enchant presets, the same presets the Batch Sim uses. A slot no checked preset lists keeps its enchant.",
+				"no_enchant_preset": "Check at least one enchant preset to optimize gear."
 			}
 		},
 		"header": {
