@@ -776,8 +776,10 @@ func ItemTypeToSlot(it proto.ItemType) proto.ItemSlot {
 	return 255
 }
 
-// See getEligibleItemSlots in proto_utils/utils.ts.
+// gen_db -gen=go-to-ts writes this to the UI as ITEM_TYPE_TO_SLOTS, read by getEligibleItemSlots in
+// ui/sim/proto/items.ts.
 var ItemTypeToSlotsMap = map[proto.ItemType][]proto.ItemSlot{
+	proto.ItemType_ItemTypeUnknown:  {},
 	proto.ItemType_ItemTypeHead:     {proto.ItemSlot_ItemSlotHead},
 	proto.ItemType_ItemTypeNeck:     {proto.ItemSlot_ItemSlotNeck},
 	proto.ItemType_ItemTypeShoulder: {proto.ItemSlot_ItemSlotShoulder},

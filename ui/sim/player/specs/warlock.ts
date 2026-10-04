@@ -1,6 +1,7 @@
 import { Class, Spec } from '@generated/proto/common';
 
 import { CURRENT_PHASE, getSpecSitePath, LaunchStatus } from '../../constants/other';
+import { isSpecDualWieldCapable } from '../classes/capabilities';
 import { IconSize } from '../player_class';
 import { PlayerSpec, SimStatus } from '../player_spec';
 
@@ -16,7 +17,7 @@ export class Warlock extends PlayerSpec<Spec.SpecWarlock> {
 	static isRangedDpsSpec = true;
 	static isMeleeDpsSpec = false;
 
-	static canDualWield = false;
+	static canDualWield = isSpecDualWieldCapable(Warlock.specID);
 
 	static launch: SimStatus = {
 		phase: CURRENT_PHASE,
