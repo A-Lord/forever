@@ -263,6 +263,7 @@ type Enchant struct {
 	Type           proto.ItemType // Only needed for unit tests
 	EnchantType    proto.EnchantType
 	ExtraTypes     []proto.ItemType
+	ProcKind       proto.EnchantProcKind
 }
 
 func EnchantFromProto(pData *proto.SimEnchant) Enchant {
@@ -276,6 +277,7 @@ func EnchantFromProto(pData *proto.SimEnchant) Enchant {
 		Type:           pData.Type,
 		EnchantType:    pData.EnchantType,
 		ExtraTypes:     append([]proto.ItemType(nil), pData.ExtraTypes...),
+		ProcKind:       pData.ProcKind,
 	}
 }
 
@@ -438,6 +440,74 @@ func AnyEnchantRow(effectID int32, fits func(Enchant) bool) bool {
 	dbMu.RLock()
 	defer dbMu.RUnlock()
 	return slices.ContainsFunc(enchantRowsByEffectID[effectID], fits)
+}
+
+// The first row under effectID that fits item, for the stats an enchant gives that item.
+func FittingEnchantRow(effectID int32, item Item) (Enchant, bool) {
+	dbMu.RLock()
+	defer dbMu.RUnlock()
+	for _, row := range enchantRowsByEffectID[effectID] {
+		if EnchantRowAppliesToItem(row, item) {
+			return row, true
+		}
+	}
+	return Enchant{}, false
+}
+
+// A static enchant gives only stats, pseudo-stats or weapon damage and has no temporary effect.
+func (enchant Enchant) IsStatic() bool {
+	if enchant.ProcKind != proto.EnchantProcKind_EnchantProcKindNone {
+		return false
+	}
+	return enchant.Stats != (stats.Stats{}) || enchant.WeaponDamage != 0 || slices.ContainsFunc(enchant.PseudoStats, func(v float64) bool { return v != 0 })
+}
+
+func EnchantAppliesToItem(effectID int32, item Item) bool {
+	if effectID == 0 {
+		return false
+	}
+	return AnyEnchantRow(effectID, func(enchant Enchant) bool {
+		return EnchantRowAppliesToItem(enchant, item)
+	})
+}
+
+// Takes no lock: it runs under the read lock in FittingEnchantRow and AnyEnchantRow.
+func EnchantRowAppliesToItem(enchant Enchant, item Item) bool {
+	if enchant.EnchantType == proto.EnchantType_EnchantTypeTwoHand && item.HandType != proto.HandType_HandTypeTwoHand {
+		return false
+	}
+	if enchant.EnchantType == proto.EnchantType_EnchantTypeStaff && item.WeaponType != proto.WeaponType_WeaponTypeStaff {
+		return false
+	}
+	if (enchant.EnchantType == proto.EnchantType_EnchantTypeShield) != (item.WeaponType == proto.WeaponType_WeaponTypeShield) {
+		return false
+	}
+	if (enchant.EnchantType == proto.EnchantType_EnchantTypeOffHand) != (item.WeaponType == proto.WeaponType_WeaponTypeOffHand) {
+		return false
+	}
+	if enchant.Type == proto.ItemType_ItemTypeRanged {
+		if item.RangedWeaponType != proto.RangedWeaponType_RangedWeaponTypeBow && item.RangedWeaponType != proto.RangedWeaponType_RangedWeaponTypeCrossbow && item.RangedWeaponType != proto.RangedWeaponType_RangedWeaponTypeGun {
+			return false
+		}
+	} else if item.RangedWeaponType != proto.RangedWeaponType_RangedWeaponTypeUnknown && item.RangedWeaponType != proto.RangedWeaponType_RangedWeaponTypeWand {
+		return false
+	}
+	return CheckSliceOverlap(eligibleEnchantSlots(enchant), EligibleSlotsForItem(&item))
+}
+
+func eligibleEnchantSlots(enchant Enchant) []proto.ItemSlot {
+	types := append([]proto.ItemType{enchant.Type}, enchant.ExtraTypes...)
+	slots := make([]proto.ItemSlot, 0, len(types)*2)
+	for _, itemType := range types {
+		if typeSlots, ok := ItemTypeToSlotsMap[itemType]; ok {
+			slots = append(slots, typeSlots...)
+			continue
+		}
+		if itemType == proto.ItemType_ItemTypeWeapon {
+			slots = append(slots, proto.ItemSlot_ItemSlotMainHand, proto.ItemSlot_ItemSlotOffHand)
+		}
+	}
+	return slots
 }
 
 func (enchant Enchant) sameSlotRules(other Enchant) bool {

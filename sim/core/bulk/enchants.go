@@ -36,7 +36,7 @@ func (pools enchantPools) poolFor(bulkSlot BulkSimItemSlot) []int32 {
 
 func fittingEnchants(pool []int32, item core.Item) []int32 {
 	return core.FilterSlice(pool, func(effectID int32) bool {
-		return enchantAppliesToItem(effectID, item)
+		return core.EnchantAppliesToItem(effectID, item)
 	})
 }
 
