@@ -30,14 +30,13 @@ export interface ReforgeSkippedSlotsProps {
 	player: Player<any>;
 }
 
-/** The equipped slots the optimizer leaves alone because their item can take a proc enchant. */
+/**
+ * The equipped slots the optimizer leaves alone because their item can take a proc enchant the sim
+ * implements: a combat proc for every spec, a survival proc for tanks.
+ */
 export const ReforgeSkippedSlots = ({ model, player }: ReforgeSkippedSlotsProps) => {
 	const subscribe = useMemo(() => subscribeAll([subscribePlayerChange(player), subscribeReforgeField(model.settings, 'freezeItemSlots')]), [player, model]);
 	const skipped = useStoreSubscribe(subscribe, () => model.getSkippedEnchantSlots(player.getGear()));
 
-	return (
-		<ReforgeSkippedSlotsView
-			slots={skipped.map(({ slot, blockingEnchant }) => ({ slot: translateSlotName(slot), enchant: blockingEnchant.name }))}
-		/>
-	);
+	return <ReforgeSkippedSlotsView slots={skipped.map(({ slot, blockingEnchant }) => ({ slot: translateSlotName(slot), enchant: blockingEnchant.name }))} />;
 };

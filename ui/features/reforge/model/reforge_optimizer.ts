@@ -71,7 +71,10 @@ export interface ReforgeOptimizerModel {
 	readonly processedStatCaps: Stats;
 	setUseSoftCapBreakpoints(newValue: boolean): void;
 	getReforgeOptimizeConfig(gear: Gear): ReforgeOptimizeConfig;
-	/** The slots left to the sim because their item can take a proc enchant. */
+	/**
+	 * The slots left to the sim because their item can take a proc enchant the sim implements: a combat
+	 * proc for every spec, a survival proc for tanks.
+	 */
 	getSkippedEnchantSlots(gear: Gear): SkippedEnchantSlot[];
 	optimizeReforges(gear?: Gear): Promise<Gear>;
 	abortReforgeOptimization(): Promise<void>;

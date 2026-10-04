@@ -6,9 +6,14 @@ import { Gear } from '@sim/proto/gear';
 import { Stats } from '@sim/proto/stats';
 import { makeEquippedItem } from '@testing/storybook/fixtures/gear';
 import { makeUIEnchant } from '@testing/storybook/fixtures/protos';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { buildEnchantOptions } from './enchant_options';
+
+vi.mock('@sim/constants/missing_effects_auto_gen', () => ({
+	MISSING_ITEM_EFFECTS: new Map(),
+	MISSING_ENCHANT_EFFECTS: new Map([[7223, ['Deals Holy damage to an attacker.']]]),
+}));
 
 const WEIGHTS = new Stats().withStat(Stat.StatStrength, 2).withStat(Stat.StatAgility, 1).withPseudoStat(PseudoStat.PseudoStatRangedDps, 3);
 
@@ -71,6 +76,18 @@ describe('buildEnchantOptions', () => {
 		expect(tank.skipped).toEqual([{ slot: ItemSlot.ItemSlotChest, blockingEnchant: CHEST_ABSORPTION }]);
 		expect(dps.options).toEqual([BulkEnchantSlotOptions.create({ slot: ItemSlot.ItemSlotChest, effectIds: [1891] })]);
 		expect(dps.skipped).toEqual([]);
+	});
+
+	it('blocks on a combat proc only when the sim implements it', () => {
+		const gear = makeGear({ [ItemSlot.ItemSlotChest]: armor(ItemType.ItemTypeChest) });
+		const unimplemented = enchant(7223, 'Enchant Chest - Retricutioner', ItemType.ItemTypeChest, { procKind: EnchantProcKind.EnchantProcKindCombat });
+		const implemented = enchant(7224, 'Enchant Chest - Implemented Proc', ItemType.ItemTypeChest, { procKind: EnchantProcKind.EnchantProcKindCombat });
+
+		const missing = buildEnchantOptions(makePlayer({ enchants: [unimplemented, CHEST_STATS] }), gear, [], WEIGHTS);
+		const simulated = buildEnchantOptions(makePlayer({ enchants: [implemented, CHEST_STATS] }), gear, [], WEIGHTS);
+
+		expect(missing).toEqual({ options: [BulkEnchantSlotOptions.create({ slot: ItemSlot.ItemSlotChest, effectIds: [1891] })], skipped: [] });
+		expect(simulated).toEqual({ options: [], skipped: [{ slot: ItemSlot.ItemSlotChest, blockingEnchant: implemented }] });
 	});
 
 	it('leaves frozen and empty slots out of both lists', () => {

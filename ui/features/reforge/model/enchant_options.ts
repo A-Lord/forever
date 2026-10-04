@@ -1,6 +1,7 @@
 import { BulkEnchantSlotOptions } from '@generated/proto/api';
 import { EnchantProcKind, ItemSlot } from '@generated/proto/common';
 import type { UIEnchant as Enchant } from '@generated/proto/ui';
+import { MISSING_ENCHANT_EFFECTS } from '@sim/constants/missing_effects_auto_gen';
 import type { Player } from '@sim/player/player';
 import { getWeaponDpsStatsBySlot } from '@sim/proto/equipped_item';
 import type { Gear } from '@sim/proto/gear';
@@ -35,9 +36,8 @@ const enchantEP = (enchant: Enchant, weights: Stats, weaponSpeed: number, epPerW
 	return enchant.weaponDamage && weaponSpeed ? ep + (enchant.weaponDamage / weaponSpeed) * epPerWeaponDps : ep;
 };
 
-// The static enchants the gear optimizer may pick per slot. A slot whose item can take an enchant
-// with a temporary effect is left to the sim: Combat procs block it for every spec, Survival procs
-// for tanks.
+// The static enchants the gear optimizer may pick per slot. A slot whose item can take a proc enchant
+// the sim implements is left to the sim: a combat proc for every spec, a survival proc for tanks.
 export function buildEnchantOptions(player: Player<any>, gear: Gear, frozenSlots: readonly ItemSlot[], weights: Stats): EnchantOptionsResult {
 	const options: BulkEnchantSlotOptions[] = [];
 	const skipped: SkippedEnchantSlot[] = [];
@@ -48,7 +48,8 @@ export function buildEnchantOptions(player: Player<any>, gear: Gear, frozenSlots
 		const fitting = player.getEnchants(slot).filter(enchant => enchantAppliesToItem(enchant, equipped.item));
 		const blocking = fitting.find(
 			enchant =>
-				enchant.procKind === EnchantProcKind.EnchantProcKindCombat || (isTank && enchant.procKind === EnchantProcKind.EnchantProcKindSurvival),
+				(enchant.procKind === EnchantProcKind.EnchantProcKindCombat || (isTank && enchant.procKind === EnchantProcKind.EnchantProcKindSurvival)) &&
+				!MISSING_ENCHANT_EFFECTS.has(enchant.effectId),
 		);
 		if (blocking) {
 			skipped.push({ slot, blockingEnchant: blocking });
