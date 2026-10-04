@@ -736,6 +736,9 @@
 			"food": {
 				"title": "Food"
 			},
+			"holiday": {
+				"title": "Holiday"
+			},
 			"engineering": {
 				"title": "Explosives",
 				"explosives": "Explosives"

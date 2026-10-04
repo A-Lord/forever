@@ -94,6 +94,9 @@ message Consumable {
 	// The hit and crit percents an on-use grants to one channel alone, and an all-channel crit on each
 	// channel. Indexed by PseudoStat; ranged totals include the melee share.
 	repeated double pseudo_stats = 18;
+	// The world event the consumable belongs to, by name, which the settings list it under. Empty for
+	// one available all year.
+	string holiday = 21;
 }
 
 message ItemEffectRandPropPoints {

@@ -2604,6 +2604,16 @@
 							"additionalProperties": false,
 							"required": ["title"]
 						},
+						"holiday": {
+							"type": "object",
+							"properties": {
+								"title": {
+									"type": "string"
+								}
+							},
+							"additionalProperties": false,
+							"required": ["title"]
+						},
 						"engineering": {
 							"type": "object",
 							"properties": {
@@ -2655,7 +2665,7 @@
 						}
 					},
 					"additionalProperties": false,
-					"required": ["title", "filters", "potions", "elixirs", "food", "engineering", "imbue", "scrolls", "miscellaneous"]
+					"required": ["title", "filters", "potions", "elixirs", "food", "holiday", "engineering", "imbue", "scrolls", "miscellaneous"]
 				},
 				"encounter": {
 					"type": "object",
