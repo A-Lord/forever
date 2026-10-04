@@ -130,6 +130,39 @@ func catPowershiftRequest(talents string, rotation *proto.APLRotation, cannotShr
 	}
 }
 
+func TestManaPotionAndThistleTeaAreUsed(t *testing.T) {
+	const iterations int32 = 100
+	req := sweepRequest(powershiftTalents, catRotation(&proto.FeralCatDruid_Rotation{
+		FinishingMove:     proto.FeralCatDruid_Rotation_Rip,
+		RipMinComboPoints: 5,
+		RakeTrick:         true,
+	}), false, iterations)
+	req.Raid.Parties[0].Players[0].Consumables = &proto.ConsumesSpec{PotId: 13444, ConjuredId: 7676}
+	result := core.RunSim(req, nil, simsignals.CreateSignals())
+	if result.Error != nil {
+		t.Fatal(result.Error.Message)
+	}
+	actions := result.RaidMetrics.Parties[0].Players[0].Actions
+	per := func(id int32) float64 { return float64(usesOfID(actions, id)) / float64(result.IterationsDone) }
+	if tea, pot := per(7676), per(13444); tea < 0.8 || pot < 0.8 {
+		t.Fatalf("thistle tea %.2f, mana potion %.2f per fight, want both near 1", tea, pot)
+	}
+}
+
+func usesOfID(actions []*proto.ActionMetrics, id int32) int32 {
+	var n int32
+	for _, action := range actions {
+		got := action.GetId()
+		if got.GetSpellId() != id && got.GetItemId() != id {
+			continue
+		}
+		for _, target := range action.Targets {
+			n += target.Casts
+		}
+	}
+	return n
+}
+
 func castsOf(actions []*proto.ActionMetrics, spellID int32) int32 {
 	var n int32
 	for _, action := range actions {

@@ -16,11 +16,11 @@ import Level60GearJson from './gear_sets/default.gear.json';
 export const DefaultOptions = FeralDruidOptions.create({});
 
 export const DefaultConsumables = ConsumesSpec.create({
-	potId: Consumables.MajorFrenzyPotion.id,
+	potId: Consumables.MajorManaPotion.id,
 	elixirIds: [Consumables.ElixirOfTheMongoose.id, Consumables.ElixirOfTheSages.id],
 	foodId: Consumables.SwiftstrikeSteak.id,
 	mhImbueId: Consumables.DenseWeightstone.id,
-	conjuredId: Consumables.DemonicRune.id,
+	conjuredId: Consumables.ThistleTea.id,
 	extraIds: [Consumables.GoblinSapperCharge.id, Consumables.ScrollOfStrengthIV.id],
 });
 
