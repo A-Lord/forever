@@ -58,7 +58,6 @@ export const DefaultDebuffs = Debuffs.create({
 	curseOfElements: true,
 	judgementOfWisdom: true,
 	judgementOfLight: true,
-	huntersMark: true,
 	curseOfRecklessness: true,
 	sunderArmor: true,
 	faerieFire: true,

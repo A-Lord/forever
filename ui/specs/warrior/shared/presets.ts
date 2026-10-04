@@ -24,7 +24,6 @@ export const DefaultDebuffs = Debuffs.create({
 	faerieFire: true,
 	sunderArmor: true,
 	curseOfRecklessness: true,
-	huntersMark: true,
 });
 
 export const DefaultConsumables = ConsumesSpec.create({

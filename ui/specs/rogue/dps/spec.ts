@@ -107,7 +107,6 @@ export default defineSpec<Spec.SpecRogue>({
 			greaterBlessingOfMight: true,
 		}),
 		debuffs: Debuffs.create({
-			huntersMark: true,
 			curseOfRecklessness: true,
 			faerieFire: true,
 			giftOfArthas: true,

@@ -585,7 +585,7 @@ export const GENERATED_INDIVIDUAL_BUFFS_CONFIG: RenderableStatOptions[] = [
 export const GENERATED_DEBUFFS_CONFIG: RenderableStatOptions[] = [
 	{
 		config: HuntersMark,
-		stats: [Stat.StatRangedAttackPower, Stat.StatAttackPower],
+		stats: [Stat.StatRangedAttackPower],
 		ownerClass: Class.ClassHunter,
 	},
 	{
