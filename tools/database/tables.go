@@ -522,6 +522,7 @@ func ScanEnchantsTable(rows *sql.Rows) (dbc.Enchant, error) {
 	var effectArgsString string
 	var spellItemEnchantmentFlags dbc.SpellItemEnchantmentFlags
 	var spellItemLevel int
+	var itemClassMasks string
 	err := rows.Scan(
 		&raw.EffectId,
 		&raw.Name,
@@ -535,6 +536,7 @@ func ScanEnchantsTable(rows *sql.Rows) (dbc.Enchant, error) {
 		&raw.InventoryType,
 		&raw.SubClassMask,
 		&raw.ClassMask,
+		&itemClassMasks,
 		&raw.FDID,
 		&raw.Quality,
 		&raw.RequiredProfession,
@@ -547,6 +549,20 @@ func ScanEnchantsTable(rows *sql.Rows) (dbc.Enchant, error) {
 		return raw, fmt.Errorf("scanning enchant data for effect ID %d: %w", raw.EffectId, err)
 	}
 	raw.Lvl = enchantLvl(spellItemLevel)
+
+	// A class may use the enchant when it may use any item that applies it; AllowableClass -1 is every class.
+	if itemClassMasks != "" {
+		for _, field := range strings.Split(itemClassMasks, ",") {
+			mask, err := strconv.Atoi(field)
+			if err != nil {
+				return raw, fmt.Errorf("parsing item class masks for enchant %d (%s): %w", raw.EffectId, itemClassMasks, err)
+			}
+			if mask <= 0 {
+				mask = -1
+			}
+			raw.ClassMask |= mask
+		}
+	}
 
 	raw.Effects, err = parseIntArrayField(effectsString, 3)
 	if err != nil {
@@ -589,6 +605,11 @@ const (
 	sodItemIDMax = 244460
 )
 
+// The SQL condition that the item id in column is in the Season of Discovery range.
+func sodItemID(column string) string {
+	return column + ` BETWEEN ` + strconv.Itoa(sodItemIDMin) + ` AND ` + strconv.Itoa(sodItemIDMax)
+}
+
 func LoadAndWriteRawEnchants(dbHelper *DBHelper, inputsDir string) ([]dbc.Enchant, error) {
 	query := `
 		SELECT DISTINCT
@@ -615,7 +636,7 @@ func LoadAndWriteRawEnchants(dbHelper *DBHelper, inputsDir string) ([]dbc.Enchan
 			-- the Season of Discovery range last. This is the query's only aggregate, so the bare columns (icon
 			-- and quality among them) come from its row.
 			COALESCE(MIN(
-				CASE WHEN ixie.ItemID BETWEEN ` + strconv.Itoa(sodItemIDMin) + ` AND ` + strconv.Itoa(sodItemIDMax) + ` THEN 2000000000 ELSE 0 END
+				CASE WHEN ` + sodItemID("ixie.ItemID") + ` THEN 2000000000 ELSE 0 END
 				+ CASE WHEN isp.ID IS NULL THEN 1000000000 ELSE 0 END
 				+ ixie.ItemID
 			) % 1000000000, 0) as ItemId,
@@ -630,6 +651,13 @@ func LoadAndWriteRawEnchants(dbHelper *DBHelper, inputsDir string) ([]dbc.Enchan
 			COALESCE(sei.EquippedItemInvTypes, 0) as InvTypes,
 			COALESCE(sei.EquippedItemSubclass, 0),
 			COALESCE(sla.ClassMask, 0),
+			-- The AllowableClass of every item that applies an enchant no skill line teaches.
+			CASE WHEN sla.ID IS NULL THEN COALESCE((
+				SELECT group_concat(DISTINCT lisp.AllowableClass) FROM ItemEffect lie
+					JOIN ItemXItemEffect lixie ON lixie.ItemEffectID = lie.ID
+					JOIN ItemSparse lisp ON lisp.ID = lixie.ItemID
+				WHERE lie.SpellID = se.SpellID AND NOT ` + sodItemID("lixie.ItemID") + `
+			), '') ELSE '' END AS ItemClassMasks,
 			COALESCE(it.IconFileDataID, 0),
 			COALESCE(isp.OverallQualityID, 1),
 			COALESCE(sla.SkillLine, 0) as RequiredProfession,
@@ -648,8 +676,7 @@ func LoadAndWriteRawEnchants(dbHelper *DBHelper, inputsDir string) ([]dbc.Enchan
 				SELECT MAX(lisp.ItemLevel) FROM ItemEffect lie
 					JOIN ItemXItemEffect lixie ON lixie.ItemEffectID = lie.ID
 					JOIN ItemSparse lisp ON lisp.ID = lixie.ItemID
-				WHERE lie.SpellID = se.SpellID
-					AND lixie.ItemID NOT BETWEEN ` + strconv.Itoa(sodItemIDMin) + ` AND ` + strconv.Itoa(sodItemIDMax) + `
+				WHERE lie.SpellID = se.SpellID AND NOT ` + sodItemID("lixie.ItemID") + `
 			), 0) AS SpellItemLevel
 		FROM SpellEffect se
 			JOIN Spell s ON se.SpellID = s.ID
