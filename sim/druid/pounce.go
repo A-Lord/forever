@@ -24,7 +24,6 @@ func (druid *Druid) registerPounceSpell() {
 		return druid.ProwlAura != nil && druid.ProwlAura.IsActive() && druid.BehindTarget()
 	}
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		druid.breakProwl(sim)
 		result := spell.CalcAndDealOutcome(sim, target, spell.OutcomeMeleeSpecialHit)
 		if result.Landed() {
 			stuns.Get(target).Activate(sim)

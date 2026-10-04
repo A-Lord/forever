@@ -9,6 +9,8 @@ import {
 import { Stats } from '@sim/proto/stats';
 
 import DefaultApl from './apls/default.apl.json';
+import PounceApl from './apls/pounce.apl.json';
+import RavageApl from './apls/ravage.apl.json';
 import Level60GearJson from './gear_sets/default.gear.json';
 
 export const DefaultOptions = FeralDruidOptions.create({});
@@ -63,3 +65,5 @@ export const Level60EpWeights = PresetUtils.makePresetEpWeights('Level 60', Leve
 export const SIMPLE = PresetUtils.makePresetSimpleRotation('Simple', Spec.SpecFeralCatDruid, DefaultRotation);
 
 export const APL = PresetUtils.makePresetAPLRotation('APL', DefaultApl);
+export const RAVAGE_APL = PresetUtils.makePresetAPLRotation('Ravage opener', RavageApl);
+export const POUNCE_APL = PresetUtils.makePresetAPLRotation('Pounce opener', PounceApl);

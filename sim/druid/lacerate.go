@@ -12,6 +12,7 @@ func (druid *Druid) registerLacerateSpell() {
 	config := spelldata.SpellConfig(&druid.Unit, rank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 	config.Dot = spelldata.DotConfig(rank, tick, bleedAuraOpt())
 	// Each application stacks the bleed, so a tick is the row's amount per stack.
+	// TODO: Ingame research needed -- verify the bleed's attack power scaling; the row states none.
 	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
 		dot.Spell.CalcAndDealPeriodicDamage(sim, target, tick.AverageAt(druid.level())*float64(dot.GetStacks()), rank.TickOutcome(dot))
 	}

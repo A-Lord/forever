@@ -7,13 +7,18 @@ import (
 
 func (druid *Druid) registerRakeSpell() {
 	rank := spellData.Rake.Highest()
-	// TODO: Ingame research needed -- whether Rake gains damage from attack power; this row states no
-	// coefficient. Once an override adds one, the hit and a hand OnTick read APCoeff(), since DotConfig's
-	// tick does not.
+	// TODO: Verify the direct hit's attack power share independently of the periodic damage.
 	config := spelldata.SpellConfig(&druid.Unit, rank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
+	// The initial bleed hit is not reduced by armor.
+	config.Flags |= core.SpellFlagIgnoreResists
 	config.Dot = spelldata.DotConfig(rank, rank.PeriodicDamageEffect(), bleedAuraOpt())
+	tick := rank.PeriodicDamageEffect()
+	// TODO: Verify whether changing attack power after application changes subsequent ticks.
+	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
+		damage := tick.AverageAt(druid.level()) + tick.APCoeff()*dot.Spell.MeleeAttackPower(target)
+		dot.Spell.CalcAndDealPeriodicDamage(sim, target, damage, rank.TickOutcome(dot))
+	}
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		druid.breakProwl(sim)
 		initial := rank.DamageEffect().AverageAt(druid.level()) * druid.rendAndTearMultiplier(target)
 		result := spell.CalcAndDealDamage(sim, target, initial, spell.OutcomeMeleeSpecialHitAndCrit)
 		if result.Landed() {

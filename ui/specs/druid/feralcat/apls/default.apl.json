@@ -1,4 +1,7 @@
 {
 	"type": "TypeAPL",
-	"priorityList": []
+	"priorityList": [
+		{"action":{"autocastOtherCooldowns":{}}},
+		{"action":{"catOptimalRotationAction":{"ripMinComboPoints":5,"biteMinComboPoints":5,"rakeTrick":true}}}
+	]
 }

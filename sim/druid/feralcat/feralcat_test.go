@@ -14,84 +14,23 @@ func init() {
 }
 
 func TestFeralCat(t *testing.T) {
-	t.Skip("gear sets and APL presets are not part of the feral foundation; " +
-		"TestFeralCatCoverage casts the abilities with the rotation written in the test")
-	core.RunTestSuite(t, t.Name(), core.FullCharacterTestSuiteGenerator([]core.CharacterSuiteConfig{
-		{
-			Class:      proto.Class_ClassDruid,
-			Race:       proto.Race_RaceNightElf,
-			OtherRaces: []proto.Race{proto.Race_RaceTauren},
-
-			GearSet: core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "p1_realistic_6p"),
-			OtherGearSets: []core.GearSetCombo{
-				core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "pre_raid"),
-				core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "p1_realistic_9p"),
-				core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "p1_bis_6p"),
-				core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "p1_bis_9p"),
-				core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "p1_alt_6p"),
-				core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "p1_alt_9p"),
-				core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "p2_6p"),
-				core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "p2_9p"),
-				core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "p2_alt_6p"),
-				core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "p2_alt_9p"),
-				core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "p3_6p"),
-				core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "p3_9p"),
-				core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "p4_6p"),
-				core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "p4_9p"),
-				core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "p5"),
+	core.RunTestSuite(t, t.Name(), core.FullCharacterTestSuiteGenerator([]core.CharacterSuiteConfig{{
+		Class: proto.Class_ClassDruid, Race: proto.Race_RaceNightElf,
+		GearSet:     core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "default"),
+		Talents:     DefaultTalents,
+		SpecOptions: core.SpecOptionsCombo{Label: "Standard", SpecOptions: DefaultSpecOptions},
+		Rotation:    core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "default"),
+		Consumables: &proto.ConsumesSpec{},
+		ItemFilter: core.ItemFilter{
+			ArmorType: proto.ArmorType_ArmorTypeLeather,
+			WeaponTypes: []proto.WeaponType{
+				proto.WeaponType_WeaponTypeDagger, proto.WeaponType_WeaponTypeFist,
+				proto.WeaponType_WeaponTypeMace, proto.WeaponType_WeaponTypeStaff,
 			},
-
-			Talents: DefaultTalents,
-			OtherTalentSets: []core.TalentsCombo{
-				{Label: "Monocat", Talents: MonocatTalents},
-			},
-
-			SpecOptions: core.SpecOptionsCombo{Label: "Standard", SpecOptions: DefaultSpecOptions},
-
-			Rotation: core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "default"),
-			OtherRotations: []core.RotationCombo{
-				{
-					Label: "Simple",
-					Rotation: &proto.APLRotation{
-						Type: proto.APLRotation_TypeSimple,
-					},
-				},
-			},
-
-			Consumables: DefaultConsumables,
-
-			Profession1: proto.Profession_Engineering,
-			Profession2: proto.Profession_Enchanting,
-
-			ItemFilter: core.ItemFilter{
-				ArmorType: proto.ArmorType_ArmorTypeLeather,
-				WeaponTypes: []proto.WeaponType{
-					proto.WeaponType_WeaponTypeDagger,
-					proto.WeaponType_WeaponTypeFist,
-					proto.WeaponType_WeaponTypeMace,
-					proto.WeaponType_WeaponTypeStaff,
-				},
-				RangedWeaponTypes: []proto.RangedWeaponType{
-					proto.RangedWeaponType_RangedWeaponTypeIdol,
-				},
-			},
-
-			EPReferenceStat: proto.Stat_StatAttackPower,
-			StatsToWeigh: []proto.Stat{
-				proto.Stat_StatAgility,
-				proto.Stat_StatStrength,
-				proto.Stat_StatAttackPower,
-				proto.Stat_StatFeralAttackPower,
-				proto.Stat_StatHitRating,
-				proto.Stat_StatExpertiseRating,
-				proto.Stat_StatCritRating,
-				proto.Stat_StatHasteRating,
-				proto.Stat_StatArmorPenetration,
-			},
+			RangedWeaponTypes: []proto.RangedWeaponType{proto.RangedWeaponType_RangedWeaponTypeIdol},
 		},
-	}))
+	}}))
 }
-
 func BenchmarkSimulate(b *testing.B) {
 	rsr := &proto.RaidSimRequest{
 		Raid: core.SinglePlayerRaidProto(
@@ -99,12 +38,10 @@ func BenchmarkSimulate(b *testing.B) {
 				Class:         proto.Class_ClassDruid,
 				Race:          proto.Race_RaceNightElf,
 				TalentsString: DefaultTalents,
-				Equipment:     core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "p1_realistic_6p").GearSet,
+				Equipment:     core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "default").GearSet,
 				Consumables:   DefaultConsumables,
 				Spec:          DefaultSpecOptions,
-				Rotation: &proto.APLRotation{
-					Type: proto.APLRotation_TypeSimple,
-				},
+				Rotation:      core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "default").Rotation,
 			},
 			nil, nil, nil,
 		),

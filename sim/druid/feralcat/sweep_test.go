@@ -11,10 +11,9 @@ import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/simsignals"
-	"github.com/wowsims/forever/sim/druid"
 )
 
-// Compares Rip at 4 or 5 combo points, Rake, Faerie Fire, Bite, and the energy at which Shifting
+// Compares Rip at 4 or 5 combo points, Rake, Faerie Fire, Bite, and Shifting
 // Power is spent, on a level-60 leather set. Prints a table; asserts nothing.
 func TestRotationSweep(t *testing.T) {
 	if os.Getenv("ROTATION_SWEEP") == "" {
@@ -31,8 +30,7 @@ func TestRotationSweep(t *testing.T) {
 		costCat.FerociousBite.Cost.GetCurrentCost(), costCat.Rake.Cost.GetCurrentCost(), costCat.ShiftingPower.Cost.GetCurrentCost())
 
 	// Rake stays up. Rip is the finisher. Bite, while enabled, requires 5 combo points and a Rip
-	// with more than 8s left. shift is the energy bar under which Shifting Power is spent; 0
-	// means the builder's own cost.
+	// with more than 8s left.
 	rot := func(ripCP int32, rake, ff, bite bool) *proto.FeralCatDruid_Rotation {
 		return &proto.FeralCatDruid_Rotation{
 			FinishingMove:      proto.FeralCatDruid_Rotation_Rip,
@@ -48,35 +46,26 @@ func TestRotationSweep(t *testing.T) {
 		talents  string
 		rotation *proto.APLRotation
 		noShred  bool
-		shift    float64
 	}
-	row := func(name string, ripCP int32, rake, ff, bite bool, shift float64) sweepRow {
-		return sweepRow{name, powershiftTalents, catRotation(rot(ripCP, rake, ff, bite)), false, shift}
+	row := func(name string, ripCP int32, rake, ff, bite bool) sweepRow {
+		return sweepRow{name, powershiftTalents, catRotation(rot(ripCP, rake, ff, bite)), false}
 	}
 	rows := []sweepRow{
-		row("rake, rip 4", 4, true, false, false, 0),
-		row("rake, rip 5", 5, true, false, false, 0),
-		row("no rake, rip 4", 4, false, false, false, 0),
-		row("no rake, rip 5", 5, false, false, false, 0),
-		row("rake, rip 4, faerie fire", 4, true, true, false, 0),
-		row("rake, rip 5, faerie fire", 5, true, true, false, 0),
-		row("rake, rip 4, bite", 4, true, false, true, 0),
-		row("rake, rip 5, bite", 5, true, false, true, 0),
-		row("rake, rip 4, ff+bite", 4, true, true, true, 0),
-		row("rake, rip 5, ff+bite", 5, true, true, true, 0),
-	}
-	for _, limit := range []float64{60, 50, 30, 20, 10} {
-		rows = append(rows,
-			row(fmt.Sprintf("rake rip 4, shift <%.0f", limit), 4, true, false, false, limit),
-			row(fmt.Sprintf("rake rip 5, shift <%.0f", limit), 5, true, false, false, limit),
-		)
+		row("rake, rip 4", 4, true, false, false),
+		row("rake, rip 5", 5, true, false, false),
+		row("no rake, rip 4", 4, false, false, false),
+		row("no rake, rip 5", 5, false, false, false),
+		row("rake, rip 4, faerie fire", 4, true, true, false),
+		row("rake, rip 5, faerie fire", 5, true, true, false),
+		row("rake, rip 4, bite", 4, true, false, true),
+		row("rake, rip 5, bite", 5, true, false, true),
+		row("rake, rip 4, ff+bite", 4, true, true, true),
+		row("rake, rip 5, ff+bite", 5, true, true, true),
 	}
 
 	fmt.Printf("%-34s %8s %7s %6s %6s %6s %6s %6s %6s %6s %6s %6s %6s\n",
 		"rotation", "dps", "stdev", "sp", "shred", "claw", "rip", "bite", "rake", "ff", "bsrk", "bear", "pbite")
-	defer func() { shiftEnergyLimit = 0 }()
 	for _, row := range rows {
-		shiftEnergyLimit = row.shift
 		result := core.RunSim(sweepRequest(row.talents, row.rotation, row.noShred, iterations), nil, simsignals.CreateSignals())
 		if result.Error != nil {
 			t.Fatalf("%s: %s", row.name, result.Error.Message)
@@ -98,8 +87,8 @@ func catRotation(simple *proto.FeralCatDruid_Rotation) *proto.APLRotation {
 
 // Dire Bear Form when energy is under the limit and Shifting Power is on cooldown, Primal Bite once
 // the rage is there, and back to cat once that bite is on cooldown. The swing that was already coming
-// still lands as a bear swing. Snake-weaving, set by the caller, restarts a swing the bear timer
-// pushed past one cat swing.
+// still lands as a bear swing. Companion-triggered swing resets are not modeled.
+
 func bearweaveRotation(simple *proto.FeralCatDruid_Rotation, energyBelow float64) *proto.APLRotation {
 	inBear := auraUp(9634)
 	cat := catAction(simple)
@@ -115,7 +104,7 @@ func bearweaveRotation(simple *proto.FeralCatDruid_Rotation, energyBelow float64
 }
 
 // Whether a bear trip pays when Shifting Power is down and energy is too low to Shred, on the level-60
-// set. Primal Bite is one point past the 51 the default build spends. Prints a table; asserts nothing.
+// set. Primal Bite trades one point of Rend and Tear to keep 51 talent points. Prints a table; asserts nothing.
 func TestBearWeaveWindow(t *testing.T) {
 	if os.Getenv("ROTATION_SWEEP") == "" {
 		t.Skip("set ROTATION_SWEEP=1 to compare bear-weaving against staying in cat")
@@ -131,34 +120,25 @@ func TestBearWeaveWindow(t *testing.T) {
 		BiteMinComboPoints: 5,
 		RakeTrick:          true,
 	}
-	weaveTalents := withFeralDigit(powershiftTalents, 11, '1')
+	weaveTalents := withFeralDigit(withFeralDigit(powershiftTalents, 18, '4'), 11, '1')
 	type weaveRow struct {
 		name    string
 		talents string
 		rot     *proto.APLRotation
-		wipe    bool
-		snake   bool
 	}
 	rows := []weaveRow{
-		{"stay in cat", powershiftTalents, catRotation(simple), false, false},
-		{"stay in cat, primal bite talented", weaveTalents, catRotation(simple), false, false},
+		{"stay in cat", powershiftTalents, catRotation(simple)},
+		{"stay in cat, primal bite talented", weaveTalents, catRotation(simple)},
 	}
 	for _, limit := range []float64{42, 20, 10} {
 		rows = append(rows,
-			weaveRow{fmt.Sprintf("weave below %.0f, energy kept", limit), weaveTalents, bearweaveRotation(simple, limit), false, true},
-			weaveRow{fmt.Sprintf("weave below %.0f, energy cleared", limit), weaveTalents, bearweaveRotation(simple, limit), true, true},
+			weaveRow{fmt.Sprintf("weave below %.0f, energy kept", limit), weaveTalents, bearweaveRotation(simple, limit)},
 		)
 	}
 
 	fmt.Printf("%-42s %8s %7s %6s %6s %6s %6s %6s %6s\n",
 		"rotation", "dps", "stdev", "sp", "shred", "rip", "rake", "bear", "pbite")
-	defer func() {
-		druid.SnakeWeaveOnCatReturn = false
-		druid.ClearCatEnergyOnBearEnter = false
-	}()
 	for _, row := range rows {
-		druid.SnakeWeaveOnCatReturn = row.snake
-		druid.ClearCatEnergyOnBearEnter = row.wipe
 		result := core.RunSim(sweepRequest(row.talents, row.rot, false, iterations), nil, simsignals.CreateSignals())
 		if result.Error != nil {
 			t.Fatalf("%s: %s", row.name, result.Error.Message)
@@ -213,30 +193,6 @@ func withFeralDigit(talents string, index int, digit byte) string {
 // the Level 60 gear preset (ui/specs/druid/feralcat/gear_sets/default.gear.json), and no consumables.
 // Weapon is Fist of Cenarius. Howling Idol shortens Shifting Power by 1s.
 func sweepRequest(talents string, rotation *proto.APLRotation, cannotShred bool, iterations int32) *proto.RaidSimRequest {
-	items := make([]*proto.ItemSpec, proto.ItemSlot_ItemSlotRanged+1)
-	for i := range items {
-		items[i] = &proto.ItemSpec{}
-	}
-	gear := map[proto.ItemSlot]int32{
-		proto.ItemSlot_ItemSlotHead:     279253, // Outlaw's Collar: 21 agi, 1.5% crit
-		proto.ItemSlot_ItemSlotNeck:     18404,  // Onyxia Tooth Pendant: 1% hit, 1% crit
-		proto.ItemSlot_ItemSlotShoulder: 272105, // Darkspear Pauldrons: 27 agi, 1% crit
-		proto.ItemSlot_ItemSlotBack:     272414, // Howler's Furs: 28 attack power, 1% hit
-		proto.ItemSlot_ItemSlotChest:    252483, // Dawn Armor: 37 agi, 1% hit, 1% crit
-		proto.ItemSlot_ItemSlotWrist:    19587,  // Forest Stalker's Bracers: 11 str, 19 agi
-		proto.ItemSlot_ItemSlotHands:    272099, // Raider Gloves: 11 str, 27 agi
-		proto.ItemSlot_ItemSlotWaist:    272395, // Assassin's Waistguard: 21 agi, 2% hit
-		proto.ItemSlot_ItemSlotLegs:     15065,  // Warbear Woolies: 28 str, 18 agi
-		proto.ItemSlot_ItemSlotFeet:     20715,  // Dunestalker's Boots: 9 str, 19 agi
-		proto.ItemSlot_ItemSlotFinger1:  19325,  // Don Julio's Band: 16 attack power, 1% hit, 1% crit
-		proto.ItemSlot_ItemSlotFinger2:  275981, // Ferocious Watcher's Signet: 34 attack power, 1% hit
-		proto.ItemSlot_ItemSlotTrinket1: 19120,  // Rune of the Guard Captain: 14 attack power, 0.7% hit
-		proto.ItemSlot_ItemSlotMainHand: 21188,  // Fist of Cenarius, slow two-hand mace
-		proto.ItemSlot_ItemSlotRanged:   272427, // Howling Idol, Shifting Power cooldown -1s
-	}
-	for slot, id := range gear {
-		items[slot].Id = id
-	}
 	return &proto.RaidSimRequest{
 		SimOptions: &proto.SimOptions{RandomSeed: 101, Iterations: iterations, IsTest: true},
 		Raid: &proto.Raid{
@@ -245,7 +201,7 @@ func sweepRequest(talents string, rotation *proto.APLRotation, cannotShred bool,
 					Name: "Cat", Class: proto.Class_ClassDruid, Race: proto.Race_RaceNightElf,
 					TalentsString:  talents,
 					ReactionTimeMs: 250,
-					Equipment:      &proto.EquipmentSpec{Items: items},
+					Equipment:      core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "default").GearSet,
 					Consumables:    &proto.ConsumesSpec{},
 					Buffs: &proto.IndividualBuffs{
 						GreaterBlessingOfKings: true,

@@ -65,19 +65,30 @@ func (druid *Druid) applyThickHide() {
 		return
 	}
 	row := spellData.ThickHide.Rank(druid.Talents.ThickHide)
-	// Dummy 3 is armor per level while in a form. Dummy 200 / 100 is armor per point of defense
-	// skill above 5 per level. TODO: Ingame research needed -- defense skill is not modelled (#70),
-	// so the second term is 0, and whether the form's armor multiplier applies to this bonus.
+	// Effect 2 is base armor per level. Effect 1 / 100 is armor per bonus defense skill.
+	// TODO: Add the defense contribution with dynamic updates. Core models DefenseRating, but its
+	// stat dependency order does not allow DefenseRating to feed Armor.
 	bonus := float64(druid.level()) * row.EffectN(2).BaseValue()
-	for _, aura := range []*core.Aura{druid.CatFormAura, druid.BearFormAura, druid.DireBearFormAura} {
-		if aura != nil {
-			aura.AttachStatBuff(stats.Armor, bonus)
+	for _, form := range []struct {
+		aura       *core.Aura
+		multiplier float64
+	}{
+		{druid.CatFormAura, 1},
+		{druid.BearFormAura, 1 + spellData.BearFormTriggered.Highest().EffectN(2).Percent()},
+		{druid.DireBearFormAura, 1 + spellData.DireBearFormTriggered.Highest().EffectN(2).Percent()},
+		{druid.MoonkinFormAura, 1 + spellData.MoonkinFormTriggered.ByID(24905).EffectN(1).Percent()},
+	} {
+		if form.aura != nil {
+			form.aura.AttachStatBuff(stats.Armor, bonus*form.multiplier)
 		}
 	}
 }
 
 func (druid *Druid) applyFeralSwiftness() {
 	druid.parseTalent(druid.Talents.FeralSwiftness, spellData.FeralSwiftness)
+	if druid.Talents.FeralSwiftness > 0 && druid.CatFormAura != nil {
+		druid.CatFormAura.NewPassiveMovementSpeedEffect(spellData.FeralSwiftness.EffectAt(2).FractionAt(druid.Talents.FeralSwiftness))
+	}
 }
 
 func (druid *Druid) applySharpenedClaws() {

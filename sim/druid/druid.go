@@ -86,6 +86,7 @@ type Druid struct {
 	// Energy left when cat form dropped, when it was dropped, and the time spent in bear forms since.
 	// Reset clears them.
 	furorStoredEnergy float64
+	furorStoredValid  bool
 	furorLeftCatAt    time.Duration
 	furorBearTime     time.Duration
 	furorEnergyMetric *core.ResourceMetrics
@@ -130,6 +131,7 @@ func (druid *Druid) RegisterSpell(config core.SpellConfig) *DruidSpell {
 func (druid *Druid) Initialize() {
 	druid.setForm(druid.StartingForm)
 	druid.AutoUnshift = druid.ClearForm
+	druid.registerProwlBreakingCasts()
 
 	druid.Env.RegisterPostFinalizeEffect(func() {
 		druid.MHAutoSpell = druid.AutoAttacks.MHAuto()
@@ -167,10 +169,10 @@ func (druid *Druid) RegisterFeralCatSpells() {
 
 func (druid *Druid) RegisterFeralTankSpells() {
 	druid.registerFeralKit()
-	druid.registerBarkskin()
 }
 
 func (druid *Druid) registerFeralKit() {
+	druid.registerBarkskin()
 	druid.registerCatFormSpell()
 	druid.registerBearFormSpell()
 	druid.registerClawSpell()
@@ -198,6 +200,7 @@ func (druid *Druid) registerFeralKit() {
 }
 
 func (druid *Druid) Reset(_ *core.Simulation) {
+	druid.furorStoredValid = false
 	druid.furorStoredEnergy = 0
 	druid.furorLeftCatAt = 0
 	druid.furorBearTime = 0

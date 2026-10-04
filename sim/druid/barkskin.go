@@ -16,4 +16,8 @@ func (druid *Druid) registerBarkskin() {
 	}
 	config.RelatedSelfBuff = aura
 	druid.Barkskin = druid.RegisterSpell(config)
+	druid.AddMajorCooldown(core.MajorCooldown{
+		Spell: druid.Barkskin.Spell,
+		Type:  core.CooldownTypeSurvival,
+	})
 }
