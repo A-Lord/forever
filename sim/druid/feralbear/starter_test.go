@@ -13,7 +13,7 @@ import (
 
 func starterRequest(t testing.TB) *proto.RaidSimRequest {
 	t.Helper()
-	data, err := os.ReadFile("../../../ui/specs/druid/feralbear/builds/starter.build.json")
+	data, err := os.ReadFile("testdata/starter.build.json")
 	if err != nil {
 		t.Fatal(err)
 	}

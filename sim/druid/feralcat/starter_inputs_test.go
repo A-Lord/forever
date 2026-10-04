@@ -38,9 +38,12 @@ func TestFeralStarterInputs(t *testing.T) {
 	if err := json.Unmarshal(data, &trees); err != nil {
 		t.Fatal(err)
 	}
-	for _, spec := range []string{"feralcat", "feralbear"} {
-		t.Run(spec, func(t *testing.T) {
-			data, err := os.ReadFile("../../../ui/specs/druid/" + spec + "/builds/starter.build.json")
+	for _, fixture := range []struct{ name, path string }{
+		{"feralcat", "../../../ui/specs/druid/feralcat/builds/starter.build.json"},
+		{"feralbear", "../feralbear/testdata/starter.build.json"},
+	} {
+		t.Run(fixture.name, func(t *testing.T) {
+			data, err := os.ReadFile(fixture.path)
 			if err != nil {
 				t.Fatal(err)
 			}

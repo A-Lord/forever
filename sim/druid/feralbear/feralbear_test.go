@@ -25,7 +25,7 @@ func starterConfig() core.CharacterSuiteConfig {
 	reference := proto.Stat_StatAttackPower
 	weigh := []proto.Stat{proto.Stat_StatStrength, proto.Stat_StatAgility, proto.Stat_StatStamina}
 	config := core.GetTestBuildFromJSON(
-		proto.Class_ClassDruid, "../../../ui/specs/druid/feralbear/builds", "starter",
+		proto.Class_ClassDruid, "testdata", "starter",
 		core.ItemFilter{
 			ArmorType: proto.ArmorType_ArmorTypeLeather,
 			WeaponTypes: []proto.WeaponType{
