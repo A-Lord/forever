@@ -300,12 +300,17 @@ func main() {
 
 func applyRepSources(db *database.WowDatabase, factionNames map[int32]string) {
 	for _, item := range db.Items {
+		sides := make(map[proto.Faction]bool)
 		for _, source := range item.Sources {
 			if rep := source.GetRep(); rep != nil {
 				db.MergeFaction(&proto.UIFaction{Id: rep.RepFactionId, Name: factionNames[rep.RepFactionId]})
-				if rep.FactionId != proto.Faction_Unknown {
-					item.FactionRestriction = proto.UIItem_FactionRestriction(rep.FactionId)
-				}
+				sides[rep.FactionId] = true
+			}
+		}
+		// A side's restriction holds only when every rep source names that side.
+		if len(sides) == 1 && !sides[proto.Faction_Unknown] {
+			for side := range sides {
+				item.FactionRestriction = proto.UIItem_FactionRestriction(side)
 			}
 		}
 	}
@@ -370,8 +375,8 @@ func processItems(instance *dbc.DBC,
 					Source: &proto.UIItemSource_Rep{Rep: repItem},
 				})
 			}
-			parsed.Sources = sources
-			sourceMap[parsed.Name] = sources
+			parsed.Sources = append(parsed.Sources, sources...)
+			sourceMap[parsed.Name] = parsed.Sources
 		}
 
 		parsedItems = append(parsedItems, parsed)

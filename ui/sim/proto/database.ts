@@ -240,7 +240,7 @@ export class Database {
 	getZone(zoneId: number): Zone | null {
 		return this.zones.get(zoneId) || null;
 	}
-	getFaction(factionId: number): UIFaction | null {
+	getRepFaction(factionId: number): UIFaction | null {
 		return this.factions.get(factionId) || null;
 	}
 	getAllZones(): Array<Zone> {

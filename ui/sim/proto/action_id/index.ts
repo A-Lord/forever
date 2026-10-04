@@ -216,6 +216,9 @@ export class ActionId {
 	static makeNpcUrl(id: number): string {
 		return wowheadEntityUrl('npc', id);
 	}
+	static makeFactionUrl(id: number): string {
+		return wowheadEntityUrl('faction', id);
+	}
 	static makeZoneUrl(id: number): string {
 		return wowheadEntityUrl('zone', id);
 	}
@@ -821,7 +824,7 @@ const petNameToIcon: Record<string, string> = {
 	Cat: 'https://wow.zamimg.com/images/wow/icons/medium/ability_hunter_pet_cat.jpg',
 	'Core Hound': 'https://wow.zamimg.com/images/wow/icons/medium/ability_hunter_pet_corehound.jpg',
 	Crab: 'https://wow.zamimg.com/images/wow/icons/medium/ability_hunter_pet_crab.jpg',
-	Crocolisk: 'https://wow.zamimg.com/images/wow/icons/medium/ability_hunter_pet_crocolisk.jpg',
+	Crocilisk: 'https://wow.zamimg.com/images/wow/icons/medium/ability_hunter_pet_crocolisk.jpg',
 	Felguard: 'https://wow.zamimg.com/images/wow/icons/large/spell_shadow_summonfelguard.jpg',
 	Felhunter: 'https://wow.zamimg.com/images/wow/icons/large/spell_shadow_summonfelhunter.jpg',
 	Infernal: 'https://wow.zamimg.com/images/wow/icons/large/spell_shadow_summoninfernal.jpg',

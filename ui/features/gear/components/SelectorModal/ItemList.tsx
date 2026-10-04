@@ -168,7 +168,7 @@ export const ItemList = ({ tab, slot, equippedItem }: ItemListProps) => {
 					search,
 					itemData[index],
 					npcId => sim.db.getNpc(npcId)?.name,
-					factionId => sim.db.getFaction(factionId)?.name,
+					factionId => sim.db.getRepFaction(factionId)?.name,
 				),
 		);
 		return sortItemIdxs(idxs, itemData, { sortBy, sortDirection, computeEP, isFavourited });

@@ -24,8 +24,9 @@ export const isFurySpec = (player: Player<Spec.SpecDpsWarrior>) =>
 	player.getEquippedItem(ItemSlot.ItemSlotMainHand)?.item.handType === HandType.HandTypeMainHand ||
 	player.getEquippedItem(ItemSlot.ItemSlotMainHand)?.item.handType === HandType.HandTypeOneHand;
 
-// Dungeon drops, the dungeon tier sets, crafted items whose reagents include no raid materials and
-// vendor trinkets.
+// Dungeon drops, the dungeon tier sets and crafted items whose reagents include no raid materials. The
+// second ring and the Adaptive Combat Assistant have no source in the game files; no dungeon ring or
+// trinket beats them.
 export const PreBiSFuryGear = PresetUtils.makePresetGear('Pre-BiS Fury', PreBiSFuryGearJson);
 
 // The best build found on the Pre-BiS Fury gear over a three minute fight.

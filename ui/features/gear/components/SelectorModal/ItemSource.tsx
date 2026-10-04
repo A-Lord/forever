@@ -101,14 +101,17 @@ export const ItemSource = ({ item, sim }: ItemSourceProps): ReactNode => {
 		);
 	}
 
-	if ((source = item.sources.find(entry => entry.source.oneofKind === 'rep') ?? source).source.oneofKind === 'rep') {
-		const src = source.source.rep;
+	const reps = item.sources.flatMap(entry => (entry.source.oneofKind === 'rep' ? [entry.source.rep] : []));
+	if (reps.length) {
 		return (
-			<SourceLink href={ActionId.makeItemUrl(item.id)}>
-				<span>
-					{sim.db.getFaction(src.repFactionId)?.name || 'Unknown'} - {REP_LEVEL_NAMES[src.repLevel]}
-					<FactionIcon restriction={item.factionRestriction} />
-				</span>
+			<SourceLink href={ActionId.makeFactionUrl(reps[0].repFactionId)}>
+				{reps.map((rep, index) => (
+					<span key={`${rep.repFactionId}-${index}`}>
+						{sim.db.getRepFaction(rep.repFactionId)?.name || 'Unknown'} - {REP_LEVEL_NAMES[rep.repLevel]}
+						<FactionIcon restriction={item.factionRestriction} />
+						<br />
+					</span>
+				))}
 			</SourceLink>
 		);
 	}

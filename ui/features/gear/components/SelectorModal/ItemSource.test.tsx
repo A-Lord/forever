@@ -20,7 +20,7 @@ const sim = ({ zones = {}, npcs = {}, factions = {} }: DbStub = {}) =>
 		db: {
 			getZone: (id: number) => zones[id] ?? null,
 			getNpc: (id: number) => npcs[id] ?? null,
-			getFaction: (id: number) => factions[id] ?? null,
+			getRepFaction: (id: number) => factions[id] ?? null,
 		},
 	}) as unknown as Sim;
 
@@ -153,7 +153,7 @@ describe('ItemSource', () => {
 		});
 		const { container, getByRole } = mount(item, { factions: { 270: { id: 270, name: 'Zandalar Tribe' } } });
 
-		expect(getByRole('link').getAttribute('href')).toBe(ActionId.makeItemUrl(800));
+		expect(getByRole('link').getAttribute('href')).toBe(ActionId.makeFactionUrl(270));
 		expect(container.textContent).toBe(`Zandalar Tribe - ${REP_LEVEL_NAMES[RepLevel.RepLevelRevered]}`);
 	});
 
