@@ -423,12 +423,44 @@ describe('Tree sortable', () => {
 		expect(item('a').hasAttribute('draggable')).toBe(false);
 	});
 
-	it('does not arm an item on a press elsewhere in the header', () => {
+	it('arms an item on a press anywhere in it', () => {
 		const { sortable } = setup();
 		mount(flat('a'), { sortable });
 
 		fireEvent.mouseDown(screen.getByTestId('title-a'));
+		expect(item('a').getAttribute('draggable')).toBe('true');
+	});
+
+	it('arms only the innermost item on a press in a nested one', () => {
+		const { sortable } = setup();
+		mount([{ id: 'A', children: flat('a1') }], { sortable });
+
+		fireEvent.mouseDown(screen.getByTestId('title-a1'));
+		expect(item('a1').getAttribute('draggable')).toBe('true');
+		expect(item('A').hasAttribute('draggable')).toBe(false);
+	});
+
+	it('does not arm an item on a press in a text field or on a disabled item', () => {
+		const { sortable } = setup();
+		render(
+			<Tree.Root group="rows" sortable={sortable}>
+				<Tree.Items>
+					<Tree.Item id="a" testId="item-a">
+						<Tree.Item.Body>
+							<input data-testid="field-a" />
+						</Tree.Item.Body>
+					</Tree.Item>
+					<Tree.Item id="b" testId="item-b" disabled>
+						<Tree.Item.Title testId="title-b">b</Tree.Item.Title>
+					</Tree.Item>
+				</Tree.Items>
+			</Tree.Root>,
+		);
+
+		fireEvent.mouseDown(screen.getByTestId('field-a'));
 		expect(item('a').hasAttribute('draggable')).toBe(false);
+		fireEvent.mouseDown(screen.getByTestId('title-b'));
+		expect(item('b').hasAttribute('draggable')).toBe(false);
 	});
 
 	it('ignores a dragstart that bubbles up from a nested item', () => {

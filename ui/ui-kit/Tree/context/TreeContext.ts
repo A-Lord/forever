@@ -1,6 +1,6 @@
 import { createContext } from 'react';
 
-import type { SortableArmProps, SortableChildrenProps } from '../hooks/useSortable';
+import type { SortableChildrenProps } from '../hooks/useSortable';
 import type { TreeDensity, TreeLayout } from '../types';
 
 export interface TreeRootContextValue {
@@ -27,8 +27,6 @@ export interface TreeItemContextValue {
 	controls: string | undefined;
 	/** Body and Children announce themselves while mounted. */
 	mountPart: (part: 'body' | 'children') => () => void;
-	/** Set on the Handle, `undefined` without sortable. */
-	handleProps: SortableArmProps | undefined;
 	childrenProps: SortableChildrenProps | undefined;
 }
 
