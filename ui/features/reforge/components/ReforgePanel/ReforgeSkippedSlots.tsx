@@ -4,28 +4,51 @@ import { translateSlotName } from '@i18n/localization';
 import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
 import type { Player } from '@sim/player/player';
 import { subscribeAll, subscribeBulkField, subscribePlayerChange, subscribeReforgeField } from '@sim/state/subscriptions';
+import { Button } from '@ui-kit/Button';
+import { Icon } from '@ui-kit/Icon';
 import { useMemo } from 'react';
 
 export interface ReforgeSkippedSlotsViewProps {
-	/** `enchant` names the proc that leaves the slot to the sim; without it, no checked enchant preset lists the slot. */
-	slots: ReadonlyArray<{ slot: string; enchant?: string }>;
+	/** The slots whose item can take a proc enchant the sim implements. */
+	procSlots: ReadonlyArray<string>;
+	/** The slots no checked enchant preset lists. */
+	unlistedSlots: ReadonlyArray<string>;
+	/** Opens the Batch Sim tab. Without it the proc slots have no button. */
+	onOpenBatchSim?: () => void;
 }
 
-export const ReforgeSkippedSlotsView = ({ slots }: ReforgeSkippedSlotsViewProps) => {
-	if (!slots.length) return null;
+const SlotList = ({ slots }: { slots: ReadonlyArray<string> }) => (
+	<ul className="mb-0 pl-0">
+		{slots.map(slot => (
+			<li key={slot}>{slot}</li>
+		))}
+	</ul>
+);
+
+export const ReforgeSkippedSlotsView = ({ procSlots, unlistedSlots, onOpenBatchSim }: ReforgeSkippedSlotsViewProps) => {
+	if (!procSlots.length && !unlistedSlots.length) return null;
 
 	return (
-		<div className="mb-2" data-testid="reforge-skipped-slots">
-			<h6 className="mb-1">{i18n.t('sidebar.buttons.suggest_reforges.skipped_slots_title')}</h6>
-			<ul className="mb-0 pl-0">
-				{slots.map(({ slot, enchant }) => (
-					<li key={slot}>
-						{enchant
-							? i18n.t('sidebar.buttons.suggest_reforges.skipped_slot', { slot, enchant })
-							: i18n.t('sidebar.buttons.suggest_reforges.skipped_slot_unlisted', { slot })}
-					</li>
-				))}
-			</ul>
+		<div className="mb-2 flex flex-col gap-2" data-testid="reforge-skipped-slots">
+			<h6 className="mb-0">{i18n.t('sidebar.buttons.suggest_reforges.skipped_slots_title')}</h6>
+			{procSlots.length > 0 && (
+				<div className="flex flex-col items-start gap-1" data-testid="reforge-skipped-slots-proc">
+					<p className="mb-0">{i18n.t('sidebar.buttons.suggest_reforges.skipped_slots_proc')}</p>
+					<SlotList slots={procSlots} />
+					{onOpenBatchSim && (
+						<Button variant="link" size="sm" data-testid="reforge-open-batch-sim" onClick={onOpenBatchSim}>
+							{i18n.t('bulk_tab.title')}
+							<Icon name="arrow-right" />
+						</Button>
+					)}
+				</div>
+			)}
+			{unlistedSlots.length > 0 && (
+				<div className="flex flex-col gap-1" data-testid="reforge-skipped-slots-unlisted">
+					<p className="mb-0">{i18n.t('sidebar.buttons.suggest_reforges.skipped_slots_unlisted')}</p>
+					<SlotList slots={unlistedSlots} />
+				</div>
+			)}
 		</div>
 	);
 };
@@ -33,13 +56,14 @@ export const ReforgeSkippedSlotsView = ({ slots }: ReforgeSkippedSlotsViewProps)
 export interface ReforgeSkippedSlotsProps {
 	model: ReforgeOptimizerModel;
 	player: Player<any>;
+	onOpenBatchSim?: () => void;
 }
 
 /**
  * The equipped slots the optimizer leaves alone: those whose item can take a proc enchant the sim
  * implements, and with the enchant presets on, those no checked preset lists.
  */
-export const ReforgeSkippedSlots = ({ model, player }: ReforgeSkippedSlotsProps) => {
+export const ReforgeSkippedSlots = ({ model, player, onOpenBatchSim }: ReforgeSkippedSlotsProps) => {
 	const subscribe = useMemo(
 		() =>
 			subscribeAll([
@@ -52,10 +76,7 @@ export const ReforgeSkippedSlots = ({ model, player }: ReforgeSkippedSlotsProps)
 		[player, model],
 	);
 	const skipped = useStoreSubscribe(subscribe, () => model.getSkippedEnchantSlots(player.getGear()));
+	const slotsFor = (reason: 'proc' | 'unlisted') => skipped.filter(skip => skip.reason === reason).map(skip => translateSlotName(skip.slot));
 
-	return (
-		<ReforgeSkippedSlotsView
-			slots={skipped.map(skip => ({ slot: translateSlotName(skip.slot), enchant: skip.reason === 'proc' ? skip.blockingEnchant.name : undefined }))}
-		/>
-	);
+	return <ReforgeSkippedSlotsView procSlots={slotsFor('proc')} unlistedSlots={slotsFor('unlisted')} onOpenBatchSim={onOpenBatchSim} />;
 };

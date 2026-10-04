@@ -12,6 +12,7 @@ import { type ReactNode, useMemo, useState } from 'react';
 import { trackEvent } from '../../../../tracking/utils';
 import { useReforgeField } from '../../hooks/useReforgeField';
 import { DEFAULT_REFORGE_ID_PREFIX, ReforgeIdPrefixContext } from './context/ReforgeIdPrefixContext';
+import { useReforgeOpenBatchSim } from './context/ReforgeOpenBatchSimContext';
 import { ReforgeBreakpointLimits } from './ReforgeBreakpointLimits';
 import { ReforgeFrozenSlots } from './ReforgeFrozenSlots';
 import { ReforgeSkippedSlots } from './ReforgeSkippedSlots';
@@ -78,7 +79,7 @@ export const ReforgeSettingsPanelView = ({
 export interface ReforgeSettingsPanelProps {
 	model: ReforgeOptimizerModel;
 	options?: ReforgeOptimizerOptions;
-	/** Closes the popover when the EP weights dialog opens over it. Omitted where the panel is inline and has nothing to close. */
+	/** Closes the popover when the EP weights dialog opens over it or the Batch Sim tab opens. Omitted where the panel is inline and has nothing to close. */
 	onClose?: () => void;
 	/** Scopes every DOM id, so a second mount does not collide with the sidebar popover's. */
 	idPrefix?: string;
@@ -90,6 +91,7 @@ export const ReforgeSettingsPanel = ({ model, options, onClose, idPrefix = DEFAU
 	const player = host.player;
 	const individualConfig = useSpecConfig();
 	const openEpWeights = useOpenEpWeights();
+	const openBatchSim = useReforgeOpenBatchSim();
 	const settings = model.settings;
 
 	const useCustomEPValues = useReforgeField(settings, 'useCustomEPValues', () => settings.useCustomEPValues);
@@ -206,7 +208,19 @@ export const ReforgeSettingsPanel = ({ model, options, onClose, idPrefix = DEFAU
 						)}
 					</>
 				}
-				skippedSlots={<ReforgeSkippedSlots model={model} player={player} />}
+				skippedSlots={
+					<ReforgeSkippedSlots
+						model={model}
+						player={player}
+						onOpenBatchSim={
+							openBatchSim &&
+							(() => {
+								openBatchSim();
+								onClose?.();
+							})
+						}
+					/>
+				}
 				savedEpWeights={<SavedEpWeights className="mt-4" loadOnly presetsOnly={!useCustomEPValues} />}
 				onEditWeights={() => {
 					openEpWeights();

@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, fn, userEvent, within } from 'storybook/test';
 
 import { ReforgeSkippedSlotsView } from './ReforgeSkippedSlots';
 
@@ -7,7 +8,9 @@ const meta = {
 	component: ReforgeSkippedSlotsView,
 	tags: ['autodocs'],
 	args: {
-		slots: [{ slot: 'Main Hand', enchant: 'Enchant Weapon - Crusader' }, { slot: 'Chest', enchant: 'Enchant Chest - Lesser Absorption' }, { slot: 'Head' }],
+		procSlots: ['Main Hand', 'Chest'],
+		unlistedSlots: ['Head'],
+		onOpenBatchSim: fn(),
 	},
 	decorators: [
 		Story => (
@@ -21,4 +24,14 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+export const Default: Story = {
+	play: async ({ args, canvasElement }) => {
+		await userEvent.click(within(canvasElement).getByTestId('reforge-open-batch-sim'));
+		await expect(args.onOpenBatchSim).toHaveBeenCalledOnce();
+	},
+};
+
+/** In the Batch Sim tab's own copy of the panel there is no tab to open. */
+export const WithoutBatchSimLink: Story = {
+	args: { onOpenBatchSim: undefined },
+};

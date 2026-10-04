@@ -8798,10 +8798,10 @@
 								"skipped_slots_title": {
 									"type": "string"
 								},
-								"skipped_slot": {
+								"skipped_slots_proc": {
 									"type": "string"
 								},
-								"skipped_slot_unlisted": {
+								"skipped_slots_unlisted": {
 									"type": "string"
 								},
 								"use_enchant_presets": {
@@ -8843,8 +8843,8 @@
 								"frozen_slots",
 								"enchants",
 								"skipped_slots_title",
-								"skipped_slot",
-								"skipped_slot_unlisted",
+								"skipped_slots_proc",
+								"skipped_slots_unlisted",
 								"use_enchant_presets",
 								"use_enchant_presets_tooltip",
 								"no_enchant_preset"

@@ -92,7 +92,7 @@ const meta = {
 		softCaps: SOFT_CAPS,
 		freezeSlots: FREEZE_SLOTS,
 		enchantPresets: toggle('enchant-presets-off', 'Use enchant presets'),
-		skippedSlots: <ReforgeSkippedSlotsView slots={[{ slot: 'Main Hand', enchant: 'Enchant Weapon - Crusader' }]} />,
+		skippedSlots: <ReforgeSkippedSlotsView procSlots={['Main Hand']} unlistedSlots={[]} onOpenBatchSim={fn()} />,
 		savedEpWeights: null,
 		onEditWeights: fn(),
 	},
@@ -133,6 +133,6 @@ export const PresetEpValues: Story = {
 export const EnchantPresets: Story = {
 	args: {
 		enchantPresets: ENCHANT_PRESETS,
-		skippedSlots: <ReforgeSkippedSlotsView slots={[{ slot: 'Main Hand', enchant: 'Enchant Weapon - Crusader' }, { slot: 'Head' }]} />,
+		skippedSlots: <ReforgeSkippedSlotsView procSlots={['Main Hand']} unlistedSlots={['Head']} onOpenBatchSim={fn()} />,
 	},
 };
