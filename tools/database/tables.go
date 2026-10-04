@@ -2339,10 +2339,9 @@ func LoadCraftedItems(dbHelper *DBHelper) (
 
 func ScanRepItems(rows *sql.Rows) (itemID int, factionName string, ds *proto.RepSource, err error) {
 	var (
-		minReputation          int
-		rep                    proto.RepSource
-		reputationRaceMask     dbc.Race
-		reputationRaceMaskHigh int64
+		minReputation      int
+		rep                proto.RepSource
+		reputationRaceMask dbc.Race
 	)
 
 	err = rows.Scan(
@@ -2350,7 +2349,6 @@ func ScanRepItems(rows *sql.Rows) (itemID int, factionName string, ds *proto.Rep
 		&rep.RepFactionId,
 		&factionName,
 		&reputationRaceMask,
-		&reputationRaceMaskHigh,
 		&minReputation,
 	)
 	if err != nil {
@@ -2358,10 +2356,9 @@ func ScanRepItems(rows *sql.Rows) (itemID int, factionName string, ds *proto.Rep
 	}
 
 	// A side's faction names that side's races in its first race mask (the other side starts Hated in the
-	// second); a first mask naming races of both sides is every race's faction. The mask's high word holds
-	// the Skyborne races: bit 0 High Order (Alliance), bit 1 Windshaper (Horde).
-	alliance := dbc.AlliedRaces.Matches(reputationRaceMask) || reputationRaceMaskHigh&1 != 0
-	horde := dbc.HordeRaces.Matches(reputationRaceMask) || reputationRaceMaskHigh&2 != 0
+	// second); a first mask naming races of both sides is every race's faction.
+	alliance := dbc.AlliedRaces.Matches(reputationRaceMask)
+	horde := dbc.HordeRaces.Matches(reputationRaceMask)
 	if alliance && !horde {
 		rep.FactionId = proto.Faction_Alliance
 	} else if horde && !alliance {
@@ -2379,8 +2376,9 @@ func LoadRepItems(dbHelper *DBHelper) (
 	err error,
 ) {
 	const query = `
-		SELECT isp.ID, fa.ID, fa.Name_lang, COALESCE(fa.ReputationRaceMasks0_0, 0) AS ReputationRaceMask,
-			COALESCE(fa.ReputationRaceMasks0_1, 0) AS ReputationRaceMaskHigh, isp.MinReputation FROM ItemSparse isp
+		SELECT isp.ID, fa.ID, fa.Name_lang,
+			(COALESCE(fa.ReputationRaceMasks0_1, 0) << 32) | (COALESCE(fa.ReputationRaceMasks0_0, 0) & 0xFFFFFFFF) AS ReputationRaceMask,
+			isp.MinReputation FROM ItemSparse isp
 		JOIN Faction fa on fa.ID = isp.MinFactionID
 		WHERE isp.MinFactionID > 0
     `

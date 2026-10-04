@@ -310,7 +310,7 @@ func applyRepSources(db *database.WowDatabase, factionNames map[int32]string) {
 		// A side's restriction holds only when every rep source names that side.
 		if len(sides) == 1 && !sides[proto.Faction_Unknown] {
 			for side := range sides {
-				item.FactionRestriction = proto.UIItem_FactionRestriction(side)
+				item.FactionRestriction = database.AtlasLootFactionRestrictions[side]
 			}
 		}
 	}

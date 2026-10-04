@@ -487,9 +487,6 @@ export class ActionId {
 				if (tag == 1) {
 					name += ' (Mana Restore)';
 				}
-				if (tag == 2) {
-					name += ' (pre)';
-				}
 				break;
 			case 'Immolate':
 				if (tag == 1) {
