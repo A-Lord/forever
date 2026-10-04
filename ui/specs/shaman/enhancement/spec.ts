@@ -85,7 +85,7 @@ export default defineSpec<Spec.SpecEnhancementShaman>({
 		})(),
 		softCapBreakpoints: (() => {
 			const meleeHitSoftCapConfig = StatCap.fromPseudoStat(PseudoStat.PseudoStatMeleeHitPercent, {
-				breakpoints: [9, 20, 28],
+				breakpoints: [8, 20, 27],
 				capType: StatCapType.TypeSoftCap,
 				postCapEPs: [1.9 * Mechanics.HIT_RATING_PER_HIT_PERCENT, 1.73 * Mechanics.HIT_RATING_PER_HIT_PERCENT, 0],
 			});

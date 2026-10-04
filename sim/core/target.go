@@ -450,7 +450,6 @@ func combatLevelDiff(attacker *Unit, defender *Unit) int32 {
 // The parts of an attack table that depend on the weapon skill of the attacking hand.
 type AttackTableHand struct {
 	BaseMissChance       float64
-	HitSuppression       float64
 	BaseDodgeChance      float64
 	BaseParryChance      float64
 	BaseBlockChance      float64
@@ -476,7 +475,6 @@ func newAttackTableHand(attacker *Unit, defender *Unit, weapon *Item) AttackTabl
 	}
 	if skillDiff > 10 {
 		hand.BaseMissChance = 0.05 + skillDiff*0.002
-		hand.HitSuppression = (skillDiff - 10) * 0.002
 	} else {
 		hand.BaseMissChance = 0.05 + skillDiff*0.001
 	}

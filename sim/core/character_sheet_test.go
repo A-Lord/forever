@@ -304,8 +304,8 @@ func TestSheetMainHandTableIsTheMainHandAutoAgainstTheTarget(t *testing.T) {
 		swordSkill                 int32
 		miss, dodge, parry, glance float64
 	}{
-		{300, 9, 6.5, 14, 40},
-		{285, 15, 8, 23, 70},
+		{300, 8, 6.5, 14, 40},
+		{285, 11, 8, 23, 70},
 	} {
 		raid := weaponTestRaid(proto.Race_RaceUndead, WeaponTestSlots(WeaponTestSwordID, 0, 0), nil)
 		raid.Parties[0].Players[0].WeaponSkills = []*proto.WeaponSkillValue{{Skill: proto.WeaponSkill_WeaponSkillSwords, Value: tc.swordSkill}}

@@ -37,7 +37,7 @@ describe('Player.getDebuffStats', () => {
 	});
 });
 
-// The main-hand table the sim sends against a level 63 target, in percent; miss includes the suppressed hit.
+// The main-hand table the sim sends against a level 63 target, in percent.
 interface SheetTable {
 	miss: number;
 	dodge: number;
@@ -45,8 +45,8 @@ interface SheetTable {
 	glance: number;
 	suppression: number;
 }
-const LEVEL_63_AT_300: SheetTable = { miss: 9, dodge: 6.5, parry: 14, glance: 40, suppression: 3 };
-const LEVEL_63_AT_285: SheetTable = { miss: 15, dodge: 8, parry: 23, glance: 70, suppression: 6 };
+const LEVEL_63_AT_300: SheetTable = { miss: 8, dodge: 6.5, parry: 14, glance: 40, suppression: 3 };
+const LEVEL_63_AT_285: SheetTable = { miss: 11, dodge: 8, parry: 23, glance: 70, suppression: 6 };
 
 // A rogue with one weapon and no hit, expertise or crit, behind the target unless placed in front.
 const critCapInfo = (table: SheetTable, { inFront = false, dualWield = false, playerClass = Class.ClassRogue } = {}) => {
@@ -88,8 +88,8 @@ describe('Player.getMeleeCritCapInfo', () => {
 	});
 
 	it('adds the dual-wield miss to the hit cap, except for a warrior', () => {
-		expect(critCapInfo(LEVEL_63_AT_300, { dualWield: true }).meleeHitCap).toBeCloseTo(9 + 19);
-		expect(critCapInfo(LEVEL_63_AT_300, { dualWield: true, playerClass: Class.ClassWarrior }).meleeHitCap).toBeCloseTo(9);
+		expect(critCapInfo(LEVEL_63_AT_300, { dualWield: true }).meleeHitCap).toBeCloseTo(8 + 19);
+		expect(critCapInfo(LEVEL_63_AT_300, { dualWield: true, playerClass: Class.ClassWarrior }).meleeHitCap).toBeCloseTo(8);
 	});
 });
 

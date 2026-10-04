@@ -55,9 +55,9 @@ character_stats_results: {
 dps_results: {
  key: "TestHunter-AllItems-Annihilator-12798"
  value: {
-  dps: 715.31761
-  tps: 517.7582
-  dtps: 9.22112
+  dps: 717.36395
+  tps: 519.22606
+  dtps: 9.23212
  }
 }
 dps_results: {
@@ -183,9 +183,9 @@ dps_results: {
 dps_results: {
  key: "TestHunter-AllItems-Doombringer-13053"
  value: {
-  dps: 707.70459
-  tps: 512.42909
-  dtps: 9.14825
+  dps: 709.27235
+  tps: 513.56193
+  dtps: 9.15925
  }
 }
 dps_results: {
@@ -336,17 +336,17 @@ dps_results: {
 dps_results: {
  key: "TestHunter-AllItems-FieryWarAxe-870"
  value: {
-  dps: 714.20601
-  tps: 516.98008
-  dtps: 9.22112
+  dps: 716.24901
+  tps: 518.4456
+  dtps: 9.23212
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-FlurryAxe-871"
  value: {
-  dps: 714.6225
-  tps: 517.27162
-  dtps: 9.22112
+  dps: 716.25136
+  tps: 518.44724
+  dtps: 9.23212
  }
 }
 dps_results: {
@@ -376,9 +376,9 @@ dps_results: {
 dps_results: {
  key: "TestHunter-AllItems-GlacialBlade-19099"
  value: {
-  dps: 715.70918
-  tps: 518.04049
-  dtps: 9.07422
+  dps: 716.9977
+  tps: 518.98607
+  dtps: 9.15925
  }
 }
 dps_results: {
@@ -408,17 +408,17 @@ dps_results: {
 dps_results: {
  key: "TestHunter-AllItems-GrimReaper-13054"
  value: {
-  dps: 708.10887
-  tps: 512.71208
-  dtps: 9.14825
+  dps: 709.27235
+  tps: 513.56193
+  dtps: 9.15925
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-HanzoSword-8190"
  value: {
-  dps: 707.9885
-  tps: 512.62783
-  dtps: 9.14825
+  dps: 709.2747
+  tps: 513.56358
+  dtps: 9.15925
  }
 }
 dps_results: {
@@ -456,9 +456,9 @@ dps_results: {
 dps_results: {
  key: "TestHunter-AllItems-Julie'sDagger-6660"
  value: {
-  dps: 709.12675
-  tps: 513.24498
-  dtps: 9.16276
+  dps: 709.1736
+  tps: 513.32643
+  dtps: 9.17376
  }
 }
 dps_results: {
@@ -552,9 +552,9 @@ dps_results: {
 dps_results: {
  key: "TestHunter-AllItems-Nightfall-19169"
  value: {
-  dps: 714.51159
-  tps: 517.19399
-  dtps: 9.22112
+  dps: 716.24901
+  tps: 518.4456
+  dtps: 9.23212
  }
 }
 dps_results: {
@@ -576,9 +576,9 @@ dps_results: {
 dps_results: {
  key: "TestHunter-AllItems-PhantomBlade-7961"
  value: {
-  dps: 707.99194
-  tps: 512.63023
-  dtps: 9.14825
+  dps: 709.2747
+  tps: 513.56358
+  dtps: 9.15925
  }
 }
 dps_results: {
@@ -608,9 +608,9 @@ dps_results: {
 dps_results: {
  key: "TestHunter-AllItems-ShortswordofVengeance-754"
  value: {
-  dps: 707.70459
-  tps: 512.42909
-  dtps: 9.14825
+  dps: 709.27235
+  tps: 513.56193
+  dtps: 9.15925
  }
 }
 dps_results: {
@@ -696,17 +696,17 @@ dps_results: {
 dps_results: {
  key: "TestHunter-AllItems-TheLobotomizer-19324"
  value: {
-  dps: 709.5136
-  tps: 513.70359
-  dtps: 9.07422
+  dps: 710.65176
+  tps: 514.54391
+  dtps: 9.15925
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-TheNeedler-13060"
  value: {
-  dps: 708.00748
-  tps: 512.64111
-  dtps: 9.14825
+  dps: 709.2747
+  tps: 513.56358
+  dtps: 9.15925
  }
 }
 dps_results: {
@@ -720,17 +720,17 @@ dps_results: {
 dps_results: {
  key: "TestHunter-AllItems-ThrashBlade-17705"
  value: {
-  dps: 707.70459
-  tps: 512.42909
-  dtps: 9.14825
+  dps: 709.27235
+  tps: 513.56193
+  dtps: 9.15925
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-Thunderfury,BlessedBladeoftheWindseeker-19019"
  value: {
-  dps: 708.98525
-  tps: 513.31735
-  dtps: 9.07422
+  dps: 711.05606
+  tps: 514.81873
+  dtps: 9.15925
  }
 }
 dps_results: {
@@ -752,9 +752,9 @@ dps_results: {
 dps_results: {
  key: "TestHunter-AllItems-Witchfury-13051"
  value: {
-  dps: 707.70459
-  tps: 512.42909
-  dtps: 9.14825
+  dps: 709.27235
+  tps: 513.56193
+  dtps: 9.15925
  }
 }
 dps_results: {

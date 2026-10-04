@@ -78,7 +78,7 @@ export default defineSpec<Spec.SpecRogue>({
 		})(),
 		softCapBreakpoints: (() => {
 			const meleeHitSoftCapConfig = StatCap.fromPseudoStat(PseudoStat.PseudoStatMeleeHitPercent, {
-				breakpoints: [9, 28],
+				breakpoints: [8, 27],
 				capType: StatCapType.TypeSoftCap,
 				postCapEPs: [3.06 * Mechanics.HIT_RATING_PER_HIT_PERCENT, 0],
 			});
