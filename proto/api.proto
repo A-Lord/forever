@@ -462,6 +462,8 @@ message ReforgeOptimizeRequest {
 	reserved 8;
 	reserved "gem_options";
 	bool debug = 9;
+	// The static enchants the optimizer may put on each slot. A slot not listed keeps its enchant.
+	repeated BulkEnchantSlotOptions enchant_options = 10;
 }
 
 message ReforgeOptimizeResult {
