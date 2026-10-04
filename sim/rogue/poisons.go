@@ -7,6 +7,9 @@ import (
 )
 
 func (rogue *Rogue) applyPoisons() {
+	if rogue.Consumables.MhImbueId == 0 && rogue.Consumables.OhImbueId == 0 {
+		return
+	}
 	rogue.applyDeadlyPoison()
 	rogue.applyInstantPoison()
 }

@@ -1,9 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
-import { Pill, type PillRounded, type PillSize, type PillTone } from './Pill';
+import { Pill, type PillSize, type PillTone } from './Pill';
 
 const TONES: Array<PillTone> = ['neutral', 'positive', 'negative', 'warning', 'primary'];
-const ROUNDED: Array<PillRounded> = ['full', 'md', 'sm', 'xs'];
 const SIZES: Array<PillSize> = ['xs', 'sm', 'md'];
 
 const meta = {
@@ -13,7 +12,6 @@ const meta = {
 	args: { children: '+4.21 vs ref' },
 	argTypes: {
 		tone: { control: 'select', options: TONES },
-		rounded: { control: 'select', options: ROUNDED },
 		size: { control: 'select', options: SIZES },
 	},
 } satisfies Meta<typeof Pill>;
@@ -29,18 +27,6 @@ export const Tones: Story = {
 			{TONES.map(tone => (
 				<Pill key={tone} {...args} tone={tone}>
 					{tone}
-				</Pill>
-			))}
-		</div>
-	),
-};
-
-export const Rounded: Story = {
-	render: args => (
-		<div className="flex flex-wrap gap-2">
-			{ROUNDED.map(rounded => (
-				<Pill key={rounded} {...args} tone="positive" rounded={rounded}>
-					{rounded}
 				</Pill>
 			))}
 		</div>

@@ -8,6 +8,7 @@ import { SavedTalents } from '@generated/proto/ui';
 import * as Mechanics from '@sim/constants/mechanics';
 import { PlayerClasses } from '@sim/player/classes';
 import { Player } from '@sim/player/player';
+import { WeaponSkillGroup } from '@sim/player/weapon_skill_groups';
 import { StatCap, Stats, UnitStat } from '@sim/proto/stats';
 import { defineSpec } from '@sim/spec_config';
 
@@ -68,6 +69,7 @@ export default defineSpec<Spec.SpecRogue>({
 			PseudoStat.PseudoStatSpellCritPercent,
 		],
 	),
+	displayWeaponSkillGroups: [WeaponSkillGroup.Melee],
 
 	defaults: {
 		// Default equipped gear.
@@ -80,7 +82,7 @@ export default defineSpec<Spec.SpecRogue>({
 		})(),
 		softCapBreakpoints: (() => {
 			const meleeHitSoftCapConfig = StatCap.fromPseudoStat(PseudoStat.PseudoStatMeleeHitPercent, {
-				breakpoints: [9, 28],
+				breakpoints: [8, 27],
 				capType: StatCapType.TypeSoftCap,
 				postCapEPs: [3.06 * Mechanics.HIT_RATING_PER_HIT_PERCENT, 0],
 			});
@@ -109,7 +111,6 @@ export default defineSpec<Spec.SpecRogue>({
 			greaterBlessingOfMight: true,
 		}),
 		debuffs: Debuffs.create({
-			huntersMark: true,
 			curseOfRecklessness: true,
 			faerieFire: true,
 			giftOfArthas: true,

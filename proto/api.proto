@@ -18,7 +18,7 @@ import "shaman.proto";
 import "warlock.proto";
 import "warrior.proto";
 
-// NextIndex: 59
+// NextIndex: 62
 message Player {
 	// Proto version at the time Player were saved.
 	// A "breaking change" here is defined as anything that will break saved
@@ -92,10 +92,12 @@ message Player {
 	double distance_from_target = 48;
 	double dark_intent_uptime = 52;
 	bool challenge_mode = 58;
+	// A weapon skill missing from the list is at the maximum for the player's level.
+	repeated WeaponSkillValue weapon_skills = 61;
 
 	HealingModel healing_model = 49;
 
-	// Items/enchants/gems/etc to include in the database.
+	// Items/enchants/etc to include in the database.
 	SimDatabase database = 50;
 }
 
@@ -437,7 +439,8 @@ message BulkSimRequest {
 	repeated BulkGearCandidate candidates = 3;
 	repeated BulkGearCandidate optimized_candidates = 4;
 	int32 top_results = 5;
-	int32 high_stage_iterations = 6;
+	reserved 6;
+	reserved "high_stage_iterations";
 	ReforgeOptimizeRequest reforge_request = 7;
 	BulkSettings bulk_settings = 8;
 }
@@ -456,7 +459,8 @@ message ReforgeOptimizeRequest {
 	UnitStats undershoot_caps = 5;
 	ReforgeSettings settings = 6;
 	repeated StatCapConfig soft_caps = 7;
-	repeated ReforgeGemOption gem_options = 8;
+	reserved 8;
+	reserved "gem_options";
 	bool debug = 9;
 }
 
@@ -475,27 +479,12 @@ message ReforgeSettings {
 	repeated ItemSlot frozen_item_slots = 4;
 	UnitStats stat_caps = 5;
 	UnitStats breakpoint_limits = 6;
-	int32 max_gem_phase = 7;
-	ItemQuality max_gem_quality = 8;
-	bool disable_unique_gems = 9;
-	// The stats this spec is willing to gem for. A gem is only a candidate if every stat it carries
-	// is in this list, so specs list stats they weight at 0 (Stamina, spell penetration) to keep
-	// those gems selectable. It cannot be derived from the pre-cap EPs for exactly that reason.
+	reserved 7, 8, 9;
+	reserved "max_gem_phase", "max_gem_quality", "disable_unique_gems";
+	// The stats this spec is willing to optimize for. Specs list stats they weight at 0 (Stamina,
+	// spell penetration) so options carrying them stay selectable, which is why it cannot be
+	// derived from the pre-cap EPs.
 	repeated Stat ep_stats = 10;
-}
-
-message ReforgeGemOption {
-	int32 id = 1;
-	string name = 2;
-	GemColor color = 3;
-
-	repeated double stats = 4;
-
-	bool unique = 5;
-	Profession required_profession = 6;
-	string icon = 8;
-	int32 phase = 9;
-	ItemQuality quality = 10;
 }
 
 message StatCapConfig {
@@ -759,13 +748,22 @@ message ProgressMetrics {
 
 message BulkSettings {
 	repeated ItemSpec items = 1;
-	int32 iterations_per_combo = 2;
+	reserved 2;
+	reserved "iterations_per_combo";
 
 	int32 freeze_ring_slot = 3;
 	int32 freeze_trinket_slot = 4;
 	int32 freeze_weapon_slot = 5;
 	repeated WeaponType freeze_mainhand_weapon_slots = 6;
 	repeated WeaponType freeze_offhand_weapon_slots = 7;
+
+	// Enchants to cross with the candidate items, per slot. Finger1 serves both fingers.
+	repeated BulkEnchantSlotOptions enchants = 8;
+}
+
+message BulkEnchantSlotOptions {
+	ItemSlot slot = 1;
+	repeated int32 effect_ids = 2;
 }
 
 message BulkGearCandidate {

@@ -113,15 +113,10 @@ describe('MultiIconPicker', () => {
 		expect(onClear).toHaveBeenCalledTimes(2);
 	});
 
-	it('names the clear option by its locale string by default, and by clearLabel when given one', () => {
-		const { unmount } = mount();
+	it('names the clear option by its locale string', () => {
+		mount();
 		open();
 		expect(screen.getByLabelText(i18n.t('common.clear'))).toBe(clearOption());
-		unmount();
-
-		mount({ clearLabel: 'No stat buff' });
-		open();
-		expect(screen.getByLabelText('No stat buff')).toBe(clearOption());
 	});
 
 	it('prevents the context menu on the button', () => {

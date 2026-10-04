@@ -1,6 +1,6 @@
 import { SimHostProvider } from '@sim/context/SimHostContext';
 import type { IndividualSimHost } from '@sim/sim_host';
-import { fakeHost } from '@sim/testing';
+import { fakeHost } from '@testing/sim/fake_host';
 import { act, renderHook } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';

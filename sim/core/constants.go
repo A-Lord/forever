@@ -33,16 +33,6 @@ const ArmorPenPerPercentArmor = 5.92
 const MissDodgeParryBlockCritChancePerDefense = 0.04
 const DefenseRatingPerAvoidancePercent = DefenseRatingPerDefenseLevel / MissDodgeParryBlockCritChancePerDefense
 
-// The dodge rating a point of Agility gives, from the Agility each class needs for 1% dodge.
-var DodgeRatingPerAgility = map[proto.Class]float64{
-	proto.Class_ClassDruid:   DodgeRatingPerDodgePercent / 14.7059,
-	proto.Class_ClassRogue:   DodgeRatingPerDodgePercent / 20,
-	proto.Class_ClassWarrior: DodgeRatingPerDodgePercent / 30,
-	proto.Class_ClassPaladin: DodgeRatingPerDodgePercent / 25,
-	proto.Class_ClassHunter:  DodgeRatingPerDodgePercent / 25,
-	proto.Class_ClassShaman:  DodgeRatingPerDodgePercent / 25,
-}
-
 const EnemyAutoAttackAPCoefficient = 0.00052
 
 // IDs for items used in core

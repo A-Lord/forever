@@ -82,8 +82,8 @@ var DefaultOptions = &proto.Player_DpsWarrior{
 	},
 }
 
-var DefaultFuryTalents = "30305003-050530205052310051"
-var DefaultArmsTalents = "30305213032115201-05052030004"
+var DefaultFuryTalents = "30305013002-25053005150110501"
+var DefaultArmsTalents = "30305213032315201-0505003004"
 
 var DefaultConsumables = &proto.ConsumesSpec{
 	PotId:       250943, // Major Frenzy Potion

@@ -13,10 +13,8 @@ import (
 
 type DBC struct {
 	Items                  map[int]Item                       // Item ID
-	Gems                   map[int]Gem                        // Item ID
 	Enchants               map[int]Enchant                    // Index in the raw SpellItemEnchantment list
 	EnchantsByEffectId     map[int]Enchant                    // ItemEchantment ID
-	ItemStatEffects        map[int]ItemStatEffect             // ItemID? something anyway
 	SpellEffects           map[int]map[int]SpellEffect        // Search by spellID and effect index
 	SpellEffectsById       map[int]SpellEffect                // Search by effectid
 	Spells                 map[int]Spell                      // Search by spellId
@@ -42,10 +40,8 @@ type DBC struct {
 func NewDBC() *DBC {
 	return &DBC{
 		Items:                  make(map[int]Item),
-		Gems:                   make(map[int]Gem),
 		Enchants:               make(map[int]Enchant),
 		EnchantsByEffectId:     make(map[int]Enchant),
-		ItemStatEffects:        make(map[int]ItemStatEffect),
 		SpellEffects:           make(map[int]map[int]SpellEffect),
 		SpellEffectsById:       make(map[int]SpellEffect),
 		Spells:                 make(map[int]Spell),
@@ -84,9 +80,7 @@ func InitDBC() error {
 		})
 	}
 	load("items", dbcInstance.loadItems, "./assets/db_inputs/dbc/items.json")
-	load("gems", dbcInstance.loadGems, "./assets/db_inputs/dbc/gems.json")
 	load("enchants", dbcInstance.loadEnchants, "./assets/db_inputs/dbc/enchants.json")
-	load("item stat effects", dbcInstance.loadItemStatEffects, "./assets/db_inputs/dbc/item_stat_effects.json")
 	load("spell effects", dbcInstance.loadSpellEffects, "./assets/db_inputs/dbc/spell_effects.json")
 	load("random suffixes", dbcInstance.loadRandomSuffix, "./assets/db_inputs/dbc/random_suffix.json")
 	load("random properties", dbcInstance.loadRandomPropertiesByIlvl, "./assets/db_inputs/dbc/rand_prop_points.json")
@@ -256,28 +250,6 @@ func (d *DBC) loadItems(filename string) error {
 	return nil
 }
 
-func (d *DBC) loadGems(filename string) error {
-	data, err := ReadGzipFile(filename)
-	if err != nil {
-		return err
-	}
-
-	var gems []Gem
-	if err = json.Unmarshal(data, &gems); err != nil {
-		return ParseError{
-			Source: filename,
-			Field:  "Gem",
-			Reason: err.Error(),
-		}
-	}
-
-	for i := range gems {
-		gem := gems[i]
-		d.Gems[gem.ItemId] = gem
-	}
-	return nil
-}
-
 func (d *DBC) loadEnchants(filename string) error {
 	data, err := ReadGzipFile(filename)
 	if err != nil {
@@ -299,28 +271,6 @@ func (d *DBC) loadEnchants(filename string) error {
 		}
 		d.Enchants[i] = ench
 		d.EnchantsByEffectId[ench.EffectId] = ench
-	}
-	return nil
-}
-
-func (d *DBC) loadItemStatEffects(filename string) error {
-	data, err := ReadGzipFile(filename)
-	if err != nil {
-		return err
-	}
-
-	var effects []ItemStatEffect
-	if err = json.Unmarshal(data, &effects); err != nil {
-		return ParseError{
-			Source: filename,
-			Field:  "ItemStatEffect",
-			Reason: err.Error(),
-		}
-	}
-
-	for i := range effects {
-		effect := effects[i]
-		d.ItemStatEffects[effect.ID] = effect
 	}
 	return nil
 }

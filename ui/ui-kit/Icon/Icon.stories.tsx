@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
+import { DEFINITIONS } from './definitions';
 import { Icon } from './Icon';
-import { ICON_NAMES, type IconSize, type IconStyle } from './types';
+import type { IconSize, IconStyle } from './types';
 
 const STYLES: Array<{ style: IconStyle; name: 'circle-question' | 'github' }> = [
 	{ style: 'solid', name: 'circle-question' },
@@ -18,10 +19,9 @@ const meta = {
 	tags: ['autodocs'],
 	args: { name: 'star' },
 	argTypes: {
-		name: { control: 'select', options: ICON_NAMES },
+		name: { control: 'select', options: Object.keys(DEFINITIONS) },
 		style: { control: 'select', options: ['solid', 'regular', 'brands', 'base'] },
 		size: { control: 'select', options: [undefined, ...SIZES] },
-		spin: { control: 'boolean' },
 		title: { control: 'text' },
 		className: { control: 'text' },
 	},
@@ -57,8 +57,6 @@ export const Sizes: Story = {
 		</div>
 	),
 };
-
-export const Spin: Story = { args: { name: 'spinner', size: '2x', spin: true } };
 
 export const FixedWidth: Story = {
 	render: () => (

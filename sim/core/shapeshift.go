@@ -16,26 +16,6 @@ type CastRequirement struct {
 	NotInCombat                   bool             // castable only before the encounter starts
 }
 
-func InForms(forms ...dbcenums.ShapeshiftForm) CastRequirement {
-	var r CastRequirement
-	for _, form := range forms {
-		r.Forms |= form.Mask()
-	}
-	return r
-}
-
-func (r CastRequirement) Excluding(forms ...dbcenums.ShapeshiftForm) CastRequirement {
-	for _, form := range forms {
-		r.ExcludedForms |= form.Mask()
-	}
-	return r
-}
-
-func (r CastRequirement) OrCasterForm() CastRequirement {
-	r.CasterForm = true
-	return r
-}
-
 func (r CastRequirement) allowsForm(form dbcenums.ShapeshiftForm) bool {
 	bit := form.Mask()
 	if bit&r.ExcludedForms != 0 {

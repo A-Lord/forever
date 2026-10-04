@@ -308,8 +308,7 @@ func (paladin *Paladin) applyVengeance() {
 	})
 }
 
-// Champion of the Light - Increases your spell damage and healing by up to 33/66/100% of your
-// Intellect. The healing effect states no rank curve, so both follow the damage ladder.
+// Champion of the Light - Increases your spell damage by up to 20/40/60% of your Intellect.
 func (paladin *Paladin) applyChampionOfTheLight() {
 	if paladin.Talents.ChampionOfTheLight == 0 {
 		return
@@ -317,7 +316,6 @@ func (paladin *Paladin) applyChampionOfTheLight() {
 
 	share := spellData.ChampionOfTheLight.Effect(dbcenums.A_MOD_SPELL_DAMAGE_OF_STAT_PERCENT, 126).FractionAt(paladin.Talents.ChampionOfTheLight)
 	paladin.AddStatDependency(stats.Intellect, stats.SpellDamage, share)
-	paladin.AddStatDependency(stats.Intellect, stats.HealingPower, share)
 }
 
 // Instrument of Law - Reduces the cast time of your Hammer of Wrath by 0.5/1.0 sec, and reduces all
@@ -360,7 +358,8 @@ func (paladin *Paladin) applyInstrumentOfLaw() {
 // Echo. Your next melee attack applies the replaced Seal's effects, consuming the Echo.
 //
 // Each seal leaves its own Echo (Echo of Command, of Fury, of Righteousness, of Justice): one
-// charge, no duration, consumed by the next auto attack that lands.
+// charge, no duration, consumed by the next auto attack that lands. Only one Echo is up at a time:
+// gaining one drops whichever other Echo was up.
 func (paladin *Paladin) applyTwistOfLight() {
 	if !paladin.Talents.TwistOfLight {
 		return
@@ -381,7 +380,9 @@ func (paladin *Paladin) applyTwistOfLight() {
 			Label:    fmt.Sprintf("Echo (%d)%s", id, paladin.Label),
 			ActionID: core.ActionID{SpellID: id},
 			Duration: core.NeverExpires,
-		}).AttachProcTrigger(core.ProcTrigger{
+		})
+		echo.aura.NewExclusiveEffect(EchoCategory, true, core.ExclusiveEffect{})
+		echo.aura.AttachProcTrigger(core.ProcTrigger{
 			Callback:           core.CallbackOnSpellHitDealt,
 			ProcMask:           core.ProcMaskMeleeWhiteHit,
 			Outcome:            core.OutcomeLanded,

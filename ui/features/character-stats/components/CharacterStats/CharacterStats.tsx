@@ -7,13 +7,13 @@ import { Accordion, AccordionItem } from '@ui-kit/Accordion';
 import { Box } from '@ui-kit/Box';
 import { parseStringArray, useLocalStorageState } from '@ui-kit/hooks/useLocalStorageState';
 import { Table } from '@ui-kit/Table';
+import { ToggleGroup } from '@ui-kit/ToggleGroup';
+import clsx, { type ClassValue } from 'clsx';
+import type { ReactNode } from 'react';
 import { useMemo, useState } from 'react';
 import { useStore } from 'zustand';
 
 import { AvoidanceRow } from './AvoidanceRow';
-import type { CharacterStatsMode } from './CharacterStatsHeaderView';
-import type { CharacterStatsPanelViewProps } from './CharacterStatsPanelView';
-import { CharacterStatsPanelView } from './CharacterStatsPanelView';
 import { CritCapRow } from './CritCapRow';
 import { CritImmunityRow } from './CritImmunityRow';
 import { MissRow } from './MissRow';
@@ -26,11 +26,63 @@ import {
 	shouldShowMeleeCritCap,
 	statDisplayString,
 } from './utils/stat_display';
+import { WeaponSkills } from './WeaponSkills';
 
 // buildRows drops the stats it has no row for, so the full list yields every row the sheet can show.
 const ALL_STATS = UnitStat.getAll();
 
 const GROUPS_STORAGE_SUFFIX = '__characterStatsGroups';
+
+/** `key` is the spec's display-stat list, `all` every stat the sheet has a row for. */
+export type CharacterStatsMode = 'key' | 'all';
+
+export interface CharacterStatsHeaderLabels {
+	title: string;
+	modeAriaLabel: string;
+	key: string;
+	all: string;
+}
+
+export interface CharacterStatsHeaderViewProps {
+	mode: CharacterStatsMode;
+	onModeChange: (next: CharacterStatsMode) => void;
+	labels: CharacterStatsHeaderLabels;
+	className?: ClassValue;
+}
+
+export const CharacterStatsModeToggle = ({ mode, onModeChange, labels }: CharacterStatsHeaderViewProps) => (
+	<ToggleGroup
+		size="xs"
+		className="shrink-0 whitespace-nowrap"
+		aria-label={labels.modeAriaLabel}
+		value={mode}
+		onChange={onModeChange}
+		options={[
+			{ value: 'key', label: labels.key },
+			{ value: 'all', label: labels.all },
+		]}
+	/>
+);
+
+export const CharacterStatsHeaderView = ({ mode, onModeChange, labels }: CharacterStatsHeaderViewProps) => (
+	<div className="flex items-center justify-between gap-2">
+		<h3 data-testid="character-stats-label" className="m-0 text-base leading-tight font-bold">
+			{labels.title}
+		</h3>
+		<CharacterStatsModeToggle mode={mode} onModeChange={onModeChange} labels={labels} />
+	</div>
+);
+
+export interface CharacterStatsPanelViewProps extends CharacterStatsHeaderViewProps {
+	children?: ReactNode;
+}
+
+export const CharacterStatsPanelView = ({ mode, onModeChange, labels, className, children }: CharacterStatsPanelViewProps) => (
+	<section className={clsx('ui-character-stats-panel', className)} data-testid="character-stats-root">
+		<CharacterStatsHeaderView mode={mode} onModeChange={onModeChange} labels={labels} />
+		{children}
+	</section>
+);
 
 interface CharacterStatsProps extends Pick<CharacterStatsPanelViewProps, 'className'> {}
 
@@ -53,9 +105,8 @@ export const CharacterStats = ({ className }: CharacterStatsProps) => {
 	const talentsString = usePlayerStore('talentsString');
 	const inFrontOfTarget = usePlayerStore('inFrontOfTarget');
 	// Not player state, but read by the facade getters below: getDebuffStats and getMissChanceInfo
-	// go through raid.debuffs, and getMeleeCritCapInfo through the primary target's level.
+	// go through raid.debuffs.
 	const debuffs = useStore(host.sim.store, s => s.raid.debuffs);
-	const targets = useStore(host.sim.store, s => s.encounter.targets);
 
 	const snapshot = useMemo(() => {
 		const attribution = computeStatAttribution(
@@ -76,20 +127,7 @@ export const CharacterStats = ({ className }: CharacterStatsProps) => {
 			critImmunity: isTank ? { info: player.getCritImmunityInfo(), text: critImmunityCapDisplayString(player) } : null,
 		};
 		// eslint-disable-next-line react-hooks/exhaustive-deps -- every store value below reaches the body through the player/sim facades rather than by name; they are the invalidation keys, and dropping one stales the snapshot.
-	}, [
-		player,
-		currentStats,
-		bonusStats,
-		gear,
-		race,
-		consumables,
-		talentsString,
-		inFrontOfTarget,
-		debuffs,
-		targets,
-		modifyDisplayStats,
-		overwriteDisplayStats,
-	]);
+	}, [player, currentStats, bonusStats, gear, race, consumables, talentsString, inFrontOfTarget, debuffs, modifyDisplayStats, overwriteDisplayStats]);
 
 	const { pending, attribution, rangedWeapon, critCap, miss, avoidance, critImmunity } = snapshot;
 	const show = (deltaStats: Stats, unitStat: UnitStat, includeBase?: boolean) => statDisplayString(player, deltaStats, unitStat, includeBase);
@@ -168,6 +206,7 @@ export const CharacterStats = ({ className }: CharacterStatsProps) => {
 						{table(group.rows)}
 					</AccordionItem>
 				))}
+				<WeaponSkills mode={mode} />
 			</Accordion>
 		</CharacterStatsPanelView>
 	);

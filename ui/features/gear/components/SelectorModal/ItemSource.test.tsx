@@ -1,28 +1,26 @@
 import { Profession } from '@generated/proto/common';
-import { DungeonDifficulty, RepFaction, RepLevel, UIItem as Item, UIItem_FactionRestriction } from '@generated/proto/ui';
+import { DungeonDifficulty, RepLevel, UIItem as Item, UIItem_FactionRestriction } from '@generated/proto/ui';
 import { ActionId } from '@sim/proto/action_id';
 import { getPVPSeasonFromItem } from '@sim/proto/items';
-import { difficultyNames, professionNames, REP_FACTION_NAMES, REP_FACTION_QUARTERMASTERS, REP_LEVEL_NAMES } from '@sim/proto/names';
+import { difficultyNames, professionNames, REP_LEVEL_NAMES } from '@sim/proto/names';
 import type { Sim } from '@sim/sim';
 import { render } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { ItemSource } from './ItemSource';
 
-// A faction whose quartermaster is known. Named here rather than read out of the shared tables so
-// the rep case asserts the wiring on its own.
-const REP_FACTION = RepFaction.RepFactionTheConsortium;
-
 interface DbStub {
 	zones?: Record<number, { id: number; name: string }>;
 	npcs?: Record<number, { id: number; name: string }>;
+	factions?: Record<number, { id: number; name: string }>;
 }
 
-const sim = ({ zones = {}, npcs = {} }: DbStub = {}) =>
+const sim = ({ zones = {}, npcs = {}, factions = {} }: DbStub = {}) =>
 	({
 		db: {
 			getZone: (id: number) => zones[id] ?? null,
 			getNpc: (id: number) => npcs[id] ?? null,
+			getRepFaction: (id: number) => factions[id] ?? null,
 		},
 	}) as unknown as Sim;
 
@@ -150,13 +148,13 @@ describe('ItemSource', () => {
 			id: 800,
 			sources: [
 				{ source: { oneofKind: 'soldBy', soldBy: { npcId: 1, npcName: 'Ignored Vendor', zoneId: 0 } } },
-				{ source: { oneofKind: 'rep', rep: { repFactionId: REP_FACTION, repLevel: RepLevel.RepLevelRevered, factionId: 0 } } },
+				{ source: { oneofKind: 'rep', rep: { repFactionId: 270, repLevel: RepLevel.RepLevelRevered, factionId: 0 } } },
 			],
 		});
-		const { container, getByRole } = mount(item);
+		const { container, getByRole } = mount(item, { factions: { 270: { id: 270, name: 'Zandalar Tribe' } } });
 
-		expect(getByRole('link').getAttribute('href')).toBe(ActionId.makeNpcUrl(REP_FACTION_QUARTERMASTERS[REP_FACTION]));
-		expect(container.textContent).toBe(`${REP_FACTION_NAMES[REP_FACTION]}${REP_LEVEL_NAMES[RepLevel.RepLevelRevered]}`);
+		expect(getByRole('link').getAttribute('href')).toBe(ActionId.makeFactionUrl(270));
+		expect(container.textContent).toBe(`Zandalar Tribe - ${REP_LEVEL_NAMES[RepLevel.RepLevelRevered]}`);
 	});
 
 	it('links to the vendor for a soldBy source', () => {

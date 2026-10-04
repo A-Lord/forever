@@ -10,13 +10,18 @@ import { bulkState, patchBulkState } from '@sim/settings/bulk_settings';
 import type { ReforgeOptimizeConfig } from '@sim/sim';
 import type { IndividualSimHost } from '@sim/sim_host';
 import { RequestTypes } from '@sim/sim_signal_manager';
+import { bulkSimHighStageFloor } from '@sim/wasm/bulk_sim/estimate';
 import { toastManager } from '@ui-kit/Toast';
 
 import { trackEvent } from '../../../tracking/utils';
 import { type CoreBulkSimResult, runCoreBulkSim as runCoreBulkSimImpl } from './core_sim';
+import { bulkEnchantPool } from './enchants';
 import { BulkProgress, candidateGearProgress, simProgress } from './progress';
 import { createBulkSettingsProto } from './settings';
 import { buildTieChains } from './tie_chains';
+
+// The stored settings plus the enchant pool, which is derived from the presets and never stored.
+const bulkRequestSettings = (player: Player<any>): BulkSettings => ({ ...createBulkSettingsProto(player), enchants: bulkEnchantPool(player) });
 
 /**
  * A batch in flight, per player. None of it belongs in the store: an abort controller and a
@@ -87,7 +92,7 @@ const setSimProgress = (player: Player<any>, metrics: ProgressMetrics, config: B
 const calculateBulkCombinations = async (host: IndividualSimHost<any>) => {
 	const { sim, player } = host;
 	try {
-		const bulkSettings = createBulkSettingsProto(player);
+		const bulkSettings = bulkRequestSettings(player);
 		const combinationCountResult = await sim.getBulkCombinationCount(bulkSettings);
 
 		if (combinationCountResult.error) {
@@ -239,7 +244,7 @@ export const runBulkBatch = async (host: IndividualSimHost<any>) => {
 
 	await sim.waitForInit();
 	const useNativeBulkSim = sim.isNative ?? false;
-	const backendBulkSettings = useNativeBulkSim ? createBulkSettingsProto(player) : undefined;
+	const backendBulkSettings = useNativeBulkSim ? bulkRequestSettings(player) : undefined;
 	let candidateGearSets: Gear[] = [];
 	let results: BulkResults | null = null;
 	let runError: unknown = null;
@@ -256,7 +261,7 @@ export const runBulkBatch = async (host: IndividualSimHost<any>) => {
 
 		if (!useNativeBulkSim) {
 			setCandidateGearProgress(player);
-			const bulkCandidatesResult = await sim.getBulkCandidates(createBulkSettingsProto(player));
+			const bulkCandidatesResult = await sim.getBulkCandidates(bulkRequestSettings(player));
 			if (bulkCandidatesResult.error) {
 				throw new Error(bulkCandidatesResult.error.message || 'Failed to build bulk candidates');
 			}
@@ -267,8 +272,7 @@ export const runBulkBatch = async (host: IndividualSimHost<any>) => {
 		}
 
 		const reforgeConfig = host.reforger ? host.reforger.getReforgeOptimizeConfig(baseGear) : undefined;
-		// With the gem optimizer every candidate must be submitted (its gems differentiate
-		// otherwise identical gear); without it duplicates are culled up front.
+		// With the gear optimizer every candidate is submitted; without it duplicates are culled up front.
 		const gearSets = reforgeConfig ? candidateGearSets : dedupeGearSets(candidateGearSets, [baseGear]);
 
 		run.simStart = new Date().getTime();
@@ -285,7 +289,7 @@ export const runBulkBatch = async (host: IndividualSimHost<any>) => {
 		rankedResults.push(originalGearResults);
 		rankedResults.sort((a, b) => b.dpsMetrics.avg - a.dpsMetrics.avg);
 
-		const resultIterations = Math.max(1, bulkSimResult.iterations || sim.getIterations());
+		const resultIterations = Math.max(1, bulkSimResult.iterations || bulkSimHighStageFloor());
 		results = {
 			chains: buildTieChains(rankedResults, originalGearResults, resultIterations),
 			originalGearResults,

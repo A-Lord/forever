@@ -66,7 +66,18 @@ func NewFakeRageWarrior(char *Character, _ *proto.Player, _ *proto.Raid) Agent {
 }
 
 func SetupFakeRageSim() *Simulation {
-	sim := NewSim(&proto.RaidSimRequest{
+	return setupFakeRageSimFrom(fakeRageSimRequest())
+}
+
+func setupFakeRageSimFrom(request *proto.RaidSimRequest) *Simulation {
+	sim := NewSim(request, simsignals.CreateSignals())
+	sim.Reset()
+
+	return sim
+}
+
+func fakeRageSimRequest() *proto.RaidSimRequest {
+	return &proto.RaidSimRequest{
 		SimOptions: &proto.SimOptions{
 			RandomSeed: 100,
 		},
@@ -94,10 +105,7 @@ func SetupFakeRageSim() *Simulation {
 			},
 			Duration: 180,
 		},
-	}, simsignals.CreateSignals())
-	sim.Reset()
-
-	return sim
+	}
 }
 
 // Feeds a hand-crafted auto attack result to the Rage bar and returns the Rage gained from it.
@@ -117,7 +125,7 @@ func rageFromAutoAttack(sim *Simulation, fw *FakeRageWarrior, spell *Spell, outc
 }
 
 func TestAutoAttackRageGeneration(t *testing.T) {
-	// A one-hand MH swing at 2.6 speed: 2.6 * 3.46 = 8.996, whatever it dealt; a crit 8.996 * 1.75 = 15.743.
+	// A one-hand MH swing at 2.6 speed: 2.6 * 3.46 = 8.996, whatever it dealt; a crit adds the same again, 17.992.
 	const swingDamage = 500.0
 
 	tests := []struct {
@@ -133,7 +141,7 @@ func TestAutoAttackRageGeneration(t *testing.T) {
 		{
 			name:     "crit",
 			outcome:  OutcomeCrit,
-			wantRage: 15.743,
+			wantRage: 17.992,
 		},
 		{
 			name:     "glance",
@@ -172,7 +180,8 @@ func TestAutoAttackRageGeneration(t *testing.T) {
 }
 
 func TestTwoHandAutoAttackRageGeneration(t *testing.T) {
-	// A two-hand MH swing at 2.6 speed: 2.6 * 4.5 = 11.7.
+	// A two-hand MH swing at 2.6 speed: 2.6 * 4.5 = 11.7. A crit adds the swing's rage before the two-hand
+	// multiplier, 2.6 * 3.46 = 8.996, for 20.696.
 	const swingDamage = 500.0
 
 	sim := SetupFakeRageSim()
@@ -181,7 +190,12 @@ func TestTwoHandAutoAttackRageGeneration(t *testing.T) {
 
 	hitRage := rageFromAutoAttack(sim, fw, fw.AutoAttacks.MHAuto(), OutcomeHit, swingDamage)
 	if !WithinToleranceFloat64(11.7, hitRage, 0.001) {
-		t.Fatalf("Incorrect Rage generated on 2H hit: Expected: %0.3f, Actual: %0.3f", 11.695, hitRage)
+		t.Fatalf("Incorrect Rage generated on 2H hit: Expected: %0.3f, Actual: %0.3f", 11.7, hitRage)
+	}
+
+	critRage := rageFromAutoAttack(sim, fw, fw.AutoAttacks.MHAuto(), OutcomeCrit, swingDamage)
+	if !WithinToleranceFloat64(20.696, critRage, 0.001) {
+		t.Fatalf("Incorrect Rage generated on 2H crit: Expected: %0.3f, Actual: %0.3f", 20.696, critRage)
 	}
 }
 
@@ -206,18 +220,21 @@ func TestOffHandAutoAttackRageGeneration(t *testing.T) {
 
 func TestDamageTakenRageGeneration(t *testing.T) {
 	// 1000 damage before mitigation at level 60: 2.5 * 1000 / 230.6 = 10.841, and half that for a
-	// physical hit, which counts as if armor halved it.
+	// physical hit, which counts as if armor halved it. A periodic tick grants rage the same way.
 	const preMitigationDamage = 1000.0
 
 	tests := []struct {
 		name     string
 		school   SpellSchool
 		outcome  HitOutcome
+		periodic bool
 		wantRage float64
 	}{
 		{name: "physical hit", school: SpellSchoolPhysical, outcome: OutcomeHit, wantRage: 5.421},
 		{name: "fire hit", school: SpellSchoolFire, outcome: OutcomeHit, wantRage: 10.841},
 		{name: "dodge", school: SpellSchoolPhysical, outcome: OutcomeDodge, wantRage: 0},
+		{name: "nature tick", school: SpellSchoolNature, outcome: OutcomeHit, periodic: true, wantRage: 10.841},
+		{name: "physical tick", school: SpellSchoolPhysical, outcome: OutcomeHit, periodic: true, wantRage: 5.421},
 	}
 
 	for _, test := range tests {
@@ -232,8 +249,13 @@ func TestDamageTakenRageGeneration(t *testing.T) {
 				PreMitigationDamage: preMitigationDamage,
 			}
 
+			spell := &Spell{Unit: attacker, SpellSchool: test.school}
 			rageBefore := fw.CurrentRage()
-			fw.Unit.OnSpellHitTaken(sim, &Spell{Unit: attacker, SpellSchool: test.school}, result)
+			if test.periodic {
+				fw.Unit.OnPeriodicDamageTaken(sim, spell, result)
+			} else {
+				fw.Unit.OnSpellHitTaken(sim, spell, result)
+			}
 			gained := fw.CurrentRage() - rageBefore
 
 			if !WithinToleranceFloat64(test.wantRage, gained, 0.001) {

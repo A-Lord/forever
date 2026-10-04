@@ -117,8 +117,8 @@ func BenchmarkSimulate(b *testing.B) {
 	core.RaidBenchmark(b, rsr)
 }
 
-const DefaultTalents = "-503032132322105301251-05503301"
-const DemoRoarTalents = "-553032132322105301051-05503001"
+const DefaultTalents = "-50303231320221050012-05503301"
+const DemoRoarTalents = "-5530323132022105001-05503001"
 
 var DefaultSpecOptions = &proto.Player_FeralBearDruid{
 	FeralBearDruid: &proto.FeralBearDruid{

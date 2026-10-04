@@ -98,6 +98,73 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
+	// Blasts a target for 140 Fire damage.
+	// https://www.wowhead.com/forever/spell=1300753
+	// unsupported: states no rate
+	// trigger 1300753 (0%, core.CallbackEmpty, core.ProcMaskUnknown)
+	// shared.NewSpellDataDamageProc(shared.SpellDataProc{TriggerSpellID: 1300753, BuffSpellID: 1300753, IsWeaponProc: true},
+	//	[]shared.ItemVariant{
+	//	{ItemID: 1728, ItemName: "Teebu's Blazing Longsword"},
+	// })
+
+	// TODO: Manual implementation required
+	//       This can be ignored if the effect has already been implemented.
+	//       With next db run the item will be removed if implemented.
+	//
+	// Wounds the target for 102 damage.
+	// https://www.wowhead.com/forever/spell=18090
+	// unsupported: states no rate
+	// trigger 18090 (every time, core.CallbackEmpty, core.ProcMaskUnknown)
+	// shared.NewSpellDataDamageProc(shared.SpellDataProc{TriggerSpellID: 18090, BuffSpellID: 18090, IsWeaponProc: true},
+	//	[]shared.ItemVariant{
+	//	{ItemID: 1986, ItemName: "Gutrender"},
+	// })
+
+	// TODO: Manual implementation required
+	//       This can be ignored if the effect has already been implemented.
+	//       With next db run the item will be removed if implemented.
+	//
+	// Wounds the target for 108 damage.
+	// https://www.wowhead.com/forever/spell=18107
+	// unsupported: states no rate
+	// trigger 18107 (every time, core.CallbackEmpty, core.ProcMaskUnknown)
+	// shared.NewSpellDataDamageProc(shared.SpellDataProc{TriggerSpellID: 18107, BuffSpellID: 18107, IsWeaponProc: true},
+	//	[]shared.ItemVariant{
+	//	{ItemID: 2164, ItemName: "Gut Ripper"},
+	// })
+
+	// TODO: Manual implementation required
+	//       This can be ignored if the effect has already been implemented.
+	//       With next db run the item will be removed if implemented.
+	//
+	// Next spell cast within 4s will cast instantly.
+	// https://www.wowhead.com/forever/spell=18803
+	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
+	//	Callback:           core.CallbackEmpty,
+	//	ProcMask:           core.ProcMaskUnknown,
+	//	Outcome:            core.OutcomeEmpty,
+	//	RequireDamageDealt: false
+	// }, []shared.ItemVariant{
+	//	{ItemID: 2243, ItemName: "Hand of Edward the Odd"},
+	// })
+
+	// TODO: Manual implementation required
+	//       This can be ignored if the effect has already been implemented.
+	//       With next db run the item will be removed if implemented.
+	//
+	// Fires a Searing Arrow at the target for 28 Fire damage.
+	// https://www.wowhead.com/forever/spell=29638
+	// unsupported: states no rate
+	// trigger 29638 (0%, core.CallbackEmpty, core.ProcMaskUnknown)
+	// shared.NewSpellDataDamageProc(shared.SpellDataProc{TriggerSpellID: 29638, BuffSpellID: 29638, IsWeaponProc: true},
+	//	[]shared.ItemVariant{
+	//	{ItemID: 2825, ItemName: "Bow of Searing Arrows"},
+	// })
+
+	// TODO: Manual implementation required
+	//       This can be ignored if the effect has already been implemented.
+	//       With next db run the item will be removed if implemented.
+	//
 	// Launches a bolt of frost at the enemy causing 50 Frost damage and slowing movement speed by 50% for 5s.
 	// https://www.wowhead.com/forever/spell=13439
 	// unsupported: states no rate
@@ -220,7 +287,7 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
-	// Underwater breath lasts 100% longer than normal.
+	// Water breathing lasts 100% longer than normal.
 	// https://www.wowhead.com/forever/spell=1320643
 	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
 	//	Callback:           core.CallbackEmpty,
@@ -470,7 +537,7 @@ func RegisterAllProcs() {
 	//	Outcome:            core.OutcomeEmpty,
 	//	RequireDamageDealt: false
 	// }, []shared.ItemVariant{
-	//	{ItemID: 13503, ItemName: "Alchemists' Stone"},
+	//	{ItemID: 13503, ItemName: "Alchemist's Stone"},
 	// })
 
 	// TODO: Manual implementation required
@@ -2017,7 +2084,7 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
-	// Reduces the cooldown of your Tiger's Fury ability by 3 sec.
+	// Reduces the cooldown of your Shifting Power ability by 1 sec.
 	// https://www.wowhead.com/forever/spell=1291059
 	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
 	//	Callback:           core.CallbackEmpty,
@@ -2047,8 +2114,8 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
-	// Each of your heal over time effects on the target reduces Swiftmend's cooldown by 1 sec when you cast
-	// it.
+	// Each of your heal over time effects on the target reduces the remaining cooldown on Swiftmend by 1 sec
+	// when you cast it.
 	// https://www.wowhead.com/forever/spell=1291075
 	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
 	//	Callback:           core.CallbackEmpty,
@@ -2847,6 +2914,34 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
+	// Chance on hit to reduce the mana cost of your next spell cast within 10s by 24.
+	// https://www.wowhead.com/forever/spell=1294058
+	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
+	//	Callback:           core.CallbackEmpty,
+	//	ProcMask:           core.ProcMaskUnknown,
+	//	Outcome:            core.OutcomeEmpty,
+	//	RequireDamageDealt: false
+	// }, []shared.ItemVariant{
+	//	{ItemID: 274425, ItemName: "White Obsidian Wand"},
+	// })
+
+	// TODO: Manual implementation required
+	//       This can be ignored if the effect has already been implemented.
+	//       With next db run the item will be removed if implemented.
+	//
+	// While in combat, your healing spells have a chance to grant an ally 300 armor for 10s.
+	// https://www.wowhead.com/forever/spell=1294065
+	// unsupported: states no rate
+	// trigger 1294064 (no stated rate, core.CallbackOnHealDealt, core.ProcMaskSpellHealing) -> buff 1294065
+	// shared.NewSpellDataProc(shared.SpellDataProc{TriggerSpellID: 1294064, BuffSpellID: 1294065},
+	//	[]shared.ItemVariant{
+	//	{ItemID: 274430, ItemName: "Rock Sentinel Slicer"},
+	// })
+
+	// TODO: Manual implementation required
+	//       This can be ignored if the effect has already been implemented.
+	//       With next db run the item will be removed if implemented.
+	//
 	// https://www.wowhead.com/forever/spell=1318317
 	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
 	//	Callback:           core.CallbackEmpty,
@@ -2861,7 +2956,7 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
-	// Disease target for 25 Nature damage every 1.0 sec for 7s. Deals 2 times as much damage to Aquatic enemies.
+	// Diseases target for 25 Nature damage every 1.0 sec for 7s. Deals 2 times as much damage to Aquatic enemies.
 	// https://www.wowhead.com/forever/spell=1295744
 	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
 	//	Callback:           core.CallbackEmpty,
@@ -2902,7 +2997,7 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
-	// Chance on harmful spell cast to reduce target enemy's attack power by 60 for 30s.
+	// Chance on harmful spell cast to reduce target's attack power by 60 for 30s.
 	//
 	// https://www.wowhead.com/forever/spell=1297082
 	// unsupported: states no rate
@@ -2916,7 +3011,7 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
-	// Heals wielder of 182 damage over 14s.
+	// Heals the wielder for 182 damage over 14s.
 	// https://www.wowhead.com/forever/spell=1297357
 	// unsupported: states no rate
 	// trigger 1297357 (0%, core.CallbackEmpty, core.ProcMaskUnknown)
@@ -2944,7 +3039,7 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
-	// When struck in combat inflicts 3 Nature damage to the attacker.
+	// When struck in combat, inflicts 3 Nature damage to the attacker.
 	// https://www.wowhead.com/forever/spell=1297378
 	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
 	//	Callback:           core.CallbackEmpty,
@@ -2959,7 +3054,7 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
-	// When struck in combat inflicts 3 Nature damage to the attacker.
+	// When struck in combat, inflicts 3 Nature damage to the attacker.
 	// https://www.wowhead.com/forever/spell=1297910
 	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
 	//	Callback:           core.CallbackEmpty,
@@ -3004,7 +3099,7 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
-	// Increases the critical strike chance of your Lessing Healing Wave spell by 4%.
+	// Increases the critical strike chance of your Lesser Healing Wave spell by 4%.
 	// https://www.wowhead.com/forever/spell=1306448
 	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
 	//	Callback:           core.CallbackEmpty,
@@ -3019,7 +3114,7 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
-	// Reduces the cooldown on your Swiftmend spell by 3 sec.
+	// Reduces the cooldown of your Swiftmend spell by 3 sec.
 	// https://www.wowhead.com/forever/spell=1306488
 	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
 	//	Callback:           core.CallbackEmpty,
@@ -3107,7 +3202,7 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
-	// When struck in combat inflicts 2 Fire damage to the attacker.
+	// When struck in combat, inflicts 2 Fire damage to the attacker.
 	// https://www.wowhead.com/forever/spell=1312955
 	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
 	//	Callback:           core.CallbackEmpty,
@@ -3137,7 +3232,7 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
-	// Reduces target enemy's attack power by 60 for 30s.
+	// Reduces the target enemy's attack power by 60 for 30s.
 	// https://www.wowhead.com/forever/spell=1315767
 	// unsupported: states no rate
 	// trigger 1315767 (0%, core.CallbackEmpty, core.ProcMaskUnknown)
@@ -3217,6 +3312,14 @@ func RegisterAllProcs() {
 	shared.NewSpellDataHealProc(shared.SpellDataProc{TriggerSpellID: 8348, BuffSpellID: 8348, IsWeaponProc: true},
 		[]shared.ItemVariant{
 			{ItemID: 6660, ItemName: "Julie's Dagger"},
+		})
+
+	// When struck in combat has a 5% chance of inflicting 140 Shadow damage to the attacker.
+	// https://www.wowhead.com/forever/spell=1293421
+	// trigger 7619 (5%, core.CallbackOnSpellHitTaken, core.ProcMaskMeleeMHAuto | core.ProcMaskMeleeOHAuto | core.ProcMaskMeleeMHSpecial | core.ProcMaskMeleeOHSpecial | core.ProcMaskRangedAuto | core.ProcMaskRangedSpecial) -> buff 1293421
+	shared.NewSpellDataDamageProc(shared.SpellDataProc{TriggerSpellID: 7619, BuffSpellID: 1293421},
+		[]shared.ItemVariant{
+			{ItemID: 7747, ItemName: "Vile Protector"},
 		})
 
 	// When struck in combat has a 3% chance to heal you for 80.

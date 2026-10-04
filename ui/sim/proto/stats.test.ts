@@ -3,16 +3,16 @@ import { describe, expect, it, vi } from 'vitest';
 
 // `stats.ts` only needs localization for display names, and `@i18n/localization` drags the whole
 // i18next bootstrap in with it. Stubbing it keeps this file about the stat model.
-vi.mock('@i18n/localization', async () => (await import('./testing')).localizationStub);
+vi.mock('@i18n/localization', async () => (await import('@testing/sim/localization')).localizationStub);
 
 import * as Mechanics from '../constants/mechanics';
-import { displayStatOrder, Stats, UnitStat } from './stats';
+import { Stats, UnitStat } from './stats';
 
 describe('UnitStat', () => {
 	// `displayStatOrder` is built at module scope, so a throw inside getRootStat there takes every
 	// transitive importer down with it.
 	it('builds displayStatOrder at module scope over the 38-stat shape', () => {
-		expect(displayStatOrder.length).toBeGreaterThan(0);
+		expect(UnitStat.createDisplayStatArray([Stat.StatHealth], []).length).toBe(1);
 		expect(new Stats().asProtoArray().length).toBe(38);
 	});
 
@@ -67,7 +67,7 @@ describe('UnitStat', () => {
 		];
 		for (const rating of ratings) {
 			expect(UnitStat.fromPseudoStat(rating).hasRootStat()).toBe(false);
-			expect(UnitStat.fromPseudoStat(rating).convertDefaultUnitsToRating(10)).toBeNull();
+			expect(UnitStat.fromPseudoStat(rating).convertPercentToRating(10)).toBeNull();
 		}
 	});
 

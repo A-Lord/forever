@@ -5,6 +5,7 @@ import (
 
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/simsignals"
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
@@ -238,19 +239,90 @@ func TestSheetRangedRatingShowsTheRangedOnlyPercent(t *testing.T) {
 	})
 }
 
+// The ranged offsets the test suite's stats snapshot records: the sheet's ranged row less the physical
+// percent.
+func sheetRangedOffsets(character *Character) (hit, crit float64) {
+	pseudoStats := character.GetPseudoStatsProto()
+	return pseudoStats[proto.PseudoStat_PseudoStatRangedHitPercent] - character.GetStat(stats.PhysicalHitPercent),
+		pseudoStats[proto.PseudoStat_PseudoStatRangedCritPercent] - character.GetStat(stats.PhysicalCritPercent)
+}
+
 func TestSheetRangedOffsetsLeaveOutTheMainHandsMods(t *testing.T) {
 	sim, character := NewWeaponTestSim(t, proto.Race_RaceUndead, WeaponTestSlots(WeaponTestSwordID, WeaponTestDaggerID, WeaponTestBowID), nil, nil)
-	hitBefore, critBefore := character.sheetRangedOffsets()
+	hitBefore, critBefore := sheetRangedOffsets(character)
 	character.AddStaticMod(SpellModConfig{Kind: SpellMod_BonusCrit_Percent, FloatValue: 5, ProcMask: ProcMaskMelee,
 		EquipSubclass: WeaponSubclassMask(proto.WeaponType_WeaponTypeSword)})
 	character.AddStatDynamic(sim, stats.RangedHitPercent, 2)
 	character.AddStaticMod(SpellModConfig{Kind: SpellMod_BonusHit_Percent, FloatValue: 1, ProcMask: ProcMaskRanged, EquipSubclass: dbcenums.ITEM_SUBCLASS_MASK_WEAPON_SHOOTING})
-	hitAfter, critAfter := character.sheetRangedOffsets()
+	hitAfter, critAfter := sheetRangedOffsets(character)
 
 	if got := critAfter - critBefore; got != 0 {
 		t.Errorf("a sword's crit moved the ranged crit offset by %v, want 0", got)
 	}
 	if got := hitAfter - hitBefore; !WithinToleranceFloat64(3, got, 1e-9) {
 		t.Errorf("ranged hit and a ranged hit mod moved the ranged hit offset by %v, want 3", got)
+	}
+}
+
+// The weapon tester has no crit beyond its base crit, so the level 63 target takes 3% off its autos
+// and up to 1.8% more of any crit a buff adds. The sheet's crit less the suppression is the autos' crit.
+func TestSheetCritSuppressionIsTheAutosAgainstTheTarget(t *testing.T) {
+	sim, character := NewWeaponTestSim(t, proto.Race_RaceUndead, WeaponTestSlots(WeaponTestSwordID, WeaponTestDaggerID, WeaponTestBowID), nil, nil)
+	table := character.AttackTables[character.CurrentTarget.UnitIndex]
+	for _, tc := range []struct {
+		buffCrit, want float64
+	}{
+		{0, 3.0},
+		{1, 4.0},
+		{2, 4.8},
+		{20, 4.8},
+	} {
+		character.AddStatDynamic(sim, stats.PhysicalCritPercent, tc.buffCrit)
+		pseudoStats := character.GetPseudoStatsProto()
+		for _, row := range []struct {
+			name              string
+			suppression, crit proto.PseudoStat
+			auto              *Spell
+		}{
+			{"melee", proto.PseudoStat_PseudoStatMeleeCritSuppressionPercent, proto.PseudoStat_PseudoStatMeleeCritPercent, character.AutoAttacks.MHAuto()},
+			{"ranged", proto.PseudoStat_PseudoStatRangedCritSuppressionPercent, proto.PseudoStat_PseudoStatRangedCritPercent, character.AutoAttacks.RangedAuto()},
+		} {
+			if got := pseudoStats[row.suppression]; !WithinToleranceFloat64(tc.want, got, 1e-9) {
+				t.Errorf("%v%% crit buff: the %s row shows %v%% suppression, want %v%%", tc.buffCrit, row.name, got, tc.want)
+			}
+			shown := max(pseudoStats[row.crit]-pseudoStats[row.suppression]-table.Defender.PseudoStats.ReducedCritTakenPercent*100, 0)
+			if rolled := row.auto.PhysicalCritChance(table) * 100; !WithinToleranceFloat64(rolled, shown, 1e-9) {
+				t.Errorf("%v%% crit buff: the %s row shows %v%% crit after suppression, the auto rolls %v%%", tc.buffCrit, row.name, shown, rolled)
+			}
+		}
+		character.AddStatDynamic(sim, stats.PhysicalCritPercent, -tc.buffCrit)
+	}
+}
+
+func TestSheetMainHandTableIsTheMainHandAutoAgainstTheTarget(t *testing.T) {
+	for _, tc := range []struct {
+		swordSkill                 int32
+		miss, dodge, parry, glance float64
+	}{
+		{300, 8, 6.5, 14, 40},
+		{285, 11, 8, 23, 70},
+	} {
+		raid := weaponTestRaid(proto.Race_RaceUndead, WeaponTestSlots(WeaponTestSwordID, 0, 0), nil)
+		raid.Parties[0].Players[0].WeaponSkills = []*proto.WeaponSkillValue{{Skill: proto.WeaponSkill_WeaponSkillSwords, Value: tc.swordSkill}}
+		sim := NewSim(&proto.RaidSimRequest{SimOptions: &proto.SimOptions{RandomSeed: 1}, Raid: raid, Encounter: weaponTestEncounter()}, simsignals.CreateSignals())
+		pseudoStats := sim.Raid.Parties[0].Players[0].GetCharacter().GetPseudoStatsProto()
+		for _, row := range []struct {
+			pseudoStat proto.PseudoStat
+			want       float64
+		}{
+			{proto.PseudoStat_PseudoStatMainHandMissPercent, tc.miss},
+			{proto.PseudoStat_PseudoStatMainHandDodgePercent, tc.dodge},
+			{proto.PseudoStat_PseudoStatMainHandParryPercent, tc.parry},
+			{proto.PseudoStat_PseudoStatMainHandGlancePercent, tc.glance},
+		} {
+			if got := pseudoStats[row.pseudoStat]; !WithinToleranceFloat64(row.want, got, 1e-9) {
+				t.Errorf("%d sword skill against a level 63 target: the sheet shows %v for %s, want %v", tc.swordSkill, got, row.pseudoStat, row.want)
+			}
+		}
 	}
 }

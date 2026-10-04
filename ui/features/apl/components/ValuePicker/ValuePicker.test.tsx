@@ -1,6 +1,6 @@
-import { makePlayer } from '@features/apl/testing';
 import { APLRotation, APLValue } from '@generated/proto/apl';
 import { SimHostProvider } from '@sim/context/SimHostContext';
+import { makePlayer } from '@testing/apl/player';
 import { act, render } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -18,7 +18,7 @@ const source = vi.hoisted(() => {
 	};
 });
 
-vi.mock('@sim/state/subscriptions', async () => (await import('@sim/testing')).mockSubscriptions(source.subscribe));
+vi.mock('@sim/state/subscriptions', async () => (await import('@testing/sim/subscriptions')).mockSubscriptions(source.subscribe));
 vi.mock('@i18n/config', () => ({ default: { t: (key: string) => key } }));
 
 // Statically imported for every test that is not about the cycle. The two that are reset the

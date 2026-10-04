@@ -3,18 +3,15 @@ import { type ReactNode, useState } from 'react';
 import { expect, fireEvent, fn, screen, userEvent, within } from 'storybook/test';
 
 import { Tree } from './index';
-import type { TreeDensity, TreeDropRef, TreeLayout, TreeMove, TreeOrientation, TreeRef } from './types';
+import type { TreeDensity, TreeDropRef, TreeLayout, TreeMove, TreeRef } from './types';
 
 const DENSITIES: Array<TreeDensity> = ['default', 'compact'];
 const LAYOUTS: Array<TreeLayout> = ['default', 'inline'];
-const ORIENTATIONS: Array<TreeOrientation> = ['vertical', 'horizontal'];
 
 interface TreeStoryProps {
 	density?: TreeDensity;
 	layout?: TreeLayout;
-	orientation?: TreeOrientation;
 	disabled?: boolean;
-	defaultOpen?: boolean;
 	onAdd?: () => void;
 	onDelete?: () => void;
 	onMove?: (move: TreeMove) => void;
@@ -22,22 +19,8 @@ interface TreeStoryProps {
 
 const ROWS = ['Opener', 'Main priority', 'Cooldowns'];
 
-const Row = ({
-	id,
-	title,
-	defaultOpen,
-	onDelete,
-	testId,
-	children,
-}: {
-	id: string;
-	title: string;
-	defaultOpen?: boolean;
-	onDelete?: () => void;
-	testId?: string;
-	children?: ReactNode;
-}) => (
-	<Tree.Item id={id} defaultOpen={defaultOpen} testId={testId}>
+const Row = ({ id, title, onDelete, testId, children }: { id: string; title: string; onDelete?: () => void; testId?: string; children?: ReactNode }) => (
+	<Tree.Item id={id} testId={testId}>
 		<Tree.Item.Header>
 			<Tree.Item.Handle label={`Move ${title}`} />
 			<Tree.Item.Title>{title}</Tree.Item.Title>
@@ -52,11 +35,11 @@ const Row = ({
 	</Tree.Item>
 );
 
-const TreeStory = ({ density, layout, orientation, disabled, defaultOpen, onAdd = () => {}, onDelete }: TreeStoryProps) => (
-	<Tree.Root density={density} layout={layout} orientation={orientation} disabled={disabled}>
+const TreeStory = ({ density, layout, disabled, onAdd = () => {}, onDelete }: TreeStoryProps) => (
+	<Tree.Root density={density} layout={layout} disabled={disabled}>
 		<Tree.Items>
 			{ROWS.map(title => (
-				<Row key={title} id={title} title={title} defaultOpen={defaultOpen} onDelete={onDelete} />
+				<Row key={title} id={title} title={title} onDelete={onDelete} />
 			))}
 		</Tree.Items>
 		<Tree.AddButton label="New row" onClick={onAdd} />
@@ -195,7 +178,6 @@ const meta = {
 	argTypes: {
 		density: { control: 'select', options: DENSITIES },
 		layout: { control: 'select', options: LAYOUTS },
-		orientation: { control: 'select', options: ORIENTATIONS },
 	},
 } satisfies Meta<typeof TreeStory>;
 
@@ -233,16 +215,13 @@ export const Inline: Story = {
 	render: ({ onDelete }) => <InlineTree onDelete={onDelete} />,
 };
 
-export const Horizontal: Story = { args: { orientation: 'horizontal' } };
-
 export const Collapsed: Story = {
-	args: { defaultOpen: false },
 	play: async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
 		const toggle = canvas.getByRole('button', { name: 'Toggle Opener' });
-		await expect(toggle).toHaveAttribute('aria-expanded', 'false');
-		await userEvent.click(toggle);
 		await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+		await userEvent.click(toggle);
+		await expect(toggle).toHaveAttribute('aria-expanded', 'false');
 	},
 };
 

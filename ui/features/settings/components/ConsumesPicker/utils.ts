@@ -28,6 +28,9 @@ export interface ConsumeConfigs {
 	scrolls: Array<ConsumeConfig>;
 	groups: Array<ConsumeConfig>;
 	food: ConsumeConfig;
+	// A world event's consumables: one pick per exclusive group holding one, and the rest each on its own.
+	holidayGroups: Array<ConsumeConfig>;
+	holiday: Array<ConsumeToggle>;
 	explosive: ConsumeConfig;
 	explosiveExtras: Array<ConsumeToggle>;
 	mhImbue: ConsumeConfig;
@@ -35,7 +38,7 @@ export interface ConsumeConfigs {
 	miscellaneous: Array<ConsumeToggle>;
 }
 
-type GroupRow = 'elixirs' | 'scrolls' | 'groups';
+type GroupRow = 'elixirs' | 'scrolls' | 'holiday' | 'groups';
 
 export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfigs => {
 	const all = db.getConsumables();
@@ -49,8 +52,10 @@ export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfig
 		if (list) list.push(consumable);
 		else map.set(key, [consumable]);
 	};
+	const holiday: Array<Consumable> = [];
 	for (const consumable of all) {
 		if (consumable.groupKey) add(byGroup, consumable.groupKey, consumable);
+		else if (consumable.holiday) holiday.push(consumable);
 		else add(bySlot, consumableSlot(consumable), consumable);
 	}
 	const inSlot = (slot: ConsumableSlot) => bySlot.get(slot) ?? [];
@@ -60,7 +65,13 @@ export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfig
 	const groups = [...byGroup.keys()].sort((a, b) => a.localeCompare(b, 'en', { numeric: true })).map(key => byGroup.get(key)!);
 	const holds = (group: Array<Consumable>, type: ConsumableType) => group.some(consumable => consumable.type === type);
 	const rowOf = (group: Array<Consumable>): GroupRow =>
-		holds(group, ConsumableType.ConsumableTypeElixir) ? 'elixirs' : holds(group, ConsumableType.ConsumableTypeScroll) ? 'scrolls' : 'groups';
+		holds(group, ConsumableType.ConsumableTypeElixir)
+			? 'elixirs'
+			: holds(group, ConsumableType.ConsumableTypeScroll)
+				? 'scrolls'
+				: group.some(consumable => consumable.holiday)
+					? 'holiday'
+					: 'groups';
 	const groupInputs = (row: GroupRow) =>
 		groups.filter(group => rowOf(group) === row).map(group => makeConsumableGroupInput(group, relevance, group[0].groupName));
 	const explosives = inSlot(ConsumableSlot.Explosive);
@@ -75,6 +86,8 @@ export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfig
 		scrolls: groupInputs('scrolls'),
 		groups: groupInputs('groups'),
 		food: input(ConsumableSlot.Food, { consumesFieldName: 'foodId' }),
+		holidayGroups: groupInputs('holiday'),
+		holiday: holiday.map(consumable => makeIdListInput(consumable, relevance)),
 		explosive: input(
 			ConsumableSlot.Explosive,
 			{ consumesFieldName: 'explosiveId', tooltip: i18n.t('settings_tab.consumables.engineering.explosives') },

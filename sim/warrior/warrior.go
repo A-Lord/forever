@@ -3,11 +3,10 @@ package warrior
 import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
-	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-var TalentTreeSizes = [3]int{17, 18, 18}
+var TalentTreeSizes = [3]int{17, 17, 18}
 
 type WarriorInputs struct {
 	UseBattleShout bool
@@ -54,7 +53,8 @@ type Warrior struct {
 	Taunt             *core.Spell
 	VictoryRush       *core.Spell
 
-	EnrageAura *core.Aura
+	EnrageAura      *core.Aura
+	GoreDrinkerAura *core.Aura
 
 	SweepingStrikesAura *core.Aura
 	OverpowerAura       *core.Aura
@@ -145,9 +145,6 @@ func NewWarrior(character *core.Character, options *proto.WarriorOptions, talent
 		BaseRageMultiplier: 1,
 		StartingRage:       inputs.StartingRage,
 	})
-	// Here rather than with the talents: the racial that scales the maximum rage runs before them and
-	// scales Boundless Rage's share too.
-	spelldata.ParseStatic(&warrior.Character, spellData.BoundlessRage.Rank(warrior.Talents.BoundlessRage))
 
 	warrior.EnableAutoAttacks(warrior, core.AutoAttackOptions{
 		MainHand:       warrior.WeaponFromMainHand(),
@@ -156,15 +153,9 @@ func NewWarrior(character *core.Character, options *proto.WarriorOptions, talent
 	})
 
 	warrior.PseudoStats.CanParry = true
-	// TODO: In-game testing required
-	warrior.PseudoStats.BaseDodgeChance += 0.0075
-	warrior.PseudoStats.BaseParryChance += 0.05
-	warrior.PseudoStats.BaseBlockChance += 0.05
 
 	warrior.AddStatDependency(stats.Strength, stats.AttackPower, 2)
-	warrior.AddStatDependency(stats.Strength, stats.BlockValue, 1/20.0)
 	warrior.AddStatDependency(stats.Agility, stats.PhysicalCritPercent, core.CritPerAgiMaxLevel[character.Class])
-	warrior.AddStatDependency(stats.Agility, stats.DodgeRating, core.DodgeRatingPerAgility[character.Class])
 	warrior.AddStatDependency(stats.BonusArmor, stats.Armor, 1)
 
 	return warrior

@@ -12,8 +12,7 @@ const renderRow = (props: Partial<ItemListHeaderRowProps> = {}) => {
 	const { container } = render(
 		<ItemListHeaderRow
 			label={SelectorModalTabs.Items}
-			showEPValues
-			epTooltipId="ep-tooltip"
+			ep={{ showValues: true, tooltipId: 'ep-tooltip' }}
 			sortBy={ItemListSortBy.EP}
 			sortDirection={SortDirection.DESC}
 			onSort={onSort}
@@ -25,12 +24,16 @@ const renderRow = (props: Partial<ItemListHeaderRowProps> = {}) => {
 };
 
 describe('ItemListHeaderRow', () => {
-	it('gives the ilvl, source and compare columns to the items tab alone', () => {
-		expect(renderRow().headers).toEqual(['ilvl-label', 'item-label', 'source-label', 'ep-label', 'favorite-label', 'compare-label']);
-	});
-
-	it('keeps the item, EP and favourite columns on another tab', () => {
-		expect(renderRow({ label: SelectorModalTabs.Enchants }).headers).toEqual(['item-label', 'ep-label', 'favorite-label']);
+	it.each([
+		[
+			'the items tab, the only one with source and compare columns',
+			{},
+			['ilvl-label', 'item-label', 'source-label', 'ep-label', 'favorite-label', 'compare-label'],
+		],
+		['the random suffix tab', { label: SelectorModalTabs.RandomSuffixes }, ['item-label', 'ep-label', 'favorite-label']],
+		['the enchants tab, without an EP column', { label: SelectorModalTabs.Enchants, ep: undefined }, ['ilvl-label', 'item-label', 'favorite-label']],
+	] as const)('lays out the headers of %s', (_, props, headers) => {
+		expect(renderRow(props).headers).toEqual(headers);
 	});
 
 	it('sorts by item level and by EP from their headers', () => {
@@ -53,12 +56,12 @@ describe('ItemListHeaderRow', () => {
 	});
 
 	it('hides the EP header when EP values are off', () => {
-		renderRow({ showEPValues: false });
+		renderRow({ ep: { showValues: false, tooltipId: 'ep-tooltip' } });
 		expect(screen.getByTestId('ep-label').style.display).toBe('none');
 	});
 
 	it('anchors the EP help at the tooltip it is given', () => {
-		renderRow({ epTooltipId: 'the-ep-tooltip' });
+		renderRow({ ep: { showValues: true, tooltipId: 'the-ep-tooltip' } });
 		expect(screen.getByRole('button', { name: i18n.t('gear_tab.gear_picker.ep_tooltip') }).getAttribute('data-tooltip-id')).toBe('the-ep-tooltip');
 	});
 });

@@ -359,36 +359,30 @@
 						"unknown": {
 							"type": "string"
 						},
-						"kara": {
+						"mc": {
 							"type": "string"
 						},
-						"gruuls": {
+						"ony": {
 							"type": "string"
 						},
-						"mag": {
+						"bwl": {
 							"type": "string"
 						},
-						"tk": {
+						"zg": {
 							"type": "string"
 						},
-						"ssc": {
+						"aq20": {
 							"type": "string"
 						},
-						"mh": {
+						"aq40": {
 							"type": "string"
 						},
-						"bt": {
-							"type": "string"
-						},
-						"za": {
-							"type": "string"
-						},
-						"swp": {
+						"naxx": {
 							"type": "string"
 						}
 					},
 					"additionalProperties": false,
-					"required": ["unknown", "kara", "gruuls", "mag", "tk", "ssc", "mh", "bt", "za", "swp"]
+					"required": ["unknown", "mc", "ony", "bwl", "zg", "aq20", "aq40", "naxx"]
 				},
 				"armor_types": {
 					"type": "object",
@@ -474,6 +468,74 @@
 					"additionalProperties": false,
 					"required": ["unknown", "bow", "crossbow", "gun", "thrown", "wand"]
 				},
+				"weapon_skills": {
+					"type": "object",
+					"properties": {
+						"unknown": {
+							"type": "string"
+						},
+						"axes": {
+							"type": "string"
+						},
+						"two_handed_axes": {
+							"type": "string"
+						},
+						"maces": {
+							"type": "string"
+						},
+						"two_handed_maces": {
+							"type": "string"
+						},
+						"swords": {
+							"type": "string"
+						},
+						"two_handed_swords": {
+							"type": "string"
+						},
+						"polearms": {
+							"type": "string"
+						},
+						"staves": {
+							"type": "string"
+						},
+						"daggers": {
+							"type": "string"
+						},
+						"fist_weapons": {
+							"type": "string"
+						},
+						"bows": {
+							"type": "string"
+						},
+						"crossbows": {
+							"type": "string"
+						},
+						"guns": {
+							"type": "string"
+						},
+						"thrown": {
+							"type": "string"
+						}
+					},
+					"additionalProperties": false,
+					"required": [
+						"unknown",
+						"axes",
+						"two_handed_axes",
+						"maces",
+						"two_handed_maces",
+						"swords",
+						"two_handed_swords",
+						"polearms",
+						"staves",
+						"daggers",
+						"fist_weapons",
+						"bows",
+						"crossbows",
+						"guns",
+						"thrown"
+					]
+				},
 				"spell_schools": {
 					"type": "object",
 					"properties": {
@@ -557,37 +619,6 @@
 						"burning_embers",
 						"generic_resource"
 					]
-				},
-				"item_qualities": {
-					"type": "object",
-					"properties": {
-						"junk": {
-							"type": "string"
-						},
-						"common": {
-							"type": "string"
-						},
-						"uncommon": {
-							"type": "string"
-						},
-						"rare": {
-							"type": "string"
-						},
-						"epic": {
-							"type": "string"
-						},
-						"legendary": {
-							"type": "string"
-						},
-						"artifact": {
-							"type": "string"
-						},
-						"heirloom": {
-							"type": "string"
-						}
-					},
-					"additionalProperties": false,
-					"required": ["junk", "common", "uncommon", "rare", "epic", "legendary", "artifact", "heirloom"]
 				},
 				"stats": {
 					"type": "object",
@@ -742,6 +773,24 @@
 						"ranged_crit_rating": {
 							"type": "string"
 						},
+						"melee_crit_suppression": {
+							"type": "string"
+						},
+						"ranged_crit_suppression": {
+							"type": "string"
+						},
+						"main_hand_miss": {
+							"type": "string"
+						},
+						"main_hand_dodge": {
+							"type": "string"
+						},
+						"main_hand_parry": {
+							"type": "string"
+						},
+						"main_hand_glance": {
+							"type": "string"
+						},
 						"healing_power": {
 							"type": "string"
 						},
@@ -867,6 +916,12 @@
 						"off_hand_crit_rating",
 						"ranged_hit_rating",
 						"ranged_crit_rating",
+						"melee_crit_suppression",
+						"ranged_crit_suppression",
+						"main_hand_miss",
+						"main_hand_dodge",
+						"main_hand_parry",
+						"main_hand_glance",
 						"healing_power",
 						"spell_damage",
 						"arcane_damage",
@@ -1061,9 +1116,9 @@
 				"armor_types",
 				"weapon_types",
 				"ranged_weapon_types",
+				"weapon_skills",
 				"spell_schools",
 				"resource_types",
-				"item_qualities",
 				"stats",
 				"currency",
 				"copy_button",
@@ -1199,19 +1254,6 @@
 				"title": {
 					"type": "string"
 				},
-				"gem_summary": {
-					"type": "object",
-					"properties": {
-						"title": {
-							"type": "string"
-						},
-						"reset_gems": {
-							"type": "string"
-						}
-					},
-					"additionalProperties": false,
-					"required": ["title", "reset_gems"]
-				},
 				"reforge_success": {
 					"type": "object",
 					"properties": {
@@ -1258,19 +1300,10 @@
 								},
 								"enchants": {
 									"type": "string"
-								},
-								"gem1": {
-									"type": "string"
-								},
-								"gem2": {
-									"type": "string"
-								},
-								"gem3": {
-									"type": "string"
 								}
 							},
 							"additionalProperties": false,
-							"required": ["items", "random_suffix", "enchants", "gem1", "gem2", "gem3"]
+							"required": ["items", "random_suffix", "enchants"]
 						},
 						"remove_buttons": {
 							"type": "object",
@@ -1280,13 +1313,10 @@
 								},
 								"remove_random_suffix": {
 									"type": "string"
-								},
-								"remove_gem": {
-									"type": "string"
 								}
 							},
 							"additionalProperties": false,
-							"required": ["remove_enchant", "remove_random_suffix", "remove_gem"]
+							"required": ["remove_enchant", "remove_random_suffix"]
 						},
 						"filters": {
 							"type": "object",
@@ -1335,22 +1365,6 @@
 						"quick_popovers": {
 							"type": "object",
 							"properties": {
-								"favorite_gems": {
-									"type": "object",
-									"properties": {
-										"title": {
-											"type": "string"
-										},
-										"empty_message": {
-											"type": "string"
-										},
-										"open_gems": {
-											"type": "string"
-										}
-									},
-									"additionalProperties": false,
-									"required": ["title", "empty_message", "open_gems"]
-								},
 								"favorite_enchants": {
 									"type": "object",
 									"properties": {
@@ -1369,7 +1383,7 @@
 								}
 							},
 							"additionalProperties": false,
-							"required": ["favorite_gems", "favorite_enchants"]
+							"required": ["favorite_enchants"]
 						},
 						"missing_gear_message": {
 							"type": "object",
@@ -1524,7 +1538,7 @@
 				}
 			},
 			"additionalProperties": false,
-			"required": ["title", "gem_summary", "reforge_success", "gear_sets", "gear_picker", "preset_configurations", "upgrade_summary"]
+			"required": ["title", "reforge_success", "gear_sets", "gear_picker", "preset_configurations", "upgrade_summary"]
 		},
 		"settings_tab": {
 			"type": "object",
@@ -2195,7 +2209,7 @@
 							"additionalProperties": false,
 							"required": ["label", "tooltip"]
 						},
-						"show_matching_gems": {
+						"show_all_enchants": {
 							"type": "object",
 							"properties": {
 								"label": {
@@ -2409,7 +2423,7 @@
 						"sync_type",
 						"show_1h_weapons",
 						"show_2h_weapons",
-						"show_matching_gems",
+						"show_all_enchants",
 						"show_ep_values",
 						"phase_selector",
 						"enable_item_swap",
@@ -2497,6 +2511,16 @@
 							"additionalProperties": false,
 							"required": ["title"]
 						},
+						"holiday": {
+							"type": "object",
+							"properties": {
+								"title": {
+									"type": "string"
+								}
+							},
+							"additionalProperties": false,
+							"required": ["title"]
+						},
 						"engineering": {
 							"type": "object",
 							"properties": {
@@ -2548,7 +2572,7 @@
 						}
 					},
 					"additionalProperties": false,
-					"required": ["title", "filters", "potions", "elixirs", "food", "engineering", "imbue", "scrolls", "miscellaneous"]
+					"required": ["title", "filters", "potions", "elixirs", "food", "holiday", "engineering", "imbue", "scrolls", "miscellaneous"]
 				},
 				"encounter": {
 					"type": "object",
@@ -3333,9 +3357,15 @@
 						"total_iterations": {
 							"type": "string"
 						},
+						"total_iterations_tooltip": {
+							"type": "string"
+						},
 						"groups": {
 							"type": "object",
 							"properties": {
+								"enchants": {
+									"type": "string"
+								},
 								"frozen_slots": {
 									"type": "string"
 								},
@@ -3347,7 +3377,7 @@
 								}
 							},
 							"additionalProperties": false,
-							"required": ["frozen_slots", "reforge", "reforge_description"]
+							"required": ["enchants", "frozen_slots", "reforge", "reforge_description"]
 						},
 						"iterations": {
 							"type": "string"
@@ -3406,18 +3436,92 @@
 							},
 							"additionalProperties": false,
 							"required": ["mainhand_label", "offhand_label", "tooltip"]
+						},
+						"enchant_presets": {
+							"type": "object",
+							"properties": {
+								"description": {
+									"type": "string"
+								},
+								"empty": {
+									"type": "string"
+								},
+								"new": {
+									"type": "string"
+								},
+								"edit": {
+									"type": "string"
+								},
+								"delete": {
+									"type": "string"
+								},
+								"delete_confirm": {
+									"type": "string"
+								},
+								"new_title": {
+									"type": "string"
+								},
+								"edit_title": {
+									"type": "string"
+								},
+								"name": {
+									"type": "string"
+								},
+								"name_duplicate": {
+									"type": "string"
+								},
+								"name_placeholder": {
+									"type": "string"
+								},
+								"show_all": {
+									"type": "string"
+								},
+								"show_all_tooltip": {
+									"type": "string"
+								},
+								"slot_weapons": {
+									"type": "string"
+								},
+								"slot_off_hand": {
+									"type": "string"
+								},
+								"save": {
+									"type": "string"
+								}
+							},
+							"additionalProperties": false,
+							"required": [
+								"description",
+								"empty",
+								"new",
+								"edit",
+								"delete",
+								"delete_confirm",
+								"new_title",
+								"edit_title",
+								"name",
+								"name_duplicate",
+								"name_placeholder",
+								"show_all",
+								"show_all_tooltip",
+								"slot_weapons",
+								"slot_off_hand",
+								"save"
+							]
 						}
 					},
 					"additionalProperties": false,
 					"required": [
 						"combinations",
 						"total_iterations",
+						"total_iterations_tooltip",
 						"groups",
 						"iterations",
 						"freeze_ring",
 						"freeze_trinket",
 						"freeze_weapon",
-						"freeze_weapon_types"
+						"freeze_weapon_types",
+						"enchant_presets"
 					]
 				},
 				"progress": {
@@ -3509,6 +3613,12 @@
 						"no_items": {
 							"type": "string"
 						},
+						"add_items": {
+							"type": "string"
+						},
+						"add_items_to": {
+							"type": "string"
+						},
 						"remove_tooltip": {
 							"type": "string"
 						},
@@ -3523,7 +3633,7 @@
 						}
 					},
 					"additionalProperties": false,
-					"required": ["no_items", "remove_tooltip", "frozen_tooltip", "failed_update", "failed_remove"]
+					"required": ["no_items", "add_items", "add_items_to", "remove_tooltip", "frozen_tooltip", "failed_update", "failed_remove"]
 				},
 				"results": {
 					"type": "object",
@@ -4683,6 +4793,32 @@
 									"required": ["label", "tooltip"]
 								},
 								"boss_current_target": {
+									"type": "object",
+									"properties": {
+										"label": {
+											"type": "string"
+										},
+										"tooltip": {
+											"type": "string"
+										}
+									},
+									"additionalProperties": false,
+									"required": ["label", "tooltip"]
+								},
+								"target_is_mob_type": {
+									"type": "object",
+									"properties": {
+										"label": {
+											"type": "string"
+										},
+										"tooltip": {
+											"type": "string"
+										}
+									},
+									"additionalProperties": false,
+									"required": ["label", "tooltip"]
+								},
+								"encounter_in_area": {
 									"type": "object",
 									"properties": {
 										"label": {
@@ -5903,6 +6039,8 @@
 								"boss_cast",
 								"boss_cast_time_to_ready",
 								"boss_current_target",
+								"target_is_mob_type",
+								"encounter_in_area",
 								"unit_is_moving",
 								"distance_to_unit",
 								"current_health",
@@ -6354,9 +6492,6 @@
 										"type": {
 											"type": "string"
 										},
-										"strategy": {
-											"type": "string"
-										},
 										"buff_type": {
 											"type": "string"
 										},
@@ -6385,7 +6520,6 @@
 									"additionalProperties": false,
 									"required": [
 										"type",
-										"strategy",
 										"buff_type",
 										"min_icd",
 										"min_icd_tooltip",
@@ -6424,22 +6558,6 @@
 									},
 									"additionalProperties": false,
 									"required": ["single_target", "aoe"]
-								},
-								"hotw_strategies": {
-									"type": "object",
-									"properties": {
-										"caster": {
-											"type": "string"
-										},
-										"cat": {
-											"type": "string"
-										},
-										"hybrid": {
-											"type": "string"
-										}
-									},
-									"additionalProperties": false,
-									"required": ["caster", "cat", "hybrid"]
 								},
 								"unit_labels": {
 									"type": "object",
@@ -6507,7 +6625,6 @@
 								"field_configs",
 								"eclipse_types",
 								"rotation_types",
-								"hotw_strategies",
 								"unit_labels",
 								"placeholder_tooltip",
 								"select_variable",
@@ -6934,7 +7051,36 @@
 						"hunter": {
 							"type": "object",
 							"properties": {
-								"melee_weave": {
+								"playstyle": {
+									"type": "object",
+									"properties": {
+										"label": {
+											"type": "string"
+										},
+										"tooltip": {
+											"type": "string"
+										},
+										"values": {
+											"type": "object",
+											"properties": {
+												"turret": {
+													"type": "string"
+												},
+												"weave": {
+													"type": "string"
+												},
+												"melee": {
+													"type": "string"
+												}
+											},
+											"additionalProperties": false,
+											"required": ["turret", "weave", "melee"]
+										}
+									},
+									"additionalProperties": false,
+									"required": ["label", "tooltip", "values"]
+								},
+								"time_to_weave": {
 									"type": "object",
 									"properties": {
 										"label": {
@@ -6947,7 +7093,7 @@
 									"additionalProperties": false,
 									"required": ["label", "tooltip"]
 								},
-								"time_to_weave": {
+								"use_aimed": {
 									"type": "object",
 									"properties": {
 										"label": {
@@ -6985,10 +7131,36 @@
 									},
 									"additionalProperties": false,
 									"required": ["label", "tooltip"]
+								},
+								"use_sniper": {
+									"type": "object",
+									"properties": {
+										"label": {
+											"type": "string"
+										},
+										"tooltip": {
+											"type": "string"
+										}
+									},
+									"additionalProperties": false,
+									"required": ["label", "tooltip"]
+								},
+								"use_hawk": {
+									"type": "object",
+									"properties": {
+										"label": {
+											"type": "string"
+										},
+										"tooltip": {
+											"type": "string"
+										}
+									},
+									"additionalProperties": false,
+									"required": ["label", "tooltip"]
 								}
 							},
 							"additionalProperties": false,
-							"required": ["melee_weave", "time_to_weave", "use_multi", "use_arcane"]
+							"required": ["playstyle", "time_to_weave", "use_aimed", "use_multi", "use_arcane", "use_sniper", "use_hawk"]
 						},
 						"warrior": {
 							"type": "object",
@@ -8181,13 +8353,7 @@
 				"warnings": {
 					"type": "object",
 					"properties": {
-						"meta_gem_disabled": {
-							"type": "string"
-						},
 						"profession_requirement": {
-							"type": "string"
-						},
-						"too_many_jc_gems": {
 							"type": "string"
 						},
 						"unspent_talent_points": {
@@ -8199,24 +8365,12 @@
 						"windfury_over_flametongue": {
 							"type": "string"
 						},
-						"custom_ep_not_enabled": {
-							"type": "string"
-						},
 						"label": {
 							"type": "string"
 						}
 					},
 					"additionalProperties": false,
-					"required": [
-						"meta_gem_disabled",
-						"profession_requirement",
-						"too_many_jc_gems",
-						"unspent_talent_points",
-						"windfury_over_grace_of_air",
-						"windfury_over_flametongue",
-						"custom_ep_not_enabled",
-						"label"
-					]
+					"required": ["profession_requirement", "unspent_talent_points", "windfury_over_grace_of_air", "windfury_over_flametongue", "label"]
 				},
 				"buttons": {
 					"type": "object",
@@ -8575,9 +8729,6 @@
 								"any": {
 									"type": "string"
 								},
-								"optimize_gems_tooltip": {
-									"type": "string"
-								},
 								"freeze_item_slots_tooltip": {
 									"type": "string"
 								},
@@ -8634,15 +8785,6 @@
 								},
 								"freeze_item_slots": {
 									"type": "string"
-								},
-								"max_gem_phase": {
-									"type": "string"
-								},
-								"max_gem_quality": {
-									"type": "string"
-								},
-								"disable_unique_gems": {
-									"type": "string"
 								}
 							},
 							"additionalProperties": false,
@@ -8651,7 +8793,6 @@
 								"tooltip",
 								"use_soft_cap_breakpoints",
 								"any",
-								"optimize_gems_tooltip",
 								"freeze_item_slots_tooltip",
 								"edit_stat_caps",
 								"stat_caps_tooltip",
@@ -8670,10 +8811,7 @@
 								"modify_in_editor",
 								"hard_cap_info",
 								"edit_weights",
-								"freeze_item_slots",
-								"max_gem_phase",
-								"max_gem_quality",
-								"disable_unique_gems"
+								"freeze_item_slots"
 							]
 						}
 					},
@@ -8997,6 +9135,9 @@
 						"melee_crit_cap": {
 							"type": "string"
 						},
+						"weapon_skill": {
+							"type": "string"
+						},
 						"tooltip": {
 							"type": "object",
 							"properties": {
@@ -9182,6 +9323,7 @@
 						"groups",
 						"hands",
 						"melee_crit_cap",
+						"weapon_skill",
 						"tooltip",
 						"attack_table",
 						"crit_cap",

@@ -6,6 +6,7 @@ import { EquipmentSpec, ItemSlot, PseudoStat, Spec, Stat, TristateEffect } from 
 import { SavedTalents } from '@generated/proto/ui';
 import { PlayerClasses } from '@sim/player/classes';
 import { Player } from '@sim/player/player';
+import { WeaponSkillGroup } from '@sim/player/weapon_skill_groups';
 import { Stats, UnitStat } from '@sim/proto/stats';
 import { defineSpec } from '@sim/spec_config';
 
@@ -76,6 +77,7 @@ export default defineSpec<Spec.SpecProtectionWarrior>({
 			PseudoStat.PseudoStatExpertisePercent,
 		],
 	),
+	displayWeaponSkillGroups: [WeaponSkillGroup.Melee],
 
 	defaults: {
 		// Default equipped gear.
@@ -83,7 +85,7 @@ export default defineSpec<Spec.SpecProtectionWarrior>({
 		// Default EP weights for sorting gear in the gear picker.
 		epWeights: new Stats(),
 		statCaps: (() => {
-			const hitCap = new Stats().withPseudoStat(PseudoStat.PseudoStatMeleeHitPercent, 9);
+			const hitCap = new Stats().withPseudoStat(PseudoStat.PseudoStatMeleeHitPercent, 8);
 			const expCap = new Stats().withPseudoStat(PseudoStat.PseudoStatExpertisePercent, 6.5);
 			const critImmunityCap = new Stats().withPseudoStat(PseudoStat.PseudoStatReducedCritTakenPercent, 5.6);
 
@@ -99,7 +101,6 @@ export default defineSpec<Spec.SpecProtectionWarrior>({
 		// Default raid/party buffs settings.
 		raidBuffs: RaidBuffs.create({
 			...WarriorPresets.DefaultRaidBuffs,
-			thorns: true,
 			prayerOfShadowProtection: true,
 		}),
 		partyBuffs: PartyBuffs.create({
@@ -109,6 +110,7 @@ export default defineSpec<Spec.SpecProtectionWarrior>({
 		}),
 		individualBuffs: IndividualBuffs.create({
 			...WarriorPresets.DefaultIndividualBuffs,
+			thorns: true,
 		}),
 		debuffs: Debuffs.create({
 			...WarriorPresets.DefaultDebuffs,

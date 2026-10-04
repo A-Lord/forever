@@ -25,15 +25,11 @@ export interface PopoverProps {
 	/** On the popup, which is the box a consumer sizes. */
 	className?: ClassValue;
 	maxWidthClassName?: string;
-	/** Base UI's default is `<body>`, and that is outside `.sim-ui` — where the spec theme lives. See `Dialog`. */
+	/** Base UI's default is `<body>`, and that is outside `.sim-ui` — where the spec theme lives. */
 	container?: HTMLElement | null;
 	side?: PopoverSide;
 	align?: PopoverAlign;
 	sideOffset?: BasePopover.Positioner.Props['sideOffset'];
-	openOnHover?: boolean;
-	delay?: number;
-	/** Base UI moves focus to the first tabbable element in the popup; `false` leaves it on the trigger. */
-	initialFocus?: boolean;
 	/** Dims the page behind the popup, as a dialog does; a press on it closes the popover. */
 	backdrop?: boolean;
 	children?: ReactNode;
@@ -58,9 +54,6 @@ export const Popover = ({
 	side = 'bottom',
 	align = 'center',
 	sideOffset = ANCHOR_DISTANCE,
-	openOnHover,
-	delay,
-	initialFocus = false,
 	backdrop = false,
 	children,
 	testId,
@@ -74,8 +67,6 @@ export const Popover = ({
 					nativeButton={isNativeButtonTrigger(triggerRender)}
 					className={clsx(triggerClassName)}
 					data-testid={triggerTestId}
-					openOnHover={openOnHover}
-					delay={delay}
 					{...triggerProps}>
 					{trigger}
 				</BasePopover.Trigger>
@@ -93,7 +84,7 @@ export const Popover = ({
 					<BasePopover.Popup
 						className={clsx(maxWidthClassName ?? 'max-w-(--available-width)', 'ui-popup-surface ui-popover', className)}
 						data-testid={testId ?? 'sim-popover-popup'}
-						initialFocus={initialFocus}>
+						initialFocus={false}>
 						{children}
 					</BasePopover.Popup>
 				</BasePopover.Positioner>
