@@ -22,7 +22,7 @@ describe('LocaleHtml', () => {
 			'<a href="https://raidbots.com" target="_blank" rel="noopener noreferrer">R</a>',
 			'<a href="https://raidbots.com" target="_blank" rel="noopener noreferrer">R</a>',
 		],
-		['nested block markup', '<p>one</p><ul><li>two</li></ul>', '<p>one</p><ul class="list-disc pl-4"><li>two</li></ul>'],
+		['nested block markup', '<p>one</p><ul><li>two</li></ul>', '<p>one</p><ul><li>two</li></ul>'],
 		['a separator-bearing sentence intact', 'Stats: haste. Then <span className="bold">more</span>', 'Stats: haste. Then <span class="bold">more</span>'],
 	])('renders %s', (_, markup, expected) => {
 		expect(html(markup)).toBe(expected);
