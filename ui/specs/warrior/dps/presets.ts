@@ -29,7 +29,7 @@ export const isFurySpec = (player: Player<Spec.SpecDpsWarrior>) =>
 export const PreBiSFuryGear = PresetUtils.makePresetGear('Pre-BiS Fury', PreBiSFuryGearJson);
 
 // The best build found on the Pre-BiS Fury gear over a three minute fight.
-export const FuryTalents = PresetUtils.makePresetTalents('Fury', SavedTalents.create({ talentsString: '30305213-25053005150110501' }));
+export const FuryTalents = PresetUtils.makePresetTalents('Fury', SavedTalents.create({ talentsString: '30305013002-25053005150110501' }));
 
 // Measured on the Pre-BiS Fury gear with the Fury talents.
 export const PreBiSFuryEpWeights = PresetUtils.makePresetEpWeights(
@@ -37,17 +37,17 @@ export const PreBiSFuryEpWeights = PresetUtils.makePresetEpWeights(
 	Stats.fromMap(
 		{
 			[Stat.StatStrength]: 2.2,
-			[Stat.StatAgility]: 2.94,
+			[Stat.StatAgility]: 3.06,
 			[Stat.StatAttackPower]: 1,
 			[Stat.StatArmorPenetration]: 0.33,
-			[Stat.StatHitRating]: 2.77,
-			[Stat.StatHasteRating]: 2.78,
-			[Stat.StatCritRating]: 3.82,
-			[Stat.StatExpertiseRating]: 3.5,
+			[Stat.StatHitRating]: 2.76,
+			[Stat.StatHasteRating]: 2.79,
+			[Stat.StatCritRating]: 4,
+			[Stat.StatExpertiseRating]: 4.5,
 		},
 		{
-			[PseudoStat.PseudoStatMainHandDps]: 9.23,
-			[PseudoStat.PseudoStatOffHandDps]: 2.13,
+			[PseudoStat.PseudoStatMainHandDps]: 9.09,
+			[PseudoStat.PseudoStatOffHandDps]: 2.14,
 		},
 	),
 );
