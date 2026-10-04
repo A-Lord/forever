@@ -100,6 +100,18 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		1728, // Teebu's Blazing Longsword
+		[
+			"Blasts a target for 140 Fire damage.", // 1300753 - https://www.wowhead.com/forever/spell=1300753
+		]
+	],
+	[
+		1986, // Gutrender
+		[
+			"Wounds the target for 102 damage.", // 18090 - https://www.wowhead.com/forever/spell=18090
+		]
+	],
+	[
 		2000, // Archeus
 		[
 			"Blasts a target for 85 Arcane damage.", // 18091 - https://www.wowhead.com/forever/spell=18091
@@ -112,9 +124,21 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		2164, // Gut Ripper
+		[
+			"Wounds the target for 108 damage.", // 18107 - https://www.wowhead.com/forever/spell=18107
+		]
+	],
+	[
 		2205, // Duskbringer
 		[
 			"Sends a shadowy bolt at the enemy causing 98 Shadow damage.", // 18217 - https://www.wowhead.com/forever/spell=18217
+		]
+	],
+	[
+		2243, // Hand of Edward the Odd
+		[
+			"Next spell cast within 4s will cast instantly.", // 18803 - https://www.wowhead.com/forever/spell=18803
 		]
 	],
 	[
@@ -145,6 +169,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		2820, // Nifty Stopwatch
 		[
 			"Increases run speed by 40% for 10s.", // 14530 - https://www.wowhead.com/forever/spell=14530
+		]
+	],
+	[
+		2825, // Bow of Searing Arrows
+		[
+			"Fires a Searing Arrow at the target for 28 Fire damage.", // 29638 - https://www.wowhead.com/forever/spell=29638
 		]
 	],
 	[
@@ -334,6 +364,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		5756, // Sliverblade
+		[
+			"Blasts a target for 63 Frost damage.", // 1293653 - https://www.wowhead.com/forever/spell=1293653
+		]
+	],
+	[
 		5815, // Glacial Stone
 		[
 			"Blasts a target for 75 Frost damage.", // 20869 - https://www.wowhead.com/forever/spell=20869
@@ -355,6 +391,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		6323, // Baron's Scepter
 		[
 			"Cause party members within 30 yds to regenerate 4 health every 5 sec.", // 1292142 - https://www.wowhead.com/forever/spell=1292142
+		]
+	],
+	[
+		6331, // Howling Blade
+		[
+			"Reduces target's attack power by 30 for 30s.", // 13490 - https://www.wowhead.com/forever/spell=13490
 		]
 	],
 	[
@@ -550,6 +592,18 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		8223, // Blade of the Basilisk
+		[
+			"Defense +48 for 5s.", // 10351 - https://www.wowhead.com/forever/spell=10351
+		]
+	],
+	[
+		8224, // Silithid Ripper
+		[
+			"Wounds the target causing them to bleed for 85 damage over 30s.", // 16403 - https://www.wowhead.com/forever/spell=16403
+		]
+	],
+	[
 		8225, // Tainted Pierce
 		[
 			"Corrupts the target, causing 63 damage over 3s.", // 13530 - https://www.wowhead.com/forever/spell=13530
@@ -598,6 +652,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		9458, // Thermaplugg's Central Core
+		[
+			"When struck in combat has a 5% chance of inflicting 93 Nature damage to the attacker.", // 1292879 - https://www.wowhead.com/forever/spell=1292879
+		]
+	],
+	[
 		9485, // Vibroblade
 		[
 			"Punctures target's armor, lowering it by 100.", // 1293005 - https://www.wowhead.com/forever/spell=1293005
@@ -607,6 +667,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		9486, // Supercharger Battle Axe
 		[
 			"Blasts a target for 105 Nature damage.", // 13527 - https://www.wowhead.com/forever/spell=13527
+		]
+	],
+	[
+		9492, // Electromagnetic Gigaflux Reactivator
+		[
+			"Channels a bolt of lightning and hurls it towards all enemies in front of the caster causing 162 Nature damage. The caster is then surrounded by a barrier of electricity for 5min.", // 11826 - https://www.wowhead.com/forever/spell=11826
 		]
 	],
 	[
@@ -2471,6 +2537,18 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		274425, // White Obsidian Wand
+		[
+			"Chance on hit to reduce the mana cost of your next spell cast within 10s by 24.", // 1294058 - https://www.wowhead.com/forever/spell=1294058
+		]
+	],
+	[
+		274430, // Rock Sentinel Slicer
+		[
+			"While in combat, your healing spells have a chance to grant an ally 300 armor for 10s.", // 1294065 - https://www.wowhead.com/forever/spell=1294065
+		]
+	],
+	[
 		274747, // Soggy Boots
 		[
 			"", // 1295267 - https://www.wowhead.com/forever/spell=1295267
@@ -2691,6 +2769,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		284699, // Still Water Band
 		[
 			"Underwater breath lasts 50% longer than normal.", // 1316928 - https://www.wowhead.com/forever/spell=1316928
+		]
+	],
+	[
+		285089, // Swamp Roamer's Band
+		[
+			"Increases movement speed by 3% in Dustwallow Marsh and Swamp of Sorrows.", // 1317486 - https://www.wowhead.com/forever/spell=1317486
 		]
 	],
 	[
