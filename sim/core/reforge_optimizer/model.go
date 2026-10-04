@@ -114,7 +114,13 @@ func (o *reforgeOptimizer) applyReforgeStat(coeffs map[string]float64, stat stat
 // toward the caps. The racial stat multipliers live in the dependency manager, so rawStats must be
 // passed through unscaled.
 func (o *reforgeOptimizer) resolveCapCoeffs(rawDelta stats.Stats) map[string]float64 {
-	resolved := resolveStatDelta(o.statDeps, o.baseStats, rawUnitStatsFromStats(rawDelta))
+	return o.resolveCapCoeffsUnit(rawUnitStatsFromStats(rawDelta))
+}
+
+// resolveCapCoeffsUnit is resolveCapCoeffs for a delta that carries pseudo stats as well. Percents
+// go in delta.Stats, since resolveStatDelta writes every percent pseudo stat from its Stat.
+func (o *reforgeOptimizer) resolveCapCoeffsUnit(delta core.UnitStats) map[string]float64 {
+	resolved := resolveStatDelta(o.statDeps, o.baseStats, delta)
 	o.sheet.Gate(resolved.PseudoStats)
 	coeffs := map[string]float64{}
 	eachUnitStat(resolved, func(unitStat stats.UnitStat, value float64) {

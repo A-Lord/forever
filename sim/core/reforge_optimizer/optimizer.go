@@ -127,44 +127,68 @@ func newReforgeOptimizer(request *proto.ReforgeOptimizeRequest, signals simsigna
 	request = googleProto.Clone(request).(*proto.ReforgeOptimizeRequest)
 	request.Settings = settings
 
-	baseRaid := googleProto.Clone(request.Raid).(*proto.Raid)
+	o := &reforgeOptimizer{
+		request:  request,
+		settings: settings,
+		signals:  signals,
+
+		frozenSlots:    frozenItemSlots(settings),
+		undershootCaps: protoToCoreUnitStats(request.GetUndershootCaps()),
+	}
+	if err := o.setBaseRaid(googleProto.Clone(request.Raid).(*proto.Raid)); err != nil {
+		return nil, err
+	}
+	return o, nil
+}
+
+// setBaseRaid makes baseRaid the baseline: its player, gear, base stats and stat dependency manager.
+func (o *reforgeOptimizer) setBaseRaid(baseRaid *proto.Raid) error {
 	player := baseRaid.Parties[0].Players[0]
-	baseGear := cloneEquipmentSpec(player.Equipment)
 
 	// One environment build yields both FinalStats and the finalized StatDependencyManager,
 	// instead of building the character twice for the same base raid.
 	baseResult, baseSDM, sheet := computeReforgeStatsAndDeps(&proto.ComputeStatsRequest{Raid: baseRaid})
 	if baseResult.ErrorResult != "" {
-		return nil, errors.New(baseResult.ErrorResult)
+		return errors.New(baseResult.ErrorResult)
 	}
-	if signals.Abort.IsTriggered() {
-		return nil, context.Canceled
+	if o.signals.Abort.IsTriggered() {
+		return context.Canceled
 	}
 
-	baseStats := protoToCoreUnitStats(baseResult.RaidStats.Parties[0].Players[0].FinalStats)
-
-	return &reforgeOptimizer{
-		request:  request,
-		settings: settings,
-		player:   player,
-		signals:  signals,
-
-		frozenSlots:    frozenItemSlots(settings),
-		undershootCaps: protoToCoreUnitStats(request.GetUndershootCaps()),
-
-		statDeps: baseSDM,
-		sheet:    sheet,
-
-		baseRaidProto: baseRaid,
-		baseGear:      baseGear,
-		baseStats:     baseStats,
-	}, nil
+	o.player = player
+	o.statDeps = baseSDM
+	o.sheet = sheet
+	o.baseRaidProto = baseRaid
+	o.baseGear = cloneEquipmentSpec(player.Equipment)
+	o.baseStats = protoToCoreUnitStats(baseResult.RaidStats.Parties[0].Players[0].FinalStats)
+	return nil
 }
 
-// optimizeReforges returns the input gear unchanged, with no EP gained. The gear offers no decision
-// variable for the LP, so there is nothing for HiGHS to solve.
+// optimizeReforges picks one static enchant per listed slot. The baseline is the input gear with
+// those slots' enchants cleared, so each candidate's coefficients are its full contribution.
 func (o *reforgeOptimizer) optimizeReforges() (*proto.EquipmentSpec, float64, error) {
-	return o.baseGear, 0, nil
+	candidates := o.enchantCandidates(o.baseGear)
+	if len(candidates) == 0 {
+		return o.baseGear, 0, nil
+	}
+	if err := o.rebaseWithoutEnchants(candidates); err != nil {
+		return nil, 0, err
+	}
+
+	reforgeCaps := computeStatCapsDelta(o.baseStats, protoToCoreUnitStats(o.settings.GetStatCaps()))
+	var softCapConfigs []*proto.StatCapConfig
+	if o.settings.GetUseSoftCapBreakpoints() {
+		softCapConfigs = o.request.GetSoftCaps()
+	}
+	reforgeSoftCaps := computeReforgeSoftCaps(o.baseStats, softCapConfigs)
+	weights := checkWeights(protoToCoreUnitStats(o.request.GetPreCapEpWeights()), reforgeCaps, reforgeSoftCaps)
+
+	variables, constraints := o.buildEnchantModel(candidates, weights)
+	selected, score, err := o.solveModel(weights, reforgeCaps, reforgeSoftCaps, variables, constraints, optimizerTimeout.Seconds())
+	if err != nil {
+		return nil, 0, err
+	}
+	return o.applyEnchantSolution(candidates, selected), score, nil
 }
 
 func computeReforgeStats(request *proto.ComputeStatsRequest) *proto.ComputeStatsResult {
