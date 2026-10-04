@@ -32,20 +32,19 @@ func checkAttackTableValues(t *testing.T, when string, values []attackTableValue
 func TestPlayerAttackTableAgainstEachTargetLevel(t *testing.T) {
 	for _, tc := range []struct {
 		level                                   int32
-		miss, hitSuppression, dodge, parry      float64
+		miss, dodge, parry                      float64
 		glance, glanceMin, glanceMax, critSuppr float64
 		auraCritSuppr, spellMiss                float64
 	}{
-		{60, 0.05, 0, 0.05, 0.05, 0.10, 0.91, 0.99, 0, 0, 0.04},
-		{61, 0.055, 0, 0.055, 0.055, 0.20, 0.91, 0.99, 0.01, 0, 0.05},
-		{62, 0.06, 0, 0.06, 0.06, 0.30, 0.80, 0.90, 0.02, 0, 0.06},
-		{63, 0.08, 0.01, 0.065, 0.14, 0.40, 0.55, 0.75, 0.03, 0.018, 0.17},
+		{60, 0.05, 0.05, 0.05, 0.10, 0.91, 0.99, 0, 0, 0.04},
+		{61, 0.055, 0.055, 0.055, 0.20, 0.91, 0.99, 0.01, 0, 0.05},
+		{62, 0.06, 0.06, 0.06, 0.30, 0.80, 0.90, 0.02, 0, 0.06},
+		{63, 0.08, 0.065, 0.14, 0.40, 0.55, 0.75, 0.03, 0.018, 0.17},
 	} {
 		attacker, defender := attackTableUnits(PlayerUnit, 60, EnemyUnit, tc.level)
 		table := NewAttackTable(attacker, defender)
 		want := AttackTableHand{
 			BaseMissChance:       tc.miss,
-			HitSuppression:       tc.hitSuppression,
 			BaseDodgeChance:      tc.dodge,
 			BaseParryChance:      tc.parry,
 			BaseBlockChance:      0.05,
@@ -68,7 +67,6 @@ func TestPlayerAttackTableAgainstEachTargetLevel(t *testing.T) {
 func handValues(hand string, got, want AttackTableHand) []attackTableValue {
 	return []attackTableValue{
 		{hand + " miss", got.BaseMissChance, want.BaseMissChance},
-		{hand + " hit suppression", got.HitSuppression, want.HitSuppression},
 		{hand + " dodge", got.BaseDodgeChance, want.BaseDodgeChance},
 		{hand + " parry", got.BaseParryChance, want.BaseParryChance},
 		{hand + " block", got.BaseBlockChance, want.BaseBlockChance},
@@ -86,7 +84,6 @@ func TestWeaponSkillSettingSetsTheSwordHandsTableAgainstALevel63Target(t *testin
 	mace := &Item{WeaponType: proto.WeaponType_WeaponTypeMace, HandType: proto.HandType_HandTypeOneHand}
 	level63 := AttackTableHand{
 		BaseMissChance:       0.08,
-		HitSuppression:       0.01,
 		BaseDodgeChance:      0.065,
 		BaseParryChance:      0.14,
 		BaseBlockChance:      0.05,
@@ -102,7 +99,6 @@ func TestWeaponSkillSettingSetsTheSwordHandsTableAgainstALevel63Target(t *testin
 	}{
 		{285, AttackTableHand{
 			BaseMissChance:       0.11,
-			HitSuppression:       0.04,
 			BaseDodgeChance:      0.08,
 			BaseParryChance:      0.23,
 			BaseBlockChance:      0.05,

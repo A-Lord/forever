@@ -80,7 +80,7 @@ export default defineSpec<Spec.SpecHunter>({
 		epWeights: new Stats(),
 		softCapBreakpoints: [
 			StatCap.fromPseudoStat(PseudoStat.PseudoStatRangedHitPercent, {
-				breakpoints: [9],
+				breakpoints: [8],
 				capType: StatCapType.TypeSoftCap,
 				postCapEPs: [0],
 			}),

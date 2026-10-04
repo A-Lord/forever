@@ -310,7 +310,7 @@ enum PseudoStat {
 	PseudoStatMeleeCritSuppressionPercent = 36;
 	PseudoStatRangedCritSuppressionPercent = 37;
 	// The main-hand auto attack's table against the current target, 0 before the attack tables exist.
-	PseudoStatMainHandMissPercent = 38; // The miss hit has to cover: the base miss plus the hit the skill gap suppresses.
+	PseudoStatMainHandMissPercent = 38; // The miss hit has to cover.
 	PseudoStatMainHandDodgePercent = 39;
 	PseudoStatMainHandParryPercent = 40; // The target's parry against attacks from in front, not the character's own.
 	PseudoStatMainHandGlancePercent = 41;

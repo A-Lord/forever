@@ -78,7 +78,7 @@ export default defineSpec<Spec.SpecDpsWarrior>({
 		})(),
 		softCapBreakpoints: (() => {
 			const meleeHitSoftCapConfig = StatCap.fromPseudoStat(PseudoStat.PseudoStatMeleeHitPercent, {
-				breakpoints: [9, 28],
+				breakpoints: [8, 27],
 				capType: StatCapType.TypeSoftCap,
 				postCapEPs: [0.57 * Mechanics.HIT_RATING_PER_HIT_PERCENT, 0],
 			});

@@ -186,7 +186,7 @@ func (spell *Spell) PhysicalHitChance(attackTable *AttackTable) float64 {
 		hitPercent += spell.Unit.stats[stats.RangedHitPercent]
 	}
 
-	return max(hitPercent/100-attackTable.Hand(spell).HitSuppression, 0)
+	return max(hitPercent/100, 0)
 }
 func (spell *Spell) PhysicalHitCheck(sim *Simulation, attackTable *AttackTable) bool {
 	return sim.Proc(1.0-spell.GetPhysicalMissChance(attackTable), "Physical Hit Roll")
