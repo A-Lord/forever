@@ -1,3 +1,4 @@
+import { enchantPresetPool } from '@features/enchant-presets/model/enchant_presets';
 import { BulkSettings, ProgressMetrics } from '@generated/proto/api';
 import i18n from '@i18n/config';
 import type { BulkSimReforgeCacheProgress } from '@sim/bulk/reforge_cache';
@@ -15,7 +16,6 @@ import { toastManager } from '@ui-kit/Toast';
 
 import { trackEvent } from '../../../tracking/utils';
 import { type CoreBulkSimResult, runCoreBulkSim as runCoreBulkSimImpl } from './core_sim';
-import { bulkEnchantPool } from './enchants';
 import { BulkProgress, candidateGearProgress, simProgress } from './progress';
 import { createBulkSettingsProto } from './settings';
 import { buildTieChains } from './tie_chains';
@@ -24,7 +24,7 @@ import { buildTieChains } from './tie_chains';
 export const BULK_GEAR_OPTIMIZER_ENABLED = false;
 
 // The stored settings plus the enchant pool, which is derived from the presets and never stored.
-const bulkRequestSettings = (player: Player<any>): BulkSettings => ({ ...createBulkSettingsProto(player), enchants: bulkEnchantPool(player) });
+const bulkRequestSettings = (player: Player<any>): BulkSettings => ({ ...createBulkSettingsProto(player), enchants: enchantPresetPool(player) });
 
 /**
  * A batch in flight, per player. None of it belongs in the store: an abort controller and a

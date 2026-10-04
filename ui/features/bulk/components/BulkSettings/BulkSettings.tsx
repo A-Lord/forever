@@ -1,3 +1,4 @@
+import { EnchantPresets } from '@features/enchant-presets/components/EnchantPresets';
 import { ReforgeSettingsPanel } from '@features/reforge/components/ReforgePanel';
 import { ItemSlot } from '@generated/proto/common';
 import i18n from '@i18n/config';
@@ -19,7 +20,6 @@ import { frozenItemSlot } from '../../model/picker_groups';
 import { BULK_GEAR_OPTIMIZER_ENABLED, runBulkBatch } from '../../model/run';
 import { canRunBatch } from '../../model/selectors';
 import { setBulkFrozenItem, setBulkFrozenWeaponSlot } from '../../model/settings';
-import { BulkEnchants } from '../BulkEnchants';
 import { CombinationsCount } from './CombinationsCount';
 import { FreezeWeaponTypes } from './FreezeWeaponTypes';
 
@@ -183,7 +183,7 @@ export const BulkSettings = () => {
 				BULK_GEAR_OPTIMIZER_ENABLED &&
 				host.reforger && <ReforgeSettingsPanel model={host.reforger} options={host.reforgeOptions ?? undefined} idPrefix="bulk-reforge-optimizer" />
 			}
-			enchants={<BulkEnchants />}
+			enchants={<EnchantPresets />}
 			frozenItems={FROZEN_PAIRS.map(freezeItemProps)}
 			weaponFreeze={
 				getBulkPlayerCanDualWield(player)

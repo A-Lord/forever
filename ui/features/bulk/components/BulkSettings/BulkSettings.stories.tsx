@@ -1,10 +1,10 @@
+import { EnchantPresetsView } from '@features/enchant-presets/components/EnchantPresets/EnchantPresets';
 import { ItemSlot } from '@generated/proto/common';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StoryBoolean } from '@testing/storybook/fixtures/settings_reforge_bulk';
 import { useState } from 'react';
 import { fn } from 'storybook/test';
 
-import { BulkEnchantsView } from '../BulkEnchants/BulkEnchants';
 import { BulkSettingsView, type BulkSettingsViewProps } from './BulkSettings';
 import { CombinationsCountView } from './CombinationsCount';
 
@@ -58,7 +58,7 @@ const meta = {
 		onOpenGroupsChange: fn(),
 		reforgeSettings: null,
 		enchants: (
-			<BulkEnchantsView
+			<EnchantPresetsView
 				presets={[
 					{ name: 'Undead', checked: true },
 					{ name: 'Outdoor', checked: false },

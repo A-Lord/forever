@@ -23,11 +23,11 @@ ui/
                      @sim/utils/** and @sim/constants/**. alias @ui-kit
   features/<name>/   one folder per capability: model/ (DOM-free, lint-enforced) +
                      components/ (React, one folder per component) + hooks/ + utils/ (feature
-                     helpers that are neither a component nor DOM-free). The twelve are
-                     apl, bulk, character-stats, encounter, gear, import-export, item-swap,
-                     reforge, results, settings, stat-weights, talents. alias @features
+                     helpers that are neither a component nor DOM-free). The thirteen are
+                     apl, bulk, character-stats, enchant-presets, encounter, gear, import-export,
+                     item-swap, reforge, results, settings, stat-weights, talents. alias @features
   features/hooks/    React hooks several features share and none owns (useSavedPanel), one
-                     per file, beside the twelve capability folders
+                     per file, beside the thirteen capability folders
   features/inputs/   the binding layer between the store and ui-kit's controlled pickers:
                      input.ts (InputConfig, StoreBinding, InputFrame), hooks/ (useInput,
                      useConnectedField, useHideZeroRestore), components/Connected*/ (one adapter per

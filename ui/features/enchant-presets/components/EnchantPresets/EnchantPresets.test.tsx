@@ -15,8 +15,8 @@ vi.mock('@sim/hooks/useActionId', () => ({
 vi.mock('@sim/hooks/useActionIdWowheadDataset', () => ({ useActionIdWowheadDataset: () => ({}) }));
 vi.mock('@sim/proto/enchants', () => ({ getEnchantDescription: async (enchant: UIEnchant) => enchant.name }));
 
-const { BulkEnchants } = await import('./BulkEnchants');
-const { saveBulkEnchantPreset } = await import('../../model/enchants');
+const { EnchantPresets } = await import('./EnchantPresets');
+const { saveEnchantPreset } = await import('../../model/enchant_presets');
 
 const AGILITY = UIEnchant.create({ effectId: 849, spellId: 13882, name: 'Lesser Agility', lvl: 45 });
 const GREATER_RESISTANCE = UIEnchant.create({ effectId: 1888, itemId: 6, name: 'Greater Resistance', lvl: 45 });
@@ -62,7 +62,7 @@ const mount = ({ loaded = true } = {}) => {
 	seedBulkSettings(player);
 	render(
 		<SimHostProvider host={{ player, sim: player.sim } as never}>
-			<BulkEnchants />
+			<EnchantPresets />
 		</SimHostProvider>,
 	);
 	return player;
@@ -81,7 +81,7 @@ const tileNames = (slot: HTMLElement) =>
 		.getAllByRole('checkbox')
 		.map(tile => tile.textContent);
 
-describe('BulkEnchants', () => {
+describe('EnchantPresets', () => {
 	it('creates a preset through the dialog, and a tick puts it in the batch', async () => {
 		const player = mount();
 
@@ -116,7 +116,7 @@ describe('BulkEnchants', () => {
 
 	it('opens the slots with ticked enchants when editing, each with its tick count', async () => {
 		const player = mount();
-		saveBulkEnchantPreset(player, { name: 'Undead', slots: [{ slot: ItemSlot.ItemSlotBack, effectIds: [AGILITY.effectId] }] });
+		saveEnchantPreset(player, { name: 'Undead', slots: [{ slot: ItemSlot.ItemSlotBack, effectIds: [AGILITY.effectId] }] });
 
 		await userEvent.click(await screen.findByRole('button', { name: /enchant_presets\.edit/ }));
 
@@ -242,7 +242,7 @@ describe('BulkEnchants', () => {
 
 	it('keeps a ticked enchant visible even when it is worth nothing to the spec', async () => {
 		const player = mount();
-		saveBulkEnchantPreset(player, { name: 'Healer', slots: [{ slot: ItemSlot.ItemSlotBack, effectIds: [HEALING.effectId] }] });
+		saveEnchantPreset(player, { name: 'Healer', slots: [{ slot: ItemSlot.ItemSlotBack, effectIds: [HEALING.effectId] }] });
 
 		await userEvent.click(await screen.findByRole('button', { name: /enchant_presets\.edit/ }));
 
@@ -257,7 +257,7 @@ describe('BulkEnchants', () => {
 
 	it('disables Save while the name is taken by another preset', async () => {
 		const player = mount();
-		saveBulkEnchantPreset(player, { name: 'Undead', slots: [] });
+		saveEnchantPreset(player, { name: 'Undead', slots: [] });
 
 		await openNewPreset();
 		await userEvent.type(nameInput(), 'Undead');
