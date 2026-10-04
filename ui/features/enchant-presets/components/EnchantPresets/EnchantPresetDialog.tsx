@@ -77,6 +77,7 @@ export const EnchantPresetDialogView = ({
 			onOpenChange={onOpenChange}
 			size="xl"
 			scrollContents
+			elevated
 			title={title}
 			testId="bulk-enchant-preset-dialog"
 			footer={

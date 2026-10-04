@@ -25,7 +25,7 @@ export interface DialogProps {
 	preventClose?: boolean;
 	/** Keep the dialog in the DOM while closed. */
 	keepMounted?: boolean;
-	/** For a dialog opened from another dialog. Without it both share one z-index tier, so this one's backdrop renders under the dialog that opened it instead of over it. */
+	/** For a dialog opened from another dialog or from a popover. Without it this one's backdrop renders under what opened it instead of over it. The tier sits above popovers, so a popover opened inside an elevated dialog renders under it. */
 	elevated?: boolean;
 	verticalAlign?: 'top' | 'center';
 	bodyClassName?: string;
