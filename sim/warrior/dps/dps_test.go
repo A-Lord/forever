@@ -51,6 +51,7 @@ func dpsWarriorSuite() core.CharacterSuiteConfig {
 		Rotation: core.GetAplRotation("../../../ui/specs/warrior/dps/apls", "fury"),
 		OtherRotations: []core.RotationCombo{
 			core.GetAplRotation("../../../ui/specs/warrior/dps/apls", "arms"),
+			core.GetAplRotation("../../../ui/specs/warrior/dps/apls", "arms_stance_dance"),
 		},
 
 		ItemFilter: core.ItemFilter{
@@ -83,7 +84,7 @@ var DefaultOptions = &proto.Player_DpsWarrior{
 }
 
 var DefaultFuryTalents = "30305013002-25053005150110501"
-var DefaultArmsTalents = "30305213032315201-0505003004"
+var DefaultArmsTalents = "30325213132515201-0505-2"
 
 var DefaultConsumables = &proto.ConsumesSpec{
 	PotId:       250943, // Major Frenzy Potion
