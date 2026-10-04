@@ -4,6 +4,7 @@ import (
 	"slices"
 	"sort"
 
+	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/stats"
@@ -124,7 +125,7 @@ func appliesSurvivalOnly(spellID int) bool {
 		switch {
 		case effect.EffectType == dbcenums.E_HEAL, effect.EffectType == dbcenums.E_HEAL_PCT:
 		case effect.EffectAura == dbcenums.A_SCHOOL_ABSORB:
-		case effect.EffectAura == dbcenums.A_MOD_RESISTANCE && len(effect.EffectMiscValues) > 0 && effect.EffectMiscValues[0] == 1: // armor
+		case effect.EffectAura == dbcenums.A_MOD_RESISTANCE && len(effect.EffectMiscValues) > 0 && effect.EffectMiscValues[0] == int(core.SpellSchoolPhysical):
 		default:
 			return false
 		}
