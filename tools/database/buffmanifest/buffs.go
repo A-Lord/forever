@@ -412,7 +412,6 @@ var Debuffs = []BuffSpec{
 		Category: "HuntersMark",
 		Stats: []proto.Stat{
 			proto.Stat_StatRangedAttackPower,
-			proto.Stat_StatAttackPower,
 		},
 	},
 	// The Holy damage taken is applied by NewSpellDataJudgementOfTheCrusaderAuraRank in debuffs.go,

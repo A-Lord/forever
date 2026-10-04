@@ -108,7 +108,6 @@ export default defineSpec<Spec.SpecFeralBearDruid>({
 			exposeArmor: true,
 			faerieFire: true,
 			giftOfArthas: false,
-			huntersMark: true,
 			curseOfRecklessness: true,
 			insectSwarm: true,
 			judgementOfWisdom: true,
