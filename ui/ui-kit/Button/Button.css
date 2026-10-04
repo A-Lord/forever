@@ -6,11 +6,12 @@
 			@apply outline-none;
 		}
 
+		/* A `focusableWhenDisabled` button is not `:disabled` and keeps its pointer events, so a tooltip on it can say why. */
 		&:disabled {
-			@apply pointer-events-none opacity-65;
+			@apply pointer-events-none;
 		}
 
-		/* Also a `focusableWhenDisabled` button, which keeps its pointer events so a tooltip on it can say why. */
+		/* Base UI sets `data-disabled` on every disabled button, `focusableWhenDisabled` included. */
 		&[data-disabled] {
 			@apply cursor-default opacity-65;
 		}
@@ -39,7 +40,7 @@
 		}
 
 		&:disabled {
-			@apply pointer-events-none text-gray-600 opacity-65;
+			@apply pointer-events-none;
 		}
 
 		&[data-disabled] {
@@ -74,7 +75,6 @@
 			@apply border-primary-active bg-primary-active;
 		}
 
-		&:disabled,
 		&[data-disabled] {
 			@apply border-primary-disabled bg-primary-disabled;
 		}
@@ -94,6 +94,10 @@
 		&:active {
 			@apply border-secondary-active bg-secondary-active;
 		}
+
+		&[data-disabled] {
+			@apply border-secondary bg-secondary;
+		}
 	}
 
 	.ui-button-danger {
@@ -109,6 +113,10 @@
 
 		&:active {
 			@apply border-danger-active bg-danger-active;
+		}
+
+		&[data-disabled] {
+			@apply border-danger bg-danger;
 		}
 	}
 
@@ -126,6 +134,10 @@
 		&:active {
 			@apply border-cancel-active bg-cancel-active;
 		}
+
+		&[data-disabled] {
+			@apply border-cancel bg-cancel;
+		}
 	}
 
 	.ui-button-link-danger {
@@ -139,7 +151,6 @@
 			@apply text-foreground shadow-focus-link-danger;
 		}
 
-		&:disabled,
 		&[data-disabled] {
 			@apply text-foreground-disabled;
 		}
@@ -160,7 +171,6 @@
 			@apply border-primary-active bg-primary-active text-primary-foreground;
 		}
 
-		&:disabled,
 		&[data-disabled] {
 			@apply border-primary bg-transparent text-primary;
 		}
@@ -180,6 +190,10 @@
 		&:active {
 			@apply border-light bg-light text-black;
 		}
+
+		&[data-disabled] {
+			@apply border-light bg-transparent text-light;
+		}
 	}
 
 	.ui-button-outline-cancel {
@@ -195,6 +209,10 @@
 
 		&:active {
 			@apply border-cancel bg-cancel text-black;
+		}
+
+		&[data-disabled] {
+			@apply border-cancel bg-transparent text-cancel;
 		}
 	}
 
