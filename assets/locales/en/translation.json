@@ -950,8 +950,6 @@
 			"total_iterations": "Minimum iterations",
 			"total_iterations_tooltip": "The batch sims at least this many iterations. The error target adds more as it runs.",
 			"groups": {
-				"settings": "Settings",
-				"frozen_slots": "Frozen slots",
 				"enchants": "Enchants",
 				"frozen_slots": "Frozen slots",
 				"reforge": "Gear optimizer settings",
@@ -2497,6 +2495,8 @@
 				"hard_cap_info": "If you want to hard cap a stat make sure to put the EP for that stat higher.",
 				"edit_weights": "Change weights",
 				"freeze_item_slots": "Freeze item slots",
+				"settings": "Settings",
+				"frozen_slots": "Frozen slots",
 				"enchants": "Enchants",
 				"skipped_slots_title": "Simulated, not optimized",
 				"skipped_slot": "{{slot}}: {{enchant}} is simulated, not optimized",
