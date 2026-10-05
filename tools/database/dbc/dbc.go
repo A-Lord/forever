@@ -22,14 +22,14 @@ type DBC struct {
 	ItemDamageTable        map[string]map[int]ItemDamageTable // By Table name and item level
 	RandomPropertiesByIlvl map[int]RandomPropAllocationMap
 	ItemArmorQuality       map[int]ItemArmorQuality
-	//ItemArmorShield        map[int]ItemArmorShield
-	ItemArmorTotal        map[int]ItemArmorTotal
-	ArmorLocation         map[int]ArmorLocation
-	SpellScalings         map[int]SpellScaling
-	Consumables           map[int]Consumable   // Item ID
-	ItemEffects           map[int]ItemEffect   // Effect ID
-	ItemEffectsByParentID map[int][]ItemEffect // ParentItemID
-	ShieldBlockValues     map[int]ShieldBlock
+	ItemArmorShield        map[int]ItemArmorShield
+	ItemArmorTotal         map[int]ItemArmorTotal
+	ArmorLocation          map[int]ArmorLocation
+	SpellScalings          map[int]SpellScaling
+	Consumables            map[int]Consumable   // Item ID
+	ItemEffects            map[int]ItemEffect   // Effect ID
+	ItemEffectsByParentID  map[int][]ItemEffect // ParentItemID
+	ShieldBlockValues      map[int]ShieldBlock
 
 	// Every spell's effects flattened into effect index order. Built once by indexSpellEffects and
 	// served by SpellEffectsInOrder, which every trigger chain walk goes through - sorting per call
@@ -49,14 +49,14 @@ func NewDBC() *DBC {
 		ItemDamageTable:        make(map[string]map[int]ItemDamageTable),
 		RandomPropertiesByIlvl: make(map[int]RandomPropAllocationMap),
 		ItemArmorQuality:       make(map[int]ItemArmorQuality),
-		//ItemArmorShield:        make(map[int]ItemArmorShield),
-		ItemArmorTotal:        make(map[int]ItemArmorTotal),
-		ArmorLocation:         make(map[int]ArmorLocation),
-		Consumables:           make(map[int]Consumable),
-		ItemEffects:           make(map[int]ItemEffect),
-		SpellScalings:         make(map[int]SpellScaling),
-		ItemEffectsByParentID: make(map[int][]ItemEffect),
-		ShieldBlockValues:     make(map[int]ShieldBlock),
+		ItemArmorShield:        make(map[int]ItemArmorShield),
+		ItemArmorTotal:         make(map[int]ItemArmorTotal),
+		ArmorLocation:          make(map[int]ArmorLocation),
+		Consumables:            make(map[int]Consumable),
+		ItemEffects:            make(map[int]ItemEffect),
+		SpellScalings:          make(map[int]SpellScaling),
+		ItemEffectsByParentID:  make(map[int][]ItemEffect),
+		ShieldBlockValues:      make(map[int]ShieldBlock),
 	}
 }
 
@@ -87,7 +87,7 @@ func InitDBC() error {
 	load("item damage tables", dbcInstance.loadItemDamageTables, "./assets/db_inputs/dbc/item_damage_tables.json")
 	load("item armor quality", dbcInstance.LoadItemArmorQuality, "./assets/db_inputs/dbc/item_armor_quality.json")
 	load("item armor total", dbcInstance.LoadItemArmorTotal, "./assets/db_inputs/dbc/item_armor_total.json")
-	// load("item armor shield", dbcInstance.LoadItemArmorShield, "./assets/db_inputs/dbc/item_armor_shield.json")
+	load("item armor shield", dbcInstance.LoadItemArmorShield, "./assets/db_inputs/dbc/item_armor_shield.json")
 	load("armor location", dbcInstance.LoadArmorLocation, "./assets/db_inputs/dbc/armor_location.json")
 	load("consumables", dbcInstance.loadConsumables, "./assets/db_inputs/dbc/consumables.json")
 	load("item effects", dbcInstance.loadItemEffects, "./assets/db_inputs/dbc/item_effects.json")
@@ -358,24 +358,24 @@ func (d *DBC) LoadArmorLocation(filename string) error {
 	return nil
 }
 
-// func (d *DBC) LoadItemArmorShield(filename string) error {
-// 	data, err := ReadGzipFile(filename)
-// 	if err != nil {
-// 		return err
-// 	}
+func (d *DBC) LoadItemArmorShield(filename string) error {
+	data, err := ReadGzipFile(filename)
+	if err != nil {
+		return err
+	}
 
-// 	var tables map[int]ItemArmorShield
-// 	if err = json.Unmarshal(data, &tables); err != nil {
-// 		return ParseError{
-// 			Source: filename,
-// 			Field:  "ItemArmorShield",
-// 			Reason: err.Error(),
-// 		}
-// 	}
+	var tables map[int]ItemArmorShield
+	if err = json.Unmarshal(data, &tables); err != nil {
+		return ParseError{
+			Source: filename,
+			Field:  "ItemArmorShield",
+			Reason: err.Error(),
+		}
+	}
 
-// 	d.ItemArmorShield = tables
-// 	return nil
-// }
+	d.ItemArmorShield = tables
+	return nil
+}
 
 func (d *DBC) LoadItemArmorTotal(filename string) error {
 	data, err := ReadGzipFile(filename)
