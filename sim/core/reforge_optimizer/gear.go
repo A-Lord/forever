@@ -25,7 +25,7 @@ func frozenItemSlots(settings *proto.ReforgeSettings) map[proto.ItemSlot]bool {
 	return frozen
 }
 
-// applyEnchantSolution puts the selected candidates' enchants on a clone of the baseline gear.
+// Puts the selected candidates' enchants on a clone of the baseline gear.
 func (o *reforgeOptimizer) applyEnchantSolution(candidates []enchantCandidate, selected []string) *proto.EquipmentSpec {
 	gear := cloneEquipmentSpec(o.baseGear)
 	for _, candidate := range candidates {

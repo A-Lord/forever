@@ -11,10 +11,9 @@ import (
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-// solver.go implements solveModel + checkCaps (the cap-refinement loop) and the thin adapter
-// that runs the LP text through the shared HiGHS runtime. The loop is pure LP: caps are checked
-// against the summed LP coefficients of the selected variables, so no sim recompute happens
-// between passes.
+// The cap-refinement loop (solveModel + checkCaps) and the thin adapter that runs the LP text
+// through the shared HiGHS runtime. The loop is pure LP: caps are checked against the summed LP
+// coefficients of the selected variables, so no sim recompute happens between passes.
 
 // HiGHS model-status codes, shared by both runtime backends (the native wazero runner and the
 // wasm bridge).
@@ -24,7 +23,7 @@ const (
 	highsModelStatusTimeLimit  int32 = 13
 )
 
-// solveLPModel serializes model to LP text, runs HiGHS, and returns the selected variables
+// Serializes model to LP text, runs HiGHS, and returns the selected variables
 // (column primal >= 0.5), in x-index order.
 func solveLPModel(model *lpModel, timeout time.Duration, mipRelGap float64) (lpSolution, error) {
 	lpString, reverseNames := modelToLPFormat(model)
@@ -67,13 +66,13 @@ func solveLPModel(model *lpModel, timeout time.Duration, mipRelGap float64) (lpS
 	}, nil
 }
 
-// minSolveSeconds is the per-pass time_limit floor for cap-refinement re-solves, so an exhausted
-// budget never yields a non-positive HiGHS time_limit. Tightened re-solves finish well under this.
+// The per-pass time_limit floor for cap-refinement re-solves, so an exhausted budget never
+// yields a non-positive HiGHS time_limit. Tightened re-solves finish well under this.
 const minSolveSeconds = 1.0
 
-// solveModel scores the variables, solves, then checks caps and recurses with tightened
-// constraints/weights until no cap is exceeded. Returns the selected variable names of the final
-// solution and its objective value.
+// Scores the variables, solves, then checks caps and recurses with tightened constraints/weights
+// until no cap is exceeded. Returns the selected variable names of the final solution and its
+// objective value.
 func (o *reforgeOptimizer) solveModel(
 	weights core.UnitStats,
 	reforgeCaps core.UnitStats,
@@ -124,10 +123,10 @@ func (o *reforgeOptimizer) solveModel(
 	return o.solveModel(updatedWeights, reforgeCaps, updatedSoftCaps, updatedVariables, updatedConstraints, remainingSeconds)
 }
 
-// checkCaps sums the selected variables' stat contributions, then adds a hard-cap constraint for
-// every unconstrained stat that exceeds its cap. If no hard cap fired, it consumes soft caps from
-// the front of the list until one of their breakpoints is exceeded. Returns whether any cap was
-// newly enforced along with the tightened constraints/weights/soft-caps for the next pass.
+// Sums the selected variables' stat contributions, then adds a hard-cap constraint for every
+// unconstrained stat that exceeds its cap. If no hard cap fired, it consumes soft caps from the
+// front of the list until one of their breakpoints is exceeded. Returns whether any cap was newly
+// enforced along with the tightened constraints/weights/soft-caps for the next pass.
 func (o *reforgeOptimizer) checkCaps(
 	solution lpSolution,
 	reforgeCaps core.UnitStats,

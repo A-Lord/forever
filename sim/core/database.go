@@ -93,7 +93,7 @@ type ItemEffectRandPropPoints struct {
 	RandPropPoints int32
 }
 
-// ItemEffectRandPropPointsFromProto converts a protobuf ItemEffectRandPropPoints to a Go ItemEffectRandPropPoints
+// Converts a protobuf ItemEffectRandPropPoints to a Go ItemEffectRandPropPoints
 func ItemEffectRandPropPointsFromProto(ieRpp *proto.ItemEffectRandPropPoints) ItemEffectRandPropPoints {
 	return ItemEffectRandPropPoints{
 		Ilvl:           ieRpp.GetIlvl(),
@@ -101,7 +101,7 @@ func ItemEffectRandPropPointsFromProto(ieRpp *proto.ItemEffectRandPropPoints) It
 	}
 }
 
-// ItemEffectRandPropPointsToProto converts a Go ItemEffectRandPropPoints to a protobuf ItemEffectRandPropPoints
+// Converts a Go ItemEffectRandPropPoints to a protobuf ItemEffectRandPropPoints
 func ItemEffectRandPropPointsToProto(ieRpp ItemEffectRandPropPoints) *proto.ItemEffectRandPropPoints {
 	return &proto.ItemEffectRandPropPoints{
 		Ilvl:           ieRpp.Ilvl,
@@ -765,7 +765,7 @@ var ItemTypeToSlotsMap = map[proto.ItemType][]proto.ItemSlot{
 	// ItemType_ItemTypeWeapon is excluded intentionally - the slot cannot be decided based on type alone for weapons.
 }
 
-// EligibleSlotsForItem returns the item slots an item can occupy.
+// The item slots an item can occupy.
 func EligibleSlotsForItem(item *Item) []proto.ItemSlot {
 	if item == nil {
 		return nil

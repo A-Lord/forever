@@ -22,7 +22,7 @@ func init() {
 	})
 }
 
-// subtractUnitStats diffs a sheet against the optimizer's base stats.
+// Diffs a sheet against the optimizer's base stats.
 func subtractUnitStats(a core.UnitStats, b core.UnitStats) core.UnitStats {
 	result := a
 	result.Stats = a.Stats.Subtract(b.Stats)

@@ -115,7 +115,7 @@ type reforgeOptimizer struct {
 	baseStats     core.UnitStats
 }
 
-// newReforgeOptimizer builds the optimizer context from the request: the enchant candidates of the
+// Builds the optimizer context from the request: the enchant candidates of the
 // input gear, then the base stats and the stat dependency manager for the baseline.
 func newReforgeOptimizer(request *proto.ReforgeOptimizeRequest, signals simsignals.Signals) (*reforgeOptimizer, error) {
 	settings := request.GetSettings()
@@ -146,12 +146,12 @@ func newReforgeOptimizer(request *proto.ReforgeOptimizeRequest, signals simsigna
 	return o, nil
 }
 
-// setBaseRaid makes baseRaid the baseline: its player, gear, base stats and stat dependency manager.
+// Makes baseRaid the baseline: its player, gear, base stats and stat dependency manager.
 func (o *reforgeOptimizer) setBaseRaid(baseRaid *proto.Raid) error {
 	player := baseRaid.Parties[0].Players[0]
 
-	// The optimizer's one environment build yields both FinalStats and the finalized
-	// StatDependencyManager of the baseline.
+	// The baseline's environment build yields both its FinalStats and its finalized
+	// StatDependencyManager.
 	baseResult, baseSDM, sheet := computeReforgeStatsAndDeps(&proto.ComputeStatsRequest{Raid: baseRaid})
 	if baseResult.ErrorResult != "" {
 		return errors.New(baseResult.ErrorResult)
@@ -169,9 +169,9 @@ func (o *reforgeOptimizer) setBaseRaid(baseRaid *proto.Raid) error {
 	return nil
 }
 
-// optimizeReforges picks one static enchant per listed slot. The baseline is the input gear with
-// those slots' static enchants cleared, so each candidate's coefficients are its full contribution. The
-// score is the EP of the picks over that baseline, without the tie-break, not their gain over the input gear.
+// Picks one static enchant per listed slot. The baseline is the input gear with those slots' static
+// enchants cleared, so each candidate's coefficients are its full contribution. The score is the EP
+// of the picks over that baseline, without the tie-break, not their gain over the input gear.
 func (o *reforgeOptimizer) optimizeReforges() (*proto.EquipmentSpec, float64, error) {
 	candidates := o.candidates
 	if len(candidates) == 0 {

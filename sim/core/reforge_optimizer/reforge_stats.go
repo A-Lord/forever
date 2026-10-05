@@ -9,9 +9,9 @@ import (
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-// protoToCoreUnitStats reads weights, caps and sheet stats alike. The percent pseudo stats stay in
-// PseudoStats in the sheet's percent, the unit GetPseudoStatsProto writes: a cap is compared there and a
-// weight is read there, so a Block% weight or cap stays per percent and ranged hit and crit stay totals.
+// Reads weights, caps and sheet stats alike. The percent pseudo stats stay in PseudoStats in the
+// sheet's percent, the unit GetPseudoStatsProto writes: a cap is compared there and a weight is
+// read there, so a Block% weight or cap stays per percent and ranged hit and crit stay totals.
 func protoToCoreUnitStats(protoStats *proto.UnitStats) core.UnitStats {
 	if protoStats == nil {
 		return core.NewUnitStats()
@@ -60,8 +60,8 @@ func isEmptyUnitStats(unitStats core.UnitStats) bool {
 	return true
 }
 
-// hasteSpeedMultipliers maps each haste% pseudo-stat to its speed multiplier pseudo-stat for the
-// analytical haste delta calculation.
+// Maps each haste% pseudo-stat to its speed multiplier pseudo-stat for the analytical haste delta
+// calculation.
 // Δhaste% = speedMult × ΔHasteRating / HasteRatingPerHastePercent
 var hasteSpeedMultipliers = map[proto.PseudoStat]proto.PseudoStat{
 	proto.PseudoStat_PseudoStatMeleeHastePercent:  proto.PseudoStat_PseudoStatMeleeSpeedMultiplier,
@@ -69,8 +69,8 @@ var hasteSpeedMultipliers = map[proto.PseudoStat]proto.PseudoStat{
 	proto.PseudoStat_PseudoStatSpellHastePercent:  proto.PseudoStat_PseudoStatCastSpeedMultiplier,
 }
 
-// resolveStatDelta applies the character's stat dependency graph to delta, resolving
-// conversions such as HitRating→Hit%, CritRating→Crit%, Agility→PhysicalCritPercent.
+// Applies the character's stat dependency graph to delta, resolving conversions such as
+// HitRating→Hit%, CritRating→Crit%, Agility→PhysicalCritPercent.
 // It also mirrors the resolved Stats values back to their corresponding PseudoStats
 // so that LP constraint evaluation (which reads PseudoStats for hit/crit/haste caps)
 // sees the correct contribution. A rating counted in whole steps moves its percent by
@@ -127,7 +127,7 @@ func resolveStatDelta(sdm *stats.StatDependencyManager, baseStats core.UnitStats
 	return delta
 }
 
-// eachUnitStat invokes fn for every stat and pseudo-stat index in the vector.
+// Invokes fn for every stat and pseudo-stat index in the vector.
 func eachUnitStat(vec core.UnitStats, fn func(unitStat stats.UnitStat, value float64)) {
 	for statIdx := 0; statIdx < int(stats.ProtoStatsLen); statIdx++ {
 		fn(stats.UnitStatFromStat(stats.Stat(statIdx)), vec.Stats[statIdx])
@@ -150,9 +150,9 @@ var offHandPercents = map[stats.Stat]proto.PseudoStat{
 	stats.PhysicalCritPercent: proto.PseudoStat_PseudoStatOffHandCritPercent,
 }
 
-// sheetPseudoStats returns the pseudo-stats the character sheet shows a back-end percent stat in: its
-// own, the ranged total it is the melee share of, the off hand's for physical hit and crit, and for
-// spell hit the per-school percentages.
+// The pseudo-stats the character sheet shows a back-end percent stat in: its own, the ranged total
+// it is the melee share of, the off hand's for physical hit and crit, and for spell hit the
+// per-school percentages.
 func sheetPseudoStats(percent stats.Stat) []proto.PseudoStat {
 	if percent == stats.ReducedCritTakenPercent {
 		return []proto.PseudoStat{proto.PseudoStat_PseudoStatReducedCritTakenPercent}
@@ -172,7 +172,7 @@ func sheetPseudoStats(percent stats.Stat) []proto.PseudoStat {
 	return pseudoStats
 }
 
-// ratingPercent is one sheet percent a rating moves through a core rating conversion.
+// One sheet percent a rating moves through a core rating conversion.
 type ratingPercent struct {
 	rating           stats.Stat
 	percent          proto.PseudoStat
@@ -180,12 +180,11 @@ type ratingPercent struct {
 	root             bool // The rating is the percent's root stat, as UnitStat.getRootStat gives it.
 }
 
-// ratingPercents lists every core rating conversion's sheet percents, in the order
-// core.RatingConversions lists them.
+// Every core rating conversion's sheet percents, in the order core.RatingConversions lists them.
 var ratingPercents = buildRatingPercents()
 
-// Defense is no percent's root: dodge, parry and block have their own ratings. The per-school hit
-// percents have no root either.
+// Defense is no percent's root: dodge, parry and block have their own ratings, and reduced crit
+// taken has none. The per-school hit percents have no root either.
 func buildRatingPercents() []ratingPercent {
 	var lookup []ratingPercent
 	for _, conversion := range core.RatingConversions {
@@ -201,8 +200,8 @@ func buildRatingPercents() []ratingPercent {
 	return lookup
 }
 
-// childPseudoStats returns the percent pseudo-stats a rating moves, from the core rating conversions
-// in the order core.RatingConversions lists them, then the channels without a back-end percent Stat.
+// The percent pseudo-stats a rating moves, from the core rating conversions in the order
+// core.RatingConversions lists them, then the channels without a back-end percent Stat.
 func childPseudoStats(parent stats.Stat) []proto.PseudoStat {
 	var children []proto.PseudoStat
 	for _, entry := range ratingPercents {
@@ -228,9 +227,8 @@ func ratingPerPseudoStatPercent(pseudoStat proto.PseudoStat, parent stats.Stat) 
 	return 1
 }
 
-// computeGapToCap returns the remaining room from the current sheet value to cap. A gap of
-// exactly 0 is returned as 1e-12 so the cap still registers as configured (a zero entry means
-// "no cap").
+// The remaining room from the current sheet value to cap. A gap of exactly 0 is returned as 1e-12
+// so the cap still registers as configured (a zero entry means "no cap").
 func computeGapToCap(baseStats core.UnitStats, unitStat stats.UnitStat, cap float64) float64 {
 	statDelta := cap - getUnitStat(baseStats, unitStat)
 	if statDelta == 0 {
@@ -239,8 +237,8 @@ func computeGapToCap(baseStats core.UnitStats, unitStat stats.UnitStat, cap floa
 	return statDelta
 }
 
-// computeStatCapsDelta returns the per-unit-stat gap-to-cap, but only for caps whose configured
-// value is > 0 (a cap of 0 maps to 0 and means "no cap").
+// The per-unit-stat gap-to-cap, but only for caps whose configured value is > 0 (a cap of 0 maps
+// to 0 and means "no cap").
 func computeStatCapsDelta(baseStats core.UnitStats, statCaps core.UnitStats) core.UnitStats {
 	result := core.NewUnitStats()
 	for statIdx := 0; statIdx < int(stats.ProtoStatsLen); statIdx++ {
@@ -292,8 +290,8 @@ func pseudoStatCoeffKey(pseudoStat proto.PseudoStat) string {
 	return proto.PseudoStat_name[int32(pseudoStat)]
 }
 
-// unitStatFromCoeffKey recovers the stat from a coefficient key, or (_, false) for non-stat
-// keys. PseudoStat and Stat names occupy disjoint namespaces so lookup order is irrelevant.
+// Recovers the stat from a coefficient key, or (_, false) for non-stat keys. PseudoStat and Stat
+// names occupy disjoint namespaces so lookup order is irrelevant.
 func unitStatFromCoeffKey(key string) (stats.UnitStat, bool) {
 	if value, ok := proto.PseudoStat_value[key]; ok {
 		return stats.UnitStatFromPseudoStat(proto.PseudoStat(value)), true
@@ -304,8 +302,7 @@ func unitStatFromCoeffKey(key string) (stats.UnitStat, bool) {
 	return 0, false
 }
 
-// coeffKeyForUnitStat returns the coefficient/constraint key for a unit stat: its proto enum
-// name.
+// The coefficient/constraint key for a unit stat: its proto enum name.
 func coeffKeyForUnitStat(unitStat stats.UnitStat) string {
 	if unitStat.IsStat() {
 		return statCoeffKey(proto.Stat(unitStat.StatIdx()))

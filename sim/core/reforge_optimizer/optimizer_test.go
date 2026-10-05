@@ -25,7 +25,7 @@ func wrist(ids ...int32) *proto.BulkEnchantSlotOptions {
 	return &proto.BulkEnchantSlotOptions{Slot: proto.ItemSlot_ItemSlotWrist, EffectIds: ids}
 }
 
-// capAgilityAtTheSheet makes the player's current Agility an upper bound, so any Agility on top
+// Makes the player's current Agility an upper bound, so any Agility on top
 // of it breaks the cap. A cap the request does not list as an undershoot cap is a target instead.
 func capAgilityAtTheSheet(t *testing.T, request *proto.ReforgeOptimizeRequest) {
 	t.Helper()
@@ -110,7 +110,7 @@ func TestOptimizeKeepsAPermanentEffectEnchantWhenNothingIsPicked(t *testing.T) {
 	}
 }
 
-// Might of the Scourge's 1% melee and ranged crit is one percent of crit rating: 26 AP + 14 × 4 = 82,
+// Might of the Scourge's 1% melee and ranged crit counts as 14 crit rating: 26 AP + 14 × 4 = 82,
 // against Zandalar Signet of Might's 30 AP.
 func TestOptimizeValuesAPercentEnchantThroughItsRating(t *testing.T) {
 	weights := map[proto.Stat]float64{proto.Stat_StatStrength: 2.2, proto.Stat_StatAttackPower: 1, proto.Stat_StatCritRating: 4}

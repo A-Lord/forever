@@ -10,7 +10,7 @@ import (
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-// enchants.go turns the request's enchant options into LP variables: one binary per (slot,
+// Turns the request's enchant options into LP variables: one binary per (slot,
 // enchant) and a per-slot row allowing at most one of them.
 
 type enchantCandidate struct {
@@ -19,8 +19,8 @@ type enchantCandidate struct {
 	equipped bool // The candidate is the slot's enchant in the input gear.
 }
 
-// enchantTieBreak is the objective bonus that breaks EP ties toward giving a slot an enchant, and
-// twice it toward keeping the equipped one. It sits far below any real EP difference and above
+// The objective bonus that breaks an EP tie toward giving a slot an enchant; the slot's equipped
+// enchant gets twice as much, so a tie keeps it. It sits far below any real EP difference and above
 // HiGHS's default absolute MIP gap (1e-6); the reported score leaves it out.
 const enchantTieBreak = 1e-4
 
@@ -63,7 +63,7 @@ func (o *reforgeOptimizer) enchantCandidates(gear *proto.EquipmentSpec) []enchan
 	return candidates
 }
 
-// clearStaticEnchants clears every candidate slot's static enchant, which makes the gear the
+// Clears every candidate slot's static enchant, which makes the gear the
 // baseline. An enchant that is not static gives no stats, so it stays and a slot with no pick
 // keeps it.
 func clearStaticEnchants(gear *proto.EquipmentSpec, candidates []enchantCandidate) {
@@ -125,13 +125,16 @@ func (o *reforgeOptimizer) buildEnchantModel(candidates []enchantCandidate, weig
 	return variables, constraints
 }
 
-// applyPseudoStats adds pseudo-stats to an objective coefficient map the way Stats.computeEP in
-// ui/sim/proto/stats.ts values them. The part of a rating's melee, ranged and spell percents every
-// channel holds counts under the rating when the rating carries EP, otherwise under each channel.
-// What a channel holds beyond it, and any other percent a rating raises, counts under its own key
-// when that carries EP; otherwise it falls back to what the rating is worth past the channels' weights,
-// and the fallbacks of one rating count once, as the largest, under the rating's key. Any other
-// pseudo-stat counts under its own key.
+// Adds pseudo-stats to an objective coefficient map the way Stats.computeEP in
+// ui/sim/proto/stats.ts values them:
+//   - The part of a rating's melee, ranged and spell percents that all three channels share counts
+//     once under the rating when the rating carries EP, otherwise under each channel.
+//   - A channel's percent beyond that shared part, and any other percent with a root rating, counts
+//     under its own key when that key carries EP. Otherwise it falls back to EP through the rating:
+//     for a channel, what the rating is worth beyond the channels' weights; for any other percent,
+//     the rating's full worth.
+//   - One rating's fallbacks count once, as the largest, under the rating's key.
+//   - Any other pseudo-stat counts under its own key.
 func applyPseudoStats(coeffs map[string]float64, pseudoStats []float64, weights core.UnitStats) {
 	fallbacks := map[stats.Stat]float64{}
 	addPercent := func(rating stats.Stat, pseudoStat proto.PseudoStat, value float64, fallbackPerPercent float64) {
@@ -198,7 +201,7 @@ func isChannelPseudoStat(pseudoStat proto.PseudoStat) bool {
 	})
 }
 
-// percentRootRating is the rating a percent outside the rating channels belongs to, as
+// The rating a percent outside the rating channels belongs to, as
 // UnitStat.getRootStat gives it: hit and crit rating for the off hand's percents, and the expertise,
 // dodge, parry and block ratings for theirs.
 func percentRootRating(pseudoStat proto.PseudoStat) (stats.Stat, bool) {
@@ -216,7 +219,7 @@ var weaponDpsPseudoStat = map[proto.ItemSlot]proto.PseudoStat{
 	proto.ItemSlot_ItemSlotRanged:   proto.PseudoStat_PseudoStatRangedDps,
 }
 
-// weaponDamageDps is the enchant's weapon damage as bonus DPS on the weapon it sits on. A swing deals
+// The enchant's weapon damage as bonus DPS on the weapon it sits on. A swing deals
 // weapon damage plus bonus DPS times the weapon's speed, so the two convert by the speed.
 func (o *reforgeOptimizer) weaponDamageDps(candidate enchantCandidate) float64 {
 	if candidate.enchant.WeaponDamage == 0 {

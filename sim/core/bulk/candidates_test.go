@@ -302,8 +302,8 @@ var comboTableSpecs = []struct {
 	{proto.Spec_SpecProtectionWarrior, proto.Class_ClassWarrior, "Protection Warrior"},
 }
 
-// classComboTableItems returns every synthetic weapon the class can actually equip, so the
-// selection fed to the generator mirrors what the item search would let through.
+// Every synthetic weapon the class can actually equip, so the selection fed to the generator
+// mirrors what the item search would let through.
 func classComboTableItems(class proto.Class) []*proto.ItemSpec {
 	specs := make([]*proto.ItemSpec, 0)
 	for _, wt := range comboTableWeaponTypes {

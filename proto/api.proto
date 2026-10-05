@@ -483,7 +483,7 @@ message ReforgeSettings {
 	UnitStats breakpoint_limits = 6;
 	reserved 7, 8, 9;
 	reserved "max_gem_phase", "max_gem_quality", "disable_unique_gems";
-	// The stats the spec's EP covers, sent by the UI. The optimizer does not read it.
+	// The stats the spec's EP covers, sent by the UI. Go does not read it.
 	repeated Stat ep_stats = 10;
 	// The UI builds enchant_options from the checked enchant presets instead of every usable enchant.
 	bool use_enchant_presets = 11;
@@ -727,7 +727,7 @@ message AsyncAPIResult {
 	string progress_id = 1;
 }
 
-// ProgressMetrics are used by all async APIs
+// Used by all async APIs
 message ProgressMetrics {
 	int32 completed_iterations = 1;
 	int32 total_iterations = 2;

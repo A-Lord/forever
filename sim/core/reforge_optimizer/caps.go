@@ -8,9 +8,8 @@ import (
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-// reforgeSoftCap represents a soft cap or threshold expressed in reforge-relative (gap-to-cap)
-// breakpoints. breakpoints/postCapEPs are mutated in place across solver passes as breakpoints
-// are consumed.
+// A soft cap or threshold expressed in reforge-relative (gap-to-cap) breakpoints.
+// breakpoints/postCapEPs are mutated in place across solver passes as breakpoints are consumed.
 type reforgeSoftCap struct {
 	unitStat    stats.UnitStat
 	breakpoints []float64
@@ -22,10 +21,10 @@ type reforgeSoftCap struct {
 // LP-path cap computation (mirrors the reference solver).
 // ---------------------------------------------------------------------------
 
-// computeReforgeSoftCaps converts each configured soft cap's absolute breakpoints into
-// gap-to-cap deltas. For TypeThreshold caps the breakpoints are reversed (largest gap evaluated
-// first) and every post-cap EP is set to the FIRST configured value, which is interpreted as the
-// residual stat value just after passing a threshold discontinuity.
+// Converts each configured soft cap's absolute breakpoints into gap-to-cap deltas. For
+// TypeThreshold caps the breakpoints are reversed (largest gap evaluated first) and every post-cap
+// EP is set to the FIRST configured value, which is interpreted as the residual stat value just
+// after passing a threshold discontinuity.
 func computeReforgeSoftCaps(baseStats core.UnitStats, configs []*proto.StatCapConfig) []*reforgeSoftCap {
 	result := make([]*reforgeSoftCap, 0, len(configs))
 	for _, config := range configs {
@@ -64,13 +63,13 @@ func computeReforgeSoftCaps(baseStats core.UnitStats, configs []*proto.StatCapCo
 
 var offenseRatings = []stats.Stat{stats.HitRating, stats.CritRating, stats.HasteRating, stats.ExpertiseRating}
 
-// avoidanceRatings share percent children: defense moves dodge, parry and block alongside their own
+// Ratings that share percent children: defense moves dodge, parry and block alongside their own
 // ratings.
 var avoidanceRatings = []stats.Stat{stats.DefenseRating, stats.DodgeRating, stats.ParryRating, stats.BlockRating}
 
-// checkWeights moves each weighted rating's EP onto the first of its percent children that carries
-// a cap, as EP per percent, so the solver values the rating in the units its caps use. Without a
-// capped child the rating keeps its EP; a rating without EP is valued through its children.
+// Moves each weighted rating's EP onto the first of its percent children that carries a cap, as EP
+// per percent, so the solver values the rating in the units its caps use. Without a capped child
+// the rating keeps its EP; a rating without EP is valued through its children.
 // A hit, crit, haste or expertise rating with EP drops its children's weights first. An avoidance
 // rating is zeroed instead when any of its children already carries a weight; defense runs first,
 // so its EP landing on Dodge% zeroes dodge rating.

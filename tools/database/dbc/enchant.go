@@ -95,12 +95,12 @@ var enchantEffectArgFixes = map[int]map[int]int{
 
 // Enchants the proc rules classify wrongly, keyed by effect id.
 var enchantProcKindOverrides = map[int]proto.EnchantProcKind{
-	// Lotus Claw: its equip spell 1294053 is an A_DUMMY with no SpellAuraOptions row, a chance at Death Lotus when gathering herbs.
+	// Lotus Claw: its equip spell 1294053, a chance at Death Lotus when gathering herbs, is an A_DUMMY with no SpellAuraOptions row.
 	8695: proto.EnchantProcKind_EnchantProcKindNone,
 }
 
-// A proc slot is Survival when the spell it applies only absorbs, heals or adds armor; any other
-// proc is Combat. An enchant with no proc slot is None.
+// An enchant is Survival when every proc slot's spell only absorbs, heals or adds armor, and Combat
+// otherwise. An enchant with no proc slot is None.
 func (enchant *Enchant) procKind(slots []EnchantProcSlot) proto.EnchantProcKind {
 	if kind, ok := enchantProcKindOverrides[enchant.EffectId]; ok {
 		return kind

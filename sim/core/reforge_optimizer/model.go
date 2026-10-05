@@ -6,9 +6,9 @@ import (
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-// model.go holds the coefficient layer of the optimizer's LP model: how a stat delta becomes a
-// variable's objective and cap coefficients, and how a variable is scored. It is a port of the
-// reference reforger's model layer: applyReforgeStat and its variable scoring.
+// Holds the coefficient layer of the optimizer's LP model: how a stat delta becomes a variable's
+// objective and cap coefficients, and how a variable is scored. It is a port of the reference
+// reforger's model layer: applyReforgeStat and its variable scoring.
 //
 // Coefficient space: the reference keeps ONE coefficient map per variable — the same map feeds both
 // the objective score and the cap constraints, so a stat only counts toward a cap when
@@ -25,17 +25,17 @@ import (
 // dependency manager, so the cap space resolves the raw delta and must NOT pre-apply them; only the
 // objective space applies them by hand (see applyReforgeStat).
 
-// scoreCoeffKey holds each variable's EP score, which the reported score sums.
+// Holds each variable's EP score, which the reported score sums.
 const scoreCoeffKey = "score"
 
-// objectiveCoeffKey holds the score plus the variable's tie-break, which the LP maximizes.
+// Holds the score plus the variable's tie-break, which the LP maximizes.
 const objectiveCoeffKey = "objective"
 
-// tieBreakCoeffKey is the objective coefficient holding a variable's tie-break bonus.
+// The objective coefficient holding a variable's tie-break bonus.
 const tieBreakCoeffKey = "tieBreak"
 
-// computeCoeffScore sums weight*value over the coefficient keys that name a stat or pseudo-stat.
-// Structural keys (slot keys, "score", "objective" and "tieBreak") are not stat names and contribute nothing.
+// Sums weight*value over the coefficient keys that name a stat or pseudo-stat. Structural keys
+// (slot keys, "score", "objective" and "tieBreak") are not stat names and contribute nothing.
 func computeCoeffScore(coeffs map[string]float64, weights core.UnitStats) float64 {
 	score := 0.0
 	for key, value := range coeffs {
@@ -46,7 +46,7 @@ func computeCoeffScore(coeffs map[string]float64, weights core.UnitStats) float6
 	return score
 }
 
-// updateReforgeScores recomputes every variable's "score" and "objective" coefficients against the
+// Recomputes every variable's "score" and "objective" coefficients against the
 // given weights and returns the updated variable set. The weights are expected to already carry
 // post-cap values for any stat constrained to its cap in an earlier pass.
 //
@@ -72,8 +72,8 @@ func (o *reforgeOptimizer) updateReforgeScores(variables *lpVariables, weights c
 	return updated
 }
 
-// applyReforgeStat adds a stat amount to a coefficient map, applying the racial stat modifiers and
-// resolving the stat onto its child pseudo-stats when the root stat itself carries no EP.
+// Adds a stat amount to a coefficient map, applying the racial stat modifiers and resolving the
+// stat onto its child pseudo-stats when the root stat itself carries no EP.
 func (o *reforgeOptimizer) applyReforgeStat(coeffs map[string]float64, stat stats.Stat, amount float64, preCapEPs core.UnitStats) {
 	race := o.player.GetRace()
 	if stat == stats.Spirit && race == proto.Race_RaceHuman {
@@ -103,13 +103,13 @@ func (o *reforgeOptimizer) applyReforgeStat(coeffs map[string]float64, stat stat
 	}
 }
 
-// resolveCapCoeffs builds a variable's CAP-space coefficient map from a raw stat delta by resolving
+// Builds a variable's CAP-space coefficient map from a raw stat delta by resolving
 // it through the full stat dependency graph and keying every nonzero resolved stat/pseudo-stat by its
 // coefficient-key name. These feed the LP cap constraint rows and checkCaps, so every dependency
 // (Intellect -> SpellCrit%, Agility -> PhysicalCrit%/Dodge%, the haste speed multiplier) counts
 // toward the caps. The racial stat multipliers live in the dependency manager, so the delta must be
 // passed through unscaled. Percents go in delta.Stats as well as delta.PseudoStats, since
-// resolveStatDelta writes every percent pseudo stat from its Stat.
+// resolveStatDelta writes every percent pseudo-stat from its Stat.
 func (o *reforgeOptimizer) resolveCapCoeffs(delta core.UnitStats) map[string]float64 {
 	resolved := resolveStatDelta(o.statDeps, o.baseStats, delta)
 	o.sheet.Gate(resolved.PseudoStats)
