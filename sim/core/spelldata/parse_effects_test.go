@@ -518,6 +518,7 @@ func TestEveryTableRow(t *testing.T) {
 		{dbcenums.A_MOD_INCREASE_HEALTH_PERCENT, 0, 10, "multiply-stat Health", 1.1, false},
 		{dbcenums.A_MOD_PARRY_PERCENT, 0, 5, "stat ParryPercent", 5, false},
 		{dbcenums.A_MOD_SKILL, miscDefense, 20, "stat DefenseRating", 20 * core.DefenseRatingPerDefenseLevel, false},
+		{dbcenums.A_MOD_SKILL, 173, 5, "weapon-skill", 5, false},
 		{dbcenums.A_MOD_DODGE_PERCENT, 0, 5, "stat DodgePercent", 5, false},
 		{dbcenums.A_MOD_BLOCK_PERCENT, 0, 5, "stat BlockPercent", 5, false},
 		{dbcenums.A_MOD_WEAPON_CRIT_PERCENT, 0, 5, "stat PhysicalCritPercent", 5, false},
@@ -735,8 +736,13 @@ func TestParseStaticStatConventions(t *testing.T) {
 		t.Errorf("defense rating from a 20 point Defense skill row: %v, want %v", got, 20*core.DefenseRatingPerDefenseLevel)
 	}
 	swords := parseWarrior()
-	if parsed := ParseStatic(swords, oneEffectRow(dbcenums.A_MOD_SKILL, 43, 5)); len(parsed.Applied) != 0 {
-		t.Errorf("a Swords skill row attached %v, want nothing", parsed.Applied)
+	ParseStatic(swords, oneEffectRow(dbcenums.A_MOD_SKILL, 43, 5))
+	if got := swords.PseudoStats.WeaponSkills[proto.WeaponSkill_WeaponSkillSwords]; got != 5 {
+		t.Errorf("sword skill from a 5 point Swords skill row: %v, want 5", got)
+	}
+	fishing := parseWarrior()
+	if parsed := ParseStatic(fishing, oneEffectRow(dbcenums.A_MOD_SKILL, 356, 25)); len(parsed.Applied) != 0 {
+		t.Errorf("a Fishing skill row attached %v, want nothing", parsed.Applied)
 	}
 
 	expertise := parseWarrior()

@@ -36,7 +36,9 @@ func (character *Character) applyWeaponSkills(weaponSkills []*proto.WeaponSkillV
 	}
 }
 
-func (character *Character) updateAttackTableWeapons() {
+// Rebuilds the hand entries of the attack tables against every enemy, which read the weapons and their
+// weapon skill.
+func (character *Character) UpdateAttackTableWeapons() {
 	mh, oh, ranged := character.GetMHWeapon(), character.GetOHWeapon(), character.GetRangedWeapon()
 	for _, table := range character.AttackTables {
 		if table.Defender.Type == EnemyUnit {

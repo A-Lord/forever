@@ -20,6 +20,26 @@ const (
 	miscDefense     int32 = 95  // A_MOD_SKILL on the Defense skill line
 )
 
+// The weapon skill each of the game files' weapon skill lines is. Unarmed (162) is fist weapons: Devilsaur
+// Claws' "Increased Fist Weapons" names it.
+var weaponSkillLines = map[int32]proto.WeaponSkill{
+	43:  proto.WeaponSkill_WeaponSkillSwords,
+	44:  proto.WeaponSkill_WeaponSkillAxes,
+	45:  proto.WeaponSkill_WeaponSkillBows,
+	46:  proto.WeaponSkill_WeaponSkillGuns,
+	54:  proto.WeaponSkill_WeaponSkillMaces,
+	55:  proto.WeaponSkill_WeaponSkillTwoHandedSwords,
+	136: proto.WeaponSkill_WeaponSkillStaves,
+	160: proto.WeaponSkill_WeaponSkillTwoHandedMaces,
+	162: proto.WeaponSkill_WeaponSkillFistWeapons,
+	172: proto.WeaponSkill_WeaponSkillTwoHandedAxes,
+	173: proto.WeaponSkill_WeaponSkillDaggers,
+	176: proto.WeaponSkill_WeaponSkillThrown,
+	226: proto.WeaponSkill_WeaponSkillCrossbows,
+	229: proto.WeaponSkill_WeaponSkillPolearms,
+	473: proto.WeaponSkill_WeaponSkillFistWeapons,
+}
+
 // The five stats the game files count in their own order, which is what A_MOD_STAT, A_MOD_PERCENT_STAT
 // and A_MOD_TOTAL_STAT_PERCENTAGE index by.
 var clientStats = [5]stats.Stat{stats.Strength, stats.Agility, stats.Stamina, stats.Intellect, stats.Spirit}
@@ -458,13 +478,17 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 		return p.statBuff(stats.ParryPercent, v)
 	},
 
-	// Skill points. Defense is the only skill the sim keeps as a stat, as defense rating; a weapon or
-	// profession skill is skipped.
+	// Skill points: Defense as defense rating, and a weapon skill on top of the skill the player states.
+	// A profession skill is skipped.
 	dbcenums.A_MOD_SKILL: func(p *parser, e *Effect, v float64) *attachment {
-		if e.Misc != miscDefense {
+		if e.Misc == miscDefense {
+			return p.statBuff(stats.DefenseRating, v*core.DefenseRatingPerDefenseLevel)
+		}
+		skill, ok := weaponSkillLines[e.Misc]
+		if !ok || p.character == nil {
 			return nil
 		}
-		return p.statBuff(stats.DefenseRating, v*core.DefenseRatingPerDefenseLevel)
+		return p.weaponSkill(skill, v)
 	},
 
 	// The off-hand bonus is a damage modifier on the off-hand's own hits rather than on a family of
@@ -1193,6 +1217,18 @@ func (p *parser) pseudoAdd(kind string, key string, fields []*float64, v float64
 		}
 	})
 	a.key = key
+	return a
+}
+
+// Weapon skill, which the attack tables read when they are built, so a change rebuilds them.
+func (p *parser) weaponSkill(skill proto.WeaponSkill, v float64) *attachment {
+	a := p.pseudoAdd("weapon-skill", fmt.Sprintf("WeaponSkills%d", skill), []*float64{&p.unit.PseudoStats.WeaponSkills[skill]}, v)
+	set := a.set
+	character := p.character
+	a.set = func(sim *core.Simulation, level float64) {
+		set(sim, level)
+		character.UpdateAttackTableWeapons()
+	}
 	return a
 }
 
