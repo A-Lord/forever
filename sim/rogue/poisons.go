@@ -7,7 +7,8 @@ import (
 )
 
 func (rogue *Rogue) applyPoisons() {
-	if rogue.Consumables.MhImbueId == 0 && rogue.Consumables.OhImbueId == 0 {
+	if rogue.Options.GetMainHandPoison() == proto.RoguePoison_None &&
+		rogue.Options.GetOffHandPoison() == proto.RoguePoison_None {
 		return
 	}
 	rogue.applyDeadlyPoison()
