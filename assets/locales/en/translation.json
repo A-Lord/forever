@@ -2055,7 +2055,10 @@
 						"label": "Use Overpower"
 					},
 					"use_rend": {
-						"label": "Weave Rend"
+						"label": "Rend weave"
+					},
+					"use_hamstring": {
+						"label": "Hamstring weave"
 					}
 				}
 			}
