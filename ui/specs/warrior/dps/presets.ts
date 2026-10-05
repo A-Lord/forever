@@ -41,17 +41,17 @@ export const PreBiSFuryEpWeights = PresetUtils.makePresetEpWeights(
 	Stats.fromMap(
 		{
 			[Stat.StatStrength]: 2.2,
-			[Stat.StatAgility]: 2.35,
+			[Stat.StatAgility]: 2.41,
 			[Stat.StatAttackPower]: 1,
-			[Stat.StatArmorPenetration]: 0.34,
-			[Stat.StatHitRating]: 1.64,
-			[Stat.StatHasteRating]: 2.09,
-			[Stat.StatCritRating]: 3.06,
-			[Stat.StatExpertiseRating]: 1.06,
+			[Stat.StatArmorPenetration]: 0.35,
+			[Stat.StatHitRating]: 1.65,
+			[Stat.StatHasteRating]: 2.12,
+			[Stat.StatCritRating]: 3.13,
+			[Stat.StatExpertiseRating]: 1.12,
 		},
 		{
-			[PseudoStat.PseudoStatMainHandDps]: 7.91,
-			[PseudoStat.PseudoStatOffHandDps]: 2.66,
+			[PseudoStat.PseudoStatMainHandDps]: 7.88,
+			[PseudoStat.PseudoStatOffHandDps]: 2.67,
 		},
 	),
 );
