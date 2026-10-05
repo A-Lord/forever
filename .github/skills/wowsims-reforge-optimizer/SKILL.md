@@ -1,6 +1,6 @@
 ---
 name: wowsims-reforge-optimizer
-description: 'Use when working on the WoWSims gear optimizer ("reforge optimizer" — the name is inherited from MoP; there is no reforging), the /reforgeOptimizeAsync endpoint, HiGHS solver integration, EP/cap logic, or softcap breakpoints.'
+description: 'Use when working on the WoWSims gear optimizer (the "reforge optimizer" in code; there is no reforging), the /reforgeOptimizeAsync endpoint, HiGHS solver integration, EP/cap logic, or softcap breakpoints.'
 argument-hint: 'Describe the optimizer bug, fixture, or behavior to work on.'
 ---
 
@@ -10,19 +10,21 @@ Comments, docs, commit messages and PR text follow `wowsims-conventions`: "game 
 
 ## Scope
 
-- Core optimizer behavior in sim/core/reforge_optimizer (no reforging exists — the "reforge" naming is legacy from the MoP port).
+- Core optimizer behavior in sim/core/reforge_optimizer ("reforge" is only the code's name; there is no reforging).
 - Endpoint path /reforgeOptimizeAsync and worker integration.
 - HiGHS-backed MIP solving under stat caps.
 
-The optimizer picks one static enchant per listed slot to maximize EP within the stat caps. There are no gems or sockets.
+The optimizer picks one static enchant per listed slot to maximize EP within the stat caps.
 
 - Candidates come from `ReforgeOptimizeRequest.enchant_options`, built by ui/features/reforge/model/enchant_options.ts. Per equipped, unfrozen slot it lists the enchants the player can use on that item (class and Enchanting gated, bulk's fit rule `core.EnchantAppliesToItem`) that are static (`proc_kind` None, with stats, pseudo-stats or weapon damage) and worth EP > 0 on the optimizer's pre-cap weights.
-- A slot whose item can take a proc enchant the sim implements (a combat proc for every spec, a survival proc for tanks) is skipped and listed in the panel's Enchants section, with a link to the batch sim. A proc enchant in `MISSING_ENCHANT_EFFECTS` (ui/sim/constants/missing_effects_auto_gen.ts) blocks nothing; it has no stats, so it is never a candidate either. Every melee weapon takes Crusader, so weapon slots are skipped.
-- "Use enchant presets" (`ReforgeSettings.use_enchant_presets`, off by default; the UI reads it, Go does not) swaps the candidate source for the checked enchant presets, the same presets and checks the batch sim uses (`enchantPresetPool` in ui/features/enchant-presets/model/enchant_presets.ts; Finger 1 lists both rings, Weapons both hands). Per equipped, unfrozen slot: an item that takes enchants but none the presets list skips the slot as "listed by no enchant preset" (an item that takes none, such as a wand, is silent); a listed proc the sim implements, combat or survival, skips it for every spec; otherwise the candidates are exactly the listed static enchants, with no EP filter. While it is on and no preset is checked, the run button is disabled.
+- A slot whose item can take a proc enchant the sim implements (a combat proc for every spec, a survival proc for tanks) is skipped and listed in the panel's Enchants section, with a link to the batch sim. A proc enchant in `MISSING_ENCHANT_EFFECTS` (ui/sim/constants/missing_effects_auto_gen.ts) blocks nothing; it has no stats, so it is never a candidate either. Every melee weapon takes Crusader, so the main and off hand are skipped when they hold one.
+- "Use enchant presets" (`ReforgeSettings.use_enchant_presets`, off by default; the UI reads it, Go does not) swaps the candidate source for the checked enchant presets, the same presets and checks the batch sim uses (`enchantPresetPool` in ui/features/enchant-presets/model/enchant_presets.ts; Finger 1 lists both rings, Weapons both hands). Per equipped, unfrozen slot: an item that takes enchants but none the presets list skips the slot and lists it under "No checked enchant preset lists these slots:" (an item that takes none, such as a wand, is silent); a listed proc the sim implements, combat or survival, skips it for every spec; otherwise the candidates are exactly the listed static enchants, with no EP filter. While it is on and no preset is checked, Optimize Enchants is disabled.
 - `proc_kind` comes from gen_db (tools/database/dbc/enchant.go; overrides in `enchantProcKindOverrides` there).
-- Go side (enchants.go): one binary per (slot, candidate) with a per-slot row <= 1, so a slot may end with no pick when every candidate breaks a ceiling. The candidates come from the input gear, then the one environment build makes the baseline: the gear with those slots' static enchants cleared; an enchant that is not static (Minor Speed, a proc) stays, so a slot with no pick keeps it; a slot with no pick whose input enchant was static ends empty. Go drops non-static, unfit and frozen-slot candidates, and a slot whose input enchant is a proc the sim implements (`core.HasEnchantEffect`) gets none and keeps it. A tie-break bonus (`enchantTieBreak`, twice for the slot's input enchant, none where a non-static enchant stays) keeps the input enchant on an EP tie and fills a slot whose candidates are all worth 0. No candidate returns the gear unchanged with score 0. The score is the objective over that baseline without the tie-break, not the gain over the input gear.
+- Go side (enchants.go): one binary per (slot, candidate) with a per-slot row <= 1, so a slot may end with no pick when every candidate breaks a ceiling. Go drops non-static, unfit and frozen-slot candidates, and a slot whose input enchant is a proc the sim implements (`core.HasEnchantEffect`) gets none and keeps it.
+- The baseline is the input gear with the candidate slots' static enchants cleared; its environment build gives the base stats and the stat dependency manager. An enchant that is not static (Minor Speed, a proc) stays, so a slot with no pick keeps it; a slot with no pick whose input enchant is static ends empty.
+- A tie-break bonus (`enchantTieBreak`; twice for the slot's input enchant, none where a non-static enchant stays) keeps the input enchant on an EP tie and fills a slot whose candidates are all worth 0. With no candidates the optimizer returns the input gear unchanged with score 0. The score is the objective over the baseline without the tie-break, not the gain over the input gear.
 - A candidate's percent pseudo-stats are valued as `Stats.computeEP` (ui/sim/proto/stats.ts) values them: by the percent's own weight when it has one, otherwise as rating under the root rating's weight; the part all three channels of a hit, crit or haste rating share counts once at the rating, and one rating's fallbacks count once, as the largest.
-- Flat weapon damage counts as the hand's (or ranged) DPS at the item's speed.
+- Flat weapon damage counts as main-hand, off-hand or ranged DPS at the weapon's speed.
 - `StatCaps` are targets; `UndershootCaps` make them ceilings. A ceiling the baseline already exceeds allows no more of that stat.
 
 ## Architecture
@@ -58,10 +60,8 @@ Files (all under sim/core/reforge_optimizer/):
 
 ## Bulk Sim Integration Contract
 
-- The UI's bulk sim does not run the optimizer pre-pass; bulk crosses enchants through its presets. The pre-pass code (sim/web/bulk.go, ui/sim/wasm/bulk_sim/reforge.ts) is unreachable from the UI.
-- Bulk Sim uses ReforgeOptimizeRequest mode for bulk operations; avoid duplicate optimizer config types.
-- Cache keys represent input identity; cached values are optimized output gear (plain `equipmentSpec:` proto JSON).
-- Bulk runs derive their RNG seed from content including the cache-relevant optimizer config — see the wowsims-bulk-sim skill for the staged/finalist pipeline.
+- The UI's batch sim never runs the optimizer; it crosses enchants through its enchant presets, which the optimizer's "Use enchant presets" option shares. The pre-pass code (sim/web/bulk.go, ui/sim/wasm/bulk_sim/reforge.ts, the reforge cache in ui/sim/bulk/reforge_cache.ts) exists but is unreachable from the UI.
+- Batch runs derive their RNG seed from the baseline gear and BulkSettings, with no optimizer config — see the wowsims-bulk-sim skill for the staged/finalist pipeline.
 
 ## Performance Guardrails
 
@@ -72,7 +72,6 @@ Files (all under sim/core/reforge_optimizer/):
 ## Validation Commands
 
 ```bash
-go test -tags with_db -count=1 -run 'TestOptimize' ./sim/core/reforge_optimizer
 go test -tags with_db -count=1 ./sim/core/reforge_optimizer
 go test -tags with_db -count=1 -run TestEnchantProcKind ./tools/database
 npx vitest run ui/features/reforge/model/enchant_options.test.ts

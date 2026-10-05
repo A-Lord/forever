@@ -11,7 +11,9 @@ Comments, docs, commit messages and PR text follow `wowsims-conventions`: "game 
 ## Scope
 
 - Bulk candidate generation and staged simulation flow (low/medium/high + finalist).
-- Bulk optimizer pre-pass integration and cache behavior ("reforge" naming is inherited from MoP; there is no reforging). The UI never runs the optimizer pre-pass: `runBulkBatch` (ui/features/bulk/model/run.ts) dedupes the candidates and sends no reforge request, and the batch settings have no optimizer group. Bulk crosses enchants through its enchant presets. The presets live in ui/features/enchant-presets/ (model, `EnchantPresets` tiles and dialog), shared with the gear optimizer's "Use enchant presets" option: same storage (`bulk-enchant-presets.v1` through ui/sim/settings/bulk_settings.ts, the bulk slice's `enchantPresets`), same checks. A check, or saving or deleting a checked preset, bumps the bulk `settings` counter. The pre-pass code (sim/web/bulk.go, ui/sim/wasm/bulk_sim/reforge.ts) stays. Bulk's enchant fit rule lives in sim/core (`core.EnchantAppliesToItem`, `core.FittingEnchantRow`), shared with the gear optimizer.
+- Bulk optimizer pre-pass integration and cache behavior ("reforge" is only the optimizer's name; there is no reforging). The UI never runs the optimizer pre-pass: `runBulkBatch` (ui/features/bulk/model/run.ts) dedupes the candidates and sends no reforge request, and the batch settings have no optimizer group. The pre-pass code (sim/web/bulk.go, ui/sim/wasm/bulk_sim/reforge.ts, the reforge cache in ui/sim/bulk/reforge_cache.ts) exists but is unreachable from the UI.
+- Bulk crosses enchants through its enchant presets. They live in ui/features/enchant-presets/ (model, `EnchantPresets` tiles and dialog) and are shared with the gear optimizer's "Use enchant presets" option: same storage (`bulk-enchant-presets.v1` through ui/sim/settings/bulk_settings.ts, the bulk slice's `enchantPresets`), same checks. Checking a preset, or saving or deleting a checked one, bumps the bulk `settings` counter.
+- Bulk's enchant fit rule lives in sim/core (`core.EnchantAppliesToItem`, `core.FittingEnchantRow`), shared with the gear optimizer.
 - Deterministic content-derived seeding and statistical result display.
 - Progress, abort semantics, and local vs WASM orchestration.
 
@@ -37,7 +39,7 @@ Comments, docs, commit messages and PR text follow `wowsims-conventions`: "game 
 
 ## Determinism and Statistics
 
-- Content-derived seed: runBulkSim hashes baseline gear + BulkSettings + cache-relevant optimizer config into simOptions.randomSeed (utils hashString; per-part digests combined). Same setup → bit-identical results; any change → fresh sample. An explicit fixed RNG seed takes precedence; lastUsedRngSeed is updated to the seed actually used.
+- Content-derived seed: runBulkSim hashes baseline gear + BulkSettings into simOptions.randomSeed (utils hashString; per-part digests combined). Same setup → bit-identical results; any change → fresh sample. An explicit fixed RNG seed takes precedence; lastUsedRngSeed is updated to the seed actually used.
 - Candidates share seed sequences; comparisons between candidates use PAIRED errors (bulkSimPairedDpsError over AllValues), far tighter than per-result stdev.
 - Finalist stage (runBulkSimFinalistStage / runConcurrentBulkSimFinalistStage): after the high stage, the top `topResults` candidates + baseline get lockstep extra iterations until every adjacent pair separates under a paired z-test at Z95 (bulkSimZ95 / Z_95), or the budget (BulkSimFinalistMaxExtraIterationMultiplier × high-stage iterations) is spent. Its returned results ARE the refined, DPS-sorted display set.
 - Shipped per top result: paired_error_to_next_result and paired_error_to_baseline (computed before AllValues are stripped; 0 = could not pair).
@@ -48,34 +50,22 @@ Comments, docs, commit messages and PR text follow `wowsims-conventions`: "game 
 
 - Baseline gear source is base_request.raid.parties[0].players[0].equipment.
 - Candidate identity remains stable through BulkGearCandidate.index.
-- With reforge_request enabled:
-    - Cache hits go to optimized_candidates.
-    - Work-to-optimize goes to candidates.
-- Before staged sim starts:
-    - Merge cache hits with newly optimized candidates.
-    - Clear request.ReforgeRequest.
-- Dedup for sim input must exclude baseline-equivalent gear and duplicate optimized gear.
-- Keep full optimized candidate outputs for cache writing so every input key can be persisted.
+- Dedup for sim input must exclude baseline-equivalent and duplicate gear (`dedupeGearSets`).
 - Spec lookup goes through core.PlayerProtoToSpecSafe; eligible-slot logic through core.EligibleSlotsForItem / core.ItemTypeToSlotsMap (single source, shared with item swap); entry-point validation via newGeneratorFromRequest.
 
 ## Settings Boundaries
 
 - BulkSettings controls bulk-tab constraints.
-- ReforgeSettings controls gear optimizer constraints.
+- ReforgeSettings belongs to the gear optimizer; the batch sim reads none of it. The two share only the enchant presets, which live in the bulk slice.
 - Never merge or alias these domains in request shaping or serialization.
 
-## Local/Server Optimizer Flow
+## Local/Server Flow
 
-- Candidate generation runs unless request is fully cache-restored.
-- Optimizer progress emits BulkSimStageReforge before low/medium/high stages.
-- Per-candidate optimizer failure falls back to original candidate gear.
-- Abort returns partial optimized candidates that already completed.
+- The batch sim sends no reforge request, so candidate generation always runs and no optimizer stage runs before the low/medium/high stages.
 
 ## Frontend/WASM Flow
 
-- WASM optimizer path is frontend-orchestrated with per-gear optimizer calls.
-- Cache entries store optimized output gear; cache key is input-identity hash (sync, from utils hashString).
-- Incremental cache writes are batched (setGearMany); the final write only covers keys not already written incrementally.
+- The WASM path makes no per-gear optimizer calls and neither reads nor writes the reforge cache.
 - Results tab: rows build into a DocumentFragment and attach once; changed items render the shared gear-change icon (Wowhead cover link) instead of a border; a slot-change renders the item plainly. Starting a new run returns to the Setup tab.
 
 ## Candidate Counting and Filtering
