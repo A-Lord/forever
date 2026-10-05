@@ -196,12 +196,12 @@ export default defineSpec<Spec.SpecDpsWarrior>({
 		if (opWeaveAction) opWeaveAction.hide = !useOverpower;
 
 		const rendWeaveAction = rotation.priorityList.find(
-			action => action.action?.action.oneofKind === 'groupReference' && action.action?.action.groupReference.groupName === 'Rend Weaving ON/OFF',
+			action => action.action?.action.oneofKind === 'groupReference' && action.action?.action.groupReference.groupName === 'Rend Weave ON/OFF',
 		);
 		if (rendWeaveAction) rendWeaveAction.hide = !useRend;
 
 		const hamstringWeaveAction = rotation.priorityList.find(
-			action => action.action?.action.oneofKind === 'groupReference' && action.action?.action.groupReference.groupName === 'Hamstring Weaving ON/OFF',
+			action => action.action?.action.oneofKind === 'groupReference' && action.action?.action.groupReference.groupName === 'Hamstring Weave ON/OFF',
 		);
 		if (hamstringWeaveAction) hamstringWeaveAction.hide = !useHamstring;
 
