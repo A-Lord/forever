@@ -2056,6 +2056,9 @@
 					},
 					"use_rend": {
 						"label": "Weave Rend"
+					},
+					"use_hamstring": {
+						"label": "Weave Hamstring"
 					}
 				}
 			}

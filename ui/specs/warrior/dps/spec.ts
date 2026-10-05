@@ -155,6 +155,7 @@ export default defineSpec<Spec.SpecDpsWarrior>({
 			useRend = true,
 			useRecklessness = false,
 			useStanceDance = false,
+			useHamstring = true,
 		} = simple;
 
 		if (!spec) {
@@ -198,6 +199,11 @@ export default defineSpec<Spec.SpecDpsWarrior>({
 			action => action.action?.action.oneofKind === 'groupReference' && action.action?.action.groupReference.groupName === 'Rend Weaving ON/OFF',
 		);
 		if (rendWeaveAction) rendWeaveAction.hide = !useRend;
+
+		const hamstringWeaveAction = rotation.priorityList.find(
+			action => action.action?.action.oneofKind === 'groupReference' && action.action?.action.groupReference.groupName === 'Hamstring Weaving ON/OFF',
+		);
+		if (hamstringWeaveAction) hamstringWeaveAction.hide = !useHamstring;
 
 		return APLRotation.create({
 			simple: SimpleRotation.create({}),
