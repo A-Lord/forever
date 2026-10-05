@@ -106,6 +106,7 @@ message DpsWarrior {
 		bool use_overpower = 4;
 		WarriorSunder sunder_armor = 5;
 		bool use_rend = 6;
+		bool use_stance_dance = 7;
 	}
 
 	message Options {

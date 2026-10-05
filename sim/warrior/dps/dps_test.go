@@ -51,7 +51,7 @@ func dpsWarriorSuite() core.CharacterSuiteConfig {
 		Rotation: core.GetAplRotation("../../../ui/specs/warrior/dps/apls", "fury"),
 		OtherRotations: []core.RotationCombo{
 			core.GetAplRotation("../../../ui/specs/warrior/dps/apls", "arms"),
-			core.GetAplRotation("../../../ui/specs/warrior/dps/apls", "arms_stance_dance"),
+			armsStanceDanceRotation(),
 		},
 
 		ItemFilter: core.ItemFilter{
@@ -70,6 +70,16 @@ func dpsWarriorSuite() core.CharacterSuiteConfig {
 			},
 		},
 	}
+}
+
+func armsStanceDanceRotation() core.RotationCombo {
+	rotation := core.GetAplRotation("../../../ui/specs/warrior/dps/apls", "arms").Rotation
+	for _, item := range rotation.PriorityList {
+		if item.GetAction().GetGroupReference().GetGroupName() == "Stance Dance ON/OFF" {
+			item.Hide = false
+		}
+	}
+	return core.RotationCombo{Label: "arms_stance_dance", Rotation: rotation}
 }
 
 var DefaultOptions = &proto.Player_DpsWarrior{
