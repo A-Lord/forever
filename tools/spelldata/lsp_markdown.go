@@ -1,9 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/url"
 	"strings"
 
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
@@ -44,10 +47,56 @@ func familyMarkdown(f *ladderFamily) string {
 
 func exprMarkdown(result *exprResult, hover chainHover) string {
 	var md strings.Builder
+
 	c := result.card()
 	called := ""
 	if n := len(hover.chain.segments); n > 0 {
 		called = hover.chain.segments[n-1].text(true)
+	}
+
+	// Only show the rank selector when the cursor is actually on the
+	// rank parameter itself. Expressions which resolve through rank still
+	// use the selected virtual rank, but do not show the selector again.
+	showRankSelector := hover.rank != nil &&
+		hover.name == hover.rank.parameter
+
+	if showRankSelector && result.family != nil {
+		selectedRank := int32(result.family.ladder.Len())
+		if hover.rank.rank > 0 {
+			selectedRank = hover.rank.rank
+		}
+
+		fmt.Fprintf(
+			&md,
+			"**Rank:** **%d** / %d\n\n",
+			selectedRank,
+			result.family.ladder.Len(),
+		)
+
+		for rank := int32(1); rank <= int32(result.family.ladder.Len()); rank++ {
+			args, _ := json.Marshal(map[string]any{
+				"parameter": hover.rank.parameter,
+				"function":  hover.rank.function,
+				"rank":      rank,
+			})
+
+			if rank > 1 {
+				md.WriteString(" ")
+			}
+
+			if rank == selectedRank {
+				fmt.Fprintf(&md, "**[%d]**", rank)
+			} else {
+				fmt.Fprintf(
+					&md,
+					"[%d](command:wowsims-spelldata.changeRank?%s)",
+					rank,
+					url.QueryEscape(string(args)),
+				)
+			}
+		}
+
+		md.WriteString("\n\n")
 	}
 
 	switch result.kind {
@@ -77,5 +126,18 @@ func exprMarkdown(result *exprResult, hover chainHover) string {
 		fmt.Fprintf(&md, "`%s`\n\n", result.trail)
 		c.writeMarkdown(&md)
 	}
+
 	return md.String()
+}
+
+func effectDBCLabel(effect *spelldata.Effect) string {
+	if effect == nil {
+		return ""
+	}
+
+	if effect.Type == dbcenums.E_APPLY_AURA {
+		return fmt.Sprintf("%s · %s", effect.Type, effect.Aura)
+	}
+
+	return fmt.Sprintf("%s", effect.Type)
 }

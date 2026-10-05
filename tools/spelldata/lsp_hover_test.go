@@ -51,7 +51,7 @@ func positionOf(t *testing.T, text, needle string, offset int) (int, int) {
 func hoverOn(t *testing.T, ws *workspace, text, uri, needle string, offset int) (string, []string, bool) {
 	t.Helper()
 	line, col := positionOf(t, text, needle, offset)
-	return ws.hover(text, line, col, uri)
+	return ws.hover(text, line, col, uri, nil)
 }
 
 func wantHover(t *testing.T, text, needle string, offset int, wants ...string) string {
@@ -91,10 +91,10 @@ func TestHoverSpellIDShapes(t *testing.T) {
 		}
 	}
 
-	if _, _, ok := newWorkspace().hover("\tspell.ApplyEffects = nil", 0, 12, "file:///tmp/a.ts"); ok {
+	if _, _, ok := newWorkspace().hover("\tspell.ApplyEffects = nil", 0, 12, "file:///tmp/a.ts", nil); ok {
 		t.Error("a TS line with no id answered a hover")
 	}
-	if _, _, ok := newWorkspace().hover("\tspelldata.Find(116) // the rank 1", 0, 30, "file:///tmp/a.ts"); ok {
+	if _, _, ok := newWorkspace().hover("\tspelldata.Find(116) // the rank 1", 0, 30, "file:///tmp/a.ts", nil); ok {
 		t.Error("a column outside the match answered a hover")
 	}
 }
@@ -103,7 +103,7 @@ func TestHoverSpellIDShapes(t *testing.T) {
 func TestHoverColumnIsUTF16(t *testing.T) {
 	line := "// — spelldata.MustFind(11574)"
 	col := len([]rune(line[:strings.Index(line, "11574")]))
-	if markdown, _, ok := newWorkspace().hover(line, 0, col, "file:///tmp/a.go"); !ok || !strings.HasPrefix(markdown, "### 11574 ") {
+	if markdown, _, ok := newWorkspace().hover(line, 0, col, "file:///tmp/a.go", nil); !ok || !strings.HasPrefix(markdown, "### 11574 ") {
 		t.Errorf("the id after a dash answered %v %q", ok, markdown)
 	}
 }
@@ -349,6 +349,95 @@ func TestDeclarations(t *testing.T) {
 	}
 }
 
+func TestEachParameterDeclarations(t *testing.T) {
+	file := strings.Join([]string{
+		"package priest",
+		"",
+		"func registerHolyFireSpell(rank *spelldata.Spell) {",
+		"\trank.DamageEffect()",
+		"}",
+		"",
+		"func registerVampiricEmbrace(rank *spelldata.Spell, timer int) {",
+		"\trank.DamageEffect()",
+		"}",
+		"",
+		"func register() {",
+		"\tspellData.HolyFire.Each(func(_ int32, rank *spelldata.Spell) {",
+		"\t\tregisterHolyFireSpell(rank)",
+		"\t})",
+		"\tspellData.VampiricEmbrace.Each(func(_ int32, rank *spelldata.Spell) {",
+		"\t\tregisterVampiricEmbrace(rank, 1)",
+		"\t})",
+		"}",
+	}, "\n")
+
+	parsed := parseGo("priest.go", file)
+
+	if len(parsed.parameterSources) != 2 {
+		t.Fatalf("got %d parameter sources, want 2", len(parsed.parameterSources))
+	}
+
+	for _, source := range parsed.parameterSources {
+		if got := source.chain.text(false); got != "spellData.HolyFire" &&
+			got != "spellData.VampiricEmbrace" {
+			t.Errorf("unexpected source chain %q", got)
+		}
+	}
+}
+
+func TestVirtualRankPreservesAccessorChain(t *testing.T) {
+	file := strings.Join([]string{
+		"package priest",
+		"",
+		"func registerHolyFireSpell(rank *spelldata.Spell) {",
+		"\trank.EffectN(1).Average()",
+		"}",
+		"",
+		"func register() {",
+		"\tspellData.HolyFire.Each(func(_ int32, rank *spelldata.Spell) {",
+		"\t\tregisterHolyFireSpell(rank)",
+		"\t})",
+		"}",
+	}, "\n")
+
+	parsed := parseGo("priest.go", file)
+	if len(parsed.parameterSources) != 1 {
+		t.Fatalf("got %d parameter sources, want 1", len(parsed.parameterSources))
+	}
+
+	source := parsed.parameterSources[0]
+	sourceDeclaration, ok := parameterDeclaration(parsed, source)
+	if !ok {
+		t.Fatal("rank parameter was not declared")
+	}
+
+	declarations := map[string]declaration{
+		sourceDeclaration.name: sourceDeclaration,
+	}
+
+	chain, err := parseChain("rank.EffectN(1).Average()")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	hover, ok := resolved(chain, "rank", declarations, &tracer{})
+	if !ok {
+		t.Fatal("rank chain did not resolve")
+	}
+
+	if hover.parameter == nil {
+		t.Fatal("rank chain lost its virtual parameter")
+	}
+
+	if hover.rank == nil {
+		t.Fatal("rank chain did not produce a virtual rank")
+	}
+
+	if got := hover.chain.text(false); got != "rank.EffectN(1).Average()" {
+		t.Errorf("resolved chain became %q, want rank.EffectN(1).Average()", got)
+	}
+}
+
 func declared(chains map[string]string) map[string]declaration {
 	out := map[string]declaration{}
 	for name, text := range chains {
@@ -485,7 +574,7 @@ func TestHoverLocalScope(t *testing.T) {
 }
 
 func TestHoverWithoutPackageClause(t *testing.T) {
-	if _, _, ok := newWorkspace().hover("x := spellData.Execute.Highest()\n", 0, 2, "file:///tmp/a.go"); ok {
+	if _, _, ok := newWorkspace().hover("x := spellData.Execute.Highest()\n", 0, 2, "file:///tmp/a.go", nil); ok {
 		t.Error("a file with no package clause answered a hover")
 	}
 }

@@ -112,6 +112,8 @@ type exprResult struct {
 	spell      *spelldata.Spell
 	readEffect int
 
+	spellConfig *core.SpellConfig
+
 	value     string
 	accessors []string
 }
@@ -174,7 +176,7 @@ func walkChain(node ast.Expr, offset func(token.Pos) int) (*chain, error) {
 
 // A ladder followed by the store's own accessors, evaluated by name over the exported method set: an
 // accessor added to sim/core/spelldata is readable here without a list to keep in step.
-func evalExpr(index map[string]*ladderFamily, c *chain, pkg string) (result *exprResult, err error) {
+func evalExpr(index map[string]*ladderFamily, c *chain, pkg string, virtual *virtualRank) (result *exprResult, err error) {
 	// The store panics where a caller asks for a rank or an effect it does not carry, on purpose. The
 	// panic is this reader's answer, as an error.
 	defer func() {
@@ -188,6 +190,31 @@ func evalExpr(index map[string]*ladderFamily, c *chain, pkg string) (result *exp
 	var current reflect.Value
 
 	switch {
+	case virtual != nil && c.root.name == virtual.parameter:
+		family, err = findFamily(index, virtual.ladder.root.family, pkg)
+		if err != nil {
+			return nil, err
+		}
+		if family.err != nil {
+			return nil, family.err
+		}
+
+		spell := family.ladder.Highest()
+		if virtual.rank > 0 {
+			spell = family.ladder.Rank(virtual.rank)
+		}
+
+		if spell == spelldata.Nil {
+			return nil, fmt.Errorf("%s names a spell the store does not carry", c.root.name)
+		}
+
+		res = &exprResult{
+			trail:  c.root.name,
+			family: family,
+			spell:  spell,
+		}
+		current = reflect.ValueOf(spell)
+
 	case c.root.byID != nil:
 		id, err := convertArg(c.root.byID.args[0], reflect.TypeFor[int32]())
 		if err != nil {
@@ -407,6 +434,8 @@ func arguments(n int) string {
 func formatValue(v reflect.Value) (string, error) {
 	switch value := v.Interface().(type) {
 	case time.Duration:
+		return value.String(), nil
+	case core.SpellSchool:
 		return value.String(), nil
 	case bool:
 		return strconv.FormatBool(value), nil
