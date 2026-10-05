@@ -3,6 +3,7 @@ package paladin
 import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
+	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
 // Swift Judgement (talent)
@@ -32,29 +33,15 @@ func (paladin *Paladin) registerSwiftJudgement() {
 		},
 	})
 
-	paladin.RegisterSpell(core.SpellConfig{
-		ActionID:       actionID,
-		SpellSchool:    rank.SpellSchool(),
-		DefenseType:    rank.DefenseTypeCore(),
-		ProcMask:       core.ProcMaskEmpty,
-		Flags:          core.SpellFlagAPL | core.SpellFlagHelpful,
-		ClassSpellMask: SpellMaskSwiftJudgement,
-
-		Cast: core.CastConfig{
-			DefaultCast: core.Cast{
-				NonEmpty: true,
-			},
-			CD: core.Cooldown{
-				Timer:    paladin.NewTimer(),
-				Duration: cooldown(rank),
-			},
-		},
-
-		ApplyEffects: func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
-			paladin.Judgement.CD.Reset()
-			spell.RelatedSelfBuff.Activate(sim)
-		},
-
-		RelatedSelfBuff: freeJudgement,
-	})
+	config := spelldata.SpellConfig(&paladin.Unit, rank, spelldata.Flags(core.SpellFlagAPL))
+	config.ProcMask = core.ProcMaskEmpty
+	config.ClassSpellMask = SpellMaskSwiftJudgement
+	// Free and off the global cooldown, so the row leaves the cast empty.
+	config.Cast.DefaultCast.NonEmpty = true
+	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
+		paladin.Judgement.CD.Reset()
+		spell.RelatedSelfBuff.Activate(sim)
+	}
+	config.RelatedSelfBuff = freeJudgement
+	paladin.RegisterSpell(config)
 }

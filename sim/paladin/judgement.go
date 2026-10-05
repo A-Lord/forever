@@ -2,6 +2,7 @@ package paladin
 
 import (
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
 // Judgement
@@ -15,46 +16,30 @@ import (
 func (paladin *Paladin) registerJudgement() {
 	rank := spellData.Judgement.Highest()
 
-	paladin.Judgement = paladin.RegisterSpell(core.SpellConfig{
-		ActionID:       core.ActionID{SpellID: rank.ID},
-		SpellSchool:    rank.SpellSchool(),
-		DefenseType:    rank.DefenseTypeCore(),
-		ProcMask:       core.ProcMaskEmpty,
-		Flags:          core.SpellFlagAPL | core.SpellFlagPassiveSpell | core.SpellFlagNoOnCastComplete,
-		ClassSpellMask: SpellMaskJudgement,
-		MaxRange:       float64(rank.MaxRange),
+	config := spelldata.SpellConfig(&paladin.Unit, rank,
+		spelldata.Flags(core.SpellFlagAPL|core.SpellFlagPassiveSpell|core.SpellFlagNoOnCastComplete))
+	config.ProcMask = core.ProcMaskEmpty
+	config.ClassSpellMask = SpellMaskJudgement
+	config.DamageMultiplier = 1
+	config.ThreatMultiplier = 1
 
-		DamageMultiplier: 1,
-		ThreatMultiplier: 1,
+	config.ExtraCastCondition = func(_ *core.Simulation, _ *core.Unit) bool {
+		return paladin.activeSeal() != nil
+	}
 
-		ManaCost: manaCost(rank),
-		Cast: core.CastConfig{
-			// Off the global cooldown, as the game files state.
-			DefaultCast: core.Cast{
-				NonEmpty: true,
-			},
-			CD: core.Cooldown{
-				Timer:    paladin.sharedTimer(&paladin.judgementTimer),
-				Duration: cooldown(rank),
-			},
-		},
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		paladin.activeSeal().judgement.Cast(sim, target)
 
-		ExtraCastCondition: func(_ *core.Simulation, _ *core.Unit) bool {
-			return paladin.activeSeal() != nil
-		},
+		// Let the rotation react when the cooldown ends, since nothing on the GCD marks it.
+		pa := sim.GetConsumedPendingActionFromPool()
+		pa.NextActionAt = sim.CurrentTime + spell.TimeToReady(sim) + core.SpellBatchWindow
+		pa.OnAction = func(sim *core.Simulation) {
+			paladin.ReactToEvent(sim, false, false)
+		}
+		sim.AddPendingAction(pa)
+	}
 
-		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-			paladin.activeSeal().judgement.Cast(sim, target)
-
-			// Let the rotation react when the cooldown ends, since nothing on the GCD marks it.
-			pa := sim.GetConsumedPendingActionFromPool()
-			pa.NextActionAt = sim.CurrentTime + spell.TimeToReady(sim) + core.SpellBatchWindow
-			pa.OnAction = func(sim *core.Simulation) {
-				paladin.ReactToEvent(sim, false, false)
-			}
-			sim.AddPendingAction(pa)
-		},
-	})
+	paladin.Judgement = paladin.RegisterSpell(config)
 
 	// Every melee strike that lands refreshes the judgement debuffs on its target.
 	paladin.MakeProcTriggerAura(core.ProcTrigger{

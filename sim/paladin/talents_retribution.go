@@ -170,6 +170,10 @@ func (paladin *Paladin) applySanctifiedJudgement() {
 	})
 }
 
+// The spell that deals Eye for an Eye's damage. The talent's dummy names no trigger, so no ladder
+// reaches it.
+var eyeForAnEyeDamage = spelldata.MustFind(25997)
+
 // Eye for an Eye - All critical strikes against you cause 5/10% of the damage taken to the attacker
 // as well. The damage caused by Eye for an Eye will not exceed 50% of the Paladin's total health.
 func (paladin *Paladin) applyEyeForAnEye() {
@@ -177,23 +181,15 @@ func (paladin *Paladin) applyEyeForAnEye() {
 		return
 	}
 
-	rank := spellData.EyeForAnEye.Highest()
 	share := spellData.EyeForAnEye.FractionAt(paladin.Talents.EyeForAnEye)
 
 	var reflected float64
-	reflect := paladin.RegisterSpell(core.SpellConfig{
-		ActionID:    core.ActionID{SpellID: rank.ID},
-		SpellSchool: core.SpellSchoolHoly,
-		ProcMask:    core.ProcMaskEmpty,
-		Flags:       core.SpellFlagBinary | core.SpellFlagPassiveSpell | core.SpellFlagIgnoreModifiers,
-
-		DamageMultiplier: 1,
-		ThreatMultiplier: 1,
-
-		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-			spell.CalcAndDealDamage(sim, target, reflected, spell.OutcomeAlwaysHit)
-		},
-	})
+	config := spelldata.SpellConfig(&paladin.Unit, eyeForAnEyeDamage, spelldata.Magic(core.ProcMaskEmpty), spelldata.Proc(),
+		spelldata.Flags(core.SpellFlagBinary|core.SpellFlagIgnoreModifiers))
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		spell.CalcAndDealDamage(sim, target, reflected, spell.OutcomeAlwaysHit)
+	}
+	reflect := paladin.RegisterSpell(config)
 
 	paladin.MakeProcTriggerAura(core.ProcTrigger{
 		Name:               "Eye for an Eye" + paladin.Label,

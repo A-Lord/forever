@@ -29,22 +29,13 @@ func (paladin *Paladin) registerSealOfFury(_ int32, rank *spelldata.Spell) {
 
 	// Melee in SpellCategories with No Active Defense: hit and crit on the melee table, never
 	// dodged, parried or blocked.
-	judgement := paladin.RegisterSpell(core.SpellConfig{
-		ActionID:       core.ActionID{SpellID: judgementRank.ID},
-		SpellSchool:    judgementRank.SpellSchool(),
-		DefenseType:    judgementRank.DefenseTypeCore(),
-		ProcMask:       core.ProcMaskMeleeMHSpecial,
-		Flags:          core.SpellFlagMeleeMetrics | core.SpellFlagBinary,
-		ClassSpellMask: SpellMaskJudgementOfFury,
-
-		DamageMultiplier: 1,
-		ThreatMultiplier: 1,
-		BonusCoefficient: judgementDamage.Coeff(),
-
-		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-			spell.CalcAndDealDamage(sim, target, judgementDamage.Roll(sim), spell.OutcomeMeleeSpecialNoBlockDodgeParry)
-		},
-	})
+	judgementConfig := spelldata.SpellConfig(&paladin.Unit, judgementRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial), spelldata.RemoveFlags(core.SpellFlagAPL), spelldata.Flags(core.SpellFlagBinary))
+	judgementConfig.ClassSpellMask = SpellMaskJudgementOfFury
+	judgementConfig.BonusCoefficient = judgementDamage.Coeff()
+	judgementConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		spell.CalcAndDealDamage(sim, target, judgementDamage.Roll(sim), spell.OutcomeMeleeSpecialNoBlockDodgeParry)
+	}
+	judgement := paladin.RegisterSpell(judgementConfig)
 
 	shieldShare := rank.EffectN(2).Percent()
 	var pendingShield float64
@@ -61,35 +52,26 @@ func (paladin *Paladin) registerSealOfFury(_ int32, rank *spelldata.Spell) {
 	paladin.applyImprovedSealOfFury(shield)
 
 	damage := procDamage.Mean()
-	procSpell := paladin.RegisterSpell(core.SpellConfig{
-		ActionID:    core.ActionID{SpellID: procRank.ID},
-		SpellSchool: core.SpellSchoolHoly,
-		DefenseType: core.DefenseTypeMelee,
-		ProcMask:    core.ProcMaskMeleeMHSpecial,
-		// The damage spells carry the same flags as Seal of Righteousness's: procs themselves,
-		// and no Suppress Weapon Procs, so a weapon's "Chance on hit" rolls on the seal's hit too.
-		Flags:          core.SpellFlagMeleeMetrics | core.SpellFlagPassiveSpell | core.SpellFlagProc,
-		ClassSpellMask: SpellMaskSealOfFuryProc,
-
-		DamageMultiplier: 1,
-		ThreatMultiplier: 1,
-		BonusCoefficient: procDamage.Coeff(),
-
-		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-			result := spell.CalcDamage(sim, target, damage, spell.OutcomeMeleeSpecialCritOnly)
-			sim.AddPendingAction(core.NewDelayedAction(core.DelayedActionOptions{
-				DoAt:     sim.CurrentTime + core.SpellBatchWindow,
-				Priority: core.ActionPriorityLow,
-				OnAction: func(sim *core.Simulation) {
-					spell.DealDamage(sim, result)
-					if paladin.PseudoStats.CanBlock && result.Damage > 0 {
-						pendingShield = result.Damage * shieldShare
-						shield.Activate(sim)
-					}
-				},
-			}))
-		},
-	})
+	// The damage spells carry the same flags as Seal of Righteousness's: procs themselves, and no
+	// Suppress Weapon Procs, so a weapon's "Chance on hit" rolls on the seal's hit too.
+	procConfig := spelldata.SpellConfig(&paladin.Unit, procRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial), spelldata.Proc(), spelldata.Flags(core.SpellFlagProc))
+	procConfig.ClassSpellMask = SpellMaskSealOfFuryProc
+	procConfig.BonusCoefficient = procDamage.Coeff()
+	procConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		result := spell.CalcDamage(sim, target, damage, spell.OutcomeMeleeSpecialCritOnly)
+		sim.AddPendingAction(core.NewDelayedAction(core.DelayedActionOptions{
+			DoAt:     sim.CurrentTime + core.SpellBatchWindow,
+			Priority: core.ActionPriorityLow,
+			OnAction: func(sim *core.Simulation) {
+				spell.DealDamage(sim, result)
+				if paladin.PseudoStats.CanBlock && result.Damage > 0 {
+					pendingShield = result.Damage * shieldShare
+					shield.Activate(sim)
+				}
+			},
+		}))
+	}
+	procSpell := paladin.RegisterSpell(procConfig)
 
 	aura := paladin.makeSealExclusive(paladin.MakeProcTriggerAura(core.ProcTrigger{
 		Name:            sealLabel("Seal of Fury", paladin, rank),

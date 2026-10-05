@@ -31,61 +31,47 @@ import (
 // percent at the full coefficient, so it scales at 29% whatever the talent.
 func (paladin *Paladin) registerSealOfCommand(_ int32, rank *spelldata.Spell) {
 	judgeRank := spellData.JudgementOfCommand.Rank(rank.RankNumber())
-	judgeDamage := spellData.SealOfCommandTriggered.ByID(int32(judgeRank.EffectN(1).BaseValue())).DamageEffect()
+	judgeDamageRank := spellData.SealOfCommandTriggered.ByID(int32(judgeRank.EffectN(1).BaseValue()))
+	judgeDamage := judgeDamageRank.DamageEffect()
 
 	// Melee in SpellCategories with No Active Defense: hit and crit on the melee table, never
 	// dodged, parried or blocked.
-	judgement := paladin.RegisterSpell(core.SpellConfig{
-		ActionID:       core.ActionID{SpellID: judgeRank.ID},
-		SpellSchool:    judgeRank.SpellSchool(),
-		DefenseType:    judgeRank.DefenseTypeCore(),
-		ProcMask:       core.ProcMaskMeleeMHSpecial,
-		Flags:          core.SpellFlagMeleeMetrics,
-		ClassSpellMask: SpellMaskJudgementOfCommand,
-
-		DamageMultiplier: 1,
-		ThreatMultiplier: 1,
-		BonusCoefficient: judgeDamage.Coeff(),
-
-		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-			baseDamage := judgeDamage.Roll(sim)
-			if !target.PseudoStats.Stunned {
-				baseDamage /= 2
-			}
-			spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeSpecialNoBlockDodgeParry)
-		},
-	})
+	judgementConfig := spelldata.SpellConfig(&paladin.Unit, judgeRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial), spelldata.RemoveFlags(core.SpellFlagAPL))
+	judgementConfig.ClassSpellMask = SpellMaskJudgementOfCommand
+	// The judgement's dummy states no class flags; the damage spell it names does, and modifiers find
+	// the judgement by those.
+	judgementConfig.ClassFlags = judgeDamageRank.ClassFlags
+	judgementConfig.BonusCoefficient = judgeDamage.Coeff()
+	judgementConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		baseDamage := judgeDamage.Roll(sim)
+		if !target.PseudoStats.Stunned {
+			baseDamage /= 2
+		}
+		spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeSpecialNoBlockDodgeParry)
+	}
+	judgement := paladin.RegisterSpell(judgementConfig)
 
 	procRank := spellData.SealOfCommandTriggered.Rank(1)
 	procEffect := procRank.EffectN(1)
 	weaponPercent := procEffect.Percent() * spellData.ImprovedSeals.MultiplierAt(paladin.Talents.ImprovedSeals)
 	coefficient := procEffect.Coeff()
-	procSpell := paladin.RegisterSpell(core.SpellConfig{
-		ActionID:    core.ActionID{SpellID: procRank.ID},
-		SpellSchool: core.SpellSchoolHoly,
-		DefenseType: core.DefenseTypeMelee,
-		ProcMask:    core.ProcMaskMeleeMHSpecial,
-		// 20424 carries Not a Proc: it is an ability hit to every listener, weapon procs included.
-		Flags:          core.SpellFlagMeleeMetrics | core.SpellFlagPassiveSpell,
-		ClassSpellMask: SpellMaskSealOfCommandProc,
+	// 20424 carries Not a Proc: it is an ability hit to every listener, weapon procs included. No
+	// BonusCoefficient: the spell power goes through the weapon percent, so the proc adds it by hand
+	// below rather than letting CalcDamage add it on top.
+	procConfig := spelldata.SpellConfig(&paladin.Unit, procRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial), spelldata.Proc())
+	procConfig.ClassSpellMask = SpellMaskSealOfCommandProc
+	procConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		weaponDamage := spell.Unit.MHWeaponDamage(sim, spell.MeleeAttackPower(target))
+		baseDamage := (weaponDamage + coefficient*spell.SpellDamage(target)) * weaponPercent
 
-		DamageMultiplier: 1,
-		ThreatMultiplier: 1,
-		// No BonusCoefficient: the spell power goes through the weapon percent, so the proc adds
-		// it by hand below rather than letting CalcDamage add it on top.
+		targetBonus := target.PseudoStats.SchoolBonusSpellDamage[stats.SchoolIndexHoly] +
+			spell.Unit.AttackTables[target.UnitIndex].MobTypeBonusStats[target.MobType][stats.SpellDamage]
+		baseDamage += coefficient * targetBonus
 
-		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-			weaponDamage := spell.Unit.MHWeaponDamage(sim, spell.MeleeAttackPower(target))
-			baseDamage := (weaponDamage + coefficient*spell.SpellDamage(target)) * weaponPercent
-
-			targetBonus := target.PseudoStats.SchoolBonusSpellDamage[stats.SchoolIndexHoly] +
-				spell.Unit.AttackTables[target.UnitIndex].MobTypeBonusStats[target.MobType][stats.SpellDamage]
-			baseDamage += coefficient * targetBonus
-
-			result := spell.CalcDamage(sim, target, baseDamage, spell.OutcomeMeleeSpecialHitAndCrit)
-			dealAfterBatch(sim, spell, result)
-		},
-	})
+		result := spell.CalcDamage(sim, target, baseDamage, spell.OutcomeMeleeSpecialHitAndCrit)
+		dealAfterBatch(sim, spell, result)
+	}
+	procSpell := paladin.RegisterSpell(procConfig)
 
 	// The seal and its Echo roll the same chance: an Echo of Command "empowers your next melee
 	// attack with a chance to activate Seal of Command".

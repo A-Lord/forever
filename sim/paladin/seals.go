@@ -80,28 +80,17 @@ func (paladin *Paladin) makeSealExclusive(aura *core.Aura) *core.Aura {
 
 // The castable seal spell: instant, on the GCD, priced as the row says.
 func (paladin *Paladin) registerSealSpell(cfg *sealConfig) *core.Spell {
-	cfg.spell = paladin.RegisterSpell(core.SpellConfig{
-		ActionID:       core.ActionID{SpellID: cfg.rank.ID},
-		SpellSchool:    cfg.rank.SpellSchool(),
-		DefenseType:    cfg.rank.DefenseTypeCore(),
-		ProcMask:       core.ProcMaskEmpty,
-		Flags:          core.SpellFlagAPL,
-		ClassSpellMask: cfg.classMask,
-		Rank:           cfg.rank.RankNumber(),
+	config := spelldata.SpellConfig(&paladin.Unit, cfg.rank, spelldata.Flags(core.SpellFlagAPL))
+	config.ProcMask = core.ProcMaskEmpty
+	config.ClassSpellMask = cfg.classMask
 
-		ManaCost: manaCost(cfg.rank),
-		Cast: core.CastConfig{
-			DefaultCast: core.Cast{
-				GCD: cfg.rank.GCD(),
-			},
-		},
+	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, _ *core.Spell) {
+		paladin.applySeal(sim, cfg)
+	}
 
-		ApplyEffects: func(sim *core.Simulation, _ *core.Unit, _ *core.Spell) {
-			paladin.applySeal(sim, cfg)
-		},
+	config.RelatedSelfBuff = cfg.aura
 
-		RelatedSelfBuff: cfg.aura,
-	})
+	cfg.spell = paladin.RegisterSpell(config)
 	return cfg.spell
 }
 

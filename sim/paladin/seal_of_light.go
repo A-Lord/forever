@@ -33,41 +33,24 @@ func (paladin *Paladin) registerSealOfLight(_ int32, rank *spelldata.Spell) {
 	})
 
 	// Melee in SpellCategories and Always Hit: the debuff lands without a roll.
-	judgement := paladin.RegisterSpell(core.SpellConfig{
-		ActionID:       core.ActionID{SpellID: judgementID},
-		SpellSchool:    core.SpellSchoolHoly,
-		DefenseType:    core.DefenseTypeMelee,
-		ProcMask:       core.ProcMaskEmpty,
-		Flags:          core.SpellFlagMeleeMetrics,
-		ClassSpellMask: SpellMaskJudgementOfLight,
-
-		DamageMultiplier: 1,
-		ThreatMultiplier: 1,
-
-		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-			spell.CalcAndDealOutcome(sim, target, spell.OutcomeAlwaysHit)
-			judgementAuras.Get(target).Activate(sim)
-		},
-
-		RelatedAuraArrays: judgementAuras.ToMap(),
-	})
+	judgementConfig := spelldata.SpellConfig(&paladin.Unit, spelldata.MustFind(judgementID), spelldata.Melee(core.ProcMaskEmpty), spelldata.RemoveFlags(core.SpellFlagAPL))
+	judgementConfig.ClassSpellMask = SpellMaskJudgementOfLight
+	judgementConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		spell.CalcAndDealOutcome(sim, target, spell.OutcomeAlwaysHit)
+		judgementAuras.Get(target).Activate(sim)
+	}
+	judgementConfig.RelatedAuraArrays = judgementAuras.ToMap()
+	judgement := paladin.RegisterSpell(judgementConfig)
 
 	procRank := rank.Refs()[0]
 	heal := procRank.HealEffect().Average()
-	procSpell := paladin.RegisterSpell(core.SpellConfig{
-		ActionID:       core.ActionID{SpellID: procRank.ID},
-		SpellSchool:    core.SpellSchoolHoly,
-		ProcMask:       core.ProcMaskSpellHealing,
-		Flags:          core.SpellFlagHelpful | core.SpellFlagPassiveSpell | core.SpellFlagProc, // The heals lack Not a Proc.
-		ClassSpellMask: SpellMaskSealOfLightProc,
-
-		DamageMultiplier: 1,
-		ThreatMultiplier: 1,
-
-		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-			spell.CalcAndDealHealing(sim, target, heal, spell.OutcomeAlwaysHit)
-		},
-	})
+	procConfig := spelldata.SpellConfig(&paladin.Unit, procRank, spelldata.Magic(core.ProcMaskSpellHealing), spelldata.Proc(),
+		spelldata.Flags(core.SpellFlagProc)) // The heals lack Not a Proc.
+	procConfig.ClassSpellMask = SpellMaskSealOfLightProc
+	procConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		spell.CalcAndDealHealing(sim, target, heal, spell.OutcomeAlwaysHit)
+	}
+	procSpell := paladin.RegisterSpell(procConfig)
 
 	aura := paladin.makeSealExclusive(paladin.MakeProcTriggerAura(core.ProcTrigger{
 		Name:            sealLabel("Seal of Light", paladin, rank),

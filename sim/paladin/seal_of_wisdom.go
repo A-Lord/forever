@@ -33,43 +33,26 @@ func (paladin *Paladin) registerSealOfWisdom(_ int32, rank *spelldata.Spell) {
 	})
 
 	// Melee in SpellCategories and Always Hit: the debuff lands without a roll.
-	judgement := paladin.RegisterSpell(core.SpellConfig{
-		ActionID:       core.ActionID{SpellID: judgementID},
-		SpellSchool:    core.SpellSchoolHoly,
-		DefenseType:    core.DefenseTypeMelee,
-		ProcMask:       core.ProcMaskEmpty,
-		Flags:          core.SpellFlagMeleeMetrics,
-		ClassSpellMask: SpellMaskJudgementOfWisdom,
-
-		DamageMultiplier: 1,
-		ThreatMultiplier: 1,
-
-		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-			spell.CalcAndDealOutcome(sim, target, spell.OutcomeAlwaysHit)
-			judgementAuras.Get(target).Activate(sim)
-		},
-
-		RelatedAuraArrays: judgementAuras.ToMap(),
-	})
+	judgementConfig := spelldata.SpellConfig(&paladin.Unit, spelldata.MustFind(judgementID), spelldata.Melee(core.ProcMaskEmpty), spelldata.RemoveFlags(core.SpellFlagAPL))
+	judgementConfig.ClassSpellMask = SpellMaskJudgementOfWisdom
+	judgementConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		spell.CalcAndDealOutcome(sim, target, spell.OutcomeAlwaysHit)
+		judgementAuras.Get(target).Activate(sim)
+	}
+	judgementConfig.RelatedAuraArrays = judgementAuras.ToMap()
+	judgement := paladin.RegisterSpell(judgementConfig)
 
 	procRank := rank.Refs()[0]
 	mana := procRank.EnergizeEffect().Average()
 	procID := core.ActionID{SpellID: procRank.ID}
 	manaMetrics := paladin.NewManaMetrics(procID)
-	procSpell := paladin.RegisterSpell(core.SpellConfig{
-		ActionID:       procID,
-		SpellSchool:    core.SpellSchoolHoly,
-		ProcMask:       core.ProcMaskEmpty,
-		Flags:          core.SpellFlagHelpful | core.SpellFlagPassiveSpell | core.SpellFlagProc, // The restores lack Not a Proc.
-		ClassSpellMask: SpellMaskSealOfWisdomProc,
-
-		DamageMultiplier: 1,
-		ThreatMultiplier: 1,
-
-		ApplyEffects: func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
-			spell.Unit.AddMana(sim, mana, manaMetrics)
-		},
-	})
+	procConfig := spelldata.SpellConfig(&paladin.Unit, procRank, spelldata.Magic(core.ProcMaskEmpty), spelldata.Proc(),
+		spelldata.Flags(core.SpellFlagProc)) // The restores lack Not a Proc.
+	procConfig.ClassSpellMask = SpellMaskSealOfWisdomProc
+	procConfig.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
+		spell.Unit.AddMana(sim, mana, manaMetrics)
+	}
+	procSpell := paladin.RegisterSpell(procConfig)
 
 	aura := paladin.makeSealExclusive(paladin.MakeProcTriggerAura(core.ProcTrigger{
 		Name:            sealLabel("Seal of Wisdom", paladin, rank),

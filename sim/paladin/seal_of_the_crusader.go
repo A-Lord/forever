@@ -33,24 +33,14 @@ func (paladin *Paladin) registerSealOfTheCrusader(_ int32, rank *spelldata.Spell
 	})
 
 	// Melee in SpellCategories and Always Hit: the debuff lands without a roll.
-	judgement := paladin.RegisterSpell(core.SpellConfig{
-		ActionID:       core.ActionID{SpellID: judgementRank.ID},
-		SpellSchool:    judgementRank.SpellSchool(),
-		DefenseType:    judgementRank.DefenseTypeCore(),
-		ProcMask:       core.ProcMaskEmpty,
-		Flags:          core.SpellFlagMeleeMetrics,
-		ClassSpellMask: SpellMaskJudgementOfTheCrusader,
-
-		DamageMultiplier: 1,
-		ThreatMultiplier: 1,
-
-		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-			spell.CalcAndDealOutcome(sim, target, spell.OutcomeAlwaysHit)
-			judgementAuras.Get(target).Activate(sim)
-		},
-
-		RelatedAuraArrays: judgementAuras.ToMap(),
-	})
+	judgementConfig := spelldata.SpellConfig(&paladin.Unit, judgementRank, spelldata.Melee(core.ProcMaskEmpty), spelldata.RemoveFlags(core.SpellFlagAPL))
+	judgementConfig.ClassSpellMask = SpellMaskJudgementOfTheCrusader
+	judgementConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		spell.CalcAndDealOutcome(sim, target, spell.OutcomeAlwaysHit)
+		judgementAuras.Get(target).Activate(sim)
+	}
+	judgementConfig.RelatedAuraArrays = judgementAuras.ToMap()
+	judgement := paladin.RegisterSpell(judgementConfig)
 
 	// The high end of the attack power, which is the number the game shows where the two differ.
 	attackPower := rank.Effect(dbcenums.A_MOD_ATTACK_POWER, 0).Max() + paladin.sealOfTheCrusaderBonusAttackPower

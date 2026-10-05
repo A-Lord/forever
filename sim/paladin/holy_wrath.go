@@ -16,50 +16,31 @@ var HolyWrathRankMap = spellData.HolyWrath
 func (paladin *Paladin) registerHolyWrath(_ int32, rank *spelldata.Spell) {
 	damage := rank.DamageEffect()
 
-	paladin.RegisterSpell(core.SpellConfig{
-		ActionID:       core.ActionID{SpellID: rank.ID},
-		SpellSchool:    rank.SpellSchool(),
-		DefenseType:    rank.DefenseTypeCore(),
-		ProcMask:       core.ProcMaskSpellDamage,
-		Flags:          core.SpellFlagAPL,
-		ClassSpellMask: SpellMaskHolyWrath,
-		Rank:           rank.RankNumber(),
-		MaxRange:       20,
-		MissileSpeed:   float64(rank.Speed),
+	config := spelldata.SpellConfig(&paladin.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))
+	config.ClassSpellMask = SpellMaskHolyWrath
+	// The 20 yd area is SpellRadius 9 on effect 1's EffectRadiusIndex_1, which the store does not carry.
+	// TODO: Read rank.EffectN(1).RadiusMax once the store falls back to EffectRadiusIndex_1.
+	config.MaxRange = 20
 
-		ManaCost: manaCost(rank),
-		Cast: core.CastConfig{
-			DefaultCast: core.Cast{
-				GCD:      rank.GCD(),
-				CastTime: rank.CastTime(),
-			},
-			CD: core.Cooldown{
-				Timer:    paladin.sharedTimer(&paladin.holyWrathTimer),
-				Duration: cooldown(rank),
-			},
-			ModifyCast: func(sim *core.Simulation, spell *core.Spell, cast *core.Cast) {
-				castTime := paladin.ApplyCastSpeedForSpell(cast.CastTime, spell)
-				paladin.AutoAttacks.StopMeleeUntil(sim, sim.CurrentTime+castTime)
-			},
-		},
+	config.Cast.ModifyCast = func(sim *core.Simulation, spell *core.Spell, cast *core.Cast) {
+		castTime := paladin.ApplyCastSpeedForSpell(cast.CastTime, spell)
+		paladin.AutoAttacks.StopMeleeUntil(sim, sim.CurrentTime+castTime)
+	}
 
-		DamageMultiplier: 1,
-		ThreatMultiplier: 1,
-		BonusCoefficient: damage.Coeff(),
-
-		ApplyEffects: func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
-			results := []*core.SpellResult{}
-			for _, aoeTarget := range sim.Encounter.ActiveTargetUnits {
-				if aoeTarget.MobType == proto.MobType_MobTypeUndead || aoeTarget.MobType == proto.MobType_MobTypeDemon {
-					results = append(results, spell.CalcDamage(sim, aoeTarget, damage.Roll(sim), spell.OutcomeMagicHitAndCrit))
-				}
+	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
+		results := []*core.SpellResult{}
+		for _, aoeTarget := range sim.Encounter.ActiveTargetUnits {
+			if aoeTarget.MobType == proto.MobType_MobTypeUndead || aoeTarget.MobType == proto.MobType_MobTypeDemon {
+				results = append(results, spell.CalcDamage(sim, aoeTarget, damage.Roll(sim), spell.OutcomeMagicHitAndCrit))
 			}
+		}
 
-			spell.WaitTravelTime(sim, func(sim *core.Simulation) {
-				for _, result := range results {
-					spell.DealDamage(sim, result)
-				}
-			})
-		},
-	})
+		spell.WaitTravelTime(sim, func(sim *core.Simulation) {
+			for _, result := range results {
+				spell.DealDamage(sim, result)
+			}
+		})
+	}
+
+	paladin.RegisterSpell(config)
 }

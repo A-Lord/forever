@@ -23,25 +23,12 @@ func (paladin *Paladin) registerRighteousFury() {
 	})
 	spelldata.ParseEffects(&paladin.Character, paladin.RighteousFuryAura, rank, spelldata.Effects(1))
 
-	paladin.RegisterSpell(core.SpellConfig{
-		ActionID:       actionID,
-		SpellSchool:    rank.SpellSchool(),
-		DefenseType:    rank.DefenseTypeCore(),
-		ProcMask:       core.ProcMaskEmpty,
-		Flags:          core.SpellFlagAPL | core.SpellFlagHelpful,
-		ClassSpellMask: SpellMaskRighteousFury,
-
-		ManaCost: manaCost(rank),
-		Cast: core.CastConfig{
-			DefaultCast: core.Cast{
-				GCD: rank.GCD(),
-			},
-		},
-
-		ApplyEffects: func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
-			spell.RelatedSelfBuff.Activate(sim)
-		},
-
-		RelatedSelfBuff: paladin.RighteousFuryAura,
-	})
+	config := spelldata.SpellConfig(&paladin.Unit, rank, spelldata.Flags(core.SpellFlagAPL))
+	config.ProcMask = core.ProcMaskEmpty
+	config.ClassSpellMask = SpellMaskRighteousFury
+	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
+		spell.RelatedSelfBuff.Activate(sim)
+	}
+	config.RelatedSelfBuff = paladin.RighteousFuryAura
+	paladin.RegisterSpell(config)
 }

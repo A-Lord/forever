@@ -24,41 +24,21 @@ var HolyStrikeRankMap = spellData.HolyStrike
 func (paladin *Paladin) registerHolyStrike(_ int32, rank *spelldata.Spell) {
 	coefficient := rank.DamageEffect().Coeff()
 
-	paladin.RegisterSpell(core.SpellConfig{
-		ActionID:       core.ActionID{SpellID: rank.ID},
-		SpellSchool:    rank.SpellSchool(),
-		DefenseType:    rank.DefenseTypeCore(),
-		ProcMask:       core.ProcMaskMeleeMHSpecial,
-		Flags:          core.SpellFlagMeleeMetrics | core.SpellFlagAPL,
-		ClassSpellMask: SpellMaskHolyStrike,
-		Rank:           rank.RankNumber(),
-		MaxRange:       core.MaxMeleeRange,
+	// No BonusCoefficient: the spell power goes through the weapon percent, so the strike adds it by
+	// hand below rather than letting CalcDamage add it on top.
+	config := spelldata.SpellConfig(&paladin.Unit, rank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
+	config.ClassSpellMask = SpellMaskHolyStrike
 
-		ManaCost: manaCost(rank),
-		Cast: core.CastConfig{
-			DefaultCast: core.Cast{
-				GCD: rank.GCD(),
-			},
-			CD: core.Cooldown{
-				Timer:    paladin.sharedTimer(&paladin.holyStrikeTimer),
-				Duration: cooldown(rank),
-			},
-		},
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		weaponDamage := spell.Unit.MHNormalizedWeaponDamage(sim, spell.MeleeAttackPower(target))
+		baseDamage := rank.WeaponStrike(sim, spell, weaponDamage, coefficient*spell.SpellDamage(target))
 
-		DamageMultiplier: 1,
-		ThreatMultiplier: 1,
-		// No BonusCoefficient: the spell power goes through the weapon percent, so the strike adds
-		// it by hand below rather than letting CalcDamage add it on top.
+		targetBonus := target.PseudoStats.SchoolBonusSpellDamage[stats.SchoolIndexHoly] +
+			spell.Unit.AttackTables[target.UnitIndex].MobTypeBonusStats[target.MobType][stats.SpellDamage]
+		baseDamage += coefficient * targetBonus
 
-		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-			weaponDamage := spell.Unit.MHNormalizedWeaponDamage(sim, spell.MeleeAttackPower(target))
-			baseDamage := rank.WeaponStrike(sim, spell, weaponDamage, coefficient*spell.SpellDamage(target))
+		spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeSpecialHitAndCrit)
+	}
 
-			targetBonus := target.PseudoStats.SchoolBonusSpellDamage[stats.SchoolIndexHoly] +
-				spell.Unit.AttackTables[target.UnitIndex].MobTypeBonusStats[target.MobType][stats.SpellDamage]
-			baseDamage += coefficient * targetBonus
-
-			spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeSpecialHitAndCrit)
-		},
-	})
+	paladin.RegisterSpell(config)
 }

@@ -3,6 +3,7 @@ package paladin
 import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
+	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
 // Divine Favor (talent)
@@ -33,30 +34,13 @@ func (paladin *Paladin) registerDivineFavor() {
 		},
 	})
 
-	divineFavor := paladin.RegisterSpell(core.SpellConfig{
-		ActionID:       actionID,
-		SpellSchool:    rank.SpellSchool(),
-		DefenseType:    rank.DefenseTypeCore(),
-		Flags:          core.SpellFlagAPL | core.SpellFlagHelpful,
-		ClassSpellMask: SpellMaskDivineFavor,
-
-		ManaCost: manaCost(rank),
-		Cast: core.CastConfig{
-			DefaultCast: core.Cast{
-				NonEmpty: true,
-			},
-			CD: core.Cooldown{
-				Timer:    paladin.NewTimer(),
-				Duration: cooldown(rank),
-			},
-		},
-
-		ApplyEffects: func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
-			spell.RelatedSelfBuff.Activate(sim)
-		},
-
-		RelatedSelfBuff: divineFavorAura,
-	})
+	config := spelldata.SpellConfig(&paladin.Unit, rank, spelldata.Flags(core.SpellFlagAPL))
+	config.ClassSpellMask = SpellMaskDivineFavor
+	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
+		spell.RelatedSelfBuff.Activate(sim)
+	}
+	config.RelatedSelfBuff = divineFavorAura
+	divineFavor := paladin.RegisterSpell(config)
 
 	paladin.AddMajorCooldown(core.MajorCooldown{
 		Spell: divineFavor,

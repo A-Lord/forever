@@ -19,37 +19,16 @@ var ExorcismRankMap = spellData.Exorcism
 func (paladin *Paladin) registerExorcism(_ int32, rank *spelldata.Spell) {
 	damage := rank.DamageEffect()
 
-	paladin.RegisterSpell(core.SpellConfig{
-		ActionID:       core.ActionID{SpellID: rank.ID},
-		SpellSchool:    rank.SpellSchool(),
-		DefenseType:    rank.DefenseTypeCore(),
-		ProcMask:       core.ProcMaskSpellDamage,
-		Flags:          core.SpellFlagAPL,
-		ClassSpellMask: SpellMaskExorcism,
-		Rank:           rank.RankNumber(),
-		MaxRange:       float64(rank.MaxRange),
+	config := spelldata.SpellConfig(&paladin.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))
+	config.ClassSpellMask = SpellMaskExorcism
 
-		ManaCost: manaCost(rank),
-		Cast: core.CastConfig{
-			DefaultCast: core.Cast{
-				GCD: rank.GCD(),
-			},
-			CD: core.Cooldown{
-				Timer:    paladin.sharedTimer(&paladin.exorcismTimer),
-				Duration: cooldown(rank),
-			},
-		},
+	config.ExtraCastCondition = func(_ *core.Simulation, target *core.Unit) bool {
+		return target.MobType == proto.MobType_MobTypeUndead || target.MobType == proto.MobType_MobTypeDemon
+	}
 
-		DamageMultiplier: 1,
-		ThreatMultiplier: 1,
-		BonusCoefficient: damage.Coeff(),
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		spell.CalcAndDealDamage(sim, target, damage.Roll(sim), spell.OutcomeMagicHitAndCrit)
+	}
 
-		ExtraCastCondition: func(_ *core.Simulation, target *core.Unit) bool {
-			return target.MobType == proto.MobType_MobTypeUndead || target.MobType == proto.MobType_MobTypeDemon
-		},
-
-		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-			spell.CalcAndDealDamage(sim, target, damage.Roll(sim), spell.OutcomeMagicHitAndCrit)
-		},
-	})
+	paladin.RegisterSpell(config)
 }

@@ -21,34 +21,16 @@ var blessingOfLightFlashOfLightBonus = blessingOfLightRank.EffectN(2).Average()
 func (paladin *Paladin) registerHolyLight(_ int32, rank *spelldata.Spell) {
 	heal := rank.HealEffect()
 
-	paladin.RegisterSpell(core.SpellConfig{
-		ActionID:       core.ActionID{SpellID: rank.ID},
-		SpellSchool:    rank.SpellSchool(),
-		DefenseType:    rank.DefenseTypeCore(),
-		ProcMask:       core.ProcMaskSpellHealing,
-		Flags:          core.SpellFlagAPL | core.SpellFlagHelpful,
-		ClassSpellMask: SpellMaskHolyLight,
-		Rank:           rank.RankNumber(),
-		MaxRange:       float64(rank.MaxRange),
+	config := spelldata.SpellConfig(&paladin.Unit, rank, spelldata.Magic(core.ProcMaskSpellHealing))
+	config.ClassSpellMask = SpellMaskHolyLight
 
-		ManaCost: manaCost(rank),
-		Cast: core.CastConfig{
-			DefaultCast: core.Cast{
-				GCD:      rank.GCD(),
-				CastTime: rank.CastTime(),
-			},
-		},
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		amount := heal.Roll(sim)
+		if target.HasActiveAuraWithTag(buffs.GreaterBlessingOfLightCategory) {
+			amount += blessingOfLightHolyLightBonus
+		}
+		spell.CalcAndDealHealing(sim, target, amount, spell.OutcomeHealingCrit)
+	}
 
-		DamageMultiplier: 1,
-		ThreatMultiplier: 1,
-		BonusCoefficient: heal.Coeff(),
-
-		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-			amount := heal.Roll(sim)
-			if target.HasActiveAuraWithTag(buffs.GreaterBlessingOfLightCategory) {
-				amount += blessingOfLightHolyLightBonus
-			}
-			spell.CalcAndDealHealing(sim, target, amount, spell.OutcomeHealingCrit)
-		},
-	})
+	paladin.RegisterSpell(config)
 }
