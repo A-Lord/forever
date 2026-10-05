@@ -544,6 +544,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		7717, // Ravager
+		[
+			"Attack all nearby enemies, dealing weapon damage plus 5 every 3.0 sec for 9s, and reducing your own movement speed by 80%.", // 9632 - https://www.wowhead.com/forever/spell=9632
+		]
+	],
+	[
 		7726, // Aegis of the Scarlet Commander
 		[
 			"Deals 14 Holy damage every time you block.", // 1293539 - https://www.wowhead.com/forever/spell=1293539
@@ -727,6 +733,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		10726, // Gnomish Mind Control Cap
 		[
 			"Engage in mental combat with a humanoid target to try and control their mind. If all works well, you will control the mind of the target for 20s.....", // 13180 - https://www.wowhead.com/forever/spell=13180
+		]
+	],
+	[
+		10772, // Glutton's Cleaver
+		[
+			"Wounds the target causing them to bleed for 70 damage over 7s.", // 18075 - https://www.wowhead.com/forever/spell=18075
 		]
 	],
 	[
@@ -2775,6 +2787,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		285089, // Swamp Roamer's Band
 		[
 			"Increases movement speed by 3% in Dustwallow Marsh and Swamp of Sorrows.", // 1317486 - https://www.wowhead.com/forever/spell=1317486
+		]
+	],
+	[
+		285102, // Darkmist Dirk
+		[
+			"Your attacks have a high chance to poison the target for 8 Nature damage every 3.0 sec for 9s.", // 1317583 - https://www.wowhead.com/forever/spell=1317583
 		]
 	],
 	[
