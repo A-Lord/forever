@@ -2,7 +2,6 @@ package paladin
 
 import (
 	"github.com/wowsims/forever/sim/core"
-	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
@@ -13,25 +12,12 @@ import (
 // Judgement by 100%.
 func (paladin *Paladin) registerSwiftJudgement() {
 	rank := spellData.SwiftJudgement.Highest()
-	actionID := core.ActionID{SpellID: rank.ID}
 
-	var freeJudgement *core.Aura
-	freeJudgement = paladin.RegisterAura(core.Aura{
-		Label:    "Swift Judgement" + paladin.Label,
-		ActionID: actionID,
-		Duration: core.NeverExpires,
-	}).AttachSpellMod(core.SpellModConfig{
-		Kind:       core.SpellMod_PowerCost_Pct_Add,
-		ClassMask:  SpellMaskJudgement,
-		FloatValue: rank.Effect(dbcenums.A_ADD_PCT_MODIFIER, int32(dbcenums.SPELLMOD_COST)).Percent(),
-	}).AttachProcTrigger(core.ProcTrigger{
-		Callback:           core.CallbackOnCastComplete,
-		ClassSpellMask:     SpellMaskJudgement,
-		TriggerImmediately: true,
-		Handler: func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
-			freeJudgement.Deactivate(sim)
-		},
-	})
+	// The free cost is the row's. Its one charge goes to the next Judgement, which spends it itself:
+	// Judgement fires no on-cast callbacks for a listener to hear.
+	freeJudgement := paladin.RegisterAura(spelldata.AuraConfig(rank, spelldata.Label("Swift Judgement"+paladin.Label)))
+	spelldata.ParseEffects(&paladin.Character, freeJudgement, rank)
+	paladin.swiftJudgementAura = freeJudgement
 
 	config := spelldata.SpellConfig(&paladin.Unit, rank, spelldata.Flags(core.SpellFlagAPL))
 	config.ProcMask = core.ProcMaskEmpty

@@ -18,6 +18,9 @@ type Paladin struct {
 	Forbearance       *core.Aura
 	RighteousFuryAura *core.Aura
 
+	// Swift Judgement's free next Judgement, which Judgement spends.
+	swiftJudgementAura *core.Aura
+
 	Judgement *core.Spell
 
 	// The seal the paladin is under, and the ranks it has cast so far this iteration.
