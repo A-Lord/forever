@@ -188,14 +188,9 @@ const abortBulkSimWork = async (host: IndividualSimHost<any>) => {
 	}
 
 	run.abortPromise = (async () => {
-		// Narrower than `All`: cancelling a batch must not also cancel a stat-weights run, which is
-		// the whole point of bulk having its own type. Reforge stays in because the batch's own
-		// pre-pass registers under it.
-		const abortTasks: Promise<unknown>[] = [host.sim.signalManager.abortType(RequestTypes.BulkSim | RequestTypes.ReforgeOptimize)];
-		if (host.reforger) {
-			abortTasks.push(host.reforger.abortReforgeOptimization());
-		}
-		await Promise.all(abortTasks);
+		// Narrower than `All`: cancelling a batch must not also cancel a stat-weights or enchants
+		// optimizer run, which is the whole point of bulk having its own type.
+		await host.sim.signalManager.abortType(RequestTypes.BulkSim);
 	})();
 
 	try {
