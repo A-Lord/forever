@@ -6409,6 +6409,16 @@ var generatedSpells = []Spell{
 			{ID: 680539, SpellID: 9592, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_TOTAL_THREAT, BasePoints: -2200, PPL: -3, BaseLevel: 40, MaxLevel: 50, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		},
 		Powers: []Power{{Cost: 175}}},
+	{ID: 9632, Name: "Bladestorm", School: 1, Attr: [17]uint32{0: 0x40010, 1: 0x40, 2: 0x40000000, 15: 0x2000}, SpellLevel: 1, DurationMs: 9000, DefenseType: 2, ChannelInterrupt: [2]uint32{0: 0x4}, RefIDs: []int32{9633},
+		Effects: []Effect{
+			{ID: 687653, SpellID: 9632, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_TRIGGER_SPELL, PvpMult: 1, PeriodMs: 3000, TriggerID: 9633, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
+			{ID: 687654, SpellID: 9632, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_DECREASE_SPEED, BasePoints: 80, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
+		},
+		Powers: []Power{{Type: 1}}},
+	{ID: 9633, Name: "Bladestorm", School: 1, Attr: [17]uint32{0: 0x40010, 2: 0x40000000, 15: 0x2000}, SpellLevel: 36, DefenseType: 2,
+		Effects: []Effect{
+			{ID: 689166, SpellID: 9633, Type: dbcenums.E_WEAPON_DAMAGE_NOSCHOOL, BasePoints: 5, SPCoef: 1, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{22, 15}},
+		}},
 	{ID: 9634, Name: "Dire Bear Form", Rank: "Shapeshift", School: 1, Attr: [17]uint32{0: 0x50010, 1: 0x8000, 15: 0x2000}, SpellLevel: 40, BaseLevel: 40, MaxLevel: 70, DurationMs: -1, GCDMs: 1500, StartRecoveryCategory: 133, ProcChance: 101, ClassFlags: core.ClassFlags{Family: 7, Mask: [4]uint32{0: 1073741824}}, AuraInterrupt: [2]uint32{1: 0x100000}, StanceExclude: 0x40000000, Labels: []int16{21}, RefIDs: []int32{9635}, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 687038, SpellID: 9634, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_SHAPESHIFT, BaseLevel: 40, MaxLevel: 70, PvpMult: 1, Misc: 8, Misc2: 7, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
@@ -15076,6 +15086,10 @@ var generatedSpells = []Spell{
 		Effects: []Effect{
 			{ID: 696408, SpellID: 18074, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_MELEE_ATTACK_POWER_VERSUS, BasePoints: 30, BaseLevel: 60, PvpMult: 1, Misc: 32, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 			{ID: 696409, SpellID: 18074, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_RANGED_ATTACK_POWER_VERSUS, BasePoints: 30, BaseLevel: 60, SPCoef: 1, PvpMult: 1, Misc: 32, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
+		}},
+	{ID: 18075, Name: "Rend", School: 1, Attr: [17]uint32{0: 0x40000, 8: 0x200, 15: 0x2000}, SpellLevel: 30, DurationMs: 7000, MaxRange: 5, DefenseType: 2, Mechanic: 15, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
+		Effects: []Effect{
+			{ID: 696164, SpellID: 18075, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_DAMAGE, BasePoints: 10, PvpMult: 1, PeriodMs: 1000, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		}},
 	{ID: 18077, Name: "Poison", School: 8, Attr: [17]uint32{0: 0x40000, 8: 0x200, 15: 0x2000}, SpellLevel: 10, MaxLevel: 10, DurationMs: 15000, MaxRange: 5, DefenseType: 1, DispelType: 4, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
@@ -37415,6 +37429,10 @@ var generatedSpells = []Spell{
 	{ID: 1317486, Name: "Swamp Speed", School: 1, Attr: [17]uint32{0: 0x9800100, 1: 0x20, 2: 0x84001, 3: 0x100000, 5: 0x60008, 6: 0x1000, 8: 0x20, 9: 0x800, 10: 0x400000, 11: 0x4000000, 13: 0x2, 14: 0x10, 15: 0x2000}, DurationMs: -1, RequiredAreas: 9338,
 		Effects: []Effect{
 			{ID: 1350544, SpellID: 1317486, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_SPEED_ALWAYS, BasePoints: 3, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
+		}},
+	{ID: 1317583, Name: "Poison", School: 8, Attr: [17]uint32{0: 0x40000, 8: 0x200, 15: 0x2000}, SpellLevel: 10, MaxLevel: 10, DurationMs: 9000, MaxRange: 5, DefenseType: 1, DispelType: 4, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
+		Effects: []Effect{
+			{ID: 1350718, SpellID: 1317583, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_DAMAGE, BasePoints: 8, MaxLevel: 10, PvpMult: 1, PeriodMs: 3000, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		}},
 	{ID: 1317605, Name: "Light Lamp", School: 1, Speed: 12, Attr: [17]uint32{1: 0x400}, SpellLevel: 60, BaseLevel: 60, CastTimeMs: 1000, MaxRange: 8, MaxTargets: 1,
 		Effects: []Effect{
