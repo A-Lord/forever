@@ -1396,12 +1396,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		20005, // Devilsaur Claws
-		[
-			"Increased Fist Weapons +4.", // 24362 - https://www.wowhead.com/forever/spell=24362
-		]
-	],
-	[
 		20048, // Highlander's Plate Greaves
 		[
 			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
