@@ -11,8 +11,8 @@ var HolyWrathRankMap = spellData.HolyWrath
 // Holy Wrath
 // https://www.wowhead.com/forever/spell=10318
 //
-// Sends bolts of holy power in all directions, causing 533 Holy damage to all Undead and Demon
-// targets within 20 yds and stunning them for 2 sec. The stun has no place in the sim.
+// Sends bolts of holy power in all directions, causing 498 to 584 Holy damage to all Undead and Demon
+// targets within 20 yds and stunning them for 2 sec.
 func (paladin *Paladin) registerHolyWrath(_ int32, rank *spelldata.Spell) {
 	damage := rank.DamageEffect()
 

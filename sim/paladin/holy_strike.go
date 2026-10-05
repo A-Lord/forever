@@ -11,8 +11,7 @@ var HolyStrikeRankMap = spellData.HolyStrike
 // Holy Strike
 // https://www.wowhead.com/forever/spell=10333
 //
-// Rank 1 at level 20: An instant strike that causes 25% weapon damage plus an additional 2 to 4 as
-// Holy damage.
+// An instant strike that causes 50% weapon damage plus an additional 97 to 121 as Holy damage.
 //
 // The row states the flat part as its normalized-weapon-damage effect and the percentage as a
 // second effect, and the percentage scales the flat part too: the 2 to 4 is Rank 1's 12 ± 1.5 at 25%.

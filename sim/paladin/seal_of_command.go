@@ -14,8 +14,8 @@ import (
 // Gives the Paladin a chance to deal additional Holy damage equal to 70% of normal weapon damage.
 // Only one Seal can be active on the Paladin at any one time. Lasts 30 sec.
 //
-// Unleashing this Seal's energy will judge an enemy, instantly causing Holy damage, double if the
-// target is stunned or incapacitated.
+// Unleashing this Seal's energy will judge an enemy, instantly causing 194 to 211 Holy damage, 388 to
+// 422 if the target is stunned or incapacitated.
 //
 // The game files state the stunned number, and the game halves it otherwise. The judgement's damage
 // sits on the spell its own dummy names, which the family's triggered ladder carries one rank above

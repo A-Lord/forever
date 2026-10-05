@@ -70,9 +70,6 @@ func (paladin *Paladin) applyHealingLight() {
 
 // Spiritual Focus - Gives your Flash of Light, Holy Light, and Light's Vigil spells a 35/70% chance
 // to not lose casting time when you take damage.
-//
-// The parse does not read the row's pushback modifier, so the chance is by hand, and it reaches the
-// pushback of every spell rather than the three the row names.
 func (paladin *Paladin) applySpiritualFocus() {
 	if paladin.Talents.SpiritualFocus == 0 {
 		return
@@ -82,16 +79,12 @@ func (paladin *Paladin) applySpiritualFocus() {
 }
 
 // Improved Seals - Increases the damage done by your Seals and Judgements by 5/10/15%.
-//
-// The Seal of Command proc takes the talent through its weapon percent instead, see
-// registerSealOfCommand: the target's extra Holy damage taken sits outside the percent and the
-// talent must not reach it. The Seal of Righteousness procs have no store row and carry no class
-// flags, so the row's mask cannot reach them either, and the modifier is by hand.
 func (paladin *Paladin) applyImprovedSeals() {
 	if paladin.Talents.ImprovedSeals == 0 {
 		return
 	}
 
+	// The Seal of Command proc takes the talent through its weapon percent, see registerSealOfCommand.
 	paladin.AddStaticMod(core.SpellModConfig{
 		ClassMask:  (SpellMaskSealProcs &^ SpellMaskSealOfCommandProc) | SpellMaskAllJudgements,
 		Kind:       core.SpellMod_DamageDone_Flat,
@@ -109,8 +102,7 @@ func (paladin *Paladin) applyReverence() {
 }
 
 // Purifying Power - Reduces the mana cost of your Cleanse and Purify spells by 10/20% and reduces
-// the cooldown of your Exorcism and Holy Wrath spells by 17/33%. Cleanse and Purify are not
-// modelled, so the cost modifier reaches no registered spell.
+// the cooldown of your Exorcism and Holy Wrath spells by 17/33%.
 func (paladin *Paladin) applyPurifyingPower() {
 	if paladin.Talents.PurifyingPower == 0 {
 		return
@@ -121,8 +113,6 @@ func (paladin *Paladin) applyPurifyingPower() {
 
 // Infusion of Light - Your Holy Shock and Flash of Light critical hits reduce the cast time of your
 // next Holy Light cast within 15 sec by 0.5/1.0 sec.
-//
-// The cast time is the talent's per-rank value, not the buff's, so the buff is built by hand.
 func (paladin *Paladin) applyInfusionOfLight() {
 	if paladin.Talents.InfusionOfLight == 0 {
 		return
@@ -160,7 +150,7 @@ func (paladin *Paladin) applyInfusionOfLight() {
 
 // Illumination - After getting a critical effect from your Flash of Light, Holy Light, Light's
 // Vigil, or Holy Shock heal spell you have a 20/40/60/80/100% chance to gain Mana equal to 50% of
-// the base cost of the spell. Light's Vigil's heal is not modelled. The refund is the third effect.
+// the base cost of the spell.
 func (paladin *Paladin) applyIllumination() {
 	if paladin.Talents.Illumination == 0 {
 		return
@@ -180,10 +170,6 @@ func (paladin *Paladin) applyIllumination() {
 }
 
 // Divine Precision - Improves your chance to hit with Holy spells by 6/12/18%.
-//
-// The row's class flags name Consecration, Exorcism, Holy Shock, Holy Wrath, Light's Vigil and Holy
-// Strike, so Holy Strike's melee hit roll takes the bonus too: the talent lets a healer strike and
-// keep their judgements up.
 func (paladin *Paladin) applyDivinePrecision() {
 	if paladin.Talents.DivinePrecision == 0 {
 		return
@@ -193,8 +179,7 @@ func (paladin *Paladin) applyDivinePrecision() {
 }
 
 // Consecrated Ground - Gives your Holy spells 5/10% increased damage against the first 4 enemies
-// that enter your Consecration. Consecration marks those targets each tick; the mark lasts as long
-// as the ground does.
+// that enter your Consecration.
 func (paladin *Paladin) applyConsecratedGround() {
 	if paladin.Talents.ConsecratedGround == 0 {
 		return
@@ -217,13 +202,8 @@ func (paladin *Paladin) applyConsecratedGround() {
 	})
 }
 
-// Holy Power - Increases the critical strike chance of your Holy Shock and Holy Strike abilities
-// by 3/6/9/12/15%, and of your other Holy damage and healing spells by 1/2/3/4/5%.
-//
-// The first tier covers Consecration, Exorcism, Hammer of Wrath, Holy Wrath, Holy Light, Flash of
-// Light, Lay on Hands, Light's Vigil, the Seal of Command and Seal of Fury procs and the Judgements
-// of Command, Fury and Righteousness; the other seals, their procs and their judgements are not in
-// it. The row also names Retribution Aura, whose damage is a core buff that carries no class flags.
+// Holy Power - Increases the critical strike chance of your Holy Shock and Holy Strike spells by
+// 3/6/9/12/15%, and all other spells by 1/2/3/4/5%.
 func (paladin *Paladin) applyHolyPower() {
 	if paladin.Talents.HolyPower == 0 {
 		return

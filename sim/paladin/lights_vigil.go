@@ -32,12 +32,9 @@ type lightsVigil struct {
 // https://www.wowhead.com/forever/spell=1311595
 //
 // Applies Light's Vigil to the target for 30 sec. Your next Holy Shock cast on them triggers no
-// cooldown and causes friendly targets to heal their party for 704, or enemy targets to suffer 395
-// Holy damage and refund 75% of Light's Vigil's Mana cost. You may only have 1 Light's Vigil
-// active per Paladin, per party.
-//
-// The sim casts it on enemies: Holy Shock on a vigiled enemy fires the strike and the refund. The
-// friendly path, a party heal off a Holy Shock heal, has no target model here and is not built.
+// cooldown and causes enemy targets to suffer 380 to 410 Holy damage and refund 75% of Light's
+// Vigil's Mana cost, or allied targets to heal their party for 700 to 740. You may only have one
+// Light's Vigil active per party.
 func (paladin *Paladin) registerLightsVigil() {
 	LightsVigilRankMap.Each(paladin.registerLightsVigilRank)
 }

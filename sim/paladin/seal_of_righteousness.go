@@ -13,11 +13,11 @@ var sealOfRighteousnessProcIDs = map[int32]int32{1: 25742, 2: 25740, 3: 25739, 4
 // Seal of Righteousness
 // https://www.wowhead.com/forever/spell=20293
 //
-// Fills the Paladin with holy spirit for 30 sec, granting each melee attack an additional X to Y
-// Holy damage. Slower weapons cause more Holy damage per swing. Only one Seal can be active on
-// the Paladin at any one time.
+// Fills the Paladin with holy spirit for 30 sec, granting each melee attack an additional 24 to 83
+// Holy damage. Slower weapons cause more Holy damage per swing. Only one Seal can be active on the
+// Paladin at any one time.
 //
-// Unleashing this Seal's energy will cause Holy damage to an enemy.
+// Unleashing this Seal's energy will cause 187 to 203 Holy damage to an enemy.
 //
 // The seal's second effect names its judgement (the row has no effect at the game files' index 1).
 // The judgement's dummy, its second effect, carries the number the per-hit damage is built from:

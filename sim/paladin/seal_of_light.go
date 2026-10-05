@@ -14,13 +14,11 @@ var judgementOfLightHealIDs = map[int32]int32{1: 20267, 2: 20341, 3: 20342, 4: 2
 // https://www.wowhead.com/forever/spell=20349
 //
 // Fills the Paladin with divine light for 30 sec, giving each melee attack a chance to heal the
-// Paladin. Only one Seal can be active on the Paladin at any one time.
+// Paladin for 94. Only one Seal can be active on the Paladin at any one time.
 //
-// Unleashing this Seal's energy will judge an enemy for 40 sec, granting melee attacks made
-// against the judged enemy a chance of healing the attacker. Your melee strikes will refresh the
+// Unleashing this Seal's energy will judge an enemy for 40 sec, granting melee attacks made against
+// the judged enemy a chance of healing the attacker for 61. Your melee strikes will refresh the
 // spell's duration. Only one Judgement per Paladin can be active at any one time.
-//
-// The seal's second effect names its judgement (the row has no effect at the game files' index 1).
 func (paladin *Paladin) registerSealOfLight(_ int32, rank *spelldata.Spell) {
 	judgementID := int32(rank.EffectN(2).BaseValue())
 	healRank := spellData.SealOfLightTriggered.ByID(judgementOfLightHealIDs[rank.RankNumber()])

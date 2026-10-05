@@ -8,15 +8,10 @@ import (
 var HolyShockRankMap = spellData.HolyShock
 
 // Holy Shock (talent)
-// https://www.wowhead.com/forever/spell=1311606
+// https://www.wowhead.com/forever/spell=20930
 //
-// Blasts the target with Holy energy, causing X Holy damage to an enemy, or Y healing to an ally.
-//
-// Each rank is a dummy the paladin casts, whose tooltip names its damage spell and then its heal.
-// The damage and the heal are registered as two spells off the cast's row, sharing its cooldown: the
-// damage carries the cast's id so the rotation names it as the game files do, the heal carries its
-// own. Light's Vigil on the enemy turns the damage into the vigil's strike, refunds the vigil, and
-// skips the cooldown.
+// Blasts the target with Holy energy, causing 334 to 362 Holy damage to an enemy, or 307 to 333
+// healing to an ally.
 func (paladin *Paladin) registerHolyShock() {
 	HolyShockRankMap.Each(paladin.registerHolyShockRank)
 }

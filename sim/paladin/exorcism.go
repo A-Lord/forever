@@ -11,11 +11,7 @@ var ExorcismRankMap = spellData.Exorcism
 // Exorcism
 // https://www.wowhead.com/forever/spell=10314
 //
-// Causes 502 Holy damage to an Undead or Demon target.
-//
-// spellData.Exorcism holds the six trainer ranks, 879 to 10314. The game files carry a second ladder,
-// 415068 to 415073, that the Season of Discovery passive Exorcist (415076) swaps onto the action
-// bar so the spell can hit any target; nothing in Forever teaches Exorcist.
+// Causes 491 to 545 Holy damage to an Undead or Demon target.
 func (paladin *Paladin) registerExorcism(_ int32, rank *spelldata.Spell) {
 	damage := rank.DamageEffect()
 

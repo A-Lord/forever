@@ -13,14 +13,10 @@ var ConsecrationRankMap = spellData.Consecration
 // Consecration
 // https://www.wowhead.com/forever/spell=20924
 //
-// Consecrates the land beneath the Paladin, doing X Holy damage over 8 sec to enemies who enter the
-// area. The first 4 enemies who enter the area will take an additional Y damage over 8 sec.
+// Consecrates the land beneath the Paladin, doing 96 Holy damage over 8 sec to enemies who enter the
+// area. The first 4 enemies who enter the area will take an additional 216 damage over 8 sec.
 //
-// The ticks sit on the spell the tooltip names, which the family's triggered ladder carries rank
-// for rank: the tick everyone takes on its first effect, and on its second the extra damage the
-// first few targets take, the only part of the spell the game files give a spell power coefficient.
-// The rank's own periodic dummy carries no damage: it times the ticks and states how many targets
-// take the bonus. The ticks crit in game, though no row in the ladder states Periodic Can Crit.
+// The ticks crit in game, though no row in the ladder states Periodic Can Crit.
 func (paladin *Paladin) registerConsecration(n int32, rank *spelldata.Spell) {
 	tickSpell := spellData.ConsecrationTriggered.Rank(n)
 	tick := tickSpell.EffectN(1)

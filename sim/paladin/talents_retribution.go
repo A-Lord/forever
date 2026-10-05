@@ -52,8 +52,6 @@ func (paladin *Paladin) applyDeflection() {
 }
 
 // Benediction - Reduces the Mana cost of all instant cast spells and abilities by 2/4/6/8/10%.
-//
-// The row's class flags name the instant spells, and they leave out Divine Favor.
 // TODO: Verify in game that Benediction does not reduce Divine Favor's cost.
 func (paladin *Paladin) applyBenediction() {
 	if paladin.Talents.Benediction == 0 {
@@ -129,7 +127,7 @@ func (paladin *Paladin) applyVindication() {
 }
 
 // Sanctified Judgement - Gives your Judgement ability a 33/66/100% chance to return 20/40/60% of
-// the Mana cost of the judged seal. The chance is the first effect, the refund the second.
+// the Mana cost of the judged seal.
 func (paladin *Paladin) applySanctifiedJudgement() {
 	if paladin.Talents.SanctifiedJudgement == 0 {
 		return
@@ -183,8 +181,6 @@ func (paladin *Paladin) applyEyeForAnEye() {
 
 // Pursuit of Justice - Increases movement speed and mounted movement speed by 8/15%. This does not
 // stack with other movement speed increasing effects.
-//
-// The parse does not read A_MOD_INCREASE_SPEED, so the speed is by hand.
 func (paladin *Paladin) applyPursuitOfJustice() {
 	if paladin.Talents.PursuitOfJustice == 0 {
 		return
@@ -199,9 +195,7 @@ func (paladin *Paladin) applyPursuitOfJustice() {
 }
 
 // Sacred Arbiter - Increases the damage of your Holy Strike ability by 20% and causes it to refresh
-// all Judgement effects on the target. The paladin's own melee strikes already refresh its own
-// judgements; Holy Strike with the talent refreshes every judgement on the target, whoever put it
-// there, the way Crusader Strike did in TBC.
+// all Judgement effects on the target.
 func (paladin *Paladin) applySacredArbiter() {
 	if !paladin.Talents.SacredArbiter {
 		return
@@ -237,9 +231,7 @@ func (paladin *Paladin) applyTwoHandedWeaponSpecialization() {
 }
 
 // Vengeance - Increases your Physical and Holy damage dealt by 1/2/3% for 30 sec after landing a
-// critical strike. Stacks up to 3 times.
-//
-// The damage is the talent's per-rank value, not the buff's, so the buff is built by hand.
+// non-periodic critical strike. Stacks up to 3 times.
 func (paladin *Paladin) applyVengeance() {
 	if paladin.Talents.Vengeance == 0 {
 		return
@@ -319,13 +311,10 @@ func (paladin *Paladin) applyInstrumentOfLaw() {
 	})
 }
 
-// Twist of Light - Reduces the mana cost of your Seal spells by 20%. When you replace your Seal of
-// Command, Seal of Righteousness, Seal of Fury, or Seal of Justice with a different Seal, gain an
-// Echo. Your next melee attack applies the replaced Seal's effects, consuming the Echo.
-//
-// Each seal leaves its own Echo (Echo of Command, of Fury, of Righteousness, of Justice): one
-// charge, no duration, consumed by the next auto attack that lands. Only one Echo is up at a time:
-// gaining one drops whichever other Echo was up.
+// Twist of Light - Reduces the Mana cost of your Seal spells by 20%, and when you replace your Seal
+// of Command, Seal of Righteousness, Seal of Fury, or Seal of Justice with a different Seal, you
+// gain an Echo of that Seal. Your next melee attack applies the replaced Seal's effects, consuming
+// the Echo.
 func (paladin *Paladin) applyTwistOfLight() {
 	if !paladin.Talents.TwistOfLight {
 		return

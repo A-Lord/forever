@@ -11,17 +11,16 @@ import (
 // Seal of the Crusader
 // https://www.wowhead.com/forever/spell=20308
 //
-// Fills the Paladin with the spirit of a crusader for 30 sec, granting melee attack power. The
+// Fills the Paladin with the spirit of a crusader for 30 sec, granting 325 melee attack power. The
 // Paladin also attacks 40% faster, but deals less damage with each attack. Only one Seal can be
 // active on the Paladin at any one time.
 //
-// Unleashing this Seal's energy will judge an enemy for 40 sec, increasing Holy damage taken.
-// Your melee strikes will refresh the spell's duration. Only one Judgement per Paladin can be
+// Unleashing this Seal's energy will judge an enemy for 40 sec, increasing Holy damage taken by up to
+// 161. Your melee strikes will refresh the spell's duration. Only one Judgement per Paladin can be
 // active at any one time.
 //
-// The seal's third effect names its judgement. The game files state no number for the damage each
-// attack loses; every sim before this one has divided the white damage by the same 1.4 the speed
-// gains, and that stays.
+// The game files state no number for the damage each attack loses; every sim before this one has
+// divided the white damage by the same 1.4 the speed gains, and that stays.
 func (paladin *Paladin) registerSealOfTheCrusader(_ int32, rank *spelldata.Spell) {
 	judgementRank := spellData.SealOfTheCrusaderTriggered.ByID(int32(rank.EffectN(3).BaseValue()))
 	judgementAuras := paladin.newJudgementAuras(func(target *core.Unit) *core.Aura {

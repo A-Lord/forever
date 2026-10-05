@@ -10,8 +10,8 @@ var HammerOfWrathRankMap = spellData.HammerOfWrath
 // Hammer of Wrath
 // https://www.wowhead.com/forever/spell=24239
 //
-// Hurls a hammer that strikes an enemy for 498 Holy damage. Only usable on enemies that have 20%
-// or less health.
+// Hurls a hammer that strikes an enemy for 489 to 538 Holy damage. Only usable on enemies that have
+// 20% or less health.
 func (paladin *Paladin) registerHammerOfWrath(_ int32, rank *spelldata.Spell) {
 	damage := rank.DamageEffect()
 

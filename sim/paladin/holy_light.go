@@ -17,7 +17,7 @@ var blessingOfLightFlashOfLightBonus = blessingOfLightRank.EffectN(2).Average()
 // Holy Light
 // https://www.wowhead.com/forever/spell=25292
 //
-// Heals a friendly target for 1580.
+// Heals a friendly target for 1524 to 1694.
 func (paladin *Paladin) registerHolyLight(_ int32, rank *spelldata.Spell) {
 	heal := rank.HealEffect()
 

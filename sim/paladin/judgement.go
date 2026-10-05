@@ -10,9 +10,6 @@ import (
 //
 // Unleash the energy of a Seal spell upon an enemy. Does not consume the Seal. Refer to individual
 // Seals for Judgement effect.
-//
-// The spell itself has no defense type and rolls nothing: the seal's own judgement spell is Melee in
-// SpellCategories and carries the hit roll along with the effect.
 func (paladin *Paladin) registerJudgement() {
 	rank := spellData.Judgement.Highest()
 

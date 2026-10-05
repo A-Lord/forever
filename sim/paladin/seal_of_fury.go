@@ -10,17 +10,12 @@ import (
 // Seal of Fury
 // https://www.wowhead.com/forever/spell=20423
 //
-// Fills the Paladin with divine fury for 30 sec, causing melee attacks to deal an additional X
-// Holy damage. While a shield is equipped, each attack also grants an absorb shield equal to 50%
-// of the Holy damage dealt. Only one Seal can be active on the Paladin at any one time.
+// Fills the Paladin with divine fury for 30 sec, causing melee attacks to deal an additional 35 Holy
+// damage. While a shield is equipped, each attack also grants an absorb shield equal to 50% of the
+// Holy damage dealt. Only one Seal can be active on the Paladin at any one time.
 //
-// Unleashing this Seal's energy causes Holy damage to an enemy and taunts the target to attack
-// you for 4 sec.
-//
-// The per-hit damage is the spell the tooltip names first, a flat number with a 10% coefficient,
-// read as the tooltip says; the seal's third effect names its judgement. The seal also carries a
-// weapon-speed dummy in Seal of Righteousness's shape that the tooltip never references, and it
-// is left alone. The taunt has no place in the sim.
+// Unleashing this Seal's energy causes 168 to 182 Holy damage to an enemy and taunts the target to
+// attack you for 4 sec.
 func (paladin *Paladin) registerSealOfFury(_ int32, rank *spelldata.Spell) {
 	judgementRank := spellData.SealOfFuryTriggered.ByID(int32(rank.EffectN(3).BaseValue()))
 	judgementDamage := judgementRank.DamageEffect()

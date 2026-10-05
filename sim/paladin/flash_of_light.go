@@ -11,7 +11,7 @@ var FlashOfLightRankMap = spellData.FlashOfLight
 // Flash of Light
 // https://www.wowhead.com/forever/spell=19943
 //
-// Heals a friendly target for 308.
+// Heals a friendly target for 299 to 333.
 func (paladin *Paladin) registerFlashOfLight(_ int32, rank *spelldata.Spell) {
 	heal := rank.HealEffect()
 
