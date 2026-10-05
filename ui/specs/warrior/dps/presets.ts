@@ -27,13 +27,13 @@ export const isFurySpec = (player: Player<Spec.SpecDpsWarrior>) =>
 	player.getEquippedItem(ItemSlot.ItemSlotMainHand)?.item.handType === HandType.HandTypeMainHand ||
 	player.getEquippedItem(ItemSlot.ItemSlotMainHand)?.item.handType === HandType.HandTypeOneHand;
 
-// Dungeon drops, the dungeon tier sets and crafted items whose reagents include no raid materials. The
-// second ring and the Adaptive Combat Assistant have no source in the game files; no dungeon ring or
-// trinket beats them.
+// Dungeon and world drops, the warrior's dungeon tier sets and crafted items whose reagents include no
+// raid materials; no reputation rewards. The cloak, the belt and the Adaptive Combat Assistant are sold by
+// the Undermine Trader in Stranglethorn Vale; the second ring has no known source.
 export const PreBiSFuryGear = PresetUtils.makePresetGear('Pre-BiS Fury', PreBiSFuryGearJson);
 
 // The best build found on the Pre-BiS Fury gear over a three minute fight.
-export const FuryTalents = PresetUtils.makePresetTalents('Fury', SavedTalents.create({ talentsString: '30305013002-25053005150110501' }));
+export const FuryTalents = PresetUtils.makePresetTalents('Fury', SavedTalents.create({ talentsString: '30305013002-25053005052010501' }));
 
 // Measured on the Pre-BiS Fury gear with the Fury talents.
 export const PreBiSFuryEpWeights = PresetUtils.makePresetEpWeights(
@@ -41,23 +41,22 @@ export const PreBiSFuryEpWeights = PresetUtils.makePresetEpWeights(
 	Stats.fromMap(
 		{
 			[Stat.StatStrength]: 2.2,
-			[Stat.StatAgility]: 2.28,
+			[Stat.StatAgility]: 2.35,
 			[Stat.StatAttackPower]: 1,
-			[Stat.StatArmorPenetration]: 0.31,
-			[Stat.StatHitRating]: 1.61,
-			[Stat.StatHasteRating]: 1.96,
-			[Stat.StatCritRating]: 2.95,
-			[Stat.StatExpertiseRating]: 1.13,
+			[Stat.StatArmorPenetration]: 0.34,
+			[Stat.StatHitRating]: 1.64,
+			[Stat.StatHasteRating]: 2.09,
+			[Stat.StatCritRating]: 3.06,
+			[Stat.StatExpertiseRating]: 1.06,
 		},
 		{
-			[PseudoStat.PseudoStatMainHandDps]: 8,
-			[PseudoStat.PseudoStatOffHandDps]: 2.53,
+			[PseudoStat.PseudoStatMainHandDps]: 7.91,
+			[PseudoStat.PseudoStatOffHandDps]: 2.66,
 		},
 	),
 );
 
-// The same sources as the Pre-BiS Fury gear. The neck, belt and second ring have no source in the game
-// files; the bracers and The Purifier come from the Scourge Invasion.
+// The same sources as the Pre-BiS Fury gear. The neck, cloak and second ring have no known source.
 export const PreBiSArmsGear = PresetUtils.makePresetGear('Pre-BiS Arms', PreBiSArmsGearJson);
 
 // The Battle Stance build: Rend keeps Bloodthrill's Overpower procs coming, and Spearing Strike fills the
