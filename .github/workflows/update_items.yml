@@ -201,7 +201,8 @@ jobs:
             ref: ${{ needs.update-items.outputs.pull-request-head-sha }}
 
     # Without hotfixes the items fall back to the raw build, so such a pull request waits for review.
-    # A merge by the workflow token starts no push workflow, so the deploy is dispatched.
+    # A merge by the workflow token starts no push workflow, so the deploy is dispatched while Build
+    # and Deploy is enabled.
     merge:
         needs: [update-items, test]
         if: needs.update-items.outputs.hotfixes-applied == 'true'
@@ -219,4 +220,8 @@ jobs:
                   before=$(gh api "repos/$GITHUB_REPOSITORY/commits/master" --jq .sha)
                   gh pr merge "${{ needs.update-items.outputs.pull-request-number }}" -R "$GITHUB_REPOSITORY" \
                       --merge --delete-branch --match-head-commit "${{ needs.update-items.outputs.pull-request-head-sha }}"
-                  gh workflow run deploy.yml -R "$GITHUB_REPOSITORY" --ref master -f proto_baseline="$before"
+                  if [ "$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/deploy.yml" --jq .state)" = active ]; then
+                      gh workflow run deploy.yml -R "$GITHUB_REPOSITORY" --ref master -f proto_baseline="$before"
+                  else
+                      echo "Build and Deploy is disabled; nothing deployed"
+                  fi
