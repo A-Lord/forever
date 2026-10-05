@@ -776,7 +776,11 @@ func (spell *Spell) ApplyAOEThreatIgnoreMultipliers(threatAmount float64) {
 	}
 }
 func (spell *Spell) ApplyAOEThreat(threatAmount float64) {
-	spell.ApplyAOEThreatIgnoreMultipliers(threatAmount * spell.Unit.PseudoStats.ThreatMultiplier)
+	spell.ApplyAOEThreatIgnoreMultipliers(threatAmount * spell.unitThreatMultiplier())
+}
+
+func (spell *Spell) unitThreatMultiplier() float64 {
+	return spell.Unit.PseudoStats.ThreatMultiplier * spell.Unit.PseudoStats.SchoolThreatMultiplier[spell.SchoolIndex]
 }
 
 func (spell *Spell) finalizeExpectedDamage(result *SpellResult) {

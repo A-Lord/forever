@@ -204,21 +204,9 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 			[]*float64{&p.unit.PseudoStats.BonusRangedDamageTaken}, v)
 	},
 
-	// Every school is the unit's threat multiplier, which scales a spell's whole threat. A mask that
-	// leaves schools out scales the same two parts, the damage threat and the flat bonus, on the spells
-	// of the schools it names.
 	dbcenums.A_MOD_THREAT: func(p *parser, e *Effect, v float64) *attachment {
-		if e.Misc&miscAllSchools == miscAllSchools {
-			return p.pseudoMultiplier("threat", "ThreatMultiplier", []*float64{&p.unit.PseudoStats.ThreatMultiplier},
-				core.MultiplierFromPercent(v))
-		}
-		if p.stacking || e.Misc == 0 || core.MultiplierFromPercent(v) <= 0 {
-			return nil
-		}
-		school := core.SpellSchool(e.Misc)
-		return combined("threat-school",
-			p.modFloat("SpellMod_ThreatMultiplier_Pct", core.SpellModConfig{Kind: core.SpellMod_ThreatMultiplier_Pct, School: school}, v/100),
-			p.modFloat("SpellMod_FlatThreatBonus_Pct", core.SpellModConfig{Kind: core.SpellMod_FlatThreatBonus_Pct, School: school}, v/100))
+		return p.schoolMultiplier("threat", "ThreatMultiplier", e.Misc, core.MultiplierFromPercent(v),
+			&p.unit.PseudoStats.ThreatMultiplier, &p.unit.PseudoStats.SchoolThreatMultiplier)
 	},
 
 	dbcenums.A_MOD_ATTACK_POWER: func(p *parser, e *Effect, v float64) *attachment {
