@@ -8,7 +8,13 @@ name: Update Items
 # docs/spell_data/partial-updates.md). Whatever changed lands in a pull request; nothing changed means
 # no pull request. Check Hotfixes dispatches this when new hotfixes come out. A pull request with
 # hotfixes applied that passes the Go tests here and the Run Tests suite is merged and deployed.
-on: workflow_dispatch
+on:
+    workflow_dispatch:
+        inputs:
+            dbcache_url:
+                description: 'The DBCache.bin to apply (defaults to the latest for wow_classic_beta)'
+                required: false
+                type: string
 
 # A second dispatch waits for the running one, which may still be merging its pull request.
 concurrency:
@@ -17,7 +23,7 @@ concurrency:
 
 env:
     PRODUCT: wow_classic_beta
-    DBCACHE_URL: https://storage.googleapis.com/raidbots-static/wow/classic_beta/enUS/DBCache.bin
+    DBCACHE_URL: ${{ inputs.dbcache_url || 'https://storage.googleapis.com/raidbots-static/wow/classic_beta/enUS/DBCache.bin' }}
 
 jobs:
     update-items:
