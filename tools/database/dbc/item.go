@@ -240,51 +240,56 @@ func (item *Item) ApproximateScaleCoeff(currIlvl int, newIlvl int) float64 {
 	return 1.0 / math.Pow(1.15, diff/15.0)
 }
 
+// GetArmorValue computes base armor from the item level tables, since the game files carry no armor
+// value on the item: ItemArmorShield by quality for a shield, otherwise ItemArmorTotal for the armor
+// type, scaled by ItemArmorQuality and the slot's ArmorLocation modifier. A robe takes the chest row.
 func (item *Item) GetArmorValue(itemLevel int) int {
-	// TBC Stores ArmorValue in the Resistance_0 item column
-	return item.ArmorValue
+	if item.ItemClass != ITEM_CLASS_ARMOR || item.OverallQuality > 6 {
+		return 0
+	}
+	ilvl := item.ItemLevel
+	if itemLevel > 0 {
+		ilvl = itemLevel
+	}
 
-	// if item.Id == 0 || item.OverallQuality > 5 {
-	// 	return 0
-	// }
-	// ilvl := 0
-	// if itemLevel > 0 {
-	// 	ilvl = itemLevel
-	// } else {
-	// 	ilvl = item.ItemLevel
-	// }
+	if item.ItemSubClass == ITEM_SUBCLASS_ARMOR_SHIELD {
+		shield, ok := GetDBC().ItemArmorShield[ilvl]
+		if !ok {
+			return 0
+		}
+		return int(math.Floor(shield.Quality[item.OverallQuality] + 0.5))
+	}
 
-	// if item.ItemClass == ITEM_CLASS_ARMOR && item.ItemSubClass == ITEM_SUBCLASS_ARMOR_SHIELD {
-	// 	return item.ArmorValue
-	// }
+	var totalArmor float64
+	total := GetDBC().ItemArmorTotal[ilvl]
+	switch item.ItemSubClass {
+	case ITEM_SUBCLASS_ARMOR_CLOTH:
+		totalArmor = total.Cloth
+	case ITEM_SUBCLASS_ARMOR_LEATHER:
+		totalArmor = total.Leather
+	case ITEM_SUBCLASS_ARMOR_MAIL:
+		totalArmor = total.Mail
+	case ITEM_SUBCLASS_ARMOR_PLATE:
+		totalArmor = total.Plate
+	default:
+		return 0
+	}
 
-	// if item.ItemSubClass == ITEM_SUBCLASS_ARMOR_MISC || item.ItemSubClass > ITEM_SUBCLASS_ARMOR_PLATE {
-	// 	return 0
-	// }
-	// total_armor := 0.0
-	// quality := 0.0
-	// //	3688.5300292969 * 1.37000000477 * 0.15999999642
-	// armorModifier := GetDBC().ArmorLocation[item.InventoryType] //	0.15999999642 	3688.5300292969 	1.37000000477
-	// if item.InventoryType == INVTYPE_ROBE {
-	// 	armorModifier = GetDBC().ArmorLocation[INVTYPE_CHEST]
-	// }
-	// switch item.InventoryType {
-	// case INVTYPE_HEAD, INVTYPE_SHOULDERS, INVTYPE_CHEST, INVTYPE_WAIST, INVTYPE_LEGS, INVTYPE_FEET, INVTYPE_WRISTS, INVTYPE_HANDS, INVTYPE_CLOAK, INVTYPE_ROBE:
-	// 	switch item.ItemSubClass {
-	// 	case ITEM_SUBCLASS_ARMOR_CLOTH:
-	// 		total_armor = GetDBC().ItemArmorTotal[ilvl].Cloth
-	// 	case ITEM_SUBCLASS_ARMOR_LEATHER:
-	// 		total_armor = GetDBC().ItemArmorTotal[ilvl].Leather
-	// 	case ITEM_SUBCLASS_ARMOR_MAIL:
-	// 		total_armor = GetDBC().ItemArmorTotal[ilvl].Mail
-	// 	case ITEM_SUBCLASS_ARMOR_PLATE:
-	// 		total_armor = GetDBC().ItemArmorTotal[ilvl].Plate
-	// 	}
-	// 	quality = GetDBC().ItemArmorQuality[ilvl].Quality[item.OverallQuality]
-	// default:
-	// 	return 0
-	// }
-	// return int(math.Floor(total_armor*quality*armorModifier.Modifier[item.ItemSubClass-1] + 0.5))
+	switch item.InventoryType {
+	case INVTYPE_HEAD, INVTYPE_SHOULDERS, INVTYPE_CHEST, INVTYPE_WAIST, INVTYPE_LEGS, INVTYPE_FEET, INVTYPE_WRISTS, INVTYPE_HANDS, INVTYPE_CLOAK, INVTYPE_ROBE:
+	default:
+		return 0
+	}
+	slot := item.InventoryType
+	if slot == INVTYPE_ROBE {
+		slot = INVTYPE_CHEST
+	}
+	quality, ok := GetDBC().ItemArmorQuality[ilvl]
+	if !ok {
+		return 0
+	}
+	location := GetDBC().ArmorLocation[slot]
+	return int(math.Floor(totalArmor*quality.Quality[item.OverallQuality]*location.Modifier[item.ItemSubClass-1] + 0.5))
 }
 
 func (item *Item) GetWeaponTypes() (proto.WeaponType, proto.HandType, proto.RangedWeaponType) {
