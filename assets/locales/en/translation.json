@@ -2048,6 +2048,9 @@
 					"use_recklessness": {
 						"label": "Use Recklessness"
 					},
+					"use_stance_dance": {
+						"label": "Use Stance Dance"
+					},
 					"use_overpower": {
 						"label": "Use Overpower"
 					},

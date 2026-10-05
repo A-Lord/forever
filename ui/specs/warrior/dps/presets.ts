@@ -8,7 +8,6 @@ import { Stats } from '@sim/proto/stats';
 
 import * as WarriorPresets from '../shared/presets';
 import DefaultArmsApl from './apls/arms.apl.json';
-import ArmsStanceDanceApl from './apls/arms_stance_dance.apl.json';
 import DefaultFuryApl from './apls/fury.apl.json';
 import PreBiSArmsGearJson from './gear_sets/prebis_arms.gear.json';
 import PreBiSFuryGearJson from './gear_sets/prebis_fury.gear.json';
@@ -86,7 +85,6 @@ export const PreBiSArmsEpWeights = PresetUtils.makePresetEpWeights(
 
 export const FURY_DEFAULT_ROTATION = PresetUtils.makePresetAPLRotation('Fury', DefaultFuryApl);
 export const ARMS_DEFAULT_ROTATION = PresetUtils.makePresetAPLRotation('Arms', DefaultArmsApl);
-export const ARMS_STANCE_DANCE_ROTATION = PresetUtils.makePresetAPLRotation('Arms (Stance Dance)', ArmsStanceDanceApl);
 
 export const SIMPLE_ROTATION = DpsWarrior_Rotation.create({
 	spec: DpsWarriorSpec.DpsWarriorSpecFury,
@@ -94,6 +92,7 @@ export const SIMPLE_ROTATION = DpsWarrior_Rotation.create({
 	useOverpower: true,
 	useRend: true,
 	useRecklessness: false,
+	useStanceDance: false,
 });
 export const SIMPLE_DEFAULT_ROTATION = PresetUtils.makePresetSimpleRotation('Simple', Spec.SpecDpsWarrior, SIMPLE_ROTATION);
 export const SIMPLE_ARMS_DEFAULT_ROTATION = PresetUtils.makePresetSimpleRotation('Simple', Spec.SpecDpsWarrior, {

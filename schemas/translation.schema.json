@@ -7246,10 +7246,20 @@
 											},
 											"additionalProperties": false,
 											"required": ["label"]
+										},
+										"use_stance_dance": {
+											"type": "object",
+											"properties": {
+												"label": {
+													"type": "string"
+												}
+											},
+											"additionalProperties": false,
+											"required": ["label"]
 										}
 									},
 									"additionalProperties": false,
-									"required": ["spec", "use_recklessness", "use_overpower", "use_rend"]
+									"required": ["spec", "use_recklessness", "use_overpower", "use_rend", "use_stance_dance"]
 								}
 							},
 							"additionalProperties": false,
