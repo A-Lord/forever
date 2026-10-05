@@ -24,7 +24,8 @@ const classifySlots = (player: Player<any>, gear: Gear, frozenSlots: readonly It
 	return ENCHANTABLE_SLOTS.flatMap((slot): Array<SkippedEnchantSlot | FittingEnchants> => {
 		const equipped = gear.getEquippedItem(slot);
 		if (!equipped || frozenSlots.includes(slot)) return [];
-		let fitting = player.getEnchants(slot).filter(enchant => enchantAppliesToItem(enchant, equipped.item));
+		const item = equipped.item;
+		let fitting = player.getEnchants(slot).filter(enchant => enchantAppliesToItem(enchant, item));
 		if (presetPool && fitting.length) {
 			const listed = presetPool.find(pooled => pooled.slot === enchantPresetPoolSlot(slot))?.effectIds ?? [];
 			fitting = fitting.filter(enchant => listed.includes(enchant.effectId));
