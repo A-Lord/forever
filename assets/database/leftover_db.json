@@ -1224,6 +1224,7 @@
 {"id":281322,"name":"Frosthowl's Footwarmers","type":10,"armorType":2,"quality":1,"scalingOptions":{"0":{"ilvl":9}}},
 {"id":281631,"name":"Collector's Edition Tabard","quality":1,"unique":true,"scalingOptions":{"0":{"ilvl":1}}},
 {"id":282294,"name":"Guild Tabard","icon":"inv_shirt_guildtabard_01","quality":1,"scalingOptions":{"0":{"ilvl":1}}},
+{"id":285094,"name":"Ravaged Fishing Pole","icon":"inv_fishingpole_02","type":13,"handType":4,"weaponSpeed":3,"quality":1,"scalingOptions":{"0":{"weaponDamageMin":45,"weaponDamageMax":69,"ilvl":30}}},
 {"id":285327,"name":"Kirin Tor Tabard","icon":"inv_shirt_guildtabard_01","quality":1,"sources":[{"rep":{"repFactionId":2740,"repLevel":8,"factionId":1}}],"factionRestriction":1,"scalingOptions":{"0":{"ilvl":1}}},
 {"id":285362,"name":"Red Wine Glass","icon":"inv_drink_02","type":13,"weaponType":5,"handType":3,"quality":1,"scalingOptions":{"0":{"ilvl":1}}},
 {"id":286728,"name":"Kolkar Hammer","type":13,"weaponType":4,"handType":2,"weaponSpeed":2.4,"quality":1,"scalingOptions":{"0":{"weaponDamageMin":5,"weaponDamageMax":11,"ilvl":8}}},
