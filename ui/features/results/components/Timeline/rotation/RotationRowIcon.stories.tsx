@@ -20,5 +20,4 @@ export const SectionHeader: Story = { args: { tooltip: undefined } };
 
 export const BuffAura: Story = {
 	args: { actionId: FLURRY, tooltip: 'buffAura' },
-	parameters: { smoke: false, smokeReason: 'An aura tooltip asks the spell database whether the spell has a buff' },
 };

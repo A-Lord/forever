@@ -20,11 +20,9 @@ export const OtherActionIcon: Story = { args: { actionId: ActionId.fromOtherId(O
 /** Bloodthirst: the icon and the wowhead link are filled from the spell. */
 export const Spell: Story = {
 	args: { actionId: ActionId.fromSpellId(23894) },
-	parameters: { smoke: false, smokeReason: 'ActionId.fill() needs the item database' },
 };
 
 /** The same spell as an aura, which asks wowhead for the buff's tooltip rather than the spell's. */
 export const Aura: Story = {
 	args: { actionId: ActionId.fromSpellId(23894), useBuffAura: true },
-	parameters: { smoke: false, smokeReason: 'ActionId.fill() needs the item database' },
 };

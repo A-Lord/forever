@@ -12,7 +12,6 @@ const meta = {
 	tags: ['autodocs'],
 	args: { config: TALENT, points: 0, canAdd: true, allPointsSpent: false, onSetPoints: fn() },
 	argTypes: { config: { control: false } },
-	parameters: { smoke: false, smokeReason: 'The talent fills its icon from the database through useActionId' },
 	decorators: [
 		Story => (
 			<div className="grid w-fit">

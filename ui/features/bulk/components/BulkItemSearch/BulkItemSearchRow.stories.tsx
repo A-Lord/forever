@@ -8,7 +8,6 @@ const meta = {
 	title: 'Features/Bulk/BulkItemSearchRow',
 	component: BulkItemSearchRow,
 	tags: ['autodocs'],
-	parameters: { smoke: false, smokeReason: 'ActionId.fill() needs the item database for the item’s icon.' },
 	args: { item: makeUIItem() },
 	argTypes: { item: { control: false } },
 	decorators: [

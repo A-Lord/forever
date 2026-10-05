@@ -20,5 +20,4 @@ export const AnotherSpell: Story = { args: { actionId: HEROIC_STRIKE } };
 
 export const Aura: Story = {
 	args: { isAura: true },
-	parameters: { smoke: false, smokeReason: 'An aura link asks the spell database whether the spell has a buff' },
 };

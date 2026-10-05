@@ -37,5 +37,4 @@ export const Empty: Story = {
 
 export const FavouriteEnchants: Story = {
 	args: { entries: [{ item: makeUIEnchant(), active: true }] },
-	parameters: { smoke: false, smokeReason: 'ActionId.fill() needs the item database' },
 };

@@ -70,5 +70,4 @@ export const Sequence: Story = {
 /** Casting Bloodthirst: the spell picker names and paints the spell. */
 export const CastSpell: Story = {
 	args: rowOf(makeAplRotation()),
-	parameters: { smoke: false, smokeReason: 'ActionId.fill() needs the item database' },
 };

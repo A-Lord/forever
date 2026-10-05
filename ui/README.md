@@ -91,8 +91,8 @@ twelve `Design System/*` pages.
   surface and is exported as such, not as a test-only export.
 - **Stories are tests.** `ui/testing/storybook/stories.test.tsx` globs every `*.stories.tsx`,
   composes each story with the preview annotations and asserts it mounts under happy-dom, inside
-  `npm run test:unit`. A story that cannot mount there sets `smoke: false` and a `smokeReason`
-  string in its `parameters`; the test fails on an opt-out with no reason.
+  `npm run test:unit`. The Storybook fetch fixture supplies compact, deterministic database,
+  tooltip and enchant-description responses, so every story mounts in the smoke test.
 - **The frame.** `.storybook/preview.tsx` wraps every story in `withSimUi`
   (`ui/testing/storybook/decorators.tsx`): a `sim-ui` root carrying the spec class chosen in the
   toolbar, with the portal container inside it so overlays keep the theme. `parameters.spec` pins

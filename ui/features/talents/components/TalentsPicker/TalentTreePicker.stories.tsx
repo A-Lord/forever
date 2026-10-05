@@ -29,7 +29,6 @@ const meta = {
 	tags: ['autodocs'],
 	args: { config: mageTalentsConfig, graph, points: parseTalentsString(mageTalentsConfig, ''), treeIdx: 0, onChange: fn() },
 	argTypes: { config: { control: false }, graph: { control: false }, points: { control: false } },
-	parameters: { smoke: false, smokeReason: 'Each talent fills its icon from the database through useActionId' },
 	render: args => (
 		<div className="flex w-fit">
 			<StatefulTree {...args} />

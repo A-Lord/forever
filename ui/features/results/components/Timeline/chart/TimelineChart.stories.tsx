@@ -53,5 +53,4 @@ export const WaitingForData: Story = {};
 
 export const Dps: Story = {
 	args: { spec: dpsSpec() },
-	parameters: { smoke: false, smokeReason: 'chart.js needs a canvas' },
 };

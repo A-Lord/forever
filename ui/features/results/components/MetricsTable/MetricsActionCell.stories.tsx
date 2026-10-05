@@ -36,5 +36,4 @@ export const Expanded: Story = { args: { expandable: true, expanded: true } };
 
 export const Aura: Story = {
 	args: { name: FLURRY.name, actionId: FLURRY, useBuffAura: true },
-	parameters: { smoke: false, smokeReason: 'An aura tooltip asks the spell database whether the spell has a buff' },
 };

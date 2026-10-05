@@ -59,5 +59,4 @@ export const Plain: Story = {
 
 export const AuraGained: Story = {
 	args: { log: { ...base, actionId: BATTLE_SHOUT, kind: 'aura', isGained: true, isFaded: false, isRefreshed: false } satisfies AuraLog as CombatLog },
-	parameters: { smoke: false, smokeReason: 'An aura link asks the spell database whether the spell has a buff' },
 };
