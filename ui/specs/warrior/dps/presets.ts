@@ -4,6 +4,7 @@ import { ConsumesSpec, HandType, ItemSlot, Profession, PseudoStat, Race, Spec, S
 import { SavedTalents } from '@generated/proto/ui';
 import { DpsWarrior_Options as WarriorOptions, DpsWarrior_Rotation, DpsWarriorSpec, WarriorStance, WarriorSunder } from '@generated/proto/warrior';
 import { Player } from '@sim/player/player';
+import type { PresetSettings } from '@sim/presets/types';
 import { Stats } from '@sim/proto/stats';
 
 import * as WarriorPresets from '../shared/presets';
@@ -118,9 +119,50 @@ export const DefaultConsumables = ConsumesSpec.create({
 	elixirIds: [Consumables.ElixirOfFerocity.id, Consumables.ElixirOfTheMongoose.id, Consumables.WinterfallFirewater.id],
 });
 
+// The Pre-BiS Arms two-hander is an axe, so the main hand takes the sharpening stone and there is no off hand.
+export const ArmsConsumables = ConsumesSpec.create({
+	...DefaultConsumables,
+	mhImbueId: Consumables.DenseSharpeningStone.id,
+	ohImbueId: 0,
+});
+
 export const OtherDefaults = {
 	race: Race.RaceOrc,
 	profession1: Profession.Engineering,
 	profession2: Profession.Blacksmithing,
 	distanceFromTarget: 25,
+	reactionTime: 100,
 };
+
+export const DefaultSettings: PresetSettings = {
+	name: 'Defaults',
+	race: OtherDefaults.race,
+	specOptions: DefaultOptions,
+	consumables: DefaultConsumables,
+	buffs: WarriorPresets.DefaultIndividualBuffs,
+	partyBuffs: WarriorPresets.DefaultPartyBuffs,
+	raidBuffs: WarriorPresets.DefaultRaidBuffs,
+	debuffs: WarriorPresets.DefaultDebuffs,
+	playerOptions: {
+		profession1: OtherDefaults.profession1,
+		profession2: OtherDefaults.profession2,
+		distanceFromTarget: OtherDefaults.distanceFromTarget,
+		reactionTimeMs: OtherDefaults.reactionTime,
+	},
+};
+
+export const PreBiSFuryBuild = PresetUtils.makePresetBuild('Pre-BiS Fury', {
+	gear: PreBiSFuryGear,
+	talents: FuryTalents,
+	rotation: SIMPLE_DEFAULT_ROTATION,
+	epWeights: PreBiSFuryEpWeights,
+	settings: { name: 'Pre-BiS Fury', consumables: DefaultConsumables },
+});
+
+export const PreBiSArmsBuild = PresetUtils.makePresetBuild('Pre-BiS Arms', {
+	gear: PreBiSArmsGear,
+	talents: ArmsTalents,
+	rotation: SIMPLE_ARMS_DEFAULT_ROTATION,
+	epWeights: PreBiSArmsEpWeights,
+	settings: { name: 'Pre-BiS Arms', consumables: ArmsConsumables },
+});
