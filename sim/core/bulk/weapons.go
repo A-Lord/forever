@@ -125,12 +125,22 @@ func (generator *bulkSimCandidateGenerator) getAllWeaponCombos() [][2]*bulkSimCa
 
 	filteredCombos := make([][2]*bulkSimCandidateOption, 0, len(allWeaponCombos))
 	for _, combo := range allWeaponCombos {
-		if weaponHandsAllowed(combo[0], combo[1]) && generator.weaponComboMatchesSettings(combo[0], combo[1]) {
+		if weaponHandsAllowed(combo[0], combo[1]) && generator.weaponComboMatchesSettings(combo[0], combo[1]) && generator.keepsBaselineHands(combo[0], combo[1]) {
 			filteredCombos = append(filteredCombos, combo)
 		}
 	}
 
 	return filteredCombos
+}
+
+// Swapping the baseline's weapons between the hands is a choice only once a weapon is selected;
+// otherwise each baseline weapon stays in the hand it is worn in.
+func (generator *bulkSimCandidateGenerator) keepsBaselineHands(mainHand *bulkSimCandidateOption, offHand *bulkSimCandidateOption) bool {
+	if generator.weaponSelected {
+		return true
+	}
+	return (mainHand == nil || candidateOptionEqualsItem(*mainHand, generator.baseEquipment[proto.ItemSlot_ItemSlotMainHand])) &&
+		(offHand == nil || candidateOptionEqualsItem(*offHand, generator.baseEquipment[proto.ItemSlot_ItemSlotOffHand]))
 }
 
 func (generator *bulkSimCandidateGenerator) matchesWeaponTypeFilter(option *bulkSimCandidateOption, slot proto.ItemSlot) bool {

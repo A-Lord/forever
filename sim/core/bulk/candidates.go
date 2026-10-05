@@ -58,10 +58,7 @@ func BulkCandidates(request *proto.BulkCandidatesRequest) *proto.BulkCandidatesR
 	}
 
 	rawCombinations := generator.rawCombinationsCount()
-	candidates, err := generator.buildCandidates()
-	if err != nil {
-		return &proto.BulkCandidatesResult{Error: &proto.ErrorOutcome{Message: err.Error()}}
-	}
+	candidates := generator.buildCandidates()
 
 	return &proto.BulkCandidatesResult{
 		Candidates:      candidates,
@@ -100,11 +97,7 @@ func EnsureBulkSimCandidatesGenerated(request *proto.BulkSimRequest) error {
 	if buildErr != nil {
 		return buildErr
 	}
-	candidates, buildErr := generator.buildCandidates()
-	if buildErr != nil {
-		return buildErr
-	}
-	request.Candidates = candidates
+	request.Candidates = generator.buildCandidates()
 	return nil
 }
 

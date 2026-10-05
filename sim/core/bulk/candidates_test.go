@@ -64,6 +64,7 @@ func TestGetAllWeaponCombosSameWeaponBothHandsNeedsTwoCopies(t *testing.T) {
 			}
 			generator := &bulkSimCandidateGenerator{
 				playerCanDualWield: true,
+				weaponSelected:     true,
 				selectedByBulkSlot: map[BulkSimItemSlot][]bulkSimCandidateOption{
 					BulkSimItemSlotHandWeapon: options,
 				},
@@ -78,30 +79,67 @@ func TestGetAllWeaponCombosSameWeaponBothHandsNeedsTwoCopies(t *testing.T) {
 	}
 }
 
-// Distinct 1H weapons must still pair in both orders regardless of copy counts.
+func countWeaponOrders(combos [][2]*bulkSimCandidateOption, first int32, second int32) (forward int, backward int) {
+	for _, combo := range combos {
+		if combo[0] == nil || combo[1] == nil {
+			continue
+		}
+		if combo[0].spec.GetId() == first && combo[1].spec.GetId() == second {
+			forward++
+		}
+		if combo[0].spec.GetId() == second && combo[1].spec.GetId() == first {
+			backward++
+		}
+	}
+	return forward, backward
+}
+
+// With a weapon selected, distinct 1H weapons pair in both orders regardless of copy counts.
 func TestGetAllWeaponCombosPairsDistinctWeaponsBothOrders(t *testing.T) {
 	generator := &bulkSimCandidateGenerator{
 		playerCanDualWield: true,
+		weaponSelected:     true,
 		selectedByBulkSlot: map[BulkSimItemSlot][]bulkSimCandidateOption{
 			BulkSimItemSlotHandWeapon: {oneHandOption(100), oneHandOption(200)},
 		},
 	}
 	generator.initCopyCounts()
 
-	forward, backward := 0, 0
-	for _, combo := range generator.getAllWeaponCombos() {
-		if combo[0] == nil || combo[1] == nil {
-			continue
-		}
-		if combo[0].spec.GetId() == 100 && combo[1].spec.GetId() == 200 {
-			forward++
-		}
-		if combo[0].spec.GetId() == 200 && combo[1].spec.GetId() == 100 {
-			backward++
-		}
-	}
+	forward, backward := countWeaponOrders(generator.getAllWeaponCombos(), 100, 200)
 	if forward != 1 || backward != 1 {
 		t.Fatalf("distinct weapon pairings: forward=%d backward=%d, want 1 and 1", forward, backward)
+	}
+}
+
+// With no weapon selected, the baseline's two one-handers keep the hands they are worn in; with a
+// weapon selected, both orders are candidates.
+func TestGetAllWeaponCombosSwapsBaselineHandsOnlyWithSelectedWeapon(t *testing.T) {
+	const mainHandID, offHandID, selectedID = int32(910211), int32(910212), int32(910213)
+	addBulkTestWeapon(mainHandID, proto.HandType_HandTypeOneHand, proto.WeaponType_WeaponTypeSword)
+	addBulkTestWeapon(offHandID, proto.HandType_HandTypeOneHand, proto.WeaponType_WeaponTypeSword)
+	addBulkTestWeapon(selectedID, proto.HandType_HandTypeOneHand, proto.WeaponType_WeaponTypeSword)
+
+	var baseEquipment core.Equipment
+	baseEquipment[proto.ItemSlot_ItemSlotMainHand] = core.NewItem(core.ItemSpec{ID: mainHandID})
+	baseEquipment[proto.ItemSlot_ItemSlotOffHand] = core.NewItem(core.ItemSpec{ID: offHandID})
+
+	testCases := []struct {
+		name         string
+		items        []*proto.ItemSpec
+		wantBackward int
+	}{
+		{name: "no weapon selected", items: nil, wantBackward: 0},
+		{name: "weapon selected", items: []*proto.ItemSpec{{Id: selectedID}}, wantBackward: 1},
+	}
+	for _, testCase := range testCases {
+		generator, err := newBulkSimCandidateGeneratorForSpec(&proto.BulkSettings{Items: testCase.items}, proto.Class_ClassRogue, proto.Spec_SpecRogue, baseEquipment)
+		if err != nil {
+			t.Fatalf("%s: newBulkSimCandidateGeneratorForSpec: %v", testCase.name, err)
+		}
+		forward, backward := countWeaponOrders(generator.weaponCombos, mainHandID, offHandID)
+		if forward != 1 || backward != testCase.wantBackward {
+			t.Fatalf("%s: baseline weapon pairings forward=%d backward=%d, want 1 and %d", testCase.name, forward, backward, testCase.wantBackward)
+		}
 	}
 }
 
@@ -121,7 +159,7 @@ func addBulkTestWeapon(id int32, handType proto.HandType, weaponType proto.Weapo
 
 // A 2H mainhand combo carries a nil offhand, so the base gear's offhand has to be cleared:
 // without the reset the equipped shield stays wielded alongside the 2H weapon.
-func TestBuildGearForComboClearsOffHandForTwoHandMainHand(t *testing.T) {
+func TestBuildCandidatesClearsOffHandForTwoHandMainHand(t *testing.T) {
 	const twoHandID, oneHandID, shieldID = int32(910201), int32(910202), int32(910203)
 	addBulkTestWeapon(twoHandID, proto.HandType_HandTypeTwoHand, proto.WeaponType_WeaponTypeSword)
 	addBulkTestWeapon(oneHandID, proto.HandType_HandTypeOneHand, proto.WeaponType_WeaponTypeSword)
@@ -132,7 +170,8 @@ func TestBuildGearForComboClearsOffHandForTwoHandMainHand(t *testing.T) {
 	baseEquipment[proto.ItemSlot_ItemSlotOffHand] = core.NewItem(core.ItemSpec{ID: shieldID})
 
 	generator := &bulkSimCandidateGenerator{
-		baseEquipment: baseEquipment,
+		baseEquipment:  baseEquipment,
+		weaponSelected: true,
 		selectedByBulkSlot: map[BulkSimItemSlot][]bulkSimCandidateOption{
 			BulkSimItemSlotMainHand: {{
 				spec: &proto.ItemSpec{Id: twoHandID},
@@ -147,11 +186,7 @@ func TestBuildGearForComboClearsOffHandForTwoHandMainHand(t *testing.T) {
 		t.Fatalf("expected 1 weapon combo, got %d", len(generator.weaponCombos))
 	}
 
-	gear, err := generator.buildGearForCombo(0)
-	if err != nil {
-		t.Fatalf("buildGearForCombo failed: %v", err)
-	}
-	items := gear.GetItems()
+	items := generator.buildCandidates()[0].GetGear().GetItems()
 	if got := items[proto.ItemSlot_ItemSlotMainHand].GetId(); got != twoHandID {
 		t.Fatalf("expected 2H weapon in mainhand, got %d", got)
 	}
@@ -177,6 +212,7 @@ func TestGetAllWeaponCombosNeverPairsTwoHandWithOffHand(t *testing.T) {
 	generator := &bulkSimCandidateGenerator{
 		playerSpec:         proto.Spec_SpecDpsWarrior,
 		playerCanDualWield: true,
+		weaponSelected:     true,
 		selectedByBulkSlot: map[BulkSimItemSlot][]bulkSimCandidateOption{
 			BulkSimItemSlotHandWeapon: {twoHandOption(firstTwoHandID), twoHandOption(secondTwoHandID)},
 		},
@@ -702,10 +738,7 @@ func newBulkEnchantTestGenerator(t *testing.T, spec proto.Spec, class proto.Clas
 
 func bulkEnchantCandidateGear(t *testing.T, generator *bulkSimCandidateGenerator) []*proto.EquipmentSpec {
 	t.Helper()
-	candidates, err := generator.buildCandidates()
-	if err != nil {
-		t.Fatalf("buildCandidates: %v", err)
-	}
+	candidates := generator.buildCandidates()
 	gear := make([]*proto.EquipmentSpec, 0, len(candidates))
 	for _, candidate := range candidates {
 		gear = append(gear, candidate.GetGear())
@@ -841,19 +874,16 @@ func TestBulkEnchantDualWieldHandPools(t *testing.T) {
 		}})
 
 	gear := bulkEnchantCandidateGear(t, generator)
-	if len(gear) != 2 {
-		t.Fatalf("expected 2 candidates (both dagger orders), got %d", len(gear))
+	if len(gear) != 1 {
+		t.Fatalf("expected 1 candidate (the baseline dagger order, no weapon selected), got %d", len(gear))
 	}
-	for _, candidate := range gear {
-		mainHand := candidate.GetItems()[proto.ItemSlot_ItemSlotMainHand]
-		offHand := candidate.GetItems()[proto.ItemSlot_ItemSlotOffHand]
-		if mainHand.GetEnchant() != bulkEnchantWeaponA || offHand.GetEnchant() != bulkEnchantWeaponB {
-			t.Fatalf("hands %d+%d / %d+%d, want main hand enchant %d and off hand enchant %d",
-				mainHand.GetId(), mainHand.GetEnchant(), offHand.GetId(), offHand.GetEnchant(), bulkEnchantWeaponA, bulkEnchantWeaponB)
-		}
-		if mainHand.GetId() == offHand.GetId() {
-			t.Fatalf("dagger %d wielded in both hands from one copy", mainHand.GetId())
-		}
+	mainHand := gear[0].GetItems()[proto.ItemSlot_ItemSlotMainHand]
+	offHand := gear[0].GetItems()[proto.ItemSlot_ItemSlotOffHand]
+	if mainHand.GetId() != bulkEnchantDaggerAID || mainHand.GetEnchant() != bulkEnchantWeaponA ||
+		offHand.GetId() != bulkEnchantDaggerBID || offHand.GetEnchant() != bulkEnchantWeaponB {
+		t.Fatalf("hands %d+%d / %d+%d, want %d+%d / %d+%d",
+			mainHand.GetId(), mainHand.GetEnchant(), offHand.GetId(), offHand.GetEnchant(),
+			bulkEnchantDaggerAID, bulkEnchantWeaponA, bulkEnchantDaggerBID, bulkEnchantWeaponB)
 	}
 }
 
@@ -871,18 +901,16 @@ func TestBulkEnchantDualWieldMainHandPoolOnly(t *testing.T) {
 		}})
 
 	gear := bulkEnchantCandidateGear(t, generator)
-	if len(gear) != 2 {
-		t.Fatalf("expected 2 candidates (both dagger orders), got %d", len(gear))
+	if len(gear) != 1 {
+		t.Fatalf("expected 1 candidate (the baseline dagger order, no weapon selected), got %d", len(gear))
 	}
-	for _, candidate := range gear {
-		mainHand := candidate.GetItems()[proto.ItemSlot_ItemSlotMainHand]
-		offHand := candidate.GetItems()[proto.ItemSlot_ItemSlotOffHand]
-		if offHand.GetId() == 0 || offHand.GetId() == mainHand.GetId() {
-			t.Fatalf("hands %d / %d, want two different daggers", mainHand.GetId(), offHand.GetId())
-		}
-		if mainHand.GetEnchant() != bulkEnchantWeaponA || offHand.GetEnchant() != bulkEnchantWeaponKept {
-			t.Fatalf("hand enchants %d / %d, want %d / %d", mainHand.GetEnchant(), offHand.GetEnchant(), bulkEnchantWeaponA, bulkEnchantWeaponKept)
-		}
+	mainHand := gear[0].GetItems()[proto.ItemSlot_ItemSlotMainHand]
+	offHand := gear[0].GetItems()[proto.ItemSlot_ItemSlotOffHand]
+	if mainHand.GetId() != bulkEnchantDaggerAID || offHand.GetId() != bulkEnchantDaggerBID {
+		t.Fatalf("hands %d / %d, want %d / %d", mainHand.GetId(), offHand.GetId(), bulkEnchantDaggerAID, bulkEnchantDaggerBID)
+	}
+	if mainHand.GetEnchant() != bulkEnchantWeaponA || offHand.GetEnchant() != bulkEnchantWeaponKept {
+		t.Fatalf("hand enchants %d / %d, want %d / %d", mainHand.GetEnchant(), offHand.GetEnchant(), bulkEnchantWeaponA, bulkEnchantWeaponKept)
 	}
 }
 
