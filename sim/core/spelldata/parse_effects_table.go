@@ -17,6 +17,7 @@ const (
 	miscMagicSchool int32 = 126 // every school but physical, which is what spell damage covers
 	miscArmor       int32 = 1   // A_MOD_RESISTANCE and the two resistance percentages state armor as school 1
 	miscAllStats    int32 = -1  // A_MOD_STAT, A_MOD_PERCENT_STAT and A_MOD_TOTAL_STAT_PERCENTAGE: all five at once
+	miscDefense     int32 = 95  // A_MOD_SKILL on the Defense skill line
 )
 
 // The five stats the game files count in their own order, which is what A_MOD_STAT, A_MOD_PERCENT_STAT
@@ -455,6 +456,15 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	},
 	dbcenums.A_MOD_PARRY_PERCENT: func(p *parser, e *Effect, v float64) *attachment {
 		return p.statBuff(stats.ParryPercent, v)
+	},
+
+	// Skill points. Defense is the only skill the sim keeps as a stat, as defense rating; a weapon or
+	// profession skill is skipped.
+	dbcenums.A_MOD_SKILL: func(p *parser, e *Effect, v float64) *attachment {
+		if e.Misc != miscDefense {
+			return nil
+		}
+		return p.statBuff(stats.DefenseRating, v*core.DefenseRatingPerDefenseLevel)
 	},
 
 	// The off-hand bonus is a damage modifier on the off-hand's own hits rather than on a family of

@@ -469,9 +469,13 @@ func AppliesAura(t dbcenums.SpellEffectType) bool {
 		t == dbcenums.E_APPLY_AREA_AURA_RAID
 }
 
-// Whether ParseEffects attaches something for the effect's aura. A row can still refuse one effect by
-// its misc value, which only a parse against a unit finds out.
+// Whether ParseEffects attaches something for the effect's aura. The skill row reads only the Defense
+// skill, so a weapon or profession skill is not one. Another row can still refuse one effect by its
+// misc value, which only a parse against a unit finds out.
 func (e *Effect) ParsedAura() bool {
+	if e.Aura == dbcenums.A_MOD_SKILL && e.Misc != miscDefense {
+		return false
+	}
 	return AppliesAura(e.Type) && auraTable[e.Aura] != nil
 }
 

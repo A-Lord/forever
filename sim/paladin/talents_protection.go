@@ -94,14 +94,12 @@ func (paladin *Paladin) applyPrecision() {
 }
 
 // Anticipation - Increases your Defense Skill by 4/8/12/16/20.
-//
-// The parse does not read A_MOD_SKILL, so the defense is by hand.
 func (paladin *Paladin) applyAnticipation() {
 	if paladin.Talents.Anticipation == 0 {
 		return
 	}
 
-	paladin.AddStat(stats.DefenseRating, spellData.Anticipation.ValueAt(paladin.Talents.Anticipation)*core.DefenseRatingPerDefenseLevel)
+	spelldata.ParseStatic(&paladin.Character, spellData.Anticipation.Rank(paladin.Talents.Anticipation))
 }
 
 // Improved Seal of Fury - When Seal of Fury's shield is fully absorbed, restore 60 Mana, increased
