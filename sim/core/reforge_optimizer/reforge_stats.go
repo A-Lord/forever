@@ -34,16 +34,21 @@ func getUnitStat(unitStats core.UnitStats, unitStat stats.UnitStat) float64 {
 }
 
 func setUnitStat(unitStats core.UnitStats, unitStat stats.UnitStat, value float64) core.UnitStats {
+	writeUnitStat(&unitStats, unitStat, value)
+	return unitStats
+}
+
+// Sets the value in place, so a hot loop does not copy the Stats array on every write.
+func writeUnitStat(unitStats *core.UnitStats, unitStat stats.UnitStat, value float64) {
 	if unitStat.IsStat() {
 		unitStats.Stats[unitStat.StatIdx()] = value
-		return unitStats
+		return
 	}
 	pseudoStatIdx := int(unitStat.PseudoStatIdx())
 	for len(unitStats.PseudoStats) <= pseudoStatIdx {
 		unitStats.PseudoStats = append(unitStats.PseudoStats, 0)
 	}
 	unitStats.PseudoStats[pseudoStatIdx] = value
-	return unitStats
 }
 
 func isEmptyUnitStats(unitStats core.UnitStats) bool {
@@ -103,16 +108,16 @@ func resolveStatDelta(sdm *stats.StatDependencyManager, baseStats core.UnitStats
 		if pair.MeleeShare != nil {
 			value = delta.Stats[pair.MeleeShare.Stat] + value
 		}
-		delta = setUnitStat(delta, stats.UnitStatFromPseudoStat(pair.PseudoStat), value)
+		writeUnitStat(&delta, stats.UnitStatFromPseudoStat(pair.PseudoStat), value)
 	}
 	for percent, offHand := range offHandPercents {
-		delta = setUnitStat(delta, stats.UnitStatFromPseudoStat(offHand), delta.Stats[percent])
+		writeUnitStat(&delta, stats.UnitStatFromPseudoStat(offHand), delta.Stats[percent])
 	}
 	spellHitDelta := delta.Stats[stats.SpellHitPercent]
 	for _, schoolHitPS := range schoolHitPercents {
-		delta = setUnitStat(delta, stats.UnitStatFromPseudoStat(schoolHitPS), spellHitDelta)
+		writeUnitStat(&delta, stats.UnitStatFromPseudoStat(schoolHitPS), spellHitDelta)
 	}
-	delta = setUnitStat(delta, stats.UnitStatFromPseudoStat(proto.PseudoStat_PseudoStatReducedCritTakenPercent),
+	writeUnitStat(&delta, stats.UnitStatFromPseudoStat(proto.PseudoStat_PseudoStatReducedCritTakenPercent),
 		delta.Stats[stats.ReducedCritTakenPercent])
 
 	// Haste% pseudo-stats: read speed multipliers from baseStats.PseudoStats, which
@@ -120,7 +125,7 @@ func resolveStatDelta(sdm *stats.StatDependencyManager, baseStats core.UnitStats
 	if hasteRatingDelta := delta.Stats[stats.HasteRating]; hasteRatingDelta != 0 {
 		for hastePS, speedPS := range hasteSpeedMultipliers {
 			speedMult := getUnitStat(baseStats, stats.UnitStatFromPseudoStat(speedPS))
-			delta = setUnitStat(delta, stats.UnitStatFromPseudoStat(hastePS), speedMult*hasteRatingDelta/core.HasteRatingPerHastePercent)
+			writeUnitStat(&delta, stats.UnitStatFromPseudoStat(hastePS), speedMult*hasteRatingDelta/core.HasteRatingPerHastePercent)
 		}
 	}
 

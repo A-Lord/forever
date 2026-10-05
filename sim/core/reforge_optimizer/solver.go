@@ -71,8 +71,8 @@ func solveLPModel(model *lpModel, timeout time.Duration, mipRelGap float64) (lpS
 const minSolveSeconds = 1.0
 
 // Scores the variables, solves, then checks caps and recurses with tightened constraints/weights
-// until no cap is exceeded. Returns the selected variable names of the final solution and its
-// objective value.
+// until no cap is exceeded. Returns the selected variable names of the final solution, its
+// objective value and the number of solves it took.
 func (o *reforgeOptimizer) solveModel(
 	weights core.UnitStats,
 	reforgeCaps core.UnitStats,
@@ -80,9 +80,9 @@ func (o *reforgeOptimizer) solveModel(
 	variables *lpVariables,
 	constraints *lpConstraints,
 	maxSeconds float64,
-) ([]string, float64, error) {
+) ([]string, float64, int, error) {
 	if o.signals.Abort.IsTriggered() {
-		return nil, 0, context.Canceled
+		return nil, 0, 0, context.Canceled
 	}
 
 	updatedVariables := o.updateReforgeScores(variables, weights)
@@ -97,17 +97,17 @@ func (o *reforgeOptimizer) solveModel(
 	startedAt := time.Now()
 	solution, err := solveLPModel(model, time.Duration(maxSeconds*float64(time.Second)), 0)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, 0, err
 	}
 
 	if math.IsNaN(solution.result) || math.IsInf(solution.result, 1) {
 		switch solution.status {
 		case "infeasible":
-			return nil, 0, errors.New("The specified stat caps are impossible to achieve. Consider changing any upper bound stat caps to lower bounds instead.")
+			return nil, 0, 0, errors.New("The specified stat caps are impossible to achieve. Consider changing any upper bound stat caps to lower bounds instead.")
 		case "timedout":
-			return nil, 0, errors.New("Solver timed out before finding a feasible solution.")
+			return nil, 0, 0, errors.New("Solver timed out before finding a feasible solution.")
 		default:
-			return nil, 0, errors.New(solution.status)
+			return nil, 0, 0, errors.New(solution.status)
 		}
 	}
 
@@ -115,12 +115,13 @@ func (o *reforgeOptimizer) solveModel(
 
 	anyCapsExceeded, updatedConstraints, updatedWeights, updatedSoftCaps := o.checkCaps(solution, reforgeCaps, reforgeSoftCaps, updatedVariables, constraints, weights)
 	if !anyCapsExceeded {
-		return solution.variables, solution.result, nil
+		return solution.variables, solution.result, 1, nil
 	}
 	// Cap refinement consumed part of the budget; keep a positive floor so the tightened re-solve
 	// still gets a valid (non-negative) HiGHS time_limit even once the budget is spent.
 	remainingSeconds := math.Max(maxSeconds-elapsedSeconds, minSolveSeconds)
-	return o.solveModel(updatedWeights, reforgeCaps, updatedSoftCaps, updatedVariables, updatedConstraints, remainingSeconds)
+	selected, result, passes, err := o.solveModel(updatedWeights, reforgeCaps, updatedSoftCaps, updatedVariables, updatedConstraints, remainingSeconds)
+	return selected, result, passes + 1, err
 }
 
 // Sums the selected variables' stat contributions, then adds a hard-cap constraint for every
@@ -143,7 +144,7 @@ func (o *reforgeOptimizer) checkCaps(
 		}
 		for key, value := range coeffs {
 			if unitStat, ok := unitStatFromCoeffKey(key); ok {
-				reforgeStatContribution = setUnitStat(reforgeStatContribution, unitStat, getUnitStat(reforgeStatContribution, unitStat)+value)
+				writeUnitStat(&reforgeStatContribution, unitStat, getUnitStat(reforgeStatContribution, unitStat)+value)
 			}
 		}
 	}

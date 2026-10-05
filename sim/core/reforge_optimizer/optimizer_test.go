@@ -79,6 +79,19 @@ func TestOptimizeRespectsAStatCap(t *testing.T) {
 	}
 }
 
+// Greater Agility breaks the Agility ceiling on the first solve, so a second one picks Greater Strength.
+func TestOptimizeReportsItsSolvePasses(t *testing.T) {
+	uncapped := enchantRequest(protectionWarriorRaid("preraid"), agilityOverStrength, wrist(927, 1887))
+	if got := optimize(t, uncapped).GetPassesDone(); got != 1 {
+		t.Errorf("uncapped: %d passes, want 1", got)
+	}
+	capped := enchantRequest(protectionWarriorRaid("preraid"), agilityOverStrength, wrist(927, 1887))
+	capAgilityAtTheSheet(t, capped)
+	if got := optimize(t, capped).GetPassesDone(); got <= 1 {
+		t.Errorf("capped: %d passes, want more than 1", got)
+	}
+}
+
 func TestOptimizeLeavesASlotEmptyWhenEveryCandidateBreaksACap(t *testing.T) {
 	raid := protectionWarriorRaid("preraid")
 	raid.Parties[0].Players[0].Equipment.Items[proto.ItemSlot_ItemSlotWrist].Enchant = 927

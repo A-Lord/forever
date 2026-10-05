@@ -2,8 +2,8 @@ package reforgeoptimizer
 
 import (
 	"cmp"
-	"fmt"
 	"slices"
+	"strconv"
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
@@ -25,20 +25,24 @@ type enchantCandidate struct {
 const enchantTieBreak = 1e-4
 
 func enchantVariableKey(slot proto.ItemSlot, effectID int32) string {
-	return fmt.Sprintf("Enchant_%d_%d", int(slot), effectID)
+	return "Enchant_" + strconv.Itoa(int(slot)) + "_" + strconv.Itoa(int(effectID))
 }
 
 func enchantSlotKey(slot proto.ItemSlot) string {
-	return fmt.Sprintf("EnchantSlot_%d", int(slot))
+	return "EnchantSlot_" + strconv.Itoa(int(slot))
 }
 
 // The static enchants that fit each listed, unfrozen, occupied slot, in slot then effect id order.
 // The fitting row gives the stats, since an effect id can carry rows for different items. A slot
 // holding a proc enchant the sim implements is simulated, not optimized, so it lists none.
 func (o *reforgeOptimizer) enchantCandidates(gear *proto.EquipmentSpec) []enchantCandidate {
-	var candidates []enchantCandidate
 	options := slices.Clone(o.request.GetEnchantOptions())
 	slices.SortFunc(options, func(a, b *proto.BulkEnchantSlotOptions) int { return cmp.Compare(a.GetSlot(), b.GetSlot()) })
+	size := 0
+	for _, option := range options {
+		size += len(option.GetEffectIds())
+	}
+	candidates := make([]enchantCandidate, 0, size)
 	for _, option := range options {
 		slot := option.GetSlot()
 		if o.frozenSlots[slot] || int(slot) >= len(gear.GetItems()) {

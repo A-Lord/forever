@@ -261,19 +261,24 @@ func wrapLPExpression(expression string, maxLength int) []string {
 	}
 
 	var lines []string
-	currentLine := ""
+	var currentLine strings.Builder
+	currentLine.Grow(maxLength)
 	for _, token := range strings.Split(expression, " ") {
-		if len(currentLine) == 0 {
-			currentLine = token
-		} else if len(currentLine)+1+len(token) <= maxLength {
-			currentLine += " " + token
+		if currentLine.Len() == 0 {
+			currentLine.WriteString(token)
+		} else if currentLine.Len()+1+len(token) <= maxLength {
+			currentLine.WriteByte(' ')
+			currentLine.WriteString(token)
 		} else {
-			lines = append(lines, currentLine)
-			currentLine = " " + token
+			lines = append(lines, currentLine.String())
+			currentLine.Reset()
+			currentLine.Grow(maxLength)
+			currentLine.WriteByte(' ')
+			currentLine.WriteString(token)
 		}
 	}
-	if len(currentLine) > 0 {
-		lines = append(lines, currentLine)
+	if currentLine.Len() > 0 {
+		lines = append(lines, currentLine.String())
 	}
 	return lines
 }

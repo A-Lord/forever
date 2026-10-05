@@ -44,8 +44,9 @@ func OptimizeAsync(request *proto.ReforgeOptimizeRequest, signals simsignals.Sig
 	optimizer, err := newReforgeOptimizer(request, signals)
 	var optimizedGear *proto.EquipmentSpec
 	var score float64
+	var passes int
 	if err == nil {
-		optimizedGear, score, err = optimizer.optimizeReforges()
+		optimizedGear, score, passes, err = optimizer.optimizeReforges()
 	}
 	if err != nil {
 		if errors.Is(err, context.Canceled) {
@@ -89,7 +90,7 @@ func OptimizeAsync(request *proto.ReforgeOptimizeRequest, signals simsignals.Sig
 		OptimizedGear:        optimizedGear,
 		OptimizedPlayerStats: optimizedPlayerStats,
 		Score:                score,
-		PassesDone:           1,
+		PassesDone:           int32(passes),
 	}
 }
 
@@ -172,10 +173,10 @@ func (o *reforgeOptimizer) setBaseRaid(baseRaid *proto.Raid) error {
 // Picks one static enchant per listed slot. The baseline is the input gear with those slots' static
 // enchants cleared, so each candidate's coefficients are its full contribution. The score is the EP
 // of the picks over that baseline, without the tie-break, not their gain over the input gear.
-func (o *reforgeOptimizer) optimizeReforges() (*proto.EquipmentSpec, float64, error) {
+func (o *reforgeOptimizer) optimizeReforges() (*proto.EquipmentSpec, float64, int, error) {
 	candidates := o.candidates
 	if len(candidates) == 0 {
-		return o.baseGear, 0, nil
+		return o.baseGear, 0, 0, nil
 	}
 
 	reforgeCaps := computeStatCapsDelta(o.baseStats, protoToCoreUnitStats(o.settings.GetStatCaps()))
@@ -187,11 +188,11 @@ func (o *reforgeOptimizer) optimizeReforges() (*proto.EquipmentSpec, float64, er
 	weights := checkWeights(protoToCoreUnitStats(o.request.GetPreCapEpWeights()), reforgeCaps, reforgeSoftCaps)
 
 	variables, constraints := o.buildEnchantModel(candidates, weights)
-	selected, score, err := o.solveModel(weights, reforgeCaps, reforgeSoftCaps, variables, constraints, optimizerTimeout.Seconds())
+	selected, score, passes, err := o.solveModel(weights, reforgeCaps, reforgeSoftCaps, variables, constraints, optimizerTimeout.Seconds())
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, 0, err
 	}
-	return o.applyEnchantSolution(candidates, selected), score, nil
+	return o.applyEnchantSolution(candidates, selected), score, passes, nil
 }
 
 func computeReforgeStats(request *proto.ComputeStatsRequest) *proto.ComputeStatsResult {
