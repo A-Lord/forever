@@ -51,5 +51,9 @@ export const RotationInputs = {
 			showWhen: player => isFurySpec(player),
 			storeField: ['rotation', 'talentsString', 'gear'] as const,
 		}),
+		InputHelpers.makeRotationBooleanInput<Spec.SpecDpsWarrior>({
+			fieldName: 'useHamstring',
+			label: i18n.t('rotation_tab.options.warrior.dps.use_hamstring.label'),
+		}),
 	],
 };
