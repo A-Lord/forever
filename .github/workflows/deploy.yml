@@ -3,6 +3,8 @@ on:
     push:
         branches:
             - master
+    # Update Items dispatches this after it merges; a merge by the workflow token starts no push run.
+    workflow_dispatch:
 jobs:
     tests:
         uses: ./.github/workflows/run_tests.yml

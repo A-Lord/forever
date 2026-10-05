@@ -1,0 +1,62 @@
+name: Check Hotfixes
+
+# Hotfixes reach only a logged-in game, so the one feed of them is raidbots' mirror of the game's
+# DBCache.bin. Every hour this checks that mirror and dispatches Update Items when it holds a copy not
+# seen before. The mirror's etag is the md5 of the file, so the same file uploaded again is not new.
+# Around a build push the mirror can still hold the previous build's hotfixes, which db2tool would not
+# apply; nothing is dispatched until it matches the build the CDN serves.
+on:
+    workflow_dispatch:
+    schedule:
+        - cron: '17 * * * *'
+
+env:
+    PRODUCT: wow_classic_beta
+    DBCACHE_URL: https://storage.googleapis.com/raidbots-static/wow/classic_beta/enUS/DBCache.bin
+
+jobs:
+    check-hotfixes:
+        runs-on: self-hosted
+        timeout-minutes: 5
+        permissions:
+            actions: write
+        steps:
+            # The first 12 bytes of DBCache.bin are the XFTH header: magic, format version, build.
+            - name: Read the hotfix cache and the current beta build 🔎
+              id: probe
+              run: |
+                  etag=$(curl -fsSI "$DBCACHE_URL" | awk 'tolower($1) == "etag:" { gsub(/[\r"]/, "", $2); print $2 }')
+                  cache_build=$(curl -fsS -r 0-11 "$DBCACHE_URL" | python3 -c 'import struct, sys; b = sys.stdin.buffer.read(12); assert b[:4] == b"XFTH"; print(struct.unpack_from("<I", b, 8)[0])')
+                  cdn_build=$(curl -fsS "https://us.version.battle.net/$PRODUCT/versions" | awk -F'|' '$1 == "us" { print $5 }')
+                  test -n "$etag" && test -n "$cache_build" && test -n "$cdn_build"
+                  echo "DBCache.bin etag $etag, build $cache_build; CDN build $cdn_build"
+                  echo "etag=$etag" >> "$GITHUB_OUTPUT"
+                  echo "same-build=$([ "$cache_build" = "$cdn_build" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+            # A key not read for 7 days is evicted, so a mirror that stays unchanged for a week
+            # dispatches once more; that run opens no pull request.
+            - name: Look up the hotfix cache 📦
+              id: seen
+              if: steps.probe.outputs.same-build == 'true'
+              uses: actions/cache/restore@v5
+              with:
+                  path: dbcache-etag
+                  key: dbcache-${{ steps.probe.outputs.etag }}
+                  lookup-only: true
+
+            - name: Dispatch Update Items 🚀
+              if: steps.probe.outputs.same-build == 'true' && steps.seen.outputs.cache-hit != 'true'
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: gh workflow run update_items.yml -R "$GITHUB_REPOSITORY" --ref master
+
+            - name: Mark the hotfix cache as seen
+              if: steps.probe.outputs.same-build == 'true' && steps.seen.outputs.cache-hit != 'true'
+              run: echo "${{ steps.probe.outputs.etag }}" > dbcache-etag
+
+            - name: Remember the hotfix cache 📦
+              if: steps.probe.outputs.same-build == 'true' && steps.seen.outputs.cache-hit != 'true'
+              uses: actions/cache/save@v5
+              with:
+                  path: dbcache-etag
+                  key: dbcache-${{ steps.probe.outputs.etag }}
