@@ -5,7 +5,9 @@ import { FeralCatDruid_Options as FeralDruidOptions, FeralCatDruid_Rotation as F
 import { SavedTalents } from '@generated/proto/ui';
 
 import DefaultApl from './apls/default.apl.json';
+import RaidDpsApl from './apls/raid-dps.apl.json';
 import RaidBuild from './builds/raid.build.json';
+import RaidDpsBuild from './builds/raid-dps.build.json';
 import StarterBuild from './builds/starter.build.json';
 import RaidEp from './ep/raid.ep.json';
 
@@ -33,6 +35,7 @@ export const RAID_BUILD = PresetUtils.makePresetBuildFromJSON('Level 60 Raid Exa
 	gear: RAID_GEAR,
 	talents: STARTER_TALENTS,
 });
+export const RAID_DPS_BUILD = PresetUtils.makePresetBuildFromJSON('Level 60 Raid DPS Example', Spec.SpecFeralCatDruid, RaidDpsBuild);
 
 export const DefaultOptions = FeralDruidOptions.fromJson(StarterBuild.player.feralCatDruid.options);
 export const DefaultConsumables = ConsumesSpec.fromJson(RaidBuild.player.consumables);
@@ -54,3 +57,4 @@ export const DefaultRotation = FeralCatDruidRotation.fromJsonString(JSON.stringi
 export const SIMPLE = PresetUtils.makePresetSimpleRotation('Simple', Spec.SpecFeralCatDruid, DefaultRotation);
 export const APL = PresetUtils.makePresetAPLRotation('Claw / Rip', DefaultApl);
 export const POWERSHIFT_APL = PresetUtils.makePresetAPLRotation('Shred / Rip', RaidBuild.player.rotation);
+export const RAID_DPS_APL = PresetUtils.makePresetAPLRotation('Shred / Rake / Rip', RaidDpsApl);

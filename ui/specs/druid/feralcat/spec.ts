@@ -118,11 +118,11 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 	defaultBuild: Presets.RAID_BUILD,
 
 	presets: {
-		builds: [Presets.RAID_BUILD, Presets.STARTER_BUILD],
+		builds: [Presets.RAID_BUILD, Presets.RAID_DPS_BUILD, Presets.STARTER_BUILD],
 		epWeights: [Presets.RAID_EP],
 		// Preset talents that the user can quickly select.
 		talents: [Presets.STARTER_TALENTS],
-		rotations: [Presets.SIMPLE, Presets.POWERSHIFT_APL, Presets.APL],
+		rotations: [Presets.SIMPLE, Presets.POWERSHIFT_APL, Presets.RAID_DPS_APL, Presets.APL],
 		// Preset gear configurations that the user can quickly select.
 		gear: [Presets.RAID_GEAR, Presets.STARTER_GEAR],
 	},
