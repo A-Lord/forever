@@ -210,6 +210,7 @@ jobs:
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
+                  before=$(gh api "repos/$GITHUB_REPOSITORY/commits/master" --jq .sha)
                   gh pr merge "${{ needs.update-items.outputs.pull-request-number }}" -R "$GITHUB_REPOSITORY" \
                       --merge --delete-branch --match-head-commit "${{ needs.update-items.outputs.pull-request-head-sha }}"
-                  gh workflow run deploy.yml -R "$GITHUB_REPOSITORY" --ref master
+                  gh workflow run deploy.yml -R "$GITHUB_REPOSITORY" --ref master -f proto_baseline="$before"
