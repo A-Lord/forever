@@ -10,9 +10,11 @@ func (druid *Druid) registerPounceSpell() {
 	bleedRank := spellData.PounceBleed.Highest()
 
 	bleedConfig := spelldata.SpellConfig(&druid.Unit, bleedRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial), spelldata.Proc())
-	// Genesis names the parent Pounce in its periodic-damage mask. The triggered bleed row carries no
-	// class flags of its own, so it inherits the parent's identity for that modifier.
-	bleedConfig.ClassFlags = rank.ClassFlags
+	// TODO: Ingame research needed -- Genesis names Pounce 9827, while bleed 9826 has no class flags.
+	// Its tooltip raises periodic damage, so only Genesis is applied to the bleed.
+	if druid.Talents.Genesis > 0 {
+		bleedConfig.DamageMultiplier *= 1 + spellData.Genesis.Rank(druid.Talents.Genesis).EffectN(1).Percent()
+	}
 	bleedConfig.Dot = spelldata.DotConfig(bleedRank, bleedRank.PeriodicDamageEffect(), bleedAuraOpt())
 	druid.PounceBleed = druid.RegisterSpell(bleedConfig)
 
@@ -20,6 +22,7 @@ func (druid *Druid) registerPounceSpell() {
 		return target.RegisterAura(spelldata.AuraConfig(rank, spelldata.Label(rank.Name+" Stun")))
 	})
 	config := spelldata.SpellConfig(&druid.Unit, rank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
+	config.RelatedAuraArrays = stuns.ToMap()
 	// "Must be prowling and behind the target" is the tooltip's; the row states Cat Form only.
 	config.ExtraCastCondition = func(_ *core.Simulation, _ *core.Unit) bool {
 		return druid.ProwlAura != nil && druid.ProwlAura.IsActive() && druid.BehindTarget()

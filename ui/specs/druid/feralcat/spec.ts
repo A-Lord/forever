@@ -17,7 +17,10 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 	className: 'feral-druid-sim-ui',
 	cssScheme: PlayerClasses.getCssScheme(PlayerClasses.Druid),
 	// List any known bugs / issues here and they'll be shown on the site.
-	knownIssues: ["Rip/Bite AP scaling, Omen's proc rate, base crit and Furor state retention use stated assumptions where the game files are silent."],
+	knownIssues: [
+		"Rake uses rank 1's measured 0.055 AP per tick at higher ranks and reads current AP each tick; higher ranks and snapshotting need in-game verification.",
+		"Rip/Bite AP scaling, Omen's proc rate, base crit and Furor state retention use stated assumptions where the game files are silent.",
+	],
 	warnings: [],
 
 	// Extra stats shown in consumables picker (beyond epStats).
