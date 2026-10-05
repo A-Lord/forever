@@ -182,8 +182,8 @@ func (paladin *Paladin) applyIllumination() {
 // Divine Precision - Improves your chance to hit with Holy spells by 6/12/18%.
 //
 // The row's class flags name Consecration, Exorcism, Holy Shock, Holy Wrath, Light's Vigil and Holy
-// Strike, so Holy Strike's melee hit roll takes the bonus too.
-// TODO: Verify in game that Divine Precision raises Holy Strike's chance to hit.
+// Strike, so Holy Strike's melee hit roll takes the bonus too: the talent lets a healer strike and
+// keep their judgements up.
 func (paladin *Paladin) applyDivinePrecision() {
 	if paladin.Talents.DivinePrecision == 0 {
 		return
