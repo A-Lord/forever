@@ -135,6 +135,8 @@ export default defineSpec<Spec.SpecDpsWarrior>({
 		rotations: [Presets.SIMPLE_DEFAULT_ROTATION, Presets.FURY_DEFAULT_ROTATION, Presets.ARMS_DEFAULT_ROTATION],
 		// Preset gear configurations that the user can quickly select.
 		gear: [Presets.PreBiSFuryGear, Presets.PreBiSArmsGear],
+		settings: [Presets.DefaultSettings],
+		builds: [Presets.PreBiSFuryBuild, Presets.PreBiSArmsBuild],
 	},
 
 	autoRotation: (player: Player<Spec.SpecDpsWarrior>): APLRotation => {

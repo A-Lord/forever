@@ -1,9 +1,11 @@
 import * as PresetUtils from '@app/preset_utils';
 import * as Consumables from '@features/settings/model/consumables_auto_gen';
+import { makeSpecChangeWarningToast } from '@features/settings/utils/spec_change_warning_toast';
 import { ConsumesSpec, HandType, ItemSlot, Profession, PseudoStat, Race, Spec, Stat } from '@generated/proto/common';
 import { SavedTalents } from '@generated/proto/ui';
 import { DpsWarrior_Options as WarriorOptions, DpsWarrior_Rotation, DpsWarriorSpec, WarriorStance, WarriorSunder } from '@generated/proto/warrior';
 import { Player } from '@sim/player/player';
+import type { PresetSettings } from '@sim/presets/types';
 import { Stats } from '@sim/proto/stats';
 
 import * as WarriorPresets from '../shared/presets';
@@ -26,17 +28,51 @@ export const isFurySpec = (player: Player<Spec.SpecDpsWarrior>) =>
 	player.getEquippedItem(ItemSlot.ItemSlotMainHand)?.item.handType === HandType.HandTypeMainHand ||
 	player.getEquippedItem(ItemSlot.ItemSlotMainHand)?.item.handType === HandType.HandTypeOneHand;
 
+const FURY_PRESET_OPTIONS = {
+	group: 'Fury',
+	onLoad: (player: Player<Spec.SpecDpsWarrior>) => {
+		makeSpecChangeWarningToast(
+			[
+				{
+					condition: isArmsSpec,
+					message: 'Check your gear: You have a two-handed weapon equipped, but the selected option is for dual wield.',
+				},
+				{
+					condition: (player: Player<Spec.SpecDpsWarrior>) => !player.getTalents().dualWieldSpecialization,
+					message: "Check your talents: You have selected a dual-wield spec but don't have [Dual Wield Specialization] talented.",
+				},
+			],
+			player,
+		);
+	},
+};
+
+const ARMS_PRESET_OPTIONS = {
+	group: 'Arms',
+	onLoad: (player: Player<Spec.SpecDpsWarrior>) => {
+		makeSpecChangeWarningToast(
+			[
+				{
+					condition: isFurySpec,
+					message: 'Check your gear: You have a one-handed weapon equipped, but the selected option is for two-handed weapons.',
+				},
+			],
+			player,
+		);
+	},
+};
+
 // Dungeon and world drops, the warrior's dungeon tier sets and crafted items whose reagents include no
 // raid materials; no reputation rewards. The cloak, the belt and the Adaptive Combat Assistant are sold by
 // the Undermine Trader in Stranglethorn Vale; the second ring has no known source.
-export const PreBiSFuryGear = PresetUtils.makePresetGear('Pre-BiS Fury', PreBiSFuryGearJson);
+export const PreBiSFuryGear = PresetUtils.makePresetGear('Pre-BiS', PreBiSFuryGearJson, FURY_PRESET_OPTIONS);
 
 // The best build found on the Pre-BiS Fury gear over a three minute fight.
 export const FuryTalents = PresetUtils.makePresetTalents('Fury', SavedTalents.create({ talentsString: '30305013002-25053005052010501' }));
 
 // Measured on the Pre-BiS Fury gear with the Fury talents.
 export const PreBiSFuryEpWeights = PresetUtils.makePresetEpWeights(
-	'Pre-BiS Fury',
+	'Pre-BiS - Fury',
 	Stats.fromMap(
 		{
 			[Stat.StatStrength]: 2.2,
@@ -56,7 +92,7 @@ export const PreBiSFuryEpWeights = PresetUtils.makePresetEpWeights(
 );
 
 // The same sources as the Pre-BiS Fury gear. The neck, cloak and second ring have no known source.
-export const PreBiSArmsGear = PresetUtils.makePresetGear('Pre-BiS Arms', PreBiSArmsGearJson);
+export const PreBiSArmsGear = PresetUtils.makePresetGear('Pre-BiS', PreBiSArmsGearJson, ARMS_PRESET_OPTIONS);
 
 // The Battle Stance build: Rend keeps Bloodthrill's Overpower procs coming, and Spearing Strike fills the
 // global cooldowns Mortal Strike and Slam leave.
@@ -64,7 +100,7 @@ export const ArmsTalents = PresetUtils.makePresetTalents('Arms', SavedTalents.cr
 
 // Measured on the Pre-BiS Arms gear with the Arms talents. Hit is its value below the 8% cap.
 export const PreBiSArmsEpWeights = PresetUtils.makePresetEpWeights(
-	'Pre-BiS Arms',
+	'Pre-BiS - Arms',
 	Stats.fromMap(
 		{
 			[Stat.StatStrength]: 2.2,
@@ -118,9 +154,52 @@ export const DefaultConsumables = ConsumesSpec.create({
 	elixirIds: [Consumables.ElixirOfFerocity.id, Consumables.ElixirOfTheMongoose.id, Consumables.WinterfallFirewater.id],
 });
 
+// The Pre-BiS Arms two-hander is an axe, so the main hand takes the sharpening stone and there is no off hand.
+export const ArmsConsumables = ConsumesSpec.create({
+	...DefaultConsumables,
+	mhImbueId: Consumables.DenseSharpeningStone.id,
+	ohImbueId: 0,
+});
+
 export const OtherDefaults = {
 	race: Race.RaceOrc,
 	profession1: Profession.Engineering,
 	profession2: Profession.Blacksmithing,
 	distanceFromTarget: 25,
+	reactionTime: 100,
 };
+
+export const DefaultSettings: PresetSettings = {
+	name: 'Defaults',
+	race: OtherDefaults.race,
+	specOptions: DefaultOptions,
+	consumables: DefaultConsumables,
+	buffs: WarriorPresets.DefaultIndividualBuffs,
+	partyBuffs: WarriorPresets.DefaultPartyBuffs,
+	raidBuffs: WarriorPresets.DefaultRaidBuffs,
+	debuffs: WarriorPresets.DefaultDebuffs,
+	playerOptions: {
+		profession1: OtherDefaults.profession1,
+		profession2: OtherDefaults.profession2,
+		distanceFromTarget: OtherDefaults.distanceFromTarget,
+		reactionTimeMs: OtherDefaults.reactionTime,
+	},
+};
+
+export const PreBiSFuryBuild = PresetUtils.makePresetBuild('Pre-BiS', {
+	group: 'Fury',
+	gear: PreBiSFuryGear,
+	talents: FuryTalents,
+	rotation: SIMPLE_DEFAULT_ROTATION,
+	epWeights: PreBiSFuryEpWeights,
+	settings: { name: 'Pre-BiS - Fury', consumables: DefaultConsumables },
+});
+
+export const PreBiSArmsBuild = PresetUtils.makePresetBuild('Pre-BiS', {
+	group: 'Arms',
+	gear: PreBiSArmsGear,
+	talents: ArmsTalents,
+	rotation: SIMPLE_ARMS_DEFAULT_ROTATION,
+	epWeights: PreBiSArmsEpWeights,
+	settings: { name: 'Pre-BiS - Arms', consumables: ArmsConsumables },
+});
