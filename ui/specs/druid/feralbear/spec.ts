@@ -42,7 +42,7 @@ export default defineSpec<Spec.SpecFeralBearDruid>({
 		Stat.StatPhysicalDamage,
 		Stat.StatArmorPenetration,
 	],
-	epPseudoStats: [],
+	epPseudoStats: [PseudoStat.PseudoStatMainHandDps],
 	epReferenceStat: Stat.StatAgility,
 	tankRefStat: Stat.StatStamina,
 	displayStats: UnitStat.createDisplayStatArray(
