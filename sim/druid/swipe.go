@@ -9,8 +9,6 @@ import (
 func (druid *Druid) registerSwipeBearSpell() {
 	rank := spellData.Swipe.Highest()
 	damageEffect := rank.DamageEffect()
-	// TODO: Ingame research needed -- whether Swipe gains damage from attack power; this row states no
-	// coefficient.
 	base := damageEffect.Average()
 	targets := int32(damageEffect.ChainTargets)
 	if targets < 1 {

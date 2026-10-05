@@ -309,8 +309,8 @@ var Spells = []Override{
 		SpellID: 9896,
 		Field:   APCoefPeriodic,
 		Value:   0.01,
-		Reason:  "Placeholder: Rip attack power per combo point on each tick; the game files state none",
-		Source:  "classic-carryover",
+		Reason:  "Rip: 0.06 attack power per combo point over six ticks, capped at four points; higher-rank verification remains open",
+		Source:  "Rip AP Scaling Testing, 2026-09-26, https://docs.google.com/spreadsheets/d/1fQiaAQzz1r_wS-2pD5e1Y6wZLxajru2R8GK5Uw1Lo60",
 	},
 	{
 		SpellID: 22829,

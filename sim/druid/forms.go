@@ -172,6 +172,8 @@ func (druid *Druid) registerShapeshiftSpell(rank *spelldata.Spell, aura *core.Au
 	return druid.RegisterSpell(config)
 }
 
+// TODO: Verify a companion-triggered swing reset before adding a snake-weaving option.
+
 // furorFraction is the rage chance, the tooltip's $m1: 0.2 at 1/5 through 1 at 5/5.
 func (druid *Druid) furorFraction() float64 {
 	return spellData.Furor.EffectAt(1).FractionAt(druid.Talents.Furor)
