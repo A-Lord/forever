@@ -12,6 +12,7 @@ import (
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/simsignals"
 	"github.com/wowsims/forever/sim/core/spelldata"
+	"github.com/wowsims/forever/sim/core/stats"
 	"github.com/wowsims/forever/sim/druid"
 )
 
@@ -493,6 +494,22 @@ func waitReady(sim *core.Simulation, cat *FeralDruid) {
 		if sim.Step() {
 			return
 		}
+	}
+}
+
+// Subtlety 3/3 is the 4th restoration talent. Its mask is Nature and Arcane, so physical threat stays put.
+func TestSubtletyThreatIsNatureAndArcane(t *testing.T) {
+	_, plain := newCat(t, "", nil)
+	_, cat := newCat(t, "0000000000000000-00000000000000000000-0003000000000000", nil)
+	got := cat.PseudoStats.SchoolThreatMultiplier
+	base := plain.PseudoStats.SchoolThreatMultiplier
+	if got[stats.SchoolIndexNature] != 0.7 || got[stats.SchoolIndexArcane] != 0.7 {
+		t.Fatalf("Subtlety 3/3 threat: nature %.3f arcane %.3f, want 0.70", got[stats.SchoolIndexNature], got[stats.SchoolIndexArcane])
+	}
+	if got[stats.SchoolIndexPhysical] != base[stats.SchoolIndexPhysical] || cat.PseudoStats.ThreatMultiplier != plain.PseudoStats.ThreatMultiplier {
+		t.Fatalf("physical %.3f (base %.3f), global %.3f (base %.3f)",
+			got[stats.SchoolIndexPhysical], base[stats.SchoolIndexPhysical],
+			cat.PseudoStats.ThreatMultiplier, plain.PseudoStats.ThreatMultiplier)
 	}
 }
 

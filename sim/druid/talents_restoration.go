@@ -1,7 +1,5 @@
 package druid
 
-import "github.com/wowsims/forever/sim/core"
-
 func (druid *Druid) registerRestorationTalents() {
 	// Tier 1
 	druid.applyNaturesFocus()
@@ -43,17 +41,7 @@ func (druid *Druid) applyNaturalist() {
 }
 
 func (druid *Druid) applySubtlety() {
-	if druid.Talents.Subtlety == 0 {
-		return
-	}
-
-	effect := spellData.Subtlety.Rank(druid.Talents.Subtlety).EffectN(1)
-	// The generic threat parser applies to every school; Subtlety names Nature and Arcane only.
-	druid.AddStaticMod(core.SpellModConfig{
-		Kind:       core.SpellMod_ThreatMultiplier_Pct,
-		School:     core.SpellSchool(effect.Misc),
-		FloatValue: effect.Percent(),
-	})
+	druid.parseTalent(druid.Talents.Subtlety, spellData.Subtlety)
 }
 
 func (druid *Druid) applyLivingSpirit() {
