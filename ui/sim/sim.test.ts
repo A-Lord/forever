@@ -1,5 +1,7 @@
 import {
 	BulkEnchantSlotOptions,
+	BulkSettings,
+	BulkSimResult,
 	ErrorOutcome,
 	ErrorOutcomeType,
 	Raid as RaidProto,
@@ -8,11 +10,12 @@ import {
 	ReforgeOptimizeResult,
 	ReforgeSettings,
 } from '@generated/proto/api';
-import { ConsumableType, ItemSlot, ItemType, Profession } from '@generated/proto/common';
-import { UIEnchant } from '@generated/proto/ui';
+import { ConsumableType, EquipmentSpec, ItemRandomSuffix, ItemSlot, ItemSpec, ItemType, Profession } from '@generated/proto/common';
+import { UIEnchant, UIItem } from '@generated/proto/ui';
 import { makeEquippedItem } from '@testing/storybook/fixtures/gear';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { EquippedItem } from './proto/equipped_item';
 import { Gear } from './proto/gear';
 import { Stats } from './proto/stats';
 import { Sim, SimError } from './sim';
@@ -25,6 +28,7 @@ const mocks = vi.hoisted(() => ({
 	getNumWorkers: vi.fn(() => 1),
 	computeStats: vi.fn(() => new Promise(() => {})),
 	reforgeOptimizeAsync: vi.fn(),
+	runConcurrentBulkSim: vi.fn(),
 	db: {} as Record<string, unknown>,
 }));
 
@@ -41,7 +45,7 @@ vi.mock('./workers/worker_pool', () => ({
 }));
 
 vi.mock('./wasm', () => ({
-	runConcurrentBulkSim: vi.fn(),
+	runConcurrentBulkSim: mocks.runConcurrentBulkSim,
 	runConcurrentSim: mocks.runConcurrentSim,
 	runConcurrentStatWeights: vi.fn(),
 }));
@@ -316,6 +320,83 @@ describe('Sim.reforgeOptimize', () => {
 		const [request] = mocks.reforgeOptimizeAsync.mock.calls[0];
 		const shipped = request.raid.parties[0].players[0].database.enchants.map((enchant: { name: string }) => enchant.name).sort();
 		expect(shipped).toEqual([crusader.name, lesserImpact.name, superiorStriking.name].sort());
+	});
+});
+
+describe('Sim.runBulkSim', () => {
+	it('ships every item, suffix and enchant a candidate can carry, from the baseline and the settings alone', async () => {
+		const cloakAgility = UIEnchant.create({ effectId: 849, itemId: 1, name: 'Enchant Cloak - Minor Agility', type: ItemType.ItemTypeBack });
+		const cloakResistance = UIEnchant.create({ effectId: 1889, itemId: 2, name: 'Enchant Cloak - Superior Defense', type: ItemType.ItemTypeBack });
+		const cloakDodge = UIEnchant.create({ effectId: 2622, itemId: 3, name: 'Enchant Cloak - Dodge', type: ItemType.ItemTypeBack });
+		const baselineCloak = new EquippedItem({
+			item: UIItem.create({ id: 20, type: ItemType.ItemTypeBack, scalingOptions: { 0: { ilvl: 60 } } }),
+			enchant: cloakAgility,
+			randomSuffix: ItemRandomSuffix.create({ id: 7 }),
+		});
+		const selectedCloak = new EquippedItem({
+			item: UIItem.create({ id: 30, type: ItemType.ItemTypeBack, scalingOptions: { 0: { ilvl: 60 } } }),
+			enchant: cloakDodge,
+			randomSuffix: ItemRandomSuffix.create({ id: 8 }),
+		});
+		Object.assign(mocks.db, {
+			lookupItemSpec: (spec: ItemSpec) => (spec.id === 30 ? selectedCloak : null),
+			getItemEffectRandPropPoints: () => undefined,
+			getEnchantsByEffectId: (effectId: number) => [cloakAgility, cloakResistance, cloakDodge].filter(enchant => enchant.effectId === effectId),
+		});
+		mocks.isWasm.mockResolvedValue(true);
+		mocks.runConcurrentBulkSim.mockReset().mockResolvedValue(BulkSimResult.create());
+		const sim = makeSim();
+		vi.spyOn(sim.raid, 'getActivePlayers').mockReturnValue([{ getGear: () => new Gear({ [ItemSlot.ItemSlotBack]: baselineCloak }) }] as any);
+		const backSpecs = [
+			ItemSpec.create({ id: 20, randomSuffix: 7, enchant: 849 }),
+			ItemSpec.create({ id: 20, randomSuffix: 7, enchant: 1889 }),
+			ItemSpec.create({ id: 30, randomSuffix: 8, enchant: 2622 }),
+			ItemSpec.create({ id: 30, randomSuffix: 8, enchant: 1889 }),
+		];
+		const candidates = backSpecs.map(back =>
+			EquipmentSpec.create({
+				items: Array.from({ length: ItemSlot.ItemSlotRanged + 1 }, (_, slot) => (slot === ItemSlot.ItemSlotBack ? back : ItemSpec.create())),
+			}),
+		);
+
+		await sim.runBulkSim(
+			candidates,
+			() => {},
+			BulkSettings.create({
+				items: [ItemSpec.create({ id: 30, randomSuffix: 8, enchant: 2622 })],
+				enchants: [BulkEnchantSlotOptions.create({ slot: ItemSlot.ItemSlotBack, effectIds: [1889] })],
+			}),
+		);
+
+		const [request] = mocks.runConcurrentBulkSim.mock.calls[0];
+		const database = request.baseRequest.raid.parties[0].players[0].database;
+		const shipped = {
+			items: new Set(database.items.map((item: { id: number }) => item.id)),
+			suffixes: new Set(database.randomSuffixes.map((suffix: { id: number }) => suffix.id)),
+			enchants: new Set(database.enchants.map((enchant: { effectId: number }) => enchant.effectId)),
+		};
+		for (const back of backSpecs) {
+			expect(shipped.items).toContain(back.id);
+			expect(shipped.suffixes).toContain(back.randomSuffix);
+			expect(shipped.enchants).toContain(back.enchant);
+		}
+	});
+
+	it('strips a non-enchanter candidate’s ring enchants', async () => {
+		Object.assign(mocks.db, { lookupItemSpec: () => null, getItemEffectRandPropPoints: () => undefined, getEnchantsByEffectId: () => [] });
+		mocks.isWasm.mockResolvedValue(true);
+		mocks.runConcurrentBulkSim.mockReset().mockResolvedValue(BulkSimResult.create());
+		const sim = makeSim();
+		vi.spyOn(sim.raid, 'getActivePlayers').mockReturnValue([{ getGear: () => new Gear({}) }] as any);
+		const items = Array.from({ length: ItemSlot.ItemSlotRanged + 1 }, () => ItemSpec.create());
+		items[ItemSlot.ItemSlotFinger1] = ItemSpec.create({ id: 40, enchant: 2928 });
+		items[ItemSlot.ItemSlotFinger2] = ItemSpec.create({ id: 41 });
+
+		await sim.runBulkSim([EquipmentSpec.create({ items })], () => {}, BulkSettings.create());
+
+		const [request] = mocks.runConcurrentBulkSim.mock.calls[0];
+		const rings = request.candidates[0].gear.items.slice(ItemSlot.ItemSlotFinger1, ItemSlot.ItemSlotFinger2 + 1);
+		expect(rings).toEqual([ItemSpec.create({ id: 40 }), ItemSpec.create({ id: 41 })]);
 	});
 });
 

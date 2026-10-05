@@ -1,7 +1,9 @@
 import { BulkSimRequest, ErrorOutcome, ErrorOutcomeType, ProgressMetrics, RaidSimRequest, RaidSimResult } from '@generated/proto/api';
+import { ItemSlot } from '@generated/proto/common';
 import { queue } from 'async';
 
 import { Database } from '../../proto/database';
+import { Gear } from '../../proto/gear';
 import { SimSignals } from '../../sim_signal_manager';
 import { noop } from '../../utils/misc';
 import { WorkerPool } from '../../workers/worker_pool';
@@ -39,7 +41,16 @@ const makeBulkSimRequestForCandidate = (
 	const player = simRequest.raid!.parties[0].players[0];
 	player.equipment = candidate.gear;
 	if (player.consumables && candidate.gear) {
-		player.consumables = Database.getSync().lookupEquipmentSpec(candidate.gear).adjustImbues(player.consumables);
+		const db = Database.getSync();
+		const weapon = (slot: ItemSlot) => {
+			const itemSpec = candidate.gear.items[slot];
+			return itemSpec ? db.lookupItemSpec(itemSpec) : null;
+		};
+		const weapons = new Gear({
+			[ItemSlot.ItemSlotMainHand]: weapon(ItemSlot.ItemSlotMainHand),
+			[ItemSlot.ItemSlotOffHand]: weapon(ItemSlot.ItemSlotOffHand),
+		});
+		player.consumables = weapons.adjustImbues(player.consumables);
 	}
 	return simRequest;
 };

@@ -992,7 +992,6 @@
 		},
 		"progress": {
 			"total_combinations": "{{count}} total combinations.",
-			"restoring_reforges_from_cache": "Restoring optimized gear sets from cache",
 			"building_candidate_gear_sets": "Building candidate gear sets",
 			"reforging_iteration_rounds": "Optimizing enchants",
 			"baseline_round": "Running baseline round",

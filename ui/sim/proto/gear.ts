@@ -186,7 +186,7 @@ export class Gear extends BaseGear {
 
 		[ItemSlot.ItemSlotFinger1, ItemSlot.ItemSlotFinger2].forEach(slot => {
 			const fingerItem = this.getEquippedItem(slot);
-			if (fingerItem) curGear = curGear.withEquippedItem(slot, fingerItem.withEnchant(null));
+			if (fingerItem?.enchant) curGear = curGear.withEquippedItem(slot, fingerItem.withEnchant(null));
 		});
 
 		return curGear;

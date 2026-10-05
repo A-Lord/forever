@@ -11,7 +11,7 @@ Comments, docs, commit messages and PR text follow `wowsims-conventions`: "game 
 ## Scope
 
 - Bulk candidate generation and staged simulation flow (low/medium/high + finalist).
-- Bulk optimizer pre-pass integration and cache behavior ("reforge" is only the optimizer's name; there is no reforging). The UI never runs the optimizer pre-pass: `runBulkBatch` (ui/features/bulk/model/run.ts) dedupes the candidates and sends no reforge request, and the batch settings have no optimizer group. The pre-pass code (sim/web/bulk.go, ui/sim/wasm/bulk_sim/reforge.ts, the reforge cache in ui/sim/bulk/reforge_cache.ts) exists but is unreachable from the UI.
+- Bulk optimizer pre-pass integration and cache behavior ("reforge" is only the optimizer's name; there is no reforging). The UI never runs the optimizer pre-pass: `runBulkBatch` (ui/features/bulk/model/run.ts) dedupes the candidates and sends no reforge request, and the batch settings have no optimizer group. The Go pre-pass (sim/web/bulk.go) exists but is unreachable from the UI, which has no bulk pre-pass and no bulk reforge cache.
 - Bulk crosses enchants through its enchant presets. They live in ui/features/enchant-presets/ (model, `EnchantPresets` tiles and dialog) and are shared with the gear optimizer's "Use enchant presets" option: same storage (`bulk-enchant-presets.v1` through ui/sim/settings/bulk_settings.ts, the bulk slice's `enchantPresets`), same checks. Checking a preset, or saving or deleting a checked one, bumps the bulk `settings` counter.
 - Bulk's enchant fit rule lives in sim/core (`core.EnchantAppliesToItem`, `core.FittingEnchantRow`), shared with the gear optimizer.
 - Deterministic content-derived seeding and statistical result display.
@@ -50,7 +50,7 @@ Comments, docs, commit messages and PR text follow `wowsims-conventions`: "game 
 
 - Baseline gear source is base_request.raid.parties[0].players[0].equipment.
 - Candidate identity remains stable through BulkGearCandidate.index.
-- Dedup for sim input must exclude baseline-equivalent and duplicate gear (`dedupeGearSets`).
+- Dedup for sim input must exclude baseline-equivalent and duplicate gear (`dedupeGearSets` over EquipmentSpecs, keyed by `getGearIdentityKey`).
 - Spec lookup goes through core.PlayerProtoToSpecSafe; eligible-slot logic through core.EligibleSlotsForItem / core.ItemTypeToSlotsMap (single source, shared with item swap); entry-point validation via newGeneratorFromRequest.
 
 ## Settings Boundaries
@@ -66,6 +66,8 @@ Comments, docs, commit messages and PR text follow `wowsims-conventions`: "game 
 ## Frontend/WASM Flow
 
 - The WASM path makes no per-gear optimizer calls and neither reads nor writes the reforge cache.
+- Candidates stay EquipmentSpecs from the generator to the workers: run.ts dedupes the specs, Sim.runBulkSim drops a non-enchanter's ring enchants per spec, the per-candidate request adjusts imbues from the weapon ids, and Gear is built only for the displayed top results.
+- The request database comes from the baseline, BulkSettings.items (a selected spec's own enchant and suffix included) and the enchant pool (`makeBulkItemDatabaseFromSpecs`) on both paths, never from the candidates; an id a candidate can carry reaches the workers only through BulkSettings.
 - Results tab: rows build into a DocumentFragment and attach once; changed items render the shared gear-change icon (Wowhead cover link) instead of a border; a slot-change renders the item plainly. Starting a new run returns to the Setup tab.
 
 ## Candidate Counting and Filtering
@@ -73,10 +75,12 @@ Comments, docs, commit messages and PR text follow `wowsims-conventions`: "game 
 - rawCombinations is the mixed-radix candidate index space.
 - combinations is the filtered runnable count.
 - User-visible progress/counts should reflect filtered candidate totals.
+- Hand swap (sim/core/bulk/weapons.go keepsBaselineHands): with no weapon among the selected items, the baseline's weapons stay in the hands they are worn in; once any weapon is selected, every allowed main-hand/off-hand order is a candidate.
 
 ## Performance Guardrails
 
 - Avoid per-candidate allocations in hot loops.
+- Candidate generation (sim/core/bulk/generator.go combinationTable) resolves every choice's item once per physical slot; a candidate copies the baseline item specs, overwrites the chosen slots and emits its 17 ItemSpecs from one backing array (4 allocations per candidate).
 - Prefer preallocated imperative loops in candidate/cache helpers.
 - Keep optimizer candidate-cache lookup path read-friendly and hash reuse-aware.
 - Progress emission is throttled (BulkSimProgressThrottle Go-side, 100ms mirror in wasm progress emitter).

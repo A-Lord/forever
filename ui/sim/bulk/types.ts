@@ -46,3 +46,8 @@ export interface BulkSimProgressConfig extends BulkSimRoundConfig {
 	aggregateStartedAt?: number;
 	useSimCountProgress?: boolean;
 }
+
+export interface BulkCandidateBuildProgress {
+	processedCandidates: number;
+	totalCandidates: number;
+}

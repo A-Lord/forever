@@ -60,7 +60,7 @@ Files (all under sim/core/reforge_optimizer/):
 
 ## Bulk Sim Integration Contract
 
-- The UI's batch sim never runs the optimizer; it crosses enchants through its enchant presets, which the optimizer's "Use enchant presets" option shares. The pre-pass code (sim/web/bulk.go, ui/sim/wasm/bulk_sim/reforge.ts, the reforge cache in ui/sim/bulk/reforge_cache.ts) exists but is unreachable from the UI.
+- The UI's batch sim never runs the optimizer; it crosses enchants through its enchant presets, which the optimizer's "Use enchant presets" option shares. The Go pre-pass (sim/web/bulk.go) exists but is unreachable from the UI, which has no bulk pre-pass and no bulk reforge cache.
 - Batch runs derive their RNG seed from the baseline gear and BulkSettings, with no optimizer config — see the wowsims-bulk-sim skill for the staged/finalist pipeline.
 
 ## Performance Guardrails

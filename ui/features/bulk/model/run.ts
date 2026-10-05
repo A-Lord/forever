@@ -1,11 +1,10 @@
 import { enchantPresetPool } from '@features/enchant-presets/model/enchant_presets';
 import { BulkSettings, ProgressMetrics } from '@generated/proto/api';
+import { EquipmentSpec } from '@generated/proto/common';
 import i18n from '@i18n/config';
-import type { BulkSimReforgeCacheProgress } from '@sim/bulk/reforge_cache';
-import { BulkResults, BulkSimProgressConfig, TopGearResult } from '@sim/bulk/types';
+import { BulkCandidateBuildProgress, BulkResults, BulkSimProgressConfig, TopGearResult } from '@sim/bulk/types';
 import { dedupeGearSets } from '@sim/bulk/utils';
 import type { Player } from '@sim/player/player';
-import { Gear } from '@sim/proto/gear';
 import { getGearIdentityKey } from '@sim/proto/items';
 import { bulkState, patchBulkState } from '@sim/settings/bulk_settings';
 import type { IndividualSimHost } from '@sim/sim_host';
@@ -34,7 +33,6 @@ interface BulkRun {
 	abortPromise: Promise<void> | null;
 	combinationsRequestVersion: number;
 	candidateBuildStartedAt: number | undefined;
-	cacheRestoreStartedAt: number | undefined;
 	progress: BulkProgress | null;
 	listeners: Set<(progress: BulkProgress) => void>;
 }
@@ -51,7 +49,6 @@ const runOf = (player: Player<any>): BulkRun => {
 			abortPromise: null,
 			combinationsRequestVersion: 0,
 			candidateBuildStartedAt: undefined,
-			cacheRestoreStartedAt: undefined,
 			progress: null,
 			listeners: new Set(),
 		};
@@ -139,24 +136,22 @@ const runWithBulkAbort = async <T>(player: Player<any>, promise: Promise<T>, sig
 	}
 };
 
-const setCacheRestoreProgress = (player: Player<any>, cacheProgress: BulkSimReforgeCacheProgress) => {
+const setCandidateBuildProgress = (player: Player<any>, buildProgress: BulkCandidateBuildProgress) => {
 	const run = runOf(player);
-	const isCandidateBuildStage = cacheProgress.stage === 'candidate-build';
-	if (isCandidateBuildStage) {
-		run.candidateBuildStartedAt ??= new Date().getTime();
-	} else {
-		run.cacheRestoreStartedAt ??= new Date().getTime();
-	}
+	run.candidateBuildStartedAt ??= new Date().getTime();
 	setCandidateGearProgress(player, {
-		completed: cacheProgress.processedCandidates,
-		total: cacheProgress.totalCandidates,
-		title: isCandidateBuildStage ? i18n.t('bulk_tab.progress.building_candidate_gear_sets') : i18n.t('bulk_tab.progress.restoring_reforges_from_cache'),
-		stage: isCandidateBuildStage ? 'preparing' : 'reforging',
-		startedAt: isCandidateBuildStage ? run.candidateBuildStartedAt : run.cacheRestoreStartedAt,
+		completed: buildProgress.processedCandidates,
+		total: buildProgress.totalCandidates,
+		startedAt: run.candidateBuildStartedAt,
 	});
 };
 
-const runCoreBulkSim = async (host: IndividualSimHost<any>, gearSets: Gear[], signal: AbortSignal, bulkSettings?: BulkSettings): Promise<CoreBulkSimResult> => {
+const runCoreBulkSim = async (
+	host: IndividualSimHost<any>,
+	gearSets: EquipmentSpec[],
+	signal: AbortSignal,
+	bulkSettings: BulkSettings,
+): Promise<CoreBulkSimResult> => {
 	const { player } = host;
 	return runCoreBulkSimImpl(
 		{
@@ -164,7 +159,7 @@ const runCoreBulkSim = async (host: IndividualSimHost<any>, gearSets: Gear[], si
 			throwIfBulkAborted: abortSignal => throwIfBulkAborted(player, abortSignal),
 			runWithBulkAbort: (promise, abortSignal) => runWithBulkAbort(player, promise, abortSignal),
 			setSimProgress: (metrics, config) => setSimProgress(player, metrics, config),
-			setCacheRestoreProgress: cacheProgress => setCacheRestoreProgress(player, cacheProgress),
+			setCandidateBuildProgress: buildProgress => setCandidateBuildProgress(player, buildProgress),
 			debugOptimisationRound: (message, data) => console.debug(`[bulk-core] ${message}`, data ?? ''),
 		},
 		gearSets,
@@ -222,7 +217,6 @@ export const runBulkBatch = async (host: IndividualSimHost<any>) => {
 
 	run.isCancelling = false;
 	run.candidateBuildStartedAt = undefined;
-	run.cacheRestoreStartedAt = undefined;
 	run.progress = null;
 	patchBulkState(player, { isRunning: true, started: true });
 	run.abortController = new AbortController();
@@ -231,8 +225,8 @@ export const runBulkBatch = async (host: IndividualSimHost<any>) => {
 
 	await sim.waitForInit();
 	const useNativeBulkSim = sim.isNative ?? false;
-	const backendBulkSettings = useNativeBulkSim ? bulkRequestSettings(player) : undefined;
-	let candidateGearSets: Gear[] = [];
+	const bulkSettings = bulkRequestSettings(player);
+	let candidateGearSets: EquipmentSpec[] = [];
 	let results: BulkResults | null = null;
 	let runError: unknown = null;
 
@@ -248,20 +242,18 @@ export const runBulkBatch = async (host: IndividualSimHost<any>) => {
 
 		if (!useNativeBulkSim) {
 			setCandidateGearProgress(player);
-			const bulkCandidatesResult = await sim.getBulkCandidates(bulkRequestSettings(player));
+			const bulkCandidatesResult = await sim.getBulkCandidates(bulkSettings);
 			if (bulkCandidatesResult.error) {
 				throw new Error(bulkCandidatesResult.error.message || 'Failed to build bulk candidates');
 			}
-			candidateGearSets = bulkCandidatesResult.candidates
-				.filter(candidate => !!candidate.gear)
-				.map(candidate => sim.db.lookupEquipmentSpec(candidate.gear!));
+			candidateGearSets = bulkCandidatesResult.candidates.flatMap(candidate => (candidate.gear ? [candidate.gear] : []));
 			patchBulkState(player, { combinations: bulkCandidatesResult.combinations });
 		}
 
-		const gearSets = dedupeGearSets(candidateGearSets, [baseGear]);
+		const gearSets = dedupeGearSets(candidateGearSets, [baseGear.asSpec()]);
 
 		run.simStart = new Date().getTime();
-		const bulkSimResult = await runCoreBulkSim(host, gearSets, abortSignal, backendBulkSettings);
+		const bulkSimResult = await runCoreBulkSim(host, gearSets, abortSignal, bulkSettings);
 		const { referenceDpsMetrics, topGearResults } = bulkSimResult;
 
 		const originalGearKey = getGearIdentityKey(baseGear.asSpec());

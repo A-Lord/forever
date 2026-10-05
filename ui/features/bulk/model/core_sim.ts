@@ -1,9 +1,8 @@
 import { BulkSettings, DistributionMetrics, ProgressMetrics } from '@generated/proto/api';
+import { EquipmentSpec } from '@generated/proto/common';
 import i18n from '@i18n/config';
-import { BulkSimReforgeCacheProgress } from '@sim/bulk/reforge_cache';
-import { BulkSimProgressConfig, TopGearResult } from '@sim/bulk/types';
+import { BulkCandidateBuildProgress, BulkSimProgressConfig, TopGearResult } from '@sim/bulk/types';
 import { bulkSimStageToOptimisationStage, cleanBulkDpsMetrics, getCoreBulkSimTrackingMetrics } from '@sim/bulk/utils';
-import { Gear } from '@sim/proto/gear';
 import type { IndividualSimHost } from '@sim/sim_host';
 
 export interface CoreBulkSimContext {
@@ -11,7 +10,7 @@ export interface CoreBulkSimContext {
 	throwIfBulkAborted: (signal: AbortSignal) => void;
 	runWithBulkAbort: <T>(promise: Promise<T>, signal: AbortSignal) => Promise<T>;
 	setSimProgress: (progress: ProgressMetrics, config: BulkSimProgressConfig) => void;
-	setCacheRestoreProgress?: (progress: BulkSimReforgeCacheProgress) => void;
+	setCandidateBuildProgress?: (progress: BulkCandidateBuildProgress) => void;
 	debugOptimisationRound: (message: string, data?: unknown) => void;
 }
 
@@ -25,9 +24,9 @@ export interface CoreBulkSimResult {
 
 export async function runCoreBulkSim(
 	context: CoreBulkSimContext,
-	gearSets: Gear[],
+	gearSets: EquipmentSpec[],
 	signal: AbortSignal,
-	bulkSettings?: BulkSettings,
+	bulkSettings: BulkSettings,
 ): Promise<CoreBulkSimResult> {
 	context.throwIfBulkAborted(signal);
 	context.debugOptimisationRound('core bulk sim started', {
@@ -54,7 +53,7 @@ export async function runCoreBulkSim(
 	};
 
 	const result = await context.runWithBulkAbort(
-		context.simUI.sim.runBulkSim(gearSets, updateProgress, undefined, bulkSettings, progress => context.setCacheRestoreProgress?.(progress), signal),
+		context.simUI.sim.runBulkSim(gearSets, updateProgress, bulkSettings, progress => context.setCandidateBuildProgress?.(progress), signal),
 		signal,
 	);
 	if (!result || (result && 'type' in result)) {
