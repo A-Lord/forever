@@ -69,9 +69,6 @@ export { PRESET_FILTER_STORAGE_KEY } from './storage_keys';
 
 const ALL_SETTING_CATEGORIES = getEnumValues<SimSettingCategories>(SimSettingCategories);
 
-// The gear optimizer, which picks static enchants. A spec's `reforge` config is read only while this is on.
-const REFORGE_OPTIMIZER_ENABLED = true;
-
 // The individual sim's host: the registries, openers and cross-cutting actions the React tree
 // reaches through `useSimHost()`. `SimShell` owns every element handed to the constructor.
 export class SimHostObject<SpecType extends Spec> implements IndividualSimHost<SpecType> {
@@ -161,7 +158,7 @@ export class SimHostObject<SpecType extends Spec> implements IndividualSimHost<S
 		for (const feature of config.features || []) {
 			feature(this);
 		}
-		if (REFORGE_OPTIMIZER_ENABLED && config.reforge) {
+		if (config.reforge) {
 			this.reforgeOptions = typeof config.reforge === 'function' ? config.reforge(this) : config.reforge;
 			this.reforger = createReforgeOptimizer(this.sim, this.player, {
 				...this.reforgeOptions,
