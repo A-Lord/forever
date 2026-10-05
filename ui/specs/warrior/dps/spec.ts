@@ -132,9 +132,11 @@ export default defineSpec<Spec.SpecDpsWarrior>({
 		// Preset talents that the user can quickly select.
 		talents: [Presets.FuryTalents, Presets.ArmsTalents],
 		// Preset rotations that the user can quickly select.
-		rotations: [Presets.SIMPLE_DEFAULT_ROTATION, Presets.FURY_DEFAULT_ROTATION, Presets.ARMS_DEFAULT_ROTATION, Presets.ARMS_STANCE_DANCE_ROTATION],
+		rotations: [Presets.SIMPLE_DEFAULT_ROTATION, Presets.FURY_DEFAULT_ROTATION, Presets.ARMS_DEFAULT_ROTATION],
 		// Preset gear configurations that the user can quickly select.
 		gear: [Presets.PreBiSFuryGear, Presets.PreBiSArmsGear],
+		settings: [Presets.DefaultSettings],
+		builds: [Presets.PreBiSFuryBuild, Presets.PreBiSArmsBuild],
 	},
 
 	autoRotation: (player: Player<Spec.SpecDpsWarrior>): APLRotation => {
@@ -146,7 +148,15 @@ export default defineSpec<Spec.SpecDpsWarrior>({
 	},
 
 	simpleRotation: (player: Player<Spec.SpecDpsWarrior>, simple: SpecRotation<Spec.SpecDpsWarrior>, _: Cooldowns): APLRotation => {
-		let { spec, sunderArmor = WarriorSunder.WarriorSunderHelp, useOverpower = true, useRend = true, useRecklessness = false } = simple;
+		let {
+			spec,
+			sunderArmor = WarriorSunder.WarriorSunderHelp,
+			useOverpower = true,
+			useRend = true,
+			useRecklessness = false,
+			useStanceDance = false,
+			useHamstring = true,
+		} = simple;
 
 		if (!spec) {
 			if (Presets.isArmsSpec(player) || Presets.isArmsKebabSpec(player)) {
@@ -165,10 +175,20 @@ export default defineSpec<Spec.SpecDpsWarrior>({
 		);
 		if (recklessnessAction) recklessnessAction.hide = !useRecklessness;
 
+		const stanceDanceAction = rotation.priorityList.find(
+			action => action.action?.action.oneofKind === 'groupReference' && action.action.action.groupReference.groupName === 'Stance Dance ON/OFF',
+		);
+		if (stanceDanceAction) stanceDanceAction.hide = !useStanceDance;
+
 		const sunderArmorAction = rotation.priorityList.find(
 			action => action.action?.action.oneofKind === 'groupReference' && action.action?.action.groupReference.groupName === 'Sunder Armor',
 		);
 		if (sunderArmorAction) sunderArmorAction.hide = sunderArmor == WarriorSunder.WarriorSunderNone;
+
+		const sunderRefreshAction = rotation.priorityList.find(
+			action => action.action?.action.oneofKind === 'groupReference' && action.action?.action.groupReference.groupName === 'Sunder Armor: Refresh',
+		);
+		if (sunderRefreshAction) sunderRefreshAction.hide = sunderArmor != WarriorSunder.WarriorSunderMaintain;
 
 		const opWeaveAction = rotation.priorityList.find(
 			action => action.action?.action.oneofKind === 'groupReference' && action.action?.action.groupReference.groupName === 'Overpower Weaving',
@@ -176,9 +196,14 @@ export default defineSpec<Spec.SpecDpsWarrior>({
 		if (opWeaveAction) opWeaveAction.hide = !useOverpower;
 
 		const rendWeaveAction = rotation.priorityList.find(
-			action => action.action?.action.oneofKind === 'groupReference' && action.action?.action.groupReference.groupName === 'Rend Weaving ON/OFF',
+			action => action.action?.action.oneofKind === 'groupReference' && action.action?.action.groupReference.groupName === 'Rend Weave ON/OFF',
 		);
 		if (rendWeaveAction) rendWeaveAction.hide = !useRend;
+
+		const hamstringWeaveAction = rotation.priorityList.find(
+			action => action.action?.action.oneofKind === 'groupReference' && action.action?.action.groupReference.groupName === 'Hamstring Weave ON/OFF',
+		);
+		if (hamstringWeaveAction) hamstringWeaveAction.hide = !useHamstring;
 
 		return APLRotation.create({
 			simple: SimpleRotation.create({}),

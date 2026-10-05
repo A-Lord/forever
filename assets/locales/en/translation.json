@@ -2048,11 +2048,17 @@
 					"use_recklessness": {
 						"label": "Use Recklessness"
 					},
+					"use_stance_dance": {
+						"label": "Use Stance Dance"
+					},
 					"use_overpower": {
 						"label": "Use Overpower"
 					},
 					"use_rend": {
-						"label": "Weave Rend"
+						"label": "Rend weave"
+					},
+					"use_hamstring": {
+						"label": "Hamstring weave"
 					}
 				}
 			}
