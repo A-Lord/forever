@@ -605,7 +605,7 @@ export class Sim {
 	}
 
 	// Stats for a hypothetical gear set, without touching the player's own current stats or
-	// metadata. Used by the gear optimizer and by batch simming.
+	// metadata. Used by the gear optimizer.
 	async getCharacterStatsForGear(gear: Gear): Promise<PlayerStats> {
 		await this.waitForInit();
 
@@ -677,8 +677,7 @@ export class Sim {
 		});
 	}
 
-	// Returns the stats for Player 0 without triggering any metadata updates.
-	// Can be used for the gear optimizer / Batch Simming without interfering with the UI.
+	// Runs the gear optimizer for Player 0 without triggering any metadata updates or touching the UI.
 	async reforgeOptimize(config: ReforgeOptimizeConfig): Promise<ReforgeOptimizeResult> {
 		const signals = this.signalManager.registerRunning(RequestTypes.ReforgeOptimize);
 		try {

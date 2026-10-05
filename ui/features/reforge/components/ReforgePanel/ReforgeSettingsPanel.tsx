@@ -78,9 +78,9 @@ export const ReforgeSettingsPanelView = ({
 export interface ReforgeSettingsPanelProps {
 	model: ReforgeOptimizerModel;
 	options?: ReforgeOptimizerOptions;
-	/** Closes the popover when the EP weights dialog opens over it or the Batch Sim tab opens. Omitted where the panel is inline and has nothing to close. */
+	/** Closes the popover when the EP weights dialog opens over it or the Batch Sim tab opens. */
 	onClose?: () => void;
-	/** Scopes every DOM id, so a second mount does not collide with the sidebar popover's. */
+	/** Scopes every DOM id the panel renders. */
 	idPrefix?: string;
 }
 

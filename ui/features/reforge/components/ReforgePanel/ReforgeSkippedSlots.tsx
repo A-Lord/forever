@@ -75,10 +75,10 @@ export const ReforgeSkippedSlots = ({ model, player, onClose }: ReforgeSkippedSl
 				// The enchants the player can take depend on Enchanting.
 				subscribePlayerField(player, 'profession1'),
 				subscribePlayerField(player, 'profession2'),
-				// Freezing or unfreezing a slot bumps the freezeItemSlots counter too.
+				// The freezeItemSlots counter also moves when a single slot is frozen or unfrozen.
 				subscribeReforgeField(model.settings, 'freezeItemSlots'),
 				subscribeReforgeField(model.settings, 'useEnchantPresets'),
-				// Ticking, saving or deleting a checked enchant preset bumps the batch settings counter.
+				// Checking a preset, or saving or deleting a checked one, bumps the batch settings counter.
 				subscribeBulkField(player, 'settings'),
 			]),
 		[player, model],

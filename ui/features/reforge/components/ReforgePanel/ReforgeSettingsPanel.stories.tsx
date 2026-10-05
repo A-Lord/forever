@@ -129,7 +129,7 @@ export const PresetEpValues: Story = {
 	args: { customEpToggle: toggle('custom-ep-off', 'Use custom EP values'), showEpHelp: true, statCaps: null, softCaps: null },
 };
 
-/** With the enchant presets on, the panel lists the presets the Batch Sim shares, and a slot no checked preset lists is reported. */
+/** With the enchant presets on, the panel lists the presets it shares with the batch sim and reports a slot no checked preset lists. */
 export const EnchantPresets: Story = {
 	args: {
 		enchantPresets: ENCHANT_PRESETS,

@@ -69,7 +69,7 @@ export { PRESET_FILTER_STORAGE_KEY } from './storage_keys';
 
 const ALL_SETTING_CATEGORIES = getEnumValues<SimSettingCategories>(SimSettingCategories);
 
-// On: the gear optimizer picks static enchants. A spec's `reforge` config is read only when this is on.
+// The gear optimizer, which picks static enchants. A spec's `reforge` config is read only while this is on.
 const REFORGE_OPTIMIZER_ENABLED = true;
 
 // The individual sim's host: the registries, openers and cross-cutting actions the React tree
@@ -185,7 +185,7 @@ export class SimHostObject<SpecType extends Spec> implements IndividualSimHost<S
 		return this.resultsPanel;
 	}
 
-	// `config` and `individualConfig` are the same object; `SimHost` only narrows what features see of it.
+	// The same object as `individualConfig`; `SimHost` only narrows what features see of it.
 	get config(): IndividualSimUIConfig<SpecType> {
 		return this.individualConfig;
 	}

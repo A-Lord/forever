@@ -177,7 +177,7 @@ export function canEquipEnchant<SpecType extends Spec>(enchant: Enchant, playerS
 	return true;
 }
 
-// An enchant with no proc that grants stats or weapon damage: its EP is the whole of its worth.
+// An enchant with no proc that grants stats, pseudo-stats or weapon damage: its EP is the whole of its worth.
 export const isStaticEnchant = (enchant: Enchant): boolean =>
 	enchant.procKind === EnchantProcKind.EnchantProcKindNone &&
 	(enchant.stats.some(value => value !== 0) || enchant.pseudoStats.some(value => value !== 0) || enchant.weaponDamage !== 0);

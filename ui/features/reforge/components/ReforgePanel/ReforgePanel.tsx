@@ -170,7 +170,7 @@ export const ReforgePanel = ({ model, options }: ReforgePanelProps) => {
 				loading={isRunning}
 				onClick={onOptimize}
 				{...tooltipAnchorProps(softCapsTooltipId)}>
-				{/* One line box tall, so the pair is as tall as a text action such as Simulate. */}
+				{/* One line-height tall (h-lh), so the button pair is as tall as a text action such as Simulate. */}
 				<span className="flex h-lh items-center">
 					<Icon name="screwdriver-wrench" />
 				</span>
