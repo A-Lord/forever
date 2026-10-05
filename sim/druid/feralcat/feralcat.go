@@ -58,7 +58,7 @@ type FeralDruid struct {
 
 	Rotation FeralDruidRotation
 
-	readyToShift bool // The previous decision found the builder unaffordable and chose Shifting Power.
+	readyToShift bool // The previous decision chose Shifting Power and is spending it now.
 }
 
 func (cat *FeralDruid) GetDruid() *druid.Druid {
