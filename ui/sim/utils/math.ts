@@ -1,6 +1,7 @@
 // Arithmetic and statistics: sums, standard deviation and confidence intervals
 // for sim results, and the combinatorics the bulk sim enumerates with.
 
+import { BULK_SIM_Z95 } from '../wasm/bulk_sim/constants_auto_gen';
 import { distinct } from './collections';
 
 export function sum(arr: Array<number>): number {
@@ -9,7 +10,7 @@ export function sum(arr: Array<number>): number {
 
 export const percentOf = (part: number, whole: number) => (part / whole) * 100;
 
-export const Z_95 = 1.96;
+export const Z_95 = BULK_SIM_Z95;
 
 // The sim's standard two-sample significance test; every "are these two results actually
 // different" decision should go through this so thresholds never diverge.

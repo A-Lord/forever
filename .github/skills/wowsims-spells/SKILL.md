@@ -16,7 +16,7 @@ Comments, docs, commit messages and PR text follow `wowsims-conventions`: "game 
 
 Not in scope: item and enchant data (`gen_db` proper), and talent _trees_ — the JSON, protos and TS configs under `ui/sim/talents` are generated from the Talent table by `tools/database/gen_protos.go`.
 
-The full guide is `docs/spell_data.md`; this is the map.
+The full guide is `docs/spell_data/` (start at its README); this is the map.
 
 ## Architecture
 
@@ -66,7 +66,7 @@ func DotConfig(s *Spell, e *Effect, opts ...AuraOpt) core.DotConfig
 func ParseStatic(character *core.Character, s *Spell, opts ...ParseOpt) *Parsed
 func ParseEffects(character *core.Character, aura *core.Aura, s *Spell, opts ...ParseOpt) *Parsed
 func ProcTrigger(character *core.Character, s *Spell, handler core.ProcHandler, opts ...ProcOpt) core.ProcTrigger
-func ItemProcUnsupported(trigger *Spell, isWeaponProc bool) []string
+func ItemProcUnsupportedWithRate(trigger *Spell, isWeaponProc bool, itemPPM float64) []string
 ```
 
 - `SpellOpt`: `Melee(mask)`, `Magic(mask)`, `Proc()`, `Flags(f)`, `Tag(n)`.
@@ -76,21 +76,21 @@ func ItemProcUnsupported(trigger *Spell, isWeaponProc bool) []string
 
 Each fills what the row states and nothing else; the caller adds `ApplyEffects`, the proc mask, the conditions and any flag the game files do not carry. `ParseEffects` must be called before the aura activates. `*Parsed` carries `Applied` and `Skipped` — `SPELLDATA_REPORT=1` prints the skipped effects, which are what the port still has to wire by hand.
 
-A debuff that raises only its caster's damage or crit against the target (Shadow Weaving, Winter's Chill, Stormstrike, Hemorrhage) is parsed onto each target's aura with `ParseEffects(nil, targetAura, row, FromCaster(&class.Unit, i, total))`. The parse holds slot `i` of `total` on the caster's attack table, numbered alongside the class's own `AttachDDBC` calls, one per parse; without `FromCaster`, and under `ParseStatic`, those rows are skipped. See "A debuff that reaches only its caster's attacks" in `docs/spell_data.md`.
+A debuff that raises only its caster's damage or crit against the target (Shadow Weaving, Winter's Chill, Stormstrike, Hemorrhage) is parsed onto each target's aura with `ParseEffects(nil, targetAura, row, FromCaster(&class.Unit, i, total))`. The parse holds slot `i` of `total` on the caster's attack table, numbered alongside the class's own `AttachDDBC` calls, one per parse; without `FromCaster`, and under `ParseStatic`, those rows are skipped. See "A debuff that reaches only its caster's attacks" in `docs/spell_data/talents-and-auras.md`.
 
 `Proc()` takes a sub-spell out of the rotation and empties the cast, cooldown and every cost the row filled, so it can resolve off the row of the ability that casts it: Whirlwind's off-hand strike takes `Melee(ProcMaskMeleeOHSpecial)`, `Proc()` and `Tag(2)` on the Whirlwind row itself, writing only `ApplyEffects` by hand; Flurry tells it from the main-hand strike with `spellData.Whirlwind.Contains(spell)` and an off-hand proc mask. A bleed row fills its damage and threat multipliers with 1 — `IsBleed` reads `SpellCategories.Mechanic` where the other `attributes.go` accessors read an `Attr` bit.
 
-Where a spell can be cast is the row's too: `SpellConfig` fills `CastRequirement` from the stance masks, the caster aura restrictions, the shapeshift attribute bits, the weapon or shield `SpellEquippedItems` and the hand bits name, and the not-in-combat attribute bit, and core enforces it, reading the equipment at cast time. Never write a stance, form, weapon, shield or `sim.CurrentTime < 0` check in `ExtraCastCondition`; the class only sets `Unit.ShapeshiftForm` (and `Unit.AutoUnshift` where leaving a form is automatic, the druid). A hand-read class takes `row.CastRequirement()`; a spell with no row states one with `core.InForms(...)`. See "Where a spell can be cast" in `docs/spell_data.md`.
+Where a spell can be cast is the row's too: `SpellConfig` fills `CastRequirement` from the stance masks, the caster aura restrictions, the shapeshift attribute bits, the weapon or shield `SpellEquippedItems` and the hand bits name, and the not-in-combat attribute bit, and core enforces it, reading the equipment at cast time. Never write a stance, form, weapon, shield or `sim.CurrentTime < 0` check in `ExtraCastCondition`; the class only sets `Unit.ShapeshiftForm` (and `Unit.AutoUnshift` where leaving a form is automatic, the druid). A hand-read class takes `row.CastRequirement()`; a spell with no row states one as a `core.CastRequirement` literal (`Forms: form.Mask()`). See "Where a spell can be cast" in `docs/spell_data/building-an-ability.md`.
 
 ## Weapon requirements and the one rating
 
-"Weapon requirements and the one rating" in `docs/spell_data.md` has the one rating, `spelldata.WeaponScope`, the rule table, the API table and the weapon-bound talents of the classes still to port.
+"Weapon requirements and the one rating" in `docs/spell_data/weapon-requirements.md` has the one rating, `spelldata.WeaponScope`, the rule table, the API table and the weapon-bound talents of the classes still to port.
 
 ## Porting a class
 
-`docs/spell_data.md` has the checklist under "Porting a class onto the resolvers". The short form: every class file is already ladders, so dump the rows before touching a call site (the effects, the class masks each modifier names, the whole decoded `ProcTrigger`), and move .results files only for a cause you isolated by reverting one change. Before committing, run the `wowsims-review` pass over the diff.
+`docs/spell_data/porting.md` has the checklist. The short form: every class file is already ladders, so dump the rows before touching a call site (the effects, the class masks each modifier names, the whole decoded `ProcTrigger`), and move .results files only for a cause you isolated by reverting one change. Before committing, run the `wowsims-review` pass over the diff.
 
-## Traps
+## Pitfalls
 
 - **Read a hit or crit row's tooltip before scoping it; 290 is ambiguous.** "All spells and attacks" is crit on everything while the weapon is equipped, which the parse makes of a melee-weapon 290. "With Axes and Polearms" is per weapon although the game files state it as 290 too; Weaponmaster and Hack and Slash carry that crit as a dummy, so each needs it built by hand.
 - **Class flags are not an ability's identity.** Mortal Strike shares a mask bit with Bloodthirst, and Retaliation's strike one with Whirlwind, so `MatchesFlags` or a trigger's `ClassFlags` hears both. Ask whether a spell is one ability with `spellData.X.Contains(spell)`; keep class flags for the talent and set filters the game files state.
@@ -114,6 +114,7 @@ Where a spell can be cast is the row's too: `SpellConfig` fills `CastRequirement
 - **Innervate's regen is the generated aura's.** Its `A_MOD_MANA_REGEN_INTERRUPT` 100% and `A_MOD_POWER_REGEN_PERCENT` +400% are parse rows, core stops the casting shares of spirit regen at all of it, and nothing forces full spirit regen: a druid's own cast activates the aura and adds no regen of its own.
 - **core's `SpellSchool` bits are the game files'**, so a school mask is carried rather than translated. `stats.SchoolIndex` is a separate enum for array positions and `proto.SpellSchool` a third.
 - **A new parse row ships consumables.** `Effect.ParsedAura()` turns true for every misc value of the aura, and the consumable generator reads that as supported, so the next regen can add imbues and stat auras (the Bale imbues ship on the `A_MOD_TARGET_RESISTANCE` row). `ParsedAura` cannot see a row that returns nil for some misc values, such as target resistance on a mask of armor and a spell school: diff the generated consumables and check each new one against the row.
+- **A new game build moves one class at a time.** `make db CLASSES=<class>` takes that class's rows, class file and talent files from the database and keeps every other class as committed; `RACIALS=1` takes the racials, items are always taken, and shared rows are taken unless `SHARED=0` (`CLASSES=none SHARED=0` takes the items alone, as the Update Items workflow does). A row stating a class family moves with that class wherever it is reached from, and Eureka! moves with the racials. Two class pull requests conflict on the store and the gzipped inputs: take the base branch's copies and rerun `-classes=<class>`. See `docs/spell_data/partial-updates.md`.
 - **Never delete a generated file before regenerating it.** `gen_db` imports the sim, so a class package missing its file does not compile and neither does the generator that would recreate it.
 - **`make update-tests` deletes every .results before promoting .tmp.** A test that cannot run locally produces no .tmp and loses its .results outright. Check `git status -- '*.results'` for a `D` afterwards, or promote individual .results files with `cp`.
 - **`rtk`-wrapped `go test` exits 0 with failing tests.** Read the summary line, not the exit code.
@@ -141,7 +142,8 @@ go run ./tools/spelldata -config 'core.SpellModConfig{Kind: core.SpellMod_BonusC
 go run ./tools/spelldata -hover sim/warrior/execute.go 12:40   # the markdown an editor hover shows at line:column (1-based); the trace on stderr
 go run ./tools/spelldata -lsp                    # the same hovers as a language server on stdio
 go run ./tools/database/gen_spelldata            # rewrite the store, the forms and every class file
-go run ./tools/database/gen_spelldata -check     # name what is stale, write nothing (make spelldata-check)
+go run ./tools/database/gen_spelldata -classes=druid # one class from the database, the others as committed (make db CLASSES=druid); -racials for the racials
+go run ./tools/database/gen_spelldata -check     # name what is stale, write nothing; a spell data group on another build prints as not ported (make spelldata-check)
 go test ./sim/core/spelldata/ -count=1           # the store's own tests, no database needed
 go test ./tools/database/ -count=1               # the regeneration from the committed inputs
 go test --tags=with_db ./sim/<class>/ -count=1   # a class

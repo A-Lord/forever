@@ -4,9 +4,9 @@
 // text to appear, so it passes on tick two and can never see that tick one's numbers were dropped —
 // that gap is what the "same commit" case below covers.
 import { ProgressMetrics } from '@generated/proto/api';
-import { mockSubscriptions } from '@sim/testing';
 import { formatToNumber } from '@sim/utils/format';
 import { renderWithHost } from '@testing/react';
+import { mockSubscriptions } from '@testing/sim/subscriptions';
 import { act } from '@testing-library/react';
 import { Profiler } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';

@@ -8,7 +8,7 @@ import { themes } from 'storybook/theming';
 
 import { SPEC_THEMES } from '../ui/design-system/tokens/spec_themes';
 import { withSimUi } from '../ui/testing/storybook/decorators';
-import { ICON_NAMES } from '../ui/ui-kit/Icon';
+import { DEFINITIONS } from '../ui/ui-kit/Icon/definitions';
 
 (globalThis as unknown as { gtag: () => void }).gtag = () => {};
 // The Actions panel logs an fn() call as its whole argument list, so a React event arrives unrecognised
@@ -28,7 +28,7 @@ const preview: Preview = {
 		context => {
 			const icon = context.argTypes.icon;
 			if (!icon || icon.control === false) return context.argTypes;
-			return { ...context.argTypes, icon: { ...icon, control: { type: 'select' }, options: [...ICON_NAMES] } };
+			return { ...context.argTypes, icon: { ...icon, control: { type: 'select' }, options: Object.keys(DEFINITIONS) } };
 		},
 	],
 	globalTypes: {

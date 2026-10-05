@@ -3,6 +3,7 @@ import i18n from '@i18n/config';
 import type { CombatLog } from '@sim/proto/combat_log';
 import { isCastCompleted } from '@sim/proto/combat_log';
 import { BooleanPicker } from '@ui-kit/BooleanPicker';
+import { SearchField } from '@ui-kit/TextField';
 import { ToolbarButton } from '@ui-kit/Toolbar';
 import { findScrollParent } from '@ui-kit/utils/dom';
 import { useScrollMargin, VirtualList } from '@ui-kit/VirtualList';
@@ -14,7 +15,6 @@ import { EMPTY_SUGGESTIONS, LogIndex } from '../../model/log/search/indexes';
 import type { SimResultData } from '../../model/result_data';
 import { useDrStickySlot } from '../DetailedResults/context/DrStickySlotContext';
 import { LogRow } from './LogRow';
-import { LogRunnerHeaderView, LogRunnerNoMatches } from './LogRunnerHeaderView';
 import { LogToolbar } from './LogToolbar';
 import type { IdentifiedSearchGroup } from './utils';
 import { combinedLogText, DEBUG_MARKER, keywordsOf, selectedTargetNumber } from './utils';
@@ -27,6 +27,39 @@ type Measured = { for: object | null; width: number; rowHeight: number };
 const UNMEASURED: Measured = { for: null, width: 0, rowHeight: ESTIMATED_ROW_HEIGHT };
 
 const longestOf = (logs: ReadonlyArray<CombatLog>): CombatLog => logs.reduce((longest, log) => (log.raw.length > longest.raw.length ? log : longest));
+
+const SEARCH_DEBOUNCE_MS = 150;
+
+export interface LogRunnerHeaderViewProps {
+	searchText: string;
+	onSearchChange: (text: string) => void;
+}
+
+/** The free-text search and the Time/Event column header, which stick under the results toolbar. */
+export const LogRunnerHeaderView = ({ searchText, onSearchChange }: LogRunnerHeaderViewProps) => (
+	<div data-testid="log-runner-sticky" className="flex flex-col gap-2 pt-2">
+		<div data-testid="log-search" className="w-full lg:max-w-[50%]">
+			<SearchField
+				value={searchText}
+				onChange={onSearchChange}
+				placeholder={i18n.t('results_tab.details.logs.search_placeholder')}
+				debounceMs={SEARCH_DEBOUNCE_MS}
+				autoComplete="off"
+				inputTestId="log-search-input"
+			/>
+		</div>
+		<div data-testid="log-runner-header" className="ui-log-row border-b-0 font-bold">
+			<div className="p-2 text-right">{i18n.t('results_tab.details.logs.time_column')}</div>
+			<div className="p-2">{i18n.t('results_tab.details.logs.event_column')}</div>
+		</div>
+	</div>
+);
+
+export const LogRunnerNoMatches = () => (
+	<div data-testid="log-runner-empty" className="px-2 py-6 text-muted">
+		{i18n.t('results_tab.details.logs.no_matches')}
+	</div>
+);
 
 export interface LogRunnerProps {
 	/** The pane is open. A run that lands while it is closed is indexed the first time it opens. */

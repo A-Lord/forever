@@ -1,15 +1,18 @@
 // The loading state of the sheet. The crit-cap row is the last row of the Physical group for this
 // display-stat list, so it is the last row either way; what is pinned here is that it skeletons
 // with its siblings instead of reading as settled while the stats are still in flight.
-import { Class, PseudoStat, Race, Stat } from '@generated/proto/common';
+import { Class, PseudoStat, Race, Stat, WeaponSkill } from '@generated/proto/common';
 import i18n from '@i18n/config';
+import { translateWeaponSkill } from '@i18n/localization';
+import { getClassWeaponSkills } from '@sim/player/classes/capabilities';
+import { WeaponSkillGroup, weaponSkillsInGroups } from '@sim/player/weapon_skill_groups';
 import { Stats, UnitStat } from '@sim/proto/stats';
 import { createSimStore, PLAYER_FIELDS, type PlayerSlice, seedKeyed, zeroVersions } from '@sim/state/sim_store';
 import { renderWithHost } from '@testing/react';
-import { fireEvent, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { CharacterStats } from './CharacterStats';
+import { CharacterStats, CharacterStatsHeaderView, type CharacterStatsMode, CharacterStatsPanelView } from './CharacterStats';
 import { buildRows } from './utils/rows';
 import { statDisplayString } from './utils/stat_display';
 
@@ -36,12 +39,13 @@ const CRIT_CAP_INFO = {
 
 interface SheetSetup {
 	displayStats: Array<UnitStat>;
+	displayWeaponSkillGroups?: Array<WeaponSkillGroup>;
 	currentStats: object;
 	inFrontOfTarget?: boolean;
 	player: Record<string, unknown>;
 }
 
-const renderSheet = ({ displayStats, currentStats, inFrontOfTarget = false, player }: SheetSetup) => {
+const renderSheet = ({ displayStats, displayWeaponSkillGroups, currentStats, inFrontOfTarget = false, player }: SheetSetup) => {
 	const store = createSimStore();
 	seedKeyed(store, 'players', KEY, {
 		name: 'P',
@@ -49,6 +53,7 @@ const renderSheet = ({ displayStats, currentStats, inFrontOfTarget = false, play
 		gear: { id: 'gear' },
 		bonusStats: new Stats(),
 		inFrontOfTarget,
+		weaponSkills: [],
 		currentStats,
 		v: zeroVersions(PLAYER_FIELDS),
 	} as unknown as PlayerSlice);
@@ -66,7 +71,7 @@ const renderSheet = ({ displayStats, currentStats, inFrontOfTarget = false, play
 			...player,
 		},
 		sim: { store },
-		individualConfig: { displayStats },
+		individualConfig: { displayStats, displayWeaponSkillGroups },
 		getStorageKey: (keyPart: string) => `test${keyPart}`,
 	});
 	const rows = Array.from(view.container.querySelectorAll('[data-testid="character-stats-table-row"]'));
@@ -207,6 +212,50 @@ describe('CharacterStats groups', () => {
 	});
 });
 
+describe('CharacterStats weapon skills', () => {
+	afterEach(() => {
+		window.localStorage.clear();
+	});
+
+	const renderWeaponSkills = (playerClass: Class, displayWeaponSkillGroups?: Array<WeaponSkillGroup>) =>
+		renderSheet({
+			displayStats: DISPLAY_STATS,
+			displayWeaponSkillGroups,
+			currentStats: statsWhen(true),
+			player: {
+				getClass: () => playerClass,
+				getPlayerSpec: () => ({ isTankSpec: false, isMeleeDpsSpec: true }),
+				getMeleeCritCap: () => CRIT_CAP_DELTA,
+				getMeleeCritCapInfo: () => CRIT_CAP_INFO,
+				getBaseDefense: () => 300,
+			},
+		});
+	const shownSkills = (playerClass: Class) => getClassWeaponSkills(playerClass).filter(skill => screen.queryByText(translateWeaponSkill(skill)));
+
+	it.each([
+		['a hunter', Class.ClassHunter, [WeaponSkillGroup.Melee, WeaponSkillGroup.Ranged], WeaponSkill.WeaponSkillThrown],
+		['a warrior', Class.ClassWarrior, [WeaponSkillGroup.Melee], WeaponSkill.WeaponSkillBows],
+	])('shows %s the spec weapon skill groups on Key and every class weapon skill on All', (_spec, playerClass, groups, keyHidden) => {
+		renderWeaponSkills(playerClass, groups);
+		fireEvent.click(groupTrigger('weapon-skill'));
+
+		const keySkills = weaponSkillsInGroups(groups);
+		expect(shownSkills(playerClass)).toEqual(getClassWeaponSkills(playerClass).filter(skill => keySkills.includes(skill)));
+		expect(shownSkills(playerClass)).not.toContain(keyHidden);
+
+		showAll();
+		expect(shownSkills(playerClass)).toEqual(getClassWeaponSkills(playerClass));
+	});
+
+	it('leaves the weapon skill item out on Key for a spec that names no weapon skills', () => {
+		renderWeaponSkills(Class.ClassWarrior);
+		expect(screen.queryByTestId('character-stats-group-weapon-skill-trigger')).toBeNull();
+
+		showAll();
+		expect(screen.queryByTestId('character-stats-group-weapon-skill-trigger')).not.toBeNull();
+	});
+});
+
 describe('CharacterStats loading state', () => {
 	it('shows a skeleton in every row, crit cap included, while the stats are still loading', () => {
 		const { view, rows } = renderStats(false);
@@ -319,5 +368,60 @@ describe('CharacterStats combined melee hand rows', () => {
 		fireEvent.mouseEnter(links[index]);
 		expect((await screen.findByTestId('character-stats-tooltip-hand')).textContent).toBe(label);
 		expect((await screen.findAllByText(value)).length).toBeGreaterThan(1);
+	});
+});
+
+const LABELS = { title: 'Stats', modeAriaLabel: 'Stats shown', key: 'Key', all: 'All' };
+
+const mount = (mode: CharacterStatsMode) => {
+	const onModeChange = vi.fn();
+	return { onModeChange, ...render(<CharacterStatsHeaderView mode={mode} onModeChange={onModeChange} labels={LABELS} />) };
+};
+
+const pressed = () => screen.getAllByRole('button').map(button => [button.textContent, button.getAttribute('aria-pressed')]);
+
+describe('CharacterStatsHeaderView', () => {
+	it('sets the heading beside a labelled Key/All group', () => {
+		mount('key');
+
+		expect(screen.getByTestId('character-stats-label').textContent).toBe('Stats');
+		expect(screen.getByRole('group', { name: 'Stats shown' })).toBeTruthy();
+	});
+
+	it.each<[CharacterStatsMode, string, string]>([
+		['key', 'true', 'false'],
+		['all', 'false', 'true'],
+	])('presses the mode it is given (%s)', (mode, key, all) => {
+		mount(mode);
+		expect(pressed()).toEqual([
+			['Key', key],
+			['All', all],
+		]);
+	});
+
+	it('reports the other mode on a click, and nothing for the one already shown', () => {
+		const { onModeChange } = mount('key');
+
+		fireEvent.click(screen.getByRole('button', { name: 'Key' }));
+		expect(onModeChange).not.toHaveBeenCalled();
+		fireEvent.click(screen.getByRole('button', { name: 'All' }));
+		expect(onModeChange).toHaveBeenCalledWith('all');
+	});
+});
+
+describe('CharacterStatsPanelView', () => {
+	it('shows the title above its content, and reports a mode change from the Key/All group', () => {
+		const onModeChange = vi.fn();
+		render(
+			<CharacterStatsPanelView mode="key" onModeChange={onModeChange} labels={LABELS}>
+				<table data-testid="stats-table" />
+			</CharacterStatsPanelView>,
+		);
+
+		const title = screen.getByTestId('character-stats-label');
+		expect(title.textContent).toBe('Stats');
+		expect(title.compareDocumentPosition(screen.getByTestId('stats-table')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+		fireEvent.click(screen.getByRole('button', { name: 'All' }));
+		expect(onModeChange).toHaveBeenCalledWith('all');
 	});
 });

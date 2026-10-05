@@ -1,14 +1,54 @@
 import { ConnectedChoiceField } from '@features/inputs/components/ConnectedChoiceField';
 import { ConnectedNumberField } from '@features/inputs/components/ConnectedTextField';
+import i18n from '@i18n/config';
 import { useSimHost } from '@sim/context/SimHostContext';
 import { useDisplayMetrics } from '@sim/hooks/useDisplayMetrics';
-import { useMemo, useState } from 'react';
+import { Button } from '@ui-kit/Button';
+import { FieldGrid } from '@ui-kit/FieldGrid';
+import { type ReactNode, useMemo, useState } from 'react';
 
 import { AdvancedEncounterModal } from '../AdvancedEncounterModal';
 import { TargetInputsPicker } from '../TargetsPicker';
 import { AreaTypesPicker } from './AreaTypesPicker';
-import { EncounterPickerView } from './EncounterPickerView';
 import { durationConfigs, executeConfigs, minBaseDamageConfig, numAlliesConfig, presetEncounterConfig, zoneConfig } from './utils/configs';
+
+export interface EncounterPickerViewProps {
+	duration: ReactNode;
+	execute?: ReactNode;
+	zone: ReactNode;
+	areaTypes: ReactNode;
+	preset?: ReactNode;
+	allies?: ReactNode;
+	minBaseDamage?: ReactNode;
+	targetInputs: ReactNode;
+	onAdvancedClick: () => void;
+}
+
+export const EncounterPickerView = ({
+	duration,
+	execute,
+	zone,
+	areaTypes,
+	preset,
+	allies,
+	minBaseDamage,
+	targetInputs,
+	onAdvancedClick,
+}: EncounterPickerViewProps) => (
+	<div className="flex flex-wrap gap-2" data-testid="encounter-picker-root">
+		<FieldGrid>{duration}</FieldGrid>
+		{execute && <FieldGrid className="w-full">{execute}</FieldGrid>}
+		{zone}
+		{areaTypes}
+		{preset}
+		{allies}
+		{minBaseDamage}
+		{targetInputs}
+		<Button className="min-w-[calc(50%-0.5rem)] max-xxl:w-full" data-testid="advanced-button" onClick={onAdvancedClick}>
+			{i18n.t('settings_tab.encounter.advanced')}
+		</Button>
+	</div>
+);
 
 export interface EncounterPickerProps {
 	showExecuteProportion: boolean;

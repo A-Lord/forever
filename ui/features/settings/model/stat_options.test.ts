@@ -1,7 +1,7 @@
 import { Class, PseudoStat, Stat } from '@generated/proto/common';
 import type { Player } from '@sim/player/player';
 import { UnitStat } from '@sim/proto/stats';
-import { fakeHost } from '@sim/testing';
+import { fakeHost } from '@testing/sim/fake_host';
 import { describe, expect, it } from 'vitest';
 
 import { applyOwnerClassLabels, inDisplayOrder, type PickerStatOptions, relevantStatOptions, type RenderableStatOptions } from './stat_options';

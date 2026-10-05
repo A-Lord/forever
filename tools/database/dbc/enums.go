@@ -333,8 +333,11 @@ const (
 	BloodElf Race = 1 << 9  // 512
 	Draenei  Race = 1 << 10 // 1024
 
-	AlliedRaces Race = Human | Dwarf | NightElf | Gnome | Draenei
-	HordeRaces  Race = Undead | Orc | Tauren | Troll | Goblin | BloodElf
+	HighOrderSkyborne  Race = 1 << 32
+	WindshaperSkyborne Race = 1 << 33
+
+	AlliedRaces Race = Human | Dwarf | NightElf | Gnome | Draenei | HighOrderSkyborne
+	HordeRaces  Race = Undead | Orc | Tauren | Troll | Goblin | BloodElf | WindshaperSkyborne
 )
 
 // Returns whether there is any overlap between the given masks.

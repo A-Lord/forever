@@ -2,14 +2,14 @@ import * as BuffDebuffInputs from '@features/settings/model/buffs_debuffs';
 import * as OtherInputs from '@features/settings/model/other_inputs';
 import { StatCapType } from '@generated/proto/api';
 import { APLRotation, APLRotation_Type, SimpleRotation } from '@generated/proto/apl';
-import { Cooldowns, EquipmentSpec, HandType, ItemSlot, PseudoStat, Spec, Stat } from '@generated/proto/common';
-import { SavedTalents } from '@generated/proto/ui';
+import { Cooldowns, HandType, ItemSlot, PseudoStat, Spec, Stat } from '@generated/proto/common';
 import { DpsWarriorSpec, WarriorSunder } from '@generated/proto/warrior';
 import * as Mechanics from '@sim/constants/mechanics';
 import { PlayerClasses } from '@sim/player/classes';
 import { Player } from '@sim/player/player';
+import { WeaponSkillGroup } from '@sim/player/weapon_skill_groups';
 import { SpecRotation } from '@sim/proto/spec_types';
-import { DEFAULT_MELEE_GEM_STATS, StatCap, Stats, UnitStat } from '@sim/proto/stats';
+import { StatCap, Stats, UnitStat } from '@sim/proto/stats';
 import { defineSpec } from '@sim/spec_config';
 
 import * as WarriorInputs from '../shared/inputs';
@@ -39,7 +39,6 @@ export default defineSpec<Spec.SpecDpsWarrior>({
 	epPseudoStats: [PseudoStat.PseudoStatMainHandDps, PseudoStat.PseudoStatOffHandDps],
 	// Reference stat against which to calculate EP. I think all classes use either spell power or attack power.
 	epReferenceStat: Stat.StatStrength,
-	gemStats: DEFAULT_MELEE_GEM_STATS,
 	// Which stats to display in the Character Stats section, at the bottom of the left-hand sidebar.
 	displayStats: UnitStat.createDisplayStatArray(
 		[
@@ -64,19 +63,20 @@ export default defineSpec<Spec.SpecDpsWarrior>({
 			PseudoStat.PseudoStatExpertisePercent,
 		],
 	),
+	displayWeaponSkillGroups: [WeaponSkillGroup.Melee],
 
 	defaults: {
 		// Default equipped gear.
-		gear: EquipmentSpec.create(),
+		gear: Presets.PreBiSFuryGear.gear,
 		// Default EP weights for sorting gear in the gear picker.
-		epWeights: new Stats(),
+		epWeights: Presets.PreBiSFuryEpWeights.epWeights,
 		statCaps: (() => {
 			const expCap = new Stats().withPseudoStat(PseudoStat.PseudoStatExpertisePercent, 6.5);
 			return expCap;
 		})(),
 		softCapBreakpoints: (() => {
 			const meleeHitSoftCapConfig = StatCap.fromPseudoStat(PseudoStat.PseudoStatMeleeHitPercent, {
-				breakpoints: [9, 28],
+				breakpoints: [8, 27],
 				capType: StatCapType.TypeSoftCap,
 				postCapEPs: [0.57 * Mechanics.HIT_RATING_PER_HIT_PERCENT, 0],
 			});
@@ -89,7 +89,7 @@ export default defineSpec<Spec.SpecDpsWarrior>({
 		// Default consumes settings.
 		consumables: Presets.DefaultConsumables,
 		// Default talents.
-		talents: SavedTalents.create(),
+		talents: Presets.FuryTalents.data,
 		// Default spec-specific settings.
 		specOptions: Presets.DefaultOptions,
 		// Default raid/party buffs settings.
@@ -115,6 +115,7 @@ export default defineSpec<Spec.SpecDpsWarrior>({
 			WarriorInputs.StartingRage(),
 			WarriorInputs.StanceSnapshot(),
 			OtherInputs.DistanceFromTarget,
+			WarriorInputs.QueueDelay(),
 			OtherInputs.InputDelay,
 			OtherInputs.TankAssignment,
 			OtherInputs.InFrontOfTarget,
@@ -127,13 +128,15 @@ export default defineSpec<Spec.SpecDpsWarrior>({
 	},
 
 	presets: {
-		epWeights: [],
+		epWeights: [Presets.PreBiSFuryEpWeights, Presets.PreBiSArmsEpWeights],
 		// Preset talents that the user can quickly select.
-		talents: [],
+		talents: [Presets.FuryTalents, Presets.ArmsTalents],
 		// Preset rotations that the user can quickly select.
 		rotations: [Presets.SIMPLE_DEFAULT_ROTATION, Presets.FURY_DEFAULT_ROTATION, Presets.ARMS_DEFAULT_ROTATION],
 		// Preset gear configurations that the user can quickly select.
-		gear: [],
+		gear: [Presets.PreBiSFuryGear, Presets.PreBiSArmsGear],
+		settings: [Presets.DefaultSettings],
+		builds: [Presets.PreBiSFuryBuild, Presets.PreBiSArmsBuild],
 	},
 
 	autoRotation: (player: Player<Spec.SpecDpsWarrior>): APLRotation => {
@@ -145,7 +148,14 @@ export default defineSpec<Spec.SpecDpsWarrior>({
 	},
 
 	simpleRotation: (player: Player<Spec.SpecDpsWarrior>, simple: SpecRotation<Spec.SpecDpsWarrior>, _: Cooldowns): APLRotation => {
-		let { spec, sunderArmor = WarriorSunder.WarriorSunderHelp, useOverpower = true, useRecklessness = false } = simple;
+		let {
+			spec,
+			sunderArmor = WarriorSunder.WarriorSunderHelp,
+			useOverpower = true,
+			useRend = true,
+			useRecklessness = false,
+			useStanceDance = false,
+		} = simple;
 
 		if (!spec) {
 			if (Presets.isArmsSpec(player) || Presets.isArmsKebabSpec(player)) {
@@ -164,15 +174,30 @@ export default defineSpec<Spec.SpecDpsWarrior>({
 		);
 		if (recklessnessAction) recklessnessAction.hide = !useRecklessness;
 
+		const stanceDanceAction = rotation.priorityList.find(
+			action => action.action?.action.oneofKind === 'groupReference' && action.action.action.groupReference.groupName === 'Stance Dance ON/OFF',
+		);
+		if (stanceDanceAction) stanceDanceAction.hide = !useStanceDance;
+
 		const sunderArmorAction = rotation.priorityList.find(
 			action => action.action?.action.oneofKind === 'groupReference' && action.action?.action.groupReference.groupName === 'Sunder Armor',
 		);
 		if (sunderArmorAction) sunderArmorAction.hide = sunderArmor == WarriorSunder.WarriorSunderNone;
 
+		const sunderRefreshAction = rotation.priorityList.find(
+			action => action.action?.action.oneofKind === 'groupReference' && action.action?.action.groupReference.groupName === 'Sunder Armor: Refresh',
+		);
+		if (sunderRefreshAction) sunderRefreshAction.hide = sunderArmor != WarriorSunder.WarriorSunderMaintain;
+
 		const opWeaveAction = rotation.priorityList.find(
 			action => action.action?.action.oneofKind === 'groupReference' && action.action?.action.groupReference.groupName === 'Overpower Weaving',
 		);
 		if (opWeaveAction) opWeaveAction.hide = !useOverpower;
+
+		const rendWeaveAction = rotation.priorityList.find(
+			action => action.action?.action.oneofKind === 'groupReference' && action.action?.action.groupReference.groupName === 'Rend Weaving ON/OFF',
+		);
+		if (rendWeaveAction) rendWeaveAction.hide = !useRend;
 
 		return APLRotation.create({
 			simple: SimpleRotation.create({}),
@@ -197,7 +222,7 @@ export default defineSpec<Spec.SpecDpsWarrior>({
 					softCapToModify.breakpoints = ctx.defaults.softCapBreakpoints?.[0].breakpoints || [];
 					softCapToModify.postCapEPs = ctx.defaults.softCapBreakpoints?.[0].postCapEPs || [];
 				} else {
-					softCapToModify.breakpoints = [9];
+					softCapToModify.breakpoints = [8];
 					softCapToModify.postCapEPs = [0];
 				}
 			}

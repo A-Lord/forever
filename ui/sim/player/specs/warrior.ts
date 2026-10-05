@@ -1,6 +1,7 @@
 import { Class, Spec } from '@generated/proto/common';
 
 import { CURRENT_PHASE, getSpecSitePath, LaunchStatus } from '../../constants/other';
+import { isSpecDualWieldCapable } from '../classes/capabilities';
 import { IconSize } from '../player_class';
 import { PlayerSpec, SimStatus } from '../player_spec';
 
@@ -15,7 +16,7 @@ export class DpsWarrior extends PlayerSpec<Spec.SpecDpsWarrior> {
 	static isHealingSpec = false;
 	static isRangedDpsSpec = false;
 	static isMeleeDpsSpec = true;
-	static canDualWield = true;
+	static canDualWield = isSpecDualWieldCapable(DpsWarrior.specID);
 
 	static launch: SimStatus = {
 		phase: CURRENT_PHASE,
@@ -57,7 +58,7 @@ export class ProtectionWarrior extends PlayerSpec<Spec.SpecProtectionWarrior> {
 	static isHealingSpec = false;
 	static isRangedDpsSpec = false;
 	static isMeleeDpsSpec = false;
-	static canDualWield = true;
+	static canDualWield = isSpecDualWieldCapable(ProtectionWarrior.specID);
 
 	static launch: SimStatus = {
 		phase: CURRENT_PHASE,

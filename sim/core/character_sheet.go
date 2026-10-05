@@ -7,6 +7,7 @@ import (
 
 type sheetAttackStats struct {
 	HitPercent, CritPercent, HitRating, CritRating float64
+	CritSuppressionPercent                         float64
 }
 
 // The hit and crit the character sheet shows for the auto attack with this proc mask: the physical
@@ -21,12 +22,33 @@ func (character *Character) sheetAttackStats(probe ProcMask) sheetAttackStats {
 		channelHit, channelCrit = character.GetStat(stats.RangedHitPercent), character.GetStat(stats.RangedCritPercent)
 	}
 	scoped := character.ScopedPercents(probe)
-	return sheetAttackStats{
+	attack := sheetAttackStats{
 		HitPercent:  character.GetStat(stats.PhysicalHitPercent) + channelHit + scoped.Hit,
 		CritPercent: character.GetStat(stats.PhysicalCritPercent) + channelCrit + scoped.Crit,
 		HitRating:   character.GetStat(stats.HitRating) + (channelHit+scoped.HitFromRating)*HitRatingPerHitPercent,
 		CritRating:  character.GetStat(stats.CritRating) + (channelCrit+scoped.CritFromRating)*CritRatingPerCritPercent,
 	}
+	attack.CritSuppressionPercent = character.sheetCritSuppressionPercent(probe, scoped, attack.CritPercent)
+	return attack
+}
+
+// The crit the sim takes off the auto attack against the current target, in percent. The sheet's
+// crit percents keep it in; before the attack tables exist it is 0.
+func (character *Character) sheetCritSuppressionPercent(probe ProcMask, scoped ScopedPercents, critPercent float64) float64 {
+	table := character.sheetAttackTable()
+	if table == nil {
+		return 0
+	}
+	probeSpell := &Spell{Unit: &character.Unit, ProcMask: probe, BonusCritPercent: scoped.Crit}
+	return probeSpell.physicalCritSuppression(table, critPercent) * 100
+}
+
+// The attack table against the current target, nil before the attack tables exist.
+func (character *Character) sheetAttackTable() *AttackTable {
+	if character.CurrentTarget == nil || int(character.CurrentTarget.UnitIndex) >= len(character.AttackTables) {
+		return nil
+	}
+	return character.AttackTables[character.CurrentTarget.UnitIndex]
 }
 
 // Which of block and parry the character sheet shows: a character that cannot block or parry shows
@@ -52,16 +74,21 @@ func (character *Character) GetPseudoStatsProto() []float64 {
 	if character.AutoAttacks.IsDualWielding {
 		offHand = character.sheetAttackStats(ProcMaskMeleeOHAuto)
 	}
+	var mainHandTable AttackTableHand
+	if table := character.sheetAttackTable(); table != nil {
+		mainHandTable = table.MH
+	}
 	pseudoStats := []float64{
 		proto.PseudoStat_PseudoStatMainHandDps: character.AutoAttacks.MH().DPS(),
 		proto.PseudoStat_PseudoStatOffHandDps:  character.AutoAttacks.OH().DPS(),
 		proto.PseudoStat_PseudoStatRangedDps:   character.AutoAttacks.Ranged().DPS(),
 
-		// Base values are modified by Enemy attackTables, but we display for LVL 70 enemy as paperdoll default
+		// Avoidance against an attacker of the character's own level, whose attack table adds 5% parry and 5% block.
 		proto.PseudoStat_PseudoStatDodgePercent:            (character.PseudoStats.BaseDodgeChance + character.GetDodgeFromRating()) * 100,
-		proto.PseudoStat_PseudoStatParryPercent:            (character.PseudoStats.BaseParryChance + character.GetParryFromRating()) * 100,
-		proto.PseudoStat_PseudoStatBlockPercent:            (character.PseudoStats.BaseBlockChance + character.GetBlockFromRating()) * 100,
+		proto.PseudoStat_PseudoStatParryPercent:            (TernaryFloat64(character.PseudoStats.CanParry, 0.05, 0) + character.PseudoStats.BaseParryChance + character.GetParryFromRating()) * 100,
+		proto.PseudoStat_PseudoStatBlockPercent:            (TernaryFloat64(character.PseudoStats.CanBlock, 0.05, 0) + character.PseudoStats.BaseBlockChance + character.GetBlockFromRating()) * 100,
 		proto.PseudoStat_PseudoStatBlockValueMultiplier:    character.PseudoStats.BlockValueMultiplier,
+		proto.PseudoStat_PseudoStatBlockValuePerStrength:   character.PseudoStats.BlockValuePerStrength,
 		proto.PseudoStat_PseudoStatReducedCritTakenPercent: character.PseudoStats.ReducedCritTakenPercent * 100,
 
 		// Used by UI to incorporate multiplicative Haste buffs into final character stats display.
@@ -92,18 +119,18 @@ func (character *Character) GetPseudoStatsProto() []float64 {
 		proto.PseudoStat_PseudoStatRangedCritPercent:  ranged.CritPercent,
 		proto.PseudoStat_PseudoStatRangedHitRating:    ranged.HitRating,
 		proto.PseudoStat_PseudoStatRangedCritRating:   ranged.CritRating,
+
+		proto.PseudoStat_PseudoStatMeleeCritSuppressionPercent:  mainHand.CritSuppressionPercent,
+		proto.PseudoStat_PseudoStatRangedCritSuppressionPercent: ranged.CritSuppressionPercent,
+
+		proto.PseudoStat_PseudoStatMainHandMissPercent:   mainHandTable.BaseMissChance * 100,
+		proto.PseudoStat_PseudoStatMainHandDodgePercent:  mainHandTable.BaseDodgeChance * 100,
+		proto.PseudoStat_PseudoStatMainHandParryPercent:  mainHandTable.BaseParryChance * 100,
+		proto.PseudoStat_PseudoStatMainHandGlancePercent: mainHandTable.BaseGlanceChance * 100,
 	}
 	for school := stats.SchoolIndexArcane; school < stats.SchoolLen; school++ {
 		pseudoStats[SchoolHitPseudoStats[school]] = character.GetStat(stats.SpellHitPercent) + character.PseudoStats.SchoolBonusHitChance[school]
 	}
 	character.sheetAvoidance().Gate(pseudoStats)
 	return pseudoStats
-}
-
-// The ranged hit and crit the sheet shows beyond the physical percent: the ranged percent stats and
-// the mods that reach the ranged auto attack. The sheet's melee row holds the main hand's weapon-bound
-// mods, so the ranged row less the melee row is no ranged offset once the two weapons' mods differ.
-func (character *Character) sheetRangedOffsets() (hit, crit float64) {
-	ranged := character.sheetAttackStats(ProcMaskRangedAuto)
-	return ranged.HitPercent - character.GetStat(stats.PhysicalHitPercent), ranged.CritPercent - character.GetStat(stats.PhysicalCritPercent)
 }

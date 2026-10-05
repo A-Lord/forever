@@ -6,6 +6,8 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import { Dialog } from '../Dialog/Dialog';
+import { Menu } from '../Menu/Menu';
+import { MenuItem } from '../Menu/MenuItem';
 import { PortalContainerContext } from './usePortalContainer';
 
 describe('usePortalContainer', () => {
@@ -33,13 +35,13 @@ describe('usePortalContainer', () => {
 
 		render(
 			<PortalContainerContext value={contextHost}>
-				<Dialog open onOpenChange={() => {}} container={explicitHost} title="Options">
-					body
-				</Dialog>
+				<Menu trigger="Open" surface="menu" container={explicitHost} open>
+					<MenuItem layout="block">Export</MenuItem>
+				</Menu>
 			</PortalContainerContext>,
 		);
-		expect(explicitHost.contains(screen.getByRole('dialog'))).toBe(true);
-		expect(contextHost.contains(screen.getByRole('dialog'))).toBe(false);
+		expect(explicitHost.contains(screen.getByRole('menu'))).toBe(true);
+		expect(contextHost.contains(screen.getByRole('menu'))).toBe(false);
 
 		contextHost.remove();
 		explicitHost.remove();
@@ -80,7 +82,7 @@ const OVERLAY_PORTAL_EXCEPTIONS: Record<string, string> = {
 	'app/SimTabs.tsx': 'a layout slot for the tab panes, not an overlay',
 	'features/results/components/LogRunner/LogRunner.tsx':
 		"portals its sticky header into DrStickySlotContext's dr-sticky-slot, a layout slot in DetailedResults.tsx, not an overlay",
-	'features/results/components/Timeline/rotation/RotationView.tsx':
+	'features/results/components/Timeline/rotation/RotationTrack.tsx':
 		"portals its sticky header into DrStickySlotContext's dr-sticky-slot, a layout slot in DetailedResults.tsx, not an overlay",
 };
 

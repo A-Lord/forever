@@ -2,7 +2,7 @@ import { ItemSlot, PseudoStat, Stat } from '@generated/proto/common';
 import { UIEnchant as Enchant, UIItem as Item } from '@generated/proto/ui';
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('@i18n/localization', async () => (await import('../proto/testing')).localizationStub);
+vi.mock('@i18n/localization', async () => (await import('@testing/sim/localization')).localizationStub);
 
 import * as Mechanics from '../constants/mechanics';
 import { Stats } from '../proto/stats';

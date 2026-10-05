@@ -30,8 +30,8 @@ can drift from the build silently.
 
 The kit's `@sim` group is a positive list, because a negated glob inside a group is unproven here:
 `hooks` `context` `state` `player` `raid` `proto` `settings` `presets` `talents` `bulk` `cache`
-`wasm` `workers`, and the top-level `fake_host` `sim` `sim_host` `sim_runs` `sim_signal_manager`
-`spec_config` `testing` modules. A new top-level entry under `ui/sim` has to join it, and a directory with an
+`wasm` `workers`, and the top-level `sim` `sim_host` `sim_runs` `sim_signal_manager`
+`spec_config` modules. A new top-level entry under `ui/sim` has to join it, and a directory with an
 `index.ts` needs both forms, `@sim/<dir>` and `@sim/<dir>/**`, since the bare specifier resolves to
 it (`wasm` and the six directories listed first have both). It covers the kit's tests
 and stories too, with no type-import escape hatch; a store binding belongs in `ui/features/inputs`.

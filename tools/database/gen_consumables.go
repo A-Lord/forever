@@ -74,7 +74,22 @@ func ShippedConsumable(c *dbc.Consumable, routing *ConsumableRouting, instance *
 		consumable.Type = proto.ConsumableType_ConsumableTypeExplosive
 	}
 	setConsumableGroup(c, consumable, routing, instance)
+	consumable.Holiday = consumableHoliday(c)
 	return consumable
+}
+
+// The world event the consumable belongs to: HolidayConsumables names it, or its item's RequiredHoliday.
+func consumableHoliday(c *dbc.Consumable) string {
+	if holiday, ok := HolidayConsumables[int32(c.Id)]; ok {
+		return holiday
+	}
+	if c.RequiredHoliday == 0 {
+		return ""
+	}
+	if holiday, ok := HolidayNames[c.RequiredHoliday]; ok {
+		return holiday
+	}
+	return fmt.Sprintf("Holiday %d", c.RequiredHoliday)
 }
 
 // Whether the catalogue's consumable is an explosive, which the explosive picker offers and the

@@ -265,6 +265,12 @@ func (env *Environment) setupAttackTables() {
 			attacker.AttackTables[idx] = NewAttackTable(attacker, defender)
 		}
 	}
+
+	for _, party := range env.Raid.Parties {
+		for _, player := range party.Players {
+			player.GetCharacter().updateAttackTableWeapons()
+		}
+	}
 }
 
 func (env *Environment) IsFinalized() bool {

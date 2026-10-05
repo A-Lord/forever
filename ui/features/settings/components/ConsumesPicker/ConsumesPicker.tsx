@@ -66,6 +66,12 @@ export const ConsumesPicker = ({ encounterConsumes = true }: ConsumesPickerProps
 					<ConnectedIconEnumPicker modObject={player} config={configs.ohImbue} />
 				</IconRow>
 			</ConsumeRow>
+			<ConsumeRow name="holiday" configs={[...configs.holidayGroups, ...configs.holiday]}>
+				<IconRow className="justify-end" data-testid="consumes-holiday">
+					<Pickers player={player} configs={configs.holidayGroups} />
+					<Toggles player={player} toggles={configs.holiday} />
+				</IconRow>
+			</ConsumeRow>
 			{encounterConsumes && (
 				<ConsumeRow name="miscellaneous" configs={configs.miscellaneous}>
 					<IconRow className="justify-end" data-testid="consumes-misc">

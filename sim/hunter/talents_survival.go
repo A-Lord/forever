@@ -178,7 +178,8 @@ func (hunter *Hunter) registerLaceratingStrikes() {
 	bleed := hunter.RegisterSpell(config)
 
 	// The proc shape with no roll: 1310533 fires on a melee ability and names Mongoose Bite only in
-	// its tooltip, so the listener is narrowed to it by hand.
+	// its tooltip, so the listener is narrowed to it by hand. Raptor Strike carries the bite's class
+	// flags, so the flags alone would let it start the bleed too.
 	trigger := spelldata.ProcTrigger(&hunter.Character, spellData.LaceratingStrikes.Rank(1),
 		func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
 			bleedDamage = result.Damage * share
@@ -186,6 +187,9 @@ func (hunter *Hunter) registerLaceratingStrikes() {
 		})
 	trigger.Name = "Lacerating Strikes - Trigger"
 	trigger.ClassFlags = mongooseBiteRank.ClassFlags
+	trigger.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
+		return spell.ActionID.SpellID == mongooseBiteRank.ID
+	}
 
 	hunter.MakeProcTriggerAura(trigger)
 }

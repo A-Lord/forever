@@ -10,7 +10,6 @@ const meta = {
 	args: { tooltip: 'Explains the setting next to it.' },
 	argTypes: {
 		place: { control: 'select', options: [undefined, 'top', 'right', 'bottom', 'left'] },
-		iconStyle: { control: 'select', options: ['regular', 'solid'] },
 		tooltip: { control: 'text' },
 		className: { control: 'text' },
 	},
@@ -20,7 +19,6 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
-export const OtherGlyph: Story = { args: { icon: 'triangle-exclamation', iconStyle: 'solid', tooltip: 'Some items are missing sockets.' } };
 export const InHeading: Story = {
 	render: args => (
 		<h5 className="flex items-center">

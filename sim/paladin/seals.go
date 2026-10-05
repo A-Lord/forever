@@ -27,6 +27,9 @@ type sealConfig struct {
 	echo   func(sim *core.Simulation, target *core.Unit)
 }
 
+// Only one Twist of Light Echo is up at a time.
+const EchoCategory = "PaladinEcho"
+
 // The Echoes Twist of Light names, one per seal.
 const (
 	echoOfCommandID       = 1311703

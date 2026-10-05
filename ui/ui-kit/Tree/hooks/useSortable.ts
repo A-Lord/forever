@@ -1,13 +1,12 @@
 import { type DragEvent, type MouseEvent, type RefObject, useLayoutEffect, useMemo, useRef, useSyncExternalStore } from 'react';
 
-import type { TreeDropRef, TreeOrientation, TreeRef, TreeSortable } from '../types';
+import type { TreeDropRef, TreeRef, TreeSortable } from '../types';
 
 export type SortableDrop = 'before' | 'after' | 'into';
 
-/** An item as a drag reads it: its place in its list, its element, and the axis its list runs along. */
+/** An item as a drag reads it: its place in its list and its element. */
 export interface SortableEntry extends TreeRef {
 	element: HTMLElement;
-	orientation: TreeOrientation;
 }
 
 export interface SortableArmProps {
@@ -35,8 +34,8 @@ export interface SortableController {
 	unregister: (key: string) => void;
 	subscribe: (listener: () => void) => () => void;
 	getState: () => SortableState;
-	/** Arms the item on a press. With `anywhere`, a press inside a text field does not arm it. */
-	armProps: (key: string, anywhere: boolean) => SortableArmProps;
+	/** Arms the item on a press anywhere in it, outside its nested items and its text fields. */
+	armProps: (key: string) => SortableArmProps;
 	/** The drag source and before/after drop target handlers for the item's element. */
 	itemProps: (key: string) => SortableItemProps;
 	/** The `into` drop target handlers for the area that holds the item's children. */
@@ -58,20 +57,13 @@ type TargetMode = 'item' | 'into' | 'list';
 
 const TRANSFER_TYPE = 'application/x-ui-tree';
 
+const TEXT_FIELDS = 'input, textarea, select, [contenteditable="true"]';
+
 const sameGroup = (from: TreeRef, to: TreeDropRef) => from.group === to.group;
 
-const isTextTarget = (target: EventTarget, container: Element) => {
-	for (let el = target instanceof Element ? target : null; el && el !== container; el = el.parentElement) {
-		if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') return true;
-		const editable = el.getAttribute('contenteditable');
-		if (editable !== null && editable !== 'false') return true;
-	}
-	return false;
-};
-
-const pastMidpoint = (event: DragEvent, { element, orientation }: SortableEntry) => {
+const pastMidpoint = (event: DragEvent, { element }: SortableEntry) => {
 	const rect = element.getBoundingClientRect();
-	return orientation === 'horizontal' ? event.clientX > rect.left + rect.width / 2 : event.clientY > rect.top + rect.height / 2;
+	return event.clientY > rect.top + rect.height / 2;
 };
 
 const refOf = ({ group, id, index, parentId }: SortableEntry): TreeRef => ({ group, id, index, parentId });
@@ -106,6 +98,14 @@ const createSortable = (options: RefObject<TreeSortable | undefined>): SortableC
 		doc.addEventListener('mouseup', onMouseUp);
 		releaseMouseUp = () => doc.removeEventListener('mouseup', onMouseUp);
 		set({ armed: key });
+	};
+
+	// The innermost item around the press; a press in a portalled popup has none.
+	const ownerOf = (target: Element) => {
+		for (let element: Element | null = target; element; element = element.parentElement) {
+			for (const [key, entry] of entries) if (entry.element === element) return key;
+		}
+		return null;
 	};
 
 	// `refuse`: the drop would land on or inside the dragged item, whatever `canDrop` says (a move into
@@ -197,9 +197,10 @@ const createSortable = (options: RefObject<TreeSortable | undefined>): SortableC
 			};
 		},
 		getState: () => state,
-		armProps: (key, anywhere) => ({
+		armProps: key => ({
 			onMouseDown: event => {
-				if (anywhere && isTextTarget(event.target, event.currentTarget)) return;
+				const target = event.target as Element;
+				if (ownerOf(target) !== key || target.closest(TEXT_FIELDS)) return;
 				arm(key, event.currentTarget.ownerDocument);
 			},
 		}),

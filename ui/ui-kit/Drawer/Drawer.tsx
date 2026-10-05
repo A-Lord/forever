@@ -13,9 +13,6 @@ export interface DrawerProps {
 	onOpenChange?: (open: boolean) => void;
 	ignoreOutsidePress?: (event: Event) => boolean;
 	modal?: boolean;
-	title?: ReactNode;
-	/** Content beside the title, inside the header bar. */
-	headerChildren?: ReactNode;
 	/** Pins the drawer to that edge of the viewport as a sheet the kit paints, and a swipe toward the edge closes it. Without a side the caller places and paints the popup. */
 	side?: DrawerSide;
 	/** On the popup, which carries position and fade but no paint of its own: the caller's class places and paints it. */
@@ -26,20 +23,7 @@ export interface DrawerProps {
 	testId?: string;
 }
 
-export const Drawer = ({
-	trigger,
-	open,
-	onOpenChange,
-	ignoreOutsidePress,
-	modal = true,
-	title,
-	headerChildren,
-	side,
-	className,
-	style,
-	children,
-	testId,
-}: DrawerProps) => {
+export const Drawer = ({ trigger, open, onOpenChange, ignoreOutsidePress, modal = true, side, className, style, children, testId }: DrawerProps) => {
 	const portalContainer = usePortalContainer();
 	return (
 		<BaseDrawer.Root
@@ -57,16 +41,6 @@ export const Drawer = ({
 			<BaseDrawer.Portal container={portalContainer ?? undefined}>
 				<BaseDrawer.Viewport className="contents">
 					<BaseDrawer.Popup className={clsx('ui-drawer', className)} style={style} data-side={side} data-testid={testId ?? 'sim-drawer-popup'}>
-						{(title != null || headerChildren != null) && (
-							<div className="ui-drawer-header" data-testid="sim-drawer-header">
-								{title != null && (
-									<BaseDrawer.Title className="m-0 text-lg leading-normal" data-testid="sim-drawer-title">
-										{title}
-									</BaseDrawer.Title>
-								)}
-								{headerChildren}
-							</div>
-						)}
 						{children}
 					</BaseDrawer.Popup>
 				</BaseDrawer.Viewport>

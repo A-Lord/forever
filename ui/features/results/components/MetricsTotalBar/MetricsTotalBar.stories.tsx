@@ -24,8 +24,6 @@ export const Physical: Story = {};
 
 export const Fire: Story = { args: { percentage: 30, value: 300_000, spellSchool: SpellSchool.SpellSchoolFire } };
 
-export const ClassColour: Story = { args: { spellSchool: null, classColor: 'Warrior' } };
-
 export const WithShieldOverlay: Story = { args: { spellSchool: SpellSchool.SpellSchoolHoly, overlayValue: 200_000 } };
 
 export const NoSchool: Story = { args: { spellSchool: null, percentage: 5, value: 50_000 } };

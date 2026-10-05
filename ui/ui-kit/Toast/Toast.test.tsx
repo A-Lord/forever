@@ -76,13 +76,13 @@ describe('Toast', () => {
 
 	it('gives a second area its own manager and keeps the two apart', () => {
 		const noticeManager = createToastManager();
-		const host = document.createElement('div');
-		document.body.appendChild(host);
 
 		render(
 			<>
 				<ToastArea manager={toastManager} />
-				<ToastArea manager={noticeManager} container={host} inline />
+				<div data-testid="notice-host">
+					<ToastArea manager={noticeManager} inline />
+				</div>
 			</>,
 		);
 		act(() => {
@@ -91,17 +91,15 @@ describe('Toast', () => {
 		});
 
 		const standard = standardViewport();
-		const notice = within(host).getByTestId('sim-toast-viewport');
+		const notice = within(screen.getByTestId('notice-host')).getByTestId('sim-toast-viewport');
 
 		expect(within(standard).getByText('standard body')).toBeTruthy();
 		expect(within(standard).queryByText('notice body')).toBeNull();
 		expect(within(notice).getByText('notice body')).toBeTruthy();
 		expect(within(notice).queryByText('standard body')).toBeNull();
-
-		host.remove();
 	});
 
-	it('renders an inline area with no container in place, not through a portal, and shows and closes its toasts there', async () => {
+	it('renders an inline area in place, not through a portal, and shows and closes its toasts there', async () => {
 		const manager = createToastManager();
 		const { container } = render(
 			<div data-testid="toast-host">
@@ -183,10 +181,8 @@ describe('Toast', () => {
 	// to take the toasts with it, for any caller whose cleanup runs from a ref callback.
 	it('removes its toasts from the document when the area unmounts', () => {
 		const manager = createToastManager();
-		const host = document.createElement('div');
-		document.body.appendChild(host);
 
-		const { unmount } = render(<ToastArea manager={manager} container={host} inline />);
+		const { unmount } = render(<ToastArea manager={manager} />);
 		act(() => {
 			manager.add({ variant: 'warning', body: 'orphan', autohide: false });
 		});
@@ -196,8 +192,6 @@ describe('Toast', () => {
 
 		expect(screen.queryAllByTestId('sim-toast')).toHaveLength(0);
 		expect(screen.queryAllByTestId('sim-toast-viewport')).toHaveLength(0);
-		expect(host.childElementCount).toBe(0);
-
-		host.remove();
+		expect(screen.queryAllByTestId('sim-toast-portal')).toHaveLength(0);
 	});
 });
