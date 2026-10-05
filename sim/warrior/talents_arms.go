@@ -147,8 +147,8 @@ func (warrior *Warrior) registerDeepWounds() {
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		spell.CalcAndDealOutcome(sim, target, spell.OutcomeAlwaysHitNoHitCounter)
 		dot := spell.Dot(target)
-		// One application is the share of the main hand's average weapon damage, without Attack Power.
-		// TODO: Ingame test needed -- whether an off-hand crit scales off the off-hand weapon instead.
+		// One application is the share of the main hand's average weapon damage, without Attack Power,
+		// whichever hand crit.
 		totalDamage := dot.OutstandingDmg() + warrior.AutoAttacks.MH().AverageDamage()*share
 
 		if dot.IsActive() {
