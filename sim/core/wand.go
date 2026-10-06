@@ -89,10 +89,12 @@ func (wand *Wand) Start(sim *Simulation, target *Unit) {
 	dot := wand.shoot.Dot(target)
 	dot.BaseTickLength = max(sim.GetRemainingDuration(), firstShotAt-sim.CurrentTime+wand.interval)
 	dot.Apply(sim)
-	dot.tickAction.Cancel(sim)
-	dot.tickAction.NextActionAt = NeverExpires
+	dot.stopTicking(sim)
 
-	wand.slot = &PendingAction{NextActionAt: firstShotAt, OnAction: wand.fire}
+	if wand.slot == nil {
+		wand.slot = &PendingAction{OnAction: wand.fire}
+	}
+	wand.slot.NextActionAt = firstShotAt
 	sim.AddPendingAction(wand.slot)
 }
 
@@ -124,9 +126,9 @@ func (wand *Wand) fire(sim *Simulation) {
 }
 
 // Whether the rotation takes the slot: interruptIf holds and the rotation, with Shoot ended, would do
-// something other than Shoot. With nothing else ready Shoot keeps shooting. Inside a controlling action
-// (a strict sequence Shoot started) the slot always goes to it, since asking it for its next action
-// moves it on.
+// something other than Shoot. With nothing else ready Shoot keeps shooting. Inside a strict sequence
+// (which Shoot started) the slot goes to its current subaction once that is ready, read without asking
+// the sequence for its next action, which moves it on; any other controlling action takes the slot.
 func (wand *Wand) slotTaken(sim *Simulation) bool {
 	rot := wand.unit.Rotation
 	rot.evalGeneration++
@@ -134,7 +136,12 @@ func (wand *Wand) slotTaken(sim *Simulation) bool {
 		return false
 	}
 	if len(rot.controllingActions) != 0 {
-		return true
+		sequence, ok := rot.controllingActions[len(rot.controllingActions)-1].(*APLActionStrictSequence)
+		if !ok {
+			return true
+		}
+		next := sequence.subactions[sequence.curIdx]
+		return next.IsReady(sim) && !wand.isShootAction(next)
 	}
 
 	dot := wand.unit.ChanneledDot

@@ -25,6 +25,10 @@ func (unit *Unit) newHardcastAction(sim *Simulation) {
 					if hc.OnComplete != nil {
 						hc.OnComplete(sim, hc.Target)
 					}
+					unit.rotationCast = nil
+					if unit.Rotation != nil {
+						unit.Rotation.channelAction = nil
+					}
 				}
 			},
 		}
@@ -108,7 +112,7 @@ func (unit *Unit) CancelGCDTimer(sim *Simulation) {
 func (unit *Unit) Interrupt(sim *Simulation) {
 	if unit.IsChanneling() {
 		dot := unit.ChanneledDot
-		dot.tickAction.NextActionAt = NeverExpires // don't tick again in ApplyOnExpire
+		dot.stopTicking(sim)
 		dot.Deactivate(sim)
 	}
 

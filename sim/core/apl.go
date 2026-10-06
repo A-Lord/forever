@@ -433,7 +433,7 @@ func (apl *APLRotation) DoNextAction(sim *Simulation) {
 		// Also evaluate interruptIf when the GCD fires, not only on each tick.
 		if apl.shouldInterruptChannel(sim) {
 			clipDelay := dot.getChannelClipDelay()
-			dot.tickAction.NextActionAt = NeverExpires
+			dot.stopTicking(sim)
 			dot.Deactivate(sim)
 			if dot.Spell.Unit.GCD.IsReady(sim) {
 				apl.unit.WaitUntil(sim, sim.CurrentTime+clipDelay)
@@ -603,7 +603,8 @@ func (apl *APLRotation) shouldInterruptChannel(sim *Simulation) bool {
 }
 
 // A starting channel takes the condition of the channel action that cast it; its dot may sit on the
-// action spell's RelatedDotSpell.
+// action spell's RelatedDotSpell. It takes the action's interruptIf only if it starts inside the cast,
+// with no travel delay before its dot applies.
 func (apl *APLRotation) adoptChannelAction(dot *Dot) {
 	action := apl.channelAction
 	if action == nil || (dot.Spell != action.spell && dot.Spell != action.spell.RelatedDotSpell) {

@@ -582,6 +582,34 @@ func TestWandAutorepeatChannel(t *testing.T) {
 		}
 	})
 
+	t.Run("Shoot inside a strict sequence shoots until the next subaction is ready", func(t *testing.T) {
+		for _, c := range []struct {
+			name         string
+			nukeReadyAt  time.Duration
+			shots, ended []time.Duration
+			nukeCasts    []time.Duration
+		}{
+			{"next subaction on cooldown", time.Minute, seconds(0.5, 2.5, 4.5), nil, nil},
+			{"next subaction ready at 3 s", 3 * time.Second, seconds(0.5, 2.5), seconds(4.5), seconds(4.5)},
+		} {
+			var nukeAt []time.Duration
+			config := nukeConfig(&nukeAt)
+			config.Cast.CD = Cooldown{Duration: time.Minute}
+			ct, nuke := newSpellShootTest(config)
+			nuke.CD.Set(c.nukeReadyAt)
+			sequence := &APLActionStrictSequence{unit: &ct.fw.Unit, subactions: []*APLAction{
+				{impl: ct.channelOf(ct.spell, "true", false)},
+				{impl: ct.castOf(nuke)},
+			}}
+			ct.start(sequence)
+
+			ct.runUntil(4501 * time.Millisecond)
+			if !slices.Equal(ct.ticks, c.shots) || !slices.Equal(ct.channelEnd, c.ended) || !slices.Equal(nukeAt, c.nukeCasts) {
+				t.Fatalf("%s: shots at %v, Shoot ended at %v, nuke cast at %v, want %v, %v, %v", c.name, ct.ticks, ct.channelEnd, nukeAt, c.shots, c.ended, c.nukeCasts)
+			}
+		}
+	})
+
 	t.Run("a spell queueable at the slot takes it", func(t *testing.T) {
 		var nukeAt []time.Duration
 		ct, nuke := newSpellShootTest(nukeConfig(&nukeAt))
@@ -632,6 +660,28 @@ func TestWandAutorepeatChannel(t *testing.T) {
 			if !slices.Equal(ct.ticks, seconds(3)) || !slices.Equal(ct.channelEnd, seconds(3)) {
 				t.Fatalf("failed %t: the cast Shoot should fire its one shot a wand speed after the hardcast and end, shots at %v, ended at %v", failed, ct.ticks, ct.channelEnd)
 			}
+		}
+	})
+
+	t.Run("a rotation hardcast that fails at completion leaves no cast for a proc of the spell to complete", func(t *testing.T) {
+		var castAt []time.Duration
+		hardcast := recordedSpellConfig(910123, &castAt)
+		hardcast.Cast = CastConfig{DefaultCast: Cast{GCD: GCDDefault, CastTime: time.Second}}
+		ct, spell := newSpellShootTest(hardcast)
+		ct.start(&timedStubAction{readyAt: time.Minute})
+		ct.runUntil(0)
+		ct.castOf(spell).Execute(ct.sim)
+		ct.runUntil(500 * time.Millisecond)
+		ct.fw.PseudoStats.Incapacitated = true
+		ct.runUntil(time.Second)
+		ct.fw.PseudoStats.Incapacitated = false
+		if len(castAt) != 0 {
+			t.Fatalf("the hardcast should fail when it completes, effects applied at %v", castAt)
+		}
+
+		spell.applyEffects(ct.sim, ct.fw.CurrentTarget)
+		if len(castAt) != 1 || ct.fw.Wand.timerAt != -NeverExpires {
+			t.Fatalf("a proc cast of the spell should leave the wand timer alone, effects at %v, timer at %v", castAt, ct.fw.Wand.timerAt)
 		}
 	})
 

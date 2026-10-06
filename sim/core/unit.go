@@ -206,7 +206,7 @@ type Unit struct {
 	// Data about the most recently queued spell, otherwise nil.
 	QueuedSpell *QueuedSpell
 
-	// The spell the rotation or a major cooldown is casting, until its effects apply; procs never set it.
+	// The spell the rotation or a major cooldown is casting, until its effects apply or its hardcast ends, completed or not; procs never set it.
 	rotationCast *Spell
 
 	// Used for reacting to mastery stat changes

@@ -264,6 +264,12 @@ func (dot *Dot) TickOnce(sim *Simulation) {
 	}
 }
 
+// Stops the dot ticking: the aura's expiry then applies no last tick.
+func (dot *Dot) stopTicking(sim *Simulation) {
+	dot.tickAction.Cancel(sim)
+	dot.tickAction.NextActionAt = NeverExpires
+}
+
 func (dot *Dot) periodicTick(sim *Simulation) {
 	dot.remainingTicks--
 	dot.TickOnce(sim)
@@ -283,7 +289,7 @@ func (dot *Dot) periodicTick(sim *Simulation) {
 				(dot.Spell.Unit.GCD.IsReady(sim) || dot.Spell.Unit.GCD.TimeToReady(sim) > MaxSpellQueueWindow) {
 				// Skip interrupts that are purely SQW-triggered (GCD within queue window but not
 				// actually ready). Those are handled by the rotation action at actual GCD time.
-				dot.tickAction.NextActionAt = NeverExpires // don't tick again in ApplyOnExpire
+				dot.stopTicking(sim)
 				dot.Deactivate(sim)
 				if dot.Spell.Unit.GCD.IsReady(sim) {
 					dot.Spell.Unit.WaitUntil(sim, sim.CurrentTime+channelDelay)
