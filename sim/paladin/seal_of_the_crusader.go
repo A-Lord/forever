@@ -46,7 +46,7 @@ func (paladin *Paladin) registerSealOfTheCrusader(_ int32, rank *spelldata.Spell
 	speed := 1 + rank.Effect(dbcenums.A_MOD_ATTACKSPEED, 0).Percent()
 
 	aura := paladin.makeSealExclusive(paladin.RegisterAura(core.Aura{
-		Label:    sealLabel("Seal of the Crusader", paladin, rank),
+		Label:    rank.RankedLabel(&paladin.Unit),
 		ActionID: core.ActionID{SpellID: rank.ID},
 		Duration: sealDuration,
 	}).

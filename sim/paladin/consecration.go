@@ -1,8 +1,6 @@
 package paladin
 
 import (
-	"fmt"
-
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/spelldata"
@@ -52,7 +50,7 @@ func (paladin *Paladin) registerConsecration(n int32, rank *spelldata.Spell) {
 		IsAOE: true,
 		Aura: core.Aura{
 			ActionID: core.ActionID{SpellID: rank.ID},
-			Label:    fmt.Sprintf("Consecration%s Rank %d", paladin.Label, rank.RankNumber()),
+			Label:    rank.RankedLabel(&paladin.Unit),
 		},
 		NumberOfTicks:    numberOfTicks - 1, // the sim adds an immediate tick below
 		TickLength:       tickLength,
