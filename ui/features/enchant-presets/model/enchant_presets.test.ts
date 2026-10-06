@@ -2,9 +2,8 @@ import { BulkEnchantSlotOptions } from '@generated/proto/api';
 import { ItemSlot } from '@generated/proto/common';
 import { BulkEnchantPreset, UIEnchant } from '@generated/proto/ui';
 import type { Player } from '@sim/player/player';
-import { PlayerSpecs } from '@sim/player/specs';
-import { bulkState, loadStoredEnchantPresets, seedBulkSettings } from '@sim/settings/bulk_settings';
-import { createSimStore } from '@sim/state/sim_store';
+import { bulkState, loadStoredEnchantPresets } from '@sim/settings/bulk_settings';
+import { makeBulkPlayer } from '@testing/sim/bulk_player';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { deleteEnchantPreset, enchantPresetPool, saveEnchantPreset, setEnchantPresetChecked, validateEnchantPresetName } from './enchant_presets';
@@ -27,26 +26,9 @@ const preset = (name: string, slots: Array<[ItemSlot, number[]]>) => ({
 });
 
 let player: Player<any>;
-let stored: Map<string, string>;
 
 beforeEach(() => {
-	stored = new Map();
-	player = {
-		storeKey: 0,
-		sim: {
-			store: createSimStore(),
-			env: {
-				storage: {
-					getItem: (key: string) => stored.get(key) ?? null,
-					setItem: (key: string, value: string) => stored.set(key, value),
-					removeItem: (key: string) => stored.delete(key),
-				},
-			},
-		},
-		getPlayerSpec: () => PlayerSpecs.DpsWarrior,
-		getEnchants: (slot: ItemSlot) => (USABLE.get(slot) ?? []).map(effectId => UIEnchant.create({ effectId })),
-	} as unknown as Player<any>;
-	seedBulkSettings(player);
+	player = makeBulkPlayer({ getEnchants: (slot: ItemSlot) => (USABLE.get(slot) ?? []).map(effectId => UIEnchant.create({ effectId })) });
 });
 
 const saveChecked = (...presets: Array<ReturnType<typeof preset>>) =>
