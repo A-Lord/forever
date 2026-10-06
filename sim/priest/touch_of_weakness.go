@@ -13,7 +13,7 @@ func (priest *Priest) registerTouchOfWeakness(rank *spelldata.Spell) {
 	label := rank.Name + " " + rank.Rank
 
 	weakened := priest.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-		aura := target.RegisterAura(spelldata.AuraConfig(strikeRank, spelldata.Label(label)))
+		aura := target.RegisterAura(spelldata.AuraConfig(strikeRank, spelldata.Label(label+" - "+priest.Label)))
 		spelldata.ParseEffects(nil, aura, strikeRank, spelldata.Level(priest.Level))
 		return aura
 	})

@@ -9,7 +9,7 @@ func (priest *Priest) registerShadowfiendSpell() {
 	rank := spellData.Shadowfiend.Highest()
 
 	// The pet's lifetime on the timeline. The pet leaves when this duration runs out, so a mod on the
-	// buff's duration (Incarnate Regalia's two pieces) keeps it longer.
+	// buff's duration keeps it longer.
 	priest.ShadowfiendAura = priest.RegisterAura(spelldata.AuraConfig(rank))
 
 	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Flags(core.SpellFlagAPL))

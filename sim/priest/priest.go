@@ -164,7 +164,6 @@ func RegisterPriest() {
 }
 
 const (
-	PriestSpellFlagNone        int64 = 0
 	PriestSpellDevouringPlague int64 = 1 << iota
 	PriestSpellDevouringPlagueDoT
 	PriestSpellDevouringPlagueHeal
@@ -185,44 +184,13 @@ const (
 	PriestSpellChastise
 	PriestSpellDarkSacrifice
 	PriestSpellPenance
+	PriestSpellDesperatePrayer
 
 	// TODO: Forever abilities the sim does not model yet; see the stub file named for each.
 	PriestSpellConfoundingFlash
 	PriestSpellContingencyPlan
 	PriestSpellDivineGrace
 
-	// Priest Healing Spells for Shadowform (and eventual healing sim?)
-	PriestSpellLesserHeal
-	PriestSpellHeal
-	PriestSpellGreaterHeal
-	PriestSpellFlashHeal
-	PriestSpellBindingHeal
-	PriestSpellDesperatePrayer
-	PriestSpellPrayerOfHealing
-	PriestSpellPrayerOfMending
-	PriestSpellRenew
-	PriestSpellLightwell
-	PriestSpellPowerWordShield
-
-	PriestSpellCureDisease
-	PriestSpellAbolishDisease
-	PriestSpellDispelMagic
-	PriestSpellFearWard
-
-	PriestSpellLast
-	PriestSpellsAll    = PriestSpellLast<<1 - 1
-	PriestSpellDoT     = PriestSpellDevouringPlague | PriestSpellHolyFire | PriestSpellMindFlay | PriestSpellShadowWordPain | PriestSpellStarshards
-	PriestSpellInstant = PriestSpellDevouringPlague |
-		PriestSpellFade |
-		PriestSpellHolyNova |
-		PriestSpellPowerInfusion |
-		PriestSpellShadowWordDeath |
-		PriestSpellShadowWordPain |
-		PriestSpellVampiricEmbrace |
-		PriestSpellShadowFiend |
-		PriestSpellStarshards |
-		PriestSpellShadowform |
-		PriestSpellPowerInfusion
 	PriestShadowSpells = PriestSpellDevouringPlague |
 		PriestSpellShadowWordDeath |
 		PriestSpellShadowform |
@@ -231,22 +199,4 @@ const (
 		PriestSpellMindBlast |
 		PriestSpellShadowFiend |
 		PriestSpellVampiricEmbrace
-	PriestHolySpells    = PriestSpellSmite | PriestSpellHolyFire | PriestSpellHolyNova
-	PriestHealingSpells = PriestSpellLesserHeal |
-		PriestSpellHeal |
-		PriestSpellGreaterHeal |
-		PriestSpellFlashHeal |
-		PriestSpellBindingHeal |
-		PriestSpellDesperatePrayer |
-		PriestSpellPrayerOfHealing |
-		PriestSpellPrayerOfMending |
-		PriestSpellPenance |
-		PriestSpellPowerWordShield |
-		PriestSpellRenew |
-		PriestSpellLightwell |
-		PriestSpellPowerWordShield |
-		PriestSpellCureDisease |
-		PriestSpellAbolishDisease |
-		PriestSpellDispelMagic |
-		PriestSpellFearWard
 )
