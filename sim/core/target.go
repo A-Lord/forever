@@ -471,9 +471,10 @@ func newAttackTableHand(attacker *Unit, defender *Unit, weapon *Item) AttackTabl
 	skillDiff := float64(levelDiff*5) - bonus
 	// Parry, glance chance and crit suppression count skill only up to the level-based maximum.
 	baseSkillDiff := float64(levelDiff*5) - min(bonus, 0)
-	// The level difference is (target level × 5 − skill) / 5 truncated toward zero, so 5 points of skill
-	// short of the level-based maximum count as one more target level and 5 above it as one less.
-	skillLevelDiff := int32(float64(defender.Level-attacker.Level) - bonus/5)
+	// The spell table's level difference, capped at +3, less skill above the level-based maximum / 5,
+	// truncated toward zero, so 5 points of skill short of the maximum count as one more target level and
+	// 5 above it as one less.
+	skillLevelDiff := int32(float64(levelDiff) - bonus/5)
 
 	hand := AttackTableHand{
 		BaseDodgeChance:     0.05 + skillDiff*0.001,

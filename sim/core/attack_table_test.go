@@ -180,8 +180,9 @@ func TestWeaponSkillAboveTheTargetsDefenseLowersItsBlock(t *testing.T) {
 	}
 }
 
-// The wand hand's spell miss is the spell table's at a level difference of (target level × 5 − wand skill) / 5,
-// truncated toward zero over the whole expression, so 303 skill against a level 61 target is +0.
+// The wand hand's spell miss is the spell table's at a level difference of (capped level difference × 5 −
+// wand skill above the maximum) / 5, truncated toward zero over the whole expression. The level difference
+// is capped at +3 like a spell's, so 303 skill against a level 61 target is +0 and 310 against level 65 is +1.
 func TestWandSkillSetsTheRangedHandsSpellMiss(t *testing.T) {
 	wand := &Item{RangedWeaponType: proto.RangedWeaponType_RangedWeaponTypeWand}
 	for _, tc := range []struct {
@@ -198,8 +199,8 @@ func TestWandSkillSetsTheRangedHandsSpellMiss(t *testing.T) {
 		{275, 60, 0.17},
 		{305, 63, 0.06},
 		{310, 60, 0.04},
-		{310, 65, 0.17},
-		{315, 65, 0.06},
+		{310, 65, 0.05},
+		{315, 65, 0.04},
 		{303, 61, 0.04},
 		{303, 62, 0.05},
 		{308, 62, 0.04},
