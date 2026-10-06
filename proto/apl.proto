@@ -124,7 +124,6 @@ message APLValue {
         APLValueIsExecutePhase is_execute_phase = 41;
         APLValueNumberTargets number_targets = 28;
         APLValueEncounterInArea encounter_in_area = 134;
-        APLValueIsWanding is_wanding = 135;
 
         // Boss values
         APLValueBossSpellTimeToReady boss_spell_time_to_ready = 64;
@@ -164,6 +163,7 @@ message APLValue {
 		APLValueAutoSwingTime auto_swing_time = 125;
         APLValueAutoTimeToNext auto_time_to_next = 40;
         APLValueAutoTimeSinceLast auto_time_since_last = 126;
+        APLValueIsWanding is_wanding = 135;
 
         // Spell values
         APLValueSpellIsKnown spell_is_known = 74;

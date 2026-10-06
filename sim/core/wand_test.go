@@ -291,17 +291,17 @@ func TestValueWand(t *testing.T) {
 	t.Run("mid channel", func(t *testing.T) {
 		ct := newShootTest()
 		ct.start(ct.channelAction())
-		ct.runUntil(3 * time.Second)
-		if got, want := read(ct), (reads{2 * time.Second, time.Second, time.Second, true}); got != want {
-			t.Fatalf("at 3 s into a Shoot channel the wand values read %+v, want %+v", got, want)
+		ct.runUntil(3500 * time.Millisecond)
+		if got, want := read(ct), (reads{2 * time.Second, 500 * time.Millisecond, 1500 * time.Millisecond, true}); got != want {
+			t.Fatalf("at 3.5 s into a Shoot channel the wand values read %+v, want %+v", got, want)
 		}
 	})
 
 	t.Run("before any cast", func(t *testing.T) {
 		ct := newShootTest()
 		ct.start()
-		if got := read(ct); got.toNext != 0 || got.wanding {
-			t.Fatalf("before any cast the wand reads %+v, want no wait and not wanding", got)
+		if got := read(ct); got != (reads{swing: 2 * time.Second}) {
+			t.Fatalf("before any cast the wand reads %+v, want only the 2 s swing time", got)
 		}
 	})
 
