@@ -38,15 +38,16 @@ func (c *wandCaster) Initialize() {
 	c.shoot = RegisterShoot(&c.Character)
 }
 
-// A priest with the given ranged slot and rotation, at the given distance, with its spells certain to
-// hit and never to crit.
+// A priest with the given ranged slot and rotation, at the given distance from a level 60 target, with
+// its spells and shots certain to hit and never to crit.
 func newWandSim(t *testing.T, ranged *proto.ItemSpec, rotation *proto.APLRotation, distance float64) (*core.Simulation, *wandCaster) {
 	t.Helper()
-	return newSwapWandSim(t, ranged, nil, rotation, distance)
+	return newSwapWandSim(t, ranged, nil, rotation, distance, 60)
 }
 
-// newWandSim with a swap set that holds the given ranged slot, when it is not nil.
-func newSwapWandSim(t *testing.T, ranged, swapped *proto.ItemSpec, rotation *proto.APLRotation, distance float64) (*core.Simulation, *wandCaster) {
+// newWandSim with a swap set that holds the given ranged slot, when it is not nil, and a target of the
+// given level.
+func newSwapWandSim(t *testing.T, ranged, swapped *proto.ItemSpec, rotation *proto.APLRotation, distance float64, targetLevel int32) (*core.Simulation, *wandCaster) {
 	t.Helper()
 	items := make([]*proto.ItemSpec, proto.ItemSlot_ItemSlotRanged+1)
 	for i := range items {
@@ -80,7 +81,7 @@ func newSwapWandSim(t *testing.T, ranged, swapped *proto.ItemSpec, rotation *pro
 			Buffs: &proto.PartyBuffs{},
 		}}},
 		Encounter: &proto.Encounter{
-			Targets:  []*proto.Target{{Name: "target", Level: 60, MobType: proto.MobType_MobTypeDemon}},
+			Targets:  []*proto.Target{{Name: "target", Level: targetLevel, MobType: proto.MobType_MobTypeDemon}},
 			Duration: 600,
 		},
 	}, simsignals.CreateSignals())
@@ -89,7 +90,8 @@ func newSwapWandSim(t *testing.T, ranged, swapped *proto.ItemSpec, rotation *pro
 	caster := sim.Raid.Parties[0].Players[0].(*wandCaster)
 	caster.AddStatsDynamic(sim, stats.Stats{
 		stats.SpellHitPercent:     100,
-		stats.SpellCritPercent:    -caster.GetStat(stats.SpellCritPercent),
+		stats.PhysicalHitPercent:  100,
+		stats.SpellCritPercent:   -caster.GetStat(stats.SpellCritPercent),
 		stats.PhysicalCritPercent: -caster.GetStat(stats.PhysicalCritPercent),
 		stats.RangedCritPercent:   -caster.GetStat(stats.RangedCritPercent),
 	})
@@ -191,21 +193,36 @@ func TestWandShoot(t *testing.T) {
 		}
 	})
 
-	t.Run("a shot misses on spell hit, not on physical hit", func(t *testing.T) {
+	t.Run("a shot misses on the ranged hit table, not on spell hit", func(t *testing.T) {
 		sim, caster := newSableWandSim(t)
-		caster.AddStatsDynamic(sim, stats.Stats{stats.SpellHitPercent: -200, stats.PhysicalHitPercent: 100, stats.RangedHitPercent: 100})
+		caster.AddStatsDynamic(sim, stats.Stats{stats.SpellHitPercent: -300})
 		shots(t, sim, caster, 50)
 		metrics := caster.shoot.SpellMetrics[sim.Encounter.ActiveTargetUnits[0].UnitIndex]
-		if metrics.Misses != 50 {
-			t.Fatalf("with no spell hit chance and full physical hit Shoot missed %d of 50 shots, want all", metrics.Misses)
+		if metrics.Misses != 0 {
+			t.Errorf("with no spell hit chance and full physical hit Shoot missed %d of 50 shots, want none", metrics.Misses)
 		}
 
-		sim, caster = newSableWandSim(t)
-		caster.AddStatsDynamic(sim, stats.Stats{stats.PhysicalHitPercent: -100, stats.RangedHitPercent: -100})
-		shots(t, sim, caster, 50)
+		// Against a target 3 levels up, the ranged hand misses 8% with no hit.
+		sim, caster = newSwapWandSim(t, &proto.ItemSpec{Id: sableWandID}, nil, &proto.APLRotation{}, 0, 63)
+		caster.AddStatsDynamic(sim, stats.Stats{stats.PhysicalHitPercent: -100})
+		shots(t, sim, caster, 300)
 		metrics = caster.shoot.SpellMetrics[sim.Encounter.ActiveTargetUnits[0].UnitIndex]
-		if metrics.Misses != 0 {
-			t.Fatalf("with certain spell hit and no physical hit Shoot missed %d of 50 shots, want none", metrics.Misses)
+		if metrics.Misses < 12 || metrics.Misses > 36 {
+			t.Errorf("with certain spell hit and no physical hit Shoot missed %d of 300 shots on a level 63 target, want about 24", metrics.Misses)
+		}
+	})
+
+	t.Run("a shot is never dodged, parried or blocked", func(t *testing.T) {
+		sim, caster := newSableWandSim(t)
+		target := sim.Encounter.ActiveTargetUnits[0]
+		target.PseudoStats.BaseDodgeChance = 1
+		target.PseudoStats.BaseParryChance = 1
+		target.PseudoStats.BaseBlockChance = 1
+		caster.PseudoStats.InFrontOfTarget = true
+		shots(t, sim, caster, 50)
+		metrics := caster.shoot.SpellMetrics[target.UnitIndex]
+		if metrics.Dodges != 0 || metrics.Parries != 0 || metrics.Blocks != 0 || metrics.BlockedCrits != 0 || landed(&metrics) != 50 {
+			t.Fatalf("in front of a target certain to dodge, parry and block Shoot landed %d of 50 shots, %d dodged, %d parried, %d blocked, want all landed", landed(&metrics), metrics.Dodges, metrics.Parries, metrics.Blocks+metrics.BlockedCrits)
 		}
 	})
 
@@ -334,7 +351,7 @@ func TestWandShootReadsEquippedWand(t *testing.T) {
 	// Swaps the second ranged slot in and casts Shoot once, then checks the shot against the wand now equipped.
 	checkSwappedShoot := func(t *testing.T, ranged, swapped *proto.ItemSpec, school core.SpellSchool, speed time.Duration) {
 		t.Helper()
-		sim, caster := newSwapWandSim(t, ranged, swapped, &proto.APLRotation{}, 0)
+		sim, caster := newSwapWandSim(t, ranged, swapped, &proto.APLRotation{}, 0, 60)
 		caster.ItemSwap.SwapItems(sim, proto.APLActionItemSwap_Swap1, false)
 		wand := caster.WeaponFromRanged()
 		target := sim.Encounter.ActiveTargetUnits[0]
