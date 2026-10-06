@@ -163,8 +163,6 @@ export class SimHostObject<SpecType extends Spec> implements IndividualSimHost<S
 			this.reforger = createReforgeOptimizer(this.sim, this.player, {
 				...this.reforgeOptions,
 				defaults: this.individualConfig.defaults,
-				// Omitting this leaves the solver un-weighted, and the ep-stats probe is the only
-				// thing that notices.
 				epStats: this.individualConfig.epStats,
 			});
 			this.sidebar.add({

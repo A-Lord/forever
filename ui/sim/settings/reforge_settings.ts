@@ -21,9 +21,8 @@ export interface ReforgeSettingsDefaults {
 
 export class ReforgeSettings {
 	private readonly defaults: ReforgeSettingsDefaults;
-	// The stats this spec is willing to optimize for. Specs list stats they weight at 0 (Stamina,
-	// spell penetration) so options carrying them stay selectable, which is why it cannot be
-	// derived from the pre-cap EPs.
+	// Written into the proto's ep_stats; neither the optimizer nor the enchant options read them,
+	// and the cache key leaves them out.
 	private readonly epStats: ReadonlyArray<Stat>;
 	readonly store: SimStore;
 	readonly storeKey: number;

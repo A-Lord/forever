@@ -10,7 +10,7 @@ import { makeEquippedItem } from '@testing/storybook/fixtures/gear';
 import { makeUIEnchant } from '@testing/storybook/fixtures/protos';
 import { describe, expect, it, vi } from 'vitest';
 
-import { buildEnchantOptions, skippedEnchantSlots } from './enchant_options';
+import { buildEnchantOptions, classifyEnchantSlots, skippedEnchantSlots } from './enchant_options';
 
 vi.mock('@sim/constants/missing_effects_auto_gen', () => ({
 	MISSING_ITEM_EFFECTS: new Map(),
@@ -66,10 +66,10 @@ const makePresetPlayer = (checked: Record<string, PresetSlots>, { enchants = ALL
 	return player;
 };
 
-const optimize = (player: Player<any>, gear: Gear, frozenSlots: ItemSlot[], weights: Stats, presetPool?: BulkEnchantSlotOptions[]) => ({
-	options: buildEnchantOptions(player, gear, frozenSlots, weights, presetPool),
-	skipped: skippedEnchantSlots(player, gear, frozenSlots, presetPool),
-});
+const optimize = (player: Player<any>, gear: Gear, frozenSlots: ItemSlot[], weights: Stats, presetPool?: BulkEnchantSlotOptions[]) => {
+	const slots = classifyEnchantSlots(player, gear, frozenSlots, presetPool);
+	return { options: buildEnchantOptions(slots, weights, !!presetPool), skipped: skippedEnchantSlots(slots) };
+};
 
 const fromPresets = (player: Player<any>, gear: Gear) => optimize(player, gear, [], WEIGHTS, enchantPresetPool(player));
 
