@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/wowsims/forever/sim/core"
-	"github.com/wowsims/forever/sim/core/dbcenums"
 )
 
 // An addition to the resolved aura for what the game files do not state: the label the sim keys the
@@ -69,10 +68,9 @@ func Permanent() AuraOpt {
 // The aura's duration is the row's, which core recomputes from the ticks on every application.
 //
 // A ranked row's dot joins the rank group of its name with the row's rank, so a caster keeps one rank
-// of it on a unit, and its aura carries the ranked name unless an option labels it. A row whose only
-// effect that does something is the periodic is refused at the cast while a higher rank is up; a dummy
-// or script effect does nothing by itself and does not count. A row with any other effect casts, and
-// only its periodic stays off.
+// of it on a unit, and its aura carries the ranked name unless an option labels it. A lower rank's
+// periodic stays off while a higher rank is up; the row's CastRequirement decides whether the cast
+// itself is refused.
 func DotConfig(s *Spell, e *Effect, opts ...AuraOpt) core.DotConfig {
 	if e.PeriodMs <= 0 {
 		panic(fmt.Sprintf("spelldata: effect %d of spell %d (%s) states no tick period",
@@ -94,18 +92,8 @@ func DotConfig(s *Spell, e *Effect, opts ...AuraOpt) core.DotConfig {
 	if rank := s.RankNumber(); rank > 0 {
 		config.RankGroup = s.Name
 		config.Rank = rank
-		config.RankBlocksCast = true
-		for i := range s.Effects {
-			if other := &s.Effects[i]; other.Index != e.Index && !other.isInert() {
-				config.RankBlocksCast = false
-			}
-		}
 	}
 	return config
-}
-
-func (e *Effect) isInert() bool {
-	return e.Type == dbcenums.E_DUMMY || e.Type == dbcenums.E_SCRIPT_EFFECT || e.Aura == dbcenums.A_DUMMY
 }
 
 func PeriodicDamageTick(e *Effect, outcome func(*core.Dot) core.OutcomeApplier) core.OnTick {

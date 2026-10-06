@@ -77,6 +77,17 @@ func newRankSim(t *testing.T, setup func(c *core.Character), names ...string) (*
 	return sim, sim.Encounter.ActiveTargetUnits[0], casters
 }
 
+// One priest registering two ranks through register, against one level 60 target.
+func newRankPair(t *testing.T, register func(c *core.Character, id int32) *core.Spell, id1, id2 int32) (
+	sim *core.Simulation, target *core.Unit, priest *core.Character, rank1, rank2 *core.Spell) {
+	t.Helper()
+	sim, target, casters := newRankSim(t, func(c *core.Character) {
+		rank1 = register(c, id1)
+		rank2 = register(c, id2)
+	}, "Priest")
+	return sim, target, casters[0], rank1, rank2
+}
+
 func stepTo(t *testing.T, sim *core.Simulation, until time.Duration) {
 	t.Helper()
 	sim.AddPendingAction(core.NewDelayedAction(core.DelayedActionOptions{DoAt: until, OnAction: func(*core.Simulation) {}}))
@@ -105,11 +116,7 @@ func registerTargetDot(c *core.Character, id int32) *core.Spell {
 }
 
 func TestDotRankHigherReplacesLower(t *testing.T) {
-	var rank1, rank2 *core.Spell
-	sim, target, _ := newRankSim(t, func(c *core.Character) {
-		rank1 = registerTargetDot(c, shadowWordPain1)
-		rank2 = registerTargetDot(c, shadowWordPain2)
-	}, "Priest")
+	sim, target, _, rank1, rank2 := newRankPair(t, registerTargetDot, shadowWordPain1, shadowWordPain2)
 
 	if !rank1.Cast(sim, target) {
 		t.Fatalf("Shadow Word: Pain Rank 1 could not be cast on a target without it")
@@ -124,45 +131,67 @@ func TestDotRankHigherReplacesLower(t *testing.T) {
 	}
 }
 
-// Shadow Word: Pain's only effect is the periodic, so the lower rank is refused before it spends
-// anything, and the higher rank runs on to its own expiry.
-func TestDotRankLowerPureRankRefusedAtCast(t *testing.T) {
-	var rank1, rank2 *core.Spell
-	sim, target, casters := newRankSim(t, func(c *core.Character) {
-		rank1 = registerTargetDot(c, shadowWordPain1)
-		rank2 = registerTargetDot(c, shadowWordPain2)
-	}, "Priest")
-	priest := casters[0]
+// Shadow Word: Pain's only effect is the periodic, so its lower rank is refused before it spends
+// anything wherever the dot lives; a rank registered with Proc() has no cast requirement and casts,
+// with its periodic skipped. The higher rank runs on to its own expiry either way.
+func TestDotRankLowerPureRankUnderHigher(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		register func(c *core.Character, id int32) *core.Spell
+		refused  bool
+	}{
+		{"own dot", registerTargetDot, true},
+		{"RelatedDotSpell", func(c *core.Character, id int32) *core.Spell {
+			row := spelldata.MustFind(id)
+			dotConfig := spelldata.SpellConfig(&c.Unit, row, spelldata.Proc(), spelldata.Tag(1))
+			dotConfig.Dot = spelldata.DotConfig(row, row.PeriodicDamageEffect())
+			config := spelldata.SpellConfig(&c.Unit, row, spelldata.Magic(core.ProcMaskSpellDamage))
+			config.RelatedDotSpell = c.RegisterSpell(dotConfig)
+			config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+				spell.Dot(target).Apply(sim)
+			}
+			return c.RegisterSpell(config)
+		}, true},
+		{"Proc", func(c *core.Character, id int32) *core.Spell {
+			row := spelldata.MustFind(id)
+			config := spelldata.SpellConfig(&c.Unit, row, spelldata.Proc())
+			config.Dot = spelldata.DotConfig(row, row.PeriodicDamageEffect())
+			config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+				spell.Dot(target).Apply(sim)
+			}
+			return c.RegisterSpell(config)
+		}, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			sim, target, priest, rank1, rank2 := newRankPair(t, tc.register, shadowWordPain1, shadowWordPain2)
 
-	rank2.Cast(sim, target)
-	expiry := rank2.Dot(target).ExpiresAt()
-	stepTo(t, sim, 2*time.Second)
+			rank2.Cast(sim, target)
+			expiry := rank2.Dot(target).ExpiresAt()
+			stepTo(t, sim, 2*time.Second)
 
-	mana := priest.CurrentMana()
-	if rank1.CanCast(sim, target) {
-		t.Errorf("CanCast answered true for Rank 1 while Rank 2 is up")
-	}
-	if rank1.Cast(sim, target) {
-		t.Errorf("Rank 1 was cast while Rank 2 is up")
-	}
-	if priest.CurrentMana() != mana || !priest.GCD.IsReady(sim) {
-		t.Errorf("the refused cast spent %v mana and left the global cooldown ready %v; want none spent and ready",
-			mana-priest.CurrentMana(), priest.GCD.IsReady(sim))
-	}
-	if rank1.Dot(target).IsActive() || rank2.Dot(target).ExpiresAt() != expiry {
-		t.Errorf("Rank 1 up %v, Rank 2 expires at %v; want Rank 1 down and Rank 2 at %v",
-			rank1.Dot(target).IsActive(), rank2.Dot(target).ExpiresAt(), expiry)
+			mana := priest.CurrentMana()
+			if canCast, cast := rank1.CanCast(sim, target), rank1.Cast(sim, target); canCast == tc.refused || cast == tc.refused {
+				t.Errorf("Rank 1 under Rank 2: CanCast %v, Cast %v; want both %v", canCast, cast, !tc.refused)
+			}
+			if priest.CurrentMana() != mana || !priest.GCD.IsReady(sim) {
+				t.Errorf("Rank 1 spent %v mana and left the global cooldown ready %v; want none spent and ready",
+					mana-priest.CurrentMana(), priest.GCD.IsReady(sim))
+			}
+			if casts := rank1.SpellMetrics[target.UnitIndex].Casts; tc.refused && casts != 0 {
+				t.Errorf("the refused Rank 1 counted %d casts, want 0", casts)
+			}
+			if rank1.Dot(target).IsActive() || rank2.Dot(target).ExpiresAt() != expiry {
+				t.Errorf("Rank 1 up %v, Rank 2 expires at %v; want Rank 1 down and Rank 2 at %v",
+					rank1.Dot(target).IsActive(), rank2.Dot(target).ExpiresAt(), expiry)
+			}
+		})
 	}
 }
 
 // Holy Fire also deals direct damage, so the lower rank casts and lands it while the higher rank's
 // periodic stays.
 func TestDotRankLowerMixedRankLandsItsDirectPart(t *testing.T) {
-	var rank1, rank2 *core.Spell
-	sim, target, _ := newRankSim(t, func(c *core.Character) {
-		rank1 = registerTargetDot(c, holyFire1)
-		rank2 = registerTargetDot(c, holyFire2)
-	}, "Priest")
+	sim, target, _, rank1, rank2 := newRankPair(t, registerTargetDot, holyFire1, holyFire2)
 
 	rank2.Cast(sim, target)
 	stepTo(t, sim, rank2.DefaultCast.CastTime+time.Millisecond)
@@ -185,11 +214,7 @@ func TestDotRankLowerMixedRankLandsItsDirectPart(t *testing.T) {
 // Both ranks keep the default label, the ranked name, so the lower rank's aura is its own and a cast
 // of it over itself refreshes.
 func TestDotRankSameRankRefreshes(t *testing.T) {
-	var rank1 *core.Spell
-	sim, target, _ := newRankSim(t, func(c *core.Character) {
-		rank1 = registerTargetDot(c, shadowWordPain1)
-		registerTargetDot(c, shadowWordPain2)
-	}, "Priest")
+	sim, target, _, rank1, _ := newRankPair(t, registerTargetDot, shadowWordPain1, shadowWordPain2)
 
 	rank1.Cast(sim, target)
 	stepTo(t, sim, 6*time.Second)
@@ -203,8 +228,7 @@ func TestDotRankSameRankRefreshes(t *testing.T) {
 
 // A config built by hand leaves the spell's Rank at 0: the group still orders the ranks by the rows.
 func TestDotRankHandBuiltSpellsCompareByRow(t *testing.T) {
-	var rank1, rank2 *core.Spell
-	register := func(c *core.Character, id int32) *core.Spell {
+	sim, target, _, rank1, rank2 := newRankPair(t, func(c *core.Character, id int32) *core.Spell {
 		row := spelldata.MustFind(id)
 		return c.RegisterSpell(core.SpellConfig{
 			ActionID:         core.ActionID{SpellID: id},
@@ -214,71 +238,13 @@ func TestDotRankHandBuiltSpellsCompareByRow(t *testing.T) {
 			ThreatMultiplier: 1,
 			Dot:              spelldata.DotConfig(row, row.PeriodicDamageEffect()),
 		})
-	}
-	sim, target, _ := newRankSim(t, func(c *core.Character) {
-		rank1 = register(c, shadowWordPain1)
-		rank2 = register(c, shadowWordPain2)
-	}, "Priest")
+	}, shadowWordPain1, shadowWordPain2)
 
 	rank2.Dot(target).Apply(sim)
 	rank1.Dot(target).Apply(sim)
 	if rank1.Dot(target).IsActive() || !rank2.Dot(target).IsActive() {
 		t.Errorf("Rank 1 applied over Rank 2: Rank 1 up %v, Rank 2 up %v; want only Rank 2",
 			rank1.Dot(target).IsActive(), rank2.Dot(target).IsActive())
-	}
-}
-
-// A spell whose periodic lives on its RelatedDotSpell is refused at its own cast.
-func TestDotRankRelatedDotSpellRefusesTheCast(t *testing.T) {
-	var rank1, rank2 *core.Spell
-	register := func(c *core.Character, id int32) *core.Spell {
-		row := spelldata.MustFind(id)
-		dotConfig := spelldata.SpellConfig(&c.Unit, row, spelldata.Proc(), spelldata.Tag(1))
-		dotConfig.Dot = spelldata.DotConfig(row, row.PeriodicDamageEffect())
-		config := spelldata.SpellConfig(&c.Unit, row, spelldata.Magic(core.ProcMaskSpellDamage))
-		config.RelatedDotSpell = c.RegisterSpell(dotConfig)
-		config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-			spell.Dot(target).Apply(sim)
-		}
-		return c.RegisterSpell(config)
-	}
-	sim, target, casters := newRankSim(t, func(c *core.Character) {
-		rank1 = register(c, shadowWordPain1)
-		rank2 = register(c, shadowWordPain2)
-	}, "Priest")
-	priest := casters[0]
-
-	rank2.Cast(sim, target)
-	stepTo(t, sim, 2*time.Second)
-	mana := priest.CurrentMana()
-	if rank1.CanCast(sim, target) || rank1.Cast(sim, target) || priest.CurrentMana() != mana {
-		t.Errorf("Rank 1 through its RelatedDotSpell was not refused while Rank 2 is up")
-	}
-}
-
-// Ranks with no cast of their own take the check on every cast path, so CanCast and Cast agree.
-func TestDotRankRanksWithoutACastAreRefused(t *testing.T) {
-	var rank1, rank2 *core.Spell
-	register := func(c *core.Character, id int32) *core.Spell {
-		row := spelldata.MustFind(id)
-		config := spelldata.SpellConfig(&c.Unit, row, spelldata.Proc())
-		config.Dot = spelldata.DotConfig(row, row.PeriodicDamageEffect())
-		config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-			spell.Dot(target).Apply(sim)
-		}
-		return c.RegisterSpell(config)
-	}
-	sim, target, _ := newRankSim(t, func(c *core.Character) {
-		rank1 = register(c, shadowWordPain1)
-		rank2 = register(c, shadowWordPain2)
-	}, "Priest")
-
-	rank2.Cast(sim, target)
-	if rank1.CanCast(sim, target) || rank1.Cast(sim, target) {
-		t.Errorf("Rank 1 with no cast of its own was not refused while Rank 2 is up")
-	}
-	if casts := rank1.SpellMetrics[target.UnitIndex].Casts; casts != 0 {
-		t.Errorf("Rank 1 counted %d casts, want 0", casts)
 	}
 }
 
@@ -301,11 +267,7 @@ func TestDotRankTwoCastersStayApart(t *testing.T) {
 
 // A channel keeps no group: a new channel already ends the one running.
 func TestDotRankChannelsKeepNoGroup(t *testing.T) {
-	var rank1, rank2 *core.Spell
-	sim, target, _ := newRankSim(t, func(c *core.Character) {
-		rank1 = registerTargetDot(c, mindFlay1)
-		rank2 = registerTargetDot(c, mindFlay2)
-	}, "Priest")
+	sim, target, _, rank1, rank2 := newRankPair(t, registerTargetDot, mindFlay1, mindFlay2)
 
 	rank2.Dot(target).Apply(sim)
 	rank1.Dot(target).Apply(sim)
@@ -315,8 +277,7 @@ func TestDotRankChannelsKeepNoGroup(t *testing.T) {
 }
 
 func TestDotRankSelfHotKeepsOneRank(t *testing.T) {
-	var rank1, rank2 *core.Spell
-	register := func(c *core.Character, id int32) *core.Spell {
+	sim, _, caster, rank1, rank2 := newRankPair(t, func(c *core.Character, id int32) *core.Spell {
 		row := spelldata.MustFind(id)
 		config := spelldata.SpellConfig(&c.Unit, row, spelldata.Magic(core.ProcMaskSpellHealing))
 		config.Hot = spelldata.DotConfig(row, row.PeriodicEffect())
@@ -326,12 +287,8 @@ func TestDotRankSelfHotKeepsOneRank(t *testing.T) {
 			spell.SelfHot().Apply(sim)
 		}
 		return c.RegisterSpell(config)
-	}
-	sim, _, casters := newRankSim(t, func(c *core.Character) {
-		rank1 = register(c, renew1)
-		rank2 = register(c, renew2)
-	}, "Priest")
-	priest := &casters[0].Unit
+	}, renew1, renew2)
+	priest := &caster.Unit
 
 	rank1.Cast(sim, priest)
 	stepTo(t, sim, 2*time.Second)
@@ -348,8 +305,7 @@ func TestDotRankSelfHotKeepsOneRank(t *testing.T) {
 
 // One ground effect of an ability per caster: a cast of any rank ends the one down.
 func TestDotRankGroundEffectReplacedByAnyRank(t *testing.T) {
-	var rank1, rank2 *core.Spell
-	register := func(c *core.Character, id int32) *core.Spell {
+	sim, target, _, rank1, rank2 := newRankPair(t, func(c *core.Character, id int32) *core.Spell {
 		row := spelldata.MustFind(id)
 		config := spelldata.SpellConfig(&c.Unit, row, spelldata.Magic(core.ProcMaskSpellDamage))
 		config.Dot = spelldata.DotConfig(row, &row.Effects[1]) // The persistent area aura after the direct damage.
@@ -358,11 +314,7 @@ func TestDotRankGroundEffectReplacedByAnyRank(t *testing.T) {
 			spell.AOEDot().Apply(sim)
 		}
 		return c.RegisterSpell(config)
-	}
-	sim, target, _ := newRankSim(t, func(c *core.Character) {
-		rank1 = register(c, explosiveTrap1)
-		rank2 = register(c, explosiveTrap2)
-	}, "Priest")
+	}, explosiveTrap1, explosiveTrap2)
 
 	rank2.Cast(sim, target)
 	stepTo(t, sim, 2*time.Second)

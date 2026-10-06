@@ -2,7 +2,6 @@ package core
 
 import (
 	"math"
-	"slices"
 	"strconv"
 	"time"
 )
@@ -32,15 +31,15 @@ type DotConfig struct {
 
 	PeriodicDamageMultiplier float64 // Multiplier for periodic damage on top of the spell's damage multiplier
 
-	RankGroup      string // Ranks of one periodic share it: a caster keeps one of them on a unit, channels excepted.
-	Rank           int32  // With RankGroup: this rank's place in it, the higher number winning.
-	RankBlocksCast bool   // With RankGroup: the cast is refused while a higher rank is up, for a row whose only effect besides dummies is the periodic. A ground effect (IsAOE) ignores it.
+	RankGroup string // Ranks of one periodic share it: a caster keeps one of them on a unit, channels excepted.
+	Rank      int32  // With RankGroup: this rank's place in it, the higher number winning. A ground effect (IsAOE) of any rank replaces the one down.
 }
 
-// The dots of one rank group a caster registered, by the UnitIndex of the unit each lives on.
+// The dots of one rank group a caster registered, by the UnitIndex of the unit each lives on, and the
+// highest rank among them.
 type dotRankGroup struct {
-	key  string
-	dots [][]*Dot
+	dots    [][]*Dot
+	maxRank int32
 }
 
 type Dot struct {
@@ -73,10 +72,8 @@ type Dot struct {
 	hasteReducesDuration bool // does not gain additional ticks after a haste threshold, HasteAffectsDuration in dbc
 	isChanneled          bool
 
-	rankGroup      *dotRankGroup
-	rank           int32
-	rankBlocksCast bool
-	groundEffect   bool
+	rankGroup *dotRankGroup
+	rank      int32
 }
 
 // Takes a new snapshot of this Dot's effects.
@@ -107,53 +104,36 @@ func (dot *Dot) Apply(sim *Simulation) {
 }
 
 // A rank does not land while a higher rank from the same caster is up on the unit; otherwise it ends
-// the other ranks there before it starts. A ground effect of any rank ends the one down.
+// the other ranks there before it starts.
 func (dot *Dot) replaceOtherRanks(sim *Simulation) bool {
-	if !dot.groundEffect && dot.higherRankActive() {
+	if dot.higherRankActive() {
 		return false
 	}
 	for _, other := range dot.rankGroup.dots[dot.Unit.UnitIndex] {
-		if other != dot {
-			other.Deactivate(sim)
-		}
+		other.Deactivate(sim)
 	}
 	return true
 }
 
 func (dot *Dot) higherRankActive() bool {
+	if dot.rank >= dot.rankGroup.maxRank {
+		return false
+	}
 	for _, other := range dot.rankGroup.dots[dot.Unit.UnitIndex] {
-		if other != dot && other.IsActive() && other.rank > dot.rank {
+		if other.IsActive() && other.rank > dot.rank {
 			return true
 		}
 	}
 	return false
 }
 
-// The spell whose dots a cast applies: its own, or its RelatedDotSpell's where it has none.
-func (spell *Spell) castDotSpell() *Spell {
-	if spell.dots == nil && spell.aoeDot == nil && spell.RelatedDotSpell != nil {
-		return spell.RelatedDotSpell
-	}
-	return spell
-}
-
-// The target's dot, or the caster's for a self or area periodic.
+// The dot the cast applies is the target's, or the caster's for a self periodic.
 func (spell *Spell) higherRankBlocksCast(target *Unit) bool {
-	dotSpell := spell.castDotSpell()
-	dot := dotSpell.aoeDot
-	if dotSpell.dots != nil && dotSpell.dots[target.UnitIndex] != nil {
-		dot = dotSpell.dots[target.UnitIndex]
+	dot := spell.Dot(target)
+	if dot == nil {
+		dot = spell.aoeDot
 	}
-	return dot != nil && dot.rankBlocksCast && dot.higherRankActive()
-}
-
-// A rank alone never finds a higher one up, so the check can stand from the first rank on.
-func (spell *Spell) castChecksRanks() bool {
-	dotSpell := spell.castDotSpell()
-	if dotSpell.aoeDot != nil && dotSpell.aoeDot.rankBlocksCast {
-		return true
-	}
-	return slices.ContainsFunc(dotSpell.dots, func(dot *Dot) bool { return dot != nil && dot.rankBlocksCast })
+	return dot != nil && dot.rankGroup != nil && dot.higherRankActive()
 }
 
 // Calculates the current tick period the dot would have based on the affects currently present
@@ -489,10 +469,10 @@ func (spell *Spell) createDots(config DotConfig, isHot bool) {
 		if config.Rank <= 0 {
 			panic("dot " + auraConfig.Label + " joins rank group " + config.RankGroup + " without a Rank")
 		}
-		dot.rankGroup = spell.dotRankGroup(caster, config.RankGroup)
-		dot.rank = config.Rank
-		dot.rankBlocksCast = config.RankBlocksCast && !config.IsAOE
-		dot.groundEffect = config.IsAOE
+		dot.rankGroup = caster.dotRankGroup(config.RankGroup)
+		if !config.IsAOE {
+			dot.rank = config.Rank
+		}
 	}
 
 	if config.IsAOE || config.SelfOnly {
@@ -514,19 +494,16 @@ func (spell *Spell) createDots(config DotConfig, isHot bool) {
 	}
 }
 
-// The spell's own dots come first: a spell registering a Dot and a Hot is not in the Spellbook yet.
-func (spell *Spell) dotRankGroup(caster *Unit, key string) *dotRankGroup {
-	for _, registered := range append([]*Spell{spell}, caster.Spellbook...) {
-		if dot := registered.aoeDot; dot != nil && dot.rankGroup != nil && dot.rankGroup.key == key {
-			return dot.rankGroup
-		}
-		for _, dot := range registered.dots {
-			if dot != nil && dot.rankGroup != nil && dot.rankGroup.key == key {
-				return dot.rankGroup
-			}
-		}
+func (unit *Unit) dotRankGroup(key string) *dotRankGroup {
+	if unit.dotRankGroups == nil {
+		unit.dotRankGroups = make(map[string]*dotRankGroup)
 	}
-	return &dotRankGroup{key: key, dots: make([][]*Dot, len(caster.Env.AllUnits))}
+	group := unit.dotRankGroups[key]
+	if group == nil {
+		group = &dotRankGroup{dots: make([][]*Dot, len(unit.Env.AllUnits))}
+		unit.dotRankGroups[key] = group
+	}
+	return group
 }
 
 // Ranks sharing one aura would read each other as up and run each other's callbacks.
@@ -538,10 +515,11 @@ func (dot *Dot) joinRankGroup() {
 	for _, other := range *members {
 		if other.Aura == dot.Aura {
 			panic("ranks " + other.Spell.ActionID.String() + " and " + dot.Spell.ActionID.String() +
-				" of rank group " + dot.rankGroup.key + " share the aura " + dot.Label + ": each rank needs a label of its own")
+				" share the aura " + dot.Label + ": each rank needs a label of its own")
 		}
 	}
 	*members = append(*members, dot)
+	dot.rankGroup.maxRank = max(dot.rankGroup.maxRank, dot.rank)
 }
 
 type DotState struct {
