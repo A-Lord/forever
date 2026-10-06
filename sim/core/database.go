@@ -14,8 +14,7 @@ var WITH_DB = false
 
 var itemsByID = map[int32]Item{}
 var randomSuffixesByID = map[int32]RandomSuffix{}
-var enchantsByEffectID = map[int32]Enchant{}
-var enchantRowsByEffectID = map[int32][]Enchant{} // Every row with distinct slot rules per effect id; enchantsByEffectID keeps only the first.
+var enchantRowsByEffectID = map[int32][]Enchant{} // Every row with distinct slot rules per effect id, in load order.
 var itemEffectRandPropPointsByIlvl = map[int32]ItemEffectRandPropPoints{}
 var consumablesByID = map[int32]Consumable{}
 var spellEffectsById = map[int32]*proto.SpellEffect{}
@@ -63,9 +62,6 @@ func addToDatabase(newDB *proto.SimDatabase) {
 
 	for _, v := range newDB.Enchants {
 		enchant := EnchantFromProto(v)
-		if _, ok := enchantsByEffectID[v.EffectId]; !ok {
-			enchantsByEffectID[v.EffectId] = enchant
-		}
 		if !slices.ContainsFunc(enchantRowsByEffectID[v.EffectId], enchant.sameSlotRules) {
 			enchantRowsByEffectID[v.EffectId] = append(enchantRowsByEffectID[v.EffectId], enchant)
 		}
@@ -425,12 +421,20 @@ func (equipment *Equipment) containsItemInSlots(itemID int32, possibleSlots []pr
 
 func GetEnchantByEffectID(effectID int32) *Enchant {
 	dbMu.RLock()
-	enchant, ok := enchantsByEffectID[effectID]
+	rows := enchantRowsByEffectID[effectID]
 	dbMu.RUnlock()
-	if !ok {
+	if len(rows) == 0 {
 		return nil
 	}
+	enchant := rows[0]
 	return &enchant
+}
+
+// Every row under effectID, as AddToDatabase stores them.
+func GetEnchantRowsByEffectID(effectID int32) []Enchant {
+	dbMu.RLock()
+	defer dbMu.RUnlock()
+	return slices.Clone(enchantRowsByEffectID[effectID])
 }
 
 // The first row under effectID that fits item, for the stats an enchant gives that item.
@@ -585,10 +589,12 @@ func NewItem(itemSpec ItemSpec) Item {
 	}
 
 	if itemSpec.Enchant != 0 {
-		if enchant, ok := fittingEnchantRow(itemSpec.Enchant, item); ok {
+		if rows := enchantRowsByEffectID[itemSpec.Enchant]; len(rows) == 1 {
+			item.Enchant = rows[0]
+		} else if enchant, ok := fittingEnchantRow(itemSpec.Enchant, item); ok {
 			item.Enchant = enchant
-		} else if enchant, ok := enchantsByEffectID[itemSpec.Enchant]; ok {
-			item.Enchant = enchant
+		} else if len(rows) > 0 {
+			item.Enchant = rows[0]
 		}
 		// else {
 		// 	panic(fmt.Sprintf("No enchant with id: %d", itemSpec.Enchant))
