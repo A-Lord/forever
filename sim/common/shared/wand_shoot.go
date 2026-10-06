@@ -12,7 +12,8 @@ var shootRow = spelldata.MustFind(5019)
 // Shoot is a channel whose ticks are the wand's shots, one per wand speed, until something takes a
 // tick's slot. A shot rolls the wand's damage in its school: no attack power, no spell power. It misses
 // on the spell table, with wand skill setting the level difference, has no dodge, parry or block, and
-// crits on the ranged crit chance, for 1.5 times like a spell.
+// crits on the ranged crit chance, for 1.5 times like a spell. Wand skill short of the maximum also lowers
+// that crit chance by 0.2% a point, through the ranged hand's physical crit suppression.
 func RegisterShoot(character *core.Character) *core.Spell {
 	weapon := character.WeaponFromRanged()
 	wandSpeed := func() time.Duration {

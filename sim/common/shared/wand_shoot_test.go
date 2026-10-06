@@ -220,11 +220,24 @@ func TestWandShoot(t *testing.T) {
 		}
 	})
 
-	t.Run("25 wand skill short of the maximum misses like 5 more target levels", func(t *testing.T) {
-		short := misses(t, 60, 0, &proto.WeaponSkillValue{Skill: proto.WeaponSkill_WeaponSkillWands, Value: 275})
-		capped := misses(t, 65, 0)
-		if short != capped || short < 33 || short > 69 {
-			t.Errorf("Shoot missed %d of 300 shots at 275 wand skill on a level 60 target and %d at 300 on a level 65 target, want the same, about 51", short, capped)
+	t.Run("10 wand skill short of the maximum misses like 2 more target levels", func(t *testing.T) {
+		short := misses(t, 60, 0, &proto.WeaponSkillValue{Skill: proto.WeaponSkill_WeaponSkillWands, Value: 290})
+		capped := misses(t, 62, 0)
+		if short != capped || short < 6 || short > 36 {
+			t.Errorf("Shoot missed %d of 300 shots at 290 wand skill on a level 60 target and %d at 300 on a level 62 target, want the same, about 18", short, capped)
+		}
+	})
+
+	t.Run("wand skill short of the maximum lowers a shot's crit by 0.2% a point", func(t *testing.T) {
+		crits := func(skill int32) int32 {
+			sim, caster := newSwapWandSim(t, &proto.ItemSpec{Id: sableWandID}, nil, &proto.APLRotation{}, 0, 60, &proto.WeaponSkillValue{Skill: proto.WeaponSkill_WeaponSkillWands, Value: skill})
+			caster.AddStatsDynamic(sim, stats.Stats{stats.PhysicalCritPercent: 20})
+			shots(t, sim, caster, 300)
+			return caster.shoot.SpellMetrics[sim.Encounter.ActiveTargetUnits[0].UnitIndex].Crits
+		}
+		full, short := crits(300), crits(275)
+		if full < 45 || full > 75 || short < 28 || short > 55 || short >= full {
+			t.Errorf("Shoot crit %d of 300 shots at 300 wand skill and %d at 275 on a level 60 target with 20%% crit, want about 60 and 45", full, short)
 		}
 	})
 
