@@ -26,6 +26,24 @@ level, on the stats and multipliers in force at the tick. `OnSnapshot` is nil. I
 effect states no period or the row no duration, so a permanent aura's -1 never resolves into an absurd
 number of ticks. A caller replaces `OnTick` for a heal or a value the game files do not state.
 
+A ranked row's dot also carries its name as `RankGroup`, and a caster keeps one rank of a periodic on
+a unit; HoTs, self HoTs included, follow the same rule. A rank at or above the one up ends it at once and
+starts fresh, so a cast of the same rank is a plain refresh. A lower rank does not land while a higher one from
+the same caster is up, and the higher rank keeps ticking on its own schedule and expires on time.
+
+- A row whose only amount is the periodic (Shadow Word: Pain, Renew) sets `RankBlocksCast`: the lower
+  rank is refused at the cast check with "a more powerful spell is active", so `CanCast` answers false
+  and the cast spends no cost, global cooldown, cast time or cooldown. The check reads the target's
+  dot, or the caster's for a self or area periodic, and only once the caster has a second rank of it.
+- A row with direct damage or a heal of its own (Holy Fire) casts as usual and its direct part lands;
+  `Dot.Apply` skips the periodic. A caller that touches the dot after `Apply`, to set stacks or read
+  its expiry, checks `dot.IsActive()` first.
+
+Each rank still needs its own aura (`RankLabel`); the group decides which of those auras is up. Two
+casters never affect each other's ranks, and channels keep no group, since a new channel already ends
+the one running. A dot built by hand joins a group only when its `core.DotConfig` sets `RankGroup`
+(and `RankBlocksCast` for the cast check), and core reads each rank from the spell's `Rank`.
+
 `row.TickOutcome(dot)` picks the tick's outcome from the row. The tick can crit where the game files
 mark Periodic Can Crit, and it uses the magic hit table where the row's defense type is magic. A
 dot's `OnTick` therefore never names an outcome itself.
