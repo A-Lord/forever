@@ -61,8 +61,6 @@ func newWandSim(t *testing.T, ranged *proto.ItemSpec, rotation *proto.APLRotatio
 	return newSwapWandSim(t, wandSimOptions{ranged: ranged, rotation: rotation, distance: distance})
 }
 
-// newWandSim with a swap set that holds the swapped ranged slot, when it is set, and the given weapon
-// skills. The rotation defaults to an empty one and the target level to 60.
 type wandSimOptions struct {
 	ranged, swapped *proto.ItemSpec
 	rotation        *proto.APLRotation
@@ -71,6 +69,8 @@ type wandSimOptions struct {
 	weaponSkills    []*proto.WeaponSkillValue
 }
 
+// newWandSim with a swap set that holds the swapped ranged slot, when it is set, and the given weapon
+// skills. The rotation defaults to an empty one and the target level to 60.
 func newSwapWandSim(t *testing.T, o wandSimOptions) (*core.Simulation, *wandCaster) {
 	t.Helper()
 	items := make([]*proto.ItemSpec, proto.ItemSlot_ItemSlotRanged+1)

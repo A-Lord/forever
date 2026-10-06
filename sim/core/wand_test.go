@@ -194,7 +194,7 @@ func nukeConfig(castAt *[]time.Duration) SpellConfig {
 	return config
 }
 
-func TestWandShoot(t *testing.T) {
+func TestWandShootScheduler(t *testing.T) {
 	t.Run("a cast fires one shot", func(t *testing.T) {
 		ct := newShootTest()
 		ct.start(&timedStubAction{readyAt: time.Minute})
