@@ -5,10 +5,10 @@ import "time"
 // Shoot's scheduler. Shoot applies a channel that carries the channeling state (Is Channeling, the
 // rotation's hold, the timeline bar) but never ticks; the wand fires the shots at its own slots.
 type Wand struct {
-	unit       *Unit
-	shoot      *Spell
-	speed      func() time.Duration // The equipped wand's speed; zero with no wand.
-	shot       func(sim *Simulation, target *Unit)
+	unit  *Unit
+	shoot *Spell
+	speed func() time.Duration // The equipped wand's speed; zero with no wand.
+	shot  func(sim *Simulation, target *Unit)
 
 	target      *Unit
 	interruptIf APLValue      // The channel action's condition; nil for a cast, which fires one shot.

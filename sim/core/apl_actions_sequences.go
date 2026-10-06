@@ -188,6 +188,7 @@ func (action *APLActionStrictSequence) advanceSequence() {
 		action.relinquishControl()
 	}
 }
+
 // The subaction the sequence is at, without moving it on.
 func (action *APLActionStrictSequence) current() *APLAction {
 	return action.subactions[action.curIdx]
