@@ -247,8 +247,8 @@ dps_results: {
 dps_results: {
  key: "TestShadowPriest-AllItems-EnchantWeapon-Revelation-8217"
  value: {
-  dps: 629.53356
-  tps: 319.30639
+  dps: 598.0696
+  tps: 303.88905
   dtps: 4.90125
  }
 }
