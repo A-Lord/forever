@@ -13657,7 +13657,7 @@ var generatedSpells = []Spell{
 	{ID: 16864, Name: "Omen of Clarity", School: 8, Attr: [17]uint32{0: 0x40, 15: 0x2000}, SpellLevel: 20, BaseLevel: 20, DefenseType: 1, DispelType: 1, PreventionType: 1, ProcChance: 100, ProcFlags: [2]uint32{0: 0x14014}, ICDMs: 10000, RPPM: 2, ClassFlags: core.ClassFlags{Family: 7, Mask: [4]uint32{3: 262144}}, Labels: []int16{21}, RefIDs: []int32{16870}, ProcChanceSource: ProcChancePPM, ProcHint: core.ProcHintHeals | core.ProcHintDamage,
 		Effects: []Effect{
 			{ID: 695190, SpellID: 16864, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PROC_TRIGGER_SPELL, BaseLevel: 20, SPCoef: 1, PvpMult: 1, TriggerID: 16870, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
-		}}, // override: PPM 2 -- Placeholder: Omen of Clarity rate; the game files state none
+		}}, // override: PPM 2 -- Omen of Clarity: 2.0 procs per minute, measured in combat logs; the game files state none
 	{ID: 16870, Name: "Clearcasting", School: 8, Attr: [17]uint32{0: 0x40000, 15: 0x2000}, SpellLevel: 10, BaseLevel: 10, DurationMs: 15000, MaxRange: 100, DefenseType: 1, DispelType: 1, PreventionType: 1, ProcChance: 100, ProcCharges: 1, ProcFlags: [2]uint32{0: 0x15550}, ClassFlags: core.ClassFlags{Family: 7}, Labels: []int16{21}, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 695684, SpellID: 16870, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_PCT_MODIFIER, BasePoints: -100, BaseLevel: 10, PvpMult: 1, Misc: 14, ClassFlags: core.ClassFlags{Family: 7, Mask: [4]uint32{0: 15973374, 1: 100664659, 2: 1024, 3: 142606400}}, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},

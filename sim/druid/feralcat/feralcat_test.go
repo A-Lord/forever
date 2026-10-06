@@ -831,8 +831,8 @@ func TestOmenUsesTwoPPMWithTenSecondICDOnMeleeHits(t *testing.T) {
 	// Given Omen's permanent listener and a landed main-hand auto result.
 	sim, cat := newCat(t, "0000000000000000-00000000000000000000-0000000000000001", nil)
 	omen := cat.GetAura("Omen of Clarity")
-	if omen == nil || omen.Dpm == nil || omen.Icd == nil {
-		t.Fatalf("Omen listener is incomplete: aura=%v DPM=%v ICD=%v", omen, omen != nil && omen.Dpm != nil, omen != nil && omen.Icd != nil)
+	if omen == nil || omen.Icd == nil {
+		t.Fatalf("Omen listener is incomplete: aura=%v ICD=%v", omen, omen != nil && omen.Icd != nil)
 	}
 	if omen.Icd.Duration != 10*time.Second {
 		t.Fatalf("Omen ICD = %v, want 10s", omen.Icd.Duration)
@@ -850,7 +850,7 @@ func TestOmenUsesTwoPPMWithTenSecondICDOnMeleeHits(t *testing.T) {
 		t.Fatalf("a ranged hit moved Omen's ICD from %v to %v", before, got)
 	}
 
-	// When enough eligible one-second paw hits roll the 2 PPM manager, one activates Clearcasting.
+	// When enough eligible one-second paw hits roll 2 PPM on the paw's speed, one activates Clearcasting.
 	for range 500 {
 		omen.OnSpellHitDealt(omen, sim, cat.AutoAttacks.MHAuto(), result)
 	}
