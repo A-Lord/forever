@@ -22,7 +22,7 @@ func RegisterShoot(character *core.Character) *core.Spell {
 	}
 
 	config := spelldata.SpellConfig(&character.Unit, shootRow, spelldata.Magic(core.ProcMaskRangedAuto))
-	config.Flags |= core.SpellFlagChanneled | core.SpellFlagAPL
+	config.Flags |= core.SpellFlagChanneled | core.SpellFlagAPL | core.SpellFlagNoPartialResist
 	config.SpellSchool = weapon.GetSpellSchool()
 	config.ExtraCastCondition = func(_ *core.Simulation, _ *core.Unit) bool {
 		return !character.Moving

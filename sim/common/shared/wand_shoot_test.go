@@ -144,6 +144,20 @@ func TestWandShoot(t *testing.T) {
 		}
 	})
 
+	t.Run("a shot is never partially resisted", func(t *testing.T) {
+		sim, caster := newSableWandSim(t)
+		plain := shots(t, sim, caster, 200)
+
+		sim, caster = newSableWandSim(t)
+		sim.Encounter.ActiveTargetUnits[0].AddStatsDynamic(sim, stats.Stats{stats.ShadowResistance: 150})
+		resisted := shots(t, sim, caster, 200)
+		for i := range resisted {
+			if resisted[i] != plain[i] {
+				t.Fatalf("against 150 shadow resistance shot %d dealt %v, want the same %v as against none", i+1, resisted[i], plain[i])
+			}
+		}
+	})
+
 	t.Run("a shot crits for 1.5 times its roll", func(t *testing.T) {
 		sim, caster := newSableWandSim(t)
 		if caster.shoot.DefenseType != core.DefenseTypeMagic {
