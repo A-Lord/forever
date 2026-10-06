@@ -1418,7 +1418,7 @@
 				},
 				"current_mana_regen": {
 					"label": "Current Mana Regen",
-					"tooltip": "Current Mana Regen while casting"
+					"tooltip": "Current mana regen per second while casting"
 				},
 				"current_rage": {
 					"label": "Current Rage",
