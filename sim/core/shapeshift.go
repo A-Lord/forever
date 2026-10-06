@@ -5,7 +5,8 @@ import (
 	"github.com/wowsims/forever/sim/core/proto"
 )
 
-// What the game files require of the caster's form, auras and equipment.
+// What the game files require of the caster's form, auras and equipment, and of the target's creature
+// type.
 type CastRequirement struct {
 	Forms, ExcludedForms          uint64           // SpellShapeshift masks, bit form-1
 	CasterForm                    bool             // castable with no form even though Forms names some
