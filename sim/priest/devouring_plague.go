@@ -15,8 +15,6 @@ func (priest *Priest) registerDevouringPlagueSpell(rank *spelldata.Spell) {
 	healthMetrics := priest.NewHealthMetrics(actionID.WithTag(1))
 
 	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))
-
-	config.ActionID = actionID
 	config.ClassSpellMask = PriestSpellDevouringPlague
 
 	config.Dot = spelldata.DotConfig(rank, tick, spelldata.Label(rank.Name+" "+rank.Rank))

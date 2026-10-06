@@ -14,8 +14,6 @@ func (priest *Priest) registerHolyFireSpell(rank *spelldata.Spell) {
 	holyFireTick := rank.PeriodicEffect()
 
 	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))
-
-	config.ActionID = core.ActionID{SpellID: rank.ID}
 	config.ClassSpellMask = PriestSpellHolyFire
 
 	config.Dot = spelldata.DotConfig(rank, holyFireTick, spelldata.Label(rank.Name+" "+rank.Rank))
@@ -36,5 +34,5 @@ func (priest *Priest) registerHolyFireSpell(rank *spelldata.Spell) {
 		return spell.CalcPeriodicDamage(sim, target, holyFireTick.Average(), spell.OutcomeExpectedMagicAlwaysHit)
 	}
 
-	priest.RegisterSpell(config)
+	priest.holyFires = append(priest.holyFires, priest.RegisterSpell(config))
 }

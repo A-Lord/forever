@@ -11,8 +11,6 @@ func (priest *Priest) registerMindBlastSpell(rank *spelldata.Spell) {
 	baseDamage := rank.DamageEffect()
 
 	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))
-
-	config.ActionID = core.ActionID{SpellID: rank.ID}
 	config.ClassSpellMask = PriestSpellMindBlast
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {

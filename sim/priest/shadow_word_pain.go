@@ -11,7 +11,6 @@ func (priest *Priest) registerShadowWordPainSpell(rank *spelldata.Spell) {
 	swpTick := rank.PeriodicEffect()
 
 	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))
-	config.ActionID = core.ActionID{SpellID: rank.ID}
 	config.ClassSpellMask = PriestSpellShadowWordPain
 
 	config.Dot = spelldata.DotConfig(rank, swpTick, spelldata.Label(rank.Name+" "+rank.Rank))

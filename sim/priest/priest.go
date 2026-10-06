@@ -23,6 +23,8 @@ type Priest struct {
 	InnerFocusAura *core.Aura
 
 	VampiricEmbrace *core.Spell
+
+	holyFires []*core.Spell
 }
 
 type SelfBuffs struct {
@@ -161,8 +163,6 @@ func RegisterPriest() {
 
 const (
 	PriestSpellDevouringPlague int64 = 1 << iota
-	PriestSpellDevouringPlagueDoT
-	PriestSpellDevouringPlagueHeal
 	PriestSpellHolyNova
 	PriestSpellHolyFire
 	PriestSpellMindBlast

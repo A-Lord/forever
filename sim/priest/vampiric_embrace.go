@@ -28,8 +28,6 @@ func (priest *Priest) registerVampiricEmbrace(rank *spelldata.Spell) {
 	})
 
 	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))
-
-	config.ActionID = core.ActionID{SpellID: rank.ID}
 	config.ClassSpellMask = PriestSpellVampiricEmbrace
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, _ *core.Spell) {

@@ -12,12 +12,9 @@ func (priest *Priest) registerStarshardsSpell(rank *spelldata.Spell) {
 	starShardTick := rank.PeriodicEffect()
 
 	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))
-
-	config.ActionID = core.ActionID{SpellID: rank.ID}
 	config.ClassSpellMask = PriestSpellStarshards
 
 	config.Dot = spelldata.DotConfig(rank, starShardTick, spelldata.Label(rank.Name+" "+rank.Rank))
-	config.Dot.Aura.Tag = "Starshards"
 	config.Dot.OnTick = spelldata.PeriodicDamageTick(starShardTick, rank.TickOutcomeHitRolled)
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {

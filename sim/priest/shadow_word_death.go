@@ -12,8 +12,6 @@ func (priest *Priest) registerShadowWordDeathSpell(rank *spelldata.Spell) {
 	backlash := rank.EffectN(3).Percent()
 
 	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))
-
-	config.ActionID = core.ActionID{SpellID: rank.ID}
 	config.ClassSpellMask = PriestSpellShadowWordDeath
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {

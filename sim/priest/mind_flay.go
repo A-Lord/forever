@@ -9,12 +9,9 @@ func (priest *Priest) registerMindFlaySpell(rank *spelldata.Spell) {
 	mindFlayTick := rank.PeriodicEffect()
 
 	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))
-
-	config.ActionID = core.ActionID{SpellID: rank.ID}
 	config.ClassSpellMask = PriestSpellMindFlay
 
 	config.Dot = spelldata.DotConfig(rank, mindFlayTick, spelldata.Label(rank.Name+" "+rank.Rank))
-	config.Dot.Aura.Tag = "Mind Flay"
 	config.Dot.OnTick = spelldata.PeriodicDamageTick(mindFlayTick, rank.TickOutcomeHitRolled)
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {

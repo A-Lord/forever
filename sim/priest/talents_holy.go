@@ -112,12 +112,14 @@ func (priest *Priest) applyInspiration() {
 	}
 }
 
-// Increases the range of your Smite and Holy Fire spells and the radius of your Prayer of Healing and Holy Nova spells by 10%.
-// The sim keeps the caster in range of every target, so neither changes a cast.
+// Increases the range of your Smite and Holy Fire spells and the radius of your Prayer of Healing and Holy Nova spells by X%.
+// The radius (effect 2) has no spell mod in the sim; Holy Nova already hits every enemy.
 func (priest *Priest) applyHolyReach() {
 	if priest.Talents.HolyReach == 0 {
 		return
 	}
+
+	spelldata.ParseStatic(&priest.Character, spellData.HolyReach.Rank(priest.Talents.HolyReach), spelldata.Effects(1))
 }
 
 // Reduces the Mana cost of your Lesser Heal, Heal, Greater Heal, Penance, and Prayer of Mending spells by x%.

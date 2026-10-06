@@ -77,9 +77,14 @@ func (priest *Priest) applyImprovedShadowWordPain() {
 	spelldata.ParseStatic(&priest.Character, spellData.ImprovedShadowWordPain.Rank(priest.Talents.ImprovedShadowWordPain))
 }
 
-// Increases the range of your offensive Shadow spells by 20%.
-// The damage sim does not model range.
-func (priest *Priest) applyShadowReach() {}
+// Increases the range of your offensive Shadow spells by X%.
+func (priest *Priest) applyShadowReach() {
+	if priest.Talents.ShadowReach == 0 {
+		return
+	}
+
+	spelldata.ParseStatic(&priest.Character, spellData.ShadowReach.Rank(priest.Talents.ShadowReach))
+}
 
 // Reduces the cooldown of your Mind Blast spell by X sec.
 func (priest *Priest) applyImprovedMindBlast() {

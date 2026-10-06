@@ -1,6 +1,8 @@
 package priest
 
 import (
+	"slices"
+
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
@@ -31,11 +33,8 @@ func (priest *Priest) powerInLightMultiplier(target *core.Unit) float64 {
 	if priest.Talents.PowerInLight == 0 {
 		return 1
 	}
-	burning := false
-	spellData.HolyFire.Each(func(_ int32, rank *spelldata.Spell) {
-		if holyFire := priest.GetSpell(core.ActionID{SpellID: rank.ID}); holyFire != nil && holyFire.Dot(target).IsActive() {
-			burning = true
-		}
+	burning := slices.ContainsFunc(priest.holyFires, func(holyFire *core.Spell) bool {
+		return holyFire.Dot(target).IsActive()
 	})
 	if !burning {
 		return 1
