@@ -87,7 +87,7 @@ func (wand *Wand) Start(sim *Simulation, target *Unit) {
 	firstShotAt := max(sim.CurrentTime+wandWindup, wand.timerAt+wand.interval)
 
 	dot := wand.shoot.Dot(target)
-	dot.BaseTickLength = max(sim.GetRemainingDuration(), firstShotAt-sim.CurrentTime)
+	dot.BaseTickLength = max(sim.GetRemainingDuration(), firstShotAt-sim.CurrentTime+wand.interval)
 	dot.Apply(sim)
 	dot.tickAction.Cancel(sim)
 	dot.tickAction.NextActionAt = NeverExpires
