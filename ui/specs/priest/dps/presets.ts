@@ -12,12 +12,7 @@ export const ROTATION_PRESET_DEFAULT = PresetUtils.makePresetAPLRotation('Defaul
 
 export const PreraidGear = PresetUtils.makePresetGear('Pre-raid', PreraidGearJson);
 
-export const StandardTalents = {
-	name: 'Standard',
-	data: SavedTalents.create({
-		talentsString: '005300211303--500320501201312251',
-	}),
-};
+export const StandardTalents = PresetUtils.makePresetTalents('Standard', SavedTalents.create({ talentsString: '005300211303--500320501201312251' }));
 
 export const DefaultOptions = Options.create({
 	classOptions: {

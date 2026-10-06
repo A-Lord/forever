@@ -5,7 +5,7 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-func (priest *Priest) registerElunesGrace(rank *spelldata.Spell) {
+func (priest *Priest) registerElunesGrace(_ int32, rank *spelldata.Spell) {
 	aura := priest.RegisterAura(spelldata.AuraConfig(rank))
 	spelldata.ParseEffects(&priest.Character, aura, rank)
 
@@ -19,13 +19,5 @@ func (priest *Priest) registerElunesGrace(rank *spelldata.Spell) {
 	trigger.RequireDamageDealt = false
 	aura.AttachProcTrigger(trigger)
 
-	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Flags(core.SpellFlagAPL))
-	config.ProcMask = core.ProcMaskEmpty
-	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, _ *core.Spell) {
-		aura.Activate(sim)
-		aura.SetStacks(sim, aura.MaxStacks)
-	}
-	config.RelatedSelfBuff = aura
-
-	priest.RegisterSpell(config)
+	priest.registerSelfBuffSpell(rank, aura, 0)
 }

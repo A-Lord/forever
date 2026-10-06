@@ -8,7 +8,7 @@ import (
 // Causes an explosion of holy light around the caster, causing X to Y Holy damage to all enemy targets within 10 yards and
 // healing all party members within 10 yards for A to B.
 // These effects cause no threat. Each time Holy Fire deals damage, you have a 5% chance for your next Holy Nova to cost no Mana.
-func (priest *Priest) registerHolyNovaSpell(rank *spelldata.Spell) {
+func (priest *Priest) registerHolyNovaSpell(_ int32, rank *spelldata.Spell) {
 	baseDamage := rank.DamageEffect()
 
 	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))

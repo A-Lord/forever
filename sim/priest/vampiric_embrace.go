@@ -5,7 +5,7 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-func (priest *Priest) registerVampiricEmbrace(rank *spelldata.Spell) {
+func (priest *Priest) registerVampiricEmbrace(_ int32, rank *spelldata.Spell) {
 	healFraction := rank.EffectN(1).Percent()
 	healthMetrics := priest.NewHealthMetrics(core.ActionID{SpellID: rank.ID})
 

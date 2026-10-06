@@ -7,7 +7,7 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-func (priest *Priest) registerChastise(rank *spelldata.Spell) {
+func (priest *Priest) registerChastise(_ int32, rank *spelldata.Spell) {
 	chastiseDamage := rank.DamageEffect()
 	mobTypes := spelldata.MobTypes(rank.TargetCreatureType)
 

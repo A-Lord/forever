@@ -5,7 +5,7 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-func (priest *Priest) registerPenance(rank *spelldata.Spell) {
+func (priest *Priest) registerPenance(_ int32, rank *spelldata.Spell) {
 	// The tooltip names the damage bolt first and the channel that times the bolts third. Each bolt is
 	// its own spell, because Holy Precision, Holy Specialization and Inner Focus's crit name the bolt
 	// row's class flags, not the cast's.
@@ -17,10 +17,7 @@ func (priest *Priest) registerPenance(rank *spelldata.Spell) {
 	boltConfig := spelldata.SpellConfig(&priest.Unit, boltRow, spelldata.Magic(core.ProcMaskSpellDamage), spelldata.Proc())
 	boltConfig.ClassSpellMask = PriestSpellPenance
 	boltConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		multiplier := priest.powerInLightMultiplier(target)
-		spell.DamageMultiplier *= multiplier
-		spell.CalcAndDealDamage(sim, target, bolt.Roll(sim), spell.OutcomeMagicHitAndCrit)
-		spell.DamageMultiplier /= multiplier
+		priest.calcAndDealPowerInLightDamage(sim, target, spell, bolt.Roll(sim))
 	}
 	boltSpell := priest.RegisterSpell(boltConfig)
 

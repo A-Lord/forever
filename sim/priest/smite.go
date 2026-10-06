@@ -9,17 +9,14 @@ import (
 
 var SmiteRankMap = spellData.Smite
 
-func (priest *Priest) registerSmiteSpell(rank *spelldata.Spell) {
+func (priest *Priest) registerSmiteSpell(_ int32, rank *spelldata.Spell) {
 	baseDamage := rank.DamageEffect()
 
 	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))
 	config.ClassSpellMask = PriestSpellSmite
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		multiplier := priest.powerInLightMultiplier(target)
-		spell.DamageMultiplier *= multiplier
-		spell.CalcAndDealDamage(sim, target, baseDamage.Roll(sim), spell.OutcomeMagicHitAndCrit)
-		spell.DamageMultiplier /= multiplier
+		priest.calcAndDealPowerInLightDamage(sim, target, spell, baseDamage.Roll(sim))
 	}
 
 	config.ExpectedInitialDamage = func(sim *core.Simulation, target *core.Unit, spell *core.Spell, _ bool) *core.SpellResult {
@@ -29,15 +26,15 @@ func (priest *Priest) registerSmiteSpell(rank *spelldata.Spell) {
 	priest.RegisterSpell(config)
 }
 
-func (priest *Priest) powerInLightMultiplier(target *core.Unit) float64 {
-	if priest.Talents.PowerInLight == 0 {
-		return 1
-	}
+func (priest *Priest) calcAndDealPowerInLightDamage(sim *core.Simulation, target *core.Unit, spell *core.Spell, baseDamage float64) {
+	multiplier := 1.0
 	burning := slices.ContainsFunc(priest.holyFires, func(holyFire *core.Spell) bool {
 		return holyFire.Dot(target).IsActive()
 	})
-	if !burning {
-		return 1
+	if burning {
+		multiplier = priest.powerInLightMultiplier
 	}
-	return spellData.PowerInLight.MultiplierAt(priest.Talents.PowerInLight)
+	spell.DamageMultiplier *= multiplier
+	spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMagicHitAndCrit)
+	spell.DamageMultiplier /= multiplier
 }

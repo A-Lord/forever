@@ -7,7 +7,7 @@ import (
 
 var MindBlastRankMap = spellData.MindBlast
 
-func (priest *Priest) registerMindBlastSpell(rank *spelldata.Spell) {
+func (priest *Priest) registerMindBlastSpell(_ int32, rank *spelldata.Spell) {
 	baseDamage := rank.DamageEffect()
 
 	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))

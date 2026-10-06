@@ -42,11 +42,9 @@ func (priest *Priest) registerDisciplineTalents() {
 }
 
 // Your Smite and Penance spells deal X% increased damage to targets afflicted with your Holy Fire.
-// Smite and Penance read the rank themselves, through powerInLightMultiplier.
+// Rank 0 answers a multiplier of 1, so Smite and Penance apply it without a talent check.
 func (priest *Priest) applyPowerInLight() {
-	if priest.Talents.PowerInLight == 0 {
-		return
-	}
+	priest.powerInLightMultiplier = spellData.PowerInLight.MultiplierAt(priest.Talents.PowerInLight)
 }
 
 // Increases your damage with wands by X%.
@@ -196,9 +194,7 @@ func (priest *Priest) applyPenance() {
 		return
 	}
 
-	spellData.Penance.Each(func(_ int32, rank *spelldata.Spell) {
-		priest.registerPenance(rank)
-	})
+	spellData.Penance.Each(priest.registerPenance)
 }
 
 // Your heals from Flash Heal, Binding Heal, Lesser Heal, Heal, Greater Heal, and Penance

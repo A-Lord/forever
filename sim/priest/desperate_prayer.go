@@ -5,7 +5,7 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-func (priest *Priest) registerDesperatePrayer(rank *spelldata.Spell) {
+func (priest *Priest) registerDesperatePrayer(_ int32, rank *spelldata.Spell) {
 	heal := rank.HealEffect()
 
 	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellHealing))

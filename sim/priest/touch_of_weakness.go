@@ -5,7 +5,7 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-func (priest *Priest) registerTouchOfWeakness(rank *spelldata.Spell) {
+func (priest *Priest) registerTouchOfWeakness(_ int32, rank *spelldata.Spell) {
 	// The buff's trigger is a dummy; the tooltip names the rank's strike, which deals the damage and
 	// weakens the attacker.
 	strikeRank := rank.Refs()[0]
@@ -29,21 +29,13 @@ func (priest *Priest) registerTouchOfWeakness(rank *spelldata.Spell) {
 	strikeConfig.RelatedAuraArrays = weakened.ToMap()
 	strike := priest.RegisterSpell(strikeConfig)
 
-	auraConfig := spelldata.AuraConfig(rank, spelldata.Label(label))
-	auraConfig.Tag = rank.Name
-	aura := priest.RegisterAura(auraConfig)
+	aura := priest.RegisterAura(spelldata.AuraConfig(rank, spelldata.Label(label)))
+	aura.NewExclusiveEffect(rank.Name, true, core.ExclusiveEffect{})
 	aura.AttachProcTrigger(spelldata.ProcTrigger(&priest.Character, rank,
 		func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) {
 			strike.Cast(sim, spell.Unit)
 			aura.Deactivate(sim)
 		}))
 
-	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Flags(core.SpellFlagAPL))
-	config.ProcMask = core.ProcMaskEmpty
-	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, _ *core.Spell) {
-		activateRank(sim, aura)
-	}
-	config.RelatedSelfBuff = aura
-
-	priest.RegisterSpell(config)
+	priest.registerSelfBuffSpell(rank, aura, 0)
 }

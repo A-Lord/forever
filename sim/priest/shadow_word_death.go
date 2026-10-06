@@ -7,7 +7,7 @@ import (
 
 var ShadowWordDeathRankMap = spellData.ShadowWordDeath
 
-func (priest *Priest) registerShadowWordDeathSpell(rank *spelldata.Spell) {
+func (priest *Priest) registerShadowWordDeathSpell(_ int32, rank *spelldata.Spell) {
 	baseDamage := rank.DamageEffect()
 	backlash := rank.EffectN(3).Percent()
 

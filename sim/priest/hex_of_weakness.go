@@ -6,7 +6,7 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-func (priest *Priest) registerHexOfWeakness(rank *spelldata.Spell) {
+func (priest *Priest) registerHexOfWeakness(_ int32, rank *spelldata.Spell) {
 	// The attack power reduction bids in the raid's Hex of Weakness category, so only the strongest
 	// of it and Demoralizing Shout counts; the healing reduction bids on its own.
 	auras := priest.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {

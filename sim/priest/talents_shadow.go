@@ -104,7 +104,7 @@ func (priest *Priest) applyMindFlay() {
 	if !priest.Talents.MindFlay {
 		return
 	}
-	spellData.MindFlay.Each(func(_ int32, rank *spelldata.Spell) { priest.registerMindFlaySpell(rank) })
+	spellData.MindFlay.Each(priest.registerMindFlaySpell)
 }
 
 // Your Mind Flay now deals X% more damage, gains Y yards increased range, but slows the target's movement speed by Z%.
@@ -131,7 +131,7 @@ func (priest *Priest) applyVampiricEmbrace() {
 		return
 	}
 
-	spellData.VampiricEmbrace.Each(func(_ int32, rank *spelldata.Spell) { priest.registerVampiricEmbrace(rank) })
+	spellData.VampiricEmbrace.Each(priest.registerVampiricEmbrace)
 }
 
 // Your Shadow damage spells have a X% chance to increase the Shadow damage you deal by 2% for 15 sec, stacking up to 5 times.
@@ -191,13 +191,14 @@ func (priest *Priest) applyEarlyDemise() {
 		ClassMask:  PriestSpellShadowWordDeath,
 	})
 
+	onExecutePhase := func(_ *core.Simulation, isExecute int32) {
+		if isExecute <= threshold {
+			critMod.Activate()
+		}
+	}
 	priest.RegisterResetEffect(func(sim *core.Simulation) {
 		critMod.Deactivate()
-		sim.RegisterExecutePhaseCallback(func(_ *core.Simulation, isExecute int32) {
-			if isExecute <= threshold {
-				critMod.Activate()
-			}
-		})
+		sim.RegisterExecutePhaseCallback(onExecutePhase)
 	})
 }
 

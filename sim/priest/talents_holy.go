@@ -90,7 +90,7 @@ func (priest *Priest) applyHolyNova() {
 		return
 	}
 
-	HolyNovaRankMap.Each(func(_ int32, rank *spelldata.Spell) { priest.registerHolyNovaSpell(rank) })
+	HolyNovaRankMap.Each(priest.registerHolyNovaSpell)
 }
 
 var HolyNovaRankMap = spellData.HolyNova
@@ -139,6 +139,7 @@ func (priest *Priest) applySearingLight() {
 
 	spelldata.ParseStatic(&priest.Character, spellData.SearingLight.Rank(priest.Talents.SearingLight), spelldata.Effects(1))
 
+	holyPurposeRow := spellData.SearingLightTriggered.Highest()
 	holyPurposeConfig := spelldata.AuraConfig(holyPurposeRow)
 	holyPurposeConfig.OnCastComplete = func(aura *core.Aura, sim *core.Simulation, spell *core.Spell) {
 		if spellData.HolyNova.Contains(spell) {
@@ -159,8 +160,6 @@ func (priest *Priest) applySearingLight() {
 		},
 	})
 }
-
-var holyPurposeRow = spellData.SearingLightTriggered.Highest()
 
 // Grants binding heal
 // TODO: Healing, which the sim does not model yet.

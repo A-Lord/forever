@@ -7,9 +7,10 @@ import (
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-func (priest *Priest) registerDarkSacrifice(rank *spelldata.Spell) {
-	healthTick := rank.Effect(dbcenums.A_PERIODIC_DUMMY, 0)
+func (priest *Priest) registerDarkSacrifice(_ int32, rank *spelldata.Spell) {
+	healthPerTick := rank.Effect(dbcenums.A_PERIODIC_DUMMY, 0).Average()
 	manaTick := rank.FirstAura(dbcenums.A_PERIODIC_ENERGIZE)
+	manaPerTick := manaTick.Average()
 	manaMetrics := priest.NewManaMetrics(core.ActionID{SpellID: rank.ID})
 
 	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Flags(core.SpellFlagAPL))
@@ -18,10 +19,11 @@ func (priest *Priest) registerDarkSacrifice(rank *spelldata.Spell) {
 	config.Hot = spelldata.DotConfig(rank, manaTick, spelldata.Label(rank.Name+" "+rank.Rank))
 	config.Hot.SelfOnly = true
 	ticks := float64(config.Hot.NumberOfTicks)
+	rowMana := manaPerTick * ticks
 	config.Hot.OnTick = func(sim *core.Simulation, _ *core.Unit, _ *core.Dot) {
 		// The tooltip's ${$o2+$SPI}: the row's mana over the duration, and Spirit once, shared over the ticks.
-		priest.RemoveHealth(sim, healthTick.Average())
-		priest.AddMana(sim, manaTick.Average()+priest.GetStat(stats.Spirit)/ticks, manaMetrics)
+		priest.RemoveHealth(sim, healthPerTick)
+		priest.AddMana(sim, manaPerTick+priest.GetStat(stats.Spirit)/ticks, manaMetrics)
 	}
 
 	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
@@ -29,7 +31,7 @@ func (priest *Priest) registerDarkSacrifice(rank *spelldata.Spell) {
 	}
 
 	darkSacrifice := priest.RegisterSpell(config)
-	if rank.ID != spellData.DarkSacrifice.Highest().ID {
+	if rank != spellData.DarkSacrifice.Highest() {
 		return
 	}
 
@@ -37,7 +39,7 @@ func (priest *Priest) registerDarkSacrifice(rank *spelldata.Spell) {
 		Spell: darkSacrifice,
 		Type:  core.CooldownTypeMana,
 		ShouldActivate: func(_ *core.Simulation, character *core.Character) bool {
-			return character.MaxMana()-character.CurrentMana() >= manaTick.Average()*ticks+character.GetStat(stats.Spirit)
+			return character.MaxMana()-character.CurrentMana() >= rowMana+character.GetStat(stats.Spirit)
 		},
 	})
 }

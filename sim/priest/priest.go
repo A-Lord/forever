@@ -24,7 +24,8 @@ type Priest struct {
 
 	VampiricEmbrace *core.Spell
 
-	holyFires []*core.Spell
+	holyFires              []*core.Spell
+	powerInLightMultiplier float64
 }
 
 type SelfBuffs struct {
@@ -44,63 +45,68 @@ func (priest *Priest) AddPartyBuffs(_ *proto.PartyBuffs) {
 }
 
 func (priest *Priest) Initialize() {
-	HolyFireRankMap.Each(func(_ int32, rank *spelldata.Spell) {
-		priest.registerHolyFireSpell(rank)
-	})
-	MindBlastRankMap.Each(func(_ int32, rank *spelldata.Spell) {
-		priest.registerMindBlastSpell(rank)
-	})
-	ShadowWordPainRankMap.Each(func(_ int32, rank *spelldata.Spell) {
-		priest.registerShadowWordPainSpell(rank)
-	})
-	ShadowWordDeathRankMap.Each(func(_ int32, rank *spelldata.Spell) {
-		priest.registerShadowWordDeathSpell(rank)
-	})
-	SmiteRankMap.Each(func(_ int32, rank *spelldata.Spell) {
-		priest.registerSmiteSpell(rank)
-	})
-	DevouringPlagueRankMap.Each(func(_ int32, rank *spelldata.Spell) {
-		priest.registerDevouringPlagueSpell(rank)
-	})
-	spellData.InnerFire.Each(func(_ int32, rank *spelldata.Spell) {
-		priest.registerInnerFire(rank)
-	})
-	spellData.Fade.Each(func(_ int32, rank *spelldata.Spell) {
-		priest.registerFade(rank)
-	})
+	HolyFireRankMap.Each(priest.registerHolyFireSpell)
+	MindBlastRankMap.Each(priest.registerMindBlastSpell)
+	ShadowWordPainRankMap.Each(priest.registerShadowWordPainSpell)
+	ShadowWordDeathRankMap.Each(priest.registerShadowWordDeathSpell)
+	SmiteRankMap.Each(priest.registerSmiteSpell)
+	DevouringPlagueRankMap.Each(priest.registerDevouringPlagueSpell)
+	spellData.InnerFire.Each(priest.registerInnerFire)
+	spellData.Fade.Each(priest.registerFade)
 
-	if priest.Race == proto.Race_RaceNightElf {
-		StarshardsRankMap.Each(func(_ int32, rank *spelldata.Spell) {
-			priest.registerStarshardsSpell(rank)
-		})
-		spellData.ElunesGrace.Each(func(_ int32, rank *spelldata.Spell) {
-			priest.registerElunesGrace(rank)
-		})
+	switch priest.Race {
+	case proto.Race_RaceNightElf:
+		StarshardsRankMap.Each(priest.registerStarshardsSpell)
+		spellData.ElunesGrace.Each(priest.registerElunesGrace)
+	case proto.Race_RaceTroll:
+		spellData.HexOfWeakness.Each(priest.registerHexOfWeakness)
+		spellData.Shadowguard.Each(priest.registerShadowguard)
+	case proto.Race_RaceUndead:
+		spellData.TouchOfWeakness.Each(priest.registerTouchOfWeakness)
+		spellData.DarkSacrifice.Each(priest.registerDarkSacrifice)
+	case proto.Race_RaceDwarf:
+		spellData.Chastise.Each(priest.registerChastise)
+		spellData.DesperatePrayer.Each(priest.registerDesperatePrayer)
 	}
-	if priest.Race == proto.Race_RaceTroll {
-		spellData.HexOfWeakness.Each(func(_ int32, rank *spelldata.Spell) {
-			priest.registerHexOfWeakness(rank)
-		})
-		spellData.Shadowguard.Each(func(_ int32, rank *spelldata.Spell) {
-			priest.registerShadowguard(rank)
-		})
+}
+
+func (priest *Priest) registerSelfBuffSpell(rank *spelldata.Spell, aura *core.Aura, classSpellMask int64) *core.Spell {
+	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Flags(core.SpellFlagAPL))
+	config.ProcMask = core.ProcMaskEmpty
+	config.ClassSpellMask = classSpellMask
+	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, _ *core.Spell) {
+		aura.Activate(sim)
+		if aura.MaxStacks > 0 {
+			aura.SetStacks(sim, aura.MaxStacks)
+		}
 	}
-	if priest.Race == proto.Race_RaceUndead {
-		spellData.TouchOfWeakness.Each(func(_ int32, rank *spelldata.Spell) {
-			priest.registerTouchOfWeakness(rank)
-		})
-		spellData.DarkSacrifice.Each(func(_ int32, rank *spelldata.Spell) {
-			priest.registerDarkSacrifice(rank)
-		})
+	config.RelatedSelfBuff = aura
+
+	return priest.RegisterSpell(config)
+}
+
+func (priest *Priest) periodicDamageSpellConfig(rank *spelldata.Spell, classSpellMask int64) core.SpellConfig {
+	tick := rank.PeriodicEffect()
+
+	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))
+	config.ClassSpellMask = classSpellMask
+
+	config.Dot = spelldata.DotConfig(rank, tick, spelldata.Label(rank.Name+" "+rank.Rank))
+	config.Dot.OnTick = spelldata.PeriodicDamageTick(tick, rank.TickOutcomeHitRolled)
+
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		result := spell.CalcOutcome(sim, target, spell.OutcomeMagicHitNoHitCounter)
+		if result.Landed() {
+			spell.Dot(target).Apply(sim)
+		}
+		spell.DealOutcome(sim, result)
 	}
-	if priest.Race == proto.Race_RaceDwarf {
-		spellData.Chastise.Each(func(_ int32, rank *spelldata.Spell) {
-			priest.registerChastise(rank)
-		})
-		spellData.DesperatePrayer.Each(func(_ int32, rank *spelldata.Spell) {
-			priest.registerDesperatePrayer(rank)
-		})
+
+	config.ExpectedTickDamage = func(sim *core.Simulation, target *core.Unit, spell *core.Spell, _ bool) *core.SpellResult {
+		return spell.CalcPeriodicDamage(sim, target, tick.Average(), spell.OutcomeExpectedMagicAlwaysHit)
 	}
+
+	return config
 }
 
 func (priest *Priest) Reset(_ *core.Simulation) {
