@@ -5,8 +5,10 @@ import (
 	"time"
 
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/simsignals"
+	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
@@ -28,14 +30,19 @@ func init() {
 	)
 }
 
-// Registers Shoot where the classes do, while the character is built.
+// Registers Shoot where the classes do, while the character is built, and a three-charge buff that any
+// ranged attack hit spends.
 type wandCaster struct {
 	testCaster
-	shoot *core.Spell
+	shoot   *core.Spell
+	charges *core.Aura
 }
 
 func (c *wandCaster) Initialize() {
 	c.shoot = RegisterShoot(&c.Character)
+	row := &spelldata.Spell{ID: 990001, Name: "Test Charges", ProcFlags: [2]uint32{dbcenums.PROC_FLAG_DEAL_RANGED_ATTACK, 0}}
+	c.charges = c.RegisterAura(core.Aura{Label: "Test Charges", ActionID: core.ActionID{SpellID: row.ID}, Duration: time.Minute, MaxStacks: 3})
+	spelldata.AttachChargeSpender(&c.Character, c.charges, row, "Test Charges - Spend", spelldata.Chance(100))
 }
 
 // A priest with the given ranged slot and rotation, at the given distance from a level 60 target, with
@@ -348,6 +355,19 @@ func TestWandShoot(t *testing.T) {
 		caster.MoveDuration(2*time.Second, sim)
 		if caster.wanding() || caster.shoot.CanCast(sim, target) {
 			t.Fatalf("moving at 1 s should end Shoot and keep it from starting, wanding %t", caster.wanding())
+		}
+	})
+
+	t.Run("each shot of a channel spends a charge as it lands", func(t *testing.T) {
+		sim, caster := newWandSim(t, &proto.ItemSpec{Id: sableWandID}, channelShootRotation(), 0)
+		sim.PrePull()
+
+		stepPast(t, sim, 100*time.Millisecond)
+		caster.charges.Activate(sim)
+		caster.charges.SetStacks(sim, 3)
+		stepPast(t, sim, 2400*time.Millisecond)
+		if !caster.wanding() || caster.charges.GetStacks() != 1 {
+			t.Fatalf("after the shots at 0.5 and 2.3 s the channel should still run with one charge left, wanding %t, %d charges", caster.wanding(), caster.charges.GetStacks())
 		}
 	})
 
