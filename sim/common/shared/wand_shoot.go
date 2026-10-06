@@ -14,7 +14,13 @@ var shootRow = spelldata.MustFind(5019)
 // spell power.
 func RegisterShoot(character *core.Character) *core.Spell {
 	weapon := character.WeaponFromRanged()
-	swingSpeed := core.DurationFromSeconds(max(weapon.SwingSpeed, 1))
+	wandSpeed := func() time.Duration {
+		if character.GetRangedWeapon() == nil {
+			return 0
+		}
+		current := character.WeaponFromRanged()
+		return core.DurationFromSeconds(max(current.SwingSpeed, 1))
+	}
 
 	config := spelldata.SpellConfig(&character.Unit, shootRow, spelldata.Magic(core.ProcMaskRangedAuto))
 	config.Flags |= core.SpellFlagChanneled | core.SpellFlagAPL
@@ -25,7 +31,7 @@ func RegisterShoot(character *core.Character) *core.Spell {
 	config.Dot = core.DotConfig{
 		Aura:                core.Aura{Label: "Shoot"},
 		NumberOfTicks:       1 << 20,
-		TickLength:          swingSpeed,
+		TickLength:          core.DurationFromSeconds(max(weapon.SwingSpeed, 1)),
 		AffectedByCastSpeed: true,
 		Autorepeat:          true,
 		OnTick: func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
@@ -39,14 +45,15 @@ func RegisterShoot(character *core.Character) *core.Spell {
 		},
 	}
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		spell.Dot(target).Apply(sim)
+		weapon = character.WeaponFromRanged()
+		spell.SpellSchool = weapon.GetSpellSchool()
+		spell.SchoolIndex = spell.SpellSchool.MultiplierSchool().SchoolIndex()
+		dot := spell.Dot(target)
+		dot.BaseTickLength = wandSpeed()
+		dot.Apply(sim)
 	}
 
 	shoot := character.RegisterSpell(config)
-	var wandSpeed time.Duration
-	if character.GetRangedWeapon() != nil {
-		wandSpeed = swingSpeed
-	}
 	character.EnableWand(shoot, wandSpeed)
 	return shoot
 }

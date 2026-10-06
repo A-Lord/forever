@@ -337,6 +337,46 @@ func TestWandShoot(t *testing.T) {
 	})
 }
 
+func TestWandShootReadsEquippedWand(t *testing.T) {
+	const physicalWandID int32 = 279847 // Unstable Power Core, physical, 1.70 s.
+
+	// Swaps the second ranged slot in and casts Shoot once, then checks the shot against the wand now equipped.
+	checkSwappedShoot := func(t *testing.T, ranged, swapped *proto.ItemSpec, school core.SpellSchool, speed time.Duration) {
+		t.Helper()
+		sim, caster := newSwapWandSim(t, ranged, swapped, &proto.APLRotation{}, 0)
+		caster.ItemSwap.SwapItems(sim, proto.APLActionItemSwap_Swap1, false)
+		wand := caster.WeaponFromRanged()
+		target := sim.Encounter.ActiveTargetUnits[0]
+		metrics := &caster.shoot.SpellMetrics[target.UnitIndex]
+		stepPast(t, sim, 5*time.Second)
+
+		if !caster.shoot.Cast(sim, target) {
+			t.Fatalf("Shoot could not be cast with the swapped-in wand")
+		}
+		if caster.shoot.SpellSchool != school {
+			t.Fatalf("Shoot is %v, want the swapped-in wand's %v", caster.shoot.SpellSchool, school)
+		}
+		if got := caster.Wand.SwingSpeed(); got != speed {
+			t.Fatalf("the wand swing time reads %s, want the swapped-in wand's %s", got, speed)
+		}
+		stepPast(t, sim, sim.CurrentTime+speed+time.Millisecond)
+		if metrics.Hits+metrics.Crits != 1 {
+			t.Fatalf("Shoot fired %d shots within one wand speed, want 1", metrics.Hits+metrics.Crits)
+		}
+		if metrics.TotalDamage < wand.BaseDamageMin || metrics.TotalDamage > wand.BaseDamageMax {
+			t.Fatalf("the shot dealt %v, want %v to %v", metrics.TotalDamage, wand.BaseDamageMin, wand.BaseDamageMax)
+		}
+	}
+
+	t.Run("a wand swapped for another shoots at the new wand's speed, damage and school", func(t *testing.T) {
+		checkSwappedShoot(t, &proto.ItemSpec{Id: sableWandID}, &proto.ItemSpec{Id: physicalWandID}, core.SpellSchoolPhysical, 1700*time.Millisecond)
+	})
+
+	t.Run("a wand swapped in after registering with none shoots at its speed, damage and school", func(t *testing.T) {
+		checkSwappedShoot(t, &proto.ItemSpec{}, &proto.ItemSpec{Id: sableWandID}, core.SpellSchoolShadow, 1800*time.Millisecond)
+	})
+}
+
 func (c *wandCaster) wanding() bool {
 	return c.ChanneledDot != nil && c.ChanneledDot.Spell == c.shoot
 }

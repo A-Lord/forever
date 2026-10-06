@@ -38,7 +38,7 @@ func fakeShoot(char *Character, ticks *[]time.Duration) *Spell {
 			spell.Dot(target).Apply(sim)
 		},
 	})
-	char.EnableWand(spell, 2*time.Second)
+	char.EnableWand(spell, func() time.Duration { return 2 * time.Second })
 	return spell
 }
 

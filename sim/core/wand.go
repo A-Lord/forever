@@ -5,14 +5,14 @@ import "time"
 // The wand's Shoot channel, its speed and when its last shot fired, read by the APL's wand values.
 type Wand struct {
 	Shoot      *Spell
-	swingSpeed time.Duration // Zero when no wand was equipped at registration.
+	swingSpeed func() time.Duration // The equipped wand's speed; zero with no wand.
 	lastShotAt time.Duration
 	timerAt    time.Duration // When the wand's timer last restarted: another spell's cast or channel end, or a shot.
 }
 
 const wandWindup = 500 * time.Millisecond
 
-func (unit *Unit) EnableWand(shoot *Spell, swingSpeed time.Duration) {
+func (unit *Unit) EnableWand(shoot *Spell, swingSpeed func() time.Duration) {
 	wand := &Wand{Shoot: shoot, swingSpeed: swingSpeed, timerAt: -NeverExpires}
 	unit.Wand = wand
 	unit.RegisterResetEffect(func(_ *Simulation) {
@@ -75,11 +75,15 @@ func (wand *Wand) TimeSinceLast(sim *Simulation) time.Duration {
 // The running Shoot's shot interval, fixed when it started; otherwise the wand speed at the current cast
 // speed, the interval of a Shoot started now. Zero with no wand.
 func (wand *Wand) SwingSpeed() time.Duration {
-	if wand == nil || wand.swingSpeed == 0 {
+	if wand == nil {
 		return 0
 	}
 	if dot := wand.Shoot.autorepeatChannel(); dot != nil {
 		return dot.tickPeriod
 	}
-	return wand.Shoot.Unit.ApplyCastSpeedForSpell(wand.swingSpeed, wand.Shoot).Round(time.Millisecond)
+	speed := wand.swingSpeed()
+	if speed == 0 {
+		return 0
+	}
+	return wand.Shoot.Unit.ApplyCastSpeedForSpell(speed, wand.Shoot).Round(time.Millisecond)
 }
