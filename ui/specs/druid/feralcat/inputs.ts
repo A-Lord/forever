@@ -73,5 +73,10 @@ export const FeralDruidRotationConfig = {
 			label: i18n.t('rotation_tab.options.druid.feral_cat.maintain_faerie_fire.label'),
 			labelTooltip: i18n.t('rotation_tab.options.druid.feral_cat.maintain_faerie_fire.tooltip'),
 		}),
+		InputHelpers.makeRotationBooleanInput<Spec.SpecFeralCatDruid>({
+			fieldName: 'faerieFireForOmen',
+			label: i18n.t('rotation_tab.options.druid.feral_cat.faerie_fire_for_omen.label'),
+			labelTooltip: i18n.t('rotation_tab.options.druid.feral_cat.faerie_fire_for_omen.tooltip'),
+		}),
 	],
 };

@@ -26,6 +26,7 @@ type FeralDruidRotation struct {
 	BiteOverRip        bool
 	UseRake            bool
 	MaintainFaerieFire bool
+	FaerieFireForOmen  bool
 }
 
 func (cat *FeralDruid) setupRotation(rotation *proto.FeralCatDruid_Rotation) {
@@ -44,6 +45,7 @@ func (cat *FeralDruid) setupRotation(rotation *proto.FeralCatDruid_Rotation) {
 		BiteOverRip:        biteFinisher,
 		UseRake:            rotation.RakeTrick,
 		MaintainFaerieFire: rotation.MaintainFaerieFire,
+		FaerieFireForOmen:  rotation.FaerieFireForOmen,
 	}
 }
 
@@ -116,7 +118,54 @@ func (cat *FeralDruid) doRotation(sim *core.Simulation) bool {
 	if builder.CanCast(sim, target) {
 		return builder.Cast(sim, target)
 	}
+	// Nothing else to cast: Faerie Fire is free in Cat Form and its landed debuff rolls Omen of Clarity.
+	if cat.wantOmenFishing(sim, target) {
+		return cat.FaerieFire.Cast(sim, target)
+	}
 	return false
+}
+
+// wantOmenFishing is true when the rotation fishes for Omen of Clarity, Omen can proc again and is not
+// already up, and Faerie Fire is ready. Its GCD must not hold anything back: no spell the rotation
+// wants is affordable before the GCD ends, and Shifting Power does not come off cooldown inside it.
+func (cat *FeralDruid) wantOmenFishing(sim *core.Simulation, target *core.Unit) bool {
+	omen := cat.OmenOfClarityAura
+	if !cat.Rotation.FaerieFireForOmen || omen == nil || omen.Icd == nil || !omen.Icd.IsReady(sim) || cat.ClearcastingAura.IsActive() {
+		return false
+	}
+	gcd := cat.FaerieFire.DefaultCast.GCD
+	if gcd <= 0 {
+		gcd = time.Second
+	}
+	regen := cat.CurrentEnergyRegenMultiplier() * 10 * gcd.Seconds()
+	if cat.CurrentEnergy()+regen >= cat.cheapestWanted(sim, gcd) {
+		return false
+	}
+	if cat.Talents.ShiftingPower && cat.ShiftingPower.TimeToReady(sim) < gcd {
+		return false
+	}
+	return cat.FaerieFire.CanCast(sim, target)
+}
+
+// cheapestWanted is the lowest energy cost among the spells the rotation casts once it can pay, within
+// the next window: Rip and Bite on the points they need, Rip and Rake when they are down or fall off
+// inside the window, and the builder.
+func (cat *FeralDruid) cheapestWanted(sim *core.Simulation, window time.Duration) float64 {
+	rotation := &cat.Rotation
+	cost := cat.builder().Cost.GetCurrentCost()
+	cp := cat.ComboPoints()
+	ripDot := cat.Rip.CurDot()
+	ripUp := ripDot.IsActive()
+	if cp >= rotation.RipCP && (!ripUp || ripDot.RemainingDuration(sim) < window) && sim.GetRemainingDuration() >= RipEndThresh {
+		cost = min(cost, cat.Rip.Cost.GetCurrentCost())
+	}
+	if rotation.UseBite && cp >= rotation.BiteCP && (rotation.BiteOverRip || ripUp) {
+		cost = min(cost, cat.FerociousBite.Cost.GetCurrentCost())
+	}
+	if rake := cat.Rake.CurDot(); rotation.UseRake && (!rake.IsActive() || rake.RemainingDuration(sim) < window) {
+		cost = min(cost, cat.Rake.Cost.GetCurrentCost())
+	}
+	return cost
 }
 
 func (cat *FeralDruid) castShift(sim *core.Simulation, target *core.Unit, alreadyDecided bool) bool {

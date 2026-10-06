@@ -168,7 +168,7 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 // Power when the builder is unaffordable.
 function catPowershiftRotation(simple: DruidRotation): APLRotation {
 	const doRotation = APLAction.fromJsonString(
-		`{"catOptimalRotationAction":{"finishingMove":${simple.finishingMove},"biteweave":${simple.biteweave},"ripweave":${simple.ripweave},"ripMinComboPoints":${simple.ripMinComboPoints || 5},"biteMinComboPoints":${simple.biteMinComboPoints || 5},"rakeTrick":${simple.rakeTrick},"maintainFaerieFire":${simple.maintainFaerieFire}}}`,
+		`{"catOptimalRotationAction":{"finishingMove":${simple.finishingMove},"biteweave":${simple.biteweave},"ripweave":${simple.ripweave},"ripMinComboPoints":${simple.ripMinComboPoints || 5},"biteMinComboPoints":${simple.biteMinComboPoints || 5},"rakeTrick":${simple.rakeTrick},"maintainFaerieFire":${simple.maintainFaerieFire},"faerieFireForOmen":${simple.faerieFireForOmen}}}`,
 	);
 
 	return APLRotation.create({

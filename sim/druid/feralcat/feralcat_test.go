@@ -65,6 +65,7 @@ var DefaultSpecOptions = &proto.Player_FeralCatDruid{
 			RipMinComboPoints:  5,
 			BiteMinComboPoints: 5,
 			RakeTrick:          true,
+			FaerieFireForOmen:  true,
 		},
 		Options: &proto.FeralCatDruid_Options{},
 	},

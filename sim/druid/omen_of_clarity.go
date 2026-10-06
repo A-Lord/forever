@@ -32,7 +32,7 @@ func (druid *Druid) registerOmenOfClarity() {
 		chance := float64(omen.RPPM) * druid.omenSpeed(spell) / 60
 		return sim.Proc(druid.ModifiedProcChance(omen.ClassFlags, chance), trigger.Name)
 	}
-	druid.MakeProcTriggerAura(trigger)
+	druid.OmenOfClarityAura = druid.MakeProcTriggerAura(trigger)
 }
 
 // The speed, in seconds, that turns Omen of Clarity's procs per minute into a chance for this hit.

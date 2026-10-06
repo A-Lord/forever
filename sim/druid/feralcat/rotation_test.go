@@ -14,13 +14,15 @@ import (
 // Same tree as the cat UI default. Shifting Power is the 11th feral talent.
 const powershiftTalents = "05002-55000032021032212051-055"
 
-// The rotation the cat UI sends by default: Rip at 5 combo points, Rake kept up.
+// The rotation the cat UI sends by default: Rip at 5 combo points, Rake kept up, Faerie Fire for Omen
+// of Clarity.
 func defaultCatRotation() *proto.APLRotation {
 	return catRotation(&proto.FeralCatDruid_Rotation{
 		FinishingMove:      proto.FeralCatDruid_Rotation_Rip,
 		RipMinComboPoints:  5,
 		BiteMinComboPoints: 5,
 		RakeTrick:          true,
+		FaerieFireForOmen:  true,
 	})
 }
 
@@ -29,7 +31,7 @@ func TestDefaultRotationStaysInCatForm(t *testing.T) {
 	for _, c := range []struct {
 		name string
 		id   int32
-	}{{"Shifting Power", 1322605}, {"Shred", 9830}, {"Rip", 9896}, {"Rake", 9904}, {"Berserk", 417141}} {
+	}{{"Shifting Power", 1322605}, {"Shred", 9830}, {"Rip", 9896}, {"Rake", 9904}, {"Berserk", 417141}, {"Faerie Fire", 9907}} {
 		if castsOf(player.Actions, c.id) == 0 {
 			t.Errorf("%s was never cast", c.name)
 		}
@@ -37,7 +39,7 @@ func TestDefaultRotationStaysInCatForm(t *testing.T) {
 	for _, c := range []struct {
 		name string
 		id   int32
-	}{{"Cat Form", 768}, {"Ferocious Bite", 22829}, {"Faerie Fire", 9907}} {
+	}{{"Cat Form", 768}, {"Ferocious Bite", 22829}} {
 		if got := castsOf(player.Actions, c.id); got != 0 {
 			t.Errorf("%s casts = %d, the default rotation leaves it out", c.name, got)
 		}

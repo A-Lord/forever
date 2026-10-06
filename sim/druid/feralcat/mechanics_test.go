@@ -267,6 +267,62 @@ func TestShiftingPowerWaitsLongerWithClearcastingUp(t *testing.T) {
 	}
 }
 
+// With the option on, Faerie Fire fishes for Omen of Clarity only in a GCD with nothing else to cast,
+// while Omen can proc and Clearcasting is not already up. Omen's 10 s ICD comes from the game files.
+func TestFaerieFireFishesForOmenOnlyWhenItCanProc(t *testing.T) {
+	sim, cat := newCat(t, shiftingPowerTalents, nil)
+	fillResource(sim, cat)
+	emptyEnergy(sim, cat)
+	cat.ShiftingPower.CD.Use(sim)
+	target := cat.CurrentTarget
+	if cat.wantOmenFishing(sim, target) {
+		t.Error("fishing with the option off")
+	}
+
+	cat.setupRotation(&proto.FeralCatDruid_Rotation{
+		FinishingMove:      proto.FeralCatDruid_Rotation_Rip,
+		RipMinComboPoints:  5,
+		BiteMinComboPoints: 5,
+		FaerieFireForOmen:  true,
+	})
+	if !cat.wantOmenFishing(sim, target) {
+		t.Fatal("no fishing with the option on, an empty bar and Omen ready")
+	}
+
+	energy := cat.NewEnergyMetrics(core.ActionID{SpellID: 1})
+	// The builder becomes affordable inside Faerie Fire's GCD.
+	cat.AddEnergy(sim, cat.builder().Cost.GetCurrentCost()-1, energy)
+	if cat.wantOmenFishing(sim, target) {
+		t.Error("fishing when the builder is affordable before the GCD ends")
+	}
+	emptyEnergy(sim, cat)
+
+	// With the points for Rip and Rip down, Rip becomes affordable inside the GCD, the builder does not.
+	cat.AddComboPoints(sim, 5, cat.NewComboPointMetrics(core.ActionID{SpellID: 1}))
+	cat.AddEnergy(sim, cat.Rip.Cost.GetCurrentCost()-1, energy)
+	if cat.wantOmenFishing(sim, target) {
+		t.Error("fishing when Rip is affordable before the GCD ends")
+	}
+	emptyEnergy(sim, cat)
+	cat.SpendComboPoints(sim, cat.NewComboPointMetrics(core.ActionID{SpellID: 1}))
+
+	// Shifting Power comes off cooldown inside Faerie Fire's GCD.
+	cat.ShiftingPower.CD.Reset()
+	if cat.wantOmenFishing(sim, target) {
+		t.Error("fishing when Shifting Power is ready before the GCD ends")
+	}
+	cat.ShiftingPower.CD.Use(sim)
+	cat.ClearcastingAura.Activate(sim)
+	if cat.wantOmenFishing(sim, target) {
+		t.Error("fishing with Clearcasting already up")
+	}
+	cat.ClearcastingAura.Deactivate(sim)
+	cat.OmenOfClarityAura.Icd.Use(sim)
+	if cat.wantOmenFishing(sim, target) {
+		t.Error("fishing while Omen of Clarity is on its ICD")
+	}
+}
+
 func TestShiftingPowerNeedsTheTalentAndCatForm(t *testing.T) {
 	sim, cat := newCat(t, "", nil)
 	fillResource(sim, cat)

@@ -76,6 +76,7 @@ type Druid struct {
 	BerserkAura              *core.Aura
 	CatFormAura              *core.Aura
 	ClearcastingAura         *core.Aura
+	OmenOfClarityAura        *core.Aura // The proc trigger, whose ICD says when Omen of Clarity can proc again.
 	DireBearFormAura         *core.Aura
 	DashAura                 *core.Aura
 	FrenziedRegenerationAura *core.Aura

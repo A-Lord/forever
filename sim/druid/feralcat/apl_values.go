@@ -40,6 +40,7 @@ func (cat *FeralDruid) newActionCatOptimalRotationAction(_ *core.APLRotation, co
 		BiteMinComboPoints: config.BiteMinComboPoints,
 		RakeTrick:          config.RakeTrick,
 		MaintainFaerieFire: config.MaintainFaerieFire,
+		FaerieFireForOmen:  config.FaerieFireForOmen,
 	}
 
 	cat.setupRotation(rotationOptions)
