@@ -209,13 +209,24 @@ func (unit *Unit) MultiplyManaRegenSpeed(sim *Simulation, multiplier float64) {
 
 // Applies 1 'tick' of mana regen, which worth 2s of regeneration based on mp5/int/spirit/etc.
 func (unit *Unit) ManaTick(sim *Simulation) {
-	if sim.CurrentTime < unit.PseudoStats.FiveSecondRuleRefreshTime {
+	if sim.CurrentTime < unit.PseudoStats.FiveSecondRuleRefreshTime || unit.channelPaidMana() {
 		regen := unit.manaTickWhileCasting
 		unit.AddMana(sim, max(0, regen), unit.manaCastingMetrics)
 	} else {
 		regen := unit.manaTickWhileNotCasting
 		unit.AddMana(sim, max(0, regen), unit.manaNotCastingMetrics)
 	}
+}
+
+// Whether the unit is channeling a spell it paid mana for. The five seconds count from the channel's
+// start, but regen stays at the casting rate until the channel ends, however it ends.
+func (unit *Unit) channelPaidMana() bool {
+	dot := unit.ChanneledDot
+	if dot == nil || dot.Spell.Cost == nil {
+		return false
+	}
+	_, isMana := dot.Spell.Cost.ResourceCostImpl.(*ManaCost)
+	return isMana && dot.Spell.CurCast.Cost > 0
 }
 
 // Returns the amount of time this Unit would need to wait in order to reach
