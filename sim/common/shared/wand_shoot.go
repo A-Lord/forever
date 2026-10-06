@@ -11,7 +11,7 @@ var shootRow = spelldata.MustFind(5019)
 
 // Shoot is a channel whose ticks are the wand's shots, one per wand speed, until something takes a
 // tick's slot. A shot rolls the wand's damage in its school on the spell table: no attack power, no
-// spell power.
+// spell power. It crits on the ranged crit chance, for 1.5 times like a spell.
 func RegisterShoot(character *core.Character) *core.Spell {
 	weapon := character.WeaponFromRanged()
 	wandSpeed := func() time.Duration {
@@ -35,7 +35,7 @@ func RegisterShoot(character *core.Character) *core.Spell {
 		OnTick: func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
 			spell := dot.Spell
 			baseDamage := weapon.CalculateWeaponDamage(sim, 0)
-			result := spell.CalcDamage(sim, target, baseDamage, spell.OutcomeMagicHitAndCrit)
+			result := spell.CalcDamage(sim, target, baseDamage, spell.OutcomeMagicHitAndRangedCrit)
 			spell.WaitTravelTime(sim, func(sim *core.Simulation) {
 				spell.DealDamage(sim, result)
 			})

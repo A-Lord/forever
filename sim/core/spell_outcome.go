@@ -86,6 +86,20 @@ func (spell *Spell) outcomeMagicHitAndCrit(sim *Simulation, result *SpellResult,
 	}
 }
 
+// A hit rolled on the spell table and a crit rolled on the attacker's ranged crit, for the spell's own crit
+// multiplier: a wand shot.
+func (spell *Spell) OutcomeMagicHitAndRangedCrit(sim *Simulation, result *SpellResult, attackTable *AttackTable) {
+	if spell.MagicHitCheck(sim, attackTable) {
+		if !result.applyAttackTableCritSeparateRoll(sim, spell, attackTable, true) {
+			result.applyAttackTableHit(spell, true)
+		}
+	} else {
+		result.Outcome = OutcomeMiss
+		result.Damage = 0
+		spell.SpellMetrics[result.Target.UnitIndex].Misses++
+	}
+}
+
 func (spell *Spell) OutcomeMagicCrit(sim *Simulation, result *SpellResult, at *AttackTable) {
 	spell.outcomeMagicCrit(sim, result, at, true)
 }

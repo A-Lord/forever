@@ -88,8 +88,10 @@ func newSwapWandSim(t *testing.T, ranged, swapped *proto.ItemSpec, rotation *pro
 
 	caster := sim.Raid.Parties[0].Players[0].(*wandCaster)
 	caster.AddStatsDynamic(sim, stats.Stats{
-		stats.SpellHitPercent:  100,
-		stats.SpellCritPercent: -caster.GetStat(stats.SpellCritPercent),
+		stats.SpellHitPercent:     100,
+		stats.SpellCritPercent:    -caster.GetStat(stats.SpellCritPercent),
+		stats.PhysicalCritPercent: -caster.GetStat(stats.PhysicalCritPercent),
+		stats.RangedCritPercent:   -caster.GetStat(stats.RangedCritPercent),
 	})
 	return sim, caster
 }
@@ -158,7 +160,7 @@ func TestWandShoot(t *testing.T) {
 		}
 	})
 
-	t.Run("a shot crits for 1.5 times its roll", func(t *testing.T) {
+	t.Run("a shot crits on ranged crit for 1.5 times its roll", func(t *testing.T) {
 		sim, caster := newSableWandSim(t)
 		if caster.shoot.DefenseType != core.DefenseTypeMagic {
 			t.Fatalf("Shoot's defense type is %v, want magic", caster.shoot.DefenseType)
@@ -166,7 +168,7 @@ func TestWandShoot(t *testing.T) {
 		plain := shots(t, sim, caster, 50)
 
 		sim, caster = newSableWandSim(t)
-		caster.AddStatsDynamic(sim, stats.Stats{stats.SpellCritPercent: 100})
+		caster.AddStatsDynamic(sim, stats.Stats{stats.PhysicalCritPercent: 100})
 		crits := shots(t, sim, caster, 50)
 		for i := range crits {
 			if diff := crits[i] - 1.5*plain[i]; diff > 1e-9 || diff < -1e-9 {
@@ -175,7 +177,35 @@ func TestWandShoot(t *testing.T) {
 		}
 		metrics := caster.shoot.SpellMetrics[sim.Encounter.ActiveTargetUnits[0].UnitIndex]
 		if metrics.Crits != 50 || metrics.Hits != 0 {
-			t.Fatalf("with 100%% spell crit Shoot landed %d crits and %d hits, want 50 and 0", metrics.Crits, metrics.Hits)
+			t.Fatalf("with 100%% ranged crit Shoot landed %d crits and %d hits, want 50 and 0", metrics.Crits, metrics.Hits)
+		}
+	})
+
+	t.Run("spell crit does not crit a shot", func(t *testing.T) {
+		sim, caster := newSableWandSim(t)
+		caster.AddStatsDynamic(sim, stats.Stats{stats.SpellCritPercent: 100})
+		shots(t, sim, caster, 50)
+		metrics := caster.shoot.SpellMetrics[sim.Encounter.ActiveTargetUnits[0].UnitIndex]
+		if metrics.Crits != 0 || metrics.Hits != 50 {
+			t.Fatalf("with 100%% spell crit and no ranged crit Shoot landed %d crits and %d hits, want 0 and 50", metrics.Crits, metrics.Hits)
+		}
+	})
+
+	t.Run("a shot misses on spell hit, not on physical hit", func(t *testing.T) {
+		sim, caster := newSableWandSim(t)
+		caster.AddStatsDynamic(sim, stats.Stats{stats.SpellHitPercent: -200, stats.PhysicalHitPercent: 100, stats.RangedHitPercent: 100})
+		shots(t, sim, caster, 50)
+		metrics := caster.shoot.SpellMetrics[sim.Encounter.ActiveTargetUnits[0].UnitIndex]
+		if metrics.Misses != 50 {
+			t.Fatalf("with no spell hit chance and full physical hit Shoot missed %d of 50 shots, want all", metrics.Misses)
+		}
+
+		sim, caster = newSableWandSim(t)
+		caster.AddStatsDynamic(sim, stats.Stats{stats.PhysicalHitPercent: -100, stats.RangedHitPercent: -100})
+		shots(t, sim, caster, 50)
+		metrics = caster.shoot.SpellMetrics[sim.Encounter.ActiveTargetUnits[0].UnitIndex]
+		if metrics.Misses != 0 {
+			t.Fatalf("with certain spell hit and no physical hit Shoot missed %d of 50 shots, want none", metrics.Misses)
 		}
 	})
 
