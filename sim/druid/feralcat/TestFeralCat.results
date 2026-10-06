@@ -539,8 +539,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-Average-Default"
  value: {
-  dps: 589.65943
-  tps: 317.90603
+  dps: 589.60543
+  tps: 317.87919
  }
 }
 dps_results: {

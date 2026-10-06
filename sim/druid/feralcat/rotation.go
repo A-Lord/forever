@@ -76,39 +76,30 @@ func (cat *FeralDruid) doRotation(sim *core.Simulation) bool {
 		return cat.CatForm.Cast(sim, nil)
 	}
 
-	rotation := &cat.Rotation
 	target := cat.CurrentTarget
 	// The throw leaves Cat Form and needs no GCD, so Cat Form goes back up in the same decision.
-	// It goes before every GCD of the rotation.
+	// It goes before every GCD of the rotation, and Berserk waits for it: on the pull the throw and
+	// Cat Form's GCD come first, and Berserk opens on the GCD after.
 	if explosive := cat.wantExplosive(sim, target); explosive != nil {
 		explosive.Cast(sim, target)
 		return cat.CatForm.Cast(sim, nil)
 	}
-	if rotation.MaintainFaerieFire && !cat.FaerieFireAuras.Get(target).IsActive() && cat.FaerieFire.CanCast(sim, target) {
+	if cat.faerieFireNow(sim, target) {
 		return cat.FaerieFire.Cast(sim, target)
 	}
-
-	cp := cat.ComboPoints()
-	ripDot := cat.Rip.CurDot()
-	ripUp := ripDot.IsActive()
 	// Rip is first when both bleeds are down. Refreshing either one early, to keep them apart,
 	// was behind letting the fallen one wait a GCD.
-	if cp >= rotation.RipCP && !ripUp && sim.GetRemainingDuration() >= RipEndThresh &&
-		cat.Rip.CanCast(sim, target) {
+	if cat.ripNow(sim, target) {
 		return cat.Rip.Cast(sim, target)
 	}
-	biteWindow := rotation.BiteOverRip || ripUp
-	if rotation.UseBite && cp >= rotation.BiteCP && biteWindow && cat.FerociousBite.CanCast(sim, target) {
+	if cat.biteNow(sim, target) {
 		return cat.FerociousBite.Cast(sim, target)
 	}
-	if rotation.UseRake && !cat.Rake.CurDot().IsActive() && cat.Rake.CanCast(sim, target) {
+	if cat.rakeNow(sim, target) {
 		return cat.Rake.Cast(sim, target)
 	}
 
-	builder := cat.Claw
-	if cat.BehindTarget() {
-		builder = cat.Shred
-	}
+	builder := cat.builder()
 	// Tea does not start the GCD, so the same decision can still spend the builder or the shift.
 	if cat.wantTea(sim) {
 		cat.thistleTea().Cast(sim, &cat.Unit)
@@ -204,6 +195,52 @@ func (cat *FeralDruid) wantExplosive(sim *core.Simulation, target *core.Unit) *c
 		}
 	}
 	return nil
+}
+
+// builder is Shred from behind the target, Claw otherwise.
+func (cat *FeralDruid) builder() *druid.DruidSpell {
+	if cat.BehindTarget() {
+		return cat.Shred
+	}
+	return cat.Claw
+}
+
+// The spells a decision casts ahead of the builder, in that order, each true when it is cast now.
+func (cat *FeralDruid) faerieFireNow(sim *core.Simulation, target *core.Unit) bool {
+	return cat.Rotation.MaintainFaerieFire && !cat.FaerieFireAuras.Get(target).IsActive() && cat.FaerieFire.CanCast(sim, target)
+}
+
+func (cat *FeralDruid) ripNow(sim *core.Simulation, target *core.Unit) bool {
+	return cat.ComboPoints() >= cat.Rotation.RipCP && !cat.Rip.CurDot().IsActive() &&
+		sim.GetRemainingDuration() >= RipEndThresh && cat.Rip.CanCast(sim, target)
+}
+
+func (cat *FeralDruid) biteNow(sim *core.Simulation, target *core.Unit) bool {
+	rotation := &cat.Rotation
+	biteWindow := rotation.BiteOverRip || cat.Rip.CurDot().IsActive()
+	return rotation.UseBite && cat.ComboPoints() >= rotation.BiteCP && biteWindow && cat.FerociousBite.CanCast(sim, target)
+}
+
+func (cat *FeralDruid) rakeNow(sim *core.Simulation, target *core.Unit) bool {
+	return cat.Rotation.UseRake && !cat.Rake.CurDot().IsActive() && cat.Rake.CanCast(sim, target)
+}
+
+// berserkReady holds Berserk until the GCD is free and the decision casts a spell its crit covers,
+// Rake or the builder. Rip, Bite, Shifting Power, Faerie Fire and the Cat Form cast after a throw
+// would each take Berserk's first GCD instead, and pooling for Rip casts nothing.
+func (cat *FeralDruid) berserkReady(sim *core.Simulation) bool {
+	target := cat.CurrentTarget
+	if !cat.GCD.IsReady(sim) || !cat.InForm(druid.Cat) || cat.wantExplosive(sim, target) != nil {
+		return false
+	}
+	if cat.faerieFireNow(sim, target) || cat.ripNow(sim, target) || cat.biteNow(sim, target) {
+		return false
+	}
+	if cat.rakeNow(sim, target) {
+		return true
+	}
+	builder := cat.builder()
+	return !cat.pooling(sim, builder) && !cat.wantShift(sim, target) && builder.CanCast(sim, target)
 }
 
 func (cat *FeralDruid) thistleTea() *druid.DruidSpell {

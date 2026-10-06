@@ -8,6 +8,7 @@ import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/simsignals"
+	"github.com/wowsims/forever/sim/druid"
 )
 
 // Same tree as the cat UI default. Shifting Power is the 11th feral talent.
@@ -102,6 +103,64 @@ func TestRotationLeavesCatFormOnlyForEngineeringExplosives(t *testing.T) {
 		if got := castsOf(player.Actions, 768); got != want {
 			t.Errorf("%s: cat form casts = %d after %d throws, want %d", c.name, got, thrown, want)
 		}
+	}
+}
+
+// Berserk's crit covers Shred, Claw and Rake, so the automatic Berserk waits for a decision that casts
+// one: not before the sapper and the Cat Form cast that follows it, not inside that GCD, not on a bar
+// that cannot pay for the builder, and not on a decision that casts Rip.
+func TestBerserkWaitsForADecisionItsCritCovers(t *testing.T) {
+	request := catPowershiftRequest(powershiftTalents, defaultCatRotation(), false)
+	player := request.Raid.Parties[0].Players[0]
+	player.Profession1 = proto.Profession_Engineering
+	player.Consumables = &proto.ConsumesSpec{ExtraIds: []int32{10646}}
+	sim := core.NewSim(request, simsignals.CreateSignals())
+	sim.Reset()
+	cat := sim.Raid.Parties[0].Players[0].(*FeralDruid)
+
+	berserk := cat.GetMajorCooldown(cat.Berserk.ActionID)
+	if berserk == nil {
+		t.Fatal("Berserk is not a major cooldown")
+	}
+	ready := func() bool { return berserk.ShouldActivate(sim, cat.GetCharacter()) }
+	if ready() {
+		t.Error("Berserk is ready while the sapper waits to be thrown")
+	}
+
+	sapper := cat.GetSpell(core.ActionID{ItemID: 10646})
+	if !sapper.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("the sapper was not thrown")
+	}
+	// The rotation can already have answered the throw with Cat Form.
+	if !cat.InForm(druid.Cat) && !cat.CatForm.Cast(sim, nil) {
+		t.Fatal("Cat Form was not cast after the throw")
+	}
+	if ready() {
+		t.Error("Berserk is ready inside Cat Form's GCD")
+	}
+
+	for !cat.GCD.IsReady(sim) {
+		sim.Step()
+	}
+	cat.AddEnergy(sim, cat.MaximumEnergy(), cat.NewEnergyMetrics(core.ActionID{SpellID: 1}))
+	if !ready() {
+		t.Error("Berserk is not ready with the GCD free, the sapper thrown and a full bar")
+	}
+
+	cat.SpendEnergy(sim, cat.CurrentEnergy(), cat.NewEnergyMetrics(core.ActionID{SpellID: 1}))
+	if ready() {
+		t.Error("Berserk is ready on a bar that cannot pay for the builder")
+	}
+
+	// Berserk's crit covers Shred, Claw and Rake, not Rip: with the points for Rip and Rip down, the
+	// decision casts Rip, so Berserk waits even with the builder affordable.
+	cat.AddEnergy(sim, cat.MaximumEnergy(), cat.NewEnergyMetrics(core.ActionID{SpellID: 1}))
+	cat.AddComboPoints(sim, 5, cat.NewComboPointMetrics(core.ActionID{SpellID: 1}))
+	if cat.Rip.CurDot().IsActive() || !cat.ripNow(sim, cat.CurrentTarget) {
+		t.Fatal("the decision would not cast Rip")
+	}
+	if ready() {
+		t.Error("Berserk is ready when the decision casts Rip")
 	}
 }
 

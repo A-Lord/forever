@@ -25,6 +25,9 @@ type Druid struct {
 	WolfsheadEnergyBonus float64
 	WolfsheadEnrageBonus float64
 
+	// Holds Berserk back as a major cooldown while it answers false. Nil never holds it.
+	BerserkCondition func(sim *core.Simulation) bool
+
 	MHAutoSpell *core.Spell
 
 	Barkskin             *DruidSpell
