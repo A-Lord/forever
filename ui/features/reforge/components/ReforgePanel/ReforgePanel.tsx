@@ -211,23 +211,21 @@ export const ReforgePanel = ({ model, options }: ReforgePanelProps) => {
 				// The limits are read per open.
 				render={() => {
 					const title = i18n.t('sidebar.buttons.suggest_reforges.title');
-					if (needsPreset)
-						return (
-							<>
-								<p className="mb-1 font-semibold">{title}</p>
-								<p className="mb-0">{i18n.t('sidebar.buttons.suggest_reforges.no_enchant_preset')}</p>
-							</>
-						);
 					const softCaps = model.softCapsConfigWithLimits;
-					if (!softCaps?.length) return title;
+					const body = needsPreset ? (
+						<p className="mb-0">{i18n.t('sidebar.buttons.suggest_reforges.no_enchant_preset')}</p>
+					) : softCaps?.length ? (
+						<ReforgeSoftCapsTooltip
+							playerClass={player.getClass()}
+							softCaps={softCaps}
+							additionalInformation={options?.additionalSoftCapTooltipInformation ?? {}}
+						/>
+					) : null;
+					if (!body) return title;
 					return (
 						<>
 							<p className="mb-1 font-semibold">{title}</p>
-							<ReforgeSoftCapsTooltip
-								playerClass={player.getClass()}
-								softCaps={softCaps}
-								additionalInformation={options?.additionalSoftCapTooltipInformation ?? {}}
-							/>
+							{body}
 						</>
 					);
 				}}

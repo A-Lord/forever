@@ -57,7 +57,7 @@ export const SimTabsSection = ({ host, children }: SimTabsSectionProps) => {
 								</div>
 							</SimTabDef>
 							<SimTabDef id={BULK_TAB_ID} title={i18n.t('bulk_tab.title')}>
-								<SimTabPane id="bulk-tab" className="p-0">
+								<SimTabPane id={BULK_TAB_ID} className="p-0">
 									<BulkTabBody />
 								</SimTabPane>
 							</SimTabDef>

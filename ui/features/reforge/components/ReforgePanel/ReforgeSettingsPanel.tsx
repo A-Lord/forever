@@ -11,7 +11,6 @@ import { type ReactNode, useMemo, useState } from 'react';
 
 import { trackEvent } from '../../../../tracking/utils';
 import { useReforgeField } from '../../hooks/useReforgeField';
-import { DEFAULT_REFORGE_ID_PREFIX, ReforgeIdPrefixContext } from './context/ReforgeIdPrefixContext';
 import { ReforgeBreakpointLimits } from './ReforgeBreakpointLimits';
 import { ReforgeFrozenSlots } from './ReforgeFrozenSlots';
 import { ReforgeSkippedSlots } from './ReforgeSkippedSlots';
@@ -80,12 +79,10 @@ export interface ReforgeSettingsPanelProps {
 	options?: ReforgeOptimizerOptions;
 	/** Closes the popover when the EP weights dialog opens over it or the Batch Sim tab opens. */
 	onClose?: () => void;
-	/** Scopes every DOM id the panel renders. */
-	idPrefix?: string;
 }
 
 /** The reforge settings body of the sidebar popover. It is mounted only while the popover is open, so every section is built per open. */
-export const ReforgeSettingsPanel = ({ model, options, onClose, idPrefix = DEFAULT_REFORGE_ID_PREFIX }: ReforgeSettingsPanelProps) => {
+export const ReforgeSettingsPanel = ({ model, options, onClose }: ReforgeSettingsPanelProps) => {
 	const host = useSimHost();
 	const player = host.player;
 	const individualConfig = useSpecConfig();
@@ -102,117 +99,115 @@ export const ReforgeSettingsPanel = ({ model, options, onClose, idPrefix = DEFAU
 	const hasSoftCaps = !!softCapsConfig?.length;
 
 	return (
-		<ReforgeIdPrefixContext.Provider value={idPrefix}>
-			<ReforgeSettingsPanelView
-				customEpToggle={
+		<ReforgeSettingsPanelView
+			customEpToggle={
+				<ConnectedBooleanPicker
+					modObject={player}
+					config={{
+						extraClassNames: ['mb-2'],
+						id: 'reforge-optimizer-enable-custom-ep-weights',
+						label: i18n.t('sidebar.buttons.suggest_reforges.use_custom'),
+						layout: 'inline',
+						storeField: 'reforge:useCustomEPValues',
+						getValue: () => settings.useCustomEPValues,
+						setValue: (_player, newValue) => {
+							trackEvent({ action: 'settings', category: 'reforging', label: 'use_custom_ep', value: newValue });
+							settings.setUseCustomEPValues(newValue);
+						},
+					}}
+				/>
+			}
+			showEpHelp={!useCustomEPValues}
+			statCaps={
+				<ReforgeStatCaps
+					model={model}
+					player={player}
+					displayStats={individualConfig.displayStats}
+					statTooltips={statTooltips}
+					useCustomEPValues={useCustomEPValues}
+				/>
+			}
+			softCaps={
+				hasSoftCaps && (
+					<>
+						<ConnectedBooleanPicker
+							modObject={player}
+							config={{
+								extraClassNames: ['mb-2'],
+								id: 'reforge-optimizer-enable-soft-cap-breakpoints',
+								label: i18n.t('sidebar.buttons.suggest_reforges.use_soft_cap_breakpoints'),
+								layout: 'inline',
+								storeField: 'reforge:useSoftCapBreakpoints',
+								getValue: () => settings.useSoftCapBreakpoints,
+								setValue: (_player, newValue) => {
+									trackEvent({ action: 'settings', category: 'reforging', label: 'softcap_breakpoints', value: newValue });
+									settings.setUseSoftCapBreakpoints(newValue);
+								},
+							}}
+						/>
+						{model.enableBreakpointLimits && (
+							<ReforgeBreakpointLimits
+								settings={settings}
+								softCapsConfig={softCapsConfig}
+								player={player}
+								useSoftCapBreakpoints={useSoftCapBreakpoints}
+							/>
+						)}
+					</>
+				)
+			}
+			freezeSlots={
+				<>
 					<ConnectedBooleanPicker
 						modObject={player}
 						config={{
 							extraClassNames: ['mb-2'],
-							id: `${idPrefix}-enable-custom-ep-weights`,
-							label: i18n.t('sidebar.buttons.suggest_reforges.use_custom'),
+							id: 'reforge-optimizer-freeze-item-slots',
+							label: i18n.t('sidebar.buttons.suggest_reforges.freeze_item_slots'),
+							labelTooltip: i18n.t('sidebar.buttons.suggest_reforges.freeze_item_slots_tooltip'),
 							layout: 'inline',
-							storeField: 'reforge:useCustomEPValues',
-							getValue: () => settings.useCustomEPValues,
+							storeField: 'reforge:freezeItemSlots',
+							getValue: () => settings.freezeItemSlots,
 							setValue: (_player, newValue) => {
-								trackEvent({ action: 'settings', category: 'reforging', label: 'use_custom_ep', value: newValue });
-								settings.setUseCustomEPValues(newValue);
+								trackEvent({ action: 'settings', category: 'reforging', label: 'freeze_item_slots', value: newValue });
+								settings.setFreezeItemSlots(newValue);
 							},
 						}}
 					/>
-				}
-				showEpHelp={!useCustomEPValues}
-				statCaps={
-					<ReforgeStatCaps
-						model={model}
-						player={player}
-						displayStats={individualConfig.displayStats}
-						statTooltips={statTooltips}
-						useCustomEPValues={useCustomEPValues}
+					<ReforgeFrozenSlots settings={settings} player={player} freezeItemSlots={freezeItemSlots} />
+				</>
+			}
+			enchantPresets={
+				<>
+					<ConnectedBooleanPicker
+						modObject={player}
+						config={{
+							extraClassNames: ['mb-2'],
+							id: 'reforge-optimizer-use-enchant-presets',
+							label: i18n.t('sidebar.buttons.suggest_reforges.use_enchant_presets'),
+							labelTooltip: i18n.t('sidebar.buttons.suggest_reforges.use_enchant_presets_tooltip'),
+							layout: 'inline',
+							storeField: 'reforge:useEnchantPresets',
+							getValue: () => settings.useEnchantPresets,
+							setValue: (_player, newValue) => {
+								trackEvent({ action: 'settings', category: 'reforging', label: 'use_enchant_presets', value: newValue });
+								settings.setUseEnchantPresets(newValue);
+							},
+						}}
 					/>
-				}
-				softCaps={
-					hasSoftCaps && (
-						<>
-							<ConnectedBooleanPicker
-								modObject={player}
-								config={{
-									extraClassNames: ['mb-2'],
-									id: `${idPrefix}-enable-soft-cap-breakpoints`,
-									label: i18n.t('sidebar.buttons.suggest_reforges.use_soft_cap_breakpoints'),
-									layout: 'inline',
-									storeField: 'reforge:useSoftCapBreakpoints',
-									getValue: () => settings.useSoftCapBreakpoints,
-									setValue: (_player, newValue) => {
-										trackEvent({ action: 'settings', category: 'reforging', label: 'softcap_breakpoints', value: newValue });
-										settings.setUseSoftCapBreakpoints(newValue);
-									},
-								}}
-							/>
-							{model.enableBreakpointLimits && (
-								<ReforgeBreakpointLimits
-									settings={settings}
-									softCapsConfig={softCapsConfig}
-									player={player}
-									useSoftCapBreakpoints={useSoftCapBreakpoints}
-								/>
-							)}
-						</>
-					)
-				}
-				freezeSlots={
-					<>
-						<ConnectedBooleanPicker
-							modObject={player}
-							config={{
-								extraClassNames: ['mb-2'],
-								id: `${idPrefix}-freeze-item-slots`,
-								label: i18n.t('sidebar.buttons.suggest_reforges.freeze_item_slots'),
-								labelTooltip: i18n.t('sidebar.buttons.suggest_reforges.freeze_item_slots_tooltip'),
-								layout: 'inline',
-								storeField: 'reforge:freezeItemSlots',
-								getValue: () => settings.freezeItemSlots,
-								setValue: (_player, newValue) => {
-									trackEvent({ action: 'settings', category: 'reforging', label: 'freeze_item_slots', value: newValue });
-									settings.setFreezeItemSlots(newValue);
-								},
-							}}
-						/>
-						<ReforgeFrozenSlots settings={settings} player={player} freezeItemSlots={freezeItemSlots} />
-					</>
-				}
-				enchantPresets={
-					<>
-						<ConnectedBooleanPicker
-							modObject={player}
-							config={{
-								extraClassNames: ['mb-2'],
-								id: `${idPrefix}-use-enchant-presets`,
-								label: i18n.t('sidebar.buttons.suggest_reforges.use_enchant_presets'),
-								labelTooltip: i18n.t('sidebar.buttons.suggest_reforges.use_enchant_presets_tooltip'),
-								layout: 'inline',
-								storeField: 'reforge:useEnchantPresets',
-								getValue: () => settings.useEnchantPresets,
-								setValue: (_player, newValue) => {
-									trackEvent({ action: 'settings', category: 'reforging', label: 'use_enchant_presets', value: newValue });
-									settings.setUseEnchantPresets(newValue);
-								},
-							}}
-						/>
-						{useEnchantPresets && (
-							<div className="mb-2">
-								<EnchantPresets />
-							</div>
-						)}
-					</>
-				}
-				skippedSlots={<ReforgeSkippedSlots model={model} player={player} onClose={onClose} />}
-				savedEpWeights={<SavedEpWeights className="mt-4" loadOnly presetsOnly={!useCustomEPValues} />}
-				onEditWeights={() => {
-					openEpWeights();
-					onClose?.();
-				}}
-			/>
-		</ReforgeIdPrefixContext.Provider>
+					{useEnchantPresets && (
+						<div className="mb-2">
+							<EnchantPresets />
+						</div>
+					)}
+				</>
+			}
+			skippedSlots={<ReforgeSkippedSlots model={model} player={player} onClose={onClose} />}
+			savedEpWeights={<SavedEpWeights className="mt-4" loadOnly presetsOnly={!useCustomEPValues} />}
+			onEditWeights={() => {
+				openEpWeights();
+				onClose?.();
+			}}
+		/>
 	);
 };

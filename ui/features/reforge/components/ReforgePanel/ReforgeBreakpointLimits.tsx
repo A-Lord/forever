@@ -9,7 +9,6 @@ import { Table, TableCell, TableRow } from '@ui-kit/Table';
 import { TooltipButton } from '@ui-kit/TooltipButton';
 import type { ReactNode } from 'react';
 
-import { useReforgeIdPrefix } from './context/ReforgeIdPrefixContext';
 import { isIncludedStat } from './utils';
 
 export interface ReforgeBreakpointLimitRow {
@@ -56,8 +55,6 @@ export interface ReforgeBreakpointLimitsProps {
 
 /** Caps the highest breakpoint the optimizer will chase, one select per soft-capped stat. */
 export const ReforgeBreakpointLimits = ({ settings, softCapsConfig, player, useSoftCapBreakpoints }: ReforgeBreakpointLimitsProps) => {
-	const idPrefix = useReforgeIdPrefix();
-
 	if (!useSoftCapBreakpoints) return null;
 
 	const rows = softCapsConfig
@@ -76,7 +73,7 @@ export const ReforgeBreakpointLimits = ({ settings, softCapsConfig, player, useS
 					<ConnectedChoiceField
 						modObject={player}
 						config={{
-							id: `${idPrefix}-${statName}-breakpoint-limit`,
+							id: `reforge-optimizer-${statName}-breakpoint-limit`,
 							label: '',
 							values: [
 								{ name: i18n.t('sidebar.buttons.suggest_reforges.no_limit_set'), value: 0 },
