@@ -195,7 +195,6 @@ func (action *APLActionStrictSequence) current() *APLAction {
 }
 func (action *APLActionStrictSequence) GetNextAction(sim *Simulation) *APLAction {
 	if nextAction := action.current(); nextAction.IsReady(sim) {
-
 		if action.unit.GCD.IsReady(sim) {
 			action.advanceSequence()
 		} else if _, ok := nextAction.impl.(*APLActionWait); ok {

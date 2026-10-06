@@ -519,9 +519,9 @@ func (apl *APLRotation) popControllingAction(ca APLActionImpl) {
 }
 
 // nextActionWouldRecastChannel reports whether the same channeled spell would be
-// the first action cast if the channel ended right now. It evaluates the APL in
-// the post-channel state (ChanneledDot = nil, see withChannelEnded) so channel-state-dependent
-// conditions don't produce stale results.
+// the first action cast if the channel ended right now. Run inside withChannelEnded,
+// so it evaluates the APL in the post-channel state (ChanneledDot = nil) and
+// channel-state-dependent conditions don't produce stale results.
 //
 // Uses CanCast rather than CanCastOrQueue so that a proc-queued spell in the
 // same timestep does not incorrectly block a same-spell re-cast from being

@@ -144,6 +144,31 @@ func TestPaidChannelOnItsRelatedSpellHoldsRegen(t *testing.T) {
 	}
 }
 
+// A paid cast whose channel never starts leaves no payment for a later free cast of it to claim.
+func TestFreeChannelAfterAMissedPaidOneLeavesRegenAlone(t *testing.T) {
+	landed := false
+	ct := newManaTickTest(func(char *Character) *Spell {
+		config := manaChannelConfig(15, true)
+		applyEffects := config.ApplyEffects
+		config.ApplyEffects = func(sim *Simulation, target *Unit, spell *Spell) {
+			if landed {
+				applyEffects(sim, target, spell)
+			}
+		}
+		return char.RegisterSpell(config)
+	})
+	castFree := func(ct *channelTest) {
+		landed = true
+		ct.spell.Cost.FlatModifier = -100
+		if !ct.spell.Cast(ct.sim, ct.fw.CurrentTarget) || !ct.fw.IsChanneling() {
+			panic("the free channel did not start")
+		}
+	}
+	if got, want := ct.fullRegenSpans(25*time.Second, map[time.Duration]func(*channelTest){6 * time.Second: castFree}), seconds(5, 25); !slices.Equal(got, want) {
+		t.Errorf("full regen over the spans %v, want %v", got, want)
+	}
+}
+
 type manaAt struct {
 	at   time.Duration
 	mana float64

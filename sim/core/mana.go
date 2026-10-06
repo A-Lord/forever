@@ -409,6 +409,7 @@ func (mc *ManaCost) CostFailureReason(sim *Simulation, spell *Spell) string {
 	return fmt.Sprintf("not enough mana (Current Mana = %0.03f, Mana Cost = %0.03f)", spell.Unit.CurrentMana(), spell.CurCast.Cost)
 }
 func (mc *ManaCost) SpendCost(sim *Simulation, spell *Spell) {
+	spell.Unit.paidBy = nil
 	if spell.CurCast.Cost > 0 {
 		if spell.Unit.PseudoStats.FiveSecondRuleRefreshTime < sim.CurrentTime {
 			spell.Unit.creditManaRegen(sim)
