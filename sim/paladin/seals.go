@@ -1,7 +1,6 @@
 package paladin
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/wowsims/forever/sim/core"
@@ -62,14 +61,6 @@ func (paladin *Paladin) registerSeals() {
 	paladin.registerSealOfJustice()
 	SealOfTheCrusaderRankMap.Each(paladin.registerSealOfTheCrusader)
 	SealOfFuryRankMap.Each(paladin.registerSealOfFury)
-}
-
-// Seal of Justice has one rank and no rank subtext, so its label carries no rank.
-func sealLabel(name string, paladin *Paladin, rank *spelldata.Spell) string {
-	if rank.RankNumber() == 0 {
-		return name + paladin.Label
-	}
-	return fmt.Sprintf("%s%s Rank %d", name, paladin.Label, rank.RankNumber())
 }
 
 // Every seal aura joins the seal category, so casting one seal drops the other.

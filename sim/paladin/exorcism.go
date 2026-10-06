@@ -2,7 +2,6 @@ package paladin
 
 import (
 	"github.com/wowsims/forever/sim/core"
-	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
@@ -17,10 +16,6 @@ func (paladin *Paladin) registerExorcism(_ int32, rank *spelldata.Spell) {
 
 	config := spelldata.SpellConfig(&paladin.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))
 	config.ClassSpellMask = SpellMaskExorcism
-
-	config.ExtraCastCondition = func(_ *core.Simulation, target *core.Unit) bool {
-		return target.MobType == proto.MobType_MobTypeUndead || target.MobType == proto.MobType_MobTypeDemon
-	}
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		spell.CalcAndDealDamage(sim, target, damage.Roll(sim), spell.OutcomeMagicHitAndCrit)

@@ -38,7 +38,7 @@ func (paladin *Paladin) registerSealOfJustice() {
 	judgement := paladin.RegisterSpell(judgementConfig)
 
 	aura := paladin.makeSealExclusive(paladin.RegisterAura(core.Aura{
-		Label:    sealLabel("Seal of Justice", paladin, rank),
+		Label:    rank.RankedLabel(&paladin.Unit),
 		ActionID: core.ActionID{SpellID: rank.ID},
 		Duration: sealDuration,
 	}))
