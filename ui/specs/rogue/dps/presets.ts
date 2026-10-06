@@ -108,7 +108,7 @@ export const PRESET_BUILD_COMBAT_BS = PresetUtils.makePresetBuild('Combat BS', {
 	talents: TALENTS_COMBAT_BS,
 	rotation: BACKSTAB_APL,
 	gear: P1_BS_COMBAT_GEAR,
-	settings: DP_MH_Settings,
+	settings: IP_MH_Settings,
 });
 
 export const PRESET_BUILD_SUB_HEMO = PresetUtils.makePresetBuild('Subtlety Hemo', {
