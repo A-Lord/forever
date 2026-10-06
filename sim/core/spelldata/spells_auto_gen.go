@@ -35327,6 +35327,11 @@ var generatedSpells = []Spell{
 			{ID: 1314822, SpellID: 1293818, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 122, PPL: 0.8999999761581421, Variance: 0.24175824224948883, BaseLevel: 32, MaxLevel: 38, SPCoef: 0.42899999022483826, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
 		Powers: []Power{{Cost: 130}}},
+	{ID: 1293819, Name: "Reduce Mechanic Duration - Snare/Root 07", School: 1, Attr: [17]uint32{0: 0x1c0, 15: 0x2000}, SpellLevel: 60, BaseLevel: 60,
+		Effects: []Effect{
+			{ID: 1314824, SpellID: 1293819, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MECHANIC_DURATION_MOD, BasePoints: -7, BaseLevel: 60, PvpMult: 1, Misc: 11, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
+			{ID: 1314825, SpellID: 1293819, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MECHANIC_DURATION_MOD, BasePoints: -7, BaseLevel: 60, PvpMult: 1, Misc: 7, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
+		}},
 	{ID: 1293820, Name: "Toy Soldier", School: 64, Attr: [17]uint32{0: 0x10, 8: 0x1000, 15: 0x2000}, SpellLevel: 60, BaseLevel: 60, DurationMs: 20000, DispelType: 1, ProcChance: 101, AreaBonusGroups: []int32{9326}, AreaMultiplier: 2, AreaDurationMultiplier: 1, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 1314826, SpellID: 1293820, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_DODGE_PERCENT, BasePoints: 3, BaseLevel: 60, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},

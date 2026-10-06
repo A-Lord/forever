@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/dbcenums"
 )
 
 // An addition to the resolved aura for what the game files do not state: the label the sim keys the
@@ -66,6 +67,9 @@ func Permanent() AuraOpt {
 // replaces OnTick for a heal or a value the game files do not state. OnSnapshot is nil.
 //
 // The aura's duration is the row's, which core recomputes from the ticks on every application.
+//
+// A ranked row's dot joins the rank group of its name, so a caster keeps one rank of it on a unit. A
+// row with no direct damage or heal of its own is refused at the cast while a higher rank is up.
 func DotConfig(s *Spell, e *Effect, opts ...AuraOpt) core.DotConfig {
 	if e.PeriodMs <= 0 {
 		panic(fmt.Sprintf("spelldata: effect %d of spell %d (%s) states no tick period",
@@ -77,13 +81,19 @@ func DotConfig(s *Spell, e *Effect, opts ...AuraOpt) core.DotConfig {
 		panic(fmt.Sprintf("spelldata: spell %d (%s) states no duration to tick over", s.ID, s.Name))
 	}
 
-	return core.DotConfig{
+	config := core.DotConfig{
 		Aura:             AuraConfig(s, opts...),
 		TickLength:       e.Period(),
 		NumberOfTicks:    int32(s.Duration() / e.Period()),
 		BonusCoefficient: e.Coeff(),
 		OnTick:           PeriodicDamageTick(e, s.TickOutcome),
 	}
+	if s.RankNumber() > 0 {
+		config.RankGroup = s.Name
+		config.RankBlocksCast = s.DamageEffect() == NilEffect &&
+			s.firstOfType(dbcenums.E_HEAL, dbcenums.E_HEAL_PCT) == NilEffect
+	}
+	return config
 }
 
 func PeriodicDamageTick(e *Effect, outcome func(*core.Dot) core.OutcomeApplier) core.OnTick {

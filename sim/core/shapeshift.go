@@ -87,7 +87,8 @@ func (r *CastRequirement) equipped(equipment *Equipment) bool {
 }
 
 // unshift: castable only once Unit.AutoUnshift has left the current form. A nil target, a weapon
-// swing's, skips the target's mob type; a target of unknown mob type is in no mask and is refused.
+// swing's, skips the target's mob type and periodic ranks; a target of unknown mob type is in no
+// mask and is refused.
 func (spell *Spell) castRequirementFailure(sim *Simulation, target *Unit) (reason string, unshift bool) {
 	r := &spell.CastRequirement
 	unit := spell.Unit
@@ -111,6 +112,9 @@ func (spell *Spell) castRequirementFailure(sim *Simulation, target *Unit) (reaso
 	}
 	if r.TargetMobTypes != 0 && target != nil && r.TargetMobTypes&(1<<target.MobType) == 0 {
 		return "wrong target creature type", false
+	}
+	if target != nil && spell.higherRankBlocksCast(target) {
+		return "a more powerful spell is active", false
 	}
 	return "", unshift
 }
