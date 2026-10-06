@@ -1,4 +1,4 @@
-import { Class, GemColor, ItemQuality, ItemSlot, ItemType, ScalingItemProperties, Stat } from '@generated/proto/common';
+import { Class, ItemQuality, ItemSlot, ItemType, ScalingItemProperties, Stat } from '@generated/proto/common';
 import { ItemEffect } from '@generated/proto/spell';
 import { DatabaseFilters, UIEnchant as Enchant, UIItem as Item } from '@generated/proto/ui';
 import { SimHostProvider } from '@sim/context/SimHostContext';
@@ -7,10 +7,12 @@ import type { IndividualSimHost } from '@sim/sim_host';
 import { createSimStore, patchSlice, type SimStore } from '@sim/state/sim_store';
 import { storeSource as store } from '@testing/gear';
 import { fakeHost } from '@testing/sim/fake_host';
-import { act, fireEvent, render } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { type ItemData, type ItemListType, SelectorModalTabs } from '../../types';
+import type { ItemListToggle, ItemListToolbarViewProps } from './ItemList';
 import type { SelectorTab } from './utils';
 
 vi.mock('@sim/state/subscriptions', async () =>
@@ -52,7 +54,7 @@ vi.mock('../FiltersMenu', () => ({
 	},
 }));
 
-const { ItemList } = await import('./ItemList');
+const { ItemList, ItemListToolbarView } = await import('./ItemList');
 const { Player } = await import('@sim/player/player');
 const { Stats } = await import('@sim/proto/stats');
 const { isEnchantRelevantFor } = await import('@sim/settings/consumables');
@@ -107,7 +109,6 @@ describe('ItemList', () => {
 	const tab = (label: SelectorModalTabs, over: Partial<SelectorTab> = {}): SelectorTab =>
 		({
 			label,
-			socketColor: GemColor.GemColorRed,
 			itemData: ROWS,
 			computeEP: (candidate: any) => candidate?.ilvl ?? 0,
 			equippedToItem: (equipped: EquippedItem | null) => equipped?.item ?? null,
@@ -155,7 +156,6 @@ describe('ItemList', () => {
 				getClass: () => Class.ClassWarrior,
 				filterItemData: (idxs: number[]) => idxs,
 				filterEnchantData: (idxs: number[]) => idxs,
-				filterGemData: (idxs: number[]) => idxs,
 			},
 		});
 	});
@@ -217,15 +217,6 @@ describe('ItemList', () => {
 		expect(names(container)).toEqual(['Low', 'Mid', 'HighFirst', 'HighSecond']);
 	});
 
-	it('renders the matching-gems option on a gem tab and nowhere else', () => {
-		const { container, unmount } = setup();
-		expect(container.querySelector('[data-testid="selector-modal-show-matching-gems"]')).toBeNull();
-		unmount();
-
-		const gems = setup({ label: SelectorModalTabs.Gem2 });
-		expect(gems.container.querySelector('[data-testid="selector-modal-show-matching-gems"]')).not.toBeNull();
-	});
-
 	it('offers the weapon options in a main hand and, for a warrior, an off hand — never in another slot', () => {
 		const shown = (slot: ItemSlot, label = SelectorModalTabs.Items) => {
 			const { container, unmount } = setup({ slot, label });
@@ -257,7 +248,7 @@ describe('ItemList', () => {
 
 		expect(labelFor(SelectorModalTabs.Items)).toContain('unequip_item');
 		expect(labelFor(SelectorModalTabs.Enchants)).toContain('remove_enchant');
-		expect(labelFor(SelectorModalTabs.Gem3)).toContain('remove_gem');
+		expect(labelFor(SelectorModalTabs.RandomSuffixes)).toContain('remove_random_suffix');
 	});
 
 	it('narrows the rows to the search, without losing the sort the user chose', () => {
@@ -343,5 +334,96 @@ describe('ItemList', () => {
 			store.notify();
 		});
 		expect(names(container)).toEqual(['Gamma', 'Beta', 'Alpha']);
+	});
+});
+
+const toggle = (name: string, value = false): ItemListToggle => ({
+	id: `show-${name}-selector`,
+	testId: `selector-modal-show-${name}`,
+	label: `Show ${name}`,
+	value,
+	onChange: vi.fn(),
+});
+
+const renderView = (props: Partial<ItemListToolbarViewProps> = {}) => {
+	const all: ItemListToolbarViewProps = {
+		search: '',
+		onSearchChange: vi.fn(),
+		phase: 2,
+		onPhaseChange: vi.fn(),
+		toggles: [],
+		remove: { label: 'Unequip Item', onClick: vi.fn() },
+		...props,
+	};
+	const utils = render(<ItemListToolbarView {...all} />);
+	return { ...utils, props: all };
+};
+
+describe('ItemListToolbarView', () => {
+	it('writes the search back as it is typed', () => {
+		const { props } = renderView({ search: 'thunder' });
+		const input = screen.getByTestId('selector-modal-search') as HTMLInputElement;
+		expect(input.value).toBe('thunder');
+
+		fireEvent.input(input, { target: { value: 'thunderfury' } });
+		expect(props.onSearchChange).toHaveBeenCalledWith('thunderfury');
+	});
+
+	it('offers the filters button beside a filters dialog and opens it', () => {
+		const onOpenFilters = vi.fn();
+		renderView({ filtersMenu: <span data-testid="filters-dialog" />, onOpenFilters });
+		expect(screen.getByTestId('filters-dialog')).toBeTruthy();
+
+		fireEvent.click(screen.getByTestId('selector-modal-filters-button'));
+		expect(onOpenFilters).toHaveBeenCalledOnce();
+	});
+
+	it('leaves the filters button out when there is no filters dialog', () => {
+		renderView();
+		expect(screen.queryByTestId('selector-modal-filters-button')).toBeNull();
+	});
+
+	it('shows the phase and writes a pick back', async () => {
+		const { props } = renderView({ phase: 3 });
+		await userEvent.click(within(screen.getByTestId('selector-modal-phase-selector')).getByRole('combobox'));
+		const options = screen.getAllByRole('option');
+		expect(options.map(option => option.getAttribute('aria-selected'))).toEqual(['false', 'false', 'true', 'false', 'false']);
+
+		await userEvent.click(options[4]);
+		expect(props.onPhaseChange).toHaveBeenCalledWith(5);
+	});
+
+	it('renders one checkbox per toggle, in order, under its own id and test id', () => {
+		const { container } = renderView({ toggles: [toggle('1h-weapons', true), toggle('ep-values')] });
+		const wrappers = Array.from(container.querySelectorAll('[data-testid^="selector-modal-show-"]'));
+		expect(wrappers.map(node => node.getAttribute('data-testid'))).toEqual(['selector-modal-show-1h-weapons', 'selector-modal-show-ep-values']);
+		expect(container.querySelector<HTMLInputElement>('#show-1h-weapons-selector')!.checked).toBe(true);
+		expect(container.querySelector<HTMLInputElement>('#show-ep-values-selector')!.checked).toBe(false);
+		expect(screen.getByText('Show 1h-weapons')).toBeTruthy();
+	});
+
+	it('writes a toggle back through its own callback', () => {
+		const weapons = toggle('1h-weapons');
+		const ep = toggle('ep-values', true);
+		const { container } = renderView({ toggles: [weapons, ep] });
+
+		fireEvent.click(container.querySelector('#show-ep-values-selector')!);
+		expect(ep.onChange).toHaveBeenCalledWith(false);
+		expect(weapons.onChange).not.toHaveBeenCalled();
+	});
+
+	it('names the remove button and calls it', () => {
+		const onClick = vi.fn();
+		renderView({ remove: { label: 'Remove Enchant', onClick } });
+		const button = screen.getByTestId('selector-modal-remove-button');
+		expect(button.textContent).toBe('Remove Enchant');
+
+		fireEvent.click(button);
+		expect(onClick).toHaveBeenCalledOnce();
+	});
+
+	it('leaves the remove button out without a remove action', () => {
+		renderView({ remove: undefined });
+		expect(screen.queryByTestId('selector-modal-remove-button')).toBeNull();
 	});
 });

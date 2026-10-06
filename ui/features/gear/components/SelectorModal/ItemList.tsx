@@ -1,5 +1,5 @@
 import { Class, ItemSlot } from '@generated/proto/common';
-import { UIEnchant as Enchant, UIGem as Gem, UIItem as Item } from '@generated/proto/ui';
+import { UIEnchant as Enchant, UIItem as Item } from '@generated/proto/ui';
 import i18n from '@i18n/config';
 import { SortDirection } from '@sim/constants/other';
 import { useSimHost } from '@sim/context/SimHostContext';
@@ -8,9 +8,14 @@ import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
 import { useUiStore } from '@sim/hooks/useUiStore';
 import type { EquippedItem } from '@sim/proto/equipped_item';
 import { subscribeSimField } from '@sim/state/subscriptions';
+import { BooleanPicker } from '@ui-kit/BooleanPicker';
+import { Button } from '@ui-kit/Button';
+import { ChoiceField } from '@ui-kit/ChoiceField';
+import { SearchField } from '@ui-kit/TextField';
 import { Tooltip } from '@ui-kit/Tooltip';
 import { VirtualList } from '@ui-kit/VirtualList';
 import clsx from 'clsx';
+import type { ReactNode } from 'react';
 import { useCallback, useId, useMemo, useRef, useState } from 'react';
 
 import { applyFavourite, isItemFavourited } from '../../model/favourites';
@@ -21,7 +26,6 @@ import { type ItemDataFields, type ItemListType, SelectorModalTabs } from '../..
 import { FiltersMenu } from '../FiltersMenu';
 import { ItemListHeaderRow } from './ItemListHeaderRow';
 import { ItemListRow } from './ItemListRow';
-import { type ItemListToggle, ItemListToolbarView } from './ItemListToolbarView';
 import { removeButtonLabel, type SelectorTab } from './utils';
 
 const ROW_HEIGHT = 56;
@@ -31,7 +35,86 @@ const ROW_CLASS = clsx(
 	'[&_[data-active]_.ui-selector-modal-list-item-icon]:outline-2 [&_[data-active]_.ui-selector-modal-list-item-icon]:outline-success',
 );
 
-type FilterFlag = 'oneHandedWeapons' | 'twoHandedWeapons' | 'matchingGemsOnly' | 'showAllEnchants';
+type FilterFlag = 'oneHandedWeapons' | 'twoHandedWeapons' | 'showAllEnchants';
+
+const phaseOptions = () => [
+	{ value: 1, label: i18n.t('common.phases.1') },
+	{ value: 2, label: i18n.t('common.phases.2') },
+	{ value: 3, label: i18n.t('common.phases.3') },
+	{ value: 4, label: i18n.t('common.phases.4') },
+	{ value: 5, label: i18n.t('common.phases.5') },
+];
+
+export interface ItemListToggle {
+	id: string;
+	testId: string;
+	label: string;
+	value: boolean;
+	onChange: (value: boolean) => void;
+}
+
+export interface ItemListToolbarViewProps {
+	search: string;
+	onSearchChange: (search: string) => void;
+	/** The filters dialog. The filters button renders only beside one. */
+	filtersMenu?: ReactNode;
+	onOpenFilters?: () => void;
+	phase: number;
+	onPhaseChange: (phase: number) => void;
+	toggles: ReadonlyArray<ItemListToggle>;
+	/** The remove button renders only beside one. */
+	remove?: { label: string; onClick: () => void };
+}
+
+export const ItemListToolbarView = ({
+	search,
+	onSearchChange,
+	filtersMenu,
+	onOpenFilters,
+	phase,
+	onPhaseChange,
+	toggles,
+	remove,
+}: ItemListToolbarViewProps) => {
+	return (
+		<div className="ui-selector-modal-filters mb-(--modal-padding) flex items-center [&>*:not(:last-child)]:mr-2">
+			<SearchField
+				value={search}
+				onChange={onSearchChange}
+				placeholder={i18n.t('common.search')}
+				inputClassName="max-w-48"
+				inputTestId="selector-modal-search"
+			/>
+			{filtersMenu !== undefined && (
+				<>
+					<Button data-testid="selector-modal-filters-button" onClick={onOpenFilters}>
+						{i18n.t('gear_tab.gear_picker.filters_button')}
+					</Button>
+					{filtersMenu}
+				</>
+			)}
+			<div className="min-w-28" data-testid="selector-modal-phase-selector">
+				<ChoiceField options={phaseOptions()} value={phase} onChange={onPhaseChange} />
+			</div>
+			{toggles.map(toggle => (
+				<BooleanPicker
+					key={toggle.id}
+					id={toggle.id}
+					testId={toggle.testId}
+					label={toggle.label}
+					layout="inline"
+					value={toggle.value}
+					onChange={toggle.onChange}
+				/>
+			))}
+			{remove && (
+				<Button variant="danger" className="-mt-2 mr-4 -mb-2 ml-auto" data-testid="selector-modal-remove-button" onClick={remove.onClick}>
+					{remove.label}
+				</Button>
+			)}
+		</div>
+	);
+};
 
 const toggle = (name: string, label: string, value: boolean, onChange: (value: boolean) => void): ItemListToggle => ({
 	id: `show-${name}-selector`,
@@ -51,7 +134,7 @@ export const ItemList = ({ tab, slot, equippedItem }: ItemListProps) => {
 	const host = useSimHost();
 	const player = host.player;
 	const sim = player.sim;
-	const { label, itemData, computeEP, equippedToItem, onRemove, socketColor } = tab;
+	const { label, itemData, computeEP, equippedToItem, onRemove } = tab;
 
 	const [search, setSearch] = useState('');
 	const [sortBy, setSortBy] = useState(() => defaultSortBy(label, slot));
@@ -74,18 +157,25 @@ export const ItemList = ({ tab, slot, equippedItem }: ItemListProps) => {
 			idxs = player.filterItemData(idxs, index => itemData[index].item as unknown as Item, slot);
 		} else if (label === SelectorModalTabs.Enchants) {
 			idxs = player.filterEnchantData(idxs, index => itemData[index].item as unknown as Enchant, slot, currentEquippedItem);
-		} else if (label === SelectorModalTabs.Gem1 || label === SelectorModalTabs.Gem2 || label === SelectorModalTabs.Gem3) {
-			idxs = player.filterGemData(idxs, index => itemData[index].item as unknown as Gem, slot, socketColor);
 		}
 
-		idxs = idxs.filter(index => itemData[index].phase <= phase && matchesSearch(search, itemData[index], npcId => sim.db.getNpc(npcId)?.name));
+		idxs = idxs.filter(
+			index =>
+				itemData[index].phase <= phase &&
+				matchesSearch(
+					search,
+					itemData[index],
+					npcId => sim.db.getNpc(npcId)?.name,
+					factionId => sim.db.getRepFaction(factionId)?.name,
+				),
+		);
 		return sortItemIdxs(idxs, itemData, { sortBy, sortDirection, computeEP, isFavourited });
-		// `filters` is named here even though the body never reads it: `player.filterItemData`,
-		// `player.filterEnchantData` and `player.filterGemData` reach `sim.getFilters()` internally, so a filter change has to
+		// `filters` is named here even though the body never reads it: `player.filterItemData` and
+		// `player.filterEnchantData` reach `sim.getFilters()` internally, so a filter change has to
 		// rebuild this. The lint calls it unnecessary; deleting it leaves correctness resting on
 		// `isFavourited` happening to close over `filters` too.
 		// oxlint-disable-next-line react-hooks/exhaustive-deps
-	}, [itemData, player, sim, slot, label, socketColor, phase, search, sortBy, sortDirection, computeEP, isFavourited, filters]);
+	}, [itemData, player, sim, slot, label, phase, search, sortBy, sortDirection, computeEP, isFavourited, filters]);
 
 	const showEPOptions = tabSortsByEP(label, slot);
 	const equipped = equippedToItem(equippedItem);
@@ -118,8 +208,6 @@ export const ItemList = ({ tab, slot, equippedItem }: ItemListProps) => {
 			toggle('1h-weapons', i18n.t('settings_tab.other.show_1h_weapons.label'), filters.oneHandedWeapons, setFilterFlag('oneHandedWeapons')),
 		showWeaponOptions &&
 			toggle('2h-weapons', i18n.t('settings_tab.other.show_2h_weapons.label'), filters.twoHandedWeapons, setFilterFlag('twoHandedWeapons')),
-		label.startsWith('Gem') &&
-			toggle('matching-gems', i18n.t('settings_tab.other.show_matching_gems.label'), filters.matchingGemsOnly, setFilterFlag('matchingGemsOnly')),
 		label === SelectorModalTabs.Enchants &&
 			toggle('all-enchants', i18n.t('settings_tab.other.show_all_enchants.label'), filters.showAllEnchants, setFilterFlag('showAllEnchants')),
 		showEPOptions && toggle('ep-values', i18n.t('settings_tab.other.show_ep_values.label'), showEPValues, value => sim.setShowEPValues(value)),

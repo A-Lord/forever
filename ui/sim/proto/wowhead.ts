@@ -25,16 +25,6 @@ export type WowheadTooltipItemParams = {
 	 * */
 	enchantIds?: number[];
 	/**
-	 * @description Gems
-	 * @see gems - mapped value from wowhead
-	 * */
-	gemIds?: number[];
-	/**
-	 * @description Extra Socket
-	 * @see sock - mapped value from wowhead
-	 * */
-	hasExtraSocket?: boolean;
-	/**
 	 * @description Item Set Pieces
 	 * @see pcs - mapped value from wowhead
 	 * */
@@ -121,9 +111,6 @@ export const buildWowheadTooltipDataset = async (options: WowheadTooltipItemPara
 		if (options.itemLevel) {
 			params.set('ilvl', String(options.itemLevel));
 		}
-		if (options.gemIds?.length) {
-			params.set('gems', options.gemIds.join(':'));
-		}
 		if (options.enchantIds) {
 			params.set('ench', options.enchantIds.join(':'));
 		}
@@ -138,9 +125,6 @@ export const buildWowheadTooltipDataset = async (options: WowheadTooltipItemPara
 		}
 		if (options.setPieceIds?.length) {
 			params.set('pcs', options.setPieceIds.join(':'));
-		}
-		if (options.hasExtraSocket) {
-			params.set('sock', '');
 		}
 		if (options.transmogId) {
 			params.set('transmog', String(options.transmogId));
@@ -162,7 +146,7 @@ export const WOWHEAD_BASE_URL = `https://wowhead.com/${WOWHEAD_DOMAIN}`;
 export const WOWHEAD_GEAR_PLANNER_URL = `https://www.wowhead.com/${WOWHEAD_DOMAIN}/gear-planner`;
 export const WOWHEAD_ICON_BASE_URL = 'https://wow.zamimg.com/images/wow/icons';
 
-type WowheadEntity = 'item' | 'spell' | 'quest' | 'npc' | 'zone';
+type WowheadEntity = 'item' | 'spell' | 'quest' | 'npc' | 'zone' | 'faction';
 
 // `https://wowhead.com/<domain>/<lang>/<entity>=<id>` — the language segment
 // is empty for English.

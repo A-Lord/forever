@@ -57,7 +57,6 @@ export const DefaultDebuffs = Debuffs.create({
 	exposeArmor: true,
 	faerieFire: true,
 	giftOfArthas: true,
-	huntersMark: true,
 	judgementOfWisdom: true,
 	sunderArmor: true,
 });

@@ -2,11 +2,48 @@ import { useActionId } from '@sim/hooks/useActionId';
 import { WowheadIcon } from '@ui-kit/WowheadIcon';
 import { memo } from 'react';
 
-import type { ContentRow } from '../../../model/timeline/rotation';
+import type { ContentRow, RowItem } from '../../../model/timeline/rotation';
+import { AuraItem } from './AuraItem';
+import { CastItem } from './CastItem';
+import { DelayItem } from './DelayItem';
+import { GcdExtensionItem } from './GcdExtensionItem';
+import { GcdSegmentItem } from './GcdSegmentItem';
+import { ResourceItem } from './ResourceItem';
 import { RotationRowIcon } from './RotationRowIcon';
 import { RotationRowLabel } from './RotationRowLabel';
-import { RowItemView } from './RowItemView';
+import { TickItem } from './TickItem';
 import { rowStyle } from './utils';
+
+export interface RowItemViewProps {
+	item: RowItem;
+	index: number;
+	iconUrl: string;
+	cssName: string;
+}
+
+/**
+ * Memoised because a pan only changes the item window at its edges: every item that was already on
+ * screen keeps the same model object and index, so its subtree is never diffed again.
+ */
+export const RowItemView = memo(({ item, index, iconUrl, cssName }: RowItemViewProps) => {
+	switch (item.kind) {
+		case 'cast':
+			return <CastItem item={item} index={index} iconUrl={iconUrl} />;
+		case 'delay':
+			return <DelayItem item={item} index={index} />;
+		case 'gcdExtension':
+			return <GcdExtensionItem item={item} />;
+		case 'gcdSegment':
+			return <GcdSegmentItem item={item} index={index} />;
+		case 'tick':
+			return <TickItem item={item} index={index} />;
+		case 'aura':
+			return <AuraItem item={item} index={index} />;
+		case 'resource':
+			return <ResourceItem item={item} index={index} cssName={cssName} />;
+	}
+});
+RowItemView.displayName = 'RowItemView';
 
 export interface RotationRowProps {
 	row: ContentRow;

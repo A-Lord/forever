@@ -1,6 +1,7 @@
 package database
 
 import (
+	"slices"
 	"testing"
 
 	googleProto "google.golang.org/protobuf/proto"
@@ -192,6 +193,34 @@ func TestEnchantLvl(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			if got := enchantByName(t, tc.effectID, tc.name).Lvl; got != tc.want {
 				t.Errorf("lvl %d, want %d", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestEnchantClassAllowlist(t *testing.T) {
+	withDBCInputs(t)
+
+	for _, tc := range []struct {
+		effectID int
+		name     string
+		want     []proto.Class
+	}{
+		{2583, "Presence of Might", []proto.Class{proto.Class_ClassWarrior}},
+		{2584, "Syncretist's Sigil", []proto.Class{proto.Class_ClassPaladin}},
+		{2585, "Death's Embrace", []proto.Class{proto.Class_ClassRogue}},
+		{2586, "Falcon's Call", []proto.Class{proto.Class_ClassHunter}},
+		{2587, "Vodouisant's Vigilant Embrace", []proto.Class{proto.Class_ClassShaman}},
+		{2588, "Presence of Sight", []proto.Class{proto.Class_ClassMage}},
+		{2589, "Hoodoo Hex", []proto.Class{proto.Class_ClassWarlock}},
+		{2590, "Prophetic Aura", []proto.Class{proto.Class_ClassPriest}},
+		{2591, "Animist's Caress", []proto.Class{proto.Class_ClassDruid}},
+		{2681, "Savage Guard", nil},
+		{24, "Enchant Chest - Minor Intellect", nil},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := enchantByName(t, tc.effectID, tc.name).ClassAllowlist; !slices.Equal(got, tc.want) {
+				t.Errorf("class allowlist %v, want %v", got, tc.want)
 			}
 		})
 	}

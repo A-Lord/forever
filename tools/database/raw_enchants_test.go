@@ -6,8 +6,10 @@ package database
 import (
 	"database/sql"
 	"path/filepath"
+	"slices"
 	"testing"
 
+	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/tools/database/dbc"
 )
 
@@ -30,7 +32,7 @@ CREATE TABLE ItemXItemEffect (ID INTEGER PRIMARY KEY, ItemID INTEGER, ItemEffect
 CREATE TABLE SpellEquippedItems (ID INTEGER PRIMARY KEY, SpellID INTEGER, EquippedItemClass INTEGER, EquippedItemInvTypes INTEGER, EquippedItemSubclass INTEGER);
 CREATE TABLE SkillLineAbility (ID INTEGER PRIMARY KEY, Spell INTEGER, ClassMask INTEGER, SkillLine INTEGER);
 CREATE TABLE Item (ID INTEGER PRIMARY KEY, IconFileDataID INTEGER);
-CREATE TABLE ItemSparse (ID INTEGER PRIMARY KEY, Display_lang TEXT, OverallQualityID INTEGER, ItemLevel INTEGER DEFAULT 1);
+CREATE TABLE ItemSparse (ID INTEGER PRIMARY KEY, Display_lang TEXT, OverallQualityID INTEGER, ItemLevel INTEGER DEFAULT 1, AllowableClass INTEGER DEFAULT -1);
 `
 
 // Scourge shoulder enchant 2717 (grant 29467, a profession ability) and its re-issue 7884 (grant
@@ -39,7 +41,7 @@ CREATE TABLE ItemSparse (ID INTEGER PRIMARY KEY, Display_lang TEXT, OverallQuali
 // ItemSparse row. Enchant 1523 (grant 15427) is used only by a placeholder ([PH]) item. Grand
 // Crusader 7940 is taught by a Season of Discovery formula of item level 80 and applied by a level 1
 // scroll; Minor Agility 247 has only a level 1 scroll, and Superior Intellect 7659 a level 1 scroll and
-// a level 1 formula.
+// a level 1 formula. Presence of Sight 2588 is applied only by a mage item.
 const rawEnchantFixture = `
 INSERT INTO SpellItemEnchantment (ID, Name_lang, Flags, RequiredSkillID, RequiredSkillRank, Effect, EffectPointsMin, EffectArg) VALUES
 	(2717, 'Attack Power +26', 0, 0, 0, '[5,0,0]', '[26,0,0]', '[38,0,0]'),
@@ -74,6 +76,15 @@ INSERT INTO Item (ID, IconFileDataID) VALUES (241191, 134327), (273607, 463531),
 INSERT INTO ItemSparse (ID, Display_lang, OverallQualityID, ItemLevel) VALUES
 	(241191, 'Formula', 3, 80), (273607, 'Enchant Weapon - Grand Crusader', 1, 1), (273470, 'Enchant Bracer - Minor Agility', 1, 1),
 	(273598, 'Enchant Off-Hand - Superior Intellect', 1, 1), (274391, 'Formula', 1, 1);
+INSERT INTO SpellItemEnchantment (ID, Name_lang, Flags, RequiredSkillID, RequiredSkillRank, Effect, EffectPointsMin, EffectArg) VALUES
+	(2588, 'Presence of Sight', 0, 0, 0, '[5,0,0]', '[18,0,0]', '[45,0,0]');
+INSERT INTO Spell (ID, NameSubtext_lang) VALUES (24156, '');
+INSERT INTO SpellName (ID, Name_lang) VALUES (24156, 'Presence of Sight');
+INSERT INTO SpellEffect (SpellID, Effect, EffectMiscValue_0) VALUES (24156, 53, 2588);
+INSERT INTO ItemEffect (ID, SpellID) VALUES (12, 24156);
+INSERT INTO ItemXItemEffect (ItemID, ItemEffectID) VALUES (19787, 12);
+INSERT INTO Item (ID, IconFileDataID) VALUES (19787, 136153);
+INSERT INTO ItemSparse (ID, Display_lang, OverallQualityID, ItemLevel, AllowableClass) VALUES (19787, 'Presence of Sight', 3, 60, 128);
 `
 
 func loadRawEnchantFixture(t *testing.T) []dbc.Enchant {
@@ -121,6 +132,7 @@ func TestRawEnchantsKeepOneRowPerEnchantAndName(t *testing.T) {
 		{7940, "Enchant Weapon - Grand Crusader"},
 		{247, "Enchant Bracer - Minor Agility"},
 		{7659, "Enchant Off-Hand - Superior Intellect"},
+		{2588, "Presence of Sight"},
 	}
 	for _, key := range want {
 		if _, ok := byKey[key]; !ok {
@@ -181,6 +193,21 @@ func TestRawEnchantLvl(t *testing.T) {
 	} {
 		if got := byKey[key].Lvl; got != want {
 			t.Errorf("enchant %d %q: lvl %d, want %d", key.id, key.name, got, want)
+		}
+	}
+}
+
+// An enchant no skill line teaches is open to the classes that may use an item applying it.
+func TestRawEnchantClassAllowlist(t *testing.T) {
+	byKey := rawEnchantsByKey(loadRawEnchantFixture(t))
+
+	for key, want := range map[rawEnchantKey][]proto.Class{
+		{2588, "Presence of Sight"}:               {proto.Class_ClassMage},
+		{8203, "Enchant Bracer - Lesser Spirit"}:  nil,
+		{7940, "Enchant Weapon - Grand Crusader"}: nil,
+	} {
+		if got := dbc.GetClassesFromClassMask(byKey[key].ClassMask); !slices.Equal(got, want) {
+			t.Errorf("enchant %d %q: class allowlist %v, want %v", key.id, key.name, got, want)
 		}
 	}
 }

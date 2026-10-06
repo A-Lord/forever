@@ -259,13 +259,9 @@ func New(char *core.Character, form DruidForm, selfBuffs SelfBuffs, talents stri
 	core.FillTalentsProto(druid.Talents.ProtoReflect(), talents, TalentTreeSizes)
 	druid.EnableManaBar()
 
-	druid.AddStatDependency(stats.Strength, stats.AttackPower, 1)
+	druid.AddStatDependency(stats.Strength, stats.AttackPower, 2)
 	druid.AddStatDependency(stats.BonusArmor, stats.Armor, 1)
 	druid.AddStatDependency(stats.Agility, stats.PhysicalCritPercent, core.CritPerAgiMaxLevel[char.Class])
-	druid.AddStatDependency(stats.Agility, stats.DodgeRating, core.DodgeRatingPerAgility[char.Class])
-
-	// TBC: Druids have a -1.87% base dodge correction to match in-game values.
-	druid.PseudoStats.BaseDodgeChance -= 0.0187
 
 	return druid
 }

@@ -137,9 +137,6 @@ func NewPaladin(character *core.Character, talentsStr string, _ *proto.PaladinOp
 	core.FillTalentsProto(paladin.Talents.ProtoReflect(), talentsStr, TalentTreeSizes)
 
 	paladin.PseudoStats.CanParry = true
-	paladin.PseudoStats.BaseDodgeChance += 0.0065
-	paladin.PseudoStats.BaseParryChance += 0.05
-	paladin.PseudoStats.BaseBlockChance += 0.05
 
 	paladin.EnableManaBar()
 
@@ -150,7 +147,6 @@ func NewPaladin(character *core.Character, talentsStr string, _ *proto.PaladinOp
 
 	paladin.AddStatDependency(stats.Strength, stats.AttackPower, 2)
 	paladin.AddStatDependency(stats.Agility, stats.PhysicalCritPercent, core.CritPerAgiMaxLevel[character.Class])
-	paladin.AddStatDependency(stats.Agility, stats.DodgeRating, core.DodgeRatingPerAgility[character.Class])
 	paladin.AddStatDependency(stats.BonusArmor, stats.Armor, 1)
 
 	return paladin

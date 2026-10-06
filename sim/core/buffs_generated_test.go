@@ -861,7 +861,7 @@ func TestGeneratedWindfuryTotemHoldsOverFlametongueTotem(t *testing.T) {
 // A generated damage shield deals the game files' damage back to whoever lands a
 // melee hit, and nothing to a spell.
 func TestGeneratedThornsStrikesBackAtAMeleeHit(t *testing.T) {
-	sim := setupFakeSimWithBuffs(&proto.RaidBuffs{Thorns: true}, &proto.PartyBuffs{}, &proto.IndividualBuffs{})
+	sim := setupFakeSimWithBuffs(&proto.RaidBuffs{}, &proto.PartyBuffs{}, &proto.IndividualBuffs{Thorns: true})
 	char := sim.Raid.Parties[0].Players[0].GetCharacter()
 	attacker := sim.Encounter.AllTargetUnits[0]
 
@@ -874,7 +874,7 @@ func TestGeneratedThornsStrikesBackAtAMeleeHit(t *testing.T) {
 		t.Fatalf("no aura is labelled %q; the unit has %v", "Thorns (External)", auraLabels(char))
 	}
 	if !aura.IsActive() {
-		t.Fatal("the raid's Thorns is not up at the start of the fight")
+		t.Fatal("the individual Thorns is not up at the start of the fight")
 	}
 
 	shield := char.GetSpell(core.ActionID{SpellID: 9910, Tag: 1})
@@ -1187,29 +1187,26 @@ func TestGeneratedStoneskinTotemTakesTheTalentedValue(t *testing.T) {
 	}
 }
 
-// Furious Howl is a flat attack power grant that competes with nothing Battle Shout holds, so both
-// land on the character at once.
-func TestGeneratedFuriousHowlStacksWithBattleShout(t *testing.T) {
+// Furious Howl does not stack with Battle Shout: the two share one category, and the stronger shout
+// is the one that applies.
+func TestGeneratedFuriousHowlDoesNotStackWithBattleShout(t *testing.T) {
 	if got := buffs.FuriousHowlValue(0); got != 83 {
 		t.Fatalf("Furious Howl is worth %v attack power, want the game files' 82 plus 4 levels of 0.4, floored to 83", got)
 	}
 
-	shoutOnly := core.NewGeneratedBuffTestCharacter()
-	core.ApplyBuffEffects(shoutOnly, &proto.RaidBuffs{},
-		&proto.PartyBuffs{BattleShout: proto.TristateEffect_TristateEffectRegular}, &proto.IndividualBuffs{})
-	shoutOnly.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
+	howlOnly := core.NewGeneratedBuffTestCharacter()
+	core.ApplyBuffEffects(howlOnly, &proto.RaidBuffs{}, &proto.PartyBuffs{FuriousHowl: true}, &proto.IndividualBuffs{})
+	howlOnly.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
+	if got := howlOnly.GetStats()[stats.AttackPower]; got != buffs.FuriousHowlValue(0) {
+		t.Errorf("Furious Howl alone applied %v attack power, want %v", got, buffs.FuriousHowlValue(0))
+	}
 
 	char := core.NewGeneratedBuffTestCharacter()
 	core.ApplyBuffEffects(char, &proto.RaidBuffs{},
 		&proto.PartyBuffs{BattleShout: proto.TristateEffect_TristateEffectRegular, FuriousHowl: true}, &proto.IndividualBuffs{})
 	char.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
-
-	want := buffs.BattleShoutValue(0) + buffs.FuriousHowlValue(0)
-	if got := char.GetStats()[stats.AttackPower]; got != want {
-		t.Errorf("attack power is %v, want both shouts' %v", got, want)
-	}
-	if got := char.GetStats()[stats.AttackPower] - shoutOnly.GetStats()[stats.AttackPower]; got != buffs.FuriousHowlValue(0) {
-		t.Errorf("Furious Howl added %v attack power over Battle Shout alone, want %v", got, buffs.FuriousHowlValue(0))
+	if got := char.GetStats()[stats.AttackPower]; got != buffs.BattleShoutValue(0) {
+		t.Errorf("attack power is %v under both shouts, want Battle Shout's %v alone", got, buffs.BattleShoutValue(0))
 	}
 }
 

@@ -47,8 +47,11 @@ export const statDisplayString = (player: Player<any>, deltaStats: Stats, unitSt
 			derivedPercentOrPointsValue! += player.getBaseDefense();
 		}
 	} else if (rootStat == Stat.StatBlockValue) {
-		if (rootRatingValue !== null && rootRatingValue > 0) {
-			rootRatingValue *= deltaStats.getPseudoStat(PseudoStat.PseudoStatBlockValueMultiplier) || 1;
+		if (rootRatingValue !== null) {
+			if (rootRatingValue > 0) {
+				rootRatingValue *= deltaStats.getPseudoStat(PseudoStat.PseudoStatBlockValueMultiplier) || 1;
+			}
+			rootRatingValue += Math.max(0, deltaStats.getStat(Stat.StatStrength) * deltaStats.getPseudoStat(PseudoStat.PseudoStatBlockValuePerStrength) - 1);
 		}
 	} else if (rootStat && SCHOOL_DAMAGE_STATS.includes(rootStat)) {
 		// School damage reads as "total (+school)": the rating column carries the school's own
@@ -103,8 +106,12 @@ export const critImmunityCapDisplayString = (player: Player<any>): string => {
 	return `${prefix} ${Math.abs(critImmuneDelta).toFixed(2)}%`;
 };
 
-export const bonusStatClass = (bonusStatValue: number): string =>
-	bonusStatValue === 0 ? 'text-white' : TONE_TEXT[bonusStatValue > 0 ? 'positive' : 'negative'];
+export const bonusTone = (value: number): 'neutral' | 'positive' | 'negative' => (value === 0 ? 'neutral' : value > 0 ? 'positive' : 'negative');
+
+export const bonusStatClass = (bonusStatValue: number): string => {
+	const tone = bonusTone(bonusStatValue);
+	return tone === 'neutral' ? 'text-white' : TONE_TEXT[tone];
+};
 
 /** The melee crit cap reads the other way round: over the cap is bad. */
 export const critCapClass = (capDelta: number): string => (capDelta === 0 ? 'text-white' : TONE_TEXT[capDelta > 0 ? 'negative' : 'positive']);

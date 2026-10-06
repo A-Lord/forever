@@ -1,6 +1,7 @@
 import { Class, Spec } from '@generated/proto/common';
 
 import { CURRENT_PHASE, getSpecSitePath, LaunchStatus } from '../../constants/other';
+import { isSpecDualWieldCapable } from '../classes/capabilities';
 import { IconSize } from '../player_class';
 import { PlayerSpec, SimStatus } from '../player_spec';
 
@@ -15,7 +16,7 @@ export class BalanceDruid extends PlayerSpec<Spec.SpecBalanceDruid> {
 	static isHealingSpec = false;
 	static isRangedDpsSpec = true;
 	static isMeleeDpsSpec = false;
-	static canDualWield = false;
+	static canDualWield = isSpecDualWieldCapable(BalanceDruid.specID);
 
 	static launch: SimStatus = {
 		phase: CURRENT_PHASE,
@@ -58,7 +59,7 @@ export class FeralCatDruid extends PlayerSpec<Spec.SpecFeralCatDruid> {
 	static isRangedDpsSpec = false;
 	static isMeleeDpsSpec = true;
 
-	static canDualWield = false;
+	static canDualWield = isSpecDualWieldCapable(FeralCatDruid.specID);
 
 	static launch: SimStatus = {
 		phase: CURRENT_PHASE,
@@ -102,7 +103,7 @@ export class FeralBearDruid extends PlayerSpec<Spec.SpecFeralBearDruid> {
 	static isRangedDpsSpec = false;
 	static isMeleeDpsSpec = true;
 
-	static canDualWield = false;
+	static canDualWield = isSpecDualWieldCapable(FeralBearDruid.specID);
 
 	static launch: SimStatus = {
 		phase: CURRENT_PHASE,
@@ -145,7 +146,7 @@ export class RestorationDruid extends PlayerSpec<Spec.SpecRestorationDruid> {
 	static isRangedDpsSpec = false;
 	static isMeleeDpsSpec = false;
 
-	static canDualWield = false;
+	static canDualWield = isSpecDualWieldCapable(RestorationDruid.specID);
 
 	static launch: SimStatus = {
 		phase: CURRENT_PHASE,
