@@ -91,7 +91,7 @@ func (spell *Spell) CanQueue(sim *Simulation, target *Unit) bool {
 		return false
 	}
 
-	if spell.isAutorepeating() {
+	if spell.autorepeatChannel() != nil {
 		return false
 	}
 

@@ -266,12 +266,11 @@ func (dot *Dot) TickOnce(sim *Simulation) {
 }
 
 // The slot goes to whatever interrupts the channel, so no shot fires there. A plain cast rather
-// than a channel action gives the slot to any other ready action, or else fires its one shot and stops.
+// than a channel action fires its one shot and stops.
 func (dot *Dot) autorepeatTick(sim *Simulation) {
 	unit := dot.Spell.Unit
 	rot := unit.Rotation
 	rot.evalGeneration++
-	rot.autocastCooldownsWhileChanneling(sim)
 	if rot.shouldInterruptChannel(sim) &&
 		(unit.GCD.IsReady(sim) || unit.GCD.TimeToReady(sim) > MaxSpellQueueWindow) {
 		dot.tickAction.NextActionAt = NeverExpires
@@ -294,10 +293,23 @@ func (dot *Dot) autorepeatTick(sim *Simulation) {
 	sim.AddPendingAction(dot.tickAction)
 }
 
-// An autorepeat channel has no GCD to stop the rotation from casting it again while it runs.
-func (spell *Spell) isAutorepeating() bool {
-	dot := spell.Unit.ChanneledDot
-	return dot != nil && dot.autorepeat && dot.Spell == spell
+// An autorepeat channel ends on a shot slot, so the rotation acts there with no clip delay, or when the
+// GCD ends. The rotation may already have spent its wake-up while the channel ran.
+func (unit *Unit) wakeAfterAutorepeat(sim *Simulation) {
+	if unit.GCD.IsReady(sim) {
+		unit.WaitUntil(sim, sim.CurrentTime)
+	} else if unit.rotationAction.IsConsumed() || unit.NextRotationActionAt() > unit.GCD.ReadyAt() {
+		unit.WaitUntil(sim, unit.GCD.ReadyAt())
+	}
+}
+
+// The spell's running autorepeat channel, or nil. It has no GCD to stop the rotation from casting it
+// again while it runs.
+func (spell *Spell) autorepeatChannel() *Dot {
+	if dot := spell.Unit.ChanneledDot; dot != nil && dot.autorepeat && dot.Spell == spell {
+		return dot
+	}
+	return nil
 }
 
 func (dot *Dot) periodicTick(sim *Simulation) {
@@ -402,7 +414,9 @@ func newDot(config Dot) *Dot {
 			dot.Spell.Unit.Rotation.allowChannelRecastOnInterrupt = false
 			// Note: even if clip delay is 0ms, always schedule rotation here so APL fires
 			// after ChanneledDot is cleared.
-			if dot.Spell.Unit.GCD.IsReady(sim) {
+			if dot.autorepeat {
+				dot.Spell.Unit.wakeAfterAutorepeat(sim)
+			} else if dot.Spell.Unit.GCD.IsReady(sim) {
 				dot.Spell.Unit.WaitUntil(sim, sim.CurrentTime+channelDelay)
 			}
 			// track time metrics for channels

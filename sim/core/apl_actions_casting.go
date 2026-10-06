@@ -115,9 +115,16 @@ func (action *APLActionChannelSpell) IsReady(sim *Simulation) bool {
 	return action.spell.CanCastOrQueue(sim, action.target.Get())
 }
 func (action *APLActionChannelSpell) Execute(sim *Simulation) {
+	unit := action.spell.Unit
 	action.spell.CastOrQueue(sim, action.target.Get())
-	action.spell.Unit.Rotation.interruptChannelIf = action.interruptIf
-	action.spell.Unit.Rotation.allowChannelRecastOnInterrupt = action.allowRecast
+
+	// A cast that failed leaves the fields alone, so a later plain cast of a channel does not inherit them.
+	started := unit.ChanneledDot != nil || (unit.Hardcast.Expires > sim.CurrentTime && unit.Hardcast.ActionID == action.spell.ActionID)
+	queued := unit.QueuedSpell != nil && unit.QueuedSpell.spell == action.spell && unit.QueuedSpell.QueueInitiatedAt == sim.CurrentTime
+	if started || queued {
+		unit.Rotation.interruptChannelIf = action.interruptIf
+		unit.Rotation.allowChannelRecastOnInterrupt = action.allowRecast
+	}
 }
 func (action *APLActionChannelSpell) String() string {
 	return fmt.Sprintf("Channel Spell(%s, interruptIf=%s)", action.spell.ActionID, action.interruptIf)
@@ -483,16 +490,13 @@ func (action *APLActionAutocastOtherCooldowns) Reset(*Simulation) {
 }
 func (action *APLActionAutocastOtherCooldowns) IsReady(sim *Simulation) bool {
 	action.nextReadyMCD = action.character.getFirstReadyMCD(sim)
-	return (action.nextReadyMCD != nil) && action.fitsGCD(sim, action.nextReadyMCD)
-}
 
-// Explicitly check for GCD because MCDs are usually desired to be cast immediately
-// before the next spell, rather than immediately after the previous spell. This is
-// true even for MCDs which do not require the GCD. The one exception to this rule
-// is Engineering explosives, which should instead be cast right *after* incurring
-// a GCD, since they are off-GCD but have small cast times.
-func (action *APLActionAutocastOtherCooldowns) fitsGCD(sim *Simulation, mcd *MajorCooldown) bool {
-	return (action.character.GCD.IsReady(sim) != mcd.Type.Matches(CooldownTypeExplosive)) || mcd.Spell.Flags.Matches(SpellFlagReactive)
+	// Explicitly check for GCD because MCDs are usually desired to be cast immediately
+	// before the next spell, rather than immediately after the previous spell. This is
+	// true even for MCDs which do not require the GCD. The one exception to this rule
+	// is Engineering explosives, which should instead be cast right *after* incurring
+	// a GCD, since they are off-GCD but have small cast times.
+	return (action.nextReadyMCD != nil) && ((action.character.GCD.IsReady(sim) != action.nextReadyMCD.Type.Matches(CooldownTypeExplosive)) || action.nextReadyMCD.Spell.Flags.Matches(SpellFlagReactive))
 }
 func (action *APLActionAutocastOtherCooldowns) Execute(sim *Simulation) {
 	action.nextReadyMCD.tryActivateHelper(sim, action.character)

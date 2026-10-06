@@ -164,8 +164,6 @@ func (rot *APLRotation) newAPLValueWithContext(config *proto.APLValue, groupVari
 		value = rot.newValueAutoTimeToNext(config.GetAutoTimeToNext(), config.Uuid)
 	case *proto.APLValue_AutoTimeSinceLast:
 		value = rot.newValueAutoTimeSinceLast(config.GetAutoTimeSinceLast(), config.Uuid)
-	case *proto.APLValue_IsWanding:
-		value = rot.newValueIsWanding(config.GetIsWanding(), config.Uuid)
 
 	// Spells
 	case *proto.APLValue_SpellIsKnown:

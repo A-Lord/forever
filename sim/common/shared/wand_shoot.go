@@ -17,11 +17,15 @@ func RegisterShoot(character *core.Character) *core.Spell {
 	config := spelldata.SpellConfig(&character.Unit, shootRow, spelldata.Magic(core.ProcMaskRangedAuto))
 	config.Flags |= core.SpellFlagChanneled | core.SpellFlagAPL
 	config.SpellSchool = weapon.GetSpellSchool()
+	config.ExtraCastCondition = func(_ *core.Simulation, _ *core.Unit) bool {
+		return !character.Moving
+	}
 	config.Dot = core.DotConfig{
-		Aura:          core.Aura{Label: "Shoot"},
-		NumberOfTicks: 1 << 20,
-		TickLength:    swingSpeed,
-		Autorepeat:    true,
+		Aura:                core.Aura{Label: "Shoot"},
+		NumberOfTicks:       1 << 20,
+		TickLength:          swingSpeed,
+		AffectedByCastSpeed: true,
+		Autorepeat:          true,
 		OnTick: func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
 			spell := dot.Spell
 			baseDamage := weapon.CalculateWeaponDamage(sim, 0)

@@ -175,26 +175,19 @@ func TestWandShoot(t *testing.T) {
 			t.Fatalf("Shoot can be cast with no wand")
 		}
 		caster.shoot.Cast(sim, target)
-		if caster.Wand.IsWanding() {
+		if caster.ChanneledDot != nil {
 			t.Fatalf("Shoot is channeling with no wand")
 		}
 	})
 
 	t.Run("a channel from the pull fires its first shot after the wand speed", func(t *testing.T) {
-		rotation := &proto.APLRotation{
-			Type: proto.APLRotation_TypeAPL,
-			PriorityList: []*proto.APLListItem{{Action: &proto.APLAction{Action: &proto.APLAction_ChannelSpell{ChannelSpell: &proto.APLActionChannelSpell{
-				SpellId:     core.ActionID{SpellID: 5019}.ToProto(),
-				InterruptIf: &proto.APLValue{Value: &proto.APLValue_Const{Const: &proto.APLValueConst{Val: "true"}}},
-			}}}}},
-		}
-		sim, caster := newWandSim(t, &proto.ItemSpec{Id: sableWandID}, rotation, 0)
+		sim, caster := newWandSim(t, &proto.ItemSpec{Id: sableWandID}, channelShootRotation(), 0)
 		metrics := &caster.shoot.SpellMetrics[sim.Encounter.ActiveTargetUnits[0].UnitIndex]
 		sim.PrePull()
 
 		stepPast(t, sim, 1799*time.Millisecond)
-		if !caster.Wand.IsWanding() || metrics.TotalDamage != 0 {
-			t.Fatalf("at 1.799 s the pull's Shoot should be channeling with nothing dealt, wanding %t, %v dealt", caster.Wand.IsWanding(), metrics.TotalDamage)
+		if !caster.wanding() || metrics.TotalDamage != 0 {
+			t.Fatalf("at 1.799 s the pull's Shoot should be channeling with nothing dealt, wanding %t, %v dealt", caster.wanding(), metrics.TotalDamage)
 		}
 		stepPast(t, sim, 1801*time.Millisecond)
 		if metrics.Hits+metrics.Crits != 1 || metrics.TotalDamage == 0 {
@@ -205,4 +198,102 @@ func TestWandShoot(t *testing.T) {
 			t.Fatalf("at 3.60 s the pull's channel should have fired its second shot from one cast, %d casts, %d shots", metrics.Casts, metrics.Hits+metrics.Crits)
 		}
 	})
+
+	t.Run("cast speed at the start sets the shot interval", func(t *testing.T) {
+		sim, caster := newWandSim(t, &proto.ItemSpec{Id: sableWandID}, channelShootRotation(), 0)
+		caster.MultiplyCastSpeed(sim, 1.1)
+		metrics := &caster.shoot.SpellMetrics[sim.Encounter.ActiveTargetUnits[0].UnitIndex]
+		sim.PrePull()
+
+		for _, step := range []struct {
+			at    time.Duration
+			shots int32
+		}{{1635 * time.Millisecond, 0}, {1637 * time.Millisecond, 1}, {3271 * time.Millisecond, 1}, {3273 * time.Millisecond, 2}} {
+			stepPast(t, sim, step.at)
+			if got := metrics.Hits + metrics.Crits; got != step.shots {
+				t.Fatalf("with 10%% cast speed from the pull Shoot should fire every 1.636 s, %d shots at %v, want %d", got, step.at, step.shots)
+			}
+		}
+	})
+
+	t.Run("cast speed gained while wanding waits for the next Shoot", func(t *testing.T) {
+		sim, caster := newWandSim(t, &proto.ItemSpec{Id: sableWandID}, channelShootRotation(), 0)
+		metrics := &caster.shoot.SpellMetrics[sim.Encounter.ActiveTargetUnits[0].UnitIndex]
+		sim.PrePull()
+
+		stepPast(t, sim, time.Second)
+		caster.MultiplyCastSpeed(sim, 1.1)
+		stepPast(t, sim, 3599*time.Millisecond)
+		if got := metrics.Hits + metrics.Crits; got != 1 {
+			t.Fatalf("10%% cast speed gained at 1 s should leave the running Shoot on 1.80 s, %d shots at 3.599 s, want 1", got)
+		}
+		stepPast(t, sim, 3601*time.Millisecond)
+		if got := metrics.Hits + metrics.Crits; got != 2 {
+			t.Fatalf("the running Shoot should fire its second shot at 3.60 s, %d shots", got)
+		}
+		if got := caster.Wand.SwingSpeed(); got != 1636*time.Millisecond {
+			t.Fatalf("the wand swing time should read the 1.636 s a new Shoot would shoot at, got %s", got)
+		}
+	})
+
+	t.Run("moving stops Shoot until the move ends", func(t *testing.T) {
+		sim, caster := newWandSim(t, &proto.ItemSpec{Id: sableWandID}, channelShootRotation(), 0)
+		target := sim.Encounter.ActiveTargetUnits[0]
+		metrics := &caster.shoot.SpellMetrics[target.UnitIndex]
+		sim.PrePull()
+
+		stepPast(t, sim, time.Second)
+		caster.MoveDuration(2*time.Second, sim)
+		if caster.wanding() || caster.shoot.CanCast(sim, target) {
+			t.Fatalf("moving at 1 s should end Shoot and keep it from starting, wanding %t", caster.wanding())
+		}
+		stepPast(t, sim, 2999*time.Millisecond)
+		if caster.wanding() || metrics.Hits+metrics.Crits != 0 {
+			t.Fatalf("Shoot should neither run nor shoot during the move, wanding %t, %d shots", caster.wanding(), metrics.Hits+metrics.Crits)
+		}
+		stepPast(t, sim, 5500*time.Millisecond)
+		if !caster.wanding() || metrics.Hits+metrics.Crits != 1 {
+			t.Fatalf("after the move ends at 3 s the rotation should start Shoot again and shoot, wanding %t, %d shots", caster.wanding(), metrics.Hits+metrics.Crits)
+		}
+	})
+
+	t.Run("Wand Specialization's school mask leaves out a physical wand", func(t *testing.T) {
+		const physicalWandID int32 = 279847 // Unstable Power Core, physical, 1.70 s.
+		for _, wand := range []struct {
+			id         int32
+			multiplier float64
+		}{{sableWandID, 1.25}, {physicalWandID, 1}} {
+			sim, caster := newWandSim(t, &proto.ItemSpec{Id: wand.id}, &proto.APLRotation{}, 0)
+			plain := shots(t, sim, caster, 20)
+
+			sim, caster = newWandSim(t, &proto.ItemSpec{Id: wand.id}, &proto.APLRotation{}, 0)
+			caster.AddStaticMod(core.SpellModConfig{
+				Kind:       core.SpellMod_DamageDone_Pct,
+				ProcMask:   core.ProcMaskRangedAuto,
+				School:     core.SpellSchool(126),
+				FloatValue: 0.25,
+			})
+			specialized := shots(t, sim, caster, 20)
+			for i := range specialized {
+				if diff := specialized[i] - wand.multiplier*plain[i]; diff > 1e-9 || diff < -1e-9 {
+					t.Fatalf("wand %d (%v) shot %d dealt %v with the talent's mod, want %v × %v", wand.id, caster.shoot.SpellSchool, i+1, specialized[i], wand.multiplier, plain[i])
+				}
+			}
+		}
+	})
+}
+
+func (c *wandCaster) wanding() bool {
+	return c.ChanneledDot != nil && c.ChanneledDot.Spell == c.shoot
+}
+
+// Shoot as a channel that any other ready action interrupts.
+func channelShootRotation() *proto.APLRotation {
+	return &proto.APLRotation{
+		Type: proto.APLRotation_TypeAPL,
+		PriorityList: []*proto.APLListItem{{Action: &proto.APLAction{Action: &proto.APLAction_ChannelSpell{ChannelSpell: &proto.APLActionChannelSpell{
+			SpellId:     core.ActionID{SpellID: 5019}.ToProto(),
+			InterruptIf: &proto.APLValue{Value: &proto.APLValue_Const{Const: &proto.APLValueConst{Val: "true"}}},
+		}}}}},
+	}
 }

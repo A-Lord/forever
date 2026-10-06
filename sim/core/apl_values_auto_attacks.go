@@ -68,7 +68,16 @@ func (value *APLValueAutoTimeToNext) GetDuration(sim *Simulation) time.Duration 
 		return value.unit.Wand.TimeToNext(sim)
 	}
 	// defaults to Any
-	return max(0, value.unit.AutoAttacks.NextAnyAttackAt()-sim.CurrentTime)
+	nextAt := value.unit.AutoAttacks.NextAnyAttackAt()
+	if shotAt, wanding := value.unit.Wand.nextShotAt(); wanding {
+		// With no autos running the swing times are unset (0), not a next swing.
+		if value.unit.AutoAttacks.anyEnabled() {
+			nextAt = min(nextAt, shotAt)
+		} else {
+			nextAt = shotAt
+		}
+	}
+	return max(0, nextAt-sim.CurrentTime)
 }
 func (value *APLValueAutoTimeToNext) String() string {
 	return "Auto Time To Next"
@@ -114,28 +123,13 @@ func (value *APLValueAutoTimeSinceLast) GetDuration(sim *Simulation) time.Durati
 		if value.unit.AutoAttacks.ranged.enabled {
 			swingValue = min(swingValue, sim.CurrentTime-value.unit.AutoAttacks.PreviousRangedAttack())
 		}
+		if value.unit.Wand != nil {
+			swingValue = min(swingValue, value.unit.Wand.TimeSinceLast(sim))
+		}
 	}
 
 	return swingValue
 }
 func (value *APLValueAutoTimeSinceLast) String() string {
 	return "Auto Time Since Last"
-}
-
-type APLValueIsWanding struct {
-	DefaultAPLValueImpl
-	unit *Unit
-}
-
-func (rot *APLRotation) newValueIsWanding(_ *proto.APLValueIsWanding, _ *proto.UUID) APLValue {
-	return &APLValueIsWanding{unit: rot.unit}
-}
-func (value *APLValueIsWanding) Type() proto.APLValueType {
-	return proto.APLValueType_ValueTypeBool
-}
-func (value *APLValueIsWanding) GetBool(_ *Simulation) bool {
-	return value.unit.Wand.IsWanding()
-}
-func (value *APLValueIsWanding) String() string {
-	return "Is Wanding"
 }
