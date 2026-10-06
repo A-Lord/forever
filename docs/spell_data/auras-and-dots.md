@@ -32,14 +32,15 @@ above the one up ends it at once and starts fresh, so a cast of the same rank is
 lower rank does not land while a higher one from the same caster is up, and the higher rank keeps
 ticking on its own schedule and expires on time.
 
-- A row whose only effect is the periodic (Shadow Word: Pain, Renew, Corruption, Rend) sets
+- A row whose only effect that does something is the periodic (Shadow Word: Pain, Renew, Corruption,
+  Rend, and Rip and Rupture, whose dummy effects do nothing by themselves) sets
   `RankBlocksCast`: the lower rank is refused at the cast check with "a more powerful spell is
   active", so `CanCast` answers false and the cast spends no cost, global cooldown, cast time or
   cooldown. The check reads the dot the cast applies, the RelatedDotSpell's where the spell has none
   of its own: the target's, or the caster's for a self periodic.
 - A row with any other effect casts as usual and every other effect lands; `Dot.Apply` skips only the
-  periodic. Direct damage or a heal (Holy Fire), an energize (Garrote's combo point), a dummy or
-  script effect (Rip, Rupture) and a second aura (Insect Swarm, Entangling Roots) all count. A caller that
+  periodic. Direct damage or a heal (Holy Fire), an energize (Garrote's combo point) and a second aura
+  (Insect Swarm, Entangling Roots) all count; a dummy or script effect does not. A caller that
   touches the dot after `Apply`, to set stacks or read its expiry, checks `dot.IsActive()` first.
 
 A ground effect (`IsAOE`, Flamestrike, Consecration) is one per caster: a cast of any rank, lower

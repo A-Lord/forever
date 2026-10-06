@@ -34,7 +34,7 @@ type DotConfig struct {
 
 	RankGroup      string // Ranks of one periodic share it: a caster keeps one of them on a unit, channels excepted.
 	Rank           int32  // With RankGroup: this rank's place in it, the higher number winning.
-	RankBlocksCast bool   // With RankGroup: the cast is refused while a higher rank is up, for a row whose only effect is the periodic. A ground effect (IsAOE) ignores it.
+	RankBlocksCast bool   // With RankGroup: the cast is refused while a higher rank is up, for a row whose only effect besides dummies is the periodic. A ground effect (IsAOE) ignores it.
 }
 
 // The dots of one rank group a caster registered, by the UnitIndex of the unit each lives on.
