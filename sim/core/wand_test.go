@@ -640,6 +640,23 @@ func TestValueWand(t *testing.T) {
 		}
 	})
 
+	t.Run("swing time while wanding stays the running speed", func(t *testing.T) {
+		ct := newShootTest()
+		ct.start(ct.channelAction())
+		ct.runUntil(3 * time.Second)
+		ct.fw.MultiplyCastSpeed(ct.sim, 1.1)
+		if got := read(ct).swing; got != 2*time.Second {
+			t.Fatalf("with cast speed gained mid-channel the wand swing time reads %s while wanding, want the running 2 s", got)
+		}
+		ct.fw.MoveDuration(time.Second, ct.sim)
+		if ct.wanding() {
+			t.Fatalf("moving should end Shoot")
+		}
+		if got := read(ct).swing; got != 1818*time.Millisecond {
+			t.Fatalf("after the channel ended the wand swing time reads %s, want the hasted 1.818 s", got)
+		}
+	})
+
 	t.Run("before any cast", func(t *testing.T) {
 		ct := newShootTest()
 		ct.start()

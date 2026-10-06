@@ -291,8 +291,8 @@ func (dot *Dot) autorepeatTick(sim *Simulation) {
 	sim.AddPendingAction(dot.tickAction)
 }
 
-// An autorepeat channel ends on a shot slot, so the rotation acts there with no clip delay, or when the
-// GCD ends. The rotation may already have spent its wake-up while the channel ran.
+// An autorepeat channel that ends on a shot slot lets the rotation act there with no clip delay, or when the
+// GCD ends; movement and Unit.Interrupt end it between slots. The rotation may already have spent its wake-up while the channel ran.
 func (unit *Unit) wakeAfterAutorepeat(sim *Simulation) {
 	if unit.GCD.IsReady(sim) {
 		unit.WaitUntil(sim, sim.CurrentTime)

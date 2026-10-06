@@ -39,11 +39,25 @@ func (c *wandCaster) Initialize() {
 // hit and never to crit.
 func newWandSim(t *testing.T, ranged *proto.ItemSpec, rotation *proto.APLRotation, distance float64) (*core.Simulation, *wandCaster) {
 	t.Helper()
+	return newSwapWandSim(t, ranged, nil, rotation, distance)
+}
+
+// newWandSim with a swap set that holds the given ranged slot, when it is not nil.
+func newSwapWandSim(t *testing.T, ranged, swapped *proto.ItemSpec, rotation *proto.APLRotation, distance float64) (*core.Simulation, *wandCaster) {
+	t.Helper()
 	items := make([]*proto.ItemSpec, proto.ItemSlot_ItemSlotRanged+1)
 	for i := range items {
 		items[i] = &proto.ItemSpec{}
 	}
 	items[proto.ItemSlot_ItemSlotRanged] = ranged
+	var swapItems []*proto.ItemSpec
+	if swapped != nil {
+		swapItems = make([]*proto.ItemSpec, len(items))
+		for i := range swapItems {
+			swapItems[i] = &proto.ItemSpec{}
+		}
+		swapItems[proto.ItemSlot_ItemSlotRanged] = swapped
+	}
 
 	sim := core.NewSim(&proto.RaidSimRequest{
 		SimOptions: &proto.SimOptions{RandomSeed: 1, IsTest: true},
@@ -57,6 +71,8 @@ func newWandSim(t *testing.T, ranged *proto.ItemSpec, rotation *proto.APLRotatio
 				Equipment:          &proto.EquipmentSpec{Items: items},
 				Rotation:           rotation,
 				DistanceFromTarget: distance,
+				EnableItemSwap:     swapped != nil,
+				ItemSwap:           &proto.ItemSwap{Items: swapItems},
 			}},
 			Buffs: &proto.PartyBuffs{},
 		}}},
@@ -180,6 +196,36 @@ func TestWandShoot(t *testing.T) {
 		}
 	})
 
+	t.Run("a caster registered without a wand reads zero and cannot shoot", func(t *testing.T) {
+		sim, caster := newWandSim(t, &proto.ItemSpec{}, &proto.APLRotation{}, 0)
+		if caster.Wand == nil {
+			t.Fatalf("the caster has no Wand state")
+		}
+		if caster.Wand.SwingSpeed() != 0 || caster.Wand.TimeToNext(sim) != 0 || caster.Wand.TimeSinceLast(sim) != sim.CurrentTime {
+			t.Fatalf("with no wand the values read %v swing, %v to the next, %v since the last", caster.Wand.SwingSpeed(), caster.Wand.TimeToNext(sim), caster.Wand.TimeSinceLast(sim))
+		}
+		if caster.shoot.CanCast(sim, sim.Encounter.ActiveTargetUnits[0]) {
+			t.Fatalf("Shoot can be cast with no wand")
+		}
+	})
+
+	t.Run("a wand swapped in later shoots with no panic", func(t *testing.T) {
+		sim, caster := newSwapWandSim(t, &proto.ItemSpec{}, &proto.ItemSpec{Id: sableWandID}, &proto.APLRotation{}, 0)
+		caster.ItemSwap.SwapItems(sim, proto.APLActionItemSwap_Swap1, false)
+		if caster.GetRangedWeapon() == nil {
+			t.Fatalf("the swap did not equip the wand")
+		}
+		target := sim.Encounter.ActiveTargetUnits[0]
+		stepPast(t, sim, 5*time.Second)
+		if !caster.shoot.Cast(sim, target) {
+			t.Fatalf("Shoot could not be cast with the swapped-in wand")
+		}
+		stepPast(t, sim, sim.CurrentTime+3*time.Second)
+		if caster.Wand.TimeSinceLast(sim) > 3*time.Second {
+			t.Fatalf("Shoot fired no shot with the swapped-in wand")
+		}
+	})
+
 	t.Run("a channel from the pull fires after the wind-up and then every wand speed", func(t *testing.T) {
 		sim, caster := newWandSim(t, &proto.ItemSpec{Id: sableWandID}, channelShootRotation(), 0)
 		metrics := &caster.shoot.SpellMetrics[sim.Encounter.ActiveTargetUnits[0].UnitIndex]
@@ -235,8 +281,12 @@ func TestWandShoot(t *testing.T) {
 		if got := metrics.Hits + metrics.Crits; got != 2 {
 			t.Fatalf("the running Shoot should fire its second shot at 2.30 s, %d shots", got)
 		}
+		if got := caster.Wand.SwingSpeed(); got != 1800*time.Millisecond {
+			t.Fatalf("the wand swing time should read the running Shoot's 1.80 s, got %s", got)
+		}
+		caster.MoveDuration(time.Second, sim)
 		if got := caster.Wand.SwingSpeed(); got != 1636*time.Millisecond {
-			t.Fatalf("the wand swing time should read the 1.636 s a new Shoot would shoot at, got %s", got)
+			t.Fatalf("with Shoot ended the wand swing time should read the 1.636 s a new Shoot would shoot at, got %s", got)
 		}
 	})
 

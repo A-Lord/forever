@@ -119,7 +119,7 @@ func (action *APLActionChannelSpell) Execute(sim *Simulation) {
 	action.spell.CastOrQueue(sim, action.target.Get())
 
 	// A cast that failed leaves the fields alone, so a later plain cast of a channel does not inherit them.
-	started := unit.ChanneledDot != nil || (unit.Hardcast.Expires > sim.CurrentTime && unit.Hardcast.ActionID == action.spell.ActionID)
+	started := (unit.ChanneledDot != nil && unit.ChanneledDot.Spell == action.spell) || (unit.Hardcast.Expires > sim.CurrentTime && unit.Hardcast.ActionID == action.spell.ActionID)
 	queued := unit.QueuedSpell != nil && unit.QueuedSpell.spell == action.spell && unit.QueuedSpell.QueueInitiatedAt == sim.CurrentTime
 	if started || queued {
 		unit.Rotation.interruptChannelIf = action.interruptIf

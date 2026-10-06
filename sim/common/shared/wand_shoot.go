@@ -1,6 +1,8 @@
 package shared
 
 import (
+	"time"
+
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
@@ -41,8 +43,10 @@ func RegisterShoot(character *core.Character) *core.Spell {
 	}
 
 	shoot := character.RegisterSpell(config)
+	var wandSpeed time.Duration
 	if character.GetRangedWeapon() != nil {
-		character.EnableWand(shoot, swingSpeed)
+		wandSpeed = swingSpeed
 	}
+	character.EnableWand(shoot, wandSpeed)
 	return shoot
 }
