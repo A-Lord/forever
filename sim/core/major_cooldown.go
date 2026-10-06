@@ -374,12 +374,16 @@ func (mcdm *majorCooldownManager) GetMatchingStatBuffCooldownAuras(statTypesToMa
 }
 
 func (mcdm *majorCooldownManager) getFirstReadyMCD(sim *Simulation) *MajorCooldown {
+	return mcdm.getFirstReadyMCDWhere(sim, nil)
+}
+
+func (mcdm *majorCooldownManager) getFirstReadyMCDWhere(sim *Simulation, accept func(*MajorCooldown) bool) *MajorCooldown {
 	if sim.CurrentTime < mcdm.minReady {
 		return nil
 	}
 
 	for _, mcd := range mcdm.majorCooldowns {
-		if !mcd.IsReady(sim) {
+		if !mcd.IsReady(sim) || (accept != nil && !accept(mcd)) {
 			continue
 		}
 		if mcd.shouldActivateHelper(sim, mcdm.character) {

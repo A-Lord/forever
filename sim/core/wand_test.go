@@ -121,10 +121,49 @@ func seconds(values ...float64) []time.Duration {
 	return MapSlice(values, DurationFromSeconds)
 }
 
+// A spell that only records when it is cast.
+func recordedSpellConfig(id int32, castAt *[]time.Duration) SpellConfig {
+	return SpellConfig{
+		ActionID: ActionID{SpellID: id},
+		Flags:    SpellFlagAPL,
+		ApplyEffects: func(sim *Simulation, _ *Unit, _ *Spell) {
+			*castAt = append(*castAt, sim.CurrentTime)
+		},
+	}
+}
+
+// A one-minute major cooldown, on the GCD when gcd is set, ready from 3 s.
+type testCooldown struct {
+	gcd      time.Duration
+	priority int32
+	spell    *Spell
+	castAt   []time.Duration
+}
+
+func newCooldownShootTest(cooldowns ...*testCooldown) *channelTest {
+	ct := newChannelTest(func(ct *channelTest, char *Character) *Spell {
+		for i, cooldown := range cooldowns {
+			config := recordedSpellConfig(910100+int32(i), &cooldown.castAt)
+			config.Cast = CastConfig{DefaultCast: Cast{GCD: cooldown.gcd}, CD: Cooldown{Timer: char.NewTimer(), Duration: time.Minute}}
+			cooldown.spell = char.RegisterSpell(config)
+			char.AddMajorCooldown(MajorCooldown{Spell: cooldown.spell, Type: CooldownTypeDPS, Priority: cooldown.priority})
+		}
+		return fakeShoot(char, &ct.ticks)
+	})
+	ct.fw.majorCooldownManager.finalize()
+	ct.fw.majorCooldownManager.reset(ct.sim)
+	for _, cooldown := range cooldowns {
+		cooldown.spell.finalize()
+		cooldown.spell.CD.Set(3 * time.Second)
+	}
+	ct.fw.UpdateMajorCooldowns()
+	return ct
+}
+
 func TestWandAutorepeatChannel(t *testing.T) {
 	t.Run("a cast fires one shot", func(t *testing.T) {
 		ct := newShootTest()
-		ct.start()
+		ct.start(&timedStubAction{readyAt: time.Minute})
 		ct.runUntil(0)
 		ct.castAction().Execute(ct.sim)
 
@@ -234,32 +273,119 @@ func TestWandAutorepeatChannel(t *testing.T) {
 	})
 
 	t.Run("major cooldowns fire at a tick without ending the channel", func(t *testing.T) {
-		var cooldown *Spell
-		var cooldownAt []time.Duration
-		ct := newChannelTest(func(ct *channelTest, char *Character) *Spell {
-			cooldown = char.RegisterSpell(SpellConfig{
-				ActionID: ActionID{SpellID: 910100},
-				Cast:     CastConfig{CD: Cooldown{Timer: char.NewTimer(), Duration: time.Minute}},
-				ApplyEffects: func(sim *Simulation, _ *Unit, _ *Spell) {
-					cooldownAt = append(cooldownAt, sim.CurrentTime)
-				},
-			})
-			char.AddMajorCooldown(MajorCooldown{Spell: cooldown, Type: CooldownTypeDPS})
-			return fakeShoot(char, &ct.ticks)
-		})
-		cooldown.finalize()
-		ct.fw.majorCooldownManager.finalize()
-		ct.fw.majorCooldownManager.reset(ct.sim)
-		cooldown.CD.Set(3 * time.Second)
-		ct.fw.UpdateMajorCooldowns()
+		cooldown := &testCooldown{}
+		ct := newCooldownShootTest(cooldown)
 		ct.start(ct.rot.newActionAutocastOtherCooldowns(&proto.APLActionAutocastOtherCooldowns{}), ct.channelAction())
 
 		ct.runUntil(4001 * time.Millisecond)
-		if !slices.Equal(cooldownAt, seconds(4)) {
-			t.Fatalf("a cooldown ready at 3 s should fire at the 4 s tick, fired at %v", cooldownAt)
+		if !slices.Equal(cooldown.castAt, seconds(4)) {
+			t.Fatalf("a cooldown ready at 3 s should fire at the 4 s tick, fired at %v", cooldown.castAt)
 		}
 		if !slices.Equal(ct.ticks, seconds(2, 4)) || len(ct.channelEnd) != 0 {
 			t.Fatalf("Shoot should still fire at 4 s and keep going, shots at %v, ended at %v", ct.ticks, ct.channelEnd)
+		}
+	})
+
+	t.Run("a cooldown on the GCD takes the shot's slot", func(t *testing.T) {
+		onGCD := &testCooldown{gcd: GCDDefault, priority: 1}
+		potion := &testCooldown{}
+		ct := newCooldownShootTest(onGCD, potion)
+		if ct.fw.majorCooldownManager.majorCooldowns[0].Spell != onGCD.spell {
+			t.Fatalf("the cooldown on the GCD should sort ahead of the potion")
+		}
+		ct.start(ct.rot.newActionAutocastOtherCooldowns(&proto.APLActionAutocastOtherCooldowns{}), ct.channelAction())
+
+		ct.runUntil(5999 * time.Millisecond)
+		if !slices.Equal(potion.castAt, seconds(4)) || !slices.Equal(onGCD.castAt, seconds(4)) {
+			t.Fatalf("both cooldowns ready at 3 s should fire at the 4 s boundary, the potion at %v, the one on the GCD at %v", potion.castAt, onGCD.castAt)
+		}
+		if !slices.Equal(ct.ticks, seconds(2)) || !slices.Equal(ct.channelEnd, seconds(4)) || !ct.fw.Wand.IsWanding() {
+			t.Fatalf("Shoot should give its 4 s slot to the cooldown on the GCD and start again, shots at %v, ended at %v", ct.ticks, ct.channelEnd)
+		}
+	})
+
+	t.Run("an off-GCD cooldown fires behind one that needs the GCD", func(t *testing.T) {
+		onGCD := &testCooldown{gcd: GCDDefault, priority: 1}
+		potion := &testCooldown{}
+		ct := newCooldownShootTest(onGCD, potion)
+		channel := ct.rot.newActionChannelSpell(&proto.APLActionChannelSpell{SpellId: ct.spell.ActionID.ToProto(), InterruptIf: constValue("false")})
+		ct.start(ct.rot.newActionAutocastOtherCooldowns(&proto.APLActionAutocastOtherCooldowns{}), channel)
+
+		ct.runUntil(6001 * time.Millisecond)
+		if !slices.Equal(potion.castAt, seconds(4)) || len(onGCD.castAt) != 0 {
+			t.Fatalf("with Shoot never interrupted, only the potion should fire, at the 4 s tick: the potion at %v, the one on the GCD at %v", potion.castAt, onGCD.castAt)
+		}
+		if !slices.Equal(ct.ticks, seconds(2, 4, 6)) || len(ct.channelEnd) != 0 {
+			t.Fatalf("Shoot should keep shooting, shots at %v, ended at %v", ct.ticks, ct.channelEnd)
+		}
+	})
+
+	t.Run("a cast gives its slot to a ready action", func(t *testing.T) {
+		ct := newShootTest()
+		stub := &timedStubAction{readyAt: time.Second}
+		ct.start(stub, ct.castAction())
+
+		ct.runUntil(3999 * time.Millisecond)
+		if len(ct.ticks) != 0 || !slices.Equal(stub.ranAt, seconds(2)) || !slices.Equal(ct.channelEnd, seconds(2)) {
+			t.Fatalf("a cast Shoot should give its 2 s slot to the action ready at 1 s, shots at %v, action ran at %v, ended at %v", ct.ticks, stub.ranAt, ct.channelEnd)
+		}
+		ct.runUntil(4001 * time.Millisecond)
+		if !slices.Equal(ct.ticks, seconds(4)) {
+			t.Fatalf("with nothing else ready the cast Shoot should fire at 4 s, shots at %v", ct.ticks)
+		}
+	})
+
+	t.Run("starting Shoot ends the rotation pass", func(t *testing.T) {
+		var nuke *Spell
+		var nukeAt []time.Duration
+		ct := newChannelTest(func(ct *channelTest, char *Character) *Spell {
+			config := recordedSpellConfig(910110, &nukeAt)
+			config.Cast = CastConfig{DefaultCast: Cast{GCD: GCDDefault}}
+			nuke = char.RegisterSpell(config)
+			return fakeShoot(char, &ct.ticks)
+		})
+		nuke.finalize()
+		ct.start(ct.channelAction(), ct.rot.newActionCastSpell(&proto.APLActionCastSpell{SpellId: nuke.ActionID.ToProto()}))
+
+		ct.runUntil(0)
+		if !ct.fw.Wand.IsWanding() || len(nukeAt) != 0 {
+			t.Fatalf("at 0 only Shoot should start, wanding %t, spell on the GCD cast at %v", ct.fw.Wand.IsWanding(), nukeAt)
+		}
+		ct.runUntil(4001 * time.Millisecond)
+		if !slices.Equal(ct.ticks, seconds(2, 4)) || len(nukeAt) != 0 {
+			t.Fatalf("Shoot above the spell should keep shooting, shots at %v, spell cast at %v", ct.ticks, nukeAt)
+		}
+	})
+
+	t.Run("Shoot above a normal channel runs alone", func(t *testing.T) {
+		var drain *Spell
+		var drainTicks []time.Duration
+		ct := newChannelTest(func(ct *channelTest, char *Character) *Spell {
+			config := fakeWarlockDot(689, "Drain Life", ClassFlags{Family: 5, Mask: [4]uint32{8}}, SpellFlagChanneled|SpellFlagAPL)
+			config.Cast = CastConfig{DefaultCast: Cast{GCD: GCDDefault}}
+			onTick := config.Dot.OnTick
+			config.Dot.OnTick = func(sim *Simulation, target *Unit, dot *Dot) {
+				onTick(sim, target, dot)
+				drainTicks = append(drainTicks, sim.CurrentTime)
+			}
+			drain = char.RegisterSpell(config)
+			return fakeShoot(char, &ct.ticks)
+		})
+		drain.finalize()
+		stub := &timedStubAction{readyAt: 3 * time.Second}
+		drainAction := ct.rot.newActionChannelSpell(&proto.APLActionChannelSpell{SpellId: drain.ActionID.ToProto(), InterruptIf: constValue("true")})
+		ct.start(stub, ct.channelAction(), drainAction)
+
+		ct.runUntil(0)
+		if dot := ct.fw.ChanneledDot; dot == nil || dot.Spell != ct.spell || drain.Dot(ct.fw.CurrentTarget).IsActive() {
+			t.Fatalf("at 0 Shoot should be the only channel")
+		}
+		ct.runUntil(5999 * time.Millisecond)
+		if !slices.Equal(ct.ticks, seconds(2)) || len(drainTicks) != 0 {
+			t.Fatalf("only Shoot should run, shots at %v, Drain Life ticks at %v", ct.ticks, drainTicks)
+		}
+		if !slices.Equal(ct.channelEnd, seconds(4)) || !slices.Equal(stub.ranAt, seconds(4)) {
+			t.Fatalf("Shoot should end once, at 4 s for the action ready at 3 s, ended at %v, action ran at %v", ct.channelEnd, stub.ranAt)
 		}
 	})
 

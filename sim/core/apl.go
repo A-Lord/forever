@@ -456,6 +456,11 @@ func (apl *APLRotation) DoNextAction(sim *Simulation) {
 		}
 
 		nextAction.Execute(sim)
+		// An autorepeat channel has no GCD to end the pass; any later cast would cut it.
+		if dot := apl.unit.ChanneledDot; dot != nil && dot.autorepeat {
+			i++
+			break
+		}
 	}
 	apl.inLoop = false
 
@@ -526,9 +531,11 @@ func (apl *APLRotation) popControllingAction(ca APLActionImpl) {
 // same timestep does not incorrectly block a same-spell re-cast from being
 // detected.
 //
+// The second result reports that a different action would be cast first.
+//
 // Caller must restore ChanneledDot after this call — this function does NOT
 // restore it.
-func (apl *APLRotation) nextActionWouldRecastChannel(sim *Simulation, channeledDot *Dot) bool {
+func (apl *APLRotation) nextActionWouldRecastChannel(sim *Simulation, channeledDot *Dot) (wouldRecast bool, otherFirst bool) {
 	channeledSpell := channeledDot.Spell
 
 	// Evaluate in post-channel state.
@@ -542,12 +549,12 @@ func (apl *APLRotation) nextActionWouldRecastChannel(sim *Simulation, channeledD
 		if castAction, ok := action.impl.(*APLActionCastSpell); ok {
 			canCast := castAction.spell.CanCast(sim, castAction.target.Get())
 			if castAction.spell == channeledSpell || castAction.spell.Matches(channeledSpell.ClassSpellMask) {
-				return canCast
+				return canCast, false
 			}
 			// Use CanCast (not CanCastOrQueue) so SQW-queued spells don't
 			// prematurely interrupt — they'll fire after the channel's next tick.
 			if canCast {
-				return false
+				return false, true
 			}
 			continue
 		}
@@ -555,10 +562,10 @@ func (apl *APLRotation) nextActionWouldRecastChannel(sim *Simulation, channeledD
 		if channelAction, ok := action.impl.(*APLActionChannelSpell); ok {
 			canCast := channelAction.spell.CanCast(sim, channelAction.target.Get())
 			if channelAction.spell == channeledSpell || channelAction.spell.Matches(channeledSpell.ClassSpellMask) {
-				return canCast
+				return canCast, false
 			}
 			if canCast {
-				return false
+				return false, true
 			}
 			continue
 		}
@@ -566,29 +573,42 @@ func (apl *APLRotation) nextActionWouldRecastChannel(sim *Simulation, channeledD
 		// autocast_other_cooldowns fires off-GCD MCDs alongside the main rotation —
 		// never blocks same-spell detection.
 		if _, ok := action.impl.(*APLActionAutocastOtherCooldowns); ok {
+			// An autorepeat channel has fired the off-GCD ones at its tick; one still ready needs the GCD or a cast.
+			if channeledDot.autorepeat && action.impl.IsReady(sim) {
+				return false, true
+			}
 			continue
 		}
 
 		// A different non-spell action is fully ready — it would be cast first.
 		if action.impl.IsReady(sim) {
-			return false
+			return false, true
 		}
 	}
 
-	return false
+	return false, false
 }
 
 func (apl *APLRotation) shouldInterruptChannel(sim *Simulation) bool {
 	channeledDot := apl.unit.ChanneledDot
+	if channeledDot == nil {
+		return false
+	}
 
-	if channeledDot == nil || !channeledDot.ChannelCanBeInterrupted(sim) {
+	// A plain cast of an autorepeat channel gives its slot to any other ready action.
+	castOnly := channeledDot.autorepeat && apl.interruptChannelIf == nil
+	if !castOnly && !channeledDot.ChannelCanBeInterrupted(sim) {
 		return false
 	}
 
 	// Check whether the same channel would be re-cast in post-channel state.
 	// nextActionWouldRecastChannel clears ChanneledDot — restore it afterwards.
-	wouldRecast := apl.nextActionWouldRecastChannel(sim, channeledDot)
+	wouldRecast, otherFirst := apl.nextActionWouldRecastChannel(sim, channeledDot)
 	apl.unit.ChanneledDot = channeledDot
+
+	if castOnly {
+		return otherFirst
+	}
 
 	if wouldRecast {
 		// Recasting an autorepeat channel would only throw its shot away.
@@ -598,17 +618,22 @@ func (apl *APLRotation) shouldInterruptChannel(sim *Simulation) bool {
 	return true
 }
 
-// Fires the major cooldowns that need neither a cast nor the GCD, without ending the channel.
+// Fires every ready major cooldown that needs neither a cast nor the GCD, without ending the channel.
 func (apl *APLRotation) autocastCooldownsWhileChanneling(sim *Simulation) {
 	for _, action := range apl.priorityList {
 		autocast, ok := action.impl.(*APLActionAutocastOtherCooldowns)
 		if !ok || (action.condition != nil && !action.condition.GetBool(sim)) {
 			continue
 		}
+		offGCD := func(mcd *MajorCooldown) bool {
+			return mcd.Spell.DefaultCast.EffectiveTime() == 0 && autocast.fitsGCD(sim, mcd)
+		}
 		var last *MajorCooldown
-		for autocast.IsReady(sim) && autocast.nextReadyMCD != last && autocast.nextReadyMCD.Spell.DefaultCast.EffectiveTime() == 0 {
-			last = autocast.nextReadyMCD
+		for mcd := autocast.character.getFirstReadyMCDWhere(sim, offGCD); mcd != nil && mcd != last; mcd = autocast.character.getFirstReadyMCDWhere(sim, offGCD) {
+			last = mcd
+			autocast.nextReadyMCD = mcd
 			autocast.Execute(sim)
+			apl.evalGeneration++
 		}
 	}
 }

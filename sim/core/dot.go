@@ -26,7 +26,7 @@ type DotConfig struct {
 	AffectedByCastSpeed  bool // tick length are shortened based on casting speed
 	AffectedByRealHaste  bool // tick length are shortened based on real haste (melee/ranged but not spell)
 	HasteReducesDuration bool // does not gain additional ticks after a certain haste threshold
-	Autorepeat           bool // A channel that ticks until interrupted (wand Shoot): checked only at a tick, before it fires; a plain cast runs one tick.
+	Autorepeat           bool // A channel that ticks until interrupted (wand Shoot): checked only at a tick, before it fires; a plain cast runs at most one tick.
 
 	BonusCoefficient float64 // EffectBonusCoefficient in the game files' SpellEffect table, "SP mod" on Wowhead (not necessarily shown there even if > 0)
 
@@ -265,8 +265,8 @@ func (dot *Dot) TickOnce(sim *Simulation) {
 	}
 }
 
-// The slot goes to whatever interrupts the channel, so no shot fires there. With no interrupt
-// condition (a plain cast rather than a channel action) the channel stops after its one tick.
+// The slot goes to whatever interrupts the channel, so no shot fires there. A plain cast rather
+// than a channel action gives the slot to any other ready action, or else fires its one shot and stops.
 func (dot *Dot) autorepeatTick(sim *Simulation) {
 	unit := dot.Spell.Unit
 	rot := unit.Rotation
