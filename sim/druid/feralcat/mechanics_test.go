@@ -251,6 +251,22 @@ func TestShiftingPowerTradesManaForEnergy(t *testing.T) {
 	}
 }
 
+// Shifting Power's 40 plus a GCD of regen fits under 100 from 45 energy. With Clearcasting up the
+// next cast is free, so the bar keeps filling through a second GCD and 45 is too high to shift.
+func TestShiftingPowerWaitsLongerWithClearcastingUp(t *testing.T) {
+	sim, cat := newCat(t, shiftingPowerTalents, nil)
+	fillResource(sim, cat)
+	emptyEnergy(sim, cat)
+	cat.AddEnergy(sim, 45, cat.NewEnergyMetrics(core.ActionID{SpellID: 1}))
+	if !cat.wantShift(sim, cat.CurrentTarget) {
+		t.Fatal("no shift at 45 energy without Clearcasting")
+	}
+	cat.ClearcastingAura.Activate(sim)
+	if cat.wantShift(sim, cat.CurrentTarget) {
+		t.Error("a shift at 45 energy with Clearcasting up, which caps the bar during the free cast")
+	}
+}
+
 func TestShiftingPowerNeedsTheTalentAndCatForm(t *testing.T) {
 	sim, cat := newCat(t, "", nil)
 	fillResource(sim, cat)

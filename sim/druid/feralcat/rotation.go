@@ -135,12 +135,17 @@ func (cat *FeralDruid) shiftingPowerEnergy() float64 {
 
 // shiftCeiling is the energy at which the gain plus regen over the GCD still fits under 100.
 // 50 for the row's 40. Wolfshead's extra 20 lowers it to 30. The bar regens 10 per second.
+// Shifting Power does not spend Clearcasting, so with it up the next cast is free and the bar
+// keeps filling through a second GCD: the ceiling leaves room for both, 40 and 20.
 func (cat *FeralDruid) shiftCeiling() float64 {
 	gcd := cat.ShiftingPower.DefaultCast.GCD
 	if gcd <= 0 {
 		gcd = time.Second
 	}
 	regen := cat.CurrentEnergyRegenMultiplier() * 10 * gcd.Seconds()
+	if cat.ClearcastingAura.IsActive() {
+		regen *= 2
+	}
 	return cat.MaximumEnergy() - cat.shiftingPowerEnergy() - regen
 }
 
