@@ -35419,10 +35419,6 @@ var generatedSpells = []Spell{
 		Effects: []Effect{
 			{ID: 1317204, SpellID: 1295272, Type: dbcenums.E_TRIGGER_MISSILE, BaseLevel: 60, PvpMult: 1, RadiusMax: 8, TriggerID: 1295661, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{72, 87}},
 		}},
-	{ID: 1295313, Name: "Booty Bay Bruiser Buckshot", School: 1, Speed: 30, Attr: [17]uint32{0: 0x40000, 3: 0x30000, 4: 0x800000, 10: 0x4, 11: 0x800}, SpellLevel: 60, BaseLevel: 60, CastTimeMs: 3000, MinRange: 10, MaxRange: 40, CooldownMs: 600000, GCDMs: 1500, StartRecoveryCategory: 133, PreventionType: 2, InterruptFlags: 47,
-		Effects: []Effect{
-			{ID: 1317277, SpellID: 1295313, Type: dbcenums.E_KNOCK_BACK, BasePoints: 50, BaseLevel: 60, PvpMult: 1, Misc: 400, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{25, 0}},
-		}},
 	{ID: 1295608, Name: "Warding Candle", School: 1, Attr: [17]uint32{0: 0x8000000, 15: 0x2000}, MaxLevel: 47, DefenseType: 1,
 		Effects: []Effect{
 			{ID: 1317769, SpellID: 1295608, Type: dbcenums.E_DISPEL, BasePoints: 1, MaxLevel: 47, PvpMult: 1, Misc: 2, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
