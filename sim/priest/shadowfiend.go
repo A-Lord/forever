@@ -1,51 +1,25 @@
 package priest
 
-// Package-level state the commented-out implementations used:
-// var shadowfiendRank = spellData.Shadowfiend.ByID(34433)
+import (
+	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
+)
 
-// TODO: To be implemented. The ability exists: spell 401977 on the Shadow Magic line. No rank subtext,
-// so no generated table -- pin the id directly. shadowfiend_pet.go already implements the pet.
 func (priest *Priest) registerShadowfiendSpell() {
-	panic("To be implemented")
+	rank := spellData.Shadowfiend.Highest()
 
-	// The TBC implementation, kept for the port:
-	// actionID := core.ActionID{SpellID: shadowfiendRank.ID}
-	//
-	// // Timeline aura
-	// priest.ShadowfiendAura = priest.RegisterAura(core.Aura{
-	// 	ActionID: actionID,
-	// 	Label:    "Shadowfiend",
-	// 	Duration: time.Second * 15,
-	// })
-	//
-	// priest.Shadowfiend = priest.RegisterSpell(core.SpellConfig{
-	// 	ActionID:       actionID,
-	// 	SpellSchool:    core.SpellSchoolShadow,
-	// 	ProcMask:       core.ProcMaskEmpty,
-	// 	Flags:          core.SpellFlagAPL,
-	// 	ClassSpellMask: PriestSpellShadowFiend,
-	// 	ClassFlags:     shadowfiendRank.ClassFlags,
-	// 	Rank:           shadowfiendRank.RankNumber(),
-	//
-	// 	ManaCost: core.ManaCostOptions{
-	// 		BaseCostPercent: 6,
-	// 	},
-	//
-	// 	Cast: core.CastConfig{
-	// 		DefaultCast: core.Cast{
-	// 			GCD: shadowfiendRank.GCD(),
-	// 		},
-	// 		CD: core.Cooldown{
-	// 			Timer:    priest.NewTimer(),
-	// 			Duration: time.Minute * 5,
-	// 		},
-	// 	},
-	//
-	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-	// 		priest.ShadowfiendPet.EnableWithTimeout(sim, priest.ShadowfiendPet, spell.RelatedSelfBuff.Duration)
-	// 		spell.RelatedSelfBuff.Activate(sim)
-	// 	},
-	//
-	// 	RelatedSelfBuff: priest.ShadowfiendAura,
-	// })
+	// The pet's lifetime on the timeline. The pet leaves when this duration runs out, so a mod on the
+	// buff's duration (Incarnate Regalia's two pieces) keeps it longer.
+	priest.ShadowfiendAura = priest.RegisterAura(spelldata.AuraConfig(rank))
+
+	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Flags(core.SpellFlagAPL))
+	config.ProcMask = core.ProcMaskEmpty
+	config.ClassSpellMask = PriestSpellShadowFiend
+	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
+		priest.ShadowfiendPet.EnableWithTimeout(sim, priest.ShadowfiendPet, spell.RelatedSelfBuff.Duration)
+		spell.RelatedSelfBuff.Activate(sim)
+	}
+	config.RelatedSelfBuff = priest.ShadowfiendAura
+
+	priest.Shadowfiend = priest.RegisterSpell(config)
 }

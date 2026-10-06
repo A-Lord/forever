@@ -11,6 +11,7 @@ type Shadowfiend struct {
 	ManaRestoreAura *core.Aura
 }
 
+// TODO: Verify in game. The game files carry no creature stats for the Shadowfiend.
 var baseStats = stats.Stats{
 	stats.Strength:    153,
 	stats.Agility:     108,
@@ -32,20 +33,25 @@ func (priest *Priest) NewShadowfiend() *Shadowfiend {
 		Priest: priest,
 	}
 
-	manaMetric := priest.NewManaMetrics(core.ActionID{SpellID: 34433}.WithTag(1))
+	// Mana Leech: each melee swing that lands returns a share of the priest's maximum mana.
+	manaLeech := spellData.ShadowfiendTriggered.Highest()
+	manaShare := manaLeech.EffectN(1).Percent()
+	manaMetric := priest.NewManaMetrics(core.ActionID{SpellID: manaLeech.ID})
 	shadowfiend.ManaRestoreAura = shadowfiend.MakeProcTriggerAura(core.ProcTrigger{
 		Name:     "Shadowfiend Mana Restore",
 		Duration: core.NeverExpires,
 		Callback: core.CallbackOnSpellHitDealt,
-		Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-			priest.AddMana(sim, result.Damage*2.5, manaMetric)
+		ProcMask: core.ProcMaskMeleeWhiteHit,
+		Outcome:  core.OutcomeLanded,
+		Handler: func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
+			priest.AddMana(sim, priest.MaxMana()*manaShare, manaMetric)
 		},
 	})
 
 	shadowfiend.EnableAutoAttacks(shadowfiend, core.AutoAttackOptions{
 		MainHand: core.Weapon{
-			BaseDamageMin:        68,
-			BaseDamageMax:        92,
+			BaseDamageMin:        68, // TODO: Verify in game; the game files carry no creature damage.
+			BaseDamageMax:        92, // TODO: Verify in game; the game files carry no creature damage.
 			SwingSpeed:           1.5,
 			NormalizedSwingSpeed: 1.5,
 			SpellSchool:          core.SpellSchoolShadow,
@@ -68,10 +74,12 @@ func (priest *Priest) NewShadowfiend() *Shadowfiend {
 	return shadowfiend
 }
 
+// Shadowfiend Scaling (416153) states every inherited stat without an amount, the server pricing them:
+// stamina, attack power, spell damage, the resistances, melee and spell hit, haste and crit.
 func (priest *Priest) shadowfiendStatInheritance() core.PetStatInheritance {
 	return func(ownerStats stats.Stats) stats.Stats {
 		return stats.Stats{
-			stats.AttackPower: (ownerStats[stats.SpellDamage] + ownerStats[stats.ShadowDamage]) * 0.57,
+			stats.AttackPower: (ownerStats[stats.SpellDamage] + ownerStats[stats.ShadowDamage]) * 0.57, // TODO: Verify the share in game.
 		}
 	}
 }

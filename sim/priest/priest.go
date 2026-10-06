@@ -63,13 +63,33 @@ func (priest *Priest) Initialize() {
 		priest.registerDevouringPlagueSpell(rank)
 	})
 	priest.registerShadowfiendSpell()
+	spellData.InnerFire.Each(func(_ int32, rank *spelldata.Spell) {
+		priest.registerInnerFire(rank)
+	})
+	spellData.Fade.Each(func(_ int32, rank *spelldata.Spell) {
+		priest.registerFade(rank)
+	})
 
 	if priest.Race == proto.Race_RaceNightElf {
 		StarshardsRankMap.Each(func(_ int32, rank *spelldata.Spell) {
 			priest.registerStarshardsSpell(rank)
 		})
+		spellData.ElunesGrace.Each(func(_ int32, rank *spelldata.Spell) {
+			priest.registerElunesGrace(rank)
+		})
+	}
+	if priest.Race == proto.Race_RaceTroll {
+		spellData.HexOfWeakness.Each(func(_ int32, rank *spelldata.Spell) {
+			priest.registerHexOfWeakness(rank)
+		})
+		spellData.Shadowguard.Each(func(_ int32, rank *spelldata.Spell) {
+			priest.registerShadowguard(rank)
+		})
 	}
 	if priest.Race == proto.Race_RaceUndead {
+		spellData.TouchOfWeakness.Each(func(_ int32, rank *spelldata.Spell) {
+			priest.registerTouchOfWeakness(rank)
+		})
 		spellData.DarkSacrifice.Each(func(_ int32, rank *spelldata.Spell) {
 			priest.registerDarkSacrifice(rank)
 		})
@@ -77,6 +97,9 @@ func (priest *Priest) Initialize() {
 	if priest.Race == proto.Race_RaceDwarf {
 		spellData.Chastise.Each(func(_ int32, rank *spelldata.Spell) {
 			priest.registerChastise(rank)
+		})
+		spellData.DesperatePrayer.Each(func(_ int32, rank *spelldata.Spell) {
+			priest.registerDesperatePrayer(rank)
 		})
 	}
 }
@@ -98,10 +121,6 @@ func New(char *core.Character, selfBuffs SelfBuffs, talents string) *Priest {
 	core.FillTalentsProto(priest.Talents.ProtoReflect(), talents, TalentTreeSizes)
 	priest.EnableManaBar()
 	priest.AddStatDependency(stats.Strength, stats.AttackPower, 1)
-	if selfBuffs.Armor == proto.PriestOptions_InnerFire {
-		// Inner Fire rank 7: +1580 armor. The charges never run out on a caster that is not hit.
-		priest.AddStat(stats.Armor, 1580)
-	}
 	priest.AddStatDependency(stats.Agility, stats.PhysicalCritPercent, core.CritPerAgiMaxLevel[char.Class])
 	priest.ShadowfiendPet = priest.NewShadowfiend()
 

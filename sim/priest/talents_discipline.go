@@ -147,12 +147,13 @@ func (priest *Priest) applyMeditation() {
 }
 
 // Increases the Armor bonus of your Inner Fire spell by X% and increases its total charges by Y.
-// TODO: Not implemented yet. 14747 states the armor as SPELLMOD_ALL_EFFECTS, which the parse makes a
-// damage mod that does not reach Inner Fire's armor, and the charges as SPELLMOD_CHARGES.
+// The armor (effect 1) scales Inner Fire's own parse in inner_fire.go; the charges go through here.
 func (priest *Priest) applyImprovedInnerFire() {
 	if priest.Talents.ImprovedInnerFire == 0 {
 		return
 	}
+
+	spelldata.ParseStatic(&priest.Character, spellData.ImprovedInnerFire.Rank(priest.Talents.ImprovedInnerFire), spelldata.Effects(2))
 }
 
 // Increases your total Intellect by X%
