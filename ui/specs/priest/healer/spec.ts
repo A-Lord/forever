@@ -9,7 +9,7 @@ import { Stats, UnitStat } from '@sim/proto/stats';
 import { defaultHealerIndividualBuffs, defaultHealerPartyBuffs, defaultHealerRaidBuffs } from '@sim/proto/utils';
 import { defineSpec } from '@sim/spec_config';
 
-import * as PriestInputs from './inputs';
+import * as PriestInputs from '../shared/inputs';
 import * as Presets from './presets';
 
 // Gear planner only: no healing spells are implemented, so there is no simulation for this spec.

@@ -16,20 +16,16 @@ type Priest struct {
 
 	Latency float64
 
-	ShadowfiendAura *core.Aura
-	ShadowfiendPet  *Shadowfiend
-
-	Shadowfiend     *core.Spell
-	InnerFocusAura  *core.Aura
-	HolyPurposeAura *core.Aura
+	InnerFocusAura *core.Aura
 
 	VampiricEmbrace *core.Spell
+
+	powerInLightAuras core.AuraArray
 }
 
 type SelfBuffs struct {
-	UseShadowfiend bool
-	PreShadowform  bool
-	Armor          proto.PriestOptions_Armor
+	PreShadowform bool
+	Armor         proto.PriestOptions_Armor
 }
 
 func (priest *Priest) GetCharacter() *core.Character {
@@ -43,49 +39,83 @@ func (priest *Priest) AddPartyBuffs(_ *proto.PartyBuffs) {
 }
 
 func (priest *Priest) Initialize() {
-	mindblastCDTimer := priest.NewTimer()
-	shadowWordDeathCDTimer := priest.NewTimer()
+	HolyFireRankMap.Each(priest.registerHolyFireSpell)
+	MindBlastRankMap.Each(priest.registerMindBlastSpell)
+	ShadowWordPainRankMap.Each(priest.registerShadowWordPainSpell)
+	ShadowWordDeathRankMap.Each(priest.registerShadowWordDeathSpell)
+	SmiteRankMap.Each(priest.registerSmiteSpell)
+	DevouringPlagueRankMap.Each(priest.registerDevouringPlagueSpell)
+	spellData.InnerFire.Each(priest.registerInnerFire)
+	spellData.Fade.Each(priest.registerFade)
 
-	HolyFireRankMap.Each(func(_ int32, rank *spelldata.Spell) {
-		priest.registerHolyFireSpell(rank)
-	})
-	MindBlastRankMap.Each(func(_ int32, rank *spelldata.Spell) {
-		priest.registerMindBlastSpell(rank, mindblastCDTimer)
-	})
-	ShadowWordPainRankMap.Each(func(_ int32, rank *spelldata.Spell) {
-		priest.registerShadowWordPainSpell(rank)
-	})
-	ShadowWordDeathRankMap.Each(func(_ int32, rank *spelldata.Spell) {
-		priest.registerShadowWordDeathSpell(rank, shadowWordDeathCDTimer)
-	})
-	SmiteRankMap.Each(func(_ int32, rank *spelldata.Spell) {
-		priest.registerSmiteSpell(rank)
-	})
-	priest.registerShadowfiendSpell()
+	switch priest.Race {
+	case proto.Race_RaceNightElf:
+		StarshardsRankMap.Each(priest.registerStarshardsSpell)
+		spellData.ElunesGrace.Each(priest.registerElunesGrace)
+	case proto.Race_RaceTroll:
+		spellData.HexOfWeakness.Each(priest.registerHexOfWeakness)
+		spellData.Shadowguard.Each(priest.registerShadowguard)
+	case proto.Race_RaceUndead:
+		spellData.TouchOfWeakness.Each(priest.registerTouchOfWeakness)
+		spellData.DarkSacrifice.Each(priest.registerDarkSacrifice)
+	case proto.Race_RaceDwarf:
+		spellData.Chastise.Each(priest.registerChastise)
+		spellData.DesperatePrayer.Each(priest.registerDesperatePrayer)
+	}
+}
 
-	if priest.Race == proto.Race_RaceNightElf {
-		starshardsCDTimer := priest.NewTimer()
-		StarshardsRankMap.Each(func(_ int32, rank *spelldata.Spell) {
-			priest.registerStarshardsSpell(rank, starshardsCDTimer)
-		})
+func (priest *Priest) registerSelfBuffSpell(rank *spelldata.Spell, aura *core.Aura) *core.Spell {
+	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Flags(core.SpellFlagAPL))
+	config.ProcMask = core.ProcMaskEmpty
+	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, _ *core.Spell) {
+		aura.Activate(sim)
+		if aura.MaxStacks > 0 {
+			aura.SetStacks(sim, aura.MaxStacks)
+		}
 	}
-	if priest.Race == proto.Race_RaceUndead {
-		devouringPlagueCDTimer := priest.NewTimer()
-		darkSacrificeCDTimer := priest.NewTimer()
+	config.RelatedSelfBuff = aura
 
-		spellData.DarkSacrifice.Each(func(_ int32, rank *spelldata.Spell) {
-			priest.registerDarkSacrifice(rank, darkSacrificeCDTimer)
-		})
-		DevouringPlagueRankMap.Each(func(_ int32, rank *spelldata.Spell) {
-			priest.registerDevouringPlagueSpell(rank, devouringPlagueCDTimer)
-		})
+	return priest.RegisterSpell(config)
+}
+
+func (priest *Priest) periodicDamageSpellConfig(rank *spelldata.Spell, classSpellMask int64) core.SpellConfig {
+	tick := rank.PeriodicEffect()
+
+	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))
+	config.ClassSpellMask = classSpellMask
+
+	config.Dot = spelldata.DotConfig(rank, tick, spelldata.RankLabel(rank, &priest.Unit))
+	config.Dot.Aura.Tag = priest.rankTag(rank)
+	config.Dot.OnTick = spelldata.PeriodicDamageTick(tick, rank.TickOutcomeHitRolled)
+
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		result := spell.CalcOutcome(sim, target, spell.OutcomeMagicHitNoHitCounter)
+		if result.Landed() {
+			applyReplacingOtherRanks(sim, spell.Dot(target))
+		}
+		spell.DealOutcome(sim, result)
 	}
-	if priest.Race == proto.Race_RaceDwarf {
-		chastiseCDTimer := priest.NewTimer()
-		spellData.Chastise.Each(func(_ int32, rank *spelldata.Spell) {
-			priest.registerChastise(rank, chastiseCDTimer)
-		})
+
+	config.ExpectedTickDamage = func(sim *core.Simulation, target *core.Unit, spell *core.Spell, _ bool) *core.SpellResult {
+		return spell.CalcPeriodicDamage(sim, target, tick.Average(), spell.OutcomeExpectedMagicAlwaysHit)
 	}
+
+	return config
+}
+
+func (priest *Priest) rankTag(rank *spelldata.Spell) string {
+	return rank.Name + " - " + priest.Label
+}
+
+// A target carries one periodic of an ability per priest: any rank, higher or lower, replaces the
+// other rank there, which stops ticking before the new one starts.
+func applyReplacingOtherRanks(sim *core.Simulation, dot *core.Dot) {
+	for _, aura := range dot.Unit.GetAurasWithTag(dot.Tag) {
+		if aura != dot.Aura {
+			aura.Deactivate(sim)
+		}
+	}
+	dot.Apply(sim)
 }
 
 func (priest *Priest) Reset(_ *core.Simulation) {
@@ -105,12 +135,7 @@ func New(char *core.Character, selfBuffs SelfBuffs, talents string) *Priest {
 	core.FillTalentsProto(priest.Talents.ProtoReflect(), talents, TalentTreeSizes)
 	priest.EnableManaBar()
 	priest.AddStatDependency(stats.Strength, stats.AttackPower, 1)
-	if selfBuffs.Armor == proto.PriestOptions_InnerFire {
-		// Inner Fire rank 7: +1580 armor. The charges never run out on a caster that is not hit.
-		priest.AddStat(stats.Armor, 1580)
-	}
 	priest.AddStatDependency(stats.Agility, stats.PhysicalCritPercent, core.CritPerAgiMaxLevel[char.Class])
-	priest.ShadowfiendPet = priest.NewShadowfiend()
 
 	return priest
 }
@@ -123,9 +148,8 @@ type PriestAgent interface {
 func NewPriest(character *core.Character, options *proto.Player) *Priest {
 	classOptions := options.GetDpsPriest().GetOptions().GetClassOptions()
 	selfBuffs := SelfBuffs{
-		UseShadowfiend: true,
-		PreShadowform:  classOptions.GetPreShadowform(),
-		Armor:          classOptions.GetArmor(),
+		PreShadowform: classOptions.GetPreShadowform(),
+		Armor:         classOptions.GetArmor(),
 	}
 
 	basePriest := New(character, selfBuffs, options.TalentsString)
@@ -152,89 +176,18 @@ func RegisterPriest() {
 }
 
 const (
-	PriestSpellFlagNone        int64 = 0
 	PriestSpellDevouringPlague int64 = 1 << iota
-	PriestSpellDevouringPlagueDoT
-	PriestSpellDevouringPlagueHeal
-	PriestSpellHolyNova
 	PriestSpellHolyFire
 	PriestSpellMindBlast
 	PriestSpellMindFlay
-	PriestSpellPowerInfusion
-	PriestSpellStarshards
-	PriestSpellShadowform
+	PriestSpellPenance
 	PriestSpellShadowWordDeath
 	PriestSpellShadowWordPain
-	PriestSpellShadowFiend
-	PriestSpellVampiricEmbrace
-	PriestSpellFade
 	PriestSpellSmite
-	PriestSpellInnerFire
 
-	// TODO: Forever abilities the sim does not model yet; see the stub file named for each.
-	PriestSpellChastise
-	PriestSpellConfoundingFlash
-	PriestSpellContingencyPlan
-	PriestSpellDarkSacrifice
-	PriestSpellDivineGrace
-	PriestSpellPenance
-
-	// Priest Healing Spells for Shadowform (and eventual healing sim?)
-	PriestSpellLesserHeal
-	PriestSpellHeal
-	PriestSpellGreaterHeal
-	PriestSpellFlashHeal
-	PriestSpellBindingHeal
-	PriestSpellDesperatePrayer
-	PriestSpellPrayerOfHealing
-	PriestSpellPrayerOfMending
-	PriestSpellRenew
-	PriestSpellLightwell
-	PriestSpellPowerWordShield
-
-	PriestSpellCureDisease
-	PriestSpellAbolishDisease
-	PriestSpellDispelMagic
-	PriestSpellFearWard
-
-	PriestSpellLast
-	PriestSpellsAll    = PriestSpellLast<<1 - 1
-	PriestSpellDoT     = PriestSpellDevouringPlague | PriestSpellHolyFire | PriestSpellMindFlay | PriestSpellShadowWordPain | PriestSpellStarshards
-	PriestSpellInstant = PriestSpellDevouringPlague |
-		PriestSpellFade |
-		PriestSpellHolyNova |
-		PriestSpellPowerInfusion |
-		PriestSpellShadowWordDeath |
-		PriestSpellShadowWordPain |
-		PriestSpellVampiricEmbrace |
-		PriestSpellShadowFiend |
-		PriestSpellStarshards |
-		PriestSpellShadowform |
-		PriestSpellPowerInfusion
 	PriestShadowSpells = PriestSpellDevouringPlague |
 		PriestSpellShadowWordDeath |
-		PriestSpellShadowform |
 		PriestSpellShadowWordPain |
 		PriestSpellMindFlay |
-		PriestSpellMindBlast |
-		PriestSpellShadowFiend |
-		PriestSpellVampiricEmbrace
-	PriestHolySpells    = PriestSpellSmite | PriestSpellHolyFire | PriestSpellHolyNova
-	PriestHealingSpells = PriestSpellLesserHeal |
-		PriestSpellHeal |
-		PriestSpellGreaterHeal |
-		PriestSpellFlashHeal |
-		PriestSpellBindingHeal |
-		PriestSpellDesperatePrayer |
-		PriestSpellPrayerOfHealing |
-		PriestSpellPrayerOfMending |
-		PriestSpellPenance |
-		PriestSpellPowerWordShield |
-		PriestSpellRenew |
-		PriestSpellLightwell |
-		PriestSpellPowerWordShield |
-		PriestSpellCureDisease |
-		PriestSpellAbolishDisease |
-		PriestSpellDispelMagic |
-		PriestSpellFearWard
+		PriestSpellMindBlast
 )

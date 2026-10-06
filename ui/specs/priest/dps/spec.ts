@@ -1,12 +1,12 @@
 import * as OtherInputs from '@features/settings/model/other_inputs';
 import { APLRotation } from '@generated/proto/apl';
-import { EquipmentSpec, ItemSlot, PseudoStat, Spec, Stat } from '@generated/proto/common';
-import { SavedTalents } from '@generated/proto/ui';
+import { ItemSlot, PseudoStat, Spec, Stat } from '@generated/proto/common';
 import { PlayerClasses } from '@sim/player/classes';
 import { Player } from '@sim/player/player';
 import { Stats, UnitStat } from '@sim/proto/stats';
 import { defineSpec } from '@sim/spec_config';
 
+import * as PriestSharedInputs from '../shared/inputs';
 import * as PriestInputs from './inputs';
 import * as Presets from './presets';
 
@@ -66,7 +66,7 @@ export default defineSpec<Spec.SpecDpsPriest>({
 
 	defaults: {
 		// Default equipped gear.
-		gear: EquipmentSpec.create(),
+		gear: Presets.PreraidGear.gear,
 		// Default EP weights for sorting gear in the gear picker.
 		epWeights: new Stats(),
 		statCaps: (() => {
@@ -75,7 +75,7 @@ export default defineSpec<Spec.SpecDpsPriest>({
 		// Default consumes settings.
 		consumables: Presets.DefaultConsumables,
 		// Default talents.
-		talents: SavedTalents.create(),
+		talents: Presets.StandardTalents.data,
 		// Default spec-specific settings.
 		specOptions: Presets.DefaultOptions,
 		// Default raid/party buffs settings.
@@ -91,7 +91,7 @@ export default defineSpec<Spec.SpecDpsPriest>({
 	},
 
 	// IconInputs to include in the 'Player' section on the settings tab.
-	playerIconInputs: [PriestInputs.ShadowformInput()],
+	playerIconInputs: [PriestSharedInputs.ArmorInput(), PriestInputs.ShadowformInput()],
 	// Buff and Debuff inputs to include/exclude, overriding the EP-based defaults.
 	includeBuffDebuffInputs: [],
 	excludeBuffDebuffInputs: [],
@@ -108,10 +108,10 @@ export default defineSpec<Spec.SpecDpsPriest>({
 	presets: {
 		epWeights: [],
 		// Preset talents that the user can quickly select.
-		talents: [],
+		talents: [Presets.StandardTalents],
 		rotations: [Presets.ROTATION_PRESET_DEFAULT],
 		// Preset gear configurations that the user can quickly select.
-		gear: [],
+		gear: [Presets.PreraidGear],
 	},
 
 	autoRotation: (_: Player<Spec.SpecDpsPriest>): APLRotation => {

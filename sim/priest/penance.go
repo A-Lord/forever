@@ -5,42 +5,41 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-func (priest *Priest) registerPenance(rank *spelldata.Spell, penanceTimer *core.Timer) {
-	// panic("to be implemented")
+func (priest *Priest) registerPenance(_ int32, rank *spelldata.Spell) {
+	// The tooltip names the damage bolt first and the channel that times the bolts third. Each bolt is
+	// its own spell, because Holy Precision, Holy Specialization and Inner Focus's crit name the bolt
+	// row's class flags, not the cast's.
+	refs := rank.Refs()
+	boltRow := refs[0]
+	bolt := boltRow.DamageEffect()
+	channel := refs[2]
 
-	penanceTick := rank.PeriodicEffect()
+	boltConfig := spelldata.SpellConfig(&priest.Unit, boltRow, spelldata.Magic(core.ProcMaskSpellDamage), spelldata.Proc())
+	boltConfig.ClassSpellMask = PriestSpellPenance
+	boltConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		spell.CalcAndDealDamage(sim, target, bolt.Roll(sim), spell.OutcomeMagicHitAndCrit)
+	}
+	boltSpell := priest.RegisterSpell(boltConfig)
 
 	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))
 
-	config.ActionID = core.ActionID{SpellID: rank.ID}
-	config.ClassSpellMask = PriestSpellSmite
-	config.Flags = core.SpellFlagChanneled | core.SpellFlagAPL
-
-	config.Cast.CD = core.Cooldown{
-		Timer:    penanceTimer,
-		Duration: max(rank.Cooldown(), rank.CategoryCooldown()),
+	config.Dot = spelldata.DotConfig(channel, channel.PeriodicEffect(), spelldata.RankLabel(rank, &priest.Unit))
+	config.Dot.Aura.ActionID = config.ActionID
+	config.Dot.Aura.Tag = priest.rankTag(rank)
+	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, _ *core.Dot) {
+		boltSpell.Cast(sim, target)
 	}
-
-	config.Dot = spelldata.DotConfig(rank, penanceTick)
-	config.Dot.Aura.Tag = "Penance"
-	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-		damageMod := 1.0
-		if target.HasAuraWithTag("Holy Fire") {
-			damageMod *= 1 + 0.1*float64(priest.Talents.PowerInLight)
-		}
-		dot.Spell.CalcAndDealPeriodicDamage(sim, target, penanceTick.Roll(sim)*damageMod, rank.TickOutcomeHitRolled(dot))
-	}
-	config.Dot.OnTick = spelldata.PeriodicDamageTick(penanceTick, rank.TickOutcomeHitRolled)
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		result := spell.CalcOutcome(sim, target, spell.OutcomeMagicHitNoHitCounter)
-		if result.Landed() {
-			spell.Dot(target).Apply(sim)
-		}
+		boltSpell.Cast(sim, target)
+		applyReplacingOtherRanks(sim, spell.Dot(target))
 	}
 
-	config.ExpectedTickDamage = func(sim *core.Simulation, target *core.Unit, spell *core.Spell, useSnapshot bool) *core.SpellResult {
-		return spell.CalcPeriodicDamage(sim, target, penanceTick.Average(), spell.OutcomeExpectedMagicAlwaysHit)
+	bolts := float64(1 + config.Dot.NumberOfTicks)
+	config.ExpectedInitialDamage = func(sim *core.Simulation, target *core.Unit, _ *core.Spell, _ bool) *core.SpellResult {
+		result := boltSpell.CalcDamage(sim, target, bolt.Average(), boltSpell.OutcomeExpectedMagicHitAndCrit)
+		result.Damage *= bolts
+		return result
 	}
 
 	priest.RegisterSpell(config)
