@@ -10,6 +10,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		869, // Dazzling Longsword
+		[
+			"Decrease the armor of the target by 100 for 30s. While affected, the target cannot stealth or turn invisible.", // 13752 - https://www.wowhead.com/forever/spell=13752
+		]
+	],
+	[
 		880, // Staff of Horrors
 		[
 			"Damage caused by the target is reduced by 5 for 2min.", // 8552 - https://www.wowhead.com/forever/spell=8552
@@ -1393,12 +1399,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		19959, // Hazza'rah's Charm of Magic
 		[
 			"Increases the critical hit chance of your Arcane spells by 5%, and increases the critical hit damage of your Arcane spells by 50% for 20s.", // 24544 - https://www.wowhead.com/forever/spell=24544
-		]
-	],
-	[
-		20005, // Devilsaur Claws
-		[
-			"Increased Fist Weapons +4.", // 24362 - https://www.wowhead.com/forever/spell=24362
 		]
 	],
 	[
