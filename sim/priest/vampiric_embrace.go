@@ -29,8 +29,11 @@ func (priest *Priest) registerVampiricEmbrace(_ int32, rank *spelldata.Spell) {
 
 	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))
 
-	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, _ *core.Spell) {
-		veAuras.Get(target).Activate(sim)
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		result := spell.CalcAndDealOutcome(sim, target, spell.OutcomeMagicHit)
+		if result.Landed() {
+			veAuras.Get(target).Activate(sim)
+		}
 	}
 	config.RelatedAuraArrays = veAuras.ToMap()
 
