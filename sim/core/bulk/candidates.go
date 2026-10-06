@@ -67,9 +67,9 @@ func BulkCandidates(request *proto.BulkCandidatesRequest) *proto.BulkCandidatesR
 	}
 }
 
-// newGeneratorFromRequest validates the shared preconditions of every bulk entry point (player
-// present, equipment present), registers the request's database items, and builds the candidate
-// generator. Callers map the returned error into their own result type.
+// Validates the shared preconditions of every bulk entry point (player present, equipment
+// present), registers the request's database items, and builds the candidate generator. Callers
+// map the returned error into their own result type.
 func newGeneratorFromRequest(request *proto.BulkSimRequest) (*bulkSimCandidateGenerator, error) {
 	player, playerErr := getPlayer(request)
 	if playerErr != nil {

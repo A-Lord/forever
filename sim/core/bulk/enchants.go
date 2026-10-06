@@ -100,9 +100,13 @@ func handWeaponEnchantVariants(option bulkSimCandidateOption, mainHandPool []int
 }
 
 // Expands every option in a bulk slot with a pool. The frozen weapon keeps its own enchant;
-// frozen rings and trinkets are paired from frozenItems, not from these options.
+// frozen rings and trinkets are paired from frozenItems, not from these options. A non-enchanter's
+// rings take no pool, as slotSpec strips their enchants.
 func (generator *bulkSimCandidateGenerator) initEnchantVariants() {
 	pools := newEnchantPools(generator.settings)
+	if !generator.playerIsEnchanter {
+		delete(pools, proto.ItemSlot_ItemSlotFinger1)
+	}
 	if len(pools) == 0 {
 		return
 	}

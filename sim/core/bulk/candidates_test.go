@@ -64,7 +64,6 @@ func TestGetAllWeaponCombosSameWeaponBothHandsNeedsTwoCopies(t *testing.T) {
 			}
 			generator := &bulkSimCandidateGenerator{
 				playerCanDualWield: true,
-				weaponSelected:     true,
 				selectedByBulkSlot: map[BulkSimItemSlot][]bulkSimCandidateOption{
 					BulkSimItemSlotHandWeapon: options,
 				},
@@ -98,7 +97,6 @@ func countWeaponOrders(combos [][2]*bulkSimCandidateOption, first int32, second 
 func TestGetAllWeaponCombosPairsDistinctWeaponsBothOrders(t *testing.T) {
 	generator := &bulkSimCandidateGenerator{
 		playerCanDualWield: true,
-		weaponSelected:     true,
 		selectedByBulkSlot: map[BulkSimItemSlot][]bulkSimCandidateOption{
 			BulkSimItemSlotHandWeapon: {oneHandOption(100), oneHandOption(200)},
 		},
@@ -132,7 +130,7 @@ func TestGetAllWeaponCombosSwapsBaselineHandsOnlyWithSelectedWeapon(t *testing.T
 		{name: "weapon selected", items: []*proto.ItemSpec{{Id: selectedID}}, wantBackward: 1},
 	}
 	for _, testCase := range testCases {
-		generator, err := newBulkSimCandidateGeneratorForSpec(&proto.BulkSettings{Items: testCase.items}, proto.Class_ClassRogue, proto.Spec_SpecRogue, baseEquipment)
+		generator, err := newBulkSimCandidateGeneratorForSpec(&proto.BulkSettings{Items: testCase.items}, proto.Class_ClassRogue, proto.Spec_SpecRogue, true, baseEquipment)
 		if err != nil {
 			t.Fatalf("%s: newBulkSimCandidateGeneratorForSpec: %v", testCase.name, err)
 		}
@@ -170,8 +168,7 @@ func TestBuildCandidatesClearsOffHandForTwoHandMainHand(t *testing.T) {
 	baseEquipment[proto.ItemSlot_ItemSlotOffHand] = core.NewItem(core.ItemSpec{ID: shieldID})
 
 	generator := &bulkSimCandidateGenerator{
-		baseEquipment:  baseEquipment,
-		weaponSelected: true,
+		baseEquipment: baseEquipment,
 		selectedByBulkSlot: map[BulkSimItemSlot][]bulkSimCandidateOption{
 			BulkSimItemSlotMainHand: {{
 				spec: &proto.ItemSpec{Id: twoHandID},
@@ -195,8 +192,8 @@ func TestBuildCandidatesClearsOffHandForTwoHandMainHand(t *testing.T) {
 	}
 }
 
-// TBC has no Titan's Grip, so a 2H weapon never pairs with an offhand for any spec, DPS
-// warriors included.
+// A 2H weapon never pairs with an offhand for any spec, DPS warriors included: there is no
+// Titan's Grip.
 func TestGetAllWeaponCombosNeverPairsTwoHandWithOffHand(t *testing.T) {
 	const firstTwoHandID, secondTwoHandID = int32(910301), int32(910302)
 	addBulkTestWeapon(firstTwoHandID, proto.HandType_HandTypeTwoHand, proto.WeaponType_WeaponTypeSword)
@@ -212,7 +209,6 @@ func TestGetAllWeaponCombosNeverPairsTwoHandWithOffHand(t *testing.T) {
 	generator := &bulkSimCandidateGenerator{
 		playerSpec:         proto.Spec_SpecDpsWarrior,
 		playerCanDualWield: true,
-		weaponSelected:     true,
 		selectedByBulkSlot: map[BulkSimItemSlot][]bulkSimCandidateOption{
 			BulkSimItemSlotHandWeapon: {twoHandOption(firstTwoHandID), twoHandOption(secondTwoHandID)},
 		},
@@ -729,7 +725,7 @@ func bulkEnchantSelection(ids ...int32) []*proto.ItemSpec {
 
 func newBulkEnchantTestGenerator(t *testing.T, spec proto.Spec, class proto.Class, equipment core.Equipment, settings *proto.BulkSettings) *bulkSimCandidateGenerator {
 	t.Helper()
-	generator, err := newBulkSimCandidateGeneratorForSpec(settings, class, spec, equipment)
+	generator, err := newBulkSimCandidateGeneratorForSpec(settings, class, spec, true, equipment)
 	if err != nil {
 		t.Fatalf("newBulkSimCandidateGeneratorForSpec: %v", err)
 	}
@@ -1093,4 +1089,91 @@ func TestBulkEnchantCountMatchesCandidates(t *testing.T) {
 		t.Fatalf("expected the pools to multiply the combinations, got %d", combinations)
 	}
 	assertDistinctGear(t, gear)
+}
+
+func bulkRingRuleCandidates(t *testing.T, profession proto.Profession) *proto.BulkCandidatesResult {
+	t.Helper()
+	items := make([]*proto.ItemSpec, core.NumItemSlots)
+	for slot := range items {
+		items[slot] = &proto.ItemSpec{}
+	}
+	items[proto.ItemSlot_ItemSlotBack] = &proto.ItemSpec{Id: bulkEnchantCloakID}
+	items[proto.ItemSlot_ItemSlotFinger1] = &proto.ItemSpec{Id: bulkEnchantRingRID, Enchant: bulkEnchantRingKept}
+	request := &proto.BulkCandidatesRequest{
+		BaseRequest: &proto.RaidSimRequest{
+			Raid: core.SinglePlayerRaidProto(&proto.Player{
+				Class:       proto.Class_ClassWarrior,
+				Race:        proto.Race_RaceOrc,
+				Profession1: profession,
+				Equipment:   &proto.EquipmentSpec{Items: items},
+				Spec:        &proto.Player_DpsWarrior{DpsWarrior: &proto.DpsWarrior{Options: &proto.DpsWarrior_Options{ClassOptions: &proto.WarriorOptions{}}}},
+			}, &proto.PartyBuffs{}, &proto.RaidBuffs{}, &proto.Debuffs{}),
+		},
+		BulkSettings: &proto.BulkSettings{
+			Items: []*proto.ItemSpec{{Id: bulkEnchantRingSID, Enchant: bulkEnchantRingA}, {Id: bulkEnchantRingTID}},
+			Enchants: []*proto.BulkEnchantSlotOptions{
+				bulkEnchantPool(proto.ItemSlot_ItemSlotBack, bulkEnchantBackA, bulkEnchantBackB),
+				bulkEnchantPool(proto.ItemSlot_ItemSlotFinger1, bulkEnchantRingA, bulkEnchantRingB),
+			},
+		},
+	}
+	result := BulkCandidates(request)
+	if result.GetError() != nil {
+		t.Fatalf("BulkCandidates: %s", result.GetError().GetMessage())
+	}
+	return result
+}
+
+// The ring rule of a player without Enchanting: no candidate wears a ring enchant, from the pool,
+// the baseline or a selected ring's own, and none repeats another once the rings are stripped.
+func TestBulkCandidatesStripRingEnchantsWithoutEnchanting(t *testing.T) {
+	registerBulkEnchantFixtures()
+	ringSlots := []proto.ItemSlot{proto.ItemSlot_ItemSlotFinger1, proto.ItemSlot_ItemSlotFinger2}
+
+	enchanter := bulkRingRuleCandidates(t, proto.Profession_Enchanting)
+	nonEnchanter := bulkRingRuleCandidates(t, proto.Profession_Blacksmithing)
+
+	ringEnchants := 0
+	strippedEnchanter := make(map[string]bool)
+	for _, candidate := range enchanter.GetCandidates() {
+		gear := candidate.GetGear()
+		for _, slot := range ringSlots {
+			if gear.GetItems()[slot].GetEnchant() != 0 {
+				ringEnchants++
+			}
+		}
+		stripped := &proto.EquipmentSpec{}
+		for _, item := range gear.GetItems() {
+			stripped.Items = append(stripped.Items, &proto.ItemSpec{Id: item.GetId(), RandomSuffix: item.GetRandomSuffix(), Enchant: item.GetEnchant()})
+		}
+		for _, slot := range ringSlots {
+			stripped.Items[slot].Enchant = 0
+		}
+		strippedEnchanter[bulkEnchantGearKey(stripped)] = true
+	}
+	if ringEnchants == 0 {
+		t.Fatalf("expected an enchanter's candidates to wear ring enchants")
+	}
+
+	gear := make([]*proto.EquipmentSpec, 0, len(nonEnchanter.GetCandidates()))
+	for _, candidate := range nonEnchanter.GetCandidates() {
+		gear = append(gear, candidate.GetGear())
+		for _, slot := range ringSlots {
+			if enchant := candidate.GetGear().GetItems()[slot].GetEnchant(); enchant != 0 {
+				t.Fatalf("candidate %d wears ring enchant %d in slot %s without Enchanting", candidate.GetIndex(), enchant, slot)
+			}
+		}
+	}
+	assertDistinctGear(t, gear)
+	if int(nonEnchanter.GetRawCombinations()) != len(gear) {
+		t.Fatalf("combination count %d, candidates %d", nonEnchanter.GetRawCombinations(), len(gear))
+	}
+	if len(gear) != len(strippedEnchanter) {
+		t.Fatalf("%d candidates without Enchanting, want the %d distinct enchanter candidates with bare rings", len(gear), len(strippedEnchanter))
+	}
+	for _, candidate := range gear {
+		if !strippedEnchanter[bulkEnchantGearKey(candidate)] {
+			t.Fatalf("candidate %s is no enchanter candidate with bare rings", bulkEnchantGearKey(candidate))
+		}
+	}
 }

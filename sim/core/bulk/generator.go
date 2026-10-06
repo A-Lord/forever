@@ -14,6 +14,7 @@ type bulkSimCandidateGenerator struct {
 	playerClass        proto.Class
 	playerSpec         proto.Spec
 	playerCanDualWield bool
+	playerIsEnchanter  bool
 	baseEquipment      core.Equipment
 	selectedByBulkSlot map[BulkSimItemSlot][]bulkSimCandidateOption
 	groupedPairsBySlot map[BulkSimItemSlot][][2]bulkSimCandidateOption
@@ -23,7 +24,6 @@ type bulkSimCandidateGenerator struct {
 	frozenWeaponItem   *core.Item
 	weaponTypeFilters  map[proto.ItemSlot][]proto.WeaponType
 	copyCounts         map[itemSpecCacheKey]int
-	weaponSelected     bool
 	weaponCombos       [][2]*bulkSimCandidateOption
 }
 
@@ -37,15 +37,17 @@ func newBulkSimCandidateGenerator(request *proto.BulkSimRequest, player *proto.P
 		return nil, err
 	}
 
-	return newBulkSimCandidateGeneratorForSpec(request.GetBulkSettings(), player.GetClass(), playerSpec, core.ProtoToEquipment(player.GetEquipment()))
+	isEnchanter := player.GetProfession1() == proto.Profession_Enchanting || player.GetProfession2() == proto.Profession_Enchanting
+	return newBulkSimCandidateGeneratorForSpec(request.GetBulkSettings(), player.GetClass(), playerSpec, isEnchanter, core.ProtoToEquipment(player.GetEquipment()))
 }
 
-func newBulkSimCandidateGeneratorForSpec(settings *proto.BulkSettings, playerClass proto.Class, playerSpec proto.Spec, equipment core.Equipment) (*bulkSimCandidateGenerator, error) {
+func newBulkSimCandidateGeneratorForSpec(settings *proto.BulkSettings, playerClass proto.Class, playerSpec proto.Spec, isEnchanter bool, equipment core.Equipment) (*bulkSimCandidateGenerator, error) {
 	generator := &bulkSimCandidateGenerator{
 		settings:           settings,
 		playerClass:        playerClass,
 		playerSpec:         playerSpec,
 		playerCanDualWield: core.SpecCanDualWieldCapabilities[playerSpec],
+		playerIsEnchanter:  isEnchanter,
 		baseEquipment:      equipment,
 		selectedByBulkSlot: make(map[BulkSimItemSlot][]bulkSimCandidateOption),
 		groupedPairsBySlot: make(map[BulkSimItemSlot][][2]bulkSimCandidateOption),
@@ -137,6 +139,7 @@ func (generator *bulkSimCandidateGenerator) initSelectedItems() error {
 		equippedCounts[buildItemSpecFingerprintKey(equippedItem.ToItemSpecProto())]++
 	}
 
+	weaponSelected := false
 	for _, selectedItem := range generator.settings.GetItems() {
 		if selectedItem == nil || selectedItem.GetId() == 0 {
 			continue
@@ -182,18 +185,20 @@ func (generator *bulkSimCandidateGenerator) initSelectedItems() error {
 			}
 			addedBulkSlots[bulkSlot] = struct{}{}
 			generator.selectedByBulkSlot[bulkSlot] = append(generator.selectedByBulkSlot[bulkSlot], option)
-			if bulkSlot == BulkSimItemSlotMainHand || bulkSlot == BulkSimItemSlotOffHand || bulkSlot == BulkSimItemSlotHandWeapon {
-				generator.weaponSelected = true
+			if isHandWeaponBulkSlot(bulkSlot) {
+				weaponSelected = true
 			}
 		}
 	}
 
+	// Swapping the worn weapons between the hands is a choice only once a weapon is selected;
+	// otherwise each stays in the hand it is worn in.
 	for slot := proto.ItemSlot_ItemSlotHead; slot < core.NumItemSlots; slot++ {
 		equippedItem := equippedItemsBySlot[slot]
 		if equippedItem == nil {
 			continue
 		}
-		bulkSlot := getBulkItemSlotFromSlot(slot, generator.playerCanDualWield)
+		bulkSlot := getBulkItemSlotFromSlot(slot, generator.playerCanDualWield && weaponSelected)
 		generator.selectedByBulkSlot[bulkSlot] = append(generator.selectedByBulkSlot[bulkSlot], bulkSimCandidateOption{
 			spec: equippedItem.ToItemSpecProto(),
 			item: *equippedItem,
@@ -208,8 +213,8 @@ func (generator *bulkSimCandidateGenerator) initSelectedItems() error {
 	return nil
 }
 
-// canStackTwoCopies reports whether both of an item's slots can hold it at once, which is what
-// makes a same-item combo (two identical rings, or one weapon in each hand) a valid input.
+// Whether both of an item's slots can hold it at once, which is what makes a same-item combo (two
+// identical rings, or one weapon in each hand) a valid input.
 func canStackTwoCopies(item core.Item, playerCanDualWield bool) bool {
 	if item.Unique || item.LimitCategory != 0 {
 		return false
@@ -238,8 +243,8 @@ func (generator *bulkSimCandidateGenerator) initCopyCounts() {
 	}
 }
 
-// hasTwoCopies reports whether this item may occupy both of its slots at once: the item allows it
-// and the batch actually holds two copies.
+// Whether this item may occupy both of its slots at once: the item allows it and the batch
+// actually holds two copies.
 func (generator *bulkSimCandidateGenerator) hasTwoCopies(option bulkSimCandidateOption, item core.Item) bool {
 	return canStackTwoCopies(item, generator.playerCanDualWield) && generator.copyCounts[buildItemSpecKey(option.spec)] >= 2
 }
@@ -345,14 +350,14 @@ type slotItem struct {
 // combination index the slots each choice fills. A choice resolves the same way in every
 // combination, as its carry-over enchant comes from the baseline item in its slot.
 type combinationTable struct {
-	base   [core.NumItemSlots]core.ItemSpec
+	base   core.EquipmentSpec
 	digits [][][]slotItem
 }
 
 func (generator *bulkSimCandidateGenerator) newCombinationTable() combinationTable {
 	var table combinationTable
 	for slot, item := range generator.baseEquipment {
-		table.base[slot] = itemSpecOf(item)
+		table.base[slot] = generator.slotSpec(proto.ItemSlot(slot), item)
 	}
 	if generator.baseEquipment[proto.ItemSlot_ItemSlotMainHand].HandType == proto.HandType_HandTypeTwoHand {
 		table.base[proto.ItemSlot_ItemSlotOffHand] = core.ItemSpec{}
@@ -391,8 +396,8 @@ func (generator *bulkSimCandidateGenerator) newCombinationTable() combinationTab
 			choices := make([][]slotItem, 0, len(pairs))
 			for _, pair := range pairs {
 				choices = append(choices, []slotItem{
-					{slot: slots[0], spec: itemSpecOf(generator.resolveItem(slots[0], pair[0]))},
-					{slot: slots[1], spec: itemSpecOf(generator.resolveItem(slots[1], pair[1]))},
+					{slot: slots[0], spec: generator.slotSpec(slots[0], generator.resolveItem(slots[0], pair[0]))},
+					{slot: slots[1], spec: generator.slotSpec(slots[1], generator.resolveItem(slots[1], pair[1]))},
 				})
 			}
 			table.digits = append(table.digits, choices)
@@ -417,6 +422,16 @@ func (generator *bulkSimCandidateGenerator) resolveItem(slot proto.ItemSlot, opt
 
 func itemSpecOf(item core.Item) core.ItemSpec {
 	return core.ItemSpec{ID: item.ID, RandomSuffix: item.RandomSuffix.ID, Enchant: item.Enchant.EffectID}
+}
+
+// A ring enchant needs Enchanting: without it both ring slots come out unenchanted, the baseline's
+// and a selected ring's own enchant included.
+func (generator *bulkSimCandidateGenerator) slotSpec(slot proto.ItemSlot, item core.Item) core.ItemSpec {
+	spec := itemSpecOf(item)
+	if !generator.playerIsEnchanter && (slot == proto.ItemSlot_ItemSlotFinger1 || slot == proto.ItemSlot_ItemSlotFinger2) {
+		spec.Enchant = 0
+	}
+	return spec
 }
 
 // Builds the gear for one combination index. Its item specs share one backing array, so a
