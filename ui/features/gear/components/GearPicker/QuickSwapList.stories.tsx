@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { makeUIEnchant } from '@testing/storybook/fixtures/protos';
+import { stubSpellIcons } from '@testing/storybook/fixtures/spell_icons';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
 import { QuickSwapList } from './QuickSwapList';
@@ -37,4 +38,5 @@ export const Empty: Story = {
 
 export const FavouriteEnchants: Story = {
 	args: { entries: [{ item: makeUIEnchant(), active: true }] },
+	beforeEach: () => stubSpellIcons([{ id: 20007, name: 'Enchant Weapon - Crusader', icon: 'inv_misc_note_01' }]),
 };

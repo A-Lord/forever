@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { FLURRY, MORTAL_STRIKE } from '@testing/storybook/fixtures/results-views';
+import { stubSpellIcons } from '@testing/storybook/fixtures/spell_icons';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
 import { MetricsActionCell } from './MetricsActionCell';
@@ -36,4 +37,5 @@ export const Expanded: Story = { args: { expandable: true, expanded: true } };
 
 export const Aura: Story = {
 	args: { name: FLURRY.name, actionId: FLURRY, useBuffAura: true },
+	beforeEach: () => stubSpellIcons([{ id: FLURRY.spellId, hasBuff: true }]),
 };

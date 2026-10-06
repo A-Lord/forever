@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { FLURRY, MORTAL_STRIKE } from '@testing/storybook/fixtures/results-views';
+import { stubSpellIcons } from '@testing/storybook/fixtures/spell_icons';
 
 import { RotationRowIcon } from './RotationRowIcon';
 
@@ -20,4 +21,5 @@ export const SectionHeader: Story = { args: { tooltip: undefined } };
 
 export const BuffAura: Story = {
 	args: { actionId: FLURRY, tooltip: 'buffAura' },
+	beforeEach: () => stubSpellIcons([{ id: FLURRY.spellId, hasBuff: true }]),
 };

@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import type { AplTestPlayer } from '@testing/apl/player';
 import { makeAplStoryPlayer, withAplScope } from '@testing/storybook/fixtures/apl';
 import { makeAplRotation } from '@testing/storybook/fixtures/protos';
+import { stubSpellIcons } from '@testing/storybook/fixtures/spell_icons';
 
 import { AplListItem } from './AplListItem';
 
@@ -70,4 +71,5 @@ export const Sequence: Story = {
 /** Casting Bloodthirst: the spell picker names and paints the spell. */
 export const CastSpell: Story = {
 	args: rowOf(makeAplRotation()),
+	beforeEach: () => stubSpellIcons([{ id: 23894, name: 'Bloodthirst', icon: 'spell_nature_bloodlust' }]),
 };

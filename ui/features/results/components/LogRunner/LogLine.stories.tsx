@@ -2,6 +2,7 @@ import { ResourceType } from '@generated/proto/spell';
 import type { AuraLog, CastBeganLog, CastFailedLog, CombatLog, PlainLog, StatChangeLog } from '@sim/proto/combat_log';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { BATTLE_SHOUT, damageLog, DEEP_WOUNDS, MORTAL_STRIKE, PET, resourceLog, TARGET } from '@testing/storybook/fixtures/results-views';
+import { stubSpellIcons } from '@testing/storybook/fixtures/spell_icons';
 
 import { LogLine } from './LogLine';
 
@@ -59,4 +60,5 @@ export const Plain: Story = {
 
 export const AuraGained: Story = {
 	args: { log: { ...base, actionId: BATTLE_SHOUT, kind: 'aura', isGained: true, isFaded: false, isRefreshed: false } satisfies AuraLog as CombatLog },
+	beforeEach: () => stubSpellIcons([{ id: BATTLE_SHOUT.spellId, hasBuff: true }]),
 };
