@@ -10,9 +10,10 @@ type Wand struct {
 }
 
 func (unit *Unit) EnableWand(shoot *Spell, swingSpeed time.Duration) {
-	unit.Wand = &Wand{Shoot: shoot, swingSpeed: swingSpeed}
+	wand := &Wand{Shoot: shoot, swingSpeed: swingSpeed}
+	unit.Wand = wand
 	unit.RegisterResetEffect(func(_ *Simulation) {
-		unit.Wand.lastShotAt = 0
+		wand.lastShotAt = 0
 	})
 }
 

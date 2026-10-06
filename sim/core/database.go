@@ -179,7 +179,7 @@ type Item struct {
 	WeaponDamageMax  float64
 	SwingSpeed       float64
 	QualityModifier  float64           // Per-item offset to weapon "average damage"; negative for caster weapons.
-	SpellSchool      proto.SpellSchool // The damage school of a wand; physical for every other item.
+	SpellSchool      proto.SpellSchool // The weapon's damage school; unset means physical.
 
 	Name          string
 	Stats         stats.Stats // Stats applied to wearer
