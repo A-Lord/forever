@@ -29,6 +29,8 @@ func (value *APLValueAutoSwingTime) GetDuration(sim *Simulation) time.Duration {
 		return max(0, value.unit.AutoAttacks.OffhandSwingSpeed())
 	case proto.APLValueAutoSwingTime_Ranged:
 		return max(0, value.unit.AutoAttacks.RangedSwingSpeed())
+	case proto.APLValueAutoSwingTime_Wand:
+		return value.unit.Wand.SwingSpeed()
 	}
 	// defaults to 0
 	return 0
@@ -62,6 +64,8 @@ func (value *APLValueAutoTimeToNext) GetDuration(sim *Simulation) time.Duration 
 		return max(0, value.unit.AutoAttacks.OffhandSwingAt()-sim.CurrentTime)
 	case proto.APLValueAutoAttackType_RangedAuto:
 		return max(0, value.unit.AutoAttacks.NextRangedAttackAt()-sim.CurrentTime)
+	case proto.APLValueAutoAttackType_WandAuto:
+		return value.unit.Wand.TimeToNext(sim)
 	}
 	// defaults to Any
 	return max(0, value.unit.AutoAttacks.NextAnyAttackAt()-sim.CurrentTime)
@@ -99,6 +103,8 @@ func (value *APLValueAutoTimeSinceLast) GetDuration(sim *Simulation) time.Durati
 		swingValue = sim.CurrentTime - value.unit.AutoAttacks.OffhandPreviousSwing()
 	case proto.APLValueAutoAttackType_RangedAuto:
 		swingValue = sim.CurrentTime - value.unit.AutoAttacks.PreviousRangedAttack()
+	case proto.APLValueAutoAttackType_WandAuto:
+		swingValue = value.unit.Wand.TimeSinceLast(sim)
 	// defaults to Any
 	default:
 		swingValue = sim.CurrentTime - value.unit.AutoAttacks.MainhandPreviousSwing()
@@ -114,4 +120,22 @@ func (value *APLValueAutoTimeSinceLast) GetDuration(sim *Simulation) time.Durati
 }
 func (value *APLValueAutoTimeSinceLast) String() string {
 	return "Auto Time Since Last"
+}
+
+type APLValueIsWanding struct {
+	DefaultAPLValueImpl
+	unit *Unit
+}
+
+func (rot *APLRotation) newValueIsWanding(_ *proto.APLValueIsWanding, _ *proto.UUID) APLValue {
+	return &APLValueIsWanding{unit: rot.unit}
+}
+func (value *APLValueIsWanding) Type() proto.APLValueType {
+	return proto.APLValueType_ValueTypeBool
+}
+func (value *APLValueIsWanding) GetBool(_ *Simulation) bool {
+	return value.unit.Wand.IsWanding()
+}
+func (value *APLValueIsWanding) String() string {
+	return "Is Wanding"
 }

@@ -272,3 +272,46 @@ func TestWandAutorepeatChannel(t *testing.T) {
 		}
 	})
 }
+
+func TestValueWand(t *testing.T) {
+	type reads struct {
+		swing, toNext, sinceLast time.Duration
+		wanding                  bool
+	}
+	read := func(ct *channelTest) reads {
+		rot, sim := ct.rot, ct.sim
+		return reads{
+			swing:     rot.newValueAutoSwingTime(&proto.APLValueAutoSwingTime{AutoType: proto.APLValueAutoSwingTime_Wand}, nil).GetDuration(sim),
+			toNext:    rot.newValueAutoTimeToNext(&proto.APLValueAutoTimeToNext{AutoType: proto.APLValueAutoAttackType_WandAuto}, nil).GetDuration(sim),
+			sinceLast: rot.newValueAutoTimeSinceLast(&proto.APLValueAutoTimeSinceLast{AutoType: proto.APLValueAutoAttackType_WandAuto}, nil).GetDuration(sim),
+			wanding:   rot.newValueIsWanding(&proto.APLValueIsWanding{}, nil).GetBool(sim),
+		}
+	}
+
+	t.Run("mid channel", func(t *testing.T) {
+		ct := newShootTest()
+		ct.start(ct.channelAction())
+		ct.runUntil(3 * time.Second)
+		if got, want := read(ct), (reads{2 * time.Second, time.Second, time.Second, true}); got != want {
+			t.Fatalf("at 3 s into a Shoot channel the wand values read %+v, want %+v", got, want)
+		}
+	})
+
+	t.Run("before any cast", func(t *testing.T) {
+		ct := newShootTest()
+		ct.start()
+		if got := read(ct); got.toNext != 0 || got.wanding {
+			t.Fatalf("before any cast the wand reads %+v, want no wait and not wanding", got)
+		}
+	})
+
+	t.Run("no wand", func(t *testing.T) {
+		ct := newShootTest()
+		ct.fw.Wand = nil
+		ct.start()
+		ct.runUntil(3 * time.Second)
+		if got := read(ct); got != (reads{}) {
+			t.Fatalf("a unit without a wand reads %+v, want all zero", got)
+		}
+	})
+}

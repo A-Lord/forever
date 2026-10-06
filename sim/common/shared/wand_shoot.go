@@ -37,6 +37,8 @@ func RegisterShoot(character *core.Character) *core.Spell {
 	}
 
 	shoot := character.RegisterSpell(config)
-	character.EnableWand(shoot, swingSpeed)
+	if character.GetRangedWeapon() != nil {
+		character.EnableWand(shoot, swingSpeed)
+	}
 	return shoot
 }

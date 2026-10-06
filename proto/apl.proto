@@ -124,6 +124,7 @@ message APLValue {
         APLValueIsExecutePhase is_execute_phase = 41;
         APLValueNumberTargets number_targets = 28;
         APLValueEncounterInArea encounter_in_area = 134;
+        APLValueIsWanding is_wanding = 135;
 
         // Boss values
         APLValueBossSpellTimeToReady boss_spell_time_to_ready = 64;
@@ -568,6 +569,7 @@ enum APLValueAutoAttackType
 	MainHandAuto = 3;
 	OffHandAuto = 4;
 	RangedAuto = 5;
+	WandAuto = 6;
 }
 
 message APLValueAutoSwingTime {
@@ -577,9 +579,12 @@ message APLValueAutoSwingTime {
         MainHand = 3;
         OffHand = 4;
         Ranged = 5;
+        Wand = 6;
     }
     SwingType auto_type = 1;
 }
+
+message APLValueIsWanding {}
 
 message APLValueAutoTimeToNext {
     APLValueAutoAttackType auto_type = 1;
