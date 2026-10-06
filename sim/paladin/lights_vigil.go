@@ -102,6 +102,10 @@ func (paladin *Paladin) registerLightsVigilRank(_ int32, rank *spelldata.Spell) 
 				Timer:    paladin.sharedTimer(&paladin.lightsVigilTimer),
 				Duration: cooldown(rank),
 			},
+			ModifyCast: func(sim *core.Simulation, spell *core.Spell, cast *core.Cast) {
+				castTime := paladin.ApplyCastSpeedForSpell(cast.CastTime, spell)
+				paladin.AutoAttacks.StopMeleeUntil(sim, sim.CurrentTime+castTime)
+			},
 		},
 
 		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
