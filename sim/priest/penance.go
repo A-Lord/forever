@@ -28,10 +28,7 @@ func (priest *Priest) registerPenance(_ int32, rank *spelldata.Spell) {
 		boltSpell.Cast(sim, target)
 	}
 
-	// The bolts roll their own hits. The cast lands too: Inner Focus's charge listens for the cast's class
-	// flags, not the bolt's, and is spent when the channel ends.
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		spell.CalcAndDealOutcome(sim, target, spell.OutcomeAlwaysHitNoHitCounter)
 		boltSpell.Cast(sim, target)
 		spell.Dot(target).Apply(sim)
 	}
