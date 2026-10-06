@@ -117,7 +117,14 @@ func (priest *Priest) applyInnerFocus() {
 	}
 
 	innerFocusRank := spellData.InnerFocus.Highest()
-	priest.InnerFocusAura = priest.RegisterAura(spelldata.AuraConfig(innerFocusRank))
+	var innerFocusSpell *core.Spell
+
+	auraConfig := spelldata.AuraConfig(innerFocusRank)
+	// The cooldown starts again once the buff is spent or runs out.
+	auraConfig.OnExpire = func(_ *core.Aura, sim *core.Simulation) {
+		innerFocusSpell.CD.Use(sim)
+	}
+	priest.InnerFocusAura = priest.RegisterAura(auraConfig)
 	spelldata.ParseEffects(&priest.Character, priest.InnerFocusAura, innerFocusRank)
 	spelldata.AttachChargeSpender(&priest.Character, priest.InnerFocusAura, innerFocusRank, "Inner Focus - Spend")
 
@@ -128,7 +135,7 @@ func (priest *Priest) applyInnerFocus() {
 		priest.InnerFocusAura.Activate(sim)
 		priest.InnerFocusAura.SetStacks(sim, priest.InnerFocusAura.MaxStacks)
 	}
-	innerFocusSpell := priest.RegisterSpell(config)
+	innerFocusSpell = priest.RegisterSpell(config)
 
 	priest.AddMajorCooldown(core.MajorCooldown{
 		Spell: innerFocusSpell,
