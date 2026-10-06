@@ -1,5 +1,10 @@
 package priest
 
+import (
+	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/dbcenums"
+)
+
 func (priest *Priest) registerDisciplineTalents() {
 	// Tier 1
 	priest.applyPowerInLight()
@@ -44,14 +49,17 @@ func (priest *Priest) applyPowerInLight() {
 	}
 }
 
-// applyWandSpecialization implements Wand Specialization, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
+// Wand damage, +13% / +25%: the wand's shots are the priest's only ranged autos.
 func (priest *Priest) applyWandSpecialization() {
 	if priest.Talents.WandSpecialization == 0 {
 		return
 	}
+
+	priest.AddStaticMod(core.SpellModConfig{
+		Kind:       core.SpellMod_DamageDone_Pct,
+		ProcMask:   core.ProcMaskRangedAuto,
+		FloatValue: spellData.WandSpecialization.Effect(dbcenums.A_MOD_DAMAGE_PERCENT_DONE, 126).FractionAt(priest.Talents.WandSpecialization),
+	})
 }
 
 // applyTwinDisciplines implements Twin Disciplines, new in Forever.
