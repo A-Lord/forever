@@ -5,6 +5,7 @@ import { Class, PseudoStat, Race, Stat, WeaponSkill } from '@generated/proto/com
 import i18n from '@i18n/config';
 import { translateWeaponSkill } from '@i18n/localization';
 import { getClassWeaponSkills } from '@sim/player/classes/capabilities';
+import { PlayerClasses } from '@sim/player/classes/index';
 import { WeaponSkillGroup, weaponSkillsInGroups } from '@sim/player/weapon_skill_groups';
 import { Stats, UnitStat } from '@sim/proto/stats';
 import { createSimStore, PLAYER_FIELDS, type PlayerSlice, seedKeyed, zeroVersions } from '@sim/state/sim_store';
@@ -248,20 +249,9 @@ describe('CharacterStats weapon skills', () => {
 		expect(shownSkills(playerClass)).toEqual(getClassWeaponSkills(playerClass));
 	});
 
+	const allClasses = PlayerClasses.naturalOrder.map(({ classID }) => [Class[classID], classID] as const);
 	const wandClasses = [Class.ClassMage, Class.ClassPriest, Class.ClassWarlock];
-	it.each(
-		[
-			Class.ClassWarrior,
-			Class.ClassPaladin,
-			Class.ClassHunter,
-			Class.ClassRogue,
-			Class.ClassPriest,
-			Class.ClassShaman,
-			Class.ClassMage,
-			Class.ClassWarlock,
-			Class.ClassDruid,
-		].map(playerClass => [Class[playerClass], playerClass] as const),
-	)('lists Wands on All for %s only if it is a mage, priest or warlock', (_name, playerClass) => {
+	it.each(allClasses)('lists Wands on All for %s only if it is a mage, priest or warlock', (_name, playerClass) => {
 		renderWeaponSkills(playerClass);
 		showAll();
 		fireEvent.click(groupTrigger('weapon-skill'));

@@ -1,7 +1,6 @@
 package core
 
 import (
-	"math"
 	"testing"
 
 	"github.com/wowsims/forever/sim/core/proto"
@@ -38,7 +37,7 @@ func TestWeaponSwapMovesTheAutosSchool(t *testing.T) {
 		if mhAuto.SpellSchool != school || mhAuto.SchoolIndex != school.SchoolIndex() || mhAuto.BonusCoefficient != coefficient {
 			t.Errorf("%s: main-hand auto is %v (index %v) with bonus coefficient %v, want %v with %v", when, mhAuto.SpellSchool, mhAuto.SchoolIndex, mhAuto.BonusCoefficient, school, coefficient)
 		}
-		if got := mhAuto.DamageMultiplier / baseMultiplier; math.Abs(got-fromMod) > 1e-9 {
+		if got := mhAuto.DamageMultiplier / baseMultiplier; !WithinToleranceFloat64(fromMod, got, 1e-9) {
 			t.Errorf("%s: main-hand auto takes ×%v from the physical mod, want ×%v", when, got, fromMod)
 		}
 	}

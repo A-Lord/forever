@@ -1,6 +1,7 @@
 package shared
 
 import (
+	"cmp"
 	"testing"
 	"time"
 
@@ -57,25 +58,33 @@ func (c *wandCaster) Initialize() {
 // its spells and shots certain to hit and never to crit.
 func newWandSim(t *testing.T, ranged *proto.ItemSpec, rotation *proto.APLRotation, distance float64) (*core.Simulation, *wandCaster) {
 	t.Helper()
-	return newSwapWandSim(t, ranged, nil, rotation, distance, 60)
+	return newSwapWandSim(t, wandSimOptions{ranged: ranged, rotation: rotation, distance: distance})
 }
 
-// newWandSim with a swap set that holds the given ranged slot, when it is not nil, a target of the given
-// level and the given weapon skills.
-func newSwapWandSim(t *testing.T, ranged, swapped *proto.ItemSpec, rotation *proto.APLRotation, distance float64, targetLevel int32, weaponSkills ...*proto.WeaponSkillValue) (*core.Simulation, *wandCaster) {
+// newWandSim with a swap set that holds the swapped ranged slot, when it is set, and the given weapon
+// skills. The rotation defaults to an empty one and the target level to 60.
+type wandSimOptions struct {
+	ranged, swapped *proto.ItemSpec
+	rotation        *proto.APLRotation
+	distance        float64
+	targetLevel     int32
+	weaponSkills    []*proto.WeaponSkillValue
+}
+
+func newSwapWandSim(t *testing.T, o wandSimOptions) (*core.Simulation, *wandCaster) {
 	t.Helper()
 	items := make([]*proto.ItemSpec, proto.ItemSlot_ItemSlotRanged+1)
 	for i := range items {
 		items[i] = &proto.ItemSpec{}
 	}
-	items[proto.ItemSlot_ItemSlotRanged] = ranged
+	items[proto.ItemSlot_ItemSlotRanged] = o.ranged
 	var swapItems []*proto.ItemSpec
-	if swapped != nil {
+	if o.swapped != nil {
 		swapItems = make([]*proto.ItemSpec, len(items))
 		for i := range swapItems {
 			swapItems[i] = &proto.ItemSpec{}
 		}
-		swapItems[proto.ItemSlot_ItemSlotRanged] = swapped
+		swapItems[proto.ItemSlot_ItemSlotRanged] = o.swapped
 	}
 
 	sim := core.NewSim(&proto.RaidSimRequest{
@@ -88,16 +97,16 @@ func newSwapWandSim(t *testing.T, ranged, swapped *proto.ItemSpec, rotation *pro
 				Buffs:              &proto.IndividualBuffs{},
 				Spec:               &proto.Player_DpsPriest{},
 				Equipment:          &proto.EquipmentSpec{Items: items},
-				Rotation:           rotation,
-				DistanceFromTarget: distance,
-				EnableItemSwap:     swapped != nil,
+				Rotation:           cmp.Or(o.rotation, &proto.APLRotation{}),
+				DistanceFromTarget: o.distance,
+				EnableItemSwap:     o.swapped != nil,
 				ItemSwap:           &proto.ItemSwap{Items: swapItems},
-				WeaponSkills:       weaponSkills,
+				WeaponSkills:       o.weaponSkills,
 			}},
 			Buffs: &proto.PartyBuffs{},
 		}}},
 		Encounter: &proto.Encounter{
-			Targets:  []*proto.Target{{Name: "target", Level: targetLevel, MobType: proto.MobType_MobTypeDemon}},
+			Targets:  []*proto.Target{{Name: "target", Level: cmp.Or(o.targetLevel, 60), MobType: proto.MobType_MobTypeDemon}},
 			Duration: 600,
 		},
 	}, simsignals.CreateSignals())
@@ -189,7 +198,7 @@ func TestWandShoot(t *testing.T) {
 		caster.AddStatsDynamic(sim, stats.Stats{stats.PhysicalCritPercent: 100})
 		crits := shots(t, sim, caster, 50)
 		for i := range crits {
-			if diff := crits[i] - 1.5*plain[i]; diff > 1e-9 || diff < -1e-9 {
+			if !core.WithinToleranceFloat64(1.5*plain[i], crits[i], 1e-9) {
 				t.Fatalf("shot %d crit for %v, want 1.5 × %v", i+1, crits[i], plain[i])
 			}
 		}
@@ -209,14 +218,22 @@ func TestWandShoot(t *testing.T) {
 		}
 	})
 
-	// Shoots 300 times with the given spell hit and full physical hit, at a target of the given level, and
-	// returns the misses.
+	// Shoots the Sable Wand 300 times at a target of the given level, with the given weapon skills and the
+	// stats bonus reads off the caster, and returns Shoot's metrics.
+	shoot300 := func(t *testing.T, targetLevel int32, bonus func(*wandCaster) stats.Stats, weaponSkills ...*proto.WeaponSkillValue) core.SpellMetrics {
+		t.Helper()
+		sim, caster := newSwapWandSim(t, wandSimOptions{ranged: &proto.ItemSpec{Id: sableWandID}, targetLevel: targetLevel, weaponSkills: weaponSkills})
+		caster.AddStatsDynamic(sim, bonus(caster))
+		shots(t, sim, caster, 300)
+		return caster.shoot.SpellMetrics[sim.Encounter.ActiveTargetUnits[0].UnitIndex]
+	}
+
+	// The misses with the given spell hit and full physical hit.
 	misses := func(t *testing.T, targetLevel int32, spellHit float64, weaponSkills ...*proto.WeaponSkillValue) int32 {
 		t.Helper()
-		sim, caster := newSwapWandSim(t, &proto.ItemSpec{Id: sableWandID}, nil, &proto.APLRotation{}, 0, targetLevel, weaponSkills...)
-		caster.AddStatsDynamic(sim, stats.Stats{stats.SpellHitPercent: spellHit - caster.GetStat(stats.SpellHitPercent)})
-		shots(t, sim, caster, 300)
-		return caster.shoot.SpellMetrics[sim.Encounter.ActiveTargetUnits[0].UnitIndex].Misses
+		return shoot300(t, targetLevel, func(caster *wandCaster) stats.Stats {
+			return stats.Stats{stats.SpellHitPercent: spellHit - caster.GetStat(stats.SpellHitPercent)}
+		}, weaponSkills...).Misses
 	}
 
 	t.Run("at full wand skill a shot misses on the spell table, which physical hit does not lower", func(t *testing.T) {
@@ -245,10 +262,9 @@ func TestWandShoot(t *testing.T) {
 
 	t.Run("wand skill short of the maximum lowers a shot's crit by 0.2% a point", func(t *testing.T) {
 		crits := func(skill int32) int32 {
-			sim, caster := newSwapWandSim(t, &proto.ItemSpec{Id: sableWandID}, nil, &proto.APLRotation{}, 0, 60, &proto.WeaponSkillValue{Skill: proto.WeaponSkill_WeaponSkillWands, Value: skill})
-			caster.AddStatsDynamic(sim, stats.Stats{stats.PhysicalCritPercent: 20})
-			shots(t, sim, caster, 300)
-			return caster.shoot.SpellMetrics[sim.Encounter.ActiveTargetUnits[0].UnitIndex].Crits
+			return shoot300(t, 60, func(*wandCaster) stats.Stats {
+				return stats.Stats{stats.PhysicalCritPercent: 20}
+			}, &proto.WeaponSkillValue{Skill: proto.WeaponSkill_WeaponSkillWands, Value: skill}).Crits
 		}
 		full, short := crits(300), crits(275)
 		if full < 45 || full > 75 || short < 28 || short > 55 || short >= full {
@@ -385,29 +401,49 @@ func TestWandShoot(t *testing.T) {
 		}
 	})
 
-	t.Run("Wand Specialization's school mask leaves out a physical wand", func(t *testing.T) {
-		for _, wand := range []struct {
-			id         int32
-			multiplier float64
-		}{{sableWandID, 1.25}, {physicalWandID, 1}} {
-			sim, caster := newWandSim(t, &proto.ItemSpec{Id: wand.id}, &proto.APLRotation{}, 0)
-			plain := shots(t, sim, caster, 20)
-
-			sim, caster = newWandSim(t, &proto.ItemSpec{Id: wand.id}, &proto.APLRotation{}, 0)
-			caster.AddStaticMod(core.SpellModConfig{
-				Kind:       core.SpellMod_DamageDone_Pct,
-				ProcMask:   core.ProcMaskRangedAuto,
-				School:     core.SpellSchool(126),
-				FloatValue: 0.25,
-			})
-			specialized := shots(t, sim, caster, 20)
+	t.Run("Wand Specialization's school mask leaves out a physical wand and follows a swapped-in wand's school", func(t *testing.T) {
+		for _, tc := range []struct {
+			ranged, swapped int32 // 0 swaps nothing in.
+			multiplier      float64
+		}{
+			{sableWandID, 0, 1.25},
+			{physicalWandID, 0, 1},
+			{physicalWandID, sableWandID, 1.25},
+			{sableWandID, physicalWandID, 1},
+		} {
+			wandShots := func(specialized bool) []float64 {
+				o := wandSimOptions{ranged: &proto.ItemSpec{Id: tc.ranged}}
+				if tc.swapped != 0 {
+					o.swapped = &proto.ItemSpec{Id: tc.swapped}
+				}
+				sim, caster := newSwapWandSim(t, o)
+				if specialized {
+					caster.AddStaticMod(wandSpecializationMod())
+				}
+				if tc.swapped != 0 {
+					caster.ItemSwap.SwapItems(sim, proto.APLActionItemSwap_Swap1, false)
+					stepPast(t, sim, 5*time.Second)
+				}
+				return shots(t, sim, caster, 20)
+			}
+			plain, specialized := wandShots(false), wandShots(true)
 			for i := range specialized {
-				if diff := specialized[i] - wand.multiplier*plain[i]; diff > 1e-9 || diff < -1e-9 {
-					t.Fatalf("wand %d (%v) shot %d dealt %v with the talent's mod, want %v × %v", wand.id, caster.shoot.SpellSchool, i+1, specialized[i], wand.multiplier, plain[i])
+				if !core.WithinToleranceFloat64(tc.multiplier*plain[i], specialized[i], 1e-9) {
+					t.Fatalf("wand %d, %d swapped in: shot %d dealt %v with the talent's mod, want %v × %v", tc.ranged, tc.swapped, i+1, specialized[i], tc.multiplier, plain[i])
 				}
 			}
 		}
 	})
+}
+
+// Wand Specialization's mod at its second rank.
+func wandSpecializationMod() core.SpellModConfig {
+	return core.SpellModConfig{
+		Kind:       core.SpellMod_DamageDone_Pct,
+		ProcMask:   core.ProcMaskRangedAuto,
+		School:     core.SpellSchool(126),
+		FloatValue: 0.25,
+	}
 }
 
 func TestWandShootReadsEquippedWand(t *testing.T) {
@@ -415,7 +451,7 @@ func TestWandShootReadsEquippedWand(t *testing.T) {
 	// then checks the shots against the wand now equipped: the second comes one wand speed after the first.
 	checkSwappedShoot := func(t *testing.T, ranged, swapped *proto.ItemSpec, school core.SpellSchool, speed time.Duration) {
 		t.Helper()
-		sim, caster := newSwapWandSim(t, ranged, swapped, &proto.APLRotation{}, 0, 60)
+		sim, caster := newSwapWandSim(t, wandSimOptions{ranged: ranged, swapped: swapped})
 		caster.ItemSwap.SwapItems(sim, proto.APLActionItemSwap_Swap1, false)
 		wand := caster.WeaponFromRanged()
 		target := sim.Encounter.ActiveTargetUnits[0]
@@ -456,34 +492,6 @@ func TestWandShootReadsEquippedWand(t *testing.T) {
 
 	t.Run("a wand swapped in after registering with none shoots at its speed, damage and school", func(t *testing.T) {
 		checkSwappedShoot(t, &proto.ItemSpec{}, &proto.ItemSpec{Id: sableWandID}, core.SpellSchoolShadow, 1800*time.Millisecond)
-	})
-
-	t.Run("Wand Specialization's school mask follows the swapped-in wand's school", func(t *testing.T) {
-		for _, tc := range []struct {
-			ranged, swapped int32
-			multiplier      float64
-		}{{physicalWandID, sableWandID, 1.25}, {sableWandID, physicalWandID, 1}} {
-			swappedShots := func(specialized bool) []float64 {
-				sim, caster := newSwapWandSim(t, &proto.ItemSpec{Id: tc.ranged}, &proto.ItemSpec{Id: tc.swapped}, &proto.APLRotation{}, 0, 60)
-				if specialized {
-					caster.AddStaticMod(core.SpellModConfig{
-						Kind:       core.SpellMod_DamageDone_Pct,
-						ProcMask:   core.ProcMaskRangedAuto,
-						School:     core.SpellSchool(126),
-						FloatValue: 0.25,
-					})
-				}
-				caster.ItemSwap.SwapItems(sim, proto.APLActionItemSwap_Swap1, false)
-				stepPast(t, sim, 5*time.Second)
-				return shots(t, sim, caster, 20)
-			}
-			plain, specialized := swappedShots(false), swappedShots(true)
-			for i := range specialized {
-				if diff := specialized[i] - tc.multiplier*plain[i]; diff > 1e-9 || diff < -1e-9 {
-					t.Fatalf("wand %d swapped for %d: shot %d dealt %v with the talent's mod, want %v × %v", tc.ranged, tc.swapped, i+1, specialized[i], tc.multiplier, plain[i])
-				}
-			}
-		}
 	})
 }
 
