@@ -104,8 +104,6 @@ message APLAction {
 // NextIndex: 131
 message APLValue {
 	UUID uuid = 85;
-	reserved 135;
-	reserved "is_wanding";
 
     oneof value {
         // Operators

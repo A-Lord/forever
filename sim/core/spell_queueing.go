@@ -118,9 +118,10 @@ func (spell *Spell) CanCastOrQueue(sim *Simulation, target *Unit) bool {
 	return spell.Unit.CanQueueSpell(sim) && spell.CanQueue(sim, target)
 }
 
-func (spell *Spell) CastOrQueue(sim *Simulation, target *Unit) {
+// Reports whether the spell was cast or queued.
+func (spell *Spell) CastOrQueue(sim *Simulation, target *Unit) bool {
 	if spell.CanCast(sim, target) {
-		spell.Cast(sim, target)
+		return spell.Cast(sim, target)
 	} else if spell.CanQueue(sim, target) {
 		// Determine which timer the spell is waiting on
 		queueTime := max(spell.Unit.Hardcast.Expires, BothTimersReadyAt(spell.CD.Timer, spell.SharedCD.Timer))
@@ -131,8 +132,9 @@ func (spell *Spell) CastOrQueue(sim *Simulation, target *Unit) {
 
 		// Schedule the cast to go off without delay
 		spell.Unit.QueueSpell(sim, spell, target, queueTime)
+		return true
 	} else {
 		// Fallback to make sure there is always log output
-		spell.Cast(sim, target)
+		return spell.Cast(sim, target)
 	}
 }

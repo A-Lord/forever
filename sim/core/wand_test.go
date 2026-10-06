@@ -13,7 +13,7 @@ import (
 func fakeShoot(char *Character, ticks *[]time.Duration) *Spell {
 	spell := char.RegisterSpell(SpellConfig{
 		ActionID:         ActionID{SpellID: 5019},
-		Flags:            SpellFlagChanneled | SpellFlagAPL,
+		Flags:            SpellFlagChanneled | SpellFlagAPL | SpellFlagIgnoreResists,
 		SpellSchool:      SpellSchoolShadow,
 		DefenseType:      DefenseTypeMagic,
 		ProcMask:         ProcMaskRangedAuto,
@@ -24,13 +24,11 @@ func fakeShoot(char *Character, ticks *[]time.Duration) *Spell {
 		},
 		Dot: DotConfig{
 			Aura:                Aura{Label: "Shoot"},
-			NumberOfTicks:       1 << 20,
 			TickLength:          2 * time.Second,
 			AffectedByCastSpeed: true,
 			Autorepeat:          true,
 			OnTick: func(sim *Simulation, target *Unit, dot *Dot) {
 				dot.Spell.CalcAndDealDamage(sim, target, 100, dot.Spell.OutcomeAlwaysHit)
-				dot.Spell.Unit.Wand.RecordShot(sim)
 				*ticks = append(*ticks, sim.CurrentTime)
 			},
 		},
@@ -72,7 +70,9 @@ func newChannelTest(register func(ct *channelTest, char *Character) *Spell) *cha
 		ct.spell = register(ct, char)
 	})
 	ct.spell.finalize()
-	ct.fw.OnChannelEnd(func(sim *Simulation) {
+	ct.sim.Cleanup()
+	ct.sim.Reset()
+	ct.fw.OnChannelEnd(func(sim *Simulation, _ *Dot) {
 		ct.channelEnd = append(ct.channelEnd, sim.CurrentTime)
 	})
 	return ct

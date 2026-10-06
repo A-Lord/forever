@@ -15,11 +15,10 @@ var shootRow = spelldata.MustFind(5019)
 func RegisterShoot(character *core.Character) *core.Spell {
 	weapon := character.WeaponFromRanged()
 	wandSpeed := func() time.Duration {
-		if character.GetRangedWeapon() == nil {
-			return 0
+		if wand := character.GetRangedWeapon(); wand != nil {
+			return core.DurationFromSeconds(max(wand.SwingSpeed, 1))
 		}
-		current := character.WeaponFromRanged()
-		return core.DurationFromSeconds(max(current.SwingSpeed, 1))
+		return 0
 	}
 
 	config := spelldata.SpellConfig(&character.Unit, shootRow, spelldata.Magic(core.ProcMaskRangedAuto))
@@ -30,7 +29,6 @@ func RegisterShoot(character *core.Character) *core.Spell {
 	}
 	config.Dot = core.DotConfig{
 		Aura:                core.Aura{Label: "Shoot"},
-		NumberOfTicks:       1 << 20,
 		TickLength:          core.DurationFromSeconds(max(weapon.SwingSpeed, 1)),
 		AffectedByCastSpeed: true,
 		Autorepeat:          true,
@@ -38,7 +36,6 @@ func RegisterShoot(character *core.Character) *core.Spell {
 			spell := dot.Spell
 			baseDamage := weapon.CalculateWeaponDamage(sim, 0)
 			result := spell.CalcDamage(sim, target, baseDamage, spell.OutcomeMagicHitAndCrit)
-			spell.Unit.Wand.RecordShot(sim)
 			spell.WaitTravelTime(sim, func(sim *core.Simulation) {
 				spell.DealDamage(sim, result)
 			})
@@ -49,7 +46,7 @@ func RegisterShoot(character *core.Character) *core.Spell {
 		spell.SpellSchool = weapon.GetSpellSchool()
 		spell.SchoolIndex = spell.SpellSchool.MultiplierSchool().SchoolIndex()
 		dot := spell.Dot(target)
-		dot.BaseTickLength = wandSpeed()
+		dot.BaseTickLength = core.DurationFromSeconds(max(weapon.SwingSpeed, 1))
 		dot.Apply(sim)
 	}
 

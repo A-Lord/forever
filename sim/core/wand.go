@@ -4,7 +4,7 @@ import "time"
 
 // The wand's Shoot channel, its speed and when its last shot fired, read by the APL's wand values.
 type Wand struct {
-	Shoot      *Spell
+	shoot      *Spell
 	swingSpeed func() time.Duration // The equipped wand's speed; zero with no wand.
 	lastShotAt time.Duration
 	timerAt    time.Duration // When the wand's timer last restarted: another spell's cast or channel end, or a shot.
@@ -13,22 +13,29 @@ type Wand struct {
 const wandWindup = 500 * time.Millisecond
 
 func (unit *Unit) EnableWand(shoot *Spell, swingSpeed func() time.Duration) {
-	wand := &Wand{Shoot: shoot, swingSpeed: swingSpeed, timerAt: -NeverExpires}
+	wand := &Wand{shoot: shoot, swingSpeed: swingSpeed}
 	unit.Wand = wand
 	unit.RegisterResetEffect(func(_ *Simulation) {
 		wand.lastShotAt = 0
 		wand.timerAt = -NeverExpires
 	})
+	for _, dot := range append(DotArray{shoot.aoeDot}, shoot.dots...) {
+		if dot != nil {
+			dot.firstTickAt = wand.firstShotAt
+		}
+	}
+	unit.OnChannelEnd(func(sim *Simulation, dot *Dot) {
+		wand.spellCompleted(sim, dot.Spell)
+	})
 	// Starting to move ends wanding, with no shot.
 	unit.RegisterMovementCallback(func(sim *Simulation, _ float64, kind MovementUpdateType) {
 		if dot := shoot.autorepeatChannel(); dot != nil && kind == MovementStart {
-			dot.tickAction.NextActionAt = NeverExpires
-			dot.Deactivate(sim)
+			dot.stopChannel(sim)
 		}
 	})
 }
 
-func (wand *Wand) RecordShot(sim *Simulation) {
+func (wand *Wand) recordShot(sim *Simulation) {
 	wand.lastShotAt = sim.CurrentTime
 	wand.timerAt = sim.CurrentTime
 }
@@ -36,22 +43,22 @@ func (wand *Wand) RecordShot(sim *Simulation) {
 // A completed cast or channel of any spell but Shoot, from the real cast paths only: procs and
 // autos leave the wand's timer alone.
 func (wand *Wand) spellCompleted(sim *Simulation, spell *Spell) {
-	if wand != nil && spell != wand.Shoot {
+	if wand != nil && spell != wand.shoot {
 		wand.timerAt = sim.CurrentTime
 	}
 }
 
 // The first shot of a Shoot started now: after the wind-up, and one wand speed after the timer last
 // restarted.
-func (wand *Wand) firstShotAt(sim *Simulation, period time.Duration) time.Duration {
-	return max(sim.CurrentTime+wandWindup, wand.timerAt+period)
+func (wand *Wand) firstShotAt(sim *Simulation, dot *Dot) time.Duration {
+	return max(sim.CurrentTime+wandWindup, wand.timerAt+dot.tickPeriod)
 }
 
 func (wand *Wand) nextShotAt() (time.Duration, bool) {
 	if wand == nil {
 		return 0, false
 	}
-	if dot := wand.Shoot.autorepeatChannel(); dot != nil {
+	if dot := wand.shoot.autorepeatChannel(); dot != nil {
 		return dot.NextTickAt(), true
 	}
 	return 0, false
@@ -78,12 +85,12 @@ func (wand *Wand) SwingSpeed() time.Duration {
 	if wand == nil {
 		return 0
 	}
-	if dot := wand.Shoot.autorepeatChannel(); dot != nil {
+	if dot := wand.shoot.autorepeatChannel(); dot != nil {
 		return dot.tickPeriod
 	}
 	speed := wand.swingSpeed()
 	if speed == 0 {
 		return 0
 	}
-	return wand.Shoot.Unit.ApplyCastSpeedForSpell(speed, wand.Shoot).Round(time.Millisecond)
+	return wand.shoot.Unit.ApplyCastSpeedForSpell(speed, wand.shoot).Round(time.Millisecond)
 }

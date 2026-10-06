@@ -101,11 +101,17 @@ func (rot *APLRotation) newActionChannelSpell(config *proto.APLActionChannelSpel
 		return nil
 	}
 
+	allowRecast := config.AllowRecast
+	// Recasting an autorepeat channel would only throw its shot away.
+	if dot := spell.Dot(target.Get()); dot != nil && dot.autorepeat {
+		allowRecast = false
+	}
+
 	return &APLActionChannelSpell{
 		spell:       spell,
 		target:      target,
 		interruptIf: interruptIf,
-		allowRecast: config.AllowRecast,
+		allowRecast: allowRecast,
 	}
 }
 func (action *APLActionChannelSpell) GetAPLValues() []APLValue {
@@ -115,15 +121,10 @@ func (action *APLActionChannelSpell) IsReady(sim *Simulation) bool {
 	return action.spell.CanCastOrQueue(sim, action.target.Get())
 }
 func (action *APLActionChannelSpell) Execute(sim *Simulation) {
-	unit := action.spell.Unit
-	action.spell.CastOrQueue(sim, action.target.Get())
-
 	// A cast that failed leaves the fields alone, so a later plain cast of a channel does not inherit them.
-	started := (unit.ChanneledDot != nil && unit.ChanneledDot.Spell == action.spell) || (unit.Hardcast.Expires > sim.CurrentTime && unit.Hardcast.ActionID == action.spell.ActionID)
-	queued := unit.QueuedSpell != nil && unit.QueuedSpell.spell == action.spell && unit.QueuedSpell.QueueInitiatedAt == sim.CurrentTime
-	if started || queued {
-		unit.Rotation.interruptChannelIf = action.interruptIf
-		unit.Rotation.allowChannelRecastOnInterrupt = action.allowRecast
+	if action.spell.CastOrQueue(sim, action.target.Get()) {
+		action.spell.Unit.Rotation.interruptChannelIf = action.interruptIf
+		action.spell.Unit.Rotation.allowChannelRecastOnInterrupt = action.allowRecast
 	}
 }
 func (action *APLActionChannelSpell) String() string {

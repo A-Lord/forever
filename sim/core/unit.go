@@ -201,7 +201,7 @@ type Unit struct {
 
 	// The currently-channeled DOT spell, otherwise nil.
 	ChanneledDot       *Dot
-	channelEndHandlers []func(sim *Simulation)
+	channelEndHandlers []func(sim *Simulation, dot *Dot)
 
 	// Data about the most recently queued spell, otherwise nil.
 	QueuedSpell *QueuedSpell
@@ -526,8 +526,8 @@ func (unit *Unit) IsChanneling() bool {
 	return unit.ChanneledDot != nil
 }
 
-// Runs the handler each time one of the unit's channels ends, run out or cut short, after its last tick.
-func (unit *Unit) OnChannelEnd(handler func(sim *Simulation)) {
+// Runs the handler with the ended channel each time one of the unit's channels ends, run out or cut short, after its last tick.
+func (unit *Unit) OnChannelEnd(handler func(sim *Simulation, dot *Dot)) {
 	unit.channelEndHandlers = append(unit.channelEndHandlers, handler)
 }
 

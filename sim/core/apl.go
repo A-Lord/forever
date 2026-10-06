@@ -423,13 +423,13 @@ func (apl *APLRotation) DoNextAction(sim *Simulation) {
 			dot.Deactivate(sim)
 			return
 		}
-		// Increment evalGeneration so variable refs re-evaluate with current game state,
-		// not the cached values from the previous getNextAction call.
-		apl.evalGeneration++
 		// An autorepeat channel gives way only at its ticks.
 		if dot.autorepeat {
 			return
 		}
+		// Increment evalGeneration so variable refs re-evaluate with current game state,
+		// not the cached values from the previous getNextAction call.
+		apl.evalGeneration++
 		// Also evaluate interruptIf when the GCD fires, not only on each tick.
 		if apl.shouldInterruptChannel(sim) {
 			clipDelay := dot.getChannelClipDelay()
@@ -600,8 +600,7 @@ func (apl *APLRotation) shouldInterruptChannel(sim *Simulation) bool {
 	apl.unit.ChanneledDot = channeledDot
 
 	if wouldRecast {
-		// Recasting an autorepeat channel would only throw its shot away.
-		return apl.allowChannelRecastOnInterrupt && !channeledDot.autorepeat
+		return apl.allowChannelRecastOnInterrupt
 	}
 
 	return true

@@ -22,7 +22,7 @@ func AttachChargeSpender(character *core.Character, buff *core.Aura, s *Spell, n
 		channelHit = false
 	})
 
-	character.OnChannelEnd(func(sim *core.Simulation) {
+	character.OnChannelEnd(func(sim *core.Simulation, _ *core.Dot) {
 		if channelHit && buff.IsActive() {
 			channelHit = false
 			buff.RemoveStack(sim)

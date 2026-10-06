@@ -63,6 +63,7 @@ type Dot struct {
 	hasteReducesDuration bool // does not gain additional ticks after a haste threshold, HasteAffectsDuration in dbc
 	isChanneled          bool
 	autorepeat           bool
+	firstTickAt          func(sim *Simulation, dot *Dot) time.Duration // When the first tick of the dot applied now lands; nil is one tick period from now.
 }
 
 // Takes a new snapshot of this Dot's effects.
@@ -271,24 +272,29 @@ func (dot *Dot) autorepeatTick(sim *Simulation) {
 	rot := dot.Spell.Unit.Rotation
 	rot.evalGeneration++
 	if rot.shouldInterruptChannel(sim) {
-		dot.tickAction.NextActionAt = NeverExpires
-		dot.Deactivate(sim)
+		dot.stopChannel(sim)
 		return
 	}
 
 	dot.remainingTicks--
 	dot.TickOnce(sim)
+	dot.Spell.Unit.Wand.recordShot(sim)
 	if !dot.IsActive() {
 		return
 	}
 
-	if rot.interruptChannelIf == nil || dot.remainingTicks == 0 {
-		dot.tickAction.NextActionAt = NeverExpires
-		dot.Deactivate(sim)
+	if rot.interruptChannelIf == nil {
+		dot.stopChannel(sim)
 		return
 	}
 	dot.tickAction.NextActionAt = sim.CurrentTime + dot.tickPeriod
 	sim.AddPendingAction(dot.tickAction)
+}
+
+// Ends the channel with no further tick.
+func (dot *Dot) stopChannel(sim *Simulation) {
+	dot.tickAction.NextActionAt = NeverExpires
+	dot.Deactivate(sim)
 }
 
 // An autorepeat channel that ends on a shot slot lets the rotation act there with no clip delay, or when the
@@ -387,8 +393,8 @@ func newDot(config Dot) *Dot {
 			// Priority:     ActionPriorityDOT,
 			OnAction: dot.periodicTick,
 		}
-		if dot.autorepeat {
-			dot.tickAction.NextActionAt = dot.Spell.Unit.Wand.firstShotAt(sim, dot.tickPeriod)
+		if dot.firstTickAt != nil {
+			dot.tickAction.NextActionAt = dot.firstTickAt(sim, dot)
 		}
 		sim.AddPendingAction(dot.tickAction)
 		if dot.isChanneled {
@@ -408,9 +414,8 @@ func newDot(config Dot) *Dot {
 			// Compute clip delay before clearing ChanneledDot (used by nextActionWouldRecastChannel).
 			channelDelay := dot.getChannelClipDelay()
 			dot.Spell.Unit.ChanneledDot = nil
-			dot.Spell.Unit.Wand.spellCompleted(sim, dot.Spell)
 			for _, handler := range dot.Spell.Unit.channelEndHandlers {
-				handler(sim)
+				handler(sim, dot)
 			}
 			dot.Spell.Unit.Rotation.interruptChannelIf = nil
 			dot.Spell.Unit.Rotation.allowChannelRecastOnInterrupt = false
@@ -445,6 +450,11 @@ func (spell *Spell) createDots(config DotConfig, isHot bool) {
 
 	if config.PeriodicDamageMultiplier == 0 {
 		config.PeriodicDamageMultiplier = 1
+	}
+
+	if config.Autorepeat {
+		// Enough ticks that the aura outlasts any fight.
+		config.NumberOfTicks = 1 << 20
 	}
 
 	if config.Spell == nil {
