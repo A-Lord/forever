@@ -188,9 +188,12 @@ func (action *APLActionStrictSequence) advanceSequence() {
 		action.relinquishControl()
 	}
 }
+// The subaction the sequence is at, without moving it on.
+func (action *APLActionStrictSequence) current() *APLAction {
+	return action.subactions[action.curIdx]
+}
 func (action *APLActionStrictSequence) GetNextAction(sim *Simulation) *APLAction {
-	if action.subactions[action.curIdx].IsReady(sim) {
-		nextAction := action.subactions[action.curIdx]
+	if nextAction := action.current(); nextAction.IsReady(sim) {
 
 		if action.unit.GCD.IsReady(sim) {
 			action.advanceSequence()

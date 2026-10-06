@@ -206,8 +206,8 @@ type Unit struct {
 	// Data about the most recently queued spell, otherwise nil.
 	QueuedSpell *QueuedSpell
 
-	// The spell the rotation or a major cooldown is casting, until its effects apply or its hardcast ends, completed or not; procs never set it.
-	rotationCast *Spell
+	// The cast the rotation or a major cooldown has in flight; procs never set it.
+	rotationCast rotationCast
 
 	// Used for reacting to mastery stat changes
 	OnMasteryStatChanged []OnMasteryStatChanged
@@ -897,7 +897,7 @@ func (unit *Unit) reset(sim *Simulation, _ Agent) {
 	unit.Hardcast.Expires = startingCDTime
 	unit.ChanneledDot = nil
 	unit.QueuedSpell = nil
-	unit.rotationCast = nil
+	unit.endRotationCast()
 	unit.DistanceFromTarget = unit.StartDistanceFromTarget
 	unit.Metrics.reset()
 	unit.ResetStatDeps()

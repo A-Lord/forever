@@ -39,7 +39,7 @@ func newManaTickTest(register func(char *Character) *Spell) *channelTest {
 		char.manaBar.unit = &char.Unit
 		char.manaCastingMetrics = char.NewManaMetrics(ActionID{OtherID: proto.OtherAction_OtherActionManaRegen, Tag: 1})
 		char.manaNotCastingMetrics = char.NewManaMetrics(ActionID{OtherID: proto.OtherAction_OtherActionManaRegen, Tag: 2})
-		char.spiritRegenBase, char.spiritRegenPerSpirit = 10, 0
+		char.SetSpiritManaRegen(10, 0)
 		char.initialStats[stats.Mana] = 10000
 		char.initialStatsWithoutDeps[stats.Mana] = 10000
 		return register(char)
@@ -49,7 +49,7 @@ func newManaTickTest(register func(char *Character) *Spell) *channelTest {
 // Casts the spell at 0 and runs to until in 100 ms steps, calling at[t] right after the step to t.
 // Returns the spans with the regen of a unit outside the five-second rule as from, to pairs, each
 // span running from just after from up to and including to.
-func (ct *channelTest) fullRegenSpans(until time.Duration, at map[time.Duration]func()) []time.Duration {
+func (ct *channelTest) fullRegenSpans(until time.Duration, at map[time.Duration]func(*channelTest)) []time.Duration {
 	ct.start()
 	if !ct.spell.Cast(ct.sim, ct.fw.CurrentTarget) {
 		panic("the spell under test was not cast")
@@ -66,7 +66,7 @@ func (ct *channelTest) fullRegenSpans(until time.Duration, at map[time.Duration]
 			}
 		}
 		if fn := at[t]; fn != nil {
-			fn()
+			fn(ct)
 		}
 	}
 	return spans
@@ -118,14 +118,29 @@ func TestFiveSecondRuleWindows(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			ct := newManaTickTest(tc.register)
-			at := map[time.Duration]func(){}
-			for when, fn := range tc.at {
-				at[when] = func() { fn(ct) }
-			}
-			if got, want := ct.fullRegenSpans(20*time.Second, at), seconds(tc.want...); !slices.Equal(got, want) {
+			if got, want := ct.fullRegenSpans(20*time.Second, tc.at), seconds(tc.want...); !slices.Equal(got, want) {
 				t.Errorf("full regen over the spans %v, want %v", got, want)
 			}
 		})
+	}
+}
+
+// A channel whose dot sits on its related spell is paid for by the spell cast.
+func TestPaidChannelOnItsRelatedSpellHoldsRegen(t *testing.T) {
+	var related *Spell
+	ct := newManaTickTest(func(char *Character) *Spell {
+		related = char.RegisterSpell(manaChannelConfig(15, false))
+		config := paidSpellConfig(910303, 0)
+		config.Flags |= SpellFlagChanneled
+		config.RelatedDotSpell = related
+		config.ApplyEffects = func(sim *Simulation, target *Unit, _ *Spell) {
+			related.Dot(target).Apply(sim)
+		}
+		return char.RegisterSpell(config)
+	})
+	related.finalize()
+	if got, want := ct.fullRegenSpans(20*time.Second, nil), seconds(15, 20); !slices.Equal(got, want) {
+		t.Errorf("full regen over the spans %v, want %v", got, want)
 	}
 }
 

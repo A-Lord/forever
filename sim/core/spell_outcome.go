@@ -86,8 +86,8 @@ func (spell *Spell) outcomeMagicHitAndCrit(sim *Simulation, result *SpellResult,
 	}
 }
 
-// A hit rolled on the spell table with the level difference taken from the hand's skill, and a crit rolled on
-// the attacker's ranged crit for the spell's own crit multiplier: a wand shot.
+// Rolls the hand's spell miss, with the level difference taken from its skill, then the hand's physical crit,
+// for the spell's own crit multiplier: a wand shot.
 func (spell *Spell) OutcomeMagicHitAndRangedCrit(sim *Simulation, result *SpellResult, attackTable *AttackTable) {
 	if sim.Proc(1-spell.spellChanceToMiss(attackTable, attackTable.Hand(spell).BaseSpellMissChance), "Magical Hit Roll") {
 		if !result.applyAttackTableCritSeparateRoll(sim, spell, attackTable, true) {

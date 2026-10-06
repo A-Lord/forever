@@ -115,8 +115,7 @@ func (action *APLActionChannelSpell) IsReady(sim *Simulation) bool {
 	return action.spell.CanCastOrQueue(sim, action.target.Get())
 }
 func (action *APLActionChannelSpell) Execute(sim *Simulation) {
-	action.spell.Unit.Rotation.channelAction = action
-	action.spell.CastOrQueue(sim, action.target.Get())
+	action.spell.castOrQueue(sim, action.target.Get(), action)
 }
 func (action *APLActionChannelSpell) String() string {
 	return fmt.Sprintf("Channel Spell(%s, interruptIf=%s)", action.spell.ActionID, action.interruptIf)

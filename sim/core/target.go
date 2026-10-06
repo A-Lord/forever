@@ -426,7 +426,7 @@ func NewAttackTable(attacker *Unit, defender *Unit) *AttackTable {
 		if levelDiff > 0 {
 			table.BaseSpellMissChance = 0.04 - 0.01*float64(levelDiff)
 		} else {
-			table.BaseSpellMissChance = UnitLevelFloat64(-levelDiff, 0.04, 0.05, 0.06, 0.17)
+			table.BaseSpellMissChance = spellMissChance(-levelDiff)
 		}
 		table.BaseCrushChance = TernaryFloat64(levelDiff >= 3, 0.15, 0)
 

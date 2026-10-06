@@ -20,8 +20,9 @@ type Wand struct {
 
 const wandWindup = 500 * time.Millisecond
 
-// Shoot's channel. Wand.Start sets its length to the rest of the fight; ChanneledTicks(Shoot) reads 0,
-// since the shots are not its ticks.
+// Shoot's channel. The wand sets its length to the rest of the fight when Shoot starts; ChanneledTicks(Shoot)
+// reads 0, since the shots are not its ticks. NumberOfTicks stays 1: the rotation and the dot end a channel
+// with no ticks left.
 func WandChannel() DotConfig {
 	return DotConfig{
 		Aura:          Aura{Label: "Shoot"},
@@ -30,20 +31,24 @@ func WandChannel() DotConfig {
 	}
 }
 
-// Makes shoot the unit's wand Shoot, which fires shot at each of its slots. Shoot's ApplyEffects calls
-// Start; Shoot cannot be cast while it runs.
-func (unit *Unit) EnableWand(shoot *Spell, swingSpeed func() time.Duration, shot func(sim *Simulation, target *Unit)) *Wand {
+// Makes shoot the unit's wand Shoot, which starts wanding once its own ApplyEffects has run and fires
+// shot at each of its slots; Shoot cannot be cast while it runs.
+func (unit *Unit) EnableWand(shoot *Spell, swingSpeed func() time.Duration, shot func(sim *Simulation, target *Unit)) {
 	wand := &Wand{unit: unit, shoot: shoot, speed: swingSpeed, shot: shot}
 	unit.Wand = wand
 	unit.RegisterResetEffect(func(_ *Simulation) {
 		wand.lastShotAt = 0
 		wand.timerAt = -NeverExpires
-		wand.interruptIf = nil
 	})
 
 	castCondition := shoot.ExtraCastCondition
 	shoot.ExtraCastCondition = func(sim *Simulation, target *Unit) bool {
 		return !wand.wanding() && (castCondition == nil || castCondition(sim, target))
+	}
+	applyEffects := shoot.ApplyEffects
+	shoot.ApplyEffects = func(sim *Simulation, target *Unit, spell *Spell) {
+		applyEffects(sim, target, spell)
+		wand.start(sim, target)
 	}
 
 	unit.OnChannelEnd(func(sim *Simulation, dot *Dot) {
@@ -52,7 +57,6 @@ func (unit *Unit) EnableWand(shoot *Spell, swingSpeed func() time.Duration, shot
 			return
 		}
 		wand.slot.Cancel(sim)
-		wand.interruptIf = nil
 		// The rotation acts at the slot with no clip delay, or when the GCD ends: a wake-up that came
 		// while it was held is spent.
 		if unit.GCD.IsReady(sim) {
@@ -68,19 +72,16 @@ func (unit *Unit) EnableWand(shoot *Spell, swingSpeed func() time.Duration, shot
 			unit.ChanneledDot.Deactivate(sim)
 		}
 	})
-	return wand
 }
 
 // Starts wanding at target. The first shot comes after the wind-up, and one wand speed after the timer
 // last restarted. A channel action's interruptIf is taken before the channel starts, so the rotation
 // never holds it and never cuts Shoot between slots.
-func (wand *Wand) Start(sim *Simulation, target *Unit) {
-	rot := wand.unit.Rotation
+func (wand *Wand) start(sim *Simulation, target *Unit) {
 	wand.interruptIf = nil
-	if action := rot.channelAction; action != nil && action.spell == wand.shoot {
+	if action := wand.unit.takeChannelAction(wand.shoot); action != nil {
 		wand.interruptIf = action.interruptIf
 	}
-	rot.channelAction = nil
 
 	wand.target = target
 	wand.interval = wand.swingSpeed()
@@ -140,14 +141,14 @@ func (wand *Wand) slotTaken(sim *Simulation) bool {
 		if !ok {
 			return true
 		}
-		next := sequence.subactions[sequence.curIdx]
+		next := sequence.current()
 		return next.IsReady(sim) && !wand.isShootAction(next)
 	}
 
-	dot := wand.unit.ChanneledDot
-	wand.unit.ChanneledDot = nil
-	next := rot.getNextAction(sim)
-	wand.unit.ChanneledDot = dot
+	var next *APLAction
+	rot.withChannelEnded(func() {
+		next = rot.getNextAction(sim)
+	})
 	return next != nil && !wand.isShootAction(next)
 }
 
@@ -183,7 +184,7 @@ func (wand *Wand) nextShotAt() (time.Duration, bool) {
 	return 0, false
 }
 
-// Zero while idle. The first shot of a Shoot cast comes after the wind-up, and no sooner than one wand speed after the wand's timer last restarted.
+// Zero while idle; otherwise the time to the next slot.
 func (wand *Wand) timeToNext(sim *Simulation) time.Duration {
 	if at, ok := wand.nextShotAt(); ok {
 		return max(0, at-sim.CurrentTime)
@@ -211,5 +212,5 @@ func (wand *Wand) swingSpeed() time.Duration {
 	if speed == 0 {
 		return 0
 	}
-	return wand.shoot.Unit.ApplyCastSpeedForSpell(speed, wand.shoot).Round(time.Millisecond)
+	return wand.unit.ApplyCastSpeedForSpell(speed, wand.shoot).Round(time.Millisecond)
 }

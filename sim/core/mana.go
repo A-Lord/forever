@@ -36,6 +36,7 @@ type manaBar struct {
 	agent        Agent         // Told of every mana tick; nil while the bar does not tick.
 	lastManaTick time.Duration // The regen is credited up to here.
 	nextManaTick time.Duration
+	paidBy       *Spell // The spell that last paid mana, until a channel it starts claims the payment.
 
 	// For keeping track of OOM status.
 	waitingForMana          float64
@@ -237,10 +238,10 @@ func (mb *manaBar) creditManaRegen(sim *Simulation) {
 	if !unit.channelPaidMana() {
 		castingUntil = max(from, min(unit.PseudoStats.FiveSecondRuleRefreshTime, sim.CurrentTime))
 	}
-	if amount := unit.manaRegenWhileCasting * (castingUntil - from).Seconds(); castingUntil > from && amount > 0 {
+	if amount := unit.manaRegenWhileCasting * (castingUntil - from).Seconds(); amount > 0 {
 		unit.AddMana(sim, amount, unit.manaCastingMetrics)
 	}
-	if amount := unit.manaRegenWhileNotCasting * (sim.CurrentTime - castingUntil).Seconds(); sim.CurrentTime > castingUntil && amount > 0 {
+	if amount := unit.manaRegenWhileNotCasting * (sim.CurrentTime - castingUntil).Seconds(); amount > 0 {
 		unit.AddMana(sim, amount, unit.manaNotCastingMetrics)
 	}
 }
@@ -270,6 +271,13 @@ func (mb *manaBar) enable(sim *Simulation, agent Agent) {
 // start, but regen stays at the casting rate until the channel ends, however it ends.
 func (unit *Unit) channelPaidMana() bool {
 	return unit.ChanneledDot != nil && unit.ChanneledDot.paidMana
+}
+
+// Whether the starting channel's cast paid mana: its own spell's, or the spell whose RelatedDotSpell it is.
+func (mb *manaBar) claimChannelPayment(dot *Dot) bool {
+	paidBy := mb.paidBy
+	mb.paidBy = nil
+	return paidBy != nil && (paidBy == dot.Spell || paidBy.RelatedDotSpell == dot.Spell)
 }
 
 // Returns how long the unit waits for its regen to reach desiredMana, up to the tick that credits it,
@@ -331,6 +339,7 @@ func (mb *manaBar) reset() {
 
 	mb.waitingForMana = 0
 	mb.waitingForManaStartTime = 0
+	mb.paidBy = nil
 }
 
 func (mb *manaBar) IsOOM() bool {
@@ -405,6 +414,7 @@ func (mc *ManaCost) SpendCost(sim *Simulation, spell *Spell) {
 			spell.Unit.creditManaRegen(sim)
 		}
 		spell.Unit.SpendMana(sim, spell.CurCast.Cost, mc.ResourceMetrics)
+		spell.Unit.paidBy = spell
 		spell.Unit.PseudoStats.FiveSecondRuleRefreshTime = max(sim.CurrentTime+time.Second*5, spell.Unit.Hardcast.Expires)
 	}
 }

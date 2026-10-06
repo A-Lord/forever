@@ -346,11 +346,7 @@ func newDot(config Dot) *Dot {
 		if dot.isChanneled {
 			dot.Spell.Unit.ChanneledDot = dot
 			dot.Spell.Unit.Rotation.adoptChannelAction(dot)
-			dot.paidMana = false
-			if cost := dot.Spell.Cost; cost != nil {
-				_, isMana := cost.ResourceCostImpl.(*ManaCost)
-				dot.paidMana = isMana && dot.Spell.CurCast.Cost > 0
-			}
+			dot.paidMana = dot.Spell.Unit.claimChannelPayment(dot)
 		}
 	})
 	dot.ApplyOnExpire(func(aura *Aura, sim *Simulation) {

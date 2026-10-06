@@ -25,10 +25,7 @@ func (unit *Unit) newHardcastAction(sim *Simulation) {
 					if hc.OnComplete != nil {
 						hc.OnComplete(sim, hc.Target)
 					}
-					unit.rotationCast = nil
-					if unit.Rotation != nil {
-						unit.Rotation.channelAction = nil
-					}
+					unit.endRotationCast()
 				}
 			},
 		}
@@ -126,8 +123,7 @@ func (unit *Unit) Interrupt(sim *Simulation) {
 func (unit *Unit) CancelHardcast(sim *Simulation) {
 	unit.HardcastAvoidanceAura.Deactivate(sim)
 	unit.Hardcast.Expires = startingCDTime
-	unit.rotationCast = nil
-	unit.Rotation.channelAction = nil
+	unit.endRotationCast()
 	unit.SetGCDTimer(sim, sim.CurrentTime+unit.ReactionTime)
 }
 

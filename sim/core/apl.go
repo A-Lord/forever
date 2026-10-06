@@ -38,9 +38,6 @@ type APLRotation struct {
 	// If true, can recast channel when interrupted.
 	allowChannelRecastOnInterrupt bool
 
-	// The channel action whose cast is under way or queued; the channel it starts takes its interruptIf and allowRecast.
-	channelAction *APLActionChannelSpell
-
 	// Used inside of actions/value to determine whether they will occur during the prepull or regular rotation.
 	parsingPrepull bool
 
@@ -397,7 +394,6 @@ func (rot *APLRotation) reset(sim *Simulation) {
 	rot.inLoop = false
 	rot.interruptChannelIf = nil
 	rot.allowChannelRecastOnInterrupt = false
-	rot.channelAction = nil
 	rot.evalGeneration++ // Invalidate any variable caches from previous iteration or initialization
 	if rot.resetActions == nil {
 		rot.resetActions = rot.allAPLActions()
@@ -524,20 +520,14 @@ func (apl *APLRotation) popControllingAction(ca APLActionImpl) {
 
 // nextActionWouldRecastChannel reports whether the same channeled spell would be
 // the first action cast if the channel ended right now. It evaluates the APL in
-// the post-channel state (ChanneledDot = nil) so channel-state-dependent
+// the post-channel state (ChanneledDot = nil, see withChannelEnded) so channel-state-dependent
 // conditions don't produce stale results.
 //
 // Uses CanCast rather than CanCastOrQueue so that a proc-queued spell in the
 // same timestep does not incorrectly block a same-spell re-cast from being
 // detected.
-//
-// Caller must restore ChanneledDot after this call — this function does NOT
-// restore it.
 func (apl *APLRotation) nextActionWouldRecastChannel(sim *Simulation, channeledDot *Dot) bool {
 	channeledSpell := channeledDot.Spell
-
-	// Evaluate in post-channel state.
-	apl.unit.ChanneledDot = nil
 
 	for _, action := range apl.priorityList {
 		if action.condition != nil && !action.condition.GetBool(sim) {
@@ -591,9 +581,10 @@ func (apl *APLRotation) shouldInterruptChannel(sim *Simulation) bool {
 	}
 
 	// Check whether the same channel would be re-cast in post-channel state.
-	// nextActionWouldRecastChannel clears ChanneledDot — restore it afterwards.
-	wouldRecast := apl.nextActionWouldRecastChannel(sim, channeledDot)
-	apl.unit.ChanneledDot = channeledDot
+	var wouldRecast bool
+	apl.withChannelEnded(func() {
+		wouldRecast = apl.nextActionWouldRecastChannel(sim, channeledDot)
+	})
 
 	if wouldRecast {
 		return apl.allowChannelRecastOnInterrupt
@@ -602,17 +593,21 @@ func (apl *APLRotation) shouldInterruptChannel(sim *Simulation) bool {
 	return true
 }
 
-// A starting channel takes the condition of the channel action that cast it; its dot may sit on the
-// action spell's RelatedDotSpell. It takes the action's interruptIf only if it starts inside the cast,
-// with no travel delay before its dot applies.
+// Runs evaluate as if the channel had ended, with no ChanneledDot, which it restores after.
+func (apl *APLRotation) withChannelEnded(evaluate func()) {
+	dot := apl.unit.ChanneledDot
+	apl.unit.ChanneledDot = nil
+	evaluate()
+	apl.unit.ChanneledDot = dot
+}
+
+// A starting channel takes the condition of the channel action that cast it. It takes the action's
+// interruptIf only if it starts inside the cast, with no travel delay before its dot applies.
 func (apl *APLRotation) adoptChannelAction(dot *Dot) {
-	action := apl.channelAction
-	if action == nil || (dot.Spell != action.spell && dot.Spell != action.spell.RelatedDotSpell) {
-		return
+	if action := apl.unit.takeChannelAction(dot.Spell); action != nil {
+		apl.interruptChannelIf = action.interruptIf
+		apl.allowChannelRecastOnInterrupt = action.allowRecast
 	}
-	apl.interruptChannelIf = action.interruptIf
-	apl.allowChannelRecastOnInterrupt = action.allowRecast
-	apl.channelAction = nil
 }
 
 func APLRotationFromJsonString(jsonString string) *proto.APLRotation {
