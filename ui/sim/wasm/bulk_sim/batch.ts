@@ -3,7 +3,7 @@ import { ItemSlot } from '@generated/proto/common';
 import { queue } from 'async';
 
 import { Database } from '../../proto/database';
-import { Gear } from '../../proto/gear';
+import { adjustImbues } from '../../proto/utils';
 import { SimSignals } from '../../sim_signal_manager';
 import { noop } from '../../utils/misc';
 import { WorkerPool } from '../../workers/worker_pool';
@@ -40,17 +40,15 @@ const makeBulkSimRequestForCandidate = (
 	simRequest.simOptions!.saveAllValues = true;
 	const player = simRequest.raid!.parties[0].players[0];
 	player.equipment = candidate.gear;
-	if (player.consumables && candidate.gear) {
+	// Read from the base request: the scratch player still carries the previous candidate's imbues.
+	const consumables = request.baseRequest!.raid!.parties[0].players[0].consumables;
+	if (consumables && (consumables.mhImbueId || consumables.ohImbueId)) {
 		const db = Database.getSync();
 		const weapon = (slot: ItemSlot) => {
 			const itemSpec = candidate.gear.items[slot];
-			return itemSpec ? db.lookupItemSpec(itemSpec) : null;
+			return itemSpec ? db.getItemById(itemSpec.id) : undefined;
 		};
-		const weapons = new Gear({
-			[ItemSlot.ItemSlotMainHand]: weapon(ItemSlot.ItemSlotMainHand),
-			[ItemSlot.ItemSlotOffHand]: weapon(ItemSlot.ItemSlotOffHand),
-		});
-		player.consumables = weapons.adjustImbues(player.consumables);
+		player.consumables = adjustImbues(consumables, weapon(ItemSlot.ItemSlotMainHand), weapon(ItemSlot.ItemSlotOffHand));
 	}
 	return simRequest;
 };
