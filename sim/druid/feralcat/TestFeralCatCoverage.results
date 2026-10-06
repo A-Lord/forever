@@ -47,7 +47,7 @@ casts_results: {
   }
   casts: {
    key: "spell_id:22829"
-   value: 5
+   value: 4
   }
   casts: {
    key: "spell_id:22842"
@@ -103,7 +103,7 @@ casts_results: {
   }
   casts: {
    key: "spell_id:9830"
-   value: 11
+   value: 7
   }
   casts: {
    key: "spell_id:9850"
@@ -123,7 +123,7 @@ casts_results: {
   }
   casts: {
    key: "spell_id:9896"
-   value: 6
+   value: 5
   }
   casts: {
    key: "spell_id:9898"
@@ -131,11 +131,11 @@ casts_results: {
   }
   casts: {
    key: "spell_id:9904"
-   value: 13
+   value: 10
   }
   casts: {
    key: "spell_id:9907"
-   value: 6
+   value: 8
   }
   casts: {
    key: "spell_id:9908"

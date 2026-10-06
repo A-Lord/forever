@@ -20,10 +20,15 @@ func (druid *Druid) registerOmenOfClarity() {
 	trigger := spelldata.ProcTrigger(&druid.Character, omen, func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
 		druid.ClearcastingAura.Activate(sim)
 	}, spelldata.Chance(1))
+	// A landed debuff such as Faerie Fire rolls it, so a hit needs no damage.
+	trigger.RequireDamageComponent = false
 	// Chance(1) keeps the resolver from building a procs-per-minute manager and leaves core no roll of
 	// its own. The chance depends on what hit, so it is drawn here, after the ICD check and before the
-	// ICD starts.
+	// ICD starts. Only auto attacks and druid spells roll it.
 	trigger.ExtraCondition = func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
+		if !spell.ProcMask.Matches(core.ProcMaskMeleeWhiteHit) && spell.ClassFlags.Family != omen.ClassFlags.Family {
+			return false
+		}
 		chance := float64(omen.RPPM) * druid.omenSpeed(spell) / 60
 		return sim.Proc(druid.ModifiedProcChance(omen.ClassFlags, chance), trigger.Name)
 	}
