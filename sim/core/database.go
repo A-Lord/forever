@@ -178,7 +178,8 @@ type Item struct {
 	WeaponDamageMin  float64
 	WeaponDamageMax  float64
 	SwingSpeed       float64
-	QualityModifier  float64 // Per-item offset to weapon "average damage"; negative for caster weapons.
+	QualityModifier  float64           // Per-item offset to weapon "average damage"; negative for caster weapons.
+	SpellSchool      proto.SpellSchool // The damage school of a wand; physical for every other item.
 
 	Name          string
 	Stats         stats.Stats // Stats applied to wearer
@@ -214,6 +215,7 @@ func ItemFromProto(pData *proto.SimItem) Item {
 		RangedWeaponType: pData.RangedWeaponType,
 		SwingSpeed:       pData.WeaponSpeed,
 		QualityModifier:  pData.QualityModifier,
+		SpellSchool:      pData.SpellSchool,
 		PseudoStats:      pData.PseudoStats,
 		Unique:           pData.Unique,
 		LimitCategory:    pData.LimitCategory,

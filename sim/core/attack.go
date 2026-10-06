@@ -91,6 +91,7 @@ func newWeaponFromItem(item *Item, bonusDps float64) Weapon {
 		AttackPowerPerDPS:    DefaultAttackPowerPerDPS,
 		MinRange:             getWeaponMinRange(item),
 		MaxRange:             getWeaponMaxRange(item),
+		SpellSchool:          SpellSchoolFromProto(item.SpellSchool),
 	}
 }
 
