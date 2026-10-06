@@ -339,8 +339,8 @@ var Spells = []Override{
 		SpellID: 16864,
 		Field:   PPM,
 		Value:   2,
-		Reason:  "Placeholder: Omen of Clarity rate; the game files state none",
-		Source:  "classic-carryover",
+		Reason:  "Omen of Clarity: 2.0 procs per minute, measured in combat logs; the game files state none",
+		Source:  "issue #225",
 	},
 	{
 		SpellID: 9896,
