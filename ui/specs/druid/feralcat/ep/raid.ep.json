@@ -1,15 +1,18 @@
 {
 	"name": "Level 60 Raid Example",
 	"stats": {
-		"StatStrength": 0.9394688229133757,
+		"StatStrength": 0.9626169344100552,
 		"StatAgility": 1,
-		"StatAttackPower": 0.39144534288057486,
-		"StatFeralAttackPower": 0.39144534288057486,
-		"StatHitRating": 0.6616376353672812,
-		"StatCritRating": 0.7401410821092542,
-		"StatHasteRating": 0.329640057274568,
-		"StatArmorPenetration": 0.14278714596389797,
-		"StatExpertiseRating": 0.6616376353672812,
-		"StatPhysicalDamage": 3.8281504129910062
+		"StatAttackPower": 0.4010903893375209,
+		"StatFeralAttackPower": 0.4010903893375209,
+		"StatHitRating": 0.6446983399299202,
+		"StatCritRating": 0.7257507284293738,
+		"StatHasteRating": 0.2203740162366958,
+		"StatArmorPenetration": 0.12542505126395198,
+		"StatExpertiseRating": 0.6446983399299202,
+		"StatPhysicalDamage": 3.698602393925267
+	},
+	"pseudoStats": {
+		"PseudoStatMainHandDps": 4.062663652813198
 	}
 }

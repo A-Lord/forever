@@ -56,5 +56,5 @@ export const DefaultRotation = FeralCatDruidRotation.fromJsonString(JSON.stringi
 
 export const SIMPLE = PresetUtils.makePresetSimpleRotation('Simple', Spec.SpecFeralCatDruid, DefaultRotation);
 export const APL = PresetUtils.makePresetAPLRotation('Claw / Rip', DefaultApl);
-export const POWERSHIFT_APL = PresetUtils.makePresetAPLRotation('Shred / Rip', RaidBuild.player.rotation);
-export const RAID_DPS_APL = PresetUtils.makePresetAPLRotation('Shred / Rake / Rip', RaidDpsApl);
+export const POWERSHIFT_APL = PresetUtils.makePresetAPLRotation('Shred / Rake / Rip (4 CP)', RaidBuild.player.rotation);
+export const RAID_DPS_APL = PresetUtils.makePresetAPLRotation('Shred / Rake / Rip (5 CP)', RaidDpsApl);

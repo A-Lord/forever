@@ -491,12 +491,12 @@ func TestRevelationIgnoresZeroDamageFaerieFire(t *testing.T) {
 
 func TestRaidDefaultRunsSelectedCatRotation(t *testing.T) {
 	player := runCat(t, buildRequest(t, "raid"))
-	for _, id := range []int32{1322605, 9830, 9896, 417141} {
+	for _, id := range []int32{1322605, 9830, 9896, 9904, 417141} {
 		if castsOf(player.Actions, id) == 0 {
 			t.Errorf("raid default never casts spell %d", id)
 		}
 	}
-	for _, id := range []int32{768, 9634, 9904, 22829, 9907} {
+	for _, id := range []int32{768, 9634, 22829, 9907} {
 		if got := castsOf(player.Actions, id); got != 0 {
 			t.Errorf("raid default casts spell %d %d times", id, got)
 		}
@@ -1857,12 +1857,12 @@ func TestRipAttackPowerCapsAtFourComboPoints(t *testing.T) {
 func TestCatShippedPresetRuns(t *testing.T) {
 	req := buildRequest(t, "raid")
 	player := runCat(t, req)
-	for _, id := range []int32{9830, 9896, 1322605, 417141} {
+	for _, id := range []int32{9830, 9896, 9904, 1322605, 417141} {
 		if castsOf(player.Actions, id) == 0 {
 			t.Fatalf("shipped preset never casts %d", id)
 		}
 	}
-	for _, id := range []int32{9904, 22812} {
+	for _, id := range []int32{22812} {
 		if n := castsOf(player.Actions, id); n != 0 {
 			t.Fatalf("shipped preset casts %d %d times", id, n)
 		}

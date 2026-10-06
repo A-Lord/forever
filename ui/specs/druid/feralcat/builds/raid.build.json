@@ -84,7 +84,7 @@
           "action": {
             "catOptimalRotationAction": {
               "ripMinComboPoints": 4,
-              "rakeTrick": false,
+              "rakeTrick": true,
               "maintainFaerieFire": true,
               "biteMinComboPoints": 5,
               "finishingMove": "Rip"

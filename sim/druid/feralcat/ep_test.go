@@ -25,6 +25,15 @@ func TestDefaultEp(t *testing.T) {
 		iterations = int32(n)
 	}
 	base := buildRequest(t, "raid")
+	if input := os.Getenv("EP_SWEEP_REQUEST"); input != "" {
+		data, err := os.ReadFile(input)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := protojson.Unmarshal(data, base); err != nil {
+			t.Fatal(err)
+		}
+	}
 	base.SimOptions.Iterations = iterations
 	base.SimOptions.RandomSeed = 101
 	// IsTest caps the sim at 3 workers. Labeled RNG is turned on inside stat weights.
@@ -42,14 +51,15 @@ func TestDefaultEp(t *testing.T) {
 		proto.Stat_StatArmorPenetration,
 	}
 	request := &proto.StatWeightsRequest{
-		Player:          base.Raid.Parties[0].Players[0],
-		RaidBuffs:       base.Raid.Buffs,
-		PartyBuffs:      base.Raid.Parties[0].Buffs,
-		Debuffs:         base.Raid.Debuffs,
-		Encounter:       base.Encounter,
-		SimOptions:      base.SimOptions,
-		StatsToWeigh:    weigh,
-		EpReferenceStat: proto.Stat_StatAgility,
+		Player:             base.Raid.Parties[0].Players[0],
+		RaidBuffs:          base.Raid.Buffs,
+		PartyBuffs:         base.Raid.Parties[0].Buffs,
+		Debuffs:            base.Raid.Debuffs,
+		Encounter:          base.Encounter,
+		SimOptions:         base.SimOptions,
+		StatsToWeigh:       weigh,
+		PseudoStatsToWeigh: []proto.PseudoStat{proto.PseudoStat_PseudoStatMainHandDps},
+		EpReferenceStat:    proto.Stat_StatAgility,
 	}
 	writeCatEvidence(t, "ep-request", request)
 	result := core.StatWeights(request)
@@ -65,6 +75,10 @@ func TestDefaultEp(t *testing.T) {
 			result.Dps.Weights.Stats[i], result.Dps.WeightsStdev.Stats[i],
 			result.Dps.EpValues.Stats[i], result.Dps.EpValuesStdev.Stats[i])
 	}
+	i := int(proto.PseudoStat_PseudoStatMainHandDps)
+	fmt.Printf("%-22s %12.4f %12.4f %10.4f %10.4f\n", "Main Hand DPS",
+		result.Dps.Weights.PseudoStats[i], result.Dps.WeightsStdev.PseudoStats[i],
+		result.Dps.EpValues.PseudoStats[i], result.Dps.EpValuesStdev.PseudoStats[i])
 }
 
 func writeCatEvidence(t testing.TB, name string, message goproto.Message) {
