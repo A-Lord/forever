@@ -330,6 +330,9 @@ func (unit *Unit) RegisterSpell(config SpellConfig) *Spell {
 	spell.createDots(config.Dot, false)
 	spell.createDots(config.Hot, true)
 	spell.createShields(config.Shield)
+	if spell.castChecksRanks() {
+		spell.hasCastRequirement = true
+	}
 
 	if spell.Cost != nil {
 		spell.DefaultCast.Cost = float64(spell.Cost.BaseCost)
