@@ -17,7 +17,6 @@ func (priest *Priest) registerDarkSacrifice(_ int32, rank *spelldata.Spell) {
 
 	config.Hot = spelldata.DotConfig(rank, manaTick, spelldata.RankLabel(rank, &priest.Unit))
 	config.Hot.SelfOnly = true
-	config.Hot.Aura.Tag = priest.rankTag(rank)
 	ticks := float64(config.Hot.NumberOfTicks)
 	rowMana := manaPerTick * ticks
 	config.Hot.OnTick = func(sim *core.Simulation, _ *core.Unit, _ *core.Dot) {
@@ -27,7 +26,7 @@ func (priest *Priest) registerDarkSacrifice(_ int32, rank *spelldata.Spell) {
 	}
 
 	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
-		applyReplacingOtherRanks(sim, spell.SelfHot())
+		spell.SelfHot().Apply(sim)
 	}
 
 	darkSacrifice := priest.RegisterSpell(config)

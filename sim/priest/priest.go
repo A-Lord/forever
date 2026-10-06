@@ -85,13 +85,12 @@ func (priest *Priest) periodicDamageSpellConfig(rank *spelldata.Spell, classSpel
 	config.ClassSpellMask = classSpellMask
 
 	config.Dot = spelldata.DotConfig(rank, tick, spelldata.RankLabel(rank, &priest.Unit))
-	config.Dot.Aura.Tag = priest.rankTag(rank)
 	config.Dot.OnTick = spelldata.PeriodicDamageTick(tick, rank.TickOutcomeHitRolled)
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		result := spell.CalcOutcome(sim, target, spell.OutcomeMagicHitNoHitCounter)
 		if result.Landed() {
-			applyReplacingOtherRanks(sim, spell.Dot(target))
+			spell.Dot(target).Apply(sim)
 		}
 		spell.DealOutcome(sim, result)
 	}
@@ -101,21 +100,6 @@ func (priest *Priest) periodicDamageSpellConfig(rank *spelldata.Spell, classSpel
 	}
 
 	return config
-}
-
-func (priest *Priest) rankTag(rank *spelldata.Spell) string {
-	return rank.Name + " - " + priest.Label
-}
-
-// A target carries one periodic of an ability per priest: any rank, higher or lower, replaces the
-// other rank there, which stops ticking before the new one starts.
-func applyReplacingOtherRanks(sim *core.Simulation, dot *core.Dot) {
-	for _, aura := range dot.Unit.GetAurasWithTag(dot.Tag) {
-		if aura != dot.Aura {
-			aura.Deactivate(sim)
-		}
-	}
-	dot.Apply(sim)
 }
 
 func (priest *Priest) Reset(_ *core.Simulation) {

@@ -17,7 +17,6 @@ func (priest *Priest) registerHolyFireSpell(_ int32, rank *spelldata.Spell) {
 	config.ClassSpellMask = PriestSpellHolyFire
 
 	config.Dot = spelldata.DotConfig(rank, holyFireTick, spelldata.RankLabel(rank, &priest.Unit))
-	config.Dot.Aura.Tag = priest.rankTag(rank)
 	config.Dot.OnTick = spelldata.PeriodicDamageTick(holyFireTick, rank.TickOutcomeHitRolled)
 
 	if priest.powerInLightAuras != nil {
@@ -33,7 +32,7 @@ func (priest *Priest) registerHolyFireSpell(_ int32, rank *spelldata.Spell) {
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		result := spell.CalcAndDealDamage(sim, target, holyFireHit.Roll(sim), spell.OutcomeMagicHitAndCrit)
 		if result.Landed() {
-			applyReplacingOtherRanks(sim, spell.Dot(target))
+			spell.Dot(target).Apply(sim)
 		}
 	}
 

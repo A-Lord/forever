@@ -25,14 +25,13 @@ func (priest *Priest) registerPenance(_ int32, rank *spelldata.Spell) {
 
 	config.Dot = spelldata.DotConfig(channel, channel.PeriodicEffect(), spelldata.RankLabel(rank, &priest.Unit))
 	config.Dot.Aura.ActionID = config.ActionID
-	config.Dot.Aura.Tag = priest.rankTag(rank)
 	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, _ *core.Dot) {
 		boltSpell.Cast(sim, target)
 	}
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		boltSpell.Cast(sim, target)
-		applyReplacingOtherRanks(sim, spell.Dot(target))
+		spell.Dot(target).Apply(sim)
 	}
 
 	bolts := float64(1 + config.Dot.NumberOfTicks)
