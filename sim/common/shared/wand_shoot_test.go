@@ -142,7 +142,7 @@ func TestWandShoot(t *testing.T) {
 		}
 	})
 
-	t.Run("a shot fires after the wand speed and flies at 20 yards a second", func(t *testing.T) {
+	t.Run("a first shot fires after the wind-up and flies at 20 yards a second", func(t *testing.T) {
 		sim, caster := newWandSim(t, &proto.ItemSpec{Id: sableWandID}, &proto.APLRotation{}, 20)
 		target := sim.Encounter.ActiveTargetUnits[0]
 		metrics := &caster.shoot.SpellMetrics[target.UnitIndex]
@@ -150,21 +150,21 @@ func TestWandShoot(t *testing.T) {
 			t.Fatalf("Shoot could not be cast from 20 yards")
 		}
 
-		stepPast(t, sim, 1799*time.Millisecond)
+		stepPast(t, sim, 499*time.Millisecond)
 		if metrics.Hits+metrics.Crits != 0 {
-			t.Fatalf("Shoot fired before 1.80 s")
+			t.Fatalf("Shoot fired before its 0.5 s wind-up ended")
 		}
-		stepPast(t, sim, 1801*time.Millisecond)
+		stepPast(t, sim, 501*time.Millisecond)
 		if metrics.Hits+metrics.Crits != 1 || metrics.TotalDamage != 0 {
-			t.Fatalf("at 1.80 s: %d shots, %v damage; want 1 shot still in flight", metrics.Hits+metrics.Crits, metrics.TotalDamage)
+			t.Fatalf("at 0.5 s: %d shots, %v damage; want 1 shot still in flight", metrics.Hits+metrics.Crits, metrics.TotalDamage)
 		}
-		stepPast(t, sim, 2799*time.Millisecond)
+		stepPast(t, sim, 1499*time.Millisecond)
 		if metrics.TotalDamage != 0 {
 			t.Fatalf("the shot landed %v before its 1 s flight ended", metrics.TotalDamage)
 		}
-		stepPast(t, sim, 2801*time.Millisecond)
+		stepPast(t, sim, 1501*time.Millisecond)
 		if metrics.TotalDamage == 0 {
-			t.Fatalf("the shot had dealt nothing at 2.80 s")
+			t.Fatalf("the shot had dealt nothing at 1.50 s")
 		}
 	})
 
@@ -180,22 +180,26 @@ func TestWandShoot(t *testing.T) {
 		}
 	})
 
-	t.Run("a channel from the pull fires its first shot after the wand speed", func(t *testing.T) {
+	t.Run("a channel from the pull fires after the wind-up and then every wand speed", func(t *testing.T) {
 		sim, caster := newWandSim(t, &proto.ItemSpec{Id: sableWandID}, channelShootRotation(), 0)
 		metrics := &caster.shoot.SpellMetrics[sim.Encounter.ActiveTargetUnits[0].UnitIndex]
 		sim.PrePull()
 
-		stepPast(t, sim, 1799*time.Millisecond)
+		stepPast(t, sim, 499*time.Millisecond)
 		if !caster.wanding() || metrics.TotalDamage != 0 {
-			t.Fatalf("at 1.799 s the pull's Shoot should be channeling with nothing dealt, wanding %t, %v dealt", caster.wanding(), metrics.TotalDamage)
+			t.Fatalf("at 0.499 s the pull's Shoot should be channeling with nothing dealt, wanding %t, %v dealt", caster.wanding(), metrics.TotalDamage)
 		}
-		stepPast(t, sim, 1801*time.Millisecond)
+		stepPast(t, sim, 501*time.Millisecond)
 		if metrics.Hits+metrics.Crits != 1 || metrics.TotalDamage == 0 {
-			t.Fatalf("at 1.80 s the pull's Shoot should have landed its first shot, %d shots for %v", metrics.Hits+metrics.Crits, metrics.TotalDamage)
+			t.Fatalf("at 0.5 s the pull's Shoot should have landed its first shot, %d shots for %v", metrics.Hits+metrics.Crits, metrics.TotalDamage)
 		}
-		stepPast(t, sim, 3601*time.Millisecond)
+		stepPast(t, sim, 2299*time.Millisecond)
+		if metrics.Hits+metrics.Crits != 1 {
+			t.Fatalf("the second shot should wait a wand speed after the first, %d shots at 2.299 s", metrics.Hits+metrics.Crits)
+		}
+		stepPast(t, sim, 2301*time.Millisecond)
 		if metrics.Casts != 1 || metrics.Hits+metrics.Crits != 2 {
-			t.Fatalf("at 3.60 s the pull's channel should have fired its second shot from one cast, %d casts, %d shots", metrics.Casts, metrics.Hits+metrics.Crits)
+			t.Fatalf("at 2.30 s the pull's channel should have fired its second shot from one cast, %d casts, %d shots", metrics.Casts, metrics.Hits+metrics.Crits)
 		}
 	})
 
@@ -208,10 +212,10 @@ func TestWandShoot(t *testing.T) {
 		for _, step := range []struct {
 			at    time.Duration
 			shots int32
-		}{{1635 * time.Millisecond, 0}, {1637 * time.Millisecond, 1}, {3271 * time.Millisecond, 1}, {3273 * time.Millisecond, 2}} {
+		}{{501 * time.Millisecond, 1}, {2135 * time.Millisecond, 1}, {2137 * time.Millisecond, 2}, {3773 * time.Millisecond, 3}} {
 			stepPast(t, sim, step.at)
 			if got := metrics.Hits + metrics.Crits; got != step.shots {
-				t.Fatalf("with 10%% cast speed from the pull Shoot should fire every 1.636 s, %d shots at %v, want %d", got, step.at, step.shots)
+				t.Fatalf("with 10%% cast speed from the pull Shoot should fire at 0.5 s and then every 1.636 s, %d shots at %v, want %d", got, step.at, step.shots)
 			}
 		}
 	})
@@ -223,13 +227,13 @@ func TestWandShoot(t *testing.T) {
 
 		stepPast(t, sim, time.Second)
 		caster.MultiplyCastSpeed(sim, 1.1)
-		stepPast(t, sim, 3599*time.Millisecond)
+		stepPast(t, sim, 2299*time.Millisecond)
 		if got := metrics.Hits + metrics.Crits; got != 1 {
-			t.Fatalf("10%% cast speed gained at 1 s should leave the running Shoot on 1.80 s, %d shots at 3.599 s, want 1", got)
+			t.Fatalf("10%% cast speed gained at 1 s should leave the running Shoot on 1.80 s, %d shots at 2.299 s, want 1", got)
 		}
-		stepPast(t, sim, 3601*time.Millisecond)
+		stepPast(t, sim, 2301*time.Millisecond)
 		if got := metrics.Hits + metrics.Crits; got != 2 {
-			t.Fatalf("the running Shoot should fire its second shot at 3.60 s, %d shots", got)
+			t.Fatalf("the running Shoot should fire its second shot at 2.30 s, %d shots", got)
 		}
 		if got := caster.Wand.SwingSpeed(); got != 1636*time.Millisecond {
 			t.Fatalf("the wand swing time should read the 1.636 s a new Shoot would shoot at, got %s", got)
@@ -248,11 +252,11 @@ func TestWandShoot(t *testing.T) {
 			t.Fatalf("moving at 1 s should end Shoot and keep it from starting, wanding %t", caster.wanding())
 		}
 		stepPast(t, sim, 2999*time.Millisecond)
-		if caster.wanding() || metrics.Hits+metrics.Crits != 0 {
-			t.Fatalf("Shoot should neither run nor shoot during the move, wanding %t, %d shots", caster.wanding(), metrics.Hits+metrics.Crits)
+		if caster.wanding() || metrics.Hits+metrics.Crits != 1 {
+			t.Fatalf("after its 0.5 s shot Shoot should neither run nor shoot during the move, wanding %t, %d shots", caster.wanding(), metrics.Hits+metrics.Crits)
 		}
-		stepPast(t, sim, 5500*time.Millisecond)
-		if !caster.wanding() || metrics.Hits+metrics.Crits != 1 {
+		stepPast(t, sim, 4*time.Second)
+		if !caster.wanding() || metrics.Hits+metrics.Crits != 2 {
 			t.Fatalf("after the move ends at 3 s the rotation should start Shoot again and shoot, wanding %t, %d shots", caster.wanding(), metrics.Hits+metrics.Crits)
 		}
 	})

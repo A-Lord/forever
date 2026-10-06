@@ -265,14 +265,12 @@ func (dot *Dot) TickOnce(sim *Simulation) {
 	}
 }
 
-// The slot goes to whatever interrupts the channel, so no shot fires there. A plain cast rather
-// than a channel action fires its one shot and stops.
+// The slot goes to whatever interrupts the channel, so no shot fires there, also while the GCD has
+// a spell queue window left. A plain cast rather than a channel action fires its one shot and stops.
 func (dot *Dot) autorepeatTick(sim *Simulation) {
-	unit := dot.Spell.Unit
-	rot := unit.Rotation
+	rot := dot.Spell.Unit.Rotation
 	rot.evalGeneration++
-	if rot.shouldInterruptChannel(sim) &&
-		(unit.GCD.IsReady(sim) || unit.GCD.TimeToReady(sim) > MaxSpellQueueWindow) {
+	if rot.shouldInterruptChannel(sim) {
 		dot.tickAction.NextActionAt = NeverExpires
 		dot.Deactivate(sim)
 		return
@@ -389,6 +387,9 @@ func newDot(config Dot) *Dot {
 			// Priority:     ActionPriorityDOT,
 			OnAction: dot.periodicTick,
 		}
+		if dot.autorepeat {
+			dot.tickAction.NextActionAt = dot.Spell.Unit.Wand.firstShotAt(sim, dot.tickPeriod)
+		}
 		sim.AddPendingAction(dot.tickAction)
 		if dot.isChanneled {
 			dot.Spell.Unit.ChanneledDot = dot
@@ -407,6 +408,7 @@ func newDot(config Dot) *Dot {
 			// Compute clip delay before clearing ChanneledDot (used by nextActionWouldRecastChannel).
 			channelDelay := dot.getChannelClipDelay()
 			dot.Spell.Unit.ChanneledDot = nil
+			dot.Spell.Unit.Wand.spellCompleted(sim, dot.Spell)
 			for _, handler := range dot.Spell.Unit.channelEndHandlers {
 				handler(sim)
 			}
