@@ -1,15 +1,12 @@
 import { composeStories, type Meta, setProjectAnnotations, type StoryObj } from '@storybook/react-vite';
-import { storyFetch } from '@testing/storybook/fixtures/database';
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 
 import * as preview from '../../../.storybook/preview';
 
 const annotations = setProjectAnnotations([preview]);
 beforeAll(async () => {
-	vi.stubGlobal('fetch', vi.fn(storyFetch));
 	await annotations.beforeAll();
 });
-afterAll(() => vi.unstubAllGlobals());
 
 type StoriesModule = { default: Meta } & Record<string, StoryObj>;
 
