@@ -340,6 +340,10 @@ func (wa *WeaponAttack) getWeapon() *Weapon {
 
 func (wa *WeaponAttack) setWeapon(weapon Weapon) {
 	wa.Weapon = weapon
+	if wa.spell != nil {
+		wa.spell.SetSpellSchool(weapon.GetSpellSchool())
+		wa.spell.BonusCoefficient = weapon.GetBonusCoefficient()
+	}
 	wa.updateSwingDuration(wa.curSwingSpeed)
 }
 
