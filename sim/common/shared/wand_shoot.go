@@ -34,8 +34,7 @@ func RegisterShoot(character *core.Character) *core.Spell {
 	var wand *core.Wand
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		weapon = character.WeaponFromRanged()
-		spell.SpellSchool = weapon.GetSpellSchool()
-		spell.SchoolIndex = spell.SpellSchool.MultiplierSchool().SchoolIndex()
+		spell.SetSpellSchool(weapon.GetSpellSchool())
 		wand.Start(sim, target)
 	}
 

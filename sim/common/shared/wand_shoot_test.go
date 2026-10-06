@@ -432,6 +432,34 @@ func TestWandShootReadsEquippedWand(t *testing.T) {
 	t.Run("a wand swapped in after registering with none shoots at its speed, damage and school", func(t *testing.T) {
 		checkSwappedShoot(t, &proto.ItemSpec{}, &proto.ItemSpec{Id: sableWandID}, core.SpellSchoolShadow, 1800*time.Millisecond)
 	})
+
+	t.Run("Wand Specialization's school mask follows the swapped-in wand's school", func(t *testing.T) {
+		for _, tc := range []struct {
+			ranged, swapped int32
+			multiplier      float64
+		}{{physicalWandID, sableWandID, 1.25}, {sableWandID, physicalWandID, 1}} {
+			swappedShots := func(specialized bool) []float64 {
+				sim, caster := newSwapWandSim(t, &proto.ItemSpec{Id: tc.ranged}, &proto.ItemSpec{Id: tc.swapped}, &proto.APLRotation{}, 0, 60)
+				if specialized {
+					caster.AddStaticMod(core.SpellModConfig{
+						Kind:       core.SpellMod_DamageDone_Pct,
+						ProcMask:   core.ProcMaskRangedAuto,
+						School:     core.SpellSchool(126),
+						FloatValue: 0.25,
+					})
+				}
+				caster.ItemSwap.SwapItems(sim, proto.APLActionItemSwap_Swap1, false)
+				stepPast(t, sim, 5*time.Second)
+				return shots(t, sim, caster, 20)
+			}
+			plain, specialized := swappedShots(false), swappedShots(true)
+			for i := range specialized {
+				if diff := specialized[i] - tc.multiplier*plain[i]; diff > 1e-9 || diff < -1e-9 {
+					t.Fatalf("wand %d swapped for %d: shot %d dealt %v with the talent's mod, want %v × %v", tc.ranged, tc.swapped, i+1, specialized[i], tc.multiplier, plain[i])
+				}
+			}
+		}
+	})
 }
 
 func (c *wandCaster) wanding() bool {

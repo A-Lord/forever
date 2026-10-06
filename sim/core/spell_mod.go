@@ -334,6 +334,47 @@ func (unit *Unit) refilterEquipMods() {
 	}
 }
 
+// Changes the spell's school, for a spell that takes its weapon's, and moves it into or out of the
+// school-filtered mods it now passes or fails.
+func (spell *Spell) SetSpellSchool(school SpellSchool) {
+	if school == spell.SpellSchool {
+		return
+	}
+	spell.SpellSchool = school
+	spell.SchoolIndex = school.MultiplierSchool().SchoolIndex()
+
+	unit := spell.Unit
+	for _, mod := range unit.spellMods {
+		if (mod.School == 0 && mod.MultiplierSchool == 0) || mod.Kind == SpellMod_ProcChance_Flat || mod.Kind == SpellMod_ProcChance_Pct {
+			continue
+		}
+		passes := passesSpellChecks(spell, mod)
+		var equipment *Equipment
+		if !mod.Equip.IsZero() {
+			// AffectedSpells stays in weaponCandidates' order: the spell joins or leaves both at once.
+			if i := slices.Index(mod.weaponCandidates, spell); i >= 0 && !passes {
+				mod.weaponCandidates = slices.Delete(mod.weaponCandidates, i, i+1)
+			} else if i < 0 && passes {
+				mod.weaponCandidates = append(mod.weaponCandidates, spell)
+			}
+			equipment = unit.playerEquipment()
+		}
+		reaches := passes && passesWeaponChecks(spell, mod, equipment)
+		i := slices.Index(mod.AffectedSpells, spell)
+		if reaches && i < 0 {
+			mod.AffectedSpells = append(mod.AffectedSpells, spell)
+			if mod.IsActive {
+				mod.Apply(mod, spell)
+			}
+		} else if !reaches && i >= 0 {
+			if mod.IsActive {
+				mod.Remove(mod, spell)
+			}
+			mod.AffectedSpells = slices.Delete(mod.AffectedSpells, i, i+1)
+		}
+	}
+}
+
 // The sums of the active hit and crit mods that reach every attack with this proc mask: those naming
 // no ClassMask, ClassFlags, school or spell flag, whose proc mask and weapon match the attack's.
 // HitFromRating and CritFromRating are the part the mods converted from a rating give.
