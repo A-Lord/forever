@@ -591,10 +591,26 @@ func (apl *APLRotation) shouldInterruptChannel(sim *Simulation) bool {
 	apl.unit.ChanneledDot = channeledDot
 
 	if wouldRecast {
-		return apl.allowChannelRecastOnInterrupt
+		// Recasting an autorepeat channel would only throw its shot away.
+		return apl.allowChannelRecastOnInterrupt && !channeledDot.autorepeat
 	}
 
 	return true
+}
+
+// Fires the major cooldowns that need neither a cast nor the GCD, without ending the channel.
+func (apl *APLRotation) autocastCooldownsWhileChanneling(sim *Simulation) {
+	for _, action := range apl.priorityList {
+		autocast, ok := action.impl.(*APLActionAutocastOtherCooldowns)
+		if !ok || (action.condition != nil && !action.condition.GetBool(sim)) {
+			continue
+		}
+		var last *MajorCooldown
+		for autocast.IsReady(sim) && autocast.nextReadyMCD != last && autocast.nextReadyMCD.Spell.DefaultCast.EffectiveTime() == 0 {
+			last = autocast.nextReadyMCD
+			autocast.Execute(sim)
+		}
+	}
 }
 
 func APLRotationFromJsonString(jsonString string) *proto.APLRotation {

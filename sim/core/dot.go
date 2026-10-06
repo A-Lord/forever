@@ -270,14 +270,13 @@ func (dot *Dot) TickOnce(sim *Simulation) {
 func (dot *Dot) autorepeatTick(sim *Simulation) {
 	unit := dot.Spell.Unit
 	rot := unit.Rotation
-	if rot != nil {
-		rot.evalGeneration++
-		if rot.shouldInterruptChannel(sim) &&
-			(unit.GCD.IsReady(sim) || unit.GCD.TimeToReady(sim) > MaxSpellQueueWindow) {
-			dot.tickAction.NextActionAt = NeverExpires
-			dot.Deactivate(sim)
-			return
-		}
+	rot.evalGeneration++
+	rot.autocastCooldownsWhileChanneling(sim)
+	if rot.shouldInterruptChannel(sim) &&
+		(unit.GCD.IsReady(sim) || unit.GCD.TimeToReady(sim) > MaxSpellQueueWindow) {
+		dot.tickAction.NextActionAt = NeverExpires
+		dot.Deactivate(sim)
+		return
 	}
 
 	dot.remainingTicks--
@@ -286,7 +285,7 @@ func (dot *Dot) autorepeatTick(sim *Simulation) {
 		return
 	}
 
-	if rot == nil || rot.interruptChannelIf == nil || dot.remainingTicks == 0 {
+	if rot.interruptChannelIf == nil || dot.remainingTicks == 0 {
 		dot.tickAction.NextActionAt = NeverExpires
 		dot.Deactivate(sim)
 		return

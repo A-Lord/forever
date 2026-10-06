@@ -87,6 +87,10 @@ func (ct *channelTest) channelAction() APLActionImpl {
 	return ct.rot.newActionChannelSpell(&proto.APLActionChannelSpell{SpellId: ct.spell.ActionID.ToProto(), InterruptIf: constValue("true")})
 }
 
+func (ct *channelTest) recastChannelAction() APLActionImpl {
+	return ct.rot.newActionChannelSpell(&proto.APLActionChannelSpell{SpellId: ct.spell.ActionID.ToProto(), InterruptIf: constValue("true"), AllowRecast: true})
+}
+
 // The pull's rotation action stays pending at 0; the melee swings are turned off.
 func (ct *channelTest) start(actions ...APLActionImpl) {
 	ct.rot.priorityList = nil
@@ -212,6 +216,50 @@ func TestWandAutorepeatChannel(t *testing.T) {
 		}
 		if !slices.Equal(ct.channelEnd, seconds(1)) {
 			t.Fatalf("Drain Life should end at its 1 s tick, ended at %v", ct.channelEnd)
+		}
+		ct.runUntil(1500 * time.Millisecond)
+		if !slices.Equal(stub.ranAt, seconds(1.5)) {
+			t.Fatalf("the action that ended Drain Life should run when the GCD ends at 1.5 s, ran at %v", stub.ranAt)
+		}
+	})
+
+	t.Run("a channel allowed to recast keeps shooting", func(t *testing.T) {
+		ct := newShootTest()
+		ct.start(ct.recastChannelAction())
+
+		ct.runUntil(6001 * time.Millisecond)
+		if !slices.Equal(ct.ticks, seconds(2, 4, 6)) || len(ct.channelEnd) != 0 {
+			t.Fatalf("a Shoot channel allowed to recast should shoot at 2, 4 and 6 s without being cut, shots at %v, ended at %v", ct.ticks, ct.channelEnd)
+		}
+	})
+
+	t.Run("major cooldowns fire at a tick without ending the channel", func(t *testing.T) {
+		var cooldown *Spell
+		var cooldownAt []time.Duration
+		ct := newChannelTest(func(ct *channelTest, char *Character) *Spell {
+			cooldown = char.RegisterSpell(SpellConfig{
+				ActionID: ActionID{SpellID: 910100},
+				Cast:     CastConfig{CD: Cooldown{Timer: char.NewTimer(), Duration: time.Minute}},
+				ApplyEffects: func(sim *Simulation, _ *Unit, _ *Spell) {
+					cooldownAt = append(cooldownAt, sim.CurrentTime)
+				},
+			})
+			char.AddMajorCooldown(MajorCooldown{Spell: cooldown, Type: CooldownTypeDPS})
+			return fakeShoot(char, &ct.ticks)
+		})
+		cooldown.finalize()
+		ct.fw.majorCooldownManager.finalize()
+		ct.fw.majorCooldownManager.reset(ct.sim)
+		cooldown.CD.Set(3 * time.Second)
+		ct.fw.UpdateMajorCooldowns()
+		ct.start(ct.rot.newActionAutocastOtherCooldowns(&proto.APLActionAutocastOtherCooldowns{}), ct.channelAction())
+
+		ct.runUntil(4001 * time.Millisecond)
+		if !slices.Equal(cooldownAt, seconds(4)) {
+			t.Fatalf("a cooldown ready at 3 s should fire at the 4 s tick, fired at %v", cooldownAt)
+		}
+		if !slices.Equal(ct.ticks, seconds(2, 4)) || len(ct.channelEnd) != 0 {
+			t.Fatalf("Shoot should still fire at 4 s and keep going, shots at %v, ended at %v", ct.ticks, ct.channelEnd)
 		}
 	})
 
