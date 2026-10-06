@@ -10,6 +10,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		869, // Dazzling Longsword
+		[
+			"Decrease the armor of the target by 100 for 30s. While affected, the target cannot stealth or turn invisible.", // 13752 - https://www.wowhead.com/forever/spell=13752
+		]
+	],
+	[
 		880, // Staff of Horrors
 		[
 			"Damage caused by the target is reduced by 5 for 2min.", // 8552 - https://www.wowhead.com/forever/spell=8552
@@ -103,6 +109,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		1728, // Teebu's Blazing Longsword
 		[
 			"Blasts a target for 140 Fire damage.", // 1300753 - https://www.wowhead.com/forever/spell=1300753
+		]
+	],
+	[
+		1982, // Nightblade
+		[
+			"Sends a shadowy bolt at the enemy causing 200 Shadow damage.", // 18211 - https://www.wowhead.com/forever/spell=18211
 		]
 	],
 	[
@@ -217,6 +229,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		3456, // Dog Whistle
 		[
 			"", // 1293501 - https://www.wowhead.com/forever/spell=1293501
+		]
+	],
+	[
+		3475, // Cloak of Flames
+		[
+			"Deals 5 Fire damage to anyone who strikes you with a melee attack.", // 21142 - https://www.wowhead.com/forever/spell=21142
 		]
 	],
 	[
@@ -745,6 +763,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		10772, // Glutton's Cleaver
 		[
 			"Wounds the target causing them to bleed for 70 damage over 7s.", // 18075 - https://www.wowhead.com/forever/spell=18075
+		]
+	],
+	[
+		10776, // Silky Spider Cape
+		[
+			"Reduces the duration of all movement impairing effects on you by 7%.", // 1293819 - https://www.wowhead.com/forever/spell=1293819
 		]
 	],
 	[
@@ -1393,12 +1417,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		19959, // Hazza'rah's Charm of Magic
 		[
 			"Increases the critical hit chance of your Arcane spells by 5%, and increases the critical hit damage of your Arcane spells by 50% for 20s.", // 24544 - https://www.wowhead.com/forever/spell=24544
-		]
-	],
-	[
-		20005, // Devilsaur Claws
-		[
-			"Increased Fist Weapons +4.", // 24362 - https://www.wowhead.com/forever/spell=24362
 		]
 	],
 	[
