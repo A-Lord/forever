@@ -186,9 +186,9 @@ type Unit struct {
 	rotationAction *PendingAction
 	hardcastAction *PendingAction
 
-	// Cached mana return values per tick.
-	manaTickWhileCasting    float64
-	manaTickWhileNotCasting float64
+	// Cached mana regen per second.
+	manaRegenWhileCasting    float64
+	manaRegenWhileNotCasting float64
 
 	CastSpeed           float64
 	meleeAttackSpeed    float64
@@ -409,7 +409,7 @@ func (unit *Unit) AddStatDynamic(sim *Simulation, stat stats.Stat, amount float6
 
 func (unit *Unit) processDynamicBonus(sim *Simulation, bonus *stats.Stats) {
 	if bonus[stats.MP5] != 0 || bonus[stats.Intellect] != 0 || bonus[stats.Spirit] != 0 {
-		unit.UpdateManaRegenRates()
+		unit.UpdateManaRegenRates(sim)
 	}
 	if bonus[stats.Mana] != 0 && unit.HasManaBar() {
 		if unit.CurrentMana() > unit.MaxMana() {
@@ -908,7 +908,7 @@ func (unit *Unit) reset(sim *Simulation, _ Agent) {
 	unit.manaBar.reset()
 	unit.focusBar.reset(sim)
 	unit.healthBar.reset(sim)
-	unit.UpdateManaRegenRates()
+	unit.UpdateManaRegenRates(sim)
 
 	unit.energyBar.reset(sim)
 	unit.rageBar.reset(sim)

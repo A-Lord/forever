@@ -413,6 +413,9 @@ func newDot(config Dot) *Dot {
 		if dot.isChanneled {
 			// Compute clip delay before clearing ChanneledDot (used by nextActionWouldRecastChannel).
 			channelDelay := dot.getChannelClipDelay()
+			if dot.Spell.Unit.channelPaidMana() {
+				dot.Spell.Unit.creditManaRegen(sim)
+			}
 			dot.Spell.Unit.ChanneledDot = nil
 			for _, handler := range dot.Spell.Unit.channelEndHandlers {
 				handler(sim, dot)

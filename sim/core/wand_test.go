@@ -128,10 +128,10 @@ func (ct *channelTest) start(actions ...APLActionImpl) {
 	ct.fw.AutoAttacks.CancelAutoSwing(ct.sim)
 }
 
-// Runs every pending action up to and including until, then moves the clock to until.
+// Runs every pending action and task up to and including until, then moves the clock to until.
 func (ct *channelTest) runUntil(until time.Duration) {
 	sim := ct.sim
-	for sim.pendingActions[len(sim.pendingActions)-1].NextActionAt <= until && !sim.Step() {
+	for (sim.pendingActions[len(sim.pendingActions)-1].NextActionAt <= until || sim.minTaskTime <= until) && !sim.Step() {
 	}
 	sim.advance(until)
 }

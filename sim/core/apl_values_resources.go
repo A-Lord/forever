@@ -195,7 +195,7 @@ func (value *APLValueCurrentManaRegen) Type() proto.APLValueType {
 	return proto.APLValueType_ValueTypeFloat
 }
 func (value *APLValueCurrentManaRegen) GetFloat(sim *Simulation) float64 {
-	return value.unit.manaTickWhileCasting
+	return value.unit.manaRegenWhileCasting
 }
 func (value *APLValueCurrentManaRegen) String() string {
 	return "Mana Regen while casting"

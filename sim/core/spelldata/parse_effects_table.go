@@ -1240,7 +1240,7 @@ func (p *parser) refreshingManaRegen(a *attachment) *attachment {
 	set := a.set
 	a.set = func(sim *core.Simulation, level float64) {
 		set(sim, level)
-		p.unit.UpdateManaRegenRates()
+		p.unit.UpdateManaRegenRates(sim)
 	}
 	return a
 }
