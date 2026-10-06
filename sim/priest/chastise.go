@@ -12,7 +12,6 @@ func (priest *Priest) registerChastise(_ int32, rank *spelldata.Spell) {
 	mobTypes := spelldata.MobTypes(rank.TargetCreatureType)
 
 	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))
-	config.ClassSpellMask = PriestSpellChastise
 	config.ExtraCastCondition = func(_ *core.Simulation, target *core.Unit) bool {
 		return slices.Contains(mobTypes, target.MobType)
 	}

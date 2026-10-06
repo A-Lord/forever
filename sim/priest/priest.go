@@ -70,10 +70,9 @@ func (priest *Priest) Initialize() {
 	}
 }
 
-func (priest *Priest) registerSelfBuffSpell(rank *spelldata.Spell, aura *core.Aura, classSpellMask int64) *core.Spell {
+func (priest *Priest) registerSelfBuffSpell(rank *spelldata.Spell, aura *core.Aura) *core.Spell {
 	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Flags(core.SpellFlagAPL))
 	config.ProcMask = core.ProcMaskEmpty
-	config.ClassSpellMask = classSpellMask
 	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, _ *core.Spell) {
 		aura.Activate(sim)
 		if aura.MaxStacks > 0 {
@@ -169,36 +168,17 @@ func RegisterPriest() {
 
 const (
 	PriestSpellDevouringPlague int64 = 1 << iota
-	PriestSpellHolyNova
 	PriestSpellHolyFire
 	PriestSpellMindBlast
 	PriestSpellMindFlay
-	PriestSpellPowerInfusion
-	PriestSpellStarshards
-	PriestSpellShadowform
 	PriestSpellShadowWordDeath
 	PriestSpellShadowWordPain
 	PriestSpellShadowFiend
-	PriestSpellVampiricEmbrace
-	PriestSpellFade
 	PriestSpellSmite
-	PriestSpellInnerFire
-	PriestSpellChastise
-	PriestSpellDarkSacrifice
-	PriestSpellPenance
-	PriestSpellDesperatePrayer
-
-	// TODO: Forever abilities the sim does not model yet; see the stub file named for each.
-	PriestSpellConfoundingFlash
-	PriestSpellContingencyPlan
-	PriestSpellDivineGrace
 
 	PriestShadowSpells = PriestSpellDevouringPlague |
 		PriestSpellShadowWordDeath |
-		PriestSpellShadowform |
 		PriestSpellShadowWordPain |
 		PriestSpellMindFlay |
-		PriestSpellMindBlast |
-		PriestSpellShadowFiend |
-		PriestSpellVampiricEmbrace
+		PriestSpellMindBlast
 )

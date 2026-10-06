@@ -28,5 +28,5 @@ func (priest *Priest) registerInnerFire(_ int32, rank *spelldata.Spell) {
 			aura.RemoveStack(sim)
 		}))
 
-	priest.registerSelfBuffSpell(rank, aura, PriestSpellInnerFire)
+	priest.registerSelfBuffSpell(rank, aura)
 }

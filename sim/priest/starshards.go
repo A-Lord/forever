@@ -7,5 +7,5 @@ import (
 var StarshardsRankMap = spellData.Starshards
 
 func (priest *Priest) registerStarshardsSpell(_ int32, rank *spelldata.Spell) {
-	priest.RegisterSpell(priest.periodicDamageSpellConfig(rank, PriestSpellStarshards))
+	priest.RegisterSpell(priest.periodicDamageSpellConfig(rank, 0))
 }

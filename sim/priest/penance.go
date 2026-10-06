@@ -15,14 +15,12 @@ func (priest *Priest) registerPenance(_ int32, rank *spelldata.Spell) {
 	channel := refs[2]
 
 	boltConfig := spelldata.SpellConfig(&priest.Unit, boltRow, spelldata.Magic(core.ProcMaskSpellDamage), spelldata.Proc())
-	boltConfig.ClassSpellMask = PriestSpellPenance
 	boltConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		priest.calcAndDealPowerInLightDamage(sim, target, spell, bolt.Roll(sim))
 	}
 	boltSpell := priest.RegisterSpell(boltConfig)
 
 	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))
-	config.ClassSpellMask = PriestSpellPenance
 
 	config.Dot = spelldata.DotConfig(channel, channel.PeriodicEffect(), spelldata.RankLabel(rank))
 	config.Dot.Aura.ActionID = config.ActionID

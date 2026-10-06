@@ -224,7 +224,6 @@ func (priest *Priest) applyPowerInfusion() {
 	piAura := buffs.NewSpellDataPowerInfusionsAura(&priest.Unit, true, 0)
 
 	config := spelldata.SpellConfig(&priest.Unit, spellData.PowerInfusion.Highest(), spelldata.Flags(core.SpellFlagAPL))
-	config.ClassSpellMask = PriestSpellPowerInfusion
 	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, _ *core.Spell) {
 		piAura.Activate(sim)
 	}

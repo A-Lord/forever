@@ -37,5 +37,5 @@ func (priest *Priest) registerTouchOfWeakness(_ int32, rank *spelldata.Spell) {
 			aura.Deactivate(sim)
 		}))
 
-	priest.registerSelfBuffSpell(rank, aura, 0)
+	priest.registerSelfBuffSpell(rank, aura)
 }

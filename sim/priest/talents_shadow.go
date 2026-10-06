@@ -236,7 +236,6 @@ func (priest *Priest) applyShadowform() {
 	spelldata.ParseEffects(&priest.Character, shadowformAura, rank)
 
 	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Flags(core.SpellFlagAPL))
-	config.ClassSpellMask = PriestSpellShadowform
 	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, _ *core.Spell) {
 		shadowformAura.Activate(sim)
 	}

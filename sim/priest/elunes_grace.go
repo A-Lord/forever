@@ -19,5 +19,5 @@ func (priest *Priest) registerElunesGrace(_ int32, rank *spelldata.Spell) {
 	trigger.RequireDamageDealt = false
 	aura.AttachProcTrigger(trigger)
 
-	priest.registerSelfBuffSpell(rank, aura, 0)
+	priest.registerSelfBuffSpell(rank, aura)
 }

@@ -14,7 +14,6 @@ func (priest *Priest) registerDarkSacrifice(_ int32, rank *spelldata.Spell) {
 	manaMetrics := priest.NewManaMetrics(core.ActionID{SpellID: rank.ID})
 
 	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Flags(core.SpellFlagAPL))
-	config.ClassSpellMask = PriestSpellDarkSacrifice
 
 	config.Hot = spelldata.DotConfig(rank, manaTick, spelldata.RankLabel(rank))
 	config.Hot.SelfOnly = true

@@ -27,5 +27,5 @@ func (priest *Priest) registerShadowguard(_ int32, rank *spelldata.Spell) {
 			aura.RemoveStack(sim)
 		}))
 
-	priest.registerSelfBuffSpell(rank, aura, 0)
+	priest.registerSelfBuffSpell(rank, aura)
 }

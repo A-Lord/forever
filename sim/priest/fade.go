@@ -22,5 +22,5 @@ func (priest *Priest) registerFade(_ int32, rank *spelldata.Spell) {
 	aura := priest.RegisterAura(auraConfig)
 	aura.NewExclusiveEffect(rank.Name, true, core.ExclusiveEffect{})
 
-	spell = priest.registerSelfBuffSpell(rank, aura, PriestSpellFade)
+	spell = priest.registerSelfBuffSpell(rank, aura)
 }

@@ -12,7 +12,6 @@ func (priest *Priest) registerHolyNovaSpell(_ int32, rank *spelldata.Spell) {
 	baseDamage := rank.DamageEffect()
 
 	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))
-	config.ClassSpellMask = PriestSpellHolyNova
 	config.ThreatMultiplier = 0 // The tooltip: "These effects cause no threat." No row field states it.
 
 	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
