@@ -130,6 +130,14 @@ func (weapon *Weapon) GetSpellSchool() SpellSchool {
 	}
 }
 
+// A weapon that deals magic damage adds no spell damage to its autos.
+func (weapon *Weapon) GetBonusCoefficient() float64 {
+	if weapon.GetSpellSchool() == SpellSchoolPhysical {
+		return 1
+	}
+	return 0
+}
+
 func (weapon *Weapon) EnemyWeaponDamage(sim *Simulation, attackPower float64, damageSpread float64) float64 {
 	// Maximum damage range is 133% of minimum damage; AP contribution is % of minimum damage roll.
 	// Patchwerk follows special damage range rules.
@@ -508,7 +516,7 @@ func (unit *Unit) EnableAutoAttacks(agent Agent, options AutoAttackOptions) {
 		DamageMultiplierAdditive: 1,
 		ThreatMultiplier:         1,
 
-		BonusCoefficient: 1,
+		BonusCoefficient: options.MainHand.GetBonusCoefficient(),
 
 		ApplyEffects: func(sim *Simulation, target *Unit, spell *Spell) {
 			baseDamage := spell.Unit.MHWeaponDamage(sim, spell.MeleeAttackPower(target))
@@ -533,7 +541,7 @@ func (unit *Unit) EnableAutoAttacks(agent Agent, options AutoAttackOptions) {
 		DamageMultiplierAdditive: 1,
 		ThreatMultiplier:         1,
 
-		BonusCoefficient: 1,
+		BonusCoefficient: options.OffHand.GetBonusCoefficient(),
 
 		ApplyEffects: func(sim *Simulation, target *Unit, spell *Spell) {
 			baseDamage := spell.Unit.OHWeaponDamage(sim, spell.MeleeAttackPower(target))
@@ -555,7 +563,7 @@ func (unit *Unit) EnableAutoAttacks(agent Agent, options AutoAttackOptions) {
 		DamageMultiplier:         1,
 		DamageMultiplierAdditive: 1,
 		ThreatMultiplier:         1,
-		BonusCoefficient:         1,
+		BonusCoefficient:         options.Ranged.GetBonusCoefficient(),
 
 		ApplyEffects: func(sim *Simulation, target *Unit, spell *Spell) {
 			// Emit an "auto delayed" log line whenever the ranged auto fired
