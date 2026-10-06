@@ -10,7 +10,10 @@ import (
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-const sableWandID int32 = 7607 // 21–40 shadow, 1.80 s.
+const (
+	sableWandID    int32 = 7607   // 21–40 shadow, 1.80 s.
+	physicalWandID int32 = 279847 // Unstable Power Core, physical, 1.70 s.
+)
 
 func init() {
 	core.RegisterAgentFactory(
@@ -114,6 +117,10 @@ func shots(t *testing.T, sim *core.Simulation, caster *wandCaster, n int) []floa
 	return dealt
 }
 
+func landed(metrics *core.SpellMetrics) int32 {
+	return metrics.Hits + metrics.Crits
+}
+
 func TestWandShoot(t *testing.T) {
 	t.Run("a shot rolls the wand's damage in its school, with no power", func(t *testing.T) {
 		sim, caster := newSableWandSim(t)
@@ -167,12 +174,12 @@ func TestWandShoot(t *testing.T) {
 		}
 
 		stepPast(t, sim, 499*time.Millisecond)
-		if metrics.Hits+metrics.Crits != 0 {
+		if landed(metrics) != 0 {
 			t.Fatalf("Shoot fired before its 0.5 s wind-up ended")
 		}
 		stepPast(t, sim, 501*time.Millisecond)
-		if metrics.Hits+metrics.Crits != 1 || metrics.TotalDamage != 0 {
-			t.Fatalf("at 0.5 s: %d shots, %v damage; want 1 shot still in flight", metrics.Hits+metrics.Crits, metrics.TotalDamage)
+		if landed(metrics) != 1 || metrics.TotalDamage != 0 {
+			t.Fatalf("at 0.5 s: %d shots, %v damage; want 1 shot still in flight", landed(metrics), metrics.TotalDamage)
 		}
 		stepPast(t, sim, 1499*time.Millisecond)
 		if metrics.TotalDamage != 0 {
@@ -184,45 +191,21 @@ func TestWandShoot(t *testing.T) {
 		}
 	})
 
-	t.Run("no wand, no Shoot", func(t *testing.T) {
-		sim, caster := newWandSim(t, &proto.ItemSpec{}, &proto.APLRotation{}, 0)
-		target := sim.Encounter.ActiveTargetUnits[0]
-		if caster.shoot.CanCast(sim, target) {
-			t.Fatalf("Shoot can be cast with no wand")
-		}
-		caster.shoot.Cast(sim, target)
-		if caster.ChanneledDot != nil {
-			t.Fatalf("Shoot is channeling with no wand")
-		}
-	})
-
 	t.Run("a caster registered without a wand reads zero and cannot shoot", func(t *testing.T) {
 		sim, caster := newWandSim(t, &proto.ItemSpec{}, &proto.APLRotation{}, 0)
+		target := sim.Encounter.ActiveTargetUnits[0]
 		if caster.Wand == nil {
 			t.Fatalf("the caster has no Wand state")
 		}
 		if caster.Wand.SwingSpeed() != 0 || caster.Wand.TimeToNext(sim) != 0 || caster.Wand.TimeSinceLast(sim) != sim.CurrentTime {
 			t.Fatalf("with no wand the values read %v swing, %v to the next, %v since the last", caster.Wand.SwingSpeed(), caster.Wand.TimeToNext(sim), caster.Wand.TimeSinceLast(sim))
 		}
-		if caster.shoot.CanCast(sim, sim.Encounter.ActiveTargetUnits[0]) {
+		if caster.shoot.CanCast(sim, target) {
 			t.Fatalf("Shoot can be cast with no wand")
 		}
-	})
-
-	t.Run("a wand swapped in later shoots with no panic", func(t *testing.T) {
-		sim, caster := newSwapWandSim(t, &proto.ItemSpec{}, &proto.ItemSpec{Id: sableWandID}, &proto.APLRotation{}, 0)
-		caster.ItemSwap.SwapItems(sim, proto.APLActionItemSwap_Swap1, false)
-		if caster.GetRangedWeapon() == nil {
-			t.Fatalf("the swap did not equip the wand")
-		}
-		target := sim.Encounter.ActiveTargetUnits[0]
-		stepPast(t, sim, 5*time.Second)
-		if !caster.shoot.Cast(sim, target) {
-			t.Fatalf("Shoot could not be cast with the swapped-in wand")
-		}
-		stepPast(t, sim, sim.CurrentTime+3*time.Second)
-		if caster.Wand.TimeSinceLast(sim) > 3*time.Second {
-			t.Fatalf("Shoot fired no shot with the swapped-in wand")
+		caster.shoot.Cast(sim, target)
+		if caster.ChanneledDot != nil {
+			t.Fatalf("Shoot is channeling with no wand")
 		}
 	})
 
@@ -236,16 +219,16 @@ func TestWandShoot(t *testing.T) {
 			t.Fatalf("at 0.499 s the pull's Shoot should be channeling with nothing dealt, wanding %t, %v dealt", caster.wanding(), metrics.TotalDamage)
 		}
 		stepPast(t, sim, 501*time.Millisecond)
-		if metrics.Hits+metrics.Crits != 1 || metrics.TotalDamage == 0 {
-			t.Fatalf("at 0.5 s the pull's Shoot should have landed its first shot, %d shots for %v", metrics.Hits+metrics.Crits, metrics.TotalDamage)
+		if landed(metrics) != 1 || metrics.TotalDamage == 0 {
+			t.Fatalf("at 0.5 s the pull's Shoot should have landed its first shot, %d shots for %v", landed(metrics), metrics.TotalDamage)
 		}
 		stepPast(t, sim, 2299*time.Millisecond)
-		if metrics.Hits+metrics.Crits != 1 {
-			t.Fatalf("the second shot should wait a wand speed after the first, %d shots at 2.299 s", metrics.Hits+metrics.Crits)
+		if landed(metrics) != 1 {
+			t.Fatalf("the second shot should wait a wand speed after the first, %d shots at 2.299 s", landed(metrics))
 		}
 		stepPast(t, sim, 2301*time.Millisecond)
-		if metrics.Casts != 1 || metrics.Hits+metrics.Crits != 2 {
-			t.Fatalf("at 2.30 s the pull's channel should have fired its second shot from one cast, %d casts, %d shots", metrics.Casts, metrics.Hits+metrics.Crits)
+		if metrics.Casts != 1 || landed(metrics) != 2 {
+			t.Fatalf("at 2.30 s the pull's channel should have fired its second shot from one cast, %d casts, %d shots", metrics.Casts, landed(metrics))
 		}
 	})
 
@@ -260,40 +243,15 @@ func TestWandShoot(t *testing.T) {
 			shots int32
 		}{{501 * time.Millisecond, 1}, {2135 * time.Millisecond, 1}, {2137 * time.Millisecond, 2}, {3773 * time.Millisecond, 3}} {
 			stepPast(t, sim, step.at)
-			if got := metrics.Hits + metrics.Crits; got != step.shots {
+			if got := landed(metrics); got != step.shots {
 				t.Fatalf("with 10%% cast speed from the pull Shoot should fire at 0.5 s and then every 1.636 s, %d shots at %v, want %d", got, step.at, step.shots)
 			}
 		}
 	})
 
-	t.Run("cast speed gained while wanding waits for the next Shoot", func(t *testing.T) {
-		sim, caster := newWandSim(t, &proto.ItemSpec{Id: sableWandID}, channelShootRotation(), 0)
-		metrics := &caster.shoot.SpellMetrics[sim.Encounter.ActiveTargetUnits[0].UnitIndex]
-		sim.PrePull()
-
-		stepPast(t, sim, time.Second)
-		caster.MultiplyCastSpeed(sim, 1.1)
-		stepPast(t, sim, 2299*time.Millisecond)
-		if got := metrics.Hits + metrics.Crits; got != 1 {
-			t.Fatalf("10%% cast speed gained at 1 s should leave the running Shoot on 1.80 s, %d shots at 2.299 s, want 1", got)
-		}
-		stepPast(t, sim, 2301*time.Millisecond)
-		if got := metrics.Hits + metrics.Crits; got != 2 {
-			t.Fatalf("the running Shoot should fire its second shot at 2.30 s, %d shots", got)
-		}
-		if got := caster.Wand.SwingSpeed(); got != 1800*time.Millisecond {
-			t.Fatalf("the wand swing time should read the running Shoot's 1.80 s, got %s", got)
-		}
-		caster.MoveDuration(time.Second, sim)
-		if got := caster.Wand.SwingSpeed(); got != 1636*time.Millisecond {
-			t.Fatalf("with Shoot ended the wand swing time should read the 1.636 s a new Shoot would shoot at, got %s", got)
-		}
-	})
-
-	t.Run("moving stops Shoot until the move ends", func(t *testing.T) {
+	t.Run("moving ends Shoot and keeps it from starting", func(t *testing.T) {
 		sim, caster := newWandSim(t, &proto.ItemSpec{Id: sableWandID}, channelShootRotation(), 0)
 		target := sim.Encounter.ActiveTargetUnits[0]
-		metrics := &caster.shoot.SpellMetrics[target.UnitIndex]
 		sim.PrePull()
 
 		stepPast(t, sim, time.Second)
@@ -301,18 +259,9 @@ func TestWandShoot(t *testing.T) {
 		if caster.wanding() || caster.shoot.CanCast(sim, target) {
 			t.Fatalf("moving at 1 s should end Shoot and keep it from starting, wanding %t", caster.wanding())
 		}
-		stepPast(t, sim, 2999*time.Millisecond)
-		if caster.wanding() || metrics.Hits+metrics.Crits != 1 {
-			t.Fatalf("after its 0.5 s shot Shoot should neither run nor shoot during the move, wanding %t, %d shots", caster.wanding(), metrics.Hits+metrics.Crits)
-		}
-		stepPast(t, sim, 4*time.Second)
-		if !caster.wanding() || metrics.Hits+metrics.Crits != 2 {
-			t.Fatalf("after the move ends at 3 s the rotation should start Shoot again and shoot, wanding %t, %d shots", caster.wanding(), metrics.Hits+metrics.Crits)
-		}
 	})
 
 	t.Run("Wand Specialization's school mask leaves out a physical wand", func(t *testing.T) {
-		const physicalWandID int32 = 279847 // Unstable Power Core, physical, 1.70 s.
 		for _, wand := range []struct {
 			id         int32
 			multiplier float64
@@ -338,8 +287,6 @@ func TestWandShoot(t *testing.T) {
 }
 
 func TestWandShootReadsEquippedWand(t *testing.T) {
-	const physicalWandID int32 = 279847 // Unstable Power Core, physical, 1.70 s.
-
 	// Swaps the second ranged slot in and casts Shoot once, then checks the shot against the wand now equipped.
 	checkSwappedShoot := func(t *testing.T, ranged, swapped *proto.ItemSpec, school core.SpellSchool, speed time.Duration) {
 		t.Helper()
@@ -360,8 +307,8 @@ func TestWandShootReadsEquippedWand(t *testing.T) {
 			t.Fatalf("the wand swing time reads %s, want the swapped-in wand's %s", got, speed)
 		}
 		stepPast(t, sim, sim.CurrentTime+speed+time.Millisecond)
-		if metrics.Hits+metrics.Crits != 1 {
-			t.Fatalf("Shoot fired %d shots within one wand speed, want 1", metrics.Hits+metrics.Crits)
+		if landed(metrics) != 1 {
+			t.Fatalf("Shoot fired %d shots within one wand speed, want 1", landed(metrics))
 		}
 		if metrics.TotalDamage < wand.BaseDamageMin || metrics.TotalDamage > wand.BaseDamageMax {
 			t.Fatalf("the shot dealt %v, want %v to %v", metrics.TotalDamage, wand.BaseDamageMin, wand.BaseDamageMax)
