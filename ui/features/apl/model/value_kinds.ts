@@ -55,7 +55,6 @@ import {
 	APLValueGCDTimeToReady,
 	APLValueInputDelay,
 	APLValueIsExecutePhase,
-	APLValueIsWanding,
 	APLValueItemProcsMaxRemainingICD,
 	APLValueItemProcsMinRemainingTime,
 	APLValueMath,
@@ -596,17 +595,6 @@ export const valueKinds: { [f in ValidAPLValueKind]: ValueKindModel<APLValueImpl
 			return !isPrepull && spec !== Spec.SpecBalanceDruid && spec !== Spec.SpecElementalShaman;
 		},
 		fields: [autoTypeFieldConfig('autoType')],
-	}),
-	isWanding: inputBuilder({
-		label: i18n.t('rotation_tab.apl.values.is_wanding.label'),
-		submenu: ['auto'],
-		shortDescription: i18n.t('rotation_tab.apl.values.is_wanding.tooltip'),
-		newValue: APLValueIsWanding.create,
-		includeIf(player: Player<any>, isPrepull: boolean) {
-			const clss = player.getClass();
-			return !isPrepull && (clss === Class.ClassMage || clss === Class.ClassPriest || clss === Class.ClassWarlock);
-		},
-		fields: [],
 	}),
 
 	// Spells

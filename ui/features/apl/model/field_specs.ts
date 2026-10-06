@@ -8,11 +8,12 @@ import {
 	APLValueIsExecutePhase_ExecutePhaseThreshold as ExecutePhaseThreshold,
 	APLValueMath_MathOperator as MathOperator,
 } from '@generated/proto/apl';
-import { ActionID, AreaType, MobType, Stat } from '@generated/proto/common';
+import { ActionID, AreaType, Class, MobType, Stat } from '@generated/proto/common';
 import { ShamanTotems_TotemType as TotemType } from '@generated/proto/shaman';
 import { WarlockOptions_CurseOptions as CurseOptions } from '@generated/proto/warlock';
 import i18n from '@i18n/config';
 import { translateAreaType, translateMobType, translateStat } from '@i18n/localization';
+import type { Player } from '@sim/player/player';
 import { getEnumValues } from '@sim/utils/collections';
 import { randomUUID } from '@sim/utils/misc';
 
@@ -98,8 +99,12 @@ const AUTO_TYPES: EnumTable = {
 		{ value: APLValueAutoAttackType.MainHandAuto, label: i18n.t('slots.main_hand', { ns: 'character' }) },
 		{ value: APLValueAutoAttackType.OffHandAuto, label: i18n.t('slots.off_hand', { ns: 'character' }) },
 		{ value: APLValueAutoAttackType.RangedAuto, label: i18n.t('slots.ranged', { ns: 'character' }) },
-		{ value: APLValueAutoAttackType.WandAuto, label: i18n.t('rotation_tab.apl.values.wand') },
 	],
+};
+
+const AUTO_TYPES_WAND: EnumTable = {
+	defaultLabel: none(),
+	options: [{ value: APLValueAutoAttackType.WandAuto, label: i18n.t('rotation_tab.apl.values.wand') }],
 };
 
 const AUTO_SWING_TYPES: EnumTable = {
@@ -108,8 +113,18 @@ const AUTO_SWING_TYPES: EnumTable = {
 		{ value: AutoSwingType.MainHand, label: i18n.t('slots.main_hand', { ns: 'character' }) },
 		{ value: AutoSwingType.OffHand, label: i18n.t('slots.off_hand', { ns: 'character' }) },
 		{ value: AutoSwingType.Ranged, label: i18n.t('slots.ranged', { ns: 'character' }) },
-		{ value: AutoSwingType.Wand, label: i18n.t('rotation_tab.apl.values.wand') },
 	],
+};
+
+const AUTO_SWING_TYPES_WAND: EnumTable = {
+	defaultLabel: none(),
+	options: [{ value: AutoSwingType.Wand, label: i18n.t('rotation_tab.apl.values.wand') }],
+};
+
+// The classes that shoot a wand, whose auto values offer the wand alone.
+const isWandClass = (player: Player<any>) => {
+	const clss = player.getClass();
+	return clss === Class.ClassMage || clss === Class.ClassPriest || clss === Class.ClassWarlock;
 };
 
 const STAT_TYPES: EnumTable = {
@@ -189,7 +204,7 @@ const newAplValue = () => APLValue.create({ uuid: { value: randomUUID() } });
  * built against it: **`booleanFieldConfig`'s `label` argument wins over `options.label`**, because
  * it is assigned after the options object is spread. No caller passes both, but that is the rule.
  */
-export const resolveField = (descriptor: APLFieldDescriptor): AplFieldSpec => {
+export const resolveField = (descriptor: APLFieldDescriptor, player: Player<any>): AplFieldSpec => {
 	const options = 'options' in descriptor ? descriptor.options : undefined;
 	const base = { label: options?.label, labelTooltip: options?.labelTooltip, ...(options?.wide ? { wide: true } : {}) };
 	const asEnum = (field: string, table: EnumTable, newValue: () => number, label?: string, labelTooltip?: string): AplFieldSpec => ({
@@ -233,9 +248,13 @@ export const resolveField = (descriptor: APLFieldDescriptor): AplFieldSpec => {
 		case 'curseType':
 			return asEnum(descriptor.field, CURSE_TYPES, () => CurseOptions.Agony);
 		case 'autoType':
-			return asEnum(descriptor.field, AUTO_TYPES, () => APLValueAutoAttackType.AnyAuto);
+			return isWandClass(player)
+				? asEnum(descriptor.field, AUTO_TYPES_WAND, () => APLValueAutoAttackType.WandAuto)
+				: asEnum(descriptor.field, AUTO_TYPES, () => APLValueAutoAttackType.AnyAuto);
 		case 'autoSwingType':
-			return asEnum(descriptor.field, AUTO_SWING_TYPES, () => AutoSwingType.MainHand);
+			return isWandClass(player)
+				? asEnum(descriptor.field, AUTO_SWING_TYPES_WAND, () => AutoSwingType.Wand)
+				: asEnum(descriptor.field, AUTO_SWING_TYPES, () => AutoSwingType.MainHand);
 		case 'statType':
 			return asEnum(descriptor.field, STAT_TYPES, () => 0, i18n.t('rotation_tab.apl.helpers.field_configs.buff_type'));
 		case 'itemSwapSet':
@@ -296,10 +315,10 @@ export const resolveField = (descriptor: APLFieldDescriptor): AplFieldSpec => {
  * picker writes on render: the sim is asked for stats before the pickers render, and it rejects an
  * unset action id or enum.
  */
-export const newKindImpl = (kind: { newValue: () => unknown; fields: Array<APLFieldDescriptor> }) => (): unknown => {
+export const newKindImpl = (kind: { newValue: () => unknown; fields: Array<APLFieldDescriptor> }, player: Player<any>) => (): unknown => {
 	const impl = kind.newValue() as Record<string, unknown>;
 	for (const descriptor of kind.fields) {
-		const spec = resolveField(descriptor);
+		const spec = resolveField(descriptor, player);
 		if ((spec.kind === 'actionId' || spec.kind === 'enum') && !impl[spec.field]) impl[spec.field] = spec.newValue();
 	}
 	return impl;

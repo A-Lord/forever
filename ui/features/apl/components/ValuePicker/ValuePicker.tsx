@@ -48,7 +48,7 @@ export const ValuePicker = memo(({ player, config, testId }: ValuePickerProps) =
 	if (value && !value.uuid?.value) value.uuid = UUID.create({ value: randomUUID() });
 
 	// An operand list takes the whole line, so its rows lay out by the row's width, not their own.
-	const ownsList = useMemo(() => !!kind && valueKinds[kind].fields.some(field => resolveField(field).kind === 'valueList'), [kind]);
+	const ownsList = useMemo(() => !!kind && valueKinds[kind].fields.some(field => resolveField(field, player).kind === 'valueList'), [kind, player]);
 
 	const choices = useMemo(
 		() =>
@@ -67,7 +67,7 @@ export const ValuePicker = memo(({ player, config, testId }: ValuePickerProps) =
 			const source = config.getValue(subject);
 			if (source?.value.oneofKind == newKind) return;
 			if (newKind) {
-				const next = swapValueKind(source, newKind, newKindImpl(valueKinds[newKind]));
+				const next = swapValueKind(source, newKind, newKindImpl(valueKinds[newKind], player));
 				if (source) source.value = next.value;
 				else config.setValue(subject, next);
 			} else {
