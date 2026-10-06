@@ -79,7 +79,6 @@ func (paladin *Paladin) registerHolyShockRank(rank holyShockRank) {
 			if vigil := paladin.activeLightsVigil(target); vigil != nil {
 				vigil.consume(sim, target)
 				spell.CD.Reset()
-				return
 			}
 			spell.CalcAndDealDamage(sim, target, rank.damage, spell.OutcomeMagicHitAndCrit)
 		},
