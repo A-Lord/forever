@@ -218,7 +218,7 @@ func TestFeralCombatRefreshesExistingAttackTables(t *testing.T) {
 	defender := &Unit{Type: EnemyUnit, Level: 63, PseudoStats: stats.NewPseudoStats()}
 	character.AttackTables = []*AttackTable{NewAttackTable(&character.Unit, defender)}
 	character.Equipment[proto.ItemSlot_ItemSlotMainHand] = *staff
-	character.updateAttackTableWeapons()
+	character.UpdateAttackTableWeapons()
 	if got := character.AttackTables[0].MH.BaseMissChance; math.Abs(got-0.12) > 1e-9 {
 		t.Fatalf("280 staff skill miss = %v, want 0.12", got)
 	}
