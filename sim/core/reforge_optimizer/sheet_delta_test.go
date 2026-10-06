@@ -48,7 +48,7 @@ func protectionWarriorRaid(gearSet string) *proto.Raid {
 
 func sheetStats(t *testing.T, raid *proto.Raid) core.UnitStats {
 	t.Helper()
-	result := computeReforgeStats(&proto.ComputeStatsRequest{Raid: raid})
+	result := core.ComputeStats(&proto.ComputeStatsRequest{Raid: raid, SkipRotation: true})
 	if result.ErrorResult != "" {
 		t.Fatalf("ComputeStats: %s", result.ErrorResult)
 	}

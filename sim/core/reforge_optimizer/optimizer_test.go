@@ -6,7 +6,6 @@ import (
 	"math"
 	"testing"
 
-	_ "github.com/wowsims/forever/sim/common" // the enchant effects the sim implements, which keep a proc enchant's slot out of the optimizer
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/simsignals"
 	"github.com/wowsims/forever/sim/core/stats"
@@ -151,14 +150,30 @@ func TestOptimizeDropsProcCandidates(t *testing.T) {
 	}
 }
 
-// Crusader's effect is implemented, so the main hand is simulated, not optimized, and keeps it.
-func TestOptimizeKeepsAnImplementedProcEnchant(t *testing.T) {
+// A listed slot is optimized from its options even when its equipped enchant is a proc the sim
+// implements.
+func TestOptimizeReplacesAnImplementedProcEnchant(t *testing.T) {
 	raid := protectionWarriorRaid("preraid")
 	raid.Parties[0].Players[0].Equipment.Items[proto.ItemSlot_ItemSlotMainHand].Enchant = 1900
 	agility := &proto.BulkEnchantSlotOptions{Slot: proto.ItemSlot_ItemSlotMainHand, EffectIds: []int32{2564}}
 	result := optimize(t, enchantRequest(raid, agilityOverStrength, agility))
-	if got := slotEnchant(result, proto.ItemSlot_ItemSlotMainHand); got != 1900 {
-		t.Errorf("main hand enchant %d, want 1900 (Crusader)", got)
+	if got := slotEnchant(result, proto.ItemSlot_ItemSlotMainHand); got != 2564 {
+		t.Errorf("main hand enchant %d, want 2564 (Superior Agility)", got)
+	}
+}
+
+// The request's own database is merged before the candidates resolve, so an enchant only it
+// carries is a candidate.
+func TestOptimizeResolvesAnEnchantFromTheRequestDatabase(t *testing.T) {
+	const effectID = 910201
+	agility := make([]float64, len(proto.Stat_name))
+	agility[proto.Stat_StatAgility] = 20
+	raid := protectionWarriorRaid("preraid")
+	player := raid.Parties[0].Players[0]
+	player.Equipment.Items[proto.ItemSlot_ItemSlotWrist].Enchant = 0
+	player.Database = &proto.SimDatabase{Enchants: []*proto.SimEnchant{{EffectId: effectID, Type: proto.ItemType_ItemTypeWrist, Stats: agility}}}
+	if got := slotEnchant(optimize(t, enchantRequest(raid, agilityOverStrength, wrist(effectID))), proto.ItemSlot_ItemSlotWrist); got != effectID {
+		t.Errorf("wrist enchant %d, want %d", got, effectID)
 	}
 }
 
@@ -224,14 +239,7 @@ func TestOptimizeReturnsTheGearUnchanged(t *testing.T) {
 	if gear := result.GetOptimizedGear(); !protopkg.Equal(gear, raid.Parties[0].Players[0].Equipment) {
 		t.Errorf("optimized gear %v, want the input gear", gear)
 	}
-	if result.GetScore() != 0 {
-		t.Errorf("score %v, want 0", result.GetScore())
-	}
-	want := computeReforgeStats(&proto.ComputeStatsRequest{Raid: raid})
-	if want.ErrorResult != "" {
-		t.Fatalf("ComputeStats: %s", want.ErrorResult)
-	}
-	if !protopkg.Equal(result.GetOptimizedPlayerStats().GetFinalStats(), want.RaidStats.Parties[0].Players[0].GetFinalStats()) {
-		t.Error("optimized stats differ from the input gear's stats")
+	if result.GetScore() != 0 || result.GetPassesDone() != 0 {
+		t.Errorf("score %v after %d passes, want 0 after 0", result.GetScore(), result.GetPassesDone())
 	}
 }

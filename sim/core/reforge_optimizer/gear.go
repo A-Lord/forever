@@ -26,9 +26,9 @@ func frozenItemSlots(settings *proto.ReforgeSettings) map[proto.ItemSlot]bool {
 }
 
 // Puts the selected candidates' enchants on a clone of the baseline gear.
-func (o *reforgeOptimizer) applyEnchantSolution(candidates []enchantCandidate, selected []string) *proto.EquipmentSpec {
+func (o *reforgeOptimizer) applyEnchantSolution(selected []string) *proto.EquipmentSpec {
 	gear := cloneEquipmentSpec(o.baseGear)
-	for _, candidate := range candidates {
+	for _, candidate := range o.candidates {
 		if slices.Contains(selected, enchantVariableKey(candidate.slot, candidate.enchant.EffectID)) {
 			gear.Items[candidate.slot].Enchant = candidate.enchant.EffectID
 		}

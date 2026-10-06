@@ -70,6 +70,11 @@ func solveLPModel(model *lpModel, timeout time.Duration, mipRelGap float64) (lpS
 // yields a non-positive HiGHS time_limit. Tightened re-solves finish well under this.
 const minSolveSeconds = 1.0
 
+// The relative MIP gap a solve may stop at. HiGHS's default (1e-4) times an objective of a few
+// hundred EP would swamp enchantTieBreak; this keeps the allowed gap below 1e-5 for any objective
+// under 10000 EP. It is positive because both HiGHS bridges read 0 as "keep the default".
+const mipRelGap = 1e-9
+
 // Scores the variables, solves, then checks caps and recurses with tightened constraints/weights
 // until no cap is exceeded. Returns the selected variable names of the final solution, its
 // objective value and the number of solves it took.
@@ -95,7 +100,7 @@ func (o *reforgeOptimizer) solveModel(
 	}
 
 	startedAt := time.Now()
-	solution, err := solveLPModel(model, time.Duration(maxSeconds*float64(time.Second)), 0)
+	solution, err := solveLPModel(model, time.Duration(maxSeconds*float64(time.Second)), mipRelGap)
 	if err != nil {
 		return nil, 0, 0, err
 	}
@@ -144,7 +149,7 @@ func (o *reforgeOptimizer) checkCaps(
 		}
 		for key, value := range coeffs {
 			if unitStat, ok := unitStatFromCoeffKey(key); ok {
-				writeUnitStat(&reforgeStatContribution, unitStat, getUnitStat(reforgeStatContribution, unitStat)+value)
+				reforgeStatContribution.AddStat(unitStat, value)
 			}
 		}
 	}
