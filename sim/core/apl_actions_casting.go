@@ -101,17 +101,11 @@ func (rot *APLRotation) newActionChannelSpell(config *proto.APLActionChannelSpel
 		return nil
 	}
 
-	allowRecast := config.AllowRecast
-	// Recasting an autorepeat channel would only throw its shot away.
-	if dot := spell.Dot(target.Get()); dot != nil && dot.autorepeat {
-		allowRecast = false
-	}
-
 	return &APLActionChannelSpell{
 		spell:       spell,
 		target:      target,
 		interruptIf: interruptIf,
-		allowRecast: allowRecast,
+		allowRecast: config.AllowRecast,
 	}
 }
 func (action *APLActionChannelSpell) GetAPLValues() []APLValue {
@@ -121,17 +115,8 @@ func (action *APLActionChannelSpell) IsReady(sim *Simulation) bool {
 	return action.spell.CanCastOrQueue(sim, action.target.Get())
 }
 func (action *APLActionChannelSpell) Execute(sim *Simulation) {
-	unit := action.spell.Unit
+	action.spell.Unit.Rotation.channelAction = action
 	action.spell.CastOrQueue(sim, action.target.Get())
-
-	// Set only when this spell's channel or hardcast started or its cast was queued, not when the cast failed or
-	// applied no dot (a missed hit-gated channel), so a later plain cast of a channel does not inherit them.
-	started := (unit.ChanneledDot != nil && unit.ChanneledDot.Spell == action.spell) || (unit.Hardcast.Expires > sim.CurrentTime && unit.Hardcast.ActionID == action.spell.ActionID)
-	queued := unit.QueuedSpell != nil && unit.QueuedSpell.spell == action.spell && unit.QueuedSpell.QueueInitiatedAt == sim.CurrentTime
-	if started || queued {
-		unit.Rotation.interruptChannelIf = action.interruptIf
-		unit.Rotation.allowChannelRecastOnInterrupt = action.allowRecast
-	}
 }
 func (action *APLActionChannelSpell) String() string {
 	return fmt.Sprintf("Channel Spell(%s, interruptIf=%s)", action.spell.ActionID, action.interruptIf)

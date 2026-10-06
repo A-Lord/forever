@@ -8,10 +8,11 @@ import (
 	"github.com/wowsims/forever/sim/core/proto"
 )
 
-// A wand-like autorepeat channel: one 100 damage hit per 2 s tick, for as long as the fight lasts. Like
+// A wand-like Shoot: one 100 damage shot per 2 s wand speed, for as long as the fight lasts. Like
 // RegisterShoot's Shoot it is hasted by cast speed and refused while moving; unlike it, it ignores
 // resists, so every shot deals exactly 100.
 func fakeShoot(char *Character, ticks *[]time.Duration) *Spell {
+	var wand *Wand
 	spell := char.RegisterSpell(SpellConfig{
 		ActionID:         ActionID{SpellID: 5019},
 		Flags:            SpellFlagChanneled | SpellFlagAPL | SpellFlagIgnoreResists,
@@ -23,21 +24,15 @@ func fakeShoot(char *Character, ticks *[]time.Duration) *Spell {
 		ExtraCastCondition: func(_ *Simulation, _ *Unit) bool {
 			return !char.Moving
 		},
-		Dot: DotConfig{
-			Aura:                Aura{Label: "Shoot"},
-			TickLength:          2 * time.Second,
-			AffectedByCastSpeed: true,
-			Autorepeat:          true,
-			OnTick: func(sim *Simulation, target *Unit, dot *Dot) {
-				dot.Spell.CalcAndDealDamage(sim, target, 100, dot.Spell.OutcomeAlwaysHit)
-				*ticks = append(*ticks, sim.CurrentTime)
-			},
-		},
-		ApplyEffects: func(sim *Simulation, target *Unit, spell *Spell) {
-			spell.Dot(target).Apply(sim)
+		Dot: WandChannel(),
+		ApplyEffects: func(sim *Simulation, target *Unit, _ *Spell) {
+			wand.Start(sim, target)
 		},
 	})
-	char.EnableWand(spell, func() time.Duration { return 2 * time.Second })
+	wand = char.EnableWand(spell, func() time.Duration { return 2 * time.Second }, func(sim *Simulation, target *Unit) {
+		spell.CalcAndDealDamage(sim, target, 100, spell.OutcomeAlwaysHit)
+		*ticks = append(*ticks, sim.CurrentTime)
+	})
 	return spell
 }
 
@@ -100,7 +95,7 @@ func newSpellShootTest(config SpellConfig) (*channelTest, *Spell) {
 }
 
 func (ct *channelTest) wanding() bool {
-	return ct.spell.autorepeatChannel() != nil
+	return ct.fw.Wand.wanding()
 }
 
 func (ct *channelTest) castOf(spell *Spell) APLActionImpl {
@@ -260,21 +255,29 @@ func TestWandAutorepeatChannel(t *testing.T) {
 		for _, c := range []struct {
 			name      string
 			config    SpellConfig
+			proc      bool // Cast straight through Spell.Cast rather than by the rotation.
 			shootAt   time.Duration
 			firstShot time.Duration
 		}{
-			{"a spell at 0, a wand speed after it", nukeConfig(&castAt), time.Second, 2 * time.Second},
-			{"a spell at 0, Shoot 3 s later only waits for the wind-up", nukeConfig(&castAt), 3 * time.Second, 3500 * time.Millisecond},
-			{"an off-GCD racial or potion cast at 0", racial, 500 * time.Millisecond, 2 * time.Second},
-			{"a proc at 0 does not", proc, 500 * time.Millisecond, time.Second},
-			{"a hardcast from its end at 1 s", hardcast, time.Second, 3 * time.Second},
-			{"another channel from its end at 5 s", drainConfig(&drainTicks, CastConfig{DefaultCast: Cast{GCD: GCDDefault}}), 5 * time.Second, 7 * time.Second},
+			{"a spell at 0, a wand speed after it", nukeConfig(&castAt), false, time.Second, 2 * time.Second},
+			{"a spell at 0, Shoot 3 s later only waits for the wind-up", nukeConfig(&castAt), false, 3 * time.Second, 3500 * time.Millisecond},
+			{"an off-GCD racial or potion cast at 0", racial, false, 500 * time.Millisecond, 2 * time.Second},
+			{"a proc at 0 does not", proc, true, 500 * time.Millisecond, time.Second},
+			{"a hardcast from its end at 1 s", hardcast, false, time.Second, 3 * time.Second},
+			{"another channel from its end at 5 s", drainConfig(&drainTicks, CastConfig{DefaultCast: Cast{GCD: GCDDefault}}), false, 5 * time.Second, 7 * time.Second},
+			{"a proc cast of a spell on the GCD does not", nukeConfig(&castAt), true, 500 * time.Millisecond, time.Second},
+			{"a proc cast of a spell with a cooldown does not", racial, true, 500 * time.Millisecond, time.Second},
+			{"a proc hardcast does not", hardcast, true, time.Second, 1500 * time.Millisecond},
 		} {
 			ct, spell := newSpellShootTest(c.config)
 			ct.start(&timedStubAction{readyAt: time.Minute})
 			ct.runUntil(0)
-			if !spell.Cast(ct.sim, ct.fw.CurrentTarget) {
-				t.Fatalf("%s: the spell could not be cast", c.name)
+			if c.proc {
+				if !spell.Cast(ct.sim, ct.fw.CurrentTarget) {
+					t.Fatalf("%s: the spell could not be cast", c.name)
+				}
+			} else {
+				ct.castOf(spell).Execute(ct.sim)
 			}
 			ct.runUntil(c.shootAt)
 			ct.castOf(ct.spell).Execute(ct.sim)
@@ -561,6 +564,123 @@ func TestWandAutorepeatChannel(t *testing.T) {
 			ct.runUntil(moveEnd + time.Second)
 			if !ct.wanding() || len(ct.ticks) != before+1 || ct.ticks[before] < moveEnd+500*time.Millisecond {
 				t.Fatalf("after the move ending at %s the rotation should start Shoot again, shots at %v", moveEnd, ct.ticks)
+			}
+		}
+	})
+
+	t.Run("a channel with nothing else ready keeps shooting", func(t *testing.T) {
+		var nukeAt []time.Duration
+		ct, nuke := newSpellShootTest(nukeConfig(&nukeAt))
+		ct.start(&timedStubAction{readyAt: time.Minute})
+		ct.runUntil(0)
+		ct.castOf(nuke).Execute(ct.sim)
+		ct.channelOf(ct.spell, "true", false).Execute(ct.sim)
+
+		ct.runUntil(6001 * time.Millisecond)
+		if !slices.Equal(ct.ticks, seconds(2, 4, 6)) || len(ct.channelEnd) != 0 {
+			t.Fatalf("a Shoot channel whose interrupt condition holds with nothing else to do should shoot at 2, 4 and 6 s, shots at %v, ended at %v", ct.ticks, ct.channelEnd)
+		}
+	})
+
+	t.Run("a spell queueable at the slot takes it", func(t *testing.T) {
+		var nukeAt []time.Duration
+		ct, nuke := newSpellShootTest(nukeConfig(&nukeAt))
+		ct.start(ct.castOf(nuke), ct.channelOf(ct.spell, "true", false))
+		ct.runUntil(0)
+		ct.fw.SetGCDTimer(ct.sim, 2300*time.Millisecond)
+
+		ct.runUntil(2001 * time.Millisecond)
+		if len(ct.ticks) != 0 || !slices.Equal(ct.channelEnd, seconds(2)) {
+			t.Fatalf("with the GCD 0.3 s out at the 2 s slot the spell above Shoot should take the slot, shots at %v, ended at %v", ct.ticks, ct.channelEnd)
+		}
+		ct.runUntil(2301 * time.Millisecond)
+		if !slices.Equal(nukeAt, seconds(0, 2.3)) {
+			t.Fatalf("the spell should be cast when the GCD ends at 2.3 s, cast at %v", nukeAt)
+		}
+	})
+
+	t.Run("a queued channel that never starts leaves no interrupt condition to a cast Shoot", func(t *testing.T) {
+		for _, failed := range []bool{false, true} {
+			var castAt []time.Duration
+			hardcast := recordedSpellConfig(910122, &castAt)
+			hardcast.Cast = CastConfig{DefaultCast: Cast{GCD: GCDDefault, CastTime: time.Second}}
+			ct, spell := newSpellShootTest(hardcast)
+			ct.start(&timedStubAction{readyAt: time.Minute})
+			ct.runUntil(0)
+			ct.castOf(spell).Execute(ct.sim)
+			ct.runUntil(700 * time.Millisecond)
+			ct.channelOf(ct.spell, "true", false).Execute(ct.sim)
+			if ct.fw.QueuedSpell == nil || ct.fw.QueuedSpell.spell != ct.spell {
+				t.Fatalf("the Shoot channel should queue behind the hardcast ending at 1 s")
+			}
+
+			shootAt := time.Second
+			if failed {
+				ct.runUntil(time.Second)
+				ct.fw.MoveDuration(500*time.Millisecond, ct.sim)
+				shootAt = 1500 * time.Millisecond
+			} else {
+				ct.fw.CancelQueuedSpell(ct.sim)
+			}
+			ct.runUntil(shootAt)
+			if ct.wanding() {
+				t.Fatalf("failed %t: the queued Shoot channel should not have started", failed)
+			}
+			ct.castOf(ct.spell).Execute(ct.sim)
+
+			ct.runUntil(6 * time.Second)
+			if !slices.Equal(ct.ticks, seconds(3)) || !slices.Equal(ct.channelEnd, seconds(3)) {
+				t.Fatalf("failed %t: the cast Shoot should fire its one shot a wand speed after the hardcast and end, shots at %v, ended at %v", failed, ct.ticks, ct.channelEnd)
+			}
+		}
+	})
+
+	t.Run("a channel whose dot sits on its related spell takes its interrupt condition", func(t *testing.T) {
+		var related *Spell
+		ct := newChannelTest(func(ct *channelTest, char *Character) *Spell {
+			related = char.RegisterSpell(drainConfig(&ct.ticks, CastConfig{}))
+			return char.RegisterSpell(SpellConfig{
+				ActionID:        ActionID{SpellID: 910130},
+				Flags:           SpellFlagChanneled | SpellFlagAPL,
+				Cast:            CastConfig{DefaultCast: Cast{GCD: GCDDefault}},
+				RelatedDotSpell: related,
+				ApplyEffects: func(sim *Simulation, target *Unit, _ *Spell) {
+					related.Dot(target).Apply(sim)
+				},
+			})
+		})
+		related.finalize()
+		stub := &timedStubAction{readyAt: 500 * time.Millisecond}
+		ct.start(stub, ct.channelOf(ct.spell, "true", false))
+
+		ct.runUntil(1001 * time.Millisecond)
+		if !slices.Equal(ct.ticks, seconds(1)) || !slices.Equal(ct.channelEnd, seconds(1)) {
+			t.Fatalf("the channel should end at its 1 s tick for the action ready at 0.5 s, ticks at %v, ended at %v", ct.ticks, ct.channelEnd)
+		}
+		ct.runUntil(1500 * time.Millisecond)
+		if !slices.Equal(stub.ranAt, seconds(1.5)) {
+			t.Fatalf("the action should run when the GCD ends at 1.5 s, ran at %v", stub.ranAt)
+		}
+	})
+
+	t.Run("Shoot without the unit's wand state still shoots", func(t *testing.T) {
+		for _, channel := range []bool{false, true} {
+			ct := newShootTest()
+			ct.fw.Wand = nil
+			action := ct.castOf(ct.spell)
+			want := seconds(0.5)
+			if channel {
+				action = ct.channelOf(ct.spell, "true", false)
+				want = seconds(0.5, 2.5, 4.5)
+			}
+			ct.start(action)
+
+			ct.runUntil(4501 * time.Millisecond)
+			if channel && ct.fw.ChanneledDot == nil {
+				t.Fatalf("the Shoot channel should still run")
+			}
+			if !slices.Equal(ct.ticks[:len(want)], want) {
+				t.Fatalf("channel %t: Shoot should shoot at %v, shots at %v", channel, want, ct.ticks)
 			}
 		}
 	})

@@ -26,7 +26,6 @@ type DotConfig struct {
 	AffectedByCastSpeed  bool // tick length are shortened based on casting speed
 	AffectedByRealHaste  bool // tick length are shortened based on real haste (melee/ranged but not spell)
 	HasteReducesDuration bool // does not gain additional ticks after a certain haste threshold
-	Autorepeat           bool // A channel that ticks until interrupted (wand Shoot): checked only at a tick, before it fires; a plain cast runs at most one tick.
 
 	BonusCoefficient float64 // EffectBonusCoefficient in the game files' SpellEffect table, "SP mod" on Wowhead (not necessarily shown there even if > 0)
 
@@ -62,9 +61,7 @@ type Dot struct {
 	affectedByRealHaste  bool // tick length are shortened based on real haste
 	hasteReducesDuration bool // does not gain additional ticks after a haste threshold, HasteAffectsDuration in dbc
 	isChanneled          bool
-	autorepeat           bool
 	paidMana             bool // The channel paid mana when it started.
-	firstTickAt          func(sim *Simulation, dot *Dot) time.Duration // When the first tick of the dot applied now lands; nil is one tick period from now.
 }
 
 // Takes a new snapshot of this Dot's effects.
@@ -267,62 +264,7 @@ func (dot *Dot) TickOnce(sim *Simulation) {
 	}
 }
 
-// The slot goes to whatever interrupts the channel, so no shot fires there, also while the GCD has
-// a spell queue window left. A plain cast rather than a channel action fires its one shot and stops.
-func (dot *Dot) autorepeatTick(sim *Simulation) {
-	rot := dot.Spell.Unit.Rotation
-	rot.evalGeneration++
-	if rot.shouldInterruptChannel(sim) {
-		dot.stopChannel(sim)
-		return
-	}
-
-	dot.remainingTicks--
-	dot.TickOnce(sim)
-	dot.Spell.Unit.Wand.recordShot(sim)
-	if !dot.IsActive() {
-		return
-	}
-
-	if rot.interruptChannelIf == nil {
-		dot.stopChannel(sim)
-		return
-	}
-	dot.tickAction.NextActionAt = sim.CurrentTime + dot.tickPeriod
-	sim.AddPendingAction(dot.tickAction)
-}
-
-// Ends the channel with no further tick.
-func (dot *Dot) stopChannel(sim *Simulation) {
-	dot.tickAction.NextActionAt = NeverExpires
-	dot.Deactivate(sim)
-}
-
-// An autorepeat channel that ends on a shot slot lets the rotation act there with no clip delay, or when the
-// GCD ends; movement and Unit.Interrupt end it between slots. The rotation may already have spent its wake-up while the channel ran.
-func (unit *Unit) wakeAfterAutorepeat(sim *Simulation) {
-	if unit.GCD.IsReady(sim) {
-		unit.WaitUntil(sim, sim.CurrentTime)
-	} else if unit.rotationAction.IsConsumed() || unit.NextRotationActionAt() > unit.GCD.ReadyAt() {
-		unit.WaitUntil(sim, unit.GCD.ReadyAt())
-	}
-}
-
-// The spell's running autorepeat channel, or nil. It has no GCD to stop the rotation from casting it
-// again while it runs.
-func (spell *Spell) autorepeatChannel() *Dot {
-	if dot := spell.Unit.ChanneledDot; dot != nil && dot.autorepeat && dot.Spell == spell {
-		return dot
-	}
-	return nil
-}
-
 func (dot *Dot) periodicTick(sim *Simulation) {
-	if dot.autorepeat {
-		dot.autorepeatTick(sim)
-		return
-	}
-
 	dot.remainingTicks--
 	dot.TickOnce(sim)
 	if dot.isChanneled {
@@ -394,12 +336,10 @@ func newDot(config Dot) *Dot {
 			// Priority:     ActionPriorityDOT,
 			OnAction: dot.periodicTick,
 		}
-		if dot.firstTickAt != nil {
-			dot.tickAction.NextActionAt = dot.firstTickAt(sim, dot)
-		}
 		sim.AddPendingAction(dot.tickAction)
 		if dot.isChanneled {
 			dot.Spell.Unit.ChanneledDot = dot
+			dot.Spell.Unit.Rotation.adoptChannelAction(dot)
 			dot.paidMana = false
 			if cost := dot.Spell.Cost; cost != nil {
 				_, isMana := cost.ResourceCostImpl.(*ManaCost)
@@ -423,17 +363,15 @@ func newDot(config Dot) *Dot {
 				dot.Spell.Unit.creditManaRegen(sim)
 			}
 			dot.Spell.Unit.ChanneledDot = nil
-			for _, handler := range dot.Spell.Unit.channelEndHandlers {
-				handler(sim, dot)
-			}
 			dot.Spell.Unit.Rotation.interruptChannelIf = nil
 			dot.Spell.Unit.Rotation.allowChannelRecastOnInterrupt = false
 			// Note: even if clip delay is 0ms, always schedule rotation here so APL fires
 			// after ChanneledDot is cleared.
-			if dot.autorepeat {
-				dot.Spell.Unit.wakeAfterAutorepeat(sim)
-			} else if dot.Spell.Unit.GCD.IsReady(sim) {
+			if dot.Spell.Unit.GCD.IsReady(sim) {
 				dot.Spell.Unit.WaitUntil(sim, sim.CurrentTime+channelDelay)
+			}
+			for _, handler := range dot.Spell.Unit.channelEndHandlers {
+				handler(sim, dot)
 			}
 			// track time metrics for channels
 			dot.Spell.SpellMetrics[aura.Unit.UnitIndex].TotalCastTime += dot.fadeTime - dot.StartedAt()
@@ -461,11 +399,6 @@ func (spell *Spell) createDots(config DotConfig, isHot bool) {
 		config.PeriodicDamageMultiplier = 1
 	}
 
-	if config.Autorepeat {
-		// Enough ticks that the aura outlasts any fight.
-		config.NumberOfTicks = 1 << 20
-	}
-
 	if config.Spell == nil {
 		config.Spell = spell
 	}
@@ -481,7 +414,6 @@ func (spell *Spell) createDots(config DotConfig, isHot bool) {
 		affectedByRealHaste:  config.AffectedByRealHaste,
 		hasteReducesDuration: config.HasteReducesDuration,
 		isChanneled:          config.Spell.Flags.Matches(SpellFlagChanneled),
-		autorepeat:           config.Autorepeat,
 
 		BonusCoefficient:         config.BonusCoefficient,
 		BaseDurationMultiplier:   1,

@@ -640,10 +640,6 @@ func (spell *Spell) CanCast(sim *Simulation, target *Unit) bool {
 		return false
 	}
 
-	if spell.autorepeatChannel() != nil {
-		return false
-	}
-
 	if ((spell.DefaultCast.GCD > 0) || (spell.Flags.Matches(SpellFlagMCD) && spell.Unit.Rotation.inSequence)) && !spell.Unit.GCD.IsReady(sim) {
 		//if sim.Log != nil {
 		//	sim.Log("Cant cast because of GCD")
@@ -772,6 +768,11 @@ func (spell *Spell) applyEffects(sim *Simulation, target *Unit) {
 	}
 
 	spell.ApplyEffects(sim, target, spell)
+
+	if spell == spell.Unit.rotationCast {
+		spell.Unit.rotationCast = nil
+		spell.Unit.Wand.castCompleted(sim, spell)
+	}
 }
 
 func (spell *Spell) ApplyAOEThreatIgnoreMultipliers(threatAmount float64) {

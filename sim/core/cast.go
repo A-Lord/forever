@@ -242,7 +242,6 @@ func (spell *Spell) makeCastFunc(config CastConfig) CastSuccessFunc {
 					}
 
 					spell.applyEffects(sim, target)
-					spell.Unit.Wand.spellCompleted(sim, spell)
 
 					if !spell.Flags.Matches(SpellFlagNoOnCastComplete) {
 						spell.Unit.OnCastComplete(sim, spell)
@@ -286,7 +285,6 @@ func (spell *Spell) makeCastFunc(config CastConfig) CastSuccessFunc {
 		}
 
 		spell.applyEffects(sim, target)
-		spell.Unit.Wand.spellCompleted(sim, spell)
 
 		if !spell.Flags.Matches(SpellFlagNoOnCastComplete) {
 			spell.Unit.OnCastComplete(sim, spell)
@@ -382,7 +380,6 @@ func (spell *Spell) makeCastFuncSimple() CastSuccessFunc {
 		}
 
 		spell.applyEffects(sim, target)
-		spell.Unit.Wand.spellCompleted(sim, spell)
 
 		if !spell.Flags.Matches(SpellFlagNoOnCastComplete) {
 			spell.Unit.OnCastComplete(sim, spell)

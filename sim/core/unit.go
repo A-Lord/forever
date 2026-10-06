@@ -206,6 +206,9 @@ type Unit struct {
 	// Data about the most recently queued spell, otherwise nil.
 	QueuedSpell *QueuedSpell
 
+	// The spell the rotation or a major cooldown is casting, until its effects apply; procs never set it.
+	rotationCast *Spell
+
 	// Used for reacting to mastery stat changes
 	OnMasteryStatChanged []OnMasteryStatChanged
 
@@ -526,7 +529,8 @@ func (unit *Unit) IsChanneling() bool {
 	return unit.ChanneledDot != nil
 }
 
-// Runs the handler with the ended channel each time one of the unit's channels ends, run out or cut short, after its last tick.
+// Runs the handler with the ended channel each time one of the unit's channels ends, run out or cut short, after its last tick
+// and after the rotation's wake-up is set, which the handler may move.
 func (unit *Unit) OnChannelEnd(handler func(sim *Simulation, dot *Dot)) {
 	unit.channelEndHandlers = append(unit.channelEndHandlers, handler)
 }
@@ -893,6 +897,7 @@ func (unit *Unit) reset(sim *Simulation, _ Agent) {
 	unit.Hardcast.Expires = startingCDTime
 	unit.ChanneledDot = nil
 	unit.QueuedSpell = nil
+	unit.rotationCast = nil
 	unit.DistanceFromTarget = unit.StartDistanceFromTarget
 	unit.Metrics.reset()
 	unit.ResetStatDeps()

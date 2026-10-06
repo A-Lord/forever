@@ -38,6 +38,9 @@ type APLRotation struct {
 	// If true, can recast channel when interrupted.
 	allowChannelRecastOnInterrupt bool
 
+	// The channel action whose cast is under way or queued; the channel it starts takes its interruptIf and allowRecast.
+	channelAction *APLActionChannelSpell
+
 	// Used inside of actions/value to determine whether they will occur during the prepull or regular rotation.
 	parsingPrepull bool
 
@@ -394,6 +397,7 @@ func (rot *APLRotation) reset(sim *Simulation) {
 	rot.inLoop = false
 	rot.interruptChannelIf = nil
 	rot.allowChannelRecastOnInterrupt = false
+	rot.channelAction = nil
 	rot.evalGeneration++ // Invalidate any variable caches from previous iteration or initialization
 	if rot.resetActions == nil {
 		rot.resetActions = rot.allAPLActions()
@@ -421,10 +425,6 @@ func (apl *APLRotation) DoNextAction(sim *Simulation) {
 		// the caster doesn't idle between GCD-ready and the lazy aura expiry time.
 		if dot.remainingTicks == 0 {
 			dot.Deactivate(sim)
-			return
-		}
-		// An autorepeat channel gives way only at its ticks.
-		if dot.autorepeat {
 			return
 		}
 		// Increment evalGeneration so variable refs re-evaluate with current game state,
@@ -456,8 +456,8 @@ func (apl *APLRotation) DoNextAction(sim *Simulation) {
 		}
 
 		nextAction.Execute(sim)
-		// An autorepeat channel has no GCD to end the pass; any later cast would cut it.
-		if dot := apl.unit.ChanneledDot; dot != nil && dot.autorepeat {
+		// Shoot has no GCD to end the pass; any later cast would cut it.
+		if apl.unit.Wand.wanding() {
 			i++
 			break
 		}
@@ -571,10 +571,6 @@ func (apl *APLRotation) nextActionWouldRecastChannel(sim *Simulation, channeledD
 		// autocast_other_cooldowns fires off-GCD MCDs alongside the main rotation —
 		// never blocks same-spell detection.
 		if _, ok := action.impl.(*APLActionAutocastOtherCooldowns); ok {
-			// Nothing is used while wanding, so a ready cooldown above Shoot has to end it.
-			if channeledDot.autorepeat && action.impl.IsReady(sim) {
-				return false
-			}
 			continue
 		}
 
@@ -604,6 +600,18 @@ func (apl *APLRotation) shouldInterruptChannel(sim *Simulation) bool {
 	}
 
 	return true
+}
+
+// A starting channel takes the condition of the channel action that cast it; its dot may sit on the
+// action spell's RelatedDotSpell.
+func (apl *APLRotation) adoptChannelAction(dot *Dot) {
+	action := apl.channelAction
+	if action == nil || (dot.Spell != action.spell && dot.Spell != action.spell.RelatedDotSpell) {
+		return
+	}
+	apl.interruptChannelIf = action.interruptIf
+	apl.allowChannelRecastOnInterrupt = action.allowRecast
+	apl.channelAction = nil
 }
 
 func APLRotationFromJsonString(jsonString string) *proto.APLRotation {

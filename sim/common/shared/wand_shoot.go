@@ -9,11 +9,12 @@ import (
 
 var shootRow = spelldata.MustFind(5019)
 
-// Shoot is a channel whose ticks are the wand's shots, one per wand speed, until something takes a
-// tick's slot. A shot rolls the wand's damage in its school: no attack power, no spell power. It misses
-// on the spell table, with wand skill setting the level difference, has no dodge, parry or block, and
-// crits on the ranged crit chance, for 1.5 times like a spell. Wand skill short of the maximum also lowers
-// that crit chance by 0.2% a point, through the ranged hand's physical crit suppression.
+// Shoot is a channel during which the wand fires one shot per wand speed, until something takes a shot's
+// slot; the shots are not ticks, so ChanneledTicks(Shoot) reads 0. A shot rolls the wand's damage in its
+// school: no attack power, no spell power. It misses on the spell table, with wand skill setting the level
+// difference, has no dodge, parry or block, and crits on the ranged crit chance, for 1.5 times like a spell.
+// Wand skill short of the maximum also lowers that crit chance by 0.2% a point, through the ranged hand's
+// physical crit suppression.
 func RegisterShoot(character *core.Character) *core.Spell {
 	weapon := character.WeaponFromRanged()
 	wandSpeed := func() time.Duration {
@@ -29,30 +30,22 @@ func RegisterShoot(character *core.Character) *core.Spell {
 	config.ExtraCastCondition = func(_ *core.Simulation, _ *core.Unit) bool {
 		return !character.Moving
 	}
-	config.Dot = core.DotConfig{
-		Aura:                core.Aura{Label: "Shoot"},
-		TickLength:          core.DurationFromSeconds(max(weapon.SwingSpeed, 1)),
-		AffectedByCastSpeed: true,
-		Autorepeat:          true,
-		OnTick: func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-			spell := dot.Spell
-			baseDamage := weapon.CalculateWeaponDamage(sim, 0)
-			result := spell.CalcDamage(sim, target, baseDamage, spell.OutcomeMagicHitAndRangedCrit)
-			spell.WaitTravelTime(sim, func(sim *core.Simulation) {
-				spell.DealDamage(sim, result)
-			})
-		},
-	}
+	config.Dot = core.WandChannel()
+	var wand *core.Wand
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		weapon = character.WeaponFromRanged()
 		spell.SpellSchool = weapon.GetSpellSchool()
 		spell.SchoolIndex = spell.SpellSchool.MultiplierSchool().SchoolIndex()
-		dot := spell.Dot(target)
-		dot.BaseTickLength = core.DurationFromSeconds(max(weapon.SwingSpeed, 1))
-		dot.Apply(sim)
+		wand.Start(sim, target)
 	}
 
 	shoot := character.RegisterSpell(config)
-	character.EnableWand(shoot, wandSpeed)
+	wand = character.EnableWand(shoot, wandSpeed, func(sim *core.Simulation, target *core.Unit) {
+		baseDamage := weapon.CalculateWeaponDamage(sim, 0)
+		result := shoot.CalcDamage(sim, target, baseDamage, shoot.OutcomeMagicHitAndRangedCrit)
+		shoot.WaitTravelTime(sim, func(sim *core.Simulation) {
+			shoot.DealDamage(sim, result)
+		})
+	})
 	return shoot
 }
