@@ -265,7 +265,7 @@ func (mage *Mage) registerArcaneMeditation() {
 	// }
 	//
 	// mage.PseudoStats.SpiritRegenRateCasting += float64(mage.Talents.ArcaneMeditation) * 0.1
-	// mage.UpdateManaRegenRates()
+	// mage.UpdateManaRegenRates(nil)
 }
 
 // registerMissileBarrage implements Missile Barrage, new in Forever.

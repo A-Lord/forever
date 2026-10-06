@@ -219,7 +219,7 @@ func (priest *Priest) applyMeditation() {
 	// }
 	//
 	// priest.PseudoStats.SpiritRegenRateCasting += spellData.Meditation.FractionAt(priest.Talents.Meditation)
-	// priest.UpdateManaRegenRates()
+	// priest.UpdateManaRegenRates(nil)
 }
 
 // applyImprovedInnerFire implements Improved Inner Fire, new in Forever.

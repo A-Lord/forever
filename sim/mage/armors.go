@@ -48,11 +48,11 @@ func (mage *Mage) registerArmorSpells() {
 	// 	Duration: time.Minute * 30,
 	// 	OnGain: func(aura *core.Aura, sim *core.Simulation) {
 	// 		mage.PseudoStats.SpiritRegenRateCasting += .3
-	// 		mage.UpdateManaRegenRates()
+	// 		mage.UpdateManaRegenRates(sim)
 	// 	},
 	// 	OnExpire: func(aura *core.Aura, sim *core.Simulation) {
 	// 		mage.PseudoStats.SpiritRegenRateCasting -= .3
-	// 		mage.UpdateManaRegenRates()
+	// 		mage.UpdateManaRegenRates(sim)
 	// 	},
 	// })
 	//
