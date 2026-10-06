@@ -45,9 +45,9 @@ func newWandSim(t *testing.T, ranged *proto.ItemSpec, rotation *proto.APLRotatio
 	return newSwapWandSim(t, ranged, nil, rotation, distance, 60)
 }
 
-// newWandSim with a swap set that holds the given ranged slot, when it is not nil, and a target of the
-// given level.
-func newSwapWandSim(t *testing.T, ranged, swapped *proto.ItemSpec, rotation *proto.APLRotation, distance float64, targetLevel int32) (*core.Simulation, *wandCaster) {
+// newWandSim with a swap set that holds the given ranged slot, when it is not nil, a target of the given
+// level and the given weapon skills.
+func newSwapWandSim(t *testing.T, ranged, swapped *proto.ItemSpec, rotation *proto.APLRotation, distance float64, targetLevel int32, weaponSkills ...*proto.WeaponSkillValue) (*core.Simulation, *wandCaster) {
 	t.Helper()
 	items := make([]*proto.ItemSpec, proto.ItemSlot_ItemSlotRanged+1)
 	for i := range items {
@@ -77,6 +77,7 @@ func newSwapWandSim(t *testing.T, ranged, swapped *proto.ItemSpec, rotation *pro
 				DistanceFromTarget: distance,
 				EnableItemSwap:     swapped != nil,
 				ItemSwap:           &proto.ItemSwap{Items: swapItems},
+				WeaponSkills:       weaponSkills,
 			}},
 			Buffs: &proto.PartyBuffs{},
 		}}},
@@ -91,7 +92,7 @@ func newSwapWandSim(t *testing.T, ranged, swapped *proto.ItemSpec, rotation *pro
 	caster.AddStatsDynamic(sim, stats.Stats{
 		stats.SpellHitPercent:     100,
 		stats.PhysicalHitPercent:  100,
-		stats.SpellCritPercent:   -caster.GetStat(stats.SpellCritPercent),
+		stats.SpellCritPercent:    -caster.GetStat(stats.SpellCritPercent),
 		stats.PhysicalCritPercent: -caster.GetStat(stats.PhysicalCritPercent),
 		stats.RangedCritPercent:   -caster.GetStat(stats.RangedCritPercent),
 	})
@@ -193,22 +194,37 @@ func TestWandShoot(t *testing.T) {
 		}
 	})
 
-	t.Run("a shot misses on the ranged hit table, not on spell hit", func(t *testing.T) {
-		sim, caster := newSableWandSim(t)
-		caster.AddStatsDynamic(sim, stats.Stats{stats.SpellHitPercent: -300})
-		shots(t, sim, caster, 50)
-		metrics := caster.shoot.SpellMetrics[sim.Encounter.ActiveTargetUnits[0].UnitIndex]
-		if metrics.Misses != 0 {
-			t.Errorf("with no spell hit chance and full physical hit Shoot missed %d of 50 shots, want none", metrics.Misses)
-		}
-
-		// Against a target 3 levels up, the ranged hand misses 8% with no hit.
-		sim, caster = newSwapWandSim(t, &proto.ItemSpec{Id: sableWandID}, nil, &proto.APLRotation{}, 0, 63)
-		caster.AddStatsDynamic(sim, stats.Stats{stats.PhysicalHitPercent: -100})
+	// Shoots 300 times with the given spell hit and full physical hit, at a target of the given level, and
+	// returns the misses.
+	misses := func(t *testing.T, targetLevel int32, spellHit float64, weaponSkills ...*proto.WeaponSkillValue) int32 {
+		t.Helper()
+		sim, caster := newSwapWandSim(t, &proto.ItemSpec{Id: sableWandID}, nil, &proto.APLRotation{}, 0, targetLevel, weaponSkills...)
+		caster.AddStatsDynamic(sim, stats.Stats{stats.SpellHitPercent: spellHit - caster.GetStat(stats.SpellHitPercent)})
 		shots(t, sim, caster, 300)
-		metrics = caster.shoot.SpellMetrics[sim.Encounter.ActiveTargetUnits[0].UnitIndex]
-		if metrics.Misses < 12 || metrics.Misses > 36 {
-			t.Errorf("with certain spell hit and no physical hit Shoot missed %d of 300 shots on a level 63 target, want about 24", metrics.Misses)
+		return caster.shoot.SpellMetrics[sim.Encounter.ActiveTargetUnits[0].UnitIndex].Misses
+	}
+
+	t.Run("at full wand skill a shot misses on the spell table, which physical hit does not lower", func(t *testing.T) {
+		for _, tc := range []struct {
+			targetLevel, low, expected, high int32
+		}{{60, 3, 12, 24}, {63, 33, 51, 69}} {
+			if got := misses(t, tc.targetLevel, 0); got < tc.low || got > tc.high {
+				t.Errorf("with no spell hit and full physical hit Shoot missed %d of 300 shots on a level %d target, want about %d", got, tc.targetLevel, tc.expected)
+			}
+		}
+	})
+
+	t.Run("spell hit lowers a shot's miss", func(t *testing.T) {
+		if got := misses(t, 63, 17); got != 0 {
+			t.Errorf("with 17%% spell hit Shoot missed %d of 300 shots on a level 63 target, want none", got)
+		}
+	})
+
+	t.Run("25 wand skill short of the maximum misses like 5 more target levels", func(t *testing.T) {
+		short := misses(t, 60, 0, &proto.WeaponSkillValue{Skill: proto.WeaponSkill_WeaponSkillWands, Value: 275})
+		capped := misses(t, 65, 0)
+		if short != capped || short < 33 || short > 69 {
+			t.Errorf("Shoot missed %d of 300 shots at 275 wand skill on a level 60 target and %d at 300 on a level 65 target, want the same, about 51", short, capped)
 		}
 	})
 
