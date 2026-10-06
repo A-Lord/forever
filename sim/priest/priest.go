@@ -60,7 +60,6 @@ func (priest *Priest) Initialize() {
 	DevouringPlagueRankMap.Each(func(_ int32, rank *spelldata.Spell) {
 		priest.registerDevouringPlagueSpell(rank)
 	})
-	priest.registerShadowfiendSpell()
 	spellData.InnerFire.Each(func(_ int32, rank *spelldata.Spell) {
 		priest.registerInnerFire(rank)
 	})
@@ -120,7 +119,6 @@ func New(char *core.Character, selfBuffs SelfBuffs, talents string) *Priest {
 	priest.EnableManaBar()
 	priest.AddStatDependency(stats.Strength, stats.AttackPower, 1)
 	priest.AddStatDependency(stats.Agility, stats.PhysicalCritPercent, core.CritPerAgiMaxLevel[char.Class])
-	priest.ShadowfiendPet = priest.NewShadowfiend()
 
 	return priest
 }

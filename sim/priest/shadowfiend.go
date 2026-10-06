@@ -5,6 +5,9 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
+// TODO: Not registered, and NewShadowfiend is not called. 401977 is a Season of Discovery rune: only
+// Engrave Pants - Shadowfiend (402861) grants it, with no trainer level and no Forever talent. Wire it
+// and the pet in if Forever adds the ability.
 func (priest *Priest) registerShadowfiendSpell() {
 	rank := spellData.Shadowfiend.Highest()
 
