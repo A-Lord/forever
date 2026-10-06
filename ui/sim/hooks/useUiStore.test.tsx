@@ -1,8 +1,8 @@
+import { mountWithSimStore as mount } from '@testing/sim/hooks';
 import { act } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import { patchSlice } from '../state/sim_store';
-import { mountWithSimStore as mount } from './testing';
 import { useUiStore } from './useUiStore';
 
 describe('useUiStore', () => {

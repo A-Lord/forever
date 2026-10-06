@@ -36,16 +36,6 @@ var Raid = []BuffSpec{
 		},
 	},
 	{
-		Field:      "thorns",
-		SpellID:    9910,
-		Category:   "Thorns",
-		SingleAura: true,
-		Stats: []proto.Stat{
-			proto.Stat_StatDefenseRating,
-			proto.Stat_StatStamina,
-		},
-	},
-	{
 		Field:   "prayer_of_fortitude",
 		SpellID: 21564,
 		Stats: []proto.Stat{
@@ -317,12 +307,14 @@ var Party = []BuffSpec{
 			proto.Stat_StatDefenseRating,
 		},
 	},
-	// A pet ability the hunter class family does not file, so the owner is stated.
+	// A pet ability the hunter class family does not file, so the owner is stated. It does not stack
+	// with Battle Shout: the two share one category and the stronger applies.
 	{
-		Field:    "furious_howl",
-		SpellID:  24597,
-		Owner:    proto.Class_ClassHunter,
-		Category: "FuriousHowl",
+		Field:      "furious_howl",
+		SpellID:    24597,
+		Owner:      proto.Class_ClassHunter,
+		Category:   "BattleShout",
+		SingleAura: true,
 		Stats: []proto.Stat{
 			proto.Stat_StatAttackPower,
 		},
@@ -403,6 +395,16 @@ var Individual = []BuffSpec{
 		},
 		Label: "Power Infusions",
 	},
+	{
+		Field:      "thorns",
+		SpellID:    9910,
+		Category:   "Thorns",
+		SingleAura: true,
+		Stats: []proto.Stat{
+			proto.Stat_StatDefenseRating,
+			proto.Stat_StatStamina,
+		},
+	},
 }
 
 var Debuffs = []BuffSpec{
@@ -412,7 +414,6 @@ var Debuffs = []BuffSpec{
 		Category: "HuntersMark",
 		Stats: []proto.Stat{
 			proto.Stat_StatRangedAttackPower,
-			proto.Stat_StatAttackPower,
 		},
 	},
 	// The Holy damage taken is applied by NewSpellDataJudgementOfTheCrusaderAuraRank in debuffs.go,

@@ -33,3 +33,14 @@ func TestArmorDamageReductionCap(t *testing.T) {
 		t.Fatalf("Expected %f damage taken above the cap, got %f", 0.25, modifier)
 	}
 }
+
+func TestArmorReductionFromLevel60Attacker(t *testing.T) {
+	attacker := Unit{Type: PlayerUnit, Level: 60}
+	defender := Unit{Type: EnemyUnit, Level: 63, PseudoStats: stats.NewPseudoStats()}
+	defender.stats[stats.Armor] = 3731
+
+	reduction := 1 - NewAttackTable(&attacker, &defender).GetArmorDamageModifier(nil)
+	if !WithinToleranceFloat64(0.4042, reduction, 0.0001) {
+		t.Fatalf("3731 armor against a level 60 attacker reduces damage by %.4f, want 0.4042", reduction)
+	}
+}

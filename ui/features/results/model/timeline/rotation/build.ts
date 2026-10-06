@@ -88,7 +88,7 @@ function auraItems(auraUptimeLogs: ReadonlyArray<AuraUptimeLog>, sharesRowWithCa
  * is 24px wide and the default zoom is 100px per second, so each cast inside the window draws over the
  * one before it.
  */
-export const STACK_WINDOW = 0.21;
+const STACK_WINDOW = 0.21;
 
 function castRowItems(castLogs: ReadonlyArray<CastLog>, mergedAuras: ReadonlyArray<Array<AuraUptimeLog>>, duration: number, showGcd: boolean): Array<RowItem> {
 	const items: Array<RowItem> = [];

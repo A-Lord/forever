@@ -1,4 +1,5 @@
-import { ActionID, Stat } from '@generated/proto/common';
+import { APLValueIsExecutePhase_ExecutePhaseThreshold as ExecutePhaseThreshold } from '@generated/proto/apl';
+import { ActionID, AreaType, Stat } from '@generated/proto/common';
 import { getEnumValues } from '@sim/utils/collections';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -6,6 +7,7 @@ import {
 	actionFieldConfig,
 	actionIdFieldConfig,
 	actionListFieldConfig,
+	areaTypeFieldConfig,
 	autoSwingTypeFieldConfig,
 	autoTypeFieldConfig,
 	booleanFieldConfig,
@@ -15,11 +17,11 @@ import {
 	executePhaseThresholdFieldConfig,
 	groupNameFieldConfig,
 	groupReferenceVariablesFieldConfig,
-	hotwStrategyFieldConfig,
 	itemSwapSetFieldConfig,
 	makeUseDotBaseValueCheckbox,
 	mathOperatorFieldConfig,
 	minIcdInput,
+	mobTypeFieldConfig,
 	numberFieldConfig,
 	placeholderNameFieldConfig,
 	reactionTimeCheckbox,
@@ -36,10 +38,9 @@ import { newKindImpl, resolveField } from './field_specs';
 vi.mock('@i18n/config', () => ({ default: { t: (key: string) => key } }));
 
 describe('resolveField kinds', () => {
-	it('resolves the nine fixed-enum descriptor types to kind enum', () => {
+	it('resolves the fixed-enum descriptor types to kind enum', () => {
 		const descriptors = [
 			eclipseTypeFieldConfig('f'),
-			hotwStrategyFieldConfig('f'),
 			curseTypeFieldConfig('f'),
 			autoTypeFieldConfig('f'),
 			autoSwingTypeFieldConfig('f'),
@@ -49,6 +50,8 @@ describe('resolveField kinds', () => {
 			mathOperatorFieldConfig('f'),
 			executePhaseThresholdFieldConfig('f'),
 			totemTypeFieldConfig('f'),
+			mobTypeFieldConfig('f'),
+			areaTypeFieldConfig('f'),
 		];
 		for (const descriptor of descriptors) {
 			expect(resolveField(descriptor).kind).toBe('enum');
@@ -169,5 +172,13 @@ describe('newKindImpl', () => {
 		const spellId = ActionID.create({ rawId: { oneofKind: 'spellId', spellId: 1 } });
 		const impl = newKindImpl({ newValue: () => ({ spellId }), fields: [actionIdFieldConfig('spellId', 'castable_spells')] })();
 		expect(impl).toEqual({ spellId });
+	});
+
+	it('sets unset enum fields to the default their picker writes', () => {
+		const impl = newKindImpl({
+			newValue: () => ({ areaType: AreaType.AreaTypeUnknown, threshold: ExecutePhaseThreshold.Unknown }),
+			fields: [areaTypeFieldConfig('areaType'), executePhaseThresholdFieldConfig('threshold')],
+		})();
+		expect(impl).toEqual({ areaType: AreaType.AreaTypeForestGrassland, threshold: ExecutePhaseThreshold.E20 });
 	});
 });

@@ -9,6 +9,7 @@ import type { SavedDataConfig } from '@ui-kit/SavedDataPanel/types';
 import type { ReactNode } from 'react';
 
 import { Player, PlayerConfig, registerSpecConfig as registerPlayerConfig } from './player/player';
+import type { WeaponSkillGroup } from './player/weapon_skill_groups';
 import type { PresetBuild, PresetEncounter, PresetEpWeights, PresetGear, PresetItemSwap, PresetRotation, PresetSettings } from './presets/types';
 import type { SpecOptions, SpecRotation } from './proto/spec_types';
 import type { StatMods, StatWrites } from './proto/stats';
@@ -83,7 +84,6 @@ export interface IndividualSimUIConfig<SpecType extends Spec> extends PlayerConf
 	knownIssues?: Array<ReactNode>;
 	warnings?: Array<(simUI: IndividualSimHost<SpecType>) => SimWarning>;
 	consumableStats?: Array<Stat>;
-	gemStats?: Array<Stat>;
 	epStats: Array<Stat>;
 	epPseudoStats?: Array<PseudoStat>;
 	epReferenceStat: Stat;
@@ -92,6 +92,8 @@ export interface IndividualSimUIConfig<SpecType extends Spec> extends PlayerConf
 	// Per-spec override for the default EP ratios; must be exactly Player.numEpRatios long.
 	epRatios?: Array<number>;
 	displayStats: Array<UnitStat>;
+	// The Key view of the stats panel shows only these groups' weapon skills; unset shows none there.
+	displayWeaponSkillGroups?: Array<WeaponSkillGroup>;
 	modifyDisplayStats?: (player: Player<SpecType>) => StatMods;
 	overwriteDisplayStats?: (player: Player<SpecType>) => StatWrites;
 

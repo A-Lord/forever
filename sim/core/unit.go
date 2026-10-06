@@ -99,6 +99,9 @@ type Unit struct {
 	// Ranged swing speed without any temporary effects.
 	initialRangedSwingSpeed float64
 
+	basePhysicalCritPercent float64 // The base physical crit of the class or pet, which no defender suppresses.
+	critPerAgility          float64 // The physical crit per point of Agility, which no defender suppresses.
+
 	// Provides aura tracking behavior.
 	auraTracker
 
@@ -193,10 +196,11 @@ type Unit struct {
 
 	CurrentTarget   *Unit
 	defaultTarget   *Unit
-	SecondaryTarget *Unit // Only used for NPCs in tank swap AIs currently.
+	SecondaryTarget *Unit // An NPC's second tank assignment; counts that tank as tanking for chance of death.
 
 	// The currently-channeled DOT spell, otherwise nil.
-	ChanneledDot *Dot
+	ChanneledDot       *Dot
+	channelEndHandlers []func(sim *Simulation)
 
 	// Data about the most recently queued spell, otherwise nil.
 	QueuedSpell *QueuedSpell
@@ -521,6 +525,11 @@ func (unit *Unit) IsChanneling() bool {
 	return unit.ChanneledDot != nil
 }
 
+// Runs the handler each time one of the unit's channels ends, run out or cut short, after its last tick.
+func (unit *Unit) OnChannelEnd(handler func(sim *Simulation)) {
+	unit.channelEndHandlers = append(unit.channelEndHandlers, handler)
+}
+
 func (unit *Unit) SpellGCD() time.Duration {
 	return max(GCDMin, unit.ApplyCastSpeed(GCDDefault))
 }
@@ -590,7 +599,7 @@ func (unit *Unit) Armor() float64 {
 }
 
 func (unit *Unit) BlockDamageReduction() float64 {
-	return unit.stats[stats.BlockValue] * unit.PseudoStats.BlockValueMultiplier
+	return max(0, unit.stats[stats.Strength]*unit.PseudoStats.BlockValuePerStrength-1) + unit.stats[stats.BlockValue]*unit.PseudoStats.BlockValueMultiplier
 }
 
 func (unit *Unit) TotalRangedHasteMultiplier() float64 {
@@ -1038,7 +1047,7 @@ func (unit *Unit) GetBlockFromRating() float64 {
 
 func (unit *Unit) GetTotalDodgeChanceAsDefender(spell *Spell, atkTable *AttackTable) float64 {
 	chance := unit.PseudoStats.BaseDodgeChance +
-		atkTable.BaseDodgeChance +
+		atkTable.Hand(spell).BaseDodgeChance +
 		unit.GetDodgeFromRating() -
 		spell.DodgeParrySuppression() -
 		spell.Unit.PseudoStats.DodgeReduction
@@ -1047,22 +1056,24 @@ func (unit *Unit) GetTotalDodgeChanceAsDefender(spell *Spell, atkTable *AttackTa
 
 func (unit *Unit) GetTotalParryChanceAsDefender(spell *Spell, atkTable *AttackTable) float64 {
 	chance := unit.PseudoStats.BaseParryChance +
-		atkTable.BaseParryChance +
+		atkTable.Hand(spell).BaseParryChance +
 		unit.GetParryFromRating() -
 		spell.DodgeParrySuppression()
 	return math.Max(chance, 0.0)
 }
 
-func (unit *Unit) GetTotalChanceToBeMissedAsDefender(atkTable *AttackTable) float64 {
+func (unit *Unit) GetTotalChanceToBeMissedAsDefender(spell *Spell, atkTable *AttackTable) float64 {
 	// ReducedPhysicalHitTakenChance is stored in percent points, BaseMissChance as a fraction.
-	chance := atkTable.BaseMissChance +
-		unit.PseudoStats.ReducedPhysicalHitTakenChance/100
+	defense := math.Floor(unit.stats[stats.DefenseRating] / DefenseRatingPerDefenseLevel)
+	chance := atkTable.Hand(spell).BaseMissChance +
+		unit.PseudoStats.ReducedPhysicalHitTakenChance/100 +
+		defense*MissDodgeParryBlockCritChancePerDefense/100
 	return math.Max(chance, 0.0)
 }
 
-func (unit *Unit) GetTotalBlockChanceAsDefender(atkTable *AttackTable) float64 {
+func (unit *Unit) GetTotalBlockChanceAsDefender(spell *Spell, atkTable *AttackTable) float64 {
 	chance := unit.PseudoStats.BaseBlockChance +
-		atkTable.BaseBlockChance +
+		atkTable.Hand(spell).BaseBlockChance +
 		unit.GetBlockFromRating()
 	return math.Max(chance, 0.0)
 }
@@ -1073,9 +1084,9 @@ func (unit *Unit) updateReducedCritTakenPercent() {
 }
 
 func (unit *Unit) GetTotalAvoidanceChance(spell *Spell, atkTable *AttackTable) float64 {
-	miss := unit.GetTotalChanceToBeMissedAsDefender(atkTable)
+	miss := unit.GetTotalChanceToBeMissedAsDefender(spell, atkTable)
 	dodge := unit.GetTotalDodgeChanceAsDefender(spell, atkTable)
 	parry := unit.GetTotalParryChanceAsDefender(spell, atkTable)
-	block := unit.GetTotalBlockChanceAsDefender(atkTable)
+	block := unit.GetTotalBlockChanceAsDefender(spell, atkTable)
 	return miss + dodge + parry + block
 }

@@ -1,6 +1,6 @@
 import { ResourceType } from '@generated/proto/spell';
-import { mockSubscriptions } from '@sim/testing';
 import { renderWithHost } from '@testing/react';
+import { mockSubscriptions } from '@testing/sim/subscriptions';
 import { describe, expect, it, vi } from 'vitest';
 
 import type { AuraItem, CastItem, ResourceItem, RowItem, TickItem } from '../../../model/timeline/rotation';

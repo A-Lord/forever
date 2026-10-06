@@ -1,1 +1,1 @@
-export { type BuffSection, BuffSectionView, type BuffSectionViewProps } from './BuffSectionView';
+export { BuffSection, type BuffSectionKind, type BuffSectionProps } from './BuffSection';

@@ -13,9 +13,9 @@ import (
 var WITH_DB = false
 
 var itemsByID = map[int32]Item{}
-var gemsByID = map[int32]Gem{}
 var randomSuffixesByID = map[int32]RandomSuffix{}
 var enchantsByEffectID = map[int32]Enchant{}
+var enchantRowsByEffectID = map[int32][]Enchant{} // Every row with distinct slot rules per effect id; enchantsByEffectID keeps only the first.
 var itemEffectRandPropPointsByIlvl = map[int32]ItemEffectRandPropPoints{}
 var consumablesByID = map[int32]Consumable{}
 var spellEffectsById = map[int32]*proto.SpellEffect{}
@@ -62,14 +62,12 @@ func addToDatabase(newDB *proto.SimDatabase) {
 	}
 
 	for _, v := range newDB.Enchants {
+		enchant := EnchantFromProto(v)
 		if _, ok := enchantsByEffectID[v.EffectId]; !ok {
-			enchantsByEffectID[v.EffectId] = EnchantFromProto(v)
+			enchantsByEffectID[v.EffectId] = enchant
 		}
-	}
-
-	for _, v := range newDB.Gems {
-		if _, ok := gemsByID[v.Id]; !ok {
-			gemsByID[v.Id] = GemFromProto(v)
+		if !slices.ContainsFunc(enchantRowsByEffectID[v.EffectId], enchant.sameSlotRules) {
+			enchantRowsByEffectID[v.EffectId] = append(enchantRowsByEffectID[v.EffectId], enchant)
 		}
 	}
 
@@ -193,12 +191,8 @@ type Item struct {
 
 	ClassAllowlist []proto.Class
 
-	GemSockets  []proto.GemColor
-	SocketBonus stats.Stats
-
 	// Modified for each instance of the item.
 	RandomSuffix RandomSuffix
-	Gems         []Gem
 	Enchant      Enchant
 
 	//Internal use
@@ -220,8 +214,6 @@ func ItemFromProto(pData *proto.SimItem) Item {
 		RangedWeaponType: pData.RangedWeaponType,
 		SwingSpeed:       pData.WeaponSpeed,
 		QualityModifier:  pData.QualityModifier,
-		GemSockets:       pData.GemSockets,
-		SocketBonus:      stats.FromProtoArray(pData.SocketBonus),
 		PseudoStats:      pData.PseudoStats,
 		Unique:           pData.Unique,
 		LimitCategory:    pData.LimitCategory,
@@ -242,10 +234,6 @@ func (item *Item) ToItemSpecProto() *proto.ItemSpec {
 		Id:           item.ID,
 		RandomSuffix: item.RandomSuffix.ID,
 		Enchant:      item.Enchant.EffectID,
-		Gems:         MapSlice(item.Gems, func(gem Gem) int32 { return gem.ID }),
-		MetaGemDisabled: slices.ContainsFunc(item.Gems, func(gem Gem) bool {
-			return gem.Disabled && gem.Color == proto.GemColor_GemColorMeta
-		}),
 	}
 
 	return itemSpec
@@ -291,31 +279,10 @@ func EnchantFromProto(pData *proto.SimEnchant) Enchant {
 	}
 }
 
-type Gem struct {
-	ID    int32
-	Name  string
-	Stats stats.Stats
-	Color proto.GemColor
-	// Set per equipped instance, not from the DB: a meta gem whose requirements are not met stays
-	// socketed (so the item's socket bonus still applies) but grants no stats and no effect.
-	Disabled bool
-}
-
-func GemFromProto(pData *proto.SimGem) Gem {
-	return Gem{
-		ID:    pData.Id,
-		Name:  pData.Name,
-		Stats: stats.FromProtoArray(pData.Stats),
-		Color: pData.Color,
-	}
-}
-
 type ItemSpec struct {
-	ID              int32
-	RandomSuffix    int32
-	Enchant         int32
-	Gems            []int32
-	MetaGemDisabled bool
+	ID           int32
+	RandomSuffix int32
+	Enchant      int32
 }
 
 type Equipment [NumItemSlots]Item
@@ -454,12 +421,6 @@ func (equipment *Equipment) containsItemInSlots(itemID int32, possibleSlots []pr
 	})
 }
 
-func (equipment *Equipment) containsGemInSlot(itemID int32, slot proto.ItemSlot) bool {
-	return slices.ContainsFunc(equipment[slot].Gems, func(gem Gem) bool {
-		return gem.ID == itemID
-	})
-}
-
 func GetEnchantByEffectID(effectID int32) *Enchant {
 	dbMu.RLock()
 	enchant, ok := enchantsByEffectID[effectID]
@@ -470,11 +431,17 @@ func GetEnchantByEffectID(effectID int32) *Enchant {
 	return &enchant
 }
 
-func GetGemByID(id int32) (Gem, bool) {
+// The game files carry several rows under some effect ids (1897 is both 2H Lesser Impact and
+// Superior Striking), differing in the items they fit. fits runs under the read lock, so
+// nothing it calls may take dbMu.
+func AnyEnchantRow(effectID int32, fits func(Enchant) bool) bool {
 	dbMu.RLock()
-	gem, ok := gemsByID[id]
-	dbMu.RUnlock()
-	return gem, ok
+	defer dbMu.RUnlock()
+	return slices.ContainsFunc(enchantRowsByEffectID[effectID], fits)
+}
+
+func (enchant Enchant) sameSlotRules(other Enchant) bool {
+	return enchant.Type == other.Type && enchant.EnchantType == other.EnchantType && slices.Equal(enchant.ExtraTypes, other.ExtraTypes)
 }
 
 func GetConsumableByID(id int32) Consumable {
@@ -482,37 +449,6 @@ func GetConsumableByID(id int32) Consumable {
 	c := consumablesByID[id]
 	dbMu.RUnlock()
 	return c
-}
-
-// The ids of every consumable the loaded database carries, sorted.
-func ConsumableIDs() []int32 {
-	dbMu.RLock()
-	defer dbMu.RUnlock()
-	ids := make([]int32, 0, len(consumablesByID))
-	for id := range consumablesByID {
-		ids = append(ids, id)
-	}
-	slices.Sort(ids)
-	return ids
-}
-
-// Narrows the loaded consumables to these ids until the returned function restores the rest, for a
-// test that runs the sim on the consumables a browser request carries.
-func KeepOnlyConsumablesForTest(ids []int32) (restore func()) {
-	dbMu.Lock()
-	defer dbMu.Unlock()
-	all := consumablesByID
-	consumablesByID = make(map[int32]Consumable, len(ids))
-	for _, id := range ids {
-		if consumable, ok := all[id]; ok {
-			consumablesByID[id] = consumable
-		}
-	}
-	return func() {
-		dbMu.Lock()
-		consumablesByID = all
-		dbMu.Unlock()
-	}
 }
 
 func GetSpellEffectByID(id int32) *proto.SpellEffect {
@@ -540,18 +476,16 @@ func (equipment *Equipment) ToEquipmentSpecProto() *proto.EquipmentSpec {
 	}
 }
 
-// Structs used for looking up items/gems/enchants
+// Structs used for looking up items/enchants
 type EquipmentSpec [NumItemSlots]ItemSpec
 
 func ProtoToEquipmentSpec(es *proto.EquipmentSpec) EquipmentSpec {
 	var coreEquip EquipmentSpec
 	for i, item := range es.Items {
 		coreEquip[i] = ItemSpec{
-			ID:              item.Id,
-			RandomSuffix:    item.RandomSuffix,
-			Enchant:         item.Enchant,
-			Gems:            item.Gems,
-			MetaGemDisabled: item.MetaGemDisabled,
+			ID:           item.Id,
+			RandomSuffix: item.RandomSuffix,
+			Enchant:      item.Enchant,
 		}
 	}
 	return coreEquip
@@ -595,25 +529,6 @@ func NewItem(itemSpec ItemSpec) Item {
 		// }
 	}
 
-	if len(itemSpec.Gems) > 0 {
-		// Need to do this to account for possible extra gem sockets.
-		numGems := len(item.GemSockets)
-		if len(itemSpec.Gems) > numGems {
-			numGems = len(itemSpec.Gems)
-		}
-
-		item.Gems = make([]Gem, numGems)
-		for gemIdx, gemID := range itemSpec.Gems {
-			if gem, ok := gemsByID[gemID]; ok {
-				gem.Disabled = itemSpec.MetaGemDisabled && gem.Color == proto.GemColor_GemColorMeta
-				item.Gems[gemIdx] = gem
-			} else {
-				if gemID != 0 {
-					panic(fmt.Sprintf("When parsing item %d, socket %d had gem with id: %d\nThis gem is not in the database.", itemSpec.ID, gemIdx, gemID))
-				}
-			}
-		}
-	}
 	return item
 }
 
@@ -656,7 +571,6 @@ func (equipment Equipment) inArea(areaTypes []proto.AreaType) Equipment {
 type ItemStringSpec struct {
 	Name    string
 	Enchant string
-	Gems    []string
 }
 
 func EquipmentSpecFromJsonString(jsonString string) *proto.EquipmentSpec {
@@ -684,13 +598,13 @@ func (equipment *Equipment) Stats(spec proto.Spec) stats.Stats {
 
 	for _, item := range equipment {
 		equipStats = equipStats.Add(ItemEquipmentBaseStats(item))
-		equipStats = equipStats.Add(ItemEquipmentGemAndEnchantStats(item))
+		equipStats = equipStats.Add(ItemEquipmentEnchantStats(item))
 	}
 
 	return equipStats
 }
 
-// Returns the base stats on the equipment. That is all stats without Gems / Enchants
+// Returns the base stats on the equipment. That is all stats without Enchants
 func ItemEquipmentBaseStats(item Item) stats.Stats {
 	equipStats := stats.Stats{}
 
@@ -708,7 +622,7 @@ func ItemEquipmentBaseStats(item Item) stats.Stats {
 	return equipStats
 }
 
-func ItemEquipmentGemAndEnchantStats(item Item) stats.Stats {
+func ItemEquipmentEnchantStats(item Item) stats.Stats {
 	if item.ID == 0 {
 		return stats.Stats{}
 	}
@@ -716,30 +630,6 @@ func ItemEquipmentGemAndEnchantStats(item Item) stats.Stats {
 	equipStats := stats.Stats{}
 	equipStats = equipStats.Add(item.Enchant.Stats)
 	equipStats = equipStats.Add(stats.FromPseudoStatsProto(item.Enchant.PseudoStats))
-
-	for _, gem := range item.Gems {
-		// A disabled meta gem keeps its color below so the socket bonus still matches.
-		if gem.Disabled {
-			continue
-		}
-
-		equipStats = equipStats.Add(gem.Stats)
-	}
-
-	// Check socket bonus
-	if len(item.GemSockets) > 0 && len(item.Gems) >= len(item.GemSockets) {
-		allMatch := true
-		for gemIndex, socketColor := range item.GemSockets {
-			if !ColorIntersects(socketColor, item.Gems[gemIndex].Color) {
-				allMatch = false
-				break
-			}
-		}
-
-		if allMatch {
-			equipStats = equipStats.Add(item.SocketBonus)
-		}
-	}
 
 	return equipStats
 }
@@ -789,8 +679,10 @@ func ItemTypeToSlot(it proto.ItemType) proto.ItemSlot {
 	return 255
 }
 
-// See getEligibleItemSlots in proto_utils/utils.ts.
+// gen_db -gen=go-to-ts writes this to the UI as ITEM_TYPE_TO_SLOTS, read by getEligibleItemSlots in
+// ui/sim/proto/items.ts.
 var ItemTypeToSlotsMap = map[proto.ItemType][]proto.ItemSlot{
+	proto.ItemType_ItemTypeUnknown:  {},
 	proto.ItemType_ItemTypeHead:     {proto.ItemSlot_ItemSlotHead},
 	proto.ItemType_ItemTypeNeck:     {proto.ItemSlot_ItemSlotNeck},
 	proto.ItemType_ItemTypeShoulder: {proto.ItemSlot_ItemSlotShoulder},
@@ -828,78 +720,4 @@ func EligibleSlotsForItem(item *Item) []proto.ItemSlot {
 	}
 
 	return nil
-}
-
-// GemEligibleForSocket reports whether a gem may be placed in a socket of the given color
-// (a meta socket takes only meta gems, and a meta gem fits nowhere else).
-func GemEligibleForSocket(gemColor proto.GemColor, socketColor proto.GemColor) bool {
-	if socketColor == proto.GemColor_GemColorMeta {
-		return gemColor == proto.GemColor_GemColorMeta
-	}
-	return gemColor != proto.GemColor_GemColorMeta
-}
-
-// GemMatchesSocket reports whether a gem's color counts as a match for the socket's color (for
-// the purpose of earning the item's socket bonus).
-func GemMatchesSocket(gemColor proto.GemColor, socketColor proto.GemColor) bool {
-	if gemColor == socketColor {
-		return true
-	}
-	switch socketColor {
-	case proto.GemColor_GemColorBlue:
-		return gemColor == proto.GemColor_GemColorPurple || gemColor == proto.GemColor_GemColorGreen || gemColor == proto.GemColor_GemColorPrismatic
-	case proto.GemColor_GemColorRed:
-		return gemColor == proto.GemColor_GemColorPurple || gemColor == proto.GemColor_GemColorOrange || gemColor == proto.GemColor_GemColorPrismatic
-	case proto.GemColor_GemColorYellow:
-		return gemColor == proto.GemColor_GemColorOrange || gemColor == proto.GemColor_GemColorGreen || gemColor == proto.GemColor_GemColorPrismatic
-	case proto.GemColor_GemColorPrismatic:
-		return gemColor == proto.GemColor_GemColorRed || gemColor == proto.GemColor_GemColorOrange || gemColor == proto.GemColor_GemColorYellow || gemColor == proto.GemColor_GemColorGreen || gemColor == proto.GemColor_GemColorBlue || gemColor == proto.GemColor_GemColorPurple
-	default:
-		return false
-	}
-}
-
-func ColorIntersects(g proto.GemColor, o proto.GemColor) bool {
-	if g == o {
-		return true
-	}
-	if g == proto.GemColor_GemColorPrismatic || o == proto.GemColor_GemColorPrismatic {
-		return true
-	}
-	if g == proto.GemColor_GemColorMeta {
-		return o == proto.GemColor_GemColorMeta
-	}
-	if g == proto.GemColor_GemColorRed {
-		return o == proto.GemColor_GemColorOrange || o == proto.GemColor_GemColorPurple
-	}
-	if g == proto.GemColor_GemColorBlue {
-		return o == proto.GemColor_GemColorGreen || o == proto.GemColor_GemColorPurple
-	}
-	if g == proto.GemColor_GemColorYellow {
-		return o == proto.GemColor_GemColorGreen || o == proto.GemColor_GemColorOrange
-	}
-	if g == proto.GemColor_GemColorOrange {
-		return o == proto.GemColor_GemColorYellow || o == proto.GemColor_GemColorRed
-	}
-	if g == proto.GemColor_GemColorGreen {
-		return o == proto.GemColor_GemColorYellow || o == proto.GemColor_GemColorBlue
-	}
-	if g == proto.GemColor_GemColorPurple {
-		return o == proto.GemColor_GemColorBlue || o == proto.GemColor_GemColorRed
-	}
-
-	return false // dunno what else could be.
-}
-
-// ItemsWithSockets returns the loaded items that carry at least one gem socket. Tests use
-// it to skip when the database has none, which is the case while Forever keeps item stats
-// encrypted until an item is discovered in game.
-func ItemsWithSockets() []Item {
-	var out []Item
-	for _, item := range itemsByID {
-		if len(item.GemSockets) > 0 {
-			out = append(out, item)
-		}
-	}
-	return out
 }

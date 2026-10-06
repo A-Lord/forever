@@ -18,8 +18,4 @@
 			@apply inset-y-0 right-0 w-(--container-popup) max-w-full border-l;
 		}
 	}
-
-	.ui-drawer-header {
-		@apply mb-4 flex shrink-0 items-center gap-2 border-b border-border pb-4;
-	}
 }

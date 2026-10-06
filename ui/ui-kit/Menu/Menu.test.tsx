@@ -29,19 +29,6 @@ describe('MenuItem', () => {
 		);
 		expect(getByRole('menuitem', { name: 'Export' }).getAttribute('data-testid')).toBe('export-item');
 	});
-
-	it('marks a bare item and leaves an ordinary one unmarked', () => {
-		const { getByRole } = render(
-			<Menu trigger="Open" surface="menu" open>
-				<MenuItem layout="block" bare>
-					Bare
-				</MenuItem>
-				<MenuItem layout="block">Padded</MenuItem>
-			</Menu>,
-		);
-		expect(getByRole('menuitem', { name: 'Bare' }).getAttribute('data-bare')).toBe('');
-		expect(getByRole('menuitem', { name: 'Padded' }).hasAttribute('data-bare')).toBe(false);
-	});
 });
 
 describe('MenuLinkItem', () => {

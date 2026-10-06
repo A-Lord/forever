@@ -27,7 +27,7 @@ const (
 // own.
 func TestSlowProcRowsStateNoRate(t *testing.T) {
 	for _, id := range []int32{frostguardChilled, lobotomizerBrainDamage} {
-		got := spelldata.ItemProcUnsupported(spelldata.MustFind(id), true)
+		got := spelldata.ItemProcUnsupportedWithRate(spelldata.MustFind(id), true, 0)
 		if !slices.Equal(got, []string{spelldata.ReasonStatesNoRate}) {
 			t.Errorf("%d: unsupported = %v, want only the missing rate", id, got)
 		}

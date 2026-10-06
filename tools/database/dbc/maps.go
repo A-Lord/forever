@@ -2,6 +2,7 @@ package dbc
 
 import (
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/stats"
 )
 
 func MapResistanceToStat(index int) (proto.Stat, bool) {
@@ -176,6 +177,17 @@ func MapBonusStatIndexToStats(index int) ([]proto.Stat, bool) {
 	return nil, false
 }
 
+// The school a spell penetration stat pierces, which the sim keeps outside the stat array.
+func MapBonusStatIndexToPiercingSchool(index int) (stats.SchoolIndex, bool) {
+	switch index {
+	case ITEM_MOD_FIRE_SPELL_PENETRATION:
+		return stats.SchoolIndexFire, true
+	case ITEM_MOD_FROST_SPELL_PENETRATION:
+		return stats.SchoolIndexFrost, true
+	}
+	return stats.SchoolIndexNone, false
+}
+
 var MapProfessionIdToProfession = map[int]proto.Profession{
 	0:   proto.Profession_ProfessionUnknown,
 	164: proto.Profession_Blacksmithing,
@@ -187,17 +199,7 @@ var MapProfessionIdToProfession = map[int]proto.Profession{
 	202: proto.Profession_Engineering,
 	333: proto.Profession_Enchanting,
 	393: proto.Profession_Skinning,
-	755: proto.Profession_Jewelcrafting,
 	773: proto.Profession_Inscription,
-}
-
-var MapSocketTypeToGemColor = map[int]proto.GemColor{
-	0: proto.GemColor_GemColorUnknown,
-	1: proto.GemColor_GemColorMeta,
-	2: proto.GemColor_GemColorRed,
-	3: proto.GemColor_GemColorYellow,
-	4: proto.GemColor_GemColorBlue,
-	7: proto.GemColor_GemColorPrismatic,
 }
 
 var MapInventoryTypeToItemType = map[int]proto.ItemType{

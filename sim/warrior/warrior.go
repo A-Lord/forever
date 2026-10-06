@@ -1,19 +1,21 @@
 package warrior
 
 import (
+	"time"
+
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
-	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-var TalentTreeSizes = [3]int{17, 18, 18}
+var TalentTreeSizes = [3]int{17, 17, 18}
 
 type WarriorInputs struct {
 	UseBattleShout bool
 	DefaultStance  proto.WarriorStance
 
 	StartingRage   float64
+	QueueDelay     int32
 	StanceSnapshot bool
 	HasBsT2        bool
 }
@@ -54,7 +56,12 @@ type Warrior struct {
 	Taunt             *core.Spell
 	VictoryRush       *core.Spell
 
-	EnrageAura *core.Aura
+	curQueueAura       *core.Aura
+	curQueuedAutoSpell *core.Spell
+	queuedRealismICD   *core.Cooldown
+
+	EnrageAura     *core.Aura
+	GoreDrinkerAura *core.Aura
 
 	SweepingStrikesAura *core.Aura
 	OverpowerAura       *core.Aura
@@ -110,6 +117,9 @@ func (warrior *Warrior) Initialize() {
 }
 
 func (warrior *Warrior) Reset(_ *core.Simulation) {
+	warrior.curQueueAura = nil
+	warrior.curQueuedAutoSpell = nil
+
 	switch warrior.DefaultStance {
 	case proto.WarriorStance_WarriorStanceBattle:
 		warrior.ShapeshiftForm = battleStanceRank.ShapeshiftForm()
@@ -145,27 +155,26 @@ func NewWarrior(character *core.Character, options *proto.WarriorOptions, talent
 		BaseRageMultiplier: 1,
 		StartingRage:       inputs.StartingRage,
 	})
-	// Here rather than with the talents: the racial that scales the maximum rage runs before them and
-	// scales Boundless Rage's share too.
-	spelldata.ParseStatic(&warrior.Character, spellData.BoundlessRage.Rank(warrior.Talents.BoundlessRage))
 
 	warrior.EnableAutoAttacks(warrior, core.AutoAttackOptions{
 		MainHand:       warrior.WeaponFromMainHand(),
 		OffHand:        warrior.WeaponFromOffHand(),
 		AutoSwingMelee: true,
+		ReplaceMHSwing: warrior.TryHSOrCleave,
 	})
 
 	warrior.PseudoStats.CanParry = true
-	// TODO: In-game testing required
-	warrior.PseudoStats.BaseDodgeChance += 0.0075
-	warrior.PseudoStats.BaseParryChance += 0.05
-	warrior.PseudoStats.BaseBlockChance += 0.05
 
 	warrior.AddStatDependency(stats.Strength, stats.AttackPower, 2)
-	warrior.AddStatDependency(stats.Strength, stats.BlockValue, 1/20.0)
 	warrior.AddStatDependency(stats.Agility, stats.PhysicalCritPercent, core.CritPerAgiMaxLevel[character.Class])
-	warrior.AddStatDependency(stats.Agility, stats.DodgeRating, core.DodgeRatingPerAgility[character.Class])
 	warrior.AddStatDependency(stats.BonusArmor, stats.Armor, 1)
+
+	// Without a delay the sim re-queues Heroic Strike faster than a player can, which lands
+	// back-to-back hits around extra attacks.
+	warrior.queuedRealismICD = &core.Cooldown{
+		Timer:    warrior.NewTimer(),
+		Duration: time.Millisecond * time.Duration(inputs.QueueDelay),
+	}
 
 	return warrior
 }

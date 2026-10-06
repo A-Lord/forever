@@ -2,7 +2,6 @@ import {
 	AreaType,
 	ArmorType,
 	Class,
-	ItemQuality,
 	ItemSlot,
 	MobType,
 	Profession,
@@ -12,6 +11,7 @@ import {
 	Spec,
 	SpellSchool,
 	Stat,
+	WeaponSkill,
 	WeaponType,
 } from '@generated/proto/common';
 import { ResourceType } from '@generated/proto/spell';
@@ -144,6 +144,12 @@ export const pseudoStatI18nKeys: Record<PseudoStat, string> = {
 	[PseudoStat.PseudoStatOffHandCritRating]: 'off_hand_crit_rating',
 	[PseudoStat.PseudoStatRangedHitRating]: 'ranged_hit_rating',
 	[PseudoStat.PseudoStatRangedCritRating]: 'ranged_crit_rating',
+	[PseudoStat.PseudoStatMeleeCritSuppressionPercent]: 'melee_crit_suppression',
+	[PseudoStat.PseudoStatRangedCritSuppressionPercent]: 'ranged_crit_suppression',
+	[PseudoStat.PseudoStatMainHandMissPercent]: 'main_hand_miss',
+	[PseudoStat.PseudoStatMainHandDodgePercent]: 'main_hand_dodge',
+	[PseudoStat.PseudoStatMainHandParryPercent]: 'main_hand_parry',
+	[PseudoStat.PseudoStatMainHandGlancePercent]: 'main_hand_glance',
 };
 
 export const spellSchoolI18nKeys: Record<SpellSchool, string> = {
@@ -190,17 +196,6 @@ export const resourceTypeI18nKeys: Record<ResourceType, string> = {
 	[ResourceType.ResourceTypeComboPoints]: 'combo_points',
 	[ResourceType.ResourceTypeFocus]: 'focus',
 	[ResourceType.ResourceTypeGenericResource]: 'generic_resource',
-};
-
-export const itemQualityI18nKeys: Record<ItemQuality, string> = {
-	[ItemQuality.ItemQualityJunk]: 'junk',
-	[ItemQuality.ItemQualityCommon]: 'common',
-	[ItemQuality.ItemQualityUncommon]: 'uncommon',
-	[ItemQuality.ItemQualityRare]: 'rare',
-	[ItemQuality.ItemQualityEpic]: 'epic',
-	[ItemQuality.ItemQualityLegendary]: 'legendary',
-	[ItemQuality.ItemQualityArtifact]: 'artifact',
-	[ItemQuality.ItemQualityHeirloom]: 'heirloom',
 };
 
 export const specI18nKeys: Record<Spec, string> = {
@@ -296,7 +291,6 @@ export const professionI18nKeys: Record<Profession, string> = {
 	[Profession.Engineering]: 'engineering',
 	[Profession.Herbalism]: 'herbalism',
 	[Profession.Inscription]: 'inscription',
-	[Profession.Jewelcrafting]: 'jewelcrafting',
 	[Profession.Leatherworking]: 'leatherworking',
 	[Profession.Mining]: 'mining',
 	[Profession.Skinning]: 'skinning',
@@ -320,15 +314,13 @@ export const sourceFilterI18nKeys: Record<SourceFilterOption, string> = {
 
 export const raidFilterI18nKeys: Record<RaidFilterOption, string> = {
 	[RaidFilterOption.RaidUnknown]: 'unknown',
-	[RaidFilterOption.RaidKara]: 'kara',
-	[RaidFilterOption.RaidGruul]: 'gruuls',
-	[RaidFilterOption.RaidMag]: 'mag',
-	[RaidFilterOption.RaidTK]: 'tk',
-	[RaidFilterOption.RaidSSC]: 'ssc',
-	[RaidFilterOption.RaidMH]: 'mh',
-	[RaidFilterOption.RaidBT]: 'bt',
-	[RaidFilterOption.RaidZA]: 'za',
-	[RaidFilterOption.RaidSWP]: 'swp',
+	[RaidFilterOption.RaidMC]: 'mc',
+	[RaidFilterOption.RaidOny]: 'ony',
+	[RaidFilterOption.RaidBWL]: 'bwl',
+	[RaidFilterOption.RaidZG]: 'zg',
+	[RaidFilterOption.RaidAQ20]: 'aq20',
+	[RaidFilterOption.RaidAQ40]: 'aq40',
+	[RaidFilterOption.RaidNaxx]: 'naxx',
 };
 
 export const armorTypeI18nKeys: Record<ArmorType, string> = {
@@ -363,6 +355,24 @@ export const rangedWeaponTypeI18nKeys: Record<RangedWeaponType, string> = {
 	[RangedWeaponType.RangedWeaponTypeLibram]: 'libram',
 	[RangedWeaponType.RangedWeaponTypeTotem]: 'totem',
 	[RangedWeaponType.RangedWeaponTypeSigil]: 'sigil',
+};
+
+export const weaponSkillI18nKeys: Record<WeaponSkill, string> = {
+	[WeaponSkill.WeaponSkillUnknown]: 'unknown',
+	[WeaponSkill.WeaponSkillAxes]: 'axes',
+	[WeaponSkill.WeaponSkillTwoHandedAxes]: 'two_handed_axes',
+	[WeaponSkill.WeaponSkillMaces]: 'maces',
+	[WeaponSkill.WeaponSkillTwoHandedMaces]: 'two_handed_maces',
+	[WeaponSkill.WeaponSkillSwords]: 'swords',
+	[WeaponSkill.WeaponSkillTwoHandedSwords]: 'two_handed_swords',
+	[WeaponSkill.WeaponSkillPolearms]: 'polearms',
+	[WeaponSkill.WeaponSkillStaves]: 'staves',
+	[WeaponSkill.WeaponSkillDaggers]: 'daggers',
+	[WeaponSkill.WeaponSkillFistWeapons]: 'fist_weapons',
+	[WeaponSkill.WeaponSkillBows]: 'bows',
+	[WeaponSkill.WeaponSkillCrossbows]: 'crossbows',
+	[WeaponSkill.WeaponSkillGuns]: 'guns',
+	[WeaponSkill.WeaponSkillThrown]: 'thrown',
 };
 
 export const slotNamesI18nKeys: Record<ItemSlot, string> = {
@@ -442,6 +452,8 @@ export const getWeaponTypeI18nKey = (weaponType: WeaponType): string => weaponTy
 
 export const getRangedWeaponTypeI18nKey = (rangedWeaponType: RangedWeaponType): string =>
 	rangedWeaponTypeI18nKeys[rangedWeaponType] || RangedWeaponType[rangedWeaponType].toLowerCase();
+
+export const getWeaponSkillI18nKey = (weaponSkill: WeaponSkill): string => weaponSkillI18nKeys[weaponSkill] || WeaponSkill[weaponSkill].toLowerCase();
 
 export const getSlotNameI18nKey = (slot: ItemSlot): string => slotNamesI18nKeys[slot] || ItemSlot[slot].toLowerCase();
 

@@ -1,15 +1,14 @@
-import { EquipmentSpec, GemColor, ItemRandomSuffix, ItemSlot, ItemSpec, ItemSwap, PresetEncounter, PresetTarget } from '@generated/proto/common';
+import { EquipmentSpec, ItemRandomSuffix, ItemSlot, ItemSpec, ItemSwap, PresetEncounter, PresetTarget } from '@generated/proto/common';
 import { Consumable, ItemEffectRandPropPoints, SimDatabase } from '@generated/proto/db';
 import { SpellEffect } from '@generated/proto/spell';
-import { IconData, UIDatabase, UIEnchant as Enchant, UIGem as Gem, UIItem as Item, UINPC as Npc, UIZone as Zone } from '@generated/proto/ui';
+import { IconData, UIDatabase, UIEnchant as Enchant, UIFaction, UIItem as Item, UINPC as Npc, UIZone as Zone } from '@generated/proto/ui';
 
 import { CacheHandler } from '../cache/cache_handler';
 import { CHARACTER_LEVEL } from '../constants/mechanics';
-import { distinct } from '../utils/collections';
+import { arrayEquals, distinct } from '../utils/collections';
 import { EquippedItem } from './equipped_item';
 import { Gear, ItemSwapGear } from './gear';
-import { gemEligibleForSocket, gemMatchesSocket } from './gems';
-import { getEligibleEnchantSlots, getEligibleItemSlots } from './items';
+import { enchantAppliesToItem, getEligibleEnchantSlots, getEligibleItemSlots } from './items';
 import { Stats } from './stats';
 import { WOWHEAD_DOMAIN, WOWHEAD_EXPANSION_ENV } from './wowhead';
 
@@ -100,9 +99,10 @@ export class Database {
 	private readonly randomSuffixes = new Map<number, ItemRandomSuffix>();
 	private readonly itemEffectRandPropPoints = new Map<number, ItemEffectRandPropPoints>();
 	private readonly enchantsBySlot: Partial<Record<ItemSlot, Enchant[]>> = {};
-	private readonly gems = new Map<number, Gem>();
+	private readonly enchantsByEffectId = new Map<number, Enchant[]>();
 	private readonly npcs = new Map<number, Npc>();
 	private readonly zones = new Map<number, Zone>();
+	private readonly factions = new Map<number, UIFaction>();
 	private readonly presetEncounters = new Map<string, PresetEncounter>();
 	private readonly presetTargets = new Map<string, PresetTarget>();
 	private readonly itemIcons: Record<number, IconData> = {};
@@ -134,6 +134,9 @@ export class Database {
 		db.randomSuffixes.forEach(randomSuffix => this.randomSuffixes.set(randomSuffix.id, randomSuffix));
 		db.itemEffectRandPropPoints.forEach(ieRpp => this.itemEffectRandPropPoints.set(ieRpp.ilvl, ieRpp));
 		db.enchants.forEach(enchant => {
+			const rows = this.enchantsByEffectId.get(enchant.effectId);
+			if (rows) rows.push(enchant);
+			else this.enchantsByEffectId.set(enchant.effectId, [enchant]);
 			const slots = getEligibleEnchantSlots(enchant);
 			slots.forEach(slot => {
 				if (!this.enchantsBySlot[slot]) {
@@ -142,10 +145,10 @@ export class Database {
 				this.enchantsBySlot[slot]!.push(enchant);
 			});
 		});
-		db.gems.forEach(gem => this.gems.set(gem.id, gem));
 
 		db.npcs.forEach(npc => this.npcs.set(npc.id, npc));
 		db.zones.forEach(zone => this.zones.set(zone.id, zone));
+		db.factions.forEach(faction => this.factions.set(faction.id, faction));
 		db.encounters.forEach(encounter => this.presetEncounters.set(encounter.path, encounter));
 		db.encounters
 			.map(e => e.targets)
@@ -158,14 +161,6 @@ export class Database {
 					id: item.id,
 					name: item.name,
 					icon: item.icon,
-				})),
-		);
-		db.gems.forEach(
-			gem =>
-				(this.itemIcons[gem.id] = IconData.create({
-					id: gem.id,
-					name: gem.name,
-					icon: gem.icon,
 				})),
 		);
 		db.itemIcons.forEach(data => (this.itemIcons[data.id] = data));
@@ -214,14 +209,8 @@ export class Database {
 		return this.enchantsBySlot[slot] || [];
 	}
 
-	getGems(socketColor?: GemColor): Array<Gem> {
-		if (!socketColor) return Array.from(this.gems.values());
-
-		const ret = [];
-		for (const g of this.gems.values()) {
-			if (gemEligibleForSocket(g, socketColor)) ret.push(g);
-		}
-		return ret;
+	getEnchantsByEffectId(effectId: number): Array<Enchant> {
+		return this.enchantsByEffectId.get(effectId) ?? [];
 	}
 
 	getNpc(npcId: number): Npc | null {
@@ -230,20 +219,11 @@ export class Database {
 	getZone(zoneId: number): Zone | null {
 		return this.zones.get(zoneId) || null;
 	}
+	getRepFaction(factionId: number): UIFaction | null {
+		return this.factions.get(factionId) || null;
+	}
 	getAllZones(): Array<Zone> {
 		return Array.from(this.zones.values());
-	}
-
-	getMatchingGems(socketColor: GemColor): Array<Gem> {
-		const ret = [];
-		for (const g of this.gems.values()) {
-			if (gemMatchesSocket(g, socketColor)) ret.push(g);
-		}
-		return ret;
-	}
-
-	lookupGem(itemID: number): Gem | null {
-		return this.gems.get(itemID) || null;
 	}
 
 	lookupItemSpec(itemSpec: ItemSpec): EquippedItem | null {
@@ -254,16 +234,16 @@ export class Database {
 		if (itemSpec.enchant) {
 			const slots = getEligibleItemSlots(item);
 			for (let i = 0; i < slots.length; i++) {
-				enchant =
-					(this.enchantsBySlot[slots[i]] || []).find(enchant => [enchant.effectId, enchant.itemId, enchant.spellId].includes(itemSpec.enchant)) ||
-					null;
+				const matches = (this.enchantsBySlot[slots[i]] || []).filter(enchant =>
+					[enchant.effectId, enchant.itemId, enchant.spellId].includes(itemSpec.enchant),
+				);
+				// Rows sharing an effect id can differ in the items they fit (1897 is 2H Lesser Impact and Superior Striking).
+				enchant = matches.find(enchant => enchantAppliesToItem(enchant, item)) || matches[0] || null;
 				if (enchant) {
 					break;
 				}
 			}
 		}
-
-		const gems = itemSpec.gems.map(gemId => this.lookupGem(gemId));
 
 		let randomSuffix: ItemRandomSuffix | null = null;
 		if (itemSpec.randomSuffix && !!this.getRandomSuffixById(itemSpec.randomSuffix)) {
@@ -273,7 +253,6 @@ export class Database {
 		return new EquippedItem({
 			item,
 			enchant,
-			gems,
 			randomSuffix,
 		});
 	}
@@ -403,8 +382,10 @@ export class Database {
 			items: distinct(db1.items.concat(db2.items), (a, b) => a.id == b.id),
 			randomSuffixes: distinct(db1.randomSuffixes.concat(db2.randomSuffixes), (a, b) => a.id == b.id),
 			itemEffectRandPropPoints: distinct(db1.itemEffectRandPropPoints.concat(db2.itemEffectRandPropPoints), (a, b) => a.ilvl == b.ilvl),
-			enchants: distinct(db1.enchants.concat(db2.enchants), (a, b) => a.effectId == b.effectId),
-			gems: distinct(db1.gems.concat(db2.gems), (a, b) => a.id == b.id),
+			enchants: distinct(
+				db1.enchants.concat(db2.enchants),
+				(a, b) => a.effectId == b.effectId && a.type == b.type && a.enchantType == b.enchantType && arrayEquals(a.extraTypes, b.extraTypes),
+			),
 			spellEffects: distinct(db1.spellEffects.concat(db2.spellEffects), (a, b) => a.id == b.id),
 			consumables: distinct(db1.consumables.concat(db2.consumables), (a, b) => a.id == b.id),
 		});

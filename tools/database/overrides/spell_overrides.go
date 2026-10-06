@@ -40,6 +40,11 @@ const (
 	// The ProcHint bits the tooltip's wording did not yield, which Value carries as a bit set. It
 	// replaces what the wording produced rather than adding to it.
 	Hint
+
+	// The stat mask of the A_MOD_TOTAL_STAT_PERCENTAGE effect, onto its second misc value, one bit
+	// per stat index. Fails when the effect states either misc value itself, since 0 and 0 is
+	// Strength by index.
+	StatMask
 )
 
 func (f Field) String() string {
@@ -58,6 +63,8 @@ func (f Field) String() string {
 		return "DurationMs"
 	case Hint:
 		return "Hint"
+	case StatMask:
+		return "StatMask"
 	}
 	return "unknown field"
 }
@@ -125,6 +132,43 @@ var AreaBonuses = []AreaBonus{
 	},
 }
 
+// A talent curve that states its size with the opposite sign to the row's own base points, where the
+// tooltip reads the row's sign: the curve's values are negated. Stale once the curve's sign agrees
+// with the row's, and refused where the spell has no curve at the position or the row's base is 0.
+type CurveSign struct {
+	SpellID int32
+	Effect  int // the effect position as the tooltip counts it, from 1: $s2 is 2
+	Reason  string
+	Source  string
+}
+
+var CurveSigns = []CurveSign{
+	{
+		SpellID: 11160,
+		Effect:  2,
+		Reason:  "Frost Channeling: row -30, tooltip 'reduces the threat caused by your Frost spells by $s2%'",
+		Source:  "tooltip, game build 1.60.1.70170",
+	},
+	{
+		SpellID: 1311085,
+		Effect:  2,
+		Reason:  "Instrument of Law: row -20, tooltip 'reduces all threat you generate by $m2% while Righteous Fury is not active'",
+		Source:  "tooltip, game build 1.60.1.70170",
+	},
+	{
+		SpellID: 12962,
+		Effect:  1,
+		Reason:  "Iron Will: row -15, tooltip 'Reduces the duration of Stun and Fear effects inflicted on you by $s1%'",
+		Source:  "tooltip, game build 1.60.1.70170",
+	},
+	{
+		SpellID: 19572,
+		Effect:  2,
+		Reason:  "Improved Mend Pet: row -20, tooltip 'reduces the Mana cost by $s2%'",
+		Source:  "tooltip, game build 1.60.1.70170",
+	},
+}
+
 // The procs whose rate the game files keep outside the spell data and that belong to the spell
 // rather than to one weapon: a chance-on-hit weapon's rate is its own and lives in WeaponProcs. The
 // ProcChance column reads the 100 or 101 sentinel, which the store would otherwise take for "fires
@@ -181,6 +225,20 @@ var Spells = []Override{
 		Value:   float64(core.ProcHintDamage),
 		Reason:  "Badge of the Swarmguard: stacks on hits with a damage component",
 		Source:  "owner decision, PR #99",
+	},
+	{
+		SpellID: 1299796,
+		Field:   StatMask,
+		Value:   16, // TODO: Verify in game that Insight's proc doubles Spirit, not Strength.
+		Reason:  "Insight: misc 0 and 0 is Strength by index, the tooltip reads 'Increases your Spirit by 100%'",
+		Source:  "tooltip",
+	},
+	{
+		SpellID: 1248751,
+		Field:   StatMask,
+		Value:   16, // TODO: Verify in game that Mystic Mushroom raises Spirit, not Strength.
+		Reason:  "Increased Spirit: misc 0 and 0 is Strength by index, the tooltip reads 'Increases Spirit by 5%'",
+		Source:  "tooltip",
 	},
 
 	// Attack Power shares measured in game at levels 13 and 14, against the sheet's Attack Power from

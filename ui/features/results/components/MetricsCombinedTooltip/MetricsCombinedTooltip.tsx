@@ -25,11 +25,10 @@ export interface MetricsCombinedTooltipProps {
 	groups: Array<MetricsCombinedTooltipGroup>;
 	/** Overrides for the Type / Count / Average headers, by position. */
 	headerValues?: Array<string | undefined>;
-	hasMetricBars?: boolean;
 }
 
 /** The tooltip *body* only — a nested breakdown table. It parameterises the rows and the bars; the anchor, the open/close and the veto belong to the column's one `<Tooltip>`, which is what keeps a 19-row table at seven tooltip instances instead of 133. */
-export const MetricsCombinedTooltip = ({ groups, headerValues, hasMetricBars = true }: MetricsCombinedTooltipProps) => {
+export const MetricsCombinedTooltip = ({ groups, headerValues }: MetricsCombinedTooltipProps) => {
 	const displayGroups = groups
 		.filter(group => group.data.some(entry => entry.value))
 		.map(group => ({ ...group, data: group.data.filter(entry => entry.value) }));
@@ -71,17 +70,13 @@ export const MetricsCombinedTooltip = ({ groups, headerValues, hasMetricBars = t
 									<TableRow className={className} key={name}>
 										<TableCell className="ui-metrics-cell">{name}</TableCell>
 										<TableCell className="ui-metrics-cell">
-											{hasMetricBars ? (
-												<MetricsTotalBar
-													spellSchool={spellSchool}
-													percentage={(percentage / totalPercentage) * 100}
-													max={maxValue}
-													total={value}
-													value={value}
-												/>
-											) : (
-												formatToCompactNumber(value)
-											)}
+											<MetricsTotalBar
+												spellSchool={spellSchool}
+												percentage={(percentage / totalPercentage) * 100}
+												max={maxValue}
+												total={value}
+												value={value}
+											/>
 										</TableCell>
 										{typeof average === 'number' && <TableCell className="ui-metrics-cell">{formatToCompactNumber(average)}</TableCell>}
 									</TableRow>

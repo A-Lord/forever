@@ -96,9 +96,7 @@ func TestScopeMatchesTheClientTargeting(t *testing.T) {
 
 // The rows whose spell the game files target somewhere else than the scope reaches,
 // each with the reason the scope is still what the sim wants.
-var scopeExemptions = map[string]string{
-	"thorns": "the druid trains no raid-wide spell of the family, so the raid scope is the sim spreading the one cast 9910 states over every player",
-}
+var scopeExemptions = map[string]string{}
 
 // What the game files say against the scope the manifest files the row under, and
 // "" when the two agree or the row is one the game files may state nothing for.
@@ -154,7 +152,7 @@ var pinnedCategories = map[string]string{
 	"frost_resistance_aura":       "FrostResistanceAura",
 	"shadow_resistance_aura":      "ShadowResistanceAura",
 	"devotion_aura":               "DevotionAura",
-	"furious_howl":                "FuriousHowl",
+	"furious_howl":                "BattleShout",
 	"hex_of_weakness":             "Demoralizing",
 	"demoralizing_screech":        "Demoralizing",
 	"vindication":                 "Demoralizing",

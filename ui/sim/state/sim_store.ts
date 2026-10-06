@@ -12,14 +12,14 @@ import {
 	ConsumesSpec,
 	Faction,
 	HealingModel,
-	type ItemQuality,
 	type ItemSlot,
 	type ItemSpec,
 	Target as TargetProto,
 	UnitReference,
+	type WeaponSkillValue,
 	type WeaponType,
 } from '@generated/proto/common';
-import { DatabaseFilters } from '@generated/proto/ui';
+import { type BulkEnchantPreset, DatabaseFilters } from '@generated/proto/ui';
 import { subscribeWithSelector } from 'zustand/middleware';
 import { createStore } from 'zustand/vanilla';
 
@@ -115,6 +115,8 @@ export interface PlayerSlice {
 	channelClipDelay: number;
 	inFrontOfTarget: boolean;
 	distanceFromTarget: number;
+	// Only the skills not at the maximum for the level; a missing skill is at the maximum.
+	weaponSkills: Array<WeaponSkillValue>;
 	healingModel: HealingModel;
 	epWeights: Stats;
 	epRatios: Array<number>;
@@ -147,6 +149,7 @@ export const PLAYER_FIELDS = [
 	'channelClipDelay',
 	'inFrontOfTarget',
 	'distanceFromTarget',
+	'weaponSkills',
 	'healingModel',
 	'epWeights',
 	'epRatios',
@@ -160,20 +163,10 @@ export const PLAYER_FIELDS = [
 ] as const;
 export type PlayerField = (typeof PLAYER_FIELDS)[number];
 
-// Gem-optimizer settings, one slice per player (keyed by storeKey).
+// Gear-optimizer settings, one slice per player (keyed by storeKey).
 // Values are the source of truth; `v` counters are what subscribers watch
 // (bumped exactly where a change counts).
-export const REFORGE_FIELDS = [
-	'statCaps',
-	'useCustomEPValues',
-	'useSoftCapBreakpoints',
-	'softCapBreakpoints',
-	'breakpointLimits',
-	'freezeItemSlots',
-	'maxGemPhase',
-	'maxGemQuality',
-	'disableUniqueGems',
-] as const;
+export const REFORGE_FIELDS = ['statCaps', 'useCustomEPValues', 'useSoftCapBreakpoints', 'softCapBreakpoints', 'breakpointLimits', 'freezeItemSlots'] as const;
 export type ReforgeField = (typeof REFORGE_FIELDS)[number];
 
 export interface ReforgeSlice {
@@ -184,10 +177,6 @@ export interface ReforgeSlice {
 	softCapBreakpoints: Array<StatCap>;
 	freezeItemSlots: boolean;
 	frozenItemSlots: Array<number>;
-	// The optimizer picks gems, not reforges: these three are the gem-pool knobs.
-	maxGemPhase: number;
-	maxGemQuality: ItemQuality;
-	disableUniqueGems: boolean;
 	// Written silently by the optimizer (no counter).
 	undershootCaps: Stats;
 	v: Record<ReforgeField, number>;
@@ -210,6 +199,7 @@ export interface BulkSlice {
 	frozenItems: ReadonlyMap<BulkSimItemSlot, EquippedItem | null>;
 	frozenWeaponSlot: ItemSlot.ItemSlotMainHand | ItemSlot.ItemSlotOffHand | undefined;
 	weaponTypeFilters: ReadonlyMap<ItemSlot.ItemSlotMainHand | ItemSlot.ItemSlotOffHand, WeaponType[]>;
+	enchantPresets: readonly BulkEnchantPreset[];
 	combinations: number;
 	iterations: number;
 	combinationsPending: boolean;

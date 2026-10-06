@@ -73,10 +73,6 @@ export const Sides: Story = {
 	),
 };
 
-export const Hover: Story = {
-	args: { openOnHover: true, delay: 0, trigger: 'Hover me' },
-};
-
 export const ButtonTrigger: Story = {
 	args: {
 		triggerClassName: undefined,

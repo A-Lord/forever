@@ -1,10 +1,10 @@
-import { makePlayer } from '@features/apl/testing';
 import { APLRotation } from '@generated/proto/apl';
 import { UnitReference, UnitReference_Type as UnitType } from '@generated/proto/common';
 import { SimHostProvider } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
 import { ActionId } from '@sim/proto/action_id';
 import { patchSlice } from '@sim/state/sim_store';
+import { makePlayer } from '@testing/apl/player';
 import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -66,7 +66,7 @@ describe('UnitField', () => {
 	it('keeps the same trigger node when a pet, and with it a submenu, arrives after mount', async () => {
 		player.getPetMetadatas = () => ({ asList: () => pets.slice() });
 		player.sim.raid.getActivePlayers = () => [];
-		player.sim.getUnitMetadata = () => ({ getName: () => 'Player 1 - Stampede' });
+		player.sim.getUnitMetadata = () => ({ getName: () => 'Player 1 - Shadowfiend' });
 		render(tree('aura_sources'));
 		const before = trigger();
 
@@ -81,11 +81,11 @@ describe('UnitField', () => {
 	it('shows a pet whose icon is an ActionId with the url it resolves to', async () => {
 		const pet = UnitReference.create({ type: UnitType.Pet, index: 0, owner: UnitReference.create({ type: UnitType.Self }) });
 		const fill = vi.spyOn(ActionId.prototype, 'fill').mockImplementation(async function (this: ActionId) {
-			return Object.assign(Object.create(ActionId.prototype), this, { name: 'Stampede', iconUrl: 'stampede.jpg' }) as ActionId;
+			return Object.assign(Object.create(ActionId.prototype), this, { name: 'Shadowfiend', iconUrl: 'shadowfiend.jpg' }) as ActionId;
 		});
 		player.getPetMetadatas = () => ({ asList: () => [{}] });
 		player.sim.raid.getActivePlayers = () => [];
-		player.sim.getUnitMetadata = () => ({ getName: () => 'Player 1 - Stampede' });
+		player.sim.getUnitMetadata = () => ({ getName: () => 'Player 1 - Shadowfiend' });
 
 		render(
 			<SimHostProvider host={{ player, rootElem: document.body } as never}>
@@ -95,7 +95,7 @@ describe('UnitField', () => {
 		await act(async () => {});
 
 		const icon = within(trigger()).getByTestId('unit-picker-item-icon');
-		expect(icon.getAttribute('src')).toBe('stampede.jpg');
+		expect(icon.getAttribute('src')).toBe('shadowfiend.jpg');
 		fill.mockRestore();
 	});
 });

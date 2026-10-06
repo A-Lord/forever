@@ -2,11 +2,11 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { COLOR_TOKENS } from '@ui-kit/utils/color_tokens';
 import { describe, expect, it } from 'vitest';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const css = readFileSync(path.join(here, 'theme', 'colors.css'), 'utf-8');
+const colorTokensSource = readFileSync(path.join(here, '..', 'ui-kit', 'utils', 'color_tokens.ts'), 'utf-8');
 
 const classColors = new Map<string, [number, number, number]>();
 for (const m of css.matchAll(/--color-class-([a-z-]+):\s*rgb\((\d+),\s*(\d+),\s*(\d+)\)/g)) {
@@ -54,10 +54,11 @@ describe('theme.css class foregrounds', () => {
 	});
 });
 
-describe('COLOR_TOKENS', () => {
+describe('ColorToken', () => {
 	it('lists every --color- token in colors.css, and nothing else', () => {
 		const declared = [...css.matchAll(/^\s*--color-([a-z0-9-]+):/gm)].map(match => match[1]);
+		const listed = [...colorTokensSource.matchAll(/^\s*'([a-z0-9-]+)',?$/gm)].map(match => match[1]);
 
-		expect([...COLOR_TOKENS].sort()).toEqual(declared.sort());
+		expect(listed.sort()).toEqual(declared.sort());
 	});
 });

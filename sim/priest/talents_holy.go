@@ -46,6 +46,7 @@ func (priest *Priest) registerHolyTalents() {
 func (priest *Priest) applyTwilightFocus() {}
 
 // Increases the amount healed by your Renew spell by 5%.
+// TODO: Renew rank 1289450 states 35 per tick with a 0 coefficient and no level requirement; verify in game before porting Renew.
 func (priest *Priest) applyImprovedRenew() {}
 
 // Increases the critical effect chance of your Holy spells by 1%.

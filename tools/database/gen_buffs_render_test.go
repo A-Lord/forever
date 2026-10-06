@@ -166,7 +166,7 @@ func syntheticBuffRows() []ResolvedBuff {
 			BuffSpec: buffmanifest.BuffSpec{
 				Field: "thorns", Category: "Thorns",
 			},
-			Scope: buffmanifest.ScopeRaid, Proto: buffmanifest.ProtoBool, Kind: buffmanifest.KindDamageShield,
+			Scope: buffmanifest.ScopeIndividual, Proto: buffmanifest.ProtoBool, Kind: buffmanifest.KindDamageShield,
 			Go: "SynthThorns", Name: "Thorns",
 			SpellID: 9910, CastSpellID: 9910, DurationMs: 600000, Supported: true,
 			Spell:         spell(9910, core.SpellSchoolNature, 600000, aura(dbcenums.A_DAMAGE_SHIELD, 0, 18)),

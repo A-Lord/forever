@@ -14,19 +14,7 @@ import { useSortable, useSortableStatus } from './hooks/useSortable';
 import { useTreeRoot } from './hooks/useTreeRoot';
 import type { TreeItemsProps, TreeRootProps } from './types';
 
-export const Root = ({
-	group,
-	depth,
-	density,
-	layout = 'default',
-	orientation = 'vertical',
-	sortable,
-	handle,
-	disabled,
-	className,
-	testId,
-	children,
-}: TreeRootProps) => {
+export const Root = ({ group, depth, density, layout = 'default', sortable, disabled, className, testId, children }: TreeRootProps) => {
 	const parent = useContext(TreeRootContext);
 	const parentId = useContext(TreeItemContext)?.id ?? null;
 	const ownGroup = useId();
@@ -42,12 +30,10 @@ export const Root = ({
 			depth: depth ?? (parent ? parent.depth + 1 : 0),
 			density: density ?? parent?.density ?? 'default',
 			layout,
-			orientation,
 			disabled: disabled ?? parent?.disabled ?? false,
-			handle: handle ?? parent?.handle ?? 'handle',
 			parentId,
 		}),
-		[group, inBody, depth, density, layout, orientation, disabled, handle, parent, ownGroup, parentId],
+		[group, inBody, depth, density, layout, disabled, parent, ownGroup, parentId],
 	);
 
 	// A root in a body is a list of its own, not an item's children, so its area takes an `into` drop.
@@ -70,7 +56,7 @@ export const Root = ({
 					data-depth={value.depth}
 					data-density={value.density}
 					data-layout={layout}
-					data-orientation={orientation}
+					data-orientation="vertical"
 					data-in-body={inBody ? '' : undefined}
 					data-drop={drop ?? undefined}
 					data-testid={testId ?? 'tree'}

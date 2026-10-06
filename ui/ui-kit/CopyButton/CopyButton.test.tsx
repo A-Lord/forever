@@ -67,19 +67,6 @@ describe('CopyButton', () => {
 		expect(button(container).querySelector('svg')?.getAttribute('data-icon')).toBe('copy');
 	});
 
-	it('fires onCopied on both branches', () => {
-		vi.spyOn(toastManager, 'add').mockReturnValue('toast');
-		const onCopied = vi.fn();
-		const { container } = render(<CopyButton getContent={() => 'x'} onCopied={onCopied} />);
-		act(() => void fireEvent.click(button(container)));
-		expect(onCopied).toHaveBeenCalledTimes(1);
-
-		vi.stubGlobal('navigator', {});
-		const withoutClipboard = render(<CopyButton getContent={() => 'x'} onCopied={onCopied} />);
-		act(() => void fireEvent.click(button(withoutClipboard.container)));
-		expect(onCopied).toHaveBeenCalledTimes(2);
-	});
-
 	it('anchors a tooltip only when it is given one', () => {
 		const { container } = render(<CopyButton getContent={() => 'x'} />);
 		expect(button(container).getAttribute('data-tooltip-id')).toBeNull();

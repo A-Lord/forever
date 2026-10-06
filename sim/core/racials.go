@@ -301,63 +301,96 @@ func applyExpansiveMind(character *Character) {
 	}
 }
 
-// Eureka! scopes its cost and damage mods to each class's damaging abilities by the game files' class
-// masks: effect 1 of each row names the spells whose cost it lowers, effect 2 the ones it raises the
-// damage of. A stack goes on a landed ability either names that has a damage component.
+// One class's Eureka! row: the class mask and the fraction of its idx0 SPELLMOD_COST, idx1
+// SPELLMOD_DAMAGE and idx2 SPELLMOD_DOT, zero where the row states no SPELLMOD_DOT.
+type EurekaMods struct {
+	CostFlags, DamageFlags, ChannelFlags ClassFlags
+	Cost, Damage, Channel                float64
+}
+
+var eurekaMods func(spellID int32) EurekaMods
+
+// The rows sit in the spell store, which imports core, so sim/core/buffs registers their reader from
+// its init.
+func RegisterEurekaMods(read func(spellID int32) EurekaMods) {
+	eurekaMods = read
+}
+
+// Eureka! scopes its mods to each class's abilities by the game files' class masks: idx0 of each row
+// names the spells whose cost it lowers, idx1 the ones whose direct damage it raises, and idx2, on the
+// warlock and priest rows only, the channels whose ticks it raises once the channel spends a stack. A
+// stack goes on a landed ability any of them names that has a damage component.
 func applyEureka(character *Character) {
 	var spellID int32
-	var costReduction float64
 	var resourceType proto.ResourceType
-	var costFlags, damageFlags ClassFlags
 	procMask := ProcMaskSpecial
 	spendCallback := CallbackOnSpellHitDealt
 
 	switch character.Class {
 	case proto.Class_ClassRogue:
-		spellID, costReduction, resourceType = 1259812, 0.2, proto.ResourceType_ResourceTypeEnergy
-		costFlags = ClassFlags{Family: 8, Mask: [4]uint32{68290334, 2099464}}
-		damageFlags = ClassFlags{Family: 8, Mask: [4]uint32{68290334, 2318}}
+		spellID, resourceType = 1259812, proto.ResourceType_ResourceTypeEnergy
 	case proto.Class_ClassWarrior:
-		spellID, costReduction, resourceType = 1259813, 0.4, proto.ResourceType_ResourceTypeRage
-		costFlags = ClassFlags{Family: 4, Mask: [4]uint32{710934758, 4}}
-		damageFlags = costFlags
+		spellID, resourceType = 1259813, proto.ResourceType_ResourceTypeRage
 	case proto.Class_ClassMage:
-		spellID, costReduction, resourceType = 1259817, 0.5, proto.ResourceType_ResourceTypeMana
-		costFlags = ClassFlags{Family: 3, Mask: [4]uint32{545397431, 4096}}
-		damageFlags = costFlags
+		spellID, resourceType = 1259817, proto.ResourceType_ResourceTypeMana
 	case proto.Class_ClassWarlock:
-		spellID, costReduction, resourceType = 1259821, 0.5, proto.ResourceType_ResourceTypeMana
-		costFlags = ClassFlags{Family: 5, Mask: [4]uint32{542127, 8388994}}
-		damageFlags = costFlags
+		spellID, resourceType = 1259821, proto.ResourceType_ResourceTypeMana
 	case proto.Class_ClassPriest:
-		spellID, costReduction, resourceType = 1259823, 0.15, proto.ResourceType_ResourceTypeMana
-		costFlags = ClassFlags{Family: 6, Mask: [4]uint32{183811792, 8486916, 64}}
-		damageFlags = costFlags
+		spellID, resourceType = 1259823, proto.ResourceType_ResourceTypeMana
 		procMask |= ProcMaskSpellHealing
 		spendCallback |= CallbackOnHealDealt
 	default:
 		return
 	}
 
+	if eurekaMods == nil {
+		panic(`no Eureka! rows are registered: import _ "github.com/wowsims/forever/sim/core/buffs"`)
+	}
+	mods := eurekaMods(spellID)
 	actionID := ActionID{SpellID: spellID}
 
 	costMod := character.AddDynamicMod(SpellModConfig{
 		Kind:         SpellMod_PowerCost_Pct,
-		ClassFlags:   costFlags,
+		ClassFlags:   mods.CostFlags,
 		ProcMask:     procMask,
 		ResourceType: resourceType,
-		FloatValue:   -costReduction,
+		FloatValue:   mods.Cost,
 	})
 	damageMod := character.AddDynamicMod(SpellModConfig{
-		Kind:       SpellMod_DamageDone_Pct,
-		ClassFlags: damageFlags,
+		Kind:       SpellMod_DirectDamageDone_Flat,
+		ClassFlags: mods.DamageFlags,
 		ProcMask:   procMask,
-		FloatValue: 0.1,
+		FloatValue: mods.Damage,
 	})
+	// TODO: Ingame test needed: whether a channel that spends a stack keeps the bonus on all of its
+	// ticks once the aura has ended, the last stack included.
+	isEurekaChannel := func(spell *Spell) bool {
+		return spell.Flags.Matches(SpellFlagChanneled) && !spell.Flags.Matches(SpellFlagNoSpellMods) &&
+			spell.MatchesFlags(mods.ChannelFlags) && procMask.Matches(spell.ProcMask)
+	}
+	var boostedChannels map[*Dot]bool
+	if !mods.ChannelFlags.IsZero() {
+		boostedChannels = make(map[*Dot]bool)
+		// The channel's own expire hook comes first, so its final tick keeps the bonus.
+		character.OnSpellRegistered(func(spell *Spell) {
+			if !isEurekaChannel(spell) {
+				return
+			}
+			for _, dot := range append(DotArray{spell.AOEDot()}, spell.dots...) {
+				if dot == nil {
+					continue
+				}
+				dot.ApplyOnExpire(func(_ *Aura, _ *Simulation) {
+					if boostedChannels[dot] {
+						dot.PeriodicDamageMultiplier /= 1 + mods.Channel
+						delete(boostedChannels, dot)
+					}
+				})
+			}
+		})
+	}
 
-	// One stack per cast, however many targets it lands on.
-	var lastSpent *Spell
-	var lastSpentAt time.Duration
+	firstHit, resetFirstHit := OncePerCast()
 
 	aura := character.RegisterAura(Aura{
 		Label:     "Eureka!",
@@ -365,7 +398,7 @@ func applyEureka(character *Character) {
 		Duration:  time.Second * 15,
 		MaxStacks: 3,
 		OnGain: func(aura *Aura, sim *Simulation) {
-			lastSpent = nil
+			resetFirstHit()
 			aura.SetStacks(sim, 3)
 			costMod.Activate()
 			damageMod.Activate()
@@ -376,9 +409,9 @@ func applyEureka(character *Character) {
 		},
 	})
 
-	spendFlags := costFlags
+	spendFlags := mods.CostFlags
 	for i := range spendFlags.Mask {
-		spendFlags.Mask[i] |= damageFlags.Mask[i]
+		spendFlags.Mask[i] |= mods.DamageFlags.Mask[i]
 	}
 
 	aura.AttachProcTrigger(ProcTrigger{
@@ -391,13 +424,19 @@ func applyEureka(character *Character) {
 		RequireDamageComponent: true,
 
 		ExtraCondition: func(sim *Simulation, spell *Spell, _ *SpellResult) bool {
-			if spell == lastSpent && sim.CurrentTime == lastSpentAt {
-				return false
-			}
-			lastSpent, lastSpentAt = spell, sim.CurrentTime
-			return true
+			return firstHit(sim, spell)
 		},
-		Handler: func(sim *Simulation, _ *Spell, _ *SpellResult) {
+		Handler: func(sim *Simulation, spell *Spell, result *SpellResult) {
+			if isEurekaChannel(spell) {
+				dot := spell.AOEDot()
+				if dot == nil {
+					dot = spell.Dot(result.Target)
+				}
+				if dot != nil && dot.IsActive() && !boostedChannels[dot] {
+					dot.PeriodicDamageMultiplier *= 1 + mods.Channel
+					boostedChannels[dot] = true
+				}
+			}
 			aura.RemoveStack(sim)
 		},
 	})

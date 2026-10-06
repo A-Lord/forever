@@ -132,7 +132,7 @@ pull registers no spell and no cooldown. Which consumables stack is their
 [exclusive group](#exclusive-groups).
 
 A bonus against creature types is an aura the parser attaches like any other (see
-[Spell Data](spell_data.md)): Potion of Demon Slaying 9224's spell 11406 grants 180 attack power
+[Spell Data](spell_data/README.md)): Potion of Demon Slaying 9224's spell 11406 grants 180 attack power
 against the creature types its misc value masks (4, Demon), for the row's 300 s, on category 4's
 120 s timer. The imbue builder takes the equip spells of the enchant that add nothing to
 the enchant's own stats, which the generator names after the item: Consecrated Sharpening Stone
@@ -344,7 +344,7 @@ var ConsumableDenyList = []int32{
 
 A consumable's numbers are its spells' rows, so a number the game files do not state goes in
 `tools/database/overrides/spell_overrides.go` like any other spell's; the fields and the rule that
-retires each are in [Spell Data: Overrides](spell_data.md#overrides). A row names the spell the
+retires each are in [Spell Data: Overrides](spell_data/overrides.md). A row names the spell the
 consumable casts, not the item:
 
 ```go
