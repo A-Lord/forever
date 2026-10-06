@@ -1025,6 +1025,19 @@ func resolveLadder(db *sql.DB, name string, byRank map[int32][]rankCandidate, ma
 		if err != nil {
 			return nil, err
 		}
+		if castable == 0 && len(chosen) < len(cands) {
+			// Holy Shock's ranks 2-4 put the class bit on the damage and heal spells and none on the
+			// castable one, so the class filter above keeps only the two never exposed. The castable
+			// one is still the rank's when it is the only one of all the rank's spells.
+			all := map[int32]bool{}
+			for _, c := range lowestAcquireMethod(cands) {
+				all[c.SpellID] = true
+			}
+			castable, err = castableOf(db, all)
+			if err != nil {
+				return nil, err
+			}
+		}
 		if castable == 0 {
 			// Judgement of Command is the same dispatcher shape with no mana on either half - the
 			// parent Judgement pays - so SpellPower cannot separate them. One E_DUMMY against one
@@ -1217,10 +1230,17 @@ func renderSpellDataFiles(helper *DBHelper, only SpellDataGroups, committed *sto
 	if committed == nil && !only.all() {
 		return nil, nil, fmt.Errorf("%s is missing, so there is nothing to keep the groups not taken from", spellStoreInputsPath)
 	}
+	push, err := hotfixPush(helper)
+	if err != nil {
+		return nil, nil, err
+	}
 	if committed != nil {
 		if later := groupsOnALaterBuild(committed, only, version); len(later) > 0 {
 			return nil, nil, fmt.Errorf("the game files database is %s, and %s already record a later build: "+
 				"extract the later build, or leave those groups out", version, strings.Join(later, ", "))
+		}
+		if err := checkHotfixes(committed.Builds, committed.Hotfixes, only, version, push); err != nil {
+			return nil, nil, err
 		}
 	}
 
@@ -1267,7 +1287,7 @@ func renderSpellDataFiles(helper *DBHelper, only SpellDataGroups, committed *sto
 	// The game files rows the store is built from are captured on the way through and handed back, so
 	// the caller can write them next to the store and the regeneration can be checked without the
 	// database - see spelldata_inputs.go.
-	inputs, err := loadStoreInputs(helper.db, classRoots, trees, version)
+	inputs, err := loadStoreInputs(helper.db, classRoots, trees, version, push)
 	if err != nil {
 		return nil, nil, err
 	}
