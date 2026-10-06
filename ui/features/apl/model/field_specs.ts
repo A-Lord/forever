@@ -8,11 +8,12 @@ import {
 	APLValueIsExecutePhase_ExecutePhaseThreshold as ExecutePhaseThreshold,
 	APLValueMath_MathOperator as MathOperator,
 } from '@generated/proto/apl';
-import { ActionID, AreaType, Class, MobType, Stat } from '@generated/proto/common';
+import { ActionID, AreaType, MobType, RangedWeaponType, Stat } from '@generated/proto/common';
 import { ShamanTotems_TotemType as TotemType } from '@generated/proto/shaman';
 import { WarlockOptions_CurseOptions as CurseOptions } from '@generated/proto/warlock';
 import i18n from '@i18n/config';
 import { translateAreaType, translateMobType, translateStat } from '@i18n/localization';
+import { getClassRangedWeaponTypes } from '@sim/player/classes/capabilities';
 import type { Player } from '@sim/player/player';
 import { getEnumValues } from '@sim/utils/collections';
 import { randomUUID } from '@sim/utils/misc';
@@ -122,10 +123,7 @@ const AUTO_SWING_TYPES_WAND: EnumTable = {
 };
 
 // The classes that shoot a wand, whose auto values offer the wand alone.
-const isWandClass = (player: Player<any>) => {
-	const clss = player.getClass();
-	return clss === Class.ClassMage || clss === Class.ClassPriest || clss === Class.ClassWarlock;
-};
+const isWandClass = (player: Player<any>) => getClassRangedWeaponTypes(player.getClass()).includes(RangedWeaponType.RangedWeaponTypeWand);
 
 const STAT_TYPES: EnumTable = {
 	defaultLabel: none(),

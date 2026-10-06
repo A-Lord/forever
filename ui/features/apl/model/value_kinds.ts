@@ -168,6 +168,11 @@ function inputBuilder<T extends APLValueImplType>(config: ValueKindModel<T>): Va
 	return config;
 }
 
+const includeAutoValue = (player: Player<any>, isPrepull: boolean) => {
+	const spec = player.getSpec();
+	return !isPrepull && spec !== Spec.SpecBalanceDruid && spec !== Spec.SpecElementalShaman;
+};
+
 export const valueKinds: { [f in ValidAPLValueKind]: ValueKindModel<APLValueImplMap[f]> } = {
 	// Operators
 	const: inputBuilder({
@@ -568,10 +573,7 @@ export const valueKinds: { [f in ValidAPLValueKind]: ValueKindModel<APLValueImpl
 		submenu: ['auto'],
 		shortDescription: i18n.t('rotation_tab.apl.values.auto_swing_time.tooltip'),
 		newValue: APLValueAutoSwingTime.create,
-		includeIf(player: Player<any>, isPrepull: boolean) {
-			const spec = player.getSpec();
-			return !isPrepull && spec !== Spec.SpecBalanceDruid && spec !== Spec.SpecElementalShaman;
-		},
+		includeIf: includeAutoValue,
 		fields: [autoSwingTypeFieldConfig('autoType')],
 	}),
 	autoTimeToNext: inputBuilder({
@@ -579,10 +581,7 @@ export const valueKinds: { [f in ValidAPLValueKind]: ValueKindModel<APLValueImpl
 		submenu: ['auto'],
 		shortDescription: i18n.t('rotation_tab.apl.values.time_to_next_auto.tooltip'),
 		newValue: APLValueAutoTimeToNext.create,
-		includeIf(player: Player<any>, isPrepull: boolean) {
-			const spec = player.getSpec();
-			return !isPrepull && spec !== Spec.SpecBalanceDruid && spec !== Spec.SpecElementalShaman;
-		},
+		includeIf: includeAutoValue,
 		fields: [autoTypeFieldConfig('autoType')],
 	}),
 	autoTimeSinceLast: inputBuilder({
@@ -590,10 +589,7 @@ export const valueKinds: { [f in ValidAPLValueKind]: ValueKindModel<APLValueImpl
 		submenu: ['auto'],
 		shortDescription: i18n.t('rotation_tab.apl.values.time_since_last_auto.tooltip'),
 		newValue: APLValueAutoTimeSinceLast.create,
-		includeIf(player: Player<any>, isPrepull: boolean) {
-			const spec = player.getSpec();
-			return !isPrepull && spec !== Spec.SpecBalanceDruid && spec !== Spec.SpecElementalShaman;
-		},
+		includeIf: includeAutoValue,
 		fields: [autoTypeFieldConfig('autoType')],
 	}),
 

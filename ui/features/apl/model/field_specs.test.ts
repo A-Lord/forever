@@ -172,33 +172,30 @@ describe('resolveField statType table', () => {
 });
 
 describe('resolveField auto tables by class', () => {
-	const autoTypes = (player: Player<any>) => {
-		const spec = resolveFieldFor(autoTypeFieldConfig('f'), player);
-		if (spec.kind !== 'enum') throw new Error('expected enum kind');
-		return spec;
-	};
-	const swingTypes = (player: Player<any>) => {
-		const spec = resolveFieldFor(autoSwingTypeFieldConfig('f'), player);
+	const enumSpec = (descriptor: APLFieldDescriptor, player: Player<any>) => {
+		const spec = resolveFieldFor(descriptor, player);
 		if (spec.kind !== 'enum') throw new Error('expected enum kind');
 		return spec;
 	};
 
 	it.each([Class.ClassMage, Class.ClassPriest, Class.ClassWarlock])('offers class %s only the wand', clss => {
-		const player = playerOf(clss);
-		expect(autoTypes(player).table.options.map(option => option.value)).toEqual([APLValueAutoAttackType.WandAuto]);
-		expect(swingTypes(player).table.options.map(option => option.value)).toEqual([AutoSwingType.Wand]);
-		expect(autoTypes(player).newValue()).toBe(APLValueAutoAttackType.WandAuto);
-		expect(swingTypes(player).newValue()).toBe(AutoSwingType.Wand);
+		const autoTypes = enumSpec(autoTypeFieldConfig('f'), playerOf(clss));
+		const swingTypes = enumSpec(autoSwingTypeFieldConfig('f'), playerOf(clss));
+		expect(autoTypes.table.options.map(option => option.value)).toEqual([APLValueAutoAttackType.WandAuto]);
+		expect(swingTypes.table.options.map(option => option.value)).toEqual([AutoSwingType.Wand]);
+		expect(autoTypes.newValue()).toBe(APLValueAutoAttackType.WandAuto);
+		expect(swingTypes.newValue()).toBe(AutoSwingType.Wand);
 	});
 
 	it.each([Class.ClassWarrior, Class.ClassRogue, Class.ClassHunter, Class.ClassPaladin, Class.ClassShaman, Class.ClassDruid])(
 		'offers class %s no wand',
 		clss => {
-			const player = playerOf(clss);
-			expect(autoTypes(player).table.options.map(option => option.value)).not.toContain(APLValueAutoAttackType.WandAuto);
-			expect(swingTypes(player).table.options.map(option => option.value)).not.toContain(AutoSwingType.Wand);
-			expect(autoTypes(player).newValue()).toBe(APLValueAutoAttackType.AnyAuto);
-			expect(swingTypes(player).newValue()).toBe(AutoSwingType.MainHand);
+			const autoTypes = enumSpec(autoTypeFieldConfig('f'), playerOf(clss));
+			const swingTypes = enumSpec(autoSwingTypeFieldConfig('f'), playerOf(clss));
+			expect(autoTypes.table.options.map(option => option.value)).not.toContain(APLValueAutoAttackType.WandAuto);
+			expect(swingTypes.table.options.map(option => option.value)).not.toContain(AutoSwingType.Wand);
+			expect(autoTypes.newValue()).toBe(APLValueAutoAttackType.AnyAuto);
+			expect(swingTypes.newValue()).toBe(AutoSwingType.MainHand);
 		},
 	);
 });

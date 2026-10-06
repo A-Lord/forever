@@ -1,7 +1,7 @@
 import { AplProvider, useApl } from '@features/apl/context/AplContext';
 import { useAplInput } from '@features/apl/hooks/useAplInput';
 import { valueListGroup } from '@features/apl/model/apply_move';
-import { newKindImpl, resolveField } from '@features/apl/model/field_specs';
+import { newKindImpl } from '@features/apl/model/field_specs';
 import { valueKindOptions } from '@features/apl/model/kind_options';
 import { swapValueKind } from '@features/apl/model/kind_swap';
 import { pathChoices } from '@features/apl/model/submenus';
@@ -48,7 +48,7 @@ export const ValuePicker = memo(({ player, config, testId }: ValuePickerProps) =
 	if (value && !value.uuid?.value) value.uuid = UUID.create({ value: randomUUID() });
 
 	// An operand list takes the whole line, so its rows lay out by the row's width, not their own.
-	const ownsList = useMemo(() => !!kind && valueKinds[kind].fields.some(field => resolveField(field, player).kind === 'valueList'), [kind, player]);
+	const ownsList = useMemo(() => !!kind && valueKinds[kind].fields.some(field => field.type === 'valueList'), [kind]);
 
 	const choices = useMemo(
 		() =>
