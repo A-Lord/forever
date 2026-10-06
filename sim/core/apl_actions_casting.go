@@ -121,10 +121,16 @@ func (action *APLActionChannelSpell) IsReady(sim *Simulation) bool {
 	return action.spell.CanCastOrQueue(sim, action.target.Get())
 }
 func (action *APLActionChannelSpell) Execute(sim *Simulation) {
-	// A cast that failed leaves the fields alone, so a later plain cast of a channel does not inherit them.
-	if action.spell.CastOrQueue(sim, action.target.Get()) {
-		action.spell.Unit.Rotation.interruptChannelIf = action.interruptIf
-		action.spell.Unit.Rotation.allowChannelRecastOnInterrupt = action.allowRecast
+	unit := action.spell.Unit
+	action.spell.CastOrQueue(sim, action.target.Get())
+
+	// Set only when this spell's channel or hardcast started or its cast was queued, not when the cast failed or
+	// applied no dot (a missed hit-gated channel), so a later plain cast of a channel does not inherit them.
+	started := (unit.ChanneledDot != nil && unit.ChanneledDot.Spell == action.spell) || (unit.Hardcast.Expires > sim.CurrentTime && unit.Hardcast.ActionID == action.spell.ActionID)
+	queued := unit.QueuedSpell != nil && unit.QueuedSpell.spell == action.spell && unit.QueuedSpell.QueueInitiatedAt == sim.CurrentTime
+	if started || queued {
+		unit.Rotation.interruptChannelIf = action.interruptIf
+		unit.Rotation.allowChannelRecastOnInterrupt = action.allowRecast
 	}
 }
 func (action *APLActionChannelSpell) String() string {

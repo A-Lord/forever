@@ -9,7 +9,8 @@ import (
 )
 
 // A wand-like autorepeat channel: one 100 damage hit per 2 s tick, for as long as the fight lasts. Like
-// RegisterShoot's Shoot it is hasted by cast speed and refused while moving.
+// RegisterShoot's Shoot it is hasted by cast speed and refused while moving; unlike it, it ignores
+// resists, so every shot deals exactly 100.
 func fakeShoot(char *Character, ticks *[]time.Duration) *Spell {
 	spell := char.RegisterSpell(SpellConfig{
 		ActionID:         ActionID{SpellID: 5019},
@@ -503,6 +504,26 @@ func TestWandAutorepeatChannel(t *testing.T) {
 		ct.runUntil(2501 * time.Millisecond)
 		if !slices.Equal(ct.ticks, seconds(0.5)) || !slices.Equal(ct.channelEnd, seconds(0.5)) {
 			t.Fatalf("the cast Shoot should fire its one shot at 0.5 s and end, shots at %v, ended at %v", ct.ticks, ct.channelEnd)
+		}
+	})
+
+	t.Run("a channel cast that never starts its channel leaves no interrupt condition to a cast Shoot", func(t *testing.T) {
+		var drainTicks []time.Duration
+		config := drainConfig(&drainTicks, CastConfig{DefaultCast: Cast{GCD: GCDDefault}})
+		config.ApplyEffects = func(_ *Simulation, _ *Unit, _ *Spell) {}
+		ct, drain := newSpellShootTest(config)
+		ct.start(&timedStubAction{readyAt: time.Minute})
+		ct.runUntil(0)
+
+		ct.channelOf(drain, "false", false).Execute(ct.sim)
+		if ct.fw.ChanneledDot != nil {
+			t.Fatalf("a cast that applies no dot should start no channel")
+		}
+		ct.castOf(ct.spell).Execute(ct.sim)
+
+		ct.runUntil(6501 * time.Millisecond)
+		if !slices.Equal(ct.ticks, seconds(2)) || !slices.Equal(ct.channelEnd, seconds(2)) {
+			t.Fatalf("the cast Shoot should fire its one shot a wand speed after the cast at 0 and end, shots at %v, ended at %v", ct.ticks, ct.channelEnd)
 		}
 	})
 
