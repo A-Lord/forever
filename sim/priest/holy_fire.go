@@ -19,6 +19,20 @@ func (priest *Priest) registerHolyFireSpell(_ int32, rank *spelldata.Spell) {
 	config.Dot = spelldata.DotConfig(rank, holyFireTick, spelldata.RankLabel(rank, &priest.Unit))
 	config.Dot.OnTick = spelldata.PeriodicDamageTick(holyFireTick, rank.TickOutcomeHitRolled)
 
+	if priest.powerInLightAuras != nil {
+		// Every rank's dot carries the tag, so one rank running out leaves the marker up while another burns.
+		tag := "Holy Fire - " + priest.Label
+		config.Dot.Aura.Tag = tag
+		config.Dot.Aura.OnGain = func(aura *core.Aura, sim *core.Simulation) {
+			priest.powerInLightAuras.Get(aura.Unit).Activate(sim)
+		}
+		config.Dot.Aura.OnExpire = func(aura *core.Aura, sim *core.Simulation) {
+			if !aura.Unit.HasActiveAuraWithTag(tag) {
+				priest.powerInLightAuras.Get(aura.Unit).Deactivate(sim)
+			}
+		}
+	}
+
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		result := spell.CalcAndDealDamage(sim, target, holyFireHit.Roll(sim), spell.OutcomeMagicHitAndCrit)
 		if result.Landed() {
@@ -34,5 +48,5 @@ func (priest *Priest) registerHolyFireSpell(_ int32, rank *spelldata.Spell) {
 		return spell.CalcPeriodicDamage(sim, target, holyFireTick.Average(), spell.OutcomeExpectedMagicAlwaysHit)
 	}
 
-	priest.holyFires = append(priest.holyFires, priest.RegisterSpell(config))
+	priest.RegisterSpell(config)
 }

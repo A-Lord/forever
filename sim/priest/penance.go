@@ -15,8 +15,9 @@ func (priest *Priest) registerPenance(_ int32, rank *spelldata.Spell) {
 	channel := refs[2]
 
 	boltConfig := spelldata.SpellConfig(&priest.Unit, boltRow, spelldata.Magic(core.ProcMaskSpellDamage), spelldata.Proc())
+	boltConfig.ClassSpellMask = PriestSpellPenance
 	boltConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		priest.calcAndDealPowerInLightDamage(sim, target, spell, bolt.Roll(sim))
+		spell.CalcAndDealDamage(sim, target, bolt.Roll(sim), spell.OutcomeMagicHitAndCrit)
 	}
 	boltSpell := priest.RegisterSpell(boltConfig)
 

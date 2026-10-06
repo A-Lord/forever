@@ -42,9 +42,24 @@ func (priest *Priest) registerDisciplineTalents() {
 }
 
 // Your Smite and Penance spells deal X% increased damage to targets afflicted with your Holy Fire.
-// Rank 0 answers a multiplier of 1, so Smite and Penance apply it without a talent check.
+// The marker on each target is up while any rank of this priest's Holy Fire burns it (holy_fire.go).
 func (priest *Priest) applyPowerInLight() {
-	priest.powerInLightMultiplier = spellData.PowerInLight.MultiplierAt(priest.Talents.PowerInLight)
+	if priest.Talents.PowerInLight == 0 {
+		return
+	}
+
+	multiplier := spellData.PowerInLight.MultiplierAt(priest.Talents.PowerInLight)
+	priest.powerInLightAuras = priest.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
+		return target.GetOrRegisterAura(core.Aura{
+			Label:    "Power in Light - " + priest.Label,
+			Duration: core.NeverExpires,
+		}).AttachDDBC(1, 2, &priest.AttackTables, func(_ *core.Simulation, spell *core.Spell, _ *core.AttackTable) float64 {
+			if spell.Matches(PriestSpellSmite | PriestSpellPenance) {
+				return multiplier
+			}
+			return 1
+		})
+	})
 }
 
 // Increases your damage with wands by X%.

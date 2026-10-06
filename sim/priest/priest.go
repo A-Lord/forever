@@ -20,8 +20,7 @@ type Priest struct {
 
 	VampiricEmbrace *core.Spell
 
-	holyFires              []*core.Spell
-	powerInLightMultiplier float64
+	powerInLightAuras core.AuraArray
 }
 
 type SelfBuffs struct {
@@ -165,6 +164,7 @@ const (
 	PriestSpellHolyFire
 	PriestSpellMindBlast
 	PriestSpellMindFlay
+	PriestSpellPenance
 	PriestSpellShadowWordDeath
 	PriestSpellShadowWordPain
 	PriestSpellSmite
