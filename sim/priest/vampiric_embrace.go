@@ -1,36 +1,30 @@
 package priest
 
 import (
-	"time"
-
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-func (priest *Priest) registerVampiricEmbrace(rank *spelldata.Spell, cdTimer *core.Timer) {
+func (priest *Priest) registerVampiricEmbrace(rank *spelldata.Spell) {
+	healFraction := rank.EffectN(1).Percent()
+	healthMetrics := priest.NewHealthMetrics(core.ActionID{SpellID: rank.ID})
 
-	// TODO: Forever drops Improved Vampiric Embrace; base heal percent only until we know
-	// whether the bonus moved onto another talent.
-	healPct := 0.20
-	actionId := core.ActionID{SpellID: rank.ID}
-	healthMetrics := priest.NewHealthMetrics(actionId)
+	veAuras := priest.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
+		return target.RegisterAura(spelldata.AuraConfig(rank, spelldata.Label(rank.Name+" - "+priest.Label)))
+	})
 
-	veDebuffAuras := priest.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-		aura := target.RegisterAura(core.Aura{
-			Label:    "Vampiric Embrace",
-			ActionID: actionId,
-			Duration: time.Second * 30,
-		})
-		aura.AttachProcTriggerCallback(target, core.ProcTrigger{
-			Name:               "Vampiric Embrace Proc",
-			Callback:           core.CallbackOnSpellHitTaken | core.CallbackOnPeriodicDamageTaken,
-			ClassSpellMask:     PriestShadowSpells,
-			RequireDamageDealt: true,
-			Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-				priest.GainHealth(sim, result.Damage*healPct, healthMetrics)
-			},
-		})
-		return aura
+	priest.MakeProcTriggerAura(core.ProcTrigger{
+		Name:               "Vampiric Embrace Heal",
+		Callback:           core.CallbackOnSpellHitDealt | core.CallbackOnPeriodicDamageDealt,
+		ClassSpellMask:     PriestShadowSpells, // The tooltip's "Shadow spell damage you deal"; the row's listener names no spells.
+		RequireDamageDealt: true,
+		CanProcFromProcs:   true,
+		ExtraCondition: func(_ *core.Simulation, _ *core.Spell, result *core.SpellResult) bool {
+			return veAuras.Get(result.Target).IsActive()
+		},
+		Handler: func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
+			priest.GainHealth(sim, result.Damage*healFraction, healthMetrics)
+		},
 	})
 
 	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))
@@ -38,13 +32,10 @@ func (priest *Priest) registerVampiricEmbrace(rank *spelldata.Spell, cdTimer *co
 	config.ActionID = core.ActionID{SpellID: rank.ID}
 	config.ClassSpellMask = PriestSpellVampiricEmbrace
 
-	config.Cast.CD = core.Cooldown{
-		Timer:    cdTimer,
-		Duration: max(rank.Cooldown(), rank.CategoryCooldown()),
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, _ *core.Spell) {
+		veAuras.Get(target).Activate(sim)
 	}
+	config.RelatedAuraArrays = veAuras.ToMap()
 
-	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		veDebuffAuras.Get(target).Activate(sim)
-	}
-	config.RelatedAuraArrays = veDebuffAuras.ToMap()
+	priest.VampiricEmbrace = priest.RegisterSpell(config)
 }

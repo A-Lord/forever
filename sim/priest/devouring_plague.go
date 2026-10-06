@@ -5,14 +5,10 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-// Devouring Plague - Undead Racial
-// Shadow school DoT, 3 min cooldown, 24s duration
-
+// Devouring Plague: a Shadow disease over 24 s whose every tick heals the caster for the damage it deals.
 var DevouringPlagueRankMap = spellData.DevouringPlague
 
-func (priest *Priest) registerDevouringPlagueSpell(rank *spelldata.Spell, cdTimer *core.Timer) {
-	// panic("To be implemented")
-
+func (priest *Priest) registerDevouringPlagueSpell(rank *spelldata.Spell) {
 	actionID := core.ActionID{SpellID: rank.ID}
 	tick := rank.PeriodicEffect()
 
@@ -23,13 +19,7 @@ func (priest *Priest) registerDevouringPlagueSpell(rank *spelldata.Spell, cdTime
 	config.ActionID = actionID
 	config.ClassSpellMask = PriestSpellDevouringPlague
 
-	config.Cast.CD = core.Cooldown{
-		Timer:    cdTimer,
-		Duration: max(rank.Cooldown(), rank.CategoryCooldown()),
-	}
-
-	config.Dot = spelldata.DotConfig(rank, tick)
-	config.Dot.Aura.Tag = "Holy Fire"
+	config.Dot = spelldata.DotConfig(rank, tick, spelldata.Label(rank.Name+" "+rank.Rank))
 	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
 		result := dot.Spell.CalcAndDealPeriodicDamage(sim, target, tick.Roll(sim), rank.TickOutcomeHitRolled(dot))
 
@@ -37,10 +27,11 @@ func (priest *Priest) registerDevouringPlagueSpell(rank *spelldata.Spell, cdTime
 	}
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		result := spell.CalcAndDealDamage(sim, target, tick.Roll(sim), spell.OutcomeMagicHitAndCrit)
+		result := spell.CalcOutcome(sim, target, spell.OutcomeMagicHitNoHitCounter)
 		if result.Landed() {
 			spell.Dot(target).Apply(sim)
 		}
+		spell.DealOutcome(sim, result)
 	}
 
 	config.ExpectedTickDamage = func(sim *core.Simulation, target *core.Unit, spell *core.Spell, useSnapshot bool) *core.SpellResult {

@@ -7,24 +7,17 @@ import (
 
 var SmiteRankMap = spellData.Smite
 
-// TODO: To be implemented. Smite already has a full Forever rank ladder (spellData.Smite); the TBC body
-// needs review before it's uncommented.
 func (priest *Priest) registerSmiteSpell(rank *spelldata.Spell) {
-	// panic("To be implemented")
-
 	baseDamage := rank.DamageEffect()
 
 	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))
-
-	config.ActionID = core.ActionID{SpellID: rank.ID}
 	config.ClassSpellMask = PriestSpellSmite
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		damageMod := 1.0
-		if target.HasAuraWithTag("Holy Fire") {
-			damageMod *= 1 + 0.1*float64(priest.Talents.PowerInLight)
-		}
-		spell.CalcAndDealDamage(sim, target, baseDamage.Roll(sim)*damageMod, spell.OutcomeMagicHitAndCrit)
+		multiplier := priest.powerInLightMultiplier(target)
+		spell.DamageMultiplier *= multiplier
+		spell.CalcAndDealDamage(sim, target, baseDamage.Roll(sim), spell.OutcomeMagicHitAndCrit)
+		spell.DamageMultiplier /= multiplier
 	}
 
 	config.ExpectedInitialDamage = func(sim *core.Simulation, target *core.Unit, spell *core.Spell, _ bool) *core.SpellResult {
@@ -32,35 +25,20 @@ func (priest *Priest) registerSmiteSpell(rank *spelldata.Spell) {
 	}
 
 	priest.RegisterSpell(config)
+}
 
-	// The TBC implementation, kept for the port:
-	// priest.RegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: rank.ID},
-	// 	SpellSchool:    core.SpellSchoolHoly,
-	// 	DefenseType:    core.DefenseTypeMagic,
-	// 	ProcMask:       core.ProcMaskSpellDamage,
-	// 	Flags:          core.SpellFlagAPL,
-	// 	ClassSpellMask: PriestSpellSmite,
-	// 	ClassFlags:     rank.ClassFlags,
-	// 	Rank:           rank.RankNumber(),
-	// 	MaxRange:       float64(rank.MaxRange),
-	// 	ManaCost: core.ManaCostOptions{
-	// 		FlatCost: int32(rank.Cost()),
-	// 	},
-	// 	Cast: core.CastConfig{
-	// 		DefaultCast: core.Cast{
-	// 			GCD:      rank.GCD(),
-	// 			CastTime: rank.CastTime(),
-	// 		},
-	// 	},
-	//
-	// 	DamageMultiplier: 1,
-	// 	BonusCoefficient: rank.DamageEffect().Coeff(),
-	// 	ThreatMultiplier: 1,
-	//
-	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-	// 		baseDamage := rank.DamageEffect().Average(core.CharacterLevel)
-	// 		spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMagicHitAndCrit)
-	// 	},
-	// })
+func (priest *Priest) powerInLightMultiplier(target *core.Unit) float64 {
+	if priest.Talents.PowerInLight == 0 {
+		return 1
+	}
+	burning := false
+	spellData.HolyFire.Each(func(_ int32, rank *spelldata.Spell) {
+		if holyFire := priest.GetSpell(core.ActionID{SpellID: rank.ID}); holyFire != nil && holyFire.Dot(target).IsActive() {
+			burning = true
+		}
+	})
+	if !burning {
+		return 1
+	}
+	return spellData.PowerInLight.MultiplierAt(priest.Talents.PowerInLight)
 }

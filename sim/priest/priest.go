@@ -19,9 +19,8 @@ type Priest struct {
 	ShadowfiendAura *core.Aura
 	ShadowfiendPet  *Shadowfiend
 
-	Shadowfiend     *core.Spell
-	InnerFocusAura  *core.Aura
-	HolyPurposeAura *core.Aura
+	Shadowfiend    *core.Spell
+	InnerFocusAura *core.Aura
 
 	VampiricEmbrace *core.Spell
 }
@@ -43,47 +42,41 @@ func (priest *Priest) AddPartyBuffs(_ *proto.PartyBuffs) {
 }
 
 func (priest *Priest) Initialize() {
-	mindblastCDTimer := priest.NewTimer()
-	shadowWordDeathCDTimer := priest.NewTimer()
-
 	HolyFireRankMap.Each(func(_ int32, rank *spelldata.Spell) {
 		priest.registerHolyFireSpell(rank)
 	})
 	MindBlastRankMap.Each(func(_ int32, rank *spelldata.Spell) {
-		priest.registerMindBlastSpell(rank, mindblastCDTimer)
+		priest.registerMindBlastSpell(rank)
 	})
 	ShadowWordPainRankMap.Each(func(_ int32, rank *spelldata.Spell) {
 		priest.registerShadowWordPainSpell(rank)
 	})
 	ShadowWordDeathRankMap.Each(func(_ int32, rank *spelldata.Spell) {
-		priest.registerShadowWordDeathSpell(rank, shadowWordDeathCDTimer)
+		priest.registerShadowWordDeathSpell(rank)
 	})
 	SmiteRankMap.Each(func(_ int32, rank *spelldata.Spell) {
 		priest.registerSmiteSpell(rank)
 	})
+	// TODO: Confirm in game that every race has it; the game files grant all six ranks to every race
+	// (SkillLineAbility RaceMasks -1).
+	DevouringPlagueRankMap.Each(func(_ int32, rank *spelldata.Spell) {
+		priest.registerDevouringPlagueSpell(rank)
+	})
 	priest.registerShadowfiendSpell()
 
 	if priest.Race == proto.Race_RaceNightElf {
-		starshardsCDTimer := priest.NewTimer()
 		StarshardsRankMap.Each(func(_ int32, rank *spelldata.Spell) {
-			priest.registerStarshardsSpell(rank, starshardsCDTimer)
+			priest.registerStarshardsSpell(rank)
 		})
 	}
 	if priest.Race == proto.Race_RaceUndead {
-		devouringPlagueCDTimer := priest.NewTimer()
-		darkSacrificeCDTimer := priest.NewTimer()
-
 		spellData.DarkSacrifice.Each(func(_ int32, rank *spelldata.Spell) {
-			priest.registerDarkSacrifice(rank, darkSacrificeCDTimer)
-		})
-		DevouringPlagueRankMap.Each(func(_ int32, rank *spelldata.Spell) {
-			priest.registerDevouringPlagueSpell(rank, devouringPlagueCDTimer)
+			priest.registerDarkSacrifice(rank)
 		})
 	}
 	if priest.Race == proto.Race_RaceDwarf {
-		chastiseCDTimer := priest.NewTimer()
 		spellData.Chastise.Each(func(_ int32, rank *spelldata.Spell) {
-			priest.registerChastise(rank, chastiseCDTimer)
+			priest.registerChastise(rank)
 		})
 	}
 }
@@ -170,14 +163,14 @@ const (
 	PriestSpellFade
 	PriestSpellSmite
 	PriestSpellInnerFire
+	PriestSpellChastise
+	PriestSpellDarkSacrifice
+	PriestSpellPenance
 
 	// TODO: Forever abilities the sim does not model yet; see the stub file named for each.
-	PriestSpellChastise
 	PriestSpellConfoundingFlash
 	PriestSpellContingencyPlan
-	PriestSpellDarkSacrifice
 	PriestSpellDivineGrace
-	PriestSpellPenance
 
 	// Priest Healing Spells for Shadowform (and eventual healing sim?)
 	PriestSpellLesserHeal

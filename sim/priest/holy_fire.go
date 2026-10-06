@@ -8,8 +8,6 @@ import (
 var HolyFireRankMap = spellData.HolyFire
 
 func (priest *Priest) registerHolyFireSpell(rank *spelldata.Spell) {
-	// panic("To be implemented")
-
 	holyFireHit := rank.DamageEffect()
 	holyFireTick := rank.PeriodicEffect()
 
@@ -18,8 +16,7 @@ func (priest *Priest) registerHolyFireSpell(rank *spelldata.Spell) {
 	config.ActionID = core.ActionID{SpellID: rank.ID}
 	config.ClassSpellMask = PriestSpellHolyFire
 
-	config.Dot = spelldata.DotConfig(rank, holyFireTick)
-	config.Dot.Aura.Tag = "Holy Fire"
+	config.Dot = spelldata.DotConfig(rank, holyFireTick, spelldata.Label(rank.Name+" "+rank.Rank))
 	config.Dot.OnTick = spelldata.PeriodicDamageTick(holyFireTick, rank.TickOutcomeHitRolled)
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {

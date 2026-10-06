@@ -12,9 +12,8 @@ func (priest *Priest) registerMindFlaySpell(rank *spelldata.Spell) {
 
 	config.ActionID = core.ActionID{SpellID: rank.ID}
 	config.ClassSpellMask = PriestSpellMindFlay
-	config.Flags = core.SpellFlagChanneled | core.SpellFlagAPL
 
-	config.Dot = spelldata.DotConfig(rank, mindFlayTick)
+	config.Dot = spelldata.DotConfig(rank, mindFlayTick, spelldata.Label(rank.Name+" "+rank.Rank))
 	config.Dot.Aura.Tag = "Mind Flay"
 	config.Dot.OnTick = spelldata.PeriodicDamageTick(mindFlayTick, rank.TickOutcomeHitRolled)
 
@@ -23,6 +22,7 @@ func (priest *Priest) registerMindFlaySpell(rank *spelldata.Spell) {
 		if result.Landed() {
 			spell.Dot(target).Apply(sim)
 		}
+		spell.DealOutcome(sim, result)
 	}
 
 	config.ExpectedTickDamage = func(sim *core.Simulation, target *core.Unit, spell *core.Spell, useSnapshot bool) *core.SpellResult {

@@ -7,19 +7,14 @@ import (
 
 var ShadowWordPainRankMap = spellData.ShadowWordPain
 
-// TODO: To be implemented. Shadow Word: Pain already has a full Forever rank ladder
-// (spellData.ShadowWordPain); the TBC body needs review before it's uncommented.
 func (priest *Priest) registerShadowWordPainSpell(rank *spelldata.Spell) {
-	// panic("To be implemented")
-
 	swpTick := rank.PeriodicEffect()
 
 	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))
 	config.ActionID = core.ActionID{SpellID: rank.ID}
 	config.ClassSpellMask = PriestSpellShadowWordPain
 
-	config.Dot = spelldata.DotConfig(rank, swpTick)
-	config.Dot.Aura.Tag = "Holy Fire"
+	config.Dot = spelldata.DotConfig(rank, swpTick, spelldata.Label(rank.Name+" "+rank.Rank))
 	config.Dot.OnTick = spelldata.PeriodicDamageTick(swpTick, rank.TickOutcomeHitRolled)
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
@@ -27,6 +22,7 @@ func (priest *Priest) registerShadowWordPainSpell(rank *spelldata.Spell) {
 		if result.Landed() {
 			spell.Dot(target).Apply(sim)
 		}
+		spell.DealOutcome(sim, result)
 	}
 
 	config.ExpectedTickDamage = func(sim *core.Simulation, target *core.Unit, spell *core.Spell, useSnapshot bool) *core.SpellResult {
