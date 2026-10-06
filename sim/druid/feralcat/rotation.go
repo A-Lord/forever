@@ -78,6 +78,12 @@ func (cat *FeralDruid) doRotation(sim *core.Simulation) bool {
 
 	rotation := &cat.Rotation
 	target := cat.CurrentTarget
+	// The throw leaves Cat Form and needs no GCD, so Cat Form goes back up in the same decision.
+	// It goes before every GCD of the rotation.
+	if explosive := cat.wantExplosive(sim, target); explosive != nil {
+		explosive.Cast(sim, target)
+		return cat.CatForm.Cast(sim, nil)
+	}
 	if rotation.MaintainFaerieFire && !cat.FaerieFireAuras.Get(target).IsActive() && cat.FaerieFire.CanCast(sim, target) {
 		return cat.FaerieFire.Cast(sim, target)
 	}
@@ -177,6 +183,27 @@ func (cat *FeralDruid) pooling(sim *core.Simulation, builder *druid.DruidSpell) 
 	}
 	afterBuilder := cat.CurrentEnergy() - builder.Cost.GetCurrentCost() + cat.CurrentEnergyRegenMultiplier()*10*gcd.Seconds()
 	return afterBuilder < cat.Rip.Cost.GetCurrentCost()
+}
+
+// wantExplosive is an explosive that cannot be used in a shapeshift form, ready to throw, with the
+// mana to cast Cat Form again afterwards. Major cooldowns never leave the form on their own, so the
+// rotation throws it. An APL that casts the explosive itself takes it out of the major cooldowns.
+// 5/5 Furor brings back all the energy left in Cat Form; a lower rank keeps only part of it, so the
+// throw then waits for the bar to be as low as a shift.
+func (cat *FeralDruid) wantExplosive(sim *core.Simulation, target *core.Unit) *core.Spell {
+	if cat.CatForm.Cost != nil && cat.CurrentMana() < cat.CatForm.Cost.GetCurrentCost() {
+		return nil
+	}
+	if cat.Talents.Furor < 5 && cat.CurrentEnergy() >= cat.shiftCeiling() {
+		return nil
+	}
+	for _, mcd := range cat.GetMajorCooldowns() {
+		spell := mcd.Spell
+		if spell.Flags.Matches(core.SpellFlagExplosive) && spell.CastRequirement.NotShapeshifted && spell.CanCast(sim, target) {
+			return spell
+		}
+	}
+	return nil
 }
 
 func (cat *FeralDruid) thistleTea() *druid.DruidSpell {

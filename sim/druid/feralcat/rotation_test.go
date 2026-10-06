@@ -77,6 +77,47 @@ func TestRotationClawsWhenShredCannotLand(t *testing.T) {
 	}
 }
 
+// Goblin Sapper Charge 10646 needs Engineering and cannot be used in Cat Form: the rotation throws it
+// and casts Cat Form again. EZ-Thro Dark Bomb 260817 needs no profession and never leaves the form.
+func TestRotationLeavesCatFormOnlyForEngineeringExplosives(t *testing.T) {
+	for _, c := range []struct {
+		name       string
+		itemID     int32
+		leavesForm bool
+	}{{"Goblin Sapper Charge", 10646, true}, {"EZ-Thro Dark Bomb", 260817, false}} {
+		request := catPowershiftRequest(powershiftTalents, defaultCatRotation(), false)
+		cat := request.Raid.Parties[0].Players[0]
+		cat.Profession1 = proto.Profession_Engineering
+		cat.Consumables = &proto.ConsumesSpec{ExtraIds: []int32{c.itemID}}
+		player := runCat(t, request)
+
+		thrown := itemCastsOf(player.Actions, c.itemID)
+		if thrown == 0 {
+			t.Errorf("%s was never thrown", c.name)
+		}
+		want := int32(0)
+		if c.leavesForm {
+			want = thrown
+		}
+		if got := castsOf(player.Actions, 768); got != want {
+			t.Errorf("%s: cat form casts = %d after %d throws, want %d", c.name, got, thrown, want)
+		}
+	}
+}
+
+func itemCastsOf(actions []*proto.ActionMetrics, itemID int32) int32 {
+	var n int32
+	for _, action := range actions {
+		if action.GetId().GetItemId() != itemID || action.GetId().GetTag() != 0 {
+			continue
+		}
+		for _, target := range action.Targets {
+			n += target.Casts
+		}
+	}
+	return n
+}
+
 func TestRipweaveCastsRipBesideTheBiteFinisher(t *testing.T) {
 	rotation := catRotation(&proto.FeralCatDruid_Rotation{
 		FinishingMove:      proto.FeralCatDruid_Rotation_Bite,
