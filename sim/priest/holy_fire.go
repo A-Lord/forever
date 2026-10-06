@@ -9,6 +9,8 @@ var HolyFireRankMap = spellData.HolyFire
 
 func (priest *Priest) registerHolyFireSpell(rank *spelldata.Spell) {
 	holyFireHit := rank.DamageEffect()
+	// TODO: Verify rank 5 (15265) in game. Its tick states 13 where the ranks around it state 7 and 10
+	// (4/5/6/7/13/10/13/15 by rank, the same 0.05 spell power share on each).
 	holyFireTick := rank.PeriodicEffect()
 
 	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))
