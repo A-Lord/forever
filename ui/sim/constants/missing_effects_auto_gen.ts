@@ -10,6 +10,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		869, // Dazzling Longsword
+		[
+			"Decrease the armor of the target by 100 for 30s. While affected, the target cannot stealth or turn invisible.", // 13752 - https://www.wowhead.com/forever/spell=13752
+		]
+	],
+	[
 		880, // Staff of Horrors
 		[
 			"Damage caused by the target is reduced by 5 for 2min.", // 8552 - https://www.wowhead.com/forever/spell=8552
@@ -1396,12 +1402,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		20005, // Devilsaur Claws
-		[
-			"Increased Fist Weapons +4.", // 24362 - https://www.wowhead.com/forever/spell=24362
-		]
-	],
-	[
 		20048, // Highlander's Plate Greaves
 		[
 			"Run speed increased slightly.", // 23990 - https://www.wowhead.com/forever/spell=23990
@@ -2084,12 +2084,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		[
 			"Harmful spell casts and attacks against Furbolg have a chance to deal 105 Nature damage.", // 1318324 - https://www.wowhead.com/forever/spell=1318324
 			"Charm target Furbolg for 20s. Only works on targets not in combat.", // 1296664 - https://www.wowhead.com/forever/spell=1296664
-		]
-	],
-	[
-		272427, // Howling Idol
-		[
-			"Reduces the cooldown of your Shifting Power ability by 1 sec.", // 1291059 - https://www.wowhead.com/forever/spell=1291059
 		]
 	],
 	[

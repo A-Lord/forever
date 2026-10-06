@@ -98,6 +98,19 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
+	// Decrease the armor of the target by 100 for 30s. While affected, the target cannot stealth or turn invisible.
+	// https://www.wowhead.com/forever/spell=13752
+	// unsupported: states no rate
+	// trigger 13752 (every time, core.CallbackEmpty, core.ProcMaskUnknown)
+	// shared.NewSpellDataDebuffProc(shared.SpellDataProc{TriggerSpellID: 13752, IsWeaponProc: true},
+	//	[]shared.ItemVariant{
+	//	{ItemID: 869, ItemName: "Dazzling Longsword"},
+	// })
+
+	// TODO: Manual implementation required
+	//       This can be ignored if the effect has already been implemented.
+	//       With next db run the item will be removed if implemented.
+	//
 	// Blasts a target for 140 Fire damage.
 	// https://www.wowhead.com/forever/spell=1300753
 	// unsupported: states no rate
@@ -1405,21 +1418,6 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
-	// Increased Fist Weapons +4.
-	// https://www.wowhead.com/forever/spell=24362
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 20005, ItemName: "Devilsaur Claws"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
 	// Run speed increased slightly.
 	// https://www.wowhead.com/forever/spell=23990
 	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
@@ -2109,21 +2107,6 @@ func RegisterAllProcs() {
 	// shared.NewSpellDataDamageProc(shared.SpellDataProc{TriggerSpellID: 1318323, BuffSpellID: 1318324},
 	//	[]shared.ItemVariant{
 	//	{ItemID: 269741, ItemName: "Scented Runewood Brooch"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Reduces the cooldown of your Shifting Power ability by 1 sec.
-	// https://www.wowhead.com/forever/spell=1291059
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 272427, ItemName: "Howling Idol"},
 	// })
 
 	// TODO: Manual implementation required
