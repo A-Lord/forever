@@ -1,8 +1,7 @@
 import { OtherAction } from '@generated/proto/common';
-import { IconData } from '@generated/proto/ui';
 import { ActionId } from '@sim/proto/action_id';
-import { Database } from '@sim/proto/database';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { stubSpellIcons } from '@testing/storybook/fixtures/spell_icons';
 
 import { ActionIdIcon } from './ActionIdIcon';
 
@@ -32,11 +31,5 @@ export const Spell: Story = {
 /** The same resolved spell as an aura. */
 export const Aura: Story = {
 	args: { actionId: bloodthirst, useBuffAura: true },
-	beforeEach: () => {
-		const original = Database.getSpellIconData;
-		Database.getSpellIconData = async spellId => (spellId === bloodthirst.spellId ? IconData.create({ id: spellId, hasBuff: true }) : original(spellId));
-		return () => {
-			Database.getSpellIconData = original;
-		};
-	},
+	beforeEach: () => stubSpellIcons([{ id: bloodthirst.spellId, hasBuff: true }]),
 };
