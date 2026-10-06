@@ -135,7 +135,7 @@ casts_results: {
   }
   casts: {
    key: "spell_id:9907"
-   value: 5
+   value: 4
   }
   casts: {
    key: "spell_id:9908"
