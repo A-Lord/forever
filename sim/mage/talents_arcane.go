@@ -41,16 +41,19 @@ func (mage *Mage) registerArcaneTalents() {
 	// from registerSpells (its own Talents.ArcanePower guard is inside that file).
 }
 
-// Wand damage, +13% / +25%: the wand's shots are the mage's only ranged autos.
+// Wand damage, +13% / +25%: the wand's shots are the mage's only ranged autos. The row's school mask
+// (126) leaves out physical wands.
 func (mage *Mage) registerWandSpecialization() {
 	if mage.Talents.WandSpecialization == 0 {
 		return
 	}
 
+	const schools = 126
 	mage.AddStaticMod(core.SpellModConfig{
 		Kind:       core.SpellMod_DamageDone_Pct,
 		ProcMask:   core.ProcMaskRangedAuto,
-		FloatValue: spellData.WandSpecialization.Effect(dbcenums.A_MOD_DAMAGE_PERCENT_DONE, 126).FractionAt(mage.Talents.WandSpecialization),
+		School:     core.SpellSchool(schools),
+		FloatValue: spellData.WandSpecialization.Effect(dbcenums.A_MOD_DAMAGE_PERCENT_DONE, schools).FractionAt(mage.Talents.WandSpecialization),
 	})
 }
 
