@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
+import { PortalContainerContext } from '@ui-kit/hooks/usePortalContainer';
 import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -22,16 +23,18 @@ describe('Dialog', () => {
 	// The default portal target is `<body>`, which is outside `.sim-ui` and so outside the spec theme
 	// — measured in a browser, a `.btn-primary` in a body-portaled dialog is Bootstrap's
 	// rgb(13, 110, 253) while the same markup under `.sim-ui` is the warrior brown rgb(199, 156, 110).
-	// `container` is how a consumer keeps the theme; that its geometry is unaffected was measured too.
-	it('portals into the container it is given', () => {
+	// The portal container from context is how a consumer keeps the theme; that its geometry is unaffected was measured too.
+	it('portals into the container from context', () => {
 		const host = document.createElement('div');
 		host.className = 'sim-ui';
 		document.body.appendChild(host);
 
 		render(
-			<Dialog open onOpenChange={() => {}} container={host} title="Options">
-				body
-			</Dialog>,
+			<PortalContainerContext value={host}>
+				<Dialog open onOpenChange={() => {}} title="Options">
+					body
+				</Dialog>
+			</PortalContainerContext>,
 		);
 		expect(host.contains(screen.getByRole('dialog'))).toBe(true);
 
@@ -76,15 +79,8 @@ describe('Dialog', () => {
 
 	// With `preventClose` there is nothing to put in the header at all, so there is no header.
 	it('drops the header bar rather than emptying it', () => {
-		const { rerender } = render(
-			<Dialog open onOpenChange={() => {}} header={false}>
-				body
-			</Dialog>,
-		);
-		expect(within(screen.getByRole('dialog')).getByTestId('sim-dialog-header').getAttribute('data-bare')).toBe('true');
-
-		rerender(
-			<Dialog open onOpenChange={() => {}} header={false} preventClose>
+		render(
+			<Dialog open onOpenChange={() => {}} preventClose>
 				body
 			</Dialog>,
 		);

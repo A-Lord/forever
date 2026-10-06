@@ -20,16 +20,13 @@ const ReasonPPMHearsNoWeaponHits = "a procs-per-minute rate hears no weapon hits
 // them: both read this row, so a proc the generator emits is one the sim can build, and a proc it
 // comments out is one nothing would have heard correctly.
 //
-// It differs from ProcTriggerUnsupported in who is wearing the item. A class's own spell states a
-// class mask to narrow its listener to spells the caster really casts; an item is worn by every
-// class, so a class mask on its trigger is the filter of the one class it was written for and names
-// nothing the sim can reproduce. An item proc therefore has no character to weigh the mask against.
-func ItemProcUnsupported(trigger *Spell, isWeaponProc bool) []string {
-	return itemProcUnsupported(trigger, isWeaponProc, false, 0)
-}
-
-// The same for a weapon whose item effect states its own procs-per-minute rate, which answers a
-// trigger whose row states none.
+// A class's own spell states a class mask to narrow its listener to spells the caster really casts;
+// an item is worn by every class, so a class mask on its trigger is the filter of the one class it
+// was written for and names nothing the sim can reproduce. An item proc therefore has no character
+// to weigh the mask against.
+//
+// itemPPM is the procs-per-minute rate a weapon's item effect states, which answers a trigger whose
+// row states none; 0 where the item states no rate.
 func ItemProcUnsupportedWithRate(trigger *Spell, isWeaponProc bool, itemPPM float64) []string {
 	return itemProcUnsupported(trigger, isWeaponProc, false, itemPPM)
 }

@@ -1,14 +1,19 @@
 import { OpenSelectorModalContext } from '@features/gear/hooks/useSelectorModal';
+import { getEmptySlotIconUrl } from '@features/gear/model/empty_slot_icons';
 import type { GearData } from '@features/gear/types';
-import { GemColor, ItemSlot } from '@generated/proto/common';
+import { ItemSlot } from '@generated/proto/common';
+import { translateSlotName } from '@i18n/localization';
 import { SimHostProvider } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
 import type { EquippedItem } from '@sim/proto/equipped_item';
 import { ItemSwapGear } from '@sim/proto/gear';
 import { createSimStore, PLAYER_FIELDS, seedKeyed, type SimStore, zeroVersions } from '@sim/state/sim_store';
-import { fakeHost } from '@sim/testing';
-import { render, waitFor } from '@testing-library/react';
+import { fakeHost } from '@testing/sim/fake_host';
+import { makeEquippedItem } from '@testing/storybook/fixtures/gear';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import type { ItemSwapIconViewProps } from './ItemSwapIcon';
 
 const trackReleases = (store: SimStore) => {
 	const releases: Array<ReturnType<typeof vi.fn>> = [];
@@ -33,11 +38,11 @@ vi.mock('@sim/proto/action_id/tooltip_data', () => ({
 	equippedItemWowheadTooltipData: () => new Promise<string>(resolve => tooltip.settles.push(resolve)),
 }));
 
-const { ItemSwapIcon } = await import('./ItemSwapIcon');
+const { ItemSwapIcon, ItemSwapIconView } = await import('./ItemSwapIcon');
 
 const SLOTS = [ItemSlot.ItemSlotMainHand, ItemSlot.ItemSlotOffHand, ItemSlot.ItemSlotTrinket1, ItemSlot.ItemSlotTrinket2];
 
-const equippedItem = (itemId: number, socketColors: GemColor[] = []) =>
+const equippedItem = (itemId: number) =>
 	({
 		asActionId: () => ({ itemId }),
 		// The selector modal reads a swap item through the same decorators the gear picker uses, so the
@@ -45,9 +50,6 @@ const equippedItem = (itemId: number, socketColors: GemColor[] = []) =>
 		withDynamicStats() {
 			return this;
 		},
-		allSocketColors: () => socketColors,
-		gems: socketColors.map(() => null),
-		numPossibleSockets: socketColors.length,
 	}) as unknown as EquippedItem;
 
 const setup = (swap: Map<ItemSlot, EquippedItem> = new Map(), slots: ItemSlot[] = SLOTS) => {
@@ -106,13 +108,6 @@ describe('ItemSwapIcon', () => {
 		await waitFor(() => expect(icons(view.container)[0].dataset.wowhead).toBe('item=1234'));
 	});
 
-	it('keeps the sockets container on an empty slot, so both builds serialise the same element', () => {
-		const { view } = setup();
-
-		expect(view.container.querySelectorAll('[data-testid="item-picker-sockets-container"]')).toHaveLength(SLOTS.length);
-		expect(view.container.querySelector('[data-testid="item-picker-sockets-container"]')!.children).toHaveLength(0);
-	});
-
 	it('opens one shared modal on the slot the icon was clicked for', () => {
 		const { view, openTab } = setup();
 
@@ -144,5 +139,48 @@ describe('ItemSwapIcon', () => {
 		view.unmount();
 
 		expect(releases.filter(release => release.mock.calls.length === 0)).toHaveLength(0);
+	});
+});
+
+const renderIcon = (props: Partial<ItemSwapIconViewProps> = {}) => {
+	const onOpen = vi.fn();
+	render(<ItemSwapIconView slot={ItemSlot.ItemSlotMainHand} item={null} iconUrl="" name="" href="" onOpen={onOpen} {...props} />);
+	return { onOpen };
+};
+
+const icon = () => screen.getByTestId('icon-picker-button');
+
+describe('ItemSwapIconView', () => {
+	it('draws an empty slot as its placeholder, unfilled and named for the slot', () => {
+		renderIcon();
+
+		expect(icon().hasAttribute('data-active')).toBe(false);
+		expect(icon().style.backgroundImage).toContain(getEmptySlotIconUrl(ItemSlot.ItemSlotMainHand));
+		expect(icon().getAttribute('aria-label')).toBe(translateSlotName(ItemSlot.ItemSlotMainHand));
+		expect(icon().hasAttribute('href')).toBe(false);
+	});
+
+	it('draws a filled slot active, with its icon, name, link and wowhead data', () => {
+		renderIcon({
+			item: makeEquippedItem(),
+			iconUrl: 'sword.jpg',
+			name: 'Thunderfury',
+			href: 'https://wowhead.test/item=19019',
+			wowhead: { 'data-wowhead': 'item=19019' },
+		});
+
+		expect(icon().hasAttribute('data-active')).toBe(true);
+		expect(icon().style.backgroundImage).toContain('sword.jpg');
+		expect(icon().getAttribute('aria-label')).toBe('Thunderfury');
+		expect(icon().getAttribute('href')).toBe('https://wowhead.test/item=19019');
+		expect(icon().dataset.whtticon).toBe('false');
+		expect(icon().dataset.wowhead).toBe('item=19019');
+	});
+
+	it('opens the slot when the icon is clicked', () => {
+		const { onOpen } = renderIcon();
+
+		fireEvent.click(icon());
+		expect(onOpen).toHaveBeenCalledOnce();
 	});
 });

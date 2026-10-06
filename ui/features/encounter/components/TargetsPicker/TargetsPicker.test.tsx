@@ -17,7 +17,7 @@ const source = vi.hoisted(() => {
 		notify: () => Array.from(listeners).forEach(listener => listener()),
 	};
 });
-vi.mock('@sim/state/subscriptions', async () => (await import('@sim/testing')).mockSubscriptions(source.subscribe));
+vi.mock('@sim/state/subscriptions', async () => (await import('@testing/sim/subscriptions')).mockSubscriptions(source.subscribe));
 vi.mock('@i18n/config', () => ({ default: { t: (key: string) => key } }));
 vi.mock('@i18n/localization', () => ({
 	translateItemLabel: (label: string) => label,
@@ -30,7 +30,7 @@ vi.mock('@i18n/localization', () => ({
 const trackEvent = vi.hoisted(() => vi.fn());
 vi.mock('../../../../tracking/utils', () => ({ trackEvent }));
 
-const defaultTarget = () => TargetProto.create({ level: 73, swingSpeed: 2 });
+const defaultTarget = () => TargetProto.create({ level: 63, swingSpeed: 2 });
 
 /** Stands in for the `Encounter` facade: the seven members the target pickers reach for. */
 class FakeEncounter {
@@ -142,12 +142,12 @@ describe('TargetsPicker', () => {
 	});
 
 	it('copies a target to a clone beside it and adds a default target at the end', () => {
-		const encounter = new FakeEncounter([TargetProto.create({ level: 70 })]);
+		const encounter = new FakeEncounter([TargetProto.create({ level: 60 })]);
 		mount(encounter);
 
 		const copy = openMenu(0).querySelector('[data-testid="targets-picker-copy"]')!;
 		act(() => void fireEvent.click(copy));
-		expect(encounter.targets.map(target => target.level)).toEqual([70, 70]);
+		expect(encounter.targets.map(target => target.level)).toEqual([60, 60]);
 		expect(encounter.targets[1]).not.toBe(encounter.targets[0]);
 
 		act(() => void fireEvent.click(document.querySelector('[data-testid="tree-add"]')!));
@@ -157,7 +157,7 @@ describe('TargetsPicker', () => {
 	});
 
 	it('moves a target by dragging its handle, in one write', () => {
-		const encounter = new FakeEncounter([TargetProto.create({ level: 70 }), TargetProto.create({ level: 71 }), TargetProto.create({ level: 72 })]);
+		const encounter = new FakeEncounter([TargetProto.create({ level: 60 }), TargetProto.create({ level: 61 }), TargetProto.create({ level: 62 })]);
 		mount(encounter);
 		const setTargets = vi.spyOn(encounter, 'setTargets');
 		items().forEach(place);
@@ -166,13 +166,13 @@ describe('TargetsPicker', () => {
 		dragEvent('drop', items()[0], 0);
 
 		expect(setTargets).toHaveBeenCalledTimes(1);
-		expect(encounter.targets.map(target => target.level)).toEqual([72, 70, 71]);
+		expect(encounter.targets.map(target => target.level)).toEqual([62, 60, 61]);
 	});
 
 	it('drops a target released over a target input beside the target row holding it, never into the input list', () => {
 		const encounter = new FakeEncounter([
-			TargetProto.create({ level: 70, targetInputs: [TargetInput.create({ label: 'Stacks', inputType: InputType.Number })] }),
-			TargetProto.create({ level: 71 }),
+			TargetProto.create({ level: 60, targetInputs: [TargetInput.create({ label: 'Stacks', inputType: InputType.Number })] }),
+			TargetProto.create({ level: 61 }),
 		]);
 		mount(encounter);
 		const setTargets = vi.spyOn(encounter, 'setTargets');
@@ -184,22 +184,22 @@ describe('TargetsPicker', () => {
 		dragEvent('drop', input, 0);
 
 		expect(setTargets).toHaveBeenCalledTimes(1);
-		expect(encounter.targets.map(target => target.level)).toEqual([71, 70]);
+		expect(encounter.targets.map(target => target.level)).toEqual([61, 60]);
 		expect(encounter.targets.map(target => target.targetInputs.length)).toEqual([0, 1]);
 	});
 
 	it('reads each target row from its own index rather than from the first, and writes a level change back to it', async () => {
-		const encounter = new FakeEncounter([TargetProto.create({ level: 73 }), TargetProto.create({ level: 68 })]);
+		const encounter = new FakeEncounter([TargetProto.create({ level: 63 }), TargetProto.create({ level: 61 })]);
 		mount(encounter);
 
 		const levelOf = (index: number) => targetRoots()[index].querySelector<HTMLElement>('#target-' + index + '-picker-level')!;
-		expect(levelOf(0).textContent).toBe('73');
-		expect(levelOf(1).textContent).toBe('68');
+		expect(levelOf(0).textContent).toBe('63');
+		expect(levelOf(1).textContent).toBe('61');
 
 		await userEvent.click(levelOf(1));
-		await userEvent.click(screen.getByRole('option', { name: '70' }));
+		await userEvent.click(screen.getByRole('option', { name: '62' }));
 
-		expect(encounter.targets.map(target => target.level)).toEqual([73, 70]);
+		expect(encounter.targets.map(target => target.level)).toEqual([63, 62]);
 	});
 
 	it('disables the dual-wield miss penalty until dual wield is on', () => {
@@ -225,15 +225,11 @@ describe('TargetsPicker', () => {
 			mount(
 				new FakeEncounter(
 					[defaultTarget()],
-					[
-						preset('Karazhan/Attumen the Huntsman', 16152),
-						preset('Karazhan/Attumen the Huntsman (heroic)', 16152),
-						preset('x/Prince Malchezaar', 15690),
-					],
+					[preset('Molten Core/Lucifron', 12118), preset('Molten Core/Lucifron (alternate)', 12118), preset('x/Ragnaros', 11502)],
 				),
 			);
 
-			expect(await aiOptions()).toEqual(['common.none', 'Karazhan/Attumen the Huntsman', 'x/Prince Malchezaar']);
+			expect(await aiOptions()).toEqual(['common.none', 'Molten Core/Lucifron', 'x/Ragnaros']);
 		});
 
 		it('keeps the preset the sim resolves the id to, which is the first one registered', async () => {

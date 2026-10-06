@@ -106,14 +106,28 @@ describe('WowheadAnchor', () => {
 		expect(onKeyUp).toHaveBeenCalledTimes(1);
 	});
 
-	it('leaves the keys of a link to the browser', () => {
+	it('leaves the keys of a link that only navigates to the browser', () => {
+		const onKeyDown = vi.fn();
+		render(<WowheadAnchor href={HREF} testId="anchor" onKeyDown={onKeyDown} />);
+		const anchor = screen.getByTestId('anchor');
+
+		expect(fireEvent.keyDown(anchor, { key: ' ' })).toBe(true);
+		expect(fireEvent.keyDown(anchor, { key: 'Enter' })).toBe(true);
+		expect(onKeyDown).toHaveBeenCalledTimes(2);
+	});
+
+	it('activates a link that acts on Space as it comes up, and leaves Enter to the link', () => {
 		const onActivate = vi.fn();
 		render(<WowheadAnchor href={HREF} testId="anchor" onActivate={onActivate} />);
 		const anchor = screen.getByTestId('anchor');
 
-		expect(fireEvent.keyDown(anchor, { key: ' ' })).toBe(true);
-		fireEvent.keyUp(anchor, { key: ' ' });
+		expect(fireEvent.keyDown(anchor, { key: ' ' })).toBe(false);
 		expect(onActivate).not.toHaveBeenCalled();
+		fireEvent.keyUp(anchor, { key: ' ' });
+		expect(onActivate).toHaveBeenCalledTimes(1);
+
+		expect(fireEvent.keyDown(anchor, { key: 'Enter' })).toBe(true);
+		expect(onActivate).toHaveBeenCalledTimes(1);
 	});
 
 	it('hands its anchor to a ref and renders its children inside it', () => {

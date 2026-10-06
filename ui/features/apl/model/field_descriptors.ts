@@ -26,7 +26,6 @@ type FieldDescriptorPayloads = {
 	groupName: { field: string; options?: FieldOptions };
 	groupReferenceVariables: { field: string; groupNameField: string; options?: FieldOptions };
 	eclipseType: { field: string };
-	hotwStrategy: { field: string };
 	curseType: { field: string };
 	autoType: { field: string };
 	autoSwingType: { field: string };
@@ -102,10 +101,6 @@ export function groupReferenceVariablesFieldConfig(field: string, groupNameField
 
 export function eclipseTypeFieldConfig(field: string): Descriptor<'eclipseType'> {
 	return { type: 'eclipseType', field };
-}
-
-export function hotwStrategyFieldConfig(field: string): Descriptor<'hotwStrategy'> {
-	return { type: 'hotwStrategy', field };
 }
 
 export function curseTypeFieldConfig(field: string): Descriptor<'curseType'> {

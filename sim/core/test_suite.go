@@ -45,10 +45,15 @@ func (testSuite *IndividualTestSuite) TestCharacterStats(testName string, csr *p
 	env, raidStats, _ := NewEnvironment(csr.Raid, encounter, false, csr.SkipRotation)
 	finalStats := stats.FromUnitStatsProto(raidStats.Parties[0].Players[0].FinalStats)
 
-	// The ranged offsets, read with every build-phase aura up the way the final stats are.
+	// The ranged offsets, read with every build-phase aura up the way the final stats are: the sheet's
+	// ranged hit and crit beyond the physical percent. The sheet's melee row holds the main hand's
+	// weapon-bound mods, so the ranged row less the melee row is no ranged offset once the two weapons'
+	// mods differ.
 	character := env.Raid.Parties[0].Players[0].GetCharacter()
 	character.applyBuildPhaseAuras(CharacterBuildPhaseAll)
-	finalStats[stats.RangedHitPercent], finalStats[stats.RangedCritPercent] = character.sheetRangedOffsets()
+	pseudoStats := character.GetPseudoStatsProto()
+	finalStats[stats.RangedHitPercent] = pseudoStats[proto.PseudoStat_PseudoStatRangedHitPercent] - character.GetStat(stats.PhysicalHitPercent)
+	finalStats[stats.RangedCritPercent] = pseudoStats[proto.PseudoStat_PseudoStatRangedCritPercent] - character.GetStat(stats.PhysicalCritPercent)
 	character.clearBuildPhaseAuras(CharacterBuildPhaseAll)
 
 	testSuite.testResults.CharacterStatsResults[testName] = &proto.CharacterStatsTestResult{

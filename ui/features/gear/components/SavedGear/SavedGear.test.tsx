@@ -26,7 +26,7 @@ const source = vi.hoisted(() => {
 });
 
 vi.mock('@sim/state/subscriptions', async () =>
-	(await import('@sim/testing')).mockSubscriptions((onChange: () => void) => subscribeGated(source.subscribe, v => v, onChange)),
+	(await import('@testing/sim/subscriptions')).mockSubscriptions((onChange: () => void) => subscribeGated(source.subscribe, v => v, onChange)),
 );
 
 const STRINGS = vi.hoisted(

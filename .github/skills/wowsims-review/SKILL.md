@@ -91,6 +91,13 @@ Each of these has a section in `references/defects.md`.
   built each iteration that never changes is built at registration.
 - **Comments** follow `wowsims-conventions`: no comparison with TBC or Season of Discovery, a `// TODO:`
   where a number waits on verification.
+- **Text reads plainly.** When a humanizer skill is available (`humanizer`), run it over every comment,
+  doc line, test message, commit message and PR text the change adds or rewrites. Its patterns are the
+  findings: a dash used as a connector, an "X, not Y" or "rather than" contrast that only adds weight, an
+  inverted or convoluted sentence, stacked qualifiers, a closing line that repeats the point. The rewrite
+  changes prose only: code, identifiers, paths, numbers, table data and headings stay, and so does every
+  fact. Where it disagrees with `wowsims-conventions`, the conventions win. A contrast that corrects a
+  real misreading stays. Without the skill, read the added text for the same patterns by hand.
 
 ## 5. Tests
 

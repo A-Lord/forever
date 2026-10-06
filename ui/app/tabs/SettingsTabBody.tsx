@@ -1,7 +1,7 @@
 import { EncounterPicker, SavedEncounter } from '@features/encounter';
 import { SelectorModal } from '@features/gear/components/SelectorModal';
 import { OpenSelectorModalContext, useSelectorModalState } from '@features/gear/hooks/useSelectorModal';
-import { BuffSectionView, ConsumesFilters, ConsumesPicker, CustomSection, OtherSettings, PlayerSettings, RaidBuffs, SavedSettings } from '@features/settings';
+import { BuffSection, ConsumesFilters, ConsumesPicker, CustomSection, OtherSettings, PlayerSettings, RaidBuffs, SavedSettings } from '@features/settings';
 import * as BuffDebuffInputs from '@features/settings/model/buffs_debuffs';
 import { applyOwnerClassLabels, relevantStatOptions } from '@features/settings/model/stat_options';
 import i18n from '@i18n/config';
@@ -86,18 +86,18 @@ export const SettingsTabBody = () => {
 				<TabPanelColumns.Col>
 					{ready && (
 						<>
-							<BuffSectionView section="raid_buffs" empty={options.buffs.length === 0}>
+							<BuffSection section="raid_buffs" empty={options.buffs.length === 0}>
 								<RaidBuffs options={options.buffs} miscOptions={[]} />
-							</BuffSectionView>
+							</BuffSection>
 							{options.partyBuffs.length > 0 && (
-								<BuffSectionView section="party_buffs" empty={false}>
+								<BuffSection section="party_buffs" empty={false}>
 									<RaidBuffs options={options.partyBuffs} miscOptions={[]} />
-								</BuffSectionView>
+								</BuffSection>
 							)}
 							{!gearPlanner && (
-								<BuffSectionView section="debuffs" empty={options.debuffs.length === 0}>
+								<BuffSection section="debuffs" empty={options.debuffs.length === 0}>
 									<RaidBuffs options={options.debuffs} miscOptions={options.debuffsMisc} />
-								</BuffSectionView>
+								</BuffSection>
 							)}
 						</>
 					)}

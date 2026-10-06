@@ -138,13 +138,9 @@ func (mage *Mage) registerBurningSoul() {
 		return
 	}
 
-	// Effect 1 is pushback, which the sim does not model. Effect 2 is the threat, by hand: the parse
-	// reads A_MOD_THREAT as the unit's whole threat multiplier and drops its misc 4, the Fire school.
-	mage.AddStaticMod(core.SpellModConfig{
-		School:     core.SpellSchoolFire,
-		FloatValue: spellData.BurningSoul.Rank(mage.Talents.BurningSoul).EffectN(2).Percent(),
-		Kind:       core.SpellMod_ThreatMultiplier_Pct,
-	})
+	// Effect 1 is pushback, which the sim does not model. Effect 2 is the threat, on misc 4, the Fire
+	// school.
+	spelldata.ParseStatic(&mage.Character, spellData.BurningSoul.Rank(mage.Talents.BurningSoul), spelldata.Effects(2))
 }
 
 func (mage *Mage) registerImprovedFlamestrike() {

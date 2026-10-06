@@ -6,7 +6,7 @@ import (
 	"github.com/wowsims/forever/sim/core"
 )
 
-// The snippets docs/spell_data.md shows a porter, as runnable code: a doc that names an accessor the
+// The snippets docs/spell_data/ shows a porter, as runnable code: a doc that names an accessor the
 // package no longer has, or a value it no longer answers, fails here.
 //
 // They read the generated store rather than the hand-built rows the rest of the package's tests run

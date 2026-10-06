@@ -8,7 +8,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { SavedEpWeights } from './SavedEpWeights';
 
-vi.mock('@sim/state/subscriptions', async () => (await import('@sim/testing')).mockSubscriptions((await import('@testing/saved_panel')).source.subscribe));
+vi.mock('@sim/state/subscriptions', async () =>
+	(await import('@testing/sim/subscriptions')).mockSubscriptions((await import('@testing/saved_panel')).source.subscribe),
+);
 
 const STRINGS = vi.hoisted(
 	() =>

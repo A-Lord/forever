@@ -1,16 +1,14 @@
 import { createContext } from 'react';
 
-import type { SortableArmProps, SortableChildrenProps } from '../hooks/useSortable';
-import type { TreeDensity, TreeHandle, TreeLayout, TreeOrientation } from '../types';
+import type { SortableChildrenProps } from '../hooks/useSortable';
+import type { TreeDensity, TreeLayout } from '../types';
 
 export interface TreeRootContextValue {
 	group: string;
 	depth: number;
 	density: TreeDensity;
 	layout: TreeLayout;
-	orientation: TreeOrientation;
 	disabled: boolean;
-	handle: TreeHandle;
 	/** The id of the item this root is nested in, `null` at the top. */
 	parentId: string | null;
 }
@@ -29,9 +27,6 @@ export interface TreeItemContextValue {
 	controls: string | undefined;
 	/** Body and Children announce themselves while mounted. */
 	mountPart: (part: 'body' | 'children') => () => void;
-	/** Set on the part the root's `handle` names, `undefined` without sortable. */
-	handleProps: SortableArmProps | undefined;
-	headerProps: SortableArmProps | undefined;
 	childrenProps: SortableChildrenProps | undefined;
 }
 

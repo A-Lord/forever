@@ -1,5 +1,5 @@
 /** Every `--color-*` token in `styles/theme/colors.css`, by the name after `--color-`. */
-export const COLOR_TOKENS = [
+const COLOR_TOKENS = [
 	'black',
 	'white',
 	'grey',

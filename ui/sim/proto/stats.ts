@@ -148,22 +148,6 @@ export class UnitStat {
 		return this.isPseudoStat() && SCHOOL_HIT_PERCENT_PSEUDO_STATS.includes(this.pseudoStat!);
 	}
 
-	convertDefaultUnitsToRating(value: number): number | null {
-		if (this.isStat()) {
-			// Proper Stats are either already in Rating units, or
-			// do not have a Rating representation.
-			if (Stat[this.stat!].includes('Rating')) {
-				return value;
-			} else {
-				return null;
-			}
-		} else {
-			// PseudoStats are either in percent units, or do not
-			// have a Rating representation.
-			return this.convertPercentToRating(value);
-		}
-	}
-
 	convertDefaultUnitsToPercent(value: number): number | null {
 		if (this.isStat()) {
 			// Proper stats are either in Rating units, or do not
@@ -362,7 +346,7 @@ const RATING_CHANNELS = new Map<Stat, { channels: [PseudoStat, PseudoStat, Pseud
 ]);
 const CHANNEL_PSEUDO_STATS = new Set([...RATING_CHANNELS.values()].flatMap(({ channels }) => channels));
 
-export const displayStatOrder: Array<UnitStat> = [
+const displayStatOrder: Array<UnitStat> = [
 	UnitStat.fromStat(Stat.StatHealth),
 	UnitStat.fromStat(Stat.StatMana),
 	UnitStat.fromStat(Stat.StatArmor),
@@ -736,50 +720,6 @@ export class StatCap {
 		return clonedSoftCaps;
 	}
 }
-
-// Helper utility to determine whether a particular PseudoStat has been configured as either a hard cap or
-// soft cap.
-export function pseudoStatHasCap(pseudoStat: PseudoStat, hardCaps: Stats, softCaps: StatCap[]): boolean {
-	if (hardCaps.getPseudoStat(pseudoStat) != 0) {
-		return true;
-	}
-
-	for (const config of softCaps) {
-		if (config.unitStat.equalsPseudoStat(pseudoStat)) {
-			return true;
-		}
-	}
-
-	return false;
-}
-
-export const DEFAULT_GEM_STATS = [Stat.StatStamina];
-export const DEFAULT_MELEE_GEM_STATS = [
-	...DEFAULT_GEM_STATS,
-	Stat.StatStrength,
-	Stat.StatAgility,
-	Stat.StatHitRating,
-	Stat.StatCritRating,
-	Stat.StatHasteRating,
-];
-export const DEFAULT_CASTER_GEM_STATS = [
-	...DEFAULT_GEM_STATS,
-	Stat.StatIntellect,
-	Stat.StatSpellDamage,
-	Stat.StatHitRating,
-	Stat.StatCritRating,
-	Stat.StatHasteRating,
-];
-export const DEFAULT_HYBRID_CASTER_GEM_STATS = [...DEFAULT_CASTER_GEM_STATS, Stat.StatSpirit];
-export const DEFAULT_HEALER_GEM_STATS = [
-	...DEFAULT_GEM_STATS,
-	Stat.StatIntellect,
-	Stat.StatSpirit,
-	Stat.StatHealingPower,
-	Stat.StatCritRating,
-	Stat.StatHasteRating,
-	Stat.StatMP5,
-];
 
 // ---------------------------------------------------------------------------
 // Stat attribution (moved out of components/character_stats.tsx so the math is

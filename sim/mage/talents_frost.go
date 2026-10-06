@@ -132,19 +132,9 @@ func (mage *Mage) registerFrostChanneling() {
 		return
 	}
 
-	rank := spellData.FrostChanneling.Rank(mage.Talents.FrostChanneling)
-
-	// The mana cost, on the row's mask of Frost spells.
-	spelldata.ParseStatic(&mage.Character, rank, spelldata.Effects(1))
-
-	// The threat, by hand: the parse reads A_MOD_THREAT as the unit's whole threat multiplier and
-	// drops its misc 16, the Frost school. The talent curve also states the ranks as 10/20/30 where
-	// the row itself states -30, so the amount is the curve's and the sign the row's and tooltip's.
-	mage.AddStaticMod(core.SpellModConfig{
-		School:     core.SpellSchoolFrost,
-		FloatValue: -rank.EffectN(2).Percent(),
-		Kind:       core.SpellMod_ThreatMultiplier_Pct,
-	})
+	// Effect 1 is the mana cost, on the row's mask of Frost spells; effect 2 the threat, on misc 16, the
+	// Frost school, which the ladder reads as -10/-20/-30 through overrides.CurveSigns.
+	spelldata.ParseStatic(&mage.Character, spellData.FrostChanneling.Rank(mage.Talents.FrostChanneling))
 }
 
 // registerIceLance implements the talent gate for Ice Lance (ice_lance.go).

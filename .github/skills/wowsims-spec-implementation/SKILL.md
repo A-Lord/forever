@@ -55,7 +55,7 @@ every one of them was SoD-only.
 ## Implementing
 
 Read the class's generated spell data first - `sim/<class>/spell_data_auto_gen.go` - and take every
-number the game files state from it rather than writing a literal. `docs/spell_data.md` has the shapes,
+number the game files state from it rather than writing a literal. `docs/spell_data/` has the shapes,
 the readers and the worked examples; `wowsims-spells` has the pipeline.
 
 Where the sim and the game files disagree, decide rather than assume, and record the decision at the call
@@ -65,7 +65,7 @@ site. A literal that survives needs the reason on its line.
 
 Gear and auras give one `stats.HitRating`, `stats.CritRating` and `stats.HasteRating`, each reaching
 physical and spell alike; there is no melee- or spell-only rating to write. "Weapon requirements and the
-one rating" in `docs/spell_data.md` has the rule for a talent naming a weapon, the APIs and the
+one rating" in `docs/spell_data/weapon-requirements.md` has the rule for a talent naming a weapon, the APIs and the
 weapon-bound talents already audited for the classes still to port: rogue Precision, Hack and Slash and
 Fist Weapon Specialization, Lethal Shots, shaman Thundering Strikes and the shaman Dual Wield
 Specialization rune.

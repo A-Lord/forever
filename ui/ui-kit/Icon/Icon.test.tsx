@@ -1,9 +1,9 @@
 import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { iconDefinition } from './definitions';
+import { DEFINITIONS, iconDefinition } from './definitions';
 import { Icon } from './Icon';
-import { ICON_NAMES } from './types';
+import type { IconName } from './types';
 
 const el = (c: HTMLElement) => c.querySelector('svg')!;
 
@@ -27,7 +27,7 @@ describe('Icon', () => {
 		expect(iconDefinition('arrow-rotate-left', 'solid').icon[3]).toBe('f0e2');
 	});
 
-	it.each(ICON_NAMES)('renders %s from a definition, canonically named', name => {
+	it.each(Object.keys(DEFINITIONS) as IconName[])('renders %s from a definition, canonically named', name => {
 		const definition = iconDefinition(name, 'solid');
 		expect(definition).toBeDefined();
 		expect(definition.iconName).toBe(name);
@@ -35,7 +35,7 @@ describe('Icon', () => {
 	});
 
 	it('marks the size as data-size', () => {
-		expect(el(render(<Icon name="spinner" size="2xl" spin />).container).dataset.size).toBe('2xl');
+		expect(el(render(<Icon name="spinner" size="2xl" />).container).dataset.size).toBe('2xl');
 		expect(el(render(<Icon name="spinner" />).container).hasAttribute('data-size')).toBe(false);
 	});
 
@@ -45,8 +45,8 @@ describe('Icon', () => {
 	});
 
 	it('keeps a data-testid passed as an attribute when it has no testId', () => {
-		const { getByTestId } = render(<Icon name="gear" data-testid="gem-marker" />);
-		expect(getByTestId('gem-marker').tagName.toLowerCase()).toBe('svg');
+		const { getByTestId } = render(<Icon name="gear" data-testid="gear-marker" />);
+		expect(getByTestId('gear-marker').tagName.toLowerCase()).toBe('svg');
 	});
 
 	it('is hidden from assistive tech unless it carries a title', () => {

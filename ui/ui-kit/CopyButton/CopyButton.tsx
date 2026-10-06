@@ -15,8 +15,6 @@ export interface CopyButtonProps {
 	className?: ClassValue;
 	text?: string;
 	tooltip?: string;
-	/** Fired after the copy is started — the no-clipboard branch included. */
-	onCopied?: () => void;
 	testId?: string;
 }
 
@@ -24,7 +22,7 @@ export interface CopyButtonProps {
  * Parameterises the label, the look and the tooltip; fixes the `copy-button` testid and the copy
  * itself: the check icon and the "copied" label for 1500ms, further clicks ignored inside it.
  */
-export const CopyButton = ({ getContent, variant = null, size, className, text, tooltip, onCopied, testId = 'copy-button' }: CopyButtonProps) => {
+export const CopyButton = ({ getContent, variant = null, size, className, text, tooltip, testId = 'copy-button' }: CopyButtonProps) => {
 	const { copy, copied } = useCopyToClipboard(getContent);
 	const tooltipId = useId();
 
@@ -40,7 +38,6 @@ export const CopyButton = ({ getContent, variant = null, size, className, text, 
 			if (copied) return;
 			copy();
 		}
-		onCopied?.();
 	};
 
 	return (

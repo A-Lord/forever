@@ -23,18 +23,18 @@ import type {
 } from './types';
 
 export const Header = ({ className, testId, children }: TreeItemHeaderProps) => {
-	const { headerProps } = useTreeItem();
+	useTreeItem();
 	return (
-		<div className={clsx('ui-tree-item-header', className)} data-testid={testId ?? 'tree-item-header'} {...headerProps}>
+		<div className={clsx('ui-tree-item-header', className)} data-testid={testId ?? 'tree-item-header'}>
 			{children}
 		</div>
 	);
 };
 
 export const Handle = ({ label, className, testId }: TreeItemHandleProps) => {
-	const { disabled, handleProps } = useTreeItem();
+	const { disabled } = useTreeItem();
 	return (
-		<Button iconOnly className={clsx('ui-tree-item-handle', className)} aria-label={label} disabled={disabled} data-testid={testId} {...handleProps}>
+		<Button iconOnly className={clsx('ui-tree-item-handle', className)} aria-label={label} disabled={disabled} data-testid={testId}>
 			<Icon name="grip-lines" size="sm" />
 		</Button>
 	);

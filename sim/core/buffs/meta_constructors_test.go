@@ -207,7 +207,7 @@ func TestGeneratedRowsBuildTheirShapes(t *testing.T) {
 			},
 			Stacks: statsOnly(map[string]float64{
 				"Strength": 16, "Agility": 16, "Stamina": 16, "Intellect": 16, "Spirit": 16,
-				"Armor": 417, "Health": 160, "ArcaneResistance": 27, "FireResistance": 27,
+				"Armor": 417, "Health": 160, "DodgePercent": 0.8, "ArcaneResistance": 27, "FireResistance": 27,
 				"FrostResistance": 27, "NatureResistance": 27, "ShadowResistance": 27,
 			}),
 		}},

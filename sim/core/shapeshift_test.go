@@ -42,12 +42,6 @@ func TestShapeshiftFormRule(t *testing.T) {
 			refused: []dbcenums.ShapeshiftForm{dbcenums.FORM_DEFENSIVE_STANCE, dbcenums.FORM_BERSERKER_STANCE, 0},
 		},
 		{
-			name:    "Charge by constructor",
-			req:     InForms(dbcenums.FORM_BATTLE_STANCE),
-			allowed: []dbcenums.ShapeshiftForm{dbcenums.FORM_BATTLE_STANCE},
-			refused: []dbcenums.ShapeshiftForm{dbcenums.FORM_DEFENSIVE_STANCE, dbcenums.FORM_BERSERKER_STANCE, 0},
-		},
-		{
 			name: "Heroic Strike",
 			allowed: []dbcenums.ShapeshiftForm{0, dbcenums.FORM_CAT_FORM, dbcenums.FORM_BEAR_FORM, dbcenums.FORM_DIRE_BEAR_FORM,
 				dbcenums.FORM_TREE_FORM, dbcenums.FORM_BATTLE_STANCE, dbcenums.FORM_DEFENSIVE_STANCE, dbcenums.FORM_BERSERKER_STANCE,
@@ -69,44 +63,33 @@ func TestShapeshiftFormRule(t *testing.T) {
 	}
 }
 
-func TestCastRequirementConstructors(t *testing.T) {
-	if InForms(dbcenums.FORM_BATTLE_STANCE) != chargeRequirement {
-		t.Errorf("InForms(Battle Stance) = %+v, want %+v", InForms(dbcenums.FORM_BATTLE_STANCE), chargeRequirement)
-	}
-	wrath := InForms(dbcenums.FORM_MOONKIN_FORM).Excluding(dbcenums.FORM_TREE_FORM).OrCasterForm()
-	wrath.NotShapeshifted = true
-	if wrath != wrathRequirement {
-		t.Errorf("Wrath by constructors = %+v, want %+v", wrath, wrathRequirement)
-	}
-}
-
 func TestCastRequirementAutoUnshift(t *testing.T) {
 	unit := &Unit{ShapeshiftForm: dbcenums.FORM_CAT_FORM}
 	spell := &Spell{Unit: unit, CastRequirement: wrathRequirement}
 
-	if reason, _ := spell.castRequirementFailure(nil); reason != "wrong form" {
+	if reason, _ := spell.castRequirementFailure(nil, nil); reason != "wrong form" {
 		t.Errorf("Wrath in Cat Form without AutoUnshift: %q, want \"wrong form\"", reason)
 	}
 
 	unit.AutoUnshift = func(*Simulation) {}
-	if reason, unshift := spell.castRequirementFailure(nil); reason != "" || !unshift {
+	if reason, unshift := spell.castRequirementFailure(nil, nil); reason != "" || !unshift {
 		t.Errorf("Wrath in Cat Form with AutoUnshift: (%q, %v), want (\"\", true)", reason, unshift)
 	}
 
 	unit.ShapeshiftForm = dbcenums.FORM_TREE_FORM
-	if reason, unshift := spell.castRequirementFailure(nil); reason != "" || !unshift {
+	if reason, unshift := spell.castRequirementFailure(nil, nil); reason != "" || !unshift {
 		t.Errorf("Wrath in Tree of Life with AutoUnshift: (%q, %v), want (\"\", true)", reason, unshift)
 	}
 
 	unit.ShapeshiftForm = dbcenums.FORM_MOONKIN_FORM
 	spell.CastRequirement = regrowthRequirement
-	if reason, unshift := spell.castRequirementFailure(nil); reason != "" || !unshift {
+	if reason, unshift := spell.castRequirementFailure(nil, nil); reason != "" || !unshift {
 		t.Errorf("Regrowth in Moonkin Form with AutoUnshift: (%q, %v), want (\"\", true)", reason, unshift)
 	}
 
 	unit.ShapeshiftForm = dbcenums.FORM_DEFENSIVE_STANCE
 	spell.CastRequirement = chargeRequirement
-	if reason, _ := spell.castRequirementFailure(nil); reason != "wrong form" {
+	if reason, _ := spell.castRequirementFailure(nil, nil); reason != "wrong form" {
 		t.Errorf("Charge in Defensive Stance: %q, want \"wrong form\"", reason)
 	}
 }
@@ -117,18 +100,18 @@ func TestCastRequirementCasterAura(t *testing.T) {
 	catFormSpell := &Spell{Unit: unit, CastRequirement: CastRequirement{CasterAura: 768}}
 	catFormSpell.resolveCasterAuras()
 
-	if reason, _ := catFormSpell.castRequirementFailure(nil); reason != "missing caster aura" {
+	if reason, _ := catFormSpell.castRequirementFailure(nil, nil); reason != "missing caster aura" {
 		t.Errorf("Cat Form spell without Cat Form: %q, want \"missing caster aura\"", reason)
 	}
 
 	catForm.active = true
-	if reason, _ := catFormSpell.castRequirementFailure(nil); reason != "" {
+	if reason, _ := catFormSpell.castRequirementFailure(nil, nil); reason != "" {
 		t.Errorf("Cat Form spell in Cat Form: %q, want castable", reason)
 	}
 
 	notInCat := &Spell{Unit: unit, CastRequirement: CastRequirement{ExcludeCasterAura: 768}}
 	notInCat.resolveCasterAuras()
-	if reason, _ := notInCat.castRequirementFailure(nil); reason != "excluded caster aura" {
+	if reason, _ := notInCat.castRequirementFailure(nil, nil); reason != "excluded caster aura" {
 		t.Errorf("a spell excluding Cat Form while in it: %q, want \"excluded caster aura\"", reason)
 	}
 }
@@ -174,7 +157,7 @@ func TestCastRequirementEquipment(t *testing.T) {
 		{"no requirement on a unit that is not a player", CastRequirement{}, nil, true},
 	} {
 		spell := &Spell{Unit: &Unit{}, CastRequirement: c.req, equipment: c.equipment}
-		reason, _ := spell.castRequirementFailure(nil)
+		reason, _ := spell.castRequirementFailure(nil, nil)
 		if got := reason == ""; got != c.want {
 			t.Errorf("%s: castable = %v (%q), want %v", c.name, got, reason, c.want)
 		} else if !got && reason != "missing equipped item" {
@@ -185,7 +168,7 @@ func TestCastRequirementEquipment(t *testing.T) {
 	equipment := gear(twoHandedAxe, Item{}, Item{})
 	spell := &Spell{Unit: &Unit{}, CastRequirement: spearingStrike, equipment: equipment}
 	equipment[proto.ItemSlot_ItemSlotMainHand] = oneHandedAxe
-	if reason, _ := spell.castRequirementFailure(nil); reason != "missing equipped item" {
+	if reason, _ := spell.castRequirementFailure(nil, nil); reason != "missing equipped item" {
 		t.Errorf("Spearing Strike after swapping to a one-handed axe: %q, want \"missing equipped item\"", reason)
 	}
 }
@@ -196,11 +179,11 @@ func TestCastRequirementNotInCombat(t *testing.T) {
 	charge := &Spell{Unit: &Unit{}, CastRequirement: CastRequirement{NotInCombat: true}}
 
 	sim.CurrentTime = -time.Second
-	if reason, _ := charge.castRequirementFailure(sim); reason != "" {
+	if reason, _ := charge.castRequirementFailure(sim, nil); reason != "" {
 		t.Errorf("Charge before the encounter: %q, want castable", reason)
 	}
 	sim.CurrentTime = 0
-	if reason, _ := charge.castRequirementFailure(sim); reason != "in combat" {
+	if reason, _ := charge.castRequirementFailure(sim, nil); reason != "in combat" {
 		t.Errorf("Charge at the encounter's start: %q, want \"in combat\"", reason)
 	}
 }

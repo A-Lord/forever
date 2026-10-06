@@ -1,5 +1,5 @@
-import type { FakeHostParts } from '@sim/testing';
 import { renderWithHost } from '@testing/react';
+import type { FakeHostParts } from '@testing/sim/fake_host';
 import { act } from '@testing-library/react';
 import type { ReactElement } from 'react';
 
@@ -9,7 +9,7 @@ import type { ReactElement } from 'react';
  *
  * ```ts
  * vi.mock('@sim/state/subscriptions', async () =>
- * 	(await import('@sim/testing')).mockSubscriptions((await import('@testing/saved_panel')).source.subscribe),
+ * 	(await import('@testing/sim/subscriptions')).mockSubscriptions((await import('@testing/saved_panel')).source.subscribe),
  * );
  * ```
  */

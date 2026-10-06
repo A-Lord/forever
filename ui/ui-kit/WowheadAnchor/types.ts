@@ -8,8 +8,8 @@ export interface WowheadAnchorProps extends Omit<AnchorHTMLAttributes<HTMLAnchor
 	navigate?: boolean;
 	/**
 	 * Cancels the click's navigation, then acts. It runs before `onClick`, which still receives the click. The anchor carries
-	 * `data-disable-wowhead-touch-tooltip`, so a tap acts rather than opening wowhead's touch tooltip. Without an `href` it is a focusable
-	 * `role="button"` that Enter and Space activate.
+	 * `data-disable-wowhead-touch-tooltip`, so a tap acts rather than opening wowhead's touch tooltip. Space activates it, linked or not;
+	 * without an `href` it is a focusable `role="button"` that Enter activates too.
 	 */
 	onActivate?: (event: MouseEvent<HTMLAnchorElement>) => void;
 	/** Marks the anchor `aria-disabled`, keeps an acting anchor out of the tab order, and never calls `onActivate`. An anchor that acts or has `navigate={false}` still cancels the click; a plain link still navigates. */

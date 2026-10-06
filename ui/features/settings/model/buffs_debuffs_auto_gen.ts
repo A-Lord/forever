@@ -160,12 +160,6 @@ export const GiftOfTheWild = makeBooleanRaidBuffInput({
 	label: 'Gift of the Wild',
 });
 
-export const Thorns = makeBooleanRaidBuffInput({
-	actionId: ActionId.fromSpellId(9910),
-	fieldName: 'thorns',
-	label: 'Thorns',
-});
-
 export const PrayerOfFortitude = makeBooleanRaidBuffInput({
 	actionId: ActionId.fromSpellId(21564),
 	fieldName: 'prayerOfFortitude',
@@ -254,6 +248,12 @@ export const PowerInfusions = makeMultistateIndividualBuffInput({
 	numStates: 11,
 	fieldName: 'powerInfusions',
 	label: 'Power Infusions',
+});
+
+export const Thorns = makeBooleanIndividualBuffInput({
+	actionId: ActionId.fromSpellId(9910),
+	fieldName: 'thorns',
+	label: 'Thorns',
 });
 
 export const HuntersMark = makeBooleanDebuffInput({
@@ -402,11 +402,6 @@ export const GENERATED_RAID_BUFFS_CONFIG: RenderableStatOptions[] = [
 	{
 		config: GiftOfTheWild,
 		stats: [Stat.StatArmor, Stat.StatStrength, Stat.StatAgility, Stat.StatIntellect, Stat.StatSpirit, Stat.StatStamina],
-		ownerClass: Class.ClassDruid,
-	},
-	{
-		config: Thorns,
-		stats: [Stat.StatDefenseRating, Stat.StatStamina],
 		ownerClass: Class.ClassDruid,
 	},
 	{
@@ -580,12 +575,17 @@ export const GENERATED_INDIVIDUAL_BUFFS_CONFIG: RenderableStatOptions[] = [
 		stats: [Stat.StatSpellDamage, Stat.StatHealingPower],
 		ownerClass: Class.ClassPriest,
 	},
+	{
+		config: Thorns,
+		stats: [Stat.StatDefenseRating, Stat.StatStamina],
+		ownerClass: Class.ClassDruid,
+	},
 ];
 
 export const GENERATED_DEBUFFS_CONFIG: RenderableStatOptions[] = [
 	{
 		config: HuntersMark,
-		stats: [Stat.StatRangedAttackPower, Stat.StatAttackPower],
+		stats: [Stat.StatRangedAttackPower],
 		ownerClass: Class.ClassHunter,
 	},
 	{
