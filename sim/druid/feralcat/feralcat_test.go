@@ -453,6 +453,42 @@ func TestMaintainFaerieFireUsesSharedDebuffRefresh(t *testing.T) {
 	}
 }
 
+func TestRevelationIgnoresZeroDamageFaerieFire(t *testing.T) {
+	// Given a Cat wearing Revelation and a fixed seed.
+	items := make([]*proto.ItemSpec, proto.ItemSlot_ItemSlotRanged+1)
+	for i := range items {
+		items[i] = &proto.ItemSpec{}
+	}
+	items[proto.ItemSlot_ItemSlotMainHand] = &proto.ItemSpec{Id: 866, Enchant: 8217}
+	sim := core.NewSim(&proto.RaidSimRequest{
+		SimOptions: &proto.SimOptions{RandomSeed: 1, Iterations: 1},
+		Raid: &proto.Raid{Parties: []*proto.Party{{Players: []*proto.Player{{
+			Name: "Cat", Class: proto.Class_ClassDruid, Race: proto.Race_RaceNightElf,
+			Spec:      &proto.Player_FeralCatDruid{FeralCatDruid: &proto.FeralCatDruid{Options: &proto.FeralCatDruid_Options{}}},
+			Equipment: &proto.EquipmentSpec{Items: items}, Buffs: &proto.IndividualBuffs{}, Rotation: &proto.APLRotation{},
+		}}, Buffs: &proto.PartyBuffs{}}}},
+		Encounter: &proto.Encounter{Targets: []*proto.Target{{Name: "target", Level: 60}}, Duration: 60},
+	}, simsignals.CreateSignals())
+	sim.Reset()
+	cat := sim.Raid.Parties[0].Players[0].(*FeralDruid)
+	buff := cat.GetAuraByID(core.ActionID{SpellID: 1323400})
+	if buff == nil {
+		t.Fatal("Revelation buff is not registered")
+	}
+
+	// When zero-damage Faerie Fire applications are delivered through the real proc listener.
+	for casts := 0; casts < 300 && !buff.IsActive(); casts++ {
+		cat.FaerieFire.SkipCastAndApplyEffects(sim, cat.CurrentTarget)
+		sim.Step()
+	}
+
+	// Then no Revelation charge is granted.
+	t.Logf("zero-damage Faerie Fire activated Revelation=%v at %v", buff.IsActive(), sim.CurrentTime)
+	if buff.IsActive() {
+		t.Fatal("zero-damage Faerie Fire activated Revelation")
+	}
+}
+
 func TestRaidDefaultRunsSelectedCatRotation(t *testing.T) {
 	player := runCat(t, buildRequest(t, "raid"))
 	for _, id := range []int32{1322605, 9830, 9896, 417141} {
