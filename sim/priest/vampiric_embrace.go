@@ -10,7 +10,7 @@ func (priest *Priest) registerVampiricEmbrace(_ int32, rank *spelldata.Spell) {
 	healthMetrics := priest.NewHealthMetrics(core.ActionID{SpellID: rank.ID})
 
 	veAuras := priest.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-		return target.RegisterAura(spelldata.AuraConfig(rank, spelldata.Label(rank.Name+" - "+priest.Label)))
+		return target.RegisterAura(spelldata.AuraConfig(rank, spelldata.RankLabel(rank, &priest.Unit)))
 	})
 
 	priest.MakeProcTriggerAura(core.ProcTrigger{

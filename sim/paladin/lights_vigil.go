@@ -1,8 +1,6 @@
 package paladin
 
 import (
-	"fmt"
-
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
@@ -56,7 +54,7 @@ func (paladin *Paladin) registerLightsVigilRank(_ int32, rank *spelldata.Spell) 
 
 	vigil.auras = paladin.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
 		return target.GetOrRegisterAura(core.Aura{
-			Label:    fmt.Sprintf("Light's Vigil%s Rank %d", paladin.Label, rank.RankNumber()),
+			Label:    rank.RankedLabel(&paladin.Unit),
 			ActionID: core.ActionID{SpellID: auraRank.ID},
 			Duration: auraRank.Duration(),
 		})

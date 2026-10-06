@@ -22,7 +22,7 @@ func (priest *Priest) registerPenance(_ int32, rank *spelldata.Spell) {
 
 	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))
 
-	config.Dot = spelldata.DotConfig(channel, channel.PeriodicEffect(), spelldata.RankLabel(rank))
+	config.Dot = spelldata.DotConfig(channel, channel.PeriodicEffect(), spelldata.RankLabel(rank, &priest.Unit))
 	config.Dot.Aura.ActionID = config.ActionID
 	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, _ *core.Dot) {
 		boltSpell.Cast(sim, target)

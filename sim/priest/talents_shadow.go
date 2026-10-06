@@ -142,9 +142,7 @@ func (priest *Priest) applyShadowWeaving() {
 
 	debuff := spellData.ShadowWeavingTriggered.Highest()
 	swAuras := priest.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-		auraConfig := spelldata.AuraConfig(debuff)
-		auraConfig.Label += " - " + priest.Label
-		aura := target.GetOrRegisterAura(auraConfig)
+		aura := target.GetOrRegisterAura(spelldata.AuraConfig(debuff, spelldata.RankLabel(debuff, &priest.Unit)))
 		spelldata.ParseEffects(nil, aura, debuff, spelldata.FromCaster(&priest.Unit, 0, 1))
 		return aura
 	})

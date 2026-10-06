@@ -70,7 +70,7 @@ func (paladin *Paladin) registerSealOfLight(_ int32, rank *spelldata.Spell) {
 	})
 
 	aura := paladin.makeSealExclusive(paladin.MakeProcTriggerAura(core.ProcTrigger{
-		Name:            sealLabel("Seal of Light", paladin, rank),
+		Name:            rank.RankedLabel(&paladin.Unit),
 		ActionID:        core.ActionID{SpellID: rank.ID},
 		MetricsActionID: core.ActionID{SpellID: rank.ID},
 		Duration:        sealDuration,

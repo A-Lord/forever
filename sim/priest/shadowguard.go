@@ -19,7 +19,7 @@ func (priest *Priest) registerShadowguard(_ int32, rank *spelldata.Spell) {
 	}
 	strike := priest.RegisterSpell(strikeConfig)
 
-	aura := priest.RegisterAura(spelldata.AuraConfig(rank, spelldata.RankLabel(rank)))
+	aura := priest.RegisterAura(spelldata.AuraConfig(rank, spelldata.RankLabel(rank, &priest.Unit)))
 	aura.NewExclusiveEffect(rank.Name, true, core.ExclusiveEffect{})
 	aura.AttachProcTrigger(spelldata.ProcTrigger(&priest.Character, rank,
 		func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) {

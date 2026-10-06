@@ -261,6 +261,11 @@ func (s *Spell) RankedName() string {
 	return s.Name + " " + s.Rank
 }
 
+// The ranked name with the caster's label, "Holy Fire Rank 8 - Priest (#1)".
+func (s *Spell) RankedLabel(owner *core.Unit) string {
+	return s.RankedName() + " - " + owner.Label
+}
+
 // The spells the tooltip names, in the order it names them. An id the store does not carry is left
 // out rather than answered as Nil.
 func (s *Spell) Refs() []*Spell {

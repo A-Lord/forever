@@ -10,10 +10,9 @@ func (priest *Priest) registerTouchOfWeakness(_ int32, rank *spelldata.Spell) {
 	// weakens the attacker.
 	strikeRank := rank.Refs()[0]
 	strikeDamage := strikeRank.DamageEffect()
-	label := rank.RankedName()
 
 	weakened := priest.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-		aura := target.RegisterAura(spelldata.AuraConfig(strikeRank, spelldata.Label(label+" - "+priest.Label)))
+		aura := target.RegisterAura(spelldata.AuraConfig(strikeRank, spelldata.RankLabel(rank, &priest.Unit)))
 		spelldata.ParseEffects(nil, aura, strikeRank, spelldata.Level(priest.Level))
 		return aura
 	})
@@ -29,7 +28,7 @@ func (priest *Priest) registerTouchOfWeakness(_ int32, rank *spelldata.Spell) {
 	strikeConfig.RelatedAuraArrays = weakened.ToMap()
 	strike := priest.RegisterSpell(strikeConfig)
 
-	aura := priest.RegisterAura(spelldata.AuraConfig(rank, spelldata.Label(label)))
+	aura := priest.RegisterAura(spelldata.AuraConfig(rank, spelldata.RankLabel(rank, &priest.Unit)))
 	aura.NewExclusiveEffect(rank.Name, true, core.ExclusiveEffect{})
 	aura.AttachProcTrigger(spelldata.ProcTrigger(&priest.Character, rank,
 		func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) {

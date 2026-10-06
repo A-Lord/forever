@@ -15,7 +15,7 @@ func (priest *Priest) registerDarkSacrifice(_ int32, rank *spelldata.Spell) {
 
 	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Flags(core.SpellFlagAPL))
 
-	config.Hot = spelldata.DotConfig(rank, manaTick, spelldata.RankLabel(rank))
+	config.Hot = spelldata.DotConfig(rank, manaTick, spelldata.RankLabel(rank, &priest.Unit))
 	config.Hot.SelfOnly = true
 	ticks := float64(config.Hot.NumberOfTicks)
 	rowMana := manaPerTick * ticks

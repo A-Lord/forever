@@ -1,8 +1,6 @@
 package paladin
 
 import (
-	"fmt"
-
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/spelldata"
@@ -46,7 +44,7 @@ func (paladin *Paladin) registerHolyShield(_ int32, rank *spelldata.Spell) {
 
 	var holyShieldAura *core.Aura
 	holyShieldAura = paladin.RegisterAura(core.Aura{
-		Label:     fmt.Sprintf("Holy Shield%s Rank %d", paladin.Label, rank.RankNumber()),
+		Label:     rank.RankedLabel(&paladin.Unit),
 		ActionID:  actionID,
 		Duration:  rank.Duration(),
 		MaxStacks: charges,

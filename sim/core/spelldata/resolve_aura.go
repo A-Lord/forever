@@ -47,9 +47,10 @@ func Label(label string) AuraOpt {
 }
 
 // Ranks of one spell registered side by side need an aura each: ranks that share the spell's name share
-// one aura on the unit, and a cast of one rank then runs every rank's callbacks.
-func RankLabel(s *Spell) AuraOpt {
-	return Label(s.RankedName())
+// one aura on the unit, and a cast of one rank then runs every rank's callbacks. The owner's label keeps
+// two casters' debuffs on one target apart.
+func RankLabel(s *Spell, owner *core.Unit) AuraOpt {
+	return Label(s.RankedLabel(owner))
 }
 
 // An aura that is up for the whole iteration, whatever duration the row states.
