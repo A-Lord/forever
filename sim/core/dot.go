@@ -63,6 +63,7 @@ type Dot struct {
 	hasteReducesDuration bool // does not gain additional ticks after a haste threshold, HasteAffectsDuration in dbc
 	isChanneled          bool
 	autorepeat           bool
+	paidMana             bool // The channel paid mana when it started.
 	firstTickAt          func(sim *Simulation, dot *Dot) time.Duration // When the first tick of the dot applied now lands; nil is one tick period from now.
 }
 
@@ -399,6 +400,11 @@ func newDot(config Dot) *Dot {
 		sim.AddPendingAction(dot.tickAction)
 		if dot.isChanneled {
 			dot.Spell.Unit.ChanneledDot = dot
+			dot.paidMana = false
+			if cost := dot.Spell.Cost; cost != nil {
+				_, isMana := cost.ResourceCostImpl.(*ManaCost)
+				dot.paidMana = isMana && dot.Spell.CurCast.Cost > 0
+			}
 		}
 	})
 	dot.ApplyOnExpire(func(aura *Aura, sim *Simulation) {

@@ -237,11 +237,11 @@ func (mb *manaBar) creditManaRegen(sim *Simulation) {
 	if !unit.channelPaidMana() {
 		castingUntil = max(from, min(unit.PseudoStats.FiveSecondRuleRefreshTime, sim.CurrentTime))
 	}
-	if castingUntil > from {
-		unit.AddMana(sim, max(0, unit.manaRegenWhileCasting*(castingUntil-from).Seconds()), unit.manaCastingMetrics)
+	if amount := unit.manaRegenWhileCasting * (castingUntil - from).Seconds(); castingUntil > from && amount > 0 {
+		unit.AddMana(sim, amount, unit.manaCastingMetrics)
 	}
-	if sim.CurrentTime > castingUntil {
-		unit.AddMana(sim, max(0, unit.manaRegenWhileNotCasting*(sim.CurrentTime-castingUntil).Seconds()), unit.manaNotCastingMetrics)
+	if amount := unit.manaRegenWhileNotCasting * (sim.CurrentTime - castingUntil).Seconds(); sim.CurrentTime > castingUntil && amount > 0 {
+		unit.AddMana(sim, amount, unit.manaNotCastingMetrics)
 	}
 }
 
@@ -269,12 +269,7 @@ func (mb *manaBar) enable(sim *Simulation, agent Agent) {
 // Whether the unit is channeling a spell it paid mana for. The five seconds count from the channel's
 // start, but regen stays at the casting rate until the channel ends, however it ends.
 func (unit *Unit) channelPaidMana() bool {
-	dot := unit.ChanneledDot
-	if dot == nil || dot.Spell.Cost == nil {
-		return false
-	}
-	_, isMana := dot.Spell.Cost.ResourceCostImpl.(*ManaCost)
-	return isMana && dot.Spell.CurCast.Cost > 0
+	return unit.ChanneledDot != nil && unit.ChanneledDot.paidMana
 }
 
 // Returns how long the unit waits for its regen to reach desiredMana, up to the tick that credits it,
@@ -330,7 +325,6 @@ func (mb *manaBar) reset() {
 		return
 	}
 
-	mb.agent = nil
 	mb.currentMana = mb.unit.MaxMana()
 
 	mb.manaRegenMultiplier = 1.0

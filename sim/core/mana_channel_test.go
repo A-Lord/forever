@@ -214,3 +214,13 @@ func TestMP5AccruesInsideTheFiveSecondRule(t *testing.T) {
 	}
 	ct.wantManaAt(t, checks...)
 }
+
+// A mana bar reset mid-fight, as when a pet is summoned again, keeps ticking and regenerates from there.
+func TestManaBarResetMidFightKeepsTicking(t *testing.T) {
+	ct := newManaTickTest(func(char *Character) *Spell { return char.RegisterSpell(manaChannelConfig(5, false)) })
+	ct.start()
+	ct.runUntil(time.Second)
+	ct.fw.manaBar.reset()
+	ct.fw.currentMana = 1000
+	ct.wantManaAt(t, manaAt{3 * time.Second, 1000 + 10*2})
+}
