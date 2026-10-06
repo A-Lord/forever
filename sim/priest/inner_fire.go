@@ -7,7 +7,7 @@ import (
 )
 
 func (priest *Priest) registerInnerFire(_ int32, rank *spelldata.Spell) {
-	auraConfig := spelldata.AuraConfig(rank, spelldata.Label(rank.Name+" "+rank.Rank))
+	auraConfig := spelldata.AuraConfig(rank, spelldata.RankLabel(rank))
 	if rank == spellData.InnerFire.Highest() && priest.SelfBuffs.Armor == proto.PriestOptions_InnerFire {
 		auraConfig.OnReset = func(aura *core.Aura, sim *core.Simulation) {
 			aura.Activate(sim)

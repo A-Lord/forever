@@ -252,6 +252,15 @@ func (s *Spell) RankNumber() int32 {
 	return rankOf(s)
 }
 
+// The name with its "Rank N" subtext, "Holy Fire Rank 8"; a spell the game files show no rank on keeps
+// its name.
+func (s *Spell) RankedName() string {
+	if s.RankNumber() == 0 {
+		return s.Name
+	}
+	return s.Name + " " + s.Rank
+}
+
 // The spells the tooltip names, in the order it names them. An id the store does not carry is left
 // out rather than answered as Nil.
 func (s *Spell) Refs() []*Spell {

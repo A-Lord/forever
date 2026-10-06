@@ -16,7 +16,7 @@ func (priest *Priest) registerHolyFireSpell(_ int32, rank *spelldata.Spell) {
 	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))
 	config.ClassSpellMask = PriestSpellHolyFire
 
-	config.Dot = spelldata.DotConfig(rank, holyFireTick, spelldata.Label(rank.Name+" "+rank.Rank))
+	config.Dot = spelldata.DotConfig(rank, holyFireTick, spelldata.RankLabel(rank))
 	config.Dot.OnTick = spelldata.PeriodicDamageTick(holyFireTick, rank.TickOutcomeHitRolled)
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {

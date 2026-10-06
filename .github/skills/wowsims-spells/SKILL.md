@@ -70,7 +70,7 @@ func ItemProcUnsupportedWithRate(trigger *Spell, isWeaponProc bool, itemPPM floa
 ```
 
 - `SpellOpt`: `Melee(mask)`, `Magic(mask)`, `Proc()`, `Flags(f)`, `Tag(n)`.
-- `AuraOpt`: `Label(name)`, `Permanent()`.
+- `AuraOpt`: `Label(name)`, `RankLabel(rank)`, `Permanent()`.
 - `ParseOpt`: `Effects(...)`, `SkipEffects(...)`, `Conditional(fn)`, `IgnoreStacks()`, `FromCaster(unit, i, total)`.
 - `ProcOpt`: `PPM(n)`, `Chance(f)`, `ChanceFrom(effect)`.
 

@@ -10,7 +10,7 @@ func (priest *Priest) registerHexOfWeakness(_ int32, rank *spelldata.Spell) {
 	// The attack power reduction bids in the raid's Hex of Weakness category, so only the strongest
 	// of it and Demoralizing Shout counts; the healing reduction bids on its own.
 	auras := priest.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-		aura := target.RegisterAura(spelldata.AuraConfig(rank, spelldata.Label(rank.Name+" "+rank.Rank+" - "+priest.Label)))
+		aura := target.RegisterAura(spelldata.AuraConfig(rank, spelldata.Label(rank.RankedName()+" - "+priest.Label)))
 		spelldata.ParseEffects(nil, aura, rank, spelldata.Level(priest.Level),
 			spelldata.Exclusive(buffs.HexOfWeaknessCategory, false))
 		return aura

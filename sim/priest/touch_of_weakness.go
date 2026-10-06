@@ -10,7 +10,7 @@ func (priest *Priest) registerTouchOfWeakness(_ int32, rank *spelldata.Spell) {
 	// weakens the attacker.
 	strikeRank := rank.Refs()[0]
 	strikeDamage := strikeRank.DamageEffect()
-	label := rank.Name + " " + rank.Rank
+	label := rank.RankedName()
 
 	weakened := priest.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
 		aura := target.RegisterAura(spelldata.AuraConfig(strikeRank, spelldata.Label(label+" - "+priest.Label)))
