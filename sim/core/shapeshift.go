@@ -5,8 +5,8 @@ import (
 	"github.com/wowsims/forever/sim/core/proto"
 )
 
-// What the game files require of the caster's form, auras and equipment, and of the target's creature
-// type.
+// What the game files require of the caster's form, auras and equipment, of the target's creature
+// type, and of the ranks of the periodic the cast applies.
 type CastRequirement struct {
 	Forms, ExcludedForms          uint64           // SpellShapeshift masks, bit form-1
 	CasterForm                    bool             // castable with no form even though Forms names some
@@ -16,6 +16,7 @@ type CastRequirement struct {
 	Shield                        bool             // SpellEquippedItems of armor naming the shield subclass: the off hand holds a shield
 	NotInCombat                   bool             // castable only before the encounter starts
 	TargetMobTypes                uint32           // mob types the target must be one of, bit 1 << proto.MobType; zero allows any
+	NotUnderHigherRank            bool             // a ranked row whose only effect besides a dummy or script effect is the periodic: refused while a higher rank of its dot (DotConfig.RankGroup) from the caster is up on the unit
 }
 
 func (r CastRequirement) allowsForm(form dbcenums.ShapeshiftForm) bool {
@@ -113,7 +114,7 @@ func (spell *Spell) castRequirementFailure(sim *Simulation, target *Unit) (reaso
 	if r.TargetMobTypes != 0 && target != nil && r.TargetMobTypes&(1<<target.MobType) == 0 {
 		return "wrong target creature type", false
 	}
-	if target != nil && spell.higherRankBlocksCast(target) {
+	if r.NotUnderHigherRank && target != nil && spell.higherRankBlocksCast(target) {
 		return "a more powerful spell is active", false
 	}
 	return "", unshift
