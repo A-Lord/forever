@@ -98,6 +98,7 @@ const AUTO_TYPES: EnumTable = {
 		{ value: APLValueAutoAttackType.MainHandAuto, label: i18n.t('slots.main_hand', { ns: 'character' }) },
 		{ value: APLValueAutoAttackType.OffHandAuto, label: i18n.t('slots.off_hand', { ns: 'character' }) },
 		{ value: APLValueAutoAttackType.RangedAuto, label: i18n.t('slots.ranged', { ns: 'character' }) },
+		{ value: APLValueAutoAttackType.WandAuto, label: i18n.t('rotation_tab.apl.values.wand') },
 	],
 };
 
@@ -107,6 +108,7 @@ const AUTO_SWING_TYPES: EnumTable = {
 		{ value: AutoSwingType.MainHand, label: i18n.t('slots.main_hand', { ns: 'character' }) },
 		{ value: AutoSwingType.OffHand, label: i18n.t('slots.off_hand', { ns: 'character' }) },
 		{ value: AutoSwingType.Ranged, label: i18n.t('slots.ranged', { ns: 'character' }) },
+		{ value: AutoSwingType.Wand, label: i18n.t('rotation_tab.apl.values.wand') },
 	],
 };
 

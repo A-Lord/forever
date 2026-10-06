@@ -5235,6 +5235,22 @@
 									"additionalProperties": false,
 									"required": ["label", "tooltip"]
 								},
+								"wand": {
+									"type": "string"
+								},
+								"is_wanding": {
+									"type": "object",
+									"properties": {
+										"label": {
+											"type": "string"
+										},
+										"tooltip": {
+											"type": "string"
+										}
+									},
+									"additionalProperties": false,
+									"required": ["label", "tooltip"]
+								},
 								"spell_known": {
 									"type": "object",
 									"properties": {
@@ -6085,6 +6101,8 @@
 								"auto_swing_time",
 								"time_to_next_auto",
 								"time_since_last_auto",
+								"wand",
+								"is_wanding",
 								"spell_known",
 								"current_cost",
 								"can_cast",

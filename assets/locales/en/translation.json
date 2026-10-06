@@ -1503,6 +1503,11 @@
 					"label": "Time Since Last Auto",
 					"tooltip": "Amount of time since the last Main-hand, Off-hand or Ranged attack, or <b>0</b> if autoattacks are not engaged."
 				},
+				"wand": "Wand",
+				"is_wanding": {
+					"label": "Is Wanding",
+					"tooltip": "True while Shoot is channeling: the wand fires once per wand speed until another action takes a shot's slot."
+				},
 				"spell_known": {
 					"label": "Spell Known",
 					"tooltip": "<b>True</b> if the spell is currently known, otherwise <b>False</b>."
