@@ -1,9 +1,7 @@
 import { enchantPresetPool } from '@features/enchant-presets/model/enchant_presets';
 import { BulkSettings, ProgressMetrics } from '@generated/proto/api';
-import { EquipmentSpec } from '@generated/proto/common';
 import i18n from '@i18n/config';
-import { BulkCandidateBuildProgress, BulkResults, BulkSimProgressConfig, TopGearResult } from '@sim/bulk/types';
-import { dedupeGearSets } from '@sim/bulk/utils';
+import { BulkResults, BulkSimProgressConfig, TopGearResult } from '@sim/bulk/types';
 import type { Player } from '@sim/player/player';
 import { getGearIdentityKey } from '@sim/proto/items';
 import { bulkState, patchBulkState } from '@sim/settings/bulk_settings';
@@ -32,7 +30,6 @@ interface BulkRun {
 	abortController: AbortController | null;
 	abortPromise: Promise<void> | null;
 	combinationsRequestVersion: number;
-	candidateBuildStartedAt: number | undefined;
 	progress: BulkProgress | null;
 	listeners: Set<(progress: BulkProgress) => void>;
 }
@@ -48,7 +45,6 @@ const runOf = (player: Player<any>): BulkRun => {
 			abortController: null,
 			abortPromise: null,
 			combinationsRequestVersion: 0,
-			candidateBuildStartedAt: undefined,
 			progress: null,
 			listeners: new Set(),
 		};
@@ -74,11 +70,8 @@ const emitProgress = (player: Player<any>, next: BulkProgress | null) => {
 	for (const listener of run.listeners) listener(next);
 };
 
-const setCandidateGearProgress = (
-	player: Player<any>,
-	input: { completed?: number; total?: number; title?: string; stage?: string; startedAt?: number } = {},
-) => {
-	emitProgress(player, candidateGearProgress({ ...input, now: new Date().getTime() }));
+const setCandidateGearProgress = (player: Player<any>) => {
+	emitProgress(player, candidateGearProgress({ now: new Date().getTime() }));
 };
 
 const setSimProgress = (player: Player<any>, metrics: ProgressMetrics, config: BulkSimProgressConfig) => {
@@ -136,22 +129,7 @@ const runWithBulkAbort = async <T>(player: Player<any>, promise: Promise<T>, sig
 	}
 };
 
-const setCandidateBuildProgress = (player: Player<any>, buildProgress: BulkCandidateBuildProgress) => {
-	const run = runOf(player);
-	run.candidateBuildStartedAt ??= new Date().getTime();
-	setCandidateGearProgress(player, {
-		completed: buildProgress.processedCandidates,
-		total: buildProgress.totalCandidates,
-		startedAt: run.candidateBuildStartedAt,
-	});
-};
-
-const runCoreBulkSim = async (
-	host: IndividualSimHost<any>,
-	gearSets: EquipmentSpec[],
-	signal: AbortSignal,
-	bulkSettings: BulkSettings,
-): Promise<CoreBulkSimResult> => {
+const runCoreBulkSim = async (host: IndividualSimHost<any>, signal: AbortSignal, bulkSettings: BulkSettings): Promise<CoreBulkSimResult> => {
 	const { player } = host;
 	return runCoreBulkSimImpl(
 		{
@@ -159,10 +137,8 @@ const runCoreBulkSim = async (
 			throwIfBulkAborted: abortSignal => throwIfBulkAborted(player, abortSignal),
 			runWithBulkAbort: (promise, abortSignal) => runWithBulkAbort(player, promise, abortSignal),
 			setSimProgress: (metrics, config) => setSimProgress(player, metrics, config),
-			setCandidateBuildProgress: buildProgress => setCandidateBuildProgress(player, buildProgress),
 			debugOptimisationRound: (message, data) => console.debug(`[bulk-core] ${message}`, data ?? ''),
 		},
-		gearSets,
 		signal,
 		bulkSettings,
 	);
@@ -216,7 +192,6 @@ export const runBulkBatch = async (host: IndividualSimHost<any>) => {
 	});
 
 	run.isCancelling = false;
-	run.candidateBuildStartedAt = undefined;
 	run.progress = null;
 	patchBulkState(player, { isRunning: true, started: true });
 	run.abortController = new AbortController();
@@ -224,9 +199,7 @@ export const runBulkBatch = async (host: IndividualSimHost<any>) => {
 	const abortSignal = run.abortController.signal;
 
 	await sim.waitForInit();
-	const useNativeBulkSim = sim.isNative ?? false;
 	const bulkSettings = bulkRequestSettings(player);
-	let candidateGearSets: EquipmentSpec[] = [];
 	let results: BulkResults | null = null;
 	let runError: unknown = null;
 
@@ -240,20 +213,9 @@ export const runBulkBatch = async (host: IndividualSimHost<any>) => {
 
 		await refreshBulkCombinations(host);
 
-		if (!useNativeBulkSim) {
-			setCandidateGearProgress(player);
-			const bulkCandidatesResult = await sim.getBulkCandidates(bulkSettings);
-			if (bulkCandidatesResult.error) {
-				throw new Error(bulkCandidatesResult.error.message || 'Failed to build bulk candidates');
-			}
-			candidateGearSets = bulkCandidatesResult.candidates.flatMap(candidate => (candidate.gear ? [candidate.gear] : []));
-			patchBulkState(player, { combinations: bulkCandidatesResult.combinations });
-		}
-
-		const gearSets = dedupeGearSets(candidateGearSets, [baseGear.asSpec()]);
-
+		setCandidateGearProgress(player);
 		run.simStart = new Date().getTime();
-		const bulkSimResult = await runCoreBulkSim(host, gearSets, abortSignal, bulkSettings);
+		const bulkSimResult = await runCoreBulkSim(host, abortSignal, bulkSettings);
 		const { referenceDpsMetrics, topGearResults } = bulkSimResult;
 
 		const originalGearKey = getGearIdentityKey(baseGear.asSpec());

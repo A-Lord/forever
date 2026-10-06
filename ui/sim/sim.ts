@@ -28,7 +28,6 @@ import {
 	ConsumableType,
 	EquipmentSpec,
 	Faction,
-	ItemSlot,
 	Profession,
 	PseudoStat,
 	RangedWeaponType,
@@ -43,8 +42,7 @@ import { SimRequest } from '@worker/types';
 
 import { hasTouch } from '../shared/pointer';
 import { makeBulkGearDatabase, makeBulkItemDatabaseFromSpecs } from './bulk/gear_database';
-import type { BulkCandidateBuildProgress } from './bulk/types';
-import { throwIfAborted } from './bulk/utils';
+import { dedupeGearSets, throwIfAborted } from './bulk/utils';
 import { CURRENT_PHASE, LOCAL_STORAGE_PREFIX } from './constants/other';
 import { Player, UnitMetadata } from './player/player';
 import { Database } from './proto/database';
@@ -64,13 +62,11 @@ import { createSimStore, patchSlice, SimSettingsSlice, UISlice } from './state/s
 import { subscribeStatsInputs, subscribeUiField } from './state/subscriptions';
 import { getEnumValues } from './utils/collections';
 import { environmentOf } from './utils/env';
-import { hashString, noop, sleep } from './utils/misc';
+import { hashString, noop } from './utils/misc';
 import { runConcurrentBulkSim, runConcurrentSim, runConcurrentStatWeights } from './wasm';
 import { generateRequestId, WorkerPool, WorkerProgressCallback } from './workers/worker_pool';
 
 export const WASM_CONCURRENCY_STORAGE_KEY = `${LOCAL_STORAGE_PREFIX}_wasmconcurrency`;
-const BULK_CANDIDATE_PROGRESS_CHECK_MODULO = 64;
-const BULK_CANDIDATE_YIELD_BUDGET_MS = 16;
 export type ReforgeOptimizeConfig = {
 	gear: Gear;
 	preCapEPWeights: Stats;
@@ -349,24 +345,7 @@ export class Sim {
 		return gear;
 	}
 
-	// Reads the rings by slot index, as the bulk candidates are built.
-	private static prepareSpec(spec: EquipmentSpec, isEnchanter: boolean): EquipmentSpec {
-		const ringSlots = [ItemSlot.ItemSlotFinger1, ItemSlot.ItemSlotFinger2];
-		if (isEnchanter || !ringSlots.some(slot => spec.items[slot]?.enchant)) return spec;
-		const prepared = EquipmentSpec.clone(spec);
-		for (const slot of ringSlots) {
-			if (prepared.items[slot]) prepared.items[slot].enchant = 0;
-		}
-		return prepared;
-	}
-
-	async runBulkSim(
-		candidateGearSets: EquipmentSpec[],
-		onProgress: WorkerProgressCallback,
-		bulkSettings: BulkSettings,
-		onCandidateBuildProgress?: (progress: BulkCandidateBuildProgress) => void,
-		abortSignal?: AbortSignal,
-	): Promise<BulkSimResult | ErrorOutcome> {
+	async runBulkSim(onProgress: WorkerProgressCallback, bulkSettings: BulkSettings, abortSignal?: AbortSignal): Promise<BulkSimResult | ErrorOutcome> {
 		this.requireRunnableSetup();
 
 		const signals = this.signalManager.registerRunning(RequestTypes.BulkSim);
@@ -381,7 +360,6 @@ export class Sim {
 
 			const player = baseRequest.raid!.parties[0].players[0];
 			const isEnchanter = [player.profession1, player.profession2].includes(Profession.Enchanting);
-			const prepareSpec = (spec: EquipmentSpec) => Sim.prepareSpec(spec, isEnchanter);
 
 			const baselineGear = Sim.prepareGear(this.raid.getActivePlayers()[0].getGear(), isEnchanter);
 			if (!this.getFixedRngSeed()) {
@@ -401,44 +379,15 @@ export class Sim {
 				this.setLastUsedRngSeed(contentSeed);
 			}
 			const useWasmBulkSim = await this.isWasm();
-			let candidates: BulkGearCandidate[];
+			// The native sim generates the candidates itself when the request carries none.
+			let candidates: BulkGearCandidate[] = [];
 			if (useWasmBulkSim) {
-				candidates = candidateGearSets.map((gear, index) => ({ index, gear: prepareSpec(gear) }));
-			} else {
 				const bulkCandidatesResult = await this.getBulkCandidates(bulkSettings);
 				if (bulkCandidatesResult.error) {
-					throw new Error(bulkCandidatesResult.error.message || 'Failed to build bulk candidates');
+					throw new SimError(bulkCandidatesResult.error.message || 'Failed to build bulk candidates');
 				}
-
-				const totalCandidates = bulkCandidatesResult.candidates.length;
-				onCandidateBuildProgress?.({ processedCandidates: 0, totalCandidates });
-				candidates = [];
-				let lastYieldAt = performance.now();
-				let lastProgressEmitAt = lastYieldAt;
-				const reportCandidateBuildProgress = (processedCandidates: number) => {
-					if (processedCandidates % BULK_CANDIDATE_PROGRESS_CHECK_MODULO !== 0 && processedCandidates !== totalCandidates) return;
-					const now = performance.now();
-					if (processedCandidates !== totalCandidates && now - lastProgressEmitAt < BULK_CANDIDATE_YIELD_BUDGET_MS) return;
-					onCandidateBuildProgress?.({ processedCandidates, totalCandidates });
-					lastProgressEmitAt = now;
-				};
-				for (let i = 0; i < bulkCandidatesResult.candidates.length; i++) {
-					throwIfAborted(abortSignal);
-					const candidate = bulkCandidatesResult.candidates[i];
-					if (candidate.gear) {
-						candidates.push({ index: candidate.index, gear: prepareSpec(candidate.gear) });
-					}
-					reportCandidateBuildProgress(i + 1);
-
-					// Periodically yield so large candidate lists do not block popup/UI rendering.
-					if (i % 2000 === 0) {
-						const yieldNow = performance.now();
-						if (yieldNow - lastYieldAt >= BULK_CANDIDATE_YIELD_BUDGET_MS) {
-							await sleep(0);
-							lastYieldAt = performance.now();
-						}
-					}
-				}
+				const gearSets = bulkCandidatesResult.candidates.flatMap(candidate => (candidate.gear ? [candidate.gear] : []));
+				candidates = dedupeGearSets(gearSets, [baselineGear.asSpec()]).map((gear, index) => ({ index, gear }));
 			}
 			throwIfAborted(abortSignal);
 			const bulkGearDatabase = makeBulkItemDatabaseFromSpecs(this.db, baselineGear, bulkSettings);

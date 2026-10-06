@@ -71,10 +71,8 @@ export const dedupeGearSets = (gearSets: EquipmentSpec[], existingGearSets: Equi
 	return deduped;
 };
 
-export const bulkSimStageToOptimisationStage = (stage: BulkSimStage): OptimisationStage | 'reforging' | 'finalist' | null => {
+export const bulkSimStageToOptimisationStage = (stage: BulkSimStage): OptimisationStage | 'finalist' | null => {
 	switch (stage) {
-		case BulkSimStage.BulkSimStageReforge:
-			return 'reforging';
 		case BulkSimStage.BulkSimStageLow:
 			return 'low';
 		case BulkSimStage.BulkSimStageMedium:

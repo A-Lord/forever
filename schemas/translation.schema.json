@@ -3541,9 +3541,6 @@
 						"building_candidate_gear_sets": {
 							"type": "string"
 						},
-						"reforging_iteration_rounds": {
-							"type": "string"
-						},
 						"baseline_round": {
 							"type": "string"
 						},
@@ -3576,7 +3573,6 @@
 					"required": [
 						"total_combinations",
 						"building_candidate_gear_sets",
-						"reforging_iteration_rounds",
 						"baseline_round",
 						"refining_rounds",
 						"low_iteration_rounds",

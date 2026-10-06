@@ -1,7 +1,6 @@
 import { BulkSettings, DistributionMetrics, ProgressMetrics } from '@generated/proto/api';
-import { EquipmentSpec } from '@generated/proto/common';
 import i18n from '@i18n/config';
-import { BulkCandidateBuildProgress, BulkSimProgressConfig, TopGearResult } from '@sim/bulk/types';
+import { BulkSimProgressConfig, TopGearResult } from '@sim/bulk/types';
 import { bulkSimStageToOptimisationStage, cleanBulkDpsMetrics, getCoreBulkSimTrackingMetrics } from '@sim/bulk/utils';
 import type { IndividualSimHost } from '@sim/sim_host';
 
@@ -10,7 +9,6 @@ export interface CoreBulkSimContext {
 	throwIfBulkAborted: (signal: AbortSignal) => void;
 	runWithBulkAbort: <T>(promise: Promise<T>, signal: AbortSignal) => Promise<T>;
 	setSimProgress: (progress: ProgressMetrics, config: BulkSimProgressConfig) => void;
-	setCandidateBuildProgress?: (progress: BulkCandidateBuildProgress) => void;
 	debugOptimisationRound: (message: string, data?: unknown) => void;
 }
 
@@ -22,16 +20,9 @@ export interface CoreBulkSimResult {
 	metrics: Record<string, string | number>;
 }
 
-export async function runCoreBulkSim(
-	context: CoreBulkSimContext,
-	gearSets: EquipmentSpec[],
-	signal: AbortSignal,
-	bulkSettings: BulkSettings,
-): Promise<CoreBulkSimResult> {
+export async function runCoreBulkSim(context: CoreBulkSimContext, signal: AbortSignal, bulkSettings: BulkSettings): Promise<CoreBulkSimResult> {
 	context.throwIfBulkAborted(signal);
-	context.debugOptimisationRound('core bulk sim started', {
-		gearSets: gearSets.length,
-	});
+	context.debugOptimisationRound('core bulk sim started');
 
 	let currentProgressStage: ProgressMetrics['bulkStage'] | undefined;
 	let currentProgressStageStartedAt = new Date().getTime();
@@ -52,10 +43,7 @@ export async function runCoreBulkSim(
 		});
 	};
 
-	const result = await context.runWithBulkAbort(
-		context.simUI.sim.runBulkSim(gearSets, updateProgress, bulkSettings, progress => context.setCandidateBuildProgress?.(progress), signal),
-		signal,
-	);
+	const result = await context.runWithBulkAbort(context.simUI.sim.runBulkSim(updateProgress, bulkSettings, signal), signal);
 	if (!result || (result && 'type' in result)) {
 		throw new Error(result?.message);
 	}
@@ -75,7 +63,6 @@ export async function runCoreBulkSim(
 
 	context.debugOptimisationRound('core bulk sim complete', {
 		durationSeconds: result.timings?.totalSeconds ?? 0,
-		gearSets: gearSets.length,
 		stageMetrics: result.stageMetrics,
 		topGearResults: topGearResults.map((topResult, index) => ({
 			rank: index + 1,

@@ -1,4 +1,5 @@
 import {
+	BulkCandidatesResult,
 	BulkEnchantSlotOptions,
 	BulkSettings,
 	BulkSimResult,
@@ -29,6 +30,8 @@ const mocks = vi.hoisted(() => ({
 	computeStats: vi.fn(() => new Promise(() => {})),
 	reforgeOptimizeAsync: vi.fn(),
 	runConcurrentBulkSim: vi.fn(),
+	bulkSimAsync: vi.fn(),
+	bulkCandidates: vi.fn(),
 	db: {} as Record<string, unknown>,
 }));
 
@@ -41,8 +44,15 @@ vi.mock('./workers/worker_pool', () => ({
 		raidSimAsync = mocks.raidSimAsync;
 		computeStats = mocks.computeStats;
 		reforgeOptimizeAsync = mocks.reforgeOptimizeAsync;
+		bulkSimAsync = mocks.bulkSimAsync;
+		bulkCandidates = mocks.bulkCandidates;
 	},
 }));
+
+beforeEach(() => {
+	mocks.isWasm.mockReset().mockResolvedValue(false);
+	for (const key of Object.keys(mocks.db)) delete mocks.db[key];
+});
 
 vi.mock('./wasm', () => ({
 	runConcurrentBulkSim: mocks.runConcurrentBulkSim,
@@ -324,6 +334,11 @@ describe('Sim.reforgeOptimize', () => {
 });
 
 describe('Sim.runBulkSim', () => {
+	const equipmentWithBack = (back: ItemSpec) =>
+		EquipmentSpec.create({
+			items: Array.from({ length: ItemSlot.ItemSlotRanged + 1 }, (_, slot) => (slot === ItemSlot.ItemSlotBack ? back : ItemSpec.create())),
+		});
+
 	it('ships every item, suffix and enchant a candidate can carry, from the baseline and the settings alone', async () => {
 		const cloakAgility = UIEnchant.create({ effectId: 849, itemId: 1, name: 'Enchant Cloak - Minor Agility', type: ItemType.ItemTypeBack });
 		const cloakResistance = UIEnchant.create({ effectId: 1889, itemId: 2, name: 'Enchant Cloak - Superior Defense', type: ItemType.ItemTypeBack });
@@ -353,14 +368,11 @@ describe('Sim.runBulkSim', () => {
 			ItemSpec.create({ id: 30, randomSuffix: 8, enchant: 2622 }),
 			ItemSpec.create({ id: 30, randomSuffix: 8, enchant: 1889 }),
 		];
-		const candidates = backSpecs.map(back =>
-			EquipmentSpec.create({
-				items: Array.from({ length: ItemSlot.ItemSlotRanged + 1 }, (_, slot) => (slot === ItemSlot.ItemSlotBack ? back : ItemSpec.create())),
-			}),
-		);
+		mocks.bulkCandidates
+			.mockReset()
+			.mockResolvedValue(BulkCandidatesResult.create({ candidates: backSpecs.map((back, index) => ({ index, gear: equipmentWithBack(back) })) }));
 
 		await sim.runBulkSim(
-			candidates,
 			() => {},
 			BulkSettings.create({
 				items: [ItemSpec.create({ id: 30, randomSuffix: 8, enchant: 2622 })],
@@ -382,21 +394,38 @@ describe('Sim.runBulkSim', () => {
 		}
 	});
 
-	it('strips a non-enchanter candidate’s ring enchants', async () => {
+	const makeEmptyBulkSim = () => {
 		Object.assign(mocks.db, { lookupItemSpec: () => null, getItemEffectRandPropPoints: () => undefined, getEnchantsByEffectId: () => [] });
-		mocks.isWasm.mockResolvedValue(true);
 		mocks.runConcurrentBulkSim.mockReset().mockResolvedValue(BulkSimResult.create());
+		mocks.bulkSimAsync.mockReset().mockResolvedValue(BulkSimResult.create());
+		mocks.bulkCandidates.mockReset();
 		const sim = makeSim();
 		vi.spyOn(sim.raid, 'getActivePlayers').mockReturnValue([{ getGear: () => new Gear({}) }] as any);
-		const items = Array.from({ length: ItemSlot.ItemSlotRanged + 1 }, () => ItemSpec.create());
-		items[ItemSlot.ItemSlotFinger1] = ItemSpec.create({ id: 40, enchant: 2928 });
-		items[ItemSlot.ItemSlotFinger2] = ItemSpec.create({ id: 41 });
+		return sim;
+	};
 
-		await sim.runBulkSim([EquipmentSpec.create({ items })], () => {}, BulkSettings.create());
+	it('sends the native sim no candidates, so it generates them itself', async () => {
+		const sim = makeEmptyBulkSim();
 
-		const [request] = mocks.runConcurrentBulkSim.mock.calls[0];
-		const rings = request.candidates[0].gear.items.slice(ItemSlot.ItemSlotFinger1, ItemSlot.ItemSlotFinger2 + 1);
-		expect(rings).toEqual([ItemSpec.create({ id: 40 }), ItemSpec.create({ id: 41 })]);
+		await sim.runBulkSim(() => {}, BulkSettings.create());
+
+		expect(mocks.bulkCandidates).not.toHaveBeenCalled();
+		expect(mocks.bulkSimAsync.mock.calls[0][0].candidates).toEqual([]);
+	});
+
+	it('drops the WASM candidates that repeat the baseline or one another', async () => {
+		mocks.isWasm.mockResolvedValue(true);
+		const sim = makeEmptyBulkSim();
+		const cloak = equipmentWithBack(ItemSpec.create({ id: 30 }));
+		mocks.bulkCandidates.mockResolvedValue(
+			BulkCandidatesResult.create({
+				candidates: [new Gear({}).asSpec(), cloak, cloak].map((gear, index) => ({ index, gear })),
+			}),
+		);
+
+		await sim.runBulkSim(() => {}, BulkSettings.create());
+
+		expect(mocks.runConcurrentBulkSim.mock.calls[0][0].candidates).toEqual([{ index: 0, gear: cloak }]);
 	});
 });
 
