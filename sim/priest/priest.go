@@ -57,8 +57,6 @@ func (priest *Priest) Initialize() {
 	SmiteRankMap.Each(func(_ int32, rank *spelldata.Spell) {
 		priest.registerSmiteSpell(rank)
 	})
-	// TODO: Confirm in game that every race has it; the game files grant all six ranks to every race
-	// (SkillLineAbility RaceMasks -1).
 	DevouringPlagueRankMap.Each(func(_ int32, rank *spelldata.Spell) {
 		priest.registerDevouringPlagueSpell(rank)
 	})
