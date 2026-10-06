@@ -640,6 +640,10 @@ func (spell *Spell) CanCast(sim *Simulation, target *Unit) bool {
 		return false
 	}
 
+	if spell.isAutorepeating() {
+		return false
+	}
+
 	if ((spell.DefaultCast.GCD > 0) || (spell.Flags.Matches(SpellFlagMCD) && spell.Unit.Rotation.inSequence)) && !spell.Unit.GCD.IsReady(sim) {
 		//if sim.Log != nil {
 		//	sim.Log("Cant cast because of GCD")

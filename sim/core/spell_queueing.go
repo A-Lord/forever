@@ -91,6 +91,10 @@ func (spell *Spell) CanQueue(sim *Simulation, target *Unit) bool {
 		return false
 	}
 
+	if spell.isAutorepeating() {
+		return false
+	}
+
 	// Apply SQW leniency to any pending hardcasts
 	if spell.Flags.Matches(SpellFlagChanneled) && spell.Unit.Hardcast.Expires > sim.CurrentTime+MaxSpellQueueWindow {
 		return false

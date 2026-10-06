@@ -26,6 +26,7 @@ type DotConfig struct {
 	AffectedByCastSpeed  bool // tick length are shortened based on casting speed
 	AffectedByRealHaste  bool // tick length are shortened based on real haste (melee/ranged but not spell)
 	HasteReducesDuration bool // does not gain additional ticks after a certain haste threshold
+	Autorepeat           bool // A channel that ticks until interrupted (wand Shoot): checked only at a tick, before it fires; a plain cast runs one tick.
 
 	BonusCoefficient float64 // EffectBonusCoefficient in the game files' SpellEffect table, "SP mod" on Wowhead (not necessarily shown there even if > 0)
 
@@ -61,6 +62,7 @@ type Dot struct {
 	affectedByRealHaste  bool // tick length are shortened based on real haste
 	hasteReducesDuration bool // does not gain additional ticks after a haste threshold, HasteAffectsDuration in dbc
 	isChanneled          bool
+	autorepeat           bool
 }
 
 // Takes a new snapshot of this Dot's effects.
@@ -263,7 +265,48 @@ func (dot *Dot) TickOnce(sim *Simulation) {
 	}
 }
 
+// The slot goes to whatever interrupts the channel, so no shot fires there. With no interrupt
+// condition (a plain cast rather than a channel action) the channel stops after its one tick.
+func (dot *Dot) autorepeatTick(sim *Simulation) {
+	unit := dot.Spell.Unit
+	rot := unit.Rotation
+	if rot != nil {
+		rot.evalGeneration++
+		if rot.shouldInterruptChannel(sim) &&
+			(unit.GCD.IsReady(sim) || unit.GCD.TimeToReady(sim) > MaxSpellQueueWindow) {
+			dot.tickAction.NextActionAt = NeverExpires
+			dot.Deactivate(sim)
+			return
+		}
+	}
+
+	dot.remainingTicks--
+	dot.TickOnce(sim)
+	if !dot.IsActive() {
+		return
+	}
+
+	if rot == nil || rot.interruptChannelIf == nil || dot.remainingTicks == 0 {
+		dot.tickAction.NextActionAt = NeverExpires
+		dot.Deactivate(sim)
+		return
+	}
+	dot.tickAction.NextActionAt = sim.CurrentTime + dot.tickPeriod
+	sim.AddPendingAction(dot.tickAction)
+}
+
+// An autorepeat channel has no GCD to stop the rotation from casting it again while it runs.
+func (spell *Spell) isAutorepeating() bool {
+	dot := spell.Unit.ChanneledDot
+	return dot != nil && dot.autorepeat && dot.Spell == spell
+}
+
 func (dot *Dot) periodicTick(sim *Simulation) {
+	if dot.autorepeat {
+		dot.autorepeatTick(sim)
+		return
+	}
+
 	dot.remainingTicks--
 	dot.TickOnce(sim)
 	if dot.isChanneled {
@@ -404,6 +447,7 @@ func (spell *Spell) createDots(config DotConfig, isHot bool) {
 		affectedByRealHaste:  config.AffectedByRealHaste,
 		hasteReducesDuration: config.HasteReducesDuration,
 		isChanneled:          config.Spell.Flags.Matches(SpellFlagChanneled),
+		autorepeat:           config.Autorepeat,
 
 		BonusCoefficient:         config.BonusCoefficient,
 		BaseDurationMultiplier:   1,

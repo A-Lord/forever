@@ -151,6 +151,7 @@ type Unit struct {
 	// AutoAttacks is the manager for auto attack swings.
 	// Must be enabled to use, with "EnableAutoAttacks()".
 	AutoAttacks AutoAttacks
+	Wand        *Wand // Set by EnableWand for a unit that can shoot a wand.
 
 	Rotation *APLRotation
 

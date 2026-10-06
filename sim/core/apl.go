@@ -426,6 +426,10 @@ func (apl *APLRotation) DoNextAction(sim *Simulation) {
 		// Increment evalGeneration so variable refs re-evaluate with current game state,
 		// not the cached values from the previous getNextAction call.
 		apl.evalGeneration++
+		// An autorepeat channel gives way only at its ticks.
+		if dot.autorepeat {
+			return
+		}
 		// Also evaluate interruptIf when the GCD fires, not only on each tick.
 		if apl.shouldInterruptChannel(sim) {
 			clipDelay := dot.getChannelClipDelay()
