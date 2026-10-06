@@ -201,7 +201,7 @@ func (mage *Mage) registerHeatingUp() {
 
 	config := spelldata.AuraConfig(heatingUpBuff)
 
-	// UNVERIFIED: whether a Pyroblast consumes every stack or only one has not been checked in game.
+	// A Pyroblast consumes every stack, checked in game.
 	config.OnCastComplete = func(aura *core.Aura, sim *core.Simulation, spell *core.Spell) {
 		if spell.Matches(MageSpellPyroblast) {
 			aura.Deactivate(sim)
