@@ -156,7 +156,8 @@
 			"bows": "Bows",
 			"crossbows": "Crossbows",
 			"guns": "Guns",
-			"thrown": "Thrown"
+			"thrown": "Thrown",
+			"wands": "Wands"
 		},
 		"spell_schools": {
 			"physical": "Physical",

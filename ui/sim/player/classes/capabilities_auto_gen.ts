@@ -48,10 +48,10 @@ export const CLASS_WEAPON_SKILLS: Record<number, WeaponSkill[]> = {
 	[Class.ClassPaladin]: [WeaponSkill.WeaponSkillAxes, WeaponSkill.WeaponSkillTwoHandedAxes, WeaponSkill.WeaponSkillMaces, WeaponSkill.WeaponSkillTwoHandedMaces, WeaponSkill.WeaponSkillSwords, WeaponSkill.WeaponSkillTwoHandedSwords, WeaponSkill.WeaponSkillPolearms],
 	[Class.ClassHunter]: [WeaponSkill.WeaponSkillAxes, WeaponSkill.WeaponSkillTwoHandedAxes, WeaponSkill.WeaponSkillSwords, WeaponSkill.WeaponSkillTwoHandedSwords, WeaponSkill.WeaponSkillPolearms, WeaponSkill.WeaponSkillStaves, WeaponSkill.WeaponSkillDaggers, WeaponSkill.WeaponSkillFistWeapons, WeaponSkill.WeaponSkillBows, WeaponSkill.WeaponSkillCrossbows, WeaponSkill.WeaponSkillGuns],
 	[Class.ClassRogue]: [WeaponSkill.WeaponSkillAxes, WeaponSkill.WeaponSkillMaces, WeaponSkill.WeaponSkillSwords, WeaponSkill.WeaponSkillDaggers, WeaponSkill.WeaponSkillFistWeapons, WeaponSkill.WeaponSkillBows, WeaponSkill.WeaponSkillCrossbows, WeaponSkill.WeaponSkillGuns, WeaponSkill.WeaponSkillThrown],
-	[Class.ClassPriest]: [WeaponSkill.WeaponSkillMaces, WeaponSkill.WeaponSkillStaves, WeaponSkill.WeaponSkillDaggers],
+	[Class.ClassPriest]: [WeaponSkill.WeaponSkillMaces, WeaponSkill.WeaponSkillStaves, WeaponSkill.WeaponSkillDaggers, WeaponSkill.WeaponSkillWands],
 	[Class.ClassShaman]: [WeaponSkill.WeaponSkillAxes, WeaponSkill.WeaponSkillTwoHandedAxes, WeaponSkill.WeaponSkillMaces, WeaponSkill.WeaponSkillTwoHandedMaces, WeaponSkill.WeaponSkillStaves, WeaponSkill.WeaponSkillDaggers, WeaponSkill.WeaponSkillFistWeapons],
-	[Class.ClassMage]: [WeaponSkill.WeaponSkillSwords, WeaponSkill.WeaponSkillStaves, WeaponSkill.WeaponSkillDaggers],
-	[Class.ClassWarlock]: [WeaponSkill.WeaponSkillSwords, WeaponSkill.WeaponSkillStaves, WeaponSkill.WeaponSkillDaggers],
+	[Class.ClassMage]: [WeaponSkill.WeaponSkillSwords, WeaponSkill.WeaponSkillStaves, WeaponSkill.WeaponSkillDaggers, WeaponSkill.WeaponSkillWands],
+	[Class.ClassWarlock]: [WeaponSkill.WeaponSkillSwords, WeaponSkill.WeaponSkillStaves, WeaponSkill.WeaponSkillDaggers, WeaponSkill.WeaponSkillWands],
 	[Class.ClassDruid]: [WeaponSkill.WeaponSkillMaces, WeaponSkill.WeaponSkillTwoHandedMaces, WeaponSkill.WeaponSkillPolearms, WeaponSkill.WeaponSkillStaves, WeaponSkill.WeaponSkillDaggers, WeaponSkill.WeaponSkillFistWeapons],
 };
 

@@ -409,6 +409,7 @@ enum WeaponSkill {
 	WeaponSkillCrossbows = 12;
 	WeaponSkillGuns = 13;
 	WeaponSkillThrown = 14;
+	WeaponSkillWands = 15;
 }
 
 message WeaponSkillValue {

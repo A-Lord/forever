@@ -213,6 +213,7 @@ var rangedWeaponSkills = map[proto.RangedWeaponType]proto.WeaponSkill{
 	proto.RangedWeaponType_RangedWeaponTypeCrossbow: proto.WeaponSkill_WeaponSkillCrossbows,
 	proto.RangedWeaponType_RangedWeaponTypeGun:      proto.WeaponSkill_WeaponSkillGuns,
 	proto.RangedWeaponType_RangedWeaponTypeThrown:   proto.WeaponSkill_WeaponSkillThrown,
+	proto.RangedWeaponType_RangedWeaponTypeWand:     proto.WeaponSkill_WeaponSkillWands,
 }
 
 // ClassWeaponSkills lists the weapon skills of the weapons the class can use, sorted. Race plays no part: in the

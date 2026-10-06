@@ -235,6 +235,7 @@ describe('CharacterStats weapon skills', () => {
 	it.each([
 		['a hunter', Class.ClassHunter, [WeaponSkillGroup.Melee, WeaponSkillGroup.Ranged], WeaponSkill.WeaponSkillThrown],
 		['a warrior', Class.ClassWarrior, [WeaponSkillGroup.Melee], WeaponSkill.WeaponSkillBows],
+		['a priest', Class.ClassPriest, [WeaponSkillGroup.Wands], WeaponSkill.WeaponSkillStaves],
 	])('shows %s the spec weapon skill groups on Key and every class weapon skill on All', (_spec, playerClass, groups, keyHidden) => {
 		renderWeaponSkills(playerClass, groups);
 		fireEvent.click(groupTrigger('weapon-skill'));
@@ -245,6 +246,27 @@ describe('CharacterStats weapon skills', () => {
 
 		showAll();
 		expect(shownSkills(playerClass)).toEqual(getClassWeaponSkills(playerClass));
+	});
+
+	const wandClasses = [Class.ClassMage, Class.ClassPriest, Class.ClassWarlock];
+	it.each(
+		[
+			Class.ClassWarrior,
+			Class.ClassPaladin,
+			Class.ClassHunter,
+			Class.ClassRogue,
+			Class.ClassPriest,
+			Class.ClassShaman,
+			Class.ClassMage,
+			Class.ClassWarlock,
+			Class.ClassDruid,
+		].map(playerClass => [Class[playerClass], playerClass] as const),
+	)('lists Wands on All for %s only if it is a mage, priest or warlock', (_name, playerClass) => {
+		renderWeaponSkills(playerClass);
+		showAll();
+		fireEvent.click(groupTrigger('weapon-skill'));
+
+		expect(screen.queryByText(translateWeaponSkill(WeaponSkill.WeaponSkillWands)) !== null).toBe(wandClasses.includes(playerClass));
 	});
 
 	it('leaves the weapon skill item out on Key for a spec that names no weapon skills', () => {
