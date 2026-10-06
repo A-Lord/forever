@@ -7,7 +7,7 @@ import "time"
 type Wand struct {
 	unit       *Unit
 	shoot      *Spell
-	swingSpeed func() time.Duration // The equipped wand's speed; zero with no wand.
+	speed      func() time.Duration // The equipped wand's speed; zero with no wand.
 	shot       func(sim *Simulation, target *Unit)
 
 	target      *Unit
@@ -33,7 +33,7 @@ func WandChannel() DotConfig {
 // Makes shoot the unit's wand Shoot, which fires shot at each of its slots. Shoot's ApplyEffects calls
 // Start; Shoot cannot be cast while it runs.
 func (unit *Unit) EnableWand(shoot *Spell, swingSpeed func() time.Duration, shot func(sim *Simulation, target *Unit)) *Wand {
-	wand := &Wand{unit: unit, shoot: shoot, swingSpeed: swingSpeed, shot: shot}
+	wand := &Wand{unit: unit, shoot: shoot, speed: swingSpeed, shot: shot}
 	unit.Wand = wand
 	unit.RegisterResetEffect(func(_ *Simulation) {
 		wand.lastShotAt = 0
@@ -83,7 +83,7 @@ func (wand *Wand) Start(sim *Simulation, target *Unit) {
 	rot.channelAction = nil
 
 	wand.target = target
-	wand.interval = wand.SwingSpeed()
+	wand.interval = wand.swingSpeed()
 	firstShotAt := max(sim.CurrentTime+wandWindup, wand.timerAt+wand.interval)
 
 	dot := wand.shoot.Dot(target)
@@ -177,14 +177,14 @@ func (wand *Wand) nextShotAt() (time.Duration, bool) {
 }
 
 // Zero while idle. The first shot of a Shoot cast comes after the wind-up, and no sooner than one wand speed after the wand's timer last restarted.
-func (wand *Wand) TimeToNext(sim *Simulation) time.Duration {
+func (wand *Wand) timeToNext(sim *Simulation) time.Duration {
 	if at, ok := wand.nextShotAt(); ok {
 		return max(0, at-sim.CurrentTime)
 	}
 	return 0
 }
 
-func (wand *Wand) TimeSinceLast(sim *Simulation) time.Duration {
+func (wand *Wand) timeSinceLast(sim *Simulation) time.Duration {
 	if wand == nil {
 		return 0
 	}
@@ -193,14 +193,14 @@ func (wand *Wand) TimeSinceLast(sim *Simulation) time.Duration {
 
 // The running Shoot's shot interval, fixed when it started; otherwise the wand speed at the current cast
 // speed, the interval of a Shoot started now. Zero with no wand.
-func (wand *Wand) SwingSpeed() time.Duration {
+func (wand *Wand) swingSpeed() time.Duration {
 	if wand == nil {
 		return 0
 	}
 	if wand.wanding() {
 		return wand.interval
 	}
-	speed := wand.swingSpeed()
+	speed := wand.speed()
 	if speed == 0 {
 		return 0
 	}

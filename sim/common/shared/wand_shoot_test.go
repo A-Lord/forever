@@ -15,6 +15,7 @@ import (
 const (
 	sableWandID    int32 = 7607   // 21–40 shadow, 1.80 s.
 	physicalWandID int32 = 279847 // Unstable Power Core, physical, 1.70 s.
+	markerSpellID  int32 = 990002
 )
 
 func init() {
@@ -30,16 +31,23 @@ func init() {
 	)
 }
 
-// Registers Shoot where the classes do, while the character is built, and a three-charge buff that any
-// ranged attack hit spends.
+// Registers Shoot where the classes do, while the character is built, a three-charge buff that any
+// ranged attack hit spends, and a marker spell for a rotation to cast when its condition holds.
 type wandCaster struct {
 	testCaster
 	shoot   *core.Spell
 	charges *core.Aura
+	marker  *core.Spell
 }
 
 func (c *wandCaster) Initialize() {
-	c.shoot = RegisterShoot(&c.Character)
+	RegisterShoot(&c.Character)
+	c.shoot = c.GetSpell(core.ActionID{SpellID: shootRow.ID})
+	c.marker = c.RegisterSpell(core.SpellConfig{
+		ActionID: core.ActionID{SpellID: markerSpellID},
+		Flags:    core.SpellFlagAPL,
+		Cast:     core.CastConfig{DefaultCast: core.Cast{GCD: core.GCDDefault}},
+	})
 	row := &spelldata.Spell{ID: 990001, Name: "Test Charges", ProcFlags: [2]uint32{dbcenums.PROC_FLAG_DEAL_RANGED_ATTACK, 0}}
 	c.charges = c.RegisterAura(core.Aura{Label: "Test Charges", ActionID: core.ActionID{SpellID: row.ID}, Duration: time.Minute, MaxStacks: 3})
 	spelldata.AttachChargeSpender(&c.Character, c.charges, row, "Test Charges - Spend", spelldata.Chance(100))
@@ -289,14 +297,20 @@ func TestWandShoot(t *testing.T) {
 	})
 
 	t.Run("a caster registered without a wand reads zero and cannot shoot", func(t *testing.T) {
+		for _, tc := range []struct {
+			ranged *proto.ItemSpec
+			casts  bool
+		}{{&proto.ItemSpec{}, true}, {&proto.ItemSpec{Id: sableWandID}, false}} {
+			sim, caster := newWandSim(t, tc.ranged, wandValuesRotation(), 0)
+			sim.PrePull()
+			stepPast(t, sim, 100*time.Millisecond)
+			if casts := caster.marker.SpellMetrics[sim.Encounter.ActiveTargetUnits[0].UnitIndex].Casts > 0; casts != tc.casts {
+				t.Fatalf("with ranged item %d the wand's swing time and time to the next shot read 0 and its time since the last the current time: %t, want %t", tc.ranged.Id, casts, tc.casts)
+			}
+		}
+
 		sim, caster := newWandSim(t, &proto.ItemSpec{}, &proto.APLRotation{}, 0)
 		target := sim.Encounter.ActiveTargetUnits[0]
-		if caster.Wand == nil {
-			t.Fatalf("the caster has no Wand state")
-		}
-		if caster.Wand.SwingSpeed() != 0 || caster.Wand.TimeToNext(sim) != 0 || caster.Wand.TimeSinceLast(sim) != sim.CurrentTime {
-			t.Fatalf("with no wand the values read %v swing, %v to the next, %v since the last", caster.Wand.SwingSpeed(), caster.Wand.TimeToNext(sim), caster.Wand.TimeSinceLast(sim))
-		}
 		if caster.shoot.CanCast(sim, target) {
 			t.Fatalf("Shoot can be cast with no wand")
 		}
@@ -397,7 +411,8 @@ func TestWandShoot(t *testing.T) {
 }
 
 func TestWandShootReadsEquippedWand(t *testing.T) {
-	// Swaps the second ranged slot in and casts Shoot once, then checks the shot against the wand now equipped.
+	// Swaps the second ranged slot in and casts Shoot twice, the second time right after the first shot,
+	// then checks the shots against the wand now equipped: the second comes one wand speed after the first.
 	checkSwappedShoot := func(t *testing.T, ranged, swapped *proto.ItemSpec, school core.SpellSchool, speed time.Duration) {
 		t.Helper()
 		sim, caster := newSwapWandSim(t, ranged, swapped, &proto.APLRotation{}, 0, 60)
@@ -407,21 +422,31 @@ func TestWandShootReadsEquippedWand(t *testing.T) {
 		metrics := &caster.shoot.SpellMetrics[target.UnitIndex]
 		stepPast(t, sim, 5*time.Second)
 
+		firstShotAt := sim.CurrentTime + 500*time.Millisecond
 		if !caster.shoot.Cast(sim, target) {
 			t.Fatalf("Shoot could not be cast with the swapped-in wand")
 		}
 		if caster.shoot.SpellSchool != school {
 			t.Fatalf("Shoot is %v, want the swapped-in wand's %v", caster.shoot.SpellSchool, school)
 		}
-		if got := caster.Wand.SwingSpeed(); got != speed {
-			t.Fatalf("the wand swing time reads %s, want the swapped-in wand's %s", got, speed)
-		}
-		stepPast(t, sim, sim.CurrentTime+speed+time.Millisecond)
+		stepPast(t, sim, firstShotAt+time.Millisecond)
 		if landed(metrics) != 1 {
-			t.Fatalf("Shoot fired %d shots within one wand speed, want 1", landed(metrics))
+			t.Fatalf("Shoot fired %d shots by the end of its wind-up, want 1", landed(metrics))
 		}
 		if metrics.TotalDamage < wand.BaseDamageMin || metrics.TotalDamage > wand.BaseDamageMax {
 			t.Fatalf("the shot dealt %v, want %v to %v", metrics.TotalDamage, wand.BaseDamageMin, wand.BaseDamageMax)
+		}
+
+		if !caster.shoot.Cast(sim, target) {
+			t.Fatalf("Shoot could not be cast again after its first shot")
+		}
+		stepPast(t, sim, firstShotAt+speed-time.Millisecond)
+		if landed(metrics) != 1 {
+			t.Fatalf("the second shot came within one wand speed of the first, want it %s after", speed)
+		}
+		stepPast(t, sim, firstShotAt+speed+time.Millisecond)
+		if landed(metrics) != 2 {
+			t.Fatalf("Shoot fired %d shots one wand speed after the first, want 2 at the swapped-in wand's %s", landed(metrics), speed)
 		}
 	}
 
@@ -464,6 +489,27 @@ func TestWandShootReadsEquippedWand(t *testing.T) {
 
 func (c *wandCaster) wanding() bool {
 	return c.ChanneledDot != nil && c.ChanneledDot.Spell == c.shoot
+}
+
+// The marker spell, cast while the wand's swing time and time to the next shot read 0 and its time since
+// the last shot reads the current time.
+func wandValuesRotation() *proto.APLRotation {
+	cmp := func(lhs, rhs *proto.APLValue) *proto.APLValue {
+		return &proto.APLValue{Value: &proto.APLValue_Cmp{Cmp: &proto.APLValueCompare{Op: proto.APLValueCompare_OpEq, Lhs: lhs, Rhs: rhs}}}
+	}
+	zero := &proto.APLValue{Value: &proto.APLValue_Const{Const: &proto.APLValueConst{Val: "0s"}}}
+	return &proto.APLRotation{
+		Type: proto.APLRotation_TypeAPL,
+		PriorityList: []*proto.APLListItem{{Action: &proto.APLAction{
+			Condition: &proto.APLValue{Value: &proto.APLValue_And{And: &proto.APLValueAnd{Vals: []*proto.APLValue{
+				cmp(&proto.APLValue{Value: &proto.APLValue_AutoSwingTime{AutoSwingTime: &proto.APLValueAutoSwingTime{AutoType: proto.APLValueAutoSwingTime_Wand}}}, zero),
+				cmp(&proto.APLValue{Value: &proto.APLValue_AutoTimeToNext{AutoTimeToNext: &proto.APLValueAutoTimeToNext{AutoType: proto.APLValueAutoAttackType_WandAuto}}}, zero),
+				cmp(&proto.APLValue{Value: &proto.APLValue_AutoTimeSinceLast{AutoTimeSinceLast: &proto.APLValueAutoTimeSinceLast{AutoType: proto.APLValueAutoAttackType_WandAuto}}},
+					&proto.APLValue{Value: &proto.APLValue_CurrentTime{CurrentTime: &proto.APLValueCurrentTime{}}}),
+			}}}},
+			Action: &proto.APLAction_CastSpell{CastSpell: &proto.APLActionCastSpell{SpellId: core.ActionID{SpellID: markerSpellID}.ToProto()}},
+		}}},
+	}
 }
 
 // Shoot as a channel that any other ready action interrupts.

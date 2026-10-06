@@ -224,9 +224,9 @@ func TestWandAutorepeatChannel(t *testing.T) {
 
 		ct.runUntil(3500 * time.Millisecond)
 		wand := ct.fw.Wand
-		if !ct.wanding() || wand.TimeToNext(ct.sim) != time.Second || wand.TimeSinceLast(ct.sim) != time.Second || wand.SwingSpeed() != 2*time.Second {
+		if !ct.wanding() || wand.timeToNext(ct.sim) != time.Second || wand.timeSinceLast(ct.sim) != time.Second || wand.swingSpeed() != 2*time.Second {
 			t.Fatalf("at 3.5 s the wand should be shooting with 1 s to the next shot, 1 s since the last and a 2 s speed, got %t, %s, %s, %s",
-				ct.wanding(), wand.TimeToNext(ct.sim), wand.TimeSinceLast(ct.sim), wand.SwingSpeed())
+				ct.wanding(), wand.timeToNext(ct.sim), wand.timeSinceLast(ct.sim), wand.swingSpeed())
 		}
 
 		ct.runUntil(6501 * time.Millisecond)
@@ -237,7 +237,7 @@ func TestWandAutorepeatChannel(t *testing.T) {
 		ct.sim.Cleanup()
 		ct.sim.Reset()
 		ct.sim.advance(500 * time.Millisecond)
-		if got := wand.TimeSinceLast(ct.sim); got != 500*time.Millisecond {
+		if got := wand.timeSinceLast(ct.sim); got != 500*time.Millisecond {
 			t.Fatalf("after a reset the time since the last shot should count from the pull, got %s at 0.5 s", got)
 		}
 	})

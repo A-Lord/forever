@@ -30,7 +30,7 @@ func (value *APLValueAutoSwingTime) GetDuration(sim *Simulation) time.Duration {
 	case proto.APLValueAutoSwingTime_Ranged:
 		return max(0, value.unit.AutoAttacks.RangedSwingSpeed())
 	case proto.APLValueAutoSwingTime_Wand:
-		return value.unit.Wand.SwingSpeed()
+		return value.unit.Wand.swingSpeed()
 	}
 	// defaults to 0
 	return 0
@@ -65,7 +65,7 @@ func (value *APLValueAutoTimeToNext) GetDuration(sim *Simulation) time.Duration 
 	case proto.APLValueAutoAttackType_RangedAuto:
 		return max(0, value.unit.AutoAttacks.NextRangedAttackAt()-sim.CurrentTime)
 	case proto.APLValueAutoAttackType_WandAuto:
-		return value.unit.Wand.TimeToNext(sim)
+		return value.unit.Wand.timeToNext(sim)
 	}
 	// defaults to Any
 	nextAt := value.unit.AutoAttacks.NextAnyAttackAt()
@@ -113,7 +113,7 @@ func (value *APLValueAutoTimeSinceLast) GetDuration(sim *Simulation) time.Durati
 	case proto.APLValueAutoAttackType_RangedAuto:
 		swingValue = sim.CurrentTime - value.unit.AutoAttacks.PreviousRangedAttack()
 	case proto.APLValueAutoAttackType_WandAuto:
-		swingValue = value.unit.Wand.TimeSinceLast(sim)
+		swingValue = value.unit.Wand.timeSinceLast(sim)
 	// defaults to Any
 	default:
 		swingValue = sim.CurrentTime - value.unit.AutoAttacks.MainhandPreviousSwing()
@@ -124,7 +124,7 @@ func (value *APLValueAutoTimeSinceLast) GetDuration(sim *Simulation) time.Durati
 			swingValue = min(swingValue, sim.CurrentTime-value.unit.AutoAttacks.PreviousRangedAttack())
 		}
 		if value.unit.Wand != nil {
-			swingValue = min(swingValue, value.unit.Wand.TimeSinceLast(sim))
+			swingValue = min(swingValue, value.unit.Wand.timeSinceLast(sim))
 		}
 	}
 

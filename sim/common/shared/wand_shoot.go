@@ -15,7 +15,7 @@ var shootRow = spelldata.MustFind(5019)
 // difference, has no dodge, parry or block, and crits on the ranged crit chance, for 1.5 times like a spell.
 // Wand skill short of the maximum also lowers that crit chance by 0.2% a point, through the ranged hand's
 // physical crit suppression.
-func RegisterShoot(character *core.Character) *core.Spell {
+func RegisterShoot(character *core.Character) {
 	weapon := character.WeaponFromRanged()
 	wandSpeed := func() time.Duration {
 		if wand := character.GetRangedWeapon(); wand != nil {
@@ -46,5 +46,4 @@ func RegisterShoot(character *core.Character) *core.Spell {
 			shoot.DealDamage(sim, result)
 		})
 	})
-	return shoot
 }
