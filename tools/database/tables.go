@@ -115,8 +115,8 @@ func LoadAndWriteRawItems(dbHelper *DBHelper, filter string, inputsDir string) (
 			s.ItemLevel,
 			s.StatPercentEditor as StatValue,
 			s.StatModifier_bonusStat as bonusStat,
-			0 as ArmorValue, -- Item.Resistances_*: dropped from the game files; armor and the
-			0 as FireResistance, -- five resistances arrive as stat-array entries instead
+			0 as ArmorValue, -- Item.Resistances_* is absent from the game files: GetArmorValue computes
+			0 as FireResistance, -- armor from the item level tables, and resistances arrive as stat-array entries
 			0 as NatureResistance,
 			0 as FrostResistance,
 			0 as ShadowResistance,
