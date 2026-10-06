@@ -16,10 +16,6 @@ type Priest struct {
 
 	Latency float64
 
-	ShadowfiendAura *core.Aura
-	ShadowfiendPet  *Shadowfiend
-
-	Shadowfiend    *core.Spell
 	InnerFocusAura *core.Aura
 
 	VampiricEmbrace *core.Spell
@@ -29,9 +25,8 @@ type Priest struct {
 }
 
 type SelfBuffs struct {
-	UseShadowfiend bool
-	PreShadowform  bool
-	Armor          proto.PriestOptions_Armor
+	PreShadowform bool
+	Armor         proto.PriestOptions_Armor
 }
 
 func (priest *Priest) GetCharacter() *core.Character {
@@ -138,9 +133,8 @@ type PriestAgent interface {
 func NewPriest(character *core.Character, options *proto.Player) *Priest {
 	classOptions := options.GetDpsPriest().GetOptions().GetClassOptions()
 	selfBuffs := SelfBuffs{
-		UseShadowfiend: true,
-		PreShadowform:  classOptions.GetPreShadowform(),
-		Armor:          classOptions.GetArmor(),
+		PreShadowform: classOptions.GetPreShadowform(),
+		Armor:         classOptions.GetArmor(),
 	}
 
 	basePriest := New(character, selfBuffs, options.TalentsString)
@@ -173,7 +167,6 @@ const (
 	PriestSpellMindFlay
 	PriestSpellShadowWordDeath
 	PriestSpellShadowWordPain
-	PriestSpellShadowFiend
 	PriestSpellSmite
 
 	PriestShadowSpells = PriestSpellDevouringPlague |

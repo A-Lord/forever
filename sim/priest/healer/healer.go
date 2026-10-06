@@ -26,8 +26,7 @@ func RegisterHealerPriest() {
 // Gear planner only: no healing spells are implemented, so the agent exists to compute stats.
 func NewHealerPriest(character *core.Character, options *proto.Player) *HealerPriest {
 	selfBuffs := priest.SelfBuffs{
-		UseShadowfiend: true,
-		Armor:          options.GetHealerPriest().GetOptions().GetClassOptions().GetArmor(),
+		Armor: options.GetHealerPriest().GetOptions().GetClassOptions().GetArmor(),
 	}
 
 	return &HealerPriest{
