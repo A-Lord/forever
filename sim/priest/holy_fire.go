@@ -17,26 +17,23 @@ func (priest *Priest) registerHolyFireSpell(_ int32, rank *spelldata.Spell) {
 	config.ClassSpellMask = PriestSpellHolyFire
 
 	config.Dot = spelldata.DotConfig(rank, holyFireTick, spelldata.RankLabel(rank, &priest.Unit))
+	config.Dot.Aura.Tag = priest.rankTag(rank)
 	config.Dot.OnTick = spelldata.PeriodicDamageTick(holyFireTick, rank.TickOutcomeHitRolled)
 
 	if priest.powerInLightAuras != nil {
-		// Every rank's dot carries the tag, so one rank running out leaves the marker up while another burns.
-		tag := "Holy Fire - " + priest.Label
-		config.Dot.Aura.Tag = tag
+		// A replaced rank's dot expires before the new rank's dot gains, so the marker ends up on.
 		config.Dot.Aura.OnGain = func(aura *core.Aura, sim *core.Simulation) {
 			priest.powerInLightAuras.Get(aura.Unit).Activate(sim)
 		}
 		config.Dot.Aura.OnExpire = func(aura *core.Aura, sim *core.Simulation) {
-			if !aura.Unit.HasActiveAuraWithTag(tag) {
-				priest.powerInLightAuras.Get(aura.Unit).Deactivate(sim)
-			}
+			priest.powerInLightAuras.Get(aura.Unit).Deactivate(sim)
 		}
 	}
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		result := spell.CalcAndDealDamage(sim, target, holyFireHit.Roll(sim), spell.OutcomeMagicHitAndCrit)
 		if result.Landed() {
-			spell.Dot(target).Apply(sim)
+			applyReplacingOtherRanks(sim, spell.Dot(target))
 		}
 	}
 
