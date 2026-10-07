@@ -28,7 +28,7 @@ func TestElemental(t *testing.T) {
 					},
 				},
 			}},
-			GearSet:     core.GetGearSet("../../../ui/specs/shaman/elemental/gear_sets", "preraid"),
+			GearSet:     core.GetGearSet("../../../ui/specs/shaman/elemental/gear_sets", "testing"),
 			Talents:     DefaultTalents,
 			Consumables: DefaultConsumables,
 			Profession1: proto.Profession_Leatherworking,
