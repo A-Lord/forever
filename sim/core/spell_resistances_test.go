@@ -49,22 +49,31 @@ func TestNoPartialResistKeepsTheWholeHit(t *testing.T) {
 	defender.stats[stats.ShadowResistance] = 150
 	attackTable := NewAttackTable(attacker, defender)
 
-	partials := func(flags SpellFlag) int {
+	partials := func(flags SpellFlag, isPeriodic bool) int {
 		sim := &Simulation{rand: NewSplitMix(1)}
 		spell := &Spell{Unit: attacker, SpellSchool: SpellSchoolShadow, SchoolIndex: stats.SchoolIndexShadow, Flags: flags}
 		n := 0
 		for range 1000 {
-			if multiplier, outcome := spell.ResistanceMultiplier(sim, false, attackTable); multiplier != 1 || outcome != OutcomeEmpty {
+			if multiplier, outcome := spell.ResistanceMultiplier(sim, isPeriodic, attackTable); multiplier != 1 || outcome != OutcomeEmpty {
 				n++
 			}
 		}
 		return n
 	}
 
-	if n := partials(0); n == 0 {
+	if n := partials(0, false); n == 0 {
 		t.Errorf("a plain shadow spell was never partially resisted in 1000 hits against 150 shadow resistance")
 	}
-	if n := partials(SpellFlagNoPartialResist); n != 0 {
+	if n := partials(SpellFlagNoPartialResist, false); n != 0 {
 		t.Errorf("a spell flagged SpellFlagNoPartialResist was partially resisted %d times in 1000 hits, want 0", n)
+	}
+	if n := partials(SpellFlagBinary, true); n != 0 {
+		t.Errorf("a binary spell's ticks were partially resisted %d times in 1000, want 0", n)
+	}
+	if n := partials(SpellFlagBinary|SpellFlagFullResistanceTicks, false); n != 0 {
+		t.Errorf("a binary spell flagged SpellFlagFullResistanceTicks was partially resisted on %d of 1000 direct hits, want 0", n)
+	}
+	if n := partials(SpellFlagBinary|SpellFlagFullResistanceTicks, true); n == 0 {
+		t.Errorf("a binary spell flagged SpellFlagFullResistanceTicks never had a tick partially resisted in 1000")
 	}
 }
