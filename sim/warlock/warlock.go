@@ -139,7 +139,9 @@ func (warlock *Warlock) AddRaidBuffs(raidBuffs *proto.RaidBuffs) {
 }
 
 func (warlock *Warlock) AddPartyBuffs(partyBuffs *proto.PartyBuffs) {
-
+	if warlock.Options.Summon == proto.WarlockOptions_Imp {
+		partyBuffs.BloodPact = true
+	}
 }
 
 func (warlock *Warlock) Reset(sim *core.Simulation) {
