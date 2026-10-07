@@ -20,7 +20,10 @@ export const ORDERED_RESOURCE_TYPES: Array<ResourceType> = [
 	ResourceType.ResourceTypeGenericResource,
 ];
 
-export const PERCENTAGE_RESOURCES: Array<ResourceType> = [ResourceType.ResourceTypeHealth, ResourceType.ResourceTypeMana];
+export const PERCENTAGE_RESOURCES: Array<ResourceType> = [ResourceType.ResourceTypeHealth];
+
+// Resources that regenerate in steps too small to read a number each: their row draws the level as a bar.
+export const FILL_RESOURCES: Array<ResourceType> = [ResourceType.ResourceTypeMana, ResourceType.ResourceTypeEnergy, ResourceType.ResourceTypeFocus];
 
 export const AURA_AS_RESOURCE: ActionId[] = [
 	// Item Swap

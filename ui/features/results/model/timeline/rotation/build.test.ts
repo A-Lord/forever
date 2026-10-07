@@ -1,11 +1,12 @@
 import { OtherAction } from '@generated/proto/common';
+import { ResourceType } from '@generated/proto/spell';
 import { ActionId } from '@sim/proto/action_id';
-import type { CastLog } from '@sim/proto/combat_log';
+import type { CastLog, ResourceGroupLog } from '@sim/proto/combat_log';
 import type { UnitMetrics } from '@sim/proto/sim_result';
 import { describe, expect, it } from 'vitest';
 
 import { buildRotationModel } from './build';
-import type { CastItem, CastRow } from './types';
+import type { CastItem, CastRow, ResourceItem, ResourceRow } from './types';
 
 const SEAL = ActionId.fromSpellId(20293);
 
@@ -63,6 +64,44 @@ describe('wand shots', () => {
 
 	it('keeps the tags of a spell outside the grouped list in rows of their own', () => {
 		expect(castRows([castOf(ActionId.fromSpellId(20293), 1), castOf(ActionId.fromSpellId(20293, 0, 1), 2)])).toHaveLength(2);
+	});
+});
+
+describe('resource rows', () => {
+	const group = (resourceType: ResourceType, timestamp: number, valueBefore: number, valueAfter: number): ResourceGroupLog =>
+		({ resourceType, timestamp, valueBefore, valueAfter, maxValue: 1000, logs: [] }) as unknown as ResourceGroupLog;
+
+	const resourceItems = (resourceType: ResourceType, groups: Array<ResourceGroupLog>) => {
+		const player = {
+			...unit([]),
+			groupedResourceLogs: new Proxy({}, { get: (_, key) => (Number(key) === resourceType ? groups : []) }),
+		} as unknown as UnitMetrics;
+		const rows = buildRotationModel({ player, targets: [unit([])], duration: 30, showGcd: false }).rows.filter(
+			(r): r is ResourceRow => r.kind === 'resource',
+		);
+		expect(rows).toHaveLength(1);
+		return rows[0].items as Array<ResourceItem>;
+	};
+
+	const regen = (resourceType: ResourceType) => [group(resourceType, 0, 1000, 1000), group(resourceType, 0.1, 400, 450), group(resourceType, 0.2, 450, 500)];
+
+	it('draws mana as a level bar per step, without a number or a percent in the block', () => {
+		const items = resourceItems(ResourceType.ResourceTypeMana, regen(ResourceType.ResourceTypeMana));
+		expect(items).toHaveLength(3);
+		expect(items.map(item => item.display)).toEqual(['fill', 'fill', 'fill']);
+		expect(items.map(item => item.fillPercent)).toEqual([100, 45, 50]);
+		expect(items.map(item => item.text)).toEqual(['', '', '']);
+	});
+
+	it('draws energy and focus the same way as mana', () => {
+		for (const resourceType of [ResourceType.ResourceTypeEnergy, ResourceType.ResourceTypeFocus]) {
+			expect(resourceItems(resourceType, regen(resourceType)).map(item => item.display)).toEqual(['fill', 'fill', 'fill']);
+		}
+	});
+
+	it('keeps health as a percent and rage as a number', () => {
+		expect(resourceItems(ResourceType.ResourceTypeHealth, regen(ResourceType.ResourceTypeHealth))[1]).toMatchObject({ display: 'percent', text: '45%' });
+		expect(resourceItems(ResourceType.ResourceTypeRage, regen(ResourceType.ResourceTypeRage))[1]).toMatchObject({ display: 'number', text: '450' });
 	});
 });
 

@@ -8,6 +8,7 @@ import { kebabCase } from '@sim/utils/format';
 import {
 	actionBucketKey,
 	AURA_AS_RESOURCE,
+	FILL_RESOURCES,
 	groupedAurasByAbility,
 	IDS_TO_GROUP_FOR_ROTATION,
 	makeRowKey,
@@ -139,11 +140,7 @@ function gcdRowItems(unit: UnitMetrics, duration: number): Array<RowItem> {
 
 function resourceItems(resourceType: ResourceType, resourceLogs: Array<ResourceGroupLog>, duration: number): Array<ResourceItem> {
 	const startValue = (group: ResourceGroupLog): number => (group.maxValue == null ? resourceLogs[0].valueBefore : group.maxValue);
-	const display: ResourceDisplay = PERCENTAGE_RESOURCES.includes(resourceType)
-		? 'percent'
-		: resourceType == ResourceType.ResourceTypeEnergy || resourceType == ResourceType.ResourceTypeFocus
-			? 'fill'
-			: 'number';
+	const display: ResourceDisplay = PERCENTAGE_RESOURCES.includes(resourceType) ? 'percent' : FILL_RESOURCES.includes(resourceType) ? 'fill' : 'number';
 
 	return resourceLogs.map((group, i) => {
 		const start = group.timestamp;
