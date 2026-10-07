@@ -30,7 +30,7 @@ func (priest *Priest) registerHolyFireSpell(_ int32, rank *spelldata.Spell) {
 	}
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		result := spell.CalcAndDealDamage(sim, target, holyFireHit.Roll(sim), spell.OutcomeMagicHitAndCrit)
+		result := spell.CalcAndDealDamage(sim, target, holyFireHit.Average(), spell.OutcomeMagicHitAndCrit)
 		if result.Landed() {
 			spell.Dot(target).Apply(sim)
 		}

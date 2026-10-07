@@ -15,9 +15,7 @@ func (priest *Priest) registerHolyNovaSpell(_ int32, rank *spelldata.Spell) {
 	config.ThreatMultiplier = 0 // The tooltip: "These effects cause no threat." No row field states it.
 
 	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
-		spell.CalcAndDealAoeDamageWithVariance(sim, spell.OutcomeMagicHitAndCrit, func(sim *core.Simulation, _ *core.Spell) float64 {
-			return baseDamage.Roll(sim)
-		})
+		spell.CalcAndDealAoeDamage(sim, baseDamage.Average(), spell.OutcomeMagicHitAndCrit)
 		// TODO: the party heal, spellData.HolyNovaTriggered.
 	}
 
