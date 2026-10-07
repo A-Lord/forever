@@ -284,9 +284,6 @@ var flametongueTotemProc = spelldata.MustFind(16389)
 // The totem's hit logs in game as Flametongue Attack; 16389 only states its base points.
 var flametongueTotemAttack = spelldata.MustFind(16368)
 
-// The tag on Windfury Weapon's extra attacks.
-var windfuryWeaponAttack = spelldata.MustFind(16361)
-
 // A Flametongue Totem bids its proc's base points for the category.
 func FlametongueTotemPriority() float64 {
 	return flametongueTotemProc.EffectN(1).BaseValue()
@@ -350,12 +347,7 @@ func NewFlametongueTotemProcTrigger(char *core.Character) *core.Aura {
 	// Read on the first hit, once every aura is registered.
 	var windfury *core.Aura
 	lookedUp := false
-	// Windfury Weapon's extra attacks are main-hand swings tagged with 16361, and they do not proc
-	// the totem in game.
-	trigger.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
-		if spell.ActionID.Tag == windfuryWeaponAttack.ID {
-			return false
-		}
+	trigger.ExtraCondition = func(_ *core.Simulation, _ *core.Spell, _ *core.SpellResult) bool {
 		if !lookedUp {
 			windfury, lookedUp = char.GetAura(windfuryTotemTriggerLabel), true
 		}
