@@ -162,8 +162,12 @@ func NewWarlock(character *core.Character, options *proto.Player, warlockOptions
 
 	warlock.resolveSacrifice()
 
+	// The retired values a saved setting may carry (Agony 0, Doom 1, Elements 2) all mean Elements.
+	if warlock.Options.CurseOptions != proto.WarlockOptions_Recklessness {
+		warlock.Options.CurseOptions = proto.WarlockOptions_Elements
+	}
+
 	if raid.Debuffs != nil {
-		// Matches GetAssignedCurse: anything but Recklessness is Elements.
 		if warlock.Options.CurseOptions == proto.WarlockOptions_Recklessness {
 			raid.Debuffs.CurseOfRecklessness = false
 		} else {
@@ -189,7 +193,7 @@ func NewWarlock(character *core.Character, options *proto.Player, warlockOptions
 //   - With it, the demon out may be another; resummoning the sacrificed one still cancels the effect.
 func (warlock *Warlock) resolveSacrifice() {
 	options := warlock.Options
-	if options.SacrificedDemon == proto.WarlockOptions_NoSummon && options.SacrificeSummon {
+	if options.SacrificeSummon && warlock.Talents.DemonicSacrifice && options.SacrificedDemon == proto.WarlockOptions_NoSummon {
 		options.SacrificedDemon, options.Summon = options.Summon, proto.WarlockOptions_NoSummon
 	}
 	options.SacrificeSummon = false
