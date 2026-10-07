@@ -678,8 +678,8 @@ dps_results: {
 dps_results: {
  key: "TestElemental-Settings-Dwarf-preraid-Standard-default-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 312.34602
-  tps: 453.85934
+  dps: 312.349
+  tps: 453.85308
  }
 }
 dps_results: {
@@ -720,8 +720,8 @@ dps_results: {
 dps_results: {
  key: "TestElemental-Settings-Orc-preraid-Standard-default-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 314.2918
-  tps: 458.17265
+  dps: 314.56056
+  tps: 458.38003
  }
 }
 dps_results: {
@@ -762,8 +762,8 @@ dps_results: {
 dps_results: {
  key: "TestElemental-Settings-Troll-preraid-Standard-default-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 310.84071
-  tps: 455.94219
+  dps: 311.38659
+  tps: 456.48819
  }
 }
 dps_results: {
