@@ -275,8 +275,7 @@ func (spell *Spell) SpellChanceToMiss(attackTable *AttackTable) float64 {
 
 // The spell miss chance with the given level-based miss in place of the attack table's, e.g. a wand hand's.
 func (spell *Spell) spellChanceToMiss(attackTable *AttackTable, baseMissChance float64) float64 {
-	// https://royalgiraffe.github.io/resist-guide (Binary spells)
-	// hitChance = baseLevelHit * (1 - 0.75*resistCoeff) + spellHitBonus, with no miss floor:
+	// hitChance = baseLevelHit * (1 - averageResist) + spellHitBonus, with no miss floor:
 	// Forever has no 1% minimum miss.
 	// The level-based hit is reduced by the resistance roll first, then the spell hit
 	// bonus is added afterwards, which is why spell hit above the level-based miss

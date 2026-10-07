@@ -93,10 +93,10 @@ jobs:
                   make dist/forever/.dirstamp
 
             # Each pull request from this repository gets its build hosted at
-            # https://pr-<number>-<hash>.wowsims-forever.pages.dev/forever/ as a Cloudflare Pages
-            # preview; fork pull requests carry no secrets, so they get none. The hash is an HMAC
-            # of the number under DEPLOY_PREVIEW_SALT, so the link stays the same across pushes
-            # but cannot be guessed from the number. The whole `dist` folder is uploaded because
+            # https://<hash>.wowsims-forever.pages.dev/forever/ as a Cloudflare Pages preview; fork
+            # pull requests carry no secrets, so they get none. The hash is an HMAC of the number
+            # under DEPLOY_PREVIEW_SALT, so the link stays the same across pushes but neither shows
+            # nor can be guessed from the number; preview_cleanup.yml derives the same one. The whole `dist` folder is uploaded because
             # the bundle is built for the `/forever/` base path, and `_redirects` sends the bare
             # host there.
             - name: Deploy preview ☁️
@@ -110,7 +110,7 @@ jobs:
               run: |
                   set -o pipefail
                   : "${DEPLOY_PREVIEW_SALT:?is empty, so the preview link would be guessable}"
-                  branch="pr-$NUMBER-$(printf '%s' "$NUMBER" | openssl dgst -sha256 -hmac "$DEPLOY_PREVIEW_SALT" -r | cut -c1-16)"
+                  branch="$(printf '%s' "$NUMBER" | openssl dgst -sha256 -hmac "$DEPLOY_PREVIEW_SALT" -r | cut -c1-16)"
                   echo "/ /forever/ 302" > dist/_redirects
                   npx --yes wrangler@4 pages deploy dist \
                     --project-name=wowsims-forever \
@@ -151,7 +151,7 @@ jobs:
                               if (!json.success) throw new Error(`${method} ${url.replace(process.env.CLOUDFLARE_ACCOUNT_ID, '<account>')}: ${JSON.stringify(json.errors)}`);
                               return json;
                           };
-                          const ofThisPullRequest = branch => branch === `pr-${number}` || branch?.startsWith(`pr-${number}-`);
+                          const ofThisPullRequest = branch => branch === process.env.BRANCH || branch === `pr-${number}` || branch?.startsWith(`pr-${number}-`);
                           const ids = [];
                           for (let page = 1; ; page++) {
                               const { result, result_info } = await call(`${base}?env=preview&page=${page}`);
@@ -162,7 +162,7 @@ jobs:
                               );
                               if (!result.length || page >= (result_info?.total_pages ?? page)) break;
                           }
-                          // A bare pr-<number> branch's newest deployment holds that alias, which only `force` lets go of.
+                          // A pr-<number> branch's newest deployment holds that guessable alias, which only `force` lets go of.
                           for (const id of ids) await call(`${base}/${id}?force=true`, 'DELETE');
                           core.info(`Deleted ${ids.length} older deployment(s) of pull request ${number}.`);
                       }
