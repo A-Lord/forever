@@ -10,19 +10,19 @@ import (
 // The rows ItemSetSpell names for each set's thresholds. None of them is a warlock class spell, so the
 // generated table carries no reference to them.
 var (
-	pvpSpellDamage    = spelldata.MustFind(14047)   // +23 spell damage
-	pvpImmolateCast   = spelldata.MustFind(23047)   // Immolate's cast time and global cooldown 0.2 s shorter
-	pvpStamina        = spelldata.MustFind(14467)   // +20 Stamina
-	demoniacDamage    = spelldata.MustFind(9417)    // 2pc: +12 spell damage
-	demoniacCorrupt   = spelldata.MustFind(24486)   // 3pc: Corruption deals 2% more
-	demoniacDeathCoil = spelldata.MustFind(24487)   // 5pc: Death Coil's cooldown 15% shorter
-	doomcallerImmo    = spelldata.MustFind(26116)   // 3pc: Immolate deals 5% more
-	doomcallerBolt    = spelldata.MustFind(26117)   // 5pc: Shadow Bolt costs 15% less
-	unspokenPets      = spelldata.MustFind(26118)   // 3pc: the demons deal 5% more
-	plagueCorruption  = spelldata.MustFind(28829)   // 4pc: Corruption deals 12% more
-	plagueThreat      = spelldata.MustFind(28746)   // 6pc: less threat
-	demonheartHit     = spelldata.MustFind(1300966) // 2pc: +1% hit
-	demonheartDemons  = spelldata.MustFind(1301094) // 4pc: +21 spell damage against Demons
+	pvpSpellDamage    = spelldata.MustFind(14047)   // spell damage
+	pvpImmolateCast   = spelldata.MustFind(23047)   // Immolate's cast time and global cooldown
+	pvpStamina        = spelldata.MustFind(14467)   // Stamina
+	demoniacDamage    = spelldata.MustFind(9417)    // 2pc: spell damage
+	demoniacCorrupt   = spelldata.MustFind(24486)   // 3pc: Corruption's damage
+	demoniacDeathCoil = spelldata.MustFind(24487)   // 5pc: Death Coil's cooldown
+	doomcallerImmo    = spelldata.MustFind(26116)   // 3pc: Immolate's damage
+	doomcallerBolt    = spelldata.MustFind(26117)   // 5pc: Shadow Bolt's cost
+	unspokenPets      = spelldata.MustFind(26118)   // 3pc: the demons' damage
+	plagueCorruption  = spelldata.MustFind(28829)   // 4pc: Corruption's damage
+	plagueThreat      = spelldata.MustFind(28746)   // 6pc: threat
+	demonheartHit     = spelldata.MustFind(1300966) // 2pc: hit
+	demonheartDemons  = spelldata.MustFind(1301094) // 4pc: spell damage against Demons
 )
 
 // The six slots of a cloth PvP set, and of Demonheart Raiment.
