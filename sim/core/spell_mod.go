@@ -170,23 +170,7 @@ func buildMod(unit *Unit, config SpellModConfig) *SpellMod {
 		return mod
 	}
 
-	unit.OnSpellRegistered(func(spell *Spell) {
-		if !passesSpellChecks(spell, mod) {
-			return
-		}
-		var equipment *Equipment
-		if !mod.Equip.IsZero() {
-			mod.weaponCandidates = append(mod.weaponCandidates, spell)
-			equipment = spell.Unit.playerEquipment()
-		}
-		if passesWeaponChecks(spell, mod, equipment) {
-			mod.AffectedSpells = append(mod.AffectedSpells, spell)
-
-			if mod.IsActive {
-				mod.Apply(mod, spell)
-			}
-		}
-	})
+	unit.OnSpellRegistered(mod.admit)
 
 	if mod.OnReset != nil {
 		unit.RegisterResetEffect(func(s *Simulation) {
@@ -330,6 +314,62 @@ func (unit *Unit) refilterEquipMods() {
 		}
 		if wasActive {
 			mod.Activate()
+		}
+	}
+}
+
+// Changes the spell's school, for a spell that takes its weapon's, and moves it into or out of the
+// school-filtered mods it now passes or fails.
+func (spell *Spell) SetSpellSchool(school SpellSchool) {
+	if school == spell.SpellSchool {
+		return
+	}
+	spell.SpellSchool = school
+	spell.SchoolIndex = school.MultiplierSchool().SchoolIndex()
+
+	for _, mod := range spell.Unit.spellMods {
+		if (mod.School == 0 && mod.MultiplierSchool == 0) || mod.Kind == SpellMod_ProcChance_Flat || mod.Kind == SpellMod_ProcChance_Pct {
+			continue
+		}
+		admitted := mod.AffectedSpells
+		if !mod.Equip.IsZero() {
+			admitted = mod.weaponCandidates
+		}
+		if !slices.Contains(admitted, spell) {
+			mod.admit(spell)
+			continue
+		}
+		if passesSpellChecks(spell, mod) {
+			continue
+		}
+		if i := slices.Index(mod.AffectedSpells, spell); i >= 0 {
+			if mod.IsActive {
+				mod.Remove(mod, spell)
+			}
+			mod.AffectedSpells = slices.Delete(mod.AffectedSpells, i, i+1)
+		}
+		if i := slices.Index(mod.weaponCandidates, spell); i >= 0 {
+			mod.weaponCandidates = slices.Delete(mod.weaponCandidates, i, i+1)
+		}
+	}
+}
+
+// Takes in a spell that passes the mod's spell checks: as a weapon candidate for a mod on equipment, and
+// into AffectedSpells while the weapons reach it. AffectedSpells stays in weaponCandidates' order, since
+// the spell joins or leaves both at once.
+func (mod *SpellMod) admit(spell *Spell) {
+	if !passesSpellChecks(spell, mod) {
+		return
+	}
+	var equipment *Equipment
+	if !mod.Equip.IsZero() {
+		mod.weaponCandidates = append(mod.weaponCandidates, spell)
+		equipment = spell.Unit.playerEquipment()
+	}
+	if passesWeaponChecks(spell, mod, equipment) {
+		mod.AffectedSpells = append(mod.AffectedSpells, spell)
+		if mod.IsActive {
+			mod.Apply(mod, spell)
 		}
 	}
 }

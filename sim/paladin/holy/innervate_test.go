@@ -34,7 +34,7 @@ func innervatedPaladin(t *testing.T, talents string) (*core.Simulation, *core.Ch
 
 // Innervate lets all of the spirit regen continue while casting and multiplies it by five, whatever
 // share Reverence already lets through: with 3/3 Reverence it is the same regen, and Reverence's 30%
-// is back once the aura falls off. The mana bar's tick follows each change.
+// is back once the aura falls off. The mana bar's regen follows each change.
 func TestInnervateGivesFiveTimesTheFullSpiritRegen(t *testing.T) {
 	for _, c := range []struct {
 		talents string
@@ -46,10 +46,18 @@ func TestInnervateGivesFiveTimesTheFullSpiritRegen(t *testing.T) {
 		}
 
 		metrics := pally.NewManaMetrics(core.ActionID{SpellID: 29166, Tag: 1})
-		castingTick := func() float64 {
+		// Empties the bar inside the five-second rule and returns the mana the next 2 s restore.
+		castingRegen := func() float64 {
 			pally.SpendMana(sim, pally.CurrentMana(), metrics)
 			pally.PseudoStats.FiveSecondRuleRefreshTime = sim.CurrentTime + time.Second*5
-			pally.ManaTick(sim)
+			done := false
+			sim.AddPendingAction(&core.PendingAction{
+				NextActionAt: sim.CurrentTime + 2*time.Second,
+				OnAction:     func(_ *core.Simulation) { done = true },
+			})
+			for !done {
+				sim.Step()
+			}
 			return pally.CurrentMana()
 		}
 
@@ -69,8 +77,8 @@ func TestInnervateGivesFiveTimesTheFullSpiritRegen(t *testing.T) {
 			t.Errorf("share %v: %v mana per second while casting under Innervate, want the %v while not casting",
 				c.share, got, idle)
 		}
-		if got := castingTick(); math.Abs(got-2*want) > 1e-9 {
-			t.Errorf("share %v: a casting tick under Innervate restores %v mana, want %v", c.share, got, 2*want)
+		if got := castingRegen(); math.Abs(got-2*want) > 1e-9 {
+			t.Errorf("share %v: 2 s of casting under Innervate restore %v mana, want %v", c.share, got, 2*want)
 		}
 
 		aura.Deactivate(sim)
@@ -80,8 +88,8 @@ func TestInnervateGivesFiveTimesTheFullSpiritRegen(t *testing.T) {
 		if got := pally.ManaRegenPerSecondWhileCasting(); math.Abs(got-casting) > 1e-9 {
 			t.Errorf("share %v: %v mana per second while casting after Innervate, want %v", c.share, got, casting)
 		}
-		if got := castingTick(); math.Abs(got-2*casting) > 1e-9 {
-			t.Errorf("share %v: a casting tick after Innervate restores %v mana, want %v", c.share, got, 2*casting)
+		if got := castingRegen(); math.Abs(got-2*casting) > 1e-9 {
+			t.Errorf("share %v: 2 s of casting after Innervate restore %v mana, want %v", c.share, got, 2*casting)
 		}
 	}
 }

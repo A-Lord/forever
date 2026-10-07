@@ -1,6 +1,7 @@
 package priest
 
 import (
+	"github.com/wowsims/forever/sim/common/shared"
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
@@ -47,6 +48,7 @@ func (priest *Priest) Initialize() {
 	DevouringPlagueRankMap.Each(priest.registerDevouringPlagueSpell)
 	spellData.InnerFire.Each(priest.registerInnerFire)
 	spellData.Fade.Each(priest.registerFade)
+	shared.RegisterShoot(&priest.Character)
 
 	switch priest.Race {
 	case proto.Race_RaceNightElf:

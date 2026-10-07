@@ -3,6 +3,7 @@ package priest
 import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/buffs"
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
@@ -62,12 +63,20 @@ func (priest *Priest) applyPowerInLight() {
 	})
 }
 
-// Increases your damage with wands by X%.
-// TODO: The sim has no wand attack yet; 14524 states the bonus on wand attacks only.
+// Wand damage, +13% / +25%: the wand's shots are the priest's only ranged autos. The row's school mask
+// (126) leaves out physical wands.
 func (priest *Priest) applyWandSpecialization() {
 	if priest.Talents.WandSpecialization == 0 {
 		return
 	}
+
+	const schools = 126
+	priest.AddStaticMod(core.SpellModConfig{
+		Kind:       core.SpellMod_DamageDone_Pct,
+		ProcMask:   core.ProcMaskRangedAuto,
+		School:     core.SpellSchool(schools),
+		FloatValue: spellData.WandSpecialization.Effect(dbcenums.A_MOD_DAMAGE_PERCENT_DONE, schools).FractionAt(priest.Talents.WandSpecialization),
+	})
 }
 
 // Increases the damage and healing of your instant cast spells by X%.
@@ -163,7 +172,7 @@ func (priest *Priest) applyMeditation() {
 	}
 
 	priest.PseudoStats.SpiritRegenRateCasting += spellData.Meditation.FractionAt(priest.Talents.Meditation)
-	priest.UpdateManaRegenRates()
+	priest.UpdateManaRegenRates(nil)
 }
 
 // Increases the Armor bonus of your Inner Fire spell by X% and increases its total charges by Y.

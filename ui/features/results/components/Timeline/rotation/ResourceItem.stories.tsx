@@ -29,4 +29,8 @@ export const EnergyFill: Story = {
 	args: { item: resourceRowItem(1, 4, 80, { display: 'fill', fillPercent: 80, text: '80' }), cssName: 'energy' },
 };
 
-export const ManaPercent: Story = { args: { item: resourceRowItem(1, 4, 2400, { display: 'percent', text: '62%' }), cssName: 'mana' } };
+export const ManaFill: Story = {
+	args: { item: resourceRowItem(1, 4, 2400, { display: 'fill', fillPercent: 62, text: '' }), cssName: 'mana' },
+};
+
+export const HealthPercent: Story = { args: { item: resourceRowItem(1, 4, 2400, { display: 'percent', text: '62%' }), cssName: 'health' } };
