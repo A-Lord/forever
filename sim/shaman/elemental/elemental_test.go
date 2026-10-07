@@ -28,7 +28,7 @@ func TestElemental(t *testing.T) {
 					},
 				},
 			}},
-			GearSet:     core.GetGearSet("../../../ui/specs/shaman/elemental/gear_sets", "testing"),
+			GearSet:     testingBuild.GearSet,
 			Talents:     DefaultTalents,
 			Consumables: DefaultConsumables,
 			Profession1: proto.Profession_Leatherworking,
@@ -43,9 +43,11 @@ func TestElemental(t *testing.T) {
 	}))
 }
 
-// The Testing build's talents, which the UI's Standard preset reads too.
-var DefaultTalents = core.GetTestBuildFromJSON(proto.Class_ClassShaman, "../../../ui/specs/shaman/elemental/builds", "testing",
-	core.ItemFilter{}, nil, nil).Talents
+// The Testing build's gear and talents, which the UI's Testing gear set and Standard talents read too.
+var testingBuild = core.GetTestBuildFromJSON(proto.Class_ClassShaman, "../../../ui/specs/shaman/elemental/builds", "testing",
+	core.ItemFilter{}, nil, nil)
+
+var DefaultTalents = testingBuild.Talents
 
 // The UI's Elemental defaults: Major Mana Potion, Flask of Supreme Power, Demonic Rune and Brilliant
 // Wizard Oil.

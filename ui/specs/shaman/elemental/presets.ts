@@ -7,11 +7,10 @@ import { SavedTalents } from '@generated/proto/ui';
 
 import DefaultApl from './apls/default.apl.json';
 import TestingBuildJson from './builds/testing.build.json';
-import TestingGearJson from './gear_sets/testing.gear.json';
 
 export const ROTATION_PRESET_DEFAULT = PresetUtils.makePresetAPLRotation('Default', DefaultApl);
 
-export const TestingGear = PresetUtils.makePresetGear('Testing', TestingGearJson);
+export const TestingGear = PresetUtils.makePresetGear('Testing', TestingBuildJson.player.equipment);
 
 export const TestingBuild = PresetUtils.makePresetBuildFromJSON('Testing', Spec.SpecElementalShaman, TestingBuildJson);
 
