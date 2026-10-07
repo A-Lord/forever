@@ -103,7 +103,7 @@ func (priest *Priest) applyHolyPrecision() {
 		return
 	}
 
-	spelldata.ParseStatic(&priest.Character, spellData.HolyPrecision.Rank(priest.Talents.HolyPrecision))
+	spelldata.ParseStatic(&priest.Character, spellData.HolyPrecision.Rank(priest.Talents.HolyPrecision), spelldata.ShowAsSchoolHit(core.SpellSchoolHoly))
 }
 
 // Increases the damage absorbed by your Power Word: Shield by 20%.
