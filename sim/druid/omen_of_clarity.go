@@ -32,15 +32,12 @@ func (druid *Druid) registerOmenOfClarity() {
 }
 
 // The speed, in seconds, that turns Omen of Clarity's procs per minute into a chance for this hit.
-// An auto attack uses its own swing speed: the paw in Cat and Bear Form, the weapon otherwise. A
-// special uses the equipped main-hand weapon in every form. A spell uses its cast time, and an
-// instant 1.5 s.
+// Auto attacks and specials use the swing speed: the paw in Cat and Bear Form, the weapon otherwise.
+// A spell uses its cast time, and an instant 1.5 s.
 func (druid *Druid) omenSpeed(spell *core.Spell) float64 {
 	switch {
-	case spell.ProcMask.Matches(core.ProcMaskMeleeWhiteHit):
+	case spell.ProcMask.Matches(core.ProcMaskMeleeWhiteHit | core.ProcMaskMeleeSpecial):
 		return druid.AutoAttacks.MH().SwingSpeed
-	case spell.ProcMask.Matches(core.ProcMaskMeleeSpecial):
-		return druid.WeaponFromMainHand().SwingSpeed
 	case spell.DefaultCast.CastTime > 0:
 		return spell.DefaultCast.CastTime.Seconds()
 	default:

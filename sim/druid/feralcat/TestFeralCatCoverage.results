@@ -47,7 +47,7 @@ casts_results: {
   }
   casts: {
    key: "spell_id:22829"
-   value: 4
+   value: 5
   }
   casts: {
    key: "spell_id:22842"
@@ -107,7 +107,7 @@ casts_results: {
   }
   casts: {
    key: "spell_id:9850"
-   value: 20
+   value: 22
   }
   casts: {
    key: "spell_id:9867"
@@ -135,7 +135,7 @@ casts_results: {
   }
   casts: {
    key: "spell_id:9907"
-   value: 8
+   value: 7
   }
   casts: {
    key: "spell_id:9908"
