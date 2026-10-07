@@ -410,7 +410,7 @@ func (spell *Spell) CalcDamage(sim *Simulation, target *Unit, baseDamage float64
 		baseDamage += spell.BonusDamage(attackTable)
 	}
 	// A spell-school hit rolls its whole amount once power is added, not its base alone.
-	if spell.DirectVariance > 0 {
+	if spell.DirectVariance > 0 && !spell.expecting {
 		baseDamage *= sim.RollWithLabel(1-spell.DirectVariance/2, 1+spell.DirectVariance/2, "Damage Roll")
 	}
 	return spell.calcDamageInternal(sim, target, baseDamage, attackerMultiplier, false, outcomeApplier)
@@ -676,7 +676,7 @@ func (spell *Spell) calcHealing(sim *Simulation, target *Unit, baseHealing float
 	if spell.BonusCoefficient > 0 {
 		baseHealing += spell.BonusCoefficient * spell.HealingPower(target)
 	}
-	if !isPeriodic && spell.DirectVariance > 0 {
+	if !isPeriodic && spell.DirectVariance > 0 && !spell.expecting {
 		baseHealing *= sim.RollWithLabel(1-spell.DirectVariance/2, 1+spell.DirectVariance/2, "Healing Roll")
 	}
 	return spell.calcHealingInternal(sim, target, baseHealing, spell.casterHealingMultiplier(isPeriodic), outcomeApplier)

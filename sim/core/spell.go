@@ -152,6 +152,7 @@ type Spell struct {
 	// Optional field. Calculates expected average damage.
 	expectedInitialDamageInternal ExpectedDamageCalculator
 	expectedTickDamageInternal    ExpectedDamageCalculator
+	expecting                     bool // While an expected-damage call runs: DirectVariance does not roll.
 
 	// The current or most recent cast data.
 	CurCast Cast
@@ -796,20 +797,21 @@ func (spell *Spell) unitThreatMultiplier() float64 {
 func (spell *Spell) finalizeExpectedDamage(result *SpellResult) {
 	result.inUse = false
 }
-func (spell *Spell) ExpectedInitialDamage(sim *Simulation, target *Unit) float64 {
-	result := spell.expectedInitialDamageInternal(sim, target, spell, false)
+func (spell *Spell) expectedDamage(sim *Simulation, target *Unit, calculator ExpectedDamageCalculator, useSnapshot bool) float64 {
+	spell.expecting = true
+	result := calculator(sim, target, spell, useSnapshot)
+	spell.expecting = false
 	spell.finalizeExpectedDamage(result)
 	return result.Damage
+}
+func (spell *Spell) ExpectedInitialDamage(sim *Simulation, target *Unit) float64 {
+	return spell.expectedDamage(sim, target, spell.expectedInitialDamageInternal, false)
 }
 func (spell *Spell) ExpectedTickDamage(sim *Simulation, target *Unit) float64 {
-	result := spell.expectedTickDamageInternal(sim, target, spell, false)
-	spell.finalizeExpectedDamage(result)
-	return result.Damage
+	return spell.expectedDamage(sim, target, spell.expectedTickDamageInternal, false)
 }
 func (spell *Spell) ExpectedTickDamageFromCurrentSnapshot(sim *Simulation, target *Unit) float64 {
-	result := spell.expectedTickDamageInternal(sim, target, spell, true)
-	spell.finalizeExpectedDamage(result)
-	return result.Damage
+	return spell.expectedDamage(sim, target, spell.expectedTickDamageInternal, true)
 }
 
 // The damage multiplier of a critical strike. The base comes from the DefenseType: spells crit
