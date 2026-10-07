@@ -538,8 +538,8 @@ dps_results: {
 dps_results: {
  key: "TestAffliction-Average-Default"
  value: {
-  dps: 272.45177
-  tps: 157.44056
+  dps: 272.45081
+  tps: 157.44003
  }
 }
 dps_results: {
