@@ -26,51 +26,21 @@
     "class": "ClassShaman",
     "equipment": {
       "items": [
-        {
-          "id": 22005
-        },
-        {
-          "id": 22150
-        },
-        {
-          "id": 272105
-        },
-        {
-          "id": 272414
-        },
-        {
-          "id": 252484
-        },
-        {
-          "id": 19587
-        },
-        {
-          "id": 19049
-        },
-        {
-          "id": 19044
-        },
-        {
-          "id": 22673
-        },
-        {
-          "id": 16711
-        },
-        {
-          "id": 275981
-        },
-        {
-          "id": 272408
-        },
-        {
-          "id": 19120
-        },
-        {
-          "id": 249469
-        },
-        {
-          "id": 12784
-        },
+        {"id":22005},
+        {"id":22150},
+        {"id":272105},
+        {"id":272414},
+        {"id":252484},
+        {"id":19587},
+        {"id":19049},
+        {"id":19044},
+        {"id":22673},
+        {"id":16711},
+        {"id":275981},
+        {"id":272408},
+        {"id":19120},
+        {"id":249469},
+        {"id":12784},
         {},
         {}
       ]
@@ -97,187 +67,10 @@
     },
     "bonusStats": {
       "apiVersion": 2,
-      "stats": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "pseudoStats": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ]
+      "stats": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      "pseudoStats": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
     },
-    "itemSwap": {
-      "items": [
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {}
-      ],
-      "prepullBonusStats": {
-        "apiVersion": 2,
-        "stats": [
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        "pseudoStats": [
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0
-        ]
-      }
-    },
+    "itemSwap": {"items":[{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}],"prepullBonusStats":{"apiVersion":2,"stats":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"pseudoStats":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}},
     "buffs": {
       "greaterBlessingOfKings": true,
       "greaterBlessingOfMight": true
@@ -292,194 +85,28 @@
     "talentsString": "0505331-055030031005112251",
     "profession1": "Engineering",
     "profession2": "Leatherworking",
-    "cooldowns": {},
+    "cooldowns": {
+    },
     "rotation": {
       "type": "TypeAPL",
       "priorityList": [
-        {
-          "action": {
-            "autocastOtherCooldowns": {}
-          }
-        },
-        {
-          "action": {
-            "castSpell": {
-              "spellId": {
-                "otherId": "OtherActionPotion"
-              }
-            }
-          }
-        },
-        {
-          "action": {
-            "condition": {
-              "cmp": {
-                "op": "OpLe",
-                "lhs": {
-                  "totemRemainingTime": {
-                    "totemType": "Air"
-                  }
-                },
-                "rhs": {
-                  "const": {
-                    "val": "0s"
-                  }
-                }
-              }
-            },
-            "castSpell": {
-              "spellId": {
-                "spellId": 10614
-              }
-            }
-          }
-        },
-        {
-          "action": {
-            "condition": {
-              "cmp": {
-                "op": "OpLe",
-                "lhs": {
-                  "totemRemainingTime": {
-                    "totemType": "Earth"
-                  }
-                },
-                "rhs": {
-                  "const": {
-                    "val": "0s"
-                  }
-                }
-              }
-            },
-            "castSpell": {
-              "spellId": {
-                "spellId": 25361
-              }
-            }
-          }
-        },
-        {
-          "action": {
-            "condition": {
-              "not": {
-                "val": {
-                  "auraIsActive": {
-                    "auraId": {
-                      "spellId": 10432
-                    }
-                  }
-                }
-              }
-            },
-            "castSpell": {
-              "spellId": {
-                "spellId": 10432
-              }
-            }
-          }
-        },
-        {
-          "action": {
-            "condition": {
-              "cmp": {
-                "op": "OpLe",
-                "lhs": {
-                  "totemRemainingTime": {
-                    "totemType": "Fire"
-                  }
-                },
-                "rhs": {
-                  "const": {
-                    "val": "0s"
-                  }
-                }
-              }
-            },
-            "castSpell": {
-              "spellId": {
-                "spellId": 10438
-              }
-            }
-          }
-        },
-        {
-          "action": {
-            "castSpell": {
-              "spellId": {
-                "spellId": 17364
-              }
-            }
-          }
-        },
-        {
-          "action": {
-            "condition": {
-              "cmp": {
-                "op": "OpGe",
-                "lhs": {
-                  "auraNumStacks": {
-                    "auraId": {
-                      "spellId": 408505
-                    }
-                  }
-                },
-                "rhs": {
-                  "const": {
-                    "val": "5"
-                  }
-                }
-              }
-            },
-            "castSpell": {
-              "spellId": {
-                "spellId": 15208
-              }
-            }
-          }
-        },
-        {
-          "action": {
-            "castSpell": {
-              "spellId": {
-                "spellId": 408345
-              }
-            }
-          }
-        },
-        {
-          "action": {
-            "condition": {
-              "not": {
-                "val": {
-                  "dotIsActive": {
-                    "spellId": {
-                      "spellId": 29228
-                    }
-                  }
-                }
-              }
-            },
-            "castSpell": {
-              "spellId": {
-                "spellId": 29228
-              }
-            }
-          }
-        },
-        {
-          "action": {
-            "castSpell": {
-              "spellId": {
-                "spellId": 10414
-              }
-            }
-          }
-        }
+        {"action":{"autocastOtherCooldowns":{}}},
+        {"action":{"castSpell":{"spellId":{"otherId":"OtherActionPotion"}}}},
+        {"action":{"condition":{"cmp":{"op":"OpLe","lhs":{"totemRemainingTime":{"totemType":"Air"}},"rhs":{"const":{"val":"0s"}}}},"castSpell":{"spellId":{"spellId":10614}}}},
+        {"action":{"condition":{"cmp":{"op":"OpLe","lhs":{"totemRemainingTime":{"totemType":"Earth"}},"rhs":{"const":{"val":"0s"}}}},"castSpell":{"spellId":{"spellId":25361}}}},
+        {"action":{"condition":{"not":{"val":{"auraIsActive":{"auraId":{"spellId":10432}}}}},"castSpell":{"spellId":{"spellId":10432}}}},
+        {"action":{"condition":{"cmp":{"op":"OpLe","lhs":{"totemRemainingTime":{"totemType":"Fire"}},"rhs":{"const":{"val":"0s"}}}},"castSpell":{"spellId":{"spellId":10438}}}},
+        {"action":{"castSpell":{"spellId":{"spellId":17364}}}},
+        {"action":{"condition":{"and":{"vals":[{"auraIsKnown":{"auraId":{"spellId":408505}}},{"cmp":{"op":"OpGe","lhs":{"auraNumStacks":{"auraId":{"spellId":408505}}},"rhs":{"const":{"val":"5"}}}}]}},"castSpell":{"spellId":{"spellId":15208}}}},
+        {"action":{"castSpell":{"spellId":{"spellId":408345}}}},
+        {"action":{"condition":{"not":{"val":{"dotIsActive":{"spellId":{"spellId":29228}}}}},"castSpell":{"spellId":{"spellId":29228}}}},
+        {"action":{"castSpell":{"spellId":{"spellId":10414}}}}
       ]
     },
     "reactionTimeMs": 100,
     "distanceFromTarget": 5,
-    "healingModel": {}
+    "healingModel": {
+    }
   },
   "encounter": {
     "apiVersion": 2,
@@ -496,46 +123,7 @@
         "name": "Raid Target",
         "level": 63,
         "mobType": "MobTypeMechanical",
-        "stats": [
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          320,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          54,
-          0,
-          0,
-          3731,
-          0,
-          1299000,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
+        "stats": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,54,0,0,3731,0,1299000,0,0,0,0,0,0,0,0],
         "minBaseDamage": 15113,
         "damageSpread": 0.5,
         "swingSpeed": 2,
