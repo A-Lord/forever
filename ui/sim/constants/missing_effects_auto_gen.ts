@@ -112,6 +112,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		1982, // Nightblade
+		[
+			"Sends a shadowy bolt at the enemy causing 200 Shadow damage.", // 18211 - https://www.wowhead.com/forever/spell=18211
+		]
+	],
+	[
 		1986, // Gutrender
 		[
 			"Wounds the target for 102 damage.", // 18090 - https://www.wowhead.com/forever/spell=18090
