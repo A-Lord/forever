@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/wowsims/forever/sim/common/shared"
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/stats"
@@ -130,6 +131,7 @@ func (warlock *Warlock) Initialize() {
 	warlock.registerSearingPain()
 
 	warlock.registerSoulfire()
+	shared.RegisterShoot(&warlock.Character)
 
 	warlock.registerArmors()
 

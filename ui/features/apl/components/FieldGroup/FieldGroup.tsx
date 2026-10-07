@@ -27,7 +27,7 @@ export interface FieldGroupProps {
  */
 export const FieldGroup = ({ player, config, fields }: FieldGroupProps) => {
 	const generatedId = useId();
-	const specs = useMemo(() => fields.map(resolveField), [fields]);
+	const specs = useMemo(() => fields.map(field => resolveField(field, player)), [fields, player]);
 	const getParentValue = () => config.getValue(player);
 
 	return (
