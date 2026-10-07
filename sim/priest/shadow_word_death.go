@@ -15,7 +15,7 @@ func (priest *Priest) registerShadowWordDeathSpell(_ int32, rank *spelldata.Spel
 	config.ClassSpellMask = PriestSpellShadowWordDeath
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		spell.CalcAndDealDamage(sim, target, baseDamage.Roll(sim), spell.OutcomeMagicHitAndCrit)
+		spell.CalcAndDealDamage(sim, target, baseDamage.Average(), spell.OutcomeMagicHitAndCrit)
 		priest.RemoveHealth(sim, priest.MaxHealth()*backlash)
 	}
 

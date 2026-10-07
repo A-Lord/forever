@@ -15,7 +15,7 @@ func (priest *Priest) registerShadowguard(_ int32, rank *spelldata.Spell) {
 		spelldata.Magic(core.ProcMaskSpellDamageProc), spelldata.Proc())
 	strikeConfig.ThreatMultiplier = 0 // The tooltip: this damage causes no threat.
 	strikeConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		spell.CalcAndDealDamage(sim, target, strikeDamage.Roll(sim), spell.OutcomeMagicHit)
+		spell.CalcAndDealDamage(sim, target, strikeDamage.Average(), spell.OutcomeMagicHit)
 	}
 	strike := priest.RegisterSpell(strikeConfig)
 
