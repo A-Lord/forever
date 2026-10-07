@@ -368,11 +368,10 @@ func storeCurves(t *spellTables, nodes []traitNode, points map[int32]map[int32]m
 			continue
 		}
 
-		// The game files keep retired talent nodes around, and a retired twin prices the same
-		// spell as the node the game uses: hunter Lightning Reflexes 19168 is 3/6/9/12/15 on
-		// definition 134447 and 2/4/6/8/10 on 142605. The lowest definition id within the
-		// first tree by id is the one kept, which is what the class tables generate from, and a
-		// disagreement is named on stderr rather than resolved silently.
+		// Two definitions can price the same spell. traitNodes leaves out the retired twins the
+		// game files park off the canvas (see parkedTraitNodes); for any other pair the lowest
+		// definition id within the first tree by id is the one kept, which is what the class
+		// tables generate from, and a disagreement is named on stderr rather than resolved silently.
 		if seen, ok := pricedBy[node.SpellID]; ok {
 			if !slices.EqualFunc(pricedRows[node.SpellID], rows, slices.Equal) {
 				fmt.Fprintf(progress,
@@ -453,16 +452,20 @@ type traitNode struct {
 }
 
 func traitNodes(db *sql.DB, treeID int) ([]traitNode, error) {
+	unparked, err := unparkedTraitNodes(db)
+	if err != nil {
+		return nil, err
+	}
 	var nodes []traitNode
-	err := eachRow(db, fmt.Sprintf(`
+	err = eachRow(db, fmt.Sprintf(`
 		SELECT DISTINCT d.ID, COALESCE(d.SpellID, 0), e.MaxRanks,
 		       EXISTS (SELECT 1 FROM SkillLineAbility sla WHERE sla.Spell = d.SpellID)
 		FROM TraitNode tn
 		JOIN TraitNodeXTraitNodeEntry x ON x.TraitNodeID = tn.ID
 		JOIN TraitNodeEntry e ON e.ID = x.TraitNodeEntryID
 		JOIN TraitDefinition d ON d.ID = e.TraitDefinitionID
-		WHERE tn.TraitTreeID = %d AND d.SpellID > 0 AND e.MaxRanks > 0
-		ORDER BY d.ID, e.MaxRanks`, treeID), func(rows *sql.Rows) error {
+		WHERE tn.TraitTreeID = %d AND d.SpellID > 0 AND e.MaxRanks > 0 AND %s
+		ORDER BY d.ID, e.MaxRanks`, treeID, unparked), func(rows *sql.Rows) error {
 		var n traitNode
 		if err := rows.Scan(&n.DefinitionID, &n.SpellID, &n.MaxRanks, &n.TaughtBySkillLine); err != nil {
 			return err

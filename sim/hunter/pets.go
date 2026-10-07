@@ -315,10 +315,10 @@ func (hp *HunterPet) registerStrike(rank *spelldata.Spell, onCast func(sim *core
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		if targets > 1 {
 			spell.CalcCleaveDamageWithVariance(sim, target, targets, hitAndCritOutcome(spell, rank),
-				func(sim *core.Simulation, spell *core.Spell) float64 { return damage.Roll(sim) })
+				func(sim *core.Simulation, spell *core.Spell) float64 { return damage.DirectAmount(sim) })
 			spell.DealBatchedAoeDamage(sim)
 		} else {
-			spell.CalcAndDealDamage(sim, target, damage.Roll(sim), hitAndCritOutcome(spell, rank))
+			spell.CalcAndDealDamage(sim, target, damage.DirectAmount(sim), hitAndCritOutcome(spell, rank))
 		}
 		if onCast != nil {
 			onCast(sim, target)
@@ -361,7 +361,7 @@ func (hp *HunterPet) registerDot(rank *spelldata.Spell) *core.Spell {
 func (hp *HunterPet) registerScorpidPoison(rank *spelldata.Spell) *core.Spell {
 	tick := rank.PeriodicEffect()
 
-	config := hp.spellConfig(rank, schoolOpt(rank), spelldata.Flags(core.SpellFlagPureDot))
+	config := hp.spellConfig(rank, schoolOpt(rank))
 	config.Dot = spelldata.DotConfig(rank, tick)
 	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
 		dot.Spell.CalcAndDealPeriodicDamage(sim, target, tick.Average()*float64(dot.GetStacks()), rank.TickOutcome(dot))

@@ -133,7 +133,7 @@ func (druid *Druid) RegisterCatFormAura() {
 	// if !druid.Env.MeasuringStats {
 	// druid.AutoAttacks.SetMH(clawWeapon)
 	// druid.AutoAttacks.EnableAutoSwing(sim)
-	// druid.UpdateManaRegenRates()
+	// druid.UpdateManaRegenRates(sim)
 	//
 	// if sim.CurrentTime > 0 {
 	// if cur := druid.CurrentEnergy(); cur > 0 {
@@ -168,7 +168,7 @@ func (druid *Druid) RegisterCatFormAura() {
 	// if !druid.Env.MeasuringStats {
 	// druid.AutoAttacks.SetMH(druid.WeaponFromMainHand())
 	// druid.AutoAttacks.EnableAutoSwing(sim)
-	// druid.UpdateManaRegenRates()
+	// druid.UpdateManaRegenRates(sim)
 	// }
 	// },
 	// })
@@ -262,7 +262,7 @@ func (druid *Druid) RegisterBearFormAura() {
 	// druid.GainHealth(sim, healthFrac*druid.MaxHealth()-druid.CurrentHealth(), healthMetrics)
 	// druid.AutoAttacks.SetMH(clawWeapon)
 	// druid.AutoAttacks.EnableAutoSwing(sim)
-	// druid.UpdateManaRegenRates()
+	// druid.UpdateManaRegenRates(sim)
 	// }
 	// },
 	// OnExpire: func(aura *core.Aura, sim *core.Simulation) {
@@ -286,7 +286,7 @@ func (druid *Druid) RegisterBearFormAura() {
 	// druid.RemoveHealth(sim, druid.CurrentHealth()-healthFrac*druid.MaxHealth())
 	// druid.AutoAttacks.SetMH(druid.WeaponFromMainHand())
 	// druid.AutoAttacks.EnableAutoSwing(sim)
-	// druid.UpdateManaRegenRates()
+	// druid.UpdateManaRegenRates(sim)
 	// }
 	// },
 	// })

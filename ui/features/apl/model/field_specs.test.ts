@@ -1,8 +1,14 @@
-import { APLValueIsExecutePhase_ExecutePhaseThreshold as ExecutePhaseThreshold } from '@generated/proto/apl';
-import { ActionID, AreaType, Stat } from '@generated/proto/common';
+import {
+	APLValueAutoAttackType,
+	APLValueAutoSwingTime_SwingType as AutoSwingType,
+	APLValueIsExecutePhase_ExecutePhaseThreshold as ExecutePhaseThreshold,
+} from '@generated/proto/apl';
+import { ActionID, AreaType, Class, Stat } from '@generated/proto/common';
+import type { Player } from '@sim/player/player';
 import { getEnumValues } from '@sim/utils/collections';
 import { describe, expect, it, vi } from 'vitest';
 
+import type { APLFieldDescriptor } from './field_descriptors';
 import {
 	actionFieldConfig,
 	actionIdFieldConfig,
@@ -33,9 +39,15 @@ import {
 	valueListFieldConfig,
 	variableNameFieldConfig,
 } from './field_descriptors';
-import { newKindImpl, resolveField } from './field_specs';
+import { newKindImpl as newKindImplFor, resolveField as resolveFieldFor } from './field_specs';
 
 vi.mock('@i18n/config', () => ({ default: { t: (key: string) => key } }));
+
+const playerOf = (clss: Class) => ({ getClass: () => clss }) as unknown as Player<any>;
+const warrior = playerOf(Class.ClassWarrior);
+
+const resolveField = (descriptor: APLFieldDescriptor) => resolveFieldFor(descriptor, warrior);
+const newKindImpl = (kind: Parameters<typeof newKindImplFor>[0]) => newKindImplFor(kind, warrior);
 
 describe('resolveField kinds', () => {
 	it('resolves the fixed-enum descriptor types to kind enum', () => {
@@ -157,6 +169,35 @@ describe('resolveField statType table', () => {
 		expect(spec.table.options[0].value).toBe(-1);
 		expect(spec.table.options.slice(1).map(option => option.value)).toEqual(getEnumValues(Stat));
 	});
+});
+
+describe('resolveField auto tables by class', () => {
+	const enumSpec = (descriptor: APLFieldDescriptor, player: Player<any>) => {
+		const spec = resolveFieldFor(descriptor, player);
+		if (spec.kind !== 'enum') throw new Error('expected enum kind');
+		return spec;
+	};
+
+	it.each([Class.ClassMage, Class.ClassPriest, Class.ClassWarlock])('offers class %s only the wand', clss => {
+		const autoTypes = enumSpec(autoTypeFieldConfig('f'), playerOf(clss));
+		const swingTypes = enumSpec(autoSwingTypeFieldConfig('f'), playerOf(clss));
+		expect(autoTypes.table.options.map(option => option.value)).toEqual([APLValueAutoAttackType.WandAuto]);
+		expect(swingTypes.table.options.map(option => option.value)).toEqual([AutoSwingType.Wand]);
+		expect(autoTypes.newValue()).toBe(APLValueAutoAttackType.WandAuto);
+		expect(swingTypes.newValue()).toBe(AutoSwingType.Wand);
+	});
+
+	it.each([Class.ClassWarrior, Class.ClassRogue, Class.ClassHunter, Class.ClassPaladin, Class.ClassShaman, Class.ClassDruid])(
+		'offers class %s no wand',
+		clss => {
+			const autoTypes = enumSpec(autoTypeFieldConfig('f'), playerOf(clss));
+			const swingTypes = enumSpec(autoSwingTypeFieldConfig('f'), playerOf(clss));
+			expect(autoTypes.table.options.map(option => option.value)).not.toContain(APLValueAutoAttackType.WandAuto);
+			expect(swingTypes.table.options.map(option => option.value)).not.toContain(AutoSwingType.Wand);
+			expect(autoTypes.newValue()).toBe(APLValueAutoAttackType.AnyAuto);
+			expect(swingTypes.newValue()).toBe(AutoSwingType.MainHand);
+		},
+	);
 });
 
 describe('newKindImpl', () => {

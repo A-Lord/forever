@@ -157,7 +157,11 @@ func (result *SpellResult) HealingString() string {
 
 func (spell *Spell) ThreatFromDamage(sim *Simulation, outcome HitOutcome, damage float64, attackTable *AttackTable) float64 {
 	if outcome.Matches(OutcomeLanded) {
-		threat := (damage*spell.ThreatMultiplier + spell.FlatThreatBonus) * spell.unitThreatMultiplier()
+		bonus := spell.FlatThreatBonus
+		if spell.ThreatAPCoefficient != 0 {
+			bonus += spell.ThreatAPCoefficient * spell.MeleeAttackPower(attackTable.Defender)
+		}
+		threat := (damage*spell.ThreatMultiplier + bonus) * spell.unitThreatMultiplier()
 		return threat
 	} else {
 		return 0
@@ -253,9 +257,9 @@ func (spell *Spell) SpellDamage(target *Unit) float64 {
 
 func (spell *Spell) SpellHitChance(target *Unit) float64 {
 	hitPercent := spell.Unit.stats[stats.SpellHitPercent] + spell.BonusHitPercent
-	// All talents that modify spell school specific hit name their spells by class mask, so this
-	// hit only reaches spells that carry one, either the sim's tag or the game files' class flags.
-	// A spell of several schools takes the hit of each, such as Frostfire Bolt's Fire and Frost.
+	// The bonus stats' school hit stands in for a school hit talent, which names its spells by class
+	// flags, so it only reaches spells that carry a ClassSpellMask or class flags. A spell of several
+	// schools takes the hit of each, such as Frostfire Bolt's Fire and Frost.
 	if spell.ClassSpellMask != 0 || !spell.ClassFlags.IsZero() {
 		for _, school := range singleSchools {
 			if spell.SpellSchool.Matches(school) {
@@ -266,13 +270,17 @@ func (spell *Spell) SpellHitChance(target *Unit) float64 {
 	return hitPercent / 100
 }
 func (spell *Spell) SpellChanceToMiss(attackTable *AttackTable) float64 {
-	// https://royalgiraffe.github.io/resist-guide (Binary spells)
-	// hitChance = baseLevelHit * (1 - 0.75*resistCoeff) + spellHitBonus, with no miss floor:
+	return spell.spellChanceToMiss(attackTable, attackTable.BaseSpellMissChance)
+}
+
+// The spell miss chance with the given level-based miss in place of the attack table's, e.g. a wand hand's.
+func (spell *Spell) spellChanceToMiss(attackTable *AttackTable, baseMissChance float64) float64 {
+	// hitChance = baseLevelHit * (1 - averageResist) + spellHitBonus, with no miss floor:
 	// Forever has no 1% minimum miss.
 	// The level-based hit is reduced by the resistance roll first, then the spell hit
 	// bonus is added afterwards, which is why spell hit above the level-based miss
 	// counteracts resistance for binary spells.
-	baseHitChance := 1 - attackTable.BaseSpellMissChance
+	baseHitChance := 1 - baseMissChance
 	if spell.Flags.Matches(SpellFlagBinary) {
 		baseHitChance *= attackTable.GetBinaryHitChance(spell)
 	}
@@ -399,6 +407,10 @@ func (spell *Spell) CalcDamage(sim *Simulation, target *Unit, baseDamage float64
 		baseDamage += spell.BonusCoefficient * spell.BonusDamage(attackTable)
 	} else if spell.SpellSchool.Matches(SpellSchoolPhysical) {
 		baseDamage += spell.BonusDamage(attackTable)
+	}
+	// A spell-school hit rolls its whole amount once power is added, not its base alone.
+	if spell.DirectVariance > 0 && !spell.expecting {
+		baseDamage *= sim.RollWithLabel(1-spell.DirectVariance/2, 1+spell.DirectVariance/2, "Damage Roll")
 	}
 	return spell.calcDamageInternal(sim, target, baseDamage, attackerMultiplier, false, outcomeApplier)
 }
@@ -662,6 +674,9 @@ func (spell *Spell) calcHealingInternal(sim *Simulation, target *Unit, baseHeali
 func (spell *Spell) calcHealing(sim *Simulation, target *Unit, baseHealing float64, outcomeApplier OutcomeApplier, isPeriodic bool) *SpellResult {
 	if spell.BonusCoefficient > 0 {
 		baseHealing += spell.BonusCoefficient * spell.HealingPower(target)
+	}
+	if !isPeriodic && spell.DirectVariance > 0 && !spell.expecting {
+		baseHealing *= sim.RollWithLabel(1-spell.DirectVariance/2, 1+spell.DirectVariance/2, "Healing Roll")
 	}
 	return spell.calcHealingInternal(sim, target, baseHealing, spell.casterHealingMultiplier(isPeriodic), outcomeApplier)
 }

@@ -371,7 +371,7 @@ func TestValueHealthAndMana(t *testing.T) {
 	target.stats[stats.Health] = 1000
 	target.manaBar = manaBar{unit: target, currentMana: 300}
 	target.stats[stats.Mana] = 1200
-	target.manaTickWhileCasting = 7
+	target.manaRegenWhileCasting = 7
 
 	rot := &APLRotation{unit: &Unit{CurrentTarget: target}}
 	targetRef := &proto.UnitReference{Type: proto.UnitReference_CurrentTarget}

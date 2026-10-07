@@ -53,7 +53,7 @@ func (shaman *Shaman) registerSearingTotemSpell() {
 	attackConfig := shaman.newTotemAttackConfig(searingAttackRank)
 	attackConfig.ClassSpellMask = SpellMaskSearingTotem
 	attackConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		result := spell.CalcDamage(sim, target, damage.Roll(sim), spell.OutcomeMagicHitAndCrit)
+		result := spell.CalcDamage(sim, target, damage.Average(), spell.OutcomeMagicHitAndCrit)
 		spell.WaitTravelTime(sim, func(sim *core.Simulation) {
 			spell.DealDamage(sim, result)
 		})
@@ -75,7 +75,7 @@ func (shaman *Shaman) registerMagmaTotemSpell() {
 	pulseConfig := shaman.newTotemAttackConfig(magmaPulseRank)
 	pulseConfig.ClassSpellMask = SpellMaskMagmaTotem
 	pulseConfig.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
-		spell.CalcAndDealAoeDamage(sim, damage.Roll(sim), spell.OutcomeMagicHitAndCrit)
+		spell.CalcAndDealAoeDamage(sim, damage.Average(), spell.OutcomeMagicHitAndCrit)
 	}
 	pulse := shaman.RegisterSpell(pulseConfig)
 
@@ -88,8 +88,9 @@ func (shaman *Shaman) registerMagmaTotemSpell() {
 }
 
 // "Instantly inflicts $11307s1 fire damage to enemies within $11307a1 yd of your active Fire totem."
-// The cast deals 11307's damage itself, so it carries both rows' class flags: Improved Fire Nova
-// names the cast, 408345, and Call of Flame and Elemental Fury name the damage, 11307.
+// The tooltip reads 11307, but the cast hits for the Fire Nova row of its own rank, 408428, and deals
+// that damage itself, so it carries both rows' class flags: Improved Fire Nova names both, and Call of
+// Flame and Elemental Fury name the damage, 408428.
 func (shaman *Shaman) registerFireNovaSpell() {
 	damage := fireNovaDamageRank.DamageEffect()
 
@@ -98,6 +99,7 @@ func (shaman *Shaman) registerFireNovaSpell() {
 		spelldata.Flags(SpellFlagShamanSpell|SpellFlagInstant))
 	config.ClassSpellMask = SpellMaskFireNova
 	config.BonusCoefficient = damage.Coeff()
+	config.DirectVariance = damage.DirectVariance()
 	for i := range config.ClassFlags.Mask {
 		config.ClassFlags.Mask[i] |= fireNovaDamageRank.ClassFlags.Mask[i]
 	}
@@ -107,7 +109,7 @@ func (shaman *Shaman) registerFireNovaSpell() {
 		return totem != nil && totem.IsActive()
 	}
 	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
-		spell.CalcAndDealAoeDamage(sim, damage.Roll(sim), spell.OutcomeMagicHitAndCrit)
+		spell.CalcAndDealAoeDamage(sim, damage.Average(), spell.OutcomeMagicHitAndCrit)
 	}
 
 	shaman.FireNova = shaman.RegisterSpell(config)

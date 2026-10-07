@@ -156,7 +156,8 @@
 			"bows": "Bows",
 			"crossbows": "Crossbows",
 			"guns": "Guns",
-			"thrown": "Thrown"
+			"thrown": "Thrown",
+			"wands": "Wands"
 		},
 		"spell_schools": {
 			"physical": "Physical",
@@ -704,7 +705,8 @@
 					"scroll": "Scrolls",
 					"food": "Food",
 					"explosive": "Explosives",
-					"imbue": "Imbues",
+					"imbue": "Stones and Oils",
+					"weaponImbue": "Weapon Imbues",
 					"device": "Devices",
 					"other": "Other"
 				}
@@ -728,9 +730,14 @@
 				"explosives": "Explosives"
 			},
 			"imbue": {
-				"title": "Imbues",
+				"title": "Stones and Oils",
 				"mhImbue": "Main Hand",
 				"ohImbue": "Off Hand"
+			},
+			"weaponImbue": {
+				"title": "Weapon Imbues",
+				"mhWeaponImbue": "Main Hand",
+				"ohWeaponImbue": "Off Hand"
 			},
 			"scrolls": {
 				"title": "Scrolls"
@@ -1426,7 +1433,7 @@
 				},
 				"current_mana_regen": {
 					"label": "Current Mana Regen",
-					"tooltip": "Current Mana Regen while casting"
+					"tooltip": "Current mana regen per second while casting"
 				},
 				"current_rage": {
 					"label": "Current Rage",
@@ -1502,16 +1509,17 @@
 				},
 				"auto_swing_time": {
 					"label": "Auto Swing Time",
-					"tooltip": "Total swing duration including all haste buffs."
+					"tooltip": "Total swing duration including all haste buffs. <b>Wand</b> returns the wand speed with cast speed applied, which a Shoot channel fixes when it starts."
 				},
 				"time_to_next_auto": {
 					"label": "Time To Next Auto",
-					"tooltip": "Amount of time remaining before the next Main-hand, Off-hand or Ranged attack, or <b>0</b> if autoattacks are not engaged."
+					"tooltip": "Amount of time remaining before the next Main-hand, Off-hand, Ranged or Wand attack, or <b>0</b> if autoattacks are not engaged. <b>Any</b> includes the wand's next shot while Shoot is channeling. <b>Wand</b> reads <b>0</b> while Shoot is not channeling."
 				},
 				"time_since_last_auto": {
 					"label": "Time Since Last Auto",
-					"tooltip": "Amount of time since the last Main-hand, Off-hand or Ranged attack, or <b>0</b> if autoattacks are not engaged."
+					"tooltip": "Amount of time since the last Main-hand, Off-hand, Ranged or Wand attack, or <b>0</b> if autoattacks are not engaged. <b>Any</b> includes the last wand shot. <b>Wand</b> reads the time since the last shot, or the time since the pull before the first shot."
 				},
+				"wand": "Wand",
 				"spell_known": {
 					"label": "Spell Known",
 					"tooltip": "<b>True</b> if the spell is currently known, otherwise <b>False</b>."
@@ -2362,6 +2370,7 @@
 			"alpha": "This sim is in ALPHA. Bugs are expected; please let us know if you find one!",
 			"beta": "This sim is in BETA. There may still be a few bugs; please let us know if you find one!"
 		},
+		"spell_resistance": "Spell resistance uses a formula based on findings from the WoW Forever beta: partial resists in 10% steps around an average of R / (R + 5 × level + 80), and Spell Piercing beyond the target's resistance as bonus damage. It may change as more data comes in.",
 		"options": {
 			"title": "Options",
 			"fixed_rng_seed": {

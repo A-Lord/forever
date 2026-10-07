@@ -36,6 +36,7 @@ var weaponSkillLines = map[int32]proto.WeaponSkill{
 	173: proto.WeaponSkill_WeaponSkillDaggers,
 	176: proto.WeaponSkill_WeaponSkillThrown,
 	226: proto.WeaponSkill_WeaponSkillCrossbows,
+	228: proto.WeaponSkill_WeaponSkillWands,
 	229: proto.WeaponSkill_WeaponSkillPolearms,
 	473: proto.WeaponSkill_WeaponSkillFistWeapons,
 }
@@ -80,6 +81,10 @@ type parser struct {
 	// The slot FromCaster names, which the rows that reach only the caster's attacks share. Nil
 	// without a caster.
 	casterSlot *casterSlot
+
+	// ShowAsSchoolHit: the schools the hit mods are shown under, and whether a row stamped them.
+	showAsSchoolHit        core.SpellSchool
+	showAsSchoolHitStamped bool
 }
 
 // One attachment made for one effect: the sim kind it became, the value in the sim's own units, and
@@ -574,7 +579,10 @@ var flatModTable = map[dbcenums.SpellModOp]row{
 		return p.modFloat("SpellMod_BonusCrit_Percent", p.modConfig(e, core.SpellMod_BonusCrit_Percent), v)
 	},
 	dbcenums.SPELLMOD_RESIST_MISS_CHANCE: func(p *parser, e *Effect, v float64) *attachment {
-		return p.modFloat("SpellMod_BonusHit_Percent", p.modConfig(e, core.SpellMod_BonusHit_Percent), v)
+		cfg := p.modConfig(e, core.SpellMod_BonusHit_Percent)
+		cfg.ShowAsSchoolHit = p.showAsSchoolHit
+		p.showAsSchoolHitStamped = true
+		return p.modFloat("SpellMod_BonusHit_Percent", cfg, v)
 	},
 	dbcenums.SPELLMOD_DURATION: func(p *parser, e *Effect, v float64) *attachment {
 		return p.modTime("SpellMod_Duration_Flat", p.modConfig(e, core.SpellMod_Duration_Flat), v)
@@ -1240,7 +1248,7 @@ func (p *parser) refreshingManaRegen(a *attachment) *attachment {
 	set := a.set
 	a.set = func(sim *core.Simulation, level float64) {
 		set(sim, level)
-		p.unit.UpdateManaRegenRates()
+		p.unit.UpdateManaRegenRates(sim)
 	}
 	return a
 }

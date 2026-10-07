@@ -10,6 +10,8 @@ type QueuedSpell struct {
 	queueAction *PendingAction
 	castFn      func(*Simulation)
 
+	channelAction *APLActionChannelSpell // The channel action that queued the spell, which its cast carries when it fires.
+
 	// Stores the time at which QueueSpell() was called to ensure that only one spell can be queued up per timestep
 	QueueInitiatedAt time.Duration
 }
@@ -21,6 +23,7 @@ func (qs *QueuedSpell) Cancel(sim *Simulation) {
 		qs.queueAction = nil
 	}
 
+	qs.channelAction = nil
 	qs.QueueInitiatedAt = -NeverExpires
 }
 
@@ -38,7 +41,7 @@ func (qs *QueuedSpell) InitiateQueue(sim *Simulation, spell *Spell, target *Unit
 	if qs.queueAction == nil {
 		if qs.castFn == nil {
 			qs.castFn = func(sim *Simulation) {
-				qs.spell.Cast(sim, qs.target)
+				qs.spell.castForRotation(sim, qs.target, qs.channelAction)
 			}
 		}
 		pa := &PendingAction{
@@ -115,8 +118,12 @@ func (spell *Spell) CanCastOrQueue(sim *Simulation, target *Unit) bool {
 }
 
 func (spell *Spell) CastOrQueue(sim *Simulation, target *Unit) {
+	spell.castOrQueue(sim, target, nil)
+}
+
+func (spell *Spell) castOrQueue(sim *Simulation, target *Unit, channelAction *APLActionChannelSpell) {
 	if spell.CanCast(sim, target) {
-		spell.Cast(sim, target)
+		spell.castForRotation(sim, target, channelAction)
 	} else if spell.CanQueue(sim, target) {
 		// Determine which timer the spell is waiting on
 		queueTime := max(spell.Unit.Hardcast.Expires, BothTimersReadyAt(spell.CD.Timer, spell.SharedCD.Timer))
@@ -127,8 +134,39 @@ func (spell *Spell) CastOrQueue(sim *Simulation, target *Unit) {
 
 		// Schedule the cast to go off without delay
 		spell.Unit.QueueSpell(sim, spell, target, queueTime)
+		spell.Unit.QueuedSpell.channelAction = channelAction
 	} else {
 		// Fallback to make sure there is always log output
-		spell.Cast(sim, target)
+		spell.castForRotation(sim, target, channelAction)
 	}
+}
+
+type rotationCast struct {
+	spell         *Spell                 // Until its effects apply or its hardcast ends, completed or not.
+	channelAction *APLActionChannelSpell // The channel action that cast it, whose interruptIf and allowRecast the channel it starts takes.
+}
+
+// A cast by the rotation or a major cooldown: once it completes it restarts the wand's timer. The record
+// outlives the call only while the cast is still running.
+func (spell *Spell) castForRotation(sim *Simulation, target *Unit, channelAction *APLActionChannelSpell) {
+	unit := spell.Unit
+	unit.rotationCast = rotationCast{spell: spell, channelAction: channelAction}
+	if !spell.Cast(sim, target) || unit.Hardcast.Expires <= sim.CurrentTime {
+		unit.endRotationCast()
+	}
+}
+
+func (unit *Unit) endRotationCast() {
+	unit.rotationCast = rotationCast{}
+}
+
+// Hands over the channel action of the cast in flight to a channel starting on spell, the action's own
+// or its RelatedDotSpell; nil for any other channel.
+func (unit *Unit) takeChannelAction(spell *Spell) *APLActionChannelSpell {
+	action := unit.rotationCast.channelAction
+	if action == nil || (spell != action.spell && spell != action.spell.RelatedDotSpell) {
+		return nil
+	}
+	unit.rotationCast.channelAction = nil
+	return action
 }

@@ -42,6 +42,7 @@ const weaponRowsGo = `package warrior
 var cruelty = spelldata.MustFind(12320)
 var thunderingStrikes = spelldata.MustFind(16255)
 var rangedScope = spelldata.MustFind(1310308)
+var dualWield = spelldata.MustFind(23584)
 var furiousPrecision = spelldata.MustFind(1323963)
 var scorpidSting = spelldata.MustFind(3043)
 var oneHandedSpec = spelldata.MustFind(20196)
@@ -58,7 +59,7 @@ func TestHoverWeaponRules(t *testing.T) {
 	} {
 		wantHover(t, weaponRowsGo, needle, 9, want)
 	}
-	wantHover(t, weaponRowsGo, "MustFind(1323963)", 9,
+	wantHover(t, weaponRowsGo, "MustFind(23584)", 9,
 		"| **equip** | needs a one-handed axe, one-handed mace, one-handed sword, fist weapon or dagger in the off hand |")
 }
 
