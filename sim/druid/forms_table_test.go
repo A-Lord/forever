@@ -84,11 +84,69 @@ func TestFeralTablePawKeepsWeaponBonusesWhenRebuilt(t *testing.T) {
 			character.AutoAttacks.SetMH(form.build(cat))
 			paw := character.AutoAttacks.MH()
 
-			// Then each bonus is scaled from the equipped weapon exactly once.
+			// Then Cat adds flat enchant damage after its normalization while Bear keeps its existing scaling.
 			bonus := (11/2.4 + 2) * form.speed
+			if form.name == "cat" {
+				bonus = 11 + 2*form.speed
+			}
 			if !approxEqual(paw.BaseDamageMin, form.low+bonus) || !approxEqual(paw.BaseDamageMax, form.high+bonus) {
 				t.Errorf("rebuilt paw = %.9f-%.9f, want %.9f-%.9f", paw.BaseDamageMin, paw.BaseDamageMax, form.low+bonus, form.high+bonus)
 			}
+		})
+	}
+}
+
+func TestCatPawAddsFlatWeaponDamageAfterNormalization(t *testing.T) {
+	for _, tc := range []struct {
+		name       string
+		swingSpeed float64
+		table      bool
+	}{
+		{"table/2.0", 2, true},
+		{"table/3.5", 3.5, true},
+		{"fallback/2.0", 2, false},
+		{"fallback/3.5", 3.5, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			baseCharacter := catWithMainHand(t, 866, &proto.ConsumesSpec{}, &proto.PartyBuffs{})
+			baseCharacter.GetMHWeapon().SwingSpeed = tc.swingSpeed
+			if !tc.table {
+				baseCharacter.GetMHWeapon().WeaponTableDPS = nil
+			}
+			base := baseCharacter.Env.Raid.Parties[0].Players[0].(*pawDruid).GetCatWeapon()
+
+			permanentCharacter := catWithMainHand(t, 866, &proto.ConsumesSpec{}, &proto.PartyBuffs{})
+			permanentItem := permanentCharacter.GetMHWeapon()
+			permanentItem.SwingSpeed = tc.swingSpeed
+			permanentItem.Enchant.WeaponDamage = 4
+			if !tc.table {
+				permanentItem.WeaponTableDPS = nil
+			}
+			permanent := permanentCharacter.Env.Raid.Parties[0].Players[0].(*pawDruid).GetCatWeapon()
+
+			character := catWithMainHand(t, 866, &proto.ConsumesSpec{MhImbueId: 12643}, &proto.PartyBuffs{})
+			item := character.GetMHWeapon()
+			item.SwingSpeed = tc.swingSpeed
+			item.Enchant.WeaponDamage = 4
+			if !tc.table {
+				item.WeaponTableDPS = nil
+			}
+			cat := character.Env.Raid.Parties[0].Players[0].(*pawDruid)
+			for range 2 {
+				character.AutoAttacks.SetMH(cat.GetCatWeapon())
+			}
+			paw := character.AutoAttacks.MH()
+
+			if item.TempEnchantWeaponDamage != 8 {
+				t.Fatalf("Dense Weightstone damage = %v, want 8", item.TempEnchantWeaponDamage)
+			}
+			if want := 4.0; !approxEqual(permanent.BaseDamageMin-base.BaseDamageMin, want) || !approxEqual(permanent.BaseDamageMax-base.BaseDamageMax, want) {
+				t.Errorf("Cat permanent weapon damage = %.3f-%.3f, want %.3f on both endpoints", permanent.BaseDamageMin-base.BaseDamageMin, permanent.BaseDamageMax-base.BaseDamageMax, want)
+			}
+			if want := 12.0; !approxEqual(paw.BaseDamageMin-base.BaseDamageMin, want) || !approxEqual(paw.BaseDamageMax-base.BaseDamageMax, want) {
+				t.Errorf("Cat flat weapon damage = %.3f-%.3f, want %.3f on both endpoints", paw.BaseDamageMin-base.BaseDamageMin, paw.BaseDamageMax-base.BaseDamageMax, want)
+			}
+			t.Logf("Cat %s endpoints %.3f-%.3f become %.3f-%.3f with permanent +4 and %.3f-%.3f with permanent +4 plus Dense Weightstone +8", tc.name, base.BaseDamageMin, base.BaseDamageMax, permanent.BaseDamageMin, permanent.BaseDamageMax, paw.BaseDamageMin, paw.BaseDamageMax)
 		})
 	}
 }

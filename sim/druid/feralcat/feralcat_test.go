@@ -1737,6 +1737,24 @@ func TestShredRequiresATargetThatCanBeShredded(t *testing.T) {
 	}
 }
 
+func TestRegisteredShredUsesCatPawFlatDamageAfterNormalization(t *testing.T) {
+	sim, cat := newCat(t, "", nil)
+	item := cat.GetMHWeapon()
+	item.SwingSpeed = 2
+	cat.AutoAttacks.SetMH(cat.GetCatWeapon())
+	rank := spelldata.MustFind(9830)
+	base := rank.WeaponStrike(sim, cat.Shred.Spell, cat.AutoAttacks.MH().CalculateAverageWeaponDamage(cat.Shred.MeleeAttackPower(cat.CurrentTarget)), 0)
+
+	item.Enchant.WeaponDamage = 4
+	cat.AutoAttacks.SetMH(cat.GetCatWeapon())
+	withEnchant := rank.WeaponStrike(sim, cat.Shred.Spell, cat.AutoAttacks.MH().CalculateAverageWeaponDamage(cat.Shred.MeleeAttackPower(cat.CurrentTarget)), 0)
+
+	if got, want := withEnchant-base, 6.2; math.Abs(got-want) > 1e-9 {
+		t.Errorf("registered Shred gains %.3f before outcomes, want %.3f", got, want)
+	}
+	t.Logf("registered Shred row 9830 gains %.3f before outcomes from Cat +4", withEnchant-base)
+}
+
 func TestConsumablesFollowTheNotShapeshiftedRow(t *testing.T) {
 	interesting := map[proto.ConsumableType]bool{
 		proto.ConsumableType_ConsumableTypePotion:    true,

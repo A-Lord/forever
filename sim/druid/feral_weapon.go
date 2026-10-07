@@ -10,13 +10,14 @@ func (druid *Druid) GetCatWeapon() core.Weapon {
 	if druid.GetMHWeapon() == nil {
 		return unarmedPaw(1)
 	}
+	flatWeaponDamage := druid.GetMHWeapon().Enchant.WeaponDamage + druid.GetMHWeapon().TempEnchantWeaponDamage
 	unscaledWeapon := druid.WeaponFromMainHand()
 	if druid.GetMHWeapon().WeaponTableDPS != nil {
-		return druid.tablePaw(unscaledWeapon, 1000)
+		return druid.tablePaw(unscaledWeapon, 1000, flatWeaponDamage)
 	}
 	return core.Weapon{
-		BaseDamageMin:        unscaledWeapon.BaseDamageMin / unscaledWeapon.SwingSpeed,
-		BaseDamageMax:        unscaledWeapon.BaseDamageMax / unscaledWeapon.SwingSpeed,
+		BaseDamageMin:        (unscaledWeapon.BaseDamageMin-flatWeaponDamage)/unscaledWeapon.SwingSpeed + flatWeaponDamage,
+		BaseDamageMax:        (unscaledWeapon.BaseDamageMax-flatWeaponDamage)/unscaledWeapon.SwingSpeed + flatWeaponDamage,
 		SwingSpeed:           1.0,
 		NormalizedSwingSpeed: 1.0,
 		AttackPowerPerDPS:    core.DefaultAttackPowerPerDPS,
@@ -30,7 +31,7 @@ func (druid *Druid) GetBearWeapon() core.Weapon {
 	}
 	unscaledWeapon := druid.WeaponFromMainHand()
 	if druid.GetMHWeapon().WeaponTableDPS != nil {
-		return druid.tablePaw(unscaledWeapon, 2500)
+		return druid.tablePaw(unscaledWeapon, 2500, 0)
 	}
 	return core.Weapon{
 		BaseDamageMin:        unscaledWeapon.BaseDamageMin / unscaledWeapon.SwingSpeed * 2.5,
@@ -42,7 +43,7 @@ func (druid *Druid) GetBearWeapon() core.Weapon {
 	}
 }
 
-func (druid *Druid) tablePaw(unscaledWeapon core.Weapon, swingMs float32) core.Weapon {
+func (druid *Druid) tablePaw(unscaledWeapon core.Weapon, swingMs float32, postNormalizationFlat float64) core.Weapon {
 	item := druid.GetMHWeapon()
 	perSwing := float32(float32(*item.WeaponTableDPS) * swingMs)
 	perSwing = float32(perSwing * float32(0.001))
@@ -51,8 +52,8 @@ func (druid *Druid) tablePaw(unscaledWeapon core.Weapon, swingMs float32) core.W
 	high := float32(perSwing * float32(float32(1)+halfVariance))
 	swingSpeed := float64(swingMs) / 1000
 	return core.Weapon{
-		BaseDamageMin:        max(1, math.Floor(float64(low))) + (unscaledWeapon.BaseDamageMin-item.WeaponDamageMin)/unscaledWeapon.SwingSpeed*swingSpeed,
-		BaseDamageMax:        max(1, math.Floor(float64(high)+0.5)) + (unscaledWeapon.BaseDamageMax-item.WeaponDamageMax)/unscaledWeapon.SwingSpeed*swingSpeed,
+		BaseDamageMin:        max(1, math.Floor(float64(low))) + (unscaledWeapon.BaseDamageMin-item.WeaponDamageMin-postNormalizationFlat)/unscaledWeapon.SwingSpeed*swingSpeed + postNormalizationFlat,
+		BaseDamageMax:        max(1, math.Floor(float64(high)+0.5)) + (unscaledWeapon.BaseDamageMax-item.WeaponDamageMax-postNormalizationFlat)/unscaledWeapon.SwingSpeed*swingSpeed + postNormalizationFlat,
 		SwingSpeed:           swingSpeed,
 		NormalizedSwingSpeed: swingSpeed,
 		AttackPowerPerDPS:    core.DefaultAttackPowerPerDPS,
