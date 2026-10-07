@@ -269,9 +269,10 @@ func (shaman *Shaman) applyMaelstromWeapon() {
 
 	// The tooltip's $s3 is the stack count, which the buff row's five also states. The row's chance
 	// column is the "no roll" 100 and it names no procs per minute, while the tooltip says "a
-	// chance"; effect 2's 50, which the tooltip does not name, is read as that chance.
+	// chance". In game the chance per hit rises with the main hand's speed, so it is a rate per
+	// minute; a proc at five stacks refreshes the buff.
 	//
-	// TODO: Ingame test needed: the chance per melee hit.
+	// TODO: 10 fits the 3.6 s weapon; a 2.4 s weapon measured about 6.6.
 	trigger := spelldata.ProcTrigger(&shaman.Character, rank,
 		func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
 			maelstromAura.Activate(sim)
@@ -280,7 +281,7 @@ func (shaman *Shaman) applyMaelstromWeapon() {
 		func(_ *core.Character, trigger *core.ProcTrigger) {
 			trigger.ProcMask = core.ProcMaskMelee
 		},
-		spelldata.ChanceFrom(rank.EffectN(2)))
+		spelldata.PPM(10))
 	trigger.Name = "Maelstrom Weapon - Trigger"
 
 	shaman.MakeProcTriggerAura(trigger)
