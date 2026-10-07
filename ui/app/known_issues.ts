@@ -21,13 +21,7 @@ const statusNotice = (status: LaunchStatus): string => {
 	}
 };
 
-const SPELL_CASTER_SPECS: ReadonlySet<Spec> = new Set([
-	Spec.SpecBalanceDruid,
-	Spec.SpecMage,
-	Spec.SpecDpsPriest,
-	Spec.SpecElementalShaman,
-	Spec.SpecWarlock,
-]);
+const SPELL_CASTER_SPECS: ReadonlySet<Spec> = new Set([Spec.SpecBalanceDruid, Spec.SpecMage, Spec.SpecDpsPriest, Spec.SpecElementalShaman, Spec.SpecWarlock]);
 
 export const knownIssuesFor = (simStatus: SimStatus, spec: Spec, knownIssues?: ReadonlyArray<ReactNode>): ReactNode[] => {
 	const notice = statusNotice(simStatus.status);

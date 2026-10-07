@@ -57,7 +57,8 @@ func (at *AttackTable) GetBinaryHitChance(spell *Spell) float64 {
 
 // The average share of a spell's damage the target resists, R / (R + 5L + 80) for the caster's level L,
 // with the caster's Spell Piercing taken off R. Piercing beyond the resistance makes the share negative,
-// and the roll pays it out as bonus damage.
+// and the roll pays it out as bonus damage. The target's own resistance stops at 0, so a debuff that
+// lowers it below 0 adds nothing.
 func (unit *Unit) averageResist(spell *Spell, attacker *Unit, binary bool, isPeriodic bool) float64 {
 	if spell.SchoolIndex <= stats.SchoolIndexPhysical {
 		return 0
@@ -66,7 +67,7 @@ func (unit *Unit) averageResist(spell *Spell, attacker *Unit, binary bool, isPer
 	resistance := 0.0
 	if stat, ok := spell.SpellSchool.ResistanceStat(); ok {
 		piercing := attacker.stats[stats.SpellPiercing] + attacker.PseudoStats.SchoolSpellPiercing[spell.SchoolIndex]
-		resistance = unit.GetStat(stat) - piercing
+		resistance = max(0, unit.GetStat(stat)) - piercing
 	}
 	// TODO: 5L + 80 and 10L (as R / 10L) both fit the level 20-24 Spell Piercing logs; a level-30 log
 	// decides, with 46% of hits binned at 15 piercing under 5L + 80 and 38% under 10L (#76).

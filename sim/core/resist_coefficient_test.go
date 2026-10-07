@@ -52,6 +52,12 @@ func TestSpellPiercingBeyondResistanceAddsDamage(t *testing.T) {
 		t.Errorf("average resist with 15 piercing and no resistance = %v, want %v", got, -a)
 	}
 
+	debuffed := &Unit{Type: EnemyUnit, Level: 60, PseudoStats: stats.NewPseudoStats()}
+	debuffed.stats[stats.ArcaneResistance] = -75
+	if got := debuffed.averageResist(spell, attacker, false, false); math.Abs(got+a) > 1e-12 {
+		t.Errorf("average resist with 15 piercing against -75 resistance = %v, want %v as against 0", got, -a)
+	}
+
 	sim := &Simulation{rand: NewSplitMix(1)}
 	attackTable := NewAttackTable(attacker, defender)
 	counts := map[float64]int{}
