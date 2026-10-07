@@ -101,13 +101,14 @@ func (shaman *Shaman) holdTotemCategoryOnMainHand(label string, actionID core.Ac
 }
 
 // The extra attacks are a main-hand weapon special logged as 439440, with 16361's attack power added:
-// they roll miss, dodge, parry and crit, never glance, and auto attack procs do not hear them.
+// they roll miss, dodge, parry and crit, never glance, and auto attack procs do not hear them. Like
+// every extra attack they report as a main-hand attack tagged with the spell that grants them.
 func (shaman *Shaman) newWindfuryImbueSpell() *core.Spell {
 	// Elemental Weapons raises effect 1, which the parse would read as damage.
 	attackPower := windfuryWeaponAttack.EffectN(1).Average() * shaman.windfuryWeaponMultiplier
 
 	return shaman.RegisterSpell(core.SpellConfig{
-		ActionID:         core.ActionID{SpellID: 439440},
+		ActionID:         core.ActionID{OtherID: proto.OtherAction_OtherActionAttack, Tag: windfuryWeaponAttack.ID},
 		SpellSchool:      core.SpellSchoolPhysical,
 		DefenseType:      core.DefenseTypeMelee,
 		ProcMask:         core.ProcMaskMeleeMHSpecial,
