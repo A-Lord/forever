@@ -109,12 +109,19 @@ damage or any of the weapon-damage effects), `HealEffect()`, `EnergizeEffect()` 
 Each also comes in an `At` form taking a level (`AverageAt(level)`, `RollAt(sim, level)`), for a test
 pinning an in-game tooltip at a lower level and for `ParseEffects`' level option.
 
-`AverageAt(level)` folds the amount the way the tooltip does: the base points plus
-`EffectRealPointsPerLevel` for each level between the spell's `BaseLevel` and the caster's, stopped
-at `MaxLevel` where the row states one, and floored. `BaseLevel` equals `SpellLevel` on most ranks.
-Where it does not (Vindication's debuff states 0 and 1), the in-game amount counts from `BaseLevel`.
-The arithmetic is float32 on purpose: the game files' per-level gain is a float32 widened into the
-database, and folding it in float64 moves six rows off the tooltip.
+`AverageAt(level)` folds the amount: the base points plus `EffectRealPointsPerLevel` for each level
+between the spell's `BaseLevel` and the caster's, stopped at `MaxLevel` where the row states one.
+`BaseLevel` equals `SpellLevel` on most ranks. Where it does not (Vindication's debuff states 0 and
+1), the in-game amount counts from `BaseLevel`. The arithmetic is float32 on purpose: the game files'
+per-level gain is a float32 widened into the database, and folding it in float64 moves six rows off
+the tooltip.
+
+A damage or heal amount keeps its fraction: a direct hit or heal, a weapon strike's flat damage, a
+leech, a periodic damage, heal or leech tick, and a damage shield. In game the amount dealt is the
+exact value, power and multipliers included, rounded up with a chance equal to its fraction and down
+otherwise, so it averages the exact value: Flame Shock rank 1's 20.8 at level 11 landed 21 on 21 of
+26 hits and 20 on the rest. Every other amount (a stat, a resource gain, an absorb, a threat, a dummy's value) is the whole
+number the tooltip shows, floored.
 
 `EffectVariance` is the full width of the roll, and what it spreads depends on the effect.
 
@@ -130,7 +137,8 @@ database, and folding it in float64 moves six rows off the tooltip.
 
 The base-point ends are rounded to a whole number, a base end on a half rounding to the even one. The
 per-level gain is then added to both ends, and `Min` is rounded down and `Max` rounded up, in float32
-for the same reason. For a spell-school hit or a heal those are the ends the game files state, not
+for the same reason; an effect that does not roll answers its floored amount at both. For a
+spell-school hit or a heal those are the ends the game files state, not
 where a cast lands. `Roll` rolls the base points where the row states a spread and answers the average
 where it does not; `DirectAmount` answers the average where core rolls the whole amount and `Roll`
 otherwise, so a call site that serves physical and spell-school rows alike never has to ask which it

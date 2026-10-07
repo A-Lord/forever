@@ -40,7 +40,7 @@ func (paladin *Paladin) registerConsecration(n int32, rank *spelldata.Spell) {
 		}
 	}
 
-	config := spelldata.SpellConfig(&paladin.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage), spelldata.Flags(core.SpellFlagPureDot))
+	config := spelldata.SpellConfig(&paladin.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))
 	config.ClassSpellMask = SpellMaskConsecration
 	// The row states no range: the area is the dummy's 8 yd radius around the paladin, so the target
 	// has to stand inside it.

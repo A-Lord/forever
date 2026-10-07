@@ -255,8 +255,8 @@ fixtures with `UPDATE_BUFF_FIXTURES=1 go test ./tools/database/`.
 
 ## Pitfalls
 
-**A negative amount that scales by level floors away from zero.** `Average` floors the folded amount,
-so Demoralizing Shout's -196 and -1.4 a level read -205 at 60, and Demoralizing Roar's -193 does too.
+**A negative amount that scales by level floors away from zero.** `Average` floors an aura's folded
+amount, so Demoralizing Shout's -196 and -1.4 a level read -205 at 60, and Demoralizing Roar's -193 does too.
 A game build that truncated the per-level part toward zero would state -204. The sim takes the store's
 reading until the game says otherwise.
 

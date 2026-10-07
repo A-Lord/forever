@@ -14,7 +14,7 @@ const serpentStingTickAPShare = 0.03
 func (hunter *Hunter) registerSerpentSting() {
 	tick := serpentStingRank.PeriodicEffect()
 
-	config := spelldata.SpellConfig(&hunter.Unit, serpentStingRank, spelldata.Flags(core.SpellFlagAPL|core.SpellFlagPureDot))
+	config := spelldata.SpellConfig(&hunter.Unit, serpentStingRank, spelldata.Flags(core.SpellFlagAPL))
 	// A cast, not a proc, but one that must not read as a ranged hit to on-hit listeners; what the
 	// sting's application should count as is a separate question. Matches only listeners that
 	// state no mask.
