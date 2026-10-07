@@ -31,8 +31,10 @@ func (spell *Spell) ResistanceMultiplier(sim *Simulation, isPeriodic bool, attac
 		return attackTable.GetArmorDamageModifier(spell), OutcomeEmpty
 	}
 
-	// Magical resistance.
-	if spell.Flags.Matches(SpellFlagBinary | SpellFlagNoPartialResist) {
+	// Magical resistance. A binary spell is resisted in full or not at all, but the ticks of one
+	// flagged SpellFlagFullResistanceTicks still roll partial resists (Insect Swarm).
+	binaryHit := spell.Flags.Matches(SpellFlagBinary) && !(isPeriodic && spell.Flags.Matches(SpellFlagFullResistanceTicks))
+	if binaryHit || spell.Flags.Matches(SpellFlagNoPartialResist) {
 		return 1, OutcomeEmpty
 	}
 
