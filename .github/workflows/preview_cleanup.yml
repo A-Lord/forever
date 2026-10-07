@@ -2,7 +2,7 @@ name: Remove pull request preview
 on:
     pull_request:
         types: [closed]
-# Every push of a same-repository pull request lands in the Pages project as the pr-<number>
+# Every push of a same-repository pull request lands in the Pages project as a pr-<number>-<hash>
 # branch (the preview steps in run_tests.yml). Nothing on Cloudflare expires those, so the
 # closing pull request deletes them itself; fork pull requests never had one.
 jobs:
@@ -21,7 +21,7 @@ jobs:
               with:
                   script: |
                       const number = context.payload.pull_request.number;
-                      const branch = `pr-${number}`;
+                      const ofThisPullRequest = branch => branch === `pr-${number}` || branch?.startsWith(`pr-${number}-`);
                       const base = `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/pages/projects/wowsims-forever/deployments`;
                       const headers = { Authorization: `Bearer ${process.env.CLOUDFLARE_API_TOKEN}` };
                       const call = async (url, method = 'GET') => {
@@ -33,12 +33,12 @@ jobs:
                       const ids = [];
                       for (let page = 1; ; page++) {
                           const { result, result_info } = await call(`${base}?env=preview&page=${page}`);
-                          ids.push(...result.filter(deployment => deployment.deployment_trigger?.metadata?.branch === branch).map(deployment => deployment.id));
+                          ids.push(...result.filter(deployment => ofThisPullRequest(deployment.deployment_trigger?.metadata?.branch)).map(deployment => deployment.id));
                           if (!result.length || page >= (result_info?.total_pages ?? page)) break;
                       }
                       // The newest deployment carries the branch alias, which only `force` lets go of.
                       for (const id of ids) await call(`${base}/${id}?force=true`, 'DELETE');
-                      core.info(`Deleted ${ids.length} deployment(s) of ${branch}.`);
+                      core.info(`Deleted ${ids.length} deployment(s) of pull request ${number}.`);
 
                       const marker = '<!-- preview-link -->';
                       const comments = await github.paginate(github.rest.issues.listComments, { ...context.repo, issue_number: number, per_page: 100 });
