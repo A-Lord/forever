@@ -6871,6 +6871,19 @@
 											},
 											"additionalProperties": false,
 											"required": ["label", "tooltip"]
+										},
+										"faerie_fire_for_omen": {
+											"type": "object",
+											"properties": {
+												"label": {
+													"type": "string"
+												},
+												"tooltip": {
+													"type": "string"
+												}
+											},
+											"additionalProperties": false,
+											"required": ["label", "tooltip"]
 										}
 									},
 									"additionalProperties": false,
@@ -6881,7 +6894,8 @@
 										"rip_min_combo_points",
 										"bite_min_combo_points",
 										"rake_trick",
-										"maintain_faerie_fire"
+										"maintain_faerie_fire",
+										"faerie_fire_for_omen"
 									]
 								},
 								"feral_bear": {

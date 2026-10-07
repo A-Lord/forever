@@ -37,6 +37,7 @@ export const DefaultRotation = FeralCatDruidRotation.create({
 	ripMinComboPoints: 5,
 	biteMinComboPoints: 5,
 	rakeTrick: true,
+	faerieFireForOmen: true,
 });
 
 // Leather at 60 with no set bonus and no proc. The stand-in the rotation was tuned on.

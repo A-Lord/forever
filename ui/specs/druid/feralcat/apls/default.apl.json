@@ -2,6 +2,6 @@
 	"type": "TypeAPL",
 	"priorityList": [
 		{"action":{"autocastOtherCooldowns":{}}},
-		{"action":{"catOptimalRotationAction":{"ripMinComboPoints":5,"biteMinComboPoints":5,"rakeTrick":true}}}
+		{"action":{"catOptimalRotationAction":{"ripMinComboPoints":5,"biteMinComboPoints":5,"rakeTrick":true,"faerieFireForOmen":true}}}
 	]
 }

@@ -25,6 +25,9 @@ type Druid struct {
 	WolfsheadEnergyBonus float64
 	WolfsheadEnrageBonus float64
 
+	// Holds Berserk back as a major cooldown while it answers false. Nil never holds it.
+	BerserkCondition func(sim *core.Simulation) bool
+
 	MHAutoSpell *core.Spell
 
 	Barkskin             *DruidSpell
@@ -73,6 +76,7 @@ type Druid struct {
 	BerserkAura              *core.Aura
 	CatFormAura              *core.Aura
 	ClearcastingAura         *core.Aura
+	OmenOfClarityAura        *core.Aura // The proc trigger, whose ICD says when Omen of Clarity can proc again.
 	DireBearFormAura         *core.Aura
 	DashAura                 *core.Aura
 	FrenziedRegenerationAura *core.Aura
