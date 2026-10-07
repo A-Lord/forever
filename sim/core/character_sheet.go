@@ -51,6 +51,23 @@ func (character *Character) sheetAttackTable() *AttackTable {
 	return character.AttackTables[character.CurrentTarget.UnitIndex]
 }
 
+// The hit the active hit mods with a ShowAsSchoolHit give each of those schools. A talent such as Arcane
+// Focus states its hit on its spells' class flags, which name no school the sheet could show it under.
+func (character *Character) schoolHitMods() [stats.SchoolLen]float64 {
+	var hit [stats.SchoolLen]float64
+	for _, mod := range character.spellMods {
+		if !mod.IsActive || mod.ShowAsSchoolHit == 0 {
+			continue
+		}
+		for _, school := range singleSchools {
+			if mod.ShowAsSchoolHit.Matches(school) {
+				hit[school.SchoolIndex()] += mod.floatValue
+			}
+		}
+	}
+	return hit
+}
+
 // Which of block and parry the character sheet shows: a character that cannot block or parry shows
 // no Block% or Parry%, and no change in its stats moves either.
 type SheetAvoidance struct{ CanBlock, CanParry bool }
@@ -128,8 +145,9 @@ func (character *Character) GetPseudoStatsProto() []float64 {
 		proto.PseudoStat_PseudoStatMainHandParryPercent:  mainHandTable.BaseParryChance * 100,
 		proto.PseudoStat_PseudoStatMainHandGlancePercent: mainHandTable.BaseGlanceChance * 100,
 	}
+	modHit := character.schoolHitMods()
 	for school := stats.SchoolIndexArcane; school < stats.SchoolLen; school++ {
-		pseudoStats[SchoolHitPseudoStats[school]] = character.GetStat(stats.SpellHitPercent) + character.PseudoStats.SchoolBonusHitChance[school]
+		pseudoStats[SchoolHitPseudoStats[school]] = character.GetStat(stats.SpellHitPercent) + character.PseudoStats.SchoolBonusHitChance[school] + modHit[school]
 	}
 	character.sheetAvoidance().Gate(pseudoStats)
 	return pseudoStats
