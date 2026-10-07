@@ -25,7 +25,6 @@ func (hunter *Hunter) registerMarksmanshipTalents() {
 	// Tier 4
 	// Trueshot Aura: a party buff, hunter.go
 	hunter.registerMortalShots()
-	hunter.registerImprovedSerpentSting()
 
 	// Tier 5
 	hunter.registerRapidRecuperation()
@@ -117,14 +116,6 @@ func (hunter *Hunter) registerMortalShots() {
 	}
 
 	spelldata.ParseStatic(&hunter.Character, spellData.MortalShots.Rank(hunter.Talents.MortalShots))
-}
-
-func (hunter *Hunter) registerImprovedSerpentSting() {
-	if hunter.Talents.ImprovedSerpentSting == 0 {
-		return
-	}
-
-	spelldata.ParseStatic(&hunter.Character, spellData.ImprovedSerpentSting.Rank(hunter.Talents.ImprovedSerpentSting))
 }
 
 var rapidRecuperationBuff = spellData.RapidRecuperationTriggered.Highest()
