@@ -73,6 +73,21 @@ func TestThreatAPCoefficientBakesOntoTheThreatEffect(t *testing.T) {
 	}
 }
 
+func TestThreatPerSpellLevelBakesTheRanksFlatThreat(t *testing.T) {
+	rows := []storeSpell{{ID: 10, SpellLevel: 16}, {ID: 11, SpellLevel: 24}}
+	list := []overrides.Override{
+		{SpellID: 10, Field: overrides.ThreatPerSpellLevel, Value: 2.5, Reason: "measured"},
+		{SpellID: 11, Field: overrides.ThreatPerSpellLevel, Value: 2.5, Reason: "measured"},
+	}
+
+	if err := applyOverrides(rows, list); err != nil {
+		t.Fatalf("baking the overrides: %v", err)
+	}
+	if rows[0].FlatThreat != 40 || rows[1].FlatThreat != 60 {
+		t.Errorf("the ranks read %v and %v flat threat", rows[0].FlatThreat, rows[1].FlatThreat)
+	}
+}
+
 // A proc chance override states the percentage the tooltip does not, and the store keeps the column
 // as the source of it.
 func TestProcChanceOverrideBecomesTheColumn(t *testing.T) {
@@ -154,6 +169,21 @@ func TestOverridesRefuseWhatTheClientNowStates(t *testing.T) {
 			rows:  []storeSpell{{ID: 10}},
 			list:  []overrides.Override{{SpellID: 10, Field: overrides.APCoefThreat, Value: 0.05, Reason: "measured"}},
 			wants: "no threat effect",
+		},
+		{
+			name:  "a per-level threat on a game files threat effect",
+			rows:  []storeSpell{{ID: 10, SpellLevel: 16, Effects: []storeEffect{{Index: 1, Type: dbcenums.E_THREAT}}}},
+			list:  []overrides.Override{{SpellID: 10, Field: overrides.ThreatPerSpellLevel, Value: 2.5, Reason: "measured"}},
+			wants: "now states threat on effect 1",
+		},
+		{
+			name: "a flat and a per-level threat on one spell",
+			rows: []storeSpell{{ID: 10, SpellLevel: 16}},
+			list: []overrides.Override{
+				{SpellID: 10, Field: overrides.FlatThreat, Value: 200, Reason: "measured"},
+				{SpellID: 10, Field: overrides.ThreatPerSpellLevel, Value: 2.5, Reason: "measured"},
+			},
+			wants: "two flat threat overrides",
 		},
 		{
 			name:  "a chance the tooltip states",

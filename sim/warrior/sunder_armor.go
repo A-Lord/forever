@@ -3,7 +3,6 @@ package warrior
 import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/buffs"
-	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
@@ -15,9 +14,6 @@ func (warrior *Warrior) registerSunderArmor() {
 	})
 
 	config := spelldata.SpellConfig(&warrior.Unit, sunderArmorRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
-	threat := sunderArmorRank.FindEffect(dbcenums.E_THREAT, 0, 0)
-	config.FlatThreatBonus = threat.Average()
-	config.ThreatAPCoefficient = threat.APCoeff()
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		result := spell.CalcOutcome(sim, target, spell.OutcomeMeleeSpecialHit)
