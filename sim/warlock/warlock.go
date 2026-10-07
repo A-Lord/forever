@@ -76,15 +76,9 @@ type Warlock struct {
 	// Armors
 	DemonArmor *core.Aura
 
-	serviceTimer *core.Timer
-	soulShards   int32 // the Soul Shards left this iteration
-
 	petActiveAuras  []*core.Aura // the warlock's effects that last while a demon is out
 	lifeTapPetShare float64      // Demonic Energies: the share of Life Tap's mana the demon gains
-
-	CorruptionTickBaseDamage float64
-	ImmolateTickBaseDamage   float64
-	T5_4PC_Multiplier        map[int32]map[*core.Spell]float64
+	soulShards      int32        // the Soul Shards left this iteration
 }
 
 func (warlock *Warlock) GetCharacter() *core.Character {
@@ -177,8 +171,6 @@ func NewWarlock(character *core.Character, options *proto.Player, warlockOptions
 	warlock.AddStatDependency(stats.Agility, stats.PhysicalCritPercent, core.CritPerAgiMaxLevel[character.Class])
 
 	warlock.registerPets()
-
-	warlock.T5_4PC_Multiplier = make(map[int32]map[*core.Spell]float64)
 
 	return warlock
 }
@@ -297,7 +289,6 @@ const (
 	WarlockSpellConflagrate int64 = 1 << iota
 	WarlockSpellShadowBolt
 	WarlockSpellImmolate
-	WarlockSpellImmolateDot
 	WarlockSpellIncinerate
 	WarlockSpellSoulFire
 	WarlockSpellShadowBurn
@@ -308,27 +299,13 @@ const (
 	WarlockSpellBaneOfDoom
 	WarlockSpellDrainLife
 	WarlockSpellHellfire
-	WarlockSpellImmolationAura
 	WarlockSpellSearingPain
-	WarlockSpellSummonDoomguard
-	WarlockSpellDoomguardDoomBolt
-	WarlockSpellSummonImp
 	WarlockSpellImpFireBolt
-	WarlockSpellSummonFelhunter
-	WarlockSpellFelHunterShadowBite
-	WarlockSpellSummonSuccubus
 	WarlockSpellSuccubusLashOfPain
-	WarlockSpellVoidwalkerTorment
-	WarlockSpellSummonInfernal
 	WarlockSpellRainOfFire
 	WarlockSpellCurseOfRecklessness
-	WarlockSpellCurseOfWeakness
 	WarlockSpellSiphonLife
 	WarlockSpellWrack
 	WarlockSpellDrainSoul
 	WarlockSpellDeathCoil
-	WarlockSpellAll int64 = 1<<iota - 1
 )
-
-// Called to handle custom resources
-type WarlockSpellCastedCallback func(resultList core.SpellResultSlice, spell *core.Spell, sim *core.Simulation)
