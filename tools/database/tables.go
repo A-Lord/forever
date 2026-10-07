@@ -56,6 +56,7 @@ func ScanRawItemData(rows *sql.Rows) (dbc.Item, error) {
 		&raw.ClassMask,
 		&raw.RaceMask,
 		&raw.QualityModifier,
+		&raw.DamageType,
 		&randomSuffixOptions,
 		&bonusAmountCalculated,
 		&raw.ItemClass,
@@ -130,6 +131,7 @@ func LoadAndWriteRawItems(dbHelper *DBHelper, filter string, inputsDir string) (
 			s.AllowableClass as ClassMask,
 			s.AllowableRace_0 as RaceMask,
 			s.QualityModifier,
+			s.DamageType,
 			-- ItemRandomSuffixGroupID is absent from the game files, so no item names a
 			-- random suffix group and every item reads NULL here. ParseRandomSuffixOptions
 			-- takes a NullString and reads NULL as no suffix options.

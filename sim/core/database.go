@@ -178,8 +178,9 @@ type Item struct {
 	WeaponDamageMin  float64
 	WeaponDamageMax  float64
 	SwingSpeed       float64
-	QualityModifier  float64 // Per-item offset to weapon "average damage"; negative for caster weapons.
+	QualityModifier  float64           // Per-item offset to weapon "average damage"; negative for caster weapons.
 	WeaponTableDPS   *float64
+	SpellSchool      proto.SpellSchool // The weapon's damage school; unset means physical.
 
 	Name          string
 	Stats         stats.Stats // Stats applied to wearer
@@ -199,9 +200,15 @@ type Item struct {
 	//Internal use
 	TempEnchant             int32
 	TempEnchantWeaponDamage float64
+	WeaponImbue             int32 // The Effect 360 imbue (poison, firestone, class imbue), beside the Effect 54 TempEnchant.
 	ScalingOptions          map[int32]*proto.ScalingItemProperties
 	RandPropPoints          int32
 	ItemEffects             []*proto.ItemEffect
+}
+
+// Matches either slot: the Effect 54 TempEnchant or the Effect 360 WeaponImbue.
+func (item *Item) HasTempEnchant(effectID int32) bool {
+	return item.TempEnchant == effectID || item.WeaponImbue == effectID
 }
 
 func ItemFromProto(pData *proto.SimItem) Item {
@@ -215,6 +222,7 @@ func ItemFromProto(pData *proto.SimItem) Item {
 		RangedWeaponType: pData.RangedWeaponType,
 		SwingSpeed:       pData.WeaponSpeed,
 		QualityModifier:  pData.QualityModifier,
+		SpellSchool:      pData.SpellSchool,
 		PseudoStats:      pData.PseudoStats,
 		Unique:           pData.Unique,
 		LimitCategory:    pData.LimitCategory,
@@ -407,7 +415,7 @@ func (equipment *Equipment) EquipEnchant(enchant Enchant) {
 }
 
 func (equipment *Equipment) containsEnchantInSlot(effectID int32, slot proto.ItemSlot) bool {
-	return (equipment[slot].Enchant.EffectID == effectID) || (equipment[slot].TempEnchant == effectID)
+	return (equipment[slot].Enchant.EffectID == effectID) || equipment[slot].HasTempEnchant(effectID)
 }
 
 func (equipment *Equipment) containsEnchantInSlots(effectID int32, possibleSlots []proto.ItemSlot) bool {

@@ -20,6 +20,8 @@ var ExtraSpells = []Extra{
 	{SpellID: 1323410, Reason: "Revelation, the hunter buff of enchant 8217", Source: "owner decision"},
 	{SpellID: 1323418, Reason: "Revelation, the shaman buff of enchant 8217", Source: "owner decision"},
 	{SpellID: 1323419, Reason: "Revelation, the paladin buff of enchant 8217", Source: "owner decision"},
+	// Shoot, the wand's autorepeat: no class row names it, and the mage, priest and warlock reach it through the equipped wand.
+	{SpellID: 5019, Reason: "Shoot, the wand autorepeat of the mage, priest and warlock", Source: "owner decision"},
 	// Eureka!, the gnome racial: a row per class, each scoping its mods to that class's abilities,
 	// which the sim picks by the gnome's class.
 	{SpellID: 1259812, Reason: "Eureka!, the rogue row of the gnome racial", Source: "owner decision", SpellDataGroup: "racials"},
