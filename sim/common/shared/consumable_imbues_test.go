@@ -43,7 +43,8 @@ func TestTemporaryEnchantStatsApplyPerEnchantedHand(t *testing.T) {
 }
 
 // Shadow Oil 3824, enchant 25: its combat spell 350026 is cast off the enchanted weapon's hits, at the
-// 15% the store writes onto 350026's row from the enchantment.
+// 15% the store writes onto 350026's row from the enchantment, with the 10 s internal cooldown the
+// override states.
 func TestTemporaryEnchantCombatSpellRegistersAWeaponProc(t *testing.T) {
 	shadowOil := core.Consumable{Id: 3824, Name: "Shadow Oil", TemporaryEnchant: &core.Enchant{
 		EffectID:       25,
@@ -54,8 +55,12 @@ func TestTemporaryEnchantCombatSpellRegistersAWeaponProc(t *testing.T) {
 	character.Equipment[proto.ItemSlot_ItemSlotMainHand] = core.Item{ID: 1, TempEnchant: 25}
 	applyTemporaryEnchant(character, shadowOil)
 
-	if auraByLabel(character, "Shadow Oil") == nil {
+	listener := auraByLabel(character, "Shadow Oil")
+	if listener == nil {
 		t.Fatal("no listener casts the oil's combat spell")
+	}
+	if listener.Icd == nil || listener.Icd.Duration != 10*time.Second {
+		t.Errorf("the oil's listener has internal cooldown %v, want 10 s", listener.Icd)
 	}
 	if character.GetSpell(core.ActionID{SpellID: 350026}) == nil {
 		t.Error("the combat spell 350026 was not registered")
