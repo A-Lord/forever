@@ -6,13 +6,14 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-// The debuff is the shared one the raid option also builds, parsed from the row: -75 to all resistances
-// and 10% more damage taken. Its category keeps this warlock's copy and a raid one from stacking.
+// The debuff is this warlock's own copy of the one the raid option builds, parsed from the row: -75 to
+// all resistances and 10% more damage taken. Its category keeps it from stacking with another warlock's
+// copy or a raid one.
 func (warlock *Warlock) registerCurseOfElements() {
 	rankedSpell := spellData.CurseOfTheElements.ByID(1311680)
 
 	warlock.CurseOfElementsAuras = warlock.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-		return buffs.NewSpellDataCurseOfElementsAura(target, true, 0)
+		return buffs.NewSpellDataCurseOfElementsAuraFor(target, &warlock.Unit)
 	})
 	config := spelldata.SpellConfig(&warlock.Unit, rankedSpell, spelldata.Flags(core.SpellFlagAPL))
 	config.ProcMask = core.ProcMaskEmpty
@@ -28,14 +29,14 @@ func (warlock *Warlock) registerCurseOfElements() {
 		// The same row, built the way the shared debuff is, with Amplify Curse's -20 parsed onto it.
 		warlock.CurseOfElementsAmpAuras = warlock.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
 			aura := target.GetOrRegisterAura(core.Aura{
-				Label:    "Curse of the Elements (Amplified)",
+				Label:    "Curse of the Elements (Amplified)-" + warlock.Label,
 				Tag:      buffs.CurseOfElementsCategory,
 				ActionID: core.ActionID{SpellID: rankedSpell.ID, Tag: 1},
 				Duration: rankedSpell.Duration(),
 			})
 			opts := append(spelldata.RaidBuffOptions(nil, false),
 				spelldata.ScaledBy(ampElements),
-				spelldata.Exclusive(buffs.CurseOfElementsCategory, true))
+				spelldata.Exclusive(buffs.CurseOfElementsCategory, false))
 			spelldata.ParseEffects(nil, aura, rankedSpell, opts...)
 			return aura
 		})

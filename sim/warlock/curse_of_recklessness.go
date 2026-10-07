@@ -6,14 +6,14 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-// The debuff is the shared one the raid option also builds, parsed from the row: -505 armor. Its
-// category keeps this warlock's copy and a raid one from stacking. The row's dummy +90 attack power
-// for the target and its fear immunity are left out, as the shared debuff leaves them out.
+// The debuff is this warlock's own copy of the one the raid option builds, parsed from the row: -505
+// armor. Its category keeps it from stacking with another warlock's copy or a raid one. The row's dummy
+// +90 attack power for the target and its fear immunity are left out, as the raid debuff leaves them out.
 func (warlock *Warlock) registerCurseOfRecklessness() {
 	rankedSpell := spellData.CurseOfRecklessness.ByID(11717)
 
 	warlock.CurseOfRecklessnessAuras = warlock.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-		return buffs.NewSpellDataCurseOfRecklessnessAura(target, true, 0)
+		return buffs.NewSpellDataCurseOfRecklessnessAuraFor(target, &warlock.Unit)
 	})
 
 	config := spelldata.SpellConfig(&warlock.Unit, rankedSpell, spelldata.Flags(core.SpellFlagAPL))

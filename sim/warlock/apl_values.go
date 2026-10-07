@@ -46,9 +46,9 @@ func (x *APLValueWarlockAssignedCurseIsActive) Type() proto.APLValueType {
 func (x *APLValueWarlockAssignedCurseIsActive) GetBool(sim *core.Simulation) bool {
 	target := x.target.Get()
 
-	// The curse's own aura (Tag 0) or its amplified copy (Tag 1): either one up is the curse up.
-	for _, tag := range []int32{0, 1} {
-		if aura := target.GetAuraByID(x.spell.ActionID.WithTag(tag)); aura.IsActive() && aura.TimeActive(sim) >= x.warlock.ReactionTime {
+	// This warlock's own copies of the curse, plain or amplified: either one up is the curse up.
+	for _, auras := range x.spell.RelatedAuraArrays {
+		if aura := auras.Get(target); aura.IsActive() && aura.TimeActive(sim) >= x.warlock.ReactionTime {
 			return true
 		}
 	}
