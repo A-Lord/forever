@@ -642,7 +642,7 @@ enum ConsumableType {
 	ConsumableTypeFood = 3;
 	ConsumableTypeScroll = 4;
 	ConsumableTypeExplosive = 5;
-	// A sharpening stone, weightstone or oil: its spell casts the temporary enchant Effect 54.
+	// A sharpening stone, weightstone, oil or shield coating: its spell casts the temporary enchant Effect 54.
 	ConsumableTypeImbue = 6;
 	ConsumableTypeOther = 7;
 	ConsumableTypeHerb = 8;
