@@ -98,22 +98,22 @@ export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfig
 		mhImbue: input(ConsumableSlot.Imbue, {
 			consumesFieldName: 'mhImbueId',
 			tooltip: i18n.t('settings_tab.consumables.imbue.mhImbue'),
-			offers: fitsWeaponIn(ItemSlot.ItemSlotMainHand),
+			includeIf: fitsWeaponIn(ItemSlot.ItemSlotMainHand),
 		}),
 		ohImbue: input(ConsumableSlot.Imbue, {
 			consumesFieldName: 'ohImbueId',
 			tooltip: i18n.t('settings_tab.consumables.imbue.ohImbue'),
-			offers: fitsWeaponIn(ItemSlot.ItemSlotOffHand),
+			includeIf: fitsWeaponIn(ItemSlot.ItemSlotOffHand),
 		}),
 		mhWeaponImbue: input(ConsumableSlot.WeaponImbue, {
 			consumesFieldName: 'mhWeaponImbueId',
 			tooltip: i18n.t('settings_tab.consumables.weaponImbue.mhWeaponImbue'),
-			offers: fitsWeaponIn(ItemSlot.ItemSlotMainHand),
+			includeIf: fitsWeaponIn(ItemSlot.ItemSlotMainHand),
 		}),
 		ohWeaponImbue: input(ConsumableSlot.WeaponImbue, {
 			consumesFieldName: 'ohWeaponImbueId',
 			tooltip: i18n.t('settings_tab.consumables.weaponImbue.ohWeaponImbue'),
-			offers: fitsWeaponIn(ItemSlot.ItemSlotOffHand),
+			includeIf: fitsWeaponIn(ItemSlot.ItemSlotOffHand),
 		}),
 		miscellaneous: inSlot(ConsumableSlot.Extra).map(consumable => makeIdListInput(consumable, relevance)),
 	};

@@ -25,18 +25,18 @@ export interface ConsumableRelevance {
 export interface ConsumableInputOptions {
 	consumesFieldName: ConsumableIdField;
 	// A condition on top of relevance, for the one picker a consumable's kind shares with another.
-	offers?: (consumable: Consumable, player: Player<any>) => boolean;
+	includeIf?: (consumable: Consumable, player: Player<any>) => boolean;
 	showWhen?: (player: Player<any>) => boolean;
 	tooltip?: string;
 }
 
 // The minimum level only trims what is offered: a consumable already picked stays offered below it.
 const offeredTo =
-	(consumable: Consumable, relevance: ConsumableRelevance, picked: (player: Player<any>) => boolean, offers?: ConsumableInputOptions['offers']) =>
+	(consumable: Consumable, relevance: ConsumableRelevance, picked: (player: Player<any>) => boolean, includeIf?: ConsumableInputOptions['includeIf']) =>
 	(player: Player<any>) =>
 		(picked(player) || consumable.lvl >= player.sim.getMinConsumableLvl(consumable.type)) &&
 		relevance.relevant(consumable, player) &&
-		(!offers || offers(consumable, player));
+		(!includeIf || includeIf(consumable, player));
 
 const STORE_FIELDS: Array<StoreField> = ['consumables', 'gear', 'profession1', 'profession2', 'prof1Rank', 'prof2Rank', 'race', 'sim:filters'];
 
@@ -85,7 +85,7 @@ function consumablePicker(
 		value: consumable.id,
 		actionId: ActionId.fromItemId(consumable.id),
 		tooltip: consumable.name,
-		showWhen: offeredTo(consumable, relevance, player => pickOf(player.getConsumes()) === consumable.id, options.offers),
+		showWhen: offeredTo(consumable, relevance, player => pickOf(player.getConsumes()) === consumable.id, options.includeIf),
 	}));
 	return {
 		type: 'iconEnum',
