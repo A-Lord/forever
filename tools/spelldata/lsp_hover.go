@@ -46,20 +46,14 @@ type declaration struct {
 }
 
 type parameterSource struct {
-	function string
-	index    int
-	chain    *chain
-	file     string
-	line     int
-}
-
-type localSource struct {
-	name  string
-	chain *chain
-	file  string
-	line  int
-	from  int
-	to    int
+	function       string
+	index          int
+	rankIndex      int
+	rankParameter  string
+	spellParameter string
+	chain          *chain
+	file           string
+	line           int
 }
 
 // A Go file as the hover reads it. The AST is partial where the text does not parse, and nil where it
@@ -72,7 +66,6 @@ type parsedFile struct {
 	decls []declaration
 	// The source ladder for function parameters inferred from Ladder.Each callbacks.
 	parameterSources []parameterSource
-	localSources     []localSource
 	spellConfigs     []declaration
 
 	// The names the file binds to a value that is not a chain, with why.
@@ -94,11 +87,16 @@ func parseGo(path, text string) *parsedFile {
 		if !ok || ident.Name == "_" {
 			return
 		}
-		c, err := walkChain(value, f.tok.Offset)
+
+		parameter := f.enclosingEachRankParameter(ident.Pos())
+
+		c, err := walkChainWithParameter(value, f.tok.Offset, parameter)
+
 		if err != nil {
 			f.unread[ident] = err
 			return
 		}
+
 		d := declaration{name: ident.Name, chain: c, file: path, line: f.tok.Line(ident.Pos())}
 		if body := enclosingBody(f.enclosing(ident.Pos())); body != nil {
 			d.from, d.to = f.tok.Offset(ident.Pos()), f.tok.Offset(body.End())
@@ -142,28 +140,24 @@ func parseGo(path, text string) *parsedFile {
 			return
 		}
 
-		fn, ok := call.Args[0].(*ast.FuncLit)
-		if !ok || fn.Type == nil || fn.Type.Params == nil {
-			return
-		}
-
-		// Ladder.Each has the shape:
+		// Ladder.Each can receive either:
 		//
-		//     func(rank int32, spell *spelldata.Spell)
+		//     ladder.Each(func(_ int32, rank *spelldata.Spell) {
+		//         registerSpell(rank)
+		//     })
 		//
-		// We only care about the second parameter. The first is the numeric rank.
-		if fn.Type.Params.List == nil || len(fn.Type.Params.List) < 2 {
-			return
-		}
-
-		spellParam := fn.Type.Params.List[1]
-		if len(spellParam.Names) == 0 {
-			return
-		}
-
-		// We deliberately require the second callback parameter to be *spelldata.Spell.
-		if types.ExprString(spellParam.Type) != "*spelldata.Spell" {
-			return
+		// or a method/function value:
+		//
+		//     ladder.Each(paladin.registerSpell)
+		//
+		// Parentheses around a function literal are harmless, so unwrap them first.
+		callback := call.Args[0]
+		for {
+			paren, ok := callback.(*ast.ParenExpr)
+			if !ok {
+				break
+			}
+			callback = paren.X
 		}
 
 		ladder, err := walkChain(sel.X, f.tok.Offset)
@@ -171,41 +165,117 @@ func parseGo(path, text string) *parsedFile {
 			return
 		}
 
-		spellName := spellParam.Names[0]
-		if spellName.Name == "_" {
+		// Inline callback:
+		//
+		//     ladder.Each(func(_ int32, rank *spelldata.Spell) { ... })
+		//
+		// Find calls inside the callback which pass the callback spell parameter
+		// as an argument.
+		if fn, ok := callback.(*ast.FuncLit); ok {
+			if fn.Type == nil || fn.Type.Params == nil {
+				return
+			}
+
+			// Ladder.Each has the shape:
+			//
+			//     func(rank int32, spell *spelldata.Spell)
+			//
+			// We only care about the second parameter. The first is the numeric rank.
+			if fn.Type.Params.List == nil || len(fn.Type.Params.List) < 2 {
+				return
+			}
+
+			// Ladder.Each has the callback shape:
+			//
+			//	func(rank int32, spell *spelldata.Spell)
+			//
+			// The parameter names are arbitrary; parameter position is the API contract.
+			rankParam := fn.Type.Params.List[0]
+			if types.ExprString(rankParam.Type) != "int32" {
+				return
+			}
+
+			rankName := ""
+			if len(rankParam.Names) > 0 && rankParam.Names[0].Name != "_" {
+				rankName = rankParam.Names[0].Name
+			}
+
+			spellParam := fn.Type.Params.List[1]
+			if len(spellParam.Names) == 0 {
+				return
+			}
+
+			// We deliberately require the second callback parameter to be
+			// *spelldata.Spell.
+			if types.ExprString(spellParam.Type) != "*spelldata.Spell" {
+				return
+			}
+
+			spellName := spellParam.Names[0]
+			if spellName.Name == "_" {
+				return
+			}
+
+			ast.Inspect(fn.Body, func(node ast.Node) bool {
+				nested, ok := node.(*ast.CallExpr)
+				if !ok {
+					return true
+				}
+
+				for index, arg := range nested.Args {
+					ident, ok := arg.(*ast.Ident)
+					if !ok || ident.Name != spellName.Name {
+						continue
+					}
+					functionName := calledFunctionName(nested)
+					if functionName == "" {
+						continue
+					}
+
+					f.parameterSources = append(f.parameterSources, parameterSource{
+						function:       functionName,
+						index:          index,
+						rankParameter:  rankName,
+						spellParameter: spellName.Name,
+						chain:          ladder,
+						file:           path,
+						line:           f.tok.Line(spellName.Pos()),
+					})
+
+				}
+
+				return true
+			})
+
 			return
 		}
 
-		// Find direct calls inside the callback which pass the callback spell
-		// parameter as an argument.
-		ast.Inspect(fn.Body, func(node ast.Node) bool {
-			nested, ok := node.(*ast.CallExpr)
-			if !ok {
-				return true
-			}
+		// Method/function value callback:
+		//
+		//	ladder.Each(paladin.registerConsecration)
+		//
+		// The callback has no explicit argument identifiers at the call site.
+		// Instead, record the callback function and let parameterDeclaration
+		// resolve its *spelldata.Spell parameter later. The callback may be
+		// declared in a different file in the same package.
+		callbackSelector, ok := callback.(*ast.SelectorExpr)
+		if !ok {
+			return
+		}
 
-			for index, arg := range nested.Args {
-				ident, ok := arg.(*ast.Ident)
-				if !ok || ident.Name != spellName.Name {
-					continue
-				}
+		functionName := callbackSelector.Sel.Name
+		if functionName == "" {
+			return
+		}
 
-				functionName := calledFunctionName(nested)
-				if functionName == "" {
-					continue
-				}
-
-				f.parameterSources = append(f.parameterSources, parameterSource{
-					function: functionName,
-					index:    index,
-					chain:    ladder,
-					file:     path,
-					line:     f.tok.Line(spellName.Pos()),
-				})
-			}
-
-			return true
+		f.parameterSources = append(f.parameterSources, parameterSource{
+			function: functionName,
+			index:    -1,
+			chain:    ladder,
+			file:     path,
+			line:     f.tok.Line(callbackSelector.Sel.Pos()),
 		})
+
 	}
 
 	ast.Inspect(file, func(node ast.Node) bool {
@@ -265,6 +335,54 @@ func enclosingBody(nodes []ast.Node) *ast.BlockStmt {
 	return nil
 }
 
+func (f *parsedFile) enclosingEachRankParameter(pos token.Pos) string {
+	nodes := f.enclosing(pos)
+
+	for _, node := range nodes {
+		call, ok := node.(*ast.CallExpr)
+		if !ok {
+			continue
+		}
+
+		sel, ok := call.Fun.(*ast.SelectorExpr)
+		if !ok || sel.Sel.Name != "Each" || len(call.Args) != 1 {
+			continue
+		}
+
+		callback, ok := call.Args[0].(*ast.FuncLit)
+		if !ok || callback.Type == nil || callback.Type.Params == nil {
+			continue
+		}
+
+		params := callback.Type.Params.List
+		if len(params) < 2 {
+			continue
+		}
+
+		rankParam := params[0]
+		spellParam := params[1]
+
+		// Ladder.Each's callback contract is:
+		//
+		//     func(rank int32, spell *spelldata.Spell)
+		//
+		// The names are arbitrary; the parameter positions and types
+		// define their meaning.
+		if types.ExprString(rankParam.Type) != "int32" ||
+			types.ExprString(spellParam.Type) != "*spelldata.Spell" {
+			continue
+		}
+
+		if len(rankParam.Names) == 0 || rankParam.Names[0].Name == "_" {
+			return ""
+		}
+
+		return rankParam.Names[0].Name
+	}
+
+	return ""
+}
+
 // The nodes that hold pos, outermost first. An end counts as inside, so the cursor just past a name
 // is on it.
 func (f *parsedFile) enclosing(pos token.Pos) []ast.Node {
@@ -295,6 +413,7 @@ type cachedFile struct {
 	decls            []declaration
 	parameterSources []parameterSource
 	spellConfigs     []declaration
+	text             string
 }
 
 func newWorkspace() *workspace {
@@ -371,37 +490,105 @@ func (w *workspace) declarations(folder string, current *parsedFile, at int, tra
 			}
 		}
 	}
+
 	// Infer function parameters from SpellData ladder .Each callbacks.
 	if own != "" {
+		// Find the function containing the hover position. Parameter names such
+		// as "rank" are local to that function, so package-wide callback sources
+		// must not overwrite one another.
+		currentFunction := ""
+		ast.Inspect(current.file, func(node ast.Node) bool {
+			fn, ok := node.(*ast.FuncDecl)
+			if !ok || fn.Name == nil || fn.Body == nil {
+				return true
+			}
+
+			if current.tok.Offset(fn.Pos()) <= at && at <= current.tok.Offset(fn.End()) {
+				currentFunction = fn.Name.Name
+				return false
+			}
+
+			return true
+		})
+
 		for _, path := range paths {
 			for _, source := range files[path].parameterSources {
-				if source.function == "" {
+				if source.function == "" || source.function != currentFunction {
 					continue
 				}
 
-				d, ok := parameterDeclaration(current, source)
-				if !ok || d.from > at || at > d.to {
+				// Inline callbacks have their parameter declaration in the
+				// current file.
+				if source.index >= 0 {
+					d, ok := parameterDeclaration(current, source)
+					if !ok || d.from > at || at > d.to {
+						continue
+					}
+
+					resolved, err := resolveChain(d.chain, out, trace)
+					if err != nil {
+						trace.add("  %s parameter source unresolved: %v", d.name, err)
+						continue
+					}
+
+					d.chain = resolved
+					out[d.name] = d
+
+					trace.add(
+						"  %s = %s  (%s:%d)",
+						d.name,
+						d.chain.text(false),
+						trace.rel(d.file),
+						d.line,
+					)
 					continue
 				}
 
-				resolved, err := resolveChain(d.chain, out, trace)
-				if err != nil {
-					trace.add("  %s parameter source unresolved: %v", d.name, err)
-					continue
+				// Method-value callbacks may be declared in any file in the
+				// same package. Search for the callback with the same function
+				// name as the function containing the hover.
+				for _, callbackPath := range paths {
+					text, err := w.text(callbackPath)
+					if err != nil {
+						continue
+					}
+
+					callbackFile := current
+					if callbackPath != current.path {
+						callbackFile = parseGo(callbackPath, text)
+					}
+
+					d, ok := parameterDeclaration(callbackFile, source)
+					if !ok {
+						continue
+					}
+
+					// For a callback in another file, d.from/d.to are offsets
+					// in that other file and cannot be compared with at.
+					// The function-name match above provides the scope check.
+					if callbackPath == current.path && (d.from > at || at > d.to) {
+						continue
+					}
+
+					resolved, err := resolveChain(d.chain, out, trace)
+					if err != nil {
+						trace.add("  %s parameter source unresolved: %v", d.name, err)
+						continue
+					}
+
+					d.chain = resolved
+					out[d.name] = d
+
+					trace.add(
+						"  %s = %s  (%s:%d)",
+						d.name,
+						d.chain.text(false),
+						trace.rel(d.file),
+						d.line,
+					)
+
+					break
 				}
-
-				d.chain = resolved
-
-				out[d.name] = d
-
-				trace.add(
-					"  %s = %s  (%s:%d)",
-					d.name,
-					d.chain.text(false),
-					trace.rel(d.file),
-					d.line,
-				)
-
 			}
 		}
 	}
@@ -409,10 +596,10 @@ func (w *workspace) declarations(folder string, current *parsedFile, at int, tra
 	return out
 }
 
-func parameterDeclaration(current *parsedFile, source parameterSource) (declaration, bool) {
+func parameterDeclaration(file *parsedFile, source parameterSource) (declaration, bool) {
 	var result declaration
 
-	ast.Inspect(current.file, func(node ast.Node) bool {
+	ast.Inspect(file.file, func(node ast.Node) bool {
 		fn, ok := node.(*ast.FuncDecl)
 		if !ok || fn.Name.Name != source.function || fn.Type == nil || fn.Type.Params == nil {
 			return true
@@ -421,20 +608,56 @@ func parameterDeclaration(current *parsedFile, source parameterSource) (declarat
 		params := fn.Type.Params.List
 		index := 0
 
+		var rankParameter string
+
+		if source.index < 0 &&
+			len(params) > 0 &&
+			len(params[0].Names) > 0 &&
+			params[0].Names[0].Name != "_" &&
+			types.ExprString(params[0].Type) == "int32" {
+			rankParameter = params[0].Names[0].Name
+		}
+
 		for _, field := range params {
 			names := field.Names
 
-			// A named receiver isn't part of Type.Params, so this index is
-			// exactly the call argument index we recorded.
+			// A method receiver isn't part of Type.Params, so this index
+			// exactly matches the Ladder.Each callback argument position.
+			//
+			// For method-value callbacks we don't know the index when
+			// bindEach sees the callback, so find the *spelldata.Spell
+			// parameter directly.
+
+			if source.index < 0 && types.ExprString(field.Type) == "*spelldata.Spell" {
+				if len(names) == 0 {
+					return false
+				}
+
+				name := names[0]
+				source.rankParameter = rankParameter
+				result = declaration{
+					name:      name.Name,
+					chain:     source.chain,
+					file:      file.path,
+					line:      file.tok.Line(name.Pos()),
+					from:      file.tok.Offset(fn.Pos()),
+					to:        file.tok.Offset(fn.End()),
+					function:  fn.Name.Name,
+					parameter: &source,
+				}
+				return false
+			}
+
 			for _, name := range names {
 				if index == source.index {
+					source.rankParameter = rankParameter
 					result = declaration{
 						name:      name.Name,
 						chain:     source.chain,
-						file:      current.path,
-						line:      current.tok.Line(name.Pos()),
-						from:      current.tok.Offset(fn.Pos()),
-						to:        current.tok.Offset(fn.End()),
+						file:      file.path,
+						line:      file.tok.Line(name.Pos()),
+						from:      file.tok.Offset(fn.Pos()),
+						to:        file.tok.Offset(fn.End()),
 						function:  fn.Name.Name,
 						parameter: &source,
 					}
@@ -506,6 +729,7 @@ func (w *workspace) refresh(folder string, files map[string]cachedFile, trace *t
 			decls:            file.decls,
 			spellConfigs:     parsed.spellConfigs,
 			parameterSources: parsed.parameterSources,
+			text:             text,
 		}
 	}
 	return read
@@ -529,11 +753,12 @@ type chainHover struct {
 }
 
 type virtualRank struct {
-	uri       string
-	parameter string
-	function  string
-	ladder    *chain
-	rank      int32
+	uri           string
+	parameter     string
+	rankParameter string
+	function      string
+	ladder        *chain
+	rank          int32
 }
 
 type tracer struct {
@@ -633,8 +858,17 @@ func (w *workspace) hover(text string, line, col int, uri string, ranks map[stri
 
 	if hover.rank != nil {
 		key := rankKey(uri, hover.rank)
-		if rank, ok := ranks[key]; ok {
-			hover.rank.rank = rank
+		storedRank, found := ranks[key]
+
+		if found {
+			hover.rank.rank = storedRank
+		} else {
+			result, err := findFamily(ladderFamilies(), hover.chain.root.family, pkg)
+			if err == nil {
+				storedRank = result.ladder.Len()
+				ranks[key] = storedRank
+				hover.rank.rank = storedRank
+			}
 		}
 	}
 
@@ -648,19 +882,17 @@ func (w *workspace) hover(text string, line, col int, uri string, ranks map[stri
 			trace,
 			hover.rank,
 		)
-		result.assignedLater = configAssignments(f.file, f.tok, hover.spellConfig, hover.name)
+
 		if err != nil {
 			return trace.fail("%v", err)
 		}
-
+		result.assignedLater = configAssignments(f.file, f.tok, hover.spellConfig, hover.name)
 		trace.add("✓ %s → %d fields", title(result.spell), len(result.rows))
 
 		return result.table().markdown(uri), trace.lines, true
 	}
-
 	trace.add("expr %s", hover.chain.text(false))
 	result, err := evalExpr(ladderFamilies(), hover.chain, pkg, hover.rank)
-
 	if err != nil {
 		return trace.fail("%v", err)
 	}
@@ -815,6 +1047,39 @@ func chainHoverAt(f *parsedFile, nodes []ast.Node, at int, declarations map[stri
 
 }
 
+func virtualParameterForChain(c *chain, declarations map[string]declaration) (*parameterSource, string, bool) {
+	if c == nil {
+		return nil, "", false
+	}
+
+	for _, seg := range c.segments {
+		if seg.name != "Rank" {
+			continue
+		}
+
+		for _, arg := range seg.args {
+			if arg.parameter == "" {
+				continue
+			}
+
+			for name, declaration := range declarations {
+				source := declaration.parameter
+				if source == nil {
+					continue
+				}
+
+				if source.rankParameter != arg.parameter {
+					continue
+				}
+
+				return source, name, true
+			}
+		}
+	}
+
+	return nil, "", false
+}
+
 func resolved(c *chain, name string, declarations map[string]declaration, trace *tracer) (chainHover, bool) {
 	var parameter *parameterSource
 	var parameterName string
@@ -835,6 +1100,32 @@ func resolved(c *chain, name string, declarations map[string]declaration, trace 
 			break
 		}
 
+		// A declaration can refer to the virtual rank indirectly through
+		// a deferred Ladder.Each rank argument:
+		//
+		//	tickSpell := spellData.ConsecrationTriggered.Rank(n)
+		//
+		// The numeric value of n is intentionally not resolved here.
+		// The existing virtual-rank state supplies the selected rank later.
+		// if source, name, ok := virtualParameterForChain(declaration.chain, declarations); ok {
+		// 	parameter = source
+		// 	parameterName = name
+		// 	parameterLadder = source.chain
+		// 	current = declaration.chain
+		// 	break
+		// }
+
+		if source, name, ok := virtualParameterForChain(declaration.chain, declarations); ok {
+			parameter = source
+			parameterName = name
+			parameterLadder = source.chain
+			current = &chain{
+				root:     declaration.chain.root,
+				segments: append(slices.Clip(declaration.chain.segments), current.segments...),
+			}
+			break
+		}
+
 		trace.add("  %s = %s  (%s:%d)", current.root.name, declaration.chain.text(false), trace.rel(declaration.file), declaration.line)
 
 		current = &chain{
@@ -852,10 +1143,11 @@ func resolved(c *chain, name string, declarations map[string]declaration, trace 
 			name:      name,
 			parameter: parameter,
 			rank: &virtualRank{
-				parameter: parameterName,
-				function:  parameter.function,
-				ladder:    parameterLadder,
-				rank:      0,
+				parameter:     parameterName,
+				rankParameter: parameter.rankParameter,
+				function:      parameter.function,
+				ladder:        parameterLadder,
+				rank:          0,
 			},
 		}, true
 	}

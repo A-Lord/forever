@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
@@ -62,6 +61,7 @@ func exprMarkdown(result *exprResult, hover chainHover) string {
 
 	if showRankSelector && result.family != nil {
 		selectedRank := int32(result.family.ladder.Len())
+
 		if hover.rank.rank > 0 {
 			selectedRank = hover.rank.rank
 		}
@@ -99,6 +99,15 @@ func exprMarkdown(result *exprResult, hover chainHover) string {
 		md.WriteString("\n\n")
 	}
 
+	// Accessors on a Ladder.Each virtual rank should render only the
+	// resolved spell/rank heading and the value under the cursor.
+	// The full spell card and evaluation trail are redundant here.
+	if hover.rank != nil && hover.parameter != nil && len(hover.chain.segments) > 0 {
+		fmt.Fprintf(&md, "### %s\n\n", c.heading())
+		fmt.Fprintf(&md, "`%s` = **%s**\n\n", called, result.value)
+		return md.String()
+	}
+
 	switch result.kind {
 	case kindSpell:
 		c.writeMarkdown(&md)
@@ -122,22 +131,18 @@ func exprMarkdown(result *exprResult, hover chainHover) string {
 		if hover.name != "" {
 			label = hover.name
 		}
-		fmt.Fprintf(&md, "`%s` = **%s**\n\n", label, result.value)
-		fmt.Fprintf(&md, "`%s`\n\n", result.trail)
-		c.writeMarkdown(&md)
+
+		if hover.name == "" {
+			c.writeMarkdown(&md)
+			md.WriteString("\n")
+			fmt.Fprintf(&md, "`%s` = **%s**\n\n", label, result.value)
+			fmt.Fprintf(&md, "`%s`\n", result.trail)
+		} else {
+			fmt.Fprintf(&md, "`%s` = **%s**\n\n", label, result.value)
+			fmt.Fprintf(&md, "`%s`\n\n", result.trail)
+			c.writeMarkdown(&md)
+		}
 	}
 
 	return md.String()
-}
-
-func effectDBCLabel(effect *spelldata.Effect) string {
-	if effect == nil {
-		return ""
-	}
-
-	if effect.Type == dbcenums.E_APPLY_AURA {
-		return fmt.Sprintf("%s · %s", effect.Type, effect.Aura)
-	}
-
-	return fmt.Sprintf("%s", effect.Type)
 }

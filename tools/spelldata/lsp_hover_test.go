@@ -269,6 +269,7 @@ func TestHoverTrace(t *testing.T) {
 		"  executeBaseDamage = executeRank.EffectN(1).AverageAt(core.CharacterLevel)  (sim/warrior/execute.go:5)",
 		"  executeRank = spellData.Execute.Highest()  (sim/warrior/execute.go:3)",
 		"expr spellData.Execute.Highest().EffectN(1).AverageAt(core.CharacterLevel)",
+		`render hover: name="executeBaseDamage" rank=false segments=3`,
 		"✓ 20662 Execute (Rank 5) → effect 1 → 600",
 	}
 	if len(trace) != len(want) {
@@ -847,4 +848,107 @@ func TestHoverRowByID(t *testing.T) {
 		"`BaseValue()` = **30**",
 		"`spelldata.MustFind(23562).EffectN(1).BaseValue()`",
 		"| 1 ▶ |")
+}
+
+func TestVirtualRankAccessorRendering(t *testing.T) {
+	file := strings.Join([]string{
+		"package priest",
+		"",
+		"func registerDarkSacrificeSpell(rank *spelldata.Spell) {",
+		"\trank.Duration()",
+		"\trank.EnergizeEffect()",
+		"\trank.EnergizeEffect().Average()",
+		"}",
+		"",
+		"func register() {",
+		"\tspellData.DarkSacrifice.Each(func(_ int32, rank *spelldata.Spell) {",
+		"\t\tregisterDarkSacrificeSpell(rank)",
+		"\t})",
+		"}",
+	}, "\n")
+
+	parsed := parseGo("dark_sacrifice.go", file)
+
+	if len(parsed.parameterSources) != 1 {
+		t.Fatalf("got %d parameter sources, want 1", len(parsed.parameterSources))
+	}
+
+	source := parsed.parameterSources[0]
+	sourceDeclaration, ok := parameterDeclaration(parsed, source)
+	if !ok {
+		t.Fatal("rank parameter was not declared")
+	}
+
+	declarations := map[string]declaration{
+		sourceDeclaration.name: sourceDeclaration,
+	}
+
+	tests := []struct {
+		name string
+		expr string
+		want string
+	}{
+		{
+			name: "duration",
+			expr: "rank.Duration()",
+			want: "`Duration()` = **15s**",
+		},
+		{
+			name: "energize effect",
+			expr: "rank.EnergizeEffect()",
+			want: "`EnergizeEffect()` = **no effect**",
+		},
+		{
+			name: "average",
+			expr: "rank.EnergizeEffect().Average()",
+			want: "`Average()` = **0**",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			chain, err := parseChain(tt.expr)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			hover, ok := resolved(chain, "rank", declarations, &tracer{})
+			if !ok {
+				t.Fatal("rank chain did not resolve")
+			}
+
+			if hover.rank == nil {
+				t.Fatal("rank chain did not produce a virtual rank")
+			}
+
+			hover.rank.rank = 5
+
+			result, err := evalExpr(ladderFamilies(), hover.chain, "priest", hover.rank)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			markdown := exprMarkdown(result, hover)
+
+			if !strings.Contains(markdown, tt.want) {
+				t.Errorf("hover does not contain %q:\n%s", tt.want, markdown)
+			}
+
+			if !strings.Contains(markdown, "### 1277328 Dark Sacrifice (Rank 5)") {
+				t.Errorf("hover does not contain resolved spell/rank heading:\n%s", markdown)
+			}
+
+			if strings.Contains(markdown, "| **school** |") {
+				t.Errorf("virtual-rank accessor hover rendered the full spell card:\n%s", markdown)
+			}
+
+			if strings.Contains(markdown, "`rank.EnergizeEffect()`") {
+				t.Errorf("virtual-rank accessor hover rendered the evaluator trail:\n%s", markdown)
+			}
+
+			if strings.Contains(markdown, "`rank.EnergizeEffect().Average()`") {
+				t.Errorf("virtual-rank accessor hover rendered the full expression:\n%s", markdown)
+			}
+		})
+	}
 }
