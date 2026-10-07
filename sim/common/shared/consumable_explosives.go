@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
@@ -33,6 +34,11 @@ func NewSpellDataExplosive(itemID int32) {
 			config := spellDataOnUseDamageSpell(character, row)
 			config.ActionID = core.ActionID{ItemID: itemID}
 			config.Flags |= core.SpellFlagExplosive
+			// The game files do not mark Engineering explosives not-shapeshifted, but in game they cannot
+			// be used in a shapeshift form: a druid leaves the form to throw one.
+			if consumable.RequiredProfession == proto.Profession_Engineering {
+				config.CastRequirement.NotShapeshifted = true
+			}
 			config.Cast = consumableCast(character, itemEffect, row)
 			if self := row.CasterDamageEffect(); self != spelldata.NilEffect {
 				selfSpell := registerCasterDamageSpell(character, core.SpellConfig{

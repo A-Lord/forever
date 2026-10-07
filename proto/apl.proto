@@ -381,6 +381,7 @@ message APLActionCatOptimalRotationAction {
     reserved "mangle_trick";
     bool rake_trick = 7;
     bool maintain_faerie_fire = 8;
+    bool faerie_fire_for_omen = 9;
 }
 
 message APLActionBearOptimalRotationAction {

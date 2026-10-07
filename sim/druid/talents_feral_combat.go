@@ -228,5 +228,8 @@ func (druid *Druid) applyBerserk() {
 	druid.AddMajorCooldown(core.MajorCooldown{
 		Spell: druid.Berserk.Spell,
 		Type:  core.CooldownTypeDPS,
+		ShouldActivate: func(sim *core.Simulation, _ *core.Character) bool {
+			return druid.BerserkCondition == nil || druid.BerserkCondition(sim)
+		},
 	})
 }

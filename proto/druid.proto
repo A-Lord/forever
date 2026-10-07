@@ -98,6 +98,8 @@ message FeralCatDruid {
     reserved "mangle_trick";
     bool rake_trick = 8;
     bool maintain_faerie_fire = 9;
+    // Casts Faerie Fire when nothing else can be cast and Omen of Clarity can proc.
+    bool faerie_fire_for_omen = 10;
   }
   Rotation rotation = 1;
 

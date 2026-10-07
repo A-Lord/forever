@@ -491,15 +491,181 @@ func TestRevelationIgnoresZeroDamageFaerieFire(t *testing.T) {
 
 func TestRaidDefaultRunsSelectedCatRotation(t *testing.T) {
 	player := runCat(t, buildRequest(t, "raid"))
-	for _, id := range []int32{1322605, 9830, 9896, 9904, 417141} {
+	for _, id := range []int32{1322605, 9830, 9896, 9904, 417141, 9907} {
 		if castsOf(player.Actions, id) == 0 {
 			t.Errorf("raid default never casts spell %d", id)
 		}
 	}
-	for _, id := range []int32{768, 9634, 22829, 9907} {
+	for _, id := range []int32{768, 9634, 22829} {
 		if got := castsOf(player.Actions, id); got != 0 {
 			t.Errorf("raid default casts spell %d %d times", id, got)
 		}
+	}
+}
+
+func defaultCatRotation() *proto.APLRotation {
+	return catRotation(&proto.FeralCatDruid_Rotation{
+		FinishingMove:      proto.FeralCatDruid_Rotation_Rip,
+		RipMinComboPoints:  5,
+		BiteMinComboPoints: 5,
+		RakeTrick:          true,
+		FaerieFireForOmen:  true,
+	})
+}
+
+func TestRotationLeavesCatFormOnlyForEngineeringExplosives(t *testing.T) {
+	for _, c := range []struct {
+		name       string
+		itemID     int32
+		leavesForm bool
+	}{{"Goblin Sapper Charge", 10646, true}, {"EZ-Thro Dark Bomb", 260817, false}} {
+		request := catPowershiftRequest(powershiftTalents, defaultCatRotation(), false)
+		cat := request.Raid.Parties[0].Players[0]
+		cat.Profession1 = proto.Profession_Engineering
+		cat.Consumables = &proto.ConsumesSpec{ExtraIds: []int32{c.itemID}}
+		player := runCat(t, request)
+
+		thrown := itemCastsOf(player.Actions, c.itemID)
+		if thrown == 0 {
+			t.Errorf("%s was never thrown", c.name)
+		}
+		want := int32(0)
+		if c.leavesForm {
+			want = thrown
+		}
+		if got := castsOf(player.Actions, 768); got != want {
+			t.Errorf("%s: cat form casts = %d after %d throws, want %d", c.name, got, thrown, want)
+		}
+	}
+}
+
+func TestBerserkWaitsForADecisionItsCritCovers(t *testing.T) {
+	request := catPowershiftRequest(powershiftTalents, defaultCatRotation(), false)
+	player := request.Raid.Parties[0].Players[0]
+	player.Profession1 = proto.Profession_Engineering
+	player.Consumables = &proto.ConsumesSpec{ExtraIds: []int32{10646}}
+	sim := core.NewSim(request, simsignals.CreateSignals())
+	sim.Reset()
+	cat := sim.Raid.Parties[0].Players[0].(*FeralDruid)
+
+	berserk := cat.GetMajorCooldown(cat.Berserk.ActionID)
+	if berserk == nil {
+		t.Fatal("Berserk is not a major cooldown")
+	}
+	ready := func() bool { return berserk.ShouldActivate(sim, cat.GetCharacter()) }
+	if ready() {
+		t.Error("Berserk is ready while the sapper waits to be thrown")
+	}
+
+	sapper := cat.GetSpell(core.ActionID{ItemID: 10646})
+	if !sapper.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("the sapper was not thrown")
+	}
+	if !cat.InForm(druid.Cat) && !cat.CatForm.Cast(sim, nil) {
+		t.Fatal("Cat Form was not cast after the throw")
+	}
+	if ready() {
+		t.Error("Berserk is ready inside Cat Form's GCD")
+	}
+
+	for !cat.GCD.IsReady(sim) {
+		sim.Step()
+	}
+	cat.AddEnergy(sim, cat.MaximumEnergy(), cat.NewEnergyMetrics(core.ActionID{SpellID: 1}))
+	if !ready() {
+		t.Error("Berserk is not ready with the GCD free, the sapper thrown and a full bar")
+	}
+
+	cat.SpendEnergy(sim, cat.CurrentEnergy(), cat.NewEnergyMetrics(core.ActionID{SpellID: 1}))
+	if ready() {
+		t.Error("Berserk is ready on a bar that cannot pay for the builder")
+	}
+
+	cat.AddEnergy(sim, cat.MaximumEnergy(), cat.NewEnergyMetrics(core.ActionID{SpellID: 1}))
+	cat.AddComboPoints(sim, 5, cat.NewComboPointMetrics(core.ActionID{SpellID: 1}))
+	if cat.Rip.CurDot().IsActive() || !cat.ripNow(sim, cat.CurrentTarget) {
+		t.Fatal("the decision would not cast Rip")
+	}
+	if ready() {
+		t.Error("Berserk is ready when the decision casts Rip")
+	}
+}
+
+func itemCastsOf(actions []*proto.ActionMetrics, itemID int32) int32 {
+	var n int32
+	for _, action := range actions {
+		if action.GetId().GetItemId() != itemID || action.GetId().GetTag() != 0 {
+			continue
+		}
+		for _, target := range action.Targets {
+			n += target.Casts
+		}
+	}
+	return n
+}
+
+func TestShiftingPowerWaitsLongerWithClearcastingUp(t *testing.T) {
+	sim, cat := newCat(t, shiftingPowerTalents, nil)
+	fillResource(sim, cat)
+	emptyEnergy(sim, cat)
+	cat.AddEnergy(sim, 45, cat.NewEnergyMetrics(core.ActionID{SpellID: 1}))
+	if !cat.wantShift(sim, cat.CurrentTarget) {
+		t.Fatal("no shift at 45 energy without Clearcasting")
+	}
+	cat.ClearcastingAura.Activate(sim)
+	if cat.wantShift(sim, cat.CurrentTarget) {
+		t.Error("a shift at 45 energy with Clearcasting up, which caps the bar during the free cast")
+	}
+}
+
+func TestFaerieFireFishesForOmenOnlyWhenItCanProc(t *testing.T) {
+	sim, cat := newCat(t, shiftingPowerTalents, nil)
+	fillResource(sim, cat)
+	emptyEnergy(sim, cat)
+	cat.ShiftingPower.CD.Use(sim)
+	target := cat.CurrentTarget
+	if cat.wantOmenFishing(sim, target) {
+		t.Error("fishing with the option off")
+	}
+
+	cat.setupRotation(&proto.FeralCatDruid_Rotation{
+		FinishingMove:      proto.FeralCatDruid_Rotation_Rip,
+		RipMinComboPoints:  5,
+		BiteMinComboPoints: 5,
+		FaerieFireForOmen:  true,
+	})
+	if !cat.wantOmenFishing(sim, target) {
+		t.Fatal("no fishing with the option on, an empty bar and Omen ready")
+	}
+
+	energy := cat.NewEnergyMetrics(core.ActionID{SpellID: 1})
+	cat.AddEnergy(sim, cat.builder().Cost.GetCurrentCost()-1, energy)
+	if cat.wantOmenFishing(sim, target) {
+		t.Error("fishing when the builder is affordable before the GCD ends")
+	}
+	emptyEnergy(sim, cat)
+
+	cat.AddComboPoints(sim, 5, cat.NewComboPointMetrics(core.ActionID{SpellID: 1}))
+	cat.AddEnergy(sim, cat.Rip.Cost.GetCurrentCost()-1, energy)
+	if cat.wantOmenFishing(sim, target) {
+		t.Error("fishing when Rip is affordable before the GCD ends")
+	}
+	emptyEnergy(sim, cat)
+	cat.SpendComboPoints(sim, cat.NewComboPointMetrics(core.ActionID{SpellID: 1}))
+
+	cat.ShiftingPower.CD.Reset()
+	if cat.wantOmenFishing(sim, target) {
+		t.Error("fishing when Shifting Power is ready before the GCD ends")
+	}
+	cat.ShiftingPower.CD.Use(sim)
+	cat.ClearcastingAura.Activate(sim)
+	if cat.wantOmenFishing(sim, target) {
+		t.Error("fishing with Clearcasting already up")
+	}
+	cat.ClearcastingAura.Deactivate(sim)
+	cat.OmenOfClarityAura.Icd.Use(sim)
+	if cat.wantOmenFishing(sim, target) {
+		t.Error("fishing while Omen of Clarity is on its ICD")
 	}
 }
 
@@ -908,6 +1074,63 @@ func TestOmenUsesTwoPPMWithTenSecondICDOnMeleeHits(t *testing.T) {
 	}
 	if cat.ClearcastingAura.IsActive() {
 		t.Error("Omen proc bypassed its 10-second ICD")
+	}
+}
+
+func TestOmenSpecialHitsUseFormSwingSpeed(t *testing.T) {
+	const omenTalents = "0000000000000000-00000000000000000000-0000000000000001"
+	const slowWeapon = 1607
+
+	countProcs := func(t *testing.T, form druid.DruidForm) (float64, int) {
+		t.Helper()
+		sim, cat := newCatWearing(t, omenTalents, nil, map[proto.ItemSlot]int32{proto.ItemSlot_ItemSlotMainHand: slowWeapon})
+		cat.AutoAttacks.CancelAutoSwing(sim)
+		omen := cat.GetAura("Omen of Clarity")
+		if omen == nil || omen.OnSpellHitDealt == nil || omen.Icd == nil {
+			t.Fatal("Omen listener is incomplete")
+		}
+
+		special := cat.Claw.Spell
+		switch form {
+		case druid.Bear:
+			fillResource(sim, cat)
+			if !cat.BearForm.Cast(sim, cat.CurrentTarget) {
+				t.Fatal("Bear Form did not cast")
+			}
+			special = cat.Swipe.Spell
+		case druid.Humanoid:
+			cat.ClearForm(sim)
+		}
+		result := &core.SpellResult{Target: cat.CurrentTarget, Outcome: core.OutcomeHit, Damage: 1}
+		procs := 0
+		for range 500 {
+			omen.OnSpellHitDealt(omen, sim, special, result)
+			if !omen.Icd.IsReady(sim) {
+				procs++
+				omen.Icd.Reset()
+			}
+		}
+		if procs == 0 {
+			t.Fatal("500 eligible special hits produced no Omen proc")
+		}
+		return cat.AutoAttacks.MH().SwingSpeed, procs
+	}
+
+	catSpeed, catProcs := countProcs(t, druid.Cat)
+	bearSpeed, bearProcs := countProcs(t, druid.Bear)
+	weaponSpeed, weaponProcs := countProcs(t, druid.Humanoid)
+	if catSpeed != 1 {
+		t.Errorf("Cat paw speed = %g, want 1", catSpeed)
+	}
+	if bearSpeed != 2.5 {
+		t.Errorf("Bear paw speed = %g, want 2.5", bearSpeed)
+	}
+	if weaponSpeed != 3.8 {
+		t.Errorf("humanoid weapon speed = %g, want 3.8", weaponSpeed)
+	}
+	t.Logf("Omen procs from 500 real special hits: Cat=%d Bear=%d humanoid weapon=%d", catProcs, bearProcs, weaponProcs)
+	if !(catProcs < bearProcs && bearProcs < weaponProcs) {
+		t.Fatalf("special Omen rolls did not follow Cat/Bear paw/weapon pace: Cat=%d Bear=%d weapon=%d", catProcs, bearProcs, weaponProcs)
 	}
 }
 
@@ -1867,8 +2090,8 @@ func TestCatShippedPresetRuns(t *testing.T) {
 			t.Fatalf("shipped preset casts %d %d times", id, n)
 		}
 	}
-	if n := castsOf(player.Actions, 9907); n != 0 {
-		t.Fatalf("shipped preset duplicates raid Faerie Fire with %d casts", n)
+	if n := castsOf(player.Actions, 9907); n == 0 {
+		t.Fatal("shipped preset never fishes with Faerie Fire")
 	}
 }
 

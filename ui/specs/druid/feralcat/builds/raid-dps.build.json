@@ -294,6 +294,7 @@
               "ripMinComboPoints": 5,
               "biteMinComboPoints": 5,
               "maintainFaerieFire": true,
+              "faerieFireForOmen": true,
               "finishingMove": "Rip",
               "rakeTrick": true
             }

@@ -1942,6 +1942,10 @@
 					"maintain_faerie_fire": {
 						"label": "Maintain Faerie Fire",
 						"tooltip": "Cast Faerie Fire whenever your Faerie Fire is not on the target."
+					},
+					"faerie_fire_for_omen": {
+						"label": "Faerie Fire for Omen of Clarity",
+						"tooltip": "Cast Faerie Fire when nothing else can be cast and Omen of Clarity can proc, to fish for Clearcasting."
 					}
 				},
 				"feral_bear": {
