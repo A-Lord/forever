@@ -8,6 +8,18 @@ import { ShamanSpecs } from '@sim/proto/spec_types';
 // Configuration for class-specific UI elements on the settings tab.
 // These don't need to be in a separate file but it keeps things cleaner.
 
+export const ShamanImbueMH = <SpecType extends ShamanSpecs>() =>
+	InputHelpers.makeClassOptionsEnumIconInput<SpecType, ShamanImbue>({
+		fieldName: 'imbueMh',
+		values: [
+			{ value: ShamanImbue.NoImbue, tooltip: 'No Main Hand Enchant' },
+			{ actionId: ActionId.fromSpellId(16362), value: ShamanImbue.WindfuryWeapon },
+			{ actionId: ActionId.fromSpellId(16342), value: ShamanImbue.FlametongueWeapon },
+			{ actionId: ActionId.fromSpellId(16356), value: ShamanImbue.FrostbrandWeapon },
+			{ actionId: ActionId.fromSpellId(16316), value: ShamanImbue.RockbiterWeapon },
+		],
+	});
+
 export const ShamanImbueMHSwap = <SpecType extends ShamanSpecs>() =>
 	InputHelpers.makeClassOptionsEnumIconInput<SpecType, ShamanImbue>({
 		fieldName: 'imbueMhSwap',

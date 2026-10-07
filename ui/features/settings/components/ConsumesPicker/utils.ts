@@ -1,5 +1,4 @@
 import type { TypedIconEnumPickerConfig, TypedIconPickerConfig } from '@features/inputs/input_helpers';
-import { MAIN_HAND_CLASS_IMBUES } from '@features/settings/model/class_imbues';
 import { type ConsumableRelevance, makeConsumableGroupInput, makeConsumableInput, makeIdListInput } from '@features/settings/model/consumables';
 import { ConsumableType, ItemSlot } from '@generated/proto/common';
 import type { Consumable } from '@generated/proto/db';
@@ -101,7 +100,6 @@ export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfig
 				consumesFieldName: 'mhImbueId',
 				tooltip: i18n.t('settings_tab.consumables.imbue.mhImbue'),
 				offers: (consumable, p) => handTakesImbue(consumable, handItem(p, ItemSlot.ItemSlotMainHand)),
-				classImbues: MAIN_HAND_CLASS_IMBUES,
 			},
 			imbues,
 		),

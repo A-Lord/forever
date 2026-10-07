@@ -103,8 +103,7 @@ export default defineSpec<Spec.SpecEnhancementShaman>({
 	},
 
 	// IconInputs to include in the 'Player' section on the settings tab.
-	// The main-hand imbue is offered in the consumables imbue picker, as one pick with the oils and stones.
-	playerIconInputs: [ShamanInputs.ShamanImbueMHSwap()],
+	playerIconInputs: [ShamanInputs.ShamanImbueMH(), ShamanInputs.ShamanImbueMHSwap()],
 	// Buff and Debuff inputs to include/exclude, overriding the EP-based defaults.
 	includeBuffDebuffInputs: [Stat.StatMP5, Stat.StatFireDamage],
 	excludeBuffDebuffInputs: [],

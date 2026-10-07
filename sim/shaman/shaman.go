@@ -27,11 +27,6 @@ func NewShaman(character *core.Character, talents string, selfBuffs SelfBuffs) *
 
 	core.FillTalentsProto(shaman.Talents.ProtoReflect(), talents, TalentTreeSizes)
 
-	// A weapon holds one temporary enchant, so the shaman's imbue takes its hand from an oil or
-	// stone. The consumable's enchant comes off before the weapons are built, which keeps its flat
-	// weapon damage off them, and its effect then finds no hand carrying it.
-	shaman.clearConsumableImbue(proto.ItemSlot_ItemSlotMainHand, selfBuffs.ImbueMH)
-
 	// Add Shaman stat dependencies
 	shaman.AddStatDependency(stats.BonusArmor, stats.Armor, 1)
 	shaman.AddStatDependency(stats.Agility, stats.PhysicalCritPercent, core.CritPerAgiMaxLevel[shaman.Class])
@@ -69,6 +64,10 @@ type Shaman struct {
 	windfuryWeaponMultiplier     float64
 	rockbiterWeaponMultiplier    float64
 	spiritWeaponsRockbiterThreat float64
+
+	// The equipped main hand and the swap set's, which the imbue options name.
+	mainHandID     int32
+	swapMainHandID int32
 
 	Talents   *proto.ShamanTalents
 	SelfBuffs SelfBuffs

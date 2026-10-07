@@ -6,9 +6,6 @@ import i18n from '@i18n/config';
 import type { StoreField } from '@sim/hooks/useStoreField';
 import { Player } from '@sim/player/player';
 import { ActionId } from '@sim/proto/action_id';
-import { batch } from '@sim/state/batch';
-
-import type { ClassImbueHand } from './class_imbues';
 
 export type ConsumableIdField = 'potId' | 'conjuredId' | 'flaskId' | 'foodId' | 'explosiveId' | 'mhImbueId' | 'ohImbueId';
 
@@ -22,8 +19,6 @@ export interface ConsumableInputOptions {
 	offers?: (consumable: Consumable, player: Player<any>) => boolean;
 	showWhen?: (player: Player<any>) => boolean;
 	tooltip?: string;
-	// A weapon imbue picker's class imbues, offered beside its consumables as one pick.
-	classImbues?: ClassImbueHand;
 }
 
 // The minimum level only trims what is offered: a consumable already picked stays offered below it.
@@ -77,16 +72,12 @@ function consumablePicker(
 	withPick: (consumes: ConsumesSpec, newValue: number) => ConsumesSpec,
 ): InputHelpers.TypedIconEnumPickerConfig<Player<any>, number> {
 	const byLvl = [...consumables].sort((a, b) => b.lvl - a.lvl);
-	const classImbues = options.classImbues;
-	const values: Array<IconEnumValueConfig<Player<any>, number>> = [
-		...(classImbues?.values ?? []),
-		...byLvl.map(consumable => ({
-			value: consumable.id,
-			actionId: ActionId.fromItemId(consumable.id),
-			tooltip: consumable.name,
-			showWhen: offeredTo(consumable, relevance, player => pickOf(player.getConsumes()) === consumable.id, options.offers),
-		})),
-	];
+	const values: Array<IconEnumValueConfig<Player<any>, number>> = byLvl.map(consumable => ({
+		value: consumable.id,
+		actionId: ActionId.fromItemId(consumable.id),
+		tooltip: consumable.name,
+		showWhen: offeredTo(consumable, relevance, player => pickOf(player.getConsumes()) === consumable.id, options.offers),
+	}));
 	return {
 		type: 'iconEnum',
 		tooltip: options.tooltip,
@@ -97,18 +88,14 @@ function consumablePicker(
 		values: [{ value: 0, iconUrl: '', tooltip: i18n.t('common.none') }, ...values],
 		equals: (a: number, b: number) => a === b,
 		zeroValue: 0,
-		// `raid:partyBuffs` because the main-hand imbue's showWhen reads the weapon totems off the party,
-		// and `specOptions` because a class imbue is kept there.
-		storeField: [...STORE_FIELDS, 'raid:partyBuffs', ...(classImbues ? (['specOptions'] as const) : [])],
+		// `raid:partyBuffs` because the main-hand imbue's showWhen reads the weapon totems off the party.
+		storeField: [...STORE_FIELDS, 'raid:partyBuffs'],
 		showWhen: options.showWhen,
-		getValue: (player: Player<any>) => classImbues?.getPick(player) || pickOf(player.getConsumes()),
+		getValue: (player: Player<any>) => pickOf(player.getConsumes()),
 		setValue: (player: Player<any>, newValue: number) => {
 			const consumes = player.getConsumes();
-			const consumable = newValue > 0 ? newValue : 0;
-			batch(() => {
-				classImbues?.setPick(player, newValue < 0 ? newValue : 0);
-				if (pickOf(consumes) !== consumable) player.setConsumes(withPick(consumes, consumable));
-			});
+			if (pickOf(consumes) === newValue) return;
+			player.setConsumes(withPick(consumes, newValue));
 		},
 	};
 }
