@@ -8,47 +8,23 @@ import (
 )
 
 func TestSelectedConsumableIDs(t *testing.T) {
-	const oil = 990410
-	addToDatabase(&proto.SimDatabase{Consumables: []*proto.Consumable{
-		{Id: oil, Type: proto.ConsumableType_ConsumableTypeImbue, TemporaryEnchant: &proto.SimEnchant{EffectId: 990420}},
-	}})
 	consumes := &proto.ConsumesSpec{
-		PotId:         13444,
-		Potions:       []int32{13444, 13446},
-		FlaskId:       13510,
-		FoodId:        20452,
-		ExplosiveId:   18588,
-		MhImbueId:     oil,
-		OhImbueId:     12404,
-		ConjuredItems: []int32{7676},
-		ExtraIds:      []int32{10646, 10309, 10305, 5206},
+		PotId:           13444,
+		Potions:         []int32{13444, 13446},
+		FlaskId:         13510,
+		FoodId:          20452,
+		ExplosiveId:     18588,
+		MhImbueId:       20749,
+		MhWeaponImbueId: 8928,
+		OhImbueId:       12404,
+		ConjuredItems:   []int32{7676},
+		ExtraIds:        []int32{10646, 10309, 10305, 5206},
 	}
 
-	got := selectedConsumableIDs(consumes, Item{TempEnchant: 990420})
-	want := []int32{13444, 13510, 20452, 18588, 12404, oil, 10646, 10309, 10305, 5206, 13446, 7676}
+	got := selectedConsumableIDs(consumes)
+	want := []int32{13444, 13510, 20452, 18588, 12404, 20749, 8928, 10646, 10309, 10305, 5206, 13446, 7676}
 	if !slices.Equal(got, want) {
 		t.Errorf("selected %v, want %v", got, want)
-	}
-
-	bareMainHand := selectedConsumableIDs(consumes, Item{})
-	if slices.Contains(bareMainHand, oil) {
-		t.Errorf("selected the main-hand imbue while the main hand carries no enchant: %v", bareMainHand)
-	}
-}
-
-func TestSelectedConsumableIDsTakeAStoneAndAPoisonOnOneHand(t *testing.T) {
-	const stone, poison = 990411, 990412
-	addToDatabase(&proto.SimDatabase{Consumables: []*proto.Consumable{
-		{Id: stone, Type: proto.ConsumableType_ConsumableTypeImbue, TemporaryEnchant: &proto.SimEnchant{EffectId: 990421}},
-		{Id: poison, Type: proto.ConsumableType_ConsumableTypeWeaponImbue, TemporaryEnchant: &proto.SimEnchant{EffectId: 990422}},
-	}})
-	consumes := &proto.ConsumesSpec{MhImbueId: stone, MhWeaponImbueId: poison}
-
-	if got := selectedConsumableIDs(consumes, Item{TempEnchant: 990421, WeaponImbue: 990422}); !slices.Equal(got, []int32{stone, poison}) {
-		t.Errorf("selected %v, want the stone and the poison", got)
-	}
-	if got := selectedConsumableIDs(consumes, Item{WeaponImbue: 990422}); !slices.Equal(got, []int32{poison}) {
-		t.Errorf("selected %v, want the poison alone on a main hand the stone does not take", got)
 	}
 }
 
@@ -63,7 +39,7 @@ func TestSelectedConsumableIDsKeepTheFirstOfEachGroup(t *testing.T) {
 		{Id: scroll, Type: proto.ConsumableType_ConsumableTypeScroll, GroupKey: "29/2"},
 	}})
 
-	got := selectedConsumableIDs(&proto.ConsumesSpec{ElixirIds: []int32{agility, mongoose, sages, ungrouped}, ExtraIds: []int32{juju, scroll}}, Item{})
+	got := selectedConsumableIDs(&proto.ConsumesSpec{ElixirIds: []int32{agility, mongoose, sages, ungrouped}, ExtraIds: []int32{juju, scroll}})
 	if want := []int32{agility, sages, ungrouped, scroll}; !slices.Equal(got, want) {
 		t.Errorf("selected %v, want %v", got, want)
 	}
