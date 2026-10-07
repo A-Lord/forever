@@ -2,8 +2,8 @@ name: Remove pull request preview
 on:
     pull_request:
         types: [closed]
-# Every push of a same-repository pull request lands in the Pages project as a pr-<number>-<hash>
-# branch (the preview steps in run_tests.yml). Nothing on Cloudflare expires those, so the
+# Every push of a same-repository pull request lands in the Pages project as a <hash> branch,
+# the HMAC run_tests.yml's preview steps derive from the number. Nothing on Cloudflare expires those, so the
 # closing pull request deletes them itself; fork pull requests never had one.
 jobs:
     remove-preview:
@@ -18,10 +18,13 @@ jobs:
               env:
                   CLOUDFLARE_API_TOKEN: ${{ secrets.DEPLOY_PREVIEW_TOKEN }}
                   CLOUDFLARE_ACCOUNT_ID: ${{ secrets.DEPLOY_PREVIEW_ACCOUNT_ID }}
+                  DEPLOY_PREVIEW_SALT: ${{ secrets.DEPLOY_PREVIEW_SALT }}
               with:
                   script: |
                       const number = context.payload.pull_request.number;
-                      const ofThisPullRequest = branch => branch === `pr-${number}` || branch?.startsWith(`pr-${number}-`);
+                      if (!process.env.DEPLOY_PREVIEW_SALT) throw new Error('DEPLOY_PREVIEW_SALT is empty, so the preview branch cannot be found');
+                      const hash = require('crypto').createHmac('sha256', process.env.DEPLOY_PREVIEW_SALT).update(String(number)).digest('hex').slice(0, 16);
+                      const ofThisPullRequest = branch => branch === hash || branch === `pr-${number}` || branch?.startsWith(`pr-${number}-`);
                       const base = `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/pages/projects/wowsims-forever/deployments`;
                       const headers = { Authorization: `Bearer ${process.env.CLOUDFLARE_API_TOKEN}` };
                       const call = async (url, method = 'GET') => {
