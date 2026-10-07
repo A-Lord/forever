@@ -100,43 +100,52 @@ func (shaman *Shaman) holdTotemCategoryOnMainHand(label string, actionID core.Ac
 	})
 }
 
-// 439431 rolls its 20% on the main hand's melee hits, once per 1.5 s, and fires the rank's 16361: the attack power for its charges and two extra main-hand swings.
+// The extra attacks are a main-hand weapon special logged as 439440, with 16361's attack power added:
+// they roll miss, dodge, parry and crit, never glance, and auto attack procs do not hear them.
+func (shaman *Shaman) newWindfuryImbueSpell() *core.Spell {
+	// Elemental Weapons raises effect 1, which the parse would read as damage.
+	attackPower := windfuryWeaponAttack.EffectN(1).Average() * shaman.windfuryWeaponMultiplier
+
+	return shaman.RegisterSpell(core.SpellConfig{
+		ActionID:         core.ActionID{SpellID: 439440},
+		SpellSchool:      core.SpellSchoolPhysical,
+		DefenseType:      core.DefenseTypeMelee,
+		ProcMask:         core.ProcMaskMeleeMHSpecial,
+		Flags:            core.SpellFlagMeleeMetrics | core.SpellFlagPassiveSpell | core.SpellFlagNoOnCastComplete,
+		DamageMultiplier: 1,
+		ThreatMultiplier: 1,
+		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+			baseDamage := shaman.MHWeaponDamage(sim, spell.MeleeAttackPower(target)+attackPower)
+			spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeWeaponSpecialHitAndCrit)
+		},
+	})
+}
+
+// 439431 rolls its 20% on the main hand's melee hits, once per 1.5 s, and fires the rank's 16361,
+// whose extra attacks count is how many strikes follow.
 func (shaman *Shaman) RegisterWindfuryImbue() {
 	if !shaman.carriesImbue(proto.ShamanImbue_WindfuryWeapon) {
 		return
 	}
 
-	// Elemental Weapons raises effect 1, which the parse would read as damage.
-	attackPower := windfuryWeaponAttack.EffectN(1).Average() * shaman.windfuryWeaponMultiplier
-	buff := shaman.RegisterAura(spelldata.AuraConfig(windfuryWeaponAttack)).
-		AttachStatBuff(stats.AttackPower, attackPower)
+	strike := shaman.newWindfuryImbueSpell()
+	count := int(windfuryWeaponAttack.ExtraAttacksEffect().BaseValue())
 
-	// The buff's own row hears the auto attacks that spend a charge.
-	spender := spelldata.ProcTrigger(&shaman.Character, windfuryWeaponAttack, func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
-		buff.RemoveStack(sim)
-	}, spelldata.Chance(1))
-	spender.Name = "Windfury Weapon Charges"
-	spender.TriggerImmediately = true
-	buff.AttachProcTriggerCallback(&shaman.Unit, spender)
-
-	// A main-hand auto that procs it spends the first charge itself, so the extra attacks are the
-	// ones buffed; a special leaves the last charge to the auto after them.
 	chance := windfuryWeaponPassive.StatedChance()
-	trigger := spelldata.ProcTrigger(&shaman.Character, windfuryWeaponPassive, func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) {
-		buff.Activate(sim)
-		charges := buff.MaxStacks
-		if spell.ProcMask.Matches(core.ProcMaskMeleeMHAuto) {
-			charges--
+	trigger := spelldata.ProcTrigger(&shaman.Character, windfuryWeaponPassive, func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
+		for range count {
+			strike.Cast(sim, result.Target)
 		}
-		buff.SetStacks(sim, charges)
 	}, func(_ *core.Character, trigger *core.ProcTrigger) {
 		trigger.ProcChance = 0
 		trigger.DPM = shaman.imbueProcManager(proto.ShamanImbue_WindfuryWeapon, 0, chance)
+		trigger.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
+			return spell != strike
+		}
 	})
 	trigger.Name = "Windfury Weapon Trigger"
-	trigger.MetricsActionID = core.ActionID{SpellID: windfuryWeaponAttack.ID}
-	onInit := shaman.ExtraAttackProc(&trigger, windfuryWeaponAttack.ID, int(windfuryWeaponAttack.ExtraAttacksEffect().BaseValue()))
-	shaman.MakeProcTriggerAura(trigger).ApplyOnInit(onInit)
+	trigger.TriggerImmediately = true
+	shaman.MakeProcTriggerAura(trigger)
 
 	shaman.holdTotemCategoryOnMainHand("Windfury Weapon (Main Hand)", core.ActionID{SpellID: spellData.WindfuryWeapon.Highest().ID},
 		buffs.WindfuryTotemCategory, proto.ShamanImbue_WindfuryWeapon)
