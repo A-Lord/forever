@@ -45,7 +45,7 @@ func (priest *Priest) applyShadowFocus() {
 		return
 	}
 
-	spelldata.ParseStatic(&priest.Character, spellData.ShadowFocus.Rank(priest.Talents.ShadowFocus))
+	spelldata.ParseStatic(&priest.Character, spellData.ShadowFocus.Rank(priest.Talents.ShadowFocus), spelldata.ShowAsSchoolHit(core.SpellSchoolShadow))
 }
 
 // Gives your Shadow damage spells a 10% chance to stun the target for 3 sec.
