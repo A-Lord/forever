@@ -56,6 +56,102 @@ func starterConfig() core.CharacterSuiteConfig {
 	return config
 }
 
+func selectedAutoCat(t testing.TB, rotation *proto.APLRotation) *proto.ComputeStatsRequest {
+	t.Helper()
+	req := buildRequest(t, "raid")
+	player := req.Raid.Parties[0].Players[0]
+	player.Rotation = rotation
+	player.Consumables = &proto.ConsumesSpec{
+		PotId:      13444,
+		ConjuredId: 7676,
+		ExtraIds:   []int32{10646},
+	}
+	return &proto.ComputeStatsRequest{Raid: req.Raid, Encounter: req.Encounter}
+}
+func aplWarnings(t *testing.T, req *proto.ComputeStatsRequest) map[int][]string {
+	t.Helper()
+	stats := core.ComputeStats(req).RaidStats.Parties[0].Players[0].RotationStats
+	warnings := map[int][]string{}
+	add := func(line int, validations []*proto.APLValidation) {
+		for _, validation := range validations {
+			if validation.LogLevel >= proto.LogLevel_Warning {
+				warnings[line] = append(warnings[line], validation.Validation)
+			}
+		}
+	}
+	for i, action := range stats.PriorityList {
+		add(i, action.Validations)
+	}
+	for _, action := range stats.PrepullActions {
+		add(-1, action.Validations)
+	}
+	for _, validation := range stats.UuidValidations {
+		add(-2, validation.Validations)
+	}
+	return warnings
+}
+
+func TestCatAutoPresetMatchesItsBuilder(t *testing.T) {
+	preset := core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "auto").Rotation
+	if !goproto.Equal(preset, catAPL(bestCatAPL)) {
+		t.Fatal("auto.apl.json differs from catAPL(bestCatAPL); rerun with APL_WRITE=1")
+	}
+}
+
+func TestCatAutoPresetHasNoWarningsWhenSelected(t *testing.T) {
+	preset := core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "auto").Rotation
+	if warnings := aplWarnings(t, selectedAutoCat(t, preset)); len(warnings) != 0 {
+		t.Errorf("preset warnings by line: %v", warnings)
+	}
+}
+
+func assertWarningsOnlyForConsumableActions(t *testing.T, preset *proto.APLRotation, req *proto.ComputeStatsRequest) {
+	t.Helper()
+	allowed := map[int]bool{}
+	for i, item := range preset.PriorityList {
+		id := item.Action.GetCastSpell().GetSpellId()
+		if id.GetItemId() != 0 || id.GetOtherId() == proto.OtherAction_OtherActionPotion {
+			allowed[i] = true
+		}
+	}
+	warnings := aplWarnings(t, req)
+	if len(warnings) != len(allowed) {
+		t.Errorf("missing-consumable warnings by line: %v; expected lines: %v", warnings, allowed)
+	}
+	for line, messages := range warnings {
+		if !allowed[line] {
+			t.Errorf("line %d warns without consumables: %v", line, messages)
+		}
+	}
+}
+
+func TestCatAutoPresetWarnsForActionsUnselectedByRaidBuild(t *testing.T) {
+	preset := core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "auto").Rotation
+	req := buildRequest(t, "raid")
+	req.Raid.Parties[0].Players[0].Rotation = preset
+	assertWarningsOnlyForConsumableActions(t, preset, &proto.ComputeStatsRequest{Raid: req.Raid, Encounter: req.Encounter})
+}
+
+func TestCatAutoPresetWarnsOnlyOnMissingConsumables(t *testing.T) {
+	preset := core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "auto").Rotation
+	req := selectedAutoCat(t, preset)
+	player := req.Raid.Parties[0].Players[0]
+	player.Profession1 = proto.Profession_ProfessionUnknown
+	player.Consumables = &proto.ConsumesSpec{}
+	assertWarningsOnlyForConsumableActions(t, preset, req)
+
+	result := core.RunSim(&proto.RaidSimRequest{
+		Raid: req.Raid, Encounter: req.Encounter,
+		SimOptions: &proto.SimOptions{RandomSeed: 1, Iterations: 20, IsTest: true},
+	}, nil, simsignals.CreateSignals())
+	if result.Error != nil {
+		t.Fatal(result.Error.Message)
+	}
+	if dps := result.RaidMetrics.Parties[0].Players[0].Dps.Avg; dps < 500 {
+		t.Errorf("bare cat on the preset does %.1f DPS", dps)
+	}
+}
+
 func BenchmarkSimulate(b *testing.B) {
 	core.CharacterBenchmark(b, starterConfig())
 }

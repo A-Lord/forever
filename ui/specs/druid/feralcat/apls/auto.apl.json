@@ -5,24 +5,6 @@
 			"action": {
 				"castSpell": {
 					"spellId": {
-						"itemId": 10309
-					}
-				}
-			}
-		},
-		{
-			"action": {
-				"castSpell": {
-					"spellId": {
-						"itemId": 10310
-					}
-				}
-			}
-		},
-		{
-			"action": {
-				"castSpell": {
-					"spellId": {
 						"itemId": 10646
 					}
 				}
@@ -57,17 +39,6 @@
 								"auraIsActive": {
 									"auraId": {
 										"spellId": 768
-									}
-								}
-							},
-							{
-								"not": {
-									"val": {
-										"spellCanCast": {
-											"spellId": {
-												"itemId": 10646
-											}
-										}
 									}
 								}
 							},
@@ -181,17 +152,6 @@
 								"auraIsActive": {
 									"auraId": {
 										"spellId": 768
-									}
-								}
-							},
-							{
-								"not": {
-									"val": {
-										"spellCanCast": {
-											"spellId": {
-												"itemId": 10646
-											}
-										}
 									}
 								}
 							},

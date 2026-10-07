@@ -223,20 +223,18 @@ func runSweep(t testing.TB, name string, request *proto.RaidSimRequest) *proto.R
 }
 
 const (
-	spellCatForm  int32 = 768
-	spellShred    int32 = 9830
-	spellClaw     int32 = 9850
-	spellRip      int32 = 9896
-	spellRake     int32 = 9904
-	spellFF       int32 = 9907
-	spellSP       int32 = 1322605
-	spellBerserk  int32 = 417141
-	spellElune    int32 = 1259799
-	spellClear    int32 = 16870
-	itemSapper    int32 = 10646
-	itemTea       int32 = 7676
-	itemScrollAgi int32 = 10309
-	itemScrollStr int32 = 10310
+	spellCatForm int32 = 768
+	spellShred   int32 = 9830
+	spellClaw    int32 = 9850
+	spellRip     int32 = 9896
+	spellRake    int32 = 9904
+	spellFF      int32 = 9907
+	spellSP      int32 = 1322605
+	spellBerserk int32 = 417141
+	spellElune   int32 = 1259799
+	spellClear   int32 = 16870
+	itemSapper   int32 = 10646
+	itemTea      int32 = 7676
 )
 
 // aplTune is one candidate. elune is "after" (once Berserk's crit has fallen), "now" (as soon as it
@@ -277,8 +275,8 @@ func catAPL(tune aplTune) *proto.APLRotation {
 		cmp(proto.APLValueCompare_OpLt, afterBuilder, spellCost(spellRip)))
 	// Berserk is a major cooldown, so a plain cast waits for a GCD that is already idle while the
 	// builder queues into the window and takes that GCD. A sequence casts it with the spell.
-	openRake := and(inCat, not(itemCanCast(itemSapper)), not(ripNow), rakeNow)
-	openShred := and(inCat, not(itemCanCast(itemSapper)), not(ripNow), not(rakeNow), not(pooling), not(wantShift), spellCanCast(spellShred))
+	openRake := and(inCat, not(ripNow), rakeNow)
+	openShred := and(inCat, not(ripNow), not(rakeNow), not(pooling), not(wantShift), spellCanCast(spellShred))
 	// Berserk is +100% crit for 15s. Elune's 10% crit during that window does not change a crit.
 	elune := and(not(auraUp(spellBerserk)), cmp(proto.APLValueCompare_OpGt, spellLeft(spellBerserk), konst("15s")))
 	switch tune.elune {
@@ -305,8 +303,6 @@ func catAPL(tune aplTune) *proto.APLRotation {
 	}
 
 	list := []*proto.APLListItem{
-		castItem(itemScrollAgi),
-		castItem(itemScrollStr),
 		castItem(itemSapper),
 		castWhen(spellCatForm, not(inCat)),
 		sequenceWhen(openRake, spellAction(spellBerserk), spellAction(spellRake)),
@@ -413,7 +409,7 @@ func TestAPLAgainstGoRotation(t *testing.T) {
 			player := req.Raid.Parties[0].Players[0]
 			player.Profession1 = proto.Profession_Engineering
 			if scenario.consumes {
-				player.Consumables = &proto.ConsumesSpec{PotId: 13444, ConjuredId: 7676, ExtraIds: []int32{10646, 10309, 10310}, ElixirIds: []int32{13452}, FoodId: 250072}
+				player.Consumables = &proto.ConsumesSpec{PotId: 13444, ConjuredId: 7676, ExtraIds: []int32{10646, 10310}, ElixirIds: []int32{13452, 13447}, FoodId: 250072, MhImbueId: 12643}
 			}
 			if scenario.wolfhead {
 				player.Equipment = gproto.Clone(player.Equipment).(*proto.EquipmentSpec)
