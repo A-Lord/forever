@@ -173,8 +173,9 @@ func (wand *Wand) wanding() bool {
 	return wand != nil && wand.unit.ChanneledDot != nil && wand.unit.ChanneledDot.Spell == wand.shoot
 }
 
+// Shoot's channel or one of its shots, which share its spell id.
 func (wand *Wand) IsShoot(spell *Spell) bool {
-	return wand != nil && spell == wand.shoot
+	return wand != nil && spell.ActionID.SpellID == wand.shoot.ActionID.SpellID
 }
 
 func (wand *Wand) nextShotAt() (time.Duration, bool) {

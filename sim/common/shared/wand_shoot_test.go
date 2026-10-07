@@ -2,7 +2,9 @@ package shared
 
 import (
 	"cmp"
+	"fmt"
 	"math"
+	"strings"
 	"testing"
 	"time"
 
@@ -38,6 +40,7 @@ func init() {
 type wandCaster struct {
 	testCaster
 	shoot   *core.Spell
+	shot    *core.Spell
 	charges *core.Aura
 	marker  *core.Spell
 }
@@ -45,6 +48,7 @@ type wandCaster struct {
 func (c *wandCaster) Initialize() {
 	RegisterShoot(&c.Character)
 	c.shoot = c.GetSpell(core.ActionID{SpellID: shootRow.ID})
+	c.shot = c.GetSpell(core.ActionID{SpellID: shootRow.ID, Tag: 1})
 	c.marker = c.RegisterSpell(core.SpellConfig{
 		ActionID: core.ActionID{SpellID: markerSpellID},
 		Flags:    core.SpellFlagAPL,
@@ -133,7 +137,7 @@ func newSableWandSim(t *testing.T) (*core.Simulation, *wandCaster) {
 func shots(t *testing.T, sim *core.Simulation, caster *wandCaster, n int) []float64 {
 	t.Helper()
 	target := sim.Encounter.ActiveTargetUnits[0]
-	metrics := &caster.shoot.SpellMetrics[target.UnitIndex]
+	metrics := &caster.shot.SpellMetrics[target.UnitIndex]
 	dealt := make([]float64, n)
 	for i := range dealt {
 		before := metrics.TotalDamage
@@ -154,8 +158,8 @@ func landed(metrics *core.SpellMetrics) int32 {
 func TestWandShoot(t *testing.T) {
 	t.Run("a shot rolls the wand's damage in its school, with no power", func(t *testing.T) {
 		sim, caster := newSableWandSim(t)
-		if caster.shoot.SpellSchool != core.SpellSchoolShadow {
-			t.Fatalf("Shoot with the Sable Wand is %v, want shadow", caster.shoot.SpellSchool)
+		if caster.shoot.SpellSchool != core.SpellSchoolShadow || caster.shot.SpellSchool != core.SpellSchoolShadow {
+			t.Fatalf("Shoot and its shot with the Sable Wand are %v and %v, want shadow", caster.shoot.SpellSchool, caster.shot.SpellSchool)
 		}
 		plain := shots(t, sim, caster, 200)
 		for i, damage := range plain {
@@ -190,8 +194,8 @@ func TestWandShoot(t *testing.T) {
 
 	t.Run("a shot crits on ranged crit for 1.5 times its roll", func(t *testing.T) {
 		sim, caster := newSableWandSim(t)
-		if caster.shoot.DefenseType != core.DefenseTypeMagic {
-			t.Fatalf("Shoot's defense type is %v, want magic", caster.shoot.DefenseType)
+		if caster.shot.DefenseType != core.DefenseTypeMagic {
+			t.Fatalf("a shot's defense type is %v, want magic", caster.shot.DefenseType)
 		}
 		plain := shots(t, sim, caster, 50)
 
@@ -203,7 +207,7 @@ func TestWandShoot(t *testing.T) {
 				t.Fatalf("shot %d crit for %v, want 1.5 × %v", i+1, crits[i], plain[i])
 			}
 		}
-		metrics := caster.shoot.SpellMetrics[sim.Encounter.ActiveTargetUnits[0].UnitIndex]
+		metrics := caster.shot.SpellMetrics[sim.Encounter.ActiveTargetUnits[0].UnitIndex]
 		if metrics.Crits != 50 || metrics.Hits != 0 {
 			t.Fatalf("with 100%% ranged crit Shoot landed %d crits and %d hits, want 50 and 0", metrics.Crits, metrics.Hits)
 		}
@@ -213,7 +217,7 @@ func TestWandShoot(t *testing.T) {
 		sim, caster := newSableWandSim(t)
 		caster.AddStatsDynamic(sim, stats.Stats{stats.SpellCritPercent: 100})
 		shots(t, sim, caster, 50)
-		metrics := caster.shoot.SpellMetrics[sim.Encounter.ActiveTargetUnits[0].UnitIndex]
+		metrics := caster.shot.SpellMetrics[sim.Encounter.ActiveTargetUnits[0].UnitIndex]
 		if metrics.Crits != 0 || metrics.Hits != 50 {
 			t.Fatalf("with 100%% spell crit and no ranged crit Shoot landed %d crits and %d hits, want 0 and 50", metrics.Crits, metrics.Hits)
 		}
@@ -226,7 +230,7 @@ func TestWandShoot(t *testing.T) {
 		sim, caster := newSwapWandSim(t, wandSimOptions{ranged: &proto.ItemSpec{Id: sableWandID}, targetLevel: targetLevel, weaponSkills: weaponSkills})
 		caster.AddStatsDynamic(sim, bonus(caster))
 		shots(t, sim, caster, 300)
-		return caster.shoot.SpellMetrics[sim.Encounter.ActiveTargetUnits[0].UnitIndex]
+		return caster.shot.SpellMetrics[sim.Encounter.ActiveTargetUnits[0].UnitIndex]
 	}
 
 	// The misses with the given spell hit and full physical hit.
@@ -299,7 +303,7 @@ func TestWandShoot(t *testing.T) {
 		target.PseudoStats.BaseBlockChance = 1
 		caster.PseudoStats.InFrontOfTarget = true
 		shots(t, sim, caster, 50)
-		metrics := caster.shoot.SpellMetrics[target.UnitIndex]
+		metrics := caster.shot.SpellMetrics[target.UnitIndex]
 		if metrics.Dodges != 0 || metrics.Parries != 0 || metrics.Blocks != 0 || metrics.BlockedCrits != 0 || landed(&metrics) != 50 {
 			t.Fatalf("in front of a target certain to dodge, parry and block Shoot landed %d of 50 shots, %d dodged, %d parried, %d blocked, want all landed", landed(&metrics), metrics.Dodges, metrics.Parries, metrics.Blocks+metrics.BlockedCrits)
 		}
@@ -308,7 +312,7 @@ func TestWandShoot(t *testing.T) {
 	t.Run("a first shot fires after the wind-up and flies at 20 yards a second", func(t *testing.T) {
 		sim, caster := newWandSim(t, &proto.ItemSpec{Id: sableWandID}, &proto.APLRotation{}, 20)
 		target := sim.Encounter.ActiveTargetUnits[0]
-		metrics := &caster.shoot.SpellMetrics[target.UnitIndex]
+		metrics := &caster.shot.SpellMetrics[target.UnitIndex]
 		if !caster.shoot.Cast(sim, target) {
 			t.Fatalf("Shoot could not be cast from 20 yards")
 		}
@@ -328,6 +332,38 @@ func TestWandShoot(t *testing.T) {
 		stepPast(t, sim, 1501*time.Millisecond)
 		if metrics.TotalDamage == 0 {
 			t.Fatalf("the shot had dealt nothing at 1.50 s")
+		}
+	})
+
+	t.Run("a shot logs as a cast of its own and its damage after the flight", func(t *testing.T) {
+		sim, caster := newWandSim(t, &proto.ItemSpec{Id: sableWandID}, &proto.APLRotation{}, 20)
+		var lines []string
+		sim.Log = func(message string, vals ...any) {
+			lines = append(lines, fmt.Sprintf("[%0.2f] "+message, append([]any{sim.CurrentTime.Seconds()}, vals...)...))
+		}
+		if !caster.shoot.Cast(sim, sim.Encounter.ActiveTargetUnits[0]) {
+			t.Fatalf("Shoot could not be cast from 20 yards")
+		}
+		stepPast(t, sim, 1501*time.Millisecond)
+
+		shot := core.ActionID{SpellID: shootRow.ID, Tag: 1}.String()
+		want := []struct{ at, text string }{
+			{"[0.50]", "Casting " + shot + " (Cost = 0.000, Cast Time = 0s, GCD = 0s"},
+			{"[0.50]", "Completed cast " + shot},
+			{"[1.50]", "] " + shot + " Hit for "},
+		}
+		var got []string
+		for _, line := range lines {
+			if strings.Contains(line, shot) && !strings.Contains(line, "[DEBUG]") {
+				got = append(got, line)
+			}
+		}
+		matched := len(got) == len(want)
+		for i := 0; matched && i < len(want); i++ {
+			matched = strings.HasPrefix(got[i], want[i].at) && strings.Contains(got[i], want[i].text)
+		}
+		if !matched {
+			t.Fatalf("the shot's lines are\n%s\nwant its instant cast at 0.50 s and its hit at 1.50 s", strings.Join(got, "\n"))
 		}
 	})
 
@@ -357,7 +393,7 @@ func TestWandShoot(t *testing.T) {
 
 	t.Run("a channel from the pull fires after the wind-up and then every wand speed", func(t *testing.T) {
 		sim, caster := newWandSim(t, &proto.ItemSpec{Id: sableWandID}, channelShootRotation(), 0)
-		metrics := &caster.shoot.SpellMetrics[sim.Encounter.ActiveTargetUnits[0].UnitIndex]
+		metrics := &caster.shot.SpellMetrics[sim.Encounter.ActiveTargetUnits[0].UnitIndex]
 		sim.PrePull()
 
 		stepPast(t, sim, 499*time.Millisecond)
@@ -373,15 +409,16 @@ func TestWandShoot(t *testing.T) {
 			t.Fatalf("the second shot should wait a wand speed after the first, %d shots at 2.299 s", landed(metrics))
 		}
 		stepPast(t, sim, 2301*time.Millisecond)
-		if metrics.Casts != 1 || landed(metrics) != 2 {
-			t.Fatalf("at 2.30 s the pull's channel should have fired its second shot from one cast, %d casts, %d shots", metrics.Casts, landed(metrics))
+		casts := caster.shoot.SpellMetrics[sim.Encounter.ActiveTargetUnits[0].UnitIndex].Casts
+		if casts != 1 || landed(metrics) != 2 {
+			t.Fatalf("at 2.30 s the pull's channel should have fired its second shot from one cast, %d casts, %d shots", casts, landed(metrics))
 		}
 	})
 
 	t.Run("cast speed at the start sets the shot interval", func(t *testing.T) {
 		sim, caster := newWandSim(t, &proto.ItemSpec{Id: sableWandID}, channelShootRotation(), 0)
 		caster.MultiplyCastSpeed(sim, 1.1)
-		metrics := &caster.shoot.SpellMetrics[sim.Encounter.ActiveTargetUnits[0].UnitIndex]
+		metrics := &caster.shot.SpellMetrics[sim.Encounter.ActiveTargetUnits[0].UnitIndex]
 		sim.PrePull()
 
 		for _, step := range []struct {
@@ -474,7 +511,7 @@ func TestWandShootReadsEquippedWand(t *testing.T) {
 		caster.ItemSwap.SwapItems(sim, proto.APLActionItemSwap_Swap1, false)
 		wand := caster.WeaponFromRanged()
 		target := sim.Encounter.ActiveTargetUnits[0]
-		metrics := &caster.shoot.SpellMetrics[target.UnitIndex]
+		metrics := &caster.shot.SpellMetrics[target.UnitIndex]
 		stepPast(t, sim, 5*time.Second)
 
 		firstShotAt := sim.CurrentTime + 500*time.Millisecond
