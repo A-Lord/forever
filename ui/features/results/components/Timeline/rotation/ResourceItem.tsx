@@ -23,7 +23,7 @@ const FILL_CLASSES: Record<string, string> = {
 export const ResourceItem = ({ item, index, cssName }: ResourceItemProps) => (
 	<div
 		data-testid="series-color"
-		className={clsx('ui-timeline-item ui-timeline-item-slice top-0', TIMELINE_SERIES_TEXT[cssName], cssName, cssName === 'mana' && 'border-x-0')}
+		className={clsx('ui-timeline-item ui-timeline-item-slice top-0', TIMELINE_SERIES_TEXT[cssName], cssName)}
 		data-item-index={index}
 		style={spanStyle(item.start, item.end - item.start)}>
 		<div
