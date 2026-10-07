@@ -29,7 +29,7 @@ func (warlock *Warlock) registerCurseOfElements() {
 		// The same row, built the way the shared debuff is, with Amplify Curse's -20 parsed onto it.
 		warlock.CurseOfElementsAmpAuras = warlock.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
 			aura := target.GetOrRegisterAura(core.Aura{
-				Label:    "Curse of the Elements (Amplified)-" + warlock.Label,
+				Label:    rankedSpell.RankedLabel(&warlock.Unit) + " (Amplified)",
 				Tag:      buffs.CurseOfElementsCategory,
 				ActionID: core.ActionID{SpellID: rankedSpell.ID, Tag: 1},
 				Duration: rankedSpell.Duration(),

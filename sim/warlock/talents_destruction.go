@@ -58,8 +58,7 @@ func (warlock *Warlock) applyImprovedShadowBolt() {
 
 	// Damage done by caster: this warlock's Shadow damage, against the target the debuff is on.
 	warlock.ShadowVulnerabilityAuras = warlock.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-		auraConfig := spelldata.AuraConfig(shadowVulnerability)
-		auraConfig.Label += " - " + warlock.Label
+		auraConfig := spelldata.AuraConfig(shadowVulnerability, spelldata.RankLabel(shadowVulnerability, &warlock.Unit))
 		return target.GetOrRegisterAura(auraConfig).AttachDDBC(DDBC_ShadowVulnerability, DDBC_Total, &warlock.AttackTables,
 			func(_ *core.Simulation, spell *core.Spell, _ *core.AttackTable) float64 {
 				if spell.SpellSchool.Matches(core.SpellSchoolShadow) {

@@ -16,8 +16,7 @@ func (warlock *Warlock) registerBaneOfHavoc() {
 	var cursed *core.Unit
 
 	warlock.BaneOfHavocAuras = warlock.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-		auraConfig := spelldata.AuraConfig(rankedSpell)
-		auraConfig.Label += "-" + warlock.Label // each warlock's own Bane, and its own callbacks
+		auraConfig := spelldata.AuraConfig(rankedSpell, spelldata.RankLabel(rankedSpell, &warlock.Unit))
 		auraConfig.OnGain = func(aura *core.Aura, _ *core.Simulation) {
 			cursed = aura.Unit
 		}

@@ -248,8 +248,7 @@ func (warlock *Warlock) applyDemonicBrand() {
 
 	brandRow := spellData.DemonicBrandTriggered.ByID(1293696)
 	warlock.DemonicBrandAuras = warlock.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-		auraConfig := spelldata.AuraConfig(brandRow)
-		auraConfig.Label += " - " + warlock.Label
+		auraConfig := spelldata.AuraConfig(brandRow, spelldata.RankLabel(brandRow, &warlock.Unit))
 		auraConfig.MaxStacks = charges
 		return target.GetOrRegisterAura(auraConfig)
 	})
