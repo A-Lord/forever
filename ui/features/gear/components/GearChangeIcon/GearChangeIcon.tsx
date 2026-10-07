@@ -1,5 +1,4 @@
 import type { ItemSlot } from '@generated/proto/common';
-import { useSimHost } from '@sim/context/SimHostContext';
 import { useActionId } from '@sim/hooks/useActionId';
 import { useActionIdWowheadDataset } from '@sim/hooks/useActionIdWowheadDataset';
 import type { WowheadDatasetProps } from '@sim/hooks/useWowheadDataset';
@@ -63,11 +62,9 @@ export interface GearChangeIconProps {
 }
 
 export const GearChangeIcon = ({ slot, item, previousItem, showEnchant = false }: GearChangeIconProps) => {
-	const player = useSimHost().player;
-
 	const actionId = useMemo(() => item?.asActionId(), [item]);
 	const { iconUrl, href } = useActionId(actionId);
-	const wowhead = useEquippedItemWowheadDataset(player, item);
+	const wowhead = useEquippedItemWowheadDataset(item);
 
 	const itemEnchant = showEnchant ? (item?.enchant ?? undefined) : undefined;
 	const enchantActionIdOf = useMemo(() => (showEnchant && item?.enchant ? enchantActionId(item.enchant) : undefined), [showEnchant, item]);
