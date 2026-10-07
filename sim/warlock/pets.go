@@ -284,7 +284,7 @@ func (pet *WarlockPet) registerFirebolt() {
 
 	// Roll the damage and to hit, then land it after the bolt's travel time
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		result := spell.CalcDamage(sim, target, fireboltHit.Roll(sim), spell.OutcomeMagicHitAndCrit)
+		result := spell.CalcDamage(sim, target, fireboltHit.Average(), spell.OutcomeMagicHitAndCrit)
 		spell.WaitTravelTime(sim, func(sim *core.Simulation) {
 			spell.DealDamage(sim, result)
 		})
@@ -307,7 +307,7 @@ func (pet *WarlockPet) registerLashOfPain() {
 
 	// Roll the damage and to hit
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		spell.CalcAndDealDamage(sim, target, lashHit.Roll(sim), spell.OutcomeMagicHitAndCrit)
+		spell.CalcAndDealDamage(sim, target, lashHit.Average(), spell.OutcomeMagicHitAndCrit)
 	}
 
 	pet.AutoCastAbilities = append(pet.AutoCastAbilities, pet.RegisterSpell(config))

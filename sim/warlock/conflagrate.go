@@ -21,7 +21,7 @@ func (warlock *Warlock) registerConflagrate() {
 
 	// Roll the damage and to hit, then consume the Immolate unless Shadow and Flame keeps it
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		result := spell.CalcAndDealDamage(sim, target, conflagrateHit.Roll(sim), spell.OutcomeMagicHitAndCrit)
+		result := spell.CalcAndDealDamage(sim, target, conflagrateHit.Average(), spell.OutcomeMagicHitAndCrit)
 		if result.Landed() && !sim.Proc(warlock.conflagrateKeepsImmolate, "Shadow and Flame") {
 			warlock.Immolate.Dot(target).Deactivate(sim)
 		}
