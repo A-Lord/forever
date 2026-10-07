@@ -88,8 +88,9 @@ func (shaman *Shaman) registerMagmaTotemSpell() {
 }
 
 // "Instantly inflicts $11307s1 fire damage to enemies within $11307a1 yd of your active Fire totem."
-// The cast deals 11307's damage itself, so it carries both rows' class flags: Improved Fire Nova
-// names the cast, 408345, and Call of Flame and Elemental Fury name the damage, 11307.
+// The tooltip reads 11307, but the cast hits for the Fire Nova row of its own rank, 408428, and deals
+// that damage itself, so it carries both rows' class flags: Improved Fire Nova names both, and Call of
+// Flame and Elemental Fury name the damage, 408428.
 func (shaman *Shaman) registerFireNovaSpell() {
 	damage := fireNovaDamageRank.DamageEffect()
 
