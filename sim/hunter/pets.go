@@ -361,7 +361,7 @@ func (hp *HunterPet) registerDot(rank *spelldata.Spell) *core.Spell {
 func (hp *HunterPet) registerScorpidPoison(rank *spelldata.Spell) *core.Spell {
 	tick := rank.PeriodicEffect()
 
-	config := hp.spellConfig(rank, schoolOpt(rank), spelldata.Flags(core.SpellFlagPureDot))
+	config := hp.spellConfig(rank, schoolOpt(rank))
 	config.Dot = spelldata.DotConfig(rank, tick)
 	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
 		dot.Spell.CalcAndDealPeriodicDamage(sim, target, tick.Average()*float64(dot.GetStacks()), rank.TickOutcome(dot))

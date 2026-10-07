@@ -20,28 +20,28 @@ func TestSchoolSpellPiercingLowersOnlyItsSchool(t *testing.T) {
 		attacker := Unit{Type: PlayerUnit, Level: 60, PseudoStats: stats.NewPseudoStats()}
 		attacker.stats[stats.SpellPiercing] = generic
 		attacker.PseudoStats.SchoolSpellPiercing[stats.SchoolIndexFire] = firePiercing
-		return defender.resistCoeff(fire, &attacker, false), defender.resistCoeff(frost, &attacker, false)
+		return defender.averageResist(fire, &attacker, false, false), defender.averageResist(frost, &attacker, false, false)
 	}
 
 	_, frostBare := coeffs(0, 0)
-	fireCoeff, frostCoeff := coeffs(0, 30)
-	if want := 70.0 / 300; !WithinToleranceFloat64(want, fireCoeff, 1e-9) {
-		t.Errorf("fire coefficient with 30 fire piercing = %v, want %v", fireCoeff, want)
+	fireResist, frostResist := coeffs(0, 30)
+	if want := 70.0 / (70 + 380); !WithinToleranceFloat64(want, fireResist, 1e-9) {
+		t.Errorf("fire average resist with 30 fire piercing = %v, want %v", fireResist, want)
 	}
-	if frostCoeff != frostBare {
-		t.Errorf("frost coefficient with 30 fire piercing = %v, want %v as without it", frostCoeff, frostBare)
+	if frostResist != frostBare {
+		t.Errorf("frost average resist with 30 fire piercing = %v, want %v as without it", frostResist, frostBare)
 	}
 
 	fireBoth, frostBoth := coeffs(20, 30)
-	if want := 50.0 / 300; !WithinToleranceFloat64(want, fireBoth, 1e-9) {
-		t.Errorf("fire coefficient with 20 piercing and 30 fire piercing = %v, want %v", fireBoth, want)
+	if want := 50.0 / (50 + 380); !WithinToleranceFloat64(want, fireBoth, 1e-9) {
+		t.Errorf("fire average resist with 20 piercing and 30 fire piercing = %v, want %v", fireBoth, want)
 	}
-	if want := 80.0 / 300; !WithinToleranceFloat64(want, frostBoth, 1e-9) {
-		t.Errorf("frost coefficient with 20 piercing and 30 fire piercing = %v, want %v", frostBoth, want)
+	if want := 80.0 / (80 + 380); !WithinToleranceFloat64(want, frostBoth, 1e-9) {
+		t.Errorf("frost average resist with 20 piercing and 30 fire piercing = %v, want %v", frostBoth, want)
 	}
 }
 
-// Against half the resistance cap a plain spell is often partially resisted, and one flagged
+// Against 150 resistance a plain spell is often partially resisted, and one flagged
 // SpellFlagNoPartialResist never is.
 func TestNoPartialResistKeepsTheWholeHit(t *testing.T) {
 	attacker := &Unit{Type: PlayerUnit, Level: 60, PseudoStats: stats.NewPseudoStats()}
@@ -49,22 +49,31 @@ func TestNoPartialResistKeepsTheWholeHit(t *testing.T) {
 	defender.stats[stats.ShadowResistance] = 150
 	attackTable := NewAttackTable(attacker, defender)
 
-	partials := func(flags SpellFlag) int {
+	partials := func(flags SpellFlag, isPeriodic bool) int {
 		sim := &Simulation{rand: NewSplitMix(1)}
 		spell := &Spell{Unit: attacker, SpellSchool: SpellSchoolShadow, SchoolIndex: stats.SchoolIndexShadow, Flags: flags}
 		n := 0
 		for range 1000 {
-			if multiplier, outcome := spell.ResistanceMultiplier(sim, false, attackTable); multiplier != 1 || outcome != OutcomeEmpty {
+			if multiplier, outcome := spell.ResistanceMultiplier(sim, isPeriodic, attackTable); multiplier != 1 || outcome != OutcomeEmpty {
 				n++
 			}
 		}
 		return n
 	}
 
-	if n := partials(0); n == 0 {
+	if n := partials(0, false); n == 0 {
 		t.Errorf("a plain shadow spell was never partially resisted in 1000 hits against 150 shadow resistance")
 	}
-	if n := partials(SpellFlagNoPartialResist); n != 0 {
+	if n := partials(SpellFlagNoPartialResist, false); n != 0 {
 		t.Errorf("a spell flagged SpellFlagNoPartialResist was partially resisted %d times in 1000 hits, want 0", n)
+	}
+	if n := partials(SpellFlagBinary, true); n != 0 {
+		t.Errorf("a binary spell's ticks were partially resisted %d times in 1000, want 0", n)
+	}
+	if n := partials(SpellFlagBinary|SpellFlagFullResistanceTicks, false); n != 0 {
+		t.Errorf("a binary spell flagged SpellFlagFullResistanceTicks was partially resisted on %d of 1000 direct hits, want 0", n)
+	}
+	if n := partials(SpellFlagBinary|SpellFlagFullResistanceTicks, true); n == 0 {
+		t.Errorf("a binary spell flagged SpellFlagFullResistanceTicks never had a tick partially resisted in 1000")
 	}
 }
