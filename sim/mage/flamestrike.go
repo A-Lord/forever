@@ -27,11 +27,10 @@ func (mage *Mage) registerFlamestrikeSpell(rank int32, castRank *spelldata.Spell
 		spelldata.RankLabel(castRank, &mage.Unit))
 	dotConfig.Dot.IsAOE = true
 	dotConfig.Dot.BonusCoefficient = tickDamage.Coeff()
-	dotConfig.Dot.OnTick = func(sim *core.Simulation, _ *core.Unit, dot *core.Dot) {
-		chargeLock.deal(dot.Spell, &mage.Unit, func() {
-			dot.Spell.CalcAndDealPeriodicAoeDamage(sim, tickDamage.Average(), dot.OutcomeTickMagicHit)
-		})
-	}
+	// An area DoT ticks on its caster, which is the unit the cast locks the charges on.
+	dotConfig.Dot.OnTick = chargeLock.onTick(func(sim *core.Simulation, _ *core.Unit, dot *core.Dot) {
+		dot.Spell.CalcAndDealPeriodicAoeDamage(sim, tickDamage.Average(), dot.OutcomeTickMagicHit)
+	})
 	dotConfig.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
 		spell.AOEDot().Apply(sim)
 	}
