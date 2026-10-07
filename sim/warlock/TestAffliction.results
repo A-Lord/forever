@@ -468,7 +468,7 @@ dps_results: {
 dps_results: {
  key: "TestAffliction-AllItems-TheBlackBook-19337"
  value: {
-  dps: 275.57014
+  dps: 270.94999
   tps: 154.13784
  }
 }
