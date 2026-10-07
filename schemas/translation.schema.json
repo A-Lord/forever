@@ -515,6 +515,9 @@
 						},
 						"thrown": {
 							"type": "string"
+						},
+						"wands": {
+							"type": "string"
 						}
 					},
 					"additionalProperties": false,
@@ -533,7 +536,8 @@
 						"bows",
 						"crossbows",
 						"guns",
-						"thrown"
+						"thrown",
+						"wands"
 					]
 				},
 				"spell_schools": {
@@ -5264,6 +5268,9 @@
 									"additionalProperties": false,
 									"required": ["label", "tooltip"]
 								},
+								"wand": {
+									"type": "string"
+								},
 								"spell_known": {
 									"type": "object",
 									"properties": {
@@ -6114,6 +6121,7 @@
 								"auto_swing_time",
 								"time_to_next_auto",
 								"time_since_last_auto",
+								"wand",
 								"spell_known",
 								"current_cost",
 								"can_cast",

@@ -20,6 +20,9 @@ func (unit *Unit) ExtraAttackProc(trigger *ProcTrigger, tagSpellID int32, count 
 		if extraAttack == nil {
 			return
 		}
+		mainHand := unit.AutoAttacks.MHAuto()
+		extraAttack.SetSpellSchool(mainHand.SpellSchool)
+		extraAttack.BonusCoefficient = mainHand.BonusCoefficient
 		target := result.Target
 		if target == unit {
 			target = spell.Unit

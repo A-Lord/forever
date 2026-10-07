@@ -158,9 +158,9 @@ func (mcd *MajorCooldown) tryActivateHelper(sim *Simulation, character *Characte
 
 	if shouldActivate {
 		if mcd.Spell.Flags.Matches(SpellFlagHelpful) {
-			mcd.Spell.Cast(sim, &character.Unit)
+			mcd.Spell.castForRotation(sim, &character.Unit, nil)
 		} else {
-			mcd.Spell.Cast(sim, character.CurrentTarget)
+			mcd.Spell.castForRotation(sim, character.CurrentTarget, nil)
 		}
 
 		mcd.numUsages++

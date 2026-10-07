@@ -412,7 +412,7 @@ func NewAttackTable(attacker *Unit, defender *Unit) *AttackTable {
 	if defender.Type == EnemyUnit {
 		levelDiff := combatLevelDiff(attacker, defender)
 
-		table.BaseSpellMissChance = UnitLevelFloat64(levelDiff, 0.04, 0.05, 0.06, 0.17)
+		table.BaseSpellMissChance = spellMissChance(levelDiff)
 		// Era logs show no aura crit suppression against targets 1 or 2 levels above.
 		if levelDiff >= 3 {
 			table.AuraCritSuppression = 0.018
@@ -426,15 +426,16 @@ func NewAttackTable(attacker *Unit, defender *Unit) *AttackTable {
 		if levelDiff > 0 {
 			table.BaseSpellMissChance = 0.04 - 0.01*float64(levelDiff)
 		} else {
-			table.BaseSpellMissChance = UnitLevelFloat64(-levelDiff, 0.04, 0.05, 0.06, 0.17)
+			table.BaseSpellMissChance = spellMissChance(-levelDiff)
 		}
 		table.BaseCrushChance = TernaryFloat64(levelDiff >= 3, 0.15, 0)
 
 		table.MH = AttackTableHand{
-			BaseMissChance:  0.05 + levelDelta,
-			BaseDodgeChance: levelDelta,
-			BaseParryChance: 0.05 + levelDelta,
-			BaseBlockChance: 0.05 + levelDelta,
+			BaseMissChance:      0.05 + levelDelta,
+			BaseDodgeChance:     levelDelta,
+			BaseParryChance:     0.05 + levelDelta,
+			BaseBlockChance:     0.05 + levelDelta,
+			BaseSpellMissChance: table.BaseSpellMissChance,
 		}
 		table.OH = table.MH
 		table.Ranged = table.MH
@@ -447,6 +448,10 @@ func combatLevelDiff(attacker *Unit, defender *Unit) int32 {
 	return min(defender.Level-attacker.Level, 3)
 }
 
+func spellMissChance(levelDiff int32) float64 {
+	return UnitLevelFloat64(levelDiff, 0.04, 0.05, 0.06, 0.17)
+}
+
 // The parts of an attack table that depend on the weapon skill of the attacking hand.
 type AttackTableHand struct {
 	BaseMissChance       float64
@@ -457,6 +462,7 @@ type AttackTableHand struct {
 	GlanceMultiplierMin  float64
 	GlanceMultiplierMax  float64
 	MeleeCritSuppression float64
+	BaseSpellMissChance  float64 // The spell table's miss with the level difference taken from the hand's skill, which a wand shot rolls.
 }
 
 func newAttackTableHand(attacker *Unit, defender *Unit, weapon *Item) AttackTableHand {
@@ -465,6 +471,10 @@ func newAttackTableHand(attacker *Unit, defender *Unit, weapon *Item) AttackTabl
 	skillDiff := float64(levelDiff*5) - bonus
 	// Parry, glance chance and crit suppression count skill only up to the level-based maximum.
 	baseSkillDiff := float64(levelDiff*5) - min(bonus, 0)
+	// The spell table's level difference, capped at +3, less skill above the level-based maximum / 5,
+	// truncated toward zero, so 5 points of skill short of the maximum count as one more target level and
+	// 5 above it as one less.
+	skillLevelDiff := int32(float64(levelDiff) - bonus/5)
 
 	hand := AttackTableHand{
 		BaseDodgeChance:     0.05 + skillDiff*0.001,
@@ -472,6 +482,7 @@ func newAttackTableHand(attacker *Unit, defender *Unit, weapon *Item) AttackTabl
 		BaseGlanceChance:    Clamp(0.1+baseSkillDiff*0.02, 0, 1),
 		GlanceMultiplierMin: Clamp(1.3-0.05*skillDiff, 0.01, 0.91),
 		GlanceMultiplierMax: Clamp(1.2-0.03*skillDiff, 0.2, 0.99),
+		BaseSpellMissChance: spellMissChance(skillLevelDiff),
 	}
 	if skillDiff > 10 {
 		hand.BaseMissChance = 0.05 + skillDiff*0.002
