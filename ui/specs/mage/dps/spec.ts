@@ -68,12 +68,6 @@ export default defineSpec<Spec.SpecMage>({
 	),
 	displayWeaponSkillGroups: [WeaponSkillGroup.Wands],
 
-	modifyDisplayStats: (player: Player<Spec.SpecMage>) => {
-		return {
-			talents: new Stats().addPseudoStat(PseudoStat.PseudoStatSpellCritPercent, player.getTalents().arcaneInstability),
-		};
-	},
-
 	consumableStats: [
 		Stat.StatIntellect,
 		Stat.StatSpirit,
