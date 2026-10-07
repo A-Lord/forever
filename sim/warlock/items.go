@@ -4,70 +4,56 @@ import (
 	"time"
 
 	"github.com/wowsims/forever/sim/core"
-	"github.com/wowsims/forever/sim/core/stats"
+	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
+const blackBookItemID = 19337
+
 func init() {
-
-	// The Black Book
-	core.NewItemEffect(19337, func(agent core.Agent) {
+	// The Black Book: Blessing of the Black Book doubles the damage and the armor of the demon out. Every
+	// effect of the row lands on the pet, so the item cannot be used with no demon out.
+	core.NewItemEffect(blackBookItemID, func(agent core.Agent) {
 		warlock := agent.(WarlockAgent).GetWarlock()
-		duration := time.Second * 30
+		itemEffect := core.GetItemByID(blackBookItemID).ItemEffects[0]
+		onUse := itemEffect.GetOnUse()
+		row := spelldata.MustFind(itemEffect.BuffId)
 
-		petAuras := make([]*core.StatBuffAura, len(warlock.Env.Raid.AllUnits)+1)
-		for _, pet := range warlock.Pets {
-			petAuras[pet.UnitIndex] = pet.NewTemporaryStatsAura(
-				"Blessing of The Black Book",
-				core.ActionID{SpellID: 23720},
-				stats.Stats{stats.SpellDamage: 200, stats.AttackPower: 325, stats.Armor: 1600},
-				duration,
-			)
+		petAuras := make(map[*WarlockPet]*core.Aura)
+		for _, pet := range warlock.demons() {
+			aura := pet.RegisterAura(spelldata.AuraConfig(row))
+			spelldata.ParseEffects(&pet.Character, aura, row)
+			petAuras[pet] = aura
 		}
 
-		aura := warlock.RegisterAura(core.Aura{
-			Label:    "Blessing of The Black Book",
-			ActionID: core.ActionID{ItemID: 19337},
-			Duration: duration,
-			OnGain: func(aura *core.Aura, sim *core.Simulation) {
-				if warlock.ActivePet != nil {
-					petAuras[warlock.ActivePet.UnitIndex].Activate(sim)
-				}
-			},
-		})
+		cast := spelldata.Cast(row)
+		cast.CD = core.Cooldown{
+			Timer:    warlock.NewTimer(),
+			Duration: time.Duration(onUse.CooldownMs) * time.Millisecond,
+		}
+		cast.SharedCD = core.Cooldown{
+			Timer:    warlock.GetOrInitSpellCategoryTimer(onUse.CategoryId),
+			Duration: time.Duration(onUse.CategoryCooldownMs) * time.Millisecond,
+		}
 
 		spell := warlock.RegisterSpell(core.SpellConfig{
-			ActionID:    core.ActionID{ItemID: 19337},
-			DefenseType: core.DefenseTypeMagic, // Blessing of the Black Book (23720)
+			ActionID:    core.ActionID{ItemID: blackBookItemID},
+			SpellSchool: row.SpellSchool(),
+			ProcMask:    core.ProcMaskEmpty,
 			Flags:       core.SpellFlagNoOnCastComplete,
+			Cast:        cast,
 
-			Cast: core.CastConfig{
-				CD: core.Cooldown{
-					Timer:    warlock.NewTimer(),
-					Duration: time.Minute * 3,
-				},
-				SharedCD: core.Cooldown{
-					Timer:    warlock.GetOffensiveTrinketCD(),
-					Duration: duration,
-				},
+			ExtraCastCondition: func(_ *core.Simulation, _ *core.Unit) bool {
+				return warlock.ActivePet != nil && warlock.ActivePet.IsEnabled()
 			},
 
-			ExtraCastCondition: func(sim *core.Simulation, target *core.Unit) bool {
-				return warlock.ActivePet != nil
-			},
-
-			ApplyEffects: func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
-				aura.Activate(sim)
+			ApplyEffects: func(sim *core.Simulation, _ *core.Unit, _ *core.Spell) {
+				petAuras[warlock.ActivePet].Activate(sim)
 			},
 		})
 
 		warlock.AddMajorCooldown(core.MajorCooldown{
 			Spell: spell,
 			Type:  core.CooldownTypeDPS,
-			BuffAura: &core.StatBuffAura{
-				Aura:            aura,
-				BuffedStatTypes: []stats.Stat{stats.SpellDamage, stats.AttackPower, stats.Armor},
-			},
 		})
 	})
-
 }
