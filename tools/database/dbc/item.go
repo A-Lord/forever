@@ -162,7 +162,33 @@ func (item *Item) GetStats(itemLevel int) *stats.Stats {
 		stats[proto.Stat_StatBlockValue] += blockValue
 	}
 
+	item.addCasterSpellPower(stats, itemLevel)
+
 	return stats
+}
+
+// Caster weapons carry spell power that no stat slot states, worked out from the first column of the
+// item level budget: twice the budget as spell power, or on a healing weapon floor(2 × budget × 1.88)
+// healing and a third of that as spell damage. It adds to the weapon's own stats; the rule reproduces
+// the in-game tooltip of every weapon with one of the two flags.
+func (item *Item) addCasterSpellPower(stats *stats.Stats, itemLevel int) {
+	if !item.Flags4.Has(CASTER_SPELL_POWER) && !item.Flags4.Has(CASTER_HEALING_POWER) {
+		return
+	}
+	budget := float64(GetDBC().RandomPropertiesByIlvl[itemLevel][item.OverallQuality.ToProto()][0])
+	add := func(mod int, value float64) {
+		mapped, _ := MapBonusStatIndexToStats(mod)
+		for _, stat := range mapped {
+			stats[stat] += value
+		}
+	}
+	if item.Flags4.Has(CASTER_HEALING_POWER) {
+		healing := math.Floor(2 * budget * 1.88)
+		add(ITEM_MOD_SPELL_HEALING_DONE, healing)
+		add(ITEM_MOD_SPELL_DAMAGE_DONE, math.Floor(healing/3))
+		return
+	}
+	add(ITEM_MOD_SPELL_POWER, 2*budget)
 }
 
 // GetWeaponQualityModifier returns the per-item damage offset for weapons.
