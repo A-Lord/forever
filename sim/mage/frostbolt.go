@@ -5,8 +5,10 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
+// Only the highest rank is registered: the mage casts the rank configured here, not every rank
+// spellData.Frostbolt lists.
 func (mage *Mage) registerFrostboltSpell() {
-	spellData.Frostbolt.Each(mage.registerFrostboltRank)
+	mage.registerFrostboltRank(spellData.Frostbolt.Len(), spellData.Frostbolt.Highest())
 }
 
 func (mage *Mage) registerFrostboltRank(_ int32, rank *spelldata.Spell) {

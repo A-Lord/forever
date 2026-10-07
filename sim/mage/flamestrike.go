@@ -6,10 +6,10 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-// Every rank is registered. The burns of all ranks share one rank group, so a cast of any rank ends
-// the burn already down.
+// Only the highest rank is registered: the mage casts the rank configured here, not every rank
+// spellData.Flamestrike lists.
 func (mage *Mage) registerFlamestrikeSpells() {
-	spellData.Flamestrike.Each(mage.registerFlamestrikeSpell)
+	mage.registerFlamestrikeSpell(spellData.Flamestrike.Len(), spellData.Flamestrike.Highest())
 }
 
 // The burn is its own spell (MageSpellFlamestrikeDot) on the cast's row, tagged like Fireball's DoT so

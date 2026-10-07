@@ -275,41 +275,6 @@ var Spells = []Override{
 
 	// A spell-power coefficient the damage effect does not state.
 	{
-		SpellID: 1312002,
-		Field:   SPCoefDirect,
-		Value:   1.0 / 7, // TODO: Measure Ice Lance's spell power coefficient in game.
-		Reason:  "Ice Lance Rank 1: the damage effect states no coefficient, but the spell scales with spell power in game; TBC's 1/7 until measured",
-		Source:  "tbc-carryover",
-	},
-	{
-		SpellID: 400640,
-		Field:   SPCoefDirect,
-		Value:   1.0 / 7, // TODO: Measure Ice Lance's spell power coefficient in game.
-		Reason:  "Ice Lance Rank 2: the damage effect states no coefficient, but the spell scales with spell power in game; TBC's 1/7 until measured",
-		Source:  "tbc-carryover",
-	},
-	{
-		SpellID: 1240044,
-		Field:   SPCoefDirect,
-		Value:   1.0 / 7, // TODO: Measure Ice Lance's spell power coefficient in game.
-		Reason:  "Ice Lance Rank 3: the damage effect states no coefficient, but the spell scales with spell power in game; TBC's 1/7 until measured",
-		Source:  "tbc-carryover",
-	},
-	{
-		SpellID: 1240045,
-		Field:   SPCoefDirect,
-		Value:   1.0 / 7, // TODO: Measure Ice Lance's spell power coefficient in game.
-		Reason:  "Ice Lance Rank 4: the damage effect states no coefficient, but the spell scales with spell power in game; TBC's 1/7 until measured",
-		Source:  "tbc-carryover",
-	},
-	{
-		SpellID: 1240046,
-		Field:   SPCoefDirect,
-		Value:   1.0 / 7, // TODO: Measure Ice Lance's spell power coefficient in game.
-		Reason:  "Ice Lance Rank 5: the damage effect states no coefficient, but the spell scales with spell power in game; TBC's 1/7 until measured",
-		Source:  "tbc-carryover",
-	},
-	{
 		SpellID: 1240047,
 		Field:   SPCoefDirect,
 		Value:   1.0 / 7, // TODO: Measure Ice Lance's spell power coefficient in game.

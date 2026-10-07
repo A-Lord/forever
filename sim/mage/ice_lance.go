@@ -5,8 +5,10 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
+// Only the highest rank is registered: the mage casts the rank configured here, not every rank
+// spellData.IceLance lists.
 func (mage *Mage) registerIceLanceSpell() {
-	spellData.IceLance.Each(mage.registerIceLanceRank)
+	mage.registerIceLanceRank(spellData.IceLance.Len(), spellData.IceLance.Highest())
 }
 
 // Ice Lance

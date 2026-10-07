@@ -5,8 +5,10 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
+// Only the highest rank is registered: the mage casts the rank configured here, not every rank
+// spellData.BlastWave lists.
 func (mage *Mage) registerBlastWaveSpell() {
-	spellData.BlastWave.Each(mage.registerBlastWaveRank)
+	mage.registerBlastWaveRank(spellData.BlastWave.Len(), spellData.BlastWave.Highest())
 }
 
 // The daze (effect 2) does nothing to a boss.

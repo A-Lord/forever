@@ -5,8 +5,10 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
+// Only the highest rank is registered: the mage casts the rank configured here, not every rank
+// spellData.FrostNova lists.
 func (mage *Mage) registerFrostNovaSpell() {
-	spellData.FrostNova.Each(mage.registerFrostNovaRank)
+	mage.registerFrostNovaRank(spellData.FrostNova.Len(), spellData.FrostNova.Highest())
 }
 
 // Frost Nova

@@ -5,8 +5,10 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
+// Only the highest rank is registered: the mage casts the rank configured here, not every rank
+// spellData.ArcaneBlast lists.
 func (mage *Mage) registerArcaneBlastSpell() {
-	spellData.ArcaneBlast.Each(mage.registerArcaneBlastRank)
+	mage.registerArcaneBlastRank(spellData.ArcaneBlast.Len(), spellData.ArcaneBlast.Highest())
 }
 
 func (mage *Mage) registerArcaneBlastRank(_ int32, rank *spelldata.Spell) {

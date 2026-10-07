@@ -5,8 +5,10 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
+// Only the highest rank is registered: the mage casts the rank configured here, not every rank
+// spellData.ConeOfCold lists.
 func (mage *Mage) registerConeOfColdSpell() {
-	spellData.ConeOfCold.Each(mage.registerConeOfColdRank)
+	mage.registerConeOfColdRank(spellData.ConeOfCold.Len(), spellData.ConeOfCold.Highest())
 }
 
 // The slow (effect 1) does nothing to a boss.

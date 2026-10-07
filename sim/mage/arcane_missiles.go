@@ -5,8 +5,10 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
+// Only the highest rank is registered: the mage casts the rank configured here, not every rank
+// spellData.ArcaneMissiles lists.
 func (mage *Mage) registerArcaneMissilesSpell() {
-	spellData.ArcaneMissiles.Each(mage.registerArcaneMissilesRank)
+	mage.registerArcaneMissilesRank(spellData.ArcaneMissiles.Len(), spellData.ArcaneMissiles.Highest())
 }
 
 // The channel's periodic effect names the missile it fires each tick, a rank of

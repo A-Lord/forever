@@ -23143,12 +23143,12 @@ var generatedSpells = []Spell{
 		}},
 	{ID: 400640, Name: "Ice Lance", Rank: "Rank 2", School: 16, Speed: 38, Attr: [17]uint32{0: 0x50000, 2: 0x100, 15: 0x2000}, SpellLevel: 28, BaseLevel: 28, MaxLevel: 32, MaxRange: 30, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, PreventionType: 1, ProcChance: 101, ClassFlags: core.ClassFlags{Family: 3, Mask: [4]uint32{0: 655360}}, InterruptFlags: 15, Labels: []int16{17}, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
-			{ID: 1045851, SpellID: 400640, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 36, PPL: 0.4000000059604645, Variance: 0.1666666716337204, BaseLevel: 28, MaxLevel: 32, SPCoef: 0.14285714285714285, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+			{ID: 1045851, SpellID: 400640, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 36, PPL: 0.4000000059604645, Variance: 0.1666666716337204, BaseLevel: 28, MaxLevel: 32, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 			{ID: 1203129, SpellID: 400640, Index: 1, Type: dbcenums.E_DUMMY, BasePoints: 300, BaseLevel: 28, MaxLevel: 32, PvpMult: 1, ChainAmp: 1},
 			{ID: 1203130, SpellID: 400640, Index: 2, Type: dbcenums.E_DUMMY, BasePoints: 20, BaseLevel: 28, MaxLevel: 32, PvpMult: 1, ChainAmp: 1},
 			{ID: 1203131, SpellID: 400640, Index: 3, Type: dbcenums.E_DUMMY, BasePoints: 5, BaseLevel: 28, MaxLevel: 32, PvpMult: 1, ChainAmp: 1},
 		},
-		Powers: []Power{{Cost: 55}}}, // override: SPCoefDirect 0.14285714285714285 -- Ice Lance Rank 2: the damage effect states no coefficient, but the spell scales with spell power in game; TBC's 1/7 until measured
+		Powers: []Power{{Cost: 55}}},
 	{ID: 400647, Name: "Fingers of Frost", School: 16, Attr: [17]uint32{0: 0x40050, 2: 0x100, 3: 0x4000000, 4: 0x8000, 15: 0x2000}, SpellLevel: 1, ProcChance: 100, ProcFlags: [2]uint32{0: 0x10000}, ClassFlags: core.ClassFlags{Family: 3}, RefIDs: []int32{400669}, ProcChanceSource: ProcChanceEffectN, ProcChanceEffect: 2,
 		Effects: []Effect{
 			{ID: 1045858, SpellID: 400647, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_DUMMY, BasePoints: 2, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
@@ -32588,28 +32588,28 @@ var generatedSpells = []Spell{
 		Powers: []Power{{CostPct: 15}}},
 	{ID: 1240044, Name: "Ice Lance", Rank: "Rank 3", School: 16, Speed: 38, Attr: [17]uint32{0: 0x50000, 2: 0x100, 15: 0x2000}, SpellLevel: 34, BaseLevel: 34, MaxLevel: 40, MaxRange: 30, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, PreventionType: 1, ProcChance: 101, ClassFlags: core.ClassFlags{Family: 3, Mask: [4]uint32{0: 655360}}, InterruptFlags: 15, Labels: []int16{17}, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
-			{ID: 1238139, SpellID: 1240044, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 45, PPL: 0.5, Variance: 0.1666666716337204, BaseLevel: 34, MaxLevel: 40, SPCoef: 0.14285714285714285, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+			{ID: 1238139, SpellID: 1240044, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 45, PPL: 0.5, Variance: 0.1666666716337204, BaseLevel: 34, MaxLevel: 40, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 			{ID: 1238140, SpellID: 1240044, Index: 1, Type: dbcenums.E_DUMMY, BasePoints: 300, BaseLevel: 34, MaxLevel: 40, PvpMult: 1, ChainAmp: 1},
 			{ID: 1238141, SpellID: 1240044, Index: 2, Type: dbcenums.E_DUMMY, BasePoints: 20, BaseLevel: 34, MaxLevel: 40, PvpMult: 1, ChainAmp: 1},
 			{ID: 1238142, SpellID: 1240044, Index: 3, Type: dbcenums.E_DUMMY, BasePoints: 5, BaseLevel: 34, MaxLevel: 40, PvpMult: 1, ChainAmp: 1},
 		},
-		Powers: []Power{{Cost: 70}}}, // override: SPCoefDirect 0.14285714285714285 -- Ice Lance Rank 3: the damage effect states no coefficient, but the spell scales with spell power in game; TBC's 1/7 until measured
+		Powers: []Power{{Cost: 70}}},
 	{ID: 1240045, Name: "Ice Lance", Rank: "Rank 4", School: 16, Speed: 38, Attr: [17]uint32{0: 0x50000, 2: 0x100, 15: 0x2000}, SpellLevel: 42, BaseLevel: 42, MaxLevel: 48, MaxRange: 30, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, PreventionType: 1, ProcChance: 101, ClassFlags: core.ClassFlags{Family: 3, Mask: [4]uint32{0: 655360}}, InterruptFlags: 15, Labels: []int16{17}, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
-			{ID: 1238143, SpellID: 1240045, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 79, PPL: 0.699999988079071, Variance: 0.1666666716337204, BaseLevel: 42, MaxLevel: 48, SPCoef: 0.14285714285714285, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+			{ID: 1238143, SpellID: 1240045, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 79, PPL: 0.699999988079071, Variance: 0.1666666716337204, BaseLevel: 42, MaxLevel: 48, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 			{ID: 1238144, SpellID: 1240045, Index: 1, Type: dbcenums.E_DUMMY, BasePoints: 300, BaseLevel: 42, MaxLevel: 48, PvpMult: 1, ChainAmp: 1},
 			{ID: 1238145, SpellID: 1240045, Index: 2, Type: dbcenums.E_DUMMY, BasePoints: 20, BaseLevel: 42, MaxLevel: 48, PvpMult: 1, ChainAmp: 1},
 			{ID: 1238146, SpellID: 1240045, Index: 3, Type: dbcenums.E_DUMMY, BasePoints: 5, BaseLevel: 42, MaxLevel: 48, PvpMult: 1, ChainAmp: 1},
 		},
-		Powers: []Power{{Cost: 105}}}, // override: SPCoefDirect 0.14285714285714285 -- Ice Lance Rank 4: the damage effect states no coefficient, but the spell scales with spell power in game; TBC's 1/7 until measured
+		Powers: []Power{{Cost: 105}}},
 	{ID: 1240046, Name: "Ice Lance", Rank: "Rank 5", School: 16, Speed: 38, Attr: [17]uint32{0: 0x50000, 2: 0x100, 15: 0x2000}, SpellLevel: 48, BaseLevel: 48, MaxLevel: 56, MaxRange: 30, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, PreventionType: 1, ProcChance: 101, ClassFlags: core.ClassFlags{Family: 3, Mask: [4]uint32{0: 655360}}, InterruptFlags: 15, Labels: []int16{17}, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
-			{ID: 1238147, SpellID: 1240046, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 98, PPL: 0.699999988079071, Variance: 0.1666666716337204, BaseLevel: 48, MaxLevel: 56, SPCoef: 0.14285714285714285, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+			{ID: 1238147, SpellID: 1240046, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 98, PPL: 0.699999988079071, Variance: 0.1666666716337204, BaseLevel: 48, MaxLevel: 56, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 			{ID: 1238148, SpellID: 1240046, Index: 1, Type: dbcenums.E_DUMMY, BasePoints: 300, BaseLevel: 48, MaxLevel: 56, PvpMult: 1, ChainAmp: 1},
 			{ID: 1238149, SpellID: 1240046, Index: 2, Type: dbcenums.E_DUMMY, BasePoints: 20, BaseLevel: 48, MaxLevel: 56, PvpMult: 1, ChainAmp: 1},
 			{ID: 1238150, SpellID: 1240046, Index: 3, Type: dbcenums.E_DUMMY, BasePoints: 5, BaseLevel: 48, MaxLevel: 56, PvpMult: 1, ChainAmp: 1},
 		},
-		Powers: []Power{{Cost: 120}}}, // override: SPCoefDirect 0.14285714285714285 -- Ice Lance Rank 5: the damage effect states no coefficient, but the spell scales with spell power in game; TBC's 1/7 until measured
+		Powers: []Power{{Cost: 120}}},
 	{ID: 1240047, Name: "Ice Lance", Rank: "Rank 6", School: 16, Speed: 38, Attr: [17]uint32{0: 0x50000, 2: 0x100, 15: 0x2000}, SpellLevel: 56, BaseLevel: 56, MaxLevel: 64, MaxRange: 30, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, PreventionType: 1, ProcChance: 101, ClassFlags: core.ClassFlags{Family: 3, Mask: [4]uint32{0: 655360}}, InterruptFlags: 15, Labels: []int16{17}, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 1238151, SpellID: 1240047, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 145, PPL: 0.8999999761581421, Variance: 0.1666666716337204, BaseLevel: 56, MaxLevel: 64, SPCoef: 0.14285714285714285, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
@@ -37129,12 +37129,12 @@ var generatedSpells = []Spell{
 		Powers: []Power{{Cost: 200}}},
 	{ID: 1312002, Name: "Ice Lance", Rank: "Rank 1", School: 16, Speed: 38, Attr: [17]uint32{0: 0x50000, 2: 0x100, 15: 0x2000}, SpellLevel: 20, BaseLevel: 20, MaxLevel: 26, MaxRange: 30, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, PreventionType: 1, ProcChance: 101, ClassFlags: core.ClassFlags{Family: 3, Mask: [4]uint32{0: 655360}}, InterruptFlags: 15, Labels: []int16{17}, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
-			{ID: 1342605, SpellID: 1312002, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 28, PPL: 0.3499999940395355, Variance: 0.1666666716337204, BaseLevel: 20, MaxLevel: 26, SPCoef: 0.14285714285714285, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+			{ID: 1342605, SpellID: 1312002, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 28, PPL: 0.3499999940395355, Variance: 0.1666666716337204, BaseLevel: 20, MaxLevel: 26, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 			{ID: 1342606, SpellID: 1312002, Index: 1, Type: dbcenums.E_DUMMY, BasePoints: 300, BaseLevel: 20, MaxLevel: 26, PvpMult: 1, ChainAmp: 1},
 			{ID: 1342607, SpellID: 1312002, Index: 2, Type: dbcenums.E_DUMMY, BasePoints: 20, BaseLevel: 20, MaxLevel: 26, PvpMult: 1, ChainAmp: 1},
 			{ID: 1342608, SpellID: 1312002, Index: 3, Type: dbcenums.E_DUMMY, BasePoints: 5, BaseLevel: 20, MaxLevel: 26, PvpMult: 1, ChainAmp: 1},
 		},
-		Powers: []Power{{Cost: 45}}}, // override: SPCoefDirect 0.14285714285714285 -- Ice Lance Rank 1: the damage effect states no coefficient, but the spell scales with spell power in game; TBC's 1/7 until measured
+		Powers: []Power{{Cost: 45}}},
 	{ID: 1312052, Name: "Infernal Lasso", School: 4, Attr: [17]uint32{0: 0x40000000, 15: 0x2000}, SpellLevel: 50, DurationMs: 6000, MaxRange: 30, DefenseType: 1, DispelType: 1, Mechanic: 7, PreventionType: 1, ProcChance: 100, ProcFlags: [2]uint32{0: 0x800a22a8}, InterruptFlags: 15, MaxTargets: 1, TargetCreatureType: 5, RefIDs: []int32{443265}, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 1342701, SpellID: 1312052, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_ROOT, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},

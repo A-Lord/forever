@@ -7,8 +7,8 @@ import (
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-// The Chilled procs on Frost and Ice Armor slow the attacker, which does nothing in the sim. Every
-// rank of the three armors is registered, and one armor of any rank is up at a time.
+// The Chilled procs on Frost and Ice Armor slow the attacker, which does nothing in the sim. One
+// armor is up at a time.
 func (mage *Mage) registerArmorSpells() {
 	// Frost Warding raises Frost and Ice Armor's armor and resistance.
 	warding := 1 + spellData.FrostWarding.EffectAt(1).FractionAt(mage.Talents.FrostWarding)
@@ -16,38 +16,33 @@ func (mage *Mage) registerArmorSpells() {
 	// scaled here; the casting regen (effect 2) is parsed.
 	shielding := 1 + spellData.ArcaneShielding.EffectAt(2).FractionAt(mage.Talents.ArcaneShielding)
 
-	spellData.FrostArmor.Each(func(_ int32, rank *spelldata.Spell) {
-		mage.registerArmor(rank, MageSpellFrostArmor, stats.Stats{
-			stats.Armor: warding * rank.EffectN(1).BaseValue(),
-		})
+	// Only the highest rank is registered: the mage casts the rank configured here, not every rank
+	// spellData.FrostArmor lists.
+	frostArmorRank := spellData.FrostArmor.Highest()
+	mage.registerArmor(frostArmorRank, MageSpellFrostArmor, stats.Stats{
+		stats.Armor: warding * frostArmorRank.EffectN(1).BaseValue(),
 	})
 
-	var iceArmor *core.Aura
-	spellData.IceArmor.Each(func(_ int32, rank *spelldata.Spell) {
-		aura := mage.registerArmor(rank, MageSpellIceArmor, stats.Stats{
-			stats.Armor:           warding * rank.EffectN(1).BaseValue(),
-			stats.FrostResistance: warding * rank.EffectN(3).BaseValue(),
-		})
-		if rank == spellData.IceArmor.Highest() {
-			iceArmor = aura
-		}
+	// Only the highest rank is registered: the mage casts the rank configured here, not every rank
+	// spellData.IceArmor lists.
+	iceArmorRank := spellData.IceArmor.Highest()
+	iceArmor := mage.registerArmor(iceArmorRank, MageSpellIceArmor, stats.Stats{
+		stats.Armor:           warding * iceArmorRank.EffectN(1).BaseValue(),
+		stats.FrostResistance: warding * iceArmorRank.EffectN(3).BaseValue(),
 	})
 
-	var mageArmor *core.Aura
-	spellData.MageArmor.Each(func(_ int32, rank *spelldata.Spell) {
-		resist := shielding * rank.EffectN(1).BaseValue()
-		aura := mage.registerArmor(rank, MageSpellMageArmor, stats.Stats{
-			stats.ArcaneResistance: resist,
-			stats.FireResistance:   resist,
-			stats.FrostResistance:  resist,
-			stats.NatureResistance: resist,
-			stats.ShadowResistance: resist,
-		})
-		spelldata.ParseEffects(&mage.Character, aura, rank, spelldata.Effects(2))
-		if rank == spellData.MageArmor.Highest() {
-			mageArmor = aura
-		}
+	// Only the highest rank is registered: the mage casts the rank configured here, not every rank
+	// spellData.MageArmor lists.
+	mageArmorRank := spellData.MageArmor.Highest()
+	resist := shielding * mageArmorRank.EffectN(1).BaseValue()
+	mageArmor := mage.registerArmor(mageArmorRank, MageSpellMageArmor, stats.Stats{
+		stats.ArcaneResistance: resist,
+		stats.FireResistance:   resist,
+		stats.FrostResistance:  resist,
+		stats.NatureResistance: resist,
+		stats.ShadowResistance: resist,
 	})
+	spelldata.ParseEffects(&mage.Character, mageArmor, mageArmorRank, spelldata.Effects(2))
 
 	if mage.Options == nil {
 		return

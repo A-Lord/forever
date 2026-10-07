@@ -12,9 +12,9 @@ func (mage *Mage) registerScorchSpell() {
 		mage.ImprovedScorchAuras = mage.newFireVulnerabilityAuras()
 	}
 
-	spellData.Scorch.Each(func(_ int32, rank *spelldata.Spell) {
-		mage.registerScorchRank(rank, procChance)
-	})
+	// Only the highest rank is registered: the mage casts the rank configured here, not every rank
+	// spellData.Scorch lists.
+	mage.registerScorchRank(spellData.Scorch.Highest(), procChance)
 }
 
 func (mage *Mage) registerScorchRank(rank *spelldata.Spell, procChance float64) {

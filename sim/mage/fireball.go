@@ -5,8 +5,10 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
+// Only the highest rank is registered: the mage casts the rank configured here, not every rank
+// spellData.Fireball lists.
 func (mage *Mage) registerFireballSpell() {
-	spellData.Fireball.Each(mage.registerFireballRank)
+	mage.registerFireballRank(spellData.Fireball.Len(), spellData.Fireball.Highest())
 }
 
 func (mage *Mage) registerFireballRank(_ int32, rank *spelldata.Spell) {

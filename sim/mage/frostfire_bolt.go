@@ -5,8 +5,10 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
+// Only the highest rank is registered: the mage casts the rank configured here, not every rank
+// spellData.FrostfireBolt lists.
 func (mage *Mage) registerFrostfireBoltSpell() {
-	spellData.FrostfireBolt.Each(mage.registerFrostfireBoltRank)
+	mage.registerFrostfireBoltRank(spellData.FrostfireBolt.Len(), spellData.FrostfireBolt.Highest())
 }
 
 // The DoT (effect 3) is its own spell, like Fireball's, carrying the Arcane Charges the cast spent.

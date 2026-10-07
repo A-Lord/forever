@@ -8,20 +8,22 @@ import (
 var counterspellRank = spellData.Counterspell.Highest()
 
 func (mage *Mage) registerDefensiveSpells() {
-	spellData.FireWard.Each(func(_ int32, rank *spelldata.Spell) {
-		mage.registerWardSpell(rank, nil)
-	})
-	spellData.FrostWard.Each(func(_ int32, rank *spelldata.Spell) {
-		mage.registerWardSpell(rank, nil)
-	})
-	spellData.ManaShield.Each(mage.registerManaShieldSpell)
+	// Only the highest rank is registered: the mage casts the rank configured here, not every rank
+	// spellData.FireWard lists.
+	mage.registerWardSpell(spellData.FireWard.Highest(), nil)
+	// Only the highest rank is registered: the mage casts the rank configured here, not every rank
+	// spellData.FrostWard lists.
+	mage.registerWardSpell(spellData.FrostWard.Highest(), nil)
+	// Only the highest rank is registered: the mage casts the rank configured here, not every rank
+	// spellData.ManaShield lists.
+	mage.registerManaShieldSpell(spellData.ManaShield.Len(), spellData.ManaShield.Highest())
 	mage.registerCounterspellSpell()
 }
 
 // An absorb shield on the row's effect 1, which takes only the school its misc names. Fire Ward and
 // Frost Ward ("Absorbs $s1 Fire damage. Lasts 30 sec.") share a category cooldown; their effect 2 is
 // the reflect Frost Warding and Improved Fire Ward give a chance to, which needs an enemy casting at
-// the mage, so it is not modelled. One rank of a shield is up at a time.
+// the mage, so it is not modelled.
 func (mage *Mage) registerWardSpell(rank *spelldata.Spell, onAbsorbed core.OnDamageAbsorbedCallback) *core.DamageAbsorptionAura {
 	absorbEffect := rank.EffectN(1)
 	school := core.SpellSchool(absorbEffect.Misc)
@@ -37,7 +39,6 @@ func (mage *Mage) registerWardSpell(rank *spelldata.Spell, onAbsorbed core.OnDam
 		},
 		OnDamageAbsorbed: onAbsorbed,
 	})
-	shield.Aura.NewExclusiveEffect(rank.Name, true, core.ExclusiveEffect{})
 
 	config := spelldata.SpellConfig(&mage.Unit, rank, spelldata.Flags(core.SpellFlagAPL|core.SpellFlagHelpful))
 	config.RelatedSelfBuff = shield.Aura
