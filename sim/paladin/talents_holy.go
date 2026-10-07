@@ -175,7 +175,7 @@ func (paladin *Paladin) applyDivinePrecision() {
 		return
 	}
 
-	spelldata.ParseStatic(&paladin.Character, spellData.DivinePrecision.Rank(paladin.Talents.DivinePrecision))
+	spelldata.ParseStatic(&paladin.Character, spellData.DivinePrecision.Rank(paladin.Talents.DivinePrecision), spelldata.ShowAsSchoolHit(core.SpellSchoolHoly))
 }
 
 // Consecrated Ground - Gives your Holy spells 5/10% increased damage against the first 4 enemies
