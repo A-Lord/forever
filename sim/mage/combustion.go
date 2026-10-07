@@ -25,9 +25,11 @@ func (mage *Mage) registerCombustionSpell() {
 
 	chargesConfig := spelldata.AuraConfig(combustionRank, spelldata.Label("Combustion"))
 
+	// Effect 2 casts 28682 on activation, so the crit starts at one stack before any Fire hit.
 	chargesConfig.OnGain = func(aura *core.Aura, sim *core.Simulation) {
 		aura.SetStacks(sim, aura.MaxStacks)
 		buffAura.Activate(sim)
+		buffAura.SetStacks(sim, 1)
 	}
 
 	// The row is Disabled While Active (Attr0 0x2000000): the cooldown starts when the effect ends.
