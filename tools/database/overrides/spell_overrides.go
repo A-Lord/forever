@@ -46,8 +46,8 @@ const (
 	// Strength by index.
 	StatMask
 
-	// The attack-power coefficient of the E_THREAT effect, onto its Effect.APCoef. Fails when the game
-	// files state a BonusCoefficientFromAP there.
+	// The attack-power coefficient of the E_THREAT or E_THREAT_ALL effect, onto its Effect.APCoef.
+	// Fails when the game files state a BonusCoefficientFromAP there.
 	APCoefThreat
 )
 
@@ -389,8 +389,8 @@ var Spells = []Override{
 	},
 
 	// Sunder Armor's threat grows with the sheet's Attack Power: measured on Rank 1 at 132, 158, 170 and
-	// 180 Attack Power, in Battle and Defensive Stance. The other ranks carry its share until a log at
-	// their level says otherwise.
+	// 180 Attack Power, in Battle and Defensive Stance. The other ranks carry its share until a capture
+	// at their level says otherwise.
 	{
 		SpellID: 7386,
 		Field:   APCoefThreat,
