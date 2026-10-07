@@ -586,6 +586,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		7736, // Fight Club
+		[
+			"Silences an enemy, preventing it from casting spells for 6s.", // 1293654 - https://www.wowhead.com/forever/spell=1293654
+		]
+	],
+	[
 		7753, // Bloodspiller
 		[
 			"Wounds the target causing them to bleed for 250 damage over 10s.", // 18200 - https://www.wowhead.com/forever/spell=18200
