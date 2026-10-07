@@ -30,7 +30,7 @@ export const DefaultIndividualBuffs = IndividualBuffs.create({
 export const DefaultOptions = EnhancementShamanOptions.create({
 	classOptions: {
 		shieldProcrate: 0,
-		imbueMh: ShamanImbue.WindfuryWeapon,
+		imbueMh: ShamanImbue.RockbiterWeapon,
 	},
 });
 
@@ -54,6 +54,7 @@ export const DefaultConsumables = ConsumesSpec.create({
 		Consumables.WinterfallFirewater.id,
 	],
 	explosiveId: Consumables.EzThroDynamiteII.id,
+	mhImbueId: Consumables.ElementalSharpeningStone.id,
 	extraIds: [Consumables.GoblinSapperCharge.id, Consumables.ScrollOfAgilityIV.id, Consumables.ScrollOfStrengthIV.id],
 });
 
