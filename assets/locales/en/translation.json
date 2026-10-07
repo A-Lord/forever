@@ -720,11 +720,14 @@
 				"explosives": "Explosives"
 			},
 			"imbue": {
-				"title": "Imbues",
-				"mhImbue": "Main Hand Stone or Oil",
-				"ohImbue": "Off Hand Stone or Oil",
-				"mhWeaponImbue": "Main Hand Imbue",
-				"ohWeaponImbue": "Off Hand Imbue"
+				"title": "Stones and Oils",
+				"mhImbue": "Main Hand",
+				"ohImbue": "Off Hand"
+			},
+			"weaponImbue": {
+				"title": "Weapon Imbues",
+				"mhWeaponImbue": "Main Hand",
+				"ohWeaponImbue": "Off Hand"
 			},
 			"scrolls": {
 				"title": "Scrolls"

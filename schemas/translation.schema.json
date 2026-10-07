@@ -2572,6 +2572,16 @@
 								},
 								"ohImbue": {
 									"type": "string"
+								}
+							},
+							"additionalProperties": false,
+							"required": ["title", "mhImbue", "ohImbue"]
+						},
+						"weaponImbue": {
+							"type": "object",
+							"properties": {
+								"title": {
+									"type": "string"
 								},
 								"mhWeaponImbue": {
 									"type": "string"
@@ -2581,7 +2591,7 @@
 								}
 							},
 							"additionalProperties": false,
-							"required": ["title", "mhImbue", "ohImbue", "mhWeaponImbue", "ohWeaponImbue"]
+							"required": ["title", "mhWeaponImbue", "ohWeaponImbue"]
 						},
 						"scrolls": {
 							"type": "object",
@@ -2605,7 +2615,7 @@
 						}
 					},
 					"additionalProperties": false,
-					"required": ["title", "filters", "potions", "elixirs", "food", "holiday", "engineering", "imbue", "scrolls", "miscellaneous"]
+					"required": ["title", "filters", "potions", "elixirs", "food", "holiday", "engineering", "imbue", "weaponImbue", "scrolls", "miscellaneous"]
 				},
 				"encounter": {
 					"type": "object",
