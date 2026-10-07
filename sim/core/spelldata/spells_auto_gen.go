@@ -5674,11 +5674,11 @@ var generatedSpells = []Spell{
 			{ID: 688039, SpellID: 8910, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_HEAL, BasePoints: 71, BaseLevel: 40, MaxLevel: 45, SPCoef: 0.20000000298023224, PvpMult: 1, PeriodMs: 3000, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{21, 0}},
 		},
 		Powers: []Power{{Cost: 195}}},
-	{ID: 8913, Name: "Sacred Cleansing", School: 2, Attr: [17]uint32{15: 0x2000}, SpellLevel: 60, BaseLevel: 60, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
+	{ID: 8913, Name: "Sacred Cleansing", School: 2, Attr: [17]uint32{15: 0x2000}, SpellLevel: 60, BaseLevel: 60,
 		Effects: []Effect{
-			{ID: 686181, SpellID: 8913, Type: dbcenums.E_DISPEL, BasePoints: 1000000, BaseLevel: 60, PvpMult: 1, RadiusMax: 30, Misc: 8, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{22, 7}},
+			{ID: 686181, SpellID: 8913, Type: dbcenums.E_DISPEL, BasePoints: 1000000, BaseLevel: 60, PvpMult: 1, Misc: 8, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{22, 7}},
 			{ID: 686182, SpellID: 8913, Index: 1, Type: dbcenums.E_DUMMY, BaseLevel: 60, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{18, 0}},
-			{ID: 686183, SpellID: 8913, Index: 2, Type: dbcenums.E_THREAT, BasePoints: 1, BaseLevel: 60, PvpMult: 1, RadiusMax: 30, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{22, 7}},
+			{ID: 686183, SpellID: 8913, Index: 2, Type: dbcenums.E_THREAT, BasePoints: 1, BaseLevel: 60, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{22, 7}},
 		}},
 	{ID: 8914, Name: "Thorns", Rank: "Rank 4", School: 8, Attr: [17]uint32{0: 0x10000, 2: 0x80000, 8: 0x1000, 15: 0x2000}, SpellLevel: 34, BaseLevel: 34, DurationMs: 600000, MaxRange: 30, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, DispelType: 1, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 7, Mask: [4]uint32{0: 256}}, InterruptFlags: 8, StanceMask: 0x40000002, Labels: []int16{21},
 		Effects: []Effect{
