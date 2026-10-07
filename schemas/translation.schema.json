@@ -2330,6 +2330,19 @@
 							"additionalProperties": false,
 							"required": ["title", "description"]
 						},
+						"warlock_soul_shards": {
+							"type": "object",
+							"properties": {
+								"label": {
+									"type": "string"
+								},
+								"tooltip": {
+									"type": "string"
+								}
+							},
+							"additionalProperties": false,
+							"required": ["label", "tooltip"]
+						},
 						"pet_attack_speed": {
 							"type": "object",
 							"properties": {
@@ -2449,6 +2462,7 @@
 						"blessings",
 						"shaman_shield_procrate",
 						"warlock_assigned_curse",
+						"warlock_soul_shards",
 						"pet_attack_speed",
 						"pet_training",
 						"pet_section"

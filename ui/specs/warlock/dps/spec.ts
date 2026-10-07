@@ -95,6 +95,9 @@ export default defineSpec<Spec.SpecWarlock>({
 		Stat.StatShadowDamage,
 		Stat.StatFireDamage,
 	],
+	playerInputs: {
+		inputs: [WarlockInputs.SoulShardsInput()],
+	},
 	// IconInputs to include in the 'Player' section on the settings tab.
 	playerIconInputs: [WarlockInputs.PetInput(), WarlockInputs.ArmorInput(), WarlockInputs.DemonicSacrificeInput()],
 

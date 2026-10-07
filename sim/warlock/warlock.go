@@ -77,6 +77,7 @@ type Warlock struct {
 	DemonArmor *core.Aura
 
 	serviceTimer *core.Timer
+	soulShards   int32 // the Soul Shards left this iteration
 
 	petActiveAuras  []*core.Aura // the warlock's effects that last while a demon is out
 	lifeTapPetShare float64      // Demonic Energies: the share of Life Tap's mana the demon gains
@@ -131,6 +132,7 @@ func (warlock *Warlock) Initialize() {
 	warlock.registerSearingPain()
 
 	warlock.registerSoulfire()
+	warlock.registerSoulShards()
 	shared.RegisterShoot(&warlock.Character)
 
 	warlock.registerArmors()

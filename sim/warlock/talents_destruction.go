@@ -188,8 +188,8 @@ func (warlock *Warlock) applyFireAndBrimstone() {
 // --- Tier 6 ---
 
 // Conflagrate hits leave more Shadow damage for 20 sec (1293816), Shadowburn hits more Fire damage
-// (426311), both parsed from their rows. Effect 2 is the chance Conflagrate keeps Immolate burning, 100% at
-// 5/5; its chance to refund a Soul Shard is not modelled. The row's effects are dummies the tooltip reads.
+// (426311), both parsed from their rows. Effect 2 is both the chance Conflagrate keeps Immolate burning and
+// the chance Shadowburn refunds its Soul Shard, 100% at 5/5. The row's effects are dummies the tooltip reads.
 func (warlock *Warlock) applyShadowAndFlame() {
 	if warlock.Talents.ShadowAndFlame == 0 {
 		return
@@ -197,6 +197,17 @@ func (warlock *Warlock) applyShadowAndFlame() {
 
 	rank := spellData.ShadowAndFlame.Rank(warlock.Talents.ShadowAndFlame)
 	warlock.conflagrateKeepsImmolate = rank.EffectN(2).Percent()
+
+	warlock.MakeProcTriggerAura(core.ProcTrigger{
+		Name:           "Shadow and Flame - Soul Shard Refund",
+		Callback:       core.CallbackOnSpellHitDealt,
+		Outcome:        core.OutcomeLanded,
+		ClassSpellMask: WarlockSpellShadowBurn,
+		ProcChance:     rank.EffectN(2).Percent(),
+		Handler: func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
+			warlock.gainSoulShard(sim)
+		},
+	})
 
 	buffOnHit := func(buffRow *spelldata.Spell, hitBy spelldata.Ladder) {
 		buff := warlock.RegisterAura(spelldata.AuraConfig(buffRow))

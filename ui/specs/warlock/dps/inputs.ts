@@ -75,6 +75,14 @@ export const DemonicSacrificeInput = <SpecType extends WarlockSpecs>() =>
 		setValue: (player: Player<SpecType>, newValue: Summon) => settleDemons(player, { field: 'sacrificedDemon', value: newValue }),
 	});
 
+export const SoulShardsInput = <SpecType extends WarlockSpecs>() =>
+	InputHelpers.makeClassOptionsNumberInput<SpecType>({
+		fieldName: 'soulShards',
+		label: i18n.t('settings_tab.other.warlock_soul_shards.label'),
+		labelTooltip: i18n.t('settings_tab.other.warlock_soul_shards.tooltip'),
+		positive: true,
+	});
+
 const makeCursePicker = <SpecType extends WarlockSpecs>(curse: WarlockOptions_CurseOptions, spellId: number) =>
 	InputHelpers.makeClassOptionsBooleanIconInput<SpecType>({
 		fieldName: 'curseOptions',
