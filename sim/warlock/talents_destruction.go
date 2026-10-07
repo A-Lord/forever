@@ -105,9 +105,8 @@ func (warlock *Warlock) applyCataclysm() {
 	spelldata.ParseStatic(&warlock.Character, spellData.Cataclysm.Rank(warlock.Talents.Cataclysm))
 }
 
-// Effect 1 is Conflagrate's chance to daze the target, which does not affect sims.
-// TODO: The tooltip raises Immolate's initial damage, but effect 2 is SPELLMOD_DAMAGE, which the parse
-// applies to all damage, the ticks included. Taken as all damage for now; test in-game, as it may be a bug.
+// Effect 1 is Conflagrate's chance to daze the target, which does not affect sims. Effect 2 raises
+// Immolate's initial damage, as the tooltip says.
 func (warlock *Warlock) applyAftermath() {
 	if warlock.Talents.Aftermath == 0 {
 		return
@@ -144,8 +143,7 @@ func (warlock *Warlock) applyIntensity() {
 	}
 }
 
-// TODO: Effect 2 is SPELLMOD_DAMAGE and effect 3 SPELLMOD_DOT on the same spells, so a dot they name takes
-// both on its ticks. Taken as all damage for now; test in-game, as it may be a bug.
+// Effect 2 (SPELLMOD_DAMAGE) raises the direct hits of the spells it names, and effect 3 (SPELLMOD_DOT) their ticks.
 func (warlock *Warlock) applyAgonizingFlames() {
 	if warlock.Talents.AgonizingFlames == 0 {
 		return
@@ -190,7 +188,7 @@ func (warlock *Warlock) applyFireAndBrimstone() {
 
 // --- Tier 6 ---
 
-// Conflagrate hits leave 10% more Shadow damage for 20 sec (1293816), Shadowburn hits 10% more Fire damage
+// Conflagrate hits leave more Shadow damage for 20 sec (1293816), Shadowburn hits more Fire damage
 // (426311), both parsed from their rows. Effect 2 is the chance Conflagrate keeps Immolate burning, 100% at
 // 5/5; its chance to refund a Soul Shard is not modelled. The row's effects are dummies the tooltip reads.
 func (warlock *Warlock) applyShadowAndFlame() {
@@ -203,7 +201,9 @@ func (warlock *Warlock) applyShadowAndFlame() {
 
 	buffOnHit := func(buffRow *spelldata.Spell, hitBy spelldata.Ladder) {
 		buff := warlock.RegisterAura(spelldata.AuraConfig(buffRow))
-		spelldata.ParseEffects(&warlock.Character, buff, buffRow)
+		// The buff rows state the 5/5 value; the talent's effects 3 and 4 price it at each rank.
+		spelldata.ParseEffects(&warlock.Character, buff, buffRow,
+			spelldata.ScaledByRanks(warlock.Talents.ShadowAndFlame, spellData.ShadowAndFlame.Len()))
 
 		warlock.MakeProcTriggerAura(core.ProcTrigger{
 			Name:     buffRow.Name + " - Trigger",
