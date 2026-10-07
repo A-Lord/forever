@@ -70,11 +70,8 @@ func (character *Character) EnableManaBarWithModifier() {
 		ActionID: ActionID{OtherID: proto.OtherAction_OtherActionManaGain},
 	})
 
-	// Spirit restores 7.5 + Spirit/10 mana per second, 6.25 + Spirit/8 for priests, mages and warlocks.
-	character.spiritRegenBase, character.spiritRegenPerSpirit = 7.5, 1.0/10
-	if character.Class == proto.Class_ClassPriest || character.Class == proto.Class_ClassMage || character.Class == proto.Class_ClassWarlock {
-		character.spiritRegenBase, character.spiritRegenPerSpirit = 6.25, 1.0/8
-	}
+	// Spirit restores 6.25 + Spirit/8 mana per second
+	character.spiritRegenBase, character.spiritRegenPerSpirit = 6.25, 1.0/8
 
 	character.BaseMana = character.GetBaseStats()[stats.Mana]
 	character.Unit.manaBar.unit = &character.Unit
