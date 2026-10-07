@@ -52,7 +52,7 @@ func (distMetrics *DistributionMetrics) doneIteration(sim *Simulation) {
 		distMetrics.minSeed = sim.rand.GetSeed()
 	}
 
-	dpsRounded := int32(math.Round(dps/10) * 10)
+	dpsRounded := int32(math.Round(dps/5) * 5)
 	distMetrics.hist[dpsRounded]++
 }
 

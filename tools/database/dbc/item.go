@@ -31,6 +31,7 @@ type Item struct {
 	Flags1                ItemStaticFlags1
 	Flags2                ItemStaticFlags2
 	Flags3                ItemStaticFlags3
+	Flags4                ItemStaticFlags4
 	FDID                  int
 	ItemSetName           string
 	ItemSetId             int
