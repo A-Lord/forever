@@ -5,24 +5,28 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-var iceBarrierRank = spellData.IceBarrier.Highest()
-var iceBarrierAbsorb = iceBarrierRank.EffectN(1).Average()
+func (mage *Mage) registerIceBarrierSpell() {
+	spellData.IceBarrier.Each(mage.registerIceBarrierRank)
+}
 
 // Ice Barrier
 // https://www.wowhead.com/forever/spell=13033
 //
-// "Instantly shields you, absorbing 811 damage. Lasts 1 min. While the shield holds, your spellcasts
+// "Instantly shields you, absorbing $s1 damage. Lasts 1 min. While the shield holds, your spellcasts
 // will not be interrupted or delayed from taking damage." The row states no spell power coefficient,
-// and the sim models no pushback, so only the absorb is.
-func (mage *Mage) registerIceBarrierSpell() {
+// and the sim models no pushback, so only the absorb is. One rank is up at a time.
+func (mage *Mage) registerIceBarrierRank(_ int32, rank *spelldata.Spell) {
+	absorb := rank.EffectN(1).Average()
+
 	shield := mage.NewDamageAbsorptionAura(core.AbsorptionAuraConfig{
-		Aura: spelldata.AuraConfig(iceBarrierRank),
+		Aura: spelldata.AuraConfig(rank, spelldata.RankLabel(rank, &mage.Unit)),
 		ShieldStrengthCalculator: func(_ *core.Unit) float64 {
-			return iceBarrierAbsorb
+			return absorb
 		},
 	})
+	shield.Aura.NewExclusiveEffect(rank.Name, true, core.ExclusiveEffect{})
 
-	config := spelldata.SpellConfig(&mage.Unit, iceBarrierRank, spelldata.Flags(core.SpellFlagAPL))
+	config := spelldata.SpellConfig(&mage.Unit, rank, spelldata.Flags(core.SpellFlagAPL))
 	config.ClassSpellMask = MageSpellIceBarrier
 	config.RelatedSelfBuff = shield.Aura
 

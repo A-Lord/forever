@@ -6,25 +6,28 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-var blizzardRank = spellData.Blizzard.Highest()
-var blizzardTickRank = spellData.BlizzardTriggered.Highest()
-
-// Each tick casts 1279949 on every enemy in the area; the ticks do not crit.
 func (mage *Mage) registerBlizzardSpell() {
+	spellData.Blizzard.Each(mage.registerBlizzardRank)
+}
+
+// Each tick casts the same rank of spellData.BlizzardTriggered on every enemy in the area; the ticks
+// do not crit. The cast's row names no tick spell, only an area trigger, so the two pair by rank.
+func (mage *Mage) registerBlizzardRank(rank int32, castRank *spelldata.Spell) {
+	tickRank := spellData.BlizzardTriggered.Rank(rank)
 	chargeLock := arcaneChargesLock{}
 
-	tickConfig := spelldata.SpellConfig(&mage.Unit, blizzardTickRank, spelldata.Magic(core.ProcMaskSpellDamage), spelldata.Proc())
+	tickConfig := spelldata.SpellConfig(&mage.Unit, tickRank, spelldata.Magic(core.ProcMaskSpellDamage), spelldata.Proc())
 	tickConfig.ClassSpellMask = MageSpellBlizzard
 	tickConfig.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
 		chargeLock.deal(spell, &mage.Unit, func() {
-			spell.CalcAndDealAoeDamageWithVariance(sim, spell.OutcomeMagicHit, rollDamage(blizzardTickRank.DamageEffect()))
+			spell.CalcAndDealAoeDamageWithVariance(sim, spell.OutcomeMagicHit, rollDamage(tickRank.DamageEffect()))
 		})
 	}
 	tickSpell := mage.RegisterSpell(tickConfig)
 
-	config := spelldata.SpellConfig(&mage.Unit, blizzardRank, spelldata.Magic(core.ProcMaskSpellDamage))
+	config := spelldata.SpellConfig(&mage.Unit, castRank, spelldata.Magic(core.ProcMaskSpellDamage))
 	config.ClassSpellMask = MageSpellBlizzard
-	config.Dot = spelldata.DotConfig(blizzardRank, blizzardRank.Effect(dbcenums.A_PERIODIC_DUMMY, 0))
+	config.Dot = spelldata.DotConfig(castRank, castRank.Effect(dbcenums.A_PERIODIC_DUMMY, 0))
 	config.Dot.IsAOE = true
 	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, _ *core.Dot) {
 		tickSpell.Cast(sim, target)

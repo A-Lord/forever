@@ -28,11 +28,7 @@ type Mage struct {
 
 	ImprovedScorchAuras core.AuraArray
 
-	ArcaneBlast *core.Spell
-	Ignite      *core.Spell
-	FireBlast   *core.Spell
-	Flamestrike []*core.Spell
-	Pyroblast   *core.Spell
+	Ignite *core.Spell
 }
 
 func (mage *Mage) GetCharacter() *core.Character {
@@ -138,7 +134,7 @@ const (
 	DDBC_Total
 )
 
-// Agent is a generic way to access underlying mage on any of the agents.
+// The underlying mage of any of the mage agents.
 type MageAgent interface {
 	GetMage() *Mage
 }
@@ -162,6 +158,7 @@ const (
 	MageSpellFlamestrike
 	MageSpellFlamestrikeDot
 	MageSpellFrostArmor
+	MageSpellIceArmor
 	MageSpellFrostbolt
 	MageSpellFrostNova
 	MageSpellIceBarrier

@@ -10,16 +10,19 @@ import (
 // Overheat (400615) swaps onto the action bar. Overheat is an Engrave grant with no place in
 // Forever, and the generator drops its stand-ins.
 
-var fireBlastRank = spellData.FireBlast.Highest()
-var fireBlastDamage = fireBlastRank.DamageEffect()
-
 func (mage *Mage) registerFireBlastSpell() {
-	config := spelldata.SpellConfig(&mage.Unit, fireBlastRank, spelldata.Magic(core.ProcMaskSpellDamage))
+	spellData.FireBlast.Each(mage.registerFireBlastRank)
+}
+
+func (mage *Mage) registerFireBlastRank(_ int32, rank *spelldata.Spell) {
+	damage := rank.DamageEffect()
+
+	config := spelldata.SpellConfig(&mage.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))
 	config.ClassSpellMask = MageSpellFireBlast
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		spell.CalcAndDealDamage(sim, target, fireBlastDamage.Average(), spell.OutcomeMagicHitAndCrit)
+		spell.CalcAndDealDamage(sim, target, damage.Average(), spell.OutcomeMagicHitAndCrit)
 	}
 
-	mage.FireBlast = mage.RegisterSpell(config)
+	mage.RegisterSpell(config)
 }
