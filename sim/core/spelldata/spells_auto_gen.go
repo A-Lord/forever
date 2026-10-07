@@ -3387,14 +3387,14 @@ var generatedSpells = []Spell{
 		Powers: []Power{{Type: 1, Cost: 100}}},
 	{ID: 6572, Name: "Revenge", Rank: "Rank 1", School: 1, Attr: [17]uint32{0: 0x50010, 1: 0x8000200, 3: 0x400, 4: 0x200, 15: 0x2000}, SpellLevel: 14, BaseLevel: 14, MaxRange: 5, CategoryCooldownMs: 5000, GCDMs: 1500, Category: 65, StartRecoveryCategory: 133, DefenseType: 2, PreventionType: 2, ClassFlags: core.ClassFlags{Family: 4, Mask: [4]uint32{0: 1024}}, StanceMask: 0x20000, EquipClass: 2, EquipSubclass: 173555, Labels: []int16{25},
 		Effects: []Effect{
-			{ID: 684734, SpellID: 6572, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 22, Variance: 0.1538461595773697, BaseLevel: 14, SPCoef: 1, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+			{ID: 684734, SpellID: 6572, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 22, Variance: 0.1538461595773697, BaseLevel: 14, SPCoef: 1, APCoef: 0.28, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
-		Powers: []Power{{Type: 1, Cost: 50}}},
+		Powers: []Power{{Type: 1, Cost: 50}}}, // override: APCoefDirect 0.28 -- Revenge Rank 1: hits deal 22 +/- 15% + 0.28 x Attack Power, before armor
 	{ID: 6574, Name: "Revenge", Rank: "Rank 2", School: 1, Attr: [17]uint32{0: 0x50010, 1: 0x8000200, 3: 0x400, 4: 0x200, 15: 0x2000}, SpellLevel: 24, BaseLevel: 24, MaxRange: 5, CategoryCooldownMs: 5000, GCDMs: 1500, Category: 65, StartRecoveryCategory: 133, DefenseType: 2, PreventionType: 2, ClassFlags: core.ClassFlags{Family: 4, Mask: [4]uint32{0: 1024}}, StanceMask: 0x20000, EquipClass: 2, EquipSubclass: 173555, Labels: []int16{25},
 		Effects: []Effect{
-			{ID: 686551, SpellID: 6574, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 34, Variance: 0.20000000298023224, BaseLevel: 24, SPCoef: 1, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+			{ID: 686551, SpellID: 6574, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 34, Variance: 0.20000000298023224, BaseLevel: 24, SPCoef: 1, APCoef: 0.28, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
-		Powers: []Power{{Type: 1, Cost: 50}}},
+		Powers: []Power{{Type: 1, Cost: 50}}}, // override: APCoefDirect 0.28 -- Revenge Rank 2: 0.24 to 0.30 x Attack Power with Improved Revenge 3/3 taken out, Rank 1's 0.28 within it
 	{ID: 6612, Name: "Rage", School: 1, Attr: [17]uint32{0: 0x2c000000, 15: 0x2000}, SpellLevel: 60, BaseLevel: 60, CategoryCooldownMs: 60000, Category: 4, ProcChance: 101, ClassFlags: core.ClassFlags{Family: 13}, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 684732, SpellID: 6612, Type: dbcenums.E_ENERGIZE, BasePoints: 300, Variance: 0.6666666865348816, BaseLevel: 60, PvpMult: 1, Misc: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
@@ -3734,9 +3734,9 @@ var generatedSpells = []Spell{
 		}},
 	{ID: 7379, Name: "Revenge", Rank: "Rank 3", School: 1, Attr: [17]uint32{0: 0x50010, 1: 0x8000200, 3: 0x400, 4: 0x200, 15: 0x2000}, SpellLevel: 34, BaseLevel: 34, MaxRange: 5, CategoryCooldownMs: 5000, GCDMs: 1500, Category: 65, StartRecoveryCategory: 133, DefenseType: 2, PreventionType: 2, ClassFlags: core.ClassFlags{Family: 4, Mask: [4]uint32{0: 1024}}, StanceMask: 0x20000, EquipClass: 2, EquipSubclass: 173555, Labels: []int16{25},
 		Effects: []Effect{
-			{ID: 685885, SpellID: 7379, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 48, Variance: 0.2142857164144516, BaseLevel: 34, SPCoef: 1, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+			{ID: 685885, SpellID: 7379, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 48, Variance: 0.2142857164144516, BaseLevel: 34, SPCoef: 1, APCoef: 0.28, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
-		Powers: []Power{{Type: 1, Cost: 50}}},
+		Powers: []Power{{Type: 1, Cost: 50}}}, // override: APCoefDirect 0.28 -- Revenge Rank 3: Ranks 1 and 2's measured share
 	{ID: 7381, Name: "Berserker Stance Passive", School: 1, Attr: [17]uint32{0: 0x500d0, 15: 0x2000}, SpellLevel: 30, BaseLevel: 30, ClassFlags: core.ClassFlags{Family: 4, Mask: [4]uint32{1: 2048}}, Labels: []int16{25},
 		Effects: []Effect{
 			{ID: 684659, SpellID: 7381, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_CRIT_PCT, BasePoints: 3, BaseLevel: 30, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
@@ -8574,14 +8574,14 @@ var generatedSpells = []Spell{
 		Powers: []Power{{Type: 1, Cost: 150}}},
 	{ID: 11600, Name: "Revenge", Rank: "Rank 4", School: 1, Attr: [17]uint32{0: 0x50010, 1: 0x8000200, 3: 0x400, 4: 0x200, 15: 0x2000}, SpellLevel: 44, BaseLevel: 44, MaxRange: 5, CategoryCooldownMs: 5000, GCDMs: 1500, Category: 65, StartRecoveryCategory: 133, DefenseType: 2, PreventionType: 2, ClassFlags: core.ClassFlags{Family: 4, Mask: [4]uint32{0: 1024}}, StanceMask: 0x20000, EquipClass: 2, EquipSubclass: 173555, Labels: []int16{25},
 		Effects: []Effect{
-			{ID: 689634, SpellID: 11600, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 82, Variance: 0.2083333283662796, BaseLevel: 44, SPCoef: 1, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+			{ID: 689634, SpellID: 11600, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 82, Variance: 0.2083333283662796, BaseLevel: 44, SPCoef: 1, APCoef: 0.28, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
-		Powers: []Power{{Type: 1, Cost: 50}}},
+		Powers: []Power{{Type: 1, Cost: 50}}}, // override: APCoefDirect 0.28 -- Revenge Rank 4: Ranks 1 and 2's measured share
 	{ID: 11601, Name: "Revenge", Rank: "Rank 5", School: 1, Attr: [17]uint32{0: 0x50010, 1: 0x8000200, 3: 0x400, 4: 0x200, 15: 0x2000}, SpellLevel: 54, BaseLevel: 54, MaxRange: 5, CategoryCooldownMs: 5000, GCDMs: 1500, Category: 65, StartRecoveryCategory: 133, DefenseType: 2, PreventionType: 2, ClassFlags: core.ClassFlags{Family: 4, Mask: [4]uint32{0: 1024}}, StanceMask: 0x20000, EquipClass: 2, EquipSubclass: 173555, Labels: []int16{25},
 		Effects: []Effect{
-			{ID: 689703, SpellID: 11601, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 121, Variance: 0.19718310236930847, BaseLevel: 54, SPCoef: 1, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+			{ID: 689703, SpellID: 11601, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 121, Variance: 0.19718310236930847, BaseLevel: 54, SPCoef: 1, APCoef: 0.28, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
-		Powers: []Power{{Type: 1, Cost: 50}}},
+		Powers: []Power{{Type: 1, Cost: 50}}}, // override: APCoefDirect 0.28 -- Revenge Rank 5: Ranks 1 and 2's measured share
 	{ID: 11604, Name: "Slam", Rank: "Rank 4", School: 1, Attr: [17]uint32{0: 0x50010, 1: 0x8000200, 3: 0x400, 6: 0x2000000, 15: 0x2000}, SpellLevel: 46, BaseLevel: 46, CastTimeMs: 1500, MaxRange: 5, CategoryCooldownMs: 18000, GCDMs: 1500, Category: 2412, StartRecoveryCategory: 133, DefenseType: 2, PreventionType: 2, ClassFlags: core.ClassFlags{Family: 4, Mask: [4]uint32{0: 2097152}}, InterruptFlags: 15, EquipClass: 2, EquipSubclass: 173555, Labels: []int16{25},
 		Effects: []Effect{
 			{ID: 688565, SpellID: 11604, Type: dbcenums.E_WEAPON_DAMAGE_NOSCHOOL, BasePoints: 68, BaseLevel: 46, SPCoef: 1, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
@@ -17364,6 +17364,11 @@ var generatedSpells = []Spell{
 		Effects: []Effect{
 			{ID: 697200, SpellID: 20468, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_FLAT_MODIFIER, BasePoints: -6, BaseLevel: 60, SPCoef: 1, PvpMult: 1, Misc: 12, ClassFlags: core.ClassFlags{Family: 10, Mask: [4]uint32{0: 1}}, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}},
+	{ID: 20473, Name: "Holy Shock", Rank: "Rank 2", School: 2, Attr: [17]uint32{0: 0x50000, 15: 0x2000}, SpellLevel: 40, BaseLevel: 40, MaxRange: 20, CategoryCooldownMs: 10000, GCDMs: 1500, Category: 892, StartRecoveryCategory: 133, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 10, Mask: [4]uint32{0: 2097152}}, Labels: []int16{26}, RefIDs: []int32{25912, 25914}, ProcHint: core.ProcHintHeals,
+		Effects: []Effect{
+			{ID: 698636, SpellID: 20473, Type: dbcenums.E_DUMMY, BaseLevel: 40, SPCoef: 1, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{25, 0}},
+		},
+		Powers: []Power{{Cost: 225}}},
 	{ID: 20484, Name: "Rebirth", Rank: "Rank 1", School: 8, Attr: [17]uint32{0: 0x10000, 1: 0x20000, 2: 0x80000, 3: 0x10, 15: 0x2000}, SpellLevel: 20, BaseLevel: 20, CastTimeMs: 2000, MaxRange: 30, CategoryCooldownMs: 1800000, GCDMs: 1500, Category: 26, StartRecoveryCategory: 133, DefenseType: 1, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 7, Mask: [4]uint32{0: 285212672}}, InterruptFlags: 15, StanceMask: 0x40000002, Labels: []int16{21, 6316}, ProcHint: core.ProcHintHeals,
 		Effects: []Effect{
 			{ID: 698273, SpellID: 20484, Type: dbcenums.E_329, BasePoints: 400, BaseLevel: 20, PvpMult: 1, Misc: 700, ChainAmp: 1},
@@ -17718,6 +17723,16 @@ var generatedSpells = []Spell{
 			{ID: 1339256, SpellID: 20928, Index: 2, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_DUMMY, BasePoints: 1, BaseLevel: 60, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		},
 		Powers: []Power{{Cost: 240}}},
+	{ID: 20929, Name: "Holy Shock", Rank: "Rank 3", School: 2, Attr: [17]uint32{0: 0x50000, 15: 0x2000}, SpellLevel: 48, BaseLevel: 48, MaxRange: 20, CategoryCooldownMs: 10000, GCDMs: 1500, Category: 892, StartRecoveryCategory: 133, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 10, Mask: [4]uint32{0: 2097152}}, Labels: []int16{26}, RefIDs: []int32{25911, 25913}, ProcHint: core.ProcHintHeals,
+		Effects: []Effect{
+			{ID: 699488, SpellID: 20929, Type: dbcenums.E_DUMMY, BaseLevel: 48, SPCoef: 1, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{25, 0}},
+		},
+		Powers: []Power{{Cost: 275}}},
+	{ID: 20930, Name: "Holy Shock", Rank: "Rank 4", School: 2, Attr: [17]uint32{0: 0x50000, 15: 0x2000}, SpellLevel: 56, BaseLevel: 56, MaxRange: 20, CategoryCooldownMs: 10000, GCDMs: 1500, Category: 892, StartRecoveryCategory: 133, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 10, Mask: [4]uint32{0: 2097152}}, Labels: []int16{26}, RefIDs: []int32{25902, 25903}, ProcHint: core.ProcHintHeals,
+		Effects: []Effect{
+			{ID: 698869, SpellID: 20930, Type: dbcenums.E_DUMMY, BaseLevel: 56, SPCoef: 1, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{25, 0}},
+		},
+		Powers: []Power{{Cost: 325}}},
 	{ID: 20959, Name: "Increased Mana Regen", School: 64, Attr: [17]uint32{0: 0x1c0, 15: 0x2000}, SpellLevel: 60, BaseLevel: 60, DurationMs: -1, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 698696, SpellID: 20959, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_POWER_REGEN, BasePoints: 10, BaseLevel: 60, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
@@ -20891,9 +20906,9 @@ var generatedSpells = []Spell{
 		Powers: []Power{{Type: 1, Cost: 150}}},
 	{ID: 25288, Name: "Revenge", Rank: "Rank 6", School: 1, Attr: [17]uint32{0: 0x50010, 1: 0x8000200, 3: 0x400, 4: 0x200, 15: 0x2000}, SpellLevel: 60, BaseLevel: 60, MaxRange: 5, CategoryCooldownMs: 5000, GCDMs: 1500, Category: 65, StartRecoveryCategory: 133, DefenseType: 2, PreventionType: 2, ClassFlags: core.ClassFlags{Family: 4, Mask: [4]uint32{0: 1024}}, StanceMask: 0x20000, EquipClass: 2, EquipSubclass: 173555, Labels: []int16{25},
 		Effects: []Effect{
-			{ID: 701608, SpellID: 25288, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 153, Variance: 0.20000000298023224, BaseLevel: 60, SPCoef: 1, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+			{ID: 701608, SpellID: 25288, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 153, Variance: 0.20000000298023224, BaseLevel: 60, SPCoef: 1, APCoef: 0.28, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
-		Powers: []Power{{Type: 1, Cost: 50}}},
+		Powers: []Power{{Type: 1, Cost: 50}}}, // override: APCoefDirect 0.28 -- Revenge Rank 6: Ranks 1 and 2's measured share
 	{ID: 25289, Name: "Battle Shout", Rank: "Rank 7", School: 1, Attr: [17]uint32{0: 0x50010, 3: 0x100, 8: 0x1000, 15: 0x2000}, SpellLevel: 60, BaseLevel: 60, MaxLevel: 61, DurationMs: 180000, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 4, Mask: [4]uint32{0: 65536}}, Labels: []int16{25},
 		Effects: []Effect{
 			{ID: 702382, SpellID: 25289, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_ATTACK_POWER, BasePoints: 139, PPL: 0.6000000238418579, BaseLevel: 60, MaxLevel: 61, PvpMult: 1, RadiusMax: 20, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{20, 0}},
@@ -21151,6 +21166,14 @@ var generatedSpells = []Spell{
 			{ID: 702574, SpellID: 25898, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_TOTAL_STAT_PERCENTAGE, BasePoints: 10, BaseLevel: 60, PvpMult: 1, RadiusMax: 100, Misc: -1, Misc2: 31, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{153, 0}},
 		},
 		Powers: []Power{{Cost: 150}}},
+	{ID: 25902, Name: "Holy Shock", Rank: "Rank 4", School: 2, Attr: [17]uint32{0: 0x50000, 3: 0x200, 15: 0x2000}, SpellLevel: 56, BaseLevel: 56, MaxRange: 20, StartRecoveryCategory: 133, DefenseType: 1, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 10, Mask: [4]uint32{0: 2097152, 2: 536870912}}, Labels: []int16{26},
+		Effects: []Effect{
+			{ID: 702448, SpellID: 25902, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 348, Variance: 0.07894736528396606, BaseLevel: 56, SPCoef: 0.42899999022483826, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+		}},
+	{ID: 25903, Name: "Holy Shock", Rank: "Rank 4", School: 2, Attr: [17]uint32{0: 0x50000, 3: 0x200, 15: 0x2000, 16: 0x10}, SpellLevel: 56, BaseLevel: 56, MaxLevel: 60, MaxRange: 40, StartRecoveryCategory: 133, DefenseType: 1, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 10, Mask: [4]uint32{0: 2097152, 1: 65536}}, Labels: []int16{26},
+		Effects: []Effect{
+			{ID: 703683, SpellID: 25903, Type: dbcenums.E_HEAL, BasePoints: 320, Variance: 0.07894736528396606, BaseLevel: 56, MaxLevel: 60, SPCoef: 0.42899999022483826, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{21, 0}},
+		}},
 	{ID: 25906, Name: "Spell Blasting", School: 1, Attr: [17]uint32{0: 0xc0, 3: 0x4000000, 15: 0x2000}, SpellLevel: 60, BaseLevel: 60, ProcChance: 5, ProcFlags: [2]uint32{0: 0x10000}, RefIDs: []int32{25907},
 		Effects: []Effect{
 			{ID: 702525, SpellID: 25906, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PROC_TRIGGER_SPELL, BasePoints: 100, BaseLevel: 60, PvpMult: 1, TriggerID: 25907, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
@@ -21158,6 +21181,22 @@ var generatedSpells = []Spell{
 	{ID: 25907, Name: "Spell Blasting", School: 64, Attr: [17]uint32{15: 0x2000}, SpellLevel: 60, DurationMs: 10000, MaxRange: 100, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 702593, SpellID: 25907, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_DAMAGE_DONE, BasePoints: 132, SPCoef: 1, PvpMult: 1, Misc: 126, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
+		}},
+	{ID: 25911, Name: "Holy Shock", Rank: "Rank 3", School: 2, Attr: [17]uint32{0: 0x50000, 3: 0x200, 15: 0x2000}, SpellLevel: 48, BaseLevel: 48, MaxRange: 20, StartRecoveryCategory: 133, DefenseType: 1, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 10, Mask: [4]uint32{0: 2097152, 2: 536870912}}, Labels: []int16{26},
+		Effects: []Effect{
+			{ID: 703606, SpellID: 25911, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 258, Variance: 0.07586207240819931, BaseLevel: 48, SPCoef: 0.42899999022483826, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+		}},
+	{ID: 25912, Name: "Holy Shock", Rank: "Rank 2", School: 2, Attr: [17]uint32{0: 0x50000, 3: 0x200, 15: 0x2000}, SpellLevel: 40, BaseLevel: 40, MaxRange: 20, StartRecoveryCategory: 133, DefenseType: 1, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 10, Mask: [4]uint32{0: 2097152, 2: 536870912}}, Labels: []int16{26},
+		Effects: []Effect{
+			{ID: 703627, SpellID: 25912, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 182, Variance: 0.07547169923782349, BaseLevel: 40, SPCoef: 0.42899999022483826, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+		}},
+	{ID: 25913, Name: "Holy Shock", Rank: "Rank 3", School: 2, Attr: [17]uint32{0: 0x50000, 3: 0x200, 15: 0x2000, 16: 0x10}, SpellLevel: 48, BaseLevel: 48, MaxLevel: 55, MaxRange: 40, StartRecoveryCategory: 133, DefenseType: 1, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 10, Mask: [4]uint32{0: 2097152, 1: 65536}}, Labels: []int16{26},
+		Effects: []Effect{
+			{ID: 703628, SpellID: 25913, Type: dbcenums.E_HEAL, BasePoints: 230, Variance: 0.07586207240819931, BaseLevel: 48, MaxLevel: 55, SPCoef: 0.42899999022483826, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{21, 0}},
+		}},
+	{ID: 25914, Name: "Holy Shock", Rank: "Rank 2", School: 2, Attr: [17]uint32{0: 0x50000, 3: 0x200, 15: 0x2000, 16: 0x10}, SpellLevel: 40, BaseLevel: 40, MaxLevel: 47, MaxRange: 40, StartRecoveryCategory: 133, DefenseType: 1, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 10, Mask: [4]uint32{0: 2097152, 1: 65536}}, Labels: []int16{26},
+		Effects: []Effect{
+			{ID: 703629, SpellID: 25914, Type: dbcenums.E_HEAL, BasePoints: 156, Variance: 0.07547169923782349, BaseLevel: 40, MaxLevel: 47, SPCoef: 0.42899999022483826, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{21, 0}},
 		}},
 	{ID: 25916, Name: "Greater Blessing of Might", Rank: "Rank 2", School: 2, Attr: [17]uint32{0: 0x50000, 3: 0x100, 15: 0x2000}, SpellLevel: 60, BaseLevel: 60, MaxLevel: 60, DurationMs: 3600000, MaxRange: 40, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, DispelType: 1, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 10, Mask: [4]uint32{0: 268435458}}, Labels: []int16{26},
 		Effects: []Effect{

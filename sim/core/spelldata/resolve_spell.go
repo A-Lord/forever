@@ -161,8 +161,14 @@ func Tag(tag int32) SpellOpt {
 	}
 }
 
-// The forms, caster auras, weapon or shield and out-of-combat state the row requires. A shield is the
-// only armor a castable spell asks for.
+// The forms, caster auras, weapon or shield, out-of-combat state and target creature types the row
+// requires. A shield is the only armor a castable spell asks for. The creature types limit the cast
+// only on a spell cast on an enemy unit: Bestial Wrath's Beast is the pet it lands on, and Holy Wrath's
+// Undead and Demon are the enemies its area hits.
+//
+// A ranked row whose only effect that does something is the periodic is refused while a higher rank
+// of its dot is up: Shadow Word: Pain, Renew, Corruption, Rend, and Rip and Rupture, whose dummy
+// effects do nothing by themselves. A row with any other effect casts, and only its periodic stays off.
 func (s *Spell) CastRequirement() core.CastRequirement {
 	r := core.CastRequirement{
 		Forms:             s.StanceMask,
@@ -172,6 +178,8 @@ func (s *Spell) CastRequirement() core.CastRequirement {
 		CasterAura:        s.CasterAura,
 		ExcludeCasterAura: s.ExcludeCasterAura,
 		NotInCombat:       s.HasAttr(dbcenums.ATTR_INDEX_BASE, dbcenums.ATTR_NOT_IN_COMBAT),
+
+		NotUnderHigherRank: s.RankNumber() > 0 && s.onlyPeriodicActs(),
 	}
 	switch s.EquipClass {
 	case dbcenums.ITEM_CLASS_WEAPON:
@@ -179,7 +187,27 @@ func (s *Spell) CastRequirement() core.CastRequirement {
 	case dbcenums.ITEM_CLASS_ARMOR:
 		r.Shield = s.EquipSubclass&dbcenums.ITEM_SUBCLASS_BIT_ARMOR_SHIELD != 0
 	}
+	if s.EffectN(1).Target[0] == dbcenums.TARGET_UNIT_TARGET_ENEMY {
+		for _, mobType := range MobTypes(s.TargetCreatureType) {
+			r.TargetMobTypes |= 1 << mobType
+		}
+	}
 	return r
+}
+
+// A periodic is an effect with a tick period, the one DotConfig builds a dot from.
+func (s *Spell) onlyPeriodicActs() bool {
+	var acting []*Effect
+	for i := range s.Effects {
+		if e := &s.Effects[i]; !e.isInert() {
+			acting = append(acting, e)
+		}
+	}
+	return len(acting) == 1 && acting[0].PeriodMs > 0
+}
+
+func (e *Effect) isInert() bool {
+	return e.Type == dbcenums.E_DUMMY || e.Type == dbcenums.E_SCRIPT_EFFECT || e.Aura == dbcenums.A_DUMMY
 }
 
 func spellPowerCoeff(s *Spell) float64 {
