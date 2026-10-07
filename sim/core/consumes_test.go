@@ -8,26 +8,30 @@ import (
 )
 
 func TestSelectedConsumableIDs(t *testing.T) {
+	const oil = 990410
+	addToDatabase(&proto.SimDatabase{Consumables: []*proto.Consumable{
+		{Id: oil, Type: proto.ConsumableType_ConsumableTypeImbue, TemporaryEnchant: &proto.SimEnchant{EffectId: 990420}},
+	}})
 	consumes := &proto.ConsumesSpec{
 		PotId:         13444,
 		Potions:       []int32{13444, 13446},
 		FlaskId:       13510,
 		FoodId:        20452,
 		ExplosiveId:   18588,
-		MhImbueId:     20749,
+		MhImbueId:     oil,
 		OhImbueId:     12404,
 		ConjuredItems: []int32{7676},
 		ExtraIds:      []int32{10646, 10309, 10305, 5206},
 	}
 
-	got := selectedConsumableIDs(consumes, Item{TempEnchant: GetConsumableByID(20749).TemporaryEnchant.EffectID})
-	want := []int32{13444, 13510, 20452, 18588, 12404, 20749, 10646, 10309, 10305, 5206, 13446, 7676}
+	got := selectedConsumableIDs(consumes, Item{TempEnchant: 990420})
+	want := []int32{13444, 13510, 20452, 18588, 12404, oil, 10646, 10309, 10305, 5206, 13446, 7676}
 	if !slices.Equal(got, want) {
 		t.Errorf("selected %v, want %v", got, want)
 	}
 
 	bareMainHand := selectedConsumableIDs(consumes, Item{})
-	if slices.Contains(bareMainHand, 20749) {
+	if slices.Contains(bareMainHand, oil) {
 		t.Errorf("selected the main-hand imbue while the main hand carries no enchant: %v", bareMainHand)
 	}
 }

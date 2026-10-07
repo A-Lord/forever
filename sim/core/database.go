@@ -199,12 +199,12 @@ type Item struct {
 	TempEnchant             int32
 	TempEnchantWeaponDamage float64
 	WeaponImbue             int32 // The Effect 360 imbue (poison, firestone, class imbue), beside the Effect 54 TempEnchant.
-	WeaponImbueWeaponDamage float64
 	ScalingOptions          map[int32]*proto.ScalingItemProperties
 	RandPropPoints          int32
 	ItemEffects             []*proto.ItemEffect
 }
 
+// Matches either slot: the Effect 54 TempEnchant or the Effect 360 WeaponImbue.
 func (item *Item) HasTempEnchant(effectID int32) bool {
 	return item.TempEnchant == effectID || item.WeaponImbue == effectID
 }

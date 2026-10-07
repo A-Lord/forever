@@ -38,7 +38,6 @@ func (character *Character) applyTemporaryEnchant(itemID int32, slot proto.ItemS
 	item := &character.Equipment[slot]
 	if consumable.Type == proto.ConsumableType_ConsumableTypeWeaponImbue {
 		item.WeaponImbue = consumable.TemporaryEnchant.EffectID
-		item.WeaponImbueWeaponDamage = consumable.TemporaryEnchant.WeaponDamage
 		return
 	}
 	item.TempEnchant = consumable.TemporaryEnchant.EffectID
