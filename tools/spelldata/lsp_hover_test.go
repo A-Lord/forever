@@ -269,7 +269,6 @@ func TestHoverTrace(t *testing.T) {
 		"  executeBaseDamage = executeRank.EffectN(1).AverageAt(core.CharacterLevel)  (sim/warrior/execute.go:5)",
 		"  executeRank = spellData.Execute.Highest()  (sim/warrior/execute.go:3)",
 		"expr spellData.Execute.Highest().EffectN(1).AverageAt(core.CharacterLevel)",
-		`render hover: name="executeBaseDamage" rank=false segments=3`,
 		"✓ 20662 Execute (Rank 5) → effect 1 → 600",
 	}
 	if len(trace) != len(want) {
