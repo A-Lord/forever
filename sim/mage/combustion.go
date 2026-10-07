@@ -37,10 +37,11 @@ func (mage *Mage) registerCombustionSpell() {
 		mage.UpdateMajorCooldowns()
 	}
 
-	// Each landed Fire hit adds a stack, a crit included; a crit then spends one of the charges.
-	// Periodic damage never reaches OnSpellHitDealt, so DoT ticks and Ignite neither stack nor spend.
+	// Each landed Fire spell hit adds a stack, a crit included; a crit then spends one of the charges.
+	// Periodic damage never reaches OnSpellHitDealt, so DoT ticks and Ignite neither stack nor spend,
+	// and a Fire wand's shots are ranged autos, not spells.
 	chargesConfig.OnSpellHitDealt = func(aura *core.Aura, sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-		if !spell.SpellSchool.Matches(core.SpellSchoolFire) || !result.Landed() {
+		if !spell.ProcMask.Matches(core.ProcMaskSpellDamage) || !spell.SpellSchool.Matches(core.SpellSchoolFire) || !result.Landed() {
 			return
 		}
 
