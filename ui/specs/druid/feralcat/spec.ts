@@ -150,8 +150,9 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 		gear: [Presets.Level60Gear],
 	},
 
-	autoRotation: (player: Player<Spec.SpecFeralCatDruid>): APLRotation => {
-		return catPowershiftRotation(player.getSimpleRotation());
+	// Auto is the APL preset, which keeps Elune's Light out of Berserk's guaranteed crit.
+	autoRotation: (_player: Player<Spec.SpecFeralCatDruid>): APLRotation => {
+		return Presets.APL.rotation.rotation!;
 	},
 
 	simpleRotation: (_player: Player<Spec.SpecFeralCatDruid>, simple: DruidRotation, _cooldowns: Cooldowns): APLRotation => {
