@@ -17,7 +17,7 @@ func (warlock *Warlock) registerIncinerate() {
 
 	// Roll the damage and to hit, raised if any Immolate burns on the target, then land it after travel
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		baseDamage := incinerateHit.Roll(sim)
+		baseDamage := incinerateHit.Average()
 		if target.HasActiveAuraWithTag(immolateTag) {
 			baseDamage *= immolateMult
 		}

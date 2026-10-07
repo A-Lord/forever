@@ -27,7 +27,7 @@ func (warlock *Warlock) registerImmolate() {
 
 	// Roll the hit, and apply the dot if it landed
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		result := spell.CalcAndDealDamage(sim, target, immolateHit.Roll(sim), spell.OutcomeMagicHitAndCrit)
+		result := spell.CalcAndDealDamage(sim, target, immolateHit.Average(), spell.OutcomeMagicHitAndCrit)
 		if result.Landed() {
 			spell.Dot(target).Apply(sim)
 		}
