@@ -19,20 +19,18 @@ import (
 )
 
 const (
-	spellCatForm  int32 = 768
-	spellShred    int32 = 9830
-	spellClaw     int32 = 9850
-	spellRip      int32 = 9896
-	spellRake     int32 = 9904
-	spellFF       int32 = 9907
-	spellSP       int32 = 1322605
-	spellBerserk  int32 = 417141
-	spellElune    int32 = 1259799
-	spellClear    int32 = 16870
-	itemSapper    int32 = 10646
-	itemTea       int32 = 7676
-	itemScrollAgi int32 = 10309
-	itemScrollStr int32 = 10310
+	spellCatForm int32 = 768
+	spellShred   int32 = 9830
+	spellClaw    int32 = 9850
+	spellRip     int32 = 9896
+	spellRake    int32 = 9904
+	spellFF      int32 = 9907
+	spellSP      int32 = 1322605
+	spellBerserk int32 = 417141
+	spellElune   int32 = 1259799
+	spellClear   int32 = 16870
+	itemSapper   int32 = 10646
+	itemTea      int32 = 7676
 )
 
 // aplTune is one candidate. elune is "after" (once Berserk's crit has fallen), "now" (as soon as it
@@ -73,8 +71,9 @@ func catAPL(tune aplTune) *proto.APLRotation {
 		cmp(proto.APLValueCompare_OpLt, afterBuilder, spellCost(spellRip)))
 	// Berserk is a major cooldown, so a plain cast waits for a GCD that is already idle while the
 	// builder queues into the window and takes that GCD. A sequence casts it with the spell.
-	openRake := and(inCat, not(itemCanCast(itemSapper)), not(ripNow), rakeNow)
-	openShred := and(inCat, not(itemCanCast(itemSapper)), not(ripNow), not(rakeNow), not(pooling), not(wantShift), spellCanCast(spellShred))
+	// The sapper line sits above these, so a throw and the Cat Form after it always go first.
+	openRake := and(inCat, not(ripNow), rakeNow)
+	openShred := and(inCat, not(ripNow), not(rakeNow), not(pooling), not(wantShift), spellCanCast(spellShred))
 	// Berserk is +100% crit for 15s. Elune's 10% crit during that window does not change a crit.
 	elune := and(not(auraUp(spellBerserk)), cmp(proto.APLValueCompare_OpGt, spellLeft(spellBerserk), konst("15s")))
 	switch tune.elune {
@@ -101,8 +100,6 @@ func catAPL(tune aplTune) *proto.APLRotation {
 	}
 
 	list := []*proto.APLListItem{
-		castItem(itemScrollAgi),
-		castItem(itemScrollStr),
 		castItem(itemSapper),
 		castWhen(spellCatForm, not(inCat)),
 		sequenceWhen(openRake, spellAction(spellBerserk), spellAction(spellRake)),
@@ -153,6 +150,98 @@ func TestWriteCatAPL(t *testing.T) {
 	out.WriteByte('\n')
 	if err := os.WriteFile("../../../ui/specs/druid/feralcat/apls/default.apl.json", out.Bytes(), 0o644); err != nil {
 		t.Fatal(err)
+	}
+}
+
+// The preset on disk is the list catAPL builds, so a sweep of catAPL(bestCatAPL) measures what ships.
+func TestCatAPLPresetMatchesItsBuilder(t *testing.T) {
+	preset := core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "default").Rotation
+	if !gproto.Equal(preset, catAPL(bestCatAPL)) {
+		t.Fatal("default.apl.json differs from catAPL(bestCatAPL); rerun with APL_WRITE=1")
+	}
+}
+
+// The consumables, professions and race the cat UI starts with (presets.ts DefaultConsumables
+// and OtherDefaults).
+func uiDefaultCat(rotation *proto.APLRotation) *proto.ComputeStatsRequest {
+	req := sweepRequest(powershiftTalents, rotation, false, 1)
+	player := req.Raid.Parties[0].Players[0]
+	player.Profession1 = proto.Profession_Engineering
+	player.Profession2 = proto.Profession_Enchanting
+	player.Consumables = &proto.ConsumesSpec{
+		PotId:      13444,
+		ElixirIds:  []int32{13452, 13447},
+		FoodId:     250072,
+		MhImbueId:  12643,
+		ConjuredId: 7676,
+		ExtraIds:   []int32{10646, 10310},
+	}
+	return &proto.ComputeStatsRequest{Raid: req.Raid, Encounter: req.Encounter}
+}
+
+// aplWarnings is what the APL editor marks with a warning or an error, by priority list line.
+// Prepull lines are -1 and validations by UUID -2. Information (the blue icon) is left out.
+func aplWarnings(t *testing.T, req *proto.ComputeStatsRequest) map[int][]string {
+	t.Helper()
+	stats := core.ComputeStats(req).RaidStats.Parties[0].Players[0].RotationStats
+	warnings := map[int][]string{}
+	add := func(line int, validations []*proto.APLValidation) {
+		for _, v := range validations {
+			if v.LogLevel >= proto.LogLevel_Warning {
+				warnings[line] = append(warnings[line], v.Validation)
+			}
+		}
+	}
+	for i, action := range stats.PriorityList {
+		add(i, action.Validations)
+	}
+	for _, action := range stats.PrepullActions {
+		add(-1, action.Validations)
+	}
+	for _, uuid := range stats.UuidValidations {
+		add(-2, uuid.Validations)
+	}
+	return warnings
+}
+
+// Every line of the preset names a spell or item the UI's default cat can cast.
+func TestCatAPLPresetHasNoWarningsOnTheDefaultCat(t *testing.T) {
+	preset := core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "default").Rotation
+	if warnings := aplWarnings(t, uiDefaultCat(preset)); len(warnings) != 0 {
+		t.Errorf("preset warnings by line: %v", warnings)
+	}
+}
+
+// Without the consumables or Engineering, only the lines that cast them warn, and the sim still runs.
+func TestCatAPLPresetWarnsOnlyOnMissingConsumables(t *testing.T) {
+	preset := core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "default").Rotation
+	req := uiDefaultCat(preset)
+	player := req.Raid.Parties[0].Players[0]
+	player.Profession1 = proto.Profession_ProfessionUnknown
+	player.Consumables = &proto.ConsumesSpec{}
+
+	allowed := map[string]bool{}
+	for i, item := range preset.PriorityList {
+		id := item.Action.GetCastSpell().GetSpellId()
+		if id.GetItemId() != 0 || id.GetOtherId() == proto.OtherAction_OtherActionPotion {
+			allowed[strconv.Itoa(i)] = true
+		}
+	}
+	for line, messages := range aplWarnings(t, req) {
+		if !allowed[strconv.Itoa(line)] {
+			t.Errorf("line %d warns without consumables: %v", line, messages)
+		}
+	}
+
+	result := core.RunSim(&proto.RaidSimRequest{
+		Raid: req.Raid, Encounter: req.Encounter,
+		SimOptions: &proto.SimOptions{RandomSeed: 1, Iterations: 20, IsTest: true},
+	}, nil, simsignals.CreateSignals())
+	if result.Error != nil {
+		t.Fatal(result.Error.Message)
+	}
+	if dps := result.RaidMetrics.Parties[0].Players[0].Dps.Avg; dps < 500 {
+		t.Errorf("bare cat on the preset does %.1f DPS", dps)
 	}
 }
 
@@ -310,12 +399,6 @@ func manaRegen() *proto.APLValue {
 
 func spellID(id int32) *proto.ActionID {
 	return &proto.ActionID{RawId: &proto.ActionID_SpellId{SpellId: id}}
-}
-
-func itemCanCast(id int32) *proto.APLValue {
-	return &proto.APLValue{Value: &proto.APLValue_SpellCanCast{SpellCanCast: &proto.APLValueSpellCanCast{
-		SpellId: &proto.ActionID{RawId: &proto.ActionID_ItemId{ItemId: id}},
-	}}}
 }
 
 func auraIcdReady(id int32) *proto.APLValue {
