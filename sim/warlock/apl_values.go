@@ -2,7 +2,6 @@ package warlock
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
@@ -100,9 +99,8 @@ func (warlock *Warlock) NewAPLAction(rot *core.APLRotation, config *proto.APLAct
 }
 
 type APLActionCastWarlockAssignedCurse struct {
-	warlock    *Warlock
-	lastAction time.Duration
-	target     core.UnitReference
+	warlock *Warlock
+	target  core.UnitReference
 }
 
 func (x *APLActionCastWarlockAssignedCurse) GetInnerActions() []*core.APLAction { return nil }
@@ -131,16 +129,14 @@ func (warlock *Warlock) newActionWarlockAssignedCurseAction(rot *core.APLRotatio
 }
 
 func (x *APLActionCastWarlockAssignedCurse) Execute(sim *core.Simulation) {
-	x.GetSpellFromAction(sim).Cast(sim, x.target.Get())
+	x.GetSpellFromAction(sim).CastOrQueue(sim, x.target.Get())
 }
 
 func (x *APLActionCastWarlockAssignedCurse) IsReady(sim *core.Simulation) bool {
-	return x.GetSpellFromAction(sim).CanCast(sim, x.warlock.CurrentTarget)
+	return x.GetSpellFromAction(sim).CanCastOrQueue(sim, x.target.Get())
 }
 
-func (x *APLActionCastWarlockAssignedCurse) Reset(*core.Simulation) {
-	x.lastAction = -core.NeverExpires
-}
+func (x *APLActionCastWarlockAssignedCurse) Reset(*core.Simulation) {}
 
 func (x *APLActionCastWarlockAssignedCurse) String() string {
 	return fmt.Sprintf("Cast Assigned Curse(%s)", x.warlock.GetAssignedCurse().ActionID)

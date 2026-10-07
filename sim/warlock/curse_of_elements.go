@@ -23,7 +23,9 @@ func (warlock *Warlock) registerCurseOfElements() {
 
 	if warlock.Talents.AmplifyCurse {
 		// Amplify Curse's second effect is a flat SPELLMOD_EFFECT1 of -20 naming this curse. Scaling the
-		// parse by it prices only the first effect attached, the resistance: -75 becomes -95.
+		// parse by it prices only the first effect attached, the resistance: -75 becomes -95. The mask is
+		// shared with Curse of Exhaustion, and the tooltip names only Exhaustion.
+		// TODO: Confirm in game whether Curse of the Elements is amplified.
 		ampElements := spellData.AmplifyCurse.ByID(18288).EffectN(2)
 
 		// The same row, built the way the shared debuff is, with Amplify Curse's -20 parsed onto it.

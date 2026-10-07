@@ -5,8 +5,8 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-// A_PERIODIC_LEECH, like Drain Life: 10 ticks of 41, +0.05 spell power per tick, healing the caster for
-// what each tick deals. The row does not mark Periodic Can Crit, so the ticks do not crit.
+// A periodic leech like Drain Life's: each tick heals the caster for what it deals. The row does not mark
+// Periodic Can Crit, so the ticks do not crit.
 func (warlock *Warlock) registerSiphonLifeSpell() {
 	rankedSpell := spellData.SiphonLife.ByID(18881)
 	siphonLifeTick := rankedSpell.PeriodicEffect()

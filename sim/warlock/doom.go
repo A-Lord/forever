@@ -6,7 +6,8 @@ import (
 )
 
 // One tick at the end of its minute: the row's period is its duration.
-// TODO: Bane of Doom Effect (18662) summons a Doomguard (11859) for 15s;
+// TODO: Bane of Doom Effect (18662) summons a Doomguard (11859) for 15s, which needs the target to die while
+// Doom is on it.
 func (warlock *Warlock) registerBaneOfDoom() {
 	rankedSpell := spellData.BaneOfDoom.ByID(603)
 	doomTick := rankedSpell.PeriodicEffect()

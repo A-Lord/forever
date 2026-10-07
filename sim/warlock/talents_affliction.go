@@ -109,7 +109,9 @@ func (warlock *Warlock) registerAmplifyCurse() {
 
 	// Both effects name the curses they amplify, which are the ones that spend it.
 	// Effect 1 is Bane of Agony and Curse of Weakness
-	// Effect 2 is Curse of the Elements.
+	// Effect 2's mask is shared by Curse of Exhaustion (18223) and Curse of the Elements; the tooltip names
+	// only Exhaustion.
+	// TODO: Confirm in game whether Curse of the Elements is amplified.
 	amplifiedCurses, amplifiedElements := rankedSpell.EffectN(1).ClassFlags, rankedSpell.EffectN(2).ClassFlags
 
 	// TODO: Confirm that the amp is consumed on cast, regardless of hit.
@@ -127,9 +129,11 @@ func (warlock *Warlock) registerAmplifyCurse() {
 	}
 	warlock.AmplifyCurse = warlock.RegisterSpell(config)
 
+	// Never cast on its own: the APL decides which curse takes the amp.
 	warlock.AddMajorCooldown(core.MajorCooldown{
-		Spell: warlock.AmplifyCurse,
-		Type:  core.CooldownTypeDPS,
+		Spell:          warlock.AmplifyCurse,
+		Type:           core.CooldownTypeDPS,
+		ShouldActivate: func(*core.Simulation, *core.Character) bool { return false },
 	})
 }
 

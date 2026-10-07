@@ -27,5 +27,14 @@ func (warlock *Warlock) registerIncinerate() {
 		})
 	}
 
+	// Calculate expected damage from the row's average hit, raised if any Immolate burns on the target
+	config.ExpectedInitialDamage = func(sim *core.Simulation, target *core.Unit, spell *core.Spell, _ bool) *core.SpellResult {
+		result := spell.CalcDamage(sim, target, incinerateHit.Average(), spell.OutcomeExpectedMagicHitAndCrit)
+		if target.HasActiveAuraWithTag(immolateTag) {
+			scaleResult(sim, spell, result, immolateMult)
+		}
+		return result
+	}
+
 	warlock.Incinerate = warlock.RegisterSpell(config)
 }
