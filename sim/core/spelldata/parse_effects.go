@@ -37,6 +37,8 @@ type parseOptions struct {
 	schoolResistances bool
 
 	casterSlot *casterSlot
+
+	showAsSchoolHit core.SpellSchool
 }
 
 // Only these effects, counted from 1 by position the way EffectN counts.
@@ -182,6 +184,16 @@ func FromCaster(caster *core.Unit, index, total int) ParseOpt {
 	}
 }
 
+// The character sheet shows the row's SPELLMOD_RESIST_MISS_CHANCE hit in these schools' hit, from the
+// talents stage on. The row names its spells by class flags, which carry no school, so the caller states
+// the schools its tooltip names, for a talent that reaches the class's main spells of them: Arcane Focus
+// takes core.SpellSchoolArcane. The spells the mod reaches stay the ones the class flags name.
+func ShowAsSchoolHit(schools core.SpellSchool) ParseOpt {
+	return func(o *parseOptions) {
+		o.showAsSchoolHit = schools
+	}
+}
+
 // One attachment the parse made, or one part of an attachment that has parts, for a log or a test: the
 // effect it came from, the sim kind it became and the value it carries in the sim's own units. A time
 // value is stated in milliseconds, and a multiplier as the factor itself.
@@ -266,16 +278,17 @@ func parse(unit *core.Unit, character *core.Character, aura *core.Aura, s *Spell
 
 	stacking := s.MaxStack > 0 && !o.ignoreStacks
 	p := &parser{
-		unit:        unit,
-		character:   character,
-		spell:       s,
-		static:      aura == nil && !dry,
-		conditional: o.cond != nil,
-		stacking:    stacking || o.count != 0,
-		dry:         dry,
-		aura:        aura,
-		hand:        o.hand,
-		casterSlot:  o.casterSlot,
+		unit:            unit,
+		character:       character,
+		spell:           s,
+		static:          aura == nil && !dry,
+		conditional:     o.cond != nil,
+		stacking:        stacking || o.count != 0,
+		dry:             dry,
+		aura:            aura,
+		hand:            o.hand,
+		casterSlot:      o.casterSlot,
+		showAsSchoolHit: o.showAsSchoolHit,
 	}
 	if o.casterSlot != nil {
 		o.casterSlot.target = unit
@@ -344,6 +357,9 @@ func parse(unit *core.Unit, character *core.Character, aura *core.Aura, s *Spell
 			parsed.Applied = append(parsed.Applied, Applied{Effect: e, Kind: part.kind, Value: part.value})
 		}
 		parsed.attachments = append(parsed.attachments, a)
+	}
+	if o.showAsSchoolHit != 0 && !p.showAsSchoolHitStamped {
+		panic(fmt.Sprintf("spelldata: spell %d attaches no SPELLMOD_RESIST_MISS_CHANCE hit for ShowAsSchoolHit to show", s.ID))
 	}
 
 	parsed.aura = aura

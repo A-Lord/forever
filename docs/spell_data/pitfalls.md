@@ -22,6 +22,13 @@ Specialization, the `BlockValueMultiplier` line in `sim/paladin/talents_protecti
 (Passive) 3025, which states the same Agility share. Last Stand 12976 is the opposite case: it stays
 hand-read, because its 30 is a percentage and the parse reads `A_MOD_MAX_HEALTH` as flat health.
 
+**A parsed school hit talent shows on the sheet only when asked.** Arcane Focus, Elemental Precision,
+Shadow Focus, Holy Precision and Divine Precision state their hit on class flags, so a plain
+`ParseStatic` raises the hit of their spells and leaves the character sheet's school hit rows where
+they were. Pass `spelldata.ShowAsSchoolHit` with the schools the tooltip names. Writing the hit into
+`PseudoStats.SchoolBonusHitChance` instead drops the row's spell list, and Divine Precision would lose
+Holy Strike's melee roll. See [Talents and auras](talents-and-auras.md).
+
 **A rank can carry nothing in a role.** Lay on Hands rank 1 restores no mana, while ranks 2-4 do, so
 `EnergizeEffect()` answers `NilEffect` for rank 1, and every accessor reads that as zero.
 
@@ -48,10 +55,12 @@ the row carries, whatever index the game files gave it. On 46 rows the stated in
 the effect sits at. Reading a store row with the game files' number in hand is off by one wherever the
 two agree, and wrong in a different way where they do not.
 
-**`Average` floors the whole amount, in float32.** In game an amount resolves to a whole number,
-so an effect whose `EffectBasePointsF` is fractional (about one in 55) keeps its fraction under the
-per-level gain and is floored once at the end. Reading `BaseValue()` and doing the arithmetic in
-float64 gives a different answer on those rows.
+**`Average` keeps a damage or heal amount's fraction and floors every other, in float32.** In game
+the amount a hit or heal deals rounds up with a chance equal to its fraction, so it averages the exact
+value; a stat, a resource gain, an absorb or a threat is the whole number the tooltip shows. An effect
+whose `EffectBasePointsF` is fractional (about one in 55) keeps its fraction under the per-level gain
+either way, and `Min`/`Max` stay whole. Reading `BaseValue()` and doing the arithmetic in float64
+gives a different answer on those rows.
 
 **A row with more than one effect has to name the one it means.** `Ladder.ValueAt` panics rather than
 read the first of several, and `Effect(aura, misc)` panics when two effects match. Both follow the same

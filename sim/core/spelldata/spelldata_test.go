@@ -124,17 +124,24 @@ func TestEffectAverage(t *testing.T) {
 	}
 }
 
-// A fractional base keeps its fraction until the whole amount is floored: -58.4697 is -59, and 19.7
-// gaining 0.5 over three levels is 21.2 floored to 21, not 19 + 1.5 floored to 20.
+// A damage amount keeps its fraction, in float32: 19.7 gaining 0.5 over three levels is 21.2, and its
+// tooltip ends are the floor, 21. Any other amount is floored whole: the aura's -58.4697 is -59.
 func TestEffectAverageKeepsTheFraction(t *testing.T) {
 	if got := Find(700).EffectN(1).AverageAt(60); got != -59 {
-		t.Errorf("Average(60) of a fractional negative base = %v, want -59", got)
+		t.Errorf("Average(60) of a fractional negative aura base = %v, want -59", got)
 	}
-	if got := Find(800).EffectN(1).AverageAt(60); got != 21 {
-		t.Errorf("Average(60) of a fractional base gaining 1.5 = %v, want 21", got)
+	damage := Find(800).EffectN(1)
+	if got, want := damage.AverageAt(60), float64(float32(21.2)); got != want {
+		t.Errorf("Average(60) of a fractional base gaining 1.5 = %v, want %v", got, want)
 	}
-	if got := Find(800).EffectN(1).AverageAt(4); got != 19 {
-		t.Errorf("Average(4) at the spell's own level = %v, want 19", got)
+	if got, want := damage.AverageAt(4), float64(float32(19.7)); got != want {
+		t.Errorf("Average(4) at the spell's own level = %v, want %v", got, want)
+	}
+	if got, want := damage.MeanAt(60), float64(float32(21.2)); got != want {
+		t.Errorf("Mean(60) of an effect that does not roll = %v, want %v", got, want)
+	}
+	if got, want := [2]float64{damage.MinAt(60), damage.MaxAt(60)}, [2]float64{21, 21}; got != want {
+		t.Errorf("Min(60) and Max(60) = %v, want %v", got, want)
 	}
 }
 
