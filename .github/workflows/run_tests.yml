@@ -1,8 +1,8 @@
 name: Run Tests
 on:
+    # Every pull request, whatever branch it targets, so a pull request into another
+    # pull request's branch gets tested and gets its preview too.
     pull_request:
-        branches:
-            - master
     # Reusable from other workflows (deploy, release). Their runs on master also
     # prime the Go/npm caches that pull request runs restore from.
     workflow_call:
@@ -93,42 +93,79 @@ jobs:
                   make dist/forever/.dirstamp
 
             # Each pull request from this repository gets its build hosted at
-            # https://pr-<number>.wowsims-forever.pages.dev/forever/ as a Cloudflare Pages
-            # preview; fork pull requests carry no secrets, so they get none. The whole `dist`
-            # folder is uploaded because the bundle is built for the `/forever/` base path,
-            # and `_redirects` sends the bare host there.
+            # https://<hash>.wowsims-forever.pages.dev/forever/ as a Cloudflare Pages preview; fork
+            # pull requests carry no secrets, so they get none. The hash is an HMAC of the number
+            # under DEPLOY_PREVIEW_SALT, so the link stays the same across pushes but neither shows
+            # nor can be guessed from the number; preview_cleanup.yml derives the same one. The whole `dist` folder is uploaded because
+            # the bundle is built for the `/forever/` base path, and `_redirects` sends the bare
+            # host there.
             - name: Deploy preview ☁️
               id: deploy
               if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
               env:
                   CLOUDFLARE_API_TOKEN: ${{ secrets.DEPLOY_PREVIEW_TOKEN }}
                   CLOUDFLARE_ACCOUNT_ID: ${{ secrets.DEPLOY_PREVIEW_ACCOUNT_ID }}
+                  DEPLOY_PREVIEW_SALT: ${{ secrets.DEPLOY_PREVIEW_SALT }}
+                  NUMBER: ${{ github.event.pull_request.number }}
               run: |
                   set -o pipefail
+                  : "${DEPLOY_PREVIEW_SALT:?is empty, so the preview link would be guessable}"
+                  branch="$(printf '%s' "$NUMBER" | openssl dgst -sha256 -hmac "$DEPLOY_PREVIEW_SALT" -r | cut -c1-16)"
                   echo "/ /forever/ 302" > dist/_redirects
                   npx --yes wrangler@4 pages deploy dist \
                     --project-name=wowsims-forever \
-                    --branch=pr-${{ github.event.pull_request.number }} \
+                    --branch="$branch" \
                     --commit-hash=${{ github.event.pull_request.head.sha }} \
                     --commit-dirty=true | tee "$RUNNER_TEMP/wrangler-deploy.log"
-                  # The per-deployment URL (a hash host, unlike the pr-<number> alias) is only in wrangler's output.
+                  echo "branch=$branch" >> "$GITHUB_OUTPUT"
+                  # The per-deployment URL (a hash host, unlike the branch alias) is only in wrangler's output.
                   echo "url=$(grep -o 'https://[a-z0-9]*\.wowsims-forever\.pages\.dev' "$RUNNER_TEMP/wrangler-deploy.log" | head -1)" >> "$GITHUB_OUTPUT"
 
             # One comment per pull request, found again by its marker and edited on every push, so
             # the link stays in one place instead of repeating. The body is the layout Cloudflare's
-            # own GitHub integration posts, with the workflow run as the log link.
+            # own GitHub integration posts, with the workflow run as the log link. The pull
+            # request's older deployments are deleted first, so only the latest commit's
+            # per-deployment URL stays live.
             - name: Comment preview link 🔗
               if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
               uses: actions/github-script@v8
               env:
+                  CLOUDFLARE_API_TOKEN: ${{ secrets.DEPLOY_PREVIEW_TOKEN }}
+                  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.DEPLOY_PREVIEW_ACCOUNT_ID }}
+                  BRANCH: ${{ steps.deploy.outputs.branch }}
                   DEPLOYMENT_URL: ${{ steps.deploy.outputs.url }}
               with:
                   script: |
                       const marker = '<!-- preview-link -->';
                       const number = context.payload.pull_request.number;
                       const sha = context.payload.pull_request.head.sha;
-                      const branchUrl = `https://pr-${number}.wowsims-forever.pages.dev`;
+                      const branchUrl = `https://${process.env.BRANCH}.wowsims-forever.pages.dev`;
                       const deploymentUrl = process.env.DEPLOYMENT_URL || branchUrl;
+
+                      if (process.env.DEPLOYMENT_URL) {
+                          const base = `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/pages/projects/wowsims-forever/deployments`;
+                          const headers = { Authorization: `Bearer ${process.env.CLOUDFLARE_API_TOKEN}` };
+                          const call = async (url, method = 'GET') => {
+                              const response = await fetch(url, { method, headers });
+                              const json = await response.json();
+                              if (!json.success) throw new Error(`${method} ${url.replace(process.env.CLOUDFLARE_ACCOUNT_ID, '<account>')}: ${JSON.stringify(json.errors)}`);
+                              return json;
+                          };
+                          const ofThisPullRequest = branch => branch === process.env.BRANCH || branch === `pr-${number}` || branch?.startsWith(`pr-${number}-`);
+                          const ids = [];
+                          for (let page = 1; ; page++) {
+                              const { result, result_info } = await call(`${base}?env=preview&page=${page}`);
+                              ids.push(
+                                  ...result
+                                      .filter(deployment => ofThisPullRequest(deployment.deployment_trigger?.metadata?.branch) && deployment.url !== deploymentUrl)
+                                      .map(deployment => deployment.id),
+                              );
+                              if (!result.length || page >= (result_info?.total_pages ?? page)) break;
+                          }
+                          // A pr-<number> branch's newest deployment holds that guessable alias, which only `force` lets go of.
+                          for (const id of ids) await call(`${base}/${id}?force=true`, 'DELETE');
+                          core.info(`Deleted ${ids.length} older deployment(s) of pull request ${number}.`);
+                      }
                       const logsUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
                       const body = [
                           marker,

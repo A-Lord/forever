@@ -1,6 +1,8 @@
 package core
 
 import (
+	"strconv"
+
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/stats"
 )
@@ -113,13 +115,15 @@ const (
 	OutcomeCrit
 	OutcomeCrush
 
-	OutcomePartial1_4 // 1/4 of the spell was resisted.
-	OutcomePartial2_4 // 2/4 of the spell was resisted.
-	OutcomePartial3_4 // 3/4 of the spell was resisted.
+	// The tenths of the damage a partial resist took (1 to 10), as a 4-bit number.
+	OutcomePartial1
+	OutcomePartial2
+	OutcomePartial4
+	OutcomePartial8
 )
 
 const (
-	OutcomePartial = OutcomePartial1_4 | OutcomePartial2_4 | OutcomePartial3_4
+	OutcomePartial = OutcomePartial1 | OutcomePartial2 | OutcomePartial4 | OutcomePartial8
 	OutcomeLanded  = OutcomeHit | OutcomeCrit | OutcomeCrush | OutcomeGlance | OutcomeBlock
 )
 
@@ -147,16 +151,19 @@ func (ho HitOutcome) String() string {
 	}
 }
 
+func partialResistOutcome(tenths int) HitOutcome {
+	return HitOutcome(tenths) * OutcomePartial1
+}
+
+func (ho HitOutcome) ResistedTenths() int {
+	return int((ho & OutcomePartial) / OutcomePartial1)
+}
+
 func (ho HitOutcome) PartialResistString() string {
-	if ho.Matches(OutcomePartial1_4) {
-		return " (25% Resist)"
-	} else if ho.Matches(OutcomePartial2_4) {
-		return " (50% Resist)"
-	} else if ho.Matches(OutcomePartial3_4) {
-		return " (75% Resist)"
-	} else {
-		return ""
+	if tenths := ho.ResistedTenths(); tenths > 0 {
+		return " (" + strconv.Itoa(tenths*10) + "% Resist)"
 	}
+	return ""
 }
 
 // Other flags
@@ -203,7 +210,7 @@ const (
 	SpellFlagSupressDoTApply                                // If present this spell will not apply dots (Used for DTR dot supression)
 	SpellFlagSwapped                                        // Indicates that this spell is not useable because it is from a currently swapped item
 	SpellFlagCastWhileIncapacitated                         // Allows the cast while the unit is incapacitated, e.g. Berserker Rage breaking a Fear.
-	SpellFlagPureDot                                        // A DoT with no direct damage component: its partial resists count a tenth of the target's resistance.
+	SpellFlagFullResistanceTicks                            // Its ticks meet the target's full resistance, as direct hits and channel ticks do, where other ticks meet a tenth, and roll partial resists even on a binary spell (Insect Swarm).
 	SpellFlagPushback                                       // Damage taken while hardcasting pushes the cast back: SpellInterrupts.InterruptFlags 0x2.
 	SpellFlagNoPartialResist                                // The spell's hits never lose damage to a partial resist, e.g. a wand's shots.
 

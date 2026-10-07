@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"maps"
 	"os"
 	"regexp"
 	"slices"
@@ -50,6 +51,7 @@ func ScanRawItemData(rows *sql.Rows) (dbc.Item, error) {
 		&raw.Flags0,
 		&raw.Flags1,
 		&raw.Flags2,
+		&raw.Flags4,
 		&raw.FDID,
 		&raw.ItemSetName,
 		&raw.ItemSetId,
@@ -125,6 +127,7 @@ func LoadAndWriteRawItems(dbHelper *DBHelper, filter string, inputsDir string) (
 			s.Flags_0 as Flags_0,
 			s.Flags_1 as Flags_1,
 			s.Flags_2 as Flags_2,
+			s.Flags_4 as Flags_4,
 			i.IconFileDataId as FDID,
 			COALESCE(itemset.Name_lang, '') as ItemSetName,
 			COALESCE(itemset.ID, 0) as ItemSetID,
@@ -1351,23 +1354,52 @@ ORDER BY tn.TraitTreeID, sla.ClassMask
 	return live, nil
 }
 
-// repairTraitCoord undoes the 10x transcription typos the game files carry
-// on a handful of nodes (a PosY of 39300 where every other node in the tree
-// sits between 2130 and 5730). A coordinate is only rewritten when it is off
-// the tree's lattice while a tenth of it lands back on it.
-// repairTraitCoord rescues a node parked 10x off canvas, which the beta data does by
-// authoring accident: 1091/104982 PosX 102800, 1091/105003 PosY 39300, 1114/105865
-// PosY 21300. It only fires when the value is off the tree's lattice AND a tenth of it
-// lands back on it, so it cannot move a node that was placed deliberately.
-//
-// TODO: two of those three (104982 Lightning Reflexes, 105865 Holy Specialization) turned
-// out to be retired duplicates whose live twins were re-added at new positions, and are
-// dropped by the dedupe downstream. 1091/105003 "Improved Serpent Sting" has NO twin, so
-// it is either a live talent with a typo -- the reading taken here -- or a retired one
-// being revived. The database cannot distinguish the two. If it should be dropped
-// instead, discard candidates whose residual exceeds 300 and delete this function; note
-// that renumbers every hunter proto field after it.
-func repairTraitCoord(value int, others []int) (int, bool) {
+// parkedTraitNodes names the nodes the game files park off their tree's canvas. A retired talent
+// stays in its tree with one coordinate ten times a lattice one - Lightning Reflexes 1091/104982 at
+// PosX 102800, Improved Serpent Sting 1091/105003 at PosY 39300, Holy Specialization 1114/105865 at
+// PosY 21300 - while the talent that replaced it, if any, sits on the lattice. A node is parked when a
+// coordinate is off the lattice and a tenth of it lands back on it, so a node placed by hand is never
+// one.
+func parkedTraitNodes(db *sql.DB) (map[int]bool, error) {
+	nodes, err := LoadRows(db, `SELECT TraitTreeID, ID, PosX, PosY FROM TraitNode`,
+		func(rows *sql.Rows) (traitNodeRow, error) {
+			var n traitNodeRow
+			err := rows.Scan(&n.TreeID, &n.NodeID, &n.PosX, &n.PosY)
+			return n, err
+		})
+	if err != nil {
+		return nil, fmt.Errorf("error loading trait node positions: %w", err)
+	}
+
+	xs, ys := map[int][]int{}, map[int][]int{}
+	for _, n := range nodes {
+		xs[n.TreeID] = append(xs[n.TreeID], n.PosX)
+		ys[n.TreeID] = append(ys[n.TreeID], n.PosY)
+	}
+
+	parked := map[int]bool{}
+	for _, n := range nodes {
+		if parkedTraitCoord(n.PosX, xs[n.TreeID]) || parkedTraitCoord(n.PosY, ys[n.TreeID]) {
+			parked[n.NodeID] = true
+		}
+	}
+	return parked, nil
+}
+
+// A condition on TraitNode tn that leaves the parked nodes out.
+func unparkedTraitNodes(db *sql.DB) (string, error) {
+	parked, err := parkedTraitNodes(db)
+	if err != nil || len(parked) == 0 {
+		return "1 = 1", err
+	}
+	ids := []string{}
+	for _, id := range slices.Sorted(maps.Keys(parked)) {
+		ids = append(ids, strconv.Itoa(id))
+	}
+	return "tn.ID NOT IN (" + strings.Join(ids, ", ") + ")", nil
+}
+
+func parkedTraitCoord(value int, others []int) bool {
 	nearLattice := func(v int) bool {
 		for _, o := range others {
 			if o != v && o-v <= traitGridPitch && v-o <= traitGridPitch {
@@ -1376,16 +1408,10 @@ func repairTraitCoord(value int, others []int) (int, bool) {
 		}
 		return false
 	}
-	if nearLattice(value) {
-		return value, false
-	}
-	if value%10 == 0 && nearLattice(value/10) {
-		return value / 10, true
-	}
-	return value, false
+	return !nearLattice(value) && value%10 == 0 && nearLattice(value/10)
 }
 
-// traitGridIndex maps a repaired pixel coordinate onto the lattice index.
+// traitGridIndex maps a pixel coordinate onto the lattice index.
 func traitGridIndex(value, origin int) int {
 	return (value - origin + traitGridPitch/2) / traitGridPitch
 }
@@ -1401,6 +1427,10 @@ func abs(value int) int {
 // them as RawTalent rows, so the proto/json generators keep working unchanged.
 func LoadTraitTalents(dbHelper *DBHelper) ([]RawTalent, error) {
 	live, err := selectTraitTrees(dbHelper)
+	if err != nil {
+		return nil, err
+	}
+	parked, err := parkedTraitNodes(dbHelper.db)
 	if err != nil {
 		return nil, err
 	}
@@ -1501,6 +1531,10 @@ ORDER BY x.TraitNodeID, sl.DisplayName_lang
 		if _, ok := treeClass[n.TreeID]; !ok {
 			continue
 		}
+		if parked[n.NodeID] {
+			fmt.Fprintf(os.Stderr, "[traits] tree %d node %d (%s at %d/%d): skipped, parked off the canvas\n", n.TreeID, n.NodeID, n.Name, n.PosX, n.PosY)
+			continue
+		}
 		if prev, ok := byNode[n.NodeID]; ok {
 			choiceDiscards++
 			if prev.XrefIndex < n.XrefIndex || (prev.XrefIndex == n.XrefIndex && prev.XrefID <= n.XrefID) {
@@ -1568,28 +1602,12 @@ ORDER BY x.TraitNodeID, sl.DisplayName_lang
 	for _, treeID := range treeIDs {
 		classMask := treeClass[treeID]
 		treeNodes := []traitNodeRow{}
-		xs := []int{}
-		ys := []int{}
 		for _, nodeID := range nodeOrder[treeID] {
 			treeNodes = append(treeNodes, byNode[nodeID])
 		}
 		if len(treeNodes) == 0 {
 			fmt.Fprintf(os.Stderr, "[traits] tree %d: no nodes\n", treeID)
 			continue
-		}
-		for i := range treeNodes {
-			xs = append(xs, treeNodes[i].PosX)
-			ys = append(ys, treeNodes[i].PosY)
-		}
-		for i := range treeNodes {
-			if x, fixed := repairTraitCoord(treeNodes[i].PosX, xs); fixed {
-				fmt.Fprintf(os.Stderr, "[traits] tree %d node %d: repaired PosX %d -> %d\n", treeID, treeNodes[i].NodeID, treeNodes[i].PosX, x)
-				treeNodes[i].PosX = x
-			}
-			if y, fixed := repairTraitCoord(treeNodes[i].PosY, ys); fixed {
-				fmt.Fprintf(os.Stderr, "[traits] tree %d node %d: repaired PosY %d -> %d\n", treeID, treeNodes[i].NodeID, treeNodes[i].PosY, y)
-				treeNodes[i].PosY = y
-			}
 		}
 
 		// Split the tree into the spec blocks that sit next to each other.
@@ -1646,9 +1664,8 @@ ORDER BY x.TraitNodeID, sl.DisplayName_lang
 			candidates = append(candidates, candidate)
 		}
 
-		// A tree can hold a talent twice, the retired copy parked far off the
-		// canvas, and two nodes can land on the same cell when one of them is
-		// authored off the lattice. The first breaks protoc, which rejects the
+		// A tree can hold a talent twice, and two nodes can land on the same
+		// cell when one of them is authored off the lattice. The first breaks protoc, which rejects the
 		// repeated field name, the second breaks the picker, which rejects
 		// duplicate locations, so the node sitting closest to its cell wins and
 		// the other one is dropped.

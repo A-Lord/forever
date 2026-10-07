@@ -257,9 +257,9 @@ func (spell *Spell) SpellDamage(target *Unit) float64 {
 
 func (spell *Spell) SpellHitChance(target *Unit) float64 {
 	hitPercent := spell.Unit.stats[stats.SpellHitPercent] + spell.BonusHitPercent
-	// All talents that modify spell school specific hit name their spells by class mask, so this
-	// hit only reaches spells that carry one, either the sim's tag or the game files' class flags.
-	// A spell of several schools takes the hit of each, such as Frostfire Bolt's Fire and Frost.
+	// The bonus stats' school hit stands in for a school hit talent, which names its spells by class
+	// flags, so it only reaches spells that carry a ClassSpellMask or class flags. A spell of several
+	// schools takes the hit of each, such as Frostfire Bolt's Fire and Frost.
 	if spell.ClassSpellMask != 0 || !spell.ClassFlags.IsZero() {
 		for _, school := range singleSchools {
 			if spell.SpellSchool.Matches(school) {
@@ -275,8 +275,7 @@ func (spell *Spell) SpellChanceToMiss(attackTable *AttackTable) float64 {
 
 // The spell miss chance with the given level-based miss in place of the attack table's, e.g. a wand hand's.
 func (spell *Spell) spellChanceToMiss(attackTable *AttackTable, baseMissChance float64) float64 {
-	// https://royalgiraffe.github.io/resist-guide (Binary spells)
-	// hitChance = baseLevelHit * (1 - 0.75*resistCoeff) + spellHitBonus, with no miss floor:
+	// hitChance = baseLevelHit * (1 - averageResist) + spellHitBonus, with no miss floor:
 	// Forever has no 1% minimum miss.
 	// The level-based hit is reduced by the resistance roll first, then the spell hit
 	// bonus is added afterwards, which is why spell hit above the level-based miss

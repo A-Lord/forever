@@ -199,6 +199,16 @@ func (f ItemStaticFlags3) Has(flag ItemStaticFlags3) bool {
 	return f&flag != 0
 }
 
+type ItemStaticFlags4 uint32
+
+const (
+	REDUCED_CASTER_DPS ItemStaticFlags4 = 0x00000100
+)
+
+func (f ItemStaticFlags4) Has(flag ItemStaticFlags4) bool {
+	return f&flag != 0
+}
+
 type InventoryTypeFlag uint32
 
 const (

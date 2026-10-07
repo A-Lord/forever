@@ -65,7 +65,18 @@ const OUTCOME_BY_TOKEN: Record<string, Outcome> = {
 	Hit: 'hit',
 };
 
-const RESIST_BY_TOKEN: Record<string, PartialResist> = { '25': 25, '50': 50, '75': 75 };
+const RESIST_BY_TOKEN: Record<string, PartialResist> = {
+	'10': 10,
+	'20': 20,
+	'30': 30,
+	'40': 40,
+	'50': 50,
+	'60': 60,
+	'70': 70,
+	'80': 80,
+	'90': 90,
+	'100': 100,
+};
 
 // Go's time.Duration.String() can emit nanosecond-precision strings like "29.999999999s" or
 // "33.217000001s". Round these to something readable without disturbing clean values.
