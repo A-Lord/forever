@@ -342,7 +342,6 @@ func (stats Stats) Invert() Stats {
 }
 
 // Rounds all stat values down to the nearest integer, returning the new Stats.
-// Used for random suffix stats currently.
 func (stats Stats) Floor() Stats {
 	for k, v := range stats {
 		stats[k] = math.Floor(v)

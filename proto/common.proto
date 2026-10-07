@@ -621,6 +621,7 @@ message ItemRandomSuffix {
 	int32 id = 1;
 	string name = 2;
 	repeated double stats = 3;
+	repeated double pseudo_stats = 4; // Indexed by PseudoStat; flat, not scaled by the item's random property points.
 }
 
 message ItemSpec {

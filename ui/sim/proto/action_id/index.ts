@@ -198,7 +198,7 @@ export class ActionId {
 	static makeItemUrl(id: number, randomSuffixId?: number): string {
 		const url = new URL(wowheadEntityUrl('item', id));
 		url.searchParams.set('level', String(CHARACTER_LEVEL));
-		url.searchParams.set('rand', String(randomSuffixId || 0));
+		if (randomSuffixId) url.searchParams.set('bonus', String(randomSuffixId));
 		return url.toString();
 	}
 	static makeSpellUrl(id: number, rank = 0, definitionId = 0): string {
