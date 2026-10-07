@@ -199,7 +199,7 @@ func (warlock *Warlock) registerPet(summon proto.WarlockOptions_Summon, name str
 	return pet
 }
 
-// The demons registered, which is none when the warlock sacrifices its demon.
+// The four demons, each registered whichever is out.
 func (warlock *Warlock) demons() []*WarlockPet {
 	demons := []*WarlockPet{}
 	for _, pet := range []*WarlockPet{warlock.Imp, warlock.Voidwalker, warlock.Succubus, warlock.Felhunter} {
@@ -247,6 +247,7 @@ func (pet *WarlockPet) OnEncounterStart(_ *core.Simulation) {
 func (pet *WarlockPet) ExecuteCustomRotation(sim *core.Simulation) {
 	// A demon with nothing to cast only swings, which its auto attacks do on their own.
 	if len(pet.AutoCastAbilities) == 0 {
+		pet.WaitUntil(sim, core.NeverExpires)
 		return
 	}
 
@@ -316,18 +317,19 @@ func (pet *WarlockPet) registerLashOfPain() {
 // --- Demonic Brand ---
 
 // Each of the demon's hits on a target the warlock branded consumes a charge and deals the brand's damage:
-// Fire from the Imp (1293698), Shadow from the others (1293697). The rows state no amount; 1293695's
-// description variables do: ((level - 26) * 1.5 + 14 to 17 + 0.078 * the warlock's better of Shadow and
-// Fire spell power), times Master Demonologist's and Unholy Power's bonuses, which the demon's own damage
-// multipliers already apply.
+// Fire from the Imp (1293698), Shadow from the others (1293697). The rows state no amount; their
+// description variables do: ((level - 26) * 1.5 + 14 to 17 + 0.078 * the warlock's spell power of the
+// row's school), times the demon's damage multipliers. The demon's own multipliers apply them: Master
+// Demonologist, Unholy Power, Soul Link and the demon's base damage modifier.
 // TODO: Imp as Fire and the others as Shadow, every hit as an attack, and the hit and crit roll are assumed;
-// the 1 Physical damage row (1293699), a threat marker, is left out.
+// the 1 Physical damage row (1293699), a threat marker, is left out. The base damage modifier and Soul Link
+// may not reach the brand in game, since the rows' multiplier names only the pet's and the school's.
 func (pet *WarlockPet) registerDemonicBrand() {
 	warlock := pet.owner
 
-	brandRow := spelldata.MustFind(1293697)
+	brandRow, schoolDamage := spelldata.MustFind(1293697), stats.ShadowDamage
 	if pet.summon == proto.WarlockOptions_Imp {
-		brandRow = spelldata.MustFind(1293698)
+		brandRow, schoolDamage = spelldata.MustFind(1293698), stats.FireDamage
 	}
 	brandHit := pet.RegisterSpell(spelldata.SpellConfig(&pet.Unit, brandRow, spelldata.Magic(core.ProcMaskSpellDamage), spelldata.Proc()))
 
@@ -346,7 +348,7 @@ func (pet *WarlockPet) registerDemonicBrand() {
 				brand.Deactivate(sim)
 			}
 
-			spellPower := warlock.GetStat(stats.SpellDamage) + max(warlock.GetStat(stats.ShadowDamage), warlock.GetStat(stats.FireDamage))
+			spellPower := warlock.GetStat(stats.SpellDamage) + warlock.GetStat(schoolDamage)
 			base := float64(warlock.Level-int32(brandRow.BaseLevel))*1.5 + 0.078*spellPower
 			brandHit.CalcAndDealDamage(sim, result.Target, sim.Roll(base+14, base+17), brandHit.OutcomeMagicHitAndCrit)
 		},
