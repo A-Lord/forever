@@ -82,6 +82,12 @@ func SpellConfig(unit *core.Unit, s *Spell, opts ...SpellOpt) core.SpellConfig {
 		CastRequirement: s.CastRequirement(),
 	}
 	applyCost(&config, s)
+	if threat := s.firstOfType(dbcenums.E_THREAT, dbcenums.E_THREAT_ALL); threat != NilEffect {
+		config.FlatThreatBonus = threat.Average()
+		config.ThreatAPCoefficient = threat.APCoeff()
+	} else {
+		config.FlatThreatBonus = float64(s.FlatThreat)
+	}
 	if s.IsBleed() {
 		config.DamageMultiplier = 1
 		config.ThreatMultiplier = 1
@@ -118,7 +124,7 @@ func Magic(mask core.ProcMask) SpellOpt {
 }
 
 // A spell another spell or an aura casts: it is out of the rotation Melee and Magic put it in, it
-// does not feed on-cast effects, and it has no cast, cost, cooldown or cast requirement of its own even when it shares
+// does not feed on-cast effects, and it has no cast, cost, cooldown, cast requirement or flat threat of its own even when it shares
 // the row of the ability that casts it, the way the warrior's Blood Craze heal and Whirlwind's
 // off-hand strike are registered. Its damage and healing are still measured, its casts are not: the
 // metrics aggregator counts no cast for a passive spell, so a sub-spell whose casts the sim reports -
@@ -133,6 +139,8 @@ func Proc() SpellOpt {
 		config.RageCost = core.RageCostOptions{}
 		config.EnergyCost = core.EnergyCostOptions{}
 		config.FocusCost = core.FocusCostOptions{}
+		config.FlatThreatBonus = 0
+		config.ThreatAPCoefficient = 0
 	}
 }
 
