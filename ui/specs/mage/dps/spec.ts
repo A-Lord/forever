@@ -3,6 +3,7 @@ import { APLRotation, APLRotation_Type } from '@generated/proto/apl';
 import { Cooldowns, ItemSlot, PseudoStat, Spec, Stat } from '@generated/proto/common';
 import { PlayerClasses } from '@sim/player/classes';
 import { Player } from '@sim/player/player';
+import { WeaponSkillGroup } from '@sim/player/weapon_skill_groups';
 import { SpecRotation } from '@sim/proto/spec_types';
 import { Stats, UnitStat } from '@sim/proto/stats';
 import { defineSpec } from '@sim/spec_config';
@@ -65,6 +66,7 @@ export default defineSpec<Spec.SpecMage>({
 			PseudoStat.PseudoStatSpellHastePercent,
 		],
 	),
+	displayWeaponSkillGroups: [WeaponSkillGroup.Wands],
 
 	modifyDisplayStats: (player: Player<Spec.SpecMage>) => {
 		return {

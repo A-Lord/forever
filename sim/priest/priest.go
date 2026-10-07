@@ -1,6 +1,7 @@
 package priest
 
 import (
+	"github.com/wowsims/forever/sim/common/shared"
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
@@ -58,6 +59,7 @@ func (priest *Priest) Initialize() {
 		priest.registerSmiteSpell(rank)
 	})
 	priest.registerShadowfiendSpell()
+	shared.RegisterShoot(&priest.Character)
 
 	if priest.Race == proto.Race_RaceNightElf {
 		starshardsCDTimer := priest.NewTimer()

@@ -37,6 +37,7 @@ type Item struct {
 	ClassMask             int
 	RaceMask              int
 	QualityModifier       float64
+	DamageType            int // ItemSparse.DamageType, the weapon's school in the game files' order.
 	RandomSuffixOptions   []int32
 	BonusAmountCalculated []float64
 	NameDescription       string // Contains information for i.E. Thunderforging. Normal = Thunderforged, HC = Heroic Thunderforged
@@ -72,6 +73,10 @@ func (item *Item) ToScaledUIItem(itemLevel int) *proto.UIItem {
 	}
 
 	item.ParseItemFlags(uiItem)
+
+	if item.ItemClass == ITEM_CLASS_WEAPON {
+		uiItem.SpellSchool = item.GetSpellSchool()
+	}
 
 	if item.ItemClass == ITEM_CLASS_ARMOR {
 		uiItem.ArmorType = MapArmorSubclassToArmorType[item.ItemSubClass]
@@ -404,4 +409,22 @@ func (item *Item) GetRandomSuffixType() int {
 	default:
 		return -1
 	}
+}
+
+// ItemSparse.DamageType counts the schools in the game files' order, which the proto enum does not share.
+var damageTypeSchools = [...]proto.SpellSchool{
+	proto.SpellSchool_SpellSchoolPhysical,
+	proto.SpellSchool_SpellSchoolHoly,
+	proto.SpellSchool_SpellSchoolFire,
+	proto.SpellSchool_SpellSchoolNature,
+	proto.SpellSchool_SpellSchoolFrost,
+	proto.SpellSchool_SpellSchoolShadow,
+	proto.SpellSchool_SpellSchoolArcane,
+}
+
+func (item *Item) GetSpellSchool() proto.SpellSchool {
+	if item.DamageType < 0 || item.DamageType >= len(damageTypeSchools) {
+		return proto.SpellSchool_SpellSchoolPhysical
+	}
+	return damageTypeSchools[item.DamageType]
 }

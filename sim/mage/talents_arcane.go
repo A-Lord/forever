@@ -2,6 +2,7 @@ package mage
 
 import (
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
@@ -40,13 +41,20 @@ func (mage *Mage) registerArcaneTalents() {
 	mage.registerArcanePowerTalent()
 }
 
-// registerWandSpecialization: "Increases your damage with Wands by 25%." The sim has no wand
-// attack for it to raise. ParseStatic would read the A_MOD_DAMAGE_PERCENT_DONE without its wand
-// requirement and raise every spell, so the row is not parsed.
+// Wand damage, +13% / +25%: the wand's shots are the mage's only ranged autos. The row's school mask
+// (126) leaves out physical wands.
 func (mage *Mage) registerWandSpecialization() {
 	if mage.Talents.WandSpecialization == 0 {
 		return
 	}
+
+	const schools = 126
+	mage.AddStaticMod(core.SpellModConfig{
+		Kind:       core.SpellMod_DamageDone_Pct,
+		ProcMask:   core.ProcMaskRangedAuto,
+		School:     core.SpellSchool(schools),
+		FloatValue: spellData.WandSpecialization.Effect(dbcenums.A_MOD_DAMAGE_PERCENT_DONE, schools).FractionAt(mage.Talents.WandSpecialization),
+	})
 }
 
 // registerArcaneFocus: "Improves your chance to hit with Arcane spells by 5%."

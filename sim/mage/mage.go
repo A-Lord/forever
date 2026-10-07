@@ -3,6 +3,7 @@ package mage
 import (
 	"time"
 
+	"github.com/wowsims/forever/sim/common/shared"
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
@@ -91,6 +92,7 @@ func (mage *Mage) registerSpells() {
 	mage.registerManaGems()
 	mage.registerScorchSpell()
 	mage.registerDefensiveSpells()
+	shared.RegisterShoot(&mage.Character)
 }
 
 // A damage effect's amount per target, for the AoE damage calls; core spreads a spell-school hit
