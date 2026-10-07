@@ -193,7 +193,7 @@ func (shaman *Shaman) RegisterFrostbrandImbue() {
 	config.ClassSpellMask = SpellMaskFrostbrandWeapon
 	damage := frostbrandWeaponAttack.DamageEffect()
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		spell.CalcAndDealDamage(sim, target, damage.Roll(sim), spell.OutcomeMagicHitAndCrit)
+		spell.CalcAndDealDamage(sim, target, damage.Average(), spell.OutcomeMagicHitAndCrit)
 	}
 	frostbrandSpell := shaman.RegisterSpell(config)
 

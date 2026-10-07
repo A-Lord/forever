@@ -90,7 +90,7 @@ func (shaman *Shaman) registerLightningShieldSpell() {
 	damage := lightningShieldOrb.DamageEffect()
 	orbConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		// The row cannot crit.
-		spell.CalcAndDealDamage(sim, target, damage.Roll(sim), spell.OutcomeMagicHit)
+		spell.CalcAndDealDamage(sim, target, damage.Average(), spell.OutcomeMagicHit)
 	}
 	orb := shaman.RegisterSpell(orbConfig)
 
