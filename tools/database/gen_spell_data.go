@@ -473,8 +473,8 @@ var descriptionSpellRef = regexp.MustCompile(`\$(?:/\d+;)?(\d{4,7})[a-z]`)
 
 // The spells a rank triggers or reads its tooltip from: an EffectTriggerSpell edge (Intercept's
 // stun 20615, Intimidating Shout's fear 20511), a $<id> token (Enrage's buff 12880, Flurry's
-// 12966, Last Stand's 12976) or an overrides.HandTriggers entry. In id order, without the rank itself and
-// without ids the game files have no spell for.
+// 12966, Last Stand's 12976) or an overrides.HandTriggers entry, which drops the $<id> it replaces. In id
+// order, without the rank itself and without ids the game files have no spell for.
 func triggeredSpells(db *sql.DB, spellID int32) ([]int32, error) {
 	seen := map[int32]bool{}
 	for _, id := range handTriggered(spellID) {
@@ -501,6 +501,9 @@ func triggeredSpells(db *sql.DB, spellID int32) ([]int32, error) {
 	for _, m := range descriptionSpellRef.FindAllStringSubmatch(desc, -1) {
 		id, _ := strconv.Atoi(m[1])
 		seen[int32(id)] = true
+	}
+	for _, id := range handReplaced(spellID) {
+		delete(seen, id)
 	}
 	delete(seen, spellID)
 

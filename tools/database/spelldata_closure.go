@@ -256,6 +256,17 @@ func handTriggered(id int32) []int32 {
 	return ids
 }
 
+// The ids this one's tooltip names where its handler casts another spell.
+func handReplaced(id int32) []int32 {
+	var ids []int32
+	for _, link := range overrides.HandTriggers {
+		if link.Spell == id && link.Replaces != 0 {
+			ids = append(ids, link.Replaces)
+		}
+	}
+	return ids
+}
+
 func parseSpellID(s string) int32 {
 	id, err := strconv.Atoi(s)
 	if err != nil {
