@@ -1384,19 +1384,18 @@ func TestShiftingPowerTradesManaForEnergy(t *testing.T) {
 	}
 }
 
-// Shifting Power's 40 plus a GCD of regen fits under 100 from 45 energy. With Clearcasting up the
-// next cast is free, so the bar keeps filling through a second GCD and 45 is too high to shift.
-func TestShiftingPowerWaitsLongerWithClearcastingUp(t *testing.T) {
+// Shifting Power does not spend Clearcasting. With Clearcasting up the builder is free, so an empty bar
+// casts the builder and does not shift.
+func TestShiftingPowerWaitsWithClearcastingUp(t *testing.T) {
 	sim, cat := newCat(t, shiftingPowerTalents, nil)
 	fillResource(sim, cat)
 	emptyEnergy(sim, cat)
-	cat.AddEnergy(sim, 45, cat.NewEnergyMetrics(core.ActionID{SpellID: 1}))
-	if !cat.wantShift(sim, cat.CurrentTarget) {
-		t.Fatal("no shift at 45 energy without Clearcasting")
+	if !cat.wantShift(sim, cat.CurrentTarget, cat.builder()) {
+		t.Fatal("no shift on an empty bar without Clearcasting")
 	}
 	cat.ClearcastingAura.Activate(sim)
-	if cat.wantShift(sim, cat.CurrentTarget) {
-		t.Error("a shift at 45 energy with Clearcasting up, which caps the bar during the free cast")
+	if cat.wantShift(sim, cat.CurrentTarget, cat.builder()) {
+		t.Error("a shift with Clearcasting up, which makes the builder free")
 	}
 }
 
@@ -1723,7 +1722,7 @@ func TestRotationWithoutShiftingPowerDoesNotReportManaExhaustion(t *testing.T) {
 func TestFeralPreset(t *testing.T) {
 	for _, race := range []proto.Race{proto.Race_RaceNightElf, proto.Race_RaceTauren} {
 		t.Run(race.String(), func(t *testing.T) {
-			rotation := core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "default").Rotation
+			rotation := core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "claw-rip").Rotation
 			request := coverageRequest(false, rotation)
 			player := request.Raid.Parties[0].Players[0]
 			player.Race = race
@@ -1744,10 +1743,12 @@ func TestFeralPreset(t *testing.T) {
 					casts[action.Id.GetSpellId()] += target.Casts
 				}
 			}
-			if casts[9850]+casts[9830] == 0 || casts[9896] == 0 {
-				t.Errorf("minimal cat casts Claw %d, Shred %d, Rip %d times, want a builder and Rip", casts[9850], casts[9830], casts[9896])
+			for _, id := range []int32{9850, 9896} {
+				if casts[id] == 0 {
+					t.Errorf("minimal cat never casts spell %d", id)
+				}
 			}
-			t.Logf("Claw casts=%d, Shred casts=%d, Rip casts=%d, DPS=%g", casts[9850], casts[9830], casts[9896], metrics.Dps.Avg)
+			t.Logf("Claw casts=%d, Rip casts=%d, DPS=%g", casts[9850], casts[9896], metrics.Dps.Avg)
 		})
 	}
 }

@@ -15,14 +15,6 @@ const RipEndThresh = time.Second * 10
 // points are not spent on a Rip that is about to fall off. Rip lasts 12s, so this is the first 4s.
 const biteWithRipLeft = 8 * time.Second
 
-// With 5 combo points and Rip inside this window, a builder that would leave Rip unpaid waits.
-const ripPoolWindow = 2 * time.Second
-
-// Thistle Tea restores 100 energy, and it never fires on its own: the bar refills continuously,
-// so there is never room for the whole 100. Drinking at 20 lands it once a fight.
-const teaEnergy = 20
-const thistleTeaID int32 = 7676
-
 type FeralDruidRotation struct {
 	RipCP              int32
 	BiteCP             int32
@@ -55,10 +47,10 @@ func (cat *FeralDruid) setupRotation(rotation *proto.FeralCatDruid_Rotation) {
 
 func (cat *FeralDruid) OnGCDReady(_ *core.Simulation) {}
 
-// One decision of the cat rotation. Finishers first, then Rake while it is down, then the builder.
-// Shifting Power is spent whenever the gain and the energy regenerated during its GCD still fit.
-// Bite beside Rip only while Rip has more than 8s left. A bleed is refreshed when it has fallen, not before.
-// When nothing is castable it returns without waiting, so the APL looks again one reaction time later.
+// One decision of the cat rotation. Finishers first, then Rake while it is down, then the builder, and
+// Shifting Power when the builder is unaffordable. Bite beside Rip only while Rip has more than
+// 8s left. When nothing is castable it returns without waiting, so the APL looks again one reaction
+// time later.
 func (cat *FeralDruid) doRotation(sim *core.Simulation) bool {
 	if !cat.GCD.IsReady(sim) {
 		return false
@@ -93,8 +85,6 @@ func (cat *FeralDruid) doRotation(sim *core.Simulation) bool {
 	if cat.faerieFireNow(sim, target) {
 		return cat.FaerieFire.Cast(sim, target)
 	}
-	// Rip is first when both bleeds are down. Refreshing either one early, to keep them apart,
-	// was behind letting the fallen one wait a GCD.
 	if cat.ripNow(sim, target) {
 		return cat.Rip.Cast(sim, target)
 	}
@@ -106,18 +96,18 @@ func (cat *FeralDruid) doRotation(sim *core.Simulation) bool {
 	}
 
 	builder := cat.builder()
-	// Tea does not start the GCD, so the same decision can still spend the builder or the shift.
-	if cat.wantTea(sim) {
-		cat.thistleTea().Cast(sim, &cat.Unit)
-	}
-	if cat.pooling(sim, builder) {
-		if cat.wantShift(sim, target) {
-			return cat.castShift(sim, target, shiftDecided)
+	if cat.Consumables.GetConjuredId() == 7676 {
+		if tea := cat.GetSpell(core.ActionID{ItemID: 7676}); tea != nil && cat.CurrentEnergy() <= 20 && tea.CanCast(sim, &cat.Unit) {
+			tea.Cast(sim, &cat.Unit)
 		}
-		return false
 	}
-	if cat.wantShift(sim, target) {
-		return cat.castShift(sim, target, shiftDecided)
+	if cat.wantShift(sim, target, builder) {
+		if shiftDecided {
+			return cat.ShiftingPower.Cast(sim, target)
+		}
+		// The next decision, one reaction time later, spends it.
+		cat.readyToShift = true
+		return false
 	}
 	if builder.CanCast(sim, target) {
 		return builder.Cast(sim, target)
@@ -127,6 +117,14 @@ func (cat *FeralDruid) doRotation(sim *core.Simulation) bool {
 		return cat.FaerieFire.Cast(sim, target)
 	}
 	return false
+}
+
+// Shifting Power restores energy after the builder becomes unaffordable.
+func (cat *FeralDruid) wantShift(sim *core.Simulation, target *core.Unit, builder *druid.DruidSpell) bool {
+	if !cat.ShiftingPower.CanCast(sim, target) {
+		return false
+	}
+	return cat.CurrentEnergy() < builder.Cost.GetCurrentCost() && !builder.CanCast(sim, target)
 }
 
 // wantOmenFishing is true when the rotation fishes for Omen of Clarity, Omen can proc again and is not
@@ -159,11 +157,10 @@ func (cat *FeralDruid) cheapestWanted(sim *core.Simulation, window time.Duration
 	cost := cat.builder().Cost.GetCurrentCost()
 	cp := cat.ComboPoints()
 	ripDot := cat.Rip.CurDot()
-	ripUp := ripDot.IsActive()
-	if cp >= rotation.RipCP && (!ripUp || ripDot.RemainingDuration(sim) < window) && sim.GetRemainingDuration() >= RipEndThresh {
+	if cp >= rotation.RipCP && (!ripDot.IsActive() || ripDot.RemainingDuration(sim) < window) && sim.GetRemainingDuration() >= RipEndThresh {
 		cost = min(cost, cat.Rip.Cost.GetCurrentCost())
 	}
-	if rotation.UseBite && cp >= rotation.BiteCP && (rotation.BiteOverRip || (ripUp && ripDot.RemainingDuration(sim) > biteWithRipLeft)) {
+	if rotation.UseBite && cp >= rotation.BiteCP && cat.biteWindow(sim) {
 		cost = min(cost, cat.FerociousBite.Cost.GetCurrentCost())
 	}
 	if rake := cat.Rake.CurDot(); rotation.UseRakeTrick && (!rake.IsActive() || rake.RemainingDuration(sim) < window) {
@@ -172,78 +169,16 @@ func (cat *FeralDruid) cheapestWanted(sim *core.Simulation, window time.Duration
 	return cost
 }
 
-func (cat *FeralDruid) castShift(sim *core.Simulation, target *core.Unit, alreadyDecided bool) bool {
-	if alreadyDecided {
-		return cat.ShiftingPower.Cast(sim, target)
-	}
-	// The next decision, one reaction time later, spends it.
-	cat.readyToShift = true
-	return false
-}
-
-// shiftingPowerEnergy is the row's 40, plus Wolfshead when that helm is worn.
-func (cat *FeralDruid) shiftingPowerEnergy() float64 {
-	return 40 + cat.WolfsheadEnergyBonus
-}
-
-// shiftCeiling is the energy at which the gain plus regen over the GCD still fits under 100.
-// 50 for the row's 40. Wolfshead's extra 20 lowers it to 30. The bar regens 10 per second.
-// Shifting Power does not spend Clearcasting, so with it up the next cast is free and the bar
-// keeps filling through a second GCD: the ceiling leaves room for both, 40 and 20.
-func (cat *FeralDruid) shiftCeiling() float64 {
-	gcd := cat.ShiftingPower.DefaultCast.GCD
-	if gcd <= 0 {
-		gcd = time.Second
-	}
-	regen := cat.CurrentEnergyRegenMultiplier() * 10 * gcd.Seconds()
-	if cat.ClearcastingAura.IsActive() {
-		regen *= 2
-	}
-	return cat.MaximumEnergy() - cat.shiftingPowerEnergy() - regen
-}
-
-// wantShift spends Shifting Power once it is ready and the energy is under shiftCeiling, including
-// while the builder could still be paid. Waiting for an empty bar does not bring the cooldown back
-// any sooner, and casting with no regard for the cap wastes the gain.
-func (cat *FeralDruid) wantShift(sim *core.Simulation, target *core.Unit) bool {
-	if !cat.ShiftingPower.CanCast(sim, target) {
-		return false
-	}
-	return cat.CurrentEnergy() < cat.shiftCeiling()
-}
-
-// pooling keeps a Rip's energy together when Rip will fall inside the window and the points are ready.
-// Spending the builder would leave the refresh short, so the decision waits or shifts instead.
-func (cat *FeralDruid) pooling(sim *core.Simulation, builder *druid.DruidSpell) bool {
-	if cat.ComboPoints() < cat.Rotation.RipCP {
-		return false
-	}
-	ripDot := cat.Rip.CurDot()
-	if !ripDot.IsActive() || sim.GetRemainingDuration() < RipEndThresh {
-		return false
-	}
-	left := ripDot.RemainingDuration(sim)
-	if left <= 0 || left > ripPoolWindow {
-		return false
-	}
-	gcd := builder.DefaultCast.GCD
-	if gcd <= 0 {
-		gcd = time.Second
-	}
-	afterBuilder := cat.CurrentEnergy() - builder.Cost.GetCurrentCost() + cat.CurrentEnergyRegenMultiplier()*10*gcd.Seconds()
-	return afterBuilder < cat.Rip.Cost.GetCurrentCost()
-}
-
 // wantExplosive is an explosive that cannot be used in a shapeshift form, ready to throw, with the
 // mana to cast Cat Form again afterwards. Major cooldowns never leave the form on their own, so the
 // rotation throws it. An APL that casts the explosive itself takes it out of the major cooldowns.
 // 5/5 Furor brings back all the energy left in Cat Form; a lower rank keeps only part of it, so the
-// throw then waits for the bar to be as low as a shift.
+// throw then waits for the bar to be as low as a shift, below the builder's cost.
 func (cat *FeralDruid) wantExplosive(sim *core.Simulation, target *core.Unit) *core.Spell {
 	if cat.CatForm.Cost != nil && cat.CurrentMana() < cat.CatForm.Cost.GetCurrentCost() {
 		return nil
 	}
-	if cat.Talents.Furor < 5 && cat.CurrentEnergy() >= cat.shiftCeiling() {
+	if cat.Talents.Furor < 5 && cat.CurrentEnergy() >= cat.builder().Cost.GetCurrentCost() {
 		return nil
 	}
 	for _, mcd := range cat.GetMajorCooldowns() {
@@ -263,6 +198,12 @@ func (cat *FeralDruid) builder() *druid.DruidSpell {
 	return cat.Claw
 }
 
+// Bite as the finisher does not wait on Rip. Bite beside Rip waits until Rip has time left.
+func (cat *FeralDruid) biteWindow(sim *core.Simulation) bool {
+	ripDot := cat.Rip.CurDot()
+	return cat.Rotation.BiteOverRip || (ripDot.IsActive() && ripDot.RemainingDuration(sim) > biteWithRipLeft)
+}
+
 // The spells a decision casts ahead of the builder, in that order, each true when it is cast now.
 func (cat *FeralDruid) faerieFireNow(sim *core.Simulation, target *core.Unit) bool {
 	return cat.Rotation.MaintainFaerieFire && cat.FaerieFire.ShouldRefreshExclusiveEffects(sim, target, 0) && cat.FaerieFire.CanCast(sim, target)
@@ -275,10 +216,7 @@ func (cat *FeralDruid) ripNow(sim *core.Simulation, target *core.Unit) bool {
 
 func (cat *FeralDruid) biteNow(sim *core.Simulation, target *core.Unit) bool {
 	rotation := &cat.Rotation
-	// Bite as the finisher does not wait on Rip. Bite beside Rip waits until Rip has time left.
-	ripDot := cat.Rip.CurDot()
-	biteWindow := rotation.BiteOverRip || (ripDot.IsActive() && ripDot.RemainingDuration(sim) > biteWithRipLeft)
-	return rotation.UseBite && cat.ComboPoints() >= rotation.BiteCP && biteWindow && cat.FerociousBite.CanCast(sim, target)
+	return rotation.UseBite && cat.ComboPoints() >= rotation.BiteCP && cat.biteWindow(sim) && cat.FerociousBite.CanCast(sim, target)
 }
 
 func (cat *FeralDruid) rakeNow(sim *core.Simulation, target *core.Unit) bool {
@@ -287,7 +225,7 @@ func (cat *FeralDruid) rakeNow(sim *core.Simulation, target *core.Unit) bool {
 
 // berserkReady holds Berserk until the GCD is free and the decision casts a spell its crit covers,
 // Rake or the builder. Rip, Bite, Shifting Power, Faerie Fire and the Cat Form cast after a throw
-// would each take Berserk's first GCD instead, and pooling for Rip casts nothing.
+// would each take Berserk's first GCD instead.
 func (cat *FeralDruid) berserkReady(sim *core.Simulation) bool {
 	target := cat.CurrentTarget
 	if !cat.GCD.IsReady(sim) || !cat.InForm(druid.Cat) || cat.wantExplosive(sim, target) != nil {
@@ -300,24 +238,5 @@ func (cat *FeralDruid) berserkReady(sim *core.Simulation) bool {
 		return true
 	}
 	builder := cat.builder()
-	return !cat.pooling(sim, builder) && !cat.wantShift(sim, target) && builder.CanCast(sim, target)
-}
-
-func (cat *FeralDruid) thistleTea() *druid.DruidSpell {
-	spell := cat.GetSpell(core.ActionID{ItemID: 7676})
-	if spell == nil {
-		return nil
-	}
-	return &druid.DruidSpell{Spell: spell}
-}
-
-func (cat *FeralDruid) wantTea(sim *core.Simulation) bool {
-	if cat.Consumables.GetConjuredId() != thistleTeaID {
-		return false
-	}
-	tea := cat.thistleTea()
-	if tea == nil || cat.CurrentEnergy() > teaEnergy {
-		return false
-	}
-	return tea.CanCast(sim, &cat.Unit)
+	return !cat.wantShift(sim, target, builder) && builder.CanCast(sim, target)
 }
