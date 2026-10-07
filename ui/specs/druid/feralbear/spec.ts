@@ -2,7 +2,7 @@ import * as BuffDebuffInputs from '@features/settings/model/buffs_debuffs';
 import * as OtherInputs from '@features/settings/model/other_inputs';
 import { APLAction, APLListItem, APLRotation, APLRotation_Type as APLRotationType } from '@generated/proto/apl';
 import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
-import { Cooldowns, EquipmentSpec, ItemSlot, PseudoStat, Spec, Stat, TristateEffect } from '@generated/proto/common';
+import { Cooldowns, ItemSlot, PseudoStat, Spec, Stat, TristateEffect } from '@generated/proto/common';
 import { FeralBearDruid_Rotation as DruidRotation } from '@generated/proto/druid';
 import { SavedTalents } from '@generated/proto/ui';
 import { PlayerClasses } from '@sim/player/classes';
@@ -72,8 +72,9 @@ export default defineSpec<Spec.SpecFeralBearDruid>({
 	),
 
 	defaults: {
-		gear: EquipmentSpec.create(),
-		epWeights: new Stats(),
+		gear: Presets.Level60Gear.gear,
+		encounter: Presets.Level60Encounter,
+		epWeights: Presets.Level60SurvivalEp,
 		statCaps: (() => {
 			const hitCap = new Stats().withPseudoStat(PseudoStat.PseudoStatMeleeHitPercent, 8);
 			const expCap = new Stats().withPseudoStat(PseudoStat.PseudoStatExpertisePercent, 6.5);
@@ -143,17 +144,19 @@ export default defineSpec<Spec.SpecFeralBearDruid>({
 	},
 
 	presets: {
-		epWeights: [],
+		epWeights: [Presets.Level60SurvivalEpWeights, Presets.Level60DpsEpWeights],
 		talents: [],
 		// ROTATION_SIMPLE is kept in presets.ts for reference but omitted here —
 		// the APL rotation is more user-friendly and handles CDs, re-shifting, and
 		// on-use items more easily.
 		rotations: [Presets.ROTATION_DEFAULT],
-		gear: [],
+		gear: [Presets.Level60Gear],
+		encounters: [Presets.Level60Encounter],
 	},
 
-	autoRotation: (player: Player<Spec.SpecFeralBearDruid>): APLRotation => {
-		return bearSimpleRotation(player.getSimpleRotation());
+	// Auto is the APL preset, which queues Maul on every rage gain instead of only after a GCD.
+	autoRotation: (_player: Player<Spec.SpecFeralBearDruid>): APLRotation => {
+		return Presets.ROTATION_DEFAULT.rotation.rotation!;
 	},
 
 	simpleRotation: (_player: Player<Spec.SpecFeralBearDruid>, simple: DruidRotation, _cooldowns: Cooldowns): APLRotation => {
