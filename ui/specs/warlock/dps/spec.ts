@@ -127,8 +127,8 @@ export default defineSpec<Spec.SpecWarlock>({
 	},
 	sections: [WarlockInputs.CursesSection],
 
-	// Re-settles the demon out and the demon sacrificed when the talents or the options change: dropping
-	// Demonic Pact or Demonic Sacrifice, or loading settings from before the sacrificed demon was its own option.
+	// Re-settles the demon out and the demon sacrificed when the talents or the options change, such as
+	// dropping Demonic Pact or Demonic Sacrifice.
 	derivedSettings: [
 		{
 			subscribe: player => subscribeAll([subscribePlayerField(player, 'talentsString'), subscribePlayerField(player, 'specOptions')]),

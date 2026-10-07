@@ -146,8 +146,7 @@ func (x *APLActionCastWarlockAssignedCurse) String() string {
 	return fmt.Sprintf("Cast Assigned Curse(%s)", x.warlock.GetAssignedCurse().ActionID)
 }
 
-// Elements is the default: any other value, including the retired Agony and Doom a saved setting may
-// still carry, falls back to it.
+// Elements is the default: any value but Recklessness falls back to it.
 func (warlock *Warlock) GetAssignedCurse() *core.Spell {
 	if warlock.Options.CurseOptions == proto.WarlockOptions_Recklessness {
 		return warlock.CurseOfRecklessness

@@ -19,10 +19,7 @@ func (warlock *Warlock) registerArmors() {
 	warlock.DemonArmor = warlock.RegisterAura(spelldata.AuraConfig(rankedSpell))
 	spelldata.ParseEffects(&warlock.Character, warlock.DemonArmor, rankedSpell, opts...)
 
-	switch warlock.Options.Armor {
-	case proto.WarlockOptions_DemonArmor:
+	if warlock.Options.Armor == proto.WarlockOptions_DemonArmor {
 		core.MakePermanent(warlock.DemonArmor)
-	case proto.WarlockOptions_FelArmor:
-		// TODO: The game files carry no Fel Armor for Forever's warlock; the option does nothing until one exists.
 	}
 }

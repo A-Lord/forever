@@ -162,11 +162,6 @@ func NewWarlock(character *core.Character, options *proto.Player, warlockOptions
 
 	warlock.resolveSacrifice()
 
-	// The retired values a saved setting may carry (Agony 0, Doom 1, Elements 2) all mean Elements.
-	if warlock.Options.CurseOptions != proto.WarlockOptions_Recklessness {
-		warlock.Options.CurseOptions = proto.WarlockOptions_Elements
-	}
-
 	if raid.Debuffs != nil {
 		if warlock.Options.CurseOptions == proto.WarlockOptions_Recklessness {
 			raid.Debuffs.CurseOfRecklessness = false
@@ -187,17 +182,11 @@ func NewWarlock(character *core.Character, options *proto.Player, warlockOptions
 }
 
 // Settles which demon is sacrificed and which is out, once, so everything after reads them as settled:
-//   - Older settings name no sacrificed demon but set sacrifice_summon: the summoned demon is sacrificed.
 //   - Without Demonic Sacrifice, nothing is sacrificed.
 //   - Without Demonic Pact, summoning any demon cancels the effect, so no demon is out.
 //   - With it, the demon out may be another; resummoning the sacrificed one still cancels the effect.
 func (warlock *Warlock) resolveSacrifice() {
 	options := warlock.Options
-	if options.SacrificeSummon && warlock.Talents.DemonicSacrifice && options.SacrificedDemon == proto.WarlockOptions_NoSummon {
-		options.SacrificedDemon, options.Summon = options.Summon, proto.WarlockOptions_NoSummon
-	}
-	options.SacrificeSummon = false
-
 	switch {
 	case !warlock.Talents.DemonicSacrifice:
 		options.SacrificedDemon = proto.WarlockOptions_NoSummon
