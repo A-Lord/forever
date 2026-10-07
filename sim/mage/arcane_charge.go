@@ -6,20 +6,21 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-// Arcane Charges, the buff Arcane Blast stacks (400573): "the damage of all your other spells is
-// increased by 10% and the mana cost of Arcane Blast is increased by 175%. Effect stacks up to 4
-// times and lasts 8 sec or until any other damage spell is cast."
+// Arcane Charges, the buff Arcane Blast stacks (400573): "Damage from all spells but Arcane Blast
+// increased by 10% and mana cost of Arcane Blast increased by 175%." Up to 4 stacks for 8 sec; the
+// next damage spell cast but Arcane Blast spends them.
 var arcaneChargesRank = spellData.ArcaneBlastTriggered.Highest()
 
 // The damage bonus per charge. The row states it twice, SPELLMOD_DAMAGE (effect 1) and
-// SPELLMOD_DOT (effect 3), both 10%; the sim applies the one value to hits and DoTs alike.
+// SPELLMOD_DOT (effect 3), both 10%. SPELLMOD_DAMAGE adds into the direct hits' additive bucket,
+// with Arcane Power and Arcane Instability; SPELLMOD_DOT multiplies the ticks.
 var arcaneChargeDamagePerStack = arcaneChargesRank.Effect(dbcenums.A_ADD_PCT_MODIFIER, 0).Percent()
 
 const (
 	// Damage that lands after the cast that spent the charges. It carries the bonus that cast
 	// locked in (arcaneChargesLock) and never the live one, so charges gained meanwhile do not
 	// raise it.
-	arcaneChargesLocked = MageSpellFireballDot | MageSpellPyroblastDot | MageSpellFlamestrikeDot | MageSpellFrostfireBoltDot |
+	arcaneChargesLocked = MageSpellFireballDot | MageSpellFlamestrikeDot | MageSpellFrostfireBoltDot |
 		MageSpellArcaneMissilesTick | MageSpellBlizzard
 
 	// The casts that spend the charges: any damage spell but Arcane Blast. A missile of the
@@ -32,10 +33,11 @@ func (mage *Mage) registerArcaneCharges() {
 	// The charges raise the damage of every damage spell except Arcane Blast itself.
 	// Verified in game on Arcane Missiles, Blizzard and Flamestrike, which the row's
 	// SPELLMOD_DAMAGE and SPELLMOD_DOT masks (effects 1 and 3) leave out, so this mod takes the
-	// sim's own mask instead of ParseEffects'.
+	// sim's own mask instead of ParseEffects'. Pyroblast's DoT, which effect 3 does not name, takes
+	// no bonus.
 	damageMod := mage.AddDynamicMod(core.SpellModConfig{
-		ClassMask: MageSpellsAllDamaging &^ (MageSpellArcaneBlast | arcaneChargesLocked),
-		Kind:      core.SpellMod_DamageDone_Pct,
+		ClassMask: MageSpellsAllDamaging &^ (MageSpellArcaneBlast | arcaneChargesLocked | MageSpellPyroblastDot),
+		Kind:      core.SpellMod_DirectDamageDone_Flat,
 	})
 
 	config := spelldata.AuraConfig(arcaneChargesRank)
@@ -78,17 +80,21 @@ func (lock arcaneChargesLock) set(target *core.Unit, bonus float64) {
 	lock[target] = bonus
 }
 
-// deal runs a damage calculation of spell on target with the locked bonus applied.
+// Runs a direct damage calculation of spell on target with the locked bonus in the direct hits'
+// additive bucket.
 func (lock arcaneChargesLock) deal(spell *core.Spell, target *core.Unit, calc func()) {
-	multiplier := 1 + lock[target]
-	spell.DamageMultiplier *= multiplier
+	bonus := lock[target]
+	spell.DirectDamageMultiplierAdditive += bonus
 	calc()
-	spell.DamageMultiplier /= multiplier
+	spell.DirectDamageMultiplierAdditive -= bonus
 }
 
-// onTick applies the locked bonus to each of a DoT's ticks.
+// Multiplies each of a DoT's ticks by the locked bonus.
 func (lock arcaneChargesLock) onTick(tick core.OnTick) core.OnTick {
 	return func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-		lock.deal(dot.Spell, target, func() { tick(sim, target, dot) })
+		multiplier := 1 + lock[target]
+		dot.PeriodicDamageMultiplier *= multiplier
+		tick(sim, target, dot)
+		dot.PeriodicDamageMultiplier /= multiplier
 	}
 }

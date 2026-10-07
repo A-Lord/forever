@@ -40,12 +40,13 @@ func (mage *Mage) registerFireTalents() {
 	mage.registerCombustionTalent()
 }
 
-// registerWakeOfFire implements Wake of Fire.
 func (mage *Mage) registerWakeOfFire() {
 	if mage.Talents.WakeOfFire == 0 {
 		return
 	}
 
+	// Effect 1's cooldown cut only: the kill proc (PROC_FLAG_KILL, 1312934) needs a target to die,
+	// and the sim's targets die only when the fight ends.
 	spelldata.ParseStatic(&mage.Character, spellData.WakeOfFire.Rank(mage.Talents.WakeOfFire))
 }
 
@@ -65,9 +66,9 @@ func (mage *Mage) registerImprovedFireball() {
 	spelldata.ParseStatic(&mage.Character, spellData.ImprovedFireball.Rank(mage.Talents.ImprovedFireball))
 }
 
-// registerIgnite implements Ignite: a Fire spell's crit burns the target for a share of its damage
-// (11119, 8% per point) over 4 sec. The DoT (412538) stacks to 1, so it rolls: a new crit adds its
-// share to what the current DoT has not ticked yet and restarts it over the full duration.
+// A Fire spell's crit burns the target for a share of its damage (11119, 8% per point) over 4 sec.
+// The DoT (412538) stacks to 1, so it rolls: a new crit adds its share to what the current DoT has
+// not ticked yet and restarts it over the full duration.
 func (mage *Mage) registerIgnite() {
 	if mage.Talents.Ignite == 0 {
 		return
@@ -114,7 +115,6 @@ func (mage *Mage) registerIgnite() {
 	mage.MakeProcTriggerAura(trigger)
 }
 
-// registerFlameThrowing implements Flame Throwing.
 func (mage *Mage) registerFlameThrowing() {
 	if mage.Talents.FlameThrowing == 0 {
 		return
@@ -123,7 +123,7 @@ func (mage *Mage) registerFlameThrowing() {
 	spelldata.ParseStatic(&mage.Character, spellData.FlameThrowing.Rank(mage.Talents.FlameThrowing))
 }
 
-// registerImpact: "Gives your Fire spells a 10% chance to stun the target for 2 sec."
+// "Gives your Fire spells a 10% chance to stun the target for 2 sec."
 //
 // Not modelled: the proc (12355) is an A_MOD_STUN, which a boss the sim fights is immune to, the same
 // reason Frostbite's freeze is not modelled.
@@ -151,7 +151,6 @@ func (mage *Mage) registerImprovedFlamestrike() {
 	spelldata.ParseStatic(&mage.Character, spellData.ImprovedFlamestrike.Rank(mage.Talents.ImprovedFlamestrike))
 }
 
-// registerPyroblastTalent implements the talent gate for Pyroblast (pyroblast.go).
 func (mage *Mage) registerPyroblastTalent() {
 	if !mage.Talents.Pyroblast {
 		return
@@ -160,7 +159,6 @@ func (mage *Mage) registerPyroblastTalent() {
 	mage.registerPyroblastSpell()
 }
 
-// registerBlastWaveTalent implements the talent gate for Blast Wave (blast_wave.go).
 func (mage *Mage) registerBlastWaveTalent() {
 	if !mage.Talents.BlastWave {
 		return
@@ -169,7 +167,6 @@ func (mage *Mage) registerBlastWaveTalent() {
 	mage.registerBlastWaveSpell()
 }
 
-// registerCombustionTalent implements the talent gate for Combustion (combustion.go).
 func (mage *Mage) registerCombustionTalent() {
 	if !mage.Talents.Combustion {
 		return
@@ -178,16 +175,14 @@ func (mage *Mage) registerCombustionTalent() {
 	mage.registerCombustionSpell()
 }
 
-// registerImprovedFireWard: a chance for Fire Ward to reflect Fire spells (effect 1, a flat modifier
-// on Fire Ward's effect 2). The reflect needs an enemy casting Fire at the mage, so it is not
-// modelled.
+// Improved Fire Ward, a chance for Fire Ward to reflect Fire spells (effect 1, a flat modifier on
+// Fire Ward's effect 2). The reflect needs an enemy casting Fire at the mage, so it is not modelled.
 func (mage *Mage) registerImprovedFireWard() {
 	if mage.Talents.ImprovedFireWard == 0 {
 		return
 	}
 }
 
-// registerHeatingUp implements Heating Up.
 func (mage *Mage) registerHeatingUp() {
 	if !mage.Talents.HeatingUp {
 		return
@@ -223,7 +218,6 @@ func (mage *Mage) registerHeatingUp() {
 	mage.MakeProcTriggerAura(trigger)
 }
 
-// registerMasterOfElements implements Master of Elements.
 func (mage *Mage) registerMasterOfElements() {
 	if mage.Talents.MasterOfElements == 0 {
 		return

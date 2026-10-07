@@ -6,32 +6,31 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-// Every rank is registered: burns of different ranks run side by side, so an AoE rotation stacks
-// the top two. A recast of the same rank replaces its own burn.
+// Only the highest rank is registered: the mage casts the rank configured here, not every rank
+// spellData.Flamestrike lists.
 func (mage *Mage) registerFlamestrikeSpells() {
-	for rank := int32(1); rank <= spellData.Flamestrike.Len(); rank++ {
-		mage.registerFlamestrikeSpell(spellData.Flamestrike.Rank(rank), spellData.FlamestrikeTriggered.Rank(rank))
-	}
+	mage.registerFlamestrikeSpell(spellData.Flamestrike.Len(), spellData.Flamestrike.Highest())
 }
 
 // The burn is its own spell (MageSpellFlamestrikeDot) on the cast's row, tagged like Fireball's DoT so
-// the two share a header: every 2 sec it deals the rank's tick to each enemy in the area, with the
-// Arcane Charges the cast spent.
-func (mage *Mage) registerFlamestrikeSpell(castRank, tickRank *spelldata.Spell) {
+// the two share a header: every 2 sec it deals the same rank of spellData.FlamestrikeTriggered to each
+// enemy in the area, with the Arcane Charges the cast spent. The cast's row names no tick spell, only
+// an area trigger, so the two pair by rank.
+func (mage *Mage) registerFlamestrikeSpell(rank int32, castRank *spelldata.Spell) {
+	tickRank := spellData.FlamestrikeTriggered.Rank(rank)
 	chargeLock := arcaneChargesLock{}
 	tickDamage := tickRank.DamageEffect()
 
 	dotConfig := spelldata.SpellConfig(&mage.Unit, castRank, spelldata.Magic(core.ProcMaskSpellDamage), spelldata.Proc(), spelldata.Tag(1))
 	dotConfig.ClassSpellMask = MageSpellFlamestrikeDot
 	dotConfig.Dot = spelldata.DotConfig(castRank, castRank.Effect(dbcenums.A_PERIODIC_DUMMY, 0),
-		spelldata.Label(castRank.Name+mage.Label+" "+castRank.Rank))
+		spelldata.RankLabel(castRank, &mage.Unit))
 	dotConfig.Dot.IsAOE = true
 	dotConfig.Dot.BonusCoefficient = tickDamage.Coeff()
-	dotConfig.Dot.OnTick = func(sim *core.Simulation, _ *core.Unit, dot *core.Dot) {
-		chargeLock.deal(dot.Spell, &mage.Unit, func() {
-			dot.Spell.CalcAndDealPeriodicAoeDamage(sim, tickDamage.Roll(sim), dot.OutcomeTickMagicHit)
-		})
-	}
+	// An area DoT ticks on its caster, which is the unit the cast locks the charges on.
+	dotConfig.Dot.OnTick = chargeLock.onTick(func(sim *core.Simulation, _ *core.Unit, dot *core.Dot) {
+		dot.Spell.CalcAndDealPeriodicAoeDamage(sim, tickDamage.Average(), dot.OutcomeTickMagicHit)
+	})
 	dotConfig.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
 		spell.AOEDot().Apply(sim)
 	}
@@ -47,5 +46,5 @@ func (mage *Mage) registerFlamestrikeSpell(castRank, tickRank *spelldata.Spell) 
 		dotSpell.Cast(sim, target)
 	}
 
-	mage.Flamestrike = append(mage.Flamestrike, mage.RegisterSpell(config))
+	mage.RegisterSpell(config)
 }

@@ -5,9 +5,6 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-var scorchRank = spellData.Scorch.Highest()
-var scorchDamage = scorchRank.DamageEffect()
-
 func (mage *Mage) registerScorchSpell() {
 	procChance := spellData.ImprovedScorch.EffectAt(1).FractionAt(mage.Talents.ImprovedScorch)
 
@@ -15,11 +12,19 @@ func (mage *Mage) registerScorchSpell() {
 		mage.ImprovedScorchAuras = mage.newFireVulnerabilityAuras()
 	}
 
-	config := spelldata.SpellConfig(&mage.Unit, scorchRank, spelldata.Magic(core.ProcMaskSpellDamage))
+	// Only the highest rank is registered: the mage casts the rank configured here, not every rank
+	// spellData.Scorch lists.
+	mage.registerScorchRank(spellData.Scorch.Highest(), procChance)
+}
+
+func (mage *Mage) registerScorchRank(rank *spelldata.Spell, procChance float64) {
+	damage := rank.DamageEffect()
+
+	config := spelldata.SpellConfig(&mage.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))
 	config.ClassSpellMask = MageSpellScorch
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		result := spell.CalcAndDealDamage(sim, target, scorchDamage.Average(), spell.OutcomeMagicHitAndCrit)
+		result := spell.CalcAndDealDamage(sim, target, damage.Average(), spell.OutcomeMagicHitAndCrit)
 		if result.Landed() && sim.Proc(procChance, "Improved Scorch") {
 			aura := mage.ImprovedScorchAuras.Get(target)
 			aura.Activate(sim)

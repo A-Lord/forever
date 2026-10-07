@@ -5,14 +5,18 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-var arcaneExplosionRank = spellData.ArcaneExplosion.Highest()
-
+// Only the highest rank is registered: the mage casts the rank configured here, not every rank
+// spellData.ArcaneExplosion lists.
 func (mage *Mage) registerArcaneExplosionSpell() {
-	config := spelldata.SpellConfig(&mage.Unit, arcaneExplosionRank, spelldata.Magic(core.ProcMaskSpellDamage))
+	mage.registerArcaneExplosionRank(spellData.ArcaneExplosion.Len(), spellData.ArcaneExplosion.Highest())
+}
+
+func (mage *Mage) registerArcaneExplosionRank(_ int32, rank *spelldata.Spell) {
+	config := spelldata.SpellConfig(&mage.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))
 	config.ClassSpellMask = MageSpellArcaneExplosion
 
 	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
-		spell.CalcAndDealAoeDamageWithVariance(sim, spell.OutcomeMagicHitAndCrit, rollDamage(arcaneExplosionRank.DamageEffect()))
+		spell.CalcAndDealAoeDamageWithVariance(sim, spell.OutcomeMagicHitAndCrit, rollDamage(rank.DamageEffect()))
 	}
 
 	mage.RegisterSpell(config)

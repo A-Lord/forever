@@ -72,7 +72,6 @@ enum MageArmor{
 	MageArmorNone = 0;
 	MageArmorMageArmor = 1; // Mage Armor
 	MageArmorFrostArmor = 2; // Ice Armor
-	MageArmorMoltenArmor = 3; // Molten Armor
 }
 message MageOptions {
 	MageArmor default_mage_armor = 1;

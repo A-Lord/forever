@@ -277,7 +277,7 @@ var Spells = []Override{
 	{
 		SpellID: 1240047,
 		Field:   SPCoefDirect,
-		Value:   1.0 / 7,
+		Value:   1.0 / 7, // TODO: Measure Ice Lance's spell power coefficient in game.
 		Reason:  "Ice Lance: the damage effect states no coefficient, but the spell scales with spell power in game; TBC's 1/7 until measured",
 		Source:  "tbc-carryover",
 	},
