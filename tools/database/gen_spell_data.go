@@ -473,8 +473,8 @@ var descriptionSpellRef = regexp.MustCompile(`\$(?:/\d+;)?(\d{4,7})[a-z]`)
 
 // The spells a rank triggers or reads its tooltip from: an EffectTriggerSpell edge (Intercept's
 // stun 20615, Intimidating Shout's fear 20511), a $<id> token (Enrage's buff 12880, Flurry's
-// 12966, Last Stand's 12976) or an overrides.HandTriggers entry. In id order, without the rank itself and
-// without ids the game files have no spell for.
+// 12966, Last Stand's 12976) or an overrides.HandTriggers entry, which drops the $<id> it replaces. In id
+// order, without the rank itself and without ids the game files have no spell for.
 func triggeredSpells(db *sql.DB, spellID int32) ([]int32, error) {
 	seen := map[int32]bool{}
 	for _, id := range handTriggered(spellID) {
@@ -501,6 +501,9 @@ func triggeredSpells(db *sql.DB, spellID int32) ([]int32, error) {
 	for _, m := range descriptionSpellRef.FindAllStringSubmatch(desc, -1) {
 		id, _ := strconv.Atoi(m[1])
 		seen[int32(id)] = true
+	}
+	for _, id := range handReplaced(spellID) {
+		delete(seen, id)
 	}
 	delete(seen, spellID)
 
@@ -584,13 +587,17 @@ func triggeredRows(db *sql.DB, l rankLadder) ([]triggeredRow, error) {
 
 // Every spell a node of the class's Forever tree defines.
 func treeSpellIDs(db *sql.DB, treeID int) (map[int32]bool, error) {
+	unparked, err := unparkedTraitNodes(db)
+	if err != nil {
+		return nil, err
+	}
 	rows, err := db.Query(`
 		SELECT DISTINCT COALESCE(d.SpellID, 0)
 		FROM TraitNode tn
 		JOIN TraitNodeXTraitNodeEntry x ON x.TraitNodeID = tn.ID
 		JOIN TraitNodeEntry e ON e.ID = x.TraitNodeEntryID
 		JOIN TraitDefinition d ON d.ID = e.TraitDefinitionID
-		WHERE tn.TraitTreeID = ?`, treeID)
+		WHERE tn.TraitTreeID = ? AND `+unparked, treeID)
 	if err != nil {
 		return nil, err
 	}
@@ -640,6 +647,10 @@ func keysOf[V any](m map[string]V) map[string]bool {
 // hold the top rank on some talents and a stale number on others, and 240 of the 640 curves in this
 // build disagree with them.
 func discoverTraitLadders(db *sql.DB, treeID int) (map[string]traitLadder, map[string]string, map[string]string, error) {
+	unparked, err := unparkedTraitNodes(db)
+	if err != nil {
+		return nil, nil, nil, err
+	}
 	rows, err := db.Query(`
 		SELECT DISTINCT d.ID, COALESCE(d.SpellID, 0), e.MaxRanks,
 		       COALESCE(NULLIF(sn.Name_lang, ''), d.OverrideName_lang, '')
@@ -648,7 +659,7 @@ func discoverTraitLadders(db *sql.DB, treeID int) (map[string]traitLadder, map[s
 		JOIN TraitNodeEntry e ON e.ID = x.TraitNodeEntryID
 		JOIN TraitDefinition d ON d.ID = e.TraitDefinitionID
 		LEFT JOIN SpellName sn ON sn.ID = d.SpellID
-		WHERE tn.TraitTreeID = ?
+		WHERE tn.TraitTreeID = ? AND `+unparked+`
 		ORDER BY d.ID`, treeID)
 	if err != nil {
 		return nil, nil, nil, err
