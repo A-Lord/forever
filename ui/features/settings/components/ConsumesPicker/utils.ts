@@ -35,6 +35,8 @@ export interface ConsumeConfigs {
 	explosiveExtras: Array<ConsumeToggle>;
 	mhImbue: ConsumeConfig;
 	ohImbue: ConsumeConfig;
+	mhWeaponImbue: ConsumeConfig;
+	ohWeaponImbue: ConsumeConfig;
 	miscellaneous: Array<ConsumeToggle>;
 }
 
@@ -112,6 +114,16 @@ export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfig
 			},
 			imbues,
 		),
+		mhWeaponImbue: input(ConsumableSlot.WeaponImbue, {
+			consumesFieldName: 'mhWeaponImbueId',
+			tooltip: i18n.t('settings_tab.consumables.imbue.mhWeaponImbue'),
+			offers: (consumable, p) => handTakesImbue(consumable, handItem(p, ItemSlot.ItemSlotMainHand)),
+		}),
+		ohWeaponImbue: input(ConsumableSlot.WeaponImbue, {
+			consumesFieldName: 'ohWeaponImbueId',
+			tooltip: i18n.t('settings_tab.consumables.imbue.ohWeaponImbue'),
+			offers: (consumable, p) => handTakesImbue(consumable, handItem(p, ItemSlot.ItemSlotOffHand)),
+		}),
 		miscellaneous: inSlot(ConsumableSlot.Extra).map(consumable => makeIdListInput(consumable, relevance)),
 	};
 };

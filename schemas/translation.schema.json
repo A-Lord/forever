@@ -2479,11 +2479,24 @@
 										"food": { "type": "string" },
 										"explosive": { "type": "string" },
 										"imbue": { "type": "string" },
+										"weaponImbue": { "type": "string" },
 										"device": { "type": "string" },
 										"other": { "type": "string" }
 									},
 									"additionalProperties": false,
-									"required": ["potion", "conjured", "flask", "elixir", "scroll", "food", "explosive", "imbue", "device", "other"]
+									"required": [
+										"potion",
+										"conjured",
+										"flask",
+										"elixir",
+										"scroll",
+										"food",
+										"explosive",
+										"imbue",
+										"weaponImbue",
+										"device",
+										"other"
+									]
 								}
 							},
 							"additionalProperties": false,
@@ -2559,10 +2572,16 @@
 								},
 								"ohImbue": {
 									"type": "string"
+								},
+								"mhWeaponImbue": {
+									"type": "string"
+								},
+								"ohWeaponImbue": {
+									"type": "string"
 								}
 							},
 							"additionalProperties": false,
-							"required": ["title", "mhImbue", "ohImbue"]
+							"required": ["title", "mhImbue", "ohImbue", "mhWeaponImbue", "ohWeaponImbue"]
 						},
 						"scrolls": {
 							"type": "object",

@@ -7,7 +7,16 @@ import type { StoreField } from '@sim/hooks/useStoreField';
 import { Player } from '@sim/player/player';
 import { ActionId } from '@sim/proto/action_id';
 
-export type ConsumableIdField = 'potId' | 'conjuredId' | 'flaskId' | 'foodId' | 'explosiveId' | 'mhImbueId' | 'ohImbueId';
+export type ConsumableIdField =
+	| 'potId'
+	| 'conjuredId'
+	| 'flaskId'
+	| 'foodId'
+	| 'explosiveId'
+	| 'mhImbueId'
+	| 'ohImbueId'
+	| 'mhWeaponImbueId'
+	| 'ohWeaponImbueId';
 
 export interface ConsumableRelevance {
 	relevant: (consumable: Consumable, player: Player<any>) => boolean;

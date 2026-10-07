@@ -1,4 +1,4 @@
-import { Class, ConsumableType, HandType, ItemSlot, Profession, PseudoStat, Race, Stat, WeaponType } from '@generated/proto/common';
+import { Class, ConsumableType, ConsumesSpec, HandType, ItemSlot, Profession, PseudoStat, Race, Stat, WeaponType } from '@generated/proto/common';
 import { Consumable } from '@generated/proto/db';
 import { ItemEffect, ResourceType, SpellEffect } from '@generated/proto/spell';
 import { UIEnchant, UIItem } from '@generated/proto/ui';
@@ -15,6 +15,7 @@ import {
 	isEnchantRelevantFor,
 	relevanceFor,
 	relevantConsumableIds,
+	withWeaponImbuesInTheirFields,
 } from './consumables';
 
 const stats = (granted: Partial<Record<Stat, number>>) => {
@@ -77,8 +78,31 @@ describe('consumableSlot', () => {
 		expect(consumableSlot(consumable({ type: ConsumableType.ConsumableTypeFood }))).toBe(ConsumableSlot.Food);
 		expect(consumableSlot(consumable({ type: ConsumableType.ConsumableTypeExplosive }))).toBe(ConsumableSlot.Explosive);
 		expect(consumableSlot(consumable({ type: ConsumableType.ConsumableTypeImbue }))).toBe(ConsumableSlot.Imbue);
+		expect(consumableSlot(consumable({ type: ConsumableType.ConsumableTypeWeaponImbue }))).toBe(ConsumableSlot.WeaponImbue);
 		expect(consumableSlot(consumable({ type: ConsumableType.ConsumableTypeScroll }))).toBe(ConsumableSlot.Extra);
 		expect(consumableSlot(consumable({ type: ConsumableType.ConsumableTypeDevice }))).toBe(ConsumableSlot.Extra);
+	});
+});
+
+describe('withWeaponImbuesInTheirFields', () => {
+	const catalogue = new Map([
+		[12404, consumable({ id: 12404, type: ConsumableType.ConsumableTypeImbue })],
+		[8928, consumable({ id: 8928, type: ConsumableType.ConsumableTypeWeaponImbue })],
+		[277500, consumable({ id: 277500, type: ConsumableType.ConsumableTypeWeaponImbue })],
+	]);
+	const moved = (consumes: Partial<ConsumesSpec>) => withWeaponImbuesInTheirFields(ConsumesSpec.create(consumes), id => catalogue.get(id));
+
+	it("moves a weapon imbue out of each hand's temporary enchant field into its weapon imbue field", () => {
+		expect(moved({ mhImbueId: 8928, ohImbueId: 277500 })).toMatchObject({ mhImbueId: 0, mhWeaponImbueId: 8928, ohImbueId: 0, ohWeaponImbueId: 277500 });
+	});
+
+	it('leaves a stone in its field', () => {
+		const consumes = ConsumesSpec.create({ mhImbueId: 12404, mhWeaponImbueId: 8928 });
+		expect(withWeaponImbuesInTheirFields(consumes, id => catalogue.get(id))).toBe(consumes);
+	});
+
+	it("keeps the weapon imbue already in a hand's weapon imbue field", () => {
+		expect(moved({ mhImbueId: 8928, mhWeaponImbueId: 277500 })).toMatchObject({ mhImbueId: 8928, mhWeaponImbueId: 277500 });
 	});
 });
 

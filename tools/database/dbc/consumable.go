@@ -158,6 +158,15 @@ func temporaryEnchantSpell(onUses []*proto.ItemEffect) *Spell {
 	return nil
 }
 
+func castsWeaponImbue(spell *Spell) bool {
+	for _, se := range dbcInstance.SpellEffects[int(spell.ID)] {
+		if se.EffectType == dbcenums.E_360 {
+			return true
+		}
+	}
+	return false
+}
+
 // The category the first on-use shares: the item's row, or where it states none, its spell's. The
 // Spellblasting, Frenzy and Mender's potions state theirs on the spell alone.
 func onUseCategory(onUses []*proto.ItemEffect) int32 {
@@ -184,6 +193,8 @@ func (c *Consumable) SharesExplosivesCategory() bool {
 // database package decides.
 func (c *Consumable) consumableType(enchant *Spell, category int32) proto.ConsumableType {
 	switch {
+	case enchant != nil && castsWeaponImbue(enchant):
+		return proto.ConsumableType_ConsumableTypeWeaponImbue
 	case enchant != nil:
 		return proto.ConsumableType_ConsumableTypeImbue
 	case category == POTION_SPELL_CATEGORY:

@@ -1,7 +1,7 @@
 // Which consumables the settings offer a spec, and in which picker, from the fields db.json carries
 // for each. `Player.getConsumes(true)` sends the potions and conjured items this finds, so it sits
 // below the view layer; the pickers in the settings feature read the same functions.
-import { Class, ConsumableType, HandType, ItemSlot, Profession, PseudoStat, Race, Stat, WeaponType } from '@generated/proto/common';
+import { Class, ConsumableType, ConsumesSpec, HandType, ItemSlot, Profession, PseudoStat, Race, Stat, WeaponType } from '@generated/proto/common';
 import { Consumable } from '@generated/proto/db';
 import { ResourceType, SpellEffect } from '@generated/proto/spell';
 import { UIEnchant as Enchant, UIItem as Item } from '@generated/proto/ui';
@@ -16,7 +16,10 @@ export enum ConsumableSlot {
 	Elixir,
 	Food,
 	Explosive,
+	// A sharpening stone, weightstone, oil or shield coating: a temporary enchant, one per hand.
 	Imbue,
+	// A poison, firestone, spellstone or Scroll of Imbue: one per hand, beside the hand's temporary enchant.
+	WeaponImbue,
 	// Everything else, picked any number at a time into extra_ids.
 	Extra,
 }
@@ -51,9 +54,27 @@ export function consumableSlot(consumable: Consumable): ConsumableSlot {
 			return ConsumableSlot.Explosive;
 		case ConsumableType.ConsumableTypeImbue:
 			return ConsumableSlot.Imbue;
+		case ConsumableType.ConsumableTypeWeaponImbue:
+			return ConsumableSlot.WeaponImbue;
 		default:
 			return ConsumableSlot.Extra;
 	}
+}
+
+// A weapon imbue picked into a hand's temporary enchant field moves to that hand's weapon imbue
+// field, when that field is empty, so the hand's weapon imbue picker shows it.
+export function withWeaponImbuesInTheirFields(consumes: ConsumesSpec, getConsumable: (id: number) => Consumable | undefined): ConsumesSpec {
+	const moved = { ...consumes };
+	const isWeaponImbue = (id: number) => getConsumable(id)?.type === ConsumableType.ConsumableTypeWeaponImbue;
+	if (moved.mhImbueId && !moved.mhWeaponImbueId && isWeaponImbue(moved.mhImbueId)) {
+		moved.mhWeaponImbueId = moved.mhImbueId;
+		moved.mhImbueId = 0;
+	}
+	if (moved.ohImbueId && !moved.ohWeaponImbueId && isWeaponImbue(moved.ohImbueId)) {
+		moved.ohWeaponImbueId = moved.ohImbueId;
+		moved.ohImbueId = 0;
+	}
+	return moved.mhImbueId === consumes.mhImbueId && moved.ohImbueId === consumes.ohImbueId ? consumes : moved;
 }
 
 // An explosive with a cooldown of its own besides the one explosives share is used beside the

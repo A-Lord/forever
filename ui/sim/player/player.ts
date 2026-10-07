@@ -45,7 +45,7 @@ import { Stats, UnitStat } from '../proto/stats';
 import { AL_CATEGORY_HARD_MODE, emptyUnitReference, getTalentTreePoints, newUnitReference, raceToFaction } from '../proto/utils';
 import { MAX_PARTY_SIZE, Party } from '../raid/party';
 import { Raid } from '../raid/raid';
-import { ConsumableSlot, isEnchantRelevantFor, relevantConsumableIds } from '../settings/consumables';
+import { ConsumableSlot, isEnchantRelevantFor, relevantConsumableIds, withWeaponImbuesInTheirFields } from '../settings/consumables';
 import { ItemSwapSettings } from '../settings/item_swap_settings';
 import { Sim } from '../sim';
 import { batch } from '../state/batch';
@@ -711,10 +711,11 @@ export class Player<SpecType extends Spec> {
 	}
 
 	setConsumes(newConsumes: ConsumesSpec) {
-		if (ConsumesSpec.equals(this.slice().consumables, newConsumes)) return;
+		const consumes = withWeaponImbuesInTheirFields(newConsumes, id => this.sim.db.getConsumable(id));
+		if (ConsumesSpec.equals(this.slice().consumables, consumes)) return;
 
 		// Make a defensive copy
-		this.patch('consumables', ConsumesSpec.clone(newConsumes));
+		this.patch('consumables', ConsumesSpec.clone(consumes));
 	}
 
 	equipItem(slot: ItemSlot, newItem: EquippedItem | null) {

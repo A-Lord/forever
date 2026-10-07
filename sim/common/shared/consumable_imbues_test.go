@@ -207,6 +207,40 @@ func TestSparkResetsCategoryNineteenOnHitsTaken(t *testing.T) {
 	}
 }
 
+// Dense Sharpening Stone 12404 casts Effect 54 for enchant 1643's 8 weapon damage, Instant Poison VI
+// 8928 casts Effect 360 for enchant 625's combat spell 11337, and one hand carries both.
+func TestStoneAndPoisonShareAHand(t *testing.T) {
+	const stone, poison int32 = 12404, 8928
+	const mainHandID, offHandID int32 = 991511, 991512
+	core.AddToDatabase(&proto.SimDatabase{Items: []*proto.SimItem{testOneHander(mainHandID), testOneHander(offHandID)}})
+	NewSpellDataTemporaryEnchant(stone, SchoolPiercing{})
+	NewSpellDataTemporaryEnchant(poison, SchoolPiercing{})
+
+	player := testMage()
+	player.Name = "Wearer"
+	player.Buffs = &proto.IndividualBuffs{}
+	player.Equipment = &proto.EquipmentSpec{Items: testHands(&proto.ItemSpec{Id: mainHandID}, &proto.ItemSpec{Id: offHandID})}
+	player.Consumables = &proto.ConsumesSpec{MhImbueId: stone, MhWeaponImbueId: poison}
+	player.Rotation = &proto.APLRotation{}
+	sim := core.NewSim(&proto.RaidSimRequest{
+		SimOptions: &proto.SimOptions{RandomSeed: 1},
+		Raid:       &proto.Raid{Parties: []*proto.Party{{Players: []*proto.Player{player}, Buffs: &proto.PartyBuffs{}}}},
+		Encounter:  &proto.Encounter{Targets: []*proto.Target{{Name: "target", Level: 60}}, Duration: 600},
+	}, simsignals.CreateSignals())
+	character := sim.Raid.Parties[0].Players[0].GetCharacter()
+
+	mainHand := character.Equipment[proto.ItemSlot_ItemSlotMainHand]
+	if mainHand.TempEnchant != 1643 || mainHand.WeaponImbue != 625 {
+		t.Fatalf("main hand carries enchant %d and imbue %d, want the stone's 1643 and the poison's 625", mainHand.TempEnchant, mainHand.WeaponImbue)
+	}
+	if got := character.WeaponFromMainHand().BaseDamageMin; got != 58 {
+		t.Errorf("main hand deals %v minimum damage, want the sword's 50 and the stone's 8", got)
+	}
+	if auraByLabel(character, "Instant Poison VI") == nil {
+		t.Error("no listener casts the poison's combat spell beside the stone")
+	}
+}
+
 func pseudoStats(stat proto.PseudoStat, value float64) []float64 {
 	pseudo := make([]float64, stats.PseudoStatsLen)
 	pseudo[stat] = value
