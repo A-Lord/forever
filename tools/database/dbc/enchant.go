@@ -27,6 +27,7 @@ type Enchant struct {
 	RequiredProfession int
 	EffectName         string
 	IsLive             bool
+	Lvl                int
 }
 
 // A spell an enchant slot casts off a hit, or hangs a listener on.
@@ -106,6 +107,7 @@ func (enchant *Enchant) ToProtoWithSlots() (*proto.UIEnchant, []EnchantProcSlot)
 		ExtraTypes:         []proto.ItemType{},
 		Stats:              stats.Stats{}.ToProtoArray(),
 		Quality:            enchant.Quality.ToProto(),
+		Lvl:                int32(enchant.Lvl),
 		RequiredProfession: GetProfession(enchant.RequiredProfession),
 	}
 

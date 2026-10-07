@@ -17,7 +17,28 @@ const (
 	miscMagicSchool int32 = 126 // every school but physical, which is what spell damage covers
 	miscArmor       int32 = 1   // A_MOD_RESISTANCE and the two resistance percentages state armor as school 1
 	miscAllStats    int32 = -1  // A_MOD_STAT, A_MOD_PERCENT_STAT and A_MOD_TOTAL_STAT_PERCENTAGE: all five at once
+	miscDefense     int32 = 95  // A_MOD_SKILL on the Defense skill line
 )
+
+// The weapon skill each of the game files' weapon skill lines is. Unarmed (162) is fist weapons: Devilsaur
+// Claws' "Increased Fist Weapons" names it.
+var weaponSkillLines = map[int32]proto.WeaponSkill{
+	43:  proto.WeaponSkill_WeaponSkillSwords,
+	44:  proto.WeaponSkill_WeaponSkillAxes,
+	45:  proto.WeaponSkill_WeaponSkillBows,
+	46:  proto.WeaponSkill_WeaponSkillGuns,
+	54:  proto.WeaponSkill_WeaponSkillMaces,
+	55:  proto.WeaponSkill_WeaponSkillTwoHandedSwords,
+	136: proto.WeaponSkill_WeaponSkillStaves,
+	160: proto.WeaponSkill_WeaponSkillTwoHandedMaces,
+	162: proto.WeaponSkill_WeaponSkillFistWeapons,
+	172: proto.WeaponSkill_WeaponSkillTwoHandedAxes,
+	173: proto.WeaponSkill_WeaponSkillDaggers,
+	176: proto.WeaponSkill_WeaponSkillThrown,
+	226: proto.WeaponSkill_WeaponSkillCrossbows,
+	229: proto.WeaponSkill_WeaponSkillPolearms,
+	473: proto.WeaponSkill_WeaponSkillFistWeapons,
+}
 
 // The five stats the game files count in their own order, which is what A_MOD_STAT, A_MOD_PERCENT_STAT
 // and A_MOD_TOTAL_STAT_PERCENTAGE index by.
@@ -205,8 +226,8 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	},
 
 	dbcenums.A_MOD_THREAT: func(p *parser, e *Effect, v float64) *attachment {
-		return p.pseudoMultiplier("threat", "ThreatMultiplier", []*float64{&p.unit.PseudoStats.ThreatMultiplier},
-			core.MultiplierFromPercent(v))
+		return p.schoolMultiplier("threat", "ThreatMultiplier", e.Misc, core.MultiplierFromPercent(v),
+			&p.unit.PseudoStats.ThreatMultiplier, &p.unit.PseudoStats.SchoolThreatMultiplier)
 	},
 
 	dbcenums.A_MOD_ATTACK_POWER: func(p *parser, e *Effect, v float64) *attachment {
@@ -457,6 +478,19 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 		return p.statBuff(stats.ParryPercent, v)
 	},
 
+	// Skill points: Defense as defense rating, and a weapon skill on top of the skill the player states.
+	// A profession skill is skipped.
+	dbcenums.A_MOD_SKILL: func(p *parser, e *Effect, v float64) *attachment {
+		if e.Misc == miscDefense {
+			return p.statBuff(stats.DefenseRating, v*core.DefenseRatingPerDefenseLevel)
+		}
+		skill, ok := weaponSkillLines[e.Misc]
+		if !ok || p.character == nil {
+			return nil
+		}
+		return p.weaponSkill(skill, v)
+	},
+
 	// The off-hand bonus is a damage modifier on the off-hand's own hits rather than on a family of
 	// spells, so it carries a proc mask instead of the effect's class flags.
 	dbcenums.A_MOD_OFFHAND_DAMAGE_PCT: func(p *parser, e *Effect, v float64) *attachment {
@@ -549,7 +583,7 @@ var flatModTable = map[dbcenums.SpellModOp]row{
 		return p.modInt("SpellMod_BuffMaxStacks_Flat", p.modConfig(e, core.SpellMod_BuffMaxStacks_Flat), v)
 	},
 	dbcenums.SPELLMOD_RANGE: func(p *parser, e *Effect, v float64) *attachment {
-		return p.modFloat("SpellMod_Range_Flat", p.modConfig(e, core.SpellMod_Range_Flat), v)
+		return p.rangeMod("SpellMod_Range_Flat", p.modConfig(e, core.SpellMod_Range_Flat), v)
 	},
 	// The chance of the procs the class mask names, in percentage points: the rows the mask names are
 	// the proc auras themselves, and a trigger built from one rolls at the raised chance, wherever it
@@ -599,7 +633,7 @@ var pctModTable = map[dbcenums.SpellModOp]row{
 		return p.modFloat("SpellMod_GlobalCooldown_Pct", p.modConfig(e, core.SpellMod_GlobalCooldown_Pct), v)
 	},
 	dbcenums.SPELLMOD_RANGE: func(p *parser, e *Effect, v float64) *attachment {
-		return p.modFloat("SpellMod_Range_Pct", p.modConfig(e, core.SpellMod_Range_Pct), v)
+		return p.rangeMod("SpellMod_Range_Pct", p.modConfig(e, core.SpellMod_Range_Pct), v)
 	},
 	dbcenums.SPELLMOD_EFFECT1: pctEffectAmount,
 	dbcenums.SPELLMOD_EFFECT2: pctEffectAmount,
@@ -821,6 +855,23 @@ func (p *parser) modFloat(kind string, cfg core.SpellModConfig, v float64) *atta
 	return p.mod(kind, cfg, v, func(mod *core.SpellMod, level float64) {
 		mod.UpdateFloatValue(v * level)
 	})
+}
+
+// A range mod moves the ranged auto attack's reach with it, so the auto attack checks its range again
+// whenever the mod turns on or off.
+func (p *parser) rangeMod(kind string, cfg core.SpellModConfig, v float64) *attachment {
+	a := p.modFloat(kind, cfg, v)
+	if a.set == nil {
+		return a
+	}
+	set := a.set
+	a.set = func(sim *core.Simulation, level float64) {
+		set(sim, level)
+		if sim != nil {
+			p.unit.AutoAttacks.UpdateRangedRange(sim)
+		}
+	}
+	return a
 }
 
 func (p *parser) modInt(kind string, cfg core.SpellModConfig, v float64) *attachment {
@@ -1166,6 +1217,18 @@ func (p *parser) pseudoAdd(kind string, key string, fields []*float64, v float64
 		}
 	})
 	a.key = key
+	return a
+}
+
+// Weapon skill, which the attack tables read when they are built, so a change rebuilds them.
+func (p *parser) weaponSkill(skill proto.WeaponSkill, v float64) *attachment {
+	a := p.pseudoAdd("weapon-skill", fmt.Sprintf("WeaponSkills%d", skill), []*float64{&p.unit.PseudoStats.WeaponSkills[skill]}, v)
+	set := a.set
+	character := p.character
+	a.set = func(sim *core.Simulation, level float64) {
+		set(sim, level)
+		character.UpdateAttackTableWeapons()
+	}
 	return a
 }
 

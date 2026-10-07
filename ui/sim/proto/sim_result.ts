@@ -1433,7 +1433,7 @@ type TargetedActionMetricsOptions = {
 };
 
 // Manages the metrics for a single action applied to a specific target.
-export class TargetedActionMetrics {
+class TargetedActionMetrics {
 	private readonly iterations: number;
 	private readonly duration: number;
 	readonly data: TargetedActionMetricsProto;

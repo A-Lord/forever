@@ -23,9 +23,9 @@ func init() {
 }
 
 // The fixtures mirror the spec suites' Default* fixtures.
-var furyTalents = "30305003-050530205052310051"
-var armsTalents = "30305213032115201-05052030004"
-var protectionTalents = "05--552531233311210531"
+var furyTalents = "30305003-05053035052210501"
+var armsTalents = "30305213032315201-0505003004"
+var protectionTalents = "05--255533121331021351"
 
 var dpsOptions = &proto.Player_DpsWarrior{
 	DpsWarrior: &proto.DpsWarrior{
@@ -430,7 +430,7 @@ func TestOverpowerAndRevengeWindowsOpenOnAvoidedMeleeHits(t *testing.T) {
 	}
 }
 
-// Dual Wield Specialization 5/5 gives the off-hand axe's attacks 10% hit and the main hand's none.
+// Furious Precision 3/3 gives the off-hand axe's attacks 10% hit and the main hand's none.
 // Cruelty 5/5 gives each axe 5% crit, and a two-handed axe also takes Weaponmaster's 5%, whose aura is
 // up. Axe Specialization is crit on every attack, not a mod on the axes.
 func TestTalentsReachTheirWeapons(t *testing.T) {
@@ -479,8 +479,16 @@ func TestShieldHitsNeverProcMainHandWeaponEffects(t *testing.T) {
 	if crusaderTrigger == nil || crusaderTrigger.Dpm == nil {
 		t.Fatal("the main hand's Crusader registered no proc manager")
 	}
-	if crusaderTrigger.Dpm.Chance(mainHandSpecial.ProcMask, sim) == 0 {
-		t.Fatal("a main-hand special never rolls Crusader, so the check below proves nothing")
+	rollsCrusader := func(procMask core.ProcMask) bool {
+		for range 1000 {
+			if crusaderTrigger.Dpm.Proc(sim, procMask, "Crusader Test") {
+				return true
+			}
+		}
+		return false
+	}
+	if !rollsCrusader(mainHandSpecial.ProcMask) {
+		t.Fatal("1000 main-hand specials never procced Crusader, so the check below proves nothing")
 	}
 
 	windfuryTrigger := war.GetAura("Windfury Totem Trigger")
@@ -490,8 +498,8 @@ func TestShieldHitsNeverProcMainHandWeaponEffects(t *testing.T) {
 	}
 
 	for name, spell := range shieldSpells(t, war) {
-		if got := crusaderTrigger.Dpm.Chance(spell.ProcMask, sim); got != 0 {
-			t.Errorf("%s rolls the main hand's Crusader at %v, want never", name, got)
+		if rollsCrusader(spell.ProcMask) {
+			t.Errorf("%s procced the main hand's Crusader", name)
 		}
 		for i := 0; i < 200 && !windfury.IsActive(); i++ {
 			windfuryTrigger.OnSpellHitDealt(windfuryTrigger, sim, spell, &core.SpellResult{Target: target, Outcome: core.OutcomeHit, Damage: 100})

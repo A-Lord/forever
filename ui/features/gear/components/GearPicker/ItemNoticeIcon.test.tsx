@@ -1,12 +1,13 @@
 import { Spec } from '@generated/proto/common';
+import i18n from '@i18n/config';
 import { SimHostProvider } from '@sim/context/SimHostContext';
-import { fakeHost } from '@sim/testing';
+import { fakeHost } from '@testing/sim/fake_host';
 import { fireEvent, render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { ITEM_INFO_NOTICES, ITEM_NOTICES } from '../../item_notices';
-import { ItemNoticeIcon } from './ItemNoticeIcon';
+import { ItemNoticeIcon, ItemNoticeIconView } from './ItemNoticeIcon';
 
 const SPEC_SPECIFIC_ITEM = 90101;
 const NOTICED_ITEM = 90102;
@@ -101,5 +102,27 @@ describe('ItemNoticeIcon', () => {
 		open();
 		expect(await screen.findByText('Dps notice')).toBeTruthy();
 		expect(screen.queryByText('Generic notice')).toBeNull();
+	});
+});
+
+describe('ItemNoticeIconView', () => {
+	it.each([
+		['warning', 'common.list_picker.warnings'],
+		['info', 'common.list_picker.additional_information'],
+	] as const)('names the icon of a %s notice for its level', (level, name) => {
+		render(<ItemNoticeIconView level={level}>Not implemented</ItemNoticeIconView>);
+		expect(screen.getByRole('button', { name: i18n.t(name) })).toBeTruthy();
+	});
+
+	it('shows its notices in a tooltip on the icon', async () => {
+		render(
+			<ItemNoticeIconView level="warning">
+				<p>First</p>
+				<p>Second</p>
+			</ItemNoticeIconView>,
+		);
+		open();
+		const first = await screen.findByText('First');
+		expect([...first.parentElement!.children].map(child => child.textContent)).toEqual(['First', 'Second']);
 	});
 });

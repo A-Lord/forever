@@ -26,8 +26,8 @@ vi.mock('./chart/build', () => ({
 		return { id: player.id, datasets: [], scales: {}, annotations: null, duration: 10 };
 	},
 }));
-vi.mock('./rotation/RotationView', () => ({
-	RotationView: ({ model }: { model: unknown }) => {
+vi.mock('./rotation/RotationTrack', () => ({
+	RotationTrack: ({ model }: { model: unknown }) => {
 		state.models.push(model);
 		return <div data-testid="rotation-pane" />;
 	},

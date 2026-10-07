@@ -40,6 +40,11 @@ const (
 	// The ProcHint bits the tooltip's wording did not yield, which Value carries as a bit set. It
 	// replaces what the wording produced rather than adding to it.
 	Hint
+
+	// The stat mask of the A_MOD_TOTAL_STAT_PERCENTAGE effect, onto its second misc value, one bit
+	// per stat index. Fails when the effect states either misc value itself, since 0 and 0 is
+	// Strength by index.
+	StatMask
 )
 
 func (f Field) String() string {
@@ -58,6 +63,8 @@ func (f Field) String() string {
 		return "DurationMs"
 	case Hint:
 		return "Hint"
+	case StatMask:
+		return "StatMask"
 	}
 	return "unknown field"
 }
@@ -125,6 +132,43 @@ var AreaBonuses = []AreaBonus{
 	},
 }
 
+// A talent curve that states its size with the opposite sign to the row's own base points, where the
+// tooltip reads the row's sign: the curve's values are negated. Stale once the curve's sign agrees
+// with the row's, and refused where the spell has no curve at the position or the row's base is 0.
+type CurveSign struct {
+	SpellID int32
+	Effect  int // the effect position as the tooltip counts it, from 1: $s2 is 2
+	Reason  string
+	Source  string
+}
+
+var CurveSigns = []CurveSign{
+	{
+		SpellID: 11160,
+		Effect:  2,
+		Reason:  "Frost Channeling: row -30, tooltip 'reduces the threat caused by your Frost spells by $s2%'",
+		Source:  "tooltip, game build 1.60.1.70170",
+	},
+	{
+		SpellID: 1311085,
+		Effect:  2,
+		Reason:  "Instrument of Law: row -20, tooltip 'reduces all threat you generate by $m2% while Righteous Fury is not active'",
+		Source:  "tooltip, game build 1.60.1.70170",
+	},
+	{
+		SpellID: 12962,
+		Effect:  1,
+		Reason:  "Iron Will: row -15, tooltip 'Reduces the duration of Stun and Fear effects inflicted on you by $s1%'",
+		Source:  "tooltip, game build 1.60.1.70170",
+	},
+	{
+		SpellID: 19572,
+		Effect:  2,
+		Reason:  "Improved Mend Pet: row -20, tooltip 'reduces the Mana cost by $s2%'",
+		Source:  "tooltip, game build 1.60.1.70170",
+	},
+}
+
 // The procs whose rate the game files keep outside the spell data and that belong to the spell
 // rather than to one weapon: a chance-on-hit weapon's rate is its own and lives in WeaponProcs. The
 // ProcChance column reads the 100 or 101 sentinel, which the store would otherwise take for "fires
@@ -181,6 +225,161 @@ var Spells = []Override{
 		Value:   float64(core.ProcHintDamage),
 		Reason:  "Badge of the Swarmguard: stacks on hits with a damage component",
 		Source:  "owner decision, PR #99",
+	},
+	{
+		SpellID: 1299796,
+		Field:   StatMask,
+		Value:   16, // TODO: Verify in game that Insight's proc doubles Spirit, not Strength.
+		Reason:  "Insight: misc 0 and 0 is Strength by index, the tooltip reads 'Increases your Spirit by 100%'",
+		Source:  "tooltip",
+	},
+	{
+		SpellID: 1248751,
+		Field:   StatMask,
+		Value:   16, // TODO: Verify in game that Mystic Mushroom raises Spirit, not Strength.
+		Reason:  "Increased Spirit: misc 0 and 0 is Strength by index, the tooltip reads 'Increases Spirit by 5%'",
+		Source:  "tooltip",
+	},
+
+	// Attack Power shares measured in game at levels 13 and 14, against the sheet's Attack Power from
+	// 99 to 154. Only Rend Rank 2 and Thunder Clap Rank 1 were measured; the other ranks carry the
+	// same share until a log at their level says otherwise.
+	{
+		SpellID: 772,
+		Field:   APCoefPeriodic,
+		Value:   0.02,
+		Reason:  "Rend Rank 1: Rank 2's measured share per tick",
+		Source:  "combat log, Rend Rank 2, 2026-10-01",
+	},
+	{
+		SpellID: 6546,
+		Field:   APCoefPeriodic,
+		Value:   0.02,
+		Reason:  "Rend Rank 2: ticks average 7 + 0.02 x Attack Power, read on every tick",
+		Source:  "combat log, Rend Rank 2, 2026-10-01",
+	},
+	{
+		SpellID: 6547,
+		Field:   APCoefPeriodic,
+		Value:   0.02,
+		Reason:  "Rend Rank 3: Rank 2's measured share per tick",
+		Source:  "combat log, Rend Rank 2, 2026-10-01",
+	},
+	{
+		SpellID: 6548,
+		Field:   APCoefPeriodic,
+		Value:   0.02,
+		Reason:  "Rend Rank 4: Rank 2's measured share per tick",
+		Source:  "combat log, Rend Rank 2, 2026-10-01",
+	},
+	{
+		SpellID: 11572,
+		Field:   APCoefPeriodic,
+		Value:   0.02,
+		Reason:  "Rend Rank 5: Rank 2's measured share per tick",
+		Source:  "combat log, Rend Rank 2, 2026-10-01",
+	},
+	{
+		SpellID: 11573,
+		Field:   APCoefPeriodic,
+		Value:   0.02,
+		Reason:  "Rend Rank 6: Rank 2's measured share per tick",
+		Source:  "combat log, Rend Rank 2, 2026-10-01",
+	},
+	{
+		SpellID: 11574,
+		Field:   APCoefPeriodic,
+		Value:   0.02,
+		Reason:  "Rend Rank 7: Rank 2's measured share per tick",
+		Source:  "combat log, Rend Rank 2, 2026-10-01",
+	},
+	{
+		SpellID: 6343,
+		Field:   APCoefDirect,
+		Value:   0.07,
+		Reason:  "Thunder Clap Rank 1: hits deal 10 + 0.07 x Attack Power, rounded down, before armor",
+		Source:  "combat log, Thunder Clap Rank 1, 2026-10-01",
+	},
+	{
+		SpellID: 8198,
+		Field:   APCoefDirect,
+		Value:   0.07,
+		Reason:  "Thunder Clap Rank 2: Rank 1's measured share",
+		Source:  "combat log, Thunder Clap Rank 1, 2026-10-01",
+	},
+	{
+		SpellID: 8204,
+		Field:   APCoefDirect,
+		Value:   0.07,
+		Reason:  "Thunder Clap Rank 3: Rank 1's measured share",
+		Source:  "combat log, Thunder Clap Rank 1, 2026-10-01",
+	},
+	{
+		SpellID: 8205,
+		Field:   APCoefDirect,
+		Value:   0.07,
+		Reason:  "Thunder Clap Rank 4: Rank 1's measured share",
+		Source:  "combat log, Thunder Clap Rank 1, 2026-10-01",
+	},
+	{
+		SpellID: 11580,
+		Field:   APCoefDirect,
+		Value:   0.07,
+		Reason:  "Thunder Clap Rank 5: Rank 1's measured share",
+		Source:  "combat log, Thunder Clap Rank 1, 2026-10-01",
+	},
+	{
+		SpellID: 11581,
+		Field:   APCoefDirect,
+		Value:   0.07,
+		Reason:  "Thunder Clap Rank 6: Rank 1's measured share",
+		Source:  "combat log, Thunder Clap Rank 1, 2026-10-01",
+	},
+
+	// Revenge's Attack Power shares, read off how its non-crit hits move with Attack Power inside each
+	// log, with Defensive Stance's 10% and Improved Revenge taken out. Only Ranks 1 and 2 were measured;
+	// the other ranks carry their share until a log at their level says otherwise.
+	{
+		SpellID: 6572,
+		Field:   APCoefDirect,
+		Value:   0.28,
+		Reason:  "Revenge Rank 1: hits deal 22 +/- 15% + 0.28 x Attack Power, before armor",
+		Source:  "combat logs, Revenge Rank 1, 2026-09-25 and 2026-09-29",
+	},
+	{
+		SpellID: 6574,
+		Field:   APCoefDirect,
+		Value:   0.28,
+		Reason:  "Revenge Rank 2: 0.24 to 0.30 x Attack Power with Improved Revenge 3/3 taken out, Rank 1's 0.28 within it",
+		Source:  "combat log, Revenge Rank 2, 2026-10-03",
+	},
+	{
+		SpellID: 7379,
+		Field:   APCoefDirect,
+		Value:   0.28, // TODO: Measure Revenge Rank 3 in game.
+		Reason:  "Revenge Rank 3: Ranks 1 and 2's measured share",
+		Source:  "combat logs, Revenge Ranks 1 and 2, 2026-09-25 to 2026-10-03",
+	},
+	{
+		SpellID: 11600,
+		Field:   APCoefDirect,
+		Value:   0.28, // TODO: Measure Revenge Rank 4 in game.
+		Reason:  "Revenge Rank 4: Ranks 1 and 2's measured share",
+		Source:  "combat logs, Revenge Ranks 1 and 2, 2026-09-25 to 2026-10-03",
+	},
+	{
+		SpellID: 11601,
+		Field:   APCoefDirect,
+		Value:   0.28, // TODO: Measure Revenge Rank 5 in game.
+		Reason:  "Revenge Rank 5: Ranks 1 and 2's measured share",
+		Source:  "combat logs, Revenge Ranks 1 and 2, 2026-09-25 to 2026-10-03",
+	},
+	{
+		SpellID: 25288,
+		Field:   APCoefDirect,
+		Value:   0.28, // TODO: Measure Revenge Rank 6 in game.
+		Reason:  "Revenge Rank 6: Ranks 1 and 2's measured share",
+		Source:  "combat logs, Revenge Ranks 1 and 2, 2026-09-25 to 2026-10-03",
 	},
 }
 

@@ -12,7 +12,6 @@ const meta = {
 	args: { level: 'warning', children: 'This item is not supported by the sim.' },
 	argTypes: {
 		level: { control: 'select', options: LEVELS },
-		inline: { control: 'boolean' },
 		children: { control: 'text' },
 		className: { control: 'text' },
 	},
@@ -34,17 +33,5 @@ export const Levels: Story = {
 				</Notice>
 			))}
 		</div>
-	),
-};
-
-export const Inline: Story = {
-	render: args => (
-		<p>
-			The sim runs this spec{' '}
-			<Notice {...args} inline>
-				with a partial rotation
-			</Notice>{' '}
-			until every talent is supported.
-		</p>
 	),
 };

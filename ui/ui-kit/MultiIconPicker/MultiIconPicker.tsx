@@ -11,14 +11,12 @@ export interface MultiIconPickerProps {
 	icon?: ResolvedIcon;
 	active: boolean;
 	onClear: () => void;
-	/** The clear option's accessible name; "Clear" by default. */
-	clearLabel?: string;
 	/** One menu entry per child, each an icon toggle. The popup unmounts while closed, and the children with it. */
 	children: ReactNode;
 	testId?: string;
 }
 
-export const MultiIconPicker = ({ label, icon, active, onClear, clearLabel, children, testId }: MultiIconPickerProps) => {
+export const MultiIconPicker = ({ label, icon, active, onClear, children, testId }: MultiIconPickerProps) => {
 	const labelId = useId();
 	const controlRef = useRef<HTMLAnchorElement>(null);
 	const menu = (
@@ -48,7 +46,7 @@ export const MultiIconPicker = ({ label, icon, active, onClear, clearLabel, chil
 				<a
 					className="ui-icon-picker-swatch p-0 filter-[opacity(0.7)] hover:filter-none"
 					data-testid="icon-picker-clear"
-					aria-label={clearLabel ?? i18n.t('common.clear')}
+					aria-label={i18n.t('common.clear')}
 					onClick={onClear}
 				/>
 			</li>

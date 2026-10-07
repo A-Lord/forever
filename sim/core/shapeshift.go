@@ -5,7 +5,8 @@ import (
 	"github.com/wowsims/forever/sim/core/proto"
 )
 
-// What the game files require of the caster's form, auras and equipment.
+// What the game files require of the caster's form, auras and equipment, and of the target's creature
+// type.
 type CastRequirement struct {
 	Forms, ExcludedForms          uint64           // SpellShapeshift masks, bit form-1
 	CasterForm                    bool             // castable with no form even though Forms names some
@@ -14,26 +15,7 @@ type CastRequirement struct {
 	Weapon                        EquipRequirement // SpellEquippedItems of a weapon: each hand named holds a matching weapon, else any weapon slot does
 	Shield                        bool             // SpellEquippedItems of armor naming the shield subclass: the off hand holds a shield
 	NotInCombat                   bool             // castable only before the encounter starts
-}
-
-func InForms(forms ...dbcenums.ShapeshiftForm) CastRequirement {
-	var r CastRequirement
-	for _, form := range forms {
-		r.Forms |= form.Mask()
-	}
-	return r
-}
-
-func (r CastRequirement) Excluding(forms ...dbcenums.ShapeshiftForm) CastRequirement {
-	for _, form := range forms {
-		r.ExcludedForms |= form.Mask()
-	}
-	return r
-}
-
-func (r CastRequirement) OrCasterForm() CastRequirement {
-	r.CasterForm = true
-	return r
+	TargetMobTypes                uint32           // mob types the target must be one of, bit 1 << proto.MobType; zero allows any
 }
 
 func (r CastRequirement) allowsForm(form dbcenums.ShapeshiftForm) bool {
@@ -104,8 +86,9 @@ func (r *CastRequirement) equipped(equipment *Equipment) bool {
 	return true
 }
 
-// unshift: castable only once Unit.AutoUnshift has left the current form.
-func (spell *Spell) castRequirementFailure(sim *Simulation) (reason string, unshift bool) {
+// unshift: castable only once Unit.AutoUnshift has left the current form. A nil target, a weapon
+// swing's, skips the target's mob type; a target of unknown mob type is in no mask and is refused.
+func (spell *Spell) castRequirementFailure(sim *Simulation, target *Unit) (reason string, unshift bool) {
 	r := &spell.CastRequirement
 	unit := spell.Unit
 	if !r.allowsForm(unit.ShapeshiftForm) {
@@ -125,6 +108,9 @@ func (spell *Spell) castRequirementFailure(sim *Simulation) (reason string, unsh
 	}
 	if r.NotInCombat && sim.CurrentTime >= 0 {
 		return "in combat", false
+	}
+	if r.TargetMobTypes != 0 && target != nil && r.TargetMobTypes&(1<<target.MobType) == 0 {
+		return "wrong target creature type", false
 	}
 	return "", unshift
 }

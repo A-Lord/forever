@@ -15,9 +15,7 @@ ui/
                      raid/ (raid, party, encounter), settings/ (bulk, item_swap, reforge,
                      stat_weight), utils/ (collections, math, format, json, misc),
                      workers/, cache/, state/, proto/, talents data + trees, bulk/,
-                     wasm/, constants/, presets/, hooks/, context/, and fake_host.ts (the
-                     vitest-free fakeHost that testing.ts re-exports and the story fixtures
-                     import). alias @sim
+                     wasm/, constants/, presets/, hooks/, and context/. alias @sim
   ui-kit/            sim-agnostic, controlled React widgets, one folder per component (48 of
                      them: TextField/, Dialog/, Field/, Table/, Notice/, …, each with a
                      story and a test), plus hooks/, utils/ (css, dom, icons, colors, wowhead),
@@ -66,8 +64,11 @@ ui/
                      components/ (the tables and swatches the pages render)
   testing/           tailwind/ (the canonical-class and class-hook checkers the two tree-wide
                      tests at the ui/ root run), storybook/ (decorators.tsx, the stories.test.tsx
-                     smoke test, fixtures/), react.tsx (renderWithHost). alias @testing, for
-                     tests and stories only
+                     smoke test, fixtures/), react.tsx (renderWithHost), sim/ (fake_host.ts, a
+                     vitest-free fakeHost the story fixtures import, plus subscriptions.ts,
+                     hooks.tsx, localization.ts), apl/ (player.ts, dom.ts, source.ts), and the
+                     gear.ts, inputs.ts, timeline_rotation.ts helpers. A module under testing/sim/
+                     imports neither @features nor @ui-kit. alias @testing, for tests and stories only
   types/             ambient .d.ts (i18n-loader.d.ts)
   index_template.html   the one spec page; tracking/ the analytics shim
   canonical_classes.test.ts, no_class_hooks.test.ts, class_hook_allowlist.json,
@@ -85,6 +86,9 @@ component. `npm run storybook:dev` serves it on port 6006, `npm run storybook:bu
 Titles follow the tree: `Kit/<Name>`, `Features/<Feature>/<Name>`, `App/<Area>/<Name>`, and the
 twelve `Design System/*` pages.
 
+- **Stories and tests add no code to the UI** (the rule in `AGENTS.md`). Fixtures and stubs live in
+  the story or test, or in `ui/testing/`. A container's `<Name>View` is the component's props
+  surface and is exported as such, not as a test-only export.
 - **Stories are tests.** `ui/testing/storybook/stories.test.tsx` globs every `*.stories.tsx`,
   composes each story with the preview annotations and asserts it mounts under happy-dom, inside
   `npm run test:unit`. A story that cannot mount there sets `smoke: false` and a `smokeReason`
@@ -128,7 +132,7 @@ cover placement and co-located CSS.
   touch the DOM without being components — the timeline's chart builders, zoom controllers and
   ruler sit in `results/components/Timeline/{chart,rotation}/`. The two may share a name:
   `results/model/timeline/` and `results/components/Timeline/`.
-- **Containers and views.** A feature component that reads the store or calls a facade is a container: it keeps the hooks and facade calls and renders a `<Name>View` beside it. The view takes props only, reads neither the sim host nor the store, and gets a story under `Features/<Feature>/<Name>`. A picker connected to the store that a view needs is passed in as a `ReactNode` slot. The six saved-data panels (`Saved{Gear,Talents,Rotation,EpWeights,Encounter,Settings}`) build their `SavedDataPanel` props through `useSavedPanel` (`features/hooks/`), as does the app's `GearPresets/`.
+- **Containers and views.** A feature component that reads the store or calls a facade is a container: it keeps the hooks and facade calls and renders a `<Name>View`. Both live in `<Name>.tsx` and are exported separately, the view above the container; its story and test are `<Name>.stories.tsx` and `<Name>.test.tsx`. There are no separate `*View.tsx` files: any other presentational piece lives in the file of the component that renders it, above that component, and is exported for its story and test (`ItemListToolbarView` in `ItemList.tsx`, `CharacterStatsPanelView` in `CharacterStats.tsx`). The view takes props only and reads neither the sim host nor the store. A picker connected to the store that a view needs is passed in as a `ReactNode` slot. The six saved-data panels (`Saved{Gear,Talents,Rotation,EpWeights,Encounter,Settings}`) build their `SavedDataPanel` props through `useSavedPanel` (`features/hooks/`), as does the app's `GearPresets/`.
 - `features/inputs/`: the store binding for the kit's pickers — `InputConfig` and `useInput`, one `Connected<Picker>` adapter per kit picker, and the config factories in `input_helpers.ts` / `icon_inputs.ts`. A feature or spec that needs a picker connected to the store renders a `Connected*` component; the kit picker underneath never learns what it is connected to.
 - `app/`: composes features; the only place that knows the tab layout.
 - `specs/<class>/<spec>/`: data; the only code allowed is `features/` escape hatches and `shared/derived.ts` rules.

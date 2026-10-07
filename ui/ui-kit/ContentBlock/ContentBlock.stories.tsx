@@ -15,8 +15,6 @@ const meta = {
 	argTypes: {
 		children: { control: false },
 		headerChildren: { control: false },
-		bodyRef: { control: false },
-		headerRef: { control: false },
 	},
 	render: args => (
 		<div className="flex flex-col">

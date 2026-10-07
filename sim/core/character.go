@@ -65,7 +65,8 @@ type Character struct {
 	bonusOHDps     float64
 	bonusRangedDps float64
 
-	professions [2]proto.Profession
+	professions    [2]proto.Profession
+	professionRank [2]int32 // 0 is the maximum.
 
 	// Used for effects like "Increased Armor Value from Items"
 	*EquipScalingManager
@@ -118,6 +119,10 @@ func NewCharacter(party *Party, partyIndex int, player *proto.Player) Character 
 			player.Profession1,
 			player.Profession2,
 		},
+		professionRank: [2]int32{
+			player.Prof1Rank,
+			player.Prof2Rank,
+		},
 
 		Party:      party,
 		PartyIndex: partyIndex,
@@ -138,7 +143,13 @@ func NewCharacter(party *Party, partyIndex int, player *proto.Player) Character 
 	character.baseStats = BaseStats[BaseStatsKey{Race: character.Race, Class: character.Class}]
 
 	character.AddStats(character.baseStats)
+	character.AddStat(stats.Health, 20-10*20)
 	character.addUniversalStatDependencies()
+	character.AddStatDependency(stats.Agility, stats.DodgePercent, dodgePerAgility(character.Class))
+	character.PseudoStats.BaseDodgeChance += ClassBaseDodge[character.Class]
+	if _, ok := ClassWeaponTypeCapabilities[character.Class][proto.WeaponType_WeaponTypeShield]; ok {
+		character.PseudoStats.BlockValuePerStrength = 0.05
+	}
 
 	if player.BonusStats != nil {
 		if player.BonusStats.Stats != nil {
@@ -165,6 +176,7 @@ func NewCharacter(party *Party, partyIndex int, player *proto.Player) Character 
 		}
 	}
 	character.PseudoStats.InFrontOfTarget = player.InFrontOfTarget
+	character.applyWeaponSkills(player.WeaponSkills)
 
 	if player.EnableItemSwap && player.ItemSwap != nil {
 		character.enableItemSwap(player.ItemSwap)
@@ -337,10 +349,10 @@ func (character *Character) applyItemEffects(agent Agent) {
 	registeredItemEffects := make(map[int32]bool)
 	registeredItemEnchantEffects := make(map[int32]bool)
 
-	character.Equipment.applyItemEffects(agent, registeredItemEffects, registeredItemEnchantEffects, true)
+	character.Equipment.applyItemEffects(agent, registeredItemEffects, registeredItemEnchantEffects)
 
 	if character.ItemSwap.IsEnabled() {
-		character.ItemSwap.unEquippedItems.applyItemEffects(agent, registeredItemEffects, registeredItemEnchantEffects, false)
+		character.ItemSwap.unEquippedItems.applyItemEffects(agent, registeredItemEffects, registeredItemEnchantEffects)
 	}
 
 	character.registerEquipSpeedAuras()
@@ -466,6 +478,8 @@ func (character *Character) Finalize() {
 	}
 
 	character.Unit.finalize()
+	character.basePhysicalCritPercent = character.baseStats[stats.PhysicalCritPercent]
+	character.critPerAgility = character.GetStatDependencyCoeff(stats.Agility, stats.PhysicalCritPercent)
 
 	character.majorCooldownManager.finalize()
 }
@@ -481,6 +495,7 @@ func (character *Character) FillPlayerStats(playerStats *proto.PlayerStats) {
 		PseudoStats: character.GetPseudoStatsProto(),
 		ApiVersion:  GetCurrentProtoVersion(),
 	}
+	playerStats.WeaponSkills = character.weaponSkillsProto()
 
 	character.clearBuildPhaseAuras(CharacterBuildPhaseAll)
 	playerStats.Sets = character.GetActiveSetBonusNames()
@@ -515,6 +530,19 @@ func (character *Character) HasProfession(prof proto.Profession) bool {
 	return prof == character.professions[0] || prof == character.professions[1]
 }
 
+// Whether the character has prof at rank or higher. ProfessionUnknown is always met.
+func (character *Character) MeetsProfession(prof proto.Profession, rank int32) bool {
+	if prof == proto.Profession_ProfessionUnknown {
+		return true
+	}
+	for i, p := range character.professions {
+		if p == prof && (character.professionRank[i] == 0 || character.professionRank[i] >= rank) {
+			return true
+		}
+	}
+	return false
+}
+
 func (character *Character) HasTrinketEquipped(itemID int32) bool {
 	return character.Trinket1().ID == itemID ||
 		character.Trinket2().ID == itemID
@@ -522,15 +550,6 @@ func (character *Character) HasTrinketEquipped(itemID int32) bool {
 
 func (character *Character) HasRingEquipped(itemID int32) bool {
 	return character.Finger1().ID == itemID || character.Finger2().ID == itemID
-}
-
-func (character *Character) HasMetaGemEquipped(gemID int32) bool {
-	for _, gem := range character.Head().Gems {
-		if gem.ID == gemID && !gem.Disabled {
-			return true
-		}
-	}
-	return false
 }
 
 // Returns the MH weapon if one is equipped, and null otherwise.

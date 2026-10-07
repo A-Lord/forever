@@ -1,7 +1,6 @@
 import {
 	AreaType,
 	ArmorType,
-	ItemQuality,
 	ItemSlot,
 	MobType,
 	Profession,
@@ -10,6 +9,7 @@ import {
 	RangedWeaponType,
 	SpellSchool,
 	Stat,
+	WeaponSkill,
 	WeaponType,
 } from '@generated/proto/common';
 import { ResourceType } from '@generated/proto/spell';
@@ -39,8 +39,8 @@ import {
 	getSpecI18nKey,
 	getStatusI18nKey,
 	getTargetInputI18nKey,
+	getWeaponSkillI18nKey,
 	getWeaponTypeI18nKey,
-	itemQualityI18nKeys,
 	protoStatNameI18nKeys,
 	pseudoStatI18nKeys,
 	resourceTypeI18nKeys,
@@ -141,15 +141,15 @@ export const translateRangedWeaponType = (rangedWeaponType: RangedWeaponType): s
 	});
 };
 
-export const translateResourceType = (resourceType: ResourceType): string => {
-	return i18n.t(`common.resource_types.${resourceTypeI18nKeys[resourceType] || ResourceType[resourceType].toLowerCase()}`, {
-		defaultValue: ResourceType[resourceType],
+export const translateWeaponSkill = (weaponSkill: WeaponSkill): string => {
+	return i18n.t(`common.weapon_skills.${getWeaponSkillI18nKey(weaponSkill)}`, {
+		defaultValue: WeaponSkill[weaponSkill],
 	});
 };
 
-export const translateItemQuality = (itemQuality: ItemQuality): string => {
-	return i18n.t(`common.item_qualities.${itemQualityI18nKeys[itemQuality] || ItemQuality[itemQuality].toLowerCase()}`, {
-		defaultValue: ItemQuality[itemQuality],
+export const translateResourceType = (resourceType: ResourceType): string => {
+	return i18n.t(`common.resource_types.${resourceTypeI18nKeys[resourceType] || ResourceType[resourceType].toLowerCase()}`, {
+		defaultValue: ResourceType[resourceType],
 	});
 };
 

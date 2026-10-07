@@ -1,6 +1,6 @@
 import { PlayerSpecs } from '@sim/player/specs/index';
-import { mockSubscriptions } from '@sim/testing';
 import { renderWithHost } from '@testing/react';
+import { mockSubscriptions } from '@testing/sim/subscriptions';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { SimResultData } from '../../model/result_data';

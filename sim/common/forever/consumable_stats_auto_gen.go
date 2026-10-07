@@ -165,6 +165,7 @@ func RegisterAllStatConsumables() {
 		21546,  // Elixir of Holy Power
 		22192,  // Bloodkelp Elixir of Dodging
 		22193,  // Bloodkelp Elixir of Resistance
+		22236,  // Buttermilk Delight
 		22237,  // Dark Desire
 		22238,  // Very Berry Cream
 		22239,  // Sweet Surprise
@@ -175,10 +176,10 @@ func RegisterAllStatConsumables() {
 		23211,  // Toasted Smorc
 		23326,  // Midsummer Sausage
 		23327,  // Fire-toasted Bun
+		23435,  // Elderberry Pie
 		246948, // Distilled Firewater
 		247754, // Minor Arcane Elixir
 		247755, // Elixir of Minor Force
-		248613, // Lightning in a Bottle
 		249865, // Peace Tea
 		249866, // Royal Tea
 		249867, // Root Tea

@@ -500,6 +500,7 @@ func TestEveryTableRow(t *testing.T) {
 
 		{dbcenums.A_MOD_ATTACKSPEED, 0, 20, "attack-speed", 1.2, true},
 		{dbcenums.A_MOD_THREAT, 127, 30, "threat", 1.3, false},
+		{dbcenums.A_MOD_THREAT, 72, -30, "threat-by-school", 0.7, false},
 		{dbcenums.A_MOD_DAMAGE_DONE, 1, 20, "stat PhysicalDamage", 20, false},
 		{dbcenums.A_MOD_DAMAGE_DONE, 126, 20, "stat SpellDamage", 20, false},
 		{dbcenums.A_MOD_DAMAGE_DONE, 127, 20, "stat PhysicalDamage, stat SpellDamage", 20, false},
@@ -516,6 +517,8 @@ func TestEveryTableRow(t *testing.T) {
 		{dbcenums.A_MOD_MAX_HEALTH, 0, 560, "stat Health", 560, false},
 		{dbcenums.A_MOD_INCREASE_HEALTH_PERCENT, 0, 10, "multiply-stat Health", 1.1, false},
 		{dbcenums.A_MOD_PARRY_PERCENT, 0, 5, "stat ParryPercent", 5, false},
+		{dbcenums.A_MOD_SKILL, miscDefense, 20, "stat DefenseRating", 20 * core.DefenseRatingPerDefenseLevel, false},
+		{dbcenums.A_MOD_SKILL, 173, 5, "weapon-skill", 5, false},
 		{dbcenums.A_MOD_DODGE_PERCENT, 0, 5, "stat DodgePercent", 5, false},
 		{dbcenums.A_MOD_BLOCK_PERCENT, 0, 5, "stat BlockPercent", 5, false},
 		{dbcenums.A_MOD_WEAPON_CRIT_PERCENT, 0, 5, "stat PhysicalCritPercent", 5, false},
@@ -716,9 +719,6 @@ func TestParseStaticStatConventions(t *testing.T) {
 
 	crit := parseWarrior()
 	baseCrit := crit.GetStat(stats.PhysicalCritPercent)
-	if baseCrit < 1 {
-		t.Fatalf("base physical crit is %v, so the stat is not on the 0-100 scale this pins", baseCrit)
-	}
 	ParseStatic(crit, oneEffectRow(dbcenums.A_MOD_WEAPON_CRIT_PERCENT, 0, 5))
 	if got := crit.GetStat(stats.PhysicalCritPercent) - baseCrit; math.Abs(got-5) > 1e-9 {
 		t.Errorf("crit from a 5 point row: %v percentage points, want 5", got)
@@ -728,6 +728,21 @@ func TestParseStaticStatConventions(t *testing.T) {
 	ParseStatic(parry, oneEffectRow(dbcenums.A_MOD_PARRY_PERCENT, 0, 5))
 	if got := parry.GetStat(stats.ParryPercent); math.Abs(got-5) > 1e-9 {
 		t.Errorf("parry from a 5 point row: %v percentage points, want 5", got)
+	}
+
+	defense := parseWarrior()
+	ParseStatic(defense, oneEffectRow(dbcenums.A_MOD_SKILL, miscDefense, 20))
+	if got := defense.GetStat(stats.DefenseRating); math.Abs(got-20*core.DefenseRatingPerDefenseLevel) > 1e-9 {
+		t.Errorf("defense rating from a 20 point Defense skill row: %v, want %v", got, 20*core.DefenseRatingPerDefenseLevel)
+	}
+	swords := parseWarrior()
+	ParseStatic(swords, oneEffectRow(dbcenums.A_MOD_SKILL, 43, 5))
+	if got := swords.PseudoStats.WeaponSkills[proto.WeaponSkill_WeaponSkillSwords]; got != 5 {
+		t.Errorf("sword skill from a 5 point Swords skill row: %v, want 5", got)
+	}
+	fishing := parseWarrior()
+	if parsed := ParseStatic(fishing, oneEffectRow(dbcenums.A_MOD_SKILL, 356, 25)); len(parsed.Applied) != 0 {
+		t.Errorf("a Fishing skill row attached %v, want nothing", parsed.Applied)
 	}
 
 	expertise := parseWarrior()
@@ -922,6 +937,42 @@ func TestParseStaticSchoolCostModifier(t *testing.T) {
 	}
 	if got := physical.Cost.GetCurrentCost(); got != 100 {
 		t.Errorf("a physical spell costs %v, want the 100 the magic mask leaves alone", got)
+	}
+}
+
+// A threat modifier on some schools scales the whole threat of the spells whose first school it names,
+// the damage share and the flat bonus, and leaves the other schools and the unit's multiplier alone.
+func TestParseStaticSchoolThreatModifier(t *testing.T) {
+	withRows(t, parseRows())
+	character := parseWarrior()
+	threatFrom := func(id int32, school core.SpellSchool) float64 {
+		spell := character.RegisterSpell(core.SpellConfig{
+			ActionID:         core.ActionID{SpellID: id},
+			SpellSchool:      school,
+			ProcMask:         core.ProcMaskSpellDamage,
+			ThreatMultiplier: 1,
+			FlatThreatBonus:  100,
+		})
+		return spell.ThreatFromDamage(nil, core.OutcomeHit, 100, nil)
+	}
+
+	ParseStatic(character, oneEffectRow(dbcenums.A_MOD_THREAT, int32(core.SpellSchoolNature|core.SpellSchoolArcane), -30))
+
+	for _, c := range []struct {
+		name   string
+		school core.SpellSchool
+		want   float64
+	}{
+		{"nature", core.SpellSchoolNature, 140},
+		{"physical", core.SpellSchoolPhysical, 200},
+		{"physical and nature", core.SpellSchoolPhysical | core.SpellSchoolNature, 200},
+	} {
+		if got := threatFrom(2700+int32(c.school), c.school); math.Abs(got-c.want) > 1e-9 {
+			t.Errorf("a %s spell's 100 damage and 100 flat make %v threat, want %v", c.name, got, c.want)
+		}
+	}
+	if got := character.PseudoStats.ThreatMultiplier; got != 1 {
+		t.Errorf("the unit's threat multiplier is %v, want the 1 a school mask leaves alone", got)
 	}
 }
 

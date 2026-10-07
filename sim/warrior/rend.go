@@ -7,8 +7,8 @@ import (
 
 var rendRank = spellData.Rend.Highest()
 
-// TODO: Forever announces Rend scaling with Attack Power; the game files state a flat 21 per tick and no
-// Attack Power coefficient. Add it once a game build carries it or it is measured in game.
+// TODO: The Attack Power share per tick (0.02) is verified in game on Rank 2 only; Ranks 1 and 3 to 7
+// carry the same share unmeasured. Verify it on the higher ranks once logs at their level exist.
 func (warrior *Warrior) registerRend() {
 	tick := rendRank.PeriodicEffect()
 
@@ -16,6 +16,10 @@ func (warrior *Warrior) registerRend() {
 		spelldata.Melee(core.ProcMaskMeleeMHSpecial), spelldata.Flags(core.SpellFlagNoOnCastComplete))
 
 	config.Dot = spelldata.DotConfig(rendRank, tick)
+	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
+		damage := tick.Average() + tick.APCoeff()*dot.Spell.MeleeAttackPower(target)
+		dot.Spell.CalcAndDealPeriodicDamage(sim, target, damage, rendRank.TickOutcome(dot))
+	}
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		result := spell.CalcAndDealOutcome(sim, target, spell.OutcomeMeleeSpecialHit)

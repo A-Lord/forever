@@ -13,6 +13,7 @@ import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/spelldata"
+	"github.com/wowsims/forever/tools/database/dbc"
 	"github.com/wowsims/forever/tools/database/overrides"
 )
 
@@ -195,33 +196,37 @@ func num32(f float64) string {
 
 // The store's data, ready to write: the rows and the curves. Everything is rendered before anything
 // is written, the way the class files are.
-func loadStoreInputs(db *sql.DB, ladderIDs []int32, trees map[int]int) (*storeInputs, error) {
+func loadStoreInputs(db *sql.DB, classRoots map[string][]int32, trees map[int]int, version string, push int32) (*storeInputs, error) {
 	tables, err := loadSpellTables(db)
 	if err != nil {
 		return nil, err
 	}
 
-	roots, gearRoots, err := storeRoots(db, tables, ladderIDs)
+	gear, err := gearRoots(db, tables)
 	if err != nil {
 		return nil, err
+	}
+	groupRoots := map[string][]int32{groupItems: gear}
+	for class, ids := range classRoots {
+		groupRoots[class] = ids
 	}
 
 	// The extra spells are captured as rows but not as roots: the rendering adds them again from
 	// overrides.ExtraSpells, so what is captured has to be everything that rendering will reach - or an extra
 	// id would render as a row with a name and nothing else, whether or not the store was
 	// regenerated - while the roots stay what the game files alone say they are.
-	withExtras, err := withExtraIDs(tables, roots)
-	if err != nil {
-		return nil, err
-	}
-
+	//
 	// The spells a rank reads a number off by name are roots of their own: nothing inside the closure
 	// points at them, so they are asked for once everything else has been reached.
-	siblings, err := siblingSpells(db, reachableSpells(tables, withExtras))
+	groupRoots, err = withSiblings(db, tables, groupRoots)
 	if err != nil {
 		return nil, err
 	}
-	roots = namedIDs(tables, roots, siblings)
+	var rootLists [][]int32
+	for _, p := range allSpellDataGroups() {
+		rootLists = append(rootLists, groupRoots[p])
+	}
+	roots := namedIDs(tables, rootLists...)
 
 	rendered, err := withExtraIDs(tables, roots)
 	if err != nil {
@@ -240,8 +245,15 @@ func loadStoreInputs(db *sql.DB, ladderIDs []int32, trees map[int]int) (*storeIn
 	}
 
 	in := captureStoreInputs(tables, roots, ids, nodes, points)
-	in.ItemRoots = gearRoots
+	in.ItemRoots = gear
 	in.Forms = forms
+	in.SpellDataGroupRoots = groupRoots
+	in.Builds = map[string]string{}
+	in.Hotfixes = map[string]int32{}
+	for _, p := range allSpellDataGroups() {
+		in.Builds[p] = version
+		in.Hotfixes[p] = push
+	}
 	return in, nil
 }
 
@@ -285,6 +297,9 @@ func renderStore(in *storeInputs, namer *rankEnumNamer) ([]byte, error) {
 		return nil, err
 	}
 	if err := applyAreaBonuses(rows, overrides.AreaBonuses); err != nil {
+		return nil, err
+	}
+	if err := applyCurveSigns(rows, curves, overrides.CurveSigns); err != nil {
 		return nil, err
 	}
 
@@ -392,12 +407,21 @@ func traitPoints(db *sql.DB, trees map[int]int) ([]traitNode, map[int32]map[int3
 	var all []traitNode
 	points := map[int32]map[int32]map[int32]float64{}
 
+	classOfTree := map[int]string{}
+	for _, class := range dbc.Classes {
+		if treeID, ok := trees[classMaskOf(class)]; ok {
+			classOfTree[treeID] = classGroup(class)
+		}
+	}
+
 	for _, treeID := range slices.Sorted(maps.Values(trees)) {
 		nodes, err := traitNodes(db, treeID)
 		if err != nil {
 			return nil, nil, err
 		}
 		for _, node := range nodes {
+			node.TreeID = treeID
+			node.Class = classOfTree[treeID]
 			all = append(all, node)
 			if _, ok := points[node.DefinitionID]; ok {
 				continue
@@ -423,6 +447,9 @@ type traitNode struct {
 	// Whether a skill line teaches the spell, which is what says the tree is not the only thing
 	// describing it - see storeCurves.
 	TaughtBySkillLine bool
+
+	TreeID int    // the order the curves are read in, kept when a partial update merges two builds' nodes
+	Class  string // the class spell data group whose build the node is taken from
 }
 
 func traitNodes(db *sql.DB, treeID int) ([]traitNode, error) {

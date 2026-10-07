@@ -59,4 +59,4 @@ export const WithAverages: Story = {
 	},
 };
 
-export const PlainNumbers: Story = { args: { hasMetricBars: false, headerValues: ['Outcome', 'Casts'] } };
+export const CustomHeaders: Story = { args: { headerValues: ['Outcome', 'Casts'] } };

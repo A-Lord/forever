@@ -10,7 +10,6 @@ const meta = {
 	tags: ['autodocs'],
 	args: { tooltipId: 'tooltip-anchor-story', children: '13.00%', testId: 'tooltip-anchor' },
 	argTypes: {
-		tooltip: { control: 'text' },
 		className: { control: 'text' },
 		children: { control: 'text' },
 	},

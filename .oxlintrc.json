@@ -174,13 +174,11 @@
 									"@sim/wasm",
 									"@sim/wasm/**",
 									"@sim/workers/**",
-									"@sim/fake_host",
 									"@sim/sim",
 									"@sim/sim_host",
 									"@sim/sim_runs",
 									"@sim/sim_signal_manager",
-									"@sim/spec_config",
-									"@sim/testing"
+									"@sim/spec_config"
 								],
 								"message": "ui/ui-kit is sim-agnostic: only @sim/utils/** and @sim/constants/** may be imported. Bind through ui/features/inputs."
 							},
@@ -230,13 +228,11 @@
 									"@sim/wasm",
 									"@sim/wasm/**",
 									"@sim/workers/**",
-									"@sim/fake_host",
 									"@sim/sim",
 									"@sim/sim_host",
 									"@sim/sim_runs",
 									"@sim/sim_signal_manager",
-									"@sim/spec_config",
-									"@sim/testing"
+									"@sim/spec_config"
 								],
 								"message": "ui/ui-kit is sim-agnostic: only @sim/utils/** and @sim/constants/** may be imported. Bind through ui/features/inputs."
 							}

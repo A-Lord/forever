@@ -4,6 +4,7 @@ import { parseStringArray, useLocalStorageState } from '@ui-kit/hooks/useLocalSt
 const STORAGE_SUFFIX = '__bulkSettingsGroups';
 
 export const BULK_SETTINGS_GROUP = {
+	enchants: 'enchants',
 	freezes: 'freezes',
 	reforge: 'reforge',
 } as const;

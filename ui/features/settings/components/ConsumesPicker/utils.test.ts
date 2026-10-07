@@ -24,6 +24,7 @@ const meleeHit = (food: Consumable) =>
 		...food,
 		pseudoStats: Object.assign(new Array<number>(36).fill(0), { [PseudoStat.PseudoStatMeleeHitPercent]: 2, [PseudoStat.PseudoStatRangedHitPercent]: 2 }),
 	});
+const during = (holiday: string, consumable: Consumable) => Consumable.create({ ...consumable, holiday });
 
 const CONSUMABLES = [
 	Consumable.create({
@@ -50,11 +51,19 @@ const CONSUMABLES = [
 		itemEffects: [onUse(11)],
 		stats: strength(20),
 	}),
-	Consumable.create({ id: 18588, name: 'Ez-Thro Dynamite II', type: ConsumableType.ConsumableTypeExplosive, categoryId: 24, itemEffects: [onUse(24)] }),
+	Consumable.create({
+		id: 18588,
+		name: 'Ez-Thro Dynamite II',
+		type: ConsumableType.ConsumableTypeExplosive,
+		lvl: 30,
+		categoryId: 24,
+		itemEffects: [onUse(24)],
+	}),
 	Consumable.create({
 		id: 10646,
 		name: 'Goblin Sapper Charge',
 		type: ConsumableType.ConsumableTypeExplosive,
+		lvl: 41,
 		categoryId: 24,
 		itemEffects: [onUse(24, 300000)],
 		requiredProfession: Profession.Engineering,
@@ -66,8 +75,12 @@ const CONSUMABLES = [
 	scroll(1180, 'Scroll of Stamina', statArray(Stat.StatStamina, 4), '29/2', 'Stamina'),
 	other(8410, 'R.O.I.D.S.', strength(25), 'Zanza', 'Zanza'),
 	other(20079, 'Spirit of Zanza', statArray(Stat.StatSpirit, 50), 'Zanza', 'Zanza'),
-	meleeHit(other(23327, 'Fire-toasted Bun', [], 'Hit food', 'Hit food')),
-	meleeHit(other(22237, 'Dark Desire', [], 'Hit food', 'Hit food')),
+	during('Midsummer Fire Festival', meleeHit(other(23327, 'Fire-toasted Bun', [], 'Hit food', 'Hit food'))),
+	during('Love is in the Air', meleeHit(other(22237, 'Dark Desire', [], 'Hit food', 'Hit food'))),
+	during(
+		'Midsummer Fire Festival',
+		Consumable.create({ id: 23326, name: 'Midsummer Sausage', type: ConsumableType.ConsumableTypeOther, stats: statArray(Stat.StatSpellDamage, 23) }),
+	),
 	Consumable.create({ id: 4376, name: 'Flame Deflector', type: ConsumableType.ConsumableTypeDevice }),
 ];
 
@@ -85,6 +98,7 @@ interface PlayerState {
 	mainHand?: UIItem;
 	offHand?: UIItem;
 	consumes: ConsumesSpec;
+	minLvl: Partial<Record<ConsumableType, number>>;
 }
 
 const playerOf = (state: Partial<PlayerState> = {}) => {
@@ -97,9 +111,11 @@ const playerOf = (state: Partial<PlayerState> = {}) => {
 		windfury: false,
 		flametongue: false,
 		consumes: ConsumesSpec.create(),
+		minLvl: {},
 		...state,
 	};
 	const player = {
+		sim: { getMinConsumableLvl: (type: ConsumableType) => full.minLvl[type] ?? 0 },
 		getClass: () => full.cls,
 		getSpec: () => full.spec,
 		getRace: () => Race.RaceOrc,
@@ -134,13 +150,31 @@ describe('consumeConfigs', () => {
 		const configs = consumeConfigs(player, db);
 		expect(offered(configs.conjured, player)).toEqual([]);
 		expect(offered(configs.flask, player)).toEqual([13510]);
-		expect(configs.elixirs.map(config => offered(config, player))).toEqual([[9206, 6662, 12451, 10310], [], [12820]]);
+		expect(configs.elixirs.map(config => offered(config, player))).toEqual([[9206, 6662, 12451, 2289, 10310], [], [12820]]);
 		expect(configs.scrolls.map(config => offered(config, player))).toEqual([[]]);
-		expect(configs.groups.map(config => offered(config, player))).toEqual([[], [8410]]);
+		expect(configs.groups.map(config => offered(config, player))).toEqual([[8410]]);
 		expect(offered(configs.food, player)).toEqual([238637]);
+		expect(configs.holidayGroups.map(config => offered(config, player))).toEqual([[]]);
+		expect(toggled(configs.holiday, player)).toEqual([]);
 		expect(offered(configs.explosive, player)).toEqual([18588]);
 		expect(toggled(configs.explosiveExtras, player)).toEqual([10646]);
 		expect(toggled(configs.miscellaneous, player)).toEqual([4376]);
+	});
+
+	it('hides a consumable below the minimum level set for its type only', () => {
+		const { player } = playerOf({ professions: [Profession.Engineering], minLvl: { [ConsumableType.ConsumableTypeExplosive]: 41 } });
+		const configs = consumeConfigs(player, db);
+		expect(offered(configs.explosive, player)).toEqual([]);
+		expect(toggled(configs.explosiveExtras, player)).toEqual([10646]);
+		expect(offered(configs.food, player)).toEqual([238637]);
+	});
+
+	it('lists a picker by level, highest first', () => {
+		const potion = (id: number, lvl: number) =>
+			Consumable.create({ id, name: `Potion ${id}`, type: ConsumableType.ConsumableTypePotion, lvl, stats: strength(10) });
+		const potions = { getConsumables: () => [potion(1, 20), potion(2, 50), potion(3, 35)], getSpellEffect: () => undefined } as unknown as Database;
+		const { player } = playerOf();
+		expect(offered(consumeConfigs(player, potions).potion, player)).toEqual([2, 3, 1]);
 	});
 
 	it('offers the Goblin Sapper Charge to an engineer only', () => {
@@ -170,13 +204,22 @@ describe('consumeConfigs', () => {
 		expect(elixirs.map(config => iconEnumPickerShown(config, player))).toEqual([true, false, true]);
 		expect(scrolls.map(config => config.tooltip)).toEqual(['Stamina']);
 		expect(scrolls.map(config => iconEnumPickerShown(config, player))).toEqual([false]);
-		expect(groups.map(config => config.tooltip)).toEqual(['Hit food', 'Zanza']);
-		expect(groups.map(config => iconEnumPickerShown(config, player))).toEqual([false, true]);
+		expect(groups.map(config => config.tooltip)).toEqual(['Zanza']);
+		expect(groups.map(config => iconEnumPickerShown(config, player))).toEqual([true]);
+	});
+
+	it('lists the holiday consumables apart: a group holding one as one pick, the rest each as a toggle', () => {
+		const caster = { epStats: [Stat.StatSpellDamage], displayStats: [] } as unknown as SpecConfigData<any>;
+		const { player } = playerOf({ cls: Class.ClassMage, spec: Spec.SpecMage, specConfig: caster });
+		const configs = consumeConfigs(player, db);
+		expect(configs.holidayGroups.map(config => config.tooltip)).toEqual(['Hit food']);
+		expect(toggled(configs.holiday, player)).toEqual([23326]);
+		expect(toggled(configs.miscellaneous, player)).not.toContain(23326);
 	});
 
 	it('shows the Hit food to a spec that shows melee hit', () => {
 		const { player } = playerOf({ displayStats: [UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeHitPercent)] });
-		const [hitFood] = consumeConfigs(player, db).groups;
+		const [hitFood] = consumeConfigs(player, db).holidayGroups;
 		expect(hitFood.tooltip).toBe('Hit food');
 		expect(iconEnumPickerShown(hitFood, player)).toBe(true);
 		expect(offered(hitFood, player)).toEqual([23327, 22237]);
@@ -184,7 +227,7 @@ describe('consumeConfigs', () => {
 
 	it('offers Dark Desire to a spec that shows melee hit, not to one that weighs hit rating for spell hit alone', () => {
 		const specPlayer = (cls: Class, spec: Spec, specConfig: SpecConfigData<any>) => playerOf({ cls, spec, specConfig }).player;
-		const hitFoodOf = (player: Player<any>) => offered(consumeConfigs(player, db).groups[0], player);
+		const hitFoodOf = (player: Player<any>) => offered(consumeConfigs(player, db).holidayGroups[0], player);
 		const caster = {
 			epStats: [Stat.StatSpellDamage, Stat.StatHitRating],
 			displayStats: [UnitStat.fromPseudoStat(PseudoStat.PseudoStatSpellHitPercent)],
@@ -244,19 +287,21 @@ describe('consumeConfigs', () => {
 		const { player, state } = playerOf({ consumes: ConsumesSpec.create({ elixirIds: [9206] }) });
 		const configs = consumeConfigs(player, db);
 		configs.scrolls[0].setValue(player, 1180);
-		configs.groups[1].setValue(player, 8410);
+		configs.groups[0].setValue(player, 8410);
 		expect([state.consumes.elixirIds, state.consumes.extraIds]).toEqual([[9206], [1180, 8410]]);
-		configs.groups[1].setValue(player, 20079);
+		configs.groups[0].setValue(player, 20079);
 		configs.scrolls[0].setValue(player, 0);
 		expect(state.consumes.extraIds).toEqual([20079]);
 	});
 
-	it('offers the highest rank the player can use, below a top rank it cannot', () => {
+	it('offers every rank the player can use, lower ranks included', () => {
 		const ranks = [
 			scroll(2289, 'Scroll of Strength II', strength(9), '29/0', 'Strength'),
 			Consumable.create({ ...scroll(10310, 'Scroll of Strength IV', strength(17), '29/0', 'Strength'), classAllowlist: [Class.ClassRogue] }),
 			Consumable.create({ id: 12404, name: 'Dense Sharpening Stone II', type: ConsumableType.ConsumableTypeImbue, weaponSubclassMask: 1 << 7 }),
 			Consumable.create({ id: 12643, name: 'Dense Sharpening Stone III', type: ConsumableType.ConsumableTypeImbue, weaponSubclassMask: 1 << 15 }),
+			Consumable.create({ id: 8928, name: 'Instant Poison V', type: ConsumableType.ConsumableTypeImbue, lvl: 52, weaponSubclassMask: 1 << 15 }),
+			Consumable.create({ id: 8927, name: 'Instant Poison IV', type: ConsumableType.ConsumableTypeImbue, lvl: 44, weaponSubclassMask: 1 << 15 }),
 		];
 		const rankDb = { getConsumables: () => ranks, getSpellEffect: () => undefined } as unknown as Database;
 		const sword = UIItem.create({ weaponType: WeaponType.WeaponTypeSword, handType: HandType.HandTypeOneHand });
@@ -269,7 +314,17 @@ describe('consumeConfigs', () => {
 
 		const rogue = playerOf({ cls: Class.ClassRogue, mainHand: dagger }).player;
 		const rogueConfigs = consumeConfigs(rogue, rankDb);
-		expect(offered(rogueConfigs.scrolls[0], rogue)).toEqual([10310]);
-		expect(offered(rogueConfigs.mhImbue, rogue)).toEqual([12643]);
+		expect(offered(rogueConfigs.scrolls[0], rogue)).toEqual([2289, 10310]);
+		expect(offered(rogueConfigs.mhImbue, rogue)).toEqual([8928, 8927, 12643]);
+	});
+
+	it('keeps offering a picked consumable below the minimum level, and hides it once unpicked', () => {
+		const { player, state } = playerOf({ minLvl: { [ConsumableType.ConsumableTypeExplosive]: 41 } });
+		const configs = consumeConfigs(player, db);
+		expect(offered(configs.explosive, player)).toEqual([]);
+		state.consumes = ConsumesSpec.create({ explosiveId: 18588 });
+		expect(offered(configs.explosive, player)).toEqual([18588]);
+		configs.explosive.setValue(player, 0);
+		expect(offered(configs.explosive, player)).toEqual([]);
 	});
 });
