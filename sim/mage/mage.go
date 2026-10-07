@@ -3,6 +3,7 @@ package mage
 import (
 	"time"
 
+	"github.com/wowsims/forever/sim/common/shared"
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
@@ -96,6 +97,7 @@ func (mage *Mage) registerSpells() {
 	mage.registerFrostNovaSpell()
 	mage.registerManaGems()
 	mage.registerScorchSpell()
+	shared.RegisterShoot(&mage.Character)
 
 	FlameStrikeRankMap.Each(func(_ int32, rankConfig *spelldata.Spell) { mage.registerFlamestrike(rankConfig) })
 

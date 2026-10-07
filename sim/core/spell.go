@@ -773,6 +773,11 @@ func (spell *Spell) applyEffects(sim *Simulation, target *Unit) {
 	}
 
 	spell.ApplyEffects(sim, target, spell)
+
+	if spell == spell.Unit.rotationCast.spell {
+		spell.Unit.endRotationCast()
+		spell.Unit.Wand.castCompleted(sim, spell)
+	}
 }
 
 func (spell *Spell) ApplyAOEThreatIgnoreMultipliers(threatAmount float64) {

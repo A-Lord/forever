@@ -62,3 +62,22 @@ func TestExtraAttackProcOnACharacterWithoutAutoAttacks(t *testing.T) {
 		t.Errorf("an extra attack is registered for a character with no main-hand swing to copy")
 	}
 }
+
+// The extra attack swings the main hand, so a weapon swap moves it to the new weapon's school.
+func TestExtraAttackProcFollowsTheMainHandsSchool(t *testing.T) {
+	const itemID int32 = 992503
+	withExtraAttackWeapon(t, itemID)
+
+	sim := newAuraSim(shaman("Wielder", map[proto.ItemSlot]int32{proto.ItemSlot_ItemSlotMainHand: itemID}))
+	wielder := auraTesterAt(sim, 0)
+	target := sim.Encounter.ActiveTargetUnits[0]
+	extraAttack := wielder.GetSpell(core.ActionID{OtherID: proto.OtherAction_OtherActionAttack, Tag: flurryAxe})
+
+	shadowWeapon := *wielder.AutoAttacks.MH()
+	shadowWeapon.SpellSchool = core.SpellSchoolShadow
+	wielder.AutoAttacks.SetMH(shadowWeapon)
+	strikeAndStep(t, sim, wielder, target)
+	if extraAttack.SpellSchool != core.SpellSchoolShadow || extraAttack.BonusCoefficient != 0 {
+		t.Errorf("after a swap to a shadow weapon the extra attack is %v with bonus coefficient %v, want shadow with 0", extraAttack.SpellSchool, extraAttack.BonusCoefficient)
+	}
+}

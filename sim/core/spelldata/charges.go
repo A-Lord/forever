@@ -12,7 +12,8 @@ import (
 //
 // A channel is one cast: the charge stays up for every tick and every target, and is spent when the
 // channel ends. A channel the buff's class flags name spends it once the channel has started, even
-// when its cast lands nothing itself.
+// when its cast lands nothing itself. Wand Shoot is no such channel: each shot spends a charge like any
+// hit, and so do other hits while wanding.
 // TODO: A tick that lands after its channel ends, a missile still in flight, misses the charge.
 func AttachChargeSpender(character *core.Character, buff *core.Aura, s *Spell, name string, opts ...ProcOpt) core.ProcTrigger {
 	firstHit, resetFirstHit := core.OncePerCast()
@@ -22,7 +23,7 @@ func AttachChargeSpender(character *core.Character, buff *core.Aura, s *Spell, n
 		channelHit = false
 	})
 
-	character.OnChannelEnd(func(sim *core.Simulation) {
+	character.OnChannelEnd(func(sim *core.Simulation, _ *core.Dot) {
 		if channelHit && buff.IsActive() {
 			channelHit = false
 			buff.RemoveStack(sim)
@@ -37,7 +38,9 @@ func AttachChargeSpender(character *core.Character, buff *core.Aura, s *Spell, n
 	spender.ExtraCondition = func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
 		// The channel's own hit lands before its dot starts, its ticks while it runs. A hit the wearer
 		// takes is not part of the channel.
-		if spell.Unit == &character.Unit && (character.IsChanneling() || spell.Flags.Matches(core.SpellFlagChanneled)) {
+		channel := character.ChanneledDot
+		inChannel := channel != nil && !character.Wand.IsShoot(channel.Spell)
+		if spell.Unit == &character.Unit && !character.Wand.IsShoot(spell) && (inChannel || spell.Flags.Matches(core.SpellFlagChanneled)) {
 			channelHit = true
 			return false
 		}

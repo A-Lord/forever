@@ -10,6 +10,10 @@ import (
 
 const ThreatPerManaGained = 0.5
 
+// Mana regenerates continuously in game; the bar credits it every 100 ms, and at once whenever the
+// rate it regenerates at changes.
+const manaTickDuration = time.Second / 10
+
 type manaBar struct {
 	unit     *Unit
 	BaseMana float64
@@ -28,6 +32,11 @@ type manaBar struct {
 	JowiseManaMetrics     *ResourceMetrics
 
 	ReplenishmentAura *Aura
+
+	agent        Agent         // Told of every mana tick; nil while the bar does not tick.
+	lastManaTick time.Duration // The regen is credited up to here.
+	nextManaTick time.Duration
+	paidBy       *Spell // The spell that last paid mana, until a channel it starts claims the payment.
 
 	// For keeping track of OOM status.
 	waitingForMana          float64
@@ -61,7 +70,7 @@ func (character *Character) EnableManaBarWithModifier() {
 		ActionID: ActionID{OtherID: proto.OtherAction_OtherActionManaGain},
 	})
 
-	// Spirit restores 15 + Spirit/5 mana every 2 s tick, 12.5 + Spirit/4 for priests, mages and warlocks.
+	// Spirit restores 7.5 + Spirit/10 mana per second, 6.25 + Spirit/8 for priests, mages and warlocks.
 	character.spiritRegenBase, character.spiritRegenPerSpirit = 7.5, 1.0/10
 	if character.Class == proto.Class_ClassPriest || character.Class == proto.Class_ClassMage || character.Class == proto.Class_ClassWarlock {
 		character.spiritRegenBase, character.spiritRegenPerSpirit = 6.25, 1.0/8
@@ -197,104 +206,126 @@ func (unit *Unit) ManaRegenPerSecondWhileNotCasting() float64 {
 	return regenRate
 }
 
-func (unit *Unit) UpdateManaRegenRates() {
-	unit.manaTickWhileCasting = unit.ManaRegenPerSecondWhileCasting() * 2
-	unit.manaTickWhileNotCasting = unit.ManaRegenPerSecondWhileNotCasting() * 2
+// Recomputes the regen rates the mana bar ticks at, after crediting the regen so far at the old ones.
+// Without a Simulation there is no regen to credit yet.
+func (unit *Unit) UpdateManaRegenRates(sim *Simulation) {
+	if sim != nil {
+		unit.creditManaRegen(sim)
+	}
+	unit.manaRegenWhileCasting = unit.ManaRegenPerSecondWhileCasting()
+	unit.manaRegenWhileNotCasting = unit.ManaRegenPerSecondWhileNotCasting()
 }
 
 func (unit *Unit) MultiplyManaRegenSpeed(sim *Simulation, multiplier float64) {
 	unit.manaRegenMultiplier *= multiplier
-	unit.UpdateManaRegenRates()
+	unit.UpdateManaRegenRates(sim)
 }
 
-// Applies 1 'tick' of mana regen, which worth 2s of regeneration based on mp5/int/spirit/etc.
-func (unit *Unit) ManaTick(sim *Simulation) {
-	if sim.CurrentTime < unit.PseudoStats.FiveSecondRuleRefreshTime {
-		regen := unit.manaTickWhileCasting
-		unit.AddMana(sim, max(0, regen), unit.manaCastingMetrics)
-	} else {
-		regen := unit.manaTickWhileNotCasting
-		unit.AddMana(sim, max(0, regen), unit.manaNotCastingMetrics)
+// Credits the regen since the last tick. Up to the end of the five-second rule window, or all of it
+// while a paid channel runs, it comes at the casting rate, and after that at the full rate.
+func (mb *manaBar) creditManaRegen(sim *Simulation) {
+	if mb.agent == nil || sim.CurrentTime <= mb.lastManaTick {
+		return
+	}
+	unit := mb.unit
+	from := mb.lastManaTick
+	mb.lastManaTick = sim.CurrentTime
+	if !unit.IsEnabled() {
+		return
+	}
+
+	castingUntil := sim.CurrentTime
+	if !unit.channelPaidMana() {
+		castingUntil = max(from, min(unit.PseudoStats.FiveSecondRuleRefreshTime, sim.CurrentTime))
+	}
+	if amount := unit.manaRegenWhileCasting * (castingUntil - from).Seconds(); amount > 0 {
+		unit.AddMana(sim, amount, unit.manaCastingMetrics)
+	}
+	if amount := unit.manaRegenWhileNotCasting * (sim.CurrentTime - castingUntil).Seconds(); amount > 0 {
+		unit.AddMana(sim, amount, unit.manaNotCastingMetrics)
 	}
 }
 
-// Returns the amount of time this Unit would need to wait in order to reach
-// the desired amount of mana, via mana regen.
-//
-// Assumes that desiredMana > currentMana. Calculation assumes the Unit
-// will not take any actions during this period that would reset the 5-second rule.
-func (unit *Unit) TimeUntilManaRegen(desiredMana float64) time.Duration {
-	// +1 at the end is to deal with floating point math rounding errors.
+func (mb *manaBar) RunTask(sim *Simulation) time.Duration {
+	if sim.CurrentTime < mb.nextManaTick {
+		return mb.nextManaTick
+	}
+	mb.creditManaRegen(sim)
+	if mb.unit.IsEnabled() {
+		mb.agent.OnManaTick(sim)
+	}
+	mb.nextManaTick = sim.CurrentTime + manaTickDuration
+	return mb.nextManaTick
+}
+
+// Starts the ticks, with the regen counting from the start of the prepull.
+func (mb *manaBar) enable(sim *Simulation, agent Agent) {
+	mb.agent = agent
+	mb.lastManaTick = sim.Environment.PrepullStartTime()
+	mb.nextManaTick = mb.lastManaTick + manaTickDuration
+	sim.AddTask(mb)
+	sim.RescheduleTask(mb.nextManaTick)
+}
+
+// Whether the unit is channeling a spell it paid mana for. The five seconds count from the channel's
+// start, but regen stays at the casting rate until the channel ends, however it ends.
+func (unit *Unit) channelPaidMana() bool {
+	return unit.ChanneledDot != nil && unit.ChanneledDot.paidMana
+}
+
+// Whether the starting channel's cast paid mana: its own spell's, or the spell whose RelatedDotSpell it is.
+func (mb *manaBar) claimChannelPayment(dot *Dot) bool {
+	paidBy := mb.paidBy
+	mb.paidBy = nil
+	return paidBy != nil && (paidBy == dot.Spell || paidBy.RelatedDotSpell == dot.Spell)
+}
+
+// Returns how long the unit waits for its regen to reach desiredMana, up to the tick that credits it,
+// assuming it spends no mana in the meantime. The regen runs at the casting rate for the rest of the
+// five-second rule window or of a paid channel, whichever ends later, and at the full rate after it.
+func (unit *Unit) TimeUntilManaRegen(sim *Simulation, desiredMana float64) time.Duration {
 	manaNeeded := desiredMana - unit.CurrentMana()
-	regenTime := NeverExpires
-
-	regenWhileCasting := unit.ManaRegenPerSecondWhileCasting()
-	if regenWhileCasting != 0 {
-		regenTime = DurationFromSeconds(manaNeeded/regenWhileCasting) + 1
+	if manaNeeded <= 0 {
+		return 0
 	}
 
-	// TODO: this needs to have access to the sim to see current time vs unit.PseudoStats.FiveSecondRule.
-	//  it is possible that we have been waiting.
-	//  In practice this function is always used right after a previous cast so no big deal for now.
-	if regenTime > time.Second*5 {
-		regenTime = time.Second * 5
-		manaNeeded -= regenWhileCasting * 5
-		// now we move into spirit based regen.
-		regenTime += DurationFromSeconds(manaNeeded / unit.ManaRegenPerSecondWhileNotCasting())
+	window := max(unit.PseudoStats.FiveSecondRuleRefreshTime-sim.CurrentTime, 0)
+	if unit.channelPaidMana() {
+		window = max(window, unit.ChanneledDot.RemainingDuration(sim))
 	}
 
-	return regenTime
+	var regenTime time.Duration
+	if castingMana := unit.manaRegenWhileCasting * window.Seconds(); manaNeeded <= castingMana {
+		regenTime = DurationFromSeconds(manaNeeded / unit.manaRegenWhileCasting)
+	} else if unit.manaRegenWhileNotCasting > 0 {
+		regenTime = window + DurationFromSeconds((manaNeeded-castingMana)/unit.manaRegenWhileNotCasting)
+	} else {
+		return NeverExpires
+	}
+
+	reachedAt := sim.CurrentTime + regenTime
+	if reachedAt <= unit.nextManaTick {
+		return unit.nextManaTick - sim.CurrentTime
+	}
+	ticks := (reachedAt - unit.nextManaTick + manaTickDuration - 1) / manaTickDuration
+	return unit.nextManaTick + ticks*manaTickDuration - sim.CurrentTime
 }
 
-func (sim *Simulation) initManaTickAction() {
-	var playersWithManaBars []Agent
-	var petsWithManaBars []PetAgent
-
+func (sim *Simulation) enableManaTicks() {
 	for _, party := range sim.Raid.Parties {
 		for _, player := range party.Players {
 			character := player.GetCharacter()
 			if character.HasManaBar() {
-				playersWithManaBars = append(playersWithManaBars, player)
+				character.manaBar.enable(sim, player)
 			}
 
 			for _, petAgent := range character.PetAgents {
-				if petAgent.GetPet().HasManaBar() {
-					petsWithManaBars = append(petsWithManaBars, petAgent)
+				if pet := petAgent.GetPet(); pet.HasManaBar() {
+					pet.manaBar.enable(sim, petAgent)
 				}
 			}
 		}
 	}
-
-	if len(playersWithManaBars) == 0 && len(petsWithManaBars) == 0 {
-		return
-	}
-
-	interval := time.Second * 2
-	pa := &PendingAction{
-		NextActionAt: sim.Environment.PrepullStartTime() + interval,
-		Priority:     ActionPriorityRegen,
-	}
-	pa.OnAction = func(sim *Simulation) {
-		for _, player := range playersWithManaBars {
-			unit := &player.GetCharacter().Unit
-			if unit.IsEnabled() {
-				unit.ManaTick(sim)
-				player.OnManaTick(sim)
-			}
-		}
-
-		for _, pet := range petsWithManaBars {
-			unit := &pet.GetCharacter().Unit
-			if unit.IsEnabled() {
-				unit.ManaTick(sim)
-				pet.OnManaTick(sim)
-			}
-		}
-
-		pa.NextActionAt = sim.CurrentTime + interval
-		sim.AddPendingAction(pa)
-	}
-	sim.AddPendingAction(pa)
 }
 
 func (mb *manaBar) reset() {
@@ -308,6 +339,7 @@ func (mb *manaBar) reset() {
 
 	mb.waitingForMana = 0
 	mb.waitingForManaStartTime = 0
+	mb.paidBy = nil
 }
 
 func (mb *manaBar) IsOOM() bool {
@@ -377,8 +409,13 @@ func (mc *ManaCost) CostFailureReason(sim *Simulation, spell *Spell) string {
 	return fmt.Sprintf("not enough mana (Current Mana = %0.03f, Mana Cost = %0.03f)", spell.Unit.CurrentMana(), spell.CurCast.Cost)
 }
 func (mc *ManaCost) SpendCost(sim *Simulation, spell *Spell) {
+	spell.Unit.paidBy = nil
 	if spell.CurCast.Cost > 0 {
+		if spell.Unit.PseudoStats.FiveSecondRuleRefreshTime < sim.CurrentTime {
+			spell.Unit.creditManaRegen(sim)
+		}
 		spell.Unit.SpendMana(sim, spell.CurCast.Cost, mc.ResourceMetrics)
+		spell.Unit.paidBy = spell
 		spell.Unit.PseudoStats.FiveSecondRuleRefreshTime = max(sim.CurrentTime+time.Second*5, spell.Unit.Hardcast.Expires)
 	}
 }
