@@ -436,7 +436,7 @@ func (sim *Simulation) reset() {
 
 	sim.Environment.reset(sim)
 
-	sim.initManaTickAction()
+	sim.enableManaTicks()
 }
 
 func (sim *Simulation) PrePull() {

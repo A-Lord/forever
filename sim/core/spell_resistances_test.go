@@ -40,3 +40,31 @@ func TestSchoolSpellPiercingLowersOnlyItsSchool(t *testing.T) {
 		t.Errorf("frost coefficient with 20 piercing and 30 fire piercing = %v, want %v", frostBoth, want)
 	}
 }
+
+// Against half the resistance cap a plain spell is often partially resisted, and one flagged
+// SpellFlagNoPartialResist never is.
+func TestNoPartialResistKeepsTheWholeHit(t *testing.T) {
+	attacker := &Unit{Type: PlayerUnit, Level: 60, PseudoStats: stats.NewPseudoStats()}
+	defender := &Unit{Type: EnemyUnit, Level: 60, PseudoStats: stats.NewPseudoStats()}
+	defender.stats[stats.ShadowResistance] = 150
+	attackTable := NewAttackTable(attacker, defender)
+
+	partials := func(flags SpellFlag) int {
+		sim := &Simulation{rand: NewSplitMix(1)}
+		spell := &Spell{Unit: attacker, SpellSchool: SpellSchoolShadow, SchoolIndex: stats.SchoolIndexShadow, Flags: flags}
+		n := 0
+		for range 1000 {
+			if multiplier, outcome := spell.ResistanceMultiplier(sim, false, attackTable); multiplier != 1 || outcome != OutcomeEmpty {
+				n++
+			}
+		}
+		return n
+	}
+
+	if n := partials(0); n == 0 {
+		t.Errorf("a plain shadow spell was never partially resisted in 1000 hits against 150 shadow resistance")
+	}
+	if n := partials(SpellFlagNoPartialResist); n != 0 {
+		t.Errorf("a spell flagged SpellFlagNoPartialResist was partially resisted %d times in 1000 hits, want 0", n)
+	}
+}

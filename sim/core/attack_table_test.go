@@ -180,6 +180,49 @@ func TestWeaponSkillAboveTheTargetsDefenseLowersItsBlock(t *testing.T) {
 	}
 }
 
+// The wand hand's spell miss is the spell table's at a level difference of (capped level difference × 5 −
+// wand skill above the maximum) / 5, truncated toward zero over the whole expression. The level difference
+// is capped at +3 like a spell's, so 303 skill against a level 61 target is +0 and 310 against level 65 is +1.
+func TestWandSkillSetsTheRangedHandsSpellMiss(t *testing.T) {
+	wand := &Item{RangedWeaponType: proto.RangedWeaponType_RangedWeaponTypeWand}
+	for _, tc := range []struct {
+		skill, targetLevel int32
+		spellMiss          float64
+	}{
+		{300, 60, 0.04},
+		{300, 61, 0.05},
+		{300, 63, 0.17},
+		{297, 60, 0.04},
+		{295, 60, 0.05},
+		{290, 60, 0.06},
+		{285, 60, 0.17},
+		{275, 60, 0.17},
+		{305, 63, 0.06},
+		{310, 60, 0.04},
+		{310, 65, 0.05},
+		{315, 65, 0.04},
+		{303, 61, 0.04},
+		{303, 62, 0.05},
+		{308, 62, 0.04},
+		{312, 61, 0.04},
+	} {
+		character := NewCharacter(&Party{}, 0, &proto.Player{
+			Name:         "Wand Tester",
+			Class:        proto.Class_ClassPriest,
+			Race:         proto.Race_RaceHuman,
+			Spec:         &proto.Player_DpsPriest{DpsPriest: &proto.DpsPriest{}},
+			Equipment:    &proto.EquipmentSpec{},
+			WeaponSkills: []*proto.WeaponSkillValue{{Skill: proto.WeaponSkill_WeaponSkillWands, Value: tc.skill}},
+		})
+		defender := &Unit{Type: EnemyUnit, Level: tc.targetLevel, PseudoStats: stats.NewPseudoStats()}
+		table := NewAttackTable(&character.Unit, defender)
+		table.setWeapons(nil, nil, wand)
+		checkAttackTableValues(t, fmt.Sprintf("%d wand skill against level %d", tc.skill, tc.targetLevel), []attackTableValue{
+			{"ranged spell miss", table.Ranged.BaseSpellMissChance, tc.spellMiss},
+		})
+	}
+}
+
 func TestFeralCombatSkillReplacesTheWeaponsSkillInAForm(t *testing.T) {
 	staff := &Item{WeaponType: proto.WeaponType_WeaponTypeStaff, HandType: proto.HandType_HandTypeTwoHand}
 	for _, tc := range []struct {

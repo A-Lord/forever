@@ -87,6 +87,12 @@ func SpellConfig(unit *core.Unit, s *Spell, opts ...SpellOpt) core.SpellConfig {
 	if s.MinRange != 0 && s.EquipClass == dbcenums.ITEM_CLASS_WEAPON && s.EquipSubclass&(dbcenums.ITEM_SUBCLASS_BIT_WEAPON_BOW|dbcenums.ITEM_SUBCLASS_BIT_WEAPON_GUNS|dbcenums.ITEM_SUBCLASS_BIT_WEAPON_CROSSBOW) != 0 {
 		config.MinRange = core.MinRangedRange
 	}
+	if threat := s.firstOfType(dbcenums.E_THREAT, dbcenums.E_THREAT_ALL); threat != NilEffect {
+		config.FlatThreatBonus = threat.Average()
+		config.ThreatAPCoefficient = threat.APCoeff()
+	} else {
+		config.FlatThreatBonus = float64(s.FlatThreat)
+	}
 	if s.IsBleed() {
 		config.DamageMultiplier = 1
 		config.ThreatMultiplier = 1
@@ -110,8 +116,8 @@ func Melee(mask core.ProcMask) SpellOpt {
 	}
 }
 
-// The same for a spell that scales with spell power, whose share of it the row states on the effect
-// that deals the damage, or heals where the spell has no damaging effect.
+// The same for a spell that scales with spell power, whose share of it and whose roll the row states
+// on the effect that deals the damage, or heals where the spell has no damaging effect.
 func Magic(mask core.ProcMask) SpellOpt {
 	return func(config *core.SpellConfig, s *Spell) {
 		config.ProcMask = mask
@@ -119,11 +125,12 @@ func Magic(mask core.ProcMask) SpellOpt {
 		config.DamageMultiplier = 1
 		config.ThreatMultiplier = 1
 		config.BonusCoefficient = spellPowerCoeff(s)
+		config.DirectVariance = amountEffect(s).DirectVariance()
 	}
 }
 
 // A spell another spell or an aura casts: it is out of the rotation Melee and Magic put it in, it
-// does not feed on-cast effects, and it has no cast, cost, cooldown or cast requirement of its own even when it shares
+// does not feed on-cast effects, and it has no cast, cost, cooldown, cast requirement or flat threat of its own even when it shares
 // the row of the ability that casts it, the way the warrior's Blood Craze heal and Whirlwind's
 // off-hand strike are registered. Its damage and healing are still measured, its casts are not: the
 // metrics aggregator counts no cast for a passive spell, so a sub-spell whose casts the sim reports -
@@ -138,6 +145,8 @@ func Proc() SpellOpt {
 		config.RageCost = core.RageCostOptions{}
 		config.EnergyCost = core.EnergyCostOptions{}
 		config.FocusCost = core.FocusCostOptions{}
+		config.FlatThreatBonus = 0
+		config.ThreatAPCoefficient = 0
 	}
 }
 
@@ -170,6 +179,10 @@ func Tag(tag int32) SpellOpt {
 // requires. A shield is the only armor a castable spell asks for. The creature types limit the cast
 // only on a spell cast on an enemy unit: Bestial Wrath's Beast is the pet it lands on, and Holy Wrath's
 // Undead and Demon are the enemies its area hits.
+//
+// A ranked row whose only effect that does something is the periodic is refused while a higher rank
+// of its dot is up: Shadow Word: Pain, Renew, Corruption, Rend, and Rip and Rupture, whose dummy
+// effects do nothing by themselves. A row with any other effect casts, and only its periodic stays off.
 func (s *Spell) CastRequirement() core.CastRequirement {
 	r := core.CastRequirement{
 		Forms:             s.StanceMask,
@@ -179,6 +192,8 @@ func (s *Spell) CastRequirement() core.CastRequirement {
 		CasterAura:        s.CasterAura,
 		ExcludeCasterAura: s.ExcludeCasterAura,
 		NotInCombat:       s.HasAttr(dbcenums.ATTR_INDEX_BASE, dbcenums.ATTR_NOT_IN_COMBAT),
+
+		NotUnderHigherRank: s.RankNumber() > 0 && s.onlyPeriodicActs(),
 	}
 	switch s.EquipClass {
 	case dbcenums.ITEM_CLASS_WEAPON:
@@ -194,11 +209,30 @@ func (s *Spell) CastRequirement() core.CastRequirement {
 	return r
 }
 
-func spellPowerCoeff(s *Spell) float64 {
-	if e := s.DamageEffect(); e != NilEffect {
-		return e.Coeff()
+// A periodic is an effect with a tick period, the one DotConfig builds a dot from.
+func (s *Spell) onlyPeriodicActs() bool {
+	var acting []*Effect
+	for i := range s.Effects {
+		if e := &s.Effects[i]; !e.isInert() {
+			acting = append(acting, e)
+		}
 	}
-	return s.HealEffect().Coeff()
+	return len(acting) == 1 && acting[0].PeriodMs > 0
+}
+
+func (e *Effect) isInert() bool {
+	return e.Type == dbcenums.E_DUMMY || e.Type == dbcenums.E_SCRIPT_EFFECT || e.Aura == dbcenums.A_DUMMY
+}
+
+func spellPowerCoeff(s *Spell) float64 {
+	return amountEffect(s).Coeff()
+}
+
+func amountEffect(s *Spell) *Effect {
+	if e := s.DamageEffect(); e != NilEffect {
+		return e
+	}
+	return s.HealEffect()
 }
 
 // Spell.NameSubtext_lang, which is "Rank 4" on a ranked spell and a word like "Passive" or

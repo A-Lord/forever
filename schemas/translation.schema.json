@@ -515,6 +515,9 @@
 						},
 						"thrown": {
 							"type": "string"
+						},
+						"wands": {
+							"type": "string"
 						}
 					},
 					"additionalProperties": false,
@@ -533,7 +536,8 @@
 						"bows",
 						"crossbows",
 						"guns",
-						"thrown"
+						"thrown",
+						"wands"
 					]
 				},
 				"spell_schools": {
@@ -2479,11 +2483,24 @@
 										"food": { "type": "string" },
 										"explosive": { "type": "string" },
 										"imbue": { "type": "string" },
+										"weaponImbue": { "type": "string" },
 										"device": { "type": "string" },
 										"other": { "type": "string" }
 									},
 									"additionalProperties": false,
-									"required": ["potion", "conjured", "flask", "elixir", "scroll", "food", "explosive", "imbue", "device", "other"]
+									"required": [
+										"potion",
+										"conjured",
+										"flask",
+										"elixir",
+										"scroll",
+										"food",
+										"explosive",
+										"imbue",
+										"weaponImbue",
+										"device",
+										"other"
+									]
 								}
 							},
 							"additionalProperties": false,
@@ -2564,6 +2581,22 @@
 							"additionalProperties": false,
 							"required": ["title", "mhImbue", "ohImbue"]
 						},
+						"weaponImbue": {
+							"type": "object",
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"mhWeaponImbue": {
+									"type": "string"
+								},
+								"ohWeaponImbue": {
+									"type": "string"
+								}
+							},
+							"additionalProperties": false,
+							"required": ["title", "mhWeaponImbue", "ohWeaponImbue"]
+						},
 						"scrolls": {
 							"type": "object",
 							"properties": {
@@ -2586,7 +2619,7 @@
 						}
 					},
 					"additionalProperties": false,
-					"required": ["title", "filters", "potions", "elixirs", "food", "holiday", "engineering", "imbue", "scrolls", "miscellaneous"]
+					"required": ["title", "filters", "potions", "elixirs", "food", "holiday", "engineering", "imbue", "weaponImbue", "scrolls", "miscellaneous"]
 				},
 				"encounter": {
 					"type": "object",
@@ -5235,6 +5268,9 @@
 									"additionalProperties": false,
 									"required": ["label", "tooltip"]
 								},
+								"wand": {
+									"type": "string"
+								},
 								"spell_known": {
 									"type": "object",
 									"properties": {
@@ -6085,6 +6121,7 @@
 								"auto_swing_time",
 								"time_to_next_auto",
 								"time_since_last_auto",
+								"wand",
 								"spell_known",
 								"current_cost",
 								"can_cast",
