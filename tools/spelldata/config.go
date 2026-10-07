@@ -259,6 +259,8 @@ var configFields = []configField{
 	{name: "FocusCost.Refund", read: func(c *core.SpellConfig) string { return nonZero(c.FocusCost.Refund, floatText) }},
 	{name: "DamageMultiplier", read: func(c *core.SpellConfig) string { return nonZero(c.DamageMultiplier, floatText) }},
 	{name: "ThreatMultiplier", read: func(c *core.SpellConfig) string { return nonZero(c.ThreatMultiplier, floatText) }},
+	{name: "FlatThreatBonus", read: func(c *core.SpellConfig) string { return nonZero(c.FlatThreatBonus, floatText) }},
+	{name: "ThreatAPCoefficient", read: func(c *core.SpellConfig) string { return nonZero(c.ThreatAPCoefficient, floatText) }},
 	{name: "BonusCoefficient", read: func(c *core.SpellConfig) string { return nonZero(c.BonusCoefficient, floatText) }},
 	{name: "MinRange", read: func(c *core.SpellConfig) string { return nonZero(c.MinRange, floatText) }},
 	{name: "MaxRange", read: func(c *core.SpellConfig) string { return nonZero(c.MaxRange, floatText) }},
