@@ -2,6 +2,7 @@ package shared
 
 import (
 	"cmp"
+	"math"
 	"testing"
 	"time"
 
@@ -257,6 +258,24 @@ func TestWandShoot(t *testing.T) {
 		capped := misses(t, 62, 0)
 		if short != capped || short < 6 || short > 36 {
 			t.Errorf("Shoot missed %d of 300 shots at 290 wand skill on a level 60 target and %d at 300 on a level 62 target, want the same, about 18", short, capped)
+		}
+	})
+
+	t.Run("a game files row on the Wands skill line raises the wand hand's skill", func(t *testing.T) {
+		sim, caster := newSwapWandSim(t, wandSimOptions{
+			ranged:       &proto.ItemSpec{Id: sableWandID},
+			weaponSkills: []*proto.WeaponSkillValue{{Skill: proto.WeaponSkill_WeaponSkillWands, Value: 290}},
+		})
+		table := caster.AttackTables[sim.Encounter.ActiveTargetUnits[0].UnitIndex]
+		short := table.Ranged.BaseSpellMissChance
+		spelldata.ParseStatic(&caster.Character, &spelldata.Spell{ID: 990003, Name: "Test Wand Skill", Effects: []spelldata.Effect{
+			{Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_SKILL, Misc: 228, BasePoints: 10},
+		}})
+		if got := caster.PseudoStats.WeaponSkills[proto.WeaponSkill_WeaponSkillWands]; got != 0 {
+			t.Errorf("wand skill after a 10 point Wands skill row at 290: %v over the maximum, want 0", got)
+		}
+		if got := table.Ranged.BaseSpellMissChance; math.Abs(short-0.06) > 1e-9 || math.Abs(got-0.04) > 1e-9 {
+			t.Errorf("the wand hand's spell miss on a level 60 target was %v at 290 wand skill and %v after a 10 point Wands skill row, want 0.06 and 0.04", short, got)
 		}
 	})
 
