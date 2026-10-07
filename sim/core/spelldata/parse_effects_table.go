@@ -36,6 +36,7 @@ var weaponSkillLines = map[int32]proto.WeaponSkill{
 	173: proto.WeaponSkill_WeaponSkillDaggers,
 	176: proto.WeaponSkill_WeaponSkillThrown,
 	226: proto.WeaponSkill_WeaponSkillCrossbows,
+	228: proto.WeaponSkill_WeaponSkillWands,
 	229: proto.WeaponSkill_WeaponSkillPolearms,
 	473: proto.WeaponSkill_WeaponSkillFistWeapons,
 }
@@ -1240,7 +1241,7 @@ func (p *parser) refreshingManaRegen(a *attachment) *attachment {
 	set := a.set
 	a.set = func(sim *core.Simulation, level float64) {
 		set(sim, level)
-		p.unit.UpdateManaRegenRates()
+		p.unit.UpdateManaRegenRates(sim)
 	}
 	return a
 }

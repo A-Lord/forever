@@ -41,7 +41,7 @@ func (spell *Spell) ResistanceMultiplier(sim *Simulation, isPeriodic bool, attac
 	//	sim.Log("Resist thresholds: %0.04f, %0.04f, %0.04f", threshold00, threshold25, threshold50)
 	//}
 
-	if resistanceRoll > threshold00 {
+	if resistanceRoll > threshold00 || spell.Flags.Matches(SpellFlagNoPartialResist) {
 		// No partial resist.
 		return 1, OutcomeEmpty
 	} else if resistanceRoll > threshold25 {

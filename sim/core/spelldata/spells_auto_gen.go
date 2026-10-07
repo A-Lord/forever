@@ -2469,6 +2469,10 @@ var generatedSpells = []Spell{
 			{ID: 683682, SpellID: 5006, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_REGEN, BasePoints: 115, PvpMult: 1, Amplitude: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 			{ID: 683683, SpellID: 5006, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_TRIGGER_SPELL, BasePoints: 1, PvpMult: 1, PeriodMs: 10000, TriggerID: 19708, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}},
+	{ID: 5019, Name: "Shoot", School: 1, Speed: 20, Attr: [17]uint32{0: 0x12, 2: 0x20, 3: 0x8000, 4: 0x1000000, 14: 0x1000000, 15: 0x2000}, SpellLevel: 1, MaxRange: 30, Category: 351, DefenseType: 1, PreventionType: 2, InterruptFlags: 15, ChannelInterrupt: [2]uint32{0: 0x2ac0c}, EquipClass: 2, EquipSubclass: 524288,
+		Effects: []Effect{
+			{ID: 683674, SpellID: 5019, Type: dbcenums.E_WEAPON_DAMAGE_NOSCHOOL, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+		}},
 	{ID: 5020, Name: "Stormstout", School: 1, Attr: [17]uint32{0: 0x28000000, 15: 0x2000}, SpellLevel: 15, DurationMs: 300000, InterruptFlags: 8,
 		Effects: []Effect{
 			{ID: 683746, SpellID: 5020, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_STAT, BasePoints: 4, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},

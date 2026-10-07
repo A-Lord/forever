@@ -270,13 +270,18 @@ func (spell *Spell) SpellHitChance(target *Unit) float64 {
 	return hitPercent / 100
 }
 func (spell *Spell) SpellChanceToMiss(attackTable *AttackTable) float64 {
+	return spell.spellChanceToMiss(attackTable, attackTable.BaseSpellMissChance)
+}
+
+// The spell miss chance with the given level-based miss in place of the attack table's, e.g. a wand hand's.
+func (spell *Spell) spellChanceToMiss(attackTable *AttackTable, baseMissChance float64) float64 {
 	// https://royalgiraffe.github.io/resist-guide (Binary spells)
 	// hitChance = baseLevelHit * (1 - 0.75*resistCoeff) + spellHitBonus, with no miss floor:
 	// Forever has no 1% minimum miss.
 	// The level-based hit is reduced by the resistance roll first, then the spell hit
 	// bonus is added afterwards, which is why spell hit above the level-based miss
 	// counteracts resistance for binary spells.
-	baseHitChance := 1 - attackTable.BaseSpellMissChance
+	baseHitChance := 1 - baseMissChance
 	if spell.Flags.Matches(SpellFlagBinary) {
 		baseHitChance *= attackTable.GetBinaryHitChance(spell)
 	}
@@ -405,7 +410,7 @@ func (spell *Spell) CalcDamage(sim *Simulation, target *Unit, baseDamage float64
 		baseDamage += spell.BonusDamage(attackTable)
 	}
 	// A spell-school hit rolls its whole amount once power is added, not its base alone.
-	if spell.DirectVariance > 0 {
+	if spell.DirectVariance > 0 && !spell.expecting {
 		baseDamage *= sim.RollWithLabel(1-spell.DirectVariance/2, 1+spell.DirectVariance/2, "Damage Roll")
 	}
 	return spell.calcDamageInternal(sim, target, baseDamage, attackerMultiplier, false, outcomeApplier)
@@ -671,7 +676,7 @@ func (spell *Spell) calcHealing(sim *Simulation, target *Unit, baseHealing float
 	if spell.BonusCoefficient > 0 {
 		baseHealing += spell.BonusCoefficient * spell.HealingPower(target)
 	}
-	if !isPeriodic && spell.DirectVariance > 0 {
+	if !isPeriodic && spell.DirectVariance > 0 && !spell.expecting {
 		baseHealing *= sim.RollWithLabel(1-spell.DirectVariance/2, 1+spell.DirectVariance/2, "Healing Roll")
 	}
 	return spell.calcHealingInternal(sim, target, baseHealing, spell.casterHealingMultiplier(isPeriodic), outcomeApplier)

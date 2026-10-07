@@ -320,6 +320,9 @@ export class ActionId {
 				}
 
 				break;
+			case 'Shoot':
+				if (tag == 1) name += ' (Shot)';
+				break;
 			case 'Envenom':
 			case 'Eviscerate':
 			case 'Rupture':
