@@ -76,9 +76,10 @@ type Warlock struct {
 	// Armors
 	DemonArmor *core.Aura
 
+	SoulShardsAura *core.Aura // the Soul Shards left this iteration, as its stacks
+
 	petActiveAuras  []*core.Aura // the warlock's effects that last while a demon is out
 	lifeTapPetShare float64      // Demonic Energies: the share of Life Tap's mana the demon gains
-	soulShards      int32        // the Soul Shards left this iteration
 }
 
 func (warlock *Warlock) GetCharacter() *core.Character {
