@@ -1,13 +1,15 @@
 package mage
 
 import (
+	"time"
+
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-// One of each conjured gem, best first, one use each per fight. They share the gems' 60 sec
-// category cooldown. Each is shown as its item. The conjure spells' E_CREATE_ITEM states item 0
-// (Conjure Mana Ruby, 10054), so no row links a gem to its item and the item ids are stated here.
+// One of each conjured gem, best first, one use each per fight. Each is shown as its item. The
+// conjure spells' E_CREATE_ITEM states item 0 (Conjure Mana Ruby, 10054), so the item ids are stated
+// here; ItemXItemEffect links each item to its Replenish Mana spell.
 var manaGems = []struct {
 	itemID int32
 	name   string
@@ -19,7 +21,27 @@ var manaGems = []struct {
 	{5514, "Mana Agate", spellData.ConjureManaAgateTriggered.Highest()},
 }
 
+// The cooldown the gems share: their items' on-use category, which healthstones and the other
+// conjured consumables share too, not the Replenish Mana rows' 60 sec category 30. Every gem's item
+// states the same category, so the first gem the consumables catalogue carries sets it for all four;
+// Mana Agate is not in the catalogue.
+func (mage *Mage) manaGemCooldown() core.Cooldown {
+	for _, gem := range manaGems {
+		if onUses := core.GetConsumableByID(gem.itemID).OnUseEffects(); len(onUses) > 0 {
+			onUse := onUses[0].GetOnUse()
+			return core.Cooldown{
+				Timer:    mage.GetOrInitSpellCategoryTimer(onUse.CategoryId),
+				Duration: core.DurationFromMillis(onUse.CategoryCooldownMs),
+			}
+		}
+	}
+	// A browser request carries only the consumables the player picked, so it may hold no gem. Every
+	// gem's ItemEffect row states category 1153 for 120 000 ms.
+	return core.Cooldown{Timer: mage.GetCombatConsumableCD(), Duration: 2 * time.Minute}
+}
+
 func (mage *Mage) registerManaGems() {
+	cooldown := mage.manaGemCooldown()
 	// The charges of the gems already registered, which are the better ones.
 	var betterCharges []*core.Aura
 	for _, gem := range manaGems {
@@ -41,6 +63,7 @@ func (mage *Mage) registerManaGems() {
 		config.Rank = 0
 		config.ClassSpellMask = MageSpellManaGem
 		config.Cast.DefaultCast.NonEmpty = true
+		config.Cast.CD = cooldown
 
 		config.ExtraCastCondition = func(_ *core.Simulation, _ *core.Unit) bool {
 			return charge.GetStacks() > 0
