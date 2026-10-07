@@ -24,7 +24,7 @@ function findGo(configured: string): string | undefined {
 		'/usr/lib/go/bin/go',
 		'/opt/homebrew/bin/go',
 		join(homedir(), 'go', 'bin', exe),
-		'C:\\Program Files\\Go\\bin\\go.exe'
+		'C:\\Program Files\\Go\\bin\\go.exe',
 	];
 
 	return candidates.find(path => path !== exe && isFile(path));
@@ -39,36 +39,29 @@ function isFile(path: string): boolean {
 }
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
-	const changeRank = vscode.commands.registerCommand(
-		'wowsims-spelldata.changeRank',
-		async (args: {
-			parameter: string;
-			function: string;
-			rank: number;
-		}) => {
-			if (client === undefined) {
-				return;
-			}
+	const changeRank = vscode.commands.registerCommand('wowsims-spelldata.changeRank', async (args: { parameter: string; function: string; rank: number }) => {
+		if (client === undefined) {
+			return;
+		}
 
-			const editor = vscode.window.activeTextEditor;
-			if (editor === undefined) {
-				return;
-			}
+		const editor = vscode.window.activeTextEditor;
+		if (editor === undefined) {
+			return;
+		}
 
-			await client.sendRequest('wowsims-spelldata/setRank', {
-				uri: editor.document.uri.toString(),
-				parameter: args.parameter,
-				function: args.function,
-				rank: args.rank,
-			});
+		await client.sendRequest('wowsims-spelldata/setRank', {
+			uri: editor.document.uri.toString(),
+			parameter: args.parameter,
+			function: args.function,
+			rank: args.rank,
+		});
 
-			await vscode.commands.executeCommand('editor.action.hideHover');
+		await vscode.commands.executeCommand('editor.action.hideHover');
 
-			setTimeout(() => {
-				void vscode.commands.executeCommand('editor.action.showHover');
-			}, 50);
-		},
-	);
+		setTimeout(() => {
+			void vscode.commands.executeCommand('editor.action.showHover');
+		}, 50);
+	});
 
 	context.subscriptions.push(changeRank);
 
