@@ -90,8 +90,6 @@ export const DefaultOptions = NoPetOptions;
 
 export const DefaultIndividualBuffs = IndividualBuffs.create({
 	greaterBlessingOfKings: true,
-	greaterBlessingOfMight: true,
-	greaterBlessingOfWisdom: true,
 });
 
 export const DefaultPartyBuffs = PartyBuffs.create({
@@ -99,7 +97,6 @@ export const DefaultPartyBuffs = PartyBuffs.create({
 	graceOfAirTotem: true,
 	leaderOfThePack: true,
 	strengthOfEarthTotem: true,
-	windfuryTotem: true,
 });
 
 export const DefaultRaidBuffs = RaidBuffs.create({
