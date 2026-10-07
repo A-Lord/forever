@@ -18,7 +18,7 @@ export const TestingBuild = PresetUtils.makePresetBuildFromJSON('Testing', Spec.
 export const StandardTalents = {
 	name: 'Standard',
 	data: SavedTalents.create({
-		talentsString: '4500301323123051-05-05305',
+		talentsString: TestingBuildJson.player.talentsString,
 	}),
 };
 

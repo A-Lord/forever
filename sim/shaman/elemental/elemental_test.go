@@ -43,7 +43,9 @@ func TestElemental(t *testing.T) {
 	}))
 }
 
-const DefaultTalents = "4500301323123051-05-05305"
+// The Testing build's talents, which the UI's Standard preset reads too.
+var DefaultTalents = core.GetTestBuildFromJSON(proto.Class_ClassShaman, "../../../ui/specs/shaman/elemental/builds", "testing",
+	core.ItemFilter{}, nil, nil).Talents
 
 // The UI's Elemental defaults: Major Mana Potion, Flask of Supreme Power, Demonic Rune and Brilliant
 // Wizard Oil.
