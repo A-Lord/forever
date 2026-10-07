@@ -115,14 +115,14 @@ export const PRESET_BUILD_SUB_HEMO = PresetUtils.makePresetBuild('Subtlety Hemo'
 	talents: TALENTS_SUB_HEMO,
 	rotation: DEFAULT_APL,
 	gear: P1_SLOW_MH_GEAR,
-	settings: DP_MH_Settings,
+	settings: IP_MH_Settings,
 });
 
 export const PRESET_BUILD_SUB_BS = PresetUtils.makePresetBuild('Subtlety BS', {
 	talents: TALENTS_SUB_BS,
 	rotation: BACKSTAB_APL,
 	gear: P1_BS_SUB_GEAR,
-	settings: DP_MH_Settings,
+	settings: IP_MH_Settings,
 });
 
 export const DefaultConsumables = ConsumesSpec.create({
