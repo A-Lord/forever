@@ -122,12 +122,8 @@ func TestThreatAPCoefficient(t *testing.T) {
 
 	spell.ThreatAPCoefficient = 0.05
 	fw.AddStatDynamic(sim, stats.AttackPower, 1000)
-	ap := spell.MeleeAttackPower(attackTable.Defender)
-	if ap <= 0 {
-		t.Fatalf("the fake warrior has %v attack power, so the share is not measured", ap)
-	}
 
-	want := 100 + 0.05*ap
+	want := 150.0 // 100 flat + 0.05 x the 1000 attack power the fake warrior holds
 	if threat := spell.ThreatFromDamage(sim, OutcomeHit, 0, attackTable); !WithinToleranceFloat64(want, threat, 0.001) {
 		t.Fatalf("threat with the attack power share: %0.3f, want %0.3f", threat, want)
 	}
