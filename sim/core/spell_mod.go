@@ -42,6 +42,9 @@ type SpellModConfig struct {
 
 	// A hit or crit percent mod that is a rating's worth on the attacks it reaches.
 	FromRating bool
+
+	// The schools whose hit the character sheet shows a hit mod in. It changes no spell the mod reaches.
+	SheetSchool SpellSchool
 }
 
 type SpellMod struct {
@@ -51,6 +54,7 @@ type SpellMod struct {
 	School           SpellSchool
 	DefenseType      DefenseType
 	MultiplierSchool SpellSchool
+	SheetSchool      SpellSchool
 	ProcMask         ProcMask
 	SpellFlag        SpellFlag
 	ResourceType     proto.ResourceType
@@ -132,7 +136,7 @@ func buildMod(unit *Unit, config SpellModConfig) *SpellMod {
 	}
 
 	if config.School > SpellSchoolNone && config.Kind == SpellMod_BonusHit_Percent {
-		panic("For Spell school specific hit modifiers use PseudoStats.SchoolBonusHitChance")
+		panic("For Spell school specific hit modifiers use PseudoStats.SchoolBonusHitChance, or name the spells and set SheetSchool")
 	}
 
 	if (config.ResourceType > 0) && !slices.Contains([]proto.ResourceType{proto.ResourceType_ResourceTypeMana, proto.ResourceType_ResourceTypeEnergy, proto.ResourceType_ResourceTypeRage, proto.ResourceType_ResourceTypeFocus}, config.ResourceType) {
@@ -146,6 +150,7 @@ func buildMod(unit *Unit, config SpellModConfig) *SpellMod {
 		School:           config.School,
 		DefenseType:      config.DefenseType,
 		MultiplierSchool: config.MultiplierSchool,
+		SheetSchool:      config.SheetSchool,
 		ProcMask:         config.ProcMask,
 		SpellFlag:        config.SpellFlag,
 		ResourceType:     config.ResourceType,

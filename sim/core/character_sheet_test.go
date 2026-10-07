@@ -299,6 +299,34 @@ func TestSheetCritSuppressionIsTheAutosAgainstTheTarget(t *testing.T) {
 	}
 }
 
+// A hit mod with a SheetSchool shows in those schools from the talents stage on, with none of the
+// spells it names registered; a class-masked hit mod without one shows nowhere.
+func TestSheetSchoolHitShowsFromTheTalentsStage(t *testing.T) {
+	weaponTestTalents = func(character *Character) {
+		character.AddStaticMod(SpellModConfig{Kind: SpellMod_BonusHit_Percent, FloatValue: 3, ClassMask: 1 << 40, SheetSchool: SpellSchoolFrostfire})
+		character.AddStaticMod(SpellModConfig{Kind: SpellMod_BonusHit_Percent, FloatValue: 5, ClassMask: 1 << 41})
+	}
+	defer func() { weaponTestTalents = nil }()
+	raid := weaponTestRaid(proto.Race_RaceUndead, WeaponTestSlots(WeaponTestSwordID, 0, 0), nil)
+	playerStats := ComputeStats(&proto.ComputeStatsRequest{Raid: raid, Encounter: weaponTestEncounter()}).RaidStats.Parties[0].Players[0]
+
+	for name, stage := range map[string]*proto.UnitStats{"talents": playerStats.TalentsStats, "final": playerStats.FinalStats} {
+		for school, want := range map[stats.SchoolIndex]float64{
+			stats.SchoolIndexArcane: 0,
+			stats.SchoolIndexFire:   3,
+			stats.SchoolIndexFrost:  3,
+			stats.SchoolIndexHoly:   0,
+			stats.SchoolIndexNature: 0,
+			stats.SchoolIndexShadow: 0,
+		} {
+			pseudoStat := SchoolHitPseudoStats[school]
+			if got := stage.PseudoStats[pseudoStat] - playerStats.GearStats.PseudoStats[pseudoStat]; !WithinToleranceFloat64(want, got, 1e-9) {
+				t.Errorf("the %s stage shows %v more %s than the gear stage, want %v", name, got, pseudoStat, want)
+			}
+		}
+	}
+}
+
 func TestSheetMainHandTableIsTheMainHandAutoAgainstTheTarget(t *testing.T) {
 	for _, tc := range []struct {
 		swordSkill                 int32

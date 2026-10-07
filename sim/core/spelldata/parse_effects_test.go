@@ -242,6 +242,40 @@ func TestParseKeepsTheHitAndDotModifiersApart(t *testing.T) {
 	}
 }
 
+// A hit row parsed with SheetSchoolHit shows on the sheet under the schools the caller names, and the
+// hit still reaches only the spells the row's class flags name.
+func TestParseStaticSheetSchoolHit(t *testing.T) {
+	withRows(t, parseRows())
+	character := parseWarrior()
+	named := parseSpell(character, 2160, core.SpellSchoolArcane, core.ProcMaskSpellDamage, parseTargetMask)
+	other := parseSpell(character, 2161, core.SpellSchoolArcane, core.ProcMaskSpellDamage, parseOtherMask)
+
+	ParseStatic(character, oneEffectRow(dbcenums.A_ADD_FLAT_MODIFIER, int32(dbcenums.SPELLMOD_RESIST_MISS_CHANCE), 5),
+		SheetSchoolHit(core.SpellSchoolArcane))
+
+	if named.BonusHitPercent != 5 || other.BonusHitPercent != 0 {
+		t.Errorf("hit on the named spell %v and on another arcane spell %v, want 5 and 0", named.BonusHitPercent, other.BonusHitPercent)
+	}
+	pseudoStats := character.GetPseudoStatsProto()
+	spellHit := character.GetStat(stats.SpellHitPercent)
+	if got := pseudoStats[proto.PseudoStat_PseudoStatSchoolHitPercentArcane] - spellHit; got != 5 {
+		t.Errorf("the sheet shows %v arcane hit over spell hit, want 5", got)
+	}
+	if got := pseudoStats[proto.PseudoStat_PseudoStatSchoolHitPercentFire] - spellHit; got != 0 {
+		t.Errorf("the sheet shows %v fire hit over spell hit, want 0", got)
+	}
+}
+
+func TestParseStaticSheetSchoolHitNeedsAHitRow(t *testing.T) {
+	withRows(t, parseRows())
+	defer func() {
+		if recover() == nil {
+			t.Error("SheetSchoolHit on a row with no hit modifier did not panic")
+		}
+	}()
+	ParseStatic(parseWarrior(), oneEffectRow(dbcenums.A_MOD_DODGE_PERCENT, 0, 5), SheetSchoolHit(core.SpellSchoolArcane))
+}
+
 func TestParseReadsOnlyTheNamedEffects(t *testing.T) {
 	withRows(t, parseRows())
 	character := parseWarrior()
