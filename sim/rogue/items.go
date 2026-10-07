@@ -41,3 +41,40 @@ var ItemSetShadowCraft = core.NewItemSet(core.ItemSet{
 		// 6 Skipped as it provides no sim benefit
 	},
 })
+
+var (
+	dmantleResist         = spelldata.MustFind(18679)
+	dmantleEnergyProc     = spelldata.MustFind(27787)
+	dmantleEnergyEnergize = spelldata.MustFind(27788)
+	dmantleAttackPower    = spelldata.MustFind(14049)
+	dmantleArmor          = spelldata.MustFind(14803)
+)
+
+var ItemSetDarkMantle = core.NewItemSet(core.ItemSet{
+	Name: "Darkmantle Armor",
+	ID:   185,
+	Bonuses: map[int32]core.ApplySetBonus{
+		2: func(agent core.Agent, setBonusAura *core.Aura) {
+			setBonusAura.AttachStatBuff(stats.ArcaneResistance, dmantleResist.EffectN(1).BaseValue())
+			setBonusAura.AttachStatBuff(stats.FireResistance, dmantleResist.EffectN(1).BaseValue())
+			setBonusAura.AttachStatBuff(stats.FrostResistance, dmantleResist.EffectN(1).BaseValue())
+			setBonusAura.AttachStatBuff(stats.NatureResistance, dmantleResist.EffectN(1).BaseValue())
+			setBonusAura.AttachStatBuff(stats.ShadowResistance, dmantleResist.EffectN(1).BaseValue())
+		},
+		4: func(agent core.Agent, setBonusAura *core.Aura) {
+			rogue := agent.(RogueAgent).GetRogue()
+			gain := shared.FiredSpellHandler(&rogue.Character, core.ActionID{SpellID: dmantleEnergyEnergize.ID}, dmantleEnergyProc)
+
+			trigger := spelldata.ProcTrigger(&rogue.Character, dmantleEnergyProc, gain, spelldata.PPM(1.0))
+			trigger.Name = "Darkmantle 4-piece Proc"
+			setBonusAura.AttachProcTrigger(trigger)
+		},
+		6: func(agent core.Agent, setBonusAura *core.Aura) {
+			setBonusAura.AttachStatBuff(stats.AttackPower, dmantleAttackPower.EffectN(1).BaseValue())
+			setBonusAura.AttachStatBuff(stats.RangedAttackPower, dmantleAttackPower.EffectN(1).BaseValue())
+		},
+		8: func(agent core.Agent, setBonusAura *core.Aura) {
+			setBonusAura.AttachStatBuff(stats.Armor, dmantleArmor.EffectN(1).BaseValue())
+		},
+	},
+})
