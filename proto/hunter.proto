@@ -37,31 +37,30 @@ message HunterTalents {
     bool lone_wolf = 25;
     bool trueshot_aura = 26;
     int32 mortal_shots = 27;
-    int32 improved_serpent_sting = 28;
-    int32 rapid_recuperation = 29;
-    int32 barrage = 30;
-    bool scatter_shot = 31;
-    int32 ranged_weapon_specialization = 32;
-    bool sniper_shot = 33;
+    int32 rapid_recuperation = 28;
+    int32 barrage = 29;
+    bool scatter_shot = 30;
+    int32 ranged_weapon_specialization = 31;
+    bool sniper_shot = 32;
     // Survival
-    int32 improved_tracking = 34;
-    int32 deflection = 35;
-    int32 entrapment = 36;
-    int32 savage_strikes = 37;
-    int32 survivalist = 38;
-    int32 improved_wing_clip = 39;
-    int32 clever_traps = 40;
-    int32 surefooted = 41;
-    bool deterrence = 42;
-    int32 survival_tactics = 43;
-    int32 predators_edge = 44;
-    bool counterattack = 45;
-    int32 resourcefulness = 46;
-    int32 expose_prey = 47;
-    int32 survivalists_discipline = 48;
-    bool strider_kick = 49;
-    int32 lightning_reflexes = 50;
-    bool lacerating_strikes = 51;
+    int32 improved_tracking = 33;
+    int32 deflection = 34;
+    int32 entrapment = 35;
+    int32 savage_strikes = 36;
+    int32 survivalist = 37;
+    int32 improved_wing_clip = 38;
+    int32 clever_traps = 39;
+    int32 surefooted = 40;
+    bool deterrence = 41;
+    int32 survival_tactics = 42;
+    int32 predators_edge = 43;
+    bool counterattack = 44;
+    int32 resourcefulness = 45;
+    int32 expose_prey = 46;
+    int32 survivalists_discipline = 47;
+    bool strider_kick = 48;
+    int32 lightning_reflexes = 49;
+    bool lacerating_strikes = 50;
 }
 
 // END GENERATED

@@ -323,17 +323,6 @@
         }
       },
       {
-        "fieldName": "improvedSerpentSting",
-        "fancyName": "Improved Serpent Sting",
-        "location": {
-          "rowIdx": 3,
-          "colIdx": 3
-        },
-        "spellId": 19464,
-        "definitionId": 134468,
-        "maxPoints": 5
-      },
-      {
         "fieldName": "rapidRecuperation",
         "fancyName": "Rapid Recuperation",
         "location": {
