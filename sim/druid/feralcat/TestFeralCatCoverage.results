@@ -103,7 +103,7 @@ casts_results: {
   }
   casts: {
    key: "spell_id:9830"
-   value: 7
+   value: 8
   }
   casts: {
    key: "spell_id:9850"
@@ -123,7 +123,7 @@ casts_results: {
   }
   casts: {
    key: "spell_id:9896"
-   value: 4
+   value: 5
   }
   casts: {
    key: "spell_id:9898"
@@ -131,11 +131,11 @@ casts_results: {
   }
   casts: {
    key: "spell_id:9904"
-   value: 10
+   value: 11
   }
   casts: {
    key: "spell_id:9907"
-   value: 8
+   value: 7
   }
   casts: {
    key: "spell_id:9908"
@@ -196,7 +196,7 @@ casts_results: {
   }
   casts: {
    key: "spell_id:1322605"
-   value: 6
+   value: 7
   }
   casts: {
    key: "spell_id:22812"
@@ -260,11 +260,11 @@ casts_results: {
   }
   casts: {
    key: "spell_id:9830"
-   value: 8
+   value: 9
   }
   casts: {
    key: "spell_id:9850"
-   value: 18
+   value: 17
   }
   casts: {
    key: "spell_id:9867"
@@ -280,7 +280,7 @@ casts_results: {
   }
   casts: {
    key: "spell_id:9896"
-   value: 5
+   value: 6
   }
   casts: {
    key: "spell_id:9898"
@@ -288,7 +288,7 @@ casts_results: {
   }
   casts: {
    key: "spell_id:9904"
-   value: 13
+   value: 12
   }
   casts: {
    key: "spell_id:9907"
