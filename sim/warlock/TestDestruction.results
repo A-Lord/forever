@@ -81,6 +81,20 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDestruction-AllItems-Champion'sDreadgear"
+ value: {
+  dps: 324.78788
+  tps: 237.85795
+ }
+}
+dps_results: {
+ key: "TestDestruction-AllItems-Champion'sThreads"
+ value: {
+  dps: 293.53864
+  tps: 219.24272
+ }
+}
+dps_results: {
  key: "TestDestruction-AllItems-DarkmoonCard:BlueDragon-19288"
  value: {
   dps: 290.7902
@@ -116,10 +130,31 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDestruction-AllItems-DemonheartRaiment"
+ value: {
+  dps: 276.116
+  tps: 209.22329
+ }
+}
+dps_results: {
+ key: "TestDestruction-AllItems-Demoniac'sThreads"
+ value: {
+  dps: 291.30159
+  tps: 217.81748
+ }
+}
+dps_results: {
  key: "TestDestruction-AllItems-Doombringer-13053"
  value: {
   dps: 296.2885
   tps: 220.40358
+ }
+}
+dps_results: {
+ key: "TestDestruction-AllItems-Doomcaller'sAttire"
+ value: {
+  dps: 352.47271
+  tps: 250.50166
  }
 }
 dps_results: {
@@ -242,6 +277,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDestruction-AllItems-FieldMarshal'sThreads"
+ value: {
+  dps: 314.52088
+  tps: 231.02139
+ }
+}
+dps_results: {
  key: "TestDestruction-AllItems-FrozenHeartoftheMountain-249469"
  value: {
   dps: 292.79434
@@ -291,6 +333,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDestruction-AllItems-ImplementsofUnspokenNames"
+ value: {
+  dps: 298.68969
+  tps: 222.07882
+ }
+}
+dps_results: {
  key: "TestDestruction-AllItems-JomGabbar-23570"
  value: {
   dps: 291.74489
@@ -309,6 +358,20 @@ dps_results: {
  value: {
   dps: 293.75467
   tps: 218.76107
+ }
+}
+dps_results: {
+ key: "TestDestruction-AllItems-LieutenantCommander'sDreadgear"
+ value: {
+  dps: 324.78788
+  tps: 237.85795
+ }
+}
+dps_results: {
+ key: "TestDestruction-AllItems-LieutenantCommander'sThreads"
+ value: {
+  dps: 293.53864
+  tps: 219.24272
  }
 }
 dps_results: {
@@ -379,6 +442,13 @@ dps_results: {
  value: {
   dps: 296.2885
   tps: 220.40358
+ }
+}
+dps_results: {
+ key: "TestDestruction-AllItems-PlagueheartRaiment"
+ value: {
+  dps: 417.36796
+  tps: 270.34673
  }
 }
 dps_results: {
@@ -512,6 +582,13 @@ dps_results: {
  value: {
   dps: 294.41841
   tps: 219.2516
+ }
+}
+dps_results: {
+ key: "TestDestruction-AllItems-Warlord'sThreads"
+ value: {
+  dps: 314.52088
+  tps: 231.02139
  }
 }
 dps_results: {

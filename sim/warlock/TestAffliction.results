@@ -81,6 +81,20 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestAffliction-AllItems-Champion'sDreadgear"
+ value: {
+  dps: 296.88963
+  tps: 170.6979
+ }
+}
+dps_results: {
+ key: "TestAffliction-AllItems-Champion'sThreads"
+ value: {
+  dps: 267.97577
+  tps: 156.24643
+ }
+}
+dps_results: {
  key: "TestAffliction-AllItems-DarkmoonCard:BlueDragon-19288"
  value: {
   dps: 265.83583
@@ -116,10 +130,31 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestAffliction-AllItems-DemonheartRaiment"
+ value: {
+  dps: 253.19948
+  tps: 148.95167
+ }
+}
+dps_results: {
+ key: "TestAffliction-AllItems-Demoniac'sThreads"
+ value: {
+  dps: 270.66268
+  tps: 156.73587
+ }
+}
+dps_results: {
  key: "TestAffliction-AllItems-Doombringer-13053"
  value: {
   dps: 270.74615
   tps: 156.61445
+ }
+}
+dps_results: {
+ key: "TestAffliction-AllItems-Doomcaller'sAttire"
+ value: {
+  dps: 319.78701
+  tps: 180.26053
  }
 }
 dps_results: {
@@ -242,6 +277,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestAffliction-AllItems-FieldMarshal'sThreads"
+ value: {
+  dps: 285.46984
+  tps: 164.2864
+ }
+}
+dps_results: {
  key: "TestAffliction-AllItems-FrozenHeartoftheMountain-249469"
  value: {
   dps: 270.31098
@@ -291,6 +333,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestAffliction-AllItems-ImplementsofUnspokenNames"
+ value: {
+  dps: 273.69315
+  tps: 158.38191
+ }
+}
+dps_results: {
  key: "TestAffliction-AllItems-JomGabbar-23570"
  value: {
   dps: 266.11126
@@ -309,6 +358,20 @@ dps_results: {
  value: {
   dps: 271.0751
   tps: 156.1255
+ }
+}
+dps_results: {
+ key: "TestAffliction-AllItems-LieutenantCommander'sDreadgear"
+ value: {
+  dps: 296.88963
+  tps: 170.6979
+ }
+}
+dps_results: {
+ key: "TestAffliction-AllItems-LieutenantCommander'sThreads"
+ value: {
+  dps: 267.97577
+  tps: 156.24643
  }
 }
 dps_results: {
@@ -379,6 +442,13 @@ dps_results: {
  value: {
   dps: 270.74615
   tps: 156.61445
+ }
+}
+dps_results: {
+ key: "TestAffliction-AllItems-PlagueheartRaiment"
+ value: {
+  dps: 391.74401
+  tps: 193.07461
  }
 }
 dps_results: {
@@ -512,6 +582,13 @@ dps_results: {
  value: {
   dps: 268.90319
   tps: 155.62713
+ }
+}
+dps_results: {
+ key: "TestAffliction-AllItems-Warlord'sThreads"
+ value: {
+  dps: 285.46984
+  tps: 164.2864
  }
 }
 dps_results: {
