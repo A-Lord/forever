@@ -9,7 +9,7 @@ import (
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-func TestSpiritRegenPriestAgainstPaladin(t *testing.T) {
+func TestSpiritRegenIsTheSameForEveryClass(t *testing.T) {
 	for _, tc := range []struct {
 		class     proto.Class
 		race      proto.Race
@@ -18,8 +18,8 @@ func TestSpiritRegenPriestAgainstPaladin(t *testing.T) {
 	}{
 		{proto.Class_ClassPriest, proto.Race_RaceNightElf, 125, 6.25 + 125.0/8},
 		{proto.Class_ClassMage, proto.Race_RaceGnome, 120, 6.25 + 120.0/8},
-		{proto.Class_ClassPaladin, proto.Race_RaceDwarf, 74, 7.5 + 74.0/10},
-		{proto.Class_ClassDruid, proto.Race_RaceNightElf, 110, 7.5 + 110.0/10},
+		{proto.Class_ClassPaladin, proto.Race_RaceDwarf, 74, 6.25 + 74.0/8},
+		{proto.Class_ClassDruid, proto.Race_RaceNightElf, 110, 6.25 + 110.0/8},
 	} {
 		t.Run(tc.class.String(), func(t *testing.T) {
 			character, _ := nakedSheet(t, tc.class, tc.race)
@@ -42,8 +42,8 @@ func TestSetSpiritManaRegenReplacesTheDefault(t *testing.T) {
 	}
 
 	unchanged := newPet("Default Pet")
-	if got := unchanged.SpiritManaRegenPerSecond(); math.Abs(got-(7.5+100.0/10)) > 1e-9 {
-		t.Errorf("default pet spirit regen %v per second, want %v", got, 7.5+100.0/10)
+	if got := unchanged.SpiritManaRegenPerSecond(); math.Abs(got-(6.25+100.0/8)) > 1e-9 {
+		t.Errorf("default pet spirit regen %v per second, want %v", got, 6.25+100.0/8)
 	}
 
 	imp := newPet("Imp")
@@ -51,7 +51,7 @@ func TestSetSpiritManaRegenReplacesTheDefault(t *testing.T) {
 	if got := imp.SpiritManaRegenPerSecond(); math.Abs(got-100.0/5) > 1e-9 {
 		t.Errorf("spirit regen %v per second, want %v", got, 100.0/5)
 	}
-	if got := unchanged.SpiritManaRegenPerSecond(); math.Abs(got-(7.5+100.0/10)) > 1e-9 {
+	if got := unchanged.SpiritManaRegenPerSecond(); math.Abs(got-(6.25+100.0/8)) > 1e-9 {
 		t.Errorf("setting one pet's spirit regen changed another's to %v per second", got)
 	}
 }
