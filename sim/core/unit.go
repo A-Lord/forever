@@ -151,6 +151,7 @@ type Unit struct {
 	// AutoAttacks is the manager for auto attack swings.
 	// Must be enabled to use, with "EnableAutoAttacks()".
 	AutoAttacks AutoAttacks
+	Wand        *Wand // Set by EnableWand for a unit that can shoot a wand.
 
 	Rotation *APLRotation
 
@@ -187,9 +188,9 @@ type Unit struct {
 	rotationAction *PendingAction
 	hardcastAction *PendingAction
 
-	// Cached mana return values per tick.
-	manaTickWhileCasting    float64
-	manaTickWhileNotCasting float64
+	// Cached mana regen per second.
+	manaRegenWhileCasting    float64
+	manaRegenWhileNotCasting float64
 
 	CastSpeed           float64
 	meleeAttackSpeed    float64
@@ -202,10 +203,13 @@ type Unit struct {
 
 	// The currently-channeled DOT spell, otherwise nil.
 	ChanneledDot       *Dot
-	channelEndHandlers []func(sim *Simulation)
+	channelEndHandlers []func(sim *Simulation, dot *Dot)
 
 	// Data about the most recently queued spell, otherwise nil.
 	QueuedSpell *QueuedSpell
+
+	// The cast the rotation or a major cooldown has in flight; procs never set it.
+	rotationCast rotationCast
 
 	// Used for reacting to mastery stat changes
 	OnMasteryStatChanged []OnMasteryStatChanged
@@ -410,7 +414,7 @@ func (unit *Unit) AddStatDynamic(sim *Simulation, stat stats.Stat, amount float6
 
 func (unit *Unit) processDynamicBonus(sim *Simulation, bonus *stats.Stats) {
 	if bonus[stats.MP5] != 0 || bonus[stats.Intellect] != 0 || bonus[stats.Spirit] != 0 {
-		unit.UpdateManaRegenRates()
+		unit.UpdateManaRegenRates(sim)
 	}
 	if bonus[stats.Mana] != 0 && unit.HasManaBar() {
 		if unit.CurrentMana() > unit.MaxMana() {
@@ -527,8 +531,9 @@ func (unit *Unit) IsChanneling() bool {
 	return unit.ChanneledDot != nil
 }
 
-// Runs the handler each time one of the unit's channels ends, run out or cut short, after its last tick.
-func (unit *Unit) OnChannelEnd(handler func(sim *Simulation)) {
+// Runs the handler with the ended channel each time one of the unit's channels ends, run out or cut short, after its last tick
+// and after the rotation's wake-up is set, which the handler may move.
+func (unit *Unit) OnChannelEnd(handler func(sim *Simulation, dot *Dot)) {
 	unit.channelEndHandlers = append(unit.channelEndHandlers, handler)
 }
 
@@ -894,6 +899,7 @@ func (unit *Unit) reset(sim *Simulation, _ Agent) {
 	unit.Hardcast.Expires = startingCDTime
 	unit.ChanneledDot = nil
 	unit.QueuedSpell = nil
+	unit.endRotationCast()
 	unit.DistanceFromTarget = unit.StartDistanceFromTarget
 	unit.Metrics.reset()
 	unit.ResetStatDeps()
@@ -909,7 +915,7 @@ func (unit *Unit) reset(sim *Simulation, _ Agent) {
 	unit.manaBar.reset()
 	unit.focusBar.reset(sim)
 	unit.healthBar.reset(sim)
-	unit.UpdateManaRegenRates()
+	unit.UpdateManaRegenRates(sim)
 
 	unit.energyBar.reset(sim)
 	unit.rageBar.reset(sim)

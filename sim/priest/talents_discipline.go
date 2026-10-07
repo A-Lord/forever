@@ -1,5 +1,10 @@
 package priest
 
+import (
+	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/dbcenums"
+)
+
 func (priest *Priest) registerDisciplineTalents() {
 	// Tier 1
 	priest.applyPowerInLight()
@@ -44,14 +49,20 @@ func (priest *Priest) applyPowerInLight() {
 	}
 }
 
-// applyWandSpecialization implements Wand Specialization, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
+// Wand damage, +13% / +25%: the wand's shots are the priest's only ranged autos. The row's school mask
+// (126) leaves out physical wands.
 func (priest *Priest) applyWandSpecialization() {
 	if priest.Talents.WandSpecialization == 0 {
 		return
 	}
+
+	const schools = 126
+	priest.AddStaticMod(core.SpellModConfig{
+		Kind:       core.SpellMod_DamageDone_Pct,
+		ProcMask:   core.ProcMaskRangedAuto,
+		School:     core.SpellSchool(schools),
+		FloatValue: spellData.WandSpecialization.Effect(dbcenums.A_MOD_DAMAGE_PERCENT_DONE, schools).FractionAt(priest.Talents.WandSpecialization),
+	})
 }
 
 // applyTwinDisciplines implements Twin Disciplines, new in Forever.
@@ -208,7 +219,7 @@ func (priest *Priest) applyMeditation() {
 	// }
 	//
 	// priest.PseudoStats.SpiritRegenRateCasting += spellData.Meditation.FractionAt(priest.Talents.Meditation)
-	// priest.UpdateManaRegenRates()
+	// priest.UpdateManaRegenRates(nil)
 }
 
 // applyImprovedInnerFire implements Improved Inner Fire, new in Forever.

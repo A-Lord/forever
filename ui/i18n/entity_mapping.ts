@@ -373,6 +373,7 @@ export const weaponSkillI18nKeys: Record<WeaponSkill, string> = {
 	[WeaponSkill.WeaponSkillCrossbows]: 'crossbows',
 	[WeaponSkill.WeaponSkillGuns]: 'guns',
 	[WeaponSkill.WeaponSkillThrown]: 'thrown',
+	[WeaponSkill.WeaponSkillWands]: 'wands',
 };
 
 export const slotNamesI18nKeys: Record<ItemSlot, string> = {

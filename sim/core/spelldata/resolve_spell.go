@@ -82,6 +82,12 @@ func SpellConfig(unit *core.Unit, s *Spell, opts ...SpellOpt) core.SpellConfig {
 		CastRequirement: s.CastRequirement(),
 	}
 	applyCost(&config, s)
+	if threat := s.firstOfType(dbcenums.E_THREAT, dbcenums.E_THREAT_ALL); threat != NilEffect {
+		config.FlatThreatBonus = threat.Average()
+		config.ThreatAPCoefficient = threat.APCoeff()
+	} else {
+		config.FlatThreatBonus = float64(s.FlatThreat)
+	}
 	if s.IsBleed() {
 		config.DamageMultiplier = 1
 		config.ThreatMultiplier = 1
@@ -105,8 +111,8 @@ func Melee(mask core.ProcMask) SpellOpt {
 	}
 }
 
-// The same for a spell that scales with spell power, whose share of it the row states on the effect
-// that deals the damage, or heals where the spell has no damaging effect.
+// The same for a spell that scales with spell power, whose share of it and whose roll the row states
+// on the effect that deals the damage, or heals where the spell has no damaging effect.
 func Magic(mask core.ProcMask) SpellOpt {
 	return func(config *core.SpellConfig, s *Spell) {
 		config.ProcMask = mask
@@ -114,11 +120,12 @@ func Magic(mask core.ProcMask) SpellOpt {
 		config.DamageMultiplier = 1
 		config.ThreatMultiplier = 1
 		config.BonusCoefficient = spellPowerCoeff(s)
+		config.DirectVariance = amountEffect(s).DirectVariance()
 	}
 }
 
 // A spell another spell or an aura casts: it is out of the rotation Melee and Magic put it in, it
-// does not feed on-cast effects, and it has no cast, cost, cooldown or cast requirement of its own even when it shares
+// does not feed on-cast effects, and it has no cast, cost, cooldown, cast requirement or flat threat of its own even when it shares
 // the row of the ability that casts it, the way the warrior's Blood Craze heal and Whirlwind's
 // off-hand strike are registered. Its damage and healing are still measured, its casts are not: the
 // metrics aggregator counts no cast for a passive spell, so a sub-spell whose casts the sim reports -
@@ -133,6 +140,8 @@ func Proc() SpellOpt {
 		config.RageCost = core.RageCostOptions{}
 		config.EnergyCost = core.EnergyCostOptions{}
 		config.FocusCost = core.FocusCostOptions{}
+		config.FlatThreatBonus = 0
+		config.ThreatAPCoefficient = 0
 	}
 }
 
@@ -211,10 +220,14 @@ func (e *Effect) isInert() bool {
 }
 
 func spellPowerCoeff(s *Spell) float64 {
+	return amountEffect(s).Coeff()
+}
+
+func amountEffect(s *Spell) *Effect {
 	if e := s.DamageEffect(); e != NilEffect {
-		return e.Coeff()
+		return e
 	}
-	return s.HealEffect().Coeff()
+	return s.HealEffect()
 }
 
 // Spell.NameSubtext_lang, which is "Rank 4" on a ranked spell and a word like "Passive" or

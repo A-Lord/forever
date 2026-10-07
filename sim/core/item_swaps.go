@@ -108,17 +108,13 @@ func (swap *ItemSwap) initialize(character *Character) {
 }
 
 // Used by shaman imbues because itemswap is setup before Imbue spells registers
-// A weapon holds one temporary enchant, so this one replaces a stone's or weightstone's weapon damage.
-func (swap *ItemSwap) AddTempEnchant(enchantID int32, slot proto.ItemSlot, swapped bool) {
+func (swap *ItemSwap) AddWeaponImbue(enchantID int32, slot proto.ItemSlot, swapped bool) {
 	// Add it to the swapped item
 	if swapped {
-		swap.unEquippedItems[slot].TempEnchant = enchantID
-		swap.unEquippedItems[slot].TempEnchantWeaponDamage = 0
-		swap.swapEquip[slot].TempEnchant = enchantID
-		swap.swapEquip[slot].TempEnchantWeaponDamage = 0
+		swap.unEquippedItems[slot].WeaponImbue = enchantID
+		swap.swapEquip[slot].WeaponImbue = enchantID
 	} else {
-		swap.originalEquip[slot].TempEnchant = enchantID
-		swap.originalEquip[slot].TempEnchantWeaponDamage = 0
+		swap.originalEquip[slot].WeaponImbue = enchantID
 	}
 }
 
@@ -451,7 +447,7 @@ func (swap *ItemSwap) swapItem(sim *Simulation, slot proto.ItemSlot, isPrepull b
 		if character.AutoAttacks.AutoSwingMelee {
 			weapon := character.WeaponFromOffHand()
 			character.AutoAttacks.SetOH(weapon)
-			character.AutoAttacks.IsDualWielding = weapon.SwingSpeed != 0 && SpecCanDualWieldCapabilities[character.Spec]
+			character.AutoAttacks.IsDualWielding = weapon.SwingSpeed != 0
 			if !isReset {
 				character.AutoAttacks.EnableMeleeSwing(sim)
 			}
