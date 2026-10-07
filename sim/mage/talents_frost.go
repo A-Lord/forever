@@ -75,7 +75,8 @@ func (mage *Mage) registerElementalPrecision() {
 		return
 	}
 
-	spelldata.ParseStatic(&mage.Character, spellData.ElementalPrecision.Rank(mage.Talents.ElementalPrecision))
+	spelldata.ParseStatic(&mage.Character, spellData.ElementalPrecision.Rank(mage.Talents.ElementalPrecision),
+		spelldata.ShowAsSchoolHit(core.SpellSchoolFire|core.SpellSchoolFrost))
 }
 
 func (mage *Mage) registerIceShards() {

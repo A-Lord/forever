@@ -62,7 +62,7 @@ func (mage *Mage) registerArcaneFocus() {
 		return
 	}
 
-	spelldata.ParseStatic(&mage.Character, spellData.ArcaneFocus.Rank(mage.Talents.ArcaneFocus))
+	spelldata.ParseStatic(&mage.Character, spellData.ArcaneFocus.Rank(mage.Talents.ArcaneFocus), spelldata.ShowAsSchoolHit(core.SpellSchoolArcane))
 }
 
 // Improved Channeling, a chance to avoid interruption from damage while channeling Arcane Missiles
