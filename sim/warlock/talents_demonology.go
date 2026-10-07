@@ -244,7 +244,7 @@ func (warlock *Warlock) applyDemonicBrand() {
 	}
 
 	spelldata.ParseStatic(&warlock.Character, spellData.DemonicBrand.Rank(warlock.Talents.DemonicBrand), spelldata.Effects(1))
-	charges := int32(spelldata.MustFind(1293695).EffectN(2).BaseValue())
+	charges := int32(spellData.DemonicBrand.Rank(warlock.Talents.DemonicBrand).EffectN(2).BaseValue())
 
 	brandRow := spellData.DemonicBrandTriggered.ByID(1293696)
 	warlock.DemonicBrandAuras = warlock.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
@@ -378,7 +378,8 @@ func (warlock *Warlock) applyMasterDemonologist() {
 
 // --- Tier 7 ---
 
-// TODO: Not implemented, as it does not affect sims for now: demons are not resummoned during the fight.
+// The talent is read by resolveSacrifice (warlock.go): with it, a sacrificed demon's bonus holds while another
+// demon is out. Nothing is applied here, as demons are not resummoned during the fight.
 func (warlock *Warlock) applyDemonicPact() {
 	if !warlock.Talents.DemonicPact {
 		return
