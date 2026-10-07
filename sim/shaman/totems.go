@@ -13,6 +13,7 @@ var strengthOfEarthTotemRank = spellData.StrengthOfEarthTotem.Highest()
 var graceOfAirTotemRank = spellData.GraceOfAirTotem.ByID(25359)
 var manaSpringTotemRank = spellData.ManaSpringTotem.Highest()
 var flametongueTotemRank = spellData.FlametongueTotem.Highest()
+var frostResistanceTotemRank = spellData.FrostResistanceTotem.Highest()
 
 // A totem's cast: the row's cost, GCD and cooldown, and nothing it hits.
 func (shaman *Shaman) newTotemSpellConfig(rank *spelldata.Spell) core.SpellConfig {
@@ -102,6 +103,12 @@ func (shaman *Shaman) registerGraceOfAirTotemSpell() {
 func (shaman *Shaman) registerManaSpringTotemSpell() {
 	shaman.registerBuffTotem(manaSpringTotemRank, WaterTotem,
 		buffs.NewSpellDataManaSpringTotemAura(&shaman.Unit, true, shaman.Talents.RestorativeTotems))
+}
+
+// A fire totem, so it stands in the slot Fire Nova radiates from.
+func (shaman *Shaman) registerFrostResistanceTotemSpell() {
+	shaman.registerBuffTotem(frostResistanceTotemRank, FireTotem,
+		buffs.NewSpellDataFrostResistanceTotemAura(&shaman.Unit, true, 0))
 }
 
 // Commented out upstream of this fork by "only 1 totem per type" (53970b1d84), not by

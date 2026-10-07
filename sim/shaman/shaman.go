@@ -131,6 +131,7 @@ func (shaman *Shaman) Initialize() {
 	shaman.registerFireNovaSpell()
 	shaman.registerWindfuryTotemSpell()
 	shaman.registerFlametongueTotemSpell()
+	shaman.registerFrostResistanceTotemSpell()
 	shaman.registerStrengthOfEarthTotemSpell()
 	shaman.registerGraceOfAirTotemSpell()
 	shaman.registerManaSpringTotemSpell()
