@@ -82,9 +82,9 @@ type parser struct {
 	// without a caster.
 	casterSlot *casterSlot
 
-	// SheetSchoolHit: the schools the hit mods are shown under, and whether a row stamped them.
-	sheetSchool        core.SpellSchool
-	sheetSchoolStamped bool
+	// ShowAsSchoolHit: the schools the hit mods are shown under, and whether a row stamped them.
+	showAsSchoolHit        core.SpellSchool
+	showAsSchoolHitStamped bool
 }
 
 // One attachment made for one effect: the sim kind it became, the value in the sim's own units, and
@@ -580,8 +580,8 @@ var flatModTable = map[dbcenums.SpellModOp]row{
 	},
 	dbcenums.SPELLMOD_RESIST_MISS_CHANCE: func(p *parser, e *Effect, v float64) *attachment {
 		cfg := p.modConfig(e, core.SpellMod_BonusHit_Percent)
-		cfg.SheetSchool = p.sheetSchool
-		p.sheetSchoolStamped = true
+		cfg.ShowAsSchoolHit = p.showAsSchoolHit
+		p.showAsSchoolHitStamped = true
 		return p.modFloat("SpellMod_BonusHit_Percent", cfg, v)
 	},
 	dbcenums.SPELLMOD_DURATION: func(p *parser, e *Effect, v float64) *attachment {

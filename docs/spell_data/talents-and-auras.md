@@ -38,7 +38,7 @@ mask names, because the mod is attached to the aura and not to each spell pointi
 | `Conditional(fn)`            | a condition every attachment is gated on, read on gain and whenever the caller calls `Refresh(sim)`                 |
 | `IgnoreStacks()`             | the values do not follow the aura's stacks, which is what a row stating charges rather than cumulative stacks means |
 | `FromCaster(unit, i, total)` | the unit that cast a debuff, for the rows that reach only its attacks, in slot `i` of `total` on its attack table   |
-| `SheetSchoolHit(schools)`    | the schools whose hit the character sheet shows the row's `SPELLMOD_RESIST_MISS_CHANCE` hit in                      |
+| `ShowAsSchoolHit(schools)`   | the schools whose hit the character sheet shows the row's `SPELLMOD_RESIST_MISS_CHANCE` hit in                      |
 
 **A debuff that reaches only its caster's attacks** sits on the target and is parsed onto the target's
 aura with `FromCaster`: Shadow Weaving's shadow damage (`A_MOD_SCHOOL_MASK_DAMAGE_FROM_CASTER`, by the
@@ -127,12 +127,16 @@ Precision 1309957 and Divine Precision 1310904. Parse it, and the mod raises the
 spells the flags name, on whichever table they roll: Divine Precision reaches Holy Strike's melee roll.
 Class flags carry no school, so the character sheet cannot place that hit in a school's row on its own.
 For a talent whose spells are the class's main spells of a school, the class passes the schools its
-tooltip names, `spelldata.SheetSchoolHit(core.SpellSchoolFire | core.SpellSchoolFrost)`. The mod then
-carries them as `SheetSchool`, and the sheet adds the hit to those schools' rows from the talents stage
-on. It changes no spell the mod reaches. A parse with the option panics if the row attaches no hit
-modifier. `PseudoStats.SchoolBonusHitChance` is the bonus stats' school hit, which reaches every spell of
-the school with a class mask and no melee roll. A talent written into it by hand loses its row's spell
-list, and one written in beside the parse counts its hit twice.
+tooltip names, `spelldata.ShowAsSchoolHit(core.SpellSchoolFire | core.SpellSchoolFrost)`. The mod then
+carries them as `ShowAsSchoolHit`, and the sheet adds the hit to those schools' rows while the mod is
+active: from the talents stage on for a `ParseStatic` in `ApplyTalents`, and while the aura is up for a
+`ParseEffects`. It changes no spell the mod reaches, so the row is the hit of the talent's spells: a
+spell of the school the flags miss, such as Holy Shield's damage under Divine Precision, keeps the base
+spell hit, and the reforge optimizer's hit caps read the row as it stands. A row that attaches no hit
+modifier panics with the option; a Nil row, an untaken rank, parses nothing. `PseudoStats.SchoolBonusHitChance`
+is the bonus stats' school hit, which reaches every spell of the school with a `ClassSpellMask` or class
+flags and no melee roll. A talent written into it by hand loses its row's spell list, and one written in
+beside the parse counts its hit twice.
 
 Armor has two percentage auras. `A_MOD_BASE_RESISTANCE_PCT` scales the armor from items, which is what
 its tooltip states, and `A_MOD_RESISTANCE_PCT` multiplies the whole stat: Inspiration's 8 is 8% more

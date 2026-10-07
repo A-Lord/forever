@@ -38,7 +38,7 @@ type parseOptions struct {
 
 	casterSlot *casterSlot
 
-	sheetSchool core.SpellSchool
+	showAsSchoolHit core.SpellSchool
 }
 
 // Only these effects, counted from 1 by position the way EffectN counts.
@@ -188,9 +188,9 @@ func FromCaster(caster *core.Unit, index, total int) ParseOpt {
 // talents stage on. The row names its spells by class flags, which carry no school, so the caller states
 // the schools its tooltip names, for a talent that reaches the class's main spells of them: Arcane Focus
 // takes core.SpellSchoolArcane. The spells the mod reaches stay the ones the class flags name.
-func SheetSchoolHit(schools core.SpellSchool) ParseOpt {
+func ShowAsSchoolHit(schools core.SpellSchool) ParseOpt {
 	return func(o *parseOptions) {
-		o.sheetSchool = schools
+		o.showAsSchoolHit = schools
 	}
 }
 
@@ -278,17 +278,17 @@ func parse(unit *core.Unit, character *core.Character, aura *core.Aura, s *Spell
 
 	stacking := s.MaxStack > 0 && !o.ignoreStacks
 	p := &parser{
-		unit:        unit,
-		character:   character,
-		spell:       s,
-		static:      aura == nil && !dry,
-		conditional: o.cond != nil,
-		stacking:    stacking || o.count != 0,
-		dry:         dry,
-		aura:        aura,
-		hand:        o.hand,
-		casterSlot:  o.casterSlot,
-		sheetSchool: o.sheetSchool,
+		unit:            unit,
+		character:       character,
+		spell:           s,
+		static:          aura == nil && !dry,
+		conditional:     o.cond != nil,
+		stacking:        stacking || o.count != 0,
+		dry:             dry,
+		aura:            aura,
+		hand:            o.hand,
+		casterSlot:      o.casterSlot,
+		showAsSchoolHit: o.showAsSchoolHit,
 	}
 	if o.casterSlot != nil {
 		o.casterSlot.target = unit
@@ -358,8 +358,8 @@ func parse(unit *core.Unit, character *core.Character, aura *core.Aura, s *Spell
 		}
 		parsed.attachments = append(parsed.attachments, a)
 	}
-	if o.sheetSchool != 0 && !p.sheetSchoolStamped {
-		panic(fmt.Sprintf("spelldata: spell %d attaches no SPELLMOD_RESIST_MISS_CHANCE hit for SheetSchoolHit to show", s.ID))
+	if o.showAsSchoolHit != 0 && !p.showAsSchoolHitStamped {
+		panic(fmt.Sprintf("spelldata: spell %d attaches no SPELLMOD_RESIST_MISS_CHANCE hit for ShowAsSchoolHit to show", s.ID))
 	}
 
 	parsed.aura = aura
