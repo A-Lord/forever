@@ -130,8 +130,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-AllItems-BlazefuryMedallion-17111"
  value: {
-  dps: 213.11476
-  tps: 151.31148
+  dps: 213.10872
+  tps: 151.30719
  }
 }
 dps_results: {
@@ -151,8 +151,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-AllItems-DarkmoonCard:Maelstrom-19289"
  value: {
-  dps: 211.57467
-  tps: 150.21802
+  dps: 211.52859
+  tps: 150.1853
  }
 }
 dps_results: {
@@ -207,8 +207,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-AllItems-Enchant:FieryBlaze-36"
  value: {
-  dps: 210.90169
-  tps: 149.7402
+  dps: 210.91436
+  tps: 149.7492
  }
 }
 dps_results: {
@@ -369,8 +369,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-AllItems-HammeroftheNorthernWind-810"
  value: {
-  dps: 218.81277
-  tps: 155.35707
+  dps: 218.80952
+  tps: 155.35476
  }
 }
 dps_results: {
@@ -383,8 +383,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-AllItems-HelmofFire-8348"
  value: {
-  dps: 211.59669
-  tps: 150.23365
+  dps: 211.51439
+  tps: 150.17522
  }
 }
 dps_results: {
@@ -488,8 +488,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-AllItems-OrbofFire-12805"
  value: {
-  dps: 207.35886
-  tps: 147.22479
+  dps: 207.35193
+  tps: 147.21987
  }
 }
 dps_results: {
@@ -509,8 +509,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-AllItems-ShardoftheFallenStar-21891"
  value: {
-  dps: 208.87437
-  tps: 148.3008
+  dps: 208.78091
+  tps: 148.23445
  }
 }
 dps_results: {

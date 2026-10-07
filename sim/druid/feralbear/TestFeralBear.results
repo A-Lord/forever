@@ -157,8 +157,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralBear-AllItems-DarkmoonCard:Maelstrom-19289"
  value: {
-  dps: 131.04964
-  tps: 136.46631
+  dps: 130.97927
+  tps: 136.39594
   dtps: 4965.39734
  }
 }
@@ -221,8 +221,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralBear-AllItems-Enchant:FieryBlaze-36"
  value: {
-  dps: 126.13147
-  tps: 131.50092
+  dps: 126.12138
+  tps: 131.49082
   dtps: 4989.26738
  }
 }
@@ -406,8 +406,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralBear-AllItems-HammeroftheNorthernWind-810"
  value: {
-  dps: 137.12673
-  tps: 142.48645
+  dps: 137.09338
+  tps: 142.4531
   dtps: 4981.63605
  }
 }
@@ -542,8 +542,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralBear-AllItems-OrbofFire-12805"
  value: {
-  dps: 125.58923
-  tps: 131.00173
+  dps: 125.58648
+  tps: 130.99898
   dtps: 4982.55035
  }
 }
