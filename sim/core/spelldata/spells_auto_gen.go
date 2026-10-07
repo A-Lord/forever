@@ -10034,6 +10034,13 @@ var generatedSpells = []Spell{
 			{ID: 691038, SpellID: 13750, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_POWER_REGEN_PERCENT, BasePoints: 100, BaseLevel: 60, SPCoef: 1, PvpMult: 1, Misc: 3, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		},
 		Powers: []Power{{Type: 3}}},
+	{ID: 13752, Name: "Faerie Fire", Rank: "Rank 2", School: 8, Attr: [17]uint32{0: 0x10000, 1: 0x18000, 15: 0x2000}, SpellLevel: 45, DurationMs: 30000, MaxRange: 30, DefenseType: 1, DispelType: 1, ProcChance: 101, InterruptFlags: 8, ProcChanceSource: ProcChanceAlways,
+		Effects: []Effect{
+			{ID: 691147, SpellID: 13752, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_RESISTANCE, BasePoints: -100, PvpMult: 1, Misc: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+			{ID: 691148, SpellID: 13752, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_DISPEL_IMMUNITY, PvpMult: 1, Misc: 6, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+			{ID: 691149, SpellID: 13752, Index: 2, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_DISPEL_IMMUNITY, PvpMult: 1, Misc: 5, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+		},
+		Powers: []Power{{Cost: 55}}},
 	{ID: 13754, Name: "Improved Kick", School: 1, Attr: [17]uint32{0: 0x1d0, 3: 0x80000, 15: 0x2000}, SpellLevel: 60, BaseLevel: 60, ProcChance: 100, ProcFlags: [2]uint32{0: 0x15550}, ClassFlags: core.ClassFlags{Family: 8}, Labels: []int16{20}, RefIDs: []int32{18425}, ProcChanceSource: ProcChanceEffectN, ProcChanceEffect: 1, ProcHint: core.ProcHintNamedAbility,
 		Effects: []Effect{
 			{ID: 691118, SpellID: 13754, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PROC_TRIGGER_SPELL, BasePoints: 100, BaseLevel: 60, SPCoef: 1, PvpMult: 1, TriggerID: 18425, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
@@ -13361,6 +13368,10 @@ var generatedSpells = []Spell{
 			{ID: 693697, SpellID: 16362, Type: dbcenums.E_360, BasePoints: 1800, BaseLevel: 60, PvpMult: 1, Misc: 1669, ChainAmp: 1},
 		},
 		Powers: []Power{{Cost: 165}}},
+	{ID: 16368, Name: "Flametongue Attack", School: 4, Attr: [17]uint32{0: 0x40000, 15: 0x2000}, SpellLevel: 1, BaseLevel: 1, MaxRange: 50000, DefenseType: 1, ClassFlags: core.ClassFlags{Family: 11, Mask: [4]uint32{0: 33554432}}, Labels: []int16{24},
+		Effects: []Effect{
+			{ID: 693752, SpellID: 16368, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 1, BaseLevel: 1, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+		}},
 	{ID: 16375, Name: "Drain Life", School: 32, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 45, MaxRange: 40, DefenseType: 1, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 688169, SpellID: 16375, Type: dbcenums.E_HEALTH_LEECH, BasePoints: 100, Variance: 0.5, PvpMult: 1, Amplitude: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
@@ -35281,6 +35292,11 @@ var generatedSpells = []Spell{
 			{ID: 1314822, SpellID: 1293818, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 122, PPL: 0.8999999761581421, Variance: 0.24175824224948883, BaseLevel: 32, MaxLevel: 38, SPCoef: 0.42899999022483826, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
 		Powers: []Power{{Cost: 130}}},
+	{ID: 1293819, Name: "Reduce Mechanic Duration - Snare/Root 07", School: 1, Attr: [17]uint32{0: 0x1c0, 15: 0x2000}, SpellLevel: 60, BaseLevel: 60,
+		Effects: []Effect{
+			{ID: 1314824, SpellID: 1293819, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MECHANIC_DURATION_MOD, BasePoints: -7, BaseLevel: 60, PvpMult: 1, Misc: 11, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
+			{ID: 1314825, SpellID: 1293819, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MECHANIC_DURATION_MOD, BasePoints: -7, BaseLevel: 60, PvpMult: 1, Misc: 7, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
+		}},
 	{ID: 1293820, Name: "Toy Soldier", School: 64, Attr: [17]uint32{0: 0x10, 8: 0x1000, 15: 0x2000}, SpellLevel: 60, BaseLevel: 60, DurationMs: 20000, DispelType: 1, ProcChance: 101, AreaBonusGroups: []int32{9326}, AreaMultiplier: 2, AreaDurationMultiplier: 1, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 1314826, SpellID: 1293820, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_DODGE_PERCENT, BasePoints: 3, BaseLevel: 60, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
@@ -35367,10 +35383,6 @@ var generatedSpells = []Spell{
 	{ID: 1295272, Name: "Parachute-Priest Pager", School: 1, Speed: 10, SpellLevel: 60, BaseLevel: 60, MaxRange: 100, RefIDs: []int32{1295661}, ProcHint: core.ProcHintHeals,
 		Effects: []Effect{
 			{ID: 1317204, SpellID: 1295272, Type: dbcenums.E_TRIGGER_MISSILE, BaseLevel: 60, PvpMult: 1, RadiusMax: 8, TriggerID: 1295661, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{72, 87}},
-		}},
-	{ID: 1295313, Name: "Booty Bay Bruiser Buckshot", School: 1, Speed: 30, Attr: [17]uint32{0: 0x40000, 3: 0x30000, 4: 0x800000, 10: 0x4, 11: 0x800}, SpellLevel: 60, BaseLevel: 60, CastTimeMs: 3000, MinRange: 10, MaxRange: 40, CooldownMs: 600000, GCDMs: 1500, StartRecoveryCategory: 133, PreventionType: 2, InterruptFlags: 47,
-		Effects: []Effect{
-			{ID: 1317277, SpellID: 1295313, Type: dbcenums.E_KNOCK_BACK, BasePoints: 50, BaseLevel: 60, PvpMult: 1, Misc: 400, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{25, 0}},
 		}},
 	{ID: 1295608, Name: "Warding Candle", School: 1, Attr: [17]uint32{0: 0x8000000, 15: 0x2000}, MaxLevel: 47, DefenseType: 1,
 		Effects: []Effect{
@@ -38107,6 +38119,7 @@ var generatedCurves = map[int32][][]float64{
 }
 
 var generatedHandTriggers = map[int32][]int32{
+	16389:   {16368},   // Flametongue Totem Proc is a dummy holding the base points, and the hit logs in game as 16368 Flametongue Attack: fire school damage with the magic defense type and no bonus coefficient
 	20230:   {20240},   // Retaliation's dummy aura (aura 4) casts the counterattack 20240: same name, class set and icon, weapon damage with no base, a cost of 1 in SpellPower that is a tenth of a rage
 	1323967: {1323969}, // Gore Drinker's talent aura (two dummies) applies the buff its tooltip describes: same name, class set and icon, 3 charges heard on melee attacks, and its aura 231 casts the heal 1323968
 }

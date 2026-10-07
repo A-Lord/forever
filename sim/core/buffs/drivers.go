@@ -281,6 +281,9 @@ func holdTotemAura(totemAura *core.Aura, category string, priority float64, proc
 // trigger column, so the proc is read by id.
 var flametongueTotemProc = spelldata.MustFind(16389)
 
+// The totem's hit logs in game as Flametongue Attack; 16389 only states its base points.
+var flametongueTotemAttack = spelldata.MustFind(16368)
+
 // A Flametongue Totem bids its proc's base points for the category.
 func FlametongueTotemPriority() float64 {
 	return flametongueTotemProc.EffectN(1).BaseValue()
@@ -311,20 +314,17 @@ func driveFlametongueTotem(char *core.Character, party *proto.PartyBuffs) {
 const flametongueTotemTriggerLabel = "Flametongue Totem Trigger"
 
 // The Flametongue Totem proc on the character's main hand, inactive until a
-// totem aura holding FlametongueTotemCategory turns it on. 16389 states no
-// defense type, and a fire proc with none rolls on the spell hit and crit
-// tables. A character under both the party buff and a totem of its own casting
-// has one proc, built once, and it does nothing while the Windfury Totem proc
-// is up.
+// totem aura holding FlametongueTotemCategory turns it on. A character under
+// both the party buff and a totem of its own casting has one proc, built once,
+// and it does nothing while the Windfury Totem proc is up.
 func NewFlametongueTotemProcTrigger(char *core.Character) *core.Aura {
 	if procTrigger := char.GetAura(flametongueTotemTriggerLabel); procTrigger != nil {
 		return procTrigger
 	}
 
-	config := spelldata.SpellConfig(&char.Unit, flametongueTotemProc, spelldata.Proc(), spelldata.Tag(-1))
-	config.DefenseType = core.DefenseTypeMagic
+	config := spelldata.SpellConfig(&char.Unit, flametongueTotemAttack, spelldata.Proc(), spelldata.Tag(-1))
 	config.ProcMask = core.ProcMaskSpellDamageProc
-	if flametongueTotemProc.IsAProc() {
+	if flametongueTotemAttack.IsAProc() {
 		config.Flags |= core.SpellFlagProc
 	}
 	config.DamageMultiplier = 1

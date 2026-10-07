@@ -714,7 +714,7 @@ func TestGeneratedFlametongueTotemStrikesOnMainHandHits(t *testing.T) {
 		t.Errorf("the category holds %d effects, want the totem's one", len(category.Effects()))
 	}
 
-	strike := char.GetSpell(core.ActionID{SpellID: 16389, Tag: -1})
+	strike := char.GetSpell(core.ActionID{SpellID: 16368, Tag: -1})
 	if strike == nil {
 		t.Fatal("the totem registered no spell for its proc")
 	}
@@ -722,7 +722,7 @@ func TestGeneratedFlametongueTotemStrikesOnMainHandHits(t *testing.T) {
 		t.Errorf("the proc is %v on %v, want fire on the spell tables", strike.SpellSchool, strike.DefenseType)
 	}
 	if !strike.Flags.Matches(core.SpellFlagProc) {
-		t.Error("the proc's hits are not flagged as a proc, which 16389 does not opt out of")
+		t.Error("the proc's hits are not flagged as a proc, which 16368 does not opt out of")
 	}
 
 	metrics := &strike.SpellMetrics[target.UnitIndex]
@@ -836,7 +836,7 @@ func TestGeneratedWindfuryTotemHoldsOverFlametongueTotem(t *testing.T) {
 		&proto.PartyBuffs{WindfuryTotem: true, FlametongueTotem: true}, &proto.IndividualBuffs{})
 	char := sim.Raid.Parties[0].Players[0].GetCharacter()
 
-	if char.GetAura("Flametongue Totem Trigger") != nil || char.GetSpell(core.ActionID{SpellID: 16389, Tag: -1}) != nil {
+	if char.GetAura("Flametongue Totem Trigger") != nil || char.GetSpell(core.ActionID{SpellID: 16368, Tag: -1}) != nil {
 		t.Error("Flametongue Totem registered its proc next to Windfury Totem")
 	}
 	if len(char.ExclusiveEffectManager.GetExclusiveEffectCategory(buffs.FlametongueTotemCategory).Effects()) != 0 {
