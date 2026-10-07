@@ -232,8 +232,8 @@ func (warlock *Warlock) soulSiphonChannelConfig(rankedSpell *spelldata.Spell, ti
 	config := spelldata.SpellConfig(&warlock.Unit, rankedSpell, spelldata.Magic(core.ProcMaskSpellDamage))
 
 	// TODO: Confirm no snapshot from Soul Siphon.
-	// TODO: Confirm in-game whether spell haste shortens the ticks. The TBC config set AffectedByCastSpeed and
-	// HasteReducesDuration; left off, as the rows carry no haste attribute.
+	// TODO: Confirm in game whether spell haste shortens the ticks; the rows carry no haste attribute, so
+	// neither AffectedByCastSpeed nor HasteReducesDuration is set.
 	config.Dot = spelldata.DotConfig(rankedSpell, tick)
 	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
 		result := dot.Spell.CalcPeriodicDamage(sim, target, tick.Average(), rankedSpell.TickOutcomeHitRolled(dot))

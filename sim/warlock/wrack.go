@@ -26,8 +26,7 @@ func (warlock *Warlock) registerWrackSpell() {
 	config := warlock.soulSiphonChannelConfig(rankedSpell, wrackTick, nil)
 	config.ClassSpellMask = WarlockSpellWrack
 
-	// Uses attach DDBC methods to apply/remove the 10% damage taken buff.
-	// Reference MoP Haunt Implementation for example
+	// While the channel is on the target, this warlock's damage from the named spells is raised there.
 	config.Dot.Aura.OnGain = func(aura *core.Aura, _ *core.Simulation) {
 		core.EnableDamageDoneByCaster(DDBC_Wrack, DDBC_Total, warlock.AttackTables[aura.Unit.UnitIndex], amplifyNamed)
 	}
