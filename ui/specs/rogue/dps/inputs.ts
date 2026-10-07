@@ -13,7 +13,7 @@ export const MainHandPoison = <SpecType extends RogueSpecs>() =>
 		values: [
 			{ value: RoguePoison.None, tooltip: i18n.t('settings_tab.other.poison.none') },
 			{ actionId: ActionId.fromItemId(8928), value: RoguePoison.InstantPoison },
-			{ actionId: ActionId.fromItemId(20844), value: RoguePoison.DeadlyPoison },
+			{ actionId: ActionId.fromItemId(8985), value: RoguePoison.DeadlyPoison },
 		],
 	});
 export const OffHandPoison = <SpecType extends RogueSpecs>() =>
@@ -24,6 +24,6 @@ export const OffHandPoison = <SpecType extends RogueSpecs>() =>
 		values: [
 			{ value: RoguePoison.None, tooltip: i18n.t('settings_tab.other.poison.none') },
 			{ actionId: ActionId.fromItemId(8928), value: RoguePoison.InstantPoison },
-			{ actionId: ActionId.fromItemId(20844), value: RoguePoison.DeadlyPoison },
+			{ actionId: ActionId.fromItemId(8985), value: RoguePoison.DeadlyPoison },
 		],
 	});
