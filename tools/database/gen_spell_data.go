@@ -587,13 +587,17 @@ func triggeredRows(db *sql.DB, l rankLadder) ([]triggeredRow, error) {
 
 // Every spell a node of the class's Forever tree defines.
 func treeSpellIDs(db *sql.DB, treeID int) (map[int32]bool, error) {
+	unparked, err := unparkedTraitNodes(db)
+	if err != nil {
+		return nil, err
+	}
 	rows, err := db.Query(`
 		SELECT DISTINCT COALESCE(d.SpellID, 0)
 		FROM TraitNode tn
 		JOIN TraitNodeXTraitNodeEntry x ON x.TraitNodeID = tn.ID
 		JOIN TraitNodeEntry e ON e.ID = x.TraitNodeEntryID
 		JOIN TraitDefinition d ON d.ID = e.TraitDefinitionID
-		WHERE tn.TraitTreeID = ?`, treeID)
+		WHERE tn.TraitTreeID = ? AND `+unparked, treeID)
 	if err != nil {
 		return nil, err
 	}
@@ -643,6 +647,10 @@ func keysOf[V any](m map[string]V) map[string]bool {
 // hold the top rank on some talents and a stale number on others, and 240 of the 640 curves in this
 // build disagree with them.
 func discoverTraitLadders(db *sql.DB, treeID int) (map[string]traitLadder, map[string]string, map[string]string, error) {
+	unparked, err := unparkedTraitNodes(db)
+	if err != nil {
+		return nil, nil, nil, err
+	}
 	rows, err := db.Query(`
 		SELECT DISTINCT d.ID, COALESCE(d.SpellID, 0), e.MaxRanks,
 		       COALESCE(NULLIF(sn.Name_lang, ''), d.OverrideName_lang, '')
@@ -651,7 +659,7 @@ func discoverTraitLadders(db *sql.DB, treeID int) (map[string]traitLadder, map[s
 		JOIN TraitNodeEntry e ON e.ID = x.TraitNodeEntryID
 		JOIN TraitDefinition d ON d.ID = e.TraitDefinitionID
 		LEFT JOIN SpellName sn ON sn.ID = d.SpellID
-		WHERE tn.TraitTreeID = ?
+		WHERE tn.TraitTreeID = ? AND `+unparked+`
 		ORDER BY d.ID`, treeID)
 	if err != nil {
 		return nil, nil, nil, err
