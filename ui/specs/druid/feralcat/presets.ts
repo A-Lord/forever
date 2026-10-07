@@ -4,6 +4,7 @@ import { ConsumesSpec, Profession, Race, Spec } from '@generated/proto/common';
 import { FeralCatDruid_Options as FeralDruidOptions, FeralCatDruid_Rotation as FeralCatDruidRotation } from '@generated/proto/druid';
 import { SavedTalents } from '@generated/proto/ui';
 
+import AutoApl from './apls/auto.apl.json';
 import DefaultApl from './apls/default.apl.json';
 import RaidDpsApl from './apls/raid-dps.apl.json';
 import RaidBuild from './builds/raid.build.json';
@@ -56,5 +57,6 @@ export const DefaultRotation = FeralCatDruidRotation.fromJsonString(JSON.stringi
 
 export const SIMPLE = PresetUtils.makePresetSimpleRotation('Simple', Spec.SpecFeralCatDruid, DefaultRotation);
 export const APL = PresetUtils.makePresetAPLRotation('Claw / Rip', DefaultApl);
+export const AUTO_APL = PresetUtils.makePresetAPLRotation('Auto', AutoApl);
 export const POWERSHIFT_APL = PresetUtils.makePresetAPLRotation('Shred / Rake / Rip (4 CP)', RaidBuild.player.rotation);
 export const RAID_DPS_APL = PresetUtils.makePresetAPLRotation('Shred / Rake / Rip (5 CP)', RaidDpsApl);
