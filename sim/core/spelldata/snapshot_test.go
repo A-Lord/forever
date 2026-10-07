@@ -154,10 +154,10 @@ func TestRollEndsMatchTheTooltip(t *testing.T) {
 		}
 	}
 
-	// Wrath rank 3 at 20 shows 32 to 37, but a cast rolls its whole amount around Average, which floors
-	// 34.2 to 34, so before spell power it averages 34 rather than the tooltip's middle.
-	if got := MustFind(5178).DamageEffect().MeanAt(20); got != 34 {
-		t.Errorf("Wrath rank 3 at 20 averages %v, want 34", got)
+	// Wrath rank 3 at 20 shows 32 to 37, but a cast rolls its whole amount around Average, which keeps
+	// the fraction, so before spell power it averages 34.2 rather than the tooltip's middle.
+	if got, want := MustFind(5178).DamageEffect().MeanAt(20), float64(float32(34.2)); got != want {
+		t.Errorf("Wrath rank 3 at 20 averages %v, want %v", got, want)
 	}
 }
 

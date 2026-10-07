@@ -11,7 +11,6 @@ import (
 
 // Generated with an effect held at its base points, the talent tree stating no rank value for it:
 //   Barrage: effect 1 of spell 19461 has no rank curve and is held at its base points
-//   Improved Serpent Sting: effect 1 of spell 19464 has no rank curve and is held at its base points
 //   Lacerating Strikes: effect 0 of spell 1310533 has no rank curve and is held at its base points
 //   Lone Wolf: effect 0, 1 of spell 415370 has no rank curve and is held at its base points
 //   Surefooted: effect 3 of spell 19290 has no rank curve and is held at its base points
@@ -138,7 +137,6 @@ type generatedSpellData struct {
 	ImprovedMendPet                 spelldata.Ladder
 	ImprovedMendPetTriggered        spelldata.Ladder
 	ImprovedRevivePet               spelldata.Ladder
-	ImprovedSerpentSting            spelldata.Ladder
 	ImprovedStings                  spelldata.Ladder
 	ImprovedTracking                spelldata.Ladder
 	ImprovedWingClip                spelldata.Ladder
@@ -361,7 +359,6 @@ var spellData = generatedSpellData{
 	ImprovedMendPet:                 spelldata.Talent(19572, 2),
 	ImprovedMendPetTriggered:        spelldata.Ranked(24406),
 	ImprovedRevivePet:               spelldata.Talent(24443, 2),
-	ImprovedSerpentSting:            spelldata.Talent(19464, 5),
 	ImprovedStings:                  spelldata.Talent(1310661, 3),
 	ImprovedTracking:                spelldata.Talent(24293, 5),
 	ImprovedWingClip:                spelldata.Talent(19228, 3),

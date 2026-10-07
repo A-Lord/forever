@@ -66,9 +66,9 @@ const talents = (name: string, talentsString: string) => ({ name, data: SavedTal
 
 // The best build found for each tree and playstyle, on the P1 gear over a three minute fight.
 export const SurvivalWeaveTalents = talents('SV Weave', '-00530501114-550200030050220151');
-export const MarksmanshipWeaveTalents = talents('MM Weave', '-0053050311520001-5502000300502201');
+export const MarksmanshipWeaveTalents = talents('MM Weave', '-005305031150001-5502000300502201');
 export const BeastMasteryWeaveTalents = talents('BM Weave', '5320001505101251-0053250001-4');
-export const MarksmanshipTalents = talents('MM', '5-0053552511502205-5');
+export const MarksmanshipTalents = talents('MM', '5-005355251152205-5');
 export const BeastMasteryTalents = talents('BM', '5320001505101251-0053250001-4');
 export const SurvivalTalents = talents('SV', '1-00531500114-52225303000021005');
 export const SurvivalMeleeTalents = talents('SV Melee', '53200005021-005005-5502000300500201');

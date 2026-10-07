@@ -822,46 +822,46 @@ dps_results: {
 dps_results: {
  key: "TestHunter-Settings-NightElf-p1-SV-Default-default-FullBuffs-11.0yards-LongMultiTarget"
  value: {
-  dps: 836.83114
-  tps: 908.28828
+  dps: 824.62256
+  tps: 899.74448
   dtps: 3.60413
  }
 }
 dps_results: {
  key: "TestHunter-Settings-NightElf-p1-SV-Default-default-FullBuffs-11.0yards-LongSingleTarget"
  value: {
-  dps: 606.35549
-  tps: 439.74322
-  dtps: 6.23509
+  dps: 596.08334
+  tps: 432.55271
+  dtps: 6.31004
  }
 }
 dps_results: {
  key: "TestHunter-Settings-NightElf-p1-SV-Default-default-FullBuffs-11.0yards-ShortSingleTarget"
  value: {
-  dps: 640.41298
-  tps: 461.66345
+  dps: 630.615
+  tps: 454.80373
   dtps: 9.88002
  }
 }
 dps_results: {
  key: "TestHunter-Settings-NightElf-p1-SV-Default-default-NoBuffs-11.0yards-LongMultiTarget"
  value: {
-  dps: 214.29295
-  tps: 214.29295
+  dps: 210.18502
+  tps: 210.18502
  }
 }
 dps_results: {
  key: "TestHunter-Settings-NightElf-p1-SV-Default-default-NoBuffs-11.0yards-LongSingleTarget"
  value: {
-  dps: 205.62541
-  tps: 205.62541
+  dps: 201.65996
+  tps: 201.65996
  }
 }
 dps_results: {
  key: "TestHunter-Settings-NightElf-p1-SV-Default-default-NoBuffs-11.0yards-ShortSingleTarget"
  value: {
-  dps: 295.69183
-  tps: 295.69183
+  dps: 290.24573
+  tps: 290.24573
  }
 }
 dps_results: {
@@ -912,46 +912,46 @@ dps_results: {
 dps_results: {
  key: "TestHunter-Settings-Orc-p1-SV-Default-default-FullBuffs-11.0yards-LongMultiTarget"
  value: {
-  dps: 821.96957
-  tps: 888.78027
+  dps: 809.42276
+  tps: 879.9975
   dtps: 2.65771
  }
 }
 dps_results: {
  key: "TestHunter-Settings-Orc-p1-SV-Default-default-FullBuffs-11.0yards-LongSingleTarget"
  value: {
-  dps: 596.91281
-  tps: 433.05261
-  dtps: 5.83449
+  dps: 586.24205
+  tps: 425.58621
+  dtps: 5.75953
  }
 }
 dps_results: {
  key: "TestHunter-Settings-Orc-p1-SV-Default-default-FullBuffs-11.0yards-ShortSingleTarget"
  value: {
-  dps: 618.23709
-  tps: 445.90635
+  dps: 608.25719
+  tps: 438.92881
   dtps: 8.15812
  }
 }
 dps_results: {
  key: "TestHunter-Settings-Orc-p1-SV-Default-default-NoBuffs-11.0yards-LongMultiTarget"
  value: {
-  dps: 208.11865
-  tps: 208.11865
+  dps: 204.14433
+  tps: 204.14433
  }
 }
 dps_results: {
  key: "TestHunter-Settings-Orc-p1-SV-Default-default-NoBuffs-11.0yards-LongSingleTarget"
  value: {
-  dps: 196.73643
-  tps: 196.73643
+  dps: 192.64818
+  tps: 192.64818
  }
 }
 dps_results: {
  key: "TestHunter-Settings-Orc-p1-SV-Default-default-NoBuffs-11.0yards-ShortSingleTarget"
  value: {
-  dps: 283.28637
-  tps: 283.28637
+  dps: 277.99541
+  tps: 277.99541
  }
 }
 dps_results: {
