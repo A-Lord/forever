@@ -22,7 +22,7 @@ func (shaman *Shaman) newLightningBoltSpellConfig(rank *spelldata.Spell, overloa
 
 	damage := rank.DamageEffect()
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		result := spell.CalcDamage(sim, target, damage.Roll(sim), spell.OutcomeMagicHitAndCrit)
+		result := spell.CalcDamage(sim, target, damage.Average(), spell.OutcomeMagicHitAndCrit)
 
 		// The bolt lands before its overload is priced, so a debuff charge the bolt spends does
 		// not also raise the overload. DealDamage disposes the result, so Landed is read first.
