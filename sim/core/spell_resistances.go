@@ -1,6 +1,8 @@
 package core
 
 import (
+	"math"
+
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
@@ -30,41 +32,34 @@ func (spell *Spell) ResistanceMultiplier(sim *Simulation, isPeriodic bool, attac
 	}
 
 	// Magical resistance.
-	if spell.Flags.Matches(SpellFlagBinary) {
+	if spell.Flags.Matches(SpellFlagBinary | SpellFlagNoPartialResist) {
 		return 1, OutcomeEmpty
 	}
 
-	resistanceRoll := sim.RandomFloat("Partial Resist")
-
-	threshold00, threshold25, threshold50 := attackTable.GetPartialResistThresholds(spell, isPeriodic)
-	//if sim.Log != nil {
-	//	sim.Log("Resist thresholds: %0.04f, %0.04f, %0.04f", threshold00, threshold25, threshold50)
-	//}
-
-	if resistanceRoll > threshold00 || spell.Flags.Matches(SpellFlagNoPartialResist) {
-		// No partial resist.
+	averageResist := attackTable.Defender.averageResist(spell, attackTable.Attacker, false, isPeriodic)
+	if averageResist == 0 {
 		return 1, OutcomeEmpty
-	} else if resistanceRoll > threshold25 {
-		return 0.75, OutcomePartial1_4
-	} else if resistanceRoll > threshold50 {
-		return 0.5, OutcomePartial2_4
-	} else {
-		return 0.25, OutcomePartial3_4
 	}
-}
 
-func (at *AttackTable) GetPartialResistThresholds(spell *Spell, isPeriodic bool) (float64, float64, float64) {
-	return at.Defender.partialResistRollThresholds(spell, at.Attacker, isPeriodic)
+	tenths := rollResistTenths(sim, math.Abs(averageResist))
+	if tenths == 0 {
+		return 1, OutcomeEmpty
+	}
+	if averageResist < 0 {
+		return 1 + 0.1*float64(tenths), OutcomeEmpty
+	}
+	return 1 - 0.1*float64(tenths), partialResistOutcome(tenths)
 }
 
 func (at *AttackTable) GetBinaryHitChance(spell *Spell) float64 {
 	return at.Defender.binaryHitChance(spell, at.Attacker)
 }
 
-// All of the following calculations are based on this guide:
-// https://royalgiraffe.github.io/resist-guide
-
-func (unit *Unit) resistCoeff(spell *Spell, attacker *Unit, binary bool, isPeriodic bool) float64 {
+// The average share of a spell's damage the target resists, R / (R + 5L + 80) for the caster's level L,
+// with the caster's Spell Piercing taken off R. Piercing beyond the resistance makes the share negative,
+// and the roll pays it out as bonus damage. The target's own resistance stops at 0, so a debuff that
+// lowers it below 0 adds nothing.
+func (unit *Unit) averageResist(spell *Spell, attacker *Unit, binary bool, isPeriodic bool) float64 {
 	if spell.SchoolIndex <= stats.SchoolIndexPhysical {
 		return 0
 	}
@@ -72,46 +67,70 @@ func (unit *Unit) resistCoeff(spell *Spell, attacker *Unit, binary bool, isPerio
 	resistance := 0.0
 	if stat, ok := spell.SpellSchool.ResistanceStat(); ok {
 		piercing := attacker.stats[stats.SpellPiercing] + attacker.PseudoStats.SchoolSpellPiercing[spell.SchoolIndex]
-		resistance = max(0, unit.GetStat(stat)-piercing)
+		resistance = max(0, unit.GetStat(stat)) - piercing
 	}
-	resistanceCap := float64(attacker.Level * 5)
-	resistanceCoef := resistance / resistanceCap
+	// TODO: 5L + 80 and 10L (as R / 10L) both fit the level 20-24 Spell Piercing logs; a level-30 log
+	// decides, with 46% of hits binned at 15 piercing under 5L + 80 and 38% under 10L (#76).
+	resistanceConstant := 5*float64(attacker.Level) + 80
+	averageResist := resistance / (math.Abs(resistance) + resistanceConstant)
 
 	// A DoT's tick, a hybrid's included, rolls its partial resist against a tenth of the resistance.
 	if isPeriodic && !spell.Flags.Matches(SpellFlagChanneled|SpellFlagFullResistanceTicks) {
-		resistanceCoef /= 10
+		averageResist /= 10
 	}
 
 	// Level-based resistance does not apply to binary spells.
 	if !binary && unit.Type == EnemyUnit && unit.Level > attacker.Level {
-		// 2% average mitigation per level difference
-		avgMitigationAdded := 0.02 * float64(combatLevelDiff(attacker, unit))
-		// coef is scaled 0 to 1, not 0 to 0.75
-		resistanceCoef += avgMitigationAdded * 1 / 0.75
+		averageResist += 0.02 * float64(combatLevelDiff(attacker, unit))
 	}
 
-	return min(1, resistanceCoef)
+	return min(1, averageResist)
 }
 
+// A binary spell is resisted in full with the target's average resist as the chance.
 func (unit *Unit) binaryHitChance(spell *Spell, attacker *Unit) float64 {
-	resistCoeff := unit.resistCoeff(spell, attacker, true, false)
-	return 1 - 0.75*resistCoeff
+	return 1 - max(0, unit.averageResist(spell, attacker, true, false))
 }
 
-// Roll threshold for each type of partial resist.
-func (unit *Unit) partialResistRollThresholds(spell *Spell, attacker *Unit, isPeriodic bool) (float64, float64, float64) {
-	resistCoeff := unit.resistCoeff(spell, attacker, false, isPeriodic)
-
-	// Based on the piecewise linear regression estimates at https://royalgiraffe.github.io/partial-resist-table.
-	if val := resistCoeff * 3; val <= 1 {
-		return 0.76 * val, 0.21 * val, 0.03 * val
-	} else if val <= 2 {
-		val -= 1
-		return 0.76 + 0.24*val, 0.21 + 0.57*val, 0.03 + 0.19*val
-	} else {
-		val -= 2
-		return 1, 0.78 + 0.18*val, 0.22 + 0.58*val
+// The partial resist roll, in tenths of the damage, around the average share a. Up to a = 10% it gives
+// 0, 1 or 2 tenths at 1 - 7.5a, 5a and 2.5a; from 90% the same mirrored from 10 tenths; in between each
+// 10% step x within 20% of a at 0.5 - 2.5|x - a|.
+func rollResistTenths(sim *Simulation, a float64) int {
+	roll := sim.RandomFloat("Partial Resist")
+	if a <= 0.1 {
+		switch {
+		case roll < 1-7.5*a:
+			return 0
+		case roll < 1-2.5*a:
+			return 1
+		default:
+			return 2
+		}
 	}
+	if a >= 0.9 {
+		switch {
+		case roll < 1-7.5*(1-a):
+			return 10
+		case roll < 1-2.5*(1-a):
+			return 9
+		default:
+			return 8
+		}
+	}
+
+	cumulative, last := 0.0, 0
+	for tenths := 0; tenths <= 10; tenths++ {
+		chance := 0.5 - 2.5*math.Abs(float64(tenths)/10-a)
+		if chance <= 0 {
+			continue
+		}
+		cumulative += chance
+		last = tenths
+		if roll < cumulative {
+			return tenths
+		}
+	}
+	return last
 }
 
 func (at *AttackTable) GetArmorDamageModifier(spell *Spell) float64 {

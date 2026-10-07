@@ -20,28 +20,28 @@ func TestSchoolSpellPiercingLowersOnlyItsSchool(t *testing.T) {
 		attacker := Unit{Type: PlayerUnit, Level: 60, PseudoStats: stats.NewPseudoStats()}
 		attacker.stats[stats.SpellPiercing] = generic
 		attacker.PseudoStats.SchoolSpellPiercing[stats.SchoolIndexFire] = firePiercing
-		return defender.resistCoeff(fire, &attacker, false, false), defender.resistCoeff(frost, &attacker, false, false)
+		return defender.averageResist(fire, &attacker, false, false), defender.averageResist(frost, &attacker, false, false)
 	}
 
 	_, frostBare := coeffs(0, 0)
-	fireCoeff, frostCoeff := coeffs(0, 30)
-	if want := 70.0 / 300; !WithinToleranceFloat64(want, fireCoeff, 1e-9) {
-		t.Errorf("fire coefficient with 30 fire piercing = %v, want %v", fireCoeff, want)
+	fireResist, frostResist := coeffs(0, 30)
+	if want := 70.0 / (70 + 380); !WithinToleranceFloat64(want, fireResist, 1e-9) {
+		t.Errorf("fire average resist with 30 fire piercing = %v, want %v", fireResist, want)
 	}
-	if frostCoeff != frostBare {
-		t.Errorf("frost coefficient with 30 fire piercing = %v, want %v as without it", frostCoeff, frostBare)
+	if frostResist != frostBare {
+		t.Errorf("frost average resist with 30 fire piercing = %v, want %v as without it", frostResist, frostBare)
 	}
 
 	fireBoth, frostBoth := coeffs(20, 30)
-	if want := 50.0 / 300; !WithinToleranceFloat64(want, fireBoth, 1e-9) {
-		t.Errorf("fire coefficient with 20 piercing and 30 fire piercing = %v, want %v", fireBoth, want)
+	if want := 50.0 / (50 + 380); !WithinToleranceFloat64(want, fireBoth, 1e-9) {
+		t.Errorf("fire average resist with 20 piercing and 30 fire piercing = %v, want %v", fireBoth, want)
 	}
-	if want := 80.0 / 300; !WithinToleranceFloat64(want, frostBoth, 1e-9) {
-		t.Errorf("frost coefficient with 20 piercing and 30 fire piercing = %v, want %v", frostBoth, want)
+	if want := 80.0 / (80 + 380); !WithinToleranceFloat64(want, frostBoth, 1e-9) {
+		t.Errorf("frost average resist with 20 piercing and 30 fire piercing = %v, want %v", frostBoth, want)
 	}
 }
 
-// Against half the resistance cap a plain spell is often partially resisted, and one flagged
+// Against 150 resistance a plain spell is often partially resisted, and one flagged
 // SpellFlagNoPartialResist never is.
 func TestNoPartialResistKeepsTheWholeHit(t *testing.T) {
 	attacker := &Unit{Type: PlayerUnit, Level: 60, PseudoStats: stats.NewPseudoStats()}

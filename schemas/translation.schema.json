@@ -8340,6 +8340,9 @@
 					"additionalProperties": false,
 					"required": ["unlaunched", "alpha", "beta"]
 				},
+				"spell_resistance": {
+					"type": "string"
+				},
 				"options": {
 					"type": "object",
 					"properties": {
