@@ -1,3 +1,4 @@
+import { OtherAction } from '@generated/proto/common';
 import { ActionId } from '@sim/proto/action_id';
 import type { CastLog } from '@sim/proto/combat_log';
 import type { UnitMetrics } from '@sim/proto/sim_result';
@@ -37,6 +38,33 @@ const stacks = (timestamps: Array<number>) => {
 	const row = model.rows.find(r => r.kind === 'cast') as CastRow;
 	return (row.items as Array<CastItem>).map(item => item.stack.map(log => log.timestamp));
 };
+
+const castOf = (actionId: ActionId, timestamp: number, travelTime = 0): CastLog => ({ ...cast(timestamp), actionId, travelTime }) as CastLog;
+
+const castRows = (castLogs: Array<CastLog>) =>
+	buildRotationModel({ player: unit(castLogs), targets: [unit([])], duration: 30, showGcd: false }).rows.filter((r): r is CastRow => r.kind === 'cast');
+
+describe('wand shots', () => {
+	const channel = ActionId.fromSpellId(5019);
+	const shot = ActionId.fromSpellId(5019, 0, 1);
+
+	it('draws the shots in the Shoot row, with no row of their own', () => {
+		const rows = castRows([castOf(channel, 1), castOf(shot, 1.5, 0.2), castOf(shot, 2.5, 0.2)]);
+		expect(rows).toHaveLength(1);
+		const items = rows[0].items.filter((item): item is CastItem => item.kind === 'cast');
+		expect(items.map(item => item.log.actionId!.tag)).toEqual([0, 1, 1]);
+		expect(items.slice(1).map(item => item.travelDuration)).toEqual([0.2, 0.2]);
+	});
+
+	it('keeps the main-hand and off-hand autos in rows of their own', () => {
+		const attack = (tag: number) => ActionId.fromOtherId(OtherAction.OtherActionAttack, tag);
+		expect(castRows([castOf(attack(1), 1), castOf(attack(2), 1.5)])).toHaveLength(2);
+	});
+
+	it('keeps the tags of a spell outside the grouped list in rows of their own', () => {
+		expect(castRows([castOf(ActionId.fromSpellId(20293), 1), castOf(ActionId.fromSpellId(20293, 0, 1), 2)])).toHaveLength(2);
+	});
+});
 
 describe('cast stacks', () => {
 	it('runs casts closer than the window into one stack, each carrying the casts before it', () => {

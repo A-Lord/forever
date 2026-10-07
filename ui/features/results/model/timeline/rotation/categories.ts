@@ -17,7 +17,7 @@ export const rotationCategoryOverrides: Record<number, number> = {
 	[OtherAction.OtherActionAttack]: 0.01,
 	[OtherAction.OtherActionShoot]: 0.5,
 
-	// Wand: the channel deals nothing itself, so it sorts with its shots
+	// Wand: the row opens with the channel, which deals nothing itself, so it sorts as a spell
 	[5019]: SPELL_ACTION_CATEGORY, // Shoot
 
 	// Hunter

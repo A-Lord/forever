@@ -52,6 +52,7 @@ export const IDS_TO_GROUP_FOR_ROTATION: Array<number> = [
 	32645, // Rogue - Envenom
 	16511, // Rogue - Hemorrhage
 	121471, // Rogue - Shadow Blades
+	5019, // Wand - Shoot (the channel and its shots)
 ];
 
 export function makeRowKey(section: SectionId, kind: string, bucketKey: string): string {
