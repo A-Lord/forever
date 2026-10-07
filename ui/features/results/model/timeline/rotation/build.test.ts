@@ -99,6 +99,37 @@ describe('resource rows', () => {
 		}
 	});
 
+	it('draws a credit between two regen ticks in the slice of the tick before it', () => {
+		const mana = ResourceType.ResourceTypeMana;
+		const items = resourceItems(mana, [group(mana, 7.41, 500, 520), group(mana, 7.5, 520, 530), group(mana, 7.51, 530, 540), group(mana, 7.61, 540, 560)]);
+		expect(items).toHaveLength(3);
+		expect(items.map(item => [item.start, item.log.valueBefore, item.log.valueAfter])).toEqual([
+			[7.41, 500, 530],
+			[7.51, 530, 540],
+			[7.61, 540, 560],
+		]);
+		expect(items[0].end).toBe(items[1].start);
+		expect(items[0].fillPercent).toBe(53);
+	});
+
+	it('keeps a spend between two regen ticks in the level and the events of its step', () => {
+		const mana = ResourceType.ResourceTypeMana;
+		const spend = { ...group(mana, 1.55, 1000, 700), logs: [{ isSpend: true }] } as unknown as ResourceGroupLog;
+		const items = resourceItems(mana, [
+			{ ...group(mana, 1.51, 1000, 1000), logs: [{ isSpend: false }] } as unknown as ResourceGroupLog,
+			spend,
+			group(mana, 1.61, 700, 710),
+		]);
+		expect(items).toHaveLength(2);
+		expect(items[0].fillPercent).toBe(70);
+		expect(items[0].log.logs).toHaveLength(2);
+	});
+
+	it('keeps every group of a number row, however close', () => {
+		const rage = ResourceType.ResourceTypeRage;
+		expect(resourceItems(rage, [group(rage, 1, 0, 10), group(rage, 1.02, 10, 20)])).toHaveLength(2);
+	});
+
 	it('keeps health as a percent and rage as a number', () => {
 		expect(resourceItems(ResourceType.ResourceTypeHealth, regen(ResourceType.ResourceTypeHealth))[1]).toMatchObject({ display: 'percent', text: '45%' });
 		expect(resourceItems(ResourceType.ResourceTypeRage, regen(ResourceType.ResourceTypeRage))[1]).toMatchObject({ display: 'number', text: '450' });
