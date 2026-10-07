@@ -45,6 +45,10 @@ const (
 	// per stat index. Fails when the effect states either misc value itself, since 0 and 0 is
 	// Strength by index.
 	StatMask
+
+	// The attack-power coefficient of the E_THREAT effect, onto its Effect.APCoef. Fails when the game
+	// files state a BonusCoefficientFromAP there.
+	APCoefThreat
 )
 
 func (f Field) String() string {
@@ -65,6 +69,8 @@ func (f Field) String() string {
 		return "Hint"
 	case StatMask:
 		return "StatMask"
+	case APCoefThreat:
+		return "APCoefThreat"
 	}
 	return "unknown field"
 }
@@ -380,6 +386,45 @@ var Spells = []Override{
 		Value:   0.28, // TODO: Measure Revenge Rank 6 in game.
 		Reason:  "Revenge Rank 6: Ranks 1 and 2's measured share",
 		Source:  "combat logs, Revenge Ranks 1 and 2, 2026-09-25 to 2026-10-03",
+	},
+
+	// Sunder Armor's threat grows with the sheet's Attack Power: measured on Rank 1 at 132, 158, 170 and
+	// 180 Attack Power, in Battle and Defensive Stance. The other ranks carry its share until a log at
+	// their level says otherwise.
+	{
+		SpellID: 7386,
+		Field:   APCoefThreat,
+		Value:   0.05,
+		Reason:  "Sunder Armor Rank 1: threat is 34 + 0.05 x Attack Power, times the stance, rounded down",
+		Source:  "threat capture, Sunder Armor Rank 1, 2026-10-07",
+	},
+	{
+		SpellID: 7405,
+		Field:   APCoefThreat,
+		Value:   0.05, // TODO: Measure Sunder Armor Rank 2 in game.
+		Reason:  "Sunder Armor Rank 2: Rank 1's measured share",
+		Source:  "threat capture, Sunder Armor Rank 1, 2026-10-07",
+	},
+	{
+		SpellID: 8380,
+		Field:   APCoefThreat,
+		Value:   0.05, // TODO: Measure Sunder Armor Rank 3 in game.
+		Reason:  "Sunder Armor Rank 3: Rank 1's measured share",
+		Source:  "threat capture, Sunder Armor Rank 1, 2026-10-07",
+	},
+	{
+		SpellID: 11596,
+		Field:   APCoefThreat,
+		Value:   0.05, // TODO: Measure Sunder Armor Rank 4 in game.
+		Reason:  "Sunder Armor Rank 4: Rank 1's measured share",
+		Source:  "threat capture, Sunder Armor Rank 1, 2026-10-07",
+	},
+	{
+		SpellID: 11597,
+		Field:   APCoefThreat,
+		Value:   0.05, // TODO: Measure Sunder Armor Rank 5 in game.
+		Reason:  "Sunder Armor Rank 5: Rank 1's measured share",
+		Source:  "threat capture, Sunder Armor Rank 1, 2026-10-07",
 	},
 }
 

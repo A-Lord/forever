@@ -78,6 +78,9 @@ func applyOverride(s *storeSpell, o overrides.Override) error {
 	case overrides.APCoefPeriodic:
 		return applyAPCoefOverride(s, o, s.periodicEffect())
 
+	case overrides.APCoefThreat:
+		return applyAPCoefOverride(s, o, s.threatEffect())
+
 	case overrides.ProcChancePct:
 		if s.tooltipStatesChance {
 			return fmt.Errorf("spell %d states its own proc chance in the tooltip, so the hand-supplied %v%% is stale",
@@ -131,10 +134,22 @@ func applyAPCoefOverride(s *storeSpell, o overrides.Override, e *storeEffect) er
 }
 
 func apRoleOf(field overrides.Field) string {
-	if field == overrides.APCoefPeriodic {
+	switch field {
+	case overrides.APCoefPeriodic:
 		return "periodic"
+	case overrides.APCoefThreat:
+		return "threat"
 	}
 	return "direct"
+}
+
+func (s *storeSpell) threatEffect() *storeEffect {
+	for i := range s.Effects {
+		if IsThreatEffect(s.Effects[i].Type) {
+			return &s.Effects[i]
+		}
+	}
+	return nil
 }
 
 // The effect an override means by "direct": the damage or heal the cast itself does. A damage

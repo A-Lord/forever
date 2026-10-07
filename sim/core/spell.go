@@ -55,7 +55,8 @@ type SpellConfig struct {
 
 	ThreatMultiplier float64
 
-	FlatThreatBonus float64
+	FlatThreatBonus     float64
+	ThreatAPCoefficient float64
 
 	// Performs the actions of this spell.
 	ApplyEffects ApplySpellResults
@@ -180,6 +181,9 @@ type Spell struct {
 	// Adds a fixed amount of threat to this spell, before multipliers.
 	FlatThreatBonus float64
 
+	// Adds this share of the caster's attack power to the flat threat bonus, before multipliers.
+	ThreatAPCoefficient float64
+
 	resultCache SpellResultCache
 	resultSlice SpellResultSlice
 
@@ -291,8 +295,9 @@ func (unit *Unit) RegisterSpell(config SpellConfig) *Spell {
 		BonusBaseDamage:  config.BonusBaseDamage,
 		BonusCoefficient: config.BonusCoefficient,
 
-		ThreatMultiplier: config.ThreatMultiplier,
-		FlatThreatBonus:  config.FlatThreatBonus,
+		ThreatMultiplier:    config.ThreatMultiplier,
+		FlatThreatBonus:     config.FlatThreatBonus,
+		ThreatAPCoefficient: config.ThreatAPCoefficient,
 
 		splitSpellMetrics: make([][]SpellMetrics, max(1, config.MetricSplits)),
 

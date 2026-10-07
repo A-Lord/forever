@@ -3,6 +3,8 @@ package core
 import (
 	"testing"
 	"time"
+
+	"github.com/wowsims/forever/sim/core/stats"
 )
 
 const fakeThreatSpellClassMask int64 = 1 << 0
@@ -109,6 +111,35 @@ func TestFlatThreatBonusPctMod(t *testing.T) {
 	threat = spell.ThreatFromDamage(sim, OutcomeHit, 0, attackTable)
 	if !WithinToleranceFloat64(100, threat, 0.001) {
 		t.Fatalf("Incorrect threat after the mod was removed: Expected: %0.3f, Actual: %0.3f", 100.0, threat)
+	}
+}
+
+func TestThreatAPCoefficient(t *testing.T) {
+	sim := SetupFakeRageSim()
+	fw := sim.Raid.Parties[0].Players[0].(*FakeRageWarrior)
+	spell := fw.GetSpell(fakeThreatSpellActionID)
+	attackTable := fw.AttackTables[sim.Encounter.ActiveTargetUnits[0].UnitIndex]
+
+	spell.ThreatAPCoefficient = 0.05
+	fw.AddStatDynamic(sim, stats.AttackPower, 1000)
+	ap := spell.MeleeAttackPower(attackTable.Defender)
+	if ap <= 0 {
+		t.Fatalf("the fake warrior has %v attack power, so the share is not measured", ap)
+	}
+
+	want := 100 + 0.05*ap
+	if threat := spell.ThreatFromDamage(sim, OutcomeHit, 0, attackTable); !WithinToleranceFloat64(want, threat, 0.001) {
+		t.Fatalf("threat with the attack power share: %0.3f, want %0.3f", threat, want)
+	}
+
+	mod := fw.AddDynamicMod(SpellModConfig{
+		ClassMask:  fakeThreatSpellClassMask,
+		Kind:       SpellMod_FlatThreatBonus_Pct,
+		FloatValue: 0.15,
+	})
+	mod.Activate()
+	if threat := spell.ThreatFromDamage(sim, OutcomeHit, 0, attackTable); !WithinToleranceFloat64(want*1.15, threat, 0.001) {
+		t.Fatalf("threat with the percent mod: %0.3f, want %0.3f", threat, want*1.15)
 	}
 }
 
