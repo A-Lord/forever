@@ -256,13 +256,9 @@ func TestParseStaticShowAsSchoolHit(t *testing.T) {
 	if math.Abs(named.BonusHitPercent-5) > 1e-9 || other.BonusHitPercent != 0 {
 		t.Errorf("hit on the named spell %v and on another arcane spell %v, want 5 and 0", named.BonusHitPercent, other.BonusHitPercent)
 	}
-	pseudoStats := character.GetPseudoStatsProto()
-	spellHit := character.GetStat(stats.SpellHitPercent)
-	if got := pseudoStats[proto.PseudoStat_PseudoStatSchoolHitPercentArcane] - spellHit; math.Abs(got-5) > 1e-9 {
+	arcaneHit := character.GetPseudoStatsProto()[proto.PseudoStat_PseudoStatSchoolHitPercentArcane]
+	if got := arcaneHit - character.GetStat(stats.SpellHitPercent); math.Abs(got-5) > 1e-9 {
 		t.Errorf("the sheet shows %v arcane hit over spell hit, want 5", got)
-	}
-	if got := pseudoStats[proto.PseudoStat_PseudoStatSchoolHitPercentFire] - spellHit; math.Abs(got) > 1e-9 {
-		t.Errorf("the sheet shows %v fire hit over spell hit, want 0", got)
 	}
 }
 

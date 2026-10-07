@@ -56,7 +56,7 @@ func (character *Character) sheetAttackTable() *AttackTable {
 func (character *Character) schoolHitMods() [stats.SchoolLen]float64 {
 	var hit [stats.SchoolLen]float64
 	for _, mod := range character.spellMods {
-		if !mod.IsActive || mod.Kind != SpellMod_BonusHit_Percent {
+		if !mod.IsActive || mod.ShowAsSchoolHit == 0 {
 			continue
 		}
 		for _, school := range singleSchools {
