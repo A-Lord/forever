@@ -14,7 +14,7 @@ func (mage *Mage) registerArcaneBlastSpell() {
 	config.ClassSpellMask = MageSpellArcaneBlast
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		result := spell.CalcAndDealDamage(sim, target, arcaneBlastDamage.Roll(sim), spell.OutcomeMagicHitAndCrit)
+		result := spell.CalcAndDealDamage(sim, target, arcaneBlastDamage.Average(), spell.OutcomeMagicHitAndCrit)
 		if result.Landed() {
 			mage.ArcaneChargesAura.Activate(sim)
 			mage.ArcaneChargesAura.AddStack(sim)

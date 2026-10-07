@@ -39,7 +39,7 @@ func (mage *Mage) registerPyroblastSpell() {
 	config.ClassSpellMask = MageSpellPyroblast
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		result := spell.CalcDamage(sim, target, pyroblastDamage.Roll(sim), spell.OutcomeMagicHitAndCrit)
+		result := spell.CalcDamage(sim, target, pyroblastDamage.Average(), spell.OutcomeMagicHitAndCrit)
 		chargeBonus := mage.arcaneChargesBonus()
 		spell.WaitTravelTime(sim, func(s *core.Simulation) {
 			spell.DealDamage(sim, result)

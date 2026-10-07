@@ -93,10 +93,11 @@ func (mage *Mage) registerSpells() {
 	mage.registerDefensiveSpells()
 }
 
-// One roll of a damage effect per target, for the AoE damage calls.
+// A damage effect's amount per target, for the AoE damage calls; core spreads a spell-school hit
+// itself (DirectVariance).
 func rollDamage(e *spelldata.Effect) core.BaseDamageCalculator {
 	return func(sim *core.Simulation, _ *core.Spell) float64 {
-		return e.Roll(sim)
+		return e.DirectAmount(sim)
 	}
 }
 

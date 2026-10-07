@@ -19,7 +19,7 @@ func (mage *Mage) registerScorchSpell() {
 	config.ClassSpellMask = MageSpellScorch
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		result := spell.CalcAndDealDamage(sim, target, scorchDamage.Roll(sim), spell.OutcomeMagicHitAndCrit)
+		result := spell.CalcAndDealDamage(sim, target, scorchDamage.Average(), spell.OutcomeMagicHitAndCrit)
 		if result.Landed() && sim.Proc(procChance, "Improved Scorch") {
 			aura := mage.ImprovedScorchAuras.Get(target)
 			aura.Activate(sim)
