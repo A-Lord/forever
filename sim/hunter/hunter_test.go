@@ -338,7 +338,7 @@ func petOptions() []core.SpecOptionsCombo {
 }
 
 var DefaultBMTalents = "5320001505101251-3050552"
-var DefaultMMTalents = "-30535525115023051-5"
+var DefaultMMTalents = "-3053552511523051-5"
 var DefaultSVTalents = "-00505505-500250030050220151"
 
 var DefaultConsumables = &proto.ConsumesSpec{

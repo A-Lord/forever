@@ -16178,11 +16178,6 @@ var generatedSpells = []Spell{
 			{ID: 696696, SpellID: 19461, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_PCT_MODIFIER, BasePoints: 15, BaseLevel: 60, SPCoef: 1, PvpMult: 1, ClassFlags: core.ClassFlags{Family: 9, Mask: [4]uint32{0: 143360}}, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 			{ID: 696697, SpellID: 19461, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_PCT_MODIFIER, BasePoints: 15, BaseLevel: 60, SPCoef: 1, PvpMult: 1, Misc: 22, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}},
-	{ID: 19464, Name: "Improved Serpent Sting", School: 1, Attr: [17]uint32{0: 0x1d0, 15: 0x2000}, SpellLevel: 60, BaseLevel: 60, ClassFlags: core.ClassFlags{Family: 9}, Labels: []int16{23},
-		Effects: []Effect{
-			{ID: 697006, SpellID: 19464, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_PCT_MODIFIER, BasePoints: 10, BaseLevel: 60, SPCoef: 1, PvpMult: 1, Misc: 22, ClassFlags: core.ClassFlags{Family: 9, Mask: [4]uint32{0: 16384}}, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
-			{ID: 1130775, SpellID: 19464, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_PCT_MODIFIER, BasePoints: 10, BaseLevel: 60, SPCoef: 1, PvpMult: 1, ClassFlags: core.ClassFlags{Family: 9, Mask: [4]uint32{0: 16384}}, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
-		}},
 	{ID: 19478, Name: "Tainted Blood", Rank: "Rank 1", School: 32, Attr: [17]uint32{8: 0x1000, 15: 0x2000}, SpellLevel: 32, BaseLevel: 32, DurationMs: 60000, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, DispelType: 1, PreventionType: 1, ProcChance: 100, ProcFlags: [2]uint32{0: 0x28}, ClassFlags: core.ClassFlags{Family: 5, Mask: [4]uint32{2: 2048}}, Labels: []int16{19}, RefIDs: []int32{19479}, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 697310, SpellID: 19478, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PROC_TRIGGER_SPELL, BasePoints: 17, BaseLevel: 32, PvpMult: 1, TriggerID: 19479, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
@@ -38037,7 +38032,7 @@ var generatedCurves = map[int32][][]float64{
 	18769:   {{2, 4, 6, 8, 10}},
 	18827:   {{5, 10}},
 	19159:   {{2, 4}},
-	19168:   {{3, 6, 9, 12, 15}},
+	19168:   {{2, 4, 6, 8, 10}},
 	19184:   {{1000, 2000, 3000, 4000, 5000}},
 	19228:   {{7, 13, 20}},
 	19239:   {{15, 30}, {15, 30}},
@@ -38050,7 +38045,6 @@ var generatedCurves = map[int32][][]float64{
 	19426:   {{1, 2, 3, 4, 5}},
 	19454:   {{-300, -600, -900, -1200, -1500}},
 	19461:   {{3, 7, 10}},
-	19464:   {{2, 4, 6, 8, 10}},
 	19485:   {{6, 12, 18, 24, 30}},
 	19498:   {{2, 4, 6}},
 	19507:   {{1, 2, 3, 4, 5}},
