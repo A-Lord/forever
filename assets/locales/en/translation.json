@@ -156,7 +156,8 @@
 			"bows": "Bows",
 			"crossbows": "Crossbows",
 			"guns": "Guns",
-			"thrown": "Thrown"
+			"thrown": "Thrown",
+			"wands": "Wands"
 		},
 		"spell_schools": {
 			"physical": "Physical",
@@ -1423,7 +1424,7 @@
 				},
 				"current_mana_regen": {
 					"label": "Current Mana Regen",
-					"tooltip": "Current Mana Regen while casting"
+					"tooltip": "Current mana regen per second while casting"
 				},
 				"current_rage": {
 					"label": "Current Rage",
@@ -1499,16 +1500,17 @@
 				},
 				"auto_swing_time": {
 					"label": "Auto Swing Time",
-					"tooltip": "Total swing duration including all haste buffs."
+					"tooltip": "Total swing duration including all haste buffs. <b>Wand</b> returns the wand speed with cast speed applied, which a Shoot channel fixes when it starts."
 				},
 				"time_to_next_auto": {
 					"label": "Time To Next Auto",
-					"tooltip": "Amount of time remaining before the next Main-hand, Off-hand or Ranged attack, or <b>0</b> if autoattacks are not engaged."
+					"tooltip": "Amount of time remaining before the next Main-hand, Off-hand, Ranged or Wand attack, or <b>0</b> if autoattacks are not engaged. <b>Any</b> includes the wand's next shot while Shoot is channeling. <b>Wand</b> reads <b>0</b> while Shoot is not channeling."
 				},
 				"time_since_last_auto": {
 					"label": "Time Since Last Auto",
-					"tooltip": "Amount of time since the last Main-hand, Off-hand or Ranged attack, or <b>0</b> if autoattacks are not engaged."
+					"tooltip": "Amount of time since the last Main-hand, Off-hand, Ranged or Wand attack, or <b>0</b> if autoattacks are not engaged. <b>Any</b> includes the last wand shot. <b>Wand</b> reads the time since the last shot, or the time since the pull before the first shot."
 				},
+				"wand": "Wand",
 				"spell_known": {
 					"label": "Spell Known",
 					"tooltip": "<b>True</b> if the spell is currently known, otherwise <b>False</b>."

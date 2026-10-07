@@ -4,6 +4,7 @@ import { ConnectedChoiceField } from '@features/inputs/components/ConnectedChoic
 import type { ChoiceFieldConfig } from '@features/inputs/configs';
 import type { InputConfig } from '@features/inputs/input';
 import { APLValueCompare_ComparisonOperator as ComparisonOperator } from '@generated/proto/apl';
+import { Class } from '@generated/proto/common';
 import type { Player } from '@sim/player/player';
 import { FakeSource } from '@testing/inputs';
 import { act, render, screen, within } from '@testing-library/react';
@@ -17,7 +18,7 @@ vi.mock('@i18n/config', () => ({ default: { t: (key: string) => key } }));
 type Source = FakeSource<number>;
 
 // The comparison operator field as the APL resolves it: a proto enum table with a default label.
-const spec = resolveField(comparisonOperatorFieldConfig('op'));
+const spec = resolveField(comparisonOperatorFieldConfig('op'), { getClass: () => Class.ClassWarrior } as unknown as Player<any>);
 const table = (spec as { table: EnumTable }).table;
 
 const binding = <C,>(id: string) =>

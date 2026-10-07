@@ -72,7 +72,7 @@ export const ActionPicker = memo(({ player, config, stacked, fullWidth }: Action
 		setValue: (subject: Player<any>, newKind: ValidAPLActionKind) => {
 			const source = config.getValue(subject);
 			if (source?.action.oneofKind == newKind) return;
-			const next = swapActionKind(source, newKind, newKindImpl(actionKinds[newKind]));
+			const next = swapActionKind(source, newKind, newKindImpl(actionKinds[newKind], player));
 			if (source) source.action = next.action;
 			else config.setValue(subject, next);
 			subject.touchRotation();

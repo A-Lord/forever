@@ -34,6 +34,7 @@ func init() {
 			PseudoStats:      item.PseudoStats,
 			WeaponSpeed:      item.WeaponSpeed,
 			QualityModifier:  item.QualityModifier,
+			SpellSchool:      item.SpellSchool,
 			Unique:           item.Unique,
 			LimitCategory:    item.LimitCategory,
 			SetName:          item.SetName,

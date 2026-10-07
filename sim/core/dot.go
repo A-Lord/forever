@@ -71,6 +71,7 @@ type Dot struct {
 	affectedByRealHaste  bool // tick length are shortened based on real haste
 	hasteReducesDuration bool // does not gain additional ticks after a haste threshold, HasteAffectsDuration in dbc
 	isChanneled          bool
+	paidMana             bool // The channel paid mana when it started.
 
 	rankGroup *dotRankGroup
 	rank      int32
@@ -312,6 +313,12 @@ func (dot *Dot) TickOnce(sim *Simulation) {
 	}
 }
 
+// Stops the dot ticking: the aura's expiry then applies no last tick.
+func (dot *Dot) stopTicking(sim *Simulation) {
+	dot.tickAction.Cancel(sim)
+	dot.tickAction.NextActionAt = NeverExpires
+}
+
 func (dot *Dot) periodicTick(sim *Simulation) {
 	dot.remainingTicks--
 	dot.TickOnce(sim)
@@ -331,7 +338,7 @@ func (dot *Dot) periodicTick(sim *Simulation) {
 				(dot.Spell.Unit.GCD.IsReady(sim) || dot.Spell.Unit.GCD.TimeToReady(sim) > MaxSpellQueueWindow) {
 				// Skip interrupts that are purely SQW-triggered (GCD within queue window but not
 				// actually ready). Those are handled by the rotation action at actual GCD time.
-				dot.tickAction.NextActionAt = NeverExpires // don't tick again in ApplyOnExpire
+				dot.stopTicking(sim)
 				dot.Deactivate(sim)
 				if dot.Spell.Unit.GCD.IsReady(sim) {
 					dot.Spell.Unit.WaitUntil(sim, sim.CurrentTime+channelDelay)
@@ -387,6 +394,10 @@ func newDot(config Dot) *Dot {
 		sim.AddPendingAction(dot.tickAction)
 		if dot.isChanneled {
 			dot.Spell.Unit.ChanneledDot = dot
+			if rotation := dot.Spell.Unit.Rotation; rotation != nil {
+				rotation.adoptChannelAction(dot)
+			}
+			dot.paidMana = dot.Spell.Unit.claimChannelPayment(dot)
 		}
 	})
 	dot.ApplyOnExpire(func(aura *Aura, sim *Simulation) {
@@ -401,16 +412,19 @@ func newDot(config Dot) *Dot {
 		if dot.isChanneled {
 			// Compute clip delay before clearing ChanneledDot (used by nextActionWouldRecastChannel).
 			channelDelay := dot.getChannelClipDelay()
-			dot.Spell.Unit.ChanneledDot = nil
-			for _, handler := range dot.Spell.Unit.channelEndHandlers {
-				handler(sim)
+			if dot.Spell.Unit.channelPaidMana() {
+				dot.Spell.Unit.creditManaRegen(sim)
 			}
+			dot.Spell.Unit.ChanneledDot = nil
 			dot.Spell.Unit.Rotation.interruptChannelIf = nil
 			dot.Spell.Unit.Rotation.allowChannelRecastOnInterrupt = false
 			// Note: even if clip delay is 0ms, always schedule rotation here so APL fires
 			// after ChanneledDot is cleared.
 			if dot.Spell.Unit.GCD.IsReady(sim) {
 				dot.Spell.Unit.WaitUntil(sim, sim.CurrentTime+channelDelay)
+			}
+			for _, handler := range dot.Spell.Unit.channelEndHandlers {
+				handler(sim, dot)
 			}
 			// track time metrics for channels
 			dot.Spell.SpellMetrics[aura.Unit.UnitIndex].TotalCastTime += dot.fadeTime - dot.StartedAt()
