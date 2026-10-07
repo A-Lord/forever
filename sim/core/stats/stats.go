@@ -546,7 +546,7 @@ type PseudoStats struct {
 	IncreasedMissChance float64 // Insect Swarm and Scorpid Sting
 	DodgeReduction      float64 // Used by Warrior talent 'Weapon Mastery' and SWP boss auras.
 
-	WeaponSkills       [proto.WeaponSkill_WeaponSkillThrown + 1]float64 // Bonus skill over the level-based maximum per weapon skill, which a skill below it makes negative.
+	WeaponSkills       [proto.WeaponSkill_WeaponSkillWands + 1]float64 // Bonus skill over the level-based maximum per weapon skill, which a skill below it makes negative.
 	FeralCombatSkill   float64
 	FeralCombatEnabled bool // While set, FeralCombatSkill replaces the skill of the equipped weapon.
 
@@ -612,7 +612,7 @@ type PseudoStats struct {
 	DamageTakenMultiplier       float64            // All damage
 	SchoolDamageTakenMultiplier [SchoolLen]float64 // For specific spell schools (arcane, fire, shadow, etc.)
 	SchoolBonusSpellDamage      [SchoolLen]float64 // Bonus SpellDamage against Target, ex: Judgement Of The Crusader + HolySpellDamage
-	SchoolBonusHitChance        [SchoolLen]float64 // Spell school-specific hit bonuses such as Arcane Focus or Elemental Precision - only applied to spells with a non-zero class spell mask
+	SchoolBonusHitChance        [SchoolLen]float64 // The bonus stats' school hit, on every spell of the school with a ClassSpellMask or class flags; a talent's school hit is a class-flags mod with ShowAsSchoolHit
 
 	DiseaseDamageTakenMultiplier          float64
 	PeriodicPhysicalDamageTakenMultiplier float64

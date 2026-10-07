@@ -25,6 +25,7 @@ func (unit *Unit) newHardcastAction(sim *Simulation) {
 					if hc.OnComplete != nil {
 						hc.OnComplete(sim, hc.Target)
 					}
+					unit.endRotationCast()
 				}
 			},
 		}
@@ -108,7 +109,7 @@ func (unit *Unit) CancelGCDTimer(sim *Simulation) {
 func (unit *Unit) Interrupt(sim *Simulation) {
 	if unit.IsChanneling() {
 		dot := unit.ChanneledDot
-		dot.tickAction.NextActionAt = NeverExpires // don't tick again in ApplyOnExpire
+		dot.stopTicking(sim)
 		dot.Deactivate(sim)
 	}
 
@@ -122,6 +123,7 @@ func (unit *Unit) Interrupt(sim *Simulation) {
 func (unit *Unit) CancelHardcast(sim *Simulation) {
 	unit.HardcastAvoidanceAura.Deactivate(sim)
 	unit.Hardcast.Expires = startingCDTime
+	unit.endRotationCast()
 	unit.SetGCDTimer(sim, sim.CurrentTime+unit.ReactionTime)
 }
 

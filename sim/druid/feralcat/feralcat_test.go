@@ -491,12 +491,12 @@ func TestRevelationIgnoresZeroDamageFaerieFire(t *testing.T) {
 
 func TestRaidDefaultRunsSelectedCatRotation(t *testing.T) {
 	player := runCat(t, buildRequest(t, "raid"))
-	for _, id := range []int32{1322605, 9830, 9896, 9904, 417141} {
+	for _, id := range []int32{1322605, 9830, 9896, 9904, 417141, 9907} {
 		if castsOf(player.Actions, id) == 0 {
 			t.Errorf("raid default never casts spell %d", id)
 		}
 	}
-	for _, id := range []int32{768, 9634, 22829, 9907} {
+	for _, id := range []int32{768, 9634, 22829} {
 		if got := castsOf(player.Actions, id); got != 0 {
 			t.Errorf("raid default casts spell %d %d times", id, got)
 		}
@@ -1384,6 +1384,78 @@ func TestShiftingPowerTradesManaForEnergy(t *testing.T) {
 	}
 }
 
+// Shifting Power's 40 plus a GCD of regen fits under 100 from 45 energy. With Clearcasting up the
+// next cast is free, so the bar keeps filling through a second GCD and 45 is too high to shift.
+func TestShiftingPowerWaitsLongerWithClearcastingUp(t *testing.T) {
+	sim, cat := newCat(t, shiftingPowerTalents, nil)
+	fillResource(sim, cat)
+	emptyEnergy(sim, cat)
+	cat.AddEnergy(sim, 45, cat.NewEnergyMetrics(core.ActionID{SpellID: 1}))
+	if !cat.wantShift(sim, cat.CurrentTarget) {
+		t.Fatal("no shift at 45 energy without Clearcasting")
+	}
+	cat.ClearcastingAura.Activate(sim)
+	if cat.wantShift(sim, cat.CurrentTarget) {
+		t.Error("a shift at 45 energy with Clearcasting up, which caps the bar during the free cast")
+	}
+}
+
+// With the option on, Faerie Fire fishes for Omen of Clarity only in a GCD with nothing else to cast,
+// while Omen can proc and Clearcasting is not already up. Omen's 10 s ICD comes from the game files.
+func TestFaerieFireFishesForOmenOnlyWhenItCanProc(t *testing.T) {
+	sim, cat := newCat(t, shiftingPowerTalents, nil)
+	fillResource(sim, cat)
+	emptyEnergy(sim, cat)
+	cat.ShiftingPower.CD.Use(sim)
+	target := cat.CurrentTarget
+	if cat.wantOmenFishing(sim, target) {
+		t.Error("fishing with the option off")
+	}
+
+	cat.setupRotation(&proto.FeralCatDruid_Rotation{
+		FinishingMove:      proto.FeralCatDruid_Rotation_Rip,
+		RipMinComboPoints:  5,
+		BiteMinComboPoints: 5,
+		FaerieFireForOmen:  true,
+	})
+	if !cat.wantOmenFishing(sim, target) {
+		t.Fatal("no fishing with the option on, an empty bar and Omen ready")
+	}
+
+	energy := cat.NewEnergyMetrics(core.ActionID{SpellID: 1})
+	// The builder becomes affordable inside Faerie Fire's GCD.
+	cat.AddEnergy(sim, cat.builder().Cost.GetCurrentCost()-1, energy)
+	if cat.wantOmenFishing(sim, target) {
+		t.Error("fishing when the builder is affordable before the GCD ends")
+	}
+	emptyEnergy(sim, cat)
+
+	// With the points for Rip and Rip down, Rip becomes affordable inside the GCD, the builder does not.
+	cat.AddComboPoints(sim, 5, cat.NewComboPointMetrics(core.ActionID{SpellID: 1}))
+	cat.AddEnergy(sim, cat.Rip.Cost.GetCurrentCost()-1, energy)
+	if cat.wantOmenFishing(sim, target) {
+		t.Error("fishing when Rip is affordable before the GCD ends")
+	}
+	emptyEnergy(sim, cat)
+	cat.SpendComboPoints(sim, cat.NewComboPointMetrics(core.ActionID{SpellID: 1}))
+
+	// Shifting Power comes off cooldown inside Faerie Fire's GCD.
+	cat.ShiftingPower.CD.Reset()
+	if cat.wantOmenFishing(sim, target) {
+		t.Error("fishing when Shifting Power is ready before the GCD ends")
+	}
+	cat.ShiftingPower.CD.Use(sim)
+	cat.ClearcastingAura.Activate(sim)
+	if cat.wantOmenFishing(sim, target) {
+		t.Error("fishing with Clearcasting already up")
+	}
+	cat.ClearcastingAura.Deactivate(sim)
+	cat.OmenOfClarityAura.Icd.Use(sim)
+	if cat.wantOmenFishing(sim, target) {
+		t.Error("fishing while Omen of Clarity is on its ICD")
+	}
+}
+
 func TestShiftingPowerNeedsTheTalentAndCatForm(t *testing.T) {
 	sim, cat := newCat(t, "", nil)
 	fillResource(sim, cat)
@@ -1672,12 +1744,10 @@ func TestFeralPreset(t *testing.T) {
 					casts[action.Id.GetSpellId()] += target.Casts
 				}
 			}
-			for _, id := range []int32{9850, 9896} {
-				if casts[id] == 0 {
-					t.Errorf("minimal cat never casts spell %d", id)
-				}
+			if casts[9850]+casts[9830] == 0 || casts[9896] == 0 {
+				t.Errorf("minimal cat casts Claw %d, Shred %d, Rip %d times, want a builder and Rip", casts[9850], casts[9830], casts[9896])
 			}
-			t.Logf("Claw casts=%d, Rip casts=%d, DPS=%g", casts[9850], casts[9896], metrics.Dps.Avg)
+			t.Logf("Claw casts=%d, Shred casts=%d, Rip casts=%d, DPS=%g", casts[9850], casts[9830], casts[9896], metrics.Dps.Avg)
 		})
 	}
 }
@@ -1867,6 +1937,8 @@ func TestCatShippedPresetRuns(t *testing.T) {
 			t.Fatalf("shipped preset casts %d %d times", id, n)
 		}
 	}
+	req.Raid.Parties[0].Players[0].Rotation.PriorityList[1].Action.GetCatOptimalRotationAction().FaerieFireForOmen = false
+	player = runCat(t, req)
 	if n := castsOf(player.Actions, 9907); n != 0 {
 		t.Fatalf("shipped preset duplicates raid Faerie Fire with %d casts", n)
 	}
@@ -2053,6 +2125,105 @@ func TestRipweaveCastsRipBesideTheBiteFinisher(t *testing.T) {
 	if castsOf(player.Actions, 9896) == 0 || castsOf(player.Actions, 22829) == 0 {
 		t.Errorf("rip %d and bite %d casts, want both", castsOf(player.Actions, 9896), castsOf(player.Actions, 22829))
 	}
+}
+
+// Goblin Sapper Charge 10646 needs Engineering and cannot be used in Cat Form: the rotation throws it
+// and casts Cat Form again. EZ-Thro Dark Bomb 260817 needs no profession and never leaves the form.
+func TestRotationLeavesCatFormOnlyForEngineeringExplosives(t *testing.T) {
+	for _, c := range []struct {
+		name       string
+		itemID     int32
+		leavesForm bool
+	}{{"Goblin Sapper Charge", 10646, true}, {"EZ-Thro Dark Bomb", 260817, false}} {
+		request := catPowershiftRequest(powershiftTalents, rakeRipRotation(), false)
+		cat := request.Raid.Parties[0].Players[0]
+		cat.Profession1 = proto.Profession_Engineering
+		cat.Consumables = &proto.ConsumesSpec{ExtraIds: []int32{c.itemID}}
+		player := runCat(t, request)
+
+		thrown := itemCastsOf(player.Actions, c.itemID)
+		if thrown == 0 {
+			t.Errorf("%s was never thrown", c.name)
+		}
+		want := int32(0)
+		if c.leavesForm {
+			want = thrown
+		}
+		if got := castsOf(player.Actions, 768); got != want {
+			t.Errorf("%s: cat form casts = %d after %d throws, want %d", c.name, got, thrown, want)
+		}
+	}
+}
+
+// Berserk's crit covers Shred, Claw and Rake, so the automatic Berserk waits for a decision that casts
+// one: not before the sapper and the Cat Form cast that follows it, not inside that GCD, not on a bar
+// that cannot pay for the builder, and not on a decision that casts Rip.
+func TestBerserkWaitsForADecisionItsCritCovers(t *testing.T) {
+	request := catPowershiftRequest(powershiftTalents, rakeRipRotation(), false)
+	player := request.Raid.Parties[0].Players[0]
+	player.Profession1 = proto.Profession_Engineering
+	player.Consumables = &proto.ConsumesSpec{ExtraIds: []int32{10646}}
+	sim := core.NewSim(request, simsignals.CreateSignals())
+	sim.Reset()
+	cat := sim.Raid.Parties[0].Players[0].(*FeralDruid)
+
+	berserk := cat.GetMajorCooldown(cat.Berserk.ActionID)
+	if berserk == nil {
+		t.Fatal("Berserk is not a major cooldown")
+	}
+	ready := func() bool { return berserk.ShouldActivate(sim, cat.GetCharacter()) }
+	if ready() {
+		t.Error("Berserk is ready while the sapper waits to be thrown")
+	}
+
+	sapper := cat.GetSpell(core.ActionID{ItemID: 10646})
+	if !sapper.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("the sapper was not thrown")
+	}
+	// The rotation can already have answered the throw with Cat Form.
+	if !cat.InForm(druid.Cat) && !cat.CatForm.Cast(sim, nil) {
+		t.Fatal("Cat Form was not cast after the throw")
+	}
+	if ready() {
+		t.Error("Berserk is ready inside Cat Form's GCD")
+	}
+
+	for !cat.GCD.IsReady(sim) {
+		sim.Step()
+	}
+	cat.AddEnergy(sim, cat.MaximumEnergy(), cat.NewEnergyMetrics(core.ActionID{SpellID: 1}))
+	if !ready() {
+		t.Error("Berserk is not ready with the GCD free, the sapper thrown and a full bar")
+	}
+
+	cat.SpendEnergy(sim, cat.CurrentEnergy(), cat.NewEnergyMetrics(core.ActionID{SpellID: 1}))
+	if ready() {
+		t.Error("Berserk is ready on a bar that cannot pay for the builder")
+	}
+
+	// Berserk's crit covers Shred, Claw and Rake, not Rip: with the points for Rip and Rip down, the
+	// decision casts Rip, so Berserk waits even with the builder affordable.
+	cat.AddEnergy(sim, cat.MaximumEnergy(), cat.NewEnergyMetrics(core.ActionID{SpellID: 1}))
+	cat.AddComboPoints(sim, 5, cat.NewComboPointMetrics(core.ActionID{SpellID: 1}))
+	if cat.Rip.CurDot().IsActive() || !cat.ripNow(sim, cat.CurrentTarget) {
+		t.Fatal("the decision would not cast Rip")
+	}
+	if ready() {
+		t.Error("Berserk is ready when the decision casts Rip")
+	}
+}
+
+func itemCastsOf(actions []*proto.ActionMetrics, itemID int32) int32 {
+	var n int32
+	for _, action := range actions {
+		if action.GetId().GetItemId() != itemID || action.GetId().GetTag() != 0 {
+			continue
+		}
+		for _, target := range action.Targets {
+			n += target.Casts
+		}
+	}
+	return n
 }
 
 func runCat(t *testing.T, request *proto.RaidSimRequest) *proto.UnitMetrics {

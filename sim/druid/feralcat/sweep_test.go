@@ -160,6 +160,7 @@ func catAction(simple *proto.FeralCatDruid_Rotation) *proto.APLAction {
 			BiteMinComboPoints: simple.BiteMinComboPoints,
 			RakeTrick:          simple.RakeTrick,
 			MaintainFaerieFire: simple.MaintainFaerieFire,
+			FaerieFireForOmen:  simple.FaerieFireForOmen,
 		},
 	}}
 }
