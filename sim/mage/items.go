@@ -29,13 +29,29 @@ var ItemSetFrostfireRegalia = core.NewItemSet(core.ItemSet{
 		6: func(agent core.Agent, setBonusAura *core.Aura) {
 			mage := agent.(MageAgent).GetMage()
 
-			// A_MOD_DAMAGE_TAKEN rather than a from-caster aura: every caster's spells take the
-			// 200, so the debuff is parsed onto the target with no caster slot. The row's one charge
-			// is spent by the next spell that hits the target.
+			// A_MOD_DAMAGE_TAKEN rather than a from-caster aura: every caster's spells take it. "Up to
+			// $s1" is spell damage against the target, which each spell takes at its own coefficient,
+			// as Judgement of the Crusader does, so it is not parsed into the flat damage taken.
+			// The row's one charge is spent by the next spell that hits the target.
+			taken := frostfireVulnDebuff.EffectN(1)
+			var takenSchools []stats.SchoolIndex
+			for school := core.SpellSchoolHoly; school <= core.SpellSchoolArcane; school <<= 1 {
+				if taken.Misc&int32(school) != 0 {
+					takenSchools = append(takenSchools, school.SchoolIndex())
+				}
+			}
 			debuffs := mage.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
 				aura := target.RegisterAura(spelldata.AuraConfig(frostfireVulnDebuff,
 					spelldata.Label(frostfireVulnDebuff.Name+mage.Label)))
-				spelldata.ParseEffects(nil, aura, frostfireVulnDebuff)
+				aura.ApplyOnGain(func(_ *core.Aura, _ *core.Simulation) {
+					for _, i := range takenSchools {
+						target.PseudoStats.SchoolBonusSpellDamage[i] += taken.BaseValue()
+					}
+				}).ApplyOnExpire(func(_ *core.Aura, _ *core.Simulation) {
+					for _, i := range takenSchools {
+						target.PseudoStats.SchoolBonusSpellDamage[i] -= taken.BaseValue()
+					}
+				})
 
 				consume := spelldata.ProcTrigger(&mage.Character, frostfireVulnDebuff,
 					func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
