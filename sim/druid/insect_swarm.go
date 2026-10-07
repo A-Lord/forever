@@ -9,9 +9,10 @@ var insectSwarmRank = spellData.InsectSwarm.Highest()
 
 func (druid *Druid) registerInsectSwarmSpell() {
 	// Binary: the row's second effect lowers the target's chance to hit, and a spell with a
-	// non-damage effect is resisted whole or not at all. That hit debuff is not modelled.
+	// non-damage effect is resisted whole or not at all. That hit debuff is not modelled. Its ticks
+	// still take partial resists, against the full resistance.
 	config := spelldata.SpellConfig(&druid.Unit, insectSwarmRank,
-		spelldata.Magic(core.ProcMaskSpellDamage), spelldata.Flags(core.SpellFlagBinary))
+		spelldata.Magic(core.ProcMaskSpellDamage), spelldata.Flags(core.SpellFlagBinary|core.SpellFlagFullResistanceTicks))
 	config.ClassSpellMask = DruidSpellInsectSwarm
 	config.Dot = spelldata.DotConfig(insectSwarmRank, insectSwarmRank.PeriodicEffect())
 
