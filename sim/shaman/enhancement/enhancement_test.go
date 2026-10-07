@@ -62,7 +62,9 @@ const DefaultTalents = "0505331-055030031005112251"
 
 // The UI's Enhancement defaults: Major Frenzy Potion, Flask of Natural Aggression, Demonic Rune, the
 // Owl, Sages, Greater Mageblood, Nature Power and Greater Arcane elixirs, Winterfall Firewater,
-// Ez-Thro Dynamite II, Goblin Sapper Charge and the Agility and Strength scrolls.
+// Ez-Thro Dynamite II, Goblin Sapper Charge and the Agility and Strength scrolls. On top of them, the
+// main hand takes Elemental Sharpening Stone, the best stone for its axe or mace, which sits beside
+// the shaman's imbue.
 var DefaultConsumables = &proto.ConsumesSpec{
 	PotId:       250943,
 	FlaskId:     274274,
@@ -70,4 +72,5 @@ var DefaultConsumables = &proto.ConsumesSpec{
 	ElixirIds:   []int32{250337, 250338, 250341, 250343, 13454, 12820},
 	ExplosiveId: 18588,
 	ExtraIds:    []int32{10646, 10309, 10310},
+	MhImbueId:   18262,
 }
