@@ -437,7 +437,8 @@ var Spells = []Override{
 	// Heroic Strike and Cleave add threat beyond their damage in proportion to the rank's spell level,
 	// as Sunder Armor's game files threat does (34 to 206, 3.4 to 3.55 per level), and none with
 	// Attack Power: Heroic Strike Rank 3 held its bonus from 132 to 170 Attack Power. The bonus is
-	// multiplied by the stance with the damage. Ranks not measured carry the measured share.
+	// multiplied by the stance with the damage, and Cleave splits it between the targets it hits.
+	// Ranks not measured carry the measured share.
 	{
 		SpellID: 78,
 		Field:   ThreatPerSpellLevel,
@@ -512,7 +513,7 @@ var Spells = []Override{
 		SpellID: 7369,
 		Field:   ThreatPerSpellLevel,
 		Value:   1.53,
-		Reason:  "Cleave Rank 2: each target hit adds the damage + ~46 at spell level 30, times the stance",
+		Reason:  "Cleave Rank 2: adds ~46 beyond its damage at spell level 30 on one target, ~23 on each of two, times the stance",
 		Source:  "threat capture, Cleave Rank 2, 2026-10-07",
 	},
 	{

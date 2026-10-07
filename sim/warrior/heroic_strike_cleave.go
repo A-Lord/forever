@@ -33,7 +33,11 @@ func (warrior *Warrior) registerCleave() {
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		baseDamage := cleaveRank.WeaponStrike(sim, spell, warrior.MHWeaponDamage(sim, spell.MeleeAttackPower(target)), 0)
+		// The flat threat is the cleave's total, split between the targets it hits.
+		flatThreat := spell.FlatThreatBonus
+		spell.FlatThreatBonus /= float64(min(cleaveTargets, sim.Environment.ActiveTargetCount()))
 		results := spell.CalcCleaveDamage(sim, target, cleaveTargets, baseDamage, spell.OutcomeMeleeWeaponSpecialHitAndCrit)
+		spell.FlatThreatBonus = flatThreat
 		spell.DealBatchedAoeDamage(sim)
 		if !results[0].Landed() {
 			spell.IssueRefund(sim)
