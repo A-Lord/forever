@@ -570,6 +570,7 @@ enum APLValueAutoAttackType
 	MainHandAuto = 3;
 	OffHandAuto = 4;
 	RangedAuto = 5;
+	WandAuto = 6;
 }
 
 message APLValueAutoSwingTime {
@@ -579,6 +580,7 @@ message APLValueAutoSwingTime {
         MainHand = 3;
         OffHand = 4;
         Ranged = 5;
+        Wand = 6;
     }
     SwingType auto_type = 1;
 }

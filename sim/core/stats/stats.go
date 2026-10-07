@@ -546,7 +546,7 @@ type PseudoStats struct {
 	IncreasedMissChance float64 // Insect Swarm and Scorpid Sting
 	DodgeReduction      float64 // Used by Warrior talent 'Weapon Mastery' and SWP boss auras.
 
-	WeaponSkills       [proto.WeaponSkill_WeaponSkillThrown + 1]float64 // Bonus skill over the level-based maximum per weapon skill, which a skill below it makes negative.
+	WeaponSkills       [proto.WeaponSkill_WeaponSkillWands + 1]float64 // Bonus skill over the level-based maximum per weapon skill, which a skill below it makes negative.
 	FeralCombatSkill   float64
 	FeralCombatEnabled bool // While set, FeralCombatSkill replaces the skill of the equipped weapon.
 

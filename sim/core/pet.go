@@ -275,6 +275,7 @@ func (pet *Pet) Enable(sim *Simulation, petAgent PetAgent) {
 	}
 	//reset current mana after applying stats
 	pet.manaBar.reset()
+	pet.manaBar.lastManaTick = sim.CurrentTime
 
 	//reset current health after applying stats
 	pet.healthBar.reset(sim)
