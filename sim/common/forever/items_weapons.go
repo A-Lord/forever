@@ -115,7 +115,7 @@ func init() {
 		trigger.Name = "Ravager"
 		trigger.ActionID = core.ActionID{ItemID: 7717}
 		trigger.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
-			return spell != strike
+			return spell != strike && !bladestorm.AOEDot().IsActive()
 		}
 		trigger.TriggerImmediately = true
 		character.ItemSwap.RegisterProc(7717, character.MakeProcTriggerAura(trigger))
@@ -145,7 +145,7 @@ func init() {
 			instant.Deactivate()
 		}
 		config.OnCastComplete = func(aura *core.Aura, sim *core.Simulation, spell *core.Spell) {
-			if spell.DefaultCast.CastTime > 0 {
+			if spell.DefaultCast.CastTime > 0 && spell.CurCast.CastTime == 0 {
 				aura.Deactivate(sim)
 			}
 		}
@@ -242,7 +242,7 @@ func init() {
 	// Rot-Covered Harpoon
 	// https://www.wowhead.com/forever/item=274963/rot-covered-harpoon
 	//
-	// Chance on hit: Diseases target for 24 Nature damage every 1 sec for 7 sec. Deals 2 times as much
+	// Chance on hit: Diseases target for 25 Nature damage every 1 sec for 7 sec. Deals 2 times as much
 	// damage to Aquatic enemies.
 	//
 	// TODO: waiting for PPM data
