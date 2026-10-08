@@ -526,6 +526,16 @@ export class ActionId {
 					name += ' (External)';
 				}
 				break;
+			case 'Searing Totem':
+			case 'Magma Totem':
+			case 'Flametongue Totem':
+				// A totem's hits report under the totem's spell, tagged 1, so they share its row.
+				if (tag === 1) {
+					name += ' (Attack)';
+				} else if (tag === -1) {
+					name += ' (External)';
+				}
+				break;
 			case 'Dummy Spell':
 				if (tag === 100000) {
 					['Arcane', 'Fire', 'Frost', 'Holy', 'Shadow', 'Nature'].forEach((school, index) => {

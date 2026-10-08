@@ -208,9 +208,18 @@ func driveWindfuryTotem(char *core.Character, _ *proto.PartyBuffs) {
 		ActionID: core.ActionID{SpellID: windfuryTotemCast.ID, Tag: -1},
 	})
 	holdTotemAura(totemAura, WindfuryTotemCategory, WindfuryTotemValue(0), procTrigger)
+	HoldOverWindfuryTotemRivals(totemAura)
 }
 
 const windfuryTotemTriggerLabel = "Windfury Totem Trigger"
+
+// Windfury Totem does not stack with Flametongue Totem or Grace of Air Totem:
+// while it stands, it outbids Flametongue Totem's proc and the agility of Grace
+// of Air, the one stat its row adds, whoever stands each totem.
+var windfuryTotemHoldsOver = []string{
+	FlametongueTotemCategory,
+	core.ExclusiveStatCategory(GraceOfAirTotemCategory, stats.Agility.StatName(), false),
+}
 
 // The Windfury Totem proc on the character's main hand, inactive until a totem
 // aura holding WindfuryTotemCategory turns it on. A character under both the
@@ -259,10 +268,18 @@ func NewWindfuryTotemProcTrigger(char *core.Character) *core.Aura {
 	return char.MakeProcTriggerAura(trigger).ApplyOnInit(onInit)
 }
 
+// A standing Windfury Totem, the party's or the shaman's own, outbids its rivals
+// even while Windfury Weapon on the main hand keeps its proc down.
+func HoldOverWindfuryTotemRivals(totemAura *core.Aura) {
+	for _, category := range windfuryTotemHoldsOver {
+		totemAura.NewExclusiveEffect(category, false, core.ExclusiveEffect{Priority: math.MaxFloat64})
+	}
+}
+
 // A weapon totem's party aura stands for the fight and bids for the category,
 // which keeps the proc trigger up while it holds it. Outbid, by a main-hand
-// imbue or the shaman's own totem, it stays up and takes the category back
-// once the higher bid goes.
+// imbue, the shaman's own totem or a standing Windfury Totem, it stays up and takes
+// the category back once the higher bid goes.
 func holdTotemAura(totemAura *core.Aura, category string, priority float64, procTrigger *core.Aura) {
 	core.MakePermanent(totemAura)
 
@@ -283,6 +300,9 @@ var flametongueTotemProc = spelldata.MustFind(16389)
 
 // The totem's hit logs in game as Flametongue Attack; 16389 only states its base points.
 var flametongueTotemAttack = spelldata.MustFind(16368)
+
+// The totem's summon, which the hit reports under, tagged 1, so the results show the totem and its hits as one row.
+var flametongueTotemCast = spelldata.MustFind(16387)
 
 // A Flametongue Totem bids its proc's base points for the category.
 func FlametongueTotemPriority() float64 {
@@ -322,7 +342,8 @@ func NewFlametongueTotemProcTrigger(char *core.Character) *core.Aura {
 		return procTrigger
 	}
 
-	config := spelldata.SpellConfig(&char.Unit, flametongueTotemAttack, spelldata.Proc(), spelldata.Tag(-1))
+	config := spelldata.SpellConfig(&char.Unit, flametongueTotemAttack, spelldata.Proc())
+	config.ActionID = core.ActionID{SpellID: flametongueTotemCast.ID, Tag: 1}
 	config.ProcMask = core.ProcMaskSpellDamageProc
 	if flametongueTotemAttack.IsAProc() {
 		config.Flags |= core.SpellFlagProc
@@ -344,15 +365,6 @@ func NewFlametongueTotemProcTrigger(char *core.Character) *core.Aura {
 	trigger.Duration = core.NeverExpires
 	trigger.TriggerImmediately = true
 	trigger.ProcMask &= core.ProcMaskMeleeMH
-	// Read on the first hit, once every aura is registered.
-	var windfury *core.Aura
-	lookedUp := false
-	trigger.ExtraCondition = func(_ *core.Simulation, _ *core.Spell, _ *core.SpellResult) bool {
-		if !lookedUp {
-			windfury, lookedUp = char.GetAura(windfuryTotemTriggerLabel), true
-		}
-		return windfury == nil || !windfury.IsActive()
-	}
 	return char.MakeProcTriggerAura(trigger)
 }
 

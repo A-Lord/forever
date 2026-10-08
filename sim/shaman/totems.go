@@ -81,9 +81,10 @@ func (shaman *Shaman) registerWeaponTotem(rank *spelldata.Spell, slot int, categ
 func (shaman *Shaman) registerWindfuryTotemSpell() {
 	shaman.WindfuryTotem = shaman.registerWeaponTotem(windfuryTotemRank, AirTotem, buffs.WindfuryTotemCategory,
 		buffs.WindfuryTotemValue(0), buffs.NewWindfuryTotemProcTrigger(&shaman.Character))
+	buffs.HoldOverWindfuryTotemRivals(shaman.WindfuryTotem.RelatedSelfBuff)
 }
 
-// Under Windfury Totem's proc, Flametongue Totem's does nothing.
+// Under a standing Windfury Totem, Flametongue Totem's proc does nothing.
 func (shaman *Shaman) registerFlametongueTotemSpell() {
 	shaman.FlametongueTotem = shaman.registerWeaponTotem(flametongueTotemRank, FireTotem, buffs.FlametongueTotemCategory,
 		buffs.FlametongueTotemPriority(), buffs.NewFlametongueTotemProcTrigger(&shaman.Character))
