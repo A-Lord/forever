@@ -29,6 +29,7 @@ func protectionWarriorSuite() core.CharacterSuiteConfig {
 		OtherRaces: []proto.Race{proto.Race_RaceHuman},
 		GearSet:    core.GetGearSet("../../../ui/specs/warrior/protection/gear_sets", "prebis"),
 		OtherGearSets: []core.GearSetCombo{
+			core.GetGearSet("../../../ui/specs/warrior/protection/gear_sets", "prebis_threat"),
 			core.GetGearSet("../../../ui/specs/warrior/protection/gear_sets", "p1_bis"),
 		},
 		Talents:          DefaultProtectionTalents,
@@ -84,7 +85,7 @@ var DefaultConsumables = &proto.ConsumesSpec{
 	PotId:       250943, // Major Frenzy Potion
 	FoodId:      20452,  // Smoked Desert Dumplings
 	ExplosiveId: 260817, // EZ-Thro Dark Bomb
-	MhImbueId:   12643,  // Dense Weightstone
+	MhImbueId:   12404,  // Dense Sharpening Stone
 	ConjuredId:  9421,   // Major Healthstone
 	// Elixir of Ferocity, Elixir of the Mongoose, Winterfall Firewater, Elixir of Greater Defense, Elixir of the Phalanx
 	ElixirIds: []int32{250350, 13452, 12820, 13445, 250329},
