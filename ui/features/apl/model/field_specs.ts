@@ -4,7 +4,6 @@ import {
 	APLValueAutoAttackType,
 	APLValueAutoSwingTime_SwingType as AutoSwingType,
 	APLValueCompare_ComparisonOperator as ComparisonOperator,
-	APLValueEclipsePhase,
 	APLValueIsExecutePhase_ExecutePhaseThreshold as ExecutePhaseThreshold,
 	APLValueMath_MathOperator as MathOperator,
 } from '@generated/proto/apl';
@@ -72,15 +71,6 @@ export type AplFieldSpec =
 	| (FieldBase & { kind: 'actionList' });
 
 const none = () => i18n.t('common.none');
-
-const ECLIPSE_TYPES: EnumTable = {
-	defaultLabel: i18n.t('rotation_tab.apl.helpers.eclipse_types.lunar'),
-	options: [
-		{ value: APLValueEclipsePhase.LunarPhase, label: i18n.t('rotation_tab.apl.helpers.eclipse_types.lunar') },
-		{ value: APLValueEclipsePhase.SolarPhase, label: i18n.t('rotation_tab.apl.helpers.eclipse_types.solar') },
-		{ value: APLValueEclipsePhase.NeutralPhase, label: i18n.t('rotation_tab.apl.helpers.eclipse_types.neutral') },
-	],
-};
 
 const CURSE_TYPES: EnumTable = {
 	defaultLabel: none(),
@@ -241,8 +231,6 @@ export const resolveField = (descriptor: APLFieldDescriptor, player: Player<any>
 			return { ...base, kind: 'placeholderName', field: descriptor.field, newValue: () => '' };
 		case 'groupReferenceVariables':
 			return { ...base, kind: 'groupVariables', field: descriptor.field, newValue: () => [], groupNameField: descriptor.groupNameField };
-		case 'eclipseType':
-			return asEnum(descriptor.field, ECLIPSE_TYPES, () => APLValueEclipsePhase.LunarPhase);
 		case 'curseType':
 			return asEnum(descriptor.field, CURSE_TYPES, () => CurseOptions.Agony);
 		case 'autoType':

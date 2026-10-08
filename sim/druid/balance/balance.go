@@ -49,8 +49,6 @@ func NewBalanceDruid(character *core.Character, options *proto.Player) *BalanceD
 type BalanceDruid struct {
 	*druid.Druid
 	Options *proto.BalanceDruid_Options
-
-	ManaMetric *core.ResourceMetrics
 }
 
 func (moonkin *BalanceDruid) GetDruid() *druid.Druid {
@@ -60,7 +58,6 @@ func (moonkin *BalanceDruid) GetDruid() *druid.Druid {
 func (moonkin *BalanceDruid) Initialize() {
 	moonkin.Druid.Initialize()
 	moonkin.Druid.RegisterBalanceSpells()
-	moonkin.ManaMetric = moonkin.NewManaMetrics(core.ActionID{SpellID: 81070 /* Eclipse */})
 }
 
 func (moonkin *BalanceDruid) ApplyTalents() {

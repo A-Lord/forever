@@ -103,19 +103,6 @@ type Druid struct {
 	maulRealismICD *core.Cooldown
 }
 
-const (
-	// Feral abilities are identified with spellData ladders, not these masks. The masks that remain
-	// are the ones a balance item effect or a balance spell mod still names.
-	DruidSpellMoonfireInitial int64 = 1 << iota
-	DruidSpellMoonfireDoT
-	DruidSpellHurricane
-	DruidSpellInsectSwarm
-	DruidSpellStarfire
-	DruidSpellWrath
-
-	DruidSpellMoonfire = DruidSpellMoonfireInitial | DruidSpellMoonfireDoT
-)
-
 type SelfBuffs struct {
 	InnervateTarget *proto.UnitReference
 }
@@ -169,6 +156,7 @@ func (druid *Druid) RegisterBalanceSpells() {
 	druid.registerMoonfireSpell()
 	druid.registerWrathSpell()
 	druid.registerHurricaneSpell()
+	druid.registerBarkskin()
 }
 
 func (druid *Druid) RegisterFeralCatSpells() {

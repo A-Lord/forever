@@ -1342,12 +1342,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		19613, // Pristine Enchanted South Seas Kelp
-		[
-			"Increases the critical hit chance of Wrath and Starfire by 2%.", // 24433 - https://www.wowhead.com/forever/spell=24433
-		]
-	],
-	[
 		19617, // Zandalarian Shadow Mastery Talisman
 		[
 			"Decreases the cooldown of Kick by -0.5 sec.", // 24434 - https://www.wowhead.com/forever/spell=24434
@@ -1990,12 +1984,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		249441, // Talons of Wrath
-		[
-			"Causes Wrath to have a 50% chance to restore 35 Mana.", // 1302521 - https://www.wowhead.com/forever/spell=1302521
-		]
-	],
-	[
 		249443, // Totem of Ancestral Protection
 		[
 			"Reduces the cooldown of Grounding Totem by 1 sec.", // 1249011 - https://www.wowhead.com/forever/spell=1249011
@@ -2102,12 +2090,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		272429, // Idol of Synthesis
 		[
 			"Each of your heal over time effects on the target reduces the remaining cooldown on Swiftmend by 1 sec when you cast it.", // 1291075 - https://www.wowhead.com/forever/spell=1291075
-		]
-	],
-	[
-		272430, // Swarming Idol
-		[
-			"Increases the duration of your Insect Swarm ability by 2 sec.", // 1291061 - https://www.wowhead.com/forever/spell=1291061
 		]
 	],
 	[

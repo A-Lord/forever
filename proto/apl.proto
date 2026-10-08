@@ -139,8 +139,6 @@ message APLValue {
         APLValueCurrentRage current_rage = 14;
         APLValueCurrentEnergy current_energy = 15;
         APLValueCurrentComboPoints current_combo_points = 16;
-        APLValueCurrentSolarEnergy current_solar_energy = 68;
-        APLValueCurrentLunarEnergy current_lunar_energy = 69;
 		APLValueCurrentGenericResource current_generic_resource = 75;
 		APLValueCurrentManaRegen current_mana_regen = 130;
         APLValueMaxHealth max_health = 98;
@@ -229,7 +227,6 @@ message APLValue {
         APLValueTotemRemainingTime totem_remaining_time = 49;
 APLValueWarlockAssignedCurseIsActive warlock_assigned_curse_is_active = 59;
 		APLValueWarlockIsAssignedCurse warlock_is_assigned_curse = 129;
-        APLValueCurrentEclipsePhase druid_current_eclipse_phase = 70;
 		APLValueProtectionPaladinDamageTakenLastGlobal protection_paladin_damage_taken_last_global = 100;
 
 		// Variable reference
@@ -534,8 +531,6 @@ message APLValueCurrentManaPercent {
 message APLValueCurrentRage {}
 message APLValueCurrentEnergy {}
 message APLValueCurrentComboPoints {}
-message APLValueCurrentSolarEnergy {}
-message APLValueCurrentLunarEnergy {}
 message APLValueCurrentGenericResource {}
 message APLValueCurrentManaRegen {}
 message APLValueMaxHealth {}
@@ -546,17 +541,6 @@ message APLValueMaxRage {}
 message APLValueTimeToNextEnergyTick {}
 message APLValueEnergyTimeToTarget {
 	APLValue target_energy = 1;
-}
-
-enum APLValueEclipsePhase {
-    UnknownPhase = 0;
-    NeutralPhase = 1;
-    SolarPhase = 2;
-    LunarPhase = 3;
-}
-
-message APLValueCurrentEclipsePhase {
-    APLValueEclipsePhase eclipse_phase = 1;
 }
 
 message APLValueGCDIsReady {}

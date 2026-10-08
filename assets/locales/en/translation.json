@@ -610,10 +610,6 @@
 				"label": "Cannot Shred Target",
 				"tooltip": "Alternative to \"In Front of Target\" for modeling bosses that do not Parry or Block, but which you still cannot Shred."
 			},
-			"okf_uptime": {
-				"label": "Owlkin Frenzy Uptime (%)",
-				"tooltip": "Percentage of fight uptime for Owlkin Frenzy"
-			},
 			"show_1h_weapons": {
 				"label": "1H",
 				"tooltip": "Show one-handed weapons"
@@ -1460,18 +1456,6 @@
 					"label": "Max Combo Points",
 					"tooltip": "Amount of maximum available Combo Points."
 				},
-				"solar_energy": {
-					"label": "Solar Energy",
-					"tooltip": "Amount of currently available Solar Energy."
-				},
-				"lunar_energy": {
-					"label": "Lunar Energy",
-					"tooltip": "Amount of currently available Lunar Energy"
-				},
-				"current_eclipse_phase": {
-					"label": "Current Eclipse Phase",
-					"tooltip": "The eclipse phase the druid currently is in."
-				},
 				"generic_resource": {
 					"label": "{GENERIC_RESOURCE}",
 					"tooltip": "Amount of currently available {GENERIC_RESOURCE}."
@@ -1799,7 +1783,6 @@
 				"focus": "Focus",
 				"energy": "Energy",
 				"combo_points": "Combo Points",
-				"eclipse": "Eclipse",
 				"cooldowns": "Cooldowns",
 				"potions": "Potions",
 				"conjured_items": "Conjured Items",
@@ -1844,11 +1827,6 @@
 					"use_base_value": "Use base value",
 					"use_base_value_tooltip": "If checked, will compare the current DoT to the the base value (on encounter start) of the DoT.",
 					"variable_assignment_tooltip": "Value to assign to variable '{{variableName}}'"
-				},
-				"eclipse_types": {
-					"lunar": "Lunar",
-					"solar": "Solar",
-					"neutral": "Neutral"
 				},
 				"rotation_types": {
 					"single_target": "Single Target",
