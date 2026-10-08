@@ -5,11 +5,13 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-var chainLightningRank = spellData.ChainLightning.Highest()
+var chainLightningRanks = castableRanks(spellData.ChainLightning)
 
 func (shaman *Shaman) registerChainLightningSpell() {
-	overload := shaman.RegisterSpell(shaman.newChainLightningOverloadConfig(chainLightningRank))
-	shaman.RegisterSpell(shaman.newChainLightningSpellConfig(chainLightningRank, overload))
+	chainLightningRanks.Each(func(_ int32, rank *spelldata.Spell) {
+		overload := shaman.RegisterSpell(shaman.newChainLightningOverloadConfig(rank))
+		shaman.RegisterSpell(shaman.newChainLightningSpellConfig(rank, overload))
+	})
 }
 
 func (shaman *Shaman) newChainLightningSpellConfig(rank *spelldata.Spell, overload *core.Spell) core.SpellConfig {

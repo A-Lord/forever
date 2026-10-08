@@ -77,7 +77,7 @@ type Shaman struct {
 	// The expiration time of each totem (earth, air, fire, water).
 	TotemExpirations [4]time.Duration
 
-	LavaBurst *core.Spell
+	LavaBurst []*core.Spell // One per rank in castableRanks.
 
 	Stormstrike *core.Spell
 
@@ -87,9 +87,9 @@ type Shaman struct {
 	// Spends a Lightning Shield charge the way a hit taken does, for the shield proc rate option.
 	ShieldSelfProc func(sim *core.Simulation)
 
-	EarthShock *core.Spell
-	FlameShock *core.Spell
-	FrostShock *core.Spell
+	EarthShock []*core.Spell // One per rank in castableRanks.
+	FlameShock []*core.Spell
+	FrostShock []*core.Spell
 
 	StormstrikeDebuffAuras core.AuraArray
 
@@ -121,7 +121,8 @@ func (shaman *Shaman) GetCharacter() *core.Character {
 func (shaman *Shaman) AddRaidBuffs(raidBuffs *proto.RaidBuffs) {
 }
 
-// Every spell registers its highest rank only, since lower ranks are to carry penalties in game.
+// The shocks, Lightning Bolt, Chain Lightning and Lava Burst register every rank in castableRanks; the
+// other spells register their highest rank only.
 func (shaman *Shaman) Initialize() {
 	shaman.registerChainLightningSpell()
 	shaman.registerLightningBoltSpell()
