@@ -664,6 +664,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		9397, // Energy Cloak
+		[
+			"Restores 320 Mana.", // 1294025 - https://www.wowhead.com/forever/spell=1294025
+		]
+	],
+	[
 		9446, // Electrocutioner Leg
 		[
 			"Blasts a target for 28 Nature damage. Mechanical targets take 2 x damage.", // 1292851 - https://www.wowhead.com/forever/spell=1292851
