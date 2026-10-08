@@ -426,8 +426,8 @@ dps_results: {
 dps_results: {
  key: "TestElemental-AllItems-ManualCrowdPummeler-9449"
  value: {
-  dps: 339.41407
-  tps: 241.60323
+  dps: 462.79936
+  tps: 306.26864
  }
 }
 dps_results: {

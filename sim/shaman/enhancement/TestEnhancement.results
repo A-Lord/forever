@@ -398,6 +398,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestEnhancement-AllItems-ManualCrowdPummeler-9449"
+ value: {
+  dps: 776.69425
+  tps: 407.52704
+  dtps: 10.75134
+ }
+}
+dps_results: {
  key: "TestEnhancement-AllItems-MarkofResolution-17759"
  value: {
   dps: 722.22842
