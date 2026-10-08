@@ -10,8 +10,6 @@ import (
 func RegisterAllOnUseCds() {
 
 	//
-	// unsupported: 12257 deals no damage and heals no one (A_PERIODIC_TRIGGER_SPELL, E_TRIGGER_SPELL)
-	// shared.NewSimpleStatActive(744) // Thunderbrew's Boot Flask - https://www.wowhead.com/forever/spell=12257
 	// unsupported: 835 deals no damage and heals no one (A_MOD_STUN)
 	// shared.NewSimpleStatActive(1404) // Tidal Charm - https://www.wowhead.com/forever/spell=835
 	// unsupported: 14530 deals no damage and heals no one (A_MOD_INCREASE_SPEED)
@@ -27,8 +25,6 @@ func RegisterAllOnUseCds() {
 	// shared.NewSimpleStatActive(7391) // Swift Boots - https://www.wowhead.com/forever/spell=9175
 	// unsupported: 14537 deals no damage and heals no one (E_DUMMY)
 	// shared.NewSimpleStatActive(7734) // Six Demon Bag - https://www.wowhead.com/forever/spell=14537
-	// unsupported: 12022 deals no damage and heals no one (E_APPLY_AREA_AURA_PARTY)
-	// shared.NewSimpleStatActive(10030) // Admiral's Hat - https://www.wowhead.com/forever/spell=12022
 	// unsupported: 12438 deals no damage and heals no one (A_FEATHER_FALL)
 	// shared.NewSimpleStatActive(10518) // Parachute Cloak - https://www.wowhead.com/forever/spell=12438
 	// unsupported: 22641 deals no damage and heals no one (E_CHARGE, E_TRIGGER_SPELL)
@@ -37,8 +33,6 @@ func RegisterAllOnUseCds() {
 	// shared.NewSimpleStatActive(10724) // Gnomish Rocket Boots - https://www.wowhead.com/forever/spell=13141
 	// unsupported: 13180 deals no damage and heals no one (E_DUMMY)
 	// shared.NewSimpleStatActive(10726) // Gnomish Mind Control Cap - https://www.wowhead.com/forever/spell=13180
-	// unsupported: 18364 deals no damage and heals no one (A_PERIODIC_TRIGGER_SPELL)
-	// shared.NewSimpleStatActive(14134) // Cloak of Fire - https://www.wowhead.com/forever/spell=18364
 	// on use: 18386 (E_HEAL)
 	// unsupported: the heal lands on implicit target 5, not the wearer
 	// shared.NewSpellDataHealOnUse(14153) // Robe of the Void - https://www.wowhead.com/forever/spell=18386
@@ -183,10 +177,14 @@ func RegisterAllOnUseCds() {
 	shared.NewSimpleStatActive(23040) // Glyph of Deflection - https://www.wowhead.com/forever/spell=28773
 
 	// Damage
+	// on use: 12257 (A_PERIODIC_TRIGGER_SPELL); not simulated: E_TRIGGER_SPELL; every 1s for 5s: 12278 (E_SCHOOL_DAMAGE)
+	shared.NewSpellDataPeriodicDamageOnUse(744) // Thunderbrew's Boot Flask - https://www.wowhead.com/forever/spell=12257
 	// on use: 10578 (E_SCHOOL_DAMAGE, A_PERIODIC_DAMAGE)
 	shared.NewSpellDataDamageOnUse(8348) // Helm of Fire - https://www.wowhead.com/forever/spell=10578
 	// on use: 15712 (E_SCHOOL_DAMAGE); not simulated: E_TRIGGER_SPELL, E_TRIGGER_SPELL
 	shared.NewSpellDataDamageOnUse(11905) // Linken's Boomerang - https://www.wowhead.com/forever/spell=15712
+	// on use: 18364 (A_PERIODIC_TRIGGER_SPELL); every 5s for 15s: 18374 (E_SCHOOL_DAMAGE)
+	shared.NewSpellDataPeriodicDamageOnUse(14134) // Cloak of Fire - https://www.wowhead.com/forever/spell=18364
 	// on use: 26789 (E_SCHOOL_DAMAGE)
 	shared.NewSpellDataDamageOnUse(21891) // Shard of the Fallen Star - https://www.wowhead.com/forever/spell=26789
 	// on use: 1295270 (E_SCHOOL_DAMAGE); not simulated: E_NONE, E_NONE
