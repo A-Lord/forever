@@ -1989,7 +1989,7 @@ func TestRotationWithoutShiftingPowerDoesNotReportManaExhaustion(t *testing.T) {
 func TestFeralPreset(t *testing.T) {
 	for _, race := range []proto.Race{proto.Race_RaceNightElf, proto.Race_RaceTauren} {
 		t.Run(race.String(), func(t *testing.T) {
-			rotation := core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "default").Rotation
+			rotation := core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "claw-rip").Rotation
 			request := coverageRequest(false, rotation)
 			player := request.Raid.Parties[0].Players[0]
 			player.Race = race
