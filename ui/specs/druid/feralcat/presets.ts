@@ -6,11 +6,15 @@ import { SavedTalents } from '@generated/proto/ui';
 
 import AutoApl from './apls/auto.apl.json';
 import DefaultApl from './apls/default.apl.json';
+import PounceApl from './apls/pounce.apl.json';
 import RaidDpsApl from './apls/raid-dps.apl.json';
+import RavageApl from './apls/ravage.apl.json';
 import RaidBuild from './builds/raid.build.json';
 import RaidDpsBuild from './builds/raid-dps.build.json';
 import StarterBuild from './builds/starter.build.json';
 import RaidEp from './ep/raid.ep.json';
+import Level60GearJson from './gear_sets/default.gear.json';
+import PreRaidGearJson from './gear_sets/pre_raid.gear.json';
 
 export const RAID_EP = PresetUtils.makePresetEpWeightsFromJSON(RaidEp);
 
@@ -55,8 +59,19 @@ export const OtherDefaults = {
 
 export const DefaultRotation = FeralCatDruidRotation.fromJsonString(JSON.stringify(RaidBuild.player.rotation.priorityList[1].action.catOptimalRotationAction));
 
+// Leather at 60 with no set bonus and no proc. The stand-in the rotation was tuned on.
+export const Level60Gear = PresetUtils.makePresetGear('Level 60', Level60GearJson, {
+	tooltip: 'Leather at level 60 with no set bonus and no proc. Fist of Cenarius and the Howling Idol.',
+});
+
+export const PreRaidGear = PresetUtils.makePresetGear('Pre-raid', PreRaidGearJson, {
+	tooltip: 'Pre-raid leather with The Unstoppable Force, Wolfshead Helm and full enchants.',
+});
+
 export const SIMPLE = PresetUtils.makePresetSimpleRotation('Simple', Spec.SpecFeralCatDruid, DefaultRotation);
 export const APL = PresetUtils.makePresetAPLRotation('Claw / Rip', DefaultApl);
 export const AUTO_APL = PresetUtils.makePresetAPLRotation('Auto', AutoApl);
 export const POWERSHIFT_APL = PresetUtils.makePresetAPLRotation('Shred / Rake / Rip (4 CP)', RaidBuild.player.rotation);
 export const RAID_DPS_APL = PresetUtils.makePresetAPLRotation('Shred / Rake / Rip (5 CP)', RaidDpsApl);
+export const RAVAGE_APL = PresetUtils.makePresetAPLRotation('Ravage opener', RavageApl);
+export const POUNCE_APL = PresetUtils.makePresetAPLRotation('Pounce opener', PounceApl);

@@ -38,6 +38,7 @@ var ClassWeaponTypeCapabilities = map[proto.Class]map[proto.WeaponType]EligibleW
 	proto.Class_ClassPaladin: {
 		proto.WeaponType_WeaponTypeAxe:     {CanUseTwoHand: true},
 		proto.WeaponType_WeaponTypeMace:    {CanUseTwoHand: true},
+		proto.WeaponType_WeaponTypeOffHand: {},
 		proto.WeaponType_WeaponTypePolearm: {CanUseTwoHand: true},
 		proto.WeaponType_WeaponTypeShield:  {},
 		proto.WeaponType_WeaponTypeSword:   {CanUseTwoHand: true},

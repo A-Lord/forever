@@ -122,9 +122,9 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 		epWeights: [Presets.RAID_EP],
 		// Preset talents that the user can quickly select.
 		talents: [Presets.STARTER_TALENTS],
-		rotations: [Presets.SIMPLE, Presets.POWERSHIFT_APL, Presets.RAID_DPS_APL, Presets.APL],
+		rotations: [Presets.SIMPLE, Presets.POWERSHIFT_APL, Presets.RAID_DPS_APL, Presets.APL, Presets.RAVAGE_APL, Presets.POUNCE_APL],
 		// Preset gear configurations that the user can quickly select.
-		gear: [Presets.RAID_GEAR, Presets.STARTER_GEAR],
+		gear: [Presets.RAID_GEAR, Presets.STARTER_GEAR, Presets.PreRaidGear, Presets.Level60Gear],
 	},
 
 	// Auto is the APL preset, which keeps Elune's Light out of Berserk's guaranteed crit.

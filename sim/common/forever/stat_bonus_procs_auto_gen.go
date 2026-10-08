@@ -318,19 +318,6 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
-	// Shields the wielder from physical damage, absorbing 84 damage. Lasts 20s.
-	// https://www.wowhead.com/forever/spell=11657
-	// unsupported: states no rate
-	// trigger 11657 (0%, core.CallbackEmpty, core.ProcMaskUnknown)
-	// shared.NewSpellDataAbsorbProc(shared.SpellDataProc{TriggerSpellID: 11657, BuffSpellID: 11657, IsWeaponProc: true},
-	//	[]shared.ItemVariant{
-	//	{ItemID: 9380, ItemName: "Jang'thraze the Protector"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
 	// Blasts a target for 91 Nature damage.
 	// https://www.wowhead.com/forever/spell=18081
 	// unsupported: states no rate
@@ -1160,22 +1147,6 @@ func RegisterAllProcs() {
 	//	RequireDamageDealt: false
 	// }, []shared.ItemVariant{
 	//	{ItemID: 17620, ItemName: "General's Satin Gloves"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Restores 32 mana. Restore 1 times as much if attacking an Earth Elementals, Golems, or Titan-forged enermy.
-	//
-	// https://www.wowhead.com/forever/spell=21951
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 17733, ItemName: "Fist of Stone"},
 	// })
 
 	// TODO: Manual implementation required
