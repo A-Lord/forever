@@ -137,9 +137,9 @@ export class EquippedItem {
 		item.randPropPoints = scalingOptions.randPropPoints;
 
 		if (this._randomSuffix) {
-			item.stats = item.stats.map((stat, index) =>
-				this._randomSuffix!.stats[index] > 0 ? Math.floor((this._randomSuffix!.stats[index] * item.randPropPoints) / 10000) : stat,
-			);
+			const suffixStats = this._randomSuffix.stats;
+			// The game rounds each suffix stat to the nearest point and adds it to the item's own.
+			item.stats = item.stats.map((stat, index) => stat + Math.round(((suffixStats[index] || 0) * item.randPropPoints) / 10000));
 		}
 
 		for (const areaStats of scalingOptions.areaStats.filter(bonus => areaTypes.includes(bonus.areaType))) {
@@ -158,6 +158,7 @@ export class EquippedItem {
 	calcStats(slot?: ItemSlot): Stats {
 		const item = this.item;
 		let stats = new Stats(item.stats, item.pseudoStats);
+		if (this._randomSuffix) stats = stats.add(new Stats([], this._randomSuffix.pseudoStats));
 		if (typeof slot === 'number') stats = stats.add(getWeaponStatsBySlot(item, slot, 0));
 		return stats;
 	}

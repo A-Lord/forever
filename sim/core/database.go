@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"math"
 	"slices"
 	"sync"
 
@@ -248,16 +249,18 @@ func (item *Item) ToItemSpecProto() *proto.ItemSpec {
 }
 
 type RandomSuffix struct {
-	ID    int32
-	Name  string
-	Stats stats.Stats
+	ID          int32
+	Name        string
+	Stats       stats.Stats // Allocations per 10000 of the item's random property points.
+	PseudoStats []float64   // Indexed by proto.PseudoStat; flat, through stats.FromPseudoStatsProto.
 }
 
 func RandomSuffixFromProto(pData *proto.ItemRandomSuffix) RandomSuffix {
 	return RandomSuffix{
-		ID:    pData.Id,
-		Name:  pData.Name,
-		Stats: stats.FromProtoArray(pData.Stats),
+		ID:          pData.Id,
+		Name:        pData.Name,
+		Stats:       stats.FromProtoArray(pData.Stats),
+		PseudoStats: pData.PseudoStats,
 	}
 }
 
@@ -623,9 +626,13 @@ func ItemEquipmentBaseStats(item Item) stats.Stats {
 	equipStats = equipStats.Add(item.Stats)
 	equipStats = equipStats.Add(stats.FromPseudoStatsProto(item.PseudoStats))
 
-	// Random suffix stats can be Reforged, so apply those prior to any Reforges
-	rawSuffixStats := item.RandomSuffix.Stats
-	equipStats = equipStats.Add(rawSuffixStats.Multiply(float64(item.RandPropPoints) / 10000.).Floor())
+	// The game rounds each suffix stat to the nearest point: 4106 Intellect allocation on a ring of 16
+	// random property points is 6.57, shown and applied as 7. Multiplying before dividing keeps an exact
+	// half exact (47500 at 6 points is 28.5, shown as 29).
+	for stat, allocation := range item.RandomSuffix.Stats {
+		equipStats[stat] += math.Round(allocation * float64(item.RandPropPoints) / 10000)
+	}
+	equipStats = equipStats.Add(stats.FromPseudoStatsProto(item.RandomSuffix.PseudoStats))
 
 	return equipStats
 }
