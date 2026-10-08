@@ -606,6 +606,22 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestProtection-AllItems-Knight-Lieutenant'sLamellarGauntlets-16410"
+ value: {
+  dps: 234.5152
+  tps: 246.77297
+  dtps: 522.39193
+ }
+}
+dps_results: {
+ key: "TestProtection-AllItems-Knight-Lieutenant'sLamellarGauntlets-23274"
+ value: {
+  dps: 236.97757
+  tps: 249.32796
+  dtps: 521.60383
+ }
+}
+dps_results: {
  key: "TestProtection-AllItems-LibramofEconomy-272436"
  value: {
   dps: 230.98155
@@ -707,6 +723,14 @@ dps_results: {
   dps: 233.29888
   tps: 245.38533
   dtps: 526.8303
+ }
+}
+dps_results: {
+ key: "TestProtection-AllItems-Marshal'sLamellarGloves-16471"
+ value: {
+  dps: 238.04151
+  tps: 250.42624
+  dtps: 518.539
  }
 }
 dps_results: {

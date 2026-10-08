@@ -560,6 +560,22 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestRetribution-AllItems-Knight-Lieutenant'sLamellarGauntlets-16410"
+ value: {
+  dps: 865.54367
+  tps: 505.96935
+  dtps: 7.46258
+ }
+}
+dps_results: {
+ key: "TestRetribution-AllItems-Knight-Lieutenant'sLamellarGauntlets-23274"
+ value: {
+  dps: 871.98272
+  tps: 509.57522
+  dtps: 7.46196
+ }
+}
+dps_results: {
  key: "TestRetribution-AllItems-LibramofEconomy-272436"
  value: {
   dps: 870.91814
@@ -662,6 +678,14 @@ dps_results: {
   dps: 848.85314
   tps: 496.40132
   dtps: 4.50945
+ }
+}
+dps_results: {
+ key: "TestRetribution-AllItems-Marshal'sLamellarGloves-16471"
+ value: {
+  dps: 879.17381
+  tps: 513.60223
+  dtps: 7.46279
  }
 }
 dps_results: {

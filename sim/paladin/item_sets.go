@@ -21,6 +21,17 @@ var justiceSetSlots = []proto.ItemSlot{
 	proto.ItemSlot_ItemSlotFeet,
 }
 
+func init() {
+	// Knight-Lieutenant's Lamellar Gauntlets
+	// https://www.wowhead.com/forever/item=23274/knight-lieutenant-s-lamellar-gauntlets
+	//
+	// Increases the Holy damage bonus of your Judgement of the Crusader by 20.
+	//
+	// A piece of Lieutenant Commander's Redoubt (544); the bonus is the gloves' own equip spell,
+	// not one of the set's.
+	core.NewItemEffect(23274, raiseJudgementOfTheCrusader)
+}
+
 // Tier 1 - Retribution
 // https://www.wowhead.com/forever/item-set=2106/justice-battlegear
 //

@@ -3,15 +3,17 @@
 package retribution
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/buffs"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/simsignals"
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-func paladinAgainstUndead(t *testing.T, equipped map[proto.ItemSlot]int32) *core.Character {
+func paladinAgainstUndead(t *testing.T, equipped map[proto.ItemSlot]int32) (*core.Simulation, *core.Character) {
 	t.Helper()
 	items := make([]*proto.ItemSpec, proto.ItemSlot_ItemSlotRanged+1)
 	for i := range items {
@@ -38,13 +40,13 @@ func paladinAgainstUndead(t *testing.T, equipped map[proto.ItemSlot]int32) *core
 			{Name: "target", Level: 63, MobType: proto.MobType_MobTypeUndead}}},
 	}, simsignals.CreateSignals())
 	sim.Reset()
-	return sim.Raid.Parties[0].Players[0].GetCharacter()
+	return sim, sim.Raid.Parties[0].Players[0].GetCharacter()
 }
 
 // Justice Battlegear's 4-piece bonus 1301084 states A_MOD_MELEE_ATTACK_POWER_VERSUS 36 against mask
 // 32, Undead, and no ranged attack power.
 func TestJusticeBattlegearFourPieceGrantsAttackPowerAgainstUndead(t *testing.T) {
-	character := paladinAgainstUndead(t, map[proto.ItemSlot]int32{
+	_, character := paladinAgainstUndead(t, map[proto.ItemSlot]int32{
 		proto.ItemSlot_ItemSlotLegs:     273908,
 		proto.ItemSlot_ItemSlotHands:    273909,
 		proto.ItemSlot_ItemSlotShoulder: 273910,
@@ -63,8 +65,8 @@ func TestJusticeBattlegearFourPieceGrantsAttackPowerAgainstUndead(t *testing.T) 
 // Tenets of the Silver Hand 249397's equip spell 1302545 states A_MOD_DAMAGE_DONE_VERSUS 1 against
 // mask 32: 1% more damage against Undead, with crit damage following the damage.
 func TestTenetsOfTheSilverHandMultipliesDamageAgainstUndead(t *testing.T) {
-	without := paladinAgainstUndead(t, nil)
-	with := paladinAgainstUndead(t, map[proto.ItemSlot]int32{proto.ItemSlot_ItemSlotRanged: 249397})
+	_, without := paladinAgainstUndead(t, nil)
+	_, with := paladinAgainstUndead(t, map[proto.ItemSlot]int32{proto.ItemSlot_ItemSlotRanged: 249397})
 	base := without.AttackTables[without.CurrentTarget.UnitIndex]
 	table := with.AttackTables[with.CurrentTarget.UnitIndex]
 
@@ -73,5 +75,30 @@ func TestTenetsOfTheSilverHandMultipliesDamageAgainstUndead(t *testing.T) {
 	}
 	if got, want := table.CritMultiplier, base.CritMultiplier; got != want {
 		t.Errorf("the crit multiplier against Undead is %v, want %v", got, want)
+	}
+}
+
+// The PvP gloves' equip spell 23300 states a flat 20 on Judgement of the Crusader's Holy damage
+// bonus, which every rank of the paladin's debuff carries.
+func TestJudgementOfTheCrusaderGlovesAddTwentyHolyDamageTaken(t *testing.T) {
+	holyTaken := func(hands int32) float64 {
+		sim, character := paladinAgainstUndead(t, map[proto.ItemSlot]int32{proto.ItemSlot_ItemSlotHands: hands})
+		target := character.CurrentTarget
+		for _, aura := range target.GetAurasWithTag(buffs.JudgementAuraTag) {
+			if strings.HasPrefix(aura.Label, "Judgement of the Crusader") {
+				aura.Activate(sim)
+			}
+		}
+		return target.PseudoStats.SchoolBonusSpellDamage[stats.SchoolIndexHoly]
+	}
+
+	base := holyTaken(0)
+	if base == 0 {
+		t.Fatal("no Judgement of the Crusader debuff raised Holy damage taken")
+	}
+	for _, gloves := range []int32{16410, 16471, 23274} {
+		if got, want := holyTaken(gloves), base+20; got != want {
+			t.Errorf("with gloves %d the debuff adds %v Holy damage taken, want %v", gloves, got, want)
+		}
 	}
 }
