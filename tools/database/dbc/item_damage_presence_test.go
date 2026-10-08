@@ -12,7 +12,7 @@ func TestWeaponDPSPresenceWhenSourceTableIsMissing(t *testing.T) {
 	// When
 	row := item.ToUIItem().ScalingOptions[0]
 	// Then
-	if row.WeaponTableDps != nil {
+	if row.UnroundedDps != nil {
 		t.Fatal("missing source row must preserve absent table DPS")
 	}
 }

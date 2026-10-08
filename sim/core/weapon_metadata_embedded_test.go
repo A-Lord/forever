@@ -11,7 +11,7 @@ func TestWeaponMetadataEquippedFromDefaultDatabase(t *testing.T) {
 		// When
 		item := NewItem(spec)
 		// Then
-		if item.WeaponTableDPS == nil || *item.WeaponTableDPS != want {
+		if item.UnroundedDPS == nil || *item.UnroundedDPS != want {
 			t.Errorf("default equipped item %d lost qualified source metadata: %+v", id, item)
 		}
 	}

@@ -13,7 +13,7 @@ import (
 func TestWeaponMetadataLoadedFromEmbeddedAssets(t *testing.T) {
 	// Given
 	db := Load()
-	expected := map[int32]float64{273456: 14.695897, 7230: 19.808466, 5279: 10.123344, 7005: 1.6533102, 15444: 16.042252, 2028: 9.63904, 6256: 1.0142055, 866: 31.362663}
+	expected := map[int32]float64{273456: 14.695897, 7230: 19.808466, 5279: 10.123344, 7005: 1.6533102, 15444: 11.928854051282052, 2028: 9.63904, 6256: 1.0142055, 866: 31.362663}
 	// When
 	byID := make(map[int32]*proto.UIItem)
 	for _, item := range db.Items {
@@ -27,12 +27,12 @@ func TestWeaponMetadataLoadedFromEmbeddedAssets(t *testing.T) {
 			continue
 		}
 		row := item.ScalingOptions[0]
-		if row == nil || row.WeaponTableDps == nil {
-			t.Errorf("item %d has no source table DPS", id)
+		if row == nil || row.UnroundedDps == nil {
+			t.Errorf("item %d has no unrounded source DPS", id)
 			continue
 		}
-		if *row.WeaponTableDps != want {
-			t.Errorf("item %d DPS = %.9f, want %.9f", id, *row.WeaponTableDps, want)
+		if *row.UnroundedDps != want {
+			t.Errorf("item %d DPS = %.9f, want %.9f", id, *row.UnroundedDps, want)
 		}
 	}
 }

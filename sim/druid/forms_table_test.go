@@ -36,7 +36,7 @@ func TestFeralTablePawEndpoints(t *testing.T) {
 			t.Run(c.name+"/"+form.name, func(t *testing.T) {
 				// Given an equipped weapon with independent, unrounded source DPS.
 				character := catWithMainHand(t, 866, &proto.ConsumesSpec{}, &proto.PartyBuffs{})
-				character.GetMHWeapon().WeaponTableDPS = &c.dps
+				character.GetMHWeapon().UnroundedDPS = &c.dps
 				cat := character.Env.Raid.Parties[0].Players[0].(*pawDruid)
 
 				// When the form installs its paw.
@@ -71,7 +71,7 @@ func TestFeralTablePawKeepsWeaponBonusesWhenRebuilt(t *testing.T) {
 			// Given a weaponstone, a flat enchant, and a main-hand DPS bonus.
 			character := catWithMainHand(t, 866, &proto.ConsumesSpec{MhImbueId: 12643}, &proto.PartyBuffs{})
 			dps := 14.695897
-			character.GetMHWeapon().WeaponTableDPS = &dps
+			character.GetMHWeapon().UnroundedDPS = &dps
 			character.GetMHWeapon().Enchant.WeaponDamage = 3
 			character.PseudoStats.BonusMHDps = 2
 			cat := character.Env.Raid.Parties[0].Players[0].(*pawDruid)
@@ -111,7 +111,7 @@ func TestCatPawAddsFlatWeaponDamageAfterNormalization(t *testing.T) {
 			baseCharacter := catWithMainHand(t, 866, &proto.ConsumesSpec{}, &proto.PartyBuffs{})
 			baseCharacter.GetMHWeapon().SwingSpeed = tc.swingSpeed
 			if !tc.table {
-				baseCharacter.GetMHWeapon().WeaponTableDPS = nil
+				baseCharacter.GetMHWeapon().UnroundedDPS = nil
 			}
 			base := baseCharacter.Env.Raid.Parties[0].Players[0].(*pawDruid).GetCatWeapon()
 
@@ -120,7 +120,7 @@ func TestCatPawAddsFlatWeaponDamageAfterNormalization(t *testing.T) {
 			permanentItem.SwingSpeed = tc.swingSpeed
 			permanentItem.Enchant.WeaponDamage = 4
 			if !tc.table {
-				permanentItem.WeaponTableDPS = nil
+				permanentItem.UnroundedDPS = nil
 			}
 			permanent := permanentCharacter.Env.Raid.Parties[0].Players[0].(*pawDruid).GetCatWeapon()
 
@@ -129,7 +129,7 @@ func TestCatPawAddsFlatWeaponDamageAfterNormalization(t *testing.T) {
 			item.SwingSpeed = tc.swingSpeed
 			item.Enchant.WeaponDamage = 4
 			if !tc.table {
-				item.WeaponTableDPS = nil
+				item.UnroundedDPS = nil
 			}
 			cat := character.Env.Raid.Parties[0].Players[0].(*pawDruid)
 			for range 2 {
@@ -155,7 +155,7 @@ func TestFeralTablePawUsesSuppliedCasterDPS(t *testing.T) {
 	// Given classified caster metadata with an explicit source DPS value.
 	character := catWithMainHand(t, 866, &proto.ConsumesSpec{}, &proto.PartyBuffs{})
 	dps := 14.695897
-	character.GetMHWeapon().WeaponTableDPS = &dps
+	character.GetMHWeapon().UnroundedDPS = &dps
 	character.GetMHWeapon().QualityModifier = -1
 	cat := character.Env.Raid.Parties[0].Players[0].(*pawDruid)
 

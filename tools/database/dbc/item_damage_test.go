@@ -8,7 +8,7 @@ import (
 	googleProto "google.golang.org/protobuf/proto"
 )
 
-func TestWeaponTableDPS(t *testing.T) {
+func TestUnroundedDPS(t *testing.T) {
 	once.Do(func() {})
 	previous := dbcInstance
 	dbcInstance = NewDBC()
@@ -42,7 +42,7 @@ func TestWeaponTableDPS(t *testing.T) {
 			item := Item{Id: 1, ItemClass: c.class, InventoryType: c.inventory, ItemDelay: 2000,
 				ItemLevel: c.level, OverallQuality: c.quality, Flags1: c.flags, DmgVariance: 0.4}
 			generated := item.ToUIItem().ScalingOptions[0]
-			field := generated.ProtoReflect().Descriptor().Fields().ByName("weapon_table_dps")
+			field := generated.ProtoReflect().Descriptor().Fields().ByName("unrounded_dps")
 			if field == nil {
 				t.Fatal("scaling properties discard unrounded weapon table DPS")
 			}
@@ -50,7 +50,7 @@ func TestWeaponTableDPS(t *testing.T) {
 				t.Fatalf("DPS presence = %v for item class %d", got, c.class)
 			}
 			if got := generated.ProtoReflect().Get(field).Float(); got != c.dps {
-				t.Fatalf("table DPS = %.9f, want %.9f", got, c.dps)
+				t.Fatalf("unrounded DPS = %.9f, want %.9f", got, c.dps)
 			}
 			if generated.WeaponDamageMin != c.low || generated.WeaponDamageMax != c.high {
 				t.Fatalf("equipped endpoints = %v-%v, want %v-%v", generated.WeaponDamageMin, generated.WeaponDamageMax, c.low, c.high)

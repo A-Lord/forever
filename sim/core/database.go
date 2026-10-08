@@ -179,7 +179,7 @@ type Item struct {
 	WeaponDamageMax  float64
 	SwingSpeed       float64
 	QualityModifier  float64           // Per-item offset to weapon "average damage"; negative for caster weapons.
-	WeaponTableDPS   *float64
+	UnroundedDPS     *float64
 	SpellSchool      proto.SpellSchool // The weapon's damage school; unset means physical.
 
 	Name          string
@@ -520,7 +520,7 @@ func NewItem(itemSpec ItemSpec) Item {
 	item.WeaponDamageMax = scalingOptions.WeaponDamageMax
 	item.WeaponDamageMin = scalingOptions.WeaponDamageMin
 	item.RandPropPoints = scalingOptions.RandPropPoints
-	item.WeaponTableDPS = scalingOptions.WeaponTableDps
+	item.UnroundedDPS = scalingOptions.UnroundedDps
 
 	if itemSpec.RandomSuffix != 0 {
 		if randomSuffix, ok := randomSuffixesByID[itemSpec.RandomSuffix]; ok {

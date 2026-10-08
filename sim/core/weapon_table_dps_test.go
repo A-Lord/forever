@@ -8,14 +8,14 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
-func TestWeaponTableDPS(t *testing.T) {
+func TestUnroundedDPS(t *testing.T) {
 	cases := []struct {
 		name, metadata string
 	}{
 		{"legacy", ""},
-		{"zero", `,"weaponTableDps":0`},
-		{"caster", `,"weaponTableDps":14.695897`},
-		{"noncaster", `,"weaponTableDps":19.808466`},
+		{"zero", `,"unroundedDps":0`},
+		{"caster", `,"unroundedDps":14.695897`},
+		{"noncaster", `,"unroundedDps":19.808466`},
 	}
 	for index, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
@@ -36,12 +36,12 @@ func TestWeaponTableDPS(t *testing.T) {
 
 			item := NewItem(ItemSpec{ID: id})
 
-			want := source.ScalingOptions[0].WeaponTableDps
-			if (item.WeaponTableDPS == nil) != (want == nil) {
-				t.Fatalf("equipped DPS presence = %v, source presence = %v", item.WeaponTableDPS != nil, want != nil)
+			want := source.ScalingOptions[0].UnroundedDps
+			if (item.UnroundedDPS == nil) != (want == nil) {
+				t.Fatalf("equipped DPS presence = %v, source presence = %v", item.UnroundedDPS != nil, want != nil)
 			}
-			if want != nil && *item.WeaponTableDPS != *want {
-				t.Fatalf("equipped table DPS = %.9f, want %.9f", *item.WeaponTableDPS, *want)
+			if want != nil && *item.UnroundedDPS != *want {
+				t.Fatalf("equipped unrounded DPS = %.9f, want %.9f", *item.UnroundedDPS, *want)
 			}
 			if item.WeaponDamageMin != 60 || item.WeaponDamageMax != 90 || item.SwingSpeed != 2.4 {
 				t.Fatalf("equipped damage/speed changed: %v-%v at %v", item.WeaponDamageMin, item.WeaponDamageMax, item.SwingSpeed)

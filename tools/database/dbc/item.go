@@ -100,7 +100,7 @@ func (item *Item) ToScaledUIItem(itemLevel int) *proto.UIItem {
 		// Equipped damage is rounded; Feral forms need the table cell at their own swing speed.
 		weaponDps, present := dbcInstance.WeaponDPS(item, item.ItemLevel)
 		if present {
-			scalingProperties[0].WeaponTableDps = &weaponDps
+			scalingProperties[0].UnroundedDps = &weaponDps
 		}
 	}
 

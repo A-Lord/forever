@@ -12,7 +12,7 @@ func (druid *Druid) GetCatWeapon() core.Weapon {
 	}
 	flatWeaponDamage := druid.GetMHWeapon().Enchant.WeaponDamage + druid.GetMHWeapon().TempEnchantWeaponDamage
 	unscaledWeapon := druid.WeaponFromMainHand()
-	if druid.GetMHWeapon().WeaponTableDPS != nil {
+	if druid.GetMHWeapon().UnroundedDPS != nil {
 		return druid.tablePaw(unscaledWeapon, 1000, flatWeaponDamage)
 	}
 	return core.Weapon{
@@ -30,7 +30,7 @@ func (druid *Druid) GetBearWeapon() core.Weapon {
 		return unarmedPaw(2.5)
 	}
 	unscaledWeapon := druid.WeaponFromMainHand()
-	if druid.GetMHWeapon().WeaponTableDPS != nil {
+	if druid.GetMHWeapon().UnroundedDPS != nil {
 		return druid.tablePaw(unscaledWeapon, 2500, 0)
 	}
 	return core.Weapon{
@@ -45,7 +45,7 @@ func (druid *Druid) GetBearWeapon() core.Weapon {
 
 func (druid *Druid) tablePaw(unscaledWeapon core.Weapon, swingMs float32, postNormalizationFlat float64) core.Weapon {
 	item := druid.GetMHWeapon()
-	perSwing := float32(float32(*item.WeaponTableDPS) * swingMs)
+	perSwing := float32(float32(*item.UnroundedDPS) * swingMs)
 	perSwing = float32(perSwing * float32(0.001))
 	halfVariance := float32(float32(0.4) / float32(2))
 	low := float32(perSwing * float32(float32(1)-halfVariance))
