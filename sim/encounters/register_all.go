@@ -31,7 +31,7 @@ func AddDefaultPresetEncounter() {
 
 			SpellSchool:      proto.SpellSchool_SpellSchoolPhysical,
 			SwingSpeed:       2,
-			MinBaseDamage:    1694,
+			MinBaseDamage:    2601,
 			DamageSpread:     0.5,
 			SuppressDodge:    false,
 			ParryHaste:       true,

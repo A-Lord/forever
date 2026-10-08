@@ -18,15 +18,15 @@ import PreBiSThreatGearJson from './gear_sets/prebis_threat.gear.json';
 export const ROTATION_DEFAULT = PresetUtils.makePresetAPLRotation('Generic', GenericApl);
 
 // Dungeon and world drops, the warrior's dungeon tier set, crafted items whose reagents include no raid
-// materials and vendor items; no reputation or PvP rewards. The most threat at 142 defense, past the 140 that
-// makes a level 63 boss unable to crit. The "of Defense" pieces are world-drop greens; the cloak, the first ring
-// and Defender's Grip Stabilizer are sold by the Undermine Trader in Stranglethorn Vale; Beads of Ogre Might is a
-// Dire Maul quest reward and Deeprock Bracers a Silithus quest reward. Horned Pauldron, the Dawn Armor pattern,
-// the second ring and the Sentinel's Gloves plans have no known source.
+// materials and vendor items; no reputation, PvP or Silithus rewards. The most threat at 142 defense, past the 140
+// that makes a level 63 boss unable to crit. The "of Defense" and "of the Tiger" pieces are world-drop greens; the
+// cloak, the first ring and Defender's Grip Stabilizer are sold by the Undermine Trader in Stranglethorn Vale; Beads
+// of Ogre Might is a Dire Maul quest reward. Horned Pauldron, the Dawn Armor pattern, the second ring and the
+// Sentinel's Gloves plans have no known source.
 export const PreBiSGear = PresetUtils.makePresetGear('Pre-BiS (Defense Cap)', PreBiSGearJson);
 
-// The same sources with no defense floor: the most threat that survives a Golemagg-strength boss on the default
-// healing. Heart of the Scale drops in Lower Blackrock Spire; Band of Earthen Might is a Silithus quest reward.
+// The same sources with no defense floor: the most threat that survives the default target on the default healing.
+// Heart of the Scale drops in Lower Blackrock Spire; Cutthroat's Signet is sold by the Undermine Trader.
 export const PreBiSThreatGear = PresetUtils.makePresetGear('Pre-BiS (Threat)', PreBiSThreatGearJson);
 
 export const ProtectionTalents = PresetUtils.makePresetTalents('Protection', SavedTalents.create({ talentsString: '35300003-05-050531120300021351' }));
@@ -39,24 +39,24 @@ export const PreBiSEpWeights = PresetUtils.makePresetEpWeights(
 	Stats.fromMap(
 		{
 			[Stat.StatStamina]: 1.15,
-			[Stat.StatStrength]: 0.63,
-			[Stat.StatAgility]: 0.77,
+			[Stat.StatStrength]: 0.62,
+			[Stat.StatAgility]: 0.66,
 			[Stat.StatAttackPower]: 0.27,
-			[Stat.StatHitRating]: 1.14,
-			[Stat.StatCritRating]: 0.61,
-			[Stat.StatHasteRating]: 0.38,
-			[Stat.StatExpertiseRating]: 2.28,
+			[Stat.StatHitRating]: 1.13,
+			[Stat.StatCritRating]: 0.58,
+			[Stat.StatHasteRating]: 0.36,
+			[Stat.StatExpertiseRating]: 2.32,
 			[Stat.StatArmorPenetration]: 0.12,
-			[Stat.StatDefenseRating]: 0.42,
-			[Stat.StatBlockRating]: 0.05,
-			[Stat.StatBlockValue]: 0.79,
-			[Stat.StatDodgeRating]: 0.28,
-			[Stat.StatParryRating]: 0.28,
+			[Stat.StatDefenseRating]: 0.22,
+			[Stat.StatBlockRating]: 0.02,
+			[Stat.StatBlockValue]: 0.6,
+			[Stat.StatDodgeRating]: 0.17,
+			[Stat.StatParryRating]: 0.18,
 			[Stat.StatArmor]: 0.05,
 			[Stat.StatBonusArmor]: 0.05,
 		},
 		{
-			[PseudoStat.PseudoStatMainHandDps]: 2.15,
+			[PseudoStat.PseudoStatMainHandDps]: 2.16,
 		},
 	),
 );
@@ -66,24 +66,24 @@ export const PreBiSThreatEpWeights = PresetUtils.makePresetEpWeights(
 	Stats.fromMap(
 		{
 			[Stat.StatStamina]: 1.15,
-			[Stat.StatStrength]: 0.63,
-			[Stat.StatAgility]: 0.71,
+			[Stat.StatStrength]: 0.62,
+			[Stat.StatAgility]: 0.61,
 			[Stat.StatAttackPower]: 0.27,
-			[Stat.StatHitRating]: 0.07,
-			[Stat.StatCritRating]: 0.58,
-			[Stat.StatHasteRating]: 0.45,
-			[Stat.StatExpertiseRating]: 2.34,
+			[Stat.StatHitRating]: 0.05,
+			[Stat.StatCritRating]: 0.55,
+			[Stat.StatHasteRating]: 0.38,
+			[Stat.StatExpertiseRating]: 2.35,
 			[Stat.StatArmorPenetration]: 0.13,
-			[Stat.StatDefenseRating]: 0.44,
-			[Stat.StatBlockRating]: 0.06,
-			[Stat.StatBlockValue]: 0.78,
-			[Stat.StatDodgeRating]: 0.25,
-			[Stat.StatParryRating]: 0.26,
+			[Stat.StatDefenseRating]: 0.26,
+			[Stat.StatBlockRating]: 0.01,
+			[Stat.StatBlockValue]: 0.6,
+			[Stat.StatDodgeRating]: 0.13,
+			[Stat.StatParryRating]: 0.15,
 			[Stat.StatArmor]: 0.05,
 			[Stat.StatBonusArmor]: 0.05,
 		},
 		{
-			[PseudoStat.PseudoStatMainHandDps]: 2.31,
+			[PseudoStat.PseudoStatMainHandDps]: 2.29,
 		},
 	),
 );
@@ -122,7 +122,7 @@ export const OtherDefaults: Partial<SimUIOtherDefaults> = {
 	race: Race.RaceOrc,
 	distanceFromTarget: 0,
 	healingModel: HealingModel.create({
-		hps: 530,
+		hps: 815,
 		cadenceSeconds: 0.3,
 		cadenceVariation: 0.64,
 		absorbFrac: 0.015,
