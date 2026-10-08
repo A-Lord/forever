@@ -1,7 +1,10 @@
 package druid
 
 import (
+	"time"
+
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
@@ -25,6 +28,8 @@ func (druid *Druid) registerOmenOfClarity() {
 	// Chance(1) keeps the resolver from building a procs-per-minute manager and leaves core no roll of
 	// its own. The chance depends on what hit, so it is drawn here, after the ICD check and before the
 	// ICD starts. Only auto attacks and druid spells roll it.
+	// TODO: Ingame research needed -- whether Hurricane's ticks roll it. Each tick is its own instant hit
+	// here and rolls once per target, while the logs show no periodic tick ever proccing it.
 	trigger.ExtraCondition = func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
 		if !spell.ProcMask.Matches(core.ProcMaskMeleeWhiteHit) && spell.ClassFlags.Family != omen.ClassFlags.Family {
 			return false
@@ -33,11 +38,27 @@ func (druid *Druid) registerOmenOfClarity() {
 		return sim.Proc(druid.ModifiedProcChance(omen.ClassFlags, chance), trigger.Name)
 	}
 	druid.OmenOfClarityAura = druid.MakeProcTriggerAura(trigger)
+
+	// Moonkin Form's SPELLMOD_PROC_COOLDOWN on Omen of Clarity has no parse kind, so the form sets the ICD
+	// the next proc starts.
+	if druid.MoonkinFormAura != nil {
+		formMod := spellData.MoonkinForm.Highest().Effect(dbcenums.A_ADD_PCT_MODIFIER, int32(dbcenums.SPELLMOD_PROC_COOLDOWN))
+		formICD := time.Duration(float64(omen.ICD()) * (1 + formMod.Percent()))
+		druid.MoonkinFormAura.ApplyOnGain(func(_ *core.Aura, _ *core.Simulation) {
+			druid.OmenOfClarityAura.Icd.Duration = formICD
+		})
+		druid.MoonkinFormAura.ApplyOnExpire(func(_ *core.Aura, _ *core.Simulation) {
+			druid.OmenOfClarityAura.Icd.Duration = omen.ICD()
+		})
+	}
 }
 
 // The speed, in seconds, that turns Omen of Clarity's procs per minute into a chance for this hit.
 // Auto attacks and specials use the swing speed: the paw in Cat and Bear Form, the weapon otherwise.
 // A spell uses its cast time, and an instant 1.5 s.
+//
+// TODO: Ingame research needed -- whether cast speed such as Nature's Grace shortens the cast time the
+// chance is priced on. The talented cast time here counts flat mods only.
 func (druid *Druid) omenSpeed(spell *core.Spell) float64 {
 	switch {
 	case spell.ProcMask.Matches(core.ProcMaskMeleeWhiteHit | core.ProcMaskMeleeSpecial):

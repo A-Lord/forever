@@ -268,6 +268,9 @@ func (druid *Druid) RegisterMoonkinFormAura() {
 	// kind and is reported as skipped. The party crit of Moonkin Aura 24907 is the raid buff AddPartyBuffs
 	// turns on.
 	spelldata.ParseEffects(&druid.Character, druid.MoonkinFormAura, spellData.MoonkinFormTriggered.ByID(24905))
+	// Of the form's own effects only the Omen of Clarity proc chance has a sim kind; its proc cooldown is
+	// wired in registerOmenOfClarity.
+	spelldata.ParseEffects(&druid.Character, druid.MoonkinFormAura, spellData.MoonkinForm.Highest(), spelldata.Effects(5))
 	druid.MoonkinFormAura.ApplyOnGain(func(_ *core.Aura, _ *core.Simulation) {
 		druid.setForm(Moonkin)
 		druid.SetCurrentPowerBar(core.ManaBar)
