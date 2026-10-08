@@ -35,7 +35,7 @@ export default defineSpec<Spec.SpecDpsPriest>({
 		Stat.StatMP5,
 		Stat.StatSpirit,
 	],
-	epPseudoStats: [PseudoStat.PseudoStatSchoolHitPercentShadow],
+	epPseudoStats: [PseudoStat.PseudoStatSchoolHitPercentShadow, PseudoStat.PseudoStatSchoolHitPercentHoly],
 	// Reference stat against which to calculate EP. I think all classes use either spell power or attack power.
 	epReferenceStat: Stat.StatSpellDamage,
 	// Which stats to display in the Character Stats section, at the bottom of the left-hand sidebar.
@@ -62,6 +62,7 @@ export default defineSpec<Spec.SpecDpsPriest>({
 			PseudoStat.PseudoStatSpellCritPercent,
 			PseudoStat.PseudoStatSpellHastePercent,
 			PseudoStat.PseudoStatSchoolHitPercentShadow,
+			PseudoStat.PseudoStatSchoolHitPercentHoly,
 		],
 	),
 	displayWeaponSkillGroups: [WeaponSkillGroup.Wands],
@@ -72,7 +73,9 @@ export default defineSpec<Spec.SpecDpsPriest>({
 		// Default EP weights for sorting gear in the gear picker.
 		epWeights: new Stats(),
 		statCaps: (() => {
-			return new Stats().withPseudoStat(PseudoStat.PseudoStatSchoolHitPercentShadow, 17);
+			return new Stats()
+				.withPseudoStat(PseudoStat.PseudoStatSchoolHitPercentShadow, 17)
+				.withPseudoStat(PseudoStat.PseudoStatSchoolHitPercentHoly, 17);
 		})(),
 		// Default consumes settings.
 		consumables: Presets.DefaultConsumables,
@@ -110,13 +113,18 @@ export default defineSpec<Spec.SpecDpsPriest>({
 	presets: {
 		epWeights: [],
 		// Preset talents that the user can quickly select.
-		talents: [Presets.StandardTalents],
-		rotations: [Presets.ROTATION_PRESET_DEFAULT],
+		talents: [Presets.StandardTalents, Presets.SmiteTalents],
+		rotations: [Presets.ROTATION_PRESET_DEFAULT, Presets.ROTATION_SMITE_DEFAULT],
 		// Preset gear configurations that the user can quickly select.
-		gear: [Presets.PreraidGear],
+		gear: [Presets.PreraidGear, Presets.PreraidSmite],
 	},
 
-	autoRotation: (_: Player<Spec.SpecDpsPriest>): APLRotation => {
+	autoRotation: (priest: Player<Spec.SpecDpsPriest>): APLRotation => {
+		const [disc, holy, shadow] = priest.getTalentTreePoints();
+
+		if (disc > shadow) {
+			return Presets.ROTATION_SMITE_DEFAULT.rotation.rotation!
+		}
 		return Presets.ROTATION_PRESET_DEFAULT.rotation.rotation!;
 	},
 
