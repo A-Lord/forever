@@ -118,18 +118,27 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 	defaultBuild: Presets.RAID_BUILD,
 
 	presets: {
-		builds: [Presets.RAID_BUILD, Presets.RAID_DPS_BUILD, Presets.STARTER_BUILD],
+		builds: [Presets.RAID_BUILD, Presets.RAID_DPS_BUILD, Presets.STARTER_BUILD, Presets.BearweaveBuild],
 		epWeights: [Presets.RAID_EP],
 		// Preset talents that the user can quickly select.
-		talents: [Presets.STARTER_TALENTS],
-		rotations: [Presets.SIMPLE, Presets.POWERSHIFT_APL, Presets.RAID_DPS_APL, Presets.APL, Presets.RAVAGE_APL, Presets.POUNCE_APL],
+		talents: [Presets.STARTER_TALENTS, Presets.CatTalents, Presets.BearweaveTalents],
+		rotations: [
+			Presets.SIMPLE,
+			Presets.POWERSHIFT_APL,
+			Presets.RAID_DPS_APL,
+			Presets.APL,
+			Presets.CLAW_RIP_APL,
+			Presets.RAVAGE_APL,
+			Presets.POUNCE_APL,
+			Presets.BEARWEAVE_APL,
+		],
 		// Preset gear configurations that the user can quickly select.
 		gear: [Presets.RAID_GEAR, Presets.STARTER_GEAR, Presets.PreRaidGear, Presets.Level60Gear],
 	},
 
 	// Auto is the APL preset, which keeps Elune's Light out of Berserk's guaranteed crit.
 	autoRotation: (_player: Player<Spec.SpecFeralCatDruid>): APLRotation => {
-		return Presets.AUTO_APL.rotation.rotation!;
+		return Presets.APL.rotation.rotation!;
 	},
 
 	simpleRotation: (_player: Player<Spec.SpecFeralCatDruid>, simple: DruidRotation, _cooldowns: Cooldowns): APLRotation => {

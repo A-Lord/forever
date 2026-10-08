@@ -4,7 +4,8 @@ import { ConsumesSpec, Profession, Race, Spec } from '@generated/proto/common';
 import { FeralCatDruid_Options as FeralDruidOptions, FeralCatDruid_Rotation as FeralCatDruidRotation } from '@generated/proto/druid';
 import { SavedTalents } from '@generated/proto/ui';
 
-import AutoApl from './apls/auto.apl.json';
+import BearweaveApl from './apls/bearweave.apl.json';
+import ClawRipApl from './apls/claw-rip.apl.json';
 import DefaultApl from './apls/default.apl.json';
 import PounceApl from './apls/pounce.apl.json';
 import RaidDpsApl from './apls/raid-dps.apl.json';
@@ -69,9 +70,23 @@ export const PreRaidGear = PresetUtils.makePresetGear('Pre-raid', PreRaidGearJso
 });
 
 export const SIMPLE = PresetUtils.makePresetSimpleRotation('Simple', Spec.SpecFeralCatDruid, DefaultRotation);
-export const APL = PresetUtils.makePresetAPLRotation('Claw / Rip', DefaultApl);
-export const AUTO_APL = PresetUtils.makePresetAPLRotation('Auto', AutoApl);
+export const APL = PresetUtils.makePresetAPLRotation('APL', DefaultApl);
+export const CLAW_RIP_APL = PresetUtils.makePresetAPLRotation('Claw / Rip', ClawRipApl);
 export const POWERSHIFT_APL = PresetUtils.makePresetAPLRotation('Shred / Rake / Rip (4 CP)', RaidBuild.player.rotation);
 export const RAID_DPS_APL = PresetUtils.makePresetAPLRotation('Shred / Rake / Rip (5 CP)', RaidDpsApl);
 export const RAVAGE_APL = PresetUtils.makePresetAPLRotation('Ravage opener', RavageApl);
 export const POUNCE_APL = PresetUtils.makePresetAPLRotation('Pounce opener', PounceApl);
+
+// Dire Bear trips for Primal Bite and Maul, only on mana the Shifting Powers to the end of the fight
+// do not need. Needs the Primal Bite talent.
+export const BEARWEAVE_APL = PresetUtils.makePresetAPLRotation('Bearweave', BearweaveApl);
+
+export const CatTalents = PresetUtils.makePresetTalents('Cat', SavedTalents.create({ talentsString: '050022-55000032021030212051-055' }));
+// One point out of Genesis into Primal Bite.
+export const BearweaveTalents = PresetUtils.makePresetTalents('Bearweave', SavedTalents.create({ talentsString: '040022-55000032021130212051-055' }));
+
+// Ahead of the cat on fights of 45 to 60 seconds; from 120 seconds on, about the Genesis point behind.
+export const BearweaveBuild = PresetUtils.makePresetBuild('Bearweave (short fights)', {
+	talents: BearweaveTalents,
+	rotation: BEARWEAVE_APL,
+});

@@ -246,9 +246,11 @@ func (druid *Druid) RegisterMoonkinFormAura() {
 	if !druid.Talents.MoonkinForm {
 		return
 	}
-	// Moonkin's passives are not part of the feral forms. The aura exists so ClearForm can drop it.
-	row := spellData.MoonkinForm.Highest()
-	druid.MoonkinFormAura = druid.RegisterAura(spelldata.AuraConfig(row))
+	druid.MoonkinFormAura = druid.registerFormAura(spellData.MoonkinForm.Highest(), druid.StartingForm.Matches(Moonkin))
+	// Moonkin Form (Passive) 24905 states the form's armor from items; its A_MOD_BONUS_ARMOR_PCT has no sim
+	// kind and is reported as skipped. The party crit of Moonkin Aura 24907 is the raid buff AddPartyBuffs
+	// turns on.
+	spelldata.ParseEffects(&druid.Character, druid.MoonkinFormAura, spellData.MoonkinFormTriggered.ByID(24905))
 	druid.MoonkinFormAura.ApplyOnGain(func(_ *core.Aura, _ *core.Simulation) {
 		druid.setForm(Moonkin)
 		druid.SetCurrentPowerBar(core.ManaBar)

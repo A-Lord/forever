@@ -8,6 +8,7 @@ import (
 	"math"
 	"os"
 	"slices"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -52,7 +53,7 @@ func starterConfig() core.CharacterSuiteConfig {
 		}, &reference, &weigh,
 	)
 	config.OtherRaces = []proto.Race{proto.Race_RaceTauren}
-	config.OtherRotations = []core.RotationCombo{core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "default")}
+	config.OtherRotations = []core.RotationCombo{core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "claw-rip")}
 	return config
 }
 
@@ -92,15 +93,15 @@ func aplWarnings(t *testing.T, req *proto.ComputeStatsRequest) map[int][]string 
 }
 
 func TestCatAutoPresetMatchesItsBuilder(t *testing.T) {
-	preset := core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "auto").Rotation
+	preset := core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "default").Rotation
 	if !goproto.Equal(preset, catAPL(bestCatAPL)) {
 		t.Fatal("auto.apl.json differs from catAPL(bestCatAPL); rerun with APL_WRITE=1")
 	}
 }
 
 func TestCatAutoPresetHasNoWarningsWhenSelected(t *testing.T) {
-	preset := core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "auto").Rotation
-	if warnings := aplWarnings(t, selectedAutoCat(t, preset)); len(warnings) != 0 {
+	preset := core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "default").Rotation
+	if warnings := withoutIdleAutocast(preset, aplWarnings(t, selectedAutoCat(t, preset))); len(warnings) != 0 {
 		t.Errorf("preset warnings by line: %v", warnings)
 	}
 }
@@ -114,7 +115,7 @@ func assertWarningsOnlyForConsumableActions(t *testing.T, preset *proto.APLRotat
 			allowed[i] = true
 		}
 	}
-	warnings := aplWarnings(t, req)
+	warnings := withoutIdleAutocast(preset, aplWarnings(t, req))
 	if len(warnings) != len(allowed) {
 		t.Errorf("missing-consumable warnings by line: %v; expected lines: %v", warnings, allowed)
 	}
@@ -126,14 +127,14 @@ func assertWarningsOnlyForConsumableActions(t *testing.T, preset *proto.APLRotat
 }
 
 func TestCatAutoPresetWarnsForActionsUnselectedByRaidBuild(t *testing.T) {
-	preset := core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "auto").Rotation
+	preset := core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "default").Rotation
 	req := buildRequest(t, "raid")
 	req.Raid.Parties[0].Players[0].Rotation = preset
 	assertWarningsOnlyForConsumableActions(t, preset, &proto.ComputeStatsRequest{Raid: req.Raid, Encounter: req.Encounter})
 }
 
 func TestCatAutoPresetWarnsOnlyOnMissingConsumables(t *testing.T) {
-	preset := core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "auto").Rotation
+	preset := core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "default").Rotation
 	req := selectedAutoCat(t, preset)
 	player := req.Raid.Parties[0].Players[0]
 	player.Profession1 = proto.Profession_ProfessionUnknown
@@ -2870,5 +2871,108 @@ func TestStrengthBonusAddsTwoAttackPowerToComputedCatStats(t *testing.T) {
 			}
 			t.Logf("strength %v→%v; attack power %v→%v", base[stats.Strength], buffed[stats.Strength], base[stats.AttackPower], buffed[stats.AttackPower])
 		})
+	}
+}
+
+// The presets on disk are the lists the builders make, so a sweep of a builder measures what ships.
+func TestCatAPLPresetMatchesItsBuilder(t *testing.T) {
+	preset := core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "default").Rotation
+	if !goproto.Equal(preset, catAPL(bestCatAPL)) {
+		t.Fatal("default.apl.json differs from catAPL(bestCatAPL); rerun with APL_WRITE=1")
+	}
+	preset = core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "bearweave").Rotation
+	if !goproto.Equal(preset, bearweaveAPL()) {
+		t.Fatal("bearweave.apl.json differs from bearweaveAPL(); rerun with APL_WRITE=1")
+	}
+}
+
+// The consumables, professions and race the cat UI starts with (presets.ts DefaultConsumables
+// and OtherDefaults).
+func uiDefaultCat(t testing.TB, rotation *proto.APLRotation) *proto.ComputeStatsRequest {
+	req := sweepRequest(t, powershiftTalents, rotation, false, 1)
+	player := req.Raid.Parties[0].Players[0]
+	player.Profession1 = proto.Profession_Engineering
+	player.Profession2 = proto.Profession_Enchanting
+	player.Consumables = &proto.ConsumesSpec{
+		PotId:      13444,
+		ElixirIds:  []int32{13452, 13447},
+		FoodId:     250072,
+		MhImbueId:  12643,
+		ConjuredId: 7676,
+		ExtraIds:   []int32{10646, 10310},
+	}
+	return &proto.ComputeStatsRequest{Raid: req.Raid, Encounter: req.Encounter}
+}
+
+// The autocast line is there for an on-use trinket the list does not name. With Innervate named,
+// a set with none leaves it nothing to cast, and the editor says so on that line.
+func withoutIdleAutocast(preset *proto.APLRotation, warnings map[int][]string) map[int][]string {
+	for i, item := range preset.PriorityList {
+		if item.Action.GetAutocastOtherCooldowns() == nil {
+			continue
+		}
+		var kept []string
+		for _, w := range warnings[i] {
+			if !strings.HasPrefix(w, "Autocast Other Cooldowns will not cast any spells") {
+				kept = append(kept, w)
+			}
+		}
+		if len(kept) == 0 {
+			delete(warnings, i)
+		} else {
+			warnings[i] = kept
+		}
+	}
+	return warnings
+}
+
+// Every line of the preset names a spell or item the UI's default cat can cast.
+func TestCatAPLPresetHasNoWarningsOnTheDefaultCat(t *testing.T) {
+	preset := core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "default").Rotation
+	if warnings := withoutIdleAutocast(preset, aplWarnings(t, uiDefaultCat(t, preset))); len(warnings) != 0 {
+		t.Errorf("preset warnings by line: %v", warnings)
+	}
+}
+
+// The bearweave preset casts everything it names on the talents it is played with.
+func TestBearweaveAPLPresetHasNoWarningsOnItsTalents(t *testing.T) {
+	preset := core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "bearweave").Rotation
+	req := uiDefaultCat(t, preset)
+	req.Raid.Parties[0].Players[0].TalentsString = bearweaveTalents
+	if warnings := withoutIdleAutocast(preset, aplWarnings(t, req)); len(warnings) != 0 {
+		t.Errorf("preset warnings by line: %v", warnings)
+	}
+}
+
+// Without the consumables or Engineering, only the lines that cast them warn, and the sim still runs.
+func TestCatAPLPresetWarnsOnlyOnMissingConsumables(t *testing.T) {
+	preset := core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "default").Rotation
+	req := uiDefaultCat(t, preset)
+	player := req.Raid.Parties[0].Players[0]
+	player.Profession1 = proto.Profession_ProfessionUnknown
+	player.Consumables = &proto.ConsumesSpec{}
+
+	allowed := map[string]bool{}
+	for i, item := range preset.PriorityList {
+		id := item.Action.GetCastSpell().GetSpellId()
+		if id.GetItemId() != 0 || id.GetOtherId() == proto.OtherAction_OtherActionPotion {
+			allowed[strconv.Itoa(i)] = true
+		}
+	}
+	for line, messages := range withoutIdleAutocast(preset, aplWarnings(t, req)) {
+		if !allowed[strconv.Itoa(line)] {
+			t.Errorf("line %d warns without consumables: %v", line, messages)
+		}
+	}
+
+	result := core.RunSim(&proto.RaidSimRequest{
+		Raid: req.Raid, Encounter: req.Encounter,
+		SimOptions: &proto.SimOptions{RandomSeed: 1, Iterations: 20, IsTest: true},
+	}, nil, simsignals.CreateSignals())
+	if result.Error != nil {
+		t.Fatal(result.Error.Message)
+	}
+	if dps := result.RaidMetrics.Parties[0].Players[0].Dps.Avg; dps < 500 {
+		t.Errorf("bare cat on the preset does %.1f DPS", dps)
 	}
 }

@@ -14,7 +14,6 @@ import (
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
-	"github.com/wowsims/forever/sim/core/simsignals"
 	"google.golang.org/protobuf/encoding/protojson"
 	gproto "google.golang.org/protobuf/proto"
 )
@@ -235,17 +234,25 @@ const (
 	spellClear   int32 = 16870
 	itemSapper   int32 = 10646
 	itemTea      int32 = 7676
+
+	spellDireBear   int32 = 9634
+	spellPrimalBite int32 = 1238073
+	spellEnrage     int32 = 5229
+	spellMaul       int32 = 9881
+	spellInnervate  int32 = 29166
 )
 
 // aplTune is one candidate. elune is "after" (once Berserk's crit has fallen), "now" (as soon as it
 // is ready), or "builder" (after the window, and only into Rake or Shred). ceiling is the energy
 // at which Shifting Power still fits; 0 means the row's 50. omenMax, when set, also requires energy
-// under that number before Faerie Fire fishes.
+// under that number before Faerie Fire fishes. innervate leaves Cat Form for a self-Innervate when
+// the mana would run short.
 type aplTune struct {
-	elune   string
-	omen    bool
-	ceiling int
-	omenMax string
+	elune     string
+	omen      bool
+	ceiling   int
+	omenMax   string
+	innervate bool
 }
 
 func catAPL(tune aplTune) *proto.APLRotation {
@@ -275,6 +282,7 @@ func catAPL(tune aplTune) *proto.APLRotation {
 		cmp(proto.APLValueCompare_OpLt, afterBuilder, spellCost(spellRip)))
 	// Berserk is a major cooldown, so a plain cast waits for a GCD that is already idle while the
 	// builder queues into the window and takes that GCD. A sequence casts it with the spell.
+	// The sapper line sits above these, so a throw and the Cat Form after it always go first.
 	openRake := and(inCat, not(ripNow), rakeNow)
 	openShred := and(inCat, not(ripNow), not(rakeNow), not(pooling), not(wantShift), spellCanCast(spellShred))
 	// Berserk is +100% crit for 15s. Elune's 10% crit during that window does not change a crit.
@@ -327,32 +335,109 @@ func catAPL(tune aplTune) *proto.APLRotation {
 	if !tune.omen {
 		list = list[:len(list)-1]
 	}
+	if tune.innervate {
+		// Innervate is not castable in Cat Form. Out of form it goes first; in cat, the form is
+		// cancelled on a free GCD with nothing to spend energy on, then Cat Form follows.
+		out := []*proto.APLListItem{list[0], castWhen(spellInnervate, and(not(inCat), not(auraUp(spellDireBear)), manaShort(), spellCanCast(spellInnervate)))}
+		out = append(out, list[1:]...)
+		leave := cancelAuraWhen(spellCatForm, and(inCat, spellReady(spellInnervate), manaShort(),
+			cmp(proto.APLValueCompare_OpLe, gcdLeft(), konst("0s")),
+			cmp(proto.APLValueCompare_OpLe, currentEnergy(), konst("30")),
+			not(clearcasting), not(auraUp(spellBerserk)),
+			cmp(proto.APLValueCompare_OpGe, remainingTime(), konst("15s"))))
+		if tune.omen {
+			list = append(out[:len(out)-1:len(out)-1], leave, out[len(out)-1])
+		} else {
+			list = append(out, leave)
+		}
+	}
 	return &proto.APLRotation{Type: proto.APLRotation_TypeAPL, PriorityList: list}
 }
 
-// BestCatAPL is the list ui/specs/druid/feralcat/apls/auto.apl.json holds.
-var bestCatAPL = aplTune{elune: "after", omen: true}
+// Innervate's 20s of five times the spirit regen, which goes on in the five-second rule, is about
+// 3900 mana on the Pre-raid set. It is cast under 1400 mana, so the gain fits under the bar, and only
+// while the mana is under 50 per second of fight left: Shifting Power spends 684 every 7s or so, so a
+// pool above that lasts to the end without it.
+func manaShort() *proto.APLValue {
+	return and(cmp(proto.APLValueCompare_OpLt, currentMana(), konst("1400")),
+		cmp(proto.APLValueCompare_OpLt, currentMana(), mathOp(proto.APLValueMath_OpMul, remainingTime(), konst("50"))))
+}
 
-// APL_WRITE=1 rewrites the preset from catAPL(bestCatAPL).
+// BestCatAPL is the list ui/specs/druid/feralcat/apls/default.apl.json holds.
+var bestCatAPL = aplTune{elune: "after", omen: true, innervate: true}
+
+// The talents bearweaveAPL is played with: one point out of Genesis into Primal Bite.
+const bearweaveTalents = "040022-55000032021130212051-055"
+
+// bearweaveAPL is catAPL(bestCatAPL) with a Dire Bear trip for Primal Bite and Maul, the list
+// ui/specs/druid/feralcat/apls/bearweave.apl.json holds.
+//
+// The trip starts in cat with no more than 40 energy, Primal Bite ready, no Clearcasting, Berserk
+// down, Shifting Power at least 3s away and 10s of fight left. Dire Bear Form and Cat Form are
+// 684 mana each, so the trip also needs 1368 mana spare over 40 per second of fight left; a trip is
+// worth less than the Shifting Powers it would cost. In bear: Enrage under 20 rage (Furor gives 10
+// on the shift, Enrage with Wolfshead 15), Primal Bite, and Maul with the bite's 25 rage kept back or
+// once the bite is on cooldown. Bear is cancelled after the bite, so the rest of its GCD counts for
+// Furor, unless a bear swing lands before that GCD ends with rage for Maul; Cat Form follows.
+func bearweaveAPL() *proto.APLRotation {
+	rot := catAPL(bestCatAPL)
+	inCat := auraUp(spellCatForm)
+	inBear := auraUp(spellDireBear)
+	list := rot.PriorityList
+	if list[2].Action.GetCastSpell().GetSpellId().GetSpellId() != spellCatForm {
+		panic("bearweaveAPL expects Cat Form as the third line")
+	}
+	list[2] = castWhen(spellCatForm, and(not(inCat), not(inBear)))
+
+	biteDown := not(spellReady(spellPrimalBite))
+	swingFirst := and(cmp(proto.APLValueCompare_OpLe, autoTimeToNext(), gcdLeft()),
+		cmp(proto.APLValueCompare_OpGe, currentRage(), konst("10")))
+	bear := []*proto.APLListItem{
+		castWhen(spellEnrage, and(inBear, cmp(proto.APLValueCompare_OpLt, currentRage(), konst("20")))),
+		castWhen(spellPrimalBite, inBear),
+		castWhen(spellMaul, and(inBear, or(biteDown, cmp(proto.APLValueCompare_OpGe, currentRage(), konst("25"))))),
+		cancelAuraWhen(spellDireBear, and(inBear, biteDown, not(swingFirst))),
+	}
+	spare := mathOp(proto.APLValueMath_OpSub, currentMana(), konst("1368"))
+	enter := castWhen(spellDireBear, and(inCat,
+		cmp(proto.APLValueCompare_OpLe, currentEnergy(), konst("40")),
+		spellReady(spellPrimalBite),
+		not(auraUp(spellClear)),
+		not(auraUp(spellBerserk)),
+		cmp(proto.APLValueCompare_OpGe, remainingTime(), konst("10s")),
+		cmp(proto.APLValueCompare_OpGe, spellLeft(spellSP), konst("3s")),
+		cmp(proto.APLValueCompare_OpGe, spare, mathOp(proto.APLValueMath_OpMul, remainingTime(), konst("40")))))
+
+	out := append([]*proto.APLListItem{}, list[:3]...)
+	out = append(out, bear...)
+	out = append(out, list[3:len(list)-1]...)
+	out = append(out, enter, list[len(list)-1])
+	rot.PriorityList = out
+	return rot
+}
+
+// APL_WRITE=1 rewrites the presets from catAPL(bestCatAPL) and bearweaveAPL().
 func TestWriteCatAPL(t *testing.T) {
 	if os.Getenv("APL_WRITE") == "" {
-		t.Skip("set APL_WRITE=1 to rewrite the Auto APL preset")
+		t.Skip("set APL_WRITE=1 to rewrite the APL presets")
 	}
-	data, err := protojson.Marshal(catAPL(bestCatAPL))
-	if err != nil {
-		t.Fatal(err)
-	}
-	// protojson spaces its output at random; Compact then Indent makes the file stable.
-	var compact, out bytes.Buffer
-	if err := json.Compact(&compact, data); err != nil {
-		t.Fatal(err)
-	}
-	if err := json.Indent(&out, compact.Bytes(), "", "\t"); err != nil {
-		t.Fatal(err)
-	}
-	out.WriteByte('\n')
-	if err := os.WriteFile("../../../ui/specs/druid/feralcat/apls/auto.apl.json", out.Bytes(), 0o644); err != nil {
-		t.Fatal(err)
+	for name, rotation := range map[string]*proto.APLRotation{"default": catAPL(bestCatAPL), "bearweave": bearweaveAPL()} {
+		data, err := protojson.Marshal(rotation)
+		if err != nil {
+			t.Fatal(err)
+		}
+		// protojson spaces its output at random; Compact then Indent makes the file stable.
+		var compact, out bytes.Buffer
+		if err := json.Compact(&compact, data); err != nil {
+			t.Fatal(err)
+		}
+		if err := json.Indent(&out, compact.Bytes(), "", "\t"); err != nil {
+			t.Fatal(err)
+		}
+		out.WriteByte('\n')
+		if err := os.WriteFile("../../../ui/specs/druid/feralcat/apls/"+name+".apl.json", out.Bytes(), 0o644); err != nil {
+			t.Fatal(err)
+		}
 	}
 }
 
@@ -383,7 +468,7 @@ func TestAPLAgainstGoRotation(t *testing.T) {
 		rot  *proto.APLRotation
 	}{
 		{"simple (autocast + rotation.go)", uiDefaultRotation(simple)},
-		{"auto APL preset (auto.apl.json)", core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "auto").Rotation},
+		{"apl preset (default.apl.json)", core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "default").Rotation},
 		{"apl, elune at once", catAPL(aplTune{elune: "now", omen: true})},
 		{"apl, elune into a builder", catAPL(aplTune{elune: "builder", omen: true})},
 		{"apl, shift cap 45", catAPL(aplTune{elune: "after", omen: true, ceiling: 45})},
@@ -409,7 +494,7 @@ func TestAPLAgainstGoRotation(t *testing.T) {
 			player := req.Raid.Parties[0].Players[0]
 			player.Profession1 = proto.Profession_Engineering
 			if scenario.consumes {
-				player.Consumables = &proto.ConsumesSpec{PotId: 13444, ConjuredId: 7676, ExtraIds: []int32{10646, 10310}, ElixirIds: []int32{13452, 13447}, FoodId: 250072, MhImbueId: 12643}
+				player.Consumables = DefaultConsumables
 			}
 			if scenario.wolfhead {
 				player.Equipment = gproto.Clone(player.Equipment).(*proto.EquipmentSpec)
@@ -512,12 +597,6 @@ func spellID(id int32) *proto.ActionID {
 	return &proto.ActionID{RawId: &proto.ActionID_SpellId{SpellId: id}}
 }
 
-func itemCanCast(id int32) *proto.APLValue {
-	return &proto.APLValue{Value: &proto.APLValue_SpellCanCast{SpellCanCast: &proto.APLValueSpellCanCast{
-		SpellId: &proto.ActionID{RawId: &proto.ActionID_ItemId{ItemId: id}},
-	}}}
-}
-
 func auraIcdReady(id int32) *proto.APLValue {
 	return &proto.APLValue{Value: &proto.APLValue_AuraIcdIsReady{AuraIcdIsReady: &proto.APLValueAuraICDIsReady{
 		AuraId: spellID(id),
@@ -554,4 +633,22 @@ func remainingTime() *proto.APLValue {
 
 func mathOp(op proto.APLValueMath_MathOperator, lhs, rhs *proto.APLValue) *proto.APLValue {
 	return &proto.APLValue{Value: &proto.APLValue_Math{Math: &proto.APLValueMath{Op: op, Lhs: lhs, Rhs: rhs}}}
+}
+
+func currentRage() *proto.APLValue {
+	return &proto.APLValue{Value: &proto.APLValue_CurrentRage{CurrentRage: &proto.APLValueCurrentRage{}}}
+}
+
+func autoTimeToNext() *proto.APLValue {
+	return &proto.APLValue{Value: &proto.APLValue_AutoTimeToNext{AutoTimeToNext: &proto.APLValueAutoTimeToNext{}}}
+}
+
+func gcdLeft() *proto.APLValue {
+	return &proto.APLValue{Value: &proto.APLValue_GcdTimeToReady{GcdTimeToReady: &proto.APLValueGCDTimeToReady{}}}
+}
+
+func cancelAuraWhen(id int32, condition *proto.APLValue) *proto.APLListItem {
+	return &proto.APLListItem{Action: &proto.APLAction{Condition: condition, Action: &proto.APLAction_CancelAura{
+		CancelAura: &proto.APLActionCancelAura{AuraId: spellID(id)},
+	}}}
 }
