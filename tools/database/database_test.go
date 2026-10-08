@@ -7,6 +7,16 @@ import (
 	"github.com/wowsims/forever/sim/core/proto"
 )
 
+func TestDatabaseReadRetainsEncounters(t *testing.T) {
+	input := `{"encounters":[{"path":"Encounter"}]}`
+
+	db := ReadDatabaseFromJson(input)
+
+	if len(db.Encounters) != 1 || db.Encounters[0].Path != "Encounter" {
+		t.Fatal("database read discards encounter data")
+	}
+}
+
 func TestMergeReplacesPseudoStats(t *testing.T) {
 	pseudoStats := func(dodge float64) []float64 {
 		values := make([]float64, len(proto.PseudoStat_name))
