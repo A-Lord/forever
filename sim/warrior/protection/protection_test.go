@@ -67,7 +67,7 @@ var DefaultOptions = &proto.Player_ProtectionWarrior{
 	ProtectionWarrior: &proto.ProtectionWarrior{
 		Options: &proto.ProtectionWarrior_Options{
 			ClassOptions: &proto.WarriorOptions{
-				StartingRage:   50,
+				StartingRage:   0,
 				UseBattleShout: true,
 				DefaultStance:  proto.WarriorStance_WarriorStanceDefensive,
 				QueueDelay:     250,
@@ -85,6 +85,8 @@ var DefaultConsumables = &proto.ConsumesSpec{
 	FoodId:      20452,  // Smoked Desert Dumplings
 	ExplosiveId: 260817, // EZ-Thro Dark Bomb
 	MhImbueId:   12643,  // Dense Weightstone
-	ElixirIds:   []int32{250350, 13452, 12820}, // Elixir of Ferocity, Elixir of the Mongoose, Winterfall Firewater
-	ExtraIds:    []int32{10646},                // Goblin Sapper Charge
+	ConjuredId:  9421,   // Major Healthstone
+	// Elixir of Ferocity, Elixir of the Mongoose, Winterfall Firewater, Elixir of Greater Defense, Elixir of the Phalanx
+	ElixirIds: []int32{250350, 13452, 12820, 13445, 250329},
+	ExtraIds:  []int32{10646, 17048}, // Goblin Sapper Charge, Rumsey Rum
 }

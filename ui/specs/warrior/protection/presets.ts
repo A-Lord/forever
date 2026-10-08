@@ -57,7 +57,7 @@ export const PreBiSEpWeights = PresetUtils.makePresetEpWeights(
 export const DefaultOptions = ProtectionWarriorOptions.create({
 	classOptions: {
 		queueDelay: 250,
-		startingRage: 50,
+		startingRage: 0,
 		useBattleShout: true,
 		defaultStance: WarriorStance.WarriorStanceDefensive,
 		hasBsT2: true,
@@ -67,8 +67,16 @@ export const DefaultOptions = ProtectionWarriorOptions.create({
 
 export const DefaultConsumables = ConsumesSpec.create({
 	...WarriorPresets.DefaultConsumables,
-	elixirIds: [Consumables.ElixirOfFerocity.id, Consumables.ElixirOfTheMongoose.id, Consumables.WinterfallFirewater.id],
+	elixirIds: [
+		Consumables.ElixirOfFerocity.id,
+		Consumables.ElixirOfTheMongoose.id,
+		Consumables.WinterfallFirewater.id,
+		Consumables.ElixirOfGreaterDefense.id,
+		Consumables.ElixirOfThePhalanx.id,
+	],
 	mhImbueId: Consumables.DenseWeightstone.id,
+	conjuredId: Consumables.MajorHealthstone9421.id,
+	extraIds: [Consumables.GoblinSapperCharge.id, Consumables.RumseyRum.id],
 });
 
 // Classic Era Molten Core logs: the healing that lands on the main tank, overhealing included, comes to 2.4 x

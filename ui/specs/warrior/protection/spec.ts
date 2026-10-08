@@ -1,8 +1,8 @@
 import * as BuffDebuffInputs from '@features/settings/model/buffs_debuffs';
 import * as OtherInputs from '@features/settings/model/other_inputs';
 import { APLRotation } from '@generated/proto/apl';
-import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
-import { ItemSlot, PseudoStat, Spec, Stat, TristateEffect } from '@generated/proto/common';
+import { Debuffs, RaidBuffs } from '@generated/proto/buffs';
+import { ItemSlot, PseudoStat, Spec, Stat } from '@generated/proto/common';
 import { PlayerClasses } from '@sim/player/classes';
 import { Player } from '@sim/player/player';
 import { WeaponSkillGroup } from '@sim/player/weapon_skill_groups';
@@ -102,19 +102,15 @@ export default defineSpec<Spec.SpecProtectionWarrior>({
 			...WarriorPresets.DefaultRaidBuffs,
 			prayerOfShadowProtection: true,
 		}),
-		partyBuffs: PartyBuffs.create({
-			strengthOfEarthTotem: true,
-			windfuryTotem: true,
-			battleShout: TristateEffect.TristateEffectRegular,
-		}),
-		individualBuffs: IndividualBuffs.create({
-			...WarriorPresets.DefaultIndividualBuffs,
-			thorns: true,
-		}),
+		partyBuffs: WarriorPresets.DefaultPartyBuffs,
+		individualBuffs: WarriorPresets.DefaultIndividualBuffs,
 		debuffs: Debuffs.create({
-			...WarriorPresets.DefaultDebuffs,
-			giftOfArthas: false,
+			curseOfRecklessness: true,
+			faerieFire: true,
+			exposeArmor: true,
 			insectSwarm: true,
+			curseOfWeakness: true,
+			vindication: true,
 		}),
 	},
 
