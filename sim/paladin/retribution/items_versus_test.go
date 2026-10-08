@@ -11,6 +11,7 @@ import (
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/simsignals"
 	"github.com/wowsims/forever/sim/core/stats"
+	"github.com/wowsims/forever/sim/paladin"
 )
 
 func paladinAgainstUndead(t *testing.T, equipped map[proto.ItemSlot]int32) (*core.Simulation, *core.Character) {
@@ -99,6 +100,40 @@ func TestJudgementOfTheCrusaderGlovesAddTwentyHolyDamageTaken(t *testing.T) {
 	for _, gloves := range []int32{16410, 16471, 23274} {
 		if got, want := holyTaken(gloves), base+20; got != want {
 			t.Errorf("with gloves %d the debuff adds %v Holy damage taken, want %v", gloves, got, want)
+		}
+	}
+}
+
+// The Premier PvP gloves' equip spell 1293544 states +2% crit on family 10 mask 0x2000, every rank
+// of Flash of Light and no other spell.
+func TestPremierLuminousGlovesRaiseFlashOfLightCrit(t *testing.T) {
+	bonusCrit := func(hands int32) (flashOfLight []float64, others []float64) {
+		_, character := paladinAgainstUndead(t, map[proto.ItemSlot]int32{proto.ItemSlot_ItemSlotHands: hands})
+		for _, spell := range character.Spellbook {
+			if spell.Matches(paladin.SpellMaskFlashOfLight) {
+				flashOfLight = append(flashOfLight, spell.BonusCritPercent)
+			} else {
+				others = append(others, spell.BonusCritPercent)
+			}
+		}
+		return flashOfLight, others
+	}
+
+	baseFlash, baseOthers := bonusCrit(0)
+	if len(baseFlash) == 0 {
+		t.Fatal("the paladin registers no Flash of Light")
+	}
+	for _, gloves := range []int32{273329, 273363, 274250, 274256} {
+		flash, others := bonusCrit(gloves)
+		for i := range baseFlash {
+			if got, want := flash[i], baseFlash[i]+2; got != want {
+				t.Errorf("with gloves %d Flash of Light rank %d has %v bonus crit, want %v", gloves, i+1, got, want)
+			}
+		}
+		for i := range baseOthers {
+			if others[i] != baseOthers[i] {
+				t.Errorf("with gloves %d another spell's bonus crit moved from %v to %v", gloves, baseOthers[i], others[i])
+			}
 		}
 	}
 }

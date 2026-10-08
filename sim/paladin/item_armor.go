@@ -1,6 +1,7 @@
 package paladin
 
 import (
+	"github.com/wowsims/forever/sim/common/shared"
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
@@ -26,6 +27,24 @@ func init() {
 	//
 	// Increases the Holy damage bonus of your Judgement of the Crusader by 20.
 	core.NewItemEffect(23274, raiseJudgementOfTheCrusader)
+
+	// Premier Lieutenant Commander's Luminous Gloves
+	// https://www.wowhead.com/forever/item=273329/premier-lieutenant-commander-s-luminous-gloves
+	// Premier Luminous Gauntlets
+	// https://www.wowhead.com/forever/item=273363/premier-luminous-gauntlets
+	// Premier Champion's Lamellar Gloves
+	// https://www.wowhead.com/forever/item=274250/premier-champion-s-lamellar-gloves
+	// Premier Lamellar Gauntlets
+	// https://www.wowhead.com/forever/item=274256/premier-lamellar-gauntlets
+	//
+	// Increases the critical strike chance of your Flash of Light by 2%.
+	shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 1293544},
+		[]shared.ItemVariant{
+			{ItemID: 273329, ItemName: "Premier Lieutenant Commander's Luminous Gloves"},
+			{ItemID: 273363, ItemName: "Premier Luminous Gauntlets"},
+			{ItemID: 274250, ItemName: "Premier Champion's Lamellar Gloves"},
+			{ItemID: 274256, ItemName: "Premier Lamellar Gauntlets"},
+		})
 }
 
 func raiseJudgementOfTheCrusader(agent core.Agent) {
