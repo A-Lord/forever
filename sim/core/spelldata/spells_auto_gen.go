@@ -13347,11 +13347,11 @@ var generatedSpells = []Spell{
 			{ID: 693489, SpellID: 16352, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_DECREASE_SPEED, BasePoints: -25, BaseLevel: 48, MaxLevel: 56, PvpMult: 1, ChainAmp: 1, Mechanic: 11, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 			{ID: 693490, SpellID: 16352, Index: 1, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 127, PPL: 4, BaseLevel: 48, MaxLevel: 56, SPCoef: 0.10000000149011612, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		}},
-	{ID: 16353, Name: "Frostbrand Attack", Rank: "Rank 5", School: 16, Attr: [17]uint32{1: 0x88, 2: 0x1000000, 13: 0x80, 15: 0x2000}, SpellLevel: 58, BaseLevel: 58, MaxLevel: 66, DurationMs: 8000, MaxRange: 100, DefenseType: 1, ClassFlags: core.ClassFlags{Family: 11, Mask: [4]uint32{0: 16777216}}, Labels: []int16{24},
+	{ID: 16353, Name: "Frostbrand Attack", Rank: "Rank 5", School: 16, Attr: [17]uint32{1: 0x88, 2: 0x1000000, 13: 0x80, 15: 0x2000}, SpellLevel: 58, BaseLevel: 58, MaxLevel: 66, DurationMs: 8000, MaxRange: 100, DefenseType: 1, RPPM: 9, ClassFlags: core.ClassFlags{Family: 11, Mask: [4]uint32{0: 16777216}}, Labels: []int16{24}, ProcChanceSource: ProcChancePPM,
 		Effects: []Effect{
 			{ID: 693661, SpellID: 16353, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_DECREASE_SPEED, BasePoints: -25, BaseLevel: 58, MaxLevel: 66, PvpMult: 1, ChainAmp: 1, Mechanic: 11, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 			{ID: 693662, SpellID: 16353, Index: 1, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 158, PPL: 5.599999904632568, BaseLevel: 58, MaxLevel: 66, SPCoef: 0.10000000149011612, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
-		}},
+		}}, // override: PPM 9 -- Frostbrand Weapon: enchant 1668 casts 16353 with 0 in its amount, and 16353 has no proc row
 	{ID: 16355, Name: "Frostbrand Weapon", Rank: "Rank 4", School: 16, Attr: [17]uint32{0: 0x50200, 15: 0x2000}, SpellLevel: 48, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, PreventionType: 1, EquipClass: 2, EquipSubclass: 173555, RefIDs: []int32{16352},
 		Effects: []Effect{
 			{ID: 694640, SpellID: 16355, Type: dbcenums.E_360, BasePoints: 1800, PvpMult: 1, Misc: 1667, ChainAmp: 1},
@@ -13372,6 +13372,10 @@ var generatedSpells = []Spell{
 			{ID: 693697, SpellID: 16362, Type: dbcenums.E_360, BasePoints: 1800, BaseLevel: 60, PvpMult: 1, Misc: 1669, ChainAmp: 1},
 		},
 		Powers: []Power{{Cost: 165}}},
+	{ID: 16368, Name: "Flametongue Attack", School: 4, Attr: [17]uint32{0: 0x40000, 15: 0x2000}, SpellLevel: 1, BaseLevel: 1, MaxRange: 50000, DefenseType: 1, ClassFlags: core.ClassFlags{Family: 11, Mask: [4]uint32{0: 33554432}}, Labels: []int16{24},
+		Effects: []Effect{
+			{ID: 693752, SpellID: 16368, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 1, BaseLevel: 1, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+		}},
 	{ID: 16375, Name: "Drain Life", School: 32, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 45, MaxRange: 40, DefenseType: 1, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 688169, SpellID: 16375, Type: dbcenums.E_HEALTH_LEECH, BasePoints: 100, Variance: 0.5, PvpMult: 1, Amplitude: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
@@ -38180,6 +38184,7 @@ var generatedCurves = map[int32][][]float64{
 }
 
 var generatedHandTriggers = map[int32][]int32{
+	16389:   {16368},   // Flametongue Totem Proc is a dummy holding the base points, and the hit logs in game as 16368 Flametongue Attack: fire school damage with the magic defense type and no bonus coefficient
 	20230:   {20240},   // Retaliation's dummy aura (aura 4) casts the counterattack 20240: same name, class set and icon, weapon damage with no base, a cost of 1 in SpellPower that is a tenth of a rage
 	408341:  {408423},  // Fire Nova Rank 1 hits for 408423, the level 12 Fire Nova Rank 1 row, not the 8349 its tooltip reads
 	408342:  {408424},  // Fire Nova Rank 2 hits for 408424, the level 22 Fire Nova Rank 2 row, not the 8502 its tooltip reads

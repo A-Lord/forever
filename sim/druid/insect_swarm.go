@@ -20,8 +20,6 @@ func (druid *Druid) registerInsectSwarmSpell() {
 		spelldata.Magic(core.ProcMaskSpellDamage), spelldata.Flags(core.SpellFlagBinary|core.SpellFlagFullResistanceTicks))
 	config.ClassSpellMask = DruidSpellInsectSwarm
 	config.Dot = spelldata.DotConfig(insectSwarmRank, insectSwarmRank.PeriodicEffect())
-	// The cast rolls the hit and the dot goes on only when it lands, so the ticks roll none of their own.
-	config.Dot.OnTick = spelldata.PeriodicDamageTick(insectSwarmRank.PeriodicEffect(), insectSwarmRank.TickOutcomeHitRolled)
 	// A duration mod such as Nature's Splendor's lengthens the hit debuff through it, as it does the dot.
 	config.RelatedAuraArrays = auras.ToMap()
 

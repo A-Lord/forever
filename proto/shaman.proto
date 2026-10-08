@@ -120,13 +120,6 @@ enum ShamanImbue {
     RockbiterWeapon = 4;
 }
 
-enum ShamanSyncType {
-  NoSync = 0;
-  SyncMainhandOffhandSwings = 1;
-  DelayOffhandSwings = 2;
-    Auto = 3;
-}
-
 message ShamanOptions {
 	ShamanImbue imbue_mh = 1;
     ShamanImbue imbue_mh_swap = 2;
@@ -149,9 +142,6 @@ message EnhancementShaman {
 
 	message Options {
 		ShamanOptions class_options = 1;
-		ShamanSyncType sync_type = 2;
-		ShamanImbue imbue_oh = 3;
-        ShamanImbue imbue_oh_swap = 4;
 	}
 
 	Options options = 3;

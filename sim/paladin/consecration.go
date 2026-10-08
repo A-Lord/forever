@@ -36,7 +36,7 @@ func (paladin *Paladin) registerConsecration(n int32, rank *spelldata.Spell) {
 					paladin.consecratedGroundAuras.Get(target).Activate(sim)
 				}
 			}
-			dot.Spell.CalcAndDealPeriodicDamage(sim, target, damage, dot.Spell.OutcomeTickMagicHitAndCrit)
+			dot.Spell.CalcAndDealPeriodicDamage(sim, target, damage, dot.Spell.OutcomeTickMagicCrit)
 		}
 	}
 
