@@ -63,6 +63,99 @@ func init() {
 		trigger.TriggerImmediately = true
 		character.ItemSwap.RegisterProc(17182, character.MakeProcTriggerAura(trigger))
 	})
+
+	// Ravager
+	// https://www.wowhead.com/forever/item=7717/ravager
+	//
+	// Chance on hit: Attack all nearby enemies, dealing weapon damage plus 5 every 3 sec for 9 sec, and
+	// reducing your own movement speed by 80%.
+	//
+	// The game files state no rate for Bladestorm; the item's chance-on-hit entry carries it. The row
+	// is a channel, which the sim applies as a 9 s aura on the wearer that leaves the wearer free to
+	// act. Each tick casts 9633, a main-hand strike at every enemy.
+	core.NewItemEffect(7717, func(agent core.Agent) {
+		character := agent.GetCharacter()
+
+		strikeRow := spelldata.MustFind(9633)
+		strikeConfig := spelldata.SpellConfig(&character.Unit, strikeRow, spelldata.Melee(core.ProcMaskMeleeMHSpecial), spelldata.Proc())
+		if strikeRow.IsAProc() {
+			strikeConfig.Flags |= core.SpellFlagProc
+		}
+		strikeConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+			baseDamage := strikeRow.WeaponStrike(sim, spell, spell.Unit.MHWeaponDamage(sim, spell.MeleeAttackPower(target)), 0)
+			spell.CalcAoeDamage(sim, baseDamage, spell.OutcomeMeleeWeaponSpecialHitAndCrit)
+			spell.DealBatchedAoeDamage(sim)
+		}
+		strike := character.RegisterSpell(strikeConfig)
+
+		row := spelldata.MustFind(9632)
+		config := procSpellConfig(character, row)
+		config.Flags &^= core.SpellFlagChanneled
+		config.Dot = spelldata.DotConfig(row, row.EffectN(1), spelldata.Label("Ravager Bladestorm"))
+		config.Dot.SelfOnly = true
+		config.Dot.OnTick = func(sim *core.Simulation, _ *core.Unit, _ *core.Dot) {
+			strike.Cast(sim, character.CurrentTarget)
+		}
+		config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
+			spell.AOEDot().Apply(sim)
+		}
+		bladestorm := character.RegisterSpell(config)
+
+		ppm := weaponProcPPM(7717, row.ID)
+		trigger := spelldata.ProcTrigger(character, row, func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
+			bladestorm.Cast(sim, result.Target)
+		}, spelldata.WeaponProc(), func(character *core.Character, trigger *core.ProcTrigger) {
+			trigger.ProcChance = 0
+			trigger.DPM = character.NewDynamicLegacyProcForWeapon(7717, ppm, 0)
+		})
+		trigger.Name = "Ravager"
+		trigger.ActionID = core.ActionID{ItemID: 7717}
+		trigger.TriggerImmediately = true
+		character.ItemSwap.RegisterProc(7717, character.MakeProcTriggerAura(trigger))
+	})
+
+	// Hand of Edward the Odd
+	// https://www.wowhead.com/forever/item=2243/hand-of-edward-the-odd
+	//
+	// Chance on hit: Next spell cast within 4 sec will cast instantly.
+	//
+	// The game files state no rate for Focus; the item's chance-on-hit entry carries it. The row makes
+	// the cast instant with +100000% cast speed, which the sim states as no cast time at all, so the
+	// global cooldown stays whole. The next spell with a cast time spends the one charge.
+	core.NewItemEffect(2243, func(agent core.Agent) {
+		character := agent.GetCharacter()
+		row := spelldata.MustFind(18803)
+
+		instant := character.AddDynamicMod(core.SpellModConfig{
+			Kind:       core.SpellMod_CastTime_Pct,
+			FloatValue: -1,
+		})
+		config := spelldata.AuraConfig(row, spelldata.Label("Hand of Edward the Odd Focus"))
+		config.OnGain = func(_ *core.Aura, _ *core.Simulation) {
+			instant.Activate()
+		}
+		config.OnExpire = func(_ *core.Aura, _ *core.Simulation) {
+			instant.Deactivate()
+		}
+		config.OnCastComplete = func(aura *core.Aura, sim *core.Simulation, spell *core.Spell) {
+			if spell.DefaultCast.CastTime > 0 {
+				aura.Deactivate(sim)
+			}
+		}
+		focus := character.RegisterAura(config)
+
+		ppm := weaponProcPPM(2243, row.ID)
+		trigger := spelldata.ProcTrigger(character, row, func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
+			focus.Activate(sim)
+		}, spelldata.WeaponProc(), func(character *core.Character, trigger *core.ProcTrigger) {
+			trigger.ProcChance = 0
+			trigger.DPM = character.NewDynamicLegacyProcForWeapon(2243, ppm, 0)
+		})
+		trigger.Name = "Hand of Edward the Odd"
+		trigger.ActionID = core.ActionID{ItemID: 2243}
+		trigger.TriggerImmediately = true
+		character.ItemSwap.RegisterProc(2243, character.MakeProcTriggerAura(trigger))
+	})
 }
 
 // The procs per minute the item's chance-on-hit entry for the spell carries.

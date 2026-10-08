@@ -9,8 +9,77 @@ import (
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/simsignals"
 	"github.com/wowsims/forever/sim/core/stats"
+	"github.com/wowsims/forever/sim/core/testagent"
 )
+
+// The caster stand-in's spells: a 2 s cast and an instant, both on the global cooldown.
+const (
+	castTimeSpellID = 403
+	instantSpellID  = 8042
+)
+
+func init() {
+	testagent.Register(proto.Player_ElementalShaman{}, proto.Spec_SpecElementalShaman, func(player *proto.Player, spec any) {
+		player.Spec = spec.(*proto.Player_ElementalShaman)
+	}, func(agent *testagent.Agent) {
+		agent.EnableMelee()
+		for _, spell := range []struct {
+			id       int32
+			castTime time.Duration
+		}{{castTimeSpellID, 2 * time.Second}, {instantSpellID, 0}} {
+			agent.RegisterSpell(core.SpellConfig{
+				ActionID:    core.ActionID{SpellID: spell.id},
+				SpellSchool: core.SpellSchoolNature,
+				DefenseType: core.DefenseTypeMagic,
+				ProcMask:    core.ProcMaskSpellDamage,
+				Cast: core.CastConfig{
+					DefaultCast: core.Cast{GCD: core.GCDDefault, CastTime: spell.castTime},
+				},
+				DamageMultiplier: 1,
+				ThreatMultiplier: 1,
+				ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+					spell.CalcAndDealDamage(sim, target, 100, spell.OutcomeMagicHitAndCrit)
+				},
+			})
+		}
+	})
+}
+
+// A character swinging one weapon in the main hand against level 60 targets with no armor: the
+// warrior stand-in, or with a shaman the caster stand-in.
+func weaponWearer(t *testing.T, class proto.Class, itemID int32, targets int) (*core.Simulation, *core.Character) {
+	t.Helper()
+	items := make([]*proto.ItemSpec, proto.ItemSlot_ItemSlotRanged+1)
+	for i := range items {
+		items[i] = &proto.ItemSpec{}
+	}
+	items[proto.ItemSlot_ItemSlotMainHand].Id = itemID
+	player := &proto.Player{
+		Name: "Wearer", Class: class, Race: proto.Race_RaceTauren,
+		Equipment:   &proto.EquipmentSpec{Items: items},
+		Consumables: &proto.ConsumesSpec{},
+		Buffs:       &proto.IndividualBuffs{},
+		Rotation:    &proto.APLRotation{},
+	}
+	if class == proto.Class_ClassShaman {
+		core.WithSpec(player, &proto.Player_ElementalShaman{ElementalShaman: &proto.ElementalShaman{}})
+	} else {
+		core.WithSpec(player, &proto.Player_DpsWarrior{DpsWarrior: &proto.DpsWarrior{}})
+	}
+	encounter := &proto.Encounter{Duration: 180}
+	for range targets {
+		encounter.Targets = append(encounter.Targets, &proto.Target{Name: "target", Level: 60})
+	}
+	sim := core.NewSim(&proto.RaidSimRequest{
+		SimOptions: &proto.SimOptions{RandomSeed: 1},
+		Raid:       &proto.Raid{Parties: []*proto.Party{{Players: []*proto.Player{player}, Buffs: &proto.PartyBuffs{}}}},
+		Encounter:  encounter,
+	}, simsignals.CreateSignals())
+	sim.Reset()
+	return sim, sim.Raid.Parties[0].Players[0].GetCharacter()
+}
 
 // Graverobber's Shovel 273817's equip spell 1319047 grants 12 attack power and 12 ranged attack
 // power, which the item's stats carry, and 12 of each against Undead (creature type mask 32).
@@ -69,5 +138,116 @@ func TestSulfurasCarriesItsDamageShieldAndFireball(t *testing.T) {
 	if metrics.Casts != 1 || metrics.Ticks != 5 || !damageInRange(metrics, 273, 333) {
 		t.Errorf("the Fireball cast %d times and ticked %d times for %v besides 75, want once, 5 ticks and 273 to 333",
 			metrics.Casts, metrics.Ticks, metrics.TotalDamage)
+	}
+}
+
+// Ravager 7717 procs Bladestorm 9632 at the 1 procs per minute of the item's chance-on-hit entry.
+// Bladestorm sits on the wearer for 9 s and every 3 s strikes each enemy with 9633: main-hand weapon
+// damage (104 to 157 and the attack power share) plus 5.
+func TestRavagerStrikesEveryEnemyThreeTimes(t *testing.T) {
+	sim, character := weaponWearer(t, proto.Class_ClassWarrior, 7717, 3)
+	character.AutoAttacks.CancelAutoSwing(sim)
+
+	proc := character.GetAura("Ravager")
+	if proc == nil || proc.Dpm == nil {
+		t.Fatal("7717 registers no Bladestorm proc on a procs per minute rate")
+	}
+	want := 1 * core.GetItemByID(7717).SwingSpeed / 60
+	if got := proc.Dpm.Chance(core.ProcMaskMeleeMHAuto, sim); math.Abs(got-want) > 1e-9 {
+		t.Errorf("Bladestorm's chance on a main hand swing is %v, want %v", got, want)
+	}
+	// The strikes are main-hand specials that can proc Bladestorm again; with the listener off, the
+	// count is the one cast's.
+	proc.Deactivate(sim)
+
+	targets := sim.Encounter.ActiveTargetUnits
+	for _, target := range targets {
+		target.PseudoStats.InFrontOfTarget = false
+	}
+	bladestorm := character.GetSpell(core.ActionID{SpellID: 9632})
+	strike := character.GetSpell(core.ActionID{SpellID: 9633})
+	if bladestorm == nil || strike == nil {
+		t.Fatal("7717 registers no Bladestorm or no strike")
+	}
+	extra := 5 + strike.MeleeAttackPower(targets[0])*3.5/14
+
+	start := sim.CurrentTime
+	bladestorm.Cast(sim, targets[0])
+	dot := bladestorm.AOEDot()
+	if dot.Unit != &character.Unit || dot.BaseTickCount != 3 || dot.BaseTickLength != 3*time.Second {
+		t.Errorf("Bladestorm ticks %d times every %v on %s, want 3 every 3s on the wearer",
+			dot.BaseTickCount, dot.BaseTickLength, dot.Unit.Label)
+	}
+	stepTo(t, sim, start+9*time.Second+time.Millisecond)
+	if dot.IsActive() {
+		t.Error("Bladestorm is still up after 9 s")
+	}
+
+	for _, target := range targets {
+		metrics := strike.SpellMetrics[target.UnitIndex]
+		if outcomes := metrics.Hits + metrics.Crits + metrics.Misses + metrics.Dodges; outcomes != 3 {
+			t.Errorf("%s took %d strikes, want 3", target.Label, outcomes)
+		}
+		hitDamage := metrics.TotalDamage - metrics.TotalCritDamage
+		if low, high := float64(metrics.Hits)*(104+extra), float64(metrics.Hits)*(157+extra); hitDamage < low || hitDamage > high {
+			t.Errorf("%s took %v from %d strikes that hit, want %v to %v", target.Label, hitDamage, metrics.Hits, low, high)
+		}
+	}
+}
+
+// Hand of Edward the Odd 2243 procs Focus 18803 at the 1 procs per minute of the item's chance-on-hit
+// entry. Focus makes the next spell with a cast time instant, on its whole global cooldown, and that
+// cast spends it; an instant leaves it up, and unspent it fades after 4 s.
+func TestHandOfEdwardTheOddMakesTheNextCastInstant(t *testing.T) {
+	sim, character := weaponWearer(t, proto.Class_ClassShaman, 2243, 1)
+	character.AutoAttacks.CancelAutoSwing(sim)
+	enemy := sim.Encounter.ActiveTargetUnits[0]
+
+	proc := character.GetAura("Hand of Edward the Odd")
+	if proc == nil || proc.Dpm == nil {
+		t.Fatal("2243 registers no Focus proc on a procs per minute rate")
+	}
+	want := 1 * core.GetItemByID(2243).SwingSpeed / 60
+	if got := proc.Dpm.Chance(core.ProcMaskMeleeMHAuto, sim); math.Abs(got-want) > 1e-9 {
+		t.Errorf("Focus's chance on a main hand swing is %v, want %v", got, want)
+	}
+
+	focus := character.GetAura("Hand of Edward the Odd Focus")
+	if focus == nil || focus.Duration != 4*time.Second {
+		t.Fatalf("2243 registers Focus as %v, want a 4s aura", focus)
+	}
+	castTime := character.GetSpell(core.ActionID{SpellID: castTimeSpellID})
+	instant := character.GetSpell(core.ActionID{SpellID: instantSpellID})
+
+	focus.Activate(sim)
+	instant.Cast(sim, enemy)
+	if !focus.IsActive() {
+		t.Error("an instant spent Focus, want it kept")
+	}
+
+	stepTo(t, sim, character.GCD.ReadyAt())
+	start := sim.CurrentTime
+	castTime.Cast(sim, enemy)
+	if got := castTime.SpellMetrics[enemy.UnitIndex].Casts; got != 1 {
+		t.Errorf("the 2 s cast under Focus completed %d times at once, want once", got)
+	}
+	if focus.IsActive() {
+		t.Error("the 2 s cast left Focus up, want it spent")
+	}
+	if got := character.GCD.ReadyAt() - start; got != core.GCDDefault {
+		t.Errorf("the instant cast spent a %v global cooldown, want %v", got, core.GCDDefault)
+	}
+
+	stepTo(t, sim, character.GCD.ReadyAt())
+	castTime.Cast(sim, enemy)
+	if got := character.Hardcast.Expires - sim.CurrentTime; got != 2*time.Second {
+		t.Errorf("the next cast after Focus is spent takes %v, want 2s", got)
+	}
+
+	stepTo(t, sim, character.Hardcast.Expires+time.Millisecond)
+	focus.Activate(sim)
+	stepTo(t, sim, sim.CurrentTime+4*time.Second+time.Millisecond)
+	if focus.IsActive() {
+		t.Error("Focus is still up after 4 s unspent")
 	}
 }
