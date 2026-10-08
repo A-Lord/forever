@@ -14,6 +14,7 @@ import (
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/simsignals"
 	"google.golang.org/protobuf/encoding/protojson"
 	gproto "google.golang.org/protobuf/proto"
 )
@@ -493,8 +494,9 @@ func TestAPLAgainstGoRotation(t *testing.T) {
 			req.Encounter.Duration = scenario.duration
 			player := req.Raid.Parties[0].Players[0]
 			player.Profession1 = proto.Profession_Engineering
+			player.Consumables = &proto.ConsumesSpec{}
 			if scenario.consumes {
-				player.Consumables = DefaultConsumables
+				player.Consumables = uiDefaultCat(t, row.rot).Raid.Parties[0].Players[0].Consumables
 			}
 			if scenario.wolfhead {
 				player.Equipment = gproto.Clone(player.Equipment).(*proto.EquipmentSpec)
