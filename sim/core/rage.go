@@ -27,7 +27,7 @@ const (
 	TwoHandRageHitFactor  = 4.5
 	TwoHandRageMultiplier = TwoHandRageHitFactor / BaseRageHitFactor
 	// A critical auto attack adds this share of its rage before the two-hand multiplier, for every rage
-	// user (Rule of Rage (DND) states 100).
+	// user (the game files' Rule of Rage (DND) 1322574 states 100; the spell store does not carry it).
 	// TODO: Ingame test needed -- confirm with a dual-wield combat log that an off-hand crit's bonus is
 	// the off-hand swing's own rage, the off-hand halving included.
 	CritRageBonus = 1.0
