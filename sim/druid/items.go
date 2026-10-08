@@ -8,7 +8,7 @@ import (
 
 func init() {
 	// Idol of the Moon. Its equip spell states the bonus as A_OVERRIDE_CLASS_SCRIPTS, which has no
-	// parse row.
+	// parse row; the effect's class flags name Moonfire.
 	core.NewItemEffect(23197, func(agent core.Agent) {
 		character := agent.GetCharacter()
 		row := spelldata.MustFind(28854)
@@ -16,7 +16,7 @@ func init() {
 			Label:    "Improved Moonfire",
 			ActionID: core.ActionID{SpellID: row.ID},
 		}).AttachSpellMod(core.SpellModConfig{
-			ClassMask:  DruidSpellMoonfire,
+			ClassFlags: row.EffectN(1).ClassFlags,
 			Kind:       core.SpellMod_BaseDamage_Flat,
 			FloatValue: row.EffectN(1).BaseValue(),
 		}))
@@ -24,7 +24,8 @@ func init() {
 		character.ItemSwap.RegisterProc(23197, aura)
 	})
 
-	// Talons of Wrath. The proc row names no spell; the tooltip names Wrath.
+	// Talons of Wrath. The proc row names no spell; the tooltip names Wrath, whose class flags no other
+	// druid spell shares.
 	core.NewItemEffect(249441, func(agent core.Agent) {
 		druid := agent.(DruidAgent).GetDruid()
 		row := spelldata.MustFind(1248996)
@@ -36,7 +37,7 @@ func init() {
 			druid.AddMana(sim, mana, manaMetrics)
 		})
 		trigger.Name = "Talons of Wrath"
-		trigger.ClassSpellMask = DruidSpellWrath
+		trigger.ClassFlags = spellData.Wrath.Highest().ClassFlags
 
 		druid.ItemSwap.RegisterProc(249441, druid.MakeProcTriggerAura(trigger))
 	})

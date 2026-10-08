@@ -15,7 +15,6 @@ var hurricaneTickDamage = hurricaneTickRank.DamageEffect()
 func (druid *Druid) registerHurricaneSpell() {
 	tickConfig := spelldata.SpellConfig(&druid.Unit, hurricaneTickRank,
 		spelldata.Magic(core.ProcMaskSpellDamage), spelldata.Proc())
-	tickConfig.ClassSpellMask = DruidSpellHurricane
 	tickConfig.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
 		spell.CalcAndDealAoeDamage(sim, hurricaneTickDamage.Average(), spell.OutcomeMagicHit)
 	}
@@ -25,7 +24,6 @@ func (druid *Druid) registerHurricaneSpell() {
 	tickLength := hurricaneRank.Effect(dbcenums.A_PERIODIC_DUMMY, 0).Period()
 
 	config := spelldata.SpellConfig(&druid.Unit, hurricaneRank, spelldata.Magic(core.ProcMaskSpellDamage))
-	config.ClassSpellMask = DruidSpellHurricane
 	config.Dot = core.DotConfig{
 		IsAOE:               true,
 		Aura:                spelldata.AuraConfig(hurricaneRank),

@@ -160,12 +160,12 @@ func (druid *Druid) applyEclipse() {
 
 	aura := druid.RegisterAura(spelldata.AuraConfig(eclipseBuff))
 	aura.AttachSpellMod(core.SpellModConfig{
-		ClassMask: DruidSpellStarfire,
-		Kind:      core.SpellMod_CastTime_Flat,
-		TimeValue: rank.EffectN(2).TimeValue(),
+		ClassFlags: spellData.Starfire.Highest().ClassFlags,
+		Kind:       core.SpellMod_CastTime_Flat,
+		TimeValue:  rank.EffectN(2).TimeValue(),
 	})
 	aura.OnCastComplete = func(aura *core.Aura, sim *core.Simulation, spell *core.Spell) {
-		if spell.Matches(DruidSpellStarfire) {
+		if spellData.Starfire.Contains(spell) {
 			aura.RemoveStack(sim)
 		}
 	}

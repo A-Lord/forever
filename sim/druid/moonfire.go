@@ -12,7 +12,6 @@ var moonfireDamage = moonfireRank.DamageEffect()
 // (ticks only) that both name Moonfire, as Improved Moonfire does, each reach their own half.
 func (druid *Druid) registerMoonfireSpell() {
 	config := spelldata.SpellConfig(&druid.Unit, moonfireRank, spelldata.Magic(core.ProcMaskSpellDamage))
-	config.ClassSpellMask = DruidSpellMoonfire
 	config.Dot = spelldata.DotConfig(moonfireRank, moonfireRank.PeriodicEffect())
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {

@@ -18,7 +18,6 @@ func (druid *Druid) registerInsectSwarmSpell() {
 	// the full resistance.
 	config := spelldata.SpellConfig(&druid.Unit, insectSwarmRank,
 		spelldata.Magic(core.ProcMaskSpellDamage), spelldata.Flags(core.SpellFlagBinary|core.SpellFlagFullResistanceTicks))
-	config.ClassSpellMask = DruidSpellInsectSwarm
 	config.Dot = spelldata.DotConfig(insectSwarmRank, insectSwarmRank.PeriodicEffect())
 	// A duration mod such as Nature's Splendor's lengthens the hit debuff through it, as it does the dot.
 	config.RelatedAuraArrays = auras.ToMap()
