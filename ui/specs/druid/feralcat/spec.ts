@@ -69,9 +69,9 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 
 	defaults: {
 		// Default equipped gear.
-		gear: Presets.Level60Gear.gear,
+		gear: Presets.PreRaidGear.gear,
 		// Default EP weights for sorting gear in the gear picker.
-		epWeights: Presets.Level60Ep,
+		epWeights: Presets.PreRaidEp,
 		statCaps: (() => {
 			return new Stats().withPseudoStat(PseudoStat.PseudoStatMeleeHitPercent, 8).withPseudoStat(PseudoStat.PseudoStatExpertisePercent, 6.5);
 		})(),
@@ -81,12 +81,12 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 		// Default rotation settings.
 		rotationType: APLRotationType.TypeAuto,
 		simpleRotation: Presets.DefaultRotation,
-		// Genesis, nature's majesty, ferocity, heart of the wild, shredding attacks,
-		// savage fury, sharpened claws, shifting power, predatory strikes, blood frenzy,
-		// improved shifting power, leader of the pack, predatory instincts, rend and tear,
-		// berserk, furor, naturalist. Shifting Power is absent until that talent is taken.
+		// Genesis, nature's majesty, nature's reach, ferocity, heart of the wild, shredding attacks,
+		// savage fury, sharpened claws, shifting power, predatory strikes, improved shifting power,
+		// leader of the pack, predatory instincts, rend and tear, berserk, furor, naturalist.
+		// Shifting Power is absent until that talent is taken.
 		talents: SavedTalents.create({
-			talentsString: '05002-55000032021032212051-055',
+			talentsString: '050022-55000032021030212051-055',
 		}),
 		// Default spec-specific settings.
 		specOptions: Presets.DefaultOptions,
@@ -96,7 +96,6 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 			prayerOfSpirit: true,
 			giftOfTheWild: true,
 			prayerOfFortitude: true,
-			prayerOfShadowProtection: true,
 		}),
 		partyBuffs: PartyBuffs.create({
 			battleShout: TristateEffect.TristateEffectRegular,
@@ -109,9 +108,7 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 			greaterBlessingOfMight: true,
 		}),
 		debuffs: Debuffs.create({
-			exposeArmor: true,
 			judgementOfWisdom: true,
-			curseOfRecklessness: true,
 			faerieFire: true,
 			sunderArmor: true,
 			giftOfArthas: true,
@@ -142,12 +139,12 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 	},
 
 	presets: {
-		epWeights: [Presets.Level60EpWeights],
+		epWeights: [Presets.PreRaidEpWeights, Presets.Level60EpWeights],
 		// Preset talents that the user can quickly select.
 		talents: [],
 		rotations: [Presets.SIMPLE, Presets.APL, Presets.RAVAGE_APL, Presets.POUNCE_APL],
 		// Preset gear configurations that the user can quickly select.
-		gear: [Presets.Level60Gear],
+		gear: [Presets.PreRaidGear, Presets.Level60Gear],
 	},
 
 	// Auto is the APL preset, which keeps Elune's Light out of Berserk's guaranteed crit.
