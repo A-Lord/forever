@@ -20,6 +20,7 @@ const source = vi.hoisted(() => {
 vi.mock('@sim/state/subscriptions', async () => (await import('@testing/sim/subscriptions')).mockSubscriptions(source.subscribe));
 vi.mock('@i18n/config', () => ({ default: { t: (key: string) => key } }));
 vi.mock('@i18n/localization', () => ({
+	translateCreatureFamily: (value: number) => `family-${value}`,
 	translateItemLabel: (label: string) => label,
 	translateMobType: (value: number) => `mob-${value}`,
 	translateSpellSchool: (value: number) => `school-${value}`,

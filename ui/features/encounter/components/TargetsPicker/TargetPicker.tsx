@@ -13,6 +13,7 @@ import {
 	aiConfig,
 	ALL_TARGET_STATS,
 	booleanConfigs,
+	creatureFamilyConfig,
 	levelConfig,
 	mobTypeConfig,
 	npcConfig,
@@ -24,7 +25,7 @@ import {
 } from './utils/configs';
 
 export interface TargetPickerViewProps {
-	/** Who the target is: NPC preset, AI, level, mob type, tank and the target's own inputs. */
+	/** Who the target is: NPC preset, AI, level, mob type, creature family, tank and the target's own inputs. */
 	identity: ReactNode;
 	stats: ReactNode;
 	/** The fields only a threat sim reads; without them an empty column keeps the three-column grid. */
@@ -63,6 +64,7 @@ export const TargetPicker = ({ encounter, targetIndex }: TargetPickerProps) => {
 	const ai = useMemo(() => aiConfig(context), [context]);
 	const level = useMemo(() => levelConfig(context), [context]);
 	const mobType = useMemo(() => mobTypeConfig(context), [context]);
+	const creatureFamily = useMemo(() => creatureFamilyConfig(context), [context]);
 	const tankIndex = useMemo(() => tankIndexConfig(context), [context]);
 	const stats = useMemo(
 		() => ALL_TARGET_STATS.filter(entry => showThreatMetrics || !entry.threatMetrics).map(entry => statConfig(context, entry.stat, entry.tooltip)),
@@ -80,6 +82,7 @@ export const TargetPicker = ({ encounter, targetIndex }: TargetPickerProps) => {
 					<ConnectedChoiceField modObject={null} config={ai} />
 					<ConnectedChoiceField modObject={null} config={level} />
 					<ConnectedChoiceField modObject={null} config={mobType} />
+					<ConnectedChoiceField modObject={null} config={creatureFamily} />
 					{showThreatMetrics && <ConnectedChoiceField modObject={null} config={tankIndex} />}
 					<TargetInputsPicker encounter={encounter} targetIndex={targetIndex} />
 				</>

@@ -1,10 +1,17 @@
 import type { BooleanPickerConfig, ChoiceFieldConfig, NumberFieldConfig } from '@features/inputs/configs';
-import { InputType, MobType, SpellSchool, Stat, Target as TargetProto, TargetInput } from '@generated/proto/common';
+import { CreatureFamily, InputType, MobType, SpellSchool, Stat, Target as TargetProto, TargetInput } from '@generated/proto/common';
 import i18n from '@i18n/config';
-import { translateMobType, translateSpellSchool, translateStat, translateTargetInputLabel, translateTargetInputTooltip } from '@i18n/localization';
+import {
+	translateCreatureFamily,
+	translateMobType,
+	translateSpellSchool,
+	translateStat,
+	translateTargetInputLabel,
+	translateTargetInputTooltip,
+} from '@i18n/localization';
 import type { Encounter } from '@sim/raid/encounter';
 import { subscribeEncounterField } from '@sim/state/subscriptions';
-import { distinct } from '@sim/utils/collections';
+import { distinct, getEnumValues } from '@sim/utils/collections';
 import { randomUUID } from '@sim/utils/misc';
 
 import { trackEvent, type TrackEventProps } from '../../../../../tracking/utils';
@@ -32,6 +39,8 @@ const mobTypeEnumValues = [
 	MobType.MobTypeMechanical,
 	MobType.MobTypeUndead,
 ].map(value => ({ name: translateMobType(value), value }));
+
+const creatureFamilyValues = (getEnumValues(CreatureFamily) as Array<CreatureFamily>).map(value => ({ name: translateCreatureFamily(value), value }));
 
 const spellSchoolValues = [
 	SpellSchool.SpellSchoolPhysical,
@@ -125,6 +134,21 @@ export const mobTypeConfig = ({ encounter, targetIndex, getTarget }: TargetField
 		trackEvent({ action: 'settings', category: 'targets', label: 'mob_type', value: newValue });
 		encounter.modifyTarget(targetIndex, target => {
 			target.mobType = newValue;
+		});
+	},
+});
+
+export const creatureFamilyConfig = ({ encounter, targetIndex, getTarget }: TargetFieldContext): ChoiceFieldConfig<null> => ({
+	id: targetId(targetIndex, 'creature-family'),
+	label: i18n.t('settings_tab.encounter.creature_family.label'),
+	labelTooltip: i18n.t('settings_tab.encounter.creature_family.tooltip'),
+	values: creatureFamilyValues,
+	storeSubscribe: onTargets(encounter),
+	getValue: () => getTarget().creatureFamily,
+	setValue: (_: null, newValue: number) => {
+		trackEvent({ action: 'settings', category: 'targets', label: 'creature_family', value: newValue });
+		encounter.modifyTarget(targetIndex, target => {
+			target.creatureFamily = newValue;
 		});
 	},
 });

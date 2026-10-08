@@ -271,20 +271,26 @@ func init() {
 	// Chance on hit to deal 69 to 81 Arcane damage. Deals 2 times as much damage to Naga and Satyrs.
 	//
 	// TODO: waiting for PPM data
-	// TODO: The 2 times against Naga and Satyrs needs the target's creature family, which the
-	// encounter's targets do not carry: Naga and Satyrs are no creature type of their own.
+	//
+	// The 2 times is the trigger 1318159's own value; 1265634 states only the damage.
 	// core.NewItemEffect(260205, func(agent core.Agent) {
 	// 	character := agent.GetCharacter()
 	// 	row := spelldata.MustFind(1265634)
+	// 	triggerRow := spelldata.MustFind(1318159)
 	// 	damage := row.DamageEffect()
+	// 	familyMultiplier := triggerRow.Effects[0].BaseValue()
 	//
 	// 	config := procSpellConfig(character, row)
 	// 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-	// 		spell.CalcAndDealDamage(sim, target, damage.DirectAmount(sim), spell.OutcomeMagicHitAndCrit)
+	// 		amount := damage.DirectAmount(sim)
+	// 		if target.CreatureFamily == proto.CreatureFamily_CreatureFamilyNaga || target.CreatureFamily == proto.CreatureFamily_CreatureFamilySatyr {
+	// 			amount *= familyMultiplier
+	// 		}
+	// 		spell.CalcAndDealDamage(sim, target, amount, spell.OutcomeMagicHitAndCrit)
 	// 	}
 	// 	ancientPower := character.RegisterSpell(config)
 	//
-	// 	trigger := spelldata.ProcTrigger(character, spelldata.MustFind(1318159), func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
+	// 	trigger := spelldata.ProcTrigger(character, triggerRow, func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
 	// 		ancientPower.Cast(sim, result.Target)
 	// 	}, spelldata.Chance(highborneResearchTabletChance))
 	// 	trigger.Name = "Highborne Research Tablet"

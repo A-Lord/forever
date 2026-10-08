@@ -417,6 +417,9 @@ const darkspearSwing = 3200 * time.Millisecond
 // 60 s internal cooldown plus the 64 s a 5% chance takes to land one 3.2 s swing on average, 16%.
 func driveDarkspear(char *core.Character, _ *proto.PartyBuffs) {
 	aura := NewSpellDataDarkspearAura(&char.Unit, false, 0)
+	// The crit is up for a share of the fight only, so it is not part of the stats the character
+	// sheet is measured with.
+	aura.BuildPhase = core.CharacterBuildPhaseNone
 	wait := time.Duration(float64(darkspearSwing) / darkspearTrigger.StatedChance())
 	uptime := aura.Duration.Seconds() / (darkspearTrigger.ICD() + wait).Seconds()
 	applyFixedUptimeAura(aura, uptime, darkspearSwing, 1)

@@ -246,14 +246,21 @@ func init() {
 	// damage to Aquatic enemies.
 	//
 	// TODO: waiting for PPM data
-	// TODO: The 2 times against Aquatic enemies needs the target's creature family, which the
-	// encounter's targets do not carry: Aquatic is no creature type.
 	// core.NewItemEffect(274963, func(agent core.Agent) {
 	// 	character := agent.GetCharacter()
 	// 	row := spelldata.MustFind(1295744)
+	// 	tick := row.PeriodicDamageEffect()
+	// 	familyMultiplier := row.Effects[1].BaseValue()
 	//
 	// 	config := procSpellConfig(character, row)
-	// 	config.Dot = spelldata.DotConfig(row, row.PeriodicDamageEffect())
+	// 	config.Dot = spelldata.DotConfig(row, tick)
+	// 	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
+	// 		amount := tick.Average()
+	// 		if target.CreatureFamily == proto.CreatureFamily_CreatureFamilyAquatic {
+	// 			amount *= familyMultiplier
+	// 		}
+	// 		dot.Spell.CalcAndDealPeriodicDamage(sim, target, amount, row.TickOutcome(dot))
+	// 	}
 	// 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 	// 		result := spell.CalcOutcome(sim, target, spell.OutcomeMagicHit)
 	// 		if result.Landed() {
@@ -283,21 +290,25 @@ func init() {
 	// Elementals, and Mountain Giants.
 	//
 	// TODO: waiting for PPM data
-	// TODO: The 3 times against Earth Elementals, Fire Elementals and Mountain Giants needs the
-	// target's creature family, which the encounter's targets do not carry: each is one family of
-	// the Elemental or Giant creature type.
 	//
 	// 1317432 states Physical on the melee table; the tooltip's Fire is a spell hit.
 	// core.NewItemEffect(8708, func(agent core.Agent) {
 	// 	character := agent.GetCharacter()
 	// 	row := spelldata.MustFind(1317432)
 	// 	damage := row.DamageEffect()
+	// 	familyMultiplier := row.Effects[1].BaseValue()
 	//
 	// 	config := procSpellConfig(character, row)
 	// 	config.SpellSchool = core.SpellSchoolFire
 	// 	config.DefenseType = core.DefenseTypeMagic
 	// 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-	// 		spell.CalcAndDealDamage(sim, target, damage.DirectAmount(sim), spell.OutcomeMagicHitAndCrit)
+	// 		amount := damage.DirectAmount(sim)
+	// 		switch target.CreatureFamily {
+	// 		case proto.CreatureFamily_CreatureFamilyEarthElemental, proto.CreatureFamily_CreatureFamilyFireElemental,
+	// 			proto.CreatureFamily_CreatureFamilyMountainGiant:
+	// 			amount *= familyMultiplier
+	// 		}
+	// 		spell.CalcAndDealDamage(sim, target, amount, spell.OutcomeMagicHitAndCrit)
 	// 	}
 	// 	forgingStrike := character.RegisterSpell(config)
 	//
