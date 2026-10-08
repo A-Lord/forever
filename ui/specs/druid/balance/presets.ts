@@ -78,7 +78,6 @@ export const DefaultIndividualBuffs = IndividualBuffs.create({
 
 export const DefaultDebuffs = Debuffs.create({
 	curseOfElements: true,
-	faerieFire: true,
 	judgementOfWisdom: true,
 });
 
