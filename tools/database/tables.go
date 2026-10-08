@@ -977,6 +977,9 @@ func LoadAndWriteConsumables(dbHelper *DBHelper, inputsDir string) ([]dbc.Consum
 	if err := applyCreatorClassMasks(dbHelper, consumables, func(c *dbc.Consumable) (int, *int) { return c.Id, &c.ClassMask }); err != nil {
 		return nil, err
 	}
+	if consumables, err = mergeIdenticalConsumables(dbHelper, consumables, cataloguedByID); err != nil {
+		return nil, err
+	}
 
 	fmt.Println("Loaded Consumables:", len(consumables))
 	json, _ := json.Marshal(consumables)
@@ -984,6 +987,57 @@ func LoadAndWriteConsumables(dbHelper *DBHelper, inputsDir string) ([]dbc.Consum
 		panic(fmt.Sprintf("Error loading DBC data %v", err))
 	}
 	return consumables, nil
+}
+
+// Items that share a display name, who may use them (class, race, skill and world event) and their item
+// effect rows are one consumable, whatever their level, binding, price or flags: Minor Healing Potion
+// 287966 is 118. An id the catalogue or ConsumableOverrides names stays and its unnamed twins go; among
+// unnamed twins the lowest id stays. An item naming an item effect row the game files lack has no twin.
+func mergeIdenticalConsumables(dbHelper *DBHelper, consumables []dbc.Consumable, catalogued []int32) ([]dbc.Consumable, error) {
+	effects, err := LoadRows(dbHelper.db, itemEffectsQuery, ScanItemEffect)
+	if err != nil {
+		return nil, fmt.Errorf("error loading the consumables' item effects: %w", err)
+	}
+	effectsByID := CacheBy(effects, func(e dbc.ItemEffect) int { return e.ID })
+
+	named := map[int]bool{}
+	for _, id := range catalogued {
+		named[int(id)] = true
+	}
+	for _, c := range ConsumableOverrides {
+		named[int(c.Id)] = true
+	}
+
+	key := func(c dbc.Consumable) (string, bool) {
+		rows := make([]string, 0, len(c.ItemEffects))
+		for _, id := range c.ItemEffects {
+			e, ok := effectsByID[id]
+			if !ok {
+				return "", false
+			}
+			rows = append(rows, fmt.Sprint(e.TriggerType, e.SpellID, e.Charges, e.CoolDownMSec, e.CategoryCoolDownMSec,
+				e.SpellCategoryID, e.ChrSpecializationID))
+		}
+		slices.Sort(rows)
+		return fmt.Sprintf("%s|%d|%d|%d|%d|%d|%s", c.Name, c.ClassMask, c.RaceMask, c.RequiredSkill, c.RequiredSkillRank,
+			c.RequiredHoliday, strings.Join(rows, ";")), true
+	}
+	keys := make(map[int]string, len(consumables))
+	keeper := map[string]int{}
+	for _, c := range consumables {
+		k, ok := key(c)
+		if !ok {
+			continue
+		}
+		keys[c.Id] = k
+		if id, seen := keeper[k]; !seen || (named[c.Id] && !named[id]) || (named[c.Id] == named[id] && c.Id < id) {
+			keeper[k] = c.Id
+		}
+	}
+	return slices.DeleteFunc(consumables, func(c dbc.Consumable) bool {
+		k, ok := keys[c.Id]
+		return ok && !named[c.Id] && keeper[k] != c.Id
+	}), nil
 }
 
 func ScanItemEffect(rows *sql.Rows) (dbc.ItemEffect, error) {
@@ -1008,8 +1062,7 @@ func ScanItemEffect(rows *sql.Rows) (dbc.ItemEffect, error) {
 	return effect, nil
 }
 
-func LoadAndWriteItemEffects(dbHelper *DBHelper, inputsDir string) ([]dbc.ItemEffect, error) {
-	query := `
+const itemEffectsQuery = `
 	SELECT
 		ie.ID,
 		ie.LegacySlotIndex,
@@ -1025,7 +1078,8 @@ func LoadAndWriteItemEffects(dbHelper *DBHelper, inputsDir string) ([]dbc.ItemEf
 	LEFT JOIN ItemXItemEffect ixie ON ixie.ItemEffectID = ie.ID
 	`
 
-	effects, err := LoadRows(dbHelper.db, query, ScanItemEffect)
+func LoadAndWriteItemEffects(dbHelper *DBHelper, inputsDir string) ([]dbc.ItemEffect, error) {
+	effects, err := LoadRows(dbHelper.db, itemEffectsQuery, ScanItemEffect)
 	if err != nil {
 		return nil, fmt.Errorf("error loading item effects: %w", err)
 	}
