@@ -49,7 +49,6 @@ func RegisterPotionsAndConjured() {
 		18253,  // Major Rejuvenation Potion
 		18839,  // Combat Healing Potion
 		18841,  // Combat Mana Potion
-		23579,  // The McWeaksauce Classic
 		250932, // Minor Spellblasting Potion
 		250933, // Lesser Spellblasting Potion
 		250934, // Spellblasting Potion
