@@ -2479,14 +2479,28 @@ func TestManaPotionAndThistleTeaAreUsed(t *testing.T) {
 }
 
 func TestAvailableThistleTeaRequiresSelection(t *testing.T) {
-	req := buildRequest(t, "raid")
-	req.Raid.Parties[0].Players[0].Consumables.ConjuredItems = []int32{7676}
-	player := runCat(t, req)
-	if n := usesOfID(player.Actions, 7676); n != 0 {
-		t.Fatalf("unselected Thistle Tea casts = %d, want 0", n)
+	for _, preset := range []string{"raid", "default", "bearweave"} {
+		for _, selected := range []int32{0, 7676} {
+			t.Run(fmt.Sprintf("%s/selected=%d", preset, selected), func(t *testing.T) {
+				req := buildRequest(t, "raid")
+				player := req.Raid.Parties[0].Players[0]
+				if preset != "raid" {
+					player.Rotation = core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", preset).Rotation
+				}
+				player.Consumables.ConjuredId = selected
+				player.Consumables.ConjuredItems = []int32{7676}
+				metrics := runCat(t, req)
+				casts := usesOfID(metrics.Actions, 7676)
+				if selected == 0 && casts != 0 {
+					t.Fatalf("unselected Thistle Tea casts = %d, want 0", casts)
+				}
+				if selected == 7676 && casts == 0 {
+					t.Fatal("selected Thistle Tea was never used")
+				}
+			})
+		}
 	}
 }
-
 func usesOfID(actions []*proto.ActionMetrics, id int32) int32 {
 	var n int32
 	for _, action := range actions {

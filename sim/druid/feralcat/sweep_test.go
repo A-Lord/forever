@@ -317,7 +317,11 @@ func catAPL(tune aplTune) *proto.APLRotation {
 		sequenceWhen(openRake, spellAction(spellBerserk), spellAction(spellRake)),
 		sequenceWhen(openShred, spellAction(spellBerserk), spellAction(spellShred)),
 		castWhen(spellElune, elune),
-		castItemWhen(itemTea, cmp(proto.APLValueCompare_OpLe, currentEnergy(), konst("20"))),
+		castItemWhen(itemTea, and(
+			&proto.APLValue{Value: &proto.APLValue_SelectedConjured{SelectedConjured: &proto.APLValueSelectedConjured{
+				ConjuredId: &proto.ActionID{RawId: &proto.ActionID_ItemId{ItemId: itemTea}},
+			}}},
+			cmp(proto.APLValueCompare_OpLe, currentEnergy(), konst("20")))),
 		// The potion's own rule: the full gain still fits, with five seconds of regen left over.
 		castOtherWhen(proto.OtherAction_OtherActionPotion, potionFits()),
 		// Trinkets and anything else the list does not name.
