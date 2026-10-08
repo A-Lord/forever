@@ -513,6 +513,85 @@ func registerPairedSlotItems() {
 	}})
 }
 
+func TestBulkCandidatesKeepEmptyGroupedSlots(t *testing.T) {
+	registerPairedSlotItems()
+	for _, group := range []struct {
+		name          string
+		slots         [2]proto.ItemSlot
+		plain, unique int32
+	}{
+		{"rings", [2]proto.ItemSlot{proto.ItemSlot_ItemSlotFinger1, proto.ItemSlot_ItemSlotFinger2}, pairRingPlainID, pairRingUniqueID},
+		{"trinkets", [2]proto.ItemSlot{proto.ItemSlot_ItemSlotTrinket1, proto.ItemSlot_ItemSlotTrinket2}, pairTrinketPlain, pairTrinketUnique},
+	} {
+		for _, tc := range []struct {
+			name     string
+			worn     [2]int32
+			selected []int32
+			freeze   int
+			want     int
+		}{
+			{"one unique equipped", [2]int32{group.unique, 0}, nil, -1, 1},
+			{"one unique selected", [2]int32{}, []int32{group.unique}, -1, 2},
+			{"one plain copy", [2]int32{group.plain, 0}, nil, -1, 1},
+			{"two plain copies", [2]int32{group.plain, 0}, []int32{group.plain}, -1, 2},
+			{"duplicate unique", [2]int32{group.unique, 0}, []int32{group.unique}, -1, 1},
+			{"filled slots", [2]int32{group.plain, group.unique}, nil, -1, 1},
+			{"freeze filled first", [2]int32{group.unique, 0}, nil, 0, 1},
+			{"freeze empty second", [2]int32{group.unique, 0}, []int32{group.plain}, 1, 2},
+			{"freeze empty first", [2]int32{0, group.unique}, []int32{group.plain}, 0, 2},
+			{"freeze both empty baseline", [2]int32{}, []int32{group.unique}, 0, 2},
+		} {
+			t.Run(group.name+"/"+tc.name, func(t *testing.T) {
+				items := make([]*proto.ItemSpec, core.NumItemSlots)
+				for i := range items {
+					items[i] = &proto.ItemSpec{}
+				}
+				for i, slot := range group.slots {
+					items[slot].Id = tc.worn[i]
+				}
+				settings := &proto.BulkSettings{}
+				for _, id := range tc.selected {
+					settings.Items = append(settings.Items, &proto.ItemSpec{Id: id})
+				}
+				if tc.freeze >= 0 {
+					if group.name == "rings" {
+						settings.FreezeRingSlot = int32(group.slots[tc.freeze])
+					} else {
+						settings.FreezeTrinketSlot = int32(group.slots[tc.freeze])
+					}
+				}
+				base := &proto.RaidSimRequest{Raid: &proto.Raid{Parties: []*proto.Party{{Players: []*proto.Player{{
+					Class: proto.Class_ClassWarrior, Spec: &proto.Player_DpsWarrior{DpsWarrior: &proto.DpsWarrior{}},
+					Equipment: &proto.EquipmentSpec{Items: items},
+				}}}}}}
+				result := BulkCandidates(&proto.BulkCandidatesRequest{BaseRequest: base, BulkSettings: settings})
+				if result.Error != nil {
+					t.Fatal(result.Error.Message)
+				}
+				if got := len(result.Candidates); got != tc.want {
+					t.Fatalf("candidates = %d, want %d", got, tc.want)
+				}
+				count := BulkCombinationCount(&proto.BulkCombinationCountRequest{BaseRequest: base, BulkSettings: settings})
+				if count.Error != nil || count.Combinations != int32(tc.want) {
+					t.Fatalf("count = %v, want %d", count, tc.want)
+				}
+				for _, candidate := range result.Candidates {
+					a, b := candidate.Gear.Items[group.slots[0]], candidate.Gear.Items[group.slots[1]]
+					if a.GetId() == group.unique && b.GetId() == group.unique {
+						t.Fatal("unique item occupies both slots")
+					}
+					if tc.freeze >= 0 && candidate.Gear.Items[group.slots[tc.freeze]].GetId() != tc.worn[tc.freeze] {
+						t.Fatal("frozen slot changed")
+					}
+					if a.GetId() == 0 && a.GetEnchant() != 0 || b.GetId() == 0 && b.GetEnchant() != 0 {
+						t.Fatal("empty slot carries an enchant")
+					}
+				}
+			})
+		}
+	}
+}
+
 // Two copies of everything that may legitimately be doubled, one copy of the rest.
 func pairedSlotSelection() []*proto.ItemSpec {
 	ids := []int32{

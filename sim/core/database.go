@@ -175,7 +175,7 @@ type Item struct {
 	WeaponDamageMin  float64
 	WeaponDamageMax  float64
 	SwingSpeed       float64
-	QualityModifier  float64           // Per-item offset to weapon "average damage"; negative for caster weapons.
+	QualityModifier  float64 // Per-item offset to weapon "average damage"; negative for caster weapons.
 	UnroundedDPS     *float64
 	SpellSchool      proto.SpellSchool // The weapon's damage school; unset means physical.
 
@@ -619,9 +619,15 @@ func NewItem(itemSpec ItemSpec) Item {
 
 func NewEquipmentSet(equipSpec EquipmentSpec) Equipment {
 	equipment := Equipment{}
-	for _, itemSpec := range equipSpec {
+	for slot, itemSpec := range equipSpec {
 		if itemSpec.ID != 0 {
-			equipment.EquipItem(NewItem(itemSpec))
+			item := NewItem(itemSpec)
+			if (item.Type == proto.ItemType_ItemTypeFinger || item.Type == proto.ItemType_ItemTypeTrinket) &&
+				slices.Contains(EligibleSlotsForItem(&item), proto.ItemSlot(slot)) {
+				equipment[slot] = item
+			} else {
+				equipment.EquipItem(item)
+			}
 		}
 	}
 
