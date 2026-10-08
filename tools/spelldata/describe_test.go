@@ -91,8 +91,8 @@ func TestEffectLines(t *testing.T) {
 			name:    "a heal that rolls and scales",
 			id:      2050,
 			effect:  1,
-			human:   "47–58 healing to the friendly target (at level 60, +0.429 spell power)",
-			literal: "E_HEAL base=51 ppl=0.9 variance=0.19607843 sp=0.429 amplitude=1 target=[21,0]",
+			human:   "46–57 healing to the friendly target (at level 60, +0.429 spell power)",
+			literal: "E_HEAL base=51 ppl=0.3 variance=0.19607843 sp=0.429 amplitude=1 target=[21,0]",
 		},
 		{
 			name:    "rage off the game files' 0-1000 bar",
