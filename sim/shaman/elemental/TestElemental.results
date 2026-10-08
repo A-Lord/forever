@@ -53,6 +53,20 @@ character_stats_results: {
  }
 }
 dps_results: {
+ key: "TestElemental-AllItems-AdaptiveCombatAssistant-272437"
+ value: {
+  dps: 334.8519
+  tps: 238.59884
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-AnkhofLife-1713"
+ value: {
+  dps: 332.6139
+  tps: 236.95539
+ }
+}
+dps_results: {
  key: "TestElemental-AllItems-Annihilator-12798"
  value: {
   dps: 339.41407
@@ -110,6 +124,34 @@ dps_results: {
 }
 dps_results: {
  key: "TestElemental-AllItems-BlazingEmblem-2802"
+ value: {
+  dps: 334.8519
+  tps: 238.59884
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-BramblebarkBarrier-275649"
+ value: {
+  dps: 333.51886
+  tps: 237.79283
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-BristleconeCloak-275833"
+ value: {
+  dps: 327.44576
+  tps: 233.51766
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-CloakofFlames-3475"
+ value: {
+  dps: 327.44576
+  tps: 233.51766
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-ColdBasiliskEye-5079"
  value: {
   dps: 334.8519
   tps: 238.59884
@@ -270,10 +312,31 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestElemental-AllItems-EssenceofthePureFlame-18815"
+ value: {
+  dps: 334.8519
+  tps: 238.59884
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-EverlookDeliveryBot-274760"
+ value: {
+  dps: 334.8519
+  tps: 238.59884
+ }
+}
+dps_results: {
  key: "TestElemental-AllItems-EverlookPathcarver-274759"
  value: {
   dps: 334.8519
   tps: 238.59884
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-EyeofDiminution-23001"
+ value: {
+  dps: 340.54402
+  tps: 242.46502
  }
 }
 dps_results: {
@@ -291,10 +354,31 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestElemental-AllItems-FetishofChitinousSpikes-21488"
+ value: {
+  dps: 334.8519
+  tps: 238.59884
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-FetishoftheSandReaver-21647"
+ value: {
+  dps: 334.8519
+  tps: 238.59884
+ }
+}
+dps_results: {
  key: "TestElemental-AllItems-FieryWarAxe-870"
  value: {
   dps: 339.41407
   tps: 241.60323
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-FlameSearedSignet-282080"
+ value: {
+  dps: 332.18105
+  tps: 236.74416
  }
 }
 dps_results: {
@@ -319,6 +403,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestElemental-AllItems-GauntletsoftheSea-8346"
+ value: {
+  dps: 331.98277
+  tps: 235.82229
+ }
+}
+dps_results: {
  key: "TestElemental-AllItems-GirdleofReprisal-11861"
  value: {
   dps: 328.09049
@@ -330,6 +421,13 @@ dps_results: {
  value: {
   dps: 339.41407
   tps: 241.60323
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-GlyphofDeflection-23040"
+ value: {
+  dps: 334.8519
+  tps: 238.59884
  }
 }
 dps_results: {
@@ -438,6 +536,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestElemental-AllItems-MajorRecombobulator-18637"
+ value: {
+  dps: 334.8519
+  tps: 238.59884
+ }
+}
+dps_results: {
  key: "TestElemental-AllItems-ManualCrowdPummeler-9449"
  value: {
   dps: 339.41407
@@ -509,6 +614,13 @@ dps_results: {
 }
 dps_results: {
  key: "TestElemental-AllItems-OrbofFire-12805"
+ value: {
+  dps: 334.8519
+  tps: 238.59884
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-PetrifiedScarab-21685"
  value: {
   dps: 334.8519
   tps: 238.59884
@@ -687,6 +799,34 @@ dps_results: {
  value: {
   dps: 339.96718
   tps: 242.09147
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-Wushoolay'sCharmofSpirits-19956"
+ value: {
+  dps: 334.8519
+  tps: 238.59884
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-ZandalarianHeroBadge-19948"
+ value: {
+  dps: 334.8519
+  tps: 238.59884
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-ZandalarianHeroCharm-19950"
+ value: {
+  dps: 334.8519
+  tps: 238.59884
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-ZandalarianHeroMedallion-19949"
+ value: {
+  dps: 334.8519
+  tps: 238.59884
  }
 }
 dps_results: {

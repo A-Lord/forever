@@ -53,6 +53,24 @@ character_stats_results: {
  }
 }
 dps_results: {
+ key: "TestProtectionWarrior-AllItems-AdaptiveCombatAssistant-272437"
+ value: {
+  dps: 442.24211
+  tps: 716.30244
+  dtps: 183.90404
+  hps: 16.4
+ }
+}
+dps_results: {
+ key: "TestProtectionWarrior-AllItems-AnkhofLife-1713"
+ value: {
+  dps: 421.039
+  tps: 683.48881
+  dtps: 185.62849
+  hps: 16.4
+ }
+}
+dps_results: {
  key: "TestProtectionWarrior-AllItems-Annihilator-12798"
  value: {
   dps: 421.43505
@@ -139,6 +157,42 @@ dps_results: {
   dps: 419.98181
   tps: 686.29081
   dtps: 243.06521
+  hps: 16.4
+ }
+}
+dps_results: {
+ key: "TestProtectionWarrior-AllItems-BramblebarkBarrier-275649"
+ value: {
+  dps: 420.87943
+  tps: 684.734
+  dtps: 192.28035
+  hps: 16.4
+ }
+}
+dps_results: {
+ key: "TestProtectionWarrior-AllItems-BristleconeCloak-275833"
+ value: {
+  dps: 412.67586
+  tps: 669.78522
+  dtps: 186.7834
+  hps: 16.4
+ }
+}
+dps_results: {
+ key: "TestProtectionWarrior-AllItems-CloakofFlames-3475"
+ value: {
+  dps: 412.20286
+  tps: 669.01479
+  dtps: 186.29138
+  hps: 16.4
+ }
+}
+dps_results: {
+ key: "TestProtectionWarrior-AllItems-ColdBasiliskEye-5079"
+ value: {
+  dps: 421.039
+  tps: 683.48881
+  dtps: 185.62849
   hps: 16.4
  }
 }
@@ -341,11 +395,38 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestProtectionWarrior-AllItems-EssenceofthePureFlame-18815"
+ value: {
+  dps: 422.42206
+  tps: 685.18413
+  dtps: 184.54058
+  hps: 16.4
+ }
+}
+dps_results: {
+ key: "TestProtectionWarrior-AllItems-EverlookDeliveryBot-274760"
+ value: {
+  dps: 421.039
+  tps: 683.48881
+  dtps: 185.62849
+  hps: 16.4
+ }
+}
+dps_results: {
  key: "TestProtectionWarrior-AllItems-EverlookPathcarver-274759"
  value: {
   dps: 421.039
   tps: 683.48881
   dtps: 185.62849
+  hps: 16.4
+ }
+}
+dps_results: {
+ key: "TestProtectionWarrior-AllItems-EyeofDiminution-23001"
+ value: {
+  dps: 428.54135
+  tps: 695.30914
+  dtps: 185.7122
   hps: 16.4
  }
 }
@@ -368,11 +449,38 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestProtectionWarrior-AllItems-FetishofChitinousSpikes-21488"
+ value: {
+  dps: 421.039
+  tps: 683.48881
+  dtps: 185.62849
+  hps: 16.4
+ }
+}
+dps_results: {
+ key: "TestProtectionWarrior-AllItems-FetishoftheSandReaver-21647"
+ value: {
+  dps: 421.039
+  tps: 683.48881
+  dtps: 185.62849
+  hps: 16.4
+ }
+}
+dps_results: {
  key: "TestProtectionWarrior-AllItems-FieryPlateGauntlets-12631"
  value: {
   dps: 412.4222
   tps: 670.94393
   dtps: 191.92329
+  hps: 16.4
+ }
+}
+dps_results: {
+ key: "TestProtectionWarrior-AllItems-FlameSearedSignet-282080"
+ value: {
+  dps: 399.79925
+  tps: 648.97461
+  dtps: 185.37304
   hps: 16.4
  }
 }
@@ -404,11 +512,29 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestProtectionWarrior-AllItems-GauntletsoftheSea-8346"
+ value: {
+  dps: 413.71308
+  tps: 672.05727
+  dtps: 194.27506
+  hps: 16.4
+ }
+}
+dps_results: {
  key: "TestProtectionWarrior-AllItems-GirdleofReprisal-11861"
  value: {
   dps: 415.73159
   tps: 675.25165
   dtps: 193.4027
+  hps: 16.4
+ }
+}
+dps_results: {
+ key: "TestProtectionWarrior-AllItems-GlyphofDeflection-23040"
+ value: {
+  dps: 425.82681
+  tps: 690.2738
+  dtps: 179.43854
   hps: 16.4
  }
 }
@@ -539,6 +665,15 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestProtectionWarrior-AllItems-LifegivingGem-19341"
+ value: {
+  dps: 421.039
+  tps: 683.48881
+  dtps: 185.62849
+  hps: 16.4
+ }
+}
+dps_results: {
  key: "TestProtectionWarrior-AllItems-Linken'sBoomerang-11905"
  value: {
   dps: 421.039
@@ -562,6 +697,15 @@ dps_results: {
   dps: 421.039
   tps: 683.48881
   dtps: 185.55197
+  hps: 16.4
+ }
+}
+dps_results: {
+ key: "TestProtectionWarrior-AllItems-MajorRecombobulator-18637"
+ value: {
+  dps: 421.039
+  tps: 683.48881
+  dtps: 185.62849
   hps: 16.4
  }
 }
@@ -634,6 +778,15 @@ dps_results: {
   dps: 421.59786
   tps: 684.52297
   dtps: 185.54493
+  hps: 16.4
+ }
+}
+dps_results: {
+ key: "TestProtectionWarrior-AllItems-PetrifiedScarab-21685"
+ value: {
+  dps: 421.039
+  tps: 683.48881
+  dtps: 185.62849
   hps: 16.4
  }
 }
@@ -890,11 +1043,47 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestProtectionWarrior-AllItems-WeaknessAnalyzer-272438"
+ value: {
+  dps: 421.039
+  tps: 683.48881
+  dtps: 185.62849
+  hps: 16.4
+ }
+}
+dps_results: {
  key: "TestProtectionWarrior-AllItems-WrathofCenarius-21190"
  value: {
   dps: 400.21683
   tps: 649.39733
   dtps: 184.85932
+  hps: 16.4
+ }
+}
+dps_results: {
+ key: "TestProtectionWarrior-AllItems-ZandalarianHeroBadge-19948"
+ value: {
+  dps: 421.039
+  tps: 683.48881
+  dtps: 185.62849
+  hps: 16.4
+ }
+}
+dps_results: {
+ key: "TestProtectionWarrior-AllItems-ZandalarianHeroCharm-19950"
+ value: {
+  dps: 421.039
+  tps: 683.48881
+  dtps: 185.62849
+  hps: 16.4
+ }
+}
+dps_results: {
+ key: "TestProtectionWarrior-AllItems-ZandalarianHeroMedallion-19949"
+ value: {
+  dps: 421.039
+  tps: 683.48881
+  dtps: 185.62849
   hps: 16.4
  }
 }

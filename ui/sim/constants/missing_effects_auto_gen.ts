@@ -1246,12 +1246,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		19341, // Lifegiving Gem
-		[
-			"Heals yourself for 15% of your maximum health, and increases your maximum health by 15% for 20 sec.", // 23725 - https://www.wowhead.com/forever/spell=23725
-		]
-	],
-	[
 		19345, // Aegis of Preservation
 		[
 			"Increases armor by 500, and heals 35 damage every time you take ranged or melee damage for 20s.", // 23780 - https://www.wowhead.com/forever/spell=23780
@@ -1309,24 +1303,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		19621, // Maelstrom's Wrath
 		[
 			"Decreases the cooldown of Feign Death by -2.0 sec.", // 24432 - https://www.wowhead.com/forever/spell=24432
-		]
-	],
-	[
-		19948, // Zandalarian Hero Badge
-		[
-			"Increases your armor by 2000 and defense skill by 30 for 20s. Every time you take melee or ranged damage, this bonus is reduced by 200 armor and 3 defense.", // 24574 - https://www.wowhead.com/forever/spell=24574
-		]
-	],
-	[
-		19949, // Zandalarian Hero Medallion
-		[
-			"Increases your melee and ranged damage by 40 for 20s. Every time you hit a target, this bonus is reduced by 2.", // 24661 - https://www.wowhead.com/forever/spell=24661
-		]
-	],
-	[
-		19950, // Zandalarian Hero Charm
-		[
-			"Increases your spell damage by up to 204 and your healing by up to 408 for 20s. Every time you cast a spell, the bonus is reduced by 17 spell damage and 34 healing.", // 24658 - https://www.wowhead.com/forever/spell=24658
 		]
 	],
 	[
@@ -1711,12 +1687,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		21625, // Scarab Brooch
 		[
 			"Your magical heals provide the target with a shield that absorbs damage equal to 15% of the amount healed for 30s.", // 26467 - https://www.wowhead.com/forever/spell=26467
-		]
-	],
-	[
-		21685, // Petrified Scarab
-		[
-			"Increases your spell resistances by 100 for 1min. Every time a hostile spell lands on you, this bonus is reduced by 10 resistance.", // 26463 - https://www.wowhead.com/forever/spell=26463
 		]
 	],
 	[
@@ -2450,12 +2420,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		274747, // Soggy Boots
 		[
 			"", // 1295267 - https://www.wowhead.com/forever/spell=1295267
-		]
-	],
-	[
-		274760, // Everlook Delivery Bot
-		[
-			"Marks a target for delivery. After landing 6 to 8 spells or attacks, deal 467 Fire damage. Number of spells or attacks is halved in Snowy areas.", // 1295271 - https://www.wowhead.com/forever/spell=1295271
 		]
 	],
 	[
