@@ -60,15 +60,14 @@ func (warlock *Warlock) applyImprovedImp() {
 	spelldata.ParseStatic(&warlock.Imp.Character, spellData.ImprovedImp.Rank(warlock.Talents.ImprovedImp), spelldata.Effects(2))
 }
 
-// The tooltip raises total Stamina.
-// TODO: The row states the stat as misc 0 (Strength to the parse) and adds -1% Spirit the tooltip does not
-// mention; the tooltip's Stamina is taken, and the Spirit left out.
+// Effect 1 raises total Stamina, as the tooltip says.
+// TODO: Effect 2's -1% Spirit is not in the tooltip and is left out until it is confirmed in game.
 func (warlock *Warlock) applyDemonicEmbrace() {
 	if warlock.Talents.DemonicEmbrace == 0 {
 		return
 	}
 
-	warlock.MultiplyStat(stats.Stamina, 1+spellData.DemonicEmbrace.Rank(warlock.Talents.DemonicEmbrace).EffectN(1).Percent())
+	spelldata.ParseStatic(&warlock.Character, spellData.DemonicEmbrace.Rank(warlock.Talents.DemonicEmbrace), spelldata.Effects(1))
 }
 
 // All damage the demons deal. The row's modifier names no spell the sim registers, so it is the pet's own
@@ -194,11 +193,8 @@ func (warlock *Warlock) applyDecimation() {
 		Label:    "Decimation - Execute",
 		ActionID: core.ActionID{SpellID: rank.ID},
 		Duration: core.NeverExpires,
-	}).AttachSpellMod(core.SpellModConfig{
-		Kind:       core.SpellMod_DamageDone_Flat,
-		ClassFlags: executeBonus.ClassFlags,
-		FloatValue: executeBonus.Percent(),
 	})
+	spelldata.ParseEffects(&warlock.Character, executeAura, rank, spelldata.Effects(4))
 
 	// TODO: The row states the threshold as effect 3 (35); the sim's execute phases are fixed, and 35 is one.
 	warlock.RegisterResetEffect(func(sim *core.Simulation) {
@@ -248,12 +244,11 @@ func (warlock *Warlock) applyDemonicBrand() {
 	}
 
 	spelldata.ParseStatic(&warlock.Character, spellData.DemonicBrand.Rank(warlock.Talents.DemonicBrand), spelldata.Effects(1))
-	charges := int32(spelldata.MustFind(1293695).EffectN(2).BaseValue())
+	charges := int32(spellData.DemonicBrand.Rank(warlock.Talents.DemonicBrand).EffectN(2).BaseValue())
 
 	brandRow := spellData.DemonicBrandTriggered.ByID(1293696)
 	warlock.DemonicBrandAuras = warlock.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-		auraConfig := spelldata.AuraConfig(brandRow)
-		auraConfig.Label += " - " + warlock.Label
+		auraConfig := spelldata.AuraConfig(brandRow, spelldata.RankLabel(brandRow, &warlock.Unit))
 		auraConfig.MaxStacks = charges
 		return target.GetOrRegisterAura(auraConfig)
 	})
@@ -383,7 +378,8 @@ func (warlock *Warlock) applyMasterDemonologist() {
 
 // --- Tier 7 ---
 
-// TODO: Not implemented, as it does not affect sims for now: demons are not resummoned during the fight.
+// The talent is read by resolveSacrifice (warlock.go): with it, a sacrificed demon's bonus holds while another
+// demon is out. Nothing is applied here, as demons are not resummoned during the fight.
 func (warlock *Warlock) applyDemonicPact() {
 	if !warlock.Talents.DemonicPact {
 		return

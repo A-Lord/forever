@@ -2,7 +2,6 @@ package warlock
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
@@ -46,9 +45,9 @@ func (x *APLValueWarlockAssignedCurseIsActive) Type() proto.APLValueType {
 func (x *APLValueWarlockAssignedCurseIsActive) GetBool(sim *core.Simulation) bool {
 	target := x.target.Get()
 
-	// The curse's own aura (Tag 0) or its amplified copy (Tag 1): either one up is the curse up.
-	for _, tag := range []int32{0, 1} {
-		if aura := target.GetAuraByID(x.spell.ActionID.WithTag(tag)); aura.IsActive() && aura.TimeActive(sim) >= x.warlock.ReactionTime {
+	// This warlock's own copies of the curse, plain or amplified: either one up is the curse up.
+	for _, auras := range x.spell.RelatedAuraArrays {
+		if aura := auras.Get(target); aura.IsActive() && aura.TimeActive(sim) >= x.warlock.ReactionTime {
 			return true
 		}
 	}
@@ -100,9 +99,8 @@ func (warlock *Warlock) NewAPLAction(rot *core.APLRotation, config *proto.APLAct
 }
 
 type APLActionCastWarlockAssignedCurse struct {
-	warlock    *Warlock
-	lastAction time.Duration
-	target     core.UnitReference
+	warlock *Warlock
+	target  core.UnitReference
 }
 
 func (x *APLActionCastWarlockAssignedCurse) GetInnerActions() []*core.APLAction { return nil }
@@ -131,23 +129,20 @@ func (warlock *Warlock) newActionWarlockAssignedCurseAction(rot *core.APLRotatio
 }
 
 func (x *APLActionCastWarlockAssignedCurse) Execute(sim *core.Simulation) {
-	x.GetSpellFromAction(sim).Cast(sim, x.target.Get())
+	x.GetSpellFromAction(sim).CastOrQueue(sim, x.target.Get())
 }
 
 func (x *APLActionCastWarlockAssignedCurse) IsReady(sim *core.Simulation) bool {
-	return x.GetSpellFromAction(sim).CanCast(sim, x.warlock.CurrentTarget)
+	return x.GetSpellFromAction(sim).CanCastOrQueue(sim, x.target.Get())
 }
 
-func (x *APLActionCastWarlockAssignedCurse) Reset(*core.Simulation) {
-	x.lastAction = -core.NeverExpires
-}
+func (x *APLActionCastWarlockAssignedCurse) Reset(*core.Simulation) {}
 
 func (x *APLActionCastWarlockAssignedCurse) String() string {
 	return fmt.Sprintf("Cast Assigned Curse(%s)", x.warlock.GetAssignedCurse().ActionID)
 }
 
-// Elements is the default: any other value, including the retired Agony and Doom a saved setting may
-// still carry, falls back to it.
+// Elements is the default: any value but Recklessness falls back to it.
 func (warlock *Warlock) GetAssignedCurse() *core.Spell {
 	if warlock.Options.CurseOptions == proto.WarlockOptions_Recklessness {
 		return warlock.CurseOfRecklessness

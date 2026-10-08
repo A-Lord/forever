@@ -13,7 +13,7 @@ func (warlock *Warlock) registerRainOfFire() {
 	rankedSpell := spellData.RainOfFire.ByID(11678)
 	channelTick := rankedSpell.Effect(dbcenums.A_PERIODIC_DUMMY, 0)
 
-	waveRow := spellData.RainOfFireTriggered.ByID(1282385)
+	waveRow := rankedSpell.Refs()[0]
 	waveHit := waveRow.DamageEffect()
 
 	// Fired by the channel; hits every enemy in the area

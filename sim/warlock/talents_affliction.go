@@ -109,7 +109,9 @@ func (warlock *Warlock) registerAmplifyCurse() {
 
 	// Both effects name the curses they amplify, which are the ones that spend it.
 	// Effect 1 is Bane of Agony and Curse of Weakness
-	// Effect 2 is Curse of the Elements.
+	// Effect 2's mask is shared by Curse of Exhaustion (18223) and Curse of the Elements; the tooltip names
+	// only Exhaustion.
+	// TODO: Confirm in game whether Curse of the Elements is amplified.
 	amplifiedCurses, amplifiedElements := rankedSpell.EffectN(1).ClassFlags, rankedSpell.EffectN(2).ClassFlags
 
 	// TODO: Confirm that the amp is consumed on cast, regardless of hit.
@@ -127,9 +129,11 @@ func (warlock *Warlock) registerAmplifyCurse() {
 	}
 	warlock.AmplifyCurse = warlock.RegisterSpell(config)
 
+	// Never cast on its own: the APL decides which curse takes the amp.
 	warlock.AddMajorCooldown(core.MajorCooldown{
-		Spell: warlock.AmplifyCurse,
-		Type:  core.CooldownTypeDPS,
+		Spell:          warlock.AmplifyCurse,
+		Type:           core.CooldownTypeDPS,
+		ShouldActivate: func(*core.Simulation, *core.Character) bool { return false },
 	})
 }
 
@@ -232,8 +236,8 @@ func (warlock *Warlock) soulSiphonChannelConfig(rankedSpell *spelldata.Spell, ti
 	config := spelldata.SpellConfig(&warlock.Unit, rankedSpell, spelldata.Magic(core.ProcMaskSpellDamage))
 
 	// TODO: Confirm no snapshot from Soul Siphon.
-	// TODO: Confirm in-game whether spell haste shortens the ticks. The TBC config set AffectedByCastSpeed and
-	// HasteReducesDuration; left off, as the rows carry no haste attribute.
+	// TODO: Confirm in game whether spell haste shortens the ticks; the rows carry no haste attribute, so
+	// neither AffectedByCastSpeed nor HasteReducesDuration is set.
 	config.Dot = spelldata.DotConfig(rankedSpell, tick)
 	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
 		result := dot.Spell.CalcPeriodicDamage(sim, target, tick.Average(), rankedSpell.TickOutcomeHitRolled(dot))

@@ -5,9 +5,8 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-// Agony currently uses the classic implementation of "three thirds",
-// with the first third at 0.5 power, the second at 1.0, and the last at 1.5.
-// Current testing shows that only the base power of the spell scales in this manner
+// Bane of Agony ramps in thirds: the first third of the ticks at half the base, the second at the base,
+// the last at one and a half. Only the base ramps; the spell power share does not.
 func (warlock *Warlock) registerBaneOfAgony() {
 	rankedSpell := spellData.BaneOfAgony.ByID(11713)
 	agonyTick := rankedSpell.PeriodicEffect()

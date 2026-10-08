@@ -19,6 +19,8 @@ export const DefaultOptions = WarlockOptions.create({
 		curseOptions: WarlockOptions_CurseOptions.Recklessness,
 		sacrificedDemon: WarlockOptions_Summon.Succubus,
 		summon: WarlockOptions_Summon.Imp,
+		// A full Felcloth Bag (21341), the largest Soul Bag a warlock can carry.
+		soulShards: 32,
 	},
 });
 

@@ -67,9 +67,10 @@ var petModels = map[proto.WarlockOptions_Summon]petModel{
 		damageMod:        1,
 	},
 	proto.WarlockOptions_Succubus: {
-		baseStats:        meleeDemonStats(14),
+		baseStats:        meleeDemonStats(14).Add(stats.Stats{stats.MP5: 95}), // TODO: The Imp's base MP5; the Sayaad's in-combat regen is not measured.
 		healthPerStamina: 7,
 		manaPerIntellect: 11.5,
+		mp5PerIntellect:  0.1, // TODO: The Imp's per-Intellect MP5; the Sayaad's in-combat regen is not measured.
 		apPerStrength:    2,
 		meleeMin:         95,
 		meleeMax:         131,
@@ -148,6 +149,7 @@ func (warlock *Warlock) registerPet(summon proto.WarlockOptions_Summon, name str
 			Owner:           &warlock.Character,
 			BaseStats:       model.baseStats,
 			StatInheritance: warlock.petStatInheritance(),
+			IsDynamic:       true,
 			EnabledOnStart:  enabledOnStart,
 		}),
 	}
@@ -199,7 +201,7 @@ func (warlock *Warlock) registerPet(summon proto.WarlockOptions_Summon, name str
 	return pet
 }
 
-// The demons registered, which is none when the warlock sacrifices its demon.
+// The four demons, each registered whichever is out.
 func (warlock *Warlock) demons() []*WarlockPet {
 	demons := []*WarlockPet{}
 	for _, pet := range []*WarlockPet{warlock.Imp, warlock.Voidwalker, warlock.Succubus, warlock.Felhunter} {
@@ -243,14 +245,15 @@ func (pet *WarlockPet) OnEncounterStart(_ *core.Simulation) {
 }
 
 // Casts the first ability that is ready once the pet has its MinMana; otherwise waits until it has
-// the mana for the cheapest one, or briefly when something else holds it back.
+// the mana for the cheapest one, or until the GCD and the cooldown of an ability it has the mana for end.
 func (pet *WarlockPet) ExecuteCustomRotation(sim *core.Simulation) {
 	// A demon with nothing to cast only swings, which its auto attacks do on their own.
 	if len(pet.AutoCastAbilities) == 0 {
+		pet.WaitUntil(sim, core.NeverExpires)
 		return
 	}
 
-	waitFor := core.NeverExpires
+	waitUntil := core.NeverExpires
 
 	for _, spell := range pet.AutoCastAbilities {
 		if pet.CurrentMana() >= pet.MinMana && spell.CanCast(sim, pet.CurrentTarget) {
@@ -260,15 +263,20 @@ func (pet *WarlockPet) ExecuteCustomRotation(sim *core.Simulation) {
 
 		needed := max(pet.MinMana, spell.Cost.GetCurrentCost()) - pet.CurrentMana()
 		if regen := pet.ManaRegenPerSecondWhileCasting(); needed > 0 && regen > 0 {
-			waitFor = min(waitFor, core.DurationFromSeconds(needed/regen))
+			waitUntil = min(waitUntil, sim.CurrentTime+max(core.DurationFromSeconds(needed/regen), time.Millisecond*100))
+		} else if needed <= 0 {
+			// Enough mana, so the GCD or the cooldown holds the ability back
+			if readyAt := max(spell.ReadyAt(), pet.NextGCDAt()); readyAt > sim.CurrentTime {
+				waitUntil = min(waitUntil, readyAt)
+			}
 		}
 	}
 
-	// Ready on mana but held by the GCD or a cooldown: look again shortly.
-	if waitFor == core.NeverExpires {
-		waitFor = time.Millisecond * 100
+	// Held back by something with no readiness time of its own: look again shortly.
+	if waitUntil == core.NeverExpires {
+		waitUntil = sim.CurrentTime + time.Millisecond*100
 	}
-	pet.WaitUntil(sim, sim.CurrentTime+max(waitFor, time.Millisecond*100))
+	pet.WaitUntil(sim, waitUntil)
 }
 
 // --- Imp ---
@@ -316,18 +324,19 @@ func (pet *WarlockPet) registerLashOfPain() {
 // --- Demonic Brand ---
 
 // Each of the demon's hits on a target the warlock branded consumes a charge and deals the brand's damage:
-// Fire from the Imp (1293698), Shadow from the others (1293697). The rows state no amount; 1293695's
-// description variables do: ((level - 26) * 1.5 + 14 to 17 + 0.078 * the warlock's better of Shadow and
-// Fire spell power), times Master Demonologist's and Unholy Power's bonuses, which the demon's own damage
-// multipliers already apply.
+// Fire from the Imp (1293698), Shadow from the others (1293697). The rows state no amount; their
+// description variables do: ((level - 26) * 1.5 + 14 to 17 + 0.078 * the warlock's spell power of the
+// row's school), times the demon's damage multipliers. The demon's own multipliers apply them: Master
+// Demonologist, Unholy Power, Soul Link and the demon's base damage modifier.
 // TODO: Imp as Fire and the others as Shadow, every hit as an attack, and the hit and crit roll are assumed;
-// the 1 Physical damage row (1293699), a threat marker, is left out.
+// the 1 Physical damage row (1293699), a threat marker, is left out. The base damage modifier and Soul Link
+// may not reach the brand in game, since the rows' multiplier names only the pet's and the school's.
 func (pet *WarlockPet) registerDemonicBrand() {
 	warlock := pet.owner
 
-	brandRow := spelldata.MustFind(1293697)
+	brandRow, schoolDamage := spelldata.MustFind(1293697), stats.ShadowDamage
 	if pet.summon == proto.WarlockOptions_Imp {
-		brandRow = spelldata.MustFind(1293698)
+		brandRow, schoolDamage = spelldata.MustFind(1293698), stats.FireDamage
 	}
 	brandHit := pet.RegisterSpell(spelldata.SpellConfig(&pet.Unit, brandRow, spelldata.Magic(core.ProcMaskSpellDamage), spelldata.Proc()))
 
@@ -346,7 +355,7 @@ func (pet *WarlockPet) registerDemonicBrand() {
 				brand.Deactivate(sim)
 			}
 
-			spellPower := warlock.GetStat(stats.SpellDamage) + max(warlock.GetStat(stats.ShadowDamage), warlock.GetStat(stats.FireDamage))
+			spellPower := warlock.GetStat(stats.SpellDamage) + warlock.GetStat(schoolDamage)
 			base := float64(warlock.Level-int32(brandRow.BaseLevel))*1.5 + 0.078*spellPower
 			brandHit.CalcAndDealDamage(sim, result.Target, sim.Roll(base+14, base+17), brandHit.OutcomeMagicHitAndCrit)
 		},

@@ -5,16 +5,18 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-// The 1 min cooldown is the row's category cooldown. Soul Shards are not modelled.
+// The 1 min cooldown is the row's category cooldown. Each cast takes a Soul Shard.
 func (warlock *Warlock) registerSoulfire() {
 	rankedSpell := spellData.SoulFire.ByID(17924)
 	soulFireHit := rankedSpell.DamageEffect()
 
 	config := spelldata.SpellConfig(&warlock.Unit, rankedSpell, spelldata.Magic(core.ProcMaskSpellDamage))
 	config.ClassSpellMask = WarlockSpellSoulFire
+	config.ExtraCastCondition = warlock.hasSoulShard
 
 	// Roll the damage and to hit, then land it after the travel time
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		warlock.spendSoulShard(sim)
 		result := spell.CalcDamage(sim, target, soulFireHit.Average(), spell.OutcomeMagicHitAndCrit)
 		spell.WaitTravelTime(sim, func(sim *core.Simulation) {
 			spell.DealDamage(sim, result)

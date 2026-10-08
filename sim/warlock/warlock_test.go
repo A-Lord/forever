@@ -14,8 +14,6 @@ func init() {
 }
 
 func TestAffliction(t *testing.T) {
-	t.Skip("class talents and abilities are stubbed pending their Forever implementations; " +
-		"the expected .results numbers cannot be meaningful until then")
 	core.RunTestSuite(t, t.Name(), core.FullCharacterTestSuiteGenerator([]core.CharacterSuiteConfig{
 		{
 			Class:      proto.Class_ClassWarlock,
@@ -25,17 +23,17 @@ func TestAffliction(t *testing.T) {
 				Warlock: &proto.Warlock{
 					Options: &proto.Warlock_Options{
 						ClassOptions: &proto.WarlockOptions{
-							Summon:          proto.WarlockOptions_Imp,
-							SacrificeSummon: false,
-							Armor:           proto.WarlockOptions_FelArmor,
-							CurseOptions:    proto.WarlockOptions_Elements,
+							Summon:       proto.WarlockOptions_Imp,
+							Armor:        proto.WarlockOptions_DemonArmor,
+							CurseOptions: proto.WarlockOptions_Elements,
+							SoulShards:   32,
 						},
 					},
 				},
 			}},
 			GearSet:  core.GetGearSet("../../ui/specs/warlock/dps/gear_sets", "preraid"),
-			Talents:  "05022221112351055003--50500051220001",
-			Rotation: core.GetAplRotation("../../ui/specs/warlock/dps/apls", "default"),
+			Talents:  "25550320135201351--053",
+			Rotation: core.GetAplRotation("../../ui/specs/warlock/dps/apls", "affliction"),
 			ItemFilter: core.ItemFilter{
 				WeaponTypes: []proto.WeaponType{
 					proto.WeaponType_WeaponTypeDagger,
@@ -54,8 +52,6 @@ func TestAffliction(t *testing.T) {
 }
 
 func TestDestruction(t *testing.T) {
-	t.Skip("class talents and abilities are stubbed pending their Forever implementations; " +
-		"the expected .results numbers cannot be meaningful until then")
 	core.RunTestSuite(t, t.Name(), core.FullCharacterTestSuiteGenerator([]core.CharacterSuiteConfig{
 		{
 			Class:      proto.Class_ClassWarlock,
@@ -65,17 +61,17 @@ func TestDestruction(t *testing.T) {
 				Warlock: &proto.Warlock{
 					Options: &proto.Warlock_Options{
 						ClassOptions: &proto.WarlockOptions{
-							Summon:          proto.WarlockOptions_Succubus,
-							SacrificeSummon: true,
-							Armor:           proto.WarlockOptions_FelArmor,
+							SacrificedDemon: proto.WarlockOptions_Imp,
+							Armor:           proto.WarlockOptions_DemonArmor,
 							CurseOptions:    proto.WarlockOptions_Elements,
+							SoulShards:      32,
 						},
 					},
 				},
 			}},
 			GearSet:  core.GetGearSet("../../ui/specs/warlock/dps/gear_sets", "preraid"),
-			Talents:  "-20500301332101-50500051220051053105",
-			Rotation: core.GetAplRotation("../../ui/specs/warlock/dps/apls", "default"),
+			Talents:  "03-0050203001-0550355103100351",
+			Rotation: core.GetAplRotation("../../ui/specs/warlock/dps/apls", "destruction"),
 			ItemFilter: core.ItemFilter{
 				WeaponTypes: []proto.WeaponType{
 					proto.WeaponType_WeaponTypeDagger,

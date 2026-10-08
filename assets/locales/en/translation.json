@@ -664,6 +664,10 @@
 				"title": "Assigned Curse",
 				"description": "The selected curse will prevent the selected external debuff from being cast."
 			},
+			"warlock_soul_shards": {
+				"label": "Soul Shards",
+				"tooltip": "Soul Shards carried into the fight. Soul Fire and Shadowburn each take one, and cannot be cast without one."
+			},
 			"pet_training": {
 				"cobra_reflexes": {
 					"label": "Cobra Reflexes",

@@ -6,13 +6,14 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-// The debuff is the shared one the raid option also builds, parsed from the row: -75 to all resistances
-// and 10% more damage taken. Its category keeps this warlock's copy and a raid one from stacking.
+// The debuff is this warlock's own copy of the one the raid option builds, parsed from the row: -75 to
+// all resistances and 10% more damage taken. Its category keeps it from stacking with another warlock's
+// copy or a raid one.
 func (warlock *Warlock) registerCurseOfElements() {
 	rankedSpell := spellData.CurseOfTheElements.ByID(1311680)
 
 	warlock.CurseOfElementsAuras = warlock.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-		return buffs.NewSpellDataCurseOfElementsAura(target, true, 0)
+		return buffs.NewSpellDataCurseOfElementsAuraFor(target, &warlock.Unit)
 	})
 	config := spelldata.SpellConfig(&warlock.Unit, rankedSpell, spelldata.Flags(core.SpellFlagAPL))
 	config.ProcMask = core.ProcMaskEmpty
@@ -22,20 +23,22 @@ func (warlock *Warlock) registerCurseOfElements() {
 
 	if warlock.Talents.AmplifyCurse {
 		// Amplify Curse's second effect is a flat SPELLMOD_EFFECT1 of -20 naming this curse. Scaling the
-		// parse by it prices only the first effect attached, the resistance: -75 becomes -95.
+		// parse by it prices only the first effect attached, the resistance: -75 becomes -95. The mask is
+		// shared with Curse of Exhaustion, and the tooltip names only Exhaustion.
+		// TODO: Confirm in game whether Curse of the Elements is amplified.
 		ampElements := spellData.AmplifyCurse.ByID(18288).EffectN(2)
 
 		// The same row, built the way the shared debuff is, with Amplify Curse's -20 parsed onto it.
 		warlock.CurseOfElementsAmpAuras = warlock.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
 			aura := target.GetOrRegisterAura(core.Aura{
-				Label:    "Curse of the Elements (Amplified)",
+				Label:    rankedSpell.RankedLabel(&warlock.Unit) + " (Amplified)",
 				Tag:      buffs.CurseOfElementsCategory,
 				ActionID: core.ActionID{SpellID: rankedSpell.ID, Tag: 1},
 				Duration: rankedSpell.Duration(),
 			})
 			opts := append(spelldata.RaidBuffOptions(nil, false),
 				spelldata.ScaledBy(ampElements),
-				spelldata.Exclusive(buffs.CurseOfElementsCategory, true))
+				spelldata.Exclusive(buffs.CurseOfElementsCategory, false))
 			spelldata.ParseEffects(nil, aura, rankedSpell, opts...)
 			return aura
 		})

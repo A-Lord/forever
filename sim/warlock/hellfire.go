@@ -3,16 +3,18 @@ package warlock
 import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/spelldata"
+	"github.com/wowsims/forever/sim/core/stats"
 )
 
 // A channel on the caster: each second it fires Hellfire Effect at every enemy nearby, and burns the caster
-// for the same. An area effect that ticks rolls hit on every tick; Hellfire Effect's row bars it from critting.
+// for the same, spell power included. An area effect that ticks rolls hit on every tick, and crit unless
+// Hellfire Effect's row bars it.
 func (warlock *Warlock) registerHellfire() {
 	rankedSpell := spellData.Hellfire.ByID(11684)
 	channelTick := rankedSpell.PeriodicEffect()
 	selfBurn := rankedSpell.EffectN(2)
 
-	effectRow := spellData.HellfireEffect.ByID(11682)
+	effectRow := rankedSpell.EffectN(1).Trigger()
 	effectHit := effectRow.DamageEffect()
 	cannotCrit := effectRow.CannotCrit()
 
@@ -38,7 +40,8 @@ func (warlock *Warlock) registerHellfire() {
 	config.Dot.SelfOnly = true
 	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
 		hellfireEffect.Cast(sim, target)
-		warlock.RemoveHealth(sim, selfBurn.Average())
+		spellPower := warlock.GetStat(stats.SpellDamage) + warlock.GetStat(stats.FireDamage)
+		warlock.RemoveHealth(sim, selfBurn.Average()+selfBurn.Coeff()*spellPower)
 	}
 
 	// Channel on the caster

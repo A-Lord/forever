@@ -76,14 +76,10 @@ type Warlock struct {
 	// Armors
 	DemonArmor *core.Aura
 
-	serviceTimer *core.Timer
+	SoulShardsAura *core.Aura // the Soul Shards left this iteration, as its stacks
 
 	petActiveAuras  []*core.Aura // the warlock's effects that last while a demon is out
 	lifeTapPetShare float64      // Demonic Energies: the share of Life Tap's mana the demon gains
-
-	CorruptionTickBaseDamage float64
-	ImmolateTickBaseDamage   float64
-	T5_4PC_Multiplier        map[int32]map[*core.Spell]float64
 }
 
 func (warlock *Warlock) GetCharacter() *core.Character {
@@ -131,6 +127,7 @@ func (warlock *Warlock) Initialize() {
 	warlock.registerSearingPain()
 
 	warlock.registerSoulfire()
+	warlock.registerSoulShards()
 	shared.RegisterShoot(&warlock.Character)
 
 	warlock.registerArmors()
@@ -143,7 +140,9 @@ func (warlock *Warlock) AddRaidBuffs(raidBuffs *proto.RaidBuffs) {
 }
 
 func (warlock *Warlock) AddPartyBuffs(partyBuffs *proto.PartyBuffs) {
-
+	if warlock.Options.Summon == proto.WarlockOptions_Imp {
+		partyBuffs.BloodPact = true
+	}
 }
 
 func (warlock *Warlock) Reset(sim *core.Simulation) {
@@ -163,7 +162,6 @@ func NewWarlock(character *core.Character, options *proto.Player, warlockOptions
 	warlock.resolveSacrifice()
 
 	if raid.Debuffs != nil {
-		// Matches GetAssignedCurse: anything but Recklessness is Elements.
 		if warlock.Options.CurseOptions == proto.WarlockOptions_Recklessness {
 			raid.Debuffs.CurseOfRecklessness = false
 		} else {
@@ -177,23 +175,15 @@ func NewWarlock(character *core.Character, options *proto.Player, warlockOptions
 
 	warlock.registerPets()
 
-	warlock.T5_4PC_Multiplier = make(map[int32]map[*core.Spell]float64)
-
 	return warlock
 }
 
 // Settles which demon is sacrificed and which is out, once, so everything after reads them as settled:
-//   - Older settings name no sacrificed demon but set sacrifice_summon: the summoned demon is sacrificed.
 //   - Without Demonic Sacrifice, nothing is sacrificed.
 //   - Without Demonic Pact, summoning any demon cancels the effect, so no demon is out.
 //   - With it, the demon out may be another; resummoning the sacrificed one still cancels the effect.
 func (warlock *Warlock) resolveSacrifice() {
 	options := warlock.Options
-	if options.SacrificedDemon == proto.WarlockOptions_NoSummon && options.SacrificeSummon {
-		options.SacrificedDemon, options.Summon = options.Summon, proto.WarlockOptions_NoSummon
-	}
-	options.SacrificeSummon = false
-
 	switch {
 	case !warlock.Talents.DemonicSacrifice:
 		options.SacrificedDemon = proto.WarlockOptions_NoSummon
@@ -302,7 +292,6 @@ const (
 	WarlockSpellConflagrate int64 = 1 << iota
 	WarlockSpellShadowBolt
 	WarlockSpellImmolate
-	WarlockSpellImmolateDot
 	WarlockSpellIncinerate
 	WarlockSpellSoulFire
 	WarlockSpellShadowBurn
@@ -313,27 +302,13 @@ const (
 	WarlockSpellBaneOfDoom
 	WarlockSpellDrainLife
 	WarlockSpellHellfire
-	WarlockSpellImmolationAura
 	WarlockSpellSearingPain
-	WarlockSpellSummonDoomguard
-	WarlockSpellDoomguardDoomBolt
-	WarlockSpellSummonImp
 	WarlockSpellImpFireBolt
-	WarlockSpellSummonFelhunter
-	WarlockSpellFelHunterShadowBite
-	WarlockSpellSummonSuccubus
 	WarlockSpellSuccubusLashOfPain
-	WarlockSpellVoidwalkerTorment
-	WarlockSpellSummonInfernal
 	WarlockSpellRainOfFire
 	WarlockSpellCurseOfRecklessness
-	WarlockSpellCurseOfWeakness
 	WarlockSpellSiphonLife
 	WarlockSpellWrack
 	WarlockSpellDrainSoul
 	WarlockSpellDeathCoil
-	WarlockSpellAll int64 = 1<<iota - 1
 )
-
-// Called to handle custom resources
-type WarlockSpellCastedCallback func(resultList core.SpellResultSlice, spell *core.Spell, sim *core.Simulation)

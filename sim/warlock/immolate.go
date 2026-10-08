@@ -14,9 +14,6 @@ func (warlock *Warlock) registerImmolate() {
 	immolateHit := rankedSpell.DamageEffect()
 	immolateTick := rankedSpell.PeriodicEffect()
 
-	// TODO: Only read by the TBC set bonuses in items.go; drop with them.
-	warlock.ImmolateTickBaseDamage = immolateTick.Average()
-
 	config := spelldata.SpellConfig(&warlock.Unit, rankedSpell, spelldata.Magic(core.ProcMaskSpellDamage))
 	config.ClassSpellMask = WarlockSpellImmolate
 

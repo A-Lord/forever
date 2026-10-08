@@ -16,15 +16,24 @@ func (warlock *Warlock) registerIncinerate() {
 	config.ClassSpellMask = WarlockSpellIncinerate
 
 	// Roll the damage and to hit, raised if any Immolate burns on the target, then land it after travel
+	// TODO: Confirm in game that the 25% raises the whole hit, spell power included.
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		baseDamage := incinerateHit.Average()
+		result := spell.CalcDamage(sim, target, incinerateHit.Average(), spell.OutcomeMagicHitAndCrit)
 		if target.HasActiveAuraWithTag(immolateTag) {
-			baseDamage *= immolateMult
+			scaleResult(sim, spell, result, immolateMult)
 		}
-		result := spell.CalcDamage(sim, target, baseDamage, spell.OutcomeMagicHitAndCrit)
 		spell.WaitTravelTime(sim, func(sim *core.Simulation) {
 			spell.DealDamage(sim, result)
 		})
+	}
+
+	// Calculate expected damage from the row's average hit, raised if any Immolate burns on the target
+	config.ExpectedInitialDamage = func(sim *core.Simulation, target *core.Unit, spell *core.Spell, _ bool) *core.SpellResult {
+		result := spell.CalcDamage(sim, target, incinerateHit.Average(), spell.OutcomeExpectedMagicHitAndCrit)
+		if target.HasActiveAuraWithTag(immolateTag) {
+			scaleResult(sim, spell, result, immolateMult)
+		}
+		return result
 	}
 
 	warlock.Incinerate = warlock.RegisterSpell(config)

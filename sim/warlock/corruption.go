@@ -9,9 +9,6 @@ func (warlock *Warlock) registerCorruption() {
 	rankedSpell := spellData.Corruption.ByID(25311)
 	corruptionTick := rankedSpell.PeriodicEffect()
 
-	// TODO: Only read by the TBC set bonuses in items.go; drop with them.
-	warlock.CorruptionTickBaseDamage = corruptionTick.Average()
-
 	config := spelldata.SpellConfig(&warlock.Unit, rankedSpell, spelldata.Magic(core.ProcMaskSpellDamage))
 	config.ClassSpellMask = WarlockSpellCorruption
 
