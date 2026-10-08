@@ -267,7 +267,7 @@ export class Player<SpecType extends Spec> {
 	readonly hiddenMCDs: Array<number>;
 
 	private itemEPCache = new Array<Map<string, number>>();
-	private randomSuffixEPCache = new Map<number, number>();
+	private randomSuffixEPCache = new Map<string, number>();
 	private enchantEPCache = new Map<number, number>();
 	// The potions and conjured items getConsumes(true) lists, by the spec, class, race and
 	// professions they were worked out for.
@@ -512,9 +512,10 @@ export class Player<SpecType extends Spec> {
 
 	// Returns all random suffixes that this player would be interested in for the given base item.
 	getRandomSuffixes(item: Item): Array<ItemRandomSuffix> {
+		const randPropPoints = item.scalingOptions[0]?.randPropPoints ?? item.randPropPoints;
 		return item.randomSuffixOptions
 			.map(id => this.sim.db.getRandomSuffixById(id))
-			.filter((suffix): suffix is ItemRandomSuffix => !!suffix && this.computeRandomSuffixEP(suffix) > 0);
+			.filter((suffix): suffix is ItemRandomSuffix => !!suffix && this.computeRandomSuffixEP(suffix, randPropPoints) > 0);
 	}
 
 	// Returns all enchants that this player can wear in the given slot.
@@ -1190,13 +1191,16 @@ export class Player<SpecType extends Spec> {
 		return isEnchantRelevantFor(enchant, this.getSpecConfig());
 	}
 
-	computeRandomSuffixEP(randomSuffix: ItemRandomSuffix): number {
-		if (this.randomSuffixEPCache.has(randomSuffix.id)) {
-			return this.randomSuffixEPCache.get(randomSuffix.id)!;
+	// The suffix's stats are allocations per 10000 of the item's random property points, rounded per stat
+	// the way they equip; its pseudo stats are flat.
+	computeRandomSuffixEP(randomSuffix: ItemRandomSuffix, randPropPoints: number): number {
+		const key = `${randomSuffix.id}:${randPropPoints}`;
+		let ep = this.randomSuffixEPCache.get(key);
+		if (ep === undefined) {
+			const stats = randomSuffix.stats.map(allocation => Math.round((allocation * randPropPoints) / 10000));
+			ep = this.computeStatsEP(new Stats(stats, randomSuffix.pseudoStats));
+			this.randomSuffixEPCache.set(key, ep);
 		}
-
-		const ep = this.computeStatsEP(new Stats(randomSuffix.stats));
-		this.randomSuffixEPCache.set(randomSuffix.id, ep);
 		return ep;
 	}
 
@@ -1215,8 +1219,12 @@ export class Player<SpecType extends Spec> {
 		// For random suffix items, use the suffix option with the highest EP for the purposes of ranking items in the picker.
 		let maxSuffixEP = 0;
 		if (item.randomSuffixOptions.length) {
-			const suffixEPs = equippedItem.item.randomSuffixOptions.map(id => this.computeRandomSuffixEP(this.sim.db.getRandomSuffixById(id)! || 0));
-			maxSuffixEP = (Math.max(...suffixEPs) * equippedItem.item.randPropPoints) / 10000;
+			const { randomSuffixOptions, randPropPoints } = equippedItem.item;
+			const suffixEPs = randomSuffixOptions.map(id => {
+				const suffix = this.sim.db.getRandomSuffixById(id);
+				return suffix ? this.computeRandomSuffixEP(suffix, randPropPoints) : 0;
+			});
+			maxSuffixEP = Math.max(...suffixEPs);
 		}
 
 		let ep = itemStats.computeEP(this.getEpWeights()) + maxSuffixEP;
