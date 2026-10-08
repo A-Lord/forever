@@ -42,38 +42,39 @@ export const Level60Encounter = {
 // is worth more than one agility. Dodge and defense cost damage: fewer hits taken is less rage.
 export const Level60DpsEp = Stats.fromMap(
 	{
-		[Stat.StatStrength]: 2.2833,
+		[Stat.StatStrength]: 2.0751,
 		[Stat.StatAgility]: 1,
-		[Stat.StatStamina]: 0.1094,
-		[Stat.StatAttackPower]: 1.0379,
-		[Stat.StatFeralAttackPower]: 0,
-		[Stat.StatArmor]: 0.0325,
-		[Stat.StatBonusArmor]: 0.006,
-		[Stat.StatDodgeRating]: -0.3,
-		[Stat.StatDefenseRating]: -0.197,
-		[Stat.StatHitRating]: 4.2963,
-		[Stat.StatCritRating]: 1.5314,
-		[Stat.StatHasteRating]: 0.6891,
-		[Stat.StatExpertiseRating]: 8.1496,
-		[Stat.StatPhysicalDamage]: 6.7094,
-		[Stat.StatArmorPenetration]: 0.3958,
+		[Stat.StatStamina]: 0.1044,
+		[Stat.StatAttackPower]: 0.9432,
+		[Stat.StatFeralAttackPower]: 0.9432,
+		[Stat.StatArmor]: 0.0276,
+		[Stat.StatBonusArmor]: 0.0066,
+		[Stat.StatDodgeRating]: -0.1384,
+		[Stat.StatDefenseRating]: -0.0159,
+		[Stat.StatHitRating]: 3.9008,
+		[Stat.StatCritRating]: 1.4031,
+		[Stat.StatHasteRating]: 0.6615,
+		[Stat.StatExpertiseRating]: 7.3663,
+		[Stat.StatPhysicalDamage]: 6.1037,
+		[Stat.StatArmorPenetration]: 0.3603,
 	},
 	{
-		[PseudoStat.PseudoStatMainHandDps]: 14.5303,
+		[PseudoStat.PseudoStatMainHandDps]: 13.2052,
 	},
 );
 
-// Survival is TMI with stamina as 1, as the EP dialog scales it for the bear. Hit, crit, haste and
-// physical damage moved TMI by no more than about twice their noise, so they are 0. Expertise is
+// Survival is TMI with stamina as 1, as the EP dialog scales it for the bear. Hit, haste and
+// physical damage are within twice their estimated sampling noise, so they are 0. Expertise is
 // kept: fewer parries mean fewer parry-hasted boss swings.
 export const Level60SurvivalEp = Stats.fromMap({
 	[Stat.StatStamina]: 1,
-	[Stat.StatAgility]: 0.1909,
-	[Stat.StatArmor]: 0.1661,
-	[Stat.StatBonusArmor]: 0.0365,
-	[Stat.StatDodgeRating]: 0.1509,
-	[Stat.StatDefenseRating]: 0.506,
-	[Stat.StatExpertiseRating]: 0.2922,
+	[Stat.StatAgility]: 0.186,
+	[Stat.StatArmor]: 0.1643,
+	[Stat.StatBonusArmor]: 0.0363,
+	[Stat.StatDodgeRating]: 0.1385,
+	[Stat.StatDefenseRating]: 0.8278,
+	[Stat.StatCritRating]: -0.0016,
+	[Stat.StatExpertiseRating]: 0.3003,
 });
 
 export const Level60DpsEpWeights = PresetUtils.makePresetEpWeights('Level 60 DPS', Level60DpsEp);

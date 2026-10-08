@@ -5,12 +5,15 @@ package feralbear
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"testing"
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/stats"
+	"google.golang.org/protobuf/encoding/protojson"
+	gproto "google.golang.org/protobuf/proto"
 )
 
 // Prints DPS and survival EP for the default bear: Level 60 gear, the APL preset, the UI's
@@ -46,7 +49,7 @@ func TestDefaultEp(t *testing.T) {
 		proto.Stat_StatPhysicalDamage,
 		proto.Stat_StatArmorPenetration,
 	}
-	result := core.StatWeights(&proto.StatWeightsRequest{
+	request := &proto.StatWeightsRequest{
 		Player:             base.Raid.Parties[0].Players[0],
 		RaidBuffs:          base.Raid.Buffs,
 		PartyBuffs:         base.Raid.Parties[0].Buffs,
@@ -57,10 +60,52 @@ func TestDefaultEp(t *testing.T) {
 		StatsToWeigh:       weigh,
 		PseudoStatsToWeigh: []proto.PseudoStat{proto.PseudoStat_PseudoStatMainHandDps},
 		EpReferenceStat:    proto.Stat_StatAgility,
-	})
+	}
+	outputDir := os.Getenv("EP_SWEEP_OUTPUT")
+	save := func(name string, data []byte) {
+		t.Helper()
+		if outputDir == "" {
+			return
+		}
+		if err := os.MkdirAll(outputDir, 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(outputDir, name), data, 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	encode := func(message gproto.Message) []byte {
+		t.Helper()
+		data, err := (protojson.MarshalOptions{Indent: "  "}).Marshal(message)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return data
+	}
+	save("request.json", encode(request))
+	progress := make(chan *proto.ProgressMetrics, 100)
+	core.StatWeightsAsync(request, progress, t.Name())
+	var result *proto.StatWeightsResult
+	var last *proto.ProgressMetrics
+	for metrics := range progress {
+		if metrics.FinalWeightResult != nil {
+			result = metrics.FinalWeightResult
+			break
+		}
+		if last == nil || metrics.CompletedSims != last.CompletedSims {
+			fmt.Printf("EP progress: %d/%d subruns, %d/%d iterations\n", metrics.CompletedSims, metrics.TotalSims, metrics.CompletedIterations, metrics.TotalIterations)
+		}
+		last = metrics
+	}
 	if result.Error != nil {
 		t.Fatal(result.Error.Message)
 	}
+	if last == nil || last.CompletedIterations != last.TotalIterations {
+		t.Fatal("EP iterations did not complete")
+	}
+	save("result.json", encode(result))
+	save("progress-before-final-result.json", encode(last))
+	fmt.Printf("EP completed: %d iterations across %d subruns; final weights received\n", last.CompletedIterations, last.TotalSims)
 	dpsRef := result.Dps.Weights.Stats[proto.Stat_StatAgility]
 	tmiRef := result.Tmi.Weights.Stats[proto.Stat_StatStamina]
 	deathRef := result.PDeath.Weights.Stats[proto.Stat_StatStamina]
