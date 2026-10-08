@@ -71,8 +71,9 @@ func init() {
 	// reducing your own movement speed by 80%.
 	//
 	// The game files state no rate for Bladestorm; the item's chance-on-hit entry carries it. The row
-	// is a channel, which the sim applies as a 9 s aura on the wearer that leaves the wearer free to
-	// act. Each tick casts 9633, a main-hand strike at every enemy.
+	// is a channel: it cuts off a cast in progress, and for its 9 s the wearer swings no auto attack
+	// and casts nothing. Each tick casts 9633, a main-hand strike at every enemy, which rolls the other
+	// weapon procs but not Bladestorm.
 	core.NewItemEffect(7717, func(agent core.Agent) {
 		character := agent.GetCharacter()
 
@@ -90,14 +91,17 @@ func init() {
 
 		row := spelldata.MustFind(9632)
 		config := procSpellConfig(character, row)
-		config.Flags &^= core.SpellFlagChanneled
 		config.Dot = spelldata.DotConfig(row, row.EffectN(1), spelldata.Label("Ravager Bladestorm"))
 		config.Dot.SelfOnly = true
 		config.Dot.OnTick = func(sim *core.Simulation, _ *core.Unit, _ *core.Dot) {
 			strike.Cast(sim, character.CurrentTarget)
 		}
 		config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
-			spell.AOEDot().Apply(sim)
+			character.Interrupt(sim)
+			channel := spell.AOEDot()
+			channel.Apply(sim)
+			character.AutoAttacks.PauseMeleeBy(sim, channel.Duration)
+			character.AutoAttacks.DelayRangedUntil(sim, sim.CurrentTime+channel.Duration)
 		}
 		bladestorm := character.RegisterSpell(config)
 
@@ -110,6 +114,9 @@ func init() {
 		})
 		trigger.Name = "Ravager"
 		trigger.ActionID = core.ActionID{ItemID: 7717}
+		trigger.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
+			return spell != strike
+		}
 		trigger.TriggerImmediately = true
 		character.ItemSwap.RegisterProc(7717, character.MakeProcTriggerAura(trigger))
 	})
@@ -156,6 +163,156 @@ func init() {
 		trigger.TriggerImmediately = true
 		character.ItemSwap.RegisterProc(2243, character.MakeProcTriggerAura(trigger))
 	})
+
+	// Heartseeking Crossbow
+	// https://www.wowhead.com/forever/item=13040/heartseeking-crossbow
+	//
+	// Chance to strike your ranged target with a Shadowbolt for 13 to 19 Shadow damage.
+	//
+	// The game files state no rate for 29626; the item's entry carries it, measured on the
+	// crossbow's speed.
+	core.NewItemEffect(13040, func(agent core.Agent) {
+		character := agent.GetCharacter()
+		row := spelldata.MustFind(29640)
+		damage := row.DamageEffect()
+
+		config := procSpellConfig(character, row)
+		config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+			spell.CalcAndDealDamage(sim, target, damage.DirectAmount(sim), spell.OutcomeRangedHitAndCrit)
+		}
+		shadowbolt := character.RegisterSpell(config)
+
+		ppm := weaponProcPPM(13040, row.ID)
+		trigger := spelldata.ProcTrigger(character, spelldata.MustFind(29626), func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
+			shadowbolt.Cast(sim, result.Target)
+		}, spelldata.PPM(ppm))
+		trigger.Name = "Heartseeking Crossbow"
+		trigger.ActionID = core.ActionID{ItemID: 13040}
+		trigger.TriggerImmediately = true
+		character.ItemSwap.RegisterProc(13040, character.MakeProcTriggerAura(trigger))
+	})
+
+	// White Obsidian Wand
+	// https://www.wowhead.com/forever/item=274425/white-obsidian-wand
+	//
+	// Chance on hit to reduce the mana cost of your next spell cast within 10s by 24.
+	//
+	// TODO: waiting for PPM data
+	//
+	// 1294058 lowers the cost of a spell of the schools its mask names, and the next such spell
+	// with a cost spends its one charge.
+	// core.NewItemEffect(274425, func(agent core.Agent) {
+	// 	character := agent.GetCharacter()
+	// 	if !character.HasManaBar() {
+	// 		return
+	// 	}
+	// 	row := spelldata.MustFind(1294058)
+	// 	effect := row.FirstAura(dbcenums.A_MOD_POWER_COST_SCHOOL)
+	// 	school := core.SpellSchool(effect.Misc)
+	//
+	// 	cheaper := character.AddDynamicMod(core.SpellModConfig{
+	// 		Kind:     core.SpellMod_PowerCost_Flat,
+	// 		School:   school,
+	// 		IntValue: int32(effect.Average()),
+	// 	})
+	// 	config := spelldata.AuraConfig(row, spelldata.Label("White Obsidian Wand"))
+	// 	config.OnGain = func(_ *core.Aura, _ *core.Simulation) {
+	// 		cheaper.Activate()
+	// 	}
+	// 	config.OnExpire = func(_ *core.Aura, _ *core.Simulation) {
+	// 		cheaper.Deactivate()
+	// 	}
+	// 	config.OnCastComplete = func(aura *core.Aura, sim *core.Simulation, spell *core.Spell) {
+	// 		if spell.Cost != nil && spell.SpellSchool.Matches(school) {
+	// 			aura.Deactivate(sim)
+	// 		}
+	// 	}
+	// 	whiteObsidian := character.RegisterAura(config)
+	//
+	// 	ppm := weaponProcPPM(274425, row.ID)
+	// 	trigger := spelldata.ProcTrigger(character, spelldata.MustFind(1294055), func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
+	// 		whiteObsidian.Activate(sim)
+	// 	}, spelldata.PPM(ppm))
+	// 	trigger.Name = "White Obsidian Wand"
+	// 	trigger.ActionID = core.ActionID{ItemID: 274425}
+	// 	trigger.TriggerImmediately = true
+	// 	character.ItemSwap.RegisterProc(274425, character.MakeProcTriggerAura(trigger))
+	// })
+
+	// Rot-Covered Harpoon
+	// https://www.wowhead.com/forever/item=274963/rot-covered-harpoon
+	//
+	// Chance on hit: Diseases target for 24 Nature damage every 1 sec for 7 sec. Deals 2 times as much
+	// damage to Aquatic enemies.
+	//
+	// TODO: waiting for PPM data
+	// TODO: The 2 times against Aquatic enemies needs the target's creature family, which the
+	// encounter's targets do not carry: Aquatic is no creature type.
+	// core.NewItemEffect(274963, func(agent core.Agent) {
+	// 	character := agent.GetCharacter()
+	// 	row := spelldata.MustFind(1295744)
+	//
+	// 	config := procSpellConfig(character, row)
+	// 	config.Dot = spelldata.DotConfig(row, row.PeriodicDamageEffect())
+	// 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+	// 		result := spell.CalcOutcome(sim, target, spell.OutcomeMagicHit)
+	// 		if result.Landed() {
+	// 			spell.Dot(target).Apply(sim)
+	// 		}
+	// 		spell.DealOutcome(sim, result)
+	// 	}
+	// 	rot := character.RegisterSpell(config)
+	//
+	// 	ppm := weaponProcPPM(274963, row.ID)
+	// 	trigger := spelldata.ProcTrigger(character, row, func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
+	// 		rot.Cast(sim, result.Target)
+	// 	}, spelldata.WeaponProc(), func(character *core.Character, trigger *core.ProcTrigger) {
+	// 		trigger.ProcChance = 0
+	// 		trigger.DPM = character.NewDynamicLegacyProcForWeapon(274963, ppm, 0)
+	// 	})
+	// 	trigger.Name = "Rot-Covered Harpoon"
+	// 	trigger.ActionID = core.ActionID{ItemID: 274963}
+	// 	trigger.TriggerImmediately = true
+	// 	character.ItemSwap.RegisterProc(274963, character.MakeProcTriggerAura(trigger))
+	// })
+
+	// Hammer of Expertise
+	// https://www.wowhead.com/forever/item=8708/hammer-of-expertise
+	//
+	// Chance on hit: Deal 112 Fire damage. Deals 3 times as much damage to Earth Elementals, Fire
+	// Elementals, and Mountain Giants.
+	//
+	// TODO: waiting for PPM data
+	// TODO: The 3 times against Earth Elementals, Fire Elementals and Mountain Giants needs the
+	// target's creature family, which the encounter's targets do not carry: each is one family of
+	// the Elemental or Giant creature type.
+	//
+	// 1317432 states Physical on the melee table; the tooltip's Fire is a spell hit.
+	// core.NewItemEffect(8708, func(agent core.Agent) {
+	// 	character := agent.GetCharacter()
+	// 	row := spelldata.MustFind(1317432)
+	// 	damage := row.DamageEffect()
+	//
+	// 	config := procSpellConfig(character, row)
+	// 	config.SpellSchool = core.SpellSchoolFire
+	// 	config.DefenseType = core.DefenseTypeMagic
+	// 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+	// 		spell.CalcAndDealDamage(sim, target, damage.DirectAmount(sim), spell.OutcomeMagicHitAndCrit)
+	// 	}
+	// 	forgingStrike := character.RegisterSpell(config)
+	//
+	// 	ppm := weaponProcPPM(8708, row.ID)
+	// 	trigger := spelldata.ProcTrigger(character, row, func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
+	// 		forgingStrike.Cast(sim, result.Target)
+	// 	}, spelldata.WeaponProc(), func(character *core.Character, trigger *core.ProcTrigger) {
+	// 		trigger.ProcChance = 0
+	// 		trigger.DPM = character.NewDynamicLegacyProcForWeapon(8708, ppm, 0)
+	// 	})
+	// 	trigger.Name = "Hammer of Expertise"
+	// 	trigger.ActionID = core.ActionID{ItemID: 8708}
+	// 	trigger.TriggerImmediately = true
+	// 	character.ItemSwap.RegisterProc(8708, character.MakeProcTriggerAura(trigger))
+	// })
 }
 
 // The procs per minute the item's chance-on-hit entry for the spell carries.

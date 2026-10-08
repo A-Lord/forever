@@ -236,6 +236,63 @@ func init() {
 		})
 	})
 
+	// Darkmoon Card: Heroism
+	// https://www.wowhead.com/forever/item=19287/darkmoon-card-heroism
+	//
+	// Sometimes heals bearer of 120 to 180 damage when damaging an enemy in melee.
+	core.NewItemEffect(19287, func(agent core.Agent) {
+		character := agent.GetCharacter()
+		row := spelldata.MustFind(23682)
+		heal := row.HealEffect()
+
+		config := spelldata.SpellConfig(&character.Unit, row, spelldata.Magic(core.ProcMaskSpellHealing), spelldata.Proc())
+		if row.IsAProc() {
+			config.Flags |= core.SpellFlagProc
+		}
+		// The row states no defense type; a heal crits for the magic multiplier.
+		config.DefenseType = core.DefenseTypeMagic
+		config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+			spell.CalcAndDealHealing(sim, target, heal.DirectAmount(sim), spell.OutcomeHealingCrit)
+		}
+		heroism := character.RegisterSpell(config)
+
+		trigger := spelldata.ProcTrigger(character, spelldata.MustFind(23689), func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
+			heroism.Cast(sim, &character.Unit)
+		}, spelldata.PPM(darkmoonCardHeroismPPM))
+		trigger.Name = "Darkmoon Card: Heroism"
+		trigger.ActionID = core.ActionID{ItemID: 19287}
+		trigger.TriggerImmediately = true
+		character.ItemSwap.RegisterProc(19287, character.MakeProcTriggerAura(trigger))
+	})
+
+	// Highborne Research Tablet
+	// https://www.wowhead.com/forever/item=260205/highborne-research-tablet
+	//
+	// Chance on hit to deal 69 to 81 Arcane damage. Deals 2 times as much damage to Naga and Satyrs.
+	//
+	// TODO: waiting for PPM data
+	// TODO: The 2 times against Naga and Satyrs needs the target's creature family, which the
+	// encounter's targets do not carry: Naga and Satyrs are no creature type of their own.
+	// core.NewItemEffect(260205, func(agent core.Agent) {
+	// 	character := agent.GetCharacter()
+	// 	row := spelldata.MustFind(1265634)
+	// 	damage := row.DamageEffect()
+	//
+	// 	config := procSpellConfig(character, row)
+	// 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+	// 		spell.CalcAndDealDamage(sim, target, damage.DirectAmount(sim), spell.OutcomeMagicHitAndCrit)
+	// 	}
+	// 	ancientPower := character.RegisterSpell(config)
+	//
+	// 	trigger := spelldata.ProcTrigger(character, spelldata.MustFind(1318159), func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
+	// 		ancientPower.Cast(sim, result.Target)
+	// 	}, spelldata.Chance(highborneResearchTabletChance))
+	// 	trigger.Name = "Highborne Research Tablet"
+	// 	trigger.ActionID = core.ActionID{ItemID: 260205}
+	// 	trigger.TriggerImmediately = true
+	// 	character.ItemSwap.RegisterProc(260205, character.MakeProcTriggerAura(trigger))
+	// })
+
 	// Dormant Heart of the Mountain
 	// https://www.wowhead.com/forever/item=249473/dormant-heart-of-the-mountain
 	//
@@ -263,6 +320,10 @@ func init() {
 			character.ItemSwap.EligibleSlotsForItem(249473))
 	})
 }
+
+// TODO: The game files state no rate for these procs, and none is measured on Forever.
+const darkmoonCardHeroismPPM = 2 // TODO: Vanilla value - verify in-game
+// const highborneResearchTabletChance = 0 // TODO: waiting for PPM data
 
 // The ranks of the four heals Dormant Heart of the Mountain answers.
 var eternalPowerHeals = []spelldata.Ladder{

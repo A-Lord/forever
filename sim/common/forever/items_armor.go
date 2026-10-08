@@ -24,12 +24,14 @@ func init() {
 		}
 		retribution := character.RegisterSpell(config)
 
-		// The row's ProcTypeMask hears melee and ranged hits taken; the block is the tooltip's.
+		// The row's ProcTypeMask hears melee and ranged hits taken; the block is the tooltip's. The
+		// row's 5 s RecoveryTime is the internal cooldown between two procs.
 		trigger := spelldata.ProcTrigger(character, row, func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) {
 			retribution.Cast(sim, spell.Unit)
 		})
 		trigger.Name = "Aegis of the Scarlet Commander"
 		trigger.ActionID = core.ActionID{ItemID: 7726}
+		trigger.ICD = row.Cooldown()
 		trigger.Outcome = core.OutcomeBlock
 		trigger.TriggerImmediately = true
 		character.ItemSwap.RegisterProc(7726, character.MakeProcTriggerAura(trigger))
@@ -127,6 +129,30 @@ func init() {
 		character.ItemSwap.RegisterProc(22196, character.MakeProcTriggerAura(trigger))
 	})
 
+	// Depleted Eye of Influence
+	// https://www.wowhead.com/forever/item=275630/depleted-eye-of-influence
+	//
+	// Chance on harmful spell cast to reduce target's attack power by 60 for 30s.
+	//
+	// TODO: waiting for PPM data
+	// core.NewItemEffect(275630, func(agent core.Agent) {
+	// 	character := agent.GetCharacter()
+	// 	row := spelldata.MustFind(1297082)
+	// 	debuffs := character.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
+	// 		aura := target.RegisterAura(spelldata.AuraConfig(row, spelldata.Label("Depleted Eye of Influence")))
+	// 		spelldata.ParseEffects(nil, aura, row)
+	// 		return aura
+	// 	})
+	//
+	// 	trigger := spelldata.ProcTrigger(character, spelldata.MustFind(1297085), func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
+	// 		debuffs.Get(character.CurrentTarget).Activate(sim)
+	// 	}, spelldata.Chance(depletedEyeOfInfluenceChance))
+	// 	trigger.Name = "Depleted Eye of Influence"
+	// 	trigger.ActionID = core.ActionID{ItemID: 275630}
+	// 	trigger.TriggerImmediately = true
+	// 	character.ItemSwap.RegisterProc(275630, character.MakeProcTriggerAura(trigger))
+	// })
+
 	// Demon Forged Breastplate
 	// https://www.wowhead.com/forever/item=12628/demon-forged-breastplate
 	//
@@ -162,6 +188,10 @@ func init() {
 		character.ItemSwap.RegisterProc(12628, character.MakeProcTriggerAura(trigger))
 	})
 }
+
+// TODO: The game files state no rate for Depleted Eye of Influence's 1297085, and none is measured on
+// Forever.
+// const depletedEyeOfInfluenceChance = 0 // TODO: waiting for PPM data
 
 // The spell an item proc casts, as its row states it: out of the rotation, no cast or cost of its
 // own, and a proc unless the row says it is not.

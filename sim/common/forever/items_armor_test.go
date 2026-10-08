@@ -21,8 +21,9 @@ func init() {
 	})
 }
 
-// A character wearing one item, against a level 60 target: the warrior stand-in, or with a paladin
-// the stand-in registered as the holy paladin, which has a mana bar.
+// A character wearing one item, against a level 60 target: the warrior stand-in, with a paladin the
+// stand-in registered as the holy paladin, which has a mana bar, or with a rogue the stand-in
+// registered as the rogue, which shoots its ranged weapon.
 func itemWearer(t *testing.T, class proto.Class, slot proto.ItemSlot, itemID int32) (*core.Simulation, *core.Character) {
 	t.Helper()
 	items := make([]*proto.ItemSpec, proto.ItemSlot_ItemSlotRanged+1)
@@ -37,9 +38,12 @@ func itemWearer(t *testing.T, class proto.Class, slot proto.ItemSlot, itemID int
 		Buffs:       &proto.IndividualBuffs{},
 		Rotation:    &proto.APLRotation{},
 	}
-	if class == proto.Class_ClassPaladin {
+	switch class {
+	case proto.Class_ClassPaladin:
 		core.WithSpec(player, &proto.Player_HolyPaladin{HolyPaladin: &proto.HolyPaladin{}})
-	} else {
+	case proto.Class_ClassRogue:
+		core.WithSpec(player, &proto.Player_Rogue{Rogue: &proto.Rogue{}})
+	default:
 		core.WithSpec(player, &proto.Player_DpsWarrior{DpsWarrior: &proto.DpsWarrior{}})
 	}
 	sim := core.NewSim(&proto.RaidSimRequest{
@@ -60,7 +64,8 @@ func damageInRange(metrics core.SpellMetrics, low, high float64) bool {
 }
 
 // Aegis of the Scarlet Commander 7726's 1293539 deals 14 Holy (13 to 15) to the attacker of a melee
-// hit the wearer blocks, every time and with no cooldown; a hit not blocked deals nothing.
+// hit the wearer blocks, at most once every 5 s (the row's RecoveryTime); a hit not blocked deals
+// nothing.
 func TestAegisOfTheScarletCommanderDealsHolyDamageOnBlock(t *testing.T) {
 	sim, character := itemWearer(t, proto.Class_ClassWarrior, proto.ItemSlot_ItemSlotOffHand, 7726)
 	character.AddStatsDynamic(sim, stats.Stats{stats.SpellHitPercent: 100})
@@ -79,14 +84,20 @@ func TestAegisOfTheScarletCommanderDealsHolyDamageOnBlock(t *testing.T) {
 		character.OnSpellHitTaken(sim, meleeSwing(enemy), &core.SpellResult{Target: &character.Unit, Outcome: core.OutcomeHit | core.OutcomeBlock, Damage: 50})
 		stepTo(t, sim, sim.CurrentTime+core.SpellBatchWindow)
 	}
+	firstBlock := sim.CurrentTime
 	block()
 	metrics := retribution.SpellMetrics[enemy.UnitIndex]
 	if metrics.Casts != 1 || !damageInRange(metrics, 13, 15) {
 		t.Errorf("a block cast the damage %d times for %v, want once for 13 to 15", metrics.Casts, metrics.TotalDamage)
 	}
 	block()
+	if got := retribution.SpellMetrics[enemy.UnitIndex].Casts; got != 1 {
+		t.Errorf("a second block at once cast the damage %d times in all, want once still", got)
+	}
+	stepTo(t, sim, firstBlock+5*time.Second)
+	block()
 	if got := retribution.SpellMetrics[enemy.UnitIndex].Casts; got != 2 {
-		t.Errorf("a second block at once cast the damage %d times in all, want 2", got)
+		t.Errorf("a block 5 s after the first cast the damage %d times in all, want 2", got)
 	}
 }
 

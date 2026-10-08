@@ -45,6 +45,11 @@ func init() {
 			})
 		}
 	})
+	testagent.Register(proto.Player_Rogue{}, proto.Spec_SpecRogue, func(player *proto.Player, spec any) {
+		player.Spec = spec.(*proto.Player_Rogue)
+	}, func(agent *testagent.Agent) {
+		agent.EnableAutoAttacks(agent, core.AutoAttackOptions{Ranged: agent.WeaponFromRanged(), AutoSwingRanged: true})
+	})
 }
 
 // A character swinging one weapon in the main hand against level 60 targets with no armor: the
@@ -142,11 +147,11 @@ func TestSulfurasCarriesItsDamageShieldAndFireball(t *testing.T) {
 }
 
 // Ravager 7717 procs Bladestorm 9632 at the 1 procs per minute of the item's chance-on-hit entry.
-// Bladestorm sits on the wearer for 9 s and every 3 s strikes each enemy with 9633: main-hand weapon
-// damage (104 to 157 and the attack power share) plus 5.
-func TestRavagerStrikesEveryEnemyThreeTimes(t *testing.T) {
+// Bladestorm is a 9 s channel on the wearer that cuts off a cast in progress and holds back the auto
+// attacks, and every 3 s strikes each enemy with 9633: main-hand weapon damage (104 to 157 and the
+// attack power share) plus 5. The strikes do not proc Bladestorm.
+func TestRavagerChannelsBladestormOverEveryEnemy(t *testing.T) {
 	sim, character := weaponWearer(t, proto.Class_ClassWarrior, 7717, 3)
-	character.AutoAttacks.CancelAutoSwing(sim)
 
 	proc := character.GetAura("Ravager")
 	if proc == nil || proc.Dpm == nil {
@@ -156,9 +161,8 @@ func TestRavagerStrikesEveryEnemyThreeTimes(t *testing.T) {
 	if got := proc.Dpm.Chance(core.ProcMaskMeleeMHAuto, sim); math.Abs(got-want) > 1e-9 {
 		t.Errorf("Bladestorm's chance on a main hand swing is %v, want %v", got, want)
 	}
-	// The strikes are main-hand specials that can proc Bladestorm again; with the listener off, the
-	// count is the one cast's.
-	proc.Deactivate(sim)
+	// Every melee hit that may proc Bladestorm now does.
+	*proc.Dpm = *character.NewFixedProcChanceManager(1, core.ProcMaskMelee)
 
 	targets := sim.Encounter.ActiveTargetUnits
 	for _, target := range targets {
@@ -170,6 +174,14 @@ func TestRavagerStrikesEveryEnemyThreeTimes(t *testing.T) {
 		t.Fatal("7717 registers no Bladestorm or no strike")
 	}
 	extra := 5 + strike.MeleeAttackPower(targets[0])*3.5/14
+	casts := func(spell *core.Spell) (total int32) {
+		for _, target := range targets {
+			total += spell.SpellMetrics[target.UnitIndex].Casts
+		}
+		return total
+	}
+	character.AutoAttacks.EnableAutoSwing(sim)
+	swings := casts(character.AutoAttacks.MHAuto())
 
 	start := sim.CurrentTime
 	bladestorm.Cast(sim, targets[0])
@@ -178,8 +190,21 @@ func TestRavagerStrikesEveryEnemyThreeTimes(t *testing.T) {
 		t.Errorf("Bladestorm ticks %d times every %v on %s, want 3 every 3s on the wearer",
 			dot.BaseTickCount, dot.BaseTickLength, dot.Unit.Label)
 	}
+	stepTo(t, sim, start+6*time.Second+time.Millisecond)
+	if !character.IsChanneling() {
+		t.Error("the wearer is not channeling Bladestorm after 6 s")
+	}
+	if got := casts(bladestorm); got != 1 {
+		t.Errorf("two rounds of strikes cast Bladestorm %d times in all, want once", got)
+	}
+	if got := casts(character.AutoAttacks.MHAuto()) - swings; got != 0 {
+		t.Errorf("the wearer swung %d times during Bladestorm, want none", got)
+	}
+	// The first swing after the channel would cast it again.
+	proc.Deactivate(sim)
+
 	stepTo(t, sim, start+9*time.Second+time.Millisecond)
-	if dot.IsActive() {
+	if dot.IsActive() || character.IsChanneling() {
 		t.Error("Bladestorm is still up after 9 s")
 	}
 
@@ -192,6 +217,43 @@ func TestRavagerStrikesEveryEnemyThreeTimes(t *testing.T) {
 		if low, high := float64(metrics.Hits)*(104+extra), float64(metrics.Hits)*(157+extra); hitDamage < low || hitDamage > high {
 			t.Errorf("%s took %v from %d strikes that hit, want %v to %v", target.Label, hitDamage, metrics.Hits, low, high)
 		}
+	}
+
+	sim, character = weaponWearer(t, proto.Class_ClassShaman, 7717, 1)
+	character.AutoAttacks.CancelAutoSwing(sim)
+	enemy := sim.Encounter.ActiveTargetUnits[0]
+	castTime := character.GetSpell(core.ActionID{SpellID: castTimeSpellID})
+	castTime.Cast(sim, enemy)
+	character.GetSpell(core.ActionID{SpellID: 9632}).Cast(sim, enemy)
+	stepTo(t, sim, sim.CurrentTime+2*time.Second+time.Millisecond)
+	if got := castTime.SpellMetrics[enemy.UnitIndex].Casts; got != 0 {
+		t.Errorf("the 2 s cast Bladestorm started on completed %d times, want none", got)
+	}
+}
+
+// Heartseeking Crossbow 13040's 29626 procs at the 3 procs per minute of the item's entry, on the
+// crossbow's 3.1 s speed, and strikes the target with Shadowbolt 29640 for 16 Shadow (13 to 19).
+func TestHeartseekingCrossbowStrikesWithAShadowbolt(t *testing.T) {
+	sim, character := itemWearer(t, proto.Class_ClassRogue, proto.ItemSlot_ItemSlotRanged, 13040)
+	enemy := sim.Encounter.ActiveTargetUnits[0]
+	proc := character.GetAura("Heartseeking Crossbow")
+	shadowbolt := character.GetSpell(core.ActionID{SpellID: 29640})
+	if proc == nil || proc.Dpm == nil || shadowbolt == nil {
+		t.Fatal("13040 registers no Shadowbolt or no proc on a procs per minute rate")
+	}
+	if got, want := proc.Dpm.Chance(core.ProcMaskRangedAuto, sim), 3*3.1/60; math.Abs(got-want) > 1e-9 {
+		t.Errorf("the Shadowbolt's chance on a ranged shot is %v, want %v", got, want)
+	}
+	// Every ranged hit now procs it.
+	*proc.Dpm = *character.NewFixedProcChanceManager(1, core.ProcMaskRanged)
+
+	shot := &core.Spell{ProcMask: core.ProcMaskRangedAuto, SpellSchool: core.SpellSchoolPhysical, Unit: &character.Unit}
+	dealHit(t, sim, character, shot)
+	metrics := shadowbolt.SpellMetrics[enemy.UnitIndex]
+	hitDamage := metrics.TotalDamage - metrics.TotalCritDamage
+	if metrics.Casts != 1 || hitDamage < 13*float64(metrics.Hits) || hitDamage > 19*float64(metrics.Hits) {
+		t.Errorf("a ranged hit cast the Shadowbolt %d times for %v from %d hits, want once for 13 to 19 a hit",
+			metrics.Casts, hitDamage, metrics.Hits)
 	}
 }
 

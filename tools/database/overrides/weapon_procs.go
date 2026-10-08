@@ -446,6 +446,13 @@ var WeaponProcs = []WeaponProc{
 		Source:  "vanilla-carryover",
 	},
 	{
+		ItemID:  13040,
+		SpellID: 29626,
+		PPM:     3, // TODO: Vanilla value - verify in-game
+		Reason:  "Heartseeking Crossbow: equip trigger, column reads 100; one emulator database uses 3.0",
+		Source:  "vanilla-carryover",
+	},
+	{
 		ItemID:  15814,
 		SpellID: 16406,
 		PPM:     1, // TODO: Vanilla value - verify in-game
@@ -584,6 +591,13 @@ var WeaponProcs = []WeaponProc{
 	// 	SpellID: 16784,
 	// 	PPM:     0, // TODO: waiting for PPM data
 	// 	Reason:  "Darkblade: column reads 101",
+	// 	Source:  "vanilla-carryover",
+	// },
+	// {
+	// 	ItemID:  274425,
+	// 	SpellID: 1294055,
+	// 	PPM:     0, // TODO: waiting for PPM data
+	// 	Reason:  "White Obsidian Wand: equip trigger, column reads 100",
 	// 	Source:  "vanilla-carryover",
 	// },
 	// {

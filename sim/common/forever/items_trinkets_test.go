@@ -289,6 +289,38 @@ func TestEverlookDeliveryBotDeliversAfterItsCount(t *testing.T) {
 	}
 }
 
+// Darkmoon Card: Heroism 19287's 23689 procs at 2 procs per minute on the wearer's melee hits, and
+// not on its spells, and heals the wearer through 23682 for 150 (120 to 180).
+func TestDarkmoonCardHeroismHealsOnMeleeHits(t *testing.T) {
+	sim, character := itemWearer(t, proto.Class_ClassWarrior, proto.ItemSlot_ItemSlotTrinket1, 19287)
+	proc := character.GetAura("Darkmoon Card: Heroism")
+	heal := character.GetSpell(core.ActionID{SpellID: 23682})
+	if proc == nil || proc.Dpm == nil || heal == nil {
+		t.Fatal("19287 registers no heal or no proc on a procs per minute rate")
+	}
+	want := 2 * character.AutoAttacks.MH().SwingSpeed / 60
+	if got := proc.Dpm.Chance(core.ProcMaskMeleeMHAuto, sim); want == 0 || math.Abs(got-want) > 1e-9 {
+		t.Errorf("the heal's chance on a main hand swing is %v, want %v", got, want)
+	}
+	// Every melee hit now procs it.
+	*proc.Dpm = *character.NewFixedProcChanceManager(1, core.ProcMaskMelee)
+	character.RemoveHealth(sim, character.MaxHealth()/2)
+
+	dealHit(t, sim, character, fireSpell(&character.Unit))
+	if got := heal.SpellMetrics[character.UnitIndex].Casts; got != 0 {
+		t.Errorf("a spell hit healed %d times, want none", got)
+	}
+	dealHit(t, sim, character, meleeSwing(&character.Unit))
+	metrics := heal.SpellMetrics[character.UnitIndex]
+	low, high := 120.0, 180.0
+	if metrics.Crits > 0 {
+		low, high = low*1.5, high*1.5
+	}
+	if metrics.Casts != 1 || metrics.TotalHealing < low || metrics.TotalHealing > high {
+		t.Errorf("a melee hit healed %d times for %v, want once for %v to %v", metrics.Casts, metrics.TotalHealing, low, high)
+	}
+}
+
 // Dormant Heart of the Mountain 249473's 1249118 answers a heal of any rank of Greater Heal, Healing
 // Touch, Healing Wave or Holy Light with 1249119: 40 healing power and 13 spell damage for 15 s.
 // Another heal, such as Flash of Light, does not.
