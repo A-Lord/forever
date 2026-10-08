@@ -17,7 +17,9 @@
   },
   "partyBuffs": {
     "battleShout": "TristateEffectRegular",
-    "leaderOfThePack": true
+    "leaderOfThePack": true,
+    "strengthOfEarthTotem": true,
+    "windfuryTotem": true
   },
   "player": {
     "apiVersion": 2,
@@ -26,35 +28,34 @@
     "class": "ClassShaman",
     "equipment": {
       "items": [
-        {"id":22005},
+        {"id":252605,"enchant":2543},
         {"id":22150},
-        {"id":272105},
-        {"id":272414},
-        {"id":252484},
-        {"id":19587},
-        {"id":19049},
-        {"id":19044},
-        {"id":22673},
-        {"id":16711},
-        {"id":275981},
-        {"id":272408},
-        {"id":19120},
+        {"id":275737},
+        {"id":272411,"enchant":7667},
+        {"id":252483,"enchant":1891},
+        {"id":279256,"enchant":1885},
+        {"id":21278,"enchant":8207},
+        {"id":20216},
+        {"id":252486,"enchant":2543},
+        {"id":22096,"enchant":1887},
+        {"id":284716},
+        {"id":272406},
+        {"id":272437},
         {"id":249469},
-        {"id":12784},
+        {"id":279260,"enchant":1900},
         {},
-        {}
+        {"id":23199}
       ]
     },
     "consumables": {
-      "potId": 250943,
-      "flaskId": 274274,
+      "potId": 23578,
+      "flaskId": 13512,
+      "foodId": 20452,
       "conjuredId": 12662,
-      "explosiveId": 18588,
+      "explosiveId": 260817,
       "mhImbueId": 18262,
       "extraIds": [
-        10646,
-        10309,
-        10310
+        10646
       ],
       "elixirIds": [
         250337,
@@ -62,7 +63,9 @@
         250341,
         250343,
         13454,
-        12820
+        12820,
+        250328,
+        250350
       ]
     },
     "bonusStats": {
@@ -82,25 +85,32 @@
         }
       }
     },
-    "talentsString": "0505331-055030031005112251",
+    "talentsString": "050533102-053030031005112251",
     "profession1": "Engineering",
     "profession2": "Leatherworking",
     "cooldowns": {
     },
     "rotation": {
       "type": "TypeAPL",
+      "prepullActions": [
+        {"action":{"castSpell":{"spellId":{"spellId":25359}}},"doAtValue":{"const":{"val":"-8s"}}},
+        {"action":{"castSpell":{"spellId":{"spellId":16387}}},"doAtValue":{"const":{"val":"-7s"}}},
+        {"action":{"castSpell":{"spellId":{"spellId":25361}}},"doAtValue":{"const":{"val":"-6s"}}},
+        {"action":{"castSpell":{"spellId":{"spellId":10497}}},"doAtValue":{"const":{"val":"-5s"}}}
+      ],
       "priorityList": [
         {"action":{"autocastOtherCooldowns":{}}},
         {"action":{"castSpell":{"spellId":{"otherId":"OtherActionPotion"}}}},
-        {"action":{"condition":{"cmp":{"op":"OpLe","lhs":{"totemRemainingTime":{"totemType":"Air"}},"rhs":{"const":{"val":"0s"}}}},"castSpell":{"spellId":{"spellId":10614}}}},
+        {"action":{"condition":{"cmp":{"op":"OpLe","lhs":{"totemRemainingTime":{"totemType":"Air"}},"rhs":{"const":{"val":"0s"}}}},"castSpell":{"spellId":{"spellId":25359}}}},
         {"action":{"condition":{"cmp":{"op":"OpLe","lhs":{"totemRemainingTime":{"totemType":"Earth"}},"rhs":{"const":{"val":"0s"}}}},"castSpell":{"spellId":{"spellId":25361}}}},
+        {"action":{"condition":{"auraIsActive":{"auraId":{"spellId":16246},"includeReactionTime":true}},"castSpell":{"spellId":{"spellId":408345}}}},
         {"action":{"condition":{"not":{"val":{"auraIsActive":{"auraId":{"spellId":10432}}}}},"castSpell":{"spellId":{"spellId":10432}}}},
         {"action":{"condition":{"cmp":{"op":"OpLe","lhs":{"totemRemainingTime":{"totemType":"Fire"}},"rhs":{"const":{"val":"0s"}}}},"castSpell":{"spellId":{"spellId":10438}}}},
         {"action":{"castSpell":{"spellId":{"spellId":17364}}}},
         {"action":{"condition":{"and":{"vals":[{"auraIsKnown":{"auraId":{"spellId":408505}}},{"cmp":{"op":"OpGe","lhs":{"auraNumStacks":{"auraId":{"spellId":408505}}},"rhs":{"const":{"val":"5"}}}}]}},"castSpell":{"spellId":{"spellId":15208}}}},
-        {"action":{"castSpell":{"spellId":{"spellId":408345}}}},
         {"action":{"condition":{"not":{"val":{"dotIsActive":{"spellId":{"spellId":29228}}}}},"castSpell":{"spellId":{"spellId":29228}}}},
-        {"action":{"castSpell":{"spellId":{"spellId":10414}}}}
+        {"action":{"castSpell":{"spellId":{"spellId":10414}}}},
+        {"action":{"condition":{"cmp":{"op":"OpGt","lhs":{"currentManaPercent":{}},"rhs":{"const":{"val":"10%"}}}},"castSpell":{"spellId":{"spellId":408345}}}}
       ]
     },
     "reactionTimeMs": 100,
@@ -110,7 +120,7 @@
   },
   "encounter": {
     "apiVersion": 2,
-    "duration": 120,
+    "duration": 180,
     "durationVariation": 5,
     "executeProportion20": 0.2,
     "executeProportion25": 0.25,

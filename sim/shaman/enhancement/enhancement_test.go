@@ -25,7 +25,7 @@ func TestEnhancement(t *testing.T) {
 				{Label: "Frostbrand", SpecOptions: imbueOptions(proto.ShamanImbue_FrostbrandWeapon)},
 				{Label: "Rockbiter", SpecOptions: imbueOptions(proto.ShamanImbue_RockbiterWeapon)},
 			},
-			GearSet:     core.GetGearSet("../../../ui/specs/shaman/enhancement/gear_sets", "preraid"),
+			GearSet:     core.GetGearSet("../../../ui/specs/shaman/enhancement/gear_sets", "prebis"),
 			Talents:     DefaultTalents,
 			Consumables: DefaultConsumables,
 			Profession1: proto.Profession_Engineering,
@@ -58,18 +58,19 @@ func imbueOptions(imbue proto.ShamanImbue) *proto.Player_EnhancementShaman {
 	}
 }
 
-const DefaultTalents = "0505331-055030031005112251"
+const DefaultTalents = "050533102-053030031005112251"
 
-// The UI's Enhancement defaults: Major Frenzy Potion, Flask of Natural Aggression, Demonic Rune, the
-// Owl, Sages, Greater Mageblood, Nature Power and Greater Arcane elixirs, Winterfall Firewater,
-// Ez-Thro Dynamite II, Goblin Sapper Charge, the Agility and Strength scrolls, and Elemental
-// Sharpening Stone on the main hand beside the shaman's imbue.
+// The UI's Enhancement defaults: Diet McWeaksauce, Flask of Supreme Power, Smoked Desert Dumplings,
+// Demonic Rune, the Owl, Sages, Greater Mageblood, Nature Power, Greater Arcane, Cunning and Ferocity
+// elixirs, Winterfall Firewater, EZ-Thro Dark Bomb, Goblin Sapper Charge, and Elemental Sharpening Stone
+// on the main hand beside the shaman's imbue.
 var DefaultConsumables = &proto.ConsumesSpec{
-	PotId:       250943,
-	FlaskId:     274274,
+	PotId:       23578,
+	FlaskId:     13512,
+	FoodId:      20452,
 	ConjuredId:  12662,
-	ElixirIds:   []int32{250337, 250338, 250341, 250343, 13454, 12820},
-	ExplosiveId: 18588,
-	ExtraIds:    []int32{10646, 10309, 10310},
+	ElixirIds:   []int32{250337, 250338, 250341, 250343, 13454, 12820, 250328, 250350},
+	ExplosiveId: 260817,
+	ExtraIds:    []int32{10646},
 	MhImbueId:   18262,
 }
