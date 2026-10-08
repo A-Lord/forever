@@ -94,8 +94,9 @@ func TestChanceOnHitExtraAttackRoutes(t *testing.T) {
 }
 
 // A chance-on-hit spell dealing damage over time alone routes to the damage shape, cast through its own
-// row. None of these rows states a rate, so each is refused for that alone and listed as missing; the
-// same rows at a rate on the item register.
+// row. None of these rows states a rate. An item the weapon rate overrides give one registers on it;
+// any other is refused for the missing rate alone and listed as missing. The same rows at a rate on
+// the item register.
 func TestChanceOnHitDamageOverTimeRoutesAsDamage(t *testing.T) {
 	withDBCInputs(t)
 	instance := dbc.GetDBC()
@@ -103,16 +104,17 @@ func TestChanceOnHitDamageOverTimeRoutesAsDamage(t *testing.T) {
 	for _, tc := range []struct {
 		itemID  int
 		spellID int32
+		rated   bool
 	}{
-		{10772, 18075},    // Glutton's Cleaver: a bleed
-		{12777, 16898},    // Blazing Rapier: Fire
-		{12795, 13318},    // Blood Talon: Rend, a bleed
-		{13035, 17511},    // Serpent Slicer: a poison
-		{17002, 17511},    // Ichor Spitter: the same poison
-		{15814, 16406},    // Hameya's Slayer: a bleed
-		{274963, 1295744}, // Rot-Covered Harpoon: a disease
-		{282561, 1314040}, // Siegebreaker's Blaster: Fire
-		{285102, 1317583}, // Darkmist Dirk: a poison
+		{10772, 18075, false},    // Glutton's Cleaver: a bleed
+		{12777, 16898, true},     // Blazing Rapier: Fire
+		{12795, 13318, true},     // Blood Talon: Rend, a bleed
+		{13035, 17511, true},     // Serpent Slicer: a poison
+		{17002, 17511, false},    // Ichor Spitter: the same poison
+		{15814, 16406, true},     // Hameya's Slayer: a bleed
+		{274963, 1295744, false}, // Rot-Covered Harpoon: a disease
+		{282561, 1314040, false}, // Siegebreaker's Blaster: Fire
+		{285102, 1317583, false}, // Darkmist Dirk: a poison
 	} {
 		s := spelldata.Find(tc.spellID)
 		if s.DamageEffect() != spelldata.NilEffect || s.PeriodicDamageEffect() == spelldata.NilEffect {
@@ -122,8 +124,12 @@ func TestChanceOnHitDamageOverTimeRoutesAsDamage(t *testing.T) {
 
 		parsed, effect := parsedItem(t, instance, tc.itemID, tc.spellID)
 		groups := map[string]Group{}
-		if got := TryParseProcEffect(parsed, effect, instance, groups); got != EffectParseResultRefused {
-			t.Errorf("item %d parsed as %v, want refused", tc.itemID, got)
+		wantResult, wantUnsupported := EffectParseResultRefused, []string{spelldata.ReasonStatesNoRate}
+		if tc.rated {
+			wantResult, wantUnsupported = EffectParseResultSuccess, nil
+		}
+		if got := TryParseProcEffect(parsed, effect, instance, groups); got != wantResult {
+			t.Errorf("item %d parsed as %v, want %v", tc.itemID, got, wantResult)
 			continue
 		}
 		r := groups["Procs"].Entries[0].Proc
@@ -132,11 +138,11 @@ func TestChanceOnHitDamageOverTimeRoutesAsDamage(t *testing.T) {
 			t.Errorf("item %d: shape %v, weapon proc %v, trigger %d, buff %d; want a weapon proc dealing %d's damage",
 				tc.itemID, r.Shape, r.IsWeaponProc, r.TriggerSpellID, r.BuffSpellID, tc.spellID)
 		}
-		if !slices.Equal(r.Unsupported, []string{spelldata.ReasonStatesNoRate}) {
-			t.Errorf("item %d refused for %q, want only the missing rate", tc.itemID, r.Unsupported)
+		if !slices.Equal(r.Unsupported, wantUnsupported) {
+			t.Errorf("item %d refused for %q, want %q", tc.itemID, r.Unsupported, wantUnsupported)
 		}
-		if _, listed := missingEffectsMap["ItemEffects"][int32(tc.itemID)]; !listed {
-			t.Errorf("item %d is not listed as missing an effect", tc.itemID)
+		if _, listed := missingEffectsMap["ItemEffects"][int32(tc.itemID)]; listed == tc.rated {
+			t.Errorf("item %d listed as missing an effect: %v, want %v", tc.itemID, listed, !tc.rated)
 		}
 
 		rated := routeProc(int(tc.spellID), int(tc.spellID), true, 1)
