@@ -243,9 +243,11 @@ func main() {
 		}
 	}
 
-	for _, randomSuffix := range instance.RandomSuffix {
-		if _, exists := db.RandomSuffixes[int32(randomSuffix.ID)]; !exists {
-			db.RandomSuffixes[int32(randomSuffix.ID)] = randomSuffix.ToProto()
+	for _, item := range db.Items {
+		for _, id := range item.RandomSuffixOptions {
+			if _, exists := db.RandomSuffixes[id]; !exists {
+				db.RandomSuffixes[id] = instance.RandomSuffix[int(id)].ToProto()
+			}
 		}
 	}
 
