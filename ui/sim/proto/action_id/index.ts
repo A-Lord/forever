@@ -869,4 +869,6 @@ export const resourceTypeToIcon: Record<ResourceType, string> = {
 };
 
 // Use this to connect a buff row to a cast row in the timeline view
-export const buffAuraToSpellIdMap: Record<number, ActionId> = {};
+export const buffAuraToSpellIdMap: Record<number, ActionId> = {
+	15036: ActionId.fromSpellId(16387), // The party's Flametongue Totem, on the row of the totem's strikes
+};
