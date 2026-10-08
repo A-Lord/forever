@@ -48,14 +48,13 @@ func (druid *Druid) applyLivingSpirit() {
 	druid.parseTalent(druid.Talents.LivingSpirit, spellData.LivingSpirit)
 }
 
-// applyNaturesFocus implements Nature's Focus, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
+// The chance a hit does not push back an Arcane or Nature cast. Every spell the druid hardcasts is
+// one, so the unit's own pushback chance carries it.
 func (druid *Druid) applyNaturesFocus() {
 	if druid.Talents.NaturesFocus == 0 {
 		return
 	}
+	druid.PseudoStats.PushbackChance -= spellData.NaturesFocus.FractionAt(druid.Talents.NaturesFocus)
 }
 
 func (druid *Druid) applyFuror() {
@@ -112,16 +111,6 @@ func (druid *Druid) applyImprovedRejuvenation() {
 // the effect can be modelled; there is no TBC equivalent to port.
 func (druid *Druid) applySwiftmend() {
 	if !druid.Talents.Swiftmend {
-		return
-	}
-}
-
-// applyNaturesSwiftness implements Nature's Swiftness, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
-func (druid *Druid) applyNaturesSwiftness() {
-	if !druid.Talents.NaturesSwiftness {
 		return
 	}
 }
