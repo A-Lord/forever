@@ -153,6 +153,8 @@ const (
 	ShapeEquip
 	// Grants the wearer extra attacks: main-hand swings under the granting spell's name.
 	ShapeExtraAttack
+	// An on-use aura on the wearer that casts area damage on every enemy each period.
+	ShapePeriodicDamage
 )
 
 var procShapes = [...]struct {
@@ -162,16 +164,17 @@ var procShapes = [...]struct {
 	unsupported      func(*spelldata.Spell) []string
 	alwaysNamesBuff  bool
 }{
-	ShapeStats:       {"NewSpellDataProc", "NewSimpleStatActive", "", nil, false},
-	ShapeDamage:      {"NewSpellDataDamageProc", "NewSpellDataDamageOnUse", "Damage", damageUnsupported, true},
-	ShapeHeal:        {"NewSpellDataHealProc", "NewSpellDataHealOnUse", "Heals", healUnsupported, true},
-	ShapeAbsorb:      {"NewSpellDataAbsorbProc", "NewSpellDataAbsorbOnUse", "Absorbs", absorbUnsupported, true},
-	ShapeSpeed:       {"NewSpellDataProc", "NewSpellDataSpeedOnUse", "Speed", nil, false},
-	ShapeEnergize:    {"NewSpellDataProc", "NewSpellDataEnergizeOnUse", "Resources", nil, false},
-	ShapeDebuff:      {"NewSpellDataDebuffProc", "NewSimpleStatActive", "", debuffUnsupported, false},
-	ShapeAura:        {"NewSpellDataAuraProc", "NewSpellDataAuraOnUse", "Auras", procAuraUnsupported, false},
-	ShapeEquip:       {"NewSpellDataEquipAura", "NewSimpleStatActive", "", nil, false},
-	ShapeExtraAttack: {"NewSpellDataExtraAttackProc", "NewSimpleStatActive", "", extraAttackUnsupported, false},
+	ShapeStats:          {"NewSpellDataProc", "NewSimpleStatActive", "", nil, false},
+	ShapeDamage:         {"NewSpellDataDamageProc", "NewSpellDataDamageOnUse", "Damage", damageUnsupported, true},
+	ShapeHeal:           {"NewSpellDataHealProc", "NewSpellDataHealOnUse", "Heals", healUnsupported, true},
+	ShapeAbsorb:         {"NewSpellDataAbsorbProc", "NewSpellDataAbsorbOnUse", "Absorbs", absorbUnsupported, true},
+	ShapeSpeed:          {"NewSpellDataProc", "NewSpellDataSpeedOnUse", "Speed", nil, false},
+	ShapeEnergize:       {"NewSpellDataProc", "NewSpellDataEnergizeOnUse", "Resources", nil, false},
+	ShapeDebuff:         {"NewSpellDataDebuffProc", "NewSimpleStatActive", "", debuffUnsupported, false},
+	ShapeAura:           {"NewSpellDataAuraProc", "NewSpellDataAuraOnUse", "Auras", procAuraUnsupported, false},
+	ShapeEquip:          {"NewSpellDataEquipAura", "NewSimpleStatActive", "", nil, false},
+	ShapeExtraAttack:    {"NewSpellDataExtraAttackProc", "NewSimpleStatActive", "", extraAttackUnsupported, false},
+	ShapePeriodicDamage: {"NewSpellDataProc", "NewSpellDataPeriodicDamageOnUse", "Damage", nil, false},
 }
 
 func (r *ProcRouting) Supported() bool {
@@ -1341,12 +1344,40 @@ func routeOnUseSpell(itemID int, buffID int32, instance *dbc.DBC) *ProcRouting {
 		if s.ProcCharges > 0 && !shared.SpendsItsCharges(s) {
 			routing.Unsupported = append(routing.Unsupported, fmt.Sprintf("the buff drops after ProcCharges %d, which the aura does not spend", s.ProcCharges))
 		}
+	case triggersDamagePeriodically(s):
+		periodic := s.FirstAura(dbcenums.A_PERIODIC_TRIGGER_SPELL)
+		routing.Shape = ShapePeriodicDamage
+		routing.Summary = fmt.Sprintf("%s; every %v for %v: %d (%s)", onUseSummary(s, periodic),
+			periodic.Period(), s.Duration(), periodic.TriggerID, spellEffectKinds(instance, int(periodic.TriggerID)))
+		routing.Unsupported = append(routing.Unsupported, periodicDamageUnsupported(s, periodic)...)
 	default:
 		routing.Unsupported = append(routing.Unsupported,
 			fmt.Sprintf("%d deals no damage and heals no one (%s)", spellID, spellEffectKinds(instance, spellID)))
 	}
 
 	return routing
+}
+
+// Whether the row's A_PERIODIC_TRIGGER_SPELL casts a row that deals damage: Thunderbrew's Boot Flask's
+// 12257 casts 12278, 75 Fire to the enemies in front of the wearer, every 1 s for 5 s.
+func triggersDamagePeriodically(s *spelldata.Spell) bool {
+	periodic := s.FirstAura(dbcenums.A_PERIODIC_TRIGGER_SPELL)
+	return periodic != spelldata.NilEffect && spelldata.Find(periodic.TriggerID).DamageEffect() != spelldata.NilEffect
+}
+
+// The aura ticks on the wearer, and the row it casts deals an amount to every enemy in an area or cone,
+// which the shape casts at the current target: a single-target row would leave it unclear which enemy
+// a tick picks.
+func periodicDamageUnsupported(s *spelldata.Spell, periodic *spelldata.Effect) []string {
+	unsupported := append(wearerTarget("periodic aura", periodic), tickUnsupported("damage", s, periodic)...)
+	damage := spelldata.Find(periodic.TriggerID).DamageEffect()
+	if damage.Type != dbcenums.E_SCHOOL_DAMAGE {
+		unsupported = append(unsupported, fmt.Sprintf("the triggered damage is %v rather than an amount", damage.Type))
+	}
+	if !damage.HitsAnArea() {
+		unsupported = append(unsupported, fmt.Sprintf("the triggered damage lands on implicit target %d, not every enemy in an area", damage.Target[0]))
+	}
+	return unsupported
 }
 
 // The row's effects whose amounts the item's effect entry carries as stats, which the absorb on-use

@@ -325,6 +325,49 @@ func TestOnUseSpeedBuffRoutesAsASpeedBuff(t *testing.T) {
 	}
 }
 
+// An on-use whose spell keeps an A_PERIODIC_TRIGGER_SPELL aura on the wearer, casting a row that deals
+// damage in an area or cone, registers as periodic damage: Thunderbrew's Boot Flask's 12257 casts the
+// cone 12278 every 1 s for 5 s and leaves its E_TRIGGER_SPELL of Strong Alcohol 11009 out; Cloak of
+// Fire's 18364 casts the area 18374 every 5 s for 15 s.
+func TestOnUsePeriodicTriggerDamageRoutesAsPeriodicDamage(t *testing.T) {
+	withDBCInputs(t)
+	instance := dbc.GetDBC()
+
+	for _, tc := range []struct {
+		itemID  int
+		spellID int32
+		summary string
+	}{
+		{744, 12257, "on use: 12257 (A_PERIODIC_TRIGGER_SPELL); not simulated: E_TRIGGER_SPELL; every 1s for 5s: 12278 (E_SCHOOL_DAMAGE)"},
+		{14134, 18364, "on use: 18364 (A_PERIODIC_TRIGGER_SPELL); every 5s for 15s: 18374 (E_SCHOOL_DAMAGE)"},
+	} {
+		item := instance.Items[tc.itemID]
+		parsed := item.ToUIItem()
+		parsed.ItemEffects = dbc.MergeItemEffectsForAllStates(parsed)
+		i := slices.IndexFunc(parsed.ItemEffects, func(e *proto.ItemEffect) bool { return e.BuffId == tc.spellID && e.GetOnUse() != nil })
+		if i < 0 {
+			t.Fatalf("item %d carries no on-use effect on %d", tc.itemID, tc.spellID)
+		}
+
+		groups := map[string]Group{}
+		if got := TryParseOnUseEffect(parsed, parsed.ItemEffects[i], instance, groups); got != EffectParseResultSuccess {
+			t.Errorf("item %d parsed as %v, want registered", tc.itemID, got)
+			continue
+		}
+
+		entries := groups["Damage"].Entries
+		if len(entries) != 1 {
+			t.Fatalf("item %d: %d entries in the Damage group, want 1", tc.itemID, len(entries))
+		}
+		r := entries[0].Proc
+		if !entries[0].Supported || r.Shape != ShapePeriodicDamage || r.TriggerSpellID != int(tc.spellID) ||
+			r.OnUseConstructor() != "NewSpellDataPeriodicDamageOnUse" || r.Summary != tc.summary {
+			t.Errorf("item %d: routing %+v, supported %v; want %d registered through NewSpellDataPeriodicDamageOnUse with %q",
+				tc.itemID, r, entries[0].Supported, tc.spellID, tc.summary)
+		}
+	}
+}
+
 // An on-use whose spell applies a hit or crit percent, which no item stat holds, registers as an
 // aura: Gri'lek's Charm of Valor's 24498 is spell crit alone, and Weakness Analyzer's 1291101 drops at
 // the first crit, a charge the hits its row names spend. The spell modifiers, the threat and the damage
