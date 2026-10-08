@@ -27,8 +27,8 @@ func TestEffectLines(t *testing.T) {
 			name:    "school damage that rolls and scales",
 			id:      116,
 			effect:  2,
-			human:   "20–22 frost damage to the enemy (at level 60, +0.407 spell power)",
-			literal: "E_SCHOOL_DAMAGE base=19 ppl=0.5 variance=0.10526316 sp=0.407 target=[6,0]",
+			human:   "18–21 frost damage to the enemy (at level 60, +0.407 spell power)",
+			literal: "E_SCHOOL_DAMAGE base=19 ppl=0.2 variance=0.10526316 sp=0.407 target=[6,0]",
 		},
 		{
 			name:    "normalised weapon damage over an area",

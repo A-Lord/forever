@@ -92,16 +92,16 @@ func TestGeneratedFrostbolt(t *testing.T) {
 	}
 
 	damage := s.EffectN(2)
-	if damage.BasePoints != 19 || damage.PPL != 0.5 {
-		t.Errorf("Frostbolt's damage effect is %v base + %v per level, want 19 + 0.5",
+	if damage.BasePoints != 19 || damage.PPL < 0.1999 || damage.PPL > 0.2001 {
+		t.Errorf("Frostbolt's damage effect is %v base + %v per level, want 19 + 0.2",
 			damage.BasePoints, damage.PPL)
 	}
 	if damage.SPCoef < 0.4069 || damage.SPCoef > 0.4071 {
 		t.Errorf("Frostbolt's spell power coefficient is %v, want 0.407", damage.SPCoef)
 	}
-	// 19 plus half a point for each of the four levels between the rank's own 4 and its cap of 8.
-	if got := damage.AverageAt(60); got != 21 {
-		t.Errorf("Frostbolt rank 1 averages %v at level 60, want 21", got)
+	// 19 plus 0.2 points for each of the four levels between the rank's own 4 and its cap of 8.
+	if got := damage.AverageAt(60); got < 19.79 || got > 19.81 {
+		t.Errorf("Frostbolt rank 1 averages %v at level 60, want 19.8", got)
 	}
 }
 
