@@ -1,5 +1,5 @@
-import { TabActivationContext } from '@app/tab_activation';
 import { Tabs } from '@base-ui/react/tabs';
+import { TabActivationContext } from '@features/hooks/useActivateTab';
 import { childProps } from '@ui-kit/child_props';
 import { TabNav } from '@ui-kit/TabNav';
 import { createContext, type ReactNode, use, useCallback, useMemo, useState } from 'react';

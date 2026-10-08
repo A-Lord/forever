@@ -211,6 +211,7 @@ message UIEnchant {
 	repeated Class class_allowlist = 11;
 	Profession required_profession = 12;
 	repeated ItemEffect enchant_effects = 14;
+	EnchantProcKind proc_kind = 18;
 }
 
 

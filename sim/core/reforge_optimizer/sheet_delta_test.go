@@ -22,7 +22,7 @@ func init() {
 	})
 }
 
-// subtractUnitStats diffs a sheet against the optimizer's base stats.
+// Diffs a sheet against the optimizer's base stats.
 func subtractUnitStats(a core.UnitStats, b core.UnitStats) core.UnitStats {
 	result := a
 	result.Stats = a.Stats.Subtract(b.Stats)
@@ -48,7 +48,7 @@ func protectionWarriorRaid(gearSet string) *proto.Raid {
 
 func sheetStats(t *testing.T, raid *proto.Raid) core.UnitStats {
 	t.Helper()
-	result := computeReforgeStats(&proto.ComputeStatsRequest{Raid: raid})
+	result := core.ComputeStats(&proto.ComputeStatsRequest{Raid: raid, SkipRotation: true})
 	if result.ErrorResult != "" {
 		t.Fatalf("ComputeStats: %s", result.ErrorResult)
 	}
@@ -100,7 +100,7 @@ func TestCapSpaceDeltaMatchesTheSheet(t *testing.T) {
 				bonusRaid := protopkg.Clone(character.raid).(*proto.Raid)
 				bonusRaid.Parties[0].Players[0].BonusStats = &proto.UnitStats{Stats: delta[:stats.ProtoStatsLen]}
 				sheetDelta := subtractUnitStats(sheetStats(t, bonusRaid), o.baseStats)
-				capCoeffs := o.resolveCapCoeffs(delta)
+				capCoeffs := o.resolveCapCoeffs(rawUnitStatsFromStats(delta))
 
 				for _, pseudoStat := range []proto.PseudoStat{block, dodge, parry, critTaken} {
 					moves := slices.Contains(test.moves, pseudoStat) &&

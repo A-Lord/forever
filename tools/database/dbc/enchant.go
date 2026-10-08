@@ -4,6 +4,7 @@ import (
 	"slices"
 	"sort"
 
+	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/stats"
@@ -92,6 +93,46 @@ var enchantEffectArgFixes = map[int]map[int]int{
 	8203: {0: ITEM_MOD_SPIRIT},
 }
 
+// Enchants the proc rules classify wrongly, keyed by effect id.
+var enchantProcKindOverrides = map[int]proto.EnchantProcKind{
+	// Lotus Claw: its equip spell 1294053, a chance at Death Lotus when gathering herbs, is an A_DUMMY with no SpellAuraOptions row.
+	8695: proto.EnchantProcKind_EnchantProcKindNone,
+}
+
+// An enchant is Survival when every proc slot's spell only absorbs, heals or adds armor, and Combat
+// otherwise. An enchant with no proc slot is None.
+func (enchant *Enchant) procKind(slots []EnchantProcSlot) proto.EnchantProcKind {
+	if kind, ok := enchantProcKindOverrides[enchant.EffectId]; ok {
+		return kind
+	}
+	if len(slots) == 0 {
+		return proto.EnchantProcKind_EnchantProcKindNone
+	}
+	for _, slot := range slots {
+		if !appliesSurvivalOnly(slot.AppliesSpellID) {
+			return proto.EnchantProcKind_EnchantProcKindCombat
+		}
+	}
+	return proto.EnchantProcKind_EnchantProcKindSurvival
+}
+
+func appliesSurvivalOnly(spellID int) bool {
+	effects := dbcInstance.SpellEffectsInOrder(spellID)
+	if len(effects) == 0 {
+		return false
+	}
+	for _, effect := range effects {
+		switch {
+		case effect.EffectType == dbcenums.E_HEAL, effect.EffectType == dbcenums.E_HEAL_PCT:
+		case effect.EffectAura == dbcenums.A_SCHOOL_ABSORB:
+		case effect.EffectAura == dbcenums.A_MOD_RESISTANCE && len(effect.EffectMiscValues) > 0 && effect.EffectMiscValues[0] == int(core.SpellSchoolPhysical):
+		default:
+			return false
+		}
+	}
+	return true
+}
+
 func (enchant *Enchant) ToProto() *proto.UIEnchant {
 	uiEnchant, _ := enchant.ToProtoWithSlots()
 	return uiEnchant
@@ -112,6 +153,7 @@ func (enchant *Enchant) ToProtoWithSlots() (*proto.UIEnchant, []EnchantProcSlot)
 	}
 
 	slots := enchant.ProcSlots()
+	uiEnchant.ProcKind = enchant.procKind(slots)
 	for _, slot := range slots {
 		if slot.Effect != nil && !slices.ContainsFunc(uiEnchant.EnchantEffects, func(e *proto.ItemEffect) bool { return e.BuffId == slot.Effect.BuffId }) {
 			uiEnchant.EnchantEffects = append(uiEnchant.EnchantEffects, slot.Effect)

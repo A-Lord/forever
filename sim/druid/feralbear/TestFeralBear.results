@@ -492,6 +492,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestFeralBear-AllItems-ManualCrowdPummeler-9449"
+ value: {
+  dps: 128.33791
+  tps: 133.8893
+  dtps: 4954.51876
+ }
+}
+dps_results: {
  key: "TestFeralBear-AllItems-MarkofResolution-17759"
  value: {
   dps: 125.62616
