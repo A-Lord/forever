@@ -117,6 +117,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDpsWarrior-AllItems-Defender'sGripStabilizer-272440"
+ value: {
+  dps: 412.41539
+  tps: 241.10822
+  dtps: 2.93302
+ }
+}
+dps_results: {
  key: "TestDpsWarrior-AllItems-Defiler'sTalisman-20072"
  value: {
   dps: 412.41539
@@ -663,6 +671,14 @@ dps_results: {
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-Thunderfury,BlessedBladeoftheWindseeker-19019"
+ value: {
+  dps: 412.41539
+  tps: 241.10822
+  dtps: 2.93302
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-ToySoldier-274386"
  value: {
   dps: 412.41539
   tps: 241.10822

@@ -120,10 +120,6 @@ func RegisterAllOnUseCds() {
 	// on use: 1291101 (A_MOD_CRIT_PCT)
 	// unsupported: the buff drops after ProcCharges 1, which the aura does not spend
 	// shared.NewSpellDataAuraOnUse(272438) // Weakness Analyzer - https://www.wowhead.com/forever/spell=1291101
-	// unsupported: 1291105 deals no damage and heals no one (A_MOD_BLOCK_PERCENT)
-	// shared.NewSimpleStatActive(272440) // Defender's Grip Stabilizer - https://www.wowhead.com/forever/spell=1291105
-	// unsupported: 1293820 deals no damage and heals no one (A_MOD_DODGE_PERCENT)
-	// shared.NewSimpleStatActive(274386) // Toy Soldier - https://www.wowhead.com/forever/spell=1293820
 	// unsupported: 1295271 deals no damage and heals no one (E_DUMMY, E_DUMMY, A_DUMMY)
 	// shared.NewSimpleStatActive(274760) // Everlook Delivery Bot - https://www.wowhead.com/forever/spell=1295271
 	// unsupported: 1295272 deals no damage and heals no one (E_TRIGGER_MISSILE)
@@ -203,6 +199,10 @@ func RegisterAllOnUseCds() {
 	shared.NewSpellDataAuraOnUse(19344) // Natural Alignment Crystal - https://www.wowhead.com/forever/spell=23734
 	// on use: 24498 (A_MOD_SPELL_CRIT_CHANCE)
 	shared.NewSpellDataAuraOnUse(19952) // Gri'lek's Charm of Valor - https://www.wowhead.com/forever/spell=24498
+	// on use: 1291105 (A_MOD_BLOCK_PERCENT)
+	shared.NewSpellDataAuraOnUse(272440) // Defender's Grip Stabilizer - https://www.wowhead.com/forever/spell=1291105
+	// on use: 1293820 (A_MOD_DODGE_PERCENT)
+	shared.NewSpellDataAuraOnUse(274386) // Toy Soldier - https://www.wowhead.com/forever/spell=1293820
 
 	// Damage
 	// on use: 10578 (E_SCHOOL_DAMAGE, A_PERIODIC_DAMAGE)

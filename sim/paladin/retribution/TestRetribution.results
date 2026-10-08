@@ -141,6 +141,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestRetribution-AllItems-Defender'sGripStabilizer-272440"
+ value: {
+  dps: 839.63757
+  tps: 491.31745
+  dtps: 7.44361
+ }
+}
+dps_results: {
  key: "TestRetribution-AllItems-Defiler'sTalisman-20072"
  value: {
   dps: 840.00912
@@ -730,6 +738,14 @@ dps_results: {
  value: {
   dps: 867.45313
   tps: 506.89416
+  dtps: 7.44361
+ }
+}
+dps_results: {
+ key: "TestRetribution-AllItems-ToySoldier-274386"
+ value: {
+  dps: 839.64159
+  tps: 491.3197
   dtps: 7.44361
  }
 }

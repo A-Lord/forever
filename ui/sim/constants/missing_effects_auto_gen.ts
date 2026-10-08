@@ -2147,12 +2147,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		272440, // Defender's Grip Stabilizer
-		[
-			"Increases your Block chance by 8% for 15s. This effect is doubled in Strongholds and Cities.", // 1291105 - https://www.wowhead.com/forever/spell=1291105
-		]
-	],
-	[
 		272455, // Premier Magus Gloves
 		[
 			"Increases the damage absorbed by your Mana Shield by 285.", // 23037 - https://www.wowhead.com/forever/spell=23037
@@ -2552,12 +2546,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		274293, // Spellsever Crossbow
 		[
 			"Launch a magic severing bolt at the target, dealing 36 Physical damage and interrupting the spell being cast for 5s.", // 1293714 - https://www.wowhead.com/forever/spell=1293714
-		]
-	],
-	[
-		274386, // Toy Soldier
-		[
-			"Increases your chance to Dodge by 3% for 20s. This effect is doubled in Strongholds and Cities.", // 1293820 - https://www.wowhead.com/forever/spell=1293820
 		]
 	],
 	[

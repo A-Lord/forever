@@ -157,6 +157,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestHunterPets-AllItems-Defender'sGripStabilizer-272440"
+ value: {
+  dps: 600.52445
+  tps: 263.58992
+  dtps: 7.03155
+ }
+}
+dps_results: {
  key: "TestHunterPets-AllItems-Defiler'sTalisman-20072"
  value: {
   dps: 600.70815
@@ -858,6 +866,14 @@ dps_results: {
  value: {
   dps: 603.0253
   tps: 264.58519
+  dtps: 7.03155
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-ToySoldier-274386"
+ value: {
+  dps: 600.52445
+  tps: 263.58992
   dtps: 7.03155
  }
 }

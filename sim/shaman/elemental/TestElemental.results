@@ -130,6 +130,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestElemental-AllItems-Defender'sGripStabilizer-272440"
+ value: {
+  dps: 334.8519
+  tps: 238.59884
+ }
+}
+dps_results: {
  key: "TestElemental-AllItems-Defiler'sTalisman-20072"
  value: {
   dps: 334.8519
@@ -645,6 +652,13 @@ dps_results: {
  value: {
   dps: 348.56786
   tps: 247.71869
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-ToySoldier-274386"
+ value: {
+  dps: 334.8519
+  tps: 238.59884
  }
 }
 dps_results: {
