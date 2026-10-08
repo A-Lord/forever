@@ -47,9 +47,10 @@ export const Level60Gear = PresetUtils.makePresetGear('Level 60', Level60GearJso
 	tooltip: 'Leather at level 60 with no set bonus and no proc. Fist of Cenarius and the Howling Idol.',
 });
 
-// Pre-raid leather on a Tauren with The Unstoppable Force and Wolfshead Helm. Shifting Cloak, Ferocious
-// Watcher's Signet and the two hit and attack power trinkets stand in for Cape of the Black Baron, Tarnished
-// Elven Ring, Blackhand's Breadth and Hand of Justice, which the item database does not carry.
+// Pre-raid leather on a Tauren with The Unstoppable Force and Wolfshead Helm. Shifting Cloak, Dunestalker's
+// Boots, Ferocious Watcher's Signet and the two hit and attack power trinkets stand in for Cape of the Black
+// Baron, Swiftwalker Boots, Tarnished Elven Ring, Blackhand's Breadth and Hand of Justice, which the item
+// database does not carry.
 export const PreRaidGear = PresetUtils.makePresetGear('Pre-raid', PreRaidGearJson, {
 	tooltip: 'Pre-raid leather with The Unstoppable Force, Wolfshead Helm and full enchants.',
 });
