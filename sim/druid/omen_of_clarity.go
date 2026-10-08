@@ -21,6 +21,8 @@ func (druid *Druid) registerOmenOfClarity() {
 	// Chance(1) keeps the resolver from building a procs-per-minute manager and leaves core no roll of
 	// its own. The chance depends on what hit, so it is drawn here, after the ICD check and before the
 	// ICD starts. Only auto attacks and druid spells roll it.
+	// TODO: Ingame research needed -- whether Hurricane's ticks roll it. Each tick is its own instant hit
+	// here and rolls once per target, while the logs show no periodic tick ever proccing it.
 	trigger.ExtraCondition = func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
 		if !spell.ProcMask.Matches(core.ProcMaskMeleeWhiteHit) && spell.ClassFlags.Family != omen.ClassFlags.Family {
 			return false
@@ -33,7 +35,8 @@ func (druid *Druid) registerOmenOfClarity() {
 
 // The speed, in seconds, that turns Omen of Clarity's procs per minute into a chance for this hit.
 // Auto attacks and specials use the swing speed: the paw in Cat and Bear Form, the weapon otherwise.
-// A spell uses its cast time, and an instant 1.5 s.
+// A spell uses its cast time after talent and set reductions, and an instant 1.5 s; haste and cast
+// speed such as Nature's Grace do not change it.
 func (druid *Druid) omenSpeed(spell *core.Spell) float64 {
 	switch {
 	case spell.ProcMask.Matches(core.ProcMaskMeleeWhiteHit | core.ProcMaskMeleeSpecial):

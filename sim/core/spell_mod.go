@@ -173,7 +173,7 @@ func buildMod(unit *Unit, config SpellModConfig) *SpellMod {
 		unit.equipMods = append(unit.equipMods, mod)
 	}
 
-	if mod.Kind == SpellMod_ProcChance_Flat || mod.Kind == SpellMod_ProcChance_Pct {
+	if mod.Kind&procTriggerModKinds != 0 {
 		unit.procChanceMods = append(unit.procChanceMods, mod)
 		return mod
 	}
@@ -336,7 +336,7 @@ func (spell *Spell) SetSpellSchool(school SpellSchool) {
 	spell.SchoolIndex = school.MultiplierSchool().SchoolIndex()
 
 	for _, mod := range spell.Unit.spellMods {
-		if (mod.School == 0 && mod.MultiplierSchool == 0) || mod.Kind == SpellMod_ProcChance_Flat || mod.Kind == SpellMod_ProcChance_Pct {
+		if (mod.School == 0 && mod.MultiplierSchool == 0) || mod.Kind&procTriggerModKinds != 0 {
 			continue
 		}
 		admitted := mod.AffectedSpells
@@ -664,7 +664,15 @@ const (
 	// The GCD minimum still floors the result.
 	// Uses: FloatValue
 	SpellMod_GlobalCooldown_Pct
+
+	// Scales the internal cooldown of the proc triggers whose own class flags the mod names: -50% = -0.5
+	// halves it. A cooldown already running keeps its length. It changes no spell.
+	// Uses FloatValue
+	SpellMod_ProcCooldown_Pct
 )
+
+// The kinds the unit's proc triggers read when they roll or start their cooldown, rather than spells.
+const procTriggerModKinds = SpellMod_ProcChance_Flat | SpellMod_ProcChance_Pct | SpellMod_ProcCooldown_Pct
 
 var spellModMap = map[SpellModType]*SpellModFunctions{
 	SpellMod_DamageDone_Pct: {
@@ -849,8 +857,9 @@ var spellModMap = map[SpellModType]*SpellModFunctions{
 
 	// buildMod hands these to the unit's proc triggers, which read them when they roll, and to no
 	// spell, so they carry no functions.
-	SpellMod_ProcChance_Flat: {},
-	SpellMod_ProcChance_Pct:  {},
+	SpellMod_ProcChance_Flat:  {},
+	SpellMod_ProcChance_Pct:   {},
+	SpellMod_ProcCooldown_Pct: {},
 }
 
 func applyDamageDonePercent(mod *SpellMod, spell *Spell) {
@@ -1408,12 +1417,32 @@ func (unit *Unit) ModifiedProcChance(flags ClassFlags, chance float64) float64 {
 			if !mod.IsActive || (!mod.ClassFlags.IsZero() && !mod.ClassFlags.Matches(flags)) {
 				continue
 			}
-			if mod.Kind == SpellMod_ProcChance_Flat {
+			switch mod.Kind {
+			case SpellMod_ProcChance_Flat:
 				flat += mod.floatValue
-			} else {
+			case SpellMod_ProcChance_Pct:
 				pct += mod.floatValue
 			}
 		}
 	}
 	return (chance + flat/100) * (1 + pct)
+}
+
+// The internal cooldown a proc trigger with these class flags of its own starts, once the unit's
+// active proc cooldown mods that name them are counted, the same way as ModifiedProcChance.
+func (unit *Unit) ModifiedProcCooldown(flags ClassFlags, icd time.Duration) time.Duration {
+	if flags.IsZero() {
+		return icd
+	}
+
+	var pct float64
+	for ; unit != nil; unit = unit.procChanceOwner {
+		for _, mod := range unit.procChanceMods {
+			if mod.Kind != SpellMod_ProcCooldown_Pct || !mod.IsActive || (!mod.ClassFlags.IsZero() && !mod.ClassFlags.Matches(flags)) {
+				continue
+			}
+			pct += mod.floatValue
+		}
+	}
+	return time.Duration(float64(icd) * max(0, 1+pct))
 }

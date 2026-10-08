@@ -45,7 +45,8 @@ func (druid *Druid) applyImprovedWrath() {
 	spelldata.ParseStatic(&druid.Character, spellData.ImprovedWrath.Rank(druid.Talents.ImprovedWrath))
 }
 
-// Genesis raises periodic damage on the class flags it names, which reach Rip, Rake, Lacerate and Pounce.
+// Periodic damage and healing on the spells its class flags name: Moonfire, Insect Swarm, Rip, Rake,
+// Pounce, Lacerate, Entangling Roots, Rejuvenation, Regrowth and Wild Growth, and Swiftmend's heal.
 func (druid *Druid) applyGenesis() {
 	druid.parseTalent(druid.Talents.Genesis, spellData.Genesis)
 }
@@ -76,12 +77,8 @@ func (druid *Druid) applyNaturesReach() {
 	druid.parseTalent(druid.Talents.NaturesReach, spellData.NaturesReach)
 }
 
-// Entangling Roots' damage.
+// Entangling Roots' damage: the sim does not cast Entangling Roots, as the bosses it fights cannot be rooted.
 func (druid *Druid) applyImprovedEntanglingRoots() {
-	if druid.Talents.ImprovedEntanglingRoots == 0 {
-		return
-	}
-	spelldata.ParseStatic(&druid.Character, spellData.ImprovedEntanglingRoots.Rank(druid.Talents.ImprovedEntanglingRoots))
 }
 
 // The duration of Moonfire, Rejuvenation, Regrowth and Insect Swarm.
@@ -117,7 +114,7 @@ func (druid *Druid) applyImprovedStarfire() {
 	spelldata.ParseStatic(&druid.Character, spellData.ImprovedStarfire.Rank(druid.Talents.ImprovedStarfire))
 }
 
-// More targets for Entangling Roots, which the sim does not cast.
+// More targets for Entangling Roots, which the sim does not cast: the bosses it fights cannot be rooted.
 func (druid *Druid) applyOvergrowth() {
 }
 
@@ -163,12 +160,12 @@ func (druid *Druid) applyEclipse() {
 
 	aura := druid.RegisterAura(spelldata.AuraConfig(eclipseBuff))
 	aura.AttachSpellMod(core.SpellModConfig{
-		ClassMask: DruidSpellStarfire,
-		Kind:      core.SpellMod_CastTime_Flat,
-		TimeValue: rank.EffectN(2).TimeValue(),
+		ClassFlags: spellData.Starfire.Highest().ClassFlags,
+		Kind:       core.SpellMod_CastTime_Flat,
+		TimeValue:  rank.EffectN(2).TimeValue(),
 	})
 	aura.OnCastComplete = func(aura *core.Aura, sim *core.Simulation, spell *core.Spell) {
-		if spell.Matches(DruidSpellStarfire) {
+		if spellData.Starfire.Contains(spell) {
 			aura.RemoveStack(sim)
 		}
 	}

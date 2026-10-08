@@ -70,7 +70,10 @@ func TestBalance(t *testing.T) {
 					},
 				},
 			}},
-			GearSet:  core.GetGearSet("../../../ui/specs/druid/balance/gear_sets", "p1"),
+			GearSet: core.GetGearSet("../../../ui/specs/druid/balance/gear_sets", "p1"),
+			OtherGearSets: []core.GearSetCombo{
+				core.GetGearSet("../../../ui/specs/druid/balance/gear_sets", "prebis"),
+			},
 			Talents:  DefaultTalents,
 			Rotation: core.GetAplRotation("../../../ui/specs/druid/balance/apls", "default"),
 			ItemFilter: core.ItemFilter{
@@ -82,7 +85,7 @@ func TestBalance(t *testing.T) {
 	}))
 }
 
-const DefaultTalents = "5532220115501351-05-05"
+const DefaultTalents = "5532220115501351--505"
 
 const DefaultArmorType = proto.ArmorType_ArmorTypeLeather
 

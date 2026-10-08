@@ -142,6 +142,20 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestFeralCat-AllItems-Champion'sRefuge"
+ value: {
+  dps: 475.80575
+  tps: 263.46796
+ }
+}
+dps_results: {
+ key: "TestFeralCat-AllItems-Champion'sWildhide"
+ value: {
+  dps: 480.71689
+  tps: 265.94614
+ }
+}
+dps_results: {
  key: "TestFeralCat-AllItems-DarkmoonCard:BlueDragon-19288"
  value: {
   dps: 209.16767
@@ -311,6 +325,27 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestFeralCat-AllItems-FeralheartRaiment"
+ value: {
+  dps: 514.28599
+  tps: 282.29612
+ }
+}
+dps_results: {
+ key: "TestFeralCat-AllItems-FieldMarshal'sRefuge"
+ value: {
+  dps: 475.80575
+  tps: 263.44264
+ }
+}
+dps_results: {
+ key: "TestFeralCat-AllItems-FieldMarshal'sWildhide"
+ value: {
+  dps: 484.12212
+  tps: 267.63034
+ }
+}
+dps_results: {
  key: "TestFeralCat-AllItems-FrozenHeartoftheMountain-249469"
  value: {
   dps: 209.74655
@@ -367,10 +402,24 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestFeralCat-AllItems-GrovekeeperEclipse"
+ value: {
+  dps: 515.23288
+  tps: 283.12122
+ }
+}
+dps_results: {
  key: "TestFeralCat-AllItems-HammeroftheNorthernWind-810"
  value: {
   dps: 219.39791
   tps: 155.77252
+ }
+}
+dps_results: {
+ key: "TestFeralCat-AllItems-Haruspex'sGarb"
+ value: {
+  dps: 518.39724
+  tps: 284.42491
  }
 }
 dps_results: {
@@ -427,6 +476,20 @@ dps_results: {
  value: {
   dps: 212.43013
   tps: 150.82539
+ }
+}
+dps_results: {
+ key: "TestFeralCat-AllItems-LieutenantCommander'sRefuge"
+ value: {
+  dps: 475.80575
+  tps: 263.46796
+ }
+}
+dps_results: {
+ key: "TestFeralCat-AllItems-LieutenantCommander'sWildhide"
+ value: {
+  dps: 480.71689
+  tps: 265.94614
  }
 }
 dps_results: {
@@ -500,6 +563,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestFeralCat-AllItems-PristineEnchantedSouthSeasKelp-19613"
+ value: {
+  dps: 574.21443
+  tps: 312.43522
+ }
+}
+dps_results: {
  key: "TestFeralCat-AllItems-RingofSaviors-1447"
  value: {
   dps: 210.22079
@@ -542,6 +612,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestFeralCat-AllItems-SwarmingIdol-272430"
+ value: {
+  dps: 573.59349
+  tps: 311.02147
+ }
+}
+dps_results: {
  key: "TestFeralCat-AllItems-TalismanofArathor-20071"
  value: {
   dps: 209.16767
@@ -577,6 +654,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestFeralCat-AllItems-TalonsofWrath-249441"
+ value: {
+  dps: 573.59349
+  tps: 311.02147
+ }
+}
+dps_results: {
  key: "TestFeralCat-AllItems-TheBurrower'sShell-23558"
  value: {
   dps: 209.16767
@@ -605,6 +689,20 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestFeralCat-AllItems-Warlord'sRefuge"
+ value: {
+  dps: 475.80575
+  tps: 263.44264
+ }
+}
+dps_results: {
+ key: "TestFeralCat-AllItems-Warlord'sWildhide"
+ value: {
+  dps: 484.12212
+  tps: 267.63034
+ }
+}
+dps_results: {
  key: "TestFeralCat-AllItems-WarmthofForgiveness-23027"
  value: {
   dps: 212.20764
@@ -616,6 +714,13 @@ dps_results: {
  value: {
   dps: 202.96244
   tps: 144.10333
+ }
+}
+dps_results: {
+ key: "TestFeralCat-AllItems-WildheartRaiment"
+ value: {
+  dps: 461.97569
+  tps: 257.21149
  }
 }
 dps_results: {

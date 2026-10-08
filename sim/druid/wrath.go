@@ -10,8 +10,6 @@ var wrathDamage = wrathRank.DamageEffect()
 
 func (druid *Druid) registerWrathSpell() {
 	config := spelldata.SpellConfig(&druid.Unit, wrathRank, spelldata.Magic(core.ProcMaskSpellDamage))
-	config.ClassSpellMask = DruidSpellWrath
-
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		result := spell.CalcDamage(sim, target, wrathDamage.Average(), spell.OutcomeMagicHitAndCrit)
 
