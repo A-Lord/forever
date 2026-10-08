@@ -70,6 +70,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestHunter-AllItems-ArcaneInfusedGem-19336"
+ value: {
+  dps: 726.56255
+  tps: 525.5302
+  dtps: 5.0361
+ }
+}
+dps_results: {
  key: "TestHunter-AllItems-ArenaGrandMaster-19024"
  value: {
   dps: 722.75101
@@ -702,6 +710,14 @@ dps_results: {
   dps: 708.34212
   tps: 512.94163
   dtps: 5.54013
+ }
+}
+dps_results: {
+ key: "TestHunter-AllItems-Renataki'sCharmofBeasts-19953"
+ value: {
+  dps: 719.83737
+  tps: 521.09445
+  dtps: 5.69213
  }
 }
 dps_results: {
