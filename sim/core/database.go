@@ -15,8 +15,7 @@ var WITH_DB = false
 
 var itemsByID = map[int32]Item{}
 var randomSuffixesByID = map[int32]RandomSuffix{}
-var enchantsByEffectID = map[int32]Enchant{}
-var enchantRowsByEffectID = map[int32][]Enchant{} // Every row with distinct slot rules per effect id; enchantsByEffectID keeps only the first.
+var enchantRowsByEffectID = map[int32][]Enchant{} // Every row with distinct slot rules per effect id, in load order.
 var itemEffectRandPropPointsByIlvl = map[int32]ItemEffectRandPropPoints{}
 var consumablesByID = map[int32]Consumable{}
 var spellEffectsById = map[int32]*proto.SpellEffect{}
@@ -64,9 +63,6 @@ func addToDatabase(newDB *proto.SimDatabase) {
 
 	for _, v := range newDB.Enchants {
 		enchant := EnchantFromProto(v)
-		if _, ok := enchantsByEffectID[v.EffectId]; !ok {
-			enchantsByEffectID[v.EffectId] = enchant
-		}
 		if !slices.ContainsFunc(enchantRowsByEffectID[v.EffectId], enchant.sameSlotRules) {
 			enchantRowsByEffectID[v.EffectId] = append(enchantRowsByEffectID[v.EffectId], enchant)
 		}
@@ -94,7 +90,7 @@ type ItemEffectRandPropPoints struct {
 	RandPropPoints int32
 }
 
-// ItemEffectRandPropPointsFromProto converts a protobuf ItemEffectRandPropPoints to a Go ItemEffectRandPropPoints
+// Converts a protobuf ItemEffectRandPropPoints to a Go ItemEffectRandPropPoints
 func ItemEffectRandPropPointsFromProto(ieRpp *proto.ItemEffectRandPropPoints) ItemEffectRandPropPoints {
 	return ItemEffectRandPropPoints{
 		Ilvl:           ieRpp.GetIlvl(),
@@ -102,7 +98,7 @@ func ItemEffectRandPropPointsFromProto(ieRpp *proto.ItemEffectRandPropPoints) It
 	}
 }
 
-// ItemEffectRandPropPointsToProto converts a Go ItemEffectRandPropPoints to a protobuf ItemEffectRandPropPoints
+// Converts a Go ItemEffectRandPropPoints to a protobuf ItemEffectRandPropPoints
 func ItemEffectRandPropPointsToProto(ieRpp ItemEffectRandPropPoints) *proto.ItemEffectRandPropPoints {
 	return &proto.ItemEffectRandPropPoints{
 		Ilvl:           ieRpp.Ilvl,
@@ -274,6 +270,7 @@ type Enchant struct {
 	Type           proto.ItemType // Only needed for unit tests
 	EnchantType    proto.EnchantType
 	ExtraTypes     []proto.ItemType
+	ProcKind       proto.EnchantProcKind
 }
 
 func EnchantFromProto(pData *proto.SimEnchant) Enchant {
@@ -287,6 +284,7 @@ func EnchantFromProto(pData *proto.SimEnchant) Enchant {
 		Type:           pData.Type,
 		EnchantType:    pData.EnchantType,
 		ExtraTypes:     append([]proto.ItemType(nil), pData.ExtraTypes...),
+		ProcKind:       pData.ProcKind,
 	}
 }
 
@@ -434,21 +432,91 @@ func (equipment *Equipment) containsItemInSlots(itemID int32, possibleSlots []pr
 
 func GetEnchantByEffectID(effectID int32) *Enchant {
 	dbMu.RLock()
-	enchant, ok := enchantsByEffectID[effectID]
+	rows := enchantRowsByEffectID[effectID]
 	dbMu.RUnlock()
-	if !ok {
+	if len(rows) == 0 {
 		return nil
 	}
+	enchant := rows[0]
 	return &enchant
 }
 
-// The game files carry several rows under some effect ids (1897 is both 2H Lesser Impact and
-// Superior Striking), differing in the items they fit. fits runs under the read lock, so
-// nothing it calls may take dbMu.
-func AnyEnchantRow(effectID int32, fits func(Enchant) bool) bool {
+// Every row under effectID, as AddToDatabase stores them.
+func GetEnchantRowsByEffectID(effectID int32) []Enchant {
 	dbMu.RLock()
 	defer dbMu.RUnlock()
-	return slices.ContainsFunc(enchantRowsByEffectID[effectID], fits)
+	return slices.Clone(enchantRowsByEffectID[effectID])
+}
+
+// The first row under effectID that fits item, for the stats an enchant gives that item.
+func FittingEnchantRow(effectID int32, item Item) (Enchant, bool) {
+	dbMu.RLock()
+	defer dbMu.RUnlock()
+	return fittingEnchantRow(effectID, item)
+}
+
+// The game files carry several rows under some effect ids (1897 is both 2H Lesser Impact and
+// Superior Striking), differing in the items they fit. Takes no lock: it runs under the read
+// lock in FittingEnchantRow and NewItem.
+func fittingEnchantRow(effectID int32, item Item) (Enchant, bool) {
+	for _, row := range enchantRowsByEffectID[effectID] {
+		if enchantRowAppliesToItem(row, item) {
+			return row, true
+		}
+	}
+	return Enchant{}, false
+}
+
+// A static enchant gives only stats, pseudo-stats or weapon damage and has no temporary effect.
+func (enchant Enchant) IsStatic() bool {
+	if enchant.ProcKind != proto.EnchantProcKind_EnchantProcKindNone {
+		return false
+	}
+	return enchant.Stats != (stats.Stats{}) || enchant.WeaponDamage != 0 || slices.ContainsFunc(enchant.PseudoStats, func(v float64) bool { return v != 0 })
+}
+
+func EnchantAppliesToItem(effectID int32, item Item) bool {
+	_, ok := FittingEnchantRow(effectID, item)
+	return ok
+}
+
+// Takes no lock: it runs under the read lock through fittingEnchantRow.
+func enchantRowAppliesToItem(enchant Enchant, item Item) bool {
+	if enchant.EnchantType == proto.EnchantType_EnchantTypeTwoHand && item.HandType != proto.HandType_HandTypeTwoHand {
+		return false
+	}
+	if enchant.EnchantType == proto.EnchantType_EnchantTypeStaff && item.WeaponType != proto.WeaponType_WeaponTypeStaff {
+		return false
+	}
+	if (enchant.EnchantType == proto.EnchantType_EnchantTypeShield) != (item.WeaponType == proto.WeaponType_WeaponTypeShield) {
+		return false
+	}
+	if (enchant.EnchantType == proto.EnchantType_EnchantTypeOffHand) != (item.WeaponType == proto.WeaponType_WeaponTypeOffHand) {
+		return false
+	}
+	if enchant.Type == proto.ItemType_ItemTypeRanged {
+		if item.RangedWeaponType != proto.RangedWeaponType_RangedWeaponTypeBow && item.RangedWeaponType != proto.RangedWeaponType_RangedWeaponTypeCrossbow && item.RangedWeaponType != proto.RangedWeaponType_RangedWeaponTypeGun {
+			return false
+		}
+	} else if item.RangedWeaponType != proto.RangedWeaponType_RangedWeaponTypeUnknown && item.RangedWeaponType != proto.RangedWeaponType_RangedWeaponTypeWand {
+		return false
+	}
+	return CheckSliceOverlap(eligibleEnchantSlots(enchant), EligibleSlotsForItem(&item))
+}
+
+func eligibleEnchantSlots(enchant Enchant) []proto.ItemSlot {
+	types := append([]proto.ItemType{enchant.Type}, enchant.ExtraTypes...)
+	slots := make([]proto.ItemSlot, 0, len(types)*2)
+	for _, itemType := range types {
+		if typeSlots, ok := ItemTypeToSlotsMap[itemType]; ok {
+			slots = append(slots, typeSlots...)
+			continue
+		}
+		if itemType == proto.ItemType_ItemTypeWeapon {
+			slots = append(slots, proto.ItemSlot_ItemSlotMainHand, proto.ItemSlot_ItemSlotOffHand)
+		}
+	}
+	return slots
 }
 
 func (enchant Enchant) sameSlotRules(other Enchant) bool {
@@ -532,8 +600,12 @@ func NewItem(itemSpec ItemSpec) Item {
 	}
 
 	if itemSpec.Enchant != 0 {
-		if enchant, ok := enchantsByEffectID[itemSpec.Enchant]; ok {
+		if rows := enchantRowsByEffectID[itemSpec.Enchant]; len(rows) == 1 {
+			item.Enchant = rows[0]
+		} else if enchant, ok := fittingEnchantRow(itemSpec.Enchant, item); ok {
 			item.Enchant = enchant
+		} else if len(rows) > 0 {
+			item.Enchant = rows[0]
 		}
 		// else {
 		// 	panic(fmt.Sprintf("No enchant with id: %d", itemSpec.Enchant))
@@ -714,7 +786,7 @@ var ItemTypeToSlotsMap = map[proto.ItemType][]proto.ItemSlot{
 	// ItemType_ItemTypeWeapon is excluded intentionally - the slot cannot be decided based on type alone for weapons.
 }
 
-// EligibleSlotsForItem returns the item slots an item can occupy.
+// The item slots an item can occupy.
 func EligibleSlotsForItem(item *Item) []proto.ItemSlot {
 	if item == nil {
 		return nil

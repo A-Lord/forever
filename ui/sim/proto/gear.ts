@@ -7,7 +7,7 @@ import { sum } from '../utils/math';
 import { Database } from './database';
 import { EquippedItem } from './equipped_item';
 import { isBluntWeaponType, isSharpWeaponType, validWeaponCombo } from './items';
-import { adjustWeaponImbueId } from './utils';
+import { adjustImbues } from './utils';
 
 type InternalGear = Record<ItemSlot, EquippedItem | null>;
 
@@ -186,7 +186,7 @@ export class Gear extends BaseGear {
 
 		[ItemSlot.ItemSlotFinger1, ItemSlot.ItemSlotFinger2].forEach(slot => {
 			const fingerItem = this.getEquippedItem(slot);
-			if (fingerItem) curGear = curGear.withEquippedItem(slot, fingerItem.withEnchant(null));
+			if (fingerItem?.enchant) curGear = curGear.withEquippedItem(slot, fingerItem.withEnchant(null));
 		});
 
 		return curGear;
@@ -219,10 +219,7 @@ export class Gear extends BaseGear {
 		return weapon != null && isSharpWeaponType(weapon.item.weaponType);
 	}
 	adjustImbues(consumes: ConsumesSpec): ConsumesSpec {
-		const mhImbueId = adjustWeaponImbueId(consumes.mhImbueId, this.hasSharpMHWeapon(), this.hasBluntMHWeapon());
-		const ohImbueId = adjustWeaponImbueId(consumes.ohImbueId, this.hasSharpOHWeapon(), this.hasBluntOHWeapon());
-		if (mhImbueId === consumes.mhImbueId && ohImbueId === consumes.ohImbueId) return consumes;
-		return ConsumesSpec.clone({ ...consumes, mhImbueId, ohImbueId });
+		return adjustImbues(consumes, this.getEquippedItem(ItemSlot.ItemSlotMainHand)?.item, this.getEquippedItem(ItemSlot.ItemSlotOffHand)?.item);
 	}
 
 	getProfessionRequirements(): Array<Profession> {

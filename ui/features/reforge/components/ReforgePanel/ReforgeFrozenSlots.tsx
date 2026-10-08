@@ -5,15 +5,13 @@ import type { Player } from '@sim/player/player';
 import type { ReforgeSettings } from '@sim/settings/reforge_settings';
 import { type ReactNode, useMemo } from 'react';
 
-import { useReforgeIdPrefix } from './context/ReforgeIdPrefixContext';
-
 export interface ReforgeFrozenSlotsViewProps {
 	hidden: boolean;
 	pickers: ReadonlyArray<ReactNode>;
 }
 
 export const ReforgeFrozenSlotsView = ({ hidden, pickers }: ReforgeFrozenSlotsViewProps) => (
-	<div className="mb-2 grid grid-cols-2" data-testid="reforge-frozen-slots" hidden={hidden}>
+	<div className="mb-2 grid grid-cols-2 gap-1" data-testid="reforge-frozen-slots" hidden={hidden}>
 		{pickers}
 	</div>
 );
@@ -26,7 +24,6 @@ export interface ReforgeFrozenSlotsProps {
 
 /** One toggle per slot, in the gear's own slot order. The slot list is the whole slot enum, so it is memoised on the player. */
 export const ReforgeFrozenSlots = ({ settings, player, freezeItemSlots }: ReforgeFrozenSlotsProps) => {
-	const idPrefix = useReforgeIdPrefix();
 	const slots = useMemo(() => player.getGear().getItemSlots(), [player]);
 
 	return (
@@ -37,7 +34,7 @@ export const ReforgeFrozenSlots = ({ settings, player, freezeItemSlots }: Reforg
 					key={slot}
 					modObject={player}
 					config={{
-						id: `${idPrefix}-freeze-${ItemSlot[slot]}`,
+						id: `reforge-optimizer-freeze-${ItemSlot[slot]}`,
 						label: translateSlotName(slot),
 						layout: 'inline',
 						storeField: 'reforge:freezeItemSlots',

@@ -142,9 +142,17 @@ p {
 
 ol,
 ul {
-	padding-left: 2rem;
+	padding-left: --spacing(4);
 	margin-top: 0;
 	margin-bottom: 1rem;
+}
+
+ul {
+	list-style-type: disc;
+}
+
+ol {
+	list-style-type: decimal;
 }
 
 a {

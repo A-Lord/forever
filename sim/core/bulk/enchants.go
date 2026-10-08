@@ -7,7 +7,7 @@ import (
 	"github.com/wowsims/forever/sim/core/proto"
 )
 
-// enchantPools holds the pooled effect ids per item slot, deduped in request order.
+// The pooled effect ids per item slot, deduped in request order.
 type enchantPools map[proto.ItemSlot][]int32
 
 func newEnchantPools(settings *proto.BulkSettings) enchantPools {
@@ -22,8 +22,8 @@ func newEnchantPools(settings *proto.BulkSettings) enchantPools {
 	return pools
 }
 
-// poolFor reads the ring pool from the Finger1 row, which serves both fingers. Trinkets take no
-// enchants and have no pool.
+// Reads the ring pool from the Finger1 row, which serves both fingers. Trinkets take no enchants
+// and have no pool.
 func (pools enchantPools) poolFor(bulkSlot BulkSimItemSlot) []int32 {
 	if bulkSlot == BulkSimItemSlotFinger {
 		return pools[proto.ItemSlot_ItemSlotFinger1]
@@ -36,7 +36,7 @@ func (pools enchantPools) poolFor(bulkSlot BulkSimItemSlot) []int32 {
 
 func fittingEnchants(pool []int32, item core.Item) []int32 {
 	return core.FilterSlice(pool, func(effectID int32) bool {
-		return enchantAppliesToItem(effectID, item)
+		return core.EnchantAppliesToItem(effectID, item)
 	})
 }
 
@@ -58,9 +58,9 @@ func enchantVariants(option bulkSimCandidateOption, pool []int32) []bulkSimCandi
 	return variants
 }
 
-// handWeaponEnchantVariants expands a weapon a dual-wielder shares between both hands. Each
-// variant is limited to the hand(s) whose pool holds its enchant; a hand whose pool fits nothing
-// gets the unexpanded option, which keeps the carry-over.
+// Expands a weapon a dual-wielder shares between both hands. Each variant is limited to the
+// hand(s) whose pool holds its enchant; a hand whose pool fits nothing gets the unexpanded option,
+// which keeps the carry-over.
 func handWeaponEnchantVariants(option bulkSimCandidateOption, mainHandPool []int32, offHandPool []int32) []bulkSimCandidateOption {
 	canMainHand := option.item.HandType != proto.HandType_HandTypeOffHand
 	canOffHand := option.item.HandType != proto.HandType_HandTypeMainHand && option.item.HandType != proto.HandType_HandTypeTwoHand
@@ -99,10 +99,14 @@ func handWeaponEnchantVariants(option bulkSimCandidateOption, mainHandPool []int
 	return variants
 }
 
-// initEnchantVariants expands every option in a bulk slot with a pool. The frozen weapon keeps
-// its own enchant; frozen rings and trinkets are paired from frozenItems, not from these options.
+// Expands every option in a bulk slot with a pool. The frozen weapon keeps its own enchant;
+// frozen rings and trinkets are paired from frozenItems, not from these options. A non-enchanter's
+// rings take no pool, as slotSpec strips their enchants.
 func (generator *bulkSimCandidateGenerator) initEnchantVariants() {
 	pools := newEnchantPools(generator.settings)
+	if !generator.playerIsEnchanter {
+		delete(pools, proto.ItemSlot_ItemSlotFinger1)
+	}
 	if len(pools) == 0 {
 		return
 	}
