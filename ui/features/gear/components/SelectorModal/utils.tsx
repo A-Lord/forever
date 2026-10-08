@@ -71,7 +71,7 @@ export const buildSelectorTabs = ({ player, slot, gearData, equippedItem }: Sele
 			? describe({
 					label: SelectorModalTabs.RandomSuffixes,
 					itemData: randomSuffixesTabData(player, gearData, equippedItem),
-					computeEP: randomSuffix => (player.computeRandomSuffixEP(randomSuffix) * randPropPoints) / 10000,
+					computeEP: randomSuffix => player.computeRandomSuffixEP(randomSuffix, randPropPoints),
 					equippedToItem: item => item?.randomSuffix,
 					onRemove: () => {
 						const current = gearData.getEquippedItem();

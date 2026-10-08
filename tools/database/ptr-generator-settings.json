@@ -16,6 +16,8 @@
 		"ItemSubClassMask",
 		"ItemReforge",
 		"ItemBonus",
+		"ItemBonusTreeNode",
+		"ItemXBonusTree",
 		"ItemEffect",
 		"ItemClass",
 		"SpellCategory",
