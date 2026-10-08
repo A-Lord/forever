@@ -2155,19 +2155,6 @@
 							"additionalProperties": false,
 							"required": ["label", "tooltip"]
 						},
-						"okf_uptime": {
-							"type": "object",
-							"properties": {
-								"label": {
-									"type": "string"
-								},
-								"tooltip": {
-									"type": "string"
-								}
-							},
-							"additionalProperties": false,
-							"required": ["label", "tooltip"]
-						},
 						"sync_type": {
 							"type": "object",
 							"properties": {
@@ -2437,7 +2424,6 @@
 						"queue_delay",
 						"assume_bleed_active",
 						"cannot_shred_target",
-						"okf_uptime",
 						"sync_type",
 						"show_1h_weapons",
 						"show_2h_weapons",
@@ -5137,45 +5123,6 @@
 									"additionalProperties": false,
 									"required": ["label", "tooltip"]
 								},
-								"solar_energy": {
-									"type": "object",
-									"properties": {
-										"label": {
-											"type": "string"
-										},
-										"tooltip": {
-											"type": "string"
-										}
-									},
-									"additionalProperties": false,
-									"required": ["label", "tooltip"]
-								},
-								"lunar_energy": {
-									"type": "object",
-									"properties": {
-										"label": {
-											"type": "string"
-										},
-										"tooltip": {
-											"type": "string"
-										}
-									},
-									"additionalProperties": false,
-									"required": ["label", "tooltip"]
-								},
-								"current_eclipse_phase": {
-									"type": "object",
-									"properties": {
-										"label": {
-											"type": "string"
-										},
-										"tooltip": {
-											"type": "string"
-										}
-									},
-									"additionalProperties": false,
-									"required": ["label", "tooltip"]
-								},
 								"generic_resource": {
 									"type": "object",
 									"properties": {
@@ -6098,9 +6045,6 @@
 								"estimated_time_to_target_energy",
 								"current_combo_points",
 								"max_combo_points",
-								"solar_energy",
-								"lunar_energy",
-								"current_eclipse_phase",
 								"generic_resource",
 								"gcd_is_ready",
 								"gcd_time_to_ready",
@@ -6359,9 +6303,6 @@
 								"combo_points": {
 									"type": "string"
 								},
-								"eclipse": {
-									"type": "string"
-								},
 								"cooldowns": {
 									"type": "string"
 								},
@@ -6428,7 +6369,6 @@
 								"focus",
 								"energy",
 								"combo_points",
-								"eclipse",
 								"cooldowns",
 								"potions",
 								"conjured_items",
@@ -6567,22 +6507,6 @@
 										"variable_assignment_tooltip"
 									]
 								},
-								"eclipse_types": {
-									"type": "object",
-									"properties": {
-										"lunar": {
-											"type": "string"
-										},
-										"solar": {
-											"type": "string"
-										},
-										"neutral": {
-											"type": "string"
-										}
-									},
-									"additionalProperties": false,
-									"required": ["lunar", "solar", "neutral"]
-								},
 								"rotation_types": {
 									"type": "object",
 									"properties": {
@@ -6660,7 +6584,6 @@
 							"required": [
 								"action_id_sets",
 								"field_configs",
-								"eclipse_types",
 								"rotation_types",
 								"unit_labels",
 								"placeholder_tooltip",
