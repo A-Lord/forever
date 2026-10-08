@@ -72,9 +72,9 @@ export default defineSpec<Spec.SpecEnhancementShaman>({
 
 	defaults: {
 		// Default equipped gear.
-		gear: Presets.PreraidGear.gear,
+		gear: Presets.PreBiSGear.gear,
 		// Default EP weights for sorting gear in the gear picker.
-		epWeights: new Stats(),
+		epWeights: Presets.PreBiSEpWeights.epWeights,
 		statCaps: (() => {
 			const expCap = new Stats().withPseudoStat(PseudoStat.PseudoStatExpertisePercent, 6.5);
 			return expCap;
@@ -118,13 +118,13 @@ export default defineSpec<Spec.SpecEnhancementShaman>({
 	},
 
 	presets: {
-		epWeights: [],
+		epWeights: [Presets.PreBiSEpWeights],
 		// Preset talents that the user can quickly select.
 		talents: [Presets.StandardTalents],
 		// Preset rotations that the user can quickly select.
 		rotations: [Presets.ROTATION_PRESET_DEFAULT],
 		// Preset gear configurations that the user can quickly select.
-		gear: [Presets.PreraidGear],
+		gear: [Presets.PreBiSGear],
 		// Preset builds that the user can quickly select.
 		builds: [Presets.TestingBuild],
 	},
