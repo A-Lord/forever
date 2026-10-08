@@ -438,6 +438,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDpsWarrior-AllItems-ManualCrowdPummeler-9449"
+ value: {
+  dps: 412.41539
+  tps: 241.10822
+  dtps: 2.93302
+ }
+}
+dps_results: {
  key: "TestDpsWarrior-AllItems-MarkofResolution-17759"
  value: {
   dps: 412.41539

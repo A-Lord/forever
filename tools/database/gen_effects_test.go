@@ -202,7 +202,8 @@ func TestOnUseRoutesFromTheSpellItCasts(t *testing.T) {
 }
 
 // An on-use whose spell raises the wearer's speeds registers as a speed buff, every speed effect of
-// its row modelled.
+// its row modelled. Manual Crowd Pummeler is below MIN_EFFECT_ILVL and registers through its
+// EffectFloorExemptions entry.
 func TestOnUseSpeedBuffRoutesAsASpeedBuff(t *testing.T) {
 	withDBCInputs(t)
 	instance := dbc.GetDBC()
@@ -215,6 +216,7 @@ func TestOnUseSpeedBuffRoutesAsASpeedBuff(t *testing.T) {
 		{19339, 23723, "on use: 23723 (A_MOD_CASTING_SPEED_NOT_STACK)"},                      // Mind Quickening Gem
 		{19343, 23733, "on use: 23733 (A_MOD_CASTING_SPEED_NOT_STACK, A_MOD_MELEE_HASTE_3)"}, // Scrolls of Blinding Light
 		{22954, 28866, "on use: 28866 (A_MOD_MELEE_HASTE_3, A_MOD_RANGED_HASTE)"},            // Kiss of the Spider
+		{9449, 13494, "on use: 13494 (A_MOD_MELEE_HASTE_3)"},                                 // Manual Crowd Pummeler
 	} {
 		item := instance.Items[tc.itemID]
 		parsed := item.ToUIItem()
