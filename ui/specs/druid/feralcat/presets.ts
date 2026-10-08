@@ -30,7 +30,7 @@ export const OtherDefaults = {
 	distanceFromTarget: 0,
 	profession1: Profession.Engineering,
 	profession2: Profession.Enchanting,
-	race: Race.RaceTauren,
+	race: Race.RaceNightElf,
 	reactionTime: 250,
 };
 
@@ -47,7 +47,7 @@ export const Level60Gear = PresetUtils.makePresetGear('Level 60', Level60GearJso
 	tooltip: 'Leather at level 60 with no set bonus and no proc. Fist of Cenarius and the Howling Idol.',
 });
 
-// Pre-raid leather on a Tauren with The Unstoppable Force and Wolfshead Helm. Shifting Cloak, Dunestalker's
+// Pre-raid leather on a Night Elf with The Unstoppable Force and Wolfshead Helm. Shifting Cloak, Dunestalker's
 // Boots, Ferocious Watcher's Signet and the two hit and attack power trinkets stand in for Cape of the Black
 // Baron, Swiftwalker Boots, Tarnished Elven Ring, Blackhand's Breadth and Hand of Justice, which the item
 // database does not carry.
@@ -74,17 +74,17 @@ export const Level60Ep = Stats.fromMap({
 export const Level60EpWeights = PresetUtils.makePresetEpWeights('Level 60', Level60Ep);
 
 // EP with agility as 1, on the Pre-raid preset with the default buffs, debuffs and consumables, 180s.
-// Hit is weighed 1% below the 8% cap, where the gear picker reads it.
+// Hit is weighed 2% below the 8% cap, where the gear picker reads it.
 export const PreRaidEp = Stats.fromMap({
-	[Stat.StatStrength]: 0.94,
+	[Stat.StatStrength]: 0.98,
 	[Stat.StatAgility]: 1,
 	[Stat.StatAttackPower]: 0.39,
 	[Stat.StatFeralAttackPower]: 0,
-	[Stat.StatPhysicalDamage]: 3.71,
-	[Stat.StatHitRating]: 0.78,
-	[Stat.StatExpertiseRating]: 0.74,
+	[Stat.StatPhysicalDamage]: 3.73,
+	[Stat.StatHitRating]: 0.8,
+	[Stat.StatExpertiseRating]: 0.75,
 	[Stat.StatCritRating]: 0.74,
-	[Stat.StatHasteRating]: 0.76,
+	[Stat.StatHasteRating]: 0.73,
 	[Stat.StatArmorPenetration]: 0.14,
 });
 
