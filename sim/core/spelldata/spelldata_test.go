@@ -358,7 +358,7 @@ func TestAttributes(t *testing.T) {
 	}
 }
 
-// The four ticks the flags pick, without building a Dot to compare function pointers with.
+// The three ticks the flags pick, without building a Dot to compare function pointers with.
 func TestTickOutcomeKind(t *testing.T) {
 	cases := []struct {
 		canCrit, magic bool
@@ -366,7 +366,7 @@ func TestTickOutcomeKind(t *testing.T) {
 	}{
 		{true, true, tickOutcomeMagicCrit},
 		{true, false, tickOutcomePhysicalCrit},
-		{false, true, tickOutcomeMagicHit},
+		{false, true, tickOutcomePlain},
 		{false, false, tickOutcomePlain},
 	}
 	for _, c := range cases {
