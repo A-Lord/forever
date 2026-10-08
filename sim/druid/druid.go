@@ -169,6 +169,7 @@ func (druid *Druid) RegisterBalanceSpells() {
 	druid.registerMoonfireSpell()
 	druid.registerWrathSpell()
 	druid.registerHurricaneSpell()
+	druid.registerBarkskin()
 }
 
 func (druid *Druid) RegisterFeralCatSpells() {
