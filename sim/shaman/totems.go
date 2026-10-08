@@ -76,7 +76,8 @@ func (shaman *Shaman) registerWeaponTotem(rank *spelldata.Spell, slot int, categ
 	return shaman.RegisterSpell(config)
 }
 
-// Improved Weapon Totems (29192) has no node in the Forever talent tree, so the totem is untalented.
+// The rows already carry Improved Weapon Totems: Windfury's attack power and Flametongue's damage are
+// its 30% and 12% over their untalented values, so nothing applies the talent.
 func (shaman *Shaman) registerWindfuryTotemSpell() {
 	shaman.WindfuryTotem = shaman.registerWeaponTotem(windfuryTotemRank, AirTotem, buffs.WindfuryTotemCategory,
 		buffs.WindfuryTotemValue(0), buffs.NewWindfuryTotemProcTrigger(&shaman.Character))
@@ -89,7 +90,8 @@ func (shaman *Shaman) registerFlametongueTotemSpell() {
 }
 
 func (shaman *Shaman) registerStrengthOfEarthTotemSpell() {
-	// Enhancing Totems (16295) has no node in the Forever talent tree, so the aura is untalented.
+	// The rows already carry Enhancing Totems: Strength of Earth's and Grace of Air's amounts are its 15%
+	// over their untalented values, so nothing applies the talent.
 	shaman.registerBuffTotem(strengthOfEarthTotemRank, EarthTotem,
 		buffs.NewSpellDataStrengthOfEarthTotemAura(&shaman.Unit, true, 0))
 }
