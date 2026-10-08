@@ -1,16 +1,23 @@
 package dbc
 
 import (
+	"fmt"
+
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
+// A random suffix is one bonus list of an item's bonus tree; its ID is the bonus list's.
 type RandomSuffix struct {
-	ID            int
-	Name          string
-	AllocationPct []int // AllocationPct_0-4
-	EffectArgs    []int // EffectArg_0-4
-	Effects       []int // Effect_0-4
+	ID          int
+	Name        string
+	Stats       []RandomSuffixStat
+	EquipSpells []int // The spells of the list's ITEM_BONUS_ITEM_EFFECT rows.
+}
+
+type RandomSuffixStat struct {
+	ItemMod    int
+	Allocation int // Per 10000 of the item's random property points.
 }
 
 func (raw RandomSuffix) ToProto() *proto.ItemRandomSuffix {
@@ -20,37 +27,24 @@ func (raw RandomSuffix) ToProto() *proto.ItemRandomSuffix {
 		Stats: stats.Stats{}.ToProtoArray(),
 	}
 
-	for i, effect := range raw.Effects {
-		amount := float64(raw.AllocationPct[i])
-		switch effect {
-		case ITEM_ENCHANTMENT_RESISTANCE:
-			stat, match := MapResistanceToStat(raw.EffectArgs[i])
-			if !match {
-				continue
-			}
-
-			suffix.Stats[stat] = amount
-			if suffix.Name == "" {
-				suffix.Name = stats.Stat(stat).StatName()
-			}
-		case ITEM_ENCHANTMENT_STAT:
-			mapped, match := MapBonusStatIndexToStats(raw.EffectArgs[i])
-			if !match {
-				continue
-			}
-			for _, stat := range mapped {
-				suffix.Stats[stat] = amount
-				if suffix.Name == "" {
-					suffix.Name = stats.Stat(stat).StatName()
-				}
-			}
-		case ITEM_ENCHANTMENT_EQUIP_SPELL: //Buff
-			equipStats := stats.Stats{}
-			for _, spellEffect := range dbcInstance.SpellEffects[raw.EffectArgs[i]] {
-				addEquipEffectStat(&equipStats, spellEffect, amount)
-			}
-			suffix.Stats = stats.FromProtoArray(suffix.Stats).Add(equipStats).ToProtoArray()
+	// ITEM_MOD_HEALTH_REGEN ("of Regeneration") has no stat in the sim and is left out.
+	for _, stat := range raw.Stats {
+		mapped, match := MapBonusStatIndexToStats(stat.ItemMod)
+		if !match {
+			continue
+		}
+		for _, s := range mapped {
+			suffix.Stats[s] += float64(stat.Allocation)
 		}
 	}
+
+	// The one equip spell suffixes carry, 13669 on "of Eluding", states a dodge percent and nothing else.
+	pseudoStats := make([]float64, stats.PseudoStatsLen)
+	for _, spellID := range raw.EquipSpells {
+		if addedStats, _ := AddEquipSpellStats(&stats.Stats{}, pseudoStats, spellID); addedStats {
+			panic(fmt.Sprintf("random suffix %d: equip spell %d states flat stats", raw.ID, spellID))
+		}
+	}
+	suffix.PseudoStats = NullFloat(pseudoStats)
 	return suffix
 }

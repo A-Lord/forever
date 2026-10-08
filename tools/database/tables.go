@@ -76,6 +76,7 @@ func ScanRawItemData(rows *sql.Rows) (dbc.Item, error) {
 	if parseErr != nil {
 		return raw, fmt.Errorf("failed to parse RandomSuffixOptions: %w", parseErr)
 	}
+	slices.Sort(raw.RandomSuffixOptions)
 
 	raw.StatAlloc, err = parseFloatArrayField(statValue, 10)
 	if err != nil {
@@ -135,10 +136,7 @@ func LoadAndWriteRawItems(dbHelper *DBHelper, filter string, inputsDir string) (
 			s.AllowableRace_0 as RaceMask,
 			s.QualityModifier,
 			s.DamageType,
-			-- ItemRandomSuffixGroupID is absent from the game files, so no item names a
-			-- random suffix group and every item reads NULL here. ParseRandomSuffixOptions
-			-- takes a NullString and reads NULL as no suffix options.
-			NULL AS RandomSuffixOptions,
+			(SELECT group_concat(DISTINCT n.ChildItemBonusListID) ` + randomSuffixNodes + ` AND x.ItemID = i.ID) AS RandomSuffixOptions,
 			 '[0,0,0,0,0,0,0,0,0,0]', -- StatModifier_bonusAmount: dropped; derived from StatAlloc
 			 i.ClassID,
 			 i.SubClassID,
@@ -766,121 +764,64 @@ func LoadAndWriteRawSpellEffects(dbHelper *DBHelper, inputsDir string) (map[int]
 	return RawSpellEffectBySpellIdAndIndex, nil
 }
 
-// RawRandomSuffix represents the combined result of the ItemRandomSuffix row
-// with its joined SpellItemEnchantment columns.
+// The bonus tree nodes that hand an item one of its random suffixes: a bonus list of the default item
+// context with stat rows and a suffix name. The few other nodes (trees 6050, 6130, 6138 and 6143) name
+// a child tree, another item context or a list without stat rows. Selects from ItemXBonusTree x and
+// ItemBonusTreeNode n.
+var randomSuffixNodes = fmt.Sprintf(`
+	FROM ItemXBonusTree x
+	JOIN ItemBonusTreeNode n ON n.ParentItemBonusTreeID = x.ItemBonusTreeID
+	WHERE n.ItemContext = 0 AND n.ChildItemBonusListID > 0
+		AND EXISTS (SELECT 1 FROM ItemBonus sb WHERE sb.ParentItemBonusListID = n.ChildItemBonusListID AND sb.Type = %d)
+		AND EXISTS (SELECT 1 FROM ItemBonus nb WHERE nb.ParentItemBonusListID = n.ChildItemBonusListID AND nb.Type = %d)`,
+	dbc.ITEM_BONUS_STAT, dbc.ITEM_BONUS_SUFFIX)
 
-// ScanRawRandomSuffix scans one row from the query result into a RawRandomSuffix struct.
-func ScanRawRandomSuffix(rows *sql.Rows) (dbc.RandomSuffix, error) {
-	var raw dbc.RandomSuffix
-	var (
-		id     int
-		name   string
-		alloc0 int
-		alloc1 int
-		alloc2 int
-		alloc3 int
-		alloc4 int
-		eArg0  int
-		eArg1  int
-		eArg2  int
-		eArg3  int
-		eArg4  int
-		eff0   int
-		eff1   int
-		eff2   int
-		eff3   int
-		eff4   int
-	)
-
-	// The order here must match the SELECT list order.
-	err := rows.Scan(
-		&id,
-		&name,
-		&alloc0,
-		&alloc1,
-		&alloc2,
-		&alloc3,
-		&alloc4,
-		&eArg0,
-		&eArg1,
-		&eArg2,
-		&eArg3,
-		&eArg4,
-		&eff0,
-		&eff1,
-		&eff2,
-		&eff3,
-		&eff4,
-	)
-	if err != nil {
-		return raw, err
-	}
-
-	raw.ID = id
-	raw.Name = name
-	raw.AllocationPct = []int{alloc0, alloc1, alloc2, alloc3, alloc4}
-	raw.EffectArgs = []int{eArg0, eArg1, eArg2, eArg3, eArg4}
-	raw.Effects = []int{eff0, eff1, eff2, eff3, eff4}
-
-	return raw, nil
+type randomSuffixRow struct {
+	listID, bonusType, value0, value1 int
+	name                              string
+	spellID                           int
 }
 
-var RawRandomSuffixes []dbc.RandomSuffix
-var RawRandomSuffixesById map[int]dbc.RandomSuffix
-
 func LoadAndWriteRawRandomSuffixes(dbHelper *DBHelper, inputsDir string) ([]dbc.RandomSuffix, error) {
-	// ItemRandomSuffix is not shipped in every game build. The Forever beta drops it
-	// outright -- the file is in the listfile but absent from the build's root --
-	// so there are no random suffixes to load. Write the empty file the rest of
-	// the pipeline expects rather than failing the whole run.
-	if !dbHelper.tableExists("ItemRandomSuffix") {
-		if err := dbc.WriteGzipFile(fmt.Sprintf("%s/dbc/random_suffix.json", inputsDir), []byte("[]")); err != nil {
-			panic(fmt.Sprintf("Error writing random suffixes %v", err))
-		}
-		return nil, nil
-	}
-
-	query := `
-	SELECT
-		COALESCE(-irs.ID, 0) AS ID,
-		COALESCE(irs.Name_lang, '') AS Name_lang,
-		COALESCE(irs.AllocationPct_0, 0) AS AllocationPct_0,
-		COALESCE(irs.AllocationPct_1, 0) AS AllocationPct_1,
-		COALESCE(irs.AllocationPct_2, 0) AS AllocationPct_2,
-		COALESCE(irs.AllocationPct_3, 0) AS AllocationPct_3,
-		COALESCE(irs.AllocationPct_4, 0) AS AllocationPct_4,
-		COALESCE(sie0.EffectArg_0, 0) AS EffectArg_0,
-		COALESCE(sie1.EffectArg_0, 0) AS EffectArg_1,
-		COALESCE(sie2.EffectArg_0, 0) AS EffectArg_2,
-		COALESCE(sie3.EffectArg_0, 0) AS EffectArg_3,
-		COALESCE(sie4.EffectArg_0, 0) AS EffectArg_4,
-		COALESCE(sie0.Effect_0, 0) AS Effect_0,
-		COALESCE(sie1.Effect_0, 0) AS Effect_1,
-		COALESCE(sie2.Effect_0, 0) AS Effect_2,
-		COALESCE(sie3.Effect_0, 0) AS Effect_3,
-		COALESCE(sie4.Effect_0, 0) AS Effect_4
-	FROM ItemRandomSuffix irs
-	LEFT JOIN SpellItemEnchantment sie0 ON irs.Enchantment_0 = sie0.ID
-	LEFT JOIN SpellItemEnchantment sie1 ON irs.Enchantment_1 = sie1.ID
-	LEFT JOIN SpellItemEnchantment sie2 ON irs.Enchantment_2 = sie2.ID
-	LEFT JOIN SpellItemEnchantment sie3 ON irs.Enchantment_3 = sie3.ID
-	LEFT JOIN SpellItemEnchantment sie4 ON irs.Enchantment_4 = sie4.ID
-`
-	// Use your generic LoadRows function to scan each row into a RawRandomSuffix.
-	items, err := LoadRows(dbHelper.db, query, ScanRawRandomSuffix)
-	if err != nil {
-		return nil, fmt.Errorf("error loading RawRandomSuffixes: %w", err)
-	}
-
-	RawRandomSuffixes = items
-	RawRandomSuffixesById = CacheBy(items, func(suffix dbc.RandomSuffix) int {
-		return suffix.ID
+	query := fmt.Sprintf(`
+	SELECT b.ParentItemBonusListID, b.Type, b.Value_0, b.Value_1, COALESCE(d.Description_lang, ''), COALESCE(e.SpellID, 0)
+	FROM ItemBonus b
+	LEFT JOIN ItemNameDescription d ON b.Type = %[1]d AND d.ID = b.Value_0
+	LEFT JOIN ItemEffect e ON b.Type = %[2]d AND e.ID = b.Value_0
+	WHERE b.Type IN (%[1]d, %[2]d, %[3]d)
+		AND b.ParentItemBonusListID IN (SELECT n.ChildItemBonusListID %[4]s)
+	ORDER BY b.ParentItemBonusListID, b.OrderIndex
+`, dbc.ITEM_BONUS_SUFFIX, dbc.ITEM_BONUS_ITEM_EFFECT, dbc.ITEM_BONUS_STAT, randomSuffixNodes)
+	rows, err := LoadRows(dbHelper.db, query, func(rows *sql.Rows) (randomSuffixRow, error) {
+		var row randomSuffixRow
+		err := rows.Scan(&row.listID, &row.bonusType, &row.value0, &row.value1, &row.name, &row.spellID)
+		return row, err
 	})
-	json, _ := json.Marshal(items)
+	if err != nil {
+		return nil, fmt.Errorf("error loading random suffixes: %w", err)
+	}
+
+	var suffixes []dbc.RandomSuffix
+	for _, row := range rows {
+		if len(suffixes) == 0 || suffixes[len(suffixes)-1].ID != row.listID {
+			suffixes = append(suffixes, dbc.RandomSuffix{ID: row.listID})
+		}
+		suffix := &suffixes[len(suffixes)-1]
+		switch row.bonusType {
+		case dbc.ITEM_BONUS_STAT:
+			suffix.Stats = append(suffix.Stats, dbc.RandomSuffixStat{ItemMod: row.value0, Allocation: row.value1})
+		case dbc.ITEM_BONUS_SUFFIX:
+			suffix.Name = row.name
+		case dbc.ITEM_BONUS_ITEM_EFFECT:
+			suffix.EquipSpells = append(suffix.EquipSpells, row.spellID)
+		}
+	}
+
+	json, _ := json.Marshal(suffixes)
 	if err := dbc.WriteGzipFile(fmt.Sprintf("%s/dbc/random_suffix.json", inputsDir), json); err != nil {
 		panic(fmt.Sprintf("Error loading DBC data %v", err))
 	}
-	return items, nil
+	return suffixes, nil
 }
 
 func ScanConsumable(rows *sql.Rows) (dbc.Consumable, error) {
