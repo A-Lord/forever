@@ -3,6 +3,7 @@ import {
 	BulkCandidatesResult,
 	BulkCombinationCountRequest,
 	BulkCombinationCountResult,
+	BulkEnchantSlotOptions,
 	BulkGearCandidate,
 	BulkSettings,
 	BulkSimRequest,
@@ -11,7 +12,6 @@ import {
 	ErrorOutcome,
 	ErrorOutcomeType,
 	PlayerStats,
-	ProgressMetrics,
 	Raid as RaidProto,
 	RaidSimRequest,
 	RaidSimResult,
@@ -42,19 +42,11 @@ import { SimRequest } from '@worker/types';
 
 import { hasTouch } from '../shared/pointer';
 import { makeBulkGearDatabase, makeBulkItemDatabaseFromSpecs } from './bulk/gear_database';
-import {
-	BULK_CACHE_PROGRESS_CHECK_MODULO,
-	BULK_CACHE_YIELD_BUDGET_MS,
-	type BulkSimReforgeCacheProgress,
-	getBulkSimReforgeCacheData,
-	writeBulkSimReforgeCacheResults,
-} from './bulk/reforge_cache';
-import { throwIfAborted } from './bulk/utils';
+import { dedupeGearSets, throwIfAborted } from './bulk/utils';
 import { CURRENT_PHASE, LOCAL_STORAGE_PREFIX } from './constants/other';
 import { Player, UnitMetadata } from './player/player';
 import { Database } from './proto/database';
 import { Gear } from './proto/gear';
-import { getReforgeCacheGearKey } from './proto/items';
 import { extendPlayerProtoWithMissingEffects } from './proto/proto_migration';
 import { SimResult } from './proto/sim_result';
 import { StatCap, Stats } from './proto/stats';
@@ -65,12 +57,12 @@ import { RequestTypes, SimSignalManager } from './sim_signal_manager';
 import { batch } from './state/batch';
 import type { Env } from './state/env';
 import { Emitter } from './state/events';
-import { cacheRelevantReforgeRequest, makeReforgeConfigRequestFields } from './state/reforge_request';
+import { makeReforgeConfigRequestFields } from './state/reforge_request';
 import { createSimStore, patchSlice, SimSettingsSlice, UISlice } from './state/sim_store';
 import { subscribeStatsInputs, subscribeUiField } from './state/subscriptions';
 import { getEnumValues } from './utils/collections';
 import { environmentOf } from './utils/env';
-import { hashString, noop, sleep } from './utils/misc';
+import { hashString, noop } from './utils/misc';
 import { runConcurrentBulkSim, runConcurrentSim, runConcurrentStatWeights } from './wasm';
 import { generateRequestId, WorkerPool, WorkerProgressCallback } from './workers/worker_pool';
 
@@ -81,6 +73,7 @@ export type ReforgeOptimizeConfig = {
 	undershootCaps: Stats;
 	settings: ReforgeSettings;
 	softCaps: StatCap[];
+	enchantOptions: BulkEnchantSlotOptions[];
 	debug?: boolean;
 };
 
@@ -352,14 +345,7 @@ export class Sim {
 		return gear;
 	}
 
-	async runBulkSim(
-		gearSets: Gear[],
-		onProgress: WorkerProgressCallback,
-		reforgeConfig?: ReforgeOptimizeConfig,
-		bulkSettings?: BulkSettings,
-		onCacheRestoreProgress?: (progress: BulkSimReforgeCacheProgress) => void,
-		abortSignal?: AbortSignal,
-	): Promise<BulkSimResult | ErrorOutcome> {
+	async runBulkSim(onProgress: WorkerProgressCallback, bulkSettings: BulkSettings, abortSignal?: AbortSignal): Promise<BulkSimResult | ErrorOutcome> {
 		this.requireRunnableSetup();
 
 		const signals = this.signalManager.registerRunning(RequestTypes.BulkSim);
@@ -374,21 +360,17 @@ export class Sim {
 
 			const player = baseRequest.raid!.parties[0].players[0];
 			const isEnchanter = [player.profession1, player.profession2].includes(Profession.Enchanting);
-			const prepareGear = (gear: Gear) => Sim.prepareGear(gear, isEnchanter);
 
-			const baselineGear = prepareGear(this.raid.getActivePlayers()[0].getGear());
-			const bulkReforgeRequest = reforgeConfig ? this.makeBulkSimReforgeRequest(reforgeConfig) : undefined;
+			const baselineGear = Sim.prepareGear(this.raid.getActivePlayers()[0].getGear(), isEnchanter);
 			if (!this.getFixedRngSeed()) {
 				// Derive the seed from the run's content instead of Math.random(): the same
 				// setup then reproduces bit-identical results (the whole pipeline is
 				// deterministic given a seed), while any change to the setup draws a fresh
-				// sample. An explicit fixed RNG seed still takes precedence above. The three
+				// sample. An explicit fixed RNG seed still takes precedence above. The two
 				// parts are hashed individually (they are already JSON) and the digests
 				// combined, avoiding a second full serialization pass.
 				const contentHash = hashString(
-					hashString(EquipmentSpec.toJsonString(baselineGear.asSpec())) +
-						hashString(bulkSettings ? BulkSettings.toJsonString(bulkSettings) : String(gearSets.length)) +
-						hashString(bulkReforgeRequest ? ReforgeOptimizeRequest.toJsonString(cacheRelevantReforgeRequest(bulkReforgeRequest)) : ''),
+					hashString(EquipmentSpec.toJsonString(baselineGear.asSpec())) + hashString(BulkSettings.toJsonString(bulkSettings)),
 				);
 				const contentSeed = Number(BigInt('0x' + contentHash.slice(0, 8)));
 				baseRequest.simOptions!.randomSeed = BigInt(contentSeed);
@@ -397,160 +379,33 @@ export class Sim {
 				this.setLastUsedRngSeed(contentSeed);
 			}
 			const useWasmBulkSim = await this.isWasm();
-			const backendBuildCandidates = !useWasmBulkSim && !!bulkSettings;
-			const preparedGearSets = gearSets.map(prepareGear);
-			let preparedCandidates: Array<{ index: number; spec: EquipmentSpec; gearKey: string }> | undefined = undefined;
-			if (backendBuildCandidates && bulkSettings) {
+			// The native sim generates the candidates itself when the request carries none.
+			let candidates: BulkGearCandidate[] = [];
+			if (useWasmBulkSim) {
 				const bulkCandidatesResult = await this.getBulkCandidates(bulkSettings);
 				if (bulkCandidatesResult.error) {
-					throw new Error(bulkCandidatesResult.error.message || 'Failed to build bulk candidates');
+					throw new SimError(bulkCandidatesResult.error.message || 'Failed to build bulk candidates');
 				}
-
-				const totalCandidates = bulkCandidatesResult.candidates.length;
-				onCacheRestoreProgress?.({
-					stage: 'candidate-build',
-					processedCandidates: 0,
-					totalCandidates,
-					restoredCandidates: 0,
-				});
-				const candidates: Array<{ index: number; spec: EquipmentSpec; gearKey: string }> = [];
-				const frozenItemSlots =
-					bulkReforgeRequest?.settings?.freezeItemSlots && bulkReforgeRequest.settings.frozenItemSlots.length
-						? bulkReforgeRequest.settings.frozenItemSlots
-						: undefined;
-				let lastYieldAt = performance.now();
-				let lastProgressEmitAt = lastYieldAt;
-				const reportCandidateBuildProgress = (processedCandidates: number) => {
-					if (processedCandidates % BULK_CACHE_PROGRESS_CHECK_MODULO !== 0 && processedCandidates !== totalCandidates) return;
-					const now = performance.now();
-					if (processedCandidates !== totalCandidates && now - lastProgressEmitAt < BULK_CACHE_YIELD_BUDGET_MS) return;
-					onCacheRestoreProgress?.({
-						stage: 'candidate-build',
-						processedCandidates,
-						totalCandidates,
-						restoredCandidates: 0,
-					});
-					lastProgressEmitAt = now;
-				};
-				for (let i = 0; i < bulkCandidatesResult.candidates.length; i++) {
-					throwIfAborted(abortSignal);
-					const candidate = bulkCandidatesResult.candidates[i];
-					if (candidate.gear) {
-						// Prepare spec (remove ring enchants for a non-enchanter) before computing cache key
-						// so cache key matches what would be computed from prepared Gear objects
-						const preparedGear = prepareGear(this.db.lookupEquipmentSpec(candidate.gear));
-						const preparedSpec = preparedGear.asSpec();
-						candidates.push({
-							index: candidate.index,
-							spec: preparedSpec,
-							gearKey: getReforgeCacheGearKey(preparedSpec, frozenItemSlots),
-						});
-					}
-					reportCandidateBuildProgress(i + 1);
-
-					// Periodically yield so large candidate lists do not block popup/UI rendering.
-					if (i % 2000 === 0) {
-						const yieldNow = performance.now();
-						if (yieldNow - lastYieldAt >= BULK_CACHE_YIELD_BUDGET_MS) {
-							await sleep(0);
-							lastYieldAt = performance.now();
-						}
-					}
-				}
-				preparedCandidates = candidates;
+				const gearSets = bulkCandidatesResult.candidates.flatMap(candidate => (candidate.gear ? [candidate.gear] : []));
+				candidates = dedupeGearSets(gearSets, [baselineGear.asSpec()]).map((gear, index) => ({ index, gear }));
 			}
-			const bulkReforgeCacheData = bulkReforgeRequest
-				? await getBulkSimReforgeCacheData({
-						player: this.raid.getActivePlayers()[0],
-						gearSets: backendBuildCandidates ? undefined : preparedGearSets,
-						candidateSpecs: preparedCandidates?.map(candidate => candidate.spec),
-						candidateGearKeys: preparedCandidates?.map(candidate => candidate.gearKey),
-						candidateIndices: preparedCandidates?.map(candidate => candidate.index),
-						db: this.db,
-						reforgeRequest: bulkReforgeRequest,
-						raidBuffs: this.raid.getBuffs(),
-						partyBuffs: this.raid.getActivePlayers()[0].getParty()?.getBuffs(),
-						debuffs: this.raid.getDebuffs(),
-						onProgress: onCacheRestoreProgress,
-						signal: abortSignal,
-					})
-				: undefined;
 			throwIfAborted(abortSignal);
-			const cachedOptimizedGearSets = bulkReforgeCacheData?.cachedOptimizedGearSets ?? [];
-			const bulkGearDatabase =
-				backendBuildCandidates && bulkSettings
-					? makeBulkItemDatabaseFromSpecs(this.db, baselineGear, bulkSettings)
-					: makeBulkGearDatabase(this.db, [baselineGear, ...preparedGearSets, ...cachedOptimizedGearSets]);
+			const bulkGearDatabase = makeBulkItemDatabaseFromSpecs(this.db, baselineGear, bulkSettings);
 			player.database = player.database ? Database.mergeSimDatabases(player.database, bulkGearDatabase) : bulkGearDatabase;
 			player.equipment = baselineGear.asSpec();
 			baseRequest.raid!.parties[0].players[0] = player;
 			throwIfAborted(abortSignal);
-			const requestCandidates =
-				bulkReforgeCacheData?.candidates ??
-				preparedCandidates?.map(candidate => ({ index: candidate.index, gear: candidate.spec })) ??
-				preparedGearSets.map((gear, index) => ({ index, gear: gear.asSpec() }));
 			const bulkRequest = BulkSimRequest.create({
 				requestId,
 				baseRequest,
-				candidates: requestCandidates,
-				optimizedCandidates: bulkReforgeCacheData?.optimizedCandidates ?? [],
+				candidates,
 				topResults: 5,
-				reforgeRequest: bulkReforgeRequest,
 				bulkSettings,
 			});
-			let result: BulkSimResult;
-			// Incremental cache writes for reforge results as candidates complete; keys written
-			// here are excluded from the final catch-all write below.
-			const cacheWrites: Promise<void>[] = [];
-			const incrementallyWrittenKeys = new Set<string>();
-			const writeCacheEntriesIncrementally = (candidates: BulkGearCandidate[]) => {
-				if (!bulkReforgeCacheData) return;
-				const cacheEntries: Array<{ key: string; optimizedGear: EquipmentSpec }> = [];
-				for (const candidate of candidates) {
-					const cacheKey = bulkReforgeCacheData.cacheKeysByCandidateIndex.get(candidate.index);
-					if (!cacheKey || !candidate.gear) {
-						continue;
-					}
-					incrementallyWrittenKeys.add(cacheKey);
-					cacheEntries.push({ key: cacheKey, optimizedGear: candidate.gear });
-				}
-				if (cacheEntries.length) {
-					cacheWrites.push(bulkReforgeCacheData.cache.setGearMany(cacheEntries));
-				}
-			};
 			// Only use worker based concurrency when running wasm. Local sim has native threading.
-			if (useWasmBulkSim) {
-				const pendingCandidates: BulkGearCandidate[] = [];
-				const onReforgeCandidateOptimized = (candidate: BulkGearCandidate, optimizedGear: EquipmentSpec) => {
-					pendingCandidates.push(BulkGearCandidate.create({ index: candidate.index, gear: optimizedGear }));
-					if (pendingCandidates.length >= 500) {
-						writeCacheEntriesIncrementally(pendingCandidates.splice(0));
-					}
-				};
-				result = await runConcurrentBulkSim(bulkRequest, this.workerPool, onProgress, signals, onReforgeCandidateOptimized);
-				writeCacheEntriesIncrementally(pendingCandidates.splice(0));
-			} else {
-				// Wrap onProgress to also write partial reforge candidates to cache incrementally
-				const wrappedOnProgress: WorkerProgressCallback = (progress: ProgressMetrics) => {
-					onProgress(progress);
-					if (progress.optimizedCandidates?.length) {
-						writeCacheEntriesIncrementally(progress.optimizedCandidates);
-					}
-				};
-				result = await this.workerPool.bulkSimAsync(bulkRequest, wrappedOnProgress, signals);
-			}
-			// Wait for all incremental cache writes, then write any candidates that never came
-			// through a partial update (e.g. solves that deduplicated onto another candidate).
-			await Promise.all(cacheWrites);
-			if (bulkReforgeCacheData && result.optimizedCandidates?.length) {
-				const remainingCandidates = result.optimizedCandidates.filter(candidate => {
-					const cacheKey = bulkReforgeCacheData.cacheKeysByCandidateIndex.get(candidate.index);
-					return cacheKey && !incrementallyWrittenKeys.has(cacheKey);
-				});
-				if (remainingCandidates.length) {
-					await writeBulkSimReforgeCacheResults(remainingCandidates, bulkReforgeCacheData);
-				}
-			}
+			const result = useWasmBulkSim
+				? await runConcurrentBulkSim(bulkRequest, this.workerPool, onProgress, signals)
+				: await this.workerPool.bulkSimAsync(bulkRequest, onProgress, signals);
 			if (result.error) {
 				if (result.error.type != ErrorOutcomeType.ErrorOutcomeError) return result.error;
 				throw new SimError(result.error.message);
@@ -603,7 +458,7 @@ export class Sim {
 	}
 
 	// Stats for a hypothetical gear set, without touching the player's own current stats or
-	// metadata. Used by the gear optimizer and by batch simming.
+	// metadata. Used by the gear optimizer.
 	async getCharacterStatsForGear(gear: Gear): Promise<PlayerStats> {
 		await this.waitForInit();
 
@@ -675,15 +530,20 @@ export class Sim {
 		});
 	}
 
-	// Returns the stats for Player 0 without triggering any metadata updates.
-	// Can be used for the gear optimizer / Batch Simming without interfering with the UI.
+	// Runs the gear optimizer for Player 0 without triggering any metadata updates or touching the UI.
 	async reforgeOptimize(config: ReforgeOptimizeConfig): Promise<ReforgeOptimizeResult> {
 		const signals = this.signalManager.registerRunning(RequestTypes.ReforgeOptimize);
 		try {
 			await this.waitForInit();
 			const raid = this.getModifiedRaidProto();
 			const player = raid.parties[0].players[0];
-			player.database = config.gear.toDatabase(this.db);
+			// The WASM sim has no enchant table of its own, so the enchants the optimizer may pick ship with the gear.
+			player.database = makeBulkGearDatabase(
+				this.db,
+				[config.gear],
+				[],
+				config.enchantOptions.flatMap(options => options.effectIds),
+			);
 			player.equipment = config.gear.asSpec();
 			raid.parties[0].players[0] = player;
 
@@ -701,13 +561,6 @@ export class Sim {
 		} finally {
 			this.signalManager.unregisterRunning(signals);
 		}
-	}
-
-	private makeBulkSimReforgeRequest(config: ReforgeOptimizeConfig): ReforgeOptimizeRequest {
-		return ReforgeOptimizeRequest.create({
-			requestId: generateRequestId(SimRequest.reforgeOptimizeAsync),
-			...makeReforgeConfigRequestFields(config),
-		});
 	}
 
 	async statWeights(

@@ -1,4 +1,4 @@
-import { BulkSimStage, ProgressMetrics } from '@generated/proto/api';
+import { ProgressMetrics } from '@generated/proto/api';
 import i18n from '@i18n/config';
 import type { BulkSimProgressConfig } from '@sim/bulk/types';
 
@@ -40,7 +40,6 @@ export const simProgress = (progress: ProgressMetrics, config: BulkSimProgressCo
 	const stageCurrentRound = config.stageCurrentRound ?? config.currentRound;
 	const stageRounds = config.stageRounds ?? config.totalRounds;
 	const isBaselineRound = stageCurrentRound === 1;
-	const stage = progress.bulkStage == BulkSimStage.BulkSimStageReforge ? 'reforging' : 'sim';
 	const totalElapsedSeconds = (now - (config.aggregateStartedAt ?? simStart)) / 1000;
 	const completedIterations = config.aggregateCompletedIterations ?? progress.completedIterations;
 	const totalIterations = config.aggregateTotalIterations ?? progress.totalIterations;
@@ -62,7 +61,7 @@ export const simProgress = (progress: ProgressMetrics, config: BulkSimProgressCo
 	if (isNaN(Number(secondsRemaining))) return null;
 
 	return {
-		stage,
+		stage: 'sim',
 		title: config.title ?? (isBaselineRound ? i18n.t('bulk_tab.progress.baseline_round') : i18n.t('bulk_tab.progress.refining_rounds')),
 		current: completedRounds,
 		total: totalRounds,

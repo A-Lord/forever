@@ -1,3 +1,4 @@
+import { EnchantPresetsView } from '@features/enchant-presets/components/EnchantPresets/EnchantPresets';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StoryBoolean, StoryEnum, StoryNumber } from '@testing/storybook/fixtures/settings_reforge_bulk';
 import { expect, fn, userEvent, within } from 'storybook/test';
@@ -5,6 +6,7 @@ import { expect, fn, userEvent, within } from 'storybook/test';
 import { ReforgeBreakpointLimitsView } from './ReforgeBreakpointLimits';
 import { ReforgeFrozenSlotsView } from './ReforgeFrozenSlots';
 import { ReforgeSettingsPanelView } from './ReforgeSettingsPanel';
+import { ReforgeSkippedSlotsView } from './ReforgeSkippedSlots';
 import { ReforgeStatCapRowView } from './ReforgeStatCapRow';
 import { ReforgeStatCapsView } from './ReforgeStatCaps';
 
@@ -60,6 +62,25 @@ const FREEZE_SLOTS = (
 	</>
 );
 
+const ENCHANT_PRESETS = (
+	<>
+		{toggle('enchant-presets', 'Use enchant presets', true)}
+		<div className="mb-2">
+			<EnchantPresetsView
+				presets={[
+					{ name: 'Undead', checked: true },
+					{ name: 'Outdoor', checked: false },
+				]}
+				onCheckedChange={fn()}
+				onNew={fn()}
+				onEdit={fn()}
+				onDelete={fn()}
+				dialog={null}
+			/>
+		</div>
+	</>
+);
+
 const meta = {
 	title: 'Features/Reforge/ReforgePanel/ReforgeSettingsPanel',
 	component: ReforgeSettingsPanelView,
@@ -70,6 +91,8 @@ const meta = {
 		statCaps: STAT_CAPS,
 		softCaps: SOFT_CAPS,
 		freezeSlots: FREEZE_SLOTS,
+		enchantPresets: toggle('enchant-presets-off', 'Use enchant presets'),
+		skippedSlots: <ReforgeSkippedSlotsView procSlots={['Main Hand']} unlistedSlots={[]} onOpenBatchSim={fn()} />,
 		savedEpWeights: null,
 		onEditWeights: fn(),
 	},
@@ -78,6 +101,8 @@ const meta = {
 		statCaps: { control: false },
 		softCaps: { control: false },
 		freezeSlots: { control: false },
+		enchantPresets: { control: false },
+		skippedSlots: { control: false },
 		savedEpWeights: { control: false },
 	},
 	decorators: [
@@ -102,4 +127,12 @@ export const CustomEpValues: Story = {
 /** With the custom EP values off, the panel explains how to edit the weights and has no cap table. */
 export const PresetEpValues: Story = {
 	args: { customEpToggle: toggle('custom-ep-off', 'Use custom EP values'), showEpHelp: true, statCaps: null, softCaps: null },
+};
+
+/** With the enchant presets on, the panel lists the presets it shares with the batch sim and reports a slot no checked preset lists. */
+export const EnchantPresets: Story = {
+	args: {
+		enchantPresets: ENCHANT_PRESETS,
+		skippedSlots: <ReforgeSkippedSlotsView procSlots={['Main Hand']} unlistedSlots={['Head']} onOpenBatchSim={fn()} />,
+	},
 };

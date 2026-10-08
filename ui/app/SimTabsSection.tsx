@@ -1,3 +1,4 @@
+import { BULK_TAB_ID } from '@features/hooks/useActivateTab';
 import { DetailedResults } from '@features/results/components/DetailedResults';
 import i18n from '@i18n/config';
 import { SimTabPane } from '@ui-kit/SimTabPane';
@@ -55,8 +56,8 @@ export const SimTabsSection = ({ host, children }: SimTabsSectionProps) => {
 									<DetailedResults resultsManager={host.raidSimResultsManager} />
 								</div>
 							</SimTabDef>
-							<SimTabDef id="bulk-tab" title={i18n.t('bulk_tab.title')}>
-								<SimTabPane id="bulk-tab" className="p-0">
+							<SimTabDef id={BULK_TAB_ID} title={i18n.t('bulk_tab.title')}>
+								<SimTabPane id={BULK_TAB_ID} className="p-0">
 									<BulkTabBody />
 								</SimTabPane>
 							</SimTabDef>

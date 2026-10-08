@@ -89,8 +89,9 @@ Each of these has a section in `references/defects.md`.
   `// TODO:`; an aura registered with no effect, or a cooldown that does nothing, is a finding.
 - **One copy of each rule.** Three channels differing only in their tick effect share one builder; a value
   built each iteration that never changes is built at registration.
-- **Comments** follow `wowsims-conventions`: no comparison with TBC or Season of Discovery, a `// TODO:`
-  where a number waits on verification.
+- **Comments** follow `wowsims-conventions`: no comparison with TBC or Season of Discovery, no comment that
+  opens with or repeats the name of the function, type or field it documents, a `// TODO:` where a number waits
+  on verification.
 - **Text reads plainly.** When a humanizer skill is available (`humanizer`), run it over every comment,
   doc line, test message, commit message and PR text the change adds or rewrites. Its patterns are the
   findings: a dash used as a connector, an "X, not Y" or "rather than" contrast that only adds weight, an

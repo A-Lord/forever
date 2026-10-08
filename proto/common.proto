@@ -673,6 +673,15 @@ enum EnchantType {
 	EnchantTypeOffHand = 5;
 }
 
+// Whether an enchant's effect is temporary, and what it does when it fires. A temporary effect
+// (a proc) cannot be valued by EP, so the optimizer leaves a slot that can take one the sim
+// implements to the sim (a Survival proc only for a tank, unless an enchant preset lists it).
+enum EnchantProcKind {
+	EnchantProcKindNone = 0;
+	EnchantProcKindCombat = 1; // Any proc that is not survival only: damage, a stat buff, a debuff, a resource restore.
+	EnchantProcKindSurvival = 2; // Every effect of the proc absorbs, heals or adds armor.
+}
+
 message UnitReference {
 	enum Type {
 		Unknown = 0;
