@@ -379,7 +379,7 @@ var WeaponProcs = []WeaponProc{
 		ItemID:  2243,
 		SpellID: 18803,
 		PPM:     1, // TODO: Vanilla value - verify in-game
-		Reason:  "Hand of Edward the Odd: column reads 100; one emulator database uses 2.0, the 1.0 comes from 21 procs in 757 hits",
+		Reason:  "Hand of Edward the Odd: column reads 100; vanilla figures differ, 1.0 from 21 procs in 757 hits against 2.0",
 		Source:  "vanilla-carryover",
 	},
 	{
@@ -449,7 +449,7 @@ var WeaponProcs = []WeaponProc{
 		ItemID:  13040,
 		SpellID: 29626,
 		PPM:     3, // TODO: Vanilla value - verify in-game
-		Reason:  "Heartseeking Crossbow: equip trigger, column reads 100; one emulator database uses 3.0",
+		Reason:  "Heartseeking Crossbow: equip trigger, column reads 100",
 		Source:  "vanilla-carryover",
 	},
 	{
@@ -470,7 +470,7 @@ var WeaponProcs = []WeaponProc{
 		ItemID:  17223,
 		SpellID: 21179,
 		PPM:     1.5, // TODO: Vanilla value - verify in-game
-		Reason:  "Thunderstrike: column reads 101; one emulator database uses 1.0",
+		Reason:  "Thunderstrike: column reads 101; vanilla figures differ, 1.5 against 1.0",
 		Source:  "vanilla-carryover",
 	},
 	{
