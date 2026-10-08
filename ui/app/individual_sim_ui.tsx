@@ -69,9 +69,6 @@ export { PRESET_FILTER_STORAGE_KEY } from './storage_keys';
 
 const ALL_SETTING_CATEGORIES = getEnumValues<SimSettingCategories>(SimSettingCategories);
 
-// Off: the gear optimizer has nothing to choose between. A spec's `reforge` config is read only when this is on.
-const REFORGE_OPTIMIZER_ENABLED = false;
-
 // The individual sim's host: the registries, openers and cross-cutting actions the React tree
 // reaches through `useSimHost()`. `SimShell` owns every element handed to the constructor.
 export class SimHostObject<SpecType extends Spec> implements IndividualSimHost<SpecType> {
@@ -161,13 +158,11 @@ export class SimHostObject<SpecType extends Spec> implements IndividualSimHost<S
 		for (const feature of config.features || []) {
 			feature(this);
 		}
-		if (REFORGE_OPTIMIZER_ENABLED && config.reforge) {
+		if (config.reforge) {
 			this.reforgeOptions = typeof config.reforge === 'function' ? config.reforge(this) : config.reforge;
 			this.reforger = createReforgeOptimizer(this.sim, this.player, {
 				...this.reforgeOptions,
 				defaults: this.individualConfig.defaults,
-				// Omitting this leaves the solver un-weighted, and the ep-stats probe is the only
-				// thing that notices.
 				epStats: this.individualConfig.epStats,
 			});
 			this.sidebar.add({
@@ -185,7 +180,7 @@ export class SimHostObject<SpecType extends Spec> implements IndividualSimHost<S
 		return this.resultsPanel;
 	}
 
-	// `config` and `individualConfig` are the same object; `SimHost` only narrows what features see of it.
+	// The same object as `individualConfig`; `SimHost` only narrows what features see of it.
 	get config(): IndividualSimUIConfig<SpecType> {
 		return this.individualConfig;
 	}

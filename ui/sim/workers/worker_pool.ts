@@ -15,7 +15,6 @@ import {
 	RaidSimRequestSplitResult,
 	RaidSimResult,
 	RaidSimResultCombinationRequest,
-	ReforgeOptimizeMode,
 	ReforgeOptimizeRequest,
 	ReforgeOptimizeResult,
 	StatWeightRequestsData,
@@ -121,15 +120,10 @@ export class WorkerPool {
 	async reforgeOptimizeAsync(request: ReforgeOptimizeRequest, signals?: SimSignals): Promise<ReforgeOptimizeResult> {
 		const worker = this.getLeastBusyWorker();
 		const id = request.requestId || generateRequestId(SimRequest.reforgeOptimizeAsync);
-		const shouldLog = request.mode != ReforgeOptimizeMode.ReforgeOptimizeModeBulk;
-		if (shouldLog) {
-			worker.log(() => 'Reforge optimize request: ' + ReforgeOptimizeRequest.toJsonString(request));
-		}
+		worker.log(() => 'Reforge optimize request: ' + ReforgeOptimizeRequest.toJsonString(request));
 
 		const result = await this.doAsyncRequest(SimRequest.reforgeOptimizeAsync, ReforgeOptimizeRequest.toBinary(request), id, worker, noop, 1, signals);
-		if (shouldLog) {
-			worker.log(() => 'Reforge optimize result: ' + ReforgeOptimizeResult.toJsonString(result.finalReforgeResult!));
-		}
+		worker.log(() => 'Reforge optimize result: ' + ReforgeOptimizeResult.toJsonString(result.finalReforgeResult!));
 		return result.finalReforgeResult!;
 	}
 
@@ -188,21 +182,16 @@ export class WorkerPool {
 
 	async bulkSimAsync(request: BulkSimRequest, onProgress: WorkerProgressCallback, signals: SimSignals): Promise<BulkSimResult> {
 		const worker = this.getLeastBusyWorker();
-		// A summary rather than the whole request even in dev: it carries every candidate's
-		// EquipmentSpec plus the merged database, which for a large run is a
-		// multi-hundred-megabyte string no console can usefully show.
-		worker.log(`Bulk sim request: candidates=${request.candidates.length} optimizedCandidates=${request.optimizedCandidates.length}`);
+		// A summary rather than the whole request even in dev: it carries the merged database,
+		// a string no console can usefully show.
+		worker.log(`Bulk sim request: candidates=${request.candidates.length}`);
 		const id = request.requestId;
 
 		const iterations = request.baseRequest?.simOptions?.iterations ?? 3000;
 		const result = await this.doAsyncRequest(SimRequest.bulkSimAsync, BulkSimRequest.toBinary(request), id, worker, onProgress, iterations, signals);
 
 		const bulkSimResult = result.finalBulkSimResult!;
-		worker.log(
-			`Bulk sim result: topResults=${bulkSimResult.topResults.length} optimizedCandidates=${bulkSimResult.optimizedCandidates.length} error=${
-				bulkSimResult.error?.message ?? 'none'
-			}`,
-		);
+		worker.log(`Bulk sim result: topResults=${bulkSimResult.topResults.length} error=${bulkSimResult.error?.message ?? 'none'}`);
 		return bulkSimResult;
 	}
 

@@ -166,7 +166,15 @@ export type PlayerField = (typeof PLAYER_FIELDS)[number];
 // Gear-optimizer settings, one slice per player (keyed by storeKey).
 // Values are the source of truth; `v` counters are what subscribers watch
 // (bumped exactly where a change counts).
-export const REFORGE_FIELDS = ['statCaps', 'useCustomEPValues', 'useSoftCapBreakpoints', 'softCapBreakpoints', 'breakpointLimits', 'freezeItemSlots'] as const;
+export const REFORGE_FIELDS = [
+	'statCaps',
+	'useCustomEPValues',
+	'useSoftCapBreakpoints',
+	'softCapBreakpoints',
+	'breakpointLimits',
+	'freezeItemSlots',
+	'useEnchantPresets',
+] as const;
 export type ReforgeField = (typeof REFORGE_FIELDS)[number];
 
 export interface ReforgeSlice {
@@ -177,6 +185,7 @@ export interface ReforgeSlice {
 	softCapBreakpoints: Array<StatCap>;
 	freezeItemSlots: boolean;
 	frozenItemSlots: Array<number>;
+	useEnchantPresets: boolean;
 	// Written silently by the optimizer (no counter).
 	undershootCaps: Stats;
 	v: Record<ReforgeField, number>;

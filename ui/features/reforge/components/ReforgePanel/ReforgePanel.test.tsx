@@ -1,4 +1,9 @@
+import { saveEnchantPreset, setEnchantPresetChecked } from '@features/enchant-presets/model/enchant_presets';
+import { ItemSlot } from '@generated/proto/common';
+import type { Player } from '@sim/player/player';
+import { ReforgeSettings } from '@sim/settings/reforge_settings';
 import { renderWithHost } from '@testing/react';
+import { makeBulkPlayer } from '@testing/sim/bulk_player';
 import { act, fireEvent } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -11,17 +16,16 @@ vi.mock('./ReforgeSettingsPanel', () => ({ ReforgeSettingsPanel: () => <div data
 
 const { ReforgePanel } = await import('./ReforgePanel');
 
-const model = {
-	settings: {},
-	softCapsConfigWithLimits: [],
-	previousGear: null,
-} as any;
+let player: Player<any>;
+let model: any;
 
-const renderPanel = () => renderWithHost(<ReforgePanel model={model} />, { sim: { runs: { isRunning: () => false } } });
+const renderPanel = () => renderWithHost(<ReforgePanel model={model} />, { player, sim: player.sim });
 
 beforeEach(() => {
 	trackPageView.mockClear();
 	runState.isRunning = false;
+	player = makeBulkPlayer({ sim: { runs: { isRunning: () => false } }, getEnchants: () => [] });
+	model = { settings: new ReforgeSettings(player, {}), softCapsConfigWithLimits: [], previousGear: null, optimizeReforges: vi.fn() };
 });
 
 describe('ReforgePanel', () => {
@@ -65,5 +69,21 @@ describe('ReforgePanel', () => {
 
 		expect(document.querySelector('[data-testid="settings-body"]')).not.toBeNull();
 		expect(trackPageView).toHaveBeenCalledWith('Reforge Settings', 'reforge-settings');
+	});
+
+	it('disables the run button while the enchant presets are on and none is checked', async () => {
+		model.settings.setUseEnchantPresets(true);
+		saveEnchantPreset(player, { name: 'Raid', slots: [{ slot: ItemSlot.ItemSlotBack, effectIds: [849] }] });
+		const { container } = renderPanel();
+		const run = container.querySelector('button')!;
+
+		expect(run.getAttribute('aria-disabled')).toBe('true');
+		await act(async () => void fireEvent.click(run));
+		expect(model.optimizeReforges).not.toHaveBeenCalled();
+
+		act(() => setEnchantPresetChecked(player, 'Raid', true));
+
+		expect(run.hasAttribute('aria-disabled')).toBe(false);
+		expect(run.disabled).toBe(false);
 	});
 });

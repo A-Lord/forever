@@ -1,6 +1,5 @@
 import type { ItemSlot } from '@generated/proto/common';
 import { translateProtoStatName, translateSlotName } from '@i18n/localization';
-import { usePlayer } from '@sim/context/SimHostContext';
 import { useActionId } from '@sim/hooks/useActionId';
 import type { WowheadDatasetProps } from '@sim/hooks/useWowheadDataset';
 import type { EquippedItem } from '@sim/proto/equipped_item';
@@ -128,11 +127,10 @@ export type ItemDetailCellProps = Omit<ItemDetailCellViewProps, 'iconUrl' | 'hre
 /** Resolves the equipped item's icon, link, wowhead tooltip and notice for `ItemDetailCellView`. */
 export const ItemDetailCell = (props: ItemDetailCellProps) => {
 	const { item } = props;
-	const player = usePlayer();
 
 	const actionId = useMemo(() => item?.asActionId(), [item]);
 	const { iconUrl, href } = useActionId(actionId);
-	const wowhead = useEquippedItemWowheadDataset(player, item);
+	const wowhead = useEquippedItemWowheadDataset(item);
 
 	return (
 		<ItemDetailCellView

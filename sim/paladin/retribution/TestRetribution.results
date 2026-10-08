@@ -510,6 +510,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestRetribution-AllItems-ManualCrowdPummeler-9449"
+ value: {
+  dps: 902.03973
+  tps: 526.82733
+  dtps: 7.52825
+ }
+}
+dps_results: {
  key: "TestRetribution-AllItems-MarkofResolution-17759"
  value: {
   dps: 839.75588
