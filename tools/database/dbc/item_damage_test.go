@@ -1,6 +1,7 @@
 package dbc
 
 import (
+	"os"
 	"testing"
 
 	"github.com/wowsims/forever/sim/core/proto"
@@ -82,5 +83,53 @@ func TestUnroundedDPS(t *testing.T) {
 				})
 			}
 		})
+	}
+}
+
+func TestWeaponDPSPresenceWhenSourceTableIsMissing(t *testing.T) {
+	// Given
+	once.Do(func() {})
+	previous := dbcInstance
+	dbcInstance = NewDBC()
+	t.Cleanup(func() { dbcInstance = previous })
+	item := Item{ItemClass: ITEM_CLASS_WEAPON, InventoryType: INVTYPE_WEAPON, OverallQuality: 2, ItemLevel: 18}
+	// When
+	row := item.ToUIItem().ScalingOptions[0]
+	// Then
+	if row.UnroundedDps != nil {
+		t.Fatal("missing source row must preserve absent table DPS")
+	}
+}
+
+func TestWeaponDamageRange(t *testing.T) {
+	t.Chdir("../../..")
+	if _, err := os.Stat("./assets/db_inputs/dbc/spells.json"); err != nil {
+		t.Skip("no game files DBC inputs in assets/db_inputs/dbc - run `make db` from a local WoW install to enable this test")
+	}
+	previous := dbcInstance
+	t.Cleanup(func() { dbcInstance = previous })
+	if err := InitDBC(); err != nil {
+		t.Fatal(err)
+	}
+	items := dbcInstance.Items
+
+	for _, tc := range []struct {
+		name     string
+		id       int
+		min, max float64
+	}{
+		{"Death Speaker Scepter, one-hand caster", 2816, 28, 52},
+		{"Simone's Cultivating Hammer, one-hand caster", 22380, 35, 67},
+		{"Benediction, two-hand caster with a QualityModifier", 18608, 89, 155},
+		{"Bearded Boneaxe, not a caster weapon", 2878, 25, 47},
+	} {
+		item, ok := items[tc.id]
+		if !ok {
+			t.Errorf("%s: item %d is not in the DBC inputs", tc.name, tc.id)
+			continue
+		}
+		if got, want := [2]float64{item.WeaponDmgMin(0), item.WeaponDmgMax(0)}, [2]float64{tc.min, tc.max}; got != want {
+			t.Errorf("%s: damage %v-%v, want %v-%v", tc.name, got[0], got[1], want[0], want[1])
+		}
 	}
 }

@@ -5,8 +5,10 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
+var lightningBoltRanks = castableRanks(spellData.LightningBolt)
+
 func (shaman *Shaman) registerLightningBoltSpell() {
-	spellData.LightningBolt.Each(func(_ int32, rank *spelldata.Spell) {
+	lightningBoltRanks.Each(func(_ int32, rank *spelldata.Spell) {
 		overload := shaman.RegisterSpell(shaman.newLightningBoltSpellConfig(rank, nil))
 		shaman.RegisterSpell(shaman.newLightningBoltSpellConfig(rank, overload))
 	})
@@ -24,11 +26,14 @@ func (shaman *Shaman) newLightningBoltSpellConfig(rank *spelldata.Spell, overloa
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		result := spell.CalcDamage(sim, target, damage.Average(), spell.OutcomeMagicHitAndCrit)
 
+		// The bolt lands before its overload is priced, so a debuff charge the bolt spends does
+		// not also raise the overload. DealDamage disposes the result, so Landed is read first.
 		spell.WaitTravelTime(sim, func(sim *core.Simulation) {
-			if overload != nil && result.Landed() && sim.Proc(shaman.GetOverloadChance(), "Lightning Overload") {
+			landed := result.Landed()
+			spell.DealDamage(sim, result)
+			if overload != nil && landed && sim.Proc(shaman.GetOverloadChance(), "Lightning Overload") {
 				overload.Cast(sim, target)
 			}
-			spell.DealDamage(sim, result)
 		})
 	}
 
