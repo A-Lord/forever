@@ -35369,6 +35369,10 @@ var generatedSpells = []Spell{
 			{ID: 1315126, SpellID: 1294007, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_SPEED_ALWAYS, BasePoints: 15, BaseLevel: 60, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 			{ID: 1315127, SpellID: 1294007, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_DUMMY, BasePoints: 15, BaseLevel: 60, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}},
+	{ID: 1294025, Name: "Energize", School: 1, Attr: [17]uint32{15: 0x2000}, SpellLevel: 28, CategoryCooldownMs: 60000, Category: 30, DefenseType: 1, PreventionType: 1,
+		Effects: []Effect{
+			{ID: 1315163, SpellID: 1294025, Type: dbcenums.E_ENERGIZE, BasePoints: 320, Variance: 0.125, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
+		}},
 	{ID: 1294053, Name: "Lotus Claw", School: 1, Attr: [17]uint32{0: 0x90000c0, 1: 0x20, 2: 0x10084000, 3: 0x430200, 4: 0x800000, 5: 0x60008, 6: 0x1004, 8: 0x20, 9: 0x800, 10: 0xc00000, 11: 0x4000000, 13: 0x10000002, 14: 0x10}, SpellLevel: 60, BaseLevel: 60,
 		Effects: []Effect{
 			{ID: 1315203, SpellID: 1294053, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_DUMMY, BaseLevel: 60, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
