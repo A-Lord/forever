@@ -53,10 +53,6 @@ func RegisterAllOnUseCds() {
 	// shared.NewSimpleStatActive(18639) // Ultra-Flash Shadow Reflector - https://www.wowhead.com/forever/spell=23132
 	// unsupported: 23595 deals no damage and heals no one (E_DISPEL_MECHANIC)
 	// shared.NewSimpleStatActive(19141) // Luffa - https://www.wowhead.com/forever/spell=23595
-	// unsupported: 23721 deals no damage and heals no one (A_PROC_TRIGGER_SPELL)
-	// shared.NewSimpleStatActive(19336) // Arcane Infused Gem - https://www.wowhead.com/forever/spell=23721
-	// unsupported: 24531 deals no damage and heals no one (E_DUMMY)
-	// shared.NewSimpleStatActive(19953) // Renataki's Charm of Beasts - https://www.wowhead.com/forever/spell=24531
 	// unsupported: 25892 deals no damage and heals no one (E_THREAT)
 	// shared.NewSimpleStatActive(21181) // Grace of Earth - https://www.wowhead.com/forever/spell=25892
 	// unsupported: 26467 deals no damage and heals no one (A_PROC_TRIGGER_SPELL)
@@ -85,6 +81,8 @@ func RegisterAllOnUseCds() {
 	// shared.NewSimpleStatActive(286556) // Winds of Tanaris - https://www.wowhead.com/forever/spell=1320579
 
 	// Absorbs
+	// on use: 13744 (A_SCHOOL_ABSORB, A_MOD_RESISTANCE)
+	shared.NewSpellDataAbsorbOnUse(2802) // Blazing Emblem - https://www.wowhead.com/forever/spell=13744
 	// on use: 10618 (A_SCHOOL_ABSORB)
 	shared.NewSpellDataAbsorbOnUse(8367) // Dragonscale Breastplate - https://www.wowhead.com/forever/spell=10618
 	// on use: 12561 (A_SCHOOL_ABSORB)
@@ -193,10 +191,6 @@ func RegisterAllOnUseCds() {
 	shared.NewSpellDataDamageOnUse(21891) // Shard of the Fallen Star - https://www.wowhead.com/forever/spell=26789
 	// on use: 1295270 (E_SCHOOL_DAMAGE); not simulated: E_NONE, E_NONE
 	shared.NewSpellDataDamageOnUse(274759) // Everlook Pathcarver - https://www.wowhead.com/forever/spell=1295270
-
-	// FireResistance
-	// not simulated: the buff's A_SCHOOL_ABSORB 465
-	shared.NewSimpleStatActive(2802) // Blazing Emblem - https://www.wowhead.com/forever/spell=13744
 
 	// FrostDamage / ShadowDamage
 	shared.NewSimpleStatActive(249469) // Frozen Heart of the Mountain - https://www.wowhead.com/forever/spell=1249110
