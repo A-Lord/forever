@@ -34,6 +34,7 @@ export const WithTopline: Story = { args: { topline: true } };
 
 export const WithHistogram: Story = {
 	args: { topline: true, histogram: true },
+	parameters: { smoke: false, smokeReason: 'chart.js needs a canvas' },
 };
 
 export const NoResults: Story = { args: { topline: true }, parameters: { noResults: true } };

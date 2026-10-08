@@ -1,7 +1,6 @@
 import { OtherAction } from '@generated/proto/common';
 import { ActionId } from '@sim/proto/action_id';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { stubSpellIcons } from '@testing/storybook/fixtures/spell_icons';
 
 import { ActionIdIcon } from './ActionIdIcon';
 
@@ -18,18 +17,14 @@ type Story = StoryObj<typeof meta>;
 /** An id that carries its own icon, so nothing is fetched. */
 export const OtherActionIcon: Story = { args: { actionId: ActionId.fromOtherId(OtherAction.OtherActionAttack) } };
 
-const resolvedActionId = (actionId: ActionId, name: string, iconUrl: string) =>
-	Object.assign(Object.create(ActionId.prototype), actionId, { name, iconUrl }) as ActionId;
-
-const bloodthirst = resolvedActionId(ActionId.fromSpellId(23894), 'Bloodthirst', 'https://wow.zamimg.com/images/wow/icons/large/spell_nature_bloodlust.jpg');
-
-/** Bloodthirst: the resolved spell id supplies its icon and Wowhead link. */
+/** Bloodthirst: the icon and the wowhead link are filled from the spell. */
 export const Spell: Story = {
-	args: { actionId: bloodthirst },
+	args: { actionId: ActionId.fromSpellId(23894) },
+	parameters: { smoke: false, smokeReason: 'ActionId.fill() needs the item database' },
 };
 
-/** The same resolved spell as an aura. */
+/** The same spell as an aura, which asks wowhead for the buff's tooltip rather than the spell's. */
 export const Aura: Story = {
-	args: { actionId: bloodthirst, useBuffAura: true },
-	beforeEach: () => stubSpellIcons([{ id: bloodthirst.spellId, hasBuff: true }]),
+	args: { actionId: ActionId.fromSpellId(23894), useBuffAura: true },
+	parameters: { smoke: false, smokeReason: 'ActionId.fill() needs the item database' },
 };

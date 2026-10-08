@@ -103,7 +103,7 @@ func (generator *bulkSimCandidateGenerator) buildCandidates() []*proto.BulkGearC
 func (generator *bulkSimCandidateGenerator) initFrozenSettings() {
 	if slot := generator.settings.GetFreezeRingSlot(); slot == int32(proto.ItemSlot_ItemSlotFinger1) || slot == int32(proto.ItemSlot_ItemSlotFinger2) {
 		item := generator.baseEquipment.GetItemBySlot(proto.ItemSlot(slot))
-		if item != nil {
+		if item != nil && item.ID != 0 {
 			itemCopy := *item
 			generator.frozenItems[BulkSimItemSlotFinger] = &itemCopy
 			generator.frozenSlots[BulkSimItemSlotFinger] = proto.ItemSlot(slot)
@@ -111,7 +111,7 @@ func (generator *bulkSimCandidateGenerator) initFrozenSettings() {
 	}
 	if slot := generator.settings.GetFreezeTrinketSlot(); slot == int32(proto.ItemSlot_ItemSlotTrinket1) || slot == int32(proto.ItemSlot_ItemSlotTrinket2) {
 		item := generator.baseEquipment.GetItemBySlot(proto.ItemSlot(slot))
-		if item != nil {
+		if item != nil && item.ID != 0 {
 			itemCopy := *item
 			generator.frozenItems[BulkSimItemSlotTrinket] = &itemCopy
 			generator.frozenSlots[BulkSimItemSlotTrinket] = proto.ItemSlot(slot)
@@ -205,18 +205,6 @@ func (generator *bulkSimCandidateGenerator) initSelectedItems() error {
 		})
 	}
 
-	// An empty baseline ring or trinket slot remains a choice when pairing its group.
-	for _, bulkSlot := range []BulkSimItemSlot{BulkSimItemSlotFinger, BulkSimItemSlotTrinket} {
-		if len(generator.selectedByBulkSlot[bulkSlot]) == 0 {
-			continue
-		}
-		for _, slot := range BulkSimItemSlotToItemSlotPairs[bulkSlot] {
-			if generator.baseEquipment[slot].ID == 0 {
-				generator.selectedByBulkSlot[bulkSlot] = append(generator.selectedByBulkSlot[bulkSlot], bulkSimCandidateOption{spec: &proto.ItemSpec{}})
-				break
-			}
-		}
-	}
 	generator.initCopyCounts()
 	for bulkSlot, options := range generator.selectedByBulkSlot {
 		generator.selectedByBulkSlot[bulkSlot] = dedupeCandidateOptions(options)
@@ -263,8 +251,6 @@ func (generator *bulkSimCandidateGenerator) hasTwoCopies(option bulkSimCandidate
 
 func (generator *bulkSimCandidateGenerator) initGroupedSlotPairs() {
 	for _, bulkSlot := range []BulkSimItemSlot{BulkSimItemSlotFinger, BulkSimItemSlotTrinket} {
-		slots := BulkSimItemSlotToItemSlotPairs[bulkSlot]
-		bothEmpty := generator.baseEquipment[slots[0]].ID == 0 && generator.baseEquipment[slots[1]].ID == 0
 		options := generator.selectedByBulkSlot[bulkSlot]
 		if len(options) == 0 {
 			continue
@@ -275,7 +261,6 @@ func (generator *bulkSimCandidateGenerator) initGroupedSlotPairs() {
 			frozenSpec := frozenItem.ToItemSpecProto()
 			for _, option := range options {
 				if candidateOptionEqualsItem(option, *frozenItem) &&
-					!(frozenItem.ID == 0 && bothEmpty) &&
 					!generator.hasTwoCopies(option, *frozenItem) {
 					continue
 				}
@@ -298,7 +283,7 @@ func (generator *bulkSimCandidateGenerator) initGroupedSlotPairs() {
 			for i := 0; i < len(options); i++ {
 				// Wearing two copies of the same item is a valid input, but only when two copies
 				// were actually selected.
-				twoCopies := generator.hasTwoCopies(options[i], options[i].item) || options[i].item.ID == 0 && bothEmpty
+				twoCopies := generator.hasTwoCopies(options[i], options[i].item)
 				if twoCopies {
 					pairs = append(pairs, [2]bulkSimCandidateOption{options[i], options[i]})
 				}
@@ -429,9 +414,6 @@ func (generator *bulkSimCandidateGenerator) newCombinationTable() combinationTab
 }
 
 func (generator *bulkSimCandidateGenerator) resolveItem(slot proto.ItemSlot, option bulkSimCandidateOption) core.Item {
-	if option.spec.GetId() == 0 {
-		return core.Item{}
-	}
 	if existing := generator.baseEquipment[slot]; existing.ID != 0 {
 		return replaceItem(existing, option)
 	}

@@ -3,7 +3,6 @@ import { mageTalentsConfig } from '@sim/talents/mage';
 import type { TalentPoints } from '@sim/talents/talents_string';
 import { parseTalentsString } from '@sim/talents/talents_string';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { stubSpellIcons } from '@testing/storybook/fixtures/spell_icons';
 import { useState } from 'react';
 import { fn } from 'storybook/test';
 
@@ -28,10 +27,9 @@ const meta = {
 	title: 'Features/Talents/TalentsPicker/TalentTreePicker',
 	component: TalentTreePicker<MageTalents>,
 	tags: ['autodocs'],
-	beforeEach: () =>
-		stubSpellIcons(mageTalentsConfig[0].talents.map(talent => ({ id: talent.spellId, name: talent.fancyName, icon: 'spell_nature_starfall' }))),
 	args: { config: mageTalentsConfig, graph, points: parseTalentsString(mageTalentsConfig, ''), treeIdx: 0, onChange: fn() },
 	argTypes: { config: { control: false }, graph: { control: false }, points: { control: false } },
+	parameters: { smoke: false, smokeReason: 'Each talent fills its icon from the database through useActionId' },
 	render: args => (
 		<div className="flex w-fit">
 			<StatefulTree {...args} />

@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { HEROIC_STRIKE, MORTAL_STRIKE } from '@testing/storybook/fixtures/results-views';
-import { stubSpellIcons } from '@testing/storybook/fixtures/spell_icons';
 
 import { ActionLink } from './ActionLink';
 
@@ -21,5 +20,5 @@ export const AnotherSpell: Story = { args: { actionId: HEROIC_STRIKE } };
 
 export const Aura: Story = {
 	args: { isAura: true },
-	beforeEach: () => stubSpellIcons([{ id: MORTAL_STRIKE.spellId, hasBuff: true }]),
+	parameters: { smoke: false, smokeReason: 'An aura link asks the spell database whether the spell has a buff' },
 };

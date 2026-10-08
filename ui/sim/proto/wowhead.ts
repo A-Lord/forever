@@ -100,7 +100,7 @@ export const buildWowheadTooltipDataset = async (options: WowheadTooltipItemPara
 		if (options.spellId) {
 			params.set('spell', String(options.spellId));
 		}
-		if (options.spellId && options.useBuffAura) {
+		if (options.useBuffAura) {
 			const data = await Database.getSpellIconData(options.spellId);
 			if (data.hasBuff) params.set('buff', '1');
 		}

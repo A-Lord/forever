@@ -619,15 +619,9 @@ func NewItem(itemSpec ItemSpec) Item {
 
 func NewEquipmentSet(equipSpec EquipmentSpec) Equipment {
 	equipment := Equipment{}
-	for slot, itemSpec := range equipSpec {
+	for _, itemSpec := range equipSpec {
 		if itemSpec.ID != 0 {
-			item := NewItem(itemSpec)
-			if (item.Type == proto.ItemType_ItemTypeFinger || item.Type == proto.ItemType_ItemTypeTrinket) &&
-				slices.Contains(EligibleSlotsForItem(&item), proto.ItemSlot(slot)) {
-				equipment[slot] = item
-			} else {
-				equipment.EquipItem(item)
-			}
+			equipment.EquipItem(NewItem(itemSpec))
 		}
 	}
 

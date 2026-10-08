@@ -15,17 +15,12 @@ export interface EquippedItemOptions {
 
 /**
  * An `EquippedItem` around `makeUIItem`, with the base scaling entry that `EquippedItem.ilvl` reads
- * filled from the item's own `ilvl`. Its action id already carries the fixture's name and icon.
+ * filled from the item's own `ilvl`.
  */
 export const makeEquippedItem = ({ item = {}, enchant }: EquippedItemOptions = {}): EquippedItem => {
 	const base = makeUIItem(item);
 	base.scalingOptions = { 0: ScalingItemProperties.create({ ilvl: base.ilvl }), ...base.scalingOptions };
-	const actionId = Object.assign(ActionId.fromItemId(base.id), {
-		baseName: base.name,
-		name: base.name,
-		iconUrl: wowheadIconUrl(base.icon),
-	});
-	return Object.assign(new EquippedItem({ item: base, enchant }), { asActionId: () => actionId });
+	return new EquippedItem({ item: base, enchant });
 };
 
 /** One selector-modal row for Thunderfury. A view takes the icon resolved, so nothing fills `actionId`. */

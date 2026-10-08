@@ -53,4 +53,5 @@ export const RightColumn: Story = {
 
 export const Enchanted: Story = {
 	args: { item: makeEquippedItem({ enchant: makeUIEnchant() }) },
+	parameters: { smoke: false, smokeReason: 'The enchant label fetches /forever/assets/enchants/descriptions.json' },
 };

@@ -1,6 +1,5 @@
 import { mageTalentsConfig } from '@sim/talents/mage';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { stubSpellIcons } from '@testing/storybook/fixtures/spell_icons';
 import { fn } from 'storybook/test';
 
 import { TalentPicker } from './TalentPicker';
@@ -11,9 +10,9 @@ const meta = {
 	title: 'Features/Talents/TalentsPicker/Components/TalentPicker',
 	component: TalentPicker,
 	tags: ['autodocs'],
-	beforeEach: () => stubSpellIcons([{ id: TALENT.spellId, name: TALENT.fancyName, icon: 'spell_nature_starfall' }]),
 	args: { config: TALENT, points: 0, canAdd: true, allPointsSpent: false, onSetPoints: fn() },
 	argTypes: { config: { control: false } },
+	parameters: { smoke: false, smokeReason: 'The talent fills its icon from the database through useActionId' },
 	decorators: [
 		Story => (
 			<div className="grid w-fit">

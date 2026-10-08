@@ -326,7 +326,6 @@ func ReadDatabaseFromJson(jsonStr string) *WowDatabase {
 		ItemIcons:                sliceToMap(dbProto.ItemIcons),
 		SpellIcons:               sliceToMap(dbProto.SpellIcons),
 		ItemEffectRandPropPoints: iLvlKeyedSliceToMap(dbProto.ItemEffectRandPropPoints),
-		Encounters:               dbProto.Encounters,
 		Consumables:              sliceToMap(dbProto.Consumables),
 		Effects:                  sliceToMap(dbProto.SpellEffects),
 	}

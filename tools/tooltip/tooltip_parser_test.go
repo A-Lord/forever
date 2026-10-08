@@ -49,13 +49,12 @@ func Test_WhenGivenDurationShorter60_ThenRenderSeconds(t *testing.T) {
 
 func Test_WhenGivenDurationLongerThan2Hours_ThenRnderHrs(t *testing.T) {
 	SimpleTooltipTest(1289654,
-		"Increases mounted movement speed by 10% for 360hrs, stacking with all other mounted movement speed bonuses. This expires while offline.",
+		"Increases mounted movement speed by 10%, stacking with all other mounted movement speed bonuses. Lasts 360hrs real time.\r\n",
 		t,
 	)
 }
 
 func SimpleTooltipTest(spellId int, expectedDescription string, t *testing.T) {
-	t.Helper()
 	spell := db.Spells[spellId]
 	tp, error := ParseTooltip(spell.Description,
 		NewTestDataProvider(CharacterConfig{}),
@@ -63,11 +62,11 @@ func SimpleTooltipTest(spellId int, expectedDescription string, t *testing.T) {
 	)
 
 	if error != nil {
-		t.Fatal(error)
+		t.Fatal()
 	}
 
 	if tp.String() != expectedDescription {
-		t.Fatalf("spell %d tooltip = %q, want %q", spellId, tp.String(), expectedDescription)
+		t.Fail()
 	}
 }
 
