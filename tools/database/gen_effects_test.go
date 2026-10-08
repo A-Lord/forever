@@ -93,6 +93,87 @@ func TestChanceOnHitExtraAttackRoutes(t *testing.T) {
 	}
 }
 
+// A chance-on-hit spell dealing damage over time alone routes to the damage shape, cast through its own
+// row. None of these rows states a rate, so each is refused for that alone and listed as missing; the
+// same rows at a rate on the item register.
+func TestChanceOnHitDamageOverTimeRoutesAsDamage(t *testing.T) {
+	withDBCInputs(t)
+	instance := dbc.GetDBC()
+
+	for _, tc := range []struct {
+		itemID  int
+		spellID int32
+	}{
+		{10772, 18075},    // Glutton's Cleaver: a bleed
+		{12777, 16898},    // Blazing Rapier: Fire
+		{12795, 13318},    // Blood Talon: Rend, a bleed
+		{13035, 17511},    // Serpent Slicer: a poison
+		{17002, 17511},    // Ichor Spitter: the same poison
+		{15814, 16406},    // Hameya's Slayer: a bleed
+		{274963, 1295744}, // Rot-Covered Harpoon: a disease
+		{282561, 1314040}, // Siegebreaker's Blaster: Fire
+		{285102, 1317583}, // Darkmist Dirk: a poison
+	} {
+		s := spelldata.Find(tc.spellID)
+		if s.DamageEffect() != spelldata.NilEffect || s.PeriodicDamageEffect() == spelldata.NilEffect {
+			t.Errorf("%d deals direct damage or none over time", tc.spellID)
+			continue
+		}
+
+		parsed, effect := parsedItem(t, instance, tc.itemID, tc.spellID)
+		groups := map[string]Group{}
+		if got := TryParseProcEffect(parsed, effect, instance, groups); got != EffectParseResultRefused {
+			t.Errorf("item %d parsed as %v, want refused", tc.itemID, got)
+			continue
+		}
+		r := groups["Procs"].Entries[0].Proc
+		if r.Shape != ShapeDamage || !r.IsWeaponProc || r.TriggerSpellID != int(tc.spellID) || r.BuffSpellID != int(tc.spellID) ||
+			r.ProcConstructor() != "NewSpellDataDamageProc" {
+			t.Errorf("item %d: shape %v, weapon proc %v, trigger %d, buff %d; want a weapon proc dealing %d's damage",
+				tc.itemID, r.Shape, r.IsWeaponProc, r.TriggerSpellID, r.BuffSpellID, tc.spellID)
+		}
+		if !slices.Equal(r.Unsupported, []string{spelldata.ReasonStatesNoRate}) {
+			t.Errorf("item %d refused for %q, want only the missing rate", tc.itemID, r.Unsupported)
+		}
+		if _, listed := missingEffectsMap["ItemEffects"][int32(tc.itemID)]; !listed {
+			t.Errorf("item %d is not listed as missing an effect", tc.itemID)
+		}
+
+		rated := routeProc(int(tc.spellID), int(tc.spellID), true, 1)
+		rated.as(ShapeDamage, tc.spellID)
+		if !rated.Supported() {
+			t.Errorf("item %d at 1 PPM refused for %q, want registered", tc.itemID, rated.Unsupported)
+		}
+	}
+}
+
+// A trigger's ProcChance column reaches the item's proc only where it is a roll: Green Whelp Armor 7375's
+// 9160 rolls 5%, while Storm Gauntlets 12632's 16615 states the 100 that fires on its own condition and
+// leaves the proc stating no chance.
+func TestItemProcCarriesOnlyARolledChance(t *testing.T) {
+	withDBCInputs(t)
+	instance := dbc.GetDBC()
+
+	for _, tc := range []struct {
+		itemID  int
+		buffID  int32
+		trigger int
+		column  float64
+		want    float64
+	}{
+		{7375, 9159, 9160, 5, 0.05},
+		{12632, 16614, 16615, 100, 0},
+	} {
+		if got := float64(instance.Spells[tc.trigger].ProcChance); got != tc.column {
+			t.Errorf("%d states ProcChance %v, want %v", tc.trigger, got, tc.column)
+		}
+		_, effect := parsedItem(t, instance, tc.itemID, tc.buffID)
+		if got := effect.GetProc().GetProcChance(); got != tc.want {
+			t.Errorf("item %d's proc states chance %v, want %v", tc.itemID, got, tc.want)
+		}
+	}
+}
+
 // Two weapons sharing a trigger spell each carry their own rate on their item effect: The Needler and
 // Hanzo Sword both cast Wound 16405, at 3 and 1 PPM, and each registers on its own.
 func TestWeaponsSharingATriggerKeepTheirOwnRate(t *testing.T) {
@@ -299,10 +380,9 @@ func TestOnUsePercentBuffRoutesAsAnAura(t *testing.T) {
 }
 
 // Glyph of Deflection 23040's 28773 states its 235 block value as A_MOD_BLOCK_VALUE_FLAT, which the item
-// effect carries as a stat and the flat on-use grants. Blazing Emblem 2802's 13744 registers its 33 Fire
-// resistance and lists the 465 absorb beside it, which the flat on-use leaves out. Heart of the Scale
-// 13164's 17275 states a damage shield beside its 20 Fire resistance, so it registers as an aura carrying
-// both.
+// effect carries as a stat and the flat on-use grants. Blazing Emblem 2802's 13744 absorbs 465 Fire beside
+// its 33 Fire resistance, so it registers as an absorb carrying the resistance. Heart of the Scale 13164's
+// 17275 states a damage shield beside its 20 Fire resistance, so it registers as an aura carrying both.
 func TestOnUseStatBuffWithWhatItsBuffStatesBeside(t *testing.T) {
 	withDBCInputs(t)
 	instance := dbc.GetDBC()
@@ -321,14 +401,18 @@ func TestOnUseStatBuffWithWhatItsBuffStatesBeside(t *testing.T) {
 	emblem, emblemEffect := parsedItem(t, instance, 2802, 13744)
 	groups = map[string]Group{}
 	if got := TryParseOnUseEffect(emblem, emblemEffect, instance, groups); got != EffectParseResultSuccess {
-		t.Fatalf("Blazing Emblem parsed as %v, want the stat on-use registered", got)
+		t.Fatalf("Blazing Emblem parsed as %v, want the absorb on-use registered", got)
 	}
-	entry := groups["FireResistance"].Entries[0]
-	if want := "the buff's A_SCHOOL_ABSORB 465"; !entry.Supported || entry.Proc != nil || entry.NotSimulated != want {
-		t.Errorf("Blazing Emblem supported %v, not simulated %q; want a flat on-use with %q", entry.Supported, entry.NotSimulated, want)
+	if got := dbc.EffectStats(emblemEffect)[int32(proto.Stat_StatFireResistance)]; got != 33 {
+		t.Errorf("Blazing Emblem's effect carries %v Fire resistance, want 33", got)
 	}
-	if _, listed := missingEffectsMap["ItemEffects"][2802]; !listed {
-		t.Errorf("2802 is not listed as missing an effect")
+	if entries := groups["Absorbs"].Entries; len(entries) != 1 || !entries[0].Supported ||
+		entries[0].Proc.OnUseConstructor() != "NewSpellDataAbsorbOnUse" ||
+		entries[0].Proc.Summary != "on use: 13744 (A_SCHOOL_ABSORB, A_MOD_RESISTANCE)" {
+		t.Errorf("Blazing Emblem's Absorbs entries %+v, want one absorb on-use carrying the resistance", entries)
+	}
+	if _, listed := missingEffectsMap["ItemEffects"][2802]; listed {
+		t.Errorf("2802 is listed as missing an effect")
 	}
 
 	heart, heartEffect := parsedItem(t, instance, 13164, 17275)

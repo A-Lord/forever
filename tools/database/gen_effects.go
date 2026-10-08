@@ -219,6 +219,9 @@ func pickNoStatShape(spellID int, debuffID int32) (ProcShape, int32) {
 	if damage := dbc.ResolveDamageEffect(spellID); damage != nil {
 		return ShapeDamage, int32(damage.SpellID)
 	}
+	if dot := dbc.ResolveTriggered(spellID, dealsPeriodicDamage); dot != 0 {
+		return ShapeDamage, dot
+	}
 	if heal := dbc.ResolveTriggered(spellID, heals); heal != 0 {
 		return ShapeHeal, heal
 	}
@@ -246,14 +249,24 @@ func extraAttackUnsupported(row *spelldata.Spell) []string {
 	return unsupported
 }
 
+// A row dealing damage over time alone has to tick on an enemy: Blood Talon's Rend 13318 bleeds the
+// target every 3 s for 30 s.
 func damageUnsupported(damage *spelldata.Spell) []string {
+	periodic := damage.PeriodicDamageEffect()
 	switch {
 	case damage == spelldata.Nil:
 		return []string{"the damage spell has no row in the store"}
-	case damage.DamageEffect() == spelldata.NilEffect:
+	case damage.DamageEffect() != spelldata.NilEffect:
+		return nil
+	case periodic == spelldata.NilEffect:
 		return []string{"the damage spell's row states no damage"}
 	}
-	return nil
+
+	var unsupported []string
+	if !periodic.HitsAnEnemy() {
+		unsupported = append(unsupported, fmt.Sprintf("the damage lands on implicit target %d, not an enemy", periodic.Target[0]))
+	}
+	return append(unsupported, tickUnsupported("damage", damage, periodic)...)
 }
 
 func debuffUnsupported(debuff *spelldata.Spell) []string {
@@ -326,6 +339,10 @@ func absorbUnsupported(absorb *spelldata.Spell) []string {
 		}
 	}
 	return unsupported
+}
+
+func dealsPeriodicDamage(s *spelldata.Spell) bool {
+	return s.PeriodicDamageEffect() != spelldata.NilEffect
 }
 
 func heals(s *spelldata.Spell) bool {
@@ -1198,8 +1215,8 @@ func TryParseOnUseEffect(parsed *proto.UIItem, itemEffect *proto.ItemEffect, ins
 }
 
 // What the flat on-use leaves out of its buff, which grants the buff's stats and nothing else: the proc
-// an A_PROC_TRIGGER_SPELL casts (Aegis of Preservation 23780's heal on every hit taken, 23781), an
-// absorb (Blazing Emblem 13744's 465 Fire) and a damage shield.
+// an A_PROC_TRIGGER_SPELL casts (Aegis of Preservation 23780's heal on every hit taken, 23781), and an
+// absorb or a damage shield that no shape carries with the stats.
 func statOnUseLeftOut(buffID int32, instance *dbc.DBC) string {
 	buff := spelldata.Find(buffID)
 	var left []string
@@ -1214,14 +1231,24 @@ func statOnUseLeftOut(buffID int32, instance *dbc.DBC) string {
 	return strings.Join(left, "; ")
 }
 
-// Whether a stat on-use's buff also states a damage shield that the item aura shape can carry with its
-// stats: Heart of the Scale's 17275 deals 20 Fire to melee attackers beside its Fire resistance.
+// Whether a stat on-use's buff also states a shield that a shape can carry with its stats: a damage
+// shield the item aura shape attaches (Heart of the Scale's 17275 deals 20 Fire to melee attackers
+// beside its Fire resistance), or an absorb the absorb shape holds the stats on (Blazing Emblem's 13744
+// absorbs 465 Fire beside its 33 Fire resistance).
 func shieldsWithItsStats(parsed *proto.UIItem, itemEffect *proto.ItemEffect, instance *dbc.DBC) bool {
-	if itemEffect.StackingAura != nil || spelldata.Find(itemEffect.BuffId).FirstAura(dbcenums.A_DAMAGE_SHIELD) == spelldata.NilEffect {
+	if itemEffect.StackingAura != nil {
+		return false
+	}
+	buff := spelldata.Find(itemEffect.BuffId)
+	shape := ShapeAura
+	switch {
+	case buff.AbsorbEffect() != spelldata.NilEffect:
+		shape = ShapeAbsorb
+	case buff.FirstAura(dbcenums.A_DAMAGE_SHIELD) == spelldata.NilEffect:
 		return false
 	}
 	routing := routeOnUse(parsed, itemEffect, instance)
-	return routing.Shape == ShapeAura && routing.Supported()
+	return routing.Shape == shape && routing.Supported()
 }
 
 // An on-use with no stats to grant, resolved from the spell it casts. One the sim cannot build from
@@ -1295,7 +1322,7 @@ func routeOnUseSpell(itemID int, buffID int32, instance *dbc.DBC) *ProcRouting {
 		routing.Unsupported = append(routing.Unsupported, healTargetUnsupported(s, dbcenums.TARGET_UNIT_TARGET_ALLY)...)
 	case absorb != spelldata.NilEffect:
 		routing.Shape = ShapeAbsorb
-		routing.Summary = onUseSummary(s, absorb)
+		routing.Summary = onUseSummary(s, append([]*spelldata.Effect{absorb}, statsBesideTheAbsorb(instance, s)...)...)
 		routing.Unsupported = append(routing.Unsupported, absorbUnsupported(s)...)
 	case energize != spelldata.NilEffect:
 		routing.Shape = ShapeEnergize
@@ -1320,6 +1347,18 @@ func routeOnUseSpell(itemID int, buffID int32, instance *dbc.DBC) *ProcRouting {
 	}
 
 	return routing
+}
+
+// The row's effects whose amounts the item's effect entry carries as stats, which the absorb on-use
+// grants for as long as its shield holds.
+func statsBesideTheAbsorb(instance *dbc.DBC, s *spelldata.Spell) []*spelldata.Effect {
+	var effects []*spelldata.Effect
+	for _, se := range instance.SpellEffectsInOrder(int(s.ID)) {
+		if se.GrantsStats() && se.EffectAura != dbcenums.A_PERIODIC_TRIGGER_SPELL {
+			effects = append(effects, s.EffectAtIndex(uint8(se.EffectIndex)))
+		}
+	}
+	return effects
 }
 
 // Whether the item's own on-use row names the spell, rather than a spell that reaches it through a

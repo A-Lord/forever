@@ -377,9 +377,10 @@ func (d DBCTooltipDataProvider) GetSpellDuration(spellId int64) time.Duration {
 	return time.Duration(spell.Duration) * time.Millisecond
 }
 
-// GetSpellDamage implements TooltipDataProvider.
+// The tooltips are rendered for no character, so an effect's amount is the one its row states, with no
+// spell power on top: Arcane Detonation 23722 deals 200.
 func (d DBCTooltipDataProvider) GetSpellDamage() float64 {
-	return 15000
+	return 0
 }
 
 // GetSpellRange implements TooltipDataProvider.

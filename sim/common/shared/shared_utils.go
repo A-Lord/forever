@@ -1045,10 +1045,21 @@ func NewSpellDataHealOnUse(itemID int32) {
 	})
 }
 
-// An on-use item whose spell shields the wearer with an A_SCHOOL_ABSORB aura.
+// An on-use item whose spell shields the wearer with an A_SCHOOL_ABSORB aura. The stats the item's
+// effect entry states beside the absorb are the shield's for as long as it holds: in game a used-up
+// absorb removes its whole aura, so Blazing Emblem's 33 Fire resistance goes with its 465 Fire absorb.
 func NewSpellDataAbsorbOnUse(itemID int32) {
 	registerSpellDataOnUse(itemID, core.CooldownTypeSurvival, func(character *core.Character, absorb *spelldata.Spell) core.SpellConfig {
-		return spellDataAbsorbSpell(character, absorb, itemID, false)
+		config := spellDataAbsorbSpell(character, absorb, itemID, false)
+		for _, itemEffect := range onUseEffectsFor(itemID) {
+			if itemEffect.BuffId != absorb.ID {
+				continue
+			}
+			if buffStats, _ := onUseStatBuff(character, itemEffect); buffStats != (stats.Stats{}) {
+				config.RelatedSelfBuff.AttachStatsBuff(buffStats)
+			}
+		}
+		return config
 	})
 }
 

@@ -8,6 +8,7 @@ import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
+	"github.com/wowsims/forever/sim/core/stats"
 )
 
 // Mark of Resolution 17759's on-use: ItemEffect casts 21956, A_SCHOOL_ABSORB 780 with Misc 1
@@ -138,6 +139,41 @@ func TestOnUseAbsorbRollsTheRowsSpread(t *testing.T) {
 	onUseSpell(t, caster, itemID).Cast(sim, &caster.Unit)
 	if absorbed := 2000 - takenAfterAbsorbs(sim, caster, core.SpellSchoolPhysical, 2000); absorbed < low || absorbed > high {
 		t.Errorf("the shield absorbed %v, want %v to %v", absorbed, low, high)
+	}
+}
+
+// Blazing Emblem 2802's on-use casts 13744, A_SCHOOL_ABSORB 465 Fire beside A_MOD_RESISTANCE 33 Fire for
+// 15 s; its effect entry carries the resistance as a stat. The resistance is up with the shield and
+// stays while a hit eats part of it; the hit that uses the shield up removes it, resistance and all.
+func TestOnUseAbsorbCarriesTheStatsItsEffectStates(t *testing.T) {
+	const itemID, emblemSpell int32 = 991208, 13744
+	emblem := testOnUse(emblemSpell, 600000, 0, 0)
+	emblem.EffectDurationMs = 15000
+	emblem.ScalingOptions = map[int32]*proto.ScalingItemEffectProperties{
+		0: {Stats: map[int32]float64{int32(proto.Stat_StatFireResistance): 33}},
+	}
+	sim, caster := newOnUseSim(t, NewSpellDataAbsorbOnUse, map[int32]*proto.ItemEffect{itemID: emblem})
+	shield := absorbAura(t, caster, emblemSpell, itemID)
+	resistance := func() float64 { return caster.GetStat(stats.FireResistance) }
+	base := resistance()
+
+	onUseSpell(t, caster, itemID).Cast(sim, &caster.Unit)
+	if got := resistance() - base; !shield.IsActive() || got != 33 {
+		t.Fatalf("the shield is up %v with %v Fire resistance, want up with 33", shield.IsActive(), got)
+	}
+
+	if got := takenAfterAbsorbs(sim, caster, core.SpellSchoolFire, 400); got != 0 {
+		t.Errorf("a fire hit of 400 landed for %v, want none of it", got)
+	}
+	if got := resistance() - base; got != 33 {
+		t.Errorf("with 65 of the shield left the wearer has %v Fire resistance, want 33", got)
+	}
+
+	if got := takenAfterAbsorbs(sim, caster, core.SpellSchoolFire, 400); got != 335 {
+		t.Errorf("a fire hit of 400 landed for %v, want 335 past the 65 left", got)
+	}
+	if got := resistance() - base; shield.IsActive() || got != 0 {
+		t.Errorf("the used-up shield is up %v with %v Fire resistance, want gone with none", shield.IsActive(), got)
 	}
 }
 
