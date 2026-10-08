@@ -39,7 +39,7 @@ func TestBalance(t *testing.T) {
 	}))
 }
 
-const DefaultTalents = "5532220115501351-05-05"
+const DefaultTalents = "5532220115501351--505"
 
 const DefaultArmorType = proto.ArmorType_ArmorTypeLeather
 

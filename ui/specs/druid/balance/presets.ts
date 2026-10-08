@@ -3,10 +3,13 @@ import * as Consumables from '@features/settings/model/consumables_auto_gen';
 import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
 import { ConsumesSpec, Profession, Race, UnitReference } from '@generated/proto/common';
 import { BalanceDruid_Options as BalanceDruidOptions } from '@generated/proto/druid';
+import { SavedTalents } from '@generated/proto/ui';
 
 import DefaultAPL from './apls/default.apl.json';
 
 export const StandardRotation = PresetUtils.makePresetAPLRotation('Default', DefaultAPL);
+
+export const StandardTalents = PresetUtils.makePresetTalents('Moonkin', SavedTalents.create({ talentsString: '5532220115501351--505' }));
 
 export const DefaultOptions = BalanceDruidOptions.create({
 	classOptions: {
