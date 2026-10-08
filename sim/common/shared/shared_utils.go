@@ -1071,7 +1071,8 @@ func NewSpellDataAbsorbOnUse(itemID int32) {
 
 // The shield the row applies to the caster: the amount its absorb effect rolls, taken off the damage
 // of the schools the effect's Misc masks, for the row's duration. A second cast replaces the shield
-// left. The label carries the item or enchant, since two of them may apply the same row.
+// left, and a shield used up before it expires deals the damage AbsorbLinkedDamage names. The label
+// carries the item or enchant, since two of them may apply the same row.
 func spellDataAbsorbSpell(character *core.Character, absorb *spelldata.Spell, sourceID int32, asProc bool) core.SpellConfig {
 	effect := absorb.AbsorbEffect()
 	schools := core.SpellSchool(effect.Misc)
@@ -1087,6 +1088,15 @@ func spellDataAbsorbSpell(character *core.Character, absorb *spelldata.Spell, so
 		},
 	})
 
+	for _, id := range AbsorbLinkedDamage(absorb) {
+		damage := character.RegisterSpell(spellDataProcDamageSpell(character, spelldata.MustFind(id), true))
+		shield.AttachOnDamageAbsorbed(func(sim *core.Simulation, aura *core.DamageAbsorptionAura, _ *core.SpellResult, _ float64) {
+			if aura.ShieldStrength <= 0 {
+				damage.Cast(sim, character.CurrentTarget)
+			}
+		})
+	}
+
 	config := spelldata.SpellConfig(&character.Unit, absorb, castBy(asProc))
 	config.ProcMask = core.ProcMaskEmpty
 	config.RelatedSelfBuff = shield.Aura
@@ -1096,6 +1106,28 @@ func spellDataAbsorbSpell(character *core.Character, absorb *spelldata.Spell, so
 	}
 
 	return config
+}
+
+// The spells dealing damage that an absorb's row triggers or its tooltip references, which the shield
+// deals when it is used up before it expires: Adaptive Combat Assistant's 1291097 deals 1291099's
+// Nature damage to the enemies in melee range when its shield breaks early.
+func AbsorbLinkedDamage(absorb *spelldata.Spell) []int32 {
+	linked := slices.Clone(absorb.RefIDs)
+	for _, e := range absorb.Effects {
+		if e.TriggerID != 0 {
+			linked = append(linked, e.TriggerID)
+		}
+	}
+
+	var damage []int32
+	for _, id := range linked {
+		s := spelldata.Find(id)
+		if id != absorb.ID && s != spelldata.Nil && !slices.Contains(damage, id) &&
+			(s.DamageEffect() != spelldata.NilEffect || s.PeriodicDamageEffect() != spelldata.NilEffect) {
+			damage = append(damage, id)
+		}
+	}
+	return damage
 }
 
 // An on-use item whose spell raises the wearer's melee, ranged or cast speed. Every speed the row

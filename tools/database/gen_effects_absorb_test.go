@@ -25,8 +25,8 @@ func parsedItem(t *testing.T, instance *dbc.DBC, itemID int, spellID int32) (*pr
 // An on-use whose spell puts an A_SCHOOL_ABSORB on the wearer registers through the absorb shape:
 // Mark of Resolution 17759's 21956, 780 physical for 10 s. Onyxia Blood Talisman 18406's 1287808
 // states 10000000000 beside the A_DUMMY its tooltip reads as Dragon Breath spells, which the game
-// files do not list, and Adaptive Combat Assistant 272437's 1291097 names the Nature damage 1291099
-// its shield deals when broken early; both are refused and listed.
+// files do not list, and is refused and listed. Adaptive Combat Assistant 272437's 1291097 names the
+// Nature damage 1291099 its shield deals when broken early, which the absorb shape deals with it.
 func TestOnUseAbsorbRoutesFromTheSpellItCasts(t *testing.T) {
 	withDBCInputs(t)
 	instance := dbc.GetDBC()
@@ -40,8 +40,7 @@ func TestOnUseAbsorbRoutesFromTheSpellItCasts(t *testing.T) {
 		{17759, 21956, EffectParseResultSuccess, nil},
 		{18406, 1287808, EffectParseResultRefused, []string{
 			"the absorb of 10000000000 beside an A_DUMMY absorbs only the spells a script names, which the game files do not list"}},
-		{272437, 1291097, EffectParseResultRefused, []string{
-			"the damage of 1291099 (Sigmoid Revenge) the absorb's row names is not simulated"}},
+		{272437, 1291097, EffectParseResultSuccess, nil},
 	} {
 		parsed, effect := parsedItem(t, instance, tc.itemID, tc.spellID)
 		groups := map[string]Group{}

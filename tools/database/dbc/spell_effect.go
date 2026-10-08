@@ -151,6 +151,7 @@ var statAuraTypes = map[EffectAuraType]bool{
 	dbcenums.A_MOD_INCREASE_ENERGY:     true,
 	dbcenums.A_MOD_MAX_POWER:           true,
 	dbcenums.A_MOD_INCREASE_HEALTH_2:   true,
+	dbcenums.A_MOD_BLOCK_VALUE_FLAT:    true,
 	dbcenums.A_PERIODIC_TRIGGER_SPELL:  true,
 }
 
@@ -312,6 +313,10 @@ func (effect *SpellEffect) ParseStatEffect(scalesWithIlvl bool, ilvl int) (stats
 		if stat := ConvertEffectAuraToStatIndex(effect.EffectAura, effect.EffectMiscValues[0]); stat >= 0 {
 			effectStats[stat] = float64(effect.EffectBasePoints + effect.EffectDieSides)
 		}
+	// Written here rather than through ConvertEffectAuraToStatIndex, whose stat an equip spell's 274
+	// would add on top of the one AddEquipSpellStats adds for it.
+	case effect.EffectAura == dbcenums.A_MOD_BLOCK_VALUE_FLAT:
+		effectStats[proto.Stat_StatBlockValue] = float64(effect.EffectBasePoints + effect.EffectDieSides)
 	case effect.EffectAura == dbcenums.A_PERIODIC_TRIGGER_SPELL && effect.EffectAuraPeriod == 10000:
 		for _, sub := range dbcInstance.SpellEffectsInOrder(effect.EffectTriggerSpell) {
 			if subStats, ok := sub.ParseStatEffect(false, 0); ok {

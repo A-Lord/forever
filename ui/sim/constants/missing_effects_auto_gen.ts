@@ -88,12 +88,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		1713, // Ankh of Life
-		[
-			"Heal your target for 720.", // 1317424 - https://www.wowhead.com/forever/spell=1317424
-		]
-	],
-	[
 		1726, // Poison-tipped Bone Spear
 		[
 			"Poisons target for 30 Nature damage every 6.0 sec for 30s.", // 16401 - https://www.wowhead.com/forever/spell=16401
@@ -178,6 +172,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		2802, // Blazing Emblem
+		[
+			"Increases Fire resistance by 33 and absorbs 465 Fire damage. Lasts 15s.", // 13744 - https://www.wowhead.com/forever/spell=13744
+		]
+	],
+	[
 		2820, // Nifty Stopwatch
 		[
 			"Increases run speed by 40% for 10s.", // 14530 - https://www.wowhead.com/forever/spell=14530
@@ -229,12 +229,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		3456, // Dog Whistle
 		[
 			"", // 1293501 - https://www.wowhead.com/forever/spell=1293501
-		]
-	],
-	[
-		3475, // Cloak of Flames
-		[
-			"Deals 5 Fire damage to anyone who strikes you with a melee attack.", // 21142 - https://www.wowhead.com/forever/spell=21142
 		]
 	],
 	[
@@ -307,12 +301,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		5028, // Lord Sakrasis' Scepter
 		[
 			"Smite your target with the power of the holy spring, inflicting 56 Holy damage.", // 1312330 - https://www.wowhead.com/forever/spell=1312330
-		]
-	],
-	[
-		5079, // Cold Basilisk Eye
-		[
-			"Increases time between target's attacks by 20% and reduces their movement speed by 40% for 15s.", // 1139 - https://www.wowhead.com/forever/spell=1139
 		]
 	],
 	[
@@ -640,12 +628,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		8346, // Gauntlets of the Sea
-		[
-			"Heal friendly target for 400.", // 10577 - https://www.wowhead.com/forever/spell=10577
-		]
-	],
-	[
 		8708, // Hammer of Expertise
 		[
 			"Deal 112 Fire damage. Deals 3 times as much damage to Earth Elementals, Fire Elementals, and Mountain Giants.", // 1317432 - https://www.wowhead.com/forever/spell=1317432
@@ -913,12 +895,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		13262, // Ashbringer
 		[
 			"Blasts a target for 700 Fire damage.", // 18112 - https://www.wowhead.com/forever/spell=18112
-		]
-	],
-	[
-		13503, // Alchemist's Stone
-		[
-			"Increases the effects that healing and mana potions have on the wearer by 20%.", // 17619 - https://www.wowhead.com/forever/spell=17619
 		]
 	],
 	[
@@ -1198,12 +1174,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		18637, // Major Recombobulator
-		[
-			"Dispels Polymorph effects on a friendly target. Also restores 666 Health and 304 Mana.", // 23064 - https://www.wowhead.com/forever/spell=23064
-		]
-	],
-	[
 		18638, // Hyper-Radiant Flame Reflector
 		[
 			"Reflects Fire spells back at their caster for 5s.", // 23097 - https://www.wowhead.com/forever/spell=23097
@@ -1219,12 +1189,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		18706, // Arena Master
 		[
 			"Reduces your damage taken by 5% in the Battle Ring and The Maul.", // 1317285 - https://www.wowhead.com/forever/spell=1317285
-		]
-	],
-	[
-		18815, // Essence of the Pure Flame
-		[
-			"When struck in combat inflicts 13 Fire damage to the attacker.", // 23266 - https://www.wowhead.com/forever/spell=23266
 		]
 	],
 	[
@@ -1282,21 +1246,9 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		19340, // Rune of Metamorphosis
-		[
-			"Decreases the mana cost of all Druid shapeshifting forms by 100% for 20s.", // 23724 - https://www.wowhead.com/forever/spell=23724
-		]
-	],
-	[
 		19341, // Lifegiving Gem
 		[
 			"Heals yourself for 15% of your maximum health, and increases your maximum health by 15% for 20 sec.", // 23725 - https://www.wowhead.com/forever/spell=23725
-		]
-	],
-	[
-		19342, // Venomous Totem
-		[
-			"Increases the chance to apply Rogue poisons to your target by 30% for 20s.", // 23726 - https://www.wowhead.com/forever/spell=23726
 		]
 	],
 	[
@@ -1381,36 +1333,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		19953, // Renataki's Charm of Beasts
 		[
 			"Instantly clears the cooldowns of Aimed Shot, Multishot, Volley, and Arcane Shot.", // 24531 - https://www.wowhead.com/forever/spell=24531
-		]
-	],
-	[
-		19955, // Wushoolay's Charm of Nature
-		[
-			"Reduces the casting time of your Healing Touch spells by 40%, and reduces the mana cost of your healing spells by 5% for 15s.", // 24542 - https://www.wowhead.com/forever/spell=24542
-		]
-	],
-	[
-		19956, // Wushoolay's Charm of Spirits
-		[
-			"Increases the damage dealt by your Lightning Shield spell by 100% for 20s.", // 24499 - https://www.wowhead.com/forever/spell=24499
-		]
-	],
-	[
-		19957, // Hazza'rah's Charm of Destruction
-		[
-			"Increases the critical hit chance of your Destruction spells by 10% for 20s.", // 24543 - https://www.wowhead.com/forever/spell=24543
-		]
-	],
-	[
-		19958, // Hazza'rah's Charm of Healing
-		[
-			"Reduces the casting time of your Greater Heal spells by 40%, and reduces the mana cost of your healing spells by 5% for 15s.", // 24546 - https://www.wowhead.com/forever/spell=24546
-		]
-	],
-	[
-		19959, // Hazza'rah's Charm of Magic
-		[
-			"Increases the critical hit chance of your Arcane spells by 5%, and increases the critical hit damage of your Arcane spells by 50% for 20s.", // 24544 - https://www.wowhead.com/forever/spell=24544
 		]
 	],
 	[
@@ -1780,12 +1702,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		21488, // Fetish of Chitinous Spikes
-		[
-			"Spikes sprout from you causing 25 Nature damage to attackers when hit. Lasts 30s.", // 26168 - https://www.wowhead.com/forever/spell=26168
-		]
-	],
-	[
 		21526, // Band of Icy Depths
 		[
 			"Underwater Breath lasts 50% longer than normal.", // 11789 - https://www.wowhead.com/forever/spell=11789
@@ -1795,12 +1711,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		21625, // Scarab Brooch
 		[
 			"Your magical heals provide the target with a shield that absorbs damage equal to 15% of the amount healed for 30s.", // 26467 - https://www.wowhead.com/forever/spell=26467
-		]
-	],
-	[
-		21647, // Fetish of the Sand Reaver
-		[
-			"Reduces the threat you generate by 70% for 20s.", // 26400 - https://www.wowhead.com/forever/spell=26400
 		]
 	],
 	[
@@ -1900,12 +1810,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		23001, // Eye of Diminution
-		[
-			"Reduces the threat you generate by 35% for 20s.", // 28862 - https://www.wowhead.com/forever/spell=28862
-		]
-	],
-	[
 		23004, // Idol of Longevity
 		[
 			"Gain up to 25 mana each time you cast Healing Touch.", // 28847 - https://www.wowhead.com/forever/spell=28847
@@ -1915,12 +1819,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		23005, // Totem of Flowing Water
 		[
 			"Regain up to 10 mana each time you cast Lesser Healing Wave.", // 28849 - https://www.wowhead.com/forever/spell=28849
-		]
-	],
-	[
-		23040, // Glyph of Deflection
-		[
-			"Increases the block value of your shield by 235 for 20s.", // 28773 - https://www.wowhead.com/forever/spell=28773
 		]
 	],
 	[
@@ -2132,18 +2030,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		272433, // Burning Totem
 		[
 			"Increases the duration of your Flame Shock ability by 3 sec.", // 1291077 - https://www.wowhead.com/forever/spell=1291077
-		]
-	],
-	[
-		272437, // Adaptive Combat Assistant
-		[
-			"Absorbs 450 damage for 15s. If this shield expires before 15s, 100 Nature damage will be dealt to all enemies in melee range.", // 1291097 - https://www.wowhead.com/forever/spell=1291097
-		]
-	],
-	[
-		272438, // Weakness Analyzer
-		[
-			"Increases your critical strike chance with all spells and attacks by 5% for 20s or until you deal a non-periodic critical effect.", // 1291101 - https://www.wowhead.com/forever/spell=1291101
 		]
 	],
 	[
@@ -2622,21 +2508,9 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		275649, // Bramblebark Barrier
-		[
-			"When struck in combat, inflicts 3 Nature damage to the attacker.", // 1297378 - https://www.wowhead.com/forever/spell=1297378
-		]
-	],
-	[
 		275729, // Rusty Propeller Blade
 		[
 			"Perform a Propellerstorm, reducing your fall speed for 15s and dealing 100% weapon damage to nearby enemies when you land.", // 1297762 - https://www.wowhead.com/forever/spell=1297762
-		]
-	],
-	[
-		275833, // Bristlecone Cloak
-		[
-			"When struck in combat, inflicts 3 Nature damage to the attacker.", // 1297910 - https://www.wowhead.com/forever/spell=1297910
 		]
 	],
 	[
@@ -2727,12 +2601,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		281665, // Twilight Forgehammer
 		[
 			"Blast the target with the fires of a forge, inflicting 51 Fire damage.", // 1312176 - https://www.wowhead.com/forever/spell=1312176
-		]
-	],
-	[
-		282080, // Flame Seared Signet
-		[
-			"When struck in combat, inflicts 2 Fire damage to the attacker.", // 1312955 - https://www.wowhead.com/forever/spell=1312955
 		]
 	],
 	[

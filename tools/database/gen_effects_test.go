@@ -148,8 +148,8 @@ func TestWeaponProcRowsNameAnItemEffect(t *testing.T) {
 }
 
 // An on-use with no stats routes from the spell it casts: damage on the enemy it is used on or a heal
-// on the wearer registers, a heal on anyone else or a spell that does neither is refused with the
-// reason and listed.
+// on the wearer or a friendly target registers, a heal on anyone else or a spell that does neither is
+// refused with the reason and listed.
 func TestOnUseRoutesFromTheSpellItCasts(t *testing.T) {
 	withDBCInputs(t)
 	instance := dbc.GetDBC()
@@ -164,8 +164,7 @@ func TestOnUseRoutesFromTheSpellItCasts(t *testing.T) {
 	}{
 		{219345, 443265, EffectParseResultSuccess, true, false, nil}, // Infernal Lasso: A_PERIODIC_DAMAGE, and a root it leaves out
 		{16768, 20631, EffectParseResultSuccess, false, true, nil},   // Furbolg Medicine Pouch: A_PERIODIC_HEAL on the wearer
-		{18637, 23064, EffectParseResultRefused, false, true,
-			[]string{"the heal lands on implicit target 21, not the wearer"}}, // Major Recombobulator
+		{18637, 23064, EffectParseResultSuccess, false, true, nil},   // Major Recombobulator: E_HEAL on a friendly target
 		{14153, 18386, EffectParseResultRefused, false, true,
 			[]string{"the heal lands on implicit target 5, not the wearer"}}, // Robe of the Void, on the pet
 		{7734, 14537, EffectParseResultRefused, false, false,
@@ -246,8 +245,10 @@ func TestOnUseSpeedBuffRoutesAsASpeedBuff(t *testing.T) {
 }
 
 // An on-use whose spell applies a hit or crit percent, which no item stat holds, registers as an
-// aura: Gri'lek's Charm of Valor's 24498 is spell crit alone. Weakness Analyzer's 1291101 drops at the
-// first crit, a charge the aura does not spend, and is refused.
+// aura: Gri'lek's Charm of Valor's 24498 is spell crit alone, and Weakness Analyzer's 1291101 drops at
+// the first crit, a charge the hits its row names spend. The spell modifiers, the threat and the damage
+// shield an on-use states route the same way, and a movement slow beside an enemy attack speed slow is
+// left out of what it models: Cold Basilisk Eye's 1139.
 func TestOnUsePercentBuffRoutesAsAnAura(t *testing.T) {
 	withDBCInputs(t)
 	instance := dbc.GetDBC()
@@ -258,9 +259,13 @@ func TestOnUsePercentBuffRoutesAsAnAura(t *testing.T) {
 		summary string
 		reasons []string
 	}{
-		{19952, 24498, "on use: 24498 (A_MOD_SPELL_CRIT_CHANCE)", nil}, // Gri'lek's Charm of Valor
-		{272438, 1291101, "on use: 1291101 (A_MOD_CRIT_PCT)", // Weakness Analyzer
-			[]string{"the buff drops after ProcCharges 1, which the aura does not spend"}},
+		{19952, 24498, "on use: 24498 (A_MOD_SPELL_CRIT_CHANCE)", nil},                                      // Gri'lek's Charm of Valor
+		{272438, 1291101, "on use: 1291101 (A_MOD_CRIT_PCT)", nil},                                          // Weakness Analyzer
+		{19959, 24544, "on use: 24544 (A_ADD_FLAT_MODIFIER, A_ADD_PCT_MODIFIER)", nil},                      // Hazza'rah's Charm of Magic
+		{23001, 28862, "on use: 28862 (A_MOD_THREAT)", nil},                                                 // Eye of Diminution
+		{21488, 26168, "on use: 26168 (A_DAMAGE_SHIELD)", nil},                                              // Fetish of Chitinous Spikes
+		{13164, 17275, "on use: 17275 (A_DAMAGE_SHIELD, A_MOD_RESISTANCE)", nil},                            // Heart of the Scale
+		{5079, 1139, "on use: 1139 (A_MOD_MELEE_RANGED_HASTE_2); not simulated: A_MOD_DECREASE_SPEED", nil}, // Cold Basilisk Eye
 	} {
 		item := instance.Items[tc.itemID]
 		parsed := item.ToUIItem()
@@ -290,6 +295,79 @@ func TestOnUsePercentBuffRoutesAsAnAura(t *testing.T) {
 			t.Errorf("item %d: routing %+v; want %d through NewSpellDataAuraOnUse with %q, refused for %q",
 				tc.itemID, r, tc.spellID, tc.summary, tc.reasons)
 		}
+	}
+}
+
+// Glyph of Deflection 23040's 28773 states its 235 block value as A_MOD_BLOCK_VALUE_FLAT, which the item
+// effect carries as a stat and the flat on-use grants. Blazing Emblem 2802's 13744 registers its 33 Fire
+// resistance and lists the 465 absorb beside it, which the flat on-use leaves out. Heart of the Scale
+// 13164's 17275 states a damage shield beside its 20 Fire resistance, so it registers as an aura carrying
+// both.
+func TestOnUseStatBuffWithWhatItsBuffStatesBeside(t *testing.T) {
+	withDBCInputs(t)
+	instance := dbc.GetDBC()
+
+	glyph, glyphEffect := parsedItem(t, instance, 23040, 28773)
+	if got := dbc.EffectStats(glyphEffect)[int32(proto.Stat_StatBlockValue)]; got != 235 {
+		t.Errorf("Glyph of Deflection's effect carries %v block value, want 235", got)
+	}
+	groups := map[string]Group{}
+	if got := TryParseOnUseEffect(glyph, glyphEffect, instance, groups); got != EffectParseResultSuccess {
+		t.Errorf("Glyph of Deflection parsed as %v, want the stat on-use registered", got)
+	} else if entries := groups["BlockValue"].Entries; len(entries) != 1 || !entries[0].Supported || entries[0].Proc != nil {
+		t.Errorf("Glyph of Deflection's BlockValue entries %+v, want one flat on-use", entries)
+	}
+
+	emblem, emblemEffect := parsedItem(t, instance, 2802, 13744)
+	groups = map[string]Group{}
+	if got := TryParseOnUseEffect(emblem, emblemEffect, instance, groups); got != EffectParseResultSuccess {
+		t.Fatalf("Blazing Emblem parsed as %v, want the stat on-use registered", got)
+	}
+	entry := groups["FireResistance"].Entries[0]
+	if want := "the buff's A_SCHOOL_ABSORB 465"; !entry.Supported || entry.Proc != nil || entry.NotSimulated != want {
+		t.Errorf("Blazing Emblem supported %v, not simulated %q; want a flat on-use with %q", entry.Supported, entry.NotSimulated, want)
+	}
+	if _, listed := missingEffectsMap["ItemEffects"][2802]; !listed {
+		t.Errorf("2802 is not listed as missing an effect")
+	}
+
+	heart, heartEffect := parsedItem(t, instance, 13164, 17275)
+	groups = map[string]Group{}
+	if got := TryParseOnUseEffect(heart, heartEffect, instance, groups); got != EffectParseResultSuccess {
+		t.Fatalf("Heart of the Scale parsed as %v, want registered", got)
+	}
+	if entries := groups["Auras"].Entries; len(entries) != 1 || !entries[0].Supported ||
+		entries[0].Proc.OnUseConstructor() != "NewSpellDataAuraOnUse" {
+		t.Errorf("Heart of the Scale's Auras entries %+v, want one aura on-use", entries)
+	}
+}
+
+// An item registers one effect, so an equip aura beside another effect of the item that registers is
+// refused and listed, and the other kept: Sulfuras 17182's damage shield beside its Fireball proc. An
+// equip aura alone, Cloak of Flames 3475's, stays.
+func TestEquipAuraBesideAnotherEffectIsRefused(t *testing.T) {
+	equip := func(itemID int) *Entry {
+		return &Entry{Variants: []*Variant{{ID: itemID, Name: "Test", SpellID: 21142}}, Supported: true,
+			Proc: &ProcRouting{TriggerSpellID: 21142, Shape: ShapeEquip}}
+	}
+	sulfurasShield, cloakShield := equip(17182), equip(3475)
+	fireball := &Entry{Variants: []*Variant{{ID: 17182, Name: "Test", SpellID: 21162}}, Supported: true,
+		Proc: &ProcRouting{TriggerSpellID: 21162, Shape: ShapeDamage}}
+
+	refuseEquipBesideAnotherEffect(map[string]Group{}, map[string]Group{
+		"Equip": {Name: "Equip", Entries: []*Entry{sulfurasShield, cloakShield}},
+		"Procs": {Name: "Procs", Entries: []*Entry{fireball}},
+	})
+
+	if sulfurasShield.Supported || !slices.Equal(sulfurasShield.Proc.Unsupported, []string{"another effect of the item registers"}) {
+		t.Errorf("Sulfuras' damage shield supported %v, refused for %q; want refused beside its proc",
+			sulfurasShield.Supported, sulfurasShield.Proc.Unsupported)
+	}
+	if !fireball.Supported || !cloakShield.Supported {
+		t.Errorf("Sulfuras' proc supported %v, Cloak of Flames' shield supported %v; want both kept", fireball.Supported, cloakShield.Supported)
+	}
+	if _, listed := missingEffectsMap["ItemEffects"][17182]; !listed {
+		t.Errorf("17182 is not listed as missing an effect")
 	}
 }
 
