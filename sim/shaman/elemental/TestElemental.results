@@ -53,6 +53,20 @@ character_stats_results: {
  }
 }
 dps_results: {
+ key: "TestElemental-AllItems-AdaptiveCombatAssistant-272437"
+ value: {
+  dps: 463.75473
+  tps: 306.84793
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-AnkhofLife-1713"
+ value: {
+  dps: 465.65498
+  tps: 308.49516
+ }
+}
+dps_results: {
  key: "TestElemental-AllItems-Annihilator-12798"
  value: {
   dps: 468.72176
@@ -116,6 +130,34 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestElemental-AllItems-BramblebarkBarrier-275649"
+ value: {
+  dps: 458.67126
+  tps: 303.66348
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-BristleconeCloak-275833"
+ value: {
+  dps: 455.8043
+  tps: 308.08873
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-CloakofFlames-3475"
+ value: {
+  dps: 455.8043
+  tps: 308.08873
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-ColdBasiliskEye-5079"
+ value: {
+  dps: 463.75473
+  tps: 306.84793
+ }
+}
+dps_results: {
  key: "TestElemental-AllItems-DarkmoonCard:BlueDragon-19288"
  value: {
   dps: 468.62779
@@ -124,6 +166,13 @@ dps_results: {
 }
 dps_results: {
  key: "TestElemental-AllItems-DarkmoonCard:Maelstrom-19289"
+ value: {
+  dps: 463.75473
+  tps: 306.84793
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-Defender'sGripStabilizer-272440"
  value: {
   dps: 463.75473
   tps: 306.84793
@@ -256,10 +305,31 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestElemental-AllItems-EssenceofthePureFlame-18815"
+ value: {
+  dps: 463.75473
+  tps: 306.84793
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-EverlookDeliveryBot-274760"
+ value: {
+  dps: 463.75473
+  tps: 306.84793
+ }
+}
+dps_results: {
  key: "TestElemental-AllItems-EverlookPathcarver-274759"
  value: {
   dps: 463.75473
   tps: 306.84793
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-EyeofDiminution-23001"
+ value: {
+  dps: 469.19892
+  tps: 310.39591
  }
 }
 dps_results: {
@@ -277,10 +347,31 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestElemental-AllItems-FetishofChitinousSpikes-21488"
+ value: {
+  dps: 463.75473
+  tps: 306.84793
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-FetishoftheSandReaver-21647"
+ value: {
+  dps: 463.75473
+  tps: 306.84793
+ }
+}
+dps_results: {
  key: "TestElemental-AllItems-FieryWarAxe-870"
  value: {
   dps: 468.72176
   tps: 310.0059
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-FlameSearedSignet-282080"
+ value: {
+  dps: 463.38213
+  tps: 306.56558
  }
 }
 dps_results: {
@@ -305,6 +396,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestElemental-AllItems-GauntletsoftheSea-8346"
+ value: {
+  dps: 458.79
+  tps: 304.29583
+ }
+}
+dps_results: {
  key: "TestElemental-AllItems-GirdleofReprisal-11861"
  value: {
   dps: 455.84416
@@ -316,6 +414,13 @@ dps_results: {
  value: {
   dps: 468.72176
   tps: 310.0059
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-GlyphofDeflection-23040"
+ value: {
+  dps: 463.75473
+  tps: 306.84793
  }
 }
 dps_results: {
@@ -424,6 +529,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestElemental-AllItems-MajorRecombobulator-18637"
+ value: {
+  dps: 463.75473
+  tps: 306.84793
+ }
+}
+dps_results: {
  key: "TestElemental-AllItems-ManualCrowdPummeler-9449"
  value: {
   dps: 468.72176
@@ -495,6 +607,13 @@ dps_results: {
 }
 dps_results: {
  key: "TestElemental-AllItems-OrbofFire-12805"
+ value: {
+  dps: 463.75473
+  tps: 306.84793
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-PetrifiedScarab-21685"
  value: {
   dps: 463.75473
   tps: 306.84793
@@ -627,6 +746,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestElemental-AllItems-ToySoldier-274386"
+ value: {
+  dps: 463.75473
+  tps: 306.84793
+ }
+}
+dps_results: {
  key: "TestElemental-AllItems-Uther'sStrength-11302"
  value: {
   dps: 466.61917
@@ -652,6 +778,34 @@ dps_results: {
  value: {
   dps: 474.7892
   tps: 313.7814
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-Wushoolay'sCharmofSpirits-19956"
+ value: {
+  dps: 463.75473
+  tps: 306.84793
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-ZandalarianHeroBadge-19948"
+ value: {
+  dps: 463.75473
+  tps: 306.84793
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-ZandalarianHeroCharm-19950"
+ value: {
+  dps: 463.75473
+  tps: 306.84793
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-ZandalarianHeroMedallion-19949"
+ value: {
+  dps: 463.75473
+  tps: 306.84793
  }
 }
 dps_results: {

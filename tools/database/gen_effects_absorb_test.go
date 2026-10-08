@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/wowsims/forever/sim/common/shared"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/tools/database/dbc"
@@ -25,8 +26,8 @@ func parsedItem(t *testing.T, instance *dbc.DBC, itemID int, spellID int32) (*pr
 // An on-use whose spell puts an A_SCHOOL_ABSORB on the wearer registers through the absorb shape:
 // Mark of Resolution 17759's 21956, 780 physical for 10 s. Onyxia Blood Talisman 18406's 1287808
 // states 10000000000 beside the A_DUMMY its tooltip reads as Dragon Breath spells, which the game
-// files do not list, and Adaptive Combat Assistant 272437's 1291097 names the Nature damage 1291099
-// its shield deals when broken early; both are refused and listed.
+// files do not list, and is refused and listed. Adaptive Combat Assistant 272437's 1291097 names the
+// Nature damage 1291099 its shield deals when broken early, which the absorb shape deals with it.
 func TestOnUseAbsorbRoutesFromTheSpellItCasts(t *testing.T) {
 	withDBCInputs(t)
 	instance := dbc.GetDBC()
@@ -40,8 +41,7 @@ func TestOnUseAbsorbRoutesFromTheSpellItCasts(t *testing.T) {
 		{17759, 21956, EffectParseResultSuccess, nil},
 		{18406, 1287808, EffectParseResultRefused, []string{
 			"the absorb of 10000000000 beside an A_DUMMY absorbs only the spells a script names, which the game files do not list"}},
-		{272437, 1291097, EffectParseResultRefused, []string{
-			"the damage of 1291099 (Sigmoid Revenge) the absorb's row names is not simulated"}},
+		{272437, 1291097, EffectParseResultSuccess, nil},
 	} {
 		parsed, effect := parsedItem(t, instance, tc.itemID, tc.spellID)
 		groups := map[string]Group{}
@@ -66,6 +66,29 @@ func TestOnUseAbsorbRoutesFromTheSpellItCasts(t *testing.T) {
 		if _, listed := missingEffectsMap["ItemEffects"][int32(tc.itemID)]; listed != (tc.want != EffectParseResultSuccess) {
 			t.Errorf("item %d listed as missing %v, want %v", tc.itemID, listed, tc.want != EffectParseResultSuccess)
 		}
+	}
+}
+
+// Only an absorb listed for damage on breaking early deals the damage its tooltip names: 1291097's
+// 1291099 registers with it, and the same row under an unlisted ID is refused for that damage.
+func TestAbsorbDealsOnlyListedBreakDamage(t *testing.T) {
+	withDBCInputs(t)
+	sigmoid := spelldata.MustFind(1291097)
+	if id, ok := shared.AbsorbBreakDamage(sigmoid); !ok || id != 1291099 {
+		t.Fatalf("1291097 lists %d as its break damage (listed %v), want 1291099", id, ok)
+	}
+	if desc := dbc.GetDBC().Spells[1291097].Description; !strings.Contains(desc, "expires before") || !strings.Contains(desc, "$1291099") {
+		t.Errorf("1291097's tooltip %q states no damage from 1291099 when the shield expires early", desc)
+	}
+	if got := absorbUnsupported(sigmoid); got != nil {
+		t.Errorf("1291097 refused for %q, want registered with 1291099's damage", got)
+	}
+
+	unlisted := *sigmoid
+	unlisted.ID = 1
+	want := []string{"the damage of 1291099 (Sigmoid Revenge) the absorb's row names is not simulated"}
+	if got := absorbUnsupported(&unlisted); !slices.Equal(got, want) {
+		t.Errorf("an unlisted absorb naming 1291099 refused for %q, want %q", got, want)
 	}
 }
 
