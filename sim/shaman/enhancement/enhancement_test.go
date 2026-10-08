@@ -60,12 +60,12 @@ func imbueOptions(imbue proto.ShamanImbue) *proto.Player_EnhancementShaman {
 
 const DefaultTalents = "050533102-053030031005112251"
 
-// The UI's Enhancement defaults: Diet McWeaksauce, Flask of Supreme Power, Smoked Desert Dumplings,
+// The UI's Enhancement defaults: Major Mana Potion, Flask of Supreme Power, Smoked Desert Dumplings,
 // Demonic Rune, the Owl, Sages, Greater Mageblood, Nature Power, Greater Arcane, Cunning and Ferocity
 // elixirs, Winterfall Firewater, EZ-Thro Dark Bomb, Goblin Sapper Charge, and Elemental Sharpening Stone
 // on the main hand beside the shaman's imbue.
 var DefaultConsumables = &proto.ConsumesSpec{
-	PotId:       23578,
+	PotId:       13444,
 	FlaskId:     13512,
 	FoodId:      20452,
 	ConjuredId:  12662,
