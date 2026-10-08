@@ -6,8 +6,10 @@ import {
 	FeralCatDruid_Rotation as FeralCatDruidRotation,
 	FeralCatDruid_Rotation_FinishingMove as FinishingMove,
 } from '@generated/proto/druid';
+import { SavedTalents } from '@generated/proto/ui';
 import { Stats } from '@sim/proto/stats';
 
+import BearweaveApl from './apls/bearweave.apl.json';
 import DefaultApl from './apls/default.apl.json';
 import PounceApl from './apls/pounce.apl.json';
 import RavageApl from './apls/ravage.apl.json';
@@ -95,3 +97,16 @@ export const SIMPLE = PresetUtils.makePresetSimpleRotation('Simple', Spec.SpecFe
 export const APL = PresetUtils.makePresetAPLRotation('APL', DefaultApl);
 export const RAVAGE_APL = PresetUtils.makePresetAPLRotation('Ravage opener', RavageApl);
 export const POUNCE_APL = PresetUtils.makePresetAPLRotation('Pounce opener', PounceApl);
+// Dire Bear trips for Primal Bite and Maul, only on mana the Shifting Powers to the end of the fight
+// do not need. Needs the Primal Bite talent.
+export const BEARWEAVE_APL = PresetUtils.makePresetAPLRotation('Bearweave', BearweaveApl);
+
+export const CatTalents = PresetUtils.makePresetTalents('Cat', SavedTalents.create({ talentsString: '050022-55000032021030212051-055' }));
+// One point out of Genesis into Primal Bite.
+export const BearweaveTalents = PresetUtils.makePresetTalents('Bearweave', SavedTalents.create({ talentsString: '040022-55000032021130212051-055' }));
+
+// Ahead of the cat on fights of 45 to 60 seconds; from 120 seconds on, about the Genesis point behind.
+export const BearweaveBuild = PresetUtils.makePresetBuild('Bearweave (short fights)', {
+	talents: BearweaveTalents,
+	rotation: BEARWEAVE_APL,
+});

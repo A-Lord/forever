@@ -4,7 +4,6 @@ import { APLAction, APLListItem, APLRotation, APLRotation_Type as APLRotationTyp
 import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
 import { Cooldowns, ItemSlot, PseudoStat, Spec, Stat, TristateEffect } from '@generated/proto/common';
 import { FeralCatDruid_Rotation as DruidRotation } from '@generated/proto/druid';
-import { SavedTalents } from '@generated/proto/ui';
 import { PlayerClasses } from '@sim/player/classes';
 import { Player } from '@sim/player/player';
 import { Stats, UnitStat } from '@sim/proto/stats';
@@ -85,9 +84,7 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 		// savage fury, sharpened claws, shifting power, predatory strikes, improved shifting power,
 		// leader of the pack, predatory instincts, rend and tear, berserk, furor, naturalist.
 		// Shifting Power is absent until that talent is taken.
-		talents: SavedTalents.create({
-			talentsString: '050022-55000032021030212051-055',
-		}),
+		talents: Presets.CatTalents.data,
 		// Default spec-specific settings.
 		specOptions: Presets.DefaultOptions,
 		// Default raid/party buffs settings.
@@ -141,8 +138,9 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 	presets: {
 		epWeights: [Presets.PreRaidEpWeights, Presets.Level60EpWeights],
 		// Preset talents that the user can quickly select.
-		talents: [],
-		rotations: [Presets.SIMPLE, Presets.APL, Presets.RAVAGE_APL, Presets.POUNCE_APL],
+		talents: [Presets.CatTalents, Presets.BearweaveTalents],
+		rotations: [Presets.SIMPLE, Presets.APL, Presets.RAVAGE_APL, Presets.POUNCE_APL, Presets.BEARWEAVE_APL],
+		builds: [Presets.BearweaveBuild],
 		// Preset gear configurations that the user can quickly select.
 		gear: [Presets.PreRaidGear, Presets.Level60Gear],
 	},
