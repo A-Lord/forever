@@ -20,6 +20,12 @@ func init() {
 	//
 	// Increases the Holy damage bonus of your Judgement of the Crusader by 20.
 	core.NewItemEffect(16471, raiseJudgementOfTheCrusader)
+
+	// Knight-Lieutenant's Lamellar Gauntlets
+	// https://www.wowhead.com/forever/item=23274/knight-lieutenant-s-lamellar-gauntlets
+	//
+	// Increases the Holy damage bonus of your Judgement of the Crusader by 20.
+	core.NewItemEffect(23274, raiseJudgementOfTheCrusader)
 }
 
 func raiseJudgementOfTheCrusader(agent core.Agent) {
