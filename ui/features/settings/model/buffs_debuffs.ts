@@ -60,6 +60,8 @@ export const PARTY_BUFFS_CONFIG = inDisplayOrder(Generated.GENERATED_PARTY_BUFFS
 	Generated.AtieshWarlock,
 	Generated.AtieshDruid,
 	Generated.AtieshPriest,
+	Generated.Darkspear,
+	Generated.AdmiralsHat,
 	Generated.StrengthOfEarthTotem,
 	Generated.StoneskinTotem,
 	Generated.GraceOfAirTotem,

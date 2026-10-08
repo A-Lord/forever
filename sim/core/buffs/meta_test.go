@@ -33,6 +33,8 @@ func TestGeneratedRowsReadTheClientsNumbers(t *testing.T) {
 		{"AtieshWarlock", AtieshWarlockValue, AtieshWarlockDuration, []float64{33}, permanent},
 		{"AtieshDruid", AtieshDruidValue, AtieshDruidDuration, []float64{11}, permanent},
 		{"WindfuryTotem", WindfuryTotemValue, WindfuryTotemDuration, []float64{246}, time.Second},
+		{"Darkspear", DarkspearValue, DarkspearDuration, []float64{4}, 20 * time.Second},
+		{"AdmiralsHat", AdmiralsHatValue, AdmiralsHatDuration, []float64{10}, 10 * time.Minute},
 		{"GreaterBlessingOfKings", GreaterBlessingOfKingsValue, GreaterBlessingOfKingsDuration, []float64{1.1}, time.Hour},
 		{"GreaterBlessingOfWisdom", GreaterBlessingOfWisdomValue, GreaterBlessingOfWisdomDuration, []float64{40}, time.Hour},
 		{"GreaterBlessingOfSalvation", GreaterBlessingOfSalvationValue, GreaterBlessingOfSalvationDuration, []float64{0.7}, time.Hour},
