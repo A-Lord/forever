@@ -27,7 +27,10 @@ func TestBalance(t *testing.T) {
 					},
 				},
 			}},
-			GearSet:  core.GetGearSet("../../../ui/specs/druid/balance/gear_sets", "p1"),
+			GearSet: core.GetGearSet("../../../ui/specs/druid/balance/gear_sets", "p1"),
+			OtherGearSets: []core.GearSetCombo{
+				core.GetGearSet("../../../ui/specs/druid/balance/gear_sets", "prebis"),
+			},
 			Talents:  DefaultTalents,
 			Rotation: core.GetAplRotation("../../../ui/specs/druid/balance/apls", "default"),
 			ItemFilter: core.ItemFilter{
