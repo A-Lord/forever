@@ -61,6 +61,22 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestProtection-AllItems-Admiral'sHat-10030"
+ value: {
+  dps: 231.44737
+  tps: 243.48349
+  dtps: 543.53425
+ }
+}
+dps_results: {
+ key: "TestProtection-AllItems-AegisoftheScarletCommander-7726"
+ value: {
+  dps: 234.31724
+  tps: 246.30511
+  dtps: 538.55937
+ }
+}
+dps_results: {
  key: "TestProtection-AllItems-AnkhofLife-1713"
  value: {
   dps: 233.29888
@@ -117,6 +133,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestProtection-AllItems-BlackGraspoftheDestroyer-22194"
+ value: {
+  dps: 236.94926
+  tps: 249.86661
+  dtps: 528.0107
+ }
+}
+dps_results: {
  key: "TestProtection-AllItems-BlazefuryMedallion-17111"
  value: {
   dps: 230.10352
@@ -130,6 +154,14 @@ dps_results: {
   dps: 233.29888
   tps: 245.38533
   dtps: 526.8303
+ }
+}
+dps_results: {
+ key: "TestProtection-AllItems-BlazingRapier-12777"
+ value: {
+  dps: 232.41277
+  tps: 244.31125
+  dtps: 512.60752
  }
 }
 dps_results: {
@@ -157,6 +189,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestProtection-AllItems-CloakofFire-14134"
+ value: {
+  dps: 228.25594
+  tps: 240.03686
+  dtps: 517.85069
+ }
+}
+dps_results: {
  key: "TestProtection-AllItems-CloakofFlames-3475"
  value: {
   dps: 230.29691
@@ -178,6 +218,15 @@ dps_results: {
   dps: 233.29888
   tps: 245.38533
   dtps: 526.8303
+ }
+}
+dps_results: {
+ key: "TestProtection-AllItems-DarkmoonCard:Heroism-19287"
+ value: {
+  dps: 233.29888
+  tps: 245.38533
+  dtps: 526.8303
+  hps: 8.09784
  }
 }
 dps_results: {
@@ -209,6 +258,22 @@ dps_results: {
  value: {
   dps: 233.41178
   tps: 245.49823
+  dtps: 526.8303
+ }
+}
+dps_results: {
+ key: "TestProtection-AllItems-DemonForgedBreastplate-12628"
+ value: {
+  dps: 233.94058
+  tps: 245.93896
+  dtps: 525.24629
+ }
+}
+dps_results: {
+ key: "TestProtection-AllItems-DormantHeartoftheMountain-249473"
+ value: {
+  dps: 233.29888
+  tps: 245.38533
   dtps: 526.8303
  }
 }
@@ -438,6 +503,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestProtection-AllItems-Frostguard-12797"
+ value: {
+  dps: 232.41277
+  tps: 244.31125
+  dtps: 512.60752
+ }
+}
+dps_results: {
  key: "TestProtection-AllItems-FrozenHeartoftheMountain-249469"
  value: {
   dps: 236.52129
@@ -510,11 +583,35 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestProtection-AllItems-GryphonRider'sStormhammer-9651"
+ value: {
+  dps: 227.37072
+  tps: 238.84705
+  dtps: 514.20063
+ }
+}
+dps_results: {
+ key: "TestProtection-AllItems-Hameya'sSlayer-15814"
+ value: {
+  dps: 232.41277
+  tps: 244.31125
+  dtps: 512.60752
+ }
+}
+dps_results: {
  key: "TestProtection-AllItems-HammeroftheNorthernWind-810"
  value: {
   dps: 239.0446
   tps: 251.21519
   dtps: 518.79698
+ }
+}
+dps_results: {
+ key: "TestProtection-AllItems-HandofEdwardtheOdd-2243"
+ value: {
+  dps: 232.41277
+  tps: 244.31125
+  dtps: 512.60752
  }
 }
 dps_results: {
@@ -782,6 +879,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestProtection-AllItems-PremierChampion'sLamellarGloves-274250"
+ value: {
+  dps: 233.72191
+  tps: 245.95429
+  dtps: 520.29861
+ }
+}
+dps_results: {
  key: "TestProtection-AllItems-PremierGrandMarshal'sAegis-272838"
  value: {
   dps: 234.52795
@@ -795,6 +900,30 @@ dps_results: {
   dps: 234.42882
   tps: 246.39923
   dtps: 497.27929
+ }
+}
+dps_results: {
+ key: "TestProtection-AllItems-PremierLamellarGauntlets-274256"
+ value: {
+  dps: 233.25399
+  tps: 245.47499
+  dtps: 523.19593
+ }
+}
+dps_results: {
+ key: "TestProtection-AllItems-PremierLieutenantCommander'sLuminousGloves-273329"
+ value: {
+  dps: 233.72191
+  tps: 245.95429
+  dtps: 520.29861
+ }
+}
+dps_results: {
+ key: "TestProtection-AllItems-PremierLuminousGauntlets-273363"
+ value: {
+  dps: 233.25399
+  tps: 245.47499
+  dtps: 523.19593
  }
 }
 dps_results: {
@@ -827,6 +956,14 @@ dps_results: {
   dps: 235.85643
   tps: 248.01512
   dtps: 526.8303
+ }
+}
+dps_results: {
+ key: "TestProtection-AllItems-SerpentSlicer-13035"
+ value: {
+  dps: 232.41277
+  tps: 244.31125
+  dtps: 512.60752
  }
 }
 dps_results: {
@@ -926,6 +1063,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestProtection-AllItems-Teebu'sBlazingLongsword-1728"
+ value: {
+  dps: 244.62365
+  tps: 257.07365
+  dtps: 514.40204
+ }
+}
+dps_results: {
  key: "TestProtection-AllItems-TenetsoftheSilverHand-249397"
  value: {
   dps: 230.98155
@@ -958,11 +1103,27 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestProtection-AllItems-ThickObsidianBreastplate-22196"
+ value: {
+  dps: 237.59035
+  tps: 249.79762
+  dtps: 516.04961
+ }
+}
+dps_results: {
  key: "TestProtection-AllItems-ThrashBlade-17705"
  value: {
   dps: 232.41277
   tps: 244.31125
   dtps: 512.60752
+ }
+}
+dps_results: {
+ key: "TestProtection-AllItems-Thunderbrew'sBootFlask-744"
+ value: {
+  dps: 233.29888
+  tps: 245.38197
+  dtps: 526.8303
  }
 }
 dps_results: {
@@ -1004,6 +1165,14 @@ dps_results: {
   dps: 234.75113
   tps: 246.68137
   dtps: 561.01757
+ }
+}
+dps_results: {
+ key: "TestProtection-AllItems-VolcanicHammer-12792"
+ value: {
+  dps: 232.41277
+  tps: 244.31125
+  dtps: 512.60752
  }
 }
 dps_results: {
