@@ -95,11 +95,11 @@ describe('useActionId', () => {
 	it('knows the href without filling, and re-derives it when the random suffix changes', () => {
 		deferFill();
 		const { container, rerender } = render(<Probe actionId={ActionId.fromItemId(7, 0, 111)} />);
-		expect(anchor(container).href).toContain('rand=111');
+		expect(anchor(container).href).toContain('bonus=111');
 
 		rerender(<Probe actionId={ActionId.fromItemId(7, 0, 222)} />);
 
-		expect(anchor(container).href).toContain('rand=222');
+		expect(anchor(container).href).toContain('bonus=222');
 	});
 
 	it('resolves an absent id to empty fields without a fill', () => {

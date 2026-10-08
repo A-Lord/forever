@@ -30,8 +30,8 @@ export type WowheadTooltipItemParams = {
 	 * */
 	setPieceIds?: number[];
 	/**
-	 * @description Random Enchantment
-	 * @see rand - mapped value from wowhead
+	 * @description Random Enchantment, the random suffix's bonus list
+	 * @see bonus - mapped value from wowhead
 	 * */
 	randomEnchantmentId?: number;
 	/**
@@ -118,7 +118,7 @@ export const buildWowheadTooltipDataset = async (options: WowheadTooltipItemPara
 			params.set('forg', String(options.reforgeId));
 		}
 		if (options.randomEnchantmentId) {
-			params.set('rand', String(options.randomEnchantmentId));
+			params.set('bonus', String(options.randomEnchantmentId));
 		}
 		if (typeof options.upgradeStep === 'number') {
 			params.set('upgd', String(options.upgradeStep));

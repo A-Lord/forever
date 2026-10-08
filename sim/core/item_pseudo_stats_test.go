@@ -74,3 +74,51 @@ func TestItemAndEnchantPseudoStatsReachTheWearer(t *testing.T) {
 		t.Errorf("block: got %v, want 0.03", got)
 	}
 }
+
+// A random suffix adds its allocations times the item's random property points over 10000, each
+// rounded to the nearest point, on top of the item's own stats, and its percent PseudoStats as they are.
+func TestRandomSuffixStatsAddToTheItem(t *testing.T) {
+	const testItemID, testSuffixID = 990103, 990104
+
+	suffixStats := make([]float64, stats.ProtoStatsLen)
+	suffixStats[stats.Intellect] = 1250    // 0.75 at 6 points.
+	suffixStats[stats.Stamina] = 3300      // 1.98.
+	suffixStats[stats.SpellDamage] = 47500 // 28.5, which the game shows as 29.
+	suffixPseudoStats := make([]float64, stats.PseudoStatsLen)
+	suffixPseudoStats[proto.PseudoStat_PseudoStatDodgePercent] = 1
+
+	addToDatabase(&proto.SimDatabase{
+		Items: []*proto.SimItem{{
+			Id:   testItemID,
+			Name: "Test Random Suffix Ring",
+			Type: proto.ItemType_ItemTypeFinger,
+			ScalingOptions: map[int32]*proto.ScalingItemProperties{0: {
+				RandPropPoints: 6,
+				Stats:          map[int32]float64{int32(stats.Intellect): 5},
+			}},
+		}},
+		RandomSuffixes: []*proto.ItemRandomSuffix{{
+			Id:          testSuffixID,
+			Name:        "of the Test",
+			Stats:       suffixStats,
+			PseudoStats: suffixPseudoStats,
+		}},
+	})
+
+	equipment := ProtoToEquipment(&proto.EquipmentSpec{Items: []*proto.ItemSpec{{Id: testItemID, RandomSuffix: testSuffixID}}})
+	equipStats := equipment.Stats(proto.Spec_SpecUnknown)
+
+	for _, want := range []struct {
+		stat  stats.Stat
+		value float64
+	}{
+		{stats.Intellect, 5 + 1},
+		{stats.Stamina, 2},
+		{stats.SpellDamage, 29},
+		{stats.DodgePercent, 1},
+	} {
+		if got := equipStats[want.stat]; got != want.value {
+			t.Errorf("%s: got %v, want %v", want.stat.StatName(), got, want.value)
+		}
+	}
+}
