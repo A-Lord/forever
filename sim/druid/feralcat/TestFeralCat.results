@@ -362,6 +362,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestFeralCat-AllItems-ManualCrowdPummeler-9449"
+ value: {
+  dps: 609.50737
+  tps: 330.63789
+ }
+}
+dps_results: {
  key: "TestFeralCat-AllItems-MarkofResolution-17759"
  value: {
   dps: 584.50291
