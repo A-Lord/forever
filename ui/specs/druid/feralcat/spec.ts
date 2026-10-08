@@ -115,7 +115,11 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 		showExecuteProportion: true,
 	},
 
-	defaultBuild: Presets.RAID_BUILD,
+	defaultBuild: {
+		...Presets.RAID_BUILD,
+		rotation: undefined,
+		rotationType: APLRotationType.TypeAuto,
+	},
 
 	presets: {
 		builds: [Presets.RAID_BUILD, Presets.RAID_DPS_BUILD, Presets.STARTER_BUILD, Presets.BearweaveBuild],
