@@ -670,12 +670,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		9449, // Manual Crowd Pummeler
-		[
-			"Increases your attack speed by 50% for 30s.", // 13494 - https://www.wowhead.com/forever/spell=13494
-		]
-	],
-	[
 		9452, // Hydrocane
 		[
 			"Underwater Breath lasts 50% longer than normal.", // 11789 - https://www.wowhead.com/forever/spell=11789

@@ -26,6 +26,13 @@ import (
 // Sets the minimum itemlevel that should be considered for this expansions
 const MIN_EFFECT_ILVL = 40
 
+// Whether the item's effects are generated: it is at or above MIN_EFFECT_ILVL, or EffectFloorExemptions
+// names it.
+func aboveEffectFloor(parsed *proto.UIItem) bool {
+	_, exempt := EffectFloorExemptions[parsed.Id]
+	return exempt || parsed.ScalingOptions[0].Ilvl >= MIN_EFFECT_ILVL
+}
+
 // Enchantment IDs at or below this are not generated.
 const MIN_ENCHANT_EFFECT_ID = 0
 
@@ -953,7 +960,7 @@ func BuildItemDifficultyPostfix(itemSources map[int][]*proto.DropSource, itemId 
 }
 
 func TryParseProcEffect(parsed *proto.UIItem, itemEffect *proto.ItemEffect, instance *dbc.DBC, groupMapProc map[string]Group) EffectParseResult {
-	if itemEffect.GetProc() != nil && parsed.ScalingOptions[0].Ilvl >= MIN_EFFECT_ILVL {
+	if itemEffect.GetProc() != nil && aboveEffectFloor(parsed) {
 		// Effect was already manually implemented
 		if core.HasItemEffect(parsed.Id) {
 			return EffectParseResultSuccess
@@ -1042,7 +1049,7 @@ func TryParseProcEffect(parsed *proto.UIItem, itemEffect *proto.ItemEffect, inst
 	}
 
 	// check if the item has any kind of proc as we only support stat proc parsing right now
-	if effects, ok := instance.ItemEffectsByParentID[int(parsed.Id)]; ok && parsed.ScalingOptions[0].Ilvl >= MIN_EFFECT_ILVL {
+	if effects, ok := instance.ItemEffectsByParentID[int(parsed.Id)]; ok && aboveEffectFloor(parsed) {
 		for _, effect := range effects {
 			if SpellHasTriggerEffect(effect.SpellID, instance) {
 				return EffectParseResultUnsupported
@@ -1068,7 +1075,7 @@ func routeItemProc(parsed *proto.UIItem, itemEffect *proto.ItemEffect) *ProcRout
 // An equip spell with no stats that applies an aura the stat path cannot state, read from the row it
 // keeps up. One the rows cannot build is refused in an entry of its own, with the reasons.
 func TryParseEquipAuraEffect(parsed *proto.UIItem, itemEffect *proto.ItemEffect, instance *dbc.DBC, groupMapProc map[string]Group) EffectParseResult {
-	if parsed.ScalingOptions[0].Ilvl < MIN_EFFECT_ILVL || core.HasItemEffect(parsed.Id) || len(dbc.EffectStats(itemEffect)) > 0 {
+	if !aboveEffectFloor(parsed) || core.HasItemEffect(parsed.Id) || len(dbc.EffectStats(itemEffect)) > 0 {
 		return EffectParseResultInvalid
 	}
 
@@ -1116,7 +1123,7 @@ func TryParseOnUseEffect(parsed *proto.UIItem, itemEffect *proto.ItemEffect, ins
 		return EffectParseResultSuccess
 	}
 
-	if itemEffect.GetOnUse() != nil && parsed.ScalingOptions[0].Ilvl >= MIN_EFFECT_ILVL {
+	if itemEffect.GetOnUse() != nil && aboveEffectFloor(parsed) {
 		if itemEffect.GetOnUse().CooldownMs < 0 && itemEffect.GetOnUse().CategoryCooldownMs < 0 {
 			return EffectParseResultUnsupported
 		}
@@ -1562,7 +1569,7 @@ func ParseTooltipForMissingEffect(parsed *proto.UIItem, itemEffect *proto.ItemEf
 	// entries by item name, and a Supported: false entry can comment out a live registration
 	// of the same name above the floor. It is still reported as missing its effect, since the
 	// gear picker has no floor.
-	if parsed.ScalingOptions[0].Ilvl >= MIN_EFFECT_ILVL {
+	if aboveEffectFloor(parsed) {
 		grp, exists := groupMap[groupMapName]
 		if !exists {
 			grp = Group{Name: groupMapName}

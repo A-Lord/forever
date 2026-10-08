@@ -431,6 +431,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestElemental-AllItems-ManualCrowdPummeler-9449"
+ value: {
+  dps: 339.41407
+  tps: 241.60323
+ }
+}
+dps_results: {
  key: "TestElemental-AllItems-MarkofResolution-17759"
  value: {
   dps: 334.8519
