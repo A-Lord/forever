@@ -397,7 +397,7 @@ func ConvertEffectAuraToStatIndex(effectAura EffectAuraType, effectMisc int) pro
 		return -1
 	case dbcenums.A_MOD_TARGET_RESISTANCE:
 		return ConvertTargetResistanceFlagToPenetrationStat(effectMisc)
-	case dbcenums.A_MOD_RESISTANCE:
+	case dbcenums.A_MOD_RESISTANCE, dbcenums.A_MOD_ARMOR_NO_MODS:
 		return ConvertResistanceFlagToResistanceStat(effectMisc)
 	case dbcenums.A_MOD_RATING:
 		return ConvertModRatingFlagToRatingStat(effectMisc)
