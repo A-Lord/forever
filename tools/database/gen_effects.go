@@ -316,8 +316,14 @@ func absorbUnsupported(absorb *spelldata.Spell) []string {
 	if absorb.DurationMs == 0 {
 		unsupported = append(unsupported, "the absorb states no duration")
 	}
+	breakDamage, breaks := shared.AbsorbBreakDamage(absorb)
+	if breaks {
+		unsupported = append(unsupported, damageUnsupported(spelldata.Find(breakDamage))...)
+	}
 	for _, id := range shared.AbsorbLinkedDamage(absorb) {
-		unsupported = append(unsupported, damageUnsupported(spelldata.Find(id))...)
+		if !breaks || id != breakDamage {
+			unsupported = append(unsupported, fmt.Sprintf("the damage of %d (%s) the absorb's row names is not simulated", id, spelldata.Find(id).Name))
+		}
 	}
 	return unsupported
 }

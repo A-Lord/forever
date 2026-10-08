@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/wowsims/forever/sim/common/shared"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/tools/database/dbc"
@@ -65,6 +66,29 @@ func TestOnUseAbsorbRoutesFromTheSpellItCasts(t *testing.T) {
 		if _, listed := missingEffectsMap["ItemEffects"][int32(tc.itemID)]; listed != (tc.want != EffectParseResultSuccess) {
 			t.Errorf("item %d listed as missing %v, want %v", tc.itemID, listed, tc.want != EffectParseResultSuccess)
 		}
+	}
+}
+
+// Only an absorb listed for damage on breaking early deals the damage its tooltip names: 1291097's
+// 1291099 registers with it, and the same row under an unlisted ID is refused for that damage.
+func TestAbsorbDealsOnlyListedBreakDamage(t *testing.T) {
+	withDBCInputs(t)
+	sigmoid := spelldata.MustFind(1291097)
+	if id, ok := shared.AbsorbBreakDamage(sigmoid); !ok || id != 1291099 {
+		t.Fatalf("1291097 lists %d as its break damage (listed %v), want 1291099", id, ok)
+	}
+	if desc := dbc.GetDBC().Spells[1291097].Description; !strings.Contains(desc, "expires before") || !strings.Contains(desc, "$1291099") {
+		t.Errorf("1291097's tooltip %q states no damage from 1291099 when the shield expires early", desc)
+	}
+	if got := absorbUnsupported(sigmoid); got != nil {
+		t.Errorf("1291097 refused for %q, want registered with 1291099's damage", got)
+	}
+
+	unlisted := *sigmoid
+	unlisted.ID = 1
+	want := []string{"the damage of 1291099 (Sigmoid Revenge) the absorb's row names is not simulated"}
+	if got := absorbUnsupported(&unlisted); !slices.Equal(got, want) {
+		t.Errorf("an unlisted absorb naming 1291099 refused for %q, want %q", got, want)
 	}
 }
 

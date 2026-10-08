@@ -106,12 +106,14 @@ func dealHit(t *testing.T, sim *core.Simulation, character *core.Character, spel
 }
 
 // Lifegiving Gem 19341 raises maximum health by 15% for 20 s and heals for the same amount, on its
-// 5 min cooldown in no category.
+// 5 min cooldown in no category. When the raise fades, health below the lower maximum stays, health
+// above it drops to it, and neither counts as damage taken.
 func TestLifegivingGemRaisesMaximumHealthBy15Percent(t *testing.T) {
 	sim, character := trinketWarrior(t, 19341)
 	maxHealth := character.MaxHealth()
 	character.RemoveHealth(sim, maxHealth/2)
 	current := character.CurrentHealth()
+	damageTaken := character.DamageTakenHealthMetrics.ActualGain
 
 	useTrinket(t, sim, character, 19341, core.CooldownTypeSurvival, 5*time.Minute, 0, 0)
 	bonus := maxHealth * 0.15
@@ -125,6 +127,23 @@ func TestLifegivingGemRaisesMaximumHealthBy15Percent(t *testing.T) {
 	stepTo(t, sim, sim.CurrentTime+20*time.Second+time.Millisecond)
 	if got := character.MaxHealth(); math.Abs(got-maxHealth) > 1e-6 {
 		t.Errorf("after 20 s maximum health is %v, want %v back", got, maxHealth)
+	}
+	if got := character.CurrentHealth(); math.Abs(got-(current+bonus)) > 1e-6 {
+		t.Errorf("after 20 s below the maximum health is %v, want %v kept", got, current+bonus)
+	}
+
+	character.GainHealth(sim, maxHealth, character.NewHealthMetrics(core.ActionID{OtherID: proto.OtherAction_OtherActionHealingModel}))
+	gift := character.GetAura("Gift of Life")
+	gift.Activate(sim)
+	if got := character.CurrentHealth(); math.Abs(got-(maxHealth+bonus)) > 1e-6 {
+		t.Errorf("at full health the gem heals to %v, want %v", got, maxHealth+bonus)
+	}
+	gift.Deactivate(sim)
+	if got := character.CurrentHealth(); math.Abs(got-maxHealth) > 1e-6 {
+		t.Errorf("at full health the raise fades to %v health, want %v", got, maxHealth)
+	}
+	if got := character.DamageTakenHealthMetrics.ActualGain; got != damageTaken {
+		t.Errorf("damage taken is %v after the raise fades, want %v", got, damageTaken)
 	}
 }
 

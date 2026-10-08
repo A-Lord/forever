@@ -2,8 +2,10 @@ package forever
 
 import (
 	"fmt"
+	"slices"
 	"time"
 
+	"github.com/wowsims/forever/sim/common/shared"
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
@@ -88,14 +90,14 @@ func init() {
 		character.ItemSwap.RegisterProc(23207, aura)
 	})
 
-	// Lifegiving Gem: Gift of Life 23725 heals for 15% of maximum health and raises the maximum by as
-	// much for 20 s. Both are scripted: the dummy states neither, and the buff it casts, 23782, states
-	// 0 for its A_MOD_INCREASE_HEALTH and is not in the spell store, so the 15% is the tooltip's and
-	// the 20 s is 23782's duration.
+	// Lifegiving Gem: Gift of Life 23725 raises maximum health by 15% for 20 s (23782) and heals for as
+	// much (23783). Both are scripted: the dummy states neither, and 23782 states 0 for its
+	// A_MOD_INCREASE_HEALTH and is not in the spell store, so the 15% is the tooltip's and the 20 s is
+	// 23782's duration. When the raise fades, only health above the lower maximum goes.
 	core.NewItemEffect(19341, func(agent core.Agent) {
 		character := agent.GetCharacter()
 		actionID := core.ActionID{SpellID: 23725}
-		healthMetrics := character.NewHealthMetrics(actionID)
+		healthMetrics := character.NewHealthMetrics(core.ActionID{SpellID: 23783})
 
 		var bonusHealth float64
 		aura := character.RegisterAura(core.Aura{
@@ -104,10 +106,16 @@ func init() {
 			Duration: time.Second * 20,
 			OnGain: func(aura *core.Aura, sim *core.Simulation) {
 				bonusHealth = character.MaxHealth() * 0.15
-				character.UpdateMaxHealth(sim, bonusHealth, healthMetrics)
+				character.AddStatsDynamic(sim, stats.Stats{stats.Health: bonusHealth})
+				character.GainHealth(sim, bonusHealth, healthMetrics)
 			},
 			OnExpire: func(aura *core.Aura, sim *core.Simulation) {
-				character.UpdateMaxHealth(sim, -bonusHealth, healthMetrics)
+				character.AddStatsDynamic(sim, stats.Stats{stats.Health: -bonusHealth})
+				if character.CurrentHealth() > character.MaxHealth() {
+					// Healing caps health at the maximum, so a heal of 0 trims the excess without
+					// counting it as damage taken.
+					character.GainHealth(sim, 0, healthMetrics)
+				}
 			},
 		})
 
@@ -257,10 +265,16 @@ func registerCountdownOnUse(character *core.Character, itemID int32, row *spelld
 // The item's use as a major cooldown, on the cooldowns its on-use effect states. The use completes no
 // cast, so a buff that counts casts does not count the use that applied it.
 func registerItemOnUse(character *core.Character, itemID int32, cdType core.CooldownType, buff *core.StatBuffAura, apply core.ApplySpellResults) {
+	effects := core.GetItemByID(itemID).ItemEffects
+	i := slices.IndexFunc(effects, func(effect *proto.ItemEffect) bool { return effect.GetOnUse() != nil })
+	if i < 0 {
+		panic(fmt.Sprintf("item %d has no on-use effect", itemID))
+	}
+
 	config := core.SpellConfig{
 		ActionID:     core.ActionID{ItemID: itemID},
 		Flags:        core.SpellFlagNoOnCastComplete,
-		Cast:         itemOnUseCast(character, itemID),
+		Cast:         shared.OnUseCast(character, effects[i]),
 		ApplyEffects: apply,
 	}
 	if buff != nil {
@@ -272,34 +286,4 @@ func registerItemOnUse(character *core.Character, itemID int32, cdType core.Cool
 		Type:     cdType,
 		BuffAura: buff,
 	})
-}
-
-// The cooldown the item's on-use effect states, and the category cooldown it shares where it names a
-// category: the category's own duration, or the effect's where the category states none. One with no
-// category shares nothing.
-func itemOnUseCast(character *core.Character, itemID int32) core.CastConfig {
-	for _, effect := range core.GetItemByID(itemID).ItemEffects {
-		onUse := effect.GetOnUse()
-		if onUse == nil {
-			continue
-		}
-
-		cast := core.CastConfig{CD: core.Cooldown{
-			Timer:    character.NewTimer(),
-			Duration: time.Duration(onUse.CooldownMs) * time.Millisecond,
-		}}
-		if onUse.CategoryId > 0 {
-			duration := time.Duration(onUse.CategoryCooldownMs) * time.Millisecond
-			if duration <= 0 {
-				duration = time.Duration(effect.EffectDurationMs) * time.Millisecond
-			}
-			cast.SharedCD = core.Cooldown{
-				Timer:    character.GetOrInitSpellCategoryTimer(onUse.CategoryId),
-				Duration: duration,
-			}
-		}
-		return cast
-	}
-
-	panic(fmt.Sprintf("item %d has no on-use effect", itemID))
 }

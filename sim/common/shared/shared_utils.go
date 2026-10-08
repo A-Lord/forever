@@ -1016,7 +1016,7 @@ func NewSimpleStatActive(itemID int32) {
 		for _, itemEffect := range onUseEffectsFor(itemID) {
 			spellConfig := core.SpellConfig{
 				ActionID: core.ActionID{ItemID: itemID},
-				Cast:     onUseCast(character, itemEffect),
+				Cast:     OnUseCast(character, itemEffect),
 			}
 
 			buffStats, buffDuration := onUseStatBuff(character, itemEffect)
@@ -1071,7 +1071,7 @@ func NewSpellDataAbsorbOnUse(itemID int32) {
 
 // The shield the row applies to the caster: the amount its absorb effect rolls, taken off the damage
 // of the schools the effect's Misc masks, for the row's duration. A second cast replaces the shield
-// left, and a shield used up before it expires deals the damage AbsorbLinkedDamage names. The label
+// left, and a shield used up before it expires deals the damage AbsorbBreakDamage names. The label
 // carries the item or enchant, since two of them may apply the same row.
 func spellDataAbsorbSpell(character *core.Character, absorb *spelldata.Spell, sourceID int32, asProc bool) core.SpellConfig {
 	effect := absorb.AbsorbEffect()
@@ -1088,7 +1088,7 @@ func spellDataAbsorbSpell(character *core.Character, absorb *spelldata.Spell, so
 		},
 	})
 
-	for _, id := range AbsorbLinkedDamage(absorb) {
+	if id, ok := AbsorbBreakDamage(absorb); ok {
 		damage := character.RegisterSpell(spellDataProcDamageSpell(character, spelldata.MustFind(id), true))
 		shield.AttachOnDamageAbsorbed(func(sim *core.Simulation, aura *core.DamageAbsorptionAura, _ *core.SpellResult, _ float64) {
 			if aura.ShieldStrength <= 0 {
@@ -1108,9 +1108,22 @@ func spellDataAbsorbSpell(character *core.Character, absorb *spelldata.Spell, so
 	return config
 }
 
-// The spells dealing damage that an absorb's row triggers or its tooltip references, which the shield
-// deals when it is used up before it expires: Adaptive Combat Assistant's 1291097 deals 1291099's
-// Nature damage to the enemies in melee range when its shield breaks early.
+// Absorbs whose tooltip states damage dealt when the shield is gone before its duration ends, keyed by
+// the absorb with the spell dealing it. The spell store carries no tooltip text and no row field states
+// the condition, so each is listed: Adaptive Combat Assistant's 1291097 deals 1291099's Nature damage
+// to the enemies in melee range "if this shield expires before" its duration.
+var absorbBreakDamage = map[int32]int32{
+	1291097: 1291099,
+}
+
+// The spell dealing the damage the absorb's shield deals when it breaks early, where one is listed.
+func AbsorbBreakDamage(absorb *spelldata.Spell) (int32, bool) {
+	id, ok := absorbBreakDamage[absorb.ID]
+	return id, ok
+}
+
+// The spells dealing damage that an absorb's row triggers or its tooltip references. The shield deals
+// only the one AbsorbBreakDamage names; any other is damage the absorb shape does not model.
 func AbsorbLinkedDamage(absorb *spelldata.Spell) []int32 {
 	linked := slices.Clone(absorb.RefIDs)
 	for _, e := range absorb.Effects {
@@ -1202,7 +1215,7 @@ func registerSpellDataOnUseCooldown(itemID int32, onUse func(*core.Character, *s
 			}
 			config.ActionID = core.ActionID{ItemID: itemID}
 
-			itemCast := onUseCast(character, itemEffect)
+			itemCast := OnUseCast(character, itemEffect)
 			config.Cast = spelldata.Cast(row)
 			config.Cast.CD, config.Cast.SharedCD = itemCast.CD, itemCast.SharedCD
 
@@ -1223,7 +1236,7 @@ func onUseEffectsFor(itemID int32) []*proto.ItemEffect {
 }
 
 // The item effect's own cooldown and the category cooldown it shares, whatever the spell's row states.
-func onUseCast(character *core.Character, itemEffect *proto.ItemEffect) core.CastConfig {
+func OnUseCast(character *core.Character, itemEffect *proto.ItemEffect) core.CastConfig {
 	cast := core.CastConfig{SharedCD: sharedCooldown(character, itemEffect)}
 	if cooldownMs := itemEffect.GetOnUse().CooldownMs; cooldownMs > 0 {
 		cast.CD = core.Cooldown{
