@@ -705,6 +705,48 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestBalance-Settings-NightElf-prebis-Standard-default-FullBuffs-0.0yards-LongMultiTarget"
+ value: {
+  dps: 2828.94187
+  tps: 2545.49164
+ }
+}
+dps_results: {
+ key: "TestBalance-Settings-NightElf-prebis-Standard-default-FullBuffs-0.0yards-LongSingleTarget"
+ value: {
+  dps: 495.7633
+  tps: 354.11431
+ }
+}
+dps_results: {
+ key: "TestBalance-Settings-NightElf-prebis-Standard-default-FullBuffs-0.0yards-ShortSingleTarget"
+ value: {
+  dps: 495.64099
+  tps: 353.85661
+ }
+}
+dps_results: {
+ key: "TestBalance-Settings-NightElf-prebis-Standard-default-NoBuffs-0.0yards-LongMultiTarget"
+ value: {
+  dps: 1655.78908
+  tps: 1655.78908
+ }
+}
+dps_results: {
+ key: "TestBalance-Settings-NightElf-prebis-Standard-default-NoBuffs-0.0yards-LongSingleTarget"
+ value: {
+  dps: 233.33663
+  tps: 233.33663
+ }
+}
+dps_results: {
+ key: "TestBalance-Settings-NightElf-prebis-Standard-default-NoBuffs-0.0yards-ShortSingleTarget"
+ value: {
+  dps: 410.93742
+  tps: 410.93742
+ }
+}
+dps_results: {
  key: "TestBalance-Settings-Tauren-p1-Standard-default-FullBuffs-0.0yards-LongMultiTarget"
  value: {
   dps: 3035.35544
@@ -744,6 +786,48 @@ dps_results: {
  value: {
   dps: 459.74793
   tps: 459.74793
+ }
+}
+dps_results: {
+ key: "TestBalance-Settings-Tauren-prebis-Standard-default-FullBuffs-0.0yards-LongMultiTarget"
+ value: {
+  dps: 2851.66365
+  tps: 2554.61037
+ }
+}
+dps_results: {
+ key: "TestBalance-Settings-Tauren-prebis-Standard-default-FullBuffs-0.0yards-LongSingleTarget"
+ value: {
+  dps: 501.07504
+  tps: 357.98822
+ }
+}
+dps_results: {
+ key: "TestBalance-Settings-Tauren-prebis-Standard-default-FullBuffs-0.0yards-ShortSingleTarget"
+ value: {
+  dps: 488.77607
+  tps: 349.32158
+ }
+}
+dps_results: {
+ key: "TestBalance-Settings-Tauren-prebis-Standard-default-NoBuffs-0.0yards-LongMultiTarget"
+ value: {
+  dps: 1673.2209
+  tps: 1673.2209
+ }
+}
+dps_results: {
+ key: "TestBalance-Settings-Tauren-prebis-Standard-default-NoBuffs-0.0yards-LongSingleTarget"
+ value: {
+  dps: 236.31849
+  tps: 236.31849
+ }
+}
+dps_results: {
+ key: "TestBalance-Settings-Tauren-prebis-Standard-default-NoBuffs-0.0yards-ShortSingleTarget"
+ value: {
+  dps: 413.10472
+  tps: 413.10472
  }
 }
 dps_results: {
