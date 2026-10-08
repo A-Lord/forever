@@ -95,6 +95,7 @@ type generatedSpellData struct {
 	Moonglow                  spelldata.Ladder
 	MoonkinForm               spelldata.Ladder
 	MoonkinFormTriggered      spelldata.Ladder
+	NaturalInstinct           spelldata.Ladder
 	NaturalReaction           spelldata.Ladder
 	NaturalReactionTriggered  spelldata.Ladder
 	NaturalShapeshifter       spelldata.Ladder
@@ -115,7 +116,6 @@ type generatedSpellData struct {
 	Pounce                    spelldata.Ladder
 	PounceTriggered           spelldata.Ladder
 	PounceBleed               spelldata.Ladder
-	PredatoryInstincts        spelldata.Ladder
 	PredatoryStrikes          spelldata.Ladder
 	PrimalBite                spelldata.Ladder
 	Prowl                     spelldata.Ladder
@@ -229,6 +229,7 @@ var spellData = generatedSpellData{
 	Moonglow:                  spelldata.Talent(16845, 3),
 	MoonkinForm:               spelldata.Ranked(24858),
 	MoonkinFormTriggered:      spelldata.Ranked(24905, 24907),
+	NaturalInstinct:           spelldata.Talent(1223242, 2),
 	NaturalReaction:           spelldata.Talent(417051, 5),
 	NaturalReactionTriggered:  spelldata.Ranked(417053),
 	NaturalShapeshifter:       spelldata.Talent(16833, 3),
@@ -249,7 +250,6 @@ var spellData = generatedSpellData{
 	Pounce:                    spelldata.Ranked(9005, 9823, 9827),
 	PounceTriggered:           spelldata.Ranked(9007, 9824, 9826),
 	PounceBleed:               spelldata.Ranked(9007, 9824, 9826),
-	PredatoryInstincts:        spelldata.Talent(1223242, 2),
 	PredatoryStrikes:          spelldata.Talent(16972, 3),
 	PrimalBite:                spelldata.Ranked(407995, 1238069, 1238070, 1238073),
 	Prowl:                     spelldata.Ranked(5215, 6783, 9913),

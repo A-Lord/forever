@@ -87,12 +87,11 @@ type Druid struct {
 
 	form DruidForm
 
-	// Energy left when cat form dropped, when it was dropped, and the time spent in bear forms since.
-	// Reset clears them.
+	// Energy left when cat form dropped, or 0 when a bear form ended, and when that was. Reset clears
+	// them.
 	furorStoredEnergy float64
 	furorStoredValid  bool
 	furorLeftCatAt    time.Duration
-	furorBearTime     time.Duration
 	furorEnergyMetric *core.ResourceMetrics
 	furorRageMetric   *core.ResourceMetrics
 	enrageMetric      *core.ResourceMetrics
@@ -204,7 +203,6 @@ func (druid *Druid) Reset(_ *core.Simulation) {
 	druid.furorStoredValid = false
 	druid.furorStoredEnergy = 0
 	druid.furorLeftCatAt = 0
-	druid.furorBearTime = 0
 	druid.setForm(Humanoid)
 }
 

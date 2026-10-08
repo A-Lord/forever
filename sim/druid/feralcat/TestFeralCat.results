@@ -5,7 +5,7 @@ character_stats_results: {
   final_stats: 304
   final_stats: 383
   final_stats: 177
-  final_stats: 135
+  final_stats: 179.25
   final_stats: 73
   final_stats: 0
   final_stats: 0
@@ -637,8 +637,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-AllItems-WolfsheadHelm-8345"
  value: {
-  dps: 600.93064
-  tps: 326.34972
+  dps: 579.01509
+  tps: 315.07549
  }
 }
 dps_results: {
