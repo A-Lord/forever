@@ -309,7 +309,6 @@ export const ToastedSmorc = { id: 23211 };
 export const MidsummerSausage = { id: 23326 };
 export const FireToastedBun = { id: 23327 };
 export const ElderberryPie = { id: 23435 };
-export const DietMcWeaksauce = { id: 23578 };
 export const TheMcWeaksauceClassic = { id: 23579 };
 export const DistilledFirewater = { id: 246948 };
 export const MinorArcaneElixir = { id: 247754 };

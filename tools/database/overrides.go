@@ -1382,6 +1382,7 @@ var ConsumableAllowList = []int32{
 }
 var ConsumableDenyList = []int32{
 	// Not obtainable in the game
+	23578, // Diet McWeaksauce
 	23794, // Permanent Sheen of Zanza
 	23795, // Permanent Spirit of Zanza
 	23796, // Permanent Swiftness of Zanza
