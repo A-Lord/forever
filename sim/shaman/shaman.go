@@ -5,7 +5,6 @@ import (
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
-	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
@@ -144,16 +143,9 @@ func (shaman *Shaman) Initialize() {
 }
 
 func (shaman *Shaman) ApplyTalents() {
-	shaman.applyBaselinePassives()
 	shaman.registerElementalTalents()
 	shaman.registerEnhancementTalents()
 	shaman.registerRestorationTalents()
-}
-
-// Weapon Mastery is baseline: every shaman has its highest rank. In game the server grants it, so no
-// game files row teaches it.
-func (shaman *Shaman) applyBaselinePassives() {
-	spelldata.ParseStatic(&shaman.Character, spellData.WeaponMastery.Highest())
 }
 
 func (shaman *Shaman) Reset(sim *core.Simulation) {
