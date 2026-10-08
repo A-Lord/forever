@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';
 
-import { BulkEnchantsView } from './BulkEnchants';
+import { EnchantPresetsView } from './EnchantPresets';
 
 const meta = {
-	title: 'Features/Bulk/BulkEnchants/BulkEnchants',
-	component: BulkEnchantsView,
+	title: 'Features/EnchantPresets/EnchantPresets/EnchantPresets',
+	component: EnchantPresetsView,
 	tags: ['autodocs'],
 	args: {
 		presets: [
@@ -27,7 +27,7 @@ const meta = {
 			</div>
 		),
 	],
-} satisfies Meta<typeof BulkEnchantsView>;
+} satisfies Meta<typeof EnchantPresetsView>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

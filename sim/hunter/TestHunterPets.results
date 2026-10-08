@@ -566,6 +566,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestHunterPets-AllItems-ManualCrowdPummeler-9449"
+ value: {
+  dps: 613.26386
+  tps: 265.20025
+  dtps: 7.5799
+ }
+}
+dps_results: {
  key: "TestHunterPets-AllItems-MarkofResolution-17759"
  value: {
   dps: 600.70815

@@ -14,7 +14,7 @@ func replaceItem(existing core.Item, option bulkSimCandidateOption) core.Item {
 
 	if option.enchant != 0 {
 		itemSpec.Enchant = option.enchant
-	} else if !enchantAppliesToItem(itemSpec.GetEnchant(), option.item) {
+	} else if !core.EnchantAppliesToItem(itemSpec.GetEnchant(), option.item) {
 		itemSpec.Enchant = 0
 	}
 
@@ -35,53 +35,6 @@ func createSelectedItem(option bulkSimCandidateOption) core.Item {
 		RandomSuffix: option.spec.GetRandomSuffix(),
 		Enchant:      enchant,
 	})
-}
-
-func enchantAppliesToItem(effectID int32, item core.Item) bool {
-	if effectID == 0 {
-		return false
-	}
-	return core.AnyEnchantRow(effectID, func(enchant core.Enchant) bool {
-		return enchantRowAppliesToItem(enchant, item)
-	})
-}
-
-func enchantRowAppliesToItem(enchant core.Enchant, item core.Item) bool {
-	if enchant.EnchantType == proto.EnchantType_EnchantTypeTwoHand && item.HandType != proto.HandType_HandTypeTwoHand {
-		return false
-	}
-	if enchant.EnchantType == proto.EnchantType_EnchantTypeStaff && item.WeaponType != proto.WeaponType_WeaponTypeStaff {
-		return false
-	}
-	if (enchant.EnchantType == proto.EnchantType_EnchantTypeShield) != (item.WeaponType == proto.WeaponType_WeaponTypeShield) {
-		return false
-	}
-	if (enchant.EnchantType == proto.EnchantType_EnchantTypeOffHand) != (item.WeaponType == proto.WeaponType_WeaponTypeOffHand) {
-		return false
-	}
-	if enchant.Type == proto.ItemType_ItemTypeRanged {
-		if item.RangedWeaponType != proto.RangedWeaponType_RangedWeaponTypeBow && item.RangedWeaponType != proto.RangedWeaponType_RangedWeaponTypeCrossbow && item.RangedWeaponType != proto.RangedWeaponType_RangedWeaponTypeGun {
-			return false
-		}
-	} else if item.RangedWeaponType != proto.RangedWeaponType_RangedWeaponTypeUnknown && item.RangedWeaponType != proto.RangedWeaponType_RangedWeaponTypeWand {
-		return false
-	}
-	return core.CheckSliceOverlap(getEligibleEnchantSlots(enchant), core.EligibleSlotsForItem(&item))
-}
-
-func getEligibleEnchantSlots(enchant core.Enchant) []proto.ItemSlot {
-	types := append([]proto.ItemType{enchant.Type}, enchant.ExtraTypes...)
-	slots := make([]proto.ItemSlot, 0, len(types)*2)
-	for _, itemType := range types {
-		if typeSlots, ok := core.ItemTypeToSlotsMap[itemType]; ok {
-			slots = append(slots, typeSlots...)
-			continue
-		}
-		if itemType == proto.ItemType_ItemTypeWeapon {
-			slots = append(slots, proto.ItemSlot_ItemSlotMainHand, proto.ItemSlot_ItemSlotOffHand)
-		}
-	}
-	return slots
 }
 
 func canEquipItem(item core.Item, playerClass proto.Class, playerSpec proto.Spec, slot proto.ItemSlot) bool {

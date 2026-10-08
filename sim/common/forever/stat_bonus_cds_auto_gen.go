@@ -367,6 +367,8 @@ func RegisterAllOnUseCds() {
 	// https://www.wowhead.com/forever/spell=1297448
 
 	// Speed
+	// on use: 13494 (A_MOD_MELEE_HASTE_3)
+	shared.NewSpellDataSpeedOnUse(9449) // Manual Crowd Pummeler - https://www.wowhead.com/forever/spell=13494
 	// on use: 23723 (A_MOD_CASTING_SPEED_NOT_STACK)
 	shared.NewSpellDataSpeedOnUse(19339) // Mind Quickening Gem - https://www.wowhead.com/forever/spell=23723
 	// on use: 23733 (A_MOD_CASTING_SPEED_NOT_STACK, A_MOD_MELEE_HASTE_3)
