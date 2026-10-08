@@ -39,10 +39,8 @@ func (druid *Druid) registerOmenOfClarity() {
 
 // The speed, in seconds, that turns Omen of Clarity's procs per minute into a chance for this hit.
 // Auto attacks and specials use the swing speed: the paw in Cat and Bear Form, the weapon otherwise.
-// A spell uses its cast time, and an instant 1.5 s.
-//
-// TODO: Ingame research needed -- whether cast speed such as Nature's Grace shortens the cast time the
-// chance is priced on. The talented cast time here counts flat mods only.
+// A spell uses its cast time after talent and set reductions, and an instant 1.5 s; haste and cast
+// speed such as Nature's Grace do not change it.
 func (druid *Druid) omenSpeed(spell *core.Spell) float64 {
 	switch {
 	case spell.ProcMask.Matches(core.ProcMaskMeleeWhiteHit | core.ProcMaskMeleeSpecial):
