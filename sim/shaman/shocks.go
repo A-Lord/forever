@@ -5,9 +5,9 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-var earthShockRank = spellData.EarthShock.Highest()
-var flameShockRank = spellData.FlameShock.Highest()
-var frostShockRank = spellData.FrostShock.Highest()
+var earthShockRanks = castableRanks(spellData.EarthShock)
+var flameShockRanks = castableRanks(spellData.FlameShock)
+var frostShockRanks = castableRanks(spellData.FrostShock)
 
 // The three shocks share category 19, so the row's category cooldown is one timer for all of them.
 func (shaman *Shaman) newShockSpellConfig(rank *spelldata.Spell) core.SpellConfig {
@@ -16,25 +16,25 @@ func (shaman *Shaman) newShockSpellConfig(rank *spelldata.Spell) core.SpellConfi
 		spelldata.Flags(SpellFlagShamanSpell|SpellFlagShock|SpellFlagInstant))
 }
 
-func (shaman *Shaman) registerEarthShockSpell() {
-	config := shaman.newShockSpellConfig(earthShockRank)
+func (shaman *Shaman) registerEarthShockSpell(rank *spelldata.Spell) {
+	config := shaman.newShockSpellConfig(rank)
 	config.ClassSpellMask = SpellMaskEarthShock
 
-	damage := earthShockRank.DamageEffect()
+	damage := rank.DamageEffect()
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		spell.CalcAndDealDamage(sim, target, damage.Average(), spell.OutcomeMagicHitAndCrit)
 	}
 
-	shaman.EarthShock = shaman.RegisterSpell(config)
+	shaman.EarthShock = append(shaman.EarthShock, shaman.RegisterSpell(config))
 }
 
-func (shaman *Shaman) registerFlameShockSpell() {
-	config := shaman.newShockSpellConfig(flameShockRank)
+func (shaman *Shaman) registerFlameShockSpell(rank *spelldata.Spell) {
+	config := shaman.newShockSpellConfig(rank)
 	config.ClassSpellMask = SpellMaskFlameShock
 
-	config.Dot = spelldata.DotConfig(flameShockRank, flameShockRank.PeriodicEffect())
+	config.Dot = spelldata.DotConfig(rank, rank.PeriodicEffect())
 
-	damage := flameShockRank.DamageEffect()
+	damage := rank.DamageEffect()
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		result := spell.CalcDamage(sim, target, damage.Average(), spell.OutcomeMagicHitAndCrit)
 		if result.Landed() {
@@ -43,24 +43,24 @@ func (shaman *Shaman) registerFlameShockSpell() {
 		spell.DealDamage(sim, result)
 	}
 
-	shaman.FlameShock = shaman.RegisterSpell(config)
+	shaman.FlameShock = append(shaman.FlameShock, shaman.RegisterSpell(config))
 }
 
 // The slow, effect 1, is not modelled.
-func (shaman *Shaman) registerFrostShockSpell() {
-	config := shaman.newShockSpellConfig(frostShockRank)
+func (shaman *Shaman) registerFrostShockSpell(rank *spelldata.Spell) {
+	config := shaman.newShockSpellConfig(rank)
 	config.ClassSpellMask = SpellMaskFrostShock
 
-	damage := frostShockRank.DamageEffect()
+	damage := rank.DamageEffect()
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		spell.CalcAndDealDamage(sim, target, damage.Average(), spell.OutcomeMagicHitAndCrit)
 	}
 
-	shaman.FrostShock = shaman.RegisterSpell(config)
+	shaman.FrostShock = append(shaman.FrostShock, shaman.RegisterSpell(config))
 }
 
 func (shaman *Shaman) registerShocks() {
-	shaman.registerEarthShockSpell()
-	shaman.registerFlameShockSpell()
-	shaman.registerFrostShockSpell()
+	earthShockRanks.Each(func(_ int32, rank *spelldata.Spell) { shaman.registerEarthShockSpell(rank) })
+	flameShockRanks.Each(func(_ int32, rank *spelldata.Spell) { shaman.registerFlameShockSpell(rank) })
+	frostShockRanks.Each(func(_ int32, rank *spelldata.Spell) { shaman.registerFrostShockSpell(rank) })
 }

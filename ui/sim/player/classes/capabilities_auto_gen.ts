@@ -70,7 +70,6 @@ export const CLASS_RACES: Record<number, Race[]> = {
 export const SPEC_CAN_DUAL_WIELD = new Set<Spec>([
 	Spec.SpecHunter,
 	Spec.SpecRogue,
-	Spec.SpecEnhancementShaman,
 	Spec.SpecDpsWarrior,
 	Spec.SpecProtectionWarrior,
 ]);

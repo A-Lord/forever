@@ -191,7 +191,8 @@ var CurveSigns = []CurveSign{
 // The procs whose rate the game files keep outside the spell data and that belong to the spell
 // rather than to one weapon: a chance-on-hit weapon's rate is its own and lives in WeaponProcs. The
 // ProcChance column reads the 100 or 101 sentinel, which the store would otherwise take for "fires
-// on every hit". Each rate is a carry-over, as its Source says; none has been measured on this server.
+// on every hit", or the spell has no proc row at all. Each rate is a carry-over, as its Source says;
+// none has been measured on this server.
 var Spells = []Override{
 	{
 		SpellID: 23686,
@@ -206,6 +207,13 @@ var Spells = []Override{
 		Value:   10,
 		Reason:  "Badge of the Swarmguard: stack accumulator inside the on-use window",
 		Source:  "tbc-carryover",
+	},
+	{
+		SpellID: 16353,
+		Field:   PPM,
+		Value:   9, // TODO: Vanilla value - verify in-game
+		Reason:  "Frostbrand Weapon: enchant 1668 casts 16353 with 0 in its amount, and 16353 has no proc row",
+		Source:  "vanilla-carryover",
 	},
 
 	// Melee procs whose tooltips name no trigger condition, ruled to hear only hits with a damage

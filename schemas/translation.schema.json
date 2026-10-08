@@ -2168,38 +2168,6 @@
 							"additionalProperties": false,
 							"required": ["label", "tooltip"]
 						},
-						"sync_type": {
-							"type": "object",
-							"properties": {
-								"label": {
-									"type": "string"
-								},
-								"tooltip": {
-									"type": "string"
-								},
-								"values": {
-									"type": "object",
-									"properties": {
-										"automatic": {
-											"type": "string"
-										},
-										"none": {
-											"type": "string"
-										},
-										"perfect_sync": {
-											"type": "string"
-										},
-										"delayed_offhand": {
-											"type": "string"
-										}
-									},
-									"additionalProperties": false,
-									"required": ["automatic", "none", "perfect_sync", "delayed_offhand"]
-								}
-							},
-							"additionalProperties": false,
-							"required": ["label", "tooltip", "values"]
-						},
 						"show_1h_weapons": {
 							"type": "object",
 							"properties": {
@@ -2438,7 +2406,6 @@
 						"assume_bleed_active",
 						"cannot_shred_target",
 						"okf_uptime",
-						"sync_type",
 						"show_1h_weapons",
 						"show_2h_weapons",
 						"show_all_enchants",
