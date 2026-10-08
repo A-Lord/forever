@@ -712,15 +712,17 @@ func spellDataProcDamageSpell(character *core.Character, damage *spelldata.Spell
 		}
 	}
 
-	// Where the row also deals direct damage, the damage over time lands only with it. Alone it goes
-	// on unrolled, and each tick rolls the outcome the row states for it.
+	// The damage over time lands only with the hit that applies it, which is its one hit roll: the
+	// direct hit where the row deals one, else a roll of its own on the hit table of the spell's
+	// defense type, without the crit an application cannot deal.
 	config.Dot = spelldata.DotConfig(damage, periodic)
+	application := damageOutcome(defenseType, true, OutcomeDefault)
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		if effect == spelldata.NilEffect {
-			dealOnArrival(sim, spell, target, nil, after)
-			return
+			single[0] = spell.CalcOutcome(sim, target, GetOutcome(spell, application))
+		} else {
+			single[0] = spell.CalcDamage(sim, target, effect.DirectAmount(sim), GetOutcome(spell, outcome))
 		}
-		single[0] = spell.CalcDamage(sim, target, effect.DirectAmount(sim), GetOutcome(spell, outcome))
 		dealOneOnArrival(sim, spell, target, single, after)
 	}
 
@@ -1031,28 +1033,9 @@ func NewSpellDataDamageOnUse(itemID int32) {
 	registerSpellDataOnUse(itemID, core.CooldownTypeDPS, spellDataOnUseDamageSpell)
 }
 
-// The proc's damage spell with the hit of its damage over time rolled once, when it is applied: the
-// direct hit where the row deals one, a hit roll of its own where it does not. The ticks roll no hit.
+// The proc's damage spell, cast as a spell of its own rather than a proc's.
 func spellDataOnUseDamageSpell(character *core.Character, damage *spelldata.Spell) core.SpellConfig {
-	config := spellDataProcDamageSpell(character, damage, false)
-	periodic := damage.PeriodicDamageEffect()
-	if periodic == spelldata.NilEffect {
-		return config
-	}
-
-	config.Dot.OnTick = spelldata.PeriodicDamageTick(periodic, damage.TickOutcomeHitRolled)
-	if damage.DamageEffect() != spelldata.NilEffect {
-		return config
-	}
-
-	// The hit table of the spell's defense type, without the crit an application cannot deal.
-	application := damageOutcome(config.DefenseType, true, OutcomeDefault)
-	single := make(core.SpellResultSlice, 1)
-	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		single[0] = spell.CalcOutcome(sim, target, GetOutcome(spell, application))
-		dealOneOnArrival(sim, spell, target, single, applyDotIfLanded)
-	}
-	return config
+	return spellDataProcDamageSpell(character, damage, false)
 }
 
 // An on-use item whose spell heals the wearer, at once or over time.
