@@ -235,6 +235,41 @@ func init() {
 			marks.Get(target).Activate(sim)
 		})
 	})
+
+	// Dormant Heart of the Mountain
+	// https://www.wowhead.com/forever/item=249473/dormant-heart-of-the-mountain
+	//
+	// Your casts of Greater Heal in combat grant up to 40 increased healing and up to 13 increased
+	// damage for 15s.
+	//
+	// The tooltip names the wearer's class's heal: Greater Heal, Healing Touch, Healing Wave or Holy
+	// Light. 1249118's row names none of them, so the heals are matched by their ranks.
+	core.NewItemEffect(249473, func(agent core.Agent) {
+		character := agent.GetCharacter()
+		buffRow := spelldata.MustFind(1249119)
+		buff := character.RegisterAura(spelldata.AuraConfig(buffRow, spelldata.Label("Dormant Heart of the Mountain Proc")))
+		parsed := spelldata.ParseEffects(character, buff, buffRow)
+
+		trigger := spelldata.ProcTrigger(character, spelldata.MustFind(1249118), func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
+			buff.Activate(sim)
+		})
+		trigger.Name = "Dormant Heart of the Mountain"
+		trigger.ActionID = core.ActionID{ItemID: 249473}
+		trigger.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
+			return slices.ContainsFunc(eternalPowerHeals, func(heal spelldata.Ladder) bool { return heal.Contains(spell) })
+		}
+		character.ItemSwap.RegisterProc(249473, character.MakeProcTriggerAura(trigger))
+		character.AddStatProcBuff(249473, &core.StatBuffAura{Aura: buff, BuffedStatTypes: parsed.Stats()}, false,
+			character.ItemSwap.EligibleSlotsForItem(249473))
+	})
+}
+
+// The ranks of the four heals Dormant Heart of the Mountain answers.
+var eternalPowerHeals = []spelldata.Ladder{
+	spelldata.Ranked(2060, 10963, 10964, 10965, 25314),                                  // Greater Heal
+	spelldata.Ranked(5185, 5186, 5187, 5188, 5189, 6778, 8903, 9758, 9888, 9889, 25297), // Healing Touch
+	spelldata.Ranked(331, 332, 547, 913, 939, 959, 8005, 10395, 10396, 25357),           // Healing Wave
+	spelldata.Ranked(635, 639, 647, 1026, 1042, 3472, 10328, 10329, 25292),              // Holy Light
 }
 
 // A buff that goes on with all its stacks, each worth perStack, for the row's duration, and loses one

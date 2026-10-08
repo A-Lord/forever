@@ -288,3 +288,49 @@ func TestEverlookDeliveryBotDeliversAfterItsCount(t *testing.T) {
 		t.Errorf("the delivery cast %d times for %v damage, want once for 467", metrics.Casts, metrics.TotalDamage)
 	}
 }
+
+// Dormant Heart of the Mountain 249473's 1249118 answers a heal of any rank of Greater Heal, Healing
+// Touch, Healing Wave or Holy Light with 1249119: 40 healing power and 13 spell damage for 15 s.
+// Another heal, such as Flash of Light, does not.
+func TestDormantHeartOfTheMountainAnswersTheFourHeals(t *testing.T) {
+	sim, character := itemWearer(t, proto.Class_ClassPaladin, proto.ItemSlot_ItemSlotTrinket1, 249473)
+	buff := character.GetAuraByID(core.ActionID{SpellID: 1249119})
+	if buff == nil {
+		t.Fatal("249473 registers no buff")
+	}
+	heal := func(spellID int32) {
+		t.Helper()
+		spell := &core.Spell{ActionID: core.ActionID{SpellID: spellID}, ProcMask: core.ProcMaskSpellHealing, SpellSchool: core.SpellSchoolHoly, Unit: &character.Unit}
+		character.OnHealDealt(sim, spell, &core.SpellResult{Target: &character.Unit, Outcome: core.OutcomeHit, Damage: 500})
+		stepTo(t, sim, sim.CurrentTime+core.SpellBatchWindow)
+	}
+	before := character.GetStats()
+
+	heal(19750) // Flash of Light rank 1
+	if buff.IsActive() {
+		t.Fatalf("Flash of Light raised the buff")
+	}
+
+	heal(25292) // Holy Light rank 9
+	if !buff.IsActive() {
+		t.Fatalf("Holy Light raised no buff")
+	}
+	if got := gained(character, before, stats.HealingPower); got != 40 {
+		t.Errorf("the buff grants %v healing power, want 40", got)
+	}
+	if got := gained(character, before, stats.SpellDamage); got != 13 {
+		t.Errorf("the buff grants %v spell damage, want 13", got)
+	}
+	if got := buff.Duration; got != 15*time.Second {
+		t.Errorf("the buff lasts %v, want 15s", got)
+	}
+
+	buff.Deactivate(sim)
+	for _, rank := range []int32{2060, 5185, 331} { // Greater Heal, Healing Touch, Healing Wave rank 1
+		heal(rank)
+		if !buff.IsActive() {
+			t.Errorf("rank %d raised no buff", rank)
+		}
+		buff.Deactivate(sim)
+	}
+}
