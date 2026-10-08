@@ -9,7 +9,18 @@ func (druid *Druid) registerOmenOfClarity() {
 	clearRow := spellData.OmenOfClarityTriggered.Highest()
 	druid.ClearcastingAura = druid.RegisterAura(spelldata.AuraConfig(clearRow))
 	spelldata.ParseEffects(&druid.Character, druid.ClearcastingAura, clearRow)
-	spelldata.AttachChargeSpender(&druid.Character, druid.ClearcastingAura, clearRow, "Clearcasting - Spend")
+	spelldata.AttachChargeSpender(&druid.Character, druid.ClearcastingAura, clearRow, "Clearcasting - Spend",
+		func(_ *core.Character, trigger *core.ProcTrigger) {
+			trigger.ProcMask &= core.ProcMaskMeleeSpecial
+		})
+	// Clearcasting modifies the cast's upfront cost. Covered spell casts spend it at completion;
+	// melee abilities wait for a landed hit.
+	mask := clearRow.EffectN(1).ClassFlags
+	druid.ClearcastingAura.OnCastComplete = func(aura *core.Aura, sim *core.Simulation, spell *core.Spell) {
+		if !spell.ProcMask.Matches(core.ProcMaskMeleeSpecial) && mask.Matches(spell.ClassFlags) {
+			aura.Deactivate(sim)
+		}
+	}
 
 	omen := spellData.OmenOfClarity.Highest()
 	trigger := spelldata.ProcTrigger(&druid.Character, omen, func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {

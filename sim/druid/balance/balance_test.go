@@ -3,12 +3,15 @@ package balance
 import (
 	"math"
 	"testing"
+	"time"
 
 	"github.com/wowsims/forever/sim/common"
 	_ "github.com/wowsims/forever/sim/common" // imported to get caster sets included. (we use spellfire here)
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/simsignals"
 	"github.com/wowsims/forever/sim/core/stats"
+	"github.com/wowsims/forever/sim/druid"
 )
 
 func TestMoonkinThickHideTracksDefenseAndForm(t *testing.T) {
@@ -98,4 +101,96 @@ var DefaultWeaponTypes = []proto.WeaponType{
 
 var DefaultRangedWeaponTypes = []proto.RangedWeaponType{
 	proto.RangedWeaponType_RangedWeaponTypeIdol,
+}
+
+func TestClearcastingProcDuringPaidHurricaneIsRetained(t *testing.T) {
+	sim := core.NewSim(&proto.RaidSimRequest{
+		Raid: &proto.Raid{Parties: []*proto.Party{{Players: []*proto.Player{{
+			Name: "Channel case", Class: proto.Class_ClassDruid, Race: proto.Race_RaceNightElf,
+			TalentsString: DefaultTalents,
+			Spec:          &proto.Player_BalanceDruid{BalanceDruid: &proto.BalanceDruid{Options: &proto.BalanceDruid_Options{ClassOptions: &proto.DruidOptions{}}}},
+			Equipment:     core.GetGearSet("../../../ui/specs/druid/balance/gear_sets", "p1").GearSet,
+			Consumables:   &proto.ConsumesSpec{}, Rotation: &proto.APLRotation{},
+		}}}}},
+		Encounter:  &proto.Encounter{Duration: 30, Targets: []*proto.Target{core.NewDefaultTarget()}},
+		SimOptions: &proto.SimOptions{RandomSeed: 1, Iterations: 1, IsTest: true},
+	}, simsignals.CreateSignals())
+	sim.Reset()
+	moonkin := sim.Raid.Parties[0].Players[0].(druid.DruidAgent).GetDruid()
+	moonkin.OmenOfClarityAura.Deactivate(sim)
+	if moonkin.ClearcastingAura.IsActive() {
+		t.Fatal("Clearcasting is active before the paid channel")
+	}
+	before := moonkin.CurrentMana()
+	if !moonkin.Hurricane.Cast(sim, moonkin.CurrentTarget) {
+		t.Fatal("Hurricane did not cast")
+	}
+	t.Logf("channel start: mana spent=%g, charge=%v", before-moonkin.CurrentMana(), moonkin.ClearcastingAura.IsActive())
+	sim.AddPendingAction(core.NewDelayedAction(core.DelayedActionOptions{DoAt: time.Second, OnAction: func(sim *core.Simulation) {
+		moonkin.ClearcastingAura.Activate(sim)
+		moonkin.ClearcastingAura.SetStacks(sim, moonkin.ClearcastingAura.MaxStacks)
+		t.Logf("mid-channel: channel=%v, charge=%v", moonkin.IsChanneling(), moonkin.ClearcastingAura.IsActive())
+	}}))
+	reached := false
+	sim.AddPendingAction(core.NewDelayedAction(core.DelayedActionOptions{DoAt: 11 * time.Second, OnAction: func(*core.Simulation) { reached = true }}))
+	for steps := 0; !reached && steps < 10000; steps++ {
+		sim.Step()
+	}
+	if !reached {
+		t.Fatal("the sim did not reach the channel-end observation")
+	}
+	t.Logf("after channel: channel=%v, charge=%v, next Starfire cost=%g", moonkin.IsChanneling(), moonkin.ClearcastingAura.IsActive(), moonkin.Starfire[len(moonkin.Starfire)-1].Cost.GetCurrentCost())
+	if !moonkin.ClearcastingAura.IsActive() {
+		t.Fatal("a charge gained during the paid channel was consumed before the next paid spell")
+	}
+}
+
+func TestClearcastingProcDuringFreeHurricaneIsRetained(t *testing.T) {
+	sim := core.NewSim(&proto.RaidSimRequest{
+		Raid: &proto.Raid{Parties: []*proto.Party{{Players: []*proto.Player{{
+			Name: "Channel case", Class: proto.Class_ClassDruid, Race: proto.Race_RaceNightElf,
+			TalentsString: DefaultTalents,
+			Spec:          &proto.Player_BalanceDruid{BalanceDruid: &proto.BalanceDruid{Options: &proto.BalanceDruid_Options{ClassOptions: &proto.DruidOptions{}}}},
+			Equipment:     core.GetGearSet("../../../ui/specs/druid/balance/gear_sets", "p1").GearSet,
+			Consumables:   &proto.ConsumesSpec{}, Rotation: &proto.APLRotation{},
+		}}}}},
+		Encounter:  &proto.Encounter{Duration: 30, Targets: []*proto.Target{core.NewDefaultTarget()}},
+		SimOptions: &proto.SimOptions{RandomSeed: 1, Iterations: 1, IsTest: true},
+	}, simsignals.CreateSignals())
+	sim.Reset()
+	moonkin := sim.Raid.Parties[0].Players[0].(druid.DruidAgent).GetDruid()
+	moonkin.OmenOfClarityAura.Deactivate(sim)
+	if moonkin.ClearcastingAura.IsActive() {
+		t.Fatal("Clearcasting is active before the paid channel")
+	}
+	moonkin.ClearcastingAura.Activate(sim)
+	moonkin.ClearcastingAura.SetStacks(sim, moonkin.ClearcastingAura.MaxStacks)
+	before := moonkin.CurrentMana()
+	if !moonkin.Hurricane.Cast(sim, moonkin.CurrentTarget) {
+		t.Fatal("Hurricane did not cast")
+	}
+	if spent := before - moonkin.CurrentMana(); spent != 0 {
+		t.Fatalf("the initial charge did not cover the channel cost: spent %g mana", spent)
+	}
+	if moonkin.ClearcastingAura.IsActive() {
+		t.Fatal("the charge paying for Hurricane was not spent at cast completion")
+	}
+	t.Logf("channel start: mana spent=%g, charge=%v", before-moonkin.CurrentMana(), moonkin.ClearcastingAura.IsActive())
+	sim.AddPendingAction(core.NewDelayedAction(core.DelayedActionOptions{DoAt: time.Second, OnAction: func(sim *core.Simulation) {
+		moonkin.ClearcastingAura.Activate(sim)
+		moonkin.ClearcastingAura.SetStacks(sim, moonkin.ClearcastingAura.MaxStacks)
+		t.Logf("mid-channel: channel=%v, charge=%v", moonkin.IsChanneling(), moonkin.ClearcastingAura.IsActive())
+	}}))
+	reached := false
+	sim.AddPendingAction(core.NewDelayedAction(core.DelayedActionOptions{DoAt: 11 * time.Second, OnAction: func(*core.Simulation) { reached = true }}))
+	for steps := 0; !reached && steps < 10000; steps++ {
+		sim.Step()
+	}
+	if !reached {
+		t.Fatal("the sim did not reach the channel-end observation")
+	}
+	t.Logf("after channel: channel=%v, charge=%v, next Starfire cost=%g", moonkin.IsChanneling(), moonkin.ClearcastingAura.IsActive(), moonkin.Starfire[len(moonkin.Starfire)-1].Cost.GetCurrentCost())
+	if !moonkin.ClearcastingAura.IsActive() {
+		t.Fatal("a charge gained during the free channel was consumed before the next paid spell")
+	}
 }
