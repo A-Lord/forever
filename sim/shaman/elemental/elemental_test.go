@@ -33,7 +33,7 @@ func TestElemental(t *testing.T) {
 			Consumables: DefaultConsumables,
 			Profession1: proto.Profession_Leatherworking,
 			Profession2: proto.Profession_Enchanting,
-			Rotation:    core.GetAplRotation("../../../ui/specs/shaman/elemental/apls", "default"),
+			Rotation:    core.RotationCombo{Label: "default", Rotation: testingBuild.Rotation.Rotation},
 			ItemFilter: core.ItemFilter{
 				WeaponTypes:       DefaultWeaponTypes,
 				ArmorType:         DefaultArmorType,
@@ -43,7 +43,8 @@ func TestElemental(t *testing.T) {
 	}))
 }
 
-// The Testing build's gear and talents, which the UI's Testing gear set and Standard talents read too.
+// The Testing build's gear, talents and rotation, which the UI's Testing gear set, Standard talents and
+// Default rotation read too.
 var testingBuild = core.GetTestBuildFromJSON(proto.Class_ClassShaman, "../../../ui/specs/shaman/elemental/builds", "testing",
 	core.ItemFilter{}, nil, nil)
 

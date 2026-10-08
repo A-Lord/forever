@@ -5,10 +5,9 @@ import { ConsumesSpec, Profession, Race, Spec } from '@generated/proto/common';
 import { ElementalShaman_Options as ElementalShamanOptions } from '@generated/proto/shaman';
 import { SavedTalents } from '@generated/proto/ui';
 
-import DefaultApl from './apls/default.apl.json';
 import TestingBuildJson from './builds/testing.build.json';
 
-export const ROTATION_PRESET_DEFAULT = PresetUtils.makePresetAPLRotation('Default', DefaultApl);
+export const ROTATION_PRESET_DEFAULT = PresetUtils.makePresetAPLRotation('Default', TestingBuildJson.player.rotation);
 
 export const TestingGear = PresetUtils.makePresetGear('Testing', TestingBuildJson.player.equipment);
 
