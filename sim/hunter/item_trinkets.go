@@ -14,6 +14,7 @@ var (
 	arcaneInfused     = spelldata.MustFind(23721) // the on-use buff: 10 s, one charge
 	arcaneDetonation  = spelldata.MustFind(23722) // the area damage it fires
 	refocusedShotsFor = []spelldata.Ladder{spellData.AimedShot, spellData.MultiShot, spellData.Volley, spellData.ArcaneShot}
+	ferrasCollar      = spelldata.MustFind(22854) // the equip spell: a flat 2 on every effect of Tamed Pet Passive
 )
 
 func init() {
@@ -82,6 +83,37 @@ func init() {
 		}, func(sim *core.Simulation, _ *core.Character) bool {
 			return slices.ContainsFunc(shots, func(shot *core.Spell) bool { return !shot.IsReady(sim) })
 		})
+	})
+
+	// Ferra's Collar
+	// https://www.wowhead.com/forever/item=18355/ferra-s-collar
+	//
+	// Increases the damage done by your pets by 4%.
+	//
+	// 22854's class mask names one spell, Tamed Pet Passive 8875, whose one effect raises the pet's
+	// damage done in every school by its amount, 0 on its own. The flat 2 makes that 2%, not the
+	// tooltip's 4%.
+	core.NewItemEffect(18355, func(agent core.Agent) {
+		character := agent.GetCharacter()
+		slots := character.ItemSwap.EligibleSlotsForItem(18355)
+		multiplier := core.MultiplierFromPercent(ferrasCollar.EffectN(1).Average())
+
+		for _, pet := range character.Pets {
+			if pet.IsGuardian() {
+				continue
+			}
+			// Checked on reset rather than made permanent: a pet resets after its owner's item swap
+			// has settled.
+			config := spelldata.AuraConfig(ferrasCollar)
+			config.Duration = core.NeverExpires
+			config.OnReset = func(aura *core.Aura, sim *core.Simulation) {
+				if character.HasItemEquipped(18355, slots) {
+					aura.Activate(sim)
+				}
+			}
+			aura := pet.RegisterAura(config).AttachMultiplicativePseudoStatBuff(&pet.PseudoStats.DamageDealtMultiplier, multiplier)
+			character.ItemSwap.RegisterProcWithSlots(18355, aura, slots)
+		}
 	})
 }
 
