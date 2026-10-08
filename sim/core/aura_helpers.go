@@ -157,6 +157,17 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 		}
 		procAura.Icd = &icd
 	}
+	icdOwner := unit
+	if config.Caster != nil {
+		icdOwner = config.Caster
+	}
+	startICD := func(sim *Simulation) {
+		if config.ICD == 0 {
+			return
+		}
+		icd.Duration = icdOwner.ModifiedProcCooldown(config.ProcSpellClassFlags, config.ICD)
+		icd.Use(sim)
+	}
 
 	var dpm *DynamicProcManager
 	if config.DPM != nil {
@@ -233,9 +244,7 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 			return
 		}
 
-		if icd.Duration != 0 {
-			icd.Use(sim)
-		}
+		startICD(sim)
 		applyHandler(sim, spell, result)
 	}
 
@@ -274,9 +283,7 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 				return
 			}
 
-			if icd.Duration != 0 {
-				icd.Use(sim)
-			}
+			startICD(sim)
 			applyHandler(sim, spell, nil)
 		}
 	}
@@ -297,9 +304,7 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 				return
 			}
 
-			if icd.Duration != 0 {
-				icd.Use(sim)
-			}
+			startICD(sim)
 			applyHandler(sim, spell, emptyResult)
 		}
 	}

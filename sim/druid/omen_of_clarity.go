@@ -1,10 +1,7 @@
 package druid
 
 import (
-	"time"
-
 	"github.com/wowsims/forever/sim/core"
-	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
@@ -38,19 +35,6 @@ func (druid *Druid) registerOmenOfClarity() {
 		return sim.Proc(druid.ModifiedProcChance(omen.ClassFlags, chance), trigger.Name)
 	}
 	druid.OmenOfClarityAura = druid.MakeProcTriggerAura(trigger)
-
-	// Moonkin Form's SPELLMOD_PROC_COOLDOWN on Omen of Clarity has no parse kind, so the form sets the ICD
-	// the next proc starts.
-	if druid.MoonkinFormAura != nil {
-		formMod := spellData.MoonkinForm.Highest().Effect(dbcenums.A_ADD_PCT_MODIFIER, int32(dbcenums.SPELLMOD_PROC_COOLDOWN))
-		formICD := time.Duration(float64(omen.ICD()) * (1 + formMod.Percent()))
-		druid.MoonkinFormAura.ApplyOnGain(func(_ *core.Aura, _ *core.Simulation) {
-			druid.OmenOfClarityAura.Icd.Duration = formICD
-		})
-		druid.MoonkinFormAura.ApplyOnExpire(func(_ *core.Aura, _ *core.Simulation) {
-			druid.OmenOfClarityAura.Icd.Duration = omen.ICD()
-		})
-	}
 }
 
 // The speed, in seconds, that turns Omen of Clarity's procs per minute into a chance for this hit.

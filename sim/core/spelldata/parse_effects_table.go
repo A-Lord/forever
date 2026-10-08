@@ -636,6 +636,9 @@ var pctModTable = map[dbcenums.SpellModOp]row{
 	dbcenums.SPELLMOD_CHANCE_OF_SUCCESS: func(p *parser, e *Effect, v float64) *attachment {
 		return p.modFloat("SpellMod_ProcChance_Pct", p.modConfig(e, core.SpellMod_ProcChance_Pct), v)
 	},
+	dbcenums.SPELLMOD_PROC_COOLDOWN: func(p *parser, e *Effect, v float64) *attachment {
+		return p.modFloat("SpellMod_ProcCooldown_Pct", p.modConfig(e, core.SpellMod_ProcCooldown_Pct), v)
+	},
 	dbcenums.SPELLMOD_GLOBAL_COOLDOWN: func(p *parser, e *Effect, v float64) *attachment {
 		return p.modFloat("SpellMod_GlobalCooldown_Pct", p.modConfig(e, core.SpellMod_GlobalCooldown_Pct), v)
 	},
