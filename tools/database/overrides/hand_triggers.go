@@ -28,6 +28,13 @@ var HandTriggers = []HandTrigger{
 		Source: "game-files-rows",
 	},
 	{
+		Spell:    16389,
+		Triggers: 16368,
+		Reason: "Flametongue Totem Proc is a dummy holding the base points, and the hit logs in game as 16368 " +
+			"Flametongue Attack: fire school damage with the magic defense type and no bonus coefficient",
+		Source: "combat log, Flametongue Totem Rank 1, 2026-10-03",
+	},
+	{
 		Spell:    408341,
 		Triggers: 408423,
 		Replaces: 8349,
