@@ -63,8 +63,10 @@ const ARMS_PRESET_OPTIONS = {
 };
 
 // Dungeon and world drops, the warrior's dungeon tier sets and crafted items whose reagents include no
-// raid materials; no reputation rewards. The cloak, the belt and the Adaptive Combat Assistant are sold by
-// the Undermine Trader in Stranglethorn Vale; the second ring has no known source.
+// raid materials; no reputation or PvP rewards. The shoulders and bracers are world-drop greens with the
+// "of the Tiger" suffix, and the neck is a Darkmoon Faire ticket reward. The cloak, the first ring and the
+// Adaptive Combat Assistant are sold by the Undermine Trader in Stranglethorn Vale; the Dawn Armor pattern and
+// the second ring have no known source.
 export const PreBiSFuryGear = PresetUtils.makePresetGear('Pre-BiS', PreBiSFuryGearJson, FURY_PRESET_OPTIONS);
 
 // The best build found on the Pre-BiS Fury gear over a three minute fight.
@@ -76,22 +78,23 @@ export const PreBiSFuryEpWeights = PresetUtils.makePresetEpWeights(
 	Stats.fromMap(
 		{
 			[Stat.StatStrength]: 2.2,
-			[Stat.StatAgility]: 2.41,
+			[Stat.StatAgility]: 2.25,
 			[Stat.StatAttackPower]: 1,
-			[Stat.StatArmorPenetration]: 0.35,
-			[Stat.StatHitRating]: 1.65,
-			[Stat.StatHasteRating]: 2.12,
-			[Stat.StatCritRating]: 3.13,
-			[Stat.StatExpertiseRating]: 1.12,
+			[Stat.StatArmorPenetration]: 0.41,
+			[Stat.StatHitRating]: 2.29,
+			[Stat.StatHasteRating]: 2.29,
+			[Stat.StatCritRating]: 2.92,
+			[Stat.StatExpertiseRating]: 1.9,
 		},
 		{
-			[PseudoStat.PseudoStatMainHandDps]: 7.88,
-			[PseudoStat.PseudoStatOffHandDps]: 2.67,
+			[PseudoStat.PseudoStatMainHandDps]: 9.89,
+			[PseudoStat.PseudoStatOffHandDps]: 3.15,
 		},
 	),
 );
 
-// The same sources as the Pre-BiS Fury gear. The neck, cloak and second ring have no known source.
+// The same sources as the Pre-BiS Fury gear; the cloak and the bow are world-drop greens with the "of the
+// Tiger" suffix too.
 export const PreBiSArmsGear = PresetUtils.makePresetGear('Pre-BiS', PreBiSArmsGearJson, ARMS_PRESET_OPTIONS);
 
 // The Battle Stance build: Rend keeps Bloodthrill's Overpower procs coming, and Spearing Strike fills the
@@ -104,16 +107,16 @@ export const PreBiSArmsEpWeights = PresetUtils.makePresetEpWeights(
 	Stats.fromMap(
 		{
 			[Stat.StatStrength]: 2.2,
-			[Stat.StatAgility]: 1.86,
+			[Stat.StatAgility]: 1.82,
 			[Stat.StatAttackPower]: 1,
-			[Stat.StatArmorPenetration]: 0.37,
-			[Stat.StatHitRating]: 4.03,
-			[Stat.StatHasteRating]: 1.75,
-			[Stat.StatCritRating]: 2.42,
-			[Stat.StatExpertiseRating]: 1.31,
+			[Stat.StatArmorPenetration]: 0.45,
+			[Stat.StatHitRating]: 4.59,
+			[Stat.StatHasteRating]: 2,
+			[Stat.StatCritRating]: 2.36,
+			[Stat.StatExpertiseRating]: 2.23,
 		},
 		{
-			[PseudoStat.PseudoStatMainHandDps]: 13.92,
+			[PseudoStat.PseudoStatMainHandDps]: 17.69,
 			[PseudoStat.PseudoStatOffHandDps]: 0,
 		},
 	),
