@@ -150,11 +150,10 @@ func (shaman *Shaman) ApplyTalents() {
 	shaman.registerRestorationTalents()
 }
 
-// Weapon Mastery and Shield Specialization are baseline: every shaman has their highest rank. In game
-// the server grants them, so no game files row teaches them.
+// Weapon Mastery is baseline: every shaman has its highest rank. In game the server grants it, so no
+// game files row teaches it.
 func (shaman *Shaman) applyBaselinePassives() {
 	spelldata.ParseStatic(&shaman.Character, spellData.WeaponMastery.Highest())
-	spelldata.ParseStatic(&shaman.Character, spellData.ShieldSpecialization.Highest())
 }
 
 func (shaman *Shaman) Reset(sim *core.Simulation) {
