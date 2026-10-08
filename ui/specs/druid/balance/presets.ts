@@ -15,8 +15,8 @@ export const StandardRotation = PresetUtils.makePresetAPLRotation('Default', Def
 export const StandardTalents = PresetUtils.makePresetTalents('Moonkin', SavedTalents.create({ talentsString: '5532220115501351--505' }));
 
 // Dungeon drops, world-drop greens with the "of Magic" suffix and crafted items whose reagents include no
-// raid materials; no reputation or PvP rewards. The neck drops from Balzaphon in Stratholme during the
-// Scourge Invasion. The cloak, the rings, the trinkets and the idol are sold by the Undermine Trader in
+// raid materials; no reputation or PvP rewards, and no Scourge Invasion drops. The neck is a Dire Maul
+// quest reward. The cloak, the rings, the trinkets and the idol are sold by the Undermine Trader in
 // Stranglethorn Vale. The staff, and the Pristine Scale and Fel Leather the leggings take, have no known source.
 export const PreBiSGear = PresetUtils.makePresetGear('Pre-BiS', PreBiSGearJson);
 
