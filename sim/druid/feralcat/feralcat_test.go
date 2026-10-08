@@ -2248,10 +2248,13 @@ func TestReviewProwlAndFeralSwiftnessSpeed(t *testing.T) {
 	if !cat.Dash.Cast(sim, cat.CurrentTarget) || !cat.ProwlAura.IsActive() {
 		t.Fatal("Dash failed or broke Prowl")
 	}
+	check(baseSpeed * 1.3 * 0.7 * 1.6)
 	sim.CurrentTime += 2 * time.Second
 	if !cat.Claw.Cast(sim, cat.CurrentTarget) || cat.ProwlAura.IsActive() {
 		t.Fatal("Claw failed or retained Prowl")
 	}
+	check(baseSpeed * 1.3 * 1.6)
+	cat.DashAura.Deactivate(sim)
 	check(baseSpeed * 1.3)
 	cat.ClearForm(sim)
 	check(baseSpeed)
@@ -2261,6 +2264,29 @@ func TestReviewProwlAndFeralSwiftnessSpeed(t *testing.T) {
 	}
 	check(baseSpeed * 1.3)
 	t.Logf("cat=%g yd/s, prowling cat=%g yd/s, humanoid=%g yd/s; re-entry restored cat speed", baseSpeed*1.3, baseSpeed*1.3*0.7, baseSpeed)
+}
+
+func TestDashSpeedExpiresAfterItsDuration(t *testing.T) {
+	sim, cat := newCat(t, "", nil)
+	before := cat.GetMovementSpeed()
+	if !cat.Dash.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("Dash did not cast in Cat Form")
+	}
+	if got, want := cat.GetMovementSpeed(), before*1.6; math.Abs(got-want) > 1e-9 {
+		t.Fatalf("Dash movement speed = %g, want %g", got, want)
+	}
+	for cat.DashAura.IsActive() {
+		if sim.Step() {
+			t.Fatal("simulation ended before Dash expired")
+		}
+	}
+	if sim.CurrentTime < 15*time.Second {
+		t.Fatalf("Dash expired at %s, want at least 15s", sim.CurrentTime)
+	}
+	if got := cat.GetMovementSpeed(); math.Abs(got-before) > 1e-9 {
+		t.Fatalf("movement after Dash = %g, want %g", got, before)
+	}
+	t.Logf("Dash speed %g -> %g -> %g; expired at %s", before, before*1.6, cat.GetMovementSpeed(), sim.CurrentTime)
 }
 
 func TestReviewCatChargeBreaksProwlWithoutDebuff(t *testing.T) {

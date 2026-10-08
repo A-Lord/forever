@@ -74,6 +74,7 @@ func (druid *Druid) applyThickHide() {
 		{druid.CatFormAura, spellData.CatFormTriggered.Highest()},
 		{druid.BearFormAura, spellData.BearFormTriggered.Highest()},
 		{druid.DireBearFormAura, spellData.DireBearFormTriggered.Highest()},
+		{druid.MoonkinFormAura, spellData.MoonkinFormTriggered.ByID(24905)},
 	} {
 		if form.aura == nil {
 			continue
