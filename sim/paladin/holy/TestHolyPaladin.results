@@ -3,8 +3,8 @@ character_stats_results: {
  value: {
   final_stats: 272
   final_stats: 102
-  final_stats: 433
-  final_stats: 296
+  final_stats: 422
+  final_stats: 301
   final_stats: 364
   final_stats: 281
   final_stats: 0
@@ -18,7 +18,7 @@ character_stats_results: {
   final_stats: 976
   final_stats: 50
   final_stats: 0
-  final_stats: 0
+  final_stats: 10
   final_stats: 7
   final_stats: 0
   final_stats: 0
@@ -30,8 +30,8 @@ character_stats_results: {
   final_stats: 0
   final_stats: 7485.2
   final_stats: 120
-  final_stats: 5531
-  final_stats: 5672
+  final_stats: 5421
+  final_stats: 5747
   final_stats: 98
   final_stats: 27
   final_stats: 34
@@ -39,10 +39,10 @@ character_stats_results: {
   final_stats: 34
   final_stats: 67
   final_stats: 0
-  final_stats: 3
-  final_stats: 3
+  final_stats: 4
+  final_stats: 4
   final_stats: 9.3612
-  final_stats: 13.9432
+  final_stats: 14.0267
   final_stats: 5.8
   final_stats: 0
   final_stats: 0
