@@ -526,6 +526,16 @@ export class ActionId {
 					name += ' (External)';
 				}
 				break;
+			case 'Searing Totem':
+			case 'Magma Totem':
+			case 'Flametongue Totem':
+				// A totem's hits report under the totem's spell, tagged 1, so they share its row.
+				if (tag === 1) {
+					name += ' (Attack)';
+				} else if (tag === -1) {
+					name += ' (External)';
+				}
+				break;
 			case 'Dummy Spell':
 				if (tag === 100000) {
 					['Arcane', 'Fire', 'Frost', 'Holy', 'Shadow', 'Nature'].forEach((school, index) => {
@@ -859,4 +869,6 @@ export const resourceTypeToIcon: Record<ResourceType, string> = {
 };
 
 // Use this to connect a buff row to a cast row in the timeline view
-export const buffAuraToSpellIdMap: Record<number, ActionId> = {};
+export const buffAuraToSpellIdMap: Record<number, ActionId> = {
+	15036: ActionId.fromSpellId(16387), // The party's Flametongue Totem, on the row of the totem's strikes
+};

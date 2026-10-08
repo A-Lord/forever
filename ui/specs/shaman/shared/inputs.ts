@@ -13,9 +13,10 @@ export const ShamanImbueMH = <SpecType extends ShamanSpecs>() =>
 		fieldName: 'imbueMh',
 		values: [
 			{ value: ShamanImbue.NoImbue, tooltip: 'No Main Hand Enchant' },
-			{ actionId: ActionId.fromSpellId(8232), value: ShamanImbue.WindfuryWeapon },
-			{ actionId: ActionId.fromSpellId(8024), value: ShamanImbue.FlametongueWeapon },
-			{ actionId: ActionId.fromSpellId(8033), value: ShamanImbue.FrostbrandWeapon },
+			{ actionId: ActionId.fromSpellId(16362), value: ShamanImbue.WindfuryWeapon },
+			{ actionId: ActionId.fromSpellId(16342), value: ShamanImbue.FlametongueWeapon },
+			{ actionId: ActionId.fromSpellId(16356), value: ShamanImbue.FrostbrandWeapon },
+			{ actionId: ActionId.fromSpellId(16316), value: ShamanImbue.RockbiterWeapon },
 		],
 	});
 
@@ -24,8 +25,10 @@ export const ShamanImbueMHSwap = <SpecType extends ShamanSpecs>() =>
 		fieldName: 'imbueMhSwap',
 		values: [
 			{ value: ShamanImbue.NoImbue, tooltip: 'No Main Hand Swap Enchant' },
-			{ actionId: ActionId.fromSpellId(8232), value: ShamanImbue.WindfuryWeapon },
-			{ actionId: ActionId.fromSpellId(8024), value: ShamanImbue.FlametongueWeapon },
+			{ actionId: ActionId.fromSpellId(16362), value: ShamanImbue.WindfuryWeapon },
+			{ actionId: ActionId.fromSpellId(16342), value: ShamanImbue.FlametongueWeapon },
+			{ actionId: ActionId.fromSpellId(16356), value: ShamanImbue.FrostbrandWeapon },
+			{ actionId: ActionId.fromSpellId(16316), value: ShamanImbue.RockbiterWeapon },
 		],
 		showWhen: (player: Player<SpecType>) => player.itemSwapSettings.getEnableItemSwap(),
 		storeField: ['specOptions', 'itemSwap'] as const,

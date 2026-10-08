@@ -180,5 +180,5 @@ func (shaman *Shaman) applyLavaBurst() {
 	if !shaman.Talents.LavaBurst {
 		return
 	}
-	shaman.registerLavaBurstSpell()
+	shaman.registerLavaBurstSpells()
 }
