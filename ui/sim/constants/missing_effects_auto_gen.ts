@@ -652,12 +652,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		9380, // Jang'thraze the Protector
-		[
-			"Shields the wielder from physical damage, absorbing 84 damage. Lasts 20s.", // 11657 - https://www.wowhead.com/forever/spell=11657
-		]
-	],
-	[
 		9386, // Excavator's Brand
 		[
 			"Hurls a fiery ball that causes 51 Fire damage and an additional 12 damage over 6s.", // 13438 - https://www.wowhead.com/forever/spell=13438
@@ -1177,12 +1171,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		17704, // Edge of Winter
 		[
 			"Blasts a target for 30 Frost damage.", // 16407 - https://www.wowhead.com/forever/spell=16407
-		]
-	],
-	[
-		17733, // Fist of Stone
-		[
-			"Restores 32 mana. Restore 1 times as much if attacking an Earth Elementals, Golems, or Titan-forged enermy. ", // 21951 - https://www.wowhead.com/forever/spell=21951
 		]
 	],
 	[
@@ -1993,12 +1981,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		221315, // Traveler's Symbols
 		[
 			"Place a Traveler's Sign that lasts for 1 min. A message can be written on the sign, causing it to last for 1 hour and making it visible to other players.", // 1306267 - https://www.wowhead.com/forever/spell=1306267
-		]
-	],
-	[
-		231877, // Tyler's Balanced Bobble
-		[
-			"", // 469141 - https://www.wowhead.com/forever/spell=469141
 		]
 	],
 	[
