@@ -48,7 +48,7 @@ export default defineSpec<Spec.SpecElementalShaman>({
 	),
 	defaults: {
 		// Default equipped gear.
-		gear: Presets.PreraidGear.gear,
+		gear: Presets.TestingGear.gear,
 		// Default EP weights for sorting gear in the gear picker.
 		epWeights: new Stats(),
 		statCaps: (() => {
@@ -89,7 +89,7 @@ export default defineSpec<Spec.SpecElementalShaman>({
 		// Preset rotations that the user can quickly select.
 		rotations: [Presets.ROTATION_PRESET_DEFAULT],
 		// Preset gear configurations that the user can quickly select.
-		gear: [Presets.PreraidGear],
+		gear: [Presets.TestingGear],
 		// Preset builds that the user can quickly select.
 		builds: [Presets.TestingBuild],
 	},

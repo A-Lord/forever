@@ -1,8 +1,7 @@
 import * as OtherInputs from '@features/settings/model/other_inputs';
 import { StatCapType } from '@generated/proto/api';
 import { APLRotation } from '@generated/proto/apl';
-import { EquipmentSpec, ItemSlot, PseudoStat, Spec, Stat } from '@generated/proto/common';
-import { SavedTalents } from '@generated/proto/ui';
+import { ItemSlot, PseudoStat, Spec, Stat } from '@generated/proto/common';
 import * as Mechanics from '@sim/constants/mechanics';
 import { PlayerClasses } from '@sim/player/classes';
 import { Player } from '@sim/player/player';
@@ -11,7 +10,6 @@ import { StatCap, Stats, UnitStat } from '@sim/proto/stats';
 import { defineSpec } from '@sim/spec_config';
 
 import * as ShamanInputs from '../shared/inputs';
-import * as EnhancementInputs from './inputs';
 import * as Presets from './presets';
 
 export default defineSpec<Spec.SpecEnhancementShaman>({
@@ -37,7 +35,7 @@ export default defineSpec<Spec.SpecEnhancementShaman>({
 		Stat.StatSpellDamage,
 		Stat.StatNatureDamage,
 	],
-	epPseudoStats: [PseudoStat.PseudoStatMainHandDps, PseudoStat.PseudoStatOffHandDps],
+	epPseudoStats: [PseudoStat.PseudoStatMainHandDps],
 	// Reference stat against which to calculate EP.
 	epReferenceStat: Stat.StatAttackPower,
 	consumableStats: [Stat.StatMana, Stat.StatMP5],
@@ -63,8 +61,6 @@ export default defineSpec<Spec.SpecEnhancementShaman>({
 		[
 			PseudoStat.PseudoStatMeleeHitPercent,
 			PseudoStat.PseudoStatMeleeCritPercent,
-			PseudoStat.PseudoStatOffHandHitPercent,
-			PseudoStat.PseudoStatOffHandCritPercent,
 			PseudoStat.PseudoStatMeleeHastePercent,
 			PseudoStat.PseudoStatSpellHitPercent,
 			PseudoStat.PseudoStatSpellCritPercent,
@@ -76,9 +72,9 @@ export default defineSpec<Spec.SpecEnhancementShaman>({
 
 	defaults: {
 		// Default equipped gear.
-		gear: EquipmentSpec.create(),
+		gear: Presets.PreBiSGear.gear,
 		// Default EP weights for sorting gear in the gear picker.
-		epWeights: new Stats(),
+		epWeights: Presets.PreBiSEpWeights.epWeights,
 		statCaps: (() => {
 			const expCap = new Stats().withPseudoStat(PseudoStat.PseudoStatExpertisePercent, 6.5);
 			return expCap;
@@ -96,7 +92,7 @@ export default defineSpec<Spec.SpecEnhancementShaman>({
 		// Default consumes settings.
 		consumables: Presets.DefaultConsumables,
 		// Default talents.
-		talents: SavedTalents.create(),
+		talents: Presets.StandardTalents.data,
 		// Default spec-specific settings.
 		specOptions: Presets.DefaultOptions,
 		// Default raid/party buffs settings.
@@ -107,19 +103,13 @@ export default defineSpec<Spec.SpecEnhancementShaman>({
 	},
 
 	// IconInputs to include in the 'Player' section on the settings tab.
-	playerIconInputs: [ShamanInputs.ShamanImbueMH(), EnhancementInputs.ShamanImbueOH, ShamanInputs.ShamanImbueMHSwap(), EnhancementInputs.ShamanImbueOHSwap],
+	playerIconInputs: [ShamanInputs.ShamanImbueMH(), ShamanInputs.ShamanImbueMHSwap()],
 	// Buff and Debuff inputs to include/exclude, overriding the EP-based defaults.
 	includeBuffDebuffInputs: [Stat.StatMP5, Stat.StatFireDamage],
 	excludeBuffDebuffInputs: [],
 	// Inputs to include in the 'Other' section on the settings tab.
 	otherInputs: {
-		inputs: [
-			EnhancementInputs.SyncTypeInput,
-			ShamanInputs.ShamanShieldProcrate(),
-			OtherInputs.InputDelay,
-			OtherInputs.TankAssignment,
-			OtherInputs.InFrontOfTarget,
-		],
+		inputs: [ShamanInputs.ShamanShieldProcrate(), OtherInputs.InputDelay, OtherInputs.TankAssignment, OtherInputs.InFrontOfTarget],
 	},
 	itemSwapSlots: [ItemSlot.ItemSlotTrinket1, ItemSlot.ItemSlotTrinket2, ItemSlot.ItemSlotMainHand, ItemSlot.ItemSlotOffHand],
 	encounterPicker: {
@@ -128,13 +118,15 @@ export default defineSpec<Spec.SpecEnhancementShaman>({
 	},
 
 	presets: {
-		epWeights: [],
+		epWeights: [Presets.PreBiSEpWeights],
 		// Preset talents that the user can quickly select.
-		talents: [],
+		talents: [Presets.StandardTalents],
 		// Preset rotations that the user can quickly select.
 		rotations: [Presets.ROTATION_PRESET_DEFAULT],
 		// Preset gear configurations that the user can quickly select.
-		gear: [],
+		gear: [Presets.PreBiSGear],
+		// Preset builds that the user can quickly select.
+		builds: [Presets.TestingBuild],
 	},
 
 	autoRotation: (_: Player<Spec.SpecEnhancementShaman>): APLRotation => {

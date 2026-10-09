@@ -44,7 +44,7 @@ export const EncounterPickerView = ({
 		{allies}
 		{minBaseDamage}
 		{targetInputs}
-		<Button className="min-w-[calc(50%-0.5rem)] max-xxl:w-full" data-testid="advanced-button" onClick={onAdvancedClick}>
+		<Button className="w-full" data-testid="advanced-button" onClick={onAdvancedClick}>
 			{i18n.t('settings_tab.encounter.advanced')}
 		</Button>
 	</div>

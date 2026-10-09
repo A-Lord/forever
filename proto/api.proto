@@ -425,7 +425,8 @@ message RaidSimResultCombinationRequest {
 enum BulkSimStage {
 	BulkSimStageUnknown = 0;
 	BulkSimStageError = 1;
-	BulkSimStageReforge = 2;
+	reserved 2;
+	reserved "BulkSimStageReforge";
 	BulkSimStageLow = 3;
 	BulkSimStageMedium = 4;
 	BulkSimStageHigh = 5;
@@ -437,23 +438,21 @@ message BulkSimRequest {
 	string request_id = 1;
 	RaidSimRequest base_request = 2;
 	repeated BulkGearCandidate candidates = 3;
-	repeated BulkGearCandidate optimized_candidates = 4;
+	reserved 4;
+	reserved "optimized_candidates";
 	int32 top_results = 5;
 	reserved 6;
 	reserved "high_stage_iterations";
-	ReforgeOptimizeRequest reforge_request = 7;
+	reserved 7;
+	reserved "reforge_request";
 	BulkSettings bulk_settings = 8;
 }
 
 // RPC ReforgeOptimize
-enum ReforgeOptimizeMode {
-	ReforgeOptimizeModeSingle = 0;
-	ReforgeOptimizeModeBulk = 1;
-}
-
 message ReforgeOptimizeRequest {
 	string request_id = 1;
-	ReforgeOptimizeMode mode = 2;
+	reserved 2;
+	reserved "mode";
 	Raid raid = 3;
 	UnitStats pre_cap_ep_weights = 4;
 	UnitStats undershoot_caps = 5;
@@ -462,11 +461,14 @@ message ReforgeOptimizeRequest {
 	reserved 8;
 	reserved "gem_options";
 	bool debug = 9;
+	// The static enchants the optimizer may put on each slot. A slot not listed keeps its enchant.
+	repeated BulkEnchantSlotOptions enchant_options = 10;
 }
 
 message ReforgeOptimizeResult {
 	EquipmentSpec optimized_gear = 1;
-	PlayerStats optimized_player_stats = 2;
+	reserved 2;
+	reserved "optimized_player_stats";
 	double score = 3;
 	int32 passes_done = 4;
 	ErrorOutcome error = 5;
@@ -481,10 +483,10 @@ message ReforgeSettings {
 	UnitStats breakpoint_limits = 6;
 	reserved 7, 8, 9;
 	reserved "max_gem_phase", "max_gem_quality", "disable_unique_gems";
-	// The stats this spec is willing to optimize for. Specs list stats they weight at 0 (Stamina,
-	// spell penetration) so options carrying them stay selectable, which is why it cannot be
-	// derived from the pre-cap EPs.
+	// The stats the spec's EP covers, sent by the UI. Go does not read it.
 	repeated Stat ep_stats = 10;
+	// The UI builds enchant_options from the checked enchant presets instead of every usable enchant.
+	bool use_enchant_presets = 11;
 }
 
 message StatCapConfig {
@@ -728,7 +730,7 @@ message AsyncAPIResult {
 	string progress_id = 1;
 }
 
-// ProgressMetrics are used by all async APIs
+// Used by all async APIs
 message ProgressMetrics {
 	int32 completed_iterations = 1;
 	int32 total_iterations = 2;
@@ -739,7 +741,8 @@ message ProgressMetrics {
 	// Partial Results
 	double dps = 5;
 	double hps = 9;
-	repeated BulkGearCandidate optimized_candidates = 13;
+	reserved 13;
+	reserved "optimized_candidates";
 
 	// Final Results
 	RaidSimResult final_raid_result = 6; // only set when completed
@@ -777,7 +780,8 @@ message BulkGearCandidate {
 message BulkSimResult {
 	BulkGearResult baseline = 1;
 	repeated BulkGearResult top_results = 2;
-	repeated BulkGearCandidate optimized_candidates = 3;
+	reserved 3;
+	reserved "optimized_candidates";
 	repeated BulkSimStageMetrics stage_metrics = 4;
 	BulkSimTimings timings = 5;
 	ErrorOutcome error = 6;

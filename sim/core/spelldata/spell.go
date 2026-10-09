@@ -310,24 +310,10 @@ func (s *Spell) Triggered() []*Spell {
 	return resolve(ids)
 }
 
-// The outcome a periodic tick rolls: a tick that can crit where the game files mark Periodic Can
-// Crit, a plain tick otherwise, on the hit table the row's defense type names.
+// A tick of a damage over time. The hit is rolled once, when the dot is applied, so the tick rolls
+// none: a crit only where the row states Periodic Can Crit, on the crit of the dot spell's defense
+// type, and the partial resist its school takes.
 func (s *Spell) TickOutcome(dot *core.Dot) core.OutcomeApplier {
-	switch tickOutcomeKind(s.PeriodicCanCrit(), s.DefenseTypeCore() == core.DefenseTypeMagic) {
-	case tickOutcomeMagicCrit:
-		return dot.Spell.OutcomeTickMagicHitAndCrit
-	case tickOutcomePhysicalCrit:
-		return dot.Spell.OutcomeTickPhysicalCrit
-	case tickOutcomeMagicHit:
-		return dot.OutcomeTickMagicHit
-	default:
-		return dot.OutcomeTick
-	}
-}
-
-// A tick of a damage over time whose hit was rolled when it was applied: a crit only where the row
-// states Periodic Can Crit, on the crit of the dot spell's defense type.
-func (s *Spell) TickOutcomeHitRolled(dot *core.Dot) core.OutcomeApplier {
 	switch tickOutcomeKind(s.PeriodicCanCrit(), dot.Spell.DefenseType == core.DefenseTypeMagic) {
 	case tickOutcomeMagicCrit:
 		return dot.Spell.OutcomeTickMagicCrit
@@ -338,11 +324,10 @@ func (s *Spell) TickOutcomeHitRolled(dot *core.Dot) core.OutcomeApplier {
 	}
 }
 
-// Which of the four ticks the two flags pick. Split out so the choice can be asserted without a Dot.
+// Which of the three ticks the two flags pick. Split out so the choice can be asserted without a Dot.
 const (
 	tickOutcomeMagicCrit = iota
 	tickOutcomePhysicalCrit
-	tickOutcomeMagicHit
 	tickOutcomePlain
 )
 
@@ -352,8 +337,6 @@ func tickOutcomeKind(canCrit bool, magic bool) int {
 		return tickOutcomeMagicCrit
 	case canCrit:
 		return tickOutcomePhysicalCrit
-	case magic:
-		return tickOutcomeMagicHit
 	default:
 		return tickOutcomePlain
 	}

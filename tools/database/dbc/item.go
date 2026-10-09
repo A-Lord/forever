@@ -96,6 +96,13 @@ func (item *Item) ToScaledUIItem(itemLevel int) *proto.UIItem {
 		RandPropPoints:  item.GetRandPropPoints(item.ItemLevel),
 		Ilvl:            int32(item.ItemLevel),
 	}
+	if item.ItemClass == ITEM_CLASS_WEAPON {
+		// Equipped damage is rounded; a form that swings at its own speed needs the table cell itself.
+		weaponDps, present := dbcInstance.WeaponDPS(item, item.ItemLevel)
+		if present {
+			scalingProperties[0].UnroundedDps = &weaponDps
+		}
+	}
 
 	uiItem.ScalingOptions = scalingProperties
 	return uiItem
@@ -237,15 +244,8 @@ func (item *Item) GetScaledStat(index int, itemLevel int) float64 {
 }
 
 func (item *Item) WeaponDmgMin(itemLevel int) float64 {
-	if itemLevel == 0 {
-		itemLevel = item.ItemLevel
-	}
-	total := item.WeaponDps(itemLevel)*(float64(item.ItemDelay)/1000.0)*(1-item.DmgVariance/2) +
-		(item.QualityModifier * (float64(item.ItemDelay) / 1000.0))
-	if total < 0 {
-		total = 1
-	}
-	return math.Floor(total)
+	low, _ := item.WeaponDamage(item.WeaponDps(itemLevel))
+	return low
 }
 func (item *Item) GetBlockValue(itemLevel int) float64 {
 	weaponType, _, _ := item.GetWeaponTypes()
@@ -258,15 +258,8 @@ func (item *Item) GetBlockValue(itemLevel int) float64 {
 }
 
 func (item *Item) WeaponDmgMax(itemLevel int) float64 {
-	if itemLevel == 0 {
-		itemLevel = item.ItemLevel
-	}
-	total := item.WeaponDps(itemLevel)*(float64(item.ItemDelay)/1000.0)*(1+item.DmgVariance/2) +
-		(item.QualityModifier * (float64(item.ItemDelay) / 1000.0))
-	if total < 0 {
-		total = 1
-	}
-	return math.Floor(total + 0.5)
+	_, high := item.WeaponDamage(item.WeaponDps(itemLevel))
+	return high
 }
 
 func (item *Item) ApproximateScaleCoeff(currIlvl int, newIlvl int) float64 {

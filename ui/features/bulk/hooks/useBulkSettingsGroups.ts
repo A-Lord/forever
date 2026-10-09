@@ -6,7 +6,6 @@ const STORAGE_SUFFIX = '__bulkSettingsGroups';
 export const BULK_SETTINGS_GROUP = {
 	enchants: 'enchants',
 	freezes: 'freezes',
-	reforge: 'reforge',
 } as const;
 
 export const useBulkSettingsGroups = () => useLocalStorageState<string[]>(useSimHost().getStorageKey(STORAGE_SUFFIX), parseStringArray, () => []);
