@@ -1,4 +1,4 @@
-import { InputType, PresetTarget, Target as TargetProto, TargetInput } from '@generated/proto/common';
+import { CreatureFamily, InputType, MobType, PresetTarget, Target as TargetProto, TargetInput } from '@generated/proto/common';
 import type { Encounter } from '@sim/raid/encounter';
 import { act, createEvent, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -211,6 +211,28 @@ describe('TargetsPicker', () => {
 
 		act(() => encounter.modifyTarget(0, target => (target.dualWield = true)));
 		expect(penalty().hasAttribute('data-disabled')).toBe(false);
+	});
+
+	it('offers only the creature families the mob type holds, and drops one a new mob type does not', async () => {
+		const encounter = new FakeEncounter([TargetProto.create({ mobType: MobType.MobTypeMechanical })]);
+		mount(encounter);
+		const family = () => document.getElementById('target-0-picker-creature-family');
+		expect(family()).toBeNull();
+
+		act(() => encounter.modifyTarget(0, target => (target.mobType = MobType.MobTypeHumanoid)));
+		await userEvent.click(family()!);
+		expect(screen.getAllByRole('option').map(option => option.textContent)).toEqual([
+			`family-${CreatureFamily.CreatureFamilyUnknown}`,
+			`family-${CreatureFamily.CreatureFamilyNaga}`,
+			`family-${CreatureFamily.CreatureFamilyAquatic}`,
+		]);
+		await userEvent.click(screen.getByRole('option', { name: `family-${CreatureFamily.CreatureFamilyNaga}` }));
+		expect(encounter.targets[0].creatureFamily).toBe(CreatureFamily.CreatureFamilyNaga);
+
+		await userEvent.click(document.getElementById('target-0-picker-mob-type')!);
+		await userEvent.click(screen.getByRole('option', { name: `mob-${MobType.MobTypeDemon}` }));
+		expect(encounter.targets[0].mobType).toBe(MobType.MobTypeDemon);
+		expect(encounter.targets[0].creatureFamily).toBe(CreatureFamily.CreatureFamilyUnknown);
 	});
 
 	// Encounters register a preset per raid size and difficulty, all sharing one npc id — which is

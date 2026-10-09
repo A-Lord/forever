@@ -11,7 +11,7 @@ import {
 } from '@i18n/localization';
 import type { Encounter } from '@sim/raid/encounter';
 import { subscribeEncounterField } from '@sim/state/subscriptions';
-import { distinct, getEnumValues } from '@sim/utils/collections';
+import { distinct } from '@sim/utils/collections';
 import { randomUUID } from '@sim/utils/misc';
 
 import { trackEvent, type TrackEventProps } from '../../../../../tracking/utils';
@@ -40,7 +40,16 @@ const mobTypeEnumValues = [
 	MobType.MobTypeUndead,
 ].map(value => ({ name: translateMobType(value), value }));
 
-const creatureFamilyValues = (getEnumValues(CreatureFamily) as Array<CreatureFamily>).map(value => ({ name: translateCreatureFamily(value), value }));
+// The families each mob type holds; Aquatic spans beasts, elementals and humanoids.
+const creatureFamiliesByMobType: Partial<Record<MobType, ReadonlyArray<CreatureFamily>>> = {
+	[MobType.MobTypeBeast]: [CreatureFamily.CreatureFamilyAquatic],
+	[MobType.MobTypeDemon]: [CreatureFamily.CreatureFamilySatyr],
+	[MobType.MobTypeElemental]: [CreatureFamily.CreatureFamilyEarthElemental, CreatureFamily.CreatureFamilyFireElemental, CreatureFamily.CreatureFamilyAquatic],
+	[MobType.MobTypeGiant]: [CreatureFamily.CreatureFamilyMountainGiant],
+	[MobType.MobTypeHumanoid]: [CreatureFamily.CreatureFamilyNaga, CreatureFamily.CreatureFamilyAquatic],
+};
+
+export const creatureFamiliesOf = (mobType: MobType): ReadonlyArray<CreatureFamily> => creatureFamiliesByMobType[mobType] ?? [];
 
 const spellSchoolValues = [
 	SpellSchool.SpellSchoolPhysical,
@@ -134,15 +143,18 @@ export const mobTypeConfig = ({ encounter, targetIndex, getTarget }: TargetField
 		trackEvent({ action: 'settings', category: 'targets', label: 'mob_type', value: newValue });
 		encounter.modifyTarget(targetIndex, target => {
 			target.mobType = newValue;
+			if (!creatureFamiliesOf(newValue).includes(target.creatureFamily)) {
+				target.creatureFamily = CreatureFamily.CreatureFamilyUnknown;
+			}
 		});
 	},
 });
 
-export const creatureFamilyConfig = ({ encounter, targetIndex, getTarget }: TargetFieldContext): ChoiceFieldConfig<null> => ({
+export const creatureFamilyConfig = ({ encounter, targetIndex, getTarget }: TargetFieldContext, mobType: MobType): ChoiceFieldConfig<null> => ({
 	id: targetId(targetIndex, 'creature-family'),
 	label: i18n.t('settings_tab.encounter.creature_family.label'),
 	labelTooltip: i18n.t('settings_tab.encounter.creature_family.tooltip'),
-	values: creatureFamilyValues,
+	values: [CreatureFamily.CreatureFamilyUnknown, ...creatureFamiliesOf(mobType)].map(value => ({ name: translateCreatureFamily(value), value })),
 	storeSubscribe: onTargets(encounter),
 	getValue: () => getTarget().creatureFamily,
 	setValue: (_: null, newValue: number) => {
