@@ -36,7 +36,7 @@ func openBuffTestDB(t *testing.T) *DBHelper {
 	return helper
 }
 
-func TestManifestAnchorsMatchTheClient(t *testing.T) {
+func TestManifestAnchorsMatchTheGameFiles(t *testing.T) {
 	db := openBuffTestDB(t).db
 
 	runes, err := loadRuneGrantedSpells(db)

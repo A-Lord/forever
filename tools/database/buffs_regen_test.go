@@ -8,8 +8,11 @@ package database
 import (
 	"fmt"
 	"maps"
+	"slices"
 	"testing"
 
+	"github.com/wowsims/forever/sim/core/dbcenums"
+	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/tools/database/buffmanifest"
 )
 
@@ -52,13 +55,16 @@ func TestResolvedBuffInvariants(t *testing.T) {
 		if row.Proto == buffmanifest.ProtoTristate && row.TalentRanks == 0 && row.ImpAction == nil {
 			t.Errorf("%s: declared ProtoTristate but neither a talent nor an ImpAction prices it", row.Field)
 		}
-		if want, pinned := pinnedTalentRanks[row.Field]; pinned && row.TalentRanks != want {
-			t.Errorf("%s: the talent takes %d points, want %d", row.Field, row.TalentRanks, want)
+		if slices.Contains(talentPricedRows, row.Field) {
+			if want := talentNodeRanks(t, row.Talent); want == 0 || row.TalentRanks != want {
+				t.Errorf("%s: the talent takes %d points, want its node's %d", row.Field, row.TalentRanks, want)
+			}
 		}
 		if want, pinned := pinnedCategories[row.Field]; pinned && row.Category != want {
 			t.Errorf("%s: the aura competes under %q, want %q", row.Field, row.Category, want)
 		}
-		if want, pinned := pinnedAmounts[row.Field]; pinned {
+		if amounts, pinned := pinnedAmounts[row.Field]; pinned {
+			want := amounts(row.Spell)
 			got := map[string]float64{}
 			for _, applied := range row.Applied {
 				got[applied.Kind] = applied.Value
@@ -75,7 +81,7 @@ func TestResolvedBuffInvariants(t *testing.T) {
 // game files state nothing for is exempt, because its scope is then the sim's grouping rather than
 // a game fact: the buff Windfury's proc lands on its wielder, a debuff the game files reach by the
 // area around its caster.
-func TestScopeMatchesTheClientTargeting(t *testing.T) {
+func TestScopeMatchesTheGameFilesTargeting(t *testing.T) {
 	for _, row := range resolveCommittedBuffs(t) {
 		if row.SpellID == 0 {
 			continue
@@ -114,29 +120,67 @@ func scopeComplaint(row ResolvedBuff) string {
 }
 
 // What the parse attaches for a row, by the kind it attaches as. The two auras
-// the game files state as a bare A_MOD_CRIT_PCT carry no school: what they are
-// worth is the game files' 3, and it lands on every kind of crit.
+// the game files state as a bare A_MOD_CRIT_PCT carry no school, and the
+// amount lands on every kind of crit.
 //
-// Expose Armor states nothing on the effect itself: its -450 armor is per combo
+// Expose Armor states nothing on the effect itself: its armor is per combo
 // point, and the raid config's debuff is the five-point finisher.
 //
 // The paladin auras state a healing-taken row of 0 beside the aura, which the
 // parse leaves out.
-var pinnedAmounts = map[string]map[string]float64{
-	"leader_of_the_pack": {"stat PhysicalCritPercent": 3, "stat SpellCritPercent": 3},
-	"moonkin_aura":       {"stat PhysicalCritPercent": 3, "stat SpellCritPercent": 3},
-	"expose_armor":       {"stat Armor": -2250},
-	"devotion_aura":      {"stat Armor": 735},
-	"concentration_aura": {"pushback": -0.35},
-	"retribution_aura":   {},
+var pinnedAmounts = map[string]func(spell *spelldata.Spell) map[string]float64{
+	"leader_of_the_pack": everyCrit,
+	"moonkin_aura":       everyCrit,
+	"expose_armor":       fiveComboPointArmor,
+	"devotion_aura":      flatArmor,
+	"concentration_aura": lessPushback,
+	"retribution_aura":   attachesNothing,
 }
 
-// The talents that price an improved state: Restorative Totems on Mana Spring, five points,
-// Guardian Totems on Stoneskin Totem, two points, and Vindication's talent on its debuff, three.
-var pinnedTalentRanks = map[string]int32{
-	"mana_spring_totem": 5,
-	"stoneskin_totem":   2,
-	"vindication":       3,
+// The first effect applying one of the auras, on the caster or as a party or raid area aura.
+func auraEffect(spell *spelldata.Spell, auras ...dbcenums.EffectAuraType) *spelldata.Effect {
+	for i := range spell.Effects {
+		if e := &spell.Effects[i]; slices.Contains(auras, e.Aura) && spelldata.AppliesAura(e.Type) {
+			return e
+		}
+	}
+	return spelldata.NilEffect
+}
+
+func everyCrit(spell *spelldata.Spell) map[string]float64 {
+	crit := auraEffect(spell, dbcenums.A_MOD_CRIT_PCT).Mean()
+	return map[string]float64{"stat PhysicalCritPercent": crit, "stat SpellCritPercent": crit}
+}
+
+func fiveComboPointArmor(spell *spelldata.Spell) map[string]float64 {
+	return map[string]float64{"stat Armor": float64(auraEffect(spell, dbcenums.A_MOD_RESISTANCE).PointsPerResource) * 5}
+}
+
+func flatArmor(spell *spelldata.Spell) map[string]float64 {
+	return map[string]float64{"stat Armor": auraEffect(spell, dbcenums.A_MOD_RESISTANCE, dbcenums.A_MOD_ARMOR_NO_MODS).Mean()}
+}
+
+func lessPushback(spell *spelldata.Spell) map[string]float64 {
+	return map[string]float64{"pushback": -auraEffect(spell, dbcenums.A_REDUCE_PUSHBACK).Percent()}
+}
+
+func attachesNothing(*spelldata.Spell) map[string]float64 {
+	return map[string]float64{}
+}
+
+// The rows a talent prices the improved state of: Restorative Totems on Mana Spring, Guardian
+// Totems on Stoneskin Totem, and Vindication's talent on its debuff.
+var talentPricedRows = []string{"mana_spring_totem", "stoneskin_totem", "vindication"}
+
+// The ranks of the class tree node the talent spell sits on, 0 when it sits on none.
+func talentNodeRanks(t *testing.T, talent int32) int32 {
+	t.Helper()
+	for _, node := range committedInputs(t).TraitNodes {
+		if node.SpellID == talent {
+			return node.MaxRanks
+		}
+	}
+	return 0
 }
 
 // What a pinned row competes under, as (stats, own aura). A resistance source

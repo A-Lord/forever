@@ -9,6 +9,7 @@ import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/simsignals"
+	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
@@ -57,19 +58,31 @@ func stonedWarrior(t *testing.T, mhImbueId, ohImbueId int32, swapped []*proto.It
 	return sim, sim.Raid.Parties[0].Players[0].GetCharacter()
 }
 
-// Elemental Sharpening Stone 18262's 22755 states A_MOD_WEAPON_CRIT_PERCENT 2 on the melee weapons
-// its mask 42483 names, and each weapon carries its own copy: the crit reaches the attacks made with
-// the hand the stone is on, and no other attack.
+// The A_MOD_WEAPON_CRIT_PERCENT amount of 22755, the spell Elemental Sharpening Stone 18262 puts on
+// the weapon.
+func stoneCrit(t *testing.T) float64 {
+	t.Helper()
+	crit := spelldata.MustFind(22755).EffectN(1).Average()
+	if crit == 0 {
+		t.Fatal("22755 states no crit for the stone to add")
+	}
+	return crit
+}
+
+// Elemental Sharpening Stone 18262's 22755 states A_MOD_WEAPON_CRIT_PERCENT on the melee weapon
+// subclasses its mask names, and each weapon carries its own copy: the crit reaches the attacks made
+// with the hand the stone is on, and no other attack.
 func TestElementalSharpeningStoneCritReachesItsOwnHand(t *testing.T) {
 	_, bare := stonedWarrior(t, 0, 0, nil)
+	crit := stoneCrit(t)
 	for _, tc := range []struct {
 		name                 string
 		mhImbueId, ohImbueId int32
-		wantMH, wantOH       float64
+		mhStones, ohStones   float64
 	}{
-		{"main hand", elementalSharpener, 0, 2, 0},
-		{"off hand", 0, elementalSharpener, 0, 2},
-		{"both hands", elementalSharpener, elementalSharpener, 2, 2},
+		{"main hand", elementalSharpener, 0, 1, 0},
+		{"off hand", 0, elementalSharpener, 0, 1},
+		{"both hands", elementalSharpener, elementalSharpener, 1, 1},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			_, stoned := stonedWarrior(t, tc.mhImbueId, tc.ohImbueId, nil)
@@ -77,10 +90,11 @@ func TestElementalSharpeningStoneCritReachesItsOwnHand(t *testing.T) {
 			if delta := stoned.GetStat(stats.PhysicalCritPercent) - bare.GetStat(stats.PhysicalCritPercent); delta != 0 {
 				t.Errorf("the stone adds %v%% crit to every attack, want none", delta)
 			}
+			wantMH, wantOH := crit*tc.mhStones, crit*tc.ohStones
 			mh := stoned.AutoAttacks.MHAuto().BonusCritPercent - bare.AutoAttacks.MHAuto().BonusCritPercent
 			oh := stoned.AutoAttacks.OHAuto().BonusCritPercent - bare.AutoAttacks.OHAuto().BonusCritPercent
-			if mh != tc.wantMH || oh != tc.wantOH {
-				t.Errorf("the stone adds %v%% main-hand and %v%% off-hand crit, want %v and %v", mh, oh, tc.wantMH, tc.wantOH)
+			if mh != wantMH || oh != wantOH {
+				t.Errorf("the stone adds %v%% main-hand and %v%% off-hand crit, want %v and %v", mh, oh, wantMH, wantOH)
 			}
 		})
 	}
@@ -98,8 +112,8 @@ func TestElementalSharpeningStoneSkipsAMagicDefenseSpell(t *testing.T) {
 	if magicSpell.BonusCritPercent != 0 {
 		t.Errorf("a magic-defense spell off the stoned hand gains %v%% crit, want none", magicSpell.BonusCritPercent)
 	}
-	if mh := character.AutoAttacks.MHAuto().BonusCritPercent; mh != 2 {
-		t.Errorf("the main-hand auto gains %v%% crit, want 2", mh)
+	if mh, want := character.AutoAttacks.MHAuto().BonusCritPercent, stoneCrit(t); mh != want {
+		t.Errorf("the main-hand auto gains %v%% crit, want %v", mh, want)
 	}
 }
 
@@ -114,8 +128,8 @@ func TestElementalSharpeningStoneTurnsOffWhenTheStonedWeaponSwapsAway(t *testing
 		t.Run(tc.name, func(t *testing.T) {
 			sim, character := stonedWarrior(t, elementalSharpener, 0, tc.swapped)
 			mhAuto := character.AutoAttacks.MHAuto()
-			if mhAuto.BonusCritPercent != 2 {
-				t.Fatalf("the main-hand auto gains %v%% crit before the swap, want 2", mhAuto.BonusCritPercent)
+			if want := stoneCrit(t); mhAuto.BonusCritPercent != want {
+				t.Fatalf("the main-hand auto gains %v%% crit before the swap, want %v", mhAuto.BonusCritPercent, want)
 			}
 
 			character.ItemSwap.SwapItems(sim, proto.APLActionItemSwap_Swap1, false)
@@ -127,26 +141,33 @@ func TestElementalSharpeningStoneTurnsOffWhenTheStonedWeaponSwapsAway(t *testing
 	}
 }
 
-// Scroll of Imbue Baleflame 277487 puts enchant 8706 on a staff, which states 2 of the fire spell
-// penetration stat 119, and Scroll of Imbue Balefrost 277496 puts 8714 on it, which states 3 of the
-// frost one, 121. Each pierces its own school's resistance and neither adds SpellPiercing, which
-// would reach every school.
+// Scroll of Imbue Baleflame 277487 puts enchant 8706 on a staff, which states the fire spell
+// penetration stat 119, and Scroll of Imbue Balefrost 277496 puts 8714 on it, which states the frost
+// one, 121. Each pierces its own school's resistance and neither adds SpellPiercing, which would
+// reach every school.
 func TestBaleImbuesPierceOneSchool(t *testing.T) {
 	const staff = 873
+	pierces := func(amount float64, want bool) bool {
+		if want {
+			return amount > 0
+		}
+		return amount == 0
+	}
 	for _, c := range []struct {
 		imbue       int32
-		fire, frost float64
+		fire, frost bool
 	}{
-		{0, 0, 0},
-		{277487, 2, 0},
-		{277496, 0, 3},
+		{0, false, false},
+		{277487, true, false},
+		{277496, false, true},
 	} {
 		_, character := warriorWithConsumes(t, &proto.ConsumesSpec{MhImbueId: c.imbue}, staff, 0, proto.MobType_MobTypeUnknown)
 
 		piercing := character.PseudoStats.SchoolSpellPiercing
-		if piercing[stats.SchoolIndexFire] != c.fire || piercing[stats.SchoolIndexFrost] != c.frost {
-			t.Errorf("imbue %d: fire and frost piercing %v and %v, want %v and %v", c.imbue,
-				piercing[stats.SchoolIndexFire], piercing[stats.SchoolIndexFrost], c.fire, c.frost)
+		fire, frost := piercing[stats.SchoolIndexFire], piercing[stats.SchoolIndexFrost]
+		if !pierces(fire, c.fire) || !pierces(frost, c.frost) {
+			t.Errorf("imbue %d: fire and frost piercing %v and %v, want fire %v and frost %v", c.imbue,
+				fire, frost, c.fire, c.frost)
 		}
 		if got := character.GetStat(stats.SpellPiercing); got != 0 {
 			t.Errorf("imbue %d: SpellPiercing %v, want 0", c.imbue, got)
@@ -159,17 +180,21 @@ func TestBaleImbuesPierceOneSchool(t *testing.T) {
 // which restores mana, only on a wearer with a mana bar, which a warrior lacks.
 func TestProcImbuesRegisterTheirListeners(t *testing.T) {
 	for _, c := range []struct {
-		imbue, weapon, enchant int32
-		name                   string
-		listens                bool
+		imbue, weapon int32
+		name          string
+		listens       bool
 	}{
-		{277489, notchedShortsword, 8707, "Scroll of Imbue Spark", true},
-		{277498, smallHandBlade, 8715, "Scroll of Imbue Manablade", false},
+		{277489, notchedShortsword, "Scroll of Imbue Spark", true},
+		{277498, smallHandBlade, "Scroll of Imbue Manablade", false},
 	} {
 		_, character := warriorWithConsumes(t, &proto.ConsumesSpec{MhWeaponImbueId: c.imbue}, c.weapon, 0, proto.MobType_MobTypeUnknown)
 
-		if got := character.Equipment[proto.ItemSlot_ItemSlotMainHand].WeaponImbue; got != c.enchant {
-			t.Errorf("%s puts enchant %d on the main hand, want %d", c.name, got, c.enchant)
+		enchant := core.GetConsumableByID(c.imbue).TemporaryEnchant
+		if enchant == nil {
+			t.Fatalf("%s states no temporary enchant", c.name)
+		}
+		if got := character.Equipment[proto.ItemSlot_ItemSlotMainHand].WeaponImbue; got != enchant.EffectID {
+			t.Errorf("%s puts enchant %d on the main hand, want %d", c.name, got, enchant.EffectID)
 		}
 		if got := character.GetAura(c.name) != nil; got != c.listens {
 			t.Errorf("%s registers a listener: %v, want %v", c.name, got, c.listens)

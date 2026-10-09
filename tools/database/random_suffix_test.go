@@ -1,94 +1,69 @@
 package database
 
 import (
-	"maps"
-	"math"
 	"testing"
 
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/tools/database/dbc"
 )
 
-// A few of each item's random suffixes, by name, with the stats they add to the item: the bonus list's
-// allocation times the item's random property points over 10000, rounded to the nearest point.
-func TestRandomSuffixOptions(t *testing.T) {
-	withDBCInputs(t)
-	instance := dbc.GetDBC()
-
+// A bonus list's allocations, per 10000 of the item's random property points, land on the stats their
+// item mod names: spell power on spell damage and healing alike, healing and spell damage done each on
+// its own, a mod named twice adds up, and health regeneration, which the sim has no stat for, is left
+// out.
+func TestRandomSuffixAllocations(t *testing.T) {
 	type stats = map[proto.Stat]float64
-	spellPower := func(value float64) stats {
-		return stats{proto.Stat_StatSpellDamage: value, proto.Stat_StatHealingPower: value}
+	row := func(itemMod, allocation int) dbc.RandomSuffixStat {
+		return dbc.RandomSuffixStat{ItemMod: itemMod, Allocation: allocation}
 	}
-	with := func(a, b stats) stats {
-		out := maps.Clone(a)
-		maps.Copy(out, b)
-		return out
-	}
-
 	for _, tc := range []struct {
-		name    string
-		id      int
-		options map[string]stats
+		name  string
+		rows  []dbc.RandomSuffixStat
+		wants stats
 	}{
-		{"Prismatic Band, a ring of 16 random property points", 12017, map[string]stats{
-			"of the Eagle": {proto.Stat_StatStamina: 11, proto.Stat_StatIntellect: 11},
-			"of Power":     {proto.Stat_StatAttackPower: 32},
-			// 4106 Intellect allocation is 6.57.
-			"of the Physician": {proto.Stat_StatIntellect: 7, proto.Stat_StatStamina: 12, proto.Stat_StatHealingPower: 11, proto.Stat_StatSpellDamage: 4},
-			"of the Sorcerer":  with(stats{proto.Stat_StatIntellect: 12, proto.Stat_StatStamina: 7}, spellPower(6)),
-		}},
-		{"Solstice Staff, a two-hand weapon of 26", 15278, map[string]stats{
-			"of the Tiger": {proto.Stat_StatAgility: 17, proto.Stat_StatStrength: 17},
-			"of Magic":     with(stats{proto.Stat_StatIntellect: 26}, spellPower(52)),
-			"of Healing":   {proto.Stat_StatIntellect: 26, proto.Stat_StatHealingPower: 98, proto.Stat_StatSpellDamage: 33},
-		}},
-		{"Dark Iron Boots, epic feet of 38", 20039, map[string]stats{
-			"of the Eagle":  {proto.Stat_StatStamina: 14, proto.Stat_StatIntellect: 14},
-			"of Defense":    {proto.Stat_StatDefenseRating: 14},
-			"of the Knight": with(stats{proto.Stat_StatStrength: 7, proto.Stat_StatStamina: 13}, spellPower(7)),
-		}},
+		{"of the Sorcerer: Intellect, Stamina and spell power",
+			[]dbc.RandomSuffixStat{row(dbc.ITEM_MOD_INTELLECT, 4000), row(dbc.ITEM_MOD_STAMINA, 2600), row(dbc.ITEM_MOD_SPELL_POWER, 2300)},
+			stats{proto.Stat_StatIntellect: 4000, proto.Stat_StatStamina: 2600, proto.Stat_StatSpellDamage: 2300, proto.Stat_StatHealingPower: 2300}},
+		{"of Healing: healing and spell damage done apart",
+			[]dbc.RandomSuffixStat{row(dbc.ITEM_MOD_SPELL_HEALING_DONE, 3760), row(dbc.ITEM_MOD_SPELL_DAMAGE_DONE, 1253)},
+			stats{proto.Stat_StatHealingPower: 3760, proto.Stat_StatSpellDamage: 1253}},
+		{"a mod named twice",
+			[]dbc.RandomSuffixStat{row(dbc.ITEM_MOD_STAMINA, 500), row(dbc.ITEM_MOD_STAMINA, 700)},
+			stats{proto.Stat_StatStamina: 1200}},
+		{"of Regeneration: health regeneration alone",
+			[]dbc.RandomSuffixStat{row(dbc.ITEM_MOD_HEALTH_REGEN, 1000)},
+			stats{}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			item, ok := instance.Items[tc.id]
-			if !ok {
-				t.Fatalf("item %d is not in the DBC inputs", tc.id)
-			}
-			points := float64(item.GetRandPropPoints(item.ItemLevel))
-
-			got := map[string][]stats{}
-			for _, id := range item.RandomSuffixOptions {
-				suffix, ok := instance.RandomSuffix[int(id)]
-				if !ok {
-					t.Fatalf("option %d is not a random suffix", id)
-				}
-				added := stats{}
-				for stat, allocation := range suffix.ToProto().Stats {
-					if allocation != 0 {
-						added[proto.Stat(stat)] = math.Round(allocation * points / 10000)
-					}
-				}
-				got[suffix.Name] = append(got[suffix.Name], added)
-			}
-
-			for name, want := range tc.options {
-				found := false
-				for _, added := range got[name] {
-					found = found || maps.Equal(added, want)
-				}
-				if !found {
-					t.Errorf("%s: got %v, want %v", name, got[name], want)
+			suffix := dbc.RandomSuffix{ID: 990001, Name: tc.name, Stats: tc.rows}.ToProto()
+			for stat, got := range suffix.Stats {
+				if want := tc.wants[proto.Stat(stat)]; got != want {
+					t.Errorf("%v: allocation %v, want %v", proto.Stat(stat), got, want)
 				}
 			}
 		})
 	}
+}
 
-	t.Run("of Eluding adds 1% dodge, whatever the item's points", func(t *testing.T) {
-		suffix := instance.RandomSuffix[12739].ToProto()
-		if suffix.Name != "of Eluding" {
-			t.Fatalf("bonus list 12739 is %q, want of Eluding", suffix.Name)
+// "of Eluding" carries 13669 as an equip spell, whose dodge percent the suffix adds whatever the item's
+// points.
+func TestRandomSuffixEquipSpellDodge(t *testing.T) {
+	withDBCInputs(t)
+	dbc.GetDBC()
+
+	suffix := dbc.RandomSuffix{ID: 990002, Name: "of Eluding", EquipSpells: []int{13669}}.ToProto()
+	want := equipAuraPoints(t, 13669, dbcenums.A_MOD_DODGE_PERCENT)
+	got := 0.0
+	if int(proto.PseudoStat_PseudoStatDodgePercent) < len(suffix.PseudoStats) {
+		got = suffix.PseudoStats[proto.PseudoStat_PseudoStatDodgePercent]
+	}
+	if got != want || want == 0 {
+		t.Errorf("dodge: got %v, want 13669's %v", got, want)
+	}
+	for stat, value := range suffix.Stats {
+		if value != 0 {
+			t.Errorf("%v: %v, want no flat stats", proto.Stat(stat), value)
 		}
-		if got := suffix.PseudoStats[proto.PseudoStat_PseudoStatDodgePercent]; got != 1 {
-			t.Errorf("dodge: got %v, want 1", got)
-		}
-	})
+	}
 }
