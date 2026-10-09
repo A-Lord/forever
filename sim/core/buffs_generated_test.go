@@ -1081,13 +1081,13 @@ func TestGeneratedRetributionAuraHoldsThePaladinSlot(t *testing.T) {
 	if external == nil {
 		t.Fatalf("no aura is labelled %q; the unit has %v", "Retribution Aura (External)", auraLabels(char))
 	}
-	if buffs.RetributionAuraValue(0) != 30 {
-		t.Errorf("the aura is worth %v holy damage, want the game files' 30", buffs.RetributionAuraValue(0))
+	if buffs.RetributionAuraValue(0) != 20 {
+		t.Errorf("the aura is worth %v holy damage, want the game files' 20", buffs.RetributionAuraValue(0))
 	}
 
 	category := char.ExclusiveEffectManager.GetExclusiveEffectCategory(buffs.RetributionAuraCategory)
-	if !category.SingleAura || len(category.Effects()) != 1 || category.Effects()[0].Priority != 30 {
-		t.Errorf("the category is single-aura %v with %d effects, first bid %v; want one bidding 30",
+	if !category.SingleAura || len(category.Effects()) != 1 || category.Effects()[0].Priority != 20 {
+		t.Errorf("the category is single-aura %v with %d effects, first bid %v; want one bidding 20",
 			category.SingleAura, len(category.Effects()), category.Effects()[0].Priority)
 	}
 	if shared := char.ExclusiveEffectManager.GetExclusiveEffectCategory(buffs.PaladinAuraCategory); len(shared.Effects()) != 0 {

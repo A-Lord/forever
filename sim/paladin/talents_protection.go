@@ -111,7 +111,9 @@ func (paladin *Paladin) applyImprovedSealOfFury(shield *core.DamageAbsorptionAur
 	mana := rank.EffectN(1).Average()
 	perLevel := rank.EffectN(2).Percent()
 	maxLevels := rank.EffectN(3).Average()
-	manaMetrics := paladin.NewManaMetrics(core.ActionID{SpellID: rank.ID})
+	restore := spellData.ImprovedSealOfFuryTriggered.Highest()
+	manaMetrics := paladin.NewManaMetrics(core.ActionID{SpellID: restore.ID})
+	manaMetrics.NoThreat = restore.GeneratesNoThreat()
 
 	shield.AttachOnDamageAbsorbed(func(sim *core.Simulation, aura *core.DamageAbsorptionAura, _ *core.SpellResult, _ float64) {
 		if aura.ShieldStrength > 0 {
@@ -154,6 +156,7 @@ func (paladin *Paladin) applyShieldSpecialization() {
 	rank := spellData.ShieldSpecializationTriggered.Highest()
 	manaShare := rank.EffectN(1).Percent()
 	manaMetrics := paladin.NewManaMetrics(core.ActionID{SpellID: rank.ID})
+	manaMetrics.NoThreat = rank.GeneratesNoThreat()
 
 	trigger := spelldata.ProcTrigger(&paladin.Character, spellData.ShieldSpecialization.Rank(paladin.Talents.ShieldSpecialization), func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
 		paladin.AddMana(sim, paladin.MaxMana()*manaShare, manaMetrics)
