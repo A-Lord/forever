@@ -150,8 +150,9 @@ its tooltip states, and `A_MOD_RESISTANCE_PCT` multiplies the whole stat but the
 Inspiration's 8 is 8% more armor, whatever else it came from.
 
 `A_MOD_MAX_HEALTH` is flat health, which is how the bear forms state it: Dire Bear Form's passive is
-1240 health at 60. Last Stand 12976 states its 30% on the same aura and a script applies it as a
-percentage, so the warrior reads it by hand and does not parse the row.
+1240 health at 60, and `A_MOD_INCREASE_HEALTH` is flat health too. Last Stand 12976 states its 30% on
+`A_MOD_INCREASE_HEALTH` and a script applies it as a percentage, so the warrior reads it by hand and
+does not parse the row.
 
 `A_MOD_ATTACK_POWER_OF_STAT_PERCENT` (598) and `A_MOD_RANGED_ATTACK_POWER_OF_STAT_PERCENT` (580) add a
 share of the misc value's stat to attack power: Cat Form (Passive) 3025 states melee attack power as
