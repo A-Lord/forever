@@ -784,9 +784,26 @@ func (t *tracer) fail(format string, args ...any) (string, []string, bool) {
 	return "", t.lines, false
 }
 
+// The ranks the editor picked for Ladder.Each callback parameters, and how a hover offers another.
+type rankPicks struct {
+	ranks map[string]int32 // By rankKey; a parameter with no pick reads the highest rank.
+	links bool             // The editor runs command:wowsims-spelldata.changeRank links in a hover.
+}
+
+func (p *rankPicks) rank(key string) int32 {
+	if p == nil {
+		return 0
+	}
+	return p.ranks[key]
+}
+
+func (p *rankPicks) linked() bool {
+	return p != nil && p.links
+}
+
 // The hover for a position in a document, as markdown, and the lines saying how it was reached. The
 // line and column are 0-based and the column counts UTF-16 code units, as LSP positions do.
-func (w *workspace) hover(text string, line, col int, uri string, ranks map[string]int32) (string, []string, bool) {
+func (w *workspace) hover(text string, line, col int, uri string, picks *rankPicks) (string, []string, bool) {
 	path := uriPath(uri)
 	trace := &tracer{root: w.root}
 
@@ -857,19 +874,7 @@ func (w *workspace) hover(text string, line, col int, uri string, ranks map[stri
 	}
 
 	if hover.rank != nil {
-		key := rankKey(uri, hover.rank)
-		storedRank, found := ranks[key]
-
-		if found {
-			hover.rank.rank = storedRank
-		} else {
-			result, err := findFamily(ladderFamilies(), hover.chain.root.family, pkg)
-			if err == nil {
-				storedRank = result.ladder.Len()
-				ranks[key] = storedRank
-				hover.rank.rank = storedRank
-			}
-		}
+		hover.rank.rank = picks.rank(rankKey(uri, hover.rank.function, hover.rank.parameter))
 	}
 
 	if hover.spellConfig != nil {
@@ -897,11 +902,44 @@ func (w *workspace) hover(text string, line, col int, uri string, ranks map[stri
 		return trace.fail("%v", err)
 	}
 	trace.add("✓ %s", resultSummary(result))
-	return exprMarkdown(result, hover), trace.lines, true
+	return exprMarkdown(result, hover, picks.linked()), trace.lines, true
 }
 
-func rankKey(uri string, rank *virtualRank) string {
-	return fmt.Sprintf("%s:%s:%s", uri, rank.function, rank.parameter)
+func rankKey(uri, function, parameter string) string {
+	return fmt.Sprintf("%s:%s:%s", uri, function, parameter)
+}
+
+// The Ladder.Each callback parameter a hover at the position reads through, with the rank it reads
+// now, and the ladder it ranges over. It writes no trace: an editor asks on every cursor move.
+func (w *workspace) rankAt(text string, line, col int, uri string, picks *rankPicks) (*virtualRank, *ladderFamily, bool) {
+	path := uriPath(uri)
+	if filepath.Ext(path) != ".go" {
+		return nil, nil, false
+	}
+	lineText, start, ok := lineAt(text, line)
+	if !ok {
+		return nil, nil, false
+	}
+	f := w.parse(path, text)
+	if f.file == nil {
+		return nil, nil, false
+	}
+	folder := filepath.Dir(path)
+	at := start + byteOffsetOfUTF16Column(lineText, col)
+	trace := &tracer{root: w.root}
+	hover, ok := chainHoverAt(f, f.enclosing(f.tok.Pos(at)), at, w.declarations(folder, f, at, trace), trace.rel(folder), trace)
+	if !ok || hover.rank == nil || hover.rank.ladder == nil {
+		return nil, nil, false
+	}
+	family, err := findFamily(ladderFamilies(), hover.rank.ladder.root.family, filepath.Base(folder))
+	if err != nil || family.err != nil {
+		return nil, nil, false
+	}
+	hover.rank.rank = picks.rank(rankKey(uri, hover.rank.function, hover.rank.parameter))
+	if hover.rank.rank == 0 {
+		hover.rank.rank = family.ladder.Len()
+	}
+	return hover.rank, family, true
 }
 
 func spellConfigAt(nodes []ast.Node, pos token.Pos) *ast.CallExpr {

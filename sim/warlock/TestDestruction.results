@@ -60,11 +60,25 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDestruction-AllItems-Admiral'sHat-10030"
+ value: {
+  dps: 319.88049
+  tps: 235.55249
+ }
+}
+dps_results: {
  key: "TestDestruction-AllItems-AnkhofLife-1713"
  value: {
   dps: 325.62569
   tps: 238.96945
   hps: 4.42532
+ }
+}
+dps_results: {
+ key: "TestDestruction-AllItems-ArcaniteChampion-12790"
+ value: {
+  dps: 330.41855
+  tps: 241.42769
  }
 }
 dps_results: {
@@ -96,6 +110,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDestruction-AllItems-BlazingRapier-12777"
+ value: {
+  dps: 330.41855
+  tps: 241.42769
+ }
+}
+dps_results: {
  key: "TestDestruction-AllItems-BristleconeCloak-275833"
  value: {
   dps: 319.37143
@@ -117,6 +138,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDestruction-AllItems-CloakofFire-14134"
+ value: {
+  dps: 320.24031
+  tps: 235.44331
+ }
+}
+dps_results: {
  key: "TestDestruction-AllItems-CloakofFlames-3475"
  value: {
   dps: 319.37143
@@ -135,6 +163,13 @@ dps_results: {
  value: {
   dps: 324.6608
   tps: 238.01119
+ }
+}
+dps_results: {
+ key: "TestDestruction-AllItems-DarkmoonCard:Heroism-19287"
+ value: {
+  dps: 325.45203
+  tps: 238.36831
  }
 }
 dps_results: {
@@ -201,6 +236,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDestruction-AllItems-DormantHeartoftheMountain-249473"
+ value: {
+  dps: 325.45203
+  tps: 238.36831
+ }
+}
+dps_results: {
  key: "TestDestruction-AllItems-EarthenSigil-20525"
  value: {
   dps: 323.92602
@@ -212,6 +254,13 @@ dps_results: {
  value: {
   dps: 325.45203
   tps: 238.36831
+ }
+}
+dps_results: {
+ key: "TestDestruction-AllItems-ElectrifiedDagger-19100"
+ value: {
+  dps: 330.41855
+  tps: 241.42769
  }
 }
 dps_results: {
@@ -369,6 +418,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDestruction-AllItems-Frostguard-12797"
+ value: {
+  dps: 330.41855
+  tps: 241.42769
+ }
+}
+dps_results: {
  key: "TestDestruction-AllItems-FrozenHeartoftheMountain-249469"
  value: {
   dps: 327.23576
@@ -401,6 +457,20 @@ dps_results: {
  value: {
   dps: 325.63116
   tps: 238.47865
+ }
+}
+dps_results: {
+ key: "TestDestruction-AllItems-GutRipper-2164"
+ value: {
+  dps: 330.41855
+  tps: 241.42769
+ }
+}
+dps_results: {
+ key: "TestDestruction-AllItems-Hameya'sSlayer-15814"
+ value: {
+  dps: 330.41855
+  tps: 241.42769
  }
 }
 dps_results: {
@@ -538,6 +608,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDestruction-AllItems-Nightblade-1982"
+ value: {
+  dps: 330.41855
+  tps: 241.42769
+ }
+}
+dps_results: {
  key: "TestDestruction-AllItems-OrbofFire-12805"
  value: {
   dps: 325.45203
@@ -577,6 +654,13 @@ dps_results: {
  value: {
   dps: 331.68841
   tps: 242.537
+ }
+}
+dps_results: {
+ key: "TestDestruction-AllItems-SerpentSlicer-13035"
+ value: {
+  dps: 330.41855
+  tps: 241.42769
  }
 }
 dps_results: {
@@ -650,6 +734,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDestruction-AllItems-Teebu'sBlazingLongsword-1728"
+ value: {
+  dps: 296.41194
+  tps: 220.81892
+ }
+}
+dps_results: {
  key: "TestDestruction-AllItems-TheBlackBook-19337"
  value: {
   dps: 325.45203
@@ -682,6 +773,13 @@ dps_results: {
  value: {
   dps: 330.41855
   tps: 241.42769
+ }
+}
+dps_results: {
+ key: "TestDestruction-AllItems-Thunderbrew'sBootFlask-744"
+ value: {
+  dps: 326.13844
+  tps: 239.18697
  }
 }
 dps_results: {

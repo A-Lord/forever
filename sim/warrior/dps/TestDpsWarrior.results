@@ -61,6 +61,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDpsWarrior-AllItems-Admiral'sHat-10030"
+ value: {
+  dps: 407.53064
+  tps: 238.36451
+  dtps: 2.93302
+ }
+}
+dps_results: {
  key: "TestDpsWarrior-AllItems-AnkhofLife-1713"
  value: {
   dps: 412.41539
@@ -70,6 +78,14 @@ dps_results: {
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-Annihilator-12798"
+ value: {
+  dps: 412.41539
+  tps: 241.10822
+  dtps: 2.93302
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-ArcaniteChampion-12790"
  value: {
   dps: 412.41539
   tps: 241.10822
@@ -117,11 +133,43 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDpsWarrior-AllItems-BlazingRapier-12777"
+ value: {
+  dps: 412.41539
+  tps: 241.10822
+  dtps: 2.93302
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-BloodTalon-12795"
+ value: {
+  dps: 394.29375
+  tps: 231.18676
+  dtps: 2.93302
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-BowofSearingArrows-2825"
+ value: {
+  dps: 409.42902
+  tps: 239.62977
+  dtps: 2.93302
+ }
+}
+dps_results: {
  key: "TestDpsWarrior-AllItems-BristleconeCloak-275833"
  value: {
   dps: 412.41539
   tps: 241.10822
   dtps: 2.93302
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-CloakofFire-14134"
+ value: {
+  dps: 412.41539
+  tps: 241.10822
+  dtps: 2.90477
  }
 }
 dps_results: {
@@ -146,6 +194,15 @@ dps_results: {
   dps: 412.41539
   tps: 241.10822
   dtps: 2.93302
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-DarkmoonCard:Heroism-19287"
+ value: {
+  dps: 412.41539
+  tps: 241.10822
+  dtps: 2.93302
+  hps: 14.64868
  }
 }
 dps_results: {
@@ -194,6 +251,14 @@ dps_results: {
   dps: 412.41539
   tps: 241.10822
   dtps: 2.93302
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-DormantHeartoftheMountain-249473"
+ value: {
+  dps: 412.41539
+  tps: 241.10822
+  dtps: 2.87374
  }
 }
 dps_results: {
@@ -406,6 +471,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDpsWarrior-AllItems-Frostguard-12797"
+ value: {
+  dps: 412.41539
+  tps: 241.10822
+  dtps: 2.93302
+ }
+}
+dps_results: {
  key: "TestDpsWarrior-AllItems-FrozenHeartoftheMountain-249469"
  value: {
   dps: 408.51972
@@ -470,10 +543,34 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDpsWarrior-AllItems-GryphonRider'sStormhammer-9651"
+ value: {
+  dps: 392.82956
+  tps: 229.88735
+  dtps: 2.93302
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-Hameya'sSlayer-15814"
+ value: {
+  dps: 412.41539
+  tps: 241.10822
+  dtps: 2.93302
+ }
+}
+dps_results: {
  key: "TestDpsWarrior-AllItems-HammeroftheNorthernWind-810"
  value: {
   dps: 412.14075
   tps: 241.04786
+  dtps: 2.93302
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-HandofEdwardtheOdd-2243"
+ value: {
+  dps: 412.41539
+  tps: 241.10822
   dtps: 2.93302
  }
 }
@@ -490,6 +587,14 @@ dps_results: {
  value: {
   dps: 412.41539
   tps: 241.10822
+  dtps: 2.93302
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-HeartseekingCrossbow-13040"
+ value: {
+  dps: 410.94086
+  tps: 240.157
   dtps: 2.93302
  }
 }
@@ -622,6 +727,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDpsWarrior-AllItems-Nightblade-1982"
+ value: {
+  dps: 412.41539
+  tps: 241.10822
+  dtps: 2.93302
+ }
+}
+dps_results: {
  key: "TestDpsWarrior-AllItems-Nightfall-19169"
  value: {
   dps: 412.41539
@@ -654,6 +767,22 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDpsWarrior-AllItems-RageofMugamba-19577"
+ value: {
+  dps: 419.40662
+  tps: 245.57149
+  dtps: 2.93302
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-Ravager-7717"
+ value: {
+  dps: 412.41539
+  tps: 241.10822
+  dtps: 2.93302
+ }
+}
+dps_results: {
  key: "TestDpsWarrior-AllItems-RingofSaviors-1447"
  value: {
   dps: 412.41539
@@ -679,6 +808,14 @@ dps_results: {
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-SerenityField-272439"
+ value: {
+  dps: 412.41539
+  tps: 241.10822
+  dtps: 2.93302
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-SerpentSlicer-13035"
  value: {
   dps: 412.41539
   tps: 241.10822
@@ -719,6 +856,14 @@ dps_results: {
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-Sulfuras,HandofRagnaros-17182"
+ value: {
+  dps: 412.41539
+  tps: 241.10822
+  dtps: 2.93302
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-SulfuronHammer-17193"
  value: {
   dps: 412.41539
   tps: 241.10822
@@ -774,6 +919,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDpsWarrior-AllItems-Teebu'sBlazingLongsword-1728"
+ value: {
+  dps: 426.40512
+  tps: 249.09488
+  dtps: 2.93302
+ }
+}
+dps_results: {
  key: "TestDpsWarrior-AllItems-TheBurrower'sShell-23558"
  value: {
   dps: 412.41539
@@ -798,6 +951,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDpsWarrior-AllItems-Thunderbrew'sBootFlask-744"
+ value: {
+  dps: 412.41539
+  tps: 241.10822
+  dtps: 2.93302
+ }
+}
+dps_results: {
  key: "TestDpsWarrior-AllItems-Thunderfury,BlessedBladeoftheWindseeker-19019"
  value: {
   dps: 412.41539
@@ -815,6 +976,14 @@ dps_results: {
 }
 dps_results: {
  key: "TestDpsWarrior-AllItems-Uther'sStrength-11302"
+ value: {
+  dps: 412.41539
+  tps: 241.10822
+  dtps: 2.93302
+ }
+}
+dps_results: {
+ key: "TestDpsWarrior-AllItems-VolcanicHammer-12792"
  value: {
   dps: 412.41539
   tps: 241.10822

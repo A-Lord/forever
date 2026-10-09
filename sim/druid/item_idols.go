@@ -1,0 +1,57 @@
+package druid
+
+import (
+	"github.com/wowsims/forever/sim/common/shared"
+)
+
+// The idols' equip spells reach their spells by class flags, which no druid spell sets until the
+// class is ported, so until then they change nothing.
+func init() {
+	// Idol of Health
+	// https://www.wowhead.com/forever/item=22399/idol-of-health
+	//
+	// Reduces the casting time of your Healing Touch spell by 0.15 sec.
+	shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 27846},
+		[]shared.ItemVariant{
+			{ItemID: 22399, ItemName: "Idol of Health"},
+		})
+
+	// Howling Idol
+	// https://www.wowhead.com/forever/item=272427/howling-idol
+	//
+	// Reduces the cooldown of your Shifting Power ability by 1 sec.
+	shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 1291059},
+		[]shared.ItemVariant{
+			{ItemID: 272427, ItemName: "Howling Idol"},
+		})
+
+	// Enraged Idol
+	// https://www.wowhead.com/forever/item=272428/enraged-idol
+	//
+	// Your Enrage ability generates an additional 10 Rage over its duration.
+	//
+	// TODO: 1291060 states the 10 as SPELLMOD_EFFECT1 on Enrage, which the parse reads as base
+	// damage. The Enrage port has to add the rage off its effect 1.
+	// shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 1291060},
+	// 	[]shared.ItemVariant{
+	// 		{ItemID: 272428, ItemName: "Enraged Idol"},
+	// 	})
+
+	// Swarming Idol
+	// https://www.wowhead.com/forever/item=272430/swarming-idol
+	//
+	// Increases the duration of your Insect Swarm ability by 2 sec.
+	shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 1291061},
+		[]shared.ItemVariant{
+			{ItemID: 272430, ItemName: "Swarming Idol"},
+		})
+
+	// Idol of Swiftness
+	// https://www.wowhead.com/forever/item=279250/idol-of-swiftness
+	//
+	// Reduces the cooldown of your Swiftmend spell by 3 sec.
+	shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 1306488},
+		[]shared.ItemVariant{
+			{ItemID: 279250, ItemName: "Idol of Swiftness"},
+		})
+}

@@ -3,7 +3,7 @@ import { homedir } from 'node:os';
 import { delimiter, join } from 'node:path';
 
 import * as vscode from 'vscode';
-import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient/node';
+import { ExecuteCommandRequest, LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient/node';
 
 // The languages package.json activates the extension on.
 const LANGUAGES = ['go', 'json', 'typescript', 'typescriptreact'];
@@ -39,8 +39,9 @@ function isFile(path: string): boolean {
 }
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
-	const changeRank = vscode.commands.registerCommand('wowsims-spelldata.changeRank', async (args: { parameter: string; function: string; rank: number }) => {
-		if (client === undefined) {
+	const changeRank = vscode.commands.registerCommand('wowsims-spelldata.changeRank', async (args?: { parameter: string; function: string; rank: number }) => {
+		// From the command palette there is no rank to pick; only a hover's link carries one.
+		if (client === undefined || args === undefined) {
 			return;
 		}
 
@@ -49,11 +50,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 			return;
 		}
 
-		await client.sendRequest('wowsims-spelldata/setRank', {
-			uri: editor.document.uri.toString(),
-			parameter: args.parameter,
-			function: args.function,
-			rank: args.rank,
+		await client.sendRequest(ExecuteCommandRequest.type, {
+			command: 'wowsims-spelldata.setRank',
+			arguments: [{ uri: editor.document.uri.toString(), parameter: args.parameter, function: args.function, rank: args.rank }],
 		});
 
 		await vscode.commands.executeCommand('editor.action.hideHover');
@@ -85,7 +84,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 	const outputChannel = vscode.window.createOutputChannel('WoWSims Spelldata', { log: true });
 	const clientOptions: LanguageClientOptions = {
 		documentSelector: LANGUAGES.map(language => ({ scheme: 'file', language })),
-		initializationOptions: { trace: settings.get<string>('trace', 'on') },
+		// The server writes the hover's rank selector as links to wowsims-spelldata.changeRank only for an
+		// editor that registers it.
+		initializationOptions: { trace: settings.get<string>('trace', 'on'), rankLinks: true },
 		outputChannel,
 		middleware: {
 			// The effects table breaks each wording from its game files row with <br>, which VS
