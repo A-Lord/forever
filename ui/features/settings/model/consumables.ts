@@ -102,7 +102,7 @@ function consumablePicker(
 		equals: (a: number, b: number) => a === b,
 		zeroValue: 0,
 		// `raid:partyBuffs` because the main-hand imbue's showWhen reads the weapon totems off the party,
-		// `itemSwap` because the swap imbues' includeIf reads the swap weapons and whether item swap is on.
+		// `itemSwap` because the swap imbues' includeIf reads the swap weapons and their showWhen whether item swap is on.
 		storeField: [...STORE_FIELDS, 'itemSwap', 'raid:partyBuffs'],
 		showWhen: options.showWhen,
 		getValue: (player: Player<any>) => pickOf(player.getConsumes()),

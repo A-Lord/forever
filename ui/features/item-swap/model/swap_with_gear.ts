@@ -32,7 +32,6 @@ export const swapWithGear = <SpecType extends Spec>(player: Player<SpecType>, it
 		}
 	}
 
-	// The imbues land first, so each gear write's stone correction sees them beside the weapons they follow.
 	batch(() => {
 		player.setConsumes(newConsumes);
 		player.setGear(newGear);

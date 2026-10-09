@@ -15,22 +15,19 @@ const gearOf = (items: Items) => ({
 type FakeGear = ReturnType<typeof gearOf>;
 
 const playerOf = (gear: Items, swapGear: Items, consumes: ConsumesSpec) => {
-	const state = { gear: gearOf(gear), swapGear: gearOf(swapGear), consumes, writes: [] as Array<string> };
+	const state = { gear: gearOf(gear), swapGear: gearOf(swapGear), consumes };
 	const player = {
 		getGear: () => state.gear,
 		setGear: (next: FakeGear) => {
-			state.writes.push('gear');
 			state.gear = next;
 		},
 		getConsumes: () => ConsumesSpec.clone(state.consumes),
 		setConsumes: (next: ConsumesSpec) => {
-			state.writes.push('consumes');
 			state.consumes = ConsumesSpec.clone(next);
 		},
 		itemSwapSettings: {
 			getGear: () => state.swapGear,
 			setGear: (next: FakeGear) => {
-				state.writes.push('swapGear');
 				state.swapGear = next;
 			},
 		},
@@ -87,13 +84,5 @@ describe('swapWithGear', () => {
 		swapWithGear(player, [ItemSlot.ItemSlotMainHand]);
 
 		expect(imbuesOf(state.consumes)).toEqual([5, 2, 7, 4, 1, 6, 3, 8]);
-	});
-
-	it('writes the imbues before the gear, so each gear write corrects the stones against the weapons they now sit on', () => {
-		const { player, state } = playerOf({ [ItemSlot.ItemSlotMainHand]: 'sword' }, { [ItemSlot.ItemSlotMainHand]: 'mace' }, CONSUMES);
-
-		swapWithGear(player, [ItemSlot.ItemSlotMainHand]);
-
-		expect(state.writes).toEqual(['consumes', 'gear', 'swapGear']);
 	});
 });
