@@ -17,11 +17,14 @@ var fireNovaRank = spellData.FireNova.Highest()
 var fireNovaDamageRank = spellData.FireNovaTriggered.Highest()
 
 // A fire totem's own attack: the totem's, not the caster's, so it lands no proc of the caster's.
-func (shaman *Shaman) newTotemAttackConfig(rank *spelldata.Spell) core.SpellConfig {
-	return spelldata.SpellConfig(&shaman.Unit, rank,
+// It reports as the totem's spell tagged 1, so the results show the totem and its hits as one row.
+func (shaman *Shaman) newTotemAttackConfig(totem *spelldata.Spell, rank *spelldata.Spell) core.SpellConfig {
+	config := spelldata.SpellConfig(&shaman.Unit, rank,
 		spelldata.Magic(core.ProcMaskEmpty),
 		spelldata.Proc(),
 		spelldata.Flags(SpellFlagShamanSpell))
+	config.ActionID = core.ActionID{SpellID: totem.ID, Tag: 1}
+	return config
 }
 
 // A fire totem that acts every period while it stands. Nothing it does lands before the pull.
@@ -50,7 +53,7 @@ func (shaman *Shaman) registerFireTotem(rank *spelldata.Spell, mask int64, perio
 func (shaman *Shaman) registerSearingTotemSpell() {
 	damage := searingAttackRank.DamageEffect()
 
-	attackConfig := shaman.newTotemAttackConfig(searingAttackRank)
+	attackConfig := shaman.newTotemAttackConfig(searingTotemRank, searingAttackRank)
 	attackConfig.ClassSpellMask = SpellMaskSearingTotem
 	attackConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		result := spell.CalcDamage(sim, target, damage.Average(), spell.OutcomeMagicHitAndCrit)
@@ -72,7 +75,7 @@ func (shaman *Shaman) registerSearingTotemSpell() {
 func (shaman *Shaman) registerMagmaTotemSpell() {
 	damage := magmaPulseRank.DamageEffect()
 
-	pulseConfig := shaman.newTotemAttackConfig(magmaPulseRank)
+	pulseConfig := shaman.newTotemAttackConfig(magmaTotemRank, magmaPulseRank)
 	pulseConfig.ClassSpellMask = SpellMaskMagmaTotem
 	pulseConfig.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
 		spell.CalcAndDealAoeDamage(sim, damage.Average(), spell.OutcomeMagicHitAndCrit)

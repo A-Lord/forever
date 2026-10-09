@@ -1,9 +1,8 @@
 import * as BuffDebuffInputs from '@features/settings/model/buffs_debuffs';
 import * as OtherInputs from '@features/settings/model/other_inputs';
 import { APLRotation } from '@generated/proto/apl';
-import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
-import { EquipmentSpec, ItemSlot, PseudoStat, Spec, Stat, TristateEffect } from '@generated/proto/common';
-import { SavedTalents } from '@generated/proto/ui';
+import { Debuffs, RaidBuffs } from '@generated/proto/buffs';
+import { ItemSlot, PseudoStat, Spec, Stat } from '@generated/proto/common';
 import { PlayerClasses } from '@sim/player/classes';
 import { Player } from '@sim/player/player';
 import { WeaponSkillGroup } from '@sim/player/weapon_skill_groups';
@@ -81,9 +80,9 @@ export default defineSpec<Spec.SpecProtectionWarrior>({
 
 	defaults: {
 		// Default equipped gear.
-		gear: EquipmentSpec.create(),
+		gear: Presets.PreBiSGear.gear,
 		// Default EP weights for sorting gear in the gear picker.
-		epWeights: new Stats(),
+		epWeights: Presets.PreBiSEpWeights.epWeights,
 		statCaps: (() => {
 			const hitCap = new Stats().withPseudoStat(PseudoStat.PseudoStatMeleeHitPercent, 8);
 			const expCap = new Stats().withPseudoStat(PseudoStat.PseudoStatExpertisePercent, 6.5);
@@ -95,7 +94,7 @@ export default defineSpec<Spec.SpecProtectionWarrior>({
 		// Default consumes settings.
 		consumables: Presets.DefaultConsumables,
 		// Default talents.
-		talents: SavedTalents.create(),
+		talents: Presets.ProtectionTalents.data,
 		// Default spec-specific settings.
 		specOptions: Presets.DefaultOptions,
 		// Default raid/party buffs settings.
@@ -103,19 +102,15 @@ export default defineSpec<Spec.SpecProtectionWarrior>({
 			...WarriorPresets.DefaultRaidBuffs,
 			prayerOfShadowProtection: true,
 		}),
-		partyBuffs: PartyBuffs.create({
-			strengthOfEarthTotem: true,
-			windfuryTotem: true,
-			battleShout: TristateEffect.TristateEffectRegular,
-		}),
-		individualBuffs: IndividualBuffs.create({
-			...WarriorPresets.DefaultIndividualBuffs,
-			thorns: true,
-		}),
+		partyBuffs: WarriorPresets.DefaultPartyBuffs,
+		individualBuffs: WarriorPresets.DefaultIndividualBuffs,
 		debuffs: Debuffs.create({
-			...WarriorPresets.DefaultDebuffs,
-			giftOfArthas: false,
+			curseOfRecklessness: true,
+			faerieFire: true,
+			exposeArmor: true,
 			insectSwarm: true,
+			curseOfWeakness: true,
+			vindication: true,
 		}),
 	},
 
@@ -152,13 +147,13 @@ export default defineSpec<Spec.SpecProtectionWarrior>({
 	},
 
 	presets: {
-		epWeights: [],
+		epWeights: [Presets.PreBiSEpWeights, Presets.PreBiSThreatEpWeights],
 		// Preset talents that the user can quickly select.
-		talents: [],
+		talents: [Presets.ProtectionTalents],
 		// Preset rotations that the user can quickly select.
 		rotations: [Presets.ROTATION_DEFAULT],
 		// Preset gear configurations that the user can quickly select.
-		gear: [],
+		gear: [Presets.PreBiSGear, Presets.PreBiSThreatGear],
 	},
 
 	autoRotation: (_player: Player<Spec.SpecProtectionWarrior>): APLRotation => {

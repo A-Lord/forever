@@ -11,8 +11,6 @@ import { TableCell, TableRow } from '@ui-kit/Table';
 import { TooltipButton } from '@ui-kit/TooltipButton';
 import { type ReactNode, useMemo } from 'react';
 
-import { useReforgeIdPrefix } from './context/ReforgeIdPrefixContext';
-
 export interface ReforgeStatCapRowViewProps {
 	statName: string;
 	tooltip?: ReactNode;
@@ -55,7 +53,6 @@ const CAP_FIELDS = ['reforge:useSoftCapBreakpoints', 'reforge:statCaps'] as cons
 /** One stat's cap: the percentage, the undershoot flag, and — where the spec supplies them — a preset select on its own row. */
 export const ReforgeStatCapRow = ({ model, player, unitStat, tooltip }: ReforgeStatCapRowProps) => {
 	const settings = model.settings;
-	const idPrefix = useReforgeIdPrefix();
 	const statName = unitStat.getShortName(player.getClass());
 
 	const getValue = () => toVisualUnitStatPercentage(settings.statCaps.getUnitStat(unitStat), unitStat);
@@ -83,7 +80,7 @@ export const ReforgeStatCapRow = ({ model, player, unitStat, tooltip }: ReforgeS
 				<ConnectedNumberField
 					modObject={player}
 					config={{
-						id: `${idPrefix}-${statName}-percentage`,
+						id: `reforge-optimizer-${statName}-percentage`,
 						float: true,
 						maxDecimalDigits: 5,
 						showZeroes: false,
@@ -100,7 +97,7 @@ export const ReforgeStatCapRow = ({ model, player, unitStat, tooltip }: ReforgeS
 				<ConnectedBooleanPicker
 					modObject={player}
 					config={{
-						id: `${idPrefix}-${statName}-undershoot`,
+						id: `reforge-optimizer-${statName}-undershoot`,
 						label: '',
 						storeSubscribe: () => subscribeReforgeChange(settings),
 						getValue: () => settings.undershootCaps.getUnitStat(unitStat) > 0,
@@ -115,7 +112,7 @@ export const ReforgeStatCapRow = ({ model, player, unitStat, tooltip }: ReforgeS
 					<ConnectedChoiceField
 						modObject={player}
 						config={{
-							id: `${idPrefix}-${statName}-presets`,
+							id: `reforge-optimizer-${statName}-presets`,
 							label: '',
 							values: presetValues,
 							enableWhen,

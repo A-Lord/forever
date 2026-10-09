@@ -239,7 +239,7 @@ export class Encounter {
 				[Stat.StatBlockValue]: 54,
 				[Stat.StatHealth]: 1299000,
 			}).asProtoArray(),
-			minBaseDamage: 15113,
+			minBaseDamage: 2601,
 			damageSpread: 0.5,
 			tankIndex: 0,
 			swingSpeed: 2,

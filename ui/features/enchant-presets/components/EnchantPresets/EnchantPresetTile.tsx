@@ -10,7 +10,7 @@ import { WowheadAnchor } from '@ui-kit/WowheadAnchor';
 import { WowheadIcon } from '@ui-kit/WowheadIcon';
 import { memo, useCallback, useMemo } from 'react';
 
-export interface BulkEnchantTileViewProps {
+export interface EnchantPresetTileViewProps {
 	name: string;
 	effect?: string;
 	iconUrl?: string;
@@ -20,7 +20,7 @@ export interface BulkEnchantTileViewProps {
 	onToggle: () => void;
 }
 
-export const BulkEnchantTileView = ({ name, effect, iconUrl, href, wowhead, checked, onToggle }: BulkEnchantTileViewProps) => (
+export const EnchantPresetTileView = ({ name, effect, iconUrl, href, wowhead, checked, onToggle }: EnchantPresetTileViewProps) => (
 	<WowheadAnchor
 		className="flex min-w-0 items-center gap-2 border border-border p-2 text-foreground hover:bg-surface-hover hover:text-foreground aria-checked:border-primary"
 		testId="bulk-enchant-tile"
@@ -44,14 +44,14 @@ export const BulkEnchantTileView = ({ name, effect, iconUrl, href, wowhead, chec
 	</WowheadAnchor>
 );
 
-export interface BulkEnchantTileProps {
+export interface EnchantPresetTileProps {
 	slot: ItemSlot;
 	enchant: Enchant;
 	checked: boolean;
 	onToggle: (slot: ItemSlot, effectId: number) => void;
 }
 
-export const BulkEnchantTile = memo(({ slot, enchant, checked, onToggle }: BulkEnchantTileProps) => {
+export const EnchantPresetTile = memo(({ slot, enchant, checked, onToggle }: EnchantPresetTileProps) => {
 	const actionId = useMemo(() => enchantActionId(enchant), [enchant]);
 	const { iconUrl, href } = useActionId(actionId);
 	const wowhead = useActionIdWowheadDataset(actionId);
@@ -59,7 +59,7 @@ export const BulkEnchantTile = memo(({ slot, enchant, checked, onToggle }: BulkE
 	const toggle = useCallback(() => onToggle(slot, enchant.effectId), [onToggle, slot, enchant]);
 
 	return (
-		<BulkEnchantTileView
+		<EnchantPresetTileView
 			name={enchant.name}
 			effect={description === enchant.name ? undefined : description}
 			iconUrl={iconUrl}

@@ -17,7 +17,7 @@ func (priest *Priest) registerHolyFireSpell(_ int32, rank *spelldata.Spell) {
 	config.ClassSpellMask = PriestSpellHolyFire
 
 	config.Dot = spelldata.DotConfig(rank, holyFireTick, spelldata.RankLabel(rank, &priest.Unit))
-	config.Dot.OnTick = spelldata.PeriodicDamageTick(holyFireTick, rank.TickOutcomeHitRolled)
+	config.Dot.OnTick = spelldata.PeriodicDamageTick(holyFireTick, rank.TickOutcome)
 
 	if priest.powerInLightAuras != nil {
 		// A replaced rank's dot expires before the new rank's dot gains, so the marker ends up on.
