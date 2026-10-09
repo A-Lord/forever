@@ -538,6 +538,7 @@ func TestEveryTableRow(t *testing.T) {
 		{dbcenums.A_MOD_RESISTANCE, 1, 100, "stat Armor", 100, false},
 		{dbcenums.A_MOD_BASE_RESISTANCE_PCT, 1, 10, "equip-scaling Armor", 1.1, false},
 		{dbcenums.A_MOD_RESISTANCE_PCT, 1, 8, "multiply-stat Armor", 1.08, false},
+		{dbcenums.A_MOD_ARMOR_NO_MODS, 1, -450, "stat Armor", -450, false},
 		{dbcenums.A_MOD_RESISTANCE, 16, 30, "stat FrostResistance", 30, false},
 		{dbcenums.A_MOD_RESISTANCE, 127, 30,
 			"stat Armor, stat FireResistance, stat NatureResistance, stat FrostResistance, stat ShadowResistance, stat ArcaneResistance", 30, false},
@@ -800,6 +801,39 @@ func TestParseStaticScalesEquippedArmor(t *testing.T) {
 
 	if got := character.EquipStats()[stats.Armor]; got != 1100 {
 		t.Errorf("armor after the row: %v, want 1100", got)
+	}
+}
+
+// The percent armor modifier scales the resistance aura's armor and leaves the no-mods aura's armor
+// alone, which still counts in Armor.
+func TestParseStaticArmorNoModsOutsideThePercentModifier(t *testing.T) {
+	withRows(t, parseRows())
+	character := parseWarrior()
+	before := character.SortAndApplyStatDependencies(character.GetStats())[stats.Armor]
+
+	ParseStatic(character, &Spell{ID: 6000, Name: "Armor Rows", ClassFlags: parseFamily, Effects: []Effect{
+		{Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_RESISTANCE, Misc: miscArmor, BasePoints: 1000},
+		{Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_ARMOR_NO_MODS, Misc: miscArmor, BasePoints: 500},
+		{Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_RESISTANCE_PCT, Misc: miscArmor, BasePoints: 10},
+	}})
+
+	got := character.SortAndApplyStatDependencies(character.GetStats())[stats.Armor]
+	if want := (before+1000)*1.1 + 500; math.Abs(got-want) > 1e-9 {
+		t.Errorf("armor: %v, want %v from %v before", got, want, before)
+	}
+}
+
+// The no-mods armor row takes armor alone: a mask naming another school is skipped with a reason
+// rather than parsed for its armor bit.
+func TestParseArmorNoModsSkipsAMaskBeyondArmor(t *testing.T) {
+	withRows(t, parseRows())
+	character := parseWarrior()
+
+	parsed := ParseStatic(character, &Spell{ID: 6000, Name: "Armor Rows", ClassFlags: parseFamily, Effects: []Effect{
+		{Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_ARMOR_NO_MODS, Misc: miscArmor | 4, BasePoints: 500},
+	}})
+	if len(parsed.Applied) != 0 || len(parsed.Skipped) != 1 || parsed.Skipped[0].Reason == "" {
+		t.Errorf("attached %v and skipped %v, want the effect skipped with a reason", appliedKinds(parsed), parsed.Skipped)
 	}
 }
 

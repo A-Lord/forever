@@ -7,17 +7,17 @@ import { ConfirmPopover } from '@ui-kit/ConfirmPopover';
 import { Icon } from '@ui-kit/Icon';
 import { type ReactNode, useId, useState } from 'react';
 
-import { useBulkState } from '../../hooks/useBulkState';
-import { deleteBulkEnchantPreset, setBulkEnchantPresetChecked } from '../../model/enchants';
-import { BulkEnchantPresetDialog } from './BulkEnchantPresetDialog';
+import { useEnchantPresets } from '../../hooks/useEnchantPresets';
+import { deleteEnchantPreset, setEnchantPresetChecked } from '../../model/enchant_presets';
+import { EnchantPresetDialog } from './EnchantPresetDialog';
 
-export interface BulkEnchantPresetRow {
+export interface EnchantPresetRow {
 	name: string;
 	checked: boolean;
 }
 
-export interface BulkEnchantsViewProps {
-	presets: readonly BulkEnchantPresetRow[];
+export interface EnchantPresetsViewProps {
+	presets: readonly EnchantPresetRow[];
 	onCheckedChange: (name: string, checked: boolean) => void;
 	onNew: () => void;
 	onEdit: (name: string) => void;
@@ -25,7 +25,7 @@ export interface BulkEnchantsViewProps {
 	dialog: ReactNode;
 }
 
-export const BulkEnchantsView = ({ presets, onCheckedChange, onNew, onEdit, onDelete, dialog }: BulkEnchantsViewProps) => {
+export const EnchantPresetsView = ({ presets, onCheckedChange, onNew, onEdit, onDelete, dialog }: EnchantPresetsViewProps) => {
 	const idPrefix = useId();
 	const [confirming, setConfirming] = useState<string | null>(null);
 
@@ -82,27 +82,24 @@ interface DialogState {
 	key: number;
 }
 
-export const BulkEnchants = () => {
+export const EnchantPresets = () => {
 	const player = usePlayer();
-	const presets = useBulkState(slice => slice.enchantPresets);
+	const presets = useEnchantPresets();
 	const [dialog, setDialog] = useState<DialogState>({ open: false, preset: null, key: 0 });
 
 	const openDialog = (preset: BulkEnchantPreset | null) => setDialog(current => ({ open: true, preset, key: current.key + 1 }));
 
 	return (
-		<BulkEnchantsView
+		<EnchantPresetsView
 			presets={presets}
-			onCheckedChange={(name, value) => setBulkEnchantPresetChecked(player, name, value)}
+			onCheckedChange={(name, value) => setEnchantPresetChecked(player, name, value)}
 			onNew={() => openDialog(null)}
 			onEdit={name => openDialog(presets.find(preset => preset.name === name) ?? null)}
-			onDelete={name => deleteBulkEnchantPreset(player, name)}
+			onDelete={name => deleteEnchantPreset(player, name)}
 			dialog={
-				<BulkEnchantPresetDialog
-					key={dialog.key}
-					open={dialog.open}
-					preset={dialog.preset}
-					onClose={() => setDialog(current => ({ ...current, open: false }))}
-				/>
+				dialog.open && (
+					<EnchantPresetDialog key={dialog.key} open preset={dialog.preset} onClose={() => setDialog(current => ({ ...current, open: false }))} />
+				)
 			}
 		/>
 	);

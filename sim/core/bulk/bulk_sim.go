@@ -86,8 +86,7 @@ func runBulkSim(request *proto.BulkSimRequest, progress chan *proto.ProgressMetr
 	}
 
 	result := &proto.BulkSimResult{
-		Timings:             &proto.BulkSimTimings{},
-		OptimizedCandidates: request.GetOptimizedCandidates(),
+		Timings: &proto.BulkSimTimings{},
 	}
 	baselineGear := GetBulkSimBaselineGear(request)
 
@@ -251,7 +250,7 @@ func getBulkSimPlayer(raid *proto.Raid) (*proto.Player, string) {
 	return player, ""
 }
 
-// GetBulkSimBaselineGear returns the raid's single bulk player's equipment, or nil.
+// The raid's single bulk player's equipment, or nil.
 func GetBulkSimBaselineGear(request *proto.BulkSimRequest) *proto.EquipmentSpec {
 	player, _ := getBulkSimPlayer(request.GetBaseRequest().GetRaid())
 	if player == nil {

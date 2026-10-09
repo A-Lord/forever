@@ -1,6 +1,17 @@
 // What a player may equip: item and enchant eligibility, weapon-type rules and
 // the gear identity keys the reforge cache is keyed on.
-import { EnchantType, EquipmentSpec, HandType, ItemSlot, ItemType, Profession, RangedWeaponType, Spec, WeaponType } from '@generated/proto/common';
+import {
+	EnchantProcKind,
+	EnchantType,
+	EquipmentSpec,
+	HandType,
+	ItemSlot,
+	ItemType,
+	Profession,
+	RangedWeaponType,
+	Spec,
+	WeaponType,
+} from '@generated/proto/common';
 import { UIEnchant as Enchant, UIItem as Item } from '@generated/proto/ui';
 
 import { PlayerSpec } from '../player/player_spec';
@@ -165,6 +176,11 @@ export function canEquipEnchant<SpecType extends Spec>(enchant: Enchant, playerS
 
 	return true;
 }
+
+// An enchant with no proc that grants stats, pseudo-stats or weapon damage: its EP is the whole of its worth.
+export const isStaticEnchant = (enchant: Enchant): boolean =>
+	enchant.procKind === EnchantProcKind.EnchantProcKindNone &&
+	(enchant.stats.some(value => value !== 0) || enchant.pseudoStats.some(value => value !== 0) || enchant.weaponDamage !== 0);
 
 /**
  * Fingerprint for comparing or deduplicating gear sets: item, random suffix and enchant.

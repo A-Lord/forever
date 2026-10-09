@@ -27,8 +27,9 @@ func protectionWarriorSuite() core.CharacterSuiteConfig {
 		Class:      proto.Class_ClassWarrior,
 		Race:       proto.Race_RaceOrc,
 		OtherRaces: []proto.Race{proto.Race_RaceHuman},
-		GearSet:    core.GetGearSet("../../../ui/specs/warrior/protection/gear_sets", "preraid"),
+		GearSet:    core.GetGearSet("../../../ui/specs/warrior/protection/gear_sets", "prebis"),
 		OtherGearSets: []core.GearSetCombo{
+			core.GetGearSet("../../../ui/specs/warrior/protection/gear_sets", "prebis_threat"),
 			core.GetGearSet("../../../ui/specs/warrior/protection/gear_sets", "p1_bis"),
 		},
 		Talents:          DefaultProtectionTalents,
@@ -67,23 +68,26 @@ var DefaultOptions = &proto.Player_ProtectionWarrior{
 	ProtectionWarrior: &proto.ProtectionWarrior{
 		Options: &proto.ProtectionWarrior_Options{
 			ClassOptions: &proto.WarriorOptions{
-				StartingRage:   100,
+				StartingRage:   0,
 				UseBattleShout: true,
 				DefaultStance:  proto.WarriorStance_WarriorStanceDefensive,
+				QueueDelay:     250,
+				StanceSnapshot: true,
+				HasBsT2:        true,
 			},
 		},
 	},
 }
 
-var DefaultProtectionTalents = "05--255533121331021351"
+var DefaultProtectionTalents = "35300003-05-050531120300021351"
 
 var DefaultConsumables = &proto.ConsumesSpec{
-	PotId:       13455, // Greater Stoneshield Potion
-	FoodId:      21023, // Dirge's Kickin' Chimaerok Chops
-	ConjuredId:  9421,
-	ExplosiveId: 18588,
-	OhImbueId:   12404,
-	ElixirIds:   []int32{13452, 9088}, // Elixir of the Mongoose, Gift of Arthas
-	// Goblin Sapper Charge, Scroll of Agility IV, Scroll of Strength IV, Scroll of Protection IV
-	ExtraIds: []int32{10646, 10309, 10310, 10305},
+	PotId:       250943, // Major Frenzy Potion
+	FoodId:      20452,  // Smoked Desert Dumplings
+	ExplosiveId: 260817, // EZ-Thro Dark Bomb
+	MhImbueId:   12404,  // Dense Sharpening Stone
+	ConjuredId:  9421,   // Major Healthstone
+	// Elixir of Ferocity, Elixir of the Mongoose, Winterfall Firewater, Elixir of Greater Defense, Elixir of the Phalanx
+	ElixirIds: []int32{250350, 13452, 12820, 13445, 250329},
+	ExtraIds:  []int32{10646, 17048}, // Goblin Sapper Charge, Rumsey Rum
 }

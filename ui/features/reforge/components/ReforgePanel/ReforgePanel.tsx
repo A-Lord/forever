@@ -1,3 +1,4 @@
+import { useEnchantPresets } from '@features/enchant-presets/hooks/useEnchantPresets';
 import type { ReforgeOptimizerModel, ReforgeOptimizerOptions } from '@features/reforge/model/reforge_optimizer';
 import type { ItemSlot } from '@generated/proto/common';
 import i18n from '@i18n/config';
@@ -15,6 +16,7 @@ import { Tooltip, tooltipAnchorProps, type TooltipRefProps } from '@ui-kit/Toolt
 import { type ReactNode, useCallback, useId, useRef, useState } from 'react';
 
 import { trackEvent, trackPageView } from '../../../../tracking/utils';
+import { useReforgeField } from '../../hooks/useReforgeField';
 import { ReforgeDoneToast } from './ReforgeDoneToast';
 import { ReforgeSettingsPanel } from './ReforgeSettingsPanel';
 import { ReforgeSoftCapsTooltip } from './ReforgeSoftCapsTooltip';
@@ -41,6 +43,9 @@ export const ReforgePanel = ({ model, options }: ReforgePanelProps) => {
 	const isCancelling = useRef(false);
 
 	const { isRunning } = useSimRun(SimRunKind.ReforgeOptimize);
+	const presetsOn = useReforgeField(model.settings, 'useEnchantPresets', () => model.settings.useEnchantPresets);
+	const presets = useEnchantPresets();
+	const needsPreset = presetsOn && !presets.some(preset => preset.checked);
 	const softCapsTooltipId = useId();
 	const settingsTooltipId = useId();
 	const settingsTooltipRef = useRef<TooltipRefProps>(null);
@@ -156,16 +161,19 @@ export const ReforgePanel = ({ model, options }: ReforgePanelProps) => {
 		<>
 			<Button
 				variant="outline-primary"
-				size="none"
-				className="peer -mr-(--settings-button-width) grow py-2 pr-settings-button-inset pl-2"
+				className="peer col-span-full row-start-1 pr-settings-button-inset"
 				aria-label={i18n.t('sidebar.buttons.suggest_reforges.title')}
 				data-testid="suggest-reforges-action-button"
 				data-sidebar-action=""
-				disabled={isRunning}
+				disabled={isRunning || needsPreset}
+				focusableWhenDisabled={needsPreset}
 				loading={isRunning}
 				onClick={onOptimize}
 				{...tooltipAnchorProps(softCapsTooltipId)}>
-				<Icon name="screwdriver-wrench" />
+				{/* One line-height tall (h-lh), so the button pair is as tall as a text action such as Simulate. */}
+				<span className="flex h-lh items-center">
+					<Icon name="screwdriver-wrench" />
+				</span>
 			</Button>
 			<Popover
 				open={open}
@@ -185,7 +193,7 @@ export const ReforgePanel = ({ model, options }: ReforgePanelProps) => {
 				triggerRender={
 					<Button
 						variant="outline-primary"
-						className="w-(--settings-button-width) border-transparent bg-transparent peer-hover:text-primary-foreground hover:border-primary-hover hover:bg-primary-hover focus-visible:border-primary-hover focus-visible:bg-primary-hover active:border-primary-active active:bg-primary-active active:text-primary-foreground data-popup-open:border-primary-active data-popup-open:bg-primary-active data-popup-open:text-primary-foreground"
+						className="col-start-2 row-start-1 w-(--settings-button-width) border-transparent bg-transparent peer-hover:peer-not-data-disabled:text-primary-foreground hover:border-primary-hover hover:bg-primary-hover focus-visible:border-primary-hover focus-visible:bg-primary-hover active:border-primary-active active:bg-primary-active active:text-primary-foreground data-popup-open:border-primary-active data-popup-open:bg-primary-active data-popup-open:text-primary-foreground"
 					/>
 				}
 				triggerTestId="suggest-reforges-button-settings"
@@ -202,14 +210,23 @@ export const ReforgePanel = ({ model, options }: ReforgePanelProps) => {
 				maxWidth="max-w-76"
 				// The limits are read per open.
 				render={() => {
+					const title = i18n.t('sidebar.buttons.suggest_reforges.title');
 					const softCaps = model.softCapsConfigWithLimits;
-					if (!softCaps?.length) return null;
-					return (
+					const body = needsPreset ? (
+						<p className="mb-0">{i18n.t('sidebar.buttons.suggest_reforges.no_enchant_preset')}</p>
+					) : softCaps?.length ? (
 						<ReforgeSoftCapsTooltip
 							playerClass={player.getClass()}
 							softCaps={softCaps}
 							additionalInformation={options?.additionalSoftCapTooltipInformation ?? {}}
 						/>
+					) : null;
+					if (!body) return title;
+					return (
+						<>
+							<p className="mb-1 font-semibold">{title}</p>
+							{body}
+						</>
 					);
 				}}
 			/>
@@ -217,12 +234,12 @@ export const ReforgePanel = ({ model, options }: ReforgePanelProps) => {
 				<ProgressTrackerDialog
 					open
 					testId="reforge-optimizer-progress-tracker"
-					title="Optimizing Gear"
+					title="Optimizing Enchants"
 					state={{ stage: 'initializing' }}
 					warning={
 						<>
 							<p>
-								Gear optimization can be a lengthy process, especially as specific stat caps and breakpoints come into play for classes. This
+								Enchant optimization can be a lengthy process, especially as specific stat caps and breakpoints come into play for classes. This
 								may take a while, but be assured that the calculation will eventually complete.
 							</p>
 							<p className="mb-0">You may cancel this operation at any time using the button below.</p>

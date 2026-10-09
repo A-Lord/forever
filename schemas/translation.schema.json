@@ -2168,38 +2168,6 @@
 							"additionalProperties": false,
 							"required": ["label", "tooltip"]
 						},
-						"sync_type": {
-							"type": "object",
-							"properties": {
-								"label": {
-									"type": "string"
-								},
-								"tooltip": {
-									"type": "string"
-								},
-								"values": {
-									"type": "object",
-									"properties": {
-										"automatic": {
-											"type": "string"
-										},
-										"none": {
-											"type": "string"
-										},
-										"perfect_sync": {
-											"type": "string"
-										},
-										"delayed_offhand": {
-											"type": "string"
-										}
-									},
-									"additionalProperties": false,
-									"required": ["automatic", "none", "perfect_sync", "delayed_offhand"]
-								}
-							},
-							"additionalProperties": false,
-							"required": ["label", "tooltip", "values"]
-						},
 						"show_1h_weapons": {
 							"type": "object",
 							"properties": {
@@ -2438,7 +2406,6 @@
 						"assume_bleed_active",
 						"cannot_shred_target",
 						"okf_uptime",
-						"sync_type",
 						"show_1h_weapons",
 						"show_2h_weapons",
 						"show_all_enchants",
@@ -3415,16 +3382,10 @@
 								},
 								"frozen_slots": {
 									"type": "string"
-								},
-								"reforge": {
-									"type": "string"
-								},
-								"reforge_description": {
-									"type": "string"
 								}
 							},
 							"additionalProperties": false,
-							"required": ["enchants", "frozen_slots", "reforge", "reforge_description"]
+							"required": ["enchants", "frozen_slots"]
 						},
 						"iterations": {
 							"type": "string"
@@ -3577,13 +3538,7 @@
 						"total_combinations": {
 							"type": "string"
 						},
-						"restoring_reforges_from_cache": {
-							"type": "string"
-						},
 						"building_candidate_gear_sets": {
-							"type": "string"
-						},
-						"reforging_iteration_rounds": {
 							"type": "string"
 						},
 						"baseline_round": {
@@ -3617,9 +3572,7 @@
 					"additionalProperties": false,
 					"required": [
 						"total_combinations",
-						"restoring_reforges_from_cache",
 						"building_candidate_gear_sets",
-						"reforging_iteration_rounds",
 						"baseline_round",
 						"refining_rounds",
 						"low_iteration_rounds",
@@ -8869,6 +8822,33 @@
 								},
 								"freeze_item_slots": {
 									"type": "string"
+								},
+								"settings": {
+									"type": "string"
+								},
+								"frozen_slots": {
+									"type": "string"
+								},
+								"enchants": {
+									"type": "string"
+								},
+								"skipped_slots_description": {
+									"type": "string"
+								},
+								"skipped_slots_unlisted": {
+									"type": "string"
+								},
+								"go_to_batch_sim": {
+									"type": "string"
+								},
+								"use_enchant_presets": {
+									"type": "string"
+								},
+								"use_enchant_presets_tooltip": {
+									"type": "string"
+								},
+								"no_enchant_preset": {
+									"type": "string"
 								}
 							},
 							"additionalProperties": false,
@@ -8895,7 +8875,16 @@
 								"modify_in_editor",
 								"hard_cap_info",
 								"edit_weights",
-								"freeze_item_slots"
+								"freeze_item_slots",
+								"settings",
+								"frozen_slots",
+								"enchants",
+								"skipped_slots_description",
+								"skipped_slots_unlisted",
+								"go_to_batch_sim",
+								"use_enchant_presets",
+								"use_enchant_presets_tooltip",
+								"no_enchant_preset"
 							]
 						}
 					},

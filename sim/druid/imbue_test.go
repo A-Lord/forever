@@ -140,7 +140,7 @@ func TestCatHearsFlametongueTotemAndKeepsItsMainHandImbue(t *testing.T) {
 	if character.GetAura("Flametongue Totem Trigger") == nil {
 		t.Error("the cat registers no Flametongue Totem proc")
 	}
-	if character.GetSpell(core.ActionID{SpellID: 16389, Tag: -1}) == nil {
+	if character.GetSpell(core.ActionID{SpellID: 16387, Tag: 1}) == nil {
 		t.Error("the cat registers no Flametongue Totem strike")
 	}
 }

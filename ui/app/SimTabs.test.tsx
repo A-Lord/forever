@@ -1,4 +1,4 @@
-import { useActivateTab } from '@app/tab_activation';
+import { useActivateTab } from '@features/hooks/useActivateTab';
 import { act, render } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';

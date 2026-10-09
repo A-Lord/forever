@@ -59,7 +59,7 @@ export const ItemSwapIcon = ({ slot }: ItemSwapIconProps) => {
 	const actionId = useMemo(() => item?.asActionId(), [item]);
 	const { iconUrl, name, href } = useActionId(actionId);
 
-	const wowheadProps = useEquippedItemWowheadDataset(player, item);
+	const wowheadProps = useEquippedItemWowheadDataset(item);
 
 	return (
 		<ItemSwapIconView

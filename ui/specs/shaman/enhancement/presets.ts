@@ -1,25 +1,67 @@
 import * as PresetUtils from '@app/preset_utils';
 import * as Consumables from '@features/settings/model/consumables_auto_gen';
 import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
-import { ConsumesSpec, Profession, Race, TristateEffect } from '@generated/proto/common';
-import { EnhancementShaman_Options as EnhancementShamanOptions, ShamanImbue, ShamanSyncType } from '@generated/proto/shaman';
+import { ConsumesSpec, Profession, PseudoStat, Race, Spec, Stat, TristateEffect } from '@generated/proto/common';
+import { EnhancementShaman_Options as EnhancementShamanOptions, ShamanImbue } from '@generated/proto/shaman';
+import { SavedTalents } from '@generated/proto/ui';
+import { Stats } from '@sim/proto/stats';
 
 import DefaultApl from './apls/default.apl.json';
+import TestingBuildJson from './builds/testing.build.json';
+import PreBiSGearJson from './gear_sets/prebis.gear.json';
 
 export const ROTATION_PRESET_DEFAULT = PresetUtils.makePresetAPLRotation('Default', DefaultApl);
+
+// Dungeon and world drops, the shaman's dungeon tier set, crafted items whose reagents include no raid
+// materials and vendor items; no reputation or PvP rewards. The cloak, the second ring and the Adaptive
+// Combat Assistant are sold by the Undermine Trader in Stranglethorn Vale. The patterns of the head, chest and
+// leggings, the shoulders and the first ring have no known source.
+export const PreBiSGear = PresetUtils.makePresetGear('Pre-BiS', PreBiSGearJson);
+
+export const TestingBuild = PresetUtils.makePresetBuildFromJSON('Testing', Spec.SpecEnhancementShaman, TestingBuildJson);
+
+export const StandardTalents = {
+	name: 'Standard',
+	data: SavedTalents.create({
+		talentsString: '050533102-053030031005112251',
+	}),
+};
+
+// Measured on the Pre-BiS gear with the Standard talents over a three minute fight. Hit is its value below the
+// 8% cap.
+export const PreBiSEpWeights = PresetUtils.makePresetEpWeights(
+	'Pre-BiS',
+	Stats.fromMap(
+		{
+			[Stat.StatStrength]: 2.2,
+			[Stat.StatAgility]: 1.82,
+			[Stat.StatIntellect]: 2.72,
+			[Stat.StatAttackPower]: 1,
+			[Stat.StatHitRating]: 5.36,
+			[Stat.StatCritRating]: 3.13,
+			[Stat.StatHasteRating]: 2.51,
+			[Stat.StatExpertiseRating]: 3.66,
+			[Stat.StatArmorPenetration]: 0.5,
+			[Stat.StatSpellDamage]: 1.15,
+			[Stat.StatNatureDamage]: 0.63,
+		},
+		{
+			[PseudoStat.PseudoStatMainHandDps]: 14.2,
+		},
+	),
+);
 
 export const DefaultIndividualBuffs = IndividualBuffs.create({
 	greaterBlessingOfKings: true,
 	greaterBlessingOfMight: true,
 });
 
+// Windfury Weapon on the main hand outbids the party's Windfury Totem, so the default is Rockbiter Weapon.
 export const DefaultOptions = EnhancementShamanOptions.create({
 	classOptions: {
 		shieldProcrate: 0,
-		imbueMh: ShamanImbue.WindfuryWeapon,
+		imbueMh: ShamanImbue.RockbiterWeapon,
 	},
-	imbueOh: ShamanImbue.WindfuryWeapon,
-	syncType: ShamanSyncType.DelayOffhandSwings,
 });
 
 export const OtherDefaults = {
@@ -30,16 +72,30 @@ export const OtherDefaults = {
 };
 
 export const DefaultConsumables = ConsumesSpec.create({
-	potId: Consumables.MajorFrenzyPotion.id,
-	flaskId: Consumables.FlaskOfNaturalAggression.id,
+	potId: Consumables.MajorManaPotion.id,
+	flaskId: Consumables.FlaskOfSupremePower.id,
 	foodId: Consumables.SmokedDesertDumplings.id,
-	explosiveId: Consumables.EzThroDynamiteII.id,
-	extraIds: [Consumables.GoblinSapperCharge.id, Consumables.ScrollOfAgilityIV.id, Consumables.ScrollOfStrengthIV.id],
+	conjuredId: Consumables.DemonicRune.id,
+	elixirIds: [
+		Consumables.ElixirOfTheOwl.id,
+		Consumables.ElixirOfSages.id,
+		Consumables.GreaterMagebloodElixir.id,
+		Consumables.ElixirOfNaturePower.id,
+		Consumables.GreaterArcaneElixir.id,
+		Consumables.WinterfallFirewater.id,
+		Consumables.ElixirOfCunning.id,
+		Consumables.ElixirOfFerocity.id,
+	],
+	explosiveId: Consumables.EZThroDarkBomb.id,
+	mhImbueId: Consumables.ElementalSharpeningStone.id,
+	extraIds: [Consumables.GoblinSapperCharge.id],
 });
 
 export const DefaultPartyBuffs = PartyBuffs.create({
 	leaderOfThePack: true,
 	battleShout: TristateEffect.TristateEffectRegular,
+	strengthOfEarthTotem: true,
+	windfuryTotem: true,
 });
 
 export const DefaultRaidBuffs = RaidBuffs.create({
@@ -49,6 +105,7 @@ export const DefaultRaidBuffs = RaidBuffs.create({
 });
 
 export const DefaultDebuffs = Debuffs.create({
+	huntersMark: true,
 	judgementOfWisdom: true,
 	giftOfArthas: true,
 	exposeArmor: true,

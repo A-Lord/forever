@@ -1,3 +1,4 @@
+import { useActivateTab } from '@features/hooks/useActivateTab';
 import { IterationsPicker } from '@features/results/components/IterationsPicker';
 import { SimResultsPanel } from '@features/results/components/SimResultsPanel';
 import { SimulateAction } from '@features/results/components/SimulateAction';
@@ -11,7 +12,6 @@ import { SidebarDisabledContext } from '@ui-kit/SidebarActionButton';
 import type { SimHostObject } from './individual_sim_ui';
 import { NoticeNativeSim } from './NoticeNativeSim';
 import { SidebarActions } from './SidebarActions';
-import { useActivateTab } from './tab_activation';
 
 export interface SimRunCardProps {
 	/** Null on the render that builds the containers it is constructed from. */

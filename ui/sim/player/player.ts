@@ -36,7 +36,7 @@ import { SimSettingCategories } from '../constants/sim_settings';
 import type { PresetEpWeights } from '../presets/types';
 import { ActionId } from '../proto/action_id';
 import { Database } from '../proto/database';
-import { EquippedItem, getWeaponDpsStatsBySlot } from '../proto/equipped_item';
+import { enchantWeaponDamageEP, EquippedItem, getWeaponDpsStatsBySlot } from '../proto/equipped_item';
 import { Gear, ItemSwapGear } from '../proto/gear';
 import { canEquipEnchant, canEquipItem, enchantAppliesToItem, isPVPItem } from '../proto/items';
 import { specTypeFunctions, withSpec } from '../proto/spec_functions';
@@ -1175,12 +1175,7 @@ export class Player<SpecType extends Spec> {
 			ep = this.computeStatsEP(new Stats(enchant.stats, enchant.pseudoStats));
 			this.enchantEPCache.set(enchant.effectId, ep);
 		}
-
-		// Flat weapon damage is worth the DPS it adds at the enchanted weapon's speed, as a weapon's own damage is.
-		if (enchant.weaponDamage && weaponSpeed) {
-			ep += (enchant.weaponDamage / weaponSpeed) * epPerWeaponDps;
-		}
-		return ep;
+		return ep + enchantWeaponDamageEP(enchant, weaponSpeed, epPerWeaponDps);
 	}
 
 	computeWeaponDpsEP(slot: ItemSlot): number {

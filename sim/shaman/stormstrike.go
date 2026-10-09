@@ -1,119 +1,51 @@
 package shaman
 
 import (
-	"time"
-
 	"github.com/wowsims/forever/sim/core"
-	"github.com/wowsims/forever/sim/core/stats"
+	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-var StormstrikeActionID = core.ActionID{SpellID: 17364}
+var stormstrikeRank = spellData.Stormstrike.Highest()
 
-func (shaman *Shaman) StormstrikeDebuffAura(target *core.Unit) *core.Aura {
-	aura := target.GetOrRegisterAura(core.Aura{
-		Label:     "Stormstrike-" + shaman.Label,
-		ActionID:  StormstrikeActionID,
-		Duration:  time.Second * 12,
-		MaxStacks: 2,
-		OnSpellHitTaken: func(aura *core.Aura, sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-			if !spell.SpellSchool.Matches(core.SpellSchoolNature) {
-				return
-			}
-			if !result.Landed() || result.Damage == 0 {
-				return
-			}
+// The slots on the shaman's attack table against a target that the debuffs parsed with
+// spelldata.FromCaster hold.
+const (
+	DDBC_Stormstrike int = iota
+	DDBC_Total
+)
+
+// Effect 2 raises the shaman's own Lightning Bolt, Chain Lightning and Earth Shock against the target
+// for its one charge, which the next of them to hit spends.
+func (shaman *Shaman) stormstrikeDebuffAura(target *core.Unit) *core.Aura {
+	consumes := stormstrikeRank.EffectN(2).ClassFlags
+
+	config := spelldata.AuraConfig(stormstrikeRank, spelldata.Label("Stormstrike-"+shaman.Label))
+	config.OnSpellHitTaken = func(aura *core.Aura, sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
+		if spell.Unit == &shaman.Unit && result.Landed() && consumes.Reaches(spell) {
 			aura.RemoveStack(sim)
-		},
-	})
-	return aura.AttachMultiplicativePseudoStatBuff(
-		&target.PseudoStats.SchoolDamageTakenMultiplier[stats.SchoolIndexNature],
-		1.2,
-	)
-}
-
-func (shaman *Shaman) newStormstrikeHitSpellConfig(spellID int32, isMH bool) core.SpellConfig {
-	var procMask core.ProcMask
-	var actionTag int32
-
-	procMask = core.Ternary(isMH, core.ProcMaskMeleeMHSpecial, core.ProcMaskMeleeOHSpecial)
-	actionTag = core.TernaryInt32(isMH, 1, 2)
-
-	return core.SpellConfig{
-		ActionID:         core.ActionID{SpellID: spellID}.WithTag(actionTag),
-		SpellSchool:      core.SpellSchoolPhysical,
-		DefenseType:      core.DefenseTypeMelee,
-		ProcMask:         procMask,
-		Flags:            core.SpellFlagMeleeMetrics,
-		ClassSpellMask:   SpellMaskStormstrikeDamage,
-		ThreatMultiplier: 1,
-		DamageMultiplier: 1,
-		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-			weaponDamage := core.Ternary(isMH, spell.Unit.MHWeaponDamage, spell.Unit.OHWeaponDamage)
-			baseDamage := weaponDamage(sim, spell.MeleeAttackPower(target))
-			spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeSpecialBlockAndCrit)
-		},
+		}
 	}
+	aura := target.GetOrRegisterAura(config)
+	spelldata.ParseEffects(nil, aura, stormstrikeRank, spelldata.Effects(2),
+		spelldata.FromCaster(&shaman.Unit, DDBC_Stormstrike, DDBC_Total))
+	return aura
 }
 
-func (shaman *Shaman) newStormstrikeHitSpell(isMH bool) *core.Spell {
-	return shaman.RegisterSpell(shaman.newStormstrikeHitSpellConfig(17364, isMH))
-}
-
-func (shaman *Shaman) newStormstrikeSpellConfig(spellID int32, ssDebuffAuras *core.AuraArray, mhHit *core.Spell, ohHit *core.Spell) core.SpellConfig {
-	stormstrikeSpellConfig := core.SpellConfig{
-		ActionID:       core.ActionID{SpellID: spellID},
-		SpellSchool:    core.SpellSchoolPhysical,
-		DefenseType:    core.DefenseTypeMelee,
-		ProcMask:       core.ProcMaskEmpty,
-		Flags:          core.SpellFlagMeleeMetrics | core.SpellFlagAPL,
-		ClassSpellMask: SpellMaskStormstrikeCast,
-		ManaCost: core.ManaCostOptions{
-			BaseCostPercent: 8,
-		},
-		Cast: core.CastConfig{
-			DefaultCast: core.Cast{
-				GCD: core.GCDDefault,
-			},
-			IgnoreHaste: true,
-			CD: core.Cooldown{
-				Timer:    shaman.NewTimer(),
-				Duration: time.Second * 10,
-			},
-		},
-
-		ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-			shaman.StormstrikeCastResult = spell.CalcAndDealOutcome(sim, target, spell.OutcomeMeleeSpecialHitNoHitCounter)
-			if shaman.StormstrikeCastResult.Landed() {
-				ssDebuffAura := ssDebuffAuras.Get(target)
-				ssDebuffAura.Activate(sim)
-				ssDebuffAura.SetStacks(sim, 2)
-
-				if shaman.HasMHWeapon() {
-					mhHit.Cast(sim, target)
-				}
-
-				if shaman.AutoAttacks.IsDualWielding && shaman.HasOHWeapon() {
-					ohHit.Cast(sim, target)
-				}
-			}
-			spell.DisposeResult(shaman.StormstrikeCastResult)
-		},
-		ExtraCastCondition: func(sim *core.Simulation, target *core.Unit) bool {
-			return (shaman.HasMHWeapon() || shaman.HasOHWeapon())
-		},
-	}
-	return stormstrikeSpellConfig
-}
-
-// TODO: To be implemented. Port the TBC Stormstrike Spell implementation below; not yet verified against the Forever game files.
+// Effect 1 is a main-hand strike for normalized weapon damage.
 func (shaman *Shaman) registerStormstrikeSpell() {
-	panic("To be implemented")
+	shaman.StormstrikeDebuffAuras = shaman.NewEnemyAuraArray(shaman.stormstrikeDebuffAura)
 
-	// The TBC implementation, kept for the port:
-	// mhHit := shaman.newStormstrikeHitSpell(true)
-	// ohHit := shaman.newStormstrikeHitSpell(false)
-	//
-	// shaman.StormStrikeDebuffAuras = shaman.NewEnemyAuraArray(shaman.StormstrikeDebuffAura)
-	//
-	// shaman.Stormstrike = shaman.RegisterSpell(shaman.newStormstrikeSpellConfig(17364, &shaman.StormStrikeDebuffAuras, mhHit, ohHit))
+	config := spelldata.SpellConfig(&shaman.Unit, stormstrikeRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
+	config.ClassSpellMask = SpellMaskStormstrike
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		baseDamage := stormstrikeRank.WeaponStrike(sim, spell, shaman.MHNormalizedWeaponDamage(sim, spell.MeleeAttackPower(target)), 0)
+		result := spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeWeaponSpecialHitAndCrit)
+		if result.Landed() {
+			aura := shaman.StormstrikeDebuffAuras.Get(target)
+			aura.Activate(sim)
+			aura.SetStacks(sim, aura.MaxStacks)
+		}
+	}
+
+	shaman.Stormstrike = shaman.RegisterSpell(config)
 }
