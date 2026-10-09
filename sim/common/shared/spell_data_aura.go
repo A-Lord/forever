@@ -158,15 +158,25 @@ func registerSpellDataEquipAura(cfg SpellDataProc) {
 // that names it uses it.
 func NewSpellDataAuraOnUse(itemID int32) {
 	registerSpellDataOnUseCooldown(itemID, func(character *core.Character, row *spelldata.Spell) (core.SpellConfig, core.MajorCooldown, bool) {
-		cooldown := core.MajorCooldown{Type: core.CooldownTypeDPS}
+		auras := newSpellDataAuras(character, row, spelldata.AuraConfig(row))
+		cooldown := core.MajorCooldown{Type: onUseAuraCooldownType(row, auras)}
 		if lowersThreat(row) {
 			cooldown = core.MajorCooldown{
 				Type:           core.CooldownTypeUnknown,
 				ShouldActivate: func(_ *core.Simulation, _ *core.Character) bool { return false },
 			}
 		}
-		return spellDataOnUseAuraSpell(character, row), cooldown, true
+		return spellDataOnUseAuraSpell(character, row, auras), cooldown, true
 	})
+}
+
+// The wearer's buff decides the cooldown: a damage shield makes it a survival cooldown, and its stats
+// otherwise sort it the way a stat on-use is sorted.
+func onUseAuraCooldownType(row *spelldata.Spell, auras *spellDataAuras) core.CooldownType {
+	if len(spelldata.ItemAuraDamageShields(row)) > 0 {
+		return core.CooldownTypeSurvival
+	}
+	return (&core.StatBuffAura{BuffedStatTypes: auras.wearerStats}).InferCDType()
 }
 
 func lowersThreat(row *spelldata.Spell) bool {
@@ -180,9 +190,7 @@ func lowersThreat(row *spelldata.Spell) bool {
 
 // A buff the game spends by charges starts with its full count, and the hits its row names spend
 // them: Weakness Analyzer's 1291101 drops on the first non-periodic crit.
-func spellDataOnUseAuraSpell(character *core.Character, row *spelldata.Spell) core.SpellConfig {
-	auras := newSpellDataAuras(character, row, spelldata.AuraConfig(row))
-
+func spellDataOnUseAuraSpell(character *core.Character, row *spelldata.Spell, auras *spellDataAuras) core.SpellConfig {
 	charged := auras.wearer != nil && SpendsItsCharges(row)
 	if charged {
 		spelldata.AttachChargeSpender(character, auras.wearer, row, auras.wearer.Label+" Charge")

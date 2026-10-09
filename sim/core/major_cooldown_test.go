@@ -6,6 +6,7 @@ import (
 
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/simsignals"
+	"github.com/wowsims/forever/sim/core/stats"
 )
 
 const (
@@ -139,5 +140,37 @@ func TestSurvivalCooldownCastByTheRotationForANonTank(t *testing.T) {
 	mage := runCooldownMages(t, nil, castRotation(fakeDefensiveID))[0]
 	if mage.casts[fakeDefensiveID] == 0 {
 		t.Errorf("the rotation never cast the survival cooldown")
+	}
+}
+
+// A stat buff's cooldown type: any defensive stat or resistance makes it survival, mana regen and
+// spirit alone mana, and anything else DPS.
+func TestInferCDTypeFromTheBuffedStats(t *testing.T) {
+	for _, tc := range []struct {
+		stats []stats.Stat
+		want  CooldownType
+	}{
+		{[]stats.Stat{stats.Armor}, CooldownTypeSurvival},
+		{[]stats.Stat{stats.BlockValue}, CooldownTypeSurvival},
+		{[]stats.Stat{stats.BlockPercent}, CooldownTypeSurvival},
+		{[]stats.Stat{stats.DodgePercent}, CooldownTypeSurvival},
+		{[]stats.Stat{stats.ParryPercent}, CooldownTypeSurvival},
+		{[]stats.Stat{stats.ArcaneResistance}, CooldownTypeSurvival},
+		{[]stats.Stat{stats.FireResistance}, CooldownTypeSurvival},
+		{[]stats.Stat{stats.FrostResistance}, CooldownTypeSurvival},
+		{[]stats.Stat{stats.NatureResistance}, CooldownTypeSurvival},
+		{[]stats.Stat{stats.ShadowResistance}, CooldownTypeSurvival},
+		{[]stats.Stat{stats.Spirit, stats.Armor}, CooldownTypeSurvival},
+		{[]stats.Stat{stats.MP5}, CooldownTypeMana},
+		{[]stats.Stat{stats.Spirit}, CooldownTypeMana},
+		{[]stats.Stat{stats.MP5, stats.Spirit}, CooldownTypeMana},
+		{[]stats.Stat{stats.Spirit, stats.Strength}, CooldownTypeDPS},
+		{[]stats.Stat{stats.AttackPower}, CooldownTypeDPS},
+		{[]stats.Stat{stats.SpellCritPercent}, CooldownTypeDPS},
+		{nil, CooldownTypeDPS},
+	} {
+		if got := (&StatBuffAura{BuffedStatTypes: tc.stats}).InferCDType(); got != tc.want {
+			t.Errorf("%v: type %v, want %v", tc.stats, got, tc.want)
+		}
 	}
 }

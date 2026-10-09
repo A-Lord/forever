@@ -1,11 +1,14 @@
 package shared
 
 import (
+	"slices"
 	"testing"
 	"time"
 
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
@@ -62,6 +65,38 @@ func TestOnUseThreatReductionIsNeverUsedOnItsOwn(t *testing.T) {
 	stepPast(t, sim, start+20*time.Second+time.Millisecond)
 	if got := tester.PseudoStats.ThreatMultiplier; !core.WithinToleranceFloat64(1, got, 1e-6) {
 		t.Errorf("threat multiplier after its 20 s %v, want 1", got)
+	}
+}
+
+// The wearer's buff sorts the on-use: a block, dodge or parry chance or a damage shield makes it a
+// survival cooldown, spirit alone a mana cooldown, and a crit chance a DPS cooldown. Each row stands in
+// for the aura it carries on the wearer.
+func TestOnUseAuraCooldownTypeFollowsTheWearersBuff(t *testing.T) {
+	for i, tc := range []struct {
+		row  int32
+		aura dbcenums.EffectAuraType
+		want core.CooldownType
+	}{
+		{1291105, dbcenums.A_MOD_BLOCK_PERCENT, core.CooldownTypeSurvival},
+		{1293820, dbcenums.A_MOD_DODGE_PERCENT, core.CooldownTypeSurvival},
+		{19263, dbcenums.A_MOD_PARRY_PERCENT, core.CooldownTypeSurvival},
+		{chitinousSpikes, dbcenums.A_DAMAGE_SHIELD, core.CooldownTypeSurvival},
+		{1291103, dbcenums.A_MOD_STAT, core.CooldownTypeMana},
+		{analyzingWeaknesses, dbcenums.A_MOD_CRIT_PCT, core.CooldownTypeDPS},
+	} {
+		row := spelldata.MustFind(tc.row)
+		if !slices.ContainsFunc(spelldata.EffectsOn(row, spelldata.AuraOnWearer), func(e int32) bool { return row.EffectN(int(e)).Aura == tc.aura }) {
+			t.Fatalf("%d puts no %v on the wearer", tc.row, tc.aura)
+		}
+
+		itemID := 992711 + int32(i)
+		withAuraItem(itemID, proto.ItemType_ItemTypeTrinket, testOnUse(tc.row, 120000, 0, 0))
+		NewSpellDataAuraOnUse(itemID)
+
+		sim := newAuraSim(shaman("Shaman", map[proto.ItemSlot]int32{proto.ItemSlot_ItemSlotTrinket1: itemID}))
+		if got := auraTesterAt(sim, 0).GetInitialMajorCooldown(core.ActionID{ItemID: itemID}).Type; got != tc.want {
+			t.Errorf("%d (%v): the on-use is of type %v, want %v", tc.row, tc.aura, got, tc.want)
+		}
 	}
 }
 
