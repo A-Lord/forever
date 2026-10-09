@@ -27,7 +27,7 @@ type EnchantProc struct {
 	Kind      RateKind
 	Value     float64
 	Reason    string
-	Source    string // "tbc-carryover", "vanilla-carryover", "wcl:<report>/<fight>", "issue #N"
+	Source    string // "tbc-carryover", "vanilla-carryover", "estimate", "wcl:<report>/<fight>", "issue #N"
 }
 
 var EnchantProcs = []EnchantProc{
@@ -35,9 +35,18 @@ var EnchantProcs = []EnchantProc{
 		EnchantID: 1900,
 		SpellID:   20007,
 		Kind:      RatePPM,
-		Value:     1, // TODO: TBC value - verify in-game
+		Value:     1, // TODO: Vanilla value - verify in-game
 		Reason:    "Crusader: 20007 states no proc chance, and 458112's 100 is the sentinel beside 'often'",
-		Source:    "tbc-carryover",
+		Source:    "vanilla-carryover",
+	},
+	{
+		EnchantID: 8217,
+		SpellID:   1248806,
+		Kind:      RateChance,
+		Value:     0.09, // TODO: Measure the rate and how it falls with the wearer's crit chance, which the sim does not model.
+		Reason: "Revelation: 1248806's 100 is the sentinel; the tooltip says the chance is diminished as the " +
+			"wearer's critical strike chance increases, and states no number",
+		Source: "estimate",
 	},
 }
 

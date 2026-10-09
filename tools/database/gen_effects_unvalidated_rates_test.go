@@ -19,6 +19,7 @@ func TestRateOriginReadsTheSource(t *testing.T) {
 		"issue #1":                "",
 		"vanilla-carryover":       "vanilla",
 		"tbc-carryover":           "tbc",
+		"estimate":                "unknown",
 		"owner decision":          "unknown",
 	} {
 		if got := rateOrigin(source); got != want {
@@ -173,21 +174,21 @@ func TestUnvalidatedRatesRender(t *testing.T) {
 	}
 }
 
-// What holds for any shipped rate: its Source is a carry-over or a measurement, a literal names an
-// origin the notices know, every row names gear the game files carry, and no measured rate is listed.
+// What holds for any shipped rate: its Source is a carry-over, an estimate or a measurement, a literal
+// names an origin the notices know, every row names gear the game files carry, and no measured rate is listed.
 func TestShippedRatesAreWellFormed(t *testing.T) {
 	withDBCInputs(t)
 	instance := dbc.GetDBC()
 	in := shippedRateInputs(instance)
 
 	knownSource := func(source string) bool {
-		return source == "vanilla-carryover" || source == "tbc-carryover" || rateOrigin(source) == ""
+		return source == "vanilla-carryover" || source == "tbc-carryover" || source == "estimate" || rateOrigin(source) == ""
 	}
 	db := NewWowDatabase()
 	var measuredItems, measuredEnchants []int32
 	for _, row := range in.WeaponProcs {
 		if !knownSource(row.Source) {
-			t.Errorf("item %d's rate states source %q, want a carry-over or a measurement", row.ItemID, row.Source)
+			t.Errorf("item %d's rate states source %q, want a carry-over, an estimate or a measurement", row.ItemID, row.Source)
 		}
 		if _, ok := instance.Items[int(row.ItemID)]; !ok {
 			t.Errorf("item %d's rate names an item the game files do not carry", row.ItemID)
@@ -199,7 +200,7 @@ func TestShippedRatesAreWellFormed(t *testing.T) {
 	}
 	for _, row := range in.EnchantProcs {
 		if !knownSource(row.Source) {
-			t.Errorf("enchant %d's rate states source %q, want a carry-over or a measurement", row.EnchantID, row.Source)
+			t.Errorf("enchant %d's rate states source %q, want a carry-over, an estimate or a measurement", row.EnchantID, row.Source)
 		}
 		enchant, ok := instance.EnchantsByEffectId[int(row.EnchantID)]
 		if !ok || !slices.Contains(enchant.EffectArgs, int(row.SpellID)) {
@@ -212,7 +213,7 @@ func TestShippedRatesAreWellFormed(t *testing.T) {
 	}
 	for _, row := range in.Spells {
 		if spellRateKind(row) != 0 && !knownSource(row.Source) {
-			t.Errorf("spell %d's rate states source %q, want a carry-over or a measurement", row.SpellID, row.Source)
+			t.Errorf("spell %d's rate states source %q, want a carry-over, an estimate or a measurement", row.SpellID, row.Source)
 		}
 		for _, itemID := range in.SpellItems[row.SpellID] {
 			if spellRateKind(row) != 0 && rateOrigin(row.Source) == "" {

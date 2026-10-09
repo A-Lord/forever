@@ -2396,7 +2396,8 @@ export const UNVALIDATED_RATE_ITEMS = new Map<number, UnvalidatedRate>([
 ])
 
 export const UNVALIDATED_RATE_ENCHANTS = new Map<number, UnvalidatedRate>([
-	[1900, { kind: 'ppm', origin: 'tbc' }], // Enchant Weapon - Crusader
+	[1900, { kind: 'ppm', origin: 'vanilla' }], // Enchant Weapon - Crusader
+	[8217, { kind: 'chance', origin: 'unknown' }], // Enchant Weapon - Revelation
 ])
 
 // Keyed by set id, then by the bonus's piece count.
