@@ -9464,6 +9464,38 @@
 			},
 			"additionalProperties": false,
 			"required": ["iterations", "warnings", "buttons", "header", "results", "character_stats"]
+		},
+		"stat_filters": {
+			"type": "object",
+			"properties": {
+				"title": {
+					"type": "string"
+				},
+				"spec_defaults": {
+					"type": "string"
+				},
+				"all": {
+					"type": "string"
+				},
+				"groups": {
+					"type": "object",
+					"properties": {
+						"primary": {
+							"type": "string"
+						},
+						"other": {
+							"type": "string"
+						}
+					},
+					"additionalProperties": false,
+					"required": ["primary", "other"]
+				},
+				"kept_tooltip": {
+					"type": "string"
+				}
+			},
+			"additionalProperties": false,
+			"required": ["title", "spec_defaults", "all", "groups", "kept_tooltip"]
 		}
 	},
 	"additionalProperties": false,
@@ -9480,7 +9512,8 @@
 		"import",
 		"export",
 		"info",
-		"sidebar"
+		"sidebar",
+		"stat_filters"
 	],
 	"$schema": "http://json-schema.org/draft-07/schema#",
 	"title": "Generated Schema",

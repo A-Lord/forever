@@ -1,6 +1,7 @@
 import { Field, hasFieldFrame } from '@ui-kit/Field';
 import type { ControlledProps, FieldFrameProps, ResolvedIcon } from '@ui-kit/Field/types';
 import { IconSwatch } from '@ui-kit/IconSwatch';
+import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import { isRightClick } from '@ui-kit/utils/dom';
 import clsx from 'clsx';
 import { type MouseEvent, useId, useRef } from 'react';
@@ -15,11 +16,29 @@ export interface IconPickerProps extends FieldFrameProps, ControlledProps<number
 	improvedIcon?: ResolvedIcon;
 	/** Shown from states 4 up. */
 	improvedIcon2?: ResolvedIcon;
+	/** A selection kept on offer only because it is selected: the swatch dims and shows `keptTooltip` on hover. */
+	kept?: boolean;
+	keptTooltip?: string;
 }
 
 /** Without a label, description or layout the swatch renders bare; with any of them it sits in a `Field` laid out as `icon`, whatever layout the caller passes. */
-export const IconPicker = ({ states, icon, improvedIcon, improvedIcon2, value, onChange, disabled, className, testId, ...frameProps }: IconPickerProps) => {
+export const IconPicker = ({
+	states,
+	icon,
+	improvedIcon,
+	improvedIcon2,
+	kept,
+	keptTooltip,
+	value,
+	onChange,
+	disabled,
+	className,
+	testId,
+	...frameProps
+}: IconPickerProps) => {
 	const labelId = useId();
+	const tooltipId = useId();
+	const keptTip = kept ? keptTooltip : undefined;
 	const controlRef = useRef<HTMLAnchorElement>(null);
 	const fillImproved1 = states >= 3 && !!improvedIcon;
 	const fillImproved2 = states >= 4 && !!improvedIcon2;
@@ -80,16 +99,29 @@ export const IconPicker = ({ states, icon, improvedIcon, improvedIcon2, value, o
 			disabled={disabled}
 			text={showCounterText ? String(value) : undefined}
 			badges={badges || undefined}
+			kept={kept}
 			className={clsx(value === 0 && 'grayscale', !rooted && className)}
 			testId={testId ?? 'icon-picker-root'}
 			// The glyph is a background image, so without this the anchor announces nothing.
 			aria-label={icon?.name || undefined}
 			{...(rooted ? { ref: controlRef, 'aria-labelledby': labelId } : {})}
+			{...tooltipAnchorProps(keptTip ? tooltipId : undefined, keptTip)}
 			{...stateEvents}
 		/>
 	);
+	const keptTooltipElement = keptTip && <Tooltip id={tooltipId} />;
 
-	if (!rooted) return swatch;
+	if (!rooted)
+		return (
+			<>
+				{swatch}
+				{keptTooltipElement}
+			</>
+		);
 
-	return <Field {...frameProps} layout="icon" className={className} disabled={disabled} leading={swatch} labelId={labelId} controlRef={controlRef} />;
+	return (
+		<Field {...frameProps} layout="icon" className={className} disabled={disabled} leading={swatch} labelId={labelId} controlRef={controlRef}>
+			{keptTooltipElement}
+		</Field>
+	);
 };

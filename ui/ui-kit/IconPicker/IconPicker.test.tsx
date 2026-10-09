@@ -302,4 +302,26 @@ describe('IconPicker', () => {
 		expect(fireEvent.contextMenu(improved)).toBe(false);
 		expect(onChange).toHaveBeenCalledTimes(2);
 	});
+
+	it('marks a kept swatch and anchors the kept tooltip on it', () => {
+		mount({ kept: true, keptTooltip: 'Kept', initial: 1 });
+
+		expect(mainAnchor().hasAttribute('data-kept')).toBe(true);
+		expect(mainAnchor().getAttribute('data-tooltip-content')).toBe('Kept');
+		expect(mainAnchor().getAttribute('data-tooltip-id')).toBeTruthy();
+	});
+
+	it('marks the box rather than the swatch when badges sit beside it', () => {
+		mount({ kept: true, keptTooltip: 'Kept', states: 3, improvedIcon, initial: 1 });
+
+		expect(mainAnchor().hasAttribute('data-kept')).toBe(false);
+		expect(mainAnchor().parentElement!.hasAttribute('data-kept')).toBe(true);
+	});
+
+	it('carries neither the mark nor the tooltip unless kept', () => {
+		mount({ keptTooltip: 'Kept', initial: 1 });
+
+		expect(mainAnchor().hasAttribute('data-kept')).toBe(false);
+		expect(mainAnchor().hasAttribute('data-tooltip-id')).toBe(false);
+	});
 });

@@ -1,3 +1,4 @@
+import i18n from '@i18n/config';
 import { useResolvedIcon } from '@sim/hooks/useResolvedIcon';
 import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
 import type { Player } from '@sim/player/player';
@@ -28,9 +29,10 @@ const firstActiveActionId = <ModObject,>(config: MultiIconPickerConfig<ModObject
 };
 
 export const ConnectedMultiIconPicker = <ModObject,>({ modObject, config, subscribe, onClear, testId }: ConnectedMultiIconPickerProps<ModObject>) => {
-	const { actionId, hidden } = useStoreSubscribe(subscribe, () => ({
+	const { actionId, hidden, kept } = useStoreSubscribe(subscribe, () => ({
 		actionId: firstActiveActionId(config, modObject),
 		hidden: !!config.showWhen && !config.showWhen(modObject as unknown as Player<any>),
+		kept: config.keptBy?.(modObject) ?? false,
 	}));
 
 	const icon = useResolvedIcon(config.categoryId ?? actionId ?? undefined);
@@ -38,7 +40,14 @@ export const ConnectedMultiIconPicker = <ModObject,>({ modObject, config, subscr
 	if (hidden) return null;
 
 	return (
-		<MultiIconPicker label={config.label} icon={icon} active={!!actionId} onClear={onClear} testId={testId}>
+		<MultiIconPicker
+			label={config.label}
+			icon={icon}
+			active={!!actionId}
+			kept={kept}
+			keptTooltip={i18n.t('stat_filters.kept_tooltip')}
+			onClear={onClear}
+			testId={testId}>
 			{config.inputs.map((input, index) => (
 				<ConnectedIconPicker key={index} modObject={modObject} config={input} />
 			))}

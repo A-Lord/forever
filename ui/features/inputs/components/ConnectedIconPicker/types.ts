@@ -11,6 +11,8 @@ interface IconPickerBase<ModObject, ValueType> extends InputConfig<ModObject, Va
 	improvedId?: ActionId;
 	// Only used if states >= 4.
 	improvedId2?: ActionId;
+	// Dims the swatch with the kept tooltip while it holds: a selection the stat filter hides, still offered because it is selected.
+	keptBy?: (obj: ModObject) => boolean;
 }
 
 // Required here: an icon picker has no parent that refreshes it.

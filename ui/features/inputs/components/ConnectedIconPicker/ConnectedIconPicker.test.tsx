@@ -1,3 +1,4 @@
+import i18n from '@i18n/config';
 import { ActionId } from '@sim/proto/action_id';
 import { FakeSource, filled } from '@testing/inputs';
 import { act, fireEvent, render, screen } from '@testing-library/react';
@@ -148,6 +149,16 @@ describe('ConnectedIconPicker', () => {
 
 		act(() => settings.setVisible(true));
 		expect(setValue).toHaveBeenLastCalledWith(settings, true);
+	});
+
+	it('marks the swatch kept while keptBy holds, and follows the source', () => {
+		const settings = new Settings(true);
+		render(<ConnectedIconPicker modObject={settings} config={configFor({ keptBy: s => s.value === true })} />);
+		expect(mainAnchor().hasAttribute('data-kept')).toBe(true);
+		expect(mainAnchor().getAttribute('data-tooltip-content')).toBe(i18n.t('stat_filters.kept_tooltip'));
+
+		act(() => settings.set(false));
+		expect(mainAnchor().hasAttribute('data-kept')).toBe(false);
 	});
 });
 

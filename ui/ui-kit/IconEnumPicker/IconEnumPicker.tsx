@@ -23,6 +23,9 @@ export interface IconEnumPickerProps<T> extends FieldFrameProps, ControlledProps
 	direction?: IconEnumPickerDirection;
 	numColumns?: number;
 	onOpenChange?: (open: boolean) => void;
+	/** A selection kept on offer only because it is selected: the swatch dims and shows `keptTooltip` on hover, in place of `tooltip`. */
+	kept?: boolean;
+	keptTooltip?: string;
 }
 
 /** Without a label, description or layout the trigger renders bare; with any of them it sits in a `Field` laid out as `icon`, whatever layout the caller passes. */
@@ -35,6 +38,8 @@ export const IconEnumPicker = <T,>({
 	direction,
 	numColumns,
 	onOpenChange,
+	kept,
+	keptTooltip,
 	value,
 	onChange,
 	disabled,
@@ -54,7 +59,8 @@ export const IconEnumPicker = <T,>({
 	const active = !disabled && !equals(value, zeroValue);
 
 	const horizontal = direction === IconEnumPickerDirection.Horizontal;
-	const tooltips = !!tooltip || options.some(option => !!option.tooltip);
+	const triggerTooltip = (kept ? keptTooltip : undefined) ?? tooltip;
+	const tooltips = !!triggerTooltip || options.some(option => !!option.tooltip);
 
 	const menu = (
 		<IconMenu
@@ -64,13 +70,14 @@ export const IconEnumPicker = <T,>({
 				style: selectedHidden ? undefined : selected ? iconStyleOf(selected) : resolvedIconStyle(backupIcon),
 				active,
 				disabled,
+				kept,
 				// The value's text sits on the swatch, the way IconPicker's counter does: with one icon
 				// shared by every rank, the text is what tells the ranks apart.
 				text: selectedHidden ? undefined : selected?.text,
 				className: clsx('transition-none', !rooted && className),
 				testId: testId ?? 'icon-enum-picker-root',
 				...(rooted ? { ref: controlRef, 'aria-labelledby': labelId } : {}),
-				...tooltipAnchorProps(tooltip ? tooltipId : undefined, tooltip),
+				...tooltipAnchorProps(triggerTooltip ? tooltipId : undefined, triggerTooltip),
 			}}
 			side={horizontal ? 'right' : 'bottom'}
 			portalProps={{ 'data-testid': 'icon-enum-picker-portal' }}

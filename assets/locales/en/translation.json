@@ -2677,5 +2677,15 @@
 			"points_suffix": "Points",
 			"percent_suffix": "%"
 		}
+	},
+	"stat_filters": {
+		"title": "Stat filter",
+		"spec_defaults": "Spec defaults",
+		"all": "All",
+		"groups": {
+			"primary": "Primary",
+			"other": "Other"
+		},
+		"kept_tooltip": "Shown because it is selected; your stat filter hides its stats."
 	}
 }

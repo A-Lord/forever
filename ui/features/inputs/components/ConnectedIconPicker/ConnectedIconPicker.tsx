@@ -1,3 +1,4 @@
+import i18n from '@i18n/config';
 import { useResolvedIcon } from '@sim/hooks/useResolvedIcon';
 import { IconPicker } from '@ui-kit/IconPicker';
 
@@ -34,6 +35,8 @@ export const ConnectedIconPicker = <ModObject, ValueType>({ modObject, config, t
 			icon={icon}
 			improvedIcon={improvedIcon}
 			improvedIcon2={improvedIcon2}
+			kept={config.keptBy?.(modObject) ?? false}
+			keptTooltip={i18n.t('stat_filters.kept_tooltip')}
 			value={Number(value)}
 			onChange={n => setValue(toSource(n))}
 			disabled={disabled}

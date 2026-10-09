@@ -10,4 +10,6 @@ export interface MultiIconPickerConfig<ModObject> {
 	label?: string;
 	categoryId?: ActionId;
 	showWhen?: (obj: Player<any>) => boolean;
+	// Dims the trigger with the kept tooltip while it holds: a selection the stat filter hides, still offered because it is selected.
+	keptBy?: (obj: ModObject) => boolean;
 }

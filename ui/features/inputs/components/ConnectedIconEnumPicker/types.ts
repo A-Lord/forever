@@ -15,6 +15,8 @@ interface IconEnumPickerBase<ModObject, T> extends InputConfig<ModObject, T>, Pi
 	values: Array<IconEnumValueConfig<ModObject, T>>;
 	backupIconUrl?: (value: T) => ActionId;
 	showWhen?: (obj: ModObject) => boolean;
+	// Dims the swatch with the kept tooltip while it holds: a selection the stat filter hides, still offered because it is selected.
+	keptBy?: (obj: ModObject) => boolean;
 }
 
 // Required here: an icon enum picker has no parent that refreshes it.

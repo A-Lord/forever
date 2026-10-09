@@ -2,6 +2,7 @@ import i18n from '@i18n/config';
 import { Field } from '@ui-kit/Field';
 import type { ResolvedIcon } from '@ui-kit/Field/types';
 import { IconMenu } from '@ui-kit/IconSwatch';
+import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import { isRightClick } from '@ui-kit/utils/dom';
 import clsx from 'clsx';
 import { Children, type MouseEvent, type ReactNode, useId, useRef } from 'react';
@@ -13,17 +14,23 @@ export interface MultiIconPickerProps {
 	onClear: () => void;
 	/** One menu entry per child, each an icon toggle. The popup unmounts while closed, and the children with it. */
 	children: ReactNode;
+	/** A selection kept on offer only because it is selected: the trigger dims and shows `keptTooltip` on hover. */
+	kept?: boolean;
+	keptTooltip?: string;
 	testId?: string;
 }
 
-export const MultiIconPicker = ({ label, icon, active, onClear, children, testId }: MultiIconPickerProps) => {
+export const MultiIconPicker = ({ label, icon, active, onClear, children, kept, keptTooltip, testId }: MultiIconPickerProps) => {
 	const labelId = useId();
+	const tooltipId = useId();
+	const keptTip = kept ? keptTooltip : undefined;
 	const controlRef = useRef<HTMLAnchorElement>(null);
 	const menu = (
 		<IconMenu
 			trigger={{
 				icon,
 				active,
+				kept,
 				className: clsx(!active && 'grayscale'),
 				testId: testId ?? 'multi-icon-picker-root',
 				// The trigger is a bare anchor carrying a background image, so it announces nothing without this. Base UI
@@ -32,6 +39,7 @@ export const MultiIconPicker = ({ label, icon, active, onClear, children, testId
 				// independently of the trigger's own `aria-labelledby` below.
 				'aria-label': label,
 				...(label ? { ref: controlRef, 'aria-labelledby': labelId } : {}),
+				...tooltipAnchorProps(keptTip ? tooltipId : undefined, keptTip),
 				onContextMenu: (event: MouseEvent) => event.preventDefault(),
 				onMouseDown: (event: MouseEvent) => {
 					if (isRightClick(event.nativeEvent)) onClear();
@@ -56,7 +64,19 @@ export const MultiIconPicker = ({ label, icon, active, onClear, children, testId
 		</IconMenu>
 	);
 
-	if (!label) return menu;
+	const keptTooltipElement = keptTip && <Tooltip id={tooltipId} />;
 
-	return <Field role="group" label={label} layout="icon" leading={menu} labelId={labelId} controlRef={controlRef} />;
+	if (!label)
+		return (
+			<>
+				{menu}
+				{keptTooltipElement}
+			</>
+		);
+
+	return (
+		<Field role="group" label={label} layout="icon" leading={menu} labelId={labelId} controlRef={controlRef}>
+			{keptTooltipElement}
+		</Field>
+	);
 };

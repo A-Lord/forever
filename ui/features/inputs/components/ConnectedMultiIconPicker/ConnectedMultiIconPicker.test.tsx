@@ -1,3 +1,4 @@
+import i18n from '@i18n/config';
 import { ActionId } from '@sim/proto/action_id';
 import type { StoreSubscribe } from '@sim/state/subscriptions';
 import { filled } from '@testing/inputs';
@@ -141,5 +142,16 @@ describe('ConnectedMultiIconPicker', () => {
 		mount(new Buffs(), configFor(), onClear);
 		fireEvent.mouseDown(trigger(), { button: 2 });
 		expect(onClear).toHaveBeenCalledTimes(1);
+	});
+
+	it('marks the trigger kept while keptBy holds, and follows the source', () => {
+		const buffs = new Buffs();
+		buffs.set('kings', 1);
+		mount(buffs, configFor({ keptBy: obj => obj.values.kings > 0 }));
+		expect(trigger().hasAttribute('data-kept')).toBe(true);
+		expect(trigger().getAttribute('data-tooltip-content')).toBe(i18n.t('stat_filters.kept_tooltip'));
+
+		act(() => buffs.set('kings', 0));
+		expect(trigger().hasAttribute('data-kept')).toBe(false);
 	});
 });

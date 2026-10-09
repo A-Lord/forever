@@ -1,3 +1,4 @@
+import i18n from '@i18n/config';
 import { ActionId } from '@sim/proto/action_id';
 import { FakeSource, filled } from '@testing/inputs';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
@@ -258,6 +259,17 @@ describe('ConnectedIconEnumPicker', () => {
 		const field = container.firstElementChild as HTMLElement;
 		expect(screen.getByTestId('armor-root').tagName).toBe('A');
 		expect(within(field).getByTestId('form-label').textContent).toBe('Armor');
+	});
+
+	it('marks the trigger kept while keptBy holds, and follows the source', () => {
+		const options = new Options();
+		options.set(2);
+		mount(options, configFor({ keptBy: obj => obj.value === 2 }));
+		expect(button().hasAttribute('data-kept')).toBe(true);
+		expect(button().getAttribute('data-tooltip-content')).toBe(i18n.t('stat_filters.kept_tooltip'));
+
+		act(() => options.set(1));
+		expect(button().hasAttribute('data-kept')).toBe(false);
 	});
 });
 

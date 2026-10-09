@@ -1,3 +1,4 @@
+import i18n from '@i18n/config';
 import { useActionIds } from '@sim/hooks/useActionIds';
 import { useResolvedIcon } from '@sim/hooks/useResolvedIcon';
 import { IconEnumPicker } from '@ui-kit/IconEnumPicker';
@@ -57,6 +58,8 @@ export const ConnectedIconEnumPicker = <ModObject, T>({ modObject, config, testI
 			zeroValue={config.zeroValue}
 			backupIcon={backupIcon}
 			tooltip={config.tooltip}
+			kept={config.keptBy?.(modObject) ?? false}
+			keptTooltip={i18n.t('stat_filters.kept_tooltip')}
 			direction={config.direction}
 			numColumns={typeof config.numColumns === 'function' ? config.numColumns(modObject) : config.numColumns}
 			onOpenChange={open => {

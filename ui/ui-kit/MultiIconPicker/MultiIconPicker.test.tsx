@@ -125,4 +125,11 @@ describe('MultiIconPicker', () => {
 		trigger().dispatchEvent(event);
 		expect(event.defaultPrevented).toBe(true);
 	});
+
+	it('marks a kept trigger and anchors the kept tooltip on it', () => {
+		mount({ active: true, kept: true, keptTooltip: 'Kept' });
+
+		expect(trigger().hasAttribute('data-kept')).toBe(true);
+		expect(trigger().getAttribute('data-tooltip-content')).toBe('Kept');
+	});
 });
