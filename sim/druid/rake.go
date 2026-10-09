@@ -9,8 +9,7 @@ func (druid *Druid) registerRakeSpell() {
 	rank := spellData.Rake.Highest()
 	// TODO: Verify the direct hit's attack power share independently of the periodic damage.
 	config := spelldata.SpellConfig(&druid.Unit, rank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
-	// The initial bleed hit is not reduced by armor.
-	config.Flags |= core.SpellFlagIgnoreResists
+	// Only the periodic effect states the bleed mechanic, so armor reduces the initial hit and not the ticks.
 	config.Dot = spelldata.DotConfig(rank, rank.PeriodicDamageEffect(), bleedAuraOpt())
 	tick := rank.PeriodicDamageEffect()
 	// TODO: Verify whether changing attack power after application changes subsequent ticks.

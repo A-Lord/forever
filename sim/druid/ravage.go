@@ -12,8 +12,9 @@ func (druid *Druid) registerRavageSpell() {
 	config.ExtraCastCondition = func(_ *core.Simulation, _ *core.Unit) bool {
 		return druid.ProwlAura != nil && druid.ProwlAura.IsActive() && druid.BehindTarget()
 	}
+	// No Active Defense (Attributes 0x200000): it misses or lands, never dodged, parried or blocked.
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		result := spell.CalcAndDealDamage(sim, target, druid.weaponSpecialDamage(sim, spell, target, rank), spell.OutcomeMeleeWeaponSpecialHitAndCrit)
+		result := spell.CalcAndDealDamage(sim, target, druid.weaponSpecialDamage(sim, spell, target, rank), spell.OutcomeMeleeSpecialNoBlockDodgeParry)
 		if result.Landed() {
 			druid.awardComboPoints(sim, spell, rank)
 		}

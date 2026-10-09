@@ -3,6 +3,7 @@
 package feralbear
 
 import (
+	"math"
 	"testing"
 	"time"
 
@@ -296,5 +297,23 @@ func TestSwipeDoesNotScaleWithAttackPower(t *testing.T) {
 	// The row's damage is 83. Attack power on a bear is far larger than the gap this allows.
 	if perHit < 40 || perHit > 160 {
 		t.Errorf("swipe hit for %.1f, want the row's damage without attack power", perHit)
+	}
+}
+
+// A bear's swing takes the two-hander rage factor: 4.5 rage per second of its 2.5 second swing is 11.25,
+// and a crit adds the swing's one-hand rage, 3.46 * 2.5 = 8.65, for 19.9.
+func TestBearSwingRageTakesTheTwoHandFactor(t *testing.T) {
+	for _, c := range []struct {
+		outcome core.HitOutcome
+		want    float64
+	}{{core.OutcomeHit, 11.25}, {core.OutcomeCrit, 19.9}} {
+		sim, bear := newBear(t)
+		bear.SpendRage(sim, bear.CurrentRage(), bear.NewRageMetrics(core.ActionID{SpellID: 1}))
+		result := &core.SpellResult{Target: bear.CurrentTarget, Outcome: c.outcome, Damage: 100}
+		before := bear.CurrentRage()
+		bear.Unit.OnSpellHitDealt(sim, bear.AutoAttacks.MHAuto(), result)
+		if got := bear.CurrentRage() - before; math.Abs(got-c.want) > 1e-9 {
+			t.Errorf("%v swing grants %g rage, want %g", c.outcome, got, c.want)
+		}
 	}
 }

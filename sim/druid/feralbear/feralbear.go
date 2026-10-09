@@ -47,8 +47,9 @@ func NewFeralBearDruid(character *core.Character, options *proto.Player) *Guardi
 		UnitClass:      proto.Class_ClassDruid,
 	})
 	bear.EnableRageBar(core.RageBarOptions{
-		BaseRageMultiplier: 2.5,
+		BaseRageMultiplier: 1,
 		StartingRage:       tankOptions.Options.GetStartingRage(),
+		TwoHandRage:        druid.BearRageIsTwoHanded,
 	})
 	bear.EnableAutoAttacks(bear, core.AutoAttackOptions{
 		// Base paw weapon.
