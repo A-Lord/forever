@@ -34,8 +34,11 @@ func newCat(t *testing.T, talents string, consumes *proto.ConsumesSpec) (*core.S
 	return newCatWearing(t, talents, consumes, nil)
 }
 
-func newCatWearing(t *testing.T, talents string, consumes *proto.ConsumesSpec, worn map[proto.ItemSlot]int32) (*core.Simulation, *FeralDruid) {
+func newCatWearing(t *testing.T, talents string, consumes *proto.ConsumesSpec, worn map[proto.ItemSlot]int32, targets ...*proto.Target) (*core.Simulation, *FeralDruid) {
 	t.Helper()
+	if len(targets) == 0 {
+		targets = []*proto.Target{{Name: "target", Level: 60}}
+	}
 	items := make([]*proto.ItemSpec, proto.ItemSlot_ItemSlotRanged+1)
 	for i := range items {
 		items[i] = &proto.ItemSpec{}
@@ -63,7 +66,7 @@ func newCatWearing(t *testing.T, talents string, consumes *proto.ConsumesSpec, w
 			}},
 			Buffs: &proto.PartyBuffs{},
 		}}},
-		Encounter: &proto.Encounter{Targets: []*proto.Target{{Name: "target", Level: 60}}, Duration: 60},
+		Encounter: &proto.Encounter{Targets: targets, Duration: 60},
 	}, simsignals.CreateSignals())
 	sim.Reset()
 	return sim, sim.Raid.Parties[0].Players[0].(*FeralDruid)

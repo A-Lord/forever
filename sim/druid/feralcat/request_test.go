@@ -4,7 +4,6 @@ package feralcat
 
 import (
 	"github.com/wowsims/forever/assets/database"
-	"github.com/wowsims/forever/sim/core/simsignals"
 	"github.com/wowsims/forever/sim/core/stats"
 	"google.golang.org/protobuf/encoding/protojson"
 	goproto "google.golang.org/protobuf/proto"
@@ -97,45 +96,6 @@ func sweepRequest(talents string, rotation *proto.APLRotation, cannotShred bool,
 			Name: "target", Level: 63, MobType: proto.MobType_MobTypeDemon,
 		}}, Duration: 180},
 	}
-}
-
-func newCatWearingTargets(t *testing.T, talents string, consumes *proto.ConsumesSpec, worn map[proto.ItemSlot]int32, targetCount int) (*core.Simulation, *FeralDruid) {
-	t.Helper()
-	items := make([]*proto.ItemSpec, proto.ItemSlot_ItemSlotRanged+1)
-	for i := range items {
-		items[i] = &proto.ItemSpec{}
-	}
-	items[proto.ItemSlot_ItemSlotMainHand].Id = 866
-	for slot, id := range worn {
-		items[slot].Id = id
-	}
-	if consumes == nil {
-		consumes = &proto.ConsumesSpec{}
-	}
-	targets := make([]*proto.Target, targetCount)
-	for i := range targets {
-		targets[i] = &proto.Target{Name: "target", Level: 60}
-	}
-	sim := core.NewSim(&proto.RaidSimRequest{
-		SimOptions: &proto.SimOptions{RandomSeed: 1, Iterations: 1},
-		Raid: &proto.Raid{Parties: []*proto.Party{{
-			Players: []*proto.Player{{
-				Name: "Cat", Class: proto.Class_ClassDruid, Race: proto.Race_RaceNightElf,
-				TalentsString: talents,
-				Spec: &proto.Player_FeralCatDruid{FeralCatDruid: &proto.FeralCatDruid{
-					Options: &proto.FeralCatDruid_Options{},
-				}},
-				Equipment:   &proto.EquipmentSpec{Items: items},
-				Consumables: consumes,
-				Buffs:       &proto.IndividualBuffs{},
-				Rotation:    &proto.APLRotation{},
-			}},
-			Buffs: &proto.PartyBuffs{},
-		}}},
-		Encounter: &proto.Encounter{Targets: targets, Duration: 60},
-	}, simsignals.CreateSignals())
-	sim.Reset()
-	return sim, sim.Raid.Parties[0].Players[0].(*FeralDruid)
 }
 
 func buildRequest(t testing.TB, name string) *proto.RaidSimRequest {

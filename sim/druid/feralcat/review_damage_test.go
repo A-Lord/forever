@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
@@ -341,7 +342,7 @@ func TestPounceTalentsModifyOnlyTheirOwnEffects(t *testing.T) {
 
 func TestRendAndTearReadsBleedsPerTarget(t *testing.T) {
 	biteDamage := func(targetIndex int) float64 {
-		sim, cat := newCatWearingTargets(t, "0000000000000000-00000000000000000050-0000000000000000", nil, nil, 2)
+		sim, cat := newCatWearing(t, "0000000000000000-00000000000000000050-0000000000000000", nil, nil, &proto.Target{Name: "target", Level: 60}, &proto.Target{Name: "second target", Level: 60})
 		target := sim.Environment.GetTargetUnitByIndex(int32(targetIndex))
 		target.AddStatDynamic(sim, stats.Armor, -target.GetStat(stats.Armor))
 		cat.AddStatDynamic(sim, stats.PhysicalHitPercent, 100)
