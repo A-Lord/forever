@@ -105,9 +105,28 @@ func TestRequestCarriesEveryConsumableThePresetSelects(t *testing.T) {
 	requested := applyConsumables(t, requestPreset)
 	restore()
 
-	if slices.Equal(whole.stats, none.stats) && maps.Equal(whole.auras, none.auras) &&
-		slices.Equal(whole.spells, none.spells) && whole.enchants == none.enchants {
-		t.Fatalf("the preset applies nothing even with every consumable loaded")
+	appliesItem := func(applied appliedConsumables, id int32) bool {
+		fromItem := func(actionID core.ActionID) bool { return actionID.ItemID == id }
+		return slices.ContainsFunc(applied.spells, fromItem) || slices.ContainsFunc(slices.Collect(maps.Values(applied.auras)), fromItem)
+	}
+	imbues := []int32{requestPreset.MhImbueId, requestPreset.OhImbueId}
+	ids := requestConsumableIDs(requestPreset)
+	if len(ids) == 0 {
+		t.Fatal("the preset selects no consumable")
+	}
+	for _, id := range ids {
+		if id == 0 || slices.Contains(imbues, id) {
+			continue
+		}
+		if !appliesItem(whole, id) || appliesItem(none, id) {
+			t.Errorf("%d applies nothing an empty consumables spec does not, even with every consumable loaded", id)
+		}
+	}
+	for hand, enchant := range whole.enchants {
+		if enchant == 0 || enchant == none.enchants[hand] {
+			t.Errorf("the preset's imbue leaves weapon %d at enchant %d, as with no consumables, even with every consumable loaded",
+				hand, enchant)
+		}
 	}
 
 	if !slices.Equal(requested.stats, whole.stats) {

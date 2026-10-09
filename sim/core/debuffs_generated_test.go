@@ -28,6 +28,28 @@ func rowEffect(t *testing.T, spellID int32, aura dbcenums.EffectAuraType) *spell
 	return nil
 }
 
+// The amount the row's first effect applying aura states at the sim's character level. A test that
+// reads one checks an amount, so a row stating none fails it.
+func rowAmount(t *testing.T, spellID int32, aura dbcenums.EffectAuraType) float64 {
+	t.Helper()
+	amount := rowEffect(t, spellID, aura).Average()
+	if amount == 0 {
+		t.Fatalf("spell %d states no amount on its %v effect", spellID, aura)
+	}
+	return amount
+}
+
+// How long the row states its aura lasts. A test that reads one checks a duration, so a row stating
+// none fails it.
+func rowDuration(t *testing.T, spellID int32) time.Duration {
+	t.Helper()
+	duration := spelldata.MustFind(spellID).Duration()
+	if duration <= 0 {
+		t.Fatalf("spell %d states no duration", spellID)
+	}
+	return duration
+}
+
 // A stat amount at the sim's character level: the base plus the per-level gain past the BaseLevel, up to
 // the MaxLevel (0 for none), in float32 the way the game files state the gain, floored to a whole number.
 func levelScaledFloor(e *spelldata.Effect) float64 {
@@ -42,7 +64,7 @@ func levelScaledFloor(e *spelldata.Effect) float64 {
 // Thunder Clap's slow as the game files state it, a percentage of attack speed.
 func thunderClapSlowPercent(t *testing.T) float64 {
 	t.Helper()
-	return rowEffect(t, 11581, dbcenums.A_MOD_MELEE_HASTE_3).Average()
+	return rowAmount(t, 11581, dbcenums.A_MOD_MELEE_HASTE_3)
 }
 
 // The raid config registers its debuffs on every enemy and each is permanent,
@@ -68,7 +90,7 @@ func TestGeneratedCurseOfTheElementsHitsEverySchoolAndResistance(t *testing.T) {
 
 	applyGeneratedTestDebuffs(target, &proto.Debuffs{CurseOfElements: true})
 
-	taken := core.MultiplierFromPercent(rowEffect(t, 1311680, dbcenums.A_MOD_DAMAGE_PERCENT_TAKEN).Average())
+	taken := core.MultiplierFromPercent(rowAmount(t, 1311680, dbcenums.A_MOD_DAMAGE_PERCENT_TAKEN))
 	for _, school := range magicSchools {
 		if got := target.PseudoStats.SchoolDamageTakenMultiplier[school]; got != taken {
 			t.Errorf("school %d takes %v times the damage, want the game files' %v", school, got, taken)
@@ -78,11 +100,12 @@ func TestGeneratedCurseOfTheElementsHitsEverySchoolAndResistance(t *testing.T) {
 		t.Errorf("physical damage taken is %v, want the game files' mask to have left it alone", got)
 	}
 
+	resistance := rowAmount(t, 1311680, dbcenums.A_MOD_RESISTANCE)
 	for _, stat := range []stats.Stat{
 		stats.ArcaneResistance, stats.FireResistance, stats.FrostResistance,
 		stats.NatureResistance, stats.ShadowResistance,
 	} {
-		if got, want := target.GetStats()[stat], buffs.CurseOfElementsValue(0); got != want {
+		if got, want := target.GetStats()[stat], resistance; got != want {
 			t.Errorf("%s is %v, want the game files' %v", stat.StatName(), got, want)
 		}
 	}
@@ -99,6 +122,17 @@ func TestGeneratedCurseOfTheElementsHitsEverySchoolAndResistance(t *testing.T) {
 	}
 }
 
+// Expose Armor at the five combo points the raid config's debuff is cast with, from the armor per
+// point the row states.
+func exposeArmorAtFivePoints(t *testing.T) float64 {
+	t.Helper()
+	perPoint := float64(rowEffect(t, 11198, dbcenums.A_MOD_RESISTANCE).PointsPerResource)
+	if perPoint == 0 {
+		t.Fatal("Expose Armor states no armor per combo point")
+	}
+	return 5 * perPoint
+}
+
 // Expose Armor states its armor per combo point, and the raid config's debuff
 // is the five-point finisher.
 func TestGeneratedExposeArmorIsTheFivePointFinisher(t *testing.T) {
@@ -106,12 +140,12 @@ func TestGeneratedExposeArmorIsTheFivePointFinisher(t *testing.T) {
 
 	applyGeneratedTestDebuffs(target, &proto.Debuffs{ExposeArmor: true})
 
-	perPoint := float64(rowEffect(t, 11198, dbcenums.A_MOD_RESISTANCE).PointsPerResource)
-	if got := buffs.ExposeArmorValue(0); got != 5*perPoint {
-		t.Errorf("Expose Armor is worth %v, want five times the game files' %v per combo point", got, perPoint)
+	expose := exposeArmorAtFivePoints(t)
+	if got := buffs.ExposeArmorValue(0); got != expose {
+		t.Errorf("Expose Armor is worth %v, want five combo points of the game files' armor, %v", got, expose)
 	}
-	if got, want := target.GetStats()[stats.Armor], buffs.ExposeArmorValue(0); got != want {
-		t.Errorf("armor is %v, want the five-point %v", got, want)
+	if got := target.GetStats()[stats.Armor]; got != expose {
+		t.Errorf("armor is %v, want the five-point %v", got, expose)
 	}
 
 	category := target.ExclusiveEffectManager.GetExclusiveEffectCategory(
@@ -119,7 +153,7 @@ func TestGeneratedExposeArmorIsTheFivePointFinisher(t *testing.T) {
 	if category.SingleAura {
 		t.Error("the armor category is single-aura, so a stronger armor reduction would push this one off the target")
 	}
-	if bid := -buffs.ExposeArmorValue(0); len(category.Effects()) != 1 || category.Effects()[0].Priority != bid {
+	if bid := -expose; len(category.Effects()) != 1 || category.Effects()[0].Priority != bid {
 		t.Errorf("the category holds %d effects, first bid %v; want one bidding the magnitude %v",
 			len(category.Effects()), category.Effects()[0].Priority, bid)
 	}
@@ -145,9 +179,10 @@ func TestGeneratedSunderArmorPricesEveryStack(t *testing.T) {
 
 	sunder.SetStacks(sim, 5)
 
-	fiveStacks := 5 * buffs.SunderArmorValue(0)
+	perStack := rowAmount(t, 11597, dbcenums.A_MOD_ARMOR_NO_MODS)
+	fiveStacks := 5 * perStack
 	if got := target.GetStats()[stats.Armor]; got != fiveStacks {
-		t.Errorf("armor is %v, want five stacks of the game files' %v", got, buffs.SunderArmorValue(0))
+		t.Errorf("armor is %v, want five stacks of the game files' %v", got, perStack)
 	}
 	category := target.ExclusiveEffectManager.GetExclusiveEffectCategory(
 		core.ExclusiveStatCategory(buffs.SunderArmorCategory, stats.Armor.StatName(), false))
@@ -165,7 +200,7 @@ func TestGeneratedExposeArmorOutbidsAWeakerSunder(t *testing.T) {
 	sim := applyGeneratedTestDebuffs(target, &proto.Debuffs{SunderArmor: true})
 	sunder := target.GetAura("Sunder Armor (External)")
 	sunder.SetStacks(sim, 1)
-	oneStack := buffs.SunderArmorValue(0)
+	oneStack := rowAmount(t, 11597, dbcenums.A_MOD_ARMOR_NO_MODS)
 	if got := target.GetStats()[stats.Armor]; got != oneStack {
 		t.Fatalf("one stack of sunder reduced armor by %v, want the game files' %v", got, oneStack)
 	}
@@ -173,7 +208,7 @@ func TestGeneratedExposeArmorOutbidsAWeakerSunder(t *testing.T) {
 	expose := core.MakePermanent(buffs.NewSpellDataExposeArmorAura(target, false, 0))
 	expose.Activate(sim)
 
-	if got, want := target.GetStats()[stats.Armor], min(buffs.ExposeArmorValue(0), oneStack); got != want {
+	if got, want := target.GetStats()[stats.Armor], min(exposeArmorAtFivePoints(t), oneStack); got != want {
 		t.Errorf("armor is %v, want only the stronger reduction's %v", got, want)
 	}
 	if !sunder.IsActive() {
@@ -201,8 +236,8 @@ func TestGeneratedRaidsSunderStacksUnderExposeArmor(t *testing.T) {
 	}
 
 	sunder.SetStacks(sim, 3)
-	threeStacks := 3 * buffs.SunderArmorValue(0)
-	if got, want := target.GetStats()[stats.Armor], min(buffs.ExposeArmorValue(0), threeStacks); got != want {
+	threeStacks := 3 * rowAmount(t, 11597, dbcenums.A_MOD_ARMOR_NO_MODS)
+	if got, want := target.GetStats()[stats.Armor], min(exposeArmorAtFivePoints(t), threeStacks); got != want {
 		t.Errorf("armor is %v, want the stronger reduction's %v once", got, want)
 	}
 
@@ -257,8 +292,8 @@ func checkOneReductionApplies(t *testing.T, debuffs *proto.Debuffs, category str
 func TestGeneratedCurseOfRecklessnessAndFaerieFireDoNotStack(t *testing.T) {
 	checkOneReductionApplies(t, &proto.Debuffs{CurseOfRecklessness: true, FaerieFire: true},
 		buffs.CurseOfRecklessnessCategory, stats.Armor, map[string]float64{
-			"Curse of Recklessness (External)": buffs.CurseOfRecklessnessValue(0),
-			"Faerie Fire (External)":           buffs.FaerieFireValue(0),
+			"Curse of Recklessness (External)": rowAmount(t, 11717, dbcenums.A_MOD_ARMOR_NO_MODS),
+			"Faerie Fire (External)":           rowAmount(t, 9907, dbcenums.A_MOD_RESISTANCE),
 		})
 }
 
@@ -267,8 +302,8 @@ func TestGeneratedThunderClapSlowsTheTarget(t *testing.T) {
 
 	applyGeneratedTestDebuffs(target, &proto.Debuffs{ThunderClap: true})
 
-	// The game files' negative percentage is that much more time between attacks: -20 divides the
-	// speed by 1.2.
+	// The game files' negative percentage is that much more time between attacks: a percentage p
+	// below 0 divides the speed by 1 - p/100.
 	want := core.SymmetricMultiplierFromPercent(thunderClapSlowPercent(t))
 	if got := target.PseudoStats.MeleeSpeedMultiplier; got != want {
 		t.Errorf("the melee speed multiplier is %v, want %v", got, want)
@@ -331,7 +366,7 @@ func TestGeneratedThunderClapOutbidsThunderfurysCyclone(t *testing.T) {
 
 	cyclone.Activate(sim)
 
-	want := buffs.ThunderClapValue(0)
+	want := core.SymmetricMultiplierFromPercent(thunderClapSlowPercent(t))
 	if got := target.PseudoStats.MeleeSpeedMultiplier; got != want {
 		t.Errorf("the melee speed multiplier is %v, want the clap's %v to have stayed", got, want)
 	}
@@ -345,7 +380,7 @@ func TestGeneratedThunderClapOutbidsThunderfurysCyclone(t *testing.T) {
 
 func thunderfurySlow(t *testing.T) float64 {
 	t.Helper()
-	return core.SymmetricMultiplierFromPercent(rowEffect(t, 27648, dbcenums.A_MOD_MELEE_HASTE_3).Average())
+	return core.SymmetricMultiplierFromPercent(rowAmount(t, 27648, dbcenums.A_MOD_MELEE_HASTE_3))
 }
 
 // The raid's Thunderfury takes nature resistance off the target and slows it.
@@ -353,7 +388,7 @@ func TestGeneratedThunderfuryLowersNatureResistanceAndSlows(t *testing.T) {
 	target := core.NewGeneratedDebuffTestTarget()
 	base := target.GetStats()[stats.NatureResistance]
 	applyGeneratedTestDebuffs(target, &proto.Debuffs{Thunderfury: true})
-	if got, want := target.GetStats()[stats.NatureResistance]-base, buffs.ThunderfuryValue(0); got != want {
+	if got, want := target.GetStats()[stats.NatureResistance]-base, rowAmount(t, 21992, dbcenums.A_MOD_RESISTANCE); got != want {
 		t.Errorf("nature resistance moved by %v, want %v", got, want)
 	}
 	if got, want := target.TotalMeleeHasteMultiplier(), thunderfurySlow(t); got != want {
@@ -366,10 +401,10 @@ func TestGeneratedThunderfuryKeepsItsResistanceBesideThunderClap(t *testing.T) {
 	target := core.NewGeneratedDebuffTestTarget()
 	base := target.GetStats()[stats.NatureResistance]
 	applyGeneratedTestDebuffs(target, &proto.Debuffs{Thunderfury: true, ThunderClap: true})
-	if got, want := target.GetStats()[stats.NatureResistance]-base, buffs.ThunderfuryValue(0); got != want {
+	if got, want := target.GetStats()[stats.NatureResistance]-base, rowAmount(t, 21992, dbcenums.A_MOD_RESISTANCE); got != want {
 		t.Errorf("nature resistance moved by %v, want %v whatever the slow bid decides", got, want)
 	}
-	if got, want := target.TotalMeleeHasteMultiplier(), min(thunderfurySlow(t), buffs.ThunderClapValue(0)); got != want {
+	if got, want := target.TotalMeleeHasteMultiplier(), min(thunderfurySlow(t), core.SymmetricMultiplierFromPercent(thunderClapSlowPercent(t))); got != want {
 		t.Errorf("the target swings at %v, want the stronger slow once, %v", got, want)
 	}
 }
@@ -379,9 +414,19 @@ func TestGeneratedThunderfuryKeepsItsResistanceBesideThunderClap(t *testing.T) {
 func TestGeneratedDemoralizingDebuffsApplyOnce(t *testing.T) {
 	checkOneReductionApplies(t, &proto.Debuffs{DemoralizingRoar: true, DemoralizingShout: true},
 		buffs.DemoralizingShoutCategory, stats.AttackPower, map[string]float64{
-			"Demoralizing Roar (External)":  buffs.DemoralizingRoarValue(0),
-			"Demoralizing Shout (External)": buffs.DemoralizingShoutValue(0),
+			"Demoralizing Roar (External)":  rowAmount(t, 9898, dbcenums.A_MOD_ATTACK_POWER),
+			"Demoralizing Shout (External)": demoralizingShout(t),
 		})
+}
+
+func demoralizingShout(t *testing.T) float64 {
+	t.Helper()
+	return rowAmount(t, 11556, dbcenums.A_MOD_ATTACK_POWER)
+}
+
+func hexOfWeakness(t *testing.T) float64 {
+	t.Helper()
+	return rowAmount(t, 19285, dbcenums.A_MOD_ATTACK_POWER)
 }
 
 // The two judgements are bare auras in the game files; what they do to whoever
@@ -419,24 +464,33 @@ func TestGeneratedAttackPowerReductionsApplyTheStrongestOnce(t *testing.T) {
 	applyGeneratedTestDebuffs(target, &proto.Debuffs{
 		DemoralizingShout: true, HexOfWeakness: true, DemoralizingScreech: true,
 	})
-	screech := rowEffect(t, 24579, dbcenums.A_MOD_ATTACK_POWER)
-	if got, scaled := buffs.DemoralizingScreechValue(0), levelScaledFloor(screech); got != scaled {
-		t.Errorf("Demoralizing Screech is worth %v, want the game files' %v plus %v per level past %d, floored to %v",
-			got, screech.BasePoints, screech.PPL, screech.BaseLevel, scaled)
+	screech := demoralizingScreech(t)
+	if got := buffs.DemoralizingScreechValue(0); got != screech {
+		t.Errorf("Demoralizing Screech is worth %v, want the game files' amount at the character's level, floored to %v",
+			got, screech)
 	}
-	want := min(buffs.DemoralizingShoutValue(0), buffs.HexOfWeaknessValue(0), buffs.DemoralizingScreechValue(0))
+	want := min(demoralizingShout(t), hexOfWeakness(t), screech)
 	if got := target.GetStats()[stats.AttackPower]; got != want {
 		t.Errorf("attack power is %v, want the strongest reduction %v once", got, want)
 	}
 }
 
+func demoralizingScreech(t *testing.T) float64 {
+	t.Helper()
+	screech := levelScaledFloor(rowEffect(t, 24579, dbcenums.A_MOD_ATTACK_POWER))
+	if screech == 0 {
+		t.Fatal("Demoralizing Screech states no attack power")
+	}
+	return screech
+}
+
 // Without the shout, Demoralizing Screech and Hex of Weakness share the attack power slot: both are
 // on the target, the stronger applies, and the other's applies once that one ends.
-func TestGeneratedDemoralizingScreechOutbidsHexOfWeakness(t *testing.T) {
+func TestGeneratedDemoralizingScreechAndHexOfWeaknessDoNotStack(t *testing.T) {
 	checkOneReductionApplies(t, &proto.Debuffs{HexOfWeakness: true, DemoralizingScreech: true},
 		buffs.DemoralizingScreechCategory, stats.AttackPower, map[string]float64{
-			"Hex of Weakness (External)":      buffs.HexOfWeaknessValue(0),
-			"Demoralizing Screech (External)": buffs.DemoralizingScreechValue(0),
+			"Hex of Weakness (External)":      hexOfWeakness(t),
+			"Demoralizing Screech (External)": demoralizingScreech(t),
 		})
 }
 
@@ -452,16 +506,16 @@ func TestGeneratedHexOfWeaknessKeepsItsHealingReductionUnderDemoralizingShout(t 
 	if hex == nil || shout == nil || !hex.IsActive() || !shout.IsActive() {
 		t.Fatalf("the target has %v, want the hex and the shout both on it", targetAuraLabels(target))
 	}
-	if got, want := target.GetStats()[stats.AttackPower], min(buffs.DemoralizingShoutValue(0), buffs.HexOfWeaknessValue(0)); got != want {
+	if got, want := target.GetStats()[stats.AttackPower], min(demoralizingShout(t), hexOfWeakness(t)); got != want {
 		t.Errorf("attack power is %v, want the stronger reduction's %v once", got, want)
 	}
-	healing := core.MultiplierFromPercent(rowEffect(t, 19285, dbcenums.A_MOD_HEALING_PCT).Average())
+	healing := core.MultiplierFromPercent(rowAmount(t, 19285, dbcenums.A_MOD_HEALING_PCT))
 	if got := target.PseudoStats.HealingTakenMultiplier; got != healing {
 		t.Errorf("healing taken is %v times, want the hex's %v beside the shout", got, healing)
 	}
 
 	shout.Deactivate(sim)
-	if got, want := target.GetStats()[stats.AttackPower], buffs.HexOfWeaknessValue(0); got != want {
+	if got, want := target.GetStats()[stats.AttackPower], hexOfWeakness(t); got != want {
 		t.Errorf("with the shout off, attack power is %v, want the hex's %v", got, want)
 	}
 	if got := target.PseudoStats.HealingTakenMultiplier; got != healing {
@@ -481,10 +535,15 @@ func TestGeneratedVindicationKeepsItsRangedAttackPowerUnderDemoralizingShout(t *
 	if vindication == nil || shout == nil || !vindication.IsActive() || !shout.IsActive() {
 		t.Fatalf("the target has %v, want Vindication and the shout both on it", targetAuraLabels(target))
 	}
-	if got, want := target.GetStats()[stats.AttackPower], min(buffs.DemoralizingShoutValue(0), buffs.VindicationValue(0)); got != want {
+	// The talent prices Vindication, so its amount is the generated reader's and not a row's.
+	full := buffs.VindicationValue(0)
+	if full >= 0 {
+		t.Fatalf("the raid's Vindication is worth %v, want an attack power reduction", full)
+	}
+	if got, want := target.GetStats()[stats.AttackPower], min(demoralizingShout(t), full); got != want {
 		t.Errorf("attack power is %v, want the stronger reduction's %v once", got, want)
 	}
-	if got, want := target.GetStats()[stats.RangedAttackPower], buffs.VindicationValue(0); got != want {
+	if got, want := target.GetStats()[stats.RangedAttackPower], full; got != want {
 		t.Errorf("ranged attack power is %v, want Vindication's %v beside the shout", got, want)
 	}
 }
@@ -493,30 +552,33 @@ func TestGeneratedVindicationKeepsItsRangedAttackPowerUnderDemoralizingShout(t *
 func TestGeneratedCurseOfWeaknessStacksWithDemoralizingShout(t *testing.T) {
 	target := core.NewGeneratedDebuffTestTarget()
 	applyGeneratedTestDebuffs(target, &proto.Debuffs{DemoralizingShout: true, CurseOfWeakness: true})
-	if got := target.GetStats()[stats.AttackPower]; got != buffs.DemoralizingShoutValue(0) {
-		t.Errorf("attack power is %v, want the shout's %v alone", got, buffs.DemoralizingShoutValue(0))
+	if got, want := target.GetStats()[stats.AttackPower], demoralizingShout(t); got != want {
+		t.Errorf("attack power is %v, want the shout's %v alone", got, want)
 	}
-	if got, want := target.GetStats()[stats.PhysicalDamage], buffs.CurseOfWeaknessValue(0); got != want {
+	if got, want := target.GetStats()[stats.PhysicalDamage], rowAmount(t, 11708, dbcenums.A_MOD_DAMAGE_DONE); got != want {
 		t.Errorf("physical damage is %v, want the game files' %v", got, want)
 	}
 }
 
-// The game files state Dust Cloud at one stack, which the store reads as a stacking row, so the raid's
-// copy takes its stack from a driver: without one, the amount would follow zero stacks and apply
-// nothing.
+// The game files state Dust Cloud as a stacking row, so the raid's copy takes its stacks from a
+// driver: without one, the amount would follow zero stacks and apply nothing.
 func TestGeneratedDustCloudTakesItsStackFromTheDriver(t *testing.T) {
 	target := core.NewGeneratedDebuffTestTarget()
 	base := target.GetStats()[stats.Armor]
 	applyGeneratedTestDebuffs(target, &proto.Debuffs{DustCloud: true})
-	if got, want := target.GetStats()[stats.Armor]-base, buffs.DustCloudValue(0); got != want {
-		t.Errorf("armor moved by %v, want the game files' %v", got, want)
-	}
 	dust := target.GetAura("Dust Cloud (External)")
 	if dust == nil {
 		t.Fatalf("no aura is labelled %q; the target has %v", "Dust Cloud (External)", targetAuraLabels(target))
 	}
+	if dust.MaxStacks < 1 {
+		t.Fatalf("Dust Cloud holds %d stacks, want a stacking row", dust.MaxStacks)
+	}
 	if got := dust.GetStacks(); got != dust.MaxStacks {
-		t.Errorf("Dust Cloud sits at %d stacks, want the driver to have taken its %d", got, dust.MaxStacks)
+		t.Errorf("Dust Cloud sits at %d stacks, want the driver to have taken all %d", got, dust.MaxStacks)
+	}
+	perStack := rowAmount(t, 1265904, dbcenums.A_MOD_RESISTANCE)
+	if got, want := target.GetStats()[stats.Armor]-base, float64(dust.MaxStacks)*perStack; got != want {
+		t.Errorf("armor moved by %v, want %d stacks of the game files' %v", got, dust.MaxStacks, perStack)
 	}
 }
 
@@ -525,8 +587,8 @@ func TestGeneratedDustCloudTakesItsStackFromTheDriver(t *testing.T) {
 func TestGeneratedDustCloudAndFaerieFireDoNotStack(t *testing.T) {
 	checkOneReductionApplies(t, &proto.Debuffs{FaerieFire: true, DustCloud: true},
 		buffs.DustCloudCategory, stats.Armor, map[string]float64{
-			"Dust Cloud (External)":  buffs.DustCloudValue(0),
-			"Faerie Fire (External)": buffs.FaerieFireValue(0),
+			"Dust Cloud (External)":  rowAmount(t, 1265904, dbcenums.A_MOD_RESISTANCE),
+			"Faerie Fire (External)": rowAmount(t, 9907, dbcenums.A_MOD_RESISTANCE),
 		})
 }
 
@@ -535,19 +597,23 @@ func TestGeneratedDustCloudAndFaerieFireDoNotStack(t *testing.T) {
 func TestGeneratedScorpidStingAndInsectSwarmDoNotStack(t *testing.T) {
 	checkOneReductionApplies(t, &proto.Debuffs{ScorpidSting: true, InsectSwarm: true},
 		buffs.ScorpidStingCategory, stats.PhysicalHitPercent, map[string]float64{
-			"Scorpid Sting (External)": buffs.ScorpidStingValue(0),
-			"Insect Swarm (External)":  buffs.InsectSwarmValue(0),
+			"Scorpid Sting (External)": rowAmount(t, 3043, dbcenums.A_MOD_HIT_CHANCE),
+			"Insect Swarm (External)":  rowAmount(t, 24977, dbcenums.A_MOD_HIT_CHANCE),
 		})
 }
 
 // The raid's Annihilator keeps every stack the row allows up.
-func TestGeneratedArmorShatterHoldsThreeStacks(t *testing.T) {
+func TestGeneratedArmorShatterHoldsEveryStack(t *testing.T) {
 	target := core.NewGeneratedDebuffTestTarget()
 	base := target.GetStats()[stats.Armor]
 	applyGeneratedTestDebuffs(target, &proto.Debuffs{ArmorShatter: true})
-	maxStacks := float64(spelldata.MustFind(16928).MaxStack)
-	if got, want := target.GetStats()[stats.Armor]-base, maxStacks*buffs.ArmorShatterValue(0); got != want {
-		t.Errorf("armor moved by %v, want %v stacks of %v", got, maxStacks, buffs.ArmorShatterValue(0))
+	maxStacks := spelldata.MustFind(16928).MaxStack
+	if maxStacks < 1 {
+		t.Fatalf("Armor Shatter states %d stacks, want a stacking row", maxStacks)
+	}
+	perStack := rowAmount(t, 16928, dbcenums.A_MOD_RESISTANCE)
+	if got, want := target.GetStats()[stats.Armor]-base, float64(maxStacks)*perStack; got != want {
+		t.Errorf("armor moved by %v, want %d stacks of the game files' %v", got, maxStacks, perStack)
 	}
 }
 

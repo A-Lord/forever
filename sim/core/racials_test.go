@@ -127,7 +127,7 @@ func TestElunesLight(t *testing.T) {
 }
 
 // One-bit class flags in family, on the lowest bit that every mask in named sets and no mask in
-// unnamed sets.
+// unnamed sets; zero flags where no bit does.
 func oneClassFlagBit(family int32, named, unnamed []ClassFlags) ClassFlags {
 	for word := range 4 {
 		for bit := range 32 {
@@ -139,7 +139,7 @@ func oneClassFlagBit(family int32, named, unnamed []ClassFlags) ClassFlags {
 			}
 		}
 	}
-	panic("no class flag bit sits in every named mask and in no unnamed one")
+	return ClassFlags{}
 }
 
 func warriorEurekaFlags() []ClassFlags {
@@ -202,6 +202,10 @@ func TestGnomeWarrior(t *testing.T) {
 	family := ClassSpellFamilies[proto.Class_ClassWarrior]
 	named := oneClassFlagBit(family, warriorEurekaFlags(), nil)
 	unnamed := oneClassFlagBit(family, nil, warriorEurekaFlags())
+	if named.IsZero() || unnamed.IsZero() {
+		t.Fatalf("the warrior's Eureka! masks %+v leave no class flag bit named by both (%+v) or by neither (%+v)",
+			warriorEurekaFlags(), named, unnamed)
+	}
 	mortalStrike := fw.RegisterSpell(fakeWarriorAbility(12294, named, 100))
 	hamstring := fw.RegisterSpell(fakeWarriorAbility(1715, named, 0))
 	sunderArmor := fw.RegisterSpell(fakeWarriorAbility(7386, unnamed, 0))
@@ -306,7 +310,15 @@ func TestGnomeWarlockEurekaChannel(t *testing.T) {
 		t.Fatalf("a gnome warlock should cast Eureka! 1259821")
 	}
 	eureka := fw.GetAura("Eureka!")
-	boosted := 1 + eurekaMods(1259821).Channel
+	mods := eurekaMods(1259821)
+	if mods.ChannelFlags.IsZero() || mods.Channel <= 0 {
+		t.Fatalf("the warlock's Eureka! reads channel flags %+v with %v, want a raise on its channels", mods.ChannelFlags, mods.Channel)
+	}
+	if fw.DrainLife.ClassFlags.IsZero() {
+		t.Fatalf("no class flag bit sits on both the warlock's Eureka! channel mask %+v and its cost mask %+v",
+			mods.ChannelFlags, mods.CostFlags)
+	}
+	boosted := 1 + mods.Channel
 
 	multiplier := func(spell *Spell) float64 { return spell.Dot(target).PeriodicDamageMultiplier }
 	drainLife := fw.DrainLife.Dot(target)
