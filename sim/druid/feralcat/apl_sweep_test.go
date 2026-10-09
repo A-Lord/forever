@@ -163,47 +163,87 @@ func manaShort() *proto.APLValue {
 // BestCatAPL is the list ui/specs/druid/feralcat/apls/default.apl.json holds.
 var bestCatAPL = aplTune{elune: "after", omen: true, innervate: true}
 
-// The talents bearweaveAPL is played with: one point out of Genesis into Primal Bite.
-const bearweaveTalents = "040022-55000032021130212051-055"
+// The cat UI's default talents (presets.ts CatTalents), and the ones bearweaveAPL is played with:
+// one point out of Genesis into Primal Bite.
+const (
+	catTalents       = "050022-55000032021030212051-055"
+	bearweaveTalents = "040022-55000032021130212051-055"
+)
+
+// weaveTune is one bear trip. energyMax is the most energy the cat goes into bear with, spLeft the
+// least Shifting Power cooldown left, manaPerSecond the mana kept back per second of fight left on
+// top of the two forms. leave cancels Dire Bear Form after the bite, so the rest of its GCD is spent
+// out of form, rather than shifting to cat from bear once the GCD ends. maul is false for a trip with
+// Primal Bite alone.
+type weaveTune struct {
+	energyMax     int
+	spLeft        string
+	manaPerSecond int
+	leave         bool
+	maul          bool
+}
+
+// The trip ui/specs/druid/feralcat/apls/bearweave.apl.json holds.
+var bestWeave = weaveTune{energyMax: 20, spLeft: "3s", manaPerSecond: 40, leave: true, maul: true}
 
 // bearweaveAPL is catAPL(bestCatAPL) with a Dire Bear trip for Primal Bite and Maul, the list
 // ui/specs/druid/feralcat/apls/bearweave.apl.json holds.
 //
-// The trip starts in cat with no more than 40 energy, Primal Bite ready, no Clearcasting, Berserk
-// down, Shifting Power at least 3s away and 10s of fight left. Dire Bear Form and Cat Form are
-// 684 mana each, so the trip also needs 1368 mana spare over 40 per second of fight left; a trip is
-// worth less than the Shifting Powers it would cost. In bear: Enrage under 20 rage (Furor gives 10
-// on the shift, Enrage with Wolfshead 15), Primal Bite, and Maul with the bite's 25 rage kept back or
-// once the bite is on cooldown. Bear is cancelled after the bite, so the rest of its GCD counts for
-// Furor, unless a bear swing lands before that GCD ends with rage for Maul; Cat Form follows.
+// The trip starts in cat with no Clearcasting, Berserk down, Primal Bite ready and 10s of fight
+// left. Dire Bear Form and Cat Form are 684 mana each, so the trip also needs 1368 mana spare over
+// the tune's mana per second of fight left; a trip is worth less than the Shifting Powers it would
+// cost. In bear: Enrage under 20 rage (Furor gives 10 on the shift, Enrage with Wolfshead 15),
+// Primal Bite, and Maul with the bite's 25 rage kept back or once the bite is on cooldown. Leaving
+// bear stays in it while a bear swing with rage for Maul lands before the bite's GCD ends.
 func bearweaveAPL() *proto.APLRotation {
+	return weaveAPL(bestWeave)
+}
+
+func weaveAPL(tune weaveTune) *proto.APLRotation {
 	rot := catAPL(bestCatAPL)
 	inCat := auraUp(spellCatForm)
 	inBear := auraUp(spellDireBear)
 	list := rot.PriorityList
 	if list[2].Action.GetCastSpell().GetSpellId().GetSpellId() != spellCatForm {
-		panic("bearweaveAPL expects Cat Form as the third line")
+		panic("weaveAPL expects Cat Form as the third line")
 	}
-	list[2] = castWhen(spellCatForm, and(not(inCat), not(inBear)))
-
 	biteDown := not(spellReady(spellPrimalBite))
-	swingFirst := and(cmp(proto.APLValueCompare_OpLe, autoTimeToNext(), gcdLeft()),
-		cmp(proto.APLValueCompare_OpGe, currentRage(), konst("10")))
+	if tune.leave {
+		list[2] = castWhen(spellCatForm, and(not(inCat), not(inBear)))
+	} else {
+		list[2] = castWhen(spellCatForm, and(not(inCat), or(not(inBear), biteDown)))
+	}
+
 	bear := []*proto.APLListItem{
 		castWhen(spellEnrage, and(inBear, cmp(proto.APLValueCompare_OpLt, currentRage(), konst("20")))),
 		castWhen(spellPrimalBite, inBear),
-		castWhen(spellMaul, and(inBear, or(biteDown, cmp(proto.APLValueCompare_OpGe, currentRage(), konst("25"))))),
-		cancelAuraWhen(spellDireBear, and(inBear, biteDown, not(swingFirst))),
 	}
-	spare := mathOp(proto.APLValueMath_OpSub, currentMana(), konst("1368"))
-	enter := castWhen(spellDireBear, and(inCat,
-		cmp(proto.APLValueCompare_OpLe, currentEnergy(), konst("40")),
+	if tune.maul {
+		bear = append(bear, castWhen(spellMaul, and(inBear, or(biteDown, cmp(proto.APLValueCompare_OpGe, currentRage(), konst("25"))))))
+	}
+	if tune.leave {
+		leaveNow := []*proto.APLValue{inBear, biteDown}
+		if tune.maul {
+			swingFirst := and(cmp(proto.APLValueCompare_OpLe, autoTimeToNext(), gcdLeft()),
+				cmp(proto.APLValueCompare_OpGe, currentRage(), konst("10")))
+			leaveNow = append(leaveNow, not(swingFirst))
+		}
+		bear = append(bear, cancelAuraWhen(spellDireBear, and(leaveNow...)))
+	}
+	window := []*proto.APLValue{inCat,
+		cmp(proto.APLValueCompare_OpLe, currentEnergy(), konst(strconv.Itoa(tune.energyMax))),
 		spellReady(spellPrimalBite),
 		not(auraUp(spellClear)),
 		not(auraUp(spellBerserk)),
 		cmp(proto.APLValueCompare_OpGe, remainingTime(), konst("10s")),
-		cmp(proto.APLValueCompare_OpGe, spellLeft(spellSP), konst("3s")),
-		cmp(proto.APLValueCompare_OpGe, spare, mathOp(proto.APLValueMath_OpMul, remainingTime(), konst("40")))))
+	}
+	if tune.spLeft != "" {
+		window = append(window, cmp(proto.APLValueCompare_OpGe, spellLeft(spellSP), konst(tune.spLeft)))
+	}
+	spare := mathOp(proto.APLValueMath_OpSub, currentMana(), konst("1368"))
+	window = append(window, cmp(proto.APLValueCompare_OpGe, spare,
+		mathOp(proto.APLValueMath_OpMul, remainingTime(), konst(strconv.Itoa(tune.manaPerSecond)))))
+	enter := castWhen(spellDireBear, and(window...))
 
 	out := append([]*proto.APLListItem{}, list[:3]...)
 	out = append(out, bear...)

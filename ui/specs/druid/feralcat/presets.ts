@@ -105,7 +105,8 @@ export const CatTalents = PresetUtils.makePresetTalents('Cat', SavedTalents.crea
 // One point out of Genesis into Primal Bite.
 export const BearweaveTalents = PresetUtils.makePresetTalents('Bearweave', SavedTalents.create({ talentsString: '040022-55000032021130212051-055' }));
 
-// Ahead of the cat on fights of 45 to 60 seconds; from 120 seconds on, about the Genesis point behind.
+// A bear form forfeits Furor's energy, so a trip costs the energy the cat went in with: +1.4 over the cat
+// on a 60 second fight, and about the Genesis point behind on the other lengths.
 export const BearweaveBuild = PresetUtils.makePresetBuild('Bearweave (short fights)', {
 	talents: BearweaveTalents,
 	rotation: BEARWEAVE_APL,

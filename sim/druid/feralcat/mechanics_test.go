@@ -342,6 +342,7 @@ func TestFaerieFireFishesForOmenOnlyWhenItCanProc(t *testing.T) {
 func TestShiftingPowerNeedsTheTalentAndCatForm(t *testing.T) {
 	sim, cat := newCat(t, "", nil)
 	fillResource(sim, cat)
+	emptyEnergy(sim, cat)
 	if cat.ShiftingPower.CanCast(sim, cat.CurrentTarget) {
 		t.Error("shifting power could be cast without the talent")
 	}
@@ -351,6 +352,7 @@ func TestShiftingPowerNeedsTheTalentAndCatForm(t *testing.T) {
 		t.Fatal("dire bear form did not cast")
 	}
 	fillResource(sim, cat)
+	emptyEnergy(sim, cat)
 	if cat.ShiftingPower.CanCast(sim, cat.CurrentTarget) {
 		t.Error("shifting power could be cast in dire bear form")
 	}
@@ -359,6 +361,7 @@ func TestShiftingPowerNeedsTheTalentAndCatForm(t *testing.T) {
 func TestImprovedShiftingPowerTakesTheCooldownToEightSeconds(t *testing.T) {
 	sim, cat := newCat(t, improvedShiftingPowerTalents, nil)
 	fillResource(sim, cat)
+	emptyEnergy(sim, cat)
 	if !cat.ShiftingPower.Cast(sim, cat.CurrentTarget) {
 		t.Fatal("shifting power did not cast")
 	}
@@ -404,11 +407,25 @@ func TestWolfsheadAddsShiftingPowerEnergyAndEnrageRage(t *testing.T) {
 func TestHowlingIdolShortensShiftingPower(t *testing.T) {
 	sim, cat := newCatWearing(t, shiftingPowerTalents, nil, map[proto.ItemSlot]int32{proto.ItemSlot_ItemSlotRanged: 272427})
 	fillResource(sim, cat)
+	emptyEnergy(sim, cat)
 	if !cat.ShiftingPower.Cast(sim, cat.CurrentTarget) {
 		t.Fatal("shifting power did not cast")
 	}
 	if got := cat.ShiftingPower.ReadyAt(); got != 15*time.Second {
 		t.Errorf("shifting power ready at %v with the idol, want 15s", got)
+	}
+}
+
+// The October 8 hotfixes: "Shifting Power can no longer be used while already at Full Energy."
+func TestShiftingPowerIsRefusedAtFullEnergy(t *testing.T) {
+	sim, cat := newCat(t, shiftingPowerTalents, nil)
+	fillResource(sim, cat)
+	if cat.ShiftingPower.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("shifting power cast at full energy")
+	}
+	cat.SpendEnergy(sim, 1, cat.NewEnergyMetrics(core.ActionID{SpellID: 1}))
+	if !cat.ShiftingPower.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("shifting power did not cast one energy under full")
 	}
 }
 
