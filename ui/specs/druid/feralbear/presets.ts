@@ -1,6 +1,7 @@
 import * as PresetUtils from '@app/preset_utils';
 import { ConsumesSpec, HealingModel, Profession, PseudoStat, Race, Stat } from '@generated/proto/common';
 import { FeralBearDruid_Options as DruidOptions } from '@generated/proto/druid';
+import { SavedTalents } from '@generated/proto/ui';
 import { Stats } from '@sim/proto/stats';
 import { Encounter } from '@sim/raid/encounter';
 import { OtherDefaults as SimUIOtherDefaults } from '@sim/spec_config';
@@ -14,6 +15,19 @@ export const ROTATION_DEFAULT = PresetUtils.makePresetAPLRotation('APL', Default
 // For a target no one else bleeds (Assume Bleed Always Active off): Berserk waits for Lacerate, so
 // Rend and Tear covers it.
 export const ROTATION_LACERATE_FIRST = PresetUtils.makePresetAPLRotation('Lacerate before Berserk', LacerateFirstApl);
+
+// Nature's Reach (melee hit) and Nature's Majesty (melee crit) are worth more to the bear than Furor and
+// Naturalist. Feral Instinct raises only Swipe, which the single-target APL does not cast.
+export const BearTalents = PresetUtils.makePresetTalents(
+	'Bear',
+	SavedTalents.create({ talentsString: '0500220000000000-55200322120132012551-0000000000000000' }),
+);
+// Tanks and plays cat on one set of talents. As a bear, about the same threat as the Bear talents and a
+// TMI 2 to 3 higher, for no Natural Reaction.
+export const HybridTalents = PresetUtils.makePresetTalents(
+	'Hybrid 9/42/0',
+	SavedTalents.create({ talentsString: '0500220000000000-35230332121132212051-0000000000000000' }),
+);
 
 // Leather at 60 with no set bonus and no proc, about the item level of the cat preset.
 export const Level60Gear = PresetUtils.makePresetGear('Level 60', Level60GearJson, {

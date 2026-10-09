@@ -3,7 +3,6 @@ import * as OtherInputs from '@features/settings/model/other_inputs';
 import { APLRotation, APLRotation_Type as APLRotationType } from '@generated/proto/apl';
 import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
 import { ItemSlot, PseudoStat, Spec, Stat, TristateEffect } from '@generated/proto/common';
-import { SavedTalents } from '@generated/proto/ui';
 import { PlayerClasses } from '@sim/player/classes';
 import { Player } from '@sim/player/player';
 import { Stats, UnitStat } from '@sim/proto/stats';
@@ -83,11 +82,7 @@ export default defineSpec<Spec.SpecFeralBearDruid>({
 		other: Presets.OtherDefaults,
 		consumables: Presets.DefaultConsumables,
 		rotationType: APLRotationType.TypeAuto,
-		// Nature's Reach (melee hit) and Nature's Majesty (melee crit) are worth more to the bear than Furor and
-		// Naturalist. Feral Instinct raises only Swipe, which the single-target APL does not cast.
-		talents: SavedTalents.create({
-			talentsString: '0500220000000000-55200322120132012551-0000000000000000',
-		}),
+		talents: Presets.BearTalents.data,
 		specOptions: Presets.DefaultOptions,
 		raidBuffs: RaidBuffs.create({
 			arcaneBrilliance: true,
@@ -145,7 +140,7 @@ export default defineSpec<Spec.SpecFeralBearDruid>({
 
 	presets: {
 		epWeights: [Presets.Level60SurvivalEpWeights, Presets.Level60DpsEpWeights],
-		talents: [],
+		talents: [Presets.BearTalents, Presets.HybridTalents],
 		rotations: [Presets.ROTATION_DEFAULT, Presets.ROTATION_LACERATE_FIRST],
 		gear: [Presets.Level60Gear],
 		encounters: [Presets.Level60Encounter],
