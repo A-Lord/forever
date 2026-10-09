@@ -2,6 +2,7 @@
 package core
 
 import (
+	"slices"
 	"time"
 
 	"github.com/wowsims/forever/sim/core/stats"
@@ -358,16 +359,22 @@ func (aura *StatBuffAura) CanProc(sim *Simulation) bool {
 	return !aura.IsSwapped && ((aura.CustomProcCondition == nil) || aura.CustomProcCondition(sim, aura.Aura))
 }
 
+// A buff to any defensive stat or resistance is a survival cooldown, one to mana regen or spirit
+// alone a mana cooldown, and any other a DPS cooldown.
 func (aura *StatBuffAura) InferCDType() CooldownType {
-	cdType := CooldownTypeUnknown
-
-	if aura.BuffsMatchingStat([]stats.Stat{stats.Armor, stats.BlockPercent, stats.DodgeRating, stats.ParryRating, stats.DodgePercent, stats.ParryPercent, stats.Health}) {
-		cdType |= CooldownTypeSurvival
-	} else {
-		cdType |= CooldownTypeDPS
+	if aura.BuffsMatchingStat([]stats.Stat{stats.Armor, stats.BlockPercent, stats.BlockValue, stats.DodgeRating, stats.ParryRating,
+		stats.DodgePercent, stats.ParryPercent, stats.Health, stats.ArcaneResistance, stats.FireResistance, stats.FrostResistance,
+		stats.NatureResistance, stats.ShadowResistance}) {
+		return CooldownTypeSurvival
 	}
 
-	return cdType
+	if len(aura.BuffedStatTypes) > 0 && !slices.ContainsFunc(aura.BuffedStatTypes, func(stat stats.Stat) bool {
+		return stat != stats.MP5 && stat != stats.Spirit
+	}) {
+		return CooldownTypeMana
+	}
+
+	return CooldownTypeDPS
 }
 
 type StackingStatAura struct {

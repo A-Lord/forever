@@ -408,12 +408,6 @@ func (wa *WeaponAttack) swing(sim *Simulation) time.Duration {
 	wa.pendingSwingDelay = max(0, sim.CurrentTime-wa.naturalReadyAt)
 	wa.naturalReadyAt = wa.swingAt
 
-	// A melee swing resets the ranged auto timer. It only starts over once
-	// back in ranged range (EnableRangedSwing), which melee range never is.
-	if !isRanged && wa.unit.AutoAttacks.AutoSwingRanged {
-		wa.unit.AutoAttacks.ranged.swingAt = NeverExpires
-	}
-
 	attackSpell.Cast(sim, wa.unit.CurrentTarget)
 
 	if !sim.Options.Interactive && (wa.unit.Rotation != nil) && !wa.unit.Metrics.isTanking {
@@ -807,9 +801,6 @@ func (aa *AutoAttacks) EnableRangedSwing(sim *Simulation) {
 		return
 	}
 
-	if aa.ranged.swingAt == NeverExpires { // reset by a melee swing
-		aa.ranged.swingAt = sim.CurrentTime + aa.ranged.curSwingDuration - RangedSwingWindup
-	}
 	aa.ranged.swingAt = max(aa.ranged.swingAt, sim.CurrentTime, 0)
 	aa.ranged.naturalReadyAt = aa.ranged.swingAt
 	if aa.ranged.IsInRange() {
