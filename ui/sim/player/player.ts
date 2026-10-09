@@ -312,7 +312,13 @@ export class Player<SpecType extends Spec> {
 
 	// Item-swap fields share one version counter (ItemSwapSettings facade).
 	patchItemSwap(patch: { itemSwapEnabled?: boolean; itemSwapGear?: ItemSwapGear; itemSwapBonusStats?: Stats }) {
-		this.write(patch, ['itemSwap']);
+		// The swap weapons' stone imbues are corrected in the same write as the swap gear, as setGear does for the main weapons.
+		const adjustedConsumes = patch.itemSwapGear?.adjustSwapImbues(this.slice().consumables);
+		if (adjustedConsumes && adjustedConsumes !== this.slice().consumables) {
+			this.write({ ...patch, consumables: adjustedConsumes }, ['itemSwap', 'consumables']);
+		} else {
+			this.write(patch, ['itemSwap']);
+		}
 	}
 
 	getItemSwapField<F extends 'itemSwapEnabled' | 'itemSwapGear' | 'itemSwapBonusStats'>(field: F): PlayerSlice[F] {

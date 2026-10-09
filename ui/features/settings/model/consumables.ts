@@ -16,7 +16,11 @@ export type ConsumableIdField =
 	| 'mhImbueId'
 	| 'ohImbueId'
 	| 'mhWeaponImbueId'
-	| 'ohWeaponImbueId';
+	| 'ohWeaponImbueId'
+	| 'swapMhImbueId'
+	| 'swapOhImbueId'
+	| 'swapMhWeaponImbueId'
+	| 'swapOhWeaponImbueId';
 
 export interface ConsumableRelevance {
 	relevant: (consumable: Consumable, player: Player<any>) => boolean;
@@ -97,8 +101,9 @@ function consumablePicker(
 		values: [{ value: 0, iconUrl: '', tooltip: i18n.t('common.none') }, ...values],
 		equals: (a: number, b: number) => a === b,
 		zeroValue: 0,
-		// `raid:partyBuffs` because the main-hand imbue's showWhen reads the weapon totems off the party.
-		storeField: [...STORE_FIELDS, 'raid:partyBuffs'],
+		// `raid:partyBuffs` because the main-hand imbue's showWhen reads the weapon totems off the party,
+		// `itemSwap` because the swap imbues' includeIf reads the swap weapons and their showWhen whether item swap is on.
+		storeField: [...STORE_FIELDS, 'itemSwap', 'raid:partyBuffs'],
 		showWhen: options.showWhen,
 		getValue: (player: Player<any>) => pickOf(player.getConsumes()),
 		setValue: (player: Player<any>, newValue: number) => {

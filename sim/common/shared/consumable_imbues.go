@@ -1,6 +1,8 @@
 package shared
 
 import (
+	"fmt"
+
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
@@ -14,61 +16,63 @@ type SchoolPiercing struct {
 	Amount float64
 }
 
-// A temporary enchant consumable, applied to each hand core put its enchant on: the enchant's stats
-// once per hand and each combat spell cast off that hand's hits at the chance its row states. Its flat
-// weapon damage is core's, on every weapon built from that hand's item. The equip spells named are
-// the enchant's that grant no stat of the enchant's own, such as Consecrated Sharpening Stone's 28893:
-// their auras are parsed onto one permanent aura once per hand, since each weapon carries its own copy
-// of the equip aura, and an aura bound to a matching weapon reaches that hand's attacks alone. An
-// equip spell that procs, such as Scroll of Imbue Manablade's 1308913, is a listener built from its
-// row instead. The piercing is a stat slot of the enchant that has no place in the stat array, added
-// once per hand too.
+// A temporary enchant consumable, applied to each hand core put its enchant on, in the main set or
+// the item swap set. Its stats and flat weapon damage are core's, on the item carrying the enchant.
+// Each combat spell is cast off the hits of the weapons carrying the enchant at the chance its row
+// states. The equip spells named are the enchant's that grant no stat of the enchant's own, such as
+// Consecrated Sharpening Stone's 28893: their auras are parsed onto an aura per hand, since each
+// weapon carries its own copy of the equip aura, and an aura bound to a matching weapon reaches that
+// hand's attacks alone. An equip spell that procs, such as Scroll of Imbue Manablade's 1308913, is a
+// listener built from its row instead. The piercing is a stat slot of the enchant that has no place
+// in the stat array, held by the same per-hand aura.
 func NewSpellDataTemporaryEnchant(itemID int32, piercing SchoolPiercing, equipSpellIDs ...int32) {
 	core.NewSpellDataConsumableEffect(itemID, func(agent core.Agent) {
 		character := agent.GetCharacter()
 		consumable := core.GetConsumableByID(itemID)
-		hands := applyTemporaryEnchant(character, consumable)
-		if len(hands) == 0 {
+		slots := applyTemporaryEnchant(character, consumable)
+		if len(slots) == 0 {
 			return
 		}
-		character.PseudoStats.SchoolSpellPiercing[piercing.School] += piercing.Amount * float64(len(hands))
+		var equipSpells []*spelldata.Spell
 		for _, spellID := range equipSpellIDs {
 			row := spelldata.MustFind(spellID)
 			if TemporaryEnchantEquipSpellProcs(row) {
-				registerTemporaryEnchantProc(character, consumable, row, hands)
+				registerTemporaryEnchantProc(character, consumable, row, slots)
 				continue
 			}
-			aura := character.GetOrRegisterAura(spelldata.AuraConfig(row, spelldata.Permanent()))
-			for _, hand := range hands {
-				spelldata.ParseEffects(character, aura, row, spelldata.OnHand(hand), spelldata.Count(1))
-			}
+			equipSpells = append(equipSpells, row)
+		}
+		if piercing.Amount == 0 && len(equipSpells) == 0 {
+			return
+		}
+		for _, slot := range slots {
+			registerTemporaryEnchantHand(character, consumable, slot, piercing, equipSpells)
 		}
 	})
 }
 
-// Returns the melee hands carrying the enchant, as proc masks.
-func applyTemporaryEnchant(character *core.Character, consumable core.Consumable) []core.ProcMask {
+// Returns the melee hands carrying the enchant in the main set or the item swap set.
+func applyTemporaryEnchant(character *core.Character, consumable core.Consumable) []proto.ItemSlot {
 	enchant := consumable.TemporaryEnchant
 	if enchant == nil {
 		return nil
 	}
 
-	var hands []core.ProcMask
+	var slots []proto.ItemSlot
 	for _, slot := range []proto.ItemSlot{proto.ItemSlot_ItemSlotMainHand, proto.ItemSlot_ItemSlotOffHand} {
-		if !character.Equipment[slot].HasTempEnchant(enchant.EffectID) {
-			continue
+		swapped := character.ItemSwap.GetUnequippedItemBySlot(slot).HasTempEnchant(enchant.EffectID)
+		if character.Equipment[slot].HasTempEnchant(enchant.EffectID) || swapped {
+			slots = append(slots, slot)
 		}
-		hands = append(hands, character.GetProcMaskForWeaponSlot(slot))
-		character.AddStats(enchant.Stats.Add(stats.FromPseudoStatsProto(enchant.PseudoStats)))
 	}
-	if len(hands) == 0 {
+	if len(slots) == 0 {
 		return nil
 	}
 
 	for _, effect := range enchant.EnchantEffects {
 		registerTemporaryEnchantCombatSpell(character, consumable, effect)
 	}
-	return hands
+	return slots
 }
 
 // The combat spell rolls on the hits of the weapons carrying the enchant, at their own speeds.
@@ -90,30 +94,66 @@ func registerTemporaryEnchantCombatSpell(character *core.Character, consumable c
 	character.MakeProcTriggerAura(config)
 }
 
+// The enchant's copy on one hand, up while the weapon in that hand carries the enchant.
+func registerTemporaryEnchantHand(character *core.Character, consumable core.Consumable, slot proto.ItemSlot, piercing SchoolPiercing, equipSpells []*spelldata.Spell) {
+	enchantID := consumable.TemporaryEnchant.EffectID
+	actionID := core.ActionID{ItemID: consumable.Id}
+	if len(equipSpells) == 1 {
+		actionID = core.ActionID{SpellID: equipSpells[0].ID}
+	}
+	aura := character.RegisterAura(core.Aura{
+		Label:    fmt.Sprintf("%s (%s)", consumable.Name, core.Ternary(slot == proto.ItemSlot_ItemSlotMainHand, "Main Hand", "Off Hand")),
+		ActionID: actionID.WithTag(int32(slot)),
+		Duration: core.NeverExpires,
+	})
+	if piercing.Amount != 0 {
+		aura.AttachAdditivePseudoStatBuff(&character.PseudoStats.SchoolSpellPiercing[piercing.School], piercing.Amount)
+	}
+	hand := character.GetProcMaskForWeaponSlot(slot)
+	for _, row := range equipSpells {
+		spelldata.ParseEffects(character, aura, row, spelldata.OnHand(hand), spelldata.Count(1))
+	}
+
+	if character.Equipment[slot].HasTempEnchant(enchantID) {
+		core.MakePermanent(aura)
+	}
+	character.ItemSwap.RegisterEnchantProcWithSlots(enchantID, aura, []proto.ItemSlot{slot})
+}
+
 func TemporaryEnchantEquipSpellProcs(row *spelldata.Spell) bool {
 	return row.FirstAura(dbcenums.A_PROC_TRIGGER_SPELL) != spelldata.NilEffect
 }
 
 // An equip spell that procs, built from its row: the hits it hears, its chance and its internal
-// cooldown. A listener on the wearer's own hits hears the hands carrying the enchant alone; one on
-// the hits the wearer takes hears every one of them.
-func registerTemporaryEnchantProc(character *core.Character, consumable core.Consumable, row *spelldata.Spell, hands []core.ProcMask) {
+// cooldown, listening while a weapon carrying the enchant is equipped. A listener on the wearer's own
+// hits hears the hands carrying the enchant alone; one on the hits the wearer takes hears every one
+// of them.
+func registerTemporaryEnchantProc(character *core.Character, consumable core.Consumable, row *spelldata.Spell, slots []proto.ItemSlot) {
 	actionID := core.ActionID{ItemID: consumable.Id}
 	handler := FiredSpellHandler(character, actionID, row)
 	if handler == nil {
 		return
 	}
+	enchantID := consumable.TemporaryEnchant.EffectID
 
 	config := spelldata.ProcTrigger(character, row, handler)
 	if config.Callback.Matches(core.CallbackOnSpellHitDealt) {
-		var enchanted core.ProcMask
-		for _, hand := range hands {
-			enchanted |= hand
+		var hands core.ProcMask
+		for _, slot := range slots {
+			hands |= character.GetProcMaskForWeaponSlot(slot)
 		}
-		config.ProcMask &= enchanted
+		config.ProcMask &= hands
+
+		if character.ItemSwap.IsEnabled() {
+			enchanted := character.GetDynamicProcMaskForWeaponTempEnchant(enchantID)
+			extraCondition := config.ExtraCondition
+			config.ExtraCondition = func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) bool {
+				return spell.ProcMask.Matches(*enchanted) && (extraCondition == nil || extraCondition(sim, spell, result))
+			}
+		}
 	}
 	config.Name = consumable.Name
 	config.ActionID = actionID
 
-	character.MakeProcTriggerAura(config)
+	character.ItemSwap.RegisterEnchantProcWithSlots(enchantID, character.MakeProcTriggerAura(config), slots)
 }
