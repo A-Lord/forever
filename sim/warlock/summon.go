@@ -10,14 +10,14 @@ import (
 // Master Summoner and Fel Domination lower through the class flags the four rows share. The Soul Shard
 // the Voidwalker, Succubus and Felhunter take is not modelled.
 func (warlock *Warlock) registerSummons() {
-	warlock.SummonImp = warlock.registerSummon(688, warlock.Imp)
-	warlock.SummonVoidwalker = warlock.registerSummon(697, warlock.Voidwalker)
-	warlock.SummonSuccubus = warlock.registerSummon(712, warlock.Succubus)
-	warlock.SummonFelhunter = warlock.registerSummon(691, warlock.Felhunter)
+	warlock.SummonImp = warlock.registerSummon(spellData.SummonImp.Highest(), warlock.Imp)
+	warlock.SummonVoidwalker = warlock.registerSummon(spellData.SummonVoidwalker.Highest(), warlock.Voidwalker)
+	warlock.SummonSuccubus = warlock.registerSummon(spellData.SummonSuccubus.Highest(), warlock.Succubus)
+	warlock.SummonFelhunter = warlock.registerSummon(spellData.SummonFelhunter.Highest(), warlock.Felhunter)
 }
 
-func (warlock *Warlock) registerSummon(spellID int32, pet *WarlockPet) *core.Spell {
-	config := spelldata.SpellConfig(&warlock.Unit, spelldata.MustFind(spellID), spelldata.Flags(core.SpellFlagAPL))
+func (warlock *Warlock) registerSummon(row *spelldata.Spell, pet *WarlockPet) *core.Spell {
+	config := spelldata.SpellConfig(&warlock.Unit, row, spelldata.Flags(core.SpellFlagAPL))
 	config.ProcMask = core.ProcMaskEmpty
 	config.ClassSpellMask = WarlockSpellSummonDemon
 

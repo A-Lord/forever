@@ -32,8 +32,4 @@ var ExtraSpells = []Extra{
 	{SpellID: 1259817, Reason: "Eureka!, the mage row of the gnome racial", Source: "owner decision", SpellDataGroup: "racials"},
 	{SpellID: 1259821, Reason: "Eureka!, the warlock row of the gnome racial", Source: "owner decision", SpellDataGroup: "racials"},
 	{SpellID: 1259823, Reason: "Eureka!, the priest row of the gnome racial", Source: "owner decision", SpellDataGroup: "racials"},
-	{SpellID: 688, Reason: "Summon Imp, cast from the APL; the summons carry no rank, so no class family reaches them", Source: "Spell 688"},
-	{SpellID: 697, Reason: "Summon Voidwalker, cast from the APL; the summons carry no rank, so no class family reaches them", Source: "Spell 697"},
-	{SpellID: 712, Reason: "Summon Succubus, cast from the APL; the summons carry no rank, so no class family reaches them", Source: "Spell 712"},
-	{SpellID: 691, Reason: "Summon Felhunter, cast from the APL; the summons carry no rank, so no class family reaches them", Source: "Spell 691"},
 }
