@@ -231,7 +231,7 @@ var generatedSpells = []Spell{
 		Powers: []Power{{CostPct: 10}}},
 	{ID: 403, Name: "Lightning Bolt", Rank: "Rank 1", School: 8, Speed: 20, Attr: [17]uint32{0: 0x10000, 6: 0x2000000, 15: 0x2000}, SpellLevel: 1, BaseLevel: 1, MaxLevel: 6, CastTimeMs: 1500, MaxRange: 30, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 11, Mask: [4]uint32{0: 1}}, InterruptFlags: 15, Labels: []int16{24},
 		Effects: []Effect{
-			{ID: 678918, SpellID: 403, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 14, PPL: 0.4000000059604645, Variance: 0.1428571492433548, BaseLevel: 1, MaxLevel: 6, SPCoef: 0.42899999022483826, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+			{ID: 678918, SpellID: 403, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 15, PPL: 0.10000000149011612, Variance: 0.1428571492433548, BaseLevel: 1, MaxLevel: 6, SPCoef: 0.42899999022483826, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
 		Powers: []Power{{Cost: 15}}},
 	{ID: 408, Name: "Kidney Shot", Rank: "Rank 1", School: 1, Attr: [17]uint32{0: 0x50010, 1: 0x8040200, 3: 0x400, 4: 0x8, 8: 0x1000, 13: 0x80, 15: 0x2000}, SpellLevel: 30, BaseLevel: 30, MaxRange: 5, CategoryCooldownMs: 20000, GCDMs: 1000, Category: 270, StartRecoveryCategory: 133, DefenseType: 2, Mechanic: 12, PreventionType: 2, ProcChance: 101, ClassFlags: core.ClassFlags{Family: 8, Mask: [4]uint32{0: 2097152}}, EquipClass: 2, EquipSubclass: 173555, Labels: []int16{20}, ProcChanceSource: ProcChanceAlways,
@@ -346,7 +346,7 @@ var generatedSpells = []Spell{
 		Powers: []Power{{CostPct: 15}}},
 	{ID: 529, Name: "Lightning Bolt", Rank: "Rank 2", School: 8, Speed: 20, Attr: [17]uint32{0: 0x10000, 6: 0x2000000, 15: 0x2000}, SpellLevel: 8, BaseLevel: 8, MaxLevel: 13, CastTimeMs: 2000, MaxRange: 30, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 11, Mask: [4]uint32{0: 1}}, InterruptFlags: 15, Labels: []int16{24},
 		Effects: []Effect{
-			{ID: 679369, SpellID: 529, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 29, PPL: 0.5, Variance: 0.1428571492433548, BaseLevel: 8, MaxLevel: 13, SPCoef: 0.5709999799728394, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+			{ID: 679369, SpellID: 529, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 27, PPL: 0.10000000149011612, Variance: 0.1428571492433548, BaseLevel: 8, MaxLevel: 13, SPCoef: 0.5709999799728394, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
 		Powers: []Power{{Cost: 30}}},
 	{ID: 543, Name: "Fire Ward", Rank: "Rank 1", School: 4, Attr: [17]uint32{0: 0x10000, 8: 0x1000, 15: 0x2000}, SpellLevel: 20, BaseLevel: 20, DurationMs: 30000, CategoryCooldownMs: 30000, GCDMs: 1500, Category: 56, StartRecoveryCategory: 133, DefenseType: 1, DispelType: 1, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 3, Mask: [4]uint32{0: 8}}, InterruptFlags: 8, Labels: []int16{17},
@@ -367,7 +367,7 @@ var generatedSpells = []Spell{
 		Powers: []Power{{Cost: 80}}},
 	{ID: 548, Name: "Lightning Bolt", Rank: "Rank 3", School: 8, Speed: 20, Attr: [17]uint32{0: 0x10000, 6: 0x2000000, 15: 0x2000}, SpellLevel: 14, BaseLevel: 14, MaxLevel: 19, CastTimeMs: 2500, MaxRange: 30, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 11, Mask: [4]uint32{0: 1}}, InterruptFlags: 15, Labels: []int16{24},
 		Effects: []Effect{
-			{ID: 679030, SpellID: 548, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 45, PPL: 0.6000000238418579, Variance: 0.16326530277729034, BaseLevel: 14, MaxLevel: 19, SPCoef: 0.7139999866485596, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+			{ID: 679030, SpellID: 548, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 45, PPL: 0.30000001192092896, Variance: 0.16326530277729034, BaseLevel: 14, MaxLevel: 19, SPCoef: 0.7139999866485596, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
 		Powers: []Power{{Cost: 45}}},
 	{ID: 552, Name: "Abolish Disease", School: 2, Attr: [17]uint32{0: 0x50800, 1: 0x8000, 15: 0x2000}, SpellLevel: 32, BaseLevel: 32, DurationMs: 20000, MaxRange: 30, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, DispelType: 1, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 6, Mask: [4]uint32{0: 2147483648, 1: 1, 2: 33554432}}, InterruptFlags: 8, StanceExclude: 0x8000000, Labels: []int16{18}, RefIDs: []int32{10872},
@@ -789,7 +789,7 @@ var generatedSpells = []Spell{
 		Powers: []Power{{Cost: 155}}},
 	{ID: 915, Name: "Lightning Bolt", Rank: "Rank 4", School: 8, Speed: 20, Attr: [17]uint32{0: 0x10000, 6: 0x2000000, 15: 0x2000}, SpellLevel: 20, BaseLevel: 20, MaxLevel: 25, CastTimeMs: 2500, MaxRange: 30, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 11, Mask: [4]uint32{0: 1}}, InterruptFlags: 15, Labels: []int16{24},
 		Effects: []Effect{
-			{ID: 679313, SpellID: 915, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 56, PPL: 0.6000000238418579, Variance: 0.13483145833015442, BaseLevel: 20, MaxLevel: 25, SPCoef: 0.7139999866485596, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+			{ID: 679313, SpellID: 915, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 61, PPL: 0.4000000059604645, Variance: 0.13483145833015442, BaseLevel: 20, MaxLevel: 25, SPCoef: 0.7139999866485596, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
 		Powers: []Power{{Cost: 60}}},
 	{ID: 921, Name: "Pick Pocket", School: 1, Attr: [17]uint32{0: 0x30010, 1: 0x221020, 2: 0x10000000, 3: 0x20000, 6: 0x4, 15: 0x2000}, SpellLevel: 4, BaseLevel: 4, MaxRange: 5, DefenseType: 1, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 8, Mask: [4]uint32{0: 2147483648}}, StanceMask: 0x20000000, Labels: []int16{20},
@@ -808,7 +808,7 @@ var generatedSpells = []Spell{
 		Powers: []Power{{Cost: 200}}},
 	{ID: 943, Name: "Lightning Bolt", Rank: "Rank 5", School: 8, Speed: 20, Attr: [17]uint32{0: 0x10000, 6: 0x2000000, 15: 0x2000}, SpellLevel: 26, BaseLevel: 26, MaxLevel: 31, CastTimeMs: 2500, MaxRange: 30, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 11, Mask: [4]uint32{0: 1}}, InterruptFlags: 15, Labels: []int16{24},
 		Effects: []Effect{
-			{ID: 679378, SpellID: 943, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 72, PPL: 0.699999988079071, Variance: 0.13432836532592773, BaseLevel: 26, MaxLevel: 31, SPCoef: 0.7139999866485596, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+			{ID: 679378, SpellID: 943, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 82, PPL: 0.5, Variance: 0.13432836532592773, BaseLevel: 26, MaxLevel: 31, SPCoef: 0.7139999866485596, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
 		Powers: []Power{{Cost: 85}}},
 	{ID: 945, Name: "Lightning Shield", Rank: "Rank 4", School: 8, Attr: [17]uint32{0: 0x50000, 1: 0x400, 15: 0x2000}, SpellLevel: 32, BaseLevel: 32, DurationMs: 600000, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, DispelType: 1, PreventionType: 1, ProcChance: 100, ProcCharges: 3, ProcFlags: [2]uint32{0: 0x222a8}, ICDMs: 3500, ClassFlags: core.ClassFlags{Family: 11, Mask: [4]uint32{0: 1024}}, Labels: []int16{24}, RefIDs: []int32{26367}, ProcChanceSource: ProcChanceAlways, ProcHint: core.ProcHintHeals,
@@ -1746,7 +1746,7 @@ var generatedSpells = []Spell{
 		Powers: []Power{{CostPct: 13.9}}},
 	{ID: 2645, Name: "Ghost Wolf", School: 8, Attr: [17]uint32{0: 0x18000, 1: 0x20000, 2: 0x2, 15: 0x2000}, SpellLevel: 20, BaseLevel: 20, CastTimeMs: 3000, DurationMs: -1, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, DispelType: 1, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 11, Mask: [4]uint32{0: 2048}}, InterruptFlags: 15, AuraInterrupt: [2]uint32{1: 0x100000}, Labels: []int16{24, 6511},
 		Effects: []Effect{
-			{ID: 681058, SpellID: 2645, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_SHAPESHIFT, BaseLevel: 20, PvpMult: 1, Amplitude: 1, Misc: 16, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
+			{ID: 681058, SpellID: 2645, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_SHAPESHIFT, BaseLevel: 20, PvpMult: 1, Amplitude: 1, Misc: 16, Misc2: 6, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 			{ID: 681059, SpellID: 2645, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_INCREASE_SPEED, BasePoints: 40, BaseLevel: 20, PvpMult: 1, Amplitude: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		},
 		Powers: []Power{{Cost: 100}}},
@@ -5028,7 +5028,7 @@ var generatedSpells = []Spell{
 			{ID: 687075, SpellID: 8177, Type: dbcenums.E_SUMMON, BasePoints: 5, BaseLevel: 30, PvpMult: 1, Misc: 5925, Misc2: 83, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{43, 0}},
 		},
 		Powers: []Power{{CostPct: 6}}},
-	{ID: 8178, Name: "Grounding Totem Effect", Rank: "Rank 1", School: 8, Attr: [17]uint32{0: 0x10100, 3: 0x4000000, 15: 0x2000}, SpellLevel: 30, BaseLevel: 30, DurationMs: -1, ProcChance: 100, ProcCharges: 1, ProcFlags: [2]uint32{0: 0x20000}, ClassFlags: core.ClassFlags{Family: 11, Mask: [4]uint32{0: 67108864, 3: 16777216}}, Labels: []int16{24}, ProcChanceSource: ProcChanceAlways,
+	{ID: 8178, Name: "Grounding Totem", Rank: "Rank 1", School: 8, Attr: [17]uint32{0: 0x10100, 3: 0x4000000, 15: 0x2000}, SpellLevel: 30, BaseLevel: 30, DurationMs: -1, ProcChance: 100, ProcCharges: 1, ProcFlags: [2]uint32{0: 0x20000}, ClassFlags: core.ClassFlags{Family: 11, Mask: [4]uint32{0: 67108864, 3: 16777216}}, Labels: []int16{24}, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 687076, SpellID: 8178, Type: dbcenums.E_APPLY_AREA_AURA_PARTY, Aura: dbcenums.A_SPELL_MAGNET, BaseLevel: 30, PvpMult: 1, RadiusMax: 30, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}},
@@ -13163,14 +13163,14 @@ var generatedSpells = []Spell{
 		Effects: []Effect{
 			{ID: 693535, SpellID: 16188, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_PCT_MODIFIER, BasePoints: -100, BaseLevel: 1, PvpMult: 1, Misc: 10, ClassFlags: core.ClassFlags{Family: 11, Mask: [4]uint32{0: 2499, 2: 1048576, 3: 65536}}, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}},
-	{ID: 16190, Name: "Mana Tide Totem", Rank: "Rank 1", School: 16, Attr: [17]uint32{0: 0x10000, 7: 0x20, 15: 0x2000}, SpellLevel: 40, BaseLevel: 40, DurationMs: 13000, CategoryCooldownMs: 300000, GCDMs: 1000, Category: 591, StartRecoveryCategory: 133, DefenseType: 1, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 11, Mask: [4]uint32{0: 536870912}}, Labels: []int16{24}, RefIDs: []int32{16191}, ProcHint: core.ProcHintHeals,
+	{ID: 16190, Name: "Mana Tide Totem", Rank: "Rank 1", School: 16, Attr: [17]uint32{0: 0x10000, 7: 0x20, 15: 0x2000}, SpellLevel: 25, BaseLevel: 25, DurationMs: 13000, CategoryCooldownMs: 300000, GCDMs: 1000, Category: 591, StartRecoveryCategory: 133, DefenseType: 1, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 11, Mask: [4]uint32{0: 536870912}}, Labels: []int16{24}, RefIDs: []int32{16191}, ProcHint: core.ProcHintHeals,
 		Effects: []Effect{
-			{ID: 693558, SpellID: 16190, Type: dbcenums.E_SUMMON, BasePoints: 5, BaseLevel: 40, PvpMult: 1, Misc: 10467, Misc2: 82, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{42, 0}},
+			{ID: 693558, SpellID: 16190, Type: dbcenums.E_SUMMON, BasePoints: 5, BaseLevel: 25, PvpMult: 1, Misc: 10467, Misc2: 82, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{42, 0}},
 		},
 		Powers: []Power{{Cost: 10}}},
-	{ID: 16191, Name: "Mana Tide", Rank: "Rank 1", School: 8, Attr: [17]uint32{0: 0x40, 15: 0x2000}, SpellLevel: 40, BaseLevel: 40, DefenseType: 1, PreventionType: 1, ProcChance: 100, ClassFlags: core.ClassFlags{Family: 11, Mask: [4]uint32{0: 67108864, 3: 268435456}}, Labels: []int16{24}, ProcChanceSource: ProcChanceAlways,
+	{ID: 16191, Name: "Mana Tide", Rank: "Rank 1", School: 8, Attr: [17]uint32{0: 0x40, 15: 0x2000}, SpellLevel: 25, BaseLevel: 25, DefenseType: 1, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 11, Mask: [4]uint32{0: 67108864, 3: 268435456}}, Labels: []int16{24},
 		Effects: []Effect{
-			{ID: 693253, SpellID: 16191, Type: dbcenums.E_APPLY_AREA_AURA_PARTY, Aura: dbcenums.A_PERIODIC_ENERGIZE, BasePoints: 88, BaseLevel: 40, PvpMult: 1, PeriodMs: 3000, RadiusMax: 30, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
+			{ID: 693253, SpellID: 16191, Type: dbcenums.E_APPLY_AREA_AURA_PARTY, Aura: dbcenums.A_PERIODIC_ENERGIZE, BasePoints: 88, BaseLevel: 25, PvpMult: 1, PeriodMs: 3000, RadiusMax: 30, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}},
 	{ID: 16194, Name: "Tidal Mastery", School: 1, Attr: [17]uint32{0: 0x1d0, 15: 0x2000}, SpellLevel: 60, BaseLevel: 60, ClassFlags: core.ClassFlags{Family: 11}, Labels: []int16{24}, ProcHint: core.ProcHintCrit | core.ProcHintHeals | core.ProcHintPureHeal,
 		Effects: []Effect{
@@ -13194,7 +13194,7 @@ var generatedSpells = []Spell{
 			{ID: 693768, SpellID: 16198, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_HIT_CHANCE, BasePoints: 3, BaseLevel: 60, SPCoef: 1, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 			{ID: 693769, SpellID: 16198, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_SPELL_HIT_CHANCE, BasePoints: 3, BaseLevel: 60, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}},
-	{ID: 16246, Name: "Clearcasting", School: 64, Attr: [17]uint32{0: 0x50000, 15: 0x2000}, SpellLevel: 10, BaseLevel: 10, DurationMs: 15000, MaxRange: 100, DefenseType: 1, DispelType: 1, PreventionType: 1, ProcChance: 100, ProcCharges: 1, ProcFlags: [2]uint32{0: 0x15550}, ClassFlags: core.ClassFlags{Family: 11, Mask: [4]uint32{1: 16384}}, Labels: []int16{24}, ProcChanceSource: ProcChanceAlways,
+	{ID: 16246, Name: "Clearcasting", School: 64, Attr: [17]uint32{0: 0x50000, 15: 0x2000}, SpellLevel: 10, BaseLevel: 10, DurationMs: 15000, MaxRange: 100, DefenseType: 1, DispelType: 1, PreventionType: 1, ProcChance: 100, ProcCharges: 1, ProcFlags: [2]uint32{0: 0x15550}, ClassFlags: core.ClassFlags{Family: 11, Mask: [4]uint32{1: 16384}}, Labels: []int16{24}, ProcChanceSource: ProcChanceAlways, ProcHint: core.ProcHintDamage,
 		Effects: []Effect{
 			{ID: 692327, SpellID: 16246, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_PCT_MODIFIER, BasePoints: -100, BaseLevel: 10, PvpMult: 1, Misc: 14, ClassFlags: core.ClassFlags{Family: 11, Mask: [4]uint32{0: 2551185411, 1: 4096}}, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}},
@@ -14183,7 +14183,7 @@ var generatedSpells = []Spell{
 			{ID: 694322, SpellID: 17354, Type: dbcenums.E_SUMMON, BasePoints: 5, BaseLevel: 48, PvpMult: 1, Misc: 11100, Misc2: 82, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{42, 0}},
 		},
 		Powers: []Power{{Cost: 30}}},
-	{ID: 17355, Name: "Mana Tide", Rank: "Rank 2", School: 8, Attr: [17]uint32{0: 0x40, 15: 0x2000}, SpellLevel: 48, BaseLevel: 48, DefenseType: 1, PreventionType: 1, ProcChance: 100, ClassFlags: core.ClassFlags{Family: 11, Mask: [4]uint32{0: 67108864, 3: 268435456}}, Labels: []int16{24}, ProcChanceSource: ProcChanceAlways,
+	{ID: 17355, Name: "Mana Tide", Rank: "Rank 2", School: 8, Attr: [17]uint32{0: 0x40, 15: 0x2000}, SpellLevel: 48, BaseLevel: 48, DefenseType: 1, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 11, Mask: [4]uint32{0: 67108864, 3: 268435456}}, Labels: []int16{24},
 		Effects: []Effect{
 			{ID: 694604, SpellID: 17355, Type: dbcenums.E_APPLY_AREA_AURA_PARTY, Aura: dbcenums.A_PERIODIC_ENERGIZE, BasePoints: 197, BaseLevel: 48, PvpMult: 1, PeriodMs: 3000, RadiusMax: 30, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}},
@@ -23993,9 +23993,10 @@ var generatedSpells = []Spell{
 			{ID: 1072682, SpellID: 408507, Index: 1, Type: dbcenums.E_DUMMY, BasePoints: 100, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
 		Powers: []Power{{CostPct: 1}}},
-	{ID: 408510, Name: "Water Shield", School: 8, Attr: [17]uint32{0: 0x50000, 1: 0x400, 2: 0x100, 3: 0x30000, 4: 0x80000, 8: 0x1000, 15: 0x2000}, SpellLevel: 20, BaseLevel: 20, DurationMs: 600000, CategoryCooldownMs: 15000, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, DispelType: 1, PreventionType: 1, ProcChance: 100, ProcCharges: 3, ProcFlags: [2]uint32{0: 0x262a8}, ICDMs: 3500, ClassFlags: core.ClassFlags{Family: 11, Mask: [4]uint32{1: 32}}, Labels: []int16{24}, RefIDs: []int32{408511}, ProcChanceSource: ProcChanceAlways, ProcHint: core.ProcHintCrit | core.ProcHintHeals | core.ProcHintPureHeal,
+	{ID: 408510, Name: "Water Shield", School: 8, Attr: [17]uint32{0: 0x50000, 1: 0x400, 2: 0x100, 3: 0x30000, 4: 0x80000, 8: 0x1000, 15: 0x2000}, SpellLevel: 20, BaseLevel: 20, DurationMs: 600000, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, DispelType: 1, PreventionType: 1, ProcChance: 100, ProcCharges: 3, ProcFlags: [2]uint32{0: 0x262a8}, ICDMs: 3500, ClassFlags: core.ClassFlags{Family: 11, Mask: [4]uint32{1: 32}}, Labels: []int16{24}, RefIDs: []int32{408511}, ProcChanceSource: ProcChanceAlways, ProcHint: core.ProcHintCrit | core.ProcHintHeals | core.ProcHintPureHeal,
 		Effects: []Effect{
 			{ID: 1072686, SpellID: 408510, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PROC_TRIGGER_SPELL, BasePoints: 100, BaseLevel: 20, PvpMult: 1, TriggerID: 408511, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
+			{ID: 1360851, SpellID: 408510, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_DUMMY, BasePoints: 1, BaseLevel: 20, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}},
 	{ID: 408511, Name: "Water Shield", School: 8, Attr: [17]uint32{0: 0x20040000, 2: 0x20000000, 15: 0x2000}, SpellLevel: 20, BaseLevel: 20, ClassFlags: core.ClassFlags{Family: 11, Mask: [4]uint32{1: 536870912}}, Labels: []int16{24},
 		Effects: []Effect{
