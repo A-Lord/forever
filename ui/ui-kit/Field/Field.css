@@ -40,6 +40,21 @@
 			}
 		}
 
+		/* The icons take the width they need, wrapping only when the row is too narrow; the label fills the rest. */
+		&[data-layout='inline'],
+		&[data-layout='split'] {
+			&:has(> .ui-icon-row) {
+				> label,
+				> .ui-field-label {
+					@apply w-auto flex-1;
+				}
+
+				> .ui-icon-row {
+					@apply w-auto min-w-0;
+				}
+			}
+		}
+
 		&[data-layout='icon'] {
 			@apply min-w-0 flex-row items-center gap-2;
 

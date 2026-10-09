@@ -485,6 +485,11 @@ message ConsumesSpec {
 	// The poison, firestone, spellstone or Scroll of Imbue on each hand, beside its stone or oil above.
 	int32 mh_weapon_imbue_id = 22;
 	int32 oh_weapon_imbue_id = 23;
+	// The same four picks for the item swap set's weapons.
+	int32 swap_mh_imbue_id = 24;
+	int32 swap_oh_imbue_id = 25;
+	int32 swap_mh_weapon_imbue_id = 26;
+	int32 swap_oh_weapon_imbue_id = 27;
 }
 
 enum MobType {

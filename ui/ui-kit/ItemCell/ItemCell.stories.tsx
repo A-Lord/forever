@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Button } from '@ui-kit/Button';
 import { Icon } from '@ui-kit/Icon';
 
-import { ItemCell } from './ItemCell';
+import { ItemCell, ItemCellIcon } from './ItemCell';
 
 const ICON = 'https://wow.zamimg.com/images/wow/icons/large/inv_sword_39.jpg';
 
@@ -11,8 +11,11 @@ const meta = {
 	component: ItemCell,
 	tags: ['autodocs'],
 	args: {
-		ilvl: '66',
-		icon: <a className="ui-item-picker-icon" style={{ backgroundImage: `url('${ICON}')` }} />,
+		icon: (
+			<ItemCellIcon ilvl="66">
+				<a className="ui-item-picker-icon" style={{ backgroundImage: `url('${ICON}')` }} />
+			</ItemCellIcon>
+		),
 		name: (
 			<span className="ui-item-picker-name-container text-quality-epic">
 				<span className="ui-item-picker-name">Thunderfury, Blessed Blade of the Windseeker</span>

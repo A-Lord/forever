@@ -84,7 +84,8 @@ func (character *Character) SelectedConsumableIDs() []int32 {
 func selectedConsumableIDs(consumables *proto.ConsumesSpec) []int32 {
 	ids := append([]int32{consumables.PotId, consumables.FlaskId}, consumables.ElixirIds...)
 	ids = append(ids, consumables.FoodId, consumables.ConjuredId, consumables.ExplosiveId,
-		consumables.OhImbueId, consumables.OhWeaponImbueId, consumables.MhImbueId, consumables.MhWeaponImbueId)
+		consumables.OhImbueId, consumables.OhWeaponImbueId, consumables.MhImbueId, consumables.MhWeaponImbueId,
+		consumables.SwapOhImbueId, consumables.SwapOhWeaponImbueId, consumables.SwapMhImbueId, consumables.SwapMhWeaponImbueId)
 	ids = append(ids, consumables.ExtraIds...)
 	ids = append(ids, consumables.Potions...)
 	ids = append(ids, consumables.ConjuredItems...)

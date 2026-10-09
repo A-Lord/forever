@@ -42,8 +42,9 @@ const { ItemSwapIcon, ItemSwapIconView } = await import('./ItemSwapIcon');
 
 const SLOTS = [ItemSlot.ItemSlotMainHand, ItemSlot.ItemSlotOffHand, ItemSlot.ItemSlotTrinket1, ItemSlot.ItemSlotTrinket2];
 
-const equippedItem = (itemId: number) =>
+const equippedItem = (itemId: number, ilvl = 63) =>
 	({
+		ilvl,
 		asActionId: () => ({ itemId }),
 		// The selector modal reads a swap item through the same decorators the gear picker uses, so the
 		// double has to answer them or `createItemSwapGearData` throws before it returns anything.
@@ -81,19 +82,20 @@ const setup = (swap: Map<ItemSlot, EquippedItem> = new Map(), slots: ItemSlot[] 
 };
 
 const icons = (container: Element) => [
-	...container.querySelectorAll<HTMLAnchorElement>('[data-testid="icon-picker-root"] > a[data-testid="icon-picker-button"]'),
+	...container.querySelectorAll<HTMLAnchorElement>('[data-testid="item-picker-icon-wrapper"] > a[data-testid="item-picker-icon"]'),
 ];
+const ilvlOf = (anchor: Element) => anchor.parentElement!.querySelector('[data-testid="item-picker-ilvl"]')!.textContent;
 
 beforeEach(() => {
 	tooltip.settles.length = 0;
 });
 
 describe('ItemSwapIcon', () => {
-	it('marks a filled slot active and links it to the item, which is what the swap probe reads', () => {
-		const { view } = setup(new Map([[ItemSlot.ItemSlotMainHand, equippedItem(1234)]]));
+	it('draws a filled slot with its item level and links it to the item, and leaves an empty slot without one', () => {
+		const { view } = setup(new Map([[ItemSlot.ItemSlotMainHand, equippedItem(1234, 63)]]));
 
-		const [mainHand] = icons(view.container);
-		expect(mainHand.hasAttribute('data-active')).toBe(true);
+		const [mainHand, offHand] = icons(view.container);
+		expect([ilvlOf(mainHand), ilvlOf(offHand)]).toEqual(['63', '']);
 		expect(mainHand.getAttribute('href')).toBe('https://wowhead.test/item=1234');
 		expect(mainHand.style.backgroundImage).toContain('icon-1234.jpg');
 	});
@@ -148,28 +150,29 @@ const renderIcon = (props: Partial<ItemSwapIconViewProps> = {}) => {
 	return { onOpen };
 };
 
-const icon = () => screen.getByTestId('icon-picker-button');
+const icon = () => screen.getByTestId('item-picker-icon');
 
 describe('ItemSwapIconView', () => {
-	it('draws an empty slot as its placeholder, unfilled and named for the slot', () => {
+	it("draws an empty slot as the slot's empty art, with no item level, named for the slot", () => {
 		renderIcon();
 
-		expect(icon().hasAttribute('data-active')).toBe(false);
+		expect(ilvlOf(icon())).toBe('');
 		expect(icon().style.backgroundImage).toContain(getEmptySlotIconUrl(ItemSlot.ItemSlotMainHand));
 		expect(icon().getAttribute('aria-label')).toBe(translateSlotName(ItemSlot.ItemSlotMainHand));
 		expect(icon().hasAttribute('href')).toBe(false);
 	});
 
-	it('draws a filled slot active, with its icon, name, link and wowhead data', () => {
+	it('draws a filled slot with its item level, icon, name, link and wowhead data', () => {
+		const item = makeEquippedItem();
 		renderIcon({
-			item: makeEquippedItem(),
+			item,
 			iconUrl: 'sword.jpg',
 			name: 'Thunderfury',
 			href: 'https://wowhead.test/item=19019',
 			wowhead: { 'data-wowhead': 'item=19019' },
 		});
 
-		expect(icon().hasAttribute('data-active')).toBe(true);
+		expect(ilvlOf(icon())).toBe(item.ilvl.toString());
 		expect(icon().style.backgroundImage).toContain('sword.jpg');
 		expect(icon().getAttribute('aria-label')).toBe('Thunderfury');
 		expect(icon().getAttribute('href')).toBe('https://wowhead.test/item=19019');

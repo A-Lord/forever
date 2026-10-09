@@ -1,4 +1,4 @@
-import { ItemSwap, Race } from '@generated/proto/common';
+import { ItemSpec, ItemSwap, Race } from '@generated/proto/common';
 import { SavedSettings as SavedSettingsProto } from '@generated/proto/ui';
 import { chipNamed, chips, nameInput, readStored, renderReady, saveButton, source } from '@testing/saved_panel';
 import { act, fireEvent } from '@testing-library/react';
@@ -105,6 +105,18 @@ describe('SavedSettings', () => {
 			expect(chipNamed('Council').querySelector('[data-testid="saved-data-set-name"]')!.getAttribute('data-tooltip-content')).toBe(
 				'For the council fight',
 			);
+		});
+
+		it("loads a settings preset's item swap set with it", async () => {
+			const itemSwap = ItemSwap.create({ items: [ItemSpec.create({ id: 15257 })] });
+			presets = [{ name: 'Swap', playerOptions: { enableItemSwap: true, itemSwap } }];
+			await renderPanel();
+
+			fireEvent.click(chipNamed('Swap').querySelector('[data-testid="saved-data-set-name"]')!);
+
+			const loaded = savedSettingsModel.applySavedSettings.mock.lastCall![1];
+			expect(loaded.enableItemSwap).toBe(true);
+			expect(loaded.itemSwap).toEqual(itemSwap);
 		});
 
 		// The item-swap preset bakes in a snapshot of load-time settings via `readSavedSettings(host)`,
