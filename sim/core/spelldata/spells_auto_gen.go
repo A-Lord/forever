@@ -33490,6 +33490,11 @@ var generatedSpells = []Spell{
 		Effects: []Effect{
 			{ID: 1253080, SpellID: 1249523, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_CRIT_PCT, BasePoints: 1, BaseLevel: 60, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}},
+	{ID: 1249755, Name: "Summoning Disorientation", Rank: "Summon", School: 32, Attr: [17]uint32{0: 0xd010000, 1: 0x20, 2: 0x84000, 4: 0x100080, 5: 0x60008, 6: 0x1000, 8: 0x20, 9: 0x800, 10: 0x400000, 11: 0x4000000, 13: 0x2, 14: 0x10, 15: 0x2000}, SpellLevel: 1, DurationMs: 6000, DefenseType: 1,
+		Effects: []Effect{
+			{ID: 1253495, SpellID: 1249755, Type: dbcenums.E_DUMMY, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
+			{ID: 1254269, SpellID: 1249755, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_DUMMY, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
+		}},
 	{ID: 1249906, Name: "Nutritious Drink", School: 1, Attr: [17]uint32{0: 0x18000180, 15: 0x2000}, DurationMs: 10000, CategoryCooldownMs: 1000, Category: 59, InterruptFlags: 1, AuraInterrupt: [2]uint32{0: 0x40080}, RefIDs: []int32{1249907},
 		Effects: []Effect{
 			{ID: 1253705, SpellID: 1249906, Type: dbcenums.E_TRIGGER_SPELL, PvpMult: 1, Amplitude: 1, TriggerID: 1133, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
