@@ -68,8 +68,8 @@ func TestRakeTickScalesWithAttackPower(t *testing.T) {
 	t.Logf("Rake 100 AP gain per tick=%g", high-low)
 }
 
-// Rake 9904 states the bleed mechanic on its periodic effect only, so armor reduces the initial hit and not the ticks.
-func TestRakeInitialHitTakesArmorAndItsTicksDoNot(t *testing.T) {
+// Neither Rake's initial hit nor its ticks are reduced by armor in game.
+func TestRakeIgnoresArmor(t *testing.T) {
 	sim, cat := newCat(t, "", nil)
 	target := cat.CurrentTarget
 	hit := cat.Rake.CalcDamage(sim, target, 100, cat.Rake.OutcomeAlwaysHit).Damage
@@ -77,11 +77,8 @@ func TestRakeInitialHitTakesArmorAndItsTicksDoNot(t *testing.T) {
 	target.AddStatDynamic(sim, stats.Armor, 10000)
 	armoredHit := cat.Rake.CalcDamage(sim, target, 100, cat.Rake.OutcomeAlwaysHit).Damage
 	armoredTick := cat.Rake.CalcPeriodicDamage(sim, target, 100, cat.Rake.OutcomeAlwaysHit).Damage
-	if armoredHit >= hit {
-		t.Errorf("Rake initial hit %g -> %g after 10000 armor, want less", hit, armoredHit)
-	}
-	if math.Abs(tick-armoredTick) > 1e-6 {
-		t.Errorf("Rake tick %g -> %g after 10000 armor, want unchanged", tick, armoredTick)
+	if math.Abs(hit-armoredHit) > 1e-6 || math.Abs(tick-armoredTick) > 1e-6 {
+		t.Errorf("Rake hit %g -> %g and tick %g -> %g after 10000 armor, want unchanged", hit, armoredHit, tick, armoredTick)
 	}
 }
 

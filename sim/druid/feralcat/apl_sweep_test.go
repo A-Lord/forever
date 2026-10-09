@@ -60,6 +60,8 @@ type aplTune struct {
 	biteEnd bool
 	biteLow string
 	rakeCut string
+	// shadowmeld casts Shadowmeld into Ravage, a Night Elf's, on cooldown once Ravage is affordable.
+	shadowmeld bool
 }
 
 // aplVars holds the named conditions of a list, which the APL editor shows as variables so a reader
@@ -178,6 +180,17 @@ func catAPL(tune aplTune) *proto.APLRotation {
 		}
 		// Ahead of Shifting Power and Shred.
 		list = append(list[:10], append([]*proto.APLListItem{castWhen(spellBite, vars.def("Bite at the end", or(bite...)))}, list[10:]...)...)
+	}
+	if tune.shadowmeld {
+		// Ahead of Shred: Ravage is 350% weapon damage plus 98 for 60 energy, Shred 155% plus 80 for 42.
+		ravage := and(inCat, spellReady(spellShadowmeld), not(pooling), or(clearcasting,
+			cmp(proto.APLValueCompare_OpGe, currentEnergy(), spellCost(spellRavage))))
+		i := len(list) - 3
+		if list[i].Action.GetCastSpell().GetSpellId().GetSpellId() != spellShred {
+			panic("catAPL expects Shred as the third line from the end")
+		}
+		list = append(list[:i], append([]*proto.APLListItem{sequenceWhen(vars.def("Shadowmeld into Ravage", ravage),
+			spellAction(spellShadowmeld), spellAction(spellRavage))}, list[i:]...)...)
 	}
 	if !tune.omen {
 		list = list[:len(list)-1]
@@ -308,10 +321,18 @@ func weaveAPL(tune weaveTune) *proto.APLRotation {
 }
 
 const (
-	spellProwl  int32 = 9913
-	spellRavage int32 = 9867
-	spellPounce int32 = 9827
+	spellShadowmeld int32 = 20580
+	spellProwl      int32 = 9913
+	spellRavage     int32 = 9867
+	spellPounce     int32 = 9827
 )
+
+// shadowmeldAPL is Monocat with Shadowmeld into Ravage on cooldown, for a Night Elf.
+func shadowmeldAPL() *proto.APLRotation {
+	tune := bestCatAPL
+	tune.shadowmeld = true
+	return catAPL(tune)
+}
 
 // openerAPL is the Monocat list behind a Prowl one second before the pull and the opener while
 // Prowl is up, ahead of the sapper, which would end it.
@@ -328,8 +349,9 @@ func openerAPL(opener int32) *proto.APLRotation {
 // The preset files and the builders that make them.
 func catAPLPresets() map[string]*proto.APLRotation {
 	return map[string]*proto.APLRotation{
-		"default":   catAPL(bestCatAPL),
-		"bearweave": bearweaveAPL(),
+		"default":    catAPL(bestCatAPL),
+		"shadowmeld": shadowmeldAPL(),
+		"bearweave":  bearweaveAPL(),
 		"ravage":    openerAPL(spellRavage),
 		"pounce":    openerAPL(spellPounce),
 	}

@@ -10,10 +10,13 @@ import (
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/simsignals"
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-// Prints DPS EP for the default cat: Level 60 gear, Rip at 5, Rake kept, normalized to agility.
+// Prints DPS EP for the UI's default cat: the Pre-raid set, Monocat talents and APL, its buffs,
+// debuffs and consumables, a level 63 target, 180s, normalized to agility. The UI default is over the
+// special-attack hit cap, so hit is weighed again with the hit taken 2% below the cap.
 // Pass the UI's iteration count; stat weights then split it above and below the baseline.
 func TestDefaultEp(t *testing.T) {
 	if os.Getenv("EP_SWEEP") == "" {
@@ -23,9 +26,6 @@ func TestDefaultEp(t *testing.T) {
 	if n, err := strconv.Atoi(os.Getenv("EP_SWEEP_ITERATIONS")); err == nil && n > 0 {
 		iterations = int32(n)
 	}
-	base := sweepRequest(powershiftTalents, defaultCatRotation(), false, iterations)
-	// IsTest caps the sim at 3 workers. Labeled RNG is turned on inside stat weights.
-	base.SimOptions.IsTest = false
 	weigh := []proto.Stat{
 		proto.Stat_StatStrength,
 		proto.Stat_StatAgility,
@@ -38,25 +38,47 @@ func TestDefaultEp(t *testing.T) {
 		proto.Stat_StatHasteRating,
 		proto.Stat_StatArmorPenetration,
 	}
-	result := core.StatWeights(&proto.StatWeightsRequest{
-		Player:          base.Raid.Parties[0].Players[0],
-		RaidBuffs:       base.Raid.Buffs,
-		PartyBuffs:      base.Raid.Parties[0].Buffs,
-		Debuffs:         base.Raid.Debuffs,
-		Encounter:       base.Encounter,
-		SimOptions:      base.SimOptions,
-		StatsToWeigh:    weigh,
-		EpReferenceStat: proto.Stat_StatAgility,
-	})
-	if result.Error != nil {
-		t.Fatal(result.Error.Message)
+	run := func(base *proto.RaidSimRequest) *proto.StatWeightsResult {
+		// IsTest caps the sim at 3 workers. Labeled RNG is turned on inside stat weights.
+		base.SimOptions.IsTest = false
+		result := core.StatWeights(&proto.StatWeightsRequest{
+			Player:          base.Raid.Parties[0].Players[0],
+			RaidBuffs:       base.Raid.Buffs,
+			PartyBuffs:      base.Raid.Parties[0].Buffs,
+			Debuffs:         base.Raid.Debuffs,
+			Encounter:       base.Encounter,
+			SimOptions:      base.SimOptions,
+			StatsToWeigh:    weigh,
+			EpReferenceStat: proto.Stat_StatAgility,
+		})
+		if result.Error != nil {
+			t.Fatal(result.Error.Message)
+		}
+		return result
 	}
+	base := uiDefaultRaidSim(catTalents, catAPL(bestCatAPL), 180, 0, iterations)
+	result := run(base)
+
+	sim := core.NewSim(uiDefaultRaidSim(catTalents, catAPL(bestCatAPL), 180, 0, 1), simsignals.CreateSignals())
+	sim.Reset()
+	hit := sim.Raid.Parties[0].Players[0].GetCharacter().GetStat(stats.PhysicalHitPercent)
+	below := uiDefaultRaidSim(catTalents, catAPL(bestCatAPL), 180, 0, iterations)
+	bonus := make([]float64, stats.SimStatsLen)
+	bonus[stats.HitRating] = (6 - hit) * core.HitRatingPerHitPercent
+	below.Raid.Parties[0].Players[0].BonusStats = &proto.UnitStats{Stats: bonus}
+	hitResult := run(below)
+
+	fmt.Printf("hit %.2f%%; hit weighed at 6%%\n", hit)
 	fmt.Printf("%-22s %12s %12s %10s %10s\n", "stat", "dps/point", "stdev", "ep", "ep stdev")
 	for _, s := range weigh {
 		i := int(s)
+		r := result
+		if s == proto.Stat_StatHitRating {
+			r = hitResult
+		}
 		fmt.Printf("%-22s %12.4f %12.4f %10.4f %10.4f\n",
 			stats.Stat(s).StatName(),
-			result.Dps.Weights.Stats[i], result.Dps.WeightsStdev.Stats[i],
-			result.Dps.EpValues.Stats[i], result.Dps.EpValuesStdev.Stats[i])
+			r.Dps.Weights.Stats[i], r.Dps.WeightsStdev.Stats[i],
+			r.Dps.EpValues.Stats[i], r.Dps.EpValuesStdev.Stats[i])
 	}
 }
