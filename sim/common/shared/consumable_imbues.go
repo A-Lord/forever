@@ -60,7 +60,7 @@ func applyTemporaryEnchant(character *core.Character, consumable core.Consumable
 
 	var slots []proto.ItemSlot
 	for _, slot := range []proto.ItemSlot{proto.ItemSlot_ItemSlotMainHand, proto.ItemSlot_ItemSlotOffHand} {
-		swapped := character.ItemSwap.IsEnabled() && character.ItemSwap.GetUnequippedItemBySlot(slot).HasTempEnchant(enchant.EffectID)
+		swapped := character.ItemSwap.GetUnequippedItemBySlot(slot).HasTempEnchant(enchant.EffectID)
 		if character.Equipment[slot].HasTempEnchant(enchant.EffectID) || swapped {
 			slots = append(slots, slot)
 		}
@@ -107,12 +107,7 @@ func registerTemporaryEnchantHand(character *core.Character, consumable core.Con
 		Duration: core.NeverExpires,
 	})
 	if piercing.Amount != 0 {
-		aura.ApplyOnGain(func(_ *core.Aura, _ *core.Simulation) {
-			character.PseudoStats.SchoolSpellPiercing[piercing.School] += piercing.Amount
-		})
-		aura.ApplyOnExpire(func(_ *core.Aura, _ *core.Simulation) {
-			character.PseudoStats.SchoolSpellPiercing[piercing.School] -= piercing.Amount
-		})
+		aura.AttachAdditivePseudoStatBuff(&character.PseudoStats.SchoolSpellPiercing[piercing.School], piercing.Amount)
 	}
 	hand := character.GetProcMaskForWeaponSlot(slot)
 	for _, row := range equipSpells {
@@ -149,10 +144,12 @@ func registerTemporaryEnchantProc(character *core.Character, consumable core.Con
 		}
 		config.ProcMask &= hands
 
-		enchanted := character.GetDynamicProcMaskForWeaponTempEnchant(enchantID)
-		extraCondition := config.ExtraCondition
-		config.ExtraCondition = func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) bool {
-			return spell.ProcMask.Matches(*enchanted) && (extraCondition == nil || extraCondition(sim, spell, result))
+		if character.ItemSwap.IsEnabled() {
+			enchanted := character.GetDynamicProcMaskForWeaponTempEnchant(enchantID)
+			extraCondition := config.ExtraCondition
+			config.ExtraCondition = func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) bool {
+				return spell.ProcMask.Matches(*enchanted) && (extraCondition == nil || extraCondition(sim, spell, result))
+			}
 		}
 	}
 	config.Name = consumable.Name
