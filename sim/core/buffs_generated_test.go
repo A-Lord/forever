@@ -303,7 +303,7 @@ func TestGeneratedPaladinAuraJoinsTheSharedCategoryOnThePlayerCopyOnly(t *testin
 	if external.IsActive() {
 		t.Error("the external copy stayed active, so both copies of the aura are on the character")
 	}
-	if got, want := char.GetStats()[stats.Armor], rowAmount(t, 10293, dbcenums.A_MOD_ARMOR_NO_MODS); got != want {
+	if got, want := char.GetStats()[stats.Armor], armorAmount(t, 10293); got != want {
 		t.Errorf("both copies together applied %v armor, want the game files' %v", got, want)
 	}
 }
