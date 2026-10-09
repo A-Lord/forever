@@ -21,7 +21,7 @@ func (rogue *Rogue) registerGarrote() {
 
 	config.Dot = spelldata.DotConfig(garroteRank, tick)
 	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-		dot.Spell.CalcAndDealPeriodicDamage(sim, target, tick.Average()+dot.Spell.MeleeAttackPower(target)*apScaling, garroteRank.TickOutcomeHitRolled(dot))
+		dot.Spell.CalcAndDealPeriodicDamage(sim, target, tick.Average()+dot.Spell.MeleeAttackPower(target)*apScaling, garroteRank.TickOutcome(dot))
 	}
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {

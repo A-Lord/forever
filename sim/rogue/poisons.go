@@ -29,7 +29,7 @@ func (rogue *Rogue) registerDeadlyPoisonSpell() {
 		stacks := dot.GetStacks()
 		baseTick := tick.Average()
 		apFactor := dot.Spell.MeleeAttackPower(target) * apScaling
-		dot.Spell.CalcAndDealPeriodicDamage(sim, target, (baseTick+apFactor)*float64(stacks), deadlyPoisonRank.TickOutcomeHitRolled(dot))
+		dot.Spell.CalcAndDealPeriodicDamage(sim, target, (baseTick+apFactor)*float64(stacks), deadlyPoisonRank.TickOutcome(dot))
 	}
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {

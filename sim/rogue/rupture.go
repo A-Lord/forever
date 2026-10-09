@@ -22,7 +22,7 @@ func (rogue *Rogue) registerRupture() {
 	config.Dot = spelldata.DotConfig(ruptureRank, tick)
 	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
 		damage := tickBase + tickPerPoint*float64(comboPoints) + dot.Spell.MeleeAttackPower(target)*ruptureApScaling[comboPoints]
-		dot.Spell.CalcAndDealPeriodicDamage(sim, target, damage, ruptureRank.TickOutcomeHitRolled(dot))
+		dot.Spell.CalcAndDealPeriodicDamage(sim, target, damage, ruptureRank.TickOutcome(dot))
 	}
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
