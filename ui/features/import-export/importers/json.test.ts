@@ -45,6 +45,7 @@ describe('JSON_IMPORTER', () => {
 	});
 
 	it.each([
+		['filters without stat filters', document(SimSettings.create({ filters: DatabaseFilters.create({ minIlvl: 50 }) }))],
 		['settings without filters', document(SimSettings.create({ iterations: 1000 }))],
 		['no settings at all', document()],
 	])("keeps the viewer's stat filters through a document with %s, and every other filter as before", async (_name, data) => {

@@ -60,6 +60,7 @@ describe('loadIndividualSettings', () => {
 	});
 
 	it.each([
+		['filters without stat filters', envelope(SimSettings.create({ filters: DatabaseFilters.create({ minIlvl: 50 }) }))],
 		['settings without filters', envelope(SimSettings.create({ iterations: 1000 }))],
 		['no settings at all', envelope()],
 	])('keeps the autosaved stat filters through a link with %s, and every other filter as before', async (_name, linked) => {
