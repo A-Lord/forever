@@ -680,4 +680,10 @@ const (
 	// A_666 EffectAuraType = 666
 	// A_667 EffectAuraType = 667
 	// A_668 EffectAuraType = 668
+	// A_669 EffectAuraType = 669
+	// A_670 EffectAuraType = 670
+	// A_671 EffectAuraType = 671
+	// A_672 EffectAuraType = 672
+	// A_673 EffectAuraType = 673
+	A_MOD_ARMOR_NO_MODS EffectAuraType = 674 // Flat armor, misc 1 as on A_MOD_RESISTANCE; named after the game files' test spell 1322297 "(DNT) Mod Armor No Mods".
 )

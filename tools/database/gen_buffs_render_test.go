@@ -88,7 +88,7 @@ func syntheticBuffRows() []ResolvedBuff {
 			Go: "SynthDevotionAura", Name: "Devotion Aura",
 			SpellID: 10293, CastSpellID: 10293, DurationMs: 600000, Supported: true,
 			Spell: spell(10293, core.SpellSchoolHoly, 600000,
-				aura(dbcenums.A_MOD_RESISTANCE, 1, 735),
+				aura(dbcenums.A_MOD_ARMOR_NO_MODS, 1, 735),
 				aura(dbcenums.A_MOD_HEALING_PCT, 0, 0)),
 			TalentRanks:          2,
 			TalentScalesDuration: true,
@@ -182,7 +182,7 @@ func syntheticBuffRows() []ResolvedBuff {
 			Go: "SynthSunderArmor", Name: "Sunder Armor",
 			SpellID: 11597, CastSpellID: 11597, DurationMs: 30000, Supported: true,
 			Spell: func() *spelldata.Spell {
-				s := spell(11597, core.SpellSchoolPhysical, 30000, aura(dbcenums.A_MOD_RESISTANCE, 1, -450))
+				s := spell(11597, core.SpellSchoolPhysical, 30000, aura(dbcenums.A_MOD_ARMOR_NO_MODS, 1, -450))
 				s.MaxStack = 5
 				return s
 			}(),
@@ -196,7 +196,7 @@ func syntheticBuffRows() []ResolvedBuff {
 			Go: "SynthExposeArmor", Name: "Expose Armor",
 			SpellID: 11198, CastSpellID: 11198, DurationMs: 30000, Supported: true,
 			Spell: spell(11198, core.SpellSchoolPhysical, 30000, spelldata.Effect{Type: dbcenums.E_APPLY_AURA,
-				Aura: dbcenums.A_MOD_RESISTANCE, Misc: 1, PointsPerResource: -450}),
+				Aura: dbcenums.A_MOD_ARMOR_NO_MODS, Misc: 1, PointsPerResource: -450}),
 		},
 		{
 			BuffSpec: buffmanifest.BuffSpec{
