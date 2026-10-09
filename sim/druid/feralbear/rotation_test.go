@@ -80,7 +80,9 @@ func bearSimpleRequest() *proto.RaidSimRequest {
 				},
 			}},
 			Buffs: &proto.PartyBuffs{},
-		}}},
+		}},
+			Tanks: []*proto.UnitReference{{Type: proto.UnitReference_Player, Index: 0}},
+		},
 		Encounter: &proto.Encounter{Targets: []*proto.Target{{Name: "target", Level: 60}}, Duration: 60},
 	}
 }
