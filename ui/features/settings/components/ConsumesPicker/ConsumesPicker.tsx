@@ -60,31 +60,16 @@ export const ConsumesPicker = ({ encounterConsumes = true }: ConsumesPickerProps
 					</IconRow>
 				</ConsumeRow>
 			)}
-			<ConsumeRow name="imbue" configs={[configs.mhImbue, configs.ohImbue]} swapConfigs={[configs.swapMhImbue, configs.swapOhImbue]}>
+			<ConsumeRow name="imbue" configs={[configs.mhImbue, configs.ohImbue]}>
 				<IconRow className="justify-end" data-testid="consumes-imbue">
 					<ConnectedIconEnumPicker modObject={player} config={configs.mhImbue} />
 					<ConnectedIconEnumPicker modObject={player} config={configs.ohImbue} />
 				</IconRow>
 			</ConsumeRow>
-			<ConsumeRow name="imbue" configs={[configs.swapMhImbue, configs.swapOhImbue]} swap>
-				<IconRow className="justify-end" data-testid="consumes-swap-imbue">
-					<ConnectedIconEnumPicker modObject={player} config={configs.swapMhImbue} />
-					<ConnectedIconEnumPicker modObject={player} config={configs.swapOhImbue} />
-				</IconRow>
-			</ConsumeRow>
-			<ConsumeRow
-				name="weaponImbue"
-				configs={[configs.mhWeaponImbue, configs.ohWeaponImbue]}
-				swapConfigs={[configs.swapMhWeaponImbue, configs.swapOhWeaponImbue]}>
+			<ConsumeRow name="weaponImbue" configs={[configs.mhWeaponImbue, configs.ohWeaponImbue]}>
 				<IconRow className="justify-end" data-testid="consumes-weapon-imbue">
 					<ConnectedIconEnumPicker modObject={player} config={configs.mhWeaponImbue} />
 					<ConnectedIconEnumPicker modObject={player} config={configs.ohWeaponImbue} />
-				</IconRow>
-			</ConsumeRow>
-			<ConsumeRow name="weaponImbue" configs={[configs.swapMhWeaponImbue, configs.swapOhWeaponImbue]} swap>
-				<IconRow className="justify-end" data-testid="consumes-swap-weapon-imbue">
-					<ConnectedIconEnumPicker modObject={player} config={configs.swapMhWeaponImbue} />
-					<ConnectedIconEnumPicker modObject={player} config={configs.swapOhWeaponImbue} />
 				</IconRow>
 			</ConsumeRow>
 			<ConsumeRow name="holiday" configs={[...configs.holidayGroups, ...configs.holiday]}>
@@ -101,5 +86,27 @@ export const ConsumesPicker = ({ encounterConsumes = true }: ConsumesPickerProps
 				</ConsumeRow>
 			)}
 		</div>
+	);
+};
+
+export const SwapConsumesPicker = () => {
+	const player = usePlayer() as Player<any>;
+	const configs = useMemo(() => consumeConfigs(player, Database.getSync()), [player]);
+
+	return (
+		<>
+			<ConsumeRow name="imbue" configs={[configs.swapMhImbue, configs.swapOhImbue]}>
+				<IconRow className="justify-end" data-testid="consumes-swap-imbue">
+					<ConnectedIconEnumPicker modObject={player} config={configs.swapMhImbue} />
+					<ConnectedIconEnumPicker modObject={player} config={configs.swapOhImbue} />
+				</IconRow>
+			</ConsumeRow>
+			<ConsumeRow name="weaponImbue" configs={[configs.swapMhWeaponImbue, configs.swapOhWeaponImbue]}>
+				<IconRow className="justify-end" data-testid="consumes-swap-weapon-imbue">
+					<ConnectedIconEnumPicker modObject={player} config={configs.swapMhWeaponImbue} />
+					<ConnectedIconEnumPicker modObject={player} config={configs.swapOhWeaponImbue} />
+				</IconRow>
+			</ConsumeRow>
+		</>
 	);
 };

@@ -721,8 +721,6 @@
 			},
 			"imbue": {
 				"title": "Stones and Oils",
-				"titleMain": "Stones and Oils (Main)",
-				"titleSwap": "Stones and Oils (Swap)",
 				"mhImbue": "Main Hand",
 				"ohImbue": "Off Hand",
 				"swapMhImbue": "Swap Main Hand",
@@ -730,8 +728,6 @@
 			},
 			"weaponImbue": {
 				"title": "Weapon Imbues",
-				"titleMain": "Weapon Imbues (Main)",
-				"titleSwap": "Weapon Imbues (Swap)",
 				"mhWeaponImbue": "Main Hand",
 				"ohWeaponImbue": "Off Hand",
 				"swapMhWeaponImbue": "Swap Main Hand",

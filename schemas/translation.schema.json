@@ -2567,12 +2567,6 @@
 								"title": {
 									"type": "string"
 								},
-								"titleMain": {
-									"type": "string"
-								},
-								"titleSwap": {
-									"type": "string"
-								},
 								"mhImbue": {
 									"type": "string"
 								},
@@ -2587,18 +2581,12 @@
 								}
 							},
 							"additionalProperties": false,
-							"required": ["title", "titleMain", "titleSwap", "mhImbue", "ohImbue", "swapMhImbue", "swapOhImbue"]
+							"required": ["title", "mhImbue", "ohImbue", "swapMhImbue", "swapOhImbue"]
 						},
 						"weaponImbue": {
 							"type": "object",
 							"properties": {
 								"title": {
-									"type": "string"
-								},
-								"titleMain": {
-									"type": "string"
-								},
-								"titleSwap": {
 									"type": "string"
 								},
 								"mhWeaponImbue": {
@@ -2615,7 +2603,7 @@
 								}
 							},
 							"additionalProperties": false,
-							"required": ["title", "titleMain", "titleSwap", "mhWeaponImbue", "ohWeaponImbue", "swapMhWeaponImbue", "swapOhWeaponImbue"]
+							"required": ["title", "mhWeaponImbue", "ohWeaponImbue", "swapMhWeaponImbue", "swapOhWeaponImbue"]
 						},
 						"scrolls": {
 							"type": "object",

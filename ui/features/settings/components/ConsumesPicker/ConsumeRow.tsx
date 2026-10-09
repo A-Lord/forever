@@ -43,24 +43,18 @@ const rowConfigShown = (config: ConsumeRowConfig, player: Player<any>): boolean 
 export interface ConsumeRowProps {
 	name: 'potions' | 'elixirs' | 'food' | 'holiday' | 'engineering' | 'imbue' | 'weaponImbue' | 'scrolls' | 'miscellaneous';
 	configs: ReadonlyArray<ConsumeRowConfig>;
-	// The same consumables' pickers for the swap weapons: while any of them shows, this row is captioned as the main weapons'.
-	swapConfigs?: ReadonlyArray<ConsumeRowConfig>;
-	// Captions the row as the swap weapons'.
-	swap?: boolean;
 	children: ReactNode;
 }
 
-export const ConsumeRow = ({ name, configs, swapConfigs, swap, children }: ConsumeRowProps) => {
+export const ConsumeRow = ({ name, configs, children }: ConsumeRowProps) => {
 	const player = usePlayer();
 	const shown = useStoreSubscribe(subscribePlayerChange(player), () => configs.some(config => rowConfigShown(config, player)));
-	const swapShown = useStoreSubscribe(subscribePlayerChange(player), () => !!swapConfigs?.some(config => rowConfigShown(config, player)));
-	const title = swap ? 'titleSwap' : swapShown ? 'titleMain' : 'title';
 
 	// Hide, never unmount: a hidden ConnectedIconEnumPicker is what zeroes the field it is bound to
 	// when the player can no longer use it, and restores the value if they can again. Returning
 	// null here skips that effect entirely, so a stale selection survives in the proto.
 	return (
-		<ConsumeRowView label={i18n.t(`settings_tab.consumables.${name}.${title}`)} hidden={!shown}>
+		<ConsumeRowView label={i18n.t(`settings_tab.consumables.${name}.title`)} hidden={!shown}>
 			{children}
 		</ConsumeRowView>
 	);
