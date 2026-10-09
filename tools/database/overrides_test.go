@@ -104,7 +104,7 @@ func TestProcChanceOverrideBecomesTheColumn(t *testing.T) {
 	}
 }
 
-func TestOverridesRefuseWhatTheClientNowStates(t *testing.T) {
+func TestOverridesRefuseWhatTheGameFilesState(t *testing.T) {
 	for _, tc := range []struct {
 		name  string
 		rows  []storeSpell

@@ -7,8 +7,10 @@ import (
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/buffs"
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/simsignals"
+	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
@@ -19,8 +21,9 @@ func TestPartyBattleShoutAppliesTheGeneratedAura(t *testing.T) {
 		&proto.RaidBuffs{}, &proto.PartyBuffs{BattleShout: proto.TristateEffect_TristateEffectRegular}, &proto.IndividualBuffs{})
 	char.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
 
-	if got := char.GetStats()[stats.AttackPower]; got != 139 {
-		t.Errorf("the party's Battle Shout applied %v attack power, want the game files' 139", got)
+	shout := battleShout(t)
+	if got := char.GetStats()[stats.AttackPower]; got != shout {
+		t.Errorf("the party's Battle Shout applied %v attack power, want the game files' %v", got, shout)
 	}
 
 	aura := char.GetAura("Battle Shout (External)")
@@ -30,11 +33,8 @@ func TestPartyBattleShoutAppliesTheGeneratedAura(t *testing.T) {
 	if want := (core.ActionID{SpellID: 25289, Tag: -1}); aura.ActionID != want {
 		t.Errorf("the external copy is %v, want %v", aura.ActionID, want)
 	}
-	if buffs.BattleShoutDuration(0) != 3*time.Minute {
-		t.Errorf("Battle Shout lasts %v, want the game files' 3 minutes", buffs.BattleShoutDuration(0))
-	}
-	if aura.Duration != buffs.BattleShoutDuration(0) {
-		t.Errorf("the external copy lasts %v, want %v", aura.Duration, buffs.BattleShoutDuration(0))
+	if want := rowDuration(t, 25289); aura.Duration != want {
+		t.Errorf("the external copy lasts %v, want %v", aura.Duration, want)
 	}
 
 	category := char.ExclusiveEffectManager.GetExclusiveEffectCategory(buffs.BattleShoutCategory)
@@ -43,8 +43,8 @@ func TestPartyBattleShoutAppliesTheGeneratedAura(t *testing.T) {
 	}
 	if len(category.Effects()) != 1 {
 		t.Errorf("the category holds %d effects, want one", len(category.Effects()))
-	} else if category.Effects()[0].Priority != 139 {
-		t.Errorf("the only effect in the category bids %v, want 139", category.Effects()[0].Priority)
+	} else if category.Effects()[0].Priority != shout {
+		t.Errorf("the only effect in the category bids %v, want %v", category.Effects()[0].Priority, shout)
 	}
 
 	// The chain the driver installs finds the player's own shout by this tag.
@@ -53,12 +53,23 @@ func TestPartyBattleShoutAppliesTheGeneratedAura(t *testing.T) {
 	}
 }
 
+func battleShout(t *testing.T) float64 {
+	t.Helper()
+	return rowAmount(t, 25289, dbcenums.A_MOD_ATTACK_POWER)
+}
+
+// The attack power three pieces of Battlegear of Wrath add to the shout.
+func battleShoutSetBonus(t *testing.T) float64 {
+	t.Helper()
+	return rowAmount(t, 23563, dbcenums.A_ADD_FLAT_MODIFIER)
+}
+
 // A warrior who casts Battle Shout and has the external one ticked: both copies
-// are 139 attack power, and both are equally long, so the tie goes to whichever
-// the build phase activates last. ExclusiveEffect.Activate only turns a newcomer
-// away when the incumbent's remaining duration is longer than the newcomer's, so
-// the player's copy takes the category and the external one is deactivated - the
-// character sheet shows 139 either way.
+// are worth the same attack power, and both are equally long, so the tie goes to
+// whichever the build phase activates last. ExclusiveEffect.Activate only turns a
+// newcomer away when the incumbent's remaining duration is longer than the
+// newcomer's, so the player's copy takes the category and the external one is
+// deactivated - the character sheet shows one shout either way.
 func TestPlayerBattleShoutTakesTheCategoryOnATie(t *testing.T) {
 	char := core.NewGeneratedBuffTestCharacter()
 
@@ -84,8 +95,8 @@ func TestPlayerBattleShoutTakesTheCategoryOnATie(t *testing.T) {
 	if external.IsActive() {
 		t.Error("the external copy stayed active, so both copies of the shout are on the character")
 	}
-	if got := char.GetStats()[stats.AttackPower]; got != 139 {
-		t.Errorf("both copies together applied %v attack power, want 139", got)
+	if got, want := char.GetStats()[stats.AttackPower], battleShout(t); got != want {
+		t.Errorf("both copies together applied %v attack power, want %v", got, want)
 	}
 	if tagged := char.GetAurasWithTag(buffs.BattleShoutCategory); len(tagged) != 2 {
 		t.Errorf("%d auras carry the Battle Shout tag, want both copies", len(tagged))
@@ -93,16 +104,16 @@ func TestPlayerBattleShoutTakesTheCategoryOnATie(t *testing.T) {
 }
 
 // The improved state says the warrior who shouted for the party wears three
-// pieces of Battlegear of Wrath, so the external copy is worth the game files' 139
-// plus the set's 30.
+// pieces of Battlegear of Wrath, so the external copy is worth the game files'
+// shout plus the set's bonus.
 func TestImprovedPartyBattleShoutAddsTheTierTwoBonus(t *testing.T) {
 	for _, row := range []struct {
 		name  string
 		party *proto.PartyBuffs
 		want  float64
 	}{
-		{"with the set", &proto.PartyBuffs{BattleShout: proto.TristateEffect_TristateEffectImproved}, 169},
-		{"without it", &proto.PartyBuffs{BattleShout: proto.TristateEffect_TristateEffectRegular}, 139},
+		{"with the set", &proto.PartyBuffs{BattleShout: proto.TristateEffect_TristateEffectImproved}, battleShout(t) + battleShoutSetBonus(t)},
+		{"without it", &proto.PartyBuffs{BattleShout: proto.TristateEffect_TristateEffectRegular}, battleShout(t)},
 	} {
 		t.Run(row.name, func(t *testing.T) {
 			char := core.NewGeneratedBuffTestCharacter()
@@ -120,7 +131,7 @@ func TestImprovedPartyBattleShoutAddsTheTierTwoBonus(t *testing.T) {
 	}
 }
 
-// Two copies of the shout that are no longer worth the same: the stronger one
+// Two copies of the shout that are not worth the same: the stronger one
 // takes the category whichever side it is on, and the character sheet reads it
 // once rather than both added up.
 func TestTheStrongerBattleShoutTakesTheCategory(t *testing.T) {
@@ -153,8 +164,8 @@ func TestTheStrongerBattleShoutTakesTheCategory(t *testing.T) {
 			if external.IsActive() == row.wantPlayerUp {
 				t.Errorf("the external copy is active: %v, want %v", external.IsActive(), !row.wantPlayerUp)
 			}
-			if got := char.GetStats()[stats.AttackPower]; got != 169 {
-				t.Errorf("both copies together applied %v attack power, want the stronger one's 169", got)
+			if got, want := char.GetStats()[stats.AttackPower], battleShout(t)+battleShoutSetBonus(t); got != want {
+				t.Errorf("both copies together applied %v attack power, want the stronger one's %v", got, want)
 			}
 		})
 	}
@@ -168,8 +179,9 @@ func TestGeneratedFlatStatBuffsAddUp(t *testing.T) {
 		&proto.RaidBuffs{PrayerOfFortitude: true}, &proto.PartyBuffs{BloodPact: true}, &proto.IndividualBuffs{})
 	char.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
 
-	if got := char.GetStats()[stats.Stamina]; got != 124 {
-		t.Errorf("Prayer of Fortitude and Blood Pact applied %v stamina, want the game files' 70 + 54", got)
+	fortitudeStamina, pactStamina := rowAmount(t, 21564, dbcenums.A_MOD_STAT), rowAmount(t, 11767, dbcenums.A_MOD_STAT)
+	if got := char.GetStats()[stats.Stamina]; got != fortitudeStamina+pactStamina {
+		t.Errorf("Prayer of Fortitude and Blood Pact applied %v stamina, want the game files' %v + %v", got, fortitudeStamina, pactStamina)
 	}
 
 	fortitude := char.GetAura("Prayer of Fortitude (External)")
@@ -182,8 +194,12 @@ func TestGeneratedFlatStatBuffsAddUp(t *testing.T) {
 }
 
 // A percentage row: every stat the game files' A_MOD_TOTAL_STAT_PERCENTAGE names
-// goes through a multiplying dependency rather than a flat amount.
+// goes through a multiplying dependency rather than a flat amount, floored to a whole number.
 func TestGeneratedGreaterBlessingOfKingsMultipliesEveryStat(t *testing.T) {
+	multiplier := core.MultiplierFromPercent(rowAmount(t, 25898, dbcenums.A_MOD_TOTAL_STAT_PERCENTAGE))
+	if multiplier <= 1 {
+		t.Fatalf("the blessing is worth %v, want a multiplier above 1", multiplier)
+	}
 	char := core.NewGeneratedBuffTestCharacter()
 	char.SetStats(stats.Stats{
 		stats.Strength: 100, stats.Agility: 100, stats.Stamina: 100,
@@ -194,9 +210,10 @@ func TestGeneratedGreaterBlessingOfKingsMultipliesEveryStat(t *testing.T) {
 		&proto.RaidBuffs{}, &proto.PartyBuffs{}, &proto.IndividualBuffs{GreaterBlessingOfKings: true})
 	measureGeneratedBuffStats(char)
 
+	want := math.Floor(100 * multiplier)
 	for _, stat := range []stats.Stat{stats.Strength, stats.Agility, stats.Stamina, stats.Intellect, stats.Spirit} {
-		if got := char.GetStats()[stat]; got != 110 {
-			t.Errorf("%s is %v, want 100 multiplied by the game files' 1.1", stat.StatName(), got)
+		if got := char.GetStats()[stat]; got != want {
+			t.Errorf("%s is %v, want 100 multiplied by the game files' %v, %v", stat.StatName(), got, multiplier, want)
 		}
 	}
 	if got := char.GetStats()[stats.Armor]; got != 100 {
@@ -204,27 +221,37 @@ func TestGeneratedGreaterBlessingOfKingsMultipliesEveryStat(t *testing.T) {
 	}
 }
 
-// Two sources of shadow resistance compete for the school, while everything
-// else Gift of the Wild grants is applied outright.
+// Two sources of shadow resistance compete for the school, so the stronger one
+// holds it alone, while everything else Gift of the Wild grants is applied outright.
 func TestGeneratedResistancesCompeteAcrossBuffs(t *testing.T) {
-	char := core.NewGeneratedBuffTestCharacter()
+	measure := func(raid *proto.RaidBuffs) (*core.Character, stats.Stats) {
+		char := core.NewGeneratedBuffTestCharacter()
+		core.ApplyBuffEffects(char, raid, &proto.PartyBuffs{}, &proto.IndividualBuffs{})
+		char.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
+		return char, char.GetStats()
+	}
+	_, giftOnly := measure(&proto.RaidBuffs{GiftOfTheWild: true})
+	_, prayerOnly := measure(&proto.RaidBuffs{PrayerOfShadowProtection: true})
+	char, both := measure(&proto.RaidBuffs{GiftOfTheWild: true, PrayerOfShadowProtection: true})
 
-	core.ApplyBuffEffects(char,
-		&proto.RaidBuffs{GiftOfTheWild: true, PrayerOfShadowProtection: true},
-		&proto.PartyBuffs{}, &proto.IndividualBuffs{})
-	char.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
-
-	if got := char.GetStats()[stats.ShadowResistance]; got != 60 {
-		t.Errorf("shadow resistance is %v, want only Prayer of Shadow Protection's 60", got)
+	for _, stat := range []stats.Stat{stats.ShadowResistance, stats.FrostResistance, stats.Armor, stats.Stamina} {
+		if giftOnly[stat] <= 0 {
+			t.Fatalf("Gift of the Wild alone applied %v %s, want some", giftOnly[stat], stat.StatName())
+		}
 	}
-	if got := char.GetStats()[stats.FrostResistance]; got != 27 {
-		t.Errorf("frost resistance is %v, want Gift of the Wild's 27", got)
+	if prayerOnly[stats.ShadowResistance] <= 0 {
+		t.Fatalf("Prayer of Shadow Protection alone applied %v shadow resistance, want some", prayerOnly[stats.ShadowResistance])
 	}
-	if got := char.GetStats()[stats.Armor]; got != 385 {
-		t.Errorf("armor is %v, want Gift of the Wild's 385", got)
+	if got, sum := both[stats.ShadowResistance], giftOnly[stats.ShadowResistance]+prayerOnly[stats.ShadowResistance]; got >= sum {
+		t.Errorf("shadow resistance is %v, want less than both added up, %v", got, sum)
 	}
-	if got := char.GetStats()[stats.Stamina]; got != 16 {
-		t.Errorf("stamina is %v, want Gift of the Wild's 16", got)
+	if got, want := both[stats.ShadowResistance], max(giftOnly[stats.ShadowResistance], prayerOnly[stats.ShadowResistance]); got != want {
+		t.Errorf("shadow resistance is %v, want only the stronger of the two, %v", got, want)
+	}
+	for _, stat := range []stats.Stat{stats.FrostResistance, stats.Armor, stats.Stamina} {
+		if got, want := both[stat], giftOnly[stat]; got != want {
+			t.Errorf("%s is %v, want Gift of the Wild's %v", stat.StatName(), got, want)
+		}
 	}
 	for _, label := range []string{"Gift of the Wild (External)", "Prayer of Shadow Protection (External)"} {
 		if aura := char.GetAura(label); aura == nil || !aura.IsActive() {
@@ -266,7 +293,7 @@ func TestGeneratedPaladinAuraJoinsTheSharedCategoryOnThePlayerCopyOnly(t *testin
 		t.Error("the aura's own category is not single-aura, so a second copy could sit next to it")
 	}
 
-	// Both copies bid the same 735 and both are permanent, so the paladin's own
+	// Both copies bid the same armor and both are permanent, so the paladin's own
 	// cast takes the slot by activating after the external one, and the armor on
 	// the character sheet does not move.
 	external := char.GetAura("Devotion Aura (External)")
@@ -276,8 +303,8 @@ func TestGeneratedPaladinAuraJoinsTheSharedCategoryOnThePlayerCopyOnly(t *testin
 	if external.IsActive() {
 		t.Error("the external copy stayed active, so both copies of the aura are on the character")
 	}
-	if got := char.GetStats()[stats.Armor]; got != 735 {
-		t.Errorf("both copies together applied %v armor, want the game files' 735", got)
+	if got, want := char.GetStats()[stats.Armor], rowAmount(t, 10293, dbcenums.A_MOD_ARMOR_NO_MODS); got != want {
+		t.Errorf("both copies together applied %v armor, want the game files' %v", got, want)
 	}
 }
 
@@ -291,8 +318,22 @@ func TestGeneratedManaSpringTotemTakesTheTalentedValue(t *testing.T) {
 		&proto.IndividualBuffs{})
 	char.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
 
-	if got := char.GetStats()[stats.MP5]; got != 30 {
-		t.Errorf("the improved totem applied %v MP5, want the curve's top value 30", got)
+	tick := rowEffect(t, 10494, dbcenums.A_PERIODIC_ENERGIZE)
+	untalented := rowAmount(t, 10494, dbcenums.A_PERIODIC_ENERGIZE) * 5000 / float64(tick.PeriodMs)
+	if got := buffs.ManaSpringTotemValue(0); got != untalented {
+		t.Errorf("the untalented totem is worth %v MP5, want the game files' %v per %v as %v", got, tick.Average(), tick.Period(), untalented)
+	}
+	for points := int32(1); points <= 5; points++ {
+		if got, below := buffs.ManaSpringTotemValue(points), buffs.ManaSpringTotemValue(points-1); got < below {
+			t.Errorf("the totem with %d/5 of its talent is worth %v MP5, want at least the %v of one point less", points, got, below)
+		}
+	}
+	improved := buffs.ManaSpringTotemValue(5)
+	if improved <= untalented {
+		t.Errorf("the totem with 5/5 of its talent is worth %v MP5, want more than the untalented %v", improved, untalented)
+	}
+	if got := char.GetStats()[stats.MP5]; got != improved {
+		t.Errorf("the improved totem applied %v MP5, want the talented %v", got, improved)
 	}
 
 	aura := char.GetAura("Mana Spring Totem (External)")
@@ -305,27 +346,28 @@ func TestGeneratedManaSpringTotemTakesTheTalentedValue(t *testing.T) {
 
 	category := char.ExclusiveEffectManager.GetExclusiveEffectCategory(
 		buffs.ManaSpringTotemCategory + stats.MP5.StatName() + "Add")
-	if len(category.Effects()) != 1 || category.Effects()[0].Priority != 30 {
-		t.Errorf("the totem's category holds %d effects, first bid %v; want one bidding 30",
-			len(category.Effects()), category.Effects()[0].Priority)
+	if len(category.Effects()) != 1 || category.Effects()[0].Priority != improved {
+		t.Errorf("the totem's category holds %d effects, first bid %v; want one bidding %v",
+			len(category.Effects()), category.Effects()[0].Priority, improved)
 	}
 }
 
-// The two rows whose stats the manifest names. Each is worth the game files' 3 on
-// every kind of crit, and neither touches RangedCritPercent, which the sim adds
-// on top of the physical one, so a ranged attack gains 3 and not 6.
+// The two rows whose stats the manifest names. Each is worth its game files'
+// amount on every kind of crit, and neither touches RangedCritPercent, which the
+// sim adds on top of the physical one, so a ranged attack gains the amount once.
 //
 // Spell 17007 calls Leader of the Pack exclusive with Moonkin Aura, so the two
-// share a category that holds one aura: a party with both ticked is worth 3,
-// and the copy that loses stays registered without applying anything.
-func TestGeneratedCritAurasApplyTheClientsThreeToEveryKindOfCrit(t *testing.T) {
+// share a category that holds one aura: a party with both ticked is worth the
+// stronger, and the copy that loses stays registered without applying anything.
+func TestGeneratedCritAurasApplyToEveryKindOfCrit(t *testing.T) {
 	for _, row := range []struct {
 		name  string
 		party *proto.PartyBuffs
+		want  float64
 	}{
-		{"Leader of the Pack", &proto.PartyBuffs{LeaderOfThePack: true}},
-		{"Moonkin Aura", &proto.PartyBuffs{MoonkinAura: true}},
-		{"both", &proto.PartyBuffs{LeaderOfThePack: true, MoonkinAura: true}},
+		{"Leader of the Pack", &proto.PartyBuffs{LeaderOfThePack: true}, leaderOfThePack(t)},
+		{"Moonkin Aura", &proto.PartyBuffs{MoonkinAura: true}, moonkinAura(t)},
+		{"both", &proto.PartyBuffs{LeaderOfThePack: true, MoonkinAura: true}, max(leaderOfThePack(t), moonkinAura(t))},
 	} {
 		t.Run(row.name, func(t *testing.T) {
 			char := core.NewGeneratedBuffTestCharacter()
@@ -333,17 +375,27 @@ func TestGeneratedCritAurasApplyTheClientsThreeToEveryKindOfCrit(t *testing.T) {
 			core.ApplyBuffEffects(char, &proto.RaidBuffs{}, row.party, &proto.IndividualBuffs{})
 			char.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
 
-			if got := char.GetStats()[stats.PhysicalCritPercent]; got != 3 {
-				t.Errorf("%s applied %v physical crit, want the game files' 3", row.name, got)
+			if got := char.GetStats()[stats.PhysicalCritPercent]; got != row.want {
+				t.Errorf("%s applied %v physical crit, want the game files' %v", row.name, got, row.want)
 			}
-			if got := char.GetStats()[stats.SpellCritPercent]; got != 3 {
-				t.Errorf("%s applied %v spell crit, want the game files' 3", row.name, got)
+			if got := char.GetStats()[stats.SpellCritPercent]; got != row.want {
+				t.Errorf("%s applied %v spell crit, want the game files' %v", row.name, got, row.want)
 			}
 			if got := char.GetStats()[stats.RangedCritPercent]; got != 0 {
 				t.Errorf("%s applied %v on top of the physical crit a ranged attack already reads", row.name, got)
 			}
 		})
 	}
+}
+
+func leaderOfThePack(t *testing.T) float64 {
+	t.Helper()
+	return rowAmount(t, 24932, dbcenums.A_MOD_CRIT_PCT)
+}
+
+func moonkinAura(t *testing.T) float64 {
+	t.Helper()
+	return rowAmount(t, 24907, dbcenums.A_MOD_CRIT_PCT)
 }
 
 // The loser of the category is still a registered aura on the character, so a
@@ -371,8 +423,9 @@ func TestGeneratedCritAurasLeaveTheOutbidCopyRegisteredAndInert(t *testing.T) {
 	if len(category.Effects()) != 2 {
 		t.Errorf("%d effects bid for DruidCritAura, want both copies", len(category.Effects()))
 	}
-	if active := category.GetActiveEffect(); active == nil || active.Priority != 3 {
-		t.Errorf("the category is held at %v, want the game files' 3", active)
+	want := max(leaderOfThePack(t), moonkinAura(t))
+	if active := category.GetActiveEffect(); active == nil || active.Priority != want {
+		t.Errorf("the category is held at %v, want the stronger copy's %v", active, want)
 	}
 }
 
@@ -384,14 +437,17 @@ func TestGeneratedPartyConcentrationAuraReducesPushback(t *testing.T) {
 		&proto.PartyBuffs{ConcentrationAura: true}, &proto.IndividualBuffs{})
 	char.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
 
-	if got := char.PseudoStats.PushbackChance; got != 0.65 {
-		t.Errorf("Concentration Aura left the pushback chance at %v, want 1 reduced by the game files' 35%%", got)
+	reduction := -rowAmount(t, 19746, dbcenums.A_REDUCE_PUSHBACK) / 100
+	if reduction >= 0 {
+		t.Fatalf("Concentration Aura is worth %v pushback chance, want a reduction", reduction)
+	}
+	if got, want := char.PseudoStats.PushbackChance, 1+reduction; got != want {
+		t.Errorf("Concentration Aura left the pushback chance at %v, want 1 reduced by the game files' %v, %v", got, -reduction, want)
 	}
 }
 
-// Rank 5 of Trueshot Aura, which the resolver takes, states one
-// A_MOD_RANGED_ATTACK_POWER effect worth 50: melee attack power is untouched and
-// the 75 of rank 4 is not what the party gets.
+// The rank of Trueshot Aura the resolver takes states one
+// A_MOD_RANGED_ATTACK_POWER effect: melee attack power is untouched.
 func TestGeneratedTrueshotAuraGivesTheTopRanksRangedAttackPower(t *testing.T) {
 	char := core.NewGeneratedBuffTestCharacter()
 
@@ -399,8 +455,8 @@ func TestGeneratedTrueshotAuraGivesTheTopRanksRangedAttackPower(t *testing.T) {
 		&proto.RaidBuffs{}, &proto.PartyBuffs{TrueshotAura: true}, &proto.IndividualBuffs{})
 	char.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
 
-	if got := char.GetStats()[stats.RangedAttackPower]; got != 50 {
-		t.Errorf("Trueshot Aura applied %v ranged attack power, want the game files' 50", got)
+	if got, want := char.GetStats()[stats.RangedAttackPower], rowAmount(t, 20906, dbcenums.A_MOD_RANGED_ATTACK_POWER); got != want {
+		t.Errorf("Trueshot Aura applied %v ranged attack power, want the game files' %v", got, want)
 	}
 	if got := char.GetStats()[stats.AttackPower]; got != 0 {
 		t.Errorf("Trueshot Aura applied %v melee attack power, want none", got)
@@ -433,8 +489,8 @@ func TestGeneratedGraceOfAirGivesWayToWindfuryTotem(t *testing.T) {
 		&proto.RaidBuffs{}, &proto.PartyBuffs{GraceOfAirTotem: true}, &proto.IndividualBuffs{})
 	standing.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
 
-	if got := standing.GetStats()[stats.Agility]; got != 89 {
-		t.Errorf("the totem applied %v agility, want the game files' 89", got)
+	if got, want := standing.GetStats()[stats.Agility], graceOfAirTotemAgility(t); got != want {
+		t.Errorf("the totem applied %v agility, want the game files' %v", got, want)
 	}
 	aura := standing.GetAura("Grace of Air Totem (External)")
 	if aura == nil {
@@ -464,9 +520,14 @@ func TestGeneratedGraceOfAirGivesWayToWindfuryTotem(t *testing.T) {
 	}
 }
 
-// Each staff in the party is worth its own copy of the aura's amounts: 11 MP5
-// per druid staff, 2 spell crit per mage one, 62 healing per priest one and
-// 33 spell damage plus 33 healing per warlock one.
+func graceOfAirTotemAgility(t *testing.T) float64 {
+	t.Helper()
+	return rowAmount(t, 25360, dbcenums.A_MOD_STAT)
+}
+
+// Each staff in the party is worth its own copy of the aura's amounts: MP5 per
+// druid staff, spell crit per mage one, healing per priest one and spell damage
+// plus healing per warlock one.
 func TestGeneratedAtieshStavesCountTheStaves(t *testing.T) {
 	char := core.NewGeneratedBuffTestCharacter()
 
@@ -476,10 +537,10 @@ func TestGeneratedAtieshStavesCountTheStaves(t *testing.T) {
 	char.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
 
 	for stat, want := range map[stats.Stat]float64{
-		stats.MP5:              11,
-		stats.SpellCritPercent: 6,
-		stats.HealingPower:     62*2 + 33,
-		stats.SpellDamage:      33,
+		stats.MP5:              1 * rowAmount(t, 28145, dbcenums.A_MOD_POWER_REGEN),
+		stats.SpellCritPercent: 3 * rowAmount(t, 28142, dbcenums.A_MOD_SPELL_CRIT_CHANCE),
+		stats.HealingPower:     2*rowAmount(t, 28144, dbcenums.A_MOD_HEALING_DONE) + 1*rowAmount(t, 28143, dbcenums.A_MOD_HEALING_DONE),
+		stats.SpellDamage:      1 * rowAmount(t, 28143, dbcenums.A_MOD_DAMAGE_DONE),
 	} {
 		if got := char.GetStats()[stat]; got != want {
 			t.Errorf("the party's staves applied %v %s, want %v", got, stat.StatName(), want)
@@ -492,7 +553,7 @@ func TestGeneratedAtieshStavesCountTheStaves(t *testing.T) {
 }
 
 // The party's Darkspear is up for a share of the fight only, so the stats the character sheet and
-// the EP are measured with carry none of its 4% crit.
+// the EP are measured with carry none of its crit.
 func TestGeneratedPartyDarkspearStaysOffTheCharacterSheet(t *testing.T) {
 	char := core.NewGeneratedBuffTestCharacter()
 
@@ -513,9 +574,9 @@ func TestGeneratedPartyDarkspearStaysOffTheCharacterSheet(t *testing.T) {
 	}
 }
 
-// The windfury proc grants the attack power the game files state for the second
+// The windfury proc grants the attack power the game files state for as long as
 // the aura lasts; the totem aura around it holds the category and the trigger.
-func TestGeneratedWindfuryTotemProcAppliesTheClientsAttackPower(t *testing.T) {
+func TestGeneratedWindfuryTotemProcAppliesItsAttackPower(t *testing.T) {
 	sim := setupFakeSimWithBuffs(&proto.RaidBuffs{}, &proto.PartyBuffs{WindfuryTotem: true}, &proto.IndividualBuffs{})
 	char := sim.Raid.Parties[0].Players[0].GetCharacter()
 
@@ -523,14 +584,14 @@ func TestGeneratedWindfuryTotemProcAppliesTheClientsAttackPower(t *testing.T) {
 	if proc == nil {
 		t.Fatalf("no aura is labelled %q; the unit has %v", "Windfury Totem (External)", auraLabels(char))
 	}
-	if proc.Duration != time.Second {
-		t.Errorf("the proc buff lasts %v, want the game files' 1 second", proc.Duration)
+	if want := rowDuration(t, 10610); proc.Duration != want {
+		t.Errorf("the proc buff lasts %v, want the game files' %v", proc.Duration, want)
 	}
 
 	before := char.GetStats()[stats.AttackPower]
 	proc.Activate(sim)
-	if got := char.GetStats()[stats.AttackPower] - before; got != 246 {
-		t.Errorf("the proc applied %v attack power, want the game files' 246", got)
+	if got, want := char.GetStats()[stats.AttackPower]-before, windfuryTotem(t); got != want {
+		t.Errorf("the proc applied %v attack power, want the game files' %v", got, want)
 	}
 	proc.Deactivate(sim)
 	if got := char.GetStats()[stats.AttackPower]; got != before {
@@ -542,18 +603,23 @@ func TestGeneratedWindfuryTotemProcAppliesTheClientsAttackPower(t *testing.T) {
 		t.Fatalf("no aura is labelled %q; the unit has %v", "Windfury Totem", auraLabels(char))
 	}
 	category := char.ExclusiveEffectManager.GetExclusiveEffectCategory(buffs.WindfuryTotemCategory)
-	if len(category.Effects()) != 1 || category.Effects()[0].Priority != buffs.WindfuryTotemValue(0) {
-		t.Errorf("the category holds %d effects, first bid %v; want one bidding 246",
-			len(category.Effects()), category.Effects()[0].Priority)
+	if bid := windfuryTotem(t); len(category.Effects()) != 1 || category.Effects()[0].Priority != bid {
+		t.Errorf("the category holds %d effects, first bid %v; want one bidding %v",
+			len(category.Effects()), category.Effects()[0].Priority, bid)
 	}
 	if char.GetAura("Windfury Totem Trigger") == nil {
 		t.Error("the driver registered no proc trigger for the totem")
 	}
 }
 
-// The proc holds the game files' 2 charges and each landed auto attack, in either
+func windfuryTotem(t *testing.T) float64 {
+	t.Helper()
+	return rowAmount(t, 10610, dbcenums.A_MOD_ATTACK_POWER)
+}
+
+// The proc holds the game files' charges and each landed auto attack, in either
 // hand, spends one. A melee special or a missed swing spends none, and a proc no
-// auto lands on keeps its attack power for the whole second.
+// auto lands on keeps its attack power for its whole duration.
 func TestGeneratedWindfuryTotemProcSpendsItsChargesOnAutoAttacks(t *testing.T) {
 	sim := setupFakeSimWithBuffs(&proto.RaidBuffs{}, &proto.PartyBuffs{WindfuryTotem: true}, &proto.IndividualBuffs{})
 	char := sim.Raid.Parties[0].Players[0].GetCharacter()
@@ -571,12 +637,13 @@ func TestGeneratedWindfuryTotemProcSpendsItsChargesOnAutoAttacks(t *testing.T) {
 		proc.OnSpellHitDealt(proc, sim, spell, result)
 	}
 
-	if proc.MaxStacks != 2 {
-		t.Fatalf("the proc holds %d charges, want the game files' 2", proc.MaxStacks)
+	charges := proc.MaxStacks
+	if charges < 2 {
+		t.Fatalf("the proc holds %d charges, want at least 2 to spend one in each hand", charges)
 	}
 	fullCharges := func() {
 		proc.Activate(sim)
-		proc.SetStacks(sim, proc.MaxStacks)
+		proc.SetStacks(sim, charges)
 	}
 
 	before := char.GetStats()[stats.AttackPower]
@@ -584,22 +651,25 @@ func TestGeneratedWindfuryTotemProcSpendsItsChargesOnAutoAttacks(t *testing.T) {
 
 	swing(special, landed)
 	swing(mhAuto, missed)
-	if got := proc.GetStacks(); got != 2 {
-		t.Errorf("a special and a missed auto left %d charges, want both still there", got)
+	if got := proc.GetStacks(); got != charges {
+		t.Errorf("a special and a missed auto left %d charges, want all %d still there", got, charges)
 	}
 
 	swing(mhAuto, landed)
-	if !proc.IsActive() || proc.GetStacks() != 1 {
-		t.Fatalf("one landed auto left the proc active %v with %d charges, want it up with 1",
-			proc.IsActive(), proc.GetStacks())
+	if !proc.IsActive() || proc.GetStacks() != charges-1 {
+		t.Fatalf("one landed auto left the proc active %v with %d charges, want it up with %d",
+			proc.IsActive(), proc.GetStacks(), charges-1)
 	}
-	if got := char.GetStats()[stats.AttackPower] - before; got != 246 {
-		t.Errorf("the proc holds %v attack power on its last charge, want the game files' 246", got)
+	if got, want := char.GetStats()[stats.AttackPower]-before, windfuryTotem(t); got != want {
+		t.Errorf("the proc holds %v attack power with a charge spent, want the game files' %v", got, want)
 	}
 
+	for range charges - 2 {
+		swing(mhAuto, landed)
+	}
 	swing(ohAuto, landed)
 	if proc.IsActive() {
-		t.Error("the proc is still up after its second landed auto, want the charges spent")
+		t.Error("the proc is still up after its last landed auto, an off-hand one, want the charges spent")
 	}
 	if got := char.GetStats()[stats.AttackPower]; got != before {
 		t.Errorf("the spent proc left %v attack power behind", got-before)
@@ -608,27 +678,27 @@ func TestGeneratedWindfuryTotemProcSpendsItsChargesOnAutoAttacks(t *testing.T) {
 	fullCharges()
 	start := sim.CurrentTime
 	swing(special, landed)
-	if !proc.IsActive() || proc.RemainingDuration(sim) != time.Second {
-		t.Fatalf("a proc no auto landed on is active %v with %v left, want the full second",
-			proc.IsActive(), proc.RemainingDuration(sim))
+	if !proc.IsActive() || proc.RemainingDuration(sim) != proc.Duration {
+		t.Fatalf("a proc no auto landed on is active %v with %v left, want the full %v",
+			proc.IsActive(), proc.RemainingDuration(sim), proc.Duration)
 	}
 	sim.AddPendingAction(core.NewDelayedAction(core.DelayedActionOptions{
-		DoAt:     start + time.Second*2,
+		DoAt:     start + proc.Duration*2,
 		OnAction: func(*core.Simulation) {},
 	}))
-	for proc.IsActive() && sim.CurrentTime < start+time.Second*2 {
+	for proc.IsActive() && sim.CurrentTime < start+proc.Duration*2 {
 		sim.Step()
 	}
 	if proc.IsActive() || proc.GetStacks() != 0 {
-		t.Errorf("the lingering proc is active %v with %d charges at %v, want it gone after its second",
-			proc.IsActive(), proc.GetStacks(), sim.CurrentTime-start)
+		t.Errorf("the lingering proc is active %v with %d charges at %v, want it gone after its %v",
+			proc.IsActive(), proc.GetStacks(), sim.CurrentTime-start, proc.Duration)
 	}
 }
 
 // Windfury Totem's proc is the party aura 10612: a main-hand hit that deals
 // damage can fire it, auto or special, and no other hit can, a proc's hit
 // included. A main-hand auto that procs it has spent the first charge itself
-// and leaves one for the extra attack; a special leaves both.
+// and leaves the rest for the extra attack; a special leaves them all.
 func TestGeneratedWindfuryTotemProcsOffMainHandHitsWithTheChargesTheTriggerLeaves(t *testing.T) {
 	setup := func(t *testing.T) (*core.Simulation, *core.Unit, *core.Aura, *[]int32) {
 		t.Helper()
@@ -662,20 +732,21 @@ func TestGeneratedWindfuryTotemProcsOffMainHandHitsWithTheChargesTheTriggerLeave
 	}
 
 	for _, row := range []struct {
-		name    string
-		spell   *core.Spell
-		charges int32
+		name  string
+		spell *core.Spell
+		spent int32
 	}{
-		{"a main-hand auto leaves one charge", &core.Spell{ProcMask: core.ProcMaskMeleeMHAuto}, 1},
-		{"a main-hand special leaves both charges", &core.Spell{ProcMask: core.ProcMaskMeleeMHSpecial}, 2},
+		{"a main-hand auto spends one charge", &core.Spell{ProcMask: core.ProcMaskMeleeMHAuto}, 1},
+		{"a main-hand special leaves every charge", &core.Spell{ProcMask: core.ProcMaskMeleeMHSpecial}, 0},
 	} {
 		t.Run(row.name, func(t *testing.T) {
 			sim, target, trigger, started := setup(t)
+			charges := trigger.Unit.GetAura("Windfury Totem (External)").MaxStacks
 			if !offer(sim, target, trigger, started, row.spell, 100) {
 				t.Fatal("200 landed hits never procced the totem")
 			}
-			if got := (*started)[0]; got != row.charges {
-				t.Errorf("the proc started with %d charges, want %d", got, row.charges)
+			if got, want := (*started)[0], charges-row.spent; got != want {
+				t.Errorf("the proc started with %d of its %d charges, want %d", got, charges, want)
 			}
 		})
 	}
@@ -701,24 +772,25 @@ func TestGeneratedWindfuryTotemProcsOffMainHandHitsWithTheChargesTheTriggerLeave
 		})
 	}
 
-	t.Run("the trigger waits 100 ms between procs", func(t *testing.T) {
+	t.Run("the trigger waits the party aura's cooldown between procs", func(t *testing.T) {
 		_, _, trigger, _ := setup(t)
-		if trigger.Icd == nil || trigger.Icd.Duration != 100*time.Millisecond {
-			t.Errorf("the trigger's cooldown is %v, want the game files' 100 ms", trigger.Icd)
+		if want := spelldata.MustFind(10612).ICD(); trigger.Icd == nil || trigger.Icd.Duration != want {
+			t.Errorf("the trigger's cooldown is %v, want the game files' %v", trigger.Icd, want)
 		}
 	})
 }
 
-// Every main-hand hit adds 1363 x weapon speed / 100 fire damage.
+// The fire damage a main-hand hit adds is proportional to the weapon's speed.
 func TestGeneratedFlametongueTotemDamageFollowsWeaponSpeed(t *testing.T) {
-	if got := buffs.FlametongueTotemDamage(2.6); math.Abs(got-35.438) > 0.001 {
-		t.Errorf("a 2.6 speed weapon procs %v, want 1363 x 2.6 / 100", got)
+	slow, fast := buffs.FlametongueTotemDamage(2.6), buffs.FlametongueTotemDamage(1.3)
+	if fast <= 0 || !core.WithinToleranceFloat64(2*fast, slow, 1e-9) {
+		t.Errorf("a 2.6 speed weapon procs %v and a 1.3 speed one %v, want twice as much and above 0", slow, fast)
 	}
 }
 
 // A main-hand auto attack that lands strikes the target for the game files'
-// 1363 x the weapon's speed / 100 in fire damage on the spell hit and crit
-// tables; a special, an off-hand hit or a missed swing strikes nothing.
+// fire damage scaled by the weapon's speed, on the spell hit and crit tables; a
+// special, an off-hand hit or a missed swing strikes nothing.
 func TestGeneratedFlametongueTotemStrikesOnMainHandHits(t *testing.T) {
 	sim := setupFakeSimWithBuffs(&proto.RaidBuffs{}, &proto.PartyBuffs{FlametongueTotem: true}, &proto.IndividualBuffs{})
 	char := sim.Raid.Parties[0].Players[0].GetCharacter()
@@ -764,7 +836,7 @@ func TestGeneratedFlametongueTotemStrikesOnMainHandHits(t *testing.T) {
 		{"a 1.3 speed main-hand auto", 1.3, core.ProcMaskMeleeMHAuto},
 	} {
 		char.AutoAttacks.SetMH(core.Weapon{SwingSpeed: row.speed})
-		want := 1363 * row.speed / 100
+		want := buffs.FlametongueTotemDamage(row.speed)
 		landedDamage := false
 		for i := 0; i < 20; i++ {
 			casts, damage, crit := offer(row.procMask, core.OutcomeHit)
@@ -981,8 +1053,8 @@ func TestGeneratedOwnWindfuryTotemHoldsOverThePartysTotems(t *testing.T) {
 	if agility.GetActiveAura() == graceOfAir {
 		t.Error("under the shaman's Windfury Totem, Grace of Air still holds the agility")
 	}
-	if got := before - char.GetStats()[stats.Agility]; got != 89 {
-		t.Errorf("the totem took %v agility away, want Grace of Air's 89", got)
+	if got, want := before-char.GetStats()[stats.Agility], graceOfAirTotemAgility(t); got != want {
+		t.Errorf("the totem took %v agility away, want Grace of Air's %v", got, want)
 	}
 	if flametongue.IsActive() {
 		t.Error("under the shaman's Windfury Totem, Flametongue Totem's trigger is up")
@@ -1052,10 +1124,6 @@ func TestGeneratedThornsStrikesBackAtAMeleeHit(t *testing.T) {
 	char := sim.Raid.Parties[0].Players[0].GetCharacter()
 	attacker := sim.Encounter.AllTargetUnits[0]
 
-	if buffs.ThornsValue(0) != 22 {
-		t.Errorf("Thorns is worth %v, want the game files' 22", buffs.ThornsValue(0))
-	}
-
 	aura := char.GetAura("Thorns (External)")
 	if aura == nil {
 		t.Fatalf("no aura is labelled %q; the unit has %v", "Thorns (External)", auraLabels(char))
@@ -1079,8 +1147,8 @@ func TestGeneratedThornsStrikesBackAtAMeleeHit(t *testing.T) {
 	if got := shield.SpellMetrics[attacker.UnitIndex].Casts; got != 1 {
 		t.Errorf("a melee hit taken cast the shield %d times, want once", got)
 	}
-	if got := shield.SpellMetrics[attacker.UnitIndex].TotalDamage; got != 22 {
-		t.Errorf("the shield dealt %v damage, want the game files' 22", got)
+	if got, want := shield.SpellMetrics[attacker.UnitIndex].TotalDamage, rowAmount(t, 9910, dbcenums.A_DAMAGE_SHIELD); got != want {
+		t.Errorf("the shield dealt %v damage, want the game files' %v", got, want)
 	}
 
 	caster := sim.Raid.Parties[0].Players[0].(*core.FakeAgent)
@@ -1103,14 +1171,10 @@ func TestGeneratedRetributionAuraHoldsThePaladinSlot(t *testing.T) {
 	if external == nil {
 		t.Fatalf("no aura is labelled %q; the unit has %v", "Retribution Aura (External)", auraLabels(char))
 	}
-	if buffs.RetributionAuraValue(0) != 20 {
-		t.Errorf("the aura is worth %v holy damage, want the game files' 20", buffs.RetributionAuraValue(0))
-	}
-
 	category := char.ExclusiveEffectManager.GetExclusiveEffectCategory(buffs.RetributionAuraCategory)
-	if !category.SingleAura || len(category.Effects()) != 1 || category.Effects()[0].Priority != 20 {
-		t.Errorf("the category is single-aura %v with %d effects, first bid %v; want one bidding 20",
-			category.SingleAura, len(category.Effects()), category.Effects()[0].Priority)
+	if bid := rowAmount(t, 10301, dbcenums.A_DAMAGE_SHIELD); !category.SingleAura || len(category.Effects()) != 1 || category.Effects()[0].Priority != bid {
+		t.Errorf("the category is single-aura %v with %d effects, first bid %v; want one bidding %v",
+			category.SingleAura, len(category.Effects()), category.Effects()[0].Priority, bid)
 	}
 	if shared := char.ExclusiveEffectManager.GetExclusiveEffectCategory(buffs.PaladinAuraCategory); len(shared.Effects()) != 0 {
 		t.Errorf("the external copy put %d effects in the paladin's shared category, want none",
@@ -1138,7 +1202,7 @@ func TestRetributionAuraCarriesThePartysSpellPower(t *testing.T) {
 		t.Fatalf("no aura is labelled %q; the unit has %v", "Retribution Aura (External)", auraLabels(char))
 	}
 
-	want := buffs.RetributionAuraValue(0) + buffs.RetributionAuraSpellPowerCoefficient*450
+	want := rowAmount(t, 10301, dbcenums.A_DAMAGE_SHIELD) + buffs.RetributionAuraSpellPowerCoefficient*450
 	category := char.ExclusiveEffectManager.GetExclusiveEffectCategory(buffs.RetributionAuraCategory)
 	if len(category.Effects()) != 1 || category.Effects()[0].Priority != want {
 		t.Errorf("the category has %d effects, first bid %v; want one bidding %v",
@@ -1182,7 +1246,7 @@ func setupFakeSimWithBuffs(raid *proto.RaidBuffs, party *proto.PartyBuffs, indiv
 }
 
 // Two druids innervating one character take turns: the second waits for the
-// first one's aura to fall off, and a third cast waits for the six minutes the
+// first one's aura to fall off, and a third cast waits for the cooldown the
 // game files state.
 func TestGeneratedInnervatesTakeTurnsBetweenTheirSources(t *testing.T) {
 	sim := setupFakeSimWithBuffs(&proto.RaidBuffs{}, &proto.PartyBuffs{}, &proto.IndividualBuffs{Innervates: 2})
@@ -1192,11 +1256,8 @@ func TestGeneratedInnervatesTakeTurnsBetweenTheirSources(t *testing.T) {
 	if aura == nil {
 		t.Fatalf("no aura is labelled %q; the unit has %v", "Innervates (External)", auraLabels(char))
 	}
-	if aura.Duration != buffs.InnervatesDuration(0) || aura.Duration != time.Second*20 {
-		t.Errorf("the innervate lasts %v, want the game files' 20 seconds", aura.Duration)
-	}
-	if buffs.InnervatesCooldown() != time.Minute*6 {
-		t.Errorf("the innervate's cooldown is %v, want the game files' 6 minutes", buffs.InnervatesCooldown())
+	if want := rowDuration(t, 29166); aura.Duration != want {
+		t.Errorf("the innervate lasts %v, want the game files' %v", aura.Duration, want)
 	}
 
 	spell := char.GetSpell(core.ActionID{SpellID: 29166, Tag: -1})
@@ -1231,16 +1292,16 @@ func TestGeneratedInnervatesTakeTurnsBetweenTheirSources(t *testing.T) {
 	sim.CurrentTime += aura.Duration + time.Second
 	aura.Deactivate(sim)
 	if ready() {
-		t.Error("a third innervate lands before either druid's six minutes are up")
+		t.Error("a third innervate lands before either druid's cooldown is up")
 	}
 
 	sim.CurrentTime = buffs.InnervatesCooldown() + time.Minute
 	if !ready() {
-		t.Error("the first druid cannot innervate again six minutes later")
+		t.Error("the first druid cannot innervate again once its cooldown is up")
 	}
 }
 
-// Power Infusion is +20% damage and healing done while it is up, and nothing
+// Power Infusion raises damage and healing done while it is up, and nothing
 // once it has expired. The damage half is the six schools the game files' mask
 // names, which does not include physical.
 func TestGeneratedPowerInfusionRaisesDamageAndHealingDone(t *testing.T) {
@@ -1251,11 +1312,12 @@ func TestGeneratedPowerInfusionRaisesDamageAndHealingDone(t *testing.T) {
 	if aura == nil {
 		t.Fatalf("no aura is labelled %q; the unit has %v", "Power Infusions (External)", auraLabels(char))
 	}
-	if aura.Duration != time.Second*15 || buffs.PowerInfusionsCooldown() != time.Minute*3 {
-		t.Errorf("the infusion lasts %v on a %v cooldown, want the game files' 15 seconds and 3 minutes",
-			aura.Duration, buffs.PowerInfusionsCooldown())
+	if want := rowDuration(t, 10060); aura.Duration != want {
+		t.Errorf("the infusion lasts %v, want the game files' %v", aura.Duration, want)
 	}
 
+	damageDone := core.MultiplierFromPercent(rowAmount(t, 10060, dbcenums.A_MOD_DAMAGE_PERCENT_DONE))
+	healingDone := core.MultiplierFromPercent(rowAmount(t, 10060, dbcenums.A_MOD_HEALING_DONE_PERCENT))
 	healing := char.PseudoStats.HealingDealtMultiplier
 	physical := stats.SchoolIndexPhysical
 	before := char.PseudoStats.SchoolDamageDealtMultiplier[physical]
@@ -1264,15 +1326,15 @@ func TestGeneratedPowerInfusionRaisesDamageAndHealingDone(t *testing.T) {
 	// Spell 10060 states mask 126, which is every school but physical, so a
 	// melee swing is not part of what the infusion raises.
 	for _, school := range magicSchools {
-		if got := char.PseudoStats.SchoolDamageDealtMultiplier[school]; got != 1.2 {
-			t.Errorf("school %d deals %v times the damage, want the game files' 1.2", school, got)
+		if got := char.PseudoStats.SchoolDamageDealtMultiplier[school]; got != damageDone {
+			t.Errorf("school %d deals %v times the damage, want the game files' %v", school, got, damageDone)
 		}
 	}
 	if got := char.PseudoStats.SchoolDamageDealtMultiplier[physical]; got != before {
 		t.Errorf("physical damage dealt is %v, want the mask to have left it at %v", got, before)
 	}
-	if got := char.PseudoStats.HealingDealtMultiplier; got != healing*1.2 {
-		t.Errorf("the infusion multiplies healing dealt by %v, want the game files' 1.2", got/healing)
+	if got := char.PseudoStats.HealingDealtMultiplier; got != healing*healingDone {
+		t.Errorf("the infusion multiplies healing dealt by %v, want the game files' %v", got/healing, healingDone)
 	}
 
 	aura.Deactivate(sim)
@@ -1286,9 +1348,9 @@ func TestGeneratedPowerInfusionRaisesDamageAndHealingDone(t *testing.T) {
 	}
 }
 
-// Mana Tide's aura states 290 mana every 3 seconds, which reaches the sim as
-// the mana per 5 seconds it is worth; the totem cast states how long it stands.
-func TestGeneratedManaTideTotemRestoresTheClientsMana(t *testing.T) {
+// Mana Tide's aura states mana per tick, which reaches the sim as the mana per
+// 5 seconds it is worth; the totem cast states how long it stands.
+func TestGeneratedManaTideTotemRestoresItsMana(t *testing.T) {
 	sim := setupFakeSimWithBuffs(&proto.RaidBuffs{}, &proto.PartyBuffs{ManaTideTotems: 1}, &proto.IndividualBuffs{})
 	char := sim.Raid.Parties[0].Players[0].GetCharacter()
 
@@ -1296,19 +1358,17 @@ func TestGeneratedManaTideTotemRestoresTheClientsMana(t *testing.T) {
 	if aura == nil {
 		t.Fatalf("no aura is labelled %q; the unit has %v", "Mana Tide Totem (External)", auraLabels(char))
 	}
-	if aura.Duration != time.Second*13 || buffs.ManaTideTotemsCooldown() != time.Minute*5 {
-		t.Errorf("the totem stands for %v on a %v cooldown, want the game files' 13 seconds and 5 minutes",
-			aura.Duration, buffs.ManaTideTotemsCooldown())
+	if want := rowDuration(t, 17359); aura.Duration != want {
+		t.Errorf("the totem stands for %v, want the cast's %v", aura.Duration, want)
 	}
-	if want := 290 * 5000.0 / 3000.0; buffs.ManaTideTotemsValue(0) != want {
-		t.Errorf("the totem is worth %v MP5, want the 290 per 3 seconds the game files state as %v",
-			buffs.ManaTideTotemsValue(0), want)
-	}
+	tick := rowEffect(t, 17360, dbcenums.A_PERIODIC_ENERGIZE)
+	mp5 := rowAmount(t, 17360, dbcenums.A_PERIODIC_ENERGIZE) * 5000 / float64(tick.PeriodMs)
 
 	before := char.GetStats()[stats.MP5]
 	aura.Activate(sim)
-	if got := char.GetStats()[stats.MP5] - before; got != buffs.ManaTideTotemsValue(0) {
-		t.Errorf("the totem applied %v MP5, want %v", got, buffs.ManaTideTotemsValue(0))
+	if got := char.GetStats()[stats.MP5] - before; got != mp5 {
+		t.Errorf("the totem applied %v MP5, want the %v per %v the game files state as %v",
+			got, tick.Average(), tick.Period(), mp5)
 	}
 }
 
@@ -1350,14 +1410,17 @@ func TestGeneratedDrivenBuffsAreNotBuildPhaseAuras(t *testing.T) {
 	}
 }
 
-// Stoneskin takes a flat amount off every physical hit, and Guardian Totems raises it by 10% a rank.
+// Stoneskin takes a flat amount off every physical hit, and Guardian Totems raises it.
 // The reduction lands on PseudoStats.BonusPhysicalDamageTaken, not a stats.Stats entry.
 func TestGeneratedStoneskinTotemTakesTheTalentedValue(t *testing.T) {
-	if got := buffs.StoneskinTotemValue(0); got != -30 {
-		t.Errorf("untalented Stoneskin is worth %v, want the game files' -30", got)
+	untalented := rowAmount(t, 10405, dbcenums.A_MOD_DAMAGE_TAKEN)
+	if got := buffs.StoneskinTotemValue(0); got != untalented {
+		t.Errorf("untalented Stoneskin is worth %v, want the game files' %v", got, untalented)
 	}
-	if got := buffs.StoneskinTotemValue(2); got != -36 {
-		t.Errorf("Stoneskin with 2/2 Guardian Totems is worth %v, want -36", got)
+	talented := buffs.StoneskinTotemValue(2)
+	if untalented >= 0 || talented >= untalented {
+		t.Errorf("Stoneskin is worth %v untalented and %v with 2/2 Guardian Totems, want a reduction the talent makes larger",
+			untalented, talented)
 	}
 
 	char := core.NewGeneratedBuffTestCharacter()
@@ -1369,31 +1432,36 @@ func TestGeneratedStoneskinTotemTakesTheTalentedValue(t *testing.T) {
 	if aura == nil {
 		t.Fatalf("no aura is labelled %q; the unit has %v", "Stoneskin Totem (External)", auraLabels(char))
 	}
-	if got := char.PseudoStats.BonusPhysicalDamageTaken; got != -36 {
-		t.Errorf("the talented totem applied %v physical damage taken, want -36", got)
+	if got := char.PseudoStats.BonusPhysicalDamageTaken; got != talented {
+		t.Errorf("the talented totem applied %v physical damage taken, want %v", got, talented)
 	}
 }
 
 // Furious Howl does not stack with Battle Shout: the two share one category, and the stronger shout
-// is the one that applies.
+// is the one that applies. The howl's amount gains per level past its BaseLevel, floored.
 func TestGeneratedFuriousHowlDoesNotStackWithBattleShout(t *testing.T) {
-	if got := buffs.FuriousHowlValue(0); got != 83 {
-		t.Fatalf("Furious Howl is worth %v attack power, want the game files' 82 plus 4 levels of 0.4, floored to 83", got)
+	howl := levelScaledFloor(rowEffect(t, 24597, dbcenums.A_MOD_ATTACK_POWER))
+	if howl == 0 {
+		t.Fatal("Furious Howl states no attack power")
+	}
+	if got := buffs.FuriousHowlValue(0); got != howl {
+		t.Fatalf("Furious Howl is worth %v attack power, want the game files' amount at the character's level, floored to %v",
+			got, howl)
 	}
 
 	howlOnly := core.NewGeneratedBuffTestCharacter()
 	core.ApplyBuffEffects(howlOnly, &proto.RaidBuffs{}, &proto.PartyBuffs{FuriousHowl: true}, &proto.IndividualBuffs{})
 	howlOnly.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
-	if got := howlOnly.GetStats()[stats.AttackPower]; got != buffs.FuriousHowlValue(0) {
-		t.Errorf("Furious Howl alone applied %v attack power, want %v", got, buffs.FuriousHowlValue(0))
+	if got := howlOnly.GetStats()[stats.AttackPower]; got != howl {
+		t.Errorf("Furious Howl alone applied %v attack power, want %v", got, howl)
 	}
 
 	char := core.NewGeneratedBuffTestCharacter()
 	core.ApplyBuffEffects(char, &proto.RaidBuffs{},
 		&proto.PartyBuffs{BattleShout: proto.TristateEffect_TristateEffectRegular, FuriousHowl: true}, &proto.IndividualBuffs{})
 	char.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
-	if got := char.GetStats()[stats.AttackPower]; got != buffs.BattleShoutValue(0) {
-		t.Errorf("attack power is %v under both shouts, want Battle Shout's %v alone", got, buffs.BattleShoutValue(0))
+	if got, want := char.GetStats()[stats.AttackPower], max(battleShout(t), howl); got != want {
+		t.Errorf("attack power is %v under both shouts, want the stronger one's %v alone", got, want)
 	}
 }
 

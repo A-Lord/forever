@@ -29,7 +29,7 @@ func init() {
 	)
 }
 
-// Hit Weapon +2, 430391: A_MOD_HIT_CHANCE +2 on the wearer, restricted to melee weapons.
+// Hit Weapon +2, 430391: A_MOD_HIT_CHANCE on the wearer, restricted to melee weapons.
 const hitWeapon int32 = 430391
 
 // A weapon enchant whose equip spell is weapon-scoped puts its aura up while the enchant is worn, and
@@ -52,6 +52,8 @@ func TestWeaponScopedEnchantReachesTheWeaponItNames(t *testing.T) {
 			Type: proto.ItemType_ItemTypeWeapon}},
 	})
 	registerSpellDataEquipAura(SpellDataProc{Name: "Test Hit Enchant", EnchantID: enchantID, TriggerSpellID: hitWeapon})
+	hit := spelldata.MustFind(hitWeapon).EffectN(1).Mean()
+	needAmount(t, "430391's hit", hit)
 
 	for _, tc := range []struct {
 		name           string
@@ -59,9 +61,9 @@ func TestWeaponScopedEnchantReachesTheWeaponItNames(t *testing.T) {
 		enchanted      bool
 		wantMH, wantOH float64
 	}{
-		{"enchanted", swordID, true, 0, 2},
+		{"enchanted", swordID, true, 0, hit},
 		{"not enchanted", swordID, false, 0, 0},
-		{"enchanted beside a main-hand dagger", daggerID, true, 0, 2},
+		{"enchanted beside a main-hand dagger", daggerID, true, 0, hit},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			offHand := &proto.ItemSpec{Id: daggerID}

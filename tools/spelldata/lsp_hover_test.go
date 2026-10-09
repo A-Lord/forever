@@ -13,6 +13,9 @@ import (
 	"testing"
 	"time"
 	"unicode/utf16"
+
+	"github.com/wowsims/forever/sim/core/dbcenums"
+	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
 const executeGo = `package warrior
@@ -111,55 +114,69 @@ func TestHoverColumnIsUTF16(t *testing.T) {
 func TestHoverFamily(t *testing.T) {
 	markdown := wantHover(t, executeGo, "Execute.Highest", 3,
 		"### warrior/Execute\n\n| id | name | rank | call | value |\n|--:|:--|:--|:--|:--|\n",
-		"| 20662 | Execute | Rank 5 | `Highest()` | effect 1 = 600 |",
+		"| 20662 | Execute | Rank 5 | `Highest()` | "+rankValues(t, "warrior/Execute")(5)+" |",
 		"### 20662 Execute · Rank 5\n")
 	if !strings.Contains(markdown, "| **school** | physical |") {
 		t.Errorf("the family's highest rank states no header table:\n%s", markdown)
 	}
 }
 
+// Execute's damage effect, the one executeGo reads: what its AverageAt(60) answers, and the amount
+// its wording holds.
+func executeDamage(t *testing.T) (average, holding string) {
+	t.Helper()
+	damage := ladderOf(t, "warrior/Execute").Highest().EffectN(1)
+	return column(damage.AverageAt(60)), column(damage.Mean())
+}
+
 // The card a rank pick hovers as: a heading, the ladder call, the row's columns under its name, and the
 // effects below a rule with each wording over its game files row.
-const executeCard = "### 20662 Execute · Rank 5\n" +
-	"`warrior spellData.Execute.Highest()`  \n" +
-	"\n" +
-	"| | Execute (Rank 5) |\n" +
-	"|--:|:--|\n" +
-	"| **school** | physical |\n" +
-	"| **defense** | melee |\n" +
-	"| **gcd** | 1.5 s |\n" +
-	"| **cost** | 15 rage |\n" +
-	"| **range** | 5 yd |\n" +
-	"| **stance** | Battle, Berserker |\n" +
-	"| **equip** | needs a melee weapon in the main hand |\n" +
-	"| **attrs** | refund on miss |\n" +
-	"| **labels** | 25 |\n" +
-	"\n" +
-	"---\n" +
-	"| # | effect |\n" +
-	"|--:|:--|\n" +
-	"| 1 | a dummy effect holding 600 to the enemy<br>`E_DUMMY base=600 sp=1 target=[6,0]` |\n" +
-	"| 2 | casts 26651 Execute to the caster<br>`E_TRIGGER_SPELL base=0 trigger=26651 target=[1,0]` |\n" +
-	"\n" +
-	"[Wowhead](https://www.wowhead.com/forever/spell=20662)\n"
+func executeCard(t *testing.T) string {
+	t.Helper()
+	execute := ladderOf(t, "warrior/Execute").Highest()
+	return "### 20662 Execute · Rank 5\n" +
+		"`warrior spellData.Execute.Highest()`  \n" +
+		"\n" +
+		"| | Execute (Rank 5) |\n" +
+		"|--:|:--|\n" +
+		"| **school** | physical |\n" +
+		"| **defense** | melee |\n" +
+		"| **gcd** | " + column(float64(execute.GCDMs)/1000) + " s |\n" +
+		"| **cost** | " + column(execute.PowerCost(dbcenums.POWER_RAGE)) + " rage |\n" +
+		"| **range** | " + column(float64(execute.MaxRange)) + " yd |\n" +
+		"| **stance** | Battle, Berserker |\n" +
+		"| **equip** | needs a melee weapon in the main hand |\n" +
+		"| **attrs** | refund on miss |\n" +
+		"| **labels** | 25 |\n" +
+		"\n" +
+		"---\n" +
+		"| # | effect |\n" +
+		"|--:|:--|\n" +
+		"| 1 | a dummy effect holding " + column(execute.EffectN(1).Mean()) + " to the enemy<br>" +
+		"`E_DUMMY base=" + column(execute.EffectN(1).BasePoints) + " sp=1 target=[6,0]` |\n" +
+		"| 2 | casts 26651 Execute to the caster<br>`E_TRIGGER_SPELL base=0 trigger=26651 target=[1,0]` |\n" +
+		"\n" +
+		"[Wowhead](https://www.wowhead.com/forever/spell=20662)\n"
+}
 
 func TestHoverRankPick(t *testing.T) {
-	if got := wantHover(t, executeGo, "executeRank =", 4); got != executeCard {
-		t.Errorf("the rank pick hovers as\n%s\nwant\n%s", got, executeCard)
+	if got, want := wantHover(t, executeGo, "executeRank =", 4), executeCard(t); got != want {
+		t.Errorf("the rank pick hovers as\n%s\nwant\n%s", got, want)
 	}
 }
 
 func TestHoverValue(t *testing.T) {
+	average, holding := executeDamage(t)
 	markdown := wantHover(t, executeGo, "executeBaseDamage =", 4,
-		"`executeBaseDamage` = **600**\n\n`spellData.Execute.Highest().EffectN(1).AverageAt(60)`",
+		"`executeBaseDamage` = **"+average+"**\n\n`spellData.Execute.Highest().EffectN(1).AverageAt(60)`",
 		"`spellData.Execute.Highest().EffectN(1).AverageAt(60)`\n\n### 20662 Execute · Rank 5\n",
-		"| 1 ▶ | a dummy effect holding 600 to the enemy<br>",
+		"| 1 ▶ | a dummy effect holding "+holding+" to the enemy<br>",
 		"| 2 | casts 26651 Execute to the caster<br>")
 	if strings.Contains(markdown, "The amount at a caster level") {
 		t.Errorf("the name's hover states the accessor's doc:\n%s", markdown)
 	}
 
-	wantHover(t, executeGo, "executeBaseDamage +", 4, "`executeBaseDamage` = **600**")
+	wantHover(t, executeGo, "executeBaseDamage +", 4, "`executeBaseDamage` = **"+average+"**")
 }
 
 const crueltyGo = `package warrior
@@ -172,17 +189,19 @@ func (warrior *Warrior) applyCruelty() {
 
 // A talent rank hovers as the rank Talent builds from the curve, titled with its rank.
 func TestHoverTalentRank(t *testing.T) {
+	crit := ladderOf(t, "warrior/Cruelty").Rank(3).EffectN(1)
+	wording := signedColumn(crit.Mean()) + "% physical crit, per weapon: only attacks made with a melee weapon<br>"
 	wantHover(t, crueltyGo, "crueltyRank :=", 4,
 		"### 12320 Cruelty · rank 3 of 5\n",
 		"| | Cruelty (rank 3 of 5) |",
-		"| 1 | +3% physical crit, per weapon: only attacks made with a melee weapon<br>`E_APPLY_AURA A_MOD_WEAPON_CRIT_PERCENT base=3 target=[1,0]` |")
+		"| 1 | "+wording+"`E_APPLY_AURA A_MOD_WEAPON_CRIT_PERCENT base="+column(crit.BasePoints)+" target=[1,0]` |")
 	wantHover(t, crueltyGo, "crueltyCrit :=", 4,
-		"`crueltyCrit` = **3**\n\n`spellData.Cruelty.Rank(3).EffectN(1).BaseValue()`",
+		"`crueltyCrit` = **"+column(crit.BaseValue())+"**\n\n`spellData.Cruelty.Rank(3).EffectN(1).BaseValue()`",
 		"### 12320 Cruelty · rank 3 of 5\n",
-		"| 1 ▶ | +3% physical crit, per weapon: only attacks made with a melee weapon<br>")
+		"| 1 ▶ | "+wording)
 	wantHover(t, crueltyGo, "Cruelty.Rank", 3,
 		"### warrior/Cruelty\n",
-		"| 12320 | Cruelty | rank 3 of 5 | `Rank(3)` | effect 1 = 3 |",
+		"| 12320 | Cruelty | rank 3 of 5 | `Rank(3)` | "+rankValues(t, "warrior/Cruelty")(3)+" |",
 		"### 12320 Cruelty · rank 5 of 5\n")
 }
 
@@ -193,11 +212,13 @@ var instantRage = spellData.Bloodrage.EffectAt(1).TenthsAt(1)
 
 // A value read off a ladder hovers as the rank it read, like one read off a rank.
 func TestHoverLadderAccessor(t *testing.T) {
+	bloodrage := ladderOf(t, "warrior/Bloodrage")
+	rage := column(bloodrage.EffectAt(1).TenthsAt(1))
 	wantHover(t, bloodrageGo, "instantRage =", 4,
-		"`instantRage` = **10**\n\n`spellData.Bloodrage.EffectAt(1).TenthsAt(1)`",
+		"`instantRage` = **"+rage+"**\n\n`spellData.Bloodrage.EffectAt(1).TenthsAt(1)`",
 		"### 2687 Bloodrage\n",
-		"| 1 ▶ | restores 10 rage to the caster<br>")
-	wantHover(t, bloodrageGo, "TenthsAt(1)", 2, "`TenthsAt(1)` = **10**")
+		"| 1 ▶ | restores "+column(bloodrage.Rank(1).EffectN(1).Mean()/10)+" rage to the caster<br>")
+	wantHover(t, bloodrageGo, "TenthsAt(1)", 2, "`TenthsAt(1)` = **"+rage+"**")
 }
 
 // Two lines of sim/warrior/battle_shout.go, whose finder names its aura by a dbcenums constant.
@@ -211,9 +232,10 @@ func (warrior *Warrior) registerBattleShout() {
 `
 
 func TestHoverEnumArgument(t *testing.T) {
+	attackPower := ladderOf(t, "warrior/BattleShout").Highest().Effect(dbcenums.A_MOD_ATTACK_POWER, 0)
 	wantHover(t, battleShoutGo, "baseAttackPower :=", 4,
-		"`baseAttackPower` = **139**\n\n`spellData.BattleShout.Highest().Effect(99, 0).AverageAt(60)`",
-		"| 1 ▶ | +139 attack power to the party around the caster")
+		"`baseAttackPower` = **"+column(attackPower.AverageAt(60))+"**\n\n`spellData.BattleShout.Highest().Effect(99, 0).AverageAt(60)`",
+		"| 1 ▶ | "+signedColumn(attackPower.Mean())+" attack power to the party around the caster")
 }
 
 // A line of sim/warrior/stances.go with two ladder reads in one expression, then a declaration split
@@ -229,22 +251,25 @@ func (warrior *Warrior) makeStanceSpell() {
 `
 
 func TestHoverInsideExpression(t *testing.T) {
+	tacticalMastery := ladderOf(t, "warrior/TacticalMastery")
 	wantHover(t, stancesGo, "ValueAt(1)", 2,
-		"`ValueAt(1)` = **10**\n\n`spellData.TacticalMastery.ValueAt(1)`",
-		"| 1 ▶ | a dummy aura holding 10<br>")
+		"`ValueAt(1)` = **"+column(tacticalMastery.ValueAt(1))+"**\n\n`spellData.TacticalMastery.ValueAt(1)`",
+		"| 1 ▶ | a dummy aura holding "+column(tacticalMastery.Rank(1).EffectN(1).Mean())+"<br>")
 	wantHover(t, stancesGo, "split :=", 2, "`EffectN(1)` = **effect 1** of 20662 Execute (Rank 5)")
 	wantHover(t, stancesGo, "\t\tEffectN(1)", 4, "`EffectN(1)` = **effect 1** of 20662 Execute (Rank 5)")
 }
 
 func TestHoverSegments(t *testing.T) {
+	damage := ladderOf(t, "warrior/Execute").Highest().EffectN(1)
+	average, holding := executeDamage(t)
 	wantHover(t, executeGo, "EffectN(1).Average", 2,
 		"`EffectN(1)` = **effect 1** of 20662 Execute (Rank 5)",
 		"`spellData.Execute.Highest().EffectN(1)`",
-		"---\n| # | effect |\n|--:|:--|\n| 1 ▶ | a dummy effect holding 600 to the enemy<br>`E_DUMMY base=600 sp=1 target=[6,0]` |\n",
-		"`AverageAt(60) = 600`  \n")
+		"---\n| # | effect |\n|--:|:--|\n| 1 ▶ | a dummy effect holding "+holding+" to the enemy<br>`E_DUMMY base="+column(damage.BasePoints)+" sp=1 target=[6,0]` |\n",
+		"`AverageAt(60) = "+average+"`  \n")
 
 	markdown := wantHover(t, executeGo, "AverageAt(core", 2,
-		"`AverageAt(60)` = **600**",
+		"`AverageAt(60)` = **"+average+"**",
 		"`spellData.Execute.Highest().EffectN(1).AverageAt(60)`",
 		"| 1 ▶ |")
 	// The editor's Go server shows the accessor's doc beside this hover already.
@@ -255,13 +280,14 @@ func TestHoverSegments(t *testing.T) {
 		t.Errorf("the argument hovers differently from its call:\n%s", again)
 	}
 
-	wantHover(t, executeGo, "executeRank.EffectN(1).Average", 4, executeCard)
-	wantHover(t, executeGo, "executeRank.EffectN(1).ChainAmp", 4, executeCard)
-	wantHover(t, executeGo, "ChainAmp)", 2, "`ChainAmp` = **1.5**", "| 1 ▶ |")
+	wantHover(t, executeGo, "executeRank.EffectN(1).Average", 4, executeCard(t))
+	wantHover(t, executeGo, "executeRank.EffectN(1).ChainAmp", 4, executeCard(t))
+	wantHover(t, executeGo, "ChainAmp)", 2, "`ChainAmp` = **"+column(float64(damage.ChainAmp))+"**", "| 1 ▶ |")
 }
 
 func TestHoverTrace(t *testing.T) {
 	_, trace, _ := hoverOn(t, newWorkspace(), executeGo, warriorURI(t, "execute.go"), "executeBaseDamage =", 4)
+	average, _ := executeDamage(t)
 	want := []string{
 		"sim/warrior/execute.go:5:9",
 		"declarations sim/warrior: cache miss",
@@ -269,7 +295,7 @@ func TestHoverTrace(t *testing.T) {
 		"  executeBaseDamage = executeRank.EffectN(1).AverageAt(core.CharacterLevel)  (sim/warrior/execute.go:5)",
 		"  executeRank = spellData.Execute.Highest()  (sim/warrior/execute.go:3)",
 		"expr spellData.Execute.Highest().EffectN(1).AverageAt(core.CharacterLevel)",
-		"✓ 20662 Execute (Rank 5) → effect 1 → 600",
+		"✓ 20662 Execute (Rank 5) → effect 1 → " + average,
 	}
 	if len(trace) != len(want) {
 		t.Fatalf("the trace is\n%s", strings.Join(trace, "\n"))
@@ -713,7 +739,8 @@ func TestLSPRoundTrip(t *testing.T) {
 	if err := json.Unmarshal(responses["2"].Result, &hover); err != nil {
 		t.Fatalf("hover answered %s", responses["2"].Result)
 	}
-	if hover.Contents.Kind != "markdown" || !strings.HasPrefix(hover.Contents.Value, "`executeBaseDamage` = **600**") ||
+	average, _ := executeDamage(t)
+	if hover.Contents.Kind != "markdown" || !strings.HasPrefix(hover.Contents.Value, "`executeBaseDamage` = **"+average+"**") ||
 		!strings.Contains(hover.Contents.Value, "| 1 ▶ |") {
 		t.Errorf("hover answered %s:\n%s", hover.Contents.Kind, hover.Contents.Value)
 	}
@@ -724,7 +751,7 @@ func TestLSPRoundTrip(t *testing.T) {
 	if string(responses["4"].Result) != "null" || responses["4"].Error != nil {
 		t.Errorf("shutdown answered %+v", responses["4"])
 	}
-	if len(logs) != 1 || !strings.Contains(logs[0], "✓ 20662 Execute (Rank 5) → effect 1 → 600") {
+	if len(logs) != 1 || !strings.Contains(logs[0], "✓ 20662 Execute (Rank 5) → effect 1 → "+average) {
 		t.Errorf("the trace logged %q", logs)
 	}
 }
@@ -1010,7 +1037,7 @@ func TestHoverRowByID(t *testing.T) {
 		"`EffectN(1)` = **effect 1** of 23562 Block Value 30",
 		"`spelldata.MustFind(23562).EffectN(1)`")
 	wantHover(t, itemsGo, "BaseValue()", 2,
-		"`BaseValue()` = **30**",
+		"`BaseValue()` = **"+column(spelldata.MustFind(23562).EffectN(1).BaseValue())+"**",
 		"`spelldata.MustFind(23562).EffectN(1).BaseValue()`",
 		"| 1 ▶ |")
 }
@@ -1056,7 +1083,7 @@ func TestVirtualRankAccessorRendering(t *testing.T) {
 		{
 			name: "duration",
 			expr: "rank.Duration()",
-			want: "`Duration()` = **15s**",
+			want: "`Duration()` = **" + ladderOf(t, "priest/DarkSacrifice").Rank(5).Duration().String() + "**",
 		},
 		{
 			name: "energize effect",

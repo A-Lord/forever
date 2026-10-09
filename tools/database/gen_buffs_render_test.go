@@ -2,8 +2,8 @@ package database
 
 // Pins what the generator emits for each shape a row can take, from synthetic
 // rows that cover every branch of the templates, and builds the result against
-// sim/core/buffs so that a generated Meta or constructor call that no longer
-// compiles against sim/core/buffs/meta.go is noticed here.
+// sim/core/buffs so that a generated Meta or constructor call that does not
+// compile against sim/core/buffs/meta.go is noticed here.
 //
 // Needs no game files database. Set UPDATE_BUFF_FIXTURES=1 to rewrite the fixtures
 // after a deliberate change.
@@ -262,7 +262,7 @@ func TestRenderedBuffFilesMatchTheFixtures(t *testing.T) {
 		}
 		if string(committed) != string(rendered) {
 			line, want, got := firstDifference(committed, rendered)
-			t.Errorf("%s no longer matches what the generator emits, from line %d:\n  committed: %s\n  rendered:  %s\n"+
+			t.Errorf("%s differs from what the generator emits, from line %d:\n  committed: %s\n  rendered:  %s\n"+
 				"rewrite it with `UPDATE_BUFF_FIXTURES=1 go test ./tools/database/`",
 				fixture, line, want, got)
 		}
