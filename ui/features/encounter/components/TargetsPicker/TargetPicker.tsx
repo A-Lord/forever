@@ -84,9 +84,9 @@ export const TargetPicker = ({ encounter, targetIndex }: TargetPickerProps) => {
 				<>
 					<ConnectedChoiceField modObject={null} config={npc} />
 					<ConnectedChoiceField modObject={null} config={ai} />
-					<ConnectedChoiceField modObject={null} config={level} />
 					<ConnectedChoiceField modObject={null} config={mobType} />
 					{creatureFamiliesOf(targetMobType).length > 0 && <ConnectedChoiceField modObject={null} config={creatureFamily} />}
+					<ConnectedChoiceField modObject={null} config={level} />
 					{showThreatMetrics && <ConnectedChoiceField modObject={null} config={tankIndex} />}
 					<TargetInputsPicker encounter={encounter} targetIndex={targetIndex} />
 				</>
