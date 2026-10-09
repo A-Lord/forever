@@ -69,9 +69,8 @@ dps_results: {
 dps_results: {
  key: "TestArcane-AllItems-AnkhofLife-1713"
  value: {
-  dps: 617.71566
-  tps: 271.16672
-  hps: 4.42532
+  dps: 619.46614
+  tps: 273.91631
  }
 }
 dps_results: {
@@ -84,8 +83,8 @@ dps_results: {
 dps_results: {
  key: "TestArcane-AllItems-ArenaGrandMaster-19024"
  value: {
-  dps: 617.77972
-  tps: 273.08015
+  dps: 619.32981
+  tps: 273.30439
  }
 }
 dps_results: {
@@ -182,22 +181,22 @@ dps_results: {
 dps_results: {
  key: "TestArcane-AllItems-Defiler'sTalisman-20072"
  value: {
-  dps: 617.77972
-  tps: 273.08015
+  dps: 619.32981
+  tps: 273.30439
  }
 }
 dps_results: {
  key: "TestArcane-AllItems-Defiler'sTalisman-21115"
  value: {
-  dps: 617.77972
-  tps: 273.08015
+  dps: 619.32981
+  tps: 273.30439
  }
 }
 dps_results: {
  key: "TestArcane-AllItems-Defiler'sTalisman-21116"
  value: {
-  dps: 617.77972
-  tps: 273.08015
+  dps: 619.32981
+  tps: 273.30439
  }
 }
 dps_results: {
@@ -415,7 +414,6 @@ dps_results: {
  value: {
   dps: 657.82535
   tps: 288.21313
-  hps: 5.55556
  }
 }
 dps_results: {
@@ -435,8 +433,8 @@ dps_results: {
 dps_results: {
  key: "TestArcane-AllItems-GoblinConstructionHelmet-10543"
  value: {
-  dps: 618.0053
-  tps: 271.76827
+  dps: 618.26348
+  tps: 271.95662
  }
 }
 dps_results: {
@@ -554,16 +552,15 @@ dps_results: {
 dps_results: {
  key: "TestArcane-AllItems-MajorRecombobulator-18637"
  value: {
-  dps: 617.59894
-  tps: 270.89071
-  hps: 4.12855
+  dps: 619.32981
+  tps: 273.30439
  }
 }
 dps_results: {
  key: "TestArcane-AllItems-MarkofResolution-17759"
  value: {
-  dps: 617.77972
-  tps: 273.08015
+  dps: 619.32981
+  tps: 273.30439
  }
 }
 dps_results: {
@@ -583,8 +580,8 @@ dps_results: {
 dps_results: {
  key: "TestArcane-AllItems-MarkoftheRedFlight-282778"
  value: {
-  dps: 617.59894
-  tps: 270.89071
+  dps: 619.32981
+  tps: 273.30439
  }
 }
 dps_results: {
@@ -695,22 +692,22 @@ dps_results: {
 dps_results: {
  key: "TestArcane-AllItems-TalismanofArathor-20071"
  value: {
-  dps: 617.77972
-  tps: 273.08015
+  dps: 619.32981
+  tps: 273.30439
  }
 }
 dps_results: {
  key: "TestArcane-AllItems-TalismanofArathor-21117"
  value: {
-  dps: 617.77972
-  tps: 273.08015
+  dps: 619.32981
+  tps: 273.30439
  }
 }
 dps_results: {
  key: "TestArcane-AllItems-TalismanofArathor-21118"
  value: {
-  dps: 617.77972
-  tps: 273.08015
+  dps: 619.32981
+  tps: 273.30439
  }
 }
 dps_results: {
@@ -849,43 +846,43 @@ dps_results: {
 dps_results: {
  key: "TestArcane-Settings-Orc-p1Arcane-Arcane-default-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 651.76133
-  tps: 634.81014
+  dps: 658.15697
+  tps: 638.98609
  }
 }
 dps_results: {
  key: "TestArcane-Settings-Orc-p1Arcane-Arcane-default-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 651.76133
-  tps: 285.40578
+  dps: 658.15697
+  tps: 288.33617
  }
 }
 dps_results: {
  key: "TestArcane-Settings-Orc-p1Arcane-Arcane-default-FullBuffs-0.0yards-ShortSingleTarget"
  value: {
-  dps: 732.12763
-  tps: 324.43049
+  dps: 745.31969
+  tps: 329.33718
  }
 }
 dps_results: {
  key: "TestArcane-Settings-Orc-p1Arcane-Arcane-default-NoBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 461.03475
-  tps: 381.65083
+  dps: 464.76625
+  tps: 384.11171
  }
 }
 dps_results: {
  key: "TestArcane-Settings-Orc-p1Arcane-Arcane-default-NoBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 461.03475
-  tps: 279.18603
+  dps: 464.76625
+  tps: 281.64692
  }
 }
 dps_results: {
  key: "TestArcane-Settings-Orc-p1Arcane-Arcane-default-NoBuffs-0.0yards-ShortSingleTarget"
  value: {
-  dps: 584.00523
-  tps: 352.71003
+  dps: 592.67411
+  tps: 358.52249
  }
 }
 dps_results: {
