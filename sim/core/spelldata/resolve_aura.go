@@ -65,6 +65,9 @@ func Permanent() AuraOpt {
 // Average at the caster's level, on the stats and multipliers in force at the tick; a caller
 // replaces OnTick for a heal or a value the game files do not state. OnSnapshot is nil.
 //
+// The tick rolls no hit (TickOutcome): a dot's hit is rolled once, by the cast or proc that applies
+// it, so a caller whose application rolls none rolls it there.
+//
 // The aura's duration is the row's, which core recomputes from the ticks on every application.
 //
 // A ranked row's dot joins the rank group of its name with the row's rank, so a caster keeps one rank

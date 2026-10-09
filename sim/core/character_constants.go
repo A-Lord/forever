@@ -188,7 +188,6 @@ var ClassRaceCapabilities = map[proto.Class][]proto.Race{
 var SpecCanDualWieldCapabilities = map[proto.Spec]bool{
 	proto.Spec_SpecHunter:            true,
 	proto.Spec_SpecRogue:             true,
-	proto.Spec_SpecEnhancementShaman: true,
 	proto.Spec_SpecDpsWarrior:        true,
 	proto.Spec_SpecProtectionWarrior: true,
 }

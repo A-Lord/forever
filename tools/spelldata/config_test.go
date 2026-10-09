@@ -67,7 +67,7 @@ func (priest *Priest) registerHolyFire() {
 
 	config.Dot = spelldata.DotConfig(holyFireRank, holyFireRank)
 	config.Dot.Aura.Tag = "Holy Fire"
-	config.Dot.OnTick = spelldata.PeriodicDamageTick(holyFireRank, holyFireRank.TickOutcomeHitRolled)
+	config.Dot.OnTick = spelldata.PeriodicDamageTick(holyFireRank, holyFireRank.TickOutcome)
 
 	config.ExpectedInitialDamage = func(sim *core.Simulation, target *core.Unit, spell *core.Spell, _ bool) *core.SpellResult {
 		return spell.CalcDamage(sim, target, 100, spell.OutcomeExpectedMagicHitAndCrit)

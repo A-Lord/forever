@@ -614,16 +614,6 @@
 				"label": "Owlkin Frenzy Uptime (%)",
 				"tooltip": "Percentage of fight uptime for Owlkin Frenzy"
 			},
-			"sync_type": {
-				"label": "Sync/Stagger Setting",
-				"tooltip": "Choose your sync or stagger option. Auto: Will auto pick sync options based on your weapons attack speeds. None: No Sync or Staggering, used for mismatched weapon speeds. Perfect Sync: Makes your weapons always attack at the same time, for match weapon speeds. Delayed Offhand: Adds a slight delay to the offhand attacks while staying within the 0.5s flurry ICD window.",
-				"values": {
-					"automatic": "Automatic",
-					"none": "None",
-					"perfect_sync": "Perfect Sync",
-					"delayed_offhand": "Delayed Offhand"
-				}
-			},
 			"show_1h_weapons": {
 				"label": "1H",
 				"tooltip": "Show one-handed weapons"
