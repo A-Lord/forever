@@ -269,9 +269,17 @@ func (mcdm *majorCooldownManager) AddMajorCooldown(mcd MajorCooldown) {
 		mcd.Spell.Flags |= SpellFlagReactive
 	}
 
+	// A defensive cooldown that adds no damage or mana fires on its own only for a tank; a timing or
+	// an APL action still uses it for anyone.
 	if mcd.ShouldActivate == nil {
-		mcd.ShouldActivate = func(sim *Simulation, character *Character) bool {
-			return true
+		if mcd.Type.Matches(CooldownTypeSurvival) && !mcd.Type.Matches(CooldownTypeDPS|CooldownTypeMana) {
+			mcd.ShouldActivate = func(_ *Simulation, character *Character) bool {
+				return character.isTank
+			}
+		} else {
+			mcd.ShouldActivate = func(sim *Simulation, character *Character) bool {
+				return true
+			}
 		}
 	}
 
