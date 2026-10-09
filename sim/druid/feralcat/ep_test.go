@@ -18,6 +18,7 @@ import (
 // debuffs and consumables, a level 63 target, 180s, normalized to agility. The UI default is over the
 // special-attack hit cap, so hit is weighed again with the hit taken 2% below the cap.
 // Pass the UI's iteration count; stat weights then split it above and below the baseline.
+// EP_GEAR names another of the UI's gear sets (default is the Level 60 set).
 func TestDefaultEp(t *testing.T) {
 	if os.Getenv("EP_SWEEP") == "" {
 		t.Skip("set EP_SWEEP=1 (and EP_SWEEP_ITERATIONS) to compute default EP")
@@ -38,6 +39,13 @@ func TestDefaultEp(t *testing.T) {
 		proto.Stat_StatHasteRating,
 		proto.Stat_StatArmorPenetration,
 	}
+	request := func(iterations int32) *proto.RaidSimRequest {
+		req := uiDefaultRaidSim(catTalents, catAPL(bestCatAPL), 180, 0, iterations)
+		if gear := os.Getenv("EP_GEAR"); gear != "" {
+			req.Raid.Parties[0].Players[0].Equipment = core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", gear).GearSet
+		}
+		return req
+	}
 	run := func(base *proto.RaidSimRequest) *proto.StatWeightsResult {
 		// IsTest caps the sim at 3 workers. Labeled RNG is turned on inside stat weights.
 		base.SimOptions.IsTest = false
@@ -56,13 +64,12 @@ func TestDefaultEp(t *testing.T) {
 		}
 		return result
 	}
-	base := uiDefaultRaidSim(catTalents, catAPL(bestCatAPL), 180, 0, iterations)
-	result := run(base)
+	result := run(request(iterations))
 
-	sim := core.NewSim(uiDefaultRaidSim(catTalents, catAPL(bestCatAPL), 180, 0, 1), simsignals.CreateSignals())
+	sim := core.NewSim(request(1), simsignals.CreateSignals())
 	sim.Reset()
 	hit := sim.Raid.Parties[0].Players[0].GetCharacter().GetStat(stats.PhysicalHitPercent)
-	below := uiDefaultRaidSim(catTalents, catAPL(bestCatAPL), 180, 0, iterations)
+	below := request(iterations)
 	bonus := make([]float64, stats.SimStatsLen)
 	bonus[stats.HitRating] = (6 - hit) * core.HitRatingPerHitPercent
 	below.Raid.Parties[0].Players[0].BonusStats = &proto.UnitStats{Stats: bonus}

@@ -47,36 +47,37 @@ export const PreRaidGear = PresetUtils.makePresetGear('Pre-raid', PreRaidGearJso
 	tooltip: 'Pre-raid leather with The Unstoppable Force, Wolfshead Helm and full enchants.',
 });
 
-// EP with agility as 1, on the Level 60 preset, 50000 iterations.
-// Feral attack power is unread, so it stays 0. Armor penetration is 0 because
-// Sunder, Expose and Faerie Fire already remove the target's armor.
+// EP with agility as 1, on the Level 60 preset with the Monocat talents and APL, the default buffs,
+// debuffs and consumables, 180s, 100000 iterations. Hit is weighed 2% below the 8% cap, as on the
+// Pre-raid EP. Feral attack power is unread, so it stays 0.
 export const Level60Ep = Stats.fromMap({
-	[Stat.StatStrength]: 1.0102,
+	[Stat.StatStrength]: 0.98,
 	[Stat.StatAgility]: 1,
-	[Stat.StatAttackPower]: 0.4041,
+	[Stat.StatAttackPower]: 0.41,
 	[Stat.StatFeralAttackPower]: 0,
-	[Stat.StatPhysicalDamage]: 3.9557,
-	[Stat.StatHitRating]: 0.2046,
-	[Stat.StatExpertiseRating]: 0.6976,
-	[Stat.StatCritRating]: 0.7201,
-	[Stat.StatHasteRating]: 0.4679,
-	[Stat.StatArmorPenetration]: 0,
+	[Stat.StatPhysicalDamage]: 3.84,
+	[Stat.StatHitRating]: 0.75,
+	[Stat.StatExpertiseRating]: 0.72,
+	[Stat.StatCritRating]: 0.72,
+	[Stat.StatHasteRating]: 0.4,
+	[Stat.StatArmorPenetration]: 0.13,
 });
 
 export const Level60EpWeights = PresetUtils.makePresetEpWeights('Level 60', Level60Ep);
 
-// EP with agility as 1, on the Pre-raid preset with the default buffs, debuffs and consumables, 180s.
-// Hit is weighed 2% below the 8% cap, where the gear picker reads it.
+// EP with agility as 1, on the Pre-raid preset with the Monocat talents and APL, the default buffs,
+// debuffs and consumables, 180s, 200000 iterations. Hit is weighed 2% below the 8% cap, where the gear
+// picker reads it.
 export const PreRaidEp = Stats.fromMap({
-	[Stat.StatStrength]: 0.98,
+	[Stat.StatStrength]: 0.97,
 	[Stat.StatAgility]: 1,
 	[Stat.StatAttackPower]: 0.39,
 	[Stat.StatFeralAttackPower]: 0,
-	[Stat.StatPhysicalDamage]: 3.73,
-	[Stat.StatHitRating]: 0.8,
-	[Stat.StatExpertiseRating]: 0.75,
+	[Stat.StatPhysicalDamage]: 3.68,
+	[Stat.StatHitRating]: 0.79,
+	[Stat.StatExpertiseRating]: 0.76,
 	[Stat.StatCritRating]: 0.74,
-	[Stat.StatHasteRating]: 0.73,
+	[Stat.StatHasteRating]: 0.48,
 	[Stat.StatArmorPenetration]: 0.14,
 });
 
