@@ -21,11 +21,25 @@ var HandTriggers = []HandTrigger{
 		Source: "game-files-rows",
 	},
 	{
+		Spell:    1314103,
+		Triggers: 1314104,
+		Reason: "Improved Seal of Fury's talent aura (three dummies) casts the mana restore 1314104: same name " +
+			"and icon, a mana energize whose tooltip reads its numbers off 1314103 and whose aura text is Restoring Mana",
+		Source: "game-files-rows",
+	},
+	{
 		Spell:    1323967,
 		Triggers: 1323969,
 		Reason: "Gore Drinker's talent aura (two dummies) applies the buff its tooltip describes: same name, class " +
 			"set and icon, 3 charges heard on melee attacks, and its aura 231 casts the heal 1323968",
 		Source: "game-files-rows",
+	},
+	{
+		Spell:    16389,
+		Triggers: 16368,
+		Reason: "Flametongue Totem Proc is a dummy holding the base points, and the hit logs in game as 16368 " +
+			"Flametongue Attack: fire school damage with the magic defense type and no bonus coefficient",
+		Source: "combat log, Flametongue Totem Rank 1, 2026-10-03",
 	},
 	{
 		Spell:    408341,

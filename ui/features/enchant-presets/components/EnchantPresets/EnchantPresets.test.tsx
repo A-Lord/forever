@@ -2,9 +2,9 @@ import { EnchantType, ItemSlot } from '@generated/proto/common';
 import { DatabaseFilters, UIEnchant } from '@generated/proto/ui';
 import { SimHostProvider } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
-import { PlayerSpecs } from '@sim/player/specs';
-import { bulkState, seedBulkSettings } from '@sim/settings/bulk_settings';
-import { createSimStore, patchSlice } from '@sim/state/sim_store';
+import { bulkState } from '@sim/settings/bulk_settings';
+import { patchSlice } from '@sim/state/sim_store';
+import { makeBulkPlayer } from '@testing/sim/bulk_player';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
@@ -15,8 +15,8 @@ vi.mock('@sim/hooks/useActionId', () => ({
 vi.mock('@sim/hooks/useActionIdWowheadDataset', () => ({ useActionIdWowheadDataset: () => ({}) }));
 vi.mock('@sim/proto/enchants', () => ({ getEnchantDescription: async (enchant: UIEnchant) => enchant.name }));
 
-const { BulkEnchants } = await import('./BulkEnchants');
-const { saveBulkEnchantPreset } = await import('../../model/enchants');
+const { EnchantPresets } = await import('./EnchantPresets');
+const { saveEnchantPreset } = await import('../../model/enchant_presets');
 
 const AGILITY = UIEnchant.create({ effectId: 849, spellId: 13882, name: 'Lesser Agility', lvl: 45 });
 const GREATER_RESISTANCE = UIEnchant.create({ effectId: 1888, itemId: 6, name: 'Greater Resistance', lvl: 45 });
@@ -35,34 +35,22 @@ const ENCHANTS = new Map<ItemSlot, UIEnchant[]>([
 
 // `loaded: false` stands for the page before the game database arrives, when `getEnchants` cannot run.
 const mount = ({ loaded = true } = {}) => {
-	const storage = new Map<string, string>();
-	const store = createSimStore();
-	const player = {
+	const player: Player<any> = makeBulkPlayer({
 		storeKey: 1,
 		sim: {
-			store,
 			waitForInit: () => (loaded ? Promise.resolve() : new Promise(() => {})),
-			getFilters: () => DatabaseFilters.clone(store.getState().sim.filters),
-			setFilters: (filters: DatabaseFilters) => patchSlice(store, 'sim', { filters: DatabaseFilters.clone(filters) }),
-			env: {
-				storage: {
-					getItem: (key: string) => storage.get(key) ?? null,
-					setItem: (key: string, value: string) => storage.set(key, value),
-					removeItem: (key: string) => storage.delete(key),
-				},
-			},
+			getFilters: () => DatabaseFilters.clone(player.sim.store.getState().sim.filters),
+			setFilters: (filters: DatabaseFilters) => patchSlice(player.sim.store, 'sim', { filters: DatabaseFilters.clone(filters) }),
 		},
-		getPlayerSpec: () => PlayerSpecs.DpsWarrior,
 		getEnchants: (slot: ItemSlot) => {
 			if (!loaded) throw new TypeError("Cannot read properties of null (reading 'getEnchants')");
 			return ENCHANTS.get(slot) ?? [];
 		},
 		isEnchantRelevant: (enchant: UIEnchant) => enchant !== HEALING,
-	} as unknown as Player<any>;
-	seedBulkSettings(player);
+	});
 	render(
 		<SimHostProvider host={{ player, sim: player.sim } as never}>
-			<BulkEnchants />
+			<EnchantPresets />
 		</SimHostProvider>,
 	);
 	return player;
@@ -81,7 +69,7 @@ const tileNames = (slot: HTMLElement) =>
 		.getAllByRole('checkbox')
 		.map(tile => tile.textContent);
 
-describe('BulkEnchants', () => {
+describe('EnchantPresets', () => {
 	it('creates a preset through the dialog, and a tick puts it in the batch', async () => {
 		const player = mount();
 
@@ -116,7 +104,7 @@ describe('BulkEnchants', () => {
 
 	it('opens the slots with ticked enchants when editing, each with its tick count', async () => {
 		const player = mount();
-		saveBulkEnchantPreset(player, { name: 'Undead', slots: [{ slot: ItemSlot.ItemSlotBack, effectIds: [AGILITY.effectId] }] });
+		saveEnchantPreset(player, { name: 'Undead', slots: [{ slot: ItemSlot.ItemSlotBack, effectIds: [AGILITY.effectId] }] });
 
 		await userEvent.click(await screen.findByRole('button', { name: /enchant_presets\.edit/ }));
 
@@ -242,7 +230,7 @@ describe('BulkEnchants', () => {
 
 	it('keeps a ticked enchant visible even when it is worth nothing to the spec', async () => {
 		const player = mount();
-		saveBulkEnchantPreset(player, { name: 'Healer', slots: [{ slot: ItemSlot.ItemSlotBack, effectIds: [HEALING.effectId] }] });
+		saveEnchantPreset(player, { name: 'Healer', slots: [{ slot: ItemSlot.ItemSlotBack, effectIds: [HEALING.effectId] }] });
 
 		await userEvent.click(await screen.findByRole('button', { name: /enchant_presets\.edit/ }));
 
@@ -257,7 +245,7 @@ describe('BulkEnchants', () => {
 
 	it('disables Save while the name is taken by another preset', async () => {
 		const player = mount();
-		saveBulkEnchantPreset(player, { name: 'Undead', slots: [] });
+		saveEnchantPreset(player, { name: 'Undead', slots: [] });
 
 		await openNewPreset();
 		await userEvent.type(nameInput(), 'Undead');

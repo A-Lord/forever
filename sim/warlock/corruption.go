@@ -15,7 +15,7 @@ func (warlock *Warlock) registerCorruption() {
 	// Tick the row's average, rolling only the crit: the hit was rolled when the dot landed
 	config.Dot = spelldata.DotConfig(rankedSpell, corruptionTick)
 	config.Dot.Aura.Tag = "Affliction"
-	config.Dot.OnTick = spelldata.PeriodicDamageTick(corruptionTick, rankedSpell.TickOutcomeHitRolled)
+	config.Dot.OnTick = spelldata.PeriodicDamageTick(corruptionTick, rankedSpell.TickOutcome)
 
 	// Roll to hit and apply as dot
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {

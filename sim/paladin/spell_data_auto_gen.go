@@ -85,6 +85,7 @@ type generatedSpellData struct {
 	ImprovedRetributionAura       spelldata.Ladder
 	ImprovedRighteousFury         spelldata.Ladder
 	ImprovedSealOfFury            spelldata.Ladder
+	ImprovedSealOfFuryTriggered   spelldata.Ladder
 	ImprovedSealOfTheCrusader     spelldata.Ladder
 	ImprovedSeals                 spelldata.Ladder
 	InfusionOfLight               spelldata.Ladder
@@ -224,6 +225,7 @@ var spellData = generatedSpellData{
 	ImprovedRetributionAura:       spelldata.Ranked(20091, 20092),
 	ImprovedRighteousFury:         spelldata.Talent(20468, 3),
 	ImprovedSealOfFury:            spelldata.Ranked(1314103),
+	ImprovedSealOfFuryTriggered:   spelldata.Ranked(1314104),
 	ImprovedSealOfTheCrusader:     spelldata.Ranked(20335, 20336, 20337),
 	ImprovedSeals:                 spelldata.Talent(20224, 3),
 	InfusionOfLight:               spelldata.Talent(426065, 2),
@@ -235,10 +237,10 @@ var spellData = generatedSpellData{
 	JudgementOfCommand:            spelldata.Ranked(20425, 20962, 20961, 20967, 20968),
 	JudgementOfJustice:            spelldata.Ranked(20184),
 	JudgementOfLight:              spelldata.Ranked(20185, 20344, 20345, 20346),
-	JudgementOfLightTriggered:     spelldata.Ranked(5373),
+	JudgementOfLightTriggered:     spelldata.Ranked(5373, 20267, 20341, 20342, 20343),
 	JudgementOfRighteousness:      spelldata.Ranked(20187, 20280, 20281, 20282, 20283, 20284, 20285, 20286),
 	JudgementOfWisdom:             spelldata.Ranked(20186, 20354, 20355),
-	JudgementOfWisdomTriggered:    spelldata.Ranked(1826),
+	JudgementOfWisdomTriggered:    spelldata.Ranked(1826, 20268, 20352, 20353),
 	LastingJudgement:              spelldata.Ranked(20359, 20360, 20361),
 	LayOnHands:                    spelldata.Ranked(633, 2800, 10310),
 	LightsVigil:                   spelldata.Ranked(1310911, 1311590, 1311595),

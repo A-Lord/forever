@@ -148,9 +148,11 @@ var statAuraTypes = map[EffectAuraType]bool{
 	dbcenums.A_MOD_DAMAGE_DONE:         true,
 	dbcenums.A_MOD_TARGET_RESISTANCE:   true,
 	dbcenums.A_MOD_RESISTANCE:          true,
+	dbcenums.A_MOD_ARMOR_NO_MODS:       true,
 	dbcenums.A_MOD_INCREASE_ENERGY:     true,
 	dbcenums.A_MOD_MAX_POWER:           true,
 	dbcenums.A_MOD_INCREASE_HEALTH_2:   true,
+	dbcenums.A_MOD_BLOCK_VALUE_FLAT:    true,
 	dbcenums.A_PERIODIC_TRIGGER_SPELL:  true,
 }
 
@@ -277,7 +279,7 @@ func (effect *SpellEffect) ParseStatEffect(scalesWithIlvl bool, ilvl int) (stats
 		}
 		// Apply spell power, A_MOD_HEALING_DONE is also a possibility for healing power
 		effectStats[proto.Stat_StatHealingPower] = float64(effect.EffectBasePoints + effect.EffectDieSides)
-	case effect.EffectAura == dbcenums.A_MOD_RESISTANCE:
+	case effect.EffectAura == dbcenums.A_MOD_RESISTANCE || effect.EffectAura == dbcenums.A_MOD_ARMOR_NO_MODS:
 		school := SpellSchool(effect.EffectMiscValues[0])
 		for schoolType, stat := range SpellSchoolToResistanceStat {
 			if school.Has(schoolType) && stat > -1 {
@@ -312,6 +314,10 @@ func (effect *SpellEffect) ParseStatEffect(scalesWithIlvl bool, ilvl int) (stats
 		if stat := ConvertEffectAuraToStatIndex(effect.EffectAura, effect.EffectMiscValues[0]); stat >= 0 {
 			effectStats[stat] = float64(effect.EffectBasePoints + effect.EffectDieSides)
 		}
+	// Written here rather than through ConvertEffectAuraToStatIndex, whose stat an equip spell's 274
+	// would add on top of the one AddEquipSpellStats adds for it.
+	case effect.EffectAura == dbcenums.A_MOD_BLOCK_VALUE_FLAT:
+		effectStats[proto.Stat_StatBlockValue] = float64(effect.EffectBasePoints + effect.EffectDieSides)
 	case effect.EffectAura == dbcenums.A_PERIODIC_TRIGGER_SPELL && effect.EffectAuraPeriod == 10000:
 		for _, sub := range dbcInstance.SpellEffectsInOrder(effect.EffectTriggerSpell) {
 			if subStats, ok := sub.ParseStatEffect(false, 0); ok {

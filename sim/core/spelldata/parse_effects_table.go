@@ -15,7 +15,7 @@ import (
 const (
 	miscAllSchools  int32 = 127 // every school bit, which the sim states as one multiplier
 	miscMagicSchool int32 = 126 // every school but physical, which is what spell damage covers
-	miscArmor       int32 = 1   // A_MOD_RESISTANCE and the two resistance percentages state armor as school 1
+	miscArmor       int32 = 1   // A_MOD_RESISTANCE, A_MOD_ARMOR_NO_MODS and the two resistance percentages state armor as school 1
 	miscAllStats    int32 = -1  // A_MOD_STAT, A_MOD_PERCENT_STAT and A_MOD_TOTAL_STAT_PERCENTAGE: all five at once
 	miscDefense     int32 = 95  // A_MOD_SKILL on the Defense skill line
 )
@@ -397,6 +397,16 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 	dbcenums.A_MOD_RESISTANCE: func(p *parser, e *Effect, v float64) *attachment {
 		return p.statsBuff(resistanceStats(e.Misc), v)
 	},
+	// Flat armor on the same armor bit, which the class armor buffs and debuffs state. It lands on
+	// Armor, outside the percent armor modifiers: they scale the rest of the unit's armor and add this
+	// after. A mask naming any other school is skipped whole.
+	dbcenums.A_MOD_ARMOR_NO_MODS: func(p *parser, e *Effect, v float64) *attachment {
+		sts := armorNoModsStats(e.Misc)
+		if sts == nil {
+			return skipped(fmt.Sprintf("misc %d is not armor alone, the only school the row takes", e.Misc))
+		}
+		return p.statsBuffWith(sts, v, p.addUnmultipliedStats)
+	},
 
 	// The game files state the armor ladder twice, once on base armor and once on bonus armor, and the
 	// tooltip states armor from items, which is the equipment share the sim scales.
@@ -406,8 +416,8 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 		}
 		return p.equipScaling(stats.Armor, core.MultiplierFromPercent(v))
 	},
-	// The resistance percentage multiplies the whole of the stat. Armor alone is taken: no row states
-	// it for a magic resistance.
+	// The resistance percentage multiplies the whole of the stat but the A_MOD_ARMOR_NO_MODS armor,
+	// which it leaves alone. Armor alone is taken: no row states it for a magic resistance.
 	dbcenums.A_MOD_RESISTANCE_PCT: func(p *parser, e *Effect, v float64) *attachment {
 		if e.Misc != miscArmor {
 			return nil
@@ -920,14 +930,18 @@ func (p *parser) statBuff(stat stats.Stat, v float64) *attachment {
 // Flat stats, which follow the stacks: the attachment keeps what it has handed out and adds the
 // difference, so a level of 2 is worth twice the game files' amount.
 func (p *parser) statsBuff(sts []stats.Stat, v float64) *attachment {
+	return p.statsBuffWith(sts, v, p.addStats)
+}
+
+func (p *parser) statsBuffWith(sts []stats.Stat, v float64, add func(sts []stats.Stat) func(sim *core.Simulation, delta float64)) *attachment {
 	if len(sts) == 0 {
 		return nil
 	}
 
-	a := additive("stat "+statNames(sts), v, p.addStats(sts))
+	a := additive("stat "+statNames(sts), v, add(sts))
 	a.stats = sts
 	for _, stat := range sts {
-		part := additive("stat "+stat.StatName(), v, p.addStats([]stats.Stat{stat}))
+		part := additive("stat "+stat.StatName(), v, add([]stats.Stat{stat}))
 		part.key, part.stat, part.statBid = stat.StatName(), stat, true
 		a.parts = append(a.parts, part)
 	}
@@ -967,8 +981,8 @@ func attackSpeedRow(p *parser, _ *Effect, v float64) *attachment {
 	return p.speed("attack-speed", "AttackSpeedMultiplier", (*core.Unit).MultiplyAttackSpeed, core.SymmetricMultiplierFromPercent(v))
 }
 
-// Flat health. The bear forms state it on A_MOD_MAX_HEALTH, where Last Stand states a percentage,
-// which the warrior reads by hand rather than parsing.
+// Flat health. The bear forms state it on A_MOD_MAX_HEALTH; Last Stand states a percentage on
+// A_MOD_INCREASE_HEALTH, which the warrior reads by hand rather than parsing.
 func flatHealthRow(p *parser, _ *Effect, v float64) *attachment {
 	return p.statBuff(stats.Health, v)
 }
@@ -1058,6 +1072,18 @@ func (p *parser) addStats(sts []stats.Stat) func(sim *core.Simulation, delta flo
 		} else {
 			p.unit.AddStatsDynamic(sim, bonus)
 		}
+	}
+}
+
+// Stats the stats' own multipliers leave alone. The unit records the share before the stats change,
+// so the recompute that follows already keeps it out of the multipliers.
+func (p *parser) addUnmultipliedStats(sts []stats.Stat) func(sim *core.Simulation, delta float64) {
+	add := p.addStats(sts)
+	return func(sim *core.Simulation, delta float64) {
+		for _, stat := range sts {
+			p.unit.AddUnmultiplied(stat, delta)
+		}
+		add(sim, delta)
 	}
 }
 
@@ -1401,6 +1427,14 @@ func resistanceStats(mask int32) []stats.Stat {
 		}
 	}
 	return out
+}
+
+// The stats an A_MOD_ARMOR_NO_MODS mask names: armor for school 1 alone, nothing for any other mask.
+func armorNoModsStats(mask int32) []stats.Stat {
+	if mask == miscArmor {
+		return []stats.Stat{stats.Armor}
+	}
+	return nil
 }
 
 // The ratings a combat rating mask names, read bit by bit, so a mask naming several ratings gives each

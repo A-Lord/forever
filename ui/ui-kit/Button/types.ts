@@ -35,7 +35,13 @@ type ButtonIconProps =
 export type ButtonBaseProps = ButtonCommonProps & ButtonIconProps;
 
 export type ButtonAsButton = ButtonBaseProps &
-	Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'className' | 'children' | 'aria-label'> & { as?: 'button'; href?: never; ref?: Ref<HTMLButtonElement> };
+	Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'className' | 'children' | 'aria-label'> & {
+		as?: 'button';
+		href?: never;
+		ref?: Ref<HTMLButtonElement>;
+		/** While disabled, sets `aria-disabled` instead of `disabled`, so the button still takes focus and hover and a tooltip on it can say why. */
+		focusableWhenDisabled?: boolean;
+	};
 
 /** `href` renders an anchor; `rel` gains `noopener noreferrer` when the href leaves this origin. */
 export type ButtonWithHref = ButtonBaseProps &

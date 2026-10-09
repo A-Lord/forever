@@ -1,5 +1,7 @@
 package dbc
 
+import "math"
+
 type ItemDamageTable struct {
 	ItemLevel int
 	Quality   []float64
@@ -14,48 +16,71 @@ const (
 )
 
 func (item *Item) WeaponDps(itemLevel int) float64 {
+	dps, _ := dbcInstance.WeaponDPS(item, itemLevel)
+	return dps
+}
+
+// The equipped damage range from a damage table cell, rounded as the game shows it.
+func (item *Item) WeaponDamage(dps float64) (float64, float64) {
+	speed := float64(item.ItemDelay) / 1000
+	low := dps*speed*(1-item.DmgVariance/2) + item.QualityModifier*speed
+	high := dps*speed*(1+item.DmgVariance/2) + item.QualityModifier*speed
+	if low < 0 {
+		low = 1
+	}
+	if high < 0 {
+		high = 1
+	}
+	return math.Floor(low), math.Floor(high + 0.5)
+}
+
+// The damage table cell for the item's quality and level; false when the game files have no such cell.
+func (d *DBC) WeaponDPS(item *Item, itemLevel int) (float64, bool) {
 	quality := item.OverallQuality
-	if item.OverallQuality > 6 {
+	if quality > 6 {
 		quality = 4 // Heirlooms = epic
 	}
-
-	ilvl := 0
-	if itemLevel > 0 {
-		ilvl = itemLevel
-	} else {
-		ilvl = item.ItemLevel
+	if itemLevel <= 0 {
+		itemLevel = item.ItemLevel
 	}
-
-	switch item.InventoryType {
-	case INVTYPE_WEAPON, INVTYPE_WEAPONMAINHAND, INVTYPE_WEAPONOFFHAND:
-		{
-			dps := dbcInstance.ItemDamageTable["ItemDamageOneHand"][ilvl].Quality[quality]
-			if item.Flags1.Has(CASTER_WEAPON) {
-				dps = dbcInstance.ItemDamageTable["ItemDamageOneHandCaster"][ilvl].Quality[quality]
-			}
-			if item.Flags4.Has(REDUCED_CASTER_DPS) {
-				dps *= casterOneHandDpsShare
-			}
-			return dps
-		}
-	case INVTYPE_2HWEAPON:
-		dps := dbcInstance.ItemDamageTable["ItemDamageTwoHand"][ilvl].Quality[quality]
-		if item.Flags1.Has(CASTER_WEAPON) {
-			dps = dbcInstance.ItemDamageTable["ItemDamageTwoHandCaster"][ilvl].Quality[quality]
-		}
-		if item.Flags4.Has(REDUCED_CASTER_DPS) {
+	table := item.weaponDamageTable()
+	row, present := d.ItemDamageTable[table][itemLevel]
+	if !present || quality < 0 || int(quality) >= len(row.Quality) {
+		return 0, false
+	}
+	dps := row.Quality[quality]
+	if item.Flags4.Has(REDUCED_CASTER_DPS) {
+		switch item.InventoryType {
+		case INVTYPE_WEAPON, INVTYPE_WEAPONMAINHAND, INVTYPE_WEAPONOFFHAND:
+			dps *= casterOneHandDpsShare
+		case INVTYPE_2HWEAPON:
 			dps *= casterTwoHandDpsShare
 		}
-		return dps
+	}
+	return dps, true
+}
+
+func (item *Item) weaponDamageTable() string {
+	switch item.InventoryType {
+	case INVTYPE_WEAPON, INVTYPE_WEAPONMAINHAND, INVTYPE_WEAPONOFFHAND:
+		if item.Flags1.Has(CASTER_WEAPON) {
+			return "ItemDamageOneHandCaster"
+		}
+		return "ItemDamageOneHand"
+	case INVTYPE_2HWEAPON:
+		if item.Flags1.Has(CASTER_WEAPON) {
+			return "ItemDamageTwoHandCaster"
+		}
+		return "ItemDamageTwoHand"
 	case INVTYPE_RANGED, INVTYPE_THROWN, INVTYPE_RANGEDRIGHT:
 		switch item.ItemSubClass {
 		case ITEM_SUBCLASS_WEAPON_BOW, ITEM_SUBCLASS_WEAPON_GUN, ITEM_SUBCLASS_WEAPON_CROSSBOW:
-			return dbcInstance.ItemDamageTable["ItemDamageRanged"][ilvl].Quality[quality]
+			return "ItemDamageRanged"
 		case ITEM_SUBCLASS_WEAPON_THROWN:
-			return dbcInstance.ItemDamageTable["ItemDamageThrown"][ilvl].Quality[quality]
+			return "ItemDamageThrown"
 		case ITEM_SUBCLASS_WEAPON_WAND:
-			return dbcInstance.ItemDamageTable["ItemDamageWand"][ilvl].Quality[quality]
+			return "ItemDamageWand"
 		}
 	}
-	return 0
+	return ""
 }

@@ -123,6 +123,7 @@ type ActionMetrics struct {
 	IsMelee     bool // True if melee action, false if spell action.
 	IsPassive   bool // True if action is applied/cast as a result of another action
 	SpellSchool SpellSchool
+	Rank        int32 // The spell's rank, which the UI names the action with; 0 for an unranked spell.
 
 	// Metrics for this action, for each possible target.
 	Targets []TargetedActionMetrics
@@ -139,8 +140,10 @@ func (actionMetrics *ActionMetrics) ToProto(actionID ActionID) *proto.ActionMetr
 		targetMetrics = append(targetMetrics, tam.ToProto())
 	}
 
+	id := actionID.ToProto()
+	id.Rank = actionMetrics.Rank
 	return &proto.ActionMetrics{
-		Id:          actionID.ToProto(),
+		Id:          id,
 		IsMelee:     actionMetrics.IsMelee,
 		IsPassive:   actionMetrics.IsPassive,
 		Targets:     targetMetrics,
@@ -280,6 +283,7 @@ func NewUnitMetrics() UnitMetrics {
 type ResourceMetrics struct {
 	ActionID ActionID
 	Type     proto.ResourceType
+	NoThreat bool // Gains generate no threat: the restore's row states No Threat in the game files.
 
 	Events     int32
 	Gain       float64
@@ -364,6 +368,7 @@ func (unitMetrics *UnitMetrics) addSpellMetrics(spell *Spell, actionID ActionID,
 			IsMelee:     spell.Flags.Matches(SpellFlagMeleeMetrics),
 			IsPassive:   spell.Flags.Matches(SpellFlagPassiveSpell),
 			SpellSchool: spell.SpellSchool,
+			Rank:        spell.Rank,
 		}
 		unitMetrics.actions[actionID] = actionMetrics
 	}

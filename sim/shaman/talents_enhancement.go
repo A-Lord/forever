@@ -83,12 +83,11 @@ func (shaman *Shaman) applyElementalWeapons() {
 
 	// Effect 2 is the Flametongue and Frostbrand damage. Effects 1 and 3 raise effect 1 of Rockbiter
 	// Weapon (Passive) and Windfury Weapon, which is attack power on both rows; the parse would read
-	// them as damage.
+	// them as damage, so the imbues read them instead.
 	spelldata.ParseStatic(&shaman.Character, rank, spelldata.Effects(2))
 
-	shaman.WindfuryAPBonus *= 1 + rank.EffectN(3).Percent()
-
-	// TODO: Effect 1, Rockbiter Weapon's attack power, waits on the Rockbiter imbue.
+	shaman.rockbiterWeaponMultiplier = 1 + rank.EffectN(1).Percent()
+	shaman.windfuryWeaponMultiplier = 1 + rank.EffectN(3).Percent()
 }
 
 // The cost reduction is permanent; the row states no proc.
@@ -168,11 +167,13 @@ func (shaman *Shaman) applySpiritWeapons() {
 	// "Gives a chance to parry enemy melee attacks."
 	shaman.PseudoStats.CanParry = true
 
-	// Effect 1 is the threat reduction, which the tooltip applies while Rockbiter Weapon is not
-	// active; the sim has no Rockbiter imbue, so it always applies.
-	//
-	// TODO: Effects 2 and 3, the threat Rockbiter Weapon gains instead, wait on the Rockbiter imbue.
-	spelldata.ParseStatic(&shaman.Character, spellData.SpiritWeapons.Highest(), spelldata.Effects(1))
+	rank := spellData.SpiritWeapons.Highest()
+
+	// Effect 1 cuts threat always, and effect 2 raises Rockbiter Weapon (Passive)'s own threat
+	// effect, which the imbue reads. Effect 3 is the dummy stating the result under Rockbiter,
+	// 0.7 x 1.86, the tooltip's 30% more.
+	spelldata.ParseStatic(&shaman.Character, rank, spelldata.Effects(1))
+	shaman.spiritWeaponsRockbiterThreat = rank.EffectN(2).Percent()
 }
 
 func (shaman *Shaman) applyMentalQuickness() {
@@ -268,9 +269,10 @@ func (shaman *Shaman) applyMaelstromWeapon() {
 
 	// The tooltip's $s3 is the stack count, which the buff row's five also states. The row's chance
 	// column is the "no roll" 100 and it names no procs per minute, while the tooltip says "a
-	// chance"; effect 2's 50, which the tooltip does not name, is read as that chance.
+	// chance". In game the chance per hit rises with the main hand's speed, so it is a rate per
+	// minute; a proc at five stacks refreshes the buff.
 	//
-	// TODO: Ingame test needed: the chance per melee hit.
+	// TODO: 10 fits the 3.6 s weapon; a 2.4 s weapon measured about 6.6.
 	trigger := spelldata.ProcTrigger(&shaman.Character, rank,
 		func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
 			maelstromAura.Activate(sim)
@@ -279,7 +281,7 @@ func (shaman *Shaman) applyMaelstromWeapon() {
 		func(_ *core.Character, trigger *core.ProcTrigger) {
 			trigger.ProcMask = core.ProcMaskMelee
 		},
-		spelldata.ChanceFrom(rank.EffectN(2)))
+		spelldata.PPM(10))
 	trigger.Name = "Maelstrom Weapon - Trigger"
 
 	shaman.MakeProcTriggerAura(trigger)

@@ -240,7 +240,7 @@ func (warlock *Warlock) soulSiphonChannelConfig(rankedSpell *spelldata.Spell, ti
 	// neither AffectedByCastSpeed nor HasteReducesDuration is set.
 	config.Dot = spelldata.DotConfig(rankedSpell, tick)
 	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-		result := dot.Spell.CalcPeriodicDamage(sim, target, tick.Average(), rankedSpell.TickOutcomeHitRolled(dot))
+		result := dot.Spell.CalcPeriodicDamage(sim, target, tick.Average(), rankedSpell.TickOutcome(dot))
 		scaleResult(sim, dot.Spell, result, warlock.soulSiphonMultiplier(target, soulSiphonMult))
 		dot.Spell.DealPeriodicDamage(sim, result)
 		if afterTick != nil {

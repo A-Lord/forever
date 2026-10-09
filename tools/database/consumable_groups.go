@@ -103,7 +103,7 @@ func auraGroupName(aura dbcenums.EffectAuraType, misc int) string {
 			return "Physical Damage"
 		}
 		return schoolLabel(misc) + " Spell Power"
-	case dbcenums.A_MOD_RESISTANCE:
+	case dbcenums.A_MOD_RESISTANCE, dbcenums.A_MOD_ARMOR_NO_MODS:
 		if misc == int(core.SpellSchoolPhysical) {
 			return "Armor"
 		}

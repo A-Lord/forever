@@ -20,8 +20,6 @@ func (warrior *Warrior) registerDemoralizingShout() {
 	config := spelldata.SpellConfig(&warrior.Unit, demoralizingShoutRank, spelldata.Flags(core.SpellFlagAPL))
 	config.ProcMask = core.ProcMaskEmpty
 	config.ThreatMultiplier = 1
-	// TODO: Ingame research needed if this adds flat threat
-	config.FlatThreatBonus = 0
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		for _, aoeTarget := range sim.Encounter.ActiveTargetUnits {

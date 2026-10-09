@@ -15,7 +15,6 @@ import (
 //   Decimation: effect 2 of spell 440870 has no rank curve and is held at its base points
 //   Demonic Embrace: effect 1 of spell 18697 has no rank curve and is held at its base points
 //   Demonic Pact: effect 0 of spell 425464 has no rank curve and is held at its base points
-//   Destructive Reach: effect 1 of spell 17917 has no rank curve and is held at its base points
 //   Pyroclasm: effect 1 of spell 18073 has no rank curve and is held at its base points
 
 type generatedSpellData struct {

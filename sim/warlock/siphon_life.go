@@ -20,7 +20,7 @@ func (warlock *Warlock) registerSiphonLifeSpell() {
 	config.Dot = spelldata.DotConfig(rankedSpell, siphonLifeTick)
 	config.Dot.Aura.Tag = "Affliction"
 	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-		result := dot.Spell.CalcAndDealPeriodicDamage(sim, target, siphonLifeTick.Average(), rankedSpell.TickOutcomeHitRolled(dot))
+		result := dot.Spell.CalcAndDealPeriodicDamage(sim, target, siphonLifeTick.Average(), rankedSpell.TickOutcome(dot))
 
 		heal := result.Damage * warlock.PseudoStats.SelfHealingMultiplier * warlock.PseudoStats.HealingTakenMultiplier
 		warlock.GainHealth(sim, heal, healthMetrics)

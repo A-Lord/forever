@@ -5,8 +5,10 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
+var chainLightningRanks = castableRanks(spellData.ChainLightning)
+
 func (shaman *Shaman) registerChainLightningSpell() {
-	spellData.ChainLightning.Each(func(_ int32, rank *spelldata.Spell) {
+	chainLightningRanks.Each(func(_ int32, rank *spelldata.Spell) {
 		overload := shaman.RegisterSpell(shaman.newChainLightningOverloadConfig(rank))
 		shaman.RegisterSpell(shaman.newChainLightningSpellConfig(rank, overload))
 	})
@@ -35,15 +37,16 @@ func (shaman *Shaman) newChainLightningSpellConfig(rank *spelldata.Spell, overlo
 		}
 
 		// Each target hit rolls its own overload, at a third of Lightning Bolt's chance, and the
-		// overload strikes that target alone.
+		// overload strikes that target alone, after the hit lands, as Lightning Bolt's does.
 		//
 		// TODO: Ingame test needed: the tooltip of 408438 states one chance for both spells.
 		for _, result := range results {
-			if result.Landed() && sim.Proc(shaman.GetOverloadChance()/3, "Lightning Overload") {
-				overload.Cast(sim, result.Target)
-			}
+			landed, hitTarget := result.Landed(), result.Target
 			spell.DealDamage(sim, result)
 			spell.DamageMultiplier /= bounce
+			if landed && sim.Proc(shaman.GetOverloadChance()/3, "Lightning Overload") {
+				overload.Cast(sim, hitTarget)
+			}
 		}
 	}
 

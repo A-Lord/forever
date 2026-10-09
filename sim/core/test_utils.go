@@ -43,7 +43,7 @@ func FreshDefaultTargetConfig() *proto.Target {
 		MobType: proto.MobType_MobTypeMechanical,
 
 		SwingSpeed:    2,
-		MinBaseDamage: 15113,
+		MinBaseDamage: 2601,
 		ParryHaste:    true,
 		CanCrush:      true,
 		DamageSpread:  0.5,

@@ -20,7 +20,7 @@ func (warlock *Warlock) registerImmolate() {
 	// Tick the row's average, rolling only the crit: the hit was rolled when the dot landed
 	config.Dot = spelldata.DotConfig(rankedSpell, immolateTick)
 	config.Dot.Aura.Tag = immolateTag
-	config.Dot.OnTick = spelldata.PeriodicDamageTick(immolateTick, rankedSpell.TickOutcomeHitRolled)
+	config.Dot.OnTick = spelldata.PeriodicDamageTick(immolateTick, rankedSpell.TickOutcome)
 
 	// Roll the hit, and apply the dot if it landed
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {

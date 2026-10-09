@@ -259,7 +259,7 @@ const (
 // Scales a result already calculated - a ramp, a per-target bonus - and keeps its threat in step with
 // the damage, which the calculation set from the damage before the scaling.
 //
-// Landed warlock dots tick through spelldata's TickOutcomeHitRolled: they tested hit once, when applied,
+// Landed warlock dots tick through spelldata's TickOutcome: they tested hit once, when applied,
 // so a tick rolls only the crit the row's Periodic Can Crit allows (the Forever beta log has no
 // SPELL_PERIODIC_MISSED). Area effects that tick, Hellfire and Rain of Fire, roll hit on every tick.
 func scaleResult(sim *core.Simulation, spell *core.Spell, result *core.SpellResult, multiplier float64) {

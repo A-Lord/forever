@@ -1002,8 +1002,11 @@ func (unit *Unit) metadata(casters ...*Unit) *proto.UnitMetadata {
 	}
 
 	metadata.Spells = MapSlice(unit.Spellbook, func(spell *Spell) *proto.SpellStats {
+		// The rank rides on the id so the UI names it without a database entry for the spell.
+		id := spell.ActionID.ToProto()
+		id.Rank = spell.Rank
 		return &proto.SpellStats{
-			Id: spell.ActionID.ToProto(),
+			Id: id,
 
 			IsCastable:      spell.Flags.Matches(SpellFlagAPL),
 			IsChanneled:     spell.Flags.Matches(SpellFlagChanneled),

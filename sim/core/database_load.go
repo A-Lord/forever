@@ -65,6 +65,7 @@ func init() {
 			Type:           enchant.Type,
 			EnchantType:    enchant.EnchantType,
 			ExtraTypes:     enchant.ExtraTypes,
+			ProcKind:       enchant.ProcKind,
 		}
 	}
 
