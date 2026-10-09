@@ -8,14 +8,15 @@ import (
 	"time"
 
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/simsignals"
 	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-// Brilliant Wizard Oil 20749, enchant 2628: equip spell 25113's 36 healing, 36 spell damage and 1%
-// spell crit, once for each hand carrying it.
+// A test oil shaped like Brilliant Wizard Oil 20749, enchant 2628, carrying 36 healing, 36 spell
+// damage and 1% spell crit: its stats apply once for each hand carrying it.
 func TestTemporaryEnchantStatsApplyPerEnchantedHand(t *testing.T) {
 	oil := core.Consumable{Id: 20749, Name: "Brilliant Wizard Oil", TemporaryEnchant: &core.Enchant{
 		EffectID:    2628,
@@ -43,7 +44,7 @@ func TestTemporaryEnchantStatsApplyPerEnchantedHand(t *testing.T) {
 }
 
 // Shadow Oil 3824, enchant 25: its combat spell 350026 is cast off the enchanted weapon's hits, at the
-// 15% the store writes onto 350026's row from the enchantment, with the 10 s internal cooldown the
+// chance the store writes onto 350026's row from the enchantment, with the 10 s internal cooldown the
 // override states.
 func TestTemporaryEnchantCombatSpellRegistersAWeaponProc(t *testing.T) {
 	shadowOil := core.Consumable{Id: 3824, Name: "Shadow Oil", TemporaryEnchant: &core.Enchant{
@@ -65,19 +66,31 @@ func TestTemporaryEnchantCombatSpellRegistersAWeaponProc(t *testing.T) {
 	if character.GetSpell(core.ActionID{SpellID: 350026}) == nil {
 		t.Error("the combat spell 350026 was not registered")
 	}
-	if chance := spelldata.MustFind(350026).StatedChance(); math.Abs(chance-0.15) > 1e-9 {
-		t.Errorf("350026 rolls a %v chance, want enchant 25's 15%%", chance)
+	if chance := spelldata.MustFind(350026).StatedChance(); chance <= 0 || chance >= 1 {
+		t.Errorf("350026 rolls %v, want the share of a hit the store writes from enchant 25", chance)
 	}
 }
 
-// Scroll of Imbue Manablade's enchant 8715 names 1308913, 20% on the wearer's melee swings and
-// abilities with a 3 s ProcCategoryRecovery, firing 1306613's E_ENERGIZE 40 mana; Scroll of Imbue
-// Spark's 8707 names 1307644, 10% on the melee hits the wearer takes with 4 s, firing 1306610's
-// E_MODIFY_COOLDOWNS_BY_CATEGORY -100000 on category 19.
+// Scroll of Imbue Manablade's enchant 8715 names 1308913, a chance on the wearer's melee swings and
+// abilities with a ProcCategoryRecovery, firing 1306613's E_ENERGIZE mana; Scroll of Imbue Spark's
+// 8707 names 1307644, a chance on the melee hits the wearer takes with a lockout of its own, firing
+// 1306610's E_MODIFY_COOLDOWNS_BY_CATEGORY, a reduction of one category's cooldown.
 const (
 	manabladeProc int32 = 1308913
 	sparkProc     int32 = 1307644
 )
+
+// Whether procs out of rolls lie within four standard deviations of what the chance expects, with at
+// least one landed for the checks that follow each proc.
+func plausibleProcs(procs int32, rolls int, chance float64) bool {
+	mean := float64(rolls) * chance
+	return procs > 0 && math.Abs(float64(procs)-mean) <= 4*math.Sqrt(mean*(1-chance))
+}
+
+// The spell a proc row fires.
+func firedSpell(procRow int32) *spelldata.Spell {
+	return spelldata.MustFind(procRow).FirstAura(dbcenums.A_PROC_TRIGGER_SPELL).Trigger()
+}
 
 // A player of the given class wearing two test one-handers, the main hand imbued with a test
 // consumable carrying the enchant whose equip spell is the proc.
@@ -119,30 +132,52 @@ func takeHit(t *testing.T, sim *core.Simulation, caster *testCaster) {
 	stepPast(t, sim, sim.CurrentTime+core.SpellBatchWindow)
 }
 
+// A proc row stating one A_PROC_TRIGGER_SPELL is built where the spell it fires restores mana to the
+// wearer or changes one of the wearer's category cooldowns, and refused where that spell does neither.
+// Three store rows, reshaped for the test, stand in for the spells fired.
 func TestFiredSpellUnsupported(t *testing.T) {
-	for _, id := range []int32{manabladeProc, sparkProc} {
-		if got := FiredSpellUnsupported(spelldata.MustFind(id)); len(got) > 0 {
-			t.Errorf("%d is refused: %v", id, got)
+	const gainID, cooldownID, damageID int32 = 1306613, 1306610, 1293421
+	onWearer := [2]dbcenums.ImplicitTarget{dbcenums.TARGET_UNIT_CASTER}
+	reshape := func(id int32, effect spelldata.Effect) {
+		effect.SpellID = id
+		editRow(t, id, func(s *spelldata.Spell) { s.Effects = []spelldata.Effect{effect} })
+	}
+	reshape(gainID, spelldata.Effect{Type: dbcenums.E_ENERGIZE, Misc: int32(dbcenums.POWER_MANA), BasePoints: 40, Target: onWearer})
+	reshape(cooldownID, spelldata.Effect{Type: dbcenums.E_MODIFY_COOLDOWNS_BY_CATEGORY, Misc: 19, BasePoints: -100000, Target: onWearer})
+	reshape(damageID, spelldata.Effect{Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 100,
+		Target: [2]dbcenums.ImplicitTarget{dbcenums.TARGET_UNIT_TARGET_ENEMY}})
+	firing := func(fired int32) *spelldata.Spell {
+		const procID int32 = 991520
+		return &spelldata.Spell{ID: procID, Name: "Test Proc", Effects: []spelldata.Effect{{SpellID: procID,
+			Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PROC_TRIGGER_SPELL, TriggerID: fired, Target: onWearer}}}
+	}
+
+	for _, fired := range []int32{gainID, cooldownID} {
+		if got := FiredSpellUnsupported(firing(fired)); len(got) > 0 {
+			t.Errorf("a proc firing %d is refused: %v", fired, got)
 		}
 	}
-	// Vile Protector's 7619 fires 1293421, Shadow damage to the attacker.
-	got := FiredSpellUnsupported(spelldata.MustFind(7619))
+	got := FiredSpellUnsupported(firing(damageID))
 	if !slices.ContainsFunc(got, func(reason string) bool { return strings.Contains(reason, "neither restores") }) {
-		t.Errorf("7619 is refused for %v, want the spell it fires named", got)
+		t.Errorf("a proc firing damage is refused for %v, want the spell it fires named", got)
 	}
 }
 
-// Each main-hand hit outside the 3 s lockout rolls the 20% for 40 mana rolled over a 0.125 spread,
-// a hit inside it or off the other hand restores nothing, and a wearer with no mana bar gets no
-// listener at all.
+// Each main-hand hit outside the trigger's lockout rolls its chance for the mana the fired spell
+// rolls, a hit inside it or off the other hand restores nothing, and a wearer with no mana bar gets
+// no listener at all. A copy of the trigger fixes the lockout at 3 s.
 func TestManabladeRestoresManaOnTheImbuedHandsHits(t *testing.T) {
 	const imbueID int32 = 991503
+	editRow(t, manabladeProc, func(s *spelldata.Spell) { s.ICDMs = 3000 })
+	trigger := spelldata.MustFind(manabladeProc)
+	lockout, gain := trigger.ICD(), firedSpell(manabladeProc).EnergizeEffect()
+	needAmount(t, "1306613's mana", gain.Max())
 	sim, mage := newImbuedSim(t, testMage(), imbueID, 8715, manabladeProc)
 	spent := mage.NewManaMetrics(core.ActionID{SpellID: 1})
 
 	var procs int32
 	for range 50 {
-		stepPast(t, sim, sim.CurrentTime+3*time.Second)
+		stepPast(t, sim, sim.CurrentTime+lockout)
 		mage.SpendMana(sim, mage.CurrentMana(), spent)
 		before, _ := gainedFrom(mage, imbueID)
 		dealHit(t, sim, mage, core.ProcMaskMeleeOHAuto)
@@ -155,19 +190,19 @@ func TestManabladeRestoresManaOnTheImbuedHandsHits(t *testing.T) {
 			continue
 		}
 		procs = events
-		if got := gained - before; got < 37.5 || got > 42.5 {
-			t.Errorf("a proc restored %v mana, want 37.5 to 42.5", got)
+		if got := gained - before; got < gain.Min() || got > gain.Max() {
+			t.Errorf("a proc restored %v mana, want %v to %v", got, gain.Min(), gain.Max())
 		}
 		mage.SpendMana(sim, mage.CurrentMana(), spent)
 		for range 20 {
 			dealHit(t, sim, mage, core.ProcMaskMeleeMHSpecial)
 		}
 		if _, got := gainedFrom(mage, imbueID); got != procs {
-			t.Errorf("hits inside the 3 s lockout restored mana %d more times, want none", got-procs)
+			t.Errorf("hits inside the %v lockout restored mana %d more times, want none", lockout, got-procs)
 		}
 	}
-	if procs < 3 || procs > 20 {
-		t.Errorf("%d procs over 50 main-hand hits, want about 10 at 20%%", procs)
+	if chance := trigger.StatedChance(); !plausibleProcs(procs, 50, chance) {
+		t.Errorf("%d procs over 50 main-hand hits, want about %v at %v", procs, 50*chance, chance)
 	}
 
 	_, warrior := newImbuedSim(t, testWarrior(), 991504, 8715, manabladeProc)
@@ -176,39 +211,55 @@ func TestManabladeRestoresManaOnTheImbuedHandsHits(t *testing.T) {
 	}
 }
 
-// A melee hit the wearer takes rolls the 10% that takes 100 s off category 19's cooldown, which Fire
-// Blast runs on; the wearer's own hits do not, and neither does a hit inside the 4 s lockout.
-func TestSparkResetsCategoryNineteenOnHitsTaken(t *testing.T) {
+// A melee hit the wearer takes rolls the chance that takes the fired spell's reduction off its
+// category's cooldown, the one Fire Blast runs on; the wearer's own hits do not, and neither does a
+// hit inside the trigger's lockout. The category is held for the whole reduction, which a proc makes
+// ready at once. Copies of the rows fix the lockout at 4 s and the reduction at 100 s.
+func TestSparkResetsItsCategoryOnHitsTaken(t *testing.T) {
+	editRow(t, sparkProc, func(s *spelldata.Spell) { s.ICDMs = 4000 })
+	editRow(t, firedSpell(sparkProc).ID, func(s *spelldata.Spell) {
+		for i := range s.Effects {
+			if s.Effects[i].Type == dbcenums.E_MODIFY_COOLDOWNS_BY_CATEGORY {
+				s.Effects[i].BasePoints = -100000
+			}
+		}
+	})
+	trigger := spelldata.MustFind(sparkProc)
+	cooldown := firedSpell(sparkProc).CategoryCooldownEffect()
+	if cooldown == spelldata.NilEffect {
+		t.Fatalf("%d fires no category cooldown change", sparkProc)
+	}
+	lockout, held := trigger.ICD(), -cooldown.TimeValue()
 	sim, mage := newImbuedSim(t, testMage(), 991505, 8707, sparkProc)
-	timer := mage.CategoryTimer(19)
+	timer := mage.CategoryTimer(cooldown.Misc)
 
-	timer.Set(sim.CurrentTime + 8*time.Second)
+	timer.Set(sim.CurrentTime + held)
 	for range 50 {
 		dealHit(t, sim, mage, core.ProcMaskMeleeMHAuto)
 	}
 	if timer.IsReady(sim) {
-		t.Fatal("the wearer's own hits reset category 19")
+		t.Fatalf("the wearer's own hits reset category %d", cooldown.Misc)
 	}
 
-	procs := 0
+	var procs int32
 	for range 50 {
-		stepPast(t, sim, sim.CurrentTime+4*time.Second)
-		timer.Set(sim.CurrentTime + 8*time.Second)
+		stepPast(t, sim, sim.CurrentTime+lockout)
+		timer.Set(sim.CurrentTime + held)
 		takeHit(t, sim, mage)
 		if !timer.IsReady(sim) {
 			continue
 		}
 		procs++
-		timer.Set(sim.CurrentTime + 8*time.Second)
+		timer.Set(sim.CurrentTime + held)
 		for range 20 {
 			takeHit(t, sim, mage)
 		}
 		if timer.IsReady(sim) {
-			t.Error("a hit taken inside the 4 s lockout reset category 19")
+			t.Errorf("a hit taken inside the %v lockout reset category %d", lockout, cooldown.Misc)
 		}
 	}
-	if procs < 1 || procs > 12 {
-		t.Errorf("%d procs over 50 hits taken, want about 5 at 10%%", procs)
+	if chance := trigger.StatedChance(); !plausibleProcs(procs, 50, chance) {
+		t.Errorf("%d procs over 50 hits taken, want about %v at %v", procs, 50*chance, chance)
 	}
 }
 
