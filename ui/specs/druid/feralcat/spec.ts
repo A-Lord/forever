@@ -1,8 +1,8 @@
 import * as BuffDebuffInputs from '@features/settings/model/buffs_debuffs';
 import * as OtherInputs from '@features/settings/model/other_inputs';
-import { APLAction, APLListItem, APLRotation, APLRotation_Type as APLRotationType } from '@generated/proto/apl';
-import { Cooldowns, ItemSlot, PseudoStat, Spec, Stat } from '@generated/proto/common';
-import { FeralCatDruid_Rotation as DruidRotation } from '@generated/proto/druid';
+import { APLRotation, APLRotation_Type as APLRotationType } from '@generated/proto/apl';
+import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
+import { ItemSlot, PseudoStat, Spec, Stat, TristateEffect } from '@generated/proto/common';
 import { PlayerClasses } from '@sim/player/classes';
 import { Player } from '@sim/player/player';
 import { Stats, UnitStat } from '@sim/proto/stats';
@@ -17,10 +17,7 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 	className: 'feral-druid-sim-ui',
 	cssScheme: PlayerClasses.getCssScheme(PlayerClasses.Druid),
 	// List any known bugs / issues here and they'll be shown on the site.
-	knownIssues: [
-		"Rake uses rank 1's measured 0.055 AP per tick at higher ranks and reads current AP each tick; higher ranks and snapshotting need in-game verification.",
-		"Rip/Bite AP scaling, Omen's proc rate, base crit and Furor state retention use stated assumptions where the game files are silent.",
-	],
+	knownIssues: [],
 	warnings: [],
 
 	// Extra stats shown in consumables picker (beyond epStats).
@@ -70,9 +67,9 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 
 	defaults: {
 		// Default equipped gear.
-		gear: Presets.RAID_GEAR.gear,
+		gear: Presets.PreRaidGear.gear,
 		// Default EP weights for sorting gear in the gear picker.
-		epWeights: Presets.RAID_EP.epWeights,
+		epWeights: Presets.PreRaidEp,
 		statCaps: (() => {
 			return new Stats().withPseudoStat(PseudoStat.PseudoStatMeleeHitPercent, 8).withPseudoStat(PseudoStat.PseudoStatExpertisePercent, 6.5);
 		})(),
@@ -81,21 +78,40 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 		consumables: Presets.DefaultConsumables,
 		// Default rotation settings.
 		rotationType: APLRotationType.TypeAuto,
-		simpleRotation: Presets.DefaultRotation,
-		talents: Presets.STARTER_TALENTS.data,
+		// Genesis, nature's majesty, nature's reach, ferocity, heart of the wild, shredding attacks,
+		// savage fury, sharpened claws, shifting power, predatory strikes, improved shifting power,
+		// leader of the pack, natural instinct, rend and tear, berserk, furor, naturalist.
+		// Shifting Power is absent until that talent is taken.
+		talents: Presets.CatTalents.data,
 		// Default spec-specific settings.
 		specOptions: Presets.DefaultOptions,
 		// Default raid/party buffs settings.
-		raidBuffs: Presets.DefaultRaidBuffs,
-		partyBuffs: Presets.DefaultPartyBuffs,
-		individualBuffs: Presets.DefaultIndividualBuffs,
-		debuffs: Presets.DefaultDebuffs,
+		raidBuffs: RaidBuffs.create({
+			arcaneBrilliance: true,
+			prayerOfSpirit: true,
+			giftOfTheWild: true,
+			prayerOfFortitude: true,
+		}),
+		partyBuffs: PartyBuffs.create({
+			battleShout: TristateEffect.TristateEffectRegular,
+			windfuryTotem: true,
+			manaSpringTotem: TristateEffect.TristateEffectRegular,
+			strengthOfEarthTotem: true,
+		}),
+		individualBuffs: IndividualBuffs.create({
+			greaterBlessingOfKings: true,
+			greaterBlessingOfMight: true,
+		}),
+		debuffs: Debuffs.create({
+			judgementOfWisdom: true,
+			faerieFire: true,
+			sunderArmor: true,
+			giftOfArthas: true,
+		}),
 	},
 
 	// IconInputs to include in the 'Player' section on the settings tab.
 	playerIconInputs: [],
-	// Inputs to include in the 'Rotation' section on the settings tab.
-	rotationInputs: FeralInputs.FeralDruidRotationConfig,
 	// Buff and Debuff inputs to include/exclude, overriding the EP-based defaults.
 	includeBuffDebuffInputs: [Stat.StatMP5, Stat.StatIntellect, Stat.StatStamina],
 	excludeBuffDebuffInputs: [BuffDebuffInputs.AtieshMage],
@@ -107,6 +123,7 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 			OtherInputs.TankAssignment,
 			OtherInputs.InFrontOfTarget,
 			FeralInputs.CannotShredTarget,
+			FeralInputs.AssumeBleedActive,
 		],
 	},
 	itemSwapSlots: [ItemSlot.ItemSlotMainHand, ItemSlot.ItemSlotOffHand, ItemSlot.ItemSlotTrinket1, ItemSlot.ItemSlotTrinket2],
@@ -115,53 +132,30 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 		showExecuteProportion: true,
 	},
 
-	defaultBuild: {
-		...Presets.RAID_BUILD,
-		rotation: undefined,
-		rotationType: APLRotationType.TypeAuto,
-	},
-
 	presets: {
-		builds: [Presets.RAID_BUILD, Presets.RAID_DPS_BUILD, Presets.STARTER_BUILD, Presets.BearweaveBuild],
-		epWeights: [Presets.RAID_EP],
+		epWeights: [Presets.PreRaidEpWeights, Presets.Level60EpWeights, Presets.RAID_EP],
 		// Preset talents that the user can quickly select.
-		talents: [Presets.STARTER_TALENTS, Presets.CatTalents, Presets.BearweaveTalents],
+		talents: [Presets.CatTalents, Presets.BearweaveTalents],
 		rotations: [
-			Presets.SIMPLE,
-			Presets.POWERSHIFT_APL,
-			Presets.RAID_DPS_APL,
-			Presets.APL,
-			Presets.CLAW_RIP_APL,
+			Presets.MONOCAT_APL,
 			Presets.RAVAGE_APL,
 			Presets.POUNCE_APL,
 			Presets.BEARWEAVE_APL,
+			Presets.STARTER_APL,
+			Presets.POWERSHIFT_APL,
+			Presets.RAID_DPS_APL,
 		],
+		builds: [Presets.BearweaveBuild, Presets.STARTER_BUILD, Presets.RAID_BUILD, Presets.RAID_DPS_BUILD],
 		// Preset gear configurations that the user can quickly select.
-		gear: [Presets.RAID_GEAR, Presets.STARTER_GEAR, Presets.PreRaidGear, Presets.Level60Gear],
+		gear: [Presets.PreRaidGear, Presets.Level60Gear, Presets.STARTER_GEAR, Presets.RAID_GEAR],
 	},
 
-	// Auto is the APL preset, which keeps Elune's Light out of Berserk's guaranteed crit.
+	// Auto is the Monocat APL.
 	autoRotation: (_player: Player<Spec.SpecFeralCatDruid>): APLRotation => {
-		return Presets.APL.rotation.rotation!;
-	},
-
-	simpleRotation: (_player: Player<Spec.SpecFeralCatDruid>, simple: DruidRotation, _cooldowns: Cooldowns): APLRotation => {
-		return catPowershiftRotation(simple);
+		return Presets.MONOCAT_APL.rotation.rotation!;
 	},
 
 	hiddenMCDs: [],
 
 	reforge: {},
 });
-
-// Major cooldowns fire ahead of the Cat action; all selected rotation options reach that action.
-function catPowershiftRotation(simple: DruidRotation): APLRotation {
-	const doRotation = APLAction.create({ action: { oneofKind: 'catOptimalRotationAction', catOptimalRotationAction: { ...simple } } });
-
-	return APLRotation.create({
-		priorityList: [
-			APLListItem.create({ action: APLAction.create({ action: { oneofKind: 'autocastOtherCooldowns', autocastOtherCooldowns: {} } }) }),
-			APLListItem.create({ action: doRotation }),
-		],
-	});
-}

@@ -1,6 +1,6 @@
 {
   "player": {
-    "talentsString": "05002-55000032021032212051-055",
+    "talentsString": "050022-55000032021030212051-055",
     "buffs": {},
     "profession2": "Enchanting",
     "class": "ClassDruid",
@@ -68,25 +68,7 @@
     },
     "race": "RaceNightElf",
     "reactionTimeMs": 250,
-    "inFrontOfTarget": false,
-    "rotation": {
-      "type": "TypeAPL",
-      "priorityList": [
-        {
-          "action": { "autocastOtherCooldowns": {} }
-        },
-        {
-          "action": {
-            "catOptimalRotationAction": {
-              "ripMinComboPoints": 5,
-              "rakeTrick": true,
-              "biteMinComboPoints": 5,
-              "finishingMove": "Rip"
-            }
-          }
-        }
-      ]
-    }
+    "inFrontOfTarget": false
   },
   "tanks": [],
   "partyBuffs": {},

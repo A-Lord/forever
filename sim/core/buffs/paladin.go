@@ -60,11 +60,9 @@ func NewSpellDataShadowResistanceAuraRank(char *core.Character, rank PaladinAura
 // Retribution Aura scales with the casting paladin's Holy spell power in Forever even though its
 // game files row carries no coefficient (every rank and Thorns are the same: EffectBonusCoefficient 0,
 // and the damage still moves with spell power in game). The coefficient is the 1.5 s cast-time
-// floor over 3.5, the AoE divisor because the shield hits every attacker, and the 0.95 penalty for
-// the aura effect. Confirmed at level 20: with 80 spell power rank 1 (base 7) hits for 17 to 18,
-// mostly 18, which is the 17.86 this coefficient predicts; the 0.95² variant (0.129) would have
-// shown mostly 17.
-const RetributionAuraSpellPowerCoefficient = 1.5 / 3.5 / 3 * 0.95
+// floor over 3.5, the AoE divisor because the shield hits every attacker, and the 0.42 penalty for
+// the aura effect: 6% of spell power, the ratio Blizzard states for the aura.
+const RetributionAuraSpellPowerCoefficient = 1.5 / 3.5 / 3 * 0.42
 
 // NewSpellDataRetributionAuraRank is the aura on the unit the shield protects. The self-cast variant reads
 // the paladin's own Holy spell power through the proc spell; the external (party-buff) variant

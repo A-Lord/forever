@@ -24,7 +24,7 @@ func (druid *Druid) registerFeralCombatTalents() {
 	druid.applyBloodFrenzy()
 	druid.applyImprovedShiftingPower()
 	druid.applyLeaderOfThePack()
-	druid.applyPredatoryInstincts()
+	druid.applyNaturalInstinct()
 	druid.applyNaturalReaction()
 	druid.applyRendAndTear()
 	druid.applyBerserk()
@@ -67,6 +67,7 @@ func (druid *Druid) applyThickHide() {
 	}
 	row := spellData.ThickHide.Rank(druid.Talents.ThickHide)
 	// The tooltip prices both base-armor terms before the form's armor multiplier.
+	// TODO: Ingame research needed -- level × base points (60/120/180) or the game files' per-level formula (178/179/180).
 	for _, form := range []struct {
 		aura    *core.Aura
 		passive *spelldata.Spell
@@ -151,8 +152,8 @@ func (druid *Druid) applyLeaderOfThePack() {
 	// 24932 is the party crit aura. AddPartyBuffs publishes it while the druid is in cat or bear.
 }
 
-func (druid *Druid) applyPredatoryInstincts() {
-	druid.parseTalent(druid.Talents.PredatoryInstincts, spellData.PredatoryInstincts)
+func (druid *Druid) applyNaturalInstinct() {
+	druid.parseTalent(druid.Talents.NaturalInstinct, spellData.NaturalInstinct)
 }
 
 func (druid *Druid) applyRendAndTear() {
@@ -229,8 +230,5 @@ func (druid *Druid) applyBerserk() {
 	druid.AddMajorCooldown(core.MajorCooldown{
 		Spell: druid.Berserk.Spell,
 		Type:  core.CooldownTypeDPS,
-		ShouldActivate: func(sim *core.Simulation, _ *core.Character) bool {
-			return druid.BerserkCondition == nil || druid.BerserkCondition(sim)
-		},
 	})
 }

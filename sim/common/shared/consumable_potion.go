@@ -238,9 +238,10 @@ func registerSpellDataConsumable(itemID int32) {
 			}
 			spell.Flags |= core.SpellFlagCombatPotion
 		case proto.ConsumableType_ConsumableTypeConjured:
-			shouldActivate := mcd.ShouldActivate
-			mcd.ShouldActivate = func(sim *core.Simulation, character *core.Character) bool {
-				return consumables.ConjuredId == itemID && (shouldActivate == nil || shouldActivate(sim, character))
+			// The spec's conjured item keeps the manager's default, so a healthstone waits for a tank
+			// like any other defensive cooldown; another conjured item never fires on its own.
+			if consumables.ConjuredId != itemID {
+				mcd.ShouldActivate = func(_ *core.Simulation, _ *core.Character) bool { return false }
 			}
 		}
 		character.AddMajorCooldown(mcd)

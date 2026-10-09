@@ -61,6 +61,7 @@ func (druid *Druid) tablePaw(unscaledWeapon core.Weapon, swingMs float32, postNo
 	}
 }
 
+// TODO: Ingame research needed -- unarmed paw endpoints. The model keeps a one-damage floor.
 func unarmedPaw(swingSpeed float64) core.Weapon {
 	return core.Weapon{BaseDamageMin: 1, BaseDamageMax: 1, SwingSpeed: swingSpeed,
 		NormalizedSwingSpeed: swingSpeed, AttackPowerPerDPS: core.DefaultAttackPowerPerDPS, MaxRange: core.MaxMeleeRange}

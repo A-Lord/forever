@@ -245,6 +245,34 @@
 					"additionalProperties": false,
 					"required": ["unknown", "beast", "demon", "dragonkin", "elemental", "giant", "humanoid", "mechanical", "undead"]
 				},
+				"creature_families": {
+					"type": "object",
+					"properties": {
+						"unknown": {
+							"type": "string"
+						},
+						"naga": {
+							"type": "string"
+						},
+						"satyr": {
+							"type": "string"
+						},
+						"aquatic": {
+							"type": "string"
+						},
+						"earth_elemental": {
+							"type": "string"
+						},
+						"fire_elemental": {
+							"type": "string"
+						},
+						"mountain_giant": {
+							"type": "string"
+						}
+					},
+					"additionalProperties": false,
+					"required": ["unknown", "naga", "satyr", "aquatic", "earth_elemental", "fire_elemental", "mountain_giant"]
+				},
 				"area_types": {
 					"type": "object",
 					"properties": {
@@ -1114,6 +1142,7 @@
 				"tanks",
 				"status",
 				"mob_types",
+				"creature_families",
 				"area_types",
 				"sources",
 				"raids",
@@ -2529,10 +2558,16 @@
 								},
 								"ohImbue": {
 									"type": "string"
+								},
+								"swapMhImbue": {
+									"type": "string"
+								},
+								"swapOhImbue": {
+									"type": "string"
 								}
 							},
 							"additionalProperties": false,
-							"required": ["title", "mhImbue", "ohImbue"]
+							"required": ["title", "mhImbue", "ohImbue", "swapMhImbue", "swapOhImbue"]
 						},
 						"weaponImbue": {
 							"type": "object",
@@ -2545,10 +2580,16 @@
 								},
 								"ohWeaponImbue": {
 									"type": "string"
+								},
+								"swapMhWeaponImbue": {
+									"type": "string"
+								},
+								"swapOhWeaponImbue": {
+									"type": "string"
 								}
 							},
 							"additionalProperties": false,
-							"required": ["title", "mhWeaponImbue", "ohWeaponImbue"]
+							"required": ["title", "mhWeaponImbue", "ohWeaponImbue", "swapMhWeaponImbue", "swapOhWeaponImbue"]
 						},
 						"scrolls": {
 							"type": "object",
@@ -2952,6 +2993,19 @@
 						"mob_type": {
 							"type": "string"
 						},
+						"creature_family": {
+							"type": "object",
+							"properties": {
+								"label": {
+									"type": "string"
+								},
+								"tooltip": {
+									"type": "string"
+								}
+							},
+							"additionalProperties": false,
+							"required": ["label", "tooltip"]
+						},
 						"tanked_by": {
 							"type": "object",
 							"properties": {
@@ -3088,6 +3142,7 @@
 						"ai",
 						"level",
 						"mob_type",
+						"creature_family",
 						"tanked_by",
 						"swing_speed",
 						"dual_wield",

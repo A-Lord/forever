@@ -3,7 +3,9 @@ import { ConnectedChoiceField } from '@features/inputs/components/ConnectedChoic
 import { ConnectedNumberField } from '@features/inputs/components/ConnectedTextField';
 import { Target as TargetProto } from '@generated/proto/common';
 import { useDisplayMetrics } from '@sim/hooks/useDisplayMetrics';
+import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
 import type { Encounter } from '@sim/raid/encounter';
+import { subscribeEncounterField } from '@sim/state/subscriptions';
 import { Field } from '@ui-kit/Field';
 import { FieldGrid } from '@ui-kit/FieldGrid';
 import { type ReactNode, useMemo } from 'react';
@@ -13,6 +15,8 @@ import {
 	aiConfig,
 	ALL_TARGET_STATS,
 	booleanConfigs,
+	creatureFamiliesOf,
+	creatureFamilyConfig,
 	levelConfig,
 	mobTypeConfig,
 	npcConfig,
@@ -24,7 +28,7 @@ import {
 } from './utils/configs';
 
 export interface TargetPickerViewProps {
-	/** Who the target is: NPC preset, AI, level, mob type, tank and the target's own inputs. */
+	/** Who the target is: NPC preset, AI, level, mob type, creature family, tank and the target's own inputs. */
 	identity: ReactNode;
 	stats: ReactNode;
 	/** The fields only a threat sim reads; without them an empty column keeps the three-column grid. */
@@ -63,6 +67,8 @@ export const TargetPicker = ({ encounter, targetIndex }: TargetPickerProps) => {
 	const ai = useMemo(() => aiConfig(context), [context]);
 	const level = useMemo(() => levelConfig(context), [context]);
 	const mobType = useMemo(() => mobTypeConfig(context), [context]);
+	const targetMobType = useStoreSubscribe(subscribeEncounterField(encounter, 'targets'), () => context.getTarget().mobType);
+	const creatureFamily = useMemo(() => creatureFamilyConfig(context, targetMobType), [context, targetMobType]);
 	const tankIndex = useMemo(() => tankIndexConfig(context), [context]);
 	const stats = useMemo(
 		() => ALL_TARGET_STATS.filter(entry => showThreatMetrics || !entry.threatMetrics).map(entry => statConfig(context, entry.stat, entry.tooltip)),
@@ -78,8 +84,9 @@ export const TargetPicker = ({ encounter, targetIndex }: TargetPickerProps) => {
 				<>
 					<ConnectedChoiceField modObject={null} config={npc} />
 					<ConnectedChoiceField modObject={null} config={ai} />
-					<ConnectedChoiceField modObject={null} config={level} />
 					<ConnectedChoiceField modObject={null} config={mobType} />
+					{creatureFamiliesOf(targetMobType).length > 0 && <ConnectedChoiceField modObject={null} config={creatureFamily} />}
+					<ConnectedChoiceField modObject={null} config={level} />
 					{showThreatMetrics && <ConnectedChoiceField modObject={null} config={tankIndex} />}
 					<TargetInputsPicker encounter={encounter} targetIndex={targetIndex} />
 				</>

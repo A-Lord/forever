@@ -371,20 +371,39 @@
 								"and": {
 									"vals": [
 										{
-											"not": {
-												"val": {
-													"dotIsActive": {
-														"spellId": {
-															"spellId": 9904
+											"and": {
+												"vals": [
+													{
+														"not": {
+															"val": {
+																"dotIsActive": {
+																	"spellId": {
+																		"spellId": 9904
+																	}
+																}
+															}
+														}
+													},
+													{
+														"spellCanCast": {
+															"spellId": {
+																"spellId": 9904
+															}
 														}
 													}
-												}
+												]
 											}
 										},
 										{
-											"spellCanCast": {
-												"spellId": {
-													"spellId": 9904
+											"cmp": {
+												"op": "OpGe",
+												"lhs": {
+													"remainingTime": {}
+												},
+												"rhs": {
+													"const": {
+														"val": "6s"
+													}
 												}
 											}
 										}
@@ -486,20 +505,39 @@
 										"and": {
 											"vals": [
 												{
-													"not": {
-														"val": {
-															"dotIsActive": {
-																"spellId": {
-																	"spellId": 9904
+													"and": {
+														"vals": [
+															{
+																"not": {
+																	"val": {
+																		"dotIsActive": {
+																			"spellId": {
+																				"spellId": 9904
+																			}
+																		}
+																	}
+																}
+															},
+															{
+																"spellCanCast": {
+																	"spellId": {
+																		"spellId": 9904
+																	}
 																}
 															}
-														}
+														]
 													}
 												},
 												{
-													"spellCanCast": {
-														"spellId": {
-															"spellId": 9904
+													"cmp": {
+														"op": "OpGe",
+														"lhs": {
+															"remainingTime": {}
+														},
+														"rhs": {
+															"const": {
+																"val": "6s"
+															}
 														}
 													}
 												}
@@ -511,110 +549,213 @@
 							{
 								"not": {
 									"val": {
-										"and": {
+										"or": {
 											"vals": [
 												{
-													"cmp": {
-														"op": "OpGe",
-														"lhs": {
-															"currentComboPoints": {}
-														},
-														"rhs": {
-															"const": {
-																"val": "5"
-															}
-														}
-													}
-												},
-												{
-													"dotIsActive": {
-														"spellId": {
-															"spellId": 9896
-														}
-													}
-												},
-												{
-													"cmp": {
-														"op": "OpGe",
-														"lhs": {
-															"remainingTime": {}
-														},
-														"rhs": {
-															"const": {
-																"val": "10s"
-															}
-														}
-													}
-												},
-												{
-													"cmp": {
-														"op": "OpGt",
-														"lhs": {
-															"dotRemainingTime": {
-																"spellId": {
-																	"spellId": 9896
+													"and": {
+														"vals": [
+															{
+																"cmp": {
+																	"op": "OpGe",
+																	"lhs": {
+																		"currentComboPoints": {}
+																	},
+																	"rhs": {
+																		"const": {
+																			"val": "5"
+																		}
+																	}
 																}
-															}
-														},
-														"rhs": {
-															"const": {
-																"val": "0s"
-															}
-														}
-													}
-												},
-												{
-													"cmp": {
-														"op": "OpLe",
-														"lhs": {
-															"dotRemainingTime": {
-																"spellId": {
-																	"spellId": 9896
+															},
+															{
+																"dotIsActive": {
+																	"spellId": {
+																		"spellId": 9896
+																	}
 																}
-															}
-														},
-														"rhs": {
-															"const": {
-																"val": "2s"
-															}
-														}
-													}
-												},
-												{
-													"cmp": {
-														"op": "OpLt",
-														"lhs": {
-															"math": {
-																"op": "OpAdd",
-																"lhs": {
-																	"math": {
-																		"op": "OpSub",
-																		"lhs": {
-																			"currentEnergy": {}
-																		},
-																		"rhs": {
-																			"spellCurrentCost": {
-																				"spellId": {
-																					"spellId": 9830
+															},
+															{
+																"cmp": {
+																	"op": "OpGe",
+																	"lhs": {
+																		"remainingTime": {}
+																	},
+																	"rhs": {
+																		"const": {
+																			"val": "10s"
+																		}
+																	}
+																}
+															},
+															{
+																"cmp": {
+																	"op": "OpGt",
+																	"lhs": {
+																		"dotRemainingTime": {
+																			"spellId": {
+																				"spellId": 9896
+																			}
+																		}
+																	},
+																	"rhs": {
+																		"const": {
+																			"val": "0s"
+																		}
+																	}
+																}
+															},
+															{
+																"cmp": {
+																	"op": "OpLe",
+																	"lhs": {
+																		"dotRemainingTime": {
+																			"spellId": {
+																				"spellId": 9896
+																			}
+																		}
+																	},
+																	"rhs": {
+																		"const": {
+																			"val": "2s"
+																		}
+																	}
+																}
+															},
+															{
+																"cmp": {
+																	"op": "OpLt",
+																	"lhs": {
+																		"math": {
+																			"op": "OpAdd",
+																			"lhs": {
+																				"math": {
+																					"op": "OpSub",
+																					"lhs": {
+																						"currentEnergy": {}
+																					},
+																					"rhs": {
+																						"spellCurrentCost": {
+																							"spellId": {
+																								"spellId": 9830
+																							}
+																						}
+																					}
+																				}
+																			},
+																			"rhs": {
+																				"const": {
+																					"val": "10"
 																				}
 																			}
 																		}
-																	}
-																},
-																"rhs": {
-																	"const": {
-																		"val": "10"
+																	},
+																	"rhs": {
+																		"spellCurrentCost": {
+																			"spellId": {
+																				"spellId": 9896
+																			}
+																		}
 																	}
 																}
 															}
-														},
-														"rhs": {
-															"spellCurrentCost": {
-																"spellId": {
-																	"spellId": 9896
+														]
+													}
+												},
+												{
+													"and": {
+														"vals": [
+															{
+																"dotIsActive": {
+																	"spellId": {
+																		"spellId": 9904
+																	}
+																}
+															},
+															{
+																"cmp": {
+																	"op": "OpGe",
+																	"lhs": {
+																		"remainingTime": {}
+																	},
+																	"rhs": {
+																		"const": {
+																			"val": "9s"
+																		}
+																	}
+																}
+															},
+															{
+																"cmp": {
+																	"op": "OpGt",
+																	"lhs": {
+																		"dotRemainingTime": {
+																			"spellId": {
+																				"spellId": 9904
+																			}
+																		}
+																	},
+																	"rhs": {
+																		"const": {
+																			"val": "0s"
+																		}
+																	}
+																}
+															},
+															{
+																"cmp": {
+																	"op": "OpLe",
+																	"lhs": {
+																		"dotRemainingTime": {
+																			"spellId": {
+																				"spellId": 9904
+																			}
+																		}
+																	},
+																	"rhs": {
+																		"const": {
+																			"val": "1s"
+																		}
+																	}
+																}
+															},
+															{
+																"cmp": {
+																	"op": "OpLt",
+																	"lhs": {
+																		"math": {
+																			"op": "OpAdd",
+																			"lhs": {
+																				"math": {
+																					"op": "OpSub",
+																					"lhs": {
+																						"currentEnergy": {}
+																					},
+																					"rhs": {
+																						"spellCurrentCost": {
+																							"spellId": {
+																								"spellId": 9830
+																							}
+																						}
+																					}
+																				}
+																			},
+																			"rhs": {
+																				"const": {
+																					"val": "10"
+																				}
+																			}
+																		}
+																	},
+																	"rhs": {
+																		"spellCurrentCost": {
+																			"spellId": {
+																				"spellId": 9904
+																			}
+																		}
+																	}
 																}
 															}
-														}
+														]
 													}
 												}
 											]
@@ -927,20 +1068,39 @@
 					"and": {
 						"vals": [
 							{
-								"not": {
-									"val": {
-										"dotIsActive": {
-											"spellId": {
-												"spellId": 9904
+								"and": {
+									"vals": [
+										{
+											"not": {
+												"val": {
+													"dotIsActive": {
+														"spellId": {
+															"spellId": 9904
+														}
+													}
+												}
+											}
+										},
+										{
+											"spellCanCast": {
+												"spellId": {
+													"spellId": 9904
+												}
 											}
 										}
-									}
+									]
 								}
 							},
 							{
-								"spellCanCast": {
-									"spellId": {
-										"spellId": 9904
+								"cmp": {
+									"op": "OpGe",
+									"lhs": {
+										"remainingTime": {}
+									},
+									"rhs": {
+										"const": {
+											"val": "6s"
+										}
 									}
 								}
 							}
@@ -950,6 +1110,89 @@
 				"castSpell": {
 					"spellId": {
 						"spellId": 9904
+					}
+				}
+			}
+		},
+		{
+			"action": {
+				"condition": {
+					"or": {
+						"vals": [
+							{
+								"and": {
+									"vals": [
+										{
+											"cmp": {
+												"op": "OpGe",
+												"lhs": {
+													"currentComboPoints": {}
+												},
+												"rhs": {
+													"const": {
+														"val": "5"
+													}
+												}
+											}
+										},
+										{
+											"not": {
+												"val": {
+													"cmp": {
+														"op": "OpGe",
+														"lhs": {
+															"remainingTime": {}
+														},
+														"rhs": {
+															"const": {
+																"val": "10s"
+															}
+														}
+													}
+												}
+											}
+										}
+									]
+								}
+							},
+							{
+								"and": {
+									"vals": [
+										{
+											"cmp": {
+												"op": "OpGe",
+												"lhs": {
+													"currentComboPoints": {}
+												},
+												"rhs": {
+													"const": {
+														"val": "3"
+													}
+												}
+											}
+										},
+										{
+											"cmp": {
+												"op": "OpLt",
+												"lhs": {
+													"remainingTime": {}
+												},
+												"rhs": {
+													"const": {
+														"val": "3s"
+													}
+												}
+											}
+										}
+									]
+								}
+							}
+						]
+					}
+				},
+				"castSpell": {
+					"spellId": {
+						"spellId": 22829
 					}
 				}
 			}
@@ -1038,110 +1281,213 @@
 								"and": {
 									"vals": [
 										{
-											"and": {
+											"or": {
 												"vals": [
 													{
-														"cmp": {
-															"op": "OpGe",
-															"lhs": {
-																"currentComboPoints": {}
-															},
-															"rhs": {
-																"const": {
-																	"val": "5"
-																}
-															}
-														}
-													},
-													{
-														"dotIsActive": {
-															"spellId": {
-																"spellId": 9896
-															}
-														}
-													},
-													{
-														"cmp": {
-															"op": "OpGe",
-															"lhs": {
-																"remainingTime": {}
-															},
-															"rhs": {
-																"const": {
-																	"val": "10s"
-																}
-															}
-														}
-													},
-													{
-														"cmp": {
-															"op": "OpGt",
-															"lhs": {
-																"dotRemainingTime": {
-																	"spellId": {
-																		"spellId": 9896
+														"and": {
+															"vals": [
+																{
+																	"cmp": {
+																		"op": "OpGe",
+																		"lhs": {
+																			"currentComboPoints": {}
+																		},
+																		"rhs": {
+																			"const": {
+																				"val": "5"
+																			}
+																		}
 																	}
-																}
-															},
-															"rhs": {
-																"const": {
-																	"val": "0s"
-																}
-															}
-														}
-													},
-													{
-														"cmp": {
-															"op": "OpLe",
-															"lhs": {
-																"dotRemainingTime": {
-																	"spellId": {
-																		"spellId": 9896
+																},
+																{
+																	"dotIsActive": {
+																		"spellId": {
+																			"spellId": 9896
+																		}
 																	}
-																}
-															},
-															"rhs": {
-																"const": {
-																	"val": "2s"
-																}
-															}
-														}
-													},
-													{
-														"cmp": {
-															"op": "OpLt",
-															"lhs": {
-																"math": {
-																	"op": "OpAdd",
-																	"lhs": {
-																		"math": {
-																			"op": "OpSub",
-																			"lhs": {
-																				"currentEnergy": {}
-																			},
-																			"rhs": {
-																				"spellCurrentCost": {
-																					"spellId": {
-																						"spellId": 9830
+																},
+																{
+																	"cmp": {
+																		"op": "OpGe",
+																		"lhs": {
+																			"remainingTime": {}
+																		},
+																		"rhs": {
+																			"const": {
+																				"val": "10s"
+																			}
+																		}
+																	}
+																},
+																{
+																	"cmp": {
+																		"op": "OpGt",
+																		"lhs": {
+																			"dotRemainingTime": {
+																				"spellId": {
+																					"spellId": 9896
+																				}
+																			}
+																		},
+																		"rhs": {
+																			"const": {
+																				"val": "0s"
+																			}
+																		}
+																	}
+																},
+																{
+																	"cmp": {
+																		"op": "OpLe",
+																		"lhs": {
+																			"dotRemainingTime": {
+																				"spellId": {
+																					"spellId": 9896
+																				}
+																			}
+																		},
+																		"rhs": {
+																			"const": {
+																				"val": "2s"
+																			}
+																		}
+																	}
+																},
+																{
+																	"cmp": {
+																		"op": "OpLt",
+																		"lhs": {
+																			"math": {
+																				"op": "OpAdd",
+																				"lhs": {
+																					"math": {
+																						"op": "OpSub",
+																						"lhs": {
+																							"currentEnergy": {}
+																						},
+																						"rhs": {
+																							"spellCurrentCost": {
+																								"spellId": {
+																									"spellId": 9830
+																								}
+																							}
+																						}
+																					}
+																				},
+																				"rhs": {
+																					"const": {
+																						"val": "10"
 																					}
 																				}
 																			}
-																		}
-																	},
-																	"rhs": {
-																		"const": {
-																			"val": "10"
+																		},
+																		"rhs": {
+																			"spellCurrentCost": {
+																				"spellId": {
+																					"spellId": 9896
+																				}
+																			}
 																		}
 																	}
 																}
-															},
-															"rhs": {
-																"spellCurrentCost": {
-																	"spellId": {
-																		"spellId": 9896
+															]
+														}
+													},
+													{
+														"and": {
+															"vals": [
+																{
+																	"dotIsActive": {
+																		"spellId": {
+																			"spellId": 9904
+																		}
+																	}
+																},
+																{
+																	"cmp": {
+																		"op": "OpGe",
+																		"lhs": {
+																			"remainingTime": {}
+																		},
+																		"rhs": {
+																			"const": {
+																				"val": "9s"
+																			}
+																		}
+																	}
+																},
+																{
+																	"cmp": {
+																		"op": "OpGt",
+																		"lhs": {
+																			"dotRemainingTime": {
+																				"spellId": {
+																					"spellId": 9904
+																				}
+																			}
+																		},
+																		"rhs": {
+																			"const": {
+																				"val": "0s"
+																			}
+																		}
+																	}
+																},
+																{
+																	"cmp": {
+																		"op": "OpLe",
+																		"lhs": {
+																			"dotRemainingTime": {
+																				"spellId": {
+																					"spellId": 9904
+																				}
+																			}
+																		},
+																		"rhs": {
+																			"const": {
+																				"val": "1s"
+																			}
+																		}
+																	}
+																},
+																{
+																	"cmp": {
+																		"op": "OpLt",
+																		"lhs": {
+																			"math": {
+																				"op": "OpAdd",
+																				"lhs": {
+																					"math": {
+																						"op": "OpSub",
+																						"lhs": {
+																							"currentEnergy": {}
+																						},
+																						"rhs": {
+																							"spellCurrentCost": {
+																								"spellId": {
+																									"spellId": 9830
+																								}
+																							}
+																						}
+																					}
+																				},
+																				"rhs": {
+																					"const": {
+																						"val": "10"
+																					}
+																				}
+																			}
+																		},
+																		"rhs": {
+																			"spellCurrentCost": {
+																				"spellId": {
+																					"spellId": 9904
+																				}
+																			}
+																		}
 																	}
 																}
-															}
+															]
 														}
 													}
 												]
@@ -1172,132 +1518,9 @@
 				"condition": {
 					"not": {
 						"val": {
-							"and": {
+							"or": {
 								"vals": [
 									{
-										"cmp": {
-											"op": "OpGe",
-											"lhs": {
-												"currentComboPoints": {}
-											},
-											"rhs": {
-												"const": {
-													"val": "5"
-												}
-											}
-										}
-									},
-									{
-										"dotIsActive": {
-											"spellId": {
-												"spellId": 9896
-											}
-										}
-									},
-									{
-										"cmp": {
-											"op": "OpGe",
-											"lhs": {
-												"remainingTime": {}
-											},
-											"rhs": {
-												"const": {
-													"val": "10s"
-												}
-											}
-										}
-									},
-									{
-										"cmp": {
-											"op": "OpGt",
-											"lhs": {
-												"dotRemainingTime": {
-													"spellId": {
-														"spellId": 9896
-													}
-												}
-											},
-											"rhs": {
-												"const": {
-													"val": "0s"
-												}
-											}
-										}
-									},
-									{
-										"cmp": {
-											"op": "OpLe",
-											"lhs": {
-												"dotRemainingTime": {
-													"spellId": {
-														"spellId": 9896
-													}
-												}
-											},
-											"rhs": {
-												"const": {
-													"val": "2s"
-												}
-											}
-										}
-									},
-									{
-										"cmp": {
-											"op": "OpLt",
-											"lhs": {
-												"math": {
-													"op": "OpAdd",
-													"lhs": {
-														"math": {
-															"op": "OpSub",
-															"lhs": {
-																"currentEnergy": {}
-															},
-															"rhs": {
-																"spellCurrentCost": {
-																	"spellId": {
-																		"spellId": 9830
-																	}
-																}
-															}
-														}
-													},
-													"rhs": {
-														"const": {
-															"val": "10"
-														}
-													}
-												}
-											},
-											"rhs": {
-												"spellCurrentCost": {
-													"spellId": {
-														"spellId": 9896
-													}
-												}
-											}
-										}
-									}
-								]
-							}
-						}
-					}
-				},
-				"castSpell": {
-					"spellId": {
-						"spellId": 9830
-					}
-				}
-			}
-		},
-		{
-			"action": {
-				"condition": {
-					"and": {
-						"vals": [
-							{
-								"not": {
-									"val": {
 										"and": {
 											"vals": [
 												{
@@ -1402,6 +1625,335 @@
 																}
 															}
 														}
+													}
+												}
+											]
+										}
+									},
+									{
+										"and": {
+											"vals": [
+												{
+													"dotIsActive": {
+														"spellId": {
+															"spellId": 9904
+														}
+													}
+												},
+												{
+													"cmp": {
+														"op": "OpGe",
+														"lhs": {
+															"remainingTime": {}
+														},
+														"rhs": {
+															"const": {
+																"val": "9s"
+															}
+														}
+													}
+												},
+												{
+													"cmp": {
+														"op": "OpGt",
+														"lhs": {
+															"dotRemainingTime": {
+																"spellId": {
+																	"spellId": 9904
+																}
+															}
+														},
+														"rhs": {
+															"const": {
+																"val": "0s"
+															}
+														}
+													}
+												},
+												{
+													"cmp": {
+														"op": "OpLe",
+														"lhs": {
+															"dotRemainingTime": {
+																"spellId": {
+																	"spellId": 9904
+																}
+															}
+														},
+														"rhs": {
+															"const": {
+																"val": "1s"
+															}
+														}
+													}
+												},
+												{
+													"cmp": {
+														"op": "OpLt",
+														"lhs": {
+															"math": {
+																"op": "OpAdd",
+																"lhs": {
+																	"math": {
+																		"op": "OpSub",
+																		"lhs": {
+																			"currentEnergy": {}
+																		},
+																		"rhs": {
+																			"spellCurrentCost": {
+																				"spellId": {
+																					"spellId": 9830
+																				}
+																			}
+																		}
+																	}
+																},
+																"rhs": {
+																	"const": {
+																		"val": "10"
+																	}
+																}
+															}
+														},
+														"rhs": {
+															"spellCurrentCost": {
+																"spellId": {
+																	"spellId": 9904
+																}
+															}
+														}
+													}
+												}
+											]
+										}
+									}
+								]
+							}
+						}
+					}
+				},
+				"castSpell": {
+					"spellId": {
+						"spellId": 9830
+					}
+				}
+			}
+		},
+		{
+			"action": {
+				"condition": {
+					"and": {
+						"vals": [
+							{
+								"not": {
+									"val": {
+										"or": {
+											"vals": [
+												{
+													"and": {
+														"vals": [
+															{
+																"cmp": {
+																	"op": "OpGe",
+																	"lhs": {
+																		"currentComboPoints": {}
+																	},
+																	"rhs": {
+																		"const": {
+																			"val": "5"
+																		}
+																	}
+																}
+															},
+															{
+																"dotIsActive": {
+																	"spellId": {
+																		"spellId": 9896
+																	}
+																}
+															},
+															{
+																"cmp": {
+																	"op": "OpGe",
+																	"lhs": {
+																		"remainingTime": {}
+																	},
+																	"rhs": {
+																		"const": {
+																			"val": "10s"
+																		}
+																	}
+																}
+															},
+															{
+																"cmp": {
+																	"op": "OpGt",
+																	"lhs": {
+																		"dotRemainingTime": {
+																			"spellId": {
+																				"spellId": 9896
+																			}
+																		}
+																	},
+																	"rhs": {
+																		"const": {
+																			"val": "0s"
+																		}
+																	}
+																}
+															},
+															{
+																"cmp": {
+																	"op": "OpLe",
+																	"lhs": {
+																		"dotRemainingTime": {
+																			"spellId": {
+																				"spellId": 9896
+																			}
+																		}
+																	},
+																	"rhs": {
+																		"const": {
+																			"val": "2s"
+																		}
+																	}
+																}
+															},
+															{
+																"cmp": {
+																	"op": "OpLt",
+																	"lhs": {
+																		"math": {
+																			"op": "OpAdd",
+																			"lhs": {
+																				"math": {
+																					"op": "OpSub",
+																					"lhs": {
+																						"currentEnergy": {}
+																					},
+																					"rhs": {
+																						"spellCurrentCost": {
+																							"spellId": {
+																								"spellId": 9830
+																							}
+																						}
+																					}
+																				}
+																			},
+																			"rhs": {
+																				"const": {
+																					"val": "10"
+																				}
+																			}
+																		}
+																	},
+																	"rhs": {
+																		"spellCurrentCost": {
+																			"spellId": {
+																				"spellId": 9896
+																			}
+																		}
+																	}
+																}
+															}
+														]
+													}
+												},
+												{
+													"and": {
+														"vals": [
+															{
+																"dotIsActive": {
+																	"spellId": {
+																		"spellId": 9904
+																	}
+																}
+															},
+															{
+																"cmp": {
+																	"op": "OpGe",
+																	"lhs": {
+																		"remainingTime": {}
+																	},
+																	"rhs": {
+																		"const": {
+																			"val": "9s"
+																		}
+																	}
+																}
+															},
+															{
+																"cmp": {
+																	"op": "OpGt",
+																	"lhs": {
+																		"dotRemainingTime": {
+																			"spellId": {
+																				"spellId": 9904
+																			}
+																		}
+																	},
+																	"rhs": {
+																		"const": {
+																			"val": "0s"
+																		}
+																	}
+																}
+															},
+															{
+																"cmp": {
+																	"op": "OpLe",
+																	"lhs": {
+																		"dotRemainingTime": {
+																			"spellId": {
+																				"spellId": 9904
+																			}
+																		}
+																	},
+																	"rhs": {
+																		"const": {
+																			"val": "1s"
+																		}
+																	}
+																}
+															},
+															{
+																"cmp": {
+																	"op": "OpLt",
+																	"lhs": {
+																		"math": {
+																			"op": "OpAdd",
+																			"lhs": {
+																				"math": {
+																					"op": "OpSub",
+																					"lhs": {
+																						"currentEnergy": {}
+																					},
+																					"rhs": {
+																						"spellCurrentCost": {
+																							"spellId": {
+																								"spellId": 9830
+																							}
+																						}
+																					}
+																				}
+																			},
+																			"rhs": {
+																				"const": {
+																					"val": "10"
+																				}
+																			}
+																		}
+																	},
+																	"rhs": {
+																		"spellCurrentCost": {
+																			"spellId": {
+																				"spellId": 9904
+																			}
+																		}
+																	}
+																}
+															}
+														]
 													}
 												}
 											]
@@ -1584,7 +2136,7 @@
 									},
 									"rhs": {
 										"const": {
-											"val": "40"
+											"val": "20"
 										}
 									}
 								}
@@ -1658,8 +2210,22 @@
 												"currentMana": {}
 											},
 											"rhs": {
-												"const": {
-													"val": "1368"
+												"math": {
+													"op": "OpAdd",
+													"lhs": {
+														"spellCurrentCost": {
+															"spellId": {
+																"spellId": 9634
+															}
+														}
+													},
+													"rhs": {
+														"spellCurrentCost": {
+															"spellId": {
+																"spellId": 768
+															}
+														}
+													}
 												}
 											}
 										}

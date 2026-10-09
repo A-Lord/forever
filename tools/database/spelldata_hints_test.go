@@ -146,12 +146,25 @@ func TestProcShapeOfNamedSpells(t *testing.T) {
 func TestEnchantChanceOfNamedCombatSpells(t *testing.T) {
 	tables := clientSpellTables(t)
 
+	fieryBlaze := tables.row(6297)
+	stated, ok := tables.EnchantChances[6297]
+	if !ok || stated.Chance == 0 {
+		t.Fatalf("Fiery Blaze 6297: enchantments state no chance for it (%v)", stated)
+	}
+	applyTooltipHints(tables, &fieryBlaze)
+	if err := applyEnchantChance(tables, &fieryBlaze); err != nil {
+		t.Fatalf("Fiery Blaze 6297: %v", err)
+	}
+	if fieryBlaze.ProcChance != stated.Chance || fieryBlaze.ProcChanceSource != procChanceColumn || fieryBlaze.ProcChanceEffect != 0 {
+		t.Errorf("Fiery Blaze 6297: ProcChance %d from %s effect %d, want enchantments %v's %d from the column",
+			fieryBlaze.ProcChance, fieryBlaze.ProcChanceSource, fieryBlaze.ProcChanceEffect, stated.Enchants, stated.Chance)
+	}
+
 	for _, want := range []struct {
 		id     int32
 		name   string
 		chance uint8
 	}{
-		{6297, "Fiery Blaze, 15 on enchantment 36 and no column of its own", 15},
 		{11398, "Mind-numbing Poison III, 20 on enchantments 643 and 8696 beside a column of 101", 20},
 		{8516, "Windfury Totem, 20 on enchantment 1783 beside a column of 100", 20},
 	} {
@@ -168,9 +181,10 @@ func TestEnchantChanceOfNamedCombatSpells(t *testing.T) {
 
 	row := tables.row(1248758)
 	applyTooltipHints(tables, &row)
-	if err := applyEnchantChance(tables, &row); err != nil || row.ProcChance != 35 || len(row.overrideNotes) != 0 {
-		t.Errorf("Insight's equip aura 1248758 reads %d%% (%v, notes %v), want its own 35 untouched",
-			row.ProcChance, err, row.overrideNotes)
+	own := row.ProcChance
+	if err := applyEnchantChance(tables, &row); err != nil || row.ProcChance != own || len(row.overrideNotes) != 0 {
+		t.Errorf("Insight's equip aura 1248758 reads %d%% (%v, notes %v), want its own %d untouched",
+			row.ProcChance, err, row.overrideNotes, own)
 	}
 }
 

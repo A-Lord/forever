@@ -1,0 +1,1047 @@
+//go:build with_db
+
+package feralcat
+
+import (
+	"fmt"
+
+	"math"
+	"testing"
+	"time"
+
+	assetsdb "github.com/wowsims/forever/assets/database"
+	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/simsignals"
+	"github.com/wowsims/forever/sim/core/spelldata"
+	"github.com/wowsims/forever/sim/core/stats"
+	"github.com/wowsims/forever/sim/druid"
+)
+
+// 16 balance, 20 feral, 16 restoration. Furor is the second restoration talent.
+const furorTalents = "0000000000000000-00000000000000000000-0500000000000000"
+
+// Shifting Power is the 11th feral talent and Improved Shifting Power the 15th. Natural Shapeshifter is
+// the 5th restoration talent.
+const (
+	shiftingPowerTalents         = "0000000000000000-00000000001000000000-0000000000000000"
+	improvedShiftingPowerTalents = "0000000000000000-00000000001000200000-0000000000000000"
+	shapeshifterTalents          = "0000000000000000-00000000001000000000-0000300000000000"
+)
+
+func newCat(t *testing.T, talents string, consumes *proto.ConsumesSpec) (*core.Simulation, *FeralDruid) {
+	t.Helper()
+	return newCatWearing(t, talents, consumes, nil)
+}
+
+func newCatWearing(t *testing.T, talents string, consumes *proto.ConsumesSpec, worn map[proto.ItemSlot]int32) (*core.Simulation, *FeralDruid) {
+	t.Helper()
+	items := make([]*proto.ItemSpec, proto.ItemSlot_ItemSlotRanged+1)
+	for i := range items {
+		items[i] = &proto.ItemSpec{}
+	}
+	items[proto.ItemSlot_ItemSlotMainHand].Id = 866
+	for slot, id := range worn {
+		items[slot].Id = id
+	}
+	if consumes == nil {
+		consumes = &proto.ConsumesSpec{}
+	}
+	sim := core.NewSim(&proto.RaidSimRequest{
+		SimOptions: &proto.SimOptions{RandomSeed: 1, Iterations: 1},
+		Raid: &proto.Raid{Parties: []*proto.Party{{
+			Players: []*proto.Player{{
+				Name: "Cat", Class: proto.Class_ClassDruid, Race: proto.Race_RaceNightElf,
+				TalentsString: talents,
+				Spec: &proto.Player_FeralCatDruid{FeralCatDruid: &proto.FeralCatDruid{
+					Options: &proto.FeralCatDruid_Options{},
+				}},
+				Equipment:   &proto.EquipmentSpec{Items: items},
+				Consumables: consumes,
+				Buffs:       &proto.IndividualBuffs{},
+				Rotation:    &proto.APLRotation{},
+			}},
+			Buffs: &proto.PartyBuffs{},
+		}}},
+		Encounter: &proto.Encounter{Targets: []*proto.Target{{Name: "target", Level: 60}}, Duration: 60},
+	}, simsignals.CreateSignals())
+	sim.Reset()
+	return sim, sim.Raid.Parties[0].Players[0].(*FeralDruid)
+}
+
+func fillResource(sim *core.Simulation, cat *FeralDruid) {
+	cat.AddEnergy(sim, cat.MaximumEnergy(), cat.NewEnergyMetrics(core.ActionID{SpellID: 1}))
+	cat.AddMana(sim, cat.MaxMana(), cat.NewManaMetrics(core.ActionID{SpellID: 1}))
+	cat.AddRage(sim, cat.MaximumRage(), cat.NewRageMetrics(core.ActionID{SpellID: 1}))
+}
+
+// Ferocity 5/5 and Shredding Attacks 3/3: tooltips 16934 ("5 Rage or Energy") and 16966 ("Shred by 18",
+// "Lacerate by 3").
+func TestFeralCostTalentsLowerEnergyAndRageInTheirOwnUnits(t *testing.T) {
+	_, base := newCat(t, "", nil)
+	_, talented := newCat(t, "0000000000000000-50000030000000000000-0000000000000000", nil)
+	for _, c := range []struct {
+		name       string
+		base, with *druid.DruidSpell
+		less       float64
+	}{
+		{"Shred", base.Shred, talented.Shred, 18},
+		{"Rake", base.Rake, talented.Rake, 5},
+		{"Claw", base.Claw, talented.Claw, 5},
+		{"Lacerate", base.Lacerate, talented.Lacerate, 3},
+		{"Swipe", base.Swipe, talented.Swipe, 5},
+		{"Primal Bite", base.PrimalBite, talented.PrimalBite, 5},
+	} {
+		if got := c.base.Cost.GetCurrentCost() - c.with.Cost.GetCurrentCost(); got != c.less {
+			t.Errorf("%s costs %v less with the talents, want %v", c.name, got, c.less)
+		}
+	}
+}
+
+func TestFurorRestoresEnergyAfterLeavingCat(t *testing.T) {
+	sim, cat := newCat(t, furorTalents, nil)
+	if !cat.InForm(druid.Cat) {
+		t.Fatal("the cat did not start in cat form")
+	}
+	fillResource(sim, cat)
+	cat.SpendEnergy(sim, 60, cat.NewEnergyMetrics(core.ActionID{SpellID: 1}))
+	cat.CatFormAura.Deactivate(sim)
+	sim.CurrentTime += 3 * time.Second
+	fillResource(sim, cat)
+	if !cat.CatForm.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("cat form did not cast on the way back")
+	}
+	// 40 stored plus 10 for each of the 3 seconds outside the forms, all of it at 5/5.
+	if got := cat.CurrentEnergy(); got != 70 {
+		t.Errorf("energy back in cat form = %v, want 70", got)
+	}
+}
+
+// Tooltip 17056: a bear form forfeits the stored energy and halts the count while it is active.
+func TestFurorForfeitsEnergyInABearForm(t *testing.T) {
+	sim, cat := newCat(t, furorTalents, nil)
+	fillResource(sim, cat)
+	cat.SpendEnergy(sim, 60, cat.NewEnergyMetrics(core.ActionID{SpellID: 1}))
+	if !cat.DireBearForm.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("dire bear form did not cast")
+	}
+	if cat.InForm(druid.Cat) {
+		t.Fatal("dire bear form left the cat in cat form")
+	}
+	sim.CurrentTime += 3 * time.Second
+	fillResource(sim, cat)
+	if !cat.CatForm.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("cat form did not cast on the way back")
+	}
+	if got := cat.CurrentEnergy(); got != 0 {
+		t.Errorf("energy back in cat form after dire bear form = %v, want 0", got)
+	}
+}
+
+func TestWithoutFurorCatFormComesBackEmpty(t *testing.T) {
+	sim, cat := newCat(t, "", nil)
+	fillResource(sim, cat)
+	if !cat.DireBearForm.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("dire bear form did not cast")
+	}
+	sim.CurrentTime += 3 * time.Second
+	fillResource(sim, cat)
+	if !cat.CatForm.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("cat form did not cast on the way back")
+	}
+	if got := cat.CurrentEnergy(); got != 0 {
+		t.Errorf("energy back in cat form without Furor = %v, want 0", got)
+	}
+}
+
+func TestProwlHoldsAutoAttacksUntilTheOpener(t *testing.T) {
+	sim, cat := newCat(t, furorTalents, nil)
+	sim.CurrentTime = -time.Second
+	if !cat.Prowl.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("prowl did not cast before the pull")
+	}
+	mh, _, _ := cat.AutoAttacks.SwingAt()
+	if mh != core.NeverExpires-time.Second {
+		t.Errorf("main-hand swing while prowling at %v, want held", mh)
+	}
+	sim.CurrentTime = 0
+	fillResource(sim, cat)
+	if cat.Prowl.CanCast(sim, cat.CurrentTarget) {
+		t.Error("prowl could be cast in combat")
+	}
+	if !cat.Pounce.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("pounce did not cast from prowl")
+	}
+	if cat.ProwlAura.IsActive() {
+		t.Error("pounce left the druid prowling")
+	}
+	if mh, _, _ := cat.AutoAttacks.SwingAt(); mh != 0 {
+		t.Errorf("main-hand swing after the opener at %v, want 0", mh)
+	}
+}
+
+func TestCatQueuesMaulOntoTheBearSwing(t *testing.T) {
+	sim, cat := newCat(t, furorTalents, nil)
+	fillResource(sim, cat)
+	if !cat.DireBearForm.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("dire bear form did not cast")
+	}
+	fillResource(sim, cat)
+	if !cat.Maul.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("maul did not queue")
+	}
+	for sim.CurrentTime < 100*time.Millisecond {
+		if sim.Step() {
+			break
+		}
+	}
+	if got := cat.AutoAttacks.MaybeReplaceMHSwing(sim, nil); got == nil || got.ActionID.SpellID != 9881 {
+		t.Fatalf("the queued swing was %v, want maul 9881", got)
+	}
+}
+
+func TestCowerAndFaerieFireEndProwl(t *testing.T) {
+	for _, spell := range []struct {
+		name string
+		cast func(*core.Simulation, *FeralDruid) bool
+	}{
+		{"cower", func(sim *core.Simulation, cat *FeralDruid) bool {
+			return cat.Cower.Cast(sim, cat.CurrentTarget)
+		}},
+		{"faerie fire", func(sim *core.Simulation, cat *FeralDruid) bool {
+			return cat.FaerieFire.Cast(sim, cat.CurrentTarget)
+		}},
+	} {
+		t.Run(spell.name, func(t *testing.T) {
+			sim, cat := newCat(t, furorTalents, nil)
+			sim.CurrentTime = -time.Second
+			if !cat.Prowl.Cast(sim, cat.CurrentTarget) {
+				t.Fatal("prowl did not cast before the pull")
+			}
+			sim.CurrentTime = 3 * time.Second
+			fillResource(sim, cat)
+			if !spell.cast(sim, cat) {
+				t.Fatalf("%s did not cast from prowl", spell.name)
+			}
+			if cat.ProwlAura.IsActive() {
+				t.Errorf("%s left the druid prowling", spell.name)
+			}
+			if mh, _, _ := cat.AutoAttacks.SwingAt(); mh != 3*time.Second {
+				t.Errorf("main-hand swing after %s at %v, want 3s", spell.name, mh)
+			}
+		})
+	}
+}
+
+func TestFaerieFireRefreshesWhileUp(t *testing.T) {
+	sim, cat := newCat(t, furorTalents, nil)
+	fillResource(sim, cat)
+	target := cat.CurrentTarget
+	aura := cat.FaerieFireAuras.Get(target)
+	aura.Activate(sim)
+	sim.CurrentTime += 35 * time.Second
+	if !cat.FaerieFire.CanCast(sim, target) {
+		t.Fatal("faerie fire could not be recast with 5 s of its debuff left")
+	}
+}
+
+func emptyEnergy(sim *core.Simulation, cat *FeralDruid) {
+	cat.SpendEnergy(sim, cat.CurrentEnergy(), cat.NewEnergyMetrics(core.ActionID{SpellID: 1}))
+}
+
+func TestShiftingPowerTradesManaForEnergy(t *testing.T) {
+	sim, cat := newCat(t, shiftingPowerTalents, nil)
+	fillResource(sim, cat)
+	emptyEnergy(sim, cat)
+	mana := cat.CurrentMana()
+	if !cat.ShiftingPower.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("shifting power did not cast in cat form")
+	}
+	if got := cat.CurrentEnergy(); got != 40 {
+		t.Errorf("energy after shifting power = %v, want 40", got)
+	}
+	// 55% of base mana, the shapeshift's own price.
+	if got, want := mana-cat.CurrentMana(), float64(int32(55*cat.BaseMana)/100); got != want {
+		t.Errorf("mana spent = %v, want %v", got, want)
+	}
+	if got := cat.ShiftingPower.ReadyAt(); got != 16*time.Second {
+		t.Errorf("shifting power ready at %v, want 16s", got)
+	}
+}
+
+func TestShiftingPowerNeedsTheTalentAndCatForm(t *testing.T) {
+	sim, cat := newCat(t, "", nil)
+	fillResource(sim, cat)
+	emptyEnergy(sim, cat)
+	if cat.ShiftingPower.CanCast(sim, cat.CurrentTarget) {
+		t.Error("shifting power could be cast without the talent")
+	}
+	sim, cat = newCat(t, shiftingPowerTalents, nil)
+	fillResource(sim, cat)
+	if !cat.DireBearForm.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("dire bear form did not cast")
+	}
+	fillResource(sim, cat)
+	emptyEnergy(sim, cat)
+	if cat.ShiftingPower.CanCast(sim, cat.CurrentTarget) {
+		t.Error("shifting power could be cast in dire bear form")
+	}
+}
+
+func TestImprovedShiftingPowerTakesTheCooldownToEightSeconds(t *testing.T) {
+	sim, cat := newCat(t, improvedShiftingPowerTalents, nil)
+	fillResource(sim, cat)
+	emptyEnergy(sim, cat)
+	if !cat.ShiftingPower.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("shifting power did not cast")
+	}
+	if got := cat.ShiftingPower.ReadyAt(); got != 8*time.Second {
+		t.Errorf("shifting power ready at %v, want 8s", got)
+	}
+}
+
+func TestNaturalShapeshifterCheapensShiftingPower(t *testing.T) {
+	_, cat := newCat(t, shiftingPowerTalents, nil)
+	full := cat.ShiftingPower.Cost.GetCurrentCost()
+	_, cat = newCat(t, shapeshifterTalents, nil)
+	// 3/3 is 30% off, the same as the form spells.
+	if got, want := cat.ShiftingPower.Cost.GetCurrentCost(), full*0.7; math.Abs(got-want) > 1 {
+		t.Errorf("shifting power cost with natural shapeshifter = %v, want %v", got, want)
+	}
+}
+
+func TestWolfsheadAddsShiftingPowerEnergyAndEnrageRage(t *testing.T) {
+	sim, cat := newCatWearing(t, shiftingPowerTalents, nil, map[proto.ItemSlot]int32{proto.ItemSlot_ItemSlotHead: 8345})
+	fillResource(sim, cat)
+	emptyEnergy(sim, cat)
+	if !cat.ShiftingPower.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("shifting power did not cast")
+	}
+	if got := cat.CurrentEnergy(); got != 45 {
+		t.Errorf("energy after shifting power with wolfshead = %v, want 45", got)
+	}
+	sim.CurrentTime += 2 * time.Second
+	if !cat.BearForm.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("bear form did not cast")
+	}
+	cat.SpendRage(sim, cat.CurrentRage(), cat.NewRageMetrics(core.ActionID{SpellID: 1}))
+	if !cat.Enrage.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("enrage did not cast")
+	}
+	// The row's 10 instant rage, raised by half.
+	if got := cat.CurrentRage(); got != 15 {
+		t.Errorf("rage after enrage with wolfshead = %v, want 15", got)
+	}
+}
+
+func TestHowlingIdolShortensShiftingPower(t *testing.T) {
+	sim, cat := newCatWearing(t, shiftingPowerTalents, nil, map[proto.ItemSlot]int32{proto.ItemSlot_ItemSlotRanged: 272427})
+	fillResource(sim, cat)
+	emptyEnergy(sim, cat)
+	if !cat.ShiftingPower.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("shifting power did not cast")
+	}
+	if got := cat.ShiftingPower.ReadyAt(); got != 15*time.Second {
+		t.Errorf("shifting power ready at %v with the idol, want 15s", got)
+	}
+}
+
+// The October 8 hotfixes: "Shifting Power can no longer be used while already at Full Energy."
+func TestShiftingPowerIsRefusedAtFullEnergy(t *testing.T) {
+	sim, cat := newCat(t, shiftingPowerTalents, nil)
+	fillResource(sim, cat)
+	if cat.ShiftingPower.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("shifting power cast at full energy")
+	}
+	cat.SpendEnergy(sim, 1, cat.NewEnergyMetrics(core.ActionID{SpellID: 1}))
+	if !cat.ShiftingPower.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("shifting power did not cast one energy under full")
+	}
+}
+
+func TestFurorGrantsRageOnEnteringBear(t *testing.T) {
+	sim, cat := newCat(t, furorTalents, nil)
+	cat.AddMana(sim, cat.MaxMana(), cat.NewManaMetrics(core.ActionID{SpellID: 1}))
+	if !cat.BearForm.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("bear form did not cast")
+	}
+	if !cat.InForm(druid.Bear) {
+		t.Fatal("bear form did not set the bear form")
+	}
+	// 5/5 is a guaranteed 10 rage. The bar starts empty.
+	if got := cat.CurrentRage(); got != 10 {
+		t.Errorf("rage on entering bear = %v, want 10", got)
+	}
+}
+
+func TestClawAwardsComboPointsAndRipSpendsThem(t *testing.T) {
+	sim, cat := newCat(t, furorTalents, nil)
+	fillResource(sim, cat)
+	var landed bool
+	for range 15 {
+		if cat.Claw.Cast(sim, cat.CurrentTarget) && cat.ComboPoints() > 0 {
+			landed = true
+			break
+		}
+		fillResource(sim, cat)
+		sim.CurrentTime += 2 * time.Second
+	}
+	if !landed {
+		t.Fatal("claw never awarded a combo point")
+	}
+	points := cat.ComboPoints()
+	fillResource(sim, cat)
+	sim.CurrentTime += 2 * time.Second
+	if !cat.Rip.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("rip did not cast")
+	}
+	if got := cat.ComboPoints(); got != 0 {
+		t.Errorf("combo points after rip = %d, want 0 (spent %d)", got, points)
+	}
+	if !cat.Rip.Dot(cat.CurrentTarget).IsActive() {
+		t.Error("rip left no bleed")
+	}
+}
+
+func TestShredRequiresATargetThatCanBeShredded(t *testing.T) {
+	sim, cat := newCat(t, furorTalents, nil)
+	fillResource(sim, cat)
+	cat.PseudoStats.InFrontOfTarget = true
+	if cat.Shred.CanCast(sim, cat.CurrentTarget) {
+		t.Error("shred could be cast while in front of the target")
+	}
+	cat.PseudoStats.InFrontOfTarget = false
+	if !cat.Shred.CanCast(sim, cat.CurrentTarget) {
+		t.Error("shred could not be cast from behind")
+	}
+}
+
+func TestConsumablesFollowTheNotShapeshiftedRow(t *testing.T) {
+	interesting := map[proto.ConsumableType]bool{
+		proto.ConsumableType_ConsumableTypePotion:    true,
+		proto.ConsumableType_ConsumableTypeExplosive: true,
+		proto.ConsumableType_ConsumableTypeDevice:    true,
+		proto.ConsumableType_ConsumableTypeConjured:  true,
+	}
+	var breakingID, safeID int32
+	var breakingSpell, safeSpell int32
+	for _, consumable := range assetsdb.Load().Consumables {
+		id := consumable.Id
+		item := core.GetConsumableByID(id)
+		if !interesting[item.Type] || len(item.OnUseEffects()) == 0 {
+			continue
+		}
+		row := spelldata.Find(item.OnUse().GetBuffId())
+		if row == spelldata.Nil {
+			continue
+		}
+		breaks := row.NotShapeshifted()
+		if breaks {
+			t.Logf("breaks form: %d %s spell %d", id, item.Name, row.ID)
+		}
+		// The cast below uses a breaker and a potion that need no profession. The log above is every row.
+		if item.RequiredProfession != 0 {
+			continue
+		}
+		if breaks && breakingID == 0 {
+			breakingID, breakingSpell = id, row.ID
+		}
+		if !breaks && safeID == 0 && item.Type == proto.ConsumableType_ConsumableTypePotion && id == 13444 {
+			safeID, safeSpell = id, row.ID
+		}
+	}
+	if breakingID == 0 || safeID == 0 {
+		t.Fatalf("missing a consumable pair, breaking %d safe %d", breakingID, safeID)
+	}
+
+	sim, cat := newCat(t, furorTalents, &proto.ConsumesSpec{PotId: safeID, ExtraIds: []int32{breakingID}})
+	breaking := cat.GetSpell(core.ActionID{ItemID: breakingID})
+	safe := cat.GetSpell(core.ActionID{ItemID: safeID})
+	if breaking == nil || safe == nil {
+		t.Fatalf("consumable spells did not register, item %d spell %d and item %d spell %d", breakingID, breakingSpell, safeID, safeSpell)
+	}
+	if !breaking.CastRequirement.NotShapeshifted || safe.CastRequirement.NotShapeshifted {
+		t.Fatalf("cast requirement breaking=%v safe=%v", breaking.CastRequirement.NotShapeshifted, safe.CastRequirement.NotShapeshifted)
+	}
+
+	sawBreaker := false
+	for _, mcd := range cat.GetMajorCooldowns() {
+		if mcd.Spell != breaking {
+			continue
+		}
+		sawBreaker = true
+		if mcd.TryActivate(sim, cat.GetCharacter()) || !cat.InForm(druid.Cat) {
+			t.Error("a cat automatically used a consumable that leaves cat form")
+		}
+	}
+	if !sawBreaker {
+		t.Fatal("the form-breaking consumable was not a major cooldown")
+	}
+
+	castConsumable := func(form druid.DruidForm, spell *core.Spell, wantShift bool) {
+		t.Helper()
+		fillResource(sim, cat)
+		waitReady(sim, cat)
+		if !spell.Cast(sim, cat.CurrentTarget) {
+			t.Fatalf("%s did not cast in %v", spell.ActionID, form)
+		}
+		waitReady(sim, cat)
+		shifted := cat.InForm(druid.Cat) || cat.InForm(druid.Bear)
+		if wantShift && shifted {
+			t.Errorf("%s left the druid in a form", spell.ActionID)
+		}
+		if !wantShift && !cat.InForm(form) {
+			t.Errorf("%s left %v", spell.ActionID, form)
+		}
+	}
+
+	castConsumable(druid.Cat, breaking, true)
+	fillResource(sim, cat)
+	waitReady(sim, cat)
+	if !cat.CatForm.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("could not return to cat form")
+	}
+	resetCooldown(safe)
+	castConsumable(druid.Cat, safe, false)
+
+	fillResource(sim, cat)
+	waitReady(sim, cat)
+	if !cat.BearForm.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("could not enter bear form")
+	}
+	resetCooldown(breaking)
+	castConsumable(druid.Bear, breaking, true)
+	fillResource(sim, cat)
+	waitReady(sim, cat)
+	if !cat.BearForm.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("could not return to bear form")
+	}
+	resetCooldown(safe)
+	castConsumable(druid.Bear, safe, false)
+}
+
+func waitReady(sim *core.Simulation, cat *FeralDruid) {
+	deadline := sim.CurrentTime + 10*time.Second
+	for sim.CurrentTime < deadline {
+		if cat.GCD.IsReady(sim) && cat.Hardcast.Expires <= sim.CurrentTime {
+			return
+		}
+		if sim.Step() {
+			return
+		}
+	}
+}
+
+// Subtlety 3/3 is the 4th restoration talent. Its mask is Nature and Arcane, so physical threat stays put.
+func TestSubtletyThreatIsNatureAndArcane(t *testing.T) {
+	_, plain := newCat(t, "", nil)
+	_, cat := newCat(t, "0000000000000000-00000000000000000000-0003000000000000", nil)
+	got := cat.PseudoStats.SchoolThreatMultiplier
+	base := plain.PseudoStats.SchoolThreatMultiplier
+	if got[stats.SchoolIndexNature] != 0.7 || got[stats.SchoolIndexArcane] != 0.7 {
+		t.Fatalf("Subtlety 3/3 threat: nature %.3f arcane %.3f, want 0.70", got[stats.SchoolIndexNature], got[stats.SchoolIndexArcane])
+	}
+	if got[stats.SchoolIndexPhysical] != base[stats.SchoolIndexPhysical] || cat.PseudoStats.ThreatMultiplier != plain.PseudoStats.ThreatMultiplier {
+		t.Fatalf("physical %.3f (base %.3f), global %.3f (base %.3f)",
+			got[stats.SchoolIndexPhysical], base[stats.SchoolIndexPhysical],
+			cat.PseudoStats.ThreatMultiplier, plain.PseudoStats.ThreatMultiplier)
+	}
+}
+
+func resetCooldown(spell *core.Spell) {
+	if spell.CD.Timer != nil {
+		spell.CD.Reset()
+	}
+	if spell.SharedCD.Timer != nil {
+		spell.SharedCD.Reset()
+	}
+}
+
+func TestFeralFormsUseFeralSkillAndRestoreEquippedSkill(t *testing.T) {
+	sim, cat := newCatWearing(t, "", nil, map[proto.ItemSlot]int32{proto.ItemSlot_ItemSlotMainHand: 866})
+	cat.ClearForm(sim)
+	cat.PseudoStats.WeaponSkills[proto.WeaponSkill_WeaponSkillStaves] = -20
+	cat.SetFeralCombat(false)
+	table := cat.AttackTables[cat.CurrentTarget.UnitIndex]
+	if got := table.MH.BaseMissChance; got != 0.09 {
+		t.Fatalf("humanoid staff miss = %v, want 0.09", got)
+	}
+
+	fillResource(sim, cat)
+	if !cat.CatForm.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("Cat Form did not cast")
+	}
+	if got := table.MH.BaseMissChance; got != 0.05 {
+		t.Fatalf("Cat Form miss = %v, want 0.05", got)
+	}
+
+	cat.ClearForm(sim)
+	sim.CurrentTime += 2 * time.Second
+	fillResource(sim, cat)
+	if !cat.BearForm.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("Bear Form did not cast")
+	}
+	if got := table.MH.BaseMissChance; got != 0.05 {
+		t.Fatalf("Bear Form miss = %v, want 0.05", got)
+	}
+
+	cat.ClearForm(sim)
+	if got := table.MH.BaseMissChance; got != 0.09 {
+		t.Fatalf("restored humanoid staff miss = %v, want 0.09", got)
+	}
+}
+
+func TestEquippedAndUnarmedFeralCombatTablesMatch(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		form druid.DruidForm
+	}{{"cat", druid.Cat}, {"humanoid", druid.Humanoid}, {"bear", druid.Bear}, {"dire bear", druid.DireBear}} {
+		t.Run(tc.name, func(t *testing.T) {
+			var first *core.AttackTableHand
+			for _, weapon := range []int32{0, 866} {
+				// Given
+				sim, cat := newCatWearing(t, "", nil, map[proto.ItemSlot]int32{proto.ItemSlot_ItemSlotMainHand: weapon})
+				if tc.form != druid.Cat {
+					cat.ClearForm(sim)
+				}
+				fillResource(sim, cat)
+				// When
+				if tc.form == druid.Bear && !cat.BearForm.Cast(sim, cat.CurrentTarget) {
+					t.Fatal("bear form did not cast")
+				}
+				if tc.form == druid.DireBear && !cat.DireBearForm.Cast(sim, cat.CurrentTarget) {
+					t.Fatal("dire bear form did not cast")
+				}
+				// Then
+				table := &cat.AttackTables[cat.CurrentTarget.UnitIndex].MH
+				if first == nil {
+					first = table
+				} else {
+					if table.BaseMissChance != first.BaseMissChance || table.BaseDodgeChance != first.BaseDodgeChance || table.BaseGlanceChance != first.BaseGlanceChance {
+						t.Errorf("weapon %v changed the level-based combat table", weapon)
+					}
+				}
+				t.Logf("form=%v weapon=%v miss=%v dodge=%v glance=%v", tc.form, weapon, table.BaseMissChance, table.BaseDodgeChance, table.BaseGlanceChance)
+			}
+		})
+	}
+}
+
+func TestRegisteredShredUsesCatPawFlatDamageAfterNormalization(t *testing.T) {
+	sim, cat := newCat(t, "", nil)
+	item := cat.GetMHWeapon()
+	item.SwingSpeed = 2
+	cat.AutoAttacks.SetMH(cat.GetCatWeapon())
+	rank := spelldata.MustFind(9830)
+	base := rank.WeaponStrike(sim, cat.Shred.Spell, cat.AutoAttacks.MH().CalculateAverageWeaponDamage(cat.Shred.MeleeAttackPower(cat.CurrentTarget)), 0)
+
+	item.Enchant.WeaponDamage = 4
+	cat.AutoAttacks.SetMH(cat.GetCatWeapon())
+	withEnchant := rank.WeaponStrike(sim, cat.Shred.Spell, cat.AutoAttacks.MH().CalculateAverageWeaponDamage(cat.Shred.MeleeAttackPower(cat.CurrentTarget)), 0)
+
+	if got, want := withEnchant-base, 6.2; math.Abs(got-want) > 1e-9 {
+		t.Errorf("registered Shred gains %.3f before outcomes, want %.3f", got, want)
+	}
+	t.Logf("registered Shred row 9830 gains %.3f before outcomes from Cat +4", withEnchant-base)
+}
+
+func TestThickHideEquippedDefenseFollowsFormsAndStatChanges(t *testing.T) {
+	for _, form := range []druid.DruidForm{druid.Cat, druid.Bear, druid.DireBear} {
+		t.Run(fmt.Sprintf("form_%d", form), func(t *testing.T) {
+			worn := map[proto.ItemSlot]int32{proto.ItemSlot_ItemSlotFinger1: 12985}
+			sim, cat := newCatWearing(t, "-000003", nil, worn)
+			plainSim, plain := newCatWearing(t, "", nil, worn)
+			fillResource(sim, cat)
+			fillResource(plainSim, plain)
+			if form == druid.Bear {
+				cat.BearForm.Cast(sim, cat.CurrentTarget)
+				plain.BearForm.Cast(plainSim, plain.CurrentTarget)
+			}
+			if form == druid.DireBear {
+				cat.DireBearForm.Cast(sim, cat.CurrentTarget)
+				plain.DireBearForm.Cast(plainSim, plain.CurrentTarget)
+			}
+			multiplier := 1.0
+			if form == druid.Bear {
+				multiplier = 2.8
+			}
+			if form == druid.DireBear {
+				multiplier = 4.6
+			}
+			if got, want := cat.GetStat(stats.Armor)-plain.GetStat(stats.Armor), (60*3+4*2)*multiplier; math.Abs(got-want) > 1e-9 {
+				t.Errorf("Thick Hide armor with four equipped Defense = %g, want %g", got, want)
+			}
+			before := cat.GetStat(stats.Armor)
+			cat.AddStatDynamic(sim, stats.DefenseRating, 4)
+			want := 8.0 * multiplier
+			if got := cat.GetStat(stats.Armor) - before; math.Abs(got-want) > 1e-9 {
+				t.Errorf("armor from four Defense = %g, want %g", got, want)
+			}
+			cat.ClearForm(sim)
+			before = cat.GetStat(stats.Armor)
+			cat.AddStatDynamic(sim, stats.DefenseRating, -4)
+			if got := cat.GetStat(stats.Armor) - before; got != 0 {
+				t.Errorf("humanoid Thick Hide armor = %g, want 0", got)
+			}
+		})
+	}
+}
+
+func TestFeralAttackPowerConvertsOneForOneOnlyInFeralForms(t *testing.T) {
+	// Given a cat with 77 Feral Attack Power added after initialization.
+	sim, cat := newCat(t, "", nil)
+	catAP := cat.GetStat(stats.AttackPower)
+	cat.AddStatDynamic(sim, stats.FeralAttackPower, 77)
+
+	// When the druid moves through Cat, humanoid, Bear, and humanoid forms.
+	if got := cat.GetStat(stats.AttackPower) - catAP; got != 77 {
+		t.Errorf("Cat Form gained %v attack power, want 77", got)
+	}
+	cat.ClearForm(sim)
+	humanoidAP := cat.GetStat(stats.AttackPower)
+	cat.AddStatDynamic(sim, stats.FeralAttackPower, -77)
+	if got := cat.GetStat(stats.AttackPower); got != humanoidAP {
+		t.Errorf("removing Feral Attack Power in humanoid form changed attack power from %v to %v", humanoidAP, got)
+	}
+	cat.AddStatDynamic(sim, stats.FeralAttackPower, 77)
+	fillResource(sim, cat)
+	if !cat.BearForm.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("Bear Form did not cast")
+	}
+	bearAP := cat.GetStat(stats.AttackPower)
+	cat.AddStatDynamic(sim, stats.FeralAttackPower, -77)
+	if got := bearAP - cat.GetStat(stats.AttackPower); got != 77 {
+		t.Errorf("Bear Form gained %v attack power, want 77", got)
+	}
+	cat.AddStatDynamic(sim, stats.FeralAttackPower, 77)
+	cat.ClearForm(sim)
+
+	// Then the form-only dependency is removed again on exit.
+	secondHumanoidAP := cat.GetStat(stats.AttackPower)
+	cat.AddStatDynamic(sim, stats.FeralAttackPower, -77)
+	if got := cat.GetStat(stats.AttackPower); got != secondHumanoidAP {
+		t.Errorf("removing Feral Attack Power after Bear changed humanoid attack power from %v to %v", secondHumanoidAP, got)
+	}
+}
+
+func TestOmenUsesTwoPPMWithTenSecondICDOnMeleeHits(t *testing.T) {
+	// Given Omen's permanent listener and a landed main-hand auto result.
+	sim, cat := newCat(t, "0000000000000000-00000000000000000000-0000000000000001", nil)
+	omen := cat.GetAura("Omen of Clarity")
+	if omen == nil || omen.Icd == nil {
+		t.Fatalf("Omen listener is incomplete: aura=%v ICD=%v", omen, omen != nil && omen.Icd != nil)
+	}
+	if omen.Icd.Duration != 10*time.Second {
+		t.Fatalf("Omen ICD = %v, want 10s", omen.Icd.Duration)
+	}
+	cat.AutoAttacks.CancelAutoSwing(sim)
+	result := &core.SpellResult{Target: cat.CurrentTarget, Outcome: core.OutcomeHit, Damage: 1}
+	before := omen.Icd.ReadyAt()
+	wrongMask := cat.RegisterSpell(core.SpellConfig{ActionID: core.ActionID{SpellID: 2}, ProcMask: core.ProcMaskRangedAuto})
+
+	// When a ranged hit reaches the listener directly, then its decoded mask rejects it without using the ICD.
+	for range 200 {
+		omen.OnSpellHitDealt(omen, sim, wrongMask.Spell, result)
+	}
+	if got := omen.Icd.ReadyAt(); got != before {
+		t.Fatalf("a ranged hit moved Omen's ICD from %v to %v", before, got)
+	}
+
+	// When enough eligible one-second paw hits roll 2 PPM on the paw's speed, one activates Clearcasting.
+	for range 500 {
+		omen.OnSpellHitDealt(omen, sim, cat.AutoAttacks.MHAuto(), result)
+	}
+	for sim.CurrentTime <= core.SpellBatchWindow && !sim.Step() {
+	}
+	if !cat.ClearcastingAura.IsActive() {
+		t.Fatal("500 eligible paw hits produced no Clearcasting proc")
+	}
+	if got := omen.Icd.ReadyAt(); got != 10*time.Second {
+		t.Errorf("Omen ICD ready at %v, want 10s", got)
+	}
+
+	// Then an eligible hit inside the ICD cannot reactivate a consumed Clearcasting aura.
+	cat.ClearcastingAura.Deactivate(sim)
+	for range 500 {
+		omen.OnSpellHitDealt(omen, sim, cat.AutoAttacks.MHAuto(), result)
+	}
+	for end := sim.CurrentTime + core.SpellBatchWindow; sim.CurrentTime <= end && !sim.Step(); {
+	}
+	if cat.ClearcastingAura.IsActive() {
+		t.Error("Omen proc bypassed its 10-second ICD")
+	}
+}
+
+func TestOmenSpecialHitsUseFormSwingSpeed(t *testing.T) {
+	const omenTalents = "0000000000000000-00000000000000000000-0000000000000001"
+	const slowWeapon = 1607
+
+	countProcs := func(t *testing.T, form druid.DruidForm) (float64, int) {
+		t.Helper()
+		sim, cat := newCatWearing(t, omenTalents, nil, map[proto.ItemSlot]int32{proto.ItemSlot_ItemSlotMainHand: slowWeapon})
+		cat.AutoAttacks.CancelAutoSwing(sim)
+		omen := cat.GetAura("Omen of Clarity")
+		if omen == nil || omen.OnSpellHitDealt == nil || omen.Icd == nil {
+			t.Fatal("Omen listener is incomplete")
+		}
+
+		special := cat.Claw.Spell
+		switch form {
+		case druid.Bear:
+			fillResource(sim, cat)
+			if !cat.BearForm.Cast(sim, cat.CurrentTarget) {
+				t.Fatal("Bear Form did not cast")
+			}
+			special = cat.Swipe.Spell
+		case druid.Humanoid:
+			cat.ClearForm(sim)
+		}
+		result := &core.SpellResult{Target: cat.CurrentTarget, Outcome: core.OutcomeHit, Damage: 1}
+		procs := 0
+		for range 500 {
+			omen.OnSpellHitDealt(omen, sim, special, result)
+			if !omen.Icd.IsReady(sim) {
+				procs++
+				omen.Icd.Reset()
+			}
+		}
+		if procs == 0 {
+			t.Fatal("500 eligible special hits produced no Omen proc")
+		}
+		return cat.AutoAttacks.MH().SwingSpeed, procs
+	}
+
+	catSpeed, catProcs := countProcs(t, druid.Cat)
+	bearSpeed, bearProcs := countProcs(t, druid.Bear)
+	weaponSpeed, weaponProcs := countProcs(t, druid.Humanoid)
+	if catSpeed != 1 {
+		t.Errorf("Cat paw speed = %g, want 1", catSpeed)
+	}
+	if bearSpeed != 2.5 {
+		t.Errorf("Bear paw speed = %g, want 2.5", bearSpeed)
+	}
+	if weaponSpeed != 3.8 {
+		t.Errorf("humanoid weapon speed = %g, want 3.8", weaponSpeed)
+	}
+	t.Logf("Omen procs from 500 real special hits: Cat=%d Bear=%d humanoid weapon=%d", catProcs, bearProcs, weaponProcs)
+	if !(catProcs < bearProcs && bearProcs < weaponProcs) {
+		t.Fatalf("special Omen rolls did not follow Cat/Bear paw/weapon pace: Cat=%d Bear=%d weapon=%d", catProcs, bearProcs, weaponProcs)
+	}
+}
+
+func TestClearcastingIsSpentByACoveredCatAbility(t *testing.T) {
+	// Given Clearcasting at full energy.
+	sim, cat := newCat(t, "", nil)
+	prepareFeralDamageCase(sim, cat)
+	cat.AutoAttacks.CancelAutoSwing(sim)
+	cat.ClearcastingAura.Activate(sim)
+	cat.ClearcastingAura.SetStacks(sim, cat.ClearcastingAura.MaxStacks)
+
+	// When Rake casts, then its covered class flags make the cast free and consume the charge.
+	if !cat.Rake.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("Rake did not cast")
+	}
+	for sim.CurrentTime <= core.SpellBatchWindow && !sim.Step() {
+	}
+	if got := cat.CurrentEnergy(); got != 100 {
+		t.Errorf("Clearcasting Rake left %v energy, want 100", got)
+	}
+	if cat.ClearcastingAura.IsActive() {
+		t.Error("Rake did not consume Clearcasting")
+	}
+
+	// Given another charge, when the covered ability misses, then the charge is retained.
+	cat.ClearcastingAura.Activate(sim)
+	cat.ClearcastingAura.SetStacks(sim, cat.ClearcastingAura.MaxStacks)
+	miss := &core.SpellResult{Target: cat.CurrentTarget, Outcome: core.OutcomeMiss}
+	cat.ClearcastingAura.OnSpellHitDealt(cat.ClearcastingAura, sim, cat.Rake.Spell, miss)
+	if !cat.ClearcastingAura.IsActive() || cat.ClearcastingAura.GetStacks() != 1 {
+		t.Error("a missed Rake consumed Clearcasting")
+	}
+
+	// When an auto attack lands, then the ability-only class mask also keeps the charge.
+	landed := &core.SpellResult{Target: cat.CurrentTarget, Outcome: core.OutcomeHit, Damage: 1}
+	cat.ClearcastingAura.OnSpellHitDealt(cat.ClearcastingAura, sim, cat.AutoAttacks.MHAuto(), landed)
+	if !cat.ClearcastingAura.IsActive() {
+		t.Error("a paw auto attack consumed Clearcasting")
+	}
+}
+
+func TestNaturalReactionOnlyRestoresRageInBearForm(t *testing.T) {
+	// Given Natural Reaction 5/5 and a dodged incoming attack while in Cat Form.
+	sim, cat := newCat(t, "0000000000000000-00000000000000000500-0000000000000000", nil)
+	naturalReaction := cat.GetAura("Natural Reaction")
+	if naturalReaction == nil || naturalReaction.OnSpellHitTaken == nil {
+		t.Fatal("Natural Reaction listener is missing")
+	}
+	cat.AutoAttacks.CancelAutoSwing(sim)
+	cat.CurrentTarget.AutoAttacks.CancelAutoSwing(sim)
+	dodge := &core.SpellResult{Target: &cat.Unit, Outcome: core.OutcomeDodge}
+	naturalReaction.OnSpellHitTaken(naturalReaction, sim, cat.AutoAttacks.MHAuto(), dodge)
+	for end := sim.CurrentTime + core.SpellBatchWindow; sim.CurrentTime <= end && !sim.Step(); {
+	}
+	if got := cat.CurrentRage(); got != 0 {
+		t.Errorf("Natural Reaction restored %v rage in Cat Form, want 0", got)
+	}
+
+	// When the same dodge occurs in Bear Form, then the triggered row restores 5 rage.
+	fillResource(sim, cat)
+	if !cat.BearForm.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("Bear Form did not cast")
+	}
+	cat.SpendRage(sim, cat.CurrentRage(), cat.NewRageMetrics(core.ActionID{SpellID: 1}))
+	naturalReaction.OnSpellHitTaken(naturalReaction, sim, cat.AutoAttacks.MHAuto(), dodge)
+	for end := sim.CurrentTime + core.SpellBatchWindow; sim.CurrentTime <= end && !sim.Step(); {
+	}
+	if got := cat.CurrentRage(); got != 5 {
+		t.Errorf("Natural Reaction restored %v rage in Bear Form, want 5", got)
+	}
+}
+
+func TestCatBarkskinCastsAndAppliesItsDamageReduction(t *testing.T) {
+	sim, cat := newCat(t, "", nil)
+	row := spelldata.MustFind(22812)
+	spell := cat.GetSpell(core.ActionID{SpellID: row.ID})
+	if spell == nil || !spell.Cast(sim, &cat.Unit) {
+		t.Fatal("Cat could not cast Barkskin")
+	}
+	if got := cat.PseudoStats.SchoolDamageTakenMultiplier[stats.SchoolIndexPhysical]; math.Abs(got-0.8) > 1e-9 {
+		t.Errorf("Barkskin damage multiplier = %g, want 0.8", got)
+	}
+	if got := cat.PseudoStats.SchoolDamageTakenMultiplier[stats.SchoolIndexFire]; got != 1 {
+		t.Errorf("Barkskin fire damage multiplier = %g, want 1", got)
+	}
+	cat.GetAura(row.Name).Deactivate(sim)
+	if got := cat.PseudoStats.SchoolDamageTakenMultiplier[stats.SchoolIndexPhysical]; got != 1 {
+		t.Errorf("expired Barkskin damage multiplier = %g, want 1", got)
+	}
+}
+
+func TestDashSpeedExpiresAfterItsDuration(t *testing.T) {
+	sim, cat := newCat(t, "", nil)
+	before := cat.GetMovementSpeed()
+	if !cat.Dash.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("Dash did not cast in Cat Form")
+	}
+	if got, want := cat.GetMovementSpeed(), before*1.6; math.Abs(got-want) > 1e-9 {
+		t.Fatalf("Dash movement speed = %g, want %g", got, want)
+	}
+	for cat.DashAura.IsActive() {
+		if sim.Step() {
+			t.Fatal("simulation ended before Dash expired")
+		}
+	}
+	if sim.CurrentTime < 15*time.Second {
+		t.Fatalf("Dash expired at %s, want at least 15s", sim.CurrentTime)
+	}
+	if got := cat.GetMovementSpeed(); math.Abs(got-before) > 1e-9 {
+		t.Fatalf("movement after Dash = %g, want %g", got, before)
+	}
+	t.Logf("Dash speed %g -> %g -> %g; expired at %s", before, before*1.6, cat.GetMovementSpeed(), sim.CurrentTime)
+}
+
+func TestStrengthAddsTwoAttackPowerAcrossForms(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		form druid.DruidForm
+	}{
+		{"cat", druid.Cat},
+		{"humanoid", druid.Humanoid},
+		{"bear", druid.Bear},
+		{"dire bear", druid.DireBear},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			// Given
+			sim, cat := newCatWearing(t, "", nil, map[proto.ItemSlot]int32{proto.ItemSlot_ItemSlotMainHand: 0})
+			if tc.form != druid.Cat {
+				cat.ClearForm(sim)
+			}
+			fillResource(sim, cat)
+			if tc.form == druid.Bear && !cat.BearForm.Cast(sim, cat.CurrentTarget) {
+				t.Fatal("bear form did not cast")
+			}
+			if tc.form == druid.DireBear && !cat.DireBearForm.Cast(sim, cat.CurrentTarget) {
+				t.Fatal("dire bear form did not cast")
+			}
+			if !cat.InForm(tc.form) {
+				t.Fatalf("expected form %v", tc.form)
+			}
+			before := cat.GetStat(stats.AttackPower)
+
+			// When
+			cat.AddStatDynamic(sim, stats.Strength, 10)
+
+			// Then
+			if got := cat.GetStat(stats.AttackPower) - before; got != 20 {
+				t.Errorf("10 strength adds %v attack power, want 20", got)
+			}
+			cat.AddStatDynamic(sim, stats.Strength, -10)
+			if got := cat.GetStat(stats.AttackPower); got != before {
+				t.Errorf("removing strength leaves attack power %v, want %v", got, before)
+			}
+		})
+	}
+}
+
+func TestDruidDodgeFromAgilityAcrossForms(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		form druid.DruidForm
+	}{{"humanoid", druid.Humanoid}, {"cat", druid.Cat}, {"bear", druid.Bear}, {"dire bear", druid.DireBear}} {
+		t.Run(tc.name, func(t *testing.T) {
+			// Given
+			sim, cat := newCatWearing(t, "", nil, map[proto.ItemSlot]int32{proto.ItemSlot_ItemSlotMainHand: 0})
+			if tc.form != druid.Cat {
+				cat.ClearForm(sim)
+			}
+			fillResource(sim, cat)
+			if tc.form == druid.Bear && !cat.BearForm.Cast(sim, cat.CurrentTarget) {
+				t.Fatal("bear form did not cast")
+			}
+			if tc.form == druid.DireBear && !cat.DireBearForm.Cast(sim, cat.CurrentTarget) {
+				t.Fatal("dire bear form did not cast")
+			}
+			before := cat.GetDodgeFromRating()
+			// When
+			cat.AddStatDynamic(sim, stats.Agility, 100)
+			// Then
+			if got := cat.GetDodgeFromRating() - before; math.Abs(got-0.05) > 1e-9 {
+				t.Errorf("100 agility gives %v dodge, want 0.05", got)
+			}
+			if got := cat.PseudoStats.BaseDodgeChance; math.Abs(got-0.019) > 1e-9 {
+				t.Errorf("base dodge %v, want 0.019", got)
+			}
+			t.Logf("form=%v dodge=%v→%v base=%v", tc.form, before, cat.GetDodgeFromRating(), cat.PseudoStats.BaseDodgeChance)
+		})
+	}
+}
+
+func TestStrengthBonusAddsTwoAttackPowerToComputedCatStats(t *testing.T) {
+	for _, race := range []proto.Race{proto.Race_RaceNightElf, proto.Race_RaceTauren} {
+		t.Run(race.String(), func(t *testing.T) {
+			rsr := coverageRequest(false, &proto.APLRotation{})
+			player := rsr.Raid.Parties[0].Players[0]
+			player.Race = race
+			player.TalentsString = ""
+			player.Equipment.Items[proto.ItemSlot_ItemSlotMainHand].Id = 0
+			request := &proto.ComputeStatsRequest{Raid: rsr.Raid, Encounter: rsr.Encounter}
+			before := core.ComputeStats(request)
+			if before.ErrorResult != "" {
+				t.Fatal(before.ErrorResult)
+			}
+			bonus := make([]float64, len(before.RaidStats.Parties[0].Players[0].FinalStats.Stats))
+			bonus[stats.Strength] = 10
+			player.BonusStats = &proto.UnitStats{Stats: bonus}
+			after := core.ComputeStats(request)
+			if after.ErrorResult != "" {
+				t.Fatal(after.ErrorResult)
+			}
+			base := before.RaidStats.Parties[0].Players[0].FinalStats.Stats
+			buffed := after.RaidStats.Parties[0].Players[0].FinalStats.Stats
+			if got := buffed[stats.AttackPower] - base[stats.AttackPower]; got != 20 {
+				t.Errorf("10 bonus strength adds %v computed attack power, want 20", got)
+			}
+			t.Logf("strength %v→%v; attack power %v→%v", base[stats.Strength], buffed[stats.Strength], base[stats.AttackPower], buffed[stats.AttackPower])
+		})
+	}
+}

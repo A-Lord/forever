@@ -407,6 +407,46 @@ func NewSpellDataFlametongueTotemAura(unit *core.Unit, isPlayer bool, talentPoin
 	return newBuff(unit, flametongueTotemMeta, isPlayer, talentPoints)
 }
 
+// Darkspear
+var DarkspearCategory = "Darkspear"
+var darkspearSpell = spelldata.MustFind(16939)
+var darkspearMeta = &Meta{
+	Label:      "Darkspear",
+	Spell:      darkspearSpell,
+	Category:   DarkspearCategory,
+	SingleAura: true,
+}
+
+func DarkspearValue(talentPoints int32) float64 {
+	return darkspearMeta.Value(talentPoints)
+}
+func DarkspearDuration(talentPoints int32) time.Duration {
+	return darkspearMeta.Duration(talentPoints)
+}
+func NewSpellDataDarkspearAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+	return newBuff(unit, darkspearMeta, isPlayer, talentPoints)
+}
+
+// Admiral's Hat
+var AdmiralsHatCategory = "AdmiralsHat"
+var admiralsHatSpell = spelldata.MustFind(12022)
+var admiralsHatMeta = &Meta{
+	Label:      "Admiral's Hat",
+	Spell:      admiralsHatSpell,
+	Category:   AdmiralsHatCategory,
+	SingleAura: true,
+}
+
+func AdmiralsHatValue(talentPoints int32) float64 {
+	return admiralsHatMeta.Value(talentPoints)
+}
+func AdmiralsHatDuration(talentPoints int32) time.Duration {
+	return admiralsHatMeta.Duration(talentPoints)
+}
+func NewSpellDataAdmiralsHatAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+	return newBuff(unit, admiralsHatMeta, isPlayer, talentPoints)
+}
+
 // Arcane Brilliance
 var ArcaneBrillianceCategory = "StatBuff"
 var arcaneBrillianceSpell = spelldata.MustFind(23028)
@@ -841,6 +881,12 @@ func applyGeneratedBuffs(char *core.Character, raid *proto.RaidBuffs, party *pro
 	}
 	if party.FlametongueTotem {
 		driveFlametongueTotem(char, party)
+	}
+	if party.Darkspear {
+		driveDarkspear(char, party)
+	}
+	if party.AdmiralsHat {
+		core.MakePermanent(NewSpellDataAdmiralsHatAura(&char.Unit, false, 0))
 	}
 	if raid.ArcaneBrilliance {
 		core.MakePermanent(NewSpellDataArcaneBrillianceAura(&char.Unit, false, 0))

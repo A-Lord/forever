@@ -266,12 +266,12 @@ func TestFeralCombatRefreshesExistingAttackTables(t *testing.T) {
 		t.Fatalf("280 staff skill miss = %v, want 0.12", got)
 	}
 
-	character.SetFeralCombat(true, 0)
+	character.SetFeralCombat(true)
 	if got := character.AttackTables[0].MH.BaseMissChance; math.Abs(got-0.08) > 1e-9 {
 		t.Fatalf("feral combat miss = %v, want 0.08", got)
 	}
 
-	character.SetFeralCombat(false, 0)
+	character.SetFeralCombat(false)
 	if got := character.AttackTables[0].MH.BaseMissChance; math.Abs(got-0.12) > 1e-9 {
 		t.Fatalf("restored staff skill miss = %v, want 0.12", got)
 	}

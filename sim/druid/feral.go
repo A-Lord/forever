@@ -14,7 +14,7 @@ func (druid *Druid) level() int32 {
 }
 
 func (druid *Druid) rendAndTearMultiplier(target *core.Unit) float64 {
-	if druid.Talents.RendAndTear == 0 || !target.HasActiveAuraWithTag(druidBleedTag) {
+	if druid.Talents.RendAndTear == 0 || !(druid.AssumeBleedActive || target.HasActiveAuraWithTag(druidBleedTag)) {
 		return 1
 	}
 	// TODO: Ingame research needed -- the tooltip names melee abilities against a bleeding target.

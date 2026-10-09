@@ -6,7 +6,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -18,209 +17,6 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 	gproto "google.golang.org/protobuf/proto"
 )
-
-func TestRotationSweep(t *testing.T) {
-	if os.Getenv("ROTATION_SWEEP") == "" {
-		t.Skip("set ROTATION_SWEEP=1 (and ROTATION_SWEEP_ITERATIONS) to compare rotation options")
-	}
-	iterations := int32(300)
-	if n, err := strconv.Atoi(os.Getenv("ROTATION_SWEEP_ITERATIONS")); err == nil && n > 0 {
-		iterations = int32(n)
-	}
-
-	_, costCat := newCat(t, powershiftTalents, nil)
-	fmt.Printf("energy cost shred %.0f claw %.0f rip %.0f bite %.0f rake %.0f, shifting power %.0f mana\n",
-		costCat.Shred.Cost.GetCurrentCost(), costCat.Claw.Cost.GetCurrentCost(), costCat.Rip.Cost.GetCurrentCost(),
-		costCat.FerociousBite.Cost.GetCurrentCost(), costCat.Rake.Cost.GetCurrentCost(), costCat.ShiftingPower.Cost.GetCurrentCost())
-	rot := func(ripCP int32, rake, ff, bite bool) *proto.FeralCatDruid_Rotation {
-		return &proto.FeralCatDruid_Rotation{
-			FinishingMove:      proto.FeralCatDruid_Rotation_Rip,
-			RipMinComboPoints:  ripCP,
-			BiteMinComboPoints: 5,
-			RakeTrick:          rake,
-			MaintainFaerieFire: ff,
-			Biteweave:          bite,
-		}
-	}
-	type sweepRow struct {
-		name     string
-		talents  string
-		rotation *proto.APLRotation
-		noShred  bool
-	}
-	row := func(name string, ripCP int32, rake, ff, bite bool) sweepRow {
-		return sweepRow{name, powershiftTalents, catRotation(rot(ripCP, rake, ff, bite)), false}
-	}
-	rows := []sweepRow{
-		row("rake, rip 4", 4, true, false, false),
-		row("rake, rip 5", 5, true, false, false),
-		row("no rake, rip 4", 4, false, false, false),
-		row("no rake, rip 5", 5, false, false, false),
-		row("rake, rip 4, faerie fire", 4, true, true, false),
-		row("rake, rip 5, faerie fire", 5, true, true, false),
-		row("rake, rip 4, bite", 4, true, false, true),
-		row("rake, rip 5, bite", 5, true, false, true),
-		row("rake, rip 4, ff+bite", 4, true, true, true),
-		row("rake, rip 5, ff+bite", 5, true, true, true),
-	}
-	for _, rake := range []bool{false, true} {
-		for _, ripweave := range []bool{false, true} {
-			simple := rot(5, rake, false, false)
-			simple.FinishingMove = proto.FeralCatDruid_Rotation_Bite
-			simple.Ripweave = ripweave
-			rows = append(rows, sweepRow{fmt.Sprintf("bite, rake %t, rip %t", rake, ripweave), powershiftTalents, catRotation(simple), false})
-		}
-	}
-
-	fmt.Printf("%-34s %8s %7s %6s %6s %6s %6s %6s %6s %6s %6s %6s %6s\n",
-		"rotation", "dps", "stdev", "sp", "shred", "claw", "rip", "bite", "rake", "ff", "bsrk", "bear", "pbite")
-	for _, row := range rows {
-		result := runSweep(t, row.name, sweepRequest(t, row.talents, row.rotation, row.noShred, iterations))
-		if result.Error != nil {
-			t.Fatalf("%s: %s", row.name, result.Error.Message)
-		}
-		player := result.RaidMetrics.Parties[0].Players[0]
-		per := func(id int32) float64 { return float64(castsOf(player.Actions, id)) / float64(result.IterationsDone) }
-		fmt.Printf("%-34s %8.2f %7.2f %6.1f %6.1f %6.1f %6.1f %6.1f %6.1f %6.1f %6.1f %6.1f %6.1f\n",
-			row.name, player.Dps.Avg, player.Dps.Stdev,
-			per(1322605), per(9830), per(9850), per(9896), per(22829), per(9904), per(9907), per(417141), per(9634), per(1238073))
-	}
-}
-
-func catRotation(simple *proto.FeralCatDruid_Rotation) *proto.APLRotation {
-	return &proto.APLRotation{PriorityList: []*proto.APLListItem{
-		{Action: &proto.APLAction{Action: &proto.APLAction_AutocastOtherCooldowns{AutocastOtherCooldowns: &proto.APLActionAutocastOtherCooldowns{}}}},
-		{Action: catAction(simple)},
-	}}
-}
-
-// Dire Bear Form when energy is under the limit and Shifting Power is on cooldown, Primal Bite once
-// the rage is there, and back to cat once that bite is on cooldown. The swing that was already coming
-// still lands as a bear swing.
-func bearweaveRotation(simple *proto.FeralCatDruid_Rotation, energyBelow float64) *proto.APLRotation {
-	inBear := auraUp(9634)
-	cat := catAction(simple)
-	cat.Condition = not(inBear)
-	return &proto.APLRotation{PriorityList: []*proto.APLListItem{
-		{Action: &proto.APLAction{Action: &proto.APLAction_AutocastOtherCooldowns{AutocastOtherCooldowns: &proto.APLActionAutocastOtherCooldowns{}}}},
-		castWhen(1238073, inBear),
-		castWhen(768, and(inBear, not(spellReady(1238073)))),
-		castWhen(9634, and(auraUp(768), cmp(proto.APLValueCompare_OpLt, currentEnergy(), konst(fmt.Sprintf("%.0f", energyBelow))),
-			not(spellReady(1322605)), spellReady(1238073))),
-		{Action: cat},
-	}}
-}
-func TestBearWeaveWindow(t *testing.T) {
-	if os.Getenv("ROTATION_SWEEP") == "" {
-		t.Skip("set ROTATION_SWEEP=1 to compare bear-weaving against staying in cat")
-	}
-	iterations := int32(300)
-	if n, err := strconv.Atoi(os.Getenv("ROTATION_SWEEP_ITERATIONS")); err == nil && n > 0 {
-		iterations = int32(n)
-	}
-
-	simple := &proto.FeralCatDruid_Rotation{
-		FinishingMove:      proto.FeralCatDruid_Rotation_Rip,
-		RipMinComboPoints:  4,
-		BiteMinComboPoints: 5,
-		RakeTrick:          false,
-	}
-	weaveTalents := "05001-55000032021132212051-055"
-	type weaveRow struct {
-		name    string
-		talents string
-		rot     *proto.APLRotation
-	}
-	rows := []weaveRow{
-		{"stay in cat", powershiftTalents, catRotation(simple)},
-		{"stay in cat, primal bite talented", weaveTalents, catRotation(simple)},
-	}
-	for _, limit := range []float64{42, 20, 10} {
-		rows = append(rows,
-			weaveRow{fmt.Sprintf("weave below %.0f", limit), weaveTalents, bearweaveRotation(simple, limit)},
-		)
-	}
-
-	fmt.Printf("%-42s %8s %7s %6s %6s %6s %6s %6s %6s\n",
-		"rotation", "dps", "stdev", "sp", "shred", "rip", "rake", "bear", "pbite")
-	for _, row := range rows {
-		result := runSweep(t, row.name, sweepRequest(t, row.talents, row.rot, false, iterations))
-		if result.Error != nil {
-			t.Fatalf("%s: %s", row.name, result.Error.Message)
-		}
-		player := result.RaidMetrics.Parties[0].Players[0]
-		per := func(id int32) float64 { return float64(castsOf(player.Actions, id)) / float64(result.IterationsDone) }
-		fmt.Printf("%-42s %8.2f %7.2f %6.1f %6.1f %6.1f %6.1f %6.1f %6.1f\n",
-			row.name, player.Dps.Avg, player.Dps.Stdev,
-			per(1322605), per(9830), per(9896), per(9904), per(9634), per(1238073))
-	}
-}
-
-func catAction(simple *proto.FeralCatDruid_Rotation) *proto.APLAction {
-	return &proto.APLAction{Action: &proto.APLAction_CatOptimalRotationAction{
-		CatOptimalRotationAction: &proto.APLActionCatOptimalRotationAction{
-			FinishingMove:      simple.FinishingMove,
-			Biteweave:          simple.Biteweave,
-			Ripweave:           simple.Ripweave,
-			RipMinComboPoints:  simple.RipMinComboPoints,
-			BiteMinComboPoints: simple.BiteMinComboPoints,
-			RakeTrick:          simple.RakeTrick,
-			MaintainFaerieFire: simple.MaintainFaerieFire,
-			FaerieFireForOmen:  simple.FaerieFireForOmen,
-		},
-	}}
-}
-
-func spellReady(id int32) *proto.APLValue {
-	return &proto.APLValue{Value: &proto.APLValue_SpellIsReady{SpellIsReady: &proto.APLValueSpellIsReady{
-		SpellId: &proto.ActionID{RawId: &proto.ActionID_SpellId{SpellId: id}},
-	}}}
-}
-
-func currentEnergy() *proto.APLValue {
-	return &proto.APLValue{Value: &proto.APLValue_CurrentEnergy{CurrentEnergy: &proto.APLValueCurrentEnergy{}}}
-}
-
-// withFeralDigit sets one feral-tree digit. Index 10 is Shifting Power, 11 is Primal Bite.
-func withFeralDigit(talents string, index int, digit byte) string {
-	parts := []byte(talents)
-	start := 0
-	for i, c := range parts {
-		if c == '-' {
-			start = i + 1
-			break
-		}
-	}
-	parts[start+index] = digit
-	return string(parts)
-}
-
-func sweepRequest(t testing.TB, talents string, rotation *proto.APLRotation, cannotShred bool, iterations int32) *proto.RaidSimRequest {
-	t.Helper()
-	request := buildRequest(t, "raid")
-	player := request.Raid.Parties[0].Players[0]
-	player.TalentsString = talents
-	player.Rotation = rotation
-	player.GetFeralCatDruid().Options.CannotShredTarget = cannotShred
-	request.SimOptions.Iterations = iterations
-	request.SimOptions.RandomSeed = 101
-	return request
-}
-
-func runSweep(t testing.TB, name string, request *proto.RaidSimRequest) *proto.RaidSimResult {
-	t.Helper()
-	result := core.RunRaidSim(request)
-	if result.Error != nil {
-		t.Fatalf("%s: %s", name, result.Error.Message)
-	}
-	player := result.RaidMetrics.Parties[0].Players[0]
-	if result.IterationsDone != request.SimOptions.Iterations || player.Dps.Avg <= 0 || math.IsNaN(player.Dps.Avg) {
-		t.Fatalf("%s: incomplete or invalid result", name)
-	}
-	writeCatEvidence(t, name+"-request", request)
-	writeCatEvidence(t, name+"-result", result)
-	return result
-}
 
 const (
 	spellCatForm int32 = 768
@@ -236,6 +32,7 @@ const (
 	itemSapper   int32 = 10646
 	itemTea      int32 = 7676
 
+	spellBite       int32 = 22829
 	spellDireBear   int32 = 9634
 	spellPrimalBite int32 = 1238073
 	spellEnrage     int32 = 5229
@@ -254,11 +51,27 @@ type aplTune struct {
 	ceiling   int
 	omenMax   string
 	innervate bool
+	ripCP     int
+	// ripPool is how far ahead of Rip falling off a builder that would leave the refresh unpaid
+	// waits; "" is 2s. rakePool, when set, pools the same way for Rake. spFirst puts Shifting Power
+	// ahead of Rip and Rake.
+	ripPool  string
+	rakePool string
+	spFirst  bool
+	// biteEnd spends 5 combo points on Ferocious Bite once a Rip would not tick out; biteLow, when
+	// set, also bites at 3 or more inside that much of the end. rakeCut, when set, casts no Rake with
+	// less than that left.
+	biteEnd bool
+	biteLow string
+	rakeCut string
 }
 
 func catAPL(tune aplTune) *proto.APLRotation {
 	if tune.ceiling == 0 {
 		tune.ceiling = 50
+	}
+	if tune.ripCP == 0 {
+		tune.ripCP = 5
 	}
 	inCat := auraUp(spellCatForm)
 	clearcasting := auraUp(spellClear)
@@ -266,8 +79,12 @@ func catAPL(tune aplTune) *proto.APLRotation {
 	rakeUp := dotUp(spellRake)
 	cp5 := cmp(proto.APLValueCompare_OpGe, comboPoints(), konst("5"))
 	fightLong := cmp(proto.APLValueCompare_OpGe, remainingTime(), konst("10s"))
-	ripNow := and(cp5, not(ripUp), fightLong, spellCanCast(spellRip))
+	ripCP := cmp(proto.APLValueCompare_OpGe, comboPoints(), konst(strconv.Itoa(tune.ripCP)))
+	ripNow := and(ripCP, not(ripUp), fightLong, spellCanCast(spellRip))
 	rakeNow := and(not(rakeUp), spellCanCast(spellRake))
+	if tune.rakeCut != "" {
+		rakeNow = and(rakeNow, cmp(proto.APLValueCompare_OpGe, remainingTime(), konst(tune.rakeCut)))
+	}
 	energyLow := func(ceiling int) *proto.APLValue {
 		return cmp(proto.APLValueCompare_OpLt, currentEnergy(), konst(strconv.Itoa(ceiling)))
 	}
@@ -277,10 +94,19 @@ func catAPL(tune aplTune) *proto.APLRotation {
 	wantShift := and(spellCanCast(spellSP), underCap)
 	// A builder would leave the refresh short: energy - Shred + 10 regen < Rip.
 	afterBuilder := mathOp(proto.APLValueMath_OpAdd, mathOp(proto.APLValueMath_OpSub, currentEnergy(), spellCost(spellShred)), konst("10"))
-	pooling := and(cp5, ripUp, fightLong,
+	if tune.ripPool == "" {
+		tune.ripPool = "2s"
+	}
+	pooling := and(ripCP, ripUp, fightLong,
 		cmp(proto.APLValueCompare_OpGt, dotLeft(spellRip), konst("0s")),
-		cmp(proto.APLValueCompare_OpLe, dotLeft(spellRip), konst("2s")),
+		cmp(proto.APLValueCompare_OpLe, dotLeft(spellRip), konst(tune.ripPool)),
 		cmp(proto.APLValueCompare_OpLt, afterBuilder, spellCost(spellRip)))
+	if tune.rakePool != "" {
+		pooling = or(pooling, and(rakeUp, cmp(proto.APLValueCompare_OpGe, remainingTime(), konst("9s")),
+			cmp(proto.APLValueCompare_OpGt, dotLeft(spellRake), konst("0s")),
+			cmp(proto.APLValueCompare_OpLe, dotLeft(spellRake), konst(tune.rakePool)),
+			cmp(proto.APLValueCompare_OpLt, afterBuilder, spellCost(spellRake))))
+	}
 	// Berserk is a major cooldown, so a plain cast waits for a GCD that is already idle while the
 	// builder queues into the window and takes that GCD. A sequence casts it with the spell.
 	// The sapper line sits above these, so a throw and the Cat Form after it always go first.
@@ -300,7 +126,7 @@ func catAPL(tune aplTune) *proto.APLRotation {
 		return cmp(proto.APLValueCompare_OpLt, regenEnergy, cost)
 	}
 	rakeSoon := or(not(rakeUp), cmp(proto.APLValueCompare_OpLt, dotLeft(spellRake), konst("1s")))
-	ripSoon := and(cp5, fightLong, or(not(ripUp), cmp(proto.APLValueCompare_OpLt, dotLeft(spellRip), konst("1s"))))
+	ripSoon := and(ripCP, fightLong, or(not(ripUp), cmp(proto.APLValueCompare_OpLt, dotLeft(spellRip), konst("1s"))))
 	omenFish := and(not(clearcasting), auraIcdReady(16864),
 		cmp(proto.APLValueCompare_OpGe, spellLeft(spellSP), konst("1s")),
 		below(spellCost(spellShred)),
@@ -337,6 +163,23 @@ func catAPL(tune aplTune) *proto.APLRotation {
 		castWhen(spellClaw, and(not(pooling), cmp(proto.APLValueCompare_OpGe, currentEnergy(), spellCost(spellShred)))),
 		castWhen(spellFF, omenFish),
 	}
+	if tune.biteEnd {
+		bite := []*proto.APLValue{and(cp5, not(fightLong))}
+		if tune.biteLow != "" {
+			bite = append(bite, and(cmp(proto.APLValueCompare_OpGe, comboPoints(), konst("3")),
+				cmp(proto.APLValueCompare_OpLt, remainingTime(), konst(tune.biteLow))))
+		}
+		// Ahead of Shifting Power and Shred.
+		list = append(list[:10], append([]*proto.APLListItem{castWhen(spellBite, or(bite...))}, list[10:]...)...)
+	}
+	if tune.spFirst {
+		// Rip, Rake, Shifting Power become Shifting Power, Rip, Rake.
+		i := 8
+		if list[i].Action.GetCastSpell().GetSpellId().GetSpellId() != spellRip {
+			panic("catAPL expects Rip as the ninth line")
+		}
+		list[i], list[i+1], list[i+2] = list[i+2], list[i], list[i+1]
+	}
 	if !tune.omen {
 		list = list[:len(list)-1]
 	}
@@ -369,49 +212,90 @@ func manaShort() *proto.APLValue {
 }
 
 // BestCatAPL is the list ui/specs/druid/feralcat/apls/default.apl.json holds.
-var bestCatAPL = aplTune{elune: "after", omen: true, innervate: true}
+var bestCatAPL = aplTune{elune: "after", omen: true, innervate: true, rakePool: "1s", biteEnd: true, biteLow: "3s", rakeCut: "6s"}
 
-// The talents bearweaveAPL is played with: one point out of Genesis into Primal Bite.
-const bearweaveTalents = "040022-55000032021130212051-055"
+// The cat UI's default talents (presets.ts CatTalents), and the ones bearweaveAPL is played with:
+// two points out of Rend and Tear into Primal Bite and Blood Frenzy, whose crits give the bear rage
+// for Maul. Genesis stays at 5, which Nature's Majesty and Nature's Reach need below them.
+const (
+	catTalents       = "050022-55000032021030212051-055"
+	bearweaveTalents = "050022-55000032021131212031-055"
+)
+
+// weaveTune is one bear trip. energyMax is the most energy the cat goes into bear with, spLeft the
+// least Shifting Power cooldown left, manaPerSecond the mana kept back per second of fight left on
+// top of the two forms. leave cancels Dire Bear Form after the bite, so the rest of its GCD is spent
+// out of form, rather than shifting to cat from bear once the GCD ends. maul is false for a trip with
+// Primal Bite alone.
+type weaveTune struct {
+	energyMax     int
+	spLeft        string
+	manaPerSecond int
+	leave         bool
+	maul          bool
+}
+
+// The trip ui/specs/druid/feralcat/apls/bearweave.apl.json holds.
+var bestWeave = weaveTune{energyMax: 20, spLeft: "3s", manaPerSecond: 40, leave: true, maul: true}
 
 // bearweaveAPL is catAPL(bestCatAPL) with a Dire Bear trip for Primal Bite and Maul, the list
 // ui/specs/druid/feralcat/apls/bearweave.apl.json holds.
 //
-// The trip starts in cat with no more than 40 energy, Primal Bite ready, no Clearcasting, Berserk
-// down, Shifting Power at least 3s away and 10s of fight left. Dire Bear Form and Cat Form are
-// 684 mana each, so the trip also needs 1368 mana spare over 40 per second of fight left; a trip is
-// worth less than the Shifting Powers it would cost. In bear: Enrage under 20 rage (Furor gives 10
-// on the shift, Enrage with Wolfshead 15), Primal Bite, and Maul with the bite's 25 rage kept back or
-// once the bite is on cooldown. Bear is cancelled after the bite, so the rest of its GCD counts for
-// Furor, unless a bear swing lands before that GCD ends with rage for Maul; Cat Form follows.
+// The trip starts in cat with no Clearcasting, Berserk down, Primal Bite ready and 10s of fight
+// left. The trip also needs the mana for Dire Bear Form and Cat Form spare over the tune's mana per
+// second of fight left; a trip is worth less than the Shifting Powers it would cost. In bear: Enrage under 20 rage (Furor gives 10 on the shift, Enrage with Wolfshead 15),
+// Primal Bite, and Maul with the bite's 25 rage kept back or once the bite is on cooldown. Leaving
+// bear stays in it while a bear swing with rage for Maul lands before the bite's GCD ends.
 func bearweaveAPL() *proto.APLRotation {
+	return weaveAPL(bestWeave)
+}
+
+func weaveAPL(tune weaveTune) *proto.APLRotation {
 	rot := catAPL(bestCatAPL)
 	inCat := auraUp(spellCatForm)
 	inBear := auraUp(spellDireBear)
 	list := rot.PriorityList
 	if list[2].Action.GetCastSpell().GetSpellId().GetSpellId() != spellCatForm {
-		panic("bearweaveAPL expects Cat Form as the third line")
+		panic("weaveAPL expects Cat Form as the third line")
 	}
-	list[2] = castWhen(spellCatForm, and(not(inCat), not(inBear)))
-
 	biteDown := not(spellReady(spellPrimalBite))
-	swingFirst := and(cmp(proto.APLValueCompare_OpLe, autoTimeToNext(), gcdLeft()),
-		cmp(proto.APLValueCompare_OpGe, currentRage(), konst("10")))
+	if tune.leave {
+		list[2] = castWhen(spellCatForm, and(not(inCat), not(inBear)))
+	} else {
+		list[2] = castWhen(spellCatForm, and(not(inCat), or(not(inBear), biteDown)))
+	}
+
 	bear := []*proto.APLListItem{
 		castWhen(spellEnrage, and(inBear, cmp(proto.APLValueCompare_OpLt, currentRage(), konst("20")))),
 		castWhen(spellPrimalBite, inBear),
-		castWhen(spellMaul, and(inBear, or(biteDown, cmp(proto.APLValueCompare_OpGe, currentRage(), konst("25"))))),
-		cancelAuraWhen(spellDireBear, and(inBear, biteDown, not(swingFirst))),
 	}
-	spare := mathOp(proto.APLValueMath_OpSub, currentMana(), konst("1368"))
-	enter := castWhen(spellDireBear, and(inCat,
-		cmp(proto.APLValueCompare_OpLe, currentEnergy(), konst("40")),
+	if tune.maul {
+		bear = append(bear, castWhen(spellMaul, and(inBear, or(biteDown, cmp(proto.APLValueCompare_OpGe, currentRage(), konst("25"))))))
+	}
+	if tune.leave {
+		leaveNow := []*proto.APLValue{inBear, biteDown}
+		if tune.maul {
+			swingFirst := and(cmp(proto.APLValueCompare_OpLe, autoTimeToNext(), gcdLeft()),
+				cmp(proto.APLValueCompare_OpGe, currentRage(), konst("10")))
+			leaveNow = append(leaveNow, not(swingFirst))
+		}
+		bear = append(bear, cancelAuraWhen(spellDireBear, and(leaveNow...)))
+	}
+	window := []*proto.APLValue{inCat,
+		cmp(proto.APLValueCompare_OpLe, currentEnergy(), konst(strconv.Itoa(tune.energyMax))),
 		spellReady(spellPrimalBite),
 		not(auraUp(spellClear)),
 		not(auraUp(spellBerserk)),
 		cmp(proto.APLValueCompare_OpGe, remainingTime(), konst("10s")),
-		cmp(proto.APLValueCompare_OpGe, spellLeft(spellSP), konst("3s")),
-		cmp(proto.APLValueCompare_OpGe, spare, mathOp(proto.APLValueMath_OpMul, remainingTime(), konst("40")))))
+	}
+	if tune.spLeft != "" {
+		window = append(window, cmp(proto.APLValueCompare_OpGe, spellLeft(spellSP), konst(tune.spLeft)))
+	}
+	trip := mathOp(proto.APLValueMath_OpAdd, spellCost(spellDireBear), spellCost(spellCatForm))
+	spare := mathOp(proto.APLValueMath_OpSub, currentMana(), trip)
+	window = append(window, cmp(proto.APLValueCompare_OpGe, spare,
+		mathOp(proto.APLValueMath_OpMul, remainingTime(), konst(strconv.Itoa(tune.manaPerSecond)))))
+	enter := castWhen(spellDireBear, and(window...))
 
 	out := append([]*proto.APLListItem{}, list[:3]...)
 	out = append(out, bear...)
@@ -421,12 +305,57 @@ func bearweaveAPL() *proto.APLRotation {
 	return rot
 }
 
-// APL_WRITE=1 rewrites the presets from catAPL(bestCatAPL) and bearweaveAPL().
+const (
+	spellProwl  int32 = 9913
+	spellRavage int32 = 9867
+	spellPounce int32 = 9827
+)
+
+// openerAPL is the Monocat list behind a Prowl one second before the pull and the opener while
+// Prowl is up, ahead of the sapper, which would end it.
+func openerAPL(opener int32) *proto.APLRotation {
+	rot := catAPL(bestCatAPL)
+	rot.PriorityList = append([]*proto.APLListItem{castWhen(opener, auraUp(spellProwl))}, rot.PriorityList...)
+	rot.PrepullActions = []*proto.APLPrepullAction{{
+		DoAtValue: konst("-1s"),
+		Action:    spellAction(spellProwl),
+	}}
+	return rot
+}
+
+// The preset files and the builders that make them.
+func starterCatAPL() *proto.APLRotation {
+	return &proto.APLRotation{Type: proto.APLRotation_TypeAPL, PriorityList: []*proto.APLListItem{
+		castWhen(spellCatForm, not(auraUp(spellCatForm))),
+		{Action: &proto.APLAction{Action: &proto.APLAction_AutocastOtherCooldowns{
+			AutocastOtherCooldowns: &proto.APLActionAutocastOtherCooldowns{},
+		}}},
+		castWhen(spellRip, and(cmp(proto.APLValueCompare_OpGe, comboPoints(), konst("5")), not(dotUp(spellRip)))),
+		castWhen(spellRake, not(dotUp(spellRake))),
+		castWhen(spellSP, cmp(proto.APLValueCompare_OpLt, currentEnergy(), konst("40"))),
+		castWhen(spellShred, nil),
+		castWhen(spellClaw, nil),
+	}}
+}
+func catAPLPresets() map[string]*proto.APLRotation {
+	fourPoints := bestCatAPL
+	fourPoints.ripCP = 4
+	return map[string]*proto.APLRotation{
+		"default":   catAPL(bestCatAPL),
+		"starter":   starterCatAPL(),
+		"raid-rip4": catAPL(fourPoints),
+		"bearweave": bearweaveAPL(),
+		"ravage":    openerAPL(spellRavage),
+		"pounce":    openerAPL(spellPounce),
+	}
+}
+
+// APL_WRITE=1 rewrites the presets from their builders.
 func TestWriteCatAPL(t *testing.T) {
 	if os.Getenv("APL_WRITE") == "" {
 		t.Skip("set APL_WRITE=1 to rewrite the APL presets")
 	}
-	for name, rotation := range map[string]*proto.APLRotation{"default": catAPL(bestCatAPL), "bearweave": bearweaveAPL()} {
+	for name, rotation := range catAPLPresets() {
 		data, err := protojson.Marshal(rotation)
 		if err != nil {
 			t.Fatal(err)
@@ -446,6 +375,131 @@ func TestWriteCatAPL(t *testing.T) {
 	}
 }
 
+// The presets on disk are the lists the builders make, so a sweep of a builder measures what ships.
+func TestCatAPLPresetMatchesItsBuilder(t *testing.T) {
+	for name, built := range catAPLPresets() {
+		if preset := core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", name).Rotation; !gproto.Equal(preset, built) {
+			t.Errorf("%s.apl.json differs from its builder; rerun with APL_WRITE=1", name)
+		}
+	}
+}
+
+// The consumables, professions and race the cat UI starts with (presets.ts DefaultConsumables
+// and OtherDefaults).
+func uiDefaultCat(rotation *proto.APLRotation) *proto.ComputeStatsRequest {
+	req := sweepRequest(powershiftTalents, rotation, false, 1)
+	player := req.Raid.Parties[0].Players[0]
+	player.Profession1 = proto.Profession_Engineering
+	player.Profession2 = proto.Profession_Enchanting
+	player.Consumables = &proto.ConsumesSpec{
+		PotId:      13444,
+		ElixirIds:  []int32{13452, 13447},
+		FoodId:     250072,
+		MhImbueId:  12643,
+		ConjuredId: 7676,
+		ExtraIds:   []int32{10646, 10310},
+	}
+	return &proto.ComputeStatsRequest{Raid: req.Raid, Encounter: req.Encounter}
+}
+
+// aplWarnings is what the APL editor marks with a warning or an error, by priority list line.
+// Prepull lines are -1 and validations by UUID -2. Information (the blue icon) is left out.
+func aplWarnings(t *testing.T, req *proto.ComputeStatsRequest) map[int][]string {
+	t.Helper()
+	stats := core.ComputeStats(req).RaidStats.Parties[0].Players[0].RotationStats
+	warnings := map[int][]string{}
+	add := func(line int, validations []*proto.APLValidation) {
+		for _, v := range validations {
+			if v.LogLevel >= proto.LogLevel_Warning {
+				warnings[line] = append(warnings[line], v.Validation)
+			}
+		}
+	}
+	for i, action := range stats.PriorityList {
+		add(i, action.Validations)
+	}
+	for _, action := range stats.PrepullActions {
+		add(-1, action.Validations)
+	}
+	for _, uuid := range stats.UuidValidations {
+		add(-2, uuid.Validations)
+	}
+	return warnings
+}
+
+// The autocast line is there for an on-use trinket the list does not name. With Innervate named,
+// a set with none leaves it nothing to cast, and the editor says so on that line.
+func withoutIdleAutocast(preset *proto.APLRotation, warnings map[int][]string) map[int][]string {
+	for i, item := range preset.PriorityList {
+		if item.Action.GetAutocastOtherCooldowns() == nil {
+			continue
+		}
+		var kept []string
+		for _, w := range warnings[i] {
+			if !strings.HasPrefix(w, "Autocast Other Cooldowns will not cast any spells") {
+				kept = append(kept, w)
+			}
+		}
+		if len(kept) == 0 {
+			delete(warnings, i)
+		} else {
+			warnings[i] = kept
+		}
+	}
+	return warnings
+}
+
+// Every line of the preset names a spell or item the UI's default cat can cast.
+func TestCatAPLPresetHasNoWarningsOnTheDefaultCat(t *testing.T) {
+	preset := core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "default").Rotation
+	if warnings := withoutIdleAutocast(preset, aplWarnings(t, uiDefaultCat(preset))); len(warnings) != 0 {
+		t.Errorf("preset warnings by line: %v", warnings)
+	}
+}
+
+// The bearweave preset casts everything it names on the talents it is played with.
+func TestBearweaveAPLPresetHasNoWarningsOnItsTalents(t *testing.T) {
+	preset := core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "bearweave").Rotation
+	req := uiDefaultCat(preset)
+	req.Raid.Parties[0].Players[0].TalentsString = bearweaveTalents
+	if warnings := withoutIdleAutocast(preset, aplWarnings(t, req)); len(warnings) != 0 {
+		t.Errorf("preset warnings by line: %v", warnings)
+	}
+}
+
+// Without the consumables or Engineering, only the lines that cast them warn, and the sim still runs.
+func TestCatAPLPresetWarnsOnlyOnMissingConsumables(t *testing.T) {
+	preset := core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "default").Rotation
+	req := uiDefaultCat(preset)
+	player := req.Raid.Parties[0].Players[0]
+	player.Profession1 = proto.Profession_ProfessionUnknown
+	player.Consumables = &proto.ConsumesSpec{}
+
+	allowed := map[string]bool{}
+	for i, item := range preset.PriorityList {
+		id := item.Action.GetCastSpell().GetSpellId()
+		if id.GetItemId() != 0 || id.GetOtherId() == proto.OtherAction_OtherActionPotion {
+			allowed[strconv.Itoa(i)] = true
+		}
+	}
+	for line, messages := range withoutIdleAutocast(preset, aplWarnings(t, req)) {
+		if !allowed[strconv.Itoa(line)] {
+			t.Errorf("line %d warns without consumables: %v", line, messages)
+		}
+	}
+
+	result := core.RunSim(&proto.RaidSimRequest{
+		Raid: req.Raid, Encounter: req.Encounter,
+		SimOptions: &proto.SimOptions{RandomSeed: 1, Iterations: 20, IsTest: true},
+	}, nil, simsignals.CreateSignals())
+	if result.Error != nil {
+		t.Fatal(result.Error.Message)
+	}
+	if dps := result.RaidMetrics.Parties[0].Players[0].Dps.Avg; dps < 500 {
+		t.Errorf("bare cat on the preset does %.1f DPS", dps)
+	}
+}
+
 type aplScenario struct {
 	name     string
 	duration float64
@@ -454,25 +508,18 @@ type aplScenario struct {
 	wolfhead bool
 }
 
-func TestAPLAgainstGoRotation(t *testing.T) {
+func TestAPLSweep(t *testing.T) {
 	if os.Getenv("ROTATION_SWEEP") == "" {
-		t.Skip("set ROTATION_SWEEP=1 to compare an APL with the Go rotation")
+		t.Skip("set ROTATION_SWEEP=1 to compare cat APL variants")
 	}
 	iterations := int32(2000)
 	if n, err := strconv.Atoi(os.Getenv("ROTATION_SWEEP_ITERATIONS")); err == nil && n > 0 {
 		iterations = int32(n)
 	}
-	simple := &proto.FeralCatDruid_Rotation{
-		FinishingMove:     proto.FeralCatDruid_Rotation_Rip,
-		RipMinComboPoints: 5,
-		RakeTrick:         true,
-		FaerieFireForOmen: true,
-	}
 	rows := []struct {
 		name string
 		rot  *proto.APLRotation
 	}{
-		{"simple (autocast + rotation.go)", uiDefaultRotation(simple)},
 		{"apl preset (default.apl.json)", core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "default").Rotation},
 		{"apl, elune at once", catAPL(aplTune{elune: "now", omen: true})},
 		{"apl, elune into a builder", catAPL(aplTune{elune: "builder", omen: true})},
@@ -494,13 +541,12 @@ func TestAPLAgainstGoRotation(t *testing.T) {
 		fmt.Printf("%-34s %8s %7s %6s %6s %6s %6s %6s %6s %6s %6s %6s %5s\n",
 			"rotation", "dps", "stdev", "sp", "shred", "claw", "rip", "rake", "berk", "elune", "tea", "ff", "pot")
 		for _, row := range rows {
-			req := sweepRequest(t, powershiftTalents, row.rot, scenario.front, iterations)
+			req := sweepRequest(powershiftTalents, row.rot, scenario.front, iterations)
 			req.Encounter.Duration = scenario.duration
 			player := req.Raid.Parties[0].Players[0]
 			player.Profession1 = proto.Profession_Engineering
-			player.Consumables = &proto.ConsumesSpec{}
 			if scenario.consumes {
-				player.Consumables = uiDefaultCat(t, row.rot).Raid.Parties[0].Players[0].Consumables
+				player.Consumables = DefaultConsumables
 			}
 			if scenario.wolfhead {
 				player.Equipment = gproto.Clone(player.Equipment).(*proto.EquipmentSpec)
@@ -530,20 +576,6 @@ func TestAPLAgainstGoRotation(t *testing.T) {
 				}
 			}
 		}
-	}
-}
-
-// The Simple rotation: autocast fires Elune, the potion and the scrolls, then the Go rotation
-// throws the sapper and plays the cat.
-func uiDefaultRotation(simple *proto.FeralCatDruid_Rotation) *proto.APLRotation {
-	return &proto.APLRotation{
-		Type: proto.APLRotation_TypeAPL,
-		PriorityList: []*proto.APLListItem{
-			{Action: &proto.APLAction{Action: &proto.APLAction_AutocastOtherCooldowns{
-				AutocastOtherCooldowns: &proto.APLActionAutocastOtherCooldowns{},
-			}}},
-			{Action: catAction(simple)},
-		},
 	}
 }
 
@@ -657,4 +689,28 @@ func cancelAuraWhen(id int32, condition *proto.APLValue) *proto.APLListItem {
 	return &proto.APLListItem{Action: &proto.APLAction{Condition: condition, Action: &proto.APLAction_CancelAura{
 		CancelAura: &proto.APLActionCancelAura{AuraId: spellID(id)},
 	}}}
+}
+
+func TestAvailableThistleTeaRequiresSelection(t *testing.T) {
+	for _, preset := range []string{"raid", "default", "bearweave"} {
+		for _, selected := range []int32{0, 7676} {
+			t.Run(fmt.Sprintf("%s/selected=%d", preset, selected), func(t *testing.T) {
+				req := buildRequest(t, "raid")
+				player := req.Raid.Parties[0].Players[0]
+				if preset != "raid" {
+					player.Rotation = core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", preset).Rotation
+				}
+				player.Consumables.ConjuredId = selected
+				player.Consumables.ConjuredItems = []int32{7676}
+				metrics := runCat(t, req)
+				casts := usesOfID(metrics.Actions, 7676)
+				if selected == 0 && casts != 0 {
+					t.Fatalf("unselected Thistle Tea casts = %d, want 0", casts)
+				}
+				if selected == 7676 && casts == 0 {
+					t.Fatal("selected Thistle Tea was never used")
+				}
+			})
+		}
+	}
 }

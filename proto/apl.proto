@@ -5,7 +5,6 @@ option go_package = "./proto";
 
 import "common.proto";
 import "shaman.proto";
-import "druid.proto";
 import "warlock.proto";
 
 // Rotation options are based heavily on APL. See https://github.com/simulationcraft/simc/wiki/ActionLists.
@@ -52,6 +51,9 @@ message APLGroup {
 
 // NextIndex: 30
 message APLAction {
+    // Field numbers of removed actions.
+    reserved 18, 30;
+
     APLValue condition = 1; // If set, action will only execute if value is true or != 0.
 
     oneof action {
@@ -87,8 +89,6 @@ message APLAction {
         APLActionMoveDuration move_duration = 22;
 
         // Class or Spec-specific actions
-        APLActionCatOptimalRotationAction cat_optimal_rotation_action = 18;
-        APLActionBearOptimalRotationAction bear_optimal_rotation_action = 30;
         APLActionGuardianHotwDpsRotation guardian_hotw_dps_rotation = 27;
 		APLActionCastWarlockAssignedCurse cast_warlock_assigned_curse = 29;
 
@@ -366,27 +366,6 @@ message APLActionItemSwap {
 
     // The set to swap to.
     SwapSet swap_set = 1;
-}
-
-message APLActionCatOptimalRotationAction {
-    FeralCatDruid.Rotation.FinishingMove finishing_move = 1;
-    bool biteweave = 2;
-    bool ripweave = 3;
-    int32 rip_min_combo_points = 4;
-    int32 bite_min_combo_points = 5;
-    reserved 6;
-    reserved "mangle_trick";
-    bool rake_trick = 7;
-    bool maintain_faerie_fire = 8;
-    bool faerie_fire_for_omen = 9;
-}
-
-message APLActionBearOptimalRotationAction {
-    bool maintain_faerie_fire = 1;
-    bool maintain_demoralizing_roar = 2;
-    int32 maul_rage_threshold = 3;
-    FeralBearDruid.Rotation.SwipeUsage swipe_usage = 4;
-    int32 swipe_ap_threshold = 5;
 }
 
 message APLActionGuardianHotwDpsRotation {

@@ -32,7 +32,7 @@ func NewFeralCatDruid(character *core.Character, options *proto.Player) *FeralDr
 	}
 
 	cat.CannotShredTarget = feralOptions.Options.CannotShredTarget
-	cat.BerserkCondition = cat.berserkReady
+	cat.AssumeBleedActive = feralOptions.Options.GetAssumeBleedActive()
 
 	cat.EnableEnergyBar(core.EnergyBarOptions{
 		MaxComboPoints: 5,
@@ -56,10 +56,6 @@ func NewFeralCatDruid(character *core.Character, options *proto.Player) *FeralDr
 
 type FeralDruid struct {
 	*druid.Druid
-
-	Rotation FeralDruidRotation
-
-	readyToShift bool // The previous decision chose Shifting Power and is spending it now.
 }
 
 func (cat *FeralDruid) GetDruid() *druid.Druid {
@@ -87,5 +83,4 @@ func (cat *FeralDruid) Reset(sim *core.Simulation) {
 	cat.Druid.Reset(sim)
 	cat.Druid.ClearForm(sim)
 	cat.CatFormAura.Activate(sim)
-	cat.readyToShift = false
 }

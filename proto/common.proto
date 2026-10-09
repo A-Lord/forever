@@ -485,6 +485,11 @@ message ConsumesSpec {
 	// The poison, firestone, spellstone or Scroll of Imbue on each hand, beside its stone or oil above.
 	int32 mh_weapon_imbue_id = 22;
 	int32 oh_weapon_imbue_id = 23;
+	// The same four picks for the item swap set's weapons.
+	int32 swap_mh_imbue_id = 24;
+	int32 swap_oh_imbue_id = 25;
+	int32 swap_mh_weapon_imbue_id = 26;
+	int32 swap_oh_weapon_imbue_id = 27;
 }
 
 enum MobType {
@@ -497,6 +502,18 @@ enum MobType {
 	MobTypeHumanoid = 6;
 	MobTypeMechanical = 7;
 	MobTypeUndead = 8;
+}
+
+// The groups of creatures item effects deal extra damage to. None of them is a creature type or a
+// creature family in the game files, whose CreatureFamily table holds the hunter and warlock pet families.
+enum CreatureFamily {
+	CreatureFamilyUnknown = 0;
+	CreatureFamilyNaga = 1;
+	CreatureFamilySatyr = 2;
+	CreatureFamilyAquatic = 3;
+	CreatureFamilyEarthElemental = 4;
+	CreatureFamilyFireElemental = 5;
+	CreatureFamilyMountainGiant = 6;
 }
 
 // The game files' terrain area groups (SpellCastingRequirements.RequiredAreasID).
@@ -539,6 +556,7 @@ message Target {
 
         int32 level = 4;
         MobType mob_type = 3;
+        CreatureFamily creature_family = 20;
         repeated double stats = 5;
 
         // Auto attack parameters.

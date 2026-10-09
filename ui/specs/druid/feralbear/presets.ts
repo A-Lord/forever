@@ -1,87 +1,81 @@
 import * as PresetUtils from '@app/preset_utils';
+import * as Consumables from '@features/settings/model/consumables_auto_gen';
 import { ConsumesSpec, HealingModel, Profession, PseudoStat, Race, Spec, Stat } from '@generated/proto/common';
-import {
-	FeralBearDruid_Options as DruidOptions,
-	FeralBearDruid_Rotation as DruidRotation,
-	FeralBearDruid_Rotation_SwipeUsage as SwipeUsage,
-} from '@generated/proto/druid';
+import { FeralBearDruid_Options as DruidOptions } from '@generated/proto/druid';
 import { Stats } from '@sim/proto/stats';
 import { Encounter } from '@sim/raid/encounter';
 import { OtherDefaults as SimUIOtherDefaults } from '@sim/spec_config';
 
-export const DefaultSimpleRotation = DruidRotation.create({
-	maintainFaerieFire: true,
-	maintainDemoralizingRoar: true,
-	maulRageThreshold: 50,
-	swipeUsage: SwipeUsage.SwipeUsage_WithEnoughAP,
-	swipeApThreshold: 2700,
-});
-
-import * as Consumables from '@features/settings/model/consumables_auto_gen';
-
 import DefaultApl from './apls/default.apl.json';
+import LacerateFirstApl from './apls/lacerate_first.apl.json';
+import StarterBuild from './builds/starter.build.json';
 import Level60GearJson from './gear_sets/default.gear.json';
-export const ROTATION_SIMPLE = PresetUtils.makePresetSimpleRotation('Simple', Spec.SpecFeralBearDruid, DefaultSimpleRotation);
 export const ROTATION_DEFAULT = PresetUtils.makePresetAPLRotation('APL', DefaultApl);
+// For a target no one else bleeds (Assume Bleed Always Active off): Berserk waits for Lacerate, so
+// Rend and Tear covers it.
+export const ROTATION_LACERATE_FIRST = PresetUtils.makePresetAPLRotation('Lacerate before Berserk', LacerateFirstApl);
 
 // Leather at 60 with no set bonus and no proc, about the item level of the cat preset.
 export const Level60Gear = PresetUtils.makePresetGear('Level 60', Level60GearJson, {
 	tooltip: 'Leather at level 60 with no set bonus and no proc. The idol slot is empty: every idol has an effect.',
 });
 
-// The default raid target swings for 15113 before armor, which kills a level 60 bear on every pull.
+// A fixed 6000-damage target keeps the reference setup consistent.
 const level60Encounter = Encounter.defaultEncounterProto();
 level60Encounter.targets[0].minBaseDamage = 6000;
 export const Level60Encounter = {
 	...PresetUtils.makePresetEncounter('Level 60 boss', level60Encounter),
-	tooltip: 'The raid target, hitting for 6000 before armor instead of 15113.',
+	tooltip: 'A reference raid target hitting for 6000 before armor.',
 };
 
-// EP on the Level 60 preset, the APL preset and the Level 60 boss, 100000 iterations.
+// EP on the Level 60 preset, the APL preset and the Level 60 boss, 50000 requested iterations on the committed input cohort.
 // DPS has agility as 1. A bear's agility is crit, armor and dodge but no attack power, so strength
 // is worth more than one agility. Dodge and defense cost damage: fewer hits taken is less rage.
 export const Level60DpsEp = Stats.fromMap(
 	{
-		[Stat.StatStrength]: 2.0751,
+		[Stat.StatStrength]: 2.0093,
 		[Stat.StatAgility]: 1,
-		[Stat.StatStamina]: 0.1044,
-		[Stat.StatAttackPower]: 0.9432,
-		[Stat.StatFeralAttackPower]: 0.9432,
-		[Stat.StatArmor]: 0.0276,
-		[Stat.StatBonusArmor]: 0.0066,
-		[Stat.StatDodgeRating]: -0.1384,
-		[Stat.StatDefenseRating]: -0.0159,
-		[Stat.StatHitRating]: 3.9008,
-		[Stat.StatCritRating]: 1.4031,
-		[Stat.StatHasteRating]: 0.6615,
-		[Stat.StatExpertiseRating]: 7.3663,
-		[Stat.StatPhysicalDamage]: 6.1037,
-		[Stat.StatArmorPenetration]: 0.3603,
+		[Stat.StatStamina]: 0.1002,
+		[Stat.StatAttackPower]: 0.9133,
+		[Stat.StatFeralAttackPower]: 0.9133,
+		[Stat.StatArmor]: 0.0235,
+		[Stat.StatBonusArmor]: 0.0065,
+		[Stat.StatDodgeRating]: -0.0875,
+		[Stat.StatDefenseRating]: 0.0351,
+		[Stat.StatHitRating]: 3.796,
+		[Stat.StatCritRating]: 1.3727,
+		[Stat.StatHasteRating]: 0.6619,
+		[Stat.StatExpertiseRating]: 7.1969,
+		[Stat.StatPhysicalDamage]: 5.9387,
+		[Stat.StatArmorPenetration]: 0.3495,
 	},
 	{
-		[PseudoStat.PseudoStatMainHandDps]: 13.2052,
+		[PseudoStat.PseudoStatMainHandDps]: 12.7863,
 	},
 );
 
-// Survival is TMI with stamina as 1, as the EP dialog scales it for the bear. Hit, haste and
-// physical damage are within twice their estimated sampling noise, so they are 0. Expertise is
-// kept: fewer parries mean fewer parry-hasted boss swings.
+// Survival is TMI with stamina as 1. Signed model weights are retained; small values can be noisy.
 export const Level60SurvivalEp = Stats.fromMap({
 	[Stat.StatStamina]: 1,
-	[Stat.StatAgility]: 0.186,
-	[Stat.StatArmor]: 0.1643,
-	[Stat.StatBonusArmor]: 0.0363,
-	[Stat.StatDodgeRating]: 0.1385,
-	[Stat.StatDefenseRating]: 0.8278,
-	[Stat.StatCritRating]: -0.0016,
-	[Stat.StatExpertiseRating]: 0.3003,
+	[Stat.StatHitRating]: 0.0165,
+	[Stat.StatHasteRating]: -0.0396,
+	[Stat.StatPhysicalDamage]: 0.012,
+	[Stat.StatAgility]: 0.1836,
+	[Stat.StatArmor]: 0.1648,
+	[Stat.StatBonusArmor]: 0.0361,
+	[Stat.StatDodgeRating]: 0.1525,
+	[Stat.StatDefenseRating]: 0.844,
+	[Stat.StatCritRating]: -0.0054,
+	[Stat.StatExpertiseRating]: 0.2892,
 });
 
 export const Level60DpsEpWeights = PresetUtils.makePresetEpWeights('Level 60 DPS', Level60DpsEp);
 export const Level60SurvivalEpWeights = PresetUtils.makePresetEpWeights('Level 60 Survival', Level60SurvivalEp);
 
+// Another raid member's bleed keeps Rend and Tear up.
 export const DefaultOptions = DruidOptions.create({
 	startingRage: 0,
+	assumeBleedActive: true,
 });
 
 export const DefaultConsumables = ConsumesSpec.create({
@@ -108,3 +102,9 @@ export const OtherDefaults: Partial<SimUIOtherDefaults> = {
 		inspirationUptime: 0.25,
 	}),
 };
+
+export const STARTER_GEAR = PresetUtils.makePresetGear('Level 60 Starter', StarterBuild.player.equipment);
+export const STARTER_BUILD = PresetUtils.makePresetBuildFromJSON('Level 60 Starter', Spec.SpecFeralBearDruid, StarterBuild, {
+	gear: STARTER_GEAR,
+	rotation: ROTATION_LACERATE_FIRST,
+});

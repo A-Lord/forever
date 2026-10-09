@@ -36,8 +36,6 @@ const (
 	itemHealthstone int32 = 9421
 )
 
-const defaultBearTalents = "0000000000000000-55230302120130012551-0550000000000000"
-
 // The consumables the bear UI starts with (presets.ts DefaultConsumables).
 var uiBearConsumables = &proto.ConsumesSpec{
 	PotId:      itemStoneshield,
@@ -57,7 +55,7 @@ func bearRequest(rotation *proto.APLRotation, iterations int32) *proto.RaidSimRe
 			Parties: []*proto.Party{{
 				Players: []*proto.Player{{
 					Name: "Bear", Class: proto.Class_ClassDruid, Race: proto.Race_RaceNightElf,
-					TalentsString:   defaultBearTalents,
+					TalentsString:   DefaultTalents,
 					ReactionTimeMs:  250,
 					InFrontOfTarget: true,
 					Profession1:     proto.Profession_Engineering,
@@ -142,6 +140,7 @@ type bearTune struct {
 	pbHold     float64 // no filler when Primal Bite is ready within this many seconds
 	maul       int     // rage at which Maul queues
 	frenzied   float64 // Frenzied Regeneration below this health fraction; 0 never
+	bleedFirst bool    // Berserk only once Lacerate is on the target, for Rend and Tear
 }
 
 // bestBearAPL is the list ui/specs/druid/feralbear/apls/default.apl.json holds. The druid's own
@@ -150,34 +149,54 @@ type bearTune struct {
 // its 30 rage buys damage.
 var bestBearAPL = bearTune{elune: "berserk", enrage: "never", demo: true, maul: 20, frenzied: 0.2}
 
-// APL_WRITE=1 rewrites the preset from bearAPL(bestBearAPL).
-func TestWriteBearAPL(t *testing.T) {
-	if os.Getenv("APL_WRITE") == "" {
-		t.Skip("set APL_WRITE=1 to rewrite the APL preset")
-	}
-	data, err := protojson.Marshal(bearAPL(bestBearAPL))
-	if err != nil {
-		t.Fatal(err)
-	}
-	// protojson spaces its output at random; Compact then Indent makes the file stable.
-	var compact, out bytes.Buffer
-	if err := json.Compact(&compact, data); err != nil {
-		t.Fatal(err)
-	}
-	if err := json.Indent(&out, compact.Bytes(), "", "\t"); err != nil {
-		t.Fatal(err)
-	}
-	out.WriteByte('\n')
-	if err := os.WriteFile("../../../ui/specs/druid/feralbear/apls/default.apl.json", out.Bytes(), 0o644); err != nil {
-		t.Fatal(err)
+// With no raid bleed on the target, Berserk waits for Lacerate so Rend and Tear covers it: +2.2 DPS
+// over 60s and +0.7 over 180s. With a raid bleed the wait costs 7.4 and 2.5, so it is a preset of
+// its own.
+func lacerateFirstBearAPL() bearTune {
+	tune := bestBearAPL
+	tune.bleedFirst = true
+	return tune
+}
+
+// The preset files and the tunes that build them.
+func bearAPLPresets() map[string]*proto.APLRotation {
+	return map[string]*proto.APLRotation{
+		"default":        bearAPL(bestBearAPL),
+		"lacerate_first": bearAPL(lacerateFirstBearAPL()),
 	}
 }
 
-// The preset on disk is the list bearAPL builds, so a sweep of bearAPL(bestBearAPL) measures what ships.
+// APL_WRITE=1 rewrites the presets from their builders.
+func TestWriteBearAPL(t *testing.T) {
+	if os.Getenv("APL_WRITE") == "" {
+		t.Skip("set APL_WRITE=1 to rewrite the APL presets")
+	}
+	for name, rotation := range bearAPLPresets() {
+		data, err := protojson.Marshal(rotation)
+		if err != nil {
+			t.Fatal(err)
+		}
+		// protojson spaces its output at random; Compact then Indent makes the file stable.
+		var compact, out bytes.Buffer
+		if err := json.Compact(&compact, data); err != nil {
+			t.Fatal(err)
+		}
+		if err := json.Indent(&out, compact.Bytes(), "", "\t"); err != nil {
+			t.Fatal(err)
+		}
+		out.WriteByte('\n')
+		if err := os.WriteFile("../../../ui/specs/druid/feralbear/apls/"+name+".apl.json", out.Bytes(), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+// The presets on disk are the lists bearAPL builds, so a sweep of a tune measures what ships.
 func TestBearAPLPresetMatchesItsBuilder(t *testing.T) {
-	preset := core.GetAplRotation("../../../ui/specs/druid/feralbear/apls", "default").Rotation
-	if !gproto.Equal(preset, bearAPL(bestBearAPL)) {
-		t.Fatal("default.apl.json differs from bearAPL(bestBearAPL); rerun with APL_WRITE=1")
+	for name, built := range bearAPLPresets() {
+		if preset := core.GetAplRotation("../../../ui/specs/druid/feralbear/apls", name).Rotation; !gproto.Equal(preset, built) {
+			t.Errorf("%s.apl.json differs from its builder; rerun with APL_WRITE=1", name)
+		}
 	}
 }
 
@@ -247,10 +266,22 @@ func bearAPL(tune bearTune) *proto.APLRotation {
 			&proto.APLListItem{Action: bearItemAction(itemSapper)},
 			bearCastWhen(spellDireBear, not(auraUp(spellDireBear))))
 	}
+	var berserkWhen []*proto.APLValue
 	if tune.berserk > 0 {
-		list = append(list, bearCastWhen(spellBerserk, rageAtLeast(tune.berserk)))
-	} else if tune.berserk == 0 {
-		list = append(list, bearCastWhen(spellBerserk, nil))
+		berserkWhen = append(berserkWhen, rageAtLeast(tune.berserk))
+	}
+	if tune.bleedFirst {
+		berserkWhen = append(berserkWhen, dotUp(spellLacerate))
+	}
+	if tune.berserk >= 0 {
+		var condition *proto.APLValue
+		switch len(berserkWhen) {
+		case 1:
+			condition = berserkWhen[0]
+		case 2:
+			condition = and(berserkWhen...)
+		}
+		list = append(list, bearCastWhen(spellBerserk, condition))
 	}
 	if tune.elune == "berserk" {
 		list = append(list, bearCastWhen(1259799, or(auraUp(spellBerserk), not(spellKnown(spellBerserk)))))
@@ -401,27 +432,6 @@ func mathOp(op proto.APLValueMath_MathOperator, lhs, rhs *proto.APLValue) *proto
 	return &proto.APLValue{Value: &proto.APLValue_Math{Math: &proto.APLValueMath{Op: op, Lhs: lhs, Rhs: rhs}}}
 }
 
-// The Simple rotation: autocast, then the Go rotation.
-func bearSimpleRotation(simple *proto.APLActionBearOptimalRotationAction) *proto.APLRotation {
-	return &proto.APLRotation{
-		Type: proto.APLRotation_TypeAPL,
-		PriorityList: []*proto.APLListItem{
-			{Action: &proto.APLAction{Action: &proto.APLAction_AutocastOtherCooldowns{
-				AutocastOtherCooldowns: &proto.APLActionAutocastOtherCooldowns{},
-			}}},
-			{Action: &proto.APLAction{Action: &proto.APLAction_BearOptimalRotationAction{BearOptimalRotationAction: simple}}},
-		},
-	}
-}
-
-var uiSimple = &proto.APLActionBearOptimalRotationAction{
-	MaintainFaerieFire:       true,
-	MaintainDemoralizingRoar: true,
-	MaulRageThreshold:        50,
-	SwipeUsage:               proto.FeralBearDruid_Rotation_SwipeUsage_WithEnoughAP,
-	SwipeApThreshold:         2700,
-}
-
 type bearRow struct {
 	name string
 	rot  *proto.APLRotation
@@ -486,9 +496,9 @@ func sweepIterations() int32 {
 	return 2000
 }
 
-func TestBearAPLAgainstGoRotation(t *testing.T) {
+func TestBearAPLSweep(t *testing.T) {
 	if os.Getenv("BEAR_SWEEP") == "" {
-		t.Skip("set BEAR_SWEEP=1 to compare bear APLs with the Go rotation")
+		t.Skip("set BEAR_SWEEP=1 to compare bear APL variants")
 	}
 	mirror := bearTune{berserk: -1, elune: "auto", enrage: "never", demo: true, ff: true, maul: 50}
 	with := func(edit func(*bearTune)) *proto.APLRotation {
@@ -497,7 +507,6 @@ func TestBearAPLAgainstGoRotation(t *testing.T) {
 		return bearAPL(tune)
 	}
 	rows := []bearRow{
-		{"simple (autocast + rotation.go)", bearSimpleRotation(uiSimple)},
 		{"apl mirror", bearAPL(mirror)},
 	}
 	mirror = bestBearAPL

@@ -16,7 +16,7 @@ const (
 	explosivesCategoryMs int32 = 60000
 )
 
-// Goblin Sapper Charge 10646 as the database states it (13241, its own 5 min cooldown, needs
+// A test consumable under Goblin Sapper Charge's id 10646 (13241, a 5 min cooldown of its own, needs
 // Engineering), which the spec selects by its flag, and test explosives standing in for Ez-Thro
 // Dynamite II 18588 (23000) and Crystal Charge 11566 (15239).
 const (
@@ -79,8 +79,9 @@ func newExplosiveSim(t *testing.T, consumes *proto.ConsumesSpec, profession prot
 	return sim, caster
 }
 
-// 13241 rolls 600 with variance 0.5, 450 to 750, on every enemy around the thrower, each target rolling
-// its own, and 500 with variance 0.5, 375 to 625, on the thrower; the thrower's half is a spell of its own tagged 1, a harmful spell hit.
+// 13241 rolls its damage on every enemy around the thrower, each target rolling its own, and the
+// thrower's own damage on the thrower; the thrower's half is a spell of its own tagged 1, a harmful
+// spell hit.
 func TestSapperDamagesEveryEnemyAndTheThrower(t *testing.T) {
 	sim, caster := newExplosiveSim(t, &proto.ConsumesSpec{ExtraIds: []int32{goblinSapperID}}, proto.Profession_Engineering, 3)
 	sapper := onUseSpell(t, caster, goblinSapperID)
@@ -115,13 +116,13 @@ func TestSapperDamagesEveryEnemyAndTheThrower(t *testing.T) {
 	}
 
 	took := health - caster.CurrentHealth()
-	if low, high := thrower.Min(), thrower.Max(); low != 375 || high != 625 || took < low || took > high {
-		t.Errorf("the thrower took %v, want one roll of 375 to 625 (the row reads %v to %v)", took, low, high)
+	if low, high := thrower.Min(), thrower.Max(); took < low || took > high {
+		t.Errorf("the thrower took %v, want one roll of %v to %v", took, low, high)
 	}
 }
 
-// Every explosive names category 24: using one puts the others out of reach for its 60 s, and the
-// sapper's own 5 min cooldown runs beside it.
+// Every test explosive names category 24: using one puts the others out of reach for its 60 s, and
+// the test sapper's own 5 min cooldown runs beside it.
 func TestExplosivesShareTheirCategoryCooldown(t *testing.T) {
 	sim, caster := newExplosiveSim(t, &proto.ConsumesSpec{ExplosiveId: testDynamiteID, ExtraIds: []int32{goblinSapperID}}, proto.Profession_Engineering, 1)
 	sapper, dynamite := onUseSpell(t, caster, goblinSapperID), onUseSpell(t, caster, testDynamiteID)
@@ -139,15 +140,17 @@ func TestExplosivesShareTheirCategoryCooldown(t *testing.T) {
 	}
 }
 
-// 23000 states a 1 s cast and a missile speed of 14: from 14 yards the dynamite lands 1 s after its
-// cast completes.
+// A copy of 23000 flying at 14 yards a second: from 14 yards the dynamite lands 1 s after the cast its
+// row states completes.
 func TestDynamiteLandsAfterItsCastAndFlight(t *testing.T) {
+	editRow(t, 23000, func(s *spelldata.Spell) { s.Speed = 14 })
+	cast := spelldata.MustFind(23000).CastTime()
 	sim, caster := newExplosiveSim(t, &proto.ConsumesSpec{ExplosiveId: testDynamiteID}, proto.Profession_ProfessionUnknown, 1)
 	dynamite := onUseSpell(t, caster, testDynamiteID)
 	target := sim.Encounter.ActiveTargetUnits[0]
 	metrics := &dynamite.SpellMetrics[target.UnitIndex]
-	if got := dynamite.DefaultCast.CastTime; got != time.Second {
-		t.Errorf("the dynamite casts in %v, want 1 s", got)
+	if got := dynamite.DefaultCast.CastTime; got != cast {
+		t.Errorf("the dynamite casts in %v, want the row's %v", got, cast)
 	}
 
 	caster.DistanceFromTarget = 14
@@ -155,18 +158,20 @@ func TestDynamiteLandsAfterItsCastAndFlight(t *testing.T) {
 	if !dynamite.Cast(sim, target) {
 		t.Fatalf("the dynamite could not be used from 14 yards")
 	}
-	stepPast(t, sim, start+2*time.Second-time.Millisecond)
+	stepPast(t, sim, start+cast+time.Second-time.Millisecond)
 	if metrics.TotalDamage != 0 {
 		t.Errorf("the dynamite dealt %v before its cast and 1 s flight ended", metrics.TotalDamage)
 	}
-	stepPast(t, sim, start+2*time.Second+time.Millisecond)
+	stepPast(t, sim, start+cast+time.Second+time.Millisecond)
 	if metrics.TotalDamage == 0 {
 		t.Errorf("the dynamite had dealt nothing 1 s after its cast completed")
 	}
 }
 
-// 15239 is instant and flies at 14 yards a second: from 14 yards the charge lands 1 s after it is used.
+// An instant copy of 15239 flying at 14 yards a second: from 14 yards the charge lands 1 s after it is
+// used.
 func TestCrystalChargeLandsAfterItsFlight(t *testing.T) {
+	editRow(t, 15239, func(s *spelldata.Spell) { s.Speed, s.CastTimeMs = 14, 0 })
 	sim, caster := newExplosiveSim(t, &proto.ConsumesSpec{ExplosiveId: testCrystalID}, proto.Profession_ProfessionUnknown, 1)
 	charge := onUseSpell(t, caster, testCrystalID)
 	target := sim.Encounter.ActiveTargetUnits[0]

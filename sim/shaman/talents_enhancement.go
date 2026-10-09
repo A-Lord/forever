@@ -227,6 +227,8 @@ func (shaman *Shaman) applyImprovedStormstrike() {
 
 var maelstromWeaponBuff = spellData.MaelstromWeaponTriggered.Highest()
 
+const maelstromWeaponPPM = 10.0
+
 func (shaman *Shaman) applyMaelstromWeapon() {
 	if shaman.Talents.MaelstromWeapon == 0 {
 		return
@@ -281,7 +283,7 @@ func (shaman *Shaman) applyMaelstromWeapon() {
 		func(_ *core.Character, trigger *core.ProcTrigger) {
 			trigger.ProcMask = core.ProcMaskMelee
 		},
-		spelldata.PPM(10))
+		spelldata.PPM(maelstromWeaponPPM))
 	trigger.Name = "Maelstrom Weapon - Trigger"
 
 	shaman.MakeProcTriggerAura(trigger)

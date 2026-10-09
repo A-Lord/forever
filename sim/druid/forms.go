@@ -81,7 +81,7 @@ func (druid *Druid) RegisterCatFormAura() {
 
 	druid.CatFormAura.ApplyOnGain(func(_ *core.Aura, sim *core.Simulation) {
 		druid.setForm(Cat)
-		druid.SetFeralCombat(true, 0)
+		druid.SetFeralCombat(true)
 		druid.SetCurrentPowerBar(core.EnergyBar)
 		if !druid.Env.MeasuringStats {
 			druid.AutoAttacks.SetMH(druid.GetCatWeapon())
@@ -89,16 +89,15 @@ func (druid *Druid) RegisterCatFormAura() {
 		druid.restoreCatEnergy(sim)
 	})
 	druid.CatFormAura.ApplyOnExpire(func(_ *core.Aura, sim *core.Simulation) {
-		druid.rememberCatEnergy(sim)
+		druid.rememberCatEnergy(sim, druid.CurrentEnergy())
 		druid.breakProwl(sim)
-		druid.SetFeralCombat(false, 0)
+		druid.SetFeralCombat(false)
 		druid.restoreHumanoidBody()
 	})
 	druid.CatFormAura.ApplyOnReset(func(_ *core.Aura, _ *core.Simulation) {
 		druid.furorStoredValid = false
 		druid.furorStoredEnergy = 0
 		druid.furorLeftCatAt = 0
-		druid.furorBearTime = 0
 	})
 }
 
@@ -117,7 +116,7 @@ func (druid *Druid) registerBearAura(form *spelldata.Spell, passive *spelldata.S
 	spelldata.ParseEffects(&druid.Character, aura, passive)
 	aura.ApplyOnGain(func(_ *core.Aura, sim *core.Simulation) {
 		druid.setForm(kind)
-		druid.SetFeralCombat(true, 0)
+		druid.SetFeralCombat(true)
 		druid.SetCurrentPowerBar(core.RageBar)
 		if !druid.Env.MeasuringStats {
 			druid.AutoAttacks.SetMH(druid.GetBearWeapon())
@@ -125,8 +124,8 @@ func (druid *Druid) registerBearAura(form *spelldata.Spell, passive *spelldata.S
 		druid.furorRageOnEnterBear(sim)
 	})
 	aura.ApplyOnExpire(func(_ *core.Aura, sim *core.Simulation) {
-		druid.furorBearTime += sim.CurrentTime - aura.StartedAt()
-		druid.SetFeralCombat(false, 0)
+		druid.forfeitCatEnergy(sim)
+		druid.SetFeralCombat(false)
 		druid.restoreHumanoidBody()
 	})
 	return aura
@@ -179,33 +178,44 @@ func (druid *Druid) furorFraction() float64 {
 	return spellData.Furor.EffectAt(1).FractionAt(druid.Talents.Furor)
 }
 
-func (druid *Druid) rememberCatEnergy(sim *core.Simulation) {
+func (druid *Druid) rememberCatEnergy(sim *core.Simulation, energy float64) {
 	if !druid.HasEnergyBar() {
 		return
 	}
-	druid.furorStoredEnergy = druid.CurrentEnergy()
+	druid.furorStoredEnergy = energy
 	druid.furorStoredValid = true
 	druid.furorLeftCatAt = sim.CurrentTime
-	druid.furorBearTime = 0
+}
+
+// Tooltip 17056: a bear form forfeits the energy Cat Form would restore, the energy left in Cat Form
+// and the seconds counted since, and halts the count while it is active. Ending a bear form stores
+// no energy and starts the count from then, so a bear form with no Cat Form before it in the
+// iteration forfeits the same way.
+//
+// TODO: Ingame research needed -- whether the count starts again when the bear form ends, as here.
+// The tooltip does not say.
+func (druid *Druid) forfeitCatEnergy(sim *core.Simulation) {
+	druid.rememberCatEnergy(sim, 0)
 }
 
 // restoreCatEnergy is the tooltip's rule, priced with $m2: the energy left in Cat Form plus 10 for
 // each second spent outside Bear, Cat and Dire Bear Form, up to 100, all scaled by the rank. With the
 // talent untaken the cat comes back with none.
 //
-// TODO: Ingame research needed -- whether entering Bear Form loses all of it, and whether energy outside
-// Cat Form regenerates at the Cat Form rate at 5/5. Tooltip 17056 states neither.
+// TODO: Ingame research needed -- whether energy outside Cat Form regenerates at the Cat Form rate at
+// 5/5. Tooltip 17056 does not say.
 func (druid *Druid) restoreCatEnergy(sim *core.Simulation) {
 	if !druid.HasEnergyBar() || druid.Env.MeasuringStats {
 		return
 	}
-	// The energy bar ticks in every form, so the first entry of an iteration keeps the pull's bar.
+	// The energy bar ticks in every form, so a first entry with no bear form before it keeps the pull's
+	// bar.
 	// TODO: Ingame research needed -- what death or cancelling the form does to the stored energy, and
 	// what a first entry later in the fight starts with.
 	if !druid.furorStoredValid {
 		return
 	}
-	seconds := max(0, (sim.CurrentTime - druid.furorLeftCatAt - druid.furorBearTime).Seconds())
+	seconds := max(0, (sim.CurrentTime - druid.furorLeftCatAt).Seconds())
 	fraction := spellData.Furor.EffectAt(2).FractionAt(druid.Talents.Furor)
 	gained := fraction * min(druid.furorStoredEnergy+10*seconds, 100)
 	delta := gained - druid.CurrentEnergy()
