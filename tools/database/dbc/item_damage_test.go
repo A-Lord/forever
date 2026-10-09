@@ -1,7 +1,6 @@
 package dbc
 
 import (
-	"os"
 	"testing"
 
 	"github.com/wowsims/forever/sim/core/proto"
@@ -101,33 +100,70 @@ func TestWeaponDPSPresenceWhenSourceTableIsMissing(t *testing.T) {
 	}
 }
 
-func TestWeaponDamageRange(t *testing.T) {
-	t.Chdir("../../..")
-	if _, err := os.Stat("./assets/db_inputs/dbc/spells.json"); err != nil {
-		t.Skip("no game files DBC inputs in assets/db_inputs/dbc - run `make db` from a local WoW install to enable this test")
-	}
+// The level 60 rare budget's first column is 100 and its one-hand weapon column 50. A healing weapon
+// adds 3.76 healing and a third of that as spell damage per point of the first column, rounded down;
+// a spell power weapon 2 spell power per point; both on top of the weapon's own stats. Reduced damage
+// alone adds none.
+func TestCasterWeaponSpellPower(t *testing.T) {
+	once.Do(func() {})
 	previous := dbcInstance
+	dbcInstance = NewDBC()
 	t.Cleanup(func() { dbcInstance = previous })
-	if err := InitDBC(); err != nil {
-		t.Fatal(err)
-	}
-	items := dbcInstance.Items
+	dbcInstance.RandomPropertiesByIlvl[60] = RandomPropAllocationMap{proto.ItemQuality_ItemQualityRare: {100, 80, 60, 50, 40}}
 
 	for _, tc := range []struct {
-		name     string
-		id       int
-		min, max float64
+		name            string
+		flags           ItemStaticFlags4
+		ownStat         int
+		healing, damage float64
 	}{
-		{"Death Speaker Scepter, one-hand caster", 2816, 28, 52},
-		{"Simone's Cultivating Hammer, one-hand caster", 22380, 35, 67},
-		{"Benediction, two-hand caster with a QualityModifier", 18608, 89, 155},
-		{"Bearded Boneaxe, not a caster weapon", 2878, 25, 47},
+		{"healing weapon", CASTER_HEALING_POWER, 0, 376, 125},
+		{"spell power weapon with no stat of its own", CASTER_SPELL_POWER, 0, 200, 200},
+		{"spell power weapon on top of its own spell power", CASTER_SPELL_POWER, ITEM_MOD_SPELL_POWER, 205, 205},
+		{"reduced damage only, its own healing", REDUCED_CASTER_DPS, ITEM_MOD_SPELL_HEALING_DONE, 5, 0},
 	} {
-		item, ok := items[tc.id]
-		if !ok {
-			t.Errorf("%s: item %d is not in the DBC inputs", tc.name, tc.id)
-			continue
+		item := Item{Id: 1, ItemClass: ITEM_CLASS_WEAPON, ItemSubClass: ITEM_SUBCLASS_WEAPON_MACE, InventoryType: INVTYPE_WEAPON,
+			ItemLevel: 60, OverallQuality: RARE, Flags4: tc.flags}
+		if tc.ownStat != 0 {
+			item.BonusStat, item.StatAlloc = []int{tc.ownStat}, []float64{1000}
 		}
+		stats := item.GetStats(item.ItemLevel)
+		if got, want := [2]float64{stats[proto.Stat_StatHealingPower], stats[proto.Stat_StatSpellDamage]}, [2]float64{tc.healing, tc.damage}; got != want {
+			t.Errorf("%s: healing %v, spell damage %v, want %v and %v", tc.name, got[0], got[1], want[0], want[1])
+		}
+	}
+}
+
+// The tables state 33 DPS one-handed and 39 two-handed; the variance is 0.4, so the range is
+// DPS x speed x 0.8 to 1.2, low floored and high rounded.
+func TestWeaponDamageRange(t *testing.T) {
+	once.Do(func() {})
+	previous := dbcInstance
+	dbcInstance = NewDBC()
+	t.Cleanup(func() { dbcInstance = previous })
+	for name, dps := range map[string]float64{
+		"ItemDamageOneHand": 33, "ItemDamageOneHandCaster": 33, "ItemDamageTwoHand": 39, "ItemDamageTwoHandCaster": 39,
+	} {
+		dbcInstance.ItemDamageTable[name] = map[int]ItemDamageTable{50: {Quality: []float64{0, 0, 0, dps, 0, 0, 0}}}
+	}
+
+	for _, tc := range []struct {
+		name            string
+		inventory       int
+		delay           int
+		caster          ItemStaticFlags1
+		reduced         ItemStaticFlags4
+		qualityModifier float64
+		min, max        float64
+	}{
+		{"one hand, 33 DPS at 2.0", INVTYPE_WEAPON, 2000, 0, 0, 0, 52, 79},
+		{"caster one hand without the reduced flag, the whole table", INVTYPE_WEAPON, 2000, CASTER_WEAPON, 0, 0, 52, 79},
+		{"reduced caster one hand, 2/3 of the table: 22 DPS", INVTYPE_WEAPON, 2000, CASTER_WEAPON, REDUCED_CASTER_DPS, 0, 35, 53},
+		{"reduced caster two hand, 29/39 of the table: 29 DPS at 3.0", INVTYPE_2HWEAPON, 3000, CASTER_WEAPON, REDUCED_CASTER_DPS, 0, 69, 104},
+		{"reduced caster two hand with a QualityModifier of 5.5 DPS", INVTYPE_2HWEAPON, 3000, CASTER_WEAPON, REDUCED_CASTER_DPS, 5.5, 86, 121},
+	} {
+		item := Item{Id: 1, ItemClass: ITEM_CLASS_WEAPON, InventoryType: tc.inventory, ItemDelay: tc.delay, ItemLevel: 50,
+			OverallQuality: 3, Flags1: tc.caster, Flags4: tc.reduced, DmgVariance: 0.4, QualityModifier: tc.qualityModifier}
 		if got, want := [2]float64{item.WeaponDmgMin(0), item.WeaponDmgMax(0)}, [2]float64{tc.min, tc.max}; got != want {
 			t.Errorf("%s: damage %v-%v, want %v-%v", tc.name, got[0], got[1], want[0], want[1])
 		}

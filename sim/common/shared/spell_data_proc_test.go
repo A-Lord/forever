@@ -53,9 +53,10 @@ func TestSpellDataProcRegistersEveryVariant(t *testing.T) {
 }
 
 // A row that names no hits the sim hears would register a listener that can never fire. 1249119 is
-// the buff half of the pair above: it carries the stats and no proc flags at all.
+// the buff half of the pair above, here stripped of any proc flags and hint.
 func TestSpellDataProcSkipsARowWithNoListener(t *testing.T) {
 	withTestItems(990003)
+	editRow(t, healProcBuff, func(s *spelldata.Spell) { s.ProcFlags, s.ProcHint = [2]uint32{}, 0 })
 	NewSpellDataProc(SpellDataProc{TriggerSpellID: healProcBuff},
 		[]ItemVariant{{ItemID: 990003, ItemName: "Listenerless Test Trinket"}})
 
@@ -382,8 +383,8 @@ func testOneHander(id int32) *proto.SimItem {
 	}
 }
 
-// Fiery Blaze 36's shape: a combat enchant on the main hand only, whose enchantment states 15%, the
-// ProcChance the store writes onto its spell's row.
+// Fiery Blaze 36's shape: a combat enchant on the main hand only, whose enchantment states its chance,
+// the ProcChance the store writes onto its spell's row; the test's row states 15.
 func TestStatedEnchantChanceRollsOnTheEnchantedWeaponOnly(t *testing.T) {
 	const mainHandID, offHandID, enchantID int32 = 990401, 990402, 990403
 	core.AddToDatabase(&proto.SimDatabase{
@@ -428,7 +429,7 @@ func TestStatedEnchantChanceRollsOnTheEnchantedWeaponOnly(t *testing.T) {
 
 // A PPM override on a rate-less enchant proc's row clears its refusal, and the registration measures
 // the rate on the enchanted weapon's hits. An equip aura that hears only spells never rolls, which is
-// the refusal its rate gets.
+// the refusal its rate gets. Each row's copy is stripped of any rate of its own first.
 func TestSpellDataProcTakesAPPMOverride(t *testing.T) {
 	const mainHandID, offHandID, enchantID int32 = 990501, 990502, 990503
 	const ppm = 2.0
@@ -471,6 +472,8 @@ func TestSpellDataProcTakesAPPMOverride(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			row := *spelldata.MustFind(tc.spellID)
+			row.ProcChance, row.RPPM = 0, 0
+			row.ProcChanceSource, row.ProcChanceEffect = spelldata.ProcChancePPM, 0
 			unsupported := func() []string {
 				if tc.isWeaponProc {
 					return spelldata.ItemProcUnsupportedWithRate(&row, true, 0)

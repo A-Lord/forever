@@ -129,7 +129,7 @@ func TestLevelPricesADebuffOnABoss(t *testing.T) {
 
 // Mana Spring's talent adds a percentage of the tick and truncates it before the tick becomes mana
 // per five: 10 a tick at +5% is still 10, at +25% it is 12.
-func TestScaledByTruncatesTheClientAmount(t *testing.T) {
+func TestScaledByTruncatesTheRowAmount(t *testing.T) {
 	row := buffRow(7030, Effect{Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_ENERGIZE,
 		BasePoints: 10, PeriodMs: 2000})
 	pct := func(points float64) *Effect {

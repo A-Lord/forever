@@ -7,11 +7,25 @@ import (
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-const shadowSwordID int32 = 945 // Shadow Sword, a one-hander that deals shadow damage.
+const shadowSwordID int32 = 991521
 
-// A weapon's damage school adds no spell damage: a Shadow Sword's white hit is shadow and takes none of
+func addShadowSword() {
+	addToDatabase(&proto.SimDatabase{Items: []*proto.SimItem{{
+		Id:             shadowSwordID,
+		Name:           "Test Shadow Sword",
+		Type:           proto.ItemType_ItemTypeWeapon,
+		WeaponType:     proto.WeaponType_WeaponTypeSword,
+		HandType:       proto.HandType_HandTypeOneHand,
+		WeaponSpeed:    2.6,
+		SpellSchool:    proto.SpellSchool_SpellSchoolShadow,
+		ScalingOptions: map[int32]*proto.ScalingItemProperties{0: {WeaponDamageMin: 50, WeaponDamageMax: 90}},
+	}}})
+}
+
+// A weapon's damage school adds no spell damage: a shadow sword's white hit is shadow and takes none of
 // the wielder's spell damage.
 func TestMagicSchoolWeaponAutosTakeNoSpellDamage(t *testing.T) {
+	addShadowSword()
 	sim, character := NewWeaponTestSim(t, proto.Race_RaceUndead, WeaponTestSlots(shadowSwordID, 0, 0), nil, nil)
 	mhAuto := character.AutoAttacks.MHAuto()
 	if mhAuto.SpellSchool != SpellSchoolShadow {
@@ -26,6 +40,7 @@ func TestMagicSchoolWeaponAutosTakeNoSpellDamage(t *testing.T) {
 
 // A swap moves the auto to the new weapon's school, with its spell damage share and its school's mods.
 func TestWeaponSwapMovesTheAutosSchool(t *testing.T) {
+	addShadowSword()
 	sim, character := NewWeaponTestSim(t, proto.Race_RaceUndead, WeaponTestSlots(WeaponTestSwordID, 0, 0), WeaponTestSlots(shadowSwordID, 0, 0), nil)
 	physical := character.AddDynamicMod(SpellModConfig{Kind: SpellMod_DamageDone_Pct, School: SpellSchoolPhysical, FloatValue: 0.1})
 	physical.Activate()
