@@ -130,7 +130,11 @@
         },
         "spellId": 16493,
         "definitionId": 135478,
-        "maxPoints": 2
+        "maxPoints": 2,
+        "prereqLocation": {
+          "rowIdx": 2,
+          "colIdx": 2
+        }
       },
       {
         "fieldName": "bloodthrill",

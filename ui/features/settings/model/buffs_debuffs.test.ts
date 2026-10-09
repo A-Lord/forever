@@ -27,6 +27,8 @@ describe('the buff registries', () => {
 			'Atiesh - Warlock',
 			'Atiesh - Druid',
 			'Atiesh - Priest',
+			'Darkspear',
+			"Admiral's Hat",
 			'Strength of Earth Totem',
 			'Stoneskin Totem',
 			'Grace of Air Totem',

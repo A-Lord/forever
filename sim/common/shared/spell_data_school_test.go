@@ -9,7 +9,7 @@ import (
 // The generator emits a school by name and the game files state it as a bit. Those only agree because
 // core's SpellSchool constants were put on the game files' bits, and nothing else would notice if they
 // drifted apart - every conversion in core is a switch over the names.
-func TestSpellSchoolBitsMatchTheClient(t *testing.T) {
+func TestSpellSchoolBitsMatchTheGameFiles(t *testing.T) {
 	// SpellMisc.SchoolMask, as the game files number it.
 	for _, c := range []struct {
 		clientBit byte

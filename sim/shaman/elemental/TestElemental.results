@@ -60,6 +60,20 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestElemental-AllItems-Admiral'sHat-10030"
+ value: {
+  dps: 446.53993
+  tps: 296.35828
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-AegisoftheScarletCommander-7726"
+ value: {
+  dps: 458.67126
+  tps: 303.66348
+ }
+}
+dps_results: {
  key: "TestElemental-AllItems-AnkhofLife-1713"
  value: {
   dps: 465.65498
@@ -116,6 +130,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestElemental-AllItems-BlackGraspoftheDestroyer-22194"
+ value: {
+  dps: 453.77201
+  tps: 301.19206
+ }
+}
+dps_results: {
  key: "TestElemental-AllItems-BlazefuryMedallion-17111"
  value: {
   dps: 455.32109
@@ -130,6 +151,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestElemental-AllItems-BloodTalon-12795"
+ value: {
+  dps: 415.62601
+  tps: 276.45049
+ }
+}
+dps_results: {
  key: "TestElemental-AllItems-BramblebarkBarrier-275649"
  value: {
   dps: 458.67126
@@ -141,6 +169,20 @@ dps_results: {
  value: {
   dps: 455.8043
   tps: 308.08873
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-BurningTotem-272433"
+ value: {
+  dps: 461.72901
+  tps: 306.30161
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-CloakofFire-14134"
+ value: {
+  dps: 457.83034
+  tps: 309.43604
  }
 }
 dps_results: {
@@ -162,6 +204,13 @@ dps_results: {
  value: {
   dps: 468.62779
   tps: 310.42368
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-DarkmoonCard:Heroism-19287"
+ value: {
+  dps: 463.75473
+  tps: 306.84793
  }
 }
 dps_results: {
@@ -200,6 +249,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestElemental-AllItems-DormantHeartoftheMountain-249473"
+ value: {
+  dps: 463.75473
+  tps: 306.84793
+ }
+}
+dps_results: {
  key: "TestElemental-AllItems-DragonscaleBreastplate-8367"
  value: {
   dps: 447.86277
@@ -222,6 +278,13 @@ dps_results: {
 }
 dps_results: {
  key: "TestElemental-AllItems-EbonHand-19170"
+ value: {
+  dps: 468.72176
+  tps: 310.0059
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-ElectrifiedDagger-19100"
  value: {
   dps: 468.72176
   tps: 310.0059
@@ -459,10 +522,31 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestElemental-AllItems-GryphonRider'sStormhammer-9651"
+ value: {
+  dps: 415.62601
+  tps: 276.45049
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-GutRipper-2164"
+ value: {
+  dps: 468.72176
+  tps: 310.0059
+ }
+}
+dps_results: {
  key: "TestElemental-AllItems-HammeroftheNorthernWind-810"
  value: {
   dps: 415.62601
   tps: 276.45049
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-HandofEdwardtheOdd-2243"
+ value: {
+  dps: 468.72176
+  tps: 310.0059
  }
 }
 dps_results: {
@@ -512,6 +596,13 @@ dps_results: {
  value: {
   dps: 469.22504
   tps: 310.5972
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-Lightning'sGrasp-280607"
+ value: {
+  dps: 442.86952
+  tps: 293.84086
  }
 }
 dps_results: {
@@ -634,6 +725,20 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestElemental-AllItems-RageoftheStorm-280604"
+ value: {
+  dps: 468.72176
+  tps: 310.0059
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-Ravager-7717"
+ value: {
+  dps: 468.72176
+  tps: 310.0059
+ }
+}
+dps_results: {
  key: "TestElemental-AllItems-RingofSaviors-1447"
  value: {
   dps: 460.2572
@@ -670,6 +775,13 @@ dps_results: {
 }
 dps_results: {
  key: "TestElemental-AllItems-Sulfuras,HandofRagnaros-17182"
+ value: {
+  dps: 468.72176
+  tps: 310.0059
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-SulfuronHammer-17193"
  value: {
   dps: 468.72176
   tps: 310.0059
@@ -739,6 +851,27 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestElemental-AllItems-Thunderbrew'sBootFlask-744"
+ value: {
+  dps: 463.80197
+  tps: 307.03521
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-TidalTotem-272431"
+ value: {
+  dps: 457.90702
+  tps: 303.28399
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-Tidebringer'sClaw-280605"
+ value: {
+  dps: 428.92003
+  tps: 284.84033
+ }
+}
+dps_results: {
  key: "TestElemental-AllItems-TotemofChargedFlames-263412"
  value: {
   dps: 458.99103
@@ -746,10 +879,31 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestElemental-AllItems-TotemofUrgency-279249"
+ value: {
+  dps: 457.90702
+  tps: 303.28399
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-TotemoftheStorm-272432"
+ value: {
+  dps: 457.90702
+  tps: 303.28399
+ }
+}
+dps_results: {
  key: "TestElemental-AllItems-ToySoldier-274386"
  value: {
   dps: 463.75473
   tps: 306.84793
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-UnmarredVisionofVoodress-19609"
+ value: {
+  dps: 457.39321
+  tps: 303.38562
  }
 }
 dps_results: {
@@ -764,6 +918,13 @@ dps_results: {
  value: {
   dps: 458.67126
   tps: 303.66348
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-VolcanicHammer-12792"
+ value: {
+  dps: 468.72176
+  tps: 310.0059
  }
 }
 dps_results: {

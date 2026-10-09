@@ -1,19 +1,44 @@
 import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { ItemCell } from './ItemCell';
+import { ItemCell, ItemCellIcon } from './ItemCell';
 
-describe('ItemCell', () => {
+describe('ItemCellIcon', () => {
 	it('keeps an empty item-level badge, which an empty gear slot renders', () => {
-		const { container } = render(<ItemCell icon={<a />} ilvl={null} name="Head" />);
+		const { container } = render(
+			<ItemCellIcon ilvl={null}>
+				<a />
+			</ItemCellIcon>,
+		);
 
 		expect(container.querySelector('[data-testid="item-picker-ilvl"]')?.textContent).toBe('');
 	});
 
 	it('drops the badge when the caller omits it', () => {
-		const { container } = render(<ItemCell icon={<a />} name="Head" />);
+		const { container } = render(
+			<ItemCellIcon>
+				<a />
+			</ItemCellIcon>,
+		);
 
 		expect(container.querySelector('[data-testid="item-picker-ilvl"]')).toBeNull();
+	});
+});
+
+describe('ItemCell', () => {
+	it('opens with the framed icon, ahead of the name and labels', () => {
+		const { container } = render(
+			<ItemCell
+				icon={
+					<ItemCellIcon ilvl="66">
+						<a />
+					</ItemCellIcon>
+				}
+				name="Head"
+			/>,
+		);
+
+		expect(container.firstElementChild!.firstElementChild!.getAttribute('data-testid')).toBe('item-picker-icon-wrapper');
 	});
 
 	it('puts the trailing action after the labels, outside the label stack', () => {

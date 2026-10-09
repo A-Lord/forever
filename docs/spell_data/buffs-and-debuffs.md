@@ -107,7 +107,7 @@ sim and every class test. Core's own tests reach it through the generated-buff t
    the apply block and the settings input are written. Read the `buffs:` lines it prints.
 4. Where the kind cannot express the row outright, the row states `Driver: true` and
    `sim/core/buffs/drivers.go` declares `drive<Go>`.
-5. With a database, `TestManifestAnchorsMatchTheClient` checks that the pin is the top rank the owner's skill
+5. With a database, `TestManifestAnchorsMatchTheGameFiles` checks that the pin is the top rank the owner's skill
    lines grant.
 
 ## The manifest row
@@ -150,7 +150,7 @@ The last four are exceptions; most rows state none of them. The rest of a row is
   its field.
 - **Name and AuraName.** `Name` is the game files' `SpellName` of `CastID`, or of `SpellID` where no cast
   is pinned. `AuraName` is the `SpellName` of `SpellID`, only where a cast is pinned. `Name` is the label
-  unless `Label` overrides it; a spell no class family files has neither and is labelled by its own name. `TestManifestAnchorsMatchTheClient` resolves the
+  unless `Label` overrides it; a spell no class family files has neither and is labelled by its own name. `TestManifestAnchorsMatchTheGameFiles` resolves the
   pins from both.
 - **Owner.** The providing class: the one whose `core.ClassSpellFamilies` entry is the spell's family,
   or, for a spell no class family files (the Atiesh rows, pet abilities, talent-granted debuffs), the
@@ -195,7 +195,7 @@ The pass prints a `buffs:` line for what it resolves but doubts, and writes the 
   amount of. The row keeps no ranks, so `TestResolvedBuffInvariants` rejects it as a tristate nothing
   prices.
 - **A scope mismatch.** The game files state an area or a target the row's slice does not name.
-  `TestScopeMatchesTheClientTargeting` holds the exemptions.
+  `TestScopeMatchesTheGameFilesTargeting` holds the exemptions.
 
 ## What stays hand-written
 
@@ -233,7 +233,7 @@ the manifest, for the one moment the sim cannot build: before protoc has seen a 
 ## The guard tests
 
 `go test ./tools/database/...` needs no game files database and runs in CI; only
-`TestManifestAnchorsMatchTheClient` and `TestProcShapeOfNamedSpells` skip without one.
+`TestManifestAnchorsMatchTheGameFiles` and `TestProcShapeOfNamedSpells` skip without one.
 
 | Test                                                                       | What it holds                                                                                                                                        |
 | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -245,9 +245,9 @@ the manifest, for the one moment the sim cannot build: before protoc has seen a 
 | `TestBuffFilesRegenerateFromTheCommittedInputs`                            | the two Go files, the settings inputs and `proto/buffs.proto` are what the committed store inputs render                                             |
 | `TestRenderedBuffFilesMatchTheFixtures`, `TestRenderedBuffFilesCompile`    | synthetic rows of every shape render to the committed fixtures, and those fixtures compile against the real `sim/core/buffs` through a build overlay |
 | `TestRenderBuffsDebuffsTS*`                                                | the settings inputs each proto type and kind renders                                                                                                 |
-| `TestResolvedBuffInvariants`                                               | a tristate row is priced by a talent or an `ImpAction`, and the pinned talent ranks, categories and stat amounts                                     |
-| `TestScopeMatchesTheClientTargeting`                                       | a row whose spell states an area aura, or an aura aimed over an area, sits in the scope that targeting names                                         |
-| `TestManifestAnchorsMatchTheClient`                                        | with a database, each pinned spell is still the top rank, aura or cast the game files' skill lines grant                                             |
+| `TestResolvedBuffInvariants`                                               | a tristate row is priced by a talent or an `ImpAction`, talent ranks match the trait node, pinned categories hold, amounts match the spell's row     |
+| `TestScopeMatchesTheGameFilesTargeting`                                    | a row whose spell states an area aura, or an aura aimed over an area, sits in the scope that targeting names                                         |
+| `TestManifestAnchorsMatchTheGameFiles`                                     | with a database, each pinned spell is still the top rank, aura or cast the game files' skill lines grant                                             |
 
 `sim/core/buffs_generated_test.go` and `sim/core/debuffs_generated_test.go` hold the generated
 constructors' behaviour: categories, stacks and drivers. Rewrite the synthetic

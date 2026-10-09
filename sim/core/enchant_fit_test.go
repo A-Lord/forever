@@ -6,30 +6,45 @@ import (
 	"testing"
 
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/stats"
 )
 
 func TestFittingEnchantRowPicksTheRowThatFits(t *testing.T) {
-	// 1897 is both "Enchant 2H Weapon - Lesser Impact" (+5, two-hand only) and
-	// "Enchant Weapon - Superior Striking" (+5); a one-hand item fits only Superior Striking.
+	shared := addFitTestEnchant(910030, proto.ItemType_ItemTypeWeapon, proto.EnchantType_EnchantTypeTwoHand)
+	addFitTestEnchant(shared, proto.ItemType_ItemTypeWeapon, proto.EnchantType_EnchantTypeNormal)
+	bracer := addFitTestEnchant(910031, proto.ItemType_ItemTypeWrist, proto.EnchantType_EnchantTypeNormal)
+
 	oneHand := Item{Type: proto.ItemType_ItemTypeWeapon, HandType: proto.HandType_HandTypeOneHand, WeaponType: proto.WeaponType_WeaponTypeSword}
-	row, ok := FittingEnchantRow(1897, oneHand)
-	if !ok || row.EnchantType == proto.EnchantType_EnchantTypeTwoHand {
-		t.Fatalf("FittingEnchantRow(1897, one-hand) = %+v, %v; want the one-hand row", row, ok)
+	twoHand := Item{Type: proto.ItemType_ItemTypeWeapon, HandType: proto.HandType_HandTypeTwoHand, WeaponType: proto.WeaponType_WeaponTypeSword}
+	if row, ok := FittingEnchantRow(shared, oneHand); !ok || row.EnchantType != proto.EnchantType_EnchantTypeNormal {
+		t.Errorf("FittingEnchantRow(%d, one-hand) = %+v, %v; want the one-hand row", shared, row, ok)
 	}
-	if _, ok := FittingEnchantRow(1887, oneHand); ok {
+	if row, ok := FittingEnchantRow(shared, twoHand); !ok || row.EnchantType != proto.EnchantType_EnchantTypeTwoHand {
+		t.Errorf("FittingEnchantRow(%d, two-hand) = %+v, %v; want the two-hand row, the first that fits", shared, row, ok)
+	}
+	if _, ok := FittingEnchantRow(bracer, oneHand); ok {
 		t.Error("a bracer enchant fits a sword")
 	}
 }
 
 func TestEnchantIsStatic(t *testing.T) {
-	if !GetEnchantByEffectID(1887).IsStatic() {
-		t.Error("Greater Agility is not static")
+	const statsOnly, procWithStats, empty = 910032, 910033, 910034
+	agility := make([]float64, stats.ProtoStatsLen)
+	agility[stats.Agility] = 1
+	AddToDatabase(&proto.SimDatabase{Enchants: []*proto.SimEnchant{
+		{EffectId: statsOnly, Type: proto.ItemType_ItemTypeWrist, Stats: agility},
+		{EffectId: procWithStats, Type: proto.ItemType_ItemTypeWeapon, Stats: agility, ProcKind: proto.EnchantProcKind_EnchantProcKindCombat},
+		{EffectId: empty, Type: proto.ItemType_ItemTypeHands},
+	}})
+
+	if !GetEnchantByEffectID(statsOnly).IsStatic() {
+		t.Error("an enchant of stats alone is not static")
 	}
-	if GetEnchantByEffectID(1900).IsStatic() {
-		t.Error("Crusader is static")
+	if GetEnchantByEffectID(procWithStats).IsStatic() {
+		t.Error("an enchant with a proc is static")
 	}
-	if GetEnchantByEffectID(2613).IsStatic() {
-		t.Error("Threat (no stats) is static")
+	if GetEnchantByEffectID(empty).IsStatic() {
+		t.Error("an enchant with no stats is static")
 	}
 }
 

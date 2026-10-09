@@ -332,8 +332,8 @@ func TestClassSpellFamilies(t *testing.T) {
 }
 
 // A trigger carries its row's own class flags, which is what a SPELLMOD_CHANCE_OF_SUCCESS names:
-// Improved Poisons 14113 raises the 20% Instant Poison 8680 rolls by 10 points, and Moonkin Form
-// 24858 doubles the chance of Omen of Clarity 16864 while the form is up.
+// Improved Poisons 14113 raises the chance Instant Poison 8680 rolls by the points it states, and
+// Moonkin Form 24858 raises the chance of Omen of Clarity 16864 by its percent while the form is up.
 func TestAProcChanceModReachesTheTriggerBuiltFromTheRowItNames(t *testing.T) {
 	withGeneratedStore(t)
 
@@ -343,16 +343,18 @@ func TestAProcChanceModReachesTheTriggerBuiltFromTheRowItNames(t *testing.T) {
 	if trigger.ProcSpellClassFlags != instantPoison.ClassFlags {
 		t.Fatalf("the trigger's own class flags = %v, want the row's %v", trigger.ProcSpellClassFlags, instantPoison.ClassFlags)
 	}
-	if got := rogue.ModifiedProcChance(trigger.ProcSpellClassFlags, trigger.ProcChance); got != 0.2 {
-		t.Errorf("Instant Poison's chance before the talent: %v, want 0.2", got)
+	base := float64(instantPoison.ProcChance) / 100
+	if got := rogue.ModifiedProcChance(trigger.ProcSpellClassFlags, trigger.ProcChance); got != base {
+		t.Errorf("Instant Poison's chance before the talent: %v, want %v", got, base)
 	}
 
-	parsed := ParseStatic(rogue, MustFind(14113))
+	improvedPoisons := MustFind(14113)
+	parsed := ParseStatic(rogue, improvedPoisons)
 	if kinds := appliedKinds(parsed); len(kinds) == 0 || kinds[0] != "SpellMod_ProcChance_Flat" {
 		t.Fatalf("Improved Poisons attached %v, want the proc chance mod first", kinds)
 	}
-	if got := rogue.ModifiedProcChance(trigger.ProcSpellClassFlags, trigger.ProcChance); math.Abs(got-0.3) > 1e-9 {
-		t.Errorf("Instant Poison's chance with the talent: %v, want 0.3", got)
+	if got, want := rogue.ModifiedProcChance(trigger.ProcSpellClassFlags, trigger.ProcChance), base+improvedPoisons.EffectN(1).Percent(); math.Abs(got-want) > 1e-9 {
+		t.Errorf("Instant Poison's chance with the talent: %v, want %v", got, want)
 	}
 
 	sim := &core.Simulation{}
@@ -363,8 +365,8 @@ func TestAProcChanceModReachesTheTriggerBuiltFromTheRowItNames(t *testing.T) {
 	omen := MustFind(16864).ClassFlags
 
 	form.Activate(sim)
-	if got := druid.ModifiedProcChance(omen, 0.1); math.Abs(got-0.2) > 1e-9 {
-		t.Errorf("Omen of Clarity's chance in Moonkin Form: %v, want 0.2", got)
+	if got, want := druid.ModifiedProcChance(omen, 0.1), 0.1*(1+moonkin.EffectN(5).Percent()); math.Abs(got-want) > 1e-9 {
+		t.Errorf("Omen of Clarity's chance in Moonkin Form: %v, want %v", got, want)
 	}
 	form.Deactivate(sim)
 	if got := druid.ModifiedProcChance(omen, 0.1); got != 0.1 {
@@ -386,15 +388,16 @@ func TestAProcChanceModReachesThePetAndTheTargetSideTrigger(t *testing.T) {
 	if kinds := appliedKinds(ParseStatic(hunter, frenzy)); len(kinds) != 1 || kinds[0] != "SpellMod_ProcChance_Flat" {
 		t.Fatalf("Frenzy attached %v, want the proc chance mod", kinds)
 	}
-	if got := pet.ModifiedProcChance(frenzy.EffectN(1).ClassFlags, 0); math.Abs(got-0.2) > 1e-9 {
-		t.Errorf("the pet's Frenzy chance with the talent: %v, want 0.2", got)
+	if got, want := pet.ModifiedProcChance(frenzy.EffectN(1).ClassFlags, 0), frenzy.EffectN(1).Percent(); math.Abs(got-want) > 1e-9 {
+		t.Errorf("the pet's Frenzy chance with the talent: %v, want %v", got, want)
 	}
 
 	paladin := parseCharacter(&proto.Player{Class: proto.Class_ClassPaladin, Spec: &proto.Player_RetributionPaladin{RetributionPaladin: &proto.RetributionPaladin{}}})
-	if kinds := appliedKinds(ParseStatic(paladin, MustFind(23564))); len(kinds) != 1 || kinds[0] != "SpellMod_ProcChance_Flat" {
+	improvedJudgement := MustFind(23564)
+	if kinds := appliedKinds(ParseStatic(paladin, improvedJudgement)); len(kinds) != 1 || kinds[0] != "SpellMod_ProcChance_Flat" {
 		t.Fatalf("Improved Judgement of Light attached %v, want the proc chance mod", kinds)
 	}
-	if got := paladin.ModifiedProcChance(MustFind(20185).ClassFlags, 0.5); math.Abs(got-0.6) > 1e-9 {
-		t.Errorf("Judgement of Light's chance with the talent: %v, want 0.6", got)
+	if got, want := paladin.ModifiedProcChance(MustFind(20185).ClassFlags, 0.5), 0.5+improvedJudgement.EffectN(1).Percent(); math.Abs(got-want) > 1e-9 {
+		t.Errorf("Judgement of Light's chance with the talent: %v, want %v", got, want)
 	}
 }

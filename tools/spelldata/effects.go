@@ -340,7 +340,7 @@ func auraPhrase(s *spelldata.Spell, e *spelldata.Effect) string {
 		}
 		return join(signedPercent(e), statName(e.Misc))
 
-	case dbcenums.A_MOD_RESISTANCE:
+	case dbcenums.A_MOD_RESISTANCE, dbcenums.A_MOD_ARMOR_NO_MODS:
 		return join(signed(value(e)), resistanceName(e.Misc))
 	case dbcenums.A_MOD_BASE_RESISTANCE_PCT:
 		return join(signedPercent(e), resistanceName(e.Misc), "from items")
@@ -639,8 +639,8 @@ func powerAmount(e *spelldata.Effect) string {
 	return join(number(amount), bar)
 }
 
-// A_MOD_RESISTANCE and A_MOD_BASE_RESISTANCE_PCT state armor as school 1 and a magic resistance as
-// that school's own bit.
+// A_MOD_RESISTANCE, A_MOD_ARMOR_NO_MODS and A_MOD_BASE_RESISTANCE_PCT state armor as school 1 and a
+// magic resistance as that school's own bit.
 func resistanceName(misc int32) string {
 	mask := core.SpellSchool(misc)
 	if mask == core.SpellSchoolPhysical {

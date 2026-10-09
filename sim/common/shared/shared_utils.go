@@ -1038,6 +1038,29 @@ func spellDataOnUseDamageSpell(character *core.Character, damage *spelldata.Spel
 	return spellDataProcDamageSpell(character, damage, false)
 }
 
+// An on-use item whose spell keeps an A_PERIODIC_TRIGGER_SPELL aura on the wearer for the row's
+// duration. Every period the aura casts the row it triggers, whose damage reaches every enemy in its
+// area or cone: Cloak of Fire's 18364 casts 18374, 25 Fire to the enemies around the wearer, every 5 s
+// for 15 s. The label carries the item, since two items may apply the same row.
+func NewSpellDataPeriodicDamageOnUse(itemID int32) {
+	registerSpellDataOnUse(itemID, core.CooldownTypeDPS, func(character *core.Character, row *spelldata.Spell) core.SpellConfig {
+		periodic := row.FirstAura(dbcenums.A_PERIODIC_TRIGGER_SPELL)
+		damage := character.RegisterSpell(spellDataProcDamageSpell(character, spelldata.MustFind(periodic.TriggerID), true))
+
+		config := spelldata.SpellConfig(&character.Unit, row, castBy(false))
+		config.ProcMask = core.ProcMaskEmpty
+		config.Dot = spelldata.DotConfig(row, periodic, spelldata.Label(fmt.Sprintf("%s %d", row.Name, itemID)))
+		config.Dot.SelfOnly = true
+		config.Dot.OnTick = func(sim *core.Simulation, _ *core.Unit, _ *core.Dot) {
+			damage.Cast(sim, character.CurrentTarget)
+		}
+		config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
+			spell.SelfHot().Apply(sim)
+		}
+		return config
+	})
+}
+
 // An on-use item whose spell heals the wearer, at once or over time.
 func NewSpellDataHealOnUse(itemID int32) {
 	registerSpellDataOnUse(itemID, core.CooldownTypeSurvival, func(character *core.Character, heal *spelldata.Spell) core.SpellConfig {
@@ -1045,10 +1068,21 @@ func NewSpellDataHealOnUse(itemID int32) {
 	})
 }
 
-// An on-use item whose spell shields the wearer with an A_SCHOOL_ABSORB aura.
+// An on-use item whose spell shields the wearer with an A_SCHOOL_ABSORB aura. The stats the item's
+// effect entry states beside the absorb are the shield's for as long as it holds: in game a used-up
+// absorb removes its whole aura, so Blazing Emblem's 33 Fire resistance goes with its 465 Fire absorb.
 func NewSpellDataAbsorbOnUse(itemID int32) {
 	registerSpellDataOnUse(itemID, core.CooldownTypeSurvival, func(character *core.Character, absorb *spelldata.Spell) core.SpellConfig {
-		return spellDataAbsorbSpell(character, absorb, itemID, false)
+		config := spellDataAbsorbSpell(character, absorb, itemID, false)
+		for _, itemEffect := range onUseEffectsFor(itemID) {
+			if itemEffect.BuffId != absorb.ID {
+				continue
+			}
+			if buffStats, _ := onUseStatBuff(character, itemEffect); buffStats != (stats.Stats{}) {
+				config.RelatedSelfBuff.AttachStatsBuff(buffStats)
+			}
+		}
+		return config
 	})
 }
 

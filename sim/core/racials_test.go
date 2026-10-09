@@ -126,11 +126,32 @@ func TestElunesLight(t *testing.T) {
 	}
 }
 
-// A warrior ability as spelldata builds one: the game files' family 4 flags and no ClassSpellMask.
-func fakeWarriorAbility(id int32, bit uint, damage float64) SpellConfig {
+// One-bit class flags in family, on the lowest bit that every mask in named sets and no mask in
+// unnamed sets; zero flags where no bit does.
+func oneClassFlagBit(family int32, named, unnamed []ClassFlags) ClassFlags {
+	for word := range 4 {
+		for bit := range 32 {
+			flags := ClassFlags{Family: family}
+			flags.Mask[word] = 1 << bit
+			if !slices.ContainsFunc(named, func(f ClassFlags) bool { return !f.Matches(flags) }) &&
+				!slices.ContainsFunc(unnamed, flags.Matches) {
+				return flags
+			}
+		}
+	}
+	return ClassFlags{}
+}
+
+func warriorEurekaFlags() []ClassFlags {
+	mods := eurekaMods(1259813)
+	return []ClassFlags{mods.CostFlags, mods.DamageFlags}
+}
+
+// A warrior ability as spelldata builds one: the game files' class flags and no ClassSpellMask.
+func fakeWarriorAbility(id int32, flags ClassFlags, damage float64) SpellConfig {
 	return SpellConfig{
 		ActionID:         ActionID{SpellID: id},
-		ClassFlags:       ClassFlags{Family: 4, Mask: [4]uint32{1 << bit}},
+		ClassFlags:       flags,
 		ProcMask:         ProcMaskMeleeMHSpecial,
 		SpellSchool:      SpellSchoolPhysical,
 		RageCost:         RageCostOptions{Cost: 30},
@@ -145,7 +166,8 @@ var fakeRendActionID = ActionID{SpellID: 772}
 
 // A DoT's aura has to be registered before the environment is finalized.
 func (fw *FakeRageWarrior) registerFakeRend() {
-	config := fakeWarriorAbility(fakeRendActionID.SpellID, 5, 0)
+	unnamed := oneClassFlagBit(ClassSpellFamilies[proto.Class_ClassWarrior], nil, warriorEurekaFlags())
+	config := fakeWarriorAbility(fakeRendActionID.SpellID, unnamed, 0)
 	config.Dot = DotConfig{
 		Aura:          Aura{Label: "Rend"},
 		NumberOfTicks: 5,
@@ -176,9 +198,17 @@ func TestGnomeWarrior(t *testing.T) {
 		t.Fatalf("Eureka! should start at 3 charges, got %d", eureka.GetStacks())
 	}
 
-	mortalStrike := fw.RegisterSpell(fakeWarriorAbility(12294, 25, 100))
-	hamstring := fw.RegisterSpell(fakeWarriorAbility(1715, 1, 0))
-	sunderArmor := fw.RegisterSpell(fakeWarriorAbility(7386, 14, 0))
+	mods := eurekaMods(1259813)
+	family := ClassSpellFamilies[proto.Class_ClassWarrior]
+	named := oneClassFlagBit(family, warriorEurekaFlags(), nil)
+	unnamed := oneClassFlagBit(family, nil, warriorEurekaFlags())
+	if named.IsZero() || unnamed.IsZero() {
+		t.Fatalf("the warrior's Eureka! masks %+v leave no class flag bit named by both (%+v) or by neither (%+v)",
+			warriorEurekaFlags(), named, unnamed)
+	}
+	mortalStrike := fw.RegisterSpell(fakeWarriorAbility(12294, named, 100))
+	hamstring := fw.RegisterSpell(fakeWarriorAbility(1715, named, 0))
+	sunderArmor := fw.RegisterSpell(fakeWarriorAbility(7386, unnamed, 0))
 	rend := fw.GetSpell(fakeRendActionID)
 	itemSpell := fw.RegisterSpell(SpellConfig{
 		ActionID:         ActionID{SpellID: 2},
@@ -191,11 +221,11 @@ func TestGnomeWarrior(t *testing.T) {
 		},
 	})
 
-	if !WithinToleranceFloat64(0.1, mortalStrike.DirectDamageMultiplierAdditive, 0.0001) {
-		t.Fatalf("Eureka! should raise Mortal Strike's direct damage by 10%%, got +%0.2f", mortalStrike.DirectDamageMultiplierAdditive)
+	if !WithinToleranceFloat64(mods.Damage, mortalStrike.DirectDamageMultiplierAdditive, 0.0001) {
+		t.Fatalf("Eureka! should raise Mortal Strike's direct damage by +%0.2f, got +%0.2f", mods.Damage, mortalStrike.DirectDamageMultiplierAdditive)
 	}
-	if !WithinToleranceFloat64(27, mortalStrike.Cost.GetCurrentCost(), 0.0001) {
-		t.Fatalf("Eureka! should cut Mortal Strike's 30 Rage by 10%%, got %0.1f", mortalStrike.Cost.GetCurrentCost())
+	if want := 30 * (1 + mods.Cost); !WithinToleranceFloat64(want, mortalStrike.Cost.GetCurrentCost(), 0.0001) {
+		t.Fatalf("Eureka! should cut Mortal Strike's 30 Rage to %0.1f, got %0.1f", want, mortalStrike.Cost.GetCurrentCost())
 	}
 	if sunderArmor.DirectDamageMultiplierAdditive != 0 || sunderArmor.Cost.GetCurrentCost() != 30 {
 		t.Fatalf("Eureka! should leave Sunder Armor alone, which its class mask does not name")
@@ -226,7 +256,7 @@ func TestGnomeWarrior(t *testing.T) {
 	}
 	// An off-hand strike on the same spell id, as Whirlwind's is, lands with the main-hand one and
 	// spends no second charge.
-	offHandConfig := fakeWarriorAbility(12294, 25, 100)
+	offHandConfig := fakeWarriorAbility(12294, named, 100)
 	offHandConfig.ActionID = offHandConfig.ActionID.WithTag(2)
 	offHandConfig.ProcMask = ProcMaskMeleeOHSpecial
 	offHandStrike := fw.RegisterSpell(offHandConfig)
@@ -244,37 +274,26 @@ func TestGnomeWarrior(t *testing.T) {
 }
 
 func TestGnomeEurekaReadsEachClassRow(t *testing.T) {
-	for spellID, want := range map[int32]EurekaMods{
-		1259812: {
-			CostFlags:   ClassFlags{Family: 8, Mask: [4]uint32{100794910, 2097408}},
-			DamageFlags: ClassFlags{Family: 8, Mask: [4]uint32{100794910, 2097408}},
-			Cost:        -0.1, Damage: 0.1,
-		},
-		1259813: {
-			CostFlags:   ClassFlags{Family: 4, Mask: [4]uint32{1784679630, 5, 1}},
-			DamageFlags: ClassFlags{Family: 4, Mask: [4]uint32{1784679630, 5, 1}},
-			Cost:        -0.1, Damage: 0.1,
-		},
-		1259817: {
-			CostFlags:   ClassFlags{Family: 3, Mask: [4]uint32{549591799, 4096}},
-			DamageFlags: ClassFlags{Family: 3, Mask: [4]uint32{551688947, 4096, 0, 8}},
-			Cost:        -0.1, Damage: 0.1, Channel: 0.1,
-		},
-		1259821: {
-			CostFlags:    ClassFlags{Family: 5, Mask: [4]uint32{541165, 8650880}},
-			DamageFlags:  ClassFlags{Family: 5, Mask: [4]uint32{524773, 8388736}},
-			ChannelFlags: ClassFlags{Family: 5, Mask: [4]uint32{16392, 262144}},
-			Cost:         -0.1, Damage: 0.1, Channel: 0.1,
-		},
-		1259823: {
-			CostFlags:    ClassFlags{Family: 6, Mask: [4]uint32{150224528, 8388614}},
-			DamageFlags:  ClassFlags{Family: 6, Mask: [4]uint32{150224528, 8486918}},
-			ChannelFlags: ClassFlags{Family: 6, Mask: [4]uint32{10485760, 98304}},
-			Cost:         -0.1, Damage: 0.1, Channel: 0.1,
-		},
+	for spellID, class := range map[int32]proto.Class{
+		1259812: proto.Class_ClassRogue,
+		1259813: proto.Class_ClassWarrior,
+		1259817: proto.Class_ClassMage,
+		1259821: proto.Class_ClassWarlock,
+		1259823: proto.Class_ClassPriest,
 	} {
-		if got := eurekaMods(spellID); got != want {
-			t.Errorf("Eureka! %d reads %+v, want %+v", spellID, got, want)
+		mods := eurekaMods(spellID)
+		family := ClassSpellFamilies[class]
+		if !(mods.Cost < 0 && mods.Damage > 0) {
+			t.Errorf("Eureka! %d reads cost %v and damage %v, want a cut and a raise", spellID, mods.Cost, mods.Damage)
+		}
+		if mods.CostFlags.Mask == [4]uint32{} || mods.CostFlags.Family != family ||
+			mods.DamageFlags.Mask == [4]uint32{} || mods.DamageFlags.Family != family {
+			t.Errorf("Eureka! %d reads cost flags %+v and damage flags %+v, want masks in %s's family %d",
+				spellID, mods.CostFlags, mods.DamageFlags, class, family)
+		}
+		if !mods.ChannelFlags.IsZero() && (mods.ChannelFlags.Family != family || mods.Channel <= 0) {
+			t.Errorf("Eureka! %d reads channel flags %+v with %v, want a raise on channels in %s's family %d",
+				spellID, mods.ChannelFlags, mods.Channel, class, family)
 		}
 	}
 }
@@ -291,6 +310,15 @@ func TestGnomeWarlockEurekaChannel(t *testing.T) {
 		t.Fatalf("a gnome warlock should cast Eureka! 1259821")
 	}
 	eureka := fw.GetAura("Eureka!")
+	mods := eurekaMods(1259821)
+	if mods.ChannelFlags.IsZero() || mods.Channel <= 0 {
+		t.Fatalf("the warlock's Eureka! reads channel flags %+v with %v, want a raise on its channels", mods.ChannelFlags, mods.Channel)
+	}
+	if fw.DrainLife.ClassFlags.IsZero() {
+		t.Fatalf("no class flag bit sits on both the warlock's Eureka! channel mask %+v and its cost mask %+v",
+			mods.ChannelFlags, mods.CostFlags)
+	}
+	boosted := 1 + mods.Channel
 
 	multiplier := func(spell *Spell) float64 { return spell.Dot(target).PeriodicDamageMultiplier }
 	drainLife := fw.DrainLife.Dot(target)
@@ -319,8 +347,8 @@ func TestGnomeWarlockEurekaChannel(t *testing.T) {
 	if eureka.GetStacks() != 2 {
 		t.Fatalf("Drain Life's landed cast should spend a stack, %d left", eureka.GetStacks())
 	}
-	if got := multiplier(fw.DrainLife); !WithinToleranceFloat64(1.1, got, 0.0001) {
-		t.Fatalf("Eureka! should raise the ticks of the Drain Life that spent a stack by 10%%, got x%0.2f", got)
+	if got := multiplier(fw.DrainLife); !WithinToleranceFloat64(boosted, got, 0.0001) {
+		t.Fatalf("Eureka! should raise the ticks of the Drain Life that spent a stack to x%0.2f, got x%0.2f", boosted, got)
 	}
 	castAndSpend(fw.Haunt)
 	if got := multiplier(fw.Haunt); got != 1 {
@@ -339,8 +367,8 @@ func TestGnomeWarlockEurekaChannel(t *testing.T) {
 		t.Fatalf("Drain Life should tick 5 times, got %d", len(ticks))
 	}
 	for i, got := range ticks {
-		if !WithinToleranceFloat64(1.1, got, 0.0001) {
-			t.Fatalf("the Drain Life that spent the last stack should keep x1.1 on every tick, tick %d got x%0.2f", i+1, got)
+		if !WithinToleranceFloat64(boosted, got, 0.0001) {
+			t.Fatalf("the Drain Life that spent the last stack should keep x%0.2f on every tick, tick %d got x%0.2f", boosted, i+1, got)
 		}
 	}
 	if got := multiplier(fw.DrainLife); !WithinToleranceFloat64(1, got, 0.0001) {
@@ -641,8 +669,11 @@ func (fw *fakeDotWarlock) Initialize() {
 		},
 	})
 
-	fw.DrainLife = fw.RegisterSpell(fakeWarlockDot(689, "Drain Life", ClassFlags{Family: 5, Mask: [4]uint32{8}}, SpellFlagChanneled))
-	fw.Haunt = fw.RegisterSpell(fakeWarlockDot(1293694, "Haunt", ClassFlags{Family: 5, Mask: [4]uint32{0, 262144}}, 0))
+	// Both on the Eureka! channel mask and on a mask that spends a stack; only Drain Life is a channel.
+	mods := eurekaMods(1259821)
+	onEurekaMasks := oneClassFlagBit(ClassSpellFamilies[proto.Class_ClassWarlock], []ClassFlags{mods.ChannelFlags, mods.CostFlags}, nil)
+	fw.DrainLife = fw.RegisterSpell(fakeWarlockDot(689, "Drain Life", onEurekaMasks, SpellFlagChanneled))
+	fw.Haunt = fw.RegisterSpell(fakeWarlockDot(1293694, "Haunt", onEurekaMasks, 0))
 }
 
 // A periodic warlock spell with the game files' family 5 flags, which always lands.

@@ -6,6 +6,9 @@ import (
 	"go/parser"
 	"strings"
 	"testing"
+
+	"github.com/wowsims/forever/sim/core/dbcenums"
+	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
 func TestWeaponAndRatingConstants(t *testing.T) {
@@ -49,13 +52,14 @@ var oneHandedSpec = spelldata.MustFind(20196)
 `
 
 func TestHoverWeaponRules(t *testing.T) {
+	percent := func(id int32) string { return signedColumn(spelldata.MustFind(id).EffectN(1).Mean()) + "%" }
 	for needle, want := range map[string]string{
-		"MustFind(12320)":   "| 1 | +5% physical crit, per weapon: only attacks made with a melee weapon<br>",
-		"MustFind(16255)":   "| 1 | +1% physical and spell crit, while a melee weapon is equipped: every spell and attack<br>",
-		"MustFind(1310308)": "| 1 | +2% physical crit, ranged weapons only: attacks made with a bow, gun or crossbow<br>",
-		"MustFind(1323963)": "| 1 | +10% physical hit, per weapon: only attacks made with a one-handed axe, one-handed mace, one-handed sword, fist weapon or dagger in the off hand<br>",
-		"MustFind(3043)":    "| 1 | -2% physical hit to the enemy (the weapon requirement only gates casting)<br>",
-		"MustFind(20196)":   "| 1 | +2% physical damage done and on the melee-defense spells of the other schools, while a one-handed axe, one-handed mace, one-handed sword, exotic, fist weapon or dagger is equipped<br>",
+		"MustFind(12320)":   "| 1 | " + percent(12320) + " physical crit, per weapon: only attacks made with a melee weapon<br>",
+		"MustFind(16255)":   "| 1 | " + percent(16255) + " physical and spell crit, while a melee weapon is equipped: every spell and attack<br>",
+		"MustFind(1310308)": "| 1 | " + percent(1310308) + " physical crit, ranged weapons only: attacks made with a bow, gun or crossbow<br>",
+		"MustFind(1323963)": "| 1 | " + percent(1323963) + " physical hit, per weapon: only attacks made with a one-handed axe, one-handed mace, one-handed sword, fist weapon or dagger in the off hand<br>",
+		"MustFind(3043)":    "| 1 | " + percent(3043) + " physical hit to the enemy (the weapon requirement only gates casting)<br>",
+		"MustFind(20196)":   "| 1 | " + percent(20196) + " physical damage done and on the melee-defense spells of the other schools, while a one-handed axe, one-handed mace, one-handed sword, exotic, fist weapon or dagger is equipped<br>",
 	} {
 		wantHover(t, weaponRowsGo, needle, 9, want)
 	}
@@ -65,7 +69,8 @@ func TestHoverWeaponRules(t *testing.T) {
 
 func TestExprWeaponRow(t *testing.T) {
 	got := evalJSON(t, "spelldata.MustFind(3043).Effect(dbcenums.A_MOD_HIT_CHANCE, 0).BaseValue()")
-	if got.Value != "-2" || got.Trail != "spelldata.MustFind(3043).Effect(54, 0).BaseValue()" {
+	want := column(spelldata.MustFind(3043).Effect(dbcenums.A_MOD_HIT_CHANCE, 0).BaseValue())
+	if got.Value != want || got.Trail != "spelldata.MustFind(3043).Effect(54, 0).BaseValue()" {
 		t.Errorf("the chain reads %s = %s", got.Trail, got.Value)
 	}
 	if human := got.Effects[readEffect(got)-1].Human; !strings.Contains(human, "only gates casting") {

@@ -50,6 +50,8 @@ func (character *Character) enableItemSwap(itemSwap *proto.ItemSwap) {
 		hasItemSwap[itemSlot] = itemSpec != nil && itemSpec.Id != 0
 		swapItems[itemSlot] = toItem(itemSpec).inArea(character.Party.areaTypes())
 	}
+	swapConsumables := character.Consumables
+	applyTemporaryEnchants(swapConsumables.SwapMhImbueId, swapConsumables.SwapOhImbueId, swapConsumables.SwapMhWeaponImbueId, swapConsumables.SwapOhWeaponImbueId, &swapItems)
 
 	has2HSwap := swapItems[proto.ItemSlot_ItemSlotMainHand].HandType == proto.HandType_HandTypeTwoHand
 	hasMhEquipped := character.HasMHWeapon()

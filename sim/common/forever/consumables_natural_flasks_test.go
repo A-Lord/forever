@@ -9,6 +9,7 @@ import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/simsignals"
+	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 	"github.com/wowsims/forever/sim/core/testagent"
 )
@@ -43,34 +44,47 @@ func warriorWithFlask(t *testing.T, flaskID int32) *core.Character {
 	return sim.Raid.Parties[0].Players[0].GetCharacter()
 }
 
-// Each flask's 1293740-1293743 states 60 Stamina, and in its A_DUMMY the zone bonus the text names: 5%
-// hit, 4% crit, 5% less chance to be dodged or parried (5% expertise), 5% haste.
+// Each flask's 1293740-1293743 states Stamina in its first effect, and in its A_DUMMY the percent of
+// the zone bonus the text names: hit, crit, less chance to be dodged or parried (expertise), or haste.
 func TestNaturalFlasksGrantStaminaAndTheirZoneBonus(t *testing.T) {
 	bare := warriorWithFlask(t, 0)
 	for _, tc := range []struct {
-		itemID int32
-		bonus  stats.Stats
-		speed  float64
+		itemID   int32
+		bonusTo  []stats.Stat
+		hastened bool
 	}{
-		{274273, stats.Stats{stats.PhysicalHitPercent: 5, stats.SpellHitPercent: 5}, 1},
-		{274274, stats.Stats{stats.PhysicalCritPercent: 4, stats.SpellCritPercent: 4}, 1},
-		{274275, stats.Stats{stats.ExpertisePercent: 5}, 1},
-		{274276, stats.Stats{}, 1.05},
+		{274273, []stats.Stat{stats.PhysicalHitPercent, stats.SpellHitPercent}, false},
+		{274274, []stats.Stat{stats.PhysicalCritPercent, stats.SpellCritPercent}, false},
+		{274275, []stats.Stat{stats.ExpertisePercent}, false},
+		{274276, nil, true},
 	} {
 		flasked := warriorWithFlask(t, tc.itemID)
 		if flasked.GetAura(core.GetConsumableByID(tc.itemID).Name) == nil {
 			t.Errorf("%d put up no aura", tc.itemID)
 			continue
 		}
+		row := spelldata.MustFind(core.GetConsumableByID(tc.itemID).OnUse().BuffId)
+		stamina, percent := row.EffectN(1).Average(), row.EffectN(2).Average()
+		if stamina == 0 || percent == 0 {
+			t.Fatalf("%d: %d states %v Stamina and a %v%% zone bonus, want both", tc.itemID, row.ID, stamina, percent)
+		}
+		var bonus stats.Stats
+		for _, stat := range tc.bonusTo {
+			bonus[stat] = percent
+		}
+		speed := 1.0
+		if tc.hastened {
+			speed = 1 + percent/100
+		}
 
 		gained := flasked.GetStats().Subtract(bare.GetStats())
-		if gained[stats.Stamina] != 60 {
-			t.Errorf("%d: Stamina rose by %v, want 60", tc.itemID, gained[stats.Stamina])
+		if gained[stats.Stamina] != stamina {
+			t.Errorf("%d: Stamina rose by %v, want %v", tc.itemID, gained[stats.Stamina], stamina)
 		}
 		for _, stat := range []stats.Stat{stats.PhysicalHitPercent, stats.SpellHitPercent, stats.PhysicalCritPercent,
 			stats.SpellCritPercent, stats.ExpertiseRating, stats.ExpertisePercent} {
-			if math.Abs(gained[stat]-tc.bonus[stat]) > 1e-9 {
-				t.Errorf("%d: %s rose by %v, want %v", tc.itemID, stat.StatName(), gained[stat], tc.bonus[stat])
+			if math.Abs(gained[stat]-bonus[stat]) > 1e-9 {
+				t.Errorf("%d: %s rose by %v, want %v", tc.itemID, stat.StatName(), gained[stat], bonus[stat])
 			}
 		}
 
@@ -78,8 +92,8 @@ func TestNaturalFlasksGrantStaminaAndTheirZoneBonus(t *testing.T) {
 			"attack speed": flasked.PseudoStats.AttackSpeedMultiplier / bare.PseudoStats.AttackSpeedMultiplier,
 			"cast speed":   flasked.PseudoStats.CastSpeedMultiplier / bare.PseudoStats.CastSpeedMultiplier,
 		} {
-			if math.Abs(got-tc.speed) > 1e-9 {
-				t.Errorf("%d: %s is %v times the bare warrior's, want %v", tc.itemID, name, got, tc.speed)
+			if math.Abs(got-speed) > 1e-9 {
+				t.Errorf("%d: %s is %v times the bare warrior's, want %v", tc.itemID, name, got, speed)
 			}
 		}
 	}

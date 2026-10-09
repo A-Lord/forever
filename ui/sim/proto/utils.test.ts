@@ -1,6 +1,8 @@
+import { ConsumesSpec, WeaponType } from '@generated/proto/common';
+import { UIItem } from '@generated/proto/ui';
 import { describe, expect, it } from 'vitest';
 
-import { adjustWeaponImbueId, getTalentPoints, getTalentTreePoints } from './utils';
+import { adjustSwapImbues, adjustWeaponImbueId, getTalentPoints, getTalentTreePoints } from './utils';
 
 // Talent strings are one dash-separated run of per-row digits per tree, so the number a caller
 // wants is the per-tree total. Returning the digits instead type-checks cleanly and quietly breaks
@@ -48,5 +50,31 @@ describe('adjustWeaponImbueId', () => {
 	it('passes every other imbue through, whatever the weapon is', () => {
 		expect(adjustWeaponImbueId(CONSECRATED_STONE_ID, false, false)).toBe(CONSECRATED_STONE_ID);
 		expect(adjustWeaponImbueId(0, true, false)).toBe(0);
+	});
+});
+
+describe('adjustSwapImbues', () => {
+	const DENSE_SHARPENING_STONE_ID = 12404;
+	const DENSE_WEIGHTSTONE_ID = 12643;
+	const sword = UIItem.create({ weaponType: WeaponType.WeaponTypeSword });
+	const mace = UIItem.create({ weaponType: WeaponType.WeaponTypeMace });
+
+	it('matches the swap stones to the swap weapons and leaves the main stones alone', () => {
+		const consumes = ConsumesSpec.create({
+			mhImbueId: DENSE_SHARPENING_STONE_ID,
+			swapMhImbueId: DENSE_SHARPENING_STONE_ID,
+			swapOhImbueId: DENSE_WEIGHTSTONE_ID,
+		});
+		const adjusted = adjustSwapImbues(consumes, mace, sword);
+		expect([adjusted.mhImbueId, adjusted.swapMhImbueId, adjusted.swapOhImbueId]).toEqual([
+			DENSE_SHARPENING_STONE_ID,
+			DENSE_WEIGHTSTONE_ID,
+			DENSE_SHARPENING_STONE_ID,
+		]);
+	});
+
+	it('hands back the same spec when the swap stones already match', () => {
+		const consumes = ConsumesSpec.create({ swapMhImbueId: DENSE_SHARPENING_STONE_ID });
+		expect(adjustSwapImbues(consumes, sword, null)).toBe(consumes);
 	});
 });

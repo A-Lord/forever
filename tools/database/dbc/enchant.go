@@ -1,6 +1,7 @@
 package dbc
 
 import (
+	"fmt"
 	"slices"
 	"sort"
 
@@ -8,6 +9,7 @@ import (
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/stats"
+	"github.com/wowsims/forever/tools/database/overrides"
 )
 
 type Enchant struct {
@@ -86,6 +88,27 @@ func (enchant *Enchant) ProcSlots() []EnchantProcSlot {
 	return slots
 }
 
+// The slot's effect carrying a hand-kept rate, refused once the game files state a chance, so the
+// number does not outlive its reason. A slot whose spell resolves no stats gets an entry of its own,
+// which carries the rate alone.
+func withEnchantProcRate(effectID int, slot EnchantProcSlot, rate *overrides.EnchantProc) *proto.ItemEffect {
+	if chance := dbcInstance.Spells[slot.SpellID].ProcChance; slot.ChancePct > 0 || (chance > 0 && chance < 100) {
+		panic(fmt.Sprintf("enchant %d's spell %d now states a chance, so its hand-supplied rate is stale", effectID, slot.SpellID))
+	}
+	effect := slot.Effect
+	if effect == nil {
+		effect = &proto.ItemEffect{BuffId: int32(slot.SpellID), Effect: &proto.ItemEffect_Proc{Proc: &proto.ProcEffect{}}}
+	}
+	proc := effect.GetProc()
+	switch rate.Kind {
+	case overrides.RatePPM:
+		proc.ProcRate = &proto.ProcEffect_Ppm{Ppm: rate.Value}
+	case overrides.RateChance:
+		proc.ProcRate = &proto.ProcEffect_ProcChance{ProcChance: rate.Value}
+	}
+	return effect
+}
+
 // SpellItemEnchantment 8203 is "Spirit +$k1", applied by Enchant Bracer/Boots - Lesser Spirit, but
 // its EffectArg is 124, the all-resistances index. The label and the enchant are right and the
 // argument is not, so it is corrected here rather than read as five resistances.
@@ -125,7 +148,8 @@ func appliesSurvivalOnly(spellID int) bool {
 		switch {
 		case effect.EffectType == dbcenums.E_HEAL, effect.EffectType == dbcenums.E_HEAL_PCT:
 		case effect.EffectAura == dbcenums.A_SCHOOL_ABSORB:
-		case effect.EffectAura == dbcenums.A_MOD_RESISTANCE && len(effect.EffectMiscValues) > 0 && effect.EffectMiscValues[0] == int(core.SpellSchoolPhysical):
+		case (effect.EffectAura == dbcenums.A_MOD_RESISTANCE || effect.EffectAura == dbcenums.A_MOD_ARMOR_NO_MODS) &&
+			len(effect.EffectMiscValues) > 0 && effect.EffectMiscValues[0] == int(core.SpellSchoolPhysical):
 		default:
 			return false
 		}
@@ -155,8 +179,12 @@ func (enchant *Enchant) ToProtoWithSlots() (*proto.UIEnchant, []EnchantProcSlot)
 	slots := enchant.ProcSlots()
 	uiEnchant.ProcKind = enchant.procKind(slots)
 	for _, slot := range slots {
-		if slot.Effect != nil && !slices.ContainsFunc(uiEnchant.EnchantEffects, func(e *proto.ItemEffect) bool { return e.BuffId == slot.Effect.BuffId }) {
-			uiEnchant.EnchantEffects = append(uiEnchant.EnchantEffects, slot.Effect)
+		effect := slot.Effect
+		if rate := overrides.EnchantProcRate(int32(enchant.EffectId), int32(slot.SpellID)); rate != nil {
+			effect = withEnchantProcRate(enchant.EffectId, slot, rate)
+		}
+		if effect != nil && !slices.ContainsFunc(uiEnchant.EnchantEffects, func(e *proto.ItemEffect) bool { return e.BuffId == effect.BuffId }) {
+			uiEnchant.EnchantEffects = append(uiEnchant.EnchantEffects, effect)
 		}
 	}
 

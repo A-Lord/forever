@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { ItemCell } from '@ui-kit/ItemCell';
+import { ItemCell, ItemCellIcon } from '@ui-kit/ItemCell';
 import { fn } from 'storybook/test';
 
 import { BulkResultRowView } from './BulkResultRow';
@@ -11,8 +11,11 @@ const cell = (icon: string, name: string, ilvl: number) => (
 	<ItemCell
 		key={name}
 		className="ui-bulk-result-item ui-bulk-item-cell mb-0 p-0 [&_.ui-item-picker-labels-container]:hidden"
-		ilvl={ilvl}
-		icon={<a className="ui-item-picker-icon" style={{ backgroundImage: `url('${ICONS}/${icon}.jpg')` }} />}
+		icon={
+			<ItemCellIcon ilvl={ilvl}>
+				<a className="ui-item-picker-icon" style={{ backgroundImage: `url('${ICONS}/${icon}.jpg')` }} />
+			</ItemCellIcon>
+		}
 		name={name}
 	/>
 );

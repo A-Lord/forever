@@ -406,6 +406,23 @@ func driveAtieshWarlock(char *core.Character, party *proto.PartyBuffs) {
 	core.MakePermanent(NewSpellDataAtieshWarlockAura(&char.Unit, false, 0, float64(party.AtieshWarlock)))
 }
 
+// Darkspear's equip spell, which states the chance on hit and the time between procs.
+var darkspearTrigger = spelldata.MustFind(1314143)
+
+// The party's copy is up for the share of the fight the wielder keeps it up: 16939's 20 s out of each
+// 60 s internal cooldown plus the 64 s a 5% chance takes to land one 3.2 s swing on average, 16%.
+// The wielder is assumed to land one melee hit per swing and nothing else.
+func driveDarkspear(char *core.Character, _ *proto.PartyBuffs) {
+	aura := NewSpellDataDarkspearAura(&char.Unit, false, 0)
+	// The crit is up for a share of the fight only, so it is not part of the stats the character
+	// sheet is measured with.
+	aura.BuildPhase = core.CharacterBuildPhaseNone
+	swing := core.DurationFromSeconds(core.GetItemByID(12802).SwingSpeed)
+	wait := time.Duration(float64(swing) / darkspearTrigger.StatedChance())
+	uptime := aura.Duration.Seconds() / (darkspearTrigger.ICD() + wait).Seconds()
+	applyFixedUptimeAura(aura, uptime, swing, 1)
+}
+
 // The judgement the paladin leaves on the target heals whoever strikes it; the
 // game files' trigger spell 5373 is a dummy, so how much and how often is the
 // driver's. The raid's copy is the top rank the paladin's own judgement states.
