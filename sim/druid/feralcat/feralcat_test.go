@@ -19,6 +19,11 @@ func TestFeralCat(t *testing.T) {
 		GearSet:     core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "default"),
 		Talents:     DefaultTalents,
 		SpecOptions: core.SpecOptionsCombo{Label: "Standard", SpecOptions: DefaultSpecOptions},
+		OtherSpecOptions: []core.SpecOptionsCombo{
+			{Label: "BleedAssumed", SpecOptions: &proto.Player_FeralCatDruid{FeralCatDruid: &proto.FeralCatDruid{
+				Options: &proto.FeralCatDruid_Options{AssumeBleedActive: true},
+			}}},
+		},
 		Rotation:    core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "default"),
 		Consumables: &proto.ConsumesSpec{},
 		ItemFilter: core.ItemFilter{
@@ -60,13 +65,6 @@ const MonocatTalents = "-55000032021032212051-05503"
 
 var DefaultSpecOptions = &proto.Player_FeralCatDruid{
 	FeralCatDruid: &proto.FeralCatDruid{
-		Rotation: &proto.FeralCatDruid_Rotation{
-			FinishingMove:      proto.FeralCatDruid_Rotation_Rip,
-			RipMinComboPoints:  5,
-			BiteMinComboPoints: 5,
-			RakeTrick:          true,
-			FaerieFireForOmen:  true,
-		},
 		Options: &proto.FeralCatDruid_Options{},
 	},
 }

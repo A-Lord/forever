@@ -32,6 +32,7 @@ func NewFeralBearDruid(character *core.Character, options *proto.Player) *Guardi
 		Druid:   druid.New(character, druid.DireBear, selfBuffs, options.TalentsString),
 		Options: tankOptions.Options,
 	}
+	bear.AssumeBleedActive = tankOptions.Options.GetAssumeBleedActive()
 
 	healingModel := options.HealingModel
 	if healingModel != nil {
@@ -65,8 +66,7 @@ func NewFeralBearDruid(character *core.Character, options *proto.Player) *Guardi
 type GuardianDruid struct {
 	*druid.Druid
 
-	Options      *proto.FeralBearDruid_Options
-	BearRotation BearRotation
+	Options *proto.FeralBearDruid_Options
 }
 
 func (bear *GuardianDruid) GetDruid() *druid.Druid {

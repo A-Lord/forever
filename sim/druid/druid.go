@@ -20,13 +20,12 @@ type Druid struct {
 	StartingForm DruidForm
 
 	CannotShredTarget bool
+	// Another raid member keeps a bleed on the target, so Rend and Tear always applies.
+	AssumeBleedActive bool
 
 	// Wolfshead Helm (8345): energy added to Shifting Power, and the share added to Enrage's instant rage.
 	WolfsheadEnergyBonus float64
 	WolfsheadEnrageBonus float64
-
-	// Holds Berserk back as a major cooldown while it answers false. Nil never holds it.
-	BerserkCondition func(sim *core.Simulation) bool
 
 	MHAutoSpell *core.Spell
 

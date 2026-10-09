@@ -1,27 +1,14 @@
 import * as PresetUtils from '@app/preset_utils';
-import { ConsumesSpec, HealingModel, Profession, PseudoStat, Race, Spec, Stat } from '@generated/proto/common';
-import {
-	FeralBearDruid_Options as DruidOptions,
-	FeralBearDruid_Rotation as DruidRotation,
-	FeralBearDruid_Rotation_SwipeUsage as SwipeUsage,
-} from '@generated/proto/druid';
+import { ConsumesSpec, HealingModel, Profession, PseudoStat, Race, Stat } from '@generated/proto/common';
+import { FeralBearDruid_Options as DruidOptions } from '@generated/proto/druid';
 import { Stats } from '@sim/proto/stats';
 import { Encounter } from '@sim/raid/encounter';
 import { OtherDefaults as SimUIOtherDefaults } from '@sim/spec_config';
-
-export const DefaultSimpleRotation = DruidRotation.create({
-	maintainFaerieFire: true,
-	maintainDemoralizingRoar: true,
-	maulRageThreshold: 50,
-	swipeUsage: SwipeUsage.SwipeUsage_WithEnoughAP,
-	swipeApThreshold: 2700,
-});
 
 import * as Consumables from '@features/settings/model/consumables_auto_gen';
 
 import DefaultApl from './apls/default.apl.json';
 import Level60GearJson from './gear_sets/default.gear.json';
-export const ROTATION_SIMPLE = PresetUtils.makePresetSimpleRotation('Simple', Spec.SpecFeralBearDruid, DefaultSimpleRotation);
 export const ROTATION_DEFAULT = PresetUtils.makePresetAPLRotation('APL', DefaultApl);
 
 // Leather at 60 with no set bonus and no proc, about the item level of the cat preset.
@@ -79,8 +66,10 @@ export const Level60SurvivalEp = Stats.fromMap({
 export const Level60DpsEpWeights = PresetUtils.makePresetEpWeights('Level 60 DPS', Level60DpsEp);
 export const Level60SurvivalEpWeights = PresetUtils.makePresetEpWeights('Level 60 Survival', Level60SurvivalEp);
 
+// Another raid member's bleed keeps Rend and Tear up.
 export const DefaultOptions = DruidOptions.create({
 	startingRage: 0,
+	assumeBleedActive: true,
 });
 
 export const DefaultConsumables = ConsumesSpec.create({

@@ -253,12 +253,40 @@ func weaveAPL(tune weaveTune) *proto.APLRotation {
 	return rot
 }
 
-// APL_WRITE=1 rewrites the presets from catAPL(bestCatAPL) and bearweaveAPL().
+const (
+	spellProwl  int32 = 9913
+	spellRavage int32 = 9867
+	spellPounce int32 = 9827
+)
+
+// openerAPL is the Monocat list behind a Prowl one second before the pull and the opener while
+// Prowl is up, ahead of the sapper, which would end it.
+func openerAPL(opener int32) *proto.APLRotation {
+	rot := catAPL(bestCatAPL)
+	rot.PriorityList = append([]*proto.APLListItem{castWhen(opener, auraUp(spellProwl))}, rot.PriorityList...)
+	rot.PrepullActions = []*proto.APLPrepullAction{{
+		DoAtValue: konst("-1s"),
+		Action:    spellAction(spellProwl),
+	}}
+	return rot
+}
+
+// The preset files and the builders that make them.
+func catAPLPresets() map[string]*proto.APLRotation {
+	return map[string]*proto.APLRotation{
+		"default":   catAPL(bestCatAPL),
+		"bearweave": bearweaveAPL(),
+		"ravage":    openerAPL(spellRavage),
+		"pounce":    openerAPL(spellPounce),
+	}
+}
+
+// APL_WRITE=1 rewrites the presets from their builders.
 func TestWriteCatAPL(t *testing.T) {
 	if os.Getenv("APL_WRITE") == "" {
 		t.Skip("set APL_WRITE=1 to rewrite the APL presets")
 	}
-	for name, rotation := range map[string]*proto.APLRotation{"default": catAPL(bestCatAPL), "bearweave": bearweaveAPL()} {
+	for name, rotation := range catAPLPresets() {
 		data, err := protojson.Marshal(rotation)
 		if err != nil {
 			t.Fatal(err)
@@ -280,13 +308,10 @@ func TestWriteCatAPL(t *testing.T) {
 
 // The presets on disk are the lists the builders make, so a sweep of a builder measures what ships.
 func TestCatAPLPresetMatchesItsBuilder(t *testing.T) {
-	preset := core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "default").Rotation
-	if !gproto.Equal(preset, catAPL(bestCatAPL)) {
-		t.Fatal("default.apl.json differs from catAPL(bestCatAPL); rerun with APL_WRITE=1")
-	}
-	preset = core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "bearweave").Rotation
-	if !gproto.Equal(preset, bearweaveAPL()) {
-		t.Fatal("bearweave.apl.json differs from bearweaveAPL(); rerun with APL_WRITE=1")
+	for name, built := range catAPLPresets() {
+		if preset := core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", name).Rotation; !gproto.Equal(preset, built) {
+			t.Errorf("%s.apl.json differs from its builder; rerun with APL_WRITE=1", name)
+		}
 	}
 }
 
@@ -414,25 +439,18 @@ type aplScenario struct {
 	wolfhead bool
 }
 
-func TestAPLAgainstGoRotation(t *testing.T) {
+func TestAPLSweep(t *testing.T) {
 	if os.Getenv("ROTATION_SWEEP") == "" {
-		t.Skip("set ROTATION_SWEEP=1 to compare an APL with the Go rotation")
+		t.Skip("set ROTATION_SWEEP=1 to compare cat APL variants")
 	}
 	iterations := int32(2000)
 	if n, err := strconv.Atoi(os.Getenv("ROTATION_SWEEP_ITERATIONS")); err == nil && n > 0 {
 		iterations = int32(n)
 	}
-	simple := &proto.FeralCatDruid_Rotation{
-		FinishingMove:     proto.FeralCatDruid_Rotation_Rip,
-		RipMinComboPoints: 5,
-		RakeTrick:         true,
-		FaerieFireForOmen: true,
-	}
 	rows := []struct {
 		name string
 		rot  *proto.APLRotation
 	}{
-		{"simple (autocast + rotation.go)", uiDefaultRotation(simple)},
 		{"apl preset (default.apl.json)", core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "default").Rotation},
 		{"apl, elune at once", catAPL(aplTune{elune: "now", omen: true})},
 		{"apl, elune into a builder", catAPL(aplTune{elune: "builder", omen: true})},
@@ -489,20 +507,6 @@ func TestAPLAgainstGoRotation(t *testing.T) {
 				}
 			}
 		}
-	}
-}
-
-// The Simple rotation: autocast fires Elune, the potion and the scrolls, then the Go rotation
-// throws the sapper and plays the cat.
-func uiDefaultRotation(simple *proto.FeralCatDruid_Rotation) *proto.APLRotation {
-	return &proto.APLRotation{
-		Type: proto.APLRotation_TypeAPL,
-		PriorityList: []*proto.APLListItem{
-			{Action: &proto.APLAction{Action: &proto.APLAction_AutocastOtherCooldowns{
-				AutocastOtherCooldowns: &proto.APLActionAutocastOtherCooldowns{},
-			}}},
-			{Action: catAction(simple)},
-		},
 	}
 }
 

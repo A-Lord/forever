@@ -399,27 +399,6 @@ func mathOp(op proto.APLValueMath_MathOperator, lhs, rhs *proto.APLValue) *proto
 	return &proto.APLValue{Value: &proto.APLValue_Math{Math: &proto.APLValueMath{Op: op, Lhs: lhs, Rhs: rhs}}}
 }
 
-// The Simple rotation: autocast, then the Go rotation.
-func bearSimpleRotation(simple *proto.APLActionBearOptimalRotationAction) *proto.APLRotation {
-	return &proto.APLRotation{
-		Type: proto.APLRotation_TypeAPL,
-		PriorityList: []*proto.APLListItem{
-			{Action: &proto.APLAction{Action: &proto.APLAction_AutocastOtherCooldowns{
-				AutocastOtherCooldowns: &proto.APLActionAutocastOtherCooldowns{},
-			}}},
-			{Action: &proto.APLAction{Action: &proto.APLAction_BearOptimalRotationAction{BearOptimalRotationAction: simple}}},
-		},
-	}
-}
-
-var uiSimple = &proto.APLActionBearOptimalRotationAction{
-	MaintainFaerieFire:       true,
-	MaintainDemoralizingRoar: true,
-	MaulRageThreshold:        50,
-	SwipeUsage:               proto.FeralBearDruid_Rotation_SwipeUsage_WithEnoughAP,
-	SwipeApThreshold:         2700,
-}
-
 type bearRow struct {
 	name string
 	rot  *proto.APLRotation
@@ -484,9 +463,9 @@ func sweepIterations() int32 {
 	return 2000
 }
 
-func TestBearAPLAgainstGoRotation(t *testing.T) {
+func TestBearAPLSweep(t *testing.T) {
 	if os.Getenv("BEAR_SWEEP") == "" {
-		t.Skip("set BEAR_SWEEP=1 to compare bear APLs with the Go rotation")
+		t.Skip("set BEAR_SWEEP=1 to compare bear APL variants")
 	}
 	mirror := bearTune{berserk: -1, elune: "auto", enrage: "never", demo: true, ff: true, maul: 50}
 	with := func(edit func(*bearTune)) *proto.APLRotation {
@@ -495,7 +474,6 @@ func TestBearAPLAgainstGoRotation(t *testing.T) {
 		return bearAPL(tune)
 	}
 	rows := []bearRow{
-		{"simple (autocast + rotation.go)", bearSimpleRotation(uiSimple)},
 		{"apl mirror", bearAPL(mirror)},
 	}
 	mirror = bestBearAPL

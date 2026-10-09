@@ -12,27 +12,8 @@ import (
 
 const bearTalents = DefaultTalents
 
-func TestBearSimpleRotationDealsDamage(t *testing.T) {
-	result := core.RunSim(bearSimpleRequest(), nil, simsignals.CreateSignals())
-	if result.Error != nil {
-		t.Fatalf("sim error: %s", result.Error.Message)
-	}
-	player := result.RaidMetrics.Parties[0].Players[0]
-	if player.Dps.Avg <= 0 {
-		t.Fatalf("dps = %v, want a fight that deals damage", player.Dps.Avg)
-	}
-	var casts int32
-	for _, id := range []int32{1238073, 1235827, 9881, 9908} {
-		casts += bearCastsOf(player.Actions, id)
-	}
-	if casts == 0 {
-		t.Fatal("primal bite, lacerate, maul and swipe were never cast")
-	}
-}
-
 func TestBearShippedAplRuns(t *testing.T) {
-	req := bearSimpleRequest()
-	req.Raid.Parties[0].Players[0].Rotation = core.GetAplRotation("../../../ui/specs/druid/feralbear/apls", "default").Rotation
+	req := bearNakedRequest()
 	result := core.RunSim(req, nil, simsignals.CreateSignals())
 	if result.Error != nil {
 		t.Fatalf("sim error: %s", result.Error.Message)
@@ -45,7 +26,7 @@ func TestBearShippedAplRuns(t *testing.T) {
 	}
 }
 
-func bearSimpleRequest() *proto.RaidSimRequest {
+func bearNakedRequest() *proto.RaidSimRequest {
 	items := make([]*proto.ItemSpec, proto.ItemSlot_ItemSlotMainHand+1)
 	for i := range items {
 		items[i] = &proto.ItemSpec{}
@@ -63,21 +44,7 @@ func bearSimpleRequest() *proto.RaidSimRequest {
 				Spec: &proto.Player_FeralBearDruid{FeralBearDruid: &proto.FeralBearDruid{
 					Options: &proto.FeralBearDruid_Options{},
 				}},
-				Rotation: &proto.APLRotation{
-					PriorityList: []*proto.APLListItem{{
-						Action: &proto.APLAction{
-							Action: &proto.APLAction_BearOptimalRotationAction{
-								BearOptimalRotationAction: &proto.APLActionBearOptimalRotationAction{
-									MaintainFaerieFire:       true,
-									MaintainDemoralizingRoar: true,
-									MaulRageThreshold:        50,
-									SwipeUsage:               proto.FeralBearDruid_Rotation_SwipeUsage_WithEnoughAP,
-									SwipeApThreshold:         2700,
-								},
-							},
-						},
-					}},
-				},
+				Rotation: core.GetAplRotation("../../../ui/specs/druid/feralbear/apls", "default").Rotation,
 			}},
 			Buffs: &proto.PartyBuffs{},
 		}},

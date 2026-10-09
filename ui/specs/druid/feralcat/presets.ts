@@ -1,11 +1,7 @@
 import * as PresetUtils from '@app/preset_utils';
 import * as Consumables from '@features/settings/model/consumables_auto_gen';
-import { ConsumesSpec, Profession, Race, Spec, Stat } from '@generated/proto/common';
-import {
-	FeralCatDruid_Options as FeralDruidOptions,
-	FeralCatDruid_Rotation as FeralCatDruidRotation,
-	FeralCatDruid_Rotation_FinishingMove as FinishingMove,
-} from '@generated/proto/druid';
+import { ConsumesSpec, Profession, Race, Stat } from '@generated/proto/common';
+import { FeralCatDruid_Options as FeralDruidOptions } from '@generated/proto/druid';
 import { SavedTalents } from '@generated/proto/ui';
 import { Stats } from '@sim/proto/stats';
 
@@ -16,7 +12,8 @@ import RavageApl from './apls/ravage.apl.json';
 import Level60GearJson from './gear_sets/default.gear.json';
 import PreRaidGearJson from './gear_sets/pre_raid.gear.json';
 
-export const DefaultOptions = FeralDruidOptions.create({});
+// Another raid member's bleed keeps Rend and Tear up.
+export const DefaultOptions = FeralDruidOptions.create({ assumeBleedActive: true });
 
 export const DefaultConsumables = ConsumesSpec.create({
 	potId: Consumables.MightyRagePotion.id,
@@ -35,14 +32,6 @@ export const OtherDefaults = {
 	race: Race.RaceNightElf,
 	reactionTime: 250,
 };
-
-export const DefaultRotation = FeralCatDruidRotation.create({
-	finishingMove: FinishingMove.Rip,
-	ripMinComboPoints: 5,
-	biteMinComboPoints: 5,
-	rakeTrick: true,
-	faerieFireForOmen: true,
-});
 
 // Leather at 60 with no set bonus and no proc. The stand-in the rotation was tuned on.
 export const Level60Gear = PresetUtils.makePresetGear('Level 60', Level60GearJson, {
@@ -92,9 +81,9 @@ export const PreRaidEp = Stats.fromMap({
 
 export const PreRaidEpWeights = PresetUtils.makePresetEpWeights('Pre-raid', PreRaidEp);
 
-export const SIMPLE = PresetUtils.makePresetSimpleRotation('Simple', Spec.SpecFeralCatDruid, DefaultRotation);
-
-export const APL = PresetUtils.makePresetAPLRotation('APL', DefaultApl);
+// The cat stays in Cat Form: Shifting Power, Rip, Rake and Shred, Faerie Fire for Omen of Clarity,
+// and a self-Innervate when mana would run short.
+export const MONOCAT_APL = PresetUtils.makePresetAPLRotation('Monocat', DefaultApl);
 export const RAVAGE_APL = PresetUtils.makePresetAPLRotation('Ravage opener', RavageApl);
 export const POUNCE_APL = PresetUtils.makePresetAPLRotation('Pounce opener', PounceApl);
 // Dire Bear trips for Primal Bite and Maul, only on mana the Shifting Powers to the end of the fight

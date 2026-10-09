@@ -3,30 +3,23 @@
 package feralcat
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/simsignals"
-	"github.com/wowsims/forever/sim/druid"
 )
 
 // Same tree as the cat UI default. Shifting Power is the 11th feral talent.
 const powershiftTalents = "05002-55000032021032212051-055"
 
-// The rotation the cat UI sends by default: Rip at 5 combo points, Rake kept up, Faerie Fire for Omen
-// of Clarity.
+// The Monocat APL the cat UI sends by default.
 func defaultCatRotation() *proto.APLRotation {
-	return catRotation(&proto.FeralCatDruid_Rotation{
-		FinishingMove:      proto.FeralCatDruid_Rotation_Rip,
-		RipMinComboPoints:  5,
-		BiteMinComboPoints: 5,
-		RakeTrick:          true,
-		FaerieFireForOmen:  true,
-	})
+	return catAPL(bestCatAPL)
 }
 
-func TestDefaultRotationStaysInCatForm(t *testing.T) {
+func TestMonocatStaysInCatForm(t *testing.T) {
 	player := runCat(t, catPowershiftRequest(powershiftTalents, defaultCatRotation(), false))
 	for _, c := range []struct {
 		name string
@@ -36,31 +29,24 @@ func TestDefaultRotationStaysInCatForm(t *testing.T) {
 			t.Errorf("%s was never cast", c.name)
 		}
 	}
-	for _, c := range []struct {
-		name string
-		id   int32
-	}{{"Cat Form", 768}, {"Ferocious Bite", 22829}} {
-		if got := castsOf(player.Actions, c.id); got != 0 {
-			t.Errorf("%s casts = %d, the default rotation leaves it out", c.name, got)
-		}
+	if got := castsOf(player.Actions, 22829); got != 0 {
+		t.Errorf("Ferocious Bite casts = %d, Monocat leaves it out", got)
+	}
+	// The only way out of Cat Form is the self-Innervate.
+	if forms, innervates := castsOf(player.Actions, 768), castsOf(player.Actions, spellInnervate); forms != innervates {
+		t.Errorf("Cat Form casts = %d, Innervate casts = %d", forms, innervates)
 	}
 }
 
-func TestMaintainRakeKeepsRakeUp(t *testing.T) {
-	rotation := catRotation(&proto.FeralCatDruid_Rotation{
-		FinishingMove:      proto.FeralCatDruid_Rotation_Rip,
-		RipMinComboPoints:  4,
-		BiteMinComboPoints: 5,
-		RakeTrick:          true,
-	})
-	player := runCat(t, catPowershiftRequest(powershiftTalents, rotation, false))
+func TestMonocatKeepsRakeUp(t *testing.T) {
+	player := runCat(t, catPowershiftRequest(powershiftTalents, defaultCatRotation(), false))
 	// Rake lasts 9 s, so a 90 s fight that keeps it up casts it about ten times.
 	if got := castsOf(player.Actions, 9904); got < 8 {
 		t.Errorf("rake casts = %d in 90 s, want it kept up", got)
 	}
 }
 
-func TestRotationWithoutShiftingPowerTalent(t *testing.T) {
+func TestMonocatWithoutShiftingPowerTalent(t *testing.T) {
 	player := runCat(t, catPowershiftRequest(withFeralDigit(powershiftTalents, 10, '0'), defaultCatRotation(), false))
 	if got := castsOf(player.Actions, 1322605); got != 0 {
 		t.Fatalf("shifting power casts = %d, the talent is not taken", got)
@@ -70,7 +56,7 @@ func TestRotationWithoutShiftingPowerTalent(t *testing.T) {
 	}
 }
 
-func TestRotationClawsWhenShredCannotLand(t *testing.T) {
+func TestMonocatClawsWhenShredCannotLand(t *testing.T) {
 	player := runCat(t, catPowershiftRequest(powershiftTalents, defaultCatRotation(), true))
 	if got := castsOf(player.Actions, 9830); got != 0 {
 		t.Errorf("shred casts = %d against a target that cannot be shredded", got)
@@ -80,9 +66,9 @@ func TestRotationClawsWhenShredCannotLand(t *testing.T) {
 	}
 }
 
-// Goblin Sapper Charge 10646 needs Engineering and cannot be used in Cat Form: the rotation throws it
-// and casts Cat Form again. EZ-Thro Dark Bomb 260817 needs no profession and never leaves the form.
-func TestRotationLeavesCatFormOnlyForEngineeringExplosives(t *testing.T) {
+// Goblin Sapper Charge 10646 needs Engineering and cannot be used in Cat Form: the APL throws it and
+// casts Cat Form again. EZ-Thro Dark Bomb 260817 needs no profession and never leaves the form.
+func TestMonocatLeavesCatFormOnlyForEngineeringExplosives(t *testing.T) {
 	for _, c := range []struct {
 		name       string
 		itemID     int32
@@ -98,9 +84,9 @@ func TestRotationLeavesCatFormOnlyForEngineeringExplosives(t *testing.T) {
 		if thrown == 0 {
 			t.Errorf("%s was never thrown", c.name)
 		}
-		want := int32(0)
+		want := castsOf(player.Actions, spellInnervate)
 		if c.leavesForm {
-			want = thrown
+			want += thrown
 		}
 		if got := castsOf(player.Actions, 768); got != want {
 			t.Errorf("%s: cat form casts = %d after %d throws, want %d", c.name, got, thrown, want)
@@ -108,61 +94,39 @@ func TestRotationLeavesCatFormOnlyForEngineeringExplosives(t *testing.T) {
 	}
 }
 
-// Berserk's crit covers Shred, Claw and Rake, so the automatic Berserk waits for a decision that casts
-// one: not before the sapper and the Cat Form cast that follows it, not inside that GCD, not on a bar
-// that cannot pay for the builder, and not on a decision that casts Rip.
-func TestBerserkWaitsForADecisionItsCritCovers(t *testing.T) {
+// Berserk's crit covers Shred and Rake, so the APL casts it in a sequence with one of them, at the
+// same moment.
+func TestMonocatOpensBerserkWithABuilder(t *testing.T) {
 	request := catPowershiftRequest(powershiftTalents, defaultCatRotation(), false)
-	player := request.Raid.Parties[0].Players[0]
-	player.Profession1 = proto.Profession_Engineering
-	player.Consumables = &proto.ConsumesSpec{ExtraIds: []int32{10646}}
-	sim := core.NewSim(request, simsignals.CreateSignals())
-	sim.Reset()
-	cat := sim.Raid.Parties[0].Players[0].(*FeralDruid)
-
-	berserk := cat.GetMajorCooldown(cat.Berserk.ActionID)
-	if berserk == nil {
-		t.Fatal("Berserk is not a major cooldown")
+	request.SimOptions.Debug = true
+	result := core.RunSim(request, nil, simsignals.CreateSignals())
+	if result.Error != nil {
+		t.Fatal(result.Error.Message)
 	}
-	ready := func() bool { return berserk.ShouldActivate(sim, cat.GetCharacter()) }
-	if ready() {
-		t.Error("Berserk is ready while the sapper waits to be thrown")
+	lines := strings.Split(result.Logs, "\n")
+	found := false
+	for i, line := range lines {
+		if !strings.Contains(line, "Casting {SpellID: 417141}") {
+			continue
+		}
+		found = true
+		at := line[:strings.Index(line, "]")+1]
+		builder := false
+		for _, next := range lines[i+1:] {
+			if !strings.HasPrefix(next, at) {
+				break
+			}
+			if strings.Contains(next, "Casting {SpellID: 9830}") || strings.Contains(next, "Casting {SpellID: 9904}") {
+				builder = true
+				break
+			}
+		}
+		if !builder {
+			t.Errorf("Berserk at %s is not followed by Shred or Rake", at)
+		}
 	}
-
-	sapper := cat.GetSpell(core.ActionID{ItemID: 10646})
-	if !sapper.Cast(sim, cat.CurrentTarget) {
-		t.Fatal("the sapper was not thrown")
-	}
-	// The rotation can already have answered the throw with Cat Form.
-	if !cat.InForm(druid.Cat) && !cat.CatForm.Cast(sim, nil) {
-		t.Fatal("Cat Form was not cast after the throw")
-	}
-	if ready() {
-		t.Error("Berserk is ready inside Cat Form's GCD")
-	}
-
-	for !cat.GCD.IsReady(sim) {
-		sim.Step()
-	}
-	cat.AddEnergy(sim, cat.MaximumEnergy(), cat.NewEnergyMetrics(core.ActionID{SpellID: 1}))
-	if !ready() {
-		t.Error("Berserk is not ready with the GCD free, the sapper thrown and a full bar")
-	}
-
-	cat.SpendEnergy(sim, cat.CurrentEnergy(), cat.NewEnergyMetrics(core.ActionID{SpellID: 1}))
-	if ready() {
-		t.Error("Berserk is ready on a bar that cannot pay for the builder")
-	}
-
-	// Berserk's crit covers Shred, Claw and Rake, not Rip: with the points for Rip and Rip down, the
-	// decision casts Rip, so Berserk waits even with the builder affordable.
-	cat.AddEnergy(sim, cat.MaximumEnergy(), cat.NewEnergyMetrics(core.ActionID{SpellID: 1}))
-	cat.AddComboPoints(sim, 5, cat.NewComboPointMetrics(core.ActionID{SpellID: 1}))
-	if cat.Rip.CurDot().IsActive() || !cat.ripNow(sim, cat.CurrentTarget) {
-		t.Fatal("the decision would not cast Rip")
-	}
-	if ready() {
-		t.Error("Berserk is ready when the decision casts Rip")
+	if !found {
+		t.Fatal("Berserk was never cast")
 	}
 }
 
@@ -177,19 +141,6 @@ func itemCastsOf(actions []*proto.ActionMetrics, itemID int32) int32 {
 		}
 	}
 	return n
-}
-
-func TestRipweaveCastsRipBesideTheBiteFinisher(t *testing.T) {
-	rotation := catRotation(&proto.FeralCatDruid_Rotation{
-		FinishingMove:      proto.FeralCatDruid_Rotation_Bite,
-		Ripweave:           true,
-		RipMinComboPoints:  5,
-		BiteMinComboPoints: 5,
-	})
-	player := runCat(t, catPowershiftRequest(powershiftTalents, rotation, false))
-	if castsOf(player.Actions, 9896) == 0 || castsOf(player.Actions, 22829) == 0 {
-		t.Errorf("rip %d and bite %d casts, want both", castsOf(player.Actions, 9896), castsOf(player.Actions, 22829))
-	}
 }
 
 func runCat(t *testing.T, request *proto.RaidSimRequest) *proto.UnitMetrics {
@@ -234,11 +185,7 @@ func catPowershiftRequest(talents string, rotation *proto.APLRotation, cannotShr
 
 func TestManaPotionAndThistleTeaAreUsed(t *testing.T) {
 	const iterations int32 = 100
-	req := sweepRequest(powershiftTalents, catRotation(&proto.FeralCatDruid_Rotation{
-		FinishingMove:     proto.FeralCatDruid_Rotation_Rip,
-		RipMinComboPoints: 5,
-		RakeTrick:         true,
-	}), false, iterations)
+	req := sweepRequest(powershiftTalents, defaultCatRotation(), false, iterations)
 	req.Raid.Parties[0].Players[0].Consumables = &proto.ConsumesSpec{PotId: 13444, ConjuredId: 7676}
 	result := core.RunSim(req, nil, simsignals.CreateSignals())
 	if result.Error != nil {

@@ -123,3 +123,32 @@ func TestCatStealthPresetsRun(t *testing.T) {
 		})
 	}
 }
+
+// Rend and Tear raises Shred on a bleeding target. With the bleed assumed, a target with no bleed of
+// the cat's own takes the same raised Shred.
+func TestAssumedBleedRaisesShredLikeOwnBleed(t *testing.T) {
+	const rendAndTear5 = "0000000000000000-00000000000000000050-0000000000000000"
+	shred := func(assume, rake bool) float64 {
+		sim, cat := newCat(t, rendAndTear5, nil)
+		cat.AssumeBleedActive = assume
+		target := cat.CurrentTarget
+		cat.AddStatDynamic(sim, stats.PhysicalCritPercent, -100)
+		cat.AddStatDynamic(sim, stats.PhysicalHitPercent, 100)
+		target.PseudoStats.BaseDodgeChance = 0
+		if rake {
+			cat.Rake.Dot(target).Apply(sim)
+		}
+		fillResource(sim, cat)
+		if !cat.Shred.Cast(sim, target) {
+			t.Fatal("shred did not cast")
+		}
+		return cat.Shred.SpellMetrics[target.UnitIndex].TotalDamage
+	}
+	plain, bleeding, assumed := shred(false, false), shred(false, true), shred(true, false)
+	if plain <= 0 || bleeding <= plain*1.01 {
+		t.Fatalf("shred %g without a bleed, %g with Rake up: Rend and Tear did not apply", plain, bleeding)
+	}
+	if math.Abs(assumed-bleeding) > 1e-6 {
+		t.Fatalf("shred with the bleed assumed = %g, with Rake up = %g", assumed, bleeding)
+	}
+}
