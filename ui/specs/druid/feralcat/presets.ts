@@ -97,9 +97,29 @@ export const POUNCE_APL = PresetUtils.makePresetAPLRotation('Pounce opener', Pou
 // of the fight do not need. Needs the Primal Bite talent.
 export const BEARWEAVE_APL = PresetUtils.makePresetAPLRotation('Bearweave', BearweaveApl);
 
-export const CatTalents = PresetUtils.makePresetTalents('Cat', SavedTalents.create({ talentsString: '050022-55000032021030212051-055' }));
-// Two points out of Rend and Tear into Primal Bite and Blood Frenzy.
+// Blood Frenzy 1 from Rend and Tear, a chance of an extra combo point on a builder crit: 1.6 to 5.7 DPS from
+// 45 to 300 seconds.
+export const CatTalents = PresetUtils.makePresetTalents('Monocat', SavedTalents.create({ talentsString: '050022-55000032021031212041-055' }));
+// Monocat with one more point out of Rend and Tear into Primal Bite.
 export const BearweaveTalents = PresetUtils.makePresetTalents('Bearweave', SavedTalents.create({ talentsString: '050022-55000032021131212031-055' }));
+// Feral Swiftness, Feral Charge and Blood Frenzy in place of Ferocity 2 and Naturalist 3. About 17 DPS behind
+// Monocat at 180 seconds.
+export const DamageTalents = PresetUtils.makePresetTalents(
+	'Damage 9/35/7',
+	SavedTalents.create({ talentsString: '0500220000000000-35200032121032212051-0520000000000000' }),
+);
+// Natural Shapeshifter and Reflection in place of the Balance points' melee hit and crit. About 48 DPS
+// behind Monocat at 180 seconds.
+export const ManaEfficientTalents = PresetUtils.makePresetTalents(
+	'Mana Efficient 0/35/16',
+	SavedTalents.create({ talentsString: '0000000000000000-35200032121032212051-0550330000000000' }),
+);
+// Tanks and plays cat on one set of talents: Thick Hide and Primal Bite, no Furor or Naturalist. About 35 DPS
+// behind Monocat at 180 seconds.
+export const HybridTalents = PresetUtils.makePresetTalents(
+	'Hybrid 9/42/0',
+	SavedTalents.create({ talentsString: '0500220000000000-35230332121132212051-0000000000000000' }),
+);
 
 // A bear form forfeits Furor's energy, so a trip costs the energy the cat went in with. Ahead of
 // Monocat on a fight of about 45 seconds, behind from 60 seconds on.

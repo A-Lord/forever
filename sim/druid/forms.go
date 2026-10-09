@@ -73,6 +73,9 @@ func (druid *Druid) ClearForm(sim *core.Simulation) {
 	}
 }
 
+// A bear swing uses the two-hander rage factor; the one-hander case needs an in-game check.
+const BearRageIsTwoHanded = true
+
 func (druid *Druid) RegisterCatFormAura() {
 	form := spellData.CatForm.Highest()
 	druid.CatFormAura = druid.registerFormAura(form, druid.StartingForm.Matches(Cat))

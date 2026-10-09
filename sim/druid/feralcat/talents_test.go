@@ -5,7 +5,6 @@ package feralcat
 import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
-	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 	"github.com/wowsims/forever/sim/druid"
 	"math"
@@ -177,16 +176,36 @@ func TestGrovekeeperFerocityFourPieceAddsAttackPowerAgainstDemons(t *testing.T) 
 	}
 }
 
-func TestGrovekeeperFerocityFivePieceRegistration(t *testing.T) {
-	if druid.ItemSetGrovekeeperFerocity.ID != 2115 {
-		t.Errorf("Grovekeeper Ferocity set ID = %d, want 2115", druid.ItemSetGrovekeeperFerocity.ID)
+func TestGrovekeeperFerocityFivePieceShortensShiftingPower(t *testing.T) {
+	sim, cat := newCatWearing(t, shiftingPowerTalents, nil, map[proto.ItemSlot]int32{
+		proto.ItemSlot_ItemSlotShoulder: 273890,
+		proto.ItemSlot_ItemSlotHands:    273889,
+		proto.ItemSlot_ItemSlotLegs:     273888,
+		proto.ItemSlot_ItemSlotFeet:     273891,
+	})
+	before := cat.ShiftingPower.CD.Duration
+	// Four pieces exist in the committed gear database. Apply the fifth bonus to an existing set aura.
+	aura := cat.GetAura("Grovekeeper Ferocity 4P")
+	if aura == nil {
+		t.Fatal("Grovekeeper Ferocity set aura is unregistered")
 	}
-	if druid.ItemSetGrovekeeperFerocity.Bonuses[5] == nil {
-		t.Fatal("Grovekeeper Ferocity five-piece bonus is unregistered")
+	aura.Deactivate(sim)
+	druid.ItemSetGrovekeeperFerocity.Bonuses[5](cat, aura)
+	aura.Activate(sim)
+	if got := cat.ShiftingPower.CD.Duration; got != before-time.Second {
+		t.Errorf("Shifting Power cooldown = %v, want %v", got, before-time.Second)
 	}
-	effect := spelldata.MustFind(1301247).EffectN(1)
-	if got := effect.TimeValue(); got != -time.Second {
-		t.Errorf("Grovekeeper Ferocity cooldown modifier = %v, want -1s", got)
+	fillResource(sim, cat)
+	emptyEnergy(sim, cat)
+	if !cat.ShiftingPower.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("Shifting Power did not cast with the five-piece bonus")
+	}
+	if got := cat.ShiftingPower.ReadyAt(); got != before-time.Second {
+		t.Errorf("Shifting Power ready at %v, want %v", got, before-time.Second)
+	}
+	aura.Deactivate(sim)
+	if got := cat.ShiftingPower.CD.Duration; got != before {
+		t.Errorf("Shifting Power cooldown after expiry = %v, want %v", got, before)
 	}
 }
 

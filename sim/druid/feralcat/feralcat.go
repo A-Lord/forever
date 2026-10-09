@@ -39,7 +39,7 @@ func NewFeralCatDruid(character *core.Character, options *proto.Player) *FeralDr
 		MaxEnergy:      100.0,
 		UnitClass:      proto.Class_ClassDruid,
 	})
-	cat.EnableRageBar(core.RageBarOptions{BaseRageMultiplier: 2.5})
+	cat.EnableRageBar(core.RageBarOptions{BaseRageMultiplier: 1, TwoHandRage: druid.BearRageIsTwoHanded})
 
 	cat.EnableAutoAttacks(cat, core.AutoAttackOptions{
 		// Base paw weapon.

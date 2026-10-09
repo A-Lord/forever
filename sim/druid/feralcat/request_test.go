@@ -22,6 +22,12 @@ func spellReady(id int32) *proto.APLValue {
 	}}}
 }
 
+func spellKnown(id int32) *proto.APLValue {
+	return &proto.APLValue{Value: &proto.APLValue_SpellIsKnown{SpellIsKnown: &proto.APLValueSpellIsKnown{
+		SpellId: &proto.ActionID{RawId: &proto.ActionID_SpellId{SpellId: id}},
+	}}}
+}
+
 func currentEnergy() *proto.APLValue {
 	return &proto.APLValue{Value: &proto.APLValue_CurrentEnergy{CurrentEnergy: &proto.APLValueCurrentEnergy{}}}
 }
@@ -213,15 +219,7 @@ func TestCatBuildGearMatchesFaction(t *testing.T) {
 }
 
 func TestRaidGearFixtureUsesEquippableDruidItems(t *testing.T) {
-	data, err := os.ReadFile("../../../ui/specs/druid/feralcat/builds/raid.build.json")
-	if err != nil {
-		t.Fatal(err)
-	}
-	settings := &proto.IndividualSimSettings{}
-	if err := protojson.Unmarshal(data, settings); err != nil {
-		t.Fatal(err)
-	}
-	gear := settings.GetPlayer().GetEquipment()
+	gear := buildRequest(t, "raid").Raid.Parties[0].Players[0].GetEquipment()
 	if gear == nil {
 		t.Fatal("raid build has no equipment")
 	}

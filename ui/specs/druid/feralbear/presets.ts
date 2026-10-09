@@ -2,18 +2,28 @@ import * as PresetUtils from '@app/preset_utils';
 import * as Consumables from '@features/settings/model/consumables_auto_gen';
 import { ConsumesSpec, HealingModel, Profession, PseudoStat, Race, Spec, Stat } from '@generated/proto/common';
 import { FeralBearDruid_Options as DruidOptions } from '@generated/proto/druid';
+import { SavedTalents } from '@generated/proto/ui';
 import { Stats } from '@sim/proto/stats';
 import { Encounter } from '@sim/raid/encounter';
 import { OtherDefaults as SimUIOtherDefaults } from '@sim/spec_config';
 
 import DefaultApl from './apls/default.apl.json';
-import LacerateFirstApl from './apls/lacerate_first.apl.json';
 import StarterBuild from './builds/starter.build.json';
 import Level60GearJson from './gear_sets/default.gear.json';
 export const ROTATION_DEFAULT = PresetUtils.makePresetAPLRotation('APL', DefaultApl);
-// For a target no one else bleeds (Assume Bleed Always Active off): Berserk waits for Lacerate, so
-// Rend and Tear covers it.
-export const ROTATION_LACERATE_FIRST = PresetUtils.makePresetAPLRotation('Lacerate before Berserk', LacerateFirstApl);
+
+// Nature's Reach (melee hit) and Nature's Majesty (melee crit) are worth more to the bear than Furor and
+// Naturalist. Feral Instinct raises only Swipe, which the single-target APL does not cast.
+export const BearTalents = PresetUtils.makePresetTalents(
+	'Bear',
+	SavedTalents.create({ talentsString: '0500220000000000-55200322120132012551-0000000000000000' }),
+);
+// Tanks and plays cat on one set of talents. As a bear, about the same threat as the Bear talents and a
+// TMI 2 to 3 higher, for no Natural Reaction.
+export const HybridTalents = PresetUtils.makePresetTalents(
+	'Hybrid 9/42/0',
+	SavedTalents.create({ talentsString: '0500220000000000-35230332121132212051-0000000000000000' }),
+);
 
 // Leather at 60 with no set bonus and no proc, about the item level of the cat preset.
 export const Level60Gear = PresetUtils.makePresetGear('Level 60', Level60GearJson, {
@@ -106,5 +116,5 @@ export const OtherDefaults: Partial<SimUIOtherDefaults> = {
 export const STARTER_GEAR = PresetUtils.makePresetGear('Level 60 Starter', StarterBuild.player.equipment);
 export const STARTER_BUILD = PresetUtils.makePresetBuildFromJSON('Level 60 Starter', Spec.SpecFeralBearDruid, StarterBuild, {
 	gear: STARTER_GEAR,
-	rotation: ROTATION_LACERATE_FIRST,
+	rotation: ROTATION_DEFAULT,
 });

@@ -28,6 +28,27 @@ func TestBiteDodgeConsumesEnergyAndKeepsComboPoints(t *testing.T) {
 	t.Logf("dodged bite: energy=%g CP=%d", cat.CurrentEnergy(), cat.ComboPoints())
 }
 
+// Ravage 9867 and Pounce 9827 state No Active Defense: a target that dodges everything does not dodge them.
+func TestRavageAndPounceCannotBeDodged(t *testing.T) {
+	for _, opener := range []string{"Ravage", "Pounce"} {
+		sim, cat := newCat(t, "", nil)
+		target := cat.CurrentTarget
+		target.PseudoStats.BaseDodgeChance = 1
+		cat.AddStatDynamic(sim, stats.PhysicalHitPercent, 100)
+		cat.ProwlAura.Activate(sim)
+		spell := cat.Ravage
+		if opener == "Pounce" {
+			spell = cat.Pounce
+		}
+		if !spell.Cast(sim, target) {
+			t.Fatalf("%s did not cast", opener)
+		}
+		if m := spell.SpellMetrics[target.UnitIndex]; m.Dodges != 0 || m.Hits+m.Crits != 1 {
+			t.Errorf("%s against a target with 100%% dodge: %d dodges, %d hits and crits", opener, m.Dodges, m.Hits+m.Crits)
+		}
+	}
+}
+
 func TestRakeTickScalesWithAttackPower(t *testing.T) {
 	sim, cat := newCat(t, "", nil)
 	cat.AddStatDynamic(sim, stats.PhysicalCritPercent, -100)
@@ -47,16 +68,21 @@ func TestRakeTickScalesWithAttackPower(t *testing.T) {
 	t.Logf("Rake 100 AP gain per tick=%g", high-low)
 }
 
-func TestRakeInitialDamageIgnoresArmor(t *testing.T) {
+// Rake 9904 states the bleed mechanic on its periodic effect only, so armor reduces the initial hit and not the ticks.
+func TestRakeInitialHitTakesArmorAndItsTicksDoNot(t *testing.T) {
 	sim, cat := newCat(t, "", nil)
 	target := cat.CurrentTarget
 	hit := cat.Rake.CalcDamage(sim, target, 100, cat.Rake.OutcomeAlwaysHit).Damage
+	tick := cat.Rake.CalcPeriodicDamage(sim, target, 100, cat.Rake.OutcomeAlwaysHit).Damage
 	target.AddStatDynamic(sim, stats.Armor, 10000)
-	armored := cat.Rake.CalcDamage(sim, target, 100, cat.Rake.OutcomeAlwaysHit).Damage
-	if math.Abs(hit-armored) > 1e-6 {
-		t.Fatalf("Rake initial hit %g -> %g after armor", hit, armored)
+	armoredHit := cat.Rake.CalcDamage(sim, target, 100, cat.Rake.OutcomeAlwaysHit).Damage
+	armoredTick := cat.Rake.CalcPeriodicDamage(sim, target, 100, cat.Rake.OutcomeAlwaysHit).Damage
+	if armoredHit >= hit {
+		t.Errorf("Rake initial hit %g -> %g after 10000 armor, want less", hit, armoredHit)
 	}
-	t.Logf("Rake initial hit before/after 10000 armor: %g/%g", hit, armored)
+	if math.Abs(tick-armoredTick) > 1e-6 {
+		t.Errorf("Rake tick %g -> %g after 10000 armor, want unchanged", tick, armoredTick)
+	}
 }
 
 func TestFurorLeavingAtZeroTimeWithZeroEnergy(t *testing.T) {

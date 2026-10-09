@@ -24,9 +24,9 @@ func TestFeralBear(t *testing.T) {
 
 func BenchmarkSimulate(b *testing.B) { core.CharacterBenchmark(b, starterConfig()) }
 
-// The bear UI default. Feral Instinct raises only Swipe, which a single target never sees, so its
-// points are in Blood Frenzy (rage on crits) and Shredding Attacks.
-const DefaultTalents = "0000000000000000-55200312120132012551-0550000000000000"
+// The bear UI default. Balance 9 is for Nature's Reach (melee hit) and Nature's Majesty (melee crit).
+// Feral Instinct raises only Swipe, which a single target never sees.
+const DefaultTalents = "0500220000000000-55200322120132012551-0000000000000000"
 const DemoRoarTalents = DefaultTalents
 
 var DefaultSpecOptions = &proto.Player_FeralBearDruid{
@@ -61,7 +61,7 @@ func starterConfig() core.CharacterSuiteConfig {
 		}, &reference, &weigh,
 	)
 	config.OtherRaces = []proto.Race{proto.Race_RaceTauren}
-	config.Rotation = core.GetAplRotation("../../../ui/specs/druid/feralbear/apls", "lacerate_first")
+	config.Rotation = core.GetAplRotation("../../../ui/specs/druid/feralbear/apls", "default")
 	return config
 }
 
@@ -75,7 +75,7 @@ func starterRequest(t testing.TB) *proto.RaidSimRequest {
 	if err := protojson.Unmarshal(data, settings); err != nil {
 		t.Fatal(err)
 	}
-	settings.Player.Rotation = core.GetAplRotation("../../../ui/specs/druid/feralbear/apls", "lacerate_first").Rotation
+	settings.Player.Rotation = core.GetAplRotation("../../../ui/specs/druid/feralbear/apls", "default").Rotation
 	raid := core.SinglePlayerRaidProto(settings.Player, settings.PartyBuffs, settings.RaidBuffs, settings.Debuffs)
 	raid.Tanks = settings.Tanks
 	if settings.Encounter == nil {

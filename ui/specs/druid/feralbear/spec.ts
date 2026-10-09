@@ -3,7 +3,6 @@ import * as OtherInputs from '@features/settings/model/other_inputs';
 import { APLRotation, APLRotation_Type as APLRotationType } from '@generated/proto/apl';
 import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
 import { ItemSlot, PseudoStat, Spec, Stat, TristateEffect } from '@generated/proto/common';
-import { SavedTalents } from '@generated/proto/ui';
 import { PlayerClasses } from '@sim/player/classes';
 import { Player } from '@sim/player/player';
 import { Stats, UnitStat } from '@sim/proto/stats';
@@ -83,10 +82,7 @@ export default defineSpec<Spec.SpecFeralBearDruid>({
 		other: Presets.OtherDefaults,
 		consumables: Presets.DefaultConsumables,
 		rotationType: APLRotationType.TypeAuto,
-		// Feral Instinct raises only Swipe, so its points are in Blood Frenzy and Shredding Attacks.
-		talents: SavedTalents.create({
-			talentsString: '0000000000000000-55200312120132012551-0550000000000000',
-		}),
+		talents: Presets.BearTalents.data,
 		specOptions: Presets.DefaultOptions,
 		raidBuffs: RaidBuffs.create({
 			arcaneBrilliance: true,
@@ -144,8 +140,9 @@ export default defineSpec<Spec.SpecFeralBearDruid>({
 
 	presets: {
 		epWeights: [Presets.Level60SurvivalEpWeights, Presets.Level60DpsEpWeights],
-		talents: [],
-		rotations: [Presets.ROTATION_DEFAULT, Presets.ROTATION_LACERATE_FIRST],
+		talents: [Presets.BearTalents, Presets.HybridTalents],
+		rotations: [Presets.ROTATION_DEFAULT],
+		builds: [Presets.STARTER_BUILD],
 		gear: [Presets.Level60Gear, Presets.STARTER_GEAR],
 		encounters: [Presets.Level60Encounter],
 	},

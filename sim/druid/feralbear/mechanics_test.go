@@ -3,6 +3,7 @@
 package feralbear
 
 import (
+	"math"
 	"testing"
 	"time"
 
@@ -331,5 +332,23 @@ func TestClearcastingCoversAndSpendsDemoralizingRoar(t *testing.T) {
 	t.Logf("cost before=%g, with Clearcasting=%g, charge after cast=%v", before, covered, bear.ClearcastingAura.IsActive())
 	if bear.ClearcastingAura.IsActive() {
 		t.Fatal("a covered offensive cast did not spend its charge")
+	}
+}
+
+// A bear's swing takes the two-hander rage factor: 4.5 rage per second of its 2.5 second swing is 11.25,
+// and a crit adds the swing's one-hand rage, 3.46 * 2.5 = 8.65, for 19.9.
+func TestBearSwingRageTakesTheTwoHandFactor(t *testing.T) {
+	for _, c := range []struct {
+		outcome core.HitOutcome
+		want    float64
+	}{{core.OutcomeHit, 11.25}, {core.OutcomeCrit, 19.9}} {
+		sim, bear := newBear(t)
+		bear.SpendRage(sim, bear.CurrentRage(), bear.NewRageMetrics(core.ActionID{SpellID: 1}))
+		result := &core.SpellResult{Target: bear.CurrentTarget, Outcome: c.outcome, Damage: 100}
+		before := bear.CurrentRage()
+		bear.Unit.OnSpellHitDealt(sim, bear.AutoAttacks.MHAuto(), result)
+		if got := bear.CurrentRage() - before; math.Abs(got-c.want) > 1e-9 {
+			t.Errorf("%v swing grants %g rage, want %g", c.outcome, got, c.want)
+		}
 	}
 }

@@ -27,6 +27,9 @@ const rotationSurface = () => {
 };
 
 describe('Feral Cat rotation presets', () => {
+	it('offers the Claw / Rip rotation', () => {
+		expect(config.presets.rotations).toContain(Presets.CLAW_RIP_APL);
+	});
 	it('keeps Auto after applying the default build', () => {
 		const surface = rotationSurface();
 		applyDefaultRotation(surface.host.player, config);

@@ -27,8 +27,9 @@ func (druid *Druid) registerPounceSpell() {
 	config.ExtraCastCondition = func(_ *core.Simulation, _ *core.Unit) bool {
 		return druid.ProwlAura != nil && druid.ProwlAura.IsActive() && druid.BehindTarget()
 	}
+	// No Active Defense (Attributes 0x200000): it misses or lands, never dodged, parried or blocked.
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		result := spell.CalcAndDealOutcome(sim, target, spell.OutcomeMeleeSpecialHit)
+		result := spell.CalcAndDealOutcome(sim, target, spell.OutcomeMeleeSpecialNoBlockDodgeParryNoCrit)
 		if result.Landed() {
 			stuns.Get(target).Activate(sim)
 			druid.PounceBleed.Dot(target).Apply(sim)
