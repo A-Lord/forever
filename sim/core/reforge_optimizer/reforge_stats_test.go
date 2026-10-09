@@ -17,6 +17,16 @@ func pseudoStatsProto(values map[proto.PseudoStat]float64) *proto.UnitStats {
 	return &proto.UnitStats{Stats: make([]float64, stats.ProtoStatsLen), PseudoStats: pseudoStats}
 }
 
+func rawUnitStatsFromStats(statValues stats.Stats) core.UnitStats {
+	unitStats := core.NewUnitStats()
+	for statIdx := 0; statIdx < int(stats.ProtoStatsLen); statIdx++ {
+		if statValues[statIdx] != 0 {
+			unitStats.Stats[statIdx] = statValues[statIdx]
+		}
+	}
+	return unitStats
+}
+
 func ratingWeight(stat stats.Stat, ep float64) core.UnitStats {
 	weights := core.NewUnitStats()
 	weights.Stats[stat] = ep
@@ -295,7 +305,7 @@ func TestReforgeCapSpaceSkipsBlockAndParryTheCharacterLacks(t *testing.T) {
 
 	for _, sheet := range []core.SheetAvoidance{{CanBlock: true, CanParry: true}, {CanParry: true}, {CanBlock: true}, {}} {
 		o := &reforgeOptimizer{statDeps: &sdm, baseStats: core.NewUnitStats(), sheet: sheet}
-		coeffs := o.resolveCapCoeffs(delta)
+		coeffs := o.resolveCapCoeffs(rawUnitStatsFromStats(delta))
 		for _, want := range []struct {
 			pseudoStat proto.PseudoStat
 			counts     bool

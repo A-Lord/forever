@@ -1,10 +1,12 @@
+import { usePlayerStore } from '@sim/hooks/usePlayerStore';
 import { useWowheadDataset } from '@sim/hooks/useWowheadDataset';
-import type { Player } from '@sim/player/player';
 import { equippedItemWowheadTooltipData } from '@sim/proto/action_id/tooltip_data';
 import type { EquippedItem } from '@sim/proto/equipped_item';
 import { useMemo } from 'react';
 
-export const useEquippedItemWowheadDataset = (player: Player<any>, item: EquippedItem | null | undefined) => {
-	const resolve = useMemo(() => (item ? () => equippedItemWowheadTooltipData(player, item) : null), [player, item]);
+// The tooltip marks the set pieces worn in every slot, so it follows the whole gear, not only this item.
+export const useEquippedItemWowheadDataset = (item: EquippedItem | null | undefined) => {
+	const gear = usePlayerStore('gear');
+	const resolve = useMemo(() => (item ? () => equippedItemWowheadTooltipData(gear, item) : null), [gear, item]);
 	return useWowheadDataset(resolve);
 };

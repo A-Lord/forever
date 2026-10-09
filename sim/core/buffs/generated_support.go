@@ -18,6 +18,32 @@ import (
 // second copy of the shield can sit next to it.
 func NewDamageShield(unit *core.Unit, label string, actionID core.ActionID, duration time.Duration, category string, singleAura bool,
 	school core.SpellSchool, damage float64, bonusCoefficient float64) *core.Aura {
+	trigger := damageShieldTrigger(unit, label, actionID, school, damage, bonusCoefficient)
+
+	aura := unit.GetOrRegisterAura(core.Aura{
+		Label:      label,
+		ActionID:   actionID,
+		Duration:   core.TernaryDuration(duration > 0, duration, core.NeverExpires),
+		BuildPhase: core.Ternary(actionID.Tag == -1, core.CharacterBuildPhaseBuffs, core.CharacterBuildPhaseNone),
+	}).AttachProcTrigger(trigger)
+
+	// The shield has no stat to apply or remove: what the category decides is
+	// which aura keeps its proc trigger, so the damage is the whole bid.
+	if category != "" {
+		aura.NewExclusiveEffect(category, singleAura, core.ExclusiveEffect{Priority: damage})
+	}
+	return aura
+}
+
+// The same damage shield on an aura that already exists, live while the aura is up: an item's buff
+// whose row states a damage shield beside its other effects. The spell that deals the damage takes
+// the aura's action id with its tag raised by 2.
+func AttachDamageShield(aura *core.Aura, school core.SpellSchool, damage float64, bonusCoefficient float64) {
+	aura.AttachProcTrigger(damageShieldTrigger(aura.Unit, aura.Label, aura.ActionID, school, damage, bonusCoefficient))
+}
+
+func damageShieldTrigger(unit *core.Unit, label string, actionID core.ActionID, school core.SpellSchool, damage float64,
+	bonusCoefficient float64) core.ProcTrigger {
 	procSpell := unit.RegisterSpell(core.SpellConfig{
 		ActionID:    actionID.WithTag(actionID.Tag + 2),
 		SpellSchool: school,
@@ -33,12 +59,7 @@ func NewDamageShield(unit *core.Unit, label string, actionID core.ActionID, dura
 		},
 	})
 
-	aura := unit.GetOrRegisterAura(core.Aura{
-		Label:      label,
-		ActionID:   actionID,
-		Duration:   core.TernaryDuration(duration > 0, duration, core.NeverExpires),
-		BuildPhase: core.Ternary(actionID.Tag == -1, core.CharacterBuildPhaseBuffs, core.CharacterBuildPhaseNone),
-	}).AttachProcTrigger(core.ProcTrigger{
+	return core.ProcTrigger{
 		Name:     label + " Damage",
 		Callback: core.CallbackOnSpellHitTaken,
 		Outcome:  core.OutcomeLanded,
@@ -47,14 +68,7 @@ func NewDamageShield(unit *core.Unit, label string, actionID core.ActionID, dura
 				procSpell.Cast(sim, spell.Unit)
 			}
 		},
-	})
-
-	// The shield has no stat to apply or remove: what the category decides is
-	// which aura keeps its proc trigger, so the damage is the whole bid.
-	if category != "" {
-		aura.NewExclusiveEffect(category, singleAura, core.ExclusiveEffect{Priority: damage})
 	}
-	return aura
 }
 
 // What a driver decides about a buff other players cast on this one: how many

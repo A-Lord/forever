@@ -12,6 +12,8 @@ var windfuryTotemRank = spellData.WindfuryTotem.Highest()
 var strengthOfEarthTotemRank = spellData.StrengthOfEarthTotem.Highest()
 var graceOfAirTotemRank = spellData.GraceOfAirTotem.ByID(25359)
 var manaSpringTotemRank = spellData.ManaSpringTotem.Highest()
+var flametongueTotemRank = spellData.FlametongueTotem.Highest()
+var frostResistanceTotemRank = spellData.FrostResistanceTotem.Highest()
 
 // A totem's cast: the row's cost, GCD and cooldown, and nothing it hits.
 func (shaman *Shaman) newTotemSpellConfig(rank *spelldata.Spell) core.SpellConfig {
@@ -45,113 +47,52 @@ func (shaman *Shaman) registerBuffTotem(rank *spelldata.Spell, slot int, buff *c
 	return shaman.RegisterSpell(config)
 }
 
-// TODO: To be implemented. Port the TBC Windfury Totem Spell implementation below; not yet verified against the Forever game files.
+// A weapon totem stands as an aura of the totem row's duration that holds the totem's category, which
+// turns its proc on. The proc is core/buffs', shared with the party buff of the same totem.
+func (shaman *Shaman) registerWeaponTotem(rank *spelldata.Spell, slot int, category string, priority float64, procTrigger *core.Aura) *core.Spell {
+	duration := rank.Duration()
+
+	totemAura := shaman.RegisterAura(core.Aura{
+		Label:    rank.Name + " (Self)",
+		ActionID: core.ActionID{SpellID: rank.ID},
+		Duration: duration,
+	})
+	totemAura.NewExclusiveEffect(category, false, core.ExclusiveEffect{
+		Priority: priority,
+		OnGain: func(_ *core.ExclusiveEffect, sim *core.Simulation) {
+			procTrigger.Activate(sim)
+		},
+		OnExpire: func(_ *core.ExclusiveEffect, sim *core.Simulation) {
+			procTrigger.Deactivate(sim)
+		},
+	})
+
+	config := shaman.newTotemSpellConfig(rank)
+	config.ClassSpellMask = SpellMaskBasicTotem
+	config.RelatedSelfBuff = totemAura
+	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, _ *core.Spell) {
+		shaman.dropTotem(sim, slot, totemAura, duration)
+	}
+	return shaman.RegisterSpell(config)
+}
+
+// The rows already carry Improved Weapon Totems: Windfury's attack power and Flametongue's damage are
+// its 30% and 12% over their untalented values, so nothing applies the talent.
 func (shaman *Shaman) registerWindfuryTotemSpell() {
-	// The TBC implementation, kept for the port:
-	// duration := time.Second * 120
-	// // TODO: Forever drops Improved Weapon Totems; untalented Windfury Totem AP only.
-	// value := 445.0
-	//
-	// wfProcAura := shaman.NewTemporaryStatsAura("Windfury Totem Proc (Self)", core.ActionID{SpellID: 25584}, stats.Stats{stats.AttackPower: value}, time.Millisecond*1500)
-	// wfProcAura.MaxStacks = 2
-	// wfProcAura.AttachProcTrigger(core.ProcTrigger{
-	// 	Name:     "Windfury Attack (Self)",
-	// 	Callback: core.CallbackOnSpellHitDealt,
-	// 	ProcMask: core.ProcMaskMeleeMHAuto | core.ProcMaskMeleeOHAuto,
-	// 	// TriggerImmediately ommited for improved UI clarity (the timeline tick would be near invisible for MHAuto procs)
-	// 	Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-	// 		if wfProcAura.IsActive() && !spell.ProcMask.Matches(core.ProcMaskMeleeSpecial) {
-	// 			wfProcAura.RemoveStack(sim)
-	// 			if wfProcAura.GetStacks() == 0 {
-	// 				wfProcAura.Deactivate(sim)
-	// 			}
-	// 		}
-	// 	},
-	// })
-	//
-	// config := shaman.newTotemSpellConfig(int32(windfuryTotemRank.Cost()), windfuryTotemRank.ID, SpellMaskBasicTotem, windfuryTotemRank.GCD())
-	//
-	// var windfurySpell *core.Spell
-	// wfProcTrigger := shaman.MakeProcTriggerAura(core.ProcTrigger{
-	// 	Name:               "Windfury Totem Trigger (Self)",
-	// 	MetricsActionID:    core.ActionID{SpellID: 25580},
-	// 	IsWeaponProc:       true,
-	// 	ProcChance:         0.2,
-	// 	Duration:           core.NeverExpires,
-	// 	Outcome:            core.OutcomeLanded,
-	// 	Callback:           core.CallbackOnSpellHitDealt,
-	// 	ProcMask:           core.ProcMaskMeleeMHAuto,
-	// 	ICD:                time.Millisecond * 1500,
-	// 	TriggerImmediately: true,
-	// 	Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-	// 		wfProcAura.Activate(sim)
-	// 		if spell.ProcMask == core.ProcMaskMeleeMHAuto {
-	// 			wfProcAura.SetStacks(sim, 1)
-	// 		} else {
-	// 			wfProcAura.SetStacks(sim, 2)
-	// 		}
-	// 		shaman.AutoAttacks.MaybeReplaceMHSwing(sim, windfurySpell).Cast(sim, result.Target)
-	// 	},
-	// })
-	//
-	// wfIntermediateAuraForExclusitivity := shaman.RegisterAura(core.Aura{
-	// 	Label:    "Windfury Dummy Aura (self)",
-	// 	Duration: time.Second * 10,
-	// })
-	//
-	// wfPartyWeaponBuffTrackingAura := shaman.RegisterAura(core.Aura{
-	// 	Label:    "Windfury Party Weapon Buff Tracking Aura",
-	// 	Duration: time.Second * 10,
-	// 	ActionID: core.ActionID{SpellID: 25580, Tag: 1},
-	// })
-	//
-	// wfAura := shaman.RegisterAura(core.Aura{
-	// 	Label:    "Windfury Totem (Self)",
-	// 	ActionID: config.ActionID,
-	// 	Duration: duration,
-	// }).ApplyOnInit(func(aura *core.Aura, sim *core.Simulation) {
-	// 	mhConfig := *shaman.AutoAttacks.MHConfig()
-	// 	mhConfig.ActionID = mhConfig.ActionID.WithTag(25584)
-	// 	windfurySpell = shaman.GetOrRegisterSpell(mhConfig)
-	// }).AttachPeriodicAction(core.PeriodicActionOptions{
-	// 	Period:          time.Second * 5,
-	// 	TickImmediately: true,
-	// 	Priority:        core.ActionPriorityAuto,
-	// 	OnAction: func(sim *core.Simulation) {
-	// 		wfPartyWeaponBuffTrackingAura.Activate(sim)
-	// 		wfIntermediateAuraForExclusitivity.Activate(sim)
-	// 	},
-	// })
-	//
-	// wfIntermediateAuraForExclusitivity.NewExclusiveEffect(buffs.WindfuryTotemCategory, false, core.ExclusiveEffect{
-	// 	Priority: value,
-	// 	OnGain: func(_ *core.ExclusiveEffect, sim *core.Simulation) {
-	// 		wfProcTrigger.Activate(sim)
-	// 	},
-	// 	OnExpire: func(_ *core.ExclusiveEffect, sim *core.Simulation) {
-	// 		wfProcTrigger.Deactivate(sim)
-	// 		wfIntermediateAuraForExclusitivity.Deactivate(sim)
-	// 	},
-	// })
-	//
-	// config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-	// 	if shaman.AirTotemAura != nil {
-	// 		shaman.AirTotemAura.Deactivate(sim)
-	// 	}
-	// 	shaman.TotemExpirations[AirTotem] = sim.CurrentTime + duration
-	// 	shaman.AirTotemAura = wfAura
-	// 	wfAura.Activate(sim)
-	// }
-	//
-	// shaman.RegisterItemSwapCallback([]proto.ItemSlot{proto.ItemSlot_ItemSlotMainHand}, func(sim *core.Simulation, slot proto.ItemSlot) {
-	// 	wfIntermediateAuraForExclusitivity.Deactivate(sim)
-	// })
-	//
-	// shaman.RegisterSpell(config)
+	shaman.WindfuryTotem = shaman.registerWeaponTotem(windfuryTotemRank, AirTotem, buffs.WindfuryTotemCategory,
+		buffs.WindfuryTotemValue(0), buffs.NewWindfuryTotemProcTrigger(&shaman.Character))
+	buffs.HoldOverWindfuryTotemRivals(shaman.WindfuryTotem.RelatedSelfBuff)
+}
+
+// Under a standing Windfury Totem, Flametongue Totem's proc does nothing.
+func (shaman *Shaman) registerFlametongueTotemSpell() {
+	shaman.FlametongueTotem = shaman.registerWeaponTotem(flametongueTotemRank, FireTotem, buffs.FlametongueTotemCategory,
+		buffs.FlametongueTotemPriority(), buffs.NewFlametongueTotemProcTrigger(&shaman.Character))
 }
 
 func (shaman *Shaman) registerStrengthOfEarthTotemSpell() {
-	// Enhancing Totems (16295) has no node in the Forever talent tree, so the aura is untalented.
+	// The rows already carry Enhancing Totems: Strength of Earth's and Grace of Air's amounts are its 15%
+	// over their untalented values, so nothing applies the talent.
 	shaman.registerBuffTotem(strengthOfEarthTotemRank, EarthTotem,
 		buffs.NewSpellDataStrengthOfEarthTotemAura(&shaman.Unit, true, 0))
 }
@@ -165,6 +106,12 @@ func (shaman *Shaman) registerGraceOfAirTotemSpell() {
 func (shaman *Shaman) registerManaSpringTotemSpell() {
 	shaman.registerBuffTotem(manaSpringTotemRank, WaterTotem,
 		buffs.NewSpellDataManaSpringTotemAura(&shaman.Unit, true, shaman.Talents.RestorativeTotems))
+}
+
+// A fire totem, so it stands in the slot Fire Nova radiates from.
+func (shaman *Shaman) registerFrostResistanceTotemSpell() {
+	shaman.registerBuffTotem(frostResistanceTotemRank, FireTotem,
+		buffs.NewSpellDataFrostResistanceTotemAura(&shaman.Unit, true, 0))
 }
 
 // Commented out upstream of this fork by "only 1 totem per type" (53970b1d84), not by

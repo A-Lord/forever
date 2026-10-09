@@ -1,7 +1,7 @@
 // Reforge-solve request/cache-key helpers, extracted from the ReforgeOptimizer
 // component so the domain layer (sim.ts, bulk sim, reforge cache) does not
 // depend on the view layer.
-import { Player as PlayerProtoMessageType, ReforgeOptimizeMode, ReforgeOptimizeRequest } from '@generated/proto/api';
+import { Player as PlayerProtoMessageType, ReforgeOptimizeRequest } from '@generated/proto/api';
 import { Debuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
 
 import { ReforgeGearCache } from '../cache/reforge_cache';
@@ -32,12 +32,13 @@ function cacheRelevantPlayerProto(player: Player<any>): PlayerProtoMessageType {
 }
 
 // The optimizer config a solve depends on: everything except per-run identity
-// (requestId, debug, mode) and the raid, which is keyed separately.
+// (requestId, debug), the settings' epStats, which no solve reads, and the raid,
+// which is keyed separately.
 export function cacheRelevantReforgeRequest(reforgeRequest: ReforgeOptimizeRequest): ReforgeOptimizeRequest {
 	const configForHash = ReforgeOptimizeRequest.clone({ ...reforgeRequest, raid: undefined } as ReforgeOptimizeRequest);
 	configForHash.requestId = '';
 	configForHash.debug = false;
-	configForHash.mode = ReforgeOptimizeMode.ReforgeOptimizeModeSingle;
+	if (configForHash.settings) configForHash.settings.epStats = [];
 	return configForHash;
 }
 
@@ -76,5 +77,6 @@ export function makeReforgeConfigRequestFields(config: ReforgeOptimizeConfig) {
 			capType: softCap.capType,
 			postCapEPs: softCap.postCapEPs.slice(),
 		})),
+		enchantOptions: config.enchantOptions,
 	};
 }

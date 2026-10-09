@@ -87,7 +87,7 @@ func (priest *Priest) periodicDamageSpellConfig(rank *spelldata.Spell, classSpel
 	config.ClassSpellMask = classSpellMask
 
 	config.Dot = spelldata.DotConfig(rank, tick, spelldata.RankLabel(rank, &priest.Unit))
-	config.Dot.OnTick = spelldata.PeriodicDamageTick(tick, rank.TickOutcomeHitRolled)
+	config.Dot.OnTick = spelldata.PeriodicDamageTick(tick, rank.TickOutcome)
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		result := spell.CalcOutcome(sim, target, spell.OutcomeMagicHitNoHitCounter)

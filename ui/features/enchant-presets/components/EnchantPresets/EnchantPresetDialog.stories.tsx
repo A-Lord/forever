@@ -4,17 +4,17 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { wowheadIconUrl } from '@testing/storybook/fixtures/gear';
 import { fn } from 'storybook/test';
 
-import { BulkEnchantPresetDialogView } from './BulkEnchantPresetDialog';
-import { BulkEnchantTileView } from './BulkEnchantTile';
+import { EnchantPresetDialogView } from './EnchantPresetDialog';
+import { EnchantPresetTileView } from './EnchantPresetTile';
 
 const tiles = (enchants: Array<[string, string | undefined, boolean]>) =>
 	enchants.map(([name, effect, checked]) => (
-		<BulkEnchantTileView key={name} name={name} effect={effect} iconUrl={wowheadIconUrl('inv_misc_note_01')} checked={checked} onToggle={fn()} />
+		<EnchantPresetTileView key={name} name={name} effect={effect} iconUrl={wowheadIconUrl('inv_misc_note_01')} checked={checked} onToggle={fn()} />
 	));
 
 const meta = {
-	title: 'Features/Bulk/BulkEnchants/BulkEnchantPresetDialog',
-	component: BulkEnchantPresetDialogView,
+	title: 'Features/EnchantPresets/EnchantPresets/EnchantPresetDialog',
+	component: EnchantPresetDialogView,
 	tags: ['autodocs'],
 	args: {
 		open: true,
@@ -64,7 +64,7 @@ const meta = {
 		onShowAllChange: fn(),
 	},
 	argTypes: { groups: { control: false } },
-} satisfies Meta<typeof BulkEnchantPresetDialogView>;
+} satisfies Meta<typeof EnchantPresetDialogView>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

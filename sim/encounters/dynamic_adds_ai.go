@@ -39,7 +39,7 @@ func createDynamicAddsAIPreset() {
 
 			SpellSchool:   proto.SpellSchool_SpellSchoolPhysical,
 			SwingSpeed:    2.0,
-			MinBaseDamage: 15113,
+			MinBaseDamage: 2601,
 			DamageSpread:  0.5,
 			ParryHaste:    true,
 			CanCrush:      true,
