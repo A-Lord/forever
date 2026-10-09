@@ -97,6 +97,9 @@ interface PlayerState {
 	flametongue: boolean;
 	mainHand?: UIItem;
 	offHand?: UIItem;
+	swapEnabled: boolean;
+	swapMainHand?: UIItem;
+	swapOffHand?: UIItem;
 	consumes: ConsumesSpec;
 	minLvl: Partial<Record<ConsumableType, number>>;
 }
@@ -110,9 +113,14 @@ const playerOf = (state: Partial<PlayerState> = {}) => {
 		displayStats: [],
 		windfury: false,
 		flametongue: false,
+		swapEnabled: false,
 		consumes: ConsumesSpec.create(),
 		minLvl: {},
 		...state,
+	};
+	const inHand = (slot: ItemSlot, mainHand?: UIItem, offHand?: UIItem) => {
+		const item = slot === ItemSlot.ItemSlotMainHand ? mainHand : slot === ItemSlot.ItemSlotOffHand ? offHand : undefined;
+		return item ? { item } : null;
 	};
 	const player = {
 		sim: { getMinConsumableLvl: (type: ConsumableType) => full.minLvl[type] ?? 0 },
@@ -120,9 +128,10 @@ const playerOf = (state: Partial<PlayerState> = {}) => {
 		getSpec: () => full.spec,
 		getRace: () => Race.RaceOrc,
 		hasProfession: (profession: Profession) => full.professions.includes(profession),
-		getEquippedItem: (slot: ItemSlot) => {
-			const item = slot === ItemSlot.ItemSlotMainHand ? full.mainHand : slot === ItemSlot.ItemSlotOffHand ? full.offHand : undefined;
-			return item ? { item } : null;
+		getEquippedItem: (slot: ItemSlot) => inHand(slot, full.mainHand, full.offHand),
+		itemSwapSettings: {
+			getEnableItemSwap: () => full.swapEnabled,
+			getItem: (slot: ItemSlot) => inHand(slot, full.swapMainHand, full.swapOffHand),
 		},
 		getSpecConfig: () => full.specConfig ?? { epStats: full.epStats, displayStats: full.displayStats },
 		getParty: () => ({ getBuffs: () => ({ windfuryTotem: full.windfury, flametongueTotem: full.flametongue }) }),
@@ -215,6 +224,56 @@ describe('consumeConfigs', () => {
 		configs.mhImbue.setValue(player, 12404);
 		configs.mhWeaponImbue.setValue(player, 8928);
 		expect([state.consumes.mhImbueId, state.consumes.mhWeaponImbueId]).toEqual([12404, 8928]);
+	});
+
+	it('hides the swap imbues while item swap is off, even with a swap weapon that takes them', () => {
+		const sword = UIItem.create({ weaponType: WeaponType.WeaponTypeSword, handType: HandType.HandTypeOneHand });
+		const { player } = playerOf({ mainHand: sword, swapMainHand: sword });
+		const configs = consumeConfigs(player, db);
+		expect(iconEnumPickerShown(configs.mhImbue, player)).toBe(true);
+		expect(iconEnumPickerShown(configs.swapMhImbue, player)).toBe(false);
+		expect(iconEnumPickerShown(configs.swapOhImbue, player)).toBe(false);
+		expect(iconEnumPickerShown(configs.swapMhWeaponImbue, player)).toBe(false);
+		expect(iconEnumPickerShown(configs.swapOhWeaponImbue, player)).toBe(false);
+	});
+
+	it('offers each swap hand the imbues its swap weapon takes, and picks them into the swap fields', () => {
+		const mace = UIItem.create({ weaponType: WeaponType.WeaponTypeMace, handType: HandType.HandTypeOneHand });
+		const sword = UIItem.create({ weaponType: WeaponType.WeaponTypeSword, handType: HandType.HandTypeOneHand });
+		const shield = UIItem.create({ weaponType: WeaponType.WeaponTypeShield, handType: HandType.HandTypeOffHand });
+		const { player, state } = playerOf({ mainHand: mace, swapEnabled: true, swapMainHand: sword, swapOffHand: shield });
+		const configs = consumeConfigs(player, db);
+		expect(offered(configs.mhImbue, player)).toEqual([]);
+		expect(offered(configs.swapMhImbue, player)).toEqual([12404]);
+		expect(offered(configs.swapOhImbue, player)).toEqual([228980]);
+
+		configs.swapMhImbue.setValue(player, 12404);
+		configs.swapOhImbue.setValue(player, 228980);
+		expect([state.consumes.mhImbueId, state.consumes.swapMhImbueId, state.consumes.swapOhImbueId]).toEqual([0, 12404, 228980]);
+
+		state.swapMainHand = undefined;
+		expect(iconEnumPickerShown(configs.swapMhImbue, player)).toBe(false);
+		expect(iconEnumPickerShown(configs.swapOhImbue, player)).toBe(true);
+	});
+
+	it('offers the swap weapon imbues by the swap weapon, apart from the main hand', () => {
+		const poison = Consumable.create({
+			id: 8928,
+			name: 'Instant Poison VI',
+			type: ConsumableType.ConsumableTypeWeaponImbue,
+			weaponSubclassMask: 1 << 15,
+			classAllowlist: [Class.ClassRogue],
+		});
+		const poisonDb = { getConsumables: () => [poison], getSpellEffect: () => undefined } as unknown as Database;
+		const sword = UIItem.create({ weaponType: WeaponType.WeaponTypeSword, handType: HandType.HandTypeOneHand });
+		const dagger = UIItem.create({ weaponType: WeaponType.WeaponTypeDagger, handType: HandType.HandTypeOneHand });
+		const { player, state } = playerOf({ cls: Class.ClassRogue, spec: Spec.SpecRogue, mainHand: sword, swapEnabled: true, swapMainHand: dagger });
+		const configs = consumeConfigs(player, poisonDb);
+		expect(offered(configs.mhWeaponImbue, player)).toEqual([]);
+		expect(offered(configs.swapMhWeaponImbue, player)).toEqual([8928]);
+
+		configs.swapMhWeaponImbue.setValue(player, 8928);
+		expect([state.consumes.mhWeaponImbueId, state.consumes.swapMhWeaponImbueId]).toEqual([0, 8928]);
 	});
 
 	it('shows the main-hand imbue under Windfury Totem and Flametongue Totem', () => {

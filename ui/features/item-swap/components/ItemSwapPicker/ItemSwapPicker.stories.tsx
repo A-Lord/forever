@@ -1,4 +1,4 @@
-import { getEmptySlotIconUrl } from '@features/gear/model/empty_slot_icons';
+import { EquippedItemIcon } from '@features/gear/components/ItemCell';
 import { ItemSlot } from '@generated/proto/common';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, userEvent, within } from 'storybook/test';
@@ -7,9 +7,7 @@ import { ItemSwapPickerView } from './ItemSwapPicker';
 
 const SLOTS = [ItemSlot.ItemSlotMainHand, ItemSlot.ItemSlotOffHand, ItemSlot.ItemSlotRanged];
 
-const EmptySlot = ({ slot }: { slot: ItemSlot }) => (
-	<span className="ui-icon-picker-swatch block size-16 grayscale" style={{ backgroundImage: `url('${getEmptySlotIconUrl(slot)}')` }} />
-);
+const EmptySlot = ({ slot }: { slot: ItemSlot }) => <EquippedItemIcon slot={slot} item={null} iconUrl="" href="" />;
 
 const meta = {
 	title: 'Features/ItemSwap/ItemSwapPicker',

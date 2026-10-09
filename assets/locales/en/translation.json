@@ -722,12 +722,16 @@
 			"imbue": {
 				"title": "Stones and Oils",
 				"mhImbue": "Main Hand",
-				"ohImbue": "Off Hand"
+				"ohImbue": "Off Hand",
+				"swapMhImbue": "Swap Main Hand",
+				"swapOhImbue": "Swap Off Hand"
 			},
 			"weaponImbue": {
 				"title": "Weapon Imbues",
 				"mhWeaponImbue": "Main Hand",
-				"ohWeaponImbue": "Off Hand"
+				"ohWeaponImbue": "Off Hand",
+				"swapMhWeaponImbue": "Swap Main Hand",
+				"swapOhWeaponImbue": "Swap Off Hand"
 			},
 			"scrolls": {
 				"title": "Scrolls"

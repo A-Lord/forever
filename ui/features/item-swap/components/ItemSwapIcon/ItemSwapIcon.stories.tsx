@@ -25,7 +25,7 @@ type Story = StoryObj<typeof meta>;
 
 export const EmptySlot: Story = {
 	play: async ({ args, canvasElement }) => {
-		await userEvent.click(within(canvasElement).getByTestId('icon-picker-button'));
+		await userEvent.click(within(canvasElement).getByTestId('item-picker-icon'));
 		await expect(args.onOpen).toHaveBeenCalledOnce();
 	},
 };

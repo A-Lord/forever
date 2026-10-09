@@ -4,6 +4,7 @@ import (
 	"math"
 	"slices"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -15,31 +16,148 @@ import (
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-// A test oil shaped like Brilliant Wizard Oil 20749, enchant 2628, carrying 36 healing, 36 spell
-// damage and 1% spell crit: its stats apply once for each hand carrying it.
-func TestTemporaryEnchantStatsApplyPerEnchantedHand(t *testing.T) {
-	oil := core.Consumable{Id: 20749, Name: "Brilliant Wizard Oil", TemporaryEnchant: &core.Enchant{
-		EffectID:    2628,
-		Stats:       stats.Stats{stats.HealingPower: 36, stats.SpellDamage: 36},
-		PseudoStats: pseudoStats(proto.PseudoStat_PseudoStatSpellCritPercent, 1),
-	}}
+// Test imbues shaped like three of the game's: an oil like Brilliant Wizard Oil 20749 (Effect 54,
+// healing, spell damage and a spell crit percent), a stone like Dense Sharpening Stone 12404 (Effect
+// 54, flat weapon damage) and a firestone like Firestone 13699 (Effect 360, fire spell damage). The
+// main set wears two test one-handers, and the item swap set two others.
+const (
+	swapTestOil int32 = 991531 + iota
+	swapTestStone
+	swapTestFirestone
+	swapTestMainHand
+	swapTestOffHand
+	swapTestSwapMainHand
+	swapTestSwapOffHand
+)
 
-	character := newTestAgent().character
-	character.Equipment[proto.ItemSlot_ItemSlotMainHand] = core.Item{ID: 1, TempEnchant: 2628}
-	before := character.GetStats()
-	applyTemporaryEnchant(character, oil)
-	gained := character.GetStats().Subtract(before)
+var registerSwapTestImbues = sync.OnceFunc(func() {
+	core.AddToDatabase(&proto.SimDatabase{
+		Items: []*proto.SimItem{testOneHander(swapTestMainHand), testOneHander(swapTestOffHand),
+			testOneHander(swapTestSwapMainHand), testOneHander(swapTestSwapOffHand)},
+		Consumables: []*proto.Consumable{
+			{Id: swapTestOil, Name: "Test Oil", Type: proto.ConsumableType_ConsumableTypeImbue,
+				TemporaryEnchant: &proto.SimEnchant{EffectId: 991541,
+					Stats:       stats.Stats{stats.HealingPower: 36, stats.SpellDamage: 36}.ToProtoArray(),
+					PseudoStats: pseudoStats(proto.PseudoStat_PseudoStatSpellCritPercent, 1)}},
+			{Id: swapTestStone, Name: "Test Stone", Type: proto.ConsumableType_ConsumableTypeImbue,
+				TemporaryEnchant: &proto.SimEnchant{EffectId: 991542, WeaponDamage: 8}},
+			{Id: swapTestFirestone, Name: "Test Firestone", Type: proto.ConsumableType_ConsumableTypeWeaponImbue,
+				TemporaryEnchant: &proto.SimEnchant{EffectId: 991543, Stats: stats.Stats{stats.FireDamage: 14}.ToProtoArray()}},
+		},
+	})
+	for _, id := range []int32{swapTestOil, swapTestStone, swapTestFirestone} {
+		NewSpellDataTemporaryEnchant(id, SchoolPiercing{})
+	}
+})
 
-	if gained[stats.SpellDamage] != 36 || gained[stats.HealingPower] != 36 || gained[stats.SpellCritPercent] != 1 {
-		t.Errorf("one oiled hand gained %v spell damage, %v healing, %v%% spell crit, want 36, 36 and 1",
-			gained[stats.SpellDamage], gained[stats.HealingPower], gained[stats.SpellCritPercent])
+// A mage wearing the main set, with the item swap set when swap is true.
+func newImbueSwapSim(t *testing.T, consumes *proto.ConsumesSpec, swap bool) (*core.Simulation, *core.Character) {
+	t.Helper()
+	registerSwapTestImbues()
+
+	player := testMage()
+	player.Name = "Wearer"
+	player.Buffs = &proto.IndividualBuffs{}
+	player.Equipment = &proto.EquipmentSpec{Items: testHands(&proto.ItemSpec{Id: swapTestMainHand}, &proto.ItemSpec{Id: swapTestOffHand})}
+	player.Consumables = consumes
+	player.Rotation = &proto.APLRotation{}
+	if swap {
+		player.EnableItemSwap = true
+		player.ItemSwap = &proto.ItemSwap{Items: testHands(&proto.ItemSpec{Id: swapTestSwapMainHand}, &proto.ItemSpec{Id: swapTestSwapOffHand})}
 	}
 
-	bare := newTestAgent().character
-	before = bare.GetStats()
-	applyTemporaryEnchant(bare, oil)
-	if gained := bare.GetStats().Subtract(before); gained != (stats.Stats{}) {
-		t.Errorf("a character with no hand carrying the enchant gained %v", gained)
+	sim := core.NewSim(&proto.RaidSimRequest{
+		SimOptions: &proto.SimOptions{RandomSeed: 1},
+		Raid:       &proto.Raid{Parties: []*proto.Party{{Players: []*proto.Player{player}, Buffs: &proto.PartyBuffs{}}}},
+		Encounter:  &proto.Encounter{Targets: []*proto.Target{{Name: "target", Level: 60}}, Duration: 600},
+	}, simsignals.CreateSignals())
+	sim.Reset()
+	return sim, sim.Raid.Parties[0].Players[0].GetCharacter()
+}
+
+// What the consumable's enchant puts on the item: its stats and its percent pseudo-stats.
+func temporaryEnchantStats(t *testing.T, consumableID int32) stats.Stats {
+	t.Helper()
+	enchant := core.GetConsumableByID(consumableID).TemporaryEnchant
+	if enchant == nil {
+		t.Fatalf("consumable %d states no temporary enchant", consumableID)
+	}
+	return enchant.Stats.Add(stats.FromPseudoStatsProto(enchant.PseudoStats))
+}
+
+// The oil's stats count once for each hand carrying it, as part of the equipment's stats.
+func TestTemporaryEnchantStatsApplyPerEnchantedHand(t *testing.T) {
+	_, bare := newImbueSwapSim(t, &proto.ConsumesSpec{}, false)
+	oil := temporaryEnchantStats(t, swapTestOil)
+	for _, tc := range []struct {
+		name     string
+		consumes *proto.ConsumesSpec
+		hands    float64
+	}{
+		{"main hand", &proto.ConsumesSpec{MhImbueId: swapTestOil}, 1},
+		{"both hands", &proto.ConsumesSpec{MhImbueId: swapTestOil, OhImbueId: swapTestOil}, 2},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			_, oiled := newImbueSwapSim(t, tc.consumes, false)
+			gained := oiled.GetStats().Subtract(bare.GetStats())
+			for _, stat := range []stats.Stat{stats.HealingPower, stats.SpellDamage, stats.SpellCritPercent} {
+				if want := oil[stat] * tc.hands; !core.WithinToleranceFloat64(want, gained[stat], 1e-9) {
+					t.Errorf("%s: gained %v, want the oil's %v on each of %v hands", stat.StatName(), gained[stat], oil[stat], tc.hands)
+				}
+			}
+		})
+	}
+}
+
+// An imbue the spec names for the item swap set goes on the swap weapon alone: its stats and flat
+// weapon damage arrive with that weapon and leave when the main set is worn again.
+func TestSwapImbueFollowsTheSwapWeapon(t *testing.T) {
+	for _, tc := range []struct {
+		name       string
+		consumes   *proto.ConsumesSpec
+		consumable int32
+		slot       proto.ItemSlot
+		carries    func(core.Item) int32
+	}{
+		{"an oil on the swap main hand", &proto.ConsumesSpec{SwapMhImbueId: swapTestOil}, swapTestOil,
+			proto.ItemSlot_ItemSlotMainHand, func(item core.Item) int32 { return item.TempEnchant }},
+		{"a stone on the swap main hand", &proto.ConsumesSpec{SwapMhImbueId: swapTestStone}, swapTestStone,
+			proto.ItemSlot_ItemSlotMainHand, func(item core.Item) int32 { return item.TempEnchant }},
+		{"a firestone on the swap off hand", &proto.ConsumesSpec{SwapOhWeaponImbueId: swapTestFirestone}, swapTestFirestone,
+			proto.ItemSlot_ItemSlotOffHand, func(item core.Item) int32 { return item.WeaponImbue }},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			sim, character := newImbueSwapSim(t, tc.consumes, true)
+			enchant := core.GetConsumableByID(tc.consumable).TemporaryEnchant
+			want := temporaryEnchantStats(t, tc.consumable)
+
+			if got := tc.carries(character.Equipment[tc.slot]); got != 0 {
+				t.Errorf("the main set's weapon carries enchant %d, want none", got)
+			}
+			if got := tc.carries(*character.ItemSwap.GetUnequippedItemBySlot(tc.slot)); got != enchant.EffectID {
+				t.Fatalf("the swap weapon carries enchant %d, want %d", got, enchant.EffectID)
+			}
+			mainStats := character.GetStats()
+			mainDamage := character.WeaponFromMainHand().BaseDamageMin
+
+			character.ItemSwap.SwapItems(sim, proto.APLActionItemSwap_Swap1, false)
+			if got := tc.carries(character.Equipment[tc.slot]); got != enchant.EffectID {
+				t.Errorf("the equipped swap weapon carries enchant %d, want %d", got, enchant.EffectID)
+			}
+			if gained := character.GetStats().Subtract(mainStats); !gained.EqualsWithTolerance(want, 1e-9) {
+				t.Errorf("swapping in gained %v, want the enchant's %v", gained, want)
+			}
+			if tc.slot == proto.ItemSlot_ItemSlotMainHand {
+				if got := character.WeaponFromMainHand().BaseDamageMin - mainDamage; got != enchant.WeaponDamage {
+					t.Errorf("the swap main hand deals %v more minimum damage than the main set's twin, want the enchant's %v", got, enchant.WeaponDamage)
+				}
+			}
+
+			character.ItemSwap.SwapItems(sim, proto.APLActionItemSwap_Main, false)
+			if got := character.GetStats(); !got.EqualsWithTolerance(mainStats, 1e-9) {
+				t.Errorf("swapping back left %v, want the main set's stats back", got.Subtract(mainStats))
+			}
+		})
 	}
 }
 
