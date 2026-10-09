@@ -71,14 +71,24 @@ func consumableRow(id int32) *spelldata.Spell {
 }
 
 // Nutritious Food 1248401 hands Well Fed 1248422 a value of its own, which is not the Strength Well
-// Fed's own row states. Well Fed persists through death, so it is up for the whole iteration.
+// Fed's own row states; a copy of the food hands over one more than that, so the two always differ.
+// Well Fed persists through death, so it is up for the whole iteration.
 func TestWellFedTakesTheValueItsTriggerHandsOver(t *testing.T) {
 	registerStatConsumable(t, smokedDesertDumplingsID)
-	trigger := consumableRow(smokedDesertDumplingsID).FirstAura(dbcenums.A_PERIODIC_TRIGGER_SPELL_WITH_VALUE)
-	handed, own := trigger.BasePoints, trigger.Trigger().FirstAura(dbcenums.A_MOD_STAT).BasePoints
-	if handed == own {
-		t.Skipf("the trigger hands over %v, the same Strength Well Fed's own row states, so the test cannot tell them apart", handed)
+	food := consumableRow(smokedDesertDumplingsID)
+	wellFed := food.FirstAura(dbcenums.A_PERIODIC_TRIGGER_SPELL_WITH_VALUE).Trigger()
+	if wellFed == spelldata.Nil {
+		t.Fatalf("%d hands no value to a spell it triggers", food.ID)
 	}
+	own := wellFed.FirstAura(dbcenums.A_MOD_STAT).BasePoints
+	editRow(t, food.ID, func(s *spelldata.Spell) {
+		for i := range s.Effects {
+			if s.Effects[i].Aura == dbcenums.A_PERIODIC_TRIGGER_SPELL_WITH_VALUE {
+				s.Effects[i].BasePoints = own + 1
+			}
+		}
+	})
+	handed := own + 1
 
 	gain := statGain(&proto.ConsumesSpec{FoodId: smokedDesertDumplingsID}, &proto.RaidBuffs{})
 	if gain[stats.Strength] != handed {
@@ -99,6 +109,8 @@ func TestElixirTakesEveryEffectAndTheDurationOfItsRow(t *testing.T) {
 	registerStatConsumable(t, elixirOfTheMongooseID)
 	row := consumableRow(elixirOfTheMongooseID)
 	agility, crit := row.FirstAura(dbcenums.A_MOD_STAT).Mean(), row.FirstAura(dbcenums.A_MOD_CRIT_PCT).Mean()
+	needAmount(t, "17538's Agility", agility)
+	needAmount(t, "17538's crit", crit)
 
 	gain := statGain(&proto.ConsumesSpec{ElixirIds: []int32{elixirOfTheMongooseID}}, &proto.RaidBuffs{})
 	if gain[stats.Agility] != agility || gain[stats.PhysicalCritPercent] < crit-1e-9 {
@@ -269,8 +281,8 @@ func TestAScrollNoElixirSharesStacksWithTheElixirs(t *testing.T) {
 	}
 }
 
-// A flask has no group: Flask of Supreme Power 13512 (17628, 150 spell damage) stacks with Arcane
-// Elixir 9155 (11390, 20), whose aura is the same A_MOD_DAMAGE_DONE every school.
+// A flask has no group: Flask of Supreme Power 13512 (17628, spell damage) stacks with Arcane Elixir
+// 9155 (11390), whose aura is the same A_MOD_DAMAGE_DONE every school.
 func TestAFlaskStacksWithAnElixir(t *testing.T) {
 	const supremePower, arcane int32 = 13512, 9155
 	registerStatConsumable(t, supremePower)
@@ -289,6 +301,7 @@ func TestDistilledWisdomAddsMaximumManaAlone(t *testing.T) {
 	const distilledWisdom int32 = 13511
 	registerStatConsumable(t, distilledWisdom)
 	mana := consumableRow(distilledWisdom).FirstAura(dbcenums.A_MOD_MAX_POWER).Mean()
+	needAmount(t, "17627's mana", mana)
 
 	gain := statGain(&proto.ConsumesSpec{FlaskId: distilledWisdom}, &proto.RaidBuffs{})
 	if want := (stats.Stats{stats.Mana: mana}); gain != want {
@@ -302,7 +315,7 @@ func TestDistilledWisdomAddsMaximumManaAlone(t *testing.T) {
 	}
 }
 
-// Fire-toasted Bun 23327 (29332) and Dark Desire 22237 (27723) each grant 2% hit, one Hit food group:
+// Fire-toasted Bun 23327 (29332) and Dark Desire 22237 (27723) each grant hit, one Hit food group:
 // only the first applies.
 func TestOnlyOneHitFoodApplies(t *testing.T) {
 	const bun, darkDesire int32 = 23327, 22237

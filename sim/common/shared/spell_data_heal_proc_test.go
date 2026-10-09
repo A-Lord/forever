@@ -70,6 +70,7 @@ func stepPast(t *testing.T, sim *core.Simulation, until time.Duration) {
 func TestRecoveryHealsWhenTheWearersAttackIsDodgedOrParried(t *testing.T) {
 	sim, caster, heal := newHealProcSim(t, 990971, 990972, recoveryHeal, 0)
 	share := spelldata.MustFind(recoveryHeal).ProcHealEffect().Percent()
+	needAmount(t, "1248759's share of maximum health", share)
 	lockout := spelldata.MustFind(recoveryTrigger).ICD()
 	want := share * caster.MaxHealth()
 
@@ -109,6 +110,7 @@ func TestRecoveryHealsWhenTheWearersAttackIsDodgedOrParried(t *testing.T) {
 func TestProcHealCritsUnlessTheRowRulesItOut(t *testing.T) {
 	sim, caster, heal := newHealProcSim(t, 990973, 990974, recoveryHeal, 100)
 	share := spelldata.MustFind(recoveryHeal).ProcHealEffect().Percent()
+	needAmount(t, "1248759's share of maximum health", share)
 	want := share * caster.MaxHealth() * heal.CritDamageMultiplier(nil)
 	if got := swingHealed(sim, caster, core.OutcomeDodge, 0); math.Abs(got-want) > 1e-6 {
 		t.Errorf("at 100%% spell crit the heal was %v, want the critical %v", got, want)
@@ -139,7 +141,7 @@ func TestProcHealRollsAStatedAmount(t *testing.T) {
 	}
 }
 
-// Julie's Blessing 8348, Julie's Dagger 6660's heal: A_PERIODIC_HEAL 13 on the caster every 2 s for 12 s.
+// Julie's Blessing 8348, Julie's Dagger 6660's heal: A_PERIODIC_HEAL on the caster.
 const julieHot int32 = 8348
 
 // Edits the store's row of a spell for the test, restoring it afterwards. The effects are copied so
@@ -173,7 +175,7 @@ func healedUntil(t *testing.T, sim *core.Simulation, caster *testCaster, start, 
 // its duration runs out, measured as the spell's periodic healing.
 func TestProcHotTicksItsAmountEveryPeriodOnTheWearer(t *testing.T) {
 	sim, caster, hot := newHealProcSim(t, 990979, 990980, julieHot, 0)
-	per, period, ticks := ticksOf(spelldata.MustFind(julieHot))
+	per, period, ticks := ticksOf(t, spelldata.MustFind(julieHot))
 
 	if got := swingHealed(sim, caster, core.OutcomeDodge, 0); got != 0 {
 		t.Errorf("applying the HoT healed %v, want nothing until the first tick", got)
@@ -208,7 +210,7 @@ func TestProcHotTicksOnTheHealingPowerOfTheTick(t *testing.T) {
 	editRow(t, julieHot, func(s *spelldata.Spell) { s.Effects[0].SPCoef = 1 })
 	sim, caster, _ := newHealProcSim(t, 990981, 990982, julieHot, 0)
 	caster.AddStatsDynamic(sim, stats.Stats{stats.HealingPower: -caster.GetStat(stats.HealingPower)})
-	per, period, _ := ticksOf(spelldata.MustFind(julieHot))
+	per, period, _ := ticksOf(t, spelldata.MustFind(julieHot))
 
 	swingHealed(sim, caster, core.OutcomeDodge, 0)
 	start := sim.CurrentTime
@@ -228,7 +230,7 @@ func TestProcHotCritsOnlyWhereTheRowLetsItsTicksCrit(t *testing.T) {
 	editRow(t, julieHot, func(s *spelldata.Spell) {
 		s.Attr[dbcenums.ATTR_INDEX_EX_8] &^= dbcenums.ATTR_EX_8_PERIODIC_CAN_CRIT
 	})
-	per, period, _ := ticksOf(spelldata.MustFind(julieHot))
+	per, period, _ := ticksOf(t, spelldata.MustFind(julieHot))
 	sim, caster, hot := newHealProcSim(t, 990983, 990984, julieHot, 100)
 	swingHealed(sim, caster, core.OutcomeDodge, 0)
 	if got := healedUntil(t, sim, caster, sim.CurrentTime, period); got != per {
@@ -259,15 +261,17 @@ func TestProcHotCritsOnlyWhereTheRowLetsItsTicksCrit(t *testing.T) {
 }
 
 // A second proc while the HoT runs starts it over: the ticks already landed stay landed and a full
-// run of ticks follows the second proc. 1248761's lockout is the earliest it can come.
+// run of ticks follows the second proc. 1248761's lockout is the earliest it can come; copies of the
+// rows fix a lockout that ends while the HoT still runs.
 func TestProcHotStartsOverOnASecondProc(t *testing.T) {
-	per, period, ticks := ticksOf(spelldata.MustFind(julieHot))
+	editRow(t, recoveryTrigger, func(s *spelldata.Spell) { s.ICDMs = 10000 })
+	editRow(t, julieHot, func(s *spelldata.Spell) {
+		s.DurationMs = 12000
+		s.Effects[0].PeriodMs = 2000
+	})
+	per, period, ticks := ticksOf(t, spelldata.MustFind(julieHot))
 	duration := time.Duration(ticks) * period
 	lockout := spelldata.MustFind(recoveryTrigger).ICD()
-	if lockout <= 0 || lockout >= duration {
-		t.Skipf("1248761's %v lockout does not end inside 8348's %v, so no second proc can restart a running HoT",
-			lockout, duration)
-	}
 	before := int(lockout / period)
 	sim, caster, hot := newHealProcSim(t, 990989, 990990, julieHot, 0)
 	swingHealed(sim, caster, core.OutcomeDodge, 0)

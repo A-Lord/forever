@@ -127,9 +127,9 @@ func gainedBy(caster *testCaster, itemID int32) float64 {
 	return 0
 }
 
-// Major Mana Potion 13444 casts 17531, E_ENERGIZE mana with a spread, on potion category 4 for 120 s.
-// The spec's combat potion is a major cooldown the manager holds until the whole gain fits; another
-// potion the spec lists is only a spell, on the same category.
+// Major Mana Potion 13444 casts 17531, E_ENERGIZE mana with a spread; the test's on-use runs on
+// potion category 4 for 120 s. The spec's combat potion is a major cooldown the manager holds until
+// the whole gain fits; another potion the spec lists is only a spell, on the same category.
 func TestPotionRestoresManaOnThePotionCategory(t *testing.T) {
 	const combatID, otherID int32 = 992001, 992002
 	sim, drinker := newConsumableSim(t, manaUser(), &proto.ConsumesSpec{PotId: combatID, Potions: []int32{otherID}}, 0,
@@ -158,6 +158,7 @@ func TestPotionRestoresManaOnThePotionCategory(t *testing.T) {
 	potion.Cast(sim, &drinker.Unit)
 	start := sim.CurrentTime
 	gain := spelldata.MustFind(17531).ProcEnergizeEffect()
+	needAmount(t, "17531's mana", gain.Max())
 	if got := drinker.CurrentMana() - 100; got < gain.Min() || got > gain.Max() {
 		t.Errorf("the potion restored %v, want %v to %v", got, gain.Min(), gain.Max())
 	}
@@ -180,6 +181,8 @@ func TestPotionGivesRageAndItsStrength(t *testing.T) {
 	strength := drinker.GetStat(stats.Strength)
 	row := spelldata.MustFind(17528)
 	rage, buff := row.ProcEnergizeEffect(), row.FirstAura(dbcenums.A_MOD_STAT).Mean()
+	needAmount(t, "17528's rage", rage.Max())
+	needAmount(t, "17528's Strength", buff)
 
 	potion.Cast(sim, &drinker.Unit)
 	if got, low, high := drinker.CurrentRage(), rage.Min()/10, rage.Max()/10; got < low || got > high {
@@ -198,8 +201,8 @@ func TestPotionGivesRageAndItsStrength(t *testing.T) {
 }
 
 // Demonic Rune 12662 casts 16666: E_ENERGIZE mana and E_SCHOOL_DAMAGE Shadow to the user, both with a
-// spread, on conjured category 1153 for 120 s. The conjured item is a major cooldown only while it is
-// the spec's chosen one.
+// spread; the test's on-use runs on conjured category 1153 for 120 s. The conjured item is a major
+// cooldown only while it is the spec's chosen one.
 func TestConjuredRuneRestoresManaAtTheCostOfLife(t *testing.T) {
 	const runeID, otherID int32 = 992004, 992005
 	sim, drinker := newConsumableSim(t, manaUser(), &proto.ConsumesSpec{ConjuredId: otherID, ConjuredItems: []int32{runeID, otherID}}, 0,
@@ -216,6 +219,8 @@ func TestConjuredRuneRestoresManaAtTheCostOfLife(t *testing.T) {
 	}
 
 	gain, damage := spelldata.MustFind(16666).ProcEnergizeEffect(), spelldata.MustFind(16666).CasterDamageEffect()
+	needAmount(t, "16666's mana", gain.Max())
+	needAmount(t, "16666's damage to the user", damage.Max())
 	health := drinker.CurrentHealth()
 	rune.Cast(sim, &drinker.Unit)
 	if got := drinker.CurrentMana() - 100; got < gain.Min() || got > gain.Max() {
@@ -250,10 +255,13 @@ func TestConjuredRuneAlwaysHitsTheUser(t *testing.T) {
 	}
 }
 
-// Thistle Tea 7676 casts 9512, E_ENERGIZE into energy with no spread, on a 300 s cooldown of its own
-// and conjured category 1153 for 120 s.
+// Thistle Tea 7676 casts 9512, E_ENERGIZE into energy, here a copy with no spread. The test's on-use
+// runs on a 300 s cooldown of its own and conjured category 1153 for 120 s.
 func TestConjuredTeaRestoresAFlatAmountOfEnergy(t *testing.T) {
 	const teaID int32 = 992006
+	withoutSpread(t, 9512)
+	gain := spelldata.MustFind(9512).ProcEnergizeEffect().Average()
+	needAmount(t, "9512's energy", gain)
 	sim, drinker := newConsumableSim(t, energyUser(), &proto.ConsumesSpec{ConjuredId: teaID, ConjuredItems: []int32{teaID}}, 0,
 		testConsumable{teaID, conjured, testOnUse(9512, 300000, 1153, 120000)})
 	tea := consumableSpell(t, drinker, teaID)
@@ -264,7 +272,7 @@ func TestConjuredTeaRestoresAFlatAmountOfEnergy(t *testing.T) {
 		t.Errorf("the tea is not a DPS cooldown used on an empty bar: %v", mcd.Type)
 	}
 	tea.Cast(sim, &drinker.Unit)
-	if got, want := drinker.CurrentEnergy(), min(spelldata.MustFind(9512).ProcEnergizeEffect().Average(), drinker.MaximumEnergy()); got != want {
+	if got, want := drinker.CurrentEnergy(), min(gain, drinker.MaximumEnergy()); got != want {
 		t.Errorf("energy after the tea is %v, want %v", got, want)
 	}
 	if got := tea.CD.ReadyAt(); got != sim.CurrentTime+300*time.Second {
@@ -281,6 +289,9 @@ func TestConjuredRootHealsAndRestoresManaOverTime(t *testing.T) {
 	root := consumableSpell(t, drinker, rootID)
 	row := spelldata.MustFind(21955)
 	overTime := func(e *spelldata.Effect) (float64, int) {
+		if e.Period() <= 0 || row.Duration() < e.Period() || e.Average() == 0 {
+			t.Fatalf("21955 ticks %v every %v for %v, nothing to check", e.Average(), e.Period(), row.Duration())
+		}
 		return e.Average(), int(row.Duration() / e.Period())
 	}
 	healPer, healTicks := overTime(row.FirstAura(dbcenums.A_PERIODIC_HEAL))
@@ -312,10 +323,12 @@ func TestPotionRestoresAShareOfTheBar(t *testing.T) {
 	}
 }
 
-// Minor Spellblasting Potion 250932's item row states cooldown -1, category 0 and category cooldown
-// -1; its spell 1251919 states potion category 4 and the cooldown it runs on.
+// A test potion whose on-use states cooldown -1, category 0 and category cooldown -1, as Minor
+// Spellblasting Potion 250932's does, runs on its spell's category: a copy of 1251919 states potion
+// category 4 for 120 s.
 func TestPotionDefersToItsSpellsCategory(t *testing.T) {
 	const blastingID, manaID int32 = 992009, 992010
+	editRow(t, 1251919, func(s *spelldata.Spell) { s.Category, s.CategoryCooldownMs = 4, 120000 })
 	sim, drinker := newConsumableSim(t, manaUser(), &proto.ConsumesSpec{Potions: []int32{blastingID, manaID}}, 0,
 		testConsumable{blastingID, potion, testOnUse(1251919, -1, 0, -1)},
 		testConsumable{manaID, potion, testOnUse(17531, 0, 4, 120000)})
@@ -338,7 +351,10 @@ func TestPotionDefersToItsSpellsCategory(t *testing.T) {
 // Alchemists' Stone 13503's 17619 raises the healing and mana potions give by its effect's share:
 // Major Healing Potion 13446's 17534 and Major Mana Potion's 17531, not a healthstone's heal.
 func TestAlchemistsStoneRaisesHealingAndManaPotions(t *testing.T) {
-	stone := spelldata.MustFind(alchemistsStoneSpellID).EffectN(1).Percent()
+	stone := spelldata.MustFind(alchemistsStoneSpellID).FirstAura(dbcenums.A_DUMMY).BasePoints / 100
+	if stone <= 0 {
+		t.Fatalf("17619 states %v, want a share that raises potions", stone)
+	}
 
 	gains := func(trinket int32, heal, mana, healthstone int32) (float64, float64, float64) {
 		sim, drinker := newConsumableSim(t, manaUser(), &proto.ConsumesSpec{Potions: []int32{heal, mana}, ConjuredItems: []int32{healthstone}}, trinket,
@@ -368,15 +384,17 @@ func TestAlchemistsStoneRaisesHealingAndManaPotions(t *testing.T) {
 	}
 }
 
-// Greater Fire Protection Potion 13457 casts 17543: A_SCHOOL_ABSORB with Misc 4 (Fire) and a spread on
-// the drinker for the row's duration, on potion category 4 for 120 s. The combat potion is a survival
-// major cooldown whose shield takes fire damage only; Alchemists' Stone does not raise it.
+// Greater Fire Protection Potion 13457 casts 17543: A_SCHOOL_ABSORB of Fire on the drinker for the
+// row's duration, its spread removed in a copy; the test's on-use runs on potion category 4 for 120 s.
+// The combat potion is a survival major cooldown whose shield takes fire damage only; Alchemists'
+// Stone does not raise it.
 func TestProtectionPotionShieldsAgainstItsSchool(t *testing.T) {
 	const potionID int32 = 992021
 	const fireProtection int32 = 17543
 	withoutSpread(t, fireProtection)
 	row := spelldata.MustFind(fireProtection)
 	absorbed := row.AbsorbEffect().Average()
+	needAmount(t, "17543's shield", absorbed)
 	sim, drinker := newConsumableSim(t, manaUser(), &proto.ConsumesSpec{PotId: potionID}, alchemistsStoneID,
 		testConsumable{potionID, potion, testOnUse(fireProtection, 0, 4, 120000)})
 	potion := consumableSpell(t, drinker, potionID)
@@ -401,9 +419,9 @@ func TestProtectionPotionShieldsAgainstItsSchool(t *testing.T) {
 	}
 }
 
-// Flame Deflector 4376 casts 4057, A_SCHOOL_ABSORB Fire, on the item's own 900 s cooldown with no
-// category. Outside the potion and conjured categories it is a major cooldown whenever the spec names
-// it.
+// Flame Deflector 4376 casts 4057, A_SCHOOL_ABSORB Fire; the test's on-use runs on a 900 s cooldown
+// of its own with no category. Outside the potion and conjured categories it is a major cooldown
+// whenever the spec names it.
 func TestOnUseConsumableShieldsOnTheItemsCooldown(t *testing.T) {
 	const deflectorID int32 = 992022
 	sim, user := newConsumableSim(t, manaUser(), &proto.ConsumesSpec{ExtraIds: []int32{deflectorID}}, 0,
@@ -423,6 +441,7 @@ func TestOnUseConsumableShieldsOnTheItemsCooldown(t *testing.T) {
 
 	deflector.Cast(sim, &user.Unit)
 	absorb := spelldata.MustFind(4057).AbsorbEffect()
+	needAmount(t, "4057's shield", absorb.Min())
 	hit := absorb.Max() + 300
 	if got, low, high := takenAfterAbsorbs(sim, user, core.SpellSchoolFire, hit), hit-absorb.Max(), hit-absorb.Min(); got < low || got > high {
 		t.Errorf("a fire hit of %v landed for %v, want %v to %v past the shield", hit, got, low, high)

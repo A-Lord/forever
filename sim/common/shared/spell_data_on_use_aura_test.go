@@ -13,25 +13,25 @@ import (
 )
 
 const (
-	// Eye of Diminution 23001's on-use: 28862, A_MOD_THREAT -35% misc 127 on the wearer for 20 s.
+	// Eye of Diminution 23001's on-use: 28862, A_MOD_THREAT on the wearer.
 	eyeOfDiminution int32 = 28862
 
-	// Fetish of Chitinous Spikes 21488's on-use: 26168, A_DAMAGE_SHIELD 25 Nature on the wearer for 30 s.
+	// Fetish of Chitinous Spikes 21488's on-use: 26168, A_DAMAGE_SHIELD of Nature on the wearer.
 	chitinousSpikes int32 = 26168
 
-	// Essence of the Pure Flame 18815's equip spell: 23266, A_DAMAGE_SHIELD 13 Fire on the wearer.
+	// Essence of the Pure Flame 18815's equip spell: 23266, A_DAMAGE_SHIELD of Fire on the wearer.
 	fieryAura int32 = 23266
 
-	// Cold Basilisk Eye 5079's on-use: 1139, A_MOD_DECREASE_SPEED -40% and A_MOD_MELEE_RANGED_HASTE_2 -20%
-	// on the enemy for 15 s.
+	// Cold Basilisk Eye 5079's on-use: 1139, A_MOD_DECREASE_SPEED and A_MOD_MELEE_RANGED_HASTE_2 on the
+	// enemy.
 	coldEye int32 = 1139
 
-	// Weakness Analyzer 272438's on-use: 1291101, A_MOD_CRIT_PCT +5 on the wearer for 20 s, ProcCharges 1
-	// spent by a non-periodic crit.
+	// Weakness Analyzer 272438's on-use: 1291101, A_MOD_CRIT_PCT on the wearer, with a charge spent by a
+	// non-periodic crit.
 	analyzingWeaknesses int32 = 1291101
 
-	// Adaptive Combat Assistant 272437's on-use: 1291097, A_SCHOOL_ABSORB 450 of every school for 15 s,
-	// which deals 1291099's 90-110 Nature to the enemies in melee range when it breaks early.
+	// Adaptive Combat Assistant 272437's on-use: 1291097, A_SCHOOL_ABSORB of every school, which deals
+	// 1291099's Nature to the enemies in melee range when it breaks early.
 	damageSigmoid  int32 = 1291097
 	sigmoidRevenge int32 = 1291099
 )
@@ -41,6 +41,7 @@ const (
 // the wearer's threat for the row's duration.
 func TestOnUseThreatReductionIsNeverUsedOnItsOwn(t *testing.T) {
 	row := spelldata.MustFind(eyeOfDiminution)
+	needAmount(t, "28862's threat", row.FirstAura(dbcenums.A_MOD_THREAT).Mean())
 	threat := 1 + row.FirstAura(dbcenums.A_MOD_THREAT).Mean()/100
 	const itemID int32 = 992701
 	withAuraItem(itemID, proto.ItemType_ItemTypeTrinket, testOnUse(eyeOfDiminution, 120000, 0, 0))
@@ -98,6 +99,7 @@ func TestEquipDamageShieldDealsItsAmountBackToAMeleeAttacker(t *testing.T) {
 	NewSpellDataEquipAura(SpellDataProc{TriggerSpellID: fieryAura},
 		[]ItemVariant{{ItemID: itemID, ItemName: "Test Essence of the Pure Flame"}})
 	each := spelldata.MustFind(fieryAura).FirstAura(dbcenums.A_DAMAGE_SHIELD).Average()
+	needAmount(t, "23266's damage", each)
 
 	sim, wearer, attacker := newShieldSim(map[proto.ItemSlot]int32{proto.ItemSlot_ItemSlotTrinket1: itemID})
 
@@ -120,6 +122,7 @@ func TestOnUseDamageShieldLastsTheRowsDuration(t *testing.T) {
 	NewSpellDataAuraOnUse(itemID)
 	row := spelldata.MustFind(chitinousSpikes)
 	each := row.FirstAura(dbcenums.A_DAMAGE_SHIELD).Average()
+	needAmount(t, "26168's damage", each)
 
 	sim, wearer, attacker := newShieldSim(map[proto.ItemSlot]int32{proto.ItemSlot_ItemSlotTrinket1: itemID})
 	fetish := wearer.GetSpell(core.ActionID{ItemID: itemID})
@@ -153,6 +156,7 @@ func TestColdBasiliskEyeSlowsTheEnemysAttacks(t *testing.T) {
 	withAuraItem(itemID, proto.ItemType_ItemTypeTrinket, testOnUse(coldEye, 420000, 0, 0))
 	NewSpellDataAuraOnUse(itemID)
 	row := spelldata.MustFind(coldEye)
+	needAmount(t, "1139's attack slow", row.FirstAura(dbcenums.A_MOD_MELEE_RANGED_HASTE_2).Mean())
 	slowed := 1 / (1 + math.Abs(row.FirstAura(dbcenums.A_MOD_MELEE_RANGED_HASTE_2).Mean())/100)
 
 	sim := newAuraSim(shaman("Shaman", map[proto.ItemSlot]int32{proto.ItemSlot_ItemSlotTrinket1: itemID}))
@@ -192,6 +196,7 @@ func TestWeaknessAnalyzerDropsOnTheFirstCrit(t *testing.T) {
 	}
 	crit := tester.GetStat(stats.PhysicalCritPercent)
 	bonus := spelldata.MustFind(analyzingWeaknesses).FirstAura(dbcenums.A_MOD_CRIT_PCT).Mean()
+	needAmount(t, "1291101's crit", bonus)
 
 	analyzer.Cast(sim, target)
 	if got := tester.GetStat(stats.PhysicalCritPercent); !core.WithinToleranceFloat64(crit+bonus, got, 1e-6) {
@@ -218,6 +223,8 @@ func TestAdaptiveCombatAssistantDealsDamageWhenItsShieldBreaks(t *testing.T) {
 	row := spelldata.MustFind(damageSigmoid)
 	shield := row.AbsorbEffect()
 	strike := spelldata.MustFind(sigmoidRevenge).DamageEffect()
+	needAmount(t, "1291097's shield", shield.Min())
+	needAmount(t, "1291099's damage", strike.Min())
 	sim, caster := newOnUseSim(t, NewSpellDataAbsorbOnUse,
 		map[int32]*proto.ItemEffect{itemID: testOnUse(damageSigmoid, 90000, 1141, 15000)})
 	assistant := onUseSpell(t, caster, itemID)

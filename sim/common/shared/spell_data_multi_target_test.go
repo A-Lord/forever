@@ -41,7 +41,7 @@ func sum(values []float64) float64 {
 	return total
 }
 
-// Fiery Blaze 6297 hits TARGET_UNIT_DEST_AREA_ENEMY, every enemy within 3 yards, and the sim counts
+// Fiery Blaze 6297 hits TARGET_UNIT_DEST_AREA_ENEMY, every enemy within its radius, and the sim counts
 // every enemy of the encounter as within it. Each target rolls its own damage.
 func TestAreaDamageHitsEveryTarget(t *testing.T) {
 	effect := spelldata.MustFind(6297).DamageEffect()
@@ -75,14 +75,13 @@ func TestSplitDamageDividesOneRollAmongTheTargets(t *testing.T) {
 
 // Prototype Pathcarver 1295270 splits its damage "between up to $s3 nearby enemies", its MaxTargets,
 // and does not roll. One target fewer than the cap share it among themselves; one more than the cap
-// share it as many ways as the cap and the last takes none.
+// share it as many ways as the cap and the last takes none. A copy fixes the cap at 5.
 func TestSplitDamageStopsAtTheRowsMaxTargets(t *testing.T) {
+	editRow(t, 1295270, func(s *spelldata.Spell) { s.MaxTargets = 5 })
 	row := spelldata.MustFind(1295270)
 	amount := row.DamageEffect().Average()
+	needAmount(t, "1295270's damage", amount)
 	maxTargets := int(row.MaxTargets)
-	if maxTargets < 2 {
-		t.Skipf("1295270 caps its split at %d targets, too few to fall short of", maxTargets)
-	}
 
 	for _, tc := range []struct {
 		itemID       int32
@@ -119,12 +118,17 @@ func TestSingleTargetDamageHitsOnlyItsTarget(t *testing.T) {
 }
 
 // Chain Lightning 21179 jumps to its chain targets, each keeping the row's share of the damage the one
-// before it took, and a target past the chain takes none. A copy without its variance makes the jumps
-// exact.
+// before it took, and a target past the chain takes none. A copy without its variance and with three
+// chain targets makes the jumps exact.
 func TestChainDamageJumpsToItsChainTargets(t *testing.T) {
-	editRow(t, 21179, func(s *spelldata.Spell) { s.Effects[0].Variance = 0 })
+	editRow(t, 21179, func(s *spelldata.Spell) {
+		s.Effects[0].Variance = 0
+		s.Effects[0].ChainTargets = 3
+	})
 	effect := spelldata.MustFind(21179).DamageEffect()
 	amount, keep, jumps := effect.Average(), float64(effect.ChainAmp), int(effect.ChainTargets)
+	needAmount(t, "21179's damage", amount)
+	needAmount(t, "21179's chain amplitude", keep)
 
 	dealt := dealtPerTarget(t, 991111, 21179, jumps+1)
 	for i := range dealt {

@@ -15,8 +15,8 @@ import (
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-// Brilliant Wizard Oil 20749, enchant 2628: equip spell 25113's 36 healing, 36 spell damage and 1%
-// spell crit, once for each hand carrying it.
+// A test oil shaped like Brilliant Wizard Oil 20749, enchant 2628, carrying 36 healing, 36 spell
+// damage and 1% spell crit: its stats apply once for each hand carrying it.
 func TestTemporaryEnchantStatsApplyPerEnchantedHand(t *testing.T) {
 	oil := core.Consumable{Id: 20749, Name: "Brilliant Wizard Oil", TemporaryEnchant: &core.Enchant{
 		EffectID:    2628,
@@ -65,6 +65,9 @@ func TestTemporaryEnchantCombatSpellRegistersAWeaponProc(t *testing.T) {
 	}
 	if character.GetSpell(core.ActionID{SpellID: 350026}) == nil {
 		t.Error("the combat spell 350026 was not registered")
+	}
+	if chance := spelldata.MustFind(350026).StatedChance(); chance <= 0 || chance >= 1 {
+		t.Errorf("350026 rolls %v, want the share of a hit the store writes from enchant 25", chance)
 	}
 }
 
@@ -162,14 +165,13 @@ func TestFiredSpellUnsupported(t *testing.T) {
 
 // Each main-hand hit outside the trigger's lockout rolls its chance for the mana the fired spell
 // rolls, a hit inside it or off the other hand restores nothing, and a wearer with no mana bar gets
-// no listener at all.
+// no listener at all. A copy of the trigger fixes the lockout at 3 s.
 func TestManabladeRestoresManaOnTheImbuedHandsHits(t *testing.T) {
 	const imbueID int32 = 991503
+	editRow(t, manabladeProc, func(s *spelldata.Spell) { s.ICDMs = 3000 })
 	trigger := spelldata.MustFind(manabladeProc)
 	lockout, gain := trigger.ICD(), firedSpell(manabladeProc).EnergizeEffect()
-	if lockout <= 20*core.SpellBatchWindow {
-		t.Skipf("1308913's %v lockout is too short for 20 hits inside it", lockout)
-	}
+	needAmount(t, "1306613's mana", gain.Max())
 	sim, mage := newImbuedSim(t, testMage(), imbueID, 8715, manabladeProc)
 	spent := mage.NewManaMetrics(core.ActionID{SpellID: 1})
 
@@ -212,14 +214,22 @@ func TestManabladeRestoresManaOnTheImbuedHandsHits(t *testing.T) {
 // A melee hit the wearer takes rolls the chance that takes the fired spell's reduction off its
 // category's cooldown, the one Fire Blast runs on; the wearer's own hits do not, and neither does a
 // hit inside the trigger's lockout. The category is held for the whole reduction, which a proc makes
-// ready at once.
+// ready at once. Copies of the rows fix the lockout at 4 s and the reduction at 100 s.
 func TestSparkResetsItsCategoryOnHitsTaken(t *testing.T) {
+	editRow(t, sparkProc, func(s *spelldata.Spell) { s.ICDMs = 4000 })
+	editRow(t, firedSpell(sparkProc).ID, func(s *spelldata.Spell) {
+		for i := range s.Effects {
+			if s.Effects[i].Type == dbcenums.E_MODIFY_COOLDOWNS_BY_CATEGORY {
+				s.Effects[i].BasePoints = -100000
+			}
+		}
+	})
 	trigger := spelldata.MustFind(sparkProc)
 	cooldown := firedSpell(sparkProc).CategoryCooldownEffect()
-	lockout, held := trigger.ICD(), -cooldown.TimeValue()
-	if held <= 0 || lockout <= 20*core.SpellBatchWindow {
-		t.Skipf("1306610 takes %v off and 1307644 locks out for %v, which leave nothing to test", held, lockout)
+	if cooldown == spelldata.NilEffect {
+		t.Fatalf("%d fires no category cooldown change", sparkProc)
 	}
+	lockout, held := trigger.ICD(), -cooldown.TimeValue()
 	sim, mage := newImbuedSim(t, testMage(), 991505, 8707, sparkProc)
 	timer := mage.CategoryTimer(cooldown.Misc)
 

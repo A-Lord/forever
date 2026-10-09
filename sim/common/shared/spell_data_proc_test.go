@@ -383,8 +383,8 @@ func testOneHander(id int32) *proto.SimItem {
 	}
 }
 
-// Fiery Blaze 36's shape: a combat enchant on the main hand only, whose enchantment states 15%, the
-// ProcChance the store writes onto its spell's row.
+// Fiery Blaze 36's shape: a combat enchant on the main hand only, whose enchantment states its chance,
+// the ProcChance the store writes onto its spell's row; the test's row states 15.
 func TestStatedEnchantChanceRollsOnTheEnchantedWeaponOnly(t *testing.T) {
 	const mainHandID, offHandID, enchantID int32 = 990401, 990402, 990403
 	core.AddToDatabase(&proto.SimDatabase{

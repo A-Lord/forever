@@ -173,7 +173,9 @@ func TestShieldEnchantBuffDropsWithItsShield(t *testing.T) {
 // Spirit the caster gains while it is up.
 func TestInsightMultipliesSpirit(t *testing.T) {
 	trigger, buff := spelldata.MustFind(1248758), spelldata.MustFind(1299796)
-	multiplier := 1 + buff.FirstAura(dbcenums.A_MOD_TOTAL_STAT_PERCENTAGE).Mean()/100
+	percent := buff.FirstAura(dbcenums.A_MOD_TOTAL_STAT_PERCENTAGE).Mean()
+	needAmount(t, "1299796's Spirit share", percent)
+	multiplier := 1 + percent/100
 	weapon := testOneHander(insightWeaponID)
 	core.AddToDatabase(&proto.SimDatabase{
 		Items: []*proto.SimItem{weapon},

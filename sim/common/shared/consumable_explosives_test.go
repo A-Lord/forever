@@ -16,7 +16,7 @@ const (
 	explosivesCategoryMs int32 = 60000
 )
 
-// Goblin Sapper Charge 10646 as the database states it (13241, its own 5 min cooldown, needs
+// A test consumable under Goblin Sapper Charge's id 10646 (13241, a 5 min cooldown of its own, needs
 // Engineering), which the spec selects by its flag, and test explosives standing in for Ez-Thro
 // Dynamite II 18588 (23000) and Crystal Charge 11566 (15239).
 const (
@@ -121,8 +121,8 @@ func TestSapperDamagesEveryEnemyAndTheThrower(t *testing.T) {
 	}
 }
 
-// Every explosive names category 24: using one puts the others out of reach for its 60 s, and the
-// sapper's own 5 min cooldown runs beside it.
+// Every test explosive names category 24: using one puts the others out of reach for its 60 s, and
+// the test sapper's own 5 min cooldown runs beside it.
 func TestExplosivesShareTheirCategoryCooldown(t *testing.T) {
 	sim, caster := newExplosiveSim(t, &proto.ConsumesSpec{ExplosiveId: testDynamiteID, ExtraIds: []int32{goblinSapperID}}, proto.Profession_Engineering, 1)
 	sapper, dynamite := onUseSpell(t, caster, goblinSapperID), onUseSpell(t, caster, testDynamiteID)

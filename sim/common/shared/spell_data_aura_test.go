@@ -17,31 +17,31 @@ const (
 	auraStrikeID   int32 = 992002
 	auraManaBoltID int32 = 992003
 
-	// Nature Aligned, Natural Alignment Crystal 19344's on-use: +20% spell damage (misc 126), +20%
-	// healing and +20% mana cost (A_MOD_POWER_COST_SCHOOL_PCT, misc 126) on the wearer for 20 s. The
-	// item's own row puts it on a 5 min cooldown in category 1141 for 20 s.
+	// Nature Aligned, Natural Alignment Crystal 19344's on-use: magic spell damage, healing and the mana
+	// cost of magic spells (A_MOD_POWER_COST_SCHOOL_PCT) raised on the wearer. The test's on-use puts
+	// it on a 5 min cooldown in category 1141 for 20 s.
 	natureAligned int32 = 23734
 
-	// Obsidian Mail Tunic 22191's equip spell: A_MOD_DAMAGE_TAKEN -10, misc 126, on the wearer.
+	// Obsidian Mail Tunic 22191's equip spell: A_MOD_DAMAGE_TAKEN of magic schools, on the wearer.
 	spellDamageReduction int32 = 27518
 
-	// Beastmaster's Boots 22061 and Treads 226881: 27206 casts 27205, A_MOD_DAMAGE_PERCENT_DONE +3%
-	// misc 127 on the pet for 4 s, every 3 s. Beastmaster's Tunic 22060 and 226886: 27225 casts
-	// 27208, A_MOD_BASE_RESISTANCE_PCT +10% misc 1 on the pet, the same way. Beastmaster's Cap 22013:
-	// 27038 casts 27039, A_MOD_INCREASE_HEALTH_PERCENT +3%, and Beastmaster's Gloves 22015: 27043
-	// casts 27042, A_MOD_WEAPON_CRIT_PERCENT +2, both on the pet the same way.
+	// Beastmaster's Boots 22061 and Treads 226881: 27206 periodically casts 27205,
+	// A_MOD_DAMAGE_PERCENT_DONE on the pet. Beastmaster's Tunic 22060 and 226886: 27225 casts 27208,
+	// A_MOD_BASE_RESISTANCE_PCT of armor on the pet, the same way. Beastmaster's Cap 22013: 27038 casts
+	// 27039, A_MOD_INCREASE_HEALTH_PERCENT, and Beastmaster's Gloves 22015: 27043 casts 27042,
+	// A_MOD_WEAPON_CRIT_PERCENT, both on the pet the same way.
 	increasedPetDamage int32 = 27206
 	increasedPetArmor  int32 = 27225
 	increasedPetHealth int32 = 27038
 	increasedPetCrit   int32 = 27043
 
-	// Nightfall 19169's chance on hit: 23605, A_MOD_DAMAGE_PERCENT_TAKEN +15% misc 126 on the target
-	// for 5 s. The row states no chance, so the tests hand the proc one.
+	// Nightfall 19169's chance on hit: 23605, A_MOD_DAMAGE_PERCENT_TAKEN of magic schools on the
+	// target. The tests hand the proc a chance of their own.
 	spellVulnerability int32 = 23605
 
-	// Sword of Zeal 6622's chance on hit: 8191, +10 physical damage done (A_MOD_DAMAGE_DONE misc 1) and
-	// +150 armor (A_MOD_RESISTANCE misc 1) for 15 s, which the item effect carries as its stats. The row
-	// states no chance either.
+	// Sword of Zeal 6622's chance on hit: 8191, physical damage done (A_MOD_DAMAGE_DONE) and armor
+	// (A_MOD_RESISTANCE), which the test's item effect carries as 10 and 150. The tests hand the proc a
+	// chance of their own.
 	zeal int32 = 8191
 
 	petClawID int32 = 992004
@@ -209,8 +209,11 @@ func dealt(sim *core.Simulation, spell *core.Spell, target *core.Unit) float64 {
 	return spell.SpellMetrics[target.UnitIndex].TotalDamage - before
 }
 
-// The multiplier an aura stating a percentage applies.
-func percentMultiplier(e *spelldata.Effect) float64 {
+// The multiplier an aura stating a percentage applies. A percentage of 0 leaves the test nothing to
+// check, and fails it.
+func percentMultiplier(t *testing.T, e *spelldata.Effect) float64 {
+	t.Helper()
+	needAmount(t, "the aura's percentage", e.Mean())
 	return 1 + e.Mean()/100
 }
 
@@ -221,9 +224,9 @@ func TestNaturalAlignmentCrystal(t *testing.T) {
 	withAuraItem(itemID, proto.ItemType_ItemTypeTrinket, testOnUse(natureAligned, 300000, 1141, 20000))
 	NewSpellDataAuraOnUse(itemID)
 	row := spelldata.MustFind(natureAligned)
-	damage := percentMultiplier(row.FirstAura(dbcenums.A_MOD_DAMAGE_PERCENT_DONE))
-	healing := percentMultiplier(row.FirstAura(dbcenums.A_MOD_HEALING_DONE_PERCENT))
-	cost := percentMultiplier(row.FirstAura(dbcenums.A_MOD_POWER_COST_SCHOOL_PCT))
+	damage := percentMultiplier(t, row.FirstAura(dbcenums.A_MOD_DAMAGE_PERCENT_DONE))
+	healing := percentMultiplier(t, row.FirstAura(dbcenums.A_MOD_HEALING_DONE_PERCENT))
+	cost := percentMultiplier(t, row.FirstAura(dbcenums.A_MOD_POWER_COST_SCHOOL_PCT))
 
 	sim := newAuraSim(shaman("Shaman", map[proto.ItemSlot]int32{proto.ItemSlot_ItemSlotTrinket1: itemID}))
 	tester := auraTesterAt(sim, 0)
@@ -270,8 +273,11 @@ func hunter(name string, slotted map[proto.ItemSlot]int32) *proto.Player {
 }
 
 // The bolt of auraTester, 100, once the wearer of 27518 has taken its row's amount off it.
-func reducedBolt() float64 {
-	return 100 + spelldata.MustFind(spellDamageReduction).FirstAura(dbcenums.A_MOD_DAMAGE_TAKEN).Mean()
+func reducedBolt(t *testing.T) float64 {
+	t.Helper()
+	reduction := spelldata.MustFind(spellDamageReduction).FirstAura(dbcenums.A_MOD_DAMAGE_TAKEN).Mean()
+	needAmount(t, "27518's reduction", reduction)
+	return 100 + reduction
 }
 
 // Obsidian Mail Tunic takes its row's amount off every magic hit its wearer takes, and nothing off a
@@ -288,7 +294,7 @@ func TestObsidianMailTunicReducesAMagicHit(t *testing.T) {
 	)
 	wearer, attacker := auraTesterAt(sim, 0), auraTesterAt(sim, 1)
 
-	if got, want := dealt(sim, attacker.bolt, &wearer.Unit), reducedBolt(); !core.WithinToleranceFloat64(want, got, 1e-6) {
+	if got, want := dealt(sim, attacker.bolt, &wearer.Unit), reducedBolt(t); !core.WithinToleranceFloat64(want, got, 1e-6) {
 		t.Errorf("an arcane bolt on the wearer dealt %v, want %v", got, want)
 	}
 	if got := dealt(sim, attacker.strike, &wearer.Unit); !core.WithinToleranceFloat64(100, got, 1e-6) {
@@ -313,7 +319,7 @@ func TestEquipAuraAppliesOnlyInItsArea(t *testing.T) {
 		want  float64
 	}{
 		{nil, 100},
-		{[]proto.AreaType{proto.AreaType_AreaTypeForestGrassland}, reducedBolt()},
+		{[]proto.AreaType{proto.AreaType_AreaTypeForestGrassland}, reducedBolt(t)},
 	} {
 		sim := newAuraSimIn(c.areas,
 			shaman("Wearer", map[proto.ItemSlot]int32{proto.ItemSlot_ItemSlotChest: itemID}),
@@ -344,7 +350,7 @@ func TestBeastmastersBootsRaiseThePetsDamage(t *testing.T) {
 	owner, bare, petless := auraTesterAt(sim, 0), auraTesterAt(sim, 1), auraTesterAt(sim, 2)
 
 	petAura := spelldata.MustFind(increasedPetDamage).FirstAura(dbcenums.A_PERIODIC_TRIGGER_SPELL).Trigger()
-	raised := percentMultiplier(petAura.FirstAura(dbcenums.A_MOD_DAMAGE_PERCENT_DONE))
+	raised := percentMultiplier(t, petAura.FirstAura(dbcenums.A_MOD_DAMAGE_PERCENT_DONE))
 	bareClaw := dealt(sim, bare.pet.claw, target)
 	if got := dealt(sim, owner.pet.claw, target); !core.WithinToleranceFloat64(raised*bareClaw, got, 1e-6) {
 		t.Errorf("the pet of the wearer clawed for %v, want %v times the %v of a pet without", got, raised, bareClaw)
@@ -379,8 +385,9 @@ func TestBeastmastersCapAndGlovesRaiseThePetsHealthAndCrit(t *testing.T) {
 	triggered := func(id int32) *spelldata.Spell {
 		return spelldata.MustFind(id).FirstAura(dbcenums.A_PERIODIC_TRIGGER_SPELL).Trigger()
 	}
-	health := percentMultiplier(triggered(increasedPetHealth).FirstAura(dbcenums.A_MOD_INCREASE_HEALTH_PERCENT))
+	health := percentMultiplier(t, triggered(increasedPetHealth).FirstAura(dbcenums.A_MOD_INCREASE_HEALTH_PERCENT))
 	crit := triggered(increasedPetCrit).FirstAura(dbcenums.A_MOD_WEAPON_CRIT_PERCENT).Mean()
+	needAmount(t, "27042's crit", crit)
 	if got, bareHealth := owner.pet.MaxHealth(), bare.pet.MaxHealth(); bareHealth == 0 || !core.WithinToleranceFloat64(health*bareHealth, got, 1e-6) {
 		t.Errorf("the pet of the wearer has %v maximum health, want %v times the %v of a pet without", got, health, bareHealth)
 	}
@@ -418,7 +425,7 @@ func TestNightfallRaisesTheTargetsSpellDamageTaken(t *testing.T) {
 	NewSpellDataAuraProc(SpellDataProc{TriggerSpellID: spellVulnerability, IsWeaponProc: true},
 		[]ItemVariant{{ItemID: itemID, ItemName: "Test Nightfall"}})
 	row := spelldata.MustFind(spellVulnerability)
-	raised := 100 * percentMultiplier(row.FirstAura(dbcenums.A_MOD_DAMAGE_PERCENT_TAKEN))
+	raised := 100 * percentMultiplier(t, row.FirstAura(dbcenums.A_MOD_DAMAGE_PERCENT_TAKEN))
 
 	sim := newAuraSim(
 		shaman("Wielder", map[proto.ItemSlot]int32{proto.ItemSlot_ItemSlotMainHand: itemID}),

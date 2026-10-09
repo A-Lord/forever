@@ -9,8 +9,7 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-// Flurry Axe 871's chance on hit, 18797, grants one extra attack. Its item effect states 1.9 PPM; the
-// tests roll it at 100% instead.
+// Flurry Axe 871's chance on hit, 18797, grants extra attacks. The tests roll it at 100%.
 const flurryAxe int32 = 18797
 
 func withExtraAttackWeapon(t *testing.T, itemID int32) {
@@ -40,6 +39,9 @@ func TestExtraAttackProcSwingsTheMainHandOncePerProc(t *testing.T) {
 	strikeAndStep(t, sim, wielder, target)
 	strikeAndStep(t, sim, wielder, target)
 	want := 2 * int32(spelldata.MustFind(flurryAxe).ExtraAttacksEffect().BasePoints)
+	if want == 0 {
+		t.Fatalf("18797 grants no extra attack, nothing to check")
+	}
 	if got := extraAttack.SpellMetrics[target.UnitIndex].Casts; got != want {
 		t.Errorf("two strikes at 100%% chance granted %d extra attacks, want %d", got, want)
 	}

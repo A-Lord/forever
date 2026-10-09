@@ -53,6 +53,7 @@ func TestWeaponScopedEnchantReachesTheWeaponItNames(t *testing.T) {
 	})
 	registerSpellDataEquipAura(SpellDataProc{Name: "Test Hit Enchant", EnchantID: enchantID, TriggerSpellID: hitWeapon})
 	hit := spelldata.MustFind(hitWeapon).EffectN(1).Mean()
+	needAmount(t, "430391's hit", hit)
 
 	for _, tc := range []struct {
 		name           string

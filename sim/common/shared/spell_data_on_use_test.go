@@ -12,8 +12,8 @@ import (
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-// Infernal Lasso 219345's on-use: ItemEffect 183857 casts 443265, A_PERIODIC_DAMAGE 84 every 2 s for
-// 12 s on the target, on a 5 min cooldown in category 1141 for 12 s.
+// Infernal Lasso 219345's on-use: ItemEffect 183857 casts 443265, A_PERIODIC_DAMAGE on the target. The
+// test's on-use puts it on a 5 min cooldown in category 1141 for 12 s.
 const (
 	lassoSpell    int32 = 443265
 	lassoCategory int32 = 1141
@@ -88,10 +88,22 @@ func dealtUntil(t *testing.T, sim *core.Simulation, spell *core.Spell, start, af
 }
 
 // The amount a row's ticking effect lands each tick before power, how often it ticks, and how many
-// ticks its duration holds.
-func ticksOf(row *spelldata.Spell) (float64, time.Duration, int) {
+// ticks its duration holds. A row that ticks nothing leaves the test nothing to check, and fails it.
+func ticksOf(t *testing.T, row *spelldata.Spell) (float64, time.Duration, int) {
+	t.Helper()
 	e := row.PeriodicEffect()
+	if e.Period() <= 0 || row.Duration() < e.Period() || e.Average() == 0 {
+		t.Fatalf("%d ticks %v every %v for %v, nothing to check", row.ID, e.Average(), e.Period(), row.Duration())
+	}
 	return e.Average(), e.Period(), int(row.Duration() / e.Period())
+}
+
+// Fails the test where a row read gives it no amount to check.
+func needAmount(t *testing.T, what string, amount float64) {
+	t.Helper()
+	if amount == 0 {
+		t.Fatalf("%s reads 0, nothing to check", what)
+	}
 }
 
 // The lasso lands nothing when it is used, then deals its row's amount every period until its
@@ -101,7 +113,7 @@ func TestOnUseDotTicksItsAmountOnTheTarget(t *testing.T) {
 	sim, caster := newOnUseSim(t, NewSpellDataDamageOnUse, map[int32]*proto.ItemEffect{itemID: lassoOnUse()})
 	lasso := onUseSpell(t, caster, itemID)
 	target := sim.Encounter.ActiveTargetUnits[0]
-	per, period, ticks := ticksOf(spelldata.MustFind(lassoSpell))
+	per, period, ticks := ticksOf(t, spelldata.MustFind(lassoSpell))
 
 	if !lasso.Cast(sim, target) {
 		t.Fatalf("the lasso could not be used")
@@ -140,7 +152,7 @@ func TestOnUseDotTicksOnTheSpellPowerOfTheTick(t *testing.T) {
 	sim, caster := newOnUseSim(t, NewSpellDataDamageOnUse, map[int32]*proto.ItemEffect{itemID: lassoOnUse()})
 	caster.AddStatsDynamic(sim, stats.Stats{stats.SpellDamage: -caster.GetStat(stats.SpellDamage)})
 	lasso := onUseSpell(t, caster, itemID)
-	per, period, _ := ticksOf(spelldata.MustFind(lassoSpell))
+	per, period, _ := ticksOf(t, spelldata.MustFind(lassoSpell))
 
 	lasso.Cast(sim, sim.Encounter.ActiveTargetUnits[0])
 	start := sim.CurrentTime
@@ -154,8 +166,8 @@ func TestOnUseDotTicksOnTheSpellPowerOfTheTick(t *testing.T) {
 	}
 }
 
-// The lasso's own 5 min cooldown, and its category's 12 s that a second item in category 1141 waits
-// out as well.
+// The test lasso's own 5 min cooldown, and its category's 12 s that a second item in category 1141
+// waits out as well.
 func TestOnUseRunsOnTheItemsCooldownAndCategory(t *testing.T) {
 	const lassoID, otherID int32 = 991003, 991004
 	sim, caster := newOnUseSim(t, NewSpellDataDamageOnUse, map[int32]*proto.ItemEffect{
@@ -193,7 +205,7 @@ func offCooldown(sim *core.Simulation, spell *core.Spell) bool {
 	return core.BothTimersReady(spell.CD.Timer, spell.SharedCD.Timer, sim)
 }
 
-// Gem-studded Leather Belt 4262's on-use, 9163, heals the wearer for 300 with a 0.5 spread.
+// Gem-studded Leather Belt 4262's on-use, 9163, heals the wearer for an amount rolled over a spread.
 func TestOnUseHealsTheWearer(t *testing.T) {
 	const itemID int32 = 991005
 	const heal int32 = 9163
@@ -222,7 +234,7 @@ func TestOnUseHotHealsTheWearerOverTime(t *testing.T) {
 	const itemID int32 = 991006
 	sim, caster := newOnUseSim(t, NewSpellDataHealOnUse, map[int32]*proto.ItemEffect{itemID: testOnUse(20631, 1200000, 0, 0)})
 	spell := onUseSpell(t, caster, itemID)
-	per, period, ticks := ticksOf(spelldata.MustFind(20631))
+	per, period, ticks := ticksOf(t, spelldata.MustFind(20631))
 
 	spell.Cast(sim, &caster.Unit)
 	start := sim.CurrentTime
@@ -254,7 +266,7 @@ func TestOnUseDealsItsDirectDamageAndItsDamageOverTime(t *testing.T) {
 	if got, low, high := spell.SpellMetrics[target.UnitIndex].TotalDamage, direct.Min(), direct.Max(); got < low || got > high {
 		t.Errorf("the direct damage was %v, want %v to %v", got, low, high)
 	}
-	per, period, ticks := ticksOf(spelldata.MustFind(fireball))
+	per, period, ticks := ticksOf(t, spelldata.MustFind(fireball))
 	if got, want := dealtUntil(t, sim, spell, start, time.Duration(ticks)*period), per*float64(ticks); math.Abs(got-want) > 1e-6 {
 		t.Errorf("the damage over time dealt %v over its %d ticks, want %d ticks of %v", got, ticks, ticks, per)
 	}
@@ -270,7 +282,7 @@ func TestOnUseDotRollsItsHitOnceWhenApplied(t *testing.T) {
 	target := sim.Encounter.ActiveTargetUnits[0]
 	caster.AttackTables[target.UnitIndex].BaseSpellMissChance = 0.5
 	metrics := &lasso.SpellMetrics[target.UnitIndex]
-	_, period, rowTicks := ticksOf(spelldata.MustFind(lassoSpell))
+	_, period, rowTicks := ticksOf(t, spelldata.MustFind(lassoSpell))
 
 	missedUses, landedUses := 0, 0
 	for use := 1; use <= 14; use++ {
@@ -313,7 +325,7 @@ func TestOnUseDotTicksCritWithoutAHitRoll(t *testing.T) {
 	caster.AddStatsDynamic(sim, stats.Stats{stats.SpellCritPercent: 100})
 	lasso := onUseSpell(t, caster, itemID)
 	target := sim.Encounter.ActiveTargetUnits[0]
-	_, period, ticks := ticksOf(spelldata.MustFind(lassoSpell))
+	_, period, ticks := ticksOf(t, spelldata.MustFind(lassoSpell))
 
 	lasso.Cast(sim, target)
 	caster.AttackTables[target.UnitIndex].BaseSpellMissChance = 1
@@ -326,15 +338,14 @@ func TestOnUseDotTicksCritWithoutAHitRoll(t *testing.T) {
 	}
 }
 
-// Linken's Boomerang 11905's on-use, 15712, thrown from 8 to 30 yards, states a cast time and no
-// global cooldown: it lands when the cast completes. The lasso's 443265 states neither and lands at once.
+// A copy of Linken's Boomerang 11905's on-use, 15712, thrown from 20 yards, states a cast time
+// and no global cooldown: it lands when the cast completes. A copy of the lasso's 443265 states
+// neither and lands at once.
 func TestOnUseCastsForTheCastTimeItsRowStates(t *testing.T) {
 	const boomerangID, lassoID int32 = 991018, 991019
+	editRow(t, 15712, func(s *spelldata.Spell) { s.CastTimeMs, s.GCDMs = 500, 0 })
+	editRow(t, lassoSpell, func(s *spelldata.Spell) { s.CastTimeMs, s.GCDMs = 0, 0 })
 	cast := spelldata.MustFind(15712).CastTime()
-	if cast == 0 || spelldata.MustFind(lassoSpell).CastTime() != 0 {
-		t.Skipf("the test needs 15712 to state a cast time and 443265 none; they state %v and %v",
-			cast, spelldata.MustFind(lassoSpell).CastTime())
-	}
 	sim, caster := newOnUseSim(t, NewSpellDataDamageOnUse, map[int32]*proto.ItemEffect{
 		boomerangID: testOnUse(15712, 180000, 0, 0),
 		lassoID:     lassoOnUse(),
@@ -362,9 +373,10 @@ func TestOnUseCastsForTheCastTimeItsRowStates(t *testing.T) {
 	}
 }
 
-// The heal of 9163 states a global cooldown, in the global cooldown's category 133.
+// A copy of the heal of 9163 stating a 1.5 s global cooldown spends it on use.
 func TestOnUseSpendsTheGlobalCooldownItsRowStates(t *testing.T) {
 	const itemID int32 = 991020
+	editRow(t, 9163, func(s *spelldata.Spell) { s.GCDMs = 1500 })
 	sim, caster := newOnUseSim(t, NewSpellDataHealOnUse, map[int32]*proto.ItemEffect{itemID: testOnUse(9163, 300000, 0, 0)})
 
 	start := sim.CurrentTime
@@ -403,7 +415,7 @@ func TestOnUseDotTicksReachTheDamageDealtListeners(t *testing.T) {
 	neck, heard := listeningNeck(neckID, core.CallbackOnPeriodicDamageDealt, 0)
 	sim, caster := newOnUseSimWearing(t, NewSpellDataDamageOnUse, map[int32]*proto.ItemEffect{itemID: lassoOnUse()}, neck)
 	lasso := onUseSpell(t, caster, itemID)
-	_, period, ticks := ticksOf(spelldata.MustFind(lassoSpell))
+	_, period, ticks := ticksOf(t, spelldata.MustFind(lassoSpell))
 
 	lasso.Cast(sim, sim.Encounter.ActiveTargetUnits[0])
 	dealtUntil(t, sim, lasso, sim.CurrentTime, time.Duration(ticks)*period)

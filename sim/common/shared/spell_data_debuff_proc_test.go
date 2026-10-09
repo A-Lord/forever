@@ -21,8 +21,11 @@ const (
 	speedTolerance               = 1e-9
 )
 
-// The speed a slow effect leaves its target at: -25 makes each attack or cast take 25% longer.
-func slowedSpeed(e *spelldata.Effect) float64 {
+// The speed a slow effect leaves its target at: a negative percent makes each attack or cast take that
+// much longer. A slow of 0 leaves the test nothing to check, and fails it.
+func slowedSpeed(t *testing.T, e *spelldata.Effect) float64 {
+	t.Helper()
+	needAmount(t, "the slow", e.Average())
 	return 1 / (1 - e.Average()/100)
 }
 
@@ -97,7 +100,7 @@ func expectSpeeds(t *testing.T, when string, target *core.Unit, melee float64, c
 func TestFrostguardSlowsTheTargetsMeleeAttacks(t *testing.T) {
 	editRow(t, frostguardChilled, alwaysProcs)
 	row := spelldata.MustFind(frostguardChilled)
-	slowed, duration := slowedSpeed(row.FirstAura(dbcenums.A_MOD_MELEE_HASTE_3)), row.Duration()
+	slowed, duration := slowedSpeed(t, row.FirstAura(dbcenums.A_MOD_MELEE_HASTE_3)), row.Duration()
 	sim, caster, target := newSlowProcSim(t, 991400, registerSpellDataDebuffProc, frostguardChilled, nil)
 	expectSpeeds(t, "before the proc", target, 1, 1)
 
@@ -123,8 +126,8 @@ func TestFrostguardSlowsTheTargetsMeleeAttacks(t *testing.T) {
 func TestFrostguardsSlowSharesThunderClapsSlot(t *testing.T) {
 	editRow(t, frostguardChilled, alwaysProcs)
 	row := spelldata.MustFind(frostguardChilled)
-	frostguard := slowedSpeed(row.FirstAura(dbcenums.A_MOD_MELEE_HASTE_3))
-	thunderClap := slowedSpeed(spelldata.MustFind(11581).FirstAura(dbcenums.A_MOD_MELEE_HASTE_3))
+	frostguard := slowedSpeed(t, row.FirstAura(dbcenums.A_MOD_MELEE_HASTE_3))
+	thunderClap := slowedSpeed(t, spelldata.MustFind(11581).FirstAura(dbcenums.A_MOD_MELEE_HASTE_3))
 	neck := permanentSlowNeck(991402, func(target *core.Unit) *core.Aura { return buffs.NewSpellDataThunderClapAura(target, true, 0) })
 	sim, caster, target := newSlowProcSim(t, 991403, registerSpellDataDebuffProc, frostguardChilled, neck)
 	expectSpeeds(t, "under Thunder Clap", target, thunderClap, 1)
@@ -143,7 +146,7 @@ func TestFrostguardsSlowSharesThunderClapsSlot(t *testing.T) {
 func TestLobotomizerDamagesAndSlowsTheTargetsCasts(t *testing.T) {
 	editRow(t, lobotomizerBrainDamage, alwaysProcs)
 	row := spelldata.MustFind(lobotomizerBrainDamage)
-	slowed, duration := slowedSpeed(row.FirstAura(dbcenums.A_MOD_CASTING_SPEED_NOT_STACK)), row.Duration()
+	slowed, duration := slowedSpeed(t, row.FirstAura(dbcenums.A_MOD_CASTING_SPEED_NOT_STACK)), row.Duration()
 	sim, caster, target := newSlowProcSim(t, 991401, registerSpellDataDamageProc, lobotomizerBrainDamage, nil)
 
 	start := sim.CurrentTime
@@ -166,7 +169,7 @@ func TestLobotomizerDamagesAndSlowsTheTargetsCasts(t *testing.T) {
 // Slow casts at the stronger of the two when Brain Damage lands.
 func TestLobotomizersSlowSharesSlowsSlot(t *testing.T) {
 	editRow(t, lobotomizerBrainDamage, alwaysProcs)
-	brainDamage := slowedSpeed(spelldata.MustFind(lobotomizerBrainDamage).FirstAura(dbcenums.A_MOD_CASTING_SPEED_NOT_STACK))
+	brainDamage := slowedSpeed(t, spelldata.MustFind(lobotomizerBrainDamage).FirstAura(dbcenums.A_MOD_CASTING_SPEED_NOT_STACK))
 	neck := permanentSlowNeck(991404, buffs.SlowAura)
 	sim, caster, target := newSlowProcSim(t, 991405, registerSpellDataDamageProc, lobotomizerBrainDamage, neck)
 	expectSpeeds(t, "under Slow", target, 1, 1/1.5)
@@ -178,20 +181,20 @@ func TestLobotomizersSlowSharesSlowsSlot(t *testing.T) {
 // Annihilator 12798's Armor Shatter 16928 states A_MOD_RESISTANCE on armor, on the enemy, stacking.
 // Each proc takes the row's armor off the target up to its stack count and leaves the wearer's armor
 // untouched; a further proc keeps the full stacks and runs the row's duration from itself; the armor
-// comes back when that runs out. The row's PPM is set aside for a chance of 100%.
+// comes back when that runs out. The row's PPM is set aside for a chance of 100%, and a copy stacks to
+// three.
 func TestAnnihilatorShattersTheTargetsArmor(t *testing.T) {
 	const armorShatter int32 = 16928
 	editRow(t, armorShatter, func(s *spelldata.Spell) {
 		alwaysProcs(s)
 		s.RPPM = 0
+		s.MaxStack = 3
 	})
 	row := spelldata.MustFind(armorShatter)
 	stacks, duration := int(row.MaxStack), row.Duration()
-	if stacks < 1 {
-		t.Skipf("16928 states %d stacks, so it does not stack", stacks)
-	}
 	sim, caster, target := newSlowProcSim(t, 991406, registerSpellDataDebuffProc, armorShatter, nil)
 	perStack := -row.FirstAura(dbcenums.A_MOD_RESISTANCE).MeanAt(target.Level)
+	needAmount(t, "16928's armor", perStack)
 	wearerArmor, targetArmor := caster.GetStat(stats.Armor), target.GetStat(stats.Armor)
 	expectArmor := func(when string, want float64) {
 		t.Helper()
@@ -221,7 +224,7 @@ func TestAnnihilatorShattersTheTargetsArmor(t *testing.T) {
 	expectArmor("past the refreshed duration", targetArmor)
 }
 
-// The raid's Armor Shatter holds its three stacks from the start, and the wielder's own procs land
+// The raid's Armor Shatter holds its full stacks from the start, and the wielder's own procs land
 // Annihilator's copy beside it in the same category: both are on the target, and its armor drops
 // by the stronger of the two once.
 func TestAnnihilatorBidsBesideTheRaidsArmorShatter(t *testing.T) {
@@ -262,6 +265,10 @@ func TestAnnihilatorBidsBesideTheRaidsArmorShatter(t *testing.T) {
 	row := spelldata.MustFind(armorShatter)
 	stacks := int32(row.MaxStack)
 	perStack := -row.FirstAura(dbcenums.A_MOD_RESISTANCE).MeanAt(target.Level)
+	needAmount(t, "16928's armor", perStack)
+	if stacks < 2 {
+		t.Fatalf("16928 stacks to %d, nothing to bid at full stacks", stacks)
+	}
 	raids := target.GetAura("Armor Shatter (External)")
 	if raids == nil || !raids.IsActive() || raids.GetStacks() != stacks {
 		t.Fatalf("the raid's Armor Shatter is %v, want it on the target at %d stacks", raids, stacks)
@@ -316,6 +323,8 @@ func TestEyeOfInfluenceLowersTheTargetsAttackPower(t *testing.T) {
 	row := spelldata.MustFind(debuff)
 	apChange := row.FirstAura(dbcenums.A_MOD_ATTACK_POWER).MeanAt(target.Level)
 	rapChange := row.FirstAura(dbcenums.A_MOD_RANGED_ATTACK_POWER).MeanAt(target.Level)
+	needAmount(t, "1297082's attack power", apChange)
+	needAmount(t, "1297082's ranged attack power", rapChange)
 
 	caster.bolt.Cast(sim, target)
 	if got := target.GetStat(stats.AttackPower); got != ap+apChange {
