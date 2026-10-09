@@ -1,3 +1,3 @@
 export { ConsumesFilters } from './ConsumesFilters';
-export { ConsumesPicker } from './ConsumesPicker';
-export type { ConsumesPickerProps } from './ConsumesPicker';
+export { ConsumesPicker, ImbueRows } from './ConsumesPicker';
+export type { ConsumesPickerProps, ImbueRowsProps } from './ConsumesPicker';

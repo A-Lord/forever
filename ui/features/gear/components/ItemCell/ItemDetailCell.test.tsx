@@ -6,13 +6,27 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { getEmptySlotIconUrl } from '../../model/empty_slot_icons';
 import { SelectorModalTabs } from '../../types';
-import { ItemDetailCellView, type ItemDetailCellViewProps } from './ItemDetailCell';
+import { EquippedItemIcon, ItemDetailCellView, type ItemDetailCellViewProps } from './ItemDetailCell';
 
 const renderCell = (props: Partial<ItemDetailCellViewProps> = {}) =>
 	render(<ItemDetailCellView slot={ItemSlot.ItemSlotMainHand} item={makeEquippedItem()} iconUrl="sword.jpg" href="https://example.com/item" {...props} />);
 
 const icon = () => screen.getByTestId('item-picker-icon');
 const name = () => screen.getByTestId('item-picker-name-container');
+
+describe('EquippedItemIcon', () => {
+	it('draws the framed icon on its own with the item level, named by its label, and opens on a click', () => {
+		const item = makeEquippedItem();
+		const onOpen = vi.fn();
+		render(<EquippedItemIcon slot={ItemSlot.ItemSlotMainHand} item={item} iconUrl="sword.jpg" href="" label="Thunderfury" onOpen={onOpen} />);
+
+		expect(screen.getByTestId('item-picker-icon-wrapper').contains(icon())).toBe(true);
+		expect(screen.getByTestId('item-picker-ilvl').textContent).toBe(item.ilvl.toString());
+		expect(icon().getAttribute('aria-label')).toBe('Thunderfury');
+		fireEvent.click(icon());
+		expect(onOpen).toHaveBeenCalledOnce();
+	});
+});
 
 describe('ItemDetailCellView', () => {
 	it('shows the item level, name, icon and link of the equipped item', () => {

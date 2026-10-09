@@ -3,7 +3,7 @@ import { translateProtoStatName, translateSlotName } from '@i18n/localization';
 import { useActionId } from '@sim/hooks/useActionId';
 import type { WowheadDatasetProps } from '@sim/hooks/useWowheadDataset';
 import type { EquippedItem } from '@sim/proto/equipped_item';
-import { ItemCell, type ItemCellProps } from '@ui-kit/ItemCell';
+import { ItemCell, ItemCellIcon, type ItemCellProps } from '@ui-kit/ItemCell';
 import { itemQualityClassName } from '@ui-kit/utils/css';
 import { WowheadAnchor } from '@ui-kit/WowheadAnchor';
 import type { ClassValue } from 'clsx';
@@ -18,6 +18,35 @@ import { SelectorModalTabs } from '../../types';
 import { EnchantLabel } from '../GearPicker/EnchantLabel';
 import { ItemNoticeIcon } from '../GearPicker/ItemNoticeIcon';
 import { NameDescriptionLabel } from './NameDescriptionLabel';
+
+export interface EquippedItemIconProps {
+	/** Drives the empty-state icon. */
+	slot: ItemSlot;
+	item: EquippedItem | null;
+	iconUrl: string;
+	href: string;
+	wowhead?: WowheadDatasetProps;
+	onOpen?: () => void;
+	/** Names an icon drawn without the item's name beside it. */
+	label?: string;
+	/** On the link, such as a focus ring outside the gear picker. */
+	className?: ClassValue;
+}
+
+/** One equipped item's framed icon with its item level, or the slot's empty art when it holds nothing. */
+export const EquippedItemIcon = ({ slot, item, iconUrl, href, wowhead, onOpen, label, className }: EquippedItemIconProps) => (
+	<ItemCellIcon ilvl={item ? item.ilvl.toString() : null}>
+		<WowheadAnchor
+			className={clsx('ui-item-picker-icon', className)}
+			testId="item-picker-icon"
+			aria-label={label}
+			href={href || undefined}
+			onActivate={onOpen}
+			style={{ backgroundImage: `url('${(item && iconUrl) || getEmptySlotIconUrl(slot)}')` }}
+			{...wowhead}
+		/>
+	</ItemCellIcon>
+);
 
 export interface ItemDetailCellViewProps extends Pick<ItemCellProps, 'border' | 'padding'> {
 	/** Drives the empty-state icon and the empty-state name. */
@@ -72,15 +101,14 @@ export const ItemDetailCellView = ({
 		className={className}
 		testId={testId}
 		rootDataAttributes={rootDataAttributes}
-		ilvl={item ? item.ilvl.toString() : null}
 		icon={
-			<WowheadAnchor
-				className="ui-item-picker-icon"
-				testId="item-picker-icon"
-				href={href || undefined}
-				onActivate={onOpen && (() => onOpen(SelectorModalTabs.Items))}
-				style={{ backgroundImage: `url('${(item && iconUrl) || getEmptySlotIconUrl(slot)}')` }}
-				{...wowhead}
+			<EquippedItemIcon
+				slot={slot}
+				item={item}
+				iconUrl={iconUrl}
+				href={href}
+				wowhead={wowhead}
+				onOpen={onOpen && (() => onOpen(SelectorModalTabs.Items))}
 			/>
 		}
 		name={

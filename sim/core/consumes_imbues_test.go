@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/stats"
 )
 
 func TestTemporaryEnchantTakesTheWeaponsItsMasksName(t *testing.T) {
@@ -98,5 +99,69 @@ func TestTemporaryEnchantGoesOnTheHandsTheSpecNames(t *testing.T) {
 	underFlametongue := newCharacter(&proto.PartyBuffs{FlametongueTotem: true})
 	if got := underFlametongue.Equipment[proto.ItemSlot_ItemSlotMainHand].TempEnchant; got != stoneEnchantID {
 		t.Errorf("main hand carries enchant %d under Flametongue Totem, want the stone's %d", got, stoneEnchantID)
+	}
+}
+
+// The imbues the spec names for the item swap set go on that set's weapons where their masks take
+// them, and the main set's weapons stay bare. The swap's stat offset carries the enchants' stats.
+func TestSwapImbueGoesOnTheSwapWeaponsItTakes(t *testing.T) {
+	const swordID, maceID, stoneID, stoneEnchantID, firestoneID, firestoneEnchantID = 990321, 990322, 990323, 990324, 990325, 990326
+
+	weapon := func(id int32, weaponType proto.WeaponType) *proto.SimItem {
+		return &proto.SimItem{Id: id, Name: "Test Weapon", Type: proto.ItemType_ItemTypeWeapon,
+			WeaponType: weaponType, HandType: proto.HandType_HandTypeOneHand, WeaponSpeed: 2.6,
+			ScalingOptions: map[int32]*proto.ScalingItemProperties{0: {WeaponDamageMin: 100, WeaponDamageMax: 150}}}
+	}
+	addToDatabase(&proto.SimDatabase{
+		Items: []*proto.SimItem{weapon(swordID, proto.WeaponType_WeaponTypeSword), weapon(maceID, proto.WeaponType_WeaponTypeMace)},
+		Consumables: []*proto.Consumable{
+			{Id: stoneID, Name: "Test Sharpening Stone", Type: proto.ConsumableType_ConsumableTypeImbue,
+				WeaponSubclassMask: 33219, TemporaryEnchant: &proto.SimEnchant{EffectId: stoneEnchantID, WeaponDamage: 8}},
+			{Id: firestoneID, Name: "Test Firestone", Type: proto.ConsumableType_ConsumableTypeWeaponImbue,
+				TemporaryEnchant: &proto.SimEnchant{EffectId: firestoneEnchantID, Stats: stats.Stats{stats.FireDamage: 14}.ToProtoArray()}},
+		},
+	})
+
+	hands := func(mainHand, offHand int32) []*proto.ItemSpec {
+		items := make([]*proto.ItemSpec, NumItemSlots)
+		for i := range items {
+			items[i] = &proto.ItemSpec{}
+		}
+		items[proto.ItemSlot_ItemSlotMainHand].Id = mainHand
+		items[proto.ItemSlot_ItemSlotOffHand].Id = offHand
+		return items
+	}
+	character := NewCharacter(&Party{}, 0, &proto.Player{
+		Class:          proto.Class_ClassWarrior,
+		Race:           proto.Race_RaceHuman,
+		Spec:           &proto.Player_ProtectionWarrior{ProtectionWarrior: &proto.ProtectionWarrior{}},
+		Equipment:      &proto.EquipmentSpec{Items: hands(swordID, maceID)},
+		EnableItemSwap: true,
+		ItemSwap:       &proto.ItemSwap{Items: hands(maceID, swordID)},
+		Consumables: &proto.ConsumesSpec{
+			SwapMhImbueId:       stoneID,
+			SwapOhImbueId:       stoneID,
+			SwapMhWeaponImbueId: firestoneID,
+		},
+	})
+
+	stone := GetConsumableByID(stoneID).TemporaryEnchant
+	firestone := GetConsumableByID(firestoneID).TemporaryEnchant
+	for _, slot := range []proto.ItemSlot{proto.ItemSlot_ItemSlotMainHand, proto.ItemSlot_ItemSlotOffHand} {
+		if item := character.Equipment[slot]; item.TempEnchant != 0 || item.WeaponImbue != 0 || item.TempEnchantStats != nil {
+			t.Errorf("main set %s carries enchant %d and imbue %d, want neither", slot, item.TempEnchant, item.WeaponImbue)
+		}
+	}
+	for name, set := range map[string]Equipment{"swap set": character.ItemSwap.swapEquip, "unequipped items": character.ItemSwap.unEquippedItems} {
+		mace, sword := set[proto.ItemSlot_ItemSlotMainHand], set[proto.ItemSlot_ItemSlotOffHand]
+		if mace.TempEnchant != 0 || mace.WeaponImbue != firestone.EffectID {
+			t.Errorf("%s: main-hand mace carries enchant %d and imbue %d, want no stone and the firestone's %d", name, mace.TempEnchant, mace.WeaponImbue, firestone.EffectID)
+		}
+		if sword.TempEnchant != stone.EffectID || sword.TempEnchantWeaponDamage != stone.WeaponDamage {
+			t.Errorf("%s: off-hand sword carries enchant %d with %v weapon damage, want the stone's %d with %v", name, sword.TempEnchant, sword.TempEnchantWeaponDamage, stone.EffectID, stone.WeaponDamage)
+		}
+	}
+	if got := character.ItemSwap.equipmentStats.weaponSlots; got != firestone.Stats {
+		t.Errorf("the swap's weapon stat offset is %v, want the firestone's %v", got, firestone.Stats)
 	}
 }

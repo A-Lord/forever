@@ -24,6 +24,7 @@ export const settingsPresets = (presets: SpecPresets, host: IndividualSimHost<an
 			channelClipDelayMs: settings.playerOptions?.channelClipDelayMs,
 			inFrontOfTarget: settings.playerOptions?.inFrontOfTarget,
 			enableItemSwap: settings.playerOptions?.enableItemSwap,
+			itemSwap: settings.playerOptions?.itemSwap,
 		});
 		return { name: settings.name, data, json: serializeSettings(data), tooltip: settings.tooltip, isPreset: true };
 	});
