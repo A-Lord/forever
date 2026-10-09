@@ -9,12 +9,8 @@ import { OtherDefaults as SimUIOtherDefaults } from '@sim/spec_config';
 import * as Consumables from '@features/settings/model/consumables_auto_gen';
 
 import DefaultApl from './apls/default.apl.json';
-import LacerateFirstApl from './apls/lacerate_first.apl.json';
 import Level60GearJson from './gear_sets/default.gear.json';
 export const ROTATION_DEFAULT = PresetUtils.makePresetAPLRotation('APL', DefaultApl);
-// For a target no one else bleeds (Assume Bleed Always Active off): Berserk waits for Lacerate, so
-// Rend and Tear covers it.
-export const ROTATION_LACERATE_FIRST = PresetUtils.makePresetAPLRotation('Lacerate before Berserk', LacerateFirstApl);
 
 // Nature's Reach (melee hit) and Nature's Majesty (melee crit) are worth more to the bear than Furor and
 // Naturalist. Feral Instinct raises only Swipe, which the single-target APL does not cast.

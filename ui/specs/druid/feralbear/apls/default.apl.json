@@ -3,6 +3,16 @@
 	"priorityList": [
 		{
 			"action": {
+				"condition": {
+					"auraIsActive": {
+						"sourceUnit": {
+							"type": "CurrentTarget"
+						},
+						"auraId": {
+							"spellId": 9898
+						}
+					}
+				},
 				"castSpell": {
 					"spellId": {
 						"spellId": 417141

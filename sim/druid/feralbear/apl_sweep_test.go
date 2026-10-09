@@ -141,28 +141,20 @@ type bearTune struct {
 	maul       int     // rage at which Maul queues
 	frenzied   float64 // Frenzied Regeneration below this health fraction; 0 never
 	bleedFirst bool    // Berserk only once Lacerate is on the target, for Rend and Tear
+	opener     string  // "roar": Berserk once Demoralizing Roar is up; "roar_pb": and Primal Bite is on cooldown
 }
 
 // bestBearAPL is the list ui/specs/druid/feralbear/apls/default.apl.json holds. The druid's own
 // Faerie Fire is left out: the raid's is the same armor reduction, so the cast only spends a GCD.
 // Enrage is left out: Dire Bear loses 16% of its gear armor for 10s, which costs more deaths than
-// its 30 rage buys damage.
-var bestBearAPL = bearTune{elune: "berserk", enrage: "never", demo: true, maul: 20, frenzied: 0.2}
-
-// With no raid bleed on the target, Berserk waits for Lacerate so Rend and Tear covers it: +2.2 DPS
-// over 60s and +0.7 over 180s. With a raid bleed the wait costs 7.4 and 2.5, so it is a preset of
-// its own.
-func lacerateFirstBearAPL() bearTune {
-	tune := bestBearAPL
-	tune.bleedFirst = true
-	return tune
-}
+// its 30 rage buys damage. Berserk waits for Demoralizing Roar, so the roar does not take a GCD
+// from Berserk's Primal Bites.
+var bestBearAPL = bearTune{elune: "berserk", enrage: "never", demo: true, maul: 20, frenzied: 0.2, opener: "roar"}
 
 // The preset files and the tunes that build them.
 func bearAPLPresets() map[string]*proto.APLRotation {
 	return map[string]*proto.APLRotation{
-		"default":        bearAPL(bestBearAPL),
-		"lacerate_first": bearAPL(lacerateFirstBearAPL()),
+		"default": bearAPL(bestBearAPL),
 	}
 }
 
@@ -273,12 +265,19 @@ func bearAPL(tune bearTune) *proto.APLRotation {
 	if tune.bleedFirst {
 		berserkWhen = append(berserkWhen, dotUp(spellLacerate))
 	}
+	if tune.opener == "roar" || tune.opener == "roar_pb" {
+		berserkWhen = append(berserkWhen, auraOnTarget(spellDemoRoar))
+	}
+	if tune.opener == "roar_pb" {
+		berserkWhen = append(berserkWhen, not(spellReadyBear(spellPrimalBite)))
+	}
 	if tune.berserk >= 0 {
 		var condition *proto.APLValue
 		switch len(berserkWhen) {
+		case 0:
 		case 1:
 			condition = berserkWhen[0]
-		case 2:
+		default:
 			condition = and(berserkWhen...)
 		}
 		list = append(list, bearCastWhen(spellBerserk, condition))
@@ -396,6 +395,10 @@ func spellCost(id int32) *proto.APLValue {
 	return &proto.APLValue{Value: &proto.APLValue_SpellCurrentCost{SpellCurrentCost: &proto.APLValueSpellCurrentCost{SpellId: bearSpellID(id)}}}
 }
 
+func spellReadyBear(id int32) *proto.APLValue {
+	return &proto.APLValue{Value: &proto.APLValue_SpellIsReady{SpellIsReady: &proto.APLValueSpellIsReady{SpellId: bearSpellID(id)}}}
+}
+
 func spellKnown(id int32) *proto.APLValue {
 	return &proto.APLValue{Value: &proto.APLValue_SpellIsKnown{SpellIsKnown: &proto.APLValueSpellIsKnown{SpellId: bearSpellID(id)}}}
 }
@@ -443,6 +446,7 @@ type bearScenario struct {
 	consumes   bool
 	targets    int
 	bossDamage float64 // 0 keeps the UI's default target
+	bleed      bool    // Assume Bleed Always Active
 }
 
 func runBearRows(t *testing.T, rows []bearRow, scenarios []bearScenario, iterations int32) {
@@ -462,6 +466,7 @@ func runBearRows(t *testing.T, rows []bearRow, scenarios []bearScenario, iterati
 			if scenario.bossDamage > 0 {
 				req.Encounter.Targets[0].MinBaseDamage = scenario.bossDamage
 			}
+			req.Raid.Parties[0].Players[0].GetFeralBearDruid().Options.AssumeBleedActive = scenario.bleed
 			if os.Getenv("BEAR_SWEEP_DEBUG") != "" {
 				req.SimOptions.Debug = true
 				req.SimOptions.Iterations = 1
@@ -519,8 +524,13 @@ func TestBearAPLSweep(t *testing.T) {
 		bearRow{"best, enrage cd <20", with(func(b *bearTune) { b.enrage = "cd"; b.enrageRage = 20 })},
 		bearRow{"best, maul 40", with(func(b *bearTune) { b.maul = 40 })},
 		bearRow{"best, berserk autocast", with(func(b *bearTune) { b.berserk = -1; b.elune = "auto" })},
+		bearRow{"best, berserk at the pull", with(func(b *bearTune) { b.opener = "" })},
+		bearRow{"best, roar, bite then berserk", with(func(b *bearTune) { b.opener = "roar_pb" })},
+		bearRow{"best, roar, lacerate, berserk", with(func(b *bearTune) { b.bleedFirst = true })},
 	)
 	scenarios := []bearScenario{
+		{name: "60s, consumes, bleed assumed", duration: 60, consumes: true, bleed: true},
+		{name: "180s, consumes, bleed assumed", duration: 180, consumes: true, bleed: true},
 		{name: "180s, consumes", duration: 180, consumes: true},
 		{name: "180s, no consumes", duration: 180},
 		{name: "60s, consumes", duration: 60, consumes: true},
