@@ -69,16 +69,15 @@ dps_results: {
 dps_results: {
  key: "TestBalance-AllItems-AnkhofLife-1713"
  value: {
-  dps: 532.99628
-  tps: 380.38226
-  hps: 4.63057
+  dps: 529.54292
+  tps: 377.95671
  }
 }
 dps_results: {
  key: "TestBalance-AllItems-ArenaGrandMaster-19024"
  value: {
-  dps: 530.29535
-  tps: 378.48341
+  dps: 529.54292
+  tps: 377.95671
  }
 }
 dps_results: {
@@ -182,22 +181,22 @@ dps_results: {
 dps_results: {
  key: "TestBalance-AllItems-Defiler'sTalisman-20072"
  value: {
-  dps: 530.29535
-  tps: 378.48341
+  dps: 529.54292
+  tps: 377.95671
  }
 }
 dps_results: {
  key: "TestBalance-AllItems-Defiler'sTalisman-21115"
  value: {
-  dps: 530.29535
-  tps: 378.48341
+  dps: 529.54292
+  tps: 377.95671
  }
 }
 dps_results: {
  key: "TestBalance-AllItems-Defiler'sTalisman-21116"
  value: {
-  dps: 530.29535
-  tps: 378.48341
+  dps: 529.54292
+  tps: 377.95671
  }
 }
 dps_results: {
@@ -415,15 +414,13 @@ dps_results: {
  value: {
   dps: 555.30617
   tps: 395.98279
-  hps: 5.55556
  }
 }
 dps_results: {
  key: "TestBalance-AllItems-GauntletsoftheSea-8346"
  value: {
-  dps: 554.42473
-  tps: 395.27564
-  hps: 2.59801
+  dps: 555.13065
+  tps: 395.83534
  }
 }
 dps_results: {
@@ -450,8 +447,8 @@ dps_results: {
 dps_results: {
  key: "TestBalance-AllItems-GoblinConstructionHelmet-10543"
  value: {
-  dps: 546.42794
-  tps: 389.75164
+  dps: 545.4814
+  tps: 389.08906
  }
 }
 dps_results: {
@@ -611,9 +608,8 @@ dps_results: {
 dps_results: {
  key: "TestBalance-AllItems-MajorRecombobulator-18637"
  value: {
-  dps: 532.99628
-  tps: 380.38226
-  hps: 4.32568
+  dps: 529.54292
+  tps: 377.95671
  }
 }
 dps_results: {
@@ -626,8 +622,8 @@ dps_results: {
 dps_results: {
  key: "TestBalance-AllItems-MarkofResolution-17759"
  value: {
-  dps: 530.29535
-  tps: 378.48341
+  dps: 529.54292
+  tps: 377.95671
  }
 }
 dps_results: {
@@ -752,22 +748,22 @@ dps_results: {
 dps_results: {
  key: "TestBalance-AllItems-TalismanofArathor-20071"
  value: {
-  dps: 530.29535
-  tps: 378.48341
+  dps: 529.54292
+  tps: 377.95671
  }
 }
 dps_results: {
  key: "TestBalance-AllItems-TalismanofArathor-21117"
  value: {
-  dps: 530.29535
-  tps: 378.48341
+  dps: 529.54292
+  tps: 377.95671
  }
 }
 dps_results: {
  key: "TestBalance-AllItems-TalismanofArathor-21118"
  value: {
-  dps: 530.29535
-  tps: 378.48341
+  dps: 529.54292
+  tps: 377.95671
  }
 }
 dps_results: {

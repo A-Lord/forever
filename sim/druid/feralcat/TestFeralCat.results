@@ -71,7 +71,6 @@ dps_results: {
  value: {
   dps: 584.94661
   tps: 317.85914
-  hps: 4.42532
  }
 }
 dps_results: {
@@ -422,9 +421,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-AllItems-GauntletsoftheSea-8346"
  value: {
-  dps: 566.77162
-  tps: 308.30859
-  hps: 2.47961
+  dps: 570.11692
+  tps: 310.52991
  }
 }
 dps_results: {
@@ -607,7 +605,6 @@ dps_results: {
  value: {
   dps: 584.66409
   tps: 317.7696
-  hps: 4.12855
  }
 }
 dps_results: {
