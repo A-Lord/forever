@@ -2,12 +2,10 @@ package spelldata
 
 // The generated store as the package loads it, rather than the fixture the rest of the tests run
 // against: the shape every accessor depends on (ids in search order, effects in position order) and
-// the links, masks and effect kinds of a handful of rows. An amount is read off the row rather than
-// written down, so a game build that moves a number does not fail here.
+// the links, masks and effect kinds of a handful of rows; no amount is pinned.
 
 import (
 	"github.com/wowsims/forever/sim/core/dbcenums"
-	"math"
 	"slices"
 	"strings"
 	"testing"
@@ -89,8 +87,9 @@ func TestGeneratedFrostbolt(t *testing.T) {
 	}
 }
 
-// Per-level scaling counts from the spell's BaseLevel: Vindication's debuff 440667, copied here,
-// states BaseLevel 0 and SpellLevel 1, and the game shows the BaseLevel amount.
+// Per-level scaling counts from the spell's BaseLevel, which can sit below the level it is taught at:
+// the copy of Vindication's debuff 440667 here is an effect at BaseLevel 0 on a spell taught at 1,
+// and the game shows the BaseLevel amount.
 func TestAverageCountsLevelsFromBaseLevel(t *testing.T) {
 	vindication := &Effect{SpellID: 440667, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_ATTACK_POWER,
 		BasePoints: 6, PPL: -3.5, MaxLevel: 60}
@@ -178,19 +177,21 @@ func TestRollEndsMatchTheTooltip(t *testing.T) {
 	}
 }
 
-// A physical hit rolls its base points by the whole Variance either side, as Revenge rank 1 does. A
-// spell-school hit and a heal of any school, Healing Potion's included, leave their roll to core,
-// which spreads the whole amount by DirectVariance; an energize keeps the half-width roll.
+// A physical hit rolls its base points by the whole Variance either side: the copy of Revenge rank 1
+// below, 22 ± 3.4, rolls 19 to 25. A spell-school hit and a heal of any school, Healing Potion's
+// included, leave their roll to core, which spreads the whole amount by DirectVariance; an energize
+// keeps the half-width roll.
 func TestRollWidthByEffectKind(t *testing.T) {
-	withGeneratedStore(t)
-
-	revenge := MustFind(6572).DamageEffect()
-	level := int32(revenge.BaseLevel)
-	side := math.Abs(revenge.BasePoints) * revenge.Variance
-	want := [2]float64{math.RoundToEven(revenge.BasePoints - side), math.RoundToEven(revenge.BasePoints + side)}
-	if got := [2]float64{revenge.MinAt(level), revenge.MaxAt(level)}; got != want {
-		t.Errorf("Revenge rank 1 rolls %v at its own level, want the whole Variance either side, %v", got, want)
+	withRows(t, []Spell{{ID: 6572, Name: "Revenge", School: 1, Effects: []Effect{
+		{SpellID: 6572, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 22, Variance: 0.1538461595773697, BaseLevel: 14},
+	}}})
+	copied := MustFind(6572).DamageEffect()
+	if got, want := [2]float64{copied.MinAt(60), copied.MaxAt(60)}, [2]float64{19, 25}; got != want {
+		t.Errorf("Revenge rank 1 rolls %v at 60, want %v", got, want)
 	}
+
+	withGeneratedStore(t)
+	revenge := MustFind(6572).DamageEffect()
 	if got := revenge.DirectVariance(); got != 0 {
 		t.Errorf("Revenge rank 1 hands core a DirectVariance of %v, want 0", got)
 	}
@@ -307,8 +308,8 @@ func TestGeneratedTalentCurve(t *testing.T) {
 	}
 }
 
-// Lightning Strike's rate is not in the game files at all: Darkmoon Card: Maelstrom's column reads
-// 100 beside a tooltip that says "chance", and an override supplies the PPM.
+// Lightning Strike's rate is not in the game files at all: Darkmoon Card: Maelstrom's column states
+// no roll beside a tooltip that says "chance", and an override supplies the PPM.
 func TestGeneratedOverrideRow(t *testing.T) {
 	withGeneratedStore(t)
 
@@ -321,7 +322,7 @@ func TestGeneratedOverrideRow(t *testing.T) {
 	}
 }
 
-// Frostbolt and Slam state 15, whose 0x2 pushes the cast back; EZ-Thro Bronze Mortar states 5.
+// Frostbolt and Slam state the flag that pushes the cast back; EZ-Thro Bronze Mortar does not.
 func TestGeneratedInterruptFlags(t *testing.T) {
 	withGeneratedStore(t)
 
@@ -367,7 +368,7 @@ func TestGeneratedStanceAndAuraRestriction(t *testing.T) {
 	}
 }
 
-// Justice Battleplate's 4-piece bonus 1301076 is a 189 row masked to 8388608.
+// Justice Battleplate's 4-piece bonus 1301076 is an A_MOD_RATING row masked to the expertise bit.
 func TestGeneratedRatingRowParsesExpertise(t *testing.T) {
 	withGeneratedStore(t)
 

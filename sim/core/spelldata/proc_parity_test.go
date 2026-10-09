@@ -1,10 +1,10 @@
 // What the item procs the sim registered before it read them off the rows resolve to. The table is
 // the sixteen registrations sim/common/forever/stat_bonus_procs_auto_gen.go carried at 60266be6f7,
-// transcribed by hand, and every field is what that generated call stated, except a rolled chance,
-// which is the trigger row's own. One of them states a mask that leaves out the heals
-// the game files' mask names, three are no longer registered at all, one required damage where a
-// weapon proc needs only a landed hit, and three required damage where their rows now take any damage
-// component; each says so here.
+// transcribed by hand, and every field is what that generated call stated, except a rolled chance and
+// the cooldown, which are the trigger row's own. One of them states a mask that leaves out the heals
+// the game files' mask names, three register nothing, one required damage where a weapon proc needs
+// only a landed hit, and three required damage where their rows take any damage component; each says
+// so here.
 //
 // A pin rather than a comparison: the generated file carries spell ids now, so there are no literals
 // left to compare against, and what this guards is that resolving those ids still produces the
@@ -94,7 +94,7 @@ func liveProcs() []liveProc {
 			outcome: core.OutcomeLanded, ppm: 1,
 		},
 		{
-			// The generated call stated ProcMaskSpellDamage alone. 23688's mask 0x14000 names helpful
+			// The generated call stated ProcMaskSpellDamage alone. 23688's proc mask names helpful
 			// spells beside harmful ones, so heal casts roll it too.
 			itemID: 19288, name: "Darkmoon Card: Blue Dragon", triggerSpellID: 23688,
 			callback: core.CallbackOnCastComplete, procMask: core.ProcMaskSpellDamage | core.ProcMaskSpellHealing,
@@ -180,6 +180,9 @@ func TestTheItemProcsResolveAsTheyWereRegistered(t *testing.T) {
 			}
 		} else if trigger.ProcChance != live.chance {
 			report("ProcChance", trigger.ProcChance, live.chance)
+		}
+		if trigger.ICD != row.ICD() {
+			t.Errorf("%s (%d) ICD: %v, want the row's %v", live.name, live.itemID, trigger.ICD, row.ICD())
 		}
 
 		// A rate stated as procs per minute is a manager and no roll at all, so the manager is

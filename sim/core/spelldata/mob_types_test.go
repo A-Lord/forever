@@ -141,7 +141,7 @@ func TestAVersusAuraGainAndExpireDoNotAllocate(t *testing.T) {
 
 // A_MOD_DAMAGE_DONE_VERSUS multiplies the damage dealt to the masked mob types while its aura is up,
 // and divides it back out on expiry; crit damage follows the damage rather than being multiplied
-// again. Row 1302545 states 1 against mask 32, Undead.
+// again. A row stating 1 against mask 32, Undead.
 func TestADamageVersusAuraFollowsItsAuraOnTheAttackTables(t *testing.T) {
 	sim := &core.Simulation{}
 	character := parseWarrior()
