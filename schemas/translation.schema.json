@@ -2374,6 +2374,35 @@
 							},
 							"additionalProperties": false,
 							"required": ["title"]
+						},
+						"poison": {
+							"type": "object",
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"label": {
+									"type": "object",
+									"properties": {
+										"mh": {
+											"type": "string"
+										},
+										"oh": {
+											"type": "string"
+										}
+									},
+									"additionalProperties": false,
+									"required": ["mh", "oh"]
+								},
+								"tooltip": {
+									"type": "string"
+								},
+								"none": {
+									"type": "string"
+								}
+							},
+							"additionalProperties": false,
+							"required": ["title", "label", "tooltip", "none"]
 						}
 					},
 					"additionalProperties": false,
@@ -2418,7 +2447,8 @@
 						"warlock_assigned_curse",
 						"pet_attack_speed",
 						"pet_training",
-						"pet_section"
+						"pet_section",
+						"poison"
 					]
 				},
 				"consumables": {
