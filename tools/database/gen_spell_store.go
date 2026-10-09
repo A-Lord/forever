@@ -88,6 +88,13 @@ func formatStoreRow(s storeSpell, namer *rankEnumNamer) string {
 		}
 		fmt.Fprintf(&b, ",\nPowers: []Power{%s}", strings.Join(powers, ", "))
 	}
+	if len(s.Reagents) > 0 {
+		reagents := make([]string, len(s.Reagents))
+		for i, r := range s.Reagents {
+			reagents[i] = "{" + storeFields(reflect.ValueOf(r), namer) + "}"
+		}
+		fmt.Fprintf(&b, ",\nReagents: []Reagent{%s}", strings.Join(reagents, ", "))
+	}
 	b.WriteString("},")
 	for _, note := range s.overrideNotes {
 		fmt.Fprintf(&b, " // %s", note)
@@ -98,19 +105,20 @@ func formatStoreRow(s storeSpell, namer *rankEnumNamer) string {
 
 // The store type each mirror fills, which says how its float fields are printed.
 var storeTypes = map[reflect.Type]reflect.Type{
-	reflect.TypeOf(storeSpell{}):  reflect.TypeOf(spelldata.Spell{}),
-	reflect.TypeOf(storeEffect{}): reflect.TypeOf(spelldata.Effect{}),
-	reflect.TypeOf(storePower{}):  reflect.TypeOf(spelldata.Power{}),
+	reflect.TypeOf(storeSpell{}):   reflect.TypeOf(spelldata.Spell{}),
+	reflect.TypeOf(storeEffect{}):  reflect.TypeOf(spelldata.Effect{}),
+	reflect.TypeOf(storePower{}):   reflect.TypeOf(spelldata.Power{}),
+	reflect.TypeOf(storeReagent{}): reflect.TypeOf(spelldata.Reagent{}),
 }
 
-// The exported fields a row states, as "Name: value". The effects and the powers are lists of rows
-// of their own, which formatStoreRow writes under the row.
+// The exported fields a row states, as "Name: value". The effects, the powers and the reagents are
+// lists of rows of their own, which formatStoreRow writes under the row.
 func storeFields(row reflect.Value, namer *rankEnumNamer) string {
 	store := storeTypes[row.Type()]
 	var parts []string
 	for i := 0; i < row.NumField(); i++ {
 		field, value := row.Type().Field(i), row.Field(i)
-		if !field.IsExported() || value.IsZero() || field.Name == "Effects" || field.Name == "Powers" {
+		if !field.IsExported() || value.IsZero() || field.Name == "Effects" || field.Name == "Powers" || field.Name == "Reagents" {
 			continue
 		}
 		storeField, _ := store.FieldByName(field.Name)
