@@ -4,12 +4,6 @@
 
 export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 	[
-		744, // Thunderbrew's Boot Flask
-		[
-			"Deals 75 Fire damage every 1 sec for 5s to all enemies in front of you. Deals 2 times as much damage to Plants. Gets you quite drunk too!", // 12257 - https://www.wowhead.com/forever/spell=12257
-		]
-	],
-	[
 		869, // Dazzling Longsword
 		[
 			"Decrease the armor of the target by 100 for 30s. While affected, the target cannot stealth or turn invisible.", // 13752 - https://www.wowhead.com/forever/spell=13752
@@ -100,18 +94,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		1728, // Teebu's Blazing Longsword
-		[
-			"Blasts a target for 140 Fire damage.", // 1300753 - https://www.wowhead.com/forever/spell=1300753
-		]
-	],
-	[
-		1982, // Nightblade
-		[
-			"Sends a shadowy bolt at the enemy causing 200 Shadow damage.", // 18211 - https://www.wowhead.com/forever/spell=18211
-		]
-	],
-	[
 		1986, // Gutrender
 		[
 			"Wounds the target for 102 damage.", // 18090 - https://www.wowhead.com/forever/spell=18090
@@ -130,21 +112,9 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		2164, // Gut Ripper
-		[
-			"Wounds the target for 108 damage.", // 18107 - https://www.wowhead.com/forever/spell=18107
-		]
-	],
-	[
 		2205, // Duskbringer
 		[
 			"Sends a shadowy bolt at the enemy causing 98 Shadow damage.", // 18217 - https://www.wowhead.com/forever/spell=18217
-		]
-	],
-	[
-		2243, // Hand of Edward the Odd
-		[
-			"Next spell cast within 4s will cast instantly.", // 18803 - https://www.wowhead.com/forever/spell=18803
 		]
 	],
 	[
@@ -172,21 +142,9 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		2802, // Blazing Emblem
-		[
-			"Increases Fire resistance by 33 and absorbs 465 Fire damage. Lasts 15s.", // 13744 - https://www.wowhead.com/forever/spell=13744
-		]
-	],
-	[
 		2820, // Nifty Stopwatch
 		[
 			"Increases run speed by 40% for 10s.", // 14530 - https://www.wowhead.com/forever/spell=14530
-		]
-	],
-	[
-		2825, // Bow of Searing Arrows
-		[
-			"Fires a Searing Arrow at the target for 28 Fire damage.", // 29638 - https://www.wowhead.com/forever/spell=29638
 		]
 	],
 	[
@@ -550,18 +508,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		7717, // Ravager
-		[
-			"Attack all nearby enemies, dealing weapon damage plus 5 every 3.0 sec for 9s, and reducing your own movement speed by 80%.", // 9632 - https://www.wowhead.com/forever/spell=9632
-		]
-	],
-	[
-		7726, // Aegis of the Scarlet Commander
-		[
-			"Deals 14 Holy damage every time you block.", // 1293539 - https://www.wowhead.com/forever/spell=1293539
-		]
-	],
-	[
 		7730, // Cobalt Crusher
 		[
 			"Blasts a target for 133 Frost damage.", // 18204 - https://www.wowhead.com/forever/spell=18204
@@ -700,18 +646,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		9651, // Gryphon Rider's Stormhammer
-		[
-			"Blasts a target for 91 Nature damage.", // 18081 - https://www.wowhead.com/forever/spell=18081
-		]
-	],
-	[
-		10030, // Admiral's Hat
-		[
-			"Gives 10 additional stamina to party members within 30 yards.", // 12022 - https://www.wowhead.com/forever/spell=12022
-		]
-	],
-	[
 		10506, // Deepdive Helmet
 		[
 			"Water breathing lasts 100% longer than normal.", // 1320643 - https://www.wowhead.com/forever/spell=1320643
@@ -778,15 +712,9 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		12628, // Demon Forged Breastplate
-		[
-			"When struck has a 3% chance of stealing 240 life from the attacker over 4s. ", // 16608 - https://www.wowhead.com/forever/spell=16608
-		]
-	],
-	[
 		12641, // Invulnerable Mail
 		[
-			"When struck in combat has a {UNK: H}% chance to make you invulnerable to melee damage for 3s. This effect can only occur once every 10 sec.", // 16621 - https://www.wowhead.com/forever/spell=16621
+			"When struck in combat has a 5% chance to make you invulnerable to melee damage for 3s. This effect can only occur once every 10 sec.", // 16621 - https://www.wowhead.com/forever/spell=16621
 		]
 	],
 	[
@@ -796,51 +724,15 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		12777, // Blazing Rapier
-		[
-			"Burns the enemy for 200 damage over 30s.", // 16898 - https://www.wowhead.com/forever/spell=16898
-		]
-	],
-	[
 		12781, // Serenity
 		[
 			"Dispels a magic effect on the current foe.", // 16908 - https://www.wowhead.com/forever/spell=16908
 		]
 	],
 	[
-		12790, // Arcanite Champion
-		[
-			"Heal yourself for 360 and increase your Strength by 120 for 30s.", // 16916 - https://www.wowhead.com/forever/spell=16916
-		]
-	],
-	[
-		12792, // Volcanic Hammer
-		[
-			"Hurls a fiery ball that causes 228 Fire damage and an additional 36 damage over 6s.", // 18082 - https://www.wowhead.com/forever/spell=18082
-		]
-	],
-	[
-		12795, // Blood Talon
-		[
-			"Wounds the target causing them to bleed for 100 damage over 30s.", // 13318 - https://www.wowhead.com/forever/spell=13318
-		]
-	],
-	[
 		12796, // Hammer of the Titans
 		[
 			"Stuns target for 3s.", // 56 - https://www.wowhead.com/forever/spell=56
-		]
-	],
-	[
-		12797, // Frostguard
-		[
-			"Slows the target's movement speed by 30% and increases the time between their attacks by 25% for 5s.", // 16927 - https://www.wowhead.com/forever/spell=16927
-		]
-	],
-	[
-		12802, // Darkspear
-		[
-			"Chance on hit to grant nearby party members 4% increased critical strike chance.", // 16939 - https://www.wowhead.com/forever/spell=16939
 		]
 	],
 	[
@@ -868,18 +760,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		13035, // Serpent Slicer
-		[
-			"Poisons target for 8 Nature damage every 2.0 sec for 20s.", // 17511 - https://www.wowhead.com/forever/spell=17511
-		]
-	],
-	[
-		13040, // Heartseeking Crossbow
-		[
-			"Chance to strike your ranged target with a Shadowbolt for 16 Shadow damage.", // 29640 - https://www.wowhead.com/forever/spell=29640
-		]
-	],
-	[
 		13057, // Bloodpike
 		[
 			"Wounds the target causing them to bleed for 98 damage over 14s.", // 18202 - https://www.wowhead.com/forever/spell=18202
@@ -898,12 +778,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		14134, // Cloak of Fire
-		[
-			"Deals 25 Fire damage every 5.0 sec to all nearby enemies for 15s.", // 18364 - https://www.wowhead.com/forever/spell=18364
-		]
-	],
-	[
 		14145, // Cursed Felblade
 		[
 			"Reduces target enemy's attack power by 24 for 30s.", // 18381 - https://www.wowhead.com/forever/spell=18381
@@ -918,19 +792,13 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 	[
 		14154, // Truefaith Vestments
 		[
-			"Reduces the cooldown of your Fade ability by -2.0 sec.", // 18388 - https://www.wowhead.com/forever/spell=18388
+			"Reduces the cooldown of your Fade ability by 2.0 sec.", // 18388 - https://www.wowhead.com/forever/spell=18388
 		]
 	],
 	[
 		15138, // Onyxia Scale Cloak
 		[
 			"Protects the wearer from being fully engulfed by Shadow Flame.", // 22683 - https://www.wowhead.com/forever/spell=22683
-		]
-	],
-	[
-		15814, // Hameya's Slayer
-		[
-			"Wounds the target causing them to bleed for 80 damage over 30s.", // 16406 - https://www.wowhead.com/forever/spell=16406
 		]
 	],
 	[
@@ -964,24 +832,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		16403, // Knight-Lieutenant's Chain Gauntlets
-		[
-			"Reduces the mana cost of your Arcane Shot by 15.", // 23157 - https://www.wowhead.com/forever/spell=23157
-		]
-	],
-	[
-		16406, // Knight-Lieutenant's Plate Gauntlets
-		[
-			"Hamstring Rage cost reduced by -3.0.", // 22778 - https://www.wowhead.com/forever/spell=22778
-		]
-	],
-	[
-		16410, // Knight-Lieutenant's Lamellar Gauntlets
-		[
-			"Increases the Holy damage bonus of your Judgement of the Crusader by 20.", // 23300 - https://www.wowhead.com/forever/spell=23300
-		]
-	],
-	[
 		16440, // Marshal's Silk Gloves
 		[
 			"Increases the damage absorbed by your Mana Shield by 285.", // 23037 - https://www.wowhead.com/forever/spell=23037
@@ -991,18 +841,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		16446, // Marshal's Leather Footguards
 		[
 			"Increases the duration of your Sprint ability by 3.0 sec.", // 23049 - https://www.wowhead.com/forever/spell=23049
-		]
-	],
-	[
-		16471, // Marshal's Lamellar Gloves
-		[
-			"Increases the Holy damage bonus of your Judgement of the Crusader by 20.", // 23300 - https://www.wowhead.com/forever/spell=23300
-		]
-	],
-	[
-		16484, // Marshal's Plate Gauntlets
-		[
-			"Hamstring Rage cost reduced by -3.0.", // 22778 - https://www.wowhead.com/forever/spell=22778
 		]
 	],
 	[
@@ -1018,33 +856,15 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		16510, // Blood Guard's Plate Gloves
-		[
-			"Hamstring Rage cost reduced by -3.0.", // 22778 - https://www.wowhead.com/forever/spell=22778
-		]
-	],
-	[
 		16518, // Blood Guard's Mail Walkers
 		[
 			"Increases the speed of your Ghost Wolf ability by 15%.", // 22801 - https://www.wowhead.com/forever/spell=22801
 		]
 	],
 	[
-		16530, // Blood Guard's Chain Gauntlets
-		[
-			"Reduces the mana cost of your Arcane Shot by 15.", // 23157 - https://www.wowhead.com/forever/spell=23157
-		]
-	],
-	[
 		16540, // General's Silk Handguards
 		[
 			"Increases the damage absorbed by your Mana Shield by 285.", // 23037 - https://www.wowhead.com/forever/spell=23037
-		]
-	],
-	[
-		16548, // General's Plate Gauntlets
-		[
-			"Hamstring Rage cost reduced by -3.0.", // 22778 - https://www.wowhead.com/forever/spell=22778
 		]
 	],
 	[
@@ -1069,24 +889,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		17073, // Earthshaker
 		[
 			"Knocks down all nearby enemies for 3s.", // 21152 - https://www.wowhead.com/forever/spell=21152
-		]
-	],
-	[
-		17182, // Sulfuras, Hand of Ragnaros
-		[
-			"Deals 5 Fire damage to anyone who strikes you with a melee attack.", // 21142 - https://www.wowhead.com/forever/spell=21142
-		]
-	],
-	[
-		17193, // Sulfuron Hammer
-		[
-			"Hurls a fiery ball that causes 92 Fire damage and an additional 16 damage over 8s.", // 21159 - https://www.wowhead.com/forever/spell=21159
-		]
-	],
-	[
-		17223, // Thunderstrike
-		[
-			"Blasts up to 3 targets for 200 Nature damage. Each target after the first takes less damage.", // 21179 - https://www.wowhead.com/forever/spell=21179
 		]
 	],
 	[
@@ -1150,21 +952,9 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		18355, // Ferra's Collar
-		[
-			"Increases the damage done by your pets by 4%.", // 22854 - https://www.wowhead.com/forever/spell=22854
-		]
-	],
-	[
 		18406, // Onyxia Blood Talisman
 		[
 			"Reduces your magic damage taken from Dragon Breath spells by 33% for 15s.", // 1287808 - https://www.wowhead.com/forever/spell=1287808
-		]
-	],
-	[
-		18608, // Benediction
-		[
-			"Increases the critical effect chance of your Holy spells by 2%.", // 23236 - https://www.wowhead.com/forever/spell=23236
 		]
 	],
 	[
@@ -1204,12 +994,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		19100, // Electrified Dagger
-		[
-			"Blasts a target for 45 Nature damage.", // 23592 - https://www.wowhead.com/forever/spell=23592
-		]
-	],
-	[
 		19141, // Luffa
 		[
 			"Removes 1 Bleed effect. While in or on Water, removes all Bleed, Disease, and Poison effects.", // 23595 - https://www.wowhead.com/forever/spell=23595
@@ -1219,12 +1003,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		19166, // Black Amnesty
 		[
 			"Reduce your threat to the current target making them less likely to attack you.", // 23604 - https://www.wowhead.com/forever/spell=23604
-		]
-	],
-	[
-		19287, // Darkmoon Card: Heroism
-		[
-			"Sometimes heals bearer of 150 damage when damaging an enemy in melee.", // 23682 - https://www.wowhead.com/forever/spell=23682
 		]
 	],
 	[
@@ -1240,21 +1018,9 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		19336, // Arcane Infused Gem
-		[
-			"Infuses you with Arcane energy, causing your next Arcane Shot fired within 10s to detonate at the target. The Arcane Detonation will deal 15200 damage to enemies near the target.", // 23721 - https://www.wowhead.com/forever/spell=23721
-		]
-	],
-	[
 		19345, // Aegis of Preservation
 		[
 			"Increases armor by 500, and heals 35 damage every time you take ranged or melee damage for 20s.", // 23780 - https://www.wowhead.com/forever/spell=23780
-		]
-	],
-	[
-		19577, // Rage of Mugamba
-		[
-			"Reduces the cost of your Hamstring ability by -2.0 rage points.", // 24428 - https://www.wowhead.com/forever/spell=24428
 		]
 	],
 	[
@@ -1272,7 +1038,7 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 	[
 		19601, // Jewel of Kajaro
 		[
-			"Reduces the cooldown of Counterspell by -2.0 sec.", // 24429 - https://www.wowhead.com/forever/spell=24429
+			"Reduces the cooldown of Counterspell by 2.0 sec.", // 24429 - https://www.wowhead.com/forever/spell=24429
 		]
 	],
 	[
@@ -1282,33 +1048,15 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		19609, // Unmarred Vision of Voodress
-		[
-			"Decreases the mana cost of your Healing Stream and Mana Spring totems by 20.", // 24436 - https://www.wowhead.com/forever/spell=24436
-		]
-	],
-	[
-		19613, // Pristine Enchanted South Seas Kelp
-		[
-			"Increases the critical hit chance of Wrath and Starfire by 2%.", // 24433 - https://www.wowhead.com/forever/spell=24433
-		]
-	],
-	[
 		19617, // Zandalarian Shadow Mastery Talisman
 		[
-			"Decreases the cooldown of Kick by -0.5 sec.", // 24434 - https://www.wowhead.com/forever/spell=24434
+			"Decreases the cooldown of Kick by 0.5 sec.", // 24434 - https://www.wowhead.com/forever/spell=24434
 		]
 	],
 	[
 		19621, // Maelstrom's Wrath
 		[
-			"Decreases the cooldown of Feign Death by -2.0 sec.", // 24432 - https://www.wowhead.com/forever/spell=24432
-		]
-	],
-	[
-		19953, // Renataki's Charm of Beasts
-		[
-			"Instantly clears the cooldowns of Aimed Shot, Multishot, Volley, and Arcane Shot.", // 24531 - https://www.wowhead.com/forever/spell=24531
+			"Decreases the cooldown of Feign Death by 2.0 sec.", // 24432 - https://www.wowhead.com/forever/spell=24432
 		]
 	],
 	[
@@ -1696,18 +1444,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		22194, // Black Grasp of the Destroyer
-		[
-			"On successful melee or ranged attack gain 8 mana and if possible drain 8 mana from the target.", // 18350 - https://www.wowhead.com/forever/spell=18350
-		]
-	],
-	[
-		22196, // Thick Obsidian Breastplate
-		[
-			"When struck by a non-periodic damage spell you have a 30% chance of getting a 6s spell shield that absorbs 400 of that school of damage.", // 27539 - https://www.wowhead.com/forever/spell=27539
-		]
-	],
-	[
 		22198, // Jagged Obsidian Shield
 		[
 			"When struck by a harmful spell, the caster of that spell has a 5% chance to be silenced for 3s.", // 27559 - https://www.wowhead.com/forever/spell=27559
@@ -1726,21 +1462,9 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		22399, // Idol of Health
-		[
-			"Reduces the casting time of your Healing Touch spell by 0.15 sec.", // 27846 - https://www.wowhead.com/forever/spell=27846
-		]
-	],
-	[
 		22402, // Libram of Grace
 		[
 			"Reduces the mana cost of your Cleanse spell by 25.", // 27847 - https://www.wowhead.com/forever/spell=27847
-		]
-	],
-	[
-		22589, // Atiesh, Greatstaff of the Guardian
-		[
-			"Increases the spell critical chance of all party members within 30 yards by 2%.", // 28142 - https://www.wowhead.com/forever/spell=28142
 		]
 	],
 	[
@@ -1759,12 +1483,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		22865, // Blood Guard's Dreadweave Handwraps
 		[
 			"Gives you a 50% chance to avoid interruption caused by damage while casting Searing Pain.", // 23046 - https://www.wowhead.com/forever/spell=23046
-		]
-	],
-	[
-		22868, // Blood Guard's Plate Gauntlets
-		[
-			"Hamstring Rage cost reduced by -3.0.", // 22778 - https://www.wowhead.com/forever/spell=22778
 		]
 	],
 	[
@@ -1792,12 +1510,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		23274, // Knight-Lieutenant's Lamellar Gauntlets
-		[
-			"Increases the Holy damage bonus of your Judgement of the Crusader by 20.", // 23300 - https://www.wowhead.com/forever/spell=23300
-		]
-	],
-	[
 		23282, // Knight-Lieutenant's Dreadweave Handwraps
 		[
 			"Gives you a 50% chance to avoid interruption caused by damage while casting Searing Pain.", // 23046 - https://www.wowhead.com/forever/spell=23046
@@ -1807,12 +1519,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		23285, // Knight-Lieutenant's Leather Walkers
 		[
 			"Increases the duration of your Sprint ability by 3.0 sec.", // 23049 - https://www.wowhead.com/forever/spell=23049
-		]
-	],
-	[
-		23286, // Knight-Lieutenant's Plate Gauntlets
-		[
-			"Hamstring Rage cost reduced by -3.0.", // 22778 - https://www.wowhead.com/forever/spell=22778
 		]
 	],
 	[
@@ -1867,12 +1573,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		249443, // Totem of Ancestral Protection
 		[
 			"Reduces the cooldown of Grounding Totem by 1 sec.", // 1249011 - https://www.wowhead.com/forever/spell=1249011
-		]
-	],
-	[
-		249473, // Dormant Heart of the Mountain
-		[
-			"Your casts of Greater Heal in combat grant up to 40 increased healing and up to 13 increased damage for 15s.", // 1249119 - https://www.wowhead.com/forever/spell=1249119
 		]
 	],
 	[
@@ -1961,12 +1661,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		272427, // Howling Idol
-		[
-			"Reduces the cooldown of your Shifting Power ability by 1 sec.", // 1291059 - https://www.wowhead.com/forever/spell=1291059
-		]
-	],
-	[
 		272428, // Enraged Idol
 		[
 			"Your Enrage ability generates an additional 10 Rage over its duration.", // 1291060 - https://www.wowhead.com/forever/spell=1291060
@@ -1979,39 +1673,9 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		272430, // Swarming Idol
-		[
-			"Increases the duration of your Insect Swarm ability by 2 sec.", // 1291061 - https://www.wowhead.com/forever/spell=1291061
-		]
-	],
-	[
-		272431, // Tidal Totem
-		[
-			"Reduces the Mana cost of your Healing Wave ability by 5%.", // 1291076 - https://www.wowhead.com/forever/spell=1291076
-		]
-	],
-	[
-		272432, // Totem of the Storm
-		[
-			"Your Lightning Bolt ability can now also trigger the Maelstrom Weapon talent, but with a 50% reduced chance.", // 1291078 - https://www.wowhead.com/forever/spell=1291078
-		]
-	],
-	[
-		272433, // Burning Totem
-		[
-			"Increases the duration of your Flame Shock ability by 3 sec.", // 1291077 - https://www.wowhead.com/forever/spell=1291077
-		]
-	],
-	[
 		272455, // Premier Magus Gloves
 		[
 			"Increases the damage absorbed by your Mana Shield by 285.", // 23037 - https://www.wowhead.com/forever/spell=23037
-		]
-	],
-	[
-		272478, // Premier Mortarplate Gloves
-		[
-			"Hamstring Rage cost reduced by -3.0.", // 22778 - https://www.wowhead.com/forever/spell=22778
 		]
 	],
 	[
@@ -2021,33 +1685,15 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		272495, // Premier Chain Gauntlets
-		[
-			"Increases the damage done by your Multi-Shot by 4%.", // 28539 - https://www.wowhead.com/forever/spell=28539
-		]
-	],
-	[
 		272505, // Premier Champion's Magus Handguards
 		[
 			"Increases the damage absorbed by your Mana Shield by 285.", // 23037 - https://www.wowhead.com/forever/spell=23037
 		]
 	],
 	[
-		272513, // Premier Champion's Mortarplate Gauntlets
-		[
-			"Hamstring Rage cost reduced by -3.0.", // 22778 - https://www.wowhead.com/forever/spell=22778
-		]
-	],
-	[
 		272523, // Premier Centurion's Shadowhide Treads
 		[
 			"Increases the duration of your Sprint ability by 3.0 sec.", // 23049 - https://www.wowhead.com/forever/spell=23049
-		]
-	],
-	[
-		272536, // Premier Champion's Chain Gloves
-		[
-			"Increases the damage done by your Multi-Shot by 4%.", // 28539 - https://www.wowhead.com/forever/spell=28539
 		]
 	],
 	[
@@ -2111,18 +1757,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		272715, // Premier Chainmail Gauntlets
-		[
-			"Increases the damage done by your Multi-Shot by 4%.", // 28539 - https://www.wowhead.com/forever/spell=28539
-		]
-	],
-	[
-		272717, // Premier Plate Gauntlets
-		[
-			"Hamstring Rage cost reduced by -3.0.", // 22778 - https://www.wowhead.com/forever/spell=22778
-		]
-	],
-	[
 		272719, // Premier Chevalier Gauntlets
 		[
 			"Increases the duration of your Repentance by 1 sec.", // 1316101 - https://www.wowhead.com/forever/spell=1316101
@@ -2141,21 +1775,9 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		272772, // Premier Lieutenant Commander's Chainmail Grips
-		[
-			"Increases the damage done by your Multi-Shot by 4%.", // 28539 - https://www.wowhead.com/forever/spell=28539
-		]
-	],
-	[
 		272780, // Premier Lieutenant Commander's Chevalier Gloves
 		[
 			"Increases the duration of your Repentance by 1 sec.", // 1316101 - https://www.wowhead.com/forever/spell=1316101
-		]
-	],
-	[
-		272793, // Premier Lieutenant Commander's Plate Gauntlets
-		[
-			"Hamstring Rage cost reduced by -3.0.", // 22778 - https://www.wowhead.com/forever/spell=22778
 		]
 	],
 	[
@@ -2219,12 +1841,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		273329, // Premier Lieutenant Commander's Luminous Gloves
-		[
-			"Increases the critical strike chance of your Flash of Light by 2%. ", // 1293544 - https://www.wowhead.com/forever/spell=1293544
-		]
-	],
-	[
 		273336, // Premier Centurion's Mail Boots
 		[
 			"Increases the speed of your Ghost Wolf ability by 15%.", // 22801 - https://www.wowhead.com/forever/spell=22801
@@ -2240,12 +1856,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		273355, // Premier Ringmail Walkers
 		[
 			"Increases the speed of your Ghost Wolf ability by 15%.", // 22801 - https://www.wowhead.com/forever/spell=22801
-		]
-	],
-	[
-		273363, // Premier Luminous Gauntlets
-		[
-			"Increases the critical strike chance of your Flash of Light by 2%. ", // 1293544 - https://www.wowhead.com/forever/spell=1293544
 		]
 	],
 	[
@@ -2381,18 +1991,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		274250, // Premier Champion's Lamellar Gloves
-		[
-			"Increases the critical strike chance of your Flash of Light by 2%. ", // 1293544 - https://www.wowhead.com/forever/spell=1293544
-		]
-	],
-	[
-		274256, // Premier Lamellar Gauntlets
-		[
-			"Increases the critical strike chance of your Flash of Light by 2%. ", // 1293544 - https://www.wowhead.com/forever/spell=1293544
-		]
-	],
-	[
 		274290, // Painwalker Buckler
 		[
 			"17% chance when struck in combat to gain 12 mana per 5 sec for 10s.", // 1293700 - https://www.wowhead.com/forever/spell=1293700
@@ -2514,18 +2112,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		279249, // Totem of Urgency
-		[
-			"Increases the critical strike chance of your Lesser Healing Wave spell by 4%.", // 1306448 - https://www.wowhead.com/forever/spell=1306448
-		]
-	],
-	[
-		279250, // Idol of Swiftness
-		[
-			"Reduces the cooldown of your Swiftmend spell by 3 sec.", // 1306488 - https://www.wowhead.com/forever/spell=1306488
-		]
-	],
-	[
 		279251, // Idol of the Ursine Twins
 		[
 			"Your Lacerate hits have a 10% chance to reset the cooldown on Mangle (Bear).", // 1306483 - https://www.wowhead.com/forever/spell=1306483
@@ -2541,24 +2127,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		279895, // Ironforge Greathammer
 		[
 			"Blasts a target for 42 Fire damage.", // 1322295 - https://www.wowhead.com/forever/spell=1322295
-		]
-	],
-	[
-		280604, // Rage of the Storm
-		[
-			"Increases the damage dealt by your Stormstrike ability by 10%.", // 1309422 - https://www.wowhead.com/forever/spell=1309422
-		]
-	],
-	[
-		280605, // Tidebringer's Claw
-		[
-			"Increases the critical strike chance of your Healing Wave and Lesser Healing Wave spells by 2%.", // 1309539 - https://www.wowhead.com/forever/spell=1309539
-		]
-	],
-	[
-		280607, // Lightning's Grasp
-		[
-			"Increases the critical strike chance of your Lightning Bolt spell by 1%.", // 1309442 - https://www.wowhead.com/forever/spell=1309442
 		]
 	],
 	[
@@ -2750,4 +2318,88 @@ export const MISSING_ENCHANT_EFFECTS = new Map<number, string[]>([
 			"Permanently enchant a pair of gloves to give a small chance to acquire Death Lotus when gathering any herb in Hyjal.", // 1294053 - https://www.wowhead.com/forever/spell=1294053
 		]
 	],
+])
+
+// A proc rate the game files do not state and nobody has measured on Forever, and where it comes from.
+export type UnvalidatedRate = { kind: 'ppm' | 'chance'; origin: 'vanilla' | 'tbc' | 'unknown' }
+
+export const UNVALIDATED_RATE_ITEMS = new Map<number, UnvalidatedRate>([
+	[754, { kind: 'ppm', origin: 'vanilla' }], // Shortsword of Vengeance
+	[810, { kind: 'ppm', origin: 'vanilla' }], // Hammer of the Northern Wind
+	[870, { kind: 'ppm', origin: 'vanilla' }], // Fiery War Axe
+	[871, { kind: 'ppm', origin: 'vanilla' }], // Flurry Axe
+	[880, { kind: 'ppm', origin: 'vanilla' }], // Staff of Horrors
+	[899, { kind: 'ppm', origin: 'vanilla' }], // Venom Web Fang
+	[937, { kind: 'ppm', origin: 'vanilla' }], // Black Duskwood Staff
+	[1481, { kind: 'ppm', origin: 'vanilla' }], // Grimclaw
+	[1726, { kind: 'ppm', origin: 'vanilla' }], // Poison-tipped Bone Spear
+	[1728, { kind: 'ppm', origin: 'vanilla' }], // Teebu's Blazing Longsword
+	[1982, { kind: 'ppm', origin: 'vanilla' }], // Nightblade
+	[2000, { kind: 'ppm', origin: 'vanilla' }], // Archeus
+	[2164, { kind: 'ppm', origin: 'vanilla' }], // Gut Ripper
+	[2243, { kind: 'ppm', origin: 'vanilla' }], // Hand of Edward the Odd
+	[2256, { kind: 'ppm', origin: 'vanilla' }], // Skeletal Club
+	[2825, { kind: 'ppm', origin: 'vanilla' }], // Bow of Searing Arrows
+	[2912, { kind: 'ppm', origin: 'vanilla' }], // Claw of the Shadowmancer
+	[2942, { kind: 'ppm', origin: 'vanilla' }], // Iron Knuckles
+	[3336, { kind: 'ppm', origin: 'vanilla' }], // Flesh Piercer
+	[4090, { kind: 'ppm', origin: 'vanilla' }], // Mug O' Hurt
+	[5182, { kind: 'ppm', origin: 'vanilla' }], // Shiver Blade
+	[6220, { kind: 'ppm', origin: 'vanilla' }], // Meteor Shard
+	[6472, { kind: 'ppm', origin: 'vanilla' }], // Stinging Viper
+	[6622, { kind: 'ppm', origin: 'vanilla' }], // Sword of Zeal
+	[6660, { kind: 'ppm', origin: 'vanilla' }], // Julie's Dagger
+	[6904, { kind: 'ppm', origin: 'vanilla' }], // Bite of Serra'kis
+	[7717, { kind: 'ppm', origin: 'vanilla' }], // Ravager
+	[7730, { kind: 'ppm', origin: 'vanilla' }], // Cobalt Crusher
+	[7961, { kind: 'ppm', origin: 'vanilla' }], // Phantom Blade
+	[8190, { kind: 'ppm', origin: 'vanilla' }], // Hanzo Sword
+	[9453, { kind: 'ppm', origin: 'vanilla' }], // Toxic Revenger
+	[9651, { kind: 'ppm', origin: 'vanilla' }], // Gryphon Rider's Stormhammer
+	[11902, { kind: 'ppm', origin: 'vanilla' }], // Linken's Sword of Mastery
+	[12777, { kind: 'ppm', origin: 'vanilla' }], // Blazing Rapier
+	[12790, { kind: 'ppm', origin: 'vanilla' }], // Arcanite Champion
+	[12792, { kind: 'ppm', origin: 'vanilla' }], // Volcanic Hammer
+	[12794, { kind: 'ppm', origin: 'vanilla' }], // Masterwork Stormhammer
+	[12795, { kind: 'ppm', origin: 'vanilla' }], // Blood Talon
+	[12797, { kind: 'ppm', origin: 'vanilla' }], // Frostguard
+	[12798, { kind: 'ppm', origin: 'tbc' }], // Annihilator
+	[12974, { kind: 'ppm', origin: 'vanilla' }], // The Black Knight
+	[12992, { kind: 'ppm', origin: 'vanilla' }], // Searing Blade
+	[13016, { kind: 'ppm', origin: 'vanilla' }], // Killmaim
+	[13032, { kind: 'ppm', origin: 'vanilla' }], // Sword of Corruption
+	[13035, { kind: 'ppm', origin: 'vanilla' }], // Serpent Slicer
+	[13040, { kind: 'ppm', origin: 'vanilla' }], // Heartseeking Crossbow
+	[13051, { kind: 'ppm', origin: 'vanilla' }], // Witchfury
+	[13053, { kind: 'ppm', origin: 'vanilla' }], // Doombringer
+	[13054, { kind: 'ppm', origin: 'vanilla' }], // Grim Reaper
+	[13060, { kind: 'ppm', origin: 'vanilla' }], // The Needler
+	[15814, { kind: 'ppm', origin: 'vanilla' }], // Hameya's Slayer
+	[17073, { kind: 'ppm', origin: 'vanilla' }], // Earthshaker
+	[17182, { kind: 'ppm', origin: 'vanilla' }], // Sulfuras, Hand of Ragnaros
+	[17193, { kind: 'ppm', origin: 'vanilla' }], // Sulfuron Hammer
+	[17223, { kind: 'ppm', origin: 'vanilla' }], // Thunderstrike
+	[17704, { kind: 'ppm', origin: 'vanilla' }], // Edge of Winter
+	[17705, { kind: 'ppm', origin: 'vanilla' }], // Thrash Blade
+	[19019, { kind: 'ppm', origin: 'vanilla' }], // Thunderfury, Blessed Blade of the Windseeker
+	[19099, { kind: 'ppm', origin: 'vanilla' }], // Glacial Blade
+	[19100, { kind: 'ppm', origin: 'vanilla' }], // Electrified Dagger
+	[19169, { kind: 'ppm', origin: 'vanilla' }], // Nightfall
+	[19170, { kind: 'ppm', origin: 'vanilla' }], // Ebon Hand
+	[19287, { kind: 'ppm', origin: 'vanilla' }], // Darkmoon Card: Heroism
+	[19289, { kind: 'ppm', origin: 'tbc' }], // Darkmoon Card: Maelstrom
+	[19323, { kind: 'ppm', origin: 'vanilla' }], // The Unstoppable Force
+	[19324, { kind: 'ppm', origin: 'vanilla' }], // The Lobotomizer
+	[21134, { kind: 'ppm', origin: 'vanilla' }], // Dark Edge of Insanity
+	[21670, { kind: 'ppm', origin: 'tbc' }], // Badge of the Swarmguard
+	[272432, { kind: 'ppm', origin: 'unknown' }], // Totem of the Storm
+])
+
+export const UNVALIDATED_RATE_ENCHANTS = new Map<number, UnvalidatedRate>([
+	[1900, { kind: 'ppm', origin: 'vanilla' }], // Enchant Weapon - Crusader
+	[8217, { kind: 'chance', origin: 'unknown' }], // Enchant Weapon - Revelation
+])
+
+// Keyed by set id, then by the bonus's piece count.
+export const UNVALIDATED_RATE_SET_BONUSES = new Map<number, Map<number, UnvalidatedRate>>([
 ])

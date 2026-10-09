@@ -61,6 +61,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestShadowPriest-AllItems-Admiral'sHat-10030"
+ value: {
+  dps: 594.43615
+  tps: 302.13652
+  dtps: 4.77455
+ }
+}
+dps_results: {
  key: "TestShadowPriest-AllItems-AegisofPreservation-19345"
  value: {
   dps: 601.69458
@@ -94,6 +102,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestShadowPriest-AllItems-Benediction-18608"
+ value: {
+  dps: 637.31937
+  tps: 323.1485
+  dtps: 4.25168
+ }
+}
+dps_results: {
  key: "TestShadowPriest-AllItems-BlazefuryMedallion-17111"
  value: {
   dps: 598.7906
@@ -118,6 +134,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestShadowPriest-AllItems-CloakofFire-14134"
+ value: {
+  dps: 605.3329
+  tps: 307.41928
+  dtps: 4.59572
+ }
+}
+dps_results: {
  key: "TestShadowPriest-AllItems-CloakofFlames-3475"
  value: {
   dps: 596.95481
@@ -139,6 +163,14 @@ dps_results: {
   dps: 601.35665
   tps: 305.58419
   dtps: 5.13522
+ }
+}
+dps_results: {
+ key: "TestShadowPriest-AllItems-DarkmoonCard:Heroism-19287"
+ value: {
+  dps: 601.69458
+  tps: 305.69315
+  dtps: 4.77455
  }
 }
 dps_results: {
@@ -182,6 +214,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestShadowPriest-AllItems-DormantHeartoftheMountain-249473"
+ value: {
+  dps: 601.69458
+  tps: 305.69315
+  dtps: 4.71816
+ }
+}
+dps_results: {
  key: "TestShadowPriest-AllItems-EarthenSigil-20525"
  value: {
   dps: 601.74703
@@ -199,6 +239,14 @@ dps_results: {
 }
 dps_results: {
  key: "TestShadowPriest-AllItems-EbonHand-19170"
+ value: {
+  dps: 607.74099
+  tps: 308.65589
+  dtps: 4.77455
+ }
+}
+dps_results: {
+ key: "TestShadowPriest-AllItems-ElectrifiedDagger-19100"
  value: {
   dps: 607.74099
   tps: 308.65589
@@ -431,11 +479,35 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestShadowPriest-AllItems-GryphonRider'sStormhammer-9651"
+ value: {
+  dps: 583.18491
+  tps: 296.46135
+  dtps: 4.64292
+ }
+}
+dps_results: {
+ key: "TestShadowPriest-AllItems-GutRipper-2164"
+ value: {
+  dps: 607.74099
+  tps: 308.65589
+  dtps: 4.77455
+ }
+}
+dps_results: {
  key: "TestShadowPriest-AllItems-HammeroftheNorthernWind-810"
  value: {
   dps: 583.18491
   tps: 296.46135
   dtps: 4.64292
+ }
+}
+dps_results: {
+ key: "TestShadowPriest-AllItems-HandofEdwardtheOdd-2243"
+ value: {
+  dps: 609.2015
+  tps: 309.36741
+  dtps: 4.67062
  }
 }
 dps_results: {
@@ -640,6 +712,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestShadowPriest-AllItems-SulfuronHammer-17193"
+ value: {
+  dps: 607.74099
+  tps: 308.65589
+  dtps: 4.77455
+ }
+}
+dps_results: {
  key: "TestShadowPriest-AllItems-TalismanofArathor-20071"
  value: {
   dps: 601.82979
@@ -704,6 +784,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestShadowPriest-AllItems-Thunderbrew'sBootFlask-744"
+ value: {
+  dps: 602.88685
+  tps: 306.83688
+  dtps: 4.837
+ }
+}
+dps_results: {
  key: "TestShadowPriest-AllItems-ToySoldier-274386"
  value: {
   dps: 601.69458
@@ -716,6 +804,14 @@ dps_results: {
  value: {
   dps: 604.12402
   tps: 306.88358
+  dtps: 4.77455
+ }
+}
+dps_results: {
+ key: "TestShadowPriest-AllItems-VolcanicHammer-12792"
+ value: {
+  dps: 607.74099
+  tps: 308.65589
   dtps: 4.77455
  }
 }

@@ -189,6 +189,18 @@ func TestGeneratedRowsBuildTheirShapes(t *testing.T) {
 			BuildPhase: core.CharacterBuildPhaseBuffs,
 			Stacks:     statsOnly(map[string]float64{"Stamina": 54, "Health": 540}),
 		}},
+		{"Darkspear", false, true, NewSpellDataDarkspearAura, auraShape{
+			Label: "Darkspear (Player)", ActionID: core.ActionID{SpellID: 16939}, Tag: "Darkspear",
+			Duration: 20 * time.Second,
+			Bids:     []string{"Darkspear single=true priority=4"},
+			Stacks:   statsOnly(map[string]float64{"PhysicalCritPercent": 4, "SpellCritPercent": 4}),
+		}},
+		{"AdmiralsHat", false, false, NewSpellDataAdmiralsHatAura, auraShape{
+			Label: "Admiral's Hat (External)", ActionID: external(12022), Tag: "AdmiralsHat",
+			Duration: 10 * time.Minute, BuildPhase: core.CharacterBuildPhaseBuffs,
+			Bids:   []string{"AdmiralsHat single=true priority=10"},
+			Stacks: statsOnly(map[string]float64{"Stamina": 10, "Health": 100}),
+		}},
 		{"ArcaneBrilliance", false, false, NewSpellDataArcaneBrillianceAura, auraShape{
 			Label: "Arcane Brilliance (External)", ActionID: external(23028), Tag: "StatBuff", Duration: time.Hour,
 			BuildPhase: core.CharacterBuildPhaseBuffs,

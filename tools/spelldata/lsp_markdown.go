@@ -44,7 +44,9 @@ func familyMarkdown(f *ladderFamily) string {
 	return md.String()
 }
 
-func exprMarkdown(result *exprResult, hover chainHover) string {
+// With links false the rank selector names the current rank only: an editor that cannot run a command
+// link picks another rank through the code actions.
+func exprMarkdown(result *exprResult, hover chainHover, links bool) string {
 	var md strings.Builder
 
 	c := result.card()
@@ -73,30 +75,34 @@ func exprMarkdown(result *exprResult, hover chainHover) string {
 			result.family.ladder.Len(),
 		)
 
-		for rank := int32(1); rank <= int32(result.family.ladder.Len()); rank++ {
-			args, _ := json.Marshal(map[string]any{
-				"parameter": hover.rank.parameter,
-				"function":  hover.rank.function,
-				"rank":      rank,
-			})
+		if !links {
+			md.WriteString("Pick another rank from the code actions.\n\n")
+		} else {
+			for rank := int32(1); rank <= int32(result.family.ladder.Len()); rank++ {
+				args, _ := json.Marshal(map[string]any{
+					"parameter": hover.rank.parameter,
+					"function":  hover.rank.function,
+					"rank":      rank,
+				})
 
-			if rank > 1 {
-				md.WriteString(" ")
+				if rank > 1 {
+					md.WriteString(" ")
+				}
+
+				if rank == selectedRank {
+					fmt.Fprintf(&md, "**[%d]**", rank)
+				} else {
+					fmt.Fprintf(
+						&md,
+						"[%d](command:wowsims-spelldata.changeRank?%s)",
+						rank,
+						url.QueryEscape(string(args)),
+					)
+				}
 			}
 
-			if rank == selectedRank {
-				fmt.Fprintf(&md, "**[%d]**", rank)
-			} else {
-				fmt.Fprintf(
-					&md,
-					"[%d](command:wowsims-spelldata.changeRank?%s)",
-					rank,
-					url.QueryEscape(string(args)),
-				)
-			}
+			md.WriteString("\n\n")
 		}
-
-		md.WriteString("\n\n")
 	}
 
 	// Accessors on a Ladder.Each virtual rank should render only the

@@ -155,6 +155,9 @@ func (mb *manaBar) doneIteration(sim *Simulation) {
 		if resourceMetrics.ActionID.SameActionIgnoreTag(ActionID{OtherID: proto.OtherAction_OtherActionManaRegen}) {
 			continue
 		}
+		if resourceMetrics.NoThreat {
+			continue
+		}
 		if resourceMetrics.ActionID.SameActionIgnoreTag(ActionID{SpellID: 34917}) {
 			// Vampiric Touch mana threat goes to the priest, so it's handled in the priest code.
 			continue

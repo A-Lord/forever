@@ -634,6 +634,8 @@ func (s SimpleCompute) Eval(ctx *TooltipContext) float64 {
 func (s SimpleCompute) String(ctx *TooltipContext) string {
 	right := s.Value.Eval(ctx)
 	ctx.LastEval = right
+	// Signed the same way as a plain spell value: the tooltip writes its own "-" where it wants one.
+	right = math.Abs(right)
 	if s.Op == "/" {
 		return fmt.Sprintf("%.1f", right/float64(s.Num))
 	} else {
@@ -766,6 +768,8 @@ func (s SimpleSpellValue) String(ctx *TooltipContext) string {
 	case "m":
 		fallthrough
 	case "h":
+		fallthrough
+	case "H":
 		fallthrough
 	case "o":
 		fallthrough

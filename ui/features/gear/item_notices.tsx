@@ -1,6 +1,13 @@
 import { Spec } from '@generated/proto/common';
 import { translateAreaType, translateStat } from '@i18n/localization';
-import { MISSING_ENCHANT_EFFECTS, MISSING_ITEM_EFFECTS } from '@sim/constants/missing_effects_auto_gen';
+import {
+	MISSING_ENCHANT_EFFECTS,
+	MISSING_ITEM_EFFECTS,
+	UNVALIDATED_RATE_ENCHANTS,
+	UNVALIDATED_RATE_ITEMS,
+	UNVALIDATED_RATE_SET_BONUSES,
+	type UnvalidatedRate,
+} from '@sim/constants/missing_effects_auto_gen';
 import type { Database } from '@sim/proto/database';
 import type { ReactNode } from 'react';
 
@@ -51,6 +58,30 @@ const TENTATIVE_IMPLEMENTATION_WARNING = (
 
 const WILL_NOT_BE_IMPLEMENTED_WARNING = <>The equip/use effect on this item will not be implemented!</>;
 
+const unvalidatedRateText = ({ kind, origin }: UnvalidatedRate): string => {
+	if (origin === 'unknown') {
+		return `In-game validation needed. Currently using an estimated proc ${kind === 'ppm' ? 'rate' : 'chance'}`;
+	}
+	const version = origin === 'vanilla' ? 'Vanilla' : 'TBC';
+	return `In-game validation needed. Currently using ${kind === 'ppm' ? `${version} PPM values` : `a ${version} proc chance`}`;
+};
+
+// Gear with an unvalidated rate can also miss an effect, so the rate warning joins the notice it already has.
+const addUnvalidatedRateNotices = (notices: Map<number, ItemNoticeData>, rates: Map<number, UnvalidatedRate>) => {
+	for (const [id, rate] of rates) {
+		const notice = notices.get(id);
+		notices.set(id, {
+			...notice,
+			[Spec.SpecUnknown]: (
+				<>
+					{notice?.[Spec.SpecUnknown]}
+					<p className="mb-0">{unvalidatedRateText(rate)}</p>
+				</>
+			),
+		});
+	}
+};
+
 const WILL_NOT_BE_IMPLEMENTED_ITEMS: number[] = [];
 
 const TENTATIVE_IMPLEMENTATION_ITEMS: number[] = [];
@@ -71,16 +102,25 @@ export const ITEM_NOTICES = new Map<number, ItemNoticeData>([
 	...[...MISSING_ITEM_EFFECTS].map(([itemID, tooltips]): [number, ItemNoticeData] => [itemID, missingEffectNotice('item', tooltips)]),
 ]);
 
+addUnvalidatedRateNotices(ITEM_NOTICES, UNVALIDATED_RATE_ITEMS);
+
 export const ENCHANT_NOTICES = new Map<number, ItemNoticeData>(
 	[...MISSING_ENCHANT_EFFECTS].map(([effectID, tooltips]): [number, ItemNoticeData] => [effectID, missingEffectNotice('enchant', tooltips)]),
 );
+
+addUnvalidatedRateNotices(ENCHANT_NOTICES, UNVALIDATED_RATE_ENCHANTS);
 
 export const GENERIC_MISSING_SET_BONUS_NOTICE_DATA = new Map<number, string>([
 	[2, 'Not yet implemented'],
 	[4, 'Not yet implemented'],
 ]);
 
-const SET_BONUS_NOTICES = new Map<number, SetBonusNoticeData>();
+const SET_BONUS_NOTICES = new Map<number, SetBonusNoticeData>(
+	[...UNVALIDATED_RATE_SET_BONUSES].map(([setID, bonuses]): [number, SetBonusNoticeData] => [
+		setID,
+		new Map([...bonuses].map(([pieceCount, rate]) => [pieceCount, unvalidatedRateText(rate)])),
+	]),
+);
 
 export const registerSetBonusNotices = (db: Database) => {
 	SET_BONUS_NOTICES.forEach((value: SetBonusNoticeData, key: number) => {
