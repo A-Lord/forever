@@ -652,9 +652,9 @@ dps_results: {
 dps_results: {
  key: "TestEnhancement-AllItems-RageoftheStorm-280604"
  value: {
-  dps: 695.75391
-  tps: 368.22325
-  dtps: 8.2293
+  dps: 694.29465
+  tps: 367.50821
+  dtps: 8.22874
  }
 }
 dps_results: {

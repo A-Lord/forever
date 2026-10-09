@@ -276,7 +276,7 @@ func TestExclusiveFollowsTheStacks(t *testing.T) {
 	target := buffTestWarrior()
 	before := target.GetStat(stats.Armor)
 
-	row := buffRow(11597, auraEffect(dbcenums.A_MOD_RESISTANCE, miscArmor, -450))
+	row := buffRow(11597, auraEffect(dbcenums.A_MOD_ARMOR_NO_MODS, miscArmor, -450))
 	row.MaxStack = 5
 	aura := target.RegisterAura(AuraConfig(row))
 	ParseEffects(nil, aura, row, Exclusive("MajorArmorReduction", true))
@@ -298,6 +298,41 @@ func TestExclusiveFollowsTheStacks(t *testing.T) {
 
 	aura.Deactivate(sim)
 	if got := target.GetStat(stats.Armor); got != before {
+		t.Errorf("armor after the debuff fell off: %v, want %v", got, before)
+	}
+}
+
+// Under a 10% armor multiplier, each stack of the A_MOD_ARMOR_NO_MODS debuff takes its full 450 off
+// a finalized unit and gives it back on expiry.
+func TestArmorNoModsStacksOutsideThePercentModifier(t *testing.T) {
+	withRows(t, parseRows())
+	sim := &core.Simulation{}
+	target := parseWarrior()
+	target.Env = &core.Environment{}
+	ParseStatic(target, &Spell{ID: 6000, Name: "Armor Rows", ClassFlags: parseFamily, Effects: []Effect{
+		{Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_RESISTANCE, Misc: miscArmor, BasePoints: 1000},
+		{Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_ARMOR_NO_MODS, Misc: miscArmor, BasePoints: 500},
+		{Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_RESISTANCE_PCT, Misc: miscArmor, BasePoints: 10},
+	}})
+
+	row := buffRow(11597, auraEffect(dbcenums.A_MOD_ARMOR_NO_MODS, miscArmor, -450))
+	row.MaxStack = 5
+	aura := target.RegisterAura(AuraConfig(row))
+	ParseEffects(nil, aura, row, Exclusive("MajorArmorReduction", true))
+
+	target.Finalize()
+	target.Env.State = core.Finalized
+	before := target.GetStat(stats.Armor)
+
+	aura.Activate(sim)
+	for stacks := int32(1); stacks <= 2; stacks++ {
+		aura.AddStack(sim)
+		if got, want := target.GetStat(stats.Armor), before-450*float64(stacks); math.Abs(got-want) > 1e-9 {
+			t.Errorf("armor at %d stacks: %v, want %v", stacks, got, want)
+		}
+	}
+	aura.Deactivate(sim)
+	if got := target.GetStat(stats.Armor); math.Abs(got-before) > 1e-9 {
 		t.Errorf("armor after the debuff fell off: %v, want %v", got, before)
 	}
 }
