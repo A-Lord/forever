@@ -76,7 +76,9 @@ type Warlock struct {
 	// Armors
 	DemonArmor *core.Aura
 
-	SoulShardsAura *core.Aura // the Soul Shards left this iteration, as its stacks
+	SoulShardsAura *core.Aura           // the Soul Shards left this iteration, as its stacks
+	reagentAuras   map[int32]*core.Aura // the counted reagents by item id
+	reagentWaivers []reagentWaiver      // the effects that lift the reagents of some spells while up
 
 	petActiveAuras  []*core.Aura // the warlock's effects that last while a demon is out
 	lifeTapPetShare float64      // Demonic Energies: the share of Life Tap's mana the demon gains
