@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"go/format"
+	"io"
 	"iter"
 	"os"
 	"regexp"
@@ -20,6 +21,7 @@ import (
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/tools/database/dbc"
+	"github.com/wowsims/forever/tools/database/overrides"
 	"github.com/wowsims/forever/tools/tooltip"
 )
 
@@ -559,11 +561,41 @@ func jsString(s string) string {
 
 const missingEffectsFileName = "ui/sim/constants/missing_effects_auto_gen.ts"
 
-func GenerateMissingEffectsFile() error {
+type VanillaPPMItem struct {
+	ItemID int32
+	Name   string
+}
+
+// The items in the database whose WeaponProcs rate is a vanilla carry-over, unverified on Forever,
+// once each and in id order.
+func vanillaPPMItems(db *WowDatabase) []VanillaPPMItem {
+	var items []VanillaPPMItem
+	for _, proc := range overrides.WeaponProcs {
+		item, ok := db.Items[proc.ItemID]
+		if proc.Source != "vanilla-carryover" || !ok || slices.ContainsFunc(items, func(listed VanillaPPMItem) bool { return listed.ItemID == proc.ItemID }) {
+			continue
+		}
+		items = append(items, VanillaPPMItem{ItemID: proc.ItemID, Name: item.Name})
+	}
+	sort.Slice(items, func(i, j int) bool { return items[i].ItemID < items[j].ItemID })
+	return items
+}
+
+func GenerateMissingEffectsFile(db *WowDatabase) error {
 	if _, err := os.Stat(missingEffectsFileName); err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("unable to check file %s: %w", missingEffectsFileName, err)
 	}
 
+	f, err := os.Create(missingEffectsFileName)
+	if err != nil {
+		return fmt.Errorf("failed to create file %s: %w", missingEffectsFileName, err)
+	}
+	defer f.Close()
+
+	return renderMissingEffects(f, db)
+}
+
+func renderMissingEffects(w io.Writer, db *WowDatabase) error {
 	funcMap := map[string]any{
 		"asCoreCallback": asCoreCallback,
 		"asCoreProcMask": asCoreProcMask,
@@ -572,13 +604,12 @@ func GenerateMissingEffectsFile() error {
 		"jsString":       jsString,
 	}
 	tmpl := template.Must(template.New("missingEffects").Funcs(funcMap).Parse(TmplStrMissingEffects))
-	f, err := os.Create(missingEffectsFileName)
-	if err != nil {
-		return fmt.Errorf("failed to create file %s: %w", missingEffectsFileName, err)
+	data := map[string]any{
+		"ItemEffects":     missingEffectsMap["ItemEffects"],
+		"EnchantEffects":  missingEffectsMap["EnchantEffects"],
+		"VanillaPPMItems": vanillaPPMItems(db),
 	}
-	defer f.Close()
-
-	if err := tmpl.Execute(f, missingEffectsMap); err != nil {
+	if err := tmpl.Execute(w, data); err != nil {
 		return fmt.Errorf("failed to execute template: %w", err)
 	}
 

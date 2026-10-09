@@ -240,6 +240,8 @@ func init() {
 	// https://www.wowhead.com/forever/item=19287/darkmoon-card-heroism
 	//
 	// Sometimes heals bearer of 120 to 180 damage when damaging an enemy in melee.
+	//
+	// The game files state no rate for 23689; the item's entry carries it.
 	core.NewItemEffect(19287, func(agent core.Agent) {
 		character := agent.GetCharacter()
 		row := spelldata.MustFind(23682)
@@ -258,7 +260,7 @@ func init() {
 
 		trigger := spelldata.ProcTrigger(character, spelldata.MustFind(23689), func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
 			heroism.Cast(sim, &character.Unit)
-		}, spelldata.PPM(darkmoonCardHeroismPPM))
+		}, spelldata.PPM(weaponProcPPM(19287, row.ID)))
 		trigger.Name = "Darkmoon Card: Heroism"
 		trigger.ActionID = core.ActionID{ItemID: 19287}
 		trigger.TriggerImmediately = true
@@ -328,7 +330,6 @@ func init() {
 }
 
 // TODO: The game files state no rate for these procs, and none is measured on Forever.
-const darkmoonCardHeroismPPM = 2 // TODO: Vanilla value - verify in-game
 // const highborneResearchTabletChance = 0 // TODO: waiting for PPM data
 
 // The ranks of the four heals Dormant Heart of the Mountain answers.

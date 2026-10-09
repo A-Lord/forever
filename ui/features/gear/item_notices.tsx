@@ -1,6 +1,6 @@
 import { Spec } from '@generated/proto/common';
 import { translateAreaType, translateStat } from '@i18n/localization';
-import { MISSING_ENCHANT_EFFECTS, MISSING_ITEM_EFFECTS } from '@sim/constants/missing_effects_auto_gen';
+import { MISSING_ENCHANT_EFFECTS, MISSING_ITEM_EFFECTS, VANILLA_PPM_ITEMS } from '@sim/constants/missing_effects_auto_gen';
 import type { Database } from '@sim/proto/database';
 import type { ReactNode } from 'react';
 
@@ -51,6 +51,8 @@ const TENTATIVE_IMPLEMENTATION_WARNING = (
 
 const WILL_NOT_BE_IMPLEMENTED_WARNING = <>The equip/use effect on this item will not be implemented!</>;
 
+const VANILLA_PPM_WARNING = <p className="mb-0">In-game validation needed. Currently using Vanilla PPM values</p>;
+
 const WILL_NOT_BE_IMPLEMENTED_ITEMS: number[] = [];
 
 const TENTATIVE_IMPLEMENTATION_ITEMS: number[] = [];
@@ -70,6 +72,20 @@ export const ITEM_NOTICES = new Map<number, ItemNoticeData>([
 	]),
 	...[...MISSING_ITEM_EFFECTS].map(([itemID, tooltips]): [number, ItemNoticeData] => [itemID, missingEffectNotice('item', tooltips)]),
 ]);
+
+// An item with a vanilla rate can also miss an effect, so the rate warning joins the notice it already has.
+for (const itemID of VANILLA_PPM_ITEMS) {
+	const notice = ITEM_NOTICES.get(itemID);
+	ITEM_NOTICES.set(itemID, {
+		...notice,
+		[Spec.SpecUnknown]: (
+			<>
+				{notice?.[Spec.SpecUnknown]}
+				{VANILLA_PPM_WARNING}
+			</>
+		),
+	});
+}
 
 export const ENCHANT_NOTICES = new Map<number, ItemNoticeData>(
 	[...MISSING_ENCHANT_EFFECTS].map(([effectID, tooltips]): [number, ItemNoticeData] => [effectID, missingEffectNotice('enchant', tooltips)]),

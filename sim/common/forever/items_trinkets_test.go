@@ -356,9 +356,9 @@ func TestEverlookDeliveryBotDeliversAfterItsCount(t *testing.T) {
 	}
 }
 
-// Darkmoon Card: Heroism 19287's 23689 procs on the wearer's melee hits, and not on its spells, at a
-// rate per minute: the chance on a swing scales with the weapon's speed. It heals the wearer through
-// 23682 for that row's roll.
+// Darkmoon Card: Heroism 19287's 23689 procs on the wearer's melee hits, and not on its spells, at the
+// procs per minute of the item's entry: the chance on a swing scales with the weapon's speed. It heals
+// the wearer through 23682 for that row's roll.
 func TestDarkmoonCardHeroismHealsOnMeleeHits(t *testing.T) {
 	procOf := func(character *core.Character) *core.Aura {
 		t.Helper()
@@ -371,8 +371,8 @@ func TestDarkmoonCardHeroismHealsOnMeleeHits(t *testing.T) {
 	sim, character := trinketWarrior(t, 19287)
 	proc := procOf(character)
 	chance, speed := proc.Dpm.Chance(core.ProcMaskMeleeMHAuto, sim), character.AutoAttacks.MH().SwingSpeed
-	if chance <= 0 || chance >= 1 {
-		t.Errorf("the heal's chance on a main hand swing is %v, want a chance between none and certain", chance)
+	if want := itemEntryPPM(t, 19287, 23682) * speed / 60; want <= 0 || want >= 1 || math.Abs(chance-want) > 1e-9 {
+		t.Errorf("the heal's chance on a main hand swing is %v, want the entry's procs per minute on the swing's speed, %v", chance, want)
 	}
 	// Ravager 7717 is only a weapon of another speed here.
 	armedSim, armed := trinketWarriorWielding(t, 19287, 7717)

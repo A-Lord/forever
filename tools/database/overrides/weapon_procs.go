@@ -1,6 +1,6 @@
 package overrides
 
-// A chance-on-hit weapon's procs per minute, which the game files keep outside the spell data: the
+// A chance-on-hit item's procs per minute, which the game files keep outside the spell data: the
 // spell's ProcChance column reads the 100 or 101 sentinel, or the spell has no proc row at all. The
 // rate is the weapon's rather than the spell's, since two weapons can share a trigger spell at
 // different rates, so it goes onto the item effect. Reason and Source weigh the same as an
@@ -478,6 +478,13 @@ var WeaponProcs = []WeaponProc{
 		SpellID: 23592,
 		PPM:     1.4, // TODO: Vanilla value - verify in-game
 		Reason:  "Electrified Dagger: no proc row",
+		Source:  "vanilla-carryover",
+	},
+	{
+		ItemID:  19287,
+		SpellID: 23689,
+		PPM:     2, // TODO: Vanilla value - verify in-game
+		Reason:  "Darkmoon Card: Heroism: column reads 100",
 		Source:  "vanilla-carryover",
 	},
 	// TODO: waiting for PPM data. The rows below stay commented out until a rate is known.

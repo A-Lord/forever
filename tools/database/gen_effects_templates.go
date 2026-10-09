@@ -378,4 +378,10 @@ export const MISSING_ENCHANT_EFFECTS = new Map<number, string[]>([
 	],
 {{- end }}
 ])
+
+export const VANILLA_PPM_ITEMS: number[] = [
+{{- range .VanillaPPMItems }}
+	{{.ItemID}}, // {{ .Name }}
+{{- end }}
+]
 `

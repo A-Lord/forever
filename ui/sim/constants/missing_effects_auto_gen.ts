@@ -2319,3 +2319,71 @@ export const MISSING_ENCHANT_EFFECTS = new Map<number, string[]>([
 		]
 	],
 ])
+
+export const VANILLA_PPM_ITEMS: number[] = [
+	754, // Shortsword of Vengeance
+	810, // Hammer of the Northern Wind
+	870, // Fiery War Axe
+	871, // Flurry Axe
+	880, // Staff of Horrors
+	899, // Venom Web Fang
+	937, // Black Duskwood Staff
+	1481, // Grimclaw
+	1726, // Poison-tipped Bone Spear
+	1728, // Teebu's Blazing Longsword
+	1982, // Nightblade
+	2000, // Archeus
+	2164, // Gut Ripper
+	2243, // Hand of Edward the Odd
+	2256, // Skeletal Club
+	2825, // Bow of Searing Arrows
+	2912, // Claw of the Shadowmancer
+	2942, // Iron Knuckles
+	3336, // Flesh Piercer
+	4090, // Mug O' Hurt
+	5182, // Shiver Blade
+	6220, // Meteor Shard
+	6472, // Stinging Viper
+	6622, // Sword of Zeal
+	6660, // Julie's Dagger
+	6904, // Bite of Serra'kis
+	7717, // Ravager
+	7730, // Cobalt Crusher
+	7961, // Phantom Blade
+	8190, // Hanzo Sword
+	9453, // Toxic Revenger
+	9651, // Gryphon Rider's Stormhammer
+	11902, // Linken's Sword of Mastery
+	12777, // Blazing Rapier
+	12790, // Arcanite Champion
+	12792, // Volcanic Hammer
+	12794, // Masterwork Stormhammer
+	12795, // Blood Talon
+	12797, // Frostguard
+	12974, // The Black Knight
+	12992, // Searing Blade
+	13016, // Killmaim
+	13032, // Sword of Corruption
+	13035, // Serpent Slicer
+	13040, // Heartseeking Crossbow
+	13051, // Witchfury
+	13053, // Doombringer
+	13054, // Grim Reaper
+	13060, // The Needler
+	15814, // Hameya's Slayer
+	17073, // Earthshaker
+	17182, // Sulfuras, Hand of Ragnaros
+	17193, // Sulfuron Hammer
+	17223, // Thunderstrike
+	17704, // Edge of Winter
+	17705, // Thrash Blade
+	19019, // Thunderfury, Blessed Blade of the Windseeker
+	19099, // Glacial Blade
+	19100, // Electrified Dagger
+	19169, // Nightfall
+	19170, // Ebon Hand
+	19287, // Darkmoon Card: Heroism
+	19323, // The Unstoppable Force
+	19324, // The Lobotomizer
+	21134, // Dark Edge of Insanity
+]

@@ -14,11 +14,19 @@ vi.mock('@i18n/localization', () => ({
 vi.mock('@sim/constants/missing_effects_auto_gen', () => ({
 	MISSING_ITEM_EFFECTS: new Map([[1, ['Does a thing.']]]),
 	MISSING_ENCHANT_EFFECTS: new Map([[2, ['Enchants a thing.']]]),
+	VANILLA_PPM_ITEMS: [1, 3],
 }));
+
+const VANILLA_PPM_WARNING = 'In-game validation needed. Currently using Vanilla PPM values';
 
 const notice = (node: ReactNode) => {
 	const { container } = render(<>{node}</>);
 	return { heading: container.querySelector('p')?.textContent, items: [...container.querySelectorAll('li')].map(item => item.textContent) };
+};
+
+const paragraphs = (node: ReactNode) => {
+	const { container } = render(<>{node}</>);
+	return [...container.querySelectorAll('p')].map(paragraph => paragraph.textContent);
 };
 
 describe('the item notice table', () => {
@@ -30,6 +38,17 @@ describe('the item notice table', () => {
 			heading: `The following ${kind} effect (on-use or proc) is not implemented!`,
 			items: [tooltip],
 		});
+	});
+
+	it('warns that a vanilla rate needs validating on an item with no other notice', () => {
+		expect(paragraphs(ITEM_NOTICES.get(3)?.[Spec.SpecUnknown])).toEqual([VANILLA_PPM_WARNING]);
+	});
+
+	it('keeps the missing effect notice of an item with a vanilla rate and adds the rate warning after it', () => {
+		expect(paragraphs(ITEM_NOTICES.get(1)?.[Spec.SpecUnknown])).toEqual([
+			'The following item effect (on-use or proc) is not implemented!',
+			VANILLA_PPM_WARNING,
+		]);
 	});
 });
 
