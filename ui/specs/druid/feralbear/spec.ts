@@ -83,9 +83,10 @@ export default defineSpec<Spec.SpecFeralBearDruid>({
 		other: Presets.OtherDefaults,
 		consumables: Presets.DefaultConsumables,
 		rotationType: APLRotationType.TypeAuto,
-		// Feral Instinct raises only Swipe, so its points are in Blood Frenzy and Shredding Attacks.
+		// Nature's Reach (melee hit) and Nature's Majesty (melee crit) are worth more to the bear than Furor and
+		// Naturalist. Feral Instinct raises only Swipe, which the single-target APL does not cast.
 		talents: SavedTalents.create({
-			talentsString: '0000000000000000-55200312120132012551-0550000000000000',
+			talentsString: '0500220000000000-55200322120132012551-0000000000000000',
 		}),
 		specOptions: Presets.DefaultOptions,
 		raidBuffs: RaidBuffs.create({

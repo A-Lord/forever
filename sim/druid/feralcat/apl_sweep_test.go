@@ -272,7 +272,7 @@ func weaveAPL(tune weaveTune) *proto.APLRotation {
 		}
 		bear = append(bear, cancelAuraWhen(spellDireBear, and(leaveNow...)))
 	}
-	window := []*proto.APLValue{inCat,
+	window := []*proto.APLValue{spellKnown(spellPrimalBite), inCat,
 		cmp(proto.APLValueCompare_OpLe, currentEnergy(), konst(strconv.Itoa(tune.energyMax))),
 		spellReady(spellPrimalBite),
 		not(auraUp(spellClear)),

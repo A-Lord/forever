@@ -76,8 +76,8 @@ func fillResource(sim *core.Simulation, cat *FeralDruid) {
 // Ferocity 5/5 and Shredding Attacks 3/3: tooltips 16934 ("5 Rage or Energy") and 16966 ("Shred by 18",
 // "Lacerate by 3").
 func TestFeralCostTalentsLowerEnergyAndRageInTheirOwnUnits(t *testing.T) {
-	_, base := newCat(t, "", nil)
-	_, talented := newCat(t, "0000000000000000-50000030000000000000-0000000000000000", nil)
+	_, base := newCat(t, "0000000000000000-00000000000100000000-0000000000000000", nil)
+	_, talented := newCat(t, "0000000000000000-50000030000100000000-0000000000000000", nil)
 	for _, c := range []struct {
 		name       string
 		base, with *druid.DruidSpell

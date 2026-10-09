@@ -13,6 +13,12 @@ func spellReady(id int32) *proto.APLValue {
 	}}}
 }
 
+func spellKnown(id int32) *proto.APLValue {
+	return &proto.APLValue{Value: &proto.APLValue_SpellIsKnown{SpellIsKnown: &proto.APLValueSpellIsKnown{
+		SpellId: &proto.ActionID{RawId: &proto.ActionID_SpellId{SpellId: id}},
+	}}}
+}
+
 func currentEnergy() *proto.APLValue {
 	return &proto.APLValue{Value: &proto.APLValue_CurrentEnergy{CurrentEnergy: &proto.APLValueCurrentEnergy{}}}
 }

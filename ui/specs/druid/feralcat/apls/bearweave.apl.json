@@ -2109,6 +2109,13 @@
 					"and": {
 						"vals": [
 							{
+								"spellIsKnown": {
+									"spellId": {
+										"spellId": 1238073
+									}
+								}
+							},
+							{
 								"auraIsActive": {
 									"auraId": {
 										"spellId": 768
