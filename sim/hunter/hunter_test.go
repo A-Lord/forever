@@ -2,6 +2,7 @@ package hunter
 
 import (
 	"maps"
+	"math"
 	"slices"
 	"strings"
 
@@ -41,7 +42,7 @@ func TestHunter(t *testing.T) {
 			},
 			Consumables:      DefaultConsumables,
 			SpecOptions:      core.SpecOptionsCombo{Label: "Default", SpecOptions: DefaultOptions},
-			StartingDistance: 8,
+			StartingDistance: 11,
 			Profession1:      proto.Profession_Engineering,
 			Profession2:      proto.Profession_Blacksmithing,
 
@@ -104,7 +105,7 @@ func TestHunterPets(t *testing.T) {
 			Consumables:      DefaultConsumables,
 			SpecOptions:      families[0],
 			OtherSpecOptions: families[1:],
-			StartingDistance: 8,
+			StartingDistance: 11,
 			Rotation:         turretRotation,
 			ItemFilter:       core.ItemFilter{ArmorType: proto.ArmorType_ArmorTypeMail},
 		},
@@ -293,6 +294,68 @@ func TestTheHuntersOwnMarkCarriesTheMarkTag(t *testing.T) {
 	}
 	if got, want := target.PseudoStats.BonusRangedAttackPower, buffs.HuntersMarkValue(0); got != want {
 		t.Errorf("the mark gives attackers %v ranged attack power, want %v", got, want)
+	}
+}
+
+// Lacerating Strikes refreshes the way Deep Wounds does: a bite while the bleed is up adds the unticked
+// damage to the new bleed and keeps the first bite's tick timer.
+func TestLaceratingStrikesRollsItsUntickedDamageIntoTheNextBite(t *testing.T) {
+	player := &proto.Player{
+		Name:          "Lacerate",
+		Race:          proto.Race_RaceOrc,
+		Class:         proto.Class_ClassHunter,
+		Equipment:     &proto.EquipmentSpec{},
+		TalentsString: DefaultSVTalents,
+		Spec:          DefaultOptions,
+		Rotation:      &proto.APLRotation{},
+	}
+	sim := core.NewSim(&proto.RaidSimRequest{
+		Raid:       core.SinglePlayerRaidProto(player, &proto.PartyBuffs{}, &proto.RaidBuffs{}, &proto.Debuffs{}),
+		Encounter:  core.MakeSingleTargetEncounter(0),
+		SimOptions: &proto.SimOptions{RandomSeed: 1},
+	}, simsignals.CreateSignals())
+	sim.Reset()
+	hunter := sim.Raid.Parties[0].Players[0].(*Hunter)
+	target := sim.Encounter.AllTargetUnits[0]
+
+	trigger := hunter.GetAura("Lacerating Strikes - Trigger")
+	bite := hunter.GetSpell(core.ActionID{SpellID: mongooseBiteRank.ID})
+	if trigger == nil || bite == nil {
+		t.Fatal("the SV hunter has no Lacerating Strikes or no Mongoose Bite")
+	}
+	bleed := hunter.GetSpell(core.ActionID{SpellID: laceratingStrikesBleed.ID}).Dot(target)
+	share := spellData.LaceratingStrikes.FractionAt(1)
+
+	stepUntil := func(what string, done func() bool) {
+		for range 1000 {
+			if done() {
+				return
+			}
+			sim.Step()
+		}
+		t.Fatalf("the sim never reached %s", what)
+	}
+	landBite := func(damage float64) {
+		before := bleed.OutstandingDmg()
+		trigger.OnSpellHitDealt(trigger, sim, bite, &core.SpellResult{Target: target, Outcome: core.OutcomeHit, Damage: damage})
+		stepUntil("the bite's bleed", func() bool { return bleed.OutstandingDmg() != before })
+	}
+
+	landBite(700)
+	ticks := bleed.RemainingTicks()
+	stepUntil("the first tick", func() bool { return bleed.RemainingTicks() < ticks })
+	owed := bleed.OutstandingDmg()
+	nextTick := bleed.NextTickAt()
+
+	landBite(700)
+	if got, want := bleed.OutstandingDmg(), owed+700*share; math.Abs(got-want) > 1e-6 {
+		t.Errorf("a second bite left %v owed on the bleed, want the %v unticked plus %v", got, owed, 700*share)
+	}
+	if got := bleed.RemainingTicks(); got != ticks {
+		t.Errorf("a second bite left %d ticks on the bleed, want a full %d", got, ticks)
+	}
+	if got := bleed.NextTickAt(); got != nextTick {
+		t.Errorf("a second bite moved the next tick to %v, want it kept at %v", got, nextTick)
 	}
 }
 

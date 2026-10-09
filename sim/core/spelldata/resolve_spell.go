@@ -82,6 +82,11 @@ func SpellConfig(unit *core.Unit, s *Spell, opts ...SpellOpt) core.SpellConfig {
 		CastRequirement: s.CastRequirement(),
 	}
 	applyCost(&config, s)
+	// Forever moves the minimum range of a bow, gun or crossbow shot from the 8 yd the row states to
+	// core.MinRangedRange.
+	if s.MinRange != 0 && s.EquipClass == dbcenums.ITEM_CLASS_WEAPON && s.EquipSubclass&(dbcenums.ITEM_SUBCLASS_BIT_WEAPON_BOW|dbcenums.ITEM_SUBCLASS_BIT_WEAPON_GUNS|dbcenums.ITEM_SUBCLASS_BIT_WEAPON_CROSSBOW) != 0 {
+		config.MinRange = core.MinRangedRange
+	}
 	if threat := s.firstOfType(dbcenums.E_THREAT, dbcenums.E_THREAT_ALL); threat != NilEffect {
 		config.FlatThreatBonus = threat.Average()
 		config.ThreatAPCoefficient = threat.APCoeff()
