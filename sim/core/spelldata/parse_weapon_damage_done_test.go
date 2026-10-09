@@ -34,21 +34,21 @@ func physicalMultiplier(character *core.Character) float64 {
 	return character.PseudoStats.SchoolDamageDealtMultiplier[stats.SchoolIndexPhysical]
 }
 
-// One-Handed Weapon Specialization 20196 at 3/3 gives 10% and Two-Handed Weapon Specialization 20111
-// at 3/3 gives 6%, on Physical and on the melee-defense Holy spells such as the Seal of Righteousness
-// hit, and nothing on a magic-defense Holy spell such as Consecration. A physical spell takes it through
-// the school multiplier alone.
+// One-Handed Weapon Specialization 20196 and Two-Handed Weapon Specialization 20111 at 3/3 give their
+// percent on Physical and on the melee-defense Holy spells such as the Seal of Righteousness hit, and
+// nothing on a magic-defense Holy spell such as Consecration. A physical spell takes it through the
+// school multiplier alone.
 func TestWeaponSpecializationsReachMeleeDefenseHolySpells(t *testing.T) {
 	defer generatedStore()()
 
 	for _, tc := range []struct {
 		row  *Spell
 		hand proto.HandType
-		want float64
 	}{
-		{Talent(20196, 3).Rank(3), proto.HandType_HandTypeOneHand, 1.10},
-		{Talent(20111, 3).Rank(3), proto.HandType_HandTypeTwoHand, 1.06},
+		{Talent(20196, 3).Rank(3), proto.HandType_HandTypeOneHand},
+		{Talent(20111, 3).Rank(3), proto.HandType_HandTypeTwoHand},
 	} {
+		want := 1 + tc.row.EffectN(1).Percent()
 		character := swordWarrior(tc.hand)
 		holyMelee := defenseSpell(character, 1, core.SpellSchoolHoly, core.DefenseTypeMelee)
 		holyMagic := defenseSpell(character, 2, core.SpellSchoolHoly, core.DefenseTypeMagic)
@@ -56,8 +56,8 @@ func TestWeaponSpecializationsReachMeleeDefenseHolySpells(t *testing.T) {
 
 		ParseStatic(character, tc.row)
 
-		if got := holyMelee.DamageMultiplier; math.Abs(got-tc.want) > 1e-9 {
-			t.Errorf("%s: a melee-defense holy spell: %v, want %v", tc.row.Name, got, tc.want)
+		if got := holyMelee.DamageMultiplier; math.Abs(got-want) > 1e-9 {
+			t.Errorf("%s: a melee-defense holy spell: %v, want %v", tc.row.Name, got, want)
 		}
 		if got := holyMagic.DamageMultiplier; got != 1 {
 			t.Errorf("%s: a magic-defense holy spell: %v, want 1", tc.row.Name, got)
@@ -65,8 +65,8 @@ func TestWeaponSpecializationsReachMeleeDefenseHolySpells(t *testing.T) {
 		if got := physical.DamageMultiplier; got != 1 {
 			t.Errorf("%s: a physical spell's own multiplier: %v, want 1", tc.row.Name, got)
 		}
-		if got := physicalMultiplier(character); math.Abs(got-tc.want) > 1e-9 {
-			t.Errorf("%s: the physical school multiplier: %v, want %v", tc.row.Name, got, tc.want)
+		if got := physicalMultiplier(character); math.Abs(got-want) > 1e-9 {
+			t.Errorf("%s: the physical school multiplier: %v, want %v", tc.row.Name, got, want)
 		}
 	}
 }
@@ -159,14 +159,16 @@ func TestRangedWeaponDamageDoneRowIsARangedMod(t *testing.T) {
 func TestWeaponDamageDoneRowReportsItsMeleeDefensePart(t *testing.T) {
 	defer generatedStore()()
 
-	applied := DryRun(Talent(20196, 3).Rank(3)).Applied
+	row := Talent(20196, 3).Rank(3)
+	applied := DryRun(row).Applied
 	if len(applied) != 2 {
 		t.Fatalf("applied %+v, want the school multiplier and the melee-defense part", applied)
 	}
+	part := row.EffectN(1).Percent()
 	for i, want := range []struct {
 		kind  string
 		value float64
-	}{{"damage-dealt-by-school", 1.1}, {"damage-dealt-melee", 0.1}} {
+	}{{"damage-dealt-by-school", 1 + part}, {"damage-dealt-melee", part}} {
 		if applied[i].Kind != want.kind || math.Abs(applied[i].Value-want.value) > 1e-9 {
 			t.Errorf("applied[%d] = %s %v, want %s %v", i, applied[i].Kind, applied[i].Value, want.kind, want.value)
 		}

@@ -11,6 +11,7 @@ import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/simsignals"
+	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
 const revelationEnchant = 8217
@@ -173,8 +174,8 @@ func revelationWearer(t *testing.T, class proto.Class, spec any) (*core.Simulati
 }
 
 // Enchant Weapon - Revelation 8217 gives a druid its class's buff 1323400 on a direct spell that lands
-// without a crit: one charge of +100% crit for 15 s on the spells its mask names, spent by the next of
-// them and not by a spell outside the mask. A warrior has no Revelation buff.
+// without a crit: a charge of crit for the row's duration on the spells its mask names, spent by the
+// next of them and not by a spell outside the mask. A warrior has no Revelation buff.
 func TestRevelationGrantsTheWearersClassBuff(t *testing.T) {
 	sim, character := revelationWearer(t, proto.Class_ClassDruid, &proto.Player_BalanceDruid{BalanceDruid: &proto.BalanceDruid{}})
 	druid := sim.Raid.Parties[0].Players[0].(*testDruid)
@@ -184,8 +185,9 @@ func TestRevelationGrantsTheWearersClassBuff(t *testing.T) {
 	if buff == nil {
 		t.Fatal("no Revelation buff 1323400 on the druid")
 	}
-	if buff.Duration != 15*time.Second || buff.MaxStacks != 1 {
-		t.Errorf("buff lasts %v with %d charges, want 15s and 1", buff.Duration, buff.MaxStacks)
+	row := spelldata.MustFind(1323400)
+	if buff.Duration != row.Duration() || buff.MaxStacks != int32(row.ProcCharges) {
+		t.Errorf("buff lasts %v with %d charges, want 1323400's %v and %d", buff.Duration, buff.MaxStacks, row.Duration(), row.ProcCharges)
 	}
 
 	// A proc's handler runs one spell batch window after the hit, so each cast is followed by a step.
