@@ -65,28 +65,46 @@ type aplTune struct {
 	rakeCut string
 }
 
+// aplVars holds the named conditions of a list, which the APL editor shows as variables so a reader
+// sees "Rip now" rather than the comparisons behind it.
+type aplVars struct {
+	list []*proto.APLValueVariable
+}
+
+// def names value and returns a reference to it; a nil value stays nil.
+func (v *aplVars) def(name string, value *proto.APLValue) *proto.APLValue {
+	if value == nil {
+		return nil
+	}
+	v.list = append(v.list, &proto.APLValueVariable{Name: name, Value: value})
+	return &proto.APLValue{Value: &proto.APLValue_VariableRef{VariableRef: &proto.APLValueVariableRef{Name: name}}}
+}
+
 func catAPL(tune aplTune) *proto.APLRotation {
 	if tune.ceiling == 0 {
 		tune.ceiling = 50
 	}
+	vars := &aplVars{}
 	inCat := auraUp(spellCatForm)
 	clearcasting := auraUp(spellClear)
 	ripUp := dotUp(spellRip)
 	rakeUp := dotUp(spellRake)
 	cp5 := cmp(proto.APLValueCompare_OpGe, comboPoints(), konst("5"))
-	fightLong := cmp(proto.APLValueCompare_OpGe, remainingTime(), konst("10s"))
-	ripNow := and(cp5, not(ripUp), fightLong, spellCanCast(spellRip))
+	// Long enough for a new Rip to tick out.
+	fightLong := vars.def("Rip has time", cmp(proto.APLValueCompare_OpGe, remainingTime(), konst("10s")))
+	ripNow := vars.def("Rip now", and(cp5, not(ripUp), fightLong, spellCanCast(spellRip)))
 	rakeNow := and(not(rakeUp), spellCanCast(spellRake))
 	if tune.rakeCut != "" {
 		rakeNow = and(rakeNow, cmp(proto.APLValueCompare_OpGe, remainingTime(), konst(tune.rakeCut)))
 	}
+	rakeNow = vars.def("Rake now", rakeNow)
 	energyLow := func(ceiling int) *proto.APLValue {
 		return cmp(proto.APLValueCompare_OpLt, currentEnergy(), konst(strconv.Itoa(ceiling)))
 	}
 	// 100 - 40 energy - 10 regen over the 1s GCD. Clearcasting keeps filling through a second GCD,
 	// so its ceiling is another 10 lower.
 	underCap := or(and(clearcasting, energyLow(tune.ceiling-10)), and(not(clearcasting), energyLow(tune.ceiling)))
-	wantShift := and(spellCanCast(spellSP), underCap)
+	wantShift := vars.def("Shifting Power now", and(spellCanCast(spellSP), underCap))
 	// A builder would leave the refresh short: energy - Shred + 10 regen < Rip.
 	afterBuilder := mathOp(proto.APLValueMath_OpAdd, mathOp(proto.APLValueMath_OpSub, currentEnergy(), spellCost(spellShred)), konst("10"))
 	if tune.ripPool == "" {
@@ -102,6 +120,7 @@ func catAPL(tune aplTune) *proto.APLRotation {
 			cmp(proto.APLValueCompare_OpLe, dotLeft(spellRake), konst(tune.rakePool)),
 			cmp(proto.APLValueCompare_OpLt, afterBuilder, spellCost(spellRake))))
 	}
+	pooling = vars.def("Pool for a refresh", pooling)
 	// Berserk is a major cooldown, so a plain cast waits for a GCD that is already idle while the
 	// builder queues into the window and takes that GCD. A sequence casts it with the spell.
 	// The sapper line sits above these, so a throw and the Cat Form after it always go first.
@@ -115,6 +134,7 @@ func catAPL(tune aplTune) *proto.APLRotation {
 	case "builder":
 		elune = and(elune, or(spellCanCast(spellShred), spellCanCast(spellRake)))
 	}
+	elune = vars.def("Elune's Light now", elune)
 	// Faerie Fire only while nothing the rotation wants is affordable before its GCD ends.
 	regenEnergy := mathOp(proto.APLValueMath_OpAdd, currentEnergy(), konst("10"))
 	below := func(cost *proto.APLValue) *proto.APLValue {
@@ -131,6 +151,7 @@ func catAPL(tune aplTune) *proto.APLRotation {
 	if tune.omenMax != "" {
 		omenFish = and(omenFish, cmp(proto.APLValueCompare_OpLt, currentEnergy(), konst(tune.omenMax)))
 	}
+	omenFish = vars.def("Faerie Fire for Omen", omenFish)
 
 	list := []*proto.APLListItem{
 		castItem(itemSapper),
@@ -161,7 +182,7 @@ func catAPL(tune aplTune) *proto.APLRotation {
 				cmp(proto.APLValueCompare_OpLt, remainingTime(), konst(tune.biteLow))))
 		}
 		// Ahead of Shifting Power and Shred.
-		list = append(list[:10], append([]*proto.APLListItem{castWhen(spellBite, or(bite...))}, list[10:]...)...)
+		list = append(list[:10], append([]*proto.APLListItem{castWhen(spellBite, vars.def("Bite at the end", or(bite...)))}, list[10:]...)...)
 	}
 	if tune.spFirst {
 		// Rip, Rake, Shifting Power become Shifting Power, Rip, Rake.
@@ -177,9 +198,10 @@ func catAPL(tune aplTune) *proto.APLRotation {
 	if tune.innervate {
 		// Innervate is not castable in Cat Form. Out of form it goes first; in cat, the form is
 		// cancelled on a free GCD with nothing to spend energy on, then Cat Form follows.
-		out := []*proto.APLListItem{list[0], castWhen(spellInnervate, and(not(inCat), not(auraUp(spellDireBear)), manaShort(), spellCanCast(spellInnervate)))}
+		short := vars.def("Mana short", manaShort())
+		out := []*proto.APLListItem{list[0], castWhen(spellInnervate, and(not(inCat), not(auraUp(spellDireBear)), short, spellCanCast(spellInnervate)))}
 		out = append(out, list[1:]...)
-		leave := cancelAuraWhen(spellCatForm, and(inCat, spellReady(spellInnervate), manaShort(),
+		leave := cancelAuraWhen(spellCatForm, and(inCat, spellReady(spellInnervate), short,
 			cmp(proto.APLValueCompare_OpLe, gcdLeft(), konst("0s")),
 			cmp(proto.APLValueCompare_OpLe, currentEnergy(), konst("30")),
 			not(clearcasting), not(auraUp(spellBerserk)),
@@ -190,7 +212,7 @@ func catAPL(tune aplTune) *proto.APLRotation {
 			list = append(out, leave)
 		}
 	}
-	return &proto.APLRotation{Type: proto.APLRotation_TypeAPL, PriorityList: list}
+	return &proto.APLRotation{Type: proto.APLRotation_TypeAPL, PriorityList: list, ValueVariables: vars.list}
 }
 
 // Innervate's 20s of five times the spirit regen, which goes on in the five-second rule, is about
@@ -243,6 +265,7 @@ func bearweaveAPL() *proto.APLRotation {
 
 func weaveAPL(tune weaveTune) *proto.APLRotation {
 	rot := catAPL(bestCatAPL)
+	vars := &aplVars{list: rot.ValueVariables}
 	inCat := auraUp(spellCatForm)
 	inBear := auraUp(spellDireBear)
 	list := rot.PriorityList
@@ -270,7 +293,7 @@ func weaveAPL(tune weaveTune) *proto.APLRotation {
 				cmp(proto.APLValueCompare_OpGe, currentRage(), konst("10")))
 			leaveNow = append(leaveNow, not(swingFirst))
 		}
-		bear = append(bear, cancelAuraWhen(spellDireBear, and(leaveNow...)))
+		bear = append(bear, cancelAuraWhen(spellDireBear, vars.def("Leave bear now", and(leaveNow...))))
 	}
 	window := []*proto.APLValue{spellKnown(spellPrimalBite), inCat,
 		cmp(proto.APLValueCompare_OpLe, currentEnergy(), konst(strconv.Itoa(tune.energyMax))),
@@ -286,13 +309,14 @@ func weaveAPL(tune weaveTune) *proto.APLRotation {
 	spare := mathOp(proto.APLValueMath_OpSub, currentMana(), trip)
 	window = append(window, cmp(proto.APLValueCompare_OpGe, spare,
 		mathOp(proto.APLValueMath_OpMul, remainingTime(), konst(strconv.Itoa(tune.manaPerSecond)))))
-	enter := castWhen(spellDireBear, and(window...))
+	enter := castWhen(spellDireBear, vars.def("Bear trip now", and(window...)))
 
 	out := append([]*proto.APLListItem{}, list[:3]...)
 	out = append(out, bear...)
 	out = append(out, list[3:len(list)-1]...)
 	out = append(out, enter, list[len(list)-1])
 	rot.PriorityList = out
+	rot.ValueVariables = vars.list
 	return rot
 }
 
