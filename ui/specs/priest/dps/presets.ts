@@ -8,16 +8,16 @@ import { SavedTalents } from '@generated/proto/ui';
 import DefaultApl from './apls/default.apl.json';
 import SmiteApl from './apls/smite.apl.json';
 import PreraidGearJson from './gear_sets/preraid.gear.json';
-import PreraidSmiteGear from './gear_sets/preraid-smite.gear.json'
+import PreraidSmiteGear from './gear_sets/preraid-smite.gear.json';
 
 export const ROTATION_PRESET_DEFAULT = PresetUtils.makePresetAPLRotation('Default', DefaultApl);
-export const ROTATION_SMITE_DEFAULT = PresetUtils.makePresetAPLRotation('Smite', SmiteApl)
+export const ROTATION_SMITE_DEFAULT = PresetUtils.makePresetAPLRotation('Smite', SmiteApl);
 
 export const PreraidGear = PresetUtils.makePresetGear('Pre-raid', PreraidGearJson);
-export const PreraidSmite = PresetUtils.makePresetGear('Smite Pre-raid', PreraidSmiteGear)
+export const PreraidSmite = PresetUtils.makePresetGear('Smite Pre-raid', PreraidSmiteGear);
 
 export const StandardTalents = PresetUtils.makePresetTalents('Standard', SavedTalents.create({ talentsString: '005300211303--500320501201312251' }));
-export const SmiteTalents = PresetUtils.makePresetTalents('Smite', SavedTalents.create({ talentsString: '525230031305001001-30515100002-3' }))
+export const SmiteTalents = PresetUtils.makePresetTalents('Smite', SavedTalents.create({ talentsString: '525230031305001001-30515100002-3' }));
 
 export const DefaultOptions = Options.create({
 	classOptions: {

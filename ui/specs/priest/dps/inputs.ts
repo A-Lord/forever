@@ -14,4 +14,3 @@ export const ShadowformInput = <SpecType extends PriestSpecs>() =>
 		storeField: ['specOptions', 'talentsString'] as const,
 		showWhen: player => player.getTalents().shadowform,
 	});
-
