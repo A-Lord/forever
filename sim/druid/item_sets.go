@@ -230,10 +230,7 @@ var ItemSetGenesisRaiment = core.NewItemSet(core.ItemSet{
 	ID:    493,
 	Slots: eightPieceSlots,
 	Bonuses: map[int32]core.ApplySetBonus{
-		3: func(agent core.Agent, aura *core.Aura) {
-			parsedSetBonus(spelldata.MustFind(15693))(agent, aura)
-			aura.AttachStatBuff(stats.DefenseRating, spelldata.MustFind(18196).EffectN(1).BaseValue()*core.DefenseRatingPerDefenseLevel)
-		},
+		3: parsedSetBonus(spelldata.MustFind(15693), spelldata.MustFind(18196)),
 		5: parsedSetBonus(spelldata.MustFind(26106)),
 	},
 })
