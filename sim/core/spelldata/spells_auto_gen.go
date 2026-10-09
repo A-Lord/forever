@@ -528,7 +528,7 @@ var generatedSpells = []Spell{
 		Powers: []Power{{Cost: 14}}},
 	{ID: 686, Name: "Shadow Bolt", Rank: "Rank 1", School: 32, Speed: 20, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 1, BaseLevel: 1, MaxLevel: 5, CastTimeMs: 1700, MaxRange: 30, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 5, Mask: [4]uint32{0: 1}}, InterruptFlags: 15, Labels: []int16{19},
 		Effects: []Effect{
-			{ID: 679275, SpellID: 686, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 13, PPL: 0.30000001192092896, Variance: 0.2857142984867096, BaseLevel: 1, MaxLevel: 5, SPCoef: 0.4860000014305115, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+			{ID: 679275, SpellID: 686, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 13, PPL: 0.20000000298023224, Variance: 0.2857142984867096, BaseLevel: 1, MaxLevel: 5, SPCoef: 0.4860000014305115, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
 		Powers: []Power{{Cost: 25}}},
 	{ID: 687, Name: "Demon Skin", Rank: "Rank 1", School: 32, Attr: [17]uint32{0: 0x10000, 1: 0x20000, 15: 0x2000}, SpellLevel: 1, BaseLevel: 1, DurationMs: 1800000, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, DispelType: 1, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 5, Mask: [4]uint32{2: 16}}, InterruptFlags: 8, Labels: []int16{19}, ProcHint: core.ProcHintHeals,
@@ -555,7 +555,7 @@ var generatedSpells = []Spell{
 		Powers: []Power{{Type: 1, Cost: 100}}},
 	{ID: 695, Name: "Shadow Bolt", Rank: "Rank 2", School: 32, Speed: 20, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 6, BaseLevel: 6, MaxLevel: 11, CastTimeMs: 2200, MaxRange: 30, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 5, Mask: [4]uint32{0: 1}}, InterruptFlags: 15, Labels: []int16{19},
 		Effects: []Effect{
-			{ID: 679265, SpellID: 695, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 25, PPL: 0.6000000238418579, Variance: 0.23076923191547394, BaseLevel: 6, MaxLevel: 11, SPCoef: 0.6290000081062317, PvpMult: 1, Amplitude: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+			{ID: 679265, SpellID: 695, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 23, PPL: 0.30000001192092896, Variance: 0.23076923191547394, BaseLevel: 6, MaxLevel: 11, SPCoef: 0.6290000081062317, PvpMult: 1, Amplitude: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
 		Powers: []Power{{Cost: 40}}},
 	{ID: 696, Name: "Demon Skin", Rank: "Rank 2", School: 32, Attr: [17]uint32{0: 0x10000, 1: 0x20000, 15: 0x2000}, SpellLevel: 10, BaseLevel: 10, DurationMs: 1800000, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, DispelType: 1, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 5, Mask: [4]uint32{2: 16}}, InterruptFlags: 8, Labels: []int16{19}, ProcHint: core.ProcHintHeals,
@@ -593,13 +593,13 @@ var generatedSpells = []Spell{
 	{ID: 704, Name: "Curse of Recklessness", Rank: "Rank 1", School: 32, Attr: [17]uint32{0: 0x10000, 1: 0x20000, 13: 0x80, 15: 0x2000}, SpellLevel: 14, BaseLevel: 14, DurationMs: 120000, MaxRange: 30, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, DispelType: 2, PreventionType: 1, ProcChance: 101, ClassFlags: core.ClassFlags{Family: 5, Mask: [4]uint32{0: 2147483648, 1: 2097152}}, InterruptFlags: 8, Labels: []int16{19}, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 686801, SpellID: 704, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_DUMMY, BasePoints: 20, BaseLevel: 14, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
-			{ID: 686802, SpellID: 704, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_RESISTANCE, BasePoints: -175, BaseLevel: 14, PvpMult: 1, Misc: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+			{ID: 686802, SpellID: 704, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_ARMOR_NO_MODS, BasePoints: -175, BaseLevel: 14, PvpMult: 1, Misc: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 			{ID: 686803, SpellID: 704, Index: 2, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PREVENTS_FLEEING, BaseLevel: 14, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
 		Powers: []Power{{Cost: 35}}},
 	{ID: 705, Name: "Shadow Bolt", Rank: "Rank 3", School: 32, Speed: 20, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 12, BaseLevel: 12, MaxLevel: 17, CastTimeMs: 2800, MaxRange: 30, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 5, Mask: [4]uint32{0: 1}}, InterruptFlags: 15, Labels: []int16{19},
 		Effects: []Effect{
-			{ID: 688390, SpellID: 705, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 41, PPL: 0.699999988079071, Variance: 0.1538461595773697, BaseLevel: 12, MaxLevel: 17, SPCoef: 0.800000011920929, PvpMult: 1, Amplitude: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+			{ID: 688390, SpellID: 705, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 40, PPL: 0.6000000238418579, Variance: 0.1538461595773697, BaseLevel: 12, MaxLevel: 17, SPCoef: 0.800000011920929, PvpMult: 1, Amplitude: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
 		Powers: []Power{{Cost: 70}}},
 	{ID: 706, Name: "Demon Armor", Rank: "Rank 1", School: 32, Attr: [17]uint32{0: 0x10000, 1: 0x20000, 15: 0x2000}, SpellLevel: 20, BaseLevel: 20, DurationMs: 1800000, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, DispelType: 1, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 5, Mask: [4]uint32{1: 32}}, InterruptFlags: 8, Labels: []int16{19}, ProcHint: core.ProcHintHeals,
@@ -989,7 +989,7 @@ var generatedSpells = []Spell{
 		Powers: []Power{{Cost: 520}}},
 	{ID: 1088, Name: "Shadow Bolt", Rank: "Rank 4", School: 32, Speed: 20, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 20, BaseLevel: 20, MaxLevel: 25, CastTimeMs: 3000, MaxRange: 30, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 5, Mask: [4]uint32{0: 1}}, InterruptFlags: 15, Labels: []int16{19},
 		Effects: []Effect{
-			{ID: 679838, SpellID: 1088, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 56, PPL: 0.8999999761581421, Variance: 0.1304347813129425, BaseLevel: 20, MaxLevel: 25, SPCoef: 0.8569999933242798, PvpMult: 1, Amplitude: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+			{ID: 679838, SpellID: 1088, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 58, PPL: 0.800000011920929, Variance: 0.1304347813129425, BaseLevel: 20, MaxLevel: 25, SPCoef: 0.8569999933242798, PvpMult: 1, Amplitude: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
 		Powers: []Power{{Cost: 110}}},
 	{ID: 1090, Name: "Sleep", Rank: "Rank 2", School: 32, Attr: [17]uint32{0: 0x40110000, 1: 0x40000, 5: 0x20, 15: 0x2000}, SpellLevel: 20, CastTimeMs: 1500, DurationMs: 30000, MaxRange: 30, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, DispelType: 1, Mechanic: 10, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 3, Mask: [4]uint32{0: 262144}}, InterruptFlags: 15, AuraInterrupt: [2]uint32{0: 0x2}, MaxTargets: 1,
@@ -4239,14 +4239,14 @@ var generatedSpells = []Spell{
 	{ID: 7658, Name: "Curse of Recklessness", Rank: "Rank 2", School: 32, Attr: [17]uint32{0: 0x10000, 1: 0x20000, 13: 0x80, 15: 0x2000}, SpellLevel: 28, BaseLevel: 28, DurationMs: 120000, MaxRange: 30, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, DispelType: 2, PreventionType: 1, ProcChance: 101, ClassFlags: core.ClassFlags{Family: 5, Mask: [4]uint32{0: 2147483648, 1: 2097152}}, InterruptFlags: 8, Labels: []int16{19}, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 686372, SpellID: 7658, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_DUMMY, BasePoints: 45, BaseLevel: 28, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
-			{ID: 686373, SpellID: 7658, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_RESISTANCE, BasePoints: -285, BaseLevel: 28, PvpMult: 1, Misc: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+			{ID: 686373, SpellID: 7658, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_ARMOR_NO_MODS, BasePoints: -285, BaseLevel: 28, PvpMult: 1, Misc: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 			{ID: 686374, SpellID: 7658, Index: 2, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PREVENTS_FLEEING, BaseLevel: 28, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
 		Powers: []Power{{Cost: 60}}},
 	{ID: 7659, Name: "Curse of Recklessness", Rank: "Rank 3", School: 32, Attr: [17]uint32{0: 0x10000, 1: 0x20000, 13: 0x80, 15: 0x2000}, SpellLevel: 42, BaseLevel: 42, DurationMs: 120000, MaxRange: 30, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, DispelType: 2, PreventionType: 1, ProcChance: 101, ClassFlags: core.ClassFlags{Family: 5, Mask: [4]uint32{0: 2147483648, 1: 2097152}}, InterruptFlags: 8, Labels: []int16{19}, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 686502, SpellID: 7659, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_DUMMY, BasePoints: 65, BaseLevel: 42, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
-			{ID: 686503, SpellID: 7659, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_RESISTANCE, BasePoints: -395, BaseLevel: 42, PvpMult: 1, Misc: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+			{ID: 686503, SpellID: 7659, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_ARMOR_NO_MODS, BasePoints: -395, BaseLevel: 42, PvpMult: 1, Misc: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 			{ID: 686504, SpellID: 7659, Index: 2, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PREVENTS_FLEEING, BaseLevel: 42, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
 		Powers: []Power{{Cost: 90}}},
@@ -8798,7 +8798,7 @@ var generatedSpells = []Spell{
 	{ID: 11717, Name: "Curse of Recklessness", Rank: "Rank 4", School: 32, Attr: [17]uint32{0: 0x10000, 1: 0x20000, 13: 0x80, 15: 0x2000}, SpellLevel: 56, BaseLevel: 56, DurationMs: 120000, MaxRange: 30, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, DispelType: 2, PreventionType: 1, ProcChance: 101, ClassFlags: core.ClassFlags{Family: 5, Mask: [4]uint32{0: 2147483648, 1: 2097152}}, InterruptFlags: 8, Labels: []int16{19}, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 690025, SpellID: 11717, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_DUMMY, BasePoints: 90, BaseLevel: 56, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
-			{ID: 690026, SpellID: 11717, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_RESISTANCE, BasePoints: -505, BaseLevel: 56, PvpMult: 1, Misc: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+			{ID: 690026, SpellID: 11717, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_ARMOR_NO_MODS, BasePoints: -505, BaseLevel: 56, PvpMult: 1, Misc: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 			{ID: 690027, SpellID: 11717, Index: 2, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PREVENTS_FLEEING, BaseLevel: 56, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
 		Powers: []Power{{Cost: 115}}},
@@ -38095,7 +38095,7 @@ var generatedCurves = map[int32][][]float64{
 	17793:   {{4, 8, 12, 16, 20}},
 	17804:   {{4, 8, 12}},
 	17810:   {{-400, -800, -1200, -1600, -2000}, {2, 4, 6, 8, 10}},
-	17917:   {{10, 20}},
+	17917:   {{10, 20}, {10, 20}},
 	17927:   {{3, 7, 10}, {3, 7, 10}, {3, 7, 10}},
 	17959:   {{20, 40, 60, 80, 100}},
 	18073:   {{13, 26}},
