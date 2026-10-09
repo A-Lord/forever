@@ -81,26 +81,26 @@ func formatStoreRow(s storeSpell, namer *rankEnumNamer) string {
 		}
 		b.WriteString("}")
 	}
-	if len(s.Powers) > 0 {
-		powers := make([]string, len(s.Powers))
-		for i, p := range s.Powers {
-			powers[i] = "{" + storeFields(reflect.ValueOf(p), namer) + "}"
-		}
-		fmt.Fprintf(&b, ",\nPowers: []Power{%s}", strings.Join(powers, ", "))
-	}
-	if len(s.Reagents) > 0 {
-		reagents := make([]string, len(s.Reagents))
-		for i, r := range s.Reagents {
-			reagents[i] = "{" + storeFields(reflect.ValueOf(r), namer) + "}"
-		}
-		fmt.Fprintf(&b, ",\nReagents: []Reagent{%s}", strings.Join(reagents, ", "))
-	}
+	writeInlineRows(&b, "Powers", "Power", s.Powers, namer)
+	writeInlineRows(&b, "Reagents", "Reagent", s.Reagents, namer)
 	b.WriteString("},")
 	for _, note := range s.overrideNotes {
 		fmt.Fprintf(&b, " // %s", note)
 	}
 	b.WriteString("\n")
 	return b.String()
+}
+
+// A list of small rows on one line under the row, as "Powers: []Power{{...}, {...}}"; nothing for none.
+func writeInlineRows[T any](b *strings.Builder, field, storeType string, rows []T, namer *rankEnumNamer) {
+	if len(rows) == 0 {
+		return
+	}
+	parts := make([]string, len(rows))
+	for i, r := range rows {
+		parts[i] = "{" + storeFields(reflect.ValueOf(r), namer) + "}"
+	}
+	fmt.Fprintf(b, ",\n%s: []%s{%s}", field, storeType, strings.Join(parts, ", "))
 }
 
 // The store type each mirror fills, which says how its float fields are printed.
@@ -111,14 +111,15 @@ var storeTypes = map[reflect.Type]reflect.Type{
 	reflect.TypeOf(storeReagent{}): reflect.TypeOf(spelldata.Reagent{}),
 }
 
-// The exported fields a row states, as "Name: value". The effects, the powers and the reagents are
-// lists of rows of their own, which formatStoreRow writes under the row.
+// The exported fields a row states, as "Name: value". A list of rows (the effects, the powers, the
+// reagents) is left to formatStoreRow, which writes it under the row.
 func storeFields(row reflect.Value, namer *rankEnumNamer) string {
 	store := storeTypes[row.Type()]
 	var parts []string
 	for i := 0; i < row.NumField(); i++ {
 		field, value := row.Type().Field(i), row.Field(i)
-		if !field.IsExported() || value.IsZero() || field.Name == "Effects" || field.Name == "Powers" || field.Name == "Reagents" {
+		listOfRows := field.Type.Kind() == reflect.Slice && field.Type.Elem().Kind() == reflect.Struct
+		if !field.IsExported() || value.IsZero() || listOfRows {
 			continue
 		}
 		storeField, _ := store.FieldByName(field.Name)

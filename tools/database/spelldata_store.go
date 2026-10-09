@@ -657,28 +657,20 @@ func (t *spellTables) loadPowers(db *sql.DB) error {
 	})
 }
 
-// Reagent_0..7 and ReagentCount_0..7 are generated columns over the JSON arrays; an empty slot is item 0.
+// Reagent and ReagentCount are JSON arrays of 8 slots, read in slot order; an empty slot is item 0.
 func (t *spellTables) loadReagents(db *sql.DB) error {
-	const slots = 8
-	var columns []string
-	for i := range slots {
-		columns = append(columns, fmt.Sprintf("COALESCE(Reagent_%d, 0), COALESCE(ReagentCount_%d, 0)", i, i))
-	}
-	return eachRow(db, `SELECT SpellID, `+strings.Join(columns, ", ")+` FROM SpellReagents ORDER BY SpellID`, func(rows *sql.Rows) error {
+	return eachRow(db, `
+		SELECT s.SpellID, item.value, count.value
+		FROM SpellReagents s, json_each(s.Reagent) item
+		JOIN json_each(s.ReagentCount) count ON count.key = item.key
+		WHERE item.value != 0 AND count.value != 0
+		ORDER BY s.SpellID, item.key`, func(rows *sql.Rows) error {
 		var id int32
-		var items, counts [slots]int64
-		dest := []any{&id}
-		for i := range slots {
-			dest = append(dest, &items[i], &counts[i])
-		}
-		if err := rows.Scan(dest...); err != nil {
+		var r storeReagent
+		if err := rows.Scan(&id, &r.Item, &r.Count); err != nil {
 			return err
 		}
-		for i := range slots {
-			if items[i] != 0 && counts[i] != 0 {
-				t.Reagents[id] = append(t.Reagents[id], storeReagent{Item: int32(items[i]), Count: int16(counts[i])})
-			}
-		}
+		t.Reagents[id] = append(t.Reagents[id], r)
 		return nil
 	})
 }

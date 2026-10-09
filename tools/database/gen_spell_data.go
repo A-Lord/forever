@@ -216,8 +216,9 @@ func runeOnlyFamily(byRank map[int32][]rankCandidate, runeOnly map[int32]bool) b
 
 // Every family a class can learn, from two sources: every spell in one of the class's skill lines
 // whose subtext reads "Rank N", "Shapeshift", "Summon" or is empty (a single-rank ability like
-// Whirlwind, Cat Form or Summon Imp is its own rank 1), and every talent in the class's tree. Nothing hand-maintained. A family
-// every spell of which is in runeOnly is a Season of Discovery rune ability and is left out.
+// Whirlwind, Cat Form or Summon Imp is its own rank 1), and every talent in the class's tree. Nothing
+// hand-maintained. A family every spell of which is in runeOnly is a Season of Discovery rune ability
+// and is left out.
 func discoverLadders(db *sql.DB, class dbc.DbcClass, treeID int, runeOnly map[int32]bool) ([]rankLadder, []string, []string, error) {
 	mask := classMaskOf(class)
 
