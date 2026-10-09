@@ -125,7 +125,8 @@ func appliesSurvivalOnly(spellID int) bool {
 		switch {
 		case effect.EffectType == dbcenums.E_HEAL, effect.EffectType == dbcenums.E_HEAL_PCT:
 		case effect.EffectAura == dbcenums.A_SCHOOL_ABSORB:
-		case effect.EffectAura == dbcenums.A_MOD_RESISTANCE && len(effect.EffectMiscValues) > 0 && effect.EffectMiscValues[0] == int(core.SpellSchoolPhysical):
+		case (effect.EffectAura == dbcenums.A_MOD_RESISTANCE || effect.EffectAura == dbcenums.A_MOD_ARMOR_NO_MODS) &&
+			len(effect.EffectMiscValues) > 0 && effect.EffectMiscValues[0] == int(core.SpellSchoolPhysical):
 		default:
 			return false
 		}
