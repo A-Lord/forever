@@ -73,18 +73,25 @@ func TestSplitDamageDividesOneRollAmongTheTargets(t *testing.T) {
 	}
 }
 
-// Prototype Pathcarver 1295270 splits its damage "between up to $s3 nearby enemies", MaxTargets 5, and
-// does not roll. Three targets share it three ways; six share it five ways and the sixth takes none.
+// Prototype Pathcarver 1295270 splits its damage "between up to $s3 nearby enemies", its MaxTargets,
+// and does not roll. One target fewer than the cap share it among themselves; one more than the cap
+// share it as many ways as the cap and the last takes none.
 func TestSplitDamageStopsAtTheRowsMaxTargets(t *testing.T) {
-	amount := spelldata.MustFind(1295270).DamageEffect().Average()
+	row := spelldata.MustFind(1295270)
+	amount := row.DamageEffect().Average()
+	maxTargets := int(row.MaxTargets)
+	if maxTargets < 2 {
+		t.Skipf("1295270 caps its split at %d targets, too few to fall short of", maxTargets)
+	}
 
 	for _, tc := range []struct {
+		itemID       int32
 		targets, hit int
 	}{
-		{3, 3},
-		{6, 5},
+		{991103, maxTargets - 1, maxTargets - 1},
+		{991104, maxTargets + 1, maxTargets},
 	} {
-		dealt := dealtPerTarget(t, 991103+int32(tc.targets), 1295270, tc.targets)
+		dealt := dealtPerTarget(t, tc.itemID, 1295270, tc.targets)
 		for i, d := range dealt {
 			want := amount / float64(tc.hit)
 			if i >= tc.hit {
@@ -111,14 +118,20 @@ func TestSingleTargetDamageHitsOnlyItsTarget(t *testing.T) {
 	}
 }
 
-// Chain Lightning 21179 jumps to 3 targets, each keeping 0.7 of the damage the one before it took. A
-// copy without its variance makes the jumps exact.
+// Chain Lightning 21179 jumps to its chain targets, each keeping the row's share of the damage the one
+// before it took, and a target past the chain takes none. A copy without its variance makes the jumps
+// exact.
 func TestChainDamageJumpsToItsChainTargets(t *testing.T) {
 	editRow(t, 21179, func(s *spelldata.Spell) { s.Effects[0].Variance = 0 })
-	amount := spelldata.MustFind(21179).DamageEffect().Average()
+	effect := spelldata.MustFind(21179).DamageEffect()
+	amount, keep, jumps := effect.Average(), float64(effect.ChainAmp), int(effect.ChainTargets)
 
-	dealt := dealtPerTarget(t, 991111, 21179, 4)
-	for i, want := range []float64{amount, amount * 0.7, amount * 0.7 * 0.7, 0} {
+	dealt := dealtPerTarget(t, 991111, 21179, jumps+1)
+	for i := range dealt {
+		want := 0.0
+		if i < jumps {
+			want = amount * math.Pow(keep, float64(i))
+		}
 		if math.Abs(dealt[i]-want) > 1e-3 {
 			t.Errorf("target %d took %v, want %v", i, dealt[i], want)
 		}

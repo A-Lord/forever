@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/simsignals"
 	"github.com/wowsims/forever/sim/core/spelldata"
@@ -208,12 +209,21 @@ func dealt(sim *core.Simulation, spell *core.Spell, target *core.Unit) float64 {
 	return spell.SpellMetrics[target.UnitIndex].TotalDamage - before
 }
 
-// Natural Alignment Crystal raises the wearer's spell damage and healing by 20% and its spells' mana
-// cost by 20% for 20 s, and leaves a physical hit alone.
+// The multiplier an aura stating a percentage applies.
+func percentMultiplier(e *spelldata.Effect) float64 {
+	return 1 + e.Mean()/100
+}
+
+// Natural Alignment Crystal raises the wearer's spell damage, healing and its spells' mana cost by the
+// row's shares for the row's duration, and leaves a physical hit alone.
 func TestNaturalAlignmentCrystal(t *testing.T) {
 	const itemID int32 = 992101
 	withAuraItem(itemID, proto.ItemType_ItemTypeTrinket, testOnUse(natureAligned, 300000, 1141, 20000))
 	NewSpellDataAuraOnUse(itemID)
+	row := spelldata.MustFind(natureAligned)
+	damage := percentMultiplier(row.FirstAura(dbcenums.A_MOD_DAMAGE_PERCENT_DONE))
+	healing := percentMultiplier(row.FirstAura(dbcenums.A_MOD_HEALING_DONE_PERCENT))
+	cost := percentMultiplier(row.FirstAura(dbcenums.A_MOD_POWER_COST_SCHOOL_PCT))
 
 	sim := newAuraSim(shaman("Shaman", map[proto.ItemSlot]int32{proto.ItemSlot_ItemSlotTrinket1: itemID}))
 	tester := auraTesterAt(sim, 0)
@@ -245,23 +255,28 @@ func TestNaturalAlignmentCrystal(t *testing.T) {
 		t.Fatalf("the crystal could not be used")
 	}
 	start := sim.CurrentTime
-	check("while Nature Aligned is up", 120, 1.2, 120)
+	check("while Nature Aligned is up", 100*damage, healing, 100*cost)
 
 	if got := crystal.CD.ReadyAt(); got != start+5*time.Minute {
 		t.Errorf("the crystal is ready again at %v, want 5 min after its use at %v", got, start)
 	}
 
-	stepPast(t, sim, start+20*time.Second+time.Millisecond)
-	check("after its 20 s", 100, 1, 100)
+	stepPast(t, sim, start+row.Duration()+time.Millisecond)
+	check("after its duration", 100, 1, 100)
 }
 
 func hunter(name string, slotted map[proto.ItemSlot]int32) *proto.Player {
 	return auraPlayer(name, proto.Class_ClassHunter, &proto.Player_Hunter{}, slotted)
 }
 
-// Obsidian Mail Tunic takes 10 off every magic hit its wearer takes, and nothing off a physical one or
-// off a hit on anyone else.
-func TestObsidianMailTunicReducesAMagicHitByTen(t *testing.T) {
+// The bolt of auraTester, 100, once the wearer of 27518 has taken its row's amount off it.
+func reducedBolt() float64 {
+	return 100 + spelldata.MustFind(spellDamageReduction).FirstAura(dbcenums.A_MOD_DAMAGE_TAKEN).Mean()
+}
+
+// Obsidian Mail Tunic takes its row's amount off every magic hit its wearer takes, and nothing off a
+// physical one or off a hit on anyone else.
+func TestObsidianMailTunicReducesAMagicHit(t *testing.T) {
 	const itemID int32 = 992201
 	withAuraItem(itemID, proto.ItemType_ItemTypeChest)
 	NewSpellDataEquipAura(SpellDataProc{TriggerSpellID: spellDamageReduction},
@@ -273,8 +288,8 @@ func TestObsidianMailTunicReducesAMagicHitByTen(t *testing.T) {
 	)
 	wearer, attacker := auraTesterAt(sim, 0), auraTesterAt(sim, 1)
 
-	if got := dealt(sim, attacker.bolt, &wearer.Unit); !core.WithinToleranceFloat64(90, got, 1e-6) {
-		t.Errorf("an arcane bolt on the wearer dealt %v, want 90", got)
+	if got, want := dealt(sim, attacker.bolt, &wearer.Unit), reducedBolt(); !core.WithinToleranceFloat64(want, got, 1e-6) {
+		t.Errorf("an arcane bolt on the wearer dealt %v, want %v", got, want)
 	}
 	if got := dealt(sim, attacker.strike, &wearer.Unit); !core.WithinToleranceFloat64(100, got, 1e-6) {
 		t.Errorf("a physical strike on the wearer dealt %v, want 100", got)
@@ -298,7 +313,7 @@ func TestEquipAuraAppliesOnlyInItsArea(t *testing.T) {
 		want  float64
 	}{
 		{nil, 100},
-		{[]proto.AreaType{proto.AreaType_AreaTypeForestGrassland}, 90},
+		{[]proto.AreaType{proto.AreaType_AreaTypeForestGrassland}, reducedBolt()},
 	} {
 		sim := newAuraSimIn(c.areas,
 			shaman("Wearer", map[proto.ItemSlot]int32{proto.ItemSlot_ItemSlotChest: itemID}),
@@ -311,8 +326,9 @@ func TestEquipAuraAppliesOnlyInItsArea(t *testing.T) {
 	}
 }
 
-// Beastmaster's Boots raise the pet's damage by 3%, and do nothing for a wearer with no pet. The
-// Tunic's +10% pet armor has no equipment share on a pet to scale, so it registers nothing.
+// Beastmaster's Boots raise the pet's damage by the share their triggered row states, and do nothing
+// for a wearer with no pet. The Tunic's pet armor share has no equipment share on a pet to scale, so it
+// registers nothing.
 func TestBeastmastersBootsRaiseThePetsDamage(t *testing.T) {
 	const bootsID, tunicID int32 = 992202, 992203
 	withAuraItem(bootsID, proto.ItemType_ItemTypeFeet)
@@ -327,9 +343,11 @@ func TestBeastmastersBootsRaiseThePetsDamage(t *testing.T) {
 	target := sim.Encounter.ActiveTargetUnits[0]
 	owner, bare, petless := auraTesterAt(sim, 0), auraTesterAt(sim, 1), auraTesterAt(sim, 2)
 
+	petAura := spelldata.MustFind(increasedPetDamage).FirstAura(dbcenums.A_PERIODIC_TRIGGER_SPELL).Trigger()
+	raised := percentMultiplier(petAura.FirstAura(dbcenums.A_MOD_DAMAGE_PERCENT_DONE))
 	bareClaw := dealt(sim, bare.pet.claw, target)
-	if got := dealt(sim, owner.pet.claw, target); !core.WithinToleranceFloat64(1.03*bareClaw, got, 1e-6) {
-		t.Errorf("the pet of the wearer clawed for %v, want 3%% over the %v of a pet without", got, bareClaw)
+	if got := dealt(sim, owner.pet.claw, target); !core.WithinToleranceFloat64(raised*bareClaw, got, 1e-6) {
+		t.Errorf("the pet of the wearer clawed for %v, want %v times the %v of a pet without", got, raised, bareClaw)
 	}
 	if got := dealt(sim, owner.strike, target); !core.WithinToleranceFloat64(100, got, 1e-6) {
 		t.Errorf("the wearer's own strike dealt %v, want the 100 a pet aura leaves alone", got)
@@ -342,8 +360,8 @@ func TestBeastmastersBootsRaiseThePetsDamage(t *testing.T) {
 	}
 }
 
-// Beastmaster's Cap raises the pet's maximum health by 3% and Beastmaster's Gloves its crit by 2,
-// leaving the wearer's own alone, and do nothing for a wearer with no pet.
+// Beastmaster's Cap raises the pet's maximum health and Beastmaster's Gloves its crit by what their
+// triggered rows state, leaving the wearer's own alone, and do nothing for a wearer with no pet.
 func TestBeastmastersCapAndGlovesRaiseThePetsHealthAndCrit(t *testing.T) {
 	const capID, glovesID int32 = 992205, 992206
 	withAuraItem(capID, proto.ItemType_ItemTypeHead)
@@ -358,11 +376,16 @@ func TestBeastmastersCapAndGlovesRaiseThePetsHealthAndCrit(t *testing.T) {
 	owner, bare := auraTesterAt(sim, 0), auraTesterAt(sim, 1)
 	petless, barePetless := auraTesterAt(sim, 2), auraTesterAt(sim, 3)
 
-	if got, bareHealth := owner.pet.MaxHealth(), bare.pet.MaxHealth(); bareHealth == 0 || !core.WithinToleranceFloat64(1.03*bareHealth, got, 1e-6) {
-		t.Errorf("the pet of the wearer has %v maximum health, want 3%% over the %v of a pet without", got, bareHealth)
+	triggered := func(id int32) *spelldata.Spell {
+		return spelldata.MustFind(id).FirstAura(dbcenums.A_PERIODIC_TRIGGER_SPELL).Trigger()
 	}
-	if got, bareCrit := owner.pet.GetStat(stats.PhysicalCritPercent), bare.pet.GetStat(stats.PhysicalCritPercent); !core.WithinToleranceFloat64(bareCrit+2, got, 1e-6) {
-		t.Errorf("the pet of the wearer has %v crit, want 2 over the %v of a pet without", got, bareCrit)
+	health := percentMultiplier(triggered(increasedPetHealth).FirstAura(dbcenums.A_MOD_INCREASE_HEALTH_PERCENT))
+	crit := triggered(increasedPetCrit).FirstAura(dbcenums.A_MOD_WEAPON_CRIT_PERCENT).Mean()
+	if got, bareHealth := owner.pet.MaxHealth(), bare.pet.MaxHealth(); bareHealth == 0 || !core.WithinToleranceFloat64(health*bareHealth, got, 1e-6) {
+		t.Errorf("the pet of the wearer has %v maximum health, want %v times the %v of a pet without", got, health, bareHealth)
+	}
+	if got, bareCrit := owner.pet.GetStat(stats.PhysicalCritPercent), bare.pet.GetStat(stats.PhysicalCritPercent); !core.WithinToleranceFloat64(bareCrit+crit, got, 1e-6) {
+		t.Errorf("the pet of the wearer has %v crit, want %v over the %v of a pet without", got, crit, bareCrit)
 	}
 
 	for _, c := range []struct {
@@ -385,8 +408,8 @@ func strikeAndStep(t *testing.T, sim *core.Simulation, wielder *auraTester, targ
 	stepPast(t, sim, sim.CurrentTime+core.SpellBatchWindow+time.Millisecond)
 }
 
-// Nightfall's debuff raises the spell damage the target takes by 15% for 5 s, whoever casts at it,
-// and leaves physical hits alone.
+// Nightfall's debuff raises the spell damage the target takes by the row's share for the row's
+// duration, whoever casts at it, and leaves physical hits alone.
 func TestNightfallRaisesTheTargetsSpellDamageTaken(t *testing.T) {
 	const itemID int32 = 992301
 	withAuraItem(itemID, proto.ItemType_ItemTypeWeapon,
@@ -394,6 +417,8 @@ func TestNightfallRaisesTheTargetsSpellDamageTaken(t *testing.T) {
 	everyHit(t, spellVulnerability)
 	NewSpellDataAuraProc(SpellDataProc{TriggerSpellID: spellVulnerability, IsWeaponProc: true},
 		[]ItemVariant{{ItemID: itemID, ItemName: "Test Nightfall"}})
+	row := spelldata.MustFind(spellVulnerability)
+	raised := 100 * percentMultiplier(row.FirstAura(dbcenums.A_MOD_DAMAGE_PERCENT_TAKEN))
 
 	sim := newAuraSim(
 		shaman("Wielder", map[proto.ItemSlot]int32{proto.ItemSlot_ItemSlotMainHand: itemID}),
@@ -411,33 +436,35 @@ func TestNightfallRaisesTheTargetsSpellDamageTaken(t *testing.T) {
 	if !debuff.IsActive() {
 		t.Fatalf("a strike at 100%% chance put no Spell Vulnerability on the target")
 	}
-	if debuff.Duration != 5*time.Second {
-		t.Errorf("Spell Vulnerability lasts %v, want 5 s", debuff.Duration)
+	if debuff.Duration != row.Duration() {
+		t.Errorf("Spell Vulnerability lasts %v, want the row's %v", debuff.Duration, row.Duration())
 	}
 
-	if got := dealt(sim, caster.bolt, target); !core.WithinToleranceFloat64(115, got, 1e-6) {
-		t.Errorf("with the debuff up a second caster's bolt dealt %v, want 115", got)
+	if got := dealt(sim, caster.bolt, target); !core.WithinToleranceFloat64(raised, got, 1e-6) {
+		t.Errorf("with the debuff up a second caster's bolt dealt %v, want %v", got, raised)
 	}
-	if got := dealt(sim, wielder.bolt, target); !core.WithinToleranceFloat64(115, got, 1e-6) {
-		t.Errorf("with the debuff up the wielder's bolt dealt %v, want 115", got)
+	if got := dealt(sim, wielder.bolt, target); !core.WithinToleranceFloat64(raised, got, 1e-6) {
+		t.Errorf("with the debuff up the wielder's bolt dealt %v, want %v", got, raised)
 	}
 	if got := dealt(sim, caster.strike, target); !core.WithinToleranceFloat64(100, got, 1e-6) {
 		t.Errorf("with the debuff up a physical strike dealt %v, want 100", got)
 	}
 
-	// The wielder's bolt is a hit its 100% proc answers too, so the 5 s run from the refresh it lands.
+	// The wielder's bolt is a hit its 100% proc answers too, so the duration runs from the refresh it lands.
 	stepPast(t, sim, sim.CurrentTime+core.SpellBatchWindow+time.Millisecond)
 	stepPast(t, sim, debuff.ExpiresAt()+time.Millisecond)
 	if debuff.IsActive() {
-		t.Errorf("Spell Vulnerability is still up after its 5 s")
+		t.Errorf("Spell Vulnerability is still up after its %v", row.Duration())
 	}
 	if got := dealt(sim, caster.bolt, target); !core.WithinToleranceFloat64(100, got, 1e-6) {
 		t.Errorf("after the debuff a second caster's bolt dealt %v, want 100", got)
 	}
 }
 
-// Sword of Zeal's buff adds 10 to each physical hit and 150 armor for its 15 s.
+// Sword of Zeal's buff adds the item effect's 10 to each physical hit and 150 armor for its row's
+// duration.
 func TestSwordOfZealAddsPhysicalDamageAndArmor(t *testing.T) {
+	duration := spelldata.MustFind(zeal).Duration()
 	const itemID int32 = 992302
 	withAuraItem(itemID, proto.ItemType_ItemTypeWeapon, &proto.ItemEffect{
 		BuffId:           zeal,
@@ -468,14 +495,14 @@ func TestSwordOfZealAddsPhysicalDamageAndArmor(t *testing.T) {
 		t.Errorf("with Zeal up an arcane bolt dealt %v, want 100", got)
 	}
 
-	stepPast(t, sim, procTime+15*time.Second-time.Millisecond)
+	stepPast(t, sim, procTime+duration-time.Millisecond)
 	if got := wielder.GetStat(stats.Armor) - armor; !core.WithinToleranceFloat64(150, got, 1e-6) {
-		t.Errorf("Zeal's armor is %v just before its 15 s run out, want 150", got)
+		t.Errorf("Zeal's armor is %v just before its %v run out, want 150", got, duration)
 	}
 	// The strike above procced again, a batch window after it landed.
-	stepPast(t, sim, procTime+15*time.Second+core.SpellBatchWindow+time.Millisecond)
+	stepPast(t, sim, procTime+duration+core.SpellBatchWindow+time.Millisecond)
 	if got := wielder.GetStat(stats.Armor) - armor; got != 0 {
-		t.Errorf("Zeal's armor is %v after its 15 s, want none", got)
+		t.Errorf("Zeal's armor is %v after its %v, want none", got, duration)
 	}
 	if got := dealt(sim, wielder.bolt, target); !core.WithinToleranceFloat64(100, got, 1e-6) {
 		t.Errorf("after Zeal an arcane bolt dealt %v, want 100", got)

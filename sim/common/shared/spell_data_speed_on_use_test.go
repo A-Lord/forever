@@ -6,7 +6,9 @@ import (
 	"time"
 
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
 // Mind Quickening Gem 19339 casts 23723, Scrolls of Blinding Light 19343 casts 23733, both on a 5 min
@@ -62,6 +64,11 @@ func (got speeds) differ(want speeds) bool {
 // Using the item multiplies the wearer's speeds by the ones its row states for the row's duration, on
 // one aura, and every speed returns to what it was when the aura runs out.
 func TestOnUseSpeedBuffMultipliesTheWearersSpeedsForItsDuration(t *testing.T) {
+	haste := func(spellID int32, aura dbcenums.EffectAuraType) float64 {
+		return 1 + spelldata.MustFind(spellID).FirstAura(aura).BasePoints/100
+	}
+	duration := func(spellID int32) time.Duration { return spelldata.MustFind(spellID).Duration() }
+
 	for _, tc := range []struct {
 		name     string
 		itemID   int32
@@ -72,11 +79,16 @@ func TestOnUseSpeedBuffMultipliesTheWearersSpeedsForItsDuration(t *testing.T) {
 		duration time.Duration
 	}{
 		{"Mind Quickening Gem", 991140, proto.Class_ClassMage, proto.Race_RaceTroll,
-			testOnUse(mindQuickening, 300000, 1141, 20000), speeds{1, 1, 1.33}, 20 * time.Second},
+			testOnUse(mindQuickening, 300000, 1141, 20000),
+			speeds{1, 1, haste(mindQuickening, dbcenums.A_MOD_CASTING_SPEED_NOT_STACK)}, duration(mindQuickening)},
 		{"Scrolls of Blinding Light", 991141, proto.Class_ClassPaladin, proto.Race_RaceHuman,
-			testOnUse(blindingLight, 300000, 1141, 20000), speeds{1.25, 1, 1.33}, 20 * time.Second},
+			testOnUse(blindingLight, 300000, 1141, 20000),
+			speeds{haste(blindingLight, dbcenums.A_MOD_MELEE_HASTE_3), 1, haste(blindingLight, dbcenums.A_MOD_CASTING_SPEED_NOT_STACK)},
+			duration(blindingLight)},
 		{"Kiss of the Spider", 991142, proto.Class_ClassWarrior, proto.Race_RaceOrc,
-			testOnUse(kissOfSpider, 120000, 1141, 15000), speeds{1.2, 1.2, 1}, 15 * time.Second},
+			testOnUse(kissOfSpider, 120000, 1141, 15000),
+			speeds{haste(kissOfSpider, dbcenums.A_MOD_MELEE_HASTE_3), haste(kissOfSpider, dbcenums.A_MOD_RANGED_HASTE), 1},
+			duration(kissOfSpider)},
 	} {
 		sim, caster := newSpeedOnUseSim(t, tc.class, tc.race, map[int32]onUseTrinket{tc.itemID: {tc.effect, NewSpellDataSpeedOnUse}})
 		spell := onUseSpell(t, caster, tc.itemID)
