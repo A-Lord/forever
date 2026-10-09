@@ -94,15 +94,27 @@ export function adjustWeaponImbueId(imbueId: number, hasSharp: boolean, hasBlunt
 	return 0;
 }
 
-// Matches each hand's imbue to the weapon in that hand; the same spec comes back when nothing changes.
-export function adjustImbues(consumes: ConsumesSpec, mainHand?: Item | null, offHand?: Item | null): ConsumesSpec {
-	const adjust = (imbueId: number, weapon?: Item | null) =>
-		adjustWeaponImbueId(imbueId, !!weapon && isSharpWeaponType(weapon.weaponType), !!weapon && isBluntWeaponType(weapon.weaponType));
-	const mhImbueId = adjust(consumes.mhImbueId, mainHand);
-	const ohImbueId = adjust(consumes.ohImbueId, offHand);
-	if (mhImbueId === consumes.mhImbueId && ohImbueId === consumes.ohImbueId) return consumes;
-	return ConsumesSpec.clone({ ...consumes, mhImbueId, ohImbueId });
-}
+const adjustHandImbue = (imbueId: number, weapon?: Item | null) =>
+	adjustWeaponImbueId(imbueId, !!weapon && isSharpWeaponType(weapon.weaponType), !!weapon && isBluntWeaponType(weapon.weaponType));
+
+// Matches each hand's imbue field to the weapon in that hand; the same spec comes back when nothing changes.
+const adjustImbuePair = (
+	consumes: ConsumesSpec,
+	[mhField, ohField]: ['mhImbueId', 'ohImbueId'] | ['swapMhImbueId', 'swapOhImbueId'],
+	mainHand?: Item | null,
+	offHand?: Item | null,
+): ConsumesSpec => {
+	const mhImbueId = adjustHandImbue(consumes[mhField], mainHand);
+	const ohImbueId = adjustHandImbue(consumes[ohField], offHand);
+	if (mhImbueId === consumes[mhField] && ohImbueId === consumes[ohField]) return consumes;
+	return ConsumesSpec.clone({ ...consumes, [mhField]: mhImbueId, [ohField]: ohImbueId });
+};
+
+export const adjustImbues = (consumes: ConsumesSpec, mainHand?: Item | null, offHand?: Item | null): ConsumesSpec =>
+	adjustImbuePair(consumes, ['mhImbueId', 'ohImbueId'], mainHand, offHand);
+
+export const adjustSwapImbues = (consumes: ConsumesSpec, mainHand?: Item | null, offHand?: Item | null): ConsumesSpec =>
+	adjustImbuePair(consumes, ['swapMhImbueId', 'swapOhImbueId'], mainHand, offHand);
 
 export function newUnitReference(raidIndex: number): UnitReference {
 	return UnitReference.create({

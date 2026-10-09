@@ -141,7 +141,8 @@ func NewCharacter(party *Party, partyIndex int, player *proto.Player) Character 
 	if player.Consumables != nil {
 		character.Consumables = player.Consumables
 	}
-	applyTemporaryEnchants(&character, character.Consumables)
+	consumables := character.Consumables
+	applyTemporaryEnchants(consumables.MhImbueId, consumables.OhImbueId, consumables.MhWeaponImbueId, consumables.OhWeaponImbueId, &character.Equipment)
 
 	character.baseStats = BaseStats[BaseStatsKey{Race: character.Race, Class: character.Class}]
 
@@ -607,6 +608,12 @@ func (character *Character) HasRangedWeapon() bool {
 func (character *Character) GetDynamicProcMaskForWeaponEnchant(effectID int32) *ProcMask {
 	return character.getDynamicProcMaskPointer(func() ProcMask {
 		return character.getCurrentProcMaskForWeaponEnchant(effectID)
+	})
+}
+
+func (character *Character) GetDynamicProcMaskForWeaponTempEnchant(effectID int32) *ProcMask {
+	return character.getDynamicProcMaskPointer(func() ProcMask {
+		return character.getCurrentProcMaskForWeaponTempEnchant(effectID)
 	})
 }
 

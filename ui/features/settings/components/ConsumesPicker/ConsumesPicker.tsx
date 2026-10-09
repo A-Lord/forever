@@ -21,6 +21,30 @@ const Toggles = ({ player, toggles }: { player: Player<any>; toggles: ReadonlyAr
 const Pickers = ({ player, configs }: { player: Player<any>; configs: ReadonlyArray<ConsumeConfig> }) =>
 	configs.map((config, i) => <ConnectedIconEnumPicker key={i} modObject={player} config={config} />);
 
+export interface ImbueRowsProps {
+	player: Player<any>;
+	/** The main hand's and the off hand's pick. */
+	imbues: [ConsumeConfig, ConsumeConfig];
+	weaponImbues: [ConsumeConfig, ConsumeConfig];
+	imbueTestId: string;
+	weaponImbueTestId: string;
+}
+
+export const ImbueRows = ({ player, imbues, weaponImbues, imbueTestId, weaponImbueTestId }: ImbueRowsProps) => (
+	<>
+		<ConsumeRow name="imbue" configs={imbues}>
+			<IconRow className="justify-end" data-testid={imbueTestId}>
+				<Pickers player={player} configs={imbues} />
+			</IconRow>
+		</ConsumeRow>
+		<ConsumeRow name="weaponImbue" configs={weaponImbues}>
+			<IconRow className="justify-end" data-testid={weaponImbueTestId}>
+				<Pickers player={player} configs={weaponImbues} />
+			</IconRow>
+		</ConsumeRow>
+	</>
+);
+
 export const ConsumesPicker = ({ encounterConsumes = true }: ConsumesPickerProps) => {
 	const player = usePlayer() as Player<any>;
 	const configs = useMemo(() => consumeConfigs(player, Database.getSync()), [player]);
@@ -60,18 +84,13 @@ export const ConsumesPicker = ({ encounterConsumes = true }: ConsumesPickerProps
 					</IconRow>
 				</ConsumeRow>
 			)}
-			<ConsumeRow name="imbue" configs={[configs.mhImbue, configs.ohImbue]}>
-				<IconRow className="justify-end" data-testid="consumes-imbue">
-					<ConnectedIconEnumPicker modObject={player} config={configs.mhImbue} />
-					<ConnectedIconEnumPicker modObject={player} config={configs.ohImbue} />
-				</IconRow>
-			</ConsumeRow>
-			<ConsumeRow name="weaponImbue" configs={[configs.mhWeaponImbue, configs.ohWeaponImbue]}>
-				<IconRow className="justify-end" data-testid="consumes-weapon-imbue">
-					<ConnectedIconEnumPicker modObject={player} config={configs.mhWeaponImbue} />
-					<ConnectedIconEnumPicker modObject={player} config={configs.ohWeaponImbue} />
-				</IconRow>
-			</ConsumeRow>
+			<ImbueRows
+				player={player}
+				imbues={[configs.mhImbue, configs.ohImbue]}
+				weaponImbues={[configs.mhWeaponImbue, configs.ohWeaponImbue]}
+				imbueTestId="consumes-imbue"
+				weaponImbueTestId="consumes-weapon-imbue"
+			/>
 			<ConsumeRow name="holiday" configs={[...configs.holidayGroups, ...configs.holiday]}>
 				<IconRow className="justify-end" data-testid="consumes-holiday">
 					<Pickers player={player} configs={configs.holidayGroups} />

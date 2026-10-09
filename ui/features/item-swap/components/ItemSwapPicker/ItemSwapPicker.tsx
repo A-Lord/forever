@@ -5,6 +5,7 @@ import i18n from '@i18n/config';
 import { useSimHost } from '@sim/context/SimHostContext';
 import { usePlayerStore } from '@sim/hooks/usePlayerStore';
 import type { Player } from '@sim/player/player';
+import { Box } from '@ui-kit/Box';
 import { Button } from '@ui-kit/Button';
 import { Field } from '@ui-kit/Field';
 import { HelpText } from '@ui-kit/FormControl';
@@ -39,7 +40,7 @@ export const ItemSwapPickerView = ({ note, onSwap, children }: ItemSwapPickerVie
 					<Icon name="arrows-rotate" className="me-1" />
 				</Button>
 				<Tooltip id={swapId} content={swapTooltip} />
-				<IconRow className="items-center justify-end" testId="item-swap-icon-grid">
+				<IconRow className="items-center justify-end [&_.ui-item-picker-icon-wrapper]:[--icon-size:--spacing(14)]" testId="item-swap-icon-grid">
 					{children}
 				</IconRow>
 			</Field>
@@ -51,9 +52,11 @@ export const ItemSwapPickerView = ({ note, onSwap, children }: ItemSwapPickerVie
 export interface ItemSwapPickerProps {
 	itemSlots: ReadonlyArray<ItemSlot>;
 	note?: string;
+	/** Rows for the swap set beside its gear, such as the swap weapons' consumable pickers. */
+	children?: ReactNode;
 }
 
-export const ItemSwapPicker = <SpecType extends Spec>({ itemSlots, note }: ItemSwapPickerProps) => {
+export const ItemSwapPicker = <SpecType extends Spec>({ itemSlots, note, children }: ItemSwapPickerProps) => {
 	const host = useSimHost();
 	const player = host.player as Player<SpecType>;
 	const enabled = usePlayerStore('itemSwapEnabled');
@@ -75,13 +78,17 @@ export const ItemSwapPicker = <SpecType extends Spec>({ itemSlots, note }: ItemS
 	return (
 		<div className="grid gap-2" data-testid="item-swap-picker-root">
 			<ConnectedBooleanPicker modObject={player} config={enableConfig} />
-			{enabled && (
-				<ItemSwapPickerView note={note} onSwap={() => swapWithGear(player, itemSlots)}>
-					{itemSlots.map(itemSlot => (
-						<ItemSwapIcon key={itemSlot} slot={itemSlot} />
-					))}
-				</ItemSwapPickerView>
-			)}
+			{/* Hidden, never unmounted, while item swap is off: the swap consumable pickers in the rows zero their fields as they hide, which an unmounted picker never does. */}
+			<Box className="grid gap-2" testId="item-swap-box" hidden={!enabled}>
+				{enabled && (
+					<ItemSwapPickerView note={note} onSwap={() => swapWithGear(player, itemSlots)}>
+						{itemSlots.map(itemSlot => (
+							<ItemSwapIcon key={itemSlot} slot={itemSlot} />
+						))}
+					</ItemSwapPickerView>
+				)}
+				{children}
+			</Box>
 		</div>
 	);
 };

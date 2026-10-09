@@ -7,7 +7,7 @@ import { sum } from '../utils/math';
 import { Database } from './database';
 import { EquippedItem } from './equipped_item';
 import { isBluntWeaponType, isSharpWeaponType, validWeaponCombo } from './items';
-import { adjustImbues } from './utils';
+import { adjustImbues, adjustSwapImbues } from './utils';
 
 type InternalGear = Record<ItemSlot, EquippedItem | null>;
 
@@ -270,5 +270,9 @@ export class ItemSwapGear extends BaseGear {
 
 	withEquippedItem(newSlot: ItemSlot, newItem: EquippedItem | null): ItemSwapGear {
 		return new ItemSwapGear(this.withEquippedItemInternal(newSlot, newItem));
+	}
+
+	adjustSwapImbues(consumes: ConsumesSpec): ConsumesSpec {
+		return adjustSwapImbues(consumes, this.getEquippedItem(ItemSlot.ItemSlotMainHand)?.item, this.getEquippedItem(ItemSlot.ItemSlotOffHand)?.item);
 	}
 }

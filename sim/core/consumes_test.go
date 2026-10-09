@@ -22,22 +22,28 @@ func TestSelectedConsumableIDs(t *testing.T) {
 		extra2
 		extra3
 		extra4
+		swapMhImbue
+		swapOhWeaponImbue
 	)
 	consumes := &proto.ConsumesSpec{
-		PotId:           pot,
-		Potions:         []int32{pot, potion},
-		FlaskId:         flask,
-		FoodId:          food,
-		ExplosiveId:     explosive,
-		MhImbueId:       mhImbue,
-		MhWeaponImbueId: mhWeaponImbue,
-		OhImbueId:       ohImbue,
-		ConjuredItems:   []int32{conjured},
-		ExtraIds:        []int32{extra1, extra2, extra3, extra4},
+		PotId:               pot,
+		Potions:             []int32{pot, potion},
+		FlaskId:             flask,
+		FoodId:              food,
+		ExplosiveId:         explosive,
+		MhImbueId:           mhImbue,
+		MhWeaponImbueId:     mhWeaponImbue,
+		OhImbueId:           ohImbue,
+		SwapMhImbueId:       swapMhImbue,
+		SwapOhImbueId:       ohImbue,
+		SwapOhWeaponImbueId: swapOhWeaponImbue,
+		ConjuredItems:       []int32{conjured},
+		ExtraIds:            []int32{extra1, extra2, extra3, extra4},
 	}
 
 	got := selectedConsumableIDs(consumes)
-	want := []int32{pot, flask, food, explosive, ohImbue, mhImbue, mhWeaponImbue, extra1, extra2, extra3, extra4, potion, conjured}
+	want := []int32{pot, flask, food, explosive, ohImbue, mhImbue, mhWeaponImbue, swapOhWeaponImbue, swapMhImbue,
+		extra1, extra2, extra3, extra4, potion, conjured}
 	if !slices.Equal(got, want) {
 		t.Errorf("selected %v, want %v", got, want)
 	}
