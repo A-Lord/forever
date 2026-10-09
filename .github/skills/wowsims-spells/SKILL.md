@@ -44,6 +44,7 @@ spelldata.MustFind(id)                           // panics instead, for a spell 
 | `DamageEffect()`, `HealEffect()`, `EnergizeEffect()`, `PeriodicEffect()`         | the first effect of that role, or `NilEffect`                                                                 |
 | `CastTime()`, `Cooldown()`, `CategoryCooldown()`, `GCD()`, `Duration()`, `ICD()` | times; the game files' -1 duration becomes `core.NeverExpires`                                                |
 | `PowerCost(t)`                                                                   | the cost in the units the sim spends — rage off the 0-1000 bar                                                |
+| `ReagentCount(item)`                                                             | how many of that item each cast consumes, off `Reagents` (SpellReagents); 0 for an item it does not take      |
 | `SpellSchool()`, `DefenseTypeCore()`, `MissRefund()`, `TickOutcome(dot)`         | core's own forms                                                                                              |
 | `Refs()`, `Triggered()`, `Drivers()`                                             | the tooltip's spells, the ones the effects fire, the ones that fire this                                      |
 

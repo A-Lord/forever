@@ -2,6 +2,7 @@ package warlock
 
 import (
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
@@ -177,8 +178,8 @@ func (warlock *Warlock) applyMasterSummoner() {
 // --- Tier 4 ---
 
 // Effect 2 shortens Soul Fire's cooldown. Below 35% health (effect 3), Shadow Bolt and Searing Pain deal more
-// damage (effect 4), and casting either grants Decimation (440873): Soul Fire casts faster for 10 sec. Its
-// Soul Shard saving is not modelled.
+// damage (effect 4), and casting either grants Decimation (440873): for 10 sec Soul Fire casts faster and,
+// by the buff's A_NO_REAGENT_USE, takes no Soul Shard.
 func (warlock *Warlock) applyDecimation() {
 	if warlock.Talents.Decimation == 0 {
 		return
@@ -213,6 +214,8 @@ func (warlock *Warlock) applyDecimation() {
 		ClassFlags: decimationRow.EffectN(1).ClassFlags,
 		FloatValue: rank.EffectN(1).Percent(),
 	})
+	noReagent := decimationRow.Effect(dbcenums.A_NO_REAGENT_USE, 0)
+	warlock.reagentWaivers = append(warlock.reagentWaivers, reagentWaiver{aura: decimationAura, flags: noReagent.ClassFlags})
 
 	warlock.MakeProcTriggerAura(core.ProcTrigger{
 		Name:       "Decimation - Trigger",
