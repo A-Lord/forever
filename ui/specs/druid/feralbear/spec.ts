@@ -83,8 +83,9 @@ export default defineSpec<Spec.SpecFeralBearDruid>({
 		other: Presets.OtherDefaults,
 		consumables: Presets.DefaultConsumables,
 		rotationType: APLRotationType.TypeAuto,
+		// Feral Instinct raises only Swipe, so its points are in Blood Frenzy and Shredding Attacks.
 		talents: SavedTalents.create({
-			talentsString: '0000000000000000-55230302120130012551-0550000000000000',
+			talentsString: '0000000000000000-55200312120132012551-0550000000000000',
 		}),
 		specOptions: Presets.DefaultOptions,
 		raidBuffs: RaidBuffs.create({
@@ -144,7 +145,7 @@ export default defineSpec<Spec.SpecFeralBearDruid>({
 	presets: {
 		epWeights: [Presets.Level60SurvivalEpWeights, Presets.Level60DpsEpWeights],
 		talents: [],
-		rotations: [Presets.ROTATION_DEFAULT],
+		rotations: [Presets.ROTATION_DEFAULT, Presets.ROTATION_LACERATE_FIRST],
 		gear: [Presets.Level60Gear],
 		encounters: [Presets.Level60Encounter],
 	},

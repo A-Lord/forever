@@ -32,6 +32,7 @@ const (
 	itemSapper   int32 = 10646
 	itemTea      int32 = 7676
 
+	spellBite       int32 = 22829
 	spellDireBear   int32 = 9634
 	spellPrimalBite int32 = 1238073
 	spellEnrage     int32 = 5229
@@ -50,6 +51,18 @@ type aplTune struct {
 	ceiling   int
 	omenMax   string
 	innervate bool
+	// ripPool is how far ahead of Rip falling off a builder that would leave the refresh unpaid
+	// waits; "" is 2s. rakePool, when set, pools the same way for Rake. spFirst puts Shifting Power
+	// ahead of Rip and Rake.
+	ripPool  string
+	rakePool string
+	spFirst  bool
+	// biteEnd spends 5 combo points on Ferocious Bite once a Rip would not tick out; biteLow, when
+	// set, also bites at 3 or more inside that much of the end. rakeCut, when set, casts no Rake with
+	// less than that left.
+	biteEnd bool
+	biteLow string
+	rakeCut string
 }
 
 func catAPL(tune aplTune) *proto.APLRotation {
@@ -64,6 +77,9 @@ func catAPL(tune aplTune) *proto.APLRotation {
 	fightLong := cmp(proto.APLValueCompare_OpGe, remainingTime(), konst("10s"))
 	ripNow := and(cp5, not(ripUp), fightLong, spellCanCast(spellRip))
 	rakeNow := and(not(rakeUp), spellCanCast(spellRake))
+	if tune.rakeCut != "" {
+		rakeNow = and(rakeNow, cmp(proto.APLValueCompare_OpGe, remainingTime(), konst(tune.rakeCut)))
+	}
 	energyLow := func(ceiling int) *proto.APLValue {
 		return cmp(proto.APLValueCompare_OpLt, currentEnergy(), konst(strconv.Itoa(ceiling)))
 	}
@@ -73,10 +89,19 @@ func catAPL(tune aplTune) *proto.APLRotation {
 	wantShift := and(spellCanCast(spellSP), underCap)
 	// A builder would leave the refresh short: energy - Shred + 10 regen < Rip.
 	afterBuilder := mathOp(proto.APLValueMath_OpAdd, mathOp(proto.APLValueMath_OpSub, currentEnergy(), spellCost(spellShred)), konst("10"))
+	if tune.ripPool == "" {
+		tune.ripPool = "2s"
+	}
 	pooling := and(cp5, ripUp, fightLong,
 		cmp(proto.APLValueCompare_OpGt, dotLeft(spellRip), konst("0s")),
-		cmp(proto.APLValueCompare_OpLe, dotLeft(spellRip), konst("2s")),
+		cmp(proto.APLValueCompare_OpLe, dotLeft(spellRip), konst(tune.ripPool)),
 		cmp(proto.APLValueCompare_OpLt, afterBuilder, spellCost(spellRip)))
+	if tune.rakePool != "" {
+		pooling = or(pooling, and(rakeUp, cmp(proto.APLValueCompare_OpGe, remainingTime(), konst("9s")),
+			cmp(proto.APLValueCompare_OpGt, dotLeft(spellRake), konst("0s")),
+			cmp(proto.APLValueCompare_OpLe, dotLeft(spellRake), konst(tune.rakePool)),
+			cmp(proto.APLValueCompare_OpLt, afterBuilder, spellCost(spellRake))))
+	}
 	// Berserk is a major cooldown, so a plain cast waits for a GCD that is already idle while the
 	// builder queues into the window and takes that GCD. A sequence casts it with the spell.
 	// The sapper line sits above these, so a throw and the Cat Form after it always go first.
@@ -129,6 +154,23 @@ func catAPL(tune aplTune) *proto.APLRotation {
 		castWhen(spellClaw, and(not(pooling), cmp(proto.APLValueCompare_OpGe, currentEnergy(), spellCost(spellShred)))),
 		castWhen(spellFF, omenFish),
 	}
+	if tune.biteEnd {
+		bite := []*proto.APLValue{and(cp5, not(fightLong))}
+		if tune.biteLow != "" {
+			bite = append(bite, and(cmp(proto.APLValueCompare_OpGe, comboPoints(), konst("3")),
+				cmp(proto.APLValueCompare_OpLt, remainingTime(), konst(tune.biteLow))))
+		}
+		// Ahead of Shifting Power and Shred.
+		list = append(list[:10], append([]*proto.APLListItem{castWhen(spellBite, or(bite...))}, list[10:]...)...)
+	}
+	if tune.spFirst {
+		// Rip, Rake, Shifting Power become Shifting Power, Rip, Rake.
+		i := 8
+		if list[i].Action.GetCastSpell().GetSpellId().GetSpellId() != spellRip {
+			panic("catAPL expects Rip as the ninth line")
+		}
+		list[i], list[i+1], list[i+2] = list[i+2], list[i], list[i+1]
+	}
 	if !tune.omen {
 		list = list[:len(list)-1]
 	}
@@ -161,13 +203,14 @@ func manaShort() *proto.APLValue {
 }
 
 // BestCatAPL is the list ui/specs/druid/feralcat/apls/default.apl.json holds.
-var bestCatAPL = aplTune{elune: "after", omen: true, innervate: true}
+var bestCatAPL = aplTune{elune: "after", omen: true, innervate: true, rakePool: "1s", biteEnd: true, biteLow: "3s", rakeCut: "6s"}
 
 // The cat UI's default talents (presets.ts CatTalents), and the ones bearweaveAPL is played with:
-// one point out of Genesis into Primal Bite.
+// two points out of Rend and Tear into Primal Bite and Blood Frenzy, whose crits give the bear rage
+// for Maul. Genesis stays at 5, which Nature's Majesty and Nature's Reach need below them.
 const (
 	catTalents       = "050022-55000032021030212051-055"
-	bearweaveTalents = "040022-55000032021130212051-055"
+	bearweaveTalents = "050022-55000032021131212031-055"
 )
 
 // weaveTune is one bear trip. energyMax is the most energy the cat goes into bear with, spLeft the
@@ -190,9 +233,8 @@ var bestWeave = weaveTune{energyMax: 20, spLeft: "3s", manaPerSecond: 40, leave:
 // ui/specs/druid/feralcat/apls/bearweave.apl.json holds.
 //
 // The trip starts in cat with no Clearcasting, Berserk down, Primal Bite ready and 10s of fight
-// left. Dire Bear Form and Cat Form are 684 mana each, so the trip also needs 1368 mana spare over
-// the tune's mana per second of fight left; a trip is worth less than the Shifting Powers it would
-// cost. In bear: Enrage under 20 rage (Furor gives 10 on the shift, Enrage with Wolfshead 15),
+// left. The trip also needs the mana for Dire Bear Form and Cat Form spare over the tune's mana per
+// second of fight left; a trip is worth less than the Shifting Powers it would cost. In bear: Enrage under 20 rage (Furor gives 10 on the shift, Enrage with Wolfshead 15),
 // Primal Bite, and Maul with the bite's 25 rage kept back or once the bite is on cooldown. Leaving
 // bear stays in it while a bear swing with rage for Maul lands before the bite's GCD ends.
 func bearweaveAPL() *proto.APLRotation {
@@ -240,7 +282,8 @@ func weaveAPL(tune weaveTune) *proto.APLRotation {
 	if tune.spLeft != "" {
 		window = append(window, cmp(proto.APLValueCompare_OpGe, spellLeft(spellSP), konst(tune.spLeft)))
 	}
-	spare := mathOp(proto.APLValueMath_OpSub, currentMana(), konst("1368"))
+	trip := mathOp(proto.APLValueMath_OpAdd, spellCost(spellDireBear), spellCost(spellCatForm))
+	spare := mathOp(proto.APLValueMath_OpSub, currentMana(), trip)
 	window = append(window, cmp(proto.APLValueCompare_OpGe, spare,
 		mathOp(proto.APLValueMath_OpMul, remainingTime(), konst(strconv.Itoa(tune.manaPerSecond)))))
 	enter := castWhen(spellDireBear, and(window...))

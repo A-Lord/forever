@@ -117,7 +117,9 @@ func BenchmarkSimulate(b *testing.B) {
 	core.RaidBenchmark(b, rsr)
 }
 
-const DefaultTalents = "0000000000000000-55230302120130012551-0550000000000000"
+// The bear UI default. Feral Instinct raises only Swipe, which a single target never sees, so its
+// points are in Blood Frenzy (rage on crits) and Shredding Attacks.
+const DefaultTalents = "0000000000000000-55200312120132012551-0550000000000000"
 const DemoRoarTalents = DefaultTalents
 
 var DefaultSpecOptions = &proto.Player_FeralBearDruid{

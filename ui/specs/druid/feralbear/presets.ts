@@ -8,8 +8,12 @@ import { OtherDefaults as SimUIOtherDefaults } from '@sim/spec_config';
 import * as Consumables from '@features/settings/model/consumables_auto_gen';
 
 import DefaultApl from './apls/default.apl.json';
+import LacerateFirstApl from './apls/lacerate_first.apl.json';
 import Level60GearJson from './gear_sets/default.gear.json';
 export const ROTATION_DEFAULT = PresetUtils.makePresetAPLRotation('APL', DefaultApl);
+// For a target no one else bleeds (Assume Bleed Always Active off): Berserk waits for Lacerate, so
+// Rend and Tear covers it.
+export const ROTATION_LACERATE_FIRST = PresetUtils.makePresetAPLRotation('Lacerate before Berserk', LacerateFirstApl);
 
 // Leather at 60 with no set bonus and no proc, about the item level of the cat preset.
 export const Level60Gear = PresetUtils.makePresetGear('Level 60', Level60GearJson, {

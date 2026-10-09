@@ -3,6 +3,7 @@
 package feralcat
 
 import (
+	"strconv"
 	"strings"
 	"testing"
 
@@ -29,12 +30,36 @@ func TestMonocatStaysInCatForm(t *testing.T) {
 			t.Errorf("%s was never cast", c.name)
 		}
 	}
-	if got := castsOf(player.Actions, 22829); got != 0 {
-		t.Errorf("Ferocious Bite casts = %d, Monocat leaves it out", got)
-	}
 	// The only way out of Cat Form is the self-Innervate.
 	if forms, innervates := castsOf(player.Actions, 768), castsOf(player.Actions, spellInnervate); forms != innervates {
 		t.Errorf("Cat Form casts = %d, Innervate casts = %d", forms, innervates)
+	}
+}
+
+// Ferocious Bite spends the combo points only once a Rip would not tick out, in the last 10 seconds.
+func TestMonocatBitesOnlyAtTheEnd(t *testing.T) {
+	request := catPowershiftRequest(powershiftTalents, defaultCatRotation(), false)
+	request.SimOptions.Debug = true
+	result := core.RunSim(request, nil, simsignals.CreateSignals())
+	if result.Error != nil {
+		t.Fatal(result.Error.Message)
+	}
+	bites := 0
+	for _, line := range strings.Split(result.Logs, "\n") {
+		if !strings.Contains(line, "Casting {SpellID: 22829}") {
+			continue
+		}
+		bites++
+		at, err := strconv.ParseFloat(line[1:strings.Index(line, "]")], 64)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if at < request.Encounter.Duration-10 {
+			t.Errorf("Ferocious Bite at %.2fs of %.0fs", at, request.Encounter.Duration)
+		}
+	}
+	if bites == 0 {
+		t.Error("Ferocious Bite was never cast at the end")
 	}
 }
 

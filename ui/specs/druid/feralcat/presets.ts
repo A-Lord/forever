@@ -86,17 +86,17 @@ export const PreRaidEpWeights = PresetUtils.makePresetEpWeights('Pre-raid', PreR
 export const MONOCAT_APL = PresetUtils.makePresetAPLRotation('Monocat', DefaultApl);
 export const RAVAGE_APL = PresetUtils.makePresetAPLRotation('Ravage opener', RavageApl);
 export const POUNCE_APL = PresetUtils.makePresetAPLRotation('Pounce opener', PounceApl);
-// Dire Bear trips for Primal Bite and Maul, only on mana the Shifting Powers to the end of the fight
-// do not need. Needs the Primal Bite talent.
+// Monocat with Dire Bear trips for Primal Bite and Maul, only on mana the Shifting Powers to the end
+// of the fight do not need. Needs the Primal Bite talent.
 export const BEARWEAVE_APL = PresetUtils.makePresetAPLRotation('Bearweave', BearweaveApl);
 
 export const CatTalents = PresetUtils.makePresetTalents('Cat', SavedTalents.create({ talentsString: '050022-55000032021030212051-055' }));
-// One point out of Genesis into Primal Bite.
-export const BearweaveTalents = PresetUtils.makePresetTalents('Bearweave', SavedTalents.create({ talentsString: '040022-55000032021130212051-055' }));
+// Two points out of Rend and Tear into Primal Bite and Blood Frenzy.
+export const BearweaveTalents = PresetUtils.makePresetTalents('Bearweave', SavedTalents.create({ talentsString: '050022-55000032021131212031-055' }));
 
-// A bear form forfeits Furor's energy, so a trip costs the energy the cat went in with: +1.4 over the cat
-// on a 60 second fight, and about the Genesis point behind on the other lengths.
-export const BearweaveBuild = PresetUtils.makePresetBuild('Bearweave (short fights)', {
+// A bear form forfeits Furor's energy, so a trip costs the energy the cat went in with. Ahead of
+// Monocat on a fight of about 45 seconds, behind from 60 seconds on.
+export const BearweaveBuild = PresetUtils.makePresetBuild('Bearweave (45s fights)', {
 	talents: BearweaveTalents,
 	rotation: BEARWEAVE_APL,
 });

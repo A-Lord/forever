@@ -15,7 +15,8 @@ import (
 )
 
 // The UI's default cat (spec.ts and presets.ts): a Night Elf in the Pre-raid set with its raid buffs,
-// debuffs and consumables, Engineering and Enchanting, against a level 63 target.
+// debuffs and consumables, Engineering and Enchanting, a bleed assumed on the target, against a level
+// 63 target.
 func uiDefaultRaidSim(talents string, rotation *proto.APLRotation, duration, variation float64, iterations int32) *proto.RaidSimRequest {
 	target := make([]float64, stats.SimStatsLen)
 	target[stats.AttackPower] = 320
@@ -45,7 +46,7 @@ func uiDefaultRaidSim(talents string, rotation *proto.APLRotation, duration, var
 						ExtraIds:   []int32{12451, 12460, 8412},
 					},
 					Buffs:    &proto.IndividualBuffs{GreaterBlessingOfKings: true, GreaterBlessingOfMight: true},
-					Spec:     &proto.Player_FeralCatDruid{FeralCatDruid: &proto.FeralCatDruid{Options: &proto.FeralCatDruid_Options{}}},
+					Spec:     &proto.Player_FeralCatDruid{FeralCatDruid: &proto.FeralCatDruid{Options: &proto.FeralCatDruid_Options{AssumeBleedActive: true}}},
 					Rotation: rotation,
 				}},
 				Buffs: &proto.PartyBuffs{
@@ -80,7 +81,7 @@ func TestDpsReport(t *testing.T) {
 	presets := []struct {
 		name, talents, apl string
 	}{
-		{"Cat APL", catTalents, "default"},
+		{"Monocat", catTalents, "default"},
 		{"Bearweave", bearweaveTalents, "bearweave"},
 	}
 	run := func(talents, apl string, duration, variation float64, iterations int32) (*proto.UnitMetrics, float64) {
