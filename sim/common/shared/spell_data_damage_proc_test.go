@@ -83,12 +83,15 @@ func TestItemDamageProcCritsReachListenersThatHearProcs(t *testing.T) {
 	}
 }
 
-// Blazing Rapier 12777's chance-on-hit Blaze 16898 deals 20 Fire every 3 s for 30 s and nothing up
-// front, and states no rate. Rolled at 100% for the test, the damage proc puts the damage over time on
-// the target the swing hit, and it ticks ten times.
+// Blazing Rapier 12777's chance-on-hit Blaze 16898 deals Fire every period for its duration and
+// nothing up front, and states no rate. Rolled at 100% for the test, the damage proc puts the damage
+// over time on the target the swing hit, and it ticks the row's duration over its period.
 func TestWeaponProcDealingDamageOverTimeAloneAppliesIt(t *testing.T) {
 	const weaponID, blaze int32 = 991605, 16898
 	editRow(t, blaze, alwaysProcs)
+	row := spelldata.MustFind(blaze)
+	duration := row.Duration()
+	wantTicks := int32(duration / row.PeriodicDamageEffect().Period())
 	sim, caster, target := newSlowProcSim(t, weaponID, registerSpellDataDamageProc, blaze, nil)
 
 	start := sim.CurrentTime
@@ -98,12 +101,12 @@ func TestWeaponProcDealingDamageOverTimeAloneAppliesIt(t *testing.T) {
 		t.Fatalf("the swing put no %d damage over time on the target", blaze)
 	}
 
-	stepPast(t, sim, start+30*time.Second+time.Millisecond)
+	stepPast(t, sim, start+duration+time.Millisecond)
 	if damage.Dot(target).IsActive() {
-		t.Errorf("the damage over time is still up after its 30 s")
+		t.Errorf("the damage over time is still up after the row's %v", duration)
 	}
 	metrics := damage.SpellMetrics[target.UnitIndex]
-	if ticks := metrics.Ticks + metrics.ResistedTicks + metrics.CritTicks + metrics.ResistedCritTicks; ticks != 10 {
-		t.Errorf("the damage over time ticked %d times, want 10", ticks)
+	if ticks := metrics.Ticks + metrics.ResistedTicks + metrics.CritTicks + metrics.ResistedCritTicks; wantTicks < 2 || ticks != wantTicks {
+		t.Errorf("the damage over time ticked %d times, want the row's %d", ticks, wantTicks)
 	}
 }

@@ -7,8 +7,10 @@ import (
 	"time"
 
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/simsignals"
+	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 	"github.com/wowsims/forever/sim/core/testagent"
 )
@@ -55,24 +57,27 @@ func itemWearer(t *testing.T, class proto.Class, slot proto.ItemSlot, itemID int
 	return sim, sim.Raid.Parties[0].Players[0].GetCharacter()
 }
 
-// Whether the damage is the roll's range, or that range at the spell crit multiplier on a crit.
-func damageInRange(metrics core.SpellMetrics, low, high float64) bool {
-	if metrics.Crits > 0 {
-		low, high = low*1.5, high*1.5
-	}
-	return metrics.TotalDamage >= low && metrics.TotalDamage <= high
+// Whether every cast landed within the effect's roll. The caller rules out crits.
+func damageInRange(metrics core.SpellMetrics, effect *spelldata.Effect) bool {
+	casts := float64(metrics.Casts)
+	return metrics.Crits == 0 && metrics.TotalDamage >= casts*effect.Min() && metrics.TotalDamage <= casts*effect.Max()
 }
 
-// Aegis of the Scarlet Commander 7726's 1293539 deals 14 Holy (13 to 15) to the attacker of a melee
-// hit the wearer blocks, at most once every 5 s (the row's RecoveryTime); a hit not blocked deals
-// nothing.
+// Aegis of the Scarlet Commander 7726's 1293539 deals its row's Holy roll to the attacker of a melee
+// hit the wearer blocks, at most once per the row's RecoveryTime; a hit not blocked deals nothing.
 func TestAegisOfTheScarletCommanderDealsHolyDamageOnBlock(t *testing.T) {
 	sim, character := itemWearer(t, proto.Class_ClassWarrior, proto.ItemSlot_ItemSlotOffHand, 7726)
-	character.AddStatsDynamic(sim, stats.Stats{stats.SpellHitPercent: 100})
+	character.AddStatsDynamic(sim, stats.Stats{stats.SpellHitPercent: 100, stats.SpellCritPercent: -character.GetStat(stats.SpellCritPercent)})
 	enemy := sim.Encounter.ActiveTargetUnits[0]
 	retribution := character.GetSpell(core.ActionID{SpellID: 1293539})
 	if retribution == nil {
 		t.Fatal("7726 registers no damage spell")
+	}
+	row := spelldata.MustFind(1293539)
+	damage := row.FirstAura(dbcenums.A_PROC_TRIGGER_DAMAGE)
+	lockout := row.Cooldown()
+	if lockout <= 0 {
+		t.Fatalf("1293539 states no RecoveryTime")
 	}
 
 	takeHit(t, sim, character, meleeSwing(enemy))
@@ -87,34 +92,40 @@ func TestAegisOfTheScarletCommanderDealsHolyDamageOnBlock(t *testing.T) {
 	firstBlock := sim.CurrentTime
 	block()
 	metrics := retribution.SpellMetrics[enemy.UnitIndex]
-	if metrics.Casts != 1 || !damageInRange(metrics, 13, 15) {
-		t.Errorf("a block cast the damage %d times for %v, want once for 13 to 15", metrics.Casts, metrics.TotalDamage)
+	if metrics.Casts != 1 || !damageInRange(metrics, damage) {
+		t.Errorf("a block cast the damage %d times for %v, want once for %v to %v", metrics.Casts, metrics.TotalDamage, damage.Min(), damage.Max())
 	}
 	block()
 	if got := retribution.SpellMetrics[enemy.UnitIndex].Casts; got != 1 {
 		t.Errorf("a second block at once cast the damage %d times in all, want once still", got)
 	}
-	stepTo(t, sim, firstBlock+5*time.Second)
+	stepTo(t, sim, firstBlock+lockout-core.SpellBatchWindow)
+	block()
+	if got := retribution.SpellMetrics[enemy.UnitIndex].Casts; got != 1 {
+		t.Errorf("a block just inside the row's %v cast the damage %d times in all, want once still", lockout, got)
+	}
+	stepTo(t, sim, firstBlock+lockout)
 	block()
 	if got := retribution.SpellMetrics[enemy.UnitIndex].Casts; got != 2 {
-		t.Errorf("a block 5 s after the first cast the damage %d times in all, want 2", got)
+		t.Errorf("a block the row's %v after the first cast the damage %d times in all, want 2", lockout, got)
 	}
 }
 
-// Black Grasp of the Destroyer 22194 restores 8 mana (29471) on each landed melee or ranged hit, and
+// Black Grasp of the Destroyer 22194 restores 29471's mana on each landed melee or ranged hit, and
 // nothing on a spell; a wearer without mana registers nothing.
 func TestBlackGraspOfTheDestroyerRestoresManaPerHit(t *testing.T) {
+	gain := spelldata.MustFind(29471).EnergizeEffect().Average()
 	sim, character := itemWearer(t, proto.Class_ClassPaladin, proto.ItemSlot_ItemSlotHands, 22194)
-	character.SpendMana(sim, 100, character.NewManaMetrics(core.ActionID{OtherID: proto.OtherAction_OtherActionManaRegen}))
+	character.SpendMana(sim, 2*gain, character.NewManaMetrics(core.ActionID{OtherID: proto.OtherAction_OtherActionManaRegen}))
 	before := character.CurrentMana()
 
 	dealHit(t, sim, character, meleeSwing(&character.Unit))
-	if got := character.CurrentMana() - before; got != 8 {
-		t.Errorf("a melee hit restored %v mana, want 8", got)
+	if got := character.CurrentMana() - before; gain <= 0 || got != gain {
+		t.Errorf("a melee hit restored %v mana, want the row's %v", got, gain)
 	}
 	dealHit(t, sim, character, fireSpell(&character.Unit))
-	if got := character.CurrentMana() - before; got != 8 {
-		t.Errorf("after a spell hit the mana restored is %v, want 8 still", got)
+	if got := character.CurrentMana() - before; got != gain {
+		t.Errorf("after a spell hit the mana restored is %v, want %v still", got, gain)
 	}
 
 	_, warrior := itemWearer(t, proto.Class_ClassWarrior, proto.ItemSlot_ItemSlotHands, 22194)
@@ -123,9 +134,9 @@ func TestBlackGraspOfTheDestroyerRestoresManaPerHit(t *testing.T) {
 	}
 }
 
-// Thick Obsidian Breastplate 22196's 27539 has a 30% chance, on a spell hit taken, to shield the
-// wearer for 6 s against that spell's school: 400 (300 to 500) absorbed, the Fire one 27533's. The
-// chance has a 10 s internal cooldown, and a Physical spell, which has no shield, does not spend it.
+// Thick Obsidian Breastplate 22196's 27539 has a chance, on a spell hit taken, to shield the wearer
+// against that spell's school with the Fire row 27533's absorb roll for its duration. The chance has
+// 27539's internal cooldown, and a Physical spell, which has no shield, does not spend it.
 func TestThickObsidianBreastplateShieldsTheSchoolHit(t *testing.T) {
 	sim, character := itemWearer(t, proto.Class_ClassWarrior, proto.ItemSlot_ItemSlotChest, 22196)
 	enemy := sim.Encounter.ActiveTargetUnits[0]
@@ -133,6 +144,12 @@ func TestThickObsidianBreastplateShieldsTheSchoolHit(t *testing.T) {
 	frostShield := character.GetAuraByID(core.ActionID{SpellID: 27534})
 	if fireShield == nil || frostShield == nil {
 		t.Fatal("22196 registers no Fire or Frost shield")
+	}
+	fire := spelldata.MustFind(27533)
+	absorb := fire.AbsorbEffect()
+	icd := spelldata.MustFind(27539).ICD()
+	if icd <= fire.Duration() {
+		t.Fatalf("27539's cooldown %v does not outlast the shield's %v, which the steps below need", icd, fire.Duration())
 	}
 	spell := func(school core.SpellSchool) *core.Spell {
 		return &core.Spell{ProcMask: core.ProcMaskSpellDamage, SpellSchool: school, DefenseType: core.DefenseTypeMagic, Unit: enemy}
@@ -167,42 +184,46 @@ func TestThickObsidianBreastplateShieldsTheSchoolHit(t *testing.T) {
 
 	hitUntil(core.SpellSchoolFire, fireShield)
 	raised := sim.CurrentTime
-	if got := fireShield.GetStacks(); got < 300 || got > 500 {
-		t.Errorf("the Fire shield absorbs %d, want 300 to 500", got)
+	if got := float64(fireShield.GetStacks()); got < absorb.Min() || got > absorb.Max() {
+		t.Errorf("the Fire shield absorbs %v, want the row's %v to %v", got, absorb.Min(), absorb.Max())
 	}
-	if got := fireShield.Duration; got != 6*time.Second {
-		t.Errorf("the Fire shield lasts %v, want 6s", got)
+	if got := fireShield.Duration; got != fire.Duration() {
+		t.Errorf("the Fire shield lasts %v, want the row's %v", got, fire.Duration())
 	}
-	stepTo(t, sim, raised+6*time.Second+time.Millisecond)
+	stepTo(t, sim, raised+fire.Duration()+time.Millisecond)
 	if fireShield.IsActive() {
-		t.Errorf("the Fire shield is still up after 6 s")
+		t.Errorf("the Fire shield is still up after the row's %v", fire.Duration())
 	}
 
-	for range 100 {
+	for sim.CurrentTime < raised+icd-core.SpellBatchWindow {
 		takeHit(t, sim, character, spell(core.SpellSchoolFrost))
 	}
-	if sim.CurrentTime >= raised+10*time.Second || frostShield.IsActive() {
-		t.Errorf("a Frost shield went up within the 10 s cooldown")
+	if frostShield.IsActive() {
+		t.Errorf("a Frost shield went up within the row's %v cooldown", icd)
 	}
 
-	stepTo(t, sim, raised+10*time.Second)
+	stepTo(t, sim, raised+icd)
 	hitUntil(core.SpellSchoolFrost, frostShield)
 	if got := shieldsUp(); got != 1 {
 		t.Errorf("%d shields are up after a Frost spell, want the Frost one alone", got)
 	}
 }
 
-// Demon Forged Breastplate 12628's 16611 has a 3% chance, on a melee hit taken, to cast 16608 on the
-// attacker: 60 Shadow a second for 4 s, each tick healing the wearer for the damage it dealt.
+// Demon Forged Breastplate 12628's 16611 has a chance, on a melee hit taken, to cast 16608 on the
+// attacker: the row's leech every period for its duration, each tick healing the wearer for the
+// effect's share of the damage it dealt.
 func TestDemonForgedBreastplateDrainsTheAttacker(t *testing.T) {
 	sim, character := itemWearer(t, proto.Class_ClassWarrior, proto.ItemSlot_ItemSlotChest, 12628)
 	character.AddStatsDynamic(sim, stats.Stats{stats.SpellHitPercent: 100})
-	character.RemoveHealth(sim, 1000)
 	enemy := sim.Encounter.ActiveTargetUnits[0]
 	drain := character.GetSpell(core.ActionID{SpellID: 16608})
 	if drain == nil {
 		t.Fatal("12628 registers no drain")
 	}
+	row := spelldata.MustFind(16608)
+	leech := row.FirstAura(dbcenums.A_PERIODIC_LEECH)
+	ticks := rowTickCount(row, leech)
+	character.RemoveHealth(sim, 2*float64(ticks)*leech.Average())
 
 	hits := 0
 	for ; !drain.Dot(enemy).IsActive() && hits < 1000; hits++ {
@@ -212,17 +233,17 @@ func TestDemonForgedBreastplateDrainsTheAttacker(t *testing.T) {
 		t.Fatalf("1000 melee hits taken cast no drain")
 	}
 	dot := drain.Dot(enemy)
-	if dot.BaseTickCount != 4 || dot.BaseTickLength != time.Second {
-		t.Errorf("the drain ticks %d times every %v, want 4 every 1s", dot.BaseTickCount, dot.BaseTickLength)
+	if dot.BaseTickCount != ticks || dot.BaseTickLength != leech.Period() {
+		t.Errorf("the drain ticks %d times every %v, want the row's %d every %v", dot.BaseTickCount, dot.BaseTickLength, ticks, leech.Period())
 	}
 
 	health := character.CurrentHealth()
-	stepTo(t, sim, sim.CurrentTime+4*time.Second+time.Millisecond)
+	stepTo(t, sim, sim.CurrentTime+row.Duration()+time.Millisecond)
 	metrics := drain.SpellMetrics[enemy.UnitIndex]
-	if metrics.TotalDamage != 240 {
-		t.Errorf("the drain dealt %v, want 240", metrics.TotalDamage)
+	if want := float64(ticks) * leech.Average(); want <= 0 || metrics.TotalDamage != want {
+		t.Errorf("the drain dealt %v, want the row's %v", metrics.TotalDamage, want)
 	}
-	if got := character.CurrentHealth() - health; got != metrics.TotalDamage {
-		t.Errorf("the drain healed the wearer for %v, want the %v it dealt", got, metrics.TotalDamage)
+	if got, want := character.CurrentHealth()-health, metrics.TotalDamage*float64(leech.Amplitude); got != want {
+		t.Errorf("the drain healed the wearer for %v, want the effect's share of the %v it dealt, %v", got, metrics.TotalDamage, want)
 	}
 }

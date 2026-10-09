@@ -10,6 +10,7 @@ import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/simsignals"
+	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 	"github.com/wowsims/forever/sim/core/testagent"
 )
@@ -86,13 +87,43 @@ func weaponWearer(t *testing.T, class proto.Class, itemID int32, targets int) (*
 	return sim, sim.Raid.Parties[0].Players[0].GetCharacter()
 }
 
-// Graverobber's Shovel 273817's equip spell 1319047 grants 12 attack power and 12 ranged attack
-// power, which the item's stats carry, and 12 of each against Undead (creature type mask 32).
+// The procs per minute the item's chance-on-hit entry states for the spell, which is the rate the
+// weapon's proc registers on.
+func itemEntryPPM(t *testing.T, itemID int32, spellID int32) float64 {
+	t.Helper()
+	for _, effect := range core.GetItemByID(itemID).ItemEffects {
+		if effect.BuffId == spellID && effect.GetProc().GetPpm() > 0 {
+			return effect.GetProc().GetPpm()
+		}
+	}
+	t.Fatalf("%d's entry states no procs per minute for %d", itemID, spellID)
+	return 0
+}
+
+// Checks the proc rolls the item entry's procs per minute on the weapon's speed, a chance between
+// none and certain.
+func expectWeaponRate(t *testing.T, sim *core.Simulation, proc *core.Aura, mask core.ProcMask, itemID, spellID int32) {
+	t.Helper()
+	want := itemEntryPPM(t, itemID, spellID) * core.GetItemByID(itemID).SwingSpeed / 60
+	if got := proc.Dpm.Chance(mask, sim); want <= 0 || want >= 1 || math.Abs(got-want) > 1e-9 {
+		t.Errorf("%d's proc rolls %v on a hit, want the entry's procs per minute on the weapon's speed, %v", itemID, got, want)
+	}
+}
+
+// The ticks a damage over time runs for, as the row's duration over its period.
+func rowTickCount(row *spelldata.Spell, tick *spelldata.Effect) int32 {
+	return int32(row.Duration() / tick.Period())
+}
+
+// Graverobber's Shovel 273817's equip spell 1319047 grants attack power and ranged attack power,
+// which the item's stats carry, and its effects 3 and 4 grant as much again of each against Undead.
 func TestGraverobbersShovelGrantsAttackPowerAgainstUndead(t *testing.T) {
 	const shovel = 273817
+	row := spelldata.MustFind(1319047)
+	want := stats.Stats{stats.AttackPower: row.EffectN(3).Average(), stats.RangedAttackPower: row.EffectN(4).Average()}
 	_, againstUndead := warriorWithConsumes(t, &proto.ConsumesSpec{}, shovel, 0, proto.MobType_MobTypeUndead)
-	if got, want := bonusAgainstTarget(againstUndead), (stats.Stats{stats.AttackPower: 12, stats.RangedAttackPower: 12}); got != want {
-		t.Errorf("the bonus against Undead is %v, want %v", got, want)
+	if got := bonusAgainstTarget(againstUndead); got != want || want[stats.AttackPower] <= 0 {
+		t.Errorf("the bonus against Undead is %v, want the row's %v", got, want)
 	}
 	_, againstDemons := warriorWithConsumes(t, &proto.ConsumesSpec{}, shovel, 0, proto.MobType_MobTypeDemon)
 	if got := bonusAgainstTarget(againstDemons); got != (stats.Stats{}) {
@@ -100,22 +131,26 @@ func TestGraverobbersShovelGrantsAttackPowerAgainstUndead(t *testing.T) {
 	}
 }
 
-// Sulfuras, Hand of Ragnaros 17182 carries both its effects. Immolation 21142 deals 5 Fire to the
-// attacker of each melee hit taken, and nothing for a spell. Fireball 21162 procs at the 0.7 procs
-// per minute of the item's chance-on-hit entry and deals 303 Fire (273 to 333) and 15 every 2 s for
-// 10 s.
+// Sulfuras, Hand of Ragnaros 17182 carries both its effects. Immolation 21142's damage shield deals
+// its amount to the attacker of each melee hit taken, and nothing for a spell. Fireball 21162 procs
+// at the procs per minute of the item's chance-on-hit entry, deals its row's direct roll, and ticks
+// its periodic amount over the row's duration.
 func TestSulfurasCarriesItsDamageShieldAndFireball(t *testing.T) {
 	sim, character := itemWearer(t, proto.Class_ClassWarrior, proto.ItemSlot_ItemSlotMainHand, 17182)
-	character.AddStatsDynamic(sim, stats.Stats{stats.SpellHitPercent: 100})
+	character.AddStatsDynamic(sim, stats.Stats{stats.SpellHitPercent: 100, stats.SpellCritPercent: -character.GetStat(stats.SpellCritPercent)})
 	enemy := sim.Encounter.ActiveTargetUnits[0]
 
+	var shieldDamage float64
+	for _, effect := range spelldata.ItemAuraDamageShields(spelldata.MustFind(21142)) {
+		shieldDamage += effect.Average()
+	}
 	shield := character.GetSpell(core.ActionID{SpellID: 21142, Tag: 2})
-	if shield == nil {
+	if shield == nil || shieldDamage <= 0 {
 		t.Fatal("17182 registers no damage shield")
 	}
 	takeHit(t, sim, character, meleeSwing(enemy))
-	if got := shield.SpellMetrics[enemy.UnitIndex]; got.Casts != 1 || got.TotalDamage != 5 {
-		t.Errorf("a melee hit taken cast the shield %d times for %v, want once for 5", got.Casts, got.TotalDamage)
+	if got := shield.SpellMetrics[enemy.UnitIndex]; got.Casts != 1 || got.TotalDamage != shieldDamage {
+		t.Errorf("a melee hit taken cast the shield %d times for %v, want once for the row's %v", got.Casts, got.TotalDamage, shieldDamage)
 	}
 	takeHit(t, sim, character, fireSpell(enemy))
 	if got := shield.SpellMetrics[enemy.UnitIndex].Casts; got != 1 {
@@ -126,30 +161,30 @@ func TestSulfurasCarriesItsDamageShieldAndFireball(t *testing.T) {
 	if proc == nil || proc.Dpm == nil {
 		t.Fatal("17182 registers no Fireball proc on a procs per minute rate")
 	}
-	want := 0.7 * core.GetItemByID(17182).SwingSpeed / 60
-	if got := proc.Dpm.Chance(core.ProcMaskMeleeMHAuto, sim); math.Abs(got-want) > 1e-9 {
-		t.Errorf("the Fireball's chance on a main hand swing is %v, want %v", got, want)
-	}
+	expectWeaponRate(t, sim, proc, core.ProcMaskMeleeMHAuto, 17182, 21162)
 
+	row := spelldata.MustFind(21162)
+	hit, tick := row.DamageEffect(), row.PeriodicDamageEffect()
+	ticks := rowTickCount(row, tick)
 	fireball := character.GetSpell(core.ActionID{SpellID: 21162})
 	fireball.Cast(sim, enemy)
 	dot := fireball.Dot(enemy)
-	if dot.BaseTickCount != 5 || dot.BaseTickLength != 2*time.Second {
-		t.Errorf("the Fireball ticks %d times every %v, want 5 every 2s", dot.BaseTickCount, dot.BaseTickLength)
+	if dot.BaseTickCount != ticks || dot.BaseTickLength != tick.Period() {
+		t.Errorf("the Fireball ticks %d times every %v, want the row's %d every %v", dot.BaseTickCount, dot.BaseTickLength, ticks, tick.Period())
 	}
-	stepTo(t, sim, sim.CurrentTime+10*time.Second+time.Millisecond)
+	stepTo(t, sim, sim.CurrentTime+row.Duration()+time.Millisecond)
 	metrics := fireball.SpellMetrics[enemy.UnitIndex]
-	metrics.TotalDamage -= 75
-	if metrics.Casts != 1 || metrics.Ticks != 5 || !damageInRange(metrics, 273, 333) {
-		t.Errorf("the Fireball cast %d times and ticked %d times for %v besides 75, want once, 5 ticks and 273 to 333",
-			metrics.Casts, metrics.Ticks, metrics.TotalDamage)
+	metrics.TotalDamage -= float64(ticks) * tick.Average()
+	if metrics.Casts != 1 || metrics.Ticks != ticks || !damageInRange(metrics, hit) {
+		t.Errorf("the Fireball cast %d times and ticked %d times for %v besides its ticks, want once, %d ticks and %v to %v",
+			metrics.Casts, metrics.Ticks, metrics.TotalDamage, ticks, hit.Min(), hit.Max())
 	}
 }
 
-// Ravager 7717 procs Bladestorm 9632 at the 1 procs per minute of the item's chance-on-hit entry.
-// Bladestorm is a 9 s channel on the wearer that cuts off a cast in progress and holds back the auto
-// attacks, and every 3 s strikes each enemy with 9633: main-hand weapon damage (104 to 157 and the
-// attack power share) plus 5. The strikes do not proc Bladestorm.
+// Ravager 7717 procs Bladestorm 9632 at the procs per minute of the item's chance-on-hit entry.
+// Bladestorm is a channel on the wearer for the row's duration that cuts off a cast in progress and
+// holds back the auto attacks, and every period strikes each enemy with 9633: main-hand weapon damage
+// plus the strike row's flat amount. The strikes do not proc Bladestorm.
 func TestRavagerChannelsBladestormOverEveryEnemy(t *testing.T) {
 	sim, character := weaponWearer(t, proto.Class_ClassWarrior, 7717, 3)
 
@@ -157,10 +192,7 @@ func TestRavagerChannelsBladestormOverEveryEnemy(t *testing.T) {
 	if proc == nil || proc.Dpm == nil {
 		t.Fatal("7717 registers no Bladestorm proc on a procs per minute rate")
 	}
-	want := 1 * core.GetItemByID(7717).SwingSpeed / 60
-	if got := proc.Dpm.Chance(core.ProcMaskMeleeMHAuto, sim); math.Abs(got-want) > 1e-9 {
-		t.Errorf("Bladestorm's chance on a main hand swing is %v, want %v", got, want)
-	}
+	expectWeaponRate(t, sim, proc, core.ProcMaskMeleeMHAuto, 7717, 9632)
 	// Every melee hit that may proc Bladestorm now does.
 	*proc.Dpm = *character.NewFixedProcChanceManager(1, core.ProcMaskMelee)
 
@@ -173,7 +205,11 @@ func TestRavagerChannelsBladestormOverEveryEnemy(t *testing.T) {
 	if bladestorm == nil || strike == nil {
 		t.Fatal("7717 registers no Bladestorm or no strike")
 	}
-	extra := 5 + strike.MeleeAttackPower(targets[0])*3.5/14
+	row := spelldata.MustFind(9632)
+	period := row.EffectN(1).Period()
+	ticks := rowTickCount(row, row.EffectN(1))
+	mh := character.AutoAttacks.MH()
+	extra := spelldata.MustFind(9633).DamageEffect().Average() + strike.MeleeAttackPower(targets[0])*mh.SwingSpeed/mh.AttackPowerPerDPS
 	casts := func(spell *core.Spell) (total int32) {
 		for _, target := range targets {
 			total += spell.SpellMetrics[target.UnitIndex].Casts
@@ -186,16 +222,16 @@ func TestRavagerChannelsBladestormOverEveryEnemy(t *testing.T) {
 	start := sim.CurrentTime
 	bladestorm.Cast(sim, targets[0])
 	dot := bladestorm.AOEDot()
-	if dot.Unit != &character.Unit || dot.BaseTickCount != 3 || dot.BaseTickLength != 3*time.Second {
-		t.Errorf("Bladestorm ticks %d times every %v on %s, want 3 every 3s on the wearer",
-			dot.BaseTickCount, dot.BaseTickLength, dot.Unit.Label)
+	if dot.Unit != &character.Unit || ticks < 2 || dot.BaseTickCount != ticks || dot.BaseTickLength != period {
+		t.Errorf("Bladestorm ticks %d times every %v on %s, want the row's %d every %v on the wearer",
+			dot.BaseTickCount, dot.BaseTickLength, dot.Unit.Label, ticks, period)
 	}
-	stepTo(t, sim, start+6*time.Second+time.Millisecond)
+	stepTo(t, sim, start+(row.Duration()-period)+time.Millisecond)
 	if !character.IsChanneling() {
-		t.Error("the wearer is not channeling Bladestorm after 6 s")
+		t.Error("the wearer is not channeling Bladestorm before its last strike")
 	}
 	if got := casts(bladestorm); got != 1 {
-		t.Errorf("two rounds of strikes cast Bladestorm %d times in all, want once", got)
+		t.Errorf("the strikes cast Bladestorm %d times in all, want once", got)
 	}
 	if got := casts(character.AutoAttacks.MHAuto()) - swings; got != 0 {
 		t.Errorf("the wearer swung %d times during Bladestorm, want none", got)
@@ -203,20 +239,28 @@ func TestRavagerChannelsBladestormOverEveryEnemy(t *testing.T) {
 	// The first swing after the channel would cast it again.
 	proc.Deactivate(sim)
 
-	stepTo(t, sim, start+9*time.Second+time.Millisecond)
+	stepTo(t, sim, start+row.Duration()+time.Millisecond)
 	if dot.IsActive() || character.IsChanneling() {
-		t.Error("Bladestorm is still up after 9 s")
+		t.Errorf("Bladestorm is still up after the row's %v", row.Duration())
 	}
 
 	for _, target := range targets {
 		metrics := strike.SpellMetrics[target.UnitIndex]
-		if outcomes := metrics.Hits + metrics.Crits + metrics.Misses + metrics.Dodges; outcomes != 3 {
-			t.Errorf("%s took %d strikes, want 3", target.Label, outcomes)
+		if outcomes := metrics.Hits + metrics.Crits + metrics.Misses + metrics.Dodges; outcomes != ticks {
+			t.Errorf("%s took %d strikes, want %d", target.Label, outcomes, ticks)
 		}
 		hitDamage := metrics.TotalDamage - metrics.TotalCritDamage
-		if low, high := float64(metrics.Hits)*(104+extra), float64(metrics.Hits)*(157+extra); hitDamage < low || hitDamage > high {
+		if low, high := float64(metrics.Hits)*(mh.BaseDamageMin+extra), float64(metrics.Hits)*(mh.BaseDamageMax+extra); metrics.Hits == 0 || hitDamage < low || hitDamage > high {
 			t.Errorf("%s took %v from %d strikes that hit, want %v to %v", target.Label, hitDamage, metrics.Hits, low, high)
 		}
+	}
+
+	character.AutoAttacks.CancelAutoSwing(sim)
+	proc.Activate(sim)
+	strike.Cast(sim, targets[0])
+	stepTo(t, sim, sim.CurrentTime+core.SpellBatchWindow)
+	if got := casts(bladestorm); got != 1 {
+		t.Errorf("a strike outside the channel cast Bladestorm %d times in all, want once still", got)
 	}
 
 	sim, character = weaponWearer(t, proto.Class_ClassShaman, 7717, 1)
@@ -225,14 +269,14 @@ func TestRavagerChannelsBladestormOverEveryEnemy(t *testing.T) {
 	castTime := character.GetSpell(core.ActionID{SpellID: castTimeSpellID})
 	castTime.Cast(sim, enemy)
 	character.GetSpell(core.ActionID{SpellID: 9632}).Cast(sim, enemy)
-	stepTo(t, sim, sim.CurrentTime+2*time.Second+time.Millisecond)
+	stepTo(t, sim, sim.CurrentTime+castTime.DefaultCast.CastTime+time.Millisecond)
 	if got := castTime.SpellMetrics[enemy.UnitIndex].Casts; got != 0 {
-		t.Errorf("the 2 s cast Bladestorm started on completed %d times, want none", got)
+		t.Errorf("the cast Bladestorm started on completed %d times, want none", got)
 	}
 }
 
-// Heartseeking Crossbow 13040's 29626 procs at the 3 procs per minute of the item's entry, on the
-// crossbow's 3.1 s speed, and strikes the target with Shadowbolt 29640 for 16 Shadow (13 to 19).
+// Heartseeking Crossbow 13040's 29626 procs at the procs per minute of the item's entry, on the
+// crossbow's speed, and strikes the target with Shadowbolt 29640 for its row's roll.
 func TestHeartseekingCrossbowStrikesWithAShadowbolt(t *testing.T) {
 	sim, character := itemWearer(t, proto.Class_ClassRogue, proto.ItemSlot_ItemSlotRanged, 13040)
 	enemy := sim.Encounter.ActiveTargetUnits[0]
@@ -241,25 +285,24 @@ func TestHeartseekingCrossbowStrikesWithAShadowbolt(t *testing.T) {
 	if proc == nil || proc.Dpm == nil || shadowbolt == nil {
 		t.Fatal("13040 registers no Shadowbolt or no proc on a procs per minute rate")
 	}
-	if got, want := proc.Dpm.Chance(core.ProcMaskRangedAuto, sim), 3*3.1/60; math.Abs(got-want) > 1e-9 {
-		t.Errorf("the Shadowbolt's chance on a ranged shot is %v, want %v", got, want)
-	}
+	expectWeaponRate(t, sim, proc, core.ProcMaskRangedAuto, 13040, 29640)
 	// Every ranged hit now procs it.
 	*proc.Dpm = *character.NewFixedProcChanceManager(1, core.ProcMaskRanged)
+	character.AddStatsDynamic(sim, stats.Stats{stats.PhysicalHitPercent: 100, stats.PhysicalCritPercent: -character.GetStat(stats.PhysicalCritPercent)})
 
+	damage := spelldata.MustFind(29640).DamageEffect()
 	shot := &core.Spell{ProcMask: core.ProcMaskRangedAuto, SpellSchool: core.SpellSchoolPhysical, Unit: &character.Unit}
 	dealHit(t, sim, character, shot)
 	metrics := shadowbolt.SpellMetrics[enemy.UnitIndex]
-	hitDamage := metrics.TotalDamage - metrics.TotalCritDamage
-	if metrics.Casts != 1 || hitDamage < 13*float64(metrics.Hits) || hitDamage > 19*float64(metrics.Hits) {
-		t.Errorf("a ranged hit cast the Shadowbolt %d times for %v from %d hits, want once for 13 to 19 a hit",
-			metrics.Casts, hitDamage, metrics.Hits)
+	if metrics.Casts != 1 || metrics.Hits != 1 || metrics.TotalDamage < damage.Min() || metrics.TotalDamage > damage.Max() {
+		t.Errorf("a ranged hit cast the Shadowbolt %d times for %v from %d hits, want one hit for the row's %v to %v",
+			metrics.Casts, metrics.TotalDamage, metrics.Hits, damage.Min(), damage.Max())
 	}
 }
 
-// Hand of Edward the Odd 2243 procs Focus 18803 at the 1 procs per minute of the item's chance-on-hit
+// Hand of Edward the Odd 2243 procs Focus 18803 at the procs per minute of the item's chance-on-hit
 // entry. Focus makes the next spell with a cast time instant, on its whole global cooldown, and that
-// cast spends it; an instant leaves it up, and unspent it fades after 4 s.
+// cast spends it; an instant leaves it up, and unspent it fades after the row's duration.
 func TestHandOfEdwardTheOddMakesTheNextCastInstant(t *testing.T) {
 	sim, character := weaponWearer(t, proto.Class_ClassShaman, 2243, 1)
 	character.AutoAttacks.CancelAutoSwing(sim)
@@ -269,14 +312,12 @@ func TestHandOfEdwardTheOddMakesTheNextCastInstant(t *testing.T) {
 	if proc == nil || proc.Dpm == nil {
 		t.Fatal("2243 registers no Focus proc on a procs per minute rate")
 	}
-	want := 1 * core.GetItemByID(2243).SwingSpeed / 60
-	if got := proc.Dpm.Chance(core.ProcMaskMeleeMHAuto, sim); math.Abs(got-want) > 1e-9 {
-		t.Errorf("Focus's chance on a main hand swing is %v, want %v", got, want)
-	}
+	expectWeaponRate(t, sim, proc, core.ProcMaskMeleeMHAuto, 2243, 18803)
 
+	duration := spelldata.MustFind(18803).Duration()
 	focus := character.GetAura("Hand of Edward the Odd Focus")
-	if focus == nil || focus.Duration != 4*time.Second {
-		t.Fatalf("2243 registers Focus as %v, want a 4s aura", focus)
+	if focus == nil || focus.Duration != duration {
+		t.Fatalf("2243 registers Focus as %v, want an aura of the row's %v", focus, duration)
 	}
 	castTime := character.GetSpell(core.ActionID{SpellID: castTimeSpellID})
 	instant := character.GetSpell(core.ActionID{SpellID: instantSpellID})
@@ -291,10 +332,10 @@ func TestHandOfEdwardTheOddMakesTheNextCastInstant(t *testing.T) {
 	start := sim.CurrentTime
 	castTime.Cast(sim, enemy)
 	if got := castTime.SpellMetrics[enemy.UnitIndex].Casts; got != 1 {
-		t.Errorf("the 2 s cast under Focus completed %d times at once, want once", got)
+		t.Errorf("the cast under Focus completed %d times at once, want once", got)
 	}
 	if focus.IsActive() {
-		t.Error("the 2 s cast left Focus up, want it spent")
+		t.Error("the cast left Focus up, want it spent")
 	}
 	if got := character.GCD.ReadyAt() - start; got != core.GCDDefault {
 		t.Errorf("the instant cast spent a %v global cooldown, want %v", got, core.GCDDefault)
@@ -302,14 +343,14 @@ func TestHandOfEdwardTheOddMakesTheNextCastInstant(t *testing.T) {
 
 	stepTo(t, sim, character.GCD.ReadyAt())
 	castTime.Cast(sim, enemy)
-	if got := character.Hardcast.Expires - sim.CurrentTime; got != 2*time.Second {
-		t.Errorf("the next cast after Focus is spent takes %v, want 2s", got)
+	if got, want := character.Hardcast.Expires-sim.CurrentTime, castTime.DefaultCast.CastTime; got != want {
+		t.Errorf("the next cast after Focus is spent takes %v, want its %v", got, want)
 	}
 
 	stepTo(t, sim, character.Hardcast.Expires+time.Millisecond)
 	focus.Activate(sim)
-	stepTo(t, sim, sim.CurrentTime+4*time.Second+time.Millisecond)
+	stepTo(t, sim, sim.CurrentTime+duration+time.Millisecond)
 	if focus.IsActive() {
-		t.Error("Focus is still up after 4 s unspent")
+		t.Errorf("Focus is still up after the row's %v unspent", duration)
 	}
 }

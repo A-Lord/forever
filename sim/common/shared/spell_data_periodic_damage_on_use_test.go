@@ -5,29 +5,37 @@ import (
 	"time"
 
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-// Thunderbrew's Boot Flask 744's on-use, 12257, keeps an aura on the wearer for 5 s that casts 12278,
-// 75 Fire to every enemy in a cone, every 1 s, on a 5 min cooldown. Cloak of Fire 14134's 18364 casts
-// 18374, 25 Fire to every enemy around the wearer, every 5 s for 15 s, on a 2 min cooldown. Nothing
-// lands when the item is used, each tick reaches all three targets, and nothing lands once the aura
-// is gone.
+// Thunderbrew's Boot Flask 744's on-use 12257 and Cloak of Fire 14134's 18364 each keep an aura on the
+// wearer for the row's duration that casts the spell it triggers every period: 12278 at every enemy
+// in a cone, 18374 at every enemy around the wearer. The test trinkets carrying them run on a cooldown
+// of the test's own. Nothing lands when the item is used, each tick deals the triggered row's amount
+// to all three targets, and nothing lands once the aura is gone.
 func TestPeriodicDamageOnUseTicksOnEveryTarget(t *testing.T) {
 	for _, tc := range []struct {
 		name     string
 		itemID   int32
 		spellID  int32
-		damageID int32
 		cooldown time.Duration
-		period   time.Duration
-		ticks    int
-		amount   float64
 	}{
-		{"Thunderbrew's Boot Flask", 991701, 12257, 12278, 5 * time.Minute, time.Second, 5, 75},
-		{"Cloak of Fire", 991702, 18364, 18374, 2 * time.Minute, 5 * time.Second, 3, 25},
+		{"Thunderbrew's Boot Flask", 991701, 12257, 5 * time.Minute},
+		{"Cloak of Fire", 991702, 18364, 2 * time.Minute},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
+			row := spelldata.MustFind(tc.spellID)
+			periodic := row.FirstAura(dbcenums.A_PERIODIC_TRIGGER_SPELL)
+			period := periodic.Period()
+			ticks := int(row.Duration() / period)
+			damageID := periodic.TriggerID
+			amount := spelldata.MustFind(damageID).DamageEffect()
+			if ticks < 2 || amount.Min() != amount.Max() || amount.Average() <= 0 {
+				t.Fatalf("%d ticks %d times for %v to %v, want at least 2 ticks of one amount", tc.spellID, ticks, amount.Min(), amount.Max())
+			}
+
 			sim, caster := newOnUseSimAgainst(t, NewSpellDataPeriodicDamageOnUse,
 				map[int32]*proto.ItemEffect{tc.itemID: testOnUse(tc.spellID, int32(tc.cooldown.Milliseconds()), 0, 0)}, &proto.ItemSpec{}, 3)
 			onUse := onUseSpell(t, caster, tc.itemID)
@@ -41,9 +49,9 @@ func TestPeriodicDamageOnUseTicksOnEveryTarget(t *testing.T) {
 				t.Fatalf("%s could not be used", tc.name)
 			}
 			start := sim.CurrentTime
-			damage := caster.GetSpell(core.ActionID{SpellID: tc.damageID})
+			damage := caster.GetSpell(core.ActionID{SpellID: damageID})
 			if damage == nil {
-				t.Fatalf("the on-use registered no spell for %d", tc.damageID)
+				t.Fatalf("the on-use registered no spell for %d", damageID)
 			}
 			aura := onUse.SelfHot()
 			if aura == nil || !aura.IsActive() {
@@ -53,7 +61,7 @@ func TestPeriodicDamageOnUseTicksOnEveryTarget(t *testing.T) {
 			dealt := func(i int) float64 {
 				metrics := damage.SpellMetrics[targets[i].UnitIndex]
 				if metrics.Misses+metrics.ResistedHits > 0 {
-					t.Fatalf("%d missed target %d", tc.damageID, i)
+					t.Fatalf("%d missed target %d", damageID, i)
 				}
 				return metrics.TotalDamage
 			}
@@ -63,21 +71,21 @@ func TestPeriodicDamageOnUseTicksOnEveryTarget(t *testing.T) {
 				}
 			}
 
-			for tick := 1; tick <= tc.ticks; tick++ {
-				stepPast(t, sim, start+time.Duration(tick)*tc.period+time.Millisecond)
+			for tick := 1; tick <= ticks; tick++ {
+				stepPast(t, sim, start+time.Duration(tick)*period+time.Millisecond)
 				for i := range targets {
-					if got, want := dealt(i), float64(tick)*tc.amount; got != want {
+					if got, want := dealt(i), float64(tick)*amount.Average(); got != want {
 						t.Errorf("after tick %d target %d took %v in all, want %v", tick, i, got, want)
 					}
 				}
 			}
 			if aura.IsActive() {
-				t.Errorf("the aura is still up after its %d ticks", tc.ticks)
+				t.Errorf("the aura is still up after its %d ticks", ticks)
 			}
 
-			stepPast(t, sim, start+time.Duration(tc.ticks+1)*tc.period+time.Millisecond)
+			stepPast(t, sim, start+time.Duration(ticks+1)*period+time.Millisecond)
 			for i := range targets {
-				if got, want := dealt(i), float64(tc.ticks)*tc.amount; got != want {
+				if got, want := dealt(i), float64(ticks)*amount.Average(); got != want {
 					t.Errorf("target %d took %v once the aura was gone, want the %v of its ticks", i, got, want)
 				}
 			}
