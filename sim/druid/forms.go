@@ -126,6 +126,11 @@ func (druid *Druid) RegisterCatFormAura() {
 	})
 }
 
+// Bear Form (Passive2) 21178 is the bear forms' threat: A_MOD_THREAT on every school, 50 in the hotfixed
+// game files. The spell store does not carry the row, as neither form's row names it.
+// TODO: Read 21178 from the spell store once tools/database takes it for the druid.
+const bearFormThreatMultiplier = 1.5
+
 func (druid *Druid) RegisterBearFormAura() {
 	druid.BearFormAura = druid.registerBearAura(spellData.BearForm.Highest(), spellData.BearFormTriggered.Highest(), Bear, druid.StartingForm == Bear)
 	druid.DireBearFormAura = druid.registerBearAura(spellData.DireBearForm.Highest(), spellData.DireBearFormTriggered.Highest(), DireBear, druid.StartingForm.Matches(DireBear))
@@ -145,8 +150,10 @@ func (druid *Druid) registerBearAura(form *spelldata.Spell, passive *spelldata.S
 			druid.AutoAttacks.SetMH(druid.GetBearWeapon())
 		}
 		druid.furorRageOnEnterBear(sim)
+		druid.PseudoStats.ThreatMultiplier *= bearFormThreatMultiplier
 	})
 	aura.ApplyOnExpire(func(_ *core.Aura, sim *core.Simulation) {
+		druid.PseudoStats.ThreatMultiplier /= bearFormThreatMultiplier
 		druid.forfeitCatEnergy(sim)
 		druid.restoreHumanoidBody()
 	})
