@@ -1030,8 +1030,8 @@ func TestGeneratedThornsStrikesBackAtAMeleeHit(t *testing.T) {
 	char := sim.Raid.Parties[0].Players[0].GetCharacter()
 	attacker := sim.Encounter.AllTargetUnits[0]
 
-	if buffs.ThornsValue(0) != 22 {
-		t.Errorf("Thorns is worth %v, want the game files' 22", buffs.ThornsValue(0))
+	if buffs.ThornsValue(0) != 18 {
+		t.Errorf("Thorns is worth %v, want the game files' 18", buffs.ThornsValue(0))
 	}
 
 	aura := char.GetAura("Thorns (External)")
@@ -1057,8 +1057,8 @@ func TestGeneratedThornsStrikesBackAtAMeleeHit(t *testing.T) {
 	if got := shield.SpellMetrics[attacker.UnitIndex].Casts; got != 1 {
 		t.Errorf("a melee hit taken cast the shield %d times, want once", got)
 	}
-	if got := shield.SpellMetrics[attacker.UnitIndex].TotalDamage; got != 22 {
-		t.Errorf("the shield dealt %v damage, want the game files' 22", got)
+	if got := shield.SpellMetrics[attacker.UnitIndex].TotalDamage; got != 18 {
+		t.Errorf("the shield dealt %v damage, want the game files' 18", got)
 	}
 
 	caster := sim.Raid.Parties[0].Players[0].(*core.FakeAgent)

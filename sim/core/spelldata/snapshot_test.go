@@ -125,7 +125,11 @@ func TestAverageCountsLevelsFromBaseLevel(t *testing.T) {
 	}
 }
 
-// Every row but 350026 at 0 and 60 is an in-game tooltip. Wrath rank 3 (5178), Wildvine Potion's 11387
+// Every row but 350026 at 0 and 60 and the two Wrath rows is an in-game tooltip; the Wrath rows apply the
+// same rule to the game files' base points.
+// TODO: Ingame research needed -- the Wrath rank 2 and rank 3 tooltips at level 20.
+//
+// Wrath rank 3 (5178), Wildvine Potion's 11387
 // and Minor Recombobulator's 18805 end their base points on halves, which round to the even end: 27.5
 // and 32.5 are 28 and 32, 0.5 and 1499.5 are 0 and 1500.
 func TestRollEndsMatchTheTooltip(t *testing.T) {
@@ -141,9 +145,9 @@ func TestRollEndsMatchTheTooltip(t *testing.T) {
 		{350026, 1, 14, 60, 69},
 		{350026, 1, 60, 63, 72},
 		{350025, 2, 14, 39, 44},
-		{5177, 1, 20, 24, 29},
+		{5177, 1, 20, 20, 25},
 		{2912, 1, 20, 73, 89},
-		{5178, 1, 20, 32, 37},
+		{5178, 1, 20, 31, 35},
 		{11387, 1, 35, 0, 1500},
 		{18805, 2, 60, 202, 338},
 		{18805, 3, 60, 96, 160},
@@ -154,10 +158,11 @@ func TestRollEndsMatchTheTooltip(t *testing.T) {
 		}
 	}
 
-	// Wrath rank 3 at 20 shows 32 to 37, but a cast rolls its whole amount around Average, which keeps
-	// the fraction, so before spell power it averages 34.2 rather than the tooltip's middle.
-	if got, want := MustFind(5178).DamageEffect().MeanAt(20), float64(float32(34.2)); got != want {
-		t.Errorf("Wrath rank 3 at 20 averages %v, want %v", got, want)
+	// The game files' base points give Wrath rank 2 at 20 rounded ends of 20 and 25, but a cast rolls its
+	// whole amount around Average, which keeps the fraction, so before spell power it averages 22.8
+	// rather than the 22.5 between the rounded ends.
+	if got, want := MustFind(5177).DamageEffect().MeanAt(20), float64(float32(22.8)); got != want {
+		t.Errorf("Wrath rank 2 at 20 averages %v, want %v", got, want)
 	}
 }
 

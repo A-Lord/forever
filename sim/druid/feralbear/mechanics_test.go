@@ -182,6 +182,26 @@ func TestFrenziedRegenerationSpendsRageForHealth(t *testing.T) {
 	}
 }
 
+// Tooltip 17056: starting in Dire Bear Form forfeits the pull's energy, so Cat Form counts only the
+// seconds since the bear form ended.
+func TestFurorForfeitsEnergyWhenStartingInABearForm(t *testing.T) {
+	sim, bear := newBearWithTalents(t, "0000000000000000-00000000000000000000-0500000000000000")
+	if !bear.InForm(druid.DireBear) {
+		t.Fatal("the bear did not start in dire bear form")
+	}
+	sim.CurrentTime += 3 * time.Second
+	bear.DireBearFormAura.Deactivate(sim)
+	sim.CurrentTime += 2 * time.Second
+	bear.AddEnergy(sim, bear.MaximumEnergy(), bear.NewEnergyMetrics(core.ActionID{SpellID: 1}))
+	if !bear.CatForm.Cast(sim, bear.CurrentTarget) {
+		t.Fatal("cat form did not cast")
+	}
+	// 10 for each of the 2 seconds since Dire Bear Form ended, all of it at 5/5.
+	if got := bear.CurrentEnergy(); got != 20 {
+		t.Errorf("energy in cat form after starting in dire bear form = %v, want 20", got)
+	}
+}
+
 func TestFirstLacerateHitsForNothing(t *testing.T) {
 	sim, bear := newBear(t)
 	target := bear.CurrentTarget

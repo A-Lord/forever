@@ -103,6 +103,23 @@ func TestFurorRestoresEnergyAfterLeavingCat(t *testing.T) {
 	}
 	fillResource(sim, cat)
 	cat.SpendEnergy(sim, 60, cat.NewEnergyMetrics(core.ActionID{SpellID: 1}))
+	cat.CatFormAura.Deactivate(sim)
+	sim.CurrentTime += 3 * time.Second
+	fillResource(sim, cat)
+	if !cat.CatForm.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("cat form did not cast on the way back")
+	}
+	// 40 stored plus 10 for each of the 3 seconds outside the forms, all of it at 5/5.
+	if got := cat.CurrentEnergy(); got != 70 {
+		t.Errorf("energy back in cat form = %v, want 70", got)
+	}
+}
+
+// Tooltip 17056: a bear form forfeits the stored energy and halts the count while it is active.
+func TestFurorForfeitsEnergyInABearForm(t *testing.T) {
+	sim, cat := newCat(t, furorTalents, nil)
+	fillResource(sim, cat)
+	cat.SpendEnergy(sim, 60, cat.NewEnergyMetrics(core.ActionID{SpellID: 1}))
 	if !cat.DireBearForm.Cast(sim, cat.CurrentTarget) {
 		t.Fatal("dire bear form did not cast")
 	}
@@ -114,9 +131,8 @@ func TestFurorRestoresEnergyAfterLeavingCat(t *testing.T) {
 	if !cat.CatForm.Cast(sim, cat.CurrentTarget) {
 		t.Fatal("cat form did not cast on the way back")
 	}
-	// 40 stored at 5/5. The 3 seconds were spent in Dire Bear Form, which earns nothing.
-	if got := cat.CurrentEnergy(); got != 40 {
-		t.Errorf("energy back in cat form = %v, want 40", got)
+	if got := cat.CurrentEnergy(); got != 0 {
+		t.Errorf("energy back in cat form after dire bear form = %v, want 0", got)
 	}
 }
 
@@ -368,8 +384,8 @@ func TestWolfsheadAddsShiftingPowerEnergyAndEnrageRage(t *testing.T) {
 	if !cat.ShiftingPower.Cast(sim, cat.CurrentTarget) {
 		t.Fatal("shifting power did not cast")
 	}
-	if got := cat.CurrentEnergy(); got != 60 {
-		t.Errorf("energy after shifting power with wolfshead = %v, want 60", got)
+	if got := cat.CurrentEnergy(); got != 45 {
+		t.Errorf("energy after shifting power with wolfshead = %v, want 45", got)
 	}
 	sim.CurrentTime += 2 * time.Second
 	if !cat.BearForm.Cast(sim, cat.CurrentTarget) {

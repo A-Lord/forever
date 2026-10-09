@@ -82,7 +82,7 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 		simpleRotation: Presets.DefaultRotation,
 		// Genesis, nature's majesty, nature's reach, ferocity, heart of the wild, shredding attacks,
 		// savage fury, sharpened claws, shifting power, predatory strikes, improved shifting power,
-		// leader of the pack, predatory instincts, rend and tear, berserk, furor, naturalist.
+		// leader of the pack, natural instinct, rend and tear, berserk, furor, naturalist.
 		// Shifting Power is absent until that talent is taken.
 		talents: Presets.CatTalents.data,
 		// Default spec-specific settings.

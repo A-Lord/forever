@@ -42,7 +42,7 @@ message DruidTalents {
     int32 blood_frenzy = 30;
     int32 improved_shifting_power = 31;
     bool leader_of_the_pack = 32;
-    int32 predatory_instincts = 33;
+    int32 natural_instinct = 33;
     int32 natural_reaction = 34;
     int32 rend_and_tear = 35;
     bool berserk = 36;
