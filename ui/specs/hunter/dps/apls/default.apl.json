@@ -18,9 +18,19 @@
 				"condition": { "not": { "val": { "auraIsActive": { "sourceUnit": { "type": "CurrentTarget" }, "auraId": { "spellId": 14325 } } } } }
 			}
 		},
+		{
+			"action": {
+				"condition": { "cmp": { "op": "OpLe", "lhs": { "unitDistance": { "sourceUnit": { "type": "Self" } } }, "rhs": { "variableRef": { "name": "Melee range" } } } },
+				"castSpell": { "spellId": { "spellId": 14271 } }
+			}
+		},
+		{
+			"action": {
+				"condition": { "cmp": { "op": "OpLe", "lhs": { "unitDistance": { "sourceUnit": { "type": "Self" } } }, "rhs": { "variableRef": { "name": "Melee range" } } } },
+				"castSpell": { "spellId": { "spellId": 1317257 } }
+			}
+		},
 		{ "action": { "condition": { "variableRef": { "name": "Melee weave" } }, "groupReference": { "groupName": "Weave" } } },
-		{ "action": { "castSpell": { "spellId": { "spellId": 14271 } } } },
-		{ "action": { "castSpell": { "spellId": { "spellId": 1317257 } } } },
 		{
 			"action": {
 				"castSpell": { "spellId": { "spellId": 25295 } },
