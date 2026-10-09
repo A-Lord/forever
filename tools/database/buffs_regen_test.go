@@ -81,7 +81,7 @@ func TestResolvedBuffInvariants(t *testing.T) {
 // game files state nothing for is exempt, because its scope is then the sim's grouping rather than
 // a game fact: the buff Windfury's proc lands on its wielder, a debuff the game files reach by the
 // area around its caster.
-func TestScopeMatchesTheClientTargeting(t *testing.T) {
+func TestScopeMatchesTheGameFilesTargeting(t *testing.T) {
 	for _, row := range resolveCommittedBuffs(t) {
 		if row.SpellID == 0 {
 			continue
