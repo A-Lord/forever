@@ -443,14 +443,17 @@ describe('consumeConfigs under the consumables stat filter', () => {
 
 	it('offers with the slot set to the spec defaults what it offers with the slot unset', () => {
 		const { player, state } = playerOf({ professions: [Profession.Engineering] });
-		state.filters = withSelection(DatabaseFilters.create(), 'consumables', consumableFilterScope(player, db).defaults);
 		const configs = consumeConfigs(player, db);
-		expect(configs.elixirs.map(config => offered(config, player))).toEqual([[9206, 6662, 12451, 2289, 10310], [], [12820]]);
-		expect(configs.groups.map(config => offered(config, player))).toEqual([[8410]]);
-		expect(offered(configs.potion, player)).toEqual([13442]);
-		expect(offered(configs.food, player)).toEqual([238637]);
-		expect(toggled(configs.explosiveExtras, player)).toEqual([10646]);
-		expect(toggled(configs.miscellaneous, player)).toEqual([4376]);
+		const everyOffer = () =>
+			Object.values(configs)
+				.flat()
+				.map((config: ConsumeConfig | ConsumeToggle) => ('values' in config ? offered(config, player) : !config.showWhen || config.showWhen(player)));
+		const unset = everyOffer();
+
+		state.filters = withSelection(DatabaseFilters.create(), 'consumables', consumableFilterScope(player, db).defaults);
+
+		expect(unset.flat().filter(id => typeof id === 'number')).not.toHaveLength(0);
+		expect(everyOffer()).toEqual(unset);
 	});
 
 	it('drops a consumable whose stats the filter hides, read live without rebuilding the configs', () => {

@@ -72,6 +72,18 @@ describe('ConsumesFilters', () => {
 		expect(sim.getFilters().minConsumableLvl).toEqual({ [ConsumableType.ConsumableTypeElixir]: 50 });
 	});
 
+	it('marks its trigger while the consumables stat filter is customised', () => {
+		open();
+		const trigger = screen.getByTestId('consumes-filters-button');
+		expect(trigger.hasAttribute('data-active')).toBe(false);
+
+		fireEvent.click(checkbox(Stat.StatAgility));
+		expect(trigger.hasAttribute('data-active')).toBe(true);
+
+		fireEvent.click(screen.getByTestId('consumes-filters-stats-reset'));
+		expect(trigger.hasAttribute('data-active')).toBe(false);
+	});
+
 	it('resets the stats and the levels apart', () => {
 		sim.setFilters(DatabaseFilters.create({ minConsumableLvl: { [ConsumableType.ConsumableTypeElixir]: 50 } }));
 		open();

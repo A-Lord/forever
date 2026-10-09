@@ -48,7 +48,7 @@ export const ConsumesFilters = () => {
 	return (
 		<Popover
 			trigger={<Icon name="filter" />}
-			triggerRender={<Button variant="link" size="sm" />}
+			triggerRender={<Button variant="link" size="sm" className="data-active:text-primary" data-active={statFilter.customised ? '' : undefined} />}
 			triggerClassName="ml-auto"
 			triggerTestId="consumes-filters-button"
 			triggerProps={{ 'aria-label': i18n.t('settings_tab.consumables.filters.title') }}

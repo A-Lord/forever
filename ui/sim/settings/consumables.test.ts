@@ -258,7 +258,7 @@ describe('relevanceFor', () => {
 });
 
 describe('consumableUniverse', () => {
-	it('lists every stat and percent a consumable grants, once, stats before percents', () => {
+	it('lists every stat and percent a consumable grants, once', () => {
 		const mongoose = consumable({
 			id: 5,
 			type: ConsumableType.ConsumableTypeElixir,
@@ -266,12 +266,11 @@ describe('consumableUniverse', () => {
 			pseudoStats: pseudoStats({ [PseudoStat.PseudoStatMeleeCritPercent]: 2 }),
 		});
 		const giants = consumable({ id: 6, type: ConsumableType.ConsumableTypeElixir, stats: stats({ [Stat.StatStrength]: 25 }) });
+		const moreAgility = consumable({ id: 8, type: ConsumableType.ConsumableTypeFood, stats: stats({ [Stat.StatAgility]: 10 }) });
 		const manaPotion = consumable({ id: 7, type: ConsumableType.ConsumableTypePotion, effectIds: [1] });
-		expect(consumableUniverse([mongoose, giants, manaPotion], db).map(stat => stat.getKey())).toEqual([
-			'StatStrength',
-			'StatAgility',
-			'PseudoStatMeleeCritPercent',
-		]);
+		const keys = consumableUniverse([mongoose, giants, moreAgility, manaPotion], db).map(stat => stat.getKey());
+		expect(keys).toHaveLength(3);
+		expect(new Set(keys)).toEqual(new Set(['StatStrength', 'StatAgility', 'PseudoStatMeleeCritPercent']));
 	});
 });
 

@@ -293,7 +293,7 @@ export function relevanceFor(
 	};
 }
 
-// Every stat and percent some consumable grants, stats first, each in enum order.
+// Every stat and percent some consumable grants, each once, in no set order.
 export function consumableUniverse(consumables: ReadonlyArray<Consumable>, db: SpellEffectSource): UnitStat[] {
 	const stats = new Set<Stat>();
 	const pseudoStats = new Set<PseudoStat>();
@@ -302,10 +302,7 @@ export function consumableUniverse(consumables: ReadonlyArray<Consumable>, db: S
 		grantedStats.forEach(stat => stats.add(stat));
 		grantedPseudoStats.forEach(pseudoStat => pseudoStats.add(pseudoStat));
 	}
-	return [
-		...[...stats].sort((a, b) => a - b).map(stat => UnitStat.fromStat(stat)),
-		...[...pseudoStats].sort((a, b) => a - b).map(pseudoStat => UnitStat.fromPseudoStat(pseudoStat)),
-	];
+	return [...[...stats].map(stat => UnitStat.fromStat(stat)), ...[...pseudoStats].map(pseudoStat => UnitStat.fromPseudoStat(pseudoStat))];
 }
 
 // The ids of the potions and conjured items the spec could use, which a sim request lists for the
