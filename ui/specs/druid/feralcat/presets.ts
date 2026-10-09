@@ -90,8 +90,10 @@ export const POUNCE_APL = PresetUtils.makePresetAPLRotation('Pounce opener', Pou
 // of the fight do not need. Needs the Primal Bite talent.
 export const BEARWEAVE_APL = PresetUtils.makePresetAPLRotation('Bearweave', BearweaveApl);
 
-export const CatTalents = PresetUtils.makePresetTalents('Monocat', SavedTalents.create({ talentsString: '050022-55000032021030212051-055' }));
-// Two points out of Rend and Tear into Primal Bite and Blood Frenzy.
+// Blood Frenzy 1 from Rend and Tear, a chance of an extra combo point on a builder crit: 1.6 to 5.7 DPS from
+// 45 to 300 seconds.
+export const CatTalents = PresetUtils.makePresetTalents('Monocat', SavedTalents.create({ talentsString: '050022-55000032021031212041-055' }));
+// Monocat with one more point out of Rend and Tear into Primal Bite.
 export const BearweaveTalents = PresetUtils.makePresetTalents('Bearweave', SavedTalents.create({ talentsString: '050022-55000032021131212031-055' }));
 // Feral Swiftness, Feral Charge and Blood Frenzy in place of Ferocity 2 and Naturalist 3. About 17 DPS behind
 // Monocat at 180 seconds.

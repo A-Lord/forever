@@ -205,11 +205,11 @@ func manaShort() *proto.APLValue {
 // BestCatAPL is the list ui/specs/druid/feralcat/apls/default.apl.json holds.
 var bestCatAPL = aplTune{elune: "after", omen: true, innervate: true, rakePool: "1s", biteEnd: true, biteLow: "3s", rakeCut: "6s"}
 
-// The cat UI's default talents (presets.ts CatTalents), and the ones bearweaveAPL is played with:
-// two points out of Rend and Tear into Primal Bite and Blood Frenzy, whose crits give the bear rage
-// for Maul. Genesis stays at 5, which Nature's Majesty and Nature's Reach need below them.
+// The cat UI's default talents (presets.ts CatTalents), and the ones bearweaveAPL is played with: one
+// more point out of Rend and Tear into Primal Bite. Genesis stays at 5, which Nature's Majesty and
+// Nature's Reach need below them.
 const (
-	catTalents       = "050022-55000032021030212051-055"
+	catTalents       = "050022-55000032021031212041-055"
 	bearweaveTalents = "050022-55000032021131212031-055"
 )
 
