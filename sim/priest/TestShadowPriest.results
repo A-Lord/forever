@@ -55,9 +55,9 @@ character_stats_results: {
 dps_results: {
  key: "TestShadowPriest-AllItems-AdaptiveCombatAssistant-272437"
  value: {
-  dps: 602.7993
-  tps: 306.33505
-  dtps: 3.14955
+  dps: 601.69458
+  tps: 305.69315
+  dtps: 4.77455
  }
 }
 dps_results: {
@@ -79,18 +79,17 @@ dps_results: {
 dps_results: {
  key: "TestShadowPriest-AllItems-AnkhofLife-1713"
  value: {
-  dps: 600.43665
-  tps: 305.01663
-  dtps: 5.24228
-  hps: 4.42532
+  dps: 601.81873
+  tps: 305.75319
+  dtps: 4.57523
  }
 }
 dps_results: {
  key: "TestShadowPriest-AllItems-ArenaGrandMaster-19024"
  value: {
-  dps: 601.82979
-  tps: 305.76891
-  dtps: 4.79752
+  dps: 601.69458
+  tps: 305.69315
+  dtps: 4.77455
  }
 }
 dps_results: {
@@ -192,25 +191,25 @@ dps_results: {
 dps_results: {
  key: "TestShadowPriest-AllItems-Defiler'sTalisman-20072"
  value: {
-  dps: 601.82979
-  tps: 305.76891
-  dtps: 4.79752
+  dps: 601.69458
+  tps: 305.69315
+  dtps: 4.77455
  }
 }
 dps_results: {
  key: "TestShadowPriest-AllItems-Defiler'sTalisman-21115"
  value: {
-  dps: 601.82979
-  tps: 305.76891
-  dtps: 4.79752
+  dps: 601.69458
+  tps: 305.69315
+  dtps: 4.77455
  }
 }
 dps_results: {
  key: "TestShadowPriest-AllItems-Defiler'sTalisman-21116"
  value: {
-  dps: 601.82979
-  tps: 305.76891
-  dtps: 4.79752
+  dps: 601.69458
+  tps: 305.69315
+  dtps: 4.77455
  }
 }
 dps_results: {
@@ -435,7 +434,6 @@ dps_results: {
   dps: 607.74099
   tps: 308.65589
   dtps: 4.77455
-  hps: 5.55556
  }
 }
 dps_results: {
@@ -457,9 +455,9 @@ dps_results: {
 dps_results: {
  key: "TestShadowPriest-AllItems-GoblinConstructionHelmet-10543"
  value: {
-  dps: 594.57098
-  tps: 302.2121
-  dtps: 4.79752
+  dps: 594.43615
+  tps: 302.13652
+  dtps: 4.77455
  }
 }
 dps_results: {
@@ -579,16 +577,15 @@ dps_results: {
  value: {
   dps: 601.69458
   tps: 305.69315
-  dtps: 4.46658
+  dtps: 4.63875
  }
 }
 dps_results: {
  key: "TestShadowPriest-AllItems-MajorRecombobulator-18637"
  value: {
-  dps: 600.29489
-  tps: 304.96209
-  dtps: 5.19078
-  hps: 4.12855
+  dps: 601.69458
+  tps: 305.69315
+  dtps: 4.77455
  }
 }
 dps_results: {
@@ -602,9 +599,9 @@ dps_results: {
 dps_results: {
  key: "TestShadowPriest-AllItems-MarkofResolution-17759"
  value: {
-  dps: 601.82979
-  tps: 305.76891
-  dtps: 4.79752
+  dps: 601.69458
+  tps: 305.69315
+  dtps: 4.77455
  }
 }
 dps_results: {
@@ -626,9 +623,9 @@ dps_results: {
 dps_results: {
  key: "TestShadowPriest-AllItems-MarkoftheRedFlight-282778"
  value: {
-  dps: 600.85399
-  tps: 305.24292
-  dtps: 5.19078
+  dps: 601.69458
+  tps: 305.69315
+  dtps: 4.77455
  }
 }
 dps_results: {
@@ -722,25 +719,25 @@ dps_results: {
 dps_results: {
  key: "TestShadowPriest-AllItems-TalismanofArathor-20071"
  value: {
-  dps: 601.82979
-  tps: 305.76891
-  dtps: 4.79752
+  dps: 601.69458
+  tps: 305.69315
+  dtps: 4.77455
  }
 }
 dps_results: {
  key: "TestShadowPriest-AllItems-TalismanofArathor-21117"
  value: {
-  dps: 601.82979
-  tps: 305.76891
-  dtps: 4.79752
+  dps: 601.69458
+  tps: 305.69315
+  dtps: 4.77455
  }
 }
 dps_results: {
  key: "TestShadowPriest-AllItems-TalismanofArathor-21118"
  value: {
-  dps: 601.82979
-  tps: 305.76891
-  dtps: 4.79752
+  dps: 601.69458
+  tps: 305.69315
+  dtps: 4.77455
  }
 }
 dps_results: {
@@ -764,7 +761,7 @@ dps_results: {
  value: {
   dps: 601.69458
   tps: 305.69315
-  dtps: 2.31071
+  dtps: 4.77455
  }
 }
 dps_results: {
@@ -866,45 +863,45 @@ dps_results: {
 dps_results: {
  key: "TestShadowPriest-Settings-Dwarf-preraid-Shadow-default-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 676.11547
-  tps: 549.06741
-  dtps: 5.20501
+  dps: 681.52938
+  tps: 551.48424
+  dtps: 5.32769
  }
 }
 dps_results: {
  key: "TestShadowPriest-Settings-Dwarf-preraid-Shadow-default-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 602.80715
-  tps: 306.11756
-  dtps: 5.15214
+  dps: 607.38825
+  tps: 308.34077
+  dtps: 5.16959
  }
 }
 dps_results: {
  key: "TestShadowPriest-Settings-Dwarf-preraid-Shadow-default-FullBuffs-0.0yards-ShortSingleTarget"
  value: {
-  dps: 589.43285
-  tps: 296.14878
+  dps: 609.65794
+  tps: 306.35407
  }
 }
 dps_results: {
  key: "TestShadowPriest-Settings-Dwarf-preraid-Shadow-default-NoBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 250.23793
-  tps: 175.16655
+  dps: 250.32502
+  tps: 175.22751
  }
 }
 dps_results: {
  key: "TestShadowPriest-Settings-Dwarf-preraid-Shadow-default-NoBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 250.23793
-  tps: 175.16655
+  dps: 250.32502
+  tps: 175.22751
  }
 }
 dps_results: {
  key: "TestShadowPriest-Settings-Dwarf-preraid-Shadow-default-NoBuffs-0.0yards-ShortSingleTarget"
  value: {
-  dps: 418.27928
-  tps: 292.7955
+  dps: 429.84238
+  tps: 300.88967
  }
 }
 dps_results: {
