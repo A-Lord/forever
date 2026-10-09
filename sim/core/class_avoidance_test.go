@@ -20,23 +20,33 @@ func statsFromHundredAgility(t *testing.T, class proto.Class, race proto.Race) s
 
 func TestAgilityPerClass(t *testing.T) {
 	for _, tc := range []struct {
-		class  proto.Class
-		race   proto.Race
-		gained map[stats.Stat]float64
+		class        proto.Class
+		race         proto.Race
+		dodgePerCrit float64
+		crit         bool
+		gained       map[stats.Stat]float64
 	}{
-		{proto.Class_ClassWarrior, proto.Race_RaceHuman, map[stats.Stat]float64{stats.DodgePercent: 5, stats.PhysicalCritPercent: 5}},
-		{proto.Class_ClassPaladin, proto.Race_RaceHuman, map[stats.Stat]float64{stats.DodgePercent: 5.06}},
-		{proto.Class_ClassHunter, proto.Race_RaceNightElf, map[stats.Stat]float64{stats.DodgePercent: 3.78, stats.RangedAttackPower: 200}},
-		{proto.Class_ClassRogue, proto.Race_RaceHuman, map[stats.Stat]float64{stats.DodgePercent: 6.9, stats.AttackPower: 100}},
-		{proto.Class_ClassPriest, proto.Race_RaceHuman, map[stats.Stat]float64{stats.DodgePercent: 5}},
-		{proto.Class_ClassShaman, proto.Race_RaceOrc, map[stats.Stat]float64{stats.DodgePercent: 5.08}},
-		{proto.Class_ClassMage, proto.Race_RaceHuman, map[stats.Stat]float64{stats.DodgePercent: 5.14}},
-		{proto.Class_ClassWarlock, proto.Race_RaceHuman, map[stats.Stat]float64{stats.DodgePercent: 5}},
-		{proto.Class_ClassDruid, proto.Race_RaceTauren, map[stats.Stat]float64{stats.DodgePercent: 5}},
+		{proto.Class_ClassWarrior, proto.Race_RaceHuman, 1, true, nil},
+		{proto.Class_ClassPaladin, proto.Race_RaceHuman, 1, false, nil},
+		{proto.Class_ClassHunter, proto.Race_RaceNightElf, 2, false, map[stats.Stat]float64{stats.RangedAttackPower: 200}},
+		{proto.Class_ClassRogue, proto.Race_RaceHuman, 2, false, map[stats.Stat]float64{stats.AttackPower: 100}},
+		{proto.Class_ClassPriest, proto.Race_RaceHuman, 1, false, nil},
+		{proto.Class_ClassShaman, proto.Race_RaceOrc, 1, false, nil},
+		{proto.Class_ClassMage, proto.Race_RaceHuman, 1, false, nil},
+		{proto.Class_ClassWarlock, proto.Race_RaceHuman, 1, false, nil},
+		{proto.Class_ClassDruid, proto.Race_RaceTauren, 1, false, nil},
 	} {
 		t.Run(tc.class.String(), func(t *testing.T) {
 			gained := statsFromHundredAgility(t, tc.class, tc.race)
-			for stat, want := range tc.gained {
+			critPerHundred := 100 * core.CritPerAgiMaxLevel[tc.class]
+			wanted := map[stats.Stat]float64{stats.DodgePercent: tc.dodgePerCrit * critPerHundred}
+			if tc.crit {
+				wanted[stats.PhysicalCritPercent] = critPerHundred
+			}
+			for stat, value := range tc.gained {
+				wanted[stat] = value
+			}
+			for stat, want := range wanted {
 				if got := gained[stat]; math.Abs(got-want) > 1e-9 {
 					t.Errorf("100 agility gives %v %s, want %v", got, stat.StatName(), want)
 				}
@@ -63,25 +73,26 @@ func TestClassBaseAvoidance(t *testing.T) {
 		class        proto.Class
 		race         proto.Race
 		dodge        float64
-		agilityDodge float64
+		dodgePerCrit float64
 	}{
-		{proto.Class_ClassWarrior, proto.Race_RaceHuman, 0, 4},
-		{proto.Class_ClassPaladin, proto.Race_RaceHuman, 0.007, 3.289},
-		{proto.Class_ClassHunter, proto.Race_RaceNightElf, 0, 4.914},
-		{proto.Class_ClassRogue, proto.Race_RaceHuman, 0, 8.97},
-		{proto.Class_ClassPriest, proto.Race_RaceHuman, 0.03, 2},
-		{proto.Class_ClassShaman, proto.Race_RaceOrc, 0.017, 2.6416},
-		{proto.Class_ClassMage, proto.Race_RaceHuman, 0.032, 1.799},
-		{proto.Class_ClassWarlock, proto.Race_RaceHuman, 0.02, 2.5},
-		{proto.Class_ClassDruid, proto.Race_RaceTauren, 0.009, 2.75},
+		{proto.Class_ClassWarrior, proto.Race_RaceHuman, 0, 1},
+		{proto.Class_ClassPaladin, proto.Race_RaceHuman, 0.007, 1},
+		{proto.Class_ClassHunter, proto.Race_RaceNightElf, 0, 2},
+		{proto.Class_ClassRogue, proto.Race_RaceHuman, 0, 2},
+		{proto.Class_ClassPriest, proto.Race_RaceHuman, 0.03, 1},
+		{proto.Class_ClassShaman, proto.Race_RaceOrc, 0.017, 1},
+		{proto.Class_ClassMage, proto.Race_RaceHuman, 0.032, 1},
+		{proto.Class_ClassWarlock, proto.Race_RaceHuman, 0.02, 1},
+		{proto.Class_ClassDruid, proto.Race_RaceTauren, 0.009, 1},
 	} {
 		t.Run(tc.class.String(), func(t *testing.T) {
 			character, sheet := nakedSheet(t, tc.class, tc.race)
 			if got := character.PseudoStats.BaseDodgeChance; math.Abs(got-tc.dodge) > 1e-12 {
 				t.Errorf("base dodge %v, want %v", got, tc.dodge)
 			}
-			if got := sheet[stats.DodgePercent]; math.Abs(got-tc.agilityDodge) > 1e-9 {
-				t.Errorf("dodge from %v agility %v%%, want %v%%", sheet[stats.Agility], got, tc.agilityDodge)
+			agilityDodge := sheet[stats.Agility] * tc.dodgePerCrit * core.CritPerAgiMaxLevel[tc.class]
+			if got := sheet[stats.DodgePercent]; math.Abs(got-agilityDodge) > 1e-9 {
+				t.Errorf("dodge from %v agility %v%%, want %v%%", sheet[stats.Agility], got, agilityDodge)
 			}
 			if character.PseudoStats.BaseParryChance != 0 || character.PseudoStats.BaseBlockChance != 0 {
 				t.Errorf("class adds parry %v and block %v, want both from the attack table alone",

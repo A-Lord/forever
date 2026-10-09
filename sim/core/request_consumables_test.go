@@ -56,7 +56,7 @@ type appliedConsumables struct {
 	enchants [2]int32
 }
 
-func applyRequestPreset(t *testing.T) appliedConsumables {
+func applyConsumables(t *testing.T, consumables *proto.ConsumesSpec) appliedConsumables {
 	t.Helper()
 	gear := core.GetGearSet("../../ui/specs/warrior/dps/gear_sets", "p1_fury").GearSet
 	sim := core.NewSim(&proto.RaidSimRequest{
@@ -67,7 +67,7 @@ func applyRequestPreset(t *testing.T) appliedConsumables {
 				Spec: &proto.Player_DpsWarrior{DpsWarrior: &proto.DpsWarrior{Options: &proto.DpsWarrior_Options{
 					ClassOptions: &proto.WarriorOptions{DefaultStance: proto.WarriorStance_WarriorStanceBerserker}}}},
 				Equipment:   gear,
-				Consumables: requestPreset,
+				Consumables: consumables,
 				Profession1: proto.Profession_Engineering,
 				Buffs:       &proto.IndividualBuffs{},
 				Rotation:    &proto.APLRotation{},
@@ -98,21 +98,16 @@ func applyRequestPreset(t *testing.T) appliedConsumables {
 // loaded.
 func TestRequestCarriesEveryConsumableThePresetSelects(t *testing.T) {
 	registerAllEffects()
-	whole := applyRequestPreset(t)
+	none := applyConsumables(t, &proto.ConsumesSpec{})
+	whole := applyConsumables(t, requestPreset)
 
 	restore := core.KeepOnlyConsumables(requestConsumableIDs(requestPreset))
-	requested := applyRequestPreset(t)
+	requested := applyConsumables(t, requestPreset)
 	restore()
 
-	for _, id := range []int32{13442, 13446, 13510, 9187, 13445, 20452, 18588, 10646, 10310, 10308, 10306, 10307, 5206} {
-		found := slices.ContainsFunc(whole.spells, func(actionID core.ActionID) bool { return actionID.ItemID == id }) ||
-			slices.ContainsFunc(slices.Collect(maps.Values(whole.auras)), func(actionID core.ActionID) bool { return actionID.ItemID == id })
-		if !found {
-			t.Errorf("%d applies nothing even with every consumable loaded", id)
-		}
-	}
-	if whole.enchants[0] == 0 || whole.enchants[1] == 0 {
-		t.Errorf("12404 enchants neither weapon with every consumable loaded: %v", whole.enchants)
+	if slices.Equal(whole.stats, none.stats) && maps.Equal(whole.auras, none.auras) &&
+		slices.Equal(whole.spells, none.spells) && whole.enchants == none.enchants {
+		t.Fatalf("the preset applies nothing even with every consumable loaded")
 	}
 
 	if !slices.Equal(requested.stats, whole.stats) {

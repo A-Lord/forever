@@ -217,12 +217,13 @@ func TestDotRankSameRankRefreshes(t *testing.T) {
 	sim, target, _, rank1, _ := newRankPair(t, registerTargetDot, shadowWordPain1, shadowWordPain2)
 
 	rank1.Cast(sim, target)
+	firstExpiry := rank1.Dot(target).ExpiresAt()
 	stepTo(t, sim, 6*time.Second)
 	if !rank1.Cast(sim, target) {
 		t.Fatalf("Rank 1 was refused over itself")
 	}
-	if got := rank1.Dot(target).ExpiresAt(); got != 24*time.Second {
-		t.Errorf("Rank 1 recast at 6 s expires at %v, want 24 s", got)
+	if got, want := rank1.Dot(target).ExpiresAt(), firstExpiry+6*time.Second; got != want {
+		t.Errorf("Rank 1 cast at 0 s expiring at %v, recast at 6 s, expires at %v; want %v", firstExpiry, got, want)
 	}
 }
 

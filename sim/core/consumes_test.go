@@ -8,21 +8,36 @@ import (
 )
 
 func TestSelectedConsumableIDs(t *testing.T) {
+	const (
+		pot int32 = 990411 + iota
+		potion
+		flask
+		food
+		explosive
+		mhImbue
+		mhWeaponImbue
+		ohImbue
+		conjured
+		extra1
+		extra2
+		extra3
+		extra4
+	)
 	consumes := &proto.ConsumesSpec{
-		PotId:           13444,
-		Potions:         []int32{13444, 13446},
-		FlaskId:         13510,
-		FoodId:          20452,
-		ExplosiveId:     18588,
-		MhImbueId:       20749,
-		MhWeaponImbueId: 8928,
-		OhImbueId:       12404,
-		ConjuredItems:   []int32{7676},
-		ExtraIds:        []int32{10646, 10309, 10305, 5206},
+		PotId:           pot,
+		Potions:         []int32{pot, potion},
+		FlaskId:         flask,
+		FoodId:          food,
+		ExplosiveId:     explosive,
+		MhImbueId:       mhImbue,
+		MhWeaponImbueId: mhWeaponImbue,
+		OhImbueId:       ohImbue,
+		ConjuredItems:   []int32{conjured},
+		ExtraIds:        []int32{extra1, extra2, extra3, extra4},
 	}
 
 	got := selectedConsumableIDs(consumes)
-	want := []int32{13444, 13510, 20452, 18588, 12404, 20749, 8928, 10646, 10309, 10305, 5206, 13446, 7676}
+	want := []int32{pot, flask, food, explosive, ohImbue, mhImbue, mhWeaponImbue, extra1, extra2, extra3, extra4, potion, conjured}
 	if !slices.Equal(got, want) {
 		t.Errorf("selected %v, want %v", got, want)
 	}
@@ -46,17 +61,18 @@ func TestSelectedConsumableIDsKeepTheFirstOfEachGroup(t *testing.T) {
 }
 
 func TestHandWrittenConsumableEffectReplacesDataDriven(t *testing.T) {
-	const majorHealingPotion = 13446
+	const potion = 990430
+	addToDatabase(&proto.SimDatabase{Consumables: []*proto.Consumable{{Id: potion}}})
 	unregister := func() {
-		delete(consumableEffects, majorHealingPotion)
-		delete(dataDrivenConsumableEffects, majorHealingPotion)
+		delete(consumableEffects, potion)
+		delete(dataDrivenConsumableEffects, potion)
 	}
 	t.Cleanup(unregister)
 
 	for _, handFirst := range []bool{true, false} {
 		applied := ""
-		hand := func() { NewConsumableEffect(majorHealingPotion, func(Agent) { applied = "hand" }) }
-		dataDriven := func() { NewSpellDataConsumableEffect(majorHealingPotion, func(Agent) { applied = "rows" }) }
+		hand := func() { NewConsumableEffect(potion, func(Agent) { applied = "hand" }) }
+		dataDriven := func() { NewSpellDataConsumableEffect(potion, func(Agent) { applied = "rows" }) }
 		if handFirst {
 			hand()
 			dataDriven()
@@ -65,10 +81,10 @@ func TestHandWrittenConsumableEffectReplacesDataDriven(t *testing.T) {
 			hand()
 		}
 
-		if !HasConsumableEffect(majorHealingPotion) {
-			t.Fatalf("hand first %v: %d has no effect registered", handFirst, majorHealingPotion)
+		if !HasConsumableEffect(potion) {
+			t.Fatalf("hand first %v: %d has no effect registered", handFirst, potion)
 		}
-		apply, _ := consumableEffect(majorHealingPotion)
+		apply, _ := consumableEffect(potion)
 		apply(nil)
 		if applied != "hand" {
 			t.Errorf("hand first %v: the %s effect applied, want the hand-written one", handFirst, applied)
@@ -78,24 +94,25 @@ func TestHandWrittenConsumableEffectReplacesDataDriven(t *testing.T) {
 }
 
 func TestASecondEffectOfTheSameOriginPanics(t *testing.T) {
-	const majorHealingPotion = 13446
+	const potion = 990431
+	addToDatabase(&proto.SimDatabase{Consumables: []*proto.Consumable{{Id: potion}}})
 	for name, register := range map[string]func(int32, ApplyEffect){
 		"hand-written": NewConsumableEffect,
 		"data-driven":  NewSpellDataConsumableEffect,
 	} {
 		t.Run(name, func(t *testing.T) {
 			t.Cleanup(func() {
-				delete(consumableEffects, majorHealingPotion)
-				delete(dataDrivenConsumableEffects, majorHealingPotion)
+				delete(consumableEffects, potion)
+				delete(dataDrivenConsumableEffects, potion)
 			})
 
-			register(majorHealingPotion, func(Agent) {})
+			register(potion, func(Agent) {})
 			defer func() {
 				if recover() == nil {
 					t.Errorf("a second %s effect for one consumable registered without a panic", name)
 				}
 			}()
-			register(majorHealingPotion, func(Agent) {})
+			register(potion, func(Agent) {})
 		})
 	}
 }
