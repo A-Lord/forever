@@ -26,7 +26,7 @@ func addMovementAI() {
 
 			SpellSchool:      proto.SpellSchool_SpellSchoolPhysical,
 			SwingSpeed:       2,
-			MinBaseDamage:    15113,
+			MinBaseDamage:    2601,
 			DamageSpread:     0.5,
 			SuppressDodge:    false,
 			ParryHaste:       true,
