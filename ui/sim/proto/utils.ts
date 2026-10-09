@@ -94,14 +94,23 @@ export function adjustWeaponImbueId(imbueId: number, hasSharp: boolean, hasBlunt
 	return 0;
 }
 
+const adjustHandImbue = (imbueId: number, weapon?: Item | null) =>
+	adjustWeaponImbueId(imbueId, !!weapon && isSharpWeaponType(weapon.weaponType), !!weapon && isBluntWeaponType(weapon.weaponType));
+
 // Matches each hand's imbue to the weapon in that hand; the same spec comes back when nothing changes.
 export function adjustImbues(consumes: ConsumesSpec, mainHand?: Item | null, offHand?: Item | null): ConsumesSpec {
-	const adjust = (imbueId: number, weapon?: Item | null) =>
-		adjustWeaponImbueId(imbueId, !!weapon && isSharpWeaponType(weapon.weaponType), !!weapon && isBluntWeaponType(weapon.weaponType));
-	const mhImbueId = adjust(consumes.mhImbueId, mainHand);
-	const ohImbueId = adjust(consumes.ohImbueId, offHand);
+	const mhImbueId = adjustHandImbue(consumes.mhImbueId, mainHand);
+	const ohImbueId = adjustHandImbue(consumes.ohImbueId, offHand);
 	if (mhImbueId === consumes.mhImbueId && ohImbueId === consumes.ohImbueId) return consumes;
 	return ConsumesSpec.clone({ ...consumes, mhImbueId, ohImbueId });
+}
+
+// Matches each hand's swap imbue to the swap weapon in that hand; the same spec comes back when nothing changes.
+export function adjustSwapImbues(consumes: ConsumesSpec, mainHand?: Item | null, offHand?: Item | null): ConsumesSpec {
+	const swapMhImbueId = adjustHandImbue(consumes.swapMhImbueId, mainHand);
+	const swapOhImbueId = adjustHandImbue(consumes.swapOhImbueId, offHand);
+	if (swapMhImbueId === consumes.swapMhImbueId && swapOhImbueId === consumes.swapOhImbueId) return consumes;
+	return ConsumesSpec.clone({ ...consumes, swapMhImbueId, swapOhImbueId });
 }
 
 export function newUnitReference(raidIndex: number): UnitReference {

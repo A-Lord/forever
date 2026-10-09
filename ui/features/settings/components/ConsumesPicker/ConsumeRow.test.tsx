@@ -4,13 +4,14 @@ import { createSimStore, patchKeyed, PLAYER_FIELDS, type PlayerSlice, seedKeyed,
 import { act, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { ConsumeRow, ConsumeRowView } from './ConsumeRow';
+import { ConsumeRow, type ConsumeRowProps, ConsumeRowView } from './ConsumeRow';
 
 const KEY = 2;
 
-/** Stands in for the player: the one flag the configs below ask about, over a store the row can select from. */
+/** Stands in for the player: the flags the configs below ask about, over a store the row can select from. */
 class Options {
 	engineer = true;
+	swapWeapon = false;
 	readonly storeKey = KEY;
 	readonly sim: { store: SimStore };
 
@@ -41,10 +42,10 @@ const configFor = (shown: (options: Options) => boolean): IconEnumPickerConfig<O
 		setValue: () => {},
 	}) as IconEnumPickerConfig<Options, number>;
 
-const row = (options: Options, configs: Array<IconEnumPickerConfig<Options, number>>) => {
+const row = (options: Options, configs: Array<IconEnumPickerConfig<Options, number>>, props: Partial<ConsumeRowProps> = {}) => {
 	render(
 		<SimHostProvider host={{ player: options } as never}>
-			<ConsumeRow name="engineering" configs={configs as never}>
+			<ConsumeRow name="engineering" configs={configs as never} {...props}>
 				<div className="consumes-engi" />
 			</ConsumeRow>
 		</SimHostProvider>,
@@ -87,6 +88,25 @@ describe('ConsumeRow', () => {
 		options.engineer = false;
 		act(() => options.changeProfession(1));
 		expect(isHidden(element)).toBe(false);
+	});
+
+	it('captions the row for the main weapons while its swap pickers show, and plainly once they hide', () => {
+		const options = new Options();
+		const element = row(options, [configFor(() => true)], { name: 'imbue', swapConfigs: [configFor(opts => opts.swapWeapon)] as never });
+		expect(screen.getByRole('group', { name: 'settings_tab.consumables.imbue.title' })).toBe(element);
+
+		options.swapWeapon = true;
+		act(() => options.changeSomethingElse());
+		expect(screen.getByRole('group', { name: 'settings_tab.consumables.imbue.titleMain' })).toBe(element);
+
+		options.swapWeapon = false;
+		act(() => options.changeProfession(1));
+		expect(screen.getByRole('group', { name: 'settings_tab.consumables.imbue.title' })).toBe(element);
+	});
+
+	it('captions a swap row for the swap weapons', () => {
+		const element = row(new Options(), [configFor(() => true)], { name: 'imbue', swap: true });
+		expect(screen.getByRole('group', { name: 'settings_tab.consumables.imbue.titleSwap' })).toBe(element);
 	});
 
 	it('hides a row that names no pickers', () => {

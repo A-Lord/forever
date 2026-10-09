@@ -34,14 +34,14 @@ func weaponSlots(mainHand, offHand int32) []*proto.ItemSpec {
 	return items
 }
 
-func stonedWarrior(t *testing.T, mhImbueId, ohImbueId int32, swapped []*proto.ItemSpec) (*core.Simulation, *core.Character) {
+func stonedWarrior(t *testing.T, consumes *proto.ConsumesSpec, swapped []*proto.ItemSpec) (*core.Simulation, *core.Character) {
 	t.Helper()
 	player := &proto.Player{
 		Name: "Consumer", Class: proto.Class_ClassWarrior, Race: proto.Race_RaceOrc,
 		Spec: &proto.Player_DpsWarrior{DpsWarrior: &proto.DpsWarrior{Options: &proto.DpsWarrior_Options{
 			ClassOptions: &proto.WarriorOptions{DefaultStance: proto.WarriorStance_WarriorStanceBerserker}}}},
 		Equipment:   &proto.EquipmentSpec{Items: weaponSlots(notchedShortsword, smallHandBlade)},
-		Consumables: &proto.ConsumesSpec{MhImbueId: mhImbueId, OhImbueId: ohImbueId},
+		Consumables: consumes,
 		Buffs:       &proto.IndividualBuffs{},
 		Rotation:    &proto.APLRotation{},
 	}
@@ -73,7 +73,7 @@ func stoneCrit(t *testing.T) float64 {
 // subclasses its mask names, and each weapon carries its own copy: the crit reaches the attacks made
 // with the hand the stone is on, and no other attack.
 func TestElementalSharpeningStoneCritReachesItsOwnHand(t *testing.T) {
-	_, bare := stonedWarrior(t, 0, 0, nil)
+	_, bare := stonedWarrior(t, &proto.ConsumesSpec{}, nil)
 	crit := stoneCrit(t)
 	for _, tc := range []struct {
 		name                 string
@@ -85,7 +85,7 @@ func TestElementalSharpeningStoneCritReachesItsOwnHand(t *testing.T) {
 		{"both hands", elementalSharpener, elementalSharpener, 1, 1},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			_, stoned := stonedWarrior(t, tc.mhImbueId, tc.ohImbueId, nil)
+			_, stoned := stonedWarrior(t, &proto.ConsumesSpec{MhImbueId: tc.mhImbueId, OhImbueId: tc.ohImbueId}, nil)
 
 			if delta := stoned.GetStat(stats.PhysicalCritPercent) - bare.GetStat(stats.PhysicalCritPercent); delta != 0 {
 				t.Errorf("the stone adds %v%% crit to every attack, want none", delta)
@@ -101,7 +101,7 @@ func TestElementalSharpeningStoneCritReachesItsOwnHand(t *testing.T) {
 }
 
 func TestElementalSharpeningStoneSkipsAMagicDefenseSpell(t *testing.T) {
-	_, character := stonedWarrior(t, elementalSharpener, 0, nil)
+	_, character := stonedWarrior(t, &proto.ConsumesSpec{MhImbueId: elementalSharpener}, nil)
 
 	magicSpell := character.RegisterSpell(core.SpellConfig{
 		ActionID:    core.ActionID{SpellID: 990980},
@@ -124,9 +124,10 @@ func TestElementalSharpeningStoneTurnsOffWhenTheStonedWeaponSwapsAway(t *testing
 	}{
 		{"swapped to a shield", weaponSlots(aegisOfStormwind, smallHandBlade)},
 		{"swapped to an empty hand", weaponSlots(0, smallHandBlade)},
+		{"swapped to a bare sword the stone fits", weaponSlots(notchedShortsword, smallHandBlade)},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			sim, character := stonedWarrior(t, elementalSharpener, 0, tc.swapped)
+			sim, character := stonedWarrior(t, &proto.ConsumesSpec{MhImbueId: elementalSharpener}, tc.swapped)
 			mhAuto := character.AutoAttacks.MHAuto()
 			if want := stoneCrit(t); mhAuto.BonusCritPercent != want {
 				t.Fatalf("the main-hand auto gains %v%% crit before the swap, want %v", mhAuto.BonusCritPercent, want)
@@ -138,6 +139,27 @@ func TestElementalSharpeningStoneTurnsOffWhenTheStonedWeaponSwapsAway(t *testing
 				t.Errorf("the main-hand auto keeps %v%% crit once the stoned weapon is swapped away, want none", mhAuto.BonusCritPercent)
 			}
 		})
+	}
+}
+
+// A stone the spec names for the item swap set's main hand reaches the main-hand attacks while that
+// weapon is worn, and no attack of the main set's.
+func TestElementalSharpeningStoneOnTheSwapWeaponTurnsOnWhenSwappedIn(t *testing.T) {
+	sim, character := stonedWarrior(t, &proto.ConsumesSpec{SwapMhImbueId: elementalSharpener}, weaponSlots(notchedShortsword, smallHandBlade))
+	mhAuto, ohAuto := character.AutoAttacks.MHAuto(), character.AutoAttacks.OHAuto()
+	if mhAuto.BonusCritPercent != 0 || ohAuto.BonusCritPercent != 0 {
+		t.Fatalf("the main set's autos gain %v%% and %v%% crit, want none", mhAuto.BonusCritPercent, ohAuto.BonusCritPercent)
+	}
+
+	character.ItemSwap.SwapItems(sim, proto.APLActionItemSwap_Swap1, false)
+	if want := stoneCrit(t); mhAuto.BonusCritPercent != want || ohAuto.BonusCritPercent != 0 {
+		t.Errorf("with the stoned swap weapon worn the autos gain %v%% and %v%% crit, want %v on the main hand alone",
+			mhAuto.BonusCritPercent, ohAuto.BonusCritPercent, want)
+	}
+
+	character.ItemSwap.SwapItems(sim, proto.APLActionItemSwap_Main, false)
+	if mhAuto.BonusCritPercent != 0 {
+		t.Errorf("the main-hand auto keeps %v%% crit once the main set is worn again, want none", mhAuto.BonusCritPercent)
 	}
 }
 

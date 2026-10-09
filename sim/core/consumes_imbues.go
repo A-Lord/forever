@@ -2,6 +2,7 @@ package core
 
 import (
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/stats"
 )
 
 const (
@@ -17,31 +18,43 @@ var (
 
 // Puts the temporary enchant each imbue the spec names on its hand, where the enchant takes that
 // hand's weapon. It runs before the weapons are built, and a weapon built from a hand's item takes
-// the enchant's flat weapon damage. The consumable's registered effect then applies the rest of the
-// enchant to the hands carrying it.
+// the enchant's flat weapon damage; the enchant's stats count among the item's equipment stats, so
+// they leave with the weapon on an item swap. The consumable's registered effect then applies the
+// rest of the enchant to the hands carrying it.
 func applyTemporaryEnchants(character *Character, consumables *proto.ConsumesSpec) {
-	character.applyTemporaryEnchant(consumables.MhImbueId, proto.ItemSlot_ItemSlotMainHand)
-	character.applyTemporaryEnchant(consumables.OhImbueId, proto.ItemSlot_ItemSlotOffHand)
-	character.applyTemporaryEnchant(consumables.MhWeaponImbueId, proto.ItemSlot_ItemSlotMainHand)
-	character.applyTemporaryEnchant(consumables.OhWeaponImbueId, proto.ItemSlot_ItemSlotOffHand)
+	equipment := &character.Equipment
+	applyTemporaryEnchant(consumables.MhImbueId, proto.ItemSlot_ItemSlotMainHand, equipment)
+	applyTemporaryEnchant(consumables.OhImbueId, proto.ItemSlot_ItemSlotOffHand, equipment)
+	applyTemporaryEnchant(consumables.MhWeaponImbueId, proto.ItemSlot_ItemSlotMainHand, equipment)
+	applyTemporaryEnchant(consumables.OhWeaponImbueId, proto.ItemSlot_ItemSlotOffHand, equipment)
+}
+
+// The imbues the spec names for the item swap set, on that set's weapons.
+func applySwapTemporaryEnchants(swapItems *Equipment, consumables *proto.ConsumesSpec) {
+	applyTemporaryEnchant(consumables.SwapMhImbueId, proto.ItemSlot_ItemSlotMainHand, swapItems)
+	applyTemporaryEnchant(consumables.SwapOhImbueId, proto.ItemSlot_ItemSlotOffHand, swapItems)
+	applyTemporaryEnchant(consumables.SwapMhWeaponImbueId, proto.ItemSlot_ItemSlotMainHand, swapItems)
+	applyTemporaryEnchant(consumables.SwapOhWeaponImbueId, proto.ItemSlot_ItemSlotOffHand, swapItems)
 }
 
 func (character *Character) isFeralDruid() bool {
 	return character.Spec == proto.Spec_SpecFeralCatDruid || character.Spec == proto.Spec_SpecFeralBearDruid
 }
 
-func (character *Character) applyTemporaryEnchant(itemID int32, slot proto.ItemSlot) {
+func applyTemporaryEnchant(itemID int32, slot proto.ItemSlot, equipment *Equipment) {
 	consumable := GetConsumableByID(itemID)
-	if consumable.TemporaryEnchant == nil || !consumable.TakesItem(slot, character.Equipment[slot]) {
+	if consumable.TemporaryEnchant == nil || !consumable.TakesItem(slot, equipment[slot]) {
 		return
 	}
-	item := &character.Equipment[slot]
+	item := &equipment[slot]
+	enchant := consumable.TemporaryEnchant
+	item.TempEnchantStats = item.TempEnchantStats.Add(enchant.Stats.Add(stats.FromPseudoStatsProto(enchant.PseudoStats)))
 	if consumable.Type == proto.ConsumableType_ConsumableTypeWeaponImbue {
-		item.WeaponImbue = consumable.TemporaryEnchant.EffectID
+		item.WeaponImbue = enchant.EffectID
 		return
 	}
-	item.TempEnchant = consumable.TemporaryEnchant.EffectID
-	item.TempEnchantWeaponDamage = consumable.TemporaryEnchant.WeaponDamage
+	item.TempEnchant = enchant.EffectID
+	item.TempEnchantWeaponDamage = enchant.WeaponDamage
 }
 
 // Whether the temporary enchant's SpellEquippedItems masks take the item in this slot.

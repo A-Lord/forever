@@ -37,6 +37,11 @@ export interface ConsumeConfigs {
 	ohImbue: ConsumeConfig;
 	mhWeaponImbue: ConsumeConfig;
 	ohWeaponImbue: ConsumeConfig;
+	// The swap weapons' picks, offered while item swap is on and the swap set holds a weapon in the hand.
+	swapMhImbue: ConsumeConfig;
+	swapOhImbue: ConsumeConfig;
+	swapMhWeaponImbue: ConsumeConfig;
+	swapOhWeaponImbue: ConsumeConfig;
 	miscellaneous: Array<ConsumeToggle>;
 }
 
@@ -78,6 +83,8 @@ export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfig
 		groups.filter(group => rowOf(group) === row).map(group => makeConsumableGroupInput(group, relevance, group[0].groupName));
 	const explosives = inSlot(ConsumableSlot.Explosive);
 	const fitsWeaponIn = (slot: ItemSlot) => (consumable: Consumable, p: Player<any>) => handTakesImbue(consumable, p.getEquippedItem(slot)?.item);
+	const fitsSwapWeaponIn = (slot: ItemSlot) => (consumable: Consumable, p: Player<any>) =>
+		p.itemSwapSettings.getEnableItemSwap() && handTakesImbue(consumable, p.itemSwapSettings.getItem(slot)?.item);
 
 	return {
 		potion: input(ConsumableSlot.Potion, { consumesFieldName: 'potId', tooltip: i18n.t('settings_tab.consumables.potions.combat') }),
@@ -105,6 +112,16 @@ export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfig
 			tooltip: i18n.t('settings_tab.consumables.imbue.ohImbue'),
 			includeIf: fitsWeaponIn(ItemSlot.ItemSlotOffHand),
 		}),
+		swapMhImbue: input(ConsumableSlot.Imbue, {
+			consumesFieldName: 'swapMhImbueId',
+			tooltip: i18n.t('settings_tab.consumables.imbue.swapMhImbue'),
+			includeIf: fitsSwapWeaponIn(ItemSlot.ItemSlotMainHand),
+		}),
+		swapOhImbue: input(ConsumableSlot.Imbue, {
+			consumesFieldName: 'swapOhImbueId',
+			tooltip: i18n.t('settings_tab.consumables.imbue.swapOhImbue'),
+			includeIf: fitsSwapWeaponIn(ItemSlot.ItemSlotOffHand),
+		}),
 		mhWeaponImbue: input(ConsumableSlot.WeaponImbue, {
 			consumesFieldName: 'mhWeaponImbueId',
 			tooltip: i18n.t('settings_tab.consumables.weaponImbue.mhWeaponImbue'),
@@ -114,6 +131,16 @@ export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfig
 			consumesFieldName: 'ohWeaponImbueId',
 			tooltip: i18n.t('settings_tab.consumables.weaponImbue.ohWeaponImbue'),
 			includeIf: fitsWeaponIn(ItemSlot.ItemSlotOffHand),
+		}),
+		swapMhWeaponImbue: input(ConsumableSlot.WeaponImbue, {
+			consumesFieldName: 'swapMhWeaponImbueId',
+			tooltip: i18n.t('settings_tab.consumables.weaponImbue.swapMhWeaponImbue'),
+			includeIf: fitsSwapWeaponIn(ItemSlot.ItemSlotMainHand),
+		}),
+		swapOhWeaponImbue: input(ConsumableSlot.WeaponImbue, {
+			consumesFieldName: 'swapOhWeaponImbueId',
+			tooltip: i18n.t('settings_tab.consumables.weaponImbue.swapOhWeaponImbue'),
+			includeIf: fitsSwapWeaponIn(ItemSlot.ItemSlotOffHand),
 		}),
 		miscellaneous: inSlot(ConsumableSlot.Extra).map(consumable => makeIdListInput(consumable, relevance)),
 	};
