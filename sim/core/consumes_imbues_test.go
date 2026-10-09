@@ -148,7 +148,7 @@ func TestSwapImbueGoesOnTheSwapWeaponsItTakes(t *testing.T) {
 	stone := GetConsumableByID(stoneID).TemporaryEnchant
 	firestone := GetConsumableByID(firestoneID).TemporaryEnchant
 	for _, slot := range []proto.ItemSlot{proto.ItemSlot_ItemSlotMainHand, proto.ItemSlot_ItemSlotOffHand} {
-		if item := character.Equipment[slot]; item.TempEnchant != 0 || item.WeaponImbue != 0 || item.TempEnchantStats != (stats.Stats{}) {
+		if item := character.Equipment[slot]; item.TempEnchant != 0 || item.WeaponImbue != 0 || item.TempEnchantStats != nil {
 			t.Errorf("main set %s carries enchant %d and imbue %d, want neither", slot, item.TempEnchant, item.WeaponImbue)
 		}
 	}

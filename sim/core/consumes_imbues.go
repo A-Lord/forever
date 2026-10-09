@@ -21,20 +21,13 @@ var (
 // the enchant's flat weapon damage; the enchant's stats count among the item's equipment stats, so
 // they leave with the weapon on an item swap. The consumable's registered effect then applies the
 // rest of the enchant to the hands carrying it.
-func applyTemporaryEnchants(character *Character, consumables *proto.ConsumesSpec) {
-	equipment := &character.Equipment
-	applyTemporaryEnchant(consumables.MhImbueId, proto.ItemSlot_ItemSlotMainHand, equipment)
-	applyTemporaryEnchant(consumables.OhImbueId, proto.ItemSlot_ItemSlotOffHand, equipment)
-	applyTemporaryEnchant(consumables.MhWeaponImbueId, proto.ItemSlot_ItemSlotMainHand, equipment)
-	applyTemporaryEnchant(consumables.OhWeaponImbueId, proto.ItemSlot_ItemSlotOffHand, equipment)
-}
-
-// The imbues the spec names for the item swap set, on that set's weapons.
-func applySwapTemporaryEnchants(swapItems *Equipment, consumables *proto.ConsumesSpec) {
-	applyTemporaryEnchant(consumables.SwapMhImbueId, proto.ItemSlot_ItemSlotMainHand, swapItems)
-	applyTemporaryEnchant(consumables.SwapOhImbueId, proto.ItemSlot_ItemSlotOffHand, swapItems)
-	applyTemporaryEnchant(consumables.SwapMhWeaponImbueId, proto.ItemSlot_ItemSlotMainHand, swapItems)
-	applyTemporaryEnchant(consumables.SwapOhWeaponImbueId, proto.ItemSlot_ItemSlotOffHand, swapItems)
+//
+// The item swap set takes the same path with the swap imbue ids and the swap weapons.
+func applyTemporaryEnchants(mhImbueID, ohImbueID, mhWeaponImbueID, ohWeaponImbueID int32, equipment *Equipment) {
+	applyTemporaryEnchant(mhImbueID, proto.ItemSlot_ItemSlotMainHand, equipment)
+	applyTemporaryEnchant(ohImbueID, proto.ItemSlot_ItemSlotOffHand, equipment)
+	applyTemporaryEnchant(mhWeaponImbueID, proto.ItemSlot_ItemSlotMainHand, equipment)
+	applyTemporaryEnchant(ohWeaponImbueID, proto.ItemSlot_ItemSlotOffHand, equipment)
 }
 
 func (character *Character) isFeralDruid() bool {
@@ -48,7 +41,11 @@ func applyTemporaryEnchant(itemID int32, slot proto.ItemSlot, equipment *Equipme
 	}
 	item := &equipment[slot]
 	enchant := consumable.TemporaryEnchant
-	item.TempEnchantStats = item.TempEnchantStats.Add(enchant.Stats.Add(stats.FromPseudoStatsProto(enchant.PseudoStats)))
+	sum := enchant.Stats.Add(stats.FromPseudoStatsProto(enchant.PseudoStats))
+	if item.TempEnchantStats != nil {
+		sum = sum.Add(*item.TempEnchantStats)
+	}
+	item.TempEnchantStats = &sum
 	if consumable.Type == proto.ConsumableType_ConsumableTypeWeaponImbue {
 		item.WeaponImbue = enchant.EffectID
 		return
