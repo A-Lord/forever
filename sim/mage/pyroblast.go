@@ -26,9 +26,6 @@ func (mage *Mage) registerPyroblastRank(_ int32, rank *spelldata.Spell) {
 
 	tick := rank.PeriodicEffect()
 	dotConfig.Dot = spelldata.DotConfig(rank, tick)
-	// The DoT only goes out on a landed hit, so its ticks roll crit (the row states Periodic Can
-	// Crit) but not hit.
-	dotConfig.Dot.OnTick = spelldata.PeriodicDamageTick(tick, rank.TickOutcomeHitRolled)
 
 	dotConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		spell.Dot(target).Apply(sim)

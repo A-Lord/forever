@@ -25,6 +25,19 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
+	// Deals 5 Fire damage to anyone who strikes you with a melee attack.
+	// https://www.wowhead.com/forever/spell=21142
+	// unsupported: another effect of the item registers
+	// equip: 21142 (A_DAMAGE_SHIELD)
+	// shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 21142},
+	//	[]shared.ItemVariant{
+	//	{ItemID: 17182, ItemName: "Sulfuras, Hand of Ragnaros"},
+	// })
+
+	// TODO: Manual implementation required
+	//       This can be ignored if the effect has already been implemented.
+	//       With next db run the item will be removed if implemented.
+	//
 	// Reduces your damage taken by 5% in the Battle Ring and The Maul.
 	// https://www.wowhead.com/forever/spell=1317285
 	// unsupported: the row applies only in area group 9337, which names no area type
@@ -60,6 +73,22 @@ func RegisterAllProcs() {
 	//	{ItemID: 22060, ItemName: "Beastmaster's Tunic"},
 	// })
 
+	// Deals 5 Fire damage to anyone who strikes you with a melee attack.
+	// https://www.wowhead.com/forever/spell=21142
+	// equip: 21142 (A_DAMAGE_SHIELD)
+	shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 21142},
+		[]shared.ItemVariant{
+			{ItemID: 3475, ItemName: "Cloak of Flames"},
+		})
+
+	// When struck in combat inflicts 13 Fire damage to the attacker.
+	// https://www.wowhead.com/forever/spell=23266
+	// equip: 23266 (A_DAMAGE_SHIELD)
+	shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 23266},
+		[]shared.ItemVariant{
+			{ItemID: 18815, ItemName: "Essence of the Pure Flame"},
+		})
+
 	// Increases your pet's maximum health by 3%.
 	// https://www.wowhead.com/forever/spell=27038
 	// equip: 27038 keeps 27039 up (A_MOD_INCREASE_HEALTH_PERCENT)
@@ -90,6 +119,30 @@ func RegisterAllProcs() {
 	shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 27518},
 		[]shared.ItemVariant{
 			{ItemID: 22191, ItemName: "Obsidian Mail Tunic"},
+		})
+
+	// When struck in combat, inflicts 3 Nature damage to the attacker.
+	// https://www.wowhead.com/forever/spell=1297378
+	// equip: 1297378 (A_DAMAGE_SHIELD)
+	shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 1297378},
+		[]shared.ItemVariant{
+			{ItemID: 275649, ItemName: "Bramblebark Barrier"},
+		})
+
+	// When struck in combat, inflicts 3 Nature damage to the attacker.
+	// https://www.wowhead.com/forever/spell=1297910
+	// equip: 1297910 (A_DAMAGE_SHIELD)
+	shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 1297910},
+		[]shared.ItemVariant{
+			{ItemID: 275833, ItemName: "Bristlecone Cloak"},
+		})
+
+	// When struck in combat, inflicts 2 Fire damage to the attacker.
+	// https://www.wowhead.com/forever/spell=1312955
+	// equip: 1312955 (A_DAMAGE_SHIELD)
+	shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 1312955},
+		[]shared.ItemVariant{
+			{ItemID: 282080, ItemName: "Flame Seared Signet"},
 		})
 
 	// Procs
@@ -185,21 +238,6 @@ func RegisterAllProcs() {
 	// shared.NewSpellDataDamageProc(shared.SpellDataProc{TriggerSpellID: 29638, BuffSpellID: 29638, IsWeaponProc: true},
 	//	[]shared.ItemVariant{
 	//	{ItemID: 2825, ItemName: "Bow of Searing Arrows"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// Deals 5 Fire damage to anyone who strikes you with a melee attack.
-	// https://www.wowhead.com/forever/spell=21142
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 3475, ItemName: "Cloak of Flames"},
 	// })
 
 	// TODO: Manual implementation required
@@ -603,21 +641,6 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
-	// Increases the effects that healing and mana potions have on the wearer by 20%.
-	// https://www.wowhead.com/forever/spell=17619
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 13503, ItemName: "Alchemist's Stone"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
 	// Reduces the cooldown of your Fade ability by -2.0 sec.
 	// https://www.wowhead.com/forever/spell=18388
 	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
@@ -992,21 +1015,6 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
-	// Deals 5 Fire damage to anyone who strikes you with a melee attack.
-	// https://www.wowhead.com/forever/spell=21142
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 17182, ItemName: "Sulfuras, Hand of Ragnaros -  - "},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
 	// Hurls a fiery ball that causes 92 Fire damage and an additional 16 damage over 8s.
 	// https://www.wowhead.com/forever/spell=21159
 	// unsupported: states no rate
@@ -1190,21 +1198,6 @@ func RegisterAllProcs() {
 	//	RequireDamageDealt: false
 	// }, []shared.ItemVariant{
 	//	{ItemID: 18608, ItemName: "Benediction"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// When struck in combat inflicts 13 Fire damage to the attacker.
-	// https://www.wowhead.com/forever/spell=23266
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 18815, ItemName: "Essence of the Pure Flame"},
 	// })
 
 	// TODO: Manual implementation required
@@ -3082,36 +3075,6 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
-	// When struck in combat, inflicts 3 Nature damage to the attacker.
-	// https://www.wowhead.com/forever/spell=1297378
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 275649, ItemName: "Bramblebark Barrier"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// When struck in combat, inflicts 3 Nature damage to the attacker.
-	// https://www.wowhead.com/forever/spell=1297910
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 275833, ItemName: "Bristlecone Cloak"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
 	// https://www.wowhead.com/forever/spell=1317283
 	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
 	//	Callback:           core.CallbackEmpty,
@@ -3239,21 +3202,6 @@ func RegisterAllProcs() {
 	// shared.NewSpellDataDamageProc(shared.SpellDataProc{TriggerSpellID: 1312176, BuffSpellID: 1312176, IsWeaponProc: true},
 	//	[]shared.ItemVariant{
 	//	{ItemID: 281665, ItemName: "Twilight Forgehammer"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
-	// When struck in combat, inflicts 2 Fire damage to the attacker.
-	// https://www.wowhead.com/forever/spell=1312955
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 282080, ItemName: "Flame Seared Signet"},
 	// })
 
 	// TODO: Manual implementation required
@@ -3514,7 +3462,7 @@ func RegisterAllProcs() {
 	// trigger 21162 (0.7 ppm on the item, core.CallbackEmpty, core.ProcMaskUnknown)
 	shared.NewSpellDataDamageProc(shared.SpellDataProc{TriggerSpellID: 21162, BuffSpellID: 21162, IsWeaponProc: true},
 		[]shared.ItemVariant{
-			{ItemID: 17182, ItemName: "Sulfuras, Hand of Ragnaros -  - "},
+			{ItemID: 17182, ItemName: "Sulfuras, Hand of Ragnaros"},
 		})
 
 	// Grants an extra attack on your next swing.

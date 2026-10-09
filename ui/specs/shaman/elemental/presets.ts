@@ -5,20 +5,18 @@ import { ConsumesSpec, Profession, Race, Spec } from '@generated/proto/common';
 import { ElementalShaman_Options as ElementalShamanOptions } from '@generated/proto/shaman';
 import { SavedTalents } from '@generated/proto/ui';
 
-import DefaultApl from './apls/default.apl.json';
 import TestingBuildJson from './builds/testing.build.json';
-import PreraidGearJson from './gear_sets/preraid.gear.json';
 
-export const ROTATION_PRESET_DEFAULT = PresetUtils.makePresetAPLRotation('Default', DefaultApl);
+export const ROTATION_PRESET_DEFAULT = PresetUtils.makePresetAPLRotation('Default', TestingBuildJson.player.rotation);
 
-export const PreraidGear = PresetUtils.makePresetGear('Pre-raid', PreraidGearJson);
+export const TestingGear = PresetUtils.makePresetGear('Testing', TestingBuildJson.player.equipment);
 
 export const TestingBuild = PresetUtils.makePresetBuildFromJSON('Testing', Spec.SpecElementalShaman, TestingBuildJson);
 
 export const StandardTalents = {
 	name: 'Standard',
 	data: SavedTalents.create({
-		talentsString: '4500301323123051-05-05305',
+		talentsString: TestingBuildJson.player.talentsString,
 	}),
 };
 

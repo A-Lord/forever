@@ -61,6 +61,8 @@ export const Unstyled: Story = { args: { variant: 'unstyled' } };
 
 export const Small: Story = { args: { size: 'sm' } };
 export const Disabled: Story = { args: { disabled: true } };
+/** Disabled but still focusable and hoverable, so a tooltip on it can say why. */
+export const FocusableWhenDisabled: Story = { args: { variant: 'outline-primary', disabled: true, focusableWhenDisabled: true } };
 export const Loading: Story = { args: { loading: true, children: 'Stat Weights' } };
 export const IconOnly: Story = { args: { iconOnly: true, 'aria-label': 'Settings', children: <Icon name="gear" size="lg" /> } };
 export const IconOnlyLoading: Story = {

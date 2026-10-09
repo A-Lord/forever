@@ -21,10 +21,8 @@ func (mage *Mage) registerFireballRank(_ int32, rank *spelldata.Spell) {
 	dotConfig.ClassSpellMask = MageSpellFireballDot
 	tick := rank.PeriodicEffect()
 	dotConfig.Dot = spelldata.DotConfig(rank, tick)
-	// The DoT only goes out on a landed hit, so its ticks roll crit (the row states Periodic Can
-	// Crit) but not hit.
 	chargeLock := arcaneChargesLock{}
-	dotConfig.Dot.OnTick = chargeLock.onTick(spelldata.PeriodicDamageTick(tick, rank.TickOutcomeHitRolled))
+	dotConfig.Dot.OnTick = chargeLock.onTick(spelldata.PeriodicDamageTick(tick, rank.TickOutcome))
 	dotConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		spell.Dot(target).Apply(sim)
 	}

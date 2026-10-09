@@ -21,11 +21,11 @@ import { Pill } from '@ui-kit/Pill';
 import { SearchField } from '@ui-kit/TextField';
 import { type ReactNode, useCallback, useId, useMemo, useState } from 'react';
 
-import { useBulkState } from '../../hooks/useBulkState';
-import { BULK_ENCHANT_SLOTS, saveBulkEnchantPreset, validateBulkEnchantPresetName } from '../../model/enchants';
-import { BulkEnchantTile } from './BulkEnchantTile';
+import { useEnchantPresets } from '../../hooks/useEnchantPresets';
+import { ENCHANT_PRESET_SLOTS, saveEnchantPreset, validateEnchantPresetName } from '../../model/enchant_presets';
+import { EnchantPresetTile } from './EnchantPresetTile';
 
-export interface BulkEnchantSlotGroup {
+export interface EnchantPresetSlotGroup {
 	slot: ItemSlot;
 	label: string;
 	iconUrl: string;
@@ -33,7 +33,7 @@ export interface BulkEnchantSlotGroup {
 	tiles: ReactNode;
 }
 
-export interface BulkEnchantPresetDialogViewProps {
+export interface EnchantPresetDialogViewProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	title: string;
@@ -42,7 +42,7 @@ export interface BulkEnchantPresetDialogViewProps {
 	nameTaken: boolean;
 	canSave: boolean;
 	onSave: () => void;
-	groups: readonly BulkEnchantSlotGroup[];
+	groups: readonly EnchantPresetSlotGroup[];
 	openSlots: string[];
 	onOpenSlotsChange: (slots: string[]) => void;
 	search: string;
@@ -51,7 +51,7 @@ export interface BulkEnchantPresetDialogViewProps {
 	onShowAllChange: (showAll: boolean) => void;
 }
 
-export const BulkEnchantPresetDialogView = ({
+export const EnchantPresetDialogView = ({
 	open,
 	onOpenChange,
 	title,
@@ -67,7 +67,7 @@ export const BulkEnchantPresetDialogView = ({
 	onSearchChange,
 	showAll,
 	onShowAllChange,
-}: BulkEnchantPresetDialogViewProps) => {
+}: EnchantPresetDialogViewProps) => {
 	const nameId = useId();
 	const showAllId = useId();
 
@@ -77,6 +77,7 @@ export const BulkEnchantPresetDialogView = ({
 			onOpenChange={onOpenChange}
 			size="xl"
 			scrollContents
+			elevated
 			title={title}
 			testId="bulk-enchant-preset-dialog"
 			footer={
@@ -152,7 +153,7 @@ export const BulkEnchantPresetDialogView = ({
 	);
 };
 
-export interface BulkEnchantPresetDialogProps {
+export interface EnchantPresetDialogProps {
 	open: boolean;
 	/** Null for a new preset. */
 	preset: BulkEnchantPreset | null;
@@ -171,9 +172,9 @@ const slotLabel = (slot: ItemSlot): string => {
 	return translateBulkSlotName(ITEM_SLOT_TO_BULK_SIM_ITEM_SLOT.get(slot)!);
 };
 
-export const BulkEnchantPresetDialog = ({ open, preset, onClose }: BulkEnchantPresetDialogProps) => {
+export const EnchantPresetDialog = ({ open, preset, onClose }: EnchantPresetDialogProps) => {
 	const player = usePlayer();
-	const presets = useBulkState(slice => slice.enchantPresets);
+	const presets = useEnchantPresets();
 	const [name, setName] = useState(preset?.name ?? '');
 	const [selected, setSelected] = useState<ReadonlyMap<ItemSlot, readonly number[]>>(
 		() => new Map(preset?.slots.map(options => [options.slot, options.effectIds]) ?? []),
@@ -183,7 +184,7 @@ export const BulkEnchantPresetDialog = ({ open, preset, onClose }: BulkEnchantPr
 	const slots = useMemo(
 		() =>
 			ready
-				? BULK_ENCHANT_SLOTS.map(slot => ({
+				? ENCHANT_PRESET_SLOTS.map(slot => ({
 						slot,
 						enchants: slotEnchants(slot, [...player.getEnchants(slot)].sort(byLvlDescending)).map(enchant => ({
 							enchant,
@@ -230,7 +231,7 @@ export const BulkEnchantPresetDialog = ({ open, preset, onClose }: BulkEnchantPr
 	const changeSearchOpenSlots = (next: string[]) =>
 		setSearchClosedSlots(current => new Set([...current, ...shownSlots].filter(slot => !next.includes(slot))));
 
-	const problem = validateBulkEnchantPresetName(presets, name, preset?.name);
+	const problem = validateEnchantPresetName(presets, name, preset?.name);
 
 	const toggle = useCallback(
 		(slot: ItemSlot, effectId: number) =>
@@ -242,12 +243,12 @@ export const BulkEnchantPresetDialog = ({ open, preset, onClose }: BulkEnchantPr
 	);
 
 	const save = () => {
-		saveBulkEnchantPreset(player, { name, slots: [...selected].map(([slot, effectIds]) => ({ slot, effectIds })) }, preset?.name);
+		saveEnchantPreset(player, { name, slots: [...selected].map(([slot, effectIds]) => ({ slot, effectIds })) }, preset?.name);
 		onClose();
 	};
 
 	return (
-		<BulkEnchantPresetDialogView
+		<EnchantPresetDialogView
 			open={open}
 			onOpenChange={next => !next && onClose()}
 			title={i18n.t(preset ? 'bulk_tab.settings.enchant_presets.edit_title' : 'bulk_tab.settings.enchant_presets.new_title')}
@@ -269,7 +270,7 @@ export const BulkEnchantPresetDialog = ({ open, preset, onClose }: BulkEnchantPr
 				checkedCount: selected.get(slot)?.length ?? 0,
 				// One tile per enchant row; rows that share an effect id are one enchant to the sim, so they tick together.
 				tiles: enchants.map(enchant => (
-					<BulkEnchantTile
+					<EnchantPresetTile
 						key={`${enchant.effectId}-${enchant.name}`}
 						slot={slot}
 						enchant={enchant}

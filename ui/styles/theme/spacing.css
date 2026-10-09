@@ -45,7 +45,7 @@
 }
 
 @theme static inline {
-	--grid-template-columns-reforge: auto var(--settings-button-width);
+	--grid-template-columns-reforge: repeat(2, var(--settings-button-width));
 	--spacing-settings-button-inset: calc(--spacing(2) + var(--settings-button-width));
 	--spacing-settings-panel-max: min(--spacing(100), calc(100dvw - var(--settings-button-width, --spacing(10)) - --spacing(4) * 2));
 	--spacing-selector-modal-w: min(calc(var(--modal-width-xl) - --spacing(10)), calc(100vw - (2 * var(--modal-margin)) - --spacing(10)));

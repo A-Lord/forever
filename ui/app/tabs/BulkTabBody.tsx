@@ -1,4 +1,3 @@
-import { useActivateTab } from '@app/tab_activation';
 import { Tabs } from '@base-ui/react/tabs';
 import { BulkItemSearch } from '@features/bulk/components/BulkItemSearch';
 import { BulkPickerGroups } from '@features/bulk/components/BulkPickerGroups';
@@ -9,6 +8,7 @@ import { useBulkState } from '@features/bulk/hooks/useBulkState';
 import { addBulkItems, clearBulkItems } from '@features/bulk/model/items';
 import { SelectorModal } from '@features/gear/components/SelectorModal';
 import { OpenSelectorModalContext, useSelectorModalState } from '@features/gear/hooks/useSelectorModal';
+import { useActivateTab } from '@features/hooks/useActivateTab';
 import { BulkGearImporterDialog } from '@features/import-export';
 import { ItemSpec } from '@generated/proto/common';
 import i18n from '@i18n/config';

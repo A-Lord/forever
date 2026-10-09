@@ -56,6 +56,9 @@ export const IDS_TO_GROUP_FOR_ROTATION: Array<number> = [
 	16511, // Rogue - Hemorrhage
 	121471, // Rogue - Shadow Blades
 	5019, // Wand - Shoot (the channel and its shots)
+	10438, // Shaman - Searing Totem (the totem and its attacks)
+	10587, // Shaman - Magma Totem (the totem and its pulses)
+	16387, // Shaman - Flametongue Totem (the totem and its strikes)
 ];
 
 export function makeRowKey(section: SectionId, kind: string, bucketKey: string): string {

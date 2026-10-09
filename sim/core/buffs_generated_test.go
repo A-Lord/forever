@@ -714,7 +714,7 @@ func TestGeneratedFlametongueTotemStrikesOnMainHandHits(t *testing.T) {
 		t.Errorf("the category holds %d effects, want the totem's one", len(category.Effects()))
 	}
 
-	strike := char.GetSpell(core.ActionID{SpellID: 16389, Tag: -1})
+	strike := char.GetSpell(core.ActionID{SpellID: 16387, Tag: 1})
 	if strike == nil {
 		t.Fatal("the totem registered no spell for its proc")
 	}
@@ -722,7 +722,7 @@ func TestGeneratedFlametongueTotemStrikesOnMainHandHits(t *testing.T) {
 		t.Errorf("the proc is %v on %v, want fire on the spell tables", strike.SpellSchool, strike.DefenseType)
 	}
 	if !strike.Flags.Matches(core.SpellFlagProc) {
-		t.Error("the proc's hits are not flagged as a proc, which 16389 does not opt out of")
+		t.Error("the proc's hits are not flagged as a proc, which 16368 does not opt out of")
 	}
 
 	metrics := &strike.SpellMetrics[target.UnitIndex]
@@ -836,11 +836,14 @@ func TestGeneratedWindfuryTotemHoldsOverFlametongueTotem(t *testing.T) {
 		&proto.PartyBuffs{WindfuryTotem: true, FlametongueTotem: true}, &proto.IndividualBuffs{})
 	char := sim.Raid.Parties[0].Players[0].GetCharacter()
 
-	if char.GetAura("Flametongue Totem Trigger") != nil || char.GetSpell(core.ActionID{SpellID: 16389, Tag: -1}) != nil {
+	if char.GetAura("Flametongue Totem Trigger") != nil || char.GetSpell(core.ActionID{SpellID: 16387, Tag: 1}) != nil {
 		t.Error("Flametongue Totem registered its proc next to Windfury Totem")
 	}
-	if len(char.ExclusiveEffectManager.GetExclusiveEffectCategory(buffs.FlametongueTotemCategory).Effects()) != 0 {
-		t.Error("Flametongue Totem bids in its category next to Windfury Totem")
+	windfury := char.GetAura("Windfury Totem")
+	for _, effect := range char.ExclusiveEffectManager.GetExclusiveEffectCategory(buffs.FlametongueTotemCategory).Effects() {
+		if effect.Aura != windfury {
+			t.Errorf("%q bids in Flametongue Totem's category next to Windfury Totem", effect.Aura.Label)
+		}
 	}
 
 	trigger := char.GetAura("Windfury Totem Trigger")
@@ -855,6 +858,168 @@ func TestGeneratedWindfuryTotemHoldsOverFlametongueTotem(t *testing.T) {
 	}
 	if !proc.IsActive() {
 		t.Error("200 landed main-hand hits never procced Windfury Totem")
+	}
+}
+
+// What each test shaman stands in Initialize, set by the test before it builds the sim.
+var totemSetup func(c *core.Character)
+
+type totemShaman struct {
+	core.Character
+}
+
+func init() {
+	core.RegisterAgentFactory(
+		proto.Player_EnhancementShaman{},
+		proto.Spec_SpecEnhancementShaman,
+		func(character *core.Character, _ *proto.Player, _ *proto.Raid) core.Agent {
+			return &totemShaman{Character: *character}
+		},
+		func(player *proto.Player, spec interface{}) {
+			player.Spec = spec.(*proto.Player_EnhancementShaman)
+		},
+	)
+}
+
+func (c *totemShaman) GetCharacter() *core.Character       { return &c.Character }
+func (c *totemShaman) ApplyTalents()                       {}
+func (c *totemShaman) Reset(_ *core.Simulation)            {}
+func (c *totemShaman) OnGCDReady(_ *core.Simulation)       {}
+func (c *totemShaman) OnEncounterStart(_ *core.Simulation) {}
+func (c *totemShaman) Initialize()                         { totemSetup(&c.Character) }
+
+// A shaman's own weapon totem, the way the shaman stands one: an aura that bids
+// for the totem's category and turns its proc on while it holds it.
+func standWeaponTotem(c *core.Character, label string, category string, priority float64, procTrigger *core.Aura) *core.Aura {
+	totem := c.RegisterAura(core.Aura{Label: label, Duration: time.Minute * 2})
+	totem.NewExclusiveEffect(category, false, core.ExclusiveEffect{
+		Priority: priority,
+		OnGain: func(_ *core.ExclusiveEffect, sim *core.Simulation) {
+			procTrigger.Activate(sim)
+		},
+		OnExpire: func(_ *core.ExclusiveEffect, sim *core.Simulation) {
+			procTrigger.Deactivate(sim)
+		},
+	})
+	return totem
+}
+
+func standWindfuryTotem(c *core.Character) *core.Aura {
+	totem := standWeaponTotem(c, "Windfury Totem (Self)", buffs.WindfuryTotemCategory,
+		buffs.WindfuryTotemValue(0), buffs.NewWindfuryTotemProcTrigger(c))
+	buffs.HoldOverWindfuryTotemRivals(totem)
+	return totem
+}
+
+// One shaman under the party buffs, standing what setup gives it.
+func newTotemSim(t *testing.T, party *proto.PartyBuffs, setup func(c *core.Character)) (*core.Simulation, *core.Character) {
+	t.Helper()
+	totemSetup = setup
+	t.Cleanup(func() { totemSetup = nil })
+
+	sim := core.NewSim(&proto.RaidSimRequest{
+		SimOptions: &proto.SimOptions{RandomSeed: 100},
+		Raid: &proto.Raid{Parties: []*proto.Party{{
+			Players: []*proto.Player{{
+				Name:      "Shaman",
+				Class:     proto.Class_ClassShaman,
+				Buffs:     &proto.IndividualBuffs{},
+				Spec:      &proto.Player_EnhancementShaman{},
+				Equipment: &proto.EquipmentSpec{},
+			}},
+			Buffs: party,
+		}}},
+		Encounter: &proto.Encounter{Targets: []*proto.Target{{Name: "target", Level: 60}}, Duration: 180},
+	}, simsignals.CreateSignals())
+	sim.Reset()
+	return sim, sim.Raid.Parties[0].Players[0].GetCharacter()
+}
+
+var graceOfAirAgility = core.ExclusiveStatCategory(buffs.GraceOfAirTotemCategory, stats.Agility.StatName(), false)
+
+// A Windfury Totem of the shaman's own casting stands only part of the fight:
+// while it is down, the party's Grace of Air and Flametongue Totem work, and
+// while it stands, neither does.
+func TestGeneratedOwnWindfuryTotemHoldsOverThePartysTotems(t *testing.T) {
+	var windfury *core.Aura
+	sim, char := newTotemSim(t, &proto.PartyBuffs{GraceOfAirTotem: true, FlametongueTotem: true}, func(c *core.Character) {
+		windfury = standWindfuryTotem(c)
+	})
+	graceOfAir := char.GetAura("Grace of Air Totem (External)")
+	flametongue := char.GetAura("Flametongue Totem Trigger")
+	agility := char.ExclusiveEffectManager.GetExclusiveEffectCategory(graceOfAirAgility)
+
+	before := char.GetStats()[stats.Agility]
+	if agility.GetActiveAura() != graceOfAir || !flametongue.IsActive() {
+		t.Fatalf("before the totem the agility is held by %v and Flametongue Totem's trigger is up %v, want Grace of Air and up",
+			agility.GetActiveAura(), flametongue.IsActive())
+	}
+
+	windfury.Activate(sim)
+	if agility.GetActiveAura() == graceOfAir {
+		t.Error("under the shaman's Windfury Totem, Grace of Air still holds the agility")
+	}
+	if got := before - char.GetStats()[stats.Agility]; got != 89 {
+		t.Errorf("the totem took %v agility away, want Grace of Air's 89", got)
+	}
+	if flametongue.IsActive() {
+		t.Error("under the shaman's Windfury Totem, Flametongue Totem's trigger is up")
+	}
+	if !graceOfAir.IsActive() {
+		t.Error("the party's Grace of Air went down, want it standing and doing nothing")
+	}
+
+	windfury.Deactivate(sim)
+	if agility.GetActiveAura() != graceOfAir || char.GetStats()[stats.Agility] != before {
+		t.Errorf("after the totem the agility is held by %v at %v, want Grace of Air back at %v",
+			agility.GetActiveAura(), char.GetStats()[stats.Agility], before)
+	}
+	if !flametongue.IsActive() {
+		t.Error("after the totem, Flametongue Totem's trigger is still down")
+	}
+}
+
+// The party's Windfury Totem holds over the shaman's own Grace of Air and
+// Flametongue Totem: each stands and does nothing.
+func TestGeneratedPartyWindfuryTotemHoldsOverOwnTotems(t *testing.T) {
+	var graceOfAir, flametongue *core.Aura
+	sim, char := newTotemSim(t, &proto.PartyBuffs{WindfuryTotem: true}, func(c *core.Character) {
+		graceOfAir = buffs.NewSpellDataGraceOfAirTotemAura(&c.Unit, true, 0)
+		flametongue = standWeaponTotem(c, "Flametongue Totem (Self)", buffs.FlametongueTotemCategory,
+			buffs.FlametongueTotemPriority(), buffs.NewFlametongueTotemProcTrigger(c))
+	})
+	before := char.GetStats()[stats.Agility]
+
+	graceOfAir.Activate(sim)
+	flametongue.Activate(sim)
+	if !graceOfAir.IsActive() || !flametongue.IsActive() {
+		t.Fatalf("Grace of Air is up %v and Flametongue Totem %v, want both standing", graceOfAir.IsActive(), flametongue.IsActive())
+	}
+	if got := char.GetStats()[stats.Agility]; got != before {
+		t.Errorf("the shaman's Grace of Air moved agility from %v to %v under the party's Windfury Totem", before, got)
+	}
+	if char.GetAura("Flametongue Totem Trigger").IsActive() {
+		t.Error("the shaman's Flametongue Totem turned its trigger on under the party's Windfury Totem")
+	}
+}
+
+// Windfury Weapon on the main hand keeps the shaman's own Windfury Totem's proc
+// down, and the standing totem still holds over Flametongue Totem.
+func TestGeneratedWindfuryTotemHoldsOverFlametongueTotemUnderWindfuryWeapon(t *testing.T) {
+	var windfury, imbue *core.Aura
+	sim, char := newTotemSim(t, &proto.PartyBuffs{FlametongueTotem: true}, func(c *core.Character) {
+		windfury = standWindfuryTotem(c)
+		imbue = c.RegisterAura(core.Aura{Label: "Windfury Weapon (Main Hand)", Duration: core.NeverExpires})
+		imbue.NewExclusiveEffect(buffs.WindfuryTotemCategory, false, core.ExclusiveEffect{Priority: math.MaxFloat64})
+	})
+
+	imbue.Activate(sim)
+	windfury.Activate(sim)
+	if char.GetAura("Windfury Totem Trigger").IsActive() {
+		t.Fatal("under Windfury Weapon the shaman's Windfury Totem turned its trigger on")
+	}
+	if char.GetAura("Flametongue Totem Trigger").IsActive() {
+		t.Error("under Windfury Weapon and the shaman's Windfury Totem, Flametongue Totem's trigger is up")
 	}
 }
 

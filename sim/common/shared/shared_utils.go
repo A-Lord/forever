@@ -712,15 +712,17 @@ func spellDataProcDamageSpell(character *core.Character, damage *spelldata.Spell
 		}
 	}
 
-	// Where the row also deals direct damage, the damage over time lands only with it. Alone it goes
-	// on unrolled, and each tick rolls the outcome the row states for it.
+	// The damage over time lands only with the hit that applies it, which is its one hit roll: the
+	// direct hit where the row deals one, else a roll of its own on the hit table of the spell's
+	// defense type, without the crit an application cannot deal.
 	config.Dot = spelldata.DotConfig(damage, periodic)
+	application := damageOutcome(defenseType, true, OutcomeDefault)
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		if effect == spelldata.NilEffect {
-			dealOnArrival(sim, spell, target, nil, after)
-			return
+			single[0] = spell.CalcOutcome(sim, target, GetOutcome(spell, application))
+		} else {
+			single[0] = spell.CalcDamage(sim, target, effect.DirectAmount(sim), GetOutcome(spell, outcome))
 		}
-		single[0] = spell.CalcDamage(sim, target, effect.DirectAmount(sim), GetOutcome(spell, outcome))
 		dealOneOnArrival(sim, spell, target, single, after)
 	}
 
@@ -1016,7 +1018,7 @@ func NewSimpleStatActive(itemID int32) {
 		for _, itemEffect := range onUseEffectsFor(itemID) {
 			spellConfig := core.SpellConfig{
 				ActionID: core.ActionID{ItemID: itemID},
-				Cast:     onUseCast(character, itemEffect),
+				Cast:     OnUseCast(character, itemEffect),
 			}
 
 			buffStats, buffDuration := onUseStatBuff(character, itemEffect)
@@ -1031,28 +1033,9 @@ func NewSpellDataDamageOnUse(itemID int32) {
 	registerSpellDataOnUse(itemID, core.CooldownTypeDPS, spellDataOnUseDamageSpell)
 }
 
-// The proc's damage spell with the hit of its damage over time rolled once, when it is applied: the
-// direct hit where the row deals one, a hit roll of its own where it does not. The ticks roll no hit.
+// The proc's damage spell, cast as a spell of its own rather than a proc's.
 func spellDataOnUseDamageSpell(character *core.Character, damage *spelldata.Spell) core.SpellConfig {
-	config := spellDataProcDamageSpell(character, damage, false)
-	periodic := damage.PeriodicDamageEffect()
-	if periodic == spelldata.NilEffect {
-		return config
-	}
-
-	config.Dot.OnTick = spelldata.PeriodicDamageTick(periodic, damage.TickOutcomeHitRolled)
-	if damage.DamageEffect() != spelldata.NilEffect {
-		return config
-	}
-
-	// The hit table of the spell's defense type, without the crit an application cannot deal.
-	application := damageOutcome(config.DefenseType, true, OutcomeDefault)
-	single := make(core.SpellResultSlice, 1)
-	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		single[0] = spell.CalcOutcome(sim, target, GetOutcome(spell, application))
-		dealOneOnArrival(sim, spell, target, single, applyDotIfLanded)
-	}
-	return config
+	return spellDataProcDamageSpell(character, damage, false)
 }
 
 // An on-use item whose spell heals the wearer, at once or over time.
@@ -1071,7 +1054,8 @@ func NewSpellDataAbsorbOnUse(itemID int32) {
 
 // The shield the row applies to the caster: the amount its absorb effect rolls, taken off the damage
 // of the schools the effect's Misc masks, for the row's duration. A second cast replaces the shield
-// left. The label carries the item or enchant, since two of them may apply the same row.
+// left, and a shield used up before it expires deals the damage AbsorbBreakDamage names. The label
+// carries the item or enchant, since two of them may apply the same row.
 func spellDataAbsorbSpell(character *core.Character, absorb *spelldata.Spell, sourceID int32, asProc bool) core.SpellConfig {
 	effect := absorb.AbsorbEffect()
 	schools := core.SpellSchool(effect.Misc)
@@ -1087,6 +1071,15 @@ func spellDataAbsorbSpell(character *core.Character, absorb *spelldata.Spell, so
 		},
 	})
 
+	if id, ok := AbsorbBreakDamage(absorb); ok {
+		damage := character.RegisterSpell(spellDataProcDamageSpell(character, spelldata.MustFind(id), true))
+		shield.AttachOnDamageAbsorbed(func(sim *core.Simulation, aura *core.DamageAbsorptionAura, _ *core.SpellResult, _ float64) {
+			if aura.ShieldStrength <= 0 {
+				damage.Cast(sim, character.CurrentTarget)
+			}
+		})
+	}
+
 	config := spelldata.SpellConfig(&character.Unit, absorb, castBy(asProc))
 	config.ProcMask = core.ProcMaskEmpty
 	config.RelatedSelfBuff = shield.Aura
@@ -1096,6 +1089,41 @@ func spellDataAbsorbSpell(character *core.Character, absorb *spelldata.Spell, so
 	}
 
 	return config
+}
+
+// Absorbs whose tooltip states damage dealt when the shield is gone before its duration ends, keyed by
+// the absorb with the spell dealing it. The spell store carries no tooltip text and no row field states
+// the condition, so each is listed: Adaptive Combat Assistant's 1291097 deals 1291099's Nature damage
+// to the enemies in melee range "if this shield expires before" its duration.
+var absorbBreakDamage = map[int32]int32{
+	1291097: 1291099,
+}
+
+// The spell dealing the damage the absorb's shield deals when it breaks early, where one is listed.
+func AbsorbBreakDamage(absorb *spelldata.Spell) (int32, bool) {
+	id, ok := absorbBreakDamage[absorb.ID]
+	return id, ok
+}
+
+// The spells dealing damage that an absorb's row triggers or its tooltip references. The shield deals
+// only the one AbsorbBreakDamage names; any other is damage the absorb shape does not model.
+func AbsorbLinkedDamage(absorb *spelldata.Spell) []int32 {
+	linked := slices.Clone(absorb.RefIDs)
+	for _, e := range absorb.Effects {
+		if e.TriggerID != 0 {
+			linked = append(linked, e.TriggerID)
+		}
+	}
+
+	var damage []int32
+	for _, id := range linked {
+		s := spelldata.Find(id)
+		if id != absorb.ID && s != spelldata.Nil && !slices.Contains(damage, id) &&
+			(s.DamageEffect() != spelldata.NilEffect || s.PeriodicDamageEffect() != spelldata.NilEffect) {
+			damage = append(damage, id)
+		}
+	}
+	return damage
 }
 
 // An on-use item whose spell raises the wearer's melee, ranged or cast speed. Every speed the row
@@ -1170,7 +1198,7 @@ func registerSpellDataOnUseCooldown(itemID int32, onUse func(*core.Character, *s
 			}
 			config.ActionID = core.ActionID{ItemID: itemID}
 
-			itemCast := onUseCast(character, itemEffect)
+			itemCast := OnUseCast(character, itemEffect)
 			config.Cast = spelldata.Cast(row)
 			config.Cast.CD, config.Cast.SharedCD = itemCast.CD, itemCast.SharedCD
 
@@ -1191,7 +1219,7 @@ func onUseEffectsFor(itemID int32) []*proto.ItemEffect {
 }
 
 // The item effect's own cooldown and the category cooldown it shares, whatever the spell's row states.
-func onUseCast(character *core.Character, itemEffect *proto.ItemEffect) core.CastConfig {
+func OnUseCast(character *core.Character, itemEffect *proto.ItemEffect) core.CastConfig {
 	cast := core.CastConfig{SharedCD: sharedCooldown(character, itemEffect)}
 	if cooldownMs := itemEffect.GetOnUse().CooldownMs; cooldownMs > 0 {
 		cast.CD = core.Cooldown{

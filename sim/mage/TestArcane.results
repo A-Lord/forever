@@ -53,6 +53,21 @@ character_stats_results: {
  }
 }
 dps_results: {
+ key: "TestArcane-AllItems-AdaptiveCombatAssistant-272437"
+ value: {
+  dps: 608.70292
+  tps: 268.66744
+ }
+}
+dps_results: {
+ key: "TestArcane-AllItems-AnkhofLife-1713"
+ value: {
+  dps: 606.53155
+  tps: 266.25117
+  hps: 4.42532
+ }
+}
+dps_results: {
  key: "TestArcane-AllItems-ArenaGrandMaster-19024"
  value: {
   dps: 607.05079
@@ -81,10 +96,31 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestArcane-AllItems-BristleconeCloak-275833"
+ value: {
+  dps: 637.03372
+  tps: 279.57794
+ }
+}
+dps_results: {
  key: "TestArcane-AllItems-CelestialOrb-7515"
  value: {
   dps: 659.0901
   tps: 291.16292
+ }
+}
+dps_results: {
+ key: "TestArcane-AllItems-CloakofFlames-3475"
+ value: {
+  dps: 637.03372
+  tps: 279.57794
+ }
+}
+dps_results: {
+ key: "TestArcane-AllItems-ColdBasiliskEye-5079"
+ value: {
+  dps: 608.70292
+  tps: 268.66744
  }
 }
 dps_results: {
@@ -96,6 +132,13 @@ dps_results: {
 }
 dps_results: {
  key: "TestArcane-AllItems-DarkmoonCard:Maelstrom-19289"
+ value: {
+  dps: 608.70292
+  tps: 268.66744
+ }
+}
+dps_results: {
+ key: "TestArcane-AllItems-Defender'sGripStabilizer-272440"
  value: {
   dps: 608.70292
   tps: 268.66744
@@ -235,10 +278,31 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestArcane-AllItems-EssenceofthePureFlame-18815"
+ value: {
+  dps: 608.70292
+  tps: 268.66744
+ }
+}
+dps_results: {
+ key: "TestArcane-AllItems-EverlookDeliveryBot-274760"
+ value: {
+  dps: 608.78265
+  tps: 268.98639
+ }
+}
+dps_results: {
  key: "TestArcane-AllItems-EverlookPathcarver-274759"
  value: {
   dps: 610.2127
   tps: 269.10911
+ }
+}
+dps_results: {
+ key: "TestArcane-AllItems-EyeofDiminution-23001"
+ value: {
+  dps: 619.32981
+  tps: 273.30439
  }
 }
 dps_results: {
@@ -253,6 +317,27 @@ dps_results: {
  value: {
   dps: 608.70292
   tps: 268.66744
+ }
+}
+dps_results: {
+ key: "TestArcane-AllItems-FetishofChitinousSpikes-21488"
+ value: {
+  dps: 608.70292
+  tps: 268.66744
+ }
+}
+dps_results: {
+ key: "TestArcane-AllItems-FetishoftheSandReaver-21647"
+ value: {
+  dps: 608.70292
+  tps: 268.66744
+ }
+}
+dps_results: {
+ key: "TestArcane-AllItems-FlameSearedSignet-282080"
+ value: {
+  dps: 629.69853
+  tps: 276.5618
  }
 }
 dps_results: {
@@ -285,6 +370,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestArcane-AllItems-GlyphofDeflection-23040"
+ value: {
+  dps: 608.70292
+  tps: 268.66744
+ }
+}
+dps_results: {
  key: "TestArcane-AllItems-GoblinConstructionHelmet-10543"
  value: {
   dps: 608.40461
@@ -306,6 +398,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestArcane-AllItems-Hazza'rah'sCharmofMagic-19959"
+ value: {
+  dps: 611.53827
+  tps: 269.90487
+ }
+}
+dps_results: {
  key: "TestArcane-AllItems-HeartoftheScale-13164"
  value: {
   dps: 608.70292
@@ -322,8 +421,8 @@ dps_results: {
 dps_results: {
  key: "TestArcane-AllItems-Illusionist'sAttire"
  value: {
-  dps: 546.16009
-  tps: 287.03815
+  dps: 549.19843
+  tps: 288.52693
  }
 }
 dps_results: {
@@ -383,6 +482,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestArcane-AllItems-MajorRecombobulator-18637"
+ value: {
+  dps: 606.41483
+  tps: 265.97517
+  hps: 4.12855
+ }
+}
+dps_results: {
  key: "TestArcane-AllItems-MarkofResolution-17759"
  value: {
   dps: 607.05079
@@ -419,6 +526,13 @@ dps_results: {
 }
 dps_results: {
  key: "TestArcane-AllItems-OrbofFire-12805"
+ value: {
+  dps: 608.70292
+  tps: 268.66744
+ }
+}
+dps_results: {
+ key: "TestArcane-AllItems-PetrifiedScarab-21685"
  value: {
   dps: 608.70292
   tps: 268.66744
@@ -565,6 +679,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestArcane-AllItems-ToySoldier-274386"
+ value: {
+  dps: 608.70292
+  tps: 268.66744
+ }
+}
+dps_results: {
  key: "TestArcane-AllItems-Uther'sStrength-11302"
  value: {
   dps: 612.08141
@@ -579,6 +700,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestArcane-AllItems-WeaknessAnalyzer-272438"
+ value: {
+  dps: 622.01457
+  tps: 274.03322
+ }
+}
+dps_results: {
  key: "TestArcane-AllItems-Witchfury-13051"
  value: {
   dps: 646.41941
@@ -590,6 +718,27 @@ dps_results: {
  value: {
   dps: 653.61728
   tps: 286.23619
+ }
+}
+dps_results: {
+ key: "TestArcane-AllItems-ZandalarianHeroBadge-19948"
+ value: {
+  dps: 608.70292
+  tps: 268.66744
+ }
+}
+dps_results: {
+ key: "TestArcane-AllItems-ZandalarianHeroCharm-19950"
+ value: {
+  dps: 616.90992
+  tps: 272.13641
+ }
+}
+dps_results: {
+ key: "TestArcane-AllItems-ZandalarianHeroMedallion-19949"
+ value: {
+  dps: 608.70292
+  tps: 268.66744
  }
 }
 dps_results: {
