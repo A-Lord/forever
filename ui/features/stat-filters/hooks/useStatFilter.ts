@@ -6,7 +6,10 @@ import { useMemo } from 'react';
 
 import { isCustomised, shownStats, type StatFilterScope, type StatFilterSlot, withSelection } from '../model/stat_filters';
 
-/** One panel's stat filter. The writers read the filters at write time, so a write to another field since the last render survives. */
+/**
+ * One panel's stat filter. `scope` keys the memoised `shown`, so pass a stable (memoised) object. The writers read the
+ * filters at write time, so a write to another field since the last render survives.
+ */
 export const useStatFilter = (slot: StatFilterSlot, scope: StatFilterScope) => {
 	const { sim } = useSimHost();
 	const filters = useStoreSubscribe(subscribeSimField(sim, 'filters'), () => sim.getFilters());

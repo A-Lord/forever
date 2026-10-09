@@ -29,11 +29,11 @@ const firstActiveActionId = <ModObject,>(config: MultiIconPickerConfig<ModObject
 };
 
 export const ConnectedMultiIconPicker = <ModObject,>({ modObject, config, subscribe, onClear, testId }: ConnectedMultiIconPickerProps<ModObject>) => {
-	const { actionId, hidden, kept } = useStoreSubscribe(subscribe, () => ({
+	const { actionId, hidden } = useStoreSubscribe(subscribe, () => ({
 		actionId: firstActiveActionId(config, modObject),
 		hidden: !!config.showWhen && !config.showWhen(modObject as unknown as Player<any>),
-		kept: config.keptBy?.(modObject) ?? false,
 	}));
+	const kept = config.keptBy?.(modObject) ?? false;
 
 	const icon = useResolvedIcon(config.categoryId ?? actionId ?? undefined);
 

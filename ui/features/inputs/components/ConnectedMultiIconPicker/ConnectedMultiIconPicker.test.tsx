@@ -154,4 +154,13 @@ describe('ConnectedMultiIconPicker', () => {
 		act(() => buffs.set('kings', 0));
 		expect(trigger().hasAttribute('data-kept')).toBe(false);
 	});
+
+	it('follows a new config without a store notification', () => {
+		const buffs = new Buffs();
+		const { rerender } = mount(buffs, configFor({ keptBy: () => true }));
+		expect(trigger().hasAttribute('data-kept')).toBe(true);
+
+		rerender(<ConnectedMultiIconPicker modObject={buffs} config={configFor({ keptBy: () => false })} subscribe={buffs.subscribe} onClear={() => {}} />);
+		expect(trigger().hasAttribute('data-kept')).toBe(false);
+	});
 });

@@ -1,7 +1,7 @@
 import { PseudoStat, Stat } from '@generated/proto/common';
 import { UnitStat } from '@sim/proto/stats';
 
-/** `primary` (health and mana) shows without a header; the rest are collapsible. */
+/** In the character stats panel, `primary` (health and mana) shows without a header and the rest are collapsible. */
 export type StatGroupKey = 'primary' | 'attributes' | 'physical' | 'spell' | 'defense' | 'resistance';
 
 /** The groups the character stats panel and the stat filters sort stats into, each in display order. */
