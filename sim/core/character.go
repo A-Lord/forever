@@ -74,6 +74,9 @@ type Character struct {
 	// Provides major cooldown management behavior.
 	majorCooldownManager
 
+	// Listed in any of the raid's tank slots.
+	isTank bool
+
 	// Up reference to this Character's Party.
 	Party *Party
 
