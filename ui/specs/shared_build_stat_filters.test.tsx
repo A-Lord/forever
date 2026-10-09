@@ -1,0 +1,98 @@
+import { createLink } from '@features/import-export/exporters/link';
+import { ConsumesPicker } from '@features/settings/components/ConsumesPicker';
+import { StatOptionIcons } from '@features/settings/components/StatOptionIcons';
+import { BUFFS_CONFIG, PARTY_BUFFS_CONFIG } from '@features/settings/model/buffs_debuffs';
+import { relevantStatOptions, statOptionScope } from '@features/settings/model/stat_options';
+import { shownStats } from '@features/stat-filters';
+import { ConsumableType, ConsumesSpec, Stat } from '@generated/proto/common';
+import { Consumable } from '@generated/proto/db';
+import { IndividualSimSettings, StatFilters, StatSelection, UIDatabase } from '@generated/proto/ui';
+import { SimSettingCategories } from '@sim/constants/sim_settings';
+import { ActionId } from '@sim/proto/action_id';
+import { UnitStat } from '@sim/proto/stats';
+import type { StatWeightActionSettings } from '@sim/settings/stat_weight_settings';
+import { loadIndividualSettings } from '@sim/state/persistence';
+import { getEnumValues } from '@sim/utils/collections';
+import { renderWithHost } from '@testing/react';
+import { filled } from '@testing/sim/hooks';
+import { makeIndividualSim, memoryEnv, serveDatabase } from '@testing/sim/individual_sim';
+import { waitFor } from '@testing-library/react';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
+
+import warrior from './warrior/dps/spec';
+
+vi.mock('@sim/workers/worker_pool', async () => (await import('@testing/sim/worker_pool')).idleWorkerPool());
+
+const STORAGE_KEY = 'test__currentSettings__';
+const ARCANE_BRILLIANCE = 23028;
+const ELIXIR_OF_GREATER_AGILITY = Consumable.create({
+	id: 9187,
+	name: 'Elixir of Greater Agility',
+	type: ConsumableType.ConsumableTypeElixir,
+	lvl: 38,
+	stats: Object.assign(new Array<number>(42).fill(0), { [Stat.StatAgility]: 25 }),
+	groupKey: '29/1',
+	groupName: 'Agility',
+});
+
+const selectionOf = (...stats: Stat[]) => StatSelection.create({ stats: stats.map(stat => UnitStat.fromStat(stat).toProto()) });
+// Strength only, so the Intellect raid buff and the Agility elixir are both hidden.
+const viewerStatFilters = StatFilters.create({ buffs: selectionOf(Stat.StatStrength), consumables: selectionOf(Stat.StatStrength) });
+
+const warriorSim = (env = memoryEnv()) => makeIndividualSim({ spec: warrior.spec, config: warrior, env });
+
+beforeAll(() => serveDatabase(UIDatabase.create({ consumables: [ELIXIR_OF_GREATER_AGILITY] })));
+
+describe('a shared build', () => {
+	it("arrives picked where the viewer's stat filters hide it, offered as kept, and runs", async () => {
+		const sender = await warriorSim();
+		sender.sim.raid.setBuffs({ ...sender.sim.raid.getBuffs(), arcaneBrilliance: true });
+		sender.player.setConsumes(ConsumesSpec.create({ elixirIds: [ELIXIR_OF_GREATER_AGILITY.id] }));
+		sender.sim.setFilters({ ...sender.sim.getFilters(), statFilters: StatFilters.create({ buffs: selectionOf(Stat.StatIntellect) }) });
+		const link = new URL(createLink(sender.host, getEnumValues(SimSettingCategories) as Array<SimSettingCategories>));
+
+		const autosave = await warriorSim();
+		autosave.sim.setFilters({ ...autosave.sim.getFilters(), statFilters: viewerStatFilters });
+		const env = memoryEnv({ hash: link.hash, search: link.search });
+		env.storage.setItem(STORAGE_KEY, IndividualSimSettings.toJsonString(autosave.host.toProto()));
+		const viewer = await warriorSim(env);
+		loadIndividualSettings(viewer.host, {
+			storageKey: STORAGE_KEY,
+			player: viewer.player,
+			autosaveSubscribe: () => () => {},
+			statWeightSettings: { load: () => {} } as unknown as StatWeightActionSettings,
+		});
+
+		expect(StatFilters.equals(viewer.sim.getFilters().statFilters!, viewerStatFilters)).toBe(true);
+		const buffStats = shownStats(viewer.sim.getFilters(), 'buffs', statOptionScope([...BUFFS_CONFIG, ...PARTY_BUFFS_CONFIG], warrior));
+		const shown = new Set(buffStats.map(stat => stat.getStat()));
+		expect(shown.has(Stat.StatIntellect)).toBe(false);
+
+		vi.spyOn(ActionId.prototype, 'fill').mockImplementation(function (this: ActionId) {
+			return Promise.resolve(filled(this, String(this.spellId || this.itemId), 'icon.jpg'));
+		});
+		const { container } = renderWithHost(
+			<>
+				<StatOptionIcons options={relevantStatOptions(BUFFS_CONFIG, warrior, shown)} />
+				<ConsumesPicker />
+			</>,
+			viewer.host as unknown as Record<string, unknown>,
+		);
+		const swatch = (href: string) =>
+			waitFor(() => {
+				const anchor = container.querySelector(`a[href="${href}"]`);
+				expect(anchor).not.toBeNull();
+				return anchor!;
+			});
+
+		const buff = await swatch(ActionId.makeSpellUrl(ARCANE_BRILLIANCE));
+		expect(buff.hasAttribute('data-active')).toBe(true);
+		expect(buff.hasAttribute('data-kept')).toBe(true);
+		const elixir = await swatch(ActionId.makeItemUrl(ELIXIR_OF_GREATER_AGILITY.id));
+		expect(elixir.hasAttribute('data-kept')).toBe(true);
+
+		const request = viewer.sim.makeRaidSimRequest();
+		expect(request.raid!.buffs!.arcaneBrilliance).toBe(true);
+		expect(request.raid!.parties[0].players[0].consumables!.elixirIds).toEqual([ELIXIR_OF_GREATER_AGILITY.id]);
+	});
+});
