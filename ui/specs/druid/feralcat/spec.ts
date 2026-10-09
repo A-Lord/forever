@@ -144,7 +144,6 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 			Presets.STARTER_APL,
 			Presets.CLAW_RIP_APL,
 			Presets.POWERSHIFT_APL,
-			Presets.RAID_DPS_APL,
 		],
 		builds: [Presets.BearweaveBuild, Presets.STARTER_BUILD, Presets.RAID_BUILD, Presets.RAID_DPS_BUILD],
 		// Preset gear configurations that the user can quickly select.

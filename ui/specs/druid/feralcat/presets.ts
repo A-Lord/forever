@@ -126,7 +126,6 @@ export const BearweaveBuild = PresetUtils.makePresetBuild('Bearweave (45s fights
 
 export const STARTER_APL = PresetUtils.makePresetAPLRotation('Level 60 Starter', StarterApl);
 export const POWERSHIFT_APL = PresetUtils.makePresetAPLRotation('Shred / Rake / Rip (4 CP)', RaidFourCpApl);
-export const RAID_DPS_APL = PresetUtils.makePresetAPLRotation('Shred / Rake / Rip (5 CP)', DefaultApl);
 export const STARTER_GEAR = PresetUtils.makePresetGear('Level 60 Starter', StarterBuild.player.equipment);
 export const RAID_GEAR = PresetUtils.makePresetGear('Level 60 Raid Example', RaidBuild.player.equipment, {
 	tooltip: 'Representative gear from the game files, including AQ items. No launch-phase or BiS claim.',
@@ -140,7 +139,7 @@ export const RAID_BUILD = PresetUtils.makePresetBuildFromJSON('Level 60 Raid Exa
 	rotation: POWERSHIFT_APL,
 });
 export const RAID_DPS_BUILD = PresetUtils.makePresetBuildFromJSON('Level 60 Raid DPS Example', Spec.SpecFeralCatDruid, RaidDpsBuild, {
-	rotation: RAID_DPS_APL,
+	rotation: MONOCAT_APL,
 });
 
 export const CLAW_RIP_APL = PresetUtils.makePresetAPLRotation('Claw / Rip', ClawRipApl);

@@ -27,6 +27,17 @@ const rotationSurface = () => {
 };
 
 describe('Feral Cat rotation presets', () => {
+	it('offers the Monocat APL once', () => {
+		const monocat = Presets.MONOCAT_APL.rotation.rotation;
+		const matches = config.presets.rotations.filter(preset => APLRotation.equals(preset.rotation.rotation, monocat));
+		expect(matches).toHaveLength(1);
+	});
+	it('uses Monocat when applying the five-point raid build', () => {
+		const surface = rotationSurface();
+		applyDefaultRotation(surface.host.player, config);
+		surface.applyRotation(Presets.RAID_DPS_BUILD);
+		expect(APLRotation.equals(surface.current(), Presets.MONOCAT_APL.rotation.rotation)).toBe(true);
+	});
 	it('offers the Claw / Rip rotation', () => {
 		expect(config.presets.rotations).toContain(Presets.CLAW_RIP_APL);
 	});

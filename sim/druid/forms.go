@@ -73,7 +73,9 @@ func (druid *Druid) ClearForm(sim *core.Simulation) {
 	}
 }
 
-// A bear swing uses the two-hander rage factor; the one-hander case needs an in-game check.
+// A bear's auto attack takes the two-hander rage factor: a combat log shows 11.25 rage a swing at the
+// bear's 2.5 seconds, 4.5 rage per second of swing. No druid row states a rage multiplier of its own.
+// TODO: Ingame test needed -- whether a bear holding a one-hander takes the one-hand factor instead.
 const BearRageIsTwoHanded = true
 
 func (druid *Druid) RegisterCatFormAura() {
