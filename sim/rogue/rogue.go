@@ -127,8 +127,6 @@ func (rogue *Rogue) Initialize() {
 	rogue.registerEviscerate()
 	rogue.registerExposeArmorSpell()
 	rogue.registerGarrote()
-	rogue.registerDeadlyPoisonSpell()
-	rogue.registerInstantPoisonSpell()
 	rogue.registerRupture()
 	rogue.registerSinisterStrikeSpell()
 	rogue.registerSliceAndDice()
@@ -196,8 +194,6 @@ func NewRogue(character *core.Character, options *proto.Player, talents string) 
 		OffHand:        rogue.WeaponFromOffHand(),
 		AutoSwingMelee: true,
 	})
-
-	rogue.applyPoisons()
 
 	rogue.AddStatDependency(stats.Strength, stats.AttackPower, 1)
 	rogue.AddStatDependency(stats.Agility, stats.AttackPower, 1)

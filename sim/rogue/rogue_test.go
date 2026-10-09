@@ -74,8 +74,10 @@ var DefaultOptions = &proto.Player_Rogue{
 var DefaultTalents = "005323101012-32030320201515231"
 
 var DefaultConsumables = &proto.ConsumesSpec{
-	FlaskId:    274274, // Flask of Natural Aggression
-	FoodId:     250072, // Swiftstrike Steak
-	PotId:      250943, // Major Frenzy Potion
-	ConjuredId: 7676,
+	FlaskId:         274274, // Flask of Natural Aggression
+	FoodId:          250072, // Swiftstrike Steak
+	PotId:           250943, // Major Frenzy Potion
+	ConjuredId:      7676,
+	MhWeaponImbueId: 8928, // Instant Poison VI
+	OhWeaponImbueId: 8985, // Deadly Poison IV
 }

@@ -12,7 +12,6 @@ import { WeaponSkillGroup } from '@sim/player/weapon_skill_groups';
 import { StatCap, Stats, UnitStat } from '@sim/proto/stats';
 import { defineSpec } from '@sim/spec_config';
 
-import { MainHandPoison, OffHandPoison } from './inputs';
 import * as Presets from './presets';
 
 export default defineSpec<Spec.SpecRogue>({
@@ -124,7 +123,7 @@ export default defineSpec<Spec.SpecRogue>({
 		inputs: [],
 	},
 	// IconInputs to include in the 'Player' section on the settings tab.
-	playerIconInputs: [MainHandPoison(), OffHandPoison()],
+	playerIconInputs: [],
 	// Buff and Debuff inputs to include/exclude, overriding the EP-based defaults.
 	includeBuffDebuffInputs: [Stat.StatHitRating, Stat.StatSpellDamage, Stat.StatSpellPiercing],
 	excludeBuffDebuffInputs: [BuffDebuffInputs.AtieshMage],

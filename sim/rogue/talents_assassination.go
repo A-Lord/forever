@@ -328,7 +328,7 @@ func (rogue *Rogue) newMutilateHitSpell(isMH bool) *core.Spell {
 
 		oldMultiplier := spell.DamageMultiplier
 		// TODO: Detect any poison on the target, not just rogue poisons
-		if rogue.DeadlyPoison.Dot(target).IsActive() || rogue.WoundPoisonDebuffAuras.Get(target).IsActive() {
+		if (rogue.DeadlyPoison != nil && rogue.DeadlyPoison.Dot(target).IsActive()) || rogue.WoundPoisonDebuffAuras.Get(target).IsActive() {
 			spell.DamageMultiplier *= 1 + mutilateCastRank.EffectN(4).Percent()
 		}
 
