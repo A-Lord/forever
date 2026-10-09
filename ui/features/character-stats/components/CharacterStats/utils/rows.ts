@@ -1,4 +1,4 @@
-import { STAT_GROUPS, type StatGroupKey } from '@features/stat-filters';
+import { STAT_GROUPS, type StatGroupKey } from '@features/stat-filters/model/stat_groups';
 import { PseudoStat } from '@generated/proto/common';
 import type { Player } from '@sim/player/player';
 import { UnitStat } from '@sim/proto/stats';
