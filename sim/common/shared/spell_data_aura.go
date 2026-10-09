@@ -2,6 +2,8 @@ package shared
 
 import (
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/buffs"
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
@@ -24,13 +26,18 @@ func newSpellDataAuras(character *core.Character, row *spelldata.Spell, config c
 		return auras
 	}
 
-	if effects := spelldata.EffectsOn(row, spelldata.AuraOnWearer); len(effects) > 0 {
+	if len(spelldata.EffectsOn(row, spelldata.AuraOnWearer)) > 0 {
 		auras.wearer = character.RegisterAura(config)
-		auras.wearerStats = spelldata.ParseEffects(character, auras.wearer, row,
-			append([]spelldata.ParseOpt{spelldata.Effects(effects...)}, wearerOpts...)...).Stats()
+		if effects := spelldata.ItemAuraParsedOn(row, spelldata.AuraOnWearer); len(effects) > 0 {
+			auras.wearerStats = spelldata.ParseEffects(character, auras.wearer, row,
+				append([]spelldata.ParseOpt{spelldata.Effects(effects...)}, wearerOpts...)...).Stats()
+		}
+		for _, shield := range spelldata.ItemAuraDamageShields(row) {
+			buffs.AttachDamageShield(auras.wearer, row.SpellSchool(), shield.Average(), shield.Coeff())
+		}
 	}
 
-	if effects := spelldata.EffectsOn(row, spelldata.AuraOnPet); len(effects) > 0 {
+	if effects := spelldata.ItemAuraParsedOn(row, spelldata.AuraOnPet); len(effects) > 0 {
 		for _, pet := range character.Pets {
 			if pet.IsGuardian() {
 				continue
@@ -41,7 +48,7 @@ func newSpellDataAuras(character *core.Character, row *spelldata.Spell, config c
 		}
 	}
 
-	if effects := spelldata.EffectsOn(row, spelldata.AuraOnEnemy); len(effects) > 0 {
+	if effects := spelldata.ItemAuraParsedOn(row, spelldata.AuraOnEnemy); len(effects) > 0 {
 		auras.enemies = enemyDebuffAuras(character, row, config.Duration, effects)
 	}
 
@@ -146,19 +153,57 @@ func registerSpellDataEquipAura(cfg SpellDataProc) {
 }
 
 // An on-use item whose spell applies auras: the wearer's buff, its pets' and the debuff on the enemy
-// it is used on, for the row's duration.
+// it is used on, for the row's duration. One that lowers the wearer's threat is never used on its own:
+// the sim gains nothing from less threat and a tank loses by it, so only a timing or an APL action
+// that names it uses it.
 func NewSpellDataAuraOnUse(itemID int32) {
-	registerSpellDataOnUse(itemID, core.CooldownTypeDPS, spellDataOnUseAuraSpell)
+	registerSpellDataOnUseCooldown(itemID, func(character *core.Character, row *spelldata.Spell) (core.SpellConfig, core.MajorCooldown, bool) {
+		cooldown := core.MajorCooldown{Type: core.CooldownTypeDPS}
+		if lowersThreat(row) {
+			cooldown = core.MajorCooldown{
+				Type:           core.CooldownTypeUnknown,
+				ShouldActivate: func(_ *core.Simulation, _ *core.Character) bool { return false },
+			}
+		}
+		return spellDataOnUseAuraSpell(character, row), cooldown, true
+	})
 }
 
+func lowersThreat(row *spelldata.Spell) bool {
+	for _, i := range spelldata.EffectsOn(row, spelldata.AuraOnWearer) {
+		if e := row.EffectN(int(i)); e.Aura == dbcenums.A_MOD_THREAT && e.BasePoints < 0 {
+			return true
+		}
+	}
+	return false
+}
+
+// A buff the game spends by charges starts with its full count, and the hits its row names spend
+// them: Weakness Analyzer's 1291101 drops on the first non-periodic crit.
 func spellDataOnUseAuraSpell(character *core.Character, row *spelldata.Spell) core.SpellConfig {
 	auras := newSpellDataAuras(character, row, spelldata.AuraConfig(row))
+
+	charged := auras.wearer != nil && SpendsItsCharges(row)
+	if charged {
+		spelldata.AttachChargeSpender(character, auras.wearer, row, auras.wearer.Label+" Charge")
+	}
 
 	return core.SpellConfig{
 		SpellSchool: row.SpellSchool(),
 		ProcMask:    core.ProcMaskEmpty,
 		ApplyEffects: func(sim *core.Simulation, target *core.Unit, _ *core.Spell) {
 			auras.activate(sim, target)
+			if charged {
+				auras.wearer.SetStacks(sim, int32(row.ProcCharges))
+			}
 		},
 	}
+}
+
+// Whether a buff on the wearer drops after its ProcCharges are spent, and its row names the hits that
+// spend them. A row stating more than one stack as well is read as a stacking one, whose charges the
+// aura cannot keep apart from its stacks.
+func SpendsItsCharges(row *spelldata.Spell) bool {
+	return row.ProcCharges > 0 && row.MaxStack <= 1 && len(spelldata.EffectsOn(row, spelldata.AuraOnWearer)) > 0 &&
+		statesATrigger(row)
 }

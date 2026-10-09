@@ -108,7 +108,7 @@ func (warrior *Warrior) registerLastStand() {
 		ActionID: actionID,
 		Duration: lastStandBuff.Duration(),
 		OnGain: func(aura *core.Aura, sim *core.Simulation) {
-			bonusHealth = warrior.MaxHealth() * lastStandBuff.Effect(dbcenums.A_MOD_MAX_HEALTH, 0).Percent()
+			bonusHealth = warrior.MaxHealth() * lastStandBuff.Effect(dbcenums.A_MOD_INCREASE_HEALTH, 0).Percent()
 			warrior.UpdateMaxHealth(sim, bonusHealth, healthMetrics)
 		},
 		OnExpire: func(aura *core.Aura, sim *core.Simulation) {
