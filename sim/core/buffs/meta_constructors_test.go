@@ -143,6 +143,17 @@ func statsAdded(unit *core.Unit, add map[stats.Stat]float64) map[string]float64 
 	return statsDiff(before, unit.SortAndApplyStatDependencies(unit.GetStats().Add(added)))
 }
 
+// The amount the row's effect states, read past the parse so that a parse that drops the effect or
+// flips its sign shows. A row worth 0 would let either pass, so the test stops there.
+func rowAmount(t *testing.T, e *spelldata.Effect) float64 {
+	t.Helper()
+	v := e.Average()
+	if v == 0 {
+		t.Fatalf("spell %d states 0 on aura %v, want an amount to check", e.SpellID, e.Aura)
+	}
+	return v
+}
+
 func statsDiff(before, after stats.Stats) map[string]float64 {
 	diff := map[string]float64{}
 	for i := range before {
@@ -208,24 +219,27 @@ func TestGeneratedRowsBuildTheirShapes(t *testing.T) {
 		return keys
 	}
 
-	bloodPact := BloodPactValue(0)
-	darkspear := DarkspearValue(0)
-	admiralsHat := AdmiralsHatValue(0)
-	arcaneBrilliance := ArcaneBrillianceValue(0)
-	fireResistanceAura := FireResistanceAuraValue(0)
-	concentration := ConcentrationAuraValue(0)
-	thorns := ThornsValue(0)
-	thunderClap := ThunderClapValue(0)
-	insectSwarm := InsectSwarmValue(0)
-	piHealing := PowerInfusionsValue(0)
-	piDamage := 1 + firstAura(t, powerInfusionsSpell, dbcenums.A_MOD_DAMAGE_PERCENT_DONE).Average()/100
-	coeResistance := firstAura(t, curseOfElementsSpell, dbcenums.A_MOD_RESISTANCE).Average()
-	coeTaken := firstAura(t, curseOfElementsSpell, dbcenums.A_MOD_DAMAGE_PERCENT_TAKEN).Average() / 100
+	row := func(s *spelldata.Spell, aura dbcenums.EffectAuraType) float64 {
+		return rowAmount(t, firstAura(t, s, aura))
+	}
+	bloodPact := row(bloodPactSpell, dbcenums.A_MOD_STAT)
+	darkspear := row(darkspearSpell, dbcenums.A_MOD_CRIT_PCT)
+	admiralsHat := row(admiralsHatSpell, dbcenums.A_MOD_STAT)
+	arcaneBrilliance := row(arcaneBrillianceSpell, dbcenums.A_MOD_STAT)
+	fireResistanceAura := row(fireResistanceAuraSpell, dbcenums.A_MOD_RESISTANCE)
+	concentration := -row(concentrationAuraSpell, dbcenums.A_REDUCE_PUSHBACK) / 100
+	thorns := row(thornsSpell, dbcenums.A_DAMAGE_SHIELD)
+	thunderClap := core.SymmetricMultiplierFromPercent(row(thunderClapSpell, dbcenums.A_MOD_MELEE_HASTE_3))
+	insectSwarm := row(insectSwarmSpell, dbcenums.A_MOD_HIT_CHANCE)
+	piHealing := 1 + row(powerInfusionsSpell, dbcenums.A_MOD_HEALING_DONE_PERCENT)/100
+	piDamage := 1 + row(powerInfusionsSpell, dbcenums.A_MOD_DAMAGE_PERCENT_DONE)/100
+	coeResistance := row(curseOfElementsSpell, dbcenums.A_MOD_RESISTANCE)
+	coeTaken := row(curseOfElementsSpell, dbcenums.A_MOD_DAMAGE_PERCENT_TAKEN) / 100
 
 	// Gift of the Wild states its armor, its five stats and each school's resistance as effects of
 	// their own, the resistances keyed by the game files' school mask.
-	gotwStat := giftOfTheWildSpell.Effect(dbcenums.A_MOD_STAT, -1).Average()
-	gotwAdded := map[stats.Stat]float64{stats.Armor: giftOfTheWildSpell.Effect(dbcenums.A_MOD_RESISTANCE, 1).Average()}
+	gotwStat := rowAmount(t, giftOfTheWildSpell.Effect(dbcenums.A_MOD_STAT, -1))
+	gotwAdded := map[stats.Stat]float64{stats.Armor: rowAmount(t, giftOfTheWildSpell.Effect(dbcenums.A_MOD_RESISTANCE, 1))}
 	for _, stat := range []stats.Stat{stats.Strength, stats.Agility, stats.Stamina, stats.Intellect, stats.Spirit} {
 		gotwAdded[stat] = gotwStat
 	}
@@ -241,7 +255,7 @@ func TestGeneratedRowsBuildTheirShapes(t *testing.T) {
 		{stats.ShadowResistance, 32, "ResistanceShadowShadowResistanceAdd"},
 		{stats.ArcaneResistance, 64, "ResistanceArcaneArcaneResistanceAdd"},
 	} {
-		resistance := giftOfTheWildSpell.Effect(dbcenums.A_MOD_RESISTANCE, school.mask).Average()
+		resistance := rowAmount(t, giftOfTheWildSpell.Effect(dbcenums.A_MOD_RESISTANCE, school.mask))
 		gotwAdded[school.stat] = resistance
 		gotwBids = append(gotwBids, bid(school.bid, false, resistance))
 	}
@@ -381,6 +395,10 @@ func TestInspirationReadsTheStore(t *testing.T) {
 	unit := &shapeCharacter().Unit
 	baseArmor := unit.SortAndApplyStatDependencies(unit.GetStats())[stats.Armor]
 
+	if inspirationTalent.Len() == 0 {
+		t.Fatal("Inspiration has no ranks")
+	}
+	previous := 0.0
 	for points := int32(1); points <= inspirationTalent.Len(); points++ {
 		shape := shapeOf(t, false, func(u *core.Unit) *core.Aura { return inspirationAura(u, points) })
 
@@ -388,6 +406,10 @@ func TestInspirationReadsTheStore(t *testing.T) {
 			t.Errorf("Inspiration at %d points is %v for %v, want 14893 for %v", points, shape.ActionID, shape.Duration, inspirationBuff.Duration())
 		}
 		share := inspirationTalent.MultiplierAt(points) - 1
+		if share <= previous {
+			t.Errorf("Inspiration at %d points shares %v of the armor, want more than the %v a rank below", points, share, previous)
+		}
+		previous = share
 		if got, want := shape.Stacks[0], (unitDelta{Stats: map[string]float64{"Armor": round6(baseArmor * share)}}); !reflect.DeepEqual(got, want) {
 			t.Errorf("Inspiration at %d points on %v armor moves %+v, want only %+v", points, baseArmor, got, want)
 		}
