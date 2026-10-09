@@ -1,7 +1,7 @@
 import * as PresetUtils from '@app/preset_utils';
 import * as Consumables from '@features/settings/model/consumables_auto_gen';
 import { ConsumesSpec } from '@generated/proto/common';
-import { Rogue_Options as RogueOptions, RoguePoison } from '@generated/proto/rogue';
+import { Rogue_Options as RogueOptions } from '@generated/proto/rogue';
 import { SavedTalents } from '@generated/proto/ui';
 
 import BackstabAPL from './apls/backstab.apl.json';
@@ -61,26 +61,31 @@ export const P1_SLOW_MH_GEAR = PresetUtils.makePresetGear('Slow Main Hand', P1Sl
 export const P1_BS_SUB_GEAR = PresetUtils.makePresetGear('Backstab Subtlety', P1BsSubGear);
 
 export const DefaultOptions = RogueOptions.create({
-	classOptions: {
-		mainHandPoison: RoguePoison.InstantPoison,
-		offHandPoison: RoguePoison.DeadlyPoison,
-	},
+	classOptions: {},
 });
 
-const FlippedPoisons = RogueOptions.create({
-	classOptions: {
-		mainHandPoison: RoguePoison.DeadlyPoison,
-		offHandPoison: RoguePoison.InstantPoison,
-	},
+export const DefaultConsumables = ConsumesSpec.create({
+	elixirIds: [Consumables.ElixirOfTheMongoose.id, Consumables.ElixirOfGreaterFortitude.id],
+	foodId: Consumables.SwiftstrikeSteak.id,
+	potId: Consumables.MajorFrenzyPotion.id,
+	conjuredId: Consumables.ThistleTea.id,
+	mhWeaponImbueId: Consumables.InstantPoisonVI.id,
+	ohWeaponImbueId: Consumables.DeadlyPoisonIV.id,
+});
+
+const FlippedPoisons = ConsumesSpec.create({
+	...DefaultConsumables,
+	mhWeaponImbueId: Consumables.DeadlyPoisonIV.id,
+	ohWeaponImbueId: Consumables.InstantPoisonVI.id,
 });
 
 const IP_MH_Settings = {
 	name: 'Default',
-	specOptions: DefaultOptions,
+	consumables: DefaultConsumables,
 };
 const _DP_MH_Settings = {
 	name: 'Flipped Poisons',
-	specOptions: FlippedPoisons,
+	consumables: FlippedPoisons,
 };
 
 export const PRESET_BUILD_MUTILATE_ASN = PresetUtils.makePresetBuild('Asn Muti', {
@@ -123,13 +128,6 @@ export const PRESET_BUILD_SUB_BS = PresetUtils.makePresetBuild('Subtlety BS', {
 	rotation: BACKSTAB_APL,
 	gear: P1_BS_SUB_GEAR,
 	settings: IP_MH_Settings,
-});
-
-export const DefaultConsumables = ConsumesSpec.create({
-	elixirIds: [Consumables.ElixirOfTheMongoose.id, Consumables.ElixirOfGreaterFortitude.id],
-	foodId: Consumables.SwiftstrikeSteak.id,
-	potId: Consumables.MajorFrenzyPotion.id,
-	conjuredId: Consumables.ThistleTea.id,
 });
 
 export const OtherDefaults = {

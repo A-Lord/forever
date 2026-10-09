@@ -679,15 +679,6 @@
 			},
 			"pet_section": {
 				"title": "Pet"
-			},
-			"poison": {
-				"title": "Poison",
-				"label": {
-					"mh": "Main Hand Poison",
-					"oh": "Off Hand Poison"
-				},
-				"tooltip": "Select the poison applied to your weapons",
-				"none": "None"
 			}
 		},
 		"consumables": {
