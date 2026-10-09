@@ -330,6 +330,30 @@ var Party = []BuffSpec{
 			proto.Stat_StatAttackPower,
 		},
 	},
+	// Darkspear 12802's chance on hit lands 16939 on the wielder's party, so the party's copy is up
+	// for the share of the fight driveDarkspear states. The wielder's own copy joins the category.
+	{
+		Field:      "darkspear",
+		SpellID:    16939,
+		Label:      "Darkspear",
+		Category:   "Darkspear",
+		SingleAura: true,
+		Driver:     true,
+		Stats: []proto.Stat{
+			proto.Stat_StatCritRating,
+		},
+	},
+	// Admiral's Hat 10030's use lasts 10 min on a 1 min cooldown, so a party member using it keeps
+	// it up. The wearer's own copy joins the category.
+	{
+		Field:      "admirals_hat",
+		SpellID:    12022,
+		Category:   "AdmiralsHat",
+		SingleAura: true,
+		Stats: []proto.Stat{
+			proto.Stat_StatStamina,
+		},
+	},
 }
 
 var Individual = []BuffSpec{

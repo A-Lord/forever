@@ -815,6 +815,172 @@ func TestLSPTraceOff(t *testing.T) {
 	}
 }
 
+const darkSacrificeGo = `package priest
+
+func registerDarkSacrificeSpell(rank *spelldata.Spell) {
+	config := spelldata.SpellConfig(&priest.Unit, rank)
+	rank.EffectN(1).Average()
+}
+
+func register() {
+	spellData.DarkSacrifice.Each(func(_ int32, rank *spelldata.Spell) {
+		registerDarkSacrificeSpell(rank)
+	})
+}
+`
+
+// The answers of a session that opens darkSacrificeGo and sends each message in turn, by request id.
+func rankSession(t *testing.T, rankLinks bool, msgs ...map[string]any) (string, map[string]rpcMessage) {
+	t.Helper()
+	root, err := moduleRoot()
+	if err != nil {
+		t.Fatal(err)
+	}
+	uri := pathURI(filepath.Join(root, "sim", "priest", "dark_sacrifice.go"))
+
+	var in strings.Builder
+	in.WriteString(frame(t, map[string]any{"jsonrpc": "2.0", "id": 0, "method": "initialize", "params": map[string]any{
+		"initializationOptions": map[string]any{"trace": "off", "rankLinks": rankLinks},
+	}}))
+	in.WriteString(frame(t, map[string]any{"jsonrpc": "2.0", "method": "textDocument/didOpen", "params": map[string]any{
+		"textDocument": map[string]any{"uri": uri, "languageId": "go", "version": 1, "text": darkSacrificeGo},
+	}}))
+	for _, msg := range msgs {
+		body, err := json.Marshal(msg)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var withURI map[string]any
+		_ = json.Unmarshal([]byte(strings.ReplaceAll(string(body), "$URI", uri)), &withURI)
+		in.WriteString(frame(t, withURI))
+	}
+
+	var out bytes.Buffer
+	if _, err := serveLSP(strings.NewReader(in.String()), &out); err != nil {
+		t.Fatal(err)
+	}
+	responses := map[string]rpcMessage{}
+	for _, msg := range readFrames(t, &out) {
+		responses[string(msg.ID)] = msg
+	}
+	return uri, responses
+}
+
+func rankRequest(t *testing.T, id int, method, needle string, offset int, extra map[string]any) map[string]any {
+	t.Helper()
+	line, col := positionOf(t, darkSacrificeGo, needle, offset)
+	at := map[string]any{"line": line, "character": col}
+	params := map[string]any{"textDocument": map[string]any{"uri": "$URI"}, "position": at, "range": map[string]any{"start": at, "end": at}}
+	for key, value := range extra {
+		params[key] = value
+	}
+	return map[string]any{"jsonrpc": "2.0", "id": id, "method": method, "params": params}
+}
+
+func setRank(id int, rank int) map[string]any {
+	return map[string]any{"jsonrpc": "2.0", "id": id, "method": "workspace/executeCommand", "params": map[string]any{
+		"command":   setRankCommand,
+		"arguments": []any{map[string]any{"uri": "$URI", "function": "registerDarkSacrificeSpell", "parameter": "rank", "rank": rank}},
+	}}
+}
+
+func hoverValue(t *testing.T, msg rpcMessage) string {
+	t.Helper()
+	var hover struct {
+		Contents struct {
+			Value string `json:"value"`
+		} `json:"contents"`
+	}
+	if err := json.Unmarshal(msg.Result, &hover); err != nil || msg.Error != nil {
+		t.Fatalf("hover answered %s, %+v", msg.Result, msg.Error)
+	}
+	return hover.Contents.Value
+}
+
+// An editor that cannot run a hover's command links picks the rank a Ladder.Each callback parameter
+// hovers as through the code actions.
+func TestLSPRankPick(t *testing.T) {
+	uri, responses := rankSession(t, false,
+		rankRequest(t, 1, "textDocument/codeAction", "Spell(rank", 6, map[string]any{"context": map[string]any{"diagnostics": []any{}}}),
+		rankRequest(t, 2, "textDocument/codeAction", "Spell(rank", 6, map[string]any{"context": map[string]any{"only": []string{"source.organizeImports"}}}),
+		rankRequest(t, 3, "textDocument/codeAction", "package", 2, nil),
+		setRank(4, 2),
+		rankRequest(t, 5, "textDocument/hover", "Spell(rank", 6, nil),
+		rankRequest(t, 6, "textDocument/hover", "EffectN", 2, nil),
+		rankRequest(t, 7, "textDocument/hover", "config", 2, nil),
+		rankRequest(t, 8, "textDocument/codeAction", "Average", 2, nil),
+		map[string]any{"jsonrpc": "2.0", "id": 9, "method": "workspace/executeCommand", "params": map[string]any{"command": "wowsims-spelldata.other"}},
+	)
+
+	var initialized struct {
+		Capabilities struct {
+			CodeActionProvider     bool `json:"codeActionProvider"`
+			ExecuteCommandProvider struct {
+				Commands []string `json:"commands"`
+			} `json:"executeCommandProvider"`
+		} `json:"capabilities"`
+	}
+	if err := json.Unmarshal(responses["0"].Result, &initialized); err != nil || !initialized.Capabilities.CodeActionProvider ||
+		fmt.Sprint(initialized.Capabilities.ExecuteCommandProvider.Commands) != "["+setRankCommand+"]" {
+		t.Errorf("initialize answered %s", responses["0"].Result)
+	}
+
+	type command struct {
+		Title     string     `json:"title"`
+		Command   string     `json:"command"`
+		Arguments []rankPick `json:"arguments"`
+	}
+	actions := func(id string) []command {
+		var commands []command
+		if err := json.Unmarshal(responses[id].Result, &commands); err != nil || responses[id].Error != nil {
+			t.Fatalf("code actions %s answered %s, %+v", id, responses[id].Result, responses[id].Error)
+		}
+		return commands
+	}
+	highest := actions("1")
+	if len(highest) != 4 || highest[0].Title != "Hover rank as 1277324 Dark Sacrifice (Rank 1)" || highest[0].Command != setRankCommand ||
+		fmt.Sprint(highest[3].Arguments) != fmt.Sprint([]rankPick{{URI: uri, Parameter: "rank", Function: "registerDarkSacrificeSpell", Rank: 4}}) {
+		t.Errorf("the code actions on the parameter are %+v", highest)
+	}
+	if got := actions("2"); len(got) != 0 {
+		t.Errorf("a request for kinds got %+v", got)
+	}
+	if got := actions("3"); len(got) != 0 {
+		t.Errorf("a position outside any callback got %+v", got)
+	}
+	if string(responses["4"].Result) != "null" || responses["4"].Error != nil {
+		t.Errorf("%s answered %+v", setRankCommand, responses["4"])
+	}
+
+	if value := hoverValue(t, responses["5"]); !strings.HasPrefix(value, "**Rank:** **2** / 5\n\nPick another rank from the code actions.\n\n") ||
+		strings.Contains(value, "command:") || !strings.Contains(value, "1277325 Dark Sacrifice") {
+		t.Errorf("the hover on the parameter after the pick:\n%s", value)
+	}
+	if value := hoverValue(t, responses["6"]); !strings.Contains(value, "### 1277325 Dark Sacrifice (Rank 2)") {
+		t.Errorf("the hover on an accessor after the pick:\n%s", value)
+	}
+	if value := hoverValue(t, responses["7"]); !strings.Contains(value, "Dark Sacrifice") {
+		t.Errorf("the hover on a SpellConfig declaration read through the parameter:\n%s", value)
+	}
+	if got := actions("8"); len(got) != 4 || strings.Contains(fmt.Sprint(got), "(Rank 2)") {
+		t.Errorf("the code actions after the pick are %+v", got)
+	}
+
+	if responses["9"].Error == nil || responses["9"].Error.Code != codeInvalidParams {
+		t.Errorf("an unknown command answered %+v", responses["9"])
+	}
+}
+
+// An editor that runs command:wowsims-spelldata.changeRank links gets one per other rank in the hover.
+func TestLSPRankLinks(t *testing.T) {
+	_, responses := rankSession(t, true, rankRequest(t, 1, "textDocument/hover", "Spell(rank", 6, nil))
+	value := hoverValue(t, responses["1"])
+	if !strings.HasPrefix(value, "**Rank:** **5** / 5\n\n[1](command:wowsims-spelldata.changeRank?") || !strings.Contains(value, " **[5]**\n\n") ||
+		strings.Contains(value, "code actions") {
+		t.Errorf("the hover with rank links:\n%s", value)
+	}
+}
+
 func TestLSPInvocation(t *testing.T) {
 	for _, args := range [][]string{{"-lsp"}, {"--lsp"}, {"-lsp", "--stdio"}} {
 		if opts, err := parseArgs(args); err != nil || opts.mode != "lsp" {
@@ -927,7 +1093,7 @@ func TestVirtualRankAccessorRendering(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			markdown := exprMarkdown(result, hover)
+			markdown := exprMarkdown(result, hover, false)
 
 			if !strings.Contains(markdown, tt.want) {
 				t.Errorf("hover does not contain %q:\n%s", tt.want, markdown)

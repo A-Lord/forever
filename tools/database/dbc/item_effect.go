@@ -113,7 +113,7 @@ func assignTrigger(e *ItemEffect, statsSpellID int, pe *proto.ItemEffect) {
 			IcdMs: procIcdMs(spTop, statsSP),
 		}
 		// The column is the roll only where it is one: 0 means the game files state no rate at all and
-		// anything above 100 is its "the rate lives elsewhere" sentinel. A weapon's rate then comes from
+		// 100 or more is its "fires on its own condition" sentinel. A weapon's rate then comes from
 		// the hand-kept WeaponProcs table, onto the effect; a row for a column that has become a roll is
 		// stale, and refused so the number does not outlive its reason.
 		if ppm := overrides.WeaponProcPPM(int32(e.ParentItemID), int32(e.SpellID)); ppm > 0 {
@@ -122,7 +122,7 @@ func assignTrigger(e *ItemEffect, statsSpellID int, pe *proto.ItemEffect) {
 					e.ParentItemID, e.SpellID, spTop.ProcChance))
 			}
 			proc.ProcRate = &proto.ProcEffect_Ppm{Ppm: ppm}
-		} else if spTop.ProcChance > 0 && spTop.ProcChance <= 100 {
+		} else if spTop.ProcChance > 0 && spTop.ProcChance < 100 {
 			proc.ProcRate = &proto.ProcEffect_ProcChance{
 				ProcChance: float64(spTop.ProcChance) / 100,
 			}

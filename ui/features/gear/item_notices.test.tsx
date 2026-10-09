@@ -14,11 +14,43 @@ vi.mock('@i18n/localization', () => ({
 vi.mock('@sim/constants/missing_effects_auto_gen', () => ({
 	MISSING_ITEM_EFFECTS: new Map([[1, ['Does a thing.']]]),
 	MISSING_ENCHANT_EFFECTS: new Map([[2, ['Enchants a thing.']]]),
+	UNVALIDATED_RATE_ITEMS: new Map([
+		[1, { kind: 'ppm', origin: 'vanilla' }],
+		[3, { kind: 'ppm', origin: 'vanilla' }],
+		[4, { kind: 'ppm', origin: 'tbc' }],
+		[5, { kind: 'chance', origin: 'vanilla' }],
+		[6, { kind: 'chance', origin: 'tbc' }],
+		[7, { kind: 'ppm', origin: 'unknown' }],
+		[8, { kind: 'chance', origin: 'unknown' }],
+	]),
+	UNVALIDATED_RATE_ENCHANTS: new Map([
+		[2, { kind: 'ppm', origin: 'tbc' }],
+		[9, { kind: 'chance', origin: 'vanilla' }],
+	]),
+	UNVALIDATED_RATE_SET_BONUSES: new Map([
+		[
+			9999,
+			new Map([
+				[2, { kind: 'chance', origin: 'tbc' }],
+				[4, { kind: 'ppm', origin: 'vanilla' }],
+			]),
+		],
+	]),
 }));
+
+const VANILLA_PPM_WARNING = 'In-game validation needed. Currently using Vanilla PPM values';
+const TBC_PPM_WARNING = 'In-game validation needed. Currently using TBC PPM values';
+const VANILLA_CHANCE_WARNING = 'In-game validation needed. Currently using a Vanilla proc chance';
+const TBC_CHANCE_WARNING = 'In-game validation needed. Currently using a TBC proc chance';
 
 const notice = (node: ReactNode) => {
 	const { container } = render(<>{node}</>);
 	return { heading: container.querySelector('p')?.textContent, items: [...container.querySelectorAll('li')].map(item => item.textContent) };
+};
+
+const paragraphs = (node: ReactNode) => {
+	const { container } = render(<>{node}</>);
+	return [...container.querySelectorAll('p')].map(paragraph => paragraph.textContent);
 };
 
 describe('the item notice table', () => {
@@ -31,6 +63,28 @@ describe('the item notice table', () => {
 			items: [tooltip],
 		});
 	});
+
+	it.each([
+		['a vanilla rate per minute', 3, VANILLA_PPM_WARNING],
+		['a TBC rate per minute', 4, TBC_PPM_WARNING],
+		['a vanilla chance', 5, VANILLA_CHANCE_WARNING],
+		['a TBC chance', 6, TBC_CHANCE_WARNING],
+		['a rate per minute of no known origin', 7, 'In-game validation needed. Currently using an estimated proc rate'],
+		['a chance of no known origin', 8, 'In-game validation needed. Currently using an estimated proc chance'],
+	])('warns that %s needs validating on an item with no other notice', (_, id, warning) => {
+		expect(paragraphs(ITEM_NOTICES.get(id)?.[Spec.SpecUnknown])).toEqual([warning]);
+	});
+
+	it.each([
+		['item', ITEM_NOTICES, 1, VANILLA_PPM_WARNING],
+		['enchant', ENCHANT_NOTICES, 2, TBC_PPM_WARNING],
+	] as const)('keeps the missing effect notice of an %s with an unvalidated rate and adds the rate warning after it', (kind, table, id, warning) => {
+		expect(paragraphs(table.get(id)?.[Spec.SpecUnknown])).toEqual([`The following ${kind} effect (on-use or proc) is not implemented!`, warning]);
+	});
+
+	it('warns that an enchant rate needs validating on an enchant with no other notice', () => {
+		expect(paragraphs(ENCHANT_NOTICES.get(9)?.[Spec.SpecUnknown])).toEqual([VANILLA_CHANCE_WARNING]);
+	});
 });
 
 describe('registerSetBonusNotices', () => {
@@ -41,8 +95,18 @@ describe('registerSetBonusNotices', () => {
 		ITEM_IDS.forEach(id => ITEM_NOTICES.delete(id));
 	});
 
-	it('writes no notice while no set is listed', () => {
+	it('names the piece count and the rate warning of each unvalidated bonus on every item of the set', () => {
 		registerSetBonusNotices({ getItemIdsForSet: (setId: number) => (setId === SET_ID ? ITEM_IDS : []) } as unknown as Database);
+
+		for (const id of ITEM_IDS) {
+			const { heading, items } = notice(ITEM_NOTICES.get(id)?.[Spec.SpecUnknown]);
+			expect(heading?.trim()).toBe('This item set has the following warnings:');
+			expect(items).toEqual([`2-piece: ${TBC_CHANCE_WARNING}`, `4-piece: ${VANILLA_PPM_WARNING}`]);
+		}
+	});
+
+	it('writes no notice on the items of a set the list does not name', () => {
+		registerSetBonusNotices({ getItemIdsForSet: (setId: number) => (setId === SET_ID + 1 ? ITEM_IDS : []) } as unknown as Database);
 
 		for (const id of ITEM_IDS) {
 			expect(ITEM_NOTICES.has(id)).toBe(false);

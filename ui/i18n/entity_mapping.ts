@@ -2,6 +2,7 @@ import {
 	AreaType,
 	ArmorType,
 	Class,
+	CreatureFamily,
 	ItemSlot,
 	MobType,
 	Profession,
@@ -254,6 +255,16 @@ export const mobTypeI18nKeys: Record<MobType, string> = {
 	[MobType.MobTypeUndead]: 'undead',
 };
 
+export const creatureFamilyI18nKeys: Record<CreatureFamily, string> = {
+	[CreatureFamily.CreatureFamilyUnknown]: 'unknown',
+	[CreatureFamily.CreatureFamilyNaga]: 'naga',
+	[CreatureFamily.CreatureFamilySatyr]: 'satyr',
+	[CreatureFamily.CreatureFamilyAquatic]: 'aquatic',
+	[CreatureFamily.CreatureFamilyEarthElemental]: 'earth_elemental',
+	[CreatureFamily.CreatureFamilyFireElemental]: 'fire_elemental',
+	[CreatureFamily.CreatureFamilyMountainGiant]: 'mountain_giant',
+};
+
 export const areaTypeI18nKeys: Record<AreaType, string> = {
 	[AreaType.AreaTypeUnknown]: 'unknown',
 	[AreaType.AreaTypeForestGrassland]: 'forest_grassland',
@@ -434,6 +445,9 @@ export const getStatusI18nKey = (status: LaunchStatus): string => statusI18nKeys
 export const getTargetInputI18nKey = (label: string): string => targetInputI18nKeys[label] || label.toLowerCase().replace(/[()]/g, '').replace(/\s+/g, '_');
 
 export const getMobTypeI18nKey = (mobType: MobType): string => mobTypeI18nKeys[mobType] || MobType[mobType].toLowerCase();
+
+export const getCreatureFamilyI18nKey = (creatureFamily: CreatureFamily): string =>
+	creatureFamilyI18nKeys[creatureFamily] || CreatureFamily[creatureFamily].toLowerCase();
 
 export const getAreaTypeI18nKey = (areaType: AreaType): string => areaTypeI18nKeys[areaType] || AreaType[areaType].toLowerCase();
 

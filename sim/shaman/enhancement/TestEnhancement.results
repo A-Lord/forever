@@ -53,6 +53,14 @@ character_stats_results: {
  }
 }
 dps_results: {
+ key: "TestEnhancement-AllItems-Admiral'sHat-10030"
+ value: {
+  dps: 668.42822
+  tps: 354.97336
+  dtps: 8.15445
+ }
+}
+dps_results: {
  key: "TestEnhancement-AllItems-AnkhofLife-1713"
  value: {
   dps: 683.62909
@@ -110,6 +118,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestEnhancement-AllItems-BlackGraspoftheDestroyer-22194"
+ value: {
+  dps: 685.77054
+  tps: 365.26846
+  dtps: 7.55333
+ }
+}
+dps_results: {
  key: "TestEnhancement-AllItems-BlazefuryMedallion-17111"
  value: {
   dps: 680.12722
@@ -120,9 +136,9 @@ dps_results: {
 dps_results: {
  key: "TestEnhancement-AllItems-BlazingEmblem-2802"
  value: {
-  dps: 684.95804
-  tps: 363.02502
-  dtps: 7.89685
+  dps: 684.04885
+  tps: 362.57122
+  dtps: 7.6271
  }
 }
 dps_results: {
@@ -131,6 +147,22 @@ dps_results: {
   dps: 678.05376
   tps: 359.77291
   dtps: 8.1328
+ }
+}
+dps_results: {
+ key: "TestEnhancement-AllItems-BurningTotem-272433"
+ value: {
+  dps: 696.5187
+  tps: 368.69766
+  dtps: 8.52378
+ }
+}
+dps_results: {
+ key: "TestEnhancement-AllItems-CloakofFire-14134"
+ value: {
+  dps: 681.91755
+  tps: 361.15642
+  dtps: 7.90059
  }
 }
 dps_results: {
@@ -155,6 +187,15 @@ dps_results: {
   dps: 684.80002
   tps: 362.83151
   dtps: 8.10918
+ }
+}
+dps_results: {
+ key: "TestEnhancement-AllItems-DarkmoonCard:Heroism-19287"
+ value: {
+  dps: 684.56789
+  tps: 362.75195
+  dtps: 8.25467
+  hps: 13.36918
  }
 }
 dps_results: {
@@ -195,6 +236,14 @@ dps_results: {
   dps: 684.70367
   tps: 362.88422
   dtps: 8.45571
+ }
+}
+dps_results: {
+ key: "TestEnhancement-AllItems-DormantHeartoftheMountain-249473"
+ value: {
+  dps: 684.51618
+  tps: 362.8092
+  dtps: 8.12878
  }
 }
 dps_results: {
@@ -601,6 +650,22 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestEnhancement-AllItems-RageoftheStorm-280604"
+ value: {
+  dps: 694.29465
+  tps: 367.50821
+  dtps: 8.22874
+ }
+}
+dps_results: {
+ key: "TestEnhancement-AllItems-Ravager-7717"
+ value: {
+  dps: 690.68283
+  tps: 365.73022
+  dtps: 8.22716
+ }
+}
+dps_results: {
  key: "TestEnhancement-AllItems-RingofSaviors-1447"
  value: {
   dps: 680.1462
@@ -650,6 +715,14 @@ dps_results: {
 }
 dps_results: {
  key: "TestEnhancement-AllItems-Sulfuras,HandofRagnaros-17182"
+ value: {
+  dps: 690.68283
+  tps: 365.73022
+  dtps: 8.22716
+ }
+}
+dps_results: {
+ key: "TestEnhancement-AllItems-SulfuronHammer-17193"
  value: {
   dps: 690.68283
   tps: 365.73022
@@ -713,6 +786,22 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestEnhancement-AllItems-Thunderbrew'sBootFlask-744"
+ value: {
+  dps: 689.7782
+  tps: 365.15279
+  dtps: 8.61169
+ }
+}
+dps_results: {
+ key: "TestEnhancement-AllItems-TidalTotem-272431"
+ value: {
+  dps: 688.53886
+  tps: 364.67968
+  dtps: 8.22716
+ }
+}
+dps_results: {
  key: "TestEnhancement-AllItems-TotemofChargedFlames-263412"
  value: {
   dps: 688.53886
@@ -721,11 +810,35 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestEnhancement-AllItems-TotemofUrgency-279249"
+ value: {
+  dps: 688.53886
+  tps: 364.67968
+  dtps: 8.22716
+ }
+}
+dps_results: {
+ key: "TestEnhancement-AllItems-TotemoftheStorm-272432"
+ value: {
+  dps: 688.43814
+  tps: 364.53057
+  dtps: 8.02741
+ }
+}
+dps_results: {
  key: "TestEnhancement-AllItems-ToySoldier-274386"
  value: {
   dps: 684.56789
   tps: 362.75195
   dtps: 8.25467
+ }
+}
+dps_results: {
+ key: "TestEnhancement-AllItems-UnmarredVisionofVoodress-19609"
+ value: {
+  dps: 685.61393
+  tps: 363.36858
+  dtps: 8.18057
  }
 }
 dps_results: {

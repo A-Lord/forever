@@ -231,7 +231,7 @@
 		{ "name": "Time to weave", "value": { "const": { "val": "400ms" } } },
 		{ "name": "Auto Shot wait", "value": { "const": { "val": "1s" } } },
 		{ "name": "Melee range", "value": { "const": { "val": "5.00" } } },
-		{ "name": "Ranged range", "value": { "const": { "val": "8.00" } } },
+		{ "name": "Ranged range", "value": { "const": { "val": "11.00" } } },
 		{ "name": "Starting weave distance", "value": { "variableRef": { "name": "Ranged range" } } },
 		{
 			"name": "Move duration",

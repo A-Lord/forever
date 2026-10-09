@@ -27,12 +27,14 @@ func TestGeneratedRowsReadTheClientsNumbers(t *testing.T) {
 		{"LeaderOfThePack", LeaderOfThePackValue, LeaderOfThePackDuration, []float64{3}, permanent},
 		{"ManaSpringTotem", ManaSpringTotemValue, ManaSpringTotemDuration, []float64{25, 25, 27.5, 27.5, 30, 30}, permanent},
 		{"ManaTideTotems", ManaTideTotemsValue, ManaTideTotemsDuration, []float64{1450.0 / 3}, 13 * time.Second},
-		{"RetributionAura", RetributionAuraValue, RetributionAuraDuration, []float64{30}, permanent},
+		{"RetributionAura", RetributionAuraValue, RetributionAuraDuration, []float64{20}, permanent},
 		{"ConcentrationAura", ConcentrationAuraValue, ConcentrationAuraDuration, []float64{-0.35}, permanent},
 		{"TrueshotAura", TrueshotAuraValue, TrueshotAuraDuration, []float64{50}, 30 * time.Minute},
 		{"AtieshWarlock", AtieshWarlockValue, AtieshWarlockDuration, []float64{33}, permanent},
 		{"AtieshDruid", AtieshDruidValue, AtieshDruidDuration, []float64{11}, permanent},
 		{"WindfuryTotem", WindfuryTotemValue, WindfuryTotemDuration, []float64{246}, time.Second},
+		{"Darkspear", DarkspearValue, DarkspearDuration, []float64{4}, 20 * time.Second},
+		{"AdmiralsHat", AdmiralsHatValue, AdmiralsHatDuration, []float64{10}, 10 * time.Minute},
 		{"GreaterBlessingOfKings", GreaterBlessingOfKingsValue, GreaterBlessingOfKingsDuration, []float64{1.1}, time.Hour},
 		{"GreaterBlessingOfWisdom", GreaterBlessingOfWisdomValue, GreaterBlessingOfWisdomDuration, []float64{40}, time.Hour},
 		{"GreaterBlessingOfSalvation", GreaterBlessingOfSalvationValue, GreaterBlessingOfSalvationDuration, []float64{0.7}, time.Hour},
@@ -84,8 +86,8 @@ func TestGeneratedRowsReadTheClientsNumbers(t *testing.T) {
 // The raid's Retribution Aura is a damage shield and a healing-taken row of 0. Its value is the damage
 // the shield deals, whatever else the row states: the parse would attach the 0 as a multiplier of 1.
 func TestMetaValueOfADamageShieldIsItsDamage(t *testing.T) {
-	if got := (&Meta{Spell: spelldata.MustFind(10301)}).Value(0); got != 30 {
-		t.Errorf("Retribution Aura without the skips reads %v, want the shield's 30", got)
+	if got := (&Meta{Spell: spelldata.MustFind(10301)}).Value(0); got != 20 {
+		t.Errorf("Retribution Aura without the skips reads %v, want the shield's 20", got)
 	}
 }
 

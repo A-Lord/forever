@@ -981,8 +981,8 @@ func attackSpeedRow(p *parser, _ *Effect, v float64) *attachment {
 	return p.speed("attack-speed", "AttackSpeedMultiplier", (*core.Unit).MultiplyAttackSpeed, core.SymmetricMultiplierFromPercent(v))
 }
 
-// Flat health. The bear forms state it on A_MOD_MAX_HEALTH, where Last Stand states a percentage,
-// which the warrior reads by hand rather than parsing.
+// Flat health. The bear forms state it on A_MOD_MAX_HEALTH; Last Stand states a percentage on
+// A_MOD_INCREASE_HEALTH, which the warrior reads by hand rather than parsing.
 func flatHealthRow(p *parser, _ *Effect, v float64) *attachment {
 	return p.statBuff(stats.Health, v)
 }

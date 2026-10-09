@@ -164,15 +164,22 @@ func (hunter *Hunter) registerLaceratingStrikes() {
 	// states one base point, so the amount is snapshot from the bite and the resolver's tick replaced.
 	var bleedDamage float64
 	config.Dot = spelldata.DotConfig(laceratingStrikesBleed, tick)
-	config.Dot.OnSnapshot = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-		dot.SnapshotBaseDamage = bleedDamage / float64(dot.ExpectedTickCount())
-	}
 	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
 		dot.Spell.CalcAndDealPeriodicDamage(sim, target, dot.SnapshotBaseDamage, laceratingStrikesBleed.TickOutcome(dot))
 	}
 
+	// The refresh Deep Wounds has: a bite while the bleed is up adds the unticked damage to the new
+	// application and spreads the sum over a full set of ticks; the ticks keep the first application's timer.
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		spell.Dot(target).Apply(sim)
+		dot := spell.Dot(target)
+		totalDamage := dot.OutstandingDmg() + bleedDamage
+
+		if dot.IsActive() {
+			dot.DurationExtend(sim, laceratingStrikesBleed.Duration())
+		} else {
+			dot.Apply(sim)
+		}
+		dot.SnapshotBaseDamage = totalDamage / float64(dot.RemainingTicks())
 	}
 
 	bleed := hunter.RegisterSpell(config)
