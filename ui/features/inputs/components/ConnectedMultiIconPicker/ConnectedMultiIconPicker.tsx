@@ -29,10 +29,11 @@ const firstActiveActionId = <ModObject,>(config: MultiIconPickerConfig<ModObject
 };
 
 export const ConnectedMultiIconPicker = <ModObject,>({ modObject, config, subscribe, onClear, testId }: ConnectedMultiIconPickerProps<ModObject>) => {
-	const { actionId, hidden } = useStoreSubscribe(subscribe, () => ({
-		actionId: firstActiveActionId(config, modObject),
-		hidden: !!config.showWhen && !config.showWhen(modObject as unknown as Player<any>),
-	}));
+	// Subscribed only to re-render on each notification: the reads below take `config` from the render, so a new
+	// config is followed without waiting for one.
+	useStoreSubscribe(subscribe, () => ({}));
+	const actionId = firstActiveActionId(config, modObject);
+	const hidden = !!config.showWhen && !config.showWhen(modObject as unknown as Player<any>);
 	const kept = config.keptBy?.(modObject) ?? false;
 
 	const icon = useResolvedIcon(config.categoryId ?? actionId ?? undefined);

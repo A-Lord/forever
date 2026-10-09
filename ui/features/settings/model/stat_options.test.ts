@@ -1,56 +1,148 @@
 import { Class, PseudoStat, Stat } from '@generated/proto/common';
 import type { Player } from '@sim/player/player';
 import { UnitStat } from '@sim/proto/stats';
-import { fakeHost } from '@testing/sim/fake_host';
 import { describe, expect, it } from 'vitest';
 
-import { applyOwnerClassLabels, inDisplayOrder, type PickerStatOptions, relevantStatOptions, type RenderableStatOptions } from './stat_options';
+import {
+	applyOwnerClassLabels,
+	defaultBuffStats,
+	inDisplayOrder,
+	type PickerStatOptions,
+	relevantStatOptions,
+	type RenderableStatOptions,
+	statOptionUniverse,
+} from './stat_options';
 
-const option = (stats: Array<Stat>) => ({ config: { label: stats.join('/') }, stats }) as unknown as PickerStatOptions;
+/** Stands in for the player: one value per option label. */
+type Picks = Record<string, number | boolean>;
+const playerWith = (picks: Picks) => ({ picks }) as unknown as Player<any>;
+const pickOf = (player: Player<any>, label: string) => (player as unknown as { picks: Picks }).picks[label] ?? 0;
 
-const manaSpring = option([Stat.StatMP5]);
-const manaTide = option([Stat.StatMP5]);
+const option = (stats: Array<Stat>, label = stats.join('/') || 'untagged') =>
+	({ config: { label, getValue: (player: Player<any>) => pickOf(player, label) }, stats }) as unknown as PickerStatOptions;
+
+const manaSpring = option([Stat.StatMP5], 'Mana Spring');
+const manaTide = option([Stat.StatMP5], 'Mana Tide');
 const untagged = option([]);
-const strengthOfEarth = option([Stat.StatStrength]);
-const fortitude = option([Stat.StatStamina]);
+const strengthOfEarth = option([Stat.StatStrength], 'Strength of Earth');
+const fortitude = option([Stat.StatStamina], 'Fortitude');
 const options = [manaSpring, manaTide, untagged, strengthOfEarth, fortitude];
 
-const host = (parts: { epStats?: Array<Stat>; displayStats?: Array<UnitStat>; include?: Array<unknown>; exclude?: Array<unknown> }) =>
-	fakeHost({
-		individualConfig: {
-			epStats: parts.epStats ?? [],
-			displayStats: parts.displayStats ?? [],
-			includeBuffDebuffInputs: parts.include ?? [],
-			excludeBuffDebuffInputs: parts.exclude ?? [],
-		},
-	});
+const lists = (parts: { include?: Array<unknown>; exclude?: Array<unknown> } = {}) => ({
+	includeBuffDebuffInputs: parts.include ?? [],
+	excludeBuffDebuffInputs: parts.exclude ?? [],
+});
+
+const offered = (shown: ReadonlyArray<PickerStatOptions>) => shown.filter(row => !row.config.keptBy);
 
 describe('relevantStatOptions', () => {
-	it('keeps an option tagged with an EP stat or a displayed stat, and every untagged option', () => {
-		const shown = relevantStatOptions(options, host({ epStats: [Stat.StatMP5], displayStats: [UnitStat.fromStat(Stat.StatStamina)] }));
-		expect(shown).toEqual([manaSpring, manaTide, untagged, fortitude]);
+	it('offers an option tagged with a shown stat and every untagged option, as the same objects', () => {
+		const shown = relevantStatOptions(options, lists(), new Set([Stat.StatMP5, Stat.StatStamina]));
+
+		expect(offered(shown)).toEqual([manaSpring, manaTide, untagged, fortitude]);
+		offered(shown).forEach((row, index) => expect(row).toBe([manaSpring, manaTide, untagged, fortitude][index]));
 	});
 
-	it('matches a displayed pseudo stat by its root rating, never by its own number', () => {
-		const hitBuff = option([Stat.StatHitRating]);
+	it('returns an option whose stats are hidden in its place, shown and marked only while it is picked', () => {
+		const shown = relevantStatOptions(options, lists(), new Set([Stat.StatMP5]));
+		const kept = shown[3];
+
+		expect(kept.stats).toEqual([Stat.StatStrength]);
+		expect(kept.config).not.toBe(strengthOfEarth.config);
+		expect(kept.config.showWhen!(playerWith({}))).toBe(false);
+		expect(kept.config.keptBy!(playerWith({}))).toBe(false);
+		expect(kept.config.showWhen!(playerWith({ 'Strength of Earth': true }))).toBe(true);
+		expect(kept.config.keptBy!(playerWith({ 'Strength of Earth': true }))).toBe(true);
+		expect(strengthOfEarth.config.keptBy).toBeUndefined();
+		expect(strengthOfEarth.config.showWhen).toBeUndefined();
+	});
+
+	it("keeps the option's own showWhen, so a picked option the spec hides stays hidden", () => {
+		const tankOnly = { ...strengthOfEarth, config: { ...strengthOfEarth.config, showWhen: () => false } } as PickerStatOptions;
+		const [kept] = relevantStatOptions([tankOnly], lists(), new Set());
+
+		expect(kept.config.showWhen!(playerWith({ 'Strength of Earth': true }))).toBe(false);
+	});
+
+	it('reads an icon enum as picked off its zero value, and a multi icon as picked when any input is', () => {
+		const enumOption = {
+			stats: [Stat.StatStrength],
+			config: {
+				values: [],
+				zeroValue: 'none',
+				equals: (a: string, b: string) => a === b,
+				getValue: (player: Player<any>) => pickOf(player, 'enum') || 'none',
+			},
+		} as unknown as PickerStatOptions;
+		const multiOption = { stats: [Stat.StatStrength], config: { inputs: [manaSpring.config, manaTide.config] } } as unknown as PickerStatOptions;
+		const [keptEnum, keptMulti] = relevantStatOptions([enumOption, multiOption], lists(), new Set());
+
+		expect(keptEnum.config.keptBy!(playerWith({}))).toBe(false);
+		expect(keptEnum.config.keptBy!(playerWith({ enum: 'greater' as unknown as number }))).toBe(true);
+		expect(keptMulti.config.keptBy!(playerWith({}))).toBe(false);
+		expect(keptMulti.config.keptBy!(playerWith({ 'Mana Tide': 2 }))).toBe(true);
+	});
+
+	it('returns the same rows in the same order at every filter setting, so the pickers keyed by position keep their option', () => {
+		const settings = [new Set<Stat>(), new Set([Stat.StatMP5]), new Set([Stat.StatStrength, Stat.StatStamina])];
+
+		for (const shown of settings) {
+			expect(relevantStatOptions(options, lists(), shown).map(row => row.config.label)).toEqual(options.map(row => row.config.label));
+		}
+	});
+
+	it('offers an input its config includes, whatever the filter shows', () => {
+		const shown = relevantStatOptions(options, lists({ include: [fortitude.config] }), new Set());
+
+		expect(shown[4]).toBe(fortitude);
+	});
+
+	it('drops an input its config excludes outright, instead of keeping it while picked', () => {
+		const shown = relevantStatOptions(options, lists({ exclude: [manaTide.config, untagged.config] }), new Set([Stat.StatMP5]));
+
+		expect(shown.map(row => row.config.label)).toEqual(['Mana Spring', 'Strength of Earth', 'Fortitude']);
+	});
+
+	it('drops every option tagged with an excluded stat at every filter setting, and leaves that stat out of the universe', () => {
+		const strengthAgility = option([Stat.StatStrength, Stat.StatAgility], 'Strength and Agility');
+		const agilityOnly = option([Stat.StatAgility], 'Agility');
+		const tagged = [strengthAgility, agilityOnly, strengthOfEarth];
+		const settings = [new Set<Stat>(), new Set([Stat.StatStrength]), new Set([Stat.StatAgility]), new Set([Stat.StatStrength, Stat.StatAgility])];
+
+		for (const shown of settings) {
+			expect(relevantStatOptions(tagged, lists({ exclude: [Stat.StatAgility] }), shown).map(row => row.config.label)).toEqual(['Strength of Earth']);
+		}
+		expect(statOptionUniverse(tagged, [Stat.StatAgility])).toEqual([UnitStat.fromStat(Stat.StatStrength)]);
+	});
+});
+
+describe('statOptionUniverse', () => {
+	it("is every stat tagged on the section's options once, in stat order, minus the excluded stats", () => {
+		const universe = statOptionUniverse(options, [Stat.StatMP5, manaSpring.config]);
+
+		expect(universe).toEqual([UnitStat.fromStat(Stat.StatStrength), UnitStat.fromStat(Stat.StatStamina)]);
+	});
+});
+
+describe('defaultBuffStats', () => {
+	const config = (parts: { epStats?: Array<Stat>; displayStats?: Array<UnitStat>; include?: Array<unknown> }) => ({
+		epStats: parts.epStats ?? [],
+		displayStats: parts.displayStats ?? [],
+		includeBuffDebuffInputs: parts.include ?? [],
+	});
+
+	it('is the EP stats, the displayed stats and the stats the spec includes, and never an included config', () => {
+		const defaults = defaultBuffStats(
+			config({ epStats: [Stat.StatMP5], displayStats: [UnitStat.fromStat(Stat.StatStamina)], include: [Stat.StatStrength, fortitude.config] }),
+		);
+
+		expect(new Set(defaults)).toEqual(new Set([Stat.StatStamina, Stat.StatMP5, Stat.StatStrength]));
+	});
+
+	it('takes a displayed pseudo stat by its root rating, never by its own number', () => {
 		expect(PseudoStat.PseudoStatMeleeSpeedMultiplier).toBe(Stat.StatHitRating);
-		const speed = host({ displayStats: [UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeSpeedMultiplier)] });
-		expect(relevantStatOptions([hitBuff], speed)).toEqual([]);
-		const hit = host({ displayStats: [UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeHitPercent)] });
-		expect(relevantStatOptions([hitBuff], hit)).toEqual([hitBuff]);
-	});
-
-	it('includes by stat, the way every spec lists them', () => {
-		expect(relevantStatOptions(options, host({ include: [Stat.StatStrength] }))).toEqual([untagged, strengthOfEarth]);
-	});
-
-	it('excludes by stat, the sentinel way the feral specs drop Windfury', () => {
-		expect(relevantStatOptions(options, host({ epStats: [Stat.StatMP5], exclude: [Stat.StatMP5] }))).toEqual([untagged]);
-	});
-
-	it('includes and excludes a single input by its config, so one MP5 buff can go while the other stays', () => {
-		const shown = relevantStatOptions(options, host({ epStats: [Stat.StatMP5], include: [fortitude.config], exclude: [manaTide.config, untagged.config] }));
-		expect(shown).toEqual([manaSpring, fortitude]);
+		expect(defaultBuffStats(config({ displayStats: [UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeSpeedMultiplier)] }))).toEqual([]);
+		expect(defaultBuffStats(config({ displayStats: [UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeHitPercent)] }))).toEqual([Stat.StatHitRating]);
 	});
 });
 
@@ -95,7 +187,7 @@ describe('applyOwnerClassLabels', () => {
 
 	it('runs after relevantStatOptions, so a spec excluding a row by its config still drops it', () => {
 		const shown = applyOwnerClassLabels(
-			relevantStatOptions([battleShout, arcaneBrilliance], host({ exclude: [battleShout.config] })),
+			relevantStatOptions([battleShout, arcaneBrilliance], lists({ exclude: [battleShout.config] }), new Set()),
 			playerOf(Class.ClassWarrior),
 		);
 

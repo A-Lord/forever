@@ -1,7 +1,9 @@
 import type { IconEnumPickerConfig, IconPickerConfig, MultiIconPickerConfig } from '@features/inputs/configs';
+import type { StatFilterScope } from '@features/stat-filters';
 import { Class, Stat } from '@generated/proto/common';
 import { Player } from '@sim/player/player';
-import type { IndividualSimHost } from '@sim/sim_host';
+import { UnitStat } from '@sim/proto/stats';
+import type { IndividualSimUIConfig } from '@sim/spec_config';
 
 export interface StatOption {
 	stats: Array<Stat>;
@@ -23,26 +25,71 @@ export type PickerStatOptions = IconPickerStatOption | MultiIconPickerStatOption
 export type RenderableStatOptions = IconPickerStatOption | MultiIconPickerStatOption | IconEnumPickerStatOption;
 export type StatOptions<Options extends PickerStatOptions> = Array<Options>;
 
-// A spec's includeBuffDebuffInputs / excludeBuffDebuffInputs list holds stats (any option tagged
-// with that stat) and input configs (that one option), so a spec can drop a single buff that shares
-// its stat tag with buffs it wants to keep, e.g. Mana Tide but not Mana Spring.
+export const isMultiIconOption = (option: PickerStatOptions): option is MultiIconPickerStatOption => 'inputs' in option.config;
+export const isIconEnumOption = (option: PickerStatOptions): option is IconEnumPickerStatOption => 'values' in option.config;
+
+type SpecStats = Pick<IndividualSimUIConfig<any>, 'displayStats' | 'epStats' | 'includeBuffDebuffInputs' | 'excludeBuffDebuffInputs'>;
+
+// A spec's includeBuffDebuffInputs / excludeBuffDebuffInputs list holds stats and input configs. An
+// included stat is one of the filter's defaults; an excluded stat drops every option tagged with it.
+// A listed config forces that one option on or off, so a spec can drop a single buff that shares its
+// stat tag with buffs it wants to keep, e.g. Mana Tide but not Mana Spring.
+const statEntries = (list: ReadonlyArray<unknown>): Stat[] => list.filter((entry): entry is Stat => typeof entry === 'number');
+
+/** Every stat tagged on the options, once and in stat order, less the excluded stats: a toggle for one of those could never take effect. */
+export function statOptionUniverse(options: ReadonlyArray<PickerStatOptions>, excluded: ReadonlyArray<unknown>): UnitStat[] {
+	const tagged = new Set(options.flatMap(option => option.stats));
+	return [...tagged]
+		.filter(stat => !excluded.includes(stat))
+		.sort((a, b) => a - b)
+		.map(stat => UnitStat.fromStat(stat));
+}
+
+/** The displayed stats (a pseudo-stat by its root rating), the EP stats and the stats the spec includes. */
+export function defaultBuffStats(config: Omit<SpecStats, 'excludeBuffDebuffInputs'>): Stat[] {
+	const displayed = config.displayStats.filter(us => us.hasRootStat()).map(us => us.getRootStat());
+	return [...new Set([...displayed, ...config.epStats, ...statEntries(config.includeBuffDebuffInputs)])];
+}
+
+export const statOptionScope = (options: ReadonlyArray<PickerStatOptions>, config: SpecStats): StatFilterScope => ({
+	defaults: defaultBuffStats(config).map(stat => UnitStat.fromStat(stat)),
+	universe: statOptionUniverse(options, config.excludeBuffDebuffInputs),
+});
+
+const pickedBy =
+	(option: PickerStatOptions) =>
+	(player: Player<any>): boolean => {
+		if (isMultiIconOption(option)) return option.config.inputs.some(input => !!input.getValue(player));
+		if (isIconEnumOption(option)) return !option.config.equals(option.config.getValue(player), option.config.zeroValue);
+		return !!option.config.getValue(player);
+	};
+
+const keptWhilePicked = <OptionsType extends PickerStatOptions>(option: OptionsType): OptionsType => {
+	const picked = pickedBy(option);
+	const showWhen = option.config.showWhen as ((player: Player<any>) => boolean) | undefined;
+	return {
+		...option,
+		config: { ...option.config, showWhen: (player: Player<any>) => (!showWhen || showWhen(player)) && picked(player), keptBy: picked },
+	};
+};
+
+// An option is offered when it carries no stat, a stat in `shown`, or the spec includes its config.
+// One whose stats are all hidden comes back as a copy offered only while picked, so the rows keep
+// their places at every filter setting. Exclusions drop the option outright.
 export function relevantStatOptions<OptionsType extends PickerStatOptions>(
 	options: StatOptions<OptionsType>,
-	simUI: IndividualSimHost<any>,
+	config: Pick<SpecStats, 'includeBuffDebuffInputs' | 'excludeBuffDebuffInputs'>,
+	shown: ReadonlySet<Stat>,
 ): StatOptions<OptionsType> {
-	const individualConfig = simUI.individualConfig;
-	const displayStatSet = new Set(individualConfig.displayStats.filter(us => us.hasRootStat()).map(us => us.getRootStat()));
 	const listed = (list: ReadonlyArray<unknown>, option: OptionsType) => list.includes(option.config) || option.stats.some(stat => list.includes(stat));
 
 	return options
-		.filter(
-			option =>
-				option.stats.length === 0 ||
-				option.stats.some(stat => displayStatSet.has(stat)) ||
-				option.stats.some(stat => individualConfig.epStats.includes(stat)) ||
-				listed(individualConfig.includeBuffDebuffInputs, option),
-		)
-		.filter(option => !listed(individualConfig.excludeBuffDebuffInputs, option));
+		.filter(option => !listed(config.excludeBuffDebuffInputs, option))
+		.map(option =>
+			option.stats.length === 0 || option.stats.some(stat => shown.has(stat)) || config.includeBuffDebuffInputs.includes(option.config)
+				? option
+				: keptWhilePicked(option),
+		);
 }
 
 // A class never buffs itself with its own buff, so on that class's settings tab the row reads

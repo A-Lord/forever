@@ -17,9 +17,10 @@ export const ConnectedIconPicker = <ModObject, ValueType>({ modObject, config, t
 	const hidden = config.actionId == null || showWhenHidden;
 
 	// A two-state source stores a boolean. The hide/restore writes go through `write` as well, so a restored number is stored as a boolean too.
+	// The restore lands only on a zeroed source, so a value set while hidden (a loaded build) is kept.
 	const toSource = (n: number) => (config.states === 2 ? Boolean(n) : n) as ValueType;
 	const write = (next: ValueType) => setValue(toSource(Number(next)));
-	useHideZeroRestore({ value, setValue: write, hidden, revision }, toSource(0));
+	useHideZeroRestore({ value, setValue: write, hidden, revision }, toSource(0), current => !Number(current));
 
 	const icon = useResolvedIcon(config.actionId ?? undefined);
 	const improvedIcon = useResolvedIcon(config.improvedId);

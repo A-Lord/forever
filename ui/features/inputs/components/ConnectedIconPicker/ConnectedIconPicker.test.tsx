@@ -151,6 +151,19 @@ describe('ConnectedIconPicker', () => {
 		expect(setValue).toHaveBeenLastCalledWith(settings, true);
 	});
 
+	it('keeps a value the source took while hidden instead of restoring the stored one over it', () => {
+		const settings = new Settings(true);
+		render(<ConnectedIconPicker modObject={settings} config={configFor({ showWhen: s => !!s.value })} />);
+
+		fireEvent.click(mainAnchor());
+		expect(screen.queryByTestId('icon-picker-root')).toBeNull();
+		expect(settings.value).toBe(false);
+
+		act(() => settings.set(true));
+		expect(screen.queryByTestId('icon-picker-root')).toBeTruthy();
+		expect(settings.value).toBe(true);
+	});
+
 	it('marks the swatch kept while keptBy holds, and follows the source', () => {
 		const settings = new Settings(true);
 		render(<ConnectedIconPicker modObject={settings} config={configFor({ keptBy: s => s.value === true })} />);

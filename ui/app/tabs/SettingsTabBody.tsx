@@ -3,11 +3,13 @@ import { SelectorModal } from '@features/gear/components/SelectorModal';
 import { OpenSelectorModalContext, useSelectorModalState } from '@features/gear/hooks/useSelectorModal';
 import { BuffSection, ConsumesFilters, ConsumesPicker, CustomSection, OtherSettings, PlayerSettings, RaidBuffs, SavedSettings } from '@features/settings';
 import * as BuffDebuffInputs from '@features/settings/model/buffs_debuffs';
-import { applyOwnerClassLabels, relevantStatOptions } from '@features/settings/model/stat_options';
+import { applyOwnerClassLabels, relevantStatOptions, statOptionScope } from '@features/settings/model/stat_options';
+import { StatFilterPopover, useStatFilter } from '@features/stat-filters';
 import i18n from '@i18n/config';
 import { PresetConfigurationCategory } from '@sim/constants/preset_categories';
 import { usePlayer, useSimHost, useSpecConfig } from '@sim/context/SimHostContext';
 import { useSimReady } from '@sim/hooks/useSimReady';
+import type { UnitStat } from '@sim/proto/stats';
 import { ContentBlock } from '@ui-kit/ContentBlock';
 import { TabPanelColumns } from '@ui-kit/TabPanelColumns';
 import { useMemo } from 'react';
@@ -16,6 +18,10 @@ import { PresetConfigurationPicker } from '../PresetConfigurationPicker';
 
 const SETTINGS_PRESETS = [PresetConfigurationCategory.Encounter, PresetConfigurationCategory.Settings];
 const GEAR_PLANNER_PRESETS = [PresetConfigurationCategory.Settings];
+const BUFF_OPTIONS = [...BuffDebuffInputs.BUFFS_CONFIG, ...BuffDebuffInputs.PARTY_BUFFS_CONFIG];
+const DEBUFF_OPTIONS = [...BuffDebuffInputs.DEBUFFS_CONFIG, ...BuffDebuffInputs.DEBUFFS_MISC_CONFIG];
+
+const statSet = (stats: ReadonlyArray<UnitStat>) => new Set(stats.map(stat => stat.getStat()));
 
 export const SettingsTabBody = () => {
 	const host = useSimHost();
@@ -23,15 +29,21 @@ export const SettingsTabBody = () => {
 	const player = usePlayer();
 	const ready = useSimReady();
 
-	const options = useMemo(
-		() => ({
-			buffs: applyOwnerClassLabels(relevantStatOptions(BuffDebuffInputs.BUFFS_CONFIG, host), player),
-			partyBuffs: applyOwnerClassLabels(relevantStatOptions(BuffDebuffInputs.PARTY_BUFFS_CONFIG, host), player),
-			debuffs: applyOwnerClassLabels(relevantStatOptions(BuffDebuffInputs.DEBUFFS_CONFIG, host), player),
-			debuffsMisc: applyOwnerClassLabels(relevantStatOptions(BuffDebuffInputs.DEBUFFS_MISC_CONFIG, host), player),
-		}),
-		[host, player],
-	);
+	const buffScope = useMemo(() => statOptionScope(BUFF_OPTIONS, config), [config]);
+	const debuffScope = useMemo(() => statOptionScope(DEBUFF_OPTIONS, config), [config]);
+	const buffFilter = useStatFilter('buffs', buffScope);
+	const debuffFilter = useStatFilter('debuffs', debuffScope);
+
+	const options = useMemo(() => {
+		const buffStats = statSet(buffFilter.shown);
+		const debuffStats = statSet(debuffFilter.shown);
+		return {
+			buffs: applyOwnerClassLabels(relevantStatOptions(BuffDebuffInputs.BUFFS_CONFIG, config, buffStats), player),
+			partyBuffs: applyOwnerClassLabels(relevantStatOptions(BuffDebuffInputs.PARTY_BUFFS_CONFIG, config, buffStats), player),
+			debuffs: applyOwnerClassLabels(relevantStatOptions(BuffDebuffInputs.DEBUFFS_CONFIG, config, debuffStats), player),
+			debuffsMisc: applyOwnerClassLabels(relevantStatOptions(BuffDebuffInputs.DEBUFFS_MISC_CONFIG, config, debuffStats), player),
+		};
+	}, [config, player, buffFilter.shown, debuffFilter.shown]);
 
 	const itemSwapSlots = config.itemSwapSlots || [];
 	const hasOtherSettings = config.otherInputs.inputs.length > 0 || itemSwapSlots.length > 0;
@@ -86,7 +98,20 @@ export const SettingsTabBody = () => {
 				<TabPanelColumns.Col>
 					{ready && (
 						<>
-							<BuffSection section="raid_buffs" empty={options.buffs.length === 0}>
+							<BuffSection
+								section="raid_buffs"
+								empty={options.buffs.length === 0}
+								filter={
+									<StatFilterPopover
+										universe={buffScope.universe}
+										shown={buffFilter.shown}
+										customised={buffFilter.customised}
+										playerClass={player.getClass()}
+										onChange={buffFilter.set}
+										onReset={buffFilter.reset}
+										testId="buffs-filter"
+									/>
+								}>
 								<RaidBuffs options={options.buffs} miscOptions={[]} />
 							</BuffSection>
 							{options.partyBuffs.length > 0 && (
@@ -95,7 +120,20 @@ export const SettingsTabBody = () => {
 								</BuffSection>
 							)}
 							{!gearPlanner && (
-								<BuffSection section="debuffs" empty={options.debuffs.length === 0}>
+								<BuffSection
+									section="debuffs"
+									empty={options.debuffs.length === 0}
+									filter={
+										<StatFilterPopover
+											universe={debuffScope.universe}
+											shown={debuffFilter.shown}
+											customised={debuffFilter.customised}
+											playerClass={player.getClass()}
+											onChange={debuffFilter.set}
+											onReset={debuffFilter.reset}
+											testId="debuffs-filter"
+										/>
+									}>
 									<RaidBuffs options={options.debuffs} miscOptions={options.debuffsMisc} />
 								</BuffSection>
 							)}

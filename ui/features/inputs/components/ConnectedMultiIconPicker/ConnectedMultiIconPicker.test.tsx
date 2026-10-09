@@ -163,4 +163,18 @@ describe('ConnectedMultiIconPicker', () => {
 		rerender(<ConnectedMultiIconPicker modObject={buffs} config={configFor({ keptBy: () => false })} subscribe={buffs.subscribe} onClear={() => {}} />);
 		expect(trigger().hasAttribute('data-kept')).toBe(false);
 	});
+
+	it('follows a new showWhen and new inputs without a store notification', () => {
+		const buffs = new Buffs();
+		buffs.set('mark', 1);
+		const { rerender } = mount(buffs, configFor({ showWhen: () => false }));
+		expect(screen.queryByTestId('multi-icon-picker-root')).toBeNull();
+
+		rerender(<ConnectedMultiIconPicker modObject={buffs} config={configFor({ showWhen: () => true })} subscribe={buffs.subscribe} onClear={() => {}} />);
+		expect(backgroundIcon()).toBe('mark.jpg');
+
+		const kingsOnly = configFor({ inputs: [input('kings', kingsId)] });
+		rerender(<ConnectedMultiIconPicker modObject={buffs} config={kingsOnly} subscribe={buffs.subscribe} onClear={() => {}} />);
+		expect(trigger().hasAttribute('data-active')).toBe(false);
+	});
 });
