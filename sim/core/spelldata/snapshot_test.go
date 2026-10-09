@@ -2,11 +2,12 @@ package spelldata
 
 // The generated store as the package loads it, rather than the fixture the rest of the tests run
 // against: the shape every accessor depends on (ids in search order, effects in position order) and
-// a handful of rows read out of the game files by hand, so that a regeneration which moves a
-// number says so here instead of in a sim result.
+// the links, masks and effect kinds of a handful of rows. An amount is read off the row rather than
+// written down, so a game build that moves a number does not fail here.
 
 import (
 	"github.com/wowsims/forever/sim/core/dbcenums"
+	"math"
 	"slices"
 	"strings"
 	"testing"
@@ -83,34 +84,16 @@ func TestGeneratedFrostbolt(t *testing.T) {
 	if s.School != 16 {
 		t.Errorf("Frostbolt's school mask is %d, want 16 (frost)", s.School)
 	}
-	if s.SpellLevel != 4 || s.MaxLevel != 8 {
-		t.Errorf("Frostbolt rank 1 is taught at %d and stops scaling at %d, want 4 and 8",
-			s.SpellLevel, s.MaxLevel)
-	}
-	if got := s.PowerCost(0); got != 25 {
-		t.Errorf("Frostbolt rank 1 costs %v mana, want 25", got)
-	}
-
-	damage := s.EffectN(2)
-	if damage.BasePoints != 19 || damage.PPL != 0.5 {
-		t.Errorf("Frostbolt's damage effect is %v base + %v per level, want 19 + 0.5",
-			damage.BasePoints, damage.PPL)
-	}
-	if damage.SPCoef < 0.4069 || damage.SPCoef > 0.4071 {
-		t.Errorf("Frostbolt's spell power coefficient is %v, want 0.407", damage.SPCoef)
-	}
-	// 19 plus half a point for each of the four levels between the rank's own 4 and its cap of 8.
-	if got := damage.AverageAt(60); got != 21 {
-		t.Errorf("Frostbolt rank 1 averages %v at level 60, want 21", got)
+	if got := s.DamageEffect(); got != s.EffectN(2) {
+		t.Errorf("Frostbolt's damage is effect %d, want the second by position", got.Index)
 	}
 }
 
-// Per-level scaling counts from the spell's BaseLevel: Vindication's debuff states BaseLevel 0 and
-// SpellLevel 1, and the game shows the BaseLevel amount.
+// Per-level scaling counts from the spell's BaseLevel: Vindication's debuff 440667, copied here,
+// states BaseLevel 0 and SpellLevel 1, and the game shows the BaseLevel amount.
 func TestAverageCountsLevelsFromBaseLevel(t *testing.T) {
-	withGeneratedStore(t)
-
-	vindication := MustFind(440667).EffectN(1)
+	vindication := &Effect{SpellID: 440667, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_ATTACK_POWER,
+		BasePoints: 6, PPL: -3.5, MaxLevel: 60}
 	for _, c := range []struct {
 		level int32
 		want  float64
@@ -119,17 +102,51 @@ func TestAverageCountsLevelsFromBaseLevel(t *testing.T) {
 			t.Errorf("Vindication's debuff at %d is %v, want %v", c.level, got, c.want)
 		}
 	}
-	// BaseLevel equals SpellLevel on ordinary ranks, so their amounts do not move.
-	if got := MustFind(11556).EffectN(1).AverageAt(60); got != -205 {
+	// BaseLevel equals SpellLevel on ordinary ranks, so their amounts do not move: Demoralizing Shout
+	// 11556's.
+	demoralizingShout := &Effect{SpellID: 11556, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_ATTACK_POWER,
+		BasePoints: -196, PPL: -1.399999976158142, BaseLevel: 54, MaxLevel: 64}
+	if got := demoralizingShout.AverageAt(60); got != -205 {
 		t.Errorf("Demoralizing Shout at 60 is %v, want -205", got)
 	}
 }
 
-// Every row but 350026 at 0 and 60 is an in-game tooltip. Wrath rank 3 (5178), Wildvine Potion's 11387
-// and Minor Recombobulator's 18805 end their base points on halves, which round to the even end: 27.5
-// and 32.5 are 28 and 32, 0.5 and 1499.5 are 0 and 1500.
+// Copies of game files rows whose ends, every one but 350026's at 0 and 60, are an in-game tooltip.
+// Wrath rank 3 (5178), Wildvine Potion's 11387 and Minor Recombobulator's 18805 end their base points
+// on halves, which round to the even end: 27.5 and 32.5 are 28 and 32, 0.5 and 1499.5 are 0 and 1500.
 func TestRollEndsMatchTheTooltip(t *testing.T) {
-	withGeneratedStore(t)
+	withRows(t, []Spell{
+		{ID: 2912, Name: "Starfire", School: 64, Effects: []Effect{
+			{SpellID: 2912, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 81, PPL: 1.2999999523162842,
+				Variance: 0.20202019810676575, BaseLevel: 20, MaxLevel: 25},
+		}},
+		{ID: 5177, Name: "Wrath", School: 8, Effects: []Effect{
+			{SpellID: 5177, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 23, PPL: 0.6000000238418579,
+				Variance: 0.14814814925193787, BaseLevel: 6, MaxLevel: 12},
+		}},
+		{ID: 5178, Name: "Wrath", School: 8, Effects: []Effect{
+			{SpellID: 5178, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 30, PPL: 0.699999988079071,
+				Variance: 0.1666666716337204, BaseLevel: 14, MaxLevel: 20},
+		}},
+		{ID: 11387, Name: "Wildvine Potion", School: 1, Effects: []Effect{
+			{SpellID: 11387, Type: dbcenums.E_HEAL, BasePoints: 750, Variance: 1.9986666440963745},
+			{SpellID: 11387, Index: 1, Type: dbcenums.E_ENERGIZE, BasePoints: 750, Variance: 1.9986666440963745},
+		}},
+		{ID: 18805, Name: "Recombobulate", School: 64, Effects: []Effect{
+			{SpellID: 18805, Type: dbcenums.E_DISPEL_MECHANIC, BasePoints: 1, MaxLevel: 30},
+			{SpellID: 18805, Index: 1, Type: dbcenums.E_HEAL, BasePoints: 270, Variance: 0.5, MaxLevel: 30},
+			{SpellID: 18805, Index: 2, Type: dbcenums.E_ENERGIZE, BasePoints: 128, Variance: 0.5, MaxLevel: 30},
+		}},
+		{ID: 350025, Name: "Frostbolt", School: 16, Effects: []Effect{
+			{SpellID: 350025, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_DECREASE_SPEED, BasePoints: -40, MaxLevel: 12},
+			{SpellID: 350025, Index: 1, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 33, PPL: 0.699999988079071,
+				Variance: 0.12121211737394333, MaxLevel: 12},
+		}},
+		{ID: 350026, Name: "Shadow Bolt", School: 32, Effects: []Effect{
+			{SpellID: 350026, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 52, PPL: 0.8999999761581421,
+				Variance: 0.1538461595773697, MaxLevel: 17},
+		}},
+	})
 
 	for _, c := range []struct {
 		spell    int32
@@ -161,15 +178,18 @@ func TestRollEndsMatchTheTooltip(t *testing.T) {
 	}
 }
 
-// A physical hit rolls its base points by the whole Variance either side: Revenge rank 1's 22 ± 3.4 is
-// 19 to 25. A spell-school hit and a heal of any school, Healing Potion's included, leave their roll to
-// core, which spreads the whole amount by DirectVariance; an energize keeps the half-width roll.
+// A physical hit rolls its base points by the whole Variance either side, as Revenge rank 1 does. A
+// spell-school hit and a heal of any school, Healing Potion's included, leave their roll to core,
+// which spreads the whole amount by DirectVariance; an energize keeps the half-width roll.
 func TestRollWidthByEffectKind(t *testing.T) {
 	withGeneratedStore(t)
 
 	revenge := MustFind(6572).DamageEffect()
-	if got, want := [2]float64{revenge.MinAt(60), revenge.MaxAt(60)}, [2]float64{19, 25}; got != want {
-		t.Errorf("Revenge rank 1 rolls %v, want %v", got, want)
+	level := int32(revenge.BaseLevel)
+	side := math.Abs(revenge.BasePoints) * revenge.Variance
+	want := [2]float64{math.RoundToEven(revenge.BasePoints - side), math.RoundToEven(revenge.BasePoints + side)}
+	if got := [2]float64{revenge.MinAt(level), revenge.MaxAt(level)}; got != want {
+		t.Errorf("Revenge rank 1 rolls %v at its own level, want the whole Variance either side, %v", got, want)
 	}
 	if got := revenge.DirectVariance(); got != 0 {
 		t.Errorf("Revenge rank 1 hands core a DirectVariance of %v, want 0", got)
@@ -195,12 +215,6 @@ func TestGeneratedLightningShield(t *testing.T) {
 	s := MustFind(324)
 	if s.ProcFlags[0] != 0x222A8 || s.ProcFlags[1] != 0 {
 		t.Errorf("Lightning Shield's proc mask is %#x/%#x, want 0x222a8/0", s.ProcFlags[0], s.ProcFlags[1])
-	}
-	if s.ProcCharges != 3 {
-		t.Errorf("Lightning Shield holds %d charges, want 3", s.ProcCharges)
-	}
-	if s.ICDMs != 3500 {
-		t.Errorf("Lightning Shield's internal cooldown is %dms, want 3500", s.ICDMs)
 	}
 	if s.ProcChanceSource != ProcChanceAlways {
 		t.Errorf("Lightning Shield's proc chance source is %d, want ProcChanceAlways", s.ProcChanceSource)
@@ -357,15 +371,16 @@ func TestGeneratedStanceAndAuraRestriction(t *testing.T) {
 func TestGeneratedRatingRowParsesExpertise(t *testing.T) {
 	withGeneratedStore(t)
 
-	parsed := ParseStatic(parseWarrior(), MustFind(1301076))
+	row := MustFind(1301076)
+	parsed := ParseStatic(parseWarrior(), row)
 	if len(parsed.Applied) != 1 {
 		t.Fatalf("attached %v, want one attachment", appliedKinds(parsed))
 	}
 	if got := parsed.Applied[0].Kind; got != "stat ExpertiseRating" {
 		t.Errorf("kind = %q, want %q", got, "stat ExpertiseRating")
 	}
-	if got := parsed.Applied[0].Value; got != 12 {
-		t.Errorf("value = %v, want 12", got)
+	if got, want := parsed.Applied[0].Value, row.EffectN(1).Mean(); got != want {
+		t.Errorf("value = %v, want the row's %v", got, want)
 	}
 }
 

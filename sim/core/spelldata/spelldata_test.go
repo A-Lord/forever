@@ -11,21 +11,22 @@ import (
 )
 
 // Rows in the shape the game files state them, standing in for the generated store: a ranked
-// direct-damage spell with a slow on it, a proc aura that fires a triggered spell, the spell it
-// fires, and two carrying the fractional EffectBasePointsF about one effect in 55 has. Ids ascend,
-// as the generated slice's do.
+// direct-damage spell with a slow on it and the two ranks above it, a proc aura that fires a
+// triggered spell, the spell it fires, and two carrying the fractional EffectBasePointsF about one
+// effect in 55 has. Ids ascend, as the generated slice's do.
 func fixture() []Spell {
 	return []Spell{
 		{
-			ID:         116,
-			Name:       "Frostbolt",
-			Rank:       "Rank 1",
-			School:     16,
-			SpellLevel: 4,
-			MaxLevel:   8,
-			CastTimeMs: 1500,
-			GCDMs:      1500,
-			DurationMs: 5000,
+			ID:                    116,
+			Name:                  "Frostbolt",
+			Rank:                  "Rank 1",
+			School:                16,
+			SpellLevel:            4,
+			MaxLevel:              8,
+			CastTimeMs:            1500,
+			GCDMs:                 1500,
+			StartRecoveryCategory: 133,
+			DurationMs:            5000,
 			Effects: []Effect{
 				{SpellID: 116, Index: 0, Type: dbcenums.E_APPLY_AURA, Aura: 33, BasePoints: -40},
 				{SpellID: 116, Index: 1, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 19, PPL: 0.5,
@@ -33,6 +34,7 @@ func fixture() []Spell {
 			},
 			Powers: []Power{{Type: 0, Cost: 25}},
 		},
+		{ID: 205, Name: "Frostbolt", Rank: "Rank 2", School: 16},
 		{
 			ID:          324,
 			Name:        "Lightning Shield",
@@ -64,6 +66,7 @@ func fixture() []Spell {
 					BaseLevel: 4, MaxLevel: 7},
 			},
 		},
+		{ID: 837, Name: "Frostbolt", Rank: "Rank 3", School: 16},
 		{
 			ID:     26364,
 			Name:   "Lightning Shield",
