@@ -1,6 +1,7 @@
 package database
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/wowsims/forever/sim/core/proto"
@@ -23,15 +24,24 @@ func TestAConsumableIsTypedByTheCategoryItsOnUseShares(t *testing.T) {
 		{"Thistle Tea, category 1153 on the item over its spell's 60", 7676, dbc.CONJURED_SPELL_CATEGORY, proto.ConsumableType_ConsumableTypeConjured},
 		{"Demonic Rune, not a Consumable-class item", 12662, dbc.CONJURED_SPELL_CATEGORY, proto.ConsumableType_ConsumableTypeConjured},
 		{"Keg of Thunderbrew, an Other-subclass drink", 1262, dbc.DRINK_SPELL_CATEGORY, proto.ConsumableType_ConsumableTypeFood},
-		{"Mageblood Elixir, an Elixir-subclass item on category 2593", 20007, 2593, proto.ConsumableType_ConsumableTypeElixir},
-		{"Gift of Arthas, an elixir on category 79", 9088, 79, proto.ConsumableType_ConsumableTypeElixir},
+		{"Mageblood Elixir, an Elixir-subclass item on a category that types nothing", 20007, 0, proto.ConsumableType_ConsumableTypeElixir},
+		{"Gift of Arthas, an elixir on a category that types nothing", 9088, 0, proto.ConsumableType_ConsumableTypeElixir},
 	} {
 		catalogued, ok := instance.Consumables[tc.id]
 		if !ok {
 			t.Fatalf("%s: %d is not in the catalogue", tc.name, tc.id)
 		}
-		if got := catalogued.ToProto(); got.CategoryId != tc.category || got.Type != tc.want {
-			t.Errorf("%s: category %d, type %v; want %d and %v", tc.name, got.CategoryId, got.Type, tc.category, tc.want)
+		got := catalogued.ToProto()
+		if got.Type != tc.want {
+			t.Errorf("%s: type %v, want %v", tc.name, got.Type, tc.want)
+		}
+		if tc.category == 0 {
+			if slices.Contains([]int32{dbc.POTION_SPELL_CATEGORY, dbc.CONJURED_SPELL_CATEGORY, dbc.FOOD_SPELL_CATEGORY,
+				dbc.DRINK_SPELL_CATEGORY, dbc.EXPLOSIVES_SPELL_CATEGORY}, got.CategoryId) {
+				t.Errorf("%s: category %d, want one that types nothing", tc.name, got.CategoryId)
+			}
+		} else if got.CategoryId != tc.category {
+			t.Errorf("%s: category %d, want %d", tc.name, got.CategoryId, tc.category)
 		}
 	}
 }

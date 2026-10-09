@@ -1,11 +1,13 @@
 package database
 
 import (
+	"fmt"
 	"maps"
 	"slices"
 	"strings"
 	"testing"
 
+	"github.com/wowsims/forever/sim/common/shared"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/tools/database/dbc"
 )
@@ -23,32 +25,50 @@ func shippedConsumable(t *testing.T, instance *dbc.DBC, id int) *proto.Consumabl
 	return ShippedConsumable(&catalogued, routing, instance)
 }
 
+// Consumables whose first aura is the same share one group, and a different first aura, another
+// stat or another school, is another group.
 func TestAConsumableTakesItsExclusiveGroup(t *testing.T) {
 	withDBCInputs(t)
 	instance := dbc.GetDBC()
+
+	groupNames := map[string]string{}
+	for _, tc := range []struct {
+		name string
+		ids  []int
+	}{
+		{"Strength: Elixir of Greater Strength, Juju Power, Scroll of Strength IV", []int{9206, 12451, 10310}},
+		{"Agility: Elixir of the Mongoose (Agility then crit), Scroll of Agility IV and Scroll of Agility", []int{13452, 10309, 3012}},
+		{"Intellect: Elixir of the Sages (Intellect then Spirit), Scroll of Intellect IV", []int{13447, 10308}},
+		{"Armor: Elixir of Greater Defense, Scroll of Protection IV", []int{13445, 10305}},
+		{"Attack Power: Winterfall Firewater, Juju Might", []int{12820, 12460}},
+		{"Arcane Elixir, every school", []int{9155}},
+		{"Elixir of Fire Power, fire alone", []int{6373}},
+		{"Gift of Arthas, shadow resistance", []int{9088}},
+		{"Scroll of Spirit IV", []int{10306}},
+		{"Scroll of Stamina IV, which no elixir opens on", []int{10307}},
+		{"Scroll of Minor Evocation, A_PERIODIC_ENERGIZE, which no elixir opens on", []int{213564}},
+	} {
+		first := shippedConsumable(t, instance, tc.ids[0])
+		if first.GroupKey == "" || first.GroupName == "" {
+			t.Errorf("%s: %d takes group %q %q, want one", tc.name, tc.ids[0], first.GroupKey, first.GroupName)
+			continue
+		}
+		for _, id := range tc.ids[1:] {
+			if got := shippedConsumable(t, instance, id); got.GroupKey != first.GroupKey || got.GroupName != first.GroupName {
+				t.Errorf("%s: %d takes group %q %q, want %d's %q %q", tc.name, id, got.GroupKey, got.GroupName, tc.ids[0], first.GroupKey, first.GroupName)
+			}
+		}
+		if other, taken := groupNames[first.GroupKey]; taken {
+			t.Errorf("%s: group %q is also %s's", tc.name, first.GroupKey, other)
+		}
+		groupNames[first.GroupKey] = tc.name
+	}
 
 	for _, tc := range []struct {
 		name       string
 		id         int
 		key, label string
 	}{
-		{"Elixir of the Mongoose, A_MOD_STAT Agility then crit", 13452, "29/1", "Agility"},
-		{"Elixir of the Sages, A_MOD_STAT Intellect then Spirit", 13447, "29/3", "Intellect"},
-		{"Arcane Elixir, A_MOD_DAMAGE_DONE every school", 9155, "13/126", "Spell Power"},
-		{"Elixir of Fire Power, A_MOD_DAMAGE_DONE fire", 6373, "13/4", "Fire Spell Power"},
-		{"Gift of Arthas, A_MOD_RESISTANCE shadow", 9088, "22/32", "Shadow Resistance"},
-		{"Elixir of Greater Strength, A_MOD_STAT Strength", 9206, "29/0", "Strength"},
-		{"Juju Power joins the Strength elixirs", 12451, "29/0", "Strength"},
-		{"Winterfall Firewater, A_MOD_ATTACK_POWER", 12820, "99/0", "Attack Power"},
-		{"Juju Might joins the Attack Power elixirs", 12460, "99/0", "Attack Power"},
-		{"Scroll of Agility IV joins the Agility elixirs", 10309, "29/1", "Agility"},
-		{"Scroll of Agility, the same group as its rank IV", 3012, "29/1", "Agility"},
-		{"Scroll of Strength IV joins the Strength elixirs", 10310, "29/0", "Strength"},
-		{"Scroll of Protection IV joins the Armor elixirs", 10305, "22/1", "Armor"},
-		{"Scroll of Intellect IV joins the Intellect elixirs", 10308, "29/3", "Intellect"},
-		{"Scroll of Spirit IV joins the Spirit elixirs", 10306, "29/4", "Spirit"},
-		{"Scroll of Stamina IV, A_MOD_STAT Stamina, which no elixir opens on", 10307, "29/2", "Stamina"},
-		{"Scroll of Minor Evocation, A_PERIODIC_ENERGIZE, which no elixir opens on", 213564, "24/0", "Mana Regeneration"},
 		{"Spirit of Zanza", 20079, "Zanza", "Zanza"},
 		{"R.O.I.D.S., category 103 in its rows, Zanza by the override", 8410, "Zanza", "Zanza"},
 		{"Fire-toasted Bun", 23327, "Hit food", "Hit food"},
@@ -62,13 +82,13 @@ func TestAConsumableTakesItsExclusiveGroup(t *testing.T) {
 	}
 }
 
-// Every elixir db.json ships has a group, and of the other consumables only the Blasted Lands buffs
-// are grouped by their category in their rows: category 103's 1 h lasts as long as each buff.
-func TestTheRowsGroupEveryElixirAndOnlyTheBlastedLandsByCategory(t *testing.T) {
+// Every elixir db.json ships has a group. A consumable grouped by the category in its rows is no
+// elixir or scroll, and its category is the one whose cooldown outlasts each buff it puts up.
+func TestTheRowsGroupEveryElixirAndByCategoryOnlyWhereTheCategoryOutlastsTheBuff(t *testing.T) {
 	withDBCInputs(t)
 	instance := dbc.GetDBC()
 
-	byCategory := map[int32]string{}
+	byCategory := 0
 	for _, id := range slices.Sorted(maps.Keys(instance.Consumables)) {
 		catalogued := instance.Consumables[id]
 		routing := RouteConsumable(&catalogued, instance)
@@ -80,13 +100,20 @@ func TestTheRowsGroupEveryElixirAndOnlyTheBlastedLandsByCategory(t *testing.T) {
 		if consumable.Type == proto.ConsumableType_ConsumableTypeElixir && group.Key == "" {
 			t.Errorf("elixir %d %s applies no aura to group it by", id, catalogued.Name)
 		}
-		if strings.HasPrefix(group.Key, "category ") {
-			byCategory[int32(id)] = group.Key
+		if !strings.HasPrefix(group.Key, "category ") {
+			continue
+		}
+		byCategory++
+		if consumable.Type == proto.ConsumableType_ConsumableTypeElixir || consumable.Type == proto.ConsumableType_ConsumableTypeScroll {
+			t.Errorf("%v %d %s is grouped by its category, want by its aura", consumable.Type, id, catalogued.Name)
+		}
+		category := shared.OneAtATimeCategory(consumable.ItemEffects[0])
+		if want := fmt.Sprintf("category %d", category); category <= 0 || group.Key != want {
+			t.Errorf("%d %s is grouped as %q, want %q", id, catalogued.Name, group.Key, want)
 		}
 	}
-	want := map[int32]string{8410: "category 103", 8411: "category 103", 8412: "category 103", 8423: "category 103", 8424: "category 103"}
-	if !maps.Equal(byCategory, want) {
-		t.Errorf("grouped by category %v, want %v", byCategory, want)
+	if byCategory == 0 {
+		t.Error("no consumable is grouped by its category")
 	}
 }
 

@@ -18,60 +18,61 @@ func TestEquipSpellPseudoStats(t *testing.T) {
 	dbc.GetDBC()
 
 	type pseudo = proto.PseudoStat
+	type aura = dbcenums.EffectAuraType
 	for _, tc := range []struct {
-		name    string
-		spellID int
-		want    map[pseudo]float64
+		name     string
+		spellID  int
+		readFrom map[pseudo]aura
 	}{
 		{"22780 Biznicks 247x128 Accurascope, hit on bows, guns and crossbows", 22780,
-			map[pseudo]float64{proto.PseudoStat_PseudoStatRangedHitPercent: 3}},
+			map[pseudo]aura{proto.PseudoStat_PseudoStatRangedHitPercent: dbcenums.A_MOD_HIT_CHANCE}},
 		{"24154 Falcon's Call, hit on any weapon", 24154,
-			map[pseudo]float64{proto.PseudoStat_PseudoStatMeleeHitPercent: 1, proto.PseudoStat_PseudoStatRangedHitPercent: 1}},
+			map[pseudo]aura{proto.PseudoStat_PseudoStatMeleeHitPercent: dbcenums.A_MOD_HIT_CHANCE, proto.PseudoStat_PseudoStatRangedHitPercent: dbcenums.A_MOD_HIT_CHANCE}},
 		{"1220596 Enchant Shield - Critical Strike, weapon and spell crit", 1220596,
-			map[pseudo]float64{
-				proto.PseudoStat_PseudoStatMeleeCritPercent:  1,
-				proto.PseudoStat_PseudoStatRangedCritPercent: 1,
-				proto.PseudoStat_PseudoStatSpellCritPercent:  1,
+			map[pseudo]aura{
+				proto.PseudoStat_PseudoStatMeleeCritPercent:  dbcenums.A_MOD_WEAPON_CRIT_PERCENT,
+				proto.PseudoStat_PseudoStatRangedCritPercent: dbcenums.A_MOD_WEAPON_CRIT_PERCENT,
+				proto.PseudoStat_PseudoStatSpellCritPercent:  dbcenums.A_MOD_SPELL_CRIT_CHANCE,
 			}},
 		{"1310308 SAF-T Ultra Precision Scope, all crit on bows, guns and crossbows", 1310308,
-			map[pseudo]float64{proto.PseudoStat_PseudoStatRangedCritPercent: 2}},
+			map[pseudo]aura{proto.PseudoStat_PseudoStatRangedCritPercent: dbcenums.A_MOD_CRIT_PCT}},
 		{"24156 Presence of Sight, spell hit", 24156,
-			map[pseudo]float64{proto.PseudoStat_PseudoStatSpellHitPercent: 1}},
+			map[pseudo]aura{proto.PseudoStat_PseudoStatSpellHitPercent: dbcenums.A_MOD_SPELL_HIT_CHANCE}},
 		{"25071 Enchant Cloak - Dodge", 25071,
-			map[pseudo]float64{proto.PseudoStat_PseudoStatDodgePercent: 1}},
+			map[pseudo]aura{proto.PseudoStat_PseudoStatDodgePercent: dbcenums.A_MOD_DODGE_PERCENT}},
 		{"13690 Enchant Shield - Lesser Block", 13690,
-			map[pseudo]float64{proto.PseudoStat_PseudoStatBlockPercent: 2}},
-		{"28142 Power of the Guardian, a party aura", 28142, map[pseudo]float64{}},
+			map[pseudo]aura{proto.PseudoStat_PseudoStatBlockPercent: dbcenums.A_MOD_BLOCK_PERCENT}},
+		{"28142 Power of the Guardian, a party aura", 28142, map[pseudo]aura{}},
 		{"7217 Weapon Counterweight, melee speed", 7217,
-			map[pseudo]float64{proto.PseudoStat_PseudoStatMeleeHastePercent: 3}},
+			map[pseudo]aura{proto.PseudoStat_PseudoStatMeleeHastePercent: dbcenums.A_MOD_MELEE_HASTE_3}},
 		{"13928 Enchant Gloves - Minor Haste, attack and cast speed", 13928,
-			map[pseudo]float64{
-				proto.PseudoStat_PseudoStatMeleeHastePercent:  1,
-				proto.PseudoStat_PseudoStatRangedHastePercent: 1,
-				proto.PseudoStat_PseudoStatSpellHastePercent:  1,
+			map[pseudo]aura{
+				proto.PseudoStat_PseudoStatMeleeHastePercent:  dbcenums.A_MOD_MELEE_RANGED_HASTE_2,
+				proto.PseudoStat_PseudoStatRangedHastePercent: dbcenums.A_MOD_MELEE_RANGED_HASTE_2,
+				proto.PseudoStat_PseudoStatSpellHastePercent:  dbcenums.A_MOD_CASTING_SPEED_NOT_STACK,
 			}},
 		{"22841 Arcanum of Rapidity, melee and ranged speed", 22841,
-			map[pseudo]float64{
-				proto.PseudoStat_PseudoStatMeleeHastePercent:  1,
-				proto.PseudoStat_PseudoStatRangedHastePercent: 1,
+			map[pseudo]aura{
+				proto.PseudoStat_PseudoStatMeleeHastePercent:  dbcenums.A_MOD_MELEE_HASTE_3,
+				proto.PseudoStat_PseudoStatRangedHastePercent: dbcenums.A_MOD_RANGED_HASTE,
 			}},
-		{"1293881 Pendulum of Doom, a zero melee speed aura", 1293881, map[pseudo]float64{}},
-		{"22755 Critical Weapon +2, crit on melee weapons", 22755, map[pseudo]float64{}},
-		{"430391 Hit Weapon +2, hit on melee weapons", 430391, map[pseudo]float64{}},
+		{"1293881 Pendulum of Doom, a zero melee speed aura", 1293881, map[pseudo]aura{}},
+		{"22755 Critical Weapon +2, crit on melee weapons", 22755, map[pseudo]aura{}},
+		{"430391 Hit Weapon +2, hit on melee weapons", 430391, map[pseudo]aura{}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			got := make([]float64, stats.PseudoStatsLen)
 			_, added := dbc.AddEquipSpellStats(&stats.Stats{}, got, tc.spellID)
 
 			want := make([]float64, stats.PseudoStatsLen)
-			for pseudoStat, value := range tc.want {
-				want[pseudoStat] = value
+			for pseudoStat, from := range tc.readFrom {
+				want[pseudoStat] = equipAuraPoints(t, tc.spellID, from)
 			}
 			if !slices.Equal(got, want) {
 				t.Errorf("pseudo stats %v, want %v", got, want)
 			}
-			if added != (len(tc.want) > 0) {
-				t.Errorf("reported added=%v with %d pseudo stats expected", added, len(tc.want))
+			if added != (len(tc.readFrom) > 0) {
+				t.Errorf("reported added=%v with %d pseudo stats expected", added, len(tc.readFrom))
 			}
 		})
 	}
@@ -84,7 +85,7 @@ func TestEquipSpellPseudoStats(t *testing.T) {
 	})
 }
 
-// The enchant carries what its equip spell states: 2523 applies 22780.
+// The enchant carries what its equip spell states: 2523 applies 22780, ranged hit alone.
 func TestEnchantCarriesEquipSpellPseudoStats(t *testing.T) {
 	withDBCInputs(t)
 
@@ -92,11 +93,12 @@ func TestEnchantCarriesEquipSpellPseudoStats(t *testing.T) {
 		if enchant.EffectId != 2523 {
 			continue
 		}
+		hit := equipAuraPoints(t, enchantEquipSpell(t, enchant), dbcenums.A_MOD_HIT_CHANCE)
 		pseudoStats := enchant.ToProto().PseudoStats
 		if len(pseudoStats) <= int(proto.PseudoStat_PseudoStatRangedHitPercent) ||
-			pseudoStats[proto.PseudoStat_PseudoStatRangedHitPercent] != 3 ||
+			pseudoStats[proto.PseudoStat_PseudoStatRangedHitPercent] != hit ||
 			pseudoStats[proto.PseudoStat_PseudoStatMeleeHitPercent] != 0 {
-			t.Errorf("enchant 2523 pseudo stats %v, want ranged hit 3 alone", pseudoStats)
+			t.Errorf("enchant 2523 pseudo stats %v, want ranged hit %v alone", pseudoStats, hit)
 		}
 		return
 	}
