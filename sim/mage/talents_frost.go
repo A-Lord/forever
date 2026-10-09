@@ -1,6 +1,8 @@
 package mage
 
 import (
+	"time"
+
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
@@ -219,11 +221,26 @@ func (mage *Mage) registerFingersOfFrost() {
 	config := spelldata.AuraConfig(spellData.FingersOfFrostTriggered.Highest())
 	config.MaxStacks = charges
 
-	// A charge is spent by each damage spell cast. OnCastComplete fires after the cast's effects,
-	// so the spell spending the last charge still reads the target as Frozen. The proc itself lands
-	// a batch window after the hit, so it can never be spent by the cast that granted it.
+	// The cast that granted the charges, which does not spend one of them.
+	var grantedBy *core.Spell
+	var grantedAt time.Duration
+
+	// Every damage spell cast except a channel spends a charge: in the logs, Blizzard casts made
+	// with charges up spent none. The charge goes after the cast's effects, so the spell that
+	// spends the last one still reads the target as Frozen.
 	config.OnCastComplete = func(aura *core.Aura, sim *core.Simulation, spell *core.Spell) {
-		if spell.Flags.Matches(core.SpellFlagAPL) && spell.ProcMask.Matches(core.ProcMaskSpellDamage) {
+		if spell == grantedBy && sim.CurrentTime == grantedAt {
+			return
+		}
+		if spell.Flags.Matches(core.SpellFlagAPL) && !spell.Flags.Matches(core.SpellFlagChanneled) &&
+			spell.ProcMask.Matches(core.ProcMaskSpellDamage) {
+			aura.RemoveStack(sim)
+		}
+	}
+	// Arcane Missiles' channel spends no charge; each missile that lands spends one, and a miss
+	// keeps it. The missile's damage is rolled before its hit spends the charge.
+	config.OnSpellHitDealt = func(aura *core.Aura, sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
+		if spell.Matches(MageSpellArcaneMissilesTick) && result.Landed() {
 			aura.RemoveStack(sim)
 		}
 	}
@@ -231,16 +248,33 @@ func (mage *Mage) registerFingersOfFrost() {
 	mage.FingersOfFrostAura = mage.RegisterAura(config)
 
 	trigger := spelldata.ProcTrigger(&mage.Character, talentRank,
-		func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
+		func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) {
+			grantedBy = spell
+			grantedAt = sim.CurrentTime
 			mage.FingersOfFrostAura.Activate(sim)
 			mage.FingersOfFrostAura.SetStacks(sim, charges)
 		})
 	trigger.Name = "Fingers of Frost - Trigger"
-	// PROC_FLAG_DEAL_HARMFUL_SPELL decodes to the cast; a Chill effect is applied by the hit.
+	// PROC_FLAG_DEAL_HARMFUL_SPELL decodes to the cast, but the logs place the proc on the hit:
+	// without Frostbite it rolls on each hit and is up a batch window later.
 	trigger.Callback = core.CallbackOnSpellHitDealt
 	trigger.Outcome = core.OutcomeLanded
 	trigger.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
 		return mage.isChill(spell)
+	}
+	if mage.Talents.Frostbite > 0 {
+		// With Frostbite the proc rolls as the Chill spell is launched at each target and is up in
+		// the same batch, before the spell lands: a missile rolls on its cast, a spell without
+		// travel time (a Blizzard tick) on each hit. A spell queued behind the cast is already
+		// treated as Frozen.
+		// TODO: a missile's roll on its cast cannot see the outcome, so a missed or fully resisted
+		// Frostbolt still grants the charges; no Frostbite log has a miss yet.
+		trigger.Callback |= core.CallbackOnCastComplete
+		trigger.TriggerImmediately = true
+		trigger.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, result *core.SpellResult) bool {
+			onCast := result == nil
+			return mage.isChill(spell) && onCast == (spell.MissileSpeed > 0)
+		}
 	}
 
 	mage.MakeProcTriggerAura(trigger)
