@@ -141,7 +141,7 @@ func TestAVersusAuraGainAndExpireDoNotAllocate(t *testing.T) {
 
 // A_MOD_DAMAGE_DONE_VERSUS multiplies the damage dealt to the masked mob types while its aura is up,
 // and divides it back out on expiry; crit damage follows the damage rather than being multiplied
-// again. Row 1302545 states 1 against mask 32, Undead.
+// again. A row stating 1 against mask 32, Undead.
 func TestADamageVersusAuraFollowsItsAuraOnTheAttackTables(t *testing.T) {
 	sim := &core.Simulation{}
 	character := parseWarrior()
@@ -180,7 +180,7 @@ func TestADamageVersusAuraFollowsItsAuraOnTheAttackTables(t *testing.T) {
 }
 
 // A_MOD_CRIT_PERCENT_VERSUS multiplies the crit damage dealt to the masked mob types on top of the
-// damage, which effect 1 of Humanoid Slaying 19153 raises by the same 3%, while its aura is up.
+// damage, which effect 1 of Humanoid Slaying 19153 raises, while its aura is up.
 func TestACritDamageVersusRowMultipliesTheCritOnTheAttackTables(t *testing.T) {
 	withGeneratedStore(t)
 
@@ -190,15 +190,16 @@ func TestACritDamageVersusRowMultipliesTheCritOnTheAttackTables(t *testing.T) {
 	undead := core.NewAttackTable(&static.Unit, &core.Unit{Type: core.EnemyUnit, MobType: proto.MobType_MobTypeUndead})
 	static.AttackTables = []*core.AttackTable{humanoid, undead}
 
-	parsed := ParseStatic(static, MustFind(19153))
+	humanoidSlaying := MustFind(19153)
+	parsed := ParseStatic(static, humanoidSlaying)
 	if kinds := appliedKinds(parsed); !slices.Equal(kinds, []string{"damage-dealt-versus", "crit-damage-versus"}) {
 		t.Fatalf("Humanoid Slaying attached %v, want the damage and the crit damage against Humanoids", kinds)
 	}
-	if got := humanoid.DamageDealtMultiplier; math.Abs(got-1.03) > 1e-9 {
-		t.Errorf("damage against Humanoids: %v, want 1.03", got)
+	if got, want := humanoid.DamageDealtMultiplier, 1+humanoidSlaying.EffectN(1).Percent(); math.Abs(got-want) > 1e-9 {
+		t.Errorf("damage against Humanoids: %v, want %v", got, want)
 	}
-	if got := humanoid.CritMultiplier; math.Abs(got-1.03) > 1e-9 {
-		t.Errorf("crit multiplier against Humanoids: %v, want 1.03", got)
+	if got, want := humanoid.CritMultiplier, 1+humanoidSlaying.EffectN(2).Percent(); math.Abs(got-want) > 1e-9 {
+		t.Errorf("crit multiplier against Humanoids: %v, want %v", got, want)
 	}
 	if undead.DamageDealtMultiplier != 1 || undead.CritMultiplier != 1 {
 		t.Errorf("against Undead: damage %v, crit %v, want both untouched", undead.DamageDealtMultiplier, undead.CritMultiplier)
@@ -226,7 +227,8 @@ func TestACritDamageVersusRowMultipliesTheCritOnTheAttackTables(t *testing.T) {
 }
 
 // A_SPELL_AURA_MOD_ARMOR_PENETRATION_PCT is the share of every defender's armor the unit's attacks
-// ignore: Serrated Blades 14171 at 3 of 3 ranks ignores 9%, once the attack tables exist.
+// ignore: Serrated Blades 14171 at 3 of 3 ranks ignores the share its rank states, once the attack
+// tables exist.
 func TestAnArmorPenetrationRowIgnoresAShareOfTheArmor(t *testing.T) {
 	withGeneratedStore(t)
 	serratedBlades := Talent(14171, 3).Rank(3)
@@ -251,8 +253,8 @@ func TestAnArmorPenetrationRowIgnoresAShareOfTheArmor(t *testing.T) {
 	finalized.Env = &core.Environment{State: core.Finalized}
 	table = armoredTable(finalized)
 	ParseStatic(finalized, serratedBlades, Effects(1))
-	if got := table.ArmorIgnoreFactor; math.Abs(got-0.09) > 1e-9 {
-		t.Errorf("armor ignored once finalized: %v, want 0.09", got)
+	if got, want := table.ArmorIgnoreFactor, serratedBlades.EffectN(1).Percent(); math.Abs(got-want) > 1e-9 {
+		t.Errorf("armor ignored once finalized: %v, want %v", got, want)
 	}
 
 	sim := &core.Simulation{}

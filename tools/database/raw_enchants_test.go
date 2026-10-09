@@ -190,6 +190,7 @@ func TestRawEnchantLvl(t *testing.T) {
 		{7940, "Enchant Weapon - Grand Crusader"}:       0,
 		{7659, "Enchant Off-Hand - Superior Intellect"}: 0,
 		{247, "Enchant Bracer - Minor Agility"}:         0,
+		{2588, "Presence of Sight"}:                     60,
 	} {
 		if got := byKey[key].Lvl; got != want {
 			t.Errorf("enchant %d %q: lvl %d, want %d", key.id, key.name, got, want)
