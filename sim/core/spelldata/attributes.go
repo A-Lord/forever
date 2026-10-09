@@ -39,6 +39,10 @@ func (s *Spell) RefundsOnMiss() bool {
 	return s.HasAttr(dbcenums.ATTR_INDEX_EX_1, dbcenums.ATTR_EX_1_DISCOUNT_POWER_ON_MISS)
 }
 
+func (s *Spell) GeneratesNoThreat() bool {
+	return s.HasAttr(dbcenums.ATTR_INDEX_EX_1, dbcenums.ATTR_EX_1_NO_THREAT)
+}
+
 func (s *Spell) PeriodicCanCrit() bool {
 	return s.HasAttr(dbcenums.ATTR_INDEX_EX_8, dbcenums.ATTR_EX_8_PERIODIC_CAN_CRIT)
 }

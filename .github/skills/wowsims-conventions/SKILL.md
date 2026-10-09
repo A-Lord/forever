@@ -26,6 +26,9 @@ These apply to every file and every piece of GitHub text, in Go and TypeScript a
     Caster              *Unit      // Whose proc chance mods apply, when not the aura's unit (e.g. Judgement of Light on the target).
     ```
 
+- **Do not name what the comment sits on.** A comment never opens with or repeats the name of the function,
+  type or field it documents: "The first row under an effect id that fits the item", not "FittingEnchantRow
+  returns the first row…". This holds for Go doc comments too, against Go's usual convention.
 - **State the rule, not the site it came from.** Do not name SimC, Wowhead or a JS mapping as the source of a
   name or value ("one SimC names", "commented out in the JS mapping"); write the rule ("one with no known name is
   `A_<id>`"). Existing Wowhead spell links above a spell's registration are fine; do not add attribution prose.

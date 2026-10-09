@@ -1,6 +1,7 @@
 import {
 	AreaType,
 	ArmorType,
+	CreatureFamily,
 	ItemSlot,
 	MobType,
 	Profession,
@@ -28,6 +29,7 @@ import {
 	getArmorTypeI18nKey,
 	getBulkSlotI18nKey,
 	getClassI18nKey,
+	getCreatureFamilyI18nKey,
 	getMobTypeI18nKey,
 	getPresetConfigurationCategoryI18nKey,
 	getProfessionI18nKey,
@@ -94,6 +96,12 @@ export const translateSpellSchool = (spellSchool: SpellSchool): string => {
 export const translateMobType = (mobType: MobType): string => {
 	return i18n.t(`common.mob_types.${getMobTypeI18nKey(mobType)}`, {
 		defaultValue: MobType[mobType],
+	});
+};
+
+export const translateCreatureFamily = (creatureFamily: CreatureFamily): string => {
+	return i18n.t(`common.creature_families.${getCreatureFamilyI18nKey(creatureFamily)}`, {
+		defaultValue: CreatureFamily[creatureFamily],
 	});
 };
 

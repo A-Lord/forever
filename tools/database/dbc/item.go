@@ -31,6 +31,7 @@ type Item struct {
 	Flags1                ItemStaticFlags1
 	Flags2                ItemStaticFlags2
 	Flags3                ItemStaticFlags3
+	Flags4                ItemStaticFlags4
 	FDID                  int
 	ItemSetName           string
 	ItemSetId             int
@@ -94,6 +95,13 @@ func (item *Item) ToScaledUIItem(itemLevel int) *proto.UIItem {
 		Stats:           item.GetStats(item.ItemLevel).ToProtoMap(),
 		RandPropPoints:  item.GetRandPropPoints(item.ItemLevel),
 		Ilvl:            int32(item.ItemLevel),
+	}
+	if item.ItemClass == ITEM_CLASS_WEAPON {
+		// Equipped damage is rounded; a form that swings at its own speed needs the table cell itself.
+		weaponDps, present := dbcInstance.WeaponDPS(item, item.ItemLevel)
+		if present {
+			scalingProperties[0].UnroundedDps = &weaponDps
+		}
 	}
 
 	uiItem.ScalingOptions = scalingProperties
@@ -161,7 +169,39 @@ func (item *Item) GetStats(itemLevel int) *stats.Stats {
 		stats[proto.Stat_StatBlockValue] += blockValue
 	}
 
+	item.addCasterSpellPower(stats, itemLevel)
+
 	return stats
+}
+
+// Caster weapons carry spell power that no stat slot states, worked out from the first column of the
+// item level budget with the allocations of the "of Magic" and "of Healing" bonus lists: 20000 spell
+// power, or on a healing weapon 37600 healing (1.88 times the spell power) and a third of that as spell
+// damage, each rounded down. It adds to the weapon's own stats; the rule reproduces the in-game tooltip
+// of every weapon with one of the two flags.
+const (
+	casterSpellPowerAllocation   = 20000
+	casterHealingPowerAllocation = 37600
+)
+
+func (item *Item) addCasterSpellPower(stats *stats.Stats, itemLevel int) {
+	if !item.Flags4.Has(CASTER_SPELL_POWER) && !item.Flags4.Has(CASTER_HEALING_POWER) {
+		return
+	}
+	budget := int(GetDBC().RandomPropertiesByIlvl[itemLevel][item.OverallQuality.ToProto()][0])
+	add := func(mod int, value int) {
+		mapped, _ := MapBonusStatIndexToStats(mod)
+		for _, stat := range mapped {
+			stats[stat] += float64(value)
+		}
+	}
+	if item.Flags4.Has(CASTER_HEALING_POWER) {
+		healing := casterHealingPowerAllocation * budget / 10000
+		add(ITEM_MOD_SPELL_HEALING_DONE, healing)
+		add(ITEM_MOD_SPELL_DAMAGE_DONE, healing/3)
+		return
+	}
+	add(ITEM_MOD_SPELL_POWER, casterSpellPowerAllocation*budget/10000)
 }
 
 // GetWeaponQualityModifier returns the per-item damage offset for weapons.
@@ -204,15 +244,8 @@ func (item *Item) GetScaledStat(index int, itemLevel int) float64 {
 }
 
 func (item *Item) WeaponDmgMin(itemLevel int) float64 {
-	if itemLevel == 0 {
-		itemLevel = item.ItemLevel
-	}
-	total := item.WeaponDps(itemLevel)*(float64(item.ItemDelay)/1000.0)*(1-item.DmgVariance/2) +
-		(item.QualityModifier * (float64(item.ItemDelay) / 1000.0))
-	if total < 0 {
-		total = 1
-	}
-	return math.Floor(total)
+	low, _ := item.WeaponDamage(item.WeaponDps(itemLevel))
+	return low
 }
 func (item *Item) GetBlockValue(itemLevel int) float64 {
 	weaponType, _, _ := item.GetWeaponTypes()
@@ -225,15 +258,8 @@ func (item *Item) GetBlockValue(itemLevel int) float64 {
 }
 
 func (item *Item) WeaponDmgMax(itemLevel int) float64 {
-	if itemLevel == 0 {
-		itemLevel = item.ItemLevel
-	}
-	total := item.WeaponDps(itemLevel)*(float64(item.ItemDelay)/1000.0)*(1+item.DmgVariance/2) +
-		(item.QualityModifier * (float64(item.ItemDelay) / 1000.0))
-	if total < 0 {
-		total = 1
-	}
-	return math.Floor(total + 0.5)
+	_, high := item.WeaponDamage(item.WeaponDps(itemLevel))
+	return high
 }
 
 func (item *Item) ApproximateScaleCoeff(currIlvl int, newIlvl int) float64 {

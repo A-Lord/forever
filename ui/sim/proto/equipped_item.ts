@@ -23,6 +23,13 @@ export const getWeaponDpsStatsBySlot = (weaponDps: number, slot: ItemSlot): Stat
 	return stats;
 };
 
+// Flat weapon damage is worth the DPS it adds at the enchanted weapon's speed, as a weapon's own damage is.
+export const enchantWeaponDamageEP = (enchant: Enchant, weaponSpeed: number, epPerWeaponDps: number): number =>
+	enchant.weaponDamage && weaponSpeed ? (enchant.weaponDamage / weaponSpeed) * epPerWeaponDps : 0;
+
+export const enchantEP = (enchant: Enchant, weights: Stats, weaponSpeed: number, epPerWeaponDps: number): number =>
+	new Stats(enchant.stats, enchant.pseudoStats).computeEP(weights) + enchantWeaponDamageEP(enchant, weaponSpeed, epPerWeaponDps);
+
 export const getWeaponStatsBySlot = (item: Item, slot: ItemSlot, upgradeStep: 0) => {
 	if (item.weaponSpeed > 0) {
 		return getWeaponDpsStatsBySlot(getWeaponDPS(item, upgradeStep), slot);
@@ -137,9 +144,9 @@ export class EquippedItem {
 		item.randPropPoints = scalingOptions.randPropPoints;
 
 		if (this._randomSuffix) {
-			item.stats = item.stats.map((stat, index) =>
-				this._randomSuffix!.stats[index] > 0 ? Math.floor((this._randomSuffix!.stats[index] * item.randPropPoints) / 10000) : stat,
-			);
+			const suffixStats = this._randomSuffix.stats;
+			// The game rounds each suffix stat to the nearest point and adds it to the item's own.
+			item.stats = item.stats.map((stat, index) => stat + Math.round(((suffixStats[index] || 0) * item.randPropPoints) / 10000));
 		}
 
 		for (const areaStats of scalingOptions.areaStats.filter(bonus => areaTypes.includes(bonus.areaType))) {
@@ -158,6 +165,7 @@ export class EquippedItem {
 	calcStats(slot?: ItemSlot): Stats {
 		const item = this.item;
 		let stats = new Stats(item.stats, item.pseudoStats);
+		if (this._randomSuffix) stats = stats.add(new Stats([], this._randomSuffix.pseudoStats));
 		if (typeof slot === 'number') stats = stats.add(getWeaponStatsBySlot(item, slot, 0));
 		return stats;
 	}

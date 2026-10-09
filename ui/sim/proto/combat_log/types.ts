@@ -63,9 +63,9 @@ export const OUTCOMES = ['hit', 'crit', 'crush', 'miss', 'dodge', 'parry', 'glan
 
 export type Outcome = (typeof OUTCOMES)[number];
 
-// sim/core/flags.go:156 appends " (25% Resist)" and its 50 and 75 siblings to a glance, crit or
-// hit.
-export type PartialResist = 0 | 25 | 50 | 75;
+// sim/core/flags.go's PartialResistString appends " (10% Resist)" up to " (100% Resist)", in 10% steps,
+// to a glance, crit or hit.
+export type PartialResist = 0 | 10 | 20 | 30 | 40 | 50 | 60 | 70 | 80 | 90 | 100;
 
 /** Avoidance: the attack never landed, so there is no amount to render and nothing to add to a total. */
 const AVOIDED_OUTCOMES: ReadonlyArray<Outcome> = ['miss', 'dodge', 'parry'];

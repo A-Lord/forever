@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -67,7 +68,7 @@ func (priest *Priest) registerHolyFire() {
 
 	config.Dot = spelldata.DotConfig(holyFireRank, holyFireRank)
 	config.Dot.Aura.Tag = "Holy Fire"
-	config.Dot.OnTick = spelldata.PeriodicDamageTick(holyFireRank, holyFireRank.TickOutcomeHitRolled)
+	config.Dot.OnTick = spelldata.PeriodicDamageTick(holyFireRank, holyFireRank.TickOutcome)
 
 	config.ExpectedInitialDamage = func(sim *core.Simulation, target *core.Unit, spell *core.Spell, _ bool) *core.SpellResult {
 		return spell.CalcDamage(sim, target, 100, spell.OutcomeExpectedMagicHitAndCrit)
@@ -83,6 +84,7 @@ func TestHoverSpellConfig(t *testing.T) {
 	if !ok {
 		t.Fatalf("no hover:\n%s", strings.Join(trace, "\n"))
 	}
+	execute := ladderOf(t, "warrior/Execute").Highest()
 	for _, want := range []string{
 		"`SpellConfig` of 20662 Execute (Rank 5)",
 		"`20662 Execute (Rank 5)`",
@@ -92,13 +94,13 @@ func TestHoverSpellConfig(t *testing.T) {
 		"| **DefenseType** | `DefenseTypeMelee` | SpellData · 20662 Execute (Rank 5) |",
 		"| **Flags** | `SpellFlagMeleeMetrics \\| SpellFlagNoOnCastComplete \\| SpellFlagAPL` | Melee(ProcMaskMeleeMHSpecial), Flags(SpellFlagNoOnCastComplete) |",
 		"| **ProcMask** | `ProcMaskMeleeMHSpecial` | Melee(ProcMaskMeleeMHSpecial) |",
-		"| **Cast.DefaultCast.GCD** | `1.5s` | SpellData · 20662 Execute (Rank 5) |",
+		"| **Cast.DefaultCast.GCD** | `" + execute.GCD().String() + "` | SpellData · 20662 Execute (Rank 5) |",
 		"| **Cast.IgnoreHaste** | `true` | SpellData · 20662 Execute (Rank 5) |",
-		"| **RageCost.Cost** | `15` | SpellData · 20662 Execute (Rank 5) |",
+		"| **RageCost.Cost** | `" + strconv.Itoa(int(execute.PowerCost(dbcenums.POWER_RAGE))) + "` | SpellData · 20662 Execute (Rank 5) |",
 		"| **RageCost.Refund** | `0.8` | SpellData · 20662 Execute (Rank 5) |",
 		"| **DamageMultiplier** | `1` | Melee(ProcMaskMeleeMHSpecial) |",
 		"| **ThreatMultiplier** | `1` | Melee(ProcMaskMeleeMHSpecial) |",
-		"| **MaxRange** | `5` | SpellData · 20662 Execute (Rank 5) |",
+		"| **MaxRange** | `" + strconv.FormatFloat(float64(execute.MaxRange), 'f', -1, 64) + "` | SpellData · 20662 Execute (Rank 5) |",
 		"| **ClassFlags** | `family 4 mask 0x20000000` | SpellData · 20662 Execute (Rank 5) |",
 		"| **CastRequirement.Forms** | `0x50000 (Battle, Berserker)` | SpellData · 20662 Execute (Rank 5) |",
 		"| **CastRequirement.NotShapeshifted** | `true` | SpellData · 20662 Execute (Rank 5) |",
@@ -216,7 +218,7 @@ func TestConfigCastRequirement(t *testing.T) {
 	}{
 		{"warrior", "ShieldBash", []string{"CastRequirement.Forms  ", "0x30000 (Battle, Defensive)", "CastRequirement.NotShapeshifted", "CastRequirement.Shield  "}},
 		{"warrior", "Charge", []string{"CastRequirement.Forms  ", "0x10000 (Battle)", "CastRequirement.NotInCombat  "}},
-		{"warrior", "SpearingStrike", []string{"1378 (two-handed axe, two-handed mace, polearm, two-handed sword or staff)", "ProcMaskMeleeMHAuto | ProcMaskMeleeMHSpecial"}},
+		{"warrior", "SpearingStrike", []string{"173555 (melee weapon)", "ProcMaskMeleeMHAuto | ProcMaskMeleeMHSpecial"}},
 		{"hunter", "AimedShot", []string{"CastRequirement.Weapon.SubclassMask", "262156 (bow, gun or crossbow)"}},
 		{"druid", "Wrath", []string{"0x40000000 (Moonkin)", "CastRequirement.ExcludedForms", "0x2 (Tree of Life)", "CastRequirement.CasterForm  "}},
 	} {

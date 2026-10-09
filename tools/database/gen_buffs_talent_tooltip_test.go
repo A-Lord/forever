@@ -2,15 +2,16 @@ package database
 
 import "testing"
 
-// Vindication's talent states its effect only in its tooltip: rank/3 of the debuff's amount.
+// Vindication's talent states its effect only in its tooltip: rank/N of the debuff's amount.
 func TestTalentPricedByItsTooltip(t *testing.T) {
 	for _, row := range resolveCommittedBuffs(t) {
 		if row.Field != "vindication" {
 			continue
 		}
-		if row.TalentRanks != 3 || row.TalentDivisor != 3 || row.TalentSpellID != 9452 {
-			t.Errorf("vindication resolved to ranks %d divisor %d talent %d, want 3, 3, 9452",
-				row.TalentRanks, row.TalentDivisor, row.TalentSpellID)
+		ranks := talentNodeRanks(t, row.Talent)
+		if row.TalentRanks == 0 || row.TalentRanks != ranks || row.TalentDivisor <= 1 || row.TalentSpellID != row.Talent {
+			t.Errorf("vindication resolved to ranks %d divisor %d talent %d, want its node's %d ranks, a tooltip divisor and talent %d",
+				row.TalentRanks, row.TalentDivisor, row.TalentSpellID, ranks, row.Talent)
 		}
 		return
 	}

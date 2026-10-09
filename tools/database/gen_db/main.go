@@ -220,7 +220,9 @@ func main() {
 	if err := database.GenerateConsumablesTSFile(db); err != nil {
 		log.Fatalf("failed to generate the consumables TS file: %v", err)
 	}
-	database.GenerateMissingEffectsFile()
+	if err := database.GenerateMissingEffectsFile(instance, db); err != nil {
+		log.Fatalf("failed to generate the missing effects TS file: %v", err)
+	}
 	database.GenerateItemEffectRandomPropPoints(instance, db)
 
 	// Disbabled due to duplicate SpellIDs
@@ -243,9 +245,11 @@ func main() {
 		}
 	}
 
-	for _, randomSuffix := range instance.RandomSuffix {
-		if _, exists := db.RandomSuffixes[int32(randomSuffix.ID)]; !exists {
-			db.RandomSuffixes[int32(randomSuffix.ID)] = randomSuffix.ToProto()
+	for _, item := range db.Items {
+		for _, id := range item.RandomSuffixOptions {
+			if _, exists := db.RandomSuffixes[id]; !exists {
+				db.RandomSuffixes[id] = instance.RandomSuffix[int(id)].ToProto()
+			}
 		}
 	}
 
@@ -325,6 +329,9 @@ func processItems(instance *dbc.DBC,
 
 	for _, item := range sortedItems {
 		if item.Flags2&0x10 != 0 && (item.StatAlloc[0] > 0 && item.StatAlloc[0] < 600) {
+			continue
+		}
+		if _, allowed := database.ItemAllowList[int32(item.Id)]; item.Flags0.Has(dbc.DEPRECATED) && !allowed {
 			continue
 		}
 		parsed := item.ToUIItem()

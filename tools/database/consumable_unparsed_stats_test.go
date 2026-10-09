@@ -3,7 +3,10 @@ package database
 import (
 	"testing"
 
+	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
 func TestUnparsedStatsListVersusStatsChannelPercentsAndZoneBonus(t *testing.T) {
@@ -28,25 +31,37 @@ func TestUnparsedStatsListVersusStatsChannelPercentsAndZoneBonus(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	meleeHit := map[proto.PseudoStat]float64{proto.PseudoStat_PseudoStatMeleeHitPercent: 2, proto.PseudoStat_PseudoStatRangedHitPercent: 2}
-	allCrit := map[proto.PseudoStat]float64{
-		proto.PseudoStat_PseudoStatMeleeCritPercent: 2, proto.PseudoStat_PseudoStatRangedCritPercent: 2, proto.PseudoStat_PseudoStatSpellCritPercent: 2,
+	amount := func(spellID int32, aura dbcenums.EffectAuraType) float64 {
+		return spelldata.MustFind(spellID).FirstAura(aura).Average()
+	}
+	zoneBonus := func(spellID int32) float64 {
+		return spelldata.MustFind(spellID).EffectN(2).Average()
+	}
+	meleeAndRangedHit := func(spellID int32) map[proto.PseudoStat]float64 {
+		hit := amount(spellID, dbcenums.A_MOD_HIT_CHANCE)
+		return map[proto.PseudoStat]float64{proto.PseudoStat_PseudoStatMeleeHitPercent: hit, proto.PseudoStat_PseudoStatRangedHitPercent: hit}
+	}
+	allCrit := func(spellID int32) map[proto.PseudoStat]float64 {
+		crit := amount(spellID, dbcenums.A_MOD_CRIT_PCT)
+		return map[proto.PseudoStat]float64{
+			proto.PseudoStat_PseudoStatMeleeCritPercent: crit, proto.PseudoStat_PseudoStatRangedCritPercent: crit, proto.PseudoStat_PseudoStatSpellCritPercent: crit,
+		}
 	}
 	for id, want := range map[int32]struct {
 		stats       map[proto.Stat]float64
 		pseudoStats map[proto.PseudoStat]float64
 	}{
-		9224:   {stats: map[proto.Stat]float64{proto.Stat_StatAttackPower: 180}},
-		23327:  {pseudoStats: meleeHit},
-		22237:  {pseudoStats: meleeHit},
-		211954: {pseudoStats: map[proto.PseudoStat]float64{proto.PseudoStat_PseudoStatSpellHitPercent: 1}},
-		211957: {pseudoStats: map[proto.PseudoStat]float64{proto.PseudoStat_PseudoStatSpellCritPercent: 1}},
-		13452:  {pseudoStats: allCrit},
-		250337: {pseudoStats: allCrit},
-		274273: {stats: map[proto.Stat]float64{proto.Stat_StatStamina: 60, proto.Stat_StatHitRating: 50}},
-		274274: {stats: map[proto.Stat]float64{proto.Stat_StatStamina: 60, proto.Stat_StatCritRating: 56}},
-		274275: {stats: map[proto.Stat]float64{proto.Stat_StatStamina: 60, proto.Stat_StatExpertiseRating: 50}},
-		274276: {stats: map[proto.Stat]float64{proto.Stat_StatStamina: 60, proto.Stat_StatHasteRating: 50}},
+		9224:   {stats: map[proto.Stat]float64{proto.Stat_StatAttackPower: amount(11406, dbcenums.A_MOD_MELEE_ATTACK_POWER_VERSUS)}},
+		23327:  {pseudoStats: meleeAndRangedHit(29332)},
+		22237:  {pseudoStats: meleeAndRangedHit(27723)},
+		211954: {pseudoStats: map[proto.PseudoStat]float64{proto.PseudoStat_PseudoStatSpellHitPercent: amount(430949, dbcenums.A_MOD_SPELL_HIT_CHANCE)}},
+		211957: {pseudoStats: map[proto.PseudoStat]float64{proto.PseudoStat_PseudoStatSpellCritPercent: amount(430952, dbcenums.A_MOD_SPELL_CRIT_CHANCE)}},
+		13452:  {pseudoStats: allCrit(17538)},
+		250337: {pseudoStats: allCrit(1250940)},
+		274273: {stats: map[proto.Stat]float64{proto.Stat_StatStamina: 60, proto.Stat_StatHitRating: zoneBonus(1293740) * core.HitRatingPerHitPercent}},
+		274274: {stats: map[proto.Stat]float64{proto.Stat_StatStamina: 60, proto.Stat_StatCritRating: zoneBonus(1293741) * core.CritRatingPerCritPercent}},
+		274275: {stats: map[proto.Stat]float64{proto.Stat_StatStamina: 60, proto.Stat_StatExpertiseRating: zoneBonus(1293742) * core.ExpertiseRatingPerExpertisePercent}},
+		274276: {stats: map[proto.Stat]float64{proto.Stat_StatStamina: 60, proto.Stat_StatHasteRating: zoneBonus(1293743) * core.HasteRatingPerHastePercent}},
 	} {
 		consumable := db.Consumables[id]
 		if (len(consumable.Stats) == 0) != (len(want.stats) == 0) {

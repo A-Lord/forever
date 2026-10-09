@@ -104,7 +104,7 @@ func TestProcChanceOverrideBecomesTheColumn(t *testing.T) {
 	}
 }
 
-func TestOverridesRefuseWhatTheClientNowStates(t *testing.T) {
+func TestOverridesRefuseWhatTheGameFilesState(t *testing.T) {
 	for _, tc := range []struct {
 		name  string
 		rows  []storeSpell
@@ -271,6 +271,13 @@ func TestShippedOverridesAreWellFormed(t *testing.T) {
 	for _, proc := range overrides.WeaponProcs {
 		if proc.Reason == "" || proc.Source == "" {
 			t.Errorf("item %d's rate on %d states reason %q and source %q", proc.ItemID, proc.SpellID, proc.Reason, proc.Source)
+		}
+	}
+
+	for _, proc := range overrides.EnchantProcs {
+		if proc.Reason == "" || proc.Source == "" || proc.Kind.String() == "unknown rate kind" || proc.Value <= 0 {
+			t.Errorf("enchant %d's rate on %d is a %s of %v and states reason %q and source %q",
+				proc.EnchantID, proc.SpellID, proc.Kind, proc.Value, proc.Reason, proc.Source)
 		}
 	}
 }

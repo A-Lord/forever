@@ -6,28 +6,47 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/wowsims/forever/assets/database"
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/simsignals"
 )
 
-// ItemSparse.AllowableClass reaches the sim as the item's class allowlist, playable classes only.
+// The class allowlist each item states in the database reaches the sim's item as it is, and names
+// playable classes only, each once. The database loads an item id once, its first row.
 func TestClassRestrictedItemsCarryTheirAllowlist(t *testing.T) {
-	for id, want := range map[int32][]proto.Class{
-		14152: {proto.Class_ClassMage},    // Robe of the Archmage
-		19339: {proto.Class_ClassMage},    // Mind Quickening Gem, AllowableClass 31360
-		19343: {proto.Class_ClassPaladin}, // Scrolls of Blinding Light
-		19951: {proto.Class_ClassWarrior}, // Gri'lek's Charm of Might
-		19954: {proto.Class_ClassRogue},   // Renataki's Charm of Trickery
-	} {
-		item := core.GetItemByID(id)
-		if item == nil {
-			t.Errorf("item %d is not in the database", id)
+	playable := []proto.Class{proto.Class_ClassWarrior, proto.Class_ClassPaladin, proto.Class_ClassHunter,
+		proto.Class_ClassRogue, proto.Class_ClassPriest, proto.Class_ClassShaman, proto.Class_ClassMage,
+		proto.Class_ClassWarlock, proto.Class_ClassDruid}
+	restricted := 0
+	loaded := map[int32]bool{}
+	for _, uiItem := range database.Load().Items {
+		if loaded[uiItem.Id] {
 			continue
 		}
-		if !slices.Equal(item.ClassAllowlist, want) {
-			t.Errorf("item %d %s class allowlist = %v, want %v", id, item.Name, item.ClassAllowlist, want)
+		loaded[uiItem.Id] = true
+		item := core.GetItemByID(uiItem.Id)
+		if item == nil {
+			t.Errorf("item %d is not in the sim's database", uiItem.Id)
+			continue
 		}
+		if !slices.Equal(item.ClassAllowlist, uiItem.ClassAllowlist) {
+			t.Errorf("item %d %s loads class allowlist %v, the database states %v", item.ID, item.Name, item.ClassAllowlist, uiItem.ClassAllowlist)
+		}
+		if len(item.ClassAllowlist) > 0 {
+			restricted++
+		}
+		for i, class := range item.ClassAllowlist {
+			if !slices.Contains(playable, class) {
+				t.Errorf("item %d %s class allowlist %v names %v, which is not a playable class", item.ID, item.Name, item.ClassAllowlist, class)
+			}
+			if slices.Contains(item.ClassAllowlist[:i], class) {
+				t.Errorf("item %d %s class allowlist %v names %v twice", item.ID, item.Name, item.ClassAllowlist, class)
+			}
+		}
+	}
+	if restricted == 0 {
+		t.Error("no item carries a class allowlist")
 	}
 }
 

@@ -17,14 +17,6 @@ vi.mock('@sim/bulk/utils', async () => {
 });
 vi.mock('../../model/run', () => ({ runBulkBatch: vi.fn() }));
 
-const reforgePanelProps = vi.fn();
-vi.mock('@features/reforge/components/ReforgePanel', () => ({
-	ReforgeSettingsPanel: (props: Record<string, unknown>) => {
-		reforgePanelProps(props);
-		return <div data-testid="reforge-settings-body" />;
-	},
-}));
-
 const { BulkSettings, BulkSettingsView } = await import('./BulkSettings');
 
 const STORE_KEY = 5;
@@ -56,7 +48,6 @@ const mount = (reforger: unknown = null) => {
 
 beforeEach(() => {
 	localStorage.clear();
-	reforgePanelProps.mockClear();
 });
 
 describe('BulkSettings', () => {
@@ -88,20 +79,15 @@ describe('BulkSettings', () => {
 		expect(JSON.parse(localStorage.getItem('test-__bulkSettingsGroups')!)).toEqual(['freezes']);
 	});
 
-	it('renders no reforge group for a spec without a reforge optimizer', () => {
-		const { container } = mount();
+	it('shows only the enchant and frozen slot groups, even for a spec with the gear optimizer', () => {
+		const { container } = mount({ settings: {} });
 
-		expect(container.querySelector('[data-testid="bulk-settings-group-reforge"]')).toBeNull();
-	});
+		const triggers = [...container.querySelectorAll('[data-testid^="bulk-settings-group-"][data-testid$="-trigger"]')];
 
-	it('runs the reforge settings under their own id prefix', () => {
-		const reforger = { settings: {} };
-		const { container, openGroup } = mount(reforger);
-
-		openGroup('reforge');
-
-		expect(container.querySelector('[data-testid="reforge-settings-body"]')).not.toBeNull();
-		expect(reforgePanelProps).toHaveBeenCalledWith(expect.objectContaining({ model: reforger, idPrefix: 'bulk-reforge-optimizer' }));
+		expect(triggers.map(trigger => trigger.getAttribute('data-testid'))).toEqual([
+			'bulk-settings-group-enchants-trigger',
+			'bulk-settings-group-freezes-trigger',
+		]);
 	});
 });
 
@@ -122,8 +108,7 @@ const renderSettings = (props: Partial<BulkSettingsViewProps> = {}) => {
 		<BulkSettingsView
 			combinationsCount={<span data-testid="count" />}
 			canRun
-			openGroups={['freezes', 'reforge']}
-			reforgeSettings={null}
+			openGroups={['freezes']}
 			enchants={null}
 			frozenItems={[RING_VIEW]}
 			weaponFreeze={null}
@@ -166,13 +151,5 @@ describe('BulkSettingsView', () => {
 
 		expect(onFrozenWeaponSlotChange).toHaveBeenCalledWith(ItemSlot.ItemSlotMainHand);
 		expect(screen.getByTestId('weapon-types')).toBeTruthy();
-	});
-
-	it.each([false, true])('adds the reforge group, holding the reforge settings, only when it is given them (%s)', shown => {
-		renderSettings({ reforgeSettings: shown ? <span data-testid="reforge-body" /> : null });
-		const group = screen.queryByTestId('bulk-settings-group-reforge');
-
-		expect(!!group).toBe(shown);
-		expect(!!group?.contains(screen.queryByTestId('reforge-body'))).toBe(shown);
 	});
 });

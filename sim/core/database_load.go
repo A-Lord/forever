@@ -47,9 +47,10 @@ func init() {
 
 	for i, suffix := range db.RandomSuffixes {
 		simDB.RandomSuffixes[i] = &proto.ItemRandomSuffix{
-			Id:    suffix.Id,
-			Name:  suffix.Name,
-			Stats: suffix.Stats,
+			Id:          suffix.Id,
+			Name:        suffix.Name,
+			Stats:       suffix.Stats,
+			PseudoStats: suffix.PseudoStats,
 		}
 	}
 
@@ -64,6 +65,7 @@ func init() {
 			Type:           enchant.Type,
 			EnchantType:    enchant.EnchantType,
 			ExtraTypes:     enchant.ExtraTypes,
+			ProcKind:       enchant.ProcKind,
 		}
 	}
 

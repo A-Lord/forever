@@ -65,7 +65,6 @@ func RegisterAllStatConsumables() {
 		4952,   // Stormstout
 		5095,   // Rainbow Fin Albacore
 		5206,   // Bogling Root
-		5265,   // Watered-down Beer
 		5342,   // Raptor Punch
 		5472,   // Kaldorei Spider Kabob
 		5474,   // Roasted Kodo Meat

@@ -1,6 +1,6 @@
 package overrides
 
-// A chance-on-hit weapon's procs per minute, which the game files keep outside the spell data: the
+// A chance-on-hit item's procs per minute, which the game files keep outside the spell data: the
 // spell's ProcChance column reads the 100 or 101 sentinel, or the spell has no proc row at all. The
 // rate is the weapon's rather than the spell's, since two weapons can share a trigger spell at
 // different rates, so it goes onto the item effect. Reason and Source weigh the same as an
@@ -351,6 +351,318 @@ var WeaponProcs = []WeaponProc{
 		Reason:  "Dark Edge of Insanity: column reads 101",
 		Source:  "vanilla-carryover",
 	},
+	// TODO: The rates below are vanilla carry-overs, simulator assumptions or old community tests, and none
+	// has been measured on this server. Replace each with a measured rate (Source wcl:<report>/<fight> or
+	// issue #N) when logs exist.
+	{
+		ItemID:  1728,
+		SpellID: 1300753,
+		PPM:     1, // TODO: Vanilla value - verify in-game
+		Reason:  "Teebu's Blazing Longsword: no proc row",
+		Source:  "vanilla-carryover",
+	},
+	{
+		ItemID:  1982,
+		SpellID: 18211,
+		PPM:     1, // TODO: Vanilla value - verify in-game
+		Reason:  "Nightblade: no proc row",
+		Source:  "vanilla-carryover",
+	},
+	{
+		ItemID:  2164,
+		SpellID: 18107,
+		PPM:     1, // TODO: Vanilla value - verify in-game
+		Reason:  "Gut Ripper: column reads 101",
+		Source:  "vanilla-carryover",
+	},
+	{
+		ItemID:  2243,
+		SpellID: 18803,
+		PPM:     1, // TODO: Vanilla value - verify in-game
+		Reason:  "Hand of Edward the Odd: column reads 100; vanilla figures differ, 1.0 from 21 procs in 757 hits against 2.0",
+		Source:  "vanilla-carryover",
+	},
+	{
+		ItemID:  2825,
+		SpellID: 29638,
+		PPM:     3.35, // TODO: Vanilla value - verify in-game
+		Reason:  "Bow of Searing Arrows: no proc row",
+		Source:  "vanilla-carryover",
+	},
+	{
+		ItemID:  7717,
+		SpellID: 9632,
+		PPM:     1, // TODO: Vanilla value - verify in-game
+		Reason:  "Ravager: no proc row",
+		Source:  "vanilla-carryover",
+	},
+	{
+		ItemID:  9651,
+		SpellID: 18081,
+		PPM:     1, // TODO: Vanilla value - verify in-game
+		Reason:  "Gryphon Rider's Stormhammer: no proc row",
+		Source:  "vanilla-carryover",
+	},
+	{
+		ItemID:  12777,
+		SpellID: 16898,
+		PPM:     1, // TODO: Vanilla value - verify in-game
+		Reason:  "Blazing Rapier: no proc row",
+		Source:  "vanilla-carryover",
+	},
+	{
+		ItemID:  12790,
+		SpellID: 16916,
+		PPM:     1, // TODO: Vanilla value - verify in-game
+		Reason:  "Arcanite Champion: no proc row",
+		Source:  "vanilla-carryover",
+	},
+	{
+		ItemID:  12792,
+		SpellID: 18082,
+		PPM:     1, // TODO: Vanilla value - verify in-game
+		Reason:  "Volcanic Hammer: column reads 101",
+		Source:  "vanilla-carryover",
+	},
+	{
+		ItemID:  12795,
+		SpellID: 13318,
+		PPM:     1, // TODO: Vanilla value - verify in-game
+		Reason:  "Blood Talon: column reads 101",
+		Source:  "vanilla-carryover",
+	},
+	{
+		ItemID:  12797,
+		SpellID: 16927,
+		PPM:     1, // TODO: Vanilla value - verify in-game
+		Reason:  "Frostguard: no proc row",
+		Source:  "vanilla-carryover",
+	},
+	{
+		ItemID:  13035,
+		SpellID: 17511,
+		PPM:     1, // TODO: Vanilla value - verify in-game
+		Reason:  "Serpent Slicer: column reads 101",
+		Source:  "vanilla-carryover",
+	},
+	{
+		ItemID:  13040,
+		SpellID: 29626,
+		PPM:     3, // TODO: Vanilla value - verify in-game
+		Reason:  "Heartseeking Crossbow: equip trigger, column reads 100",
+		Source:  "vanilla-carryover",
+	},
+	{
+		ItemID:  15814,
+		SpellID: 16406,
+		PPM:     1, // TODO: Vanilla value - verify in-game
+		Reason:  "Hameya's Slayer: column reads 101",
+		Source:  "vanilla-carryover",
+	},
+	{
+		ItemID:  17193,
+		SpellID: 21159,
+		PPM:     1, // TODO: Vanilla value - verify in-game
+		Reason:  "Sulfuron Hammer: column reads 101",
+		Source:  "vanilla-carryover",
+	},
+	{
+		ItemID:  17223,
+		SpellID: 21179,
+		PPM:     1.5, // TODO: Vanilla value - verify in-game
+		Reason:  "Thunderstrike: column reads 101; vanilla figures differ, 1.5 against 1.0",
+		Source:  "vanilla-carryover",
+	},
+	{
+		ItemID:  19100,
+		SpellID: 23592,
+		PPM:     1.4, // TODO: Vanilla value - verify in-game
+		Reason:  "Electrified Dagger: no proc row",
+		Source:  "vanilla-carryover",
+	},
+	{
+		ItemID:  19287,
+		SpellID: 23689,
+		PPM:     2, // TODO: Vanilla value - verify in-game
+		Reason:  "Darkmoon Card: Heroism: column reads 100",
+		Source:  "vanilla-carryover",
+	},
+	// TODO: waiting for PPM data. The rows below stay commented out until a rate is known.
+	// {
+	// 	ItemID:  869,
+	// 	SpellID: 13752,
+	// 	PPM:     0, // TODO: waiting for PPM data
+	// 	Reason:  "Dazzling Longsword: column reads 101",
+	// 	Source:  "vanilla-carryover",
+	// },
+	// {
+	// 	ItemID:  1986,
+	// 	SpellID: 18090,
+	// 	PPM:     0, // TODO: waiting for PPM data
+	// 	Reason:  "Gutrender: column reads 101",
+	// 	Source:  "vanilla-carryover",
+	// },
+	// {
+	// 	ItemID:  3854,
+	// 	SpellID: 13439,
+	// 	PPM:     0, // TODO: waiting for PPM data
+	// 	Reason:  "Frost Tiger Blade: column reads 101; Hammer of the Northern Wind casts the same spell at 3.5 PPM",
+	// 	Source:  "vanilla-carryover",
+	// },
+	// {
+	// 	ItemID:  5028,
+	// 	SpellID: 1312330,
+	// 	PPM:     0, // TODO: waiting for PPM data
+	// 	Reason:  "Lord Sakrasis' Scepter: column reads 101",
+	// 	Source:  "vanilla-carryover",
+	// },
+	// {
+	// 	ItemID:  7959,
+	// 	SpellID: 9796,
+	// 	PPM:     0, // TODO: waiting for PPM data
+	// 	Reason:  "Blight: no proc row",
+	// 	Source:  "vanilla-carryover",
+	// },
+	// {
+	// 	ItemID:  7960,
+	// 	SpellID: 9800,
+	// 	PPM:     0, // TODO: waiting for PPM data
+	// 	Reason:  "Truesilver Champion: column reads 101",
+	// 	Source:  "vanilla-carryover",
+	// },
+	// {
+	// 	ItemID:  8708,
+	// 	SpellID: 1317432,
+	// 	PPM:     0, // TODO: waiting for PPM data
+	// 	Reason:  "Hammer of Expertise: no proc row",
+	// 	Source:  "vanilla-carryover",
+	// },
+	// {
+	// 	ItemID:  10772,
+	// 	SpellID: 18075,
+	// 	PPM:     0, // TODO: waiting for PPM data
+	// 	Reason:  "Glutton's Cleaver: column reads 101",
+	// 	Source:  "vanilla-carryover",
+	// },
+	// {
+	// 	ItemID:  11607,
+	// 	SpellID: 15280,
+	// 	PPM:     0, // TODO: waiting for PPM data
+	// 	Reason:  "Dark Iron Sunderer: column reads 101",
+	// 	Source:  "vanilla-carryover",
+	// },
+	// {
+	// 	ItemID:  12769,
+	// 	SpellID: 16871,
+	// 	PPM:     0, // TODO: waiting for PPM data
+	// 	Reason:  "Bleakwood Hew: column reads 101",
+	// 	Source:  "vanilla-carryover",
+	// },
+	// {
+	// 	ItemID:  13146,
+	// 	SpellID: 29647,
+	// 	PPM:     0, // TODO: waiting for PPM data
+	// 	Reason:  "Shell Launcher Shotgun: no proc row",
+	// 	Source:  "vanilla-carryover",
+	// },
+	// {
+	// 	ItemID:  13262,
+	// 	SpellID: 18112,
+	// 	PPM:     0, // TODO: waiting for PPM data
+	// 	Reason:  "Ashbringer: column reads 101",
+	// 	Source:  "vanilla-carryover",
+	// },
+	// {
+	// 	ItemID:  16004,
+	// 	SpellID: 29641,
+	// 	PPM:     0, // TODO: waiting for PPM data
+	// 	Reason:  "Dark Iron Rifle: no proc row",
+	// 	Source:  "vanilla-carryover",
+	// },
+	// {
+	// 	ItemID:  17002,
+	// 	SpellID: 17511,
+	// 	PPM:     0, // TODO: waiting for PPM data
+	// 	Reason:  "Ichor Spitter: column reads 101; shares the trigger with Serpent Slicer",
+	// 	Source:  "vanilla-carryover",
+	// },
+	// {
+	// 	ItemID:  17753,
+	// 	SpellID: 29655,
+	// 	PPM:     0, // TODO: waiting for PPM data
+	// 	Reason:  "Verdant Keeper's Aim: no proc row",
+	// 	Source:  "vanilla-carryover",
+	// },
+	// {
+	// 	ItemID:  260186,
+	// 	SpellID: 16784,
+	// 	PPM:     0, // TODO: waiting for PPM data
+	// 	Reason:  "Darkblade: column reads 101",
+	// 	Source:  "vanilla-carryover",
+	// },
+	// {
+	// 	ItemID:  274425,
+	// 	SpellID: 1294055,
+	// 	PPM:     0, // TODO: waiting for PPM data
+	// 	Reason:  "White Obsidian Wand: equip trigger, column reads 100",
+	// 	Source:  "vanilla-carryover",
+	// },
+	// {
+	// 	ItemID:  274963,
+	// 	SpellID: 1295744,
+	// 	PPM:     0, // TODO: waiting for PPM data
+	// 	Reason:  "Rot-Covered Harpoon: column reads 101",
+	// 	Source:  "vanilla-carryover",
+	// },
+	// {
+	// 	ItemID:  275439,
+	// 	SpellID: 1296730,
+	// 	PPM:     0, // TODO: waiting for PPM data
+	// 	Reason:  "Blunderflame Bone Bow: no proc row",
+	// 	Source:  "vanilla-carryover",
+	// },
+	// {
+	// 	ItemID:  275441,
+	// 	SpellID: 1297921,
+	// 	PPM:     0, // TODO: waiting for PPM data
+	// 	Reason:  "Cremation Longbow: no proc row",
+	// 	Source:  "vanilla-carryover",
+	// },
+	// {
+	// 	ItemID:  275645,
+	// 	SpellID: 1297357,
+	// 	PPM:     0, // TODO: waiting for PPM data
+	// 	Reason:  "Reforged Spear: no proc row",
+	// 	Source:  "vanilla-carryover",
+	// },
+	// {
+	// 	ItemID:  281665,
+	// 	SpellID: 1312176,
+	// 	PPM:     0, // TODO: waiting for PPM data
+	// 	Reason:  "Twilight Forgehammer: column reads 101",
+	// 	Source:  "vanilla-carryover",
+	// },
+	// {
+	// 	ItemID:  282561,
+	// 	SpellID: 1314040,
+	// 	PPM:     0, // TODO: waiting for PPM data
+	// 	Reason:  "Siegebreaker's Blaster: no proc row",
+	// 	Source:  "vanilla-carryover",
+	// },
+	// {
+	// 	ItemID:  284262,
+	// 	SpellID: 1315767,
+	// 	PPM:     0, // TODO: waiting for PPM data
+	// 	Reason:  "Howling Hide: no proc row",
+	// 	Source:  "vanilla-carryover",
+	// },
+	// {
+	// 	ItemID:  285102,
+	// 	SpellID: 1317583,
+	// 	PPM:     0, // TODO: waiting for PPM data
+	// 	Reason:  "Darkmist Dirk: column reads 101",
+	// 	Source:  "vanilla-carryover",
+	// },
 }
 
 // The procs-per-minute rate stated for a weapon's chance-on-hit spell, or zero where none is.

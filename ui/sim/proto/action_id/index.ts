@@ -198,7 +198,7 @@ export class ActionId {
 	static makeItemUrl(id: number, randomSuffixId?: number): string {
 		const url = new URL(wowheadEntityUrl('item', id));
 		url.searchParams.set('level', String(CHARACTER_LEVEL));
-		url.searchParams.set('rand', String(randomSuffixId || 0));
+		if (randomSuffixId) url.searchParams.set('bonus', String(randomSuffixId));
 		return url.toString();
 	}
 	static makeSpellUrl(id: number, rank = 0, definitionId = 0): string {
@@ -522,6 +522,16 @@ export class ActionId {
 				// aura is the tag -1 this case names below.
 				if (tag === 1 || tag === 2) {
 					name += ' (Hit)';
+				} else if (tag === -1) {
+					name += ' (External)';
+				}
+				break;
+			case 'Searing Totem':
+			case 'Magma Totem':
+			case 'Flametongue Totem':
+				// A totem's hits report under the totem's spell, tagged 1, so they share its row.
+				if (tag === 1) {
+					name += ' (Attack)';
 				} else if (tag === -1) {
 					name += ' (External)';
 				}
@@ -859,4 +869,6 @@ export const resourceTypeToIcon: Record<ResourceType, string> = {
 };
 
 // Use this to connect a buff row to a cast row in the timeline view
-export const buffAuraToSpellIdMap: Record<number, ActionId> = {};
+export const buffAuraToSpellIdMap: Record<number, ActionId> = {
+	15036: ActionId.fromSpellId(16387), // The party's Flametongue Totem, on the row of the totem's strikes
+};

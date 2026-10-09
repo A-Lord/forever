@@ -56,7 +56,8 @@ type Unit struct {
 
 	Level int32 // Level of Unit, e.g. Bosses are 83.
 
-	MobType proto.MobType
+	MobType        proto.MobType
+	CreatureFamily proto.CreatureFamily
 
 	// Amount of time it takes for the human agent to react to in-game events.
 	// Used by certain APL values and actions.
@@ -1002,8 +1003,11 @@ func (unit *Unit) metadata(casters ...*Unit) *proto.UnitMetadata {
 	}
 
 	metadata.Spells = MapSlice(unit.Spellbook, func(spell *Spell) *proto.SpellStats {
+		// The rank rides on the id so the UI names it without a database entry for the spell.
+		id := spell.ActionID.ToProto()
+		id.Rank = spell.Rank
 		return &proto.SpellStats{
-			Id: spell.ActionID.ToProto(),
+			Id: id,
 
 			IsCastable:      spell.Flags.Matches(SpellFlagAPL),
 			IsChanneled:     spell.Flags.Matches(SpellFlagChanneled),

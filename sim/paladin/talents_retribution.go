@@ -128,6 +128,9 @@ func (paladin *Paladin) applyVindication() {
 
 // Sanctified Judgement - Gives your Judgement ability a 33/66/100% chance to return 20/40/60% of
 // the Mana cost of the judged seal.
+//
+// Judgement fires no on-cast callbacks, so the trigger hears the judgement the seal unleashes: one
+// per Judgement, and it refunds whether or not that judgement lands.
 func (paladin *Paladin) applySanctifiedJudgement() {
 	if paladin.Talents.SanctifiedJudgement == 0 {
 		return
@@ -138,13 +141,13 @@ func (paladin *Paladin) applySanctifiedJudgement() {
 
 	paladin.MakeProcTriggerAura(core.ProcTrigger{
 		Name:               "Sanctified Judgement" + paladin.Label,
-		Callback:           core.CallbackOnCastComplete,
-		ClassSpellMask:     SpellMaskJudgement,
+		Callback:           core.CallbackOnSpellHitDealt,
+		ClassSpellMask:     SpellMaskAllJudgements,
 		ProcChance:         spellData.SanctifiedJudgement.EffectAt(1).FractionAt(paladin.Talents.SanctifiedJudgement),
 		TriggerImmediately: true,
 		Handler: func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
 			if seal := paladin.activeSeal(); seal != nil {
-				paladin.AddMana(sim, seal.spell.CurCast.Cost*refund, manaMetrics)
+				paladin.AddMana(sim, seal.spell.Cost.GetCurrentCost()*refund, manaMetrics)
 			}
 		},
 	})

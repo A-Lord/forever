@@ -67,6 +67,12 @@ var UnsupportedAbsorbBySpellID = map[int32]string{
 	1287808: "the absorb of 10000000000 beside an A_DUMMY absorbs only the spells a script names, which the game files do not list",
 }
 
+// Items below MIN_EFFECT_ILVL whose effects are generated anyway, keyed by item ID with the reason a
+// level 60 character still uses them.
+var EffectFloorExemptions = map[int32]string{
+	9449: "Manual Crowd Pummeler: a level 60 melee swaps it in for its on-use attack speed",
+}
+
 var OtherItemIdsToFetch = []string{}
 var ConsumableOverrides = []*proto.Consumable{}
 
@@ -1076,6 +1082,7 @@ var ItemDenyList = map[int32]struct{}{
 	231704: {}, // Marshal's Dragonhide Greaves
 	231705: {}, // Field Marshal's Dragonhide Pauldrons
 	231706: {}, // Marshal's Dragonhide Gauntlets
+	231877: {}, // Tyler's Balanced Bobble
 	234016: {}, // Signet Ring of the Bronze Dragonflight
 	234017: {}, // Signet Ring of the Bronze Dragonflight
 	234018: {}, // Signet Ring of the Bronze Dragonflight
@@ -1361,6 +1368,8 @@ var ItemDenyList = map[int32]struct{}{
 	240153: {}, // Heretic Boots
 	241089: {}, // Scarlet Dagger
 	241090: {}, // Scarlet Great Axe
+	// Forever test items the game files carry
+	280304: {}, // Invisible Dagger
 }
 
 // Item Ids of consumables to allow
@@ -1382,6 +1391,9 @@ var ConsumableAllowList = []int32{
 }
 var ConsumableDenyList = []int32{
 	// Not obtainable in the game
+	5265,  // Watered-down Beer
+	23578, // Diet McWeaksauce
+	23579, // The McWeaksauce Classic
 	23794, // Permanent Sheen of Zanza
 	23795, // Permanent Spirit of Zanza
 	23796, // Permanent Swiftness of Zanza
@@ -1616,6 +1628,11 @@ var DenyListNameRegexes = []*regexp.Regexp{
 	regexp.MustCompile(`zzold`),
 	regexp.MustCompile(`Tom's`),
 	regexp.MustCompile(`Stabilized Eternium Scope`),
+	regexp.MustCompile(`\[TMP\]`),
+	regexp.MustCompile(`\[DNT\]`),
+	regexp.MustCompile(`Placeholder`),
+	regexp.MustCompile(` DEP$`),
+	regexp.MustCompile(` UNUSED$`),
 }
 
 var EnchantDenyListSpells = map[int32]struct{}{}

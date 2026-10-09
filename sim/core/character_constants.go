@@ -38,6 +38,7 @@ var ClassWeaponTypeCapabilities = map[proto.Class]map[proto.WeaponType]EligibleW
 	proto.Class_ClassPaladin: {
 		proto.WeaponType_WeaponTypeAxe:     {CanUseTwoHand: true},
 		proto.WeaponType_WeaponTypeMace:    {CanUseTwoHand: true},
+		proto.WeaponType_WeaponTypeOffHand: {},
 		proto.WeaponType_WeaponTypePolearm: {CanUseTwoHand: true},
 		proto.WeaponType_WeaponTypeShield:  {},
 		proto.WeaponType_WeaponTypeSword:   {CanUseTwoHand: true},
@@ -187,7 +188,6 @@ var ClassRaceCapabilities = map[proto.Class][]proto.Race{
 var SpecCanDualWieldCapabilities = map[proto.Spec]bool{
 	proto.Spec_SpecHunter:            true,
 	proto.Spec_SpecRogue:             true,
-	proto.Spec_SpecEnhancementShaman: true,
 	proto.Spec_SpecDpsWarrior:        true,
 	proto.Spec_SpecProtectionWarrior: true,
 }

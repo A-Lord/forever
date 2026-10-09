@@ -138,13 +138,21 @@ is the bonus stats' school hit, which reaches every spell of the school with a `
 flags and no melee roll. A talent written into it by hand loses its row's spell list, and one written in
 beside the parse counts its hit twice.
 
+Armor has two flat auras on misc 1. `A_MOD_RESISTANCE` (22) is armor like any other, and
+`A_MOD_ARMOR_NO_MODS` (674) is the one the class armor buffs and debuffs state: Mark of the Wild,
+Devotion Aura, Sunder Armor, Expose Armor, Faerie Fire and Curse of Recklessness. Armor on 674 stays
+outside every percent armor modifier: the unit records it as a share of Armor the multipliers leave
+alone (`StatDependencyManager.AddUnmultiplied`), scales the rest and adds it after. The row takes misc
+1 alone and skips any other mask with a reason.
+
 Armor has two percentage auras. `A_MOD_BASE_RESISTANCE_PCT` scales the armor from items, which is what
-its tooltip states, and `A_MOD_RESISTANCE_PCT` multiplies the whole stat: Inspiration's 8 is 8% more
-armor, whatever it came from.
+its tooltip states, and `A_MOD_RESISTANCE_PCT` multiplies the whole stat but the 674 armor:
+Inspiration's 8 is 8% more armor, whatever else it came from.
 
 `A_MOD_MAX_HEALTH` is flat health, which is how the bear forms state it: Dire Bear Form's passive is
-1240 health at 60. Last Stand 12976 states its 30% on the same aura and a script applies it as a
-percentage, so the warrior reads it by hand and does not parse the row.
+1240 health at 60, and `A_MOD_INCREASE_HEALTH` is flat health too. Last Stand 12976 states its 30% on
+`A_MOD_INCREASE_HEALTH` and a script applies it as a percentage, so the warrior reads it by hand and
+does not parse the row.
 
 `A_MOD_ATTACK_POWER_OF_STAT_PERCENT` (598) and `A_MOD_RANGED_ATTACK_POWER_OF_STAT_PERCENT` (580) add a
 share of the misc value's stat to attack power: Cat Form (Passive) 3025 states melee attack power as

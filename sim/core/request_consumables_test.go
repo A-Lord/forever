@@ -56,7 +56,7 @@ type appliedConsumables struct {
 	enchants [2]int32
 }
 
-func applyRequestPreset(t *testing.T) appliedConsumables {
+func applyConsumables(t *testing.T, consumables *proto.ConsumesSpec) appliedConsumables {
 	t.Helper()
 	gear := core.GetGearSet("../../ui/specs/warrior/dps/gear_sets", "p1_fury").GearSet
 	sim := core.NewSim(&proto.RaidSimRequest{
@@ -67,7 +67,7 @@ func applyRequestPreset(t *testing.T) appliedConsumables {
 				Spec: &proto.Player_DpsWarrior{DpsWarrior: &proto.DpsWarrior{Options: &proto.DpsWarrior_Options{
 					ClassOptions: &proto.WarriorOptions{DefaultStance: proto.WarriorStance_WarriorStanceBerserker}}}},
 				Equipment:   gear,
-				Consumables: requestPreset,
+				Consumables: consumables,
 				Profession1: proto.Profession_Engineering,
 				Buffs:       &proto.IndividualBuffs{},
 				Rotation:    &proto.APLRotation{},
@@ -98,21 +98,35 @@ func applyRequestPreset(t *testing.T) appliedConsumables {
 // loaded.
 func TestRequestCarriesEveryConsumableThePresetSelects(t *testing.T) {
 	registerAllEffects()
-	whole := applyRequestPreset(t)
+	none := applyConsumables(t, &proto.ConsumesSpec{})
+	whole := applyConsumables(t, requestPreset)
 
 	restore := core.KeepOnlyConsumables(requestConsumableIDs(requestPreset))
-	requested := applyRequestPreset(t)
+	requested := applyConsumables(t, requestPreset)
 	restore()
 
-	for _, id := range []int32{13442, 13446, 13510, 9187, 13445, 20452, 18588, 10646, 10310, 10308, 10306, 10307, 5206} {
-		found := slices.ContainsFunc(whole.spells, func(actionID core.ActionID) bool { return actionID.ItemID == id }) ||
-			slices.ContainsFunc(slices.Collect(maps.Values(whole.auras)), func(actionID core.ActionID) bool { return actionID.ItemID == id })
-		if !found {
-			t.Errorf("%d applies nothing even with every consumable loaded", id)
+	appliesItem := func(applied appliedConsumables, id int32) bool {
+		fromItem := func(actionID core.ActionID) bool { return actionID.ItemID == id }
+		return slices.ContainsFunc(applied.spells, fromItem) || slices.ContainsFunc(slices.Collect(maps.Values(applied.auras)), fromItem)
+	}
+	imbues := []int32{requestPreset.MhImbueId, requestPreset.OhImbueId}
+	ids := requestConsumableIDs(requestPreset)
+	if len(ids) == 0 {
+		t.Fatal("the preset selects no consumable")
+	}
+	for _, id := range ids {
+		if id == 0 || slices.Contains(imbues, id) {
+			continue
+		}
+		if !appliesItem(whole, id) || appliesItem(none, id) {
+			t.Errorf("%d applies nothing an empty consumables spec does not, even with every consumable loaded", id)
 		}
 	}
-	if whole.enchants[0] == 0 || whole.enchants[1] == 0 {
-		t.Errorf("12404 enchants neither weapon with every consumable loaded: %v", whole.enchants)
+	for hand, enchant := range whole.enchants {
+		if enchant == 0 || enchant == none.enchants[hand] {
+			t.Errorf("the preset's imbue leaves weapon %d at enchant %d, as with no consumables, even with every consumable loaded",
+				hand, enchant)
+		}
 	}
 
 	if !slices.Equal(requested.stats, whole.stats) {

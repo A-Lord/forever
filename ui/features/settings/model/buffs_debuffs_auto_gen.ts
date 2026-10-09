@@ -142,6 +142,18 @@ export const FlametongueTotem = makeBooleanPartyBuffInput({
 	label: 'Flametongue Totem',
 });
 
+export const Darkspear = makeBooleanPartyBuffInput({
+	actionId: ActionId.fromSpellId(16939),
+	fieldName: 'darkspear',
+	label: 'Darkspear',
+});
+
+export const AdmiralsHat = makeBooleanPartyBuffInput({
+	actionId: ActionId.fromSpellId(12022),
+	fieldName: 'admiralsHat',
+	label: "Admiral's Hat",
+});
+
 export const ArcaneBrilliance = makeBooleanRaidBuffInput({
 	actionId: ActionId.fromSpellId(23028),
 	fieldName: 'arcaneBrilliance',
@@ -546,6 +558,14 @@ export const GENERATED_PARTY_BUFFS_CONFIG: RenderableStatOptions[] = [
 		config: FlametongueTotem,
 		stats: [Stat.StatAttackPower],
 		ownerClass: Class.ClassShaman,
+	},
+	{
+		config: Darkspear,
+		stats: [Stat.StatCritRating],
+	},
+	{
+		config: AdmiralsHat,
+		stats: [Stat.StatStamina],
 	},
 ];
 
