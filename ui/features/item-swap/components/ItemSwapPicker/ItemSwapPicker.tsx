@@ -40,7 +40,7 @@ export const ItemSwapPickerView = ({ note, onSwap, children }: ItemSwapPickerVie
 					<Icon name="arrows-rotate" className="me-1" />
 				</Button>
 				<Tooltip id={swapId} content={swapTooltip} />
-				<IconRow className="items-center justify-end" testId="item-swap-icon-grid">
+				<IconRow className="items-center justify-end [&_.ui-item-picker-icon-wrapper]:[--icon-size:--spacing(14)]" testId="item-swap-icon-grid">
 					{children}
 				</IconRow>
 			</Field>
