@@ -154,6 +154,19 @@ func rowAmount(t *testing.T, e *spelldata.Effect) float64 {
 	return v
 }
 
+// The row's armor effect: a resistance on the physical school, or an armor aura no armor modifier scales.
+func armorEffect(t *testing.T, s *spelldata.Spell) *spelldata.Effect {
+	t.Helper()
+	for i := range s.Effects {
+		e := &s.Effects[i]
+		if e.Aura == dbcenums.A_MOD_ARMOR_NO_MODS || e.Aura == dbcenums.A_MOD_RESISTANCE && e.Misc == 1 {
+			return e
+		}
+	}
+	t.Fatalf("spell %d states no armor effect", s.ID)
+	return nil
+}
+
 func statsDiff(before, after stats.Stats) map[string]float64 {
 	diff := map[string]float64{}
 	for i := range before {
@@ -239,7 +252,7 @@ func TestGeneratedRowsBuildTheirShapes(t *testing.T) {
 	// Gift of the Wild states its armor, its five stats and each school's resistance as effects of
 	// their own, the resistances keyed by the game files' school mask.
 	gotwStat := rowAmount(t, giftOfTheWildSpell.Effect(dbcenums.A_MOD_STAT, -1))
-	gotwAdded := map[stats.Stat]float64{stats.Armor: rowAmount(t, giftOfTheWildSpell.Effect(dbcenums.A_MOD_RESISTANCE, 1))}
+	gotwAdded := map[stats.Stat]float64{stats.Armor: rowAmount(t, armorEffect(t, giftOfTheWildSpell))}
 	for _, stat := range []stats.Stat{stats.Strength, stats.Agility, stats.Stamina, stats.Intellect, stats.Spirit} {
 		gotwAdded[stat] = gotwStat
 	}
