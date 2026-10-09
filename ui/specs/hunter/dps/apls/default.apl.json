@@ -136,6 +136,52 @@
 				},
 				"castSpell": { "spellId": { "spellId": 20904 } }
 			}
+		},
+		{
+			"action": {
+				"condition": {
+					"and": {
+						"vals": [
+							{ "variableRef": { "name": "Melee weave" } },
+							{
+								"cmp": {
+									"op": "OpGt",
+									"lhs": { "autoTimeToNext": { "autoType": "MainHandAuto" } },
+									"rhs": { "variableRef": { "name": "Move duration" } }
+								}
+							},
+							{
+								"cmp": {
+									"op": "OpGe",
+									"lhs": { "autoTimeToNext": { "autoType": "RangedAuto" } },
+									"rhs": {
+										"math": {
+											"op": "OpAdd",
+											"lhs": {
+												"math": {
+													"op": "OpSub",
+													"lhs": { "autoTimeToNext": { "autoType": "MainHandAuto" } },
+													"rhs": { "variableRef": { "name": "Move duration" } }
+												}
+											},
+											"rhs": { "variableRef": { "name": "Auto Shot wait" } }
+										}
+									}
+								}
+							}
+						]
+					}
+				},
+				"wait": {
+					"duration": {
+						"math": {
+							"op": "OpSub",
+							"lhs": { "autoTimeToNext": { "autoType": "MainHandAuto" } },
+							"rhs": { "variableRef": { "name": "Move duration" } }
+						}
+					}
+				}
+			}
 		}
 	],
 	"groups": [
@@ -229,7 +275,6 @@
 	"valueVariables": [
 		{ "name": "Melee weave", "value": { "const": { "val": "true" } } },
 		{ "name": "Time to weave", "value": { "const": { "val": "400ms" } } },
-		{ "name": "Auto Shot wait", "value": { "const": { "val": "1s" } } },
 		{ "name": "Melee range", "value": { "const": { "val": "5.00" } } },
 		{ "name": "Ranged range", "value": { "const": { "val": "11.00" } } },
 		{ "name": "Starting weave distance", "value": { "variableRef": { "name": "Ranged range" } } },
@@ -270,6 +315,12 @@
 						}
 					]
 				}
+			}
+		},
+		{
+			"name": "Auto Shot wait",
+			"value": {
+				"math": { "op": "OpAdd", "lhs": { "variableRef": { "name": "Move duration" } }, "rhs": { "variableRef": { "name": "Wait at melee" } } }
 			}
 		},
 		{ "name": "Time to next weave", "value": { "autoTimeToNext": { "autoType": "MainHandAuto" } } },
