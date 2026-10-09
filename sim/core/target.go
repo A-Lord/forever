@@ -187,15 +187,16 @@ func NewTarget(options *proto.Target, targetIndex int32) *Target {
 
 	target := &Target{
 		Unit: Unit{
-			Type:        EnemyUnit,
-			Index:       targetIndex,
-			Label:       "Target " + strconv.Itoa(int(targetIndex)+1),
-			Level:       options.Level,
-			MobType:     options.MobType,
-			auraTracker: newAuraTracker(),
-			stats:       unitStats,
-			PseudoStats: stats.NewPseudoStats(),
-			Metrics:     NewUnitMetrics(),
+			Type:           EnemyUnit,
+			Index:          targetIndex,
+			Label:          "Target " + strconv.Itoa(int(targetIndex)+1),
+			Level:          options.Level,
+			MobType:        options.MobType,
+			CreatureFamily: options.CreatureFamily,
+			auraTracker:    newAuraTracker(),
+			stats:          unitStats,
+			PseudoStats:    stats.NewPseudoStats(),
+			Metrics:        NewUnitMetrics(),
 
 			StatDependencyManager: stats.NewStatDependencyManager(),
 			ReactionTime:          BossGCD,

@@ -17,9 +17,9 @@ import (
 //   - Howling Hide 284262's Howler's Cry 1315767 takes 60 attack power.
 //
 // The Lobotomizer 19324's Brain Damage 1290950 deals damage beside its cast slow and routes to the
-// damage shape, whose spell carries the debuff. Its rate is the override's 0.4 PPM, so it registers;
-// none of the others states a rate for its chance on hit, so they stay commented out. Mug O' Hurt
-// 4090's Dazed 13496 slows movement alone and stays skipped.
+// damage shape, whose spell carries the debuff. Its rate is the override's 0.4 PPM and Frostguard's is
+// the override's 1 PPM, so both register; none of the others states a rate for its chance on hit, so
+// they stay commented out. Mug O' Hurt 4090's Dazed 13496 slows movement alone and stays skipped.
 func TestChanceOnHitDebuffsRoute(t *testing.T) {
 	withDBCInputs(t)
 	instance := dbc.GetDBC()
@@ -36,7 +36,7 @@ func TestChanceOnHitDebuffsRoute(t *testing.T) {
 		slows   []int32
 		debuffs []int32
 	}{
-		{12797, 16927, false, false, []int32{1}, []int32{1}},
+		{12797, 16927, false, true, []int32{1}, []int32{1}},
 		{19324, 1290950, true, true, []int32{2}, []int32{2}},
 		{11607, 15280, false, false, nil, []int32{1}},
 		{12769, 16871, false, false, nil, []int32{1}},

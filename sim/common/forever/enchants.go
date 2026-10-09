@@ -1,6 +1,7 @@
 package forever
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/wowsims/forever/sim/common/shared"
@@ -223,7 +224,7 @@ func init() {
 	// The proc spell names no buff: each class with spells to crit has a Revelation of its own, and the
 	// wearer gets its class's, with that row's class flags and charge. The game files state no rate,
 	// only that a direct spell or heal landing without a crit rolls it, and that the chance falls as
-	// the wearer's crit chance rises. Only a hit that deals damage or heals rolls it: a landing for
+	// the wearer's crit chance rises; the enchant's effect entry carries the chance. Only a hit that deals damage or heals rolls it: a landing for
 	// nothing, such as a channel's start or an aura's application, does not. The spell a channel
 	// casts each tick (Blizzard's) rolls it too.
 	// TODO: Verify in game that warriors and rogues get no buff.
@@ -249,7 +250,7 @@ func init() {
 		trigger := spelldata.ProcTrigger(character, spelldata.MustFind(1248806), func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
 			buff.Activate(sim)
 			buff.SetStacks(sim, buff.MaxStacks)
-		}, spelldata.Chance(0.09)) // TODO: Measure the rate and how it falls with the wearer's crit chance.
+		}, spelldata.Chance(enchantProcChance(8217, 1248806))) // TODO: Model how the chance falls with the wearer's crit chance.
 		trigger.Name = "Enchant Weapon - Revelation"
 		trigger.Outcome = core.OutcomeLanded
 		trigger.RequireDamageDealt = true
@@ -297,4 +298,14 @@ func init() {
 			character.ItemSwap.RegisterEnchantProc(enchantID, aura)
 		})
 	}
+}
+
+// The chance per hit the enchant's effect entry carries for the spell.
+func enchantProcChance(effectID int32, spellID int32) float64 {
+	for _, effect := range core.GetEnchantByEffectID(effectID).EnchantEffects {
+		if effect.BuffId == spellID && effect.GetProc().GetProcChance() > 0 {
+			return effect.GetProc().GetProcChance()
+		}
+	}
+	panic(fmt.Sprintf("enchant %d states no proc chance for spell %d", effectID, spellID))
 }

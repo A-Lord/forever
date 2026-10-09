@@ -77,6 +77,15 @@
 			"mechanical": "Mechanical",
 			"undead": "Undead"
 		},
+		"creature_families": {
+			"unknown": "None",
+			"naga": "Naga",
+			"satyr": "Satyr",
+			"aquatic": "Aquatic",
+			"earth_elemental": "Earth Elemental",
+			"fire_elemental": "Fire Elemental",
+			"mountain_giant": "Mountain Giant"
+		},
 		"area_types": {
 			"unknown": "None",
 			"forest_grassland": "Forest and Grassland",
@@ -840,6 +849,10 @@
 			},
 			"level": "Level",
 			"mob_type": "Mob Type",
+			"creature_family": {
+				"label": "Creature Family",
+				"tooltip": "The group of creatures the target belongs to, for the items that deal extra damage to Naga, Satyrs, Aquatic enemies, Earth Elementals, Fire Elementals or Mountain Giants."
+			},
 			"tanked_by": {
 				"label": "Tanked By",
 				"tooltip": "Determines which player in the raid this enemy will attack. If no player is assigned to the specified tank slot, this enemy will not attack."

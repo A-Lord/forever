@@ -273,6 +273,13 @@ func TestShippedOverridesAreWellFormed(t *testing.T) {
 			t.Errorf("item %d's rate on %d states reason %q and source %q", proc.ItemID, proc.SpellID, proc.Reason, proc.Source)
 		}
 	}
+
+	for _, proc := range overrides.EnchantProcs {
+		if proc.Reason == "" || proc.Source == "" || proc.Kind.String() == "unknown rate kind" || proc.Value <= 0 {
+			t.Errorf("enchant %d's rate on %d is a %s of %v and states reason %q and source %q",
+				proc.EnchantID, proc.SpellID, proc.Kind, proc.Value, proc.Reason, proc.Source)
+		}
+	}
 }
 
 func TestAreaBonusesBakeOntoTheRow(t *testing.T) {

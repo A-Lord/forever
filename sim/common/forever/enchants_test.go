@@ -3,6 +3,7 @@
 package forever_test
 
 import (
+	"math"
 	"slices"
 	"testing"
 	"time"
@@ -324,5 +325,42 @@ func TestRevelationProcsOffAHuntersShots(t *testing.T) {
 	}
 	if buff.IsActive() {
 		t.Error("Arcane Shot did not spend Revelation's charge")
+	}
+}
+
+// Enchant Weapon - Crusader 1900 rolls the procs per minute its enchant entry states for Holy Strength
+// 20007 on the enchanted weapon's speed, a chance between none and certain.
+func TestCrusaderProcsAtItsEntryRate(t *testing.T) {
+	const crusader, holyStrength, weapon = 1900, 20007, 873
+	items := weaponSlots(weapon, 0)
+	items[proto.ItemSlot_ItemSlotMainHand].Enchant = crusader
+	player := &proto.Player{
+		Name: "Wearer", Class: proto.Class_ClassWarrior, Race: proto.Race_RaceTauren,
+		Equipment: &proto.EquipmentSpec{Items: items},
+		Buffs:     &proto.IndividualBuffs{},
+		Rotation:  &proto.APLRotation{},
+	}
+	core.WithSpec(player, &proto.Player_DpsWarrior{DpsWarrior: &proto.DpsWarrior{}})
+	sim := core.NewSim(&proto.RaidSimRequest{
+		SimOptions: &proto.SimOptions{RandomSeed: 1},
+		Raid:       &proto.Raid{Parties: []*proto.Party{{Players: []*proto.Player{player}, Buffs: &proto.PartyBuffs{}}}},
+		Encounter:  &proto.Encounter{Targets: []*proto.Target{{Name: "target", Level: 60}}, Duration: 180},
+	}, simsignals.CreateSignals())
+	sim.Reset()
+	character := sim.Raid.Parties[0].Players[0].GetCharacter()
+
+	var ppm float64
+	for _, effect := range core.GetEnchantByEffectID(crusader).EnchantEffects {
+		if effect.BuffId == holyStrength {
+			ppm = effect.GetProc().GetPpm()
+		}
+	}
+	want := ppm * core.GetItemByID(weapon).SwingSpeed / 60
+	proc := character.GetAura("Enchant Weapon - Crusader")
+	if proc == nil || proc.Dpm == nil {
+		t.Fatal("1900 registers no proc on a procs per minute rate")
+	}
+	if got := proc.Dpm.Chance(core.ProcMaskMeleeMHAuto, sim); want <= 0 || want >= 1 || math.Abs(got-want) > 1e-9 {
+		t.Errorf("Crusader rolls %v on a main-hand hit, want the entry's procs per minute on the weapon's speed, %v", got, want)
 	}
 }

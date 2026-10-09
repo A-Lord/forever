@@ -220,7 +220,9 @@ func main() {
 	if err := database.GenerateConsumablesTSFile(db); err != nil {
 		log.Fatalf("failed to generate the consumables TS file: %v", err)
 	}
-	database.GenerateMissingEffectsFile()
+	if err := database.GenerateMissingEffectsFile(instance, db); err != nil {
+		log.Fatalf("failed to generate the missing effects TS file: %v", err)
+	}
 	database.GenerateItemEffectRandomPropPoints(instance, db)
 
 	// Disbabled due to duplicate SpellIDs
