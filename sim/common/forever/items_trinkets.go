@@ -284,10 +284,8 @@ func init() {
 	//
 	// 	config := procSpellConfig(character, row)
 	// 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-	// 		amount := damage.DirectAmount(sim)
-	// 		if target.CreatureFamily == proto.CreatureFamily_CreatureFamilyNaga || target.CreatureFamily == proto.CreatureFamily_CreatureFamilySatyr {
-	// 			amount *= familyMultiplier
-	// 		}
+	// 		amount := damage.DirectAmount(sim) * creatureFamilyMultiplier(target, familyMultiplier,
+	// 			proto.CreatureFamily_CreatureFamilyNaga, proto.CreatureFamily_CreatureFamilySatyr)
 	// 		spell.CalcAndDealDamage(sim, target, amount, spell.OutcomeMagicHitAndCrit)
 	// 	}
 	// 	ancientPower := character.RegisterSpell(config)

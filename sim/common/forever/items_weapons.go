@@ -2,9 +2,11 @@ package forever
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/buffs"
+	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
@@ -255,10 +257,7 @@ func init() {
 	// 	config := procSpellConfig(character, row)
 	// 	config.Dot = spelldata.DotConfig(row, tick)
 	// 	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-	// 		amount := tick.Average()
-	// 		if target.CreatureFamily == proto.CreatureFamily_CreatureFamilyAquatic {
-	// 			amount *= familyMultiplier
-	// 		}
+	// 		amount := tick.Average() * creatureFamilyMultiplier(target, familyMultiplier, proto.CreatureFamily_CreatureFamilyAquatic)
 	// 		dot.Spell.CalcAndDealPeriodicDamage(sim, target, amount, row.TickOutcome(dot))
 	// 	}
 	// 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
@@ -302,12 +301,9 @@ func init() {
 	// 	config.SpellSchool = core.SpellSchoolFire
 	// 	config.DefenseType = core.DefenseTypeMagic
 	// 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-	// 		amount := damage.DirectAmount(sim)
-	// 		switch target.CreatureFamily {
-	// 		case proto.CreatureFamily_CreatureFamilyEarthElemental, proto.CreatureFamily_CreatureFamilyFireElemental,
-	// 			proto.CreatureFamily_CreatureFamilyMountainGiant:
-	// 			amount *= familyMultiplier
-	// 		}
+	// 		amount := damage.DirectAmount(sim) * creatureFamilyMultiplier(target, familyMultiplier,
+	// 			proto.CreatureFamily_CreatureFamilyEarthElemental, proto.CreatureFamily_CreatureFamilyFireElemental,
+	// 			proto.CreatureFamily_CreatureFamilyMountainGiant)
 	// 		spell.CalcAndDealDamage(sim, target, amount, spell.OutcomeMagicHitAndCrit)
 	// 	}
 	// 	forgingStrike := character.RegisterSpell(config)
@@ -334,4 +330,13 @@ func weaponProcPPM(itemID int32, spellID int32) float64 {
 		}
 	}
 	panic(fmt.Sprintf("item %d states no procs per minute for spell %d", itemID, spellID))
+}
+
+// The multiplier an effect deals against the creature families it names, and 1 against any other
+// target.
+func creatureFamilyMultiplier(target *core.Unit, multiplier float64, families ...proto.CreatureFamily) float64 {
+	if slices.Contains(families, target.CreatureFamily) {
+		return multiplier
+	}
+	return 1
 }
