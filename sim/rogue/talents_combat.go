@@ -185,12 +185,13 @@ func (rogue *Rogue) registerHackAndSlash() {
 	offHandIs := func(weaponTypes ...proto.WeaponType) bool {
 		return rogue.GetProcMaskForTypes(weaponTypes...).Matches(core.ProcMaskMeleeOH)
 	}
-	var critOn, armorIgnoreOn bool
+	var armorIgnoreOn bool
+	var critMask core.ProcMask
 	var swordMask core.ProcMask
 	readWeapons := func() {
-		critOn = mainHandIs(proto.WeaponType_WeaponTypeFist, proto.WeaponType_WeaponTypeDagger) || offHandIs(proto.WeaponType_WeaponTypeFist, proto.WeaponType_WeaponTypeDagger)
 		armorIgnoreOn = mainHandIs(proto.WeaponType_WeaponTypeMace) || offHandIs(proto.WeaponType_WeaponTypeMace) // TODO: Test if this aura is active regardless of which hand the mace is in
 		swordMask = rogue.GetProcMaskForTypes(proto.WeaponType_WeaponTypeSword, proto.WeaponType_WeaponTypeAxe)
+		critMask = rogue.GetProcMaskForTypes(proto.WeaponType_WeaponTypeFist, proto.WeaponType_WeaponTypeDagger)
 	}
 	readWeapons()
 
@@ -198,9 +199,13 @@ func (rogue *Rogue) registerHackAndSlash() {
 		Label:      "Hack and Slash (Fist/Dagger)",
 		ActionID:   actionID.WithTag(2),
 		Duration:   core.NeverExpires,
-		BuildPhase: core.Ternary(critOn, core.CharacterBuildPhaseBase, core.CharacterBuildPhaseNone),
-	}).AttachStatBuff(stats.PhysicalCritPercent, spellData.HackAndSlash.EffectAt(1).ValueAt(rank))
-	if critOn {
+		BuildPhase: core.Ternary(critMask != core.ProcMaskUnknown, core.CharacterBuildPhaseBase, core.CharacterBuildPhaseNone),
+	}).AttachSpellMod(core.SpellModConfig{
+		Kind:       core.SpellMod_BonusCrit_Percent,
+		FloatValue: spellData.HackAndSlash.EffectAt(1).ValueAt(rank),
+		ProcMask:   critMask,
+	})
+	if critMask != core.ProcMaskUnknown {
 		core.MakePermanent(critAura)
 	}
 
@@ -262,7 +267,7 @@ func (rogue *Rogue) registerHackAndSlash() {
 
 	rogue.RegisterItemSwapCallback(core.AllMeleeWeaponSlots(), func(sim *core.Simulation, slot proto.ItemSlot) {
 		readWeapons()
-		setActive(sim, critAura, critOn)
+		setActive(sim, critAura, critMask != core.ProcMaskUnknown)
 		setActive(sim, armorIgnoreAura, armorIgnoreOn)
 		setActive(sim, swordAura, swordMask != core.ProcMaskUnknown)
 	})
