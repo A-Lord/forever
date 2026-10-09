@@ -52,9 +52,16 @@ func TestNutritiousFoodListsTheAmountItHandsWellFed(t *testing.T) {
 	} {
 		consumable := shippedConsumable(t, instance, tc.id)
 		food := spelldata.MustFind(consumable.ItemEffects[0].BuffId)
-		want := food.FirstAura(dbcenums.A_PERIODIC_TRIGGER_SPELL_WITH_VALUE).BaseValue()
+		trigger := food.FirstAura(dbcenums.A_PERIODIC_TRIGGER_SPELL_WITH_VALUE)
+		want := trigger.BaseValue()
 		if want == 0 {
 			t.Fatalf("%s: %d states no amount it hands on", tc.name, food.ID)
+		}
+		wellFed := spelldata.MustFind(trigger.TriggerID)
+		for i := range wellFed.Effects {
+			if own := wellFed.Effects[i].BaseValue(); own == want {
+				t.Fatalf("%s: Well Fed %d states the handed amount %v itself, so the test cannot tell the two apart", tc.name, wellFed.ID, own)
+			}
 		}
 		if got := stats.FromProtoArray(consumable.Stats)[tc.stat]; got != want {
 			t.Errorf("%s: %v %v, want %v", tc.name, got, tc.stat, want)

@@ -60,16 +60,21 @@ func stonedWarrior(t *testing.T, mhImbueId, ohImbueId int32, swapped []*proto.It
 
 // The A_MOD_WEAPON_CRIT_PERCENT amount of 22755, the spell Elemental Sharpening Stone 18262 puts on
 // the weapon.
-func stoneCrit() float64 {
-	return spelldata.MustFind(22755).EffectN(1).Average()
+func stoneCrit(t *testing.T) float64 {
+	t.Helper()
+	crit := spelldata.MustFind(22755).EffectN(1).Average()
+	if crit == 0 {
+		t.Fatal("22755 states no crit for the stone to add")
+	}
+	return crit
 }
 
-// Elemental Sharpening Stone 18262's 22755 states A_MOD_WEAPON_CRIT_PERCENT on the melee weapons its
-// mask 42483 names, and each weapon carries its own copy: the crit reaches the attacks made with the
-// hand the stone is on, and no other attack.
+// Elemental Sharpening Stone 18262's 22755 states A_MOD_WEAPON_CRIT_PERCENT on the melee weapon
+// subclasses its mask names, and each weapon carries its own copy: the crit reaches the attacks made
+// with the hand the stone is on, and no other attack.
 func TestElementalSharpeningStoneCritReachesItsOwnHand(t *testing.T) {
 	_, bare := stonedWarrior(t, 0, 0, nil)
-	crit := stoneCrit()
+	crit := stoneCrit(t)
 	for _, tc := range []struct {
 		name                 string
 		mhImbueId, ohImbueId int32
@@ -107,7 +112,7 @@ func TestElementalSharpeningStoneSkipsAMagicDefenseSpell(t *testing.T) {
 	if magicSpell.BonusCritPercent != 0 {
 		t.Errorf("a magic-defense spell off the stoned hand gains %v%% crit, want none", magicSpell.BonusCritPercent)
 	}
-	if mh, want := character.AutoAttacks.MHAuto().BonusCritPercent, stoneCrit(); mh != want {
+	if mh, want := character.AutoAttacks.MHAuto().BonusCritPercent, stoneCrit(t); mh != want {
 		t.Errorf("the main-hand auto gains %v%% crit, want %v", mh, want)
 	}
 }
@@ -123,7 +128,7 @@ func TestElementalSharpeningStoneTurnsOffWhenTheStonedWeaponSwapsAway(t *testing
 		t.Run(tc.name, func(t *testing.T) {
 			sim, character := stonedWarrior(t, elementalSharpener, 0, tc.swapped)
 			mhAuto := character.AutoAttacks.MHAuto()
-			if want := stoneCrit(); mhAuto.BonusCritPercent != want {
+			if want := stoneCrit(t); mhAuto.BonusCritPercent != want {
 				t.Fatalf("the main-hand auto gains %v%% crit before the swap, want %v", mhAuto.BonusCritPercent, want)
 			}
 

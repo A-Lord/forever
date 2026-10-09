@@ -8,7 +8,9 @@ import (
 	"testing"
 
 	"github.com/wowsims/forever/sim/common/shared"
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/tools/database/dbc"
 )
 
@@ -70,7 +72,7 @@ func TestAConsumableTakesItsExclusiveGroup(t *testing.T) {
 		key, label string
 	}{
 		{"Spirit of Zanza", 20079, "Zanza", "Zanza"},
-		{"R.O.I.D.S., category 103 in its rows, Zanza by the override", 8410, "Zanza", "Zanza"},
+		{"R.O.I.D.S., grouped by category in its rows, Zanza by the override", 8410, "Zanza", "Zanza"},
 		{"Fire-toasted Bun", 23327, "Hit food", "Hit food"},
 		{"Dark Desire", 22237, "Hit food", "Hit food"},
 		{"Flask of the Titans stacks with everything", 13510, "", ""},
@@ -82,13 +84,77 @@ func TestAConsumableTakesItsExclusiveGroup(t *testing.T) {
 	}
 }
 
-// Every elixir db.json ships has a group. A consumable grouped by the category in its rows is no
-// elixir or scroll, and its category is the one whose cooldown outlasts each buff it puts up.
+// An elixir's group is keyed by its first aura's type and misc value and named after what that aura
+// grants.
+func TestElixirGroupNamesWhatTheAuraGrants(t *testing.T) {
+	for _, tc := range []struct {
+		aura      dbcenums.EffectAuraType
+		misc      int
+		key, name string
+	}{
+		{dbcenums.A_MOD_STAT, 1, "29/1", "Agility"},
+		{dbcenums.A_MOD_STAT, 3, "29/3", "Intellect"},
+		{dbcenums.A_MOD_DAMAGE_DONE, 126, "13/126", "Spell Power"},
+		{dbcenums.A_MOD_DAMAGE_DONE, 4, "13/4", "Fire Spell Power"},
+		{dbcenums.A_MOD_RESISTANCE, 32, "22/32", "Shadow Resistance"},
+		{dbcenums.A_MOD_RESISTANCE, 1, "22/1", "Armor"},
+		{dbcenums.A_MOD_ATTACK_POWER, 0, "99/0", "Attack Power"},
+		{dbcenums.A_PERIODIC_ENERGIZE, 0, "24/0", "Mana Regeneration"},
+	} {
+		if got, want := ElixirGroup(tc.aura, tc.misc), (ConsumableGroupKey{Key: tc.key, Name: tc.name}); got != want {
+			t.Errorf("aura %v misc %d: group %+v, want %+v", tc.aura, tc.misc, got, want)
+		}
+	}
+}
+
+// The category a stat consumable is used one at a time with the others of, read off its rows. The
+// item's on-use states the category and its cooldown, or its spell does where the item states none
+// (a category of 0 or less, a cooldown below 0). Each buff the consumable puts on the user has to
+// last no longer than the category cooldown, or using another would stack them, and no shorter than
+// the longest cooldown the item runs on, or it is one used in combat. 0 where any of that fails.
+func categoryOneAtATime(onUse *proto.ItemEffect) int32 {
+	row := spelldata.Find(onUse.BuffId)
+	use := onUse.GetOnUse()
+	category, categoryMs, cooldownMs := use.GetCategoryId(), use.GetCategoryCooldownMs(), use.GetCooldownMs()
+	if category <= 0 {
+		category = int32(row.Category)
+	}
+	if categoryMs < 0 {
+		categoryMs = row.CategoryCooldownMs
+	}
+	if cooldownMs < 0 {
+		cooldownMs = row.CooldownMs
+	}
+	if category <= 0 || categoryMs <= 0 {
+		return 0
+	}
+
+	buffs := 0
+	for _, s := range shared.ConsumableSpells(row) {
+		if s == spelldata.Nil || s.WhileSeated() || !slices.ContainsFunc(s.Effects, func(e spelldata.Effect) bool {
+			return e.ParsedAura() && shared.LandsOnTheUser(&e)
+		}) {
+			continue
+		}
+		buffs++
+		if s.DurationMs <= 0 || s.DurationMs > categoryMs || s.DurationMs < max(cooldownMs, categoryMs) {
+			return 0
+		}
+	}
+	if buffs == 0 {
+		return 0
+	}
+	return category
+}
+
+// Every elixir db.json ships has a group. A stat consumable other than an elixir or a scroll is
+// grouped by its category exactly where its rows make it one used one at a time with the others of
+// that category.
 func TestTheRowsGroupEveryElixirAndByCategoryOnlyWhereTheCategoryOutlastsTheBuff(t *testing.T) {
 	withDBCInputs(t)
 	instance := dbc.GetDBC()
 
-	byCategory := 0
+	grouped, ungrouped := 0, 0
 	for _, id := range slices.Sorted(maps.Keys(instance.Consumables)) {
 		catalogued := instance.Consumables[id]
 		routing := RouteConsumable(&catalogued, instance)
@@ -100,20 +166,27 @@ func TestTheRowsGroupEveryElixirAndByCategoryOnlyWhereTheCategoryOutlastsTheBuff
 		if consumable.Type == proto.ConsumableType_ConsumableTypeElixir && group.Key == "" {
 			t.Errorf("elixir %d %s applies no aura to group it by", id, catalogued.Name)
 		}
-		if !strings.HasPrefix(group.Key, "category ") {
+		if consumable.Type == proto.ConsumableType_ConsumableTypeElixir || consumable.Type == proto.ConsumableType_ConsumableTypeScroll ||
+			registrationFamilyOf(consumable, &catalogued, routing) != statFamily {
+			if strings.HasPrefix(group.Key, "category ") {
+				t.Errorf("%v %d %s is grouped by its category %q, want only a stat consumable grouped so", consumable.Type, id, catalogued.Name, group.Key)
+			}
 			continue
 		}
-		byCategory++
-		if consumable.Type == proto.ConsumableType_ConsumableTypeElixir || consumable.Type == proto.ConsumableType_ConsumableTypeScroll {
-			t.Errorf("%v %d %s is grouped by its category, want by its aura", consumable.Type, id, catalogued.Name)
+
+		want := ""
+		if category := categoryOneAtATime(consumable.ItemEffects[0]); category > 0 {
+			want = fmt.Sprintf("category %d", category)
+			grouped++
+		} else {
+			ungrouped++
 		}
-		category := shared.OneAtATimeCategory(consumable.ItemEffects[0])
-		if want := fmt.Sprintf("category %d", category); category <= 0 || group.Key != want {
+		if group.Key != want {
 			t.Errorf("%d %s is grouped as %q, want %q", id, catalogued.Name, group.Key, want)
 		}
 	}
-	if byCategory == 0 {
-		t.Error("no consumable is grouped by its category")
+	if grouped == 0 || ungrouped == 0 {
+		t.Errorf("%d stat consumables grouped by category and %d not, want some of each", grouped, ungrouped)
 	}
 }
 

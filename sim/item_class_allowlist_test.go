@@ -12,17 +12,26 @@ import (
 	"github.com/wowsims/forever/sim/core/simsignals"
 )
 
-// ItemSparse.AllowableClass reaches the sim as the item's class allowlist, playable classes only.
+// The class allowlist each item states in the database reaches the sim's item as it is, and names
+// playable classes only, each once. The database loads an item id once, its first row.
 func TestClassRestrictedItemsCarryTheirAllowlist(t *testing.T) {
 	playable := []proto.Class{proto.Class_ClassWarrior, proto.Class_ClassPaladin, proto.Class_ClassHunter,
 		proto.Class_ClassRogue, proto.Class_ClassPriest, proto.Class_ClassShaman, proto.Class_ClassMage,
 		proto.Class_ClassWarlock, proto.Class_ClassDruid}
 	restricted := 0
+	loaded := map[int32]bool{}
 	for _, uiItem := range database.Load().Items {
+		if loaded[uiItem.Id] {
+			continue
+		}
+		loaded[uiItem.Id] = true
 		item := core.GetItemByID(uiItem.Id)
 		if item == nil {
 			t.Errorf("item %d is not in the sim's database", uiItem.Id)
 			continue
+		}
+		if !slices.Equal(item.ClassAllowlist, uiItem.ClassAllowlist) {
+			t.Errorf("item %d %s loads class allowlist %v, the database states %v", item.ID, item.Name, item.ClassAllowlist, uiItem.ClassAllowlist)
 		}
 		if len(item.ClassAllowlist) > 0 {
 			restricted++

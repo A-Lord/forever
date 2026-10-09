@@ -58,24 +58,29 @@ func TestChanceOnHitHotRoutesAsAHeal(t *testing.T) {
 	}
 }
 
-// What a weapon's chance-on-hit parse must answer: registered where a weapon rate override rates it,
-// and otherwise registered where the game files state a rate or refused for the missing rate alone.
-// Answers the refusal reasons to expect, or false after reporting a parse that answered neither.
+// What a weapon's chance-on-hit parse must answer. A rate from a weapon rate override, or one the
+// trigger's row states, registers it unlisted. With neither it is refused for the missing rate alone
+// and listed as missing. A row's 100 or 101 is no rate on a weapon proc: the game casts the spell off
+// the hit without consulting the row. Answers the refusal reasons to expect, or false after reporting
+// a parse that answered otherwise.
 func rateOutcome(t *testing.T, itemID int, spellID int32, got EffectParseResult) ([]string, bool) {
 	t.Helper()
+	row := spelldata.Find(spellID)
 	rated := overrides.WeaponProcPPM(int32(itemID), spellID) > 0
+	stated := row.RPPM > 0 || (row.ProcChanceSource != spelldata.ProcChanceAlways && row.StatedChance() != 0)
+	_, listed := missingEffectsMap["ItemEffects"][int32(itemID)]
 	switch {
-	case got == EffectParseResultSuccess:
+	case (rated || stated) && got == EffectParseResultSuccess && !listed:
 		return nil, true
-	case got == EffectParseResultRefused && !rated:
+	case !rated && !stated && got == EffectParseResultRefused && listed:
 		return []string{spelldata.ReasonStatesNoRate}, true
 	}
-	t.Errorf("item %d parsed as %v, rated by an override: %v", itemID, got, rated)
+	t.Errorf("item %d parsed as %v, listed as missing %v; rated by an override %v, by its row %v", itemID, got, listed, rated, stated)
 	return nil, false
 }
 
 // A chance-on-hit spell that grants extra attacks routes to the extra-attack shape: Flurry Axe 871's
-// 18797 grants the wearer one, at the override's 1.9 PPM, so it registers.
+// 18797 grants the wearer extra attacks, at the override's 1.9 PPM, so it registers.
 func TestChanceOnHitExtraAttackRoutes(t *testing.T) {
 	withDBCInputs(t)
 	instance := dbc.GetDBC()
@@ -137,10 +142,6 @@ func TestChanceOnHitDamageOverTimeRoutesAsDamage(t *testing.T) {
 		if !slices.Equal(r.Unsupported, wantUnsupported) {
 			t.Errorf("item %d refused for %q, want %q", tc.itemID, r.Unsupported, wantUnsupported)
 		}
-		refused := wantUnsupported != nil
-		if _, listed := missingEffectsMap["ItemEffects"][int32(tc.itemID)]; listed != refused {
-			t.Errorf("item %d listed as missing an effect: %v, want %v", tc.itemID, listed, refused)
-		}
 
 		rated := routeProc(int(tc.spellID), int(tc.spellID), true, 1)
 		rated.as(ShapeDamage, tc.spellID)
@@ -168,7 +169,7 @@ func TestItemProcCarriesOnlyARolledChance(t *testing.T) {
 	} {
 		column := float64(instance.Spells[tc.trigger].ProcChance)
 		if rolls := column > 0 && column < 100; rolls != tc.rolls {
-			t.Fatalf("%d states ProcChance %v, which is no longer the case the test covers", tc.trigger, column)
+			t.Fatalf("%d states ProcChance %v, outside the case the test covers", tc.trigger, column)
 		}
 		want := 0.0
 		if tc.rolls {

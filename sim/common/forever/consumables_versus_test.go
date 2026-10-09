@@ -51,8 +51,7 @@ func bonusAgainstTarget(character *core.Character) stats.Stats {
 	return character.AttackTables[target.UnitIndex].MobTypeBonusStats[target.MobType]
 }
 
-// Potion of Demon Slaying 9224 casts 11406: attack power against Demons (creature type mask 4) for
-// the spell's duration. The item states no cooldown of its own, so the potion runs on the spell's
+// Potion of Demon Slaying 9224 casts 11406: attack power against Demons for the spell's duration. The item states no cooldown of its own, so the potion runs on the spell's
 // category timer and category cooldown.
 func TestPotionOfDemonSlayingIsAPotion(t *testing.T) {
 	sim, character := warriorWithConsumes(t, &proto.ConsumesSpec{PotId: 9224}, 0, 0, proto.MobType_MobTypeDemon)
@@ -70,7 +69,11 @@ func TestPotionOfDemonSlayingIsAPotion(t *testing.T) {
 			spell.SharedCD.Duration, row.Category, row.CategoryCooldown())
 	}
 
-	want := stats.Stats{stats.AttackPower: row.FirstAura(dbcenums.A_MOD_MELEE_ATTACK_POWER_VERSUS).Average()}
+	attackPower := row.FirstAura(dbcenums.A_MOD_MELEE_ATTACK_POWER_VERSUS).Average()
+	if attackPower == 0 {
+		t.Fatal("11406 states no attack power against a creature type")
+	}
+	want := stats.Stats{stats.AttackPower: attackPower}
 	if got := bonusAgainstTarget(character); got != (stats.Stats{}) {
 		t.Errorf("before the potion, the bonus against Demons is %v, want none", got)
 	}
@@ -95,13 +98,16 @@ func TestPotionOfDemonSlayingIsAPotion(t *testing.T) {
 }
 
 // Consecrated Sharpening Stone 23122 casts 28891, which puts enchant 2684 on a weapon of the
-// subclasses its SpellEquippedItems mask 1097203 names; the enchant's equip spell 28893 grants melee
-// and ranged attack power against Undead (creature type mask 32), once per enchanted hand.
+// subclasses its SpellEquippedItems mask names; the enchant's equip spell 28893 grants melee and
+// ranged attack power against Undead, once per enchanted hand.
 func TestConsecratedSharpeningStoneCountsOncePerHandItTakes(t *testing.T) {
 	const sword, dagger, shield = 727, 816, 1203
 	row := spelldata.MustFind(28893)
 	melee := row.FirstAura(dbcenums.A_MOD_MELEE_ATTACK_POWER_VERSUS).Average()
 	ranged := row.FirstAura(dbcenums.A_MOD_RANGED_ATTACK_POWER_VERSUS).Average()
+	if melee == 0 || ranged == 0 {
+		t.Fatalf("28893 states %v melee and %v ranged attack power against a creature type, want both", melee, ranged)
+	}
 	for _, tc := range []struct {
 		name              string
 		mainHand, offHand int32
@@ -126,10 +132,13 @@ func TestConsecratedSharpeningStoneCountsOncePerHandItTakes(t *testing.T) {
 }
 
 // Blessed Wizard Oil 23123 puts enchant 2685 on the weapon, whose equip spell 28890 grants spell
-// damage against Undead (creature type mask 32).
+// damage against Undead.
 func TestBlessedWizardOilGrantsSpellDamageAgainstUndead(t *testing.T) {
 	const sword = 727
 	spellDamage := spelldata.MustFind(28890).FirstAura(dbcenums.A_MOD_FLAT_SPELL_DAMAGE_VERSUS).Average()
+	if spellDamage == 0 {
+		t.Fatal("28890 states no spell damage against a creature type")
+	}
 	_, againstUndead := warriorWithConsumes(t, &proto.ConsumesSpec{MhImbueId: 23123}, sword, 0, proto.MobType_MobTypeUndead)
 	if got, want := bonusAgainstTarget(againstUndead), (stats.Stats{stats.SpellDamage: spellDamage}); got != want {
 		t.Errorf("the bonus against Undead is %v, want %v", got, want)

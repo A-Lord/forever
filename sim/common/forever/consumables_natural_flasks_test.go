@@ -65,6 +65,9 @@ func TestNaturalFlasksGrantStaminaAndTheirZoneBonus(t *testing.T) {
 		}
 		row := spelldata.MustFind(core.GetConsumableByID(tc.itemID).OnUse().BuffId)
 		stamina, percent := row.EffectN(1).Average(), row.EffectN(2).Average()
+		if stamina == 0 || percent == 0 {
+			t.Fatalf("%d: %d states %v Stamina and a %v%% zone bonus, want both", tc.itemID, row.ID, stamina, percent)
+		}
 		var bonus stats.Stats
 		for _, stat := range tc.bonusTo {
 			bonus[stat] = percent
