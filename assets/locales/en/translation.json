@@ -2609,11 +2609,6 @@
 		},
 		"character_stats": {
 			"title": "Stats",
-			"mode": {
-				"label": "Stats shown",
-				"key": "Key",
-				"all": "All"
-			},
 			"groups": {
 				"attributes": "Attributes",
 				"physical": "Physical",

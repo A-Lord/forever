@@ -11,7 +11,6 @@ import { Table, TableCell, TableRow } from '@ui-kit/Table';
 import type { ReactNode } from 'react';
 
 import { BonusLink } from './BonusLink';
-import type { CharacterStatsMode } from './CharacterStats';
 import { bonusStatClass, bonusTone } from './utils/stat_display';
 import { WeaponSkillPicker } from './WeaponSkillPicker';
 
@@ -47,20 +46,15 @@ export const WeaponSkillsView = ({ rows }: WeaponSkillsViewProps) => (
 	</Table>
 );
 
-export interface WeaponSkillsProps {
-	mode: CharacterStatsMode;
-}
-
-export const WeaponSkills = ({ mode }: WeaponSkillsProps) => {
+export const WeaponSkills = () => {
 	const player = usePlayer();
 	const { displayWeaponSkillGroups } = useSpecConfig();
 	const weaponSkills = usePlayerStore('weaponSkills');
 	// The sim's full skill, gear and buffs included, once it has computed the stats; the stated skill before.
 	const finalSkills = usePlayerStore('currentStats')?.weaponSkills;
 	const displayed = finalSkills?.length ? finalSkills : weaponSkills;
-	const classSkills = getClassWeaponSkills(player.getClass());
 	const keySkills = weaponSkillsInGroups(displayWeaponSkillGroups ?? []);
-	const shown = mode === 'all' ? classSkills : classSkills.filter(skill => keySkills.includes(skill));
+	const shown = getClassWeaponSkills(player.getClass()).filter(skill => keySkills.includes(skill));
 	if (shown.length === 0) return null;
 
 	const bonusPrefix = i18n.t('sidebar.character_stats.bonus_prefix');

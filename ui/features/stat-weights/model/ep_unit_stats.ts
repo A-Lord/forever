@@ -1,4 +1,4 @@
-import type { StatFilterScope } from '@features/stat-filters';
+import type { StatFilterScope } from '@features/stat-filters/model/stat_filters';
 import { PseudoStat, Stat } from '@generated/proto/common';
 import { SCHOOL_HIT_PERCENT_PSEUDO_STATS, UnitStat } from '@sim/proto/stats';
 

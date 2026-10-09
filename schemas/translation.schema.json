@@ -9205,22 +9205,6 @@
 						"title": {
 							"type": "string"
 						},
-						"mode": {
-							"type": "object",
-							"properties": {
-								"label": {
-									"type": "string"
-								},
-								"key": {
-									"type": "string"
-								},
-								"all": {
-									"type": "string"
-								}
-							},
-							"additionalProperties": false,
-							"required": ["label", "key", "all"]
-						},
 						"groups": {
 							"type": "object",
 							"properties": {
@@ -9443,7 +9427,6 @@
 					"additionalProperties": false,
 					"required": [
 						"title",
-						"mode",
 						"groups",
 						"hands",
 						"melee_crit_cap",

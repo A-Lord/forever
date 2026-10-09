@@ -1,9 +1,11 @@
+import { StatFilterPopover } from '@features/stat-filters';
+import { Class, PseudoStat, Stat } from '@generated/proto/common';
+import { UnitStat } from '@sim/proto/stats';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Table, TableCell, TableRow } from '@ui-kit/Table';
-import { useState } from 'react';
-import { expect, fn, userEvent, within } from 'storybook/test';
+import { fn } from 'storybook/test';
 
-import { CharacterStatsHeaderView, type CharacterStatsHeaderViewProps, CharacterStatsPanelView, type CharacterStatsPanelViewProps } from './CharacterStats';
+import { CharacterStatsHeaderView, CharacterStatsPanelView } from './CharacterStats';
 
 const ROWS = [
 	['Strength', '320'],
@@ -26,47 +28,35 @@ const SampleTable = () => (
 	</Table>
 );
 
-const StatefulPanel = ({ mode: initialMode, onModeChange, ...props }: CharacterStatsPanelViewProps) => {
-	const [mode, setMode] = useState(initialMode);
-	return (
-		<CharacterStatsPanelView
-			{...props}
-			mode={mode}
-			onModeChange={next => {
-				setMode(next);
-				onModeChange(next);
-			}}>
-			<SampleTable />
-		</CharacterStatsPanelView>
-	);
-};
+const UNIVERSE = [
+	UnitStat.fromStat(Stat.StatStrength),
+	UnitStat.fromStat(Stat.StatAgility),
+	UnitStat.fromStat(Stat.StatStamina),
+	UnitStat.fromStat(Stat.StatAttackPower),
+	UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeCritPercent),
+	UnitStat.fromStat(Stat.StatSpellDamage),
+];
+const SPEC_DEFAULTS = UNIVERSE.filter(stat => !stat.equalsStat(Stat.StatSpellDamage));
 
-const StatefulHeader = ({ mode: initial, onModeChange, ...props }: CharacterStatsHeaderViewProps) => {
-	const [mode, setMode] = useState(initial);
-	return (
-		<CharacterStatsHeaderView
-			{...props}
-			mode={mode}
-			onModeChange={next => {
-				setMode(next);
-				onModeChange(next);
-			}}
-		/>
-	);
-};
+const statFilter = (customised: boolean) => (
+	<StatFilterPopover
+		universe={UNIVERSE}
+		shown={customised ? UNIVERSE : SPEC_DEFAULTS}
+		customised={customised}
+		playerClass={Class.ClassWarrior}
+		onChange={fn()}
+		onReset={fn()}
+		testId="character-stats-filter"
+	/>
+);
 
 const meta = {
 	title: 'Features/CharacterStats/CharacterStats',
 	component: CharacterStatsPanelView,
 	subcomponents: { CharacterStatsHeaderView },
 	tags: ['autodocs'],
-	args: {
-		mode: 'key',
-		onModeChange: fn(),
-		labels: { title: 'Stats', modeAriaLabel: 'Stats shown', key: 'Key', all: 'All' },
-	},
-	argTypes: { mode: { control: 'inline-radio', options: ['key', 'all'] }, children: { control: false } },
-	render: args => <StatefulPanel {...args} />,
+	args: { title: 'Stats', filter: statFilter(false), children: <SampleTable /> },
+	argTypes: { filter: { control: false }, children: { control: false } },
 	decorators: [
 		Story => (
 			<div className="flex w-62 flex-col">
@@ -79,21 +69,8 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {
-	play: async ({ args, canvasElement }) => {
-		await userEvent.click(within(canvasElement).getByRole('button', { name: 'All' }));
-		await expect(args.onModeChange).toHaveBeenCalledWith('all');
-	},
-};
+export const Default: Story = {};
 
-export const HeaderKey: Story = {
-	render: args => <StatefulHeader {...args} />,
-	play: async ({ args, canvasElement }) => {
-		const all = within(canvasElement).getByRole('button', { name: 'All' });
-		await userEvent.click(all);
-		await expect(args.onModeChange).toHaveBeenCalledWith('all');
-		await expect(all).toHaveAttribute('aria-pressed', 'true');
-	},
-};
+export const CustomisedFilter: Story = { args: { filter: statFilter(true) } };
 
-export const HeaderAll: Story = { render: args => <StatefulHeader {...args} />, args: { mode: 'all' } };
+export const Header: Story = { render: args => <CharacterStatsHeaderView {...args} /> };
