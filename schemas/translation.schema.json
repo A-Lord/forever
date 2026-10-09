@@ -8491,9 +8491,6 @@
 										"stats_type": {
 											"type": "string"
 										},
-										"show_all_stats": {
-											"type": "string"
-										},
 										"dps_tps_reference": {
 											"type": "string"
 										},
@@ -8760,7 +8757,6 @@
 										"ep",
 										"weights",
 										"stats_type",
-										"show_all_stats",
 										"dps_tps_reference",
 										"healing_reference",
 										"mitigation_reference",
