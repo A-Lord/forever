@@ -255,29 +255,39 @@ func (mage *Mage) registerFingersOfFrost() {
 			mage.FingersOfFrostAura.SetStacks(sim, charges)
 		})
 	trigger.Name = "Fingers of Frost - Trigger"
-	// PROC_FLAG_DEAL_HARMFUL_SPELL decodes to the cast, but the logs place the proc on the hit:
-	// without Frostbite it rolls on each hit and is up a batch window later.
+
+	// PROC_FLAG_DEAL_HARMFUL_SPELL decodes to the cast, but the logs place the proc on the landed
+	// hit, with the charges up at once. With Frostbite a missile (Frostbolt, Frostfire Bolt) rolls
+	// at its launch instead, before it lands, so a spell queued behind the cast is already treated
+	// as Frozen; a spell without travel time (a Blizzard tick) still rolls on each hit.
+	// Set while a missile's launch is handed to the trigger, so its later impact is told apart.
+	var launching bool
 	trigger.Callback = core.CallbackOnSpellHitDealt
 	trigger.Outcome = core.OutcomeLanded
+	trigger.TriggerImmediately = true
 	trigger.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
-		return mage.isChill(spell)
-	}
-	if mage.Talents.Frostbite > 0 {
-		// With Frostbite the proc rolls as the Chill spell is launched at each target and is up in
-		// the same batch, before the spell lands: a missile rolls on its cast, a spell without
-		// travel time (a Blizzard tick) on each hit. A spell queued behind the cast is already
-		// treated as Frozen.
-		// TODO: a missile's roll on its cast cannot see the outcome, so a missed or fully resisted
-		// Frostbolt still grants the charges; no Frostbite log has a miss yet.
-		trigger.Callback |= core.CallbackOnCastComplete
-		trigger.TriggerImmediately = true
-		trigger.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, result *core.SpellResult) bool {
-			onCast := result == nil
-			return mage.isChill(spell) && onCast == (spell.MissileSpeed > 0)
-		}
+		rollsAtLaunch := mage.Talents.Frostbite > 0 && spell.MissileSpeed > 0
+		return mage.isChill(spell) && launching == rollsAtLaunch
 	}
 
-	mage.MakeProcTriggerAura(trigger)
+	triggerAura := mage.MakeProcTriggerAura(trigger)
+
+	if mage.Talents.Frostbite > 0 {
+		mage.fingersOfFrostLaunch = func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
+			launching = true
+			triggerAura.OnSpellHitDealt(triggerAura, sim, spell, result)
+			launching = false
+		}
+	}
+}
+
+// With Frostbite, Fingers of Frost rolls on a Chill missile as it is launched, with the hit rolled
+// at the cast, so a missile that misses or is fully resisted grants no charges.
+// TODO: assumed; no Frostbite log has a missed or fully resisted Frostbolt yet.
+func (mage *Mage) launchChillMissile(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
+	if mage.fingersOfFrostLaunch != nil {
+		mage.fingersOfFrostLaunch(sim, spell, result)
+	}
 }
 
 // A Frost spell that lands has a 20% chance per point to put a stack of Winter's Chill (12579) on
