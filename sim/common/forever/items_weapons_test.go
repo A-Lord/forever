@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	_ "github.com/wowsims/forever/sim/common/classic" // registers Thunderfury and Enchant Weapon - Crusader.
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/simsignals"
@@ -353,4 +354,15 @@ func TestHandOfEdwardTheOddMakesTheNextCastInstant(t *testing.T) {
 	if focus.IsActive() {
 		t.Errorf("Focus is still up after the row's %v unspent", duration)
 	}
+}
+
+// Thunderfury, Blessed Blade of the Windseeker 19019 procs 21992 at the procs per minute of the item's
+// chance-on-hit entry.
+func TestThunderfuryProcsAtItsEntryRate(t *testing.T) {
+	sim, character := weaponWearer(t, proto.Class_ClassWarrior, 19019, 1)
+	proc := character.GetAura("Thunderfury Proc")
+	if proc == nil || proc.Dpm == nil {
+		t.Fatal("19019 registers no proc on a procs per minute rate")
+	}
+	expectWeaponRate(t, sim, proc, core.ProcMaskMeleeMHAuto, 19019, 21992)
 }

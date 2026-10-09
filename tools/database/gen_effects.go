@@ -6,6 +6,7 @@ import (
 	"go/format"
 	"io"
 	"iter"
+	"maps"
 	"os"
 	"regexp"
 	"slices"
@@ -561,29 +562,202 @@ func jsString(s string) string {
 
 const missingEffectsFileName = "ui/sim/constants/missing_effects_auto_gen.ts"
 
-type VanillaPPMItem struct {
-	ItemID int32
+// A proc rate on gear that the game files do not state and nobody has measured on Forever.
+type UnvalidatedRate struct {
+	ID     int32 // The item id, the enchant effect id or the set id.
+	Pieces int32 // The set bonus's piece count; 0 on an item or an enchant.
 	Name   string
+	Kind   overrides.RateKind
+	Origin string // "vanilla", "tbc" or "unknown".
 }
 
-// The items in the database whose WeaponProcs rate is a vanilla carry-over, unverified on Forever,
-// once each and in id order.
-func vanillaPPMItems(db *WowDatabase) []VanillaPPMItem {
-	var items []VanillaPPMItem
-	for _, proc := range overrides.WeaponProcs {
-		item, ok := db.Items[proc.ItemID]
-		if proc.Source != "vanilla-carryover" || !ok || slices.ContainsFunc(items, func(listed VanillaPPMItem) bool { return listed.ItemID == proc.ItemID }) {
+type UnvalidatedRates struct {
+	Items      []UnvalidatedRate
+	Enchants   []UnvalidatedRate
+	SetBonuses []UnvalidatedRate
+}
+
+// A rate the sim keeps as a literal in code, outside the override tables, which the notices still
+// have to name. Gear is "item", "enchant" or "set bonus".
+type literalRate struct {
+	Gear   string
+	ID     int32
+	Pieces int32
+	Kind   overrides.RateKind
+	Origin string
+	Reason string
+}
+
+var literalRates = []literalRate{
+	{
+		Gear:   "item",
+		ID:     272432,
+		Kind:   overrides.RatePPM,
+		Origin: "unknown",
+		Reason: "Totem of the Storm: half of Maelstrom Weapon's rate per minute, which the shaman talent " +
+			"code keeps as its own literal; the item cannot carry it without the talent reading it from the item",
+	},
+}
+
+// The origin a rate's Source names, or "" for one measured on Forever, which needs no notice.
+func rateOrigin(source string) string {
+	switch {
+	case strings.HasPrefix(source, "wcl:"), strings.HasPrefix(source, "issue #"):
+		return ""
+	case source == "vanilla-carryover":
+		return "vanilla"
+	case source == "tbc-carryover":
+		return "tbc"
+	}
+	return "unknown"
+}
+
+// The hand-kept rates the notices weigh, and the gear casting each spell a spell rate sits on.
+type rateInputs struct {
+	WeaponProcs   []overrides.WeaponProc
+	Spells        []overrides.Override
+	EnchantProcs  []overrides.EnchantProc
+	Literals      []literalRate
+	SpellItems    map[int32][]int32 // The items casting each spell, by spell id.
+	SpellEnchants map[int32][]int32 // The enchant effect ids casting each spell, by spell id.
+}
+
+// A spell override's rate kind, or 0 for an override that is not a rate.
+func spellRateKind(o overrides.Override) overrides.RateKind {
+	switch o.Field {
+	case overrides.PPM:
+		return overrides.RatePPM
+	case overrides.ProcChancePct:
+		return overrides.RateChance
+	}
+	return 0
+}
+
+// The shipped tables, with the items and enchants the game files have casting each rated spell.
+func shippedRateInputs(instance *dbc.DBC) rateInputs {
+	in := rateInputs{
+		WeaponProcs:   overrides.WeaponProcs,
+		Spells:        overrides.Spells,
+		EnchantProcs:  overrides.EnchantProcs,
+		Literals:      literalRates,
+		SpellItems:    map[int32][]int32{},
+		SpellEnchants: map[int32][]int32{},
+	}
+	for _, o := range overrides.Spells {
+		if spellRateKind(o) == 0 {
 			continue
 		}
-		items = append(items, VanillaPPMItem{ItemID: proc.ItemID, Name: item.Name})
+		for itemID, effects := range instance.ItemEffectsByParentID {
+			if slices.ContainsFunc(effects, func(e dbc.ItemEffect) bool { return e.SpellID == int(o.SpellID) }) {
+				in.SpellItems[o.SpellID] = append(in.SpellItems[o.SpellID], int32(itemID))
+			}
+		}
+		for effectID, enchant := range instance.EnchantsByEffectId {
+			if slices.Contains(enchant.EffectArgs, int(o.SpellID)) {
+				in.SpellEnchants[o.SpellID] = append(in.SpellEnchants[o.SpellID], int32(effectID))
+			}
+		}
 	}
-	sort.Slice(items, func(i, j int) bool { return items[i].ItemID < items[j].ItemID })
-	return items
+	return in
 }
 
-func GenerateMissingEffectsFile(db *WowDatabase) error {
+// Every hand-kept proc rate reaching an item, an enchant or a set bonus in the database whose Source
+// is not a measurement on Forever, once per piece of gear and in id order: the weapon rates, the
+// spell rates through the items and enchants that cast the spell, the enchant rates, and the rates
+// still kept as literals in code. Two rates of different kind or origin on one piece is an error.
+func unvalidatedRates(in rateInputs, db *WowDatabase) (UnvalidatedRates, error) {
+	items := map[int32]UnvalidatedRate{}
+	enchants := map[int32]UnvalidatedRate{}
+	setBonuses := map[[2]int32]UnvalidatedRate{}
+	var conflict error
+	put := func(list map[int32]UnvalidatedRate, rate UnvalidatedRate) {
+		if listed, ok := list[rate.ID]; ok && (listed.Kind != rate.Kind || listed.Origin != rate.Origin) && conflict == nil {
+			conflict = fmt.Errorf("%s (%d) carries two rates, a %s %s one and a %s %s one",
+				rate.Name, rate.ID, listed.Origin, listed.Kind, rate.Origin, rate.Kind)
+		}
+		list[rate.ID] = rate
+	}
+	enchantByEffectID := map[int32]*proto.UIEnchant{}
+	for _, enchant := range db.Enchants {
+		enchantByEffectID[enchant.EffectId] = enchant
+	}
+
+	for _, proc := range in.WeaponProcs {
+		item, ok := db.Items[proc.ItemID]
+		if origin := rateOrigin(proc.Source); origin != "" && ok {
+			put(items, UnvalidatedRate{ID: item.Id, Name: item.Name, Kind: overrides.RatePPM, Origin: origin})
+		}
+	}
+
+	for _, o := range in.Spells {
+		kind, origin := spellRateKind(o), rateOrigin(o.Source)
+		if kind == 0 || origin == "" {
+			continue
+		}
+		for _, itemID := range in.SpellItems[o.SpellID] {
+			if item, ok := db.Items[itemID]; ok {
+				put(items, UnvalidatedRate{ID: itemID, Name: item.Name, Kind: kind, Origin: origin})
+			}
+		}
+		for _, effectID := range in.SpellEnchants[o.SpellID] {
+			if enchant, ok := enchantByEffectID[effectID]; ok {
+				put(enchants, UnvalidatedRate{ID: effectID, Name: enchant.Name, Kind: kind, Origin: origin})
+			}
+		}
+	}
+
+	for _, proc := range in.EnchantProcs {
+		enchant, ok := enchantByEffectID[proc.EnchantID]
+		if origin := rateOrigin(proc.Source); origin != "" && ok {
+			put(enchants, UnvalidatedRate{ID: proc.EnchantID, Name: enchant.Name, Kind: proc.Kind, Origin: origin})
+		}
+	}
+
+	for _, literal := range in.Literals {
+		rate := UnvalidatedRate{ID: literal.ID, Pieces: literal.Pieces, Kind: literal.Kind, Origin: literal.Origin}
+		switch literal.Gear {
+		case "item":
+			if item, ok := db.Items[literal.ID]; ok {
+				rate.Name = item.Name
+				put(items, rate)
+			}
+		case "enchant":
+			if enchant, ok := enchantByEffectID[literal.ID]; ok {
+				rate.Name = enchant.Name
+				put(enchants, rate)
+			}
+		case "set bonus":
+			for _, item := range db.Items {
+				if item.SetId == literal.ID {
+					rate.Name = item.SetName
+					setBonuses[[2]int32{literal.ID, literal.Pieces}] = rate
+					break
+				}
+			}
+		}
+	}
+
+	byID := func(list []UnvalidatedRate) []UnvalidatedRate {
+		sort.Slice(list, func(i, j int) bool {
+			return list[i].ID < list[j].ID || list[i].ID == list[j].ID && list[i].Pieces < list[j].Pieces
+		})
+		return list
+	}
+	return UnvalidatedRates{
+		Items:      byID(slices.Collect(maps.Values(items))),
+		Enchants:   byID(slices.Collect(maps.Values(enchants))),
+		SetBonuses: byID(slices.Collect(maps.Values(setBonuses))),
+	}, conflict
+}
+
+func GenerateMissingEffectsFile(instance *dbc.DBC, db *WowDatabase) error {
 	if _, err := os.Stat(missingEffectsFileName); err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("unable to check file %s: %w", missingEffectsFileName, err)
+	}
+
+	rates, err := unvalidatedRates(shippedRateInputs(instance), db)
+	if err != nil {
+		return err
 	}
 
 	f, err := os.Create(missingEffectsFileName)
@@ -592,10 +766,10 @@ func GenerateMissingEffectsFile(db *WowDatabase) error {
 	}
 	defer f.Close()
 
-	return renderMissingEffects(f, db)
+	return renderMissingEffects(f, rates)
 }
 
-func renderMissingEffects(w io.Writer, db *WowDatabase) error {
+func renderMissingEffects(w io.Writer, rates UnvalidatedRates) error {
 	funcMap := map[string]any{
 		"asCoreCallback": asCoreCallback,
 		"asCoreProcMask": asCoreProcMask,
@@ -604,10 +778,19 @@ func renderMissingEffects(w io.Writer, db *WowDatabase) error {
 		"jsString":       jsString,
 	}
 	tmpl := template.Must(template.New("missingEffects").Funcs(funcMap).Parse(TmplStrMissingEffects))
+	var sets [][]UnvalidatedRate
+	for _, bonus := range rates.SetBonuses {
+		if len(sets) == 0 || sets[len(sets)-1][0].ID != bonus.ID {
+			sets = append(sets, nil)
+		}
+		sets[len(sets)-1] = append(sets[len(sets)-1], bonus)
+	}
 	data := map[string]any{
-		"ItemEffects":     missingEffectsMap["ItemEffects"],
-		"EnchantEffects":  missingEffectsMap["EnchantEffects"],
-		"VanillaPPMItems": vanillaPPMItems(db),
+		"ItemEffects":               missingEffectsMap["ItemEffects"],
+		"EnchantEffects":            missingEffectsMap["EnchantEffects"],
+		"UnvalidatedRateItems":      rates.Items,
+		"UnvalidatedRateEnchants":   rates.Enchants,
+		"UnvalidatedRateSetBonuses": sets,
 	}
 	if err := tmpl.Execute(w, data); err != nil {
 		return fmt.Errorf("failed to execute template: %w", err)
