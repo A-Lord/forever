@@ -34,6 +34,7 @@ export const shownStats = (filters: DatabaseFilters, slot: StatFilterSlot, scope
 /** A copy of the filters with the slot set to the given stats, or cleared back to the defaults for `undefined`. */
 export const withSelection = (filters: DatabaseFilters, slot: StatFilterSlot, stats: ReadonlyArray<UnitStat> | undefined): DatabaseFilters => {
 	const next = DatabaseFilters.clone(filters);
+	if (!stats && !next.statFilters) return next;
 	next.statFilters ??= StatFilters.create();
 	next.statFilters[slotFields[slot]] = stats ? StatSelection.create({ stats: stats.map(stat => stat.toProto()) }) : undefined;
 	return next;

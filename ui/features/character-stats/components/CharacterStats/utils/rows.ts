@@ -23,7 +23,6 @@ export type Row =
 	| { kind: 'crit-immunity'; id: string }
 	| { kind: 'melee-crit-cap'; id: string };
 
-/** `primary` (health and mana) shows without a header; the rest are collapsible. */
 export type { StatGroupKey };
 
 export interface RowGroup {

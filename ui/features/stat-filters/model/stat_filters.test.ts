@@ -54,6 +54,15 @@ describe('stat filters', () => {
 		expect(keys(shownStats(cleared, 'characterStats', scope))).toEqual(keys(inUniverseOrder(scope.defaults)));
 	});
 
+	it('leaves filters with no stat filters alone when a slot is cleared', () => {
+		const filters = DatabaseFilters.create({ minIlvl: 50 });
+
+		const cleared = withSelection(filters, 'ep', undefined);
+
+		expect(cleared.statFilters).toBeUndefined();
+		expect(DatabaseFilters.equals(cleared, filters)).toBe(true);
+	});
+
 	it('changes only the given slot and leaves its input as it was', () => {
 		const filters = withSelection(DatabaseFilters.create({ minIlvl: 50, showAllEnchants: true, favoriteItems: [7] }), 'ep', [agility]);
 		const before = DatabaseFilters.clone(filters);
@@ -73,6 +82,18 @@ describe('stat filters', () => {
 		const filters = withSelection(withSelection(DatabaseFilters.create(), 'ep', [meleeHit, agility]), 'buffs', []);
 
 		const roundTripped = DatabaseFilters.fromBinary(DatabaseFilters.toBinary(filters));
+
+		expect(isCustomised(roundTripped, 'ep')).toBe(true);
+		expect(keys(shownStats(roundTripped, 'ep', scope))).toEqual(keys(shownStats(filters, 'ep', scope)));
+		expect(isCustomised(roundTripped, 'buffs')).toBe(true);
+		expect(shownStats(roundTripped, 'buffs', scope)).toEqual([]);
+		expect(isCustomised(roundTripped, 'debuffs')).toBe(false);
+	});
+
+	it('keeps a set slot and an empty slot apart through JSON serialisation', () => {
+		const filters = withSelection(withSelection(DatabaseFilters.create(), 'ep', [meleeHit, agility]), 'buffs', []);
+
+		const roundTripped = DatabaseFilters.fromJsonString(DatabaseFilters.toJsonString(filters));
 
 		expect(isCustomised(roundTripped, 'ep')).toBe(true);
 		expect(keys(shownStats(roundTripped, 'ep', scope))).toEqual(keys(shownStats(filters, 'ep', scope)));
