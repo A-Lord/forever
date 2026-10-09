@@ -5,19 +5,17 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-// Granted by the Shadowburn talent. The 15 sec cooldown is the row's category cooldown. Each cast takes a
-// Soul Shard; the one a kill returns is not modelled.
+// Granted by the Shadowburn talent. The 15 sec cooldown is the row's category cooldown, and the Soul Shard
+// each cast takes the row's reagent; the one a kill returns is not modelled.
 func (warlock *Warlock) registerShadowBurn() {
 	rankedSpell := spellData.Shadowburn.ByID(18871)
 	shadowburnHit := rankedSpell.DamageEffect()
 
 	config := spelldata.SpellConfig(&warlock.Unit, rankedSpell, spelldata.Magic(core.ProcMaskSpellDamage))
 	config.ClassSpellMask = WarlockSpellShadowBurn
-	config.ExtraCastCondition = warlock.hasSoulShard
 
 	// Roll the damage and to hit
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		warlock.spendSoulShard(sim)
 		spell.CalcAndDealDamage(sim, target, shadowburnHit.Average(), spell.OutcomeMagicHitAndCrit)
 	}
 
@@ -26,5 +24,6 @@ func (warlock *Warlock) registerShadowBurn() {
 		return spell.CalcDamage(sim, target, shadowburnHit.Average(), spell.OutcomeExpectedMagicHitAndCrit)
 	}
 
+	warlock.useReagents(&config, rankedSpell)
 	warlock.Shadowburn = warlock.RegisterSpell(config)
 }
