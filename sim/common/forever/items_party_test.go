@@ -18,6 +18,26 @@ import (
 // The warrior stand-in of class class wearing one item, in a party with these party buffs.
 func partyItemWearer(t *testing.T, seed int64, class proto.Class, slot proto.ItemSlot, itemID int32, party *proto.PartyBuffs) (*core.Simulation, *core.Character) {
 	t.Helper()
+	sim := core.NewSim(&proto.RaidSimRequest{
+		SimOptions: &proto.SimOptions{RandomSeed: seed},
+		Raid:       partyItemRaid(class, slot, itemID, party),
+		Encounter:  &proto.Encounter{Targets: []*proto.Target{{Name: "target", Level: 60}}, Duration: 180},
+	}, simsignals.CreateSignals())
+	sim.Reset()
+	return sim, sim.Raid.Parties[0].Players[0].GetCharacter()
+}
+
+// The character sheet's stats for partyItemWearer's stand-in.
+func partyItemSheet(t *testing.T, class proto.Class, slot proto.ItemSlot, itemID int32, party *proto.PartyBuffs) *proto.UnitStats {
+	t.Helper()
+	result := core.ComputeStats(&proto.ComputeStatsRequest{Raid: partyItemRaid(class, slot, itemID, party), SkipRotation: true})
+	if result.ErrorResult != "" {
+		t.Fatalf("ComputeStats: %s", result.ErrorResult)
+	}
+	return result.RaidStats.Parties[0].Players[0].FinalStats
+}
+
+func partyItemRaid(class proto.Class, slot proto.ItemSlot, itemID int32, party *proto.PartyBuffs) *proto.Raid {
 	items := make([]*proto.ItemSpec, proto.ItemSlot_ItemSlotRanged+1)
 	for i := range items {
 		items[i] = &proto.ItemSpec{}
@@ -31,13 +51,7 @@ func partyItemWearer(t *testing.T, seed int64, class proto.Class, slot proto.Ite
 		Rotation:    &proto.APLRotation{},
 	}
 	core.WithSpec(player, &proto.Player_DpsWarrior{DpsWarrior: &proto.DpsWarrior{}})
-	sim := core.NewSim(&proto.RaidSimRequest{
-		SimOptions: &proto.SimOptions{RandomSeed: seed},
-		Raid:       &proto.Raid{Parties: []*proto.Party{{Players: []*proto.Player{player}, Buffs: party}}},
-		Encounter:  &proto.Encounter{Targets: []*proto.Target{{Name: "target", Level: 60}}, Duration: 180},
-	}, simsignals.CreateSignals())
-	sim.Reset()
-	return sim, sim.Raid.Parties[0].Players[0].GetCharacter()
+	return &proto.Raid{Parties: []*proto.Party{{Players: []*proto.Player{player}, Buffs: party}}}
 }
 
 // Darkspear 12802's 1314143 grants 16939's crit, physical and spell, for 16939's duration, on the
@@ -176,5 +190,14 @@ func TestAtieshGreatstaffOfTheGuardianGivesItsWearerItsSpellCrit(t *testing.T) {
 	}
 	if got := wearer.GetStat(stats.PhysicalCritPercent) - bare.GetStat(stats.PhysicalCritPercent); got != 0 {
 		t.Errorf("the staff adds %v physical crit, want none", got)
+	}
+
+	bareSheet := partyItemSheet(t, proto.Class_ClassMage, proto.ItemSlot_ItemSlotMainHand, 0, &proto.PartyBuffs{})
+	wearerSheet := partyItemSheet(t, proto.Class_ClassMage, proto.ItemSlot_ItemSlotMainHand, 22589, &proto.PartyBuffs{})
+	sheetCrit := func(sheet *proto.UnitStats) float64 {
+		return stats.PseudoStatValue(sheet.PseudoStats, proto.PseudoStat_PseudoStatSpellCritPercent)
+	}
+	if got := sheetCrit(wearerSheet) - sheetCrit(bareSheet); math.Abs(got-staff) > 1e-9 {
+		t.Errorf("the character sheet shows the staff's spell crit as %v, want %v", got, staff)
 	}
 }
