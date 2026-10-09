@@ -7,8 +7,8 @@ import (
 )
 
 // The summons the APL casts, each by its own row: a 10 sec cast for a share of base mana, both of which
-// Master Summoner and Fel Domination lower through the class flags the four rows share. The Soul Shard
-// the Voidwalker, Succubus and Felhunter take is not modelled.
+// Master Summoner and Fel Domination lower through the class flags the four rows share. The Voidwalker,
+// Succubus and Felhunter take the Soul Shard their rows state; the Imp's row states none.
 func (warlock *Warlock) registerSummons() {
 	warlock.SummonImp = warlock.registerSummon(spellData.SummonImp.Highest(), warlock.Imp)
 	warlock.SummonVoidwalker = warlock.registerSummon(spellData.SummonVoidwalker.Highest(), warlock.Voidwalker)
@@ -32,6 +32,7 @@ func (warlock *Warlock) registerSummon(row *spelldata.Spell, pet *WarlockPet) *c
 		warlock.summonDemon(sim, pet)
 	}
 
+	warlock.useReagents(&config, row)
 	return warlock.RegisterSpell(config)
 }
 
