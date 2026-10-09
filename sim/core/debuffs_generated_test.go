@@ -39,6 +39,23 @@ func rowAmount(t *testing.T, spellID int32, aura dbcenums.EffectAuraType) float6
 	return amount
 }
 
+// The amount the row's armor effect states at the sim's character level. The game files state armor
+// either as a resistance on the physical school or as an armor aura that no armor modifier scales.
+func armorAmount(t *testing.T, spellID int32) float64 {
+	t.Helper()
+	row := spelldata.MustFind(spellID)
+	for i := range row.Effects {
+		e := &row.Effects[i]
+		if e.Aura == dbcenums.A_MOD_ARMOR_NO_MODS || e.Aura == dbcenums.A_MOD_RESISTANCE && e.Misc&1 != 0 {
+			if amount := e.Average(); amount != 0 {
+				return amount
+			}
+		}
+	}
+	t.Fatalf("%s %d states no armor amount", row.Name, spellID)
+	return 0
+}
+
 // How long the row states its aura lasts. A test that reads one checks a duration, so a row stating
 // none fails it.
 func rowDuration(t *testing.T, spellID int32) time.Duration {
@@ -179,7 +196,7 @@ func TestGeneratedSunderArmorPricesEveryStack(t *testing.T) {
 
 	sunder.SetStacks(sim, 5)
 
-	perStack := rowAmount(t, 11597, dbcenums.A_MOD_ARMOR_NO_MODS)
+	perStack := armorAmount(t, 11597)
 	fiveStacks := 5 * perStack
 	if got := target.GetStats()[stats.Armor]; got != fiveStacks {
 		t.Errorf("armor is %v, want five stacks of the game files' %v", got, perStack)
@@ -200,7 +217,7 @@ func TestGeneratedExposeArmorOutbidsAWeakerSunder(t *testing.T) {
 	sim := applyGeneratedTestDebuffs(target, &proto.Debuffs{SunderArmor: true})
 	sunder := target.GetAura("Sunder Armor (External)")
 	sunder.SetStacks(sim, 1)
-	oneStack := rowAmount(t, 11597, dbcenums.A_MOD_ARMOR_NO_MODS)
+	oneStack := armorAmount(t, 11597)
 	if got := target.GetStats()[stats.Armor]; got != oneStack {
 		t.Fatalf("one stack of sunder reduced armor by %v, want the game files' %v", got, oneStack)
 	}
@@ -236,7 +253,7 @@ func TestGeneratedRaidsSunderStacksUnderExposeArmor(t *testing.T) {
 	}
 
 	sunder.SetStacks(sim, 3)
-	threeStacks := 3 * rowAmount(t, 11597, dbcenums.A_MOD_ARMOR_NO_MODS)
+	threeStacks := 3 * armorAmount(t, 11597)
 	if got, want := target.GetStats()[stats.Armor], min(exposeArmorAtFivePoints(t), threeStacks); got != want {
 		t.Errorf("armor is %v, want the stronger reduction's %v once", got, want)
 	}
@@ -292,8 +309,8 @@ func checkOneReductionApplies(t *testing.T, debuffs *proto.Debuffs, category str
 func TestGeneratedCurseOfRecklessnessAndFaerieFireDoNotStack(t *testing.T) {
 	checkOneReductionApplies(t, &proto.Debuffs{CurseOfRecklessness: true, FaerieFire: true},
 		buffs.CurseOfRecklessnessCategory, stats.Armor, map[string]float64{
-			"Curse of Recklessness (External)": rowAmount(t, 11717, dbcenums.A_MOD_ARMOR_NO_MODS),
-			"Faerie Fire (External)":           rowAmount(t, 9907, dbcenums.A_MOD_RESISTANCE),
+			"Curse of Recklessness (External)": armorAmount(t, 11717),
+			"Faerie Fire (External)":           armorAmount(t, 9907),
 		})
 }
 
@@ -576,7 +593,7 @@ func TestGeneratedDustCloudTakesItsStackFromTheDriver(t *testing.T) {
 	if got := dust.GetStacks(); got != dust.MaxStacks {
 		t.Errorf("Dust Cloud sits at %d stacks, want the driver to have taken all %d", got, dust.MaxStacks)
 	}
-	perStack := rowAmount(t, 1265904, dbcenums.A_MOD_RESISTANCE)
+	perStack := armorAmount(t, 1265904)
 	if got, want := target.GetStats()[stats.Armor]-base, float64(dust.MaxStacks)*perStack; got != want {
 		t.Errorf("armor moved by %v, want %d stacks of the game files' %v", got, dust.MaxStacks, perStack)
 	}
@@ -587,8 +604,8 @@ func TestGeneratedDustCloudTakesItsStackFromTheDriver(t *testing.T) {
 func TestGeneratedDustCloudAndFaerieFireDoNotStack(t *testing.T) {
 	checkOneReductionApplies(t, &proto.Debuffs{FaerieFire: true, DustCloud: true},
 		buffs.DustCloudCategory, stats.Armor, map[string]float64{
-			"Dust Cloud (External)":  rowAmount(t, 1265904, dbcenums.A_MOD_RESISTANCE),
-			"Faerie Fire (External)": rowAmount(t, 9907, dbcenums.A_MOD_RESISTANCE),
+			"Dust Cloud (External)":  armorAmount(t, 1265904),
+			"Faerie Fire (External)": armorAmount(t, 9907),
 		})
 }
 
@@ -611,7 +628,7 @@ func TestGeneratedArmorShatterHoldsEveryStack(t *testing.T) {
 	if maxStacks < 1 {
 		t.Fatalf("Armor Shatter states %d stacks, want a stacking row", maxStacks)
 	}
-	perStack := rowAmount(t, 16928, dbcenums.A_MOD_RESISTANCE)
+	perStack := armorAmount(t, 16928)
 	if got, want := target.GetStats()[stats.Armor]-base, float64(maxStacks)*perStack; got != want {
 		t.Errorf("armor moved by %v, want %d stacks of the game files' %v", got, maxStacks, perStack)
 	}
