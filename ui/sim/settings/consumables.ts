@@ -8,6 +8,7 @@ import { UIEnchant as Enchant, UIItem as Item } from '@generated/proto/ui';
 
 import type { SpecConfigData } from '../player/player';
 import type { EquippedItem } from '../proto/equipped_item';
+import { UnitStat } from '../proto/stats';
 
 export enum ConsumableSlot {
 	Potion,
@@ -212,17 +213,19 @@ const STAT_TYPES = [
 	ConsumableType.ConsumableTypeElixir,
 ];
 
-// Whether the settings offer the consumable to this player: the class, race, profession and skill the
-// game files allow it to, and either a stat the spec weighs, a percent the spec shows or weighs, a
-// resource the spec spends, or, for a consumable that grants none of these, an effect of another kind
-// (damage, an absorb, a weapon enchant). A temporary enchant is checked against a hand with
-// handTakesImbue.
-function isConsumableRelevant(consumable: Consumable, user: ConsumableUser, db: SpellEffectSource, stats: Set<Stat>, pseudoStats: Set<PseudoStat>): boolean {
+// The class, race, profession and skill the game files allow the consumable to.
+export function consumableAllowed(consumable: Consumable, user: ConsumableUser): boolean {
 	if (consumable.classAllowlist.length && !consumable.classAllowlist.includes(user.getClass())) return false;
 	if (consumable.requiredProfession !== Profession.ProfessionUnknown && !user.hasProfession(consumable.requiredProfession, consumable.reqProfRank))
 		return false;
-	if (consumable.raceAllowlist.length && !consumable.raceAllowlist.includes(user.getRace())) return false;
+	return !consumable.raceAllowlist.length || consumable.raceAllowlist.includes(user.getRace());
+}
 
+// Whether the consumable does something for these stats: a stat among them, a percent among them, a
+// resource they spend, or, for a consumable that grants none of these, an effect of another kind
+// (damage, an absorb, a weapon enchant). A temporary enchant is checked against a hand with
+// handTakesImbue.
+function isConsumableRelevant(consumable: Consumable, db: SpellEffectSource, stats: Set<Stat>, pseudoStats: Set<PseudoStat>): boolean {
 	const { grantedStats, grantedPseudoStats, restores } = factsOf(consumable, db);
 	if (
 		consumable.buffsMainStat ||
@@ -261,37 +264,48 @@ function highestRanks(consumables: ReadonlyArray<Consumable>): Array<Consumable>
 	return consumables.filter(consumable => kept.has(consumable));
 }
 
-// isConsumableRelevant for one spec's stats and percents, remembered for as long as the class, race
-// and the profession requirements the player meets stay the same.
+export interface ConsumableStats {
+	stats: Set<Stat>;
+	pseudoStats: Set<PseudoStat>;
+}
+
+// The stat part of relevance for the stats `statsOf` gives, remembered for as long as it gives the
+// same object. The class, race and profession are consumableAllowed's.
 export function relevanceFor(
 	consumables: ReadonlyArray<Consumable>,
 	db: SpellEffectSource,
-	stats: Set<Stat>,
-	pseudoStats: Set<PseudoStat>,
+	statsOf: (user: ConsumableUser) => ConsumableStats,
 ): (consumable: Consumable, user: ConsumableUser) => boolean {
-	const requirements = [
-		...new Map(
-			consumables
-				.filter(consumable => consumable.requiredProfession !== Profession.ProfessionUnknown)
-				.map(consumable => [`${consumable.requiredProfession}:${consumable.reqProfRank}`, consumable] as const),
-		),
-	];
-	let key = '';
+	let key: ConsumableStats | undefined;
 	let relevant = new Map<Consumable, boolean>();
 	return (consumable, user) => {
-		const met = requirements.filter(([, requirement]) => user.hasProfession(requirement.requiredProfession, requirement.reqProfRank));
-		const userKey = `${user.getClass()}:${user.getRace()}:${met.map(([requirementKey]) => requirementKey)}`;
-		if (userKey !== key) {
-			key = userKey;
+		const current = statsOf(user);
+		if (current !== key) {
+			key = current;
 			relevant = new Map();
 		}
 		let result = relevant.get(consumable);
 		if (result === undefined) {
-			result = isConsumableRelevant(consumable, user, db, stats, pseudoStats);
+			result = isConsumableRelevant(consumable, db, current.stats, current.pseudoStats);
 			relevant.set(consumable, result);
 		}
 		return result;
 	};
+}
+
+// Every stat and percent some consumable grants, stats first, each in enum order.
+export function consumableUniverse(consumables: ReadonlyArray<Consumable>, db: SpellEffectSource): UnitStat[] {
+	const stats = new Set<Stat>();
+	const pseudoStats = new Set<PseudoStat>();
+	for (const consumable of consumables) {
+		const { grantedStats, grantedPseudoStats } = factsOf(consumable, db);
+		grantedStats.forEach(stat => stats.add(stat));
+		grantedPseudoStats.forEach(pseudoStat => pseudoStats.add(pseudoStat));
+	}
+	return [
+		...[...stats].sort((a, b) => a - b).map(stat => UnitStat.fromStat(stat)),
+		...[...pseudoStats].sort((a, b) => a - b).map(pseudoStat => UnitStat.fromPseudoStat(pseudoStat)),
+	];
 }
 
 // The ids of the potions and conjured items the spec could use, which a sim request lists for the
@@ -305,6 +319,9 @@ export function relevantConsumableIds(
 	const stats = consumableStatsOf(user.getSpecConfig());
 	const pseudoStats = consumablePseudoStatsOf(user.getSpecConfig());
 	return highestRanks(
-		consumables.filter(consumable => consumableSlot(consumable) === slot && isConsumableRelevant(consumable, user, db, stats, pseudoStats)),
+		consumables.filter(
+			consumable =>
+				consumableSlot(consumable) === slot && consumableAllowed(consumable, user) && isConsumableRelevant(consumable, db, stats, pseudoStats),
+		),
 	).map(consumable => consumable.id);
 }

@@ -1,7 +1,7 @@
 import { OpenSelectorModalContext } from '@features/gear/hooks/useSelectorModal';
 import { Class, ConsumableType, ConsumesSpec, HandType, ItemSlot, Race, Spec, Stat, WeaponType } from '@generated/proto/common';
 import { Consumable } from '@generated/proto/db';
-import { UIItem } from '@generated/proto/ui';
+import { DatabaseFilters, UIItem } from '@generated/proto/ui';
 import i18n from '@i18n/config';
 import { SimHostProvider } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
@@ -32,7 +32,7 @@ const setup = (enabled: boolean) => {
 	seedKeyed(store, 'players', storeKey, { itemSwapEnabled: enabled, itemSwapGear: new ItemSwapGear({}), v: zeroVersions(PLAYER_FIELDS) } as never);
 	const player = {
 		storeKey,
-		sim: { store, getMinConsumableLvl: () => 0 },
+		sim: { store, getMinConsumableLvl: () => 0, getFilters: () => DatabaseFilters.create() },
 		getClass: () => Class.ClassWarrior,
 		getSpec: () => Spec.SpecDpsWarrior,
 		getRace: () => Race.RaceOrc,

@@ -1,14 +1,16 @@
 import { iconEnumPickerShown } from '@features/inputs/components/ConnectedIconEnumPicker';
+import { shownStats, withSelection } from '@features/stat-filters/model/stat_filters';
 import { Class, ConsumableType, ConsumesSpec, HandType, ItemSlot, Profession, PseudoStat, Race, Spec, Stat, WeaponType } from '@generated/proto/common';
 import { Consumable } from '@generated/proto/db';
 import { ItemEffect } from '@generated/proto/spell';
-import { UIItem } from '@generated/proto/ui';
+import { DatabaseFilters, UIItem } from '@generated/proto/ui';
 import type { Player, SpecConfigData } from '@sim/player/player';
 import type { Database } from '@sim/proto/database';
 import { UnitStat } from '@sim/proto/stats';
+import { ConsumableSlot, relevantConsumableIds } from '@sim/settings/consumables';
 import { describe, expect, it } from 'vitest';
 
-import { type ConsumeConfig, consumeConfigs, type ConsumeToggle } from './utils';
+import { consumableFilterScope, type ConsumeConfig, consumeConfigs, type ConsumeToggle } from './utils';
 
 const onUse = (categoryId: number, cooldownMs = 0) =>
 	ItemEffect.create({ effect: { oneofKind: 'onUse', onUse: { categoryId, cooldownMs, categoryCooldownMs: 0 } } });
@@ -102,6 +104,7 @@ interface PlayerState {
 	swapOffHand?: UIItem;
 	consumes: ConsumesSpec;
 	minLvl: Partial<Record<ConsumableType, number>>;
+	filters: DatabaseFilters;
 }
 
 const playerOf = (state: Partial<PlayerState> = {}) => {
@@ -116,6 +119,7 @@ const playerOf = (state: Partial<PlayerState> = {}) => {
 		swapEnabled: false,
 		consumes: ConsumesSpec.create(),
 		minLvl: {},
+		filters: DatabaseFilters.create(),
 		...state,
 	};
 	const inHand = (slot: ItemSlot, mainHand?: UIItem, offHand?: UIItem) => {
@@ -123,7 +127,7 @@ const playerOf = (state: Partial<PlayerState> = {}) => {
 		return item ? { item } : null;
 	};
 	const player = {
-		sim: { getMinConsumableLvl: (type: ConsumableType) => full.minLvl[type] ?? 0 },
+		sim: { getMinConsumableLvl: (type: ConsumableType) => full.minLvl[type] ?? 0, getFilters: () => DatabaseFilters.clone(full.filters) },
 		getClass: () => full.cls,
 		getSpec: () => full.spec,
 		getRace: () => Race.RaceOrc,
@@ -412,5 +416,102 @@ describe('consumeConfigs', () => {
 		expect(offered(configs.explosive, player)).toEqual([18588]);
 		configs.explosive.setValue(player, 0);
 		expect(offered(configs.explosive, player)).toEqual([]);
+	});
+});
+
+describe('consumeConfigs under the consumables stat filter', () => {
+	const agility = statArray(Stat.StatAgility, 25);
+	const agilityDb = {
+		getConsumables: () => [
+			...CONSUMABLES,
+			elixir(9187, 'Elixir of Greater Agility', agility, '29/1', 'Agility'),
+			Consumable.create({ id: 21023, name: 'Agility Snack', type: ConsumableType.ConsumableTypeOther, stats: agility }),
+		],
+		getSpellEffect: () => undefined,
+	} as unknown as Database;
+	const agilityWarrior = (state: Partial<PlayerState> = {}) => playerOf({ epStats: [Stat.StatStrength, Stat.StatAgility, Stat.StatAttackPower], ...state });
+	const hiding = (player: Player<any>, database: Database, stat: Stat) => {
+		const unset = DatabaseFilters.create();
+		const shown = shownStats(unset, 'consumables', consumableFilterScope(player, database));
+		return withSelection(
+			unset,
+			'consumables',
+			shown.filter(unitStat => !unitStat.equals(UnitStat.fromStat(stat))),
+		);
+	};
+	const agilityElixirs = (player: Player<any>) => offered(consumeConfigs(player, agilityDb).elixirs[1], player);
+
+	it('offers with the slot set to the spec defaults what it offers with the slot unset', () => {
+		const { player, state } = playerOf({ professions: [Profession.Engineering] });
+		state.filters = withSelection(DatabaseFilters.create(), 'consumables', consumableFilterScope(player, db).defaults);
+		const configs = consumeConfigs(player, db);
+		expect(configs.elixirs.map(config => offered(config, player))).toEqual([[9206, 6662, 12451, 2289, 10310], [], [12820]]);
+		expect(configs.groups.map(config => offered(config, player))).toEqual([[8410]]);
+		expect(offered(configs.potion, player)).toEqual([13442]);
+		expect(offered(configs.food, player)).toEqual([238637]);
+		expect(toggled(configs.explosiveExtras, player)).toEqual([10646]);
+		expect(toggled(configs.miscellaneous, player)).toEqual([4376]);
+	});
+
+	it('drops a consumable whose stats the filter hides, read live without rebuilding the configs', () => {
+		const { player, state } = agilityWarrior();
+		const configs = consumeConfigs(player, agilityDb);
+		expect(offered(configs.elixirs[1], player)).toEqual([9187]);
+		expect(toggled(configs.miscellaneous, player)).toContain(21023);
+
+		state.filters = hiding(player, agilityDb, Stat.StatAgility);
+		expect(offered(configs.elixirs[1], player)).toEqual([]);
+		expect(toggled(configs.miscellaneous, player)).not.toContain(21023);
+		expect(offered(configs.elixirs[0], player)).toEqual([9206, 6662, 12451, 2289, 10310]);
+	});
+
+	it('keeps a picked consumable whose stats the filter hides offered and marked, and in the consumables the sim gets', () => {
+		const { player, state } = agilityWarrior({ consumes: ConsumesSpec.create({ elixirIds: [9187], extraIds: [21023] }) });
+		const configs = consumeConfigs(player, agilityDb);
+		expect(configs.elixirs[1].keptBy!(player)).toBe(false);
+
+		state.filters = hiding(player, agilityDb, Stat.StatAgility);
+		expect(offered(configs.elixirs[1], player)).toEqual([9187]);
+		expect(configs.elixirs[1].keptBy!(player)).toBe(true);
+		const snack = configs.miscellaneous.find(toggle => toggle.actionId.itemId === 21023)!;
+		expect(snack.showWhen!(player)).toBe(true);
+		expect(snack.keptBy!(player)).toBe(true);
+		expect([state.consumes.elixirIds, state.consumes.extraIds]).toEqual([[9187], [21023]]);
+
+		configs.elixirs[1].setValue(player, 0);
+		expect(agilityElixirs(player)).toEqual([]);
+		expect(configs.elixirs[1].keptBy!(player)).toBe(false);
+	});
+
+	it('keeps a picked consumable the class may not use hidden, whatever the filter shows', () => {
+		const { player, state } = playerOf({ cls: Class.ClassPaladin, spec: Spec.SpecRetributionPaladin, consumes: ConsumesSpec.create({ potId: 13442 }) });
+		const configs = consumeConfigs(player, db);
+		expect(offered(configs.potion, player)).toEqual([]);
+		state.filters = withSelection(DatabaseFilters.create(), 'consumables', consumableFilterScope(player, db).universe);
+		expect(offered(configs.potion, player)).toEqual([]);
+	});
+
+	it('leaves a pick the level filter keeps unmarked', () => {
+		const { player } = playerOf({ minLvl: { [ConsumableType.ConsumableTypeExplosive]: 41 }, consumes: ConsumesSpec.create({ explosiveId: 18588 }) });
+		const configs = consumeConfigs(player, db);
+		expect(offered(configs.explosive, player)).toEqual([18588]);
+		expect(configs.explosive.keptBy!(player)).toBe(false);
+	});
+
+	it('leaves the potions a sim request lists to the spec stats', () => {
+		const { player, state } = playerOf();
+		const configs = consumeConfigs(player, db);
+		expect(relevantConsumableIds(CONSUMABLES, ConsumableSlot.Potion, player, db)).toEqual([13442]);
+
+		state.filters = hiding(player, db, Stat.StatStrength);
+		expect(offered(configs.potion, player)).toEqual([]);
+		expect(relevantConsumableIds(CONSUMABLES, ConsumableSlot.Potion, player, db)).toEqual([13442]);
+	});
+
+	it('lets the filter show a stat the spec does not weigh, and offers its consumables', () => {
+		const { player, state } = playerOf();
+		expect(agilityElixirs(player)).toEqual([]);
+		state.filters = withSelection(DatabaseFilters.create(), 'consumables', [UnitStat.fromStat(Stat.StatAgility)]);
+		expect(agilityElixirs(player)).toEqual([9187]);
 	});
 });

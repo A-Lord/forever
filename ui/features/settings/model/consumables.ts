@@ -23,6 +23,9 @@ export type ConsumableIdField =
 	| 'swapOhWeaponImbueId';
 
 export interface ConsumableRelevance {
+	// The class, race and profession: a consumable that fails it is never offered, picked or not.
+	allowed: (consumable: Consumable, player: Player<any>) => boolean;
+	// The stat rule, which the consumables stat filter moves.
 	relevant: (consumable: Consumable, player: Player<any>) => boolean;
 }
 
@@ -34,12 +37,13 @@ export interface ConsumableInputOptions {
 	tooltip?: string;
 }
 
-// The minimum level only trims what is offered: a consumable already picked stays offered below it.
+// The minimum level and the stat rule only trim what is offered: a consumable already picked stays
+// offered below the level and with its stats hidden.
 const offeredTo =
 	(consumable: Consumable, relevance: ConsumableRelevance, picked: (player: Player<any>) => boolean, includeIf?: ConsumableInputOptions['includeIf']) =>
 	(player: Player<any>) =>
-		(picked(player) || consumable.lvl >= player.sim.getMinConsumableLvl(consumable.type)) &&
-		relevance.relevant(consumable, player) &&
+		relevance.allowed(consumable, player) &&
+		(picked(player) || (consumable.lvl >= player.sim.getMinConsumableLvl(consumable.type) && relevance.relevant(consumable, player))) &&
 		(!includeIf || includeIf(consumable, player));
 
 const STORE_FIELDS: Array<StoreField> = ['consumables', 'gear', 'profession1', 'profession2', 'prof1Rank', 'prof2Rank', 'race', 'sim:filters'];
@@ -85,6 +89,7 @@ function consumablePicker(
 	withPick: (consumes: ConsumesSpec, newValue: number) => ConsumesSpec,
 ): InputHelpers.TypedIconEnumPickerConfig<Player<any>, number> {
 	const byLvl = [...consumables].sort((a, b) => b.lvl - a.lvl);
+	const byId = new Map(consumables.map(consumable => [consumable.id, consumable]));
 	const values: Array<IconEnumValueConfig<Player<any>, number>> = byLvl.map(consumable => ({
 		value: consumable.id,
 		actionId: ActionId.fromItemId(consumable.id),
@@ -105,6 +110,10 @@ function consumablePicker(
 		// `itemSwap` because the swap imbues' includeIf reads the swap weapons and their showWhen whether item swap is on.
 		storeField: [...STORE_FIELDS, 'itemSwap', 'raid:partyBuffs'],
 		showWhen: options.showWhen,
+		keptBy: (player: Player<any>) => {
+			const picked = byId.get(pickOf(player.getConsumes()));
+			return !!picked && !relevance.relevant(picked, player);
+		},
 		getValue: (player: Player<any>) => pickOf(player.getConsumes()),
 		setValue: (player: Player<any>, newValue: number) => {
 			const consumes = player.getConsumes();
@@ -116,12 +125,14 @@ function consumablePicker(
 
 // A consumable picked any number at a time into the spec's extra ids.
 export function makeIdListInput(consumable: Consumable, relevance: ConsumableRelevance): InputHelpers.TypedIconPickerConfig<Player<any>, boolean> {
+	const picked = (player: Player<any>) => player.getConsumes().extraIds.includes(consumable.id);
 	return {
 		type: 'icon',
 		actionId: ActionId.fromItemId(consumable.id),
 		states: 2,
 		storeField: STORE_FIELDS,
-		showWhen: offeredTo(consumable, relevance, player => player.getConsumes().extraIds.includes(consumable.id)),
+		showWhen: offeredTo(consumable, relevance, picked),
+		keptBy: (player: Player<any>) => picked(player) && !relevance.relevant(consumable, player),
 		getValue: (player: Player<any>) => player.getConsumes().extraIds.includes(consumable.id),
 		setValue: (player: Player<any>, newValue: boolean) => {
 			const consumes = player.getConsumes();

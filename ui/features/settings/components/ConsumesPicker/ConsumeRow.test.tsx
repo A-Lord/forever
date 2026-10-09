@@ -1,4 +1,5 @@
 import type { IconEnumPickerConfig } from '@features/inputs/configs';
+import { DatabaseFilters } from '@generated/proto/ui';
 import { SimHostProvider } from '@sim/context/SimHostContext';
 import { createSimStore, patchKeyed, PLAYER_FIELDS, type PlayerSlice, seedKeyed, type SimStore, zeroVersions } from '@sim/state/sim_store';
 import { act, render, screen } from '@testing-library/react';
@@ -26,6 +27,10 @@ class Options {
 
 	changeSomethingElse() {
 		patchKeyed(this.sim.store, 'players', KEY, { name: 'Other' }, ['name']);
+	}
+
+	changeFilters() {
+		this.sim.store.setState(s => ({ sim: { ...s.sim, filters: DatabaseFilters.create({ minConsumableLvl: { 1: 50 } }) } }));
 	}
 }
 
@@ -108,6 +113,15 @@ describe('ConsumeRow', () => {
 		options.engineer = true;
 		act(() => options.changeProfession(1));
 		expect(isHidden(element)).toBe(false);
+	});
+
+	it('re-evaluates on a filter change, which moves what the pickers offer', () => {
+		const options = new Options();
+		const element = row(options, [configFor(opts => opts.engineer)]);
+
+		options.engineer = false;
+		act(() => options.changeFilters());
+		expect(isHidden(element)).toBe(true);
 	});
 });
 

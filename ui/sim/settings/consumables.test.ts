@@ -7,8 +7,10 @@ import { describe, expect, it } from 'vitest';
 import type { EquippedItem } from '../proto/equipped_item';
 import { UnitStat } from '../proto/stats';
 import {
+	consumableAllowed,
 	ConsumableSlot,
 	consumableSlot,
+	consumableUniverse,
 	type ConsumableUser,
 	explosiveUsedBeside,
 	handTakesImbue,
@@ -201,17 +203,75 @@ describe('handTakesImbue', () => {
 	});
 });
 
-describe('relevanceFor', () => {
-	it('answers as isConsumableRelevant does, and again once the class, race or a required profession changes', () => {
+describe('consumableAllowed', () => {
+	it('allows a consumable by the class, race and profession rank the game files name, whatever it grants', () => {
 		const sapper = consumable({ type: ConsumableType.ConsumableTypeExplosive, requiredProfession: Profession.Engineering, reqProfRank: 205 });
 		const orcOnly = consumable({ id: 2, type: ConsumableType.ConsumableTypeExplosive, raceAllowlist: [Race.RaceOrc] });
-		const relevant = relevanceFor([sapper, orcOnly], db, new Set([Stat.StatStrength]), new Set());
-		expect(relevant(sapper, user())).toBe(false);
-		expect(relevant(sapper, user({ professions: [Profession.Engineering] }))).toBe(true);
-		expect(relevant(sapper, user({ professions: [Profession.Engineering], profRank: 150 }))).toBe(false);
-		expect(relevant(sapper, user({ professions: [Profession.Engineering] }))).toBe(true);
-		expect(relevant(orcOnly, user({ professions: [Profession.Engineering] }))).toBe(true);
-		expect(relevant(orcOnly, user({ race: Race.RaceHuman, professions: [Profession.Engineering] }))).toBe(false);
+		const rogueOnly = consumable({ id: 3, classAllowlist: [Class.ClassRogue], stats: stats({ [Stat.StatIntellect]: 5 }) });
+		expect(consumableAllowed(sapper, user())).toBe(false);
+		expect(consumableAllowed(sapper, user({ professions: [Profession.Engineering] }))).toBe(true);
+		expect(consumableAllowed(sapper, user({ professions: [Profession.Engineering], profRank: 150 }))).toBe(false);
+		expect(consumableAllowed(orcOnly, user())).toBe(true);
+		expect(consumableAllowed(orcOnly, user({ race: Race.RaceHuman }))).toBe(false);
+		expect(consumableAllowed(rogueOnly, user())).toBe(false);
+		expect(consumableAllowed(rogueOnly, user({ cls: Class.ClassRogue }))).toBe(true);
+	});
+});
+
+describe('relevanceFor', () => {
+	const agility = consumable({ type: ConsumableType.ConsumableTypeElixir, stats: stats({ [Stat.StatAgility]: 25 }) });
+	const manaPotion = consumable({ id: 2, type: ConsumableType.ConsumableTypePotion, effectIds: [1] });
+	const deflector = consumable({ id: 3, type: ConsumableType.ConsumableTypeDevice });
+	const rogueOnly = consumable({
+		id: 4,
+		type: ConsumableType.ConsumableTypeElixir,
+		classAllowlist: [Class.ClassRogue],
+		stats: stats({ [Stat.StatAgility]: 5 }),
+	});
+	const statsOf = (shown: Stat[]) => ({ stats: new Set(shown), pseudoStats: new Set<PseudoStat>() });
+
+	it('reads the stats statsOf gives, and again once it gives another set', () => {
+		let shown = statsOf([Stat.StatAgility]);
+		const relevant = relevanceFor([agility, manaPotion], db, () => shown);
+		expect(relevant(agility, user())).toBe(true);
+		shown = statsOf([Stat.StatStrength]);
+		expect(relevant(agility, user())).toBe(false);
+	});
+
+	it('restores mana while Mana, MP5 or Intellect is shown', () => {
+		let shown = statsOf([Stat.StatIntellect]);
+		const relevant = relevanceFor([manaPotion], db, () => shown);
+		expect(relevant(manaPotion, user())).toBe(true);
+		shown = statsOf([Stat.StatSpirit]);
+		expect(relevant(manaPotion, user())).toBe(false);
+	});
+
+	it('keeps a consumable with no stat and an effect of another kind at any set', () => {
+		const relevant = relevanceFor([deflector], db, () => statsOf([]));
+		expect(relevant(deflector, user())).toBe(true);
+	});
+
+	it('leaves the class, race and profession to consumableAllowed', () => {
+		const relevant = relevanceFor([rogueOnly], db, () => statsOf([Stat.StatAgility]));
+		expect(relevant(rogueOnly, user())).toBe(true);
+	});
+});
+
+describe('consumableUniverse', () => {
+	it('lists every stat and percent a consumable grants, once, stats before percents', () => {
+		const mongoose = consumable({
+			id: 5,
+			type: ConsumableType.ConsumableTypeElixir,
+			stats: stats({ [Stat.StatAgility]: 25 }),
+			pseudoStats: pseudoStats({ [PseudoStat.PseudoStatMeleeCritPercent]: 2 }),
+		});
+		const giants = consumable({ id: 6, type: ConsumableType.ConsumableTypeElixir, stats: stats({ [Stat.StatStrength]: 25 }) });
+		const manaPotion = consumable({ id: 7, type: ConsumableType.ConsumableTypePotion, effectIds: [1] });
+		expect(consumableUniverse([mongoose, giants, manaPotion], db).map(stat => stat.getKey())).toEqual([
+			'StatStrength',
+			'StatAgility',
+			'PseudoStatMeleeCritPercent',
+		]);
 	});
 });
 

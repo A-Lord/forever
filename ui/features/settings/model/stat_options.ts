@@ -1,5 +1,5 @@
 import type { IconEnumPickerConfig, IconPickerConfig, MultiIconPickerConfig } from '@features/inputs/configs';
-import type { StatFilterScope } from '@features/stat-filters';
+import type { StatFilterScope } from '@features/stat-filters/model/stat_filters';
 import { Class, Stat } from '@generated/proto/common';
 import { Player } from '@sim/player/player';
 import { UnitStat } from '@sim/proto/stats';

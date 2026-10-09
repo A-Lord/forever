@@ -1,3 +1,4 @@
+import { StatFilterList, useStatFilter } from '@features/stat-filters';
 import { ConsumableType } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { useSimHost } from '@sim/context/SimHostContext';
@@ -9,6 +10,8 @@ import { Icon } from '@ui-kit/Icon';
 import { Popover } from '@ui-kit/Popover';
 import { NumberField } from '@ui-kit/TextField';
 import { useMemo } from 'react';
+
+import { consumableFilterScope } from './utils';
 
 const TYPE_KEYS: ReadonlyArray<[ConsumableType, string]> = [
 	[ConsumableType.ConsumableTypePotion, 'potion'],
@@ -25,8 +28,10 @@ const TYPE_KEYS: ReadonlyArray<[ConsumableType, string]> = [
 ];
 
 export const ConsumesFilters = () => {
-	const { sim } = useSimHost();
+	const { sim, player } = useSimHost();
 	const filters = useStoreSubscribe(subscribeSimField(sim, 'filters'), () => sim.getFilters());
+	const scope = useMemo(() => consumableFilterScope(player, Database.getSync()), [player]);
+	const statFilter = useStatFilter('consumables', scope);
 	const types = useMemo(() => {
 		const ranges = new Map<ConsumableType, [number, number]>();
 		for (const { type, lvl } of Database.getSync().getConsumables()) {
@@ -51,7 +56,17 @@ export const ConsumesFilters = () => {
 			align="end"
 			backdrop
 			testId="consumes-filters-popover">
-			<h6>{i18n.t('settings_tab.consumables.filters.min_lvl')}</h6>
+			<h6>{i18n.t('settings_tab.consumables.filters.stats')}</h6>
+			<StatFilterList
+				universe={scope.universe}
+				shown={statFilter.shown}
+				customised={statFilter.customised}
+				playerClass={player.getClass()}
+				onChange={statFilter.set}
+				onReset={statFilter.reset}
+				idPrefix="consumes-filters-stats"
+			/>
+			<h6 className="mt-2">{i18n.t('settings_tab.consumables.filters.min_lvl')}</h6>
 			<div className="grid grid-cols-2 gap-2">
 				{types.map(({ type, key, range }) => (
 					<NumberField

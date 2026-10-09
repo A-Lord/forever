@@ -685,6 +685,7 @@
 			"title": "Consumables",
 			"filters": {
 				"title": "Consumable filters",
+				"stats": "Stats",
 				"min_lvl": "Minimum required level",
 				"reset": "Reset to defaults",
 				"types": {

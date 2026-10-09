@@ -1,16 +1,21 @@
 import type { TypedIconEnumPickerConfig, TypedIconPickerConfig } from '@features/inputs/input_helpers';
 import { type ConsumableRelevance, makeConsumableGroupInput, makeConsumableInput, makeIdListInput } from '@features/settings/model/consumables';
+import { shownStats, type StatFilterScope } from '@features/stat-filters/model/stat_filters';
 import { ConsumableType, ItemSlot } from '@generated/proto/common';
 import type { Consumable } from '@generated/proto/db';
 import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
 import type { Database } from '@sim/proto/database';
 import type { EquippedItem } from '@sim/proto/equipped_item';
+import { UnitStat } from '@sim/proto/stats';
 import {
+	consumableAllowed,
 	consumablePseudoStatsOf,
 	ConsumableSlot,
 	consumableSlot,
+	type ConsumableStats,
 	consumableStatsOf,
+	consumableUniverse,
 	explosiveUsedBeside,
 	handTakesImbue,
 	relevanceFor,
@@ -48,10 +53,43 @@ export interface ConsumeConfigs {
 
 type GroupRow = 'elixirs' | 'scrolls' | 'holiday' | 'groups';
 
+// Defaults are the stats and percents the spec weighs consumables by; the universe adds every one a
+// consumable grants. A default no consumable grants (a resource stat the restore rule reads) stays
+// in the universe, so the defaults show in full.
+export const consumableFilterScope = (player: Player<any>, db: Database): StatFilterScope => {
+	const defaults = [
+		...[...consumableStatsOf(player.getSpecConfig())].map(stat => UnitStat.fromStat(stat)),
+		...[...consumablePseudoStatsOf(player.getSpecConfig())].map(pseudoStat => UnitStat.fromPseudoStat(pseudoStat)),
+	];
+	const granted = consumableUniverse(db.getConsumables(), db);
+	const inEither = (stat: UnitStat) => [...defaults, ...granted].some(other => other.equals(stat));
+	return { defaults, universe: UnitStat.getAll().filter(inEither) };
+};
+
+// The shown stats of the consumables slot, read from the filters on each call; the same object comes
+// back while the slot holds the same stats, so relevance stays cached.
+const shownConsumableStats = (player: Player<any>, scope: StatFilterScope): (() => ConsumableStats) => {
+	let key: string | undefined;
+	let current: ConsumableStats = { stats: new Set(), pseudoStats: new Set() };
+	return () => {
+		const shown = shownStats(player.sim.getFilters(), 'consumables', scope);
+		const shownKey = shown.map(stat => stat.getKey()).join(',');
+		if (shownKey !== key) {
+			key = shownKey;
+			current = {
+				stats: new Set(shown.filter(stat => stat.isStat()).map(stat => stat.getStat())),
+				pseudoStats: new Set(shown.filter(stat => stat.isPseudoStat()).map(stat => stat.getPseudoStat())),
+			};
+		}
+		return current;
+	};
+};
+
 export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfigs => {
 	const all = db.getConsumables();
 	const relevance: ConsumableRelevance = {
-		relevant: relevanceFor(all, db, consumableStatsOf(player.getSpecConfig()), consumablePseudoStatsOf(player.getSpecConfig())),
+		allowed: consumableAllowed,
+		relevant: relevanceFor(all, db, shownConsumableStats(player, consumableFilterScope(player, db))),
 	};
 	const bySlot = new Map<ConsumableSlot, Array<Consumable>>();
 	const byGroup = new Map<string, Array<Consumable>>();
