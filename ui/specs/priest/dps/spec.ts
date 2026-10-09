@@ -73,9 +73,7 @@ export default defineSpec<Spec.SpecDpsPriest>({
 		// Default EP weights for sorting gear in the gear picker.
 		epWeights: new Stats(),
 		statCaps: (() => {
-			return new Stats()
-				.withPseudoStat(PseudoStat.PseudoStatSchoolHitPercentShadow, 17)
-				.withPseudoStat(PseudoStat.PseudoStatSchoolHitPercentHoly, 17);
+			return new Stats().withPseudoStat(PseudoStat.PseudoStatSchoolHitPercentShadow, 17).withPseudoStat(PseudoStat.PseudoStatSchoolHitPercentHoly, 17);
 		})(),
 		// Default consumes settings.
 		consumables: Presets.DefaultConsumables,
@@ -120,10 +118,10 @@ export default defineSpec<Spec.SpecDpsPriest>({
 	},
 
 	autoRotation: (priest: Player<Spec.SpecDpsPriest>): APLRotation => {
-		const [disc, holy, shadow] = priest.getTalentTreePoints();
+		const [disc, , shadow] = priest.getTalentTreePoints();
 
 		if (disc > shadow) {
-			return Presets.ROTATION_SMITE_DEFAULT.rotation.rotation!
+			return Presets.ROTATION_SMITE_DEFAULT.rotation.rotation!;
 		}
 		return Presets.ROTATION_PRESET_DEFAULT.rotation.rotation!;
 	},
