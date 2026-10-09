@@ -149,6 +149,9 @@ func RouteConsumable(c *dbc.Consumable, instance *dbc.DBC) *ConsumableRouting {
 	routing.Kind, routing.Unsupported = consumableShape(c, spelldata.Find(routing.SpellID))
 	if routing.Kind == "" {
 		routing.Unsupported = onUse.Unsupported
+		if onUse.Supported() {
+			routing.Unsupported = []string{fmt.Sprintf("the on-use routes to %s, which no consumable shape builds", onUse.OnUseConstructor())}
+		}
 	}
 	return routing
 }

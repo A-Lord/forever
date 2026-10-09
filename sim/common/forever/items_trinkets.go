@@ -235,6 +235,107 @@ func init() {
 			marks.Get(target).Activate(sim)
 		})
 	})
+
+	// Darkmoon Card: Heroism
+	// https://www.wowhead.com/forever/item=19287/darkmoon-card-heroism
+	//
+	// Sometimes heals bearer of 120 to 180 damage when damaging an enemy in melee.
+	//
+	// The game files state no rate for 23689; the item's entry carries it.
+	core.NewItemEffect(19287, func(agent core.Agent) {
+		character := agent.GetCharacter()
+		row := spelldata.MustFind(23682)
+		heal := row.HealEffect()
+
+		config := spelldata.SpellConfig(&character.Unit, row, spelldata.Magic(core.ProcMaskSpellHealing), spelldata.Proc())
+		if row.IsAProc() {
+			config.Flags |= core.SpellFlagProc
+		}
+		// The row states no defense type; a heal crits for the magic multiplier.
+		config.DefenseType = core.DefenseTypeMagic
+		config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+			spell.CalcAndDealHealing(sim, target, heal.DirectAmount(sim), spell.OutcomeHealingCrit)
+		}
+		heroism := character.RegisterSpell(config)
+
+		trigger := spelldata.ProcTrigger(character, spelldata.MustFind(23689), func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
+			heroism.Cast(sim, &character.Unit)
+		}, spelldata.PPM(weaponProcPPM(19287, row.ID)))
+		trigger.Name = "Darkmoon Card: Heroism"
+		trigger.ActionID = core.ActionID{ItemID: 19287}
+		trigger.TriggerImmediately = true
+		character.ItemSwap.RegisterProc(19287, character.MakeProcTriggerAura(trigger))
+	})
+
+	// Highborne Research Tablet
+	// https://www.wowhead.com/forever/item=260205/highborne-research-tablet
+	//
+	// Chance on hit to deal 69 to 81 Arcane damage. Deals 2 times as much damage to Naga and Satyrs.
+	//
+	// TODO: waiting for PPM data
+	//
+	// The 2 times is the trigger 1318159's own value; 1265634 states only the damage.
+	// core.NewItemEffect(260205, func(agent core.Agent) {
+	// 	character := agent.GetCharacter()
+	// 	row := spelldata.MustFind(1265634)
+	// 	triggerRow := spelldata.MustFind(1318159)
+	// 	damage := row.DamageEffect()
+	// 	familyMultiplier := triggerRow.Effects[0].BaseValue()
+	//
+	// 	config := procSpellConfig(character, row)
+	// 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+	// 		amount := damage.DirectAmount(sim) * creatureFamilyMultiplier(target, familyMultiplier,
+	// 			proto.CreatureFamily_CreatureFamilyNaga, proto.CreatureFamily_CreatureFamilySatyr)
+	// 		spell.CalcAndDealDamage(sim, target, amount, spell.OutcomeMagicHitAndCrit)
+	// 	}
+	// 	ancientPower := character.RegisterSpell(config)
+	//
+	// 	trigger := spelldata.ProcTrigger(character, triggerRow, func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
+	// 		ancientPower.Cast(sim, result.Target)
+	// 	}, spelldata.Chance(highborneResearchTabletChance))
+	// 	trigger.Name = "Highborne Research Tablet"
+	// 	trigger.ActionID = core.ActionID{ItemID: 260205}
+	// 	trigger.TriggerImmediately = true
+	// 	character.ItemSwap.RegisterProc(260205, character.MakeProcTriggerAura(trigger))
+	// })
+
+	// Dormant Heart of the Mountain
+	// https://www.wowhead.com/forever/item=249473/dormant-heart-of-the-mountain
+	//
+	// Your casts of Greater Heal in combat grant up to 40 increased healing and up to 13 increased
+	// damage for 15s.
+	//
+	// The tooltip names the wearer's class's heal: Greater Heal, Healing Touch, Healing Wave or Holy
+	// Light. 1249118's row names none of them, so the heals are matched by their ranks.
+	core.NewItemEffect(249473, func(agent core.Agent) {
+		character := agent.GetCharacter()
+		buffRow := spelldata.MustFind(1249119)
+		buff := character.RegisterAura(spelldata.AuraConfig(buffRow, spelldata.Label("Dormant Heart of the Mountain Proc")))
+		parsed := spelldata.ParseEffects(character, buff, buffRow)
+
+		trigger := spelldata.ProcTrigger(character, spelldata.MustFind(1249118), func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
+			buff.Activate(sim)
+		})
+		trigger.Name = "Dormant Heart of the Mountain"
+		trigger.ActionID = core.ActionID{ItemID: 249473}
+		trigger.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
+			return slices.ContainsFunc(eternalPowerHeals, func(heal spelldata.Ladder) bool { return heal.Contains(spell) })
+		}
+		character.ItemSwap.RegisterProc(249473, character.MakeProcTriggerAura(trigger))
+		character.AddStatProcBuff(249473, &core.StatBuffAura{Aura: buff, BuffedStatTypes: parsed.Stats()}, false,
+			character.ItemSwap.EligibleSlotsForItem(249473))
+	})
+}
+
+// TODO: The game files state no rate for these procs, and none is measured on Forever.
+// const highborneResearchTabletChance = 0 // TODO: waiting for PPM data
+
+// The ranks of the four heals Dormant Heart of the Mountain answers.
+var eternalPowerHeals = []spelldata.Ladder{
+	spelldata.Ranked(2060, 10963, 10964, 10965, 25314),                                  // Greater Heal
+	spelldata.Ranked(5185, 5186, 5187, 5188, 5189, 6778, 8903, 9758, 9888, 9889, 25297), // Healing Touch
+	spelldata.Ranked(331, 332, 547, 913, 939, 959, 8005, 10395, 10396, 25357),           // Healing Wave
+	spelldata.Ranked(635, 639, 647, 1026, 1042, 3472, 10328, 10329, 25292),              // Holy Light
 }
 
 // A buff that goes on with all its stacks, each worth perStack, for the row's duration, and loses one

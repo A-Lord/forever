@@ -18,7 +18,10 @@ something off it, `Average(core.CharacterLevel)` the value and the doc comment `
 writes on that accessor. The cursor on `SpellConfig` in a `spelldata.SpellConfig(...)` call shows the
 config the resolver builds from the row and the options, each field with the step that filled it; on
 `SpellModConfig` in a `core.SpellModConfig{...}` literal, the fields it can read and the weapon its
-Equip fields require. A hit, crit or rating effect names the weapon rule the parse applies to it.
+Equip fields require. A hit, crit or rating effect names the weapon rule the parse applies to it. A
+`Ladder.Each` callback parameter, `rank` in `func(_ int32, rank *spelldata.Spell)` and in the function
+the callback passes it to, hovers as the highest rank, and the hover on the parameter links the other
+ranks: a click hovers it as that rank until the server restarts.
 
 ## How it answers
 

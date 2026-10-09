@@ -60,6 +60,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestBalance-AllItems-Admiral'sHat-10030"
+ value: {
+  dps: 545.4814
+  tps: 389.08906
+ }
+}
+dps_results: {
  key: "TestBalance-AllItems-AnkhofLife-1713"
  value: {
   dps: 532.99628
@@ -124,6 +131,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestBalance-AllItems-CloakofFire-14134"
+ value: {
+  dps: 550.78244
+  tps: 392.77521
+ }
+}
+dps_results: {
  key: "TestBalance-AllItems-CloakofFlames-3475"
  value: {
   dps: 560.31431
@@ -139,6 +153,13 @@ dps_results: {
 }
 dps_results: {
  key: "TestBalance-AllItems-DarkmoonCard:BlueDragon-19288"
+ value: {
+  dps: 529.54292
+  tps: 377.95671
+ }
+}
+dps_results: {
+ key: "TestBalance-AllItems-DarkmoonCard:Heroism-19287"
  value: {
   dps: 529.54292
   tps: 377.95671
@@ -180,6 +201,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestBalance-AllItems-DormantHeartoftheMountain-249473"
+ value: {
+  dps: 529.54292
+  tps: 377.95671
+ }
+}
+dps_results: {
  key: "TestBalance-AllItems-EarthenSigil-20525"
  value: {
   dps: 529.78283
@@ -195,6 +223,13 @@ dps_results: {
 }
 dps_results: {
  key: "TestBalance-AllItems-EbonHand-19170"
+ value: {
+  dps: 571.99647
+  tps: 407.6742
+ }
+}
+dps_results: {
+ key: "TestBalance-AllItems-ElectrifiedDagger-19100"
  value: {
   dps: 571.99647
   tps: 407.6742
@@ -441,10 +476,31 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestBalance-AllItems-GryphonRider'sStormhammer-9651"
+ value: {
+  dps: 534.6226
+  tps: 381.49609
+ }
+}
+dps_results: {
+ key: "TestBalance-AllItems-GutRipper-2164"
+ value: {
+  dps: 571.99647
+  tps: 407.6742
+ }
+}
+dps_results: {
  key: "TestBalance-AllItems-HammeroftheNorthernWind-810"
  value: {
   dps: 534.6226
   tps: 381.49609
+ }
+}
+dps_results: {
+ key: "TestBalance-AllItems-HandofEdwardtheOdd-2243"
+ value: {
+  dps: 571.99647
+  tps: 407.6742
  }
 }
 dps_results: {
@@ -477,6 +533,20 @@ dps_results: {
 }
 dps_results: {
  key: "TestBalance-AllItems-HowlingIdol-272427"
+ value: {
+  dps: 569.00652
+  tps: 405.58123
+ }
+}
+dps_results: {
+ key: "TestBalance-AllItems-IdolofHealth-22399"
+ value: {
+  dps: 569.00652
+  tps: 405.58123
+ }
+}
+dps_results: {
+ key: "TestBalance-AllItems-IdolofSwiftness-279250"
  value: {
   dps: 569.00652
   tps: 405.58123
@@ -666,6 +736,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestBalance-AllItems-SulfuronHammer-17193"
+ value: {
+  dps: 571.99647
+  tps: 407.6742
+ }
+}
+dps_results: {
  key: "TestBalance-AllItems-SwarmingIdol-272430"
  value: {
   dps: 569.67689
@@ -729,6 +806,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestBalance-AllItems-Thunderbrew'sBootFlask-744"
+ value: {
+  dps: 520.63206
+  tps: 371.63717
+ }
+}
+dps_results: {
  key: "TestBalance-AllItems-ToySoldier-274386"
  value: {
   dps: 529.54292
@@ -740,6 +824,13 @@ dps_results: {
  value: {
   dps: 533.31121
   tps: 380.59451
+ }
+}
+dps_results: {
+ key: "TestBalance-AllItems-VolcanicHammer-12792"
+ value: {
+  dps: 571.99647
+  tps: 407.6742
  }
 }
 dps_results: {

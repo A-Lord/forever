@@ -56,7 +56,8 @@ type Unit struct {
 
 	Level int32 // Level of Unit, e.g. Bosses are 83.
 
-	MobType proto.MobType
+	MobType        proto.MobType
+	CreatureFamily proto.CreatureFamily
 
 	// Amount of time it takes for the human agent to react to in-game events.
 	// Used by certain APL values and actions.

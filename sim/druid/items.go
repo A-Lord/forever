@@ -1,7 +1,6 @@
 package druid
 
 import (
-	"github.com/wowsims/forever/sim/common/shared"
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
@@ -40,19 +39,6 @@ func init() {
 		trigger.ClassFlags = spellData.Wrath.Highest().ClassFlags
 
 		druid.ItemSwap.RegisterProc(249441, druid.MakeProcTriggerAura(trigger))
-	})
-
-	shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 1291061}, []shared.ItemVariant{
-		{ItemID: 272430, ItemName: "Swarming Idol"},
-	})
-
-	shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 24433}, []shared.ItemVariant{
-		{ItemID: 19613, ItemName: "Pristine Enchanted South Seas Kelp"},
-	})
-
-	// Howling Idol (272427): its equip spell lowers Shifting Power's cooldown.
-	core.NewItemEffect(272427, func(agent core.Agent) {
-		spelldata.ParseStatic(agent.GetCharacter(), spelldata.MustFind(1291059))
 	})
 
 	// Wolfshead Helm (8345). Effect 1 raises effect 2 of Enrage, its instant rage, which the parser

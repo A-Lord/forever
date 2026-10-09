@@ -499,6 +499,18 @@ enum MobType {
 	MobTypeUndead = 8;
 }
 
+// The groups of creatures item effects deal extra damage to. None of them is a creature type or a
+// creature family in the game files, whose CreatureFamily table holds the hunter and warlock pet families.
+enum CreatureFamily {
+	CreatureFamilyUnknown = 0;
+	CreatureFamilyNaga = 1;
+	CreatureFamilySatyr = 2;
+	CreatureFamilyAquatic = 3;
+	CreatureFamilyEarthElemental = 4;
+	CreatureFamilyFireElemental = 5;
+	CreatureFamilyMountainGiant = 6;
+}
+
 // The game files' terrain area groups (SpellCastingRequirements.RequiredAreasID).
 enum AreaType {
 	AreaTypeUnknown = 0;
@@ -539,6 +551,7 @@ message Target {
 
         int32 level = 4;
         MobType mob_type = 3;
+        CreatureFamily creature_family = 20;
         repeated double stats = 5;
 
         // Auto attack parameters.

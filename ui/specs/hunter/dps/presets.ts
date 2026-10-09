@@ -90,8 +90,6 @@ export const DefaultOptions = NoPetOptions;
 
 export const DefaultIndividualBuffs = IndividualBuffs.create({
 	greaterBlessingOfKings: true,
-	greaterBlessingOfMight: true,
-	greaterBlessingOfWisdom: true,
 });
 
 export const DefaultPartyBuffs = PartyBuffs.create({
@@ -99,7 +97,6 @@ export const DefaultPartyBuffs = PartyBuffs.create({
 	graceOfAirTotem: true,
 	leaderOfThePack: true,
 	strengthOfEarthTotem: true,
-	windfuryTotem: true,
 });
 
 export const DefaultRaidBuffs = RaidBuffs.create({
@@ -132,7 +129,7 @@ export const DefaultConsumables = ConsumesSpec.create({
 });
 
 export const OtherDefaults = {
-	distanceFromTarget: 8,
+	distanceFromTarget: 11,
 	iterationCount: 25000,
 	profession1: Profession.Engineering,
 	profession2: Profession.Blacksmithing,
@@ -156,11 +153,11 @@ const build = (
 
 // Gear, talents, rotation, pet and distance together, one per tree and playstyle.
 export const Builds = [
-	build('SV Weave', P1Gear, SurvivalWeaveTalents, WeaveAPLRotation, NoPetOptions, 8),
-	build('MM Weave', P1Gear, MarksmanshipWeaveTalents, WeaveAPLRotation, NoPetOptions, 8),
-	build('BM Weave', P1Gear, BeastMasteryWeaveTalents, WeaveHawkAPLRotation, PetOptions, 8),
-	build('MM', P1Gear, MarksmanshipTalents, TurretAPLRotation, NoPetOptions, 8),
-	build('BM', P1Gear, BeastMasteryTalents, TurretHawkAPLRotation, PetOptions, 8),
-	build('SV', P1Gear, SurvivalTalents, TurretMultiAPLRotation, NoPetOptions, 8),
+	build('SV Weave', P1Gear, SurvivalWeaveTalents, WeaveAPLRotation, NoPetOptions, 11),
+	build('MM Weave', P1Gear, MarksmanshipWeaveTalents, WeaveAPLRotation, NoPetOptions, 11),
+	build('BM Weave', P1Gear, BeastMasteryWeaveTalents, WeaveHawkAPLRotation, PetOptions, 11),
+	build('MM', P1Gear, MarksmanshipTalents, TurretAPLRotation, NoPetOptions, 11),
+	build('BM', P1Gear, BeastMasteryTalents, TurretHawkAPLRotation, PetOptions, 11),
+	build('SV', P1Gear, SurvivalTalents, TurretMultiAPLRotation, NoPetOptions, 11),
 	build('SV Melee', P1MeleeGear, SurvivalMeleeTalents, MeleeAPLRotation, PetOptions, 5),
 ];

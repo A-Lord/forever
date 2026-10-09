@@ -60,6 +60,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestFeralCat-AllItems-Admiral'sHat-10030"
+ value: {
+  dps: 567.91624
+  tps: 309.39432
+ }
+}
+dps_results: {
  key: "TestFeralCat-AllItems-AnkhofLife-1713"
  value: {
   dps: 584.94661
@@ -103,6 +110,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestFeralCat-AllItems-BloodTalon-12795"
+ value: {
+  dps: 533.75656
+  tps: 292.40357
+ }
+}
+dps_results: {
  key: "TestFeralCat-AllItems-BristleconeCloak-275833"
  value: {
   dps: 574.66254
@@ -124,6 +138,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestFeralCat-AllItems-CloakofFire-14134"
+ value: {
+  dps: 576.51924
+  tps: 313.57274
+ }
+}
+dps_results: {
  key: "TestFeralCat-AllItems-CloakofFlames-3475"
  value: {
   dps: 574.66254
@@ -142,6 +163,14 @@ dps_results: {
  value: {
   dps: 584.66409
   tps: 317.75638
+ }
+}
+dps_results: {
+ key: "TestFeralCat-AllItems-DarkmoonCard:Heroism-19287"
+ value: {
+  dps: 584.66409
+  tps: 317.7696
+  hps: 8.78255
  }
 }
 dps_results: {
@@ -180,6 +209,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestFeralCat-AllItems-DormantHeartoftheMountain-249473"
+ value: {
+  dps: 584.66409
+  tps: 317.7696
+ }
+}
+dps_results: {
  key: "TestFeralCat-AllItems-EarthenSigil-20525"
  value: {
   dps: 584.66409
@@ -198,6 +234,13 @@ dps_results: {
  value: {
   dps: 584.66409
   tps: 317.7696
+ }
+}
+dps_results: {
+ key: "TestFeralCat-AllItems-ElectrifiedDagger-19100"
+ value: {
+  dps: 589.47334
+  tps: 320.1598
  }
 }
 dps_results: {
@@ -434,10 +477,31 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestFeralCat-AllItems-GryphonRider'sStormhammer-9651"
+ value: {
+  dps: 519.09922
+  tps: 285.07759
+ }
+}
+dps_results: {
+ key: "TestFeralCat-AllItems-GutRipper-2164"
+ value: {
+  dps: 584.66409
+  tps: 317.7696
+ }
+}
+dps_results: {
  key: "TestFeralCat-AllItems-HammeroftheNorthernWind-810"
  value: {
   dps: 535.31745
   tps: 293.13728
+ }
+}
+dps_results: {
+ key: "TestFeralCat-AllItems-HandofEdwardtheOdd-2243"
+ value: {
+  dps: 584.50291
+  tps: 317.60021
  }
 }
 dps_results: {
@@ -466,6 +530,20 @@ dps_results: {
  value: {
   dps: 584.66409
   tps: 317.7696
+ }
+}
+dps_results: {
+ key: "TestFeralCat-AllItems-IdolofHealth-22399"
+ value: {
+  dps: 573.59349
+  tps: 311.02147
+ }
+}
+dps_results: {
+ key: "TestFeralCat-AllItems-IdolofSwiftness-279250"
+ value: {
+  dps: 573.59349
+  tps: 311.02147
  }
 }
 dps_results: {
@@ -652,6 +730,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestFeralCat-AllItems-SulfuronHammer-17193"
+ value: {
+  dps: 584.66409
+  tps: 317.7696
+ }
+}
+dps_results: {
  key: "TestFeralCat-AllItems-SwarmingIdol-272430"
  value: {
   dps: 573.59349
@@ -722,6 +807,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestFeralCat-AllItems-Thunderbrew'sBootFlask-744"
+ value: {
+  dps: 586.90989
+  tps: 318.8664
+ }
+}
+dps_results: {
  key: "TestFeralCat-AllItems-ToySoldier-274386"
  value: {
   dps: 584.66409
@@ -730,6 +822,13 @@ dps_results: {
 }
 dps_results: {
  key: "TestFeralCat-AllItems-Uther'sStrength-11302"
+ value: {
+  dps: 584.66409
+  tps: 317.7696
+ }
+}
+dps_results: {
+ key: "TestFeralCat-AllItems-VolcanicHammer-12792"
  value: {
   dps: 584.66409
   tps: 317.7696

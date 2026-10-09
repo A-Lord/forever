@@ -49,24 +49,53 @@ func Test_WhenGivenDurationShorter60_ThenRenderSeconds(t *testing.T) {
 
 func Test_WhenGivenDurationLongerThan2Hours_ThenRnderHrs(t *testing.T) {
 	SimpleTooltipTest(1289654,
-		"Increases mounted movement speed by 10%, stacking with all other mounted movement speed bonuses. Lasts 360hrs real time.\r\n",
+		"Increases mounted movement speed by 10% for 360hrs, stacking with all other mounted movement speed bonuses. This expires while offline.",
 		t,
 	)
 }
 
-func SimpleTooltipTest(spellId int, expectedDescription string, t *testing.T) {
-	spell := db.Spells[spellId]
-	tp, error := ParseTooltip(spell.Description,
-		NewTestDataProvider(CharacterConfig{}),
-		int64(spellId),
+// Uppercase $H is the proc chance as much as lowercase $h: Invulnerable Mail's 16620 states 5.
+func Test_WhenUppercaseProcChanceGiven_ThenRenderTheChance(t *testing.T) {
+	GeneratorTooltipTest(16620,
+		"When struck in combat has a 5% chance to make you invulnerable to melee damage for 3s. This effect can only occur once every 10 sec.",
+		t,
 	)
+}
+
+// A reference into another spell renders the amount that spell's row states, with no spell power on
+// top: Arcane Infused Gem's 23721 names Arcane Detonation 23722's 200, which carries a coefficient of 1.
+func Test_WhenOtherSpellsDamageReferenced_ThenRenderItsStatedAmount(t *testing.T) {
+	GeneratorTooltipTest(23721,
+		"Infuses you with Arcane energy, causing your next Arcane Shot fired within 10s to detonate at the target. The Arcane Detonation will deal 200 damage to enemies near the target.",
+		t,
+	)
+}
+
+// A computed value is unsigned like a plain one, since the tooltip writes its own words for a reduction:
+// 22778 states -30 tenths of rage as "reduced by $/10;s1".
+func Test_WhenNegativeValueComputed_ThenRenderItUnsigned(t *testing.T) {
+	GeneratorTooltipTest(22778, "Hamstring Rage cost reduced by 3.0.", t)
+}
+
+func SimpleTooltipTest(spellId int, expectedDescription string, t *testing.T) {
+	renderTooltipTest(spellId, NewTestDataProvider(CharacterConfig{}), expectedDescription, t)
+}
+
+// The tooltip as the item generator renders it, through the game files' data provider alone.
+func GeneratorTooltipTest(spellId int, expectedDescription string, t *testing.T) {
+	renderTooltipTest(spellId, DBCTooltipDataProvider{DBC: db}, expectedDescription, t)
+}
+
+func renderTooltipTest(spellId int, dataProvider TooltipDataProvider, expectedDescription string, t *testing.T) {
+	t.Helper()
+	tp, error := ParseTooltip(db.Spells[spellId].Description, dataProvider, int64(spellId))
 
 	if error != nil {
-		t.Fatal()
+		t.Fatal(error)
 	}
 
-	if tp.String() != expectedDescription {
-		t.Fail()
+	if got := tp.String(); got != expectedDescription {
+		t.Errorf("%d renders %q, want %q", spellId, got, expectedDescription)
 	}
 }
 

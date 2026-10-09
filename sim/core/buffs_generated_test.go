@@ -491,6 +491,28 @@ func TestGeneratedAtieshStavesCountTheStaves(t *testing.T) {
 	}
 }
 
+// The party's Darkspear is up for a share of the fight only, so the stats the character sheet and
+// the EP are measured with carry none of its 4% crit.
+func TestGeneratedPartyDarkspearStaysOffTheCharacterSheet(t *testing.T) {
+	char := core.NewGeneratedBuffTestCharacter()
+
+	core.ApplyBuffEffects(char, &proto.RaidBuffs{}, &proto.PartyBuffs{Darkspear: true}, &proto.IndividualBuffs{})
+	char.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
+
+	aura := char.GetAura("Darkspear (External)")
+	if aura == nil {
+		t.Fatalf("the unit has %v, want the party's Darkspear", auraLabels(char))
+	}
+	if aura.BuildPhase != core.CharacterBuildPhaseNone {
+		t.Errorf("the party's Darkspear is in build phase %v, want none", aura.BuildPhase)
+	}
+	for _, stat := range []stats.Stat{stats.PhysicalCritPercent, stats.SpellCritPercent} {
+		if got := char.GetStats()[stat]; got != 0 {
+			t.Errorf("the party's Darkspear applied %v %s to the measured stats, want 0", got, stat.StatName())
+		}
+	}
+}
+
 // The windfury proc grants the attack power the game files state for the second
 // the aura lasts; the totem aura around it holds the category and the trigger.
 func TestGeneratedWindfuryTotemProcAppliesTheClientsAttackPower(t *testing.T) {
