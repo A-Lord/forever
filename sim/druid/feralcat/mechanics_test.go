@@ -4,6 +4,7 @@ package feralcat
 
 import (
 	"math"
+	"strings"
 	"testing"
 	"time"
 
@@ -552,5 +553,48 @@ func resetCooldown(spell *core.Spell) {
 	}
 	if spell.SharedCD.Timer != nil {
 		spell.SharedCD.Reset()
+	}
+}
+
+// Shadowmeld 20580 lets a Night Elf Ravage in combat; the Ravage ends it, and in combat its cooldown is
+// 2 minutes.
+func TestShadowmeldAllowsRavageInCombat(t *testing.T) {
+	sim, cat := newCat(t, "", nil)
+	sim.CurrentTime = 10 * time.Second
+	fillResource(sim, cat)
+	if cat.Ravage.CanCast(sim, cat.CurrentTarget) {
+		t.Fatal("ravage could be cast without stealth")
+	}
+	if !cat.Shadowmeld.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("shadowmeld did not cast in combat")
+	}
+	if !cat.Ravage.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("ravage did not cast from shadowmeld")
+	}
+	if cat.ShadowmeldAura.IsActive() {
+		t.Error("ravage left the druid in shadowmeld")
+	}
+	if got := cat.Shadowmeld.ReadyAt() - sim.CurrentTime; got != 2*time.Minute {
+		t.Errorf("shadowmeld is ready in %v, want 2m", got)
+	}
+}
+
+// With Clearcasting at the Pull, the cat starts the fight with Clearcasting up.
+func TestPrepullClearcastingStartsTheFightClearcasting(t *testing.T) {
+	for _, on := range []bool{false, true} {
+		req := sweepRequest(catTalents, catAPL(bestCatAPL), false, 1)
+		req.SimOptions.Debug = true
+		req.Raid.Parties[0].Players[0].GetFeralCatDruid().Options.PrepullClearcasting = on
+		result := core.RunSim(req, nil, simsignals.CreateSignals())
+		if result.Error != nil {
+			t.Fatal(result.Error.Message)
+		}
+		got := false
+		for _, line := range strings.Split(result.Logs, "\n") {
+			got = got || strings.HasPrefix(line, "[-1.50]") && strings.Contains(line, "Aura gained: {SpellID: 16870}")
+		}
+		if got != on {
+			t.Errorf("option %v: Clearcasting gained before the pull = %v", on, got)
+		}
 	}
 }

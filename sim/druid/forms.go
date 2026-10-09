@@ -4,6 +4,7 @@ import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/spelldata"
+	"github.com/wowsims/forever/sim/core/stats"
 )
 
 type DruidForm uint8
@@ -138,11 +139,21 @@ func (druid *Druid) RegisterBearFormAura() {
 
 func (druid *Druid) registerBearAura(form *spelldata.Spell, passive *spelldata.Spell, kind DruidForm, starting bool) *core.Aura {
 	aura := druid.registerFormAura(form, starting)
-	// A_MOD_BONUS_ARMOR_PCT is not parsed. Armor from items, health, attack power and the Faerie
-	// Fire spell mods are.
+	// Armor from items, health, attack power and the Faerie Fire spell mods are parsed.
 	// TODO: Ingame research needed -- effect 4 of Bear Form and Dire Bear Form is aura 668, which core
 	// does not name.
 	spelldata.ParseEffects(&druid.Character, aura, passive)
+	// The parser leaves A_MOD_BONUS_ARMOR_PCT alone: the items' bonus armor ("+N Armor") scales by the
+	// same 180% or 360% as their base armor ("Armor contribution from items").
+	if e := passive.FindEffect(dbcenums.E_APPLY_AURA, dbcenums.A_MOD_BONUS_ARMOR_PCT, 0); e != spelldata.NilEffect {
+		bonusArmor := 1 + e.Percent()
+		aura.ApplyOnGain(func(_ *core.Aura, sim *core.Simulation) {
+			druid.ApplyDynamicEquipScaling(sim, stats.BonusArmor, bonusArmor)
+		})
+		aura.ApplyOnExpire(func(_ *core.Aura, sim *core.Simulation) {
+			druid.RemoveDynamicEquipScaling(sim, stats.BonusArmor, bonusArmor)
+		})
+	}
 	aura.ApplyOnGain(func(_ *core.Aura, sim *core.Simulation) {
 		druid.setForm(kind)
 		druid.SetCurrentPowerBar(core.RageBar)
@@ -202,7 +213,7 @@ func (druid *Druid) registerShapeshiftSpell(rank *spelldata.Spell, aura *core.Au
 
 // TODO: Verify a companion-triggered swing reset before adding a snake-weaving option.
 
-// furorFraction is the rage chance, the tooltip's $m1: 0.2 at 1/5 through 1 at 5/5.
+// The rage chance, the tooltip's $m1: 0.2 at 1/5 through 1 at 5/5.
 func (druid *Druid) furorFraction() float64 {
 	return spellData.Furor.EffectAt(1).FractionAt(druid.Talents.Furor)
 }
@@ -227,12 +238,9 @@ func (druid *Druid) forfeitCatEnergy(sim *core.Simulation) {
 	druid.rememberCatEnergy(sim, 0)
 }
 
-// restoreCatEnergy is the tooltip's rule, priced with $m2: the energy left in Cat Form plus 10 for
-// each second spent outside Bear, Cat and Dire Bear Form, up to 100, all scaled by the rank. With the
-// talent untaken the cat comes back with none.
-//
-// TODO: Ingame research needed -- whether energy outside Cat Form regenerates at the Cat Form rate at
-// 5/5. Tooltip 17056 does not say.
+// The tooltip's rule, priced with $m2: the energy left in Cat Form plus ${10*($m2/100)} for each
+// second spent outside Bear, Cat and Dire Bear Form, up to ${100*($m2/100)}. At 5/5 that is 10 a
+// second, the Cat Form rate. With the talent untaken the cat comes back with none.
 func (druid *Druid) restoreCatEnergy(sim *core.Simulation) {
 	if !druid.HasEnergyBar() || druid.Env.MeasuringStats {
 		return

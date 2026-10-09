@@ -28,7 +28,3 @@ func (druid *Druid) registerRakeSpell() {
 	}
 	druid.Rake = druid.RegisterSpell(config)
 }
-
-func (druid *Druid) CurrentRakeCost() float64 {
-	return druid.Rake.Cost.GetCurrentCost()
-}

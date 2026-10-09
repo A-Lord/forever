@@ -42,6 +42,10 @@ casts_results: {
    value: 7
   }
   casts: {
+   key: "spell_id:20580"
+   value: 0
+  }
+  casts: {
    key: "spell_id:22812"
    value: 0
   }
@@ -197,6 +201,10 @@ casts_results: {
   casts: {
    key: "spell_id:1322605"
    value: 7
+  }
+  casts: {
+   key: "spell_id:20580"
+   value: 0
   }
   casts: {
    key: "spell_id:22812"

@@ -11,6 +11,8 @@ func (druid *Druid) registerLacerateSpell() {
 	perStack := rank.EffectN(2).Percent()
 	config := spelldata.SpellConfig(&druid.Unit, rank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 	config.Dot = spelldata.DotConfig(rank, tick, bleedAuraOpt())
+	// TODO: Ingame research needed -- the tooltip's "Causes a high amount of threat"; the row states no
+	// threat effect, so the cast threatens only for its damage.
 	// Each application stacks the bleed, so a tick is the row's amount per stack.
 	// TODO: Ingame research needed -- whether the hit or the bleed gains attack power; the row states none.
 	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {

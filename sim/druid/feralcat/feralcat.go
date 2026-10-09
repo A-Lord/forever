@@ -33,6 +33,7 @@ func NewFeralCatDruid(character *core.Character, options *proto.Player) *FeralDr
 
 	cat.CannotShredTarget = feralOptions.Options.CannotShredTarget
 	cat.AssumeBleedActive = feralOptions.Options.GetAssumeBleedActive()
+	cat.prepullClearcasting = feralOptions.Options.GetPrepullClearcasting()
 
 	cat.EnableEnergyBar(core.EnergyBarOptions{
 		MaxComboPoints: 5,
@@ -56,6 +57,8 @@ func NewFeralCatDruid(character *core.Character, options *proto.Player) *FeralDr
 
 type FeralDruid struct {
 	*druid.Druid
+
+	prepullClearcasting bool
 }
 
 func (cat *FeralDruid) GetDruid() *druid.Druid {
@@ -65,12 +68,19 @@ func (cat *FeralDruid) GetDruid() *druid.Druid {
 func (cat *FeralDruid) AddRaidBuffs(raidBuffs *proto.RaidBuffs) {
 }
 
-// AddPartyBuffs auto-applies Leader of the Pack from the druid's own talent.
+// Leader of the Pack comes from the druid's own talent.
 func (cat *FeralDruid) AddPartyBuffs(partyBuffs *proto.PartyBuffs) {
 	cat.Druid.AddPartyBuffs(partyBuffs)
 }
 
 func (cat *FeralDruid) Initialize() {
+	if cat.prepullClearcasting {
+		// Omen of Clarity procs off any druid spell, so a cat can fish for it out of combat; the
+		// shift back to Cat Form takes a GCD before the pull.
+		cat.RegisterPrepullAction(-core.GCDDefault, func(sim *core.Simulation) {
+			cat.ClearcastingAura.Activate(sim)
+		})
+	}
 	cat.Druid.Initialize()
 	cat.RegisterFeralCatSpells()
 }

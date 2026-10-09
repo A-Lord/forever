@@ -615,6 +615,10 @@
 				"label": "Assume Bleed Always Active",
 				"tooltip": "Assume bleed always exists for 'Rend and Tear' calculations. Otherwise will only calculate based on own rip/rake/lacerate."
 			},
+			"prepull_clearcasting": {
+				"label": "Clearcasting at the Pull",
+				"tooltip": "Start the fight with Clearcasting from Omen of Clarity, fished for out of combat by casting spells before the pull."
+			},
 			"cannot_shred_target": {
 				"label": "Cannot Shred Target",
 				"tooltip": "Alternative to \"In Front of Target\" for modeling bosses that do not Parry or Block, but which you still cannot Shred."

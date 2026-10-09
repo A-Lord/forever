@@ -66,11 +66,11 @@ func (druid *Druid) applyThickHide() {
 	}
 	row := spellData.ThickHide.Rank(druid.Talents.ThickHide)
 	// Effect 2 prices armor as the level times its base points: 60, 120 or 180 at level 60. Effect 1 /
-	// 100 is armor per bonus defense skill.
+	// 100 is base armor per point of defense skill beyond five times the level, which is the defense the
+	// gear and buffs add (one rating is one skill point). Both are base armor, which the bear forms scale.
 	// TODO: Ingame research needed -- level × base points (60/120/180) or the game files' per-level formula (178/179/180).
-	// TODO: Add the defense contribution with dynamic updates. Core models DefenseRating, but its
-	// stat dependency order does not allow DefenseRating to feed Armor.
 	bonus := float64(druid.level()) * row.EffectN(2).BaseValue()
+	perDefense := row.EffectN(1).BaseValue() / 100 / core.DefenseRatingPerDefenseLevel
 	for _, form := range []struct {
 		aura       *core.Aura
 		multiplier float64
@@ -82,6 +82,7 @@ func (druid *Druid) applyThickHide() {
 	} {
 		if form.aura != nil {
 			form.aura.AttachStatBuff(stats.Armor, bonus*form.multiplier)
+			form.aura.AttachStatDependency(druid.NewDynamicStatDependency(stats.DefenseRating, stats.Armor, perDefense*form.multiplier))
 		}
 	}
 }
@@ -190,14 +191,16 @@ func (druid *Druid) applyNaturalReaction() {
 	row := spellData.NaturalReaction.Rank(druid.Talents.NaturalReaction)
 	rageSpell := spellData.NaturalReactionTriggered.Highest()
 	metrics := druid.NewRageMetrics(core.ActionID{SpellID: rageSpell.ID})
-	// TODO: Ingame research needed -- the proc mask has no dodge bit. The handler keeps dodges only.
-	// The triggered spell restores 5 rage; whether a lower rank restores less is not on that spell.
-	druid.MakeProcTriggerAura(spelldata.ProcTrigger(&druid.Character, row, func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
-		if !druid.InForm(Bear) || !result.Outcome.Matches(core.OutcomeDodge) {
-			return
+	// The proc mask names every hit taken and has no dodge bit, so the row's trigger listens to landed
+	// hits; the tooltip's "each time you dodge" is the outcome. Every rank restores the triggered
+	// spell's 5 rage, and the rank sets the chance ($m2).
+	trigger := spelldata.ProcTrigger(&druid.Character, row, func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
+		if druid.InForm(Bear) {
+			druid.AddRage(sim, rageSpell.EnergizeEffect().Tenths(), metrics)
 		}
-		druid.AddRage(sim, rageSpell.EnergizeEffect().Tenths(), metrics)
-	}))
+	})
+	trigger.Outcome = core.OutcomeDodge
+	druid.MakeProcTriggerAura(trigger)
 }
 
 func (druid *Druid) applyFeralCharge() {

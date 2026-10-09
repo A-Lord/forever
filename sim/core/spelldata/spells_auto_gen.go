@@ -6784,9 +6784,9 @@ var generatedSpells = []Spell{
 		Powers: []Power{{Cost: 115}}},
 	{ID: 9908, Name: "Swipe", Rank: "Rank 5", School: 1, Attr: [17]uint32{0: 0x40010, 1: 0x200, 2: 0x1000, 15: 0x2000}, SpellLevel: 54, BaseLevel: 54, MaxRange: 5, GCDMs: 1500, Category: 85, StartRecoveryCategory: 133, DefenseType: 2, PreventionType: 2, ClassFlags: core.ClassFlags{Family: 7, Mask: [4]uint32{0: 2048, 1: 1048576}}, StanceMask: 0x90, Labels: []int16{21},
 		Effects: []Effect{
-			{ID: 688128, SpellID: 9908, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 83, BaseLevel: 54, SPCoef: 1, PvpMult: 1, ChainTargets: 3, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+			{ID: 688128, SpellID: 9908, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 83, BaseLevel: 54, SPCoef: 1, APCoef: 0.03, PvpMult: 1, ChainTargets: 3, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
-		Powers: []Power{{Type: 1, Cost: 200}}},
+		Powers: []Power{{Type: 1, Cost: 200}}}, // override: APCoefDirect 0.03 -- Swipe Rank 5: 3% of attack power on each hit; the game files state none
 	{ID: 9910, Name: "Thorns", Rank: "Rank 6", School: 8, Attr: [17]uint32{0: 0x10000, 2: 0x80000, 8: 0x1000, 15: 0x2000}, SpellLevel: 54, BaseLevel: 54, DurationMs: 600000, MaxRange: 30, GCDMs: 1500, StartRecoveryCategory: 133, DefenseType: 1, DispelType: 1, PreventionType: 1, ClassFlags: core.ClassFlags{Family: 7, Mask: [4]uint32{0: 256}}, InterruptFlags: 8, StanceMask: 0x40000002, Labels: []int16{21},
 		Effects: []Effect{
 			{ID: 687684, SpellID: 9910, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_DAMAGE_SHIELD, BasePoints: 18, BaseLevel: 54, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{21, 0}},

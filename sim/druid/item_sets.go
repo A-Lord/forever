@@ -15,6 +15,10 @@ func parsedSetBonus(rows ...*spelldata.Spell) core.ApplySetBonus {
 	}
 }
 
+// TODO: Sets without full game files data are not registered: the Feral T1 set 2115 (Grovekeeper
+// Ferocity, whose pieces have no ItemSparse rows), the Sanctuary PvP set and the Symbols of Unending
+// Life 3-piece bonus.
+
 var sixPieceSlots = []proto.ItemSlot{
 	proto.ItemSlot_ItemSlotHead,
 	proto.ItemSlot_ItemSlotShoulder,
@@ -96,8 +100,8 @@ var ItemSetWildheartRaiment = core.NewItemSet(core.ItemSet{
 		2: parsedSetBonus(spelldata.MustFind(18679)),                          // +8 all resistances
 		3: parsedSetBonus(spelldata.MustFind(9346), spelldata.MustFind(9336)), // +18 spell damage, +30 attack power
 		5: func(agent core.Agent, setBonusAura *core.Aura) {
-			// The proc also answers a melee swing with energy (27784) and a melee hit taken with
-			// rage (27783); only the spell cast's mana is modelled.
+			// TODO: The proc also answers a melee swing with energy (27784, whose row restores mana) and
+			// a melee hit taken with rage (27783); only the spell cast's mana is modelled.
 			druid := agent.(DruidAgent).GetDruid()
 			mana := wildheartMana.EnergizeEffect().Average()
 			manaMetrics := druid.NewManaMetrics(core.ActionID{SpellID: wildheartMana.ID})
@@ -124,7 +128,7 @@ var ItemSetWildheartRaiment = core.NewItemSet(core.ItemSet{
 // Dungeon Set 2
 // https://www.wowhead.com/forever/item-set=513/feralheart-raiment
 //
-// The 4-piece bonus returns 300 mana, 10 rage or 40 energy when struck. Its proc (27781) casts a
+// TODO: The 4-piece bonus returns 300 mana, 10 rage or 40 energy when struck. Its proc (27781) casts a
 // dummy (27798) and only the tooltip states the amounts, so it is not modelled.
 var ItemSetFeralheartRaiment = core.NewItemSet(core.ItemSet{
 	ID:    513,

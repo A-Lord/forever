@@ -35,7 +35,3 @@ func (druid *Druid) registerRipSpell() {
 	}
 	druid.Rip = druid.RegisterSpell(config)
 }
-
-func (druid *Druid) CurrentRipCost() float64 {
-	return druid.Rip.Cost.GetCurrentCost()
-}

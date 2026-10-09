@@ -51,12 +51,9 @@ type aplTune struct {
 	ceiling   int
 	omenMax   string
 	innervate bool
-	// ripPool is how far ahead of Rip falling off a builder that would leave the refresh unpaid
-	// waits; "" is 2s. rakePool, when set, pools the same way for Rake. spFirst puts Shifting Power
-	// ahead of Rip and Rake.
-	ripPool  string
+	// rakePool, when set, is how far ahead of Rake falling off a builder that would leave the refresh
+	// unpaid waits; Rip always pools 2s ahead.
 	rakePool string
-	spFirst  bool
 	// biteEnd spends 5 combo points on Ferocious Bite once a Rip would not tick out; biteLow, when
 	// set, also bites at 3 or more inside that much of the end. rakeCut, when set, casts no Rake with
 	// less than that left.
@@ -107,12 +104,9 @@ func catAPL(tune aplTune) *proto.APLRotation {
 	wantShift := vars.def("Shifting Power now", and(spellCanCast(spellSP), underCap))
 	// A builder would leave the refresh short: energy - Shred + 10 regen < Rip.
 	afterBuilder := mathOp(proto.APLValueMath_OpAdd, mathOp(proto.APLValueMath_OpSub, currentEnergy(), spellCost(spellShred)), konst("10"))
-	if tune.ripPool == "" {
-		tune.ripPool = "2s"
-	}
 	pooling := and(cp5, ripUp, fightLong,
 		cmp(proto.APLValueCompare_OpGt, dotLeft(spellRip), konst("0s")),
-		cmp(proto.APLValueCompare_OpLe, dotLeft(spellRip), konst(tune.ripPool)),
+		cmp(proto.APLValueCompare_OpLe, dotLeft(spellRip), konst("2s")),
 		cmp(proto.APLValueCompare_OpLt, afterBuilder, spellCost(spellRip)))
 	if tune.rakePool != "" {
 		pooling = or(pooling, and(rakeUp, cmp(proto.APLValueCompare_OpGe, remainingTime(), konst("9s")),
@@ -126,7 +120,8 @@ func catAPL(tune aplTune) *proto.APLRotation {
 	// The sapper line sits above these, so a throw and the Cat Form after it always go first.
 	openRake := and(inCat, not(ripNow), rakeNow)
 	openShred := and(inCat, not(ripNow), not(rakeNow), not(pooling), not(wantShift), spellCanCast(spellShred))
-	// Berserk is +100% crit for 15s. Elune's 10% crit during that window does not change a crit.
+	// Berserk is +100% crit for 15s on the combo point builders, so Elune's 10% is lost on them in that
+	// window; auto attacks and Ferocious Bite still gain it.
 	elune := and(not(auraUp(spellBerserk)), cmp(proto.APLValueCompare_OpGt, spellLeft(spellBerserk), konst("15s")))
 	switch tune.elune {
 	case "now":
@@ -184,14 +179,6 @@ func catAPL(tune aplTune) *proto.APLRotation {
 		// Ahead of Shifting Power and Shred.
 		list = append(list[:10], append([]*proto.APLListItem{castWhen(spellBite, vars.def("Bite at the end", or(bite...)))}, list[10:]...)...)
 	}
-	if tune.spFirst {
-		// Rip, Rake, Shifting Power become Shifting Power, Rip, Rake.
-		i := 8
-		if list[i].Action.GetCastSpell().GetSpellId().GetSpellId() != spellRip {
-			panic("catAPL expects Rip as the ninth line")
-		}
-		list[i], list[i+1], list[i+2] = list[i+2], list[i], list[i+1]
-	}
 	if !tune.omen {
 		list = list[:len(list)-1]
 	}
@@ -231,8 +218,8 @@ var bestCatAPL = aplTune{elune: "after", omen: true, innervate: true, rakePool: 
 // more point out of Rend and Tear into Primal Bite. Genesis stays at 5, which Nature's Majesty and
 // Nature's Reach need below them.
 const (
-	catTalents       = "050022-55000032021031212041-055"
-	bearweaveTalents = "050022-55000032021131212031-055"
+	catTalents       = DefaultTalents
+	bearweaveTalents = BearweaveTalents
 )
 
 // weaveTune is one bear trip. energyMax is the most energy the cat goes into bear with, spLeft the
@@ -506,6 +493,13 @@ type aplScenario struct {
 	wolfhead bool
 }
 
+// withTune is bestCatAPL with one change, so a sweep row differs from the preset in that change only.
+func withTune(edit func(*aplTune)) *proto.APLRotation {
+	tune := bestCatAPL
+	edit(&tune)
+	return catAPL(tune)
+}
+
 func TestAPLSweep(t *testing.T) {
 	if os.Getenv("ROTATION_SWEEP") == "" {
 		t.Skip("set ROTATION_SWEEP=1 to compare cat APL variants")
@@ -519,12 +513,12 @@ func TestAPLSweep(t *testing.T) {
 		rot  *proto.APLRotation
 	}{
 		{"apl preset (default.apl.json)", core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "default").Rotation},
-		{"apl, elune at once", catAPL(aplTune{elune: "now", omen: true})},
-		{"apl, elune into a builder", catAPL(aplTune{elune: "builder", omen: true})},
-		{"apl, shift cap 45", catAPL(aplTune{elune: "after", omen: true, ceiling: 45})},
-		{"apl, shift cap 55", catAPL(aplTune{elune: "after", omen: true, ceiling: 55})},
-		{"apl, omen only under 20", catAPL(aplTune{elune: "after", omen: true, omenMax: "20"})},
-		{"apl, no omen fishing", catAPL(aplTune{elune: "after"})},
+		{"apl, elune at once", withTune(func(t *aplTune) { t.elune = "now" })},
+		{"apl, elune into a builder", withTune(func(t *aplTune) { t.elune = "builder" })},
+		{"apl, shift cap 45", withTune(func(t *aplTune) { t.ceiling = 45 })},
+		{"apl, shift cap 55", withTune(func(t *aplTune) { t.ceiling = 55 })},
+		{"apl, omen only under 20", withTune(func(t *aplTune) { t.omenMax = "20" })},
+		{"apl, no omen fishing", withTune(func(t *aplTune) { t.omen = false })},
 	}
 	scenarios := []aplScenario{
 		{name: "180s, consumes", duration: 180, consumes: true},

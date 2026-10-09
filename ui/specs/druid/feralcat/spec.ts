@@ -124,6 +124,7 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 			OtherInputs.InFrontOfTarget,
 			FeralInputs.CannotShredTarget,
 			FeralInputs.AssumeBleedActive,
+			FeralInputs.PrepullClearcasting,
 		],
 	},
 	itemSwapSlots: [ItemSlot.ItemSlotMainHand, ItemSlot.ItemSlotOffHand, ItemSlot.ItemSlotTrinket1, ItemSlot.ItemSlotTrinket2],

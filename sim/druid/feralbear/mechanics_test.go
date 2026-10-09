@@ -10,6 +10,7 @@ import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/simsignals"
+	"github.com/wowsims/forever/sim/core/stats"
 	"github.com/wowsims/forever/sim/druid"
 )
 
@@ -331,5 +332,69 @@ func TestBearFormsRaiseThreatByHalf(t *testing.T) {
 	bear.BearFormAura.Activate(sim)
 	if got := bear.PseudoStats.ThreatMultiplier; math.Abs(got-1.5) > 1e-9 {
 		t.Errorf("threat multiplier in Bear Form is %g, want 1.5", got)
+	}
+}
+
+// Natural Reaction 5/5 (417051): every dodge in a bear form grants 417053's 5 rage.
+func TestNaturalReactionGivesRageOnDodges(t *testing.T) {
+	req := bearRequest(bearAPL(bestBearAPL), 20)
+	result := core.RunSim(req, nil, simsignals.CreateSignals())
+	if result.Error != nil {
+		t.Fatal(result.Error.Message)
+	}
+	for _, r := range result.RaidMetrics.Parties[0].Players[0].Resources {
+		if r.Id.GetSpellId() == 417053 {
+			if r.Events == 0 || math.Abs(r.Gain/float64(r.Events)-5) > 1e-9 {
+				t.Fatalf("Natural Reaction gave %g rage over %d events, want 5 each", r.Gain, r.Events)
+			}
+			return
+		}
+	}
+	t.Fatal("Natural Reaction never gave rage")
+}
+
+// Swipe 9908 adds 3% of attack power to each hit, an override on the row.
+func TestSwipeGainsThreePercentOfAttackPower(t *testing.T) {
+	sim, bear := newBear(t)
+	bear.AddStatDynamic(sim, stats.PhysicalCritPercent, -100)
+	bear.AddStatDynamic(sim, stats.PhysicalHitPercent, 100)
+	bear.CurrentTarget.PseudoStats.BaseDodgeChance = 0
+	hit := func() float64 {
+		bear.AddRage(sim, 100, bear.NewRageMetrics(core.ActionID{SpellID: 1}))
+		before := bear.Swipe.SpellMetrics[bear.CurrentTarget.UnitIndex].TotalDamage
+		if !bear.Swipe.Cast(sim, bear.CurrentTarget) {
+			t.Fatal("swipe did not cast")
+		}
+		sim.CurrentTime += 2 * time.Second
+		return bear.Swipe.SpellMetrics[bear.CurrentTarget.UnitIndex].TotalDamage - before
+	}
+	low := hit()
+	bear.AddStatDynamic(sim, stats.AttackPower, 1000)
+	high := hit()
+	armor, _ := bear.Swipe.ResistanceMultiplier(sim, false, bear.AttackTables[bear.CurrentTarget.UnitIndex])
+	if got, want := high-low, 30*armor; math.Abs(got-want) > 1e-6 {
+		t.Errorf("1000 attack power adds %g to a Swipe, want %g", got, want)
+	}
+}
+
+// The bear forms scale the items' bonus armor by their 180% or 360% (A_MOD_BONUS_ARMOR_PCT) as well as
+// their base armor, and Thick Hide adds the level times 3 plus $m1/100 = 2 base armor per point of bonus
+// defense, which the form scales too. The UI's bear has Thick Hide 3/3 and gear with bonus armor and
+// defense.
+func TestBearFormsScaleBonusArmorAndThickHideDefense(t *testing.T) {
+	sim := core.NewSim(bearRequest(bearAPL(bestBearAPL), 1), simsignals.CreateSignals())
+	sim.Reset()
+	bear := sim.Raid.Parties[0].Players[0].(*GuardianDruid)
+	inBear := bear.GetStat(stats.Armor)
+	bear.DireBearFormAura.Deactivate(sim)
+	caster := bear.GetStat(stats.Armor)
+	equip := bear.EquipStats()
+	if equip[stats.BonusArmor] == 0 || bear.GetStat(stats.DefenseRating) == 0 {
+		t.Fatal("the bear gear has no bonus armor or defense")
+	}
+	thickHide := 60*3 + 2*bear.GetStat(stats.DefenseRating)
+	want := 3.6*(equip[stats.Armor]+equip[stats.BonusArmor]) + 4.6*thickHide
+	if got := inBear - caster; math.Abs(got-want) > 1e-6 {
+		t.Errorf("Dire Bear adds %g armor, want %g", got, want)
 	}
 }

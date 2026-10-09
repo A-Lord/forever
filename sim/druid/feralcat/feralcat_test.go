@@ -23,8 +23,17 @@ func TestFeralCat(t *testing.T) {
 			{Label: "BleedAssumed", SpecOptions: &proto.Player_FeralCatDruid{FeralCatDruid: &proto.FeralCatDruid{
 				Options: &proto.FeralCatDruid_Options{AssumeBleedActive: true},
 			}}},
+			{Label: "PrepullClearcasting", SpecOptions: &proto.Player_FeralCatDruid{FeralCatDruid: &proto.FeralCatDruid{
+				Options: &proto.FeralCatDruid_Options{PrepullClearcasting: true},
+			}}},
 		},
-		Rotation:    core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "default"),
+		OtherTalentSets: []core.TalentsCombo{
+			{Label: "Bearweave", Talents: BearweaveTalents},
+		},
+		Rotation: core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "default"),
+		OtherRotations: []core.RotationCombo{
+			core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "bearweave"),
+		},
 		Consumables: &proto.ConsumesSpec{},
 		ItemFilter: core.ItemFilter{
 			ArmorType: proto.ArmorType_ArmorTypeLeather,
@@ -60,8 +69,9 @@ func BenchmarkSimulate(b *testing.B) {
 	core.RaidBenchmark(b, rsr)
 }
 
-const DefaultTalents = "05002-55000032021032212051-055"
-const MonocatTalents = "-55000032021032212051-05503"
+// The cat UI's Monocat and Bearweave presets (presets.ts CatTalents and BearweaveTalents).
+const DefaultTalents = "050022-55000032021031212041-055"
+const BearweaveTalents = "050022-55000032021131212031-055"
 
 var DefaultSpecOptions = &proto.Player_FeralCatDruid{
 	FeralCatDruid: &proto.FeralCatDruid{

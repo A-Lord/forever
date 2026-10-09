@@ -5,7 +5,7 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-// TODO: Swipe gains 3% of the druid's attack power in game; its rows do not state it.
+// The 3% attack power share is an override on the row: the game files state none.
 func (druid *Druid) registerSwipeBearSpell() {
 	rank := spellData.Swipe.Highest()
 	damageEffect := rank.DamageEffect()
@@ -18,7 +18,8 @@ func (druid *Druid) registerSwipeBearSpell() {
 	config := spelldata.SpellConfig(&druid.Unit, rank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		cleave(sim, target, spell, targets, &results, func(target *core.Unit) *core.SpellResult {
-			return spell.CalcDamage(sim, target, base*druid.rendAndTearMultiplier(target), spell.OutcomeMeleeSpecialHitAndCrit)
+			damage := base + damageEffect.APCoeff()*spell.MeleeAttackPower(target)
+			return spell.CalcDamage(sim, target, damage*druid.rendAndTearMultiplier(target), spell.OutcomeMeleeSpecialHitAndCrit)
 		})
 	}
 	druid.Swipe = druid.RegisterSpell(config)
