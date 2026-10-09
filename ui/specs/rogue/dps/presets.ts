@@ -1,6 +1,6 @@
 import * as PresetUtils from '@app/preset_utils';
 import * as Consumables from '@features/settings/model/consumables_auto_gen';
-import { ConsumesSpec, Spec } from '@generated/proto/common';
+import { ConsumesSpec } from '@generated/proto/common';
 import { Rogue_Options as RogueOptions, RoguePoison } from '@generated/proto/rogue';
 import { SavedTalents } from '@generated/proto/ui';
 
@@ -78,7 +78,7 @@ const IP_MH_Settings = {
 	name: 'Default',
 	specOptions: DefaultOptions,
 };
-const DP_MH_Settings = {
+const _DP_MH_Settings = {
 	name: 'Flipped Poisons',
 	specOptions: FlippedPoisons,
 };
