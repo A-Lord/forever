@@ -421,7 +421,7 @@ func TestProtectionPotionShieldsAgainstItsSchool(t *testing.T) {
 
 // Flame Deflector 4376 casts 4057, A_SCHOOL_ABSORB Fire; the test's on-use runs on a 900 s cooldown
 // of its own with no category. Outside the potion and conjured categories it is a major cooldown
-// whenever the spec names it.
+// whenever the spec names it, which the manager holds back for a player no tank slot lists.
 func TestOnUseConsumableShieldsOnTheItemsCooldown(t *testing.T) {
 	const deflectorID int32 = 992022
 	sim, user := newConsumableSim(t, manaUser(), &proto.ConsumesSpec{ExtraIds: []int32{deflectorID}}, 0,
@@ -432,8 +432,8 @@ func TestOnUseConsumableShieldsOnTheItemsCooldown(t *testing.T) {
 	if mcd.Spell != deflector || !mcd.Type.Matches(core.CooldownTypeSurvival) {
 		t.Fatalf("the deflector is not a survival major cooldown: %v", mcd.Type)
 	}
-	if mcd.ShouldActivate != nil && !mcd.ShouldActivate(sim, &user.Character) {
-		t.Errorf("the manager holds the deflector back")
+	if mcd.ShouldActivate(sim, &user.Character) {
+		t.Errorf("the manager uses the deflector for a player no tank slot lists")
 	}
 	if deflector.Flags.Matches(core.SpellFlagPotion) || deflector.Flags.Matches(core.SpellFlagConjured) {
 		t.Errorf("the deflector is flagged a potion or a conjured item: %v", deflector.Flags)

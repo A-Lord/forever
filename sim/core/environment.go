@@ -113,6 +113,13 @@ func (env *Environment) construct(raidProto *proto.Raid, encounterProto *proto.E
 		}
 	}
 
+	// A player in any tank slot is a tank, whether or not a target is assigned to it.
+	for _, ref := range raidProto.Tanks {
+		if agent := env.Raid.GetPlayerFromUnit(env.GetUnit(ref, nil)); agent != nil {
+			agent.GetCharacter().isTank = true
+		}
+	}
+
 	env.State = Constructed
 }
 
