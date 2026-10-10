@@ -132,12 +132,12 @@ describe('StatFilterList', () => {
 });
 
 describe('StatFilterPopover', () => {
-	const mountPopover = (customised: boolean) =>
+	const mountPopover = () =>
 		render(
 			<StatFilterPopover
 				universe={universe}
 				shown={[strength]}
-				customised={customised}
+				customised={false}
 				playerClass={Class.ClassWarrior}
 				onChange={() => {}}
 				onReset={() => {}}
@@ -145,21 +145,8 @@ describe('StatFilterPopover', () => {
 			/>,
 		);
 
-	it('names its trigger and marks it while the panel is customised', () => {
-		mountPopover(true);
-
-		const trigger = screen.getByRole('button', { name: i18n.t('stat_filters.title') });
-		expect(trigger.hasAttribute('data-active')).toBe(true);
-	});
-
-	it('leaves the trigger unmarked on the spec defaults', () => {
-		mountPopover(false);
-
-		expect(screen.getByRole('button', { name: i18n.t('stat_filters.title') }).hasAttribute('data-active')).toBe(false);
-	});
-
-	it('opens the list from the trigger, under its title', () => {
-		mountPopover(false);
+	it('opens the list from its named trigger, under its title', () => {
+		mountPopover();
 
 		fireEvent.click(screen.getByRole('button', { name: i18n.t('stat_filters.title') }));
 

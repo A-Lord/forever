@@ -89,27 +89,15 @@ describe('ConsumesFilters', () => {
 		expect(sim.getFilters().minConsumableLvl).toEqual({ [ConsumableType.ConsumableTypeElixir]: 50 });
 	});
 
-	it('marks its trigger while the consumables stat filter is customised', () => {
-		open();
-		const trigger = screen.getByTestId('consumes-filters-button');
-		expect(trigger.hasAttribute('data-active')).toBe(false);
-
-		fireEvent.click(checkbox(Stat.StatAgility));
-		expect(trigger.hasAttribute('data-active')).toBe(true);
-
-		fireEvent.click(screen.getByTestId('consumes-filters-stats-reset'));
-		expect(trigger.hasAttribute('data-active')).toBe(false);
-	});
-
-	it('marks its trigger while a minimum level is set', () => {
+	it('offers the level reset only while a minimum level is set', () => {
 		sim.setFilters(DatabaseFilters.create({ minConsumableLvl: { [ConsumableType.ConsumableTypeElixir]: 50 } }));
 		open();
-		const trigger = screen.getByTestId('consumes-filters-button');
-		expect(trigger.hasAttribute('data-active')).toBe(true);
-
 		showTab('settings_tab.consumables.filters.min_lvl');
-		fireEvent.click(screen.getByTestId('consumes-filters-reset'));
-		expect(trigger.hasAttribute('data-active')).toBe(false);
+		const reset = screen.getByTestId('consumes-filters-reset');
+		expect(reset.hasAttribute('disabled')).toBe(false);
+
+		fireEvent.click(reset);
+		expect(reset.hasAttribute('disabled')).toBe(true);
 	});
 
 	it('resets the stats and the levels apart', () => {

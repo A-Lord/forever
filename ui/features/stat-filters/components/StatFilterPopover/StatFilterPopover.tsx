@@ -82,18 +82,16 @@ export const StatFilterList = ({
 export interface FilterPopoverProps {
 	ariaLabel: string;
 	title: string;
-	/** Marks the trigger while any filter in the popover is set. */
-	active: boolean;
 	triggerClassName?: string;
 	triggerTestId: string;
 	testId: string;
 	children: ReactNode;
 }
 
-export const FilterPopover = ({ ariaLabel, title, active, triggerClassName, triggerTestId, testId, children }: FilterPopoverProps) => (
+export const FilterPopover = ({ ariaLabel, title, triggerClassName, triggerTestId, testId, children }: FilterPopoverProps) => (
 	<Popover
 		trigger={<Icon name="filter" />}
-		triggerRender={<Button variant="link" size="sm" className="data-active:text-primary" data-active={active ? '' : undefined} />}
+		triggerRender={<Button variant="link" size="sm" className="text-muted hover:text-link-hover" />}
 		triggerClassName={triggerClassName}
 		triggerTestId={triggerTestId}
 		triggerProps={{ 'aria-label': ariaLabel }}
@@ -111,7 +109,6 @@ export const StatFilterPopover = ({ testId, ...listProps }: StatFilterPopoverPro
 	<FilterPopover
 		ariaLabel={i18n.t('stat_filters.title')}
 		title={i18n.t('stat_filters.title')}
-		active={listProps.customised}
 		triggerTestId={`${testId}-button`}
 		testId={testId}>
 		<StatFilterList {...listProps} idPrefix={testId} />

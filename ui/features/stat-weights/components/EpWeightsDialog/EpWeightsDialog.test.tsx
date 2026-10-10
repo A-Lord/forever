@@ -414,7 +414,6 @@ describe('EpWeightsDialog', () => {
 		expect(table().getAttribute('data-stats-type')).toBe('weight');
 		expect(select().textContent).toBe('sidebar.buttons.stat_weights.modal.weights');
 		expect(rowFor(STAMINA.getFullName(Class.ClassWarrior))).toBeTruthy();
-		expect(statFilterTrigger().hasAttribute('data-active')).toBe(true);
 	});
 
 	// DEFECT FIXED. `makeEpRatioCell` was applied to the six EP cells and the six weight cells, both

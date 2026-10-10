@@ -175,7 +175,6 @@ describe('CharacterStats stat filter', () => {
 	it('shows the spec display stats and the crit cap while the filter is unset', () => {
 		renderStats(true);
 
-		expect(filterTrigger().hasAttribute('data-active')).toBe(false);
 		expect(rowLabels()).toEqual([...DISPLAY_STATS.map(stat => stat.getShortName(Class.ClassWarrior)), i18n.t('sidebar.character_stats.melee_crit_cap')]);
 	});
 
@@ -184,7 +183,6 @@ describe('CharacterStats stat filter', () => {
 
 		await toggleStats(DISPLAY_STATS[0]);
 
-		expect(filterTrigger().hasAttribute('data-active')).toBe(true);
 		expect(rowLabels()).toEqual([
 			...DISPLAY_STATS.slice(1).map(stat => stat.getShortName(Class.ClassWarrior)),
 			i18n.t('sidebar.character_stats.melee_crit_cap'),
