@@ -2,7 +2,6 @@ package core
 
 import (
 	"fmt"
-	"slices"
 	"time"
 
 	"github.com/wowsims/forever/sim/core/proto"
@@ -20,7 +19,7 @@ type APLValueAuraIsActive struct {
 	aura                AuraReference
 	reactionTime        time.Duration
 	includeReactionTime bool
-	ownCast             bool
+	ownSpells           []*Spell // The player's APL spells that apply the aura: the same id, or the aura as their RelatedSelfBuff.
 }
 
 func (rot *APLRotation) newValueAuraIsActive(config *proto.APLValueAuraIsActive, _ *proto.UUID) APLValue {
@@ -32,13 +31,17 @@ func (rot *APLRotation) newValueAuraIsActive(config *proto.APLValueAuraIsActive,
 		return nil
 	}
 	actionID := ProtoToActionID(config.AuraId)
+	var ownSpells []*Spell
+	for _, spell := range rot.unit.Spellbook {
+		if spell.Flags.Matches(SpellFlagAPL) && (spell.ActionID.SameAction(actionID) || (spell.RelatedSelfBuff != nil && spell.RelatedSelfBuff.ActionID.SameAction(actionID))) {
+			ownSpells = append(ownSpells, spell)
+		}
+	}
 	return &APLValueAuraIsActive{
 		aura:                aura,
 		reactionTime:        rot.unit.ReactionTime,
 		includeReactionTime: config.IncludeReactionTime,
-		ownCast: slices.ContainsFunc(rot.unit.Spellbook, func(spell *Spell) bool {
-			return spell.ActionID.SameAction(actionID) && spell.Flags.Matches(SpellFlagAPL)
-		}),
+		ownSpells:           ownSpells,
 	}
 }
 func (value *APLValueAuraIsActive) Type() proto.APLValueType {
@@ -46,15 +49,26 @@ func (value *APLValueAuraIsActive) Type() proto.APLValueType {
 }
 func (value *APLValueAuraIsActive) GetBool(sim *Simulation) bool {
 	aura := value.aura.Get()
-	if !value.includeReactionTime {
+	if !value.includeReactionTime || aura == nil {
 		return aura.IsActive()
 	}
-	// The player knows at once that an aura from a spell they cast is up, and reacts to it falling off; any
-	// other aura, such as a proc, takes the reaction time to notice as it lands.
-	if value.ownCast {
-		return aura.IsActive() || aura.TimeInactive(sim) < value.reactionTime
+	// The player knows at once that an aura their own cast put up is there, and reacts only to it running out;
+	// any other aura, such as a proc, takes the reaction time to notice as it lands.
+	if value.castByPlayer(aura) {
+		return aura.IsActive() || (aura.expired && aura.TimeInactive(sim) < value.reactionTime)
 	}
 	return aura.IsActive() && aura.TimeActive(sim) >= value.reactionTime
+}
+
+// Whether one of the player's spells was cast as the aura landed or while it was up. A proc sharing a spell's id,
+// such as the Revenge window, starts before that spell is cast, so it stays a proc.
+func (value *APLValueAuraIsActive) castByPlayer(aura *Aura) bool {
+	for _, spell := range value.ownSpells {
+		if spell.lastAppliedAt >= aura.startTime {
+			return true
+		}
+	}
+	return false
 }
 func (value *APLValueAuraIsActive) String() string {
 	return fmt.Sprintf("Aura Active(%s)", value.aura.String())

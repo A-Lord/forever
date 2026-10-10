@@ -946,37 +946,65 @@ func TestValueAuraReactionTime(t *testing.T) {
 }
 
 func TestValueAuraIsActiveOwnCastReactionTime(t *testing.T) {
-	var ownCast, proc *Aura
+	// The window is a proc that shares its id with the spell it allows, as the Revenge window does.
+	var ownCast, window *Aura
+	var ownSpell, windowSpell *Spell
+	ownCastID, windowID := ActionID{SpellID: testPlainAuraID}, ActionID{SpellID: testStackAuraID}
 	sim, fw, rot := setupFakeRageRotationWith(func(char *Character) {
-		ownCast, proc, _ = registerTestAuras(char)
-		char.RegisterSpell(SpellConfig{ActionID: ActionID{SpellID: testPlainAuraID}, Flags: SpellFlagAPL})
+		ownCast, window, _ = registerTestAuras(char)
+		ownSpell = char.RegisterSpell(SpellConfig{ActionID: ownCastID, Flags: SpellFlagAPL, ApplyEffects: func(sim *Simulation, _ *Unit, _ *Spell) {
+			ownCast.Activate(sim)
+		}})
+		windowSpell = char.RegisterSpell(SpellConfig{ActionID: windowID, Flags: SpellFlagAPL, ApplyEffects: func(sim *Simulation, _ *Unit, _ *Spell) {
+			window.Deactivate(sim)
+		}})
 	})
+	ownSpell.finalize()
+	windowSpell.finalize()
 	fw.ReactionTime = 100 * time.Millisecond
+	target := fw.CurrentTarget
 
-	ownCastActive := rot.newValueAuraIsActive(&proto.APLValueAuraIsActive{AuraId: ActionID{SpellID: testPlainAuraID}.ToProto(), IncludeReactionTime: true}, nil)
-	procActive := rot.newValueAuraIsActive(&proto.APLValueAuraIsActive{AuraId: ActionID{SpellID: testStackAuraID}.ToProto(), IncludeReactionTime: true}, nil)
+	ownCastActive := rot.newValueAuraIsActive(&proto.APLValueAuraIsActive{AuraId: ownCastID.ToProto(), IncludeReactionTime: true}, nil)
+	windowActive := rot.newValueAuraIsActive(&proto.APLValueAuraIsActive{AuraId: windowID.ToProto(), IncludeReactionTime: true}, nil)
+
+	sim.CurrentTime = 500 * time.Millisecond
+	if ownCastActive.GetBool(sim) {
+		t.Errorf("before the first cast: own cast active = true, want false")
+	}
 
 	sim.CurrentTime = time.Second
-	ownCast.Activate(sim)
-	proc.Activate(sim)
-	if !ownCastActive.GetBool(sim) || procActive.GetBool(sim) {
-		t.Errorf("as the auras land: own cast active = %t, proc active = %t, want true, false", ownCastActive.GetBool(sim), procActive.GetBool(sim))
+	ownSpell.applyEffects(sim, target)
+	window.Activate(sim)
+	if !ownCastActive.GetBool(sim) || windowActive.GetBool(sim) {
+		t.Errorf("as the auras land: own cast active = %t, window active = %t, want true, false", ownCastActive.GetBool(sim), windowActive.GetBool(sim))
 	}
 	sim.CurrentTime = time.Second + 200*time.Millisecond
-	if !ownCastActive.GetBool(sim) || !procActive.GetBool(sim) {
-		t.Errorf("past the reaction time: own cast active = %t, proc active = %t, want true, true", ownCastActive.GetBool(sim), procActive.GetBool(sim))
+	if !windowActive.GetBool(sim) {
+		t.Errorf("past the reaction time: window active = false, want true")
 	}
 
 	sim.CurrentTime = 2 * time.Second
-	ownCast.Deactivate(sim)
-	proc.Deactivate(sim)
-	sim.CurrentTime = 2*time.Second + 50*time.Millisecond
-	if !ownCastActive.GetBool(sim) || procActive.GetBool(sim) {
-		t.Errorf("as the auras fall off: own cast active = %t, proc active = %t, want true, false", ownCastActive.GetBool(sim), procActive.GetBool(sim))
+	windowSpell.applyEffects(sim, target)
+	if windowActive.GetBool(sim) {
+		t.Errorf("window used up by its spell: window active = true, want false")
 	}
-	sim.CurrentTime = 2*time.Second + 200*time.Millisecond
+
+	sim.CurrentTime = ownCast.ExpiresAt()
+	ownCast.Deactivate(sim)
+	sim.CurrentTime += 50 * time.Millisecond
+	if !ownCastActive.GetBool(sim) {
+		t.Errorf("inside the reaction time after running out: own cast active = false, want true")
+	}
+	sim.CurrentTime += 50 * time.Millisecond
 	if ownCastActive.GetBool(sim) {
-		t.Errorf("past the reaction time after the fall off: own cast active = true, want false")
+		t.Errorf("at the reaction time after running out: own cast active = true, want false")
+	}
+
+	ownSpell.applyEffects(sim, target)
+	sim.CurrentTime += time.Second
+	ownCast.Deactivate(sim)
+	if ownCastActive.GetBool(sim) {
+		t.Errorf("removed before running out: own cast active = true, want false")
 	}
 }
 
