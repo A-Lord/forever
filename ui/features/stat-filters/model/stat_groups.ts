@@ -96,7 +96,7 @@ const offHandPercentAfter = new Map([
  * The groups the stat filter popovers sort stats into, each in display order: the character stats groups with the
  * off-hand hit and crit percents in Physical, then ratings and weapon DPS, which the panel has no rows for.
  */
-export const FILTER_GROUPS: ReadonlyArray<{ key: FilterGroupKey; stats: ReadonlyArray<UnitStat> }> = [
+const FILTER_GROUPS: ReadonlyArray<{ key: FilterGroupKey; stats: ReadonlyArray<UnitStat> }> = [
 	...STAT_GROUPS.map(({ key, stats }) => ({
 		key,
 		stats: stats.flatMap(stat => {
@@ -123,7 +123,7 @@ export const FILTER_GROUPS: ReadonlyArray<{ key: FilterGroupKey; stats: Readonly
 
 const groupByKey = new Map(FILTER_GROUPS.flatMap(({ key, stats }) => stats.map(stat => [stat.getKey(), key] as const)));
 
-export const statGroupOf = (stat: UnitStat): FilterGroupKey | 'other' => groupByKey.get(stat.getKey()) ?? 'other';
+const statGroupOf =(stat: UnitStat): FilterGroupKey | 'other' => groupByKey.get(stat.getKey()) ?? 'other';
 
 /** The groups a stat filter popover lists for `universe`, each with only its stats in it, Other last and empty groups left out. */
 export const filterGroupsOf = (universe: ReadonlyArray<UnitStat>): Array<{ key: FilterGroupKey | 'other'; stats: ReadonlyArray<UnitStat> }> => {
