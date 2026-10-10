@@ -44,7 +44,7 @@
         {"name":"At or Below SnD Clipping Threshold","value":{"cmp":{"op":"OpLe","lhs":{"auraRemainingTime":{"auraId":{"spellId":6774}}},"rhs":{"const":{"val":"0s"}}}}},
         {"name":"In Danger of Energy Capping","value":{"cmp":{"op":"OpGe","lhs":{"currentEnergy":{}},"rhs":{"const":{"val":"75"}}}}},
         {"name":"Fight About to End","value":{"cmp":{"op":"OpLe","lhs":{"remainingTime":{}},"rhs":{"const":{"val":"6s"}}}}},
-        {"name":"Expose - Low Duration","value":{"and":{"vals":[{"variableRef":{"name":"Use Expose Armor"}},{"or":{"vals":[{"not":{"val":{"auraIsActive":{"sourceUnit":{"type":"CurrentTarget"},"auraId":{"spellId":11198},"includeReactionTime":true}}}},{"cmp":{"op":"OpLe","lhs":{"auraRemainingTime":{"sourceUnit":{"type":"CurrentTarget"},"auraId":{"spellId":11198}}},"rhs":{"const":{"val":"14s"}}}}]}}]}}},
+        {"name":"Expose - Low Duration","value":{"and":{"vals":[{"variableRef":{"name":"Use Expose Armor"}},{"or":{"vals":[{"not":{"val":{"auraIsActive":{"sourceUnit":{"type":"CurrentTarget"},"auraId":{"spellId":11198}}}}},{"cmp":{"op":"OpLe","lhs":{"auraRemainingTime":{"sourceUnit":{"type":"CurrentTarget"},"auraId":{"spellId":11198}}},"rhs":{"const":{"val":"16s"}}}}]}}]}}},
         {"name":"Expose - Should Cast Check","value":{"and":{"vals":[{"cmp":{"op":"OpEq","lhs":{"currentComboPoints":{}},"rhs":{"const":{"val":"5"}}}},{"variableRef":{"name":"Expose - Low Duration"}}]}}},
         {"name":"Expose - Prevent Other Finishers","value":{"and":{"vals":[{"variableRef":{"name":"Use Expose Armor"}},{"variableRef":{"name":"Expose - Low Duration"}}]}}}
       ]
