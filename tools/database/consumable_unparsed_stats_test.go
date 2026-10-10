@@ -1,22 +1,23 @@
 package database
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
+	googleProto "google.golang.org/protobuf/proto"
 )
 
-func TestUnparsedStatsListVersusStatsChannelPercentsAndZoneBonus(t *testing.T) {
+func TestUnparsedStatsListChannelPercentsAndZoneBonus(t *testing.T) {
 	flask := func(id, spellID int32) *proto.Consumable {
 		stats := make([]float64, len(proto.Stat_name))
 		stats[proto.Stat_StatStamina] = 60
 		return &proto.Consumable{Id: id, Stats: stats, ItemEffects: []*proto.ItemEffect{{BuffId: spellID}}}
 	}
 	db := NewWowDatabase()
-	db.Consumables[9224] = &proto.Consumable{Id: 9224, ItemEffects: []*proto.ItemEffect{{BuffId: 11406}}}
 	db.Consumables[23327] = &proto.Consumable{Id: 23327, ItemEffects: []*proto.ItemEffect{{BuffId: 29332}}}
 	db.Consumables[22237] = &proto.Consumable{Id: 22237, ItemEffects: []*proto.ItemEffect{{BuffId: 27723}}}
 	db.Consumables[13510] = &proto.Consumable{Id: 13510, ItemEffects: []*proto.ItemEffect{{BuffId: 17626}}}
@@ -51,7 +52,6 @@ func TestUnparsedStatsListVersusStatsChannelPercentsAndZoneBonus(t *testing.T) {
 		stats       map[proto.Stat]float64
 		pseudoStats map[proto.PseudoStat]float64
 	}{
-		9224:   {stats: map[proto.Stat]float64{proto.Stat_StatAttackPower: amount(11406, dbcenums.A_MOD_MELEE_ATTACK_POWER_VERSUS)}},
 		23327:  {pseudoStats: meleeAndRangedHit(29332)},
 		22237:  {pseudoStats: meleeAndRangedHit(27723)},
 		211954: {pseudoStats: map[proto.PseudoStat]float64{proto.PseudoStat_PseudoStatSpellHitPercent: amount(430949, dbcenums.A_MOD_SPELL_HIT_CHANCE)}},
@@ -81,7 +81,39 @@ func TestUnparsedStatsListVersusStatsChannelPercentsAndZoneBonus(t *testing.T) {
 			}
 		}
 	}
-	if titans := db.Consumables[13510]; len(titans.Stats) != 0 || len(titans.PseudoStats) != 0 {
-		t.Errorf("Flask of the Titans lists %v %v, want nothing added", titans.Stats, titans.PseudoStats)
+	if titans := db.Consumables[13510]; len(titans.Stats) != 0 || len(titans.PseudoStats) != 0 || len(titans.MobTypeStats) != 0 {
+		t.Errorf("Flask of the Titans lists %v %v %v, want nothing added", titans.Stats, titans.PseudoStats, titans.MobTypeStats)
+	}
+}
+
+func TestUnparsedStatsListVersusStatsUnderTheirMobTypes(t *testing.T) {
+	db := NewWowDatabase()
+	db.Consumables[9224] = &proto.Consumable{Id: 9224, ItemEffects: []*proto.ItemEffect{{BuffId: 11406}}}
+	db.Consumables[250954] = &proto.Consumable{Id: 250954, ItemEffects: []*proto.ItemEffect{{BuffId: 1252558}}}
+	if err := AddUnparsedStats(db); err != nil {
+		t.Fatal(err)
+	}
+
+	for id, versus := range map[int32]struct {
+		spellID int32
+		aura    dbcenums.EffectAuraType
+		stat    proto.Stat
+	}{
+		9224:   {11406, dbcenums.A_MOD_MELEE_ATTACK_POWER_VERSUS, proto.Stat_StatAttackPower},
+		250954: {1252558, dbcenums.A_MOD_FLAT_SPELL_DAMAGE_VERSUS, proto.Stat_StatSpellDamage},
+	} {
+		e := spelldata.MustFind(versus.spellID).FirstAura(versus.aura)
+		mobTypes := spelldata.MobTypes(e.Misc)
+		if e.Average() == 0 || len(mobTypes) == 0 {
+			t.Fatalf("%d's versus aura states %v against %v, want an amount against some mob type", id, e.Average(), mobTypes)
+		}
+		consumable := db.Consumables[id]
+		if len(consumable.Stats) != 0 || len(consumable.PseudoStats) != 0 {
+			t.Errorf("%d lists %v %v, want its versus stat kept out of the unconditional stats", id, consumable.Stats, consumable.PseudoStats)
+		}
+		want := []*proto.MobTypeStats{{MobTypes: mobTypes, Stats: map[int32]float64{int32(versus.stat): e.Average()}}}
+		if !slices.EqualFunc(consumable.MobTypeStats, want, func(a, b *proto.MobTypeStats) bool { return googleProto.Equal(a, b) }) {
+			t.Errorf("%d lists mob type stats %v, want %v", id, consumable.MobTypeStats, want)
+		}
 	}
 }

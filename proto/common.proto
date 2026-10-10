@@ -43,6 +43,12 @@ message AreaStats {
 	map<int32, double> stats = 2; // keys are the numeric values of Stat
 }
 
+// Stats that only apply against a target of one of these mob types.
+message MobTypeStats {
+	repeated MobType mob_types = 1;
+	map<int32, double> stats = 2; // keys are the numeric values of Stat
+}
+
 enum Spec {
 	SpecUnknown = 0;
 

@@ -11,9 +11,10 @@ import (
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-// Adds to the stats and pseudo stats db.json lists for a consumable, which the settings offer it by,
-// what its on-use grants that the stat parse leaves out: the stats against creature types (Potion of
-// Demon Slaying 9224's 11406: 180 attack power against Demons), the hit and crit of one channel
+// Adds to the stats, pseudo stats and mob type stats db.json lists for a consumable, which the
+// settings offer and order it by, what its on-use grants that the stat parse leaves out: the stats
+// against creature types as mob type stats under the mob types the aura's mask names (Potion of
+// Demon Slaying 9224's 11406: attack power against Demons), the hit and crit of one channel
 // (Fire-toasted Bun 23327's 29332: A_MOD_HIT_CHANCE 2 as 2% melee and ranged hit), an all-channel crit
 // (Elixir of the Mongoose 13452's 17538: A_MOD_CRIT_PCT 2 as 2% melee, ranged and spell crit), and a
 // Natural flask's zone bonus at the rating one percent takes, attack and casting speed as haste.
@@ -32,7 +33,12 @@ func AddUnparsedStats(db *WowDatabase) error {
 				continue
 			}
 			if stat, ok := spelldata.VersusStat(e.Aura); ok {
-				granted[stat] += e.Average()
+				if mobTypes := spelldata.MobTypes(e.Misc); len(mobTypes) > 0 {
+					consumable.MobTypeStats = append(consumable.MobTypeStats, &proto.MobTypeStats{
+						MobTypes: mobTypes,
+						Stats:    map[int32]float64{int32(stat): e.Average()},
+					})
+				}
 			}
 			switch e.Aura {
 			case dbcenums.A_MOD_HIT_CHANCE:
