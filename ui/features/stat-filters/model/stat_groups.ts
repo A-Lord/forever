@@ -85,9 +85,24 @@ export const STAT_GROUPS: ReadonlyArray<{ key: StatGroupKey; stats: ReadonlyArra
 
 export type FilterGroupKey = StatGroupKey | 'ratings';
 
-/** The groups the stat filter popovers sort stats into: the character stats groups, then ratings and weapon DPS, which the panel has no rows for. */
+// The character stats panel shows these in the row of the melee stat they follow.
+const offHandPercentAfter = new Map([
+	[UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeHitPercent).getKey(), UnitStat.fromPseudoStat(PseudoStat.PseudoStatOffHandHitPercent)],
+	[UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeCritPercent).getKey(), UnitStat.fromPseudoStat(PseudoStat.PseudoStatOffHandCritPercent)],
+]);
+
+/**
+ * The groups the stat filter popovers sort stats into, each in display order: the character stats groups with the
+ * off-hand hit and crit percents in Physical, then ratings and weapon DPS, which the panel has no rows for.
+ */
 export const FILTER_GROUPS: ReadonlyArray<{ key: FilterGroupKey; stats: ReadonlyArray<UnitStat> }> = [
-	...STAT_GROUPS,
+	...STAT_GROUPS.map(({ key, stats }) => ({
+		key,
+		stats: stats.flatMap(stat => {
+			const offHand = offHandPercentAfter.get(stat.getKey());
+			return offHand ? [stat, offHand] : [stat];
+		}),
+	})),
 	{
 		key: 'ratings',
 		stats: [

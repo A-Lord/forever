@@ -21,8 +21,6 @@ export interface StatFilterPopoverProps {
 	testId: string;
 }
 
-const GROUP_KEYS: ReadonlyArray<FilterGroupKey | 'other'> = [...FILTER_GROUPS.map(group => group.key), 'other'];
-
 const groupLabel = (key: FilterGroupKey | 'other') =>
 	key === 'primary' || key === 'ratings' || key === 'other' ? i18n.t(`stat_filters.groups.${key}`) : i18n.t(`sidebar.character_stats.groups.${key}`);
 
@@ -39,10 +37,12 @@ export const StatFilterList = ({
 	const shownKeys = new Set(shown.map(stat => stat.getKey()));
 	const isShown = (stat: UnitStat) => shownKeys.has(stat.getKey());
 	const toggle = (stat: UnitStat, checked: boolean) => onChange(universe.filter(other => (other.equals(stat) ? checked : isShown(other))));
-	const groups = useMemo(
-		() => GROUP_KEYS.map(key => ({ key, stats: universe.filter(stat => statGroupOf(stat) === key) })).filter(group => group.stats.length > 0),
-		[universe],
-	);
+	const groups = useMemo(() => {
+		const inUniverse = new Set(universe.map(stat => stat.getKey()));
+		const grouped = FILTER_GROUPS.map(({ key, stats }) => ({ key, stats: stats.filter(stat => inUniverse.has(stat.getKey())) }));
+		const other = { key: 'other' as const, stats: universe.filter(stat => statGroupOf(stat) === 'other') };
+		return [...grouped, other].filter(group => group.stats.length > 0);
+	}, [universe]);
 
 	return (
 		<div className="flex min-h-0 flex-col gap-2">

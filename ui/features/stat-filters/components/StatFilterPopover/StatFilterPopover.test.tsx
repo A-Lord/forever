@@ -35,6 +35,11 @@ const mountList = (props: { shown?: UnitStat[]; customised?: boolean; universe?:
 
 const checkbox = (stat: UnitStat) => screen.getByRole('checkbox', { name: stat.getShortName(Class.ClassWarrior) });
 const keys = (stats: ReadonlyArray<UnitStat>) => stats.map(stat => stat.getKey());
+const expectGroupOrder = (heading: string, stats: ReadonlyArray<UnitStat>) => {
+	const boxes = within(screen.getByRole('heading', { name: heading }).closest('section')!).getAllByRole('checkbox');
+	expect(boxes).toHaveLength(stats.length);
+	stats.forEach((stat, index) => expect(boxes[index]).toBe(checkbox(stat)));
+};
 
 describe('StatFilterList', () => {
 	it('groups the universe under the character stats headings, with Other last and empty groups left out', () => {
@@ -62,6 +67,26 @@ describe('StatFilterList', () => {
 		mountList({ universe: [health, strength, physicalDamage] });
 
 		expect(screen.queryByRole('heading', { name: i18n.t('stat_filters.groups.ratings') })).toBeNull();
+	});
+
+	it("lists each group's stats in the group's own order, whatever the universe order", () => {
+		const blockRating = UnitStat.fromStat(Stat.StatBlockRating);
+		const dodgeRating = UnitStat.fromStat(Stat.StatDodgeRating);
+		const healingPower = UnitStat.fromStat(Stat.StatHealingPower);
+		const spellDamage = UnitStat.fromStat(Stat.StatSpellDamage);
+		mountList({ universe: [mainHandDps, blockRating, dodgeRating, hitRating, healingPower, spellDamage] });
+
+		expectGroupOrder(i18n.t('stat_filters.groups.ratings'), [hitRating, dodgeRating, blockRating, mainHandDps]);
+		expectGroupOrder(i18n.t('sidebar.character_stats.groups.spell'), [spellDamage, healingPower]);
+	});
+
+	it('puts the off-hand hit and crit percents under Physical, each after its melee stat', () => {
+		const meleeCrit = UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeCritPercent);
+		const offHandHit = UnitStat.fromPseudoStat(PseudoStat.PseudoStatOffHandHitPercent);
+		const offHandCrit = UnitStat.fromPseudoStat(PseudoStat.PseudoStatOffHandCritPercent);
+		mountList({ universe: [offHandCrit, offHandHit, meleeCrit, meleeHit] });
+
+		expectGroupOrder(i18n.t('sidebar.character_stats.groups.physical'), [meleeHit, offHandHit, meleeCrit, offHandCrit]);
 	});
 
 	it('checks the shown stats only', () => {
