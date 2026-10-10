@@ -36,6 +36,7 @@ func (mage *Mage) registerFrostfireBoltRank(_ int32, rank *spelldata.Spell) {
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		result := spell.CalcDamage(sim, target, damage.Average(), spell.OutcomeMagicHitAndCrit)
+		mage.launchChillMissile(sim, spell, result)
 		chargeBonus := mage.arcaneChargesBonus()
 		spell.WaitTravelTime(sim, func(sim *core.Simulation) {
 			spell.DealDamage(sim, result)
