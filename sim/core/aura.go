@@ -57,6 +57,7 @@ type Aura struct {
 	startTime time.Duration // Time at which the aura was applied.
 	expires   time.Duration // Time at which aura will be removed.
 	fadeTime  time.Duration // Time at which the aura was actually removed.
+	expired   bool          // Whether the aura last fell off by running out, rather than being removed early.
 
 	// The unit this aura is attached to.
 	Unit *Unit
@@ -134,6 +135,7 @@ func (aura *Aura) reset(sim *Simulation) {
 	}
 	aura.metrics.reset()
 	aura.fadeTime = -NeverExpires
+	aura.expired = false
 
 	if aura.OnReset != nil {
 		aura.OnReset(aura, sim)
@@ -813,6 +815,7 @@ func (aura *Aura) Deactivate(sim *Simulation) {
 		sim.CurrentTime = oldTime
 	}
 
+	aura.expired = sim.CurrentTime >= aura.expires
 	aura.expires = 0
 	aura.fadeTime = sim.CurrentTime
 	if aura.activeIndex != Inactive {
