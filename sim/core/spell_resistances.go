@@ -71,10 +71,9 @@ func (unit *Unit) averageResist(spell *Spell, attacker *Unit, isPeriodic bool) f
 		piercing := attacker.stats[stats.SpellPiercing] + attacker.PseudoStats.SchoolSpellPiercing[spell.SchoolIndex]
 		resistance = max(0, unit.GetStat(stat)) - piercing
 	}
-	// TODO: the two controlled Spell Piercing logs disagree on the constant (#76). A mage with 15
-	// piercing from Arcane Subtlety at level 24+ fits 5L + 80 and rules out R / 10L; a priest with 7
-	// piercing from gear at level 30 fits R / 10L and rules out 5L + 80. A run with one of those two
-	// pieces worn tells whether the constant or piercing from gear is off.
+	// TODO: the Spell Piercing logs disagree on the constant (#76). Mages with 15 piercing from Arcane
+	// Subtlety at level 20 and 24+ fit 5L + 80; at level 30 a mage with 15 from the talent and a priest
+	// with 7 from gear both sit near 10L. The level-20 mage logged again at 30 sets how K grows.
 	resistanceConstant := 5*float64(attacker.Level) + 80
 	averageResist := resistance / (math.Abs(resistance) + resistanceConstant)
 
