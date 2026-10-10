@@ -8,14 +8,10 @@ import (
 
 const ThreatPerRageGained = 5
 
-// Rage from damage taken counts a hit before any of the defender's mitigation, with a physical hit counted
-// as if armor reduced it by half, whatever the defender's armor.
-const DamageTakenRageArmorMultiplier = 0.5
-
-// Damage taken grants DamageTakenRageFactor * damage / c rage, where c is the rage conversion value at the defender's level (230.6 at 60).
-// TODO: Ingame test needed -- a level 14 bear with 1032 health gained a third of this; 18 * damage / maximum health
-// fits that bear and a level 14 warrior with 359 health alike.
-const DamageTakenRageFactor = 2.5
+// Damage taken grants DamageTakenRageFactor * damage / c rage, where damage is the hit before any of the defender's
+// mitigation (armor included) and c is the rage conversion value at the attacker's level (230.6 at 60). The
+// defender's level, health and armor play no part.
+const DamageTakenRageFactor = 2.0
 
 func rageConversion(level int32) float64 {
 	l := float64(level)
@@ -55,11 +51,9 @@ type RageBarOptions struct {
 
 func (unit *Unit) EnableRageBar(options RageBarOptions) {
 	rageFromDamageTakenMetrics := unit.NewRageMetrics(ActionID{OtherID: proto.OtherAction_OtherActionDamageTaken})
-	damageTakenRageConversion := rageConversion(unit.Level)
-
 	// Direct hits and periodic ticks from a unit grant rage alike.
-	// TODO: Ingame test needed -- physical periodic damage (bleeds) counts at half like a physical hit; no
-	// combat log covers a rage user taking a bleed.
+	// TODO: Ingame test needed -- the rule is measured on melee hits. Spell damage gave more: periodic ticks
+	// (Poison, Rend) about twice the rage, a direct Fireball about 1.2 times.
 	rageFromDamageTaken := func(aura *Aura, sim *Simulation, spell *Spell, result *SpellResult) {
 		if unit.GetCurrentPowerBar() != RageBar {
 			return
@@ -68,11 +62,7 @@ func (unit *Unit) EnableRageBar(options RageBarOptions) {
 			return
 		}
 
-		damage := result.PreMitigationDamage
-		if spell.SpellSchool.Matches(SpellSchoolPhysical) {
-			damage *= DamageTakenRageArmorMultiplier
-		}
-		generatedRage := DamageTakenRageFactor * damage / damageTakenRageConversion * unit.rageBar.damageTakenRageMultiplier
+		generatedRage := DamageTakenRageFactor * result.PreMitigationDamage / rageConversion(spell.Unit.Level) * unit.rageBar.damageTakenRageMultiplier
 
 		unit.AddRage(sim, generatedRage, rageFromDamageTakenMetrics)
 	}
