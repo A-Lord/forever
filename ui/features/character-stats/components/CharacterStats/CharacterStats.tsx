@@ -165,7 +165,7 @@ export const CharacterStats = ({ className }: CharacterStatsProps) => {
 					{table(primary.rows)}
 				</div>
 			)}
-			<Accordion value={openGroups} onValueChange={setOpenGroups} variant="divided" testId="character-stats-groups">
+			<Accordion value={openGroups} onValueChange={setOpenGroups} variant="divided" density="compact" testId="character-stats-groups">
 				{collapsible.map(group => (
 					<AccordionItem
 						key={group.key}

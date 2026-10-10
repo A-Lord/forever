@@ -2,18 +2,19 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
 import { expect, fireEvent, within } from 'storybook/test';
 
-import { Accordion, type AccordionVariant } from './Accordion';
+import { Accordion, type AccordionDensity, type AccordionVariant } from './Accordion';
 import { AccordionItem } from './AccordionItem';
 
 interface AccordionStoryProps {
 	initial: Array<string>;
 	variant?: AccordionVariant;
+	density?: AccordionDensity;
 }
 
-const AccordionStory = ({ initial, variant }: AccordionStoryProps) => {
+const AccordionStory = ({ initial, variant, density }: AccordionStoryProps) => {
 	const [open, setOpen] = useState(initial);
 	return (
-		<Accordion value={open} onValueChange={setOpen} variant={variant}>
+		<Accordion value={open} onValueChange={setOpen} variant={variant} density={density}>
 			<AccordionItem value="consumes" title="Consumables" testId="story-consumes">
 				<p>Flask of Supreme Power, Elixir of Greater Firepower</p>
 			</AccordionItem>
@@ -32,7 +33,10 @@ const meta = {
 	component: AccordionStory,
 	tags: ['autodocs'],
 	args: { initial: ['consumes'] },
-	argTypes: { variant: { control: 'inline-radio', options: ['divided', 'boxed'] } },
+	argTypes: {
+		variant: { control: 'inline-radio', options: ['divided', 'boxed'] },
+		density: { control: 'inline-radio', options: ['default', 'compact'] },
+	},
 } satisfies Meta<typeof AccordionStory>;
 
 export default meta;
@@ -50,6 +54,8 @@ export const Boxed: Story = {
 		</div>
 	),
 };
+
+export const Compact: Story = { args: { density: 'compact' } };
 
 export const Opens: Story = {
 	args: { initial: [] },
