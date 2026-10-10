@@ -1,4 +1,18 @@
-import { Class, ConsumableType, HandType, ItemSlot, Profession, PseudoStat, Race, Stat, WeaponType } from '@generated/proto/common';
+import {
+	AreaStats,
+	AreaType,
+	Class,
+	ConsumableType,
+	HandType,
+	ItemSlot,
+	MobType,
+	MobTypeStats,
+	Profession,
+	PseudoStat,
+	Race,
+	Stat,
+	WeaponType,
+} from '@generated/proto/common';
 import { Consumable } from '@generated/proto/db';
 import { ItemEffect, ResourceType, SpellEffect } from '@generated/proto/spell';
 import { UIEnchant, UIItem } from '@generated/proto/ui';
@@ -256,6 +270,26 @@ describe('relevanceFor', () => {
 		const relevant = relevanceFor([rogueOnly], db, () => statsOf([Stat.StatAgility]));
 		expect(relevant(rogueOnly, user())).toBe(true);
 	});
+
+	it('takes a stat granted only against some mob types or in some areas as granted', () => {
+		const slaying = consumable({
+			id: 5,
+			type: ConsumableType.ConsumableTypePotion,
+			mobTypeStats: [MobTypeStats.create({ mobTypes: [MobType.MobTypeDemon], stats: { [Stat.StatAttackPower]: 20 } })],
+		});
+		const natural = consumable({
+			id: 6,
+			type: ConsumableType.ConsumableTypeFlask,
+			areaStats: [AreaStats.create({ areaType: AreaType.AreaTypeSwamp, stats: { [Stat.StatHitRating]: 20 } })],
+		});
+		let shown = statsOf([Stat.StatAttackPower, Stat.StatHitRating]);
+		const relevant = relevanceFor([slaying, natural], db, () => shown);
+		expect(relevant(slaying, user())).toBe(true);
+		expect(relevant(natural, user())).toBe(true);
+		shown = statsOf([Stat.StatIntellect]);
+		expect(relevant(slaying, user())).toBe(false);
+		expect(relevant(natural, user())).toBe(false);
+	});
 });
 
 describe('consumableUniverse', () => {
@@ -272,6 +306,21 @@ describe('consumableUniverse', () => {
 		const keys = consumableUniverse([mongoose, giants, moreAgility, manaPotion], db).map(stat => stat.getKey());
 		expect(keys).toHaveLength(3);
 		expect(new Set(keys)).toEqual(new Set(['StatStrength', 'StatAgility', 'PseudoStatMeleeCritPercent']));
+	});
+
+	it('lists a stat granted only against some mob types or in some areas', () => {
+		const slaying = consumable({
+			id: 9,
+			type: ConsumableType.ConsumableTypePotion,
+			mobTypeStats: [MobTypeStats.create({ mobTypes: [MobType.MobTypeDemon], stats: { [Stat.StatAttackPower]: 20 } })],
+		});
+		const natural = consumable({
+			id: 10,
+			type: ConsumableType.ConsumableTypeFlask,
+			areaStats: [AreaStats.create({ areaType: AreaType.AreaTypeSwamp, stats: { [Stat.StatHitRating]: 20 } })],
+		});
+		const keys = consumableUniverse([slaying, natural], db).map(stat => stat.getKey());
+		expect(new Set(keys)).toEqual(new Set(['StatAttackPower', 'StatHitRating']));
 	});
 });
 
@@ -321,26 +370,57 @@ describe('orderedByEp', () => {
 	const critical = consumable({ id: 2, name: 'Critical', lvl: 20, pseudoStats: pseudoStats({ [PseudoStat.PseudoStatMeleeCritPercent]: 1 }) });
 	const proc = consumable({ id: 3, name: 'Proc', lvl: 60 });
 	const ids = (consumables: Array<Consumable>) => consumables.map(({ id }) => id);
+	const anywhere = (consumables: Array<Consumable>, weights: Stats) => ids(orderedByEp(consumables, weights, undefined, []));
 
 	it('orders by the EP the stats and percents add, highest first', () => {
 		const weights = Stats.fromMap({ [Stat.StatStrength]: 1 }, { [PseudoStat.PseudoStatMeleeCritPercent]: 20 });
-		expect(ids(orderedByEp([strong, critical], weights))).toEqual([2, 1]);
+		expect(anywhere([strong, critical], weights)).toEqual([2, 1]);
 	});
 
 	it('orders again by other weights', () => {
 		const weights = Stats.fromMap({ [Stat.StatStrength]: 3 }, { [PseudoStat.PseudoStatMeleeCritPercent]: 20 });
-		expect(ids(orderedByEp([critical, strong], weights))).toEqual([1, 2]);
+		expect(anywhere([critical, strong], weights)).toEqual([1, 2]);
 	});
 
 	it('puts one granting no stat after every one that does, whatever its level', () => {
-		expect(ids(orderedByEp([proc, strong, critical], new Stats()))).toEqual([2, 1, 3]);
+		expect(anywhere([proc, strong, critical], new Stats())).toEqual([2, 1, 3]);
 	});
 
 	it('orders an equal EP by level, highest first, then by name', () => {
 		const bravo = consumable({ id: 4, name: 'Bravo', lvl: 30, stats: stats({ [Stat.StatStrength]: 5 }) });
 		const alpha = consumable({ id: 5, name: 'Alpha', lvl: 30, stats: stats({ [Stat.StatStrength]: 5 }) });
 		const weights = Stats.fromMap({ [Stat.StatStrength]: 2 });
-		expect(ids(orderedByEp([bravo, strong, alpha], weights))).toEqual([1, 5, 4]);
+		expect(anywhere([bravo, strong, alpha], weights)).toEqual([1, 5, 4]);
+	});
+
+	it('counts a mob type stat against a target of one of its mob types only', () => {
+		const slaying = consumable({
+			id: 6,
+			name: 'Slaying',
+			lvl: 10,
+			stats: stats({}),
+			mobTypeStats: [MobTypeStats.create({ mobTypes: [MobType.MobTypeDemon, MobType.MobTypeUndead], stats: { [Stat.StatAttackPower]: 20 } })],
+		});
+		const weights = Stats.fromMap({ [Stat.StatStrength]: 1, [Stat.StatAttackPower]: 1 });
+		expect(ids(orderedByEp([strong, proc, slaying], weights, MobType.MobTypeDemon, []))).toEqual([6, 1, 3]);
+		expect(ids(orderedByEp([strong, proc, slaying], weights, MobType.MobTypeUndead, []))).toEqual([6, 1, 3]);
+		expect(ids(orderedByEp([slaying, proc, strong], weights, MobType.MobTypeMechanical, []))).toEqual([1, 3, 6]);
+		expect(ids(orderedByEp([slaying, proc, strong], weights, undefined, []))).toEqual([1, 3, 6]);
+	});
+
+	it('counts an area stat in its area only, and the plain stats everywhere', () => {
+		const natural = consumable({
+			id: 7,
+			name: 'Natural',
+			lvl: 10,
+			stats: stats({ [Stat.StatStamina]: 10 }),
+			areaStats: [AreaStats.create({ areaType: AreaType.AreaTypeSwamp, stats: { [Stat.StatHitRating]: 20 } })],
+		});
+		const sturdy = consumable({ id: 8, name: 'Sturdy', lvl: 10, stats: stats({ [Stat.StatStamina]: 15 }) });
+		const weights = Stats.fromMap({ [Stat.StatStamina]: 1, [Stat.StatHitRating]: 1 });
+		expect(ids(orderedByEp([sturdy, natural], weights, undefined, [AreaType.AreaTypeDesert, AreaType.AreaTypeSwamp]))).toEqual([7, 8]);
+		expect(ids(orderedByEp([natural, sturdy], weights, undefined, [AreaType.AreaTypeDesert]))).toEqual([8, 7]);
+		expect(ids(orderedByEp([natural, sturdy], weights, undefined, []))).toEqual([8, 7]);
 	});
 });
 

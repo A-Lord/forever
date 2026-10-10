@@ -1,6 +1,7 @@
 import type { TypedIconEnumPickerConfig } from '@features/inputs/input_helpers';
 import {
 	consumableFilterScope,
+	type ConsumableOrder,
 	type ConsumableRelevance,
 	type ConsumableToggleConfig,
 	makeConsumableGroupInput,
@@ -91,9 +92,13 @@ export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfig
 		else add(bySlot, consumableSlot(consumable), consumable);
 	}
 	const inSlot = (slot: ConsumableSlot) => bySlot.get(slot) ?? [];
-	const weightsOf = () => player.getEpWeights();
+	const orderOf = (): ConsumableOrder => ({
+		weights: player.getEpWeights(),
+		mobType: player.sim.encounter.getTarget(0)?.mobType,
+		areaTypes: player.sim.encounter.getAreaTypes(),
+	});
 	const input = (slot: ConsumableSlot, options: Parameters<typeof makeConsumableInput>[3], consumables = inSlot(slot)) =>
-		makeConsumableInput(consumables, relevance, weightsOf, options);
+		makeConsumableInput(consumables, relevance, orderOf, options);
 
 	const groups = [...byGroup.keys()].sort((a, b) => a.localeCompare(b, 'en', { numeric: true })).map(key => byGroup.get(key)!);
 	const holds = (group: Array<Consumable>, type: ConsumableType) => group.some(consumable => consumable.type === type);
@@ -106,7 +111,7 @@ export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfig
 					? 'holiday'
 					: 'groups';
 	const groupInputs = (row: GroupRow) =>
-		groups.filter(group => rowOf(group) === row).map(group => makeConsumableGroupInput(group, relevance, weightsOf, group[0].groupName));
+		groups.filter(group => rowOf(group) === row).map(group => makeConsumableGroupInput(group, relevance, orderOf, group[0].groupName));
 	const explosives = inSlot(ConsumableSlot.Explosive);
 	const fitsHandOf = (itemIn: (p: Player<any>, slot: ItemSlot) => EquippedItem | null) => (slot: ItemSlot) => (consumable: Consumable, p: Player<any>) =>
 		handTakesImbue(consumable, itemIn(p, slot)?.item);

@@ -20,13 +20,17 @@ export interface ConsumesPickerProps {
 
 const Toggles = ({ player, toggles }: { player: Player<any>; toggles: ReadonlyArray<ConsumeToggle> }) => {
 	const weights = useStoreSubscribe(useStoreField('epWeights')!, () => player.getEpWeights());
+	const mobType = useStoreSubscribe(useStoreField('encounter:targets')!, () => player.sim.encounter.getTarget(0)?.mobType);
+	const areaTypes = useStoreSubscribe(useStoreField('encounter:areaTypes')!, () => player.sim.encounter.getAreaTypes());
 	const ordered = useMemo(() => {
 		const toggleOf = new Map(toggles.map(toggle => [toggle.consumable, toggle]));
 		return orderedByEp(
 			toggles.map(toggle => toggle.consumable),
 			weights,
+			mobType,
+			areaTypes,
 		).map(consumable => toggleOf.get(consumable)!);
-	}, [toggles, weights]);
+	}, [toggles, weights, mobType, areaTypes]);
 	return ordered.map(config => <ConnectedIconPicker key={config.actionId.itemId} modObject={player} config={config} />);
 };
 

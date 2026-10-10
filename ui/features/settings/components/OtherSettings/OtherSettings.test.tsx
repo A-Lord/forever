@@ -34,7 +34,12 @@ const setup = (enabled: boolean) => {
 	seedKeyed(store, 'players', storeKey, { itemSwapEnabled: enabled, itemSwapGear: new ItemSwapGear({}), v: zeroVersions(PLAYER_FIELDS) } as never);
 	const player = {
 		storeKey,
-		sim: { store, getMinConsumableLvl: () => 0, getFilters: () => DatabaseFilters.create() },
+		sim: {
+			store,
+			getMinConsumableLvl: () => 0,
+			getFilters: () => DatabaseFilters.create(),
+			encounter: { getTarget: () => undefined, getAreaTypes: () => [] },
+		},
 		getClass: () => Class.ClassWarrior,
 		getSpec: () => Spec.SpecDpsWarrior,
 		getRace: () => Race.RaceOrc,

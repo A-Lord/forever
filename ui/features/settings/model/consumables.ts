@@ -1,7 +1,7 @@
 import type { IconEnumValueConfig } from '@features/inputs/configs';
 import * as InputHelpers from '@features/inputs/input_helpers';
 import type { StatFilterScope } from '@features/stat-filters/model/stat_filters';
-import { ConsumableType, ConsumesSpec } from '@generated/proto/common';
+import { AreaType, ConsumableType, ConsumesSpec, MobType } from '@generated/proto/common';
 import { Consumable } from '@generated/proto/db';
 import i18n from '@i18n/config';
 import type { StoreField } from '@sim/hooks/useStoreField';
@@ -70,16 +70,24 @@ export const consumableFilterScope = (player: Player<any>, db: Database): StatFi
 
 const STORE_FIELDS: Array<StoreField> = ['consumables', 'gear', 'profession1', 'profession2', 'prof1Rank', 'prof2Rank', 'race', 'sim:filters'];
 
+// What a picker orders its consumables by: the EP weights, and the target's mob type and the
+// encounter's areas, which decide the stats a consumable grants only against some targets or in some areas.
+export interface ConsumableOrder {
+	weights: Stats;
+	mobType: MobType | undefined;
+	areaTypes: ReadonlyArray<AreaType>;
+}
+
 export const makeConsumableInput = (
 	consumables: ReadonlyArray<Consumable>,
 	relevance: ConsumableRelevance,
-	weightsOf: () => Stats,
+	orderOf: () => ConsumableOrder,
 	options: ConsumableInputOptions,
 ) =>
 	consumablePicker(
 		consumables,
 		relevance,
-		weightsOf,
+		orderOf,
 		options,
 		consumes => consumes[options.consumesFieldName],
 		(consumes, newValue) => ({ ...consumes, [options.consumesFieldName]: newValue }),
@@ -89,13 +97,18 @@ export const makeConsumableInput = (
 const idListOf = (consumable: Consumable): 'elixirIds' | 'extraIds' => (consumable.type === ConsumableType.ConsumableTypeElixir ? 'elixirIds' : 'extraIds');
 
 // One exclusive group's pick: at most one of the group's consumables in the spec's elixir and extra ids.
-export const makeConsumableGroupInput = (consumables: ReadonlyArray<Consumable>, relevance: ConsumableRelevance, weightsOf: () => Stats, tooltip: string) => {
+export const makeConsumableGroupInput = (
+	consumables: ReadonlyArray<Consumable>,
+	relevance: ConsumableRelevance,
+	orderOf: () => ConsumableOrder,
+	tooltip: string,
+) => {
 	const ids = new Set(consumables.map(consumable => consumable.id));
 	const lists = new Map(consumables.map(consumable => [consumable.id, idListOf(consumable)]));
 	return consumablePicker(
 		consumables,
 		relevance,
-		weightsOf,
+		orderOf,
 		{ tooltip },
 		consumes => consumes.elixirIds.find(id => ids.has(id)) ?? consumes.extraIds.find(id => ids.has(id)) ?? 0,
 		(consumes, newValue) => {
@@ -113,7 +126,7 @@ export const makeConsumableGroupInput = (consumables: ReadonlyArray<Consumable>,
 function consumablePicker(
 	consumables: ReadonlyArray<Consumable>,
 	relevance: ConsumableRelevance,
-	weightsOf: () => Stats,
+	orderOf: () => ConsumableOrder,
 	options: Omit<ConsumableInputOptions, 'consumesFieldName'>,
 	pickOf: (consumes: ConsumesSpec) => number,
 	withPick: (consumes: ConsumesSpec, newValue: number) => ConsumesSpec,
@@ -132,7 +145,7 @@ function consumablePicker(
 	);
 	const values = [...valueOf.values()];
 	const none: IconEnumValueConfig<Player<any>, number> = { value: 0, iconUrl: '', tooltip: i18n.t('common.none') };
-	let orderedFor: Stats | undefined;
+	let orderedFor: ConsumableOrder | undefined;
 	let ordered: Array<IconEnumValueConfig<Player<any>, number>> = [];
 	return {
 		type: 'iconEnum',
@@ -141,13 +154,14 @@ function consumablePicker(
 			const offered = values.filter(value => value.showWhen!(p)).length;
 			return offered > 10 ? 3 : offered > 5 ? 2 : 1;
 		},
-		// A getter, so the order follows the weights each time the picker reads it; worked out again only
-		// when the store holds a new weights object.
+		// A getter, so the order follows the weights, the target's mob type and the areas each time the
+		// picker reads it; worked out again only when the store holds a new weights or areas object or
+		// the target is of another mob type.
 		get values() {
-			const weights = weightsOf();
-			if (weights !== orderedFor) {
-				orderedFor = weights;
-				ordered = [none, ...orderedByEp(consumables, weights).map(consumable => valueOf.get(consumable)!)];
+			const order = orderOf();
+			if (order.weights !== orderedFor?.weights || order.mobType !== orderedFor.mobType || order.areaTypes !== orderedFor.areaTypes) {
+				orderedFor = order;
+				ordered = [none, ...orderedByEp(consumables, order.weights, order.mobType, order.areaTypes).map(consumable => valueOf.get(consumable)!)];
 			}
 			return ordered;
 		},
@@ -155,8 +169,9 @@ function consumablePicker(
 		zeroValue: 0,
 		// `raid:partyBuffs` because the main-hand imbue's showWhen reads the weapon totems off the party,
 		// `itemSwap` because the swap imbues' includeIf reads the swap weapons and their showWhen whether item swap is on,
-		// `epWeights` because the values are ordered by the EP they add.
-		storeField: [...STORE_FIELDS, 'itemSwap', 'raid:partyBuffs', 'epWeights'],
+		// `epWeights`, `encounter:targets` and `encounter:areaTypes` because the values are ordered by the
+		// EP they add against the target in the encounter's areas.
+		storeField: [...STORE_FIELDS, 'itemSwap', 'raid:partyBuffs', 'epWeights', 'encounter:targets', 'encounter:areaTypes'],
 		showWhen: options.showWhen,
 		keptBy: (player: Player<any>) => {
 			const picked = byId.get(pickOf(player.getConsumes()));

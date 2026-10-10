@@ -89,7 +89,10 @@ const STAT_ONLY_TYPES = [
 const consumableRule = (consumable: Consumable, player: Player<any>) => {
 	const stats = consumableStatsOf(player.getSpecConfig());
 	const pseudoStats = consumablePseudoStatsOf(player.getSpecConfig());
-	const grantedStats = consumable.stats.flatMap((value, stat) => (value > 0 ? [stat as Stat] : []));
+	const conditionalStats = [...consumable.mobTypeStats, ...consumable.areaStats].flatMap(({ stats }) =>
+		Object.entries(stats).flatMap(([stat, value]) => (value > 0 ? [Number(stat) as Stat] : [])),
+	);
+	const grantedStats = [...consumable.stats.flatMap((value, stat) => (value > 0 ? [stat as Stat] : [])), ...conditionalStats];
 	const grantedPseudoStats = consumable.pseudoStats.flatMap((value, pseudoStat) => (value > 0 ? [pseudoStat as PseudoStat] : []));
 	const restores = consumable.effectIds.flatMap(effectId => {
 		const miscValue = Database.getSync().getSpellEffect(effectId)?.miscValue0;
