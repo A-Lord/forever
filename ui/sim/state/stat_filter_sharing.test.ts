@@ -1,17 +1,11 @@
-import { Stat } from '@generated/proto/common';
-import { DatabaseFilters, IndividualSimSettings, SimSettings, StatFilters, StatSelection } from '@generated/proto/ui';
-import { UnitStat } from '@sim/proto/stats';
+import { DatabaseFilters, IndividualSimSettings, SimSettings, StatFilters } from '@generated/proto/ui';
 import { makeIndividualSim, serveDatabase } from '@testing/sim/individual_sim';
+import { senderStatFilters as senderFilters, viewerStatFilters as viewerFilters } from '@testing/sim/stat_filters';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { withoutStatFilters, withViewerStatFilters } from './stat_filter_sharing';
 
 vi.mock('@sim/workers/worker_pool', async () => (await import('@testing/sim/worker_pool')).idleWorkerPool());
-
-const selectionOf = (...stats: Stat[]) => StatSelection.create({ stats: stats.map(stat => UnitStat.fromStat(stat).toProto()) });
-
-const senderFilters = StatFilters.create({ ep: selectionOf(Stat.StatStrength), buffs: selectionOf() });
-const viewerFilters = StatFilters.create({ characterStats: selectionOf(Stat.StatIntellect, Stat.StatSpirit) });
 
 const settingsWith = (filters: DatabaseFilters | undefined) =>
 	IndividualSimSettings.create({ apiVersion: 3, settings: SimSettings.create({ iterations: 1234, filters }) });

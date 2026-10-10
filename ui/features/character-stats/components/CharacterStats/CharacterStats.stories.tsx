@@ -1,9 +1,6 @@
-import { StatFilterPopover } from '@features/stat-filters';
-import { Class, PseudoStat, Stat } from '@generated/proto/common';
-import { UnitStat } from '@sim/proto/stats';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { storyStatFilter } from '@testing/storybook/fixtures/stat-filters';
 import { Table, TableCell, TableRow } from '@ui-kit/Table';
-import { fn } from 'storybook/test';
 
 import { CharacterStatsHeaderView, CharacterStatsPanelView } from './CharacterStats';
 
@@ -28,27 +25,7 @@ const SampleTable = () => (
 	</Table>
 );
 
-const UNIVERSE = [
-	UnitStat.fromStat(Stat.StatStrength),
-	UnitStat.fromStat(Stat.StatAgility),
-	UnitStat.fromStat(Stat.StatStamina),
-	UnitStat.fromStat(Stat.StatAttackPower),
-	UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeCritPercent),
-	UnitStat.fromStat(Stat.StatSpellDamage),
-];
-const SPEC_DEFAULTS = UNIVERSE.filter(stat => !stat.equalsStat(Stat.StatSpellDamage));
-
-const statFilter = (customised: boolean) => (
-	<StatFilterPopover
-		universe={UNIVERSE}
-		shown={customised ? UNIVERSE : SPEC_DEFAULTS}
-		customised={customised}
-		playerClass={Class.ClassWarrior}
-		onChange={fn()}
-		onReset={fn()}
-		testId="character-stats-filter"
-	/>
-);
+const statFilter = (customised: boolean) => storyStatFilter('character-stats-filter', customised);
 
 const meta = {
 	title: 'Features/CharacterStats/CharacterStats',

@@ -1,9 +1,6 @@
-import { StatFilterPopover } from '@features/stat-filters';
-import { Class, Stat } from '@generated/proto/common';
-import { UnitStat } from '@sim/proto/stats';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { storyIcon, StoryIconToggle } from '@testing/storybook/fixtures/settings_reforge_bulk';
-import { fn } from 'storybook/test';
+import { storyStatFilter } from '@testing/storybook/fixtures/stat-filters';
 
 import { BuffSection } from './BuffSection';
 
@@ -18,19 +15,7 @@ const DEBUFFS = [
 	<StoryIconToggle key="faerie" icon={storyIcon('spell_nature_faeriefire', 'Faerie Fire', 'spell', 9907)} />,
 ];
 
-const UNIVERSE = [Stat.StatStrength, Stat.StatAgility, Stat.StatStamina, Stat.StatIntellect, Stat.StatSpirit].map(stat => UnitStat.fromStat(stat));
-
-const statFilter = (customised: boolean) => (
-	<StatFilterPopover
-		universe={UNIVERSE}
-		shown={customised ? UNIVERSE.slice(0, 2) : UNIVERSE.slice(0, 3)}
-		customised={customised}
-		playerClass={Class.ClassWarrior}
-		onChange={fn()}
-		onReset={fn()}
-		testId="buffs-filter"
-	/>
-);
+const statFilter = (customised: boolean) => storyStatFilter('buffs-filter', customised);
 
 const meta = {
 	title: 'Features/Settings/BuffSection',

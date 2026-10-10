@@ -1,17 +1,12 @@
 import { Player } from '@generated/proto/api';
-import { Stat } from '@generated/proto/common';
-import { DatabaseFilters, IndividualSimSettings, SimSettings, StatFilters, StatSelection } from '@generated/proto/ui';
-import { UnitStat } from '@sim/proto/stats';
+import { DatabaseFilters, IndividualSimSettings, SimSettings, StatFilters } from '@generated/proto/ui';
 import { makeIndividualSim, serveDatabase } from '@testing/sim/individual_sim';
+import { senderStatFilters, viewerStatFilters } from '@testing/sim/stat_filters';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { JSON_IMPORTER } from './json';
 
 vi.mock('@sim/workers/worker_pool', async () => (await import('@testing/sim/worker_pool')).idleWorkerPool());
-
-const selectionOf = (...stats: Stat[]) => StatSelection.create({ stats: stats.map(stat => UnitStat.fromStat(stat).toProto()) });
-const viewerStatFilters = StatFilters.create({ characterStats: selectionOf(Stat.StatIntellect), consumables: selectionOf(Stat.StatStamina) });
-const senderStatFilters = StatFilters.create({ ep: selectionOf(Stat.StatStrength), buffs: selectionOf() });
 
 const document = (settings?: SimSettings) =>
 	IndividualSimSettings.toJsonString(IndividualSimSettings.create({ apiVersion: 3, player: Player.create(), settings }));

@@ -6,16 +6,16 @@ import { relevantStatOptions, statOptionScope } from '@features/settings/model/s
 import { shownStats } from '@features/stat-filters/model/stat_filters';
 import { ConsumableType, ConsumesSpec, Stat } from '@generated/proto/common';
 import { Consumable } from '@generated/proto/db';
-import { IndividualSimSettings, StatFilters, StatSelection, UIDatabase } from '@generated/proto/ui';
+import { IndividualSimSettings, StatFilters, UIDatabase } from '@generated/proto/ui';
 import { SimSettingCategories } from '@sim/constants/sim_settings';
 import { ActionId } from '@sim/proto/action_id';
-import { UnitStat } from '@sim/proto/stats';
 import type { StatWeightActionSettings } from '@sim/settings/stat_weight_settings';
 import { loadIndividualSettings } from '@sim/state/persistence';
 import { getEnumValues } from '@sim/utils/collections';
 import { renderWithHost } from '@testing/react';
 import { filled } from '@testing/sim/hooks';
 import { makeIndividualSim, memoryEnv, serveDatabase } from '@testing/sim/individual_sim';
+import { selectionOf, STORAGE_KEY } from '@testing/sim/stat_filters';
 import { waitFor } from '@testing-library/react';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
@@ -23,7 +23,6 @@ import warrior from './warrior/dps/spec';
 
 vi.mock('@sim/workers/worker_pool', async () => (await import('@testing/sim/worker_pool')).idleWorkerPool());
 
-const STORAGE_KEY = 'test__currentSettings__';
 const ARCANE_BRILLIANCE = 23028;
 const ELIXIR_OF_GREATER_AGILITY = Consumable.create({
 	id: 9187,
@@ -35,7 +34,6 @@ const ELIXIR_OF_GREATER_AGILITY = Consumable.create({
 	groupName: 'Agility',
 });
 
-const selectionOf = (...stats: Stat[]) => StatSelection.create({ stats: stats.map(stat => UnitStat.fromStat(stat).toProto()) });
 // Strength only, so the Intellect raid buff and the Agility elixir are both hidden.
 const viewerStatFilters = StatFilters.create({ buffs: selectionOf(Stat.StatStrength), consumables: selectionOf(Stat.StatStrength) });
 

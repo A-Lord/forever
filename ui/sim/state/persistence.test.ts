@@ -1,8 +1,7 @@
 import { Player } from '@generated/proto/api';
-import { Stat } from '@generated/proto/common';
-import { DatabaseFilters, IndividualSimSettings, SimSettings, StatFilters, StatSelection } from '@generated/proto/ui';
-import { UnitStat } from '@sim/proto/stats';
+import { DatabaseFilters, IndividualSimSettings, SimSettings, StatFilters } from '@generated/proto/ui';
 import { makeIndividualSim, memoryEnv, serveDatabase } from '@testing/sim/individual_sim';
+import { senderStatFilters as linkedStatFilters, STORAGE_KEY, viewerStatFilters as savedStatFilters } from '@testing/sim/stat_filters';
 import pako from 'pako';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
@@ -10,12 +9,6 @@ import type { StatWeightActionSettings } from '../settings/stat_weight_settings'
 import { loadIndividualSettings } from './persistence';
 
 vi.mock('@sim/workers/worker_pool', async () => (await import('@testing/sim/worker_pool')).idleWorkerPool());
-
-const STORAGE_KEY = 'test__currentSettings__';
-
-const selectionOf = (...stats: Stat[]) => StatSelection.create({ stats: stats.map(stat => UnitStat.fromStat(stat).toProto()) });
-const savedStatFilters = StatFilters.create({ characterStats: selectionOf(Stat.StatIntellect), consumables: selectionOf(Stat.StatStamina) });
-const linkedStatFilters = StatFilters.create({ ep: selectionOf(Stat.StatStrength), buffs: selectionOf() });
 
 const envelope = (settings?: SimSettings) => IndividualSimSettings.create({ apiVersion: 3, player: Player.create(), settings });
 

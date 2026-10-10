@@ -1,32 +1,11 @@
-import { StatFilterPopover } from '@features/stat-filters';
-import { Class, PseudoStat, Stat } from '@generated/proto/common';
-import { UnitStat } from '@sim/proto/stats';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { storyStatFilter } from '@testing/storybook/fixtures/stat-filters';
 import { fn } from 'storybook/test';
 
 import { EpWeightsOptions } from './EpWeightsOptions';
 import { StatsType } from './types';
 
-const UNIVERSE = [
-	UnitStat.fromStat(Stat.StatStrength),
-	UnitStat.fromStat(Stat.StatAgility),
-	UnitStat.fromStat(Stat.StatStamina),
-	UnitStat.fromStat(Stat.StatAttackPower),
-	UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeHitPercent),
-];
-const SPEC_DEFAULTS = UNIVERSE.filter(stat => !stat.equalsStat(Stat.StatStamina));
-
-const statFilter = (customised: boolean) => (
-	<StatFilterPopover
-		universe={UNIVERSE}
-		shown={customised ? UNIVERSE : SPEC_DEFAULTS}
-		customised={customised}
-		playerClass={Class.ClassWarrior}
-		onChange={fn()}
-		onReset={fn()}
-		testId="ep-stat-filter"
-	/>
-);
+const statFilter = (customised: boolean) => storyStatFilter('ep-stat-filter', customised);
 
 const meta = {
 	title: 'Features/StatWeights/EpWeightsDialog/Components/EpWeightsOptions',

@@ -1,23 +1,13 @@
-import { Class, PseudoStat, Stat } from '@generated/proto/common';
-import { UnitStat } from '@sim/proto/stats';
+import { Class } from '@generated/proto/common';
+import type { UnitStat } from '@sim/proto/stats';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { STAT_FILTER_UNIVERSE as UNIVERSE, WARRIOR_STAT_DEFAULTS as WARRIOR_DEFAULTS } from '@testing/storybook/fixtures/stat-filters';
 import { useState } from 'react';
 import { fn, userEvent, within } from 'storybook/test';
 
 import { STAT_GROUPS } from '../../model/stat_groups';
 import { StatFilterPopover, type StatFilterPopoverProps } from './StatFilterPopover';
 
-const EVERY_GROUPED_STAT = STAT_GROUPS.flatMap(group => group.stats);
-const WARRIOR_DEFAULTS = [
-	UnitStat.fromStat(Stat.StatHealth),
-	UnitStat.fromStat(Stat.StatStrength),
-	UnitStat.fromStat(Stat.StatAgility),
-	UnitStat.fromStat(Stat.StatAttackPower),
-	UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeHitPercent),
-	UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeCritPercent),
-];
-// A stat in none of the character stats groups lands under Other.
-const UNIVERSE = [...EVERY_GROUPED_STAT, UnitStat.fromStat(Stat.StatHitRating)];
 const TWO_GROUPS = STAT_GROUPS.filter(group => group.key === 'attributes' || group.key === 'defense').flatMap(group => group.stats);
 
 /** Holds the list the way the hook does: a change sets the slot, a reset clears it back to `shown`. */
