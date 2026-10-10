@@ -586,9 +586,21 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		9394, // Horned Viking Helmet
+		[
+			"Charge an enemy, knocking it silly for 30 seconds. Also knocks you down, stunning you for a short period of time. Any damage caused will revive the target.", // 22641 - https://www.wowhead.com/forever/spell=22641
+		]
+	],
+	[
 		9397, // Energy Cloak
 		[
 			"Restores 320 Mana.", // 1294025 - https://www.wowhead.com/forever/spell=1294025
+		]
+	],
+	[
+		9414, // Oilskin Leggings
+		[
+			"Increases Feral Combat +1.", // 1320726 - https://www.wowhead.com/forever/spell=1320726
 		]
 	],
 	[
