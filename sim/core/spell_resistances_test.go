@@ -3,6 +3,7 @@ package core
 import (
 	"testing"
 
+	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
@@ -20,7 +21,7 @@ func TestSchoolSpellPiercingLowersOnlyItsSchool(t *testing.T) {
 		attacker := Unit{Type: PlayerUnit, Level: 60, PseudoStats: stats.NewPseudoStats()}
 		attacker.stats[stats.SpellPiercing] = generic
 		attacker.PseudoStats.SchoolSpellPiercing[stats.SchoolIndexFire] = firePiercing
-		return defender.averageResist(fire, &attacker, false, false), defender.averageResist(frost, &attacker, false, false)
+		return defender.averageResist(fire, &attacker, false), defender.averageResist(frost, &attacker, false)
 	}
 
 	_, frostBare := coeffs(0, 0)
@@ -75,5 +76,36 @@ func TestNoPartialResistKeepsTheWholeHit(t *testing.T) {
 	}
 	if n := partials(SpellFlagBinary|SpellFlagFullResistanceTicks, true); n == 0 {
 		t.Errorf("a binary spell flagged SpellFlagFullResistanceTicks never had a tick partially resisted in 1000")
+	}
+}
+
+// A hit the target resists in full is a miss: it is not landed, counts as a miss, and no hit or crit is counted.
+func TestFullResistIsAMiss(t *testing.T) {
+	sim, fw := setupFakeWarlockSim(proto.Race_RaceHuman)
+	target := fw.CurrentTarget
+	spell := fw.Corruption
+	target.stats[stats.ShadowResistance] = 1e12
+
+	for range 200 {
+		result := spell.CalcDamage(sim, target, 100, spell.OutcomeMagicHitAndCrit)
+		if result.Landed() || result.Outcome != OutcomeMiss || result.Damage != 0 {
+			t.Fatalf("a fully resisted hit landed %v with outcome %v and %v damage, want a miss with none",
+				result.Landed(), result.Outcome, result.Damage)
+		}
+	}
+	metrics := spell.SpellMetrics[target.UnitIndex]
+	if metrics.Misses != 200 || metrics.Hits != 0 || metrics.Crits != 0 || metrics.ResistedHits != 0 {
+		t.Errorf("200 fully resisted hits counted %d misses, %d hits, %d crits and %d resisted hits, want 200 misses only",
+			metrics.Misses, metrics.Hits, metrics.Crits, metrics.ResistedHits)
+	}
+
+	expected := spell.expectedDamage(sim, target, func(sim *Simulation, target *Unit, spell *Spell, _ bool) *SpellResult {
+		return spell.CalcDamage(sim, target, 100, spell.OutcomeExpectedMagicHitAndCrit)
+	}, false)
+	if expected != 0 {
+		t.Errorf("the expected damage of a fully resisted hit is %v, want 0", expected)
+	}
+	if got := spell.SpellMetrics[target.UnitIndex].Misses; got != 200 {
+		t.Errorf("an expected-damage call against a full resist counted %d misses, want 200 and none added", got)
 	}
 }
