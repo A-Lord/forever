@@ -7,6 +7,7 @@ import (
 	"github.com/wowsims/forever/sim/common"
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
+	goproto "google.golang.org/protobuf/proto"
 )
 
 func init() {
@@ -99,11 +100,23 @@ func TestAvailableThistleTeaRequiresSelection(t *testing.T) {
 	for _, preset := range []string{"default", "bearweave"} {
 		for _, selected := range []int32{0, 7676} {
 			t.Run(fmt.Sprintf("%s/selected=%d", preset, selected), func(t *testing.T) {
-				request := uiDefaultRaidSim(catTalents, catAPL(bestCatAPL), 180, 0, 1)
-				player := request.Raid.Parties[0].Players[0]
-				player.Rotation = core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", preset).Rotation
-				player.Consumables.ConjuredId = selected
-				player.Consumables.ConjuredItems = []int32{7676}
+				consumables := goproto.Clone(DefaultConsumables).(*proto.ConsumesSpec)
+				consumables.ConjuredId = selected
+				consumables.ConjuredItems = []int32{7676}
+				talents := DefaultTalents
+				if preset == "bearweave" {
+					talents = BearweaveTalents
+				}
+				request := &proto.RaidSimRequest{
+					Raid: core.SinglePlayerRaidProto(&proto.Player{
+						Class: proto.Class_ClassDruid, Race: proto.Race_RaceNightElf,
+						TalentsString: talents, Spec: DefaultSpecOptions, Consumables: consumables,
+						Equipment: core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "default").GearSet,
+						Rotation:  core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", preset).Rotation,
+					}, nil, nil, nil),
+					Encounter:  &proto.Encounter{Duration: 180, Targets: []*proto.Target{core.NewDefaultTarget()}},
+					SimOptions: &proto.SimOptions{Iterations: 1, RandomSeed: 101, IsTest: true},
+				}
 				result := core.RunRaidSim(request)
 				if result.Error != nil {
 					t.Fatal(result.Error.Message)
