@@ -40,25 +40,29 @@ export const StatFilterList = ({
 	const groups = GROUP_KEYS.map(key => ({ key, stats: universe.filter(stat => statGroupOf(stat) === key) })).filter(group => group.stats.length > 0);
 
 	return (
-		<div className="flex flex-col gap-2">
-			{groups.map(group => (
-				<section key={group.key}>
-					<h6>{groupLabel(group.key)}</h6>
-					<div className="grid grid-cols-2 gap-x-4 gap-y-1">
-						{group.stats.map(stat => (
-							<BooleanPicker
-								key={stat.getKey()}
-								id={`${idPrefix}-${stat.getKey()}`}
-								label={stat.getShortName(playerClass)}
-								layout="inline"
-								value={isShown(stat)}
-								onChange={checked => toggle(stat, checked)}
-							/>
-						))}
-					</div>
-				</section>
-			))}
-			<div className="flex justify-end gap-2">
+		<div className="flex min-h-0 flex-col gap-2">
+			{/* Scrolls on its own, so the buttons stay in view in a popup capped to the viewport. */}
+			<div className="flex min-h-0 flex-col gap-2 overflow-y-auto">
+				{groups.map(group => (
+					<section key={group.key}>
+						<h6 className="mb-1 text-sm font-semibold text-muted">{groupLabel(group.key)}</h6>
+						<div className="grid grid-cols-2 gap-x-4 gap-y-1 md:grid-cols-3">
+							{group.stats.map(stat => (
+								<BooleanPicker
+									key={stat.getKey()}
+									id={`${idPrefix}-${stat.getKey()}`}
+									label={stat.getShortName(playerClass)}
+									layout="inline"
+									density="compact"
+									value={isShown(stat)}
+									onChange={checked => toggle(stat, checked)}
+								/>
+							))}
+						</div>
+					</section>
+				))}
+			</div>
+			<div className="flex shrink-0 justify-end gap-2">
 				<Button variant="outline-primary" size="sm" data-testid={`${idPrefix}-reset`} disabled={!customised} onClick={onReset}>
 					{i18n.t('stat_filters.spec_defaults')}
 				</Button>
@@ -79,6 +83,7 @@ export const StatFilterPopover = ({ testId, ...listProps }: StatFilterPopoverPro
 		side="bottom"
 		align="end"
 		backdrop
+		className="flex flex-col"
 		testId={testId}>
 		<StatFilterList {...listProps} idPrefix={testId} />
 	</Popover>

@@ -5,7 +5,6 @@ import { useSimHost, useSpecConfig } from '@sim/context/SimHostContext';
 import { usePlayerStore } from '@sim/hooks/usePlayerStore';
 import { computeStatAttribution, type Stats, type UnitStat } from '@sim/proto/stats';
 import { Accordion, AccordionItem } from '@ui-kit/Accordion';
-import { Box } from '@ui-kit/Box';
 import { parseStringArray, useLocalStorageState } from '@ui-kit/hooks/useLocalStorageState';
 import { Table } from '@ui-kit/Table';
 import clsx, { type ClassValue } from 'clsx';
@@ -172,9 +171,9 @@ export const CharacterStats = ({ className }: CharacterStatsProps) => {
 				/>
 			}>
 			{primary && (
-				<Box border="border-muted" padding="xs" testId="character-stats-primary">
+				<div className="mb-2 border-b border-border pb-1" data-testid="character-stats-primary">
 					{table(primary.rows)}
-				</Box>
+				</div>
 			)}
 			<Accordion value={openGroups} onValueChange={setOpenGroups} variant="divided" testId="character-stats-groups">
 				{collapsible.map(group => (

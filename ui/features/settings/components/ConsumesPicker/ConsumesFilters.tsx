@@ -55,6 +55,7 @@ export const ConsumesFilters = () => {
 			side="bottom"
 			align="end"
 			backdrop
+			className="flex flex-col"
 			testId="consumes-filters-popover">
 			<h6>{i18n.t('settings_tab.consumables.filters.stats')}</h6>
 			<StatFilterList
