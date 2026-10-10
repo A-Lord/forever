@@ -161,7 +161,7 @@ export const CharacterStats = ({ className }: CharacterStatsProps) => {
 			title={i18n.t('sidebar.character_stats.title')}
 			filter={<StatFilterPopover {...statFilter} ariaLabel={i18n.t('stat_filters.triggers.character_stats')} testId="character-stats-filter" />}>
 			{primary && (
-				<div className="mb-2 border-b border-border pb-1" data-testid="character-stats-primary">
+				<div className="border-b border-border pb-1" data-testid="character-stats-primary">
 					{table(primary.rows)}
 				</div>
 			)}
