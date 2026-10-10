@@ -120,7 +120,7 @@ export const FilterPopover = ({ ariaLabel, title, className, triggerClassName, t
 		align="end"
 		backdrop
 		title={title}
-		className={['flex flex-col', className]}
+		className={['flex flex-col lg:max-h-filter-popover-max-h', className]}
 		testId={testId}>
 		{children}
 	</Popover>
