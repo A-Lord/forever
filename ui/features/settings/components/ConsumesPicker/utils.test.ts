@@ -8,7 +8,7 @@ import type { Player, SpecConfigData } from '@sim/player/player';
 import type { Database } from '@sim/proto/database';
 import { UnitStat } from '@sim/proto/stats';
 import { ConsumableSlot, relevantConsumableIds } from '@sim/settings/consumables';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { consumableFilterScope, type ConsumeConfig, consumeConfigs, type ConsumeToggle } from './utils';
 
@@ -127,7 +127,10 @@ const playerOf = (state: Partial<PlayerState> = {}) => {
 		return item ? { item } : null;
 	};
 	const player = {
-		sim: { getMinConsumableLvl: (type: ConsumableType) => full.minLvl[type] ?? 0, getFilters: () => DatabaseFilters.clone(full.filters) },
+		sim: {
+			getMinConsumableLvl: (type: ConsumableType) => full.minLvl[type] ?? 0,
+			store: { getState: () => ({ sim: { filters: full.filters } }) },
+		},
 		getClass: () => full.cls,
 		getSpec: () => full.spec,
 		getRace: () => Race.RaceOrc,
@@ -466,6 +469,18 @@ describe('consumeConfigs under the consumables stat filter', () => {
 		expect(offered(configs.elixirs[1], player)).toEqual([]);
 		expect(toggled(configs.miscellaneous, player)).not.toContain(21023);
 		expect(offered(configs.elixirs[0], player)).toEqual([9206, 6662, 12451, 2289, 10310]);
+	});
+
+	it('reads the filters without copying them on each offer check', () => {
+		const { player } = agilityWarrior();
+		const configs = consumeConfigs(player, agilityDb);
+		const clone = vi.spyOn(DatabaseFilters, 'clone');
+
+		offered(configs.elixirs[1], player);
+		toggled(configs.miscellaneous, player);
+
+		expect(clone).not.toHaveBeenCalled();
+		clone.mockRestore();
 	});
 
 	it('keeps a picked consumable whose stats the filter hides offered and marked, and in the consumables the sim gets', () => {

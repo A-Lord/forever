@@ -3,6 +3,7 @@ import { type ConsumableRelevance, makeConsumableGroupInput, makeConsumableInput
 import { shownStats, type StatFilterScope } from '@features/stat-filters/model/stat_filters';
 import { ConsumableType, ItemSlot } from '@generated/proto/common';
 import type { Consumable } from '@generated/proto/db';
+import type { DatabaseFilters } from '@generated/proto/ui';
 import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
 import type { Database } from '@sim/proto/database';
@@ -66,13 +67,18 @@ export const consumableFilterScope = (player: Player<any>, db: Database): StatFi
 	return { defaults, universe: UnitStat.getAll().filter(inEither) };
 };
 
-// The shown stats of the consumables slot, read from the filters on each call; the same object comes
-// back while the slot holds the same stats, so relevance stays cached.
+// The shown stats of the consumables slot, read from the store's filters on each call and worked out
+// again only when the store holds a new filters object; the same object comes back while the slot
+// holds the same stats, so relevance stays cached.
 const shownConsumableStats = (player: Player<any>, scope: StatFilterScope): (() => ConsumableStats) => {
+	let filters: DatabaseFilters | undefined;
 	let key: string | undefined;
 	let current: ConsumableStats = { stats: new Set(), pseudoStats: new Set() };
 	return () => {
-		const shown = shownStats(player.sim.getFilters(), 'consumables', scope);
+		const latest = player.sim.store.getState().sim.filters;
+		if (latest === filters) return current;
+		filters = latest;
+		const shown = shownStats(latest, 'consumables', scope);
 		const shownKey = shown.map(stat => stat.getKey()).join(',');
 		if (shownKey !== key) {
 			key = shownKey;
