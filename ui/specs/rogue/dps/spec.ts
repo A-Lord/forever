@@ -1,14 +1,18 @@
+import * as InputHelpers from '@features/inputs/input_helpers';
 import * as BuffDebuffInputs from '@features/settings/model/buffs_debuffs';
 import * as OtherInputs from '@features/settings/model/other_inputs';
 import { StatCapType } from '@generated/proto/api';
-import { APLRotation } from '@generated/proto/apl';
+import { APLListItem, APLRotation, APLRotation_Type, APLValueVariable } from '@generated/proto/apl';
 import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
-import { EquipmentSpec, ItemSlot, PseudoStat, Spec, Stat, TristateEffect } from '@generated/proto/common';
+import { Cooldowns, EquipmentSpec, ItemSlot, PseudoStat, Spec, Stat, TristateEffect } from '@generated/proto/common';
 import { SavedTalents } from '@generated/proto/ui';
+import i18n from '@i18n/config';
 import * as Mechanics from '@sim/constants/mechanics';
 import { PlayerClasses } from '@sim/player/classes';
 import { Player } from '@sim/player/player';
 import { WeaponSkillGroup } from '@sim/player/weapon_skill_groups';
+import * as AplUtils from '@sim/proto/apl_utils';
+import type { SpecRotation } from '@sim/proto/spec_types';
 import { StatCap, Stats, UnitStat } from '@sim/proto/stats';
 import { defineSpec } from '@sim/spec_config';
 
@@ -89,6 +93,8 @@ export default defineSpec<Spec.SpecRogue>({
 
 			return [meleeHitSoftCapConfig];
 		})(),
+		rotationType: APLRotation_Type.TypeSimple,
+		simpleRotation: Presets.DEFAULT_SIMPLE_ROTATION,
 		other: Presets.OtherDefaults,
 		// Default consumes settings.
 		consumables: Presets.DefaultConsumables,
@@ -122,6 +128,14 @@ export default defineSpec<Spec.SpecRogue>({
 	playerInputs: {
 		inputs: [],
 	},
+	rotationInputs: {
+		inputs: [
+			InputHelpers.makeRotationBooleanInput<Spec.SpecRogue>({
+				fieldName: 'useBackstab',
+				label: i18n.t('rotation_tab.options.rogue.use_backstab.label'),
+			}),
+		],
+	},
 	// IconInputs to include in the 'Player' section on the settings tab.
 	playerIconInputs: [],
 	// Buff and Debuff inputs to include/exclude, overriding the EP-based defaults.
@@ -149,7 +163,7 @@ export default defineSpec<Spec.SpecRogue>({
 			Presets.TALENTS_SUB_BS,
 		],
 		// Preset rotations that the user can quickly select.
-		rotations: [Presets.DEFAULT_APL, Presets.BACKSTAB_APL],
+		rotations: [Presets.SIMPLE_ROTATION, Presets.SIMPLE_BACKSTAB_ROTATION, Presets.DEFAULT_APL, Presets.BACKSTAB_APL],
 		// Preset gear configurations that the user can quickly select.
 		gear: [Presets.P1_BS_COMBAT_GEAR, Presets.P1_MUTI_GEAR, Presets.P1_SLOW_MH_GEAR, Presets.P1_BS_SUB_GEAR],
 		builds: [
@@ -164,6 +178,20 @@ export default defineSpec<Spec.SpecRogue>({
 
 	autoRotation: (_player: Player<Spec.SpecRogue>): APLRotation => {
 		return Presets.DEFAULT_APL.rotation.rotation!;
+	},
+
+	simpleRotation: (_player: Player<Spec.SpecRogue>, simple: SpecRotation<Spec.SpecRogue>, cooldowns: Cooldowns): APLRotation => {
+		const actions = AplUtils.simpleCooldownActions(cooldowns);
+		const rotation = APLRotation.clone(Presets.DEFAULT_APL.rotation.rotation!);
+		const values: Record<string, string> = {
+			'Use Backstab': String(simple.useBackstab),
+		};
+		rotation.valueVariables = rotation.valueVariables.map(variable =>
+			variable.name in values ? APLValueVariable.fromJson({ name: variable.name, value: { const: { val: values[variable.name] } } }) : variable,
+		);
+		rotation.priorityList = [...actions.map(action => APLListItem.create({ action })), ...rotation.priorityList];
+
+		return rotation;
 	},
 
 	// reforge: {},

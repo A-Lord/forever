@@ -38,8 +38,6 @@ func (rogue *Rogue) registerCombatTalents() {
 	rogue.registerAdrenalineRush()
 }
 
-// TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's
-// brought back.
 func (rogue *Rogue) registerImprovedSinisterStrike() {
 	if rogue.Talents.ImprovedSinisterStrike == 0 {
 		return
@@ -47,17 +45,6 @@ func (rogue *Rogue) registerImprovedSinisterStrike() {
 
 	spelldata.ParseStatic(&rogue.Character,
 		spellData.ImprovedSinisterStrike.Rank(rogue.Talents.ImprovedSinisterStrike))
-
-	// The TBC implementation, kept for the port:
-	// if rogue.Talents.ImprovedSinisterStrike == 0 {
-	// 	return
-	// }
-	//
-	// rogue.AddStaticMod(core.SpellModConfig{
-	// 	Kind:      core.SpellMod_PowerCost_Flat,
-	// 	ClassMask: RogueSpellSinisterStrike,
-	// 	IntValue:  []int32{0, -3, -5}[rogue.Talents.ImprovedSinisterStrike],
-	// })
 }
 
 func (rogue *Rogue) registerPuncturingWounds() {
@@ -71,8 +58,6 @@ func (rogue *Rogue) registerPuncturingWounds() {
 	rogue.puncturingWoundsComboPointMetrics = rogue.NewComboPointMetrics(core.ActionID{SpellID: spellData.PuncturingWounds.Rank(rogue.Talents.PuncturingWounds).ID})
 }
 
-// TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's
-// brought back.
 func (rogue *Rogue) registerPrecision() {
 	if rogue.Talents.Precision == 0 {
 		return
@@ -80,13 +65,6 @@ func (rogue *Rogue) registerPrecision() {
 
 	spelldata.ParseStatic(&rogue.Character,
 		spellData.Precision.Rank(rogue.Talents.Precision))
-
-	// The TBC implementation, kept for the port:
-	// if rogue.Talents.Precision == 0 {
-	// 	return
-	// }
-	//
-	// rogue.AddStat(stats.PhysicalHitPercent, float64(rogue.Talents.Precision))
 }
 
 func (rogue *Rogue) registerFlawlessExecution() {
@@ -98,8 +76,6 @@ func (rogue *Rogue) registerFlawlessExecution() {
 		spellData.FlawlessExecution.Rank(1))
 }
 
-// TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's
-// brought back.
 func (rogue *Rogue) registerDualWieldSpecialization() {
 	if rogue.Talents.DualWieldSpecialization == 0 {
 		return
@@ -107,17 +83,6 @@ func (rogue *Rogue) registerDualWieldSpecialization() {
 
 	spelldata.ParseStatic(&rogue.Character,
 		spellData.DualWieldSpecialization.Rank(rogue.Talents.DualWieldSpecialization))
-
-	// The TBC implementation, kept for the port:
-	// if rogue.Talents.DualWieldSpecialization == 0 {
-	// 	return
-	// }
-	//
-	// rogue.AddStaticMod(core.SpellModConfig{
-	// 	Kind:       core.SpellMod_DamageDone_Flat,
-	// 	ProcMask:   core.ProcMaskMeleeOH,
-	// 	FloatValue: spellData.DualWieldSpecialization.FractionAt(rogue.Talents.DualWieldSpecialization),
-	// })
 }
 
 var bladeFlurryRank = spellData.BladeFlurry.Highest()
@@ -127,7 +92,6 @@ func (rogue *Rogue) registerBladeFlurry() {
 		return
 	}
 
-	// This is just the TBC implementation. The spell is visually unchanged, but will require testing for specifics.
 	var curDmg float64
 	bfHit := rogue.GetOrRegisterSpell(core.SpellConfig{
 		ActionID:    core.ActionID{SpellID: 22482},
@@ -189,7 +153,7 @@ func (rogue *Rogue) registerHackAndSlash() {
 	var critMask core.ProcMask
 	var swordMask core.ProcMask
 	readWeapons := func() {
-		armorIgnoreOn = mainHandIs(proto.WeaponType_WeaponTypeMace) || offHandIs(proto.WeaponType_WeaponTypeMace) // TODO: Test if this aura is active regardless of which hand the mace is in
+		armorIgnoreOn = mainHandIs(proto.WeaponType_WeaponTypeMace) || offHandIs(proto.WeaponType_WeaponTypeMace)
 		swordMask = rogue.GetProcMaskForTypes(proto.WeaponType_WeaponTypeSword, proto.WeaponType_WeaponTypeAxe)
 		critMask = rogue.GetProcMaskForTypes(proto.WeaponType_WeaponTypeFist, proto.WeaponType_WeaponTypeDagger)
 	}
@@ -283,8 +247,6 @@ func (rogue *Rogue) registerWeaponExpertise() {
 	rogue.AddStat(stats.ExpertisePercent, spellData.WeaponExpertise.ValueAt(rogue.Talents.WeaponExpertise))
 }
 
-// TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's
-// brought back.
 func (rogue *Rogue) registerAggression() {
 	if rogue.Talents.Aggression == 0 {
 		return
@@ -315,49 +277,4 @@ func (rogue *Rogue) registerAdrenalineRush() {
 		Spell: rogue.AdrenalineRush,
 		Type:  core.CooldownTypeDPS,
 	})
-
-	// The TBC implementation, kept for the port:
-	// if !rogue.Talents.AdrenalineRush {
-	// 	return
-	// }
-	//
-	// rogue.AdrenalineRushAura = rogue.GetOrRegisterAura(core.Aura{
-	// 	Label:    "Adrenaline Rush",
-	// 	ActionID: core.ActionID{SpellID: 13750},
-	// 	Duration: time.Second * 15,
-	//
-	// 	OnGain: func(aura *core.Aura, sim *core.Simulation) {
-	// 		rogue.MultiplyEnergyRegenSpeed(sim, 2)
-	// 	},
-	// 	OnExpire: func(aura *core.Aura, sim *core.Simulation) {
-	// 		rogue.MultiplyEnergyRegenSpeed(sim, 0.5)
-	// 	},
-	// })
-	//
-	// rogue.AdrenalineRush = rogue.GetOrRegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: 13750},
-	// 	Flags:          core.SpellFlagAPL,
-	// 	ClassSpellMask: RogueSpellAdrenalineRush,
-	// 	ClassFlags:     spellData.AdrenalineRush.Highest().ClassFlags,
-	//
-	// 	Cast: core.CastConfig{
-	// 		IgnoreHaste: true,
-	// 		CD: core.Cooldown{
-	// 			Timer:    rogue.NewTimer(),
-	// 			Duration: time.Minute * 5,
-	// 		},
-	// 		DefaultCast: core.Cast{
-	// 			GCD: time.Second,
-	// 		},
-	// 	},
-	//
-	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-	// 		rogue.AdrenalineRushAura.Activate(sim)
-	// 	},
-	// })
-	//
-	// rogue.AddMajorCooldown(core.MajorCooldown{
-	// 	Spell: rogue.AdrenalineRush,
-	// 	Type:  core.CooldownTypeDPS,
-	// })
 }

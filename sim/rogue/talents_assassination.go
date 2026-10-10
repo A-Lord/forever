@@ -49,8 +49,6 @@ func (rogue *Rogue) registerImprovedEviscerate() {
 		spellData.ImprovedEviscerate.Rank(rogue.Talents.ImprovedEviscerate))
 }
 
-// TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's
-// brought back.
 func (rogue *Rogue) registerMalice() {
 	if rogue.Talents.Malice == 0 {
 		return
@@ -60,8 +58,6 @@ func (rogue *Rogue) registerMalice() {
 		spellData.Malice.Rank(rogue.Talents.Malice))
 }
 
-// TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's
-// brought back.
 func (rogue *Rogue) registerMurder() {
 	if rogue.Talents.Murder == 0 {
 		return
@@ -80,8 +76,6 @@ func (rogue *Rogue) registerImprovedExposeArmor() {
 		spellData.ImprovedExposeArmor.Rank(rogue.Talents.ImprovedExposeArmor))
 }
 
-// TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's
-// brought back.
 func (rogue *Rogue) registerLethality() {
 	if rogue.Talents.Lethality == 0 {
 		return
@@ -91,8 +85,6 @@ func (rogue *Rogue) registerLethality() {
 		spellData.Lethality.Rank(rogue.Talents.Lethality))
 }
 
-// TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's
-// brought back.
 func (rogue *Rogue) registerVilePoisons() {
 	if rogue.Talents.VilePoisons == 0 {
 		return
@@ -130,49 +122,6 @@ func (rogue *Rogue) registerColdBlood() {
 		Spell: rogue.ColdBlood,
 		Type:  core.CooldownTypeDPS,
 	})
-
-	// The TBC implementation, kept for the port:
-	// if !rogue.Talents.ColdBlood {
-	// 	return
-	// }
-	//
-	// cbAura := rogue.GetOrRegisterAura(core.Aura{
-	// 	Label:    "Cold Blood",
-	// 	ActionID: core.ActionID{SpellID: 14177},
-	// 	Duration: core.NeverExpires,
-	//
-	// 	OnSpellHitDealt: func(aura *core.Aura, sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-	// 		if spell.Matches(RogueSpellActives) {
-	// 			aura.Deactivate(sim)
-	// 		}
-	// 	},
-	// }).AttachSpellMod(core.SpellModConfig{
-	// 	Kind:       core.SpellMod_BonusCrit_Percent,
-	// 	ClassMask:  RogueSpellActives,
-	// 	FloatValue: 100.0,
-	// })
-	//
-	// rogue.ColdBlood = rogue.GetOrRegisterSpell(core.SpellConfig{
-	// 	ActionID: core.ActionID{SpellID: 14177},
-	// 	ClassFlags: spellData.ColdBlood.Highest().ClassFlags,
-	//
-	// 	Cast: core.CastConfig{
-	// 		CD: core.Cooldown{
-	// 			Timer:    rogue.NewTimer(),
-	// 			Duration: time.Minute * 3,
-	// 		},
-	// 		IgnoreHaste: true,
-	// 	},
-	//
-	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-	// 		cbAura.Activate(sim)
-	// 	},
-	// })
-	//
-	// rogue.AddMajorCooldown(core.MajorCooldown{
-	// 	Spell: rogue.ColdBlood,
-	// 	Type:  core.CooldownTypeDPS,
-	// })
 }
 
 func (rogue *Rogue) registerImprovedPoisons() {
@@ -184,8 +133,6 @@ func (rogue *Rogue) registerImprovedPoisons() {
 		spellData.ImprovedPoisons.Rank(rogue.Talents.ImprovedPoisons))
 }
 
-// TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's
-// brought back.
 func (rogue *Rogue) registerSealFate() {
 	if rogue.Talents.SealFate == 0 {
 		return
@@ -205,33 +152,10 @@ func (rogue *Rogue) registerSealFate() {
 	trigger.TriggerImmediately = true
 
 	rogue.MakeProcTriggerAura(trigger)
-
-	// The TBC implementation, kept for the port:
-	// if rogue.Talents.SealFate == 0 {
-	// 	return
-	// }
-	//
-	//
-	//
-	// rogue.MakeProcTriggerAura(core.ProcTrigger{
-	// 	Name:     "Seal Fate Trigger",
-	// 	ActionID: core.ActionID{SpellID: 14195},
-	// 	// Forever puts the real per-rank chance on the effect; ProcChanceAt reads a flat 100%.
-	// 	ProcChance: spellData.SealFate.FractionAt(rogue.Talents.SealFate),
-	// 	Callback:   core.CallbackOnSpellHitDealt,
-	// 	Outcome:    core.OutcomeCrit,
-	// 	SpellFlags: SpellFlagBuilder,
-	// 	ICD:        time.Millisecond * 500,
-	// 	Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-	// 		rogue.AddComboPoints(sim, 1, sfMetrics)
-	// 	},
-	// })
 }
 
 var mutilateCastRank = spellData.Mutilate.Highest()
 
-// TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's
-// brought back.
 func (rogue *Rogue) registerMutilate() {
 	if !rogue.Talents.Mutilate {
 		return
@@ -261,48 +185,6 @@ func (rogue *Rogue) registerMutilate() {
 	}
 
 	rogue.Mutilate = rogue.RegisterSpell(config)
-	//
-	// rogue.Mutilate = rogue.RegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: MutilateSpellID, Tag: 0},
-	// 	SpellSchool:    core.SpellSchoolPhysical,
-	// 	DefenseType:    core.DefenseTypeMelee,
-	// 	ProcMask:       core.ProcMaskMeleeMHSpecial,
-	// 	Flags:          core.SpellFlagMeleeMetrics | core.SpellFlagAPL,
-	// 	ClassSpellMask: RogueSpellMutilate,
-	// 	ClassFlags:     mutilateRank.ClassFlags,
-	//
-	// 	EnergyCost: core.EnergyCostOptions{
-	// 		Cost:   int32(mutilateRank.Cost()),
-	// 		Refund: 0.8,
-	// 	},
-	// 	Cast: core.CastConfig{
-	// 		DefaultCast: core.Cast{
-	// 			GCD: mutilateRank.GCD(),
-	// 		},
-	// 		IgnoreHaste: true,
-	// 	},
-	// 	ExtraCastCondition: func(sim *core.Simulation, target *core.Unit) bool {
-	// 		if rogue.HasDagger(core.MainHand) && rogue.HasDagger(core.OffHand) {
-	// 			return true
-	// 		}
-	// 		return false
-	// 	},
-	//
-	// 	ThreatMultiplier: 1,
-	//
-	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-	// 		rogue.BreakStealth(sim)
-	// 		result := spell.CalcOutcome(sim, target, spell.OutcomeMeleeSpecialHit) // Miss/Dodge/Parry/Hit
-	// 		if result.Landed() {
-	// 			rogue.AddComboPoints(sim, 2, spell.ComboPointMetrics())
-	// 			rogue.MutilateOH.Cast(sim, target)
-	// 			rogue.MutilateMH.Cast(sim, target)
-	// 		} else {
-	// 			spell.IssueRefund(sim)
-	// 		}
-	// 		spell.DealOutcome(sim, result)
-	// 	},
-	// })
 }
 
 func (rogue *Rogue) newMutilateHitSpell(isMH bool) *core.Spell {

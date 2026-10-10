@@ -15,8 +15,6 @@ func init() {
 }
 
 func TestRogue(t *testing.T) {
-	t.Skip("class talents and abilities are stubbed pending their Forever implementations; " +
-		"the expected .results numbers cannot be meaningful until then")
 	core.RunTestSuite(t, t.Name(), core.FullCharacterTestSuiteGenerator([]core.CharacterSuiteConfig{
 		{
 			Class:         proto.Class_ClassRogue,

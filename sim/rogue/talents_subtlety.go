@@ -6,9 +6,6 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-// Package-level state the commented-out implementations used:
-// var hemorrhageRank = spellData.Hemorrhage.ByID(26864)
-
 func (rogue *Rogue) registerSubtletyTalents() {
 	// Tier 1
 	// Camouflage NYI
@@ -44,8 +41,6 @@ func (rogue *Rogue) registerSubtletyTalents() {
 	rogue.registerThousandCuts()
 }
 
-// TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's
-// brought back.
 func (rogue *Rogue) registerOpportunity() {
 	if rogue.Talents.Opportunity == 0 {
 		return
@@ -55,8 +50,6 @@ func (rogue *Rogue) registerOpportunity() {
 		spellData.Opportunity.Rank(rogue.Talents.Opportunity))
 }
 
-// TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's
-// brought back.
 func (rogue *Rogue) registerInitiative() {
 	if rogue.Talents.Initiative == 0 {
 		return
@@ -106,59 +99,8 @@ func (rogue *Rogue) registerGhostlyStrike() {
 	rogue.RegisterItemSwapCallback([]proto.ItemSlot{proto.ItemSlot_ItemSlotMainHand}, func(s *core.Simulation, slot proto.ItemSlot) {
 		rogue.GhostlyStrike.DamageMultiplier = core.TernaryFloat64(rogue.HasDagger(core.MainHand), ghostlyStrikeRank.EffectN(4).Percent(), ghostlyStrikeRank.EffectN(1).Percent())
 	})
-
-	// The TBC implementation, kept for the port:
-	// if !rogue.Talents.GhostlyStrike {
-	// 	return
-	// }
-	//
-	// pointMetric := rogue.NewComboPointMetrics(core.ActionID{SpellID: 14278})
-	// rogue.GhostlyStrike = rogue.GetOrRegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: 14278},
-	// 	ClassSpellMask: RogueSpellGhostlyStrike,
-	// 	ClassFlags:     spellData.GhostlyStrike.Highest().ClassFlags,
-	// 	SpellSchool:    core.SpellSchoolPhysical,
-	// 	DefenseType:    core.DefenseTypeMelee,
-	// 	Flags:          core.SpellFlagAPL | core.SpellFlagMeleeMetrics,
-	// 	ProcMask:       core.ProcMaskMeleeMHSpecial,
-	// 	MaxRange:       core.MaxMeleeRange,
-	//
-	// 	Cast: core.CastConfig{
-	// 		DefaultCast: core.Cast{
-	// 			GCD: time.Second,
-	// 		},
-	// 		CD: core.Cooldown{
-	// 			Timer:    rogue.NewTimer(),
-	// 			Duration: time.Second * 20,
-	// 		},
-	// 		IgnoreHaste: true,
-	// 	},
-	// 	EnergyCost: core.EnergyCostOptions{
-	// 		Cost:   40,
-	// 		Refund: 0.8,
-	// 	},
-	//
-	// 	DamageMultiplier: 1.25,
-	// 	ThreatMultiplier: 1,
-	//
-	// 	BonusCoefficient: 1,
-	//
-	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-	// 		rogue.BreakStealth(sim)
-	//
-	// 		// Dodge Aura NYI
-	//
-	// 		baseDamage := rogue.MHWeaponDamage(sim, spell.MeleeAttackPower(target))
-	// 		result := spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeSpecialHitAndCrit)
-	// 		if result.Landed() {
-	// 			rogue.AddComboPoints(sim, 1, pointMetric)
-	// 		}
-	// 	},
-	// })
 }
 
-// TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's
-// brought back.
 func (rogue *Rogue) registerImprovedAmbush() {
 	if rogue.Talents.ImprovedAmbush == 0 {
 		return
@@ -166,21 +108,8 @@ func (rogue *Rogue) registerImprovedAmbush() {
 
 	spelldata.ParseStatic(&rogue.Character,
 		spellData.ImprovedAmbush.Rank(rogue.Talents.ImprovedAmbush))
-
-	// The TBC implementation, kept for the port:
-	// if rogue.Talents.ImprovedAmbush == 0 {
-	// 	return
-	// }
-	//
-	// rogue.AddStaticMod(core.SpellModConfig{
-	// 	Kind:       core.SpellMod_BonusCrit_Percent,
-	// 	ClassMask:  RogueSpellAmbush,
-	// 	FloatValue: spellData.ImprovedAmbush.ValueAt(rogue.Talents.ImprovedAmbush),
-	// })
 }
 
-// TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's
-// brought back.
 func (rogue *Rogue) registerElusiveness() {
 	if rogue.Talents.Elusiveness == 0 {
 		return
@@ -188,21 +117,8 @@ func (rogue *Rogue) registerElusiveness() {
 
 	spelldata.ParseStatic(&rogue.Character,
 		spellData.Elusiveness.Rank(rogue.Talents.Elusiveness))
-
-	// The TBC implementation, kept for the port:
-	// if rogue.Talents.Elusiveness == 0 {
-	// 	return
-	// }
-	//
-	// rogue.AddStaticMod(core.SpellModConfig{
-	// 	Kind:      core.SpellMod_Cooldown_Flat,
-	// 	ClassMask: RogueSpellVanish,
-	// 	TimeValue: time.Second * 45 * time.Duration(rogue.Talents.Elusiveness),
-	// })
 }
 
-// TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's
-// brought back.
 func (rogue *Rogue) registerSerratedBlades() {
 	if rogue.Talents.SerratedBlades == 0 {
 		return
@@ -210,18 +126,6 @@ func (rogue *Rogue) registerSerratedBlades() {
 
 	spelldata.ParseStatic(&rogue.Character,
 		spellData.SerratedBlades.Rank(rogue.Talents.SerratedBlades))
-
-	// The TBC implementation, kept for the port:
-	// if rogue.Talents.SerratedBlades == 0 {
-	// 	return
-	// }
-	//
-	// rogue.AddStat(stats.ArmorPenetration, 186*float64(rogue.Talents.SerratedBlades))
-	// rogue.AddStaticMod(core.SpellModConfig{
-	// 	Kind:       core.SpellMod_DamageDone_Flat,
-	// 	ClassMask:  RogueSpellRupture,
-	// 	FloatValue: spellData.SerratedBlades.Effect(dbcenums.A_ADD_PCT_MODIFIER, int32(dbcenums.SPELLMOD_DOT)).FractionAt(rogue.Talents.SerratedBlades),
-	// })
 }
 
 func (rogue *Rogue) registerPreparation() {
@@ -261,8 +165,6 @@ func (rogue *Rogue) registerPreparation() {
 	})
 }
 
-// TODO: To be implemented. The TBC body needs review against Forever's tooltip/values before it's
-// brought back.
 func (rogue *Rogue) registerDirtyDeeds() {
 	if rogue.Talents.DirtyDeeds == 0 {
 		return
@@ -270,36 +172,6 @@ func (rogue *Rogue) registerDirtyDeeds() {
 
 	spelldata.ParseStatic(&rogue.Character,
 		spellData.DirtyDeeds.Rank(rogue.Talents.DirtyDeeds))
-
-	// The TBC implementation, kept for the port:
-	// if rogue.Talents.DirtyDeeds == 0 {
-	// 	return
-	// }
-	//
-	// rogue.AddStaticMod(core.SpellModConfig{
-	// 	Kind:      core.SpellMod_PowerCost_Flat,
-	// 	ClassMask: RogueSpellGarrote,
-	// 	IntValue:  -10 * rogue.Talents.DirtyDeeds,
-	// })
-	//
-	// ddAura := rogue.GetOrRegisterAura(core.Aura{
-	// 	Label:    "Dirty Deeds",
-	// 	ActionID: core.ActionID{SpellID: 14083},
-	// 	Duration: core.NeverExpires,
-	// }).AttachSpellMod(core.SpellModConfig{
-	// 	Kind:       core.SpellMod_DamageDone_Flat,
-	// 	ClassMask:  RogueSpellsAll,
-	// 	FloatValue: 0.1 * float64(rogue.Talents.DirtyDeeds),
-	// })
-	//
-	// rogue.RegisterResetEffect(func(sim *core.Simulation) {
-	// 	ddAura.Deactivate(sim)
-	// 	sim.RegisterExecutePhaseCallback(func(sim *core.Simulation, isExecute int32) {
-	// 		if isExecute == 35 {
-	// 			ddAura.Activate(sim)
-	// 		}
-	// 	})
-	// })
 }
 
 var hemorrhageRank = spellData.Hemorrhage.Highest()
@@ -338,49 +210,6 @@ func (rogue *Rogue) registerHemorrhage() {
 	rogue.RegisterItemSwapCallback([]proto.ItemSlot{proto.ItemSlot_ItemSlotMainHand}, func(s *core.Simulation, slot proto.ItemSlot) {
 		rogue.Hemorrhage.DamageMultiplier = core.TernaryFloat64(rogue.HasDagger(core.MainHand), hemorrhageRank.EffectN(5).Percent(), hemorrhageRank.EffectN(4).Percent())
 	})
-
-	// The TBC implementation, kept for the port:
-	// if !rogue.Talents.Hemorrhage {
-	// 	return
-	// }
-	//
-	// pointMetric := rogue.NewComboPointMetrics(core.ActionID{SpellID: hemorrhageRank.ID})
-	// rogue.Hemorrhage = rogue.GetOrRegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: hemorrhageRank.ID},
-	// 	ClassSpellMask: RogueSpellHemorrhage,
-	// 	ClassFlags:     hemorrhageRank.ClassFlags,
-	// 	SpellSchool:    hemorrhageRank.SpellSchool(),
-	// 	DefenseType:    hemorrhageRank.DefenseTypeCore(),
-	// 	Flags:          core.SpellFlagAPL | core.SpellFlagMeleeMetrics | SpellFlagBuilder,
-	// 	ProcMask:       core.ProcMaskMeleeMHSpecial,
-	// 	MaxRange:       core.MaxMeleeRange,
-	//
-	// 	Cast: core.CastConfig{
-	// 		DefaultCast: core.Cast{
-	// 			GCD: hemorrhageRank.GCD(),
-	// 		},
-	// 		IgnoreHaste: true,
-	// 	},
-	// 	EnergyCost: core.EnergyCostOptions{
-	// 		Cost:   int32(hemorrhageRank.Cost()),
-	// 		Refund: 0.8,
-	// 	},
-	//
-	// 	DamageMultiplier: 1.1,
-	// 	ThreatMultiplier: 1,
-	//
-	// 	BonusCoefficient: hemorrhageRank.DamageEffect().Coeff(),
-	//
-	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-	// 		rogue.BreakStealth(sim)
-	//
-	// 		baseDamage := rogue.MHNormalizedWeaponDamage(sim, spell.MeleeAttackPower(target))
-	// 		result := spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeSpecialHitAndCrit)
-	// 		if result.Landed() {
-	// 			rogue.AddComboPoints(sim, 1, pointMetric)
-	// 		}
-	// 	},
-	// })
 }
 
 var premeditationRank = spellData.Premeditation.Highest()
@@ -403,80 +232,8 @@ func (rogue *Rogue) registerPremeditation() {
 		Spell: rogue.Premeditation,
 		Type:  core.CooldownTypeDPS,
 	})
-
-	// The TBC implementation, kept for the port:
-	// if !rogue.Talents.Premeditation {
-	// 	return
-	// }
-	//
-	// comboMetrics := rogue.NewComboPointMetrics(core.ActionID{SpellID: 14183})
-	// shouldTimeout := false
-	//
-	// premedAura := rogue.RegisterAura(core.Aura{
-	// 	Label:    "Premed Timeout Aura",
-	// 	Duration: time.Second * 10,
-	//
-	// 	OnGain: func(aura *core.Aura, sim *core.Simulation) {
-	// 		shouldTimeout = true
-	// 	},
-	// 	OnCastComplete: func(aura *core.Aura, sim *core.Simulation, spell *core.Spell) {
-	// 		if spell.Flags.Matches(SpellFlagFinisher) && spell.ClassSpellMask == RogueSpellSliceAndDice {
-	// 			shouldTimeout = false
-	// 		}
-	// 	},
-	// 	OnSpellHitDealt: func(aura *core.Aura, sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-	// 		if spell.Flags.Matches(SpellFlagFinisher) && result.Landed() {
-	// 			shouldTimeout = false
-	// 		}
-	// 	},
-	// 	OnExpire: func(aura *core.Aura, sim *core.Simulation) {
-	// 		// Remove 2 points because no finisher was casted
-	// 		if shouldTimeout {
-	// 			rogue.AddComboPoints(sim, -2, comboMetrics)
-	// 			shouldTimeout = false
-	// 		}
-	// 	},
-	// })
-	//
-	// rogue.Premeditation = rogue.RegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: 14183},
-	// 	Flags:          core.SpellFlagAPL | core.SpellFlagNoOnCastComplete,
-	// 	ClassSpellMask: RogueSpellPremeditation,
-	// 	ClassFlags:     spellData.Premeditation.Highest().ClassFlags,
-	//
-	// 	Cast: core.CastConfig{
-	// 		DefaultCast: core.Cast{
-	// 			Cost: 0,
-	// 			GCD:  0,
-	// 		},
-	// 		IgnoreHaste: true,
-	// 		CD: core.Cooldown{
-	// 			Timer:    rogue.NewTimer(),
-	// 			Duration: time.Minute * 2,
-	// 		},
-	// 	},
-	// 	ExtraCastCondition: func(sim *core.Simulation, target *core.Unit) bool {
-	// 		return rogue.IsStealthed()
-	// 	},
-	//
-	// 	ApplyEffects: func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
-	// 		rogue.AddComboPoints(sim, 2, comboMetrics)
-	// 		premedAura.Activate(sim)
-	// 	},
-	// })
-	//
-	// rogue.AddMajorCooldown(core.MajorCooldown{
-	// 	Spell:              rogue.Premeditation,
-	// 	Type:               core.CooldownTypeDPS,
-	// 	Priority:           core.CooldownPriorityLow,
-	// 	AllowSpellQueueing: true,
-	// })
 }
 
-// registerQuietus implements Quietus, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
 func (rogue *Rogue) registerQuietus() {
 	if rogue.Talents.Quietus == 0 {
 		return
@@ -506,10 +263,6 @@ func (rogue *Rogue) registerQuietus() {
 	})
 }
 
-// registerCutthroat implements Cutthroat, new in Forever.
-//
-// TODO: To be implemented. Needs the Forever tooltip and a spellData ladder before
-// the effect can be modelled; there is no TBC equivalent to port.
 func (rogue *Rogue) registerCutthroat() {
 	if rogue.Talents.Cutthroat == 0 {
 		return

@@ -127,56 +127,6 @@ func (rogue *Rogue) registerDeadlyPoisonSpell(deadlyPoisonRank *spelldata.Spell)
 	}
 
 	rogue.DeadlyPoison = rogue.RegisterSpell(config)
-
-	// The TBC implementation, kept for the port:
-	// procMask := rogue.getPoisonProcMask(deadlyImbueID)
-	// if procMask == core.ProcMaskUnknown {
-	// 	return
-	// }
-	// rogue.DeadlyPoison = rogue.GetOrRegisterSpell(core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: 27187},
-	// 	SpellSchool:    core.SpellSchoolNature,
-	// 	DefenseType:    core.DefenseTypeMagic,
-	// 	ProcMask:       core.ProcMaskSpellDamageProc,
-	// 	ClassSpellMask: RogueSpellDeadlyPoison,
-	// 	ClassFlags:     spellData.DeadlyPoison.Highest().ClassFlags,
-	// 	Flags:          core.SpellFlagPoison | core.SpellFlagPassiveSpell | core.SpellFlagProc,
-	//
-	// 	DamageMultiplier:         1,
-	// 	DamageMultiplierAdditive: 1,
-	// 	ThreatMultiplier:         1,
-	//
-	// 	Dot: core.DotConfig{
-	// 		Aura: core.Aura{
-	// 			Label:     "Deadly Poison",
-	// 			MaxStacks: 5,
-	// 			Duration:  time.Second * 12,
-	// 		},
-	// 		NumberOfTicks: 4,
-	// 		TickLength:    time.Second * 3,
-	//
-	// 		OnTick: func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
-	// 			base := 45.0 * float64(dot.GetStacks())
-	// 			dot.Spell.CalcAndDealPeriodicDamage(sim, target, base, dot.OutcomeTick)
-	// 		},
-	// 	},
-	//
-	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-	// 		result := spell.CalcAndDealOutcome(sim, target, spell.OutcomeMagicHit)
-	// 		if !result.Landed() {
-	// 			return
-	// 		}
-	//
-	// 		dot := spell.Dot(target)
-	// 		if dot.IsActive() {
-	// 			dot.Refresh(sim)
-	// 			dot.AddStack(sim)
-	// 		} else {
-	// 			dot.Apply(sim)
-	// 			dot.SetStacks(sim, 1)
-	// 		}
-	// 	},
-	// })
 }
 
 func (rogue *Rogue) registerInstantPoisonSpell(instantPoisonRank *spelldata.Spell) {
@@ -190,34 +140,6 @@ func (rogue *Rogue) registerInstantPoisonSpell(instantPoisonRank *spelldata.Spel
 	}
 
 	rogue.InstantPoison = rogue.RegisterSpell(config)
-
-	// The TBC implementation, kept for the port:
-	// procMask := rogue.getPoisonProcMask(instantImbueID)
-	// if procMask == core.ProcMaskUnknown {
-	// 	return
-	// }
-	// ipBaseDamage := 146.0
-	// ipRange := 48
-	//
-	// ipConfig := core.SpellConfig{
-	// 	ActionID:       core.ActionID{SpellID: 26890},
-	// 	SpellSchool:    core.SpellSchoolNature,
-	// 	DefenseType:    core.DefenseTypeMagic,
-	// 	ProcMask:       core.ProcMaskSpellDamageProc,
-	// 	ClassSpellMask: RogueSpellInstantPoison,
-	// 	ClassFlags:     spellData.InstantPoison.Highest().ClassFlags,
-	// 	Flags:          core.SpellFlagPoison | core.SpellFlagPassiveSpell | core.SpellFlagProc,
-	//
-	// 	DamageMultiplier:         1,
-	// 	DamageMultiplierAdditive: 1,
-	// 	ThreatMultiplier:         1,
-	//
-	// 	ApplyEffects: func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-	// 		spell.CalcAndDealDamage(sim, target, ipBaseDamage+sim.RandomFloat("Instant Poison")*float64(ipRange), spell.OutcomeMagicHitAndCrit)
-	// 	},
-	// }
-	//
-	// rogue.InstantPoison = rogue.RegisterSpell(ipConfig)
 }
 
 func (rogue *Rogue) applyDeadlyPoison(consumable core.Consumable) {

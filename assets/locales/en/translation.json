@@ -1988,6 +1988,9 @@
 				}
 			},
 			"rogue": {
+				"use_backstab": {
+					"label": "Use Backstab"
+				},
 				"apply_poisons_manually": {
 					"label": "Configure poisons manually",
 					"tooltip": "Prevent automatic poison configuration that is based on equipped weapons."

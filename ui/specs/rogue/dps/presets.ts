@@ -1,7 +1,7 @@
 import * as PresetUtils from '@app/preset_utils';
 import * as Consumables from '@features/settings/model/consumables_auto_gen';
-import { ConsumesSpec } from '@generated/proto/common';
-import { Rogue_Options as RogueOptions } from '@generated/proto/rogue';
+import { ConsumesSpec, Spec } from '@generated/proto/common';
+import { Rogue_Options as RogueOptions, Rogue_Rotation as RogueRotation } from '@generated/proto/rogue';
 import { SavedTalents } from '@generated/proto/ui';
 
 import BackstabAPL from './apls/backstab.apl.json';
@@ -54,6 +54,10 @@ export const TALENTS_SUB_BS = {
 
 export const DEFAULT_APL = PresetUtils.makePresetAPLRotation('Default', DefaultAPL);
 export const BACKSTAB_APL = PresetUtils.makePresetAPLRotation('Backstab', BackstabAPL);
+
+export const DEFAULT_SIMPLE_ROTATION = RogueRotation.create({ useBackstab: false });
+export const SIMPLE_ROTATION = PresetUtils.makePresetSimpleRotation('Simple', Spec.SpecRogue, DEFAULT_SIMPLE_ROTATION);
+export const SIMPLE_BACKSTAB_ROTATION = PresetUtils.makePresetSimpleRotation('Simple (Backstab)', Spec.SpecRogue, RogueRotation.create({ useBackstab: true }));
 
 export const P1_BS_COMBAT_GEAR = PresetUtils.makePresetGear('Backstab Combat', P1BsCombatGear);
 export const P1_MUTI_GEAR = PresetUtils.makePresetGear('Mutilate', P1MutiGear);
@@ -111,7 +115,7 @@ export const PRESET_BUILD_COMBAT_SS = PresetUtils.makePresetBuild('Combat SS', {
 
 export const PRESET_BUILD_COMBAT_BS = PresetUtils.makePresetBuild('Combat BS', {
 	talents: TALENTS_COMBAT_BS,
-	rotation: BACKSTAB_APL,
+	rotation: SIMPLE_BACKSTAB_ROTATION,
 	gear: P1_BS_COMBAT_GEAR,
 	settings: IP_MH_Settings,
 });
@@ -125,7 +129,7 @@ export const PRESET_BUILD_SUB_HEMO = PresetUtils.makePresetBuild('Subtlety Hemo'
 
 export const PRESET_BUILD_SUB_BS = PresetUtils.makePresetBuild('Subtlety BS', {
 	talents: TALENTS_SUB_BS,
-	rotation: BACKSTAB_APL,
+	rotation: SIMPLE_BACKSTAB_ROTATION,
 	gear: P1_BS_SUB_GEAR,
 	settings: IP_MH_Settings,
 });

@@ -70,7 +70,9 @@ message RogueTalents {
 message RogueOptions {}
 
 message Rogue {
-	message Rotation {}
+	message Rotation {
+		bool use_backstab = 1;
+	}
 
 	message Options {
 		RogueOptions class_options = 1;

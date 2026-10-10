@@ -7038,6 +7038,16 @@
 						"rogue": {
 							"type": "object",
 							"properties": {
+								"use_backstab": {
+									"type": "object",
+									"properties": {
+										"label": {
+											"type": "string"
+										}
+									},
+									"additionalProperties": false,
+									"required": ["label"]
+								},
 								"apply_poisons_manually": {
 									"type": "object",
 									"properties": {
@@ -7073,7 +7083,7 @@
 								}
 							},
 							"additionalProperties": false,
-							"required": ["apply_poisons_manually", "subtlety"]
+							"required": ["use_backstab", "apply_poisons_manually", "subtlety"]
 						},
 						"shaman": {
 							"type": "object",
