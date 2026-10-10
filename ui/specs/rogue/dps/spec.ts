@@ -134,6 +134,10 @@ export default defineSpec<Spec.SpecRogue>({
 				fieldName: 'useBackstab',
 				label: i18n.t('rotation_tab.options.rogue.use_backstab.label'),
 			}),
+			InputHelpers.makeRotationBooleanInput<Spec.SpecRogue>({
+				fieldName: 'useExposeArmor',
+				label: i18n.t('rotation_tab.options.rogue.use_expose_armor.label'),
+			}),
 		],
 	},
 	// IconInputs to include in the 'Player' section on the settings tab.
@@ -185,6 +189,7 @@ export default defineSpec<Spec.SpecRogue>({
 		const rotation = APLRotation.clone(Presets.DEFAULT_APL.rotation.rotation!);
 		const values: Record<string, string> = {
 			'Use Backstab': String(simple.useBackstab),
+			'Use Expose Armor': String(simple.useExposeArmor),
 		};
 		rotation.valueVariables = rotation.valueVariables.map(variable =>
 			variable.name in values ? APLValueVariable.fromJson({ name: variable.name, value: { const: { val: values[variable.name] } } }) : variable,

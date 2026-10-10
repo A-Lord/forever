@@ -53,9 +53,13 @@ export const TALENTS_SUB_BS = {
 
 export const DEFAULT_APL = PresetUtils.makePresetAPLRotation('Default (APL)', DefaultAPL);
 
-export const DEFAULT_SIMPLE_ROTATION = RogueRotation.create({ useBackstab: false });
+export const DEFAULT_SIMPLE_ROTATION = RogueRotation.create({ useBackstab: false, useExposeArmor: false });
 export const SIMPLE_ROTATION = PresetUtils.makePresetSimpleRotation('Simple', Spec.SpecRogue, DEFAULT_SIMPLE_ROTATION);
-const SIMPLE_BACKSTAB_BUILD_ROTATION = PresetUtils.makePresetSimpleRotation('Simple', Spec.SpecRogue, RogueRotation.create({ useBackstab: true }));
+const SIMPLE_BACKSTAB_BUILD_ROTATION = PresetUtils.makePresetSimpleRotation(
+	'Simple',
+	Spec.SpecRogue,
+	RogueRotation.create({ useBackstab: true, useExposeArmor: false }),
+);
 
 export const P1_BS_COMBAT_GEAR = PresetUtils.makePresetGear('Backstab Combat', P1BsCombatGear);
 export const P1_MUTI_GEAR = PresetUtils.makePresetGear('Mutilate', P1MutiGear);

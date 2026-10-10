@@ -27,7 +27,7 @@ func (rogue *Rogue) registerRupture() {
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		rogue.BreakStealth(sim)
-		result := spell.CalcOutcome(sim, target, spell.OutcomeMeleeSpecialHit)
+		result := spell.CalcOutcome(sim, target, spell.OutcomeMeleeSpecialHitNoHitCounter)
 		if result.Landed() {
 			comboPoints = rogue.ComboPoints()
 			dot := spell.Dot(target)

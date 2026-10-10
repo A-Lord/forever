@@ -72,6 +72,7 @@ message RogueOptions {}
 message Rogue {
 	message Rotation {
 		bool use_backstab = 1;
+		bool use_expose_armor = 2;
 	}
 
 	message Options {
