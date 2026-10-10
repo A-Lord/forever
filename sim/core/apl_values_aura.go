@@ -20,6 +20,7 @@ type APLValueAuraIsActive struct {
 	aura                AuraReference
 	reactionTime        time.Duration
 	includeReactionTime bool
+	ownCast             bool
 }
 
 func (rot *APLRotation) newValueAuraIsActive(config *proto.APLValueAuraIsActive, _ *proto.UUID) APLValue {
@@ -30,15 +31,14 @@ func (rot *APLRotation) newValueAuraIsActive(config *proto.APLValueAuraIsActive,
 	if aura.Get() == nil {
 		return nil
 	}
-	// The player knows at once that an aura from a spell they cast is up, so only the others wait out the reaction time.
 	actionID := ProtoToActionID(config.AuraId)
-	ownCast := slices.ContainsFunc(rot.unit.Spellbook, func(spell *Spell) bool {
-		return spell.ActionID.SameAction(actionID) && spell.Flags.Matches(SpellFlagAPL)
-	})
 	return &APLValueAuraIsActive{
 		aura:                aura,
 		reactionTime:        rot.unit.ReactionTime,
-		includeReactionTime: config.IncludeReactionTime && !ownCast,
+		includeReactionTime: config.IncludeReactionTime,
+		ownCast: slices.ContainsFunc(rot.unit.Spellbook, func(spell *Spell) bool {
+			return spell.ActionID.SameAction(actionID) && spell.Flags.Matches(SpellFlagAPL)
+		}),
 	}
 }
 func (value *APLValueAuraIsActive) Type() proto.APLValueType {
@@ -46,10 +46,15 @@ func (value *APLValueAuraIsActive) Type() proto.APLValueType {
 }
 func (value *APLValueAuraIsActive) GetBool(sim *Simulation) bool {
 	aura := value.aura.Get()
-	if value.includeReactionTime {
-		return aura.IsActive() && aura.TimeActive(sim) >= value.reactionTime
+	if !value.includeReactionTime {
+		return aura.IsActive()
 	}
-	return aura.IsActive()
+	// The player knows at once that an aura from a spell they cast is up, and reacts to it falling off; any
+	// other aura, such as a proc, takes the reaction time to notice as it lands.
+	if value.ownCast {
+		return aura.IsActive() || aura.TimeInactive(sim) < value.reactionTime
+	}
+	return aura.IsActive() && aura.TimeActive(sim) >= value.reactionTime
 }
 func (value *APLValueAuraIsActive) String() string {
 	return fmt.Sprintf("Aura Active(%s)", value.aura.String())

@@ -945,7 +945,7 @@ func TestValueAuraReactionTime(t *testing.T) {
 	}
 }
 
-func TestValueAuraIsActiveOwnCastSkipsReactionTime(t *testing.T) {
+func TestValueAuraIsActiveOwnCastReactionTime(t *testing.T) {
 	var ownCast, proc *Aura
 	sim, fw, rot := setupFakeRageRotationWith(func(char *Character) {
 		ownCast, proc, _ = registerTestAuras(char)
@@ -965,6 +965,18 @@ func TestValueAuraIsActiveOwnCastSkipsReactionTime(t *testing.T) {
 	sim.CurrentTime = time.Second + 200*time.Millisecond
 	if !ownCastActive.GetBool(sim) || !procActive.GetBool(sim) {
 		t.Errorf("past the reaction time: own cast active = %t, proc active = %t, want true, true", ownCastActive.GetBool(sim), procActive.GetBool(sim))
+	}
+
+	sim.CurrentTime = 2 * time.Second
+	ownCast.Deactivate(sim)
+	proc.Deactivate(sim)
+	sim.CurrentTime = 2*time.Second + 50*time.Millisecond
+	if !ownCastActive.GetBool(sim) || procActive.GetBool(sim) {
+		t.Errorf("as the auras fall off: own cast active = %t, proc active = %t, want true, false", ownCastActive.GetBool(sim), procActive.GetBool(sim))
+	}
+	sim.CurrentTime = 2*time.Second + 200*time.Millisecond
+	if ownCastActive.GetBool(sim) {
+		t.Errorf("past the reaction time after the fall off: own cast active = true, want false")
 	}
 }
 
