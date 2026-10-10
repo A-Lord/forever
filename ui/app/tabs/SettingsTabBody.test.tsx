@@ -1,10 +1,11 @@
-import { GreaterBlessingOfSalvation } from '@features/settings/model/buffs_debuffs';
+import { BUFFS_CONFIG, DEBUFFS_CONFIG, DEBUFFS_MISC_CONFIG, GreaterBlessingOfSalvation, PARTY_BUFFS_CONFIG } from '@features/settings/model/buffs_debuffs';
 import type { RenderableStatOptions } from '@features/settings/model/stat_options';
 import { withSelection } from '@features/stat-filters/model/stat_filters';
 import { APLRotation } from '@generated/proto/apl';
 import { PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
 import { Stat, TristateEffect } from '@generated/proto/common';
 import { UnitStat } from '@sim/proto/stats';
+import { patchSlice } from '@sim/state/sim_store';
 import { renderWithHost } from '@testing/react';
 import { makeIndividualSim, serveDatabase } from '@testing/sim/individual_sim';
 import { act, fireEvent, screen } from '@testing-library/react';
@@ -128,5 +129,26 @@ describe('SettingsTabBody sections', () => {
 
 		act(() => player.getRaid()!.setBuffs(RaidBuffs.create({ arcaneBrilliance: true })));
 		expect(section('raid_buffs')?.getAttribute('data-empty')).toBe('false');
+	});
+});
+
+describe('SettingsTabBody offered flags', () => {
+	it('reads no option again for a write to an unrelated slice, and still follows the raid', async () => {
+		const spies = [...BUFFS_CONFIG, ...PARTY_BUFFS_CONFIG, ...DEBUFFS_CONFIG, ...DEBUFFS_MISC_CONFIG]
+			.filter(option => 'getValue' in option.config)
+			.map(option => vi.spyOn(option.config as { getValue: (player: unknown) => unknown }, 'getValue'));
+		const reads = () => spies.reduce((total, spy) => total + spy.mock.calls.length, 0);
+		const { sim, player } = await setup({ excludeBuffDebuffInputs: [GreaterBlessingOfSalvation] });
+		act(() => sim.setFilters(withSelection(sim.getFilters(), 'buffs', [])));
+		expect(section('raid_buffs')?.getAttribute('data-empty')).toBe('true');
+
+		const before = reads();
+		act(() => patchSlice(sim.store, 'ui', {}));
+		expect(reads()).toBe(before);
+
+		act(() => player.getRaid()!.setBuffs(RaidBuffs.create({ arcaneBrilliance: true })));
+		expect(reads()).toBeGreaterThan(before);
+		expect(section('raid_buffs')?.getAttribute('data-empty')).toBe('false');
+		vi.restoreAllMocks();
 	});
 });

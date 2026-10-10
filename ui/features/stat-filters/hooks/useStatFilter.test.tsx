@@ -4,10 +4,16 @@ import { UnitStat } from '@sim/proto/stats';
 import { createSimStore, patchSlice, type SimStore } from '@sim/state/sim_store';
 import { renderWithHost } from '@testing/react';
 import { act } from '@testing-library/react';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { StatFilterScope } from '../model/stat_filters';
+import * as statFilters from '../model/stat_filters';
 import { useStatFilter } from './useStatFilter';
+
+vi.mock('../model/stat_filters', async importOriginal => {
+	const actual = await importOriginal<typeof import('../model/stat_filters')>();
+	return { ...actual, shownStats: vi.fn(actual.shownStats) };
+});
 
 const strength = UnitStat.fromStat(Stat.StatStrength);
 const agility = UnitStat.fromStat(Stat.StatAgility);
@@ -95,5 +101,19 @@ describe('useStatFilter', () => {
 
 		expect(sim.getFilters().minIlvl).toBe(50);
 		expect(sim.getFilters().statFilters?.buffs).toBeDefined();
+	});
+});
+
+describe('useStatFilter on unrelated writes', () => {
+	it('does not work out the shown stats again for a write to another slice', () => {
+		const spy = vi.mocked(statFilters.shownStats);
+		mount();
+		const before = latest.shown;
+		spy.mockClear();
+
+		act(() => patchSlice(store, 'ui', {}));
+
+		expect(spy).not.toHaveBeenCalled();
+		expect(latest.shown).toBe(before);
 	});
 });

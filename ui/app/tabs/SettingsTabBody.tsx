@@ -13,7 +13,7 @@ import type { Player } from '@sim/player/player';
 import { statSetsOf } from '@sim/proto/stats';
 import { ContentBlock } from '@ui-kit/ContentBlock';
 import { TabPanelColumns } from '@ui-kit/TabPanelColumns';
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { useStore } from 'zustand';
 
 import { PresetConfigurationPicker } from '../PresetConfigurationPicker';
@@ -25,6 +25,21 @@ const DEBUFF_OPTIONS = [...BuffDebuffInputs.DEBUFFS_CONFIG, ...BuffDebuffInputs.
 
 const anyOffered = (list: ReadonlyArray<RenderableStatOptions>, player: Player<any>) =>
 	list.some(option => !option.config.keptBy || option.config.keptBy(player));
+
+// Whether any option is offered, worked out again only when the raid slice, the player's slice or the list changes. An
+// option's value is read from those two slices, so a write to any other slice returns the cached flag.
+const useAnyOffered = (list: ReadonlyArray<RenderableStatOptions>, player: Player<any>) => {
+	const cache = useRef<{ raid: unknown; entry: unknown; list: unknown; offered: boolean }>(undefined);
+	return useStore(player.sim.store, state => {
+		const raid = state.raid;
+		const entry = state.players[player.storeKey];
+		const last = cache.current;
+		if (last && last.raid === raid && last.entry === entry && last.list === list) return last.offered;
+		const offered = anyOffered(list, player);
+		cache.current = { raid, entry, list, offered };
+		return offered;
+	});
+};
 
 export const SettingsTabBody = () => {
 	const host = useSimHost();
@@ -48,11 +63,11 @@ export const SettingsTabBody = () => {
 		};
 	}, [config, player, buffFilter.shown, debuffFilter.shown]);
 
-	// A kept option counts as offered only while it is picked, so each flag is re-read on every store change and the
-	// tab re-renders only when one flips.
-	const offersBuffs = useStore(host.sim.store, () => anyOffered(options.buffs, player));
-	const offersPartyBuffs = useStore(host.sim.store, () => anyOffered(options.partyBuffs, player));
-	const offersDebuffs = useStore(host.sim.store, () => anyOffered(options.debuffs, player));
+	// A kept option counts as offered only while it is picked, so each flag is re-read when the raid or the player
+	// changes and the tab re-renders only when one flips.
+	const offersBuffs = useAnyOffered(options.buffs, player);
+	const offersPartyBuffs = useAnyOffered(options.partyBuffs, player);
+	const offersDebuffs = useAnyOffered(options.debuffs, player);
 
 	const itemSwapSlots = config.itemSwapSlots || [];
 	const hasOtherSettings = config.otherInputs.inputs.length > 0 || itemSwapSlots.length > 0;
