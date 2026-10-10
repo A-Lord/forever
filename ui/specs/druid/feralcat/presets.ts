@@ -57,8 +57,8 @@ export const Level60Ep = Stats.fromMap({
 	[Stat.StatAttackPower]: 0.41,
 	[Stat.StatFeralAttackPower]: 0.4,
 	[Stat.StatPhysicalDamage]: 3.72,
-	[Stat.StatHitRating]: 0.66,
-	[Stat.StatExpertiseRating]: 0.64,
+	[Stat.StatHitRating]: 0.72,
+	[Stat.StatExpertiseRating]: 0.7,
 	[Stat.StatCritRating]: 0.72,
 	[Stat.StatHasteRating]: 0.39,
 	[Stat.StatArmorPenetration]: 0.12,
@@ -70,15 +70,15 @@ export const Level60EpWeights = PresetUtils.makePresetEpWeights('Level 60', Leve
 // debuffs and consumables, 180s, 200000 iterations. Hit is weighed 2% below the 8% cap, where the gear
 // picker reads it.
 export const PreRaidEp = Stats.fromMap({
-	[Stat.StatStrength]: 0.96,
+	[Stat.StatStrength]: 0.97,
 	[Stat.StatAgility]: 1,
 	[Stat.StatAttackPower]: 0.39,
-	[Stat.StatFeralAttackPower]: 0.38,
-	[Stat.StatPhysicalDamage]: 3.53,
-	[Stat.StatHitRating]: 0.71,
-	[Stat.StatExpertiseRating]: 0.69,
+	[Stat.StatFeralAttackPower]: 0.39,
+	[Stat.StatPhysicalDamage]: 3.56,
+	[Stat.StatHitRating]: 0.75,
+	[Stat.StatExpertiseRating]: 0.73,
 	[Stat.StatCritRating]: 0.75,
-	[Stat.StatHasteRating]: 0.44,
+	[Stat.StatHasteRating]: 0.43,
 	[Stat.StatArmorPenetration]: 0.13,
 });
 

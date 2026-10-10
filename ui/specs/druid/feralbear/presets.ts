@@ -43,48 +43,48 @@ export const Level60Encounter = {
 // Defense is close to 0, its Thick Hide armor against the hits it avoids. Stamina keeps the bear alive longer.
 export const Level60DpsEp = Stats.fromMap(
 	{
-		[Stat.StatStrength]: 2.0525,
+		[Stat.StatStrength]: 2.0609,
 		[Stat.StatAgility]: 1,
-		[Stat.StatStamina]: 0.1087,
-		[Stat.StatAttackPower]: 0.933,
-		[Stat.StatFeralAttackPower]: 0.933,
-		[Stat.StatArmor]: 0.0257,
-		[Stat.StatBonusArmor]: 0.0257,
-		[Stat.StatDodgeRating]: -0.0984,
-		[Stat.StatDefenseRating]: 0.0113,
-		[Stat.StatHitRating]: 3.731,
-		[Stat.StatCritRating]: 1.3716,
-		[Stat.StatHasteRating]: 0.8334,
-		[Stat.StatExpertiseRating]: 7.0868,
-		[Stat.StatPhysicalDamage]: 5.9943,
-		[Stat.StatArmorPenetration]: 0.3568,
+		[Stat.StatStamina]: 0.1094,
+		[Stat.StatAttackPower]: 0.9368,
+		[Stat.StatFeralAttackPower]: 0.9368,
+		[Stat.StatArmor]: 0.0258,
+		[Stat.StatBonusArmor]: 0.0258,
+		[Stat.StatDodgeRating]: -0.1057,
+		[Stat.StatDefenseRating]: 0.0067,
+		[Stat.StatHitRating]: 3.753,
+		[Stat.StatCritRating]: 1.3774,
+		[Stat.StatHasteRating]: 0.8336,
+		[Stat.StatExpertiseRating]: 7.1215,
+		[Stat.StatPhysicalDamage]: 6.0207,
+		[Stat.StatArmorPenetration]: 0.3582,
 	},
 	{
-		[PseudoStat.PseudoStatMainHandDps]: 13.0616,
+		[PseudoStat.PseudoStatMainHandDps]: 13.1147,
 	},
 );
 
 // Threat with agility as 1, on the same run.
 export const Level60ThreatEp = Stats.fromMap(
 	{
-		[Stat.StatStrength]: 1.9879,
+		[Stat.StatStrength]: 1.9952,
 		[Stat.StatAgility]: 1,
-		[Stat.StatStamina]: 0.1068,
-		[Stat.StatAttackPower]: 0.9036,
-		[Stat.StatFeralAttackPower]: 0.9036,
-		[Stat.StatArmor]: 0.0252,
-		[Stat.StatBonusArmor]: 0.0252,
-		[Stat.StatDodgeRating]: -0.0996,
-		[Stat.StatDefenseRating]: -0.0082,
-		[Stat.StatHitRating]: 3.6566,
-		[Stat.StatCritRating]: 1.373,
-		[Stat.StatHasteRating]: 0.813,
-		[Stat.StatExpertiseRating]: 6.9202,
-		[Stat.StatPhysicalDamage]: 5.8149,
-		[Stat.StatArmorPenetration]: 0.3456,
+		[Stat.StatStamina]: 0.1076,
+		[Stat.StatAttackPower]: 0.9069,
+		[Stat.StatFeralAttackPower]: 0.9069,
+		[Stat.StatArmor]: 0.0253,
+		[Stat.StatBonusArmor]: 0.0253,
+		[Stat.StatDodgeRating]: -0.1067,
+		[Stat.StatDefenseRating]: -0.0128,
+		[Stat.StatHitRating]: 3.676,
+		[Stat.StatCritRating]: 1.3786,
+		[Stat.StatHasteRating]: 0.8125,
+		[Stat.StatExpertiseRating]: 6.9497,
+		[Stat.StatPhysicalDamage]: 5.8386,
+		[Stat.StatArmorPenetration]: 0.3468,
 	},
 	{
-		[PseudoStat.PseudoStatMainHandDps]: 12.65,
+		[PseudoStat.PseudoStatMainHandDps]: 12.6969,
 	},
 );
 
@@ -94,12 +94,12 @@ export const Level60ThreatEp = Stats.fromMap(
 // swings.
 export const Level60SurvivalEp = Stats.fromMap({
 	[Stat.StatStamina]: 1,
-	[Stat.StatAgility]: 0.1957,
-	[Stat.StatArmor]: 0.1616,
-	[Stat.StatBonusArmor]: 0.1616,
+	[Stat.StatAgility]: 0.1964,
+	[Stat.StatArmor]: 0.1617,
+	[Stat.StatBonusArmor]: 0.1617,
 	[Stat.StatDodgeRating]: 0.1777,
-	[Stat.StatDefenseRating]: 0.8501,
-	[Stat.StatExpertiseRating]: 0.3202,
+	[Stat.StatDefenseRating]: 0.8496,
+	[Stat.StatExpertiseRating]: 0.3212,
 });
 
 export const Level60DpsEpWeights = PresetUtils.makePresetEpWeights('Level 60 DPS', Level60DpsEp);
