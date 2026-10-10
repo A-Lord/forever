@@ -1817,6 +1817,24 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		273041, // Slitherwrap Girdle
+		[
+			"When struck in combat, drain 2 mana from the attacker.", // 1292706 - https://www.wowhead.com/forever/spell=1292706
+		]
+	],
+	[
+		273044, // Violet Sorcerer's Robes
+		[
+			"When damaged, has a chance to reduce threat level on all enemies by a small amount for 10s.", // 12685 - https://www.wowhead.com/forever/spell=12685
+		]
+	],
+	[
+		273046, // Guardian's Dualblade
+		[
+			"When damaged, has a chance to grant you 1080 armor for 12s.", // 1293345 - https://www.wowhead.com/forever/spell=1293345
+		]
+	],
+	[
 		273084, // Cloak of Hermitic Bliss
 		[
 			"Swim speed increased by 33%.", // 1291749 - https://www.wowhead.com/forever/spell=1291749
