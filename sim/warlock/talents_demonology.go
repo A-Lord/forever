@@ -178,8 +178,8 @@ func (warlock *Warlock) applyMasterSummoner() {
 // --- Tier 4 ---
 
 // Effect 2 shortens Soul Fire's cooldown. Below 35% health (effect 3), Shadow Bolt and Searing Pain deal more
-// damage (effect 4), and casting either grants Decimation (440873): for 10 sec Soul Fire casts faster and,
-// by the buff's A_NO_REAGENT_USE, takes no Soul Shard.
+// damage (effect 4), and a cast of either that lands grants Decimation (440873): for 10 sec Soul Fire casts
+// faster and, by the buff's A_NO_REAGENT_USE, takes no Soul Shard.
 func (warlock *Warlock) applyDecimation() {
 	if warlock.Talents.Decimation == 0 {
 		return
@@ -217,17 +217,40 @@ func (warlock *Warlock) applyDecimation() {
 	noReagent := decimationRow.Effect(dbcenums.A_NO_REAGENT_USE, 0)
 	warlock.reagentWaivers = append(warlock.reagentWaivers, reagentWaiver{aura: decimationAura, flags: noReagent.ClassFlags})
 
-	warlock.MakeProcTriggerAura(core.ProcTrigger{
+	// Set while Shadow Bolt's launch is handed to the trigger, so its later impact is told apart.
+	var launching bool
+
+	// The buff comes with the cast, and only when its hit lands: a miss or a full resist grants nothing.
+	// Searing Pain hits inside its cast; Shadow Bolt rolls its hit at the cast and hands it over at the
+	// launch, before the bolt lands.
+	triggerAura := warlock.MakeProcTriggerAura(core.ProcTrigger{
 		Name:       "Decimation - Trigger",
-		Callback:   core.CallbackOnCastComplete,
+		Callback:   core.CallbackOnSpellHitDealt,
+		Outcome:    core.OutcomeLanded,
 		ClassFlags: executeBonus.ClassFlags,
-		ExtraCondition: func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) bool {
-			return sim.IsExecutePhase35()
+		// In the logs the buff comes in the same batch as the cast.
+		TriggerImmediately: true,
+		ExtraCondition: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) bool {
+			return sim.IsExecutePhase35() && result.Outcome.ResistedTenths() < 10 &&
+				(launching || !spell.Matches(WarlockSpellShadowBolt))
 		},
 		Handler: func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
 			decimationAura.Activate(sim)
 		},
 	})
+
+	warlock.decimationLaunch = func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
+		launching = true
+		triggerAura.OnSpellHitDealt(triggerAura, sim, spell, result)
+		launching = false
+	}
+}
+
+// Hands Shadow Bolt's hit, rolled at the cast, to Decimation as the bolt is launched.
+func (warlock *Warlock) launchShadowBolt(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
+	if warlock.decimationLaunch != nil {
+		warlock.decimationLaunch(sim, spell, result)
+	}
 }
 
 // TODO: Not implemented, as it does not affect sims for now: demons are summoned before the fight.
