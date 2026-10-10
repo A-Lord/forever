@@ -274,8 +274,7 @@ func (priest *Priest) applyPowerInfusion() {
 	piSpell := priest.RegisterSpell(config)
 
 	priest.AddMajorCooldown(core.MajorCooldown{
-		Spell:    piSpell,
-		Priority: core.CooldownPriorityDefault,
-		Type:     core.CooldownTypeDPS,
+		Spell: piSpell,
+		Type:  core.CooldownTypeDPS,
 	})
 }

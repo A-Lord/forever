@@ -5,8 +5,8 @@ import "github.com/wowsims/forever/sim/core"
 const priestRenewedHopeSpells = PriestSpellFlashHeal |
 	PriestSpellLesserHeal |
 	PriestSpellHeal |
-	PriestSPellGreaterHeal |
-	PriestPellBindingHeal |
+	PriestSpellGreaterHeal |
+	PriestSpellBindingHeal |
 	PriestSpellPenance
 
 func (priest *Priest) withRenewedHope(sim *core.Simulation, target *core.Unit, spell *core.Spell, apply func()) {

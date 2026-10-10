@@ -163,8 +163,9 @@ func (priest *Priest) applyShadowWeaving() {
 		Outcome:          core.OutcomeLanded,
 		ProcChance:       spellData.ShadowWeaving.FractionAt(priest.Talents.ShadowWeaving),
 		Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-			swAuras.Get(result.Target).Activate(sim)
-			swAuras.Get(result.Target).AddStack(sim)
+			aura := swAuras.Get(result.Target)
+			aura.Activate(sim)
+			aura.AddStack(sim)
 		},
 	})
 }
@@ -241,10 +242,5 @@ func (priest *Priest) applyShadowform() {
 	shadowformAura := priest.RegisterAura(auraConfig)
 	spelldata.ParseEffects(&priest.Character, shadowformAura, rank)
 
-	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Flags(core.SpellFlagAPL))
-	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, _ *core.Spell) {
-		shadowformAura.Activate(sim)
-	}
-	config.RelatedSelfBuff = shadowformAura
-	priest.RegisterSpell(config)
+	priest.registerSelfBuffSpell(rank, shadowformAura)
 }

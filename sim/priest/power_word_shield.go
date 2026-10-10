@@ -18,15 +18,11 @@ func (priest *Priest) registerPowerWordShield(_ int32, rank *spelldata.Spell) {
 	config.ClassSpellMask = PriestSpellPowerWordShield
 	config.RelatedAuraArrays = priest.weakenedSoulAuras.ToMap()
 	config.ExtraCastCondition = func(_ *core.Simulation, target *core.Unit) bool {
-		if target == nil || target.Type == core.EnemyUnit {
-			target = &priest.Unit
-		}
+		target = priest.healTarget(target)
 		return !priest.weakenedSoulAuras.Get(target).IsActive()
 	}
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		if target == nil || target.Type == core.EnemyUnit {
-			target = &priest.Unit
-		}
+		target = priest.healTarget(target)
 		priest.weakenedSoulAuras.Get(target).Activate(sim)
 		spell.CalcAndDealHealing(sim, target, baseAbsorb.Average(), spell.OutcomeHealing)
 	}

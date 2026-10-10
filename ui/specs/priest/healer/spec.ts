@@ -14,6 +14,8 @@ import { defineSpec } from '@sim/spec_config';
 import * as PriestInputs from '../shared/inputs';
 import * as Presets from './presets';
 
+const partySizeValues = [1, 2, 3, 4, 5].map(value => ({ name: String(value), value }));
+
 export default defineSpec<Spec.SpecHealerPriest>({
 	spec: Spec.SpecHealerPriest,
 	enableHealing: true,
@@ -82,7 +84,7 @@ export default defineSpec<Spec.SpecHealerPriest>({
 				label: 'Holy Nova heal targets',
 				labelTooltip: "Number of party members, including the priest, randomly selected to receive Holy Nova's heal.",
 				getValue: player => player.getSpecOptions().holyNovaHealTargets || 5,
-				values: [1, 2, 3, 4, 5].map(value => ({ name: String(value), value })),
+				values: partySizeValues,
 			}),
 			InputHelpers.makeSpecOptionsEnumInput<Spec.SpecHealerPriest, PrayerOfHealingMode>({
 				fieldName: 'prayerOfHealingMode',
@@ -98,7 +100,7 @@ export default defineSpec<Spec.SpecHealerPriest>({
 				label: 'Prayer of Mending jumps',
 				labelTooltip: 'Number of jumps after the first heal event.',
 				getValue: player => player.getSpecOptions().prayerOfMendingJumps || 5,
-				values: [1, 2, 3, 4, 5].map(value => ({ name: String(value), value })),
+				values: partySizeValues,
 			}),
 			InputHelpers.makeSpecOptionsNumberInput<Spec.SpecHealerPriest>({
 				fieldName: 'prayerOfMendingDelay',

@@ -8,19 +8,13 @@ import (
 var ShadowWordDeathRankMap = spellData.ShadowWordDeath
 
 func (priest *Priest) registerShadowWordDeathSpell(_ int32, rank *spelldata.Spell) {
-	baseDamage := rank.DamageEffect()
 	backlash := rank.EffectN(3).Percent()
 
-	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))
-	config.ClassSpellMask = PriestSpellShadowWordDeath
-
+	config := priest.directDamageSpellConfig(rank, PriestSpellShadowWordDeath)
+	dealDamage := config.ApplyEffects
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		spell.CalcAndDealDamage(sim, target, baseDamage.Average(), spell.OutcomeMagicHitAndCrit)
+		dealDamage(sim, target, spell)
 		priest.RemoveHealth(sim, priest.MaxHealth()*backlash)
-	}
-
-	config.ExpectedInitialDamage = func(sim *core.Simulation, target *core.Unit, spell *core.Spell, _ bool) *core.SpellResult {
-		return spell.CalcDamage(sim, target, baseDamage.Average(), spell.OutcomeExpectedMagicHitAndCrit)
 	}
 
 	priest.RegisterSpell(config)

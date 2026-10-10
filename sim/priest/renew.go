@@ -10,7 +10,6 @@ func (priest *Priest) registerRenew(_ int32, rank *spelldata.Spell) {
 	healTick := rank.PeriodicEffect()
 
 	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellHealing))
-	config.DamageMultiplier = 1
 	config.ClassSpellMask = PriestSpellRenew
 
 	config.Hot = spelldata.DotConfig(rank, healTick, spelldata.RankLabel(rank, &priest.Unit))

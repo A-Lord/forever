@@ -158,7 +158,7 @@ func (priest *Priest) applySearingLight() {
 	holyPurposeRow := spellData.SearingLightTriggered.Highest()
 	holyPurposeConfig := spelldata.AuraConfig(holyPurposeRow)
 	holyPurposeConfig.OnCastComplete = func(aura *core.Aura, sim *core.Simulation, spell *core.Spell) {
-		if spellData.HolyNova.Contains(spell) {
+		if spell.Matches(PriestSpellHolyNova) {
 			aura.Deactivate(sim)
 		}
 	}

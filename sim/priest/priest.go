@@ -46,7 +46,7 @@ func (priest *Priest) AddPartyBuffs(_ *proto.PartyBuffs) {
 }
 
 func (priest *Priest) Initialize() {
-	HolyFireRankMap.Each(priest.registerHolyFireSpell)
+	spellData.HolyFire.Each(priest.registerHolyFireSpell)
 	MindBlastRankMap.Each(priest.registerMindBlastSpell)
 	ShadowWordPainRankMap.Each(priest.registerShadowWordPainSpell)
 	ShadowWordDeathRankMap.Each(priest.registerShadowWordDeathSpell)
@@ -103,7 +103,6 @@ func (priest *Priest) periodicDamageSpellConfig(rank *spelldata.Spell, classSpel
 	config.ClassSpellMask = classSpellMask
 
 	config.Dot = spelldata.DotConfig(rank, tick, spelldata.RankLabel(rank, &priest.Unit))
-	config.Dot.OnTick = spelldata.PeriodicDamageTick(tick, rank.TickOutcome)
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		result := spell.CalcOutcome(sim, target, spell.OutcomeMagicHitNoHitCounter)
@@ -118,6 +117,45 @@ func (priest *Priest) periodicDamageSpellConfig(rank *spelldata.Spell, classSpel
 	}
 
 	return config
+}
+
+func (priest *Priest) directDamageSpellConfig(rank *spelldata.Spell, classSpellMask int64) core.SpellConfig {
+	baseDamage := rank.DamageEffect()
+
+	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))
+	config.ClassSpellMask = classSpellMask
+
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		spell.CalcAndDealDamage(sim, target, baseDamage.Average(), spell.OutcomeMagicHitAndCrit)
+	}
+
+	config.ExpectedInitialDamage = func(sim *core.Simulation, target *core.Unit, spell *core.Spell, _ bool) *core.SpellResult {
+		return spell.CalcDamage(sim, target, baseDamage.Average(), spell.OutcomeExpectedMagicHitAndCrit)
+	}
+
+	return config
+}
+
+func (priest *Priest) directHealSpellConfig(rank *spelldata.Spell, classSpellMask int64) core.SpellConfig {
+	heal := rank.HealEffect()
+
+	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellHealing))
+	config.ClassSpellMask = classSpellMask
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		target = priest.healTarget(target)
+		priest.withRenewedHope(sim, target, spell, func() {
+			spell.CalcAndDealHealing(sim, target, heal.Average(), spell.OutcomeHealingCrit)
+		})
+	}
+
+	return config
+}
+
+func (priest *Priest) healTarget(target *core.Unit) *core.Unit {
+	if target == nil || target.Type == core.EnemyUnit {
+		return &priest.Unit
+	}
+	return target
 }
 
 func (priest *Priest) Reset(_ *core.Simulation) {
@@ -156,7 +194,6 @@ func NewPriest(character *core.Character, options *proto.Player) *Priest {
 
 	basePriest := New(character, selfBuffs, options.TalentsString)
 	basePriest.Latency = float64(basePriest.ChannelClipDelay.Milliseconds())
-	basePriest.PseudoStats.PeriodicHealingDealtMultiplier = 1
 
 	return basePriest
 }
@@ -191,12 +228,10 @@ const (
 	PriestSpellFlashHeal
 	PriestSpellLesserHeal
 	PriestSpellHeal
-	PriestSPellGreaterHeal
-	PriestPellBindingHeal
-	PriestSpellPrayerOfHealing
+	PriestSpellGreaterHeal
+	PriestSpellBindingHeal
 	PriestSpellRenew
 	PriestSpellPowerWordShield
-	PriestSpellPrayerOfMender
 	PriestSpellHolyNova
 	PriestSpellLightwell
 
@@ -208,18 +243,4 @@ const (
 		PriestSpellShadowWordPain |
 		PriestSpellMindFlay |
 		PriestSpellMindBlast
-
-	PriestHealingSpells = PriestSpellFlashHeal |
-		PriestSpellLesserHeal |
-		PriestSpellHeal |
-		PriestSPellGreaterHeal |
-		PriestPellBindingHeal |
-		PriestSpellPrayerOfHealing |
-		PriestSpellRenew |
-		PriestSpellPowerWordShield |
-		PriestSpellPrayerOfMender |
-		PriestSpellHolyNova |
-		PriestSpellLightwell |
-		PriestSpellCureDisease |
-		PriestSpellAbolishDisease
 )

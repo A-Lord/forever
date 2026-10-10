@@ -6,13 +6,9 @@ import (
 )
 
 func (priest *Priest) registerPenance(_ int32, rank *spelldata.Spell) {
-	// --------------------
-	// Spell data
-	//
 	// The tooltip names the damage bolt first and the channel that times the bolts third. Each bolt is
 	// its own spell, because Holy Precision, Holy Specialization and Inner Focus's crit name the bolt
 	// row's class flags, not the cast's.
-	// --------------------
 	refs := rank.Refs()
 	boltRow := refs[0]
 	healBoltRow := refs[1]
@@ -20,9 +16,6 @@ func (priest *Priest) registerPenance(_ int32, rank *spelldata.Spell) {
 	healBolt := healBoltRow.HealEffect()
 	channel := refs[2]
 
-	// --------------------
-	// Proc bolts
-	// --------------------
 	boltConfig := spelldata.SpellConfig(&priest.Unit, boltRow, spelldata.Magic(core.ProcMaskSpellDamage), spelldata.Proc())
 	boltConfig.ClassSpellMask = PriestSpellPenance
 	boltConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
@@ -33,18 +26,13 @@ func (priest *Priest) registerPenance(_ int32, rank *spelldata.Spell) {
 	healBoltConfig := spelldata.SpellConfig(&priest.Unit, healBoltRow, spelldata.Magic(core.ProcMaskSpellHealing), spelldata.Proc())
 	healBoltConfig.ClassSpellMask = PriestSpellPenance
 	healBoltConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		if target == nil || target.Type == core.EnemyUnit {
-			target = &priest.Unit
-		}
+		target = priest.healTarget(target)
 		priest.withRenewedHope(sim, target, spell, func() {
 			spell.CalcAndDealHealing(sim, target, healBolt.Average(), spell.OutcomeHealingCrit)
 		})
 	}
 	healBoltSpell := priest.RegisterSpell(healBoltConfig)
 
-	// --------------------
-	// Damage mode
-	// --------------------
 	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))
 
 	config.Dot = spelldata.DotConfig(channel, channel.PeriodicEffect(), spelldata.RankLabel(rank, &priest.Unit))
@@ -65,9 +53,6 @@ func (priest *Priest) registerPenance(_ int32, rank *spelldata.Spell) {
 		return result
 	}
 
-	// --------------------
-	// Healing mode
-	// --------------------
 	healConfig := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellHealing))
 	// Keep the heal bolt's action ID so existing APL entries still resolve to this cast.
 	healConfig.ActionID = (core.ActionID{SpellID: healBoltRow.ID}).WithTag(1)
@@ -80,9 +65,7 @@ func (priest *Priest) registerPenance(_ int32, rank *spelldata.Spell) {
 	}
 
 	healConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		if target == nil || target.Type == core.EnemyUnit {
-			target = &priest.Unit
-		}
+		target = priest.healTarget(target)
 		priest.withRenewedHope(sim, target, spell, func() {
 			healBoltSpell.Cast(sim, target)
 			spell.Hot(target).Apply(sim)
@@ -91,5 +74,4 @@ func (priest *Priest) registerPenance(_ int32, rank *spelldata.Spell) {
 
 	priest.RegisterSpell(config)
 	priest.RegisterSpell(healConfig)
-
 }
