@@ -170,8 +170,7 @@ func TestWeaponProcStrikeIsHeardOnlyFromTheMainHand(t *testing.T) {
 
 			items := testHands(&proto.ItemSpec{Id: tc.weaponID}, &proto.ItemSpec{Id: tc.weaponID})
 			items[proto.ItemSlot_ItemSlotNeck] = &proto.ItemSpec{Id: tc.neckID}
-			sim := newTestCasterSim(items, nil)
-			caster := sim.Raid.Parties[0].Players[0].(*testCaster)
+			sim, caster := newWielderSim(items)
 			target := sim.Encounter.ActiveTargetUnits[0]
 
 			for range swings {
@@ -244,48 +243,62 @@ func TestWeaponProcStrikeIsHeardOnlyFromTheMainHand(t *testing.T) {
 // in the off hand, each measured on the weapon carrying it, so a wielder that dual wields carries
 // them. A strike a main-hand swing cast rolls the main-hand weapon's proc and never the off-hand
 // one's, and one an off-hand swing cast rolls neither: off-hand swings cast Rends that roll nothing,
-// and main-hand swings cast Wounds that roll Wound again and never Rend. The swings are the test's
-// own, so the wielder's auto attacks are off.
+// and main-hand swings cast Wounds that roll Wound again and never Rend. The off-hand weapon's rate is
+// procs per minute in one case and a flat chance in its row's column in the other; both roll on the
+// off hand's hits only. The swings are the test's own, so the wielder's auto attacks are off.
 func TestWeaponProcStrikeRollsOnlyTheMainHandWeapon(t *testing.T) {
-	const mainHandID, offHandID, wound, rend int32 = 991614, 991615, 16405, 18202
+	const wound, rend int32 = 16405, 18202
 	const swings = 20
-	editRow(t, wound, func(s *spelldata.Spell) { s.RPPM = 18 })
-	editRow(t, rend, func(s *spelldata.Spell) { s.RPPM = 12 })
-	core.AddToDatabase(&proto.SimDatabase{Items: []*proto.SimItem{testOneHander(mainHandID), testOneHander(offHandID)}})
-	registerSpellDataDamageProc(SpellDataProc{Name: "Test Wound Weapon", ItemID: mainHandID,
-		TriggerSpellID: wound, BuffSpellID: wound, IsWeaponProc: true})
-	registerSpellDataDamageProc(SpellDataProc{Name: "Test Rend Weapon", ItemID: offHandID,
-		TriggerSpellID: rend, BuffSpellID: rend, IsWeaponProc: true})
+	for _, tc := range []struct {
+		name                  string
+		mainHandID, offHandID int32
+		offHandRate           func(*spelldata.Spell)
+	}{
+		{"procs per minute", 991614, 991615, func(s *spelldata.Spell) { s.RPPM = 12 }},
+		{"flat chance", 991620, 991621, func(s *spelldata.Spell) {
+			s.RPPM, s.ProcChance, s.ProcChanceSource = 0, 50, spelldata.ProcChanceColumn
+		}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			editRow(t, wound, func(s *spelldata.Spell) { s.RPPM = 18 })
+			editRow(t, rend, tc.offHandRate)
+			core.AddToDatabase(&proto.SimDatabase{Items: []*proto.SimItem{testOneHander(tc.mainHandID), testOneHander(tc.offHandID)}})
+			registerSpellDataDamageProc(SpellDataProc{Name: "Test Wound Weapon", ItemID: tc.mainHandID,
+				TriggerSpellID: wound, BuffSpellID: wound, IsWeaponProc: true})
+			registerSpellDataDamageProc(SpellDataProc{Name: "Test Rend Weapon", ItemID: tc.offHandID,
+				TriggerSpellID: rend, BuffSpellID: rend, IsWeaponProc: true})
 
-	sim := newTestCasterSimAgainst(testHands(&proto.ItemSpec{Id: mainHandID}, &proto.ItemSpec{Id: offHandID}), nil, 1,
-		func(player *proto.Player) { player.Spec = &proto.Player_EnhancementShaman{} })
-	caster := sim.Raid.Parties[0].Players[0].(*testCaster)
-	caster.AutoAttacks.CancelAutoSwing(sim)
-	target := sim.Encounter.ActiveTargetUnits[0]
-	woundSpell, rendSpell := mustGetSpell(t, caster, wound), mustGetSpell(t, caster, rend)
-	casts := func(spell *core.Spell) int32 { return spell.SpellMetrics[target.UnitIndex].Casts }
+			sim := newTestCasterSimAgainst(testHands(&proto.ItemSpec{Id: tc.mainHandID}, &proto.ItemSpec{Id: tc.offHandID}), nil, 1,
+				func(player *proto.Player) { player.Spec = &proto.Player_EnhancementShaman{} })
+			caster := sim.Raid.Parties[0].Players[0].(*testCaster)
+			caster.AutoAttacks.CancelAutoSwing(sim)
+			target := sim.Encounter.ActiveTargetUnits[0]
+			woundSpell, rendSpell := mustGetSpell(t, caster, wound), mustGetSpell(t, caster, rend)
+			casts := func(spell *core.Spell) int32 { return spell.SpellMetrics[target.UnitIndex].Casts }
 
-	for range swings {
-		landSwing(sim, caster, target, core.ProcMaskMeleeOHAuto)
-	}
-	settleChains(t, sim)
-	if n := casts(rendSpell); n == 0 || n > swings {
-		t.Errorf("%d off-hand swings cast %d Rends, want some and at most one each: a Rend never rolls the off-hand weapon", swings, n)
-	}
-	if n := casts(woundSpell); n != 0 {
-		t.Errorf("Rends off-hand swings cast rolled the main-hand weapon's Wound %d times, want none", n)
-	}
+			for range swings {
+				landSwing(sim, caster, target, core.ProcMaskMeleeOHAuto)
+			}
+			settleChains(t, sim)
+			if n := casts(rendSpell); n == 0 || n > swings {
+				t.Errorf("%d off-hand swings cast %d Rends, want some and at most one each: a Rend never rolls the off-hand weapon", swings, n)
+			}
+			if n := casts(woundSpell); n != 0 {
+				t.Errorf("Rends off-hand swings cast rolled the main-hand weapon's Wound %d times, want none", n)
+			}
 
-	rends, wounds := casts(rendSpell), casts(woundSpell)
-	for range swings {
-		landSwing(sim, caster, target, core.ProcMaskMeleeMHAuto)
-	}
-	settleChains(t, sim)
-	if n := casts(rendSpell) - rends; n != 0 {
-		t.Errorf("%d main-hand swings cast %d Rends, want none", swings, n)
-	}
-	if n := casts(woundSpell) - wounds; n <= swings {
-		t.Errorf("%d main-hand swings cast %d Wounds, want more: a Wound rolls the main-hand weapon again", swings, n)
+			rends, wounds := casts(rendSpell), casts(woundSpell)
+			for range swings {
+				landSwing(sim, caster, target, core.ProcMaskMeleeMHAuto)
+			}
+			settleChains(t, sim)
+			if n := casts(rendSpell) - rends; n != 0 {
+				t.Errorf("%d main-hand swings and the Wounds they cast cast %d Rends, want none", swings, n)
+			}
+			if n := casts(woundSpell) - wounds; n <= swings {
+				t.Errorf("%d main-hand swings cast %d Wounds, want more: a Wound rolls the main-hand weapon again", swings, n)
+			}
+		})
 	}
 }
 
@@ -362,19 +375,20 @@ func TestWeaponProcStrikeChainAppliesEachLandedBleed(t *testing.T) {
 	}
 }
 
-// A test one-hander carrying the row in the off hand, the main hand empty, and a wielder whose
-// strikes always land.
+// A test one-hander carrying the row in the off hand, a plain one in the main hand, and a wielder whose
+// strikes always land. The plain one keeps the test's in the off hand: a one-hander equipped with
+// the main hand empty goes to the main hand.
 func newOffHandProcSim(t *testing.T, weaponID, row int32, neck *proto.ItemSpec) (*core.Simulation, *testCaster, *core.Unit) {
 	t.Helper()
-	core.AddToDatabase(&proto.SimDatabase{Items: []*proto.SimItem{testOneHander(weaponID)}})
+	const plainMainHandID int32 = 991622
+	core.AddToDatabase(&proto.SimDatabase{Items: []*proto.SimItem{testOneHander(weaponID), testOneHander(plainMainHandID)}})
 	registerSpellDataDamageProc(SpellDataProc{Name: "Test Off-Hand Weapon", ItemID: weaponID, TriggerSpellID: row,
 		BuffSpellID: row, IsWeaponProc: true})
-	items := testHands(&proto.ItemSpec{}, &proto.ItemSpec{Id: weaponID})
+	items := testHands(&proto.ItemSpec{Id: plainMainHandID}, &proto.ItemSpec{Id: weaponID})
 	if neck != nil {
 		items[proto.ItemSlot_ItemSlotNeck] = neck
 	}
-	sim := newTestCasterSim(items, nil)
-	caster := sim.Raid.Parties[0].Players[0].(*testCaster)
+	sim, caster := newWielderSim(items)
 	caster.AddStatsDynamic(sim, stats.Stats{stats.PhysicalHitPercent: 100, stats.ExpertisePercent: 100})
 	return sim, caster, sim.Encounter.ActiveTargetUnits[0]
 }

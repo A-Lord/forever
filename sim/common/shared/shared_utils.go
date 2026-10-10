@@ -487,7 +487,7 @@ func applySpellDataProc(agent core.Agent, cfg SpellDataProc, source effectSource
 func spellDataProcListener(character *core.Character, cfg SpellDataProc, source effectSource, trigger *spelldata.Spell) core.ProcTrigger {
 	config := spelldata.ProcTrigger(character, trigger, nil, spelldata.ItemProcChance(trigger),
 		weaponProcShape(cfg), spellDataProcRate(source, trigger, source.procEntry(cfg, trigger).GetProc()),
-		statedWeaponProcChance(cfg.IsWeaponProc, source, trigger))
+		statedWeaponProcChance(cfg.IsWeaponProc, source))
 	config.Name = cfg.Name
 	config.ActionID = source.actionID()
 
@@ -526,17 +526,23 @@ func spellDataProcRate(source effectSource, row *spelldata.Spell, proc *proto.Pr
 	}
 }
 
-// A combat enchant's chance, which its row states in the column, rolled on the hits of the enchanted
-// weapon only: the weapon shape hears every hit, so a flat chance on the trigger would also roll on
-// the other hand's.
-func statedWeaponProcChance(isWeaponProc bool, source effectSource, row *spelldata.Spell) spelldata.ProcOpt {
+// A weapon proc's flat chance, rolled on the hits of the weapon carrying the item or the enchant only:
+// the weapon shape hears every hit, so a chance left on the trigger would also roll on the other
+// hand's. The manager rolls the same chance on the hands that carry it and follows them through an
+// item swap. A rate measured in procs per minute already has its manager, and keeps it.
+func statedWeaponProcChance(isWeaponProc bool, source effectSource) spelldata.ProcOpt {
 	return func(character *core.Character, trigger *core.ProcTrigger) {
-		if !isWeaponProc || !source.isEnchant || row.ProcChanceSource != spelldata.ProcChanceColumn || row.StatedChance() == 0 {
+		if !isWeaponProc || trigger.DPM != nil || trigger.ProcChance == 0 {
 			return
 		}
 
+		chance := trigger.ProcChance
 		trigger.ProcChance = 0
-		trigger.DPM = character.NewDynamicLegacyProcForEnchant(source.id, 0, row.StatedChance())
+		if source.isEnchant {
+			trigger.DPM = character.NewDynamicLegacyProcForEnchant(source.id, 0, chance)
+		} else {
+			trigger.DPM = character.NewDynamicLegacyProcForWeapon(source.id, 0, chance)
+		}
 	}
 }
 

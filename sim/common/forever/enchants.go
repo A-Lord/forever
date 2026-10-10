@@ -177,7 +177,7 @@ func init() {
 			Timer:    character.NewTimer(),
 			Duration: time.Second * 25,
 		}
-		meleeDPM := character.NewFixedProcChanceManager(0.5, core.ProcMaskMelee)
+		meleeDPM := character.NewDynamicLegacyProcForEnchant(3273, 0, 0.5)
 		handler := func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
 			debuffArray.Get(result.Target).Activate(sim)
 			dfSpell.Cast(sim, result.Target)
