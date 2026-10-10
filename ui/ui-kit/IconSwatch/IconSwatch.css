@@ -6,10 +6,6 @@
 		&[data-disabled]:not(.ui-field[data-disabled] *) {
 			@apply opacity-50;
 		}
-
-		&[data-kept] {
-			@apply opacity-50;
-		}
 	}
 
 	.ui-icon-swatch-text {
@@ -18,9 +14,10 @@
 
 	.ui-icon-swatch-box {
 		@apply relative size-10 shrink-0;
+	}
 
-		&[data-kept] {
-			@apply opacity-50;
-		}
+	.ui-icon-picker-swatch[data-kept],
+	.ui-icon-swatch-box[data-kept] {
+		@apply opacity-50;
 	}
 }

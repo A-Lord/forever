@@ -1,7 +1,8 @@
 import type { ResolvedIcon } from '@ui-kit/Field/types';
+import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import { WowheadAnchor, type WowheadAnchorProps } from '@ui-kit/WowheadAnchor';
 import clsx from 'clsx';
-import type { ReactNode } from 'react';
+import { type ReactNode, useId } from 'react';
 
 import { resolvedIconStyle } from '../utils/icons';
 
@@ -16,10 +17,14 @@ export interface IconSwatchProps extends Omit<WowheadAnchorProps, 'children' | '
 	badges?: ReactNode;
 	/** Dims the swatch, with its badges, for a selection the caller keeps on offer only because it is selected. */
 	kept?: boolean;
+	/** Shown on hover while `kept`. A caller whose own tooltip already carries this text leaves it out. */
+	keptTooltip?: string;
 }
 
 /** An icon as a link: wowhead's tooltip script finds it through the `href`. `className` lands on the box when there are badges. */
-export const IconSwatch = ({ icon, active, disabled, text, badges, kept, className, style, ...rest }: IconSwatchProps) => {
+export const IconSwatch = ({ icon, active, disabled, text, badges, kept, keptTooltip, className, style, ...rest }: IconSwatchProps) => {
+	const tooltipId = useId();
+	const keptTip = kept ? keptTooltip : undefined;
 	const keptAttribute = kept ? '' : undefined;
 	const anchor = (
 		<WowheadAnchor
@@ -29,17 +34,26 @@ export const IconSwatch = ({ icon, active, disabled, text, badges, kept, classNa
 			data-kept={badges ? undefined : keptAttribute}
 			disabled={disabled}
 			style={style ?? resolvedIconStyle(icon)}
+			{...tooltipAnchorProps(keptTip ? tooltipId : undefined, keptTip)}
 			{...rest}>
 			{text !== undefined && <span className="ui-icon-swatch-text">{text}</span>}
 		</WowheadAnchor>
 	);
-
-	if (!badges) return anchor;
-
-	return (
+	const swatch = badges ? (
 		<div className={clsx('ui-icon-swatch-box', className)} data-kept={keptAttribute}>
 			{anchor}
 			{badges}
 		</div>
+	) : (
+		anchor
+	);
+
+	if (!keptTip) return swatch;
+
+	return (
+		<>
+			{swatch}
+			<Tooltip id={tooltipId} />
+		</>
 	);
 };

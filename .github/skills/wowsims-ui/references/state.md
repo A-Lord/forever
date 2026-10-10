@@ -150,21 +150,24 @@ it: they take `value` and `onChange` and hold no store state.
 
 Its reader is `useHideZeroRestore` (`ui/features/inputs/hooks/useHideZeroRestore.ts`), which keys a
 `lastRevision` guard on it to tell a real notification apart from construction and a StrictMode
-replay before it zeroes a hidden input or restores a shown one. Both icon adapters call it:
+replay before it zeroes a hidden input or restores a shown one. The stored value comes back only onto
+a source the caller's `isZero` reads as zeroed, so a value set while hidden (a loaded build) is kept.
+Both icon adapters call it:
 
 - `ConnectedIconPicker` (`ui/features/inputs/components/ConnectedIconPicker/ConnectedIconPicker.tsx`) passes the
   zero through its `write`, so a two-state source stores the zeroed or restored value as a boolean,
-  and passes `restoreWhen` (`current => !Number(current)`), so the stored value comes back only onto
-  a zeroed source and a value set while hidden (a loaded build) is kept.
+  and reads zeroed as `!Number(current)`.
 - `ConnectedIconEnumPicker` (`ui/features/inputs/components/ConnectedIconEnumPicker/ConnectedIconEnumPicker.tsx`)
-  passes `restoreWhen`, so the stored value comes back only while the source holds
-  `zeroValue`, and `onSettled`, which sees the value the hide/restore step left and resets it to
-  `zeroValue` when that option is itself hidden by its `showWhen`. A user pick calls `clearStored()`
-  first, so a later show does not overwrite it.
+  reads zeroed as holding `zeroValue`, and passes `onSettled`, which sees the value the hide/restore
+  step left and resets it to `zeroValue` when that option is itself hidden by its `showWhen`. A user
+  pick calls `clearStored()` first, so a later show does not overwrite it.
 
-The icon, icon-enum and multi-icon input configs (`types.ts` beside each adapter) carry an optional
-`keptBy(modObject)`: while it holds, the swatch or trigger is dimmed with the `stat_filters.kept_tooltip`
-text, a selection the stat filter hides that stays offered because it is selected. The adapters derive
+The icon, icon-enum and multi-icon input configs carry an optional `keptBy(modObject)`, declared once
+as `KeptInput` in `ui/features/inputs/input.ts`: while it holds, the swatch or trigger is dimmed and
+`IconSwatch` (`ui/ui-kit/IconSwatch/IconSwatch.tsx`) shows the `stat_filters.kept_tooltip` text, a
+selection the stat filter hides that stays offered because it is selected. `IconEnumPicker` passes
+no `keptTooltip` to its swatch: the text replaces the trigger's own tooltip, which shares one
+`Tooltip` with the options. The adapters derive
 `kept` in the render body, not inside a `useStoreSubscribe` read, and `ConnectedMultiIconPicker`
 (`ui/features/inputs/components/ConnectedMultiIconPicker/ConnectedMultiIconPicker.tsx`) reads its
 active input, `showWhen` and `keptBy` there too, subscribing only to re-render: the stat filter hands

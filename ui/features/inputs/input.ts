@@ -26,6 +26,11 @@ export interface InputFrame<ModObject> {
 	showWhen?: (obj: ModObject) => boolean;
 }
 
+export interface KeptInput<ModObject> {
+	// Dims the swatch or trigger with the kept tooltip while it holds: a selection the stat filter hides, still offered because it is selected.
+	keptBy?: (obj: ModObject) => boolean;
+}
+
 /**
  * Data for creating a new input UI element, reading its own value off the mod object.
  */

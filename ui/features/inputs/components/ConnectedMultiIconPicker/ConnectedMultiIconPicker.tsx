@@ -34,7 +34,7 @@ export const ConnectedMultiIconPicker = <ModObject,>({ modObject, config, subscr
 	useStoreSubscribe(subscribe, () => ({}));
 	const actionId = firstActiveActionId(config, modObject);
 	const hidden = !!config.showWhen && !config.showWhen(modObject as unknown as Player<any>);
-	const kept = config.keptBy?.(modObject) ?? false;
+	const kept = config.keptBy?.(modObject);
 
 	const icon = useResolvedIcon(config.categoryId ?? actionId ?? undefined);
 
@@ -46,7 +46,7 @@ export const ConnectedMultiIconPicker = <ModObject,>({ modObject, config, subscr
 			icon={icon}
 			active={!!actionId}
 			kept={kept}
-			keptTooltip={i18n.t('stat_filters.kept_tooltip')}
+			keptTooltip={kept ? i18n.t('stat_filters.kept_tooltip') : undefined}
 			onClear={onClear}
 			testId={testId}>
 			{config.inputs.map((input, index) => (

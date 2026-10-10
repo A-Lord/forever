@@ -41,6 +41,7 @@ export const ConnectedIconEnumPicker = <ModObject, T>({ modObject, config, testI
 
 	if (hidden) return null;
 
+	const kept = config.keptBy?.(modObject);
 	return (
 		<IconEnumPicker
 			{...frameProps}
@@ -58,8 +59,8 @@ export const ConnectedIconEnumPicker = <ModObject, T>({ modObject, config, testI
 			zeroValue={config.zeroValue}
 			backupIcon={backupIcon}
 			tooltip={config.tooltip}
-			kept={config.keptBy?.(modObject) ?? false}
-			keptTooltip={i18n.t('stat_filters.kept_tooltip')}
+			kept={kept}
+			keptTooltip={kept ? i18n.t('stat_filters.kept_tooltip') : undefined}
 			direction={config.direction}
 			numColumns={typeof config.numColumns === 'function' ? config.numColumns(modObject) : config.numColumns}
 			onOpenChange={open => {

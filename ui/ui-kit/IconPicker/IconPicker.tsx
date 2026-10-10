@@ -1,7 +1,6 @@
 import { Field, hasFieldFrame } from '@ui-kit/Field';
 import type { ControlledProps, FieldFrameProps, ResolvedIcon } from '@ui-kit/Field/types';
 import { IconSwatch } from '@ui-kit/IconSwatch';
-import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import { isRightClick } from '@ui-kit/utils/dom';
 import clsx from 'clsx';
 import { type MouseEvent, useId, useRef } from 'react';
@@ -37,8 +36,6 @@ export const IconPicker = ({
 	...frameProps
 }: IconPickerProps) => {
 	const labelId = useId();
-	const tooltipId = useId();
-	const keptTip = kept ? keptTooltip : undefined;
 	const controlRef = useRef<HTMLAnchorElement>(null);
 	const fillImproved1 = states >= 3 && !!improvedIcon;
 	const fillImproved2 = states >= 4 && !!improvedIcon2;
@@ -100,28 +97,17 @@ export const IconPicker = ({
 			text={showCounterText ? String(value) : undefined}
 			badges={badges || undefined}
 			kept={kept}
+			keptTooltip={keptTooltip}
 			className={clsx(value === 0 && 'grayscale', !rooted && className)}
 			testId={testId ?? 'icon-picker-root'}
 			// The glyph is a background image, so without this the anchor announces nothing.
 			aria-label={icon?.name || undefined}
 			{...(rooted ? { ref: controlRef, 'aria-labelledby': labelId } : {})}
-			{...tooltipAnchorProps(keptTip ? tooltipId : undefined, keptTip)}
 			{...stateEvents}
 		/>
 	);
-	const keptTooltipElement = keptTip && <Tooltip id={tooltipId} />;
 
-	if (!rooted)
-		return (
-			<>
-				{swatch}
-				{keptTooltipElement}
-			</>
-		);
+	if (!rooted) return swatch;
 
-	return (
-		<Field {...frameProps} layout="icon" className={className} disabled={disabled} leading={swatch} labelId={labelId} controlRef={controlRef}>
-			{keptTooltipElement}
-		</Field>
-	);
+	return <Field {...frameProps} layout="icon" className={className} disabled={disabled} leading={swatch} labelId={labelId} controlRef={controlRef} />;
 };
