@@ -1,4 +1,5 @@
-import { PseudoStat, Stat } from '@generated/proto/common';
+import { type Class, PseudoStat, Stat } from '@generated/proto/common';
+import i18n from '@i18n/config';
 import { UnitStat } from '@sim/proto/stats';
 
 /** In the character stats panel, `primary` (health and mana) shows without a header and the rest are collapsible. */
@@ -130,6 +131,21 @@ export const filterGroupsOf = (universe: ReadonlyArray<UnitStat>): Array<{ key: 
 	const grouped = FILTER_GROUPS.map(({ key, stats }) => ({ key, stats: stats.filter(stat => inUniverse.has(stat.getKey())) }));
 	const other = { key: 'other' as const, stats: universe.filter(stat => statGroupOf(stat) === 'other') };
 	return [...grouped, other].filter(group => group.stats.length > 0);
+};
+
+/**
+ * Each stat's label in a stat filter popover for `universe`, by stat key: its short name, or, where two stats share
+ * one (Dodge rating and Dodge percent), its rating or percent form.
+ */
+export const filterLabelsOf = (universe: ReadonlyArray<UnitStat>, playerClass: Class): Map<string, string> => {
+	const shortNames = universe.map(stat => stat.getShortName(playerClass));
+	return new Map(
+		universe.map((stat, index) => {
+			const name = shortNames[index];
+			if (shortNames.indexOf(name) === shortNames.lastIndexOf(name)) return [stat.getKey(), name];
+			return [stat.getKey(), i18n.t(stat.isStat() ? 'stat_filters.rating_label' : 'stat_filters.percent_label', { stat: name })];
+		}),
+	);
 };
 
 /** The groups that hold at least one shown stat: the ones a popover opens with when nothing is stored for its panel. */

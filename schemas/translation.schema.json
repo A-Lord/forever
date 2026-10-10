@@ -9499,10 +9499,16 @@
 				},
 				"kept_tooltip": {
 					"type": "string"
+				},
+				"rating_label": {
+					"type": "string"
+				},
+				"percent_label": {
+					"type": "string"
 				}
 			},
 			"additionalProperties": false,
-			"required": ["title", "triggers", "spec_defaults", "all", "groups", "group_count", "kept_tooltip"]
+			"required": ["title", "triggers", "spec_defaults", "all", "groups", "group_count", "kept_tooltip", "rating_label", "percent_label"]
 		}
 	},
 	"additionalProperties": false,

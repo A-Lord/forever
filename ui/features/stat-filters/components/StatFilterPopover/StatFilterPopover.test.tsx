@@ -2,8 +2,9 @@ import { Class, PseudoStat, Stat } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { UnitStat } from '@sim/proto/stats';
 import { fireEvent, render, screen, within } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
+import english from '../../../../../assets/locales/en/translation.json';
 import { StatFilterList, StatFilterPopover } from './StatFilterPopover';
 
 const health = UnitStat.fromStat(Stat.StatHealth);
@@ -92,6 +93,41 @@ describe('StatFilterList', () => {
 		mountList({ universe: [health, strength, physicalDamage] });
 
 		expect(screen.queryByTestId('test-filter-group-ratings')).toBeNull();
+	});
+
+	// The test setup loads no locale, so every stat reads as its own key; the real names are what collide.
+	describe('with the English names', () => {
+		beforeAll(() => {
+			i18n.addResourceBundle('en', 'translation', english, true, true);
+		});
+		afterAll(() => {
+			i18n.removeResourceBundle('en', 'translation');
+		});
+
+		it('names a rating and a percent that share a short name by their rating and percent forms, and leaves every other stat short', () => {
+			const pairs: Array<[Stat, PseudoStat, string]> = [
+				[Stat.StatDodgeRating, PseudoStat.PseudoStatDodgePercent, 'Dodge'],
+				[Stat.StatParryRating, PseudoStat.PseudoStatParryPercent, 'Parry'],
+				[Stat.StatBlockRating, PseudoStat.PseudoStatBlockPercent, 'Block'],
+				[Stat.StatExpertiseRating, PseudoStat.PseudoStatExpertisePercent, 'Expertise'],
+			];
+			const paired = pairs.flatMap(([rating, percent]) => [UnitStat.fromStat(rating), UnitStat.fromPseudoStat(percent)]);
+			mountList({ universe: [hitRating, meleeHit, ...paired], shown: [] });
+
+			for (const [, , name] of pairs) {
+				expect(screen.getByRole('checkbox', { name: `${name} Rating` })).toBeTruthy();
+				expect(screen.getByRole('checkbox', { name: `${name} %` })).toBeTruthy();
+				expect(screen.queryByRole('checkbox', { name })).toBeNull();
+			}
+			expect(screen.getByRole('checkbox', { name: 'Hit' })).toBeTruthy();
+			expect(screen.getByRole('checkbox', { name: 'Melee Hit' })).toBeTruthy();
+		});
+
+		it('keeps the short name of a rating whose percent is not in the universe', () => {
+			mountList({ universe: [UnitStat.fromStat(Stat.StatDodgeRating)], shown: [] });
+
+			expect(screen.getByRole('checkbox', { name: 'Dodge' })).toBeTruthy();
+		});
 	});
 
 	it("lists each group's stats in the group's own order, whatever the universe order", () => {

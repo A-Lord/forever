@@ -8,7 +8,7 @@ import { Icon } from '@ui-kit/Icon';
 import { Popover } from '@ui-kit/Popover';
 import { type ReactNode, useMemo } from 'react';
 
-import { type FilterGroupKey, filterGroupsOf } from '../../model/stat_groups';
+import { type FilterGroupKey, filterGroupsOf, filterLabelsOf } from '../../model/stat_groups';
 
 export interface StatFilterPopoverProps {
 	universe: ReadonlyArray<UnitStat>;
@@ -46,6 +46,7 @@ export const StatFilterList = ({
 	const isShown = (stat: UnitStat) => shownKeys.has(stat.getKey());
 	const toggle = (stat: UnitStat, checked: boolean) => onChange(universe.filter(other => (other.equals(stat) ? checked : isShown(other))));
 	const groups = useMemo(() => filterGroupsOf(universe), [universe]);
+	const labels = useMemo(() => filterLabelsOf(universe, playerClass), [universe, playerClass]);
 
 	return (
 		<div className="flex min-h-0 flex-col gap-2">
@@ -73,7 +74,7 @@ export const StatFilterList = ({
 								<BooleanPicker
 									key={stat.getKey()}
 									id={`${idPrefix}-${stat.getKey()}`}
-									label={stat.getShortName(playerClass)}
+									label={labels.get(stat.getKey())}
 									layout="inline"
 									density="compact"
 									value={isShown(stat)}
