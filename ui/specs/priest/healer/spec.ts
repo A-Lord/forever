@@ -1,5 +1,5 @@
-import * as BuffDebuffInputs from '@features/settings/model/buffs_debuffs';
 import * as InputHelpers from '@features/inputs/input_helpers';
+import * as BuffDebuffInputs from '@features/settings/model/buffs_debuffs';
 import { APLRotation } from '@generated/proto/apl';
 import { Debuffs } from '@generated/proto/buffs';
 import { EquipmentSpec, PseudoStat, Spec, Stat } from '@generated/proto/common';
