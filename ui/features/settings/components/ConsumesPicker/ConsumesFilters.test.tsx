@@ -47,11 +47,13 @@ beforeEach(() => {
 });
 
 describe('ConsumesFilters', () => {
-	it('puts the Stats section above the level fields', () => {
+	it('puts its title above the Stats section, and the Stats section above the level fields', () => {
 		open();
 
+		expect(screen.getByRole('dialog', { name: i18n.t('settings_tab.consumables.filters.title') })).toBeTruthy();
 		const headings = screen.getAllByRole('heading').map(heading => heading.textContent);
-		expect(headings[0]).toBe(i18n.t('settings_tab.consumables.filters.stats'));
+		expect(headings[0]).toBe(i18n.t('settings_tab.consumables.filters.title'));
+		expect(headings[1]).toBe(i18n.t('settings_tab.consumables.filters.stats'));
 		expect(headings.at(-1)).toBe(i18n.t('settings_tab.consumables.filters.min_lvl'));
 	});
 

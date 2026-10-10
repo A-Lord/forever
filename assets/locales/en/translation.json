@@ -684,7 +684,7 @@
 		"consumables": {
 			"title": "Consumables",
 			"filters": {
-				"title": "Consumable filters",
+				"title": "Consumables filter",
 				"stats": "Stats",
 				"min_lvl": "Minimum required level",
 				"reset": "Reset to defaults",
@@ -2674,7 +2674,7 @@
 		}
 	},
 	"stat_filters": {
-		"title": "Stat filter",
+		"title": "Stats to show",
 		"spec_defaults": "Spec defaults",
 		"all": "All",
 		"groups": {

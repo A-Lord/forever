@@ -81,6 +81,7 @@ export const StatFilterList = ({
 
 export interface FilterPopoverProps {
 	ariaLabel: string;
+	title: string;
 	/** Marks the trigger while any filter in the popover is set. */
 	active: boolean;
 	triggerClassName?: string;
@@ -89,7 +90,7 @@ export interface FilterPopoverProps {
 	children: ReactNode;
 }
 
-export const FilterPopover = ({ ariaLabel, active, triggerClassName, triggerTestId, testId, children }: FilterPopoverProps) => (
+export const FilterPopover = ({ ariaLabel, title, active, triggerClassName, triggerTestId, testId, children }: FilterPopoverProps) => (
 	<Popover
 		trigger={<Icon name="filter" />}
 		triggerRender={<Button variant="link" size="sm" className="data-active:text-primary" data-active={active ? '' : undefined} />}
@@ -99,6 +100,7 @@ export const FilterPopover = ({ ariaLabel, active, triggerClassName, triggerTest
 		side="bottom"
 		align="end"
 		backdrop
+		title={title}
 		className="flex flex-col"
 		testId={testId}>
 		{children}
@@ -106,7 +108,12 @@ export const FilterPopover = ({ ariaLabel, active, triggerClassName, triggerTest
 );
 
 export const StatFilterPopover = ({ testId, ...listProps }: StatFilterPopoverProps) => (
-	<FilterPopover ariaLabel={i18n.t('stat_filters.title')} active={listProps.customised} triggerTestId={`${testId}-button`} testId={testId}>
+	<FilterPopover
+		ariaLabel={i18n.t('stat_filters.title')}
+		title={i18n.t('stat_filters.title')}
+		active={listProps.customised}
+		triggerTestId={`${testId}-button`}
+		testId={testId}>
 		<StatFilterList {...listProps} idPrefix={testId} />
 	</FilterPopover>
 );

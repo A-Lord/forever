@@ -158,11 +158,13 @@ describe('StatFilterPopover', () => {
 		expect(screen.getByRole('button', { name: i18n.t('stat_filters.title') }).hasAttribute('data-active')).toBe(false);
 	});
 
-	it('opens the list from the trigger', () => {
+	it('opens the list from the trigger, under its title', () => {
 		mountPopover(false);
 
 		fireEvent.click(screen.getByRole('button', { name: i18n.t('stat_filters.title') }));
 
+		const popup = screen.getByRole('dialog', { name: i18n.t('stat_filters.title') });
+		expect(within(popup).getAllByRole('heading')[0].textContent).toBe(i18n.t('stat_filters.title'));
 		expect(checkbox(strength).getAttribute('aria-checked')).toBe('true');
 	});
 });
