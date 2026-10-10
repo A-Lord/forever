@@ -217,12 +217,12 @@ func (warlock *Warlock) applyDecimation() {
 	noReagent := decimationRow.Effect(dbcenums.A_NO_REAGENT_USE, 0)
 	warlock.reagentWaivers = append(warlock.reagentWaivers, reagentWaiver{aura: decimationAura, flags: noReagent.ClassFlags})
 
-	// Set while Shadow Bolt's launch is handed to the trigger, so its later impact is told apart.
+	// Set while a cast's launch is handed to the trigger, so the hit it deals is told apart.
 	var launching bool
 
 	// The buff comes with the cast, and only when its hit lands: a miss or a full resist grants nothing.
-	// Searing Pain hits inside its cast; Shadow Bolt rolls its hit at the cast and hands it over at the
-	// launch, before the bolt lands.
+	// Shadow Bolt and Searing Pain roll their hit at the cast and hand it over at the launch, before a bolt
+	// lands.
 	triggerAura := warlock.MakeProcTriggerAura(core.ProcTrigger{
 		Name:       "Decimation - Trigger",
 		Callback:   core.CallbackOnSpellHitDealt,
@@ -231,8 +231,7 @@ func (warlock *Warlock) applyDecimation() {
 		// In the logs the buff comes in the same batch as the cast.
 		TriggerImmediately: true,
 		ExtraCondition: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) bool {
-			return sim.IsExecutePhase35() && result.Outcome.ResistedTenths() < 10 &&
-				(launching || !spell.Matches(WarlockSpellShadowBolt))
+			return launching && sim.IsExecutePhase35() && result.Outcome.ResistedTenths() < 10
 		},
 		Handler: func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
 			decimationAura.Activate(sim)
@@ -246,8 +245,8 @@ func (warlock *Warlock) applyDecimation() {
 	}
 }
 
-// Hands Shadow Bolt's hit, rolled at the cast, to Decimation as the bolt is launched.
-func (warlock *Warlock) launchShadowBolt(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
+// Hands the hit of a Shadow Bolt or Searing Pain, rolled at the cast, to Decimation as the spell is launched.
+func (warlock *Warlock) launchDecimationSpell(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
 	if warlock.decimationLaunch != nil {
 		warlock.decimationLaunch(sim, spell, result)
 	}

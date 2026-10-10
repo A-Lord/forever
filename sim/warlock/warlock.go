@@ -66,7 +66,7 @@ type Warlock struct {
 	DemonicKnowledgeAura     *core.Aura
 	MasterDemonologistAura   *core.Aura
 
-	// Rolls Decimation on Shadow Bolt's launch; set with Decimation.
+	// Rolls Decimation on the launch of a Shadow Bolt or Searing Pain; set with Decimation.
 	decimationLaunch func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult)
 
 	// Pets
