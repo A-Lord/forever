@@ -4,7 +4,6 @@ import { ConsumesSpec, Spec } from '@generated/proto/common';
 import { Rogue_Options as RogueOptions, Rogue_Rotation as RogueRotation } from '@generated/proto/rogue';
 import { SavedTalents } from '@generated/proto/ui';
 
-import BackstabAPL from './apls/backstab.apl.json';
 import DefaultAPL from './apls/default.apl.json';
 import P1BsCombatGear from './gear_sets/p1_bscombat.gear.json';
 import P1BsSubGear from './gear_sets/p1_bssub.gear.json';
@@ -52,12 +51,11 @@ export const TALENTS_SUB_BS = {
 	}),
 };
 
-export const DEFAULT_APL = PresetUtils.makePresetAPLRotation('Default', DefaultAPL);
-export const BACKSTAB_APL = PresetUtils.makePresetAPLRotation('Backstab', BackstabAPL);
+export const DEFAULT_APL = PresetUtils.makePresetAPLRotation('Default (APL)', DefaultAPL);
 
 export const DEFAULT_SIMPLE_ROTATION = RogueRotation.create({ useBackstab: false });
 export const SIMPLE_ROTATION = PresetUtils.makePresetSimpleRotation('Simple', Spec.SpecRogue, DEFAULT_SIMPLE_ROTATION);
-export const SIMPLE_BACKSTAB_ROTATION = PresetUtils.makePresetSimpleRotation('Simple (Backstab)', Spec.SpecRogue, RogueRotation.create({ useBackstab: true }));
+const SIMPLE_BACKSTAB_BUILD_ROTATION = PresetUtils.makePresetSimpleRotation('Simple', Spec.SpecRogue, RogueRotation.create({ useBackstab: true }));
 
 export const P1_BS_COMBAT_GEAR = PresetUtils.makePresetGear('Backstab Combat', P1BsCombatGear);
 export const P1_MUTI_GEAR = PresetUtils.makePresetGear('Mutilate', P1MutiGear);
@@ -94,42 +92,42 @@ const _DP_MH_Settings = {
 
 export const PRESET_BUILD_MUTILATE_ASN = PresetUtils.makePresetBuild('Asn Muti', {
 	talents: TALENTS_MUTILATE_ASN,
-	rotation: DEFAULT_APL,
+	rotation: SIMPLE_ROTATION,
 	gear: P1_MUTI_GEAR,
 	settings: IP_MH_Settings,
 });
 
 export const PRESET_BUILD_MUTILATE_COM = PresetUtils.makePresetBuild('Combat Muti', {
 	talents: TALENTS_MUTILATE_COM,
-	rotation: DEFAULT_APL,
+	rotation: SIMPLE_ROTATION,
 	gear: P1_MUTI_GEAR,
 	settings: IP_MH_Settings,
 });
 
 export const PRESET_BUILD_COMBAT_SS = PresetUtils.makePresetBuild('Combat SS', {
 	talents: TALENTS_COMBAT_SS,
-	rotation: DEFAULT_APL,
+	rotation: SIMPLE_ROTATION,
 	gear: P1_SLOW_MH_GEAR,
 	settings: IP_MH_Settings,
 });
 
 export const PRESET_BUILD_COMBAT_BS = PresetUtils.makePresetBuild('Combat BS', {
 	talents: TALENTS_COMBAT_BS,
-	rotation: SIMPLE_BACKSTAB_ROTATION,
+	rotation: SIMPLE_BACKSTAB_BUILD_ROTATION,
 	gear: P1_BS_COMBAT_GEAR,
 	settings: IP_MH_Settings,
 });
 
 export const PRESET_BUILD_SUB_HEMO = PresetUtils.makePresetBuild('Subtlety Hemo', {
 	talents: TALENTS_SUB_HEMO,
-	rotation: DEFAULT_APL,
+	rotation: SIMPLE_ROTATION,
 	gear: P1_SLOW_MH_GEAR,
 	settings: IP_MH_Settings,
 });
 
 export const PRESET_BUILD_SUB_BS = PresetUtils.makePresetBuild('Subtlety BS', {
 	talents: TALENTS_SUB_BS,
-	rotation: SIMPLE_BACKSTAB_ROTATION,
+	rotation: SIMPLE_BACKSTAB_BUILD_ROTATION,
 	gear: P1_BS_SUB_GEAR,
 	settings: IP_MH_Settings,
 });

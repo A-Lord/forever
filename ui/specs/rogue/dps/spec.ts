@@ -163,7 +163,7 @@ export default defineSpec<Spec.SpecRogue>({
 			Presets.TALENTS_SUB_BS,
 		],
 		// Preset rotations that the user can quickly select.
-		rotations: [Presets.SIMPLE_ROTATION, Presets.SIMPLE_BACKSTAB_ROTATION, Presets.DEFAULT_APL, Presets.BACKSTAB_APL],
+		rotations: [Presets.SIMPLE_ROTATION, Presets.DEFAULT_APL],
 		// Preset gear configurations that the user can quickly select.
 		gear: [Presets.P1_BS_COMBAT_GEAR, Presets.P1_MUTI_GEAR, Presets.P1_SLOW_MH_GEAR, Presets.P1_BS_SUB_GEAR],
 		builds: [
