@@ -71,8 +71,8 @@ func BenchmarkSimulate(b *testing.B) {
 }
 
 // The cat UI's Monocat and Bearweave presets (presets.ts CatTalents and BearweaveTalents).
-const DefaultTalents = "050022-55000032021031212041-055"
-const BearweaveTalents = "050022-55000032021131212031-055"
+const DefaultTalents = "050022-55000032021021212051-055"
+const BearweaveTalents = "050022-55000032021111212051-055"
 
 var DefaultSpecOptions = &proto.Player_FeralCatDruid{
 	FeralCatDruid: &proto.FeralCatDruid{
