@@ -16,6 +16,7 @@ func (priest *Priest) registerPowerWordShield(_ int32, rank *spelldata.Spell) {
 
 	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellHealing))
 	config.ClassSpellMask = PriestSpellPowerWordShield
+	config.BonusCoefficient = baseAbsorb.Coeff()
 	config.RelatedAuraArrays = priest.weakenedSoulAuras.ToMap()
 	config.ExtraCastCondition = func(_ *core.Simulation, target *core.Unit) bool {
 		target = priest.healTarget(target)

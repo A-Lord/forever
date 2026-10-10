@@ -10,6 +10,7 @@ func (priest *Priest) registerPrayerOfMending(_ int32, rank *spelldata.Spell) {
 	triggerAura := spellData.PrayerOfMendingTriggered.ByID(401877)
 
 	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellHealing))
+	config.ClassSpellMask = PriestSpellPrayerOfMending
 	config.BonusCoefficient = heal.Coeff()
 	var spell *core.Spell
 
@@ -64,7 +65,8 @@ func (priest *Priest) registerPrayerOfMending(_ int32, rank *spelldata.Spell) {
 			sim.AddPendingAction(pa)
 		}
 
-		scheduleHeal(sim, target, jumps)
+		// Each charge of the aura heals once, so the first heal leaves one jump fewer than the charges.
+		scheduleHeal(sim, target, jumps-1)
 	}
 
 	spell = priest.RegisterSpell(config)

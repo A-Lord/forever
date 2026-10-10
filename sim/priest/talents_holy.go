@@ -192,19 +192,37 @@ func (priest *Priest) applyLitanyOfLight() {
 		return
 	}
 
-	var previousHeal *core.Spell
+	// One mask per spell, so every rank of a heal is the same previous heal.
+	var previousHeal int64
+	priest.RegisterResetEffect(func(_ *core.Simulation) {
+		previousHeal = 0
+	})
+	refundFraction := spellData.LitanyOfLight.EffectAt(1).FractionAt(priest.Talents.LitanyOfLight)
 	refundMetrics := priest.NewManaMetrics(core.ActionID{SpellID: spellData.LitanyOfLight.Highest().ID})
 	priest.MakeProcTriggerAura(core.ProcTrigger{
-		Name:     "Litany of Light",
-		Callback: core.CallbackOnHealDealt,
+		Name:           "Litany of Light",
+		Callback:       core.CallbackOnCastComplete,
+		ClassSpellMask: priestLitanyOfLightHeals,
 		Handler: func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) {
-			if previousHeal != nil && previousHeal != spell && spell.Cost != nil {
-				spell.Unit.AddMana(sim, float64(spell.Cost.BaseCost)*spellData.LitanyOfLight.EffectAt(1).FractionAt(priest.Talents.LitanyOfLight), refundMetrics)
+			heal := spell.ClassSpellMask & priestLitanyOfLightHeals
+			if previousHeal != 0 && previousHeal != heal && spell.Cost != nil {
+				spell.Unit.AddMana(sim, float64(spell.Cost.BaseCost)*refundFraction, refundMetrics)
 			}
-			previousHeal = spell
+			previousHeal = heal
 		},
 	})
 }
+
+// Power Word: Shield absorbs rather than heals, so it is not a healing spell here.
+const priestLitanyOfLightHeals = PriestSpellFlashHeal |
+	PriestSpellLesserHeal |
+	PriestSpellHeal |
+	PriestSpellGreaterHeal |
+	PriestSpellBindingHeal |
+	PriestSpellRenew |
+	PriestSpellPenance |
+	PriestSpellPrayerOfHealing |
+	PriestSpellPrayerOfMending
 
 // Grants spirit of redemption on death
 // Acts after death, which a damage sim does not model.

@@ -16,16 +16,21 @@ func (priest *Priest) withRenewedHope(sim *core.Simulation, target *core.Unit, s
 		return
 	}
 
-	bonusCrit := spellData.RenewedHope.Rank(priest.Talents.RenewedHope).EffectN(1).Percent()
-	// Penance's bolt spells are procs within one cast. They each get the crit bonus, but the cast
-	// shortens Weakened Soul only once, when the channel starts.
-	if !spell.Flags.Matches(core.SpellFlagProc) {
-		priest.reduceWeakenedSoulDuration(sim, weakenedSoul)
-	}
-	priest.withRenewedHopeCrit(spell, bonusCrit, apply)
+	priest.withRenewedHopeCrit(spell, apply)
+	priest.reduceWeakenedSoulDuration(sim, weakenedSoul)
 }
 
-func (priest *Priest) withRenewedHopeCrit(spell *core.Spell, bonusCrit float64, apply func()) {
+// For Penance's heal bolts: each takes the crit bonus while Weakened Soul is up, and only the cast shortens it.
+func (priest *Priest) withRenewedHopeBolt(target *core.Unit, spell *core.Spell, apply func()) {
+	if priest.renewedHopeTargetAura(target, spell) == nil {
+		apply()
+		return
+	}
+	priest.withRenewedHopeCrit(spell, apply)
+}
+
+func (priest *Priest) withRenewedHopeCrit(spell *core.Spell, apply func()) {
+	bonusCrit := spellData.RenewedHope.Rank(priest.Talents.RenewedHope).EffectN(1).Percent()
 	spell.BonusCritPercent += bonusCrit
 	defer func() { spell.BonusCritPercent -= bonusCrit }()
 	apply()

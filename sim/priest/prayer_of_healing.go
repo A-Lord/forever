@@ -10,6 +10,7 @@ func (priest *Priest) registerPrayerOfHealing(_ int32, rank *spelldata.Spell) {
 	heal := rank.HealEffect()
 
 	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellHealing))
+	config.ClassSpellMask = PriestSpellPrayerOfHealing
 	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
 		if priest.Party == nil || len(priest.Party.Players) == 0 {
 			return

@@ -15,6 +15,7 @@ func (priest *Priest) registerHolyNovaSpell(_ int32, rank *spelldata.Spell) {
 
 	healConfig := spelldata.SpellConfig(&priest.Unit, healRow, spelldata.Magic(core.ProcMaskSpellHealing), spelldata.Proc())
 	healConfig.ClassSpellMask = PriestSpellHolyNova
+	healConfig.ThreatMultiplier = 0
 	healSpell := priest.RegisterSpell(healConfig)
 
 	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))

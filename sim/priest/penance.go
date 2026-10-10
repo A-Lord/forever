@@ -27,7 +27,7 @@ func (priest *Priest) registerPenance(_ int32, rank *spelldata.Spell) {
 	healBoltConfig.ClassSpellMask = PriestSpellPenance
 	healBoltConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		target = priest.healTarget(target)
-		priest.withRenewedHope(sim, target, spell, func() {
+		priest.withRenewedHopeBolt(target, spell, func() {
 			spell.CalcAndDealHealing(sim, target, healBolt.Average(), spell.OutcomeHealingCrit)
 		})
 	}

@@ -22,7 +22,6 @@ type Priest struct {
 	Latency float64
 
 	InnerFocusAura *core.Aura
-	spiritTapAura  *core.Aura
 
 	VampiricEmbrace *core.Spell
 
@@ -234,6 +233,8 @@ const (
 	PriestSpellPowerWordShield
 	PriestSpellHolyNova
 	PriestSpellLightwell
+	PriestSpellPrayerOfHealing
+	PriestSpellPrayerOfMending
 
 	PriestSpellCureDisease
 	PriestSpellAbolishDisease

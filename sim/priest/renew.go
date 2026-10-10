@@ -18,9 +18,8 @@ func (priest *Priest) registerRenew(_ int32, rank *spelldata.Spell) {
 		dot.Spell.CalcAndDealPeriodicHealing(sim, target, healTick.Average(), dot.Spell.OutcomeTickHealingCrit)
 	}
 
-	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
-
-		spell.Hot(&priest.Unit).Apply(sim)
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		spell.Hot(priest.healTarget(target)).Apply(sim)
 	}
 
 	priest.RegisterSpell(config)
