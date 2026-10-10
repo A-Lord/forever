@@ -1,3 +1,4 @@
+import i18n from '@i18n/config';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { storyIcon, StoryIconToggle } from '@testing/storybook/fixtures/settings_reforge_bulk';
 import { storyStatFilter } from '@testing/storybook/fixtures/stat-filters';
@@ -14,8 +15,6 @@ const DEBUFFS = [
 	<StoryIconToggle key="sunder" icon={storyIcon('ability_warrior_sunder', 'Sunder Armor', 'spell', 11597)} initial={1} />,
 	<StoryIconToggle key="faerie" icon={storyIcon('spell_nature_faeriefire', 'Faerie Fire', 'spell', 9907)} />,
 ];
-
-const statFilter = (customised: boolean) => storyStatFilter('buffs-filter', customised);
 
 const meta = {
 	title: 'Features/Settings/BuffSection',
@@ -36,10 +35,10 @@ export const RaidBuffs: Story = {};
 
 export const PartyBuffs: Story = { args: { section: 'party_buffs', children: BUFFS.slice(0, 1) } };
 
-export const Debuffs: Story = { args: { section: 'debuffs', children: DEBUFFS } };
+export const Debuffs: Story = {
+	args: { section: 'debuffs', children: DEBUFFS, filter: storyStatFilter('debuffs-filter', i18n.t('stat_filters.triggers.debuffs')) },
+};
 
 export const Empty: Story = { args: { empty: true } };
 
-export const WithStatFilter: Story = { args: { filter: statFilter(false) } };
-
-export const DebuffsWithCustomisedFilter: Story = { args: { section: 'debuffs', children: DEBUFFS, filter: statFilter(true) } };
+export const WithStatFilter: Story = { args: { filter: storyStatFilter('buffs-filter', i18n.t('stat_filters.triggers.buffs')) } };

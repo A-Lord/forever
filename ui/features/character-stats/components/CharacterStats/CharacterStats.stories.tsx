@@ -1,3 +1,4 @@
+import i18n from '@i18n/config';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { storyStatFilter } from '@testing/storybook/fixtures/stat-filters';
 import { Table, TableCell, TableRow } from '@ui-kit/Table';
@@ -25,14 +26,16 @@ const SampleTable = () => (
 	</Table>
 );
 
-const statFilter = (customised: boolean) => storyStatFilter('character-stats-filter', customised);
-
 const meta = {
 	title: 'Features/CharacterStats/CharacterStats',
 	component: CharacterStatsPanelView,
 	subcomponents: { CharacterStatsHeaderView },
 	tags: ['autodocs'],
-	args: { title: 'Stats', filter: statFilter(false), children: <SampleTable /> },
+	args: {
+		title: 'Stats',
+		filter: storyStatFilter('character-stats-filter', i18n.t('stat_filters.triggers.character_stats')),
+		children: <SampleTable />,
+	},
 	argTypes: { filter: { control: false }, children: { control: false } },
 	decorators: [
 		Story => (
@@ -47,7 +50,5 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
-
-export const CustomisedFilter: Story = { args: { filter: statFilter(true) } };
 
 export const Header: Story = { render: args => <CharacterStatsHeaderView {...args} /> };

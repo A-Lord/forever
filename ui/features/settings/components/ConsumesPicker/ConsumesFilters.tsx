@@ -51,7 +51,7 @@ export const ConsumesFilters = () => {
 
 	return (
 		<FilterPopover
-			ariaLabel={i18n.t('settings_tab.consumables.filters.title')}
+			ariaLabel={i18n.t('settings_tab.consumables.filters.trigger')}
 			title={i18n.t('settings_tab.consumables.filters.title')}
 			className="w-180"
 			triggerClassName="ml-auto"
@@ -59,7 +59,6 @@ export const ConsumesFilters = () => {
 			testId="consumes-filters-popover">
 			<Tabs.Root defaultValue={STATS_TAB} className="flex min-h-0 flex-col">
 				<TabNav
-					testId="consumes-filters-tabs"
 					wrap={false}
 					className="mb-2 shrink-0"
 					tabs={[

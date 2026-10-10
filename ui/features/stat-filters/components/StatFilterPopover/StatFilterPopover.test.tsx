@@ -141,14 +141,15 @@ describe('StatFilterPopover', () => {
 				playerClass={Class.ClassWarrior}
 				onChange={() => {}}
 				onReset={() => {}}
+				ariaLabel="Filter test stats"
 				testId="test-filter"
 			/>,
 		);
 
-	it('opens the list from its named trigger, under its title', () => {
+	it('opens the list from the trigger it names, under the shared title', () => {
 		mountPopover();
 
-		fireEvent.click(screen.getByRole('button', { name: i18n.t('stat_filters.title') }));
+		fireEvent.click(screen.getByRole('button', { name: 'Filter test stats' }));
 
 		const popup = screen.getByRole('dialog', { name: i18n.t('stat_filters.title') });
 		expect(within(popup).getAllByRole('heading')[0].textContent).toBe(i18n.t('stat_filters.title'));

@@ -40,6 +40,7 @@ const meta = {
 		playerClass: Class.ClassWarrior,
 		onChange: fn(),
 		onReset: fn(),
+		ariaLabel: 'Filter character stats',
 		testId: 'stat-filter',
 	},
 	argTypes: {

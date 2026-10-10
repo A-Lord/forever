@@ -181,7 +181,7 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 			<div className="flex flex-col gap-4 lg:flex-row lg:items-start">
 				<div className="order-1 w-full lg:order-0">
 					<EpWeightsOptions statsType={statsType} onStatsTypeChange={setStatsType}>
-						<StatFilterPopover {...statFilter} testId="ep-stat-filter" />
+						<StatFilterPopover {...statFilter} ariaLabel={i18n.t('stat_filters.triggers.ep')} testId="ep-stat-filter" />
 					</EpWeightsOptions>
 					{!editOnly && <EpReferenceOptions epStats={epStats} epReferenceStat={epReferenceStat} displayMetrics={displayMetrics} />}
 					<p>

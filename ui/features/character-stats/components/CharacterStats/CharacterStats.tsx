@@ -159,7 +159,7 @@ export const CharacterStats = ({ className }: CharacterStatsProps) => {
 		<CharacterStatsPanelView
 			className={className}
 			title={i18n.t('sidebar.character_stats.title')}
-			filter={<StatFilterPopover {...statFilter} testId="character-stats-filter" />}>
+			filter={<StatFilterPopover {...statFilter} ariaLabel={i18n.t('stat_filters.triggers.character_stats')} testId="character-stats-filter" />}>
 			{primary && (
 				<div className="mb-2 border-b border-border pb-1" data-testid="character-stats-primary">
 					{table(primary.rows)}

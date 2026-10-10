@@ -2462,6 +2462,9 @@
 								"title": {
 									"type": "string"
 								},
+								"trigger": {
+									"type": "string"
+								},
 								"min_lvl": {
 									"type": "string"
 								},
@@ -2500,7 +2503,7 @@
 								}
 							},
 							"additionalProperties": false,
-							"required": ["title", "min_lvl", "reset", "types"]
+							"required": ["title", "trigger", "min_lvl", "reset", "types"]
 						},
 						"potions": {
 							"type": "object",
@@ -9450,6 +9453,25 @@
 				"title": {
 					"type": "string"
 				},
+				"triggers": {
+					"type": "object",
+					"properties": {
+						"character_stats": {
+							"type": "string"
+						},
+						"ep": {
+							"type": "string"
+						},
+						"buffs": {
+							"type": "string"
+						},
+						"debuffs": {
+							"type": "string"
+						}
+					},
+					"additionalProperties": false,
+					"required": ["character_stats", "ep", "buffs", "debuffs"]
+				},
 				"spec_defaults": {
 					"type": "string"
 				},
@@ -9477,7 +9499,7 @@
 				}
 			},
 			"additionalProperties": false,
-			"required": ["title", "spec_defaults", "all", "groups", "kept_tooltip"]
+			"required": ["title", "triggers", "spec_defaults", "all", "groups", "kept_tooltip"]
 		}
 	},
 	"additionalProperties": false,

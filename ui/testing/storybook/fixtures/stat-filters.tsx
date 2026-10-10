@@ -20,14 +20,15 @@ export const WARRIOR_STAT_DEFAULTS = [
 	UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeCritPercent),
 ];
 
-export const storyStatFilter = (testId: string, customised = false) => (
+export const storyStatFilter = (testId: string, ariaLabel: string) => (
 	<StatFilterPopover
 		universe={STAT_FILTER_UNIVERSE}
-		shown={customised ? WARRIOR_STAT_DEFAULTS.slice(0, 3) : WARRIOR_STAT_DEFAULTS}
-		customised={customised}
+		shown={WARRIOR_STAT_DEFAULTS}
+		customised={false}
 		playerClass={Class.ClassWarrior}
 		onChange={fn()}
 		onReset={fn()}
+		ariaLabel={ariaLabel}
 		testId={testId}
 	/>
 );

@@ -685,6 +685,7 @@
 			"title": "Consumables",
 			"filters": {
 				"title": "Consumables filter",
+				"trigger": "Filter consumables",
 				"min_lvl": "Minimum level",
 				"reset": "Reset to defaults",
 				"types": {
@@ -2674,6 +2675,12 @@
 	},
 	"stat_filters": {
 		"title": "Stats to show",
+		"triggers": {
+			"character_stats": "Filter character stats",
+			"ep": "Filter EP stats",
+			"buffs": "Filter buff stats",
+			"debuffs": "Filter debuff stats"
+		},
 		"spec_defaults": "Spec defaults",
 		"all": "All",
 		"groups": {

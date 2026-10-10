@@ -52,6 +52,7 @@ describe('ConsumesFilters', () => {
 	it('opens under its title on the stats tab, with the level fields on the other tab', () => {
 		open();
 
+		expect(screen.getByRole('button', { name: i18n.t('settings_tab.consumables.filters.trigger') })).toBe(screen.getByTestId('consumes-filters-button'));
 		expect(screen.getByRole('dialog', { name: i18n.t('settings_tab.consumables.filters.title') })).toBeTruthy();
 		expect(screen.getAllByRole('tab').map(tab => tab.textContent)).toEqual([
 			i18n.t('stat_filters.title'),

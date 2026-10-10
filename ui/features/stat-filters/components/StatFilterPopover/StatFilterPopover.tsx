@@ -18,6 +18,8 @@ export interface StatFilterPopoverProps {
 	onChange: (stats: UnitStat[]) => void;
 	/** Clears the slot back to the spec defaults. */
 	onReset: () => void;
+	/** The trigger's name, one per panel: every stat filter popup shares one title. */
+	ariaLabel: string;
 	testId: string;
 }
 
@@ -33,7 +35,7 @@ export const StatFilterList = ({
 	onChange,
 	onReset,
 	idPrefix,
-}: Omit<StatFilterPopoverProps, 'testId'> & { idPrefix: string }) => {
+}: Omit<StatFilterPopoverProps, 'ariaLabel' | 'testId'> & { idPrefix: string }) => {
 	const shownKeys = new Set(shown.map(stat => stat.getKey()));
 	const isShown = (stat: UnitStat) => shownKeys.has(stat.getKey());
 	const toggle = (stat: UnitStat, checked: boolean) => onChange(universe.filter(other => (other.equals(stat) ? checked : isShown(other))));
@@ -107,12 +109,8 @@ export const FilterPopover = ({ ariaLabel, title, className, triggerClassName, t
 	</Popover>
 );
 
-export const StatFilterPopover = ({ testId, ...listProps }: StatFilterPopoverProps) => (
-	<FilterPopover
-		ariaLabel={i18n.t('stat_filters.title')}
-		title={i18n.t('stat_filters.title')}
-		triggerTestId={`${testId}-button`}
-		testId={testId}>
+export const StatFilterPopover = ({ ariaLabel, testId, ...listProps }: StatFilterPopoverProps) => (
+	<FilterPopover ariaLabel={ariaLabel} title={i18n.t('stat_filters.title')} triggerTestId={`${testId}-button`} testId={testId}>
 		<StatFilterList {...listProps} idPrefix={testId} />
 	</FilterPopover>
 );

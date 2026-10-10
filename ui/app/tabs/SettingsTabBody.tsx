@@ -122,7 +122,10 @@ export const SettingsTabBody = () => {
 				<TabPanelColumns.Col>
 					{ready && (
 						<>
-							<BuffSection section="raid_buffs" empty={!offersBuffs} filter={<StatFilterPopover {...buffFilter} testId="buffs-filter" />}>
+							<BuffSection
+								section="raid_buffs"
+								empty={!offersBuffs}
+								filter={<StatFilterPopover {...buffFilter} ariaLabel={i18n.t('stat_filters.triggers.buffs')} testId="buffs-filter" />}>
 								<RaidBuffs options={options.buffs} miscOptions={[]} />
 							</BuffSection>
 							{offersPartyBuffs && (
@@ -131,7 +134,12 @@ export const SettingsTabBody = () => {
 								</BuffSection>
 							)}
 							{!gearPlanner && (
-								<BuffSection section="debuffs" empty={!offersDebuffs} filter={<StatFilterPopover {...debuffFilter} testId="debuffs-filter" />}>
+								<BuffSection
+									section="debuffs"
+									empty={!offersDebuffs}
+									filter={
+										<StatFilterPopover {...debuffFilter} ariaLabel={i18n.t('stat_filters.triggers.debuffs')} testId="debuffs-filter" />
+									}>
 									<RaidBuffs options={options.debuffs} miscOptions={options.debuffsMisc} />
 								</BuffSection>
 							)}
