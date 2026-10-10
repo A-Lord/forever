@@ -73,10 +73,34 @@ func (druid *Druid) ClearForm(sim *core.Simulation) {
 	}
 }
 
+func (druid *Druid) GetCatWeapon() core.Weapon {
+	unscaledWeapon := druid.WeaponFromMainHand()
+	return core.Weapon{
+		BaseDamageMin:        unscaledWeapon.BaseDamageMin / unscaledWeapon.SwingSpeed,
+		BaseDamageMax:        unscaledWeapon.BaseDamageMax / unscaledWeapon.SwingSpeed,
+		SwingSpeed:           1.0,
+		NormalizedSwingSpeed: 1.0,
+		AttackPowerPerDPS:    core.DefaultAttackPowerPerDPS,
+		MaxRange:             core.MaxMeleeRange,
+	}
+}
+
 // A bear's auto attack takes the two-hander rage factor: a combat log shows 11.25 rage a swing at the
 // bear's 2.5 seconds, 4.5 rage per second of swing. No druid row states a rage multiplier of its own.
 // TODO: Ingame test needed -- whether a bear holding a one-hander takes the one-hand factor instead.
 const BearRageIsTwoHanded = true
+
+func (druid *Druid) GetBearWeapon() core.Weapon {
+	unscaledWeapon := druid.WeaponFromMainHand()
+	return core.Weapon{
+		BaseDamageMin:        unscaledWeapon.BaseDamageMin / unscaledWeapon.SwingSpeed * 2.5,
+		BaseDamageMax:        unscaledWeapon.BaseDamageMax / unscaledWeapon.SwingSpeed * 2.5,
+		SwingSpeed:           2.5,
+		NormalizedSwingSpeed: 2.5,
+		AttackPowerPerDPS:    core.DefaultAttackPowerPerDPS,
+		MaxRange:             core.MaxMeleeRange,
+	}
+}
 
 func (druid *Druid) RegisterCatFormAura() {
 	form := spellData.CatForm.Highest()

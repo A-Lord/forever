@@ -142,8 +142,7 @@ export default defineSpec<Spec.SpecFeralBearDruid>({
 		epWeights: [Presets.Level60SurvivalEpWeights, Presets.Level60ThreatEpWeights, Presets.Level60DpsEpWeights],
 		talents: [Presets.BearTalents, Presets.HybridTalents],
 		rotations: [Presets.ROTATION_DEFAULT],
-		builds: [Presets.STARTER_BUILD],
-		gear: [Presets.Level60Gear, Presets.STARTER_GEAR],
+		gear: [Presets.Level60Gear],
 		encounters: [Presets.Level60Encounter],
 	},
 

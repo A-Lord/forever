@@ -1,6 +1,6 @@
 import * as PresetUtils from '@app/preset_utils';
 import * as Consumables from '@features/settings/model/consumables_auto_gen';
-import { ConsumesSpec, Profession, Race, Spec, Stat } from '@generated/proto/common';
+import { ConsumesSpec, Profession, Race, Stat } from '@generated/proto/common';
 import { FeralCatDruid_Options as FeralDruidOptions } from '@generated/proto/druid';
 import { SavedTalents } from '@generated/proto/ui';
 import { Stats } from '@sim/proto/stats';
@@ -11,9 +11,6 @@ import EnergizedApl from './apls/energized.apl.json';
 import PounceApl from './apls/pounce.apl.json';
 import RavageApl from './apls/ravage.apl.json';
 import ShadowmeldApl from './apls/shadowmeld.apl.json';
-import RaidBuild from './builds/raid.build.json';
-import StarterBuild from './builds/starter.build.json';
-import RaidEp from './ep/raid.ep.json';
 import Level60GearJson from './gear_sets/default.gear.json';
 import PreRaidGearJson from './gear_sets/pre_raid.gear.json';
 
@@ -53,7 +50,7 @@ export const PreRaidGear = PresetUtils.makePresetGear('Pre-raid', PreRaidGearJso
 
 // EP with agility as 1, on the Level 60 preset with the Monocat talents and APL, the default buffs,
 // debuffs and consumables, 180s, 200000 iterations. Hit is weighed 2% below the 8% cap, as on the
-// Pre-raid EP. Feral attack power is unread, so it stays 0.
+// Pre-raid EP.
 export const Level60Ep = Stats.fromMap({
 	[Stat.StatStrength]: 0.98,
 	[Stat.StatAgility]: 1,
@@ -128,18 +125,3 @@ export const BearweaveBuild = PresetUtils.makePresetBuild('Bearweave (45s fights
 	talents: BearweaveTalents,
 	rotation: BEARWEAVE_APL,
 });
-
-export const STARTER_GEAR = PresetUtils.makePresetGear('Level 60 Starter', StarterBuild.player.equipment);
-export const RAID_GEAR = PresetUtils.makePresetGear('Level 60 Raid Example', RaidBuild.player.equipment, {
-	tooltip: 'Representative gear from the game files, including AQ items. No launch-phase or BiS claim.',
-});
-export const STARTER_BUILD = PresetUtils.makePresetBuildFromJSON('Level 60 Starter', Spec.SpecFeralCatDruid, StarterBuild, {
-	gear: STARTER_GEAR,
-	rotation: MONOCAT_APL,
-});
-export const RAID_BUILD = PresetUtils.makePresetBuildFromJSON('Level 60 Raid Example', Spec.SpecFeralCatDruid, RaidBuild, {
-	gear: RAID_GEAR,
-	rotation: MONOCAT_APL,
-});
-
-export const RAID_EP = PresetUtils.makePresetEpWeightsFromJSON(RaidEp);

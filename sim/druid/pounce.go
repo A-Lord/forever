@@ -9,12 +9,9 @@ func (druid *Druid) registerPounceSpell() {
 	rank := spellData.Pounce.Highest()
 	bleedRank := spellData.PounceBleed.Highest()
 
+	// TODO: Ingame research needed -- Genesis names Pounce 9827 by its class flags, and the bleed 9826
+	// states none, so the bleed here takes no class-flag modifier.
 	bleedConfig := spelldata.SpellConfig(&druid.Unit, bleedRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial), spelldata.Proc())
-	// TODO: Ingame research needed -- Genesis names Pounce 9827, while bleed 9826 has no class flags.
-	// Its tooltip raises periodic damage, so only Genesis is applied to the bleed.
-	if druid.Talents.Genesis > 0 {
-		bleedConfig.DamageMultiplier *= 1 + spellData.Genesis.Rank(druid.Talents.Genesis).EffectN(1).Percent()
-	}
 	bleedTick := bleedRank.PeriodicDamageEffect()
 	bleedConfig.Dot = spelldata.DotConfig(bleedRank, bleedTick, bleedAuraOpt())
 	bleedConfig.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
@@ -26,7 +23,6 @@ func (druid *Druid) registerPounceSpell() {
 		return target.RegisterAura(spelldata.AuraConfig(rank, spelldata.Label(rank.Name+" Stun")))
 	})
 	config := spelldata.SpellConfig(&druid.Unit, rank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
-	config.RelatedAuraArrays = stuns.ToMap()
 	// The row's stealth requirement (ATTR_REQ_STEALTH) is not read by CastRequirement, so Prowl or
 	// Shadowmeld is checked here; "behind the target" is the tooltip's.
 	config.ExtraCastCondition = func(_ *core.Simulation, _ *core.Unit) bool {

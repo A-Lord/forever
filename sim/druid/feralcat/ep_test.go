@@ -5,7 +5,6 @@ package feralcat
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"strconv"
 	"testing"
 
@@ -13,8 +12,6 @@ import (
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/simsignals"
 	"github.com/wowsims/forever/sim/core/stats"
-	"google.golang.org/protobuf/encoding/protojson"
-	goproto "google.golang.org/protobuf/proto"
 )
 
 // Prints DPS EP for the UI's default cat: the Pre-raid set, Monocat talents and APL, its buffs,
@@ -45,47 +42,30 @@ func TestDefaultEp(t *testing.T) {
 	request := func(iterations int32) *proto.RaidSimRequest {
 		req := uiDefaultRaidSim(catTalents, catAPL(bestCatAPL), 180, 0, iterations)
 		req.Encounter.Targets[0].MinBaseDamage = core.FreshDefaultTargetConfig().MinBaseDamage
-		if build := os.Getenv("EP_BUILD"); build != "" {
-			req = buildRequest(t, build)
-		}
-		if input := os.Getenv("EP_SWEEP_REQUEST"); input != "" {
-			data, err := os.ReadFile(input)
-			if err != nil {
-				t.Fatal(err)
-			}
-			if err := protojson.Unmarshal(data, req); err != nil {
-				t.Fatal(err)
-			}
-		}
-		req.SimOptions.Iterations = iterations
 		if gear := os.Getenv("EP_GEAR"); gear != "" {
 			req.Raid.Parties[0].Players[0].Equipment = core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", gear).GearSet
 		}
 		return req
 	}
-	run := func(base *proto.RaidSimRequest, label string) *proto.StatWeightsResult {
+	run := func(base *proto.RaidSimRequest) *proto.StatWeightsResult {
 		// IsTest caps the sim at 3 workers. Labeled RNG is turned on inside stat weights.
 		base.SimOptions.IsTest = false
-		weights := &proto.StatWeightsRequest{
-			Player:             base.Raid.Parties[0].Players[0],
-			RaidBuffs:          base.Raid.Buffs,
-			PartyBuffs:         base.Raid.Parties[0].Buffs,
-			Debuffs:            base.Raid.Debuffs,
-			Encounter:          base.Encounter,
-			SimOptions:         base.SimOptions,
-			StatsToWeigh:       weigh,
-			PseudoStatsToWeigh: []proto.PseudoStat{proto.PseudoStat_PseudoStatMainHandDps},
-			EpReferenceStat:    proto.Stat_StatAgility,
-		}
-		writeCatEvidence(t, label+"-request", weights)
-		result := core.StatWeights(weights)
-		writeCatEvidence(t, label+"-result", result)
+		result := core.StatWeights(&proto.StatWeightsRequest{
+			Player:          base.Raid.Parties[0].Players[0],
+			RaidBuffs:       base.Raid.Buffs,
+			PartyBuffs:      base.Raid.Parties[0].Buffs,
+			Debuffs:         base.Raid.Debuffs,
+			Encounter:       base.Encounter,
+			SimOptions:      base.SimOptions,
+			StatsToWeigh:    weigh,
+			EpReferenceStat: proto.Stat_StatAgility,
+		})
 		if result.Error != nil {
 			t.Fatal(result.Error.Message)
 		}
 		return result
 	}
-	result := run(request(iterations), "ep-baseline")
+	result := run(request(iterations))
 
 	sim := core.NewSim(request(1), simsignals.CreateSignals())
 	sim.Reset()
@@ -94,7 +74,7 @@ func TestDefaultEp(t *testing.T) {
 	bonus := make([]float64, stats.SimStatsLen)
 	bonus[stats.HitRating] = (6 - hit) * core.HitRatingPerHitPercent
 	below.Raid.Parties[0].Players[0].BonusStats = &proto.UnitStats{Stats: bonus}
-	hitResult := run(below, "ep-hit6")
+	hitResult := run(below)
 
 	fmt.Printf("hit %.2f%%; hit weighed at 6%%\n", hit)
 	fmt.Printf("%-22s %12s %12s %10s %10s\n", "stat", "dps/point", "stdev", "ep", "ep stdev")
@@ -108,26 +88,5 @@ func TestDefaultEp(t *testing.T) {
 			stats.Stat(s).StatName(),
 			r.Dps.Weights.Stats[i], r.Dps.WeightsStdev.Stats[i],
 			r.Dps.EpValues.Stats[i], r.Dps.EpValuesStdev.Stats[i])
-	}
-	i := int(proto.PseudoStat_PseudoStatMainHandDps)
-	fmt.Printf("%-22s %12.4f %12.4f %10.4f %10.4f\n", "Main Hand DPS", result.Dps.Weights.PseudoStats[i], result.Dps.WeightsStdev.PseudoStats[i], result.Dps.EpValues.PseudoStats[i], result.Dps.EpValuesStdev.PseudoStats[i])
-
-}
-
-func writeCatEvidence(t testing.TB, name string, message goproto.Message) {
-	t.Helper()
-	dir := os.Getenv("CAT_EVIDENCE_DIR")
-	if dir == "" {
-		return
-	}
-	if err := os.MkdirAll(dir, 0755); err != nil {
-		t.Fatal(err)
-	}
-	data, err := (protojson.MarshalOptions{Indent: "  "}).Marshal(message)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(dir, name+".json"), data, 0644); err != nil {
-		t.Fatal(err)
 	}
 }

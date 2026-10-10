@@ -212,7 +212,7 @@ casts_results: {
   }
   casts: {
    key: "spell_id:22829 rank:4"
-   value: 6
+   value: 5
   }
   casts: {
    key: "spell_id:22842"
@@ -284,11 +284,11 @@ casts_results: {
   }
   casts: {
    key: "spell_id:9892 rank:3"
-   value: 16
+   value: 17
   }
   casts: {
    key: "spell_id:9896 rank:6"
-   value: 6
+   value: 5
   }
   casts: {
    key: "spell_id:9898 rank:5"
@@ -296,11 +296,11 @@ casts_results: {
   }
   casts: {
    key: "spell_id:9904 rank:4"
-   value: 11
+   value: 10
   }
   casts: {
    key: "spell_id:9907 rank:4"
-   value: 5
+   value: 6
   }
   casts: {
    key: "spell_id:9908 rank:5"

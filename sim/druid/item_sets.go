@@ -15,8 +15,9 @@ func parsedSetBonus(rows ...*spelldata.Spell) core.ApplySetBonus {
 	}
 }
 
-// TODO: Sets without full game files data are not registered: the Sanctuary PvP set and the Symbols
-// of Unending Life 3-piece bonus.
+// TODO: Sets without full game files data are not registered: the Feral T1 set 2115 (Grovekeeper
+// Ferocity, whose pieces have no ItemSparse rows), the Sanctuary PvP set and the Symbols of Unending
+// Life 3-piece bonus.
 
 var sixPieceSlots = []proto.ItemSlot{
 	proto.ItemSlot_ItemSlotHead,
@@ -225,26 +226,5 @@ var ItemSetFieldMarshalsWildhide = core.NewItemSet(core.ItemSet{
 	Bonuses: map[int32]core.ApplySetBonus{
 		2: parsedSetBonus(pvpStamina),
 		6: parsedSetBonus(pvpWildhide),
-	},
-})
-
-var ItemSetGenesisRaiment = core.NewItemSet(core.ItemSet{
-	Name:  "Genesis Raiment",
-	ID:    493,
-	Slots: eightPieceSlots,
-	Bonuses: map[int32]core.ApplySetBonus{
-		3: parsedSetBonus(spelldata.MustFind(15693), spelldata.MustFind(18196)),
-		5: parsedSetBonus(spelldata.MustFind(26106)),
-	},
-})
-
-var ItemSetGrovekeeperFerocity = core.NewItemSet(core.ItemSet{
-	Name:  "Grovekeeper Ferocity",
-	ID:    2115,
-	Slots: sixPieceSlots,
-	Bonuses: map[int32]core.ApplySetBonus{
-		2: parsedSetBonus(spelldata.MustFind(1300934)),
-		4: parsedSetBonus(spelldata.MustFind(1301075)),
-		5: parsedSetBonus(spelldata.MustFind(1301247)),
 	},
 })

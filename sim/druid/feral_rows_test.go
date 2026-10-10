@@ -35,9 +35,9 @@ func TestBerserkLeavesJumpTargetsUnparsed(t *testing.T) {
 	}
 }
 
-func TestOmenOfClarityUsesTheReviewedRate(t *testing.T) {
+func TestOmenOfClarityUsesThePlaceholderRate(t *testing.T) {
 	if got := spellData.OmenOfClarity.Highest().RPPM; got != 2 {
-		t.Errorf("Omen of Clarity RPPM = %v, want the reviewed 2.0", got)
+		t.Errorf("Omen of Clarity RPPM = %v, want the placeholder 2", got)
 	}
 }
 

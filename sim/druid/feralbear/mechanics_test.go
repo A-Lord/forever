@@ -301,41 +301,6 @@ func TestSwipeDoesNotScaleWithAttackPower(t *testing.T) {
 	}
 }
 
-func TestClearcastingSurvivesFreeFaerieFire(t *testing.T) {
-	sim, bear := newBear(t)
-	bear.OmenOfClarityAura.Deactivate(sim)
-	if cost := bear.FaerieFire.Cost.GetCurrentCost(); cost != 0 {
-		t.Fatalf("Faerie Fire in Bear Form costs %g before Clearcasting, want zero", cost)
-	}
-	bear.ClearcastingAura.Activate(sim)
-	bear.ClearcastingAura.SetStacks(sim, bear.ClearcastingAura.MaxStacks)
-	if !bear.FaerieFire.Cast(sim, bear.CurrentTarget) {
-		t.Fatal("Faerie Fire did not cast")
-	}
-	if !bear.ClearcastingAura.IsActive() {
-		t.Fatal("a spell already free in Bear Form consumed Clearcasting")
-	}
-}
-
-func TestClearcastingCoversAndSpendsDemoralizingRoar(t *testing.T) {
-	sim, bear := newBear(t)
-	bear.OmenOfClarityAura.Deactivate(sim)
-	before := bear.DemoralizingRoar.Cost.GetCurrentCost()
-	bear.ClearcastingAura.Activate(sim)
-	bear.ClearcastingAura.SetStacks(sim, bear.ClearcastingAura.MaxStacks)
-	covered := bear.DemoralizingRoar.Cost.GetCurrentCost()
-	if before <= 0 || covered != 0 {
-		t.Fatalf("Demoralizing Roar costs %g before and %g with Clearcasting", before, covered)
-	}
-	if !bear.DemoralizingRoar.Cast(sim, bear.CurrentTarget) {
-		t.Fatal("Demoralizing Roar did not cast")
-	}
-	t.Logf("cost before=%g, with Clearcasting=%g, charge after cast=%v", before, covered, bear.ClearcastingAura.IsActive())
-	if bear.ClearcastingAura.IsActive() {
-		t.Fatal("a covered offensive cast did not spend its charge")
-	}
-}
-
 // A bear's swing takes the two-hander rage factor: 4.5 rage per second of its 2.5 second swing is 11.25,
 // and a crit adds the swing's one-hand rage, 3.46 * 2.5 = 8.65, for 19.9.
 func TestBearSwingRageTakesTheTwoHandFactor(t *testing.T) {

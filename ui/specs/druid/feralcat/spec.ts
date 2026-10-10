@@ -134,13 +134,13 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 	},
 
 	presets: {
-		epWeights: [Presets.PreRaidEpWeights, Presets.Level60EpWeights, Presets.RAID_EP],
+		epWeights: [Presets.PreRaidEpWeights, Presets.Level60EpWeights],
 		// Preset talents that the user can quickly select.
 		talents: [Presets.CatTalents, Presets.BearweaveTalents, Presets.ManaEfficientTalents, Presets.HybridTalents],
 		rotations: [Presets.MONOCAT_APL, Presets.SHADOWMELD_APL, Presets.ENERGIZED_APL, Presets.RAVAGE_APL, Presets.POUNCE_APL, Presets.BEARWEAVE_APL],
-		builds: [Presets.BearweaveBuild, Presets.STARTER_BUILD, Presets.RAID_BUILD],
+		builds: [Presets.BearweaveBuild],
 		// Preset gear configurations that the user can quickly select.
-		gear: [Presets.PreRaidGear, Presets.Level60Gear, Presets.STARTER_GEAR, Presets.RAID_GEAR],
+		gear: [Presets.PreRaidGear, Presets.Level60Gear],
 	},
 
 	// Auto is the Monocat APL.

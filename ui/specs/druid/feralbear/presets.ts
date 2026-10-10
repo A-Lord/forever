@@ -1,6 +1,6 @@
 import * as PresetUtils from '@app/preset_utils';
 import * as Consumables from '@features/settings/model/consumables_auto_gen';
-import { ConsumesSpec, HealingModel, Profession, PseudoStat, Race, Spec, Stat } from '@generated/proto/common';
+import { ConsumesSpec, HealingModel, Profession, PseudoStat, Race, Stat } from '@generated/proto/common';
 import { FeralBearDruid_Options as DruidOptions } from '@generated/proto/druid';
 import { SavedTalents } from '@generated/proto/ui';
 import { Stats } from '@sim/proto/stats';
@@ -8,7 +8,6 @@ import { Encounter } from '@sim/raid/encounter';
 import { OtherDefaults as SimUIOtherDefaults } from '@sim/spec_config';
 
 import DefaultApl from './apls/default.apl.json';
-import StarterBuild from './builds/starter.build.json';
 import Level60GearJson from './gear_sets/default.gear.json';
 export const ROTATION_DEFAULT = PresetUtils.makePresetAPLRotation('APL', DefaultApl);
 
@@ -30,12 +29,12 @@ export const Level60Gear = PresetUtils.makePresetGear('Level 60', Level60GearJso
 	tooltip: 'Leather at level 60 with no set bonus and no proc. The idol slot is empty: every idol has an effect.',
 });
 
-// The default raid target swings for 15113 before armor, which kills a level 60 bear on every pull.
+// A level 60 target swings for 6000 before armor.
 const level60Encounter = Encounter.defaultEncounterProto();
 level60Encounter.targets[0].minBaseDamage = 6000;
 export const Level60Encounter = {
 	...PresetUtils.makePresetEncounter('Level 60 boss', level60Encounter),
-	tooltip: 'The raid target, hitting for 6000 before armor instead of 15113.',
+	tooltip: 'The raid target, hitting for 6000 before armor.',
 };
 
 // EP on the Level 60 preset, the APL preset and the Level 60 boss, with a raid bleed assumed, 200000
@@ -137,9 +136,3 @@ export const OtherDefaults: Partial<SimUIOtherDefaults> = {
 		inspirationUptime: 0.25,
 	}),
 };
-
-export const STARTER_GEAR = PresetUtils.makePresetGear('Level 60 Starter', StarterBuild.player.equipment);
-export const STARTER_BUILD = PresetUtils.makePresetBuildFromJSON('Level 60 Starter', Spec.SpecFeralBearDruid, StarterBuild, {
-	gear: STARTER_GEAR,
-	rotation: ROTATION_DEFAULT,
-});
