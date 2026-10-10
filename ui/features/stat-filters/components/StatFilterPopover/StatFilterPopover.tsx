@@ -1,13 +1,14 @@
 import type { Class } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import type { UnitStat } from '@sim/proto/stats';
+import { Accordion, AccordionItem } from '@ui-kit/Accordion';
 import { BooleanPicker } from '@ui-kit/BooleanPicker';
 import { Button } from '@ui-kit/Button';
 import { Icon } from '@ui-kit/Icon';
 import { Popover } from '@ui-kit/Popover';
 import { type ReactNode, useMemo } from 'react';
 
-import { FILTER_GROUPS, type FilterGroupKey, statGroupOf } from '../../model/stat_groups';
+import { type FilterGroupKey, filterGroupsOf } from '../../model/stat_groups';
 
 export interface StatFilterPopoverProps {
 	universe: ReadonlyArray<UnitStat>;
@@ -18,6 +19,8 @@ export interface StatFilterPopoverProps {
 	onChange: (stats: UnitStat[]) => void;
 	/** Clears the slot back to the spec defaults. */
 	onReset: () => void;
+	openGroups: string[];
+	onOpenGroupsChange: (groups: string[]) => void;
 	/** The trigger's name, one per panel: every stat filter popup shares one title. */
 	ariaLabel: string;
 	testId: string;
@@ -34,25 +37,36 @@ export const StatFilterList = ({
 	playerClass,
 	onChange,
 	onReset,
+	openGroups,
+	onOpenGroupsChange,
 	idPrefix,
 }: Omit<StatFilterPopoverProps, 'ariaLabel' | 'testId'> & { idPrefix: string }) => {
 	const shownKeys = new Set(shown.map(stat => stat.getKey()));
 	const isShown = (stat: UnitStat) => shownKeys.has(stat.getKey());
 	const toggle = (stat: UnitStat, checked: boolean) => onChange(universe.filter(other => (other.equals(stat) ? checked : isShown(other))));
-	const groups = useMemo(() => {
-		const inUniverse = new Set(universe.map(stat => stat.getKey()));
-		const grouped = FILTER_GROUPS.map(({ key, stats }) => ({ key, stats: stats.filter(stat => inUniverse.has(stat.getKey())) }));
-		const other = { key: 'other' as const, stats: universe.filter(stat => statGroupOf(stat) === 'other') };
-		return [...grouped, other].filter(group => group.stats.length > 0);
-	}, [universe]);
+	const groups = useMemo(() => filterGroupsOf(universe), [universe]);
 
 	return (
 		<div className="flex min-h-0 flex-col gap-2">
 			{/* Scrolls on its own, so the buttons stay in view in a popup capped to the viewport. */}
-			<div className="flex min-h-0 flex-col gap-2 overflow-y-auto">
+			<Accordion
+				value={openGroups}
+				onValueChange={onOpenGroupsChange}
+				variant="divided"
+				density="compact"
+				className="min-h-0 overflow-y-auto"
+				testId={`${idPrefix}-groups`}>
 				{groups.map(group => (
-					<section key={group.key}>
-						<h6 className="mb-1 text-sm font-semibold text-muted">{groupLabel(group.key)}</h6>
+					<AccordionItem
+						key={group.key}
+						value={group.key}
+						title={i18n.t('stat_filters.group_count', {
+							group: groupLabel(group.key),
+							shown: group.stats.filter(isShown).length,
+							total: group.stats.length,
+						})}
+						panelClassName="pb-2"
+						testId={`${idPrefix}-group-${group.key}`}>
 						<div className="grid grid-cols-2 gap-x-4 gap-y-1 md:grid-cols-3">
 							{group.stats.map(stat => (
 								<BooleanPicker
@@ -66,9 +80,9 @@ export const StatFilterList = ({
 								/>
 							))}
 						</div>
-					</section>
+					</AccordionItem>
 				))}
-			</div>
+			</Accordion>
 			<div className="flex shrink-0 justify-end gap-2">
 				<Button variant="outline-primary" size="sm" data-testid={`${idPrefix}-reset`} disabled={!customised} onClick={onReset}>
 					{i18n.t('stat_filters.spec_defaults')}

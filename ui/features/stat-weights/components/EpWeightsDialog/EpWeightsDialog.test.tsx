@@ -215,6 +215,7 @@ const setup = () => {
 	host = {
 		rootElem,
 		player,
+		getStorageKey: (keyPart: string) => `test${keyPart}`,
 		sim: {
 			showThreatMetrics: false,
 			getShowThreatMetrics() {

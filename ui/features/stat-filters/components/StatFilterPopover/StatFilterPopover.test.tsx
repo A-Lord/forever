@@ -16,9 +16,12 @@ const physicalDamage = UnitStat.fromStat(Stat.StatPhysicalDamage);
 
 const universe = [health, strength, agility, meleeHit, hitRating, mainHandDps, physicalDamage];
 
-const mountList = (props: { shown?: UnitStat[]; customised?: boolean; universe?: UnitStat[] } = {}) => {
+const EVERY_GROUP = ['primary', 'attributes', 'physical', 'spell', 'defense', 'resistance', 'ratings', 'other'];
+
+const mountList = (props: { shown?: UnitStat[]; customised?: boolean; universe?: UnitStat[]; openGroups?: string[] } = {}) => {
 	const onChange = vi.fn();
 	const onReset = vi.fn();
+	const onOpenGroupsChange = vi.fn();
 	render(
 		<StatFilterList
 			universe={props.universe ?? universe}
@@ -27,37 +30,59 @@ const mountList = (props: { shown?: UnitStat[]; customised?: boolean; universe?:
 			playerClass={Class.ClassWarrior}
 			onChange={onChange}
 			onReset={onReset}
+			openGroups={props.openGroups ?? EVERY_GROUP}
+			onOpenGroupsChange={onOpenGroupsChange}
 			idPrefix="test-filter"
 		/>,
 	);
-	return { onChange, onReset };
+	return { onChange, onReset, onOpenGroupsChange };
 };
 
 const checkbox = (stat: UnitStat) => screen.getByRole('checkbox', { name: stat.getShortName(Class.ClassWarrior) });
 const keys = (stats: ReadonlyArray<UnitStat>) => stats.map(stat => stat.getKey());
-const expectGroupOrder = (heading: string, stats: ReadonlyArray<UnitStat>) => {
-	const boxes = within(screen.getByRole('heading', { name: heading }).closest('section')!).getAllByRole('checkbox');
+const group = (key: string) => screen.getByTestId(`test-filter-group-${key}`);
+const groupTrigger = (key: string) => screen.getByTestId(`test-filter-group-${key}-trigger`);
+const groupTriggers = () => screen.queryAllByTestId(/^test-filter-group-[a-z]+-trigger$/);
+const groupTitle = (label: string, shown: number, total: number) => i18n.t('stat_filters.group_count', { group: label, shown, total });
+const expectGroupOrder = (key: string, stats: ReadonlyArray<UnitStat>) => {
+	const boxes = within(group(key)).getAllByRole('checkbox');
 	expect(boxes).toHaveLength(stats.length);
 	stats.forEach((stat, index) => expect(boxes[index]).toBe(checkbox(stat)));
 };
 
 describe('StatFilterList', () => {
-	it('groups the universe under the character stats headings, with Other last and empty groups left out', () => {
+	it('groups the universe under the character stats headings with shown/total counts, Other last and empty groups left out', () => {
 		mountList();
 
-		expect(screen.getAllByRole('heading').map(heading => heading.textContent)).toEqual([
-			i18n.t('stat_filters.groups.primary'),
-			i18n.t('sidebar.character_stats.groups.attributes'),
-			i18n.t('sidebar.character_stats.groups.physical'),
-			i18n.t('stat_filters.groups.ratings'),
-			i18n.t('stat_filters.groups.other'),
+		expect(groupTriggers().map(trigger => trigger.textContent)).toEqual([
+			groupTitle(i18n.t('stat_filters.groups.primary'), 0, 1),
+			groupTitle(i18n.t('sidebar.character_stats.groups.attributes'), 1, 2),
+			groupTitle(i18n.t('sidebar.character_stats.groups.physical'), 1, 1),
+			groupTitle(i18n.t('stat_filters.groups.ratings'), 0, 2),
+			groupTitle(i18n.t('stat_filters.groups.other'), 0, 1),
 		]);
+	});
+
+	it('expands the open groups only, and a collapsed group still counts what it holds', () => {
+		mountList({ openGroups: ['attributes'] });
+
+		expect(groupTriggers().filter(trigger => trigger.getAttribute('aria-expanded') === 'true')).toEqual([groupTrigger('attributes')]);
+		expect(screen.queryByRole('checkbox', { name: hitRating.getShortName(Class.ClassWarrior) })).toBeNull();
+		expect(groupTrigger('physical').textContent).toBe(groupTitle(i18n.t('sidebar.character_stats.groups.physical'), 1, 1));
+	});
+
+	it('hands back the new open groups when a header is clicked', () => {
+		const { onOpenGroupsChange } = mountList({ openGroups: ['attributes'] });
+
+		fireEvent.click(groupTrigger('ratings'));
+
+		expect(onOpenGroupsChange.mock.lastCall![0]).toEqual(['attributes', 'ratings']);
 	});
 
 	it('puts ratings and weapon DPS under Ratings', () => {
 		mountList();
 
-		const ratings = screen.getByRole('heading', { name: i18n.t('stat_filters.groups.ratings') }).closest('section')!;
+		const ratings = group('ratings');
 		expect(within(ratings).getByRole('checkbox', { name: hitRating.getShortName(Class.ClassWarrior) })).toBeTruthy();
 		expect(within(ratings).getByRole('checkbox', { name: mainHandDps.getShortName(Class.ClassWarrior) })).toBeTruthy();
 		expect(within(ratings).getAllByRole('checkbox')).toHaveLength(2);
@@ -66,7 +91,7 @@ describe('StatFilterList', () => {
 	it('leaves Ratings out when the universe has no rating or weapon DPS', () => {
 		mountList({ universe: [health, strength, physicalDamage] });
 
-		expect(screen.queryByRole('heading', { name: i18n.t('stat_filters.groups.ratings') })).toBeNull();
+		expect(screen.queryByTestId('test-filter-group-ratings')).toBeNull();
 	});
 
 	it("lists each group's stats in the group's own order, whatever the universe order", () => {
@@ -76,8 +101,8 @@ describe('StatFilterList', () => {
 		const spellDamage = UnitStat.fromStat(Stat.StatSpellDamage);
 		mountList({ universe: [mainHandDps, blockRating, dodgeRating, hitRating, healingPower, spellDamage] });
 
-		expectGroupOrder(i18n.t('stat_filters.groups.ratings'), [hitRating, dodgeRating, blockRating, mainHandDps]);
-		expectGroupOrder(i18n.t('sidebar.character_stats.groups.spell'), [spellDamage, healingPower]);
+		expectGroupOrder('ratings', [hitRating, dodgeRating, blockRating, mainHandDps]);
+		expectGroupOrder('spell', [spellDamage, healingPower]);
 	});
 
 	it('puts the off-hand hit and crit percents under Physical, each after its melee stat', () => {
@@ -86,7 +111,7 @@ describe('StatFilterList', () => {
 		const offHandCrit = UnitStat.fromPseudoStat(PseudoStat.PseudoStatOffHandCritPercent);
 		mountList({ universe: [offHandCrit, offHandHit, meleeCrit, meleeHit] });
 
-		expectGroupOrder(i18n.t('sidebar.character_stats.groups.physical'), [meleeHit, offHandHit, meleeCrit, offHandCrit]);
+		expectGroupOrder('physical', [meleeHit, offHandHit, meleeCrit, offHandCrit]);
 	});
 
 	it('checks the shown stats only', () => {
@@ -141,6 +166,8 @@ describe('StatFilterPopover', () => {
 				playerClass={Class.ClassWarrior}
 				onChange={() => {}}
 				onReset={() => {}}
+				openGroups={['attributes']}
+				onOpenGroupsChange={() => {}}
 				ariaLabel="Filter test stats"
 				testId="test-filter"
 			/>,

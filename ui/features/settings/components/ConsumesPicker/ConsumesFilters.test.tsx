@@ -29,7 +29,7 @@ const player = {
 };
 
 const open = () => {
-	renderWithHost(<ConsumesFilters />, { sim, player });
+	renderWithHost(<ConsumesFilters />, { sim, player, getStorageKey: (keyPart: string) => `test${keyPart}` });
 	fireEvent.click(screen.getByTestId('consumes-filters-button'));
 };
 

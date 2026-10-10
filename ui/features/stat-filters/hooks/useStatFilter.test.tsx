@@ -6,7 +6,7 @@ import { renderWithHost } from '@testing/react';
 import { act } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { StatFilterScope } from '../model/stat_filters';
+import type { StatFilterScope, StatFilterSlot } from '../model/stat_filters';
 import * as statFilters from '../model/stat_filters';
 import { useStatFilter } from './useStatFilter';
 
@@ -18,6 +18,8 @@ vi.mock('../model/stat_filters', async importOriginal => {
 const strength = UnitStat.fromStat(Stat.StatStrength);
 const agility = UnitStat.fromStat(Stat.StatAgility);
 const stamina = UnitStat.fromStat(Stat.StatStamina);
+const hitRating = UnitStat.fromStat(Stat.StatHitRating);
+const armor = UnitStat.fromStat(Stat.StatArmor);
 
 const scope: StatFilterScope = { defaults: [strength, stamina], universe: [strength, agility, stamina] };
 
@@ -30,11 +32,12 @@ const Probe = () => {
 	return <span>{latest.shown.map(stat => stat.getKey()).join(',')}</span>;
 };
 
-const mount = () => renderWithHost(<Probe />, { sim, player: { getClass: () => Class.ClassWarrior } });
+const mount = () => renderWithHost(<Probe />, { sim, player: { getClass: () => Class.ClassWarrior }, getStorageKey: (keyPart: string) => `test${keyPart}` });
 
 const keys = (stats: ReadonlyArray<UnitStat>) => stats.map(stat => stat.getKey()).join(',');
 
 beforeEach(() => {
+	window.localStorage.clear();
 	store = createSimStore();
 	sim = {
 		store,
@@ -101,6 +104,47 @@ describe('useStatFilter', () => {
 
 		expect(sim.getFilters().minIlvl).toBe(50);
 		expect(sim.getFilters().statFilters?.buffs).toBeDefined();
+	});
+});
+
+describe('useStatFilter open groups', () => {
+	const groupsScope: StatFilterScope = { defaults: [strength, armor], universe: [strength, agility, hitRating, armor] };
+	const GroupsProbe = ({ slot }: { slot: StatFilterSlot }) => {
+		latest = useStatFilter(slot, groupsScope);
+		return null;
+	};
+	const mountGroups = (slot: StatFilterSlot) =>
+		renderWithHost(<GroupsProbe slot={slot} />, {
+			sim,
+			player: { getClass: () => Class.ClassWarrior },
+			getStorageKey: (keyPart: string) => `test${keyPart}`,
+		});
+
+	it('opens the groups that hold a shown stat while nothing is stored', () => {
+		mountGroups('ep');
+
+		expect(latest.openGroups).toEqual(['attributes', 'defense']);
+	});
+
+	it("stores a change under the panel's own key and reads it back on the next mount", () => {
+		const view = mountGroups('ep');
+
+		act(() => latest.onOpenGroupsChange(['ratings']));
+
+		expect(latest.openGroups).toEqual(['ratings']);
+		expect(JSON.parse(window.localStorage.getItem('test__epStatFilterGroups')!)).toEqual(['ratings']);
+		expect(window.localStorage.getItem('test__consumablesStatFilterGroups')).toBeNull();
+		view.unmount();
+		mountGroups('ep');
+		expect(latest.openGroups).toEqual(['ratings']);
+	});
+
+	it('takes the stored groups over the default', () => {
+		window.localStorage.setItem('test__consumablesStatFilterGroups', JSON.stringify([]));
+
+		mountGroups('consumables');
+
+		expect(latest.openGroups).toEqual([]);
 	});
 });
 

@@ -123,3 +123,19 @@ export const FILTER_GROUPS: ReadonlyArray<{ key: FilterGroupKey; stats: Readonly
 const groupByKey = new Map(FILTER_GROUPS.flatMap(({ key, stats }) => stats.map(stat => [stat.getKey(), key] as const)));
 
 export const statGroupOf = (stat: UnitStat): FilterGroupKey | 'other' => groupByKey.get(stat.getKey()) ?? 'other';
+
+/** The groups a stat filter popover lists for `universe`, each with only its stats in it, Other last and empty groups left out. */
+export const filterGroupsOf = (universe: ReadonlyArray<UnitStat>): Array<{ key: FilterGroupKey | 'other'; stats: ReadonlyArray<UnitStat> }> => {
+	const inUniverse = new Set(universe.map(stat => stat.getKey()));
+	const grouped = FILTER_GROUPS.map(({ key, stats }) => ({ key, stats: stats.filter(stat => inUniverse.has(stat.getKey())) }));
+	const other = { key: 'other' as const, stats: universe.filter(stat => statGroupOf(stat) === 'other') };
+	return [...grouped, other].filter(group => group.stats.length > 0);
+};
+
+/** The groups that hold at least one shown stat: the ones a popover opens with when nothing is stored for its panel. */
+export const defaultOpenFilterGroups = (universe: ReadonlyArray<UnitStat>, shown: ReadonlyArray<UnitStat>): Array<FilterGroupKey | 'other'> => {
+	const shownKeys = new Set(shown.map(stat => stat.getKey()));
+	return filterGroupsOf(universe)
+		.filter(group => group.stats.some(stat => shownKeys.has(stat.getKey())))
+		.map(group => group.key);
+};

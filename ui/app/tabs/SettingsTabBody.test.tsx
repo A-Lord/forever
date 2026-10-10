@@ -58,7 +58,7 @@ const setup = async (overrides: Partial<typeof SPEC> = {}) => {
 	const config = { ...SPEC, ...overrides };
 	const { sim, player } = await makeIndividualSim({ config });
 	rendered = [];
-	renderWithHost(<SettingsTabBody />, { sim, player, individualConfig: config });
+	renderWithHost(<SettingsTabBody />, { sim, player, individualConfig: config, getStorageKey: (keyPart: string) => `test${keyPart}` });
 	return { sim, player };
 };
 

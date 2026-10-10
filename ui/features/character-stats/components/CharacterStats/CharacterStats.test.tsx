@@ -151,6 +151,10 @@ const openFilter = () =>
 	});
 const toggleStats = async (...stats: UnitStat[]) => {
 	await openFilter();
+	screen
+		.queryAllByTestId(/^character-stats-filter-group-[a-z]+-trigger$/)
+		.filter(trigger => trigger.getAttribute('aria-expanded') !== 'true')
+		.forEach(trigger => act(() => fireEvent.click(trigger)));
 	for (const stat of stats) {
 		act(() => {
 			fireEvent.click(document.getElementById(`character-stats-filter-${stat.getKey()}`)!);

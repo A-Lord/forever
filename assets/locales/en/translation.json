@@ -2688,6 +2688,7 @@
 			"ratings": "Ratings",
 			"other": "Other"
 		},
+		"group_count": "{{group}} ({{shown}}/{{total}})",
 		"kept_tooltip": "Shown because it is selected; the stat filter hides its stats."
 	}
 }

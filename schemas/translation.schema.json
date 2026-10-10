@@ -9494,12 +9494,15 @@
 					"additionalProperties": false,
 					"required": ["primary", "ratings", "other"]
 				},
+				"group_count": {
+					"type": "string"
+				},
 				"kept_tooltip": {
 					"type": "string"
 				}
 			},
 			"additionalProperties": false,
-			"required": ["title", "triggers", "spec_defaults", "all", "groups", "kept_tooltip"]
+			"required": ["title", "triggers", "spec_defaults", "all", "groups", "group_count", "kept_tooltip"]
 		}
 	},
 	"additionalProperties": false,
