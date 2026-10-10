@@ -1,12 +1,11 @@
 import * as PresetUtils from '@app/preset_utils';
+import * as Consumables from '@features/settings/model/consumables_auto_gen';
 import { ConsumesSpec, HealingModel, Profession, PseudoStat, Race, Stat } from '@generated/proto/common';
 import { FeralBearDruid_Options as DruidOptions } from '@generated/proto/druid';
 import { SavedTalents } from '@generated/proto/ui';
 import { Stats } from '@sim/proto/stats';
 import { Encounter } from '@sim/raid/encounter';
 import { OtherDefaults as SimUIOtherDefaults } from '@sim/spec_config';
-
-import * as Consumables from '@features/settings/model/consumables_auto_gen';
 
 import DefaultApl from './apls/default.apl.json';
 import Level60GearJson from './gear_sets/default.gear.json';

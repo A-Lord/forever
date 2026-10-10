@@ -13,6 +13,8 @@ func (druid *Druid) registerFaerieFireSpell() {
 		return buffs.NewSpellDataFaerieFireAura(target, true, 0)
 	})
 	config := spelldata.SpellConfig(&druid.Unit, rank, spelldata.Magic(core.ProcMaskSpellDamage))
+	// The timer must exist before the form passive adds its recovery time.
+	config.Cast.CD = core.Cooldown{Timer: druid.NewTimer(), Duration: spellData.CatFormTriggered.Highest().EffectN(4).TimeValue()}
 	// Cost, cooldown and GCD in cat or bear come from the form passive's spell mods. A cast on a target
 	// that has the debuff refreshes it; when to refresh is the rotation's.
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
@@ -23,4 +25,5 @@ func (druid *Druid) registerFaerieFireSpell() {
 	}
 	config.RelatedAuraArrays = druid.FaerieFireAuras.ToMap()
 	druid.FaerieFire = druid.RegisterSpell(config)
+	druid.FaerieFire.CD.Duration = rank.Cooldown()
 }
