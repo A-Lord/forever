@@ -12,7 +12,11 @@ func (druid *Druid) registerPounceSpell() {
 	// TODO: Ingame research needed -- Genesis names Pounce 9827 by its class flags, and the bleed 9826
 	// states none, so the bleed here takes no class-flag modifier.
 	bleedConfig := spelldata.SpellConfig(&druid.Unit, bleedRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial), spelldata.Proc())
-	bleedConfig.Dot = spelldata.DotConfig(bleedRank, bleedRank.PeriodicDamageEffect(), bleedAuraOpt())
+	bleedTick := bleedRank.PeriodicDamageEffect()
+	bleedConfig.Dot = spelldata.DotConfig(bleedRank, bleedTick, bleedAuraOpt())
+	bleedConfig.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
+		dot.Spell.CalcAndDealPeriodicDamage(sim, target, bleedTick.Average()*druid.rendAndTearMultiplier(target), bleedRank.TickOutcome(dot))
+	}
 	druid.PounceBleed = druid.RegisterSpell(bleedConfig)
 
 	stuns := druid.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {

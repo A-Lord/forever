@@ -175,3 +175,30 @@ func TestAssumedBleedRaisesShredLikeOwnBleed(t *testing.T) {
 		t.Fatalf("shred with the bleed assumed = %g, with Rake up = %g", assumed, bleeding)
 	}
 }
+
+// Rend and Tear raises bleed ticks. A Rake or Rip tick counts its own bleed as the bleed on the target,
+// and the talent is the only difference between the two builds.
+func TestRendAndTearRaisesBleedTicks(t *testing.T) {
+	const rendAndTear5 = "0000000000000000-00000000000000000050-0000000000000000"
+	tick := func(talents string, rip bool) float64 {
+		sim, cat := newCat(t, talents, nil)
+		cat.AddStatDynamic(sim, stats.PhysicalCritPercent, -100)
+		spell := cat.Rake
+		if rip {
+			cat.AddComboPoints(sim, 5, cat.NewComboPointMetrics(core.ActionID{SpellID: 1}))
+			spell = cat.Rip
+		}
+		dot := spell.Dot(cat.CurrentTarget)
+		dot.Apply(sim)
+		metric := &spell.SpellMetrics[cat.CurrentTarget.UnitIndex]
+		before := metric.TotalDamage
+		dot.TickOnce(sim)
+		return metric.TotalDamage - before
+	}
+	for _, rip := range []bool{false, true} {
+		plain, raised := tick("", rip), tick(rendAndTear5, rip)
+		if plain <= 0 || math.Abs(raised/plain-1.10) > 1e-6 {
+			t.Errorf("rip=%v: tick %g without the talent, %g with 5/5, want x1.10", rip, plain, raised)
+		}
+	}
+}
