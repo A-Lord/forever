@@ -233,40 +233,66 @@ func TestCowerAndFaerieFireEndProwl(t *testing.T) {
 }
 
 func TestFaerieFireFormCooldown(t *testing.T) {
-	sim, cat := newCat(t, furorTalents, nil)
-	fillResource(sim, cat)
-	if cat.FaerieFire.CD.Duration != 6*time.Second {
-		t.Fatalf("cat cooldown = %v, want 6s", cat.FaerieFire.CD.Duration)
-	}
-	if !cat.FaerieFire.Cast(sim, cat.CurrentTarget) {
-		t.Fatal("first Faerie Fire cast failed")
-	}
-	sim.CurrentTime += time.Second
-	if cat.FaerieFire.CanCast(sim, cat.CurrentTarget) {
-		t.Fatal("Faerie Fire available after 1s in Cat")
-	}
-	sim.CurrentTime += 5 * time.Second
-	if !cat.FaerieFire.CanCast(sim, cat.CurrentTarget) {
-		t.Fatal("Faerie Fire unavailable after 6s in Cat")
-	}
-	cat.CatFormAura.Deactivate(sim)
-	if cat.FaerieFire.CD.Duration != 0 {
-		t.Fatalf("caster cooldown = %v, want 0", cat.FaerieFire.CD.Duration)
-	}
-	fillResource(sim, cat)
-	if !cat.BearForm.Cast(sim, cat.CurrentTarget) {
-		t.Fatal("Bear Form cast failed")
-	}
-	if cat.FaerieFire.CD.Duration != 6*time.Second {
-		t.Fatalf("bear cooldown = %v, want 6s", cat.FaerieFire.CD.Duration)
-	}
-	sim.CurrentTime += 1500 * time.Millisecond
-	if !cat.FaerieFire.Cast(sim, cat.CurrentTarget) {
-		t.Fatal("first Bear Faerie Fire cast failed")
-	}
-	sim.CurrentTime += 1500 * time.Millisecond
-	if cat.FaerieFire.CanCast(sim, cat.CurrentTarget) {
-		t.Fatal("Faerie Fire available before 6s in Bear")
+	for _, form := range []string{"Cat", "Bear"} {
+		t.Run(form, func(t *testing.T) {
+			sim, cat := newCat(t, furorTalents, nil)
+			fillResource(sim, cat)
+			shift, aura := cat.CatForm, cat.CatFormAura
+			if form == "Bear" {
+				shift, aura = cat.BearForm, cat.BearFormAura
+				cat.CatFormAura.Deactivate(sim)
+				if !shift.Cast(sim, cat.CurrentTarget) {
+					t.Fatal("initial form cast failed")
+				}
+				sim.CurrentTime = cat.GCD.ReadyAt()
+			}
+			if !cat.FaerieFire.Cast(sim, cat.CurrentTarget) {
+				t.Fatal("in-form Faerie Fire cast failed")
+			}
+			expires := sim.CurrentTime + 6*time.Second
+			if got := cat.FaerieFire.CD.ReadyAt(); got != expires {
+				t.Fatalf("cooldown expires at %v, want %v", got, expires)
+			}
+			sim.CurrentTime = cat.GCD.ReadyAt()
+			if cat.FaerieFire.CanCast(sim, cat.CurrentTarget) {
+				t.Fatal("Faerie Fire available in form before its cooldown expires")
+			}
+			aura.Deactivate(sim)
+			if cat.FaerieFire.CD.Duration != 0 {
+				t.Fatalf("humanoid cooldown duration = %v, want 0", cat.FaerieFire.CD.Duration)
+			}
+			if got := cat.FaerieFire.CD.ReadyAt(); got != expires {
+				t.Fatalf("leaving form changed the cooldown expiry to %v, want %v", got, expires)
+			}
+			if cat.FaerieFire.CanCast(sim, cat.CurrentTarget) {
+				t.Fatal("leaving form cleared the active Faerie Fire cooldown")
+			}
+			sim.CurrentTime = expires
+			for cast := 0; cast < 2; cast++ {
+				fillResource(sim, cat)
+				if !cat.FaerieFire.Cast(sim, cat.CurrentTarget) {
+					t.Fatalf("humanoid Faerie Fire cast %d failed", cast+1)
+				}
+				if !cat.FaerieFire.CD.IsReady(sim) {
+					t.Fatal("humanoid Faerie Fire started a cooldown")
+				}
+				sim.CurrentTime = cat.GCD.ReadyAt()
+			}
+			fillResource(sim, cat)
+			if !shift.Cast(sim, cat.CurrentTarget) {
+				t.Fatal("return to form failed")
+			}
+			if !cat.FaerieFire.CD.IsReady(sim) {
+				t.Fatal("entering form added a cooldown to the humanoid cast")
+			}
+			sim.CurrentTime = cat.GCD.ReadyAt()
+			if !cat.FaerieFire.Cast(sim, cat.CurrentTarget) {
+				t.Fatal("Faerie Fire unavailable after entering form and waiting for the GCD")
+			}
+			if got := cat.FaerieFire.CD.TimeToReady(sim); got != 6*time.Second {
+				t.Fatalf("new in-form cooldown = %v, want 6s", got)
+			}
+		})
 	}
 }
 
