@@ -55,7 +55,7 @@ export const StatFilterList = ({
 				onValueChange={onOpenGroupsChange}
 				variant="divided"
 				density="compact"
-				className="-mx-2 min-h-0 overflow-y-auto px-2 [scrollbar-gutter:stable]"
+				className="-mx-2 min-h-0 [scrollbar-gutter:stable] overflow-y-auto px-2"
 				testId={`${idPrefix}-groups`}>
 				{groups.map(group => (
 					<AccordionItem
@@ -68,7 +68,7 @@ export const StatFilterList = ({
 						})}
 						panelClassName="pb-2"
 						testId={`${idPrefix}-group-${group.key}`}>
-						<div className="grid grid-cols-2 gap-x-4 gap-y-1 md:grid-cols-3">
+						<div className="flex flex-col gap-y-1">
 							{group.stats.map(stat => (
 								<BooleanPicker
 									key={stat.getKey()}
@@ -130,6 +130,7 @@ export const StatFilterPopover = ({ ariaLabel, testId, onPopoverOpenChange, ...l
 	<FilterPopover
 		ariaLabel={ariaLabel}
 		title={i18n.t('stat_filters.title')}
+		className="w-80"
 		triggerTestId={`${testId}-button`}
 		testId={testId}
 		onOpenChange={onPopoverOpenChange}>
