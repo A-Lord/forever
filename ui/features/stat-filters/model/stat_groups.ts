@@ -123,7 +123,7 @@ const FILTER_GROUPS: ReadonlyArray<{ key: FilterGroupKey; stats: ReadonlyArray<U
 
 const groupByKey = new Map(FILTER_GROUPS.flatMap(({ key, stats }) => stats.map(stat => [stat.getKey(), key] as const)));
 
-const statGroupOf =(stat: UnitStat): FilterGroupKey | 'other' => groupByKey.get(stat.getKey()) ?? 'other';
+const statGroupOf = (stat: UnitStat): FilterGroupKey | 'other' => groupByKey.get(stat.getKey()) ?? 'other';
 
 /** The groups a stat filter popover lists for `universe`, each with only its stats in it, Other last and empty groups left out. */
 export const filterGroupsOf = (universe: ReadonlyArray<UnitStat>): Array<{ key: FilterGroupKey | 'other'; stats: ReadonlyArray<UnitStat> }> => {
