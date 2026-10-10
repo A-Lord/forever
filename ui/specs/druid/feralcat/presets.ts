@@ -52,18 +52,18 @@ export const PreRaidGear = PresetUtils.makePresetGear('Pre-raid', PreRaidGearJso
 });
 
 // EP with agility as 1, on the Level 60 preset with the Monocat talents and APL, the default buffs,
-// debuffs and consumables, 180s, 100000 iterations. Hit is weighed 2% below the 8% cap, as on the
+// debuffs and consumables, 180s, 200000 iterations. Hit is weighed 2% below the 8% cap, as on the
 // Pre-raid EP. Feral attack power is unread, so it stays 0.
 export const Level60Ep = Stats.fromMap({
 	[Stat.StatStrength]: 0.98,
 	[Stat.StatAgility]: 1,
 	[Stat.StatAttackPower]: 0.41,
-	[Stat.StatFeralAttackPower]: 0,
+	[Stat.StatFeralAttackPower]: 0.4,
 	[Stat.StatPhysicalDamage]: 3.72,
-	[Stat.StatHitRating]: 0.73,
-	[Stat.StatExpertiseRating]: 0.69,
+	[Stat.StatHitRating]: 0.66,
+	[Stat.StatExpertiseRating]: 0.64,
 	[Stat.StatCritRating]: 0.72,
-	[Stat.StatHasteRating]: 0.38,
+	[Stat.StatHasteRating]: 0.39,
 	[Stat.StatArmorPenetration]: 0.12,
 });
 
@@ -73,15 +73,15 @@ export const Level60EpWeights = PresetUtils.makePresetEpWeights('Level 60', Leve
 // debuffs and consumables, 180s, 200000 iterations. Hit is weighed 2% below the 8% cap, where the gear
 // picker reads it.
 export const PreRaidEp = Stats.fromMap({
-	[Stat.StatStrength]: 0.97,
+	[Stat.StatStrength]: 0.96,
 	[Stat.StatAgility]: 1,
 	[Stat.StatAttackPower]: 0.39,
-	[Stat.StatFeralAttackPower]: 0,
-	[Stat.StatPhysicalDamage]: 3.56,
-	[Stat.StatHitRating]: 0.75,
-	[Stat.StatExpertiseRating]: 0.73,
+	[Stat.StatFeralAttackPower]: 0.38,
+	[Stat.StatPhysicalDamage]: 3.53,
+	[Stat.StatHitRating]: 0.71,
+	[Stat.StatExpertiseRating]: 0.69,
 	[Stat.StatCritRating]: 0.75,
-	[Stat.StatHasteRating]: 0.43,
+	[Stat.StatHasteRating]: 0.44,
 	[Stat.StatArmorPenetration]: 0.13,
 });
 
