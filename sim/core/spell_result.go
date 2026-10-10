@@ -370,7 +370,17 @@ func (spell *Spell) calcDamageInternal(sim *Simulation, target *Unit, baseDamage
 		partialOutcome = result.Outcome & OutcomePartial
 	}
 
-	outcomeApplier(sim, result, attackTable)
+	// A full resist is a miss, as a binary spell's resist is: it rolls no hit or crit and lands nothing.
+	if partialOutcome.ResistedTenths() == 10 {
+		partialOutcome = OutcomeEmpty
+		result.Outcome = OutcomeMiss
+		result.Damage = 0
+		if !spell.expecting {
+			spell.SpellMetrics[target.UnitIndex].Misses++
+		}
+	} else {
+		outcomeApplier(sim, result, attackTable)
+	}
 	afterOutcome := result.Damage
 
 	// The outcome scales the mitigated damage by its multiplier and then takes the block off, so the

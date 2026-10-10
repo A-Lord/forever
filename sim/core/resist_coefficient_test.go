@@ -7,7 +7,7 @@ import (
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-func TestAverageResistAgainstHigherLevelTarget(t *testing.T) {
+func TestAverageResistIgnoresTargetLevel(t *testing.T) {
 	attacker := &Unit{Type: PlayerUnit, Level: 60}
 	target := func(shadowResistance float64) *Unit {
 		unit := &Unit{Type: EnemyUnit, Level: 63}
@@ -18,24 +18,26 @@ func TestAverageResistAgainstHigherLevelTarget(t *testing.T) {
 	for _, tc := range []struct {
 		name       string
 		resistance float64
-		binary     bool
 		tick       bool
 		flags      SpellFlag
 		want       float64
 	}{
-		{"no resistance", 0, false, false, 0, 0.06},
-		{"no resistance, tick", 0, false, true, 0, 0.06},
-		{"no resistance, binary", 0, true, false, 0, 0},
-		{"100 resistance", 100, false, false, 0, 100.0/480 + 0.06},
-		{"100 resistance, tick", 100, false, true, 0, 100.0/480/10 + 0.06},
-		{"100 resistance, channel tick", 100, false, true, SpellFlagChanneled, 100.0/480 + 0.06},
-		{"100 resistance, tick with full resistance", 100, false, true, SpellFlagFullResistanceTicks, 100.0/480 + 0.06},
-		{"100 resistance, binary", 100, true, false, 0, 100.0 / 480},
+		{"no resistance", 0, false, 0, 0},
+		{"no resistance, tick", 0, true, 0, 0},
+		{"100 resistance", 100, false, 0, 100.0 / 480},
+		{"100 resistance, tick", 100, true, 0, 100.0 / 480 / 10},
+		{"100 resistance, channel tick", 100, true, SpellFlagChanneled, 100.0 / 480},
+		{"100 resistance, tick with full resistance", 100, true, SpellFlagFullResistanceTicks, 100.0 / 480},
 	} {
 		spell := &Spell{SpellSchool: SpellSchoolShadow, SchoolIndex: stats.SchoolIndexShadow, Flags: tc.flags}
-		if got := target(tc.resistance).averageResist(spell, attacker, tc.binary, tc.tick); math.Abs(got-tc.want) > 1e-12 {
+		if got := target(tc.resistance).averageResist(spell, attacker, tc.tick); math.Abs(got-tc.want) > 1e-12 {
 			t.Errorf("%s at +3: average resist %v, want %v", tc.name, got, tc.want)
 		}
+	}
+
+	spell := &Spell{SpellSchool: SpellSchoolShadow, SchoolIndex: stats.SchoolIndexShadow, Flags: SpellFlagBinary}
+	if got, want := target(100).binaryHitChance(spell, attacker), 1-100.0/480; math.Abs(got-want) > 1e-12 {
+		t.Errorf("binary hit chance against 100 resistance at +3 = %v, want %v", got, want)
 	}
 }
 
@@ -48,13 +50,13 @@ func TestSpellPiercingBeyondResistanceAddsDamage(t *testing.T) {
 	spell := &Spell{Unit: attacker, SpellSchool: SpellSchoolArcane, SchoolIndex: stats.SchoolIndexArcane}
 
 	a := 15.0 / (15 + 380)
-	if got := defender.averageResist(spell, attacker, false, false); math.Abs(got+a) > 1e-12 {
+	if got := defender.averageResist(spell, attacker, false); math.Abs(got+a) > 1e-12 {
 		t.Errorf("average resist with 15 piercing and no resistance = %v, want %v", got, -a)
 	}
 
 	debuffed := &Unit{Type: EnemyUnit, Level: 60, PseudoStats: stats.NewPseudoStats()}
 	debuffed.stats[stats.ArcaneResistance] = -75
-	if got := debuffed.averageResist(spell, attacker, false, false); math.Abs(got+a) > 1e-12 {
+	if got := debuffed.averageResist(spell, attacker, false); math.Abs(got+a) > 1e-12 {
 		t.Errorf("average resist with 15 piercing against -75 resistance = %v, want %v as against 0", got, -a)
 	}
 
