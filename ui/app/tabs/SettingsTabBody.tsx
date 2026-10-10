@@ -8,9 +8,9 @@ import { StatFilterPopover, useStatFilter } from '@features/stat-filters';
 import i18n from '@i18n/config';
 import { PresetConfigurationCategory } from '@sim/constants/preset_categories';
 import { usePlayer, useSimHost, useSpecConfig } from '@sim/context/SimHostContext';
-import { usePlayerStore } from '@sim/hooks/usePlayerStore';
 import { useSimReady } from '@sim/hooks/useSimReady';
-import type { UnitStat } from '@sim/proto/stats';
+import type { Player } from '@sim/player/player';
+import { statSetsOf } from '@sim/proto/stats';
 import { ContentBlock } from '@ui-kit/ContentBlock';
 import { TabPanelColumns } from '@ui-kit/TabPanelColumns';
 import { useMemo } from 'react';
@@ -23,7 +23,8 @@ const GEAR_PLANNER_PRESETS = [PresetConfigurationCategory.Settings];
 const BUFF_OPTIONS = [...BuffDebuffInputs.BUFFS_CONFIG, ...BuffDebuffInputs.PARTY_BUFFS_CONFIG];
 const DEBUFF_OPTIONS = [...BuffDebuffInputs.DEBUFFS_CONFIG, ...BuffDebuffInputs.DEBUFFS_MISC_CONFIG];
 
-const statSet = (stats: ReadonlyArray<UnitStat>) => new Set(stats.map(stat => stat.getStat()));
+const anyOffered = (list: ReadonlyArray<RenderableStatOptions>, player: Player<any>) =>
+	list.some(option => !option.config.keptBy || option.config.keptBy(player));
 
 export const SettingsTabBody = () => {
 	const host = useSimHost();
@@ -37,8 +38,8 @@ export const SettingsTabBody = () => {
 	const debuffFilter = useStatFilter('debuffs', debuffScope);
 
 	const options = useMemo(() => {
-		const buffStats = statSet(buffFilter.shown);
-		const debuffStats = statSet(debuffFilter.shown);
+		const buffStats = statSetsOf(buffFilter.shown).stats;
+		const debuffStats = statSetsOf(debuffFilter.shown).stats;
 		return {
 			buffs: applyOwnerClassLabels(relevantStatOptions(BuffDebuffInputs.BUFFS_CONFIG, config, buffStats), player),
 			partyBuffs: applyOwnerClassLabels(relevantStatOptions(BuffDebuffInputs.PARTY_BUFFS_CONFIG, config, buffStats), player),
@@ -47,14 +48,11 @@ export const SettingsTabBody = () => {
 		};
 	}, [config, player, buffFilter.shown, debuffFilter.shown]);
 
-	// A kept option counts as offered only while it is picked, so the sections follow every buff and debuff pick.
-	const raidPicks = useStore(host.sim.store, state => state.raid);
-	const individualPicks = usePlayerStore('buffs');
-	const offered = useMemo(() => {
-		const anyOffered = (list: ReadonlyArray<RenderableStatOptions>) => list.some(option => !option.config.keptBy || option.config.keptBy(player));
-		return { buffs: anyOffered(options.buffs), partyBuffs: anyOffered(options.partyBuffs), debuffs: anyOffered(options.debuffs) };
-		// eslint-disable-next-line react-hooks/exhaustive-deps -- keptBy reads the picks off the player; their store slices are the invalidation keys.
-	}, [options, player, raidPicks, individualPicks]);
+	// A kept option counts as offered only while it is picked, so each flag is re-read on every store change and the
+	// tab re-renders only when one flips.
+	const offersBuffs = useStore(host.sim.store, () => anyOffered(options.buffs, player));
+	const offersPartyBuffs = useStore(host.sim.store, () => anyOffered(options.partyBuffs, player));
+	const offersDebuffs = useStore(host.sim.store, () => anyOffered(options.debuffs, player));
 
 	const itemSwapSlots = config.itemSwapSlots || [];
 	const hasOtherSettings = config.otherInputs.inputs.length > 0 || itemSwapSlots.length > 0;
@@ -109,19 +107,16 @@ export const SettingsTabBody = () => {
 				<TabPanelColumns.Col>
 					{ready && (
 						<>
-							<BuffSection section="raid_buffs" empty={!offered.buffs} filter={<StatFilterPopover {...buffFilter} testId="buffs-filter" />}>
+							<BuffSection section="raid_buffs" empty={!offersBuffs} filter={<StatFilterPopover {...buffFilter} testId="buffs-filter" />}>
 								<RaidBuffs options={options.buffs} miscOptions={[]} />
 							</BuffSection>
-							{offered.partyBuffs && (
+							{offersPartyBuffs && (
 								<BuffSection section="party_buffs" empty={false}>
 									<RaidBuffs options={options.partyBuffs} miscOptions={[]} />
 								</BuffSection>
 							)}
 							{!gearPlanner && (
-								<BuffSection
-									section="debuffs"
-									empty={!offered.debuffs}
-									filter={<StatFilterPopover {...debuffFilter} testId="debuffs-filter" />}>
+								<BuffSection section="debuffs" empty={!offersDebuffs} filter={<StatFilterPopover {...debuffFilter} testId="debuffs-filter" />}>
 									<RaidBuffs options={options.debuffs} miscOptions={options.debuffsMisc} />
 								</BuffSection>
 							)}

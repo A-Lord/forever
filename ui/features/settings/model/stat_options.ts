@@ -34,27 +34,22 @@ type SpecStats = Pick<IndividualSimUIConfig<any>, 'displayStats' | 'epStats' | '
 // included stat is one of the filter's defaults; an excluded stat drops every option tagged with it.
 // A listed config forces that one option on or off, so a spec can drop a single buff that shares its
 // stat tag with buffs it wants to keep, e.g. Mana Tide but not Mana Spring.
-const statEntries = (list: ReadonlyArray<unknown>): Stat[] => list.filter((entry): entry is Stat => typeof entry === 'number');
-
-/** Every stat tagged on the options, once and in stat order, less the excluded stats: a toggle for one of those could never take effect. */
-function statOptionUniverse(options: ReadonlyArray<PickerStatOptions>, excluded: ReadonlyArray<unknown>): UnitStat[] {
-	const tagged = new Set(options.flatMap(option => option.stats));
-	return [...tagged]
-		.filter(stat => !excluded.includes(stat))
-		.sort((a, b) => a - b)
-		.map(stat => UnitStat.fromStat(stat));
-}
-
-/** The displayed stats (a pseudo-stat by its root rating), the EP stats and the stats the spec includes. */
-function defaultBuffStats(config: Omit<SpecStats, 'excludeBuffDebuffInputs'>): Stat[] {
+//
+// The defaults are the displayed stats (a pseudo-stat by its root rating), the EP stats and the stats the spec
+// includes. The universe is every stat tagged on the options, once and in stat order, less the excluded stats: a
+// toggle for one of those could never take effect.
+export const statOptionScope = (options: ReadonlyArray<PickerStatOptions>, config: SpecStats): StatFilterScope => {
 	const displayed = config.displayStats.filter(us => us.hasRootStat()).map(us => us.getRootStat());
-	return [...new Set([...displayed, ...config.epStats, ...statEntries(config.includeBuffDebuffInputs)])];
-}
-
-export const statOptionScope = (options: ReadonlyArray<PickerStatOptions>, config: SpecStats): StatFilterScope => ({
-	defaults: defaultBuffStats(config).map(stat => UnitStat.fromStat(stat)),
-	universe: statOptionUniverse(options, config.excludeBuffDebuffInputs),
-});
+	const included = config.includeBuffDebuffInputs.filter((entry): entry is Stat => typeof entry === 'number');
+	const tagged = new Set(options.flatMap(option => option.stats));
+	return {
+		defaults: [...new Set([...displayed, ...config.epStats, ...included])].map(stat => UnitStat.fromStat(stat)),
+		universe: [...tagged]
+			.filter(stat => !config.excludeBuffDebuffInputs.includes(stat))
+			.sort((a, b) => a - b)
+			.map(stat => UnitStat.fromStat(stat)),
+	};
+};
 
 const pickedBy =
 	(option: PickerStatOptions) =>
