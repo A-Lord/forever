@@ -23,11 +23,13 @@ export const shownStats = (filters: DatabaseFilters, slot: StatFilterSlot, scope
 	return scope.universe.filter(stat => contains(wanted, stat));
 };
 
-/** A copy of the filters with the slot set to the given stats, or cleared back to the defaults for `undefined`. */
+/**
+ * Sets the slot to the given stats, or clears it back to the defaults for `undefined`. Changes the filters it is given
+ * and returns them, so a caller hands it a copy (`sim.getFilters()` returns one).
+ */
 export const withSelection = (filters: DatabaseFilters, slot: StatFilterSlot, stats: ReadonlyArray<UnitStat> | undefined): DatabaseFilters => {
-	const next = DatabaseFilters.clone(filters);
-	if (!stats && !next.statFilters) return next;
-	next.statFilters ??= StatFilters.create();
-	next.statFilters[slot] = stats ? StatSelection.create({ stats: stats.map(stat => stat.toProto()) }) : undefined;
-	return next;
+	if (!stats && !filters.statFilters) return filters;
+	filters.statFilters ??= StatFilters.create();
+	filters.statFilters[slot] = stats ? StatSelection.create({ stats: stats.map(stat => stat.toProto()) }) : undefined;
+	return filters;
 };

@@ -144,11 +144,9 @@ export function consumablePseudoStatsOf(specConfig: Pick<SpecConfigData<any>, 'e
 	return new Set([...shown, ...(specConfig.epPseudoStats ?? [])]);
 }
 
-export type ConsumableStats = StatSets;
-
 type EnchantRelevanceSpec = Pick<SpecConfigData<any>, 'epStats' | 'epPseudoStats' | 'displayStats'>;
 
-const enchantRelevanceCache = new WeakMap<EnchantRelevanceSpec, ConsumableStats>();
+const enchantRelevanceCache = new WeakMap<EnchantRelevanceSpec, StatSets>();
 
 // The consumables' rule on the stats the spec weighs: an enchant counts when it grants one of them or a percent the
 // spec shows or weighs, flat weapon damage counting as physical damage. One that grants none of these (a proc) counts.
@@ -271,9 +269,9 @@ function highestRanks(consumables: ReadonlyArray<Consumable>): Array<Consumable>
 export function relevanceFor(
 	consumables: ReadonlyArray<Consumable>,
 	db: SpellEffectSource,
-	statsOf: (user: ConsumableUser) => ConsumableStats,
+	statsOf: (user: ConsumableUser) => StatSets,
 ): (consumable: Consumable, user: ConsumableUser) => boolean {
-	let key: ConsumableStats | undefined;
+	let key: StatSets | undefined;
 	let relevant = new Map<Consumable, boolean>();
 	return (consumable, user) => {
 		const current = statsOf(user);

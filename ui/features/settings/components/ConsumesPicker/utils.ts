@@ -15,16 +15,8 @@ import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
 import type { Database } from '@sim/proto/database';
 import type { EquippedItem } from '@sim/proto/equipped_item';
-import { statSetsOf } from '@sim/proto/stats';
-import {
-	consumableAllowed,
-	ConsumableSlot,
-	consumableSlot,
-	type ConsumableStats,
-	explosiveUsedBeside,
-	handTakesImbue,
-	relevanceFor,
-} from '@sim/settings/consumables';
+import { type StatSets, statSetsOf } from '@sim/proto/stats';
+import { consumableAllowed, ConsumableSlot, consumableSlot, explosiveUsedBeside, handTakesImbue, relevanceFor } from '@sim/settings/consumables';
 
 export type ConsumeConfig = TypedIconEnumPickerConfig<Player<any>, number>;
 export type ConsumeToggle = ConsumableToggleConfig;
@@ -61,10 +53,10 @@ type GroupRow = 'elixirs' | 'scrolls' | 'holiday' | 'groups';
 // The shown stats of the consumables slot, read from the store's filters on each call and worked out
 // again only when the store holds a new filters object; the same object comes back while the slot
 // holds the same stats, so relevance stays cached.
-const shownConsumableStats = (player: Player<any>, scope: StatFilterScope): (() => ConsumableStats) => {
+const shownConsumableStats = (player: Player<any>, scope: StatFilterScope): (() => StatSets) => {
 	let filters: DatabaseFilters | undefined;
 	let key: string | undefined;
-	let current: ConsumableStats = { stats: new Set(), pseudoStats: new Set() };
+	let current: StatSets = { stats: new Set(), pseudoStats: new Set() };
 	return () => {
 		const latest = player.sim.store.getState().sim.filters;
 		if (latest === filters) return current;

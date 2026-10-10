@@ -56,25 +56,27 @@ describe('stat filters', () => {
 
 	it('leaves filters with no stat filters alone when a slot is cleared', () => {
 		const filters = DatabaseFilters.create({ minIlvl: 50 });
+		const before = DatabaseFilters.clone(filters);
 
 		const cleared = withSelection(filters, 'ep', undefined);
 
+		expect(cleared).toBe(filters);
 		expect(cleared.statFilters).toBeUndefined();
-		expect(DatabaseFilters.equals(cleared, filters)).toBe(true);
+		expect(DatabaseFilters.equals(cleared, before)).toBe(true);
 	});
 
-	it('changes only the given slot and leaves its input as it was', () => {
+	it('changes only the given slot, on the filters it is given, and returns them', () => {
 		const filters = withSelection(DatabaseFilters.create({ minIlvl: 50, showAllEnchants: true, favoriteItems: [7] }), 'ep', [agility]);
 		const before = DatabaseFilters.clone(filters);
 
 		const next = withSelection(filters, 'consumables', [stamina]);
 
-		expect(DatabaseFilters.equals(filters, before)).toBe(true);
+		expect(next).toBe(filters);
 		expect(keys(shownStats(next, 'consumables', scope))).toEqual(keys([stamina]));
-		expect(keys(shownStats(next, 'ep', scope))).toEqual(keys(shownStats(filters, 'ep', scope)));
+		expect(keys(shownStats(next, 'ep', scope))).toEqual(keys(shownStats(before, 'ep', scope)));
 		expect(isCustomised(next, 'buffs')).toBe(false);
 		expect(
-			DatabaseFilters.equals(DatabaseFilters.create({ ...next, statFilters: undefined }), DatabaseFilters.create({ ...filters, statFilters: undefined })),
+			DatabaseFilters.equals(DatabaseFilters.create({ ...next, statFilters: undefined }), DatabaseFilters.create({ ...before, statFilters: undefined })),
 		).toBe(true);
 	});
 
