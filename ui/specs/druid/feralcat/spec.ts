@@ -137,7 +137,15 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 		epWeights: [Presets.PreRaidEpWeights, Presets.Level60EpWeights],
 		// Preset talents that the user can quickly select.
 		talents: [Presets.CatTalents, Presets.BearweaveTalents, Presets.ManaEfficientTalents, Presets.HybridTalents],
-		rotations: [Presets.MONOCAT_APL, Presets.SHADOWMELD_APL, Presets.ENERGIZED_APL, Presets.RAVAGE_APL, Presets.POUNCE_APL, Presets.BEARWEAVE_APL],
+		rotations: [
+			Presets.MONOCAT_APL,
+			Presets.SHADOWMELD_APL,
+			Presets.ENERGIZED_APL,
+			Presets.RAVAGE_APL,
+			Presets.POUNCE_APL,
+			Presets.BEARWEAVE_APL,
+			Presets.JVMES_APL,
+		],
 		builds: [Presets.BearweaveBuild],
 		// Preset gear configurations that the user can quickly select.
 		gear: [Presets.PreRaidGear, Presets.Level60Gear],
