@@ -5,12 +5,11 @@ import { describe, expect, it } from 'vitest';
 
 import {
 	applyOwnerClassLabels,
-	defaultBuffStats,
 	inDisplayOrder,
 	type PickerStatOptions,
 	relevantStatOptions,
 	type RenderableStatOptions,
-	statOptionUniverse,
+	statOptionScope,
 } from './stat_options';
 
 /** Stands in for the player: one value per option label. */
@@ -31,6 +30,12 @@ const options = [manaSpring, manaTide, untagged, strengthOfEarth, fortitude];
 const lists = (parts: { include?: Array<unknown>; exclude?: Array<unknown> } = {}) => ({
 	includeBuffDebuffInputs: parts.include ?? [],
 	excludeBuffDebuffInputs: parts.exclude ?? [],
+});
+
+const specStats = (parts: { epStats?: Array<Stat>; displayStats?: Array<UnitStat>; include?: Array<unknown>; exclude?: Array<unknown> } = {}) => ({
+	epStats: parts.epStats ?? [],
+	displayStats: parts.displayStats ?? [],
+	...lists(parts),
 });
 
 const offered = (shown: ReadonlyArray<PickerStatOptions>) => shown.filter(row => !row.config.keptBy);
@@ -112,37 +117,33 @@ describe('relevantStatOptions', () => {
 		for (const shown of settings) {
 			expect(relevantStatOptions(tagged, lists({ exclude: [Stat.StatAgility] }), shown).map(row => row.config.label)).toEqual(['Strength of Earth']);
 		}
-		expect(statOptionUniverse(tagged, [Stat.StatAgility])).toEqual([UnitStat.fromStat(Stat.StatStrength)]);
+		expect(statOptionScope(tagged, specStats({ exclude: [Stat.StatAgility] })).universe).toEqual([UnitStat.fromStat(Stat.StatStrength)]);
 	});
 });
 
-describe('statOptionUniverse', () => {
-	it("is every stat tagged on the section's options once, in stat order, minus the excluded stats", () => {
-		const universe = statOptionUniverse(options, [Stat.StatMP5, manaSpring.config]);
+describe('statOptionScope', () => {
+	const defaultStats = (parts: Parameters<typeof specStats>[0]) => statOptionScope(options, specStats(parts)).defaults.map(stat => stat.getStat());
+
+	it("has every stat tagged on the section's options once, in stat order, minus the excluded stats, as its universe", () => {
+		const { universe } = statOptionScope(options, specStats({ exclude: [Stat.StatMP5, manaSpring.config] }));
 
 		expect(universe).toEqual([UnitStat.fromStat(Stat.StatStrength), UnitStat.fromStat(Stat.StatStamina)]);
 	});
-});
 
-describe('defaultBuffStats', () => {
-	const config = (parts: { epStats?: Array<Stat>; displayStats?: Array<UnitStat>; include?: Array<unknown> }) => ({
-		epStats: parts.epStats ?? [],
-		displayStats: parts.displayStats ?? [],
-		includeBuffDebuffInputs: parts.include ?? [],
-	});
-
-	it('is the EP stats, the displayed stats and the stats the spec includes, and never an included config', () => {
-		const defaults = defaultBuffStats(
-			config({ epStats: [Stat.StatMP5], displayStats: [UnitStat.fromStat(Stat.StatStamina)], include: [Stat.StatStrength, fortitude.config] }),
-		);
+	it('defaults to the EP stats, the displayed stats and the stats the spec includes, and never an included config', () => {
+		const defaults = defaultStats({
+			epStats: [Stat.StatMP5],
+			displayStats: [UnitStat.fromStat(Stat.StatStamina)],
+			include: [Stat.StatStrength, fortitude.config],
+		});
 
 		expect(new Set(defaults)).toEqual(new Set([Stat.StatStamina, Stat.StatMP5, Stat.StatStrength]));
 	});
 
-	it('takes a displayed pseudo stat by its root rating, never by its own number', () => {
+	it('takes a displayed pseudo stat into the defaults by its root rating, never by its own number', () => {
 		expect(PseudoStat.PseudoStatMeleeSpeedMultiplier).toBe(Stat.StatHitRating);
-		expect(defaultBuffStats(config({ displayStats: [UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeSpeedMultiplier)] }))).toEqual([]);
-		expect(defaultBuffStats(config({ displayStats: [UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeHitPercent)] }))).toEqual([Stat.StatHitRating]);
+		expect(defaultStats({ displayStats: [UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeSpeedMultiplier)] })).toEqual([]);
+		expect(defaultStats({ displayStats: [UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeHitPercent)] })).toEqual([Stat.StatHitRating]);
 	});
 });
 

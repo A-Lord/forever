@@ -37,7 +37,7 @@ type SpecStats = Pick<IndividualSimUIConfig<any>, 'displayStats' | 'epStats' | '
 const statEntries = (list: ReadonlyArray<unknown>): Stat[] => list.filter((entry): entry is Stat => typeof entry === 'number');
 
 /** Every stat tagged on the options, once and in stat order, less the excluded stats: a toggle for one of those could never take effect. */
-export function statOptionUniverse(options: ReadonlyArray<PickerStatOptions>, excluded: ReadonlyArray<unknown>): UnitStat[] {
+function statOptionUniverse(options: ReadonlyArray<PickerStatOptions>, excluded: ReadonlyArray<unknown>): UnitStat[] {
 	const tagged = new Set(options.flatMap(option => option.stats));
 	return [...tagged]
 		.filter(stat => !excluded.includes(stat))
@@ -46,7 +46,7 @@ export function statOptionUniverse(options: ReadonlyArray<PickerStatOptions>, ex
 }
 
 /** The displayed stats (a pseudo-stat by its root rating), the EP stats and the stats the spec includes. */
-export function defaultBuffStats(config: Omit<SpecStats, 'excludeBuffDebuffInputs'>): Stat[] {
+function defaultBuffStats(config: Omit<SpecStats, 'excludeBuffDebuffInputs'>): Stat[] {
 	const displayed = config.displayStats.filter(us => us.hasRootStat()).map(us => us.getRootStat());
 	return [...new Set([...displayed, ...config.epStats, ...statEntries(config.includeBuffDebuffInputs)])];
 }
