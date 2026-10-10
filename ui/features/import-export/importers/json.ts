@@ -1,6 +1,7 @@
 import { IndividualSimSettings } from '@generated/proto/ui';
 import i18n from '@i18n/config';
 import { Database } from '@sim/proto/database';
+import { fromJsonStringLenient } from '@sim/proto/lenient_json';
 
 import type { ImporterDefinition } from './types';
 
@@ -10,7 +11,7 @@ export const JSON_IMPORTER: ImporterDefinition = {
 	onImport: async (host, data) => {
 		let proto: ReturnType<typeof IndividualSimSettings.fromJson>;
 		try {
-			proto = IndividualSimSettings.fromJsonString(data, { ignoreUnknownFields: true });
+			proto = fromJsonStringLenient(IndividualSimSettings, data);
 		} catch {
 			throw new Error(i18n.t('import.json.error_invalid_json'));
 		}

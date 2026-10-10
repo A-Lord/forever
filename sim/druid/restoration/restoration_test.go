@@ -50,8 +50,8 @@ func TestRestorationDruid(t *testing.T) {
 var StandardTalents = "--50353351531522531351"
 
 var FullConsumes = &proto.ConsumesSpec{
-	FoodId: 250066, // Soaring Pamplona
-	PotId:  13444,  // Major Mana Potion
+	FoodId:        250066, // Soaring Pamplona
+	ResourcePotId: 13444,  // Major Mana Potion
 }
 
 var PlayerOptions = &proto.Player_RestorationDruid{

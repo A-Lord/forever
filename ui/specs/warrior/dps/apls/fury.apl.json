@@ -14,7 +14,7 @@
 	{"action":{"groupReference":{"groupName":"CD: Trinkets"}}},
 	{"action":{"condition":{"cmp":{"op":"OpEq","lhs":{"numberTargets":{}},"rhs":{"const":{"val":"1"}}}},"groupReference":{"groupName":"Sunder Armor"}}},
 	{"hide":true,"action":{"condition":{"cmp":{"op":"OpEq","lhs":{"numberTargets":{}},"rhs":{"const":{"val":"1"}}}},"groupReference":{"groupName":"Sunder Armor: Refresh"}}},
-	{"action":{"castSpell":{"spellId":{"otherId":"OtherActionPotion"}}}},
+	{"action":{"castSpell":{"spellId":{"otherId":"OtherActionThroughputPotion"}}}},
 	{"action":{"groupReference":{"groupName":"CD: Racials"}}},
 	{"action":{"castSpell":{"spellId":{"spellId":12328}}}},
 	{"action":{"condition":{"and":{"vals":[{"actionGroupUsed":{"name":"Recklessness ON/OFF"}}]}},"castSpell":{"spellId":{"spellId":1719}}}},

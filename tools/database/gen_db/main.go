@@ -201,6 +201,7 @@ func main() {
 	if err := database.AddUnparsedStats(db); err != nil {
 		log.Fatalf("failed to add the stats the parse leaves out: %v", err)
 	}
+	database.AddPotionClasses(db)
 
 	db.MergeItems(database.ItemOverrides)
 	db.MergeEnchants(database.EnchantOverrides)

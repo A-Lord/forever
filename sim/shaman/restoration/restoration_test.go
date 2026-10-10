@@ -50,8 +50,8 @@ func TestRestorationShaman(t *testing.T) {
 var StandardTalents = "5003--55035051355310510321"
 
 var FullConsumes = &proto.ConsumesSpec{
-	FoodId: 250066, // Soaring Pamplona
-	PotId:  13444,  // Major Mana Potion
+	FoodId:        250066, // Soaring Pamplona
+	ResourcePotId: 13444,  // Major Mana Potion
 }
 
 var PlayerOptions = &proto.Player_RestorationShaman{

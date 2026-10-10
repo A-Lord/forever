@@ -361,15 +361,21 @@ func (aura *StatBuffAura) CanProc(sim *Simulation) bool {
 
 // A buff to any defensive stat or resistance is a survival cooldown, one to mana regen or spirit
 // alone a mana cooldown, and any other a DPS cooldown.
+// The stats a buff to any of makes a survival cooldown.
+var SurvivalStats = []stats.Stat{stats.Armor, stats.BlockPercent, stats.BlockValue, stats.DodgeRating, stats.ParryRating,
+	stats.DodgePercent, stats.ParryPercent, stats.Health, stats.ArcaneResistance, stats.FireResistance, stats.FrostResistance,
+	stats.NatureResistance, stats.ShadowResistance}
+
+// The stats a buff to only these makes a mana cooldown.
+var ManaStats = []stats.Stat{stats.MP5, stats.Spirit}
+
 func (aura *StatBuffAura) InferCDType() CooldownType {
-	if aura.BuffsMatchingStat([]stats.Stat{stats.Armor, stats.BlockPercent, stats.BlockValue, stats.DodgeRating, stats.ParryRating,
-		stats.DodgePercent, stats.ParryPercent, stats.Health, stats.ArcaneResistance, stats.FireResistance, stats.FrostResistance,
-		stats.NatureResistance, stats.ShadowResistance}) {
+	if aura.BuffsMatchingStat(SurvivalStats) {
 		return CooldownTypeSurvival
 	}
 
 	if len(aura.BuffedStatTypes) > 0 && !slices.ContainsFunc(aura.BuffedStatTypes, func(stat stats.Stat) bool {
-		return stat != stats.MP5 && stat != stats.Spirit
+		return !slices.Contains(ManaStats, stat)
 	}) {
 		return CooldownTypeMana
 	}
