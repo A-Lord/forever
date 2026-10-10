@@ -158,7 +158,7 @@ func (priest *Priest) applySearingLight() {
 	holyPurposeRow := spellData.SearingLightTriggered.Highest()
 	holyPurposeConfig := spelldata.AuraConfig(holyPurposeRow)
 	holyPurposeConfig.OnCastComplete = func(aura *core.Aura, sim *core.Simulation, spell *core.Spell) {
-		if spell.Matches(PriestSpellHolyNova) {
+		if spellData.HolyNova.Contains(spell) {
 			aura.Deactivate(sim)
 		}
 	}
@@ -204,7 +204,7 @@ func (priest *Priest) applyLitanyOfLight() {
 		Callback:       core.CallbackOnCastComplete,
 		ClassSpellMask: priestLitanyOfLightHeals,
 		Handler: func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) {
-			heal := spell.ClassSpellMask & priestLitanyOfLightHeals
+			heal := spell.ClassSpellMask
 			if previousHeal != 0 && previousHeal != heal && spell.Cost != nil {
 				spell.Unit.AddMana(sim, float64(spell.Cost.BaseCost)*refundFraction, refundMetrics)
 			}

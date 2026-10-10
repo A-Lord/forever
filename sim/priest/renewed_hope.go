@@ -11,13 +11,10 @@ const priestRenewedHopeSpells = PriestSpellFlashHeal |
 
 func (priest *Priest) withRenewedHope(sim *core.Simulation, target *core.Unit, spell *core.Spell, apply func()) {
 	weakenedSoul := priest.renewedHopeTargetAura(target, spell)
-	if weakenedSoul == nil {
-		apply()
-		return
+	priest.withRenewedHopeBolt(target, spell, apply)
+	if weakenedSoul != nil {
+		priest.reduceWeakenedSoulDuration(sim, weakenedSoul)
 	}
-
-	priest.withRenewedHopeCrit(spell, apply)
-	priest.reduceWeakenedSoulDuration(sim, weakenedSoul)
 }
 
 // For Penance's heal bolts: each takes the crit bonus while Weakened Soul is up, and only the cast shortens it.
@@ -26,10 +23,7 @@ func (priest *Priest) withRenewedHopeBolt(target *core.Unit, spell *core.Spell, 
 		apply()
 		return
 	}
-	priest.withRenewedHopeCrit(spell, apply)
-}
 
-func (priest *Priest) withRenewedHopeCrit(spell *core.Spell, apply func()) {
 	bonusCrit := spellData.RenewedHope.Rank(priest.Talents.RenewedHope).EffectN(1).Percent()
 	spell.BonusCritPercent += bonusCrit
 	defer func() { spell.BonusCritPercent -= bonusCrit }()

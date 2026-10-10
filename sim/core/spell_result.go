@@ -688,7 +688,7 @@ func (spell *Spell) CalcHealing(sim *Simulation, target *Unit, baseHealing float
 	if spell.DirectVariance > 0 && !spell.expecting {
 		baseHealing *= sim.RollWithLabel(1-spell.DirectVariance/2, 1+spell.DirectVariance/2, "Healing Roll")
 	}
-	return spell.calcHealingInternal(sim, target, baseHealing, spell.casterHealingMultiplier(false), outcomeApplier)
+	return spell.calcHealingInternal(sim, target, baseHealing, spell.CasterHealingMultiplier(), outcomeApplier)
 }
 func (spell *Spell) CalcPeriodicHealing(sim *Simulation, target *Unit, baseHealing float64, outcomeApplier OutcomeApplier) *SpellResult {
 	var dot *Dot

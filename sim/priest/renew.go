@@ -6,7 +6,6 @@ import (
 )
 
 func (priest *Priest) registerRenew(_ int32, rank *spelldata.Spell) {
-
 	healTick := rank.PeriodicEffect()
 
 	config := spelldata.SpellConfig(&priest.Unit, rank, spelldata.Magic(core.ProcMaskSpellHealing))

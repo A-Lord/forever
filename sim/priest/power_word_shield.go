@@ -15,11 +15,12 @@ func (priest *Priest) registerPowerWordShield() {
 	// damage it absorbs is credited as shielding to the rank that cast it.
 	highest := spellData.PowerWordShield.Highest()
 	schools := core.SpellSchool(highest.AbsorbEffect().Misc)
+	absorbLabel := spelldata.Label(highest.Name + " - " + priest.Label)
 	var strength float64
 	castBy := make([]*core.Spell, len(priest.Env.AllUnits))
 	absorbs := priest.NewAllyDamageAbsorptionAuraArray(func(target *core.Unit) *core.DamageAbsorptionAura {
 		absorb := target.NewDamageAbsorptionAura(core.AbsorptionAuraConfig{
-			Aura: spelldata.AuraConfig(highest, spelldata.Label(highest.Name+" - "+priest.Label)),
+			Aura: spelldata.AuraConfig(highest, absorbLabel),
 			ShieldStrengthCalculator: func(_ *core.Unit) float64 {
 				return strength
 			},
@@ -36,6 +37,8 @@ func (priest *Priest) registerPowerWordShield() {
 		})
 		return absorb
 	})
+	shieldAura := spelldata.AuraConfig(highest)
+	shieldAura.ActionID = shieldAura.ActionID.WithTag(1)
 
 	spellData.PowerWordShield.Each(func(_ int32, rank *spelldata.Spell) {
 		baseAbsorb := rank.AbsorbEffect()
@@ -44,13 +47,7 @@ func (priest *Priest) registerPowerWordShield() {
 		config.ClassSpellMask = PriestSpellPowerWordShield
 		config.BonusCoefficient = baseAbsorb.Coeff()
 		config.RelatedAuraArrays = priest.weakenedSoulAuras.ToMap()
-		config.Shield = core.ShieldConfig{
-			Aura: core.Aura{
-				Label:    highest.Name,
-				ActionID: core.ActionID{SpellID: highest.ID}.WithTag(1),
-				Duration: highest.Duration(),
-			},
-		}
+		config.Shield = core.ShieldConfig{Aura: shieldAura}
 		config.ExtraCastCondition = func(_ *core.Simulation, target *core.Unit) bool {
 			target = priest.healTarget(target)
 			return !priest.weakenedSoulAuras.Get(target).IsActive()

@@ -28,11 +28,11 @@ func (priest *Priest) registerPrayerOfMending(_ int32, rank *spelldata.Spell) {
 			target = &priest.Unit
 		}
 
-		jumps := priest.PrayerOfMendingJumps
-		if jumps <= 0 {
-			jumps = int32(triggerAura.MaxStack)
+		charges := priest.PrayerOfMendingJumps
+		if charges <= 0 {
+			charges = int32(triggerAura.MaxStack)
 		}
-		jumps = min(jumps, int32(triggerAura.MaxStack))
+		charges = min(charges, int32(triggerAura.MaxStack))
 		delay := min(5.0, priest.PrayerOfMendingDelay)
 		if delay < 0 {
 			delay = 0
@@ -65,8 +65,7 @@ func (priest *Priest) registerPrayerOfMending(_ int32, rank *spelldata.Spell) {
 			sim.AddPendingAction(pa)
 		}
 
-		// Each charge of the aura heals once, so the first heal leaves one jump fewer than the charges.
-		scheduleHeal(sim, target, jumps-1)
+		scheduleHeal(sim, target, charges-1)
 	}
 
 	spell = priest.RegisterSpell(config)
