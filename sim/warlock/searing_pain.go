@@ -16,7 +16,9 @@ func (warlock *Warlock) registerSearingPain() {
 
 	// Roll the damage and to hit
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		spell.CalcAndDealDamage(sim, target, searingPainHit.Average(), spell.OutcomeMagicHitAndCrit)
+		result := spell.CalcDamage(sim, target, searingPainHit.Average(), spell.OutcomeMagicHitAndCrit)
+		warlock.launchDecimationSpell(sim, spell, result)
+		spell.DealDamage(sim, result)
 	}
 
 	// Calculate expected damage from the row's average hit
