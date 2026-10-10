@@ -66,6 +66,16 @@ describe('useStatFilter', () => {
 		expect(latest.customised).toBe(false);
 	});
 
+	it('keeps the same shown list through a write to another filter', () => {
+		mount();
+		const before = latest.shown;
+
+		act(() => sim.setFilters(DatabaseFilters.create({ ...sim.getFilters(), minIlvl: 50 })));
+
+		expect(sim.getFilters().minIlvl).toBe(50);
+		expect(latest.shown).toBe(before);
+	});
+
 	it('keeps a write to another field that lands between renders', () => {
 		mount();
 		const { set } = latest;

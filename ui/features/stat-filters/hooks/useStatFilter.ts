@@ -7,13 +7,17 @@ import { useMemo } from 'react';
 import { isCustomised, shownStats, type StatFilterScope, type StatFilterSlot, withSelection } from '../model/stat_filters';
 
 /**
- * One panel's stat filter. `scope` keys the memoised `shown`, so pass a stable (memoised) object. The writers read the
- * filters at write time, so a write to another field since the last render survives.
+ * One panel's stat filter. `shown` keeps its identity while it holds the same stats, so a write to another filter
+ * (a favourite, the minimum item level) rebuilds nothing keyed on it. The writers read the filters at write time, so
+ * a write to another field since the last render survives.
  */
 export const useStatFilter = (slot: StatFilterSlot, scope: StatFilterScope) => {
 	const { sim } = useSimHost();
 	const filters = useStoreSubscribe(subscribeSimField(sim, 'filters'), () => sim.getFilters());
-	const shown = useMemo(() => shownStats(filters, slot, scope), [filters, slot, scope]);
+	const current = shownStats(filters, slot, scope);
+	const key = current.map(stat => stat.getKey()).join(',');
+	// eslint-disable-next-line react-hooks/exhaustive-deps -- the joined stat keys are the invalidation key, so an equal list keeps its identity.
+	const shown = useMemo(() => current, [key]);
 
 	return {
 		shown,
