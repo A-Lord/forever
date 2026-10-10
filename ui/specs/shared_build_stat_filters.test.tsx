@@ -3,7 +3,7 @@ import { ConsumesPicker } from '@features/settings/components/ConsumesPicker';
 import { StatOptionIcons } from '@features/settings/components/StatOptionIcons';
 import { BUFFS_CONFIG, PARTY_BUFFS_CONFIG } from '@features/settings/model/buffs_debuffs';
 import { relevantStatOptions, statOptionScope } from '@features/settings/model/stat_options';
-import { shownStats } from '@features/stat-filters';
+import { shownStats } from '@features/stat-filters/model/stat_filters';
 import { ConsumableType, ConsumesSpec, Stat } from '@generated/proto/common';
 import { Consumable } from '@generated/proto/db';
 import { IndividualSimSettings, StatFilters, StatSelection, UIDatabase } from '@generated/proto/ui';

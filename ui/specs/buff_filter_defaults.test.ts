@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { type ConsumeConfig, consumeConfigs, type ConsumeToggle } from '@features/settings/components/ConsumesPicker/utils';
 import { BUFFS_CONFIG, DEBUFFS_CONFIG, DEBUFFS_MISC_CONFIG, PARTY_BUFFS_CONFIG } from '@features/settings/model/buffs_debuffs';
 import { isIconEnumOption, isMultiIconOption, type PickerStatOptions, relevantStatOptions, statOptionScope } from '@features/settings/model/stat_options';
-import { shownStats, type StatFilterSlot } from '@features/stat-filters';
+import { shownStats, type StatFilterSlot } from '@features/stat-filters/model/stat_filters';
 import { ConsumableType, type PseudoStat, Stat } from '@generated/proto/common';
 import type { Consumable } from '@generated/proto/db';
 import { ResourceType } from '@generated/proto/spell';
