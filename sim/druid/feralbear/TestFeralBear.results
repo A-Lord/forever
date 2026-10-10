@@ -109,8 +109,8 @@ stat_weights_results: {
 dps_results: {
  key: "TestFeralBear-AllItems-AdaptiveCombatAssistant-272437"
  value: {
-  dps: 460.94397
-  tps: 715.70117
+  dps: 461.02129
+  tps: 715.81715
   dtps: 367.74192
   hps: 57.94558
  }
@@ -163,8 +163,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralBear-AllItems-BlazefuryMedallion-17111"
  value: {
-  dps: 448.66924
-  tps: 696.91891
+  dps: 448.79039
+  tps: 697.10064
   dtps: 381.2953
   hps: 58.73039
  }
@@ -217,8 +217,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralBear-AllItems-CloakofFire-14134"
  value: {
-  dps: 450.07253
-  tps: 699.18784
+  dps: 450.1302
+  tps: 699.27435
   dtps: 396.65126
   hps: 56.16632
  }
@@ -262,8 +262,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralBear-AllItems-DarkmoonCard:Maelstrom-19289"
  value: {
-  dps: 453.49833
-  tps: 704.26797
+  dps: 454.17795
+  tps: 705.2874
   dtps: 378.37804
   hps: 58.68972
  }
@@ -361,8 +361,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralBear-AllItems-Enchant:FieryBlaze-36"
  value: {
-  dps: 452.65788
-  tps: 703.03828
+  dps: 452.76151
+  tps: 703.19372
   dtps: 378.40342
   hps: 58.34323
  }
@@ -469,8 +469,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralBear-AllItems-EverlookDeliveryBot-274760"
  value: {
-  dps: 443.89163
-  tps: 689.89333
+  dps: 444.06286
+  tps: 690.15018
   dtps: 377.35767
   hps: 58.68972
  }
@@ -667,8 +667,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralBear-AllItems-GryphonRider'sStormhammer-9651"
  value: {
-  dps: 370.73829
-  tps: 579.96749
+  dps: 370.94061
+  tps: 580.27096
   dtps: 377.28503
   hps: 55.02788
  }
@@ -685,8 +685,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralBear-AllItems-HammeroftheNorthernWind-810"
  value: {
-  dps: 396.56684
-  tps: 618.85165
+  dps: 397.00232
+  tps: 619.50487
   dtps: 377.59634
   hps: 55.02788
  }
@@ -721,8 +721,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralBear-AllItems-HelmofFire-8348"
  value: {
-  dps: 442.77507
-  tps: 688.25164
+  dps: 442.95109
+  tps: 688.51568
   dtps: 378.94837
   hps: 55.9509
  }
@@ -910,8 +910,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralBear-AllItems-OrbofFire-12805"
  value: {
-  dps: 443.12154
-  tps: 688.74931
+  dps: 443.15149
+  tps: 688.79424
   dtps: 378.64026
   hps: 58.68972
  }
@@ -964,8 +964,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralBear-AllItems-ShardoftheFallenStar-21891"
  value: {
-  dps: 440.89789
-  tps: 685.34164
+  dps: 441.05448
+  tps: 685.57651
   dtps: 377.0032
   hps: 58.94861
  }
@@ -1099,8 +1099,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralBear-AllItems-Thunderbrew'sBootFlask-744"
  value: {
-  dps: 443.63761
-  tps: 689.55567
+  dps: 443.77053
+  tps: 689.75504
   dtps: 376.87062
   hps: 59.16514
  }
