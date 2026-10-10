@@ -38,6 +38,8 @@ const (
 	spellEnrage     int32 = 5229
 	spellMaul       int32 = 9881
 	spellInnervate  int32 = 29166
+	// Read Ley Line, the High Order Skyborne's racial: Energized, twice the mana regeneration for 15s.
+	spellEnergized int32 = 1259705
 )
 
 // aplTune is one candidate. elune is "after" (once Berserk's crit has fallen), "now" (as soon as it
@@ -62,6 +64,10 @@ type aplTune struct {
 	rakeCut string
 	// shadowmeld casts Shadowmeld into Ravage, a Night Elf's, on cooldown once Ravage is affordable.
 	shadowmeld bool
+	// energized casts Read Ley Line, a High Order Skyborne's, in a free GCD once the mana is under
+	// energizedMana; "cd" casts it on cooldown.
+	energized     bool
+	energizedMana string
 }
 
 // aplVars holds the named conditions of a list, which the APL editor shows as variables so a reader
@@ -131,7 +137,9 @@ func catAPL(tune aplTune) *proto.APLRotation {
 	case "builder":
 		elune = and(elune, or(spellCanCast(spellShred), spellCanCast(spellRake)))
 	}
-	elune = vars.def("Elune's Light now", elune)
+	if !tune.energized {
+		elune = vars.def("Elune's Light now", elune)
+	}
 	// Faerie Fire only while nothing the rotation wants is affordable before its GCD ends.
 	regenEnergy := mathOp(proto.APLValueMath_OpAdd, currentEnergy(), konst("10"))
 	below := func(cost *proto.APLValue) *proto.APLValue {
@@ -164,21 +172,26 @@ func catAPL(tune aplTune) *proto.APLRotation {
 		builders = append([]*proto.APLListItem{sequenceWhen(vars.def("Shadowmeld into Ravage", ravage),
 			spellAction(spellShadowmeld), spellAction(spellRavage))}, builders...)
 	}
+	// Elune's Light is a Night Elf's; the Energized list is a High Order Skyborne's.
+	var cooldownLines []*proto.APLListItem
+	if !tune.energized {
+		cooldownLines = append(cooldownLines, castWhen(spellElune, elune))
+	}
+	cooldownLines = append(cooldownLines,
+		castItemWhen(itemTea, cmp(proto.APLValueCompare_OpLe, currentEnergy(), konst("20"))),
+		// The potion's own rule: the full gain still fits, with five seconds of regen left over.
+		castOtherWhen(proto.OtherAction_OtherActionPotion, potionFits()),
+		// Trinkets and anything else the list does not name.
+		&proto.APLListItem{Action: &proto.APLAction{Action: &proto.APLAction_AutocastOtherCooldowns{
+			AutocastOtherCooldowns: &proto.APLActionAutocastOtherCooldowns{},
+		}}})
 	list := []*proto.APLListItem{
 		castItem(itemSapper),
 		castWhen(spellCatForm, not(inCat)),
 		groups.def("Berserk",
 			sequenceWhen(openRake, spellAction(spellBerserk), spellAction(spellRake)),
 			sequenceWhen(openShred, spellAction(spellBerserk), spellAction(spellShred))),
-		groups.def("Cooldowns",
-			castWhen(spellElune, elune),
-			castItemWhen(itemTea, cmp(proto.APLValueCompare_OpLe, currentEnergy(), konst("20"))),
-			// The potion's own rule: the full gain still fits, with five seconds of regen left over.
-			castOtherWhen(proto.OtherAction_OtherActionPotion, potionFits()),
-			// Trinkets and anything else the list does not name.
-			&proto.APLListItem{Action: &proto.APLAction{Action: &proto.APLAction_AutocastOtherCooldowns{
-				AutocastOtherCooldowns: &proto.APLActionAutocastOtherCooldowns{},
-			}}}),
+		groups.def("Cooldowns", cooldownLines...),
 		groups.def("Bleeds", castWhen(spellRip, ripNow), castWhen(spellRake, rakeNow)),
 	}
 	if tune.biteEnd {
@@ -193,6 +206,15 @@ func catAPL(tune aplTune) *proto.APLRotation {
 	list = append(list,
 		castWhen(spellSP, or(wantShift, and(pooling, spellCanCast(spellSP)))),
 		groups.def("Builders", builders...))
+	if tune.energized {
+		ready := []*proto.APLValue{inCat, spellReady(spellEnergized), not(clearcasting), not(auraUp(spellBerserk)),
+			cmp(proto.APLValueCompare_OpLe, currentEnergy(), konst("30"))}
+		if tune.energizedMana != "cd" {
+			ready = append(ready, cmp(proto.APLValueCompare_OpLt, currentMana(), konst(tune.energizedMana)))
+		}
+		// Casting it leaves no GCD for a builder, so it waits for an idle one, as Innervate does.
+		list = append(list, castWhen(spellEnergized, vars.def("Energized now", and(ready...))))
+	}
 	if tune.innervate {
 		// Casting Innervate leaves Cat Form, so it waits for a free GCD with nothing to spend energy on;
 		// Cat Form follows.
@@ -344,6 +366,14 @@ func shadowmeldAPL() *proto.APLRotation {
 	return catAPL(tune)
 }
 
+// energizedAPL is Monocat with Read Ley Line, for a High Order Skyborne.
+func energizedAPL() *proto.APLRotation {
+	tune := bestCatAPL
+	tune.energized = true
+	tune.energizedMana = "1400"
+	return catAPL(tune)
+}
+
 // openerAPL is the Monocat list behind a Prowl one second before the pull and the opener while
 // Prowl is up, ahead of the sapper, which would end it.
 func openerAPL(opener int32) *proto.APLRotation {
@@ -361,6 +391,7 @@ func catAPLPresets() map[string]*proto.APLRotation {
 	return map[string]*proto.APLRotation{
 		"default":    catAPL(bestCatAPL),
 		"shadowmeld": shadowmeldAPL(),
+		"energized":  energizedAPL(),
 		"bearweave":  bearweaveAPL(),
 		"ravage":     openerAPL(spellRavage),
 		"pounce":     openerAPL(spellPounce),
@@ -733,4 +764,20 @@ func cancelAuraWhen(id int32, condition *proto.APLValue) *proto.APLListItem {
 	return &proto.APLListItem{Action: &proto.APLAction{Condition: condition, Action: &proto.APLAction_CancelAura{
 		CancelAura: &proto.APLActionCancelAura{AuraId: spellID(id)},
 	}}}
+}
+
+// The Energized preset is a High Order Skyborne's: every line names something that race can cast, and
+// Read Ley Line goes out on a long fight.
+func TestEnergizedAPLPresetCastsReadLeyLine(t *testing.T) {
+	preset := core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "energized").Rotation
+	req := uiDefaultCat(preset)
+	req.Raid.Parties[0].Players[0].Race = proto.Race_RaceHighOrderSkyborne
+	if warnings := withoutIdleAutocast(preset, aplWarnings(t, preset, req)); len(warnings) != 0 {
+		t.Errorf("preset warnings by line: %v", warnings)
+	}
+	sim := uiDefaultRaidSim(catTalents, preset, 300, 0, 200)
+	sim.Raid.Parties[0].Players[0].Race = proto.Race_RaceHighOrderSkyborne
+	if castsOf(runCat(t, sim).Actions, spellEnergized) == 0 {
+		t.Error("a 300s fight never cast Read Ley Line")
+	}
 }
