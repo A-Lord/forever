@@ -44,11 +44,14 @@ export const ConsumesFilters = () => {
 		});
 	}, []);
 	const setMinLvls = (minConsumableLvl: { [type: number]: number }) => sim.setFilters({ ...sim.getFilters(), minConsumableLvl });
+	const minLvlsSet = Object.keys(filters.minConsumableLvl).length > 0;
 
 	return (
 		<Popover
 			trigger={<Icon name="filter" />}
-			triggerRender={<Button variant="link" size="sm" className="data-active:text-primary" data-active={statFilter.customised ? '' : undefined} />}
+			triggerRender={
+				<Button variant="link" size="sm" className="data-active:text-primary" data-active={statFilter.customised || minLvlsSet ? '' : undefined} />
+			}
 			triggerClassName="ml-auto"
 			triggerTestId="consumes-filters-button"
 			triggerProps={{ 'aria-label': i18n.t('settings_tab.consumables.filters.title') }}
@@ -87,7 +90,7 @@ export const ConsumesFilters = () => {
 				size="sm"
 				className="mt-2 ml-auto flex"
 				data-testid="consumes-filters-reset"
-				disabled={Object.keys(filters.minConsumableLvl).length === 0}
+				disabled={!minLvlsSet}
 				onClick={() => setMinLvls({})}>
 				{i18n.t('settings_tab.consumables.filters.reset')}
 			</Button>
