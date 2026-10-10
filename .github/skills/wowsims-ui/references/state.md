@@ -164,10 +164,11 @@ Both icon adapters call it:
 
 The icon, icon-enum and multi-icon input configs carry an optional `keptBy(modObject)`, declared once
 as `KeptInput` in `ui/features/inputs/input.ts`: while it holds, the swatch or trigger is dimmed and
-`IconSwatch` (`ui/ui-kit/IconSwatch/IconSwatch.tsx`) shows the `stat_filters.kept_tooltip` text, a
-selection the stat filter hides that stays offered because it is selected. `IconEnumPicker` passes
-no `keptTooltip` to its swatch: the text replaces the trigger's own tooltip, which shares one
-`Tooltip` with the options. The adapters derive
+`IconSwatch` (`ui/ui-kit/IconSwatch/IconSwatch.tsx`) lays a corner badge beside it that shows the
+`stat_filters.kept_tooltip` text, a selection the stat filter hides that stays offered because it is
+selected. The swatch keeps only its link tooltip, and `IconEnumPicker`'s trigger keeps its own
+tooltip. `data-kept` then sits on the box that holds the swatch and its badges, not on the anchor. A
+kept multi icon offers only its picked inputs, each kept the same way. The adapters derive
 `kept` in the render body, not inside a `useStoreSubscribe` read, and `ConnectedMultiIconPicker`
 (`ui/features/inputs/components/ConnectedMultiIconPicker/ConnectedMultiIconPicker.tsx`) reads its
 active input, `showWhen` and `keptBy` there too, subscribing only to re-render: the stat filter hands
