@@ -738,21 +738,27 @@ func TestEquippedAndUnarmedFeralCombatTablesMatch(t *testing.T) {
 }
 
 func TestRegisteredShredUsesCatPawFlatDamageAfterNormalization(t *testing.T) {
-	sim, cat := newCat(t, "", nil)
-	item := cat.GetMHWeapon()
-	item.SwingSpeed = 2
-	cat.AutoAttacks.SetMH(cat.GetCatWeapon())
-	rank := spelldata.MustFind(9830)
-	base := rank.WeaponStrike(sim, cat.Shred.Spell, cat.AutoAttacks.MH().CalculateAverageWeaponDamage(cat.Shred.MeleeAttackPower(cat.CurrentTarget)), 0)
-
-	item.Enchant.WeaponDamage = 4
-	cat.AutoAttacks.SetMH(cat.GetCatWeapon())
-	withEnchant := rank.WeaponStrike(sim, cat.Shred.Spell, cat.AutoAttacks.MH().CalculateAverageWeaponDamage(cat.Shred.MeleeAttackPower(cat.CurrentTarget)), 0)
-
-	if got, want := withEnchant-base, 6.2; math.Abs(got-want) > 1e-9 {
-		t.Errorf("registered Shred gains %.3f before outcomes, want %.3f", got, want)
+	castDamage := func(enchantDamage float64) float64 {
+		sim, cat := newCat(t, "", nil)
+		prepareFeralDamageCase(sim, cat)
+		item := cat.GetMHWeapon()
+		item.SwingSpeed = 2
+		item.Enchant.WeaponDamage = enchantDamage
+		cat.AutoAttacks.SetMH(cat.GetCatWeapon())
+		if !cat.Shred.Cast(sim, cat.CurrentTarget) {
+			t.Fatal("Shred did not cast")
+		}
+		metric := cat.Shred.SpellMetrics[cat.CurrentTarget.UnitIndex]
+		if metric.Hits != 1 || metric.Crits != 0 || metric.TotalDamage <= 0 {
+			t.Fatalf("Shred hits=%d crits=%d damage=%g, want one noncritical hit", metric.Hits, metric.Crits, metric.TotalDamage)
+		}
+		return metric.TotalDamage
 	}
-	t.Logf("registered Shred row 9830 gains %.3f before outcomes from Cat +4", withEnchant-base)
+	base, withEnchant := castDamage(0), castDamage(4)
+	if got, want := withEnchant-base, 6.2; math.Abs(got-want) > 1e-9 {
+		t.Errorf("registered Shred gains %.3f damage, want %.3f", got, want)
+	}
+	t.Logf("registered Shred damage %.3f -> %.3f; Cat +4 gains %.3f", base, withEnchant, withEnchant-base)
 }
 
 func TestThickHideEquippedDefenseFollowsFormsAndStatChanges(t *testing.T) {
@@ -936,6 +942,53 @@ func TestOmenSpecialHitsUseFormSwingSpeed(t *testing.T) {
 	t.Logf("Omen procs from 500 real special hits: Cat=%d Bear=%d humanoid weapon=%d", catProcs, bearProcs, weaponProcs)
 	if !(catProcs < bearProcs && bearProcs < weaponProcs) {
 		t.Fatalf("special Omen rolls did not follow Cat/Bear paw/weapon pace: Cat=%d Bear=%d weapon=%d", catProcs, bearProcs, weaponProcs)
+	}
+}
+
+func TestClearcastingEarnedByRakeSurvivesItsCast(t *testing.T) {
+	for _, charged := range []bool{false, true} {
+		t.Run(fmt.Sprintf("charged_%v", charged), func(t *testing.T) {
+			// Given a paid or free Rake, with no other attacks rolling Omen.
+			sim, cat := newCat(t, "", nil)
+			prepareFeralDamageCase(sim, cat)
+			cat.AutoAttacks.CancelAutoSwing(sim)
+			cat.CurrentTarget.AutoAttacks.CancelAutoSwing(sim)
+			for attempt := range 28 {
+				cat.ClearcastingAura.Deactivate(sim)
+				if charged {
+					cat.ClearcastingAura.Activate(sim)
+				}
+				cat.OmenOfClarityAura.Icd.Reset()
+				fillResource(sim, cat)
+				before := cat.CurrentEnergy()
+
+				// When the real cast rolls a new Omen charge, including its deferred handler.
+				if !cat.Rake.Cast(sim, cat.CurrentTarget) {
+					t.Fatalf("Rake attempt %d failed", attempt)
+				}
+				spent := before - cat.CurrentEnergy()
+				proc := !cat.OmenOfClarityAura.Icd.IsReady(sim)
+				cat.Rake.Dot(cat.CurrentTarget).Deactivate(sim)
+				for end := sim.CurrentTime + 2*time.Second; sim.CurrentTime < end; {
+					if sim.Step() {
+						t.Fatal("simulation ended before Omen proc")
+					}
+				}
+				if proc {
+					// Then the new charge survives the cast that earned it.
+					t.Logf("attempt=%d charged=%v energySpent=%g active=%v stacks=%d", attempt, charged, spent, cat.ClearcastingAura.IsActive(), cat.ClearcastingAura.GetStacks())
+					wantSpent := 40.0
+					if charged {
+						wantSpent = 0
+					}
+					if spent != wantSpent || !cat.ClearcastingAura.IsActive() || cat.ClearcastingAura.GetStacks() != 1 {
+						t.Fatalf("Rake spent %g energy and left active=%v stacks=%d, want %g energy and one new charge", spent, cat.ClearcastingAura.IsActive(), cat.ClearcastingAura.GetStacks(), wantSpent)
+					}
+					return
+				}
+			}
+			t.Fatal("no Omen proc within 28 real Rake casts")
+		})
 	}
 }
 

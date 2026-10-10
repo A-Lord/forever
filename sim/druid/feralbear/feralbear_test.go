@@ -143,8 +143,9 @@ func starterRequest(t testing.TB) *proto.RaidSimRequest {
 	raid := core.SinglePlayerRaidProto(settings.Player, settings.PartyBuffs, settings.RaidBuffs, settings.Debuffs)
 	raid.Tanks = settings.Tanks
 	if settings.Encounter == nil {
-		settings.Encounter = &proto.Encounter{Duration: core.LongDuration, Targets: []*proto.Target{core.FreshDefaultTargetConfig()}}
+		t.Fatal("build fixture has no encounter")
 	}
+
 	return &proto.RaidSimRequest{Raid: raid, Encounter: settings.Encounter, SimOptions: &proto.SimOptions{Iterations: 1, RandomSeed: 1, IsTest: true}}
 }
 

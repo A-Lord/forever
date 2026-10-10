@@ -15,6 +15,7 @@ func (druid *Druid) registerOmenOfClarity() {
 	spelldata.AttachChargeSpender(&druid.Character, druid.ClearcastingAura, clearRow, "Clearcasting - Spend",
 		func(_ *core.Character, trigger *core.ProcTrigger) {
 			trigger.ProcMask &= core.ProcMaskMeleeSpecial
+			trigger.TriggerImmediately = true
 		})
 	// Clearcasting modifies the cast's upfront cost. Covered spell casts spend it at completion;
 	// melee abilities wait for a landed hit.

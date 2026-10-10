@@ -38,6 +38,8 @@ const (
 	spellEnrage     int32 = 5229
 	spellMaul       int32 = 9881
 	spellInnervate  int32 = 29166
+	// Read Ley Line, the High Order Skyborne's racial: Energized, twice the mana regeneration for 15s.
+	spellEnergized int32 = 1259705
 )
 
 // aplTune is one candidate. elune is "after" (once Berserk's crit has fallen), "now" (as soon as it
@@ -49,7 +51,6 @@ type aplTune struct {
 	elune     string
 	omen      bool
 	ceiling   int
-	ripCP     int
 	omenMax   string
 	innervate bool
 	// rakePool, when set, is how far ahead of Rake falling off a builder that would leave the refresh
@@ -63,6 +64,10 @@ type aplTune struct {
 	rakeCut string
 	// shadowmeld casts Shadowmeld into Ravage, a Night Elf's, on cooldown once Ravage is affordable.
 	shadowmeld bool
+	// energized casts Read Ley Line, a High Order Skyborne's, in a free GCD once the mana is under
+	// energizedMana; "cd" casts it on cooldown.
+	energized     bool
+	energizedMana string
 }
 
 // aplVars holds the named conditions of a list, which the APL editor shows as variables so a reader
@@ -84,9 +89,6 @@ func catAPL(tune aplTune) *proto.APLRotation {
 	if tune.ceiling == 0 {
 		tune.ceiling = 50
 	}
-	if tune.ripCP == 0 {
-		tune.ripCP = 5
-	}
 	vars := &aplVars{}
 	inCat := auraUp(spellCatForm)
 	clearcasting := auraUp(spellClear)
@@ -95,8 +97,7 @@ func catAPL(tune aplTune) *proto.APLRotation {
 	cp5 := cmp(proto.APLValueCompare_OpGe, comboPoints(), konst("5"))
 	// Long enough for a new Rip to tick out.
 	fightLong := vars.def("Rip has time", cmp(proto.APLValueCompare_OpGe, remainingTime(), konst("10s")))
-	ripCP := cmp(proto.APLValueCompare_OpGe, comboPoints(), konst(strconv.Itoa(tune.ripCP)))
-	ripNow := vars.def("Rip now", and(ripCP, not(ripUp), fightLong, spellCanCast(spellRip)))
+	ripNow := vars.def("Rip now", and(cp5, not(ripUp), fightLong, spellCanCast(spellRip)))
 	rakeNow := and(not(rakeUp), spellCanCast(spellRake))
 	if tune.rakeCut != "" {
 		rakeNow = and(rakeNow, cmp(proto.APLValueCompare_OpGe, remainingTime(), konst(tune.rakeCut)))
@@ -111,7 +112,7 @@ func catAPL(tune aplTune) *proto.APLRotation {
 	wantShift := vars.def("Shifting Power now", and(spellCanCast(spellSP), underCap))
 	// A builder would leave the refresh short: energy - Shred + 10 regen < Rip.
 	afterBuilder := mathOp(proto.APLValueMath_OpAdd, mathOp(proto.APLValueMath_OpSub, currentEnergy(), spellCost(spellShred)), konst("10"))
-	pooling := and(ripCP, ripUp, fightLong,
+	pooling := and(cp5, ripUp, fightLong,
 		cmp(proto.APLValueCompare_OpGt, dotLeft(spellRip), konst("0s")),
 		cmp(proto.APLValueCompare_OpLe, dotLeft(spellRip), konst("2s")),
 		cmp(proto.APLValueCompare_OpLt, afterBuilder, spellCost(spellRip)))
@@ -136,14 +137,16 @@ func catAPL(tune aplTune) *proto.APLRotation {
 	case "builder":
 		elune = and(elune, or(spellCanCast(spellShred), spellCanCast(spellRake)))
 	}
-	elune = vars.def("Elune's Light now", elune)
+	if !tune.energized {
+		elune = vars.def("Elune's Light now", elune)
+	}
 	// Faerie Fire only while nothing the rotation wants is affordable before its GCD ends.
 	regenEnergy := mathOp(proto.APLValueMath_OpAdd, currentEnergy(), konst("10"))
 	below := func(cost *proto.APLValue) *proto.APLValue {
 		return cmp(proto.APLValueCompare_OpLt, regenEnergy, cost)
 	}
 	rakeSoon := or(not(rakeUp), cmp(proto.APLValueCompare_OpLt, dotLeft(spellRake), konst("1s")))
-	ripSoon := and(ripCP, fightLong, or(not(ripUp), cmp(proto.APLValueCompare_OpLt, dotLeft(spellRip), konst("1s"))))
+	ripSoon := and(cp5, fightLong, or(not(ripUp), cmp(proto.APLValueCompare_OpLt, dotLeft(spellRip), konst("1s"))))
 	omenFish := and(not(clearcasting), auraIcdReady(16864),
 		cmp(proto.APLValueCompare_OpGe, spellLeft(spellSP), konst("1s")),
 		below(spellCost(spellShred)),
@@ -169,25 +172,30 @@ func catAPL(tune aplTune) *proto.APLRotation {
 		builders = append([]*proto.APLListItem{sequenceWhen(vars.def("Shadowmeld into Ravage", ravage),
 			spellAction(spellShadowmeld), spellAction(spellRavage))}, builders...)
 	}
+	// Elune's Light is a Night Elf's; the Energized list is a High Order Skyborne's.
+	var cooldownLines []*proto.APLListItem
+	if !tune.energized {
+		cooldownLines = append(cooldownLines, castWhen(spellElune, elune))
+	}
+	cooldownLines = append(cooldownLines,
+		castItemWhen(itemTea, and(
+			&proto.APLValue{Value: &proto.APLValue_SelectedConjured{SelectedConjured: &proto.APLValueSelectedConjured{
+				ConjuredId: &proto.ActionID{RawId: &proto.ActionID_ItemId{ItemId: itemTea}},
+			}}},
+			cmp(proto.APLValueCompare_OpLe, currentEnergy(), konst("20")))),
+		// The potion's own rule: the full gain still fits, with five seconds of regen left over.
+		castOtherWhen(proto.OtherAction_OtherActionPotion, potionFits()),
+		// Trinkets and anything else the list does not name.
+		&proto.APLListItem{Action: &proto.APLAction{Action: &proto.APLAction_AutocastOtherCooldowns{
+			AutocastOtherCooldowns: &proto.APLActionAutocastOtherCooldowns{},
+		}}})
 	list := []*proto.APLListItem{
 		castItem(itemSapper),
 		castWhen(spellCatForm, not(inCat)),
 		groups.def("Berserk",
 			sequenceWhen(openRake, spellAction(spellBerserk), spellAction(spellRake)),
 			sequenceWhen(openShred, spellAction(spellBerserk), spellAction(spellShred))),
-		groups.def("Cooldowns",
-			castWhen(spellElune, elune),
-			castItemWhen(itemTea, and(
-				&proto.APLValue{Value: &proto.APLValue_SelectedConjured{SelectedConjured: &proto.APLValueSelectedConjured{
-					ConjuredId: &proto.ActionID{RawId: &proto.ActionID_ItemId{ItemId: itemTea}},
-				}}},
-				cmp(proto.APLValueCompare_OpLe, currentEnergy(), konst("20")))),
-			// The potion's own rule: the full gain still fits, with five seconds of regen left over.
-			castOtherWhen(proto.OtherAction_OtherActionPotion, potionFits()),
-			// Trinkets and anything else the list does not name.
-			&proto.APLListItem{Action: &proto.APLAction{Action: &proto.APLAction_AutocastOtherCooldowns{
-				AutocastOtherCooldowns: &proto.APLActionAutocastOtherCooldowns{},
-			}}}),
+		groups.def("Cooldowns", cooldownLines...),
 		groups.def("Bleeds", castWhen(spellRip, ripNow), castWhen(spellRake, rakeNow)),
 	}
 	if tune.biteEnd {
@@ -202,6 +210,15 @@ func catAPL(tune aplTune) *proto.APLRotation {
 	list = append(list,
 		castWhen(spellSP, or(wantShift, and(pooling, spellCanCast(spellSP)))),
 		groups.def("Builders", builders...))
+	if tune.energized {
+		ready := []*proto.APLValue{inCat, spellReady(spellEnergized), not(clearcasting), not(auraUp(spellBerserk)),
+			cmp(proto.APLValueCompare_OpLe, currentEnergy(), konst("30"))}
+		if tune.energizedMana != "cd" {
+			ready = append(ready, cmp(proto.APLValueCompare_OpLt, currentMana(), konst(tune.energizedMana)))
+		}
+		// Casting it leaves no GCD for a builder, so it waits for an idle one, as Innervate does.
+		list = append(list, castWhen(spellEnergized, vars.def("Energized now", and(ready...))))
+	}
 	if tune.innervate {
 		// Casting Innervate leaves Cat Form, so it waits for a free GCD with nothing to spend energy on;
 		// Cat Form follows.
@@ -353,6 +370,14 @@ func shadowmeldAPL() *proto.APLRotation {
 	return catAPL(tune)
 }
 
+// energizedAPL is Monocat with Read Ley Line, for a High Order Skyborne.
+func energizedAPL() *proto.APLRotation {
+	tune := bestCatAPL
+	tune.energized = true
+	tune.energizedMana = "1400"
+	return catAPL(tune)
+}
+
 // openerAPL is the Monocat list behind a Prowl one second before the pull and the opener while
 // Prowl is up, ahead of the sapper, which would end it.
 func openerAPL(opener int32) *proto.APLRotation {
@@ -366,28 +391,11 @@ func openerAPL(opener int32) *proto.APLRotation {
 }
 
 // The preset files and the builders that make them.
-func starterCatAPL() *proto.APLRotation {
-	return &proto.APLRotation{Type: proto.APLRotation_TypeAPL, PriorityList: []*proto.APLListItem{
-		castWhen(spellCatForm, not(auraUp(spellCatForm))),
-		{Action: &proto.APLAction{Action: &proto.APLAction_AutocastOtherCooldowns{
-			AutocastOtherCooldowns: &proto.APLActionAutocastOtherCooldowns{},
-		}}},
-		castWhen(spellRip, and(cmp(proto.APLValueCompare_OpGe, comboPoints(), konst("5")), not(dotUp(spellRip)))),
-		castWhen(spellRake, not(dotUp(spellRake))),
-		castWhen(spellSP, cmp(proto.APLValueCompare_OpLt, currentEnergy(), konst("40"))),
-		castWhen(spellShred, nil),
-		castWhen(spellClaw, nil),
-	}}
-}
-
 func catAPLPresets() map[string]*proto.APLRotation {
-	fourPoints := bestCatAPL
-	fourPoints.ripCP = 4
 	return map[string]*proto.APLRotation{
 		"default":    catAPL(bestCatAPL),
-		"starter":    starterCatAPL(),
-		"raid-rip4":  catAPL(fourPoints),
 		"shadowmeld": shadowmeldAPL(),
+		"energized":  energizedAPL(),
 		"bearweave":  bearweaveAPL(),
 		"ravage":     openerAPL(spellRavage),
 		"pounce":     openerAPL(spellPounce),
@@ -760,4 +768,20 @@ func cancelAuraWhen(id int32, condition *proto.APLValue) *proto.APLListItem {
 	return &proto.APLListItem{Action: &proto.APLAction{Condition: condition, Action: &proto.APLAction_CancelAura{
 		CancelAura: &proto.APLActionCancelAura{AuraId: spellID(id)},
 	}}}
+}
+
+// The Energized preset is a High Order Skyborne's: every line names something that race can cast, and
+// Read Ley Line goes out on a long fight.
+func TestEnergizedAPLPresetCastsReadLeyLine(t *testing.T) {
+	preset := core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "energized").Rotation
+	req := uiDefaultCat(preset)
+	req.Raid.Parties[0].Players[0].Race = proto.Race_RaceHighOrderSkyborne
+	if warnings := withoutIdleAutocast(preset, aplWarnings(t, preset, req)); len(warnings) != 0 {
+		t.Errorf("preset warnings by line: %v", warnings)
+	}
+	sim := uiDefaultRaidSim(catTalents, preset, 300, 0, 200)
+	sim.Raid.Parties[0].Players[0].Race = proto.Race_RaceHighOrderSkyborne
+	if castsOf(runCat(t, sim).Actions, spellEnergized) == 0 {
+		t.Error("a 300s fight never cast Read Ley Line")
+	}
 }

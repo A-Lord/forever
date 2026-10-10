@@ -208,9 +208,9 @@ dps_results: {
 dps_results: {
  key: "TestProtectionWarrior-AllItems-BloodTalon-12795"
  value: {
-  dps: 421.11865
-  tps: 725.32308
-  dtps: 326.12747
+  dps: 423.63677
+  tps: 727.78015
+  dtps: 324.57908
   hps: 16.4
  }
 }

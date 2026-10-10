@@ -113,6 +113,20 @@
 		{
 			"action": {
 				"condition": {
+					"variableRef": {
+						"name": "Energized now"
+					}
+				},
+				"castSpell": {
+					"spellId": {
+						"spellId": 1259705
+					}
+				}
+			}
+		},
+		{
+			"action": {
+				"condition": {
 					"and": {
 						"vals": [
 							{
@@ -339,20 +353,6 @@
 				{
 					"action": {
 						"condition": {
-							"variableRef": {
-								"name": "Elune's Light now"
-							}
-						},
-						"castSpell": {
-							"spellId": {
-								"spellId": 1259799
-							}
-						}
-					}
-				},
-				{
-					"action": {
-						"condition": {
 							"and": {
 								"vals": [
 									{
@@ -566,7 +566,7 @@
 								},
 								"rhs": {
 									"const": {
-										"val": "4"
+										"val": "5"
 									}
 								}
 							}
@@ -738,7 +738,7 @@
 											},
 											"rhs": {
 												"const": {
-													"val": "4"
+													"val": "5"
 												}
 											}
 										}
@@ -931,43 +931,6 @@
 			}
 		},
 		{
-			"name": "Elune's Light now",
-			"value": {
-				"and": {
-					"vals": [
-						{
-							"not": {
-								"val": {
-									"auraIsActive": {
-										"auraId": {
-											"spellId": 417141
-										}
-									}
-								}
-							}
-						},
-						{
-							"cmp": {
-								"op": "OpGt",
-								"lhs": {
-									"spellTimeToReady": {
-										"spellId": {
-											"spellId": 417141
-										}
-									}
-								},
-								"rhs": {
-									"const": {
-										"val": "15s"
-									}
-								}
-							}
-						}
-					]
-				}
-			}
-		},
-		{
 			"name": "Faerie Fire for Omen",
 			"value": {
 				"and": {
@@ -1117,7 +1080,7 @@
 																},
 																"rhs": {
 																	"const": {
-																		"val": "4"
+																		"val": "5"
 																	}
 																}
 															}
@@ -1268,6 +1231,77 @@
 										}
 									}
 								]
+							}
+						}
+					]
+				}
+			}
+		},
+		{
+			"name": "Energized now",
+			"value": {
+				"and": {
+					"vals": [
+						{
+							"auraIsActive": {
+								"auraId": {
+									"spellId": 768
+								}
+							}
+						},
+						{
+							"spellIsReady": {
+								"spellId": {
+									"spellId": 1259705
+								}
+							}
+						},
+						{
+							"not": {
+								"val": {
+									"auraIsActive": {
+										"auraId": {
+											"spellId": 16870
+										}
+									}
+								}
+							}
+						},
+						{
+							"not": {
+								"val": {
+									"auraIsActive": {
+										"auraId": {
+											"spellId": 417141
+										}
+									}
+								}
+							}
+						},
+						{
+							"cmp": {
+								"op": "OpLe",
+								"lhs": {
+									"currentEnergy": {}
+								},
+								"rhs": {
+									"const": {
+										"val": "30"
+									}
+								}
+							}
+						},
+						{
+							"cmp": {
+								"op": "OpLt",
+								"lhs": {
+									"currentMana": {}
+								},
+								"rhs": {
+									"const": {
+										"val": "1400"
+									}
+								}
 							}
 						}
 					]

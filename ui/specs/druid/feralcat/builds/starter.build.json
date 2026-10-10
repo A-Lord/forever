@@ -1,6 +1,6 @@
 {
   "player": {
-    "talentsString": "050022-55000032021030212051-055",
+    "talentsString": "050022-55000032021021212051-055",
     "buffs": {},
     "profession2": "Enchanting",
     "class": "ClassDruid",
@@ -61,7 +61,10 @@
       "elixirIds": [
         13452
       ],
-      "foodId": 250072
+      "foodId": 250072,
+      "extraIds": [
+        10646
+      ]
     },
     "feralCatDruid": {
       "options": {}
@@ -71,6 +74,69 @@
     "inFrontOfTarget": false
   },
   "tanks": [],
+  "encounter": {
+    "apiVersion": 2,
+    "duration": 180,
+    "durationVariation": 5,
+    "executeProportion20": 0.2,
+    "executeProportion25": 0.25,
+    "executeProportion35": 0.35,
+    "executeProportion45": 0.45,
+    "executeProportion90": 0.9,
+    "targets": [
+      {
+        "id": 31146,
+        "name": "Raid Target",
+        "level": 63,
+        "mobType": "MobTypeMechanical",
+        "stats": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          320,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          54,
+          0,
+          0,
+          3731,
+          0,
+          1299000,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "minBaseDamage": 2601,
+        "damageSpread": 0.5,
+        "swingSpeed": 2,
+        "parryHaste": true,
+        "canCrush": true
+      }
+    ]
+  },
   "partyBuffs": {},
   "raidBuffs": {},
   "debuffs": {}

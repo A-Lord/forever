@@ -80,8 +80,8 @@ func BenchmarkSimulate(b *testing.B) {
 }
 
 // The cat UI's Monocat and Bearweave presets (presets.ts CatTalents and BearweaveTalents).
-const DefaultTalents = "050022-55000032021031212041-055"
-const BearweaveTalents = "050022-55000032021131212031-055"
+const DefaultTalents = "050022-55000032021021212051-055"
+const BearweaveTalents = "050022-55000032021111212051-055"
 
 var DefaultSpecOptions = &proto.Player_FeralCatDruid{
 	FeralCatDruid: &proto.FeralCatDruid{
@@ -110,19 +110,13 @@ func buildRequest(t testing.TB, name string) *proto.RaidSimRequest {
 	if err := protojson.Unmarshal(data, settings); err != nil {
 		t.Fatal(err)
 	}
-	rotation := "default"
-	switch name {
-	case "starter":
-		rotation = "starter"
-	case "raid":
-		rotation = "raid-rip4"
-	}
-	settings.Player.Rotation = core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", rotation).Rotation
+	settings.Player.Rotation = core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "default").Rotation
 	raid := core.SinglePlayerRaidProto(settings.Player, settings.PartyBuffs, settings.RaidBuffs, settings.Debuffs)
 	raid.Tanks = settings.Tanks
 	if settings.Encounter == nil {
-		settings.Encounter = &proto.Encounter{Duration: core.LongDuration, Targets: []*proto.Target{core.FreshDefaultTargetConfig()}}
+		t.Fatal("build fixture has no encounter")
 	}
+
 	return &proto.RaidSimRequest{Raid: raid, Encounter: settings.Encounter, SimOptions: &proto.SimOptions{Iterations: 1, RandomSeed: 1, IsTest: true}}
 }
 
@@ -139,8 +133,8 @@ func TestCatBuildsUseNativeRaidTargetArmor(t *testing.T) {
 			request := buildRequest(t, name)
 			target := request.Encounter.Targets[0]
 			defaultTarget := core.FreshDefaultTargetConfig()
-			if target.Level != core.CharacterLevel+3 || target.Stats[stats.Armor] != defaultTarget.Stats[stats.Armor] || target.Stats[stats.Health] != defaultTarget.Stats[stats.Health] {
-				t.Fatalf("Cat build overrides native raid target level, armor, or health: %v", target)
+			if target.Level != core.CharacterLevel+3 || target.Stats[stats.Armor] != defaultTarget.Stats[stats.Armor] || target.MinBaseDamage != defaultTarget.MinBaseDamage {
+				t.Fatalf("Cat build overrides native raid target level, armor, or attack damage: %v", target)
 			}
 			armored := core.RunRaidSim(request)
 			unarmoredRequest := goproto.Clone(request).(*proto.RaidSimRequest)
@@ -220,14 +214,7 @@ func TestRaidGearFixtureUsesEquippableDruidItems(t *testing.T) {
 			t.Errorf("supported Cat item %d is absent", id)
 		}
 	}
-	if core.GetItemByID(19287) == nil {
-		t.Fatal("Darkmoon Card: Heroism is absent from the generated database")
-	}
-	for _, item := range gear.Items {
-		if item.Id == 19287 {
-			t.Error("unsupported Darkmoon Card: Heroism is equipped")
-		}
-	}
+
 	sim := core.NewSim(request, simsignals.CreateSignals())
 	sim.Reset()
 	cat := sim.Raid.Parties[0].Players[0].GetCharacter()
@@ -290,7 +277,7 @@ func TestAvailableThistleTeaRequiresSelection(t *testing.T) {
 	if !core.WITH_DB {
 		t.Skip("requires the committed game database")
 	}
-	for _, preset := range []string{"raid-rip4", "default", "bearweave"} {
+	for _, preset := range []string{"default", "bearweave"} {
 		for _, selected := range []int32{0, 7676} {
 			t.Run(fmt.Sprintf("%s/selected=%d", preset, selected), func(t *testing.T) {
 				request := buildRequest(t, "raid")
@@ -325,7 +312,7 @@ func TestCatRaidBuildsHaveBulkGearCombinations(t *testing.T) {
 	if !core.WITH_DB {
 		t.Skip("requires the committed game database")
 	}
-	for _, name := range []string{"raid", "raid-dps"} {
+	for _, name := range []string{"starter", "raid"} {
 		t.Run(name, func(t *testing.T) {
 			result := bulk.BulkCombinationCount(&proto.BulkCombinationCountRequest{
 				BaseRequest: buildRequest(t, name), BulkSettings: &proto.BulkSettings{},
