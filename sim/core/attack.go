@@ -381,6 +381,14 @@ func (wa *WeaponAttack) swing(sim *Simulation) time.Duration {
 	}
 	wa.windupEnd = 0
 
+	// A melee swing waits out a cast that resets it, one due at the cast's last instant included. The
+	// completed cast sets the real swing time; this one only has to land past the cast's end,
+	// wherever pushback moves it.
+	if hc := &wa.unit.Hardcast; !isRanged && hc.ResetsSwing && hc.Expires >= sim.CurrentTime {
+		wa.swingAt = hc.Expires + wa.curSwingDuration
+		return wa.swingAt
+	}
+
 	if wa.replaceSwing != nil {
 		// Need to check APL here to allow last-moment HS queue casts.
 		wa.unit.ReactToEvent(sim, false, false)
