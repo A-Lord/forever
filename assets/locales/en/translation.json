@@ -2681,6 +2681,6 @@
 			"primary": "Primary",
 			"other": "Other"
 		},
-		"kept_tooltip": "Shown because it is selected; your stat filter hides its stats."
+		"kept_tooltip": "Shown because it is selected; the stat filter hides its stats."
 	}
 }

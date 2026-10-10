@@ -90,6 +90,6 @@ export const Active: Story = {
 	render: ({ onClear }) => <MultiIconPickerStory onClear={onClear} initial={[0, 1, 1]} />,
 };
 export const Kept: Story = {
-	args: { kept: true, keptTooltip: 'Shown because it is selected; your stat filter hides its stats.' },
+	args: { kept: true, keptTooltip: 'Shown because it is selected; the stat filter hides its stats.' },
 	render: ({ onClear, kept, keptTooltip }) => <MultiIconPickerStory onClear={onClear} kept={kept} keptTooltip={keptTooltip} initial={[0, 1, 0]} />,
 };
