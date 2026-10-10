@@ -97,8 +97,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-AllItems-BlazefuryMedallion-17111"
  value: {
-  dps: 597.31587
-  tps: 322.95151
+  dps: 597.56365
+  tps: 323.07473
  }
 }
 dps_results: {
@@ -139,8 +139,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-AllItems-CloakofFire-14134"
  value: {
-  dps: 593.2826
-  tps: 320.98752
+  dps: 593.34356
+  tps: 321.01782
  }
 }
 dps_results: {
@@ -175,8 +175,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-AllItems-DarkmoonCard:Maelstrom-19289"
  value: {
-  dps: 605.16132
-  tps: 326.89546
+  dps: 605.75877
+  tps: 327.19239
  }
 }
 dps_results: {
@@ -252,8 +252,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-AllItems-Enchant:FieryBlaze-36"
  value: {
-  dps: 599.60813
-  tps: 324.09454
+  dps: 599.82102
+  tps: 324.20042
  }
 }
 dps_results: {
@@ -337,8 +337,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-AllItems-EverlookDeliveryBot-274760"
  value: {
-  dps: 599.92676
-  tps: 324.31546
+  dps: 600.12154
+  tps: 324.41227
  }
 }
 dps_results: {
@@ -477,8 +477,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-AllItems-GryphonRider'sStormhammer-9651"
  value: {
-  dps: 531.72919
-  tps: 290.34175
+  dps: 531.91727
+  tps: 290.43523
  }
 }
 dps_results: {
@@ -491,8 +491,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-AllItems-HammeroftheNorthernWind-810"
  value: {
-  dps: 548.65645
-  tps: 298.69275
+  dps: 549.0312
+  tps: 298.879
  }
 }
 dps_results: {
@@ -519,8 +519,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-AllItems-HelmofFire-8348"
  value: {
-  dps: 591.50126
-  tps: 320.18661
+  dps: 591.71983
+  tps: 320.29524
  }
 }
 dps_results: {
@@ -659,8 +659,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-AllItems-OrbofFire-12805"
  value: {
-  dps: 598.00412
-  tps: 323.31466
+  dps: 598.05757
+  tps: 323.34123
  }
 }
 dps_results: {
@@ -701,8 +701,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-AllItems-ShardoftheFallenStar-21891"
  value: {
-  dps: 599.9901
-  tps: 324.34695
+  dps: 600.18867
+  tps: 324.44564
  }
 }
 dps_results: {
@@ -806,8 +806,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-AllItems-Thunderbrew'sBootFlask-744"
  value: {
-  dps: 600.10499
-  tps: 324.45125
+  dps: 600.26861
+  tps: 324.53257
  }
 }
 dps_results: {
