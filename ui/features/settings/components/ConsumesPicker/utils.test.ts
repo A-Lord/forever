@@ -444,6 +444,15 @@ describe('consumeConfigs under the consumables stat filter', () => {
 	};
 	const agilityElixirs = (player: Player<any>) => offered(consumeConfigs(player, agilityDb).elixirs[1], player);
 
+	it('builds the scope once per player and database', () => {
+		const { player } = playerOf();
+		const scope = consumableFilterScope(player, db);
+
+		expect(consumableFilterScope(player, db)).toBe(scope);
+		expect(consumableFilterScope(player, agilityDb)).not.toBe(scope);
+		expect(consumableFilterScope(playerOf().player, db)).not.toBe(scope);
+	});
+
 	it('offers with the slot set to the spec defaults what it offers with the slot unset', () => {
 		const { player, state } = playerOf({ professions: [Profession.Engineering] });
 		const configs = consumeConfigs(player, db);
