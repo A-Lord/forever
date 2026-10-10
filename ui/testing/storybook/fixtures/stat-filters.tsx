@@ -34,6 +34,7 @@ const StoryStatFilter = ({ testId, ariaLabel }: { testId: string; ariaLabel: str
 			onReset={fn()}
 			openGroups={openGroups}
 			onOpenGroupsChange={setOpenGroups}
+			onPopoverOpenChange={fn()}
 			ariaLabel={ariaLabel}
 			testId={testId}
 		/>

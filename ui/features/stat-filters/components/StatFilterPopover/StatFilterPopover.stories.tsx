@@ -58,6 +58,7 @@ const meta = {
 		onReset: fn(),
 		openGroups: [],
 		onOpenGroupsChange: fn(),
+		onPopoverOpenChange: fn(),
 		ariaLabel: 'Filter character stats',
 		testId: 'stat-filter',
 	},

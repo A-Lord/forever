@@ -56,7 +56,8 @@ export const ConsumesFilters = () => {
 			className="w-180"
 			triggerClassName="ml-auto"
 			triggerTestId="consumes-filters-button"
-			testId="consumes-filters-popover">
+			testId="consumes-filters-popover"
+			onOpenChange={statFilter.onPopoverOpenChange}>
 			<Tabs.Root defaultValue={STATS_TAB} className="flex min-h-0 flex-col">
 				<TabNav
 					wrap={false}

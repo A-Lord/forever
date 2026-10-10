@@ -21,6 +21,7 @@ export interface StatFilterPopoverProps {
 	onReset: () => void;
 	openGroups: string[];
 	onOpenGroupsChange: (groups: string[]) => void;
+	onPopoverOpenChange: (open: boolean) => void;
 	/** The trigger's name, one per panel: every stat filter popup shares one title. */
 	ariaLabel: string;
 	testId: string;
@@ -40,7 +41,7 @@ export const StatFilterList = ({
 	openGroups,
 	onOpenGroupsChange,
 	idPrefix,
-}: Omit<StatFilterPopoverProps, 'ariaLabel' | 'testId'> & { idPrefix: string }) => {
+}: Omit<StatFilterPopoverProps, 'ariaLabel' | 'testId' | 'onPopoverOpenChange'> & { idPrefix: string }) => {
 	const shownKeys = new Set(shown.map(stat => stat.getKey()));
 	const isShown = (stat: UnitStat) => shownKeys.has(stat.getKey());
 	const toggle = (stat: UnitStat, checked: boolean) => onChange(universe.filter(other => (other.equals(stat) ? checked : isShown(other))));
@@ -103,11 +104,13 @@ export interface FilterPopoverProps {
 	triggerClassName?: string;
 	triggerTestId: string;
 	testId: string;
+	onOpenChange?: (open: boolean) => void;
 	children: ReactNode;
 }
 
-export const FilterPopover = ({ ariaLabel, title, className, triggerClassName, triggerTestId, testId, children }: FilterPopoverProps) => (
+export const FilterPopover = ({ ariaLabel, title, className, triggerClassName, triggerTestId, testId, onOpenChange, children }: FilterPopoverProps) => (
 	<Popover
+		onOpenChange={onOpenChange}
 		trigger={<Icon name="filter" />}
 		triggerRender={<Button variant="link" size="sm" className="text-muted hover:text-link-hover" />}
 		triggerClassName={triggerClassName}
@@ -123,8 +126,13 @@ export const FilterPopover = ({ ariaLabel, title, className, triggerClassName, t
 	</Popover>
 );
 
-export const StatFilterPopover = ({ ariaLabel, testId, ...listProps }: StatFilterPopoverProps) => (
-	<FilterPopover ariaLabel={ariaLabel} title={i18n.t('stat_filters.title')} triggerTestId={`${testId}-button`} testId={testId}>
+export const StatFilterPopover = ({ ariaLabel, testId, onPopoverOpenChange, ...listProps }: StatFilterPopoverProps) => (
+	<FilterPopover
+		ariaLabel={ariaLabel}
+		title={i18n.t('stat_filters.title')}
+		triggerTestId={`${testId}-button`}
+		testId={testId}
+		onOpenChange={onPopoverOpenChange}>
 		<StatFilterList {...listProps} idPrefix={testId} />
 	</FilterPopover>
 );

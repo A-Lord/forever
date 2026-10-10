@@ -168,6 +168,7 @@ describe('StatFilterPopover', () => {
 				onReset={() => {}}
 				openGroups={['attributes']}
 				onOpenGroupsChange={() => {}}
+				onPopoverOpenChange={() => {}}
 				ariaLabel="Filter test stats"
 				testId="test-filter"
 			/>,

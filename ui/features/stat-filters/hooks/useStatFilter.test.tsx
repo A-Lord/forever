@@ -3,9 +3,10 @@ import { DatabaseFilters } from '@generated/proto/ui';
 import { UnitStat } from '@sim/proto/stats';
 import { createSimStore, patchSlice, type SimStore } from '@sim/state/sim_store';
 import { renderWithHost } from '@testing/react';
-import { act } from '@testing-library/react';
+import { act, fireEvent, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { StatFilterPopover } from '../components/StatFilterPopover';
 import type { StatFilterScope, StatFilterSlot } from '../model/stat_filters';
 import * as statFilters from '../model/stat_filters';
 import { useStatFilter } from './useStatFilter';
@@ -111,7 +112,7 @@ describe('useStatFilter open groups', () => {
 	const groupsScope: StatFilterScope = { defaults: [strength, armor], universe: [strength, agility, hitRating, armor] };
 	const GroupsProbe = ({ slot }: { slot: StatFilterSlot }) => {
 		latest = useStatFilter(slot, groupsScope);
-		return null;
+		return <StatFilterPopover {...latest} ariaLabel="Filter test stats" testId="test-filter" />;
 	};
 	const mountGroups = (slot: StatFilterSlot) =>
 		renderWithHost(<GroupsProbe slot={slot} />, {
@@ -119,11 +120,45 @@ describe('useStatFilter open groups', () => {
 			player: { getClass: () => Class.ClassWarrior },
 			getStorageKey: (keyPart: string) => `test${keyPart}`,
 		});
+	const togglePopover = () =>
+		act(async () => {
+			fireEvent.click(screen.getByTestId('test-filter-button'));
+		});
+	const expandedGroups = () =>
+		screen
+			.queryAllByTestId(/^test-filter-group-[a-z]+-trigger$/)
+			.filter(trigger => trigger.getAttribute('aria-expanded') === 'true')
+			.map(trigger => trigger.getAttribute('data-testid')!.replace(/^test-filter-group-|-trigger$/g, ''));
 
-	it('opens the groups that hold a shown stat while nothing is stored', () => {
+	it('opens the groups that hold a shown stat while nothing is stored', async () => {
 		mountGroups('ep');
 
-		expect(latest.openGroups).toEqual(['attributes', 'defense']);
+		await togglePopover();
+
+		expect(expandedGroups()).toEqual(['attributes', 'defense']);
+	});
+
+	it('opens the groups of a filter that loaded after the hook mounted', async () => {
+		mountGroups('ep');
+		act(() => sim.setFilters(statFilters.withSelection(sim.getFilters(), 'ep', [hitRating])));
+
+		await togglePopover();
+
+		expect(expandedGroups()).toEqual(['ratings']);
+	});
+
+	it('keeps a group open after its last stat is unticked until the popover closes', async () => {
+		mountGroups('ep');
+		await togglePopover();
+
+		act(() => {
+			fireEvent.click(screen.getByRole('checkbox', { name: armor.getShortName(Class.ClassWarrior) }));
+		});
+		expect(expandedGroups()).toEqual(['attributes', 'defense']);
+
+		await togglePopover();
+		await togglePopover();
+		expect(expandedGroups()).toEqual(['attributes']);
 	});
 
 	it("stores a change under the panel's own key and reads it back on the next mount", () => {
@@ -139,12 +174,13 @@ describe('useStatFilter open groups', () => {
 		expect(latest.openGroups).toEqual(['ratings']);
 	});
 
-	it('takes the stored groups over the default', () => {
+	it('takes the stored groups over the default', async () => {
 		window.localStorage.setItem('test__consumablesStatFilterGroups', JSON.stringify([]));
-
 		mountGroups('consumables');
 
-		expect(latest.openGroups).toEqual([]);
+		await togglePopover();
+
+		expect(expandedGroups()).toEqual([]);
 	});
 });
 
