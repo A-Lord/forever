@@ -79,7 +79,11 @@ func newSlowProcSim(t *testing.T, weaponID int32, register func(SpellDataProc), 
 }
 
 func landMainHandSwing(sim *core.Simulation, caster *testCaster, target *core.Unit) {
-	caster.OnSpellHitDealt(sim, &core.Spell{ProcMask: core.ProcMaskMeleeMHAuto},
+	landSwing(sim, caster, target, core.ProcMaskMeleeMHAuto)
+}
+
+func landSwing(sim *core.Simulation, caster *testCaster, target *core.Unit, hand core.ProcMask) {
+	caster.OnSpellHitDealt(sim, &core.Spell{ProcMask: hand},
 		&core.SpellResult{Target: target, Outcome: core.OutcomeHit, Damage: 100})
 }
 

@@ -647,33 +647,17 @@ func registerSpellDataDamageProc(cfg SpellDataProc) {
 // The effect on one character: the spell the proc casts, and the listener that casts it.
 func applySpellDataDamageProc(agent core.Agent, cfg SpellDataProc, source effectSource, trigger *spelldata.Spell, damage *spelldata.Spell) {
 	character := agent.GetCharacter()
-	damageConfig := spellDataProcDamageSpell(character, damage, true)
-	damageConfig.ProcMask = weaponProcStrikeMask(damageConfig.DefenseType, cfg.IsWeaponProc)
-	damageSpell := character.RegisterSpell(damageConfig)
-
-	// The handler is attached after the options, since which unit the damage lands on depends on the
-	// callback the trigger ends up with and a weapon proc's shape rewrites it.
 	config := spellDataProcListener(character, cfg, source, trigger)
-	config.Handler = procDamageHandler(character, damageSpell, config.Callback)
-
-	// The proc's damage lands on the hit that caused it rather than on the next one, which is what
-	// the callback is called from. A weapon's strike can roll its own proc again the same way, until
-	// a roll fails.
-	config.TriggerImmediately = true
-
+	attachProcDamage(character, &config, spellDataProcDamageSpell(character, damage, true))
 	source.registerTrigger(character, config)
 }
 
 // The spell the proc casts, as its row states it: school, defense type, spell power share, travel
 // time and the amount it rolls. What the row cannot state is that it is a proc's spell: out of the
 // rotation and not a cast of its own. Its hits reach the damage listeners as a proc's do, so a
-// listener with Can Proc From Procs hears them (Vengeance off a Lightning Strike crit), and a weapon
-// proc hears them only where the caller makes them a weapon's strike (weaponProcStrikeMask).
+// listener with Can Proc From Procs hears them (Vengeance off a Lightning Strike crit).
 func spellDataProcDamageSpell(character *core.Character, damage *spelldata.Spell, asProc bool) core.SpellConfig {
 	config := spelldata.SpellConfig(&character.Unit, damage, damageShape(damage), castBy(asProc))
-
-	// The proc's own hits carry no mask: what hears them is the flags castBy sets, not a hit kind.
-	config.ProcMask = core.ProcMaskEmpty
 
 	defenseType := damageDefenseType(config.DefenseType, config.SpellSchool, false)
 	config.DefenseType = defenseType
@@ -749,7 +733,7 @@ func dealOnArrival(sim *core.Simulation, spell *core.Spell, target *core.Unit, r
 }
 
 // The same for the one result the cast calculated into single, which the spell's next cast calculates
-// into again: the flight carries the result itself and puts it back into single when it lands.
+// into again: the flight carries the result itself.
 func dealOneOnArrival(sim *core.Simulation, spell *core.Spell, target *core.Unit, single core.SpellResultSlice, after afterDealt) {
 	result := single[0]
 	if spell.MissileSpeed == 0 {
@@ -761,8 +745,8 @@ func dealOneOnArrival(sim *core.Simulation, spell *core.Spell, target *core.Unit
 	})
 }
 
-// A weapon's strike can cast the spell again from inside DealDamage, which calculates into single, so
-// the result goes back into it before after reads it.
+// A cast during the flight, or one the landing hit asks for from inside DealDamage, calculates into
+// single, so the result goes back into it before after reads it.
 func dealOne(sim *core.Simulation, spell *core.Spell, target *core.Unit, single core.SpellResultSlice, result *core.SpellResult, after afterDealt) {
 	spell.DealDamage(sim, result)
 	if after != nil {
@@ -837,28 +821,49 @@ func damageShape(damage *spelldata.Spell) spelldata.SpellOpt {
 	return spelldata.Magic(core.ProcMaskEmpty)
 }
 
-// What a proc's damage lands on, for both damage constructors. A weapon's strike takes the hand of
-// the hit that cast it, so what it procs in turn stays on that weapon.
+// What a proc's damage lands on, for both damage constructors. A cast the spell's own hit asks for
+// while the spell is still casting, a weapon's strike rolling its own weapon again, goes one spell
+// batch later: inline it would recurse for as long as the rolls succeed, without end where the
+// chance cannot fail.
 func procDamageHandler(character *core.Character, damageSpell *core.Spell, callback core.AuraCallback) core.ProcHandler {
-	if !damageSpell.ProcMask.Matches(core.ProcMaskMeleeOrRangedSpecial) {
-		return func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-			damageSpell.Cast(sim, procDamageTarget(character, callback, spell, result))
+	casting := false
+	var cast func(sim *core.Simulation, target *core.Unit)
+	cast = func(sim *core.Simulation, target *core.Unit) {
+		if casting {
+			pa := sim.GetConsumedPendingActionFromPool()
+			pa.NextActionAt = sim.CurrentTime + core.SpellBatchWindow
+			pa.Priority = core.ActionPriorityDOT
+			pa.OnAction = func(sim *core.Simulation) { cast(sim, target) }
+			sim.AddPendingAction(pa)
+			return
 		}
+		casting = true
+		damageSpell.Cast(sim, target)
+		casting = false
 	}
 	return func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-		damageSpell.ProcMask = specialHitOfHand(spell.ProcMask)
-		damageSpell.Cast(sim, procDamageTarget(character, callback, spell, result))
+		cast(sim, procDamageTarget(character, callback, spell, result))
 	}
 }
 
-// The mask a proc's damage spell registers with. A weapon proc of melee or ranged defense is a
-// special hit of the weapon whose hit cast it: the weapon procs, combat enchants and oils of that
-// hand hear it, its own included, and a listener on auto attacks alone does not. It stays a proc,
-// so an aura without Can Proc From Procs does not hear it either. The hand is set on each cast;
-// a spell modifier bound to one hand is matched against this registered one. Any other proc's
-// damage carries no mask.
-func weaponProcStrikeMask(defenseType core.DefenseType, isWeaponProc bool) core.ProcMask {
-	if !isWeaponProc {
+// The trigger casts the spell on the hit that caused the proc, after its options have set the callback
+// the target depends on. The mask is weaponProcStrikeMask's.
+func attachProcDamage(character *core.Character, trigger *core.ProcTrigger, cfg core.SpellConfig) *core.Spell {
+	cfg.ProcMask = weaponProcStrikeMask(cfg.DefenseType, cfg.Flags, trigger.IsWeaponProc)
+	spell := character.RegisterSpell(cfg)
+	trigger.Handler = procDamageHandler(character, spell, trigger.Callback)
+	trigger.TriggerImmediately = true
+	return spell
+}
+
+// The mask a proc's damage spell casts with. A weapon proc's spell of melee defense is a weapon's
+// strike, a main-hand special whichever hand's hit cast it, as a triggered melee spell is; one of
+// ranged defense is a ranged special. The weapon procs, combat enchants and oils that hear those hits
+// hear it, and a listener on auto attacks alone does not. Only a spell flagged as a proc is a strike:
+// any aura on melee specials would hear one without the flag, so it keeps no mask, as any other
+// proc's damage does.
+func weaponProcStrikeMask(defenseType core.DefenseType, flags core.SpellFlag, isWeaponProc bool) core.ProcMask {
+	if !isWeaponProc || !flags.Matches(core.SpellFlagProc) {
 		return core.ProcMaskEmpty
 	}
 	switch defenseType {
@@ -868,17 +873,6 @@ func weaponProcStrikeMask(defenseType core.DefenseType, isWeaponProc bool) core.
 		return core.ProcMaskRangedSpecial
 	}
 	return core.ProcMaskEmpty
-}
-
-// The special hit of the hand a hit was dealt with, picked the way the attack table picks the hand.
-func specialHitOfHand(hit core.ProcMask) core.ProcMask {
-	switch {
-	case hit.Matches(core.ProcMaskRanged):
-		return core.ProcMaskRangedSpecial
-	case hit.Matches(core.ProcMaskMeleeOH) && !hit.Matches(core.ProcMaskMeleeMH):
-		return core.ProcMaskMeleeOHSpecial
-	}
-	return core.ProcMaskMeleeMHSpecial
 }
 
 // Which unit the proc answers. What the result names depends on the callback, so the callback
@@ -1688,11 +1682,10 @@ func NewProcDamageEffect(config ProcDamageEffect) {
 			triggerConfig.DPM = config.TriggerDPM(character)
 		}
 
-		damageSpell := character.RegisterSpell(core.SpellConfig{
+		attachProcDamage(character, &triggerConfig, core.SpellConfig{
 			ActionID:    core.ActionID{SpellID: config.SpellID},
 			SpellSchool: config.School,
 			DefenseType: defenseType,
-			ProcMask:    weaponProcStrikeMask(defenseType, triggerConfig.IsWeaponProc),
 			Flags:       config.Flags,
 
 			DamageMultiplier: 1,
@@ -1704,8 +1697,6 @@ func NewProcDamageEffect(config ProcDamageEffect) {
 			},
 		})
 
-		triggerConfig.TriggerImmediately = true
-		triggerConfig.Handler = procDamageHandler(character, damageSpell, triggerConfig.Callback)
 		triggerAura := character.MakeProcTriggerAura(triggerConfig)
 
 		if isEnchant {

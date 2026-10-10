@@ -70,7 +70,7 @@ type ProcTrigger struct {
 	// (SpellItemEnchantment.Effect 1, e.g. Mongoose, Crusader, poisons, imbues).
 	// The game casts these off every melee or ranged hit that lacks SpellFlagSuppressWeaponProcs,
 	// whether or not that hit was itself a proc, so SpellFlagProc and CanProcFromProcs are ignored.
-	// A weapon proc's own melee or ranged strike is such a hit, a special of the hand that cast it.
+	// A weapon proc's own strike is such a hit.
 	// Which hand's hits qualify is still the DPM's or ProcMask's job.
 	IsWeaponProc bool
 }
