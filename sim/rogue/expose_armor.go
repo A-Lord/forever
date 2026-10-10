@@ -1,6 +1,8 @@
 package rogue
 
 import (
+	"math"
+
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/buffs"
 	"github.com/wowsims/forever/sim/core/spelldata"
@@ -48,7 +50,7 @@ func (rogue *Rogue) registerExposeArmorSpell() {
 }
 
 func (rogue *Rogue) GetExposeArmorValue() float64 {
-	return float64(exposeArmorRank.EffectN(1).PointsPerResource) * float64(rogue.ComboPoints())
+	return math.Abs((float64(exposeArmorRank.EffectN(1).PointsPerResource) * float64(rogue.ComboPoints())))
 }
 
 func (rogue *Rogue) CanApplyExposeArmorAura(target *core.Unit) bool {
