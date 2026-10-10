@@ -727,21 +727,23 @@ func dealOnArrival(sim *core.Simulation, spell *core.Spell, target *core.Unit, r
 		return
 	}
 	results = slices.Clone(results)
+	suppress := spell.Flags & core.SpellFlagSuppressWeaponProcs
 	spell.WaitTravelTime(sim, func(sim *core.Simulation) {
-		dealResults(sim, spell, target, results, after)
+		withFlags(spell, suppress, func() { dealResults(sim, spell, target, results, after) })
 	})
 }
 
 // The same for the one result the cast calculated into single, which the spell's next cast calculates
-// into again: the flight carries the result itself.
+// into again: the flight carries the result itself, and the cast's Suppress Weapon Procs with it.
 func dealOneOnArrival(sim *core.Simulation, spell *core.Spell, target *core.Unit, single core.SpellResultSlice, after afterDealt) {
 	result := single[0]
 	if spell.MissileSpeed == 0 {
 		dealOne(sim, spell, target, single, result, after)
 		return
 	}
+	suppress := spell.Flags & core.SpellFlagSuppressWeaponProcs
 	spell.WaitTravelTime(sim, func(sim *core.Simulation) {
-		dealOne(sim, spell, target, single, result, after)
+		withFlags(spell, suppress, func() { dealOne(sim, spell, target, single, result, after) })
 	})
 }
 
@@ -824,26 +826,40 @@ func damageShape(damage *spelldata.Spell) spelldata.SpellOpt {
 // What a proc's damage lands on, for both damage constructors. A cast the spell's own hit asks for
 // while the spell is still casting, a weapon's strike rolling its own weapon again, goes one spell
 // batch later: inline it would recurse for as long as the rolls succeed, without end where the
-// chance cannot fail.
+// chance cannot fail. A melee strike an off-hand hit cast carries Suppress Weapon Procs for that cast
+// (weaponProcStrikeMask).
 func procDamageHandler(character *core.Character, damageSpell *core.Spell, callback core.AuraCallback) core.ProcHandler {
+	meleeStrike := damageSpell.ProcMask.Matches(core.ProcMaskMeleeMHSpecial)
 	casting := false
-	var cast func(sim *core.Simulation, target *core.Unit)
-	cast = func(sim *core.Simulation, target *core.Unit) {
+	var cast func(sim *core.Simulation, target *core.Unit, flags core.SpellFlag)
+	cast = func(sim *core.Simulation, target *core.Unit, flags core.SpellFlag) {
 		if casting {
 			pa := sim.GetConsumedPendingActionFromPool()
 			pa.NextActionAt = sim.CurrentTime + core.SpellBatchWindow
 			pa.Priority = core.ActionPriorityDOT
-			pa.OnAction = func(sim *core.Simulation) { cast(sim, target) }
+			pa.OnAction = func(sim *core.Simulation) { cast(sim, target, flags) }
 			sim.AddPendingAction(pa)
 			return
 		}
 		casting = true
-		damageSpell.Cast(sim, target)
+		withFlags(damageSpell, flags, func() { damageSpell.Cast(sim, target) })
 		casting = false
 	}
 	return func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-		cast(sim, procDamageTarget(character, callback, spell, result))
+		flags := core.SpellFlagNone
+		if meleeStrike && spell.ProcMask.Matches(core.ProcMaskMeleeOH) && !spell.ProcMask.Matches(core.ProcMaskMeleeMH) {
+			flags = core.SpellFlagSuppressWeaponProcs
+		}
+		cast(sim, procDamageTarget(character, callback, spell, result), flags)
 	}
+}
+
+// Runs deal with the flags added to the spell's own, and takes off again the ones it did not carry.
+func withFlags(spell *core.Spell, flags core.SpellFlag, deal func()) {
+	added := flags &^ spell.Flags
+	spell.Flags |= added
+	deal()
+	spell.Flags &^= added
 }
 
 // The trigger casts the spell on the hit that caused the proc, after its options have set the callback
@@ -857,11 +873,13 @@ func attachProcDamage(character *core.Character, trigger *core.ProcTrigger, cfg 
 }
 
 // The mask a proc's damage spell casts with. A weapon proc's spell of melee defense is a weapon's
-// strike, a main-hand special whichever hand's hit cast it, as a triggered melee spell is; one of
-// ranged defense is a ranged special. The weapon procs, combat enchants and oils that hear those hits
-// hear it, and a listener on auto attacks alone does not. Only a spell flagged as a proc is a strike:
-// any aura on melee specials would hear one without the flag, so it keeps no mask, as any other
-// proc's damage does.
+// strike, a main-hand special as a triggered melee spell is; one of ranged defense is a ranged
+// special. The weapon procs, combat enchants and oils that hear those hits hear it, its own weapon
+// included, and a listener on auto attacks alone does not. A melee strike an off-hand hit cast is
+// heard by no weapon proc, combat enchant or oil on either hand: that cast carries Suppress Weapon
+// Procs, through its flight where it has one, and its damage and bleed are those of any other cast.
+// Only a spell flagged as a proc is a strike: any aura on melee specials would hear one without the
+// flag, so it keeps no mask, as any other proc's damage does.
 func weaponProcStrikeMask(defenseType core.DefenseType, flags core.SpellFlag, isWeaponProc bool) core.ProcMask {
 	if !isWeaponProc || !flags.Matches(core.SpellFlagProc) {
 		return core.ProcMaskEmpty
