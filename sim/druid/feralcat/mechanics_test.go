@@ -964,6 +964,8 @@ func TestClearcastingIsSpentByACoveredCatAbility(t *testing.T) {
 	cat.ClearcastingAura.SetStacks(sim, cat.ClearcastingAura.MaxStacks)
 	miss := &core.SpellResult{Target: cat.CurrentTarget, Outcome: core.OutcomeMiss}
 	cat.ClearcastingAura.OnSpellHitDealt(cat.ClearcastingAura, sim, cat.Rake.Spell, miss)
+	for end := sim.CurrentTime + core.SpellBatchWindow; sim.CurrentTime <= end && !sim.Step(); {
+	}
 	if !cat.ClearcastingAura.IsActive() || cat.ClearcastingAura.GetStacks() != 1 {
 		t.Error("a missed Rake consumed Clearcasting")
 	}
@@ -971,6 +973,8 @@ func TestClearcastingIsSpentByACoveredCatAbility(t *testing.T) {
 	// When an auto attack lands, then the ability-only class mask also keeps the charge.
 	landed := &core.SpellResult{Target: cat.CurrentTarget, Outcome: core.OutcomeHit, Damage: 1}
 	cat.ClearcastingAura.OnSpellHitDealt(cat.ClearcastingAura, sim, cat.AutoAttacks.MHAuto(), landed)
+	for end := sim.CurrentTime + core.SpellBatchWindow; sim.CurrentTime <= end && !sim.Step(); {
+	}
 	if !cat.ClearcastingAura.IsActive() {
 		t.Error("a paw auto attack consumed Clearcasting")
 	}

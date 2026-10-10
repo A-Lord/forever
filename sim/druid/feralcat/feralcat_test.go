@@ -13,6 +13,7 @@ import (
 
 	"github.com/wowsims/forever/sim/common"
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/bulk"
 	"github.com/wowsims/forever/sim/core/proto"
 )
 
@@ -317,5 +318,24 @@ func TestAvailableThistleTeaRequiresSelection(t *testing.T) {
 				}
 			})
 		}
+	}
+}
+
+func TestCatRaidBuildsHaveBulkGearCombinations(t *testing.T) {
+	if !core.WITH_DB {
+		t.Skip("requires the committed game database")
+	}
+	for _, name := range []string{"raid", "raid-dps"} {
+		t.Run(name, func(t *testing.T) {
+			result := bulk.BulkCombinationCount(&proto.BulkCombinationCountRequest{
+				BaseRequest: buildRequest(t, name), BulkSettings: &proto.BulkSettings{},
+			})
+			if result.Error != nil {
+				t.Fatal(result.Error.Message)
+			}
+			if result.Combinations == 0 {
+				t.Fatal("raid build has no equippable bulk combination")
+			}
+		})
 	}
 }
