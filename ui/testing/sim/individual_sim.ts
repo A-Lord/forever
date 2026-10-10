@@ -6,31 +6,17 @@ import { PlayerSpecs } from '@sim/player/specs';
 import { Stats } from '@sim/proto/stats';
 import { Sim } from '@sim/sim';
 import type { IndividualSimHost } from '@sim/sim_host';
-import type { Env } from '@sim/state/env';
 import type { IndividualSettingsHost } from '@sim/state/persistence';
 import { applyIndividualSimSettings, type IndividualSimSerializationContext, individualSimSettingsToProto } from '@sim/state/serialization';
 import { vi } from 'vitest';
 
 import { fakeHost } from './fake_host';
+import { memoryEnv } from './memory_env';
 
 // The database every Sim loads, answered from `db` in place of the network. Call it before the
 // first Sim is built: the database loads once per test file.
 export const serveDatabase = (db: UIDatabase = UIDatabase.create()) => {
 	vi.stubGlobal('fetch', () => Promise.resolve({ json: () => Promise.resolve(UIDatabase.toJson(db)) }));
-};
-
-export const memoryEnv = (location: Partial<Env['location']> = {}): Env => {
-	const stored = new Map<string, string>();
-	return {
-		storage: {
-			getItem: key => stored.get(key) ?? null,
-			setItem: (key, value) => void stored.set(key, value),
-			removeItem: key => void stored.delete(key),
-		},
-		location: { hash: '', search: '', href: 'http://localhost/', hostname: 'localhost', setHash: () => {}, ...location },
-		hardwareConcurrency: 1,
-		onPageHide: () => () => {},
-	};
 };
 
 const BARE_CONFIG = {

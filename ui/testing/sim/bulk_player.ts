@@ -3,7 +3,7 @@ import { PlayerSpecs } from '@sim/player/specs';
 import { seedBulkSettings } from '@sim/settings/bulk_settings';
 import { createSimStore } from '@sim/state/sim_store';
 
-import { memoryEnv } from './individual_sim';
+import { memoryEnv } from './memory_env';
 
 // A warrior over a real store with the batch settings seeded, which is all the batch and enchant preset models read.
 // Its storage is a map of its own, so what it stores loads back. `sim` parts are spread over the stub sim; every

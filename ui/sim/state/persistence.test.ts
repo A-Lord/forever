@@ -1,6 +1,7 @@
 import { Player } from '@generated/proto/api';
 import { DatabaseFilters, IndividualSimSettings, SimSettings, StatFilters } from '@generated/proto/ui';
-import { makeIndividualSim, memoryEnv, serveDatabase } from '@testing/sim/individual_sim';
+import { makeIndividualSim, serveDatabase } from '@testing/sim/individual_sim';
+import { memoryEnv } from '@testing/sim/memory_env';
 import { senderStatFilters as linkedStatFilters, STORAGE_KEY, viewerStatFilters as savedStatFilters } from '@testing/sim/stat_filters';
 import pako from 'pako';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
