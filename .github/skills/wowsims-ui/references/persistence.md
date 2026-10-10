@@ -22,8 +22,8 @@ All four are browser-free: the localStorage and `location` surfaces arrive throu
    not brick the page)
 3. the URL-hash link, via `tryParseUrlLocation(env.location)`. **After** step 2 on purpose: a
    partial link import (rotation only, say) must keep the previous settings for the other categories.
-   The stat filters are read off the sim before the link applies and put back after it by
-   `restoreViewerStatFilters`, so the saved ones stay, whatever the link carries
+   `withViewerStatFilters` writes the sim's stat filters into the link's filters before it applies,
+   so the saved ones stay, whatever the link carries
 4. `env.location.setHash('')`
 5. `player.setName('Player')`
 6. `opts.autosaveSubscribe(schedulePersist)` — **last**, so initialization does not re-store what it
@@ -77,9 +77,11 @@ and language do not travel through a shared link).
 The stat filters (`DatabaseFilters.statFilters`) belong to the viewer and never travel. The link
 and JSON exporters (`ui/features/import-export/exporters/link.ts`, `ui/features/import-export/exporters/json.ts`) strip them
 with `withoutStatFilters`, whatever the categories, and the JSON importer
-(`ui/features/import-export/importers/json.ts`) puts the viewer's back with
-`restoreViewerStatFilters` after `fromProto`, as the link import in step 3 does. The autosaved
-envelope keeps them.
+(`ui/features/import-export/importers/json.ts`) writes the viewer's into the envelope with
+`withViewerStatFilters` before `fromProto`, as the link import in step 3 does. Both helpers change
+the envelope they are given and return it. An envelope without filters needs no patch: loading it
+falls back to `Sim.defaultFilters()` (or `applyDefaults` without settings), which keeps the viewer's
+stat filters. The autosaved envelope keeps them.
 
 ## What is gated
 

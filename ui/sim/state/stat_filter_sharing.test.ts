@@ -4,7 +4,7 @@ import { UnitStat } from '@sim/proto/stats';
 import { makeIndividualSim, serveDatabase } from '@testing/sim/individual_sim';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
-import { restoreViewerStatFilters, withoutStatFilters } from './stat_filter_sharing';
+import { withoutStatFilters, withViewerStatFilters } from './stat_filter_sharing';
 
 vi.mock('@sim/workers/worker_pool', async () => (await import('@testing/sim/worker_pool')).idleWorkerPool());
 
@@ -17,53 +17,59 @@ const settingsWith = (filters: DatabaseFilters | undefined) =>
 	IndividualSimSettings.create({ apiVersion: 3, settings: SimSettings.create({ iterations: 1234, filters }) });
 
 describe('withoutStatFilters', () => {
-	it('clears the stat filters and keeps every other filter', () => {
-		const proto = settingsWith(DatabaseFilters.create({ minIlvl: 50, showAllEnchants: true, favoriteItems: [7], statFilters: senderFilters }));
-		const before = IndividualSimSettings.clone(proto);
+	it('clears the stat filters on the envelope it is given and keeps every other filter', () => {
+		const filters = DatabaseFilters.create({ minIlvl: 50, showAllEnchants: true, favoriteItems: [7], statFilters: senderFilters });
+		const proto = settingsWith(filters);
 
 		const stripped = withoutStatFilters(proto);
 
-		expect(stripped.settings?.filters?.statFilters).toBeUndefined();
-		expect(IndividualSimSettings.equals(proto, before)).toBe(true);
-		const expected = IndividualSimSettings.clone(proto);
-		expected.settings!.filters!.statFilters = undefined;
-		expect(IndividualSimSettings.equals(stripped, expected)).toBe(true);
+		expect(stripped).toBe(proto);
+		expect(DatabaseFilters.equals(stripped.settings!.filters!, { ...filters, statFilters: undefined })).toBe(true);
 	});
 
 	it('passes a proto without settings or filters through', () => {
-		const noSettings = IndividualSimSettings.create({ apiVersion: 3 });
-		const noFilters = settingsWith(undefined);
-
-		expect(IndividualSimSettings.equals(withoutStatFilters(noSettings), noSettings)).toBe(true);
-		expect(IndividualSimSettings.equals(withoutStatFilters(noFilters), noFilters)).toBe(true);
+		expect(
+			IndividualSimSettings.equals(withoutStatFilters(IndividualSimSettings.create({ apiVersion: 3 })), IndividualSimSettings.create({ apiVersion: 3 })),
+		).toBe(true);
+		expect(IndividualSimSettings.equals(withoutStatFilters(settingsWith(undefined)), settingsWith(undefined))).toBe(true);
 	});
 });
 
-describe('restoreViewerStatFilters', () => {
+describe('withViewerStatFilters', () => {
 	beforeAll(() => serveDatabase());
 
-	const simWith = async (filters: DatabaseFilters) => {
+	const viewerSim = async (statFilters: StatFilters | undefined) => {
 		const { sim } = await makeIndividualSim();
-		sim.setFilters(filters);
+		sim.setFilters(DatabaseFilters.create({ statFilters }));
 		return sim;
 	};
 
-	it("puts the viewer's stat filters over the imported ones and keeps every other imported filter", async () => {
-		const imported = DatabaseFilters.create({ minIlvl: 50, oneHandedWeapons: true, favoriteItems: [7], statFilters: senderFilters });
-		const sim = await simWith(imported);
+	it("puts the viewer's stat filters over the envelope's and keeps every other filter it carries", async () => {
+		const sim = await viewerSim(viewerFilters);
+		const carried = DatabaseFilters.create({ minIlvl: 50, oneHandedWeapons: true, favoriteItems: [7], statFilters: senderFilters });
+		const proto = settingsWith(carried);
 
-		restoreViewerStatFilters(sim, viewerFilters);
+		const patched = withViewerStatFilters(proto, sim);
 
-		expect(DatabaseFilters.equals(sim.getFilters(), { ...imported, statFilters: viewerFilters })).toBe(true);
+		expect(patched).toBe(proto);
+		expect(DatabaseFilters.equals(patched.settings!.filters!, { ...carried, statFilters: viewerFilters })).toBe(true);
 	});
 
-	it('clears the imported stat filters when the viewer had none', async () => {
-		const imported = DatabaseFilters.create({ twoHandedWeapons: true, statFilters: senderFilters });
-		const sim = await simWith(imported);
+	it("clears the envelope's stat filters when the viewer has none", async () => {
+		const sim = await viewerSim(undefined);
+		const carried = DatabaseFilters.create({ twoHandedWeapons: true, statFilters: senderFilters });
 
-		restoreViewerStatFilters(sim, undefined);
+		const patched = withViewerStatFilters(settingsWith(carried), sim);
 
-		expect(DatabaseFilters.equals(sim.getFilters(), { ...imported, statFilters: undefined })).toBe(true);
+		expect(DatabaseFilters.equals(patched.settings!.filters!, { ...carried, statFilters: undefined })).toBe(true);
+	});
+
+	it('leaves an envelope without settings or filters as it is', async () => {
+		const sim = await viewerSim(viewerFilters);
+		const noSettings = IndividualSimSettings.create({ apiVersion: 3 });
+
+		expect(IndividualSimSettings.equals(withViewerStatFilters(noSettings, sim), IndividualSimSettings.create({ apiVersion: 3 }))).toBe(true);
+		expect(IndividualSimSettings.equals(withViewerStatFilters(settingsWith(undefined), sim), settingsWith(undefined))).toBe(true);
 	});
 });
 
