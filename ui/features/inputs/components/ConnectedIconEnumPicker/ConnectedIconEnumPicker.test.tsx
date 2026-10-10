@@ -265,11 +265,12 @@ describe('ConnectedIconEnumPicker', () => {
 		const options = new Options();
 		options.set(2);
 		mount(options, configFor({ keptBy: obj => obj.value === 2 }));
-		expect(button().hasAttribute('data-kept')).toBe(true);
-		expect(button().getAttribute('data-tooltip-content')).toBe(i18n.t('stat_filters.kept_tooltip'));
+		expect(button().parentElement!.hasAttribute('data-kept')).toBe(true);
+		expect(screen.getByTestId('icon-swatch-kept').getAttribute('data-tooltip-content')).toBe(i18n.t('stat_filters.kept_tooltip'));
 
 		act(() => options.set(1));
-		expect(button().hasAttribute('data-kept')).toBe(false);
+		expect(button().parentElement!.hasAttribute('data-kept')).toBe(false);
+		expect(screen.queryByTestId('icon-swatch-kept')).toBeNull();
 	});
 });
 

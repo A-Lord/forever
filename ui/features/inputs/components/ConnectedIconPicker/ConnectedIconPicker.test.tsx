@@ -167,11 +167,12 @@ describe('ConnectedIconPicker', () => {
 	it('marks the swatch kept while keptBy holds, and follows the source', () => {
 		const settings = new Settings(true);
 		render(<ConnectedIconPicker modObject={settings} config={configFor({ keptBy: s => s.value === true })} />);
-		expect(mainAnchor().hasAttribute('data-kept')).toBe(true);
-		expect(mainAnchor().getAttribute('data-tooltip-content')).toBe(i18n.t('stat_filters.kept_tooltip'));
+		expect(mainAnchor().parentElement!.hasAttribute('data-kept')).toBe(true);
+		expect(screen.getByTestId('icon-swatch-kept').getAttribute('data-tooltip-content')).toBe(i18n.t('stat_filters.kept_tooltip'));
 
 		act(() => settings.set(false));
-		expect(mainAnchor().hasAttribute('data-kept')).toBe(false);
+		expect(mainAnchor().parentElement!.hasAttribute('data-kept')).toBe(false);
+		expect(screen.queryByTestId('icon-swatch-kept')).toBeNull();
 	});
 });
 

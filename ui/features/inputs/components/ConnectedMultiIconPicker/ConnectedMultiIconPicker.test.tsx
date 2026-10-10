@@ -150,11 +150,12 @@ describe('ConnectedMultiIconPicker', () => {
 		const buffs = new Buffs();
 		buffs.set('kings', 1);
 		mount(buffs, configFor({ keptBy: obj => obj.values.kings > 0 }));
-		expect(trigger().hasAttribute('data-kept')).toBe(true);
-		expect(trigger().getAttribute('data-tooltip-content')).toBe(i18n.t('stat_filters.kept_tooltip'));
+		expect(trigger().parentElement!.hasAttribute('data-kept')).toBe(true);
+		expect(screen.getByTestId('icon-swatch-kept').getAttribute('data-tooltip-content')).toBe(i18n.t('stat_filters.kept_tooltip'));
 
 		act(() => buffs.set('kings', 0));
-		expect(trigger().hasAttribute('data-kept')).toBe(false);
+		expect(trigger().parentElement!.hasAttribute('data-kept')).toBe(false);
+		expect(screen.queryByTestId('icon-swatch-kept')).toBeNull();
 	});
 
 	describe('as a stat option', () => {
@@ -172,7 +173,8 @@ describe('ConnectedMultiIconPicker', () => {
 			open();
 
 			expect(offeredIcons().map(icon => icon.style.backgroundImage)).toEqual([expect.stringContaining('mark.jpg')]);
-			expect(offeredIcons()[0].hasAttribute('data-kept')).toBe(true);
+			expect(offeredIcons()[0].parentElement!.hasAttribute('data-kept')).toBe(true);
+			expect(within(menu()).getByTestId('icon-swatch-kept').getAttribute('data-tooltip-content')).toBe(i18n.t('stat_filters.kept_tooltip'));
 			expect(menu().querySelectorAll('li:not(:empty)')).toHaveLength(2);
 		});
 
@@ -183,17 +185,17 @@ describe('ConnectedMultiIconPicker', () => {
 			open();
 
 			expect(offeredIcons()).toHaveLength(3);
-			expect(offeredIcons().some(icon => icon.hasAttribute('data-kept'))).toBe(false);
+			expect(within(menu()).queryByTestId('icon-swatch-kept')).toBeNull();
 		});
 	});
 
 	it('follows a new config without a store notification', () => {
 		const buffs = new Buffs();
 		const { rerender } = mount(buffs, configFor({ keptBy: () => true }));
-		expect(trigger().hasAttribute('data-kept')).toBe(true);
+		expect(trigger().parentElement!.hasAttribute('data-kept')).toBe(true);
 
 		rerender(<ConnectedMultiIconPicker modObject={buffs} config={configFor({ keptBy: () => false })} subscribe={buffs.subscribe} onClear={() => {}} />);
-		expect(trigger().hasAttribute('data-kept')).toBe(false);
+		expect(trigger().parentElement!.hasAttribute('data-kept')).toBe(false);
 	});
 
 	it('follows a new showWhen and new inputs without a store notification', () => {

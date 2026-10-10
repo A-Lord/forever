@@ -30,6 +30,8 @@ const meta = {
 		active: { control: 'boolean' },
 		disabled: { control: 'boolean' },
 		text: { control: 'text' },
+		kept: { control: 'boolean' },
+		keptTooltip: { control: 'text' },
 	},
 } satisfies Meta<typeof IconSwatch>;
 
@@ -65,4 +67,17 @@ export const WithBadges: Story = {
 		await expect(swatch.parentElement?.querySelectorAll(':scope > a')).toHaveLength(3);
 		await expect(canvasElement.querySelectorAll('a a')).toHaveLength(0);
 	},
+};
+export const Kept: Story = {
+	args: { active: true, kept: true, keptTooltip: 'Shown because it is selected; the stat filter hides its stats.' },
+	play: async ({ canvasElement }) => {
+		const swatch = within(canvasElement).getByTestId('story-swatch');
+		const badge = within(canvasElement).getByTestId('icon-swatch-kept');
+		await expect(badge.parentElement).toBe(swatch.parentElement);
+		await expect(swatch.hasAttribute('data-tooltip-id')).toBe(false);
+		await expect(badge.getAttribute('data-tooltip-content')).toBe('Shown because it is selected; the stat filter hides its stats.');
+	},
+};
+export const KeptWithBadges: Story = {
+	args: { ...WithBadges.args, kept: true, keptTooltip: 'Shown because it is selected; the stat filter hides its stats.' },
 };

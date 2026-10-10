@@ -85,9 +85,9 @@ describe('a shared build', () => {
 
 		const buff = await swatch(ActionId.makeSpellUrl(ARCANE_BRILLIANCE));
 		expect(buff.hasAttribute('data-active')).toBe(true);
-		expect(buff.hasAttribute('data-kept')).toBe(true);
+		expect(buff.parentElement!.hasAttribute('data-kept')).toBe(true);
 		const elixir = await swatch(ActionId.makeItemUrl(ELIXIR_OF_GREATER_AGILITY.id));
-		expect(elixir.hasAttribute('data-kept')).toBe(true);
+		expect(elixir.parentElement!.hasAttribute('data-kept')).toBe(true);
 
 		const request = viewer.sim.makeRaidSimRequest();
 		expect(request.raid!.buffs!.arcaneBrilliance).toBe(true);

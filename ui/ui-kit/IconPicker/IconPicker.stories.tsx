@@ -68,3 +68,4 @@ export const Counter: Story = { args: { states: 0, icon: TOTEM, value: 4 } };
 export const Disabled: Story = { args: { disabled: true, value: 1 } };
 export const Labelled: Story = { args: { label: 'Blessing of Kings', value: 1 } };
 export const Kept: Story = { args: { value: 1, kept: true, keptTooltip: 'Shown because it is selected; the stat filter hides its stats.' } };
+export const KeptQuadstate: Story = { args: { ...Quadstate.args, kept: true, keptTooltip: 'Shown because it is selected; the stat filter hides its stats.' } };

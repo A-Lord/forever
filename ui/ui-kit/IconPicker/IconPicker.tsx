@@ -15,7 +15,7 @@ export interface IconPickerProps extends FieldFrameProps, ControlledProps<number
 	improvedIcon?: ResolvedIcon;
 	/** Shown from states 4 up. */
 	improvedIcon2?: ResolvedIcon;
-	/** A selection kept on offer only because it is selected: the swatch dims and shows `keptTooltip` on hover. */
+	/** A selection kept on offer only because it is selected: the swatch dims and a corner badge shows `keptTooltip` on hover. */
 	kept?: boolean;
 	keptTooltip?: string;
 }

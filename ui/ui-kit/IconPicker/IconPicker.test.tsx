@@ -303,12 +303,12 @@ describe('IconPicker', () => {
 		expect(onChange).toHaveBeenCalledTimes(2);
 	});
 
-	it('marks a kept swatch and anchors the kept tooltip on it', () => {
+	it('marks a kept swatch and anchors the kept tooltip on its corner badge, not on the swatch', () => {
 		mount({ kept: true, keptTooltip: 'Kept', initial: 1 });
 
-		expect(mainAnchor().hasAttribute('data-kept')).toBe(true);
-		expect(mainAnchor().getAttribute('data-tooltip-content')).toBe('Kept');
-		expect(mainAnchor().getAttribute('data-tooltip-id')).toBeTruthy();
+		expect(mainAnchor().parentElement!.hasAttribute('data-kept')).toBe(true);
+		expect(mainAnchor().hasAttribute('data-tooltip-id')).toBe(false);
+		expect(screen.getByTestId('icon-swatch-kept').getAttribute('data-tooltip-content')).toBe('Kept');
 	});
 
 	it('marks the box rather than the swatch when badges sit beside it', () => {
