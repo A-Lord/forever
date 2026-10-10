@@ -72,7 +72,7 @@ func (priest *Priest) Initialize() {
 }
 
 func (priest *Priest) InitializeHealingSpells() {
-	spellData.PowerWordShield.Each(priest.registerPowerWordShield)
+	priest.registerPowerWordShield()
 	spellData.FlashHeal.Each(priest.registerFlashHeal)
 	spellData.Heal.Each(priest.registerHeal)
 	spellData.LesserHeal.Each(priest.registerLesserHeal)
