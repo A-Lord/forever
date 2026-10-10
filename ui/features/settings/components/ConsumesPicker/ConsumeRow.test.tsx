@@ -48,7 +48,7 @@ const configFor = (shown: (options: Options) => boolean): IconEnumPickerConfig<O
 
 const row = (options: Options, configs: Array<IconEnumPickerConfig<Options, number>>) => {
 	render(
-		<SimHostProvider host={{ player: options } as never}>
+		<SimHostProvider host={{ player: options, sim: options.sim } as never}>
 			<ConsumeRow name="engineering" configs={configs as never}>
 				<div className="consumes-engi" />
 			</ConsumeRow>

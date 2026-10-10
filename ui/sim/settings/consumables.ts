@@ -8,7 +8,7 @@ import { UIEnchant as Enchant, UIItem as Item } from '@generated/proto/ui';
 
 import type { SpecConfigData } from '../player/player';
 import type { EquippedItem } from '../proto/equipped_item';
-import { UnitStat } from '../proto/stats';
+import { type StatSets, type UnitStat, unitStatsOf } from '../proto/stats';
 
 export enum ConsumableSlot {
 	Potion,
@@ -144,9 +144,11 @@ export function consumablePseudoStatsOf(specConfig: Pick<SpecConfigData<any>, 'e
 	return new Set([...shown, ...(specConfig.epPseudoStats ?? [])]);
 }
 
+export type ConsumableStats = StatSets;
+
 type EnchantRelevanceSpec = Pick<SpecConfigData<any>, 'epStats' | 'epPseudoStats' | 'displayStats'>;
 
-const enchantRelevanceCache = new WeakMap<EnchantRelevanceSpec, { stats: Set<Stat>; pseudoStats: Set<PseudoStat> }>();
+const enchantRelevanceCache = new WeakMap<EnchantRelevanceSpec, ConsumableStats>();
 
 // The consumables' rule on the stats the spec weighs: an enchant counts when it grants one of them or a percent the
 // spec shows or weighs, flat weapon damage counting as physical damage. One that grants none of these (a proc) counts.
@@ -264,11 +266,6 @@ function highestRanks(consumables: ReadonlyArray<Consumable>): Array<Consumable>
 	return consumables.filter(consumable => kept.has(consumable));
 }
 
-export interface ConsumableStats {
-	stats: Set<Stat>;
-	pseudoStats: Set<PseudoStat>;
-}
-
 // The stat part of relevance for the stats `statsOf` gives, remembered for as long as it gives the
 // same object. The class, race and profession are consumableAllowed's.
 export function relevanceFor(
@@ -302,7 +299,7 @@ export function consumableUniverse(consumables: ReadonlyArray<Consumable>, db: S
 		grantedStats.forEach(stat => stats.add(stat));
 		grantedPseudoStats.forEach(pseudoStat => pseudoStats.add(pseudoStat));
 	}
-	return [...[...stats].map(stat => UnitStat.fromStat(stat)), ...[...pseudoStats].map(pseudoStat => UnitStat.fromPseudoStat(pseudoStat))];
+	return unitStatsOf({ stats, pseudoStats });
 }
 
 // The ids of the potions and conjured items the spec could use, which a sim request lists for the

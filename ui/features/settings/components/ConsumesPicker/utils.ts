@@ -1,6 +1,12 @@
 import type { TypedIconEnumPickerConfig, TypedIconPickerConfig } from '@features/inputs/input_helpers';
-import { type ConsumableRelevance, makeConsumableGroupInput, makeConsumableInput, makeIdListInput } from '@features/settings/model/consumables';
-import { shownStats, type StatFilterScope } from '@features/stat-filters/model/stat_filters';
+import {
+	consumableFilterScope,
+	type ConsumableRelevance,
+	makeConsumableGroupInput,
+	makeConsumableInput,
+	makeIdListInput,
+} from '@features/settings/model/consumables';
+import { shownStats, type StatFilterScope, statsKey } from '@features/stat-filters/model/stat_filters';
 import { ConsumableType, ItemSlot } from '@generated/proto/common';
 import type { Consumable } from '@generated/proto/db';
 import type { DatabaseFilters } from '@generated/proto/ui';
@@ -8,15 +14,12 @@ import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
 import type { Database } from '@sim/proto/database';
 import type { EquippedItem } from '@sim/proto/equipped_item';
-import { UnitStat } from '@sim/proto/stats';
+import { statSetsOf } from '@sim/proto/stats';
 import {
 	consumableAllowed,
-	consumablePseudoStatsOf,
 	ConsumableSlot,
 	consumableSlot,
 	type ConsumableStats,
-	consumableStatsOf,
-	consumableUniverse,
 	explosiveUsedBeside,
 	handTakesImbue,
 	relevanceFor,
@@ -54,32 +57,6 @@ export interface ConsumeConfigs {
 
 type GroupRow = 'elixirs' | 'scrolls' | 'holiday' | 'groups';
 
-// Defaults are the stats and percents the spec weighs consumables by; the universe adds every one a
-// consumable grants. A default no consumable grants (a resource stat the restore rule reads) stays
-// in the universe, so the defaults show in full. Built once per player and database, as it walks every
-// consumable, so the filter popover and the pickers share one object.
-const scopes = new WeakMap<Player<any>, WeakMap<Database, StatFilterScope>>();
-
-export const consumableFilterScope = (player: Player<any>, db: Database): StatFilterScope => {
-	let byDatabase = scopes.get(player);
-	if (!byDatabase) {
-		byDatabase = new WeakMap();
-		scopes.set(player, byDatabase);
-	}
-	const cached = byDatabase.get(db);
-	if (cached) return cached;
-
-	const defaults = [
-		...[...consumableStatsOf(player.getSpecConfig())].map(stat => UnitStat.fromStat(stat)),
-		...[...consumablePseudoStatsOf(player.getSpecConfig())].map(pseudoStat => UnitStat.fromPseudoStat(pseudoStat)),
-	];
-	const granted = consumableUniverse(db.getConsumables(), db);
-	const inEither = (stat: UnitStat) => [...defaults, ...granted].some(other => other.equals(stat));
-	const scope = { defaults, universe: UnitStat.getAll().filter(inEither) };
-	byDatabase.set(db, scope);
-	return scope;
-};
-
 // The shown stats of the consumables slot, read from the store's filters on each call and worked out
 // again only when the store holds a new filters object; the same object comes back while the slot
 // holds the same stats, so relevance stays cached.
@@ -92,13 +69,10 @@ const shownConsumableStats = (player: Player<any>, scope: StatFilterScope): (() 
 		if (latest === filters) return current;
 		filters = latest;
 		const shown = shownStats(latest, 'consumables', scope);
-		const shownKey = shown.map(stat => stat.getKey()).join(',');
+		const shownKey = statsKey(shown);
 		if (shownKey !== key) {
 			key = shownKey;
-			current = {
-				stats: new Set(shown.filter(stat => stat.isStat()).map(stat => stat.getStat())),
-				pseudoStats: new Set(shown.filter(stat => stat.isPseudoStat()).map(stat => stat.getPseudoStat())),
-			};
+			current = statSetsOf(shown);
 		}
 		return current;
 	};

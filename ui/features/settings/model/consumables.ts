@@ -1,11 +1,15 @@
 import type { IconEnumValueConfig } from '@features/inputs/configs';
 import * as InputHelpers from '@features/inputs/input_helpers';
+import type { StatFilterScope } from '@features/stat-filters/model/stat_filters';
 import { ConsumableType, ConsumesSpec } from '@generated/proto/common';
 import { Consumable } from '@generated/proto/db';
 import i18n from '@i18n/config';
 import type { StoreField } from '@sim/hooks/useStoreField';
 import { Player } from '@sim/player/player';
 import { ActionId } from '@sim/proto/action_id';
+import type { Database } from '@sim/proto/database';
+import { UnitStat, unitStatsOf } from '@sim/proto/stats';
+import { consumablePseudoStatsOf, consumableStatsOf, consumableUniverse } from '@sim/settings/consumables';
 
 export type ConsumableIdField =
 	| 'potId'
@@ -43,8 +47,26 @@ const offeredTo =
 	(consumable: Consumable, relevance: ConsumableRelevance, picked: (player: Player<any>) => boolean, includeIf?: ConsumableInputOptions['includeIf']) =>
 	(player: Player<any>) =>
 		relevance.allowed(consumable, player) &&
-		(picked(player) || (consumable.lvl >= player.sim.getMinConsumableLvl(consumable.type) && relevance.relevant(consumable, player))) &&
+		((consumable.lvl >= player.sim.getMinConsumableLvl(consumable.type) && relevance.relevant(consumable, player)) || picked(player)) &&
 		(!includeIf || includeIf(consumable, player));
+
+// Defaults are the stats and percents the spec weighs consumables by; the universe adds every one a
+// consumable grants. A default no consumable grants (a resource stat the restore rule reads) stays
+// in the universe, so the defaults show in full. What the consumables grant is worked out once per
+// database, as it walks every consumable.
+const grantedByDatabase = new WeakMap<Database, UnitStat[]>();
+
+export const consumableFilterScope = (player: Player<any>, db: Database): StatFilterScope => {
+	let granted = grantedByDatabase.get(db);
+	if (!granted) {
+		granted = consumableUniverse(db.getConsumables(), db);
+		grantedByDatabase.set(db, granted);
+	}
+	const specConfig = player.getSpecConfig();
+	const defaults = unitStatsOf({ stats: consumableStatsOf(specConfig), pseudoStats: consumablePseudoStatsOf(specConfig) });
+	const pool = new Set([...defaults, ...granted].map(stat => stat.getKey()));
+	return { defaults, universe: UnitStat.getAll().filter(stat => pool.has(stat.getKey())) };
+};
 
 const STORE_FIELDS: Array<StoreField> = ['consumables', 'gear', 'profession1', 'profession2', 'prof1Rank', 'prof2Rank', 'race', 'sim:filters'];
 
@@ -133,7 +155,7 @@ export function makeIdListInput(consumable: Consumable, relevance: ConsumableRel
 		storeField: STORE_FIELDS,
 		showWhen: offeredTo(consumable, relevance, picked),
 		keptBy: (player: Player<any>) => picked(player) && !relevance.relevant(consumable, player),
-		getValue: (player: Player<any>) => player.getConsumes().extraIds.includes(consumable.id),
+		getValue: picked,
 		setValue: (player: Player<any>, newValue: boolean) => {
 			const consumes = player.getConsumes();
 			const extraIds = consumes.extraIds.filter(id => id !== consumable.id);

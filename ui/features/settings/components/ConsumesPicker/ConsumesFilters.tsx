@@ -9,7 +9,7 @@ import { Button } from '@ui-kit/Button';
 import { NumberField } from '@ui-kit/TextField';
 import { useMemo } from 'react';
 
-import { consumableFilterScope } from './utils';
+import { consumableFilterScope } from '../../model/consumables';
 
 const TYPE_KEYS: ReadonlyArray<[ConsumableType, string]> = [
 	[ConsumableType.ConsumableTypePotion, 'potion'],
