@@ -53,6 +53,7 @@ export const ConsumesFilters = () => {
 		<FilterPopover
 			ariaLabel={i18n.t('settings_tab.consumables.filters.title')}
 			title={i18n.t('settings_tab.consumables.filters.title')}
+			className="w-180"
 			triggerClassName="ml-auto"
 			triggerTestId="consumes-filters-button"
 			testId="consumes-filters-popover">

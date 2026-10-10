@@ -82,13 +82,15 @@ export const StatFilterList = ({
 export interface FilterPopoverProps {
 	ariaLabel: string;
 	title: string;
+	/** On the popup. */
+	className?: string;
 	triggerClassName?: string;
 	triggerTestId: string;
 	testId: string;
 	children: ReactNode;
 }
 
-export const FilterPopover = ({ ariaLabel, title, triggerClassName, triggerTestId, testId, children }: FilterPopoverProps) => (
+export const FilterPopover = ({ ariaLabel, title, className, triggerClassName, triggerTestId, testId, children }: FilterPopoverProps) => (
 	<Popover
 		trigger={<Icon name="filter" />}
 		triggerRender={<Button variant="link" size="sm" className="text-muted hover:text-link-hover" />}
@@ -99,7 +101,7 @@ export const FilterPopover = ({ ariaLabel, title, triggerClassName, triggerTestI
 		align="end"
 		backdrop
 		title={title}
-		className="flex flex-col"
+		className={['flex flex-col', className]}
 		testId={testId}>
 		{children}
 	</Popover>
