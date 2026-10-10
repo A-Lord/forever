@@ -6,7 +6,7 @@ import { ItemEffect } from '@generated/proto/spell';
 import { DatabaseFilters, UIItem } from '@generated/proto/ui';
 import type { Player, SpecConfigData } from '@sim/player/player';
 import type { Database } from '@sim/proto/database';
-import { UnitStat } from '@sim/proto/stats';
+import { Stats, UnitStat } from '@sim/proto/stats';
 import { ConsumableSlot, relevantConsumableIds } from '@sim/settings/consumables';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -106,6 +106,7 @@ interface PlayerState {
 	consumes: ConsumesSpec;
 	minLvl: Partial<Record<ConsumableType, number>>;
 	filters: DatabaseFilters;
+	epWeights: Stats;
 }
 
 const playerOf = (state: Partial<PlayerState> = {}) => {
@@ -121,6 +122,7 @@ const playerOf = (state: Partial<PlayerState> = {}) => {
 		consumes: ConsumesSpec.create(),
 		minLvl: {},
 		filters: DatabaseFilters.create(),
+		epWeights: new Stats(),
 		...state,
 	};
 	const inHand = (slot: ItemSlot, mainHand?: UIItem, offHand?: UIItem) => {
@@ -143,6 +145,7 @@ const playerOf = (state: Partial<PlayerState> = {}) => {
 		},
 		getSpecConfig: () => full.specConfig ?? { epStats: full.epStats, displayStats: full.displayStats },
 		getParty: () => ({ getBuffs: () => ({ windfuryTotem: full.windfury, flametongueTotem: full.flametongue }) }),
+		getEpWeights: () => full.epWeights,
 		getConsumes: () => ConsumesSpec.clone(full.consumes),
 		setConsumes: (consumes: ConsumesSpec) => (full.consumes = ConsumesSpec.clone(consumes)),
 	} as unknown as Player<any>;
@@ -167,7 +170,7 @@ describe('consumeConfigs', () => {
 		const configs = consumeConfigs(player, db);
 		expect(offered(configs.conjured, player)).toEqual([]);
 		expect(offered(configs.flask, player)).toEqual([13510]);
-		expect(configs.elixirs.map(config => offered(config, player))).toEqual([[9206, 6662, 12451, 2289, 10310], [], [12820]]);
+		expect(configs.elixirs.map(config => offered(config, player))).toEqual([[6662, 9206, 12451, 2289, 10310], [], [12820]]);
 		expect(configs.scrolls.map(config => offered(config, player))).toEqual([[]]);
 		expect(configs.groups.map(config => offered(config, player))).toEqual([[8410]]);
 		expect(offered(configs.food, player)).toEqual([238637]);
@@ -186,12 +189,41 @@ describe('consumeConfigs', () => {
 		expect(offered(configs.food, player)).toEqual([238637]);
 	});
 
-	it('lists a picker by level, highest first', () => {
-		const potion = (id: number, lvl: number) =>
-			Consumable.create({ id, name: `Potion ${id}`, type: ConsumableType.ConsumableTypePotion, lvl, stats: strength(10) });
-		const potions = { getConsumables: () => [potion(1, 20), potion(2, 50), potion(3, 35)], getSpellEffect: () => undefined } as unknown as Database;
-		const { player } = playerOf();
-		expect(offered(consumeConfigs(player, potions).potion, player)).toEqual([2, 3, 1]);
+	describe('order', () => {
+		const potion = (id: number, name: string, lvl: number, stats: Array<number> = []) =>
+			Consumable.create({ id, name, type: ConsumableType.ConsumableTypePotion, lvl, stats });
+		const dbOf = (consumables: Array<Consumable>) => ({ getConsumables: () => consumables, getSpellEffect: () => undefined }) as unknown as Database;
+		const agility = (value: number) => statArray(Stat.StatAgility, value);
+		const epStats = [Stat.StatStrength, Stat.StatAgility];
+
+		it('lists a picker by the EP each adds at the player weights, none first and one adding no stat last', () => {
+			const potions = dbOf([
+				potion(1, 'Proc', 60),
+				potion(2, 'Low', 10, strength(5)),
+				potion(3, 'Agile', 50, agility(10)),
+				potion(4, 'Strong', 20, strength(10)),
+			]);
+			const { player } = playerOf({ epStats, epWeights: Stats.fromMap({ [Stat.StatStrength]: 2, [Stat.StatAgility]: 1 }) });
+			const config = consumeConfigs(player, potions).potion;
+			expect(config.values[0].value).toBe(0);
+			expect(offered(config, player)).toEqual([4, 3, 2, 1]);
+		});
+
+		it('orders an equal EP by level, highest first, then by name', () => {
+			const potions = dbOf([potion(1, 'Bravo', 30, strength(10)), potion(2, 'Alpha', 30, strength(10)), potion(3, 'Charlie', 40, strength(10))]);
+			const { player } = playerOf();
+			expect(offered(consumeConfigs(player, potions).potion, player)).toEqual([3, 2, 1]);
+		});
+
+		it('orders again when the weights change, on the configs already built', () => {
+			const potions = dbOf([potion(1, 'Strong', 0, strength(10)), potion(2, 'Agile', 0, agility(10))]);
+			const { player, state } = playerOf({ epStats, epWeights: Stats.fromMap({ [Stat.StatStrength]: 1 }) });
+			const config = consumeConfigs(player, potions).potion;
+			expect(offered(config, player)).toEqual([1, 2]);
+			state.epWeights = Stats.fromMap({ [Stat.StatAgility]: 1 });
+			expect(offered(config, player)).toEqual([2, 1]);
+			expect(config.values[0].value).toBe(0);
+		});
 	});
 
 	it('offers the Goblin Sapper Charge to an engineer only', () => {
@@ -315,7 +347,7 @@ describe('consumeConfigs', () => {
 		const [hitFood] = consumeConfigs(player, db).holidayGroups;
 		expect(hitFood.tooltip).toBe('Hit food');
 		expect(iconEnumPickerShown(hitFood, player)).toBe(true);
-		expect(offered(hitFood, player)).toEqual([23327, 22237]);
+		expect(offered(hitFood, player)).toEqual([22237, 23327]);
 	});
 
 	it('offers Dark Desire to a spec that shows melee hit, not to one that weighs hit rating for spell hit alone', () => {
@@ -469,7 +501,7 @@ describe('consumeConfigs under the consumables stat filter', () => {
 		state.filters = hiding(player, agilityDb, Stat.StatAgility);
 		expect(offered(configs.elixirs[1], player)).toEqual([]);
 		expect(toggled(configs.miscellaneous, player)).not.toContain(21023);
-		expect(offered(configs.elixirs[0], player)).toEqual([9206, 6662, 12451, 2289, 10310]);
+		expect(offered(configs.elixirs[0], player)).toEqual([6662, 9206, 12451, 2289, 10310]);
 	});
 
 	it('reads the filters without copying them on each offer check', () => {

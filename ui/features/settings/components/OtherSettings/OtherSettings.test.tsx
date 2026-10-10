@@ -6,6 +6,7 @@ import i18n from '@i18n/config';
 import { SimHostProvider } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
 import { ItemSwapGear } from '@sim/proto/gear';
+import { Stats } from '@sim/proto/stats';
 import { createSimStore, PLAYER_FIELDS, seedKeyed, zeroVersions } from '@sim/state/sim_store';
 import { fakeHost } from '@testing/sim/fake_host';
 import { render, screen, within } from '@testing-library/react';
@@ -25,6 +26,7 @@ vi.mock('@features/inputs/components/ConnectedIconEnumPicker', async importActua
 const { OtherSettings } = await import('./OtherSettings');
 
 const sword = UIItem.create({ weaponType: WeaponType.WeaponTypeSword, handType: HandType.HandTypeOneHand });
+const weights = new Stats();
 
 const setup = (enabled: boolean) => {
 	const store = createSimStore();
@@ -45,6 +47,7 @@ const setup = (enabled: boolean) => {
 		getSpecConfig: () => ({ epStats: [Stat.StatStrength, Stat.StatAttackPower], displayStats: [] }),
 		getParty: () => ({ getBuffs: () => ({ windfuryTotem: false, flametongueTotem: false }) }),
 		getConsumes: () => ConsumesSpec.create(),
+		getEpWeights: () => weights,
 	} as unknown as Player<any>;
 	render(
 		<SimHostProvider host={fakeHost({ player })}>

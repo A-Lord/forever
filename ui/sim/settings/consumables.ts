@@ -8,7 +8,7 @@ import { UIEnchant as Enchant, UIItem as Item } from '@generated/proto/ui';
 
 import type { SpecConfigData } from '../player/player';
 import type { EquippedItem } from '../proto/equipped_item';
-import { type StatSets, type UnitStat, unitStatsOf } from '../proto/stats';
+import { Stats, type StatSets, type UnitStat, unitStatsOf } from '../proto/stats';
 
 export enum ConsumableSlot {
 	Potion,
@@ -300,6 +300,25 @@ export function consumableUniverse(consumables: ReadonlyArray<Consumable>, db: S
 		grantedPseudoStats.forEach(pseudoStat => pseudoStats.add(pseudoStat));
 	}
 	return unitStatsOf({ stats, pseudoStats });
+}
+
+// The consumables by the EP their stats and percents add at these weights, highest first. One that
+// grants neither (a proc, a restore, damage) comes after every one that does. Ties go by required
+// level, highest first, then by name.
+export function orderedByEp(consumables: ReadonlyArray<Consumable>, weights: Stats): Array<Consumable> {
+	return consumables
+		.map(consumable => {
+			const grants = consumable.stats.some(value => value > 0) || consumable.pseudoStats.some(value => value > 0);
+			return { consumable, grants, ep: grants ? new Stats(consumable.stats, consumable.pseudoStats).computeEP(weights) : 0 };
+		})
+		.sort(
+			(a, b) =>
+				Number(b.grants) - Number(a.grants) ||
+				b.ep - a.ep ||
+				b.consumable.lvl - a.consumable.lvl ||
+				a.consumable.name.localeCompare(b.consumable.name, 'en'),
+		)
+		.map(({ consumable }) => consumable);
 }
 
 // The ids of the potions and conjured items the spec could use, which a sim request lists for the

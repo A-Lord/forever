@@ -5,7 +5,7 @@ import { UIEnchant, UIItem } from '@generated/proto/ui';
 import { describe, expect, it } from 'vitest';
 
 import type { EquippedItem } from '../proto/equipped_item';
-import { UnitStat } from '../proto/stats';
+import { Stats, UnitStat } from '../proto/stats';
 import {
 	consumableAllowed,
 	ConsumableSlot,
@@ -15,6 +15,7 @@ import {
 	explosiveUsedBeside,
 	handTakesImbue,
 	isEnchantRelevantFor,
+	orderedByEp,
 	relevanceFor,
 	relevantConsumableIds,
 } from './consumables';
@@ -312,6 +313,34 @@ describe('explosiveUsedBeside', () => {
 	it('names an explosive with a cooldown of its own', () => {
 		expect(explosiveUsedBeside(consumable({ itemEffects: [onUse(24, 300000)] }))).toBe(true);
 		expect(explosiveUsedBeside(consumable({ itemEffects: [onUse(24)] }))).toBe(false);
+	});
+});
+
+describe('orderedByEp', () => {
+	const strong = consumable({ id: 1, name: 'Strong', lvl: 10, stats: stats({ [Stat.StatStrength]: 10 }) });
+	const critical = consumable({ id: 2, name: 'Critical', lvl: 20, pseudoStats: pseudoStats({ [PseudoStat.PseudoStatMeleeCritPercent]: 1 }) });
+	const proc = consumable({ id: 3, name: 'Proc', lvl: 60 });
+	const ids = (consumables: Array<Consumable>) => consumables.map(({ id }) => id);
+
+	it('orders by the EP the stats and percents add, highest first', () => {
+		const weights = Stats.fromMap({ [Stat.StatStrength]: 1 }, { [PseudoStat.PseudoStatMeleeCritPercent]: 20 });
+		expect(ids(orderedByEp([strong, critical], weights))).toEqual([2, 1]);
+	});
+
+	it('orders again by other weights', () => {
+		const weights = Stats.fromMap({ [Stat.StatStrength]: 3 }, { [PseudoStat.PseudoStatMeleeCritPercent]: 20 });
+		expect(ids(orderedByEp([critical, strong], weights))).toEqual([1, 2]);
+	});
+
+	it('puts one granting no stat after every one that does, whatever its level', () => {
+		expect(ids(orderedByEp([proc, strong, critical], new Stats()))).toEqual([2, 1, 3]);
+	});
+
+	it('orders an equal EP by level, highest first, then by name', () => {
+		const bravo = consumable({ id: 4, name: 'Bravo', lvl: 30, stats: stats({ [Stat.StatStrength]: 5 }) });
+		const alpha = consumable({ id: 5, name: 'Alpha', lvl: 30, stats: stats({ [Stat.StatStrength]: 5 }) });
+		const weights = Stats.fromMap({ [Stat.StatStrength]: 2 });
+		expect(ids(orderedByEp([bravo, strong, alpha], weights))).toEqual([1, 5, 4]);
 	});
 });
 

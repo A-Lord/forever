@@ -8,8 +8,8 @@ import type { StoreField } from '@sim/hooks/useStoreField';
 import { Player } from '@sim/player/player';
 import { ActionId } from '@sim/proto/action_id';
 import type { Database } from '@sim/proto/database';
-import { UnitStat, unitStatsOf } from '@sim/proto/stats';
-import { consumablePseudoStatsOf, consumableStatsOf, consumableUniverse } from '@sim/settings/consumables';
+import { type Stats, UnitStat, unitStatsOf } from '@sim/proto/stats';
+import { consumablePseudoStatsOf, consumableStatsOf, consumableUniverse, orderedByEp } from '@sim/settings/consumables';
 
 export type ConsumableIdField =
 	| 'potId'
@@ -70,10 +70,16 @@ export const consumableFilterScope = (player: Player<any>, db: Database): StatFi
 
 const STORE_FIELDS: Array<StoreField> = ['consumables', 'gear', 'profession1', 'profession2', 'prof1Rank', 'prof2Rank', 'race', 'sim:filters'];
 
-export const makeConsumableInput = (consumables: ReadonlyArray<Consumable>, relevance: ConsumableRelevance, options: ConsumableInputOptions) =>
+export const makeConsumableInput = (
+	consumables: ReadonlyArray<Consumable>,
+	relevance: ConsumableRelevance,
+	weightsOf: () => Stats,
+	options: ConsumableInputOptions,
+) =>
 	consumablePicker(
 		consumables,
 		relevance,
+		weightsOf,
 		options,
 		consumes => consumes[options.consumesFieldName],
 		(consumes, newValue) => ({ ...consumes, [options.consumesFieldName]: newValue }),
@@ -83,12 +89,13 @@ export const makeConsumableInput = (consumables: ReadonlyArray<Consumable>, rele
 const idListOf = (consumable: Consumable): 'elixirIds' | 'extraIds' => (consumable.type === ConsumableType.ConsumableTypeElixir ? 'elixirIds' : 'extraIds');
 
 // One exclusive group's pick: at most one of the group's consumables in the spec's elixir and extra ids.
-export const makeConsumableGroupInput = (consumables: ReadonlyArray<Consumable>, relevance: ConsumableRelevance, tooltip: string) => {
+export const makeConsumableGroupInput = (consumables: ReadonlyArray<Consumable>, relevance: ConsumableRelevance, weightsOf: () => Stats, tooltip: string) => {
 	const ids = new Set(consumables.map(consumable => consumable.id));
 	const lists = new Map(consumables.map(consumable => [consumable.id, idListOf(consumable)]));
 	return consumablePicker(
 		consumables,
 		relevance,
+		weightsOf,
 		{ tooltip },
 		consumes => consumes.elixirIds.find(id => ids.has(id)) ?? consumes.extraIds.find(id => ids.has(id)) ?? 0,
 		(consumes, newValue) => {
@@ -106,18 +113,27 @@ export const makeConsumableGroupInput = (consumables: ReadonlyArray<Consumable>,
 function consumablePicker(
 	consumables: ReadonlyArray<Consumable>,
 	relevance: ConsumableRelevance,
+	weightsOf: () => Stats,
 	options: Omit<ConsumableInputOptions, 'consumesFieldName'>,
 	pickOf: (consumes: ConsumesSpec) => number,
 	withPick: (consumes: ConsumesSpec, newValue: number) => ConsumesSpec,
 ): InputHelpers.TypedIconEnumPickerConfig<Player<any>, number> {
-	const byLvl = [...consumables].sort((a, b) => b.lvl - a.lvl);
 	const byId = new Map(consumables.map(consumable => [consumable.id, consumable]));
-	const values: Array<IconEnumValueConfig<Player<any>, number>> = byLvl.map(consumable => ({
-		value: consumable.id,
-		actionId: ActionId.fromItemId(consumable.id),
-		tooltip: consumable.name,
-		showWhen: offeredTo(consumable, relevance, player => pickOf(player.getConsumes()) === consumable.id, options.includeIf),
-	}));
+	const valueOf = new Map<Consumable, IconEnumValueConfig<Player<any>, number>>(
+		consumables.map(consumable => [
+			consumable,
+			{
+				value: consumable.id,
+				actionId: ActionId.fromItemId(consumable.id),
+				tooltip: consumable.name,
+				showWhen: offeredTo(consumable, relevance, player => pickOf(player.getConsumes()) === consumable.id, options.includeIf),
+			},
+		]),
+	);
+	const values = [...valueOf.values()];
+	const none: IconEnumValueConfig<Player<any>, number> = { value: 0, iconUrl: '', tooltip: i18n.t('common.none') };
+	let orderedFor: Stats | undefined;
+	let ordered: Array<IconEnumValueConfig<Player<any>, number>> = [];
 	return {
 		type: 'iconEnum',
 		tooltip: options.tooltip,
@@ -125,12 +141,22 @@ function consumablePicker(
 			const offered = values.filter(value => value.showWhen!(p)).length;
 			return offered > 10 ? 3 : offered > 5 ? 2 : 1;
 		},
-		values: [{ value: 0, iconUrl: '', tooltip: i18n.t('common.none') }, ...values],
+		// A getter, so the order follows the weights each time the picker reads it; worked out again only
+		// when the store holds a new weights object.
+		get values() {
+			const weights = weightsOf();
+			if (weights !== orderedFor) {
+				orderedFor = weights;
+				ordered = [none, ...orderedByEp(consumables, weights).map(consumable => valueOf.get(consumable)!)];
+			}
+			return ordered;
+		},
 		equals: (a: number, b: number) => a === b,
 		zeroValue: 0,
 		// `raid:partyBuffs` because the main-hand imbue's showWhen reads the weapon totems off the party,
-		// `itemSwap` because the swap imbues' includeIf reads the swap weapons and their showWhen whether item swap is on.
-		storeField: [...STORE_FIELDS, 'itemSwap', 'raid:partyBuffs'],
+		// `itemSwap` because the swap imbues' includeIf reads the swap weapons and their showWhen whether item swap is on,
+		// `epWeights` because the values are ordered by the EP they add.
+		storeField: [...STORE_FIELDS, 'itemSwap', 'raid:partyBuffs', 'epWeights'],
 		showWhen: options.showWhen,
 		keptBy: (player: Player<any>) => {
 			const picked = byId.get(pickOf(player.getConsumes()));
@@ -145,10 +171,14 @@ function consumablePicker(
 	};
 }
 
+// The consumable rides along so a row of these can be ordered by the EP it adds.
+export type ConsumableToggleConfig = InputHelpers.TypedIconPickerConfig<Player<any>, boolean> & { consumable: Consumable };
+
 // A consumable picked any number at a time into the spec's extra ids.
-export function makeIdListInput(consumable: Consumable, relevance: ConsumableRelevance): InputHelpers.TypedIconPickerConfig<Player<any>, boolean> {
+export function makeIdListInput(consumable: Consumable, relevance: ConsumableRelevance): ConsumableToggleConfig {
 	const picked = (player: Player<any>) => player.getConsumes().extraIds.includes(consumable.id);
 	return {
+		consumable,
 		type: 'icon',
 		actionId: ActionId.fromItemId(consumable.id),
 		states: 2,
