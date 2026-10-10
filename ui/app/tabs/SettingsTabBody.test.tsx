@@ -1,12 +1,17 @@
+import { GreaterBlessingOfSalvation } from '@features/settings/model/buffs_debuffs';
 import type { RenderableStatOptions } from '@features/settings/model/stat_options';
-import { Class, Stat } from '@generated/proto/common';
-import { DatabaseFilters } from '@generated/proto/ui';
+import { withSelection } from '@features/stat-filters/model/stat_filters';
+import { APLRotation } from '@generated/proto/apl';
+import { PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
+import { Stat, TristateEffect } from '@generated/proto/common';
 import { UnitStat } from '@sim/proto/stats';
-import { createSimStore, patchSlice } from '@sim/state/sim_store';
 import { renderWithHost } from '@testing/react';
+import { makeIndividualSim, serveDatabase } from '@testing/sim/individual_sim';
 import { act, fireEvent, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
+
+vi.mock('@sim/workers/worker_pool', async () => (await import('@testing/sim/worker_pool')).idleWorkerPool());
 
 // Everything the tab mounts besides the buff and debuff sections; none of it is under test here.
 vi.mock('@features/encounter', () => ({ EncounterPicker: () => null, SavedEncounter: () => null }));
@@ -14,8 +19,8 @@ vi.mock('@features/gear/components/SelectorModal', () => ({ SelectorModal: () =>
 vi.mock('../PresetConfigurationPicker', () => ({ PresetConfigurationPicker: () => null }));
 vi.mock('@sim/hooks/useSimReady', () => ({ useSimReady: () => true }));
 vi.mock('@features/settings', () => ({
-	BuffSection: ({ section, filter, children }: { section: string; filter?: ReactNode; children: ReactNode }) => (
-		<section data-section={section}>
+	BuffSection: ({ section, empty, filter, children }: { section: string; empty: boolean; filter?: ReactNode; children: ReactNode }) => (
+		<section data-section={section} data-empty={empty}>
 			{filter}
 			{children}
 		</section>
@@ -35,30 +40,31 @@ vi.mock('@features/settings', () => ({
 let rendered: RenderableStatOptions[][] = [];
 const { SettingsTabBody } = await import('./SettingsTabBody');
 
-const setup = () => {
-	const store = createSimStore();
+const SPEC = {
+	autoRotation: () => APLRotation.create(),
+	presets: { epWeights: [] },
+	displayStats: [UnitStat.fromStat(Stat.StatStrength)],
+	epStats: [Stat.StatAttackPower],
+	includeBuffDebuffInputs: [] as unknown[],
+	excludeBuffDebuffInputs: [] as unknown[],
+	otherInputs: { inputs: [] },
+	encounterPicker: { showExecuteProportion: false },
+};
+
+beforeAll(() => serveDatabase());
+
+const setup = async (overrides: Partial<typeof SPEC> = {}) => {
+	const config = { ...SPEC, ...overrides };
+	const { sim, player } = await makeIndividualSim({ config });
 	rendered = [];
-	renderWithHost(<SettingsTabBody />, {
-		player: { getClass: () => Class.ClassWarrior },
-		sim: {
-			store,
-			getFilters: () => DatabaseFilters.clone(store.getState().sim.filters),
-			setFilters: (filters: DatabaseFilters) => patchSlice(store, 'sim', { filters: DatabaseFilters.clone(filters) }),
-		},
-		individualConfig: {
-			displayStats: [UnitStat.fromStat(Stat.StatStrength)],
-			epStats: [Stat.StatAttackPower],
-			includeBuffDebuffInputs: [],
-			excludeBuffDebuffInputs: [],
-			otherInputs: { inputs: [] },
-			encounterPicker: { showExecuteProportion: false },
-		},
-	});
+	renderWithHost(<SettingsTabBody />, { sim, player, individualConfig: config });
+	return { sim, player };
 };
 
 const lastRaidPartyAndDebuffLists = () => rendered.slice(-3);
 const unpickedOfferCounts = () => lastRaidPartyAndDebuffLists().map(rows => rows.filter(row => !row.config.keptBy).length);
 const rowCounts = () => lastRaidPartyAndDebuffLists().map(rows => rows.length);
+const section = (name: string) => document.querySelector(`[data-section="${name}"]`);
 
 const showAll = async (slot: 'buffs' | 'debuffs') => {
 	await act(async () => {
@@ -71,7 +77,7 @@ const showAll = async (slot: 'buffs' | 'debuffs') => {
 
 describe('SettingsTabBody buff and debuff filters', () => {
 	it('offers every buff once the buff filter shows every stat, and leaves the debuffs to their own filter', async () => {
-		setup();
+		await setup();
 		const [raidBuffs, , debuffs] = unpickedOfferCounts();
 		const rows = rowCounts();
 		expect(raidBuffs).toBeLessThan(rows[0]);
@@ -82,7 +88,7 @@ describe('SettingsTabBody buff and debuff filters', () => {
 	});
 
 	it('offers every debuff once the debuff filter shows every stat, and leaves the buffs to their own filter', async () => {
-		setup();
+		await setup();
 		const [raidBuffs, partyBuffs, debuffs] = unpickedOfferCounts();
 		const rows = rowCounts();
 		expect(debuffs).toBeLessThan(rows[2]);
@@ -90,5 +96,37 @@ describe('SettingsTabBody buff and debuff filters', () => {
 		await showAll('debuffs');
 		expect(unpickedOfferCounts()).toEqual([raidBuffs, partyBuffs, rows[2]]);
 		expect(rowCounts()).toEqual(rows);
+	});
+});
+
+describe('SettingsTabBody sections', () => {
+	const noPartyBuffStats = { displayStats: [], epStats: [Stat.StatSpirit] };
+
+	it('leaves Party Buffs out when the filter offers no party buff and none is picked', async () => {
+		await setup(noPartyBuffStats);
+
+		expect(section('party_buffs')).toBeNull();
+	});
+
+	it('shows Party Buffs while a party buff the filter hides is picked, and drops it once cleared', async () => {
+		const { player } = await setup(noPartyBuffStats);
+		const party = player.getParty()!;
+
+		act(() => party.setBuffs(PartyBuffs.create({ battleShout: TristateEffect.TristateEffectRegular })));
+		expect(section('party_buffs')).not.toBeNull();
+
+		act(() => party.setBuffs(PartyBuffs.create()));
+		expect(section('party_buffs')).toBeNull();
+	});
+
+	it('collapses the raid buffs body while the filter hides every stat and no raid buff is picked', async () => {
+		const { sim, player } = await setup({ excludeBuffDebuffInputs: [GreaterBlessingOfSalvation] });
+		expect(section('raid_buffs')?.getAttribute('data-empty')).toBe('false');
+
+		act(() => sim.setFilters(withSelection(sim.getFilters(), 'buffs', [])));
+		expect(section('raid_buffs')?.getAttribute('data-empty')).toBe('true');
+
+		act(() => player.getRaid()!.setBuffs(RaidBuffs.create({ arcaneBrilliance: true })));
+		expect(section('raid_buffs')?.getAttribute('data-empty')).toBe('false');
 	});
 });

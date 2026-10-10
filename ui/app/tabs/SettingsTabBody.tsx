@@ -3,16 +3,18 @@ import { SelectorModal } from '@features/gear/components/SelectorModal';
 import { OpenSelectorModalContext, useSelectorModalState } from '@features/gear/hooks/useSelectorModal';
 import { BuffSection, ConsumesFilters, ConsumesPicker, CustomSection, OtherSettings, PlayerSettings, RaidBuffs, SavedSettings } from '@features/settings';
 import * as BuffDebuffInputs from '@features/settings/model/buffs_debuffs';
-import { applyOwnerClassLabels, relevantStatOptions, statOptionScope } from '@features/settings/model/stat_options';
+import { applyOwnerClassLabels, relevantStatOptions, type RenderableStatOptions, statOptionScope } from '@features/settings/model/stat_options';
 import { StatFilterPopover, useStatFilter } from '@features/stat-filters';
 import i18n from '@i18n/config';
 import { PresetConfigurationCategory } from '@sim/constants/preset_categories';
 import { usePlayer, useSimHost, useSpecConfig } from '@sim/context/SimHostContext';
+import { usePlayerStore } from '@sim/hooks/usePlayerStore';
 import { useSimReady } from '@sim/hooks/useSimReady';
 import type { UnitStat } from '@sim/proto/stats';
 import { ContentBlock } from '@ui-kit/ContentBlock';
 import { TabPanelColumns } from '@ui-kit/TabPanelColumns';
 import { useMemo } from 'react';
+import { useStore } from 'zustand';
 
 import { PresetConfigurationPicker } from '../PresetConfigurationPicker';
 
@@ -44,6 +46,15 @@ export const SettingsTabBody = () => {
 			debuffsMisc: applyOwnerClassLabels(relevantStatOptions(BuffDebuffInputs.DEBUFFS_MISC_CONFIG, config, debuffStats), player),
 		};
 	}, [config, player, buffFilter.shown, debuffFilter.shown]);
+
+	// A kept option counts as offered only while it is picked, so the sections follow every buff and debuff pick.
+	const raidPicks = useStore(host.sim.store, state => state.raid);
+	const individualPicks = usePlayerStore('buffs');
+	const offered = useMemo(() => {
+		const anyOffered = (list: ReadonlyArray<RenderableStatOptions>) => list.some(option => !option.config.keptBy || option.config.keptBy(player));
+		return { buffs: anyOffered(options.buffs), partyBuffs: anyOffered(options.partyBuffs), debuffs: anyOffered(options.debuffs) };
+		// eslint-disable-next-line react-hooks/exhaustive-deps -- keptBy reads the picks off the player; their store slices are the invalidation keys.
+	}, [options, player, raidPicks, individualPicks]);
 
 	const itemSwapSlots = config.itemSwapSlots || [];
 	const hasOtherSettings = config.otherInputs.inputs.length > 0 || itemSwapSlots.length > 0;
@@ -100,7 +111,7 @@ export const SettingsTabBody = () => {
 						<>
 							<BuffSection
 								section="raid_buffs"
-								empty={options.buffs.length === 0}
+								empty={!offered.buffs}
 								filter={
 									<StatFilterPopover
 										universe={buffScope.universe}
@@ -114,7 +125,7 @@ export const SettingsTabBody = () => {
 								}>
 								<RaidBuffs options={options.buffs} miscOptions={[]} />
 							</BuffSection>
-							{options.partyBuffs.length > 0 && (
+							{offered.partyBuffs && (
 								<BuffSection section="party_buffs" empty={false}>
 									<RaidBuffs options={options.partyBuffs} miscOptions={[]} />
 								</BuffSection>
@@ -122,7 +133,7 @@ export const SettingsTabBody = () => {
 							{!gearPlanner && (
 								<BuffSection
 									section="debuffs"
-									empty={options.debuffs.length === 0}
+									empty={!offered.debuffs}
 									filter={
 										<StatFilterPopover
 											universe={debuffScope.universe}
