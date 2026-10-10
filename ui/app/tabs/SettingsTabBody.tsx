@@ -109,20 +109,7 @@ export const SettingsTabBody = () => {
 				<TabPanelColumns.Col>
 					{ready && (
 						<>
-							<BuffSection
-								section="raid_buffs"
-								empty={!offered.buffs}
-								filter={
-									<StatFilterPopover
-										universe={buffScope.universe}
-										shown={buffFilter.shown}
-										customised={buffFilter.customised}
-										playerClass={player.getClass()}
-										onChange={buffFilter.set}
-										onReset={buffFilter.reset}
-										testId="buffs-filter"
-									/>
-								}>
+							<BuffSection section="raid_buffs" empty={!offered.buffs} filter={<StatFilterPopover {...buffFilter} testId="buffs-filter" />}>
 								<RaidBuffs options={options.buffs} miscOptions={[]} />
 							</BuffSection>
 							{offered.partyBuffs && (
@@ -134,17 +121,7 @@ export const SettingsTabBody = () => {
 								<BuffSection
 									section="debuffs"
 									empty={!offered.debuffs}
-									filter={
-										<StatFilterPopover
-											universe={debuffScope.universe}
-											shown={debuffFilter.shown}
-											customised={debuffFilter.customised}
-											playerClass={player.getClass()}
-											onChange={debuffFilter.set}
-											onReset={debuffFilter.reset}
-											testId="debuffs-filter"
-										/>
-									}>
+									filter={<StatFilterPopover {...debuffFilter} testId="debuffs-filter" />}>
 									<RaidBuffs options={options.debuffs} miscOptions={options.debuffsMisc} />
 								</BuffSection>
 							)}

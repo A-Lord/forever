@@ -65,7 +65,7 @@ export const CharacterStats = ({ className }: CharacterStatsProps) => {
 	const player = host.player;
 	const { displayStats, modifyDisplayStats, overwriteDisplayStats } = useSpecConfig();
 	const scope = useMemo(() => ({ defaults: displayStats, universe: STAT_FILTER_UNIVERSE }), [displayStats]);
-	const { shown: statList, customised, set: setShownStats, reset: resetShownStats } = useStatFilter('characterStats', scope);
+	const statFilter = useStatFilter('characterStats', scope);
 	const [openGroups, setOpenGroups] = useLocalStorageState<string[]>(host.getStorageKey(GROUPS_STORAGE_SUFFIX), parseStringArray, () =>
 		defaultOpenStatGroups(player.getPlayerSpec().isTankSpec, displayStats),
 	);
@@ -73,7 +73,7 @@ export const CharacterStats = ({ className }: CharacterStatsProps) => {
 	const bonusStats = usePlayerStore('bonusStats');
 	const gear = usePlayerStore('gear');
 	const dualWielding = player.isDualWielding();
-	const { groups, shownStats } = useMemo(() => buildRows(player, statList), [player, statList]);
+	const { groups, shownStats } = useMemo(() => buildRows(player, statFilter.shown), [player, statFilter.shown]);
 	const race = usePlayerStore('race');
 	const consumables = usePlayerStore('consumables');
 	const talentsString = usePlayerStore('talentsString');
@@ -159,17 +159,7 @@ export const CharacterStats = ({ className }: CharacterStatsProps) => {
 		<CharacterStatsPanelView
 			className={className}
 			title={i18n.t('sidebar.character_stats.title')}
-			filter={
-				<StatFilterPopover
-					universe={scope.universe}
-					shown={statList}
-					customised={customised}
-					playerClass={player.getClass()}
-					onChange={setShownStats}
-					onReset={resetShownStats}
-					testId="character-stats-filter"
-				/>
-			}>
+			filter={<StatFilterPopover {...statFilter} testId="character-stats-filter" />}>
 			{primary && (
 				<div className="mb-2 border-b border-border pb-1" data-testid="character-stats-primary">
 					{table(primary.rows)}

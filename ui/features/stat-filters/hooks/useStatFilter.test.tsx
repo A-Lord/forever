@@ -1,4 +1,4 @@
-import { Stat } from '@generated/proto/common';
+import { Class, Stat } from '@generated/proto/common';
 import { DatabaseFilters } from '@generated/proto/ui';
 import { UnitStat } from '@sim/proto/stats';
 import { createSimStore, patchSlice, type SimStore } from '@sim/state/sim_store';
@@ -24,7 +24,7 @@ const Probe = () => {
 	return <span>{latest.shown.map(stat => stat.getKey()).join(',')}</span>;
 };
 
-const mount = () => renderWithHost(<Probe />, { sim });
+const mount = () => renderWithHost(<Probe />, { sim, player: { getClass: () => Class.ClassWarrior } });
 
 const keys = (stats: ReadonlyArray<UnitStat>) => stats.map(stat => stat.getKey()).join(',');
 
@@ -48,18 +48,28 @@ describe('useStatFilter', () => {
 	it('writes a new list through the sim and shows it', () => {
 		const { container } = mount();
 
-		act(() => latest.set([agility]));
+		act(() => latest.onChange([agility]));
 
 		expect(sim.getFilters().statFilters?.buffs).toBeDefined();
 		expect(container.textContent).toBe(keys([agility]));
 		expect(latest.customised).toBe(true);
 	});
 
+	it('marks the slot customised when it is set to the defaults', () => {
+		mount();
+		const before = latest.shown;
+
+		act(() => latest.onChange([strength, stamina]));
+
+		expect(latest.customised).toBe(true);
+		expect(latest.shown).toBe(before);
+	});
+
 	it('clears the slot back to the defaults on reset', () => {
 		const { container } = mount();
-		act(() => latest.set([agility]));
+		act(() => latest.onChange([agility]));
 
-		act(() => latest.reset());
+		act(() => latest.onReset());
 
 		expect(sim.getFilters().statFilters?.buffs).toBeUndefined();
 		expect(container.textContent).toBe(keys([strength, stamina]));
@@ -78,10 +88,10 @@ describe('useStatFilter', () => {
 
 	it('keeps a write to another field that lands between renders', () => {
 		mount();
-		const { set } = latest;
+		const { onChange } = latest;
 
 		act(() => sim.setFilters(DatabaseFilters.create({ ...sim.getFilters(), minIlvl: 50 })));
-		act(() => set([agility]));
+		act(() => onChange([agility]));
 
 		expect(sim.getFilters().minIlvl).toBe(50);
 		expect(sim.getFilters().statFilters?.buffs).toBeDefined();

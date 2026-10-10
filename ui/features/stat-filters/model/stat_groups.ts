@@ -83,4 +83,6 @@ export const STAT_GROUPS: ReadonlyArray<{ key: StatGroupKey; stats: ReadonlyArra
 	},
 ];
 
-export const statGroupOf = (stat: UnitStat): StatGroupKey | 'other' => STAT_GROUPS.find(group => group.stats.some(other => other.equals(stat)))?.key ?? 'other';
+const groupByKey = new Map(STAT_GROUPS.flatMap(({ key, stats }) => stats.map(stat => [stat.getKey(), key] as const)));
+
+export const statGroupOf = (stat: UnitStat): StatGroupKey | 'other' => groupByKey.get(stat.getKey()) ?? 'other';

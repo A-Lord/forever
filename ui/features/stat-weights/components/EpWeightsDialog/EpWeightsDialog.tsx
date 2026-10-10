@@ -46,7 +46,7 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 	const epPseudoStats = useMemo(() => individualConfig.epPseudoStats || [], [individualConfig]);
 	const epStatSet = useMemo(() => ({ epStats, epPseudoStats }), [epStats, epPseudoStats]);
 	const scope = useMemo(() => epFilterScope(epStatSet), [epStatSet]);
-	const { shown: stats, customised, set: setShownStats, reset: resetShownStats } = useStatFilter('ep', scope);
+	const statFilter = useStatFilter('ep', scope);
 
 	const [statsType, setStatsType] = useState<StatsType>(StatsType.Ep);
 	const [iterations, setIterations] = useState(0);
@@ -181,15 +181,7 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 			<div className="flex flex-col gap-4 lg:flex-row lg:items-start">
 				<div className="order-1 w-full lg:order-0">
 					<EpWeightsOptions statsType={statsType} onStatsTypeChange={setStatsType}>
-						<StatFilterPopover
-							universe={scope.universe}
-							shown={stats}
-							customised={customised}
-							playerClass={player.getClass()}
-							onChange={setShownStats}
-							onReset={resetShownStats}
-							testId="ep-stat-filter"
-						/>
+						<StatFilterPopover {...statFilter} testId="ep-stat-filter" />
 					</EpWeightsOptions>
 					{!editOnly && <EpReferenceOptions epStats={epStats} epReferenceStat={epReferenceStat} displayMetrics={displayMetrics} />}
 					<p>
@@ -203,7 +195,7 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 					</p>
 					<EpWeightsTable
 						columns={visibleColumns}
-						stats={stats}
+						stats={statFilter.shown}
 						statsType={statsType}
 						result={result}
 						iterations={iterations || 1}

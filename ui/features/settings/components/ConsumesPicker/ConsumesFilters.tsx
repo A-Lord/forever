@@ -1,4 +1,4 @@
-import { StatFilterList, useStatFilter } from '@features/stat-filters';
+import { FilterPopover, StatFilterList, useStatFilter } from '@features/stat-filters';
 import { ConsumableType } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { useSimHost } from '@sim/context/SimHostContext';
@@ -6,8 +6,6 @@ import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
 import { Database } from '@sim/proto/database';
 import { subscribeSimField } from '@sim/state/subscriptions';
 import { Button } from '@ui-kit/Button';
-import { Icon } from '@ui-kit/Icon';
-import { Popover } from '@ui-kit/Popover';
 import { NumberField } from '@ui-kit/TextField';
 import { useMemo } from 'react';
 
@@ -47,29 +45,14 @@ export const ConsumesFilters = () => {
 	const minLvlsSet = Object.keys(filters.minConsumableLvl).length > 0;
 
 	return (
-		<Popover
-			trigger={<Icon name="filter" />}
-			triggerRender={
-				<Button variant="link" size="sm" className="data-active:text-primary" data-active={statFilter.customised || minLvlsSet ? '' : undefined} />
-			}
+		<FilterPopover
+			ariaLabel={i18n.t('settings_tab.consumables.filters.title')}
+			active={statFilter.customised || minLvlsSet}
 			triggerClassName="ml-auto"
 			triggerTestId="consumes-filters-button"
-			triggerProps={{ 'aria-label': i18n.t('settings_tab.consumables.filters.title') }}
-			side="bottom"
-			align="end"
-			backdrop
-			className="flex flex-col"
 			testId="consumes-filters-popover">
 			<h6>{i18n.t('settings_tab.consumables.filters.stats')}</h6>
-			<StatFilterList
-				universe={scope.universe}
-				shown={statFilter.shown}
-				customised={statFilter.customised}
-				playerClass={player.getClass()}
-				onChange={statFilter.set}
-				onReset={statFilter.reset}
-				idPrefix="consumes-filters-stats"
-			/>
+			<StatFilterList {...statFilter} idPrefix="consumes-filters-stats" />
 			<h6 className="mt-2">{i18n.t('settings_tab.consumables.filters.min_lvl')}</h6>
 			<div className="grid grid-cols-2 gap-2">
 				{types.map(({ type, key, range }) => (
@@ -94,6 +77,6 @@ export const ConsumesFilters = () => {
 				onClick={() => setMinLvls({})}>
 				{i18n.t('settings_tab.consumables.filters.reset')}
 			</Button>
-		</Popover>
+		</FilterPopover>
 	);
 };

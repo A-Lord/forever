@@ -23,8 +23,6 @@ export type Row =
 	| { kind: 'crit-immunity'; id: string }
 	| { kind: 'melee-crit-cap'; id: string };
 
-export type { StatGroupKey };
-
 export interface RowGroup {
 	key: StatGroupKey;
 	rows: Row[];

@@ -6,7 +6,7 @@ import { DatabaseFilters } from '@generated/proto/ui';
 import { SimHostProvider } from '@sim/context/SimHostContext';
 import { Stats, UnitStat } from '@sim/proto/stats';
 import { SimRuns } from '@sim/sim_runs';
-import { createSimStore, patchKeyed, PLAYER_FIELDS, seedKeyed, type SimStore, zeroVersions } from '@sim/state/sim_store';
+import { createSimStore, patchKeyed, patchSlice, PLAYER_FIELDS, seedKeyed, type SimStore, zeroVersions } from '@sim/state/sim_store';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PortalContainerContext } from '@ui-kit/hooks/usePortalContainer';
@@ -224,14 +224,8 @@ const setup = () => {
 			getShowDamageMetrics: () => true,
 			getShowHealingMetrics: () => true,
 			getIterations: () => 1000,
-			filters: DatabaseFilters.create(),
-			getFilters() {
-				return this.filters;
-			},
-			setFilters(filters: DatabaseFilters) {
-				this.filters = filters;
-				source.notify('sim:filters');
-			},
+			getFilters: () => DatabaseFilters.clone(store.getState().sim.filters),
+			setFilters: (filters: DatabaseFilters) => patchSlice(store, 'sim', { filters: DatabaseFilters.clone(filters) }),
 			store,
 			runs,
 			signalManager: { abortType },

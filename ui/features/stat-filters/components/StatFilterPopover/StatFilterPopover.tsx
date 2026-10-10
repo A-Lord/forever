@@ -5,6 +5,7 @@ import { BooleanPicker } from '@ui-kit/BooleanPicker';
 import { Button } from '@ui-kit/Button';
 import { Icon } from '@ui-kit/Icon';
 import { Popover } from '@ui-kit/Popover';
+import { type ReactNode, useMemo } from 'react';
 
 import { STAT_GROUPS, type StatGroupKey, statGroupOf } from '../../model/stat_groups';
 
@@ -35,9 +36,13 @@ export const StatFilterList = ({
 	onReset,
 	idPrefix,
 }: Omit<StatFilterPopoverProps, 'testId'> & { idPrefix: string }) => {
-	const isShown = (stat: UnitStat) => shown.some(other => other.equals(stat));
+	const shownKeys = new Set(shown.map(stat => stat.getKey()));
+	const isShown = (stat: UnitStat) => shownKeys.has(stat.getKey());
 	const toggle = (stat: UnitStat, checked: boolean) => onChange(universe.filter(other => (other.equals(stat) ? checked : isShown(other))));
-	const groups = GROUP_KEYS.map(key => ({ key, stats: universe.filter(stat => statGroupOf(stat) === key) })).filter(group => group.stats.length > 0);
+	const groups = useMemo(
+		() => GROUP_KEYS.map(key => ({ key, stats: universe.filter(stat => statGroupOf(stat) === key) })).filter(group => group.stats.length > 0),
+		[universe],
+	);
 
 	return (
 		<div className="flex min-h-0 flex-col gap-2">
@@ -74,17 +79,34 @@ export const StatFilterList = ({
 	);
 };
 
-export const StatFilterPopover = ({ testId, ...listProps }: StatFilterPopoverProps) => (
+export interface FilterPopoverProps {
+	ariaLabel: string;
+	/** Marks the trigger while any filter in the popover is set. */
+	active: boolean;
+	triggerClassName?: string;
+	triggerTestId: string;
+	testId: string;
+	children: ReactNode;
+}
+
+export const FilterPopover = ({ ariaLabel, active, triggerClassName, triggerTestId, testId, children }: FilterPopoverProps) => (
 	<Popover
 		trigger={<Icon name="filter" />}
-		triggerRender={<Button variant="link" size="sm" className="data-active:text-primary" data-active={listProps.customised ? '' : undefined} />}
-		triggerTestId={`${testId}-button`}
-		triggerProps={{ 'aria-label': i18n.t('stat_filters.title') }}
+		triggerRender={<Button variant="link" size="sm" className="data-active:text-primary" data-active={active ? '' : undefined} />}
+		triggerClassName={triggerClassName}
+		triggerTestId={triggerTestId}
+		triggerProps={{ 'aria-label': ariaLabel }}
 		side="bottom"
 		align="end"
 		backdrop
 		className="flex flex-col"
 		testId={testId}>
-		<StatFilterList {...listProps} idPrefix={testId} />
+		{children}
 	</Popover>
+);
+
+export const StatFilterPopover = ({ testId, ...listProps }: StatFilterPopoverProps) => (
+	<FilterPopover ariaLabel={i18n.t('stat_filters.title')} active={listProps.customised} triggerTestId={`${testId}-button`} testId={testId}>
+		<StatFilterList {...listProps} idPrefix={testId} />
+	</FilterPopover>
 );
