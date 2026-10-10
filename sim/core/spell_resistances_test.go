@@ -20,7 +20,7 @@ func TestSchoolSpellPiercingLowersOnlyItsSchool(t *testing.T) {
 		attacker := Unit{Type: PlayerUnit, Level: 60, PseudoStats: stats.NewPseudoStats()}
 		attacker.stats[stats.SpellPiercing] = generic
 		attacker.PseudoStats.SchoolSpellPiercing[stats.SchoolIndexFire] = firePiercing
-		return defender.averageResist(fire, &attacker, false, false), defender.averageResist(frost, &attacker, false, false)
+		return defender.averageResist(fire, &attacker, false), defender.averageResist(frost, &attacker, false)
 	}
 
 	_, frostBare := coeffs(0, 0)
