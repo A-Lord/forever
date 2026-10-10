@@ -59,13 +59,17 @@ const pickedBy =
 		return !!option.config.getValue(player);
 	};
 
+const keptWhile = <Config extends { showWhen?: unknown }>(config: Config, picked: (player: Player<any>) => boolean): Config => {
+	const showWhen = config.showWhen as ((player: Player<any>) => boolean) | undefined;
+	return { ...config, showWhen: (player: Player<any>) => (!showWhen || showWhen(player)) && picked(player), keptBy: picked };
+};
+
+// A kept multi icon offers only its picked inputs, each marked kept: its inputs share its hidden stats.
 const keptWhilePicked = <OptionsType extends PickerStatOptions>(option: OptionsType): OptionsType => {
-	const picked = pickedBy(option);
-	const showWhen = option.config.showWhen as ((player: Player<any>) => boolean) | undefined;
-	return {
-		...option,
-		config: { ...option.config, showWhen: (player: Player<any>) => (!showWhen || showWhen(player)) && picked(player), keptBy: picked },
-	};
+	const config = keptWhile(option.config, pickedBy(option));
+	if (!isMultiIconOption(option)) return { ...option, config };
+	const inputs = option.config.inputs.map(input => keptWhile(input, (player: Player<any>) => !!input.getValue(player)));
+	return { ...option, config: { ...config, inputs } };
 };
 
 // An option is offered when it carries no stat, a stat in `shown`, or the spec includes its config.

@@ -88,6 +88,26 @@ describe('relevantStatOptions', () => {
 		expect(keptMulti.config.keptBy!(playerWith({ 'Mana Tide': 2 }))).toBe(true);
 	});
 
+	it('offers only the picked inputs of a kept multi icon, each marked kept, and leaves the shared inputs as they were', () => {
+		const multiOption = { stats: [Stat.StatMP5], config: { inputs: [manaSpring.config, manaTide.config] } } as unknown as PickerStatOptions;
+		const [kept] = relevantStatOptions([multiOption], lists(), new Set());
+		const [spring, tide] = (kept.config as unknown as { inputs: Array<PickerStatOptions['config']> }).inputs;
+		const player = playerWith({ 'Mana Tide': 1 });
+
+		expect(spring.showWhen!(player)).toBe(false);
+		expect(spring.keptBy!(player)).toBe(false);
+		expect(tide.showWhen!(player)).toBe(true);
+		expect(tide.keptBy!(player)).toBe(true);
+		expect(manaSpring.config.showWhen).toBeUndefined();
+		expect(manaSpring.config.keptBy).toBeUndefined();
+	});
+
+	it('leaves a multi icon with a shown stat, and its inputs, untouched', () => {
+		const multiOption = { stats: [Stat.StatMP5], config: { inputs: [manaSpring.config, manaTide.config] } } as unknown as PickerStatOptions;
+
+		expect(relevantStatOptions([multiOption], lists(), new Set([Stat.StatMP5]))[0]).toBe(multiOption);
+	});
+
 	it('returns the same rows in the same order at every filter setting, so the pickers keyed by position keep their option', () => {
 		const settings = [new Set<Stat>(), new Set([Stat.StatMP5]), new Set([Stat.StatStrength, Stat.StatStamina])];
 

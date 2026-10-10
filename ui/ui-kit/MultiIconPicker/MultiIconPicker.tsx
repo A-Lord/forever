@@ -11,7 +11,7 @@ export interface MultiIconPickerProps {
 	icon?: ResolvedIcon;
 	active: boolean;
 	onClear: () => void;
-	/** One menu entry per child, each an icon toggle. The popup unmounts while closed, and the children with it. */
+	/** One menu entry per child, each an icon toggle; a child that renders nothing takes no entry. The popup unmounts while closed, and the children with it. */
 	children: ReactNode;
 	/** A selection kept on offer only because it is selected: the trigger dims and shows `keptTooltip` on hover. */
 	kept?: boolean;
@@ -56,7 +56,7 @@ export const MultiIconPicker = ({ label, icon, active, onClear, children, kept, 
 				/>
 			</li>
 			{Children.map(children, child => (
-				<li className="opacity-70 hover:opacity-100">{child}</li>
+				<li className="opacity-70 empty:hidden hover:opacity-100">{child}</li>
 			))}
 		</IconMenu>
 	);

@@ -1,3 +1,5 @@
+import { type PickerStatOptions, relevantStatOptions } from '@features/settings/model/stat_options';
+import { Stat } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { ActionId } from '@sim/proto/action_id';
 import type { StoreSubscribe } from '@sim/state/subscriptions';
@@ -153,6 +155,36 @@ describe('ConnectedMultiIconPicker', () => {
 
 		act(() => buffs.set('kings', 0));
 		expect(trigger().hasAttribute('data-kept')).toBe(false);
+	});
+
+	describe('as a stat option', () => {
+		const statOption = (shown: Array<Stat>) => {
+			const option = { stats: [Stat.StatStamina], config: configFor() } as unknown as PickerStatOptions;
+			const [row] = relevantStatOptions([option], { includeBuffDebuffInputs: [], excludeBuffDebuffInputs: [] }, new Set(shown));
+			return row.config as unknown as MultiIconPickerConfig<Buffs>;
+		};
+		const offeredIcons = () => within(menu()).queryAllByTestId('icon-picker-root');
+
+		it('offers only the picked inputs of a group the stat filter keeps, each marked kept', () => {
+			const buffs = new Buffs();
+			buffs.set('mark', 1);
+			mount(buffs, statOption([]));
+			open();
+
+			expect(offeredIcons().map(icon => icon.style.backgroundImage)).toEqual([expect.stringContaining('mark.jpg')]);
+			expect(offeredIcons()[0].hasAttribute('data-kept')).toBe(true);
+			expect(menu().querySelectorAll('li:not(:empty)')).toHaveLength(2);
+		});
+
+		it('offers every input of a group whose stat is shown, none marked kept', () => {
+			const buffs = new Buffs();
+			buffs.set('mark', 1);
+			mount(buffs, statOption([Stat.StatStamina]));
+			open();
+
+			expect(offeredIcons()).toHaveLength(3);
+			expect(offeredIcons().some(icon => icon.hasAttribute('data-kept'))).toBe(false);
+		});
 	});
 
 	it('follows a new config without a store notification', () => {
