@@ -2,13 +2,17 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { consumeConfigs } from '@features/settings/components/ConsumesPicker/utils';
+import { type ConsumeConfig, consumeConfigs, type ConsumeToggle } from '@features/settings/components/ConsumesPicker/utils';
 import { BUFFS_CONFIG, DEBUFFS_CONFIG, DEBUFFS_MISC_CONFIG, PARTY_BUFFS_CONFIG } from '@features/settings/model/buffs_debuffs';
 import { isIconEnumOption, isMultiIconOption, type PickerStatOptions, relevantStatOptions, statOptionScope } from '@features/settings/model/stat_options';
 import { shownStats, type StatFilterSlot } from '@features/stat-filters';
+import { ConsumableType, type PseudoStat, Stat } from '@generated/proto/common';
+import type { Consumable } from '@generated/proto/db';
+import { ResourceType } from '@generated/proto/spell';
 import { DatabaseFilters, UIDatabase } from '@generated/proto/ui';
 import type { Player } from '@sim/player/player';
 import { Database } from '@sim/proto/database';
+import { consumablePseudoStatsOf, consumableStatsOf } from '@sim/settings/consumables';
 import type { SpecDefinition } from '@sim/spec_config';
 import { makeIndividualSim, serveDatabase } from '@testing/sim/individual_sim';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
@@ -69,6 +73,49 @@ const presetPlayer = async (spec: SpecDefinition<any>) => {
 	return player;
 };
 
+// Types whose consumables exist to grant a stat: one granting none of the spec's does nothing for it.
+const STAT_ONLY_TYPES = [
+	ConsumableType.ConsumableTypeUnknown,
+	ConsumableType.ConsumableTypeConjured,
+	ConsumableType.ConsumableTypeFlask,
+	ConsumableType.ConsumableTypeFood,
+	ConsumableType.ConsumableTypeScroll,
+	ConsumableType.ConsumableTypeOther,
+	ConsumableType.ConsumableTypeElixir,
+];
+
+// The consumables' stat rule, written out in full against the stats and percents the spec weighs
+// consumables by: the filter at its defaults must keep exactly the picks that fail it.
+const consumableRule = (consumable: Consumable, player: Player<any>) => {
+	const stats = consumableStatsOf(player.getSpecConfig());
+	const pseudoStats = consumablePseudoStatsOf(player.getSpecConfig());
+	const grantedStats = consumable.stats.flatMap((value, stat) => (value > 0 ? [stat as Stat] : []));
+	const grantedPseudoStats = consumable.pseudoStats.flatMap((value, pseudoStat) => (value > 0 ? [pseudoStat as PseudoStat] : []));
+	const restores = consumable.effectIds.flatMap(effectId => {
+		const miscValue = Database.getSync().getSpellEffect(effectId)?.miscValue0;
+		return miscValue?.oneofKind === 'resourceType' ? [miscValue.resourceType] : [];
+	});
+	const spends = (resource: ResourceType) => {
+		if (resource === ResourceType.ResourceTypeMana) return [Stat.StatMana, Stat.StatMP5, Stat.StatIntellect].some(stat => stats.has(stat));
+		if (resource === ResourceType.ResourceTypeHealth) return stats.has(Stat.StatHealth);
+		return stats.has(Stat.StatAttackPower);
+	};
+	if (
+		consumable.buffsMainStat ||
+		grantedStats.some(stat => stats.has(stat)) ||
+		grantedPseudoStats.some(pseudoStat => pseudoStats.has(pseudoStat)) ||
+		restores.some(spends)
+	)
+		return true;
+	return !grantedStats.length && !grantedPseudoStats.length && !restores.length && !STAT_ONLY_TYPES.includes(consumable.type);
+};
+
+// The consumable a picker holds: an enum picker's value is its id, a toggle's consumable is its icon's item.
+const pickedConsumable = (config: ConsumeConfig | ConsumeToggle, player: Player<any>): Consumable | undefined => {
+	if (config.type === 'icon') return config.getValue(player) ? Database.getSync().getConsumable(config.actionId.itemId) : undefined;
+	return Database.getSync().getConsumable(config.getValue(player));
+};
+
 describe("a spec's default picks at the default stat filters", () => {
 	const players = new Map<SpecDefinition<any>, Player<any>>();
 
@@ -104,15 +151,31 @@ describe("a spec's default picks at the default stat filters", () => {
 		expect(kept.length).toBeGreaterThan(0);
 	});
 
-	it.each(specs)('%s: keeps no default consumable', (_file, spec) => {
+	const consumablePicks = (spec: SpecDefinition<any>) => {
 		const player = players.get(spec)!;
 		const configs = Object.entries(consumeConfigs(player, Database.getSync())).flatMap(([field, value]) =>
 			(Array.isArray(value) ? value : [value]).map((config, index) => [`${field}[${index}]`, config] as const),
 		);
-		const pickedFields = configs.filter(([, config]) => !!config.getValue(player)).map(([field]) => field);
-		const keptFields = configs.filter(([, config]) => config.keptBy?.(player)).map(([field]) => field);
+		const picks = configs.flatMap(([field, config]) => {
+			const consumable = pickedConsumable(config, player);
+			return consumable ? [{ field, consumable }] : [];
+		});
+		return {
+			picks,
+			kept: configs.filter(([, config]) => config.keptBy?.(player)).map(([field]) => field),
+			expected: picks.filter(({ consumable }) => !consumableRule(consumable, player)).map(({ field }) => field),
+		};
+	};
 
-		expect(pickedFields.length).toBeGreaterThan(0);
-		expect(keptFields).toEqual([]);
+	it.each(specs)('%s: the consumables filter keeps exactly the picked consumables the stat rule leaves out', (_file, spec) => {
+		const { kept, expected } = consumablePicks(spec);
+
+		expect(kept).toEqual(expected);
+	});
+
+	it('picks a default consumable on some spec, so the rule above is exercised', () => {
+		const picks = specs.flatMap(([, spec]) => consumablePicks(spec).picks);
+
+		expect(picks.length).toBeGreaterThan(0);
 	});
 });
