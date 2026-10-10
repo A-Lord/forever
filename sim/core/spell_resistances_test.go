@@ -84,7 +84,7 @@ func TestFullResistIsAMiss(t *testing.T) {
 	sim, fw := setupFakeWarlockSim(proto.Race_RaceHuman)
 	target := fw.CurrentTarget
 	spell := fw.Corruption
-	target.stats[stats.ShadowResistance] = 1e6
+	target.stats[stats.ShadowResistance] = 1e12
 
 	for range 200 {
 		result := spell.CalcDamage(sim, target, 100, spell.OutcomeMagicHitAndCrit)
