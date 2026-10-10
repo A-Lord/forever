@@ -9,6 +9,8 @@ export interface TalentPickerProps<TalentsProto> {
 	config: TalentConfig<TalentsProto>;
 	points: number;
 	canAdd: boolean;
+	// Holds points the tier or the prerequisite above it no longer allows.
+	broken: boolean;
 	allPointsSpent: boolean;
 	zIndex?: number;
 	onSetPoints: (newPoints: number) => void;
@@ -16,7 +18,7 @@ export interface TalentPickerProps<TalentsProto> {
 
 const LONG_TOUCH_MS = 750;
 
-export const TalentPicker = <TalentsProto,>({ config, points, canAdd, allPointsSpent, zIndex, onSetPoints }: TalentPickerProps<TalentsProto>) => {
+export const TalentPicker = <TalentsProto,>({ config, points, canAdd, broken, allPointsSpent, zIndex, onSetPoints }: TalentPickerProps<TalentsProto>) => {
 	const rootRef = useRef<HTMLAnchorElement>(null);
 	const definitionId = config.definitionId ?? 0;
 	// The icon lookup leaves the rank out, so spending a point does not re-seed it and blank the
@@ -82,6 +84,7 @@ export const TalentPicker = <TalentsProto,>({ config, points, canAdd, allPointsS
 			data-points={String(points)}
 			data-max-points={String(config.maxPoints)}
 			data-can-add={String(canAdd)}
+			data-broken={String(broken)}
 			data-full={String(isFull)}
 			data-all-spent={String(allPointsSpent)}
 			style={{

@@ -2397,6 +2397,7 @@
 			"label": "Warnings",
 			"profession_requirement": "{{itemName}} requires {{professionName}}, but it is not selected.",
 			"unspent_talent_points": "You have {{count}} unspent talent point(s).",
+			"broken_talents": "These talents are missing their tier or prerequisite points and stop the sim from running: {{talents}}.",
 			"windfury_over_grace_of_air": "Windfury Totem and Grace of Air Totem do not stack: only Windfury Totem applies.",
 			"windfury_over_flametongue": "Windfury Totem and Flametongue Totem do not stack: only Windfury Totem applies."
 		},

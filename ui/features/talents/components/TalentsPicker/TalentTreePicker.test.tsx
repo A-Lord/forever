@@ -150,11 +150,29 @@ describe('TalentTreePicker tier gating', () => {
 	});
 });
 
-describe('TalentTreePicker prerequisites', () => {
-	it('refuses to free a prerequisite that a spent child depends on', () => {
+describe('TalentTreePicker broken talents', () => {
+	it('frees a prerequisite a spent child depends on, and the child keeps its point', () => {
 		const { written } = tree('510001');
 		fireEvent.mouseDown(talents()[1], { button: 2 });
-		expect(written()).toBe('510001');
+		expect(written()).toBe('500001');
+	});
+
+	it('greys out a child whose prerequisite is not full', () => {
+		tree('500001');
+		expect(talents()[5].dataset.broken).toBe('true');
+		expect(talents()[0].dataset.broken).toBe('false');
+	});
+
+	it('greys out a talent whose tier lost a point, and leaves the arrow above it dark', () => {
+		tree('310001');
+		expect(talents()[5].dataset.broken).toBe('true');
+		expect(talents()[1].dataset.broken).toBe('false');
+		expect(arrows()[0].dataset.reqActive).toBeUndefined();
+	});
+
+	it('mends the talent once the tier is refilled', () => {
+		tree('510001');
+		expect(talents()[5].dataset.broken).toBe('false');
 	});
 });
 

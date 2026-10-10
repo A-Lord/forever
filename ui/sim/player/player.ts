@@ -50,7 +50,7 @@ import { ItemSwapSettings } from '../settings/item_swap_settings';
 import { Sim } from '../sim';
 import { batch } from '../state/batch';
 import { deleteKeyed, patchKeyed, PLAYER_FIELDS, PlayerField, PlayerSlice, seedKeyed, zeroVersions } from '../state/sim_store';
-import { playerTalentStringToProto } from '../talents/factory';
+import { playerBrokenTalentNames, playerTalentStringToProto } from '../talents/factory';
 import { arrayEquals, omitDeep, stringComparator } from '../utils/collections';
 import { WorkerProgressCallback } from '../workers/worker_pool';
 import { PlayerClass } from './player_class';
@@ -1030,6 +1030,11 @@ export class Player<SpecType extends Spec> {
 		// Invalidate the parsed-talents cache before the emit fires.
 		this.talents = null;
 		this.patch('talentsString', newTalentsString);
+	}
+
+	// Talents whose points the tier or prerequisite above them no longer allow; the sim will not run with any.
+	getBrokenTalentNames(): Array<string> {
+		return playerBrokenTalentNames(this.playerSpec, this.getTalentsString());
 	}
 
 	getTalentTreePoints(): Array<number> {
