@@ -1,10 +1,12 @@
 import { Stat } from '@generated/proto/common';
 import { DatabaseFilters, IndividualSimSettings, SimSettings, StatFilters, StatSelection } from '@generated/proto/ui';
 import { UnitStat } from '@sim/proto/stats';
-import { describe, expect, it } from 'vitest';
+import { makeIndividualSim, serveDatabase } from '@testing/sim/individual_sim';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 
-import { createSimStore, patchSlice } from './sim_store';
 import { restoreViewerStatFilters, withoutStatFilters } from './stat_filter_sharing';
+
+vi.mock('@sim/workers/worker_pool', async () => (await import('@testing/sim/worker_pool')).idleWorkerPool());
 
 const selectionOf = (...stats: Stat[]) => StatSelection.create({ stats: stats.map(stat => UnitStat.fromStat(stat).toProto()) });
 
@@ -38,27 +40,26 @@ describe('withoutStatFilters', () => {
 });
 
 describe('restoreViewerStatFilters', () => {
-	const simWith = (filters: DatabaseFilters) => {
-		const store = createSimStore();
-		patchSlice(store, 'sim', { filters });
-		return {
-			getFilters: () => DatabaseFilters.clone(store.getState().sim.filters),
-			setFilters: (next: DatabaseFilters) => patchSlice(store, 'sim', { filters: DatabaseFilters.clone(next) }),
-		};
+	beforeAll(() => serveDatabase());
+
+	const simWith = async (filters: DatabaseFilters) => {
+		const { sim } = await makeIndividualSim();
+		sim.setFilters(filters);
+		return sim;
 	};
 
-	it("puts the viewer's stat filters over the imported ones and keeps every other imported filter", () => {
+	it("puts the viewer's stat filters over the imported ones and keeps every other imported filter", async () => {
 		const imported = DatabaseFilters.create({ minIlvl: 50, oneHandedWeapons: true, favoriteItems: [7], statFilters: senderFilters });
-		const sim = simWith(imported);
+		const sim = await simWith(imported);
 
 		restoreViewerStatFilters(sim, viewerFilters);
 
 		expect(DatabaseFilters.equals(sim.getFilters(), { ...imported, statFilters: viewerFilters })).toBe(true);
 	});
 
-	it('clears the imported stat filters when the viewer had none', () => {
+	it('clears the imported stat filters when the viewer had none', async () => {
 		const imported = DatabaseFilters.create({ twoHandedWeapons: true, statFilters: senderFilters });
-		const sim = simWith(imported);
+		const sim = await simWith(imported);
 
 		restoreViewerStatFilters(sim, undefined);
 

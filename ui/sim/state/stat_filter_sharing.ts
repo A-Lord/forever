@@ -13,7 +13,7 @@ export const withoutStatFilters = (proto: IndividualSimSettings): IndividualSimS
 // Puts the stat filters read before an import back over the filters the import left, every other
 // filter as the import set it: loading settings replaces the filters whole, with defaults where the
 // settings carry none.
-export const restoreViewerStatFilters = (sim: Pick<Sim, 'getFilters' | 'setFilters'>, statFilters: StatFilters | undefined) => {
+export const restoreViewerStatFilters = (sim: Sim, statFilters: StatFilters | undefined) => {
 	const filters = sim.getFilters();
 	filters.statFilters = statFilters && StatFilters.clone(statFilters);
 	sim.setFilters(filters);
