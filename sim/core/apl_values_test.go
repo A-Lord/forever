@@ -945,6 +945,29 @@ func TestValueAuraReactionTime(t *testing.T) {
 	}
 }
 
+func TestValueAuraIsActiveOwnCastSkipsReactionTime(t *testing.T) {
+	var ownCast, proc *Aura
+	sim, fw, rot := setupFakeRageRotationWith(func(char *Character) {
+		ownCast, proc, _ = registerTestAuras(char)
+		char.RegisterSpell(SpellConfig{ActionID: ActionID{SpellID: testPlainAuraID}, Flags: SpellFlagAPL})
+	})
+	fw.ReactionTime = 100 * time.Millisecond
+
+	ownCastActive := rot.newValueAuraIsActive(&proto.APLValueAuraIsActive{AuraId: ActionID{SpellID: testPlainAuraID}.ToProto(), IncludeReactionTime: true}, nil)
+	procActive := rot.newValueAuraIsActive(&proto.APLValueAuraIsActive{AuraId: ActionID{SpellID: testStackAuraID}.ToProto(), IncludeReactionTime: true}, nil)
+
+	sim.CurrentTime = time.Second
+	ownCast.Activate(sim)
+	proc.Activate(sim)
+	if !ownCastActive.GetBool(sim) || procActive.GetBool(sim) {
+		t.Errorf("as the auras land: own cast active = %t, proc active = %t, want true, false", ownCastActive.GetBool(sim), procActive.GetBool(sim))
+	}
+	sim.CurrentTime = time.Second + 200*time.Millisecond
+	if !ownCastActive.GetBool(sim) || !procActive.GetBool(sim) {
+		t.Errorf("past the reaction time: own cast active = %t, proc active = %t, want true, true", ownCastActive.GetBool(sim), procActive.GetBool(sim))
+	}
+}
+
 func TestValueAuraNumStacksFollowsCurrentTarget(t *testing.T) {
 	request := fakeRageSimRequest()
 	request.Encounter.Targets = append(request.Encounter.Targets, &proto.Target{Name: "second target", Level: 63, MobType: proto.MobType_MobTypeHumanoid, SwingSpeed: 2})

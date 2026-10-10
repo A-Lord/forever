@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/wowsims/forever/sim/core/proto"
@@ -29,10 +30,15 @@ func (rot *APLRotation) newValueAuraIsActive(config *proto.APLValueAuraIsActive,
 	if aura.Get() == nil {
 		return nil
 	}
+	// The player knows at once that an aura from a spell they cast is up, so only the others wait out the reaction time.
+	actionID := ProtoToActionID(config.AuraId)
+	ownCast := slices.ContainsFunc(rot.unit.Spellbook, func(spell *Spell) bool {
+		return spell.ActionID.SameAction(actionID) && spell.Flags.Matches(SpellFlagAPL)
+	})
 	return &APLValueAuraIsActive{
 		aura:                aura,
 		reactionTime:        rot.unit.ReactionTime,
-		includeReactionTime: config.IncludeReactionTime,
+		includeReactionTime: config.IncludeReactionTime && !ownCast,
 	}
 }
 func (value *APLValueAuraIsActive) Type() proto.APLValueType {
