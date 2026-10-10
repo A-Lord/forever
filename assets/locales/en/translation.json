@@ -685,8 +685,7 @@
 			"title": "Consumables",
 			"filters": {
 				"title": "Consumables filter",
-				"stats": "Stats",
-				"min_lvl": "Minimum required level",
+				"min_lvl": "Minimum level",
 				"reset": "Reset to defaults",
 				"types": {
 					"potion": "Potions",

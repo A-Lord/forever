@@ -2462,9 +2462,6 @@
 								"title": {
 									"type": "string"
 								},
-								"stats": {
-									"type": "string"
-								},
 								"min_lvl": {
 									"type": "string"
 								},
@@ -2503,7 +2500,7 @@
 								}
 							},
 							"additionalProperties": false,
-							"required": ["title", "stats", "min_lvl", "reset", "types"]
+							"required": ["title", "min_lvl", "reset", "types"]
 						},
 						"potions": {
 							"type": "object",

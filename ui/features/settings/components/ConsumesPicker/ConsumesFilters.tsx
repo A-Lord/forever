@@ -1,3 +1,4 @@
+import { Tabs } from '@base-ui/react/tabs';
 import { FilterPopover, StatFilterList, useStatFilter } from '@features/stat-filters';
 import { ConsumableType } from '@generated/proto/common';
 import i18n from '@i18n/config';
@@ -6,6 +7,7 @@ import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
 import { Database } from '@sim/proto/database';
 import { subscribeSimField } from '@sim/state/subscriptions';
 import { Button } from '@ui-kit/Button';
+import { TabNav } from '@ui-kit/TabNav';
 import { NumberField } from '@ui-kit/TextField';
 import { useMemo } from 'react';
 
@@ -24,6 +26,9 @@ const TYPE_KEYS: ReadonlyArray<[ConsumableType, string]> = [
 	[ConsumableType.ConsumableTypeDevice, 'device'],
 	[ConsumableType.ConsumableTypeOther, 'other'],
 ];
+
+const STATS_TAB = 'consumes-filters-stats-pane';
+const MIN_LVL_TAB = 'consumes-filters-min-lvl-pane';
 
 export const ConsumesFilters = () => {
 	const { sim, player } = useSimHost();
@@ -52,32 +57,41 @@ export const ConsumesFilters = () => {
 			triggerClassName="ml-auto"
 			triggerTestId="consumes-filters-button"
 			testId="consumes-filters-popover">
-			<h6>{i18n.t('settings_tab.consumables.filters.stats')}</h6>
-			<StatFilterList {...statFilter} idPrefix="consumes-filters-stats" />
-			<h6 className="mt-2">{i18n.t('settings_tab.consumables.filters.min_lvl')}</h6>
-			<div className="grid grid-cols-2 gap-2">
-				{types.map(({ type, key, range }) => (
-					<NumberField
-						key={type}
-						id={`consumes-filters-min-lvl-${key}`}
-						label={i18n.t(`settings_tab.consumables.filters.types.${key}`)}
-						placeholder={range}
-						positive
-						showZeroes={false}
-						value={sim.getMinConsumableLvl(type)}
-						onChange={value => setMinLvls({ ...filters.minConsumableLvl, [type]: value })}
-					/>
-				))}
-			</div>
-			<Button
-				variant="outline-primary"
-				size="sm"
-				className="mt-2 ml-auto flex"
-				data-testid="consumes-filters-reset"
-				disabled={!minLvlsSet}
-				onClick={() => setMinLvls({})}>
-				{i18n.t('settings_tab.consumables.filters.reset')}
-			</Button>
+			<Tabs.Root defaultValue={STATS_TAB} className="flex min-h-0 flex-col">
+				<TabNav
+					testId="consumes-filters-tabs"
+					wrap={false}
+					className="mb-2 shrink-0"
+					tabs={[
+						{ id: STATS_TAB, label: i18n.t('stat_filters.title') },
+						{ id: MIN_LVL_TAB, label: i18n.t('settings_tab.consumables.filters.min_lvl') },
+					]}
+				/>
+				<Tabs.Panel value={STATS_TAB} id={STATS_TAB} className="flex min-h-0 flex-col">
+					<StatFilterList {...statFilter} idPrefix="consumes-filters-stats" />
+				</Tabs.Panel>
+				<Tabs.Panel value={MIN_LVL_TAB} id={MIN_LVL_TAB} className="flex min-h-0 flex-col gap-2">
+					<div className="grid min-h-0 grid-cols-2 gap-2 overflow-y-auto">
+						{types.map(({ type, key, range }) => (
+							<NumberField
+								key={type}
+								id={`consumes-filters-min-lvl-${key}`}
+								label={i18n.t(`settings_tab.consumables.filters.types.${key}`)}
+								placeholder={range}
+								positive
+								showZeroes={false}
+								value={sim.getMinConsumableLvl(type)}
+								onChange={value => setMinLvls({ ...filters.minConsumableLvl, [type]: value })}
+							/>
+						))}
+					</div>
+					<div className="flex shrink-0 justify-end">
+						<Button variant="outline-primary" size="sm" data-testid="consumes-filters-reset" disabled={!minLvlsSet} onClick={() => setMinLvls({})}>
+							{i18n.t('settings_tab.consumables.filters.reset')}
+						</Button>
+					</div>
+				</Tabs.Panel>
+			</Tabs.Root>
 		</FilterPopover>
 	);
 };
