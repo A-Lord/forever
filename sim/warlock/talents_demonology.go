@@ -230,8 +230,8 @@ func (warlock *Warlock) applyDecimation() {
 		ClassFlags: executeBonus.ClassFlags,
 		// In the logs the buff comes in the same batch as the cast.
 		TriggerImmediately: true,
-		ExtraCondition: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) bool {
-			return launching && sim.IsExecutePhase35() && result.Outcome.ResistedTenths() < 10
+		ExtraCondition: func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) bool {
+			return launching && sim.IsExecutePhase35()
 		},
 		Handler: func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
 			decimationAura.Activate(sim)

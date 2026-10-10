@@ -210,7 +210,7 @@ func TestDecimationGrantedOnLandedCast(t *testing.T) {
 		t.Fatalf("%d casts granted Decimation and %d missed, want both", granted, missed)
 	}
 
-	sim, warlock, target = newSim(1e6)
+	sim, warlock, target = newSim(1e12)
 	decimation = warlock.GetAuraByID(core.ActionID{SpellID: 440873})
 	for i := 0; i < 100; i++ {
 		spell := warlock.SearingPain
@@ -223,7 +223,7 @@ func TestDecimationGrantedOnLandedCast(t *testing.T) {
 			t.Fatalf("%s at %v granted Decimation against a target that resists it in full", spell.ActionID, sim.CurrentTime)
 		}
 	}
-	if hits := warlock.SearingPain.SpellMetrics[target.UnitIndex].Hits; hits == 0 {
-		t.Fatalf("no Searing Pain hit the fully resisting target")
+	if misses := warlock.SearingPain.SpellMetrics[target.UnitIndex].Misses; misses != 50 {
+		t.Fatalf("%d of 50 Searing Pains against the fully resisting target missed, want all resisted in full", misses)
 	}
 }
