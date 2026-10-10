@@ -2,14 +2,15 @@
 
 **Source of truth:** `ui/sim/state/persistence.ts` (load order + autosave),
 `ui/sim/state/serialization.ts` (the `IndividualSimSettings` envelope),
-`ui/sim/state/sim_links.ts` (URL-hash import). The load-order contract is written as a comment at
+`ui/sim/state/sim_links.ts` (URL-hash import), `ui/sim/state/stat_filter_sharing.ts` (stat filters
+stay with the viewer). The load-order contract is written as a comment at
 the top of `persistence.ts` — read it there if this file and the code disagree:
 
 ```
 sed -n '1,20p' ui/sim/state/persistence.ts
 ```
 
-All three are browser-free: the localStorage and `location` surfaces arrive through the injected
+All four are browser-free: the localStorage and `location` surfaces arrive through the injected
 `Env` (`sim.env`), never through globals.
 
 ## The load-order contract — do not reorder
@@ -20,7 +21,9 @@ All three are browser-free: the localStorage and `location` surfaces arrive thro
 2. saved settings from `env.storage` (parse failures are warned and swallowed — a corrupt blob must
    not brick the page)
 3. the URL-hash link, via `tryParseUrlLocation(env.location)`. **After** step 2 on purpose: a
-   partial link import (rotation only, say) must keep the previous settings for the other categories
+   partial link import (rotation only, say) must keep the previous settings for the other categories.
+   The stat filters are read off the sim before the link applies and put back after it by
+   `restoreViewerStatFilters`, so the saved ones stay, whatever the link carries
 4. `env.location.setHash('')`
 5. `player.setName('Player')`
 6. `opts.autosaveSubscribe(schedulePersist)` — **last**, so initialization does not re-store what it
@@ -71,11 +74,21 @@ Category filtering is shared with link import: `SimSettingCategories`, and
 `LINK_DEFAULT_CATEGORIES` in `sim_links.ts` is every category except `UISettings` (your show-flags
 and language do not travel through a shared link).
 
+The stat filters (`DatabaseFilters.statFilters`) belong to the viewer and never travel. The link
+and JSON exporters (`ui/features/import-export/exporters/link.ts`, `ui/features/import-export/exporters/json.ts`) strip them
+with `withoutStatFilters`, whatever the categories, and the JSON importer
+(`ui/features/import-export/importers/json.ts`) puts the viewer's back with
+`restoreViewerStatFilters` after `fromProto`, as the link import in step 3 does. The autosaved
+envelope keeps them.
+
 ## What is gated
 
-No suite pins the serialized shape: no test imports `serialization.ts`, so a persistence change
-that alters the envelope can pass every gate. Check it by hand — serialize a
-default page before and after the change and diff the two.
+No suite pins the serialized shape. Tests do run through `serialization.ts`: the
+`makeIndividualSim` fixture (`ui/testing/sim/individual_sim.ts`) wires `toProto` / `fromProto` to
+it, and the persistence, import-export and shared-build tests use that fixture. They check what a
+round trip keeps, not the envelope as a whole, so a persistence change that alters the envelope can
+still pass every gate. Check it by hand — serialize a default page before and after the change and
+diff the two.
 
 Two `Sim` round-tripping quirks will bite you here specifically:
 

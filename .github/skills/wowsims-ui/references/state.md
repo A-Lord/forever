@@ -153,12 +153,23 @@ Its reader is `useHideZeroRestore` (`ui/features/inputs/hooks/useHideZeroRestore
 replay before it zeroes a hidden input or restores a shown one. Both icon adapters call it:
 
 - `ConnectedIconPicker` (`ui/features/inputs/components/ConnectedIconPicker/ConnectedIconPicker.tsx`) passes the
-  zero through its `write`, so a two-state source stores the zeroed or restored value as a boolean.
+  zero through its `write`, so a two-state source stores the zeroed or restored value as a boolean,
+  and passes `restoreWhen` (`current => !Number(current)`), so the stored value comes back only onto
+  a zeroed source and a value set while hidden (a loaded build) is kept.
 - `ConnectedIconEnumPicker` (`ui/features/inputs/components/ConnectedIconEnumPicker/ConnectedIconEnumPicker.tsx`)
   passes `restoreWhen`, so the stored value comes back only while the source holds
   `zeroValue`, and `onSettled`, which sees the value the hide/restore step left and resets it to
   `zeroValue` when that option is itself hidden by its `showWhen`. A user pick calls `clearStored()`
   first, so a later show does not overwrite it.
+
+The icon, icon-enum and multi-icon input configs (`types.ts` beside each adapter) carry an optional
+`keptBy(modObject)`: while it holds, the swatch or trigger is dimmed with the `stat_filters.kept_tooltip`
+text, a selection the stat filter hides that stays offered because it is selected. The adapters derive
+`kept` in the render body, not inside a `useStoreSubscribe` read, and `ConnectedMultiIconPicker`
+(`ui/features/inputs/components/ConnectedMultiIconPicker/ConnectedMultiIconPicker.tsx`) reads its
+active input, `showWhen` and `keptBy` there too, subscribing only to re-render: the stat filter hands
+in a new config when its stats change, and a read cached in the snapshot would answer from the
+previous config until the next notification.
 
 `TextField` (`ui/ui-kit/TextField/TextField.tsx`) and its presets — `NumberField`, `StringField`,
 `NumberListField`, `SearchField` — hold an
