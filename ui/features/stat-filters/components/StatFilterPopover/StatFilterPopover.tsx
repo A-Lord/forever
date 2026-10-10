@@ -49,13 +49,13 @@ export const StatFilterList = ({
 
 	return (
 		<div className="flex min-h-0 flex-col gap-2">
-			{/* Scrolls on its own, so the buttons stay in view in a popup capped to the viewport. */}
+			{/* Scrolls on its own, so the buttons stay in view in a popup capped to the viewport. It spans the popup's padding, so its scrollbar runs along the popup's edge. */}
 			<Accordion
 				value={openGroups}
 				onValueChange={onOpenGroupsChange}
 				variant="divided"
 				density="compact"
-				className="min-h-0 overflow-y-auto"
+				className="-mx-2 min-h-0 overflow-y-auto px-2 [scrollbar-gutter:stable]"
 				testId={`${idPrefix}-groups`}>
 				{groups.map(group => (
 					<AccordionItem

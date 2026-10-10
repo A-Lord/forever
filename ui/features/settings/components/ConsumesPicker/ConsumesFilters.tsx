@@ -71,7 +71,7 @@ export const ConsumesFilters = () => {
 					<StatFilterList {...statFilter} idPrefix="consumes-filters-stats" />
 				</Tabs.Panel>
 				<Tabs.Panel value={MIN_LVL_TAB} id={MIN_LVL_TAB} className="flex min-h-0 flex-col gap-2">
-					<div className="grid min-h-0 grid-cols-2 gap-2 overflow-y-auto">
+					<div className="-mx-2 grid min-h-0 grid-cols-2 gap-2 overflow-y-auto px-2 [scrollbar-gutter:stable]">
 						{types.map(({ type, key, range }) => (
 							<NumberField
 								key={type}
