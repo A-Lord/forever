@@ -72,14 +72,26 @@ func newSlowProcSim(t *testing.T, weaponID int32, register func(SpellDataProc), 
 	if neck != nil {
 		items[proto.ItemSlot_ItemSlotNeck] = neck
 	}
-	sim := newTestCasterSim(items, nil)
-	caster := sim.Raid.Parties[0].Players[0].(*testCaster)
+	sim, caster := newWielderSim(items)
 	caster.AddStatsDynamic(sim, stats.Stats{stats.SpellHitPercent: 100})
 	return sim, caster, sim.Encounter.ActiveTargetUnits[0]
 }
 
+// A shaman wielding the test's weapons with auto attacks enabled, which a weapon proc's manager
+// measures the hands against, and its swings cancelled, so only the test's own swings land.
+func newWielderSim(items []*proto.ItemSpec) (*core.Simulation, *testCaster) {
+	sim := newTestCasterSimAgainst(items, nil, 1, func(player *proto.Player) { player.Spec = &proto.Player_EnhancementShaman{} })
+	caster := sim.Raid.Parties[0].Players[0].(*testCaster)
+	caster.AutoAttacks.CancelAutoSwing(sim)
+	return sim, caster
+}
+
 func landMainHandSwing(sim *core.Simulation, caster *testCaster, target *core.Unit) {
-	caster.OnSpellHitDealt(sim, &core.Spell{ProcMask: core.ProcMaskMeleeMHAuto},
+	landSwing(sim, caster, target, core.ProcMaskMeleeMHAuto)
+}
+
+func landSwing(sim *core.Simulation, caster *testCaster, target *core.Unit, hand core.ProcMask) {
+	caster.OnSpellHitDealt(sim, &core.Spell{ProcMask: hand},
 		&core.SpellResult{Target: target, Outcome: core.OutcomeHit, Damage: 100})
 }
 
@@ -246,7 +258,7 @@ func TestAnnihilatorBidsBesideTheRaidsArmorShatter(t *testing.T) {
 					Class:     proto.Class_ClassShaman,
 					Race:      proto.Race_RaceTroll,
 					Buffs:     &proto.IndividualBuffs{},
-					Spec:      &proto.Player_ElementalShaman{},
+					Spec:      &proto.Player_EnhancementShaman{},
 					Equipment: &proto.EquipmentSpec{Items: testHands(&proto.ItemSpec{Id: weaponID}, &proto.ItemSpec{})},
 				}},
 				Buffs: &proto.PartyBuffs{},
@@ -260,6 +272,7 @@ func TestAnnihilatorBidsBesideTheRaidsArmorShatter(t *testing.T) {
 	}, simsignals.CreateSignals())
 	sim.Reset()
 	caster := sim.Raid.Parties[0].Players[0].(*testCaster)
+	caster.AutoAttacks.CancelAutoSwing(sim)
 	target := sim.Encounter.ActiveTargetUnits[0]
 
 	row := spelldata.MustFind(armorShatter)

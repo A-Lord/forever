@@ -181,10 +181,10 @@ dps_results: {
 dps_results: {
  key: "TestFeralBear-AllItems-BloodTalon-12795"
  value: {
-  dps: 380.30484
-  tps: 594.1976
-  dtps: 379.00622
-  hps: 52.37047
+  dps: 387.00274
+  tps: 604.43887
+  dtps: 378.52865
+  hps: 52.20796
  }
 }
 dps_results: {

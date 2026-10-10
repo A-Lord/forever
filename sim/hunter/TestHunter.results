@@ -191,16 +191,16 @@ dps_results: {
 dps_results: {
  key: "TestHunter-AllItems-BloodTalon-12795"
  value: {
-  dps: 583.73159
-  tps: 421.29871
+  dps: 582.92846
+  tps: 420.73652
   dtps: 3.71435
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-BowofSearingArrows-2825"
  value: {
-  dps: 700.35696
-  tps: 506.69856
+  dps: 700.55174
+  tps: 506.8349
   dtps: 7.48435
  }
 }

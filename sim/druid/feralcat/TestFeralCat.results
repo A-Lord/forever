@@ -111,8 +111,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-AllItems-BloodTalon-12795"
  value: {
-  dps: 545.75074
-  tps: 297.16274
+  dps: 547.12108
+  tps: 297.85126
  }
 }
 dps_results: {
