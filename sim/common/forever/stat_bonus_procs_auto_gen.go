@@ -2749,6 +2749,8 @@ func RegisterAllProcs() {
 	// https://www.wowhead.com/forever/spell=13496
 	// Not simulated: Girdle of the Blindwatcher: "Stealth Detection 05" (1292149) - ignored aura type 17
 	// https://www.wowhead.com/forever/spell=1292149
+	// Not simulated: Medal of Courage: "Resist Fear 02" (1324578) - ignored aura type 117
+	// https://www.wowhead.com/forever/spell=1324578
 	// Not simulated: Mask of Thero-shan: "Stealth 06" (17746) - ignored aura type 154
 	// https://www.wowhead.com/forever/spell=17746
 	// Not simulated: Nightscape Boots: "Stealth 06" (17746) - ignored aura type 154

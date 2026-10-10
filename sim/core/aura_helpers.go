@@ -70,6 +70,7 @@ type ProcTrigger struct {
 	// (SpellItemEnchantment.Effect 1, e.g. Mongoose, Crusader, poisons, imbues).
 	// The game casts these off every melee or ranged hit that lacks SpellFlagSuppressWeaponProcs,
 	// whether or not that hit was itself a proc, so SpellFlagProc and CanProcFromProcs are ignored.
+	// A weapon proc's own strike is such a hit, unless an off-hand hit cast it.
 	// Which hand's hits qualify is still the DPM's or ProcMask's job.
 	IsWeaponProc bool
 }
@@ -77,7 +78,7 @@ type ProcTrigger struct {
 // The game's rule for whether a hit may reach a listener at all, before the proc flags are
 // matched. Weapon procs (Player::CastItemCombatSpell) hear only melee and ranged hits, and of those
 // skip the spells with Suppress Weapon Procs; a hit with no melee or ranged mask, such as the damage
-// an item proc deals, never casts them. Aura procs (Aura::IsProcTriggeredOnEvent) skip triggered
+// of a magic item proc, never casts them. Aura procs (Aura::IsProcTriggeredOnEvent) skip triggered
 // spells that lack Not a Proc, unless the listener carries Can Proc From Procs. Auto attacks, extra
 // attacks included, carry neither flag and so are always eligible.
 func (config *ProcTrigger) canProcFrom(spell *Spell) bool {

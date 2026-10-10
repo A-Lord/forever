@@ -19,6 +19,7 @@ type APLValueAuraIsActive struct {
 	aura                AuraReference
 	reactionTime        time.Duration
 	includeReactionTime bool
+	ownSpells           []*Spell // The player's APL spells that apply the aura: the same id, or the aura as their RelatedSelfBuff.
 }
 
 func (rot *APLRotation) newValueAuraIsActive(config *proto.APLValueAuraIsActive, _ *proto.UUID) APLValue {
@@ -29,10 +30,18 @@ func (rot *APLRotation) newValueAuraIsActive(config *proto.APLValueAuraIsActive,
 	if aura.Get() == nil {
 		return nil
 	}
+	actionID := ProtoToActionID(config.AuraId)
+	var ownSpells []*Spell
+	for _, spell := range rot.unit.Spellbook {
+		if spell.Flags.Matches(SpellFlagAPL) && (spell.ActionID.SameAction(actionID) || (spell.RelatedSelfBuff != nil && spell.RelatedSelfBuff.ActionID.SameAction(actionID))) {
+			ownSpells = append(ownSpells, spell)
+		}
+	}
 	return &APLValueAuraIsActive{
 		aura:                aura,
 		reactionTime:        rot.unit.ReactionTime,
 		includeReactionTime: config.IncludeReactionTime,
+		ownSpells:           ownSpells,
 	}
 }
 func (value *APLValueAuraIsActive) Type() proto.APLValueType {
@@ -40,10 +49,26 @@ func (value *APLValueAuraIsActive) Type() proto.APLValueType {
 }
 func (value *APLValueAuraIsActive) GetBool(sim *Simulation) bool {
 	aura := value.aura.Get()
-	if value.includeReactionTime {
-		return aura.IsActive() && aura.TimeActive(sim) >= value.reactionTime
+	if !value.includeReactionTime || aura == nil {
+		return aura.IsActive()
 	}
-	return aura.IsActive()
+	// The player knows at once that an aura their own cast put up is there, and reacts only to it running out;
+	// any other aura, such as a proc, takes the reaction time to notice as it lands.
+	if value.castByPlayer(aura) {
+		return aura.IsActive() || (aura.expired && aura.TimeInactive(sim) < value.reactionTime)
+	}
+	return aura.IsActive() && aura.TimeActive(sim) >= value.reactionTime
+}
+
+// Whether one of the player's spells was cast as the aura landed or while it was up. A proc sharing a spell's id,
+// such as the Revenge window, starts before that spell is cast, so it stays a proc.
+func (value *APLValueAuraIsActive) castByPlayer(aura *Aura) bool {
+	for _, spell := range value.ownSpells {
+		if spell.lastAppliedAt >= aura.startTime {
+			return true
+		}
+	}
+	return false
 }
 func (value *APLValueAuraIsActive) String() string {
 	return fmt.Sprintf("Aura Active(%s)", value.aura.String())
