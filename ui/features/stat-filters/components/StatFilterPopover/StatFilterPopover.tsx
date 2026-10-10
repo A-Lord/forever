@@ -7,7 +7,7 @@ import { Icon } from '@ui-kit/Icon';
 import { Popover } from '@ui-kit/Popover';
 import { type ReactNode, useMemo } from 'react';
 
-import { STAT_GROUPS, type StatGroupKey, statGroupOf } from '../../model/stat_groups';
+import { FILTER_GROUPS, type FilterGroupKey, statGroupOf } from '../../model/stat_groups';
 
 export interface StatFilterPopoverProps {
 	universe: ReadonlyArray<UnitStat>;
@@ -21,10 +21,10 @@ export interface StatFilterPopoverProps {
 	testId: string;
 }
 
-const GROUP_KEYS: ReadonlyArray<StatGroupKey | 'other'> = [...STAT_GROUPS.map(group => group.key), 'other'];
+const GROUP_KEYS: ReadonlyArray<FilterGroupKey | 'other'> = [...FILTER_GROUPS.map(group => group.key), 'other'];
 
-const groupLabel = (key: StatGroupKey | 'other') =>
-	key === 'primary' || key === 'other' ? i18n.t(`stat_filters.groups.${key}`) : i18n.t(`sidebar.character_stats.groups.${key}`);
+const groupLabel = (key: FilterGroupKey | 'other') =>
+	key === 'primary' || key === 'ratings' || key === 'other' ? i18n.t(`stat_filters.groups.${key}`) : i18n.t(`sidebar.character_stats.groups.${key}`);
 
 /** The popover's body without its trigger, for a popover that holds other filters as well. */
 export const StatFilterList = ({

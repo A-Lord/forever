@@ -83,6 +83,28 @@ export const STAT_GROUPS: ReadonlyArray<{ key: StatGroupKey; stats: ReadonlyArra
 	},
 ];
 
-const groupByKey = new Map(STAT_GROUPS.flatMap(({ key, stats }) => stats.map(stat => [stat.getKey(), key] as const)));
+export type FilterGroupKey = StatGroupKey | 'ratings';
 
-export const statGroupOf = (stat: UnitStat): StatGroupKey | 'other' => groupByKey.get(stat.getKey()) ?? 'other';
+/** The groups the stat filter popovers sort stats into: the character stats groups, then ratings and weapon DPS, which the panel has no rows for. */
+export const FILTER_GROUPS: ReadonlyArray<{ key: FilterGroupKey; stats: ReadonlyArray<UnitStat> }> = [
+	...STAT_GROUPS,
+	{
+		key: 'ratings',
+		stats: [
+			UnitStat.fromStat(Stat.StatHitRating),
+			UnitStat.fromStat(Stat.StatCritRating),
+			UnitStat.fromStat(Stat.StatHasteRating),
+			UnitStat.fromStat(Stat.StatExpertiseRating),
+			UnitStat.fromStat(Stat.StatDodgeRating),
+			UnitStat.fromStat(Stat.StatParryRating),
+			UnitStat.fromStat(Stat.StatBlockRating),
+			UnitStat.fromPseudoStat(PseudoStat.PseudoStatMainHandDps),
+			UnitStat.fromPseudoStat(PseudoStat.PseudoStatOffHandDps),
+			UnitStat.fromPseudoStat(PseudoStat.PseudoStatRangedDps),
+		],
+	},
+];
+
+const groupByKey = new Map(FILTER_GROUPS.flatMap(({ key, stats }) => stats.map(stat => [stat.getKey(), key] as const)));
+
+export const statGroupOf = (stat: UnitStat): FilterGroupKey | 'other' => groupByKey.get(stat.getKey()) ?? 'other';

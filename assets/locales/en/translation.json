@@ -2679,6 +2679,7 @@
 		"all": "All",
 		"groups": {
 			"primary": "Primary",
+			"ratings": "Ratings",
 			"other": "Other"
 		},
 		"kept_tooltip": "Shown because it is selected; the stat filter hides its stats."

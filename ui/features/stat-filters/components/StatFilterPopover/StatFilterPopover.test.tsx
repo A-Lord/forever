@@ -1,7 +1,7 @@
 import { Class, PseudoStat, Stat } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { UnitStat } from '@sim/proto/stats';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { StatFilterList, StatFilterPopover } from './StatFilterPopover';
@@ -11,8 +11,10 @@ const strength = UnitStat.fromStat(Stat.StatStrength);
 const agility = UnitStat.fromStat(Stat.StatAgility);
 const meleeHit = UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeHitPercent);
 const hitRating = UnitStat.fromStat(Stat.StatHitRating);
+const mainHandDps = UnitStat.fromPseudoStat(PseudoStat.PseudoStatMainHandDps);
+const physicalDamage = UnitStat.fromStat(Stat.StatPhysicalDamage);
 
-const universe = [health, strength, agility, meleeHit, hitRating];
+const universe = [health, strength, agility, meleeHit, hitRating, mainHandDps, physicalDamage];
 
 const mountList = (props: { shown?: UnitStat[]; customised?: boolean; universe?: UnitStat[] } = {}) => {
 	const onChange = vi.fn();
@@ -42,8 +44,24 @@ describe('StatFilterList', () => {
 			i18n.t('stat_filters.groups.primary'),
 			i18n.t('sidebar.character_stats.groups.attributes'),
 			i18n.t('sidebar.character_stats.groups.physical'),
+			i18n.t('stat_filters.groups.ratings'),
 			i18n.t('stat_filters.groups.other'),
 		]);
+	});
+
+	it('puts ratings and weapon DPS under Ratings', () => {
+		mountList();
+
+		const ratings = screen.getByRole('heading', { name: i18n.t('stat_filters.groups.ratings') }).closest('section')!;
+		expect(within(ratings).getByRole('checkbox', { name: hitRating.getShortName(Class.ClassWarrior) })).toBeTruthy();
+		expect(within(ratings).getByRole('checkbox', { name: mainHandDps.getShortName(Class.ClassWarrior) })).toBeTruthy();
+		expect(within(ratings).getAllByRole('checkbox')).toHaveLength(2);
+	});
+
+	it('leaves Ratings out when the universe has no rating or weapon DPS', () => {
+		mountList({ universe: [health, strength, physicalDamage] });
+
+		expect(screen.queryByRole('heading', { name: i18n.t('stat_filters.groups.ratings') })).toBeNull();
 	});
 
 	it('checks the shown stats only', () => {

@@ -9465,12 +9465,15 @@
 						"primary": {
 							"type": "string"
 						},
+						"ratings": {
+							"type": "string"
+						},
 						"other": {
 							"type": "string"
 						}
 					},
 					"additionalProperties": false,
-					"required": ["primary", "other"]
+					"required": ["primary", "ratings", "other"]
 				},
 				"kept_tooltip": {
 					"type": "string"
