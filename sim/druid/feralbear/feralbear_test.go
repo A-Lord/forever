@@ -3,7 +3,6 @@ package feralbear
 import (
 	"google.golang.org/protobuf/encoding/protojson"
 	"os"
-	"slices"
 	"testing"
 
 	"github.com/wowsims/forever/sim/common"
@@ -17,17 +16,101 @@ func init() {
 }
 
 func TestFeralBear(t *testing.T) {
-	generators := core.FullCharacterTestSuiteGenerator([]core.CharacterSuiteConfig{starterConfig()})
+	generators := core.FullCharacterTestSuiteGenerator([]core.CharacterSuiteConfig{
+		{
+			Class:      proto.Class_ClassDruid,
+			Race:       proto.Race_RaceNightElf,
+			OtherRaces: []proto.Race{proto.Race_RaceTauren},
+
+			GearSet: core.GetGearSet("../../../ui/specs/druid/feralbear/gear_sets", "default"),
+
+			Talents: DefaultTalents,
+			OtherTalentSets: []core.TalentsCombo{
+				{Label: "Hybrid", Talents: HybridTalents},
+			},
+
+			SpecOptions: core.SpecOptionsCombo{Label: "Standard", SpecOptions: DefaultSpecOptions},
+			OtherSpecOptions: []core.SpecOptionsCombo{
+				{Label: "BleedAssumed", SpecOptions: &proto.Player_FeralBearDruid{FeralBearDruid: &proto.FeralBearDruid{
+					Options: &proto.FeralBearDruid_Options{StartingRage: 25, AssumeBleedActive: true},
+				}}},
+			},
+
+			Rotation: core.GetAplRotation("../../../ui/specs/druid/feralbear/apls", "default"),
+
+			Consumables: DefaultConsumables,
+
+			Profession1: proto.Profession_Engineering,
+			Profession2: proto.Profession_Enchanting,
+
+			IndividualBuffs: core.FullTankIndividualBuffs,
+
+			IsTank:          true,
+			InFrontOfTarget: true,
+
+			ItemFilter: core.ItemFilter{
+				ArmorType: proto.ArmorType_ArmorTypeLeather,
+				WeaponTypes: []proto.WeaponType{
+					proto.WeaponType_WeaponTypeDagger,
+					proto.WeaponType_WeaponTypeFist,
+					proto.WeaponType_WeaponTypeMace,
+					proto.WeaponType_WeaponTypeStaff,
+				},
+				RangedWeaponTypes: []proto.RangedWeaponType{
+					proto.RangedWeaponType_RangedWeaponTypeIdol,
+				},
+			},
+
+			EPReferenceStat: proto.Stat_StatAgility,
+			StatsToWeigh: []proto.Stat{
+				proto.Stat_StatHealth,
+				proto.Stat_StatStamina,
+				proto.Stat_StatAgility,
+				proto.Stat_StatStrength,
+				proto.Stat_StatAttackPower,
+				proto.Stat_StatArmor,
+				proto.Stat_StatBonusArmor,
+				proto.Stat_StatDodgeRating,
+				proto.Stat_StatDefenseRating,
+				proto.Stat_StatHitRating,
+				proto.Stat_StatExpertiseRating,
+			},
+		},
+	})
 	generators = append(generators, &core.SingleDpsTestGenerator{Name: "StarterCasts", Request: starterRequest(t)})
 	core.RunTestSuite(t, t.Name(), generators)
 }
 
-func BenchmarkSimulate(b *testing.B) { core.CharacterBenchmark(b, starterConfig()) }
+func BenchmarkSimulate(b *testing.B) {
+	rsr := &proto.RaidSimRequest{
+		Raid: core.SinglePlayerRaidProto(
+			&proto.Player{
+				Class:         proto.Class_ClassDruid,
+				Race:          proto.Race_RaceNightElf,
+				TalentsString: DefaultTalents,
+				Equipment:     core.GetGearSet("../../../ui/specs/druid/feralbear/gear_sets", "default").GearSet,
+				Consumables:   DefaultConsumables,
+				Spec:          DefaultSpecOptions,
+				Rotation:      core.GetAplRotation("../../../ui/specs/druid/feralbear/apls", "default").Rotation,
+			},
+			nil, nil, nil,
+		),
+		Encounter: &proto.Encounter{
+			Duration: 300,
+			Targets:  []*proto.Target{core.NewDefaultTarget()},
+		},
+		SimOptions: core.AverageDefaultSimTestOptions,
+	}
+
+	core.RaidBenchmark(b, rsr)
+}
 
 // The bear UI default. Balance 9 is for Nature's Reach (melee hit) and Nature's Majesty (melee crit).
 // Feral Instinct raises only Swipe, which a single target never sees.
 const DefaultTalents = "0500220000000000-55200322120132012551-0000000000000000"
-const DemoRoarTalents = DefaultTalents
+
+// The bear UI's Hybrid preset (presets.ts HybridTalents).
+const HybridTalents = "0500220000000000-35230332121132212051-0000000000000000"
 
 var DefaultSpecOptions = &proto.Player_FeralBearDruid{
 	FeralBearDruid: &proto.FeralBearDruid{
@@ -44,25 +127,6 @@ var DefaultConsumables = &proto.ConsumesSpec{
 	ConjuredId: 9421,                 // Major Healthstone
 	// Goblin Sapper Charge, Scroll of Agility IV, Scroll of Strength IV, Scroll of Protection IV
 	ExtraIds: []int32{10646, 10309, 10310, 10305},
-}
-
-func starterConfig() core.CharacterSuiteConfig {
-	reference := proto.Stat_StatAttackPower
-	weigh := []proto.Stat{proto.Stat_StatStrength, proto.Stat_StatAgility, proto.Stat_StatStamina}
-	config := core.GetTestBuildFromJSON(
-		proto.Class_ClassDruid, "../../../ui/specs/druid/feralbear/builds", "starter",
-		core.ItemFilter{
-			ArmorType: proto.ArmorType_ArmorTypeLeather,
-			WeaponTypes: []proto.WeaponType{
-				proto.WeaponType_WeaponTypeDagger, proto.WeaponType_WeaponTypeFist,
-				proto.WeaponType_WeaponTypeMace, proto.WeaponType_WeaponTypeStaff,
-			},
-			RangedWeaponTypes: []proto.RangedWeaponType{proto.RangedWeaponType_RangedWeaponTypeIdol},
-		}, &reference, &weigh,
-	)
-	config.OtherRaces = []proto.Race{proto.Race_RaceTauren}
-	config.Rotation = core.GetAplRotation("../../../ui/specs/druid/feralbear/apls", "default")
-	return config
 }
 
 func starterRequest(t testing.TB) *proto.RaidSimRequest {
@@ -89,12 +153,6 @@ func TestFeralBearStarterCasts(t *testing.T) {
 	for _, race := range []proto.Race{proto.Race_RaceNightElf, proto.Race_RaceTauren} {
 		t.Run(race.String(), func(t *testing.T) {
 			request.Raid.Parties[0].Players[0].Race = race
-			if race != proto.Race_RaceNightElf {
-				player := request.Raid.Parties[0].Players[0]
-				player.Rotation.PriorityList = slices.DeleteFunc(player.Rotation.PriorityList, func(item *proto.APLListItem) bool {
-					return item.Action.GetCastSpell().GetSpellId().GetSpellId() == 1259799
-				})
-			}
 			stats := core.ComputeStats(&proto.ComputeStatsRequest{Raid: request.Raid})
 			for _, action := range stats.RaidStats.Parties[0].Players[0].RotationStats.PriorityList {
 				for _, validation := range action.Validations {

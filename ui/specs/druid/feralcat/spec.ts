@@ -124,6 +124,7 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 			OtherInputs.InFrontOfTarget,
 			FeralInputs.CannotShredTarget,
 			FeralInputs.AssumeBleedActive,
+			FeralInputs.PrepullClearcasting,
 		],
 	},
 	itemSwapSlots: [ItemSlot.ItemSlotMainHand, ItemSlot.ItemSlotOffHand, ItemSlot.ItemSlotTrinket1, ItemSlot.ItemSlotTrinket2],
@@ -138,6 +139,7 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 		talents: [Presets.CatTalents, Presets.BearweaveTalents, Presets.ManaEfficientTalents, Presets.HybridTalents],
 		rotations: [
 			Presets.MONOCAT_APL,
+			Presets.SHADOWMELD_APL,
 			Presets.RAVAGE_APL,
 			Presets.POUNCE_APL,
 			Presets.BEARWEAVE_APL,

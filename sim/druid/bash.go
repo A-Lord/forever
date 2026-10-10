@@ -12,7 +12,6 @@ func (druid *Druid) registerBashSpell() {
 		return target.RegisterAura(spelldata.AuraConfig(rank, spelldata.Label(rank.Name)))
 	})
 	config := spelldata.SpellConfig(&druid.Unit, rank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
-	config.Flags |= core.SpellFlagAPL
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		result := spell.CalcAndDealOutcome(sim, target, spell.OutcomeMeleeSpecialHit)
 		if result.Landed() {

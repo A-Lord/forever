@@ -11,6 +11,12 @@ export const CannotShredTarget = InputHelpers.makeSpecOptionsBooleanInput<Spec.S
 	labelTooltip: i18n.t('settings_tab.other.cannot_shred_target.tooltip'),
 });
 
+export const PrepullClearcasting = InputHelpers.makeSpecOptionsBooleanInput<Spec.SpecFeralCatDruid>({
+	fieldName: 'prepullClearcasting',
+	label: i18n.t('settings_tab.other.prepull_clearcasting.label'),
+	labelTooltip: i18n.t('settings_tab.other.prepull_clearcasting.tooltip'),
+});
+
 export const AssumeBleedActive = InputHelpers.makeSpecOptionsBooleanInput<Spec.SpecFeralCatDruid>({
 	fieldName: 'assumeBleedActive',
 	label: i18n.t('settings_tab.other.assume_bleed_active.label'),

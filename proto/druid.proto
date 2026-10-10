@@ -91,6 +91,8 @@ message FeralCatDruid {
     bool cannot_shred_target = 2;
     // Rend and Tear treats the target as bleeding whatever the druid's own bleeds.
     bool assume_bleed_active = 3;
+    // Clearcasting is up at the pull, fished for out of combat with spells before it.
+    bool prepull_clearcasting = 4;
   }
   Options options = 3;
 }

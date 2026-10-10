@@ -4,8 +4,8 @@ package feralcat
 
 import (
 	"fmt"
-
 	"math"
+	"strings"
 	"testing"
 	"time"
 
@@ -231,6 +231,70 @@ func TestCowerAndFaerieFireEndProwl(t *testing.T) {
 			}
 			if mh, _, _ := cat.AutoAttacks.SwingAt(); mh != 3*time.Second {
 				t.Errorf("main-hand swing after %s at %v, want 3s", spell.name, mh)
+			}
+		})
+	}
+}
+
+func TestFaerieFireFormCooldown(t *testing.T) {
+	for _, form := range []string{"Cat", "Bear"} {
+		t.Run(form, func(t *testing.T) {
+			sim, cat := newCat(t, furorTalents, nil)
+			fillResource(sim, cat)
+			shift, aura := cat.CatForm, cat.CatFormAura
+			if form == "Bear" {
+				shift, aura = cat.BearForm, cat.BearFormAura
+				cat.CatFormAura.Deactivate(sim)
+				if !shift.Cast(sim, cat.CurrentTarget) {
+					t.Fatal("initial form cast failed")
+				}
+				sim.CurrentTime = cat.GCD.ReadyAt()
+			}
+			if !cat.FaerieFire.Cast(sim, cat.CurrentTarget) {
+				t.Fatal("in-form Faerie Fire cast failed")
+			}
+			expires := sim.CurrentTime + 6*time.Second
+			if got := cat.FaerieFire.CD.ReadyAt(); got != expires {
+				t.Fatalf("cooldown expires at %v, want %v", got, expires)
+			}
+			sim.CurrentTime = cat.GCD.ReadyAt()
+			if cat.FaerieFire.CanCast(sim, cat.CurrentTarget) {
+				t.Fatal("Faerie Fire available in form before its cooldown expires")
+			}
+			aura.Deactivate(sim)
+			if cat.FaerieFire.CD.Duration != 0 {
+				t.Fatalf("humanoid cooldown duration = %v, want 0", cat.FaerieFire.CD.Duration)
+			}
+			if got := cat.FaerieFire.CD.ReadyAt(); got != expires {
+				t.Fatalf("leaving form changed the cooldown expiry to %v, want %v", got, expires)
+			}
+			if cat.FaerieFire.CanCast(sim, cat.CurrentTarget) {
+				t.Fatal("leaving form cleared the active Faerie Fire cooldown")
+			}
+			sim.CurrentTime = expires
+			for cast := 0; cast < 2; cast++ {
+				fillResource(sim, cat)
+				if !cat.FaerieFire.Cast(sim, cat.CurrentTarget) {
+					t.Fatalf("humanoid Faerie Fire cast %d failed", cast+1)
+				}
+				if !cat.FaerieFire.CD.IsReady(sim) {
+					t.Fatal("humanoid Faerie Fire started a cooldown")
+				}
+				sim.CurrentTime = cat.GCD.ReadyAt()
+			}
+			fillResource(sim, cat)
+			if !shift.Cast(sim, cat.CurrentTarget) {
+				t.Fatal("return to form failed")
+			}
+			if !cat.FaerieFire.CD.IsReady(sim) {
+				t.Fatal("entering form added a cooldown to the humanoid cast")
+			}
+			sim.CurrentTime = cat.GCD.ReadyAt()
+			if !cat.FaerieFire.Cast(sim, cat.CurrentTarget) {
+				t.Fatal("Faerie Fire unavailable after entering form and waiting for the GCD")
+			}
+			if got := cat.FaerieFire.CD.TimeToReady(sim); got != 6*time.Second {
+				t.Fatalf("new in-form cooldown = %v, want 6s", got)
 			}
 		})
 	}
@@ -560,6 +624,49 @@ func resetCooldown(spell *core.Spell) {
 	}
 }
 
+// Shadowmeld 20580 lets a Night Elf Ravage in combat; the Ravage ends it, and in combat its cooldown is
+// 2 minutes.
+func TestShadowmeldAllowsRavageInCombat(t *testing.T) {
+	sim, cat := newCat(t, "", nil)
+	sim.CurrentTime = 10 * time.Second
+	fillResource(sim, cat)
+	if cat.Ravage.CanCast(sim, cat.CurrentTarget) {
+		t.Fatal("ravage could be cast without stealth")
+	}
+	if !cat.Shadowmeld.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("shadowmeld did not cast in combat")
+	}
+	if !cat.Ravage.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("ravage did not cast from shadowmeld")
+	}
+	if cat.ShadowmeldAura.IsActive() {
+		t.Error("ravage left the druid in shadowmeld")
+	}
+	if got := cat.Shadowmeld.ReadyAt() - sim.CurrentTime; got != 2*time.Minute {
+		t.Errorf("shadowmeld is ready in %v, want 2m", got)
+	}
+}
+
+// With Clearcasting at the Pull, the cat starts the fight with Clearcasting up.
+func TestPrepullClearcastingStartsTheFightClearcasting(t *testing.T) {
+	for _, on := range []bool{false, true} {
+		req := sweepRequest(catTalents, catAPL(bestCatAPL), false, 1)
+		req.SimOptions.Debug = true
+		req.Raid.Parties[0].Players[0].GetFeralCatDruid().Options.PrepullClearcasting = on
+		result := core.RunSim(req, nil, simsignals.CreateSignals())
+		if result.Error != nil {
+			t.Fatal(result.Error.Message)
+		}
+		got := false
+		for _, line := range strings.Split(result.Logs, "\n") {
+			got = got || strings.HasPrefix(line, "[-1.50]") && strings.Contains(line, "Aura gained: {SpellID: 16870}")
+		}
+		if got != on {
+			t.Errorf("option %v: Clearcasting gained before the pull = %v", on, got)
+		}
+	}
+}
+
 func TestFeralFormsUseFeralSkillAndRestoreEquippedSkill(t *testing.T) {
 	sim, cat := newCatWearing(t, "", nil, map[proto.ItemSlot]int32{proto.ItemSlot_ItemSlotMainHand: 866})
 	cat.ClearForm(sim)
@@ -838,7 +945,6 @@ func TestClearcastingIsSpentByACoveredCatAbility(t *testing.T) {
 	prepareFeralDamageCase(sim, cat)
 	cat.AutoAttacks.CancelAutoSwing(sim)
 	cat.ClearcastingAura.Activate(sim)
-	cat.ClearcastingAura.SetStacks(sim, cat.ClearcastingAura.MaxStacks)
 
 	// When Rake casts, then its covered class flags make the cast free and consume the charge.
 	if !cat.Rake.Cast(sim, cat.CurrentTarget) {

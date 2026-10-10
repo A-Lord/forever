@@ -55,6 +55,7 @@ type Druid struct {
 	PounceBleed          *DruidSpell
 	PrimalBite           *DruidSpell
 	Prowl                *DruidSpell
+	Shadowmeld           *DruidSpell
 	Rake                 *DruidSpell
 	Ravage               *DruidSpell
 	Rejuvenation         *DruidSpell
@@ -83,6 +84,7 @@ type Druid struct {
 	FaerieFireAuras          core.AuraArray
 	MoonkinFormAura          *core.Aura
 	ProwlAura                *core.Aura
+	ShadowmeldAura           *core.Aura
 
 	form DruidForm
 
@@ -179,6 +181,7 @@ func (druid *Druid) registerFeralKit() {
 	druid.registerRavageSpell()
 	druid.registerRakeSpell()
 	druid.registerProwlSpell()
+	druid.registerShadowmeld()
 	druid.registerPounceSpell()
 	druid.registerRipSpell()
 	druid.registerFerociousBiteSpell()

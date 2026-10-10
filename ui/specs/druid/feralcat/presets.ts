@@ -11,6 +11,7 @@ import DefaultApl from './apls/default.apl.json';
 import PounceApl from './apls/pounce.apl.json';
 import RaidFourCpApl from './apls/raid-rip4.apl.json';
 import RavageApl from './apls/ravage.apl.json';
+import ShadowmeldApl from './apls/shadowmeld.apl.json';
 import StarterApl from './apls/starter.apl.json';
 import RaidBuild from './builds/raid.build.json';
 import RaidDpsBuild from './builds/raid-dps.build.json';
@@ -53,37 +54,38 @@ export const PreRaidGear = PresetUtils.makePresetGear('Pre-raid', PreRaidGearJso
 	tooltip: 'Pre-raid leather with The Unstoppable Force, Wolfshead Helm and full enchants.',
 });
 
-// EP with agility as 1, on the Level 60 preset, 50000 iterations.
-// Feral attack power uses the attack-power reference weight while in form. Armor penetration is 0 because
-// Sunder, Expose and Faerie Fire already remove the target's armor.
+// EP with agility as 1, on the Level 60 preset with the Monocat talents and APL, the default buffs,
+// debuffs and consumables, 180s, 200000 iterations. Hit is weighed 2% below the 8% cap, as on the
+// Pre-raid EP. Feral attack power is weighed separately.
 export const Level60Ep = Stats.fromMap({
-	[Stat.StatStrength]: 1.0102,
+	[Stat.StatStrength]: 0.97,
 	[Stat.StatAgility]: 1,
-	[Stat.StatAttackPower]: 0.4041,
-	[Stat.StatFeralAttackPower]: 0.4041,
-	[Stat.StatPhysicalDamage]: 3.9557,
-	[Stat.StatHitRating]: 0.2046,
-	[Stat.StatExpertiseRating]: 0.6976,
-	[Stat.StatCritRating]: 0.7201,
-	[Stat.StatHasteRating]: 0.4679,
-	[Stat.StatArmorPenetration]: 0,
+	[Stat.StatAttackPower]: 0.41,
+	[Stat.StatFeralAttackPower]: 0.4,
+	[Stat.StatPhysicalDamage]: 3.74,
+	[Stat.StatHitRating]: 0.67,
+	[Stat.StatExpertiseRating]: 0.65,
+	[Stat.StatCritRating]: 0.73,
+	[Stat.StatHasteRating]: 0.4,
+	[Stat.StatArmorPenetration]: 0.12,
 });
 
 export const Level60EpWeights = PresetUtils.makePresetEpWeights('Level 60', Level60Ep);
 
-// EP with agility as 1, on the Pre-raid preset with the default buffs, debuffs and consumables, 180s.
-// Hit is weighed 2% below the 8% cap, where the gear picker reads it.
+// EP with agility as 1, on the Pre-raid preset with the Monocat talents and APL, the default buffs,
+// debuffs and consumables, 180s, 200000 iterations. Hit is weighed 2% below the 8% cap, where the gear
+// picker reads it.
 export const PreRaidEp = Stats.fromMap({
-	[Stat.StatStrength]: 0.98,
+	[Stat.StatStrength]: 0.96,
 	[Stat.StatAgility]: 1,
 	[Stat.StatAttackPower]: 0.39,
-	[Stat.StatFeralAttackPower]: 0.39,
-	[Stat.StatPhysicalDamage]: 3.73,
-	[Stat.StatHitRating]: 0.8,
-	[Stat.StatExpertiseRating]: 0.75,
-	[Stat.StatCritRating]: 0.74,
-	[Stat.StatHasteRating]: 0.73,
-	[Stat.StatArmorPenetration]: 0.14,
+	[Stat.StatFeralAttackPower]: 0.38,
+	[Stat.StatPhysicalDamage]: 3.55,
+	[Stat.StatHitRating]: 0.72,
+	[Stat.StatExpertiseRating]: 0.7,
+	[Stat.StatCritRating]: 0.75,
+	[Stat.StatHasteRating]: 0.45,
+	[Stat.StatArmorPenetration]: 0.13,
 });
 
 export const PreRaidEpWeights = PresetUtils.makePresetEpWeights('Pre-raid', PreRaidEp);
@@ -91,6 +93,8 @@ export const PreRaidEpWeights = PresetUtils.makePresetEpWeights('Pre-raid', PreR
 // The cat stays in Cat Form: Shifting Power, Rip, Rake and Shred, Faerie Fire for Omen of Clarity,
 // and a self-Innervate when mana would run short.
 export const MONOCAT_APL = PresetUtils.makePresetAPLRotation('Monocat', DefaultApl);
+// Monocat with Shadowmeld into Ravage on cooldown, for a Night Elf.
+export const SHADOWMELD_APL = PresetUtils.makePresetAPLRotation('Monocat, Shadowmeld Ravage (Night Elf)', ShadowmeldApl);
 export const RAVAGE_APL = PresetUtils.makePresetAPLRotation('Ravage opener', RavageApl);
 export const POUNCE_APL = PresetUtils.makePresetAPLRotation('Pounce opener', PounceApl);
 // Monocat with Dire Bear trips for Primal Bite and Maul, only on mana the Shifting Powers to the end

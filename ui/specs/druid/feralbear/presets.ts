@@ -30,54 +30,81 @@ export const Level60Gear = PresetUtils.makePresetGear('Level 60', Level60GearJso
 	tooltip: 'Leather at level 60 with no set bonus and no proc. The idol slot is empty: every idol has an effect.',
 });
 
-// A fixed 6000-damage target keeps the reference setup consistent.
+// The default raid target swings for 15113 before armor, which kills a level 60 bear on every pull.
 const level60Encounter = Encounter.defaultEncounterProto();
 level60Encounter.targets[0].minBaseDamage = 6000;
 export const Level60Encounter = {
 	...PresetUtils.makePresetEncounter('Level 60 boss', level60Encounter),
-	tooltip: 'A reference raid target hitting for 6000 before armor.',
+	tooltip: 'The raid target, hitting for 6000 before armor instead of 15113.',
 };
 
-// EP on the Level 60 preset, the APL preset and the Level 60 boss, 50000 requested iterations on the committed input cohort.
-// DPS has agility as 1. A bear's agility is crit, armor and dodge but no attack power, so strength
-// is worth more than one agility. Dodge and defense cost damage: fewer hits taken is less rage.
+// EP on the Level 60 preset, the APL preset and the Level 60 boss, with a raid bleed assumed, 200000
+// iterations. DPS and threat have agility as 1. A bear's agility is crit, armor and dodge but no attack
+// power, so strength is worth about two agility. Dodge costs damage: fewer hits taken is less rage.
+// Defense is close to 0, its Thick Hide armor against the hits it avoids. Stamina keeps the bear alive longer.
 export const Level60DpsEp = Stats.fromMap(
 	{
-		[Stat.StatStrength]: 2.0597,
+		[Stat.StatStrength]: 2.0515,
 		[Stat.StatAgility]: 1,
-		[Stat.StatStamina]: 0.0967,
-		[Stat.StatAttackPower]: 0.9362,
-		[Stat.StatFeralAttackPower]: 0.9362,
-		[Stat.StatArmor]: 0.0265,
-		[Stat.StatBonusArmor]: 0.0059,
-		[Stat.StatDodgeRating]: -0.1122,
-		[Stat.StatDefenseRating]: 0.0056,
-		[Stat.StatHitRating]: 3.622,
-		[Stat.StatCritRating]: 1.386,
-		[Stat.StatHasteRating]: 0.7935,
-		[Stat.StatExpertiseRating]: 7.0556,
-		[Stat.StatPhysicalDamage]: 6.0751,
-		[Stat.StatArmorPenetration]: 0.358,
+		[Stat.StatStamina]: 0.1078,
+		[Stat.StatAttackPower]: 0.9325,
+		[Stat.StatFeralAttackPower]: 0.9325,
+		[Stat.StatArmor]: 0.0256,
+		[Stat.StatBonusArmor]: 0.0256,
+		[Stat.StatDodgeRating]: -0.0977,
+		[Stat.StatDefenseRating]: 0.0116,
+		[Stat.StatHitRating]: 3.7276,
+		[Stat.StatCritRating]: 1.3703,
+		[Stat.StatHasteRating]: 0.833,
+		[Stat.StatExpertiseRating]: 7.0842,
+		[Stat.StatPhysicalDamage]: 5.9906,
+		[Stat.StatArmorPenetration]: 0.3567,
 	},
-	{ [PseudoStat.PseudoStatMainHandDps]: 13.107 },
+	{
+		[PseudoStat.PseudoStatMainHandDps]: 13.0551,
+	},
 );
 
-// Survival is TMI with stamina as 1. Signed model weights are retained; small values can be noisy.
+// Threat with agility as 1, on the same run.
+export const Level60ThreatEp = Stats.fromMap(
+	{
+		[Stat.StatStrength]: 1.9871,
+		[Stat.StatAgility]: 1,
+		[Stat.StatStamina]: 0.1059,
+		[Stat.StatAttackPower]: 0.9032,
+		[Stat.StatFeralAttackPower]: 0.9032,
+		[Stat.StatArmor]: 0.0251,
+		[Stat.StatBonusArmor]: 0.0251,
+		[Stat.StatDodgeRating]: -0.0987,
+		[Stat.StatDefenseRating]: -0.0077,
+		[Stat.StatHitRating]: 3.6537,
+		[Stat.StatCritRating]: 1.3716,
+		[Stat.StatHasteRating]: 0.8125,
+		[Stat.StatExpertiseRating]: 6.9184,
+		[Stat.StatPhysicalDamage]: 5.812,
+		[Stat.StatArmorPenetration]: 0.3455,
+	},
+	{
+		[PseudoStat.PseudoStatMainHandDps]: 12.6454,
+	},
+);
+
+// Survival is TMI with stamina as 1, as the EP dialog scales it for the bear. Hit, crit, haste and
+// physical damage moved TMI by less than 0.04, so they are 0. The bear forms scale item armor and bonus
+// armor alike, so the two weigh the same. Expertise is kept: fewer parries mean fewer parry-hasted boss
+// swings.
 export const Level60SurvivalEp = Stats.fromMap({
 	[Stat.StatStamina]: 1,
-	[Stat.StatHitRating]: -0.0034,
-	[Stat.StatHasteRating]: -0.0019,
-	[Stat.StatPhysicalDamage]: -0.0047,
-	[Stat.StatAgility]: 0.1967,
-	[Stat.StatArmor]: 0.1671,
-	[Stat.StatBonusArmor]: 0.0365,
-	[Stat.StatDodgeRating]: 0.1816,
+	[Stat.StatAgility]: 0.1946,
+	[Stat.StatArmor]: 0.1616,
+	[Stat.StatBonusArmor]: 0.1616,
+	[Stat.StatDodgeRating]: 0.1768,
 	[Stat.StatDefenseRating]: 0.8494,
-	[Stat.StatCritRating]: 0.0013,
-	[Stat.StatExpertiseRating]: 0.3424,
+	[Stat.StatExpertiseRating]: 0.3216,
 });
 
 export const Level60DpsEpWeights = PresetUtils.makePresetEpWeights('Level 60 DPS', Level60DpsEp);
+export const Level60ThreatEpWeights = PresetUtils.makePresetEpWeights('Level 60 Threat', Level60ThreatEp);
 export const Level60SurvivalEpWeights = PresetUtils.makePresetEpWeights('Level 60 Survival', Level60SurvivalEp);
 
 // Another raid member's bleed keeps Rend and Tear up.

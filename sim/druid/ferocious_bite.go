@@ -32,7 +32,3 @@ func (druid *Druid) registerFerociousBiteSpell() {
 	}
 	druid.FerociousBite = druid.RegisterSpell(config)
 }
-
-func (druid *Druid) CurrentFerociousBiteCost() float64 {
-	return druid.FerociousBite.Cost.GetCurrentCost()
-}

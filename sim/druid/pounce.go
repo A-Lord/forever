@@ -15,7 +15,11 @@ func (druid *Druid) registerPounceSpell() {
 	if druid.Talents.Genesis > 0 {
 		bleedConfig.DamageMultiplier *= 1 + spellData.Genesis.Rank(druid.Talents.Genesis).EffectN(1).Percent()
 	}
-	bleedConfig.Dot = spelldata.DotConfig(bleedRank, bleedRank.PeriodicDamageEffect(), bleedAuraOpt())
+	bleedTick := bleedRank.PeriodicDamageEffect()
+	bleedConfig.Dot = spelldata.DotConfig(bleedRank, bleedTick, bleedAuraOpt())
+	bleedConfig.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
+		dot.Spell.CalcAndDealPeriodicDamage(sim, target, bleedTick.Average()*druid.rendAndTearMultiplier(target), bleedRank.TickOutcome(dot))
+	}
 	druid.PounceBleed = druid.RegisterSpell(bleedConfig)
 
 	stuns := druid.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
@@ -23,9 +27,10 @@ func (druid *Druid) registerPounceSpell() {
 	})
 	config := spelldata.SpellConfig(&druid.Unit, rank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 	config.RelatedAuraArrays = stuns.ToMap()
-	// "Must be prowling and behind the target" is the tooltip's; the row states Cat Form only.
+	// The row's stealth requirement (ATTR_REQ_STEALTH) is not read by CastRequirement, so Prowl or
+	// Shadowmeld is checked here; "behind the target" is the tooltip's.
 	config.ExtraCastCondition = func(_ *core.Simulation, _ *core.Unit) bool {
-		return druid.ProwlAura != nil && druid.ProwlAura.IsActive() && druid.BehindTarget()
+		return druid.stealthed() && druid.BehindTarget()
 	}
 	// No Active Defense (Attributes 0x200000): it misses or lands, never dodged, parried or blocked.
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {

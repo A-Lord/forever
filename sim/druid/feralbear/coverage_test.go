@@ -58,7 +58,10 @@ func bearCoverageRequest() *proto.RaidSimRequest {
 						cast(22812),
 						castUnlessOnTarget(9907),
 						cast(417141),
-						sequence(768, 9634),
+						// Both shifts cost mana: shift out only with the mana to shift back.
+						withCondition(sequence(768, 9634), cmp(proto.APLValueCompare_OpGe,
+							&proto.APLValue{Value: &proto.APLValue_CurrentMana{CurrentMana: &proto.APLValueCurrentMana{}}},
+							mathOp(proto.APLValueMath_OpAdd, spellCost(768), spellCost(9634)))),
 					},
 				},
 			}},
@@ -66,6 +69,11 @@ func bearCoverageRequest() *proto.RaidSimRequest {
 		}}},
 		Encounter: &proto.Encounter{Targets: []*proto.Target{{Name: "target", Level: 63}}, Duration: 180},
 	}
+}
+
+func withCondition(item *proto.APLListItem, condition *proto.APLValue) *proto.APLListItem {
+	item.Action.Condition = condition
+	return item
 }
 
 func cast(id int32) *proto.APLListItem {

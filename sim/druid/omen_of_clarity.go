@@ -9,6 +9,9 @@ func (druid *Druid) registerOmenOfClarity() {
 	clearRow := spellData.OmenOfClarityTriggered.Highest()
 	druid.ClearcastingAura = druid.RegisterAura(spelldata.AuraConfig(clearRow))
 	spelldata.ParseEffects(&druid.Character, druid.ClearcastingAura, clearRow)
+	druid.ClearcastingAura.ApplyOnGain(func(aura *core.Aura, sim *core.Simulation) {
+		aura.SetStacks(sim, aura.MaxStacks)
+	})
 	spelldata.AttachChargeSpender(&druid.Character, druid.ClearcastingAura, clearRow, "Clearcasting - Spend",
 		func(_ *core.Character, trigger *core.ProcTrigger) {
 			trigger.ProcMask &= core.ProcMaskMeleeSpecial

@@ -3,59 +3,9 @@
 	"priorityList": [
 		{
 			"action": {
-				"condition": {
-					"auraIsActive": {
-						"sourceUnit": {
-							"type": "CurrentTarget"
-						},
-						"auraId": {
-							"spellId": 9898
-						}
-					}
-				},
-				"castSpell": {
-					"spellId": {
-						"spellId": 417141
-					}
+				"groupReference": {
+					"groupName": "Cooldowns"
 				}
-			}
-		},
-		{
-			"action": {
-				"condition": {
-					"or": {
-						"vals": [
-							{
-								"auraIsActive": {
-									"auraId": {
-										"spellId": 417141
-									}
-								}
-							},
-							{
-								"not": {
-									"val": {
-										"spellIsKnown": {
-											"spellId": {
-												"spellId": 417141
-											}
-										}
-									}
-								}
-							}
-						]
-					}
-				},
-				"castSpell": {
-					"spellId": {
-						"spellId": 1259799
-					}
-				}
-			}
-		},
-		{
-			"action": {
-				"autocastOtherCooldowns": {}
 			}
 		},
 		{
@@ -82,153 +32,15 @@
 		},
 		{
 			"action": {
-				"condition": {
-					"and": {
-						"vals": [
-							{
-								"and": {
-									"vals": [
-										{
-											"dotIsActive": {
-												"spellId": {
-													"spellId": 1235827
-												}
-											}
-										},
-										{
-											"cmp": {
-												"op": "OpGe",
-												"lhs": {
-													"auraNumStacks": {
-														"sourceUnit": {
-															"type": "CurrentTarget"
-														},
-														"auraId": {
-															"spellId": 1235827
-														}
-													}
-												},
-												"rhs": {
-													"const": {
-														"val": "5"
-													}
-												}
-											}
-										}
-									]
-								}
-							},
-							{
-								"cmp": {
-									"op": "OpLe",
-									"lhs": {
-										"dotRemainingTime": {
-											"spellId": {
-												"spellId": 1235827
-											}
-										}
-									},
-									"rhs": {
-										"const": {
-											"val": "1.5s"
-										}
-									}
-								}
-							}
-						]
-					}
-				},
-				"castSpell": {
-					"spellId": {
-						"spellId": 1235827
-					}
+				"groupReference": {
+					"groupName": "Keep up"
 				}
 			}
 		},
 		{
 			"action": {
-				"condition": {
-					"not": {
-						"val": {
-							"auraIsActive": {
-								"sourceUnit": {
-									"type": "CurrentTarget"
-								},
-								"auraId": {
-									"spellId": 9898
-								}
-							}
-						}
-					}
-				},
-				"castSpell": {
-					"spellId": {
-						"spellId": 9898
-					}
-				}
-			}
-		},
-		{
-			"action": {
-				"castSpell": {
-					"spellId": {
-						"spellId": 1238073
-					}
-				}
-			}
-		},
-		{
-			"action": {
-				"condition": {
-					"not": {
-						"val": {
-							"and": {
-								"vals": [
-									{
-										"dotIsActive": {
-											"spellId": {
-												"spellId": 1235827
-											}
-										}
-									},
-									{
-										"cmp": {
-											"op": "OpGe",
-											"lhs": {
-												"auraNumStacks": {
-													"sourceUnit": {
-														"type": "CurrentTarget"
-													},
-													"auraId": {
-														"spellId": 1235827
-													}
-												}
-											},
-											"rhs": {
-												"const": {
-													"val": "5"
-												}
-											}
-										}
-									}
-								]
-							}
-						}
-					}
-				},
-				"castSpell": {
-					"spellId": {
-						"spellId": 1235827
-					}
-				}
-			}
-		},
-		{
-			"action": {
-				"castSpell": {
-					"spellId": {
-						"spellId": 1235827
-					}
+				"groupReference": {
+					"groupName": "Damage"
 				}
 			}
 		},
@@ -251,6 +63,207 @@
 					"spellId": {
 						"spellId": 9881
 					}
+				}
+			}
+		}
+	],
+	"groups": [
+		{
+			"name": "Cooldowns",
+			"actions": [
+				{
+					"action": {
+						"condition": {
+							"variableRef": {
+								"name": "Demoralizing Roar is up"
+							}
+						},
+						"castSpell": {
+							"spellId": {
+								"spellId": 417141
+							}
+						}
+					}
+				},
+				{
+					"action": {
+						"condition": {
+							"or": {
+								"vals": [
+									{
+										"auraIsActive": {
+											"auraId": {
+												"spellId": 417141
+											}
+										}
+									},
+									{
+										"not": {
+											"val": {
+												"spellIsKnown": {
+													"spellId": {
+														"spellId": 417141
+													}
+												}
+											}
+										}
+									}
+								]
+							}
+						},
+						"castSpell": {
+							"spellId": {
+								"spellId": 1259799
+							}
+						}
+					}
+				},
+				{
+					"action": {
+						"autocastOtherCooldowns": {}
+					}
+				}
+			]
+		},
+		{
+			"name": "Keep up",
+			"actions": [
+				{
+					"action": {
+						"condition": {
+							"variableRef": {
+								"name": "Lacerate falls off"
+							}
+						},
+						"castSpell": {
+							"spellId": {
+								"spellId": 1235827
+							}
+						}
+					}
+				},
+				{
+					"action": {
+						"condition": {
+							"not": {
+								"val": {
+									"variableRef": {
+										"name": "Demoralizing Roar is up"
+									}
+								}
+							}
+						},
+						"castSpell": {
+							"spellId": {
+								"spellId": 9898
+							}
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Damage",
+			"actions": [
+				{
+					"action": {
+						"castSpell": {
+							"spellId": {
+								"spellId": 1238073
+							}
+						}
+					}
+				},
+				{
+					"action": {
+						"castSpell": {
+							"spellId": {
+								"spellId": 1235827
+							}
+						}
+					}
+				}
+			]
+		}
+	],
+	"valueVariables": [
+		{
+			"name": "Lacerate at 5 stacks",
+			"value": {
+				"and": {
+					"vals": [
+						{
+							"dotIsActive": {
+								"spellId": {
+									"spellId": 1235827
+								}
+							}
+						},
+						{
+							"cmp": {
+								"op": "OpGe",
+								"lhs": {
+									"auraNumStacks": {
+										"sourceUnit": {
+											"type": "CurrentTarget"
+										},
+										"auraId": {
+											"spellId": 1235827
+										}
+									}
+								},
+								"rhs": {
+									"const": {
+										"val": "5"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		},
+		{
+			"name": "Demoralizing Roar is up",
+			"value": {
+				"auraIsActive": {
+					"sourceUnit": {
+						"type": "CurrentTarget"
+					},
+					"auraId": {
+						"spellId": 9898
+					}
+				}
+			}
+		},
+		{
+			"name": "Lacerate falls off",
+			"value": {
+				"and": {
+					"vals": [
+						{
+							"variableRef": {
+								"name": "Lacerate at 5 stacks"
+							}
+						},
+						{
+							"cmp": {
+								"op": "OpLe",
+								"lhs": {
+									"dotRemainingTime": {
+										"spellId": {
+											"spellId": 1235827
+										}
+									}
+								},
+								"rhs": {
+									"const": {
+										"val": "1.5s"
+									}
+								}
+							}
+						}
+					]
 				}
 			}
 		}

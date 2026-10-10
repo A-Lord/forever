@@ -412,6 +412,13 @@ var Spells = []Override{
 		Source:  "Aus and Chalkie, Rake and swipe AP scaling tests, 2026-10-01; PR #149 evidence notes",
 	},
 	{
+		SpellID: 9908,
+		Field:   APCoefDirect,
+		Value:   0.03,
+		Reason:  "Swipe Rank 5: 3% of attack power on each hit; the game files state none",
+		Source:  "Aus and Chalkie, Rake and swipe AP scaling tests, 2026-10-01; PR #149 evidence notes",
+	},
+	{
 		SpellID: 22829,
 		Field:   APCoefDirect,
 		Value:   0.03,

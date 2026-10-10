@@ -17,13 +17,14 @@ func (druid *Druid) rendAndTearMultiplier(target *core.Unit) float64 {
 	if druid.Talents.RendAndTear == 0 || !(druid.AssumeBleedActive || target.HasActiveAuraWithTag(druidBleedTag)) {
 		return 1
 	}
-	// TODO: Ingame research needed -- the tooltip names melee abilities against a bleeding target.
-	// Whether white swings and bleed ticks are included is not stated on the row.
+	// Melee special attacks and bleed ticks against a bleeding target; white swings are not raised. A
+	// tester's table on PR #149 shows Rake and Rip ticks, the Rake hit and Claw rising by the talent's
+	// percent with a bleed on the target, and the Rake hit staying put without one.
 	return 1 + spellData.RendAndTear.Rank(druid.Talents.RendAndTear).EffectN(1).Percent()
 }
 
-// weaponSpecialDamage is the row's weapon strike on the main-hand swing: the flat bonus and the swing,
-// both scaled by the weapon percent.
+// The row's weapon strike on the main-hand swing: the flat bonus and the swing, both scaled by the
+// weapon percent.
 func (druid *Druid) weaponSpecialDamage(sim *core.Simulation, spell *core.Spell, target *core.Unit, rank *spelldata.Spell) float64 {
 	weapon := spell.Unit.MHWeaponDamage(sim, spell.MeleeAttackPower(target))
 	return rank.WeaponStrike(sim, spell, weapon, 0) * druid.rendAndTearMultiplier(target)
@@ -37,14 +38,12 @@ func (druid *Druid) awardComboPoints(sim *core.Simulation, spell *core.Spell, ra
 	druid.AddComboPoints(sim, int32(e.BaseValue()), spell.ComboPointMetrics())
 }
 
-// spendComboPoints spends every combo point. The row's combo-point cost is the minimum the cast
-// requires; the per-resource damage is priced on the points actually spent.
-func (druid *Druid) spendComboPoints(sim *core.Simulation, spell *core.Spell) int32 {
-	spent := druid.ComboPoints()
-	if spent > 0 {
+// Spends every combo point. The row's combo-point cost is the minimum the cast requires; the
+// per-resource damage is priced on the points actually spent.
+func (druid *Druid) spendComboPoints(sim *core.Simulation, spell *core.Spell) {
+	if druid.ComboPoints() > 0 {
 		druid.SpendComboPoints(sim, spell.ComboPointMetrics())
 	}
-	return spent
 }
 
 func (druid *Druid) requiresComboPoints(rank *spelldata.Spell) core.CanCastCondition {
@@ -57,7 +56,7 @@ func (druid *Druid) requiresComboPoints(rank *spelldata.Spell) core.CanCastCondi
 	}
 }
 
-// refundOnMiss returns the row's miss refund, which SpellConfig set on the cost.
+// Issues the row's miss refund, which SpellConfig set on the cost, when the hit did not land.
 func (druid *Druid) refundOnMiss(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
 	if !result.Landed() {
 		spell.IssueRefund(sim)
@@ -84,6 +83,9 @@ func (druid *Druid) breakProwl(sim *core.Simulation) {
 	if druid.ProwlAura != nil && druid.ProwlAura.IsActive() {
 		druid.ProwlAura.Deactivate(sim)
 	}
+	if druid.ShadowmeldAura != nil && druid.ShadowmeldAura.IsActive() {
+		druid.ShadowmeldAura.Deactivate(sim)
+	}
 }
 
 func (druid *Druid) registerProwlBreakingCasts() {
@@ -100,7 +102,7 @@ func (druid *Druid) registerProwlBreakingCasts() {
 				row = spelldata.Find(effects[0].GetBuffId())
 			}
 		}
-		if row.IsPassive() || row.HasAttr(dbcenums.ATTR_INDEX_EX_1, dbcenums.ATTR_EX_1_NO_STEALTH_BREAK) || spellData.Prowl.Contains(spell) {
+		if row.IsPassive() || row.HasAttr(dbcenums.ATTR_INDEX_EX_1, dbcenums.ATTR_EX_1_NO_STEALTH_BREAK) || spellData.Prowl.Contains(spell) || spell.SpellID == shadowmeldSpellID {
 			return
 		}
 		apply := spell.ApplyEffects
@@ -111,7 +113,7 @@ func (druid *Druid) registerProwlBreakingCasts() {
 	})
 }
 
-// berserkTargets is the number of targets Primal Bite strikes under Berserk, the primary included:
+// The number of targets Primal Bite strikes under Berserk, the primary included:
 // the tooltip's "strike up to $s3 targets" is effect 3, a SPELLMOD_JUMP_TARGETS the parser does not
 // apply. 0 outside Berserk.
 func (druid *Druid) berserkTargets() int32 {
@@ -125,8 +127,8 @@ func (druid *Druid) berserkTargets() int32 {
 	return int32(e.BaseValue())
 }
 
-// cleave hits up to count active targets starting from target, prices each hit on its own target, and
-// deals them together once all are rolled. It returns the primary target's result. results is the
+// Hits up to count active targets starting from target, prices each hit on its own target, and deals
+// them together once all are rolled. It returns the primary target's result. results is the
 // caller's own buffer, reused across casts.
 func cleave(sim *core.Simulation, target *core.Unit, spell *core.Spell, count int32, results *core.SpellResultSlice, hit func(target *core.Unit) *core.SpellResult) *core.SpellResult {
 	*results = (*results)[:0]

@@ -21,7 +21,3 @@ func (druid *Druid) registerShredSpell() {
 	}
 	druid.Shred = druid.RegisterSpell(config)
 }
-
-func (druid *Druid) CurrentShredCost() float64 {
-	return druid.Shred.Cost.GetCurrentCost()
-}

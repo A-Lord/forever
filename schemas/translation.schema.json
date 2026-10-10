@@ -2171,6 +2171,19 @@
 							"additionalProperties": false,
 							"required": ["label", "tooltip"]
 						},
+						"prepull_clearcasting": {
+							"type": "object",
+							"properties": {
+								"label": {
+									"type": "string"
+								},
+								"tooltip": {
+									"type": "string"
+								}
+							},
+							"additionalProperties": false,
+							"required": ["label", "tooltip"]
+						},
 						"cannot_shred_target": {
 							"type": "object",
 							"properties": {
@@ -2420,6 +2433,7 @@
 						"has_bs_tier_2",
 						"queue_delay",
 						"assume_bleed_active",
+						"prepull_clearcasting",
 						"cannot_shred_target",
 						"show_1h_weapons",
 						"show_2h_weapons",

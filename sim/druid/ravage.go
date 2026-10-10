@@ -8,9 +8,10 @@ import (
 func (druid *Druid) registerRavageSpell() {
 	rank := spellData.Ravage.Highest()
 	config := spelldata.SpellConfig(&druid.Unit, rank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
-	// "Must be prowling and behind the target" is the tooltip's; the row states Cat Form only.
+	// The row's stealth requirement (ATTR_REQ_STEALTH) is not read by CastRequirement, so Prowl or
+	// Shadowmeld is checked here; "behind the target" is the tooltip's.
 	config.ExtraCastCondition = func(_ *core.Simulation, _ *core.Unit) bool {
-		return druid.ProwlAura != nil && druid.ProwlAura.IsActive() && druid.BehindTarget()
+		return druid.stealthed() && druid.BehindTarget()
 	}
 	// No Active Defense (Attributes 0x200000): it misses or lands, never dodged, parried or blocked.
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
