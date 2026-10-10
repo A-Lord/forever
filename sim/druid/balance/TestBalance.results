@@ -426,8 +426,8 @@ dps_results: {
 dps_results: {
  key: "TestBalance-AllItems-GenesisRaiment"
  value: {
-  dps: 571.99647
-  tps: 407.6742
+  dps: 612.13015
+  tps: 435.76777
  }
 }
 dps_results: {
@@ -482,8 +482,8 @@ dps_results: {
 dps_results: {
  key: "TestBalance-AllItems-GrovekeeperFerocity"
  value: {
-  dps: 483.70315
-  tps: 345.90165
+  dps: 516.27247
+  tps: 368.70017
  }
 }
 dps_results: {
