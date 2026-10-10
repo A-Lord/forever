@@ -55,7 +55,7 @@ export const StatFilterList = ({
 				onValueChange={onOpenGroupsChange}
 				variant="divided"
 				density="compact"
-				className="-mx-2 min-h-0 [scrollbar-gutter:stable] overflow-y-auto px-2"
+				className="-mx-2 min-h-0 scrollbar-gutter-stable overflow-y-auto px-2"
 				testId={`${idPrefix}-groups`}>
 				{groups.map(group => (
 					<AccordionItem
