@@ -59,7 +59,7 @@ export function loadIndividualSettings(
 
 			// Loading from link needs to happen after loading saved settings, so that partial link imports
 			// (e.g. rotation only) include the previous settings for other categories. The saved stat filters
-			// stay whatever the link carries.
+			// stay, whatever the link carries.
 			try {
 				const urlParseResults = tryParseUrlLocation(env.location);
 				if (urlParseResults) {
