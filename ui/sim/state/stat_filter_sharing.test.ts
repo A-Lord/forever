@@ -66,3 +66,19 @@ describe('restoreViewerStatFilters', () => {
 		expect(DatabaseFilters.equals(sim.getFilters(), { ...imported, statFilters: undefined })).toBe(true);
 	});
 });
+
+describe('Sim.applyDefaults', () => {
+	beforeAll(() => serveDatabase());
+
+	it("keeps the viewer's stat filters and favourites and resets every other filter", async () => {
+		const { sim, host } = await makeIndividualSim();
+		sim.setFilters(DatabaseFilters.create({ minIlvl: 50, favoriteItems: [7], statFilters: viewerFilters }));
+
+		host.applyDefaults();
+
+		const filters = sim.getFilters();
+		expect(filters.statFilters && StatFilters.equals(filters.statFilters, viewerFilters)).toBe(true);
+		expect(filters.favoriteItems).toEqual([7]);
+		expect(filters.minIlvl).toBe(0);
+	});
+});

@@ -912,7 +912,7 @@ export class Sim {
 	}
 
 	defaultFilters(): DatabaseFilters {
-		const { favoriteItems = [], favoriteRandomSuffixes = [], favoriteReforges = [], favoriteEnchants = [] } = this.getFilters();
+		const { favoriteItems = [], favoriteRandomSuffixes = [], favoriteReforges = [], favoriteEnchants = [], statFilters } = this.getFilters();
 		return DatabaseFilters.create({
 			oneHandedWeapons: true,
 			twoHandedWeapons: true,
@@ -920,6 +920,7 @@ export class Sim {
 			favoriteEnchants,
 			favoriteRandomSuffixes,
 			favoriteReforges,
+			statFilters,
 		});
 	}
 }
