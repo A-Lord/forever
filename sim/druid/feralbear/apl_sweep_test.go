@@ -192,8 +192,8 @@ func TestBearAPLPresetMatchesItsBuilder(t *testing.T) {
 	}
 }
 
-// bearAPLWarnings is what the APL editor marks with a warning or an error, by priority list line.
-// Prepull lines are -1 and validations by UUID -2. Information (the blue icon) is left out.
+// bearAPLWarnings is what the APL editor marks with a warning or an error, by priority list line;
+// group i's line j is 100*(i+1)+j. Prepull lines are -1 and validations by UUID -2. Information (the blue icon) is left out.
 func bearAPLWarnings(t *testing.T, req *proto.RaidSimRequest) map[int][]string {
 	t.Helper()
 	stats := core.ComputeStats(&proto.ComputeStatsRequest{Raid: req.Raid, Encounter: req.Encounter}).
@@ -208,6 +208,12 @@ func bearAPLWarnings(t *testing.T, req *proto.RaidSimRequest) map[int][]string {
 	}
 	for i, action := range stats.PriorityList {
 		add(i, action.Validations)
+	}
+	// Group lines count from 100 per group.
+	for i, group := range stats.Groups {
+		for j, action := range group.Actions {
+			add(100*(i+1)+j, action.Validations)
+		}
 	}
 	for _, action := range stats.PrepullActions {
 		add(-1, action.Validations)
@@ -236,7 +242,11 @@ func TestBearAPLPresetHasNoWarnings(t *testing.T) {
 			t.Fatal(result.Error.Message)
 		}
 		player := result.RaidMetrics.Parties[0].Players[0]
-		for _, item := range preset.PriorityList {
+		items := append([]*proto.APLListItem{}, preset.PriorityList...)
+		for _, group := range preset.Groups {
+			items = append(items, group.Actions...)
+		}
+		for _, item := range items {
 			if id := item.Action.GetCastSpell().GetSpellId().GetSpellId(); id != 0 && bearCastsOf(player.Actions, id) == 0 {
 				t.Errorf("consumes %v: the preset never casts %d", consumes, id)
 			}
@@ -245,12 +255,18 @@ func TestBearAPLPresetHasNoWarnings(t *testing.T) {
 }
 
 func bearAPL(tune bearTune) *proto.APLRotation {
+	vars := &bearVars{}
+	groups := &bearGroups{}
 	rage := currentRage()
 	rageAtLeast := func(n int) *proto.APLValue {
 		return cmp(proto.APLValueCompare_OpGe, rage, konst(strconv.Itoa(n)))
 	}
 	stacks := auraStacksOnTarget(spellLacerate)
-	fiveStacks := and(dotUp(spellLacerate), cmp(proto.APLValueCompare_OpGe, stacks, konst("5")))
+	fiveStacks := vars.def("Lacerate at 5 stacks", and(dotUp(spellLacerate), cmp(proto.APLValueCompare_OpGe, stacks, konst("5"))))
+	roarUp := auraOnTarget(spellDemoRoar)
+	if tune.demo || tune.opener == "roar" || tune.opener == "roar_pb" {
+		roarUp = vars.def("Demoralizing Roar is up", roarUp)
+	}
 
 	var list []*proto.APLListItem
 	if tune.sapper {
@@ -258,6 +274,8 @@ func bearAPL(tune bearTune) *proto.APLRotation {
 			&proto.APLListItem{Action: bearItemAction(itemSapper)},
 			bearCastWhen(spellDireBear, not(auraUp(spellDireBear))))
 	}
+
+	var cooldowns []*proto.APLListItem
 	var berserkWhen []*proto.APLValue
 	if tune.berserk > 0 {
 		berserkWhen = append(berserkWhen, rageAtLeast(tune.berserk))
@@ -266,7 +284,7 @@ func bearAPL(tune bearTune) *proto.APLRotation {
 		berserkWhen = append(berserkWhen, dotUp(spellLacerate))
 	}
 	if tune.opener == "roar" || tune.opener == "roar_pb" {
-		berserkWhen = append(berserkWhen, auraOnTarget(spellDemoRoar))
+		berserkWhen = append(berserkWhen, roarUp)
 	}
 	if tune.opener == "roar_pb" {
 		berserkWhen = append(berserkWhen, not(spellReadyBear(spellPrimalBite)))
@@ -280,10 +298,10 @@ func bearAPL(tune bearTune) *proto.APLRotation {
 		default:
 			condition = and(berserkWhen...)
 		}
-		list = append(list, bearCastWhen(spellBerserk, condition))
+		cooldowns = append(cooldowns, bearCastWhen(spellBerserk, condition))
 	}
 	if tune.elune == "berserk" {
-		list = append(list, bearCastWhen(1259799, or(auraUp(spellBerserk), not(spellKnown(spellBerserk)))))
+		cooldowns = append(cooldowns, bearCastWhen(1259799, or(auraUp(spellBerserk), not(spellKnown(spellBerserk)))))
 	}
 	enrageRage := tune.enrageRage
 	if enrageRage == 0 {
@@ -292,34 +310,38 @@ func bearAPL(tune bearTune) *proto.APLRotation {
 	enrageLow := cmp(proto.APLValueCompare_OpLt, rage, konst(strconv.Itoa(enrageRage)))
 	switch tune.enrage {
 	case "cd":
-		list = append(list, bearCastWhen(spellEnrage, enrageLow))
+		cooldowns = append(cooldowns, bearCastWhen(spellEnrage, enrageLow))
 	case "berserk":
-		list = append(list, bearCastWhen(spellEnrage, and(enrageLow, auraUp(spellBerserk))))
+		cooldowns = append(cooldowns, bearCastWhen(spellEnrage, and(enrageLow, auraUp(spellBerserk))))
 	case "safe":
-		list = append(list, bearCastWhen(spellEnrage, and(enrageLow,
+		cooldowns = append(cooldowns, bearCastWhen(spellEnrage, and(enrageLow,
 			cmp(proto.APLValueCompare_OpGe, healthPercent(), konst("70%")))))
 	case "hold":
-		list = append(list, bearCastWhen(spellEnrage, and(enrageLow,
+		cooldowns = append(cooldowns, bearCastWhen(spellEnrage, and(enrageLow,
 			or(auraUp(spellBerserk), cmp(proto.APLValueCompare_OpGt, spellLeft(spellBerserk), konst("60s"))))))
 	}
-	list = append(list, &proto.APLListItem{Action: &proto.APLAction{Action: &proto.APLAction_AutocastOtherCooldowns{
+	cooldowns = append(cooldowns, &proto.APLListItem{Action: &proto.APLAction{Action: &proto.APLAction_AutocastOtherCooldowns{
 		AutocastOtherCooldowns: &proto.APLActionAutocastOtherCooldowns{},
 	}}})
+	list = append(list, groups.def("Cooldowns", cooldowns...))
 	if tune.frenzied > 0 {
 		list = append(list, bearCastWhen(spellFrenzied,
 			cmp(proto.APLValueCompare_OpLt, healthPercent(), konst(strconv.FormatFloat(tune.frenzied*100, 'f', -1, 64)+"%"))))
 	}
+
 	// Five stacks about to fall off are worth more than anything else the GCD could buy.
-	list = append(list, bearCastWhen(spellLacerate, and(fiveStacks, cmp(proto.APLValueCompare_OpLe, dotLeft(spellLacerate), konst("1.5s")))))
+	keepUp := []*proto.APLListItem{bearCastWhen(spellLacerate, vars.def("Lacerate falls off",
+		and(fiveStacks, cmp(proto.APLValueCompare_OpLe, dotLeft(spellLacerate), konst("1.5s")))))}
 	if tune.demo {
-		list = append(list, bearCastWhen(spellDemoRoar, not(auraOnTarget(spellDemoRoar))))
+		keepUp = append(keepUp, bearCastWhen(spellDemoRoar, not(roarUp)))
 	}
 	if tune.ff {
-		list = append(list, bearCastWhen(spellFF, not(auraOnTarget(spellFF))))
+		keepUp = append(keepUp, bearCastWhen(spellFF, not(auraOnTarget(spellFF))))
 	}
-	list = append(list,
-		bearCastWhen(spellPrimalBite, nil),
-		bearCastWhen(spellLacerate, not(fiveStacks)))
+	list = append(list, groups.def("Keep up", keepUp...))
+
+	damage := []*proto.APLListItem{bearCastWhen(spellPrimalBite, nil)}
+	var filler []*proto.APLListItem
 	if tune.filler >= 0 {
 		// Primal Bite and Lacerate cost the same, so a ready Primal Bite the line above skipped is
 		// unaffordable for the filler too; the hold only matters above 0s.
@@ -335,12 +357,41 @@ func bearAPL(tune bearTune) *proto.APLRotation {
 			gate = and(gates...)
 		}
 		if tune.swipe {
-			list = append(list, bearCastWhen(spellSwipe, and(append(gates, cmp(proto.APLValueCompare_OpGt, dotLeft(spellLacerate), konst("3s")))...)))
+			filler = append(filler, bearCastWhen(spellSwipe, and(append(gates, cmp(proto.APLValueCompare_OpGt, dotLeft(spellLacerate), konst("3s")))...)))
 		}
-		list = append(list, bearCastWhen(spellLacerate, gate))
+		filler = append(filler, bearCastWhen(spellLacerate, gate))
 	}
+	// An ungated Lacerate filler already stacks Lacerate to 5.
+	if len(filler) != 1 || filler[0].Action.Condition != nil {
+		damage = append(damage, bearCastWhen(spellLacerate, not(fiveStacks)))
+	}
+	list = append(list, groups.def("Damage", append(damage, filler...)...))
 	list = append(list, bearCastWhen(spellMaul, rageAtLeast(tune.maul)))
-	return &proto.APLRotation{Type: proto.APLRotation_TypeAPL, PriorityList: list}
+	return &proto.APLRotation{Type: proto.APLRotation_TypeAPL, PriorityList: list, Groups: groups.list, ValueVariables: vars.list}
+}
+
+// bearVars holds the named conditions of a list, which the APL editor shows as variables.
+type bearVars struct {
+	list []*proto.APLValueVariable
+}
+
+// def names value and returns a reference to it.
+func (v *bearVars) def(name string, value *proto.APLValue) *proto.APLValue {
+	v.list = append(v.list, &proto.APLValueVariable{Name: name, Value: value})
+	return &proto.APLValue{Value: &proto.APLValue_VariableRef{VariableRef: &proto.APLValueVariableRef{Name: name}}}
+}
+
+// bearGroups holds the action groups of a list, which the APL editor shows by name.
+type bearGroups struct {
+	list []*proto.APLGroup
+}
+
+// def adds the group and returns the line that runs it: the first of its actions that is ready.
+func (g *bearGroups) def(name string, actions ...*proto.APLListItem) *proto.APLListItem {
+	g.list = append(g.list, &proto.APLGroup{Name: name, Actions: actions})
+	return &proto.APLListItem{Action: &proto.APLAction{Action: &proto.APLAction_GroupReference{
+		GroupReference: &proto.APLActionGroupReference{GroupName: name},
+	}}}
 }
 
 func bearCastWhen(id int32, condition *proto.APLValue) *proto.APLListItem {
