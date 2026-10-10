@@ -78,7 +78,9 @@ func applyTemporaryEnchant(character *core.Character, consumable core.Consumable
 // The combat spell rolls on the hits of the weapons carrying the enchant, at their own speeds.
 func registerTemporaryEnchantCombatSpell(character *core.Character, consumable core.Consumable, effect *proto.ItemEffect) {
 	damage := spelldata.MustFind(effect.BuffId)
-	damageSpell := character.RegisterSpell(spellDataProcDamageSpell(character, damage, true))
+	damageConfig := spellDataProcDamageSpell(character, damage, true)
+	damageConfig.ProcMask = weaponProcStrikeMask(damageConfig.DefenseType, true)
+	damageSpell := character.RegisterSpell(damageConfig)
 	enchantID := consumable.TemporaryEnchant.EffectID
 	chance := damage.StatedChance()
 
