@@ -44,6 +44,7 @@ func TestDefaultEp(t *testing.T) {
 	}
 	request := func(iterations int32) *proto.RaidSimRequest {
 		req := uiDefaultRaidSim(catTalents, catAPL(bestCatAPL), 180, 0, iterations)
+		req.Encounter.Targets[0].MinBaseDamage = core.FreshDefaultTargetConfig().MinBaseDamage
 		if build := os.Getenv("EP_BUILD"); build != "" {
 			req = buildRequest(t, build)
 		}
