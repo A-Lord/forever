@@ -33,7 +33,6 @@ func (priest *Priest) registerDisciplineTalents() {
 
 	// Tier 5
 	priest.applyPenance()
-	priest.applyRenewedHope()
 
 	// Tier 6
 	priest.applyDivineAegis()
@@ -107,11 +106,12 @@ func (priest *Priest) applyHolyPrecision() {
 }
 
 // Increases the damage absorbed by your Power Word: Shield by 20%.
-// TODO: Healing, which the sim does not model yet.
 func (priest *Priest) applyImprovedPowerWordShield() {
 	if priest.Talents.ImprovedPowerWordShield == 0 {
 		return
 	}
+
+	spelldata.ParseStatic(&priest.Character, spellData.ImprovedPowerWordShield.Rank(priest.Talents.ImprovedPowerWordShield))
 }
 
 // Gives you a X% chance to gain Focused Casting for 6 sec after being the victim of a melee or ranged critical strike.
@@ -196,11 +196,12 @@ func (priest *Priest) applyMentalStrength() {
 }
 
 // Reduces the cooldown on your Power Word: Shield spell by X sec and reduces its mana cost by Y%.
-// TODO: Healing, which the sim does not model yet.
 func (priest *Priest) applySoulWarding() {
 	if !priest.Talents.SoulWarding {
 		return
 	}
+
+	spelldata.ParseStatic(&priest.Character, spellData.SoulWarding.Highest())
 }
 
 // Reduces the casting time of your Mana Burn spell by 1.0 sec.
@@ -221,22 +222,41 @@ func (priest *Priest) applyPenance() {
 	spellData.Penance.Each(priest.registerPenance)
 }
 
-// Your heals from Flash Heal, Binding Heal, Lesser Heal, Heal, Greater Heal, and Penance
-// gain X% increased critical strike chance when cast on targets with Weakened Soul,
-// and reduce the remaining duration of Weakened Soul on their target by Y sec.
-// TODO: Healing, which the sim does not model yet.
-func (priest *Priest) applyRenewedHope() {
-	if priest.Talents.RenewedHope == 0 {
-		return
-	}
-}
-
 // Your critical heals create a protective shield on the target, absorbing X% of the amount healed. Lasts 12 sec.
-// TODO: Healing, which the sim does not model yet.
 func (priest *Priest) applyDivineAegis() {
 	if priest.Talents.DivineAegis == 0 {
 		return
 	}
+
+	shieldFraction := spellData.DivineAegis.EffectAt(1).FractionAt(priest.Talents.DivineAegis)
+	shields := priest.NewAllyDamageAbsorptionAuraArray(func(target *core.Unit) *core.DamageAbsorptionAura {
+		return target.NewDamageAbsorptionAura(core.AbsorptionAuraConfig{
+			Aura: core.Aura{
+				Label:    "Divine Aegis - " + priest.Label,
+				ActionID: core.ActionID{SpellID: spellData.DivineAegis.Highest().ID},
+				Duration: core.DurationFromSeconds(12),
+			},
+			ShieldStrengthCalculator: func(_ *core.Unit) float64 { return 0 },
+		})
+	})
+	priest.MakeProcTriggerAura(core.ProcTrigger{
+		Name:     "Divine Aegis",
+		Callback: core.CallbackOnHealDealt | core.CallbackOnPeriodicHealDealt,
+		Handler: func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
+			if !result.DidCrit() {
+				return
+			}
+			shield := shields.Get(result.Target)
+			strength := result.Damage * shieldFraction
+			if shield.IsActive() {
+				shield.Aura.Activate(sim)
+			} else {
+				shield.Activate(sim)
+			}
+			shield.ShieldStrength += strength
+			shield.SetStacks(sim, max(1, int32(shield.ShieldStrength)))
+		},
+	})
 }
 
 // Infuses the target with power, increasing their spell damage and healing done by 20% for 15 sec.

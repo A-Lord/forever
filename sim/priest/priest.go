@@ -13,15 +13,21 @@ var TalentTreeSizes = [3]int{18, 17, 18}
 type Priest struct {
 	core.Character
 	SelfBuffs
-	Talents *proto.PriestTalents
+	Talents              *proto.PriestTalents
+	PrayerOfHealingMode  proto.PrayerOfHealingMode
+	PrayerOfMendingJumps int32
+	PrayerOfMendingDelay float64
+	HolyNovaHealTargets  int32
 
 	Latency float64
 
 	InnerFocusAura *core.Aura
+	spiritTapAura  *core.Aura
 
 	VampiricEmbrace *core.Spell
 
 	powerInLightAuras core.AuraArray
+	weakenedSoulAuras core.AuraArray
 }
 
 type SelfBuffs struct {
@@ -64,6 +70,16 @@ func (priest *Priest) Initialize() {
 		spellData.Chastise.Each(priest.registerChastise)
 		spellData.DesperatePrayer.Each(priest.registerDesperatePrayer)
 	}
+}
+
+func (priest *Priest) InitializeHealingSpells() {
+	spellData.PowerWordShield.Each(priest.registerPowerWordShield)
+	spellData.FlashHeal.Each(priest.registerFlashHeal)
+	spellData.Heal.Each(priest.registerHeal)
+	spellData.LesserHeal.Each(priest.registerLesserHeal)
+	spellData.GreaterHeal.Each(priest.registerGreaterHeal)
+	spellData.PrayerOfHealing.Each(priest.registerPrayerOfHealing)
+	spellData.Renew.Each(priest.registerRenew)
 }
 
 func (priest *Priest) registerSelfBuffSpell(rank *spelldata.Spell, aura *core.Aura) *core.Spell {
@@ -140,6 +156,7 @@ func NewPriest(character *core.Character, options *proto.Player) *Priest {
 
 	basePriest := New(character, selfBuffs, options.TalentsString)
 	basePriest.Latency = float64(basePriest.ChannelClipDelay.Milliseconds())
+	basePriest.PseudoStats.PeriodicHealingDealtMultiplier = 1
 
 	return basePriest
 }
@@ -171,9 +188,38 @@ const (
 	PriestSpellShadowWordPain
 	PriestSpellSmite
 
+	PriestSpellFlashHeal
+	PriestSpellLesserHeal
+	PriestSpellHeal
+	PriestSPellGreaterHeal
+	PriestPellBindingHeal
+	PriestSpellPrayerOfHealing
+	PriestSpellRenew
+	PriestSpellPowerWordShield
+	PriestSpellPrayerOfMender
+	PriestSpellHolyNova
+	PriestSpellLightwell
+
+	PriestSpellCureDisease
+	PriestSpellAbolishDisease
+
 	PriestShadowSpells = PriestSpellDevouringPlague |
 		PriestSpellShadowWordDeath |
 		PriestSpellShadowWordPain |
 		PriestSpellMindFlay |
 		PriestSpellMindBlast
+
+	PriestHealingSpells = PriestSpellFlashHeal |
+		PriestSpellLesserHeal |
+		PriestSpellHeal |
+		PriestSPellGreaterHeal |
+		PriestPellBindingHeal |
+		PriestSpellPrayerOfHealing |
+		PriestSpellRenew |
+		PriestSpellPowerWordShield |
+		PriestSpellPrayerOfMender |
+		PriestSpellHolyNova |
+		PriestSpellLightwell |
+		PriestSpellCureDisease |
+		PriestSpellAbolishDisease
 )

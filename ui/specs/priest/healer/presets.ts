@@ -3,6 +3,9 @@ import { ConsumesSpec, Profession } from '@generated/proto/common';
 import { HealerPriest_Options as HealerPriestOptions, PriestOptions_Armor } from '@generated/proto/priest';
 
 export const DefaultOptions = HealerPriestOptions.create({
+	prayerOfMendingJumps: 5,
+	prayerOfMendingDelay: 2.5,
+	holyNovaHealTargets: 5,
 	classOptions: {
 		armor: PriestOptions_Armor.InnerFire,
 	},

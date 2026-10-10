@@ -49,12 +49,13 @@ func (priest *Priest) applyTwilightFocus() {
 }
 
 // Increases the amount healed by your Renew spell by 5%.
-// TODO: Healing, which the sim does not model yet.
 // TODO: Renew rank 1289450 states 35 per tick with a 0 coefficient and no level requirement; verify in game before porting Renew.
 func (priest *Priest) applyImprovedRenew() {
 	if priest.Talents.ImprovedRenew == 0 {
 		return
 	}
+
+	spelldata.ParseStatic(&priest.Character, spellData.ImprovedRenew.Rank(priest.Talents.ImprovedRenew))
 }
 
 // Increases the critical effect chance of your Holy spells by X%.
@@ -97,7 +98,7 @@ var HolyNovaRankMap = spellData.HolyNova
 
 // After being struck by a melee or ranged critical hit, or suffering more than 30% of your maximum Health from a single attack,
 // heal 8% of the damage taken over 6 sec. Refreshing this effect carries over any remaining healing.
-// TODO: Healing, which the sim does not model yet.
+// TODO: The sim does not model the incoming damage events that trigger this heal.
 func (priest *Priest) applyBlessedRecovery() {
 	if priest.Talents.BlessedRecovery == 0 {
 		return
@@ -105,11 +106,26 @@ func (priest *Priest) applyBlessedRecovery() {
 }
 
 // Your non-periodic critical heals increase your target's Armor by X% for 15 sec.
-// TODO: Healing, which the sim does not model yet.
 func (priest *Priest) applyInspiration() {
 	if priest.Talents.Inspiration == 0 {
 		return
 	}
+
+	triggered := spellData.InspirationTriggered.Highest()
+	armorAuras := priest.NewAllyAuraArray(func(target *core.Unit) *core.Aura {
+		aura := target.GetOrRegisterAura(spelldata.AuraConfig(triggered, spelldata.RankLabel(triggered, &priest.Unit)))
+		spelldata.ParseEffects(nil, aura, triggered)
+		return aura
+	})
+	priest.MakeProcTriggerAura(core.ProcTrigger{
+		Name:     "Inspiration",
+		Callback: core.CallbackOnHealDealt,
+		Handler: func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
+			if result.DidCrit() {
+				armorAuras.Get(result.Target).Activate(sim)
+			}
+		},
+	})
 }
 
 // Increases the range of your Smite and Holy Fire spells and the radius of your Prayer of Healing and Holy Nova spells by X%.
@@ -161,20 +177,33 @@ func (priest *Priest) applySearingLight() {
 	})
 }
 
-// Grants binding heal
-// TODO: Healing, which the sim does not model yet.
+// Grants Binding Heal.
 func (priest *Priest) applyBindingHeal() {
 	if !priest.Talents.BindingHeal {
 		return
 	}
+
+	spellData.BindingHeal.Each(priest.registerBindingHeal)
 }
 
-// When you cast a healing spell, gain Mana equal to 20% of the base cost of the spell if your previous heal was a different spell
-// TODO: Healing, which the sim does not model yet.
+// When you cast a healing spell, gain Mana equal to 20% of the base cost of the spell if your previous heal was a different spell.
 func (priest *Priest) applyLitanyOfLight() {
 	if priest.Talents.LitanyOfLight == 0 {
 		return
 	}
+
+	var previousHeal *core.Spell
+	refundMetrics := priest.NewManaMetrics(core.ActionID{SpellID: spellData.LitanyOfLight.Highest().ID})
+	priest.MakeProcTriggerAura(core.ProcTrigger{
+		Name:     "Litany of Light",
+		Callback: core.CallbackOnHealDealt,
+		Handler: func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) {
+			if previousHeal != nil && previousHeal != spell && spell.Cost != nil {
+				spell.Unit.AddMana(sim, float64(spell.Cost.BaseCost)*spellData.LitanyOfLight.EffectAt(1).FractionAt(priest.Talents.LitanyOfLight), refundMetrics)
+			}
+			previousHeal = spell
+		},
+	})
 }
 
 // Grants spirit of redemption on death
@@ -199,17 +228,19 @@ func (priest *Priest) applySpiritualGuidance() {
 }
 
 // Increases the amount healed by your spells by X%.
-// TODO: Healing, which the sim does not model yet.
 func (priest *Priest) applySpiritualHealing() {
 	if priest.Talents.SpiritualHealing == 0 {
 		return
 	}
+
+	spelldata.ParseStatic(&priest.Character, spellData.SpiritualHealing.Rank(priest.Talents.SpiritualHealing))
 }
 
-// Grants prayer of Mending
-// TODO: Healing, which the sim does not model yet.
+// Grants Prayer of Mending.
 func (priest *Priest) applyPrayerOfMending() {
 	if !priest.Talents.PrayerOfMending {
 		return
 	}
+
+	spellData.PrayerOfMending.Each(priest.registerPrayerOfMending)
 }
