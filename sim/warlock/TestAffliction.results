@@ -55,820 +55,820 @@ character_stats_results: {
 dps_results: {
  key: "TestAffliction-AllItems-AdaptiveCombatAssistant-272437"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-Admiral'sHat-10030"
  value: {
-  dps: 322.69997
-  tps: 185.64419
+  dps: 329.76707
+  tps: 185.24682
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-AnkhofLife-1713"
  value: {
-  dps: 326.18657
-  tps: 186.21178
+  dps: 333.66491
+  tps: 186.07702
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-ArcaniteChampion-12790"
  value: {
-  dps: 330.90532
-  tps: 188.69549
+  dps: 338.48772
+  tps: 188.75267
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-ArenaGrandMaster-19024"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-BadgeoftheSwarmguard-21670"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-BlazefuryMedallion-17111"
  value: {
-  dps: 324.51656
-  tps: 185.96516
+  dps: 331.23031
+  tps: 185.74448
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-BlazingEmblem-2802"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-BlazingRapier-12777"
  value: {
-  dps: 330.90532
-  tps: 188.69549
+  dps: 338.48772
+  tps: 188.75267
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-BristleconeCloak-275833"
  value: {
-  dps: 319.4697
-  tps: 183.32968
+  dps: 325.20846
+  tps: 182.71144
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-Champion'sDreadgear"
  value: {
-  dps: 360.01763
-  tps: 204.59923
+  dps: 365.69049
+  tps: 203.86216
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-Champion'sThreads"
  value: {
-  dps: 328.79315
-  tps: 188.20593
+  dps: 335.34034
+  tps: 188.48676
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-CloakofFire-14134"
  value: {
-  dps: 319.26161
-  tps: 183.24468
+  dps: 327.74631
+  tps: 184.01667
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-CloakofFlames-3475"
  value: {
-  dps: 319.4697
-  tps: 183.32968
+  dps: 325.20846
+  tps: 182.71144
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-ColdBasiliskEye-5079"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-DarkmoonCard:BlueDragon-19288"
  value: {
-  dps: 326.01704
-  tps: 186.16044
+  dps: 333.4925
+  tps: 186.35246
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-DarkmoonCard:Heroism-19287"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-DarkmoonCard:Maelstrom-19289"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-Defender'sGripStabilizer-272440"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-Defiler'sTalisman-20072"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-Defiler'sTalisman-21115"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-Defiler'sTalisman-21116"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-DemonheartRaiment"
  value: {
-  dps: 312.00817
-  tps: 180.11606
+  dps: 319.08064
+  tps: 180.0294
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-Demoniac'sThreads"
  value: {
-  dps: 330.16979
-  tps: 188.26439
+  dps: 337.96355
+  tps: 188.66551
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-Doombringer-13053"
  value: {
-  dps: 330.90532
-  tps: 188.69549
+  dps: 338.48772
+  tps: 188.75267
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-Doomcaller'sAttire"
  value: {
-  dps: 387.66866
-  tps: 217.08167
+  dps: 396.06574
+  tps: 217.28832
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-DormantHeartoftheMountain-249473"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-EarthenSigil-20525"
  value: {
-  dps: 328.70012
-  tps: 188.05532
+  dps: 336.05203
+  tps: 187.87027
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-Earthstrike-21180"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-ElectrifiedDagger-19100"
  value: {
-  dps: 330.90532
-  tps: 188.69549
+  dps: 338.48772
+  tps: 188.75267
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-Enchant2HWeapon-GrandArcanist-7941"
  value: {
-  dps: 353.32077
-  tps: 200.69763
+  dps: 360.62716
+  tps: 200.44719
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-Enchant:FieryBlaze-36"
  value: {
-  dps: 330.90532
-  tps: 188.69549
+  dps: 338.48772
+  tps: 188.75267
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-EnchantChest-Absorption-8220"
  value: {
-  dps: 330.90532
-  tps: 188.69549
+  dps: 338.48772
+  tps: 188.75267
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-EnchantChest-LesserAbsorption-63"
  value: {
-  dps: 330.90532
-  tps: 188.69549
+  dps: 338.48772
+  tps: 188.75267
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-EnchantChest-MinorAbsorption-44"
  value: {
-  dps: 330.90532
-  tps: 188.69549
+  dps: 338.48772
+  tps: 188.75267
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-EnchantCloak-Subtlety-2621"
  value: {
-  dps: 330.90532
-  tps: 185.27027
+  dps: 338.48772
+  tps: 185.3228
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-EnchantGloves-Threat-2613"
  value: {
-  dps: 330.90532
-  tps: 192.12071
+  dps: 338.48772
+  tps: 192.18253
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-EnchantWeapon-Crusader-1900"
  value: {
-  dps: 330.90532
-  tps: 188.69549
+  dps: 338.48772
+  tps: 188.75267
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-EnchantWeapon-GrandSorcerer-7942"
  value: {
-  dps: 340.05742
-  tps: 193.58277
+  dps: 347.60226
+  tps: 193.57442
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-EnchantWeapon-Insight-8216"
  value: {
-  dps: 331.41477
-  tps: 189.55794
+  dps: 340.18818
+  tps: 190.12888
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-EnchantWeapon-Recovery-8721"
  value: {
-  dps: 330.90532
-  tps: 188.69549
+  dps: 338.48772
+  tps: 188.75267
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-EnchantWeapon-Revelation-8217"
  value: {
-  dps: 332.35577
-  tps: 189.50774
+  dps: 340.10627
+  tps: 189.65906
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-EssenceofthePureFlame-18815"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-EverlookDeliveryBot-274760"
  value: {
-  dps: 325.2053
-  tps: 186.07098
+  dps: 332.48352
+  tps: 185.63989
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-EverlookPathcarver-274759"
  value: {
-  dps: 323.24301
-  tps: 184.84394
+  dps: 329.53141
+  tps: 184.03326
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-EyeofDiminution-23001"
  value: {
-  dps: 330.45539
-  tps: 188.46222
+  dps: 338.14057
+  tps: 188.55217
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-EyeofMoam-21473"
  value: {
-  dps: 336.47764
-  tps: 191.80008
+  dps: 343.85319
+  tps: 191.79774
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-EyeoftheDead-23047"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-FetishofChitinousSpikes-21488"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-FetishoftheSandReaver-21647"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-FieldMarshal'sThreads"
  value: {
-  dps: 346.75942
-  tps: 196.56084
+  dps: 353.86238
+  tps: 196.70873
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-FlameSearedSignet-282080"
  value: {
-  dps: 326.55248
-  tps: 187.01477
+  dps: 333.24146
+  tps: 186.66397
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-Frostguard-12797"
  value: {
-  dps: 330.90532
-  tps: 188.69549
+  dps: 338.48772
+  tps: 188.75267
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-FrozenHeartoftheMountain-249469"
  value: {
-  dps: 329.0429
-  tps: 186.59304
+  dps: 335.47401
+  tps: 186.51233
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-GlacialBlade-19099"
  value: {
-  dps: 330.90532
-  tps: 188.69549
+  dps: 338.48772
+  tps: 188.75267
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-GlyphofDeflection-23040"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-GoblinConstructionHelmet-10543"
  value: {
-  dps: 322.69997
-  tps: 185.64419
+  dps: 329.76707
+  tps: 185.24682
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-GoldenBanana-270226"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-GutRipper-2164"
  value: {
-  dps: 330.90532
-  tps: 188.69549
+  dps: 338.48772
+  tps: 188.75267
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-Hameya'sSlayer-15814"
  value: {
-  dps: 330.90532
-  tps: 188.69549
+  dps: 338.48772
+  tps: 188.75267
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-HanzoSword-8190"
  value: {
-  dps: 330.90532
-  tps: 188.69549
+  dps: 338.48772
+  tps: 188.75267
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-Hazza'rah'sCharmofDestruction-19957"
  value: {
-  dps: 326.16143
-  tps: 186.16411
+  dps: 333.53698
+  tps: 186.16177
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-HeartoftheScale-13164"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-HibernationCrystal-20636"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-ImplementsofUnspokenNames"
  value: {
-  dps: 333.4582
-  tps: 190.65515
+  dps: 341.25548
+  tps: 190.97576
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-JomGabbar-23570"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-Julie'sDagger-6660"
  value: {
-  dps: 330.90532
-  tps: 188.69549
+  dps: 338.48772
+  tps: 188.75267
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-KissoftheSpider-22954"
  value: {
-  dps: 329.26697
-  tps: 186.91439
+  dps: 335.52294
+  tps: 186.79016
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-LieutenantCommander'sDreadgear"
  value: {
-  dps: 360.01763
-  tps: 204.59923
+  dps: 365.69049
+  tps: 203.86216
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-LieutenantCommander'sThreads"
  value: {
-  dps: 328.79315
-  tps: 188.20593
+  dps: 335.34034
+  tps: 188.48676
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-Linken'sBoomerang-11905"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-Linken'sSwordofMastery-11902"
  value: {
-  dps: 294.52071
-  tps: 169.94858
+  dps: 301.0811
+  tps: 169.67477
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-Loatheb'sReflection-23042"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-MajorRecombobulator-18637"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-MarkofResolution-17759"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-MarkoftheChampion-23206"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-MarkoftheChampion-23207"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-MarkoftheRedFlight-282778"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-MoltenHeartoftheMountain-249470"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-Nightblade-1982"
  value: {
-  dps: 330.90532
-  tps: 188.69549
+  dps: 338.48772
+  tps: 188.75267
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-OrbofFire-12805"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-PetrifiedScarab-21685"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-PhantomBlade-7961"
  value: {
-  dps: 330.90532
-  tps: 188.69549
+  dps: 338.48772
+  tps: 188.75267
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-PlagueheartRaiment"
  value: {
-  dps: 465.05901
-  tps: 227.43866
+  dps: 474.4854
+  tps: 228.04414
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-RingofSaviors-1447"
  value: {
-  dps: 323.43187
-  tps: 185.28262
+  dps: 330.40271
+  tps: 185.27232
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-SerenityField-272439"
  value: {
-  dps: 332.76001
-  tps: 189.84154
+  dps: 340.81368
+  tps: 189.97971
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-SerpentSlicer-13035"
  value: {
-  dps: 330.90532
-  tps: 188.69549
+  dps: 338.48772
+  tps: 188.75267
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-ShardoftheFallenStar-21891"
  value: {
-  dps: 325.13414
-  tps: 185.84798
+  dps: 331.8742
+  tps: 185.38072
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-ShortswordofVengeance-754"
  value: {
-  dps: 330.90532
-  tps: 188.69549
+  dps: 338.48772
+  tps: 188.75267
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-Slayer'sCrest-23041"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-SmokingHeartoftheMountain-11811"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-SwordofZeal-6622"
  value: {
-  dps: 294.52071
-  tps: 169.94858
+  dps: 301.0811
+  tps: 169.67477
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-TalismanofArathor-20071"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-TalismanofArathor-21117"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-TalismanofArathor-21118"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-TalismanofAscendance-22678"
  value: {
-  dps: 344.54659
-  tps: 196.0159
+  dps: 352.95442
+  tps: 196.39678
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-TalismanofEphemeralPower-18820"
  value: {
-  dps: 340.17168
-  tps: 193.601
+  dps: 347.49036
+  tps: 193.44893
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-Teebu'sBlazingLongsword-1728"
  value: {
-  dps: 294.52071
-  tps: 169.94858
+  dps: 301.0811
+  tps: 169.67477
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-TheBlackBook-19337"
  value: {
-  dps: 331.28731
-  tps: 186.02608
+  dps: 338.66287
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-TheBurrower'sShell-23558"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-TheLobotomizer-19324"
  value: {
-  dps: 330.90532
-  tps: 188.69549
+  dps: 338.48772
+  tps: 188.75267
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-TheRestrainedEssenceofSapphiron-23046"
  value: {
-  dps: 360.13934
-  tps: 204.30517
+  dps: 368.1375
+  tps: 204.39102
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-ThrashBlade-17705"
  value: {
-  dps: 330.90532
-  tps: 188.69549
+  dps: 338.48772
+  tps: 188.75267
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-Thunderbrew'sBootFlask-744"
  value: {
-  dps: 327.55394
-  tps: 186.97587
+  dps: 335.24014
+  tps: 187.21397
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-Thunderfury,BlessedBladeoftheWindseeker-19019"
  value: {
-  dps: 330.90532
-  tps: 188.69549
+  dps: 338.48772
+  tps: 188.75267
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-ToySoldier-274386"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-Uther'sStrength-11302"
  value: {
-  dps: 328.9505
-  tps: 187.64808
+  dps: 336.36781
+  tps: 187.64702
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-Warlord'sThreads"
  value: {
-  dps: 346.75942
-  tps: 196.56084
+  dps: 353.86238
+  tps: 196.70873
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-WarmthofForgiveness-23027"
  value: {
-  dps: 328.55747
-  tps: 187.02872
+  dps: 336.39131
+  tps: 187.82453
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-Witchfury-13051"
  value: {
-  dps: 330.90532
-  tps: 188.69549
+  dps: 338.48772
+  tps: 188.75267
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-WrathofCenarius-21190"
  value: {
-  dps: 333.18149
-  tps: 190.5588
+  dps: 340.19103
+  tps: 190.3161
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-ZandalarianHeroBadge-19948"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-ZandalarianHeroCharm-19950"
  value: {
-  dps: 341.86703
-  tps: 194.55033
+  dps: 349.54979
+  tps: 194.58646
  }
 }
 dps_results: {
  key: "TestAffliction-AllItems-ZandalarianHeroMedallion-19949"
  value: {
-  dps: 325.91494
-  tps: 186.02608
+  dps: 333.2905
+  tps: 186.02374
  }
 }
 dps_results: {
  key: "TestAffliction-Average-Default"
  value: {
-  dps: 331.69318
-  tps: 189.04191
+  dps: 338.8062
+  tps: 188.95752
  }
 }
 dps_results: {
  key: "TestAffliction-Settings-Human-preraid-Affliction-affliction-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 329.56525
-  tps: 518.63459
+  dps: 337.79199
+  tps: 512.46573
  }
 }
 dps_results: {
  key: "TestAffliction-Settings-Human-preraid-Affliction-affliction-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 329.56525
-  tps: 187.98339
+  dps: 337.79199
+  tps: 188.22387
  }
 }
 dps_results: {
@@ -902,15 +902,15 @@ dps_results: {
 dps_results: {
  key: "TestAffliction-Settings-Orc-preraid-Affliction-affliction-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 330.90532
-  tps: 519.95152
+  dps: 338.48772
+  tps: 516.68317
  }
 }
 dps_results: {
  key: "TestAffliction-Settings-Orc-preraid-Affliction-affliction-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 330.90532
-  tps: 188.69549
+  dps: 338.48772
+  tps: 188.75267
  }
 }
 dps_results: {
@@ -944,7 +944,7 @@ dps_results: {
 dps_results: {
  key: "TestAffliction-SwitchInFrontOfTarget-Default"
  value: {
-  dps: 330.90532
-  tps: 188.69549
+  dps: 338.48772
+  tps: 188.75267
  }
 }
