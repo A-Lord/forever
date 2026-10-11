@@ -53,11 +53,6 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 			Stat.StatAttackPower,
 			Stat.StatMana,
 			Stat.StatArmorPenetration,
-			Stat.StatArcaneResistance,
-			Stat.StatFireResistance,
-			Stat.StatFrostResistance,
-			Stat.StatNatureResistance,
-			Stat.StatShadowResistance,
 		],
 		[
 			PseudoStat.PseudoStatMeleeHitPercent,

@@ -51,11 +51,6 @@ export default defineSpec<Spec.SpecRetributionPaladin>({
 			Stat.StatStamina,
 			Stat.StatHolyDamage,
 			Stat.StatSpellPiercing,
-			Stat.StatArcaneResistance,
-			Stat.StatFireResistance,
-			Stat.StatFrostResistance,
-			Stat.StatNatureResistance,
-			Stat.StatShadowResistance,
 		],
 		[
 			PseudoStat.PseudoStatMeleeHitPercent,

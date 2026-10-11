@@ -27,23 +27,8 @@ export default defineSpec<Spec.SpecRestorationDruid>({
 	// Reference stat against which to calculate EP.
 	epReferenceStat: Stat.StatHealingPower,
 	// Which stats to display in the Character Stats section, at the bottom of the left-hand sidebar.
-	// The resistances are there for planning resistance sets, the way the hunter sim shows them.
 	displayStats: UnitStat.createDisplayStatArray(
-		[
-			Stat.StatHealth,
-			Stat.StatMana,
-			Stat.StatStamina,
-			Stat.StatIntellect,
-			Stat.StatSpirit,
-			Stat.StatHealingPower,
-			Stat.StatSpellDamage,
-			Stat.StatMP5,
-			Stat.StatArcaneResistance,
-			Stat.StatFireResistance,
-			Stat.StatFrostResistance,
-			Stat.StatNatureResistance,
-			Stat.StatShadowResistance,
-		],
+		[Stat.StatHealth, Stat.StatMana, Stat.StatStamina, Stat.StatIntellect, Stat.StatSpirit, Stat.StatHealingPower, Stat.StatSpellDamage, Stat.StatMP5],
 		[PseudoStat.PseudoStatSpellCritPercent, PseudoStat.PseudoStatSpellHastePercent],
 	),
 
