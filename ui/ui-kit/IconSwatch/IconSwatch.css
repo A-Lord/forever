@@ -21,6 +21,6 @@
 	}
 
 	.ui-icon-swatch-kept {
-		@apply absolute top-0 right-0 size-4 rounded-full bg-scrim p-px text-white;
+		@apply absolute top-0 right-0 size-4 cursor-pointer rounded-full bg-scrim p-px text-white;
 	}
 }
