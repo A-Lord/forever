@@ -18,7 +18,9 @@ All three are browser-free: the localStorage and `location` surfaces arrive thro
 
 1. `host.applyDefaults()`
 2. saved settings from `env.storage` (parse failures are warned and swallowed — a corrupt blob must
-   not brick the page)
+   not brick the page). Read through `fromJsonStringLenient` (`ui/sim/proto/lenient_json.ts`): a plain
+   `ignoreUnknownFields` read leaves a oneof holding an enum name the protos do not list with an
+   undefined value, and the next `toBinary` throws
 3. the URL-hash link, via `tryParseUrlLocation(env.location)`. **After** step 2 on purpose: a
    partial link import (rotation only, say) must keep the previous settings for the other categories
 4. `env.location.setHash('')`

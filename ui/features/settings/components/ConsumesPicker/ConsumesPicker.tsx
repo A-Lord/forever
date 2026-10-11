@@ -52,9 +52,11 @@ export const ConsumesPicker = ({ encounterConsumes = true }: ConsumesPickerProps
 	return (
 		<div className="grid gap-2 max-lg:grid-cols-3 max-md:grid-cols-1">
 			{encounterConsumes && (
-				<ConsumeRow name="potions" configs={[configs.potion, configs.conjured]}>
+				<ConsumeRow name="potions" configs={[configs.offensivePotion, configs.defensivePotion, configs.resourcePotion, configs.conjured]}>
 					<IconRow className="justify-end" data-testid="consumes-potions">
-						<ConnectedIconEnumPicker modObject={player} config={configs.potion} />
+						<ConnectedIconEnumPicker modObject={player} config={configs.offensivePotion} />
+						<ConnectedIconEnumPicker modObject={player} config={configs.defensivePotion} />
+						<ConnectedIconEnumPicker modObject={player} config={configs.resourcePotion} />
 						<ConnectedIconEnumPicker modObject={player} config={configs.conjured} />
 					</IconRow>
 				</ConsumeRow>

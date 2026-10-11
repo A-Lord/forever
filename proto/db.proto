@@ -100,6 +100,8 @@ message Consumable {
 	// The world event the consumable belongs to, by name, which the settings list it under. Empty for
 	// one available all year.
 	string holiday = 21;
+	// The classes of a potion, which the settings offer it under. Empty on anything else.
+	repeated PotionClass potion_classes = 22;
 }
 
 message ItemEffectRandPropPoints {

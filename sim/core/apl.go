@@ -450,6 +450,8 @@ func (apl *APLRotation) DoNextAction(sim *Simulation) {
 	apl.inLoop = true
 
 	apl.unit.UpdatePosition(sim, false)
+	free := apl.unit.GCD.IsReady(sim) && apl.unit.Hardcast.Expires <= sim.CurrentTime
+	apl.unit.costBlocked = false
 	for nextAction := apl.getNextAction(sim); nextAction != nil; i, nextAction = i+1, apl.getNextAction(sim) {
 		if i > 1000 {
 			panic(fmt.Sprintf("[USER_ERROR] Infinite loop detected, current action:\n%s", nextAction))
@@ -463,6 +465,16 @@ func (apl *APLRotation) DoNextAction(sim *Simulation) {
 		}
 	}
 	apl.inLoop = false
+
+	// OOM from the first pass that skips a spell for its mana cost to the first that skips none, counting
+	// only passes the unit starts free to act; a pass during the GCD or a cast sees the costs of few spells.
+	if free {
+		if apl.unit.costBlocked {
+			apl.unit.StartOOMEvent(sim)
+		} else {
+			apl.unit.EndOOMEvent(sim)
+		}
+	}
 
 	if sim.Log != nil && i == 0 {
 		apl.unit.Log(sim, "No available actions!")

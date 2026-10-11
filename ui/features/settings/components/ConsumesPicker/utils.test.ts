@@ -1,5 +1,18 @@
 import { iconEnumPickerShown } from '@features/inputs/components/ConnectedIconEnumPicker';
-import { Class, ConsumableType, ConsumesSpec, HandType, ItemSlot, Profession, PseudoStat, Race, Spec, Stat, WeaponType } from '@generated/proto/common';
+import {
+	Class,
+	ConsumableType,
+	ConsumesSpec,
+	HandType,
+	ItemSlot,
+	PotionClass,
+	Profession,
+	PseudoStat,
+	Race,
+	Spec,
+	Stat,
+	WeaponType,
+} from '@generated/proto/common';
 import { Consumable } from '@generated/proto/db';
 import { ItemEffect } from '@generated/proto/spell';
 import { UIItem } from '@generated/proto/ui';
@@ -35,6 +48,7 @@ const CONSUMABLES = [
 		itemEffects: [onUse(4)],
 		classAllowlist: [Class.ClassWarrior, Class.ClassDruid],
 		stats: strength(60),
+		potionClasses: [PotionClass.PotionClassResource, PotionClass.PotionClassOffensive],
 	}),
 	Consumable.create({ id: 9421, name: 'Major Healthstone', type: ConsumableType.ConsumableTypeConjured, categoryId: 1153, itemEffects: [onUse(1153)] }),
 	Consumable.create({ id: 13510, name: 'Flask of the Titans', type: ConsumableType.ConsumableTypeFlask, stats: strength(10) }),
@@ -149,9 +163,17 @@ const toggled = (toggles: ReadonlyArray<ConsumeToggle>, player: Player<any>) =>
 describe('consumeConfigs', () => {
 	it('offers the Mighty Rage Potion to a class the game files allow it to', () => {
 		const warrior = playerOf().player;
-		expect(offered(consumeConfigs(warrior, db).potion, warrior)).toEqual([13442]);
+		expect(offered(consumeConfigs(warrior, db).resourcePotion, warrior)).toEqual([13442]);
 		const paladin = playerOf({ cls: Class.ClassPaladin, spec: Spec.SpecRetributionPaladin }).player;
-		expect(offered(consumeConfigs(paladin, db).potion, paladin)).toEqual([]);
+		expect(offered(consumeConfigs(paladin, db).resourcePotion, paladin)).toEqual([]);
+	});
+
+	it('offers a potion in the picker of each of its classes only', () => {
+		const { player } = playerOf();
+		const configs = consumeConfigs(player, db);
+		expect(offered(configs.resourcePotion, player)).toEqual([13442]);
+		expect(offered(configs.defensivePotion, player)).toEqual([]);
+		expect(offered(configs.offensivePotion, player)).toEqual([13442]);
 	});
 
 	it('puts each consumable in its picker', () => {
@@ -180,10 +202,17 @@ describe('consumeConfigs', () => {
 
 	it('lists a picker by level, highest first', () => {
 		const potion = (id: number, lvl: number) =>
-			Consumable.create({ id, name: `Potion ${id}`, type: ConsumableType.ConsumableTypePotion, lvl, stats: strength(10) });
+			Consumable.create({
+				id,
+				name: `Potion ${id}`,
+				type: ConsumableType.ConsumableTypePotion,
+				lvl,
+				stats: strength(10),
+				potionClasses: [PotionClass.PotionClassOffensive],
+			});
 		const potions = { getConsumables: () => [potion(1, 20), potion(2, 50), potion(3, 35)], getSpellEffect: () => undefined } as unknown as Database;
 		const { player } = playerOf();
-		expect(offered(consumeConfigs(player, potions).potion, player)).toEqual([2, 3, 1]);
+		expect(offered(consumeConfigs(player, potions).offensivePotion, player)).toEqual([2, 3, 1]);
 	});
 
 	it('offers the Goblin Sapper Charge to an engineer only', () => {

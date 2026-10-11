@@ -54,15 +54,15 @@ func bonusAgainstTarget(character *core.Character) stats.Stats {
 // Potion of Demon Slaying 9224 casts 11406: attack power against Demons for the spell's duration. The item states no cooldown of its own, so the potion runs on the spell's
 // category timer and category cooldown.
 func TestPotionOfDemonSlayingIsAPotion(t *testing.T) {
-	sim, character := warriorWithConsumes(t, &proto.ConsumesSpec{PotId: 9224}, 0, 0, proto.MobType_MobTypeDemon)
+	sim, character := warriorWithConsumes(t, &proto.ConsumesSpec{OffensivePotId: 9224}, 0, 0, proto.MobType_MobTypeDemon)
 	row := spelldata.MustFind(11406)
 
 	spell := character.GetSpell(core.ActionID{ItemID: 9224})
 	if spell == nil {
 		t.Fatal("9224 registers no spell")
 	}
-	if !spell.Flags.Matches(core.SpellFlagPotion | core.SpellFlagCombatPotion) {
-		t.Error("9224 is not the combat potion")
+	if !spell.Flags.Matches(core.SpellFlagPotion) || character.GetInitialMajorCooldown(spell.ActionID).Spell != spell {
+		t.Error("9224 is not a potion and the offensive potion's major cooldown")
 	}
 	if spell.SharedCD.Timer != character.GetOrInitSpellCategoryTimer(int32(row.Category)) || spell.SharedCD.Duration != row.CategoryCooldown() {
 		t.Errorf("9224's shared cooldown is %v on another timer than category %d's, want %v on it",
@@ -90,7 +90,7 @@ func TestPotionOfDemonSlayingIsAPotion(t *testing.T) {
 		t.Errorf("after the potion, the bonus against Demons is %v, want none", got)
 	}
 
-	undeadSim, againstUndead := warriorWithConsumes(t, &proto.ConsumesSpec{PotId: 9224}, 0, 0, proto.MobType_MobTypeUndead)
+	undeadSim, againstUndead := warriorWithConsumes(t, &proto.ConsumesSpec{OffensivePotId: 9224}, 0, 0, proto.MobType_MobTypeUndead)
 	againstUndead.GetAuraByID(core.ActionID{SpellID: 11406}).Activate(undeadSim)
 	if got := bonusAgainstTarget(againstUndead); got != (stats.Stats{}) {
 		t.Errorf("under the potion, the bonus against Undead is %v, want none", got)
