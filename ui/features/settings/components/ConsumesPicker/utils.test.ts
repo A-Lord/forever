@@ -8,6 +8,7 @@ import {
 	ItemSlot,
 	MobType,
 	MobTypeStats,
+	PotionClass,
 	Profession,
 	PseudoStat,
 	Race,
@@ -53,6 +54,7 @@ const CONSUMABLES = [
 		itemEffects: [onUse(4)],
 		classAllowlist: [Class.ClassWarrior, Class.ClassDruid],
 		stats: strength(60),
+		potionClasses: [PotionClass.PotionClassResource, PotionClass.PotionClassOffensive],
 	}),
 	Consumable.create({ id: 9421, name: 'Major Healthstone', type: ConsumableType.ConsumableTypeConjured, categoryId: 1153, itemEffects: [onUse(1153)] }),
 	Consumable.create({ id: 13510, name: 'Flask of the Titans', type: ConsumableType.ConsumableTypeFlask, stats: strength(10) }),
@@ -182,9 +184,17 @@ const marked = (config: ConsumeConfig | ConsumeToggle, player: Player<any>) =>
 describe('consumeConfigs', () => {
 	it('offers the Mighty Rage Potion to a class the game files allow it to', () => {
 		const warrior = playerOf().player;
-		expect(offered(consumeConfigs(warrior, db).potion, warrior)).toEqual([13442]);
+		expect(offered(consumeConfigs(warrior, db).resourcePotion, warrior)).toEqual([13442]);
 		const paladin = playerOf({ cls: Class.ClassPaladin, spec: Spec.SpecRetributionPaladin }).player;
-		expect(offered(consumeConfigs(paladin, db).potion, paladin)).toEqual([]);
+		expect(offered(consumeConfigs(paladin, db).resourcePotion, paladin)).toEqual([]);
+	});
+
+	it('offers a potion in the picker of each of its classes only', () => {
+		const { player } = playerOf();
+		const configs = consumeConfigs(player, db);
+		expect(offered(configs.resourcePotion, player)).toEqual([13442]);
+		expect(offered(configs.defensivePotion, player)).toEqual([]);
+		expect(offered(configs.offensivePotion, player)).toEqual([13442]);
 	});
 
 	it('puts each consumable in its picker', () => {
@@ -213,7 +223,7 @@ describe('consumeConfigs', () => {
 
 	describe('order', () => {
 		const potion = (id: number, name: string, lvl: number, stats: Array<number> = []) =>
-			Consumable.create({ id, name, type: ConsumableType.ConsumableTypePotion, lvl, stats });
+			Consumable.create({ id, name, type: ConsumableType.ConsumableTypePotion, lvl, stats, potionClasses: [PotionClass.PotionClassOffensive] });
 		const dbOf = (consumables: Array<Consumable>) => ({ getConsumables: () => consumables, getSpellEffect: () => undefined }) as unknown as Database;
 		const agility = (value: number) => statArray(Stat.StatAgility, value);
 		const epStats = [Stat.StatStrength, Stat.StatAgility];
@@ -226,7 +236,7 @@ describe('consumeConfigs', () => {
 				potion(4, 'Strong', 20, strength(10)),
 			]);
 			const { player } = playerOf({ epStats, epWeights: Stats.fromMap({ [Stat.StatStrength]: 2, [Stat.StatAgility]: 1 }) });
-			const config = consumeConfigs(player, potions).potion;
+			const config = consumeConfigs(player, potions).offensivePotion;
 			expect(iconEnumValues(config, player)[0].value).toBe(0);
 			expect(offered(config, player)).toEqual([4, 3, 2, 1]);
 		});
@@ -234,13 +244,13 @@ describe('consumeConfigs', () => {
 		it('orders an equal EP by level, highest first, then by name', () => {
 			const potions = dbOf([potion(1, 'Bravo', 30, strength(10)), potion(2, 'Alpha', 30, strength(10)), potion(3, 'Charlie', 40, strength(10))]);
 			const { player } = playerOf();
-			expect(offered(consumeConfigs(player, potions).potion, player)).toEqual([3, 2, 1]);
+			expect(offered(consumeConfigs(player, potions).offensivePotion, player)).toEqual([3, 2, 1]);
 		});
 
 		it('orders again when the weights change, on the configs already built', () => {
 			const potions = dbOf([potion(1, 'Strong', 0, strength(10)), potion(2, 'Agile', 0, agility(10))]);
 			const { player, state } = playerOf({ epStats, epWeights: Stats.fromMap({ [Stat.StatStrength]: 1 }) });
-			const config = consumeConfigs(player, potions).potion;
+			const config = consumeConfigs(player, potions).offensivePotion;
 			expect(offered(config, player)).toEqual([1, 2]);
 			state.epWeights = Stats.fromMap({ [Stat.StatAgility]: 1 });
 			expect(offered(config, player)).toEqual([2, 1]);
@@ -258,7 +268,7 @@ describe('consumeConfigs', () => {
 			});
 			const potions = dbOf([slaying, natural, potion(3, 'Strong', 0, strength(10))]);
 			const { player, state } = playerOf({ epWeights: Stats.fromMap({ [Stat.StatStrength]: 1 }) });
-			const config = consumeConfigs(player, potions).potion;
+			const config = consumeConfigs(player, potions).offensivePotion;
 			expect(offered(config, player)).toEqual([3, 2, 1]);
 			state.mobType = MobType.MobTypeDemon;
 			expect(offered(config, player)).toEqual([1, 3, 2]);
@@ -574,11 +584,15 @@ describe('consumeConfigs under the consumables stat filter', () => {
 	});
 
 	it('keeps a picked consumable the class may not use hidden, whatever the filter shows', () => {
-		const { player, state } = playerOf({ cls: Class.ClassPaladin, spec: Spec.SpecRetributionPaladin, consumes: ConsumesSpec.create({ potId: 13442 }) });
+		const { player, state } = playerOf({
+			cls: Class.ClassPaladin,
+			spec: Spec.SpecRetributionPaladin,
+			consumes: ConsumesSpec.create({ resourcePotId: 13442 }),
+		});
 		const configs = consumeConfigs(player, db);
-		expect(offered(configs.potion, player)).toEqual([]);
+		expect(offered(configs.resourcePotion, player)).toEqual([]);
 		state.filters = withSelection(DatabaseFilters.create(), 'consumables', consumableFilterScope(player, db).universe);
-		expect(offered(configs.potion, player)).toEqual([]);
+		expect(offered(configs.resourcePotion, player)).toEqual([]);
 	});
 
 	it('leaves a pick the level filter keeps unmarked', () => {
@@ -594,7 +608,7 @@ describe('consumeConfigs under the consumables stat filter', () => {
 		expect(relevantConsumableIds(CONSUMABLES, ConsumableSlot.Potion, player, db)).toEqual([13442]);
 
 		state.filters = hiding(player, db, Stat.StatStrength);
-		expect(offered(configs.potion, player)).toEqual([]);
+		expect(offered(configs.offensivePotion, player)).toEqual([]);
 		expect(relevantConsumableIds(CONSUMABLES, ConsumableSlot.Potion, player, db)).toEqual([13442]);
 	});
 

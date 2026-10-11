@@ -53,10 +53,10 @@ var DefaultTalents = testingBuild.Talents
 // The UI's Elemental defaults: Major Mana Potion, Flask of Supreme Power, Demonic Rune and Brilliant
 // Wizard Oil.
 var DefaultConsumables = &proto.ConsumesSpec{
-	PotId:      13444,
-	FlaskId:    13512,
-	ConjuredId: 12662,
-	MhImbueId:  20749,
+	ResourcePotId: 13444,
+	FlaskId:       13512,
+	ConjuredId:    12662,
+	MhImbueId:     20749,
 }
 
 const DefaultArmorType = proto.ArmorType_ArmorTypeMail

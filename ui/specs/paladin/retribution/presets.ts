@@ -83,7 +83,7 @@ export const TwistOfLightEpWeights = PresetUtils.makePresetEpWeights(
 );
 
 export const TwistOfLightConsumables = ConsumesSpec.create({
-	potId: Consumables.MajorSpellblastingPotion.id,
+	offensivePotId: Consumables.MajorSpellblastingPotion.id,
 	flaskId: Consumables.FlaskOfSupremePower.id,
 	foodId: Consumables.LobsterStew.id,
 	conjuredId: Consumables.DemonicRune.id,

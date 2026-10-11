@@ -13,7 +13,9 @@ import { consumableAllowed, consumableOrderOf, consumablePseudoStatsOf, consumab
 import { memoLast } from '@sim/utils/misc';
 
 export type ConsumableIdField =
-	| 'potId'
+	| 'resourcePotId'
+	| 'defensivePotId'
+	| 'offensivePotId'
 	| 'conjuredId'
 	| 'flaskId'
 	| 'foodId'
