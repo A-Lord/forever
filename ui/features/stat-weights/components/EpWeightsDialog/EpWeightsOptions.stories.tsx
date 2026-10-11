@@ -1,4 +1,6 @@
+import i18n from '@i18n/config';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { storyStatFilter } from '@testing/storybook/fixtures/stat-filters';
 import { fn } from 'storybook/test';
 
 import { EpWeightsOptions } from './EpWeightsOptions';
@@ -10,15 +12,14 @@ const meta = {
 	tags: ['autodocs'],
 	args: {
 		statsType: StatsType.Ep,
-		showAllStats: false,
 		onStatsTypeChange: fn(),
-		onShowAllStatsChange: fn(),
+		children: storyStatFilter('ep-stat-filter', i18n.t('stat_filters.triggers.ep')),
 	},
-	argTypes: { statsType: { control: 'select', options: [StatsType.Ep, StatsType.Weight] } },
+	argTypes: { statsType: { control: 'select', options: [StatsType.Ep, StatsType.Weight] }, children: { control: false } },
 } satisfies Meta<typeof EpWeightsOptions>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
-export const WeightsWithAllStats: Story = { args: { statsType: StatsType.Weight, showAllStats: true } };
+export const Weights: Story = { args: { statsType: StatsType.Weight } };

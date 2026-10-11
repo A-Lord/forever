@@ -147,7 +147,7 @@ abstract class BaseGear {
 		return SimDatabase.create(data);
 	}
 
-	private static itemToDB(item: Item): SimItem {
+	static itemToDB(item: Item): SimItem {
 		return SimItem.fromJson(Item.toJson(item), { ignoreUnknownFields: true });
 	}
 

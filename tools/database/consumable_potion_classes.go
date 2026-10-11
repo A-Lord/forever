@@ -16,7 +16,7 @@ import (
 // absorb a defensive one, and the stats it grants of the class the major cooldown manager files the buff
 // under: any armor, avoidance, health or resistance defensive, mana regen alone resource, anything else
 // offensive. A potion with no class fails. Runs after AddUnparsedStats, so the stats against creature
-// types and the hit and crit percents count.
+// types, listed as mob type stats, and the hit and crit percents count.
 func AddPotionClasses(db *WowDatabase) error {
 	for id, consumable := range db.Consumables {
 		consumable.PotionClasses = nil
@@ -39,7 +39,11 @@ func AddPotionClasses(db *WowDatabase) error {
 			add(proto.PotionClass_PotionClassDefensive)
 		}
 
-		if buffed := stats.FromProtoArray(consumable.Stats).GetBuffedStatTypes(); len(buffed) > 0 {
+		granted := stats.FromProtoArray(consumable.Stats)
+		for _, versus := range consumable.MobTypeStats {
+			granted = granted.Add(stats.FromProtoMap(versus.Stats))
+		}
+		if buffed := granted.GetBuffedStatTypes(); len(buffed) > 0 {
 			switch core.CooldownTypeOf(buffed) {
 			case core.CooldownTypeSurvival:
 				add(proto.PotionClass_PotionClassDefensive)

@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { KEPT_TOOLTIP } from '@testing/storybook/fixtures/kept';
 import type { ResolvedIcon } from '@ui-kit/Field/types';
 import { useState } from 'react';
 import { fn } from 'storybook/test';
@@ -67,3 +68,5 @@ export const Quadstate: Story = {
 export const Counter: Story = { args: { states: 0, icon: TOTEM, value: 4 } };
 export const Disabled: Story = { args: { disabled: true, value: 1 } };
 export const Labelled: Story = { args: { label: 'Blessing of Kings', value: 1 } };
+export const Kept: Story = { args: { value: 1, keptTooltip: KEPT_TOOLTIP } };
+export const KeptQuadstate: Story = { args: { ...Quadstate.args, keptTooltip: KEPT_TOOLTIP } };

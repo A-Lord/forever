@@ -1,4 +1,5 @@
 import { showsEpRatios } from '@features/results/model/sim_results';
+import { StatFilterPopover, useStatFilter } from '@features/stat-filters';
 import { ErrorOutcomeType, type StatWeightsResult } from '@generated/proto/api';
 import { Stat } from '@generated/proto/common';
 import i18n from '@i18n/config';
@@ -20,7 +21,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { trackEvent } from '../../../../tracking/utils';
 import { calculateEp, combineScaledEpValues, combineScaledWeights, emptyStatWeightsResult, epWeightsWithoutExcluded } from '../../model/ep_math';
-import { visibleEpUnitStats } from '../../model/ep_unit_stats';
+import { epFilterScope } from '../../model/ep_unit_stats';
 import { statsTableColumns } from '../../model/stats_table';
 import { SavedEpWeights } from '../SavedEpWeights';
 import { EpReferenceOptions } from './EpReferenceOptions';
@@ -44,9 +45,10 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 	const epReferenceStat = individualConfig.epReferenceStat;
 	const epPseudoStats = useMemo(() => individualConfig.epPseudoStats || [], [individualConfig]);
 	const epStatSet = useMemo(() => ({ epStats, epPseudoStats }), [epStats, epPseudoStats]);
+	const scope = useMemo(() => epFilterScope(epStatSet), [epStatSet]);
+	const statFilter = useStatFilter('ep', scope);
 
 	const [statsType, setStatsType] = useState<StatsType>(StatsType.Ep);
-	const [showAllStats, setShowAllStats] = useState(false);
 	const [iterations, setIterations] = useState(0);
 	const [simResult, setSimResult] = useState<StatWeightsResult | null>(null);
 	const [progress, setProgress] = useState<ProgressTrackerState>({ stage: 'initializing' });
@@ -83,7 +85,6 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 	// `calculateEp` writes `epValues` from `weights`, which normalisation leaves alone.
 	const result = useMemo(() => (simResult ? calculateEp(simResult, refStats) : null), [simResult, refStats]);
 	const prevSimResult = useMemo(() => result ?? emptyStatWeightsResult(), [result]);
-	const stats = useMemo(() => visibleEpUnitStats(epStatSet, showAllStats), [epStatSet, showAllStats]);
 
 	const applyWeights = useCallback(
 		(newWeights: Stats) => player.setEpWeights(epWeightsWithoutExcluded(newWeights, player.getEpWeights(), settings)),
@@ -179,12 +180,9 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 			}>
 			<div className="flex flex-col gap-4 lg:flex-row lg:items-start">
 				<div className="order-1 w-full lg:order-0">
-					<EpWeightsOptions
-						statsType={statsType}
-						showAllStats={showAllStats}
-						onStatsTypeChange={setStatsType}
-						onShowAllStatsChange={setShowAllStats}
-					/>
+					<EpWeightsOptions statsType={statsType} onStatsTypeChange={setStatsType}>
+						<StatFilterPopover {...statFilter} ariaLabel={i18n.t('stat_filters.triggers.ep')} testId="ep-stat-filter" />
+					</EpWeightsOptions>
 					{!editOnly && <EpReferenceOptions epStats={epStats} epReferenceStat={epReferenceStat} displayMetrics={displayMetrics} />}
 					<p>
 						{i18n.t('sidebar.buttons.stat_weights.modal.current_ep_description')}
@@ -197,7 +195,7 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 					</p>
 					<EpWeightsTable
 						columns={visibleColumns}
-						stats={stats}
+						stats={statFilter.shown}
 						statsType={statsType}
 						result={result}
 						iterations={iterations || 1}

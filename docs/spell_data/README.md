@@ -3,9 +3,9 @@
 The sim reads its numbers from the game files instead of hand-transcribed literals. They come out of
 one store, `sim/core/spelldata`: a generated file that holds every spell the sim can reach, and
 resolvers that turn a row into a spell config, an aura, a dot, a talent's modifiers or a proc listener.
-The warrior, the hunter and the mage read the store through the resolvers. The paladin registers its
-spells through `SpellConfig` and reads its talents and auras by hand. The other five classes read its
-rows by hand, one value at a time, with no resolver in between.
+The warrior, hunter, mage, paladin and shaman build on the resolvers; the druid, priest, rogue and
+warlock read rows by hand, one value at a time, with no resolver in between. Grep the class folder for
+`spelldata.SpellConfig` and `spelldata.Parse` to see which way the code you touch goes.
 
 - [The store](store.md)
 - [Building an ability](building-an-ability.md)

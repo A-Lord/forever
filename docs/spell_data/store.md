@@ -2,9 +2,10 @@
 
 `sim/core/spelldata/spells_auto_gen.go` holds every spell the sim can reach: the ones the class files
 name, the ones items, enchants and set bonuses cast, and everything those reach in turn through a
-trigger effect, an actionbar override or a tooltip reference. `sim/core/spelldata/snapshot_test.go`
-pins what that comes to (7048 rows carrying 9651 effects), so a regeneration that changes those counts
-shows up there.
+trigger effect, an actionbar override or a tooltip reference. `TestGeneratedStoreShape`
+(`sim/core/spelldata/snapshot_test.go`) checks that its row and effect counts sit within the bounds of
+a whole store, and `TestStoreRegeneratesFromTheCommittedInputs` (`tools/database`) checks that the
+committed store is the one the committed inputs produce.
 
 Every field is the game files' column in the game files' units: a percentage is the integer 16, rage is on a
 0-1000 bar, times are milliseconds. The accessors do the conversion, so a row always matches what the
@@ -19,9 +20,9 @@ frostbolt = spelldata.MustFind(116)   // panics there instead
 ```
 
 Every accessor answers on `Nil`, and `Nil` chains: `spelldata.Find(0).EffectN(1).Average()` is 0
-rather than a crash, so a caller can ask about a spell this build does not have. `MustFind` is the
-other bargain, and a package-level variable takes it. A regeneration that drops an id then fails at
-startup and names the id, instead of registering a spell with no numbers. `All()` and `ByName(name)`
+rather than a crash, so a caller can ask about a spell this build does not have. A package-level
+variable takes `MustFind` instead, so a regeneration that drops an id fails at startup and names the
+id, instead of registering a spell with no numbers. `All()` and `ByName(name)`
 exist for tests and debugging; a sim names its spells by id.
 
 To read an id in hand-written code without grepping the table, run `go run ./tools/spelldata 11574`. It
@@ -31,7 +32,7 @@ the row requires, the range, the target cap, the stacks and charges, the interna
 attributes `attributes.go` exposes, the proc's rate and flags, the spells the tooltip references and
 the row's labels. The title line names the ladder through which a class file reaches the id (`warrior
 spellData.Rend.Highest()`), scanned out of `sim/*/spell_data_auto_gen.go`. For a class the generator
-has not put on ladders yet, it says nothing. The same scan also works the other way. `-family
+has not put on ladders yet, it says nothing. The scan also works the other way: `-family
 warrior/Execute` prints a ladder's ranks with the call that reaches each, then its highest rank in full.
 `-expr 'spellData.Execute.Rank(3)' -package warrior` prints the row that one ladder call names. `-expr`
 also reads a pick followed by the store's own accessors: `-expr
@@ -76,8 +77,8 @@ damage := frostbolt.EffectN(2)                                 // the second eff
 slow := frostbolt.Effect(dbcenums.A_MOD_DECREASE_SPEED, 0)     // the one effect with this aura and misc value
 ```
 
-`EffectN` counts from **1, by position**. That is not the game files' `EffectIndex`, which has gaps: 46
-of the store's rows state an index that is not the position it sits at. The row keeps the game files'
+`EffectN` counts from **1, by position**. That is not the game files' `EffectIndex`, which has gaps:
+some of the store's rows state an index that is not the position it sits at. The row keeps the game files'
 own number in `Effect.Index`. A position the row does not have answers `NilEffect`.
 
 `Effect(aura, misc)` names an effect by what it does rather than by where it sits. It panics when no
