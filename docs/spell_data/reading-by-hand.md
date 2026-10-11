@@ -1,10 +1,10 @@
 # Reading a row by hand
 
-Rogue, warlock, mage, druid, priest, shaman and paladin read the store by hand. A class file names the
-ladder it needs, picks a rank, and reads every field the registration wants straight into a plain
-expression, with no resolver in between. In these seven classes' files **a row is a source of numbers
-only**: they use no `spelldata.SpellConfig`, `AuraConfig`, `DotConfig`, `ProcTrigger`, `ParseEffects`
-or `ParseStatic`. They build `core.SpellConfig` and `core.DotConfig` by hand, field by field. These are
+The druid, mage, priest, rogue and warlock read the store by hand. A class file names the ladder it
+needs, picks a rank, and reads every field the registration wants straight into a plain expression,
+with no resolver in between. In these classes' files **a row is a source of numbers only**: they use
+no `spelldata.SpellConfig`, `AuraConfig`, `DotConfig`, `ProcTrigger`, `ParseEffects` or
+`ParseStatic`. They build `core.SpellConfig` and `core.DotConfig` by hand, field by field. These are
 the same shapes that [Building an ability](building-an-ability.md) and
 [Auras and dots](auras-and-dots.md) describe for the resolvers, filled in without one.
 
@@ -31,7 +31,7 @@ With no resolver to read the row for the caller, a registration reads these valu
 | `rank.SpellSchool()`, `rank.DefenseTypeCore()`     | already in core's enums: the accessor converts the game files' byte                                                                                                                     |
 | `float64(rank.MaxRange)`, `float64(rank.MinRange)` | the plain fields, in yards                                                                                                                                                              |
 
-Straight off `sim/shaman/shocks.go`:
+A shock's config, built from those values by hand:
 
 ```go
 func (shaman *Shaman) newShockSpellConfig(rank *spelldata.Spell, spellSchool core.SpellSchool, shockTimer *core.Timer) core.SpellConfig {
@@ -61,10 +61,8 @@ func (shaman *Shaman) newShockSpellConfig(rank *spelldata.Spell, spellSchool cor
 }
 ```
 
-**An amount is `Average()`, or `Roll(sim)` where the class rolls it.** The
-seven classes ported first read every amount as `Average`, both ends of a `(low, high)` alike, because
-the literals they replaced never rolled. Paladin's literals did roll, so its damage and heals take
-`Roll` and its per-hit and aura numbers take `Average`. A row can still carry a spread (Frostbolt's
+**An amount is `Average()`, or `Roll(sim)` where the class rolls it.** These classes read every
+amount as `Average`, both ends of a `(low, high)` alike. A row can still carry a spread (Frostbolt's
 `Variance` is 0.105), and `Roll(sim)`/`Min`/`Max` read it where a class asks for one. A ported number
 reads `Average` so that it stays equal to the one it replaces, not because the data has no spread.
 
@@ -160,9 +158,9 @@ var cp int32
 	},
 ```
 
-**Hand numbers stay hand numbers: Go literals with a review comment.** A hand-supplied threat
-number, PPM or coefficient keeps the same marker a resolver-built config carries. `sim/warrior/hamstring.go` writes it as an assignment on the config the resolver already
-built:
+**A hand number is a Go literal with a review comment.** A hand-supplied threat number, PPM or
+coefficient keeps the same marker a resolver-built config carries. `sim/warrior/hamstring.go` writes
+it as an assignment on the config the resolver already built:
 
 ```go
 // TODO: Manual review needed -- the game files state no threat coefficient; 1 until measured in game.
