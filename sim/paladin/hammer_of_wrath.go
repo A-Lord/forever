@@ -21,11 +21,6 @@ func (paladin *Paladin) registerHammerOfWrath(_ int32, rank *spelldata.Spell) {
 	// it.
 	config.Cast.DefaultCast.GCDMin = rank.GCD()
 
-	config.Cast.ModifyCast = core.Ternary(paladin.Talents.InstrumentOfLaw == 2, nil, func(sim *core.Simulation, spell *core.Spell, cast *core.Cast) {
-		castTime := paladin.ApplyCastSpeedForSpell(cast.CastTime, spell)
-		paladin.AutoAttacks.StopMeleeUntil(sim, sim.CurrentTime+castTime)
-	})
-
 	config.ExtraCastCondition = func(sim *core.Simulation, _ *core.Unit) bool {
 		return sim.IsExecutePhase20()
 	}

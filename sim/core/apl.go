@@ -415,6 +415,10 @@ func (apl *APLRotation) DoNextAction(sim *Simulation) {
 		return
 	}
 
+	// An event at a cast's last instant, such as a rage tick, wakes the rotation before the cast's
+	// own completion runs; the cast completes first.
+	apl.unit.completeDueHardcast(sim)
+
 	if apl.unit.IsChanneling() {
 		dot := apl.unit.ChanneledDot
 		// All ticks consumed but aura not yet expired (lazy expiry). Deactivate now so

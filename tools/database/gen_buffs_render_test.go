@@ -46,7 +46,7 @@ func syntheticBuffRows() []ResolvedBuff {
 			},
 			Scope: buffmanifest.ScopeParty, Proto: buffmanifest.ProtoTristate,
 			Go: "SynthManaSpring", Name: "Mana Spring Totem",
-			SpellID: 10494, CastSpellID: 10494, Supported: true,
+			SpellID: 10494, CastSpellID: 10494, Totem: true, Supported: true,
 			Spell:         spell(10494, core.SpellSchoolNature, 0, mana),
 			TalentRanks:   5,
 			TalentSpellID: 16187, TalentPosition: 1,
@@ -107,7 +107,7 @@ func syntheticBuffRows() []ResolvedBuff {
 			BuffSpec: buffmanifest.BuffSpec{Field: "frost_resistance_totem"},
 			Scope:    buffmanifest.ScopeRaid, Proto: buffmanifest.ProtoBool,
 			Go: "SynthFrostResistanceTotem", Name: "Frost Resistance Totem",
-			SpellID: 10477, CastSpellID: 10477, Supported: true,
+			SpellID: 10477, CastSpellID: 10477, Totem: true, Supported: true,
 			Spell: spell(10477, core.SpellSchoolNature, 0, aura(dbcenums.A_MOD_RESISTANCE, 16, 60)),
 		},
 		{
@@ -242,6 +242,25 @@ func renderSyntheticBuffFiles(t *testing.T) map[string][]byte {
 		t.Fatalf("rendering the synthetic rows: %v", err)
 	}
 	return files
+}
+
+// A cast is a totem when it summons into a totem slot; any other summon, or a slot named by
+// another effect, is not.
+func TestTotemIsASummonIntoATotemSlot(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		effects []storeEffect
+		want    bool
+	}{
+		{"totem slot", []storeEffect{{Type: dbcenums.E_SUMMON, Misc2: totemSlotSummonProperties[0]}}, true},
+		{"other summon", []storeEffect{{Type: dbcenums.E_SUMMON, Misc2: 1}}, false},
+		{"slot on another effect", []storeEffect{{Type: dbcenums.E_APPLY_AURA, Misc2: totemSlotSummonProperties[0]}}, false},
+		{"no effects", nil, false},
+	} {
+		if got := summonsTotem(storeSpell{Effects: tc.effects}); got != tc.want {
+			t.Errorf("%s: a totem %v, want %v", tc.name, got, tc.want)
+		}
+	}
 }
 
 func TestRenderedBuffFilesMatchTheFixtures(t *testing.T) {

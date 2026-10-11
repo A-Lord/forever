@@ -28,6 +28,7 @@ func (priest *Priest) NewShadowfiend() *Shadowfiend {
 			Owner:           &priest.Character,
 			BaseStats:       baseStats,
 			StatInheritance: priest.shadowfiendStatInheritance(),
+			IsGuardian:      true,
 		}),
 		Priest: priest,
 	}

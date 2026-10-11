@@ -70,10 +70,6 @@ func (paladin *Paladin) registerLightsVigilRank(_ int32, rank *spelldata.Spell) 
 	config := spelldata.SpellConfig(&paladin.Unit, rank, spelldata.Flags(core.SpellFlagAPL))
 	config.ProcMask = core.ProcMaskEmpty
 	config.ClassSpellMask = SpellMaskLightsVigil
-	config.Cast.ModifyCast = func(sim *core.Simulation, spell *core.Spell, cast *core.Cast) {
-		castTime := paladin.ApplyCastSpeedForSpell(cast.CastTime, spell)
-		paladin.AutoAttacks.StopMeleeUntil(sim, sim.CurrentTime+castTime)
-	}
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		vigil.cost = spell.CurCast.Cost
 		// One vigil per paladin: a new one replaces whatever was up.
