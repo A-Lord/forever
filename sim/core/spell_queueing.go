@@ -94,6 +94,14 @@ func (spell *Spell) CanQueue(sim *Simulation, target *Unit) bool {
 		return false
 	}
 
+	if spell.Flags&SpellFlagCanCastWhileMoving == 0 && spell.DefaultCast.CastTime > 0 && spell.Unit.Moving {
+		return false
+	}
+
+	if spell.MaxCharges > 0 && spell.charges == 0 {
+		return false
+	}
+
 	// Apply SQW leniency to any pending hardcasts
 	if spell.Flags.Matches(SpellFlagChanneled) && spell.Unit.Hardcast.Expires > sim.CurrentTime+MaxSpellQueueWindow {
 		return false

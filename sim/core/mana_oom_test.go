@@ -83,6 +83,36 @@ func TestOOMTracking(t *testing.T) {
 		}
 	})
 
+	t.Run("an unaffordable cast-time spell is not OOM while the unit moves", func(t *testing.T) {
+		ct := newManaTickTest(func(char *Character) *Spell {
+			return char.RegisterSpell(manaSpellConfig(910330, unaffordableCost, 2*time.Second, new([]time.Duration)))
+		})
+		moveEnd := 3 * time.Second
+		ct.start(ct.castOf(ct.spell))
+		ct.fw.MoveDuration(moveEnd, ct.sim)
+		ct.runUntil(moveEnd - time.Second)
+		if ct.fw.IsOOM() || ct.fw.Metrics.WentOOM {
+			t.Fatalf("OOM from %v while moving", ct.fw.Metrics.FirstOOMTimestamp)
+		}
+		ct.runUntil(moveEnd + time.Second)
+		if !ct.fw.IsOOM() || ct.fw.Metrics.FirstOOMTimestamp < moveEnd {
+			t.Errorf("OOM %v from %v, want OOM from %v, when the unit stops", ct.fw.IsOOM(), ct.fw.Metrics.FirstOOMTimestamp, moveEnd)
+		}
+	})
+
+	t.Run("an unaffordable major cooldown is not OOM", func(t *testing.T) {
+		ct := newManaTickTest(func(char *Character) *Spell {
+			config := manaSpellConfig(910331, unaffordableCost, 0, new([]time.Duration))
+			config.Flags |= SpellFlagMCD
+			return char.RegisterSpell(config)
+		})
+		ct.start(ct.castOf(ct.spell))
+		ct.runUntil(5 * time.Second)
+		if ct.fw.IsOOM() || ct.fw.Metrics.WentOOM {
+			t.Errorf("OOM from %v on a major cooldown", ct.fw.Metrics.FirstOOMTimestamp)
+		}
+	})
+
 	t.Run("a stall on an unaffordable spell is OOM until a mana spell starts casting", func(t *testing.T) {
 		castTime := 3 * time.Second
 		ct := newManaTickTest(func(char *Character) *Spell {

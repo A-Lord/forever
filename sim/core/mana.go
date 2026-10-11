@@ -416,7 +416,10 @@ func (spell *Spell) commitManaSpell(sim *Simulation) {
 func (mc *ManaCost) MeetsRequirement(sim *Simulation, spell *Spell) bool {
 	spell.CurCast.Cost = spell.Cost.GetCurrentCost()
 	if spell.CurCast.Cost > 0 && spell.Unit.manaAfterHardcast(sim) < spell.CurCast.Cost {
-		spell.Unit.costBlocked = true
+		// A major cooldown is checked off the GCD as well, when the rotation is not waiting on it.
+		if !spell.Flags.Matches(SpellFlagMCD) {
+			spell.Unit.costBlocked = true
+		}
 		return false
 	}
 	return true
