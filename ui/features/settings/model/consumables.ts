@@ -10,6 +10,7 @@ import { ActionId } from '@sim/proto/action_id';
 import type { Database } from '@sim/proto/database';
 import { UnitStat, unitStatsOf } from '@sim/proto/stats';
 import {
+	consumableAllowed,
 	type ConsumableOrder,
 	consumableOrderOf,
 	consumablePseudoStatsOf,
@@ -34,8 +35,6 @@ export type ConsumableIdField =
 	| 'swapOhWeaponImbueId';
 
 export interface ConsumableRelevance {
-	// The class, race and profession: a consumable that fails it is never offered, picked or not.
-	allowed: (consumable: Consumable, player: Player<any>) => boolean;
 	// The stat rule, which the consumables stat filter moves.
 	relevant: (consumable: Consumable, player: Player<any>) => boolean;
 }
@@ -48,22 +47,27 @@ export interface ConsumableInputOptions {
 	tooltip?: string;
 }
 
-// The minimum level and the stat rule only trim what is offered: a consumable already picked stays
+// The class, race and profession decide whether a consumable is offered at all, picked or not. The
+// minimum level and the stat rule only trim what is offered: a consumable already picked stays
 // offered below the level and with its stats hidden.
 const offeredTo =
 	(consumable: Consumable, relevance: ConsumableRelevance, picked: (player: Player<any>) => boolean, includeIf?: ConsumableInputOptions['includeIf']) =>
 	(player: Player<any>) =>
-		relevance.allowed(consumable, player) &&
+		consumableAllowed(consumable, player) &&
 		((consumable.lvl >= player.sim.getMinConsumableLvl(consumable.type) && relevance.relevant(consumable, player)) || picked(player)) &&
 		(!includeIf || includeIf(consumable, player));
 
 // Defaults are the stats and percents the spec weighs consumables by; the universe adds every one a
 // consumable grants. A default no consumable grants (a resource stat the restore rule reads) stays
 // in the universe, so the defaults show in full. What the consumables grant is worked out once per
-// database, as it walks every consumable.
+// database, as it walks every consumable, and the scope once per player and database, so the
+// pickers and the filters popover share it.
 const grantedByDatabase = new WeakMap<Database, UnitStat[]>();
+const scopeByPlayer = new WeakMap<Player<any>, { db: Database; scope: StatFilterScope }>();
 
 export const consumableFilterScope = (player: Player<any>, db: Database): StatFilterScope => {
+	const cached = scopeByPlayer.get(player);
+	if (cached?.db === db) return cached.scope;
 	let granted = grantedByDatabase.get(db);
 	if (!granted) {
 		granted = consumableUniverse(db.getConsumables(), db);
@@ -72,7 +76,9 @@ export const consumableFilterScope = (player: Player<any>, db: Database): StatFi
 	const specConfig = player.getSpecConfig();
 	const defaults = unitStatsOf({ stats: consumableStatsOf(specConfig), pseudoStats: consumablePseudoStatsOf(specConfig) });
 	const pool = new Set([...defaults, ...granted].map(stat => stat.getKey()));
-	return { defaults, universe: UnitStat.getAll().filter(stat => pool.has(stat.getKey())) };
+	const scope = { defaults, universe: UnitStat.getAll().filter(stat => pool.has(stat.getKey())) };
+	scopeByPlayer.set(player, { db, scope });
+	return scope;
 };
 
 const STORE_FIELDS: Array<StoreField> = ['consumables', 'gear', 'profession1', 'profession2', 'prof1Rank', 'prof2Rank', 'race', 'sim:filters'];
@@ -164,10 +170,10 @@ function consumablePicker(
 }
 
 // The consumable rides along so a row of these can be ordered by the EP it adds.
-export type ConsumableToggleConfig = InputHelpers.TypedIconPickerConfig<Player<any>, boolean> & { consumable: Consumable };
+export type ConsumeToggle = InputHelpers.TypedIconPickerConfig<Player<any>, boolean> & { consumable: Consumable };
 
 // A consumable picked any number at a time into the spec's extra ids.
-export function makeIdListInput(consumable: Consumable, relevance: ConsumableRelevance): ConsumableToggleConfig {
+export function makeIdListInput(consumable: Consumable, relevance: ConsumableRelevance): ConsumeToggle {
 	const picked = (player: Player<any>) => player.getConsumes().extraIds.includes(consumable.id);
 	return {
 		consumable,

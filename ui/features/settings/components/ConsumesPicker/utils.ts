@@ -2,7 +2,7 @@ import type { TypedIconEnumPickerConfig } from '@features/inputs/input_helpers';
 import {
 	consumableFilterScope,
 	type ConsumableRelevance,
-	type ConsumableToggleConfig,
+	type ConsumeToggle,
 	makeConsumableGroupInput,
 	makeConsumableInput,
 	makeIdListInput,
@@ -16,10 +16,10 @@ import type { Player } from '@sim/player/player';
 import type { Database } from '@sim/proto/database';
 import type { EquippedItem } from '@sim/proto/equipped_item';
 import { type StatSets, statSetsOf } from '@sim/proto/stats';
-import { consumableAllowed, ConsumableSlot, consumableSlot, explosiveUsedBeside, handTakesImbue, relevanceFor } from '@sim/settings/consumables';
+import { ConsumableSlot, consumableSlot, explosiveUsedBeside, handTakesImbue, relevanceFor } from '@sim/settings/consumables';
 
+export type { ConsumeToggle };
 export type ConsumeConfig = TypedIconEnumPickerConfig<Player<any>, number>;
-export type ConsumeToggle = ConsumableToggleConfig;
 
 export interface ConsumeConfigs {
 	potion: ConsumeConfig;
@@ -71,10 +71,20 @@ const shownConsumableStats = (player: Player<any>, scope: StatFilterScope): (() 
 	};
 };
 
+// One set per player and database, so every picker of the player shares the relevance cache and the order memos.
+const configsByPlayer = new WeakMap<Player<any>, { db: Database; configs: ConsumeConfigs }>();
+
 export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfigs => {
+	const cached = configsByPlayer.get(player);
+	if (cached?.db === db) return cached.configs;
+	const configs = buildConsumeConfigs(player, db);
+	configsByPlayer.set(player, { db, configs });
+	return configs;
+};
+
+const buildConsumeConfigs = (player: Player<any>, db: Database): ConsumeConfigs => {
 	const all = db.getConsumables();
 	const relevance: ConsumableRelevance = {
-		allowed: consumableAllowed,
 		relevant: relevanceFor(all, db, shownConsumableStats(player, consumableFilterScope(player, db))),
 	};
 	const bySlot = new Map<ConsumableSlot, Array<Consumable>>();
