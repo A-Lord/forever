@@ -1,9 +1,7 @@
-import { Stat } from '@generated/proto/common';
-import { StatFilters, StatSelection } from '@generated/proto/ui';
 import { SimSettingCategories } from '@sim/constants/sim_settings';
-import { UnitStat } from '@sim/proto/stats';
 import { tryParseUrlLocation } from '@sim/state/sim_links';
 import { makeIndividualSim, serveDatabase } from '@testing/sim/individual_sim';
+import { senderStatFilters } from '@testing/sim/stat_filters';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { createLink } from './link';
@@ -15,8 +13,7 @@ beforeAll(() => serveDatabase());
 describe('createLink', () => {
 	it('leaves the stat filters out of a link that carries the other filters', async () => {
 		const { sim, host } = await makeIndividualSim();
-		const stats = StatSelection.create({ stats: [UnitStat.fromStat(Stat.StatStrength).toProto()] });
-		sim.setFilters({ ...sim.getFilters(), minIlvl: 50, statFilters: StatFilters.create({ ep: stats }) });
+		sim.setFilters({ ...sim.getFilters(), minIlvl: 50, statFilters: senderStatFilters });
 
 		const url = new URL(createLink(host, [SimSettingCategories.Gear, SimSettingCategories.UISettings]));
 		const filters = tryParseUrlLocation(url)!.settings.settings!.filters!;

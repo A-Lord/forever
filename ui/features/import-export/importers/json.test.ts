@@ -1,22 +1,19 @@
-import { Player } from '@generated/proto/api';
 import { DatabaseFilters, IndividualSimSettings, SimSettings, StatFilters } from '@generated/proto/ui';
 import { SimSettingCategories } from '@sim/constants/sim_settings';
 import { makeIndividualSim, serveDatabase } from '@testing/sim/individual_sim';
-import { senderStatFilters, viewerStatFilters } from '@testing/sim/stat_filters';
+import { envelope, senderStatFilters, viewerFiltersWith, viewerStatFilters } from '@testing/sim/stat_filters';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { JSON_IMPORTER } from './json';
 
 vi.mock('@sim/workers/worker_pool', async () => (await import('@testing/sim/worker_pool')).idleWorkerPool());
 
-const document = (settings?: SimSettings) =>
-	IndividualSimSettings.toJsonString(IndividualSimSettings.create({ apiVersion: 3, player: Player.create(), settings }));
+const document = (settings?: SimSettings) => IndividualSimSettings.toJsonString(envelope(settings));
 
-// The viewer's filters before the import: a hand filter off, a favourite and their own stat filters.
+// The viewer's filters before the import, their own stat filters among them.
 const viewer = async (statFilters: StatFilters | undefined) => {
 	const built = await makeIndividualSim();
-	const filters = built.sim.getFilters();
-	built.sim.setFilters({ ...filters, twoHandedWeapons: false, favoriteItems: [19019], statFilters });
+	built.sim.setFilters({ ...built.sim.getFilters(), ...viewerFiltersWith(statFilters) });
 	return built;
 };
 

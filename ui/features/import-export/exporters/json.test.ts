@@ -1,8 +1,7 @@
-import { Stat } from '@generated/proto/common';
-import { IndividualSimSettings, StatFilters, StatSelection } from '@generated/proto/ui';
+import { IndividualSimSettings } from '@generated/proto/ui';
 import { SimSettingCategories } from '@sim/constants/sim_settings';
-import { UnitStat } from '@sim/proto/stats';
 import { makeIndividualSim, serveDatabase } from '@testing/sim/individual_sim';
+import { senderStatFilters } from '@testing/sim/stat_filters';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { createSettingsJson } from './json';
@@ -14,8 +13,7 @@ beforeAll(() => serveDatabase());
 describe('createSettingsJson', () => {
 	it('leaves the stat filters out of a document that carries the other filters', async () => {
 		const { sim, host } = await makeIndividualSim();
-		const stats = StatSelection.create({ stats: [UnitStat.fromStat(Stat.StatStrength).toProto()] });
-		sim.setFilters({ ...sim.getFilters(), minIlvl: 50, statFilters: StatFilters.create({ ep: stats }) });
+		sim.setFilters({ ...sim.getFilters(), minIlvl: 50, statFilters: senderStatFilters });
 
 		const json = createSettingsJson(host, [SimSettingCategories.Gear, SimSettingCategories.UISettings]);
 		const filters = IndividualSimSettings.fromJsonString(json).settings!.filters!;

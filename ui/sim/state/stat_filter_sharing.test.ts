@@ -1,14 +1,13 @@
 import { DatabaseFilters, IndividualSimSettings, SimSettings, StatFilters } from '@generated/proto/ui';
 import { makeIndividualSim, serveDatabase } from '@testing/sim/individual_sim';
-import { senderStatFilters as senderFilters, viewerStatFilters as viewerFilters } from '@testing/sim/stat_filters';
+import { envelope, senderStatFilters as senderFilters, viewerStatFilters as viewerFilters } from '@testing/sim/stat_filters';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { withoutStatFilters, withViewerStatFilters } from './stat_filter_sharing';
 
 vi.mock('@sim/workers/worker_pool', async () => (await import('@testing/sim/worker_pool')).idleWorkerPool());
 
-const settingsWith = (filters: DatabaseFilters | undefined) =>
-	IndividualSimSettings.create({ apiVersion: 3, settings: SimSettings.create({ iterations: 1234, filters }) });
+const settingsWith = (filters: DatabaseFilters | undefined) => envelope(SimSettings.create({ iterations: 1234, filters }));
 
 describe('withoutStatFilters', () => {
 	it('clears the stat filters on the envelope it is given and keeps every other filter', () => {
@@ -22,9 +21,7 @@ describe('withoutStatFilters', () => {
 	});
 
 	it('passes a proto without settings or filters through', () => {
-		expect(
-			IndividualSimSettings.equals(withoutStatFilters(IndividualSimSettings.create({ apiVersion: 3 })), IndividualSimSettings.create({ apiVersion: 3 })),
-		).toBe(true);
+		expect(IndividualSimSettings.equals(withoutStatFilters(envelope()), envelope())).toBe(true);
 		expect(IndividualSimSettings.equals(withoutStatFilters(settingsWith(undefined)), settingsWith(undefined))).toBe(true);
 	});
 });
@@ -60,9 +57,7 @@ describe('withViewerStatFilters', () => {
 
 	it('leaves an envelope without settings or filters as it is', async () => {
 		const sim = await viewerSim(viewerFilters);
-		const noSettings = IndividualSimSettings.create({ apiVersion: 3 });
-
-		expect(IndividualSimSettings.equals(withViewerStatFilters(noSettings, sim), IndividualSimSettings.create({ apiVersion: 3 }))).toBe(true);
+		expect(IndividualSimSettings.equals(withViewerStatFilters(envelope(), sim), envelope())).toBe(true);
 		expect(IndividualSimSettings.equals(withViewerStatFilters(settingsWith(undefined), sim), settingsWith(undefined))).toBe(true);
 	});
 });

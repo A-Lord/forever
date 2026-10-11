@@ -9,14 +9,12 @@ import { Consumable } from '@generated/proto/db';
 import { IndividualSimSettings, StatFilters, UIDatabase } from '@generated/proto/ui';
 import { SimSettingCategories } from '@sim/constants/sim_settings';
 import { ActionId } from '@sim/proto/action_id';
-import type { StatWeightActionSettings } from '@sim/settings/stat_weight_settings';
-import { loadIndividualSettings } from '@sim/state/persistence';
 import { getEnumValues } from '@sim/utils/collections';
 import { renderWithHost } from '@testing/react';
 import { filled } from '@testing/sim/hooks';
 import { makeIndividualSim, serveDatabase } from '@testing/sim/individual_sim';
 import { memoryEnv } from '@testing/sim/memory_env';
-import { selectionOf, STORAGE_KEY } from '@testing/sim/stat_filters';
+import { loadSettings, selectionOf, STORAGE_KEY } from '@testing/sim/stat_filters';
 import { waitFor } from '@testing-library/react';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
@@ -55,12 +53,7 @@ describe('a shared build', () => {
 		const env = memoryEnv({ hash: link.hash, search: link.search });
 		env.storage.setItem(STORAGE_KEY, IndividualSimSettings.toJsonString(autosave.host.toProto()));
 		const viewer = await warriorSim(env);
-		loadIndividualSettings(viewer.host, {
-			storageKey: STORAGE_KEY,
-			player: viewer.player,
-			autosaveSubscribe: () => () => {},
-			statWeightSettings: { load: () => {} } as unknown as StatWeightActionSettings,
-		});
+		loadSettings(viewer);
 
 		expect(StatFilters.equals(viewer.sim.getFilters().statFilters!, viewerStatFilters)).toBe(true);
 		const buffStats = shownStats(viewer.sim.getFilters(), 'buffs', statOptionScope([...BUFFS_CONFIG, ...PARTY_BUFFS_CONFIG], warrior));

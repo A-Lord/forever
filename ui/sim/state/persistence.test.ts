@@ -1,20 +1,20 @@
-import { Player } from '@generated/proto/api';
 import { DatabaseFilters, IndividualSimSettings, SimSettings, StatFilters } from '@generated/proto/ui';
 import { makeIndividualSim, serveDatabase } from '@testing/sim/individual_sim';
 import { memoryEnv } from '@testing/sim/memory_env';
-import { senderStatFilters as linkedStatFilters, STORAGE_KEY, viewerStatFilters as savedStatFilters } from '@testing/sim/stat_filters';
+import {
+	envelope,
+	loadSettings,
+	senderStatFilters as linkedStatFilters,
+	STORAGE_KEY,
+	viewerFiltersWith,
+	viewerStatFilters as savedStatFilters,
+} from '@testing/sim/stat_filters';
 import pako from 'pako';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
-import type { StatWeightActionSettings } from '../settings/stat_weight_settings';
-import { loadIndividualSettings } from './persistence';
-
 vi.mock('@sim/workers/worker_pool', async () => (await import('@testing/sim/worker_pool')).idleWorkerPool());
 
-const envelope = (settings?: SimSettings) => IndividualSimSettings.create({ apiVersion: 3, player: Player.create(), settings });
-
-const savedWith = (statFilters: StatFilters | undefined) =>
-	envelope(SimSettings.create({ filters: DatabaseFilters.create({ twoHandedWeapons: false, favoriteItems: [19019], statFilters }) }));
+const savedWith = (statFilters: StatFilters | undefined) => envelope(SimSettings.create({ filters: DatabaseFilters.create(viewerFiltersWith(statFilters)) }));
 
 // A link's hash, and the `i` parameter that names its categories: `u` is the one that carries settings.
 const linkLocation = (settings: IndividualSimSettings, categories: string | null) => ({
@@ -25,14 +25,9 @@ const linkLocation = (settings: IndividualSimSettings, categories: string | null
 const load = async (location: { hash: string; search: string } = { hash: '', search: '' }, saved = savedWith(savedStatFilters)) => {
 	const env = memoryEnv(location);
 	env.storage.setItem(STORAGE_KEY, IndividualSimSettings.toJsonString(saved));
-	const { sim, player, host } = await makeIndividualSim({ env });
-	loadIndividualSettings(host, {
-		storageKey: STORAGE_KEY,
-		player,
-		autosaveSubscribe: () => () => {},
-		statWeightSettings: { load: () => {} } as unknown as StatWeightActionSettings,
-	});
-	return sim.getFilters();
+	const built = await makeIndividualSim({ env });
+	loadSettings(built);
+	return built.sim.getFilters();
 };
 
 const lessStatFilters = (filters: DatabaseFilters) => ({ ...filters, statFilters: undefined });
