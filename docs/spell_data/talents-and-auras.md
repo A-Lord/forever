@@ -210,8 +210,8 @@ Serpent Sting 19464, Improved Moonfire 16821). `SPELLMOD_ALL_EFFECTS` raises bot
 
 Two percentage rows of `SPELLMOD_DAMAGE`, `SPELLMOD_DOT` or `SPELLMOD_COST` on one spell multiply in
 game, each as its own factor: Improved Wrath and Moonglow on a Wrath costing 120 Mana leave 45, not 30.
-So each of those rows is its own multiplier in the sim, the hit's after the additive bucket
-`SPELLMOD_ALL_EFFECTS` sums into, and the cost's in `SpellMod_PowerCost_Pct`. A cost row that takes the
+The sim gives each of those rows its own factor: a hit's applies after the additive bucket that
+`SPELLMOD_ALL_EFFECTS` sums into, and a cost's goes into `SpellMod_PowerCost_Pct`. A cost row that takes the
 whole cost or more (the Clearcasting family) makes the spell free while it is up, whatever the other
 cost rows are, and gives the cost back exactly when it drops.
 
