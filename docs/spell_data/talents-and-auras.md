@@ -202,11 +202,18 @@ its mask: `SchoolSpellPiercing4` for the Baleflame imbue's fire and `SchoolSpell
 Balefrost's frost. Core adds a spell's school piercing to `SpellPiercing`; a holy or multi-school spell
 has no resistance stat to pierce.
 
-A percentage `SPELLMOD_DAMAGE` raises only direct hits and direct heals (`SpellMod_DirectDamageDone_Flat`),
+A percentage `SPELLMOD_DAMAGE` raises only direct hits and direct heals (`SpellMod_DirectDamageDone_Pct`),
 and `SPELLMOD_DOT` raises only the ticks (`SpellMod_DotDamageDone_Pct`). A talent that raises both a
 spell and its dot therefore states the percentage twice, and each effect attaches its own mod (Improved
 Serpent Sting 19464, Improved Moonfire 16821). `SPELLMOD_ALL_EFFECTS` raises both
 (`SpellMod_DamageDone_Flat`).
+
+Two percentage rows of `SPELLMOD_DAMAGE`, `SPELLMOD_DOT` or `SPELLMOD_COST` on one spell multiply in
+game, each as its own factor: Improved Wrath and Moonglow on a Wrath costing 120 Mana leave 45, not 30.
+So each of those rows is its own multiplier in the sim, the hit's after the additive bucket
+`SPELLMOD_ALL_EFFECTS` sums into, and the cost's in `SpellMod_PowerCost_Pct`. A cost row that takes the
+whole cost or more (the Clearcasting family) makes the spell free while it is up, whatever the other
+cost rows are, and gives the cost back exactly when it drops.
 
 ## What the table does not take
 

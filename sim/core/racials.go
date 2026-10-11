@@ -357,7 +357,7 @@ func applyEureka(character *Character) {
 		FloatValue:   mods.Cost,
 	})
 	damageMod := character.AddDynamicMod(SpellModConfig{
-		Kind:       SpellMod_DirectDamageDone_Flat,
+		Kind:       SpellMod_DirectDamageDone_Pct,
 		ClassFlags: mods.DamageFlags,
 		ProcMask:   procMask,
 		FloatValue: mods.Damage,
