@@ -502,20 +502,18 @@ const (
 	// Uses FloatValue
 	SpellMod_DamageDone_Flat
 
-	// Will reduce spell.Cost.PercentModifier by % amount. -5% = -0.05
-	// Stacks multiplicatively with other pct cost mods.
-	// Use for effects that are SPELL_AURA_MOD_POWER_COST_SCHOOL_PCT (aura 72)
-	// in DBC, e.g. Elemental Precision, Pyromaniac, The Beast Within.
-	// For 0 Mana cost use -2
+	// Will multiply spell.Cost.PercentModifier by 1 + the value. -5% = -0.05
+	// Two mods multiply, as two SPELL_AURA_ADD_PCT_MODIFIER (aura 108) SPELLMOD_COST (misc 14) rows
+	// do in game. SPELL_AURA_MOD_POWER_COST_SCHOOL_PCT (aura 72) school cost rows use it too.
+	// A value of -1 or lower makes the cost 0 while the mod is active.
 	// Uses FloatValue
 	SpellMod_PowerCost_Pct
 
 	// Adds to spell.Cost.AdditivePercentModifier. +75% = 0.75
 	// Stacks additively with other mods of this kind: bucket = 1 + sum of mods.
 	// Applied on top of (multiplied with) SpellMod_PowerCost_Pct mods.
-	// Use for effects that are SPELL_AURA_ADD_PCT_MODIFIER (aura 108) with
-	// EffectMiscValue SPELLMOD_COST (14) in DBC — the common case for talents,
-	// set bonuses and procs.
+	// For a cost change the sim states by hand that adds to others of its kind; a game files row
+	// takes SpellMod_PowerCost_Pct.
 	// Uses FloatValue
 	SpellMod_PowerCost_Pct_Add
 
@@ -647,6 +645,8 @@ const (
 	SpellMod_Range_Pct
 
 	// Will add the value to spell.DirectDamageMultiplierAdditive, which only direct hits and direct heals read.
+	// For a direct damage change the sim states by hand that adds to others of its kind; a game files
+	// SPELLMOD_DAMAGE row takes SpellMod_DirectDamageDone_Pct.
 	// Uses FloatValue
 	SpellMod_DirectDamageDone_Flat
 
@@ -664,6 +664,12 @@ const (
 	// The GCD minimum still floors the result.
 	// Uses: FloatValue
 	SpellMod_GlobalCooldown_Pct
+
+	// Will multiply spell.DirectDamageMultiplier, which only direct hits and direct heals read. +5% = 0.05
+	// Each mod is its own factor, as the game files' SPELL_AURA_ADD_PCT_MODIFIER (aura 108) with
+	// SPELLMOD_DAMAGE (misc 0) rows are in game.
+	// Uses FloatValue
+	SpellMod_DirectDamageDone_Pct
 )
 
 var spellModMap = map[SpellModType]*SpellModFunctions{
@@ -847,6 +853,11 @@ var spellModMap = map[SpellModType]*SpellModFunctions{
 		OnReset: onResetDirectDamageDoneAdd,
 	},
 
+	SpellMod_DirectDamageDone_Pct: {
+		Apply:  applyDirectDamageDonePercent,
+		Remove: removeDirectDamageDonePercent,
+	},
+
 	// buildMod hands these to the unit's proc triggers, which read them when they roll, and to no
 	// spell, so they carry no functions.
 	SpellMod_ProcChance_Flat: {},
@@ -877,16 +888,27 @@ func onResetDamageDoneAdd(mod *SpellMod) {
 	}
 }
 
+// A factor of 0 or below could not be divided back out when the mod ends, so such a mod is counted.
 func applyPowerCostPercent(mod *SpellMod, spell *Spell) {
-	if spell.Cost != nil {
-		spell.Cost.PercentModifier *= (1 + mod.floatValue)
+	if spell.Cost == nil {
+		return
 	}
+	if 1+mod.floatValue <= 0 {
+		spell.Cost.percentModifierZeroes++
+		return
+	}
+	spell.Cost.PercentModifier *= (1 + mod.floatValue)
 }
 
 func removePowerCostPercent(mod *SpellMod, spell *Spell) {
-	if spell.Cost != nil {
-		spell.Cost.PercentModifier /= (1 + mod.floatValue)
+	if spell.Cost == nil {
+		return
 	}
+	if 1+mod.floatValue <= 0 {
+		spell.Cost.percentModifierZeroes--
+		return
+	}
+	spell.Cost.PercentModifier /= (1 + mod.floatValue)
 }
 
 func applyPowerCostPercentAdditive(mod *SpellMod, spell *Spell) {
@@ -1383,6 +1405,14 @@ func onResetDirectDamageDoneAdd(mod *SpellMod) {
 	for _, spell := range mod.AffectedSpells {
 		spell.DirectDamageMultiplierAdditive = math.Round(spell.DirectDamageMultiplierAdditive*10000) / 10000
 	}
+}
+
+func applyDirectDamageDonePercent(mod *SpellMod, spell *Spell) {
+	spell.DirectDamageMultiplier *= 1 + mod.floatValue
+}
+
+func removeDirectDamageDonePercent(mod *SpellMod, spell *Spell) {
+	spell.DirectDamageMultiplier /= 1 + mod.floatValue
 }
 
 // The chance a proc trigger with these class flags of its own rolls, once the unit's active proc

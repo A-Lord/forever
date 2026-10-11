@@ -183,8 +183,8 @@ dps_results: {
 dps_results: {
  key: "TestHunter-AllItems-BloodGuard'sChainVices-22862"
  value: {
-  dps: 765.39937
-  tps: 552.7368
+  dps: 765.71606
+  tps: 552.95847
   dtps: 8.56006
  }
 }
@@ -577,8 +577,8 @@ dps_results: {
 dps_results: {
  key: "TestHunter-AllItems-General'sChainGloves-16571"
  value: {
-  dps: 775.82989
-  tps: 560.03816
+  dps: 776.15066
+  tps: 560.2627
   dtps: 8.63721
  }
 }
@@ -729,8 +729,8 @@ dps_results: {
 dps_results: {
  key: "TestHunter-AllItems-Knight-Lieutenant'sChainVices-23279"
  value: {
-  dps: 765.39937
-  tps: 552.7368
+  dps: 765.71606
+  tps: 552.95847
   dtps: 8.56006
  }
 }
@@ -801,8 +801,8 @@ dps_results: {
 dps_results: {
  key: "TestHunter-AllItems-Marshal'sChainGrips-16463"
  value: {
-  dps: 775.82989
-  tps: 560.03816
+  dps: 776.15066
+  tps: 560.2627
   dtps: 8.63721
  }
 }
@@ -865,32 +865,32 @@ dps_results: {
 dps_results: {
  key: "TestHunter-AllItems-PremierChainGauntlets-272495"
  value: {
-  dps: 760.94128
-  tps: 549.61613
+  dps: 761.25513
+  tps: 549.83582
   dtps: 8.56006
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-PremierChainmailGauntlets-272715"
  value: {
-  dps: 760.94128
-  tps: 549.61613
+  dps: 761.25513
+  tps: 549.83582
   dtps: 8.56006
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-PremierChampion'sChainGloves-272536"
  value: {
-  dps: 764.29408
-  tps: 551.96309
+  dps: 764.60928
+  tps: 552.18373
   dtps: 8.56006
  }
 }
 dps_results: {
  key: "TestHunter-AllItems-PremierLieutenantCommander'sChainmailGrips-272772"
  value: {
-  dps: 764.29408
-  tps: 551.96309
+  dps: 764.60928
+  tps: 552.18373
   dtps: 8.56006
  }
 }
@@ -1223,7 +1223,7 @@ dps_results: {
  key: "TestHunter-Settings-NightElf-p1-SV-Default-default-FullBuffs-11.0yards-LongMultiTarget"
  value: {
   dps: 997.36743
-  tps: 1074.71695
+  tps: 1077.71865
   dtps: 2.81689
  }
 }
@@ -1231,37 +1231,37 @@ dps_results: {
  key: "TestHunter-Settings-NightElf-p1-SV-Default-default-FullBuffs-11.0yards-LongSingleTarget"
  value: {
   dps: 747.69644
-  tps: 540.40862
-  dtps: 4.32542
+  tps: 541.19895
+  dtps: 5.21484
  }
 }
 dps_results: {
  key: "TestHunter-Settings-NightElf-p1-SV-Default-default-FullBuffs-11.0yards-ShortSingleTarget"
  value: {
   dps: 800.18642
-  tps: 576.88189
+  tps: 577.09846
   dtps: 9.61755
  }
 }
 dps_results: {
  key: "TestHunter-Settings-NightElf-p1-SV-Default-default-NoBuffs-11.0yards-LongMultiTarget"
  value: {
-  dps: 273.40275
-  tps: 273.40275
+  dps: 267.66927
+  tps: 267.66927
  }
 }
 dps_results: {
  key: "TestHunter-Settings-NightElf-p1-SV-Default-default-NoBuffs-11.0yards-LongSingleTarget"
  value: {
-  dps: 261.44448
-  tps: 261.44448
+  dps: 260.75916
+  tps: 260.75916
  }
 }
 dps_results: {
  key: "TestHunter-Settings-NightElf-p1-SV-Default-default-NoBuffs-11.0yards-ShortSingleTarget"
  value: {
-  dps: 360.36512
-  tps: 360.36512
+  dps: 357.86077
+  tps: 357.86077
  }
 }
 dps_results: {
@@ -1313,7 +1313,7 @@ dps_results: {
  key: "TestHunter-Settings-Orc-p1-SV-Default-default-FullBuffs-11.0yards-LongMultiTarget"
  value: {
   dps: 984.49002
-  tps: 1059.20436
+  tps: 1062.9896
   dtps: 2.74407
  }
 }
@@ -1321,37 +1321,37 @@ dps_results: {
  key: "TestHunter-Settings-Orc-p1-SV-Default-default-FullBuffs-11.0yards-LongSingleTarget"
  value: {
   dps: 732.4867
-  tps: 529.65199
-  dtps: 4.2358
+  tps: 530.04306
+  dtps: 4.6363
  }
 }
 dps_results: {
  key: "TestHunter-Settings-Orc-p1-SV-Default-default-FullBuffs-11.0yards-ShortSingleTarget"
  value: {
   dps: 756.19869
-  tps: 545.67379
+  tps: 545.90384
   dtps: 9.47876
  }
 }
 dps_results: {
  key: "TestHunter-Settings-Orc-p1-SV-Default-default-NoBuffs-11.0yards-LongMultiTarget"
  value: {
-  dps: 267.14723
-  tps: 267.14723
+  dps: 261.52235
+  tps: 261.52235
  }
 }
 dps_results: {
  key: "TestHunter-Settings-Orc-p1-SV-Default-default-NoBuffs-11.0yards-LongSingleTarget"
  value: {
-  dps: 256.44396
-  tps: 256.44396
+  dps: 253.89294
+  tps: 253.89294
  }
 }
 dps_results: {
  key: "TestHunter-Settings-Orc-p1-SV-Default-default-NoBuffs-11.0yards-ShortSingleTarget"
  value: {
-  dps: 343.81589
-  tps: 343.81589
+  dps: 338.2905
+  tps: 338.2905
  }
 }
 dps_results: {
