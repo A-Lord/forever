@@ -153,6 +153,7 @@ export const DefaultOptions = WarriorOptions.create({
 
 export const DefaultConsumables = ConsumesSpec.create({
 	...WarriorPresets.DefaultConsumables,
+	resourcePotId: Consumables.MightyRagePotion.id,
 	mhImbueId: Consumables.DenseWeightstone.id,
 	ohImbueId: Consumables.DenseSharpeningStone.id,
 	elixirIds: [Consumables.ElixirOfFerocity.id, Consumables.ElixirOfTheMongoose.id, Consumables.WinterfallFirewater.id],

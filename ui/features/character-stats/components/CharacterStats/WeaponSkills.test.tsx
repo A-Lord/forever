@@ -4,6 +4,7 @@ import i18n from '@i18n/config';
 import { translateWeaponSkill } from '@i18n/localization';
 import { getClassWeaponSkills } from '@sim/player/classes/capabilities';
 import { Player } from '@sim/player/player';
+import { WeaponSkillGroup } from '@sim/player/weapon_skill_groups';
 import { createSimStore, PLAYER_FIELDS, type PlayerSlice, seedKeyed, zeroVersions } from '@sim/state/sim_store';
 import { renderWithHost } from '@testing/react';
 import { act, fireEvent, screen } from '@testing-library/react';
@@ -15,18 +16,23 @@ import { WeaponSkills } from './WeaponSkills';
 const KEY = 3;
 
 // The Player's own setters run against a seeded slice; its constructor needs a whole sim behind it.
-const renderForPaladin = (weaponSkills: Array<WeaponSkillValue> = [], finalSkills?: Array<WeaponSkillValue>) => {
+// Every paladin weapon skill is in the Melee group.
+const renderForPaladin = (
+	weaponSkills: Array<WeaponSkillValue> = [],
+	finalSkills?: Array<WeaponSkillValue>,
+	displayWeaponSkillGroups: Array<WeaponSkillGroup> = [WeaponSkillGroup.Melee],
+) => {
 	const store = createSimStore();
 	const currentStats = finalSkills ? PlayerStats.create({ weaponSkills: finalSkills }) : undefined;
 	seedKeyed(store, 'players', KEY, { weaponSkills, currentStats, v: zeroVersions(PLAYER_FIELDS) } as unknown as PlayerSlice);
 	const player = Object.assign(Object.create(Player.prototype), { sim: { store }, storeKey: KEY, playerSpec: { classID: Class.ClassPaladin } });
-	renderWithHost(
+	const view = renderWithHost(
 		<Accordion value={['weapon-skill']} onValueChange={() => {}}>
-			<WeaponSkills mode="all" />
+			<WeaponSkills />
 		</Accordion>,
-		{ player, individualConfig: {} },
+		{ player, individualConfig: { displayWeaponSkillGroups } },
 	);
-	return { stored: () => store.getState().players[KEY].weaponSkills };
+	return { view, stored: () => store.getState().players[KEY].weaponSkills };
 };
 
 const shown = (skill: WeaponSkill) => {
@@ -55,6 +61,12 @@ describe('WeaponSkills', () => {
 		renderForPaladin();
 
 		for (const skill of getClassWeaponSkills(Class.ClassPaladin)) expect(shown(skill)).toEqual({ value: '300', tone: 'neutral' });
+	});
+
+	it('renders nothing when the spec weapon skill groups hold none of the class weapon skills', () => {
+		const { view } = renderForPaladin([], undefined, [WeaponSkillGroup.Wands]);
+
+		expect(view.queryByTestId('character-stats-group-weapon-skill')).toBeNull();
 	});
 
 	it("shows the sim's full skill once it has computed the stats, the gear's bonus on top of the stated one", () => {

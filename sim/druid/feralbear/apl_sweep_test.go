@@ -38,12 +38,12 @@ const (
 
 // The consumables the bear UI starts with (presets.ts DefaultConsumables).
 var uiBearConsumables = &proto.ConsumesSpec{
-	PotId:      itemStoneshield,
-	ElixirIds:  []int32{13452, 9088},
-	FoodId:     21023,
-	MhImbueId:  12643,
-	ConjuredId: itemHealthstone,
-	ExtraIds:   []int32{itemSapper, 10310, 10305},
+	DefensivePotId: itemStoneshield,
+	ElixirIds:      []int32{13452, 9088},
+	FoodId:         21023,
+	MhImbueId:      12643,
+	ConjuredId:     itemHealthstone,
+	ExtraIds:       []int32{itemSapper, 10310, 10305},
 }
 
 // The bear UI's defaults: the Level 60 gear preset, its buffs, debuffs, healing model and

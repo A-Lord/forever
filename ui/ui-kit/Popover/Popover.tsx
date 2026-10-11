@@ -32,6 +32,11 @@ export interface PopoverProps {
 	sideOffset?: BasePopover.Positioner.Props['sideOffset'];
 	/** Dims the page behind the popup, as a dialog does; a press on it closes the popover. */
 	backdrop?: boolean;
+	/**
+	 * A heading at the top of the popup that also names it for screen readers. The popup is then a column, so the
+	 * heading stays in view above a body carrying `ui-popover-body`, which scrolls on its own across the popup's padding.
+	 */
+	title?: ReactNode;
 	children?: ReactNode;
 	testId?: string;
 }
@@ -55,6 +60,7 @@ export const Popover = ({
 	align = 'center',
 	sideOffset = ANCHOR_DISTANCE,
 	backdrop = false,
+	title,
 	children,
 	testId,
 }: PopoverProps) => {
@@ -82,9 +88,15 @@ export const Popover = ({
 					align={align}
 					sideOffset={sideOffset}>
 					<BasePopover.Popup
-						className={clsx(maxWidthClassName ?? 'max-w-(--available-width)', 'ui-popup-surface ui-popover', className)}
+						className={clsx(
+							maxWidthClassName ?? 'max-w-(--available-width)',
+							'ui-popup-surface ui-popover',
+							title != null && 'flex flex-col',
+							className,
+						)}
 						data-testid={testId ?? 'sim-popover-popup'}
 						initialFocus={false}>
+						{title != null && <BasePopover.Title className="ui-popover-title">{title}</BasePopover.Title>}
 						{children}
 					</BasePopover.Popup>
 				</BasePopover.Positioner>

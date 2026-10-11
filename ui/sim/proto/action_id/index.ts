@@ -134,8 +134,16 @@ export class ActionId {
 				baseName = 'Incoming HPS';
 				iconUrl = 'https://wow.zamimg.com/images/wow/icons/large/spell_holy_renew.jpg';
 				break;
-			case OtherAction.OtherActionPotion:
-				baseName = 'Potion';
+			case OtherAction.OtherActionResourcePotion:
+				baseName = 'Resource Potion';
+				iconUrl = 'https://wow.zamimg.com/images/wow/icons/large/inv_potion_76.jpg';
+				break;
+			case OtherAction.OtherActionDefensivePotion:
+				baseName = 'Defensive Potion';
+				iconUrl = 'https://wow.zamimg.com/images/wow/icons/large/inv_potion_69.jpg';
+				break;
+			case OtherAction.OtherActionOffensivePotion:
+				baseName = 'Offensive Potion';
 				iconUrl = 'https://wow.zamimg.com/images/wow/icons/large/inv_alchemy_elixir_04.jpg';
 				break;
 			case OtherAction.OtherActionMove:

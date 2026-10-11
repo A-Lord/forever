@@ -37,11 +37,8 @@ func TestUnroundedDPS(t *testing.T) {
 			item := NewItem(ItemSpec{ID: id})
 
 			want := source.ScalingOptions[0].UnroundedDps
-			if (item.UnroundedDPS == nil) != (want == nil) {
-				t.Fatalf("equipped DPS presence = %v, source presence = %v", item.UnroundedDPS != nil, want != nil)
-			}
-			if want != nil && *item.UnroundedDPS != *want {
-				t.Fatalf("equipped unrounded DPS = %.9f, want %.9f", *item.UnroundedDPS, *want)
+			if item.UnroundedDPS != want {
+				t.Fatalf("equipped unrounded DPS = %.9f, want %.9f", item.UnroundedDPS, want)
 			}
 			if item.WeaponDamageMin != 60 || item.WeaponDamageMax != 90 || item.SwingSpeed != 2.4 {
 				t.Fatalf("equipped damage/speed changed: %v-%v at %v", item.WeaponDamageMin, item.WeaponDamageMax, item.SwingSpeed)

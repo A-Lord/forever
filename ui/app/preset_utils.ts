@@ -101,8 +101,8 @@ const makePresetEpWeightHelper = (name: string, epWeights: Stats, options?: Pres
 	};
 };
 
-// JSON shape for presets/ep/*.ep.json. Enum keys are stored as names (e.g. "StatCritRating") so
-// they stay stable across proto regenerations, rather than as the numeric enum values.
+// JSON shape for an EP preset read from a file. Enum keys are stored as names (e.g. "StatCritRating") so
+// they stay stable across proto regenerations. No spec reads one: spec EP weights are TS literals in presets.ts.
 export type PresetEpWeightsJson = {
 	name: string;
 	stats?: Partial<Record<keyof typeof Stat, number>>;

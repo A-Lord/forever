@@ -12,6 +12,19 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
+	// Increases Feral Combat +1.
+	// https://www.wowhead.com/forever/spell=1320726
+	// unsupported: effect 1 A_MOD_SKILL misc 3014 is not parsed on the wearer
+	// equip: 1320726 (A_MOD_SKILL)
+	// shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 1320726},
+	//	[]shared.ItemVariant{
+	//	{ItemID: 9414, ItemName: "Oilskin Leggings"},
+	// })
+
+	// TODO: Manual implementation required
+	//       This can be ignored if the effect has already been implemented.
+	//       With next db run the item will be removed if implemented.
+	//
 	// Reduces your damage taken by 5% in the Battle Ring and The Maul.
 	// https://www.wowhead.com/forever/spell=1317285
 	// unsupported: the row applies only in area group 9337, which names no area type

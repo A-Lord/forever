@@ -87,11 +87,11 @@ var DefaultSpecOptions = &proto.Player_FeralCatDruid{
 }
 
 var DefaultConsumables = &proto.ConsumesSpec{
-	PotId:      13444,                 // Major Mana Potion
-	ElixirIds:  []int32{13452, 13447}, // Elixir of the Mongoose, Elixir of the Sages
-	FoodId:     250072,                // Swiftstrike Steak
-	MhImbueId:  12643,                 // Dense Weightstone
-	ConjuredId: 7676,                  // Thistle Tea
+	ResourcePotId: 13444,                 // Major Mana Potion
+	ElixirIds:     []int32{13452, 13447}, // Elixir of the Mongoose, Elixir of the Sages
+	FoodId:        250072,                // Swiftstrike Steak
+	MhImbueId:     12643,                 // Dense Weightstone
+	ConjuredId:    7676,                  // Thistle Tea
 	// Goblin Sapper Charge, Scroll of Strength IV. Scroll of Agility IV is left out, as in the UI:
 	// it shares the Agility group with Elixir of the Mongoose, which comes first.
 	ExtraIds: []int32{10646, 10310},

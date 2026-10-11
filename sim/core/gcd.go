@@ -19,15 +19,7 @@ func (unit *Unit) newHardcastAction(sim *Simulation) {
 		pa := &PendingAction{
 			NextActionAt: unit.Hardcast.Expires,
 			Priority:     ActionPriorityGCD,
-			OnAction: func(sim *Simulation) {
-				if hc := &unit.Hardcast; hc.Expires != startingCDTime && hc.Expires <= sim.CurrentTime {
-					hc.Expires = startingCDTime
-					if hc.OnComplete != nil {
-						hc.OnComplete(sim, hc.Target)
-					}
-					unit.endRotationCast()
-				}
-			},
+			OnAction:     unit.completeDueHardcast,
 		}
 		unit.hardcastAction = pa
 	} else {
@@ -36,6 +28,16 @@ func (unit *Unit) newHardcastAction(sim *Simulation) {
 	}
 
 	sim.AddPendingAction(unit.hardcastAction)
+}
+
+func (unit *Unit) completeDueHardcast(sim *Simulation) {
+	if hc := &unit.Hardcast; hc.Expires != startingCDTime && hc.Expires <= sim.CurrentTime {
+		hc.Expires = startingCDTime
+		if hc.OnComplete != nil {
+			hc.OnComplete(sim, hc.Target)
+		}
+		unit.endRotationCast()
+	}
 }
 
 func (unit *Unit) NextGCDAt() time.Duration {
@@ -123,6 +125,7 @@ func (unit *Unit) Interrupt(sim *Simulation) {
 func (unit *Unit) CancelHardcast(sim *Simulation) {
 	unit.HardcastAvoidanceAura.Deactivate(sim)
 	unit.Hardcast.Expires = startingCDTime
+	unit.AutoAttacks.releaseMeleeHeldByCast(sim)
 	unit.endRotationCast()
 	unit.SetGCDTimer(sim, sim.CurrentTime+unit.ReactionTime)
 }

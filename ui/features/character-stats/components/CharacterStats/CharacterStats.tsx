@@ -1,16 +1,15 @@
+import { STAT_GROUPS, StatFilterPopover, useStatFilter } from '@features/stat-filters';
 import { ItemSlot, PseudoStat, Spec } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { useSimHost, useSpecConfig } from '@sim/context/SimHostContext';
 import { usePlayerStore } from '@sim/hooks/usePlayerStore';
-import { computeStatAttribution, type Stats, UnitStat } from '@sim/proto/stats';
+import { computeStatAttribution, type Stats, type UnitStat } from '@sim/proto/stats';
 import { Accordion, AccordionItem } from '@ui-kit/Accordion';
-import { Box } from '@ui-kit/Box';
 import { parseStringArray, useLocalStorageState } from '@ui-kit/hooks/useLocalStorageState';
 import { Table } from '@ui-kit/Table';
-import { ToggleGroup } from '@ui-kit/ToggleGroup';
 import clsx, { type ClassValue } from 'clsx';
 import type { ReactNode } from 'react';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useStore } from 'zustand';
 
 import { AvoidanceRow } from './AvoidanceRow';
@@ -28,48 +27,23 @@ import {
 } from './utils/stat_display';
 import { WeaponSkills } from './WeaponSkills';
 
-// buildRows drops the stats it has no row for, so the full list yields every row the sheet can show.
-const ALL_STATS = UnitStat.getAll();
+// Every stat the sheet has a row for: buildRows drops the rest.
+const STAT_FILTER_UNIVERSE = STAT_GROUPS.flatMap(group => group.stats);
 
 const GROUPS_STORAGE_SUFFIX = '__characterStatsGroups';
 
-/** `key` is the spec's display-stat list, `all` every stat the sheet has a row for. */
-export type CharacterStatsMode = 'key' | 'all';
-
-export interface CharacterStatsHeaderLabels {
-	title: string;
-	modeAriaLabel: string;
-	key: string;
-	all: string;
-}
-
 export interface CharacterStatsHeaderViewProps {
-	mode: CharacterStatsMode;
-	onModeChange: (next: CharacterStatsMode) => void;
-	labels: CharacterStatsHeaderLabels;
+	title: string;
+	filter?: ReactNode;
 	className?: ClassValue;
 }
 
-export const CharacterStatsModeToggle = ({ mode, onModeChange, labels }: CharacterStatsHeaderViewProps) => (
-	<ToggleGroup
-		size="xs"
-		className="shrink-0 whitespace-nowrap"
-		aria-label={labels.modeAriaLabel}
-		value={mode}
-		onChange={onModeChange}
-		options={[
-			{ value: 'key', label: labels.key },
-			{ value: 'all', label: labels.all },
-		]}
-	/>
-);
-
-export const CharacterStatsHeaderView = ({ mode, onModeChange, labels }: CharacterStatsHeaderViewProps) => (
+export const CharacterStatsHeaderView = ({ title, filter }: CharacterStatsHeaderViewProps) => (
 	<div className="flex items-center justify-between gap-2">
 		<h3 data-testid="character-stats-label" className="m-0 text-base leading-tight font-bold">
-			{labels.title}
+			{title}
 		</h3>
-		<CharacterStatsModeToggle mode={mode} onModeChange={onModeChange} labels={labels} />
+		{filter}
 	</div>
 );
 
@@ -77,9 +51,9 @@ export interface CharacterStatsPanelViewProps extends CharacterStatsHeaderViewPr
 	children?: ReactNode;
 }
 
-export const CharacterStatsPanelView = ({ mode, onModeChange, labels, className, children }: CharacterStatsPanelViewProps) => (
+export const CharacterStatsPanelView = ({ title, filter, className, children }: CharacterStatsPanelViewProps) => (
 	<section className={clsx('ui-character-stats-panel', className)} data-testid="character-stats-root">
-		<CharacterStatsHeaderView mode={mode} onModeChange={onModeChange} labels={labels} />
+		<CharacterStatsHeaderView title={title} filter={filter} />
 		{children}
 	</section>
 );
@@ -90,7 +64,8 @@ export const CharacterStats = ({ className }: CharacterStatsProps) => {
 	const host = useSimHost();
 	const player = host.player;
 	const { displayStats, modifyDisplayStats, overwriteDisplayStats } = useSpecConfig();
-	const [mode, setMode] = useState<CharacterStatsMode>('key');
+	const scope = useMemo(() => ({ defaults: displayStats, universe: STAT_FILTER_UNIVERSE }), [displayStats]);
+	const statFilter = useStatFilter('characterStats', scope);
 	const [openGroups, setOpenGroups] = useLocalStorageState<string[]>(host.getStorageKey(GROUPS_STORAGE_SUFFIX), parseStringArray, () =>
 		defaultOpenStatGroups(player.getPlayerSpec().isTankSpec, displayStats),
 	);
@@ -98,8 +73,7 @@ export const CharacterStats = ({ className }: CharacterStatsProps) => {
 	const bonusStats = usePlayerStore('bonusStats');
 	const gear = usePlayerStore('gear');
 	const dualWielding = player.isDualWielding();
-	const statList = mode === 'all' ? ALL_STATS : displayStats;
-	const { groups, shownStats } = useMemo(() => buildRows(player, statList), [player, statList]);
+	const { groups, shownStats } = useMemo(() => buildRows(player, statFilter.shown), [player, statFilter.shown]);
 	const race = usePlayerStore('race');
 	const consumables = usePlayerStore('consumables');
 	const talentsString = usePlayerStore('talentsString');
@@ -134,13 +108,6 @@ export const CharacterStats = ({ className }: CharacterStatsProps) => {
 
 	const hasParry = shownStats.some(stat => stat.equalsPseudoStat(PseudoStat.PseudoStatParryPercent));
 	const hasBlock = shownStats.some(stat => stat.equalsPseudoStat(PseudoStat.PseudoStatBlockPercent));
-
-	const labels = {
-		title: i18n.t('sidebar.character_stats.title'),
-		modeAriaLabel: i18n.t('sidebar.character_stats.mode.label'),
-		key: i18n.t('sidebar.character_stats.mode.key'),
-		all: i18n.t('sidebar.character_stats.mode.all'),
-	};
 
 	const renderRow = (row: Row) => {
 		switch (row.kind) {
@@ -189,13 +156,16 @@ export const CharacterStats = ({ className }: CharacterStatsProps) => {
 	const collapsible = groups.filter(group => group !== primary);
 
 	return (
-		<CharacterStatsPanelView className={className} mode={mode} onModeChange={setMode} labels={labels}>
+		<CharacterStatsPanelView
+			className={className}
+			title={i18n.t('sidebar.character_stats.title')}
+			filter={<StatFilterPopover {...statFilter} ariaLabel={i18n.t('stat_filters.triggers.character_stats')} testId="character-stats-filter" />}>
 			{primary && (
-				<Box border="border-muted" padding="xs" testId="character-stats-primary">
+				<div className="border-b border-border pb-1" data-testid="character-stats-primary">
 					{table(primary.rows)}
-				</Box>
+				</div>
 			)}
-			<Accordion value={openGroups} onValueChange={setOpenGroups} variant="boxed" testId="character-stats-groups">
+			<Accordion value={openGroups} onValueChange={setOpenGroups} variant="divided" density="compact" testId="character-stats-groups">
 				{collapsible.map(group => (
 					<AccordionItem
 						key={group.key}
@@ -206,7 +176,7 @@ export const CharacterStats = ({ className }: CharacterStatsProps) => {
 						{table(group.rows)}
 					</AccordionItem>
 				))}
-				<WeaponSkills mode={mode} />
+				<WeaponSkills />
 			</Accordion>
 		</CharacterStatsPanelView>
 	);

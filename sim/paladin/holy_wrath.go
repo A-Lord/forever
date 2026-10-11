@@ -22,11 +22,6 @@ func (paladin *Paladin) registerHolyWrath(_ int32, rank *spelldata.Spell) {
 	// TODO: Read rank.EffectN(1).RadiusMax once the store falls back to EffectRadiusIndex_1.
 	config.MaxRange = 20
 
-	config.Cast.ModifyCast = func(sim *core.Simulation, spell *core.Spell, cast *core.Cast) {
-		castTime := paladin.ApplyCastSpeedForSpell(cast.CastTime, spell)
-		paladin.AutoAttacks.StopMeleeUntil(sim, sim.CurrentTime+castTime)
-	}
-
 	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
 		results := []*core.SpellResult{}
 		for _, aoeTarget := range sim.Encounter.ActiveTargetUnits {

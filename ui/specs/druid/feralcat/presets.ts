@@ -18,7 +18,7 @@ import PreRaidGearJson from './gear_sets/pre_raid.gear.json';
 export const DefaultOptions = FeralDruidOptions.create({ assumeBleedActive: true });
 
 export const DefaultConsumables = ConsumesSpec.create({
-	potId: Consumables.MightyRagePotion.id,
+	resourcePotId: Consumables.MightyRagePotion.id,
 	flaskId: Consumables.FlaskOfNaturalPrecision.id,
 	elixirIds: [Consumables.ElixirOfTheMongoose.id],
 	foodId: Consumables.SwiftstrikeSteak.id,

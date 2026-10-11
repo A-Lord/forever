@@ -428,7 +428,7 @@
 						},
 						"castSpell": {
 							"spellId": {
-								"otherId": "OtherActionPotion"
+								"otherId": "OtherActionResourcePotion"
 							}
 						}
 					}

@@ -1,10 +1,13 @@
 package core_test
 
 import (
+	"fmt"
 	"math"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/wowsims/forever/assets/database"
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/buffs"
 	"github.com/wowsims/forever/sim/core/dbcenums"
@@ -12,6 +15,7 @@ import (
 	"github.com/wowsims/forever/sim/core/simsignals"
 	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func TestPartyBattleShoutAppliesTheGeneratedAura(t *testing.T) {
@@ -572,6 +576,84 @@ func TestGeneratedPartyDarkspearStaysOffTheCharacterSheet(t *testing.T) {
 			t.Errorf("the party's Darkspear applied %v %s to the measured stats, want 0", got, stat.StatName())
 		}
 	}
+}
+
+const darkspearItemID = 12802
+
+// A raid of one in a party with the Darkspear party buff, its database the one the request carries.
+func darkspearRaid(db *proto.SimDatabase) *proto.Raid {
+	return &proto.Raid{
+		Parties: []*proto.Party{{
+			Players: []*proto.Player{{
+				Name:      "Caster",
+				Class:     proto.Class_ClassShaman,
+				Buffs:     &proto.IndividualBuffs{},
+				Spec:      &proto.Player_ElementalShaman{},
+				Equipment: &proto.EquipmentSpec{},
+				Database:  db,
+			}},
+			Buffs: &proto.PartyBuffs{Darkspear: true},
+		}},
+		Buffs: &proto.RaidBuffs{},
+	}
+}
+
+// The Darkspear row as a browser request carries it: the UI database's item, cut down to the
+// fields the sim reads.
+func darkspearRequestItem(t *testing.T) *proto.SimItem {
+	t.Helper()
+	for _, item := range database.Load().Items {
+		if item.Id != darkspearItemID {
+			continue
+		}
+		data, err := protojson.Marshal(item)
+		if err != nil {
+			t.Fatal(err)
+		}
+		simItem := &proto.SimItem{}
+		if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(data, simItem); err != nil {
+			t.Fatal(err)
+		}
+		return simItem
+	}
+	t.Fatalf("the database has no item %d", darkspearItemID)
+	return nil
+}
+
+// Without the full item database the sim knows only the items the request carries; the party's
+// Darkspear then stops on a message that names the item the request is missing.
+func TestPartyDarkspearNamesTheItemTheRequestMustCarry(t *testing.T) {
+	restore := core.KeepOnlyItems(nil)
+	defer restore()
+
+	message := func() (message string) {
+		defer func() { message = fmt.Sprint(recover()) }()
+		core.ComputeStats(&proto.ComputeStatsRequest{Raid: darkspearRaid(nil), SkipRotation: true})
+		return
+	}()
+	if !strings.Contains(message, fmt.Sprintf("item %d", darkspearItemID)) {
+		t.Errorf("the party's Darkspear without its item stopped on %q, want a message naming item %d", message, darkspearItemID)
+	}
+}
+
+// A request that carries the Darkspear item computes stats with the party's Darkspear on.
+func TestPartyDarkspearReadsTheItemTheRequestCarries(t *testing.T) {
+	item := darkspearRequestItem(t)
+	restore := core.KeepOnlyItems(nil)
+	defer restore()
+
+	raid := darkspearRaid(&proto.SimDatabase{Items: []*proto.SimItem{item}})
+	result := core.ComputeStats(&proto.ComputeStatsRequest{Raid: raid, SkipRotation: true})
+	if result.ErrorResult != "" {
+		t.Fatalf("ComputeStats: %s", result.ErrorResult)
+	}
+	darkspear := buffs.NewSpellDataDarkspearAura(&core.NewGeneratedBuffTestCharacter().Unit, false, 0).ActionID.ToProto()
+	for _, aura := range result.RaidStats.Parties[0].Players[0].Metadata.Auras {
+		if aura.Id.GetSpellId() == darkspear.GetSpellId() {
+			return
+		}
+	}
+	t.Errorf("the character carries no aura of spell %d, want the party's Darkspear", darkspear.GetSpellId())
 }
 
 // The windfury proc grants the attack power the game files state for as long as
@@ -1462,6 +1544,181 @@ func TestGeneratedFuriousHowlDoesNotStackWithBattleShout(t *testing.T) {
 	char.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
 	if got, want := char.GetStats()[stats.AttackPower], max(battleShout(t), howl); got != want {
 		t.Errorf("attack power is %v under both shouts, want the stronger one's %v alone", got, want)
+	}
+}
+
+// An owner with one true pet and one guardian, both meleeing and summoned at the pull.
+type petOwner struct {
+	core.Character
+	pet      *testPet
+	guardian *testPet
+}
+
+type testPet struct {
+	core.Pet
+}
+
+func init() {
+	core.RegisterAgentFactory(
+		proto.Player_Hunter{},
+		proto.Spec_SpecHunter,
+		func(character *core.Character, _ *proto.Player, _ *proto.Raid) core.Agent {
+			owner := &petOwner{Character: *character}
+			owner.pet = newTestPet(owner, "True Pet", false)
+			owner.guardian = newTestPet(owner, "Guardian", true)
+			return owner
+		},
+		func(player *proto.Player, spec interface{}) {
+			player.Spec = spec.(*proto.Player_Hunter)
+		},
+	)
+}
+
+func newTestPet(owner *petOwner, name string, guardian bool) *testPet {
+	pet := &testPet{Pet: core.NewPet(core.PetConfig{
+		Name:            name,
+		Owner:           &owner.Character,
+		StatInheritance: func(stats.Stats) stats.Stats { return stats.Stats{} },
+		EnabledOnStart:  true,
+		IsGuardian:      guardian,
+	})}
+	pet.EnableAutoAttacks(pet, core.AutoAttackOptions{
+		MainHand:       core.Weapon{BaseDamageMin: 10, BaseDamageMax: 20, SwingSpeed: 2, NormalizedSwingSpeed: 2},
+		AutoSwingMelee: true,
+	})
+	owner.AddPet(pet)
+	return pet
+}
+
+func (c *petOwner) GetCharacter() *core.Character       { return &c.Character }
+func (c *petOwner) ApplyTalents()                       {}
+func (c *petOwner) Reset(_ *core.Simulation)            {}
+func (c *petOwner) OnGCDReady(_ *core.Simulation)       {}
+func (c *petOwner) OnEncounterStart(_ *core.Simulation) {}
+func (c *petOwner) Initialize()                         {}
+
+func (p *testPet) GetPet() *core.Pet                   { return &p.Pet }
+func (p *testPet) Reset(_ *core.Simulation)            {}
+func (p *testPet) OnEncounterStart(_ *core.Simulation) {}
+
+func setupPetOwnerSim(party *proto.PartyBuffs) (*core.Simulation, *petOwner) {
+	sim := core.NewSim(&proto.RaidSimRequest{
+		SimOptions: &proto.SimOptions{RandomSeed: 100},
+		Raid: &proto.Raid{
+			Parties: []*proto.Party{{
+				Players: []*proto.Player{{
+					Name:      "Owner",
+					Class:     proto.Class_ClassHunter,
+					Spec:      &proto.Player_Hunter{},
+					Equipment: &proto.EquipmentSpec{},
+				}},
+				Buffs: party,
+			}},
+		},
+		Encounter: &proto.Encounter{
+			Targets:  []*proto.Target{{Name: "target", Level: 60}},
+			Duration: 180,
+		},
+	}, simsignals.CreateSignals())
+	sim.Reset()
+	return sim, sim.Raid.Parties[0].Players[0].(*petOwner)
+}
+
+// A true pet stands under its owner's totems with the owner's exclusivity, except those whose aura
+// only a player can carry: it has Mana Spring and, under Windfury Totem, the totem's proc, but never
+// Strength of Earth or Grace of Air. A guardian stands under none of them.
+func TestTruePetsStandUnderTheOwnersTotems(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		party    *proto.PartyBuffs
+		windfury bool
+	}{
+		{"grace of air", &proto.PartyBuffs{ManaSpringTotem: proto.TristateEffect_TristateEffectRegular, StrengthOfEarthTotem: true, GraceOfAirTotem: true}, false},
+		{"windfury", &proto.PartyBuffs{ManaSpringTotem: proto.TristateEffect_TristateEffectRegular, StrengthOfEarthTotem: true, GraceOfAirTotem: true, WindfuryTotem: true}, true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			_, owner := setupPetOwnerSim(tc.party)
+			pet := owner.pet
+
+			if aura := owner.GetAura("Strength of Earth Totem (External)"); aura == nil || !aura.IsActive() {
+				t.Fatalf("the owner's Strength of Earth Totem is %v; the owner has %v", aura, auraLabels(&owner.Character))
+			}
+			if aura := pet.GetAura("Mana Spring Totem (External)"); aura == nil || !aura.IsActive() {
+				t.Fatalf("the pet's Mana Spring Totem is %v; the pet has %v", aura, auraLabels(&pet.Character))
+			}
+			if got, want := pet.GetStats()[stats.MP5], buffs.ManaSpringTotemValue(0); got != want {
+				t.Errorf("the pet has %v MP5, want the totem's %v", got, want)
+			}
+			for _, label := range []string{"Strength of Earth Totem (External)", "Grace of Air Totem (External)"} {
+				if pet.GetAura(label) != nil {
+					t.Errorf("the pet carries %q", label)
+				}
+			}
+			if got := pet.GetStats(); got[stats.Strength] != 0 || got[stats.Agility] != 0 {
+				t.Errorf("the pet has %v strength and %v agility, want none", got[stats.Strength], got[stats.Agility])
+			}
+			trigger := pet.GetAura("Windfury Totem Trigger")
+			if got := trigger != nil && trigger.IsActive(); got != tc.windfury {
+				t.Errorf("the pet's Windfury Totem proc is up %v, want %v", got, tc.windfury)
+			}
+
+			for _, label := range []string{"Mana Spring Totem (External)", "Windfury Totem"} {
+				if owner.guardian.GetAura(label) != nil {
+					t.Errorf("the guardian carries %q", label)
+				}
+			}
+			if got := owner.guardian.GetStats()[stats.MP5]; got != 0 {
+				t.Errorf("the guardian has %v MP5, want none", got)
+			}
+		})
+	}
+}
+
+// A pet dismissed and summoned again stands under the totem again.
+func TestTruePetsStandUnderTheOwnersTotemsAfterASummon(t *testing.T) {
+	sim, owner := setupPetOwnerSim(&proto.PartyBuffs{ManaSpringTotem: proto.TristateEffect_TristateEffectRegular})
+	pet := owner.pet
+	totem := pet.GetAura("Mana Spring Totem (External)")
+	if totem == nil {
+		t.Fatalf("the pet has %v, want Mana Spring Totem", auraLabels(&pet.Character))
+	}
+
+	pet.Disable(sim)
+	if totem.IsActive() || pet.GetStats()[stats.MP5] != 0 {
+		t.Errorf("the dismissed pet stands under the totem %v with %v MP5, want neither",
+			totem.IsActive(), pet.GetStats()[stats.MP5])
+	}
+	pet.Enable(sim, pet)
+	if !totem.IsActive() {
+		t.Fatal("the summoned pet does not stand under the totem")
+	}
+	if got, want := pet.GetStats()[stats.MP5], buffs.ManaSpringTotemValue(0); got != want {
+		t.Errorf("the summoned pet has %v MP5, want the totem's %v", got, want)
+	}
+}
+
+// Mana Tide is up on a true pet for as long as it is up on the owner.
+func TestTruePetsStandUnderTheOwnersManaTide(t *testing.T) {
+	sim, owner := setupPetOwnerSim(&proto.PartyBuffs{ManaTideTotems: 1})
+	totem := owner.GetAura("Mana Tide Totem (External)")
+	petTotem := owner.pet.GetAura("Mana Tide Totem (External)")
+	if totem == nil || petTotem == nil {
+		t.Fatalf("the owner's Mana Tide is %v and the pet's %v, want both", totem, petTotem)
+	}
+	if petTotem.IsActive() {
+		t.Error("the pet stands under Mana Tide before the owner does")
+	}
+
+	totem.Activate(sim)
+	if !petTotem.IsActive() {
+		t.Error("the owner's Mana Tide left the pet without it")
+	}
+	if owner.guardian.GetAura("Mana Tide Totem (External)") != nil {
+		t.Error("the guardian carries Mana Tide")
+	}
+	totem.Deactivate(sim)
+	if petTotem.IsActive() {
+		t.Error("the pet keeps Mana Tide after the owner's has gone")
 	}
 }
 

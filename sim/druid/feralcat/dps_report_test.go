@@ -37,13 +37,13 @@ func uiDefaultRaidSim(talents string, rotation *proto.APLRotation, duration, var
 					Profession2:    proto.Profession_Enchanting,
 					Equipment:      core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "pre_raid").GearSet,
 					Consumables: &proto.ConsumesSpec{
-						PotId:      13442,  // Mighty Rage Potion
-						FlaskId:    274275, // Flask of Natural Precision
-						ElixirIds:  []int32{13452},
-						FoodId:     250072, // Swiftstrike Steak
-						MhImbueId:  18262,
-						ConjuredId: 7676,
-						ExtraIds:   []int32{12451, 12460, 8412},
+						ResourcePotId: 13442,  // Mighty Rage Potion
+						FlaskId:       274275, // Flask of Natural Precision
+						ElixirIds:     []int32{13452},
+						FoodId:        250072, // Swiftstrike Steak
+						MhImbueId:     18262,
+						ConjuredId:    7676,
+						ExtraIds:      []int32{12451, 12460, 8412},
 					},
 					Buffs:    &proto.IndividualBuffs{GreaterBlessingOfKings: true, GreaterBlessingOfMight: true},
 					Spec:     &proto.Player_FeralCatDruid{FeralCatDruid: &proto.FeralCatDruid{Options: &proto.FeralCatDruid_Options{AssumeBleedActive: true}}},

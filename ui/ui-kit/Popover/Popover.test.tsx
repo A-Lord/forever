@@ -83,6 +83,20 @@ describe('Popover', () => {
 		expect(screen.getByRole('dialog').hasAttribute('data-open')).toBe(false);
 	});
 
+	it('names the popup after its title, set as a heading above the contents', () => {
+		openPopover({ title: 'Reforge settings' });
+
+		const popup = screen.getByRole('dialog', { name: 'Reforge settings' });
+		const heading = within(popup).getByRole('heading', { name: 'Reforge settings' });
+		expect(popup.firstElementChild).toBe(heading);
+	});
+
+	it('renders no title unless given one', () => {
+		openPopover();
+		expect(screen.queryByRole('heading')).toBeNull();
+		expect(screen.getByRole('dialog').hasAttribute('aria-labelledby')).toBe(false);
+	});
+
 	it('renders no backdrop unless asked for one', () => {
 		openPopover();
 		expect(screen.queryByTestId('sim-popover-backdrop')).toBeNull();

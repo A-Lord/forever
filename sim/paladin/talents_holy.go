@@ -87,7 +87,7 @@ func (paladin *Paladin) applyImprovedSeals() {
 	// The Seal of Command proc takes the talent through its weapon percent, see registerSealOfCommand.
 	paladin.AddStaticMod(core.SpellModConfig{
 		ClassMask:  (SpellMaskSealProcs &^ SpellMaskSealOfCommandProc) | SpellMaskAllJudgements,
-		Kind:       core.SpellMod_DamageDone_Flat,
+		Kind:       core.SpellMod_DirectDamageDone_Pct,
 		FloatValue: spellData.ImprovedSeals.FractionAt(paladin.Talents.ImprovedSeals),
 	})
 }

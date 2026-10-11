@@ -793,7 +793,7 @@ func (spell *Spell) AttackerDamageMultiplier(attackTable *AttackTable, isDot boo
 	damageMultiplierAdditive := TernaryFloat64(
 		isDot,
 		spell.DamageMultiplierAdditive+spell.Unit.PseudoStats.DotDamageMultiplierAdditive-1,
-		spell.DamageMultiplierAdditive+spell.DirectDamageMultiplierAdditive,
+		(spell.DamageMultiplierAdditive+spell.DirectDamageMultiplierAdditive)*spell.DirectDamageMultiplier,
 	)
 
 	return spell.attackerDamageMultiplierInternal(attackTable) *
@@ -869,7 +869,7 @@ func (spell *Spell) casterHealingMultiplier(isPeriodic bool) float64 {
 
 	additive := spell.DamageMultiplierAdditive
 	if !isPeriodic {
-		additive += spell.DirectDamageMultiplierAdditive
+		additive = (additive + spell.DirectDamageMultiplierAdditive) * spell.DirectDamageMultiplier
 	}
 
 	multiplier := spell.DamageMultiplier * additive * spell.Unit.PseudoStats.HealingDealtMultiplier
