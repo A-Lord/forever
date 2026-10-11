@@ -201,12 +201,12 @@ export interface SpecBehaviors<SpecType extends Spec> {
 	features?: Array<(host: IndividualSimHost<SpecType>) => unknown>;
 }
 
-// A whole spec as data. `ui/app/spec_entry.ts` loads one of these per page.
+// A whole spec as data. `ui/app/spec_entry.tsx` loads one of these per page.
 export interface SpecDefinition<SpecType extends Spec> extends IndividualSimUIConfig<SpecType>, SpecBehaviors<SpecType> {
 	spec: SpecType;
 }
 
-// Identity function; exists purely so `ui/<class>/<spec>/spec.ts` gets the
+// Identity function; exists purely so `ui/specs/<class>/<spec>/spec.ts` gets the
 // config checked against `SpecDefinition` without an `as` cast or a type
 // annotation that would widen the literal spec type.
 export function defineSpec<SpecType extends Spec>(def: SpecDefinition<SpecType>): SpecDefinition<SpecType> {
