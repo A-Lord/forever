@@ -51,6 +51,9 @@ type Pet struct {
 	OnPetEnable  OnPetEnable
 	OnPetDisable OnPetDisable
 
+	enableEffects  []OnPetEnable
+	disableEffects []OnPetDisable
+
 	// Calculates inherited stats based on owner stats or stat changes.
 	statInheritance        PetStatInheritance
 	dynamicStatInheritance PetStatInheritance
@@ -253,6 +256,17 @@ func (pet *Pet) EnabledOnStart() bool {
 	return pet.enabledOnStart
 }
 
+// Runs enableEffect on every summon, after OnPetEnable, for a caller that does not own the pet.
+func (pet *Pet) RegisterEnableEffect(enableEffect OnPetEnable) {
+	pet.enableEffects = append(pet.enableEffects, enableEffect)
+}
+
+// Runs disableEffect on every dismiss, after OnPetDisable. The dismiss expires only the auras that
+// expire on their own, so this is where a permanent aura that should not outlast the pet comes off.
+func (pet *Pet) RegisterDisableEffect(disableEffect OnPetDisable) {
+	pet.disableEffects = append(pet.disableEffects, disableEffect)
+}
+
 // petAgent should be the PetAgent which embeds this Pet.
 func (pet *Pet) Enable(sim *Simulation, petAgent PetAgent) {
 	if pet.enabled {
@@ -286,6 +300,9 @@ func (pet *Pet) Enable(sim *Simulation, petAgent PetAgent) {
 
 	if pet.OnPetEnable != nil {
 		pet.OnPetEnable(sim)
+	}
+	for _, enableEffect := range pet.enableEffects {
+		enableEffect(sim)
 	}
 
 	if pet.hasDynamicMeleeSpeedInheritance {
@@ -456,6 +473,9 @@ func (pet *Pet) Disable(sim *Simulation) {
 
 	if pet.OnPetDisable != nil {
 		pet.OnPetDisable(sim)
+	}
+	for _, disableEffect := range pet.disableEffects {
+		disableEffect(sim)
 	}
 
 	pet.auraTracker.expireAll(sim)

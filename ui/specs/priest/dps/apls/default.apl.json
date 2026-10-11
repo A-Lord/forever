@@ -2,7 +2,7 @@
 	"type": "TypeAPL",
 	"priorityList": [
 	{"action":{"condition":{"not":{"val":{"auraIsActive":{"auraId":{"spellId":15473}}}}},"castSpell":{"spellId":{"spellId":15473}}}},
-	{"action":{"castSpell":{"spellId":{"otherId":"OtherActionPotion"}}}},
+	{"action":{"castSpell":{"spellId":{"otherId":"OtherActionOffensivePotion"}}}},
 	{"action":{"autocastOtherCooldowns":{}}},
 	{"action":{"condition":{"not":{"val":{"dotIsActive":{"spellId":{"spellId":10894}}}}},"castSpell":{"spellId":{"spellId":10894}}}},
 	{"action":{"condition":{"not":{"val":{"dotIsActive":{"spellId":{"spellId":19280}}}}},"castSpell":{"spellId":{"spellId":19280}}}},

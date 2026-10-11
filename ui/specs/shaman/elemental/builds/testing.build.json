@@ -45,7 +45,6 @@
       ]
     },
     "consumables": {
-      "potId": 13444,
       "flaskId": 13512,
       "foodId": 13935,
       "conjuredId": 12662,
@@ -61,7 +60,8 @@
         250351,
         13452,
         250337
-      ]
+      ],
+      "resourcePotId": 13444
     },
     "bonusStats": {
       "apiVersion": 2,
@@ -93,13 +93,15 @@
         {"action":{"castSpell":{"spellId":{"spellId":10438}}},"doAtValue":{"const":{"val":"-1s"}}}
       ],
       "priorityList": [
-        {"action":{"castSpell":{"spellId":{"otherId":"OtherActionPotion"}}}},
+        {"action":{"condition":{"cmp":{"op":"OpLt","lhs":{"currentManaPercent":{}},"rhs":{"const":{"val":"80%"}}}},"castSpell":{"spellId":{"otherId":"OtherActionResourcePotion"}}}},
+        {"action":{"condition":{"cmp":{"op":"OpLt","lhs":{"currentManaPercent":{}},"rhs":{"const":{"val":"70%"}}}},"castSpell":{"spellId":{"itemId":12662}}}},
+        {"action":{"autocastOtherCooldowns":{}}},
         {"action":{"condition":{"cmp":{"op":"OpLt","lhs":{"currentManaPercent":{}},"rhs":{"const":{"val":"50%"}}}},"castSpell":{"spellId":{"spellId":17359}}}},
         {"action":{"condition":{"cmp":{"op":"OpLe","lhs":{"totemRemainingTime":{"totemType":"Fire"}},"rhs":{"const":{"val":"0s"}}}},"castSpell":{"spellId":{"spellId":10438}}}},
         {"action":{"condition":{"dotIsActive":{"spellId":{"spellId":10448,"rank":5}}},"castSpell":{"spellId":{"spellId":1238300}}}},
         {"action":{"condition":{"not":{"val":{"dotIsActive":{"spellId":{"spellId":10448,"rank":5}}}}},"castSpell":{"spellId":{"spellId":10448,"rank":5}}}},
         {"action":{"condition":{"cmp":{"op":"OpGt","lhs":{"numberTargets":{}},"rhs":{"const":{"val":"1"}}}},"castSpell":{"spellId":{"spellId":10605}}}},
-        {"action":{"condition":{"cmp":{"op":"OpLt","lhs":{"currentManaPercent":{}},"rhs":{"const":{"val":"40%"}}}},"castSpell":{"spellId":{"spellId":10392,"rank":8}}}},
+        {"action":{"condition":{"cmp":{"op":"OpLt","lhs":{"currentManaPercent":{}},"rhs":{"const":{"val":"20%"}}}},"castSpell":{"spellId":{"spellId":10392,"rank":8}}}},
         {"action":{"castSpell":{"spellId":{"spellId":15208}}}}
       ]
     },
@@ -110,7 +112,7 @@
   },
   "encounter": {
     "apiVersion": 2,
-    "duration": 120,
+    "duration": 180,
     "durationVariation": 5,
     "executeProportion20": 0.2,
     "executeProportion25": 0.25,

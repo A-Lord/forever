@@ -467,7 +467,8 @@ enum TristateEffect {
 }
 
 message ConsumesSpec {
-	int32 pot_id = 1;
+	reserved 1;
+	reserved "pot_id";
 	int32 flask_id = 2;
 	int32 food_id = 5;
 	int32 conjured_id = 6;
@@ -490,6 +491,10 @@ message ConsumesSpec {
 	int32 swap_oh_imbue_id = 25;
 	int32 swap_mh_weapon_imbue_id = 26;
 	int32 swap_oh_weapon_imbue_id = 27;
+	// The potion each APL potion placeholder casts, one per PotionClass.
+	int32 resource_pot_id = 28;
+	int32 defensive_pot_id = 29;
+	int32 offensive_pot_id = 30;
 }
 
 enum MobType {
@@ -678,6 +683,14 @@ enum ConsumableType {
 	ConsumableTypeWeaponImbue = 13;
 }
 
+// What a potion does, which picks the APL placeholder it fills. A potion can be of several classes.
+enum PotionClass {
+	PotionClassUnknown = 0;
+	PotionClassResource = 1; // Restores mana, rage or energy, or buffs only mana regen.
+	PotionClassDefensive = 2; // Heals, absorbs, or buffs armor, avoidance, health or a resistance.
+	PotionClassOffensive = 3; // Buffs anything else, such as spell power or attack power.
+}
+
 
 
 
@@ -740,11 +753,16 @@ enum OtherAction {
 	OtherActionRefund = 8; // Refund of a resource like Energy or Rage, when the ability didn't land.
 	OtherActionDamageTaken = 9; // Indicates damage taken; used for rage gen.
 	OtherActionHealingModel = 12; // Indicates healing received from healing model.
-	OtherActionPotion = 17; // Used by APL to generically refer to either the prepull or combat potion.
+	reserved 17;
+	reserved "OtherActionPotion";
 	OtherActionMove = 20; // Used by movement to be able to show it in timeline
 	OtherActionPrepull = 21; // Indicated prepull specific action
 	OtherActionEncounterStart = 22; // Indicated resources gained or lost at the start of an encounter
 	OtherActionItemSwap = 23; // Used by APL to show current swap set
+	// Used by APL to refer to the potion the consumes pick for each PotionClass.
+	OtherActionResourcePotion = 24;
+	OtherActionDefensivePotion = 25;
+	OtherActionOffensivePotion = 26;
 }
 
 message ActionID {

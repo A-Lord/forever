@@ -27,7 +27,6 @@ export const DefaultDebuffs = Debuffs.create({
 });
 
 export const DefaultConsumables = ConsumesSpec.create({
-	potId: Consumables.MajorFrenzyPotion.id,
 	foodId: Consumables.SmokedDesertDumplings.id,
 	explosiveId: Consumables.EZThroDarkBomb.id,
 	elixirIds: [Consumables.ElixirOfFerocity.id, Consumables.ElixirOfTheMongoose.id],

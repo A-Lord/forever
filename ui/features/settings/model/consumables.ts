@@ -8,7 +8,9 @@ import { Player } from '@sim/player/player';
 import { ActionId } from '@sim/proto/action_id';
 
 export type ConsumableIdField =
-	| 'potId'
+	| 'resourcePotId'
+	| 'defensivePotId'
+	| 'offensivePotId'
 	| 'conjuredId'
 	| 'flaskId'
 	| 'foodId'

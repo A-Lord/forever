@@ -801,13 +801,16 @@ func TestValueSpellChannelingAndFlight(t *testing.T) {
 
 func TestValueSelectedConsumables(t *testing.T) {
 	sim, fw, rot := setupFakeRageRotation()
-	fw.Consumables.PotId = 100
+	fw.Consumables.ResourcePotId = 100
+	fw.Consumables.OffensivePotId = 102
 	fw.Consumables.ConjuredId = 200
 
 	selected := rot.newValueSelectedPotion(&proto.APLValueSelectedPotion{PotionId: ActionID{ItemID: 100}.ToProto()}, nil)
+	selectedOffensive := rot.newValueSelectedPotion(&proto.APLValueSelectedPotion{PotionId: ActionID{ItemID: 102}.ToProto()}, nil)
 	other := rot.newValueSelectedPotion(&proto.APLValueSelectedPotion{PotionId: ActionID{ItemID: 101}.ToProto()}, nil)
-	if !selected.GetBool(sim) || other.GetBool(sim) {
-		t.Errorf("Selected Potion: matching = %t, other = %t, want true, false", selected.GetBool(sim), other.GetBool(sim))
+	if !selected.GetBool(sim) || !selectedOffensive.GetBool(sim) || other.GetBool(sim) {
+		t.Errorf("Selected Potion: resource pick = %t, offensive pick = %t, other = %t, want true, true, false",
+			selected.GetBool(sim), selectedOffensive.GetBool(sim), other.GetBool(sim))
 	}
 
 	selectedConjured := rot.newValueSelectedConjured(&proto.APLValueSelectedConjured{ConjuredId: ActionID{ItemID: 200}.ToProto()}, nil)
@@ -820,6 +823,33 @@ func TestValueSelectedConsumables(t *testing.T) {
 		"Selected Potion without a potion":          rot.newValueSelectedPotion(&proto.APLValueSelectedPotion{}, nil),
 		"Selected Conjured without a conjured item": rot.newValueSelectedConjured(&proto.APLValueSelectedConjured{}, nil),
 	})
+}
+
+// Each potion placeholder casts the potion the consumes pick for its class, and one whose class has
+// no pick casts nothing.
+func TestPotionPlaceholdersCastTheirClassPick(t *testing.T) {
+	const resourceID, offensiveID int32 = 910201, 910202
+	potions := map[int32]*Spell{}
+	_, fw, rot := setupFakeRageRotationWith(func(char *Character) {
+		for _, id := range []int32{resourceID, offensiveID} {
+			potions[id] = char.RegisterSpell(SpellConfig{ActionID: ActionID{ItemID: id}, Flags: SpellFlagPotion | SpellFlagAPL})
+		}
+	})
+	fw.Consumables.ResourcePotId = resourceID
+	fw.Consumables.OffensivePotId = offensiveID
+
+	placeholder := func(action proto.OtherAction) *Spell {
+		return rot.GetAPLSpell(ActionID{OtherID: action}.ToProto())
+	}
+	if got := placeholder(proto.OtherAction_OtherActionResourcePotion); got != potions[resourceID] {
+		t.Errorf("Resource Potion casts %v, want %v", got, potions[resourceID])
+	}
+	if got := placeholder(proto.OtherAction_OtherActionOffensivePotion); got != potions[offensiveID] {
+		t.Errorf("Offensive Potion casts %v, want %v", got, potions[offensiveID])
+	}
+	if got := placeholder(proto.OtherAction_OtherActionDefensivePotion); got != nil {
+		t.Errorf("Defensive Potion without a pick casts %v, want nothing", got)
+	}
 }
 
 func TestValueActiveItemSwapSet(t *testing.T) {
@@ -942,6 +972,69 @@ func TestValueAuraReactionTime(t *testing.T) {
 	sim.CurrentTime = time.Second + 200*time.Millisecond
 	if !isActive.GetBool(sim) || isInactive.GetBool(sim) || icdReady.GetBool(sim) {
 		t.Errorf("past the reaction time: active = %t, inactive = %t, ICD ready = %t, want true, false, false", isActive.GetBool(sim), isInactive.GetBool(sim), icdReady.GetBool(sim))
+	}
+}
+
+func TestValueAuraIsActiveOwnCastReactionTime(t *testing.T) {
+	// The window is a proc that shares its id with the spell it allows, as the Revenge window does.
+	var ownCast, window *Aura
+	var ownSpell, windowSpell *Spell
+	ownCastID, windowID := ActionID{SpellID: testPlainAuraID}, ActionID{SpellID: testStackAuraID}
+	sim, fw, rot := setupFakeRageRotationWith(func(char *Character) {
+		ownCast, window, _ = registerTestAuras(char)
+		ownSpell = char.RegisterSpell(SpellConfig{ActionID: ownCastID, Flags: SpellFlagAPL, ApplyEffects: func(sim *Simulation, _ *Unit, _ *Spell) {
+			ownCast.Activate(sim)
+		}})
+		windowSpell = char.RegisterSpell(SpellConfig{ActionID: windowID, Flags: SpellFlagAPL, ApplyEffects: func(sim *Simulation, _ *Unit, _ *Spell) {
+			window.Deactivate(sim)
+		}})
+	})
+	ownSpell.finalize()
+	windowSpell.finalize()
+	fw.ReactionTime = 100 * time.Millisecond
+	target := fw.CurrentTarget
+
+	ownCastActive := rot.newValueAuraIsActive(&proto.APLValueAuraIsActive{AuraId: ownCastID.ToProto(), IncludeReactionTime: true}, nil)
+	windowActive := rot.newValueAuraIsActive(&proto.APLValueAuraIsActive{AuraId: windowID.ToProto(), IncludeReactionTime: true}, nil)
+
+	sim.CurrentTime = 500 * time.Millisecond
+	if ownCastActive.GetBool(sim) {
+		t.Errorf("before the first cast: own cast active = true, want false")
+	}
+
+	sim.CurrentTime = time.Second
+	ownSpell.applyEffects(sim, target)
+	window.Activate(sim)
+	if !ownCastActive.GetBool(sim) || windowActive.GetBool(sim) {
+		t.Errorf("as the auras land: own cast active = %t, window active = %t, want true, false", ownCastActive.GetBool(sim), windowActive.GetBool(sim))
+	}
+	sim.CurrentTime = time.Second + 200*time.Millisecond
+	if !windowActive.GetBool(sim) {
+		t.Errorf("past the reaction time: window active = false, want true")
+	}
+
+	sim.CurrentTime = 2 * time.Second
+	windowSpell.applyEffects(sim, target)
+	if windowActive.GetBool(sim) {
+		t.Errorf("window used up by its spell: window active = true, want false")
+	}
+
+	sim.CurrentTime = ownCast.ExpiresAt()
+	ownCast.Deactivate(sim)
+	sim.CurrentTime += 50 * time.Millisecond
+	if !ownCastActive.GetBool(sim) {
+		t.Errorf("inside the reaction time after running out: own cast active = false, want true")
+	}
+	sim.CurrentTime += 50 * time.Millisecond
+	if ownCastActive.GetBool(sim) {
+		t.Errorf("at the reaction time after running out: own cast active = true, want false")
+	}
+
+	ownSpell.applyEffects(sim, target)
+	sim.CurrentTime += time.Second
+	ownCast.Deactivate(sim)
+	if ownCastActive.GetBool(sim) {
+		t.Errorf("removed before running out: own cast active = true, want false")
 	}
 }
 

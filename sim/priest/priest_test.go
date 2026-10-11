@@ -18,12 +18,12 @@ const defaultTalents = "005300211303--500320501201312251"
 // The UI's defaults: Flask of Supreme Power, Major Spellblasting Potion, Nightfin Soup, Demonic Rune,
 // Brilliant Wizard Oil and Ez-Thro Dynamite II.
 var defaultConsumables = &proto.ConsumesSpec{
-	FlaskId:     13512,
-	PotId:       250937,
-	FoodId:      13931,
-	ConjuredId:  12662,
-	MhImbueId:   20749,
-	ExplosiveId: 18588,
+	FlaskId:        13512,
+	OffensivePotId: 250937,
+	FoodId:         13931,
+	ConjuredId:     12662,
+	MhImbueId:      20749,
+	ExplosiveId:    18588,
 }
 
 func TestShadowPriest(t *testing.T) {
