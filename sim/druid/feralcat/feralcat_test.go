@@ -2,11 +2,15 @@ package feralcat
 
 import (
 	"fmt"
+	"math"
 	"testing"
+	"time"
 
 	"github.com/wowsims/forever/sim/common"
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/simsignals"
+	"github.com/wowsims/forever/sim/core/stats"
 	goproto "google.golang.org/protobuf/proto"
 )
 
@@ -138,4 +142,127 @@ func TestAvailableThistleTeaRequiresSelection(t *testing.T) {
 			})
 		}
 	}
+}
+
+func newFormScenario(t *testing.T) (*core.Simulation, *FeralDruid) {
+	t.Helper()
+	if !core.WITH_DB {
+		t.Skip("requires the committed game database")
+	}
+	items := make([]*proto.ItemSpec, proto.ItemSlot_ItemSlotRanged+1)
+	for i := range items {
+		items[i] = &proto.ItemSpec{}
+	}
+	items[proto.ItemSlot_ItemSlotMainHand].Id = 866
+	sim := core.NewSim(&proto.RaidSimRequest{
+		SimOptions: &proto.SimOptions{RandomSeed: 1, Iterations: 1},
+		Raid: core.SinglePlayerRaidProto(&proto.Player{
+			Name: "Cat", Class: proto.Class_ClassDruid, Race: proto.Race_RaceNightElf,
+			Spec: DefaultSpecOptions, Equipment: &proto.EquipmentSpec{Items: items},
+			Consumables: &proto.ConsumesSpec{}, Buffs: &proto.IndividualBuffs{}, Rotation: &proto.APLRotation{},
+		}, &proto.PartyBuffs{}, nil, nil),
+		Encounter: &proto.Encounter{Targets: []*proto.Target{{Name: "target", Level: 60}}, Duration: 60},
+	}, simsignals.CreateSignals())
+	sim.Reset()
+	return sim, sim.Raid.Parties[0].Players[0].(*FeralDruid)
+}
+
+func fillFormScenarioResources(sim *core.Simulation, cat *FeralDruid) {
+	cat.AddEnergy(sim, cat.MaximumEnergy(), cat.NewEnergyMetrics(core.ActionID{SpellID: 1}))
+	cat.AddMana(sim, cat.MaxMana(), cat.NewManaMetrics(core.ActionID{SpellID: 1}))
+	cat.AddRage(sim, cat.MaximumRage(), cat.NewRageMetrics(core.ActionID{SpellID: 1}))
+}
+
+func TestFeralFormsUseFeralSkillAndRestoreEquippedSkill(t *testing.T) {
+	sim, cat := newFormScenario(t)
+	cat.ClearForm(sim)
+	cat.PseudoStats.WeaponSkills[proto.WeaponSkill_WeaponSkillStaves] = -20
+	cat.SetFeralCombat(false)
+	table := cat.AttackTables[cat.CurrentTarget.UnitIndex]
+	if got := table.MH.BaseMissChance; got != 0.09 {
+		t.Fatalf("humanoid staff miss = %v, want 0.09", got)
+	}
+
+	fillFormScenarioResources(sim, cat)
+	if !cat.CatForm.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("Cat Form did not cast")
+	}
+	if got := table.MH.BaseMissChance; got != 0.05 {
+		t.Fatalf("Cat Form miss = %v, want 0.05", got)
+	}
+
+	cat.ClearForm(sim)
+	sim.CurrentTime += 2 * time.Second
+	fillFormScenarioResources(sim, cat)
+	if !cat.BearForm.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("Bear Form did not cast")
+	}
+	if got := table.MH.BaseMissChance; got != 0.05 {
+		t.Fatalf("Bear Form miss = %v, want 0.05", got)
+	}
+
+	cat.ClearForm(sim)
+	if got := table.MH.BaseMissChance; got != 0.09 {
+		t.Fatalf("restored humanoid staff miss = %v, want 0.09", got)
+	}
+}
+
+func TestFeralAttackPowerConvertsOneForOneOnlyInFeralForms(t *testing.T) {
+	// Given a cat with 77 Feral Attack Power added after initialization.
+	sim, cat := newFormScenario(t)
+	catAP := cat.GetStat(stats.AttackPower)
+	cat.AddStatDynamic(sim, stats.FeralAttackPower, 77)
+
+	// When the druid moves through Cat, humanoid, Bear, and humanoid forms.
+	if got := cat.GetStat(stats.AttackPower) - catAP; got != 77 {
+		t.Errorf("Cat Form gained %v attack power, want 77", got)
+	}
+	cat.ClearForm(sim)
+	humanoidAP := cat.GetStat(stats.AttackPower)
+	cat.AddStatDynamic(sim, stats.FeralAttackPower, -77)
+	if got := cat.GetStat(stats.AttackPower); got != humanoidAP {
+		t.Errorf("removing Feral Attack Power in humanoid form changed attack power from %v to %v", humanoidAP, got)
+	}
+	cat.AddStatDynamic(sim, stats.FeralAttackPower, 77)
+	fillFormScenarioResources(sim, cat)
+	if !cat.BearForm.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("Bear Form did not cast")
+	}
+	bearAP := cat.GetStat(stats.AttackPower)
+	cat.AddStatDynamic(sim, stats.FeralAttackPower, -77)
+	if got := bearAP - cat.GetStat(stats.AttackPower); got != 77 {
+		t.Errorf("Bear Form gained %v attack power, want 77", got)
+	}
+	cat.AddStatDynamic(sim, stats.FeralAttackPower, 77)
+	cat.ClearForm(sim)
+
+	// Then the form-only dependency is removed again on exit.
+	secondHumanoidAP := cat.GetStat(stats.AttackPower)
+	cat.AddStatDynamic(sim, stats.FeralAttackPower, -77)
+	if got := cat.GetStat(stats.AttackPower); got != secondHumanoidAP {
+		t.Errorf("removing Feral Attack Power after Bear changed humanoid attack power from %v to %v", secondHumanoidAP, got)
+	}
+}
+
+func TestDashSpeedExpiresAfterItsDuration(t *testing.T) {
+	sim, cat := newFormScenario(t)
+	before := cat.GetMovementSpeed()
+	if !cat.Dash.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("Dash did not cast in Cat Form")
+	}
+	if got, want := cat.GetMovementSpeed(), before*1.6; math.Abs(got-want) > 1e-9 {
+		t.Fatalf("Dash movement speed = %g, want %g", got, want)
+	}
+	for cat.DashAura.IsActive() {
+		if sim.Step() {
+			t.Fatal("simulation ended before Dash expired")
+		}
+	}
+	if sim.CurrentTime < 15*time.Second {
+		t.Fatalf("Dash expired at %s, want at least 15s", sim.CurrentTime)
+	}
+	if got := cat.GetMovementSpeed(); math.Abs(got-before) > 1e-9 {
+		t.Fatalf("movement after Dash = %g, want %g", got, before)
+	}
+	t.Logf("Dash speed %g -> %g -> %g; expired at %s", before, before*1.6, cat.GetMovementSpeed(), sim.CurrentTime)
 }
