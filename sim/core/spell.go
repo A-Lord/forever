@@ -617,26 +617,7 @@ func (spell *Spell) TimeToReady(sim *Simulation) time.Duration {
 // Returns whether a call to Cast() would be successful, without actually
 // doing a cast.
 func (spell *Spell) CanCast(sim *Simulation, target *Unit) bool {
-	if spell == nil {
-		return false
-	}
-
-	if !spell.CanCompleteCast(sim, target, false) {
-		return false
-	}
-
-	if spell.Flags.Matches(SpellFlagSwapped) {
-		//if sim.Log != nil {
-		//	sim.Log("Cant cast because of item swap")
-		//}
-		return false
-	}
-
-	// While moving only instant casts are possible
-	if spell.Flags&SpellFlagCanCastWhileMoving == 0 && spell.DefaultCast.CastTime > 0 && spell.Unit.Moving {
-		//if sim.Log != nil {
-		//	sim.Log("Cant cast because moving")
-		//}
+	if !spell.canStart(sim, target) {
 		return false
 	}
 
@@ -662,17 +643,38 @@ func (spell *Spell) CanCast(sim *Simulation, target *Unit) bool {
 		return false
 	}
 
-	// Spell uses charges but has none
-	if spell.MaxCharges > 0 && spell.charges == 0 {
-		return false
-	}
-
-	return true
+	return spell.meetsCost(sim, false)
 }
 
-// Returns whether the spell being cast can be completed.
-// Example: Metamorphosis drains 4 Demonic Fury every second.
-// This means at the end of the cast you could end up not meeting the casting requirements.
+// The checks casting and queueing share ahead of their timer checks. While moving only instant casts
+// are possible.
+func (spell *Spell) canStart(sim *Simulation, target *Unit) bool {
+	return spell != nil && spell.CanCompleteCast(sim, target, false) &&
+		!spell.Flags.Matches(SpellFlagSwapped) &&
+		(spell.Flags&SpellFlagCanCastWhileMoving != 0 || spell.DefaultCast.CastTime == 0 || !spell.Unit.Moving) &&
+		(spell.MaxCharges == 0 || spell.charges > 0)
+}
+
+// The cost check runs after the other checks of its caller. A mana cost failure on a spell castable now
+// marks the rotation pass as waiting on mana; one during the GCD, a cast or the spell's cooldown, of an
+// off-GCD spell or inside the spell queue window, does not.
+func (spell *Spell) meetsCost(sim *Simulation, logCastFailure bool) bool {
+	if spell.Cost == nil || spell.Cost.MeetsRequirement(sim, spell) {
+		return true
+	}
+	unit := spell.Unit
+	if _, ok := spell.Cost.ResourceCostImpl.(*ManaCost); ok &&
+		unit.GCD.IsReady(sim) && unit.Hardcast.Expires <= sim.CurrentTime && spell.IsReady(sim) {
+		unit.costBlocked = true
+	}
+	if logCastFailure {
+		return spell.castFailureHelper(sim, spell.Cost.CostFailureReason(sim, spell))
+	}
+	return false
+}
+
+// Returns whether the spell being cast can be completed, its cost aside: the unit and target may no longer
+// qualify by the end of the cast.
 func (spell *Spell) CanCompleteCast(sim *Simulation, target *Unit, logCastFailure bool) bool {
 	if !spell.Unit.IsEnabled() {
 		if logCastFailure {
@@ -719,18 +721,6 @@ func (spell *Spell) CanCompleteCast(sim *Simulation, target *Unit, logCastFailur
 			return spell.castFailureHelper(sim, "extra spell condition")
 		}
 		return false
-	}
-
-	if spell.Cost != nil {
-		if !spell.Cost.MeetsRequirement(sim, spell) {
-			//if sim.Log != nil {
-			//	sim.Log("Cant cast because of resource cost")
-			//}
-			if logCastFailure {
-				return spell.castFailureHelper(sim, spell.Cost.CostFailureReason(sim, spell))
-			}
-			return false
-		}
 	}
 
 	return true
