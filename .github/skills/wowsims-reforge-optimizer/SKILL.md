@@ -127,5 +127,6 @@ npm run type-check
 ```
 
 The optimizer's Go tests use the class-free `sim/core/testagent` (registered as a protection warrior in
-`sheet_delta_test.go`, with that spec's gear sets from `ui/specs`) and need the `with_db` tag. For a change to
+`sheet_delta_test.go`, with that spec's gear sets from `ui/specs`); the ones that build gear need the `with_db`
+tag. For a change to
 what the request carries, run the optimizer against the dev server as well.

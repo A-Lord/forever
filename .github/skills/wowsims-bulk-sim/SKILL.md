@@ -8,7 +8,7 @@ argument-hint: 'Describe the bulk sim flow, stage or result behaviour, or valida
 
 The bulk sim ranks gear sets built from the worn gear plus the items and enchants the user selects. One Go
 implementation (`sim/core/bulk`) generates the candidates and runs the stages; the browser runs a TypeScript
-mirror of the stage loop because the WASM sim has no bulk entry point.
+mirror of the stage loop because the WASM sim cannot run `bulkSimAsync`.
 
 ## Where things live
 
