@@ -211,7 +211,7 @@ func catPowershiftRequest(talents string, rotation *proto.APLRotation, cannotShr
 func TestManaPotionAndThistleTeaAreUsed(t *testing.T) {
 	const iterations int32 = 100
 	req := sweepRequest(powershiftTalents, defaultCatRotation(), false, iterations)
-	req.Raid.Parties[0].Players[0].Consumables = &proto.ConsumesSpec{PotId: 13444, ConjuredId: 7676}
+	req.Raid.Parties[0].Players[0].Consumables = &proto.ConsumesSpec{ResourcePotId: 13444, ConjuredId: 7676}
 	result := core.RunSim(req, nil, simsignals.CreateSignals())
 	if result.Error != nil {
 		t.Fatal(result.Error.Message)

@@ -90,7 +90,7 @@ func TestReviewProwlIgnoresFailedCastsAndTriggeredSpells(t *testing.T) {
 }
 
 func TestReviewConsumableBreaksProwl(t *testing.T) {
-	sim, cat := newCat(t, "", &proto.ConsumesSpec{PotId: 13444})
+	sim, cat := newCat(t, "", &proto.ConsumesSpec{ResourcePotId: 13444})
 	reviewProwl(t, sim, cat)
 	potion := cat.GetSpell(core.ActionID{ItemID: 13444})
 	if potion == nil || !potion.Cast(sim, &cat.Unit) {

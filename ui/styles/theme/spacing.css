@@ -58,6 +58,7 @@
 	--spacing-cr-icon-offset: calc(var(--spacing-cr-icon) + --spacing(6));
 	--spacing-log-body-min-h: calc(100dvh - var(--spacing-sim-header) - var(--spacing-page));
 	--spacing-bulk-settings-max-h: calc(100dvh - var(--spacing-sim-header) - var(--spacing-page));
+	--spacing-filter-popover-max-h: min(60vh, var(--available-height));
 
 	--spacing-timeline-pos: calc(var(--pps) * var(--t));
 	--spacing-timeline-segment: calc(var(--pps) * var(--dur));

@@ -221,13 +221,13 @@ func TestGnomeWarrior(t *testing.T) {
 		},
 	})
 
-	if !WithinToleranceFloat64(mods.Damage, mortalStrike.DirectDamageMultiplierAdditive, 0.0001) {
-		t.Fatalf("Eureka! should raise Mortal Strike's direct damage by +%0.2f, got +%0.2f", mods.Damage, mortalStrike.DirectDamageMultiplierAdditive)
+	if !WithinToleranceFloat64(1+mods.Damage, mortalStrike.DirectDamageMultiplier, 0.0001) {
+		t.Fatalf("Eureka! should multiply Mortal Strike's direct damage by %0.2f, got %0.2f", 1+mods.Damage, mortalStrike.DirectDamageMultiplier)
 	}
 	if want := 30 * (1 + mods.Cost); !WithinToleranceFloat64(want, mortalStrike.Cost.GetCurrentCost(), 0.0001) {
 		t.Fatalf("Eureka! should cut Mortal Strike's 30 Rage to %0.1f, got %0.1f", want, mortalStrike.Cost.GetCurrentCost())
 	}
-	if sunderArmor.DirectDamageMultiplierAdditive != 0 || sunderArmor.Cost.GetCurrentCost() != 30 {
+	if sunderArmor.DirectDamageMultiplier != 1 || sunderArmor.Cost.GetCurrentCost() != 30 {
 		t.Fatalf("Eureka! should leave Sunder Armor alone, which its class mask does not name")
 	}
 
@@ -239,7 +239,7 @@ func TestGnomeWarrior(t *testing.T) {
 		return eureka.GetStacks()
 	}
 
-	if stacksAfter(itemSpell) != 3 || itemSpell.DirectDamageMultiplierAdditive != 0 {
+	if stacksAfter(itemSpell) != 3 || itemSpell.DirectDamageMultiplier != 1 {
 		t.Fatalf("Eureka! should ignore spells that are not class abilities")
 	}
 	if stacksAfter(sunderArmor) != 3 {
@@ -268,8 +268,8 @@ func TestGnomeWarrior(t *testing.T) {
 	if eureka.IsActive() {
 		t.Fatalf("Eureka! should end after 3 abilities, %d left at %v", eureka.GetStacks(), sim.CurrentTime)
 	}
-	if !WithinToleranceFloat64(0, mortalStrike.DirectDamageMultiplierAdditive, 0.0001) {
-		t.Fatalf("Eureka! should drop its damage bonus when it ends, got +%0.2f", mortalStrike.DirectDamageMultiplierAdditive)
+	if !WithinToleranceFloat64(1, mortalStrike.DirectDamageMultiplier, 0.0001) {
+		t.Fatalf("Eureka! should drop its damage bonus when it ends, got %0.2f", mortalStrike.DirectDamageMultiplier)
 	}
 }
 

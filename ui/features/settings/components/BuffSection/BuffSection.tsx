@@ -7,6 +7,7 @@ export type BuffSectionKind = 'raid_buffs' | 'party_buffs' | 'debuffs';
 export interface BuffSectionProps {
 	section: BuffSectionKind;
 	empty: boolean;
+	filter?: ReactNode;
 	children: ReactNode;
 }
 
@@ -35,17 +36,22 @@ const sectionText = (section: BuffSectionKind): { title: string; tooltip: string
 	}
 };
 
-export const BuffSection = ({ section, empty, children }: BuffSectionProps) => {
+export const BuffSection = ({ section, empty, filter, children }: BuffSectionProps) => {
 	const { title, tooltip, description } = sectionText(section);
 	return (
 		<ContentBlock
 			rootDataAttributes={{ 'data-block': BLOCK[section] }}
 			config={{
-				header: { title, tooltip, className: 'flex-col' },
+				header: { title, tooltip, className: 'flex-wrap' },
 				withoutBody: empty,
 				bodyClassName: 'grid grid-cols-1 xl:grid-cols-2 gap-2 fhd:grid-cols-3',
 			}}
-			headerChildren={description ? <p className="text-sm">{description}</p> : undefined}>
+			headerChildren={
+				<>
+					{filter && <div className="ml-auto">{filter}</div>}
+					{description && <p className="basis-full text-sm">{description}</p>}
+				</>
+			}>
 			{children}
 		</ContentBlock>
 	);

@@ -1,13 +1,13 @@
 import { Field, hasFieldFrame } from '@ui-kit/Field';
 import type { ControlledProps, FieldFrameProps, ResolvedIcon } from '@ui-kit/Field/types';
-import { IconSwatch } from '@ui-kit/IconSwatch';
+import { IconSwatch, type IconSwatchProps } from '@ui-kit/IconSwatch';
 import { isRightClick } from '@ui-kit/utils/dom';
 import clsx from 'clsx';
 import { type MouseEvent, useId, useRef } from 'react';
 
 import { ImprovedAnchor } from './ImprovedAnchor';
 
-export interface IconPickerProps extends FieldFrameProps, ControlledProps<number> {
+export interface IconPickerProps extends FieldFrameProps, ControlledProps<number>, Pick<IconSwatchProps, 'keptTooltip'> {
 	/** The number of states the icon cycles through: 2 is on/off, 0 is unlimited. */
 	states: number;
 	icon?: ResolvedIcon;
@@ -18,7 +18,19 @@ export interface IconPickerProps extends FieldFrameProps, ControlledProps<number
 }
 
 /** Without a label, description or layout the swatch renders bare; with any of them it sits in a `Field` laid out as `icon`, whatever layout the caller passes. */
-export const IconPicker = ({ states, icon, improvedIcon, improvedIcon2, value, onChange, disabled, className, testId, ...frameProps }: IconPickerProps) => {
+export const IconPicker = ({
+	states,
+	icon,
+	improvedIcon,
+	improvedIcon2,
+	keptTooltip,
+	value,
+	onChange,
+	disabled,
+	className,
+	testId,
+	...frameProps
+}: IconPickerProps) => {
 	const labelId = useId();
 	const controlRef = useRef<HTMLAnchorElement>(null);
 	const fillImproved1 = states >= 3 && !!improvedIcon;
@@ -80,6 +92,7 @@ export const IconPicker = ({ states, icon, improvedIcon, improvedIcon2, value, o
 			disabled={disabled}
 			text={showCounterText ? String(value) : undefined}
 			badges={badges || undefined}
+			keptTooltip={keptTooltip}
 			className={clsx(value === 0 && 'grayscale', !rooted && className)}
 			testId={testId ?? 'icon-picker-root'}
 			// The glyph is a background image, so without this the anchor announces nothing.

@@ -517,7 +517,7 @@ func TestConsumablesFollowTheNotShapeshiftedRow(t *testing.T) {
 		t.Fatalf("missing a consumable pair, breaking %d safe %d", breakingID, safeID)
 	}
 
-	sim, cat := newCat(t, furorTalents, &proto.ConsumesSpec{PotId: safeID, ExtraIds: []int32{breakingID}})
+	sim, cat := newCat(t, furorTalents, &proto.ConsumesSpec{ResourcePotId: safeID, ExtraIds: []int32{breakingID}})
 	breaking := cat.GetSpell(core.ActionID{ItemID: breakingID})
 	safe := cat.GetSpell(core.ActionID{ItemID: safeID})
 	if breaking == nil || safe == nil {

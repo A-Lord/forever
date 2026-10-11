@@ -5,7 +5,8 @@ import type { InputState } from './useInput';
 export const useHideZeroRestore = <V>(
 	state: Pick<InputState<any, V>, 'value' | 'setValue' | 'hidden' | 'revision'>,
 	zero: V,
-	restoreWhen: (current: V) => boolean = () => true,
+	/** The restore lands only on a source this reads as zeroed, so a value set while hidden (a loaded build) is kept. */
+	isZero: (current: V) => boolean,
 	/** Runs after every notification the hook acts on, with the value it left the source holding. */
 	onSettled?: (current: V) => void,
 ) => {
@@ -26,7 +27,7 @@ export const useHideZeroRestore = <V>(
 		} else if (stored.current !== undefined) {
 			const restored = stored.current;
 			stored.current = undefined;
-			if (restoreWhen(state.value)) {
+			if (isZero(state.value)) {
 				current = restored;
 				state.setValue(current);
 			}

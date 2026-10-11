@@ -180,7 +180,7 @@ func catAPL(tune aplTune) *proto.APLRotation {
 	cooldownLines = append(cooldownLines,
 		castItemWhen(itemTea, cmp(proto.APLValueCompare_OpLe, currentEnergy(), konst("20"))),
 		// The potion's own rule: the full gain still fits, with five seconds of regen left over.
-		castOtherWhen(proto.OtherAction_OtherActionPotion, potionFits()),
+		castOtherWhen(proto.OtherAction_OtherActionResourcePotion, potionFits()),
 		// Trinkets and anything else the list does not name.
 		&proto.APLListItem{Action: &proto.APLAction{Action: &proto.APLAction_AutocastOtherCooldowns{
 			AutocastOtherCooldowns: &proto.APLActionAutocastOtherCooldowns{},
@@ -440,12 +440,12 @@ func uiDefaultCat(rotation *proto.APLRotation) *proto.ComputeStatsRequest {
 	player.Profession1 = proto.Profession_Engineering
 	player.Profession2 = proto.Profession_Enchanting
 	player.Consumables = &proto.ConsumesSpec{
-		PotId:      13444,
-		ElixirIds:  []int32{13452, 13447},
-		FoodId:     250072,
-		MhImbueId:  12643,
-		ConjuredId: 7676,
-		ExtraIds:   []int32{10646, 10310},
+		ResourcePotId: 13444,
+		ElixirIds:     []int32{13452, 13447},
+		FoodId:        250072,
+		MhImbueId:     12643,
+		ConjuredId:    7676,
+		ExtraIds:      []int32{10646, 10310},
 	}
 	return &proto.ComputeStatsRequest{Raid: req.Raid, Encounter: req.Encounter}
 }
@@ -546,7 +546,7 @@ func TestCatAPLPresetWarnsOnlyOnMissingConsumables(t *testing.T) {
 	allowed := map[string]bool{}
 	for key, item := range aplLines(preset) {
 		id := item.Action.GetCastSpell().GetSpellId()
-		if id.GetItemId() != 0 || id.GetOtherId() == proto.OtherAction_OtherActionPotion {
+		if id.GetItemId() != 0 || id.GetOtherId() == proto.OtherAction_OtherActionResourcePotion {
 			allowed[key] = true
 		}
 	}

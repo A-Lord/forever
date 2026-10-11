@@ -104,7 +104,6 @@ export const DefaultRaidBuffs = RaidBuffs.create({
 	prayerOfSpirit: true,
 	giftOfTheWild: true,
 	prayerOfFortitude: true,
-	prayerOfShadowProtection: true,
 });
 
 export const DefaultDebuffs = Debuffs.create({
@@ -122,7 +121,7 @@ export const DefaultDebuffs = Debuffs.create({
 export const DefaultConsumables = ConsumesSpec.create({
 	elixirIds: [Consumables.ElixirOfTheMongoose.id, Consumables.GreaterMagebloodElixir.id],
 	foodId: Consumables.SwiftstrikeSteak.id,
-	potId: Consumables.MajorManaPotion.id,
+	resourcePotId: Consumables.MajorManaPotion.id,
 	conjuredId: Consumables.DemonicRune.id,
 	explosiveId: Consumables.EzThroDynamiteII.id,
 	extraIds: [Consumables.GoblinSapperCharge.id, Consumables.ScrollOfStrengthIV.id],

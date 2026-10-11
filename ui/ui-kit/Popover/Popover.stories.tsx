@@ -59,6 +59,15 @@ export const Default: Story = {
 	},
 };
 
+export const WithTitle: Story = {
+	args: { title: 'Display settings' },
+	play: async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+		await userEvent.click(canvas.getByRole('button', { name: 'Settings' }));
+		await canvas.findByRole('dialog', { name: 'Display settings' });
+	},
+};
+
 export const Sides: Story = {
 	render: args => (
 		<div className="grid grid-cols-3 place-items-center gap-x-60 gap-y-32 p-32">
