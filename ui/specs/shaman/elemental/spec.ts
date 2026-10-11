@@ -49,11 +49,7 @@ export default defineSpec<Spec.SpecElementalShaman>({
 			Stat.StatNatureResistance,
 			Stat.StatShadowResistance,
 		],
-		[
-			PseudoStat.PseudoStatSpellCritPercent,
-			PseudoStat.PseudoStatSpellHastePercent,
-			PseudoStat.PseudoStatSpellHitPercent,
-		],
+		[PseudoStat.PseudoStatSpellCritPercent, PseudoStat.PseudoStatSpellHastePercent, PseudoStat.PseudoStatSpellHitPercent],
 	),
 	defaults: {
 		// Default equipped gear.
