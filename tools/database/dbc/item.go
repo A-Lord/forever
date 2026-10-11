@@ -98,10 +98,7 @@ func (item *Item) ToScaledUIItem(itemLevel int) *proto.UIItem {
 	}
 	if item.ItemClass == ITEM_CLASS_WEAPON {
 		// Equipped damage is rounded; a form that swings at its own speed needs the table cell itself.
-		weaponDps, present := dbcInstance.WeaponDPS(item, item.ItemLevel)
-		if present {
-			scalingProperties[0].UnroundedDps = &weaponDps
-		}
+		scalingProperties[0].UnroundedDps, _ = dbcInstance.WeaponDPS(item, item.ItemLevel)
 	}
 
 	uiItem.ScalingOptions = scalingProperties
