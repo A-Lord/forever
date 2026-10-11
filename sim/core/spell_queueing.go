@@ -82,23 +82,7 @@ func (unit *Unit) CanQueueSpell(sim *Simulation) bool {
 // game's spell queueing functionality. Assumes the maximum spell queue window of 400ms
 // that the game allows.
 func (spell *Spell) CanQueue(sim *Simulation, target *Unit) bool {
-	if spell == nil {
-		return false
-	}
-
-	if !spell.CanCompleteCast(sim, target, false) {
-		return false
-	}
-
-	if spell.Flags.Matches(SpellFlagSwapped) {
-		return false
-	}
-
-	if spell.Flags&SpellFlagCanCastWhileMoving == 0 && spell.DefaultCast.CastTime > 0 && spell.Unit.Moving {
-		return false
-	}
-
-	if spell.MaxCharges > 0 && spell.charges == 0 {
+	if !spell.canStart(sim, target) {
 		return false
 	}
 

@@ -78,8 +78,8 @@ func TestOOMTracking(t *testing.T) {
 			t.Fatalf("OOM from %v while the spell was on cooldown", ct.fw.Metrics.FirstOOMTimestamp)
 		}
 		ct.runUntil(cooldownEnd + time.Second)
-		if queueable := cooldownEnd - MaxSpellQueueWindow; !ct.fw.IsOOM() || ct.fw.Metrics.FirstOOMTimestamp < queueable {
-			t.Errorf("OOM %v from %v, want OOM from %v, when the spell can be queued", ct.fw.IsOOM(), ct.fw.Metrics.FirstOOMTimestamp, queueable)
+		if !ct.fw.IsOOM() || ct.fw.Metrics.FirstOOMTimestamp < cooldownEnd {
+			t.Errorf("OOM %v from %v, want OOM from %v, when the cooldown ends", ct.fw.IsOOM(), ct.fw.Metrics.FirstOOMTimestamp, cooldownEnd)
 		}
 	})
 
@@ -100,16 +100,22 @@ func TestOOMTracking(t *testing.T) {
 		}
 	})
 
-	t.Run("an unaffordable major cooldown is not OOM", func(t *testing.T) {
+	t.Run("an unaffordable off-GCD spell checked during the GCD is not OOM", func(t *testing.T) {
+		var offGCD *Spell
 		ct := newManaTickTest(func(char *Character) *Spell {
-			config := manaSpellConfig(910331, unaffordableCost, 0, new([]time.Duration))
-			config.Flags |= SpellFlagMCD
-			return char.RegisterSpell(config)
+			config := paidSpellConfig(910331, 0)
+			config.ManaCost.FlatCost = unaffordableCost
+			offGCD = char.RegisterSpell(config)
+			return char.RegisterSpell(manaSpellConfig(910332, 100, 0, new([]time.Duration)))
 		})
-		ct.start(ct.castOf(ct.spell))
-		ct.runUntil(5 * time.Second)
+		offGCD.finalize()
+		ct.start(ct.castOf(offGCD), ct.castOf(ct.spell))
+		midGCD := GCDDefault - MaxSpellQueueWindow - 100*time.Millisecond
+		ct.runUntil(midGCD)
+		ct.fw.ReactToEvent(ct.sim, false, false)
+		ct.runUntil(midGCD)
 		if ct.fw.IsOOM() || ct.fw.Metrics.WentOOM {
-			t.Errorf("OOM from %v on a major cooldown", ct.fw.Metrics.FirstOOMTimestamp)
+			t.Errorf("OOM from %v while the GCD ran", ct.fw.Metrics.FirstOOMTimestamp)
 		}
 	})
 

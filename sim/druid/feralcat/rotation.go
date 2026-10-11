@@ -91,18 +91,17 @@ func (cat *FeralDruid) doRotation(sim *core.Simulation) bool {
 
 	// The APL opens an OOM event only when a pass ends with a spell blocked on
 	// mana and no mana spell cast. This rotation checks the shift cost against
-	// current mana itself, so drive the event pair explicitly to keep the measured OOM time accurate. It has to sit
-	// above the early returns below: an event opened here must be able to close
-	// on the same evaluation paths, or a reshift, a readyToShift tick or a Faerie
-	// Fire refresh leaves it open and inflates the measured OOM time.
+	// current mana itself, so drive the event pair explicitly to keep the
+	// measured OOM time accurate. It has to sit above the early returns below:
+	// an event opened here must be able to close on the same evaluation paths,
+	// or a reshift, a readyToShift tick or a Faerie Fire refresh leaves it open
+	// and inflates the measured OOM time.
 	shiftCost := cat.CatForm.Cost.GetCurrentCost()
 	oom := cat.CurrentMana() < shiftCost
 	if oom {
-		if !cat.IsOOM() {
-			cat.StartOOMEvent(sim, false)
-		}
-	} else if cat.IsOOM() {
-		cat.EndOOMEvent(sim, false)
+		cat.StartOOMEvent(sim)
+	} else {
+		cat.EndOOMEvent(sim)
 	}
 
 	// If we're out of form always shift back in.

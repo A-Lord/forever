@@ -145,9 +145,7 @@ func (mb *manaBar) doneIteration(sim *Simulation) {
 		return
 	}
 
-	if mb.oom && mb.unit.Type != PetUnit {
-		mb.unit.Metrics.AddOOMTime(sim, sim.CurrentTime-mb.oomStartedAt)
-	}
+	mb.EndOOMEvent(sim)
 
 	manaGainSpell := mb.unit.GetSpell(ActionID{OtherID: proto.OtherAction_OtherActionManaGain})
 
@@ -341,28 +339,28 @@ func (mb *manaBar) reset() {
 	mb.manaRegenMultiplier = 1.0
 
 	mb.oom = false
-	mb.oomStartedAt = 0
 	mb.paidBy = nil
 }
 
 func (mb *manaBar) IsOOM() bool {
 	return mb.oom
 }
-func (mb *manaBar) StartOOMEvent(sim *Simulation, isPet bool) {
-	mb.oomStartedAt = sim.CurrentTime
-	mb.oom = true
-	if !isPet {
-		mb.unit.Metrics.MarkOOM(sim)
-	}
 
-}
-func (mb *manaBar) EndOOMEvent(sim *Simulation, isPet bool) {
-	eventDuration := sim.CurrentTime - mb.oomStartedAt
-	if !isPet {
-		mb.unit.Metrics.AddOOMTime(sim, eventDuration)
+// Pets keep no OOM metrics, so they never go OOM.
+func (mb *manaBar) StartOOMEvent(sim *Simulation) {
+	if mb.oom || mb.unit.Type == PetUnit {
+		return
 	}
-	mb.oomStartedAt = 0
+	mb.oom = true
+	mb.oomStartedAt = sim.CurrentTime
+	mb.unit.Metrics.MarkOOM(sim)
+}
+func (mb *manaBar) EndOOMEvent(sim *Simulation) {
+	if !mb.oom {
+		return
+	}
 	mb.oom = false
+	mb.unit.Metrics.AddOOMTime(sim, sim.CurrentTime-mb.oomStartedAt)
 }
 
 type ManaCostOptions struct {
@@ -387,10 +385,10 @@ func newManaCost(spell *Spell, options ManaCostOptions) *SpellCost {
 }
 
 // A running hardcast pays its cost when it completes; the mana left after that is what counts.
-func (mb *manaBar) manaAfterHardcast(sim *Simulation) float64 {
-	mana := mb.currentMana
-	if hc := &mb.unit.Hardcast; hc.Expires > sim.CurrentTime {
-		mana -= hc.Cost
+func (unit *Unit) manaAfterHardcast(sim *Simulation) float64 {
+	mana := unit.CurrentMana()
+	if unit.Hardcast.Expires > sim.CurrentTime {
+		mana -= unit.Hardcast.Cost
 	}
 	return mana
 }
@@ -406,26 +404,16 @@ func (spell *Spell) paysMana() bool {
 
 // The rotation commits to a mana spell, cast or queued, and so stops waiting for mana.
 func (spell *Spell) commitManaSpell(sim *Simulation) {
-	unit := spell.Unit
-	unit.manaCast = true
-	if unit.IsOOM() {
-		unit.EndOOMEvent(sim, unit.Type == PetUnit)
-	}
+	spell.Unit.manaCast = true
+	spell.Unit.EndOOMEvent(sim)
 }
 
 func (mc *ManaCost) MeetsRequirement(sim *Simulation, spell *Spell) bool {
 	spell.CurCast.Cost = spell.Cost.GetCurrentCost()
-	if spell.CurCast.Cost > 0 && spell.Unit.manaAfterHardcast(sim) < spell.CurCast.Cost {
-		// A major cooldown is checked off the GCD as well, when the rotation is not waiting on it.
-		if !spell.Flags.Matches(SpellFlagMCD) {
-			spell.Unit.costBlocked = true
-		}
-		return false
-	}
-	return true
+	return spell.CurCast.Cost <= 0 || spell.Unit.manaAfterHardcast(sim) >= spell.CurCast.Cost
 }
 func (mc *ManaCost) CostFailureReason(sim *Simulation, spell *Spell) string {
-	return fmt.Sprintf("not enough mana (Current Mana = %0.03f, Mana Cost = %0.03f)", spell.Unit.manaAfterHardcast(sim), spell.CurCast.Cost)
+	return fmt.Sprintf("not enough mana (Mana After Cast = %0.03f, Mana Cost = %0.03f)", spell.Unit.manaAfterHardcast(sim), spell.CurCast.Cost)
 }
 func (mc *ManaCost) SpendCost(sim *Simulation, spell *Spell) {
 	spell.Unit.paidBy = nil

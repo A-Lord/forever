@@ -468,8 +468,8 @@ func (apl *APLRotation) DoNextAction(sim *Simulation) {
 
 	// A pass that found a spell blocked only by its mana cost and cast or queued no mana spell starts the
 	// wait; a mana spell cast or queued, in or outside a pass, ends it.
-	if apl.unit.costBlocked && !apl.unit.manaCast && !apl.unit.IsOOM() {
-		apl.unit.StartOOMEvent(sim, apl.unit.Type == PetUnit)
+	if apl.unit.costBlocked && !apl.unit.manaCast {
+		apl.unit.StartOOMEvent(sim)
 	}
 
 	if sim.Log != nil && i == 0 {
