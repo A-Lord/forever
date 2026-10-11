@@ -19,8 +19,18 @@ export default defineSpec<Spec.SpecElementalShaman>({
 	warnings: [],
 
 	// All stats for which EP should be calculated.
-	epStats: [Stat.StatIntellect, Stat.StatSpellDamage, Stat.StatNatureDamage, Stat.StatHitRating, Stat.StatCritRating, Stat.StatHasteRating, Stat.StatMP5],
-	epPseudoStats: [PseudoStat.PseudoStatSchoolHitPercentNature],
+	epStats: [
+		Stat.StatIntellect,
+		Stat.StatSpirit,
+		Stat.StatSpellDamage,
+		Stat.StatFireDamage,
+		Stat.StatNatureDamage,
+		Stat.StatHitRating,
+		Stat.StatCritRating,
+		Stat.StatHasteRating,
+		Stat.StatMP5,
+	],
+	epPseudoStats: [],
 	// Reference stat against which to calculate EP.
 	epReferenceStat: Stat.StatSpellDamage,
 	// Which stats to display in the Character Stats section, at the bottom of the left-hand sidebar.
@@ -39,18 +49,13 @@ export default defineSpec<Spec.SpecElementalShaman>({
 			Stat.StatNatureResistance,
 			Stat.StatShadowResistance,
 		],
-		[
-			PseudoStat.PseudoStatSpellCritPercent,
-			PseudoStat.PseudoStatSpellHastePercent,
-			PseudoStat.PseudoStatSpellHitPercent,
-			PseudoStat.PseudoStatSchoolHitPercentNature,
-		],
+		[PseudoStat.PseudoStatSpellCritPercent, PseudoStat.PseudoStatSpellHastePercent, PseudoStat.PseudoStatSpellHitPercent],
 	),
 	defaults: {
 		// Default equipped gear.
-		gear: Presets.TestingGear.gear,
+		gear: Presets.DefaultGear.gear,
 		// Default EP weights for sorting gear in the gear picker.
-		epWeights: new Stats(),
+		epWeights: Presets.DefaultEpWeights.epWeights,
 		statCaps: (() => {
 			return new Stats().withPseudoStat(PseudoStat.PseudoStatSchoolHitPercentNature, 17);
 		})(),
@@ -83,13 +88,13 @@ export default defineSpec<Spec.SpecElementalShaman>({
 	},
 
 	presets: {
-		epWeights: [],
+		epWeights: [Presets.DefaultEpWeights],
 		// Preset talents that the user can quickly select.
 		talents: [Presets.StandardTalents],
 		// Preset rotations that the user can quickly select.
 		rotations: [Presets.ROTATION_PRESET_DEFAULT],
 		// Preset gear configurations that the user can quickly select.
-		gear: [Presets.TestingGear],
+		gear: [Presets.DefaultGear],
 		// Preset builds that the user can quickly select.
 		builds: [Presets.TestingBuild],
 	},
