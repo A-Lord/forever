@@ -726,7 +726,7 @@ func renderRow(row ResolvedBuff) buffRow {
 	out.HasValue = len(row.Applied) > 0 || row.Kind == buffmanifest.KindDamageShield
 	out.HasCooldown = row.CooldownMs > 0
 	out.Constructor = buffConstructor(row, out)
-	out.ApplyIf, out.ApplyBody, out.HasApply = buffApply(row)
+	out.ApplyIf, out.ApplyBody, out.HasApply = buffApply(row, out.SpellVar)
 	return out
 }
 
@@ -812,8 +812,9 @@ func buffConstructor(row ResolvedBuff, rendered buffRow) string {
 // and so does a row the manifest marks as driven. A driver is handed the whole
 // scope message rather than its own field, because a driven buff often reads a
 // second one: Grace of Air does nothing under Windfury Totem. Any other totem
-// stands through standTotem, which puts it on the character's true pets too.
-func buffApply(row ResolvedBuff) (string, string, bool) {
+// stands through standTotem, which puts it on the character's true pets too
+// unless the row's spell says only a player can carry it.
+func buffApply(row ResolvedBuff, spellVar string) (string, string, bool) {
 	unit, field := "char", buffScopeField(row.Scope)
 	if row.Scope == buffmanifest.ScopeDebuff {
 		unit = "target"
@@ -842,7 +843,7 @@ func buffApply(row ResolvedBuff) (string, string, bool) {
 		}
 		body = fmt.Sprintf("drive%s(%s, %s)", row.Go, unit, scope)
 	case row.Totem && row.Scope != buffmanifest.ScopeDebuff:
-		body = fmt.Sprintf("standTotem(char, %s, %s)", buffBuilder(row.Go), points)
+		body = fmt.Sprintf("standTotem(char, %s, %s, %s)", spellVar, buffBuilder(row.Go), points)
 	default:
 		target := "&char.Unit"
 		if row.Scope == buffmanifest.ScopeDebuff {
