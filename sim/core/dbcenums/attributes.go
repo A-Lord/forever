@@ -27,6 +27,10 @@ const (
 	// ATTR_NOT_SHAPESHIFTED.
 	ATTR_EX_2_CASTABLE_IN_CASTER_FORM uint32 = 0x80000
 
+	// Only a player can carry the aura: a target that is not a player, such as a pet, is invalid.
+	// Strength of Earth and Grace of Air Totem carry it at every rank.
+	ATTR_EX_3_ONLY_ON_PLAYER uint32 = 0x100
+
 	// On a triggered spell: aura listeners treat its hits like a normal ability hit. Seal of
 	// Command damage, every Judgement, Stormstrike's bonus hits and Sweeping Strikes carry it.
 	ATTR_EX_3_NOT_A_PROC          uint32 = 0x200

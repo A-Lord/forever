@@ -145,6 +145,7 @@ type Spell struct {
 	SpellMetrics      []SpellMetrics
 	splitSpellMetrics [][]SpellMetrics // Used to split metrics by some condition.
 	casts             int              // Sum of casts on all targets, for efficient CPM calculation
+	lastAppliedAt     time.Duration    // When the spell last applied its effects; -NeverExpires if not yet this iteration.
 
 	// Performs the actions of this spell.
 	ApplyEffects ApplySpellResults
@@ -545,6 +546,7 @@ func (spell *Spell) reset(sim *Simulation) {
 		}
 	}
 	spell.casts = 0
+	spell.lastAppliedAt = -NeverExpires
 	if spell.rechargeTimer != nil {
 		spell.rechargeTimer.Cancel(sim)
 		spell.rechargeTimer = nil
@@ -765,6 +767,7 @@ func (spell *Spell) SkipCastAndApplyEffects(sim *Simulation, target *Unit) {
 func (spell *Spell) applyEffects(sim *Simulation, target *Unit) {
 	spell.SpellMetrics[target.UnitIndex].Casts++
 	spell.casts++
+	spell.lastAppliedAt = sim.CurrentTime
 
 	// Not sure if we want to split this flag into its own?
 	// Both are used to optimize away unneccesery calls and 99%
