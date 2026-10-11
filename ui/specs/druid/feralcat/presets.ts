@@ -48,27 +48,24 @@ export const PreRaidGear = PresetUtils.makePresetGear('Pre-raid', PreRaidGearJso
 	tooltip: 'Pre-raid leather with The Unstoppable Force, Wolfshead Helm and full enchants.',
 });
 
-// EP with agility as 1, on the Level 60 preset with the Monocat talents and APL, the default buffs,
-// debuffs and consumables, 180s, 200000 iterations. Hit is weighed 2% below the 8% cap, as on the
-// Pre-raid EP.
+// EP estimates with agility as 1. Hit is weighed 2% below the 8% cap.
+// Feral attack power uses attack power's weight through the form-only dependency.
 export const Level60Ep = Stats.fromMap({
 	[Stat.StatStrength]: 0.98,
 	[Stat.StatAgility]: 1,
 	[Stat.StatAttackPower]: 0.41,
-	[Stat.StatFeralAttackPower]: 0.4,
+	[Stat.StatFeralAttackPower]: 0.41,
 	[Stat.StatPhysicalDamage]: 3.72,
-	[Stat.StatHitRating]: 0.72,
-	[Stat.StatExpertiseRating]: 0.7,
+	[Stat.StatHitRating]: 0.73,
+	[Stat.StatExpertiseRating]: 0.69,
 	[Stat.StatCritRating]: 0.72,
-	[Stat.StatHasteRating]: 0.39,
+	[Stat.StatHasteRating]: 0.38,
 	[Stat.StatArmorPenetration]: 0.12,
 });
 
 export const Level60EpWeights = PresetUtils.makePresetEpWeights('Level 60', Level60Ep);
 
-// EP with agility as 1, on the Pre-raid preset with the Monocat talents and APL, the default buffs,
-// debuffs and consumables, 180s, 200000 iterations. Hit is weighed 2% below the 8% cap, where the gear
-// picker reads it.
+// EP estimates with agility as 1. Hit is weighed 2% below the 8% cap.
 export const PreRaidEp = Stats.fromMap({
 	[Stat.StatStrength]: 0.97,
 	[Stat.StatAgility]: 1,

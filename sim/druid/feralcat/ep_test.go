@@ -41,7 +41,6 @@ func TestDefaultEp(t *testing.T) {
 	}
 	request := func(iterations int32) *proto.RaidSimRequest {
 		req := uiDefaultRaidSim(catTalents, catAPL(bestCatAPL), 180, 0, iterations)
-		req.Encounter.Targets[0].MinBaseDamage = core.FreshDefaultTargetConfig().MinBaseDamage
 		if gear := os.Getenv("EP_GEAR"); gear != "" {
 			req.Raid.Parties[0].Players[0].Equipment = core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", gear).GearSet
 		}

@@ -37,54 +37,54 @@ export const Level60Encounter = {
 	tooltip: 'The raid target, hitting for 6000 before armor.',
 };
 
-// EP on the Level 60 preset, the APL preset and the Level 60 boss, with a raid bleed assumed, 200000
-// iterations. DPS and threat have agility as 1. A bear's agility is crit, armor and dodge but no attack
+// EP estimates with agility as 1. A bear's agility is crit, armor and dodge but no attack
 // power, so strength is worth about two agility. Dodge costs damage: fewer hits taken is less rage.
-// Defense is close to 0, its Thick Hide armor against the hits it avoids. Stamina keeps the bear alive longer.
+// Defense nets to 0, its Thick Hide armor against the hits it avoids. Stamina keeps the bear alive longer.
+// Feral attack power uses attack power's weight through the form-only dependency.
 export const Level60DpsEp = Stats.fromMap(
 	{
-		[Stat.StatStrength]: 2.0609,
+		[Stat.StatStrength]: 2.0714,
 		[Stat.StatAgility]: 1,
-		[Stat.StatStamina]: 0.1094,
-		[Stat.StatAttackPower]: 0.9368,
-		[Stat.StatFeralAttackPower]: 0.9368,
-		[Stat.StatArmor]: 0.0258,
-		[Stat.StatBonusArmor]: 0.0258,
-		[Stat.StatDodgeRating]: -0.1057,
-		[Stat.StatDefenseRating]: 0.0067,
-		[Stat.StatHitRating]: 3.753,
-		[Stat.StatCritRating]: 1.3774,
-		[Stat.StatHasteRating]: 0.8336,
-		[Stat.StatExpertiseRating]: 7.1215,
-		[Stat.StatPhysicalDamage]: 6.0207,
-		[Stat.StatArmorPenetration]: 0.3582,
+		[Stat.StatStamina]: 0.1103,
+		[Stat.StatAttackPower]: 0.9415,
+		[Stat.StatFeralAttackPower]: 0.9415,
+		[Stat.StatArmor]: 0.026,
+		[Stat.StatBonusArmor]: 0.026,
+		[Stat.StatDodgeRating]: -0.1059,
+		[Stat.StatDefenseRating]: 0,
+		[Stat.StatHitRating]: 3.7805,
+		[Stat.StatCritRating]: 1.3776,
+		[Stat.StatHasteRating]: 0.8425,
+		[Stat.StatExpertiseRating]: 7.1745,
+		[Stat.StatPhysicalDamage]: 6.0513,
+		[Stat.StatArmorPenetration]: 0.3601,
 	},
 	{
-		[PseudoStat.PseudoStatMainHandDps]: 13.1147,
+		[PseudoStat.PseudoStatMainHandDps]: 13.1813,
 	},
 );
 
 // Threat with agility as 1, on the same run.
 export const Level60ThreatEp = Stats.fromMap(
 	{
-		[Stat.StatStrength]: 1.9952,
+		[Stat.StatStrength]: 2.005,
 		[Stat.StatAgility]: 1,
-		[Stat.StatStamina]: 0.1076,
-		[Stat.StatAttackPower]: 0.9069,
-		[Stat.StatFeralAttackPower]: 0.9069,
-		[Stat.StatArmor]: 0.0253,
-		[Stat.StatBonusArmor]: 0.0253,
-		[Stat.StatDodgeRating]: -0.1067,
-		[Stat.StatDefenseRating]: -0.0128,
-		[Stat.StatHitRating]: 3.676,
-		[Stat.StatCritRating]: 1.3786,
-		[Stat.StatHasteRating]: 0.8125,
-		[Stat.StatExpertiseRating]: 6.9497,
-		[Stat.StatPhysicalDamage]: 5.8386,
-		[Stat.StatArmorPenetration]: 0.3468,
+		[Stat.StatStamina]: 0.1084,
+		[Stat.StatAttackPower]: 0.9114,
+		[Stat.StatFeralAttackPower]: 0.9114,
+		[Stat.StatArmor]: 0.0255,
+		[Stat.StatBonusArmor]: 0.0255,
+		[Stat.StatDodgeRating]: -0.1069,
+		[Stat.StatDefenseRating]: 0,
+		[Stat.StatHitRating]: 3.7022,
+		[Stat.StatCritRating]: 1.3788,
+		[Stat.StatHasteRating]: 0.821,
+		[Stat.StatExpertiseRating]: 7.0002,
+		[Stat.StatPhysicalDamage]: 5.8673,
+		[Stat.StatArmorPenetration]: 0.3485,
 	},
 	{
-		[PseudoStat.PseudoStatMainHandDps]: 12.6969,
+		[PseudoStat.PseudoStatMainHandDps]: 12.7593,
 	},
 );
 
