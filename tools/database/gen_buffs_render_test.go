@@ -46,7 +46,7 @@ func syntheticBuffRows() []ResolvedBuff {
 			},
 			Scope: buffmanifest.ScopeParty, Proto: buffmanifest.ProtoTristate,
 			Go: "SynthManaSpring", Name: "Mana Spring Totem",
-			SpellID: 10494, CastSpellID: 10494, Supported: true,
+			SpellID: 10494, CastSpellID: 10494, Totem: true, Supported: true,
 			Spell:         spell(10494, core.SpellSchoolNature, 0, mana),
 			TalentRanks:   5,
 			TalentSpellID: 16187, TalentPosition: 1,
@@ -107,7 +107,7 @@ func syntheticBuffRows() []ResolvedBuff {
 			BuffSpec: buffmanifest.BuffSpec{Field: "frost_resistance_totem"},
 			Scope:    buffmanifest.ScopeRaid, Proto: buffmanifest.ProtoBool,
 			Go: "SynthFrostResistanceTotem", Name: "Frost Resistance Totem",
-			SpellID: 10477, CastSpellID: 10477, Supported: true,
+			SpellID: 10477, CastSpellID: 10477, Totem: true, Supported: true,
 			Spell: spell(10477, core.SpellSchoolNature, 0, aura(dbcenums.A_MOD_RESISTANCE, 16, 60)),
 		},
 		{
