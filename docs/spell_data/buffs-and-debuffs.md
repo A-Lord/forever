@@ -161,6 +161,10 @@ The last four are exceptions; most rows state none of them. The rest of a row is
 - **Damage shield.** A plain row whose spell applies `A_DAMAGE_SHIELD` is `KindDamageShield`.
 - **Talent ranks.** The trait node's ranks are the points the apply block hands the constructor for an
   improved state.
+- **Totem.** A row whose cast summons into one of the four totem slots is a totem: an `E_SUMMON`
+  effect whose second misc value is SummonProperties 63, 81, 82 or 83 (fire, earth, water, air). The
+  game files database carries no SummonProperties table, so the four ids are written in
+  `tools/database/gen_buffs.go`. See [Totems on pets](#totems-on-pets).
 
 ## The kinds
 
@@ -219,6 +223,23 @@ and a debuff row's takes the `*Unit`, the debuffs and the raid. Because the driv
 message, Grace of Air can read `party.WindfuryTotem`. The driver builds the generated aura with its
 `NewSpellData...` constructor and adds what the game files do not state: a proc trigger, a cooldown, a
 delay, the metrics of a regen. The row compiles once the function is declared.
+
+## Totems on pets
+
+A true pet stands under every totem its owner does, with the same exclusivity; a guardian
+(`PetConfig.IsGuardian`) stands under none. The apply block of a totem row that no driver handles calls
+`standTotem` in `sim/core/buffs/totems.go`, which makes the owner's copy permanent and builds the same
+constructor on each true pet's unit, so the pet's copy bids in the same categories on the pet. The
+four driven totems pass their pet copies to `inheritTotem` themselves: Mana Tide's copy of the
+external cooldown's aura, Grace of Air's through `standTotem`, and the weapon totems' whole chain
+(totem aura, category bid and proc) on the pet's character, for a pet that melees. Grace of Air and
+Flametongue Totem do nothing under Windfury Totem, on the pet as on the owner.
+
+The pet's copy never expires on its own and is never in a build phase. It is up while the owner's
+copy is up and the pet is summoned: the owner's copy turns it on and off, and the pet's enable and
+disable effects (`Pet.RegisterEnableEffect`, `Pet.RegisterDisableEffect`) put it back when a pet is
+summoned under a standing totem and take it off when the pet is dismissed. Mana Tide reaches the pet
+this way without the pet running a cooldown of its own.
 
 ## Regenerating
 
