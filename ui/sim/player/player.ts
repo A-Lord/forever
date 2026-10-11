@@ -1032,7 +1032,7 @@ export class Player<SpecType extends Spec> {
 		this.patch('talentsString', newTalentsString);
 	}
 
-	// Talents whose points the tier or prerequisite above them no longer allow; the sim will not run with any.
+	// Talents whose points the tier or prerequisite above them no longer allow. The sim still applies them, so a build can be tested without a talent it depends on.
 	getBrokenTalentNames(): Array<string> {
 		return playerBrokenTalentNames(this.playerSpec, this.getTalentsString());
 	}

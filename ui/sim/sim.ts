@@ -286,12 +286,6 @@ export class Sim {
 		} else if (this.encounter.getTargets().length < 1) {
 			throw new Error('Encounter has no targets! Try adding some targets first.');
 		}
-		const brokenTalents = this.raid.getActivePlayers().flatMap(player => player.getBrokenTalentNames());
-		if (brokenTalents.length > 0) {
-			throw new Error(
-				`These talents are missing their tier or prerequisite points: ${brokenTalents.join(', ')}. Fill the points above them or remove them to sim.`,
-			);
-		}
 	}
 
 	runSim(options: RunSimOptions & { raw: true }): Promise<[RaidSimRequest, RaidSimResult] | ErrorOutcome>;

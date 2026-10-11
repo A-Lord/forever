@@ -1,8 +1,9 @@
 // Whether a proposed point change is accepted.
 //
 // A point can always be taken back, even when that breaks a talent in a lower row or a child of the
-// talent: the broken talents keep their points, the picker greys them out and the sim refuses to run
-// until the gap is refilled. A point is only added where the talent would not itself be broken.
+// talent: the broken talents keep their points, the picker marks them and the sim still applies them,
+// so a build can be tested with a point taken out. A point is only added where the talent would not
+// itself be broken.
 
 import { CHARACTER_LEVEL } from '@sim/constants/mechanics';
 import { findBrokenTalents } from '@sim/talents/broken_talents';

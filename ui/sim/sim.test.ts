@@ -122,14 +122,6 @@ describe('Sim.runSim', () => {
 		await expect(sim.runSim({ raw: true })).rejects.toThrow('Encounter has no targets!');
 	});
 
-	it('rejects, naming them, while a player holds broken talents', async () => {
-		const sim = makeSim();
-		vi.spyOn(sim.raid, 'getActivePlayers').mockReturnValue([{ getBrokenTalentNames: () => ['Ice Shards', 'Frostbite'] }] as any);
-
-		await expect(sim.runSim({ raw: true })).rejects.toThrow('Ice Shards, Frostbite');
-		expect(mocks.raidSimAsync).not.toHaveBeenCalled();
-	});
-
 	it('substitutes the gear option onto the player, stripping ring enchants for a non-enchanter', async () => {
 		const sim = makeSim();
 		const gear = makeGear('gear');
@@ -369,9 +361,7 @@ describe('Sim.runBulkSim', () => {
 		mocks.isWasm.mockResolvedValue(true);
 		mocks.runConcurrentBulkSim.mockReset().mockResolvedValue(BulkSimResult.create());
 		const sim = makeSim();
-		vi.spyOn(sim.raid, 'getActivePlayers').mockReturnValue([
-			{ getGear: () => new Gear({ [ItemSlot.ItemSlotBack]: baselineCloak }), getBrokenTalentNames: () => [] },
-		] as any);
+		vi.spyOn(sim.raid, 'getActivePlayers').mockReturnValue([{ getGear: () => new Gear({ [ItemSlot.ItemSlotBack]: baselineCloak }) }] as any);
 		const backSpecs = [
 			ItemSpec.create({ id: 20, randomSuffix: 7, enchant: 849 }),
 			ItemSpec.create({ id: 20, randomSuffix: 7, enchant: 1889 }),
@@ -410,7 +400,7 @@ describe('Sim.runBulkSim', () => {
 		mocks.bulkSimAsync.mockReset().mockResolvedValue(BulkSimResult.create());
 		mocks.bulkCandidates.mockReset();
 		const sim = makeSim();
-		vi.spyOn(sim.raid, 'getActivePlayers').mockReturnValue([{ getGear: () => new Gear({}), getBrokenTalentNames: () => [] }] as any);
+		vi.spyOn(sim.raid, 'getActivePlayers').mockReturnValue([{ getGear: () => new Gear({}) }] as any);
 		return sim;
 	};
 
