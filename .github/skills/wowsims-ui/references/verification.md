@@ -1,178 +1,146 @@
-# Verification: what to run, and what each gate actually catches
+# Verification: what to run, and what each gate catches
 
-**Source of truth:** the `scripts` block in `package.json` and `.github/workflows/run_tests.yml`.
-Never quote a command from memory; print the current list:
+**Source of truth:** the `scripts` block in `package.json` and `.github/workflows/run_tests.yml`. Print the current
+commands instead of quoting them from memory:
 
 ```
 node -e "console.log(require('./package.json').scripts)"
+RTK_DISABLED=1 /usr/bin/grep -n "name:\|run:" .github/workflows/run_tests.yml
 ```
 
 ## Before you call a UI change done
 
+Run these from the repo root after `npm ci`, and before every commit: the owner relies on the local gates, so a PR check
+is not a substitute.
+
 ```
-npm run type-check       # node_modules/typescript/bin/tsc --noEmit — the whole repo, tools/ and .storybook/ included
-npm run lint:js          # npx oxlint --max-warnings 0 ./ui ./.storybook
-npm run lint:css         # stylelint "./ui/**/*.css"
-npm run fmt              # npx oxfmt . --check — the whole repo, not just ui/
-npm run test:unit        # vitest run — happy-dom, ui/**/*.test.ts(x), every story included
+npm run type-check       # tsc --noEmit over the whole repo, tools/ and .storybook/ included
+npm run lint:js          # oxlint --max-warnings 0 on ui/ and .storybook/
+npm run lint:css         # stylelint over ui/**/*.css
+npm run fmt              # oxfmt . --check, the whole repo including markdown
+npm run test:unit        # vitest under happy-dom, ui/**/*.test.ts(x), every story included
 npm run test:locales     # ajv, assets/locales/** against schemas/**
-npm run storybook:build  # storybook build --quiet → storybook-static/
+npm run storybook:build  # storybook build into storybook-static/
 ```
 
-`npm run lint:js` runs with `--max-warnings 0`, so a warning fails it exactly like an error. Note
-that oxlint 1.77 prints **nothing at all** on a clean run: an empty output with exit 0 is a pass,
-not a misconfigured invocation.
+`lint:js` runs with `--max-warnings 0`, so a warning fails it like an error, and on a clean run oxlint prints nothing:
+an empty output with exit 0 is a pass.
 
-Add `npm run test:locales` whenever you touched `assets/locales/**` or `schemas/**`, and
-`npm run lint:css` (stylelint over `ui/**/*.css`) whenever you touched a stylesheet. There is no
-SCSS in the tree.
+| Gate              | Catches                                                                                                             | Does not catch                                                            |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `type-check`      | broken specifiers, alias mismatches, spec-config shape drift                                                        | a legal import that breaks the layer direction                            |
+| `lint:js`         | layer violations, browser globals in `ui/sim` and feature models, hook-rule breaks, import order                    | any rule not listed in `.oxlintrc.json` (`categories.correctness` is off) |
+| `test:unit`       | component and helper behaviour, the store hooks' gating, a story that fails to mount, and the tree-wide gates below | code without a test beside it, and warnings (see below)                   |
+| `test:locales`    | a locale key with no property in its `additionalProperties: false` schema                                           | a key the schema allows that no locale file defines                       |
+| `fmt`             | formatting across the repo; `.oxfmtrc.json` `ignorePatterns` and `.gitignore` are the exceptions                    | anything those two hide                                                   |
+| `storybook:build` | a broken `.storybook/` config, an MDX page that does not compile, a story module the browser bundle cannot resolve  | a story that builds and renders wrong: open it in `npm run storybook:dev` |
 
-What each one is actually for:
+Zero `no-restricted-imports` errors is the bar: `lint:js` is the only thing enforcing the layer rules.
 
-| Gate              | Catches                                                                                                                                                  | Does not catch                                                                  |
-| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| `type-check`      | broken specifiers, alias mismatches, spec-config shape drift                                                                                             | a legal import that violates the layer direction                                |
-| `lint:js`         | layer violations (`no-restricted-imports`), browser globals in `ui/sim` and feature models, hook-rule breaks, import order                               | anything not listed in `.oxlintrc.json` — `categories.correctness` is **off**   |
-| `test:unit`       | component and helper behaviour, the store hooks' gating, a story that fails to mount, and the tree-wide gates below                                      | anything without a `.test.ts(x)` beside it, and warnings — see the last section |
-| `test:locales`    | a locale key with no matching property in its `additionalProperties: false` schema                                                                       | a key the schema allows and no locale file defines                              |
-| `fmt`             | formatting across the repo, markdown included — `assets/**` and `**/test-fixtures/*.json` are the ignored trees                                          | anything `.gitignore` already hides, which is how generated output escapes it   |
-| `storybook:build` | what only Storybook's own build sees: a broken `.storybook/` config, an MDX page that does not compile, a story module the browser bundle cannot resolve | a story that builds and renders wrong — open it in `npm run storybook`          |
+## Reading the result
 
-**Zero `no-restricted-imports` errors is the bar**, not a count held steady: the layer rules are the
-point of the layout, and `lint:js` is the only thing enforcing them anywhere.
+**Never pipe the gate.** `npm run test:unit | tail` exits with `tail`'s status, so a red suite looks green to the shell
+and to any chain that greps the summary. Run the gate bare, or check the "Test Files" line for `failed` before you
+commit.
+
+**A single failure under load may be a flake.** The full suite has occasionally failed one interaction test under load
+(for example `ui/features/bulk/components/BulkSettings/BulkSettings.test.tsx` or
+`ui/features/gear/components/FiltersMenu/FiltersMenu.test.tsx`) that passes alone. Rerun that file alone, then the
+whole suite once; call the change red only if it fails again.
+
+## The tree-wide gates
+
+The `ui/*.test.ts` files at the root of `ui/` are not component tests: they scan the tree from disk under
+`// @vitest-environment node` and are the only enforcement of what they check. `ui/STYLING.md` §7 describes the class
+gates (`ui/canonical_classes.test.ts`, `ui/no_class_hooks.test.ts`) and the raw-control gate
+(`ui/no_raw_controls.test.ts`). `ui/no_testid_wrappers.test.ts` rejects a `div`, `span` or `section` whose only
+attributes are `data-testid` and `key`: a test finds such an element by role, label or text, or the test id moves onto
+the element that carries the identity. List them with `ls ui/*.test.ts`.
+
+`ui/testing/storybook/stories.test.tsx` mounts every `*.stories.tsx` under happy-dom with `.storybook/preview.tsx`
+applied. A story opts out with `parameters: { smoke: false, smokeReason: '…' }`, and an opt-out without a reason fails.
+List the opt-outs with `/usr/bin/grep -rn "smoke: false" ui --include=*.stories.tsx`.
 
 ## What CI runs
 
 `.github/workflows/run_tests.yml` has two jobs:
 
-- **`build-ui`**: `npm ci` and `test:locales`, then `fmt`, `lint:js`, `lint:css`, a
-  `make ui/generated/proto/api.ts go-to-ts` generate step, `type-check`, `test:unit`,
-  `storybook:build`, and finally `make dist/forever/.dirstamp`. On a pull request from this
-  repository two more steps upload `dist` to Cloudflare Pages and keep one comment on the pull
-  request pointing at `https://pr-<number>.wowsims-forever.pages.dev/forever/`, the built UI with
-  real sims. Fork pull requests carry no secrets and skip both. `preview_cleanup.yml` deletes those
+- **`build-ui`**: `npm ci` and `test:locales`, then `fmt`, `lint:js`, `lint:css`, `make ui/generated/proto/api.ts
+go-to-ts`, `type-check`, `test:unit`, `storybook:build`, and `make dist/forever/.dirstamp`. A pull request from this
+  repository then gets its build deployed as a Cloudflare Pages preview at a hashed `*.wowsims-forever.pages.dev`
+  address, linked from one comment on the pull request; fork pull requests skip it. `preview_cleanup.yml` deletes the
   deployments when the pull request closes.
-- **`test`**: `go test --tags=with_db ./sim/...` in one job (four shards when there is more than one runner) — the Go sim, not the UI.
+- **`test`**: the Go side (`go test --tags=with_db` over `./sim/...`, plus the buff generator tests), not the UI.
 
-So every script in the list above runs in CI, cheapest first, which is why a formatting slip reports
-in about a minute instead of behind the wasm build. The generate step has to come before `type-check`
-because `ui/generated/proto/**` and `ui/sim/wasm/bulk_sim/constants_auto_gen.ts` are gitignored and
-absent from a fresh checkout; the other three `*_auto_gen.ts` are tracked.
+The cheap UI gates run first, so a formatting slip reports in about a minute. `deploy.yml` and `release.yml` reuse the
+workflow through `workflow_call` with `needs: tests`, so every gate also blocks a deploy and a release.
 
-`make dist/forever/.dirstamp` is not a thin wrapper: through `dist/forever/bundle/.dirstamp` it runs
-`tsc --noEmit`, `npx tsx vite.build-workers.mts` and `npx vite build`, and it also builds
-`dist/forever/lib.wasm.gz`, `ui/generated/proto/api.ts` and the asset copies — so the build type-checks
-a second time, through make, never by calling `vite build` directly.
-
-Three of `test:unit`'s files are tree-wide gates rather than component tests, and they are the only
-thing enforcing what they check: `ui/canonical_classes.test.ts` (no non-canonical Tailwind tokens,
-no `var(...)` inside a class token) and `ui/no_class_hooks.test.ts` (no class hooks, no retired
-vanilla class names, no `[data-testid]` styling) run under `// @vitest-environment node` — they read
-the tree off disk and need no DOM — and read the data files `ui/retired_class_names.json` and
-`ui/class_hook_allowlist.json` (the rules are `ui/STYLING.md` §7; stories, `ui/testing/**` and the
-design-system code count as production there, and `.mdx` pages are not scanned). `ui/testing/storybook/stories.test.tsx` globs
-every `*.stories.tsx`, composes each story with `.storybook/preview.tsx` and asserts it mounts under
-happy-dom; a story opts out with `parameters: { smoke: false, smokeReason: '…' }`, and an opt-out
-with no `smokeReason` fails. List the opt-outs with
-`/usr/bin/grep -rn "smoke: false" ui --include=*.stories.tsx`.
-
-`build-ui` is reused through `workflow_call` by `deploy.yml` and `release.yml`, both with
-`needs: tests`, so every gate above also blocks a deploy and a release.
-
-Read the current job list rather than trusting this section:
-
-```
-RTK_DISABLED=1 /usr/bin/grep -n "name:\|run:" .github/workflows/run_tests.yml
-```
+`make dist/forever/.dirstamp` runs `tsc --noEmit`, `npx tsx vite.build-workers.mts` and `npx vite build` through
+`dist/forever/bundle/.dirstamp`, and also builds `dist/forever/lib.wasm.gz`, `ui/generated/proto/api.ts` and the asset
+copies. Build the site through make rather than by calling `vite build` alone.
 
 ## Warnings are invisible unless you ask for them
 
-vitest intercepts console output, so React and Base UI warnings do not reach stdout on a normal run
-— `npm run test:unit` can be entirely green while the suite emits hundreds of them. They surface in
-CI logs and nowhere else, which makes them look like a CI-only phenomenon. They are not:
+vitest intercepts console output, so React and Base UI warnings do not reach stdout: `npm run test:unit` can be green
+while the suite emits hundreds of them. Count them:
 
 ```
-RTK_DISABLED=1 npx vitest run --disableConsoleIntercept 2>&1 | grep -c "not wrapped in act"
+RTK_DISABLED=1 npx vitest run --disableConsoleIntercept 2>&1 | /usr/bin/grep -c "not wrapped in act"
 ```
 
-Three counts to keep at zero:
+Keep three counts at zero: `not wrapped in act` (a state update outside an act window, usually a promise resolving after
+the test body or a bare store notify between acts), `overlapping act` (what a careless fix for the first produces), and
+`Base UI:` (the `nativeButton` contract, among others).
 
-- `not wrapped in act` — a state update landing outside an act window. Usually a promise resolving
-  after the test body, or a store notify called bare between acts.
-- `overlapping act` — the failure mode introduced by fixing the first one carelessly.
-- `Base UI:` — the `nativeButton` contract, among others.
+Prefix `RTK_DISABLED=1` on anything whose output you count: `rtk` compresses dev commands too, and a one-line summary
+greps as zero. If a flag might be silently dropped, pass a bogus variant first (`--disableConsoleInterceptXYZ` fails
+with `Unknown option`), so a clean run proves the real flag was accepted.
 
-**Prefix `RTK_DISABLED=1` on anything whose output you grep for a count**, not just git. RTK rewrites
-dev commands too, and a compressed one-line summary greps as zero — indistinguishable from success.
-
-If a flag the count depends on might be silently ignored, pass a deliberately bogus one first:
-`--disableConsoleInterceptXYZ` fails with ``CACError: Unknown option `--disableConsoleInterceptXYZ` ``,
-so a clean run proves the real flag was accepted rather than dropped.
-
-**Do not attribute a warning from its position in the output.** Workers write to a shared stdout, so
-a warning header from one file routinely lands next to a stack frame from another, which pins the
-warning on the wrong file. `--no-file-parallelism` does not fix it, because
-the reporter's file markers and the console writes are separate streams. Bisect instead: run a
-directory, then a file, then `-t 'test name'`, and read the count.
+Do not attribute a warning from its position in the output. Workers share stdout, so a warning from one file often
+lands next to a stack frame from another, and `--no-file-parallelism` does not fix it. Bisect instead: a directory,
+then a file, then `-t 'test name'`, reading the count each time.
 
 ```
 for f in ui/features/settings/model/*.test.ts*; do
   printf '%-48s ' "$f"
-  RTK_DISABLED=1 npx vitest run "$f" --disableConsoleIntercept 2>&1 | grep -c 'not wrapped in act'
+  RTK_DISABLED=1 npx vitest run "$f" --disableConsoleIntercept 2>&1 | /usr/bin/grep -c 'not wrapped in act'
 done
 ```
 
 ## Locales
 
-`npm run test:locales` runs `test-locales.mjs`, which compiles each `schemas/<name>.schema.json`
-with ajv and validates every `assets/locales/**/<name>.json` against it. Today that is `character`,
-`talents` and `translation` — only `assets/locales/en/` ships, no second locale. There is no
-`glyphs` schema or locale file (the proto has no `Glyphs` message). `gear.schema.json` exists but
-matches no locale file, so it validates nothing; `assets/locales/en/updates.json` has no matching
-schema either, so it is never validated by this script.
+`npm run test:locales` runs `test-locales.mjs`, which compiles each `schemas/<name>.schema.json` and validates every
+`assets/locales/**/<name>.json` against it. Only `assets/locales/en/` ships. A locale file with no schema of the same
+name is never validated, and a schema with no locale file validates nothing; compare `ls schemas` with
+`ls assets/locales/en`.
 
-**Every schema sets `additionalProperties: false`**, so a new locale key needs a matching property in
-`schemas/<name>.schema.json`. Skip the schema and CI fails on the very first job. Verify the
-constraint rather than trusting it:
-
-```
-node -e "const j=require('./schemas/translation.schema.json'); const s=new Set(); (function w(o){if(!o||typeof o!=='object')return; if('additionalProperties' in o) s.add(String(o.additionalProperties)); for(const k in o) w(o[k]);})(j); console.log([...s])"
-```
+Every schema sets `additionalProperties: false`, so a new locale key needs a matching property in
+`schemas/<name>.schema.json`, or CI fails in its first step.
 
 ## What no gate covers
 
-Rendering, layout and interaction. **Nothing above proves the page rendered**, so a change that only
-moves DOM or CSS around can pass every command here, and a story that mounts proves only that it
-mounts. When a change touches rendering, layout or interaction, drive the built page yourself —
-build it, serve it against the Go host (`running-locally.md`, "Running REAL sims"), and compare
-screenshots against a build of the parent commit rather than against a remembered element count.
-Say in the PR what you ran or what you clicked, with the screenshots.
+Rendering, layout and interaction. A change that only moves DOM or CSS can pass every command above, and a story that
+mounts proves only that it mounts. For such a change, build the page, serve it against the Go host and take screenshots
+(`running-locally.md`), comparing against a build of the parent commit rather than a remembered element count. Say in
+the PR what you ran or clicked, with the screenshots.
 
-For a kit or stylesheet change, also diff the production CSS: `npx vite build`, then a sorted diff of
-`dist/forever/bundle/*.style.css` against the parent commit's. A selector that appears with no
-source change behind it is a class leaking in from a story, a fixture or a design-system page (see
-the `@source not` lines in `ui/STYLING.md` §7).
+For a kit or stylesheet change, also diff the production CSS against the parent commit's, as `ui/STYLING.md` §7
+describes: a new selector with no source change behind it is a class leaking in from a story, fixture or docs page.
 
 ## A fresh checkout needs generated files first
 
-`npm run type-check` and every build need files that are gitignored and produced by Go tooling:
-`ui/generated/proto/*` (`make ui/generated/proto/api.ts`) and the `*_auto_gen.ts` files
-(`make go-to-ts`, which runs `go run ./tools/database/gen_db -gen=go-to-ts`) — today three:
-`ui/sim/player/classes/capabilities_auto_gen.ts`, `ui/sim/bulk/constants_auto_gen.ts` and
-`ui/sim/wasm/bulk_sim/constants_auto_gen.ts`. Copying them from a built checkout works and is
-faster. Never run `gen_db` concurrently with another copy of itself.
-
-The wart to watch for is a `AUTO_GEN_FILES_TS` entry the generator does not actually write: a stale
-path there makes the prerequisite never appear, so every `make` that depends on it re-runs `gen_db`
-and re-bundles even when nothing changed. Today the three agree — deleting all
-three and running `make go-to-ts` brings back byte-identical copies, and a second `make go-to-ts`
-then says "Nothing to be done". Re-derive rather than trusting this paragraph:
+`type-check` and every build need files that Go tooling generates and a fresh checkout lacks: `ui/generated/proto/*`
+(`make ui/generated/proto/api.ts`) and the untracked `*_auto_gen.ts` files among the ones `make go-to-ts` writes
+(`go run ./tools/database/gen_db -gen=go-to-ts`). Copying them from a built checkout also works. The makefile's
+`AUTO_GEN_FILES_TS` must list exactly what that generator writes; a stale entry makes every dependent `make` rerun
+`gen_db`. Compare the generator's outputs with the makefile and with what git tracks:
 
 ```
-/usr/bin/grep -n AUTO_GEN_FILES_TS makefile | head -1
-/usr/bin/grep -rn 'constants_auto_gen.ts\"\|capabilities_auto_gen.ts\"' tools/database/
+/usr/bin/grep -n '^AUTO_GEN_FILES_TS ' makefile
+/usr/bin/grep -rn 'auto_gen.ts"' tools/database/*.go
+/usr/bin/git ls-files 'ui/**/*_auto_gen.ts'
 ```
 
-A fourth generated TS file, `ui/sim/constants/missing_effects_auto_gen.ts`, is _not_ in that list and
-is not written by `-gen=go-to-ts`: it is tracked, and `tools/database/gen_effects.go` rewrites it
-during full database generation, which needs `assets/db_inputs`.
+The tracked ones that `go-to-ts` does not write come from the full database generation, which needs the game files
+database that CI does not have, so they are committed. Never hand-edit any of them, and never run two `gen_db`
+processes at once.

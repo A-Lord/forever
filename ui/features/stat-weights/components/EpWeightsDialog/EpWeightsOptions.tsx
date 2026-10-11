@@ -1,17 +1,16 @@
 import i18n from '@i18n/config';
-import { BooleanPicker } from '@ui-kit/BooleanPicker';
 import { ChoiceField } from '@ui-kit/ChoiceField';
+import type { ReactNode } from 'react';
 
 import { StatsType } from './types';
 
 export interface EpWeightsOptionsProps {
 	statsType: StatsType;
-	showAllStats: boolean;
 	onStatsTypeChange: (statsType: StatsType) => void;
-	onShowAllStatsChange: (showAllStats: boolean) => void;
+	children: ReactNode;
 }
 
-export const EpWeightsOptions = ({ statsType, showAllStats, onStatsTypeChange, onShowAllStatsChange }: EpWeightsOptionsProps) => (
+export const EpWeightsOptions = ({ statsType, onStatsTypeChange, children }: EpWeightsOptionsProps) => (
 	<div className="mb-2 grid gap-x-4 sm:grid-cols-4">
 		<ChoiceField
 			id="ep-type-select"
@@ -23,12 +22,6 @@ export const EpWeightsOptions = ({ statsType, showAllStats, onStatsTypeChange, o
 			value={statsType}
 			onChange={onStatsTypeChange}
 		/>
-		<BooleanPicker
-			id="ep-show-all-stats"
-			label={i18n.t('sidebar.buttons.stat_weights.modal.show_all_stats')}
-			layout="inline"
-			value={showAllStats}
-			onChange={onShowAllStatsChange}
-		/>
+		<div className="flex items-center">{children}</div>
 	</div>
 );

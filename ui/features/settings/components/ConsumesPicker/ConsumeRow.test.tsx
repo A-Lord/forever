@@ -1,4 +1,5 @@
 import type { IconEnumPickerConfig } from '@features/inputs/configs';
+import { DatabaseFilters } from '@generated/proto/ui';
 import { SimHostProvider } from '@sim/context/SimHostContext';
 import { createSimStore, patchKeyed, PLAYER_FIELDS, type PlayerSlice, seedKeyed, type SimStore, zeroVersions } from '@sim/state/sim_store';
 import { act, render, screen } from '@testing-library/react';
@@ -27,6 +28,10 @@ class Options {
 	changeSomethingElse() {
 		patchKeyed(this.sim.store, 'players', KEY, { name: 'Other' }, ['name']);
 	}
+
+	changeFilters() {
+		this.sim.store.setState(s => ({ sim: { ...s.sim, filters: DatabaseFilters.create({ minConsumableLvl: { 1: 50 } }) } }));
+	}
 }
 
 // `iconEnumPickerShown` is satisfied only by a value that carries an actionId *and* is shown, so
@@ -43,7 +48,7 @@ const configFor = (shown: (options: Options) => boolean): IconEnumPickerConfig<O
 
 const row = (options: Options, configs: Array<IconEnumPickerConfig<Options, number>>) => {
 	render(
-		<SimHostProvider host={{ player: options } as never}>
+		<SimHostProvider host={{ player: options, sim: options.sim } as never}>
 			<ConsumeRow name="engineering" configs={configs as never}>
 				<div className="consumes-engi" />
 			</ConsumeRow>
@@ -94,20 +99,22 @@ describe('ConsumeRow', () => {
 		expect(isHidden(element)).toBe(true);
 	});
 
-	it('re-evaluates on any player change, not only a profession change', () => {
-		// The rows gate on more than professions — imbues on gear and the party's Windfury Totem, the
-		// rest on the spec's stats — so this subscribes to the whole player-change aggregate rather
-		// than naming individual fields the way the profession-only rows would suggest.
+	it('leaves the row alone on a write to a player field no picker reads', () => {
 		const options = new Options();
 		const element = row(options, [configFor(opts => opts.engineer)]);
 
 		options.engineer = false;
 		act(() => options.changeSomethingElse());
-		expect(isHidden(element)).toBe(true);
-
-		options.engineer = true;
-		act(() => options.changeProfession(1));
 		expect(isHidden(element)).toBe(false);
+	});
+
+	it('re-evaluates on a filter change, which moves what the pickers offer', () => {
+		const options = new Options();
+		const element = row(options, [configFor(opts => opts.engineer)]);
+
+		options.engineer = false;
+		act(() => options.changeFilters());
+		expect(isHidden(element)).toBe(true);
 	});
 });
 

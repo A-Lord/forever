@@ -1,3 +1,5 @@
+import { Tabs } from '@base-ui/react/tabs';
+import { FilterPopover, StatFilterList, useOpenFilterGroups, useStatFilter } from '@features/stat-filters';
 import { ConsumableType } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { useSimHost } from '@sim/context/SimHostContext';
@@ -5,10 +7,11 @@ import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
 import { Database } from '@sim/proto/database';
 import { subscribeSimField } from '@sim/state/subscriptions';
 import { Button } from '@ui-kit/Button';
-import { Icon } from '@ui-kit/Icon';
-import { Popover } from '@ui-kit/Popover';
+import { TabNav } from '@ui-kit/TabNav';
 import { NumberField } from '@ui-kit/TextField';
 import { useMemo } from 'react';
+
+import { consumableFilterScope } from '../../model/consumables';
 
 const TYPE_KEYS: ReadonlyArray<[ConsumableType, string]> = [
 	[ConsumableType.ConsumableTypePotion, 'potion'],
@@ -24,9 +27,15 @@ const TYPE_KEYS: ReadonlyArray<[ConsumableType, string]> = [
 	[ConsumableType.ConsumableTypeOther, 'other'],
 ];
 
+const STATS_TAB = 'consumes-filters-stats-pane';
+const MIN_LVL_TAB = 'consumes-filters-min-lvl-pane';
+
 export const ConsumesFilters = () => {
-	const { sim } = useSimHost();
+	const { sim, player } = useSimHost();
 	const filters = useStoreSubscribe(subscribeSimField(sim, 'filters'), () => sim.getFilters());
+	const scope = useMemo(() => consumableFilterScope(player, Database.getSync()), [player]);
+	const { groupsStorageKey, ...statFilter } = useStatFilter('consumables', scope);
+	const { onPopoverOpenChange, ...groups } = useOpenFilterGroups(groupsStorageKey, statFilter.universe, statFilter.shown);
 	const types = useMemo(() => {
 		const ranges = new Map<ConsumableType, [number, number]>();
 		for (const { type, lvl } of Database.getSync().getConsumables()) {
@@ -39,42 +48,51 @@ export const ConsumesFilters = () => {
 		});
 	}, []);
 	const setMinLvls = (minConsumableLvl: { [type: number]: number }) => sim.setFilters({ ...sim.getFilters(), minConsumableLvl });
+	const minLvlsSet = Object.keys(filters.minConsumableLvl).length > 0;
 
 	return (
-		<Popover
-			trigger={<Icon name="filter" />}
-			triggerRender={<Button variant="link" size="sm" />}
+		<FilterPopover
+			ariaLabel={i18n.t('settings_tab.consumables.filters.trigger')}
+			title={i18n.t('settings_tab.consumables.filters.title')}
 			triggerClassName="ml-auto"
 			triggerTestId="consumes-filters-button"
-			triggerProps={{ 'aria-label': i18n.t('settings_tab.consumables.filters.title') }}
-			side="bottom"
-			align="end"
-			backdrop
-			testId="consumes-filters-popover">
-			<h6>{i18n.t('settings_tab.consumables.filters.min_lvl')}</h6>
-			<div className="grid grid-cols-2 gap-2">
-				{types.map(({ type, key, range }) => (
-					<NumberField
-						key={type}
-						id={`consumes-filters-min-lvl-${key}`}
-						label={i18n.t(`settings_tab.consumables.filters.types.${key}`)}
-						placeholder={range}
-						positive
-						showZeroes={false}
-						value={sim.getMinConsumableLvl(type)}
-						onChange={value => setMinLvls({ ...filters.minConsumableLvl, [type]: value })}
-					/>
-				))}
-			</div>
-			<Button
-				variant="outline-primary"
-				size="sm"
-				className="mt-2 ml-auto flex"
-				data-testid="consumes-filters-reset"
-				disabled={Object.keys(filters.minConsumableLvl).length === 0}
-				onClick={() => setMinLvls({})}>
-				{i18n.t('settings_tab.consumables.filters.reset')}
-			</Button>
-		</Popover>
+			testId="consumes-filters-popover"
+			customised={statFilter.customised || minLvlsSet}
+			onOpenChange={onPopoverOpenChange}>
+			<Tabs.Root defaultValue={STATS_TAB} className="flex min-h-0 flex-col">
+				<TabNav
+					wrap={false}
+					className="mb-2 shrink-0"
+					tabs={[
+						{ id: STATS_TAB, label: i18n.t('stat_filters.title') },
+						{ id: MIN_LVL_TAB, label: i18n.t('settings_tab.consumables.filters.min_lvl') },
+					]}
+				/>
+				<Tabs.Panel value={STATS_TAB} id={STATS_TAB} className="flex min-h-0 flex-col">
+					<StatFilterList {...statFilter} {...groups} idPrefix="consumes-filters-stats" />
+				</Tabs.Panel>
+				<Tabs.Panel value={MIN_LVL_TAB} id={MIN_LVL_TAB} className="flex min-h-0 flex-col gap-2">
+					<div className="ui-popover-body grid grid-cols-2 gap-2">
+						{types.map(({ type, key, range }) => (
+							<NumberField
+								key={type}
+								id={`consumes-filters-min-lvl-${key}`}
+								label={i18n.t(`settings_tab.consumables.filters.types.${key}`)}
+								placeholder={range}
+								positive
+								showZeroes={false}
+								value={sim.getMinConsumableLvl(type)}
+								onChange={value => setMinLvls({ ...filters.minConsumableLvl, [type]: value })}
+							/>
+						))}
+					</div>
+					<div className="flex shrink-0 justify-end">
+						<Button variant="outline-primary" size="sm" data-testid="consumes-filters-reset" disabled={!minLvlsSet} onClick={() => setMinLvls({})}>
+							{i18n.t('settings_tab.consumables.filters.reset')}
+						</Button>
+					</div>
+				</Tabs.Panel>
+			</Tabs.Root>
+		</FilterPopover>
 	);
 };

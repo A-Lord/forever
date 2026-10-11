@@ -14,6 +14,7 @@ import { fromJsonStringLenient } from '../proto/lenient_json';
 import type { StatWeightActionSettings } from '../settings/stat_weight_settings';
 import { batch } from './batch';
 import { tryParseUrlLocation } from './sim_links';
+import { withViewerStatFilters } from './stat_filter_sharing';
 import type { StoreSubscribe } from './subscriptions';
 
 export const SETTINGS_STORAGE_SUFFIX = '__currentSettings__';
@@ -58,11 +59,12 @@ export function loadIndividualSettings(
 			}
 
 			// Loading from link needs to happen after loading saved settings, so that partial link imports
-			// (e.g. rotation only) include the previous settings for other categories.
+			// (e.g. rotation only) include the previous settings for other categories. The saved stat filters
+			// stay, whatever the link carries.
 			try {
 				const urlParseResults = tryParseUrlLocation(env.location);
 				if (urlParseResults) {
-					host.fromProto(urlParseResults.settings, urlParseResults.categories);
+					host.fromProto(withViewerStatFilters(urlParseResults.settings, opts.player.sim), urlParseResults.categories);
 				}
 			} catch (e) {
 				console.warn('Failed to parse link settings: ' + e);

@@ -244,7 +244,7 @@ func (shaman *Shaman) applyMaelstromWeapon() {
 		ClassFlags: maelstromWeaponBuff.EffectN(1).ClassFlags,
 	})
 	costMod := shaman.AddDynamicMod(core.SpellModConfig{
-		Kind:       core.SpellMod_PowerCost_Pct_Add,
+		Kind:       core.SpellMod_PowerCost_Pct,
 		ClassFlags: maelstromWeaponBuff.EffectN(2).ClassFlags,
 	})
 	consumes := maelstromWeaponBuff.EffectN(1).ClassFlags

@@ -1,10 +1,13 @@
 package core_test
 
 import (
+	"fmt"
 	"math"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/wowsims/forever/assets/database"
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/buffs"
 	"github.com/wowsims/forever/sim/core/dbcenums"
@@ -12,6 +15,7 @@ import (
 	"github.com/wowsims/forever/sim/core/simsignals"
 	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func TestPartyBattleShoutAppliesTheGeneratedAura(t *testing.T) {
@@ -572,6 +576,84 @@ func TestGeneratedPartyDarkspearStaysOffTheCharacterSheet(t *testing.T) {
 			t.Errorf("the party's Darkspear applied %v %s to the measured stats, want 0", got, stat.StatName())
 		}
 	}
+}
+
+const darkspearItemID = 12802
+
+// A raid of one in a party with the Darkspear party buff, its database the one the request carries.
+func darkspearRaid(db *proto.SimDatabase) *proto.Raid {
+	return &proto.Raid{
+		Parties: []*proto.Party{{
+			Players: []*proto.Player{{
+				Name:      "Caster",
+				Class:     proto.Class_ClassShaman,
+				Buffs:     &proto.IndividualBuffs{},
+				Spec:      &proto.Player_ElementalShaman{},
+				Equipment: &proto.EquipmentSpec{},
+				Database:  db,
+			}},
+			Buffs: &proto.PartyBuffs{Darkspear: true},
+		}},
+		Buffs: &proto.RaidBuffs{},
+	}
+}
+
+// The Darkspear row as a browser request carries it: the UI database's item, cut down to the
+// fields the sim reads.
+func darkspearRequestItem(t *testing.T) *proto.SimItem {
+	t.Helper()
+	for _, item := range database.Load().Items {
+		if item.Id != darkspearItemID {
+			continue
+		}
+		data, err := protojson.Marshal(item)
+		if err != nil {
+			t.Fatal(err)
+		}
+		simItem := &proto.SimItem{}
+		if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(data, simItem); err != nil {
+			t.Fatal(err)
+		}
+		return simItem
+	}
+	t.Fatalf("the database has no item %d", darkspearItemID)
+	return nil
+}
+
+// Without the full item database the sim knows only the items the request carries; the party's
+// Darkspear then stops on a message that names the item the request is missing.
+func TestPartyDarkspearNamesTheItemTheRequestMustCarry(t *testing.T) {
+	restore := core.KeepOnlyItems(nil)
+	defer restore()
+
+	message := func() (message string) {
+		defer func() { message = fmt.Sprint(recover()) }()
+		core.ComputeStats(&proto.ComputeStatsRequest{Raid: darkspearRaid(nil), SkipRotation: true})
+		return
+	}()
+	if !strings.Contains(message, fmt.Sprintf("item %d", darkspearItemID)) {
+		t.Errorf("the party's Darkspear without its item stopped on %q, want a message naming item %d", message, darkspearItemID)
+	}
+}
+
+// A request that carries the Darkspear item computes stats with the party's Darkspear on.
+func TestPartyDarkspearReadsTheItemTheRequestCarries(t *testing.T) {
+	item := darkspearRequestItem(t)
+	restore := core.KeepOnlyItems(nil)
+	defer restore()
+
+	raid := darkspearRaid(&proto.SimDatabase{Items: []*proto.SimItem{item}})
+	result := core.ComputeStats(&proto.ComputeStatsRequest{Raid: raid, SkipRotation: true})
+	if result.ErrorResult != "" {
+		t.Fatalf("ComputeStats: %s", result.ErrorResult)
+	}
+	darkspear := buffs.NewSpellDataDarkspearAura(&core.NewGeneratedBuffTestCharacter().Unit, false, 0).ActionID.ToProto()
+	for _, aura := range result.RaidStats.Parties[0].Players[0].Metadata.Auras {
+		if aura.Id.GetSpellId() == darkspear.GetSpellId() {
+			return
+		}
+	}
+	t.Errorf("the character carries no aura of spell %d, want the party's Darkspear", darkspear.GetSpellId())
 }
 
 // The windfury proc grants the attack power the game files state for as long as
