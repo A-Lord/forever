@@ -11,15 +11,19 @@ import (
 	"testing"
 )
 
-// The druid trees as the talent calculator draws them: per tree, each talent's row and highest rank.
+type talentLocation struct {
+	RowIdx int `json:"rowIdx"`
+	ColIdx int `json:"colIdx"`
+}
+
+// Talent ranks and prerequisites from the calculator's tree data.
 type talentTree struct {
 	Name    string `json:"name"`
 	Talents []struct {
-		FieldName string `json:"fieldName"`
-		Location  struct {
-			RowIdx int `json:"rowIdx"`
-		} `json:"location"`
-		MaxPoints int `json:"maxPoints"`
+		FieldName      string          `json:"fieldName"`
+		Location       talentLocation  `json:"location"`
+		PrereqLocation *talentLocation `json:"prereqLocation"`
+		MaxPoints      int             `json:"maxPoints"`
 	} `json:"talents"`
 }
 
@@ -36,9 +40,7 @@ func druidTrees(t *testing.T) []talentTree {
 	return trees
 }
 
-// talentsLegal reports why a talent string cannot be built at level 60: a rank over the talent's
-// highest, a row reached before 5 points per row are spent above it in the same tree, or more than
-// 51 points.
+// Level 60 builds must respect rank limits, tiers, prerequisites, and the 51-point budget.
 func talentsLegal(trees []talentTree, talents string) error {
 	parts := strings.Split(talents, "-")
 	if len(parts) != len(trees) {
@@ -52,6 +54,9 @@ func talentsLegal(trees []talentTree, talents string) error {
 		}
 		perRow := map[int]int{}
 		for j := range digits {
+			if digits[j] < '0' || digits[j] > '9' {
+				return fmt.Errorf("%s: invalid talent digit %q", tree.Name, digits[j])
+			}
 			points := int(digits[j] - '0')
 			talent := tree.Talents[j]
 			if points > talent.MaxPoints {
@@ -64,6 +69,25 @@ func talentsLegal(trees []talentTree, talents string) error {
 			talent := tree.Talents[j]
 			if digits[j] == '0' {
 				continue
+			}
+			if talent.PrereqLocation != nil {
+				found := false
+				for k, parent := range tree.Talents {
+					if parent.Location != *talent.PrereqLocation {
+						continue
+					}
+					found = true
+					points := 0
+					if k < len(digits) {
+						points = int(digits[k] - '0')
+					}
+					if points < parent.MaxPoints {
+						return fmt.Errorf("%s: %s requires %s %d/%d, has %d", tree.Name, talent.FieldName, parent.FieldName, parent.MaxPoints, parent.MaxPoints, points)
+					}
+				}
+				if !found {
+					return fmt.Errorf("%s: %s has an unknown prerequisite", tree.Name, talent.FieldName)
+				}
 			}
 			above := 0
 			for row := 0; row < talent.Location.RowIdx; row++ {
@@ -103,5 +127,20 @@ func TestPresetTalentsAreLegal(t *testing.T) {
 		if err := talentsLegal(trees, talents); err != nil {
 			t.Errorf("%s %s: %v", name, talents, err)
 		}
+	}
+}
+
+func TestTalentsLegalPrerequisites(t *testing.T) {
+	trees := druidTrees(t)
+	for _, talents := range []string{
+		"050022-55000032021021212051-055",
+		"050022-55000032021111212051-055",
+	} {
+		t.Run(talents, func(t *testing.T) {
+			err := talentsLegal(trees, talents)
+			if err == nil || !strings.Contains(err.Error(), "rendAndTear requires predatoryStrikes 3/3") {
+				t.Fatalf("expected unmet Predatory Strikes prerequisite, got %v", err)
+			}
+		})
 	}
 }
