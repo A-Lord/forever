@@ -1,1 +1,1 @@
-export const KEPT_TOOLTIP = 'Shown because it is selected; the stat filter hides its stats.';
+export const KEPT_TOOLTIP = 'This item is showing because you have it selected. Use the stat filters to permanently show it.';

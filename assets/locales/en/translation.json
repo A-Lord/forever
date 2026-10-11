@@ -2691,7 +2691,7 @@
 			"other": "Other"
 		},
 		"group_count": "{{group}} ({{shown}}/{{total}})",
-		"kept_tooltip": "Shown because it is selected; the stat filter hides its stats.",
+		"kept_tooltip": "This item is showing because you have it selected. Use the stat filters to permanently show it.",
 		"rating_label": "{{stat}} Rating",
 		"percent_label": "{{stat}} %"
 	}
