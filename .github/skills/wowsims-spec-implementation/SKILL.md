@@ -83,8 +83,8 @@ make spelldata-check                       # the generated files match the datab
 spell does. Where the suite cannot see a change, dump each constructed row against the literal it
 replaced, field by field; that is the check that finds the bugs.
 
-Read the test summary line, not the exit code (an `rtk`-wrapped `go test` can exit 0 on a failure), and
-ignore the presence of `.results.tmp` files, which every run writes.
+Read the test summary line, not the exit code, and ignore the presence of `.results.tmp` files, which
+every run writes.
 
 **Before committing, run the `wowsims-review` pass over the diff**, ideally from a fresh agent: every
 number and hand-built config against its row and tooltip, the rules the rows cannot show, and every

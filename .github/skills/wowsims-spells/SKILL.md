@@ -106,13 +106,12 @@ overrides, the filters, then the effect and registration generators.
   `ui/sim/proto/buff_items.ts`.
 - **On a merge, master keeps its proto field numbers** and the branch renumbers its own new fields.
   Nothing converts saved data (see `ProtoVersion` in `proto/common.proto`), so renumbering a branch field
-  costs nothing, while taking a number master already uses silently aliases two fields.
+  costs nothing, while renumbering master's breaks every other branch built on it.
 
 ## Regenerating
 
 `docs/spell_data/regenerating.md` and `partial-updates.md` cover the generators, the checks and taking a
-new game build one class at a time (`make db CLASSES=<class>`; two class branches conflicting on the store
-take the base branch's copies and rerun `-classes=<class>`). Regenerating needs `tools/database/wowsims.db`,
+new game build one class at a time (`make db CLASSES=<class>`). Regenerating needs `tools/database/wowsims.db`,
 gitignored and built by `make db` from a local WoW install; the store and `tools/database` tests run from
 the committed inputs without it.
 
@@ -122,10 +121,10 @@ the committed inputs without it.
 - **A local database behind master cannot regenerate items.** `RequireCommittedHotfixes` refuses a
   database older than the committed inputs' hotfixes, and regenerating from it would drop items only a
   hotfix adds. Splice only the intended entries into master's `db.json` and `db.bin` with a throwaway Go
-  program that writes both through `protojson` / `proto.Marshal`, then diff the JSON and
-  `protoc -I proto --decode=proto.UIDatabase proto/ui.proto < assets/database/db.bin` against master: the
-  binary is not byte-stable, so a byte diff says nothing, and `gen_db` skips the binary when the JSON
-  matches, so a hand-edited JSON leaves a stale `db.bin`.
+  program that writes both through `protojson` / `proto.Marshal`: the sim embeds `db.bin`, the UI fetches
+  either, and nothing derives one from the other, so a hand edit to one leaves the other behind. Then diff
+  the JSON and `protoc -I proto --decode=proto.UIDatabase proto/ui.proto < assets/database/db.bin` against
+  master's; the binary is not byte-stable, so only the decoded diff shows what moved.
 - **Never delete a generated file before regenerating it.** `gen_db` imports the sim, so a class package
   missing its file breaks the generator that would recreate it.
 
