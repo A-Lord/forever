@@ -23,6 +23,7 @@ import type { StoreField } from '../hooks/useStoreField';
 import type { Player, SpecConfigData } from '../player/player';
 import type { EquippedItem } from '../proto/equipped_item';
 import { Stats, type StatSets, type UnitStat, unitStatsOf } from '../proto/stats';
+import { memoLast } from '../utils/misc';
 
 export enum ConsumableSlot {
 	Potion,
@@ -291,14 +292,10 @@ export function relevanceFor(
 	db: SpellEffectSource,
 	statsOf: (user: ConsumableUser) => StatSets,
 ): (consumable: Consumable, user: ConsumableUser) => boolean {
-	let key: StatSets | undefined;
-	let relevant = new Map<Consumable, boolean>();
+	const cacheFor = memoLast<Map<Consumable, boolean>>();
 	return (consumable, user) => {
 		const current = statsOf(user);
-		if (current !== key) {
-			key = current;
-			relevant = new Map();
-		}
+		const relevant = cacheFor([current], () => new Map());
 		let result = relevant.get(consumable);
 		if (result === undefined) {
 			result = isConsumableRelevant(consumable, db, current.stats, current.pseudoStats);

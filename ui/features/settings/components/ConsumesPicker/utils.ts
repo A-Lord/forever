@@ -7,16 +7,16 @@ import {
 	makeConsumableInput,
 	makeIdListInput,
 } from '@features/settings/model/consumables';
-import { shownStats, type StatFilterScope, statsKey } from '@features/stat-filters/model/stat_filters';
+import { shownStatsReader, type StatFilterScope } from '@features/stat-filters/model/stat_filters';
 import { ConsumableType, ItemSlot } from '@generated/proto/common';
 import type { Consumable } from '@generated/proto/db';
-import type { DatabaseFilters } from '@generated/proto/ui';
 import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
 import type { Database } from '@sim/proto/database';
 import type { EquippedItem } from '@sim/proto/equipped_item';
 import { type StatSets, statSetsOf } from '@sim/proto/stats';
 import { ConsumableSlot, consumableSlot, explosiveUsedBeside, handTakesImbue, relevanceFor } from '@sim/settings/consumables';
+import { memoLast } from '@sim/utils/misc';
 
 export type { ConsumeToggle };
 export type ConsumeConfig = TypedIconEnumPickerConfig<Player<any>, number>;
@@ -50,24 +50,14 @@ export interface ConsumeConfigs {
 
 type GroupRow = 'elixirs' | 'scrolls' | 'holiday' | 'groups';
 
-// The shown stats of the consumables slot, read from the store's filters on each call and worked out
-// again only when the store holds a new filters object; the same object comes back while the slot
-// holds the same stats, so relevance stays cached.
+// The shown stats of the consumables slot, read from the store's filters on each call; the same object
+// comes back while the slot holds the same stats, so relevance stays cached.
 const shownConsumableStats = (player: Player<any>, scope: StatFilterScope): (() => StatSets) => {
-	let filters: DatabaseFilters | undefined;
-	let key: string | undefined;
-	let current: StatSets = { stats: new Set(), pseudoStats: new Set() };
+	const readShown = shownStatsReader('consumables', scope);
+	const setsOf = memoLast<StatSets>();
 	return () => {
-		const latest = player.sim.store.getState().sim.filters;
-		if (latest === filters) return current;
-		filters = latest;
-		const shown = shownStats(latest, 'consumables', scope);
-		const shownKey = statsKey(shown);
-		if (shownKey !== key) {
-			key = shownKey;
-			current = statSetsOf(shown);
-		}
-		return current;
+		const shown = readShown(player.sim.store.getState().sim.filters);
+		return setsOf([shown], () => statSetsOf(shown));
 	};
 };
 

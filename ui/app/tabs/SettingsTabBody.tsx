@@ -11,9 +11,10 @@ import { usePlayer, useSimHost, useSpecConfig } from '@sim/context/SimHostContex
 import { useSimReady } from '@sim/hooks/useSimReady';
 import type { Player } from '@sim/player/player';
 import { statSetsOf } from '@sim/proto/stats';
+import { memoLast } from '@sim/utils/misc';
 import { ContentBlock } from '@ui-kit/ContentBlock';
 import { TabPanelColumns } from '@ui-kit/TabPanelColumns';
-import { useMemo, useRef } from 'react';
+import { useMemo, useState } from 'react';
 import { useStore } from 'zustand';
 
 import { PresetConfigurationPicker } from '../PresetConfigurationPicker';
@@ -29,16 +30,8 @@ const anyOffered = (list: ReadonlyArray<RenderableStatOptions>, player: Player<a
 // Whether any option is offered, worked out again only when the raid slice, the player's slice or the list changes. An
 // option's value is read from those two slices, so a write to any other slice returns the cached flag.
 const useAnyOffered = (list: ReadonlyArray<RenderableStatOptions>, player: Player<any>) => {
-	const cache = useRef<{ raid: unknown; entry: unknown; list: unknown; offered: boolean }>(undefined);
-	return useStore(player.sim.store, state => {
-		const raid = state.raid;
-		const entry = state.players[player.storeKey];
-		const last = cache.current;
-		if (last && last.raid === raid && last.entry === entry && last.list === list) return last.offered;
-		const offered = anyOffered(list, player);
-		cache.current = { raid, entry, list, offered };
-		return offered;
-	});
+	const [offered] = useState(() => memoLast<boolean>());
+	return useStore(player.sim.store, state => offered([state.raid, state.players[player.storeKey], list], () => anyOffered(list, player)));
 };
 
 export const SettingsTabBody = () => {

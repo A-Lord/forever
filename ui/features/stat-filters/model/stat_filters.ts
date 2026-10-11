@@ -1,5 +1,6 @@
 import { DatabaseFilters, StatFilters, StatSelection } from '@generated/proto/ui';
 import { UnitStat } from '@sim/proto/stats';
+import { memoLast } from '@sim/utils/misc';
 
 export type StatFilterSlot = keyof StatFilters;
 
@@ -21,6 +22,20 @@ export const shownStats = (filters: DatabaseFilters, slot: StatFilterSlot, scope
 	const selection = filters.statFilters?.[slot];
 	const wanted = selection ? selection.stats.map(stat => UnitStat.fromProto(stat)) : scope.defaults;
 	return scope.universe.filter(stat => contains(wanted, stat));
+};
+
+/**
+ * Reads the slot's shown stats off the filters, worked out again only for a new filters object, and hands back the
+ * same array while the slot shows the same stats, so a write to another filter changes nothing downstream.
+ */
+export const shownStatsReader = (slot: StatFilterSlot, scope: StatFilterScope): ((filters: DatabaseFilters) => UnitStat[]) => {
+	const byFilters = memoLast<UnitStat[]>();
+	const byKey = memoLast<UnitStat[]>();
+	return filters =>
+		byFilters([filters], () => {
+			const shown = shownStats(filters, slot, scope);
+			return byKey([statsKey(shown)], () => shown);
+		});
 };
 
 /**

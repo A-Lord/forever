@@ -9,15 +9,8 @@ import { Player } from '@sim/player/player';
 import { ActionId } from '@sim/proto/action_id';
 import type { Database } from '@sim/proto/database';
 import { UnitStat, unitStatsOf } from '@sim/proto/stats';
-import {
-	consumableAllowed,
-	type ConsumableOrder,
-	consumableOrderOf,
-	consumablePseudoStatsOf,
-	consumableStatsOf,
-	consumableUniverse,
-	orderedByEp,
-} from '@sim/settings/consumables';
+import { consumableAllowed, consumableOrderOf, consumablePseudoStatsOf, consumableStatsOf, consumableUniverse, orderedByEp } from '@sim/settings/consumables';
+import { memoLast } from '@sim/utils/misc';
 
 export type ConsumableIdField =
 	| 'potId'
@@ -131,10 +124,7 @@ function consumablePicker(
 		showWhen: offeredTo(consumable, relevance, player => pickOf(player.getConsumes()) === consumable.id, options.includeIf),
 	}));
 	const none: IconEnumValueConfig<Player<any>, number> = { value: 0, iconUrl: '', tooltip: i18n.t('common.none') };
-	// Ordered again only when the store holds a new weights object or the target is of another mob type
-	// or the encounter in another zone.
-	let orderedFor: ConsumableOrder | undefined;
-	let ordered: Array<IconEnumValueConfig<Player<any>, number>> = [];
+	const ordered = memoLast<Array<IconEnumValueConfig<Player<any>, number>>>();
 	return {
 		type: 'iconEnum',
 		tooltip: options.tooltip,
@@ -144,11 +134,7 @@ function consumablePicker(
 		},
 		values: (player: Player<any>) => {
 			const order = consumableOrderOf(player);
-			if (order.weights !== orderedFor?.weights || order.mobType !== orderedFor.mobType || order.zoneId !== orderedFor.zoneId) {
-				orderedFor = order;
-				ordered = [none, ...orderedByEp(values, value => byId.get(value.value)!, order)];
-			}
-			return ordered;
+			return ordered([order.weights, order.mobType, order.zoneId], () => [none, ...orderedByEp(values, value => byId.get(value.value)!, order)]);
 		},
 		equals: (a: number, b: number) => a === b,
 		zeroValue: 0,

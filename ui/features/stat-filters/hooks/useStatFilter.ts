@@ -1,11 +1,10 @@
-import type { DatabaseFilters } from '@generated/proto/ui';
 import { useSimHost } from '@sim/context/SimHostContext';
 import type { UnitStat } from '@sim/proto/stats';
 import { parseStringArray, useLocalStorageState } from '@ui-kit/hooks/useLocalStorageState';
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useStore } from 'zustand';
 
-import { isCustomised, shownStats, type StatFilterScope, type StatFilterSlot, statsKey, withSelection } from '../model/stat_filters';
+import { isCustomised, shownStatsReader, type StatFilterScope, type StatFilterSlot, withSelection } from '../model/stat_filters';
 import { defaultOpenFilterGroups } from '../model/stat_groups';
 
 /**
@@ -19,20 +18,9 @@ import { defaultOpenFilterGroups } from '../model/stat_groups';
 export const useStatFilter = (slot: StatFilterSlot, scope: StatFilterScope) => {
 	const host = useSimHost();
 	const { sim, player } = host;
-	const keyed = useRef<{ filters: DatabaseFilters; scope: StatFilterScope; key: string }>(undefined);
-	const key = useStore(sim.store, state => {
-		const filters = state.sim.filters;
-		const last = keyed.current;
-		if (last && last.filters === filters && last.scope === scope) return last.key;
-		const next = statsKey(shownStats(filters, slot, scope));
-		keyed.current = { filters, scope, key: next };
-		return next;
-	});
+	const readShown = useMemo(() => shownStatsReader(slot, scope), [slot, scope]);
+	const shown = useStore(sim.store, state => readShown(state.sim.filters));
 	const customised = useStore(sim.store, state => isCustomised(state.sim.filters, slot));
-	const shown = useMemo(() => {
-		const keys = new Set(key.split(','));
-		return scope.universe.filter(stat => keys.has(stat.getKey()));
-	}, [key, scope.universe]);
 	const [storedGroups, setStoredGroups] = useLocalStorageState<string[] | null>(
 		host.getStorageKey(`__${slot}StatFilterGroups`),
 		parseStringArray,

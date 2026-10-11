@@ -3,7 +3,7 @@ import { DatabaseFilters } from '@generated/proto/ui';
 import { UnitStat } from '@sim/proto/stats';
 import { describe, expect, it } from 'vitest';
 
-import { isCustomised, shownStats, type StatFilterScope, withSelection } from './stat_filters';
+import { isCustomised, shownStats, shownStatsReader, type StatFilterScope, withSelection } from './stat_filters';
 
 const strength = UnitStat.fromStat(Stat.StatStrength);
 const agility = UnitStat.fromStat(Stat.StatAgility);
@@ -102,5 +102,15 @@ describe('stat filters', () => {
 		expect(isCustomised(roundTripped, 'buffs')).toBe(true);
 		expect(shownStats(roundTripped, 'buffs', scope)).toEqual([]);
 		expect(isCustomised(roundTripped, 'debuffs')).toBe(false);
+	});
+
+	it('reads the same array while the slot shows the same stats, across new filters objects', () => {
+		const read = shownStatsReader('buffs', scope);
+		const shown = read(withSelection(DatabaseFilters.create(), 'buffs', [stamina]));
+
+		expect(read(withSelection(withSelection(DatabaseFilters.create(), 'buffs', [stamina]), 'ep', [agility]))).toBe(shown);
+		const changed = read(withSelection(DatabaseFilters.create(), 'buffs', [stamina, agility]));
+		expect(changed).not.toBe(shown);
+		expect(keys(changed)).toEqual(keys([agility, stamina]));
 	});
 });
