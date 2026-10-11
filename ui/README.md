@@ -67,7 +67,7 @@ ui/
                      components/ (the tables and swatches the pages render)
   testing/           tailwind/ (the canonical-class and class-hook checkers two of the tree-wide
                      tests at the ui/ root run), storybook/ (decorators.tsx, the stories.test.tsx
-                     smoke test, fixtures/ with models.tsx and one fixture module per feature),
+                     smoke test, fixtures/ with models.tsx and the fixture modules the stories share),
                      react.tsx (renderWithHost), sim/ (fake_host.ts, a vitest-free fakeHost the
                      story fixtures import, plus individual_sim.ts, bulk_player.ts,
                      stat_filters.ts, memory_env.ts, worker_pool.ts, subscriptions.ts, hooks.tsx,
@@ -106,7 +106,7 @@ twelve `Design System/*` pages.
   the frame for one story (`'none'` for the landing page's components).
 - **Stories that read the store** use `withSimHost({ playerSlice, … })`
   (`ui/testing/storybook/fixtures/models.tsx`), a stub host with one real `sim.store` and the player
-  slice seeded from defaults plus `playerSlice`. The per-feature fixtures sit beside it in
+  slice seeded from defaults plus `playerSlice`. The other fixture modules sit beside it in
   `fixtures/`. `withStorage(seed)` (`decorators.tsx`) clears and seeds `localStorage` for a story
   that reads saved data.
 
