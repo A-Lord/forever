@@ -1,4 +1,4 @@
-import { iconEnumPickerShown } from '@features/inputs/components/ConnectedIconEnumPicker';
+import { iconEnumPickerShown, iconEnumValues } from '@features/inputs/components/ConnectedIconEnumPicker';
 import { shownStats, withSelection } from '@features/stat-filters/model/stat_filters';
 import {
 	Class,
@@ -176,7 +176,9 @@ const playerOf = (state: Partial<PlayerState> = {}) => {
 };
 
 const offered = (config: ConsumeConfig, player: Player<any>) =>
-	config.values.filter(value => value.value !== 0 && (!value.showWhen || value.showWhen(player))).map(value => value.value);
+	iconEnumValues(config, player)
+		.filter(value => value.value !== 0 && (!value.showWhen || value.showWhen(player)))
+		.map(value => value.value);
 const toggled = (toggles: ReadonlyArray<ConsumeToggle>, player: Player<any>) =>
 	toggles.filter(toggle => !toggle.showWhen || toggle.showWhen(player)).map(toggle => toggle.actionId.itemId);
 
@@ -228,7 +230,7 @@ describe('consumeConfigs', () => {
 			]);
 			const { player } = playerOf({ epStats, epWeights: Stats.fromMap({ [Stat.StatStrength]: 2, [Stat.StatAgility]: 1 }) });
 			const config = consumeConfigs(player, potions).potion;
-			expect(config.values[0].value).toBe(0);
+			expect(iconEnumValues(config, player)[0].value).toBe(0);
 			expect(offered(config, player)).toEqual([4, 3, 2, 1]);
 		});
 
@@ -245,7 +247,7 @@ describe('consumeConfigs', () => {
 			expect(offered(config, player)).toEqual([1, 2]);
 			state.epWeights = Stats.fromMap({ [Stat.StatAgility]: 1 });
 			expect(offered(config, player)).toEqual([2, 1]);
-			expect(config.values[0].value).toBe(0);
+			expect(iconEnumValues(config, player)[0].value).toBe(0);
 		});
 
 		it("orders again when the target's mob type or the zone changes, on the configs already built", () => {

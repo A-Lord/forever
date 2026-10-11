@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { useConnectedField } from '../../hooks/useConnectedField';
 import { useHideZeroRestore } from '../../hooks/useHideZeroRestore';
 import type { IconEnumPickerConfig, IconEnumValueConfig } from './types';
-import { iconEnumPickerShown } from './utils';
+import { iconEnumPickerShown, iconEnumValues } from './utils';
 
 export interface ConnectedIconEnumPickerProps<ModObject, T> {
 	modObject: ModObject;
@@ -18,6 +18,7 @@ export interface ConnectedIconEnumPickerProps<ModObject, T> {
 export const ConnectedIconEnumPicker = <ModObject, T>({ modObject, config, testId }: ConnectedIconEnumPickerProps<ModObject, T>) => {
 	const { value, setValue, disabled, revision, frameProps } = useConnectedField(modObject, config);
 	const shows = (valueConfig: IconEnumValueConfig<ModObject, T>) => !valueConfig.showWhen || valueConfig.showWhen(modObject);
+	const values = iconEnumValues(config, modObject);
 
 	// Keyed on which values carry an actionId, not on which icons have resolved: a notification landing before the icons arrive must not read as hidden and zero the source.
 	const hidden = !iconEnumPickerShown(config, modObject);
@@ -26,17 +27,17 @@ export const ConnectedIconEnumPicker = <ModObject, T>({ modObject, config, testI
 		config.zeroValue,
 		current => config.equals(current, config.zeroValue),
 		current => {
-			if (config.values.some(valueConfig => !shows(valueConfig) && valueConfig.value === current)) setValue(config.zeroValue);
+			if (values.some(valueConfig => valueConfig.value === current && !shows(valueConfig))) setValue(config.zeroValue);
 		},
 	);
 
 	// Only the selection shows until the menu first opens, so the other options fill then, and a hidden
 	// option never does. The selection keeps its own icon, so the swatch does not blank while the
-	// options fill.
-	const [opened, setOpened] = useState(false);
-	const selected = config.values.find(valueConfig => config.equals(valueConfig.value, value));
+	// options fill. Each opening renders again, so values given as a function are read afresh.
+	const [openings, setOpenings] = useState(0);
+	const selected = values.find(valueConfig => config.equals(valueConfig.value, value));
 	const [selectedIcon] = useActionIds([selected && shows(selected) ? selected.actionId : undefined]);
-	const icons = useActionIds(config.values.map(valueConfig => (opened && shows(valueConfig) ? valueConfig.actionId : undefined)));
+	const icons = useActionIds(values.map(valueConfig => (openings > 0 && shows(valueConfig) ? valueConfig.actionId : undefined)));
 	const backupIcon = useResolvedIcon(selected ? undefined : config.backupIconUrl?.(value));
 
 	if (hidden) return null;
@@ -46,7 +47,7 @@ export const ConnectedIconEnumPicker = <ModObject, T>({ modObject, config, testI
 		<IconEnumPicker
 			{...frameProps}
 			testId={testId}
-			options={config.values.map((valueConfig, index) => ({
+			options={values.map((valueConfig, index) => ({
 				value: valueConfig.value,
 				icon: icons[index] ?? (valueConfig === selected ? selectedIcon : undefined),
 				color: valueConfig.color,
@@ -64,7 +65,7 @@ export const ConnectedIconEnumPicker = <ModObject, T>({ modObject, config, testI
 			direction={config.direction}
 			numColumns={typeof config.numColumns === 'function' ? config.numColumns(modObject) : config.numColumns}
 			onOpenChange={open => {
-				if (open) setOpened(true);
+				if (open) setOpenings(count => count + 1);
 			}}
 			value={value}
 			onChange={next => {

@@ -5,7 +5,7 @@ import { useStoreField } from '@sim/hooks/useStoreField';
 import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
 import type { Player } from '@sim/player/player';
 import { Database } from '@sim/proto/database';
-import { orderedByEp } from '@sim/settings/consumables';
+import { CONSUMABLE_ORDER_FIELDS, consumableOrderOf, orderedByEp } from '@sim/settings/consumables';
 import { IconRow } from '@ui-kit/IconRow';
 import { useMemo } from 'react';
 
@@ -19,18 +19,8 @@ export interface ConsumesPickerProps {
 }
 
 const Toggles = ({ player, toggles }: { player: Player<any>; toggles: ReadonlyArray<ConsumeToggle> }) => {
-	const weights = useStoreSubscribe(useStoreField('epWeights')!, () => player.getEpWeights());
-	const mobType = useStoreSubscribe(useStoreField('encounter:targets')!, () => player.sim.encounter.getTarget(0)?.mobType);
-	const zoneId = useStoreSubscribe(useStoreField('encounter:zoneId')!, () => player.sim.encounter.getZoneId());
-	const ordered = useMemo(() => {
-		const toggleOf = new Map(toggles.map(toggle => [toggle.consumable, toggle]));
-		return orderedByEp(
-			toggles.map(toggle => toggle.consumable),
-			weights,
-			mobType,
-			zoneId,
-		).map(consumable => toggleOf.get(consumable)!);
-	}, [toggles, weights, mobType, zoneId]);
+	const order = useStoreSubscribe(useStoreField(CONSUMABLE_ORDER_FIELDS)!, () => consumableOrderOf(player));
+	const ordered = useMemo(() => orderedByEp(toggles, toggle => toggle.consumable, order), [toggles, order]);
 	return ordered.map(config => <ConnectedIconPicker key={config.actionId.itemId} modObject={player} config={config} />);
 };
 

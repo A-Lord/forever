@@ -19,7 +19,8 @@ import { Consumable } from '@generated/proto/db';
 import { ResourceType, SpellEffect } from '@generated/proto/spell';
 import { UIEnchant as Enchant, UIItem as Item } from '@generated/proto/ui';
 
-import type { SpecConfigData } from '../player/player';
+import type { StoreField } from '../hooks/useStoreField';
+import type { Player, SpecConfigData } from '../player/player';
 import type { EquippedItem } from '../proto/equipped_item';
 import { Stats, type StatSets, type UnitStat, unitStatsOf } from '../proto/stats';
 
@@ -186,13 +187,8 @@ interface ConsumableFacts {
 	restores: Array<ResourceType>;
 }
 
-const statsWith = (consumable: Consumable, mobTypeStats: ReadonlyArray<MobTypeStats>, zoneStats: ReadonlyArray<ZoneStats>): Array<number> => {
-	const out = [...consumable.stats];
-	for (const { stats } of [...mobTypeStats, ...zoneStats]) {
-		for (const [stat, value] of Object.entries(stats)) out[Number(stat)] = (out[Number(stat)] ?? 0) + value;
-	}
-	return out;
-};
+const statsWith = (consumable: Consumable, conditional: ReadonlyArray<MobTypeStats | ZoneStats>): Stats =>
+	conditional.reduce((sum, { stats }) => sum.add(Stats.fromMap(stats)), new Stats(consumable.stats, consumable.pseudoStats));
 
 // What relevance reads off a consumable and its spell effects, worked out once per consumable. A stat
 // the consumable grants only against some mob types or in some zones counts as granted.
@@ -202,7 +198,9 @@ const factsOf = (consumable: Consumable, db: SpellEffectSource): ConsumableFacts
 	if (cached?.db === db) return cached;
 	const facts = {
 		db,
-		grantedStats: statsWith(consumable, consumable.mobTypeStats, consumable.zoneStats).flatMap((value, stat) => (value > 0 ? [stat as Stat] : [])),
+		grantedStats: statsWith(consumable, [...consumable.mobTypeStats, ...consumable.zoneStats])
+			.asProtoArray()
+			.flatMap((value, stat) => (value > 0 ? [stat as Stat] : [])),
 		grantedPseudoStats: consumable.pseudoStats.flatMap((value, pseudoStat) => (value > 0 ? [pseudoStat as PseudoStat] : [])),
 		restores: consumable.effectIds.flatMap(effectId => {
 			const miscValue = db.getSpellEffect(effectId)?.miscValue0;
@@ -322,21 +320,39 @@ export function consumableUniverse(consumables: ReadonlyArray<Consumable>, db: S
 	return unitStatsOf({ stats, pseudoStats });
 }
 
-// The consumables by the EP their stats and percents add at these weights, highest first. A mob type
-// stat counts against a target of one of its mob types, a zone stat in one of its zones; zone 0, an
-// area set edited by hand, is none of them. One that grants neither here (a proc, a restore, damage,
-// a stat against other mob types) comes after every one that does. Ties go by required level,
-// highest first, then by name.
-export function orderedByEp(consumables: ReadonlyArray<Consumable>, weights: Stats, mobType: MobType | undefined, zoneId: number): Array<Consumable> {
-	return consumables
-		.map(consumable => {
-			const stats = statsWith(
-				consumable,
-				consumable.mobTypeStats.filter(({ mobTypes }) => mobType !== undefined && mobTypes.includes(mobType)),
-				consumable.zoneStats.filter(({ zoneIds }) => zoneId !== 0 && zoneIds.includes(zoneId)),
-			);
-			const grants = stats.some(value => value > 0) || consumable.pseudoStats.some(value => value > 0);
-			return { consumable, grants, ep: grants ? new Stats(stats, consumable.pseudoStats).computeEP(weights) : 0 };
+// What the pickers order consumables by: the EP weights, and the target's mob type and the
+// encounter's zone, which decide the stats a consumable grants only against some targets or in some zones.
+export interface ConsumableOrder {
+	weights: Stats;
+	mobType: MobType | undefined;
+	zoneId: number;
+}
+
+export const consumableOrderOf = (player: Player<any>): ConsumableOrder => ({
+	weights: player.getEpWeights(),
+	mobType: player.sim.encounter.getTarget(0)?.mobType,
+	zoneId: player.sim.encounter.getZoneId(),
+});
+
+// The store fields consumableOrderOf reads.
+export const CONSUMABLE_ORDER_FIELDS: ReadonlyArray<StoreField> = ['epWeights', 'encounter:targets', 'encounter:zoneId'];
+
+// The items by the EP their consumables' stats and percents add at the order's weights, highest
+// first. A mob type stat counts against a target of one of its mob types, a zone stat in one of its
+// zones; zone 0, an area set edited by hand, is none of them. One that grants neither here (a proc, a
+// restore, damage, a stat against other mob types) comes after every one that does. Ties go by
+// required level, highest first, then by name.
+export function orderedByEp<T>(items: ReadonlyArray<T>, consumableOf: (item: T) => Consumable, { weights, mobType, zoneId }: ConsumableOrder): Array<T> {
+	return items
+		.map(item => {
+			const consumable = consumableOf(item);
+			const conditional = [
+				...consumable.mobTypeStats.filter(({ mobTypes }) => mobType !== undefined && mobTypes.includes(mobType)),
+				...consumable.zoneStats.filter(({ zoneIds }) => zoneIds.includes(zoneId)),
+			];
+			const stats = statsWith(consumable, conditional);
+			const grants = stats.asProtoArray().some(value => value > 0) || consumable.pseudoStats.some(value => value > 0);
+			return { item, consumable, grants, ep: grants ? stats.computeEP(weights) : 0 };
 		})
 		.sort(
 			(a, b) =>
@@ -345,7 +361,7 @@ export function orderedByEp(consumables: ReadonlyArray<Consumable>, weights: Sta
 				b.consumable.lvl - a.consumable.lvl ||
 				a.consumable.name.localeCompare(b.consumable.name, 'en'),
 		)
-		.map(({ consumable }) => consumable);
+		.map(({ item }) => item);
 }
 
 // The ids of the potions and conjured items the spec could use, which a sim request lists for the

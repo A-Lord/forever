@@ -160,7 +160,11 @@ Both icon adapters call it:
 - `ConnectedIconEnumPicker` (`ui/features/inputs/components/ConnectedIconEnumPicker/ConnectedIconEnumPicker.tsx`)
   reads zeroed as holding `zeroValue`, and passes `onSettled`, which sees the value the hide/restore
   step left and resets it to `zeroValue` when that option is itself hidden by its `showWhen`. A user
-  pick calls `clearStored()` first, so a later show does not overwrite it.
+  pick calls `clearStored()` first, so a later show does not overwrite it. Its config's `values` may
+  be a function of the mod object, read once per render through `iconEnumValues`
+  (`ui/features/inputs/components/ConnectedIconEnumPicker/utils.ts`); every opening of the menu
+  renders again, so an order that follows a field the picker does not subscribe to (the consumables'
+  EP order) is fresh whenever the menu shows it.
 
 The icon, icon-enum and multi-icon input configs carry an optional `keptBy(modObject)`, declared once
 as `KeptInput` in `ui/features/inputs/input.ts`: while it holds, the swatch or trigger is dimmed and

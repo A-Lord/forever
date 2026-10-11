@@ -244,6 +244,26 @@ describe('ConnectedIconEnumPicker', () => {
 		expect(menu()!.style.gridTemplateColumns).toBe('repeat(4, 1fr)');
 	});
 
+	it('reads a values function again on every opening of the menu, with no notification between', () => {
+		const options = new Options();
+		options.value = 1;
+		const frost = { actionId: frostId, value: 1 };
+		const molten = { actionId: moltenId, value: 2 };
+		let ordered = [frost, molten];
+		mount(options, configFor({ values: () => ordered }));
+		const shownOrder = () => items().map((_item, index) => iconOf(optionAnchor(index)));
+		open();
+		expect(shownOrder()).toEqual(['frost.jpg', 'molten.jpg']);
+		// Choosing the value already held closes the menu without a write, so nothing notifies.
+		act(() => {
+			fireEvent.click(optionAnchor(0));
+		});
+		expect(button().getAttribute('aria-expanded')).toBe('false');
+		ordered = [molten, frost];
+		open();
+		expect(shownOrder()).toEqual(['molten.jpg', 'frost.jpg']);
+	});
+
 	it('falls back to backupIconUrl for a value the list does not carry', () => {
 		const options = new Options();
 		options.value = 99;
