@@ -8,10 +8,37 @@ import (
 
 const ThreatPerRageGained = 5
 
-// Damage taken grants DamageTakenRageFactor * damage / c rage, where damage is the hit before any of the defender's
-// mitigation (armor included) and c is the rage conversion value at the attacker's level (230.6 at 60). The
-// defender's level, health and armor play no part.
-const DamageTakenRageFactor = 2.0
+// Damage taken grants DamageTakenRageFactor * (1 - A) * damage / c rage, where damage is the hit before any of the
+// defender's mitigation (armor, block and absorbs included), c is the rage conversion value at the attacker's level
+// (230.6 at 60) and A is the armor reduction the game assumes in place of the defender's own. The defender's level,
+// health and armor play no part.
+const DamageTakenRageFactor = 2.5
+
+// A by the attacker's level, measured on combat logs: 20% up to level 42, 30% at 44, 36% at 46 and 38% from 50.
+// Levels between two rows interpolate; no log covers 43, 45 or 47-49.
+var damageTakenRageAssumedArmor = []struct {
+	level     int32
+	reduction float64
+}{
+	{level: 42, reduction: 0.20},
+	{level: 44, reduction: 0.30},
+	{level: 46, reduction: 0.36},
+	{level: 50, reduction: 0.38},
+}
+
+func damageTakenRageArmorReduction(attackerLevel int32) float64 {
+	rows := damageTakenRageAssumedArmor
+	if attackerLevel <= rows[0].level {
+		return rows[0].reduction
+	}
+	for i := 1; i < len(rows); i++ {
+		if attackerLevel <= rows[i].level {
+			lo, hi := rows[i-1], rows[i]
+			return lo.reduction + (hi.reduction-lo.reduction)*float64(attackerLevel-lo.level)/float64(hi.level-lo.level)
+		}
+	}
+	return rows[len(rows)-1].reduction
+}
 
 func rageConversion(level int32) float64 {
 	l := float64(level)
@@ -52,8 +79,9 @@ type RageBarOptions struct {
 func (unit *Unit) EnableRageBar(options RageBarOptions) {
 	rageFromDamageTakenMetrics := unit.NewRageMetrics(ActionID{OtherID: proto.OtherAction_OtherActionDamageTaken})
 	// Direct hits and periodic ticks from a unit grant rage alike.
-	// TODO: Ingame test needed -- the rule is measured on melee hits. Spell damage gave more: periodic ticks
-	// (Poison, Rend) about twice the rage, a direct Fireball about 1.2 times.
+	// TODO: Ingame test needed -- the rule is measured on melee hits. Spells land at a multiple of it the logs do
+	// not explain yet: Immolate ticks, Shadow Bolt and Arcane Missiles about 1 times, Fireball and Mortal Strike
+	// about 1.2 times, Poison ticks, Venom Sting and Lizard Bolt about 2 times.
 	rageFromDamageTaken := func(aura *Aura, sim *Simulation, spell *Spell, result *SpellResult) {
 		if unit.GetCurrentPowerBar() != RageBar {
 			return
@@ -62,7 +90,9 @@ func (unit *Unit) EnableRageBar(options RageBarOptions) {
 			return
 		}
 
-		generatedRage := DamageTakenRageFactor * result.PreMitigationDamage / rageConversion(spell.Unit.Level) * unit.rageBar.damageTakenRageMultiplier
+		attackerLevel := spell.Unit.Level
+		generatedRage := DamageTakenRageFactor * (1 - damageTakenRageArmorReduction(attackerLevel)) * result.PreMitigationDamage /
+			rageConversion(attackerLevel) * unit.rageBar.damageTakenRageMultiplier
 
 		unit.AddRage(sim, generatedRage, rageFromDamageTakenMetrics)
 	}
