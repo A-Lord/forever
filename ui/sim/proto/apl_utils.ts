@@ -104,9 +104,10 @@ export const isEqualAPLRotation = (player: Player<Spec>, rotation?: APLRotation,
 	}
 };
 
+// The offensive potion before the pull, which a stat potion is drunk for so its buff covers the opening.
 export function prepullPotionAction(doAt?: string): APLPrepullAction {
 	return APLPrepullAction.fromJsonString(
-		`{"action":{"castSpell":{"spellId":{"otherId":"OtherActionPotion"}}},"doAtValue":{"const":{"val":"${doAt || '-1s'}"}}}`,
+		`{"action":{"castSpell":{"spellId":{"otherId":"OtherActionOffensivePotion"}}},"doAtValue":{"const":{"val":"${doAt || '-1s'}"}}}`,
 	);
 }
 

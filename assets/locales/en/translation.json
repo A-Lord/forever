@@ -704,7 +704,9 @@
 			"potions": {
 				"title": "Potions",
 				"prepop": "Prepop Potion",
-				"combat": "Combat Potion"
+				"offensive": "Offensive Potion",
+				"defensive": "Defensive Potion",
+				"resource": "Resource Potion"
 			},
 			"elixirs": {
 				"title": "Elixirs"
@@ -1746,7 +1748,7 @@
 				},
 				"selected_potion": {
 					"label": "Selected Potion",
-					"tooltip": "Returns <b>True</b> if the selected potion is the character's default potion."
+					"tooltip": "Returns <b>True</b> if the potion is picked in any of the potion slots: offensive, defensive or resource."
 				},
 				"selected_conjured": {
 					"label": "Selected Conjured",
@@ -1880,7 +1882,7 @@
 					"target": "Target",
 					"pet": "Pet"
 				},
-				"placeholder_tooltip": "The Prepull Potion if CurrentTime < 0, or the Combat Potion if combat has started.",
+				"placeholder_tooltip": "The potion of this class picked in the Consumables, before the pull or in combat.",
 				"select_variable": "Select Variable",
 				"select_group": "Select Group",
 				"no_variables_defined": "No variables defined",

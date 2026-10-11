@@ -82,11 +82,11 @@ var DefaultOptions = &proto.Player_ProtectionWarrior{
 var DefaultProtectionTalents = "35300003-05-050531120300021351"
 
 var DefaultConsumables = &proto.ConsumesSpec{
-	PotId:       250943, // Major Frenzy Potion
-	FoodId:      20452,  // Smoked Desert Dumplings
-	ExplosiveId: 260817, // EZ-Thro Dark Bomb
-	MhImbueId:   12404,  // Dense Sharpening Stone
-	ConjuredId:  9421,   // Major Healthstone
+	OffensivePotId: 250943, // Major Frenzy Potion
+	FoodId:         20452,  // Smoked Desert Dumplings
+	ExplosiveId:    260817, // EZ-Thro Dark Bomb
+	MhImbueId:      12404,  // Dense Sharpening Stone
+	ConjuredId:     9421,   // Major Healthstone
 	// Elixir of Ferocity, Elixir of the Mongoose, Winterfall Firewater, Elixir of Greater Defense, Elixir of the Phalanx
 	ElixirIds: []int32{250350, 13452, 12820, 13445, 250329},
 	ExtraIds:  []int32{10646, 17048}, // Goblin Sapper Charge, Rumsey Rum

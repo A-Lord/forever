@@ -801,13 +801,16 @@ func TestValueSpellChannelingAndFlight(t *testing.T) {
 
 func TestValueSelectedConsumables(t *testing.T) {
 	sim, fw, rot := setupFakeRageRotation()
-	fw.Consumables.PotId = 100
+	fw.Consumables.ResourcePotId = 100
+	fw.Consumables.OffensivePotId = 102
 	fw.Consumables.ConjuredId = 200
 
 	selected := rot.newValueSelectedPotion(&proto.APLValueSelectedPotion{PotionId: ActionID{ItemID: 100}.ToProto()}, nil)
+	selectedOffensive := rot.newValueSelectedPotion(&proto.APLValueSelectedPotion{PotionId: ActionID{ItemID: 102}.ToProto()}, nil)
 	other := rot.newValueSelectedPotion(&proto.APLValueSelectedPotion{PotionId: ActionID{ItemID: 101}.ToProto()}, nil)
-	if !selected.GetBool(sim) || other.GetBool(sim) {
-		t.Errorf("Selected Potion: matching = %t, other = %t, want true, false", selected.GetBool(sim), other.GetBool(sim))
+	if !selected.GetBool(sim) || !selectedOffensive.GetBool(sim) || other.GetBool(sim) {
+		t.Errorf("Selected Potion: resource pick = %t, offensive pick = %t, other = %t, want true, true, false",
+			selected.GetBool(sim), selectedOffensive.GetBool(sim), other.GetBool(sim))
 	}
 
 	selectedConjured := rot.newValueSelectedConjured(&proto.APLValueSelectedConjured{ConjuredId: ActionID{ItemID: 200}.ToProto()}, nil)
@@ -820,6 +823,33 @@ func TestValueSelectedConsumables(t *testing.T) {
 		"Selected Potion without a potion":          rot.newValueSelectedPotion(&proto.APLValueSelectedPotion{}, nil),
 		"Selected Conjured without a conjured item": rot.newValueSelectedConjured(&proto.APLValueSelectedConjured{}, nil),
 	})
+}
+
+// Each potion placeholder casts the potion the consumes pick for its class, and one whose class has
+// no pick casts nothing.
+func TestPotionPlaceholdersCastTheirClassPick(t *testing.T) {
+	const resourceID, offensiveID int32 = 910201, 910202
+	potions := map[int32]*Spell{}
+	_, fw, rot := setupFakeRageRotationWith(func(char *Character) {
+		for _, id := range []int32{resourceID, offensiveID} {
+			potions[id] = char.RegisterSpell(SpellConfig{ActionID: ActionID{ItemID: id}, Flags: SpellFlagPotion | SpellFlagAPL})
+		}
+	})
+	fw.Consumables.ResourcePotId = resourceID
+	fw.Consumables.OffensivePotId = offensiveID
+
+	placeholder := func(action proto.OtherAction) *Spell {
+		return rot.GetAPLSpell(ActionID{OtherID: action}.ToProto())
+	}
+	if got := placeholder(proto.OtherAction_OtherActionResourcePotion); got != potions[resourceID] {
+		t.Errorf("Resource Potion casts %v, want %v", got, potions[resourceID])
+	}
+	if got := placeholder(proto.OtherAction_OtherActionOffensivePotion); got != potions[offensiveID] {
+		t.Errorf("Offensive Potion casts %v, want %v", got, potions[offensiveID])
+	}
+	if got := placeholder(proto.OtherAction_OtherActionDefensivePotion); got != nil {
+		t.Errorf("Defensive Potion without a pick casts %v, want nothing", got)
+	}
 }
 
 func TestValueActiveItemSwapSet(t *testing.T) {

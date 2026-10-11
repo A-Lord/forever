@@ -101,6 +101,7 @@ export const DefaultOptions = ProtectionWarriorOptions.create({
 
 export const DefaultConsumables = ConsumesSpec.create({
 	...WarriorPresets.DefaultConsumables,
+	offensivePotId: Consumables.MajorFrenzyPotion.id,
 	elixirIds: [
 		Consumables.ElixirOfFerocity.id,
 		Consumables.ElixirOfTheMongoose.id,

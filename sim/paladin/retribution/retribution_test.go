@@ -78,21 +78,21 @@ var HolyShockTalents = "550030032101012--052252300012303"
 var TwistOfLightTalents = "55003003--05225331101330321"
 
 var DefaultConsumables = &proto.ConsumesSpec{
-	ConjuredId: 12662,          // Demonic Rune
-	FlaskId: 13512, // Flask of Supreme Power
-	FoodId: 20452, // Smoked Desert Dumplings
-	ElixirIds:  []int32{
-		21546, // Elixir of Holy Power
+	ConjuredId: 12662, // Demonic Rune
+	FlaskId:    13512, // Flask of Supreme Power
+	FoodId:     20452, // Smoked Desert Dumplings
+	ElixirIds: []int32{
+		21546,  // Elixir of Holy Power
 		250338, // Elixir of Sages
-		13452, // Elixir of The Mongoose
+		13452,  // Elixir of The Mongoose
 		250337, // Elixir of The Owl
 		250351, // Elixir of The Grizzly
-		13454, // Greater Arcane Elixir
+		13454,  // Greater Arcane Elixir
 		250341, // Greater Mageblood Elixir
-		12460, // Juju Might
+		12460,  // Juju Might
 	},
-	ExplosiveId: 18588, // Ez-Thro Dynamite II
-	ExtraIds:   []int32{10646, 8410}, // Goblin Sapper Charge, R.O.I.D.S
-	MhImbueId: 20749, // Brilliant Wizard Oil
-	PotId: 250937, // Major Spellblasting Potion
+	ExplosiveId:    18588,                // Ez-Thro Dynamite II
+	ExtraIds:       []int32{10646, 8410}, // Goblin Sapper Charge, R.O.I.D.S
+	MhImbueId:      20749,                // Brilliant Wizard Oil
+	OffensivePotId: 250937,               // Major Spellblasting Potion
 }

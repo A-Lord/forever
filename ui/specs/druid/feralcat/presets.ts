@@ -12,7 +12,7 @@ import DefaultApl from './apls/default.apl.json';
 export const DefaultOptions = FeralDruidOptions.create({});
 
 export const DefaultConsumables = ConsumesSpec.create({
-	potId: Consumables.MajorFrenzyPotion.id,
+	offensivePotId: Consumables.MajorFrenzyPotion.id,
 	elixirIds: [Consumables.ElixirOfTheMongoose.id, Consumables.ElixirOfTheSages.id],
 	foodId: Consumables.SwiftstrikeSteak.id,
 	mhImbueId: Consumables.DenseWeightstone.id,

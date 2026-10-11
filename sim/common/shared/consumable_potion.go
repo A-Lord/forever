@@ -16,8 +16,8 @@ import (
 const alchemistsStoneSpellID int32 = 17619
 
 // A consumable whose on-use spell the potion builder runs on the user, on the item's cooldown and the
-// category it shares. A potion is a major cooldown only as the spec's combat potion, the other potions
-// are the rotation's; a conjured item (a healthstone, mana gem, rune or tea) is one only while it is
+// category it shares. A potion is a major cooldown only while the consumes pick it for an APL potion
+// placeholder, the other potions are the rotation's; a conjured item (a healthstone, mana gem, rune or tea) is one only while it is
 // the spec's chosen one; any other, such as the Flame Deflector's shield or the Scroll of Minor
 // Evocation's mana, whenever the spec names it.
 func NewSpellDataOnUseConsumable(itemID int32) {
@@ -30,6 +30,13 @@ func NewSpellDataOnUseConsumable(itemID int32) {
 func ConsumableUnsupported(row *spelldata.Spell) []string {
 	_, unsupported := consumablePartsOf(row)
 	return unsupported
+}
+
+// Whether the parts of a consumable's spell the builder models restore power, and whether they heal
+// or absorb.
+func ConsumableRestores(row *spelldata.Spell) (power, survival bool) {
+	parts, _ := consumablePartsOf(row)
+	return len(parts.gains) > 0, parts.heal != nil || parts.absorb != nil
 }
 
 type consumableParts struct {
@@ -140,8 +147,8 @@ func registerSpellDataConsumable(itemID int32) {
 		config.Flags |= core.SpellFlagNoOnCastComplete | core.SpellFlagAPL
 		switch consumable.Type {
 		case proto.ConsumableType_ConsumableTypePotion:
-			// Encounter-only, so a prepull potion is the generic Potion action and the rotation cannot
-			// name one the consumes do not.
+			// Encounter-only, so a prepull potion is one of the potion placeholders and the rotation
+			// cannot name one the consumes do not.
 			config.Flags |= core.SpellFlagEncounterOnly | core.SpellFlagPotion
 		case proto.ConsumableType_ConsumableTypeConjured:
 			config.Flags |= core.SpellFlagConjured
@@ -233,10 +240,9 @@ func registerSpellDataConsumable(itemID int32) {
 
 		switch consumable.Type {
 		case proto.ConsumableType_ConsumableTypePotion:
-			if consumables.PotId != itemID {
+			if !character.IsPickedPotion(itemID) {
 				return
 			}
-			spell.Flags |= core.SpellFlagCombatPotion
 		case proto.ConsumableType_ConsumableTypeConjured:
 			// The spec's conjured item keeps the manager's default, so a healthstone waits for a tank
 			// like any other defensive cooldown; another conjured item never fires on its own.
