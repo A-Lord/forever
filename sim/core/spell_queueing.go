@@ -109,7 +109,7 @@ func (spell *Spell) CanQueue(sim *Simulation, target *Unit) bool {
 		return false
 	}
 
-	return true
+	return spell.meetsCost(sim, false)
 }
 
 // Helper function for APL checks to prevent infinite loops
@@ -135,6 +135,9 @@ func (spell *Spell) castOrQueue(sim *Simulation, target *Unit, channelAction *AP
 		// Schedule the cast to go off without delay
 		spell.Unit.QueueSpell(sim, spell, target, queueTime)
 		spell.Unit.QueuedSpell.channelAction = channelAction
+		if spell.paysMana() {
+			spell.commitManaSpell(sim)
+		}
 	} else {
 		// Fallback to make sure there is always log output
 		spell.castForRotation(sim, target, channelAction)

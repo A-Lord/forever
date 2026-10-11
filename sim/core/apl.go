@@ -450,6 +450,8 @@ func (apl *APLRotation) DoNextAction(sim *Simulation) {
 	apl.inLoop = true
 
 	apl.unit.UpdatePosition(sim, false)
+	apl.unit.costBlocked = false
+	apl.unit.manaCast = false
 	for nextAction := apl.getNextAction(sim); nextAction != nil; i, nextAction = i+1, apl.getNextAction(sim) {
 		if i > 1000 {
 			panic(fmt.Sprintf("[USER_ERROR] Infinite loop detected, current action:\n%s", nextAction))
@@ -463,6 +465,12 @@ func (apl *APLRotation) DoNextAction(sim *Simulation) {
 		}
 	}
 	apl.inLoop = false
+
+	// A pass that found a spell blocked only by its mana cost and cast or queued no mana spell starts the
+	// wait; a mana spell cast or queued, in or outside a pass, ends it.
+	if apl.unit.costBlocked && !apl.unit.manaCast && !apl.unit.IsOOM() {
+		apl.unit.StartOOMEvent(sim, apl.unit.Type == PetUnit)
+	}
 
 	if sim.Log != nil && i == 0 {
 		apl.unit.Log(sim, "No available actions!")

@@ -667,12 +667,23 @@ func (spell *Spell) CanCast(sim *Simulation, target *Unit) bool {
 		return false
 	}
 
-	return true
+	return spell.meetsCost(sim, false)
 }
 
-// Returns whether the spell being cast can be completed.
-// Example: Metamorphosis drains 4 Demonic Fury every second.
-// This means at the end of the cast you could end up not meeting the casting requirements.
+// The cost check runs after the other checks of its caller, so a mana cost failure marks a spell that
+// waits on mana rather than on a cooldown, the GCD or a running cast.
+func (spell *Spell) meetsCost(sim *Simulation, logCastFailure bool) bool {
+	if spell.Cost == nil || spell.Cost.MeetsRequirement(sim, spell) {
+		return true
+	}
+	if logCastFailure {
+		return spell.castFailureHelper(sim, spell.Cost.CostFailureReason(sim, spell))
+	}
+	return false
+}
+
+// Returns whether the spell being cast can be completed, its cost aside: the unit and target may no longer
+// qualify by the end of the cast.
 func (spell *Spell) CanCompleteCast(sim *Simulation, target *Unit, logCastFailure bool) bool {
 	if !spell.Unit.IsEnabled() {
 		if logCastFailure {
@@ -719,18 +730,6 @@ func (spell *Spell) CanCompleteCast(sim *Simulation, target *Unit, logCastFailur
 			return spell.castFailureHelper(sim, "extra spell condition")
 		}
 		return false
-	}
-
-	if spell.Cost != nil {
-		if !spell.Cost.MeetsRequirement(sim, spell) {
-			//if sim.Log != nil {
-			//	sim.Log("Cant cast because of resource cost")
-			//}
-			if logCastFailure {
-				return spell.castFailureHelper(sim, spell.Cost.CostFailureReason(sim, spell))
-			}
-			return false
-		}
 	}
 
 	return true

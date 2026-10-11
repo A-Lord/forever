@@ -17,6 +17,7 @@ type OnCastComplete func(aura *Aura, sim *Simulation, spell *Spell)
 type Hardcast struct {
 	Expires     time.Duration
 	ActionID    ActionID
+	Cost        float64 // The mana the cast pays when it completes.
 	OnComplete  func(*Simulation, *Unit)
 	Target      *Unit
 	CanMove     bool
@@ -148,12 +149,6 @@ func (spell *Spell) makeCastFunc(config CastConfig) CastSuccessFunc {
 			}
 		}
 
-		if spell.Cost != nil {
-			if !spell.Cost.MeetsRequirement(sim, spell) {
-				return spell.castFailureHelper(sim, spell.Cost.CostFailureReason(sim, spell))
-			}
-		}
-
 		if spell.MaxCharges > 0 && spell.charges == 0 {
 			return spell.castFailureHelper(sim, "not enough charges")
 		}
@@ -190,6 +185,16 @@ func (spell *Spell) makeCastFunc(config CastConfig) CastSuccessFunc {
 			return spell.castFailureHelper(sim, "casting/channeling while moving not allowed!")
 		}
 
+		if !spell.meetsCost(sim, true) {
+			return false
+		}
+
+		var manaCost float64
+		if spell.paysMana() {
+			manaCost = spell.CurCast.Cost
+			spell.commitManaSpell(sim)
+		}
+
 		if unshift {
 			spell.Unit.AutoUnshift(sim)
 		}
@@ -215,6 +220,7 @@ func (spell *Spell) makeCastFunc(config CastConfig) CastSuccessFunc {
 			spell.Unit.Hardcast = Hardcast{
 				Expires:  sim.CurrentTime + spell.CurCast.CastTime,
 				ActionID: spell.ActionID,
+				Cost:     manaCost,
 				OnComplete: func(sim *Simulation, target *Unit) {
 					if sim.Log != nil && !spell.Flags.Matches(SpellFlagNoLogs) {
 						spell.Unit.Log(sim, "Completed cast %s", spell.ActionID)
@@ -222,7 +228,7 @@ func (spell *Spell) makeCastFunc(config CastConfig) CastSuccessFunc {
 
 					spell.Unit.HardcastAvoidanceAura.Deactivate(sim)
 
-					if !spell.CanCompleteCast(sim, target, true) {
+					if !spell.CanCompleteCast(sim, target, true) || !spell.meetsCost(sim, true) {
 						spell.Unit.AutoAttacks.releaseMeleeHeldByCast(sim)
 						return
 					}
