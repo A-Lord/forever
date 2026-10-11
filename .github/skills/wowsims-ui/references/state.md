@@ -156,7 +156,7 @@ Both icon adapters call it:
 
 - `ConnectedIconPicker` (`ui/features/inputs/components/ConnectedIconPicker/ConnectedIconPicker.tsx`) passes the
   zero through its `write`, so a two-state source stores the zeroed or restored value as a boolean,
-  and reads zeroed as `!Number(current)`.
+  and reads zeroed as `!valuePicked(config, current)`, a zero or false count.
 - `ConnectedIconEnumPicker` (`ui/features/inputs/components/ConnectedIconEnumPicker/ConnectedIconEnumPicker.tsx`)
   reads zeroed as holding `zeroValue`, and passes `onSettled`, which sees the value the hide/restore
   step left and resets it to `zeroValue` when that option is itself hidden by its `showWhen`. A user

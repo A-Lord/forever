@@ -76,10 +76,9 @@ export const consumableFilterScope = (player: Player<any>, db: Database): StatFi
 
 const STORE_FIELDS: Array<StoreField> = ['consumables', 'gear', 'profession1', 'profession2', 'prof1Rank', 'prof2Rank', 'race', 'sim:filters'];
 
-// Every field a consumable picker reads: `raid:partyBuffs` because the main-hand imbue's showWhen reads
-// the weapon totems off the party, `itemSwap` because the swap imbues' includeIf reads the swap weapons
-// and their showWhen whether item swap is on. The toggles read only STORE_FIELDS.
-export const CONSUMABLE_PICKER_FIELDS: ReadonlyArray<StoreField> = [...STORE_FIELDS, 'itemSwap', 'raid:partyBuffs'];
+// Every field a consumable picker reads: `itemSwap` because the swap imbues' includeIf reads the swap
+// weapons and their showWhen whether item swap is on. The toggles read only STORE_FIELDS.
+export const CONSUMABLE_PICKER_FIELDS: ReadonlyArray<StoreField> = [...STORE_FIELDS, 'itemSwap'];
 
 export const makeConsumableInput = (consumables: ReadonlyArray<Consumable>, relevance: ConsumableRelevance, options: ConsumableInputOptions) =>
 	consumablePicker(

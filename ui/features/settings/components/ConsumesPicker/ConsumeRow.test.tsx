@@ -13,12 +13,12 @@ const KEY = 2;
 class Options {
 	engineer = true;
 	readonly storeKey = KEY;
-	readonly sim: { store: SimStore; raid: { sim: { store: SimStore } } };
+	readonly sim: { store: SimStore };
 
 	constructor() {
 		const store = createSimStore();
 		seedKeyed(store, 'players', KEY, { profession1: 0, profession2: 0, v: zeroVersions(PLAYER_FIELDS) } as unknown as PlayerSlice);
-		this.sim = { store, raid: { sim: { store } } };
+		this.sim = { store };
 	}
 
 	changeProfession(next: number) {
@@ -31,10 +31,6 @@ class Options {
 
 	changeFilters() {
 		this.sim.store.setState(s => ({ sim: { ...s.sim, filters: DatabaseFilters.create({ minConsumableLvl: { 1: 50 } }) } }));
-	}
-
-	changePartyBuffs() {
-		this.sim.store.setState(s => ({ raid: { ...s.raid, partyBuffs: [...s.raid.partyBuffs] } }));
 	}
 }
 
@@ -100,15 +96,6 @@ describe('ConsumeRow', () => {
 
 	it('hides a row that names no pickers', () => {
 		const element = row(new Options(), []);
-		expect(isHidden(element)).toBe(true);
-	});
-
-	it('re-evaluates on a party buff change, which the main-hand imbue reads', () => {
-		const options = new Options();
-		const element = row(options, [configFor(opts => opts.engineer)]);
-
-		options.engineer = false;
-		act(() => options.changePartyBuffs());
 		expect(isHidden(element)).toBe(true);
 	});
 

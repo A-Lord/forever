@@ -1,4 +1,4 @@
-import { iconEnumValues } from '@features/inputs/components/ConnectedIconEnumPicker';
+import { iconEnumValues } from '@features/inputs/components/ConnectedIconEnumPicker/utils';
 import { ActionID as ActionIdProto, Cooldown, Cooldowns } from '@generated/proto/common';
 import { ActionId } from '@sim/proto/action_id';
 import { describe, expect, it, vi } from 'vitest';

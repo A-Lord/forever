@@ -1,4 +1,4 @@
-import { iconEnumPickerShown, iconEnumValues } from '@features/inputs/components/ConnectedIconEnumPicker';
+import { iconEnumPickerShown, iconEnumValues } from '@features/inputs/components/ConnectedIconEnumPicker/utils';
 import { shownStats, withSelection } from '@features/stat-filters/model/stat_filters';
 import {
 	Class,
@@ -111,8 +111,6 @@ interface PlayerState {
 	epStats: Array<Stat>;
 	displayStats: Array<UnitStat>;
 	specConfig?: SpecConfigData<any>;
-	windfury: boolean;
-	flametongue: boolean;
 	mainHand?: UIItem;
 	offHand?: UIItem;
 	swapEnabled: boolean;
@@ -133,8 +131,6 @@ const playerOf = (state: Partial<PlayerState> = {}) => {
 		professions: [],
 		epStats: [Stat.StatStrength, Stat.StatAttackPower],
 		displayStats: [],
-		windfury: false,
-		flametongue: false,
 		swapEnabled: false,
 		consumes: ConsumesSpec.create(),
 		minLvl: {},
@@ -167,7 +163,6 @@ const playerOf = (state: Partial<PlayerState> = {}) => {
 			getItem: (slot: ItemSlot) => inHand(slot, full.swapMainHand, full.swapOffHand),
 		},
 		getSpecConfig: () => full.specConfig ?? { epStats: full.epStats, displayStats: full.displayStats },
-		getParty: () => ({ getBuffs: () => ({ windfuryTotem: full.windfury, flametongueTotem: full.flametongue }) }),
 		getEpWeights: () => full.epWeights,
 		getConsumes: () => ConsumesSpec.clone(full.consumes),
 		setConsumes: (consumes: ConsumesSpec) => (full.consumes = ConsumesSpec.clone(consumes)),
@@ -364,12 +359,6 @@ describe('consumeConfigs', () => {
 
 		configs.swapMhWeaponImbue.setValue(player, 8928);
 		expect([state.consumes.mhWeaponImbueId, state.consumes.swapMhWeaponImbueId]).toEqual([0, 8928]);
-	});
-
-	it('shows the main-hand imbue under Windfury Totem and Flametongue Totem', () => {
-		const { player } = playerOf({ windfury: true, flametongue: true });
-		const mhImbue = consumeConfigs(player, db).mhImbue;
-		expect(mhImbue.showWhen?.(player) ?? true).toBe(true);
 	});
 
 	it('labels each group as db.json does and hides one that offers the player nothing', () => {
