@@ -54,11 +54,6 @@ export default defineSpec<Spec.SpecHunter>({
 			Stat.StatAttackPower,
 			Stat.StatRangedAttackPower,
 			Stat.StatArmorPenetration,
-			Stat.StatArcaneResistance,
-			Stat.StatFireResistance,
-			Stat.StatFrostResistance,
-			Stat.StatNatureResistance,
-			Stat.StatShadowResistance,
 		],
 		[
 			PseudoStat.PseudoStatMeleeHitPercent,

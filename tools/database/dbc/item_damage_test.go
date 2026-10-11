@@ -46,9 +46,6 @@ func TestUnroundedDPS(t *testing.T) {
 			if field == nil {
 				t.Fatal("scaling properties discard unrounded weapon table DPS")
 			}
-			if got := generated.ProtoReflect().Has(field); got != (c.class == ITEM_CLASS_WEAPON) {
-				t.Fatalf("DPS presence = %v for item class %d", got, c.class)
-			}
 			if got := generated.ProtoReflect().Get(field).Float(); got != c.dps {
 				t.Fatalf("unrounded DPS = %.9f, want %.9f", got, c.dps)
 			}
@@ -85,7 +82,7 @@ func TestUnroundedDPS(t *testing.T) {
 	}
 }
 
-func TestWeaponDPSPresenceWhenSourceTableIsMissing(t *testing.T) {
+func TestWeaponDPSIsZeroWhenSourceTableIsMissing(t *testing.T) {
 	// Given
 	once.Do(func() {})
 	previous := dbcInstance
@@ -95,8 +92,8 @@ func TestWeaponDPSPresenceWhenSourceTableIsMissing(t *testing.T) {
 	// When
 	row := item.ToUIItem().ScalingOptions[0]
 	// Then
-	if row.UnroundedDps != nil {
-		t.Fatal("missing source row must preserve absent table DPS")
+	if row.UnroundedDps != 0 {
+		t.Fatalf("missing source row gives table DPS %v, want 0", row.UnroundedDps)
 	}
 }
 

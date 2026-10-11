@@ -1,9 +1,10 @@
 # Porting a class onto the resolvers
 
-1. **Start from the ladders.** Every class file is already one ladder per family, and the classes
-   other than the warrior and the hunter read them by hand, the way [Reading a row by hand](reading-by-hand.md)
-   describes; the paladin's spell registrations are on `SpellConfig`, its talents and auras are not. The move from hand reads onto the resolvers (`SpellConfig`, `AuraConfig`, `DotConfig`,
-   `ParseEffects`, `ProcTrigger`) is the warrior's, and this checklist is written for it.
+1. **Start from the ladders.** Every class file is already one ladder per family. The druid, mage,
+   priest, rogue and warlock read them by hand, the way [Reading a row by hand](reading-by-hand.md)
+   describes; grep the class folder for `spelldata.SpellConfig` and `spelldata.Parse` to see where a
+   class stands. This checklist covers the move from hand reads onto the resolvers (`SpellConfig`,
+   `AuraConfig`, `DotConfig`, `ParseEffects`, `ProcTrigger`), with the warrior's files as its examples.
 2. **Dump the rows before touching a call site**, three ways: the effects at the rank taken, which
    registered spells each modifier's `EffectSpellClassMask` names, and the whole `ProcTrigger` the row
    decodes to. With the mask dump, you know a .results move before you run it.
@@ -41,7 +42,7 @@
     is compared by its `*core.Spell` (Sweeping Strikes' copies), and Whirlwind's off-hand strike is
     `Whirlwind.Contains(spell)` with an off-hand proc mask. Never the row's `ClassFlags`: they share bits
     across abilities.
-14. **A gear proc is three calls, not one.** `ProcTrigger` for the listener, `AuraConfig` for the buff
+14. **A gear proc takes three calls:** `ProcTrigger` for the listener, `AuraConfig` for the buff
     it applies and `ParseEffects` for what that buff does. `sim/warrior/items.go` uses this idiom for
     every set bonus and item buff the class owns.
 15. **`Melee` and `Magic` put the spell in the rotation; `Flags` does not.** A stance-gated

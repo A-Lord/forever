@@ -29,6 +29,10 @@
 		}
 	}
 
+	.ui-accordion[data-density='compact'] > .ui-accordion-item > .ui-accordion-trigger {
+		@apply text-sm font-semibold;
+	}
+
 	.ui-accordion-trigger {
 		@apply flex w-full interactive items-center justify-between gap-2 py-2 text-left text-base leading-heading font-bold text-foreground;
 

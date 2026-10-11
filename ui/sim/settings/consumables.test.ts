@@ -1,18 +1,34 @@
-import { Class, ConsumableType, HandType, ItemSlot, Profession, PseudoStat, Race, Stat, WeaponType } from '@generated/proto/common';
+import {
+	Class,
+	ConsumableType,
+	HandType,
+	ItemSlot,
+	MobType,
+	MobTypeStats,
+	Profession,
+	PseudoStat,
+	Race,
+	Stat,
+	WeaponType,
+	ZoneStats,
+} from '@generated/proto/common';
 import { Consumable } from '@generated/proto/db';
 import { ItemEffect, ResourceType, SpellEffect } from '@generated/proto/spell';
 import { UIEnchant, UIItem } from '@generated/proto/ui';
 import { describe, expect, it } from 'vitest';
 
 import type { EquippedItem } from '../proto/equipped_item';
-import { UnitStat } from '../proto/stats';
+import { Stats, UnitStat } from '../proto/stats';
 import {
+	consumableAllowed,
 	ConsumableSlot,
 	consumableSlot,
+	consumableUniverse,
 	type ConsumableUser,
 	explosiveUsedBeside,
 	handTakesImbue,
 	isEnchantRelevantFor,
+	orderedByEp,
 	relevanceFor,
 	relevantConsumableIds,
 } from './consumables';
@@ -201,17 +217,109 @@ describe('handTakesImbue', () => {
 	});
 });
 
-describe('relevanceFor', () => {
-	it('answers as isConsumableRelevant does, and again once the class, race or a required profession changes', () => {
+describe('consumableAllowed', () => {
+	it('allows a consumable by the class, race and profession rank the game files name, whatever it grants', () => {
 		const sapper = consumable({ type: ConsumableType.ConsumableTypeExplosive, requiredProfession: Profession.Engineering, reqProfRank: 205 });
 		const orcOnly = consumable({ id: 2, type: ConsumableType.ConsumableTypeExplosive, raceAllowlist: [Race.RaceOrc] });
-		const relevant = relevanceFor([sapper, orcOnly], db, new Set([Stat.StatStrength]), new Set());
-		expect(relevant(sapper, user())).toBe(false);
-		expect(relevant(sapper, user({ professions: [Profession.Engineering] }))).toBe(true);
-		expect(relevant(sapper, user({ professions: [Profession.Engineering], profRank: 150 }))).toBe(false);
-		expect(relevant(sapper, user({ professions: [Profession.Engineering] }))).toBe(true);
-		expect(relevant(orcOnly, user({ professions: [Profession.Engineering] }))).toBe(true);
-		expect(relevant(orcOnly, user({ race: Race.RaceHuman, professions: [Profession.Engineering] }))).toBe(false);
+		const rogueOnly = consumable({ id: 3, classAllowlist: [Class.ClassRogue], stats: stats({ [Stat.StatIntellect]: 5 }) });
+		expect(consumableAllowed(sapper, user())).toBe(false);
+		expect(consumableAllowed(sapper, user({ professions: [Profession.Engineering] }))).toBe(true);
+		expect(consumableAllowed(sapper, user({ professions: [Profession.Engineering], profRank: 150 }))).toBe(false);
+		expect(consumableAllowed(orcOnly, user())).toBe(true);
+		expect(consumableAllowed(orcOnly, user({ race: Race.RaceHuman }))).toBe(false);
+		expect(consumableAllowed(rogueOnly, user())).toBe(false);
+		expect(consumableAllowed(rogueOnly, user({ cls: Class.ClassRogue }))).toBe(true);
+	});
+});
+
+describe('relevanceFor', () => {
+	const agility = consumable({ type: ConsumableType.ConsumableTypeElixir, stats: stats({ [Stat.StatAgility]: 25 }) });
+	const manaPotion = consumable({ id: 2, type: ConsumableType.ConsumableTypePotion, effectIds: [1] });
+	const deflector = consumable({ id: 3, type: ConsumableType.ConsumableTypeDevice });
+	const rogueOnly = consumable({
+		id: 4,
+		type: ConsumableType.ConsumableTypeElixir,
+		classAllowlist: [Class.ClassRogue],
+		stats: stats({ [Stat.StatAgility]: 5 }),
+	});
+	const statsOf = (shown: Stat[]) => ({ stats: new Set(shown), pseudoStats: new Set<PseudoStat>() });
+
+	it('reads the stats statsOf gives, and again once it gives another set', () => {
+		let shown = statsOf([Stat.StatAgility]);
+		const relevant = relevanceFor([agility, manaPotion], db, () => shown);
+		expect(relevant(agility, user())).toBe(true);
+		shown = statsOf([Stat.StatStrength]);
+		expect(relevant(agility, user())).toBe(false);
+	});
+
+	it('restores mana while Mana, MP5 or Intellect is shown', () => {
+		let shown = statsOf([Stat.StatIntellect]);
+		const relevant = relevanceFor([manaPotion], db, () => shown);
+		expect(relevant(manaPotion, user())).toBe(true);
+		shown = statsOf([Stat.StatSpirit]);
+		expect(relevant(manaPotion, user())).toBe(false);
+	});
+
+	it('keeps a consumable with no stat and an effect of another kind at any set', () => {
+		const relevant = relevanceFor([deflector], db, () => statsOf([]));
+		expect(relevant(deflector, user())).toBe(true);
+	});
+
+	it('leaves the class, race and profession to consumableAllowed', () => {
+		const relevant = relevanceFor([rogueOnly], db, () => statsOf([Stat.StatAgility]));
+		expect(relevant(rogueOnly, user())).toBe(true);
+	});
+
+	it('takes a stat granted only against some mob types or in some zones as granted', () => {
+		const slaying = consumable({
+			id: 5,
+			type: ConsumableType.ConsumableTypePotion,
+			mobTypeStats: [MobTypeStats.create({ mobTypes: [MobType.MobTypeDemon], stats: { [Stat.StatAttackPower]: 20 } })],
+		});
+		const natural = consumable({
+			id: 6,
+			type: ConsumableType.ConsumableTypeFlask,
+			zoneStats: [ZoneStats.create({ zoneIds: [101], stats: { [Stat.StatHitRating]: 20 } })],
+		});
+		let shown = statsOf([Stat.StatAttackPower, Stat.StatHitRating]);
+		const relevant = relevanceFor([slaying, natural], db, () => shown);
+		expect(relevant(slaying, user())).toBe(true);
+		expect(relevant(natural, user())).toBe(true);
+		shown = statsOf([Stat.StatIntellect]);
+		expect(relevant(slaying, user())).toBe(false);
+		expect(relevant(natural, user())).toBe(false);
+	});
+});
+
+describe('consumableUniverse', () => {
+	it('lists every stat and percent a consumable grants, once', () => {
+		const mongoose = consumable({
+			id: 5,
+			type: ConsumableType.ConsumableTypeElixir,
+			stats: stats({ [Stat.StatAgility]: 25 }),
+			pseudoStats: pseudoStats({ [PseudoStat.PseudoStatMeleeCritPercent]: 2 }),
+		});
+		const giants = consumable({ id: 6, type: ConsumableType.ConsumableTypeElixir, stats: stats({ [Stat.StatStrength]: 25 }) });
+		const moreAgility = consumable({ id: 8, type: ConsumableType.ConsumableTypeFood, stats: stats({ [Stat.StatAgility]: 10 }) });
+		const manaPotion = consumable({ id: 7, type: ConsumableType.ConsumableTypePotion, effectIds: [1] });
+		const keys = consumableUniverse([mongoose, giants, moreAgility, manaPotion], db).map(stat => stat.getKey());
+		expect(keys).toHaveLength(3);
+		expect(new Set(keys)).toEqual(new Set(['StatStrength', 'StatAgility', 'PseudoStatMeleeCritPercent']));
+	});
+
+	it('lists a stat granted only against some mob types or in some zones', () => {
+		const slaying = consumable({
+			id: 9,
+			type: ConsumableType.ConsumableTypePotion,
+			mobTypeStats: [MobTypeStats.create({ mobTypes: [MobType.MobTypeDemon], stats: { [Stat.StatAttackPower]: 20 } })],
+		});
+		const natural = consumable({
+			id: 10,
+			type: ConsumableType.ConsumableTypeFlask,
+			zoneStats: [ZoneStats.create({ zoneIds: [101], stats: { [Stat.StatHitRating]: 20 } })],
+		});
+		const keys = consumableUniverse([slaying, natural], db).map(stat => stat.getKey());
+		expect(new Set(keys)).toEqual(new Set(['StatAttackPower', 'StatHitRating']));
 	});
 });
 
@@ -253,6 +361,68 @@ describe('explosiveUsedBeside', () => {
 	it('names an explosive with a cooldown of its own', () => {
 		expect(explosiveUsedBeside(consumable({ itemEffects: [onUse(24, 300000)] }))).toBe(true);
 		expect(explosiveUsedBeside(consumable({ itemEffects: [onUse(24)] }))).toBe(false);
+	});
+});
+
+describe('orderedByEp', () => {
+	const strong = consumable({ id: 1, name: 'Strong', lvl: 10, stats: stats({ [Stat.StatStrength]: 10 }) });
+	const critical = consumable({ id: 2, name: 'Critical', lvl: 20, pseudoStats: pseudoStats({ [PseudoStat.PseudoStatMeleeCritPercent]: 1 }) });
+	const proc = consumable({ id: 3, name: 'Proc', lvl: 60 });
+	const ids = (consumables: Array<Consumable>) => consumables.map(({ id }) => id);
+	const orderedIds = (consumables: Array<Consumable>, weights: Stats, mobType: MobType | undefined, zoneId: number) =>
+		ids(orderedByEp(consumables, consumable => consumable, { weights, mobType, zoneId }));
+	const anywhere = (consumables: Array<Consumable>, weights: Stats) => orderedIds(consumables, weights, undefined, 0);
+
+	it('orders by the EP the stats and percents add, highest first', () => {
+		const weights = Stats.fromMap({ [Stat.StatStrength]: 1 }, { [PseudoStat.PseudoStatMeleeCritPercent]: 20 });
+		expect(anywhere([strong, critical], weights)).toEqual([2, 1]);
+	});
+
+	it('orders again by other weights', () => {
+		const weights = Stats.fromMap({ [Stat.StatStrength]: 3 }, { [PseudoStat.PseudoStatMeleeCritPercent]: 20 });
+		expect(anywhere([critical, strong], weights)).toEqual([1, 2]);
+	});
+
+	it('puts one granting no stat after every one that does, whatever its level', () => {
+		expect(anywhere([proc, strong, critical], new Stats())).toEqual([2, 1, 3]);
+	});
+
+	it('orders an equal EP by level, highest first, then by name', () => {
+		const bravo = consumable({ id: 4, name: 'Bravo', lvl: 30, stats: stats({ [Stat.StatStrength]: 5 }) });
+		const alpha = consumable({ id: 5, name: 'Alpha', lvl: 30, stats: stats({ [Stat.StatStrength]: 5 }) });
+		const weights = Stats.fromMap({ [Stat.StatStrength]: 2 });
+		expect(anywhere([bravo, strong, alpha], weights)).toEqual([1, 5, 4]);
+	});
+
+	it('counts a mob type stat against a target of one of its mob types only', () => {
+		const slaying = consumable({
+			id: 6,
+			name: 'Slaying',
+			lvl: 10,
+			stats: stats({}),
+			mobTypeStats: [MobTypeStats.create({ mobTypes: [MobType.MobTypeDemon, MobType.MobTypeUndead], stats: { [Stat.StatAttackPower]: 20 } })],
+		});
+		const weights = Stats.fromMap({ [Stat.StatStrength]: 1, [Stat.StatAttackPower]: 1 });
+		expect(orderedIds([strong, proc, slaying], weights, MobType.MobTypeDemon, 0)).toEqual([6, 1, 3]);
+		expect(orderedIds([strong, proc, slaying], weights, MobType.MobTypeUndead, 0)).toEqual([6, 1, 3]);
+		expect(orderedIds([slaying, proc, strong], weights, MobType.MobTypeMechanical, 0)).toEqual([1, 3, 6]);
+		expect(orderedIds([slaying, proc, strong], weights, undefined, 0)).toEqual([1, 3, 6]);
+	});
+
+	it('counts a zone stat in one of its zones only, and the plain stats everywhere', () => {
+		const natural = consumable({
+			id: 7,
+			name: 'Natural',
+			lvl: 10,
+			stats: stats({ [Stat.StatStamina]: 10 }),
+			zoneStats: [ZoneStats.create({ zoneIds: [101, 102], stats: { [Stat.StatHitRating]: 20 } })],
+		});
+		const sturdy = consumable({ id: 8, name: 'Sturdy', lvl: 10, stats: stats({ [Stat.StatStamina]: 15 }) });
+		const weights = Stats.fromMap({ [Stat.StatStamina]: 1, [Stat.StatHitRating]: 1 });
+		expect(orderedIds([sturdy, natural], weights, undefined, 101)).toEqual([7, 8]);
+		expect(orderedIds([sturdy, natural], weights, undefined, 102)).toEqual([7, 8]);
+		expect(orderedIds([natural, sturdy], weights, undefined, 103)).toEqual([8, 7]);
+		expect(orderedIds([natural, sturdy], weights, undefined, 0)).toEqual([8, 7]);
 	});
 });
 

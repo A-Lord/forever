@@ -1,3 +1,6 @@
+import { type PickerStatOptions, relevantStatOptions } from '@features/settings/model/stat_options';
+import { Stat } from '@generated/proto/common';
+import i18n from '@i18n/config';
 import { ActionId } from '@sim/proto/action_id';
 import type { StoreSubscribe } from '@sim/state/subscriptions';
 import { filled } from '@testing/inputs';
@@ -141,5 +144,71 @@ describe('ConnectedMultiIconPicker', () => {
 		mount(new Buffs(), configFor(), onClear);
 		fireEvent.mouseDown(trigger(), { button: 2 });
 		expect(onClear).toHaveBeenCalledTimes(1);
+	});
+
+	it('marks the trigger kept while keptBy holds, and follows the source', () => {
+		const buffs = new Buffs();
+		buffs.set('kings', 1);
+		mount(buffs, configFor({ keptBy: obj => obj.values.kings > 0 }));
+		expect(trigger().parentElement!.hasAttribute('data-kept')).toBe(true);
+		expect(screen.getByTestId('icon-swatch-kept').getAttribute('data-tooltip-content')).toBe(i18n.t('stat_filters.kept_tooltip'));
+
+		act(() => buffs.set('kings', 0));
+		expect(trigger().parentElement!.hasAttribute('data-kept')).toBe(false);
+		expect(screen.queryByTestId('icon-swatch-kept')).toBeNull();
+	});
+
+	describe('as a stat option', () => {
+		const statOption = (shown: Array<Stat>) => {
+			const option = { stats: [Stat.StatStamina], config: configFor() } as unknown as PickerStatOptions;
+			const [row] = relevantStatOptions([option], { includeBuffDebuffInputs: [], excludeBuffDebuffInputs: [] }, new Set(shown));
+			return row.config as unknown as MultiIconPickerConfig<Buffs>;
+		};
+		const offeredIcons = () => within(menu()).queryAllByTestId('icon-picker-root');
+
+		it('offers only the picked inputs of a group the stat filter keeps, each marked kept', () => {
+			const buffs = new Buffs();
+			buffs.set('mark', 1);
+			mount(buffs, statOption([]));
+			open();
+
+			expect(offeredIcons().map(icon => icon.style.backgroundImage)).toEqual([expect.stringContaining('mark.jpg')]);
+			expect(offeredIcons()[0].parentElement!.hasAttribute('data-kept')).toBe(true);
+			expect(within(menu()).getByTestId('icon-swatch-kept').getAttribute('data-tooltip-content')).toBe(i18n.t('stat_filters.kept_tooltip'));
+			expect(menu().querySelectorAll('li:not(:empty)')).toHaveLength(2);
+		});
+
+		it('offers every input of a group whose stat is shown, none marked kept', () => {
+			const buffs = new Buffs();
+			buffs.set('mark', 1);
+			mount(buffs, statOption([Stat.StatStamina]));
+			open();
+
+			expect(offeredIcons()).toHaveLength(3);
+			expect(within(menu()).queryByTestId('icon-swatch-kept')).toBeNull();
+		});
+	});
+
+	it('follows a new config without a store notification', () => {
+		const buffs = new Buffs();
+		const { rerender } = mount(buffs, configFor({ keptBy: () => true }));
+		expect(trigger().parentElement!.hasAttribute('data-kept')).toBe(true);
+
+		rerender(<ConnectedMultiIconPicker modObject={buffs} config={configFor({ keptBy: () => false })} subscribe={buffs.subscribe} onClear={() => {}} />);
+		expect(trigger().parentElement!.hasAttribute('data-kept')).toBe(false);
+	});
+
+	it('follows a new showWhen and new inputs without a store notification', () => {
+		const buffs = new Buffs();
+		buffs.set('mark', 1);
+		const { rerender } = mount(buffs, configFor({ showWhen: () => false }));
+		expect(screen.queryByTestId('multi-icon-picker-root')).toBeNull();
+
+		rerender(<ConnectedMultiIconPicker modObject={buffs} config={configFor({ showWhen: () => true })} subscribe={buffs.subscribe} onClear={() => {}} />);
+		expect(backgroundIcon()).toBe('mark.jpg');
+
+		const kingsOnly = configFor({ inputs: [input('kings', kingsId)] });
+		rerender(<ConnectedMultiIconPicker modObject={buffs} config={kingsOnly} subscribe={buffs.subscribe} onClear={() => {}} />);
+		expect(trigger().hasAttribute('data-active')).toBe(false);
 	});
 });

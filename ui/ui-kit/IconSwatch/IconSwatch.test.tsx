@@ -86,6 +86,37 @@ describe('IconSwatch', () => {
 		expect(document.querySelectorAll('a a')).toHaveLength(0);
 	});
 
+	it('boxes a kept swatch with a corner badge that carries the kept tooltip, leaving the swatch only its link', () => {
+		const { container } = render(<IconSwatch icon={kings} href={kings.href} keptTooltip="Kept" testId="swatch" className="extra" />);
+		const box = container.firstElementChild as HTMLElement;
+		const swatch = screen.getByTestId('swatch');
+		const badge = screen.getByTestId('icon-swatch-kept');
+
+		expect(Array.from(box.children)).toEqual([swatch, badge]);
+		expect(box.hasAttribute('data-kept')).toBe(true);
+		expect(box.classList.contains('extra')).toBe(true);
+		expect(swatch.hasAttribute('data-tooltip-id')).toBe(false);
+		expect(swatch.getAttribute('href')).toBe(kings.href);
+		expect(badge.getAttribute('data-tooltip-content')).toBe('Kept');
+		expect(badge.getAttribute('data-tooltip-id')).toBeTruthy();
+		expect(badge.getAttribute('aria-label')).toBe('Kept');
+	});
+
+	it('puts the kept badge after the other badges', () => {
+		render(<IconSwatch icon={kings} keptTooltip="Kept" testId="swatch" badges={<IconSwatch icon={kings} testId="badge-1" />} />);
+		const box = screen.getByTestId('swatch').parentElement!;
+
+		expect(Array.from(box.children)).toEqual([screen.getByTestId('swatch'), screen.getByTestId('badge-1'), screen.getByTestId('icon-swatch-kept')]);
+	});
+
+	it('renders a bare anchor, neither boxed nor kept, without a kept tooltip', () => {
+		const { container } = render(<IconSwatch icon={kings} testId="swatch" />);
+
+		expect(container.firstElementChild).toBe(screen.getByTestId('swatch'));
+		expect(screen.getByTestId('swatch').hasAttribute('data-kept')).toBe(false);
+		expect(screen.queryByTestId('icon-swatch-kept')).toBeNull();
+	});
+
 	it('hands its anchor to a ref and passes events through', () => {
 		const ref = { current: null as HTMLAnchorElement | null };
 		const onClick = vi.fn();

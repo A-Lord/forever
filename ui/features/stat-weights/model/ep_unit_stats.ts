@@ -1,3 +1,4 @@
+import type { StatFilterScope } from '@features/stat-filters/model/stat_filters';
 import { PseudoStat, Stat } from '@generated/proto/common';
 import { SCHOOL_HIT_PERCENT_PSEUDO_STATS, UnitStat } from '@sim/proto/stats';
 
@@ -33,8 +34,10 @@ export const isEpStat = (stat: UnitStat, { epStats, epPseudoStats }: EpStatSet):
 	return epPseudoStats.includes(stat.getPseudoStat());
 };
 
-// A pseudo-stat the spec does not weight stays hidden even under "Show all stats": its Current EP
-// cell writes straight into the player's EP weights, so an off-spec row there (Main Hand DPS on a
-// caster) would skew every item and enchant EP in the gear picker from a row the checkbox then hides.
-export const visibleEpUnitStats = (statSet: EpStatSet, showAllStats: boolean): UnitStat[] =>
-	EP_UNIT_STATS.filter(stat => isEpStat(stat, statSet) || (showAllStats && stat.isStat()));
+export const epFilterScope = (statSet: EpStatSet): StatFilterScope => ({
+	defaults: EP_UNIT_STATS.filter(stat => isEpStat(stat, statSet)),
+	// Every Stat, but only the pseudo-stats the spec weights: a row's Current EP cell writes straight into the
+	// player's EP weights, so an off-spec pseudo-stat row (Main Hand DPS on a caster) would let one entry skew
+	// every item and enchant EP in the gear picker.
+	universe: EP_UNIT_STATS.filter(stat => stat.isStat() || isEpStat(stat, statSet)),
+});

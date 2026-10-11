@@ -62,3 +62,18 @@ func TestPotionClassesFollowTheirEffectsAndStats(t *testing.T) {
 		})
 	}
 }
+
+func TestPotionClassesCountMobTypeStats(t *testing.T) {
+	const host int32 = 17531
+	editRow(t, host, func(s *spelldata.Spell) { s.Effects = nil })
+	db := NewWowDatabase()
+	db.Consumables[1] = &proto.Consumable{Id: 1, Type: proto.ConsumableType_ConsumableTypePotion,
+		MobTypeStats: []*proto.MobTypeStats{{MobTypes: []proto.MobType{proto.MobType_MobTypeDemon}, Stats: map[int32]float64{int32(stats.AttackPower): 1}}},
+		ItemEffects:  []*proto.ItemEffect{{BuffId: host}}}
+	if err := AddPotionClasses(db); err != nil {
+		t.Fatal(err)
+	}
+	if got, want := db.Consumables[1].PotionClasses, []proto.PotionClass{proto.PotionClass_PotionClassOffensive}; !slices.Equal(got, want) {
+		t.Errorf("classes %v, want %v", got, want)
+	}
+}

@@ -45,6 +45,7 @@ import { makeBulkGearDatabase, makeBulkItemDatabaseFromSpecs } from './bulk/gear
 import { dedupeGearSets, throwIfAborted } from './bulk/utils';
 import { CURRENT_PHASE, LOCAL_STORAGE_PREFIX } from './constants/other';
 import { Player, UnitMetadata } from './player/player';
+import { addPartyBuffItems } from './proto/buff_items';
 import { Database } from './proto/database';
 import { Gear } from './proto/gear';
 import { extendPlayerProtoWithMissingEffects } from './proto/proto_migration';
@@ -303,6 +304,7 @@ export class Sim {
 			if (options.gear) {
 				const gear = Sim.prepareGear(options.gear, [player.profession1, player.profession2].includes(Profession.Enchanting));
 				player.database = gear.toDatabase(this.db);
+				addPartyBuffItems(player.database, this.db, request.raid!.parties[0].buffs);
 				player.equipment = gear.asSpec();
 				if (player.consumables) player.consumables = gear.adjustImbues(player.consumables);
 			}
@@ -465,6 +467,7 @@ export class Sim {
 		const raidProto = this.getModifiedRaidProto();
 		const player = raidProto.parties[0].players[0];
 		player.database = gear.toDatabase(this.db);
+		addPartyBuffItems(player.database, this.db, raidProto.parties[0].buffs);
 		player.equipment = gear.asSpec();
 		extendPlayerProtoWithMissingEffects(player, this.db);
 		raidProto.parties[0].players[0] = player;
@@ -544,6 +547,7 @@ export class Sim {
 				[],
 				config.enchantOptions.flatMap(options => options.effectIds),
 			);
+			addPartyBuffItems(player.database, this.db, raid.parties[0].buffs);
 			player.equipment = config.gear.asSpec();
 			raid.parties[0].players[0] = player;
 
@@ -912,7 +916,7 @@ export class Sim {
 	}
 
 	defaultFilters(): DatabaseFilters {
-		const { favoriteItems = [], favoriteRandomSuffixes = [], favoriteReforges = [], favoriteEnchants = [] } = this.getFilters();
+		const { favoriteItems = [], favoriteRandomSuffixes = [], favoriteReforges = [], favoriteEnchants = [], statFilters } = this.getFilters();
 		return DatabaseFilters.create({
 			oneHandedWeapons: true,
 			twoHandedWeapons: true,
@@ -920,6 +924,7 @@ export class Sim {
 			favoriteEnchants,
 			favoriteRandomSuffixes,
 			favoriteReforges,
+			statFilters,
 		});
 	}
 }

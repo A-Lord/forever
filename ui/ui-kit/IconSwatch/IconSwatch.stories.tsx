@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { KEPT_TOOLTIP } from '@testing/storybook/fixtures/kept';
 import type { ResolvedIcon } from '@ui-kit/Field/types';
 import { expect, within } from 'storybook/test';
 
@@ -30,6 +31,7 @@ const meta = {
 		active: { control: 'boolean' },
 		disabled: { control: 'boolean' },
 		text: { control: 'text' },
+		keptTooltip: { control: 'text' },
 	},
 } satisfies Meta<typeof IconSwatch>;
 
@@ -65,4 +67,17 @@ export const WithBadges: Story = {
 		await expect(swatch.parentElement?.querySelectorAll(':scope > a')).toHaveLength(3);
 		await expect(canvasElement.querySelectorAll('a a')).toHaveLength(0);
 	},
+};
+export const Kept: Story = {
+	args: { active: true, keptTooltip: KEPT_TOOLTIP },
+	play: async ({ canvasElement }) => {
+		const swatch = within(canvasElement).getByTestId('story-swatch');
+		const badge = within(canvasElement).getByTestId('icon-swatch-kept');
+		await expect(badge.parentElement).toBe(swatch.parentElement);
+		await expect(swatch.hasAttribute('data-tooltip-id')).toBe(false);
+		await expect(badge.getAttribute('data-tooltip-content')).toBe(KEPT_TOOLTIP);
+	},
+};
+export const KeptWithBadges: Story = {
+	args: { ...WithBadges.args, keptTooltip: KEPT_TOOLTIP },
 };
