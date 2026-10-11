@@ -24,7 +24,7 @@ generated → worker → {sim, i18n} → ui-kit → features → app → specs �
 
 | Directory                  | Alias        | What lives there                                                                                                                                         |
 | -------------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ui/generated/`            | `@generated` | protobuf-ts output; regenerate, never hand-edit                                                                                                          |
+| `ui/generated/`            | `@generated` | protobuf-ts output; git-ignored (like `sim/core/proto/*.pb.go`): regenerate, never hand-edit or commit it                                                |
 | `ui/worker/`               | `@worker`    | the worker entries and the Go package that embeds `highs.wasm`                                                                                           |
 | `ui/sim/`                  | `@sim`       | the model: the `Sim`/`Player`/`Raid`/`Encounter` facades, the Zustand store (`state/`) and its React bindings (`context/`, `hooks/`); no browser globals |
 | `ui/i18n/`                 | `@i18n`      | i18next config and the label tables                                                                                                                      |
