@@ -332,6 +332,7 @@ type WeaponAttack struct {
 	curSwingSpeed    float64
 	curSwingDuration time.Duration
 	enabled          bool
+	heldByCast       bool // The swing came due during a cast that resets it and waits for the cast to end.
 }
 
 func (wa *WeaponAttack) getWeapon() *Weapon {
@@ -380,6 +381,15 @@ func (wa *WeaponAttack) swing(sim *Simulation) time.Duration {
 		return wa.swingAt
 	}
 	wa.windupEnd = 0
+
+	// A melee swing waits out a cast that resets it, one due at the cast's last instant included. The
+	// completed cast sets the real swing time; this one only has to land past the cast's end,
+	// wherever pushback moves it.
+	if hc := &wa.unit.Hardcast; !isRanged && hc.ResetsSwing && hc.Expires >= sim.CurrentTime {
+		wa.swingAt = hc.Expires + wa.curSwingDuration
+		wa.heldByCast = true
+		return wa.swingAt
+	}
 
 	if wa.replaceSwing != nil {
 		// Need to check APL here to allow last-moment HS queue casts.
@@ -627,6 +637,8 @@ func (aa *AutoAttacks) reset(sim *Simulation) {
 
 	aa.mh.enabled = false
 	aa.oh.enabled = false
+	aa.mh.heldByCast = false
+	aa.oh.heldByCast = false
 	aa.ranged.enabled = false
 
 	aa.mh.previousSwing = -NeverExpires
@@ -974,11 +986,30 @@ func (aa *AutoAttacks) StopMeleeUntil(sim *Simulation, readyAt time.Duration) {
 	}
 
 	aa.mh.swingAt = readyAt + aa.mh.curSwingDuration
+	aa.mh.heldByCast = false
 	sim.rescheduleWeaponAttack(aa.mh.swingAt)
 
 	if aa.IsDualWielding {
 		aa.oh.swingAt = readyAt + aa.oh.curSwingDuration
+		aa.oh.heldByCast = false
 		sim.rescheduleWeaponAttack(aa.oh.swingAt)
+	}
+
+	// A weaver out of melee range wakes when the reset swing comes ready.
+	if aa.meleeWeaveWakeup != nil {
+		aa.scheduleMeleeWeaveWakeup(sim)
+	}
+}
+
+// A cast that ends without completing lets the swings it held land at once: their timers ran out
+// while it was underway.
+func (aa *AutoAttacks) releaseMeleeHeldByCast(sim *Simulation) {
+	for _, wa := range []*WeaponAttack{&aa.mh, &aa.oh} {
+		if wa.heldByCast {
+			wa.heldByCast = false
+			wa.swingAt = sim.CurrentTime
+			sim.rescheduleWeaponAttack(wa.swingAt)
+		}
 	}
 }
 

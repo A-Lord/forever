@@ -22,6 +22,7 @@ type Hardcast struct {
 	CanMove     bool
 	IsChanneled bool
 	Pushback    bool
+	ResetsSwing bool // The melee swing waits out the cast, then starts a full swing when it completes.
 	CastTime    time.Duration
 }
 
@@ -222,7 +223,12 @@ func (spell *Spell) makeCastFunc(config CastConfig) CastSuccessFunc {
 					spell.Unit.HardcastAvoidanceAura.Deactivate(sim)
 
 					if !spell.CanCompleteCast(sim, target, true) {
+						spell.Unit.AutoAttacks.releaseMeleeHeldByCast(sim)
 						return
+					}
+
+					if spell.Unit.Hardcast.ResetsSwing {
+						spell.Unit.AutoAttacks.StopMeleeUntil(sim, sim.CurrentTime)
 					}
 
 					if spell.Cost != nil {
@@ -255,6 +261,7 @@ func (spell *Spell) makeCastFunc(config CastConfig) CastSuccessFunc {
 				CanMove:     spell.Flags&SpellFlagCanCastWhileMoving > 0,
 				IsChanneled: isChanneled,
 				Pushback:    spell.Flags.Matches(SpellFlagPushback),
+				ResetsSwing: !isChanneled && !spell.Flags.Matches(SpellFlagKeepsSwingTimer),
 				CastTime:    spell.CurCast.CastTime,
 			}
 

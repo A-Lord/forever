@@ -31,6 +31,12 @@ func (s *Spell) PushedBack() bool {
 	return s.InterruptFlags&dbcenums.SPELL_INTERRUPT_FLAG_PUSHBACK != 0
 }
 
+// Whether completing a cast of the spell leaves the melee swing timer running instead of starting
+// a fresh swing.
+func (s *Spell) KeepsCombatTimers() bool {
+	return s.HasAttr(dbcenums.ATTR_INDEX_EX_2, dbcenums.ATTR_EX_2_DO_NOT_RESET_COMBAT_TIMERS)
+}
+
 func (s *Spell) IsBleed() bool {
 	return s.Mechanic == dbcenums.MECHANIC_BLEED
 }
