@@ -1,11 +1,12 @@
 import { OpenSelectorModalContext } from '@features/gear/hooks/useSelectorModal';
 import { Class, ConsumableType, ConsumesSpec, HandType, ItemSlot, Race, Spec, Stat, WeaponType } from '@generated/proto/common';
 import { Consumable } from '@generated/proto/db';
-import { UIItem } from '@generated/proto/ui';
+import { DatabaseFilters, UIItem } from '@generated/proto/ui';
 import i18n from '@i18n/config';
 import { SimHostProvider } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
 import { ItemSwapGear } from '@sim/proto/gear';
+import { Stats } from '@sim/proto/stats';
 import { createSimStore, PLAYER_FIELDS, seedKeyed, zeroVersions } from '@sim/state/sim_store';
 import { fakeHost } from '@testing/sim/fake_host';
 import { render, screen, within } from '@testing-library/react';
@@ -25,6 +26,7 @@ vi.mock('@features/inputs/components/ConnectedIconEnumPicker', async importActua
 const { OtherSettings } = await import('./OtherSettings');
 
 const sword = UIItem.create({ weaponType: WeaponType.WeaponTypeSword, handType: HandType.HandTypeOneHand });
+const weights = new Stats();
 
 const setup = (enabled: boolean) => {
 	const store = createSimStore();
@@ -32,7 +34,12 @@ const setup = (enabled: boolean) => {
 	seedKeyed(store, 'players', storeKey, { itemSwapEnabled: enabled, itemSwapGear: new ItemSwapGear({}), v: zeroVersions(PLAYER_FIELDS) } as never);
 	const player = {
 		storeKey,
-		sim: { store, getMinConsumableLvl: () => 0 },
+		sim: {
+			store,
+			getMinConsumableLvl: () => 0,
+			getFilters: () => DatabaseFilters.create(),
+			encounter: { getTarget: () => undefined, getZoneId: () => 0 },
+		},
 		getClass: () => Class.ClassWarrior,
 		getSpec: () => Spec.SpecDpsWarrior,
 		getRace: () => Race.RaceOrc,
@@ -45,6 +52,7 @@ const setup = (enabled: boolean) => {
 		getSpecConfig: () => ({ epStats: [Stat.StatStrength, Stat.StatAttackPower], displayStats: [] }),
 		getParty: () => ({ getBuffs: () => ({ windfuryTotem: false, flametongueTotem: false }) }),
 		getConsumes: () => ConsumesSpec.create(),
+		getEpWeights: () => weights,
 	} as unknown as Player<any>;
 	render(
 		<SimHostProvider host={fakeHost({ player })}>

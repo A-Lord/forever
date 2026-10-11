@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { KEPT_TOOLTIP } from '@testing/storybook/fixtures/kept';
 import type { ResolvedIcon } from '@ui-kit/Field/types';
 import { IconPicker } from '@ui-kit/IconPicker';
 import { useState } from 'react';
@@ -19,7 +20,7 @@ const BUFFS = [
 	icon('spell_nature_lightningshield', 'Trueshot Aura', 20906),
 ];
 
-const MultiIconPickerStory = ({ onClear, initial }: Pick<MultiIconPickerProps, 'onClear'> & { initial: Array<number> }) => {
+const MultiIconPickerStory = ({ onClear, keptTooltip, initial }: Pick<MultiIconPickerProps, 'onClear' | 'keptTooltip'> & { initial: Array<number> }) => {
 	const [values, setValues] = useState(initial);
 	const first = values.findIndex(value => value > 0);
 	return (
@@ -27,6 +28,7 @@ const MultiIconPickerStory = ({ onClear, initial }: Pick<MultiIconPickerProps, '
 			label="Misc"
 			icon={first >= 0 ? BUFFS[first] : undefined}
 			active={first >= 0}
+			keptTooltip={keptTooltip}
 			onClear={() => {
 				setValues(values.map(() => 0));
 				onClear();
@@ -81,4 +83,8 @@ export const Open: Story = {
 };
 export const Active: Story = {
 	render: ({ onClear }) => <MultiIconPickerStory onClear={onClear} initial={[0, 1, 1]} />,
+};
+export const Kept: Story = {
+	args: { keptTooltip: KEPT_TOOLTIP },
+	render: ({ onClear, keptTooltip }) => <MultiIconPickerStory onClear={onClear} keptTooltip={keptTooltip} initial={[0, 1, 0]} />,
 };

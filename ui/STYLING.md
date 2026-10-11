@@ -214,67 +214,76 @@ fix is almost always removing whatever broke the native layering, not adding log
 
 ## 7. The gates
 
-Three tree-wide tests in `npm run test:unit` run the checkers, all under `// @vitest-environment node`
-(they read the tree off disk and need no DOM):
+The tree-wide tests at the `ui/` root run in `npm run test:unit`, all under
+`// @vitest-environment node` because they read the tree off disk and need no DOM:
 
 - **`ui/canonical_classes.test.ts`** runs `ui/testing/tailwind/canonical-classes.mjs` over every
-  `ui/` class string and `@apply`: no non-canonical Tailwind token, no `var(...)` inside a class
-  token. Run the script under node with `--write` to auto-fix, or `--json` for tooling.
-- **`ui/no_class_hooks.test.ts`** runs `ui/testing/tailwind/class-hooks.mjs`, three checks:
-    - `findClassHooks()` — every class token in a `ui/**/*.{ts,tsx}` file that is not a real
-      Tailwind utility (compiled against `ui/styles/style.css` with Tailwind's own design system
-      rather than a hand-maintained list), is not `ui-*`, and is not in the allowlist;
-    - `findRetiredClassNames()` — no name from `ui/retired_class_names.json` anywhere in `ui/`, CSS
-      included;
-    - `findTestidStyling()` — no `[data-testid]` selector in CSS or in a TSX arbitrary variant.
-- **`ui/no_raw_controls.test.ts`** enforces that `ui/features`, `ui/app` and `ui/specs` render every
-  control through a kit primitive (`Button`, `WowheadAnchor`, the menu items) — no bare `<a>` or
-  `<button>` in a production `.tsx` file there. `ui/ui-kit` and `ui/design-system` are outside its
-  scope: they are where those primitives and their docs live.
-- **Production means every file but a test.** The checks skip `*.test.ts(x)` and `ui/generated/`
-  only, so a story (`*.stories.tsx`), `ui/testing/**` (decorators, fixtures, `react.tsx`) and the
-  design-system code (`ui/design-system/components/`, `tokens/`) are held to the same class rules as
-  a component. The checkers read `.ts`, `.tsx` and `.css`, so the `.mdx` pages are not scanned.
+  `ui/` class string and `@apply`. It rejects a non-canonical Tailwind token and a `var(...)` inside
+  a class token. Run the script under node with `--write` to auto-fix, or `--json` for tooling.
+- **`ui/no_class_hooks.test.ts`** runs the three checks in `ui/testing/tailwind/class-hooks.mjs`:
+    - `findClassHooks()` flags every class token in a `ui/**/*.{ts,tsx}` file that is not a real
+      Tailwind utility, not `ui-*` and not in the allowlist. Real utilities come from compiling
+      against `ui/styles/style.css` with Tailwind's own design system, not from a hand-maintained
+      list.
+    - `findRetiredClassNames()` flags any name from `ui/retired_class_names.json` anywhere in `ui/`,
+      CSS included.
+    - `findTestidStyling()` flags a `[data-testid]` selector in CSS or in a TSX arbitrary variant.
+- **`ui/no_raw_controls.test.ts`** checks that `ui/features`, `ui/app` and `ui/specs` render every
+  control through a kit primitive (`Button`, `WowheadAnchor`, the menu items), so a production
+  `.tsx` file there has no bare `<a>` or `<button>`. `ui/ui-kit` and `ui/design-system` are outside
+  its scope because those primitives and their docs live there.
+- **`ui/no_testid_wrappers.test.ts`** flags a `<div>`, `<span>` or `<section>` anywhere in `ui/`
+  whose only attributes are `data-testid` and, optionally, `key`. Such an element exists only to
+  carry the test id. Find the element by role, label or text instead, or move the test id onto the
+  element that carries the identity (§5).
+- **The two JSX checks read production `.tsx` only.** `no_raw_controls` and `no_testid_wrappers`
+  skip `*.test.tsx` and `*.stories.tsx`, and blank whole-line comments first, so a tag named in
+  prose never counts.
+- **For the class checks, production means every file but a test.** They skip `*.test.ts(x)` and
+  `ui/generated/` only, so a story (`*.stories.tsx`), `ui/testing/**` (decorators, fixtures,
+  `react.tsx`) and the design-system code (`ui/design-system/components/`, `tokens/`) are held to
+  the same class rules as a component. The checkers read `.ts`, `.tsx` and `.css`, so the `.mdx`
+  pages are not scanned.
 - **The allowlist, `ui/class_hook_allowlist.json`,** is `sim-ui` and the `<spec>-sim-ui` pattern
   that `ui/styles/theme/specs.css` selects, `group`/`group/*`, `peer`/`peer/*`,
-  `sim-tooltip`/`sim-tooltip--unpadded`, and the three
-  third-party-required names `tooltip-quick-swap`, `suggest-reforges-softcaps`,
-  `bonus-stats-popover` — react-tooltip forwards a component's `className` as its own `data-theme`
-  attribute and forwards no `data-testid` equivalent, so those three cannot become pure testids. An
-  entry needs a `token` or a `pattern` plus a `reason`, and is only ever for a genuinely external
-  constraint, never a shortcut past a real conversion.
-- **Stories and the design system stay out of production CSS.** Tailwind's automatic source
+  `sim-tooltip`/`sim-tooltip--unpadded`, and the three third-party-required names
+  `tooltip-quick-swap`, `suggest-reforges-softcaps` and `bonus-stats-popover`. react-tooltip
+  forwards a component's `className` as its own `data-theme` attribute and has no `data-testid`
+  equivalent, so those three cannot become pure testids. An entry needs a `token` or a `pattern`
+  plus a `reason`, and only a genuinely external constraint earns one; it is never a shortcut past
+  a real conversion.
+- **Stories, tests and the design system stay out of production CSS.** Tailwind's automatic source
   detection is on, so a class string in any file under `ui/` lands in the production bundle unless
-  `ui/styles/style.css` excludes it; its four `@source not` lines exclude `**/*.stories.tsx`,
-  `ui/testing/storybook`, `ui/design-system` and `**/*.md` (so a code example in a doc like this one
-  never generates a utility), and `.storybook/storybook.css` adds the first three back for Storybook.
-  A new class-bearing file under `ui/testing/` outside `storybook/` needs its own
-  `@source not`. For a kit or styling change, build with `npx vite build` and diff the sorted
-  `dist/forever/bundle/*.style.css` against the parent commit's build: an unintended selector there
-  is a leak.
+  `ui/styles/style.css` excludes it. Its `@source not` lines exclude `**/*.stories.tsx`,
+  `**/*.test.tsx`, `**/*.test.ts`, `ui/testing/storybook`, `ui/design-system` and `**/*.md` (so a
+  code example in a doc like this one never generates a utility). `.storybook/storybook.css` adds
+  the stories, `ui/testing/storybook` and `ui/design-system` back for Storybook. A new class-bearing
+  file under `ui/testing/` outside `storybook/` needs its own `@source not`. For a kit or styling
+  change, build with `npx vite build` and diff the sorted `dist/forever/bundle/*.style.css` against
+  the parent commit's build; an unintended selector there is a leak.
 - **Rendering is verified by diffing computed styles, not by reading classes.** Walk the DOM by
   child-index path from `document.body` plus tag, capture the computed style properties and the
-  bounding box per node, and diff that against a build from before the change; that validates a
-  class-hook removal for free. Cover the default state of each top-level tab **and** the sub-panes
-  (sub-tabs, dialogs, modals, expanded rows) — a sweep that only opens top-level tabs at rest misses
-  whole areas of the app.
-    - A default-pane sweep misses what it never opens: deleting a real `@utility` (`icon-sm`) as if
-      it were a retired class hook grows the log runner's rows from 32.5px to 34px, and a sweep that
-      never opens the log tab stays green. **A custom `@utility` or a `ui-*` composition class is
-      real styling, not a hook** — the class-hook gate
-      and the hook census tell the two apart by compiling every candidate against Tailwind's own
-      design system (`ui/testing/tailwind/canonical-classes.mjs`), never a hand-written name list,
-      and deleting one because it "looks like" an old semantic class is the mistake to avoid. Run
-      the diff before calling a class-hook or utility change done — the class-hook gate proves a
-      class is gone, not that nothing rendered differently without it.
-    - **A px value converts to the nearest even spacing step**: the scale here is 1 or an even integer
-      — `1, 2, 4, 6, 8, 10, 12, 16, …` — one step is 3.5px at the 14px root conversions use, and a source px
-      value snaps to its nearest step, ties rounding down (`7px` → `p-2`, `14px` → `w-4`); a sub-step
-      value standing for a hairline (a border, a divider, a ruler tick) converts to the fixed `px` step
-      instead of rounding. `ui/testing/tailwind/canonical-classes.mjs`'s `findUnevenSpacing` flags any
-      spacing-scale utility or `--spacing(n)` whose step is not `1` and not an even integer, so a
-      rendering diff this rule introduces (the target step is not always the source's exact px value)
-      is the point, not a bug — keep an arbitrary `[Npx]` only where no step and no hairline fits, and
-      add a token instead of an arbitrary value for anything repeated.
-    - A class-removal commit and a DOM-structure commit must never land together — a position-keyed
-      comparison misaligns on every node after an inserted or deleted element.
+  bounding box per node, and diff that against a build from before the change, which validates a
+  class-hook removal for free. Cover the default state of each top-level tab and the sub-panes
+  (sub-tabs, dialogs, modals, expanded rows), because a sweep that only opens top-level tabs at rest
+  misses whole areas of the app.
+    - Deleting a real `@utility` (`icon-sm`) as if it were a retired class hook grows the log
+      runner's rows from 32.5px to 34px, and a sweep that never opens the log tab stays green. A
+      custom `@utility` or a `ui-*` composition class is real styling. The class-hook gate and the
+      hook census tell it apart from a hook by compiling every candidate against Tailwind's own
+      design system (`ui/testing/tailwind/canonical-classes.mjs`) instead of a hand-written name
+      list, so do not delete one because it looks like an old semantic class. Run the diff before
+      calling a class-hook or utility change done: the class-hook gate proves a class is gone, but
+      not that nothing rendered differently without it.
+    - **A px value converts to the nearest even spacing step.** The scale here is 1 or an even
+      integer (`1, 2, 4, 6, 8, 10, 12, 16, …`), and one step is 3.5px at the 14px root that
+      conversions use. A source px value snaps to its nearest step, with ties rounding down (`7px` →
+      `p-2`, `14px` → `w-4`). A sub-step value standing for a hairline (a border, a divider, a ruler
+      tick) converts to the fixed `px` step instead of rounding. `findUnevenSpacing` in
+      `ui/testing/tailwind/canonical-classes.mjs` flags any spacing-scale utility or `--spacing(n)`
+      whose step is not `1` and not an even integer. A rendering diff this rule introduces is
+      expected, since the target step is not always the source's exact px value. Keep an arbitrary
+      `[Npx]` only where no step and no hairline fits, and add a token instead of an arbitrary value
+      for anything repeated.
+    - A class-removal commit and a DOM-structure commit never land together, because a
+      position-keyed comparison misaligns on every node after an inserted or deleted element.

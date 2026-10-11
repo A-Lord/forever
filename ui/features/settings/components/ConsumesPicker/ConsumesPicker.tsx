@@ -1,8 +1,11 @@
 import { ConnectedIconEnumPicker } from '@features/inputs/components/ConnectedIconEnumPicker';
 import { ConnectedIconPicker } from '@features/inputs/components/ConnectedIconPicker';
 import { usePlayer } from '@sim/context/SimHostContext';
+import { useStoreField } from '@sim/hooks/useStoreField';
+import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
 import type { Player } from '@sim/player/player';
 import { Database } from '@sim/proto/database';
+import { CONSUMABLE_ORDER_FIELDS, consumableOrderOf, orderedByEp } from '@sim/settings/consumables';
 import { IconRow } from '@ui-kit/IconRow';
 import { useMemo } from 'react';
 
@@ -15,8 +18,11 @@ export interface ConsumesPickerProps {
 	encounterConsumes?: boolean;
 }
 
-const Toggles = ({ player, toggles }: { player: Player<any>; toggles: ReadonlyArray<ConsumeToggle> }) =>
-	toggles.map(config => <ConnectedIconPicker key={config.actionId.itemId} modObject={player} config={config} />);
+const Toggles = ({ player, toggles }: { player: Player<any>; toggles: ReadonlyArray<ConsumeToggle> }) => {
+	const order = useStoreSubscribe(useStoreField(CONSUMABLE_ORDER_FIELDS)!, () => consumableOrderOf(player));
+	const ordered = useMemo(() => orderedByEp(toggles, toggle => toggle.consumable, order), [toggles, order]);
+	return ordered.map(config => <ConnectedIconPicker key={config.actionId.itemId} modObject={player} config={config} />);
+};
 
 const Pickers = ({ player, configs }: { player: Player<any>; configs: ReadonlyArray<ConsumeConfig> }) =>
 	configs.map((config, i) => <ConnectedIconEnumPicker key={i} modObject={player} config={config} />);

@@ -684,8 +684,9 @@
 		"consumables": {
 			"title": "Consumables",
 			"filters": {
-				"title": "Consumable filters",
-				"min_lvl": "Minimum required level",
+				"title": "Consumables filter",
+				"trigger": "Filter consumables",
+				"min_lvl": "Minimum level",
 				"reset": "Reset to defaults",
 				"types": {
 					"potion": "Potions",
@@ -2411,7 +2412,6 @@
 					"ep": "EP",
 					"weights": "Weights",
 					"stats_type": "Stat display type",
-					"show_all_stats": "Show All Stats",
 					"dps_tps_reference": "DPS/TPS reference:",
 					"healing_reference": "Healing reference:",
 					"mitigation_reference": "Mitigation reference:",
@@ -2612,11 +2612,6 @@
 		},
 		"character_stats": {
 			"title": "Stats",
-			"mode": {
-				"label": "Stats shown",
-				"key": "Key",
-				"all": "All"
-			},
 			"groups": {
 				"attributes": "Attributes",
 				"physical": "Physical",
@@ -2679,5 +2674,25 @@
 			"points_suffix": "Points",
 			"percent_suffix": "%"
 		}
+	},
+	"stat_filters": {
+		"title": "Stats to show",
+		"triggers": {
+			"character_stats": "Filter character stats",
+			"ep": "Filter EP stats",
+			"buffs": "Filter buff stats",
+			"debuffs": "Filter debuff stats"
+		},
+		"spec_defaults": "Spec defaults",
+		"all": "All",
+		"groups": {
+			"primary": "Primary",
+			"ratings": "Ratings",
+			"other": "Other"
+		},
+		"group_count": "{{group}} ({{shown}}/{{total}})",
+		"kept_tooltip": "This item is showing because you have it selected. Use the stat filters to permanently show it.",
+		"rating_label": "{{stat}} Rating",
+		"percent_label": "{{stat}} %"
 	}
 }
