@@ -403,10 +403,11 @@ should not take is a hand-written effect for the consumable.
 ## What the settings offer
 
 The settings render every consumable db.json ships from its own fields; nothing in the UI names a
-consumable. `ui/sim/settings/consumables.ts` puts each in a picker by its type: `ConsumableTypeConjured`
+consumable. `buildConsumeConfigs` (`ui/features/settings/components/ConsumesPicker/utils.ts`) puts
+each in a picker by its type (`consumableSlot` in `ui/sim/settings/consumables.ts`): `ConsumableTypeConjured`
 the conjured item, `ConsumableTypePotion` the potion pickers, then the flask, `ConsumableTypeFood` the
 food, the explosive, the imbues and, beside each hand's imbue, `ConsumableTypeWeaponImbue` the weapon
-imbue. A consumable with a `holiday` goes into the Holiday row. A consumable with an [exclusive group](#exclusive-groups) goes into
+imbue. An ungrouped consumable with a `holiday` goes into the Holiday row. A consumable with an [exclusive group](#exclusive-groups) goes into
 its group's picker instead (`makeConsumableGroupInput`), which writes at most one of the group's ids:
 into `elixir_ids` for an elixir, into `extra_ids` for anything else (Juju Power beside the Strength
 elixirs). The pickers are labelled with `group_name` and ordered by `group_key`: a group holding an
