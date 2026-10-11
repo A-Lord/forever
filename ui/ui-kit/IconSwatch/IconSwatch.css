@@ -16,7 +16,6 @@
 		@apply relative size-10 shrink-0;
 	}
 
-	.ui-icon-picker-swatch[data-kept],
 	.ui-icon-swatch-box[data-kept] > :not(.ui-icon-swatch-kept) {
 		@apply opacity-50;
 	}
