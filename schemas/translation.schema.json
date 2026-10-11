@@ -2511,12 +2511,18 @@
 								"prepop": {
 									"type": "string"
 								},
-								"combat": {
+								"offensive": {
+									"type": "string"
+								},
+								"defensive": {
+									"type": "string"
+								},
+								"resource": {
 									"type": "string"
 								}
 							},
 							"additionalProperties": false,
-							"required": ["title", "prepop", "combat"]
+							"required": ["title", "prepop", "offensive", "defensive", "resource"]
 						},
 						"elixirs": {
 							"type": "object",

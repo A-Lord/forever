@@ -1,6 +1,6 @@
 import type { TypedIconEnumPickerConfig, TypedIconPickerConfig } from '@features/inputs/input_helpers';
 import { type ConsumableRelevance, makeConsumableGroupInput, makeConsumableInput, makeIdListInput } from '@features/settings/model/consumables';
-import { ConsumableType, ItemSlot } from '@generated/proto/common';
+import { ConsumableType, ItemSlot, PotionClass } from '@generated/proto/common';
 import type { Consumable } from '@generated/proto/db';
 import i18n from '@i18n/config';
 import type { Player } from '@sim/player/player';
@@ -20,7 +20,10 @@ export type ConsumeConfig = TypedIconEnumPickerConfig<Player<any>, number>;
 export type ConsumeToggle = TypedIconPickerConfig<Player<any>, boolean>;
 
 export interface ConsumeConfigs {
-	potion: ConsumeConfig;
+	// One pick per potion class, each offering the potions of that class.
+	offensivePotion: ConsumeConfig;
+	defensivePotion: ConsumeConfig;
+	resourcePotion: ConsumeConfig;
 	conjured: ConsumeConfig;
 	flask: ConsumeConfig;
 	// One pick per exclusive group, in the order of the groups' keys: those holding an elixir, those
@@ -88,9 +91,27 @@ export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfig
 	const fitsWeaponIn = fitsHandOf((p, slot) => p.getEquippedItem(slot));
 	const fitsSwapWeaponIn = fitsHandOf((p, slot) => p.itemSwapSettings.getItem(slot));
 	const swapOn = (p: Player<any>) => p.itemSwapSettings.getEnableItemSwap();
+	// The potion already picked stays offered, so a pick outside the class can still be seen and cleared.
+	const ofPotionClass =
+		(potionClass: PotionClass, field: 'offensivePotId' | 'defensivePotId' | 'resourcePotId') => (consumable: Consumable, p: Player<any>) =>
+			consumable.potionClasses.includes(potionClass) || p.getConsumes()[field] === consumable.id;
 
 	return {
-		potion: input(ConsumableSlot.Potion, { consumesFieldName: 'potId', tooltip: i18n.t('settings_tab.consumables.potions.combat') }),
+		offensivePotion: input(ConsumableSlot.Potion, {
+			consumesFieldName: 'offensivePotId',
+			tooltip: i18n.t('settings_tab.consumables.potions.offensive'),
+			includeIf: ofPotionClass(PotionClass.PotionClassOffensive, 'offensivePotId'),
+		}),
+		defensivePotion: input(ConsumableSlot.Potion, {
+			consumesFieldName: 'defensivePotId',
+			tooltip: i18n.t('settings_tab.consumables.potions.defensive'),
+			includeIf: ofPotionClass(PotionClass.PotionClassDefensive, 'defensivePotId'),
+		}),
+		resourcePotion: input(ConsumableSlot.Potion, {
+			consumesFieldName: 'resourcePotId',
+			tooltip: i18n.t('settings_tab.consumables.potions.resource'),
+			includeIf: ofPotionClass(PotionClass.PotionClassResource, 'resourcePotId'),
+		}),
 		conjured: input(ConsumableSlot.Conjured, { consumesFieldName: 'conjuredId' }),
 		flask: input(ConsumableSlot.Flask, { consumesFieldName: 'flaskId' }),
 		elixirs: groupInputs('elixirs'),

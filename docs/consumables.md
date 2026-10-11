@@ -119,7 +119,9 @@ refuses beside itself (`shared.ConsumableUnsupported`, `DamageConsumableUnsuppor
 
 The potion builder runs one spell on the user: a heal, an absorb, a gain of mana, rage or energy, damage
 to the user and the auras the parser attaches. A potion shares category 4's timer and is a major
-cooldown only as the spec's combat potion; a conjured item is one only as the spec's conjured item; any
+cooldown only as one of the spec's three potion picks (`resource_pot_id`, `defensive_pot_id`,
+`offensive_pot_id`), which the APL's Resource, Defensive and Offensive Potion placeholders cast; a
+conjured item is one only as the spec's conjured item; any
 other is one whenever the spec names it. The builder tells them apart by the consumable's type. Damage a
 consumable deals its own user, a sapper's or Demonic Rune's, always lands and can crit. The stat builder
 puts an aura that outlasts the item's cooldown up from the pull, and uses the item on its cooldown
@@ -377,13 +379,22 @@ should not take is a hand-written effect for the consumable.
 
 The settings render every consumable db.json ships from its own fields; nothing in the UI names a
 consumable. `ui/sim/settings/consumables.ts` puts each in a picker by its type: `ConsumableTypeConjured`
-the conjured item, `ConsumableTypePotion` the combat potion, then the flask, `ConsumableTypeFood` the
+the conjured item, `ConsumableTypePotion` the potion pickers, then the flask, `ConsumableTypeFood` the
 food, the explosive and the imbues. A consumable with an [exclusive group](#exclusive-groups) goes into
 its group's picker instead (`makeConsumableGroupInput`), which writes at most one of the group's ids:
 into `elixir_ids` for an elixir, into `extra_ids` for anything else (Juju Power beside the Strength
 elixirs). The pickers are labelled with `group_name` and ordered by `group_key`: a group holding an
 elixir in the Elixirs row after the flask (a scroll of that group among them), one holding a scroll and
 no elixir as a column of the Scrolls row, and the rest (Hit food, Zanza) after the food. A group, a column or a row that offers the player nothing hides.
+
+A potion has three pickers, Offensive, Defensive and Resource, and each offers the
+potions whose `potion_classes` hold its class. `AddPotionClasses` (`tools/database/consumable_potion_classes.go`) fills
+them after `AddUnparsedStats`: a gain of mana, rage or energy the potion builder models is resource, a
+heal or absorb defensive, and the stats the potion grants of the class the major cooldown manager files
+the buff under (`core.CooldownTypeOf`: any of `core.SurvivalStats` defensive, only `core.ManaStats`
+resource, anything else offensive). A potion of several classes, such as Major Rejuvenation Potion or
+Mighty Rage Potion, is offered in each, and one of no class fails `gen_db`. A picker keeps offering the
+potion already picked, so a pick outside its class can be seen and cleared.
 Everything else is picked any number at a time into the spec's `extra_ids`: in the miscellaneous row,
 and an explosive with a cooldown of its own beside the shared one (Goblin Sapper Charge 10646) beside
 the explosive picker.

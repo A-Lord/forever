@@ -266,6 +266,9 @@ func rowFlags(s *Spell) core.SpellFlag {
 	if s.PushedBack() {
 		flags |= core.SpellFlagPushback
 	}
+	if s.KeepsCombatTimers() {
+		flags |= core.SpellFlagKeepsSwingTimer
+	}
 	// Helpful decides who the APL casts the spell on, so it follows the first effect's target. An
 	// attack whose first effect is a self side-effect reads as helpful here and the caller clears it.
 	if slices.Contains(helpfulTargets, s.EffectN(1).Target[0]) {

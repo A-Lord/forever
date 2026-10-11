@@ -704,7 +704,9 @@
 			"potions": {
 				"title": "Potions",
 				"prepop": "Prepop Potion",
-				"combat": "Combat Potion"
+				"offensive": "Offensive Potion",
+				"defensive": "Defensive Potion",
+				"resource": "Resource Potion"
 			},
 			"elixirs": {
 				"title": "Elixirs"
@@ -1589,7 +1591,7 @@
 				},
 				"aura_active": {
 					"label": "Aura Active",
-					"tooltip": "<b>True</b> if the aura is currently active AND it has been active for at least as long as the player reaction time (configured in Settings), otherwise <b>False</b>."
+					"tooltip": "<b>True</b> if the aura is currently active, otherwise <b>False</b>. With reaction time, a proc only counts once it has been up for the player reaction time (configured in Settings), and your own auras still count for that long after they run out."
 				},
 				"aura_active_with_reaction_time": {
 					"label": "[DEPRECATED] Aura Active (with Reaction Time)",
@@ -1746,7 +1748,7 @@
 				},
 				"selected_potion": {
 					"label": "Selected Potion",
-					"tooltip": "Returns <b>True</b> if the selected potion is the character's default potion."
+					"tooltip": "Returns <b>True</b> if the potion is picked in any of the potion slots: offensive, defensive or resource."
 				},
 				"selected_conjured": {
 					"label": "Selected Conjured",
@@ -1857,7 +1859,7 @@
 					"min_icd": "Min ICD",
 					"min_icd_tooltip": "If non-zero, filter out any procs that either lack an ICD or for which the ICD is smaller than the specified value (in seconds). This can be useful for certain snapshotting checks, since procs with low ICDs are often too weak to snapshot.",
 					"include_reaction_time": "Include Reaction Time",
-					"include_reaction_time_tooltip": "If checked, will use the configured reaction time.",
+					"include_reaction_time_tooltip": "If checked, will use the configured <b>Input Delay</b>. For Aura Active, your own auras show up right away, but when they run out they only drop off after the delay.",
 					"use_base_value": "Use base value",
 					"use_base_value_tooltip": "If checked, will compare the current DoT to the the base value (on encounter start) of the DoT.",
 					"variable_assignment_tooltip": "Value to assign to variable '{{variableName}}'"
@@ -1880,7 +1882,7 @@
 					"target": "Target",
 					"pet": "Pet"
 				},
-				"placeholder_tooltip": "The Prepull Potion if CurrentTime < 0, or the Combat Potion if combat has started.",
+				"placeholder_tooltip": "The potion of this class picked in the Consumables, before the pull or in combat.",
 				"select_variable": "Select Variable",
 				"select_group": "Select Group",
 				"no_variables_defined": "No variables defined",
