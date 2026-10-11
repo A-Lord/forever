@@ -1,6 +1,7 @@
 package buffs
 
 import (
+	"fmt"
 	"math"
 	"time"
 
@@ -180,13 +181,17 @@ func driveManaTideTotems(char *core.Character, party *proto.PartyBuffs) {
 		initialDelay = min(char.Env.BaseDuration/2, time.Second*40)
 	})
 
-	newGeneratedExternalCD(char, NewSpellDataManaTideTotemsAura(&char.Unit, false, 0), generatedExternalCD{
+	totem := NewSpellDataManaTideTotemsAura(&char.Unit, false, 0)
+	newGeneratedExternalCD(char, totem, generatedExternalCD{
 		NumSources: party.ManaTideTotems,
 		Cooldown:   ManaTideTotemsCooldown(),
 		Type:       core.CooldownTypeMana,
 		ShouldActivate: func(sim *core.Simulation, _ *core.Character) bool {
 			return sim.CurrentTime >= initialDelay
 		},
+	})
+	inheritTotem(char, manaTideTotemsSpell, totem, func(pet *core.Pet) *core.Aura {
+		return NewSpellDataManaTideTotemsAura(&pet.Unit, false, 0)
 	})
 }
 
@@ -201,6 +206,10 @@ var windfuryTotemCast = spelldata.MustFind(10614)
 // hears and its 100 ms cooldown. The driver keeps the extra attack the proc
 // lands, and the totem aura that holds the category.
 func driveWindfuryTotem(char *core.Character, _ *proto.PartyBuffs) {
+	inheritWeaponTotem(char, windfuryTotemPartyAura, standWindfuryTotem)
+}
+
+func standWindfuryTotem(char *core.Character) *core.Aura {
 	procTrigger := NewWindfuryTotemProcTrigger(char)
 
 	totemAura := char.GetOrRegisterAura(core.Aura{
@@ -209,6 +218,7 @@ func driveWindfuryTotem(char *core.Character, _ *proto.PartyBuffs) {
 	})
 	holdTotemAura(totemAura, WindfuryTotemCategory, WindfuryTotemValue(0), procTrigger)
 	HoldOverWindfuryTotemRivals(totemAura)
+	return totemAura
 }
 
 const windfuryTotemTriggerLabel = "Windfury Totem Trigger"
@@ -276,13 +286,11 @@ func HoldOverWindfuryTotemRivals(totemAura *core.Aura) {
 	}
 }
 
-// A weapon totem's party aura stands for the fight and bids for the category,
-// which keeps the proc trigger up while it holds it. Outbid, by a main-hand
+// A weapon totem's party aura bids for the category while it is up, which keeps
+// the proc trigger up while it holds it. Outbid, by a main-hand
 // imbue, the shaman's own totem or a standing Windfury Totem, it stays up and takes
 // the category back once the higher bid goes.
 func holdTotemAura(totemAura *core.Aura, category string, priority float64, procTrigger *core.Aura) {
-	core.MakePermanent(totemAura)
-
 	totemAura.NewExclusiveEffect(category, false, core.ExclusiveEffect{
 		Priority: priority,
 		OnGain: func(_ *core.ExclusiveEffect, sim *core.Simulation) {
@@ -324,11 +332,16 @@ func driveFlametongueTotem(char *core.Character, party *proto.PartyBuffs) {
 	if party.WindfuryTotem {
 		return
 	}
+	inheritWeaponTotem(char, flametongueTotemSpell, standFlametongueTotem)
+}
+
+func standFlametongueTotem(char *core.Character) *core.Aura {
 	procTrigger := NewFlametongueTotemProcTrigger(char)
 
 	totemAura := NewSpellDataFlametongueTotemAura(&char.Unit, false, 0)
 	totemAura.BuildPhase = core.CharacterBuildPhaseNone
 	holdTotemAura(totemAura, FlametongueTotemCategory, FlametongueTotemPriority(), procTrigger)
+	return totemAura
 }
 
 const flametongueTotemTriggerLabel = "Flametongue Totem Trigger"
@@ -374,7 +387,7 @@ func driveGraceOfAirTotem(char *core.Character, party *proto.PartyBuffs) {
 	if party.WindfuryTotem {
 		return
 	}
-	core.MakePermanent(NewSpellDataGraceOfAirTotemAura(&char.Unit, false, 0))
+	standTotem(char, graceOfAirTotemSpell, NewSpellDataGraceOfAirTotemAura, 0)
 }
 
 // The party's Retribution Aura is the top rank, and its damage carries the
@@ -409,6 +422,8 @@ func driveAtieshWarlock(char *core.Character, party *proto.PartyBuffs) {
 // Darkspear's equip spell, which states the chance on hit and the time between procs.
 var darkspearTrigger = spelldata.MustFind(1314143)
 
+const darkspearItemID = 12802
+
 // The party's copy is up for the share of the fight the wielder keeps it up: 16939's 20 s out of each
 // 60 s internal cooldown plus the 64 s a 5% chance takes to land one 3.2 s swing on average, 16%.
 // The wielder is assumed to land one melee hit per swing and nothing else.
@@ -417,7 +432,11 @@ func driveDarkspear(char *core.Character, _ *proto.PartyBuffs) {
 	// The crit is up for a share of the fight only, so it is not part of the stats the character
 	// sheet is measured with.
 	aura.BuildPhase = core.CharacterBuildPhaseNone
-	swing := core.DurationFromSeconds(core.GetItemByID(12802).SwingSpeed)
+	item := core.GetItemByID(darkspearItemID)
+	if item == nil {
+		panic(fmt.Sprintf("the party's Darkspear reads the swing speed of item %d, which the sim's item database lacks; the request's database must carry it", darkspearItemID))
+	}
+	swing := core.DurationFromSeconds(item.SwingSpeed)
 	wait := time.Duration(float64(swing) / darkspearTrigger.StatedChance())
 	uptime := aura.Duration.Seconds() / (darkspearTrigger.ICD() + wait).Seconds()
 	applyFixedUptimeAura(aura, uptime, swing, 1)

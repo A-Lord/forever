@@ -1,6 +1,6 @@
 import { Field, hasFieldFrame } from '@ui-kit/Field';
 import type { ControlledProps, FieldFrameProps, ResolvedIcon } from '@ui-kit/Field/types';
-import { IconMenu } from '@ui-kit/IconSwatch';
+import { IconMenu, type IconSwatchProps } from '@ui-kit/IconSwatch';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import clsx from 'clsx';
 import { useId, useRef } from 'react';
@@ -10,7 +10,7 @@ import { IconEnumOptionItem } from './IconEnumOption';
 import { type IconEnumOption, IconEnumPickerDirection } from './types';
 import { iconStyleOf } from './utils';
 
-export interface IconEnumPickerProps<T> extends FieldFrameProps, ControlledProps<T> {
+export interface IconEnumPickerProps<T> extends FieldFrameProps, ControlledProps<T>, Pick<IconSwatchProps, 'keptTooltip'> {
 	options: Array<IconEnumOption<T>>;
 	equals: (a: T, b: T) => boolean;
 	/** The value that reads as inactive. */
@@ -35,6 +35,7 @@ export const IconEnumPicker = <T,>({
 	direction,
 	numColumns,
 	onOpenChange,
+	keptTooltip,
 	value,
 	onChange,
 	disabled,
@@ -64,6 +65,7 @@ export const IconEnumPicker = <T,>({
 				style: selectedHidden ? undefined : selected ? iconStyleOf(selected) : resolvedIconStyle(backupIcon),
 				active,
 				disabled,
+				keptTooltip,
 				// The value's text sits on the swatch, the way IconPicker's counter does: with one icon
 				// shared by every rank, the text is what tells the ranks apart.
 				text: selectedHidden ? undefined : selected?.text,

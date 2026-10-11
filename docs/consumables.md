@@ -10,6 +10,7 @@ not enough or not right, the effect is hand-written.
 - [Regenerating](#regenerating)
 - [How the effect is registered](#how-the-effect-is-registered)
 - [Exclusive groups](#exclusive-groups)
+- [Stats db.json lists outside the parse](#stats-dbjson-lists-outside-the-parse)
 - [Writing an effect by hand: the Natural flasks](#writing-an-effect-by-hand-the-natural-flasks)
 - [Adding a consumable the rows do not support](#adding-a-consumable-the-rows-do-not-support)
 - [Removing a consumable](#removing-a-consumable)
@@ -119,7 +120,9 @@ refuses beside itself (`shared.ConsumableUnsupported`, `DamageConsumableUnsuppor
 
 The potion builder runs one spell on the user: a heal, an absorb, a gain of mana, rage or energy, damage
 to the user and the auras the parser attaches. A potion shares category 4's timer and is a major
-cooldown only as the spec's combat potion; a conjured item is one only as the spec's conjured item; any
+cooldown only as one of the spec's three potion picks (`resource_pot_id`, `defensive_pot_id`,
+`offensive_pot_id`), which the APL's Resource, Defensive and Offensive Potion placeholders cast; a
+conjured item is one only as the spec's conjured item; any
 other is one whenever the spec names it. The builder tells them apart by the consumable's type. Damage a
 consumable deals its own user, a sapper's or Demonic Rune's, always lands and can crit. The stat builder
 puts an aura that outlasts the item's cooldown up from the pull, and uses the item on its cooldown
@@ -134,7 +137,7 @@ pull registers no spell and no cooldown. Which consumables stack is their
 A bonus against creature types is an aura the parser attaches like any other (see
 [Spell Data](spell_data/README.md)): Potion of Demon Slaying 9224's spell 11406 grants 180 attack power
 against the creature types its misc value masks (4, Demon), for the row's 300 s, on category 4's
-120 s timer. The imbue builder takes the equip spells of the enchant that add nothing to
+120 s timer; db.json lists that bonus as a [mob type stat](#stats-dbjson-lists-outside-the-parse). The imbue builder takes the equip spells of the enchant that add nothing to
 the enchant's own stats, which the generator names after the item: Consecrated Sharpening Stone
 23122's enchant 2684 names 28893, and core puts the enchant on each hand whose weapon the masks take.
 28893 grants 99 melee and 99 ranged attack power against Undead once per such hand, since each weapon
@@ -213,21 +216,8 @@ var ConsumableExclusiveGroups = []ConsumableGroup{
 
 The Jujus are Quest-class items the catalogue filter leaves out; naming them here brings them into
 the catalogue as well. The Blasted Lands buffs leave their category group for Zanza. The permanent
-Zanza items (23794, 23795, 23796) are not obtainable and `ConsumableDenyList` keeps them out. The two hit foods
-apply `A_MOD_HIT_CHANCE` 2, which the stat parse does not list and which reaches melee and ranged
-attacks alone, so `AddUnparsedStats` (`tools/database/consumable_unparsed_stats.go`) lists it in their
-db.json `pseudoStats` as 2 `PseudoStatMeleeHitPercent` and 2 `PseudoStatRangedHitPercent` (the ranged
-total includes the melee share, as `stats.PercentPseudoStats` reads it). The same
-goes for the other one-channel auras: `A_MOD_SPELL_HIT_CHANCE` lists spell hit (Scroll of Arcane
-Accuracy I 211954, 1%), `A_MOD_WEAPON_CRIT_PERCENT` melee and ranged crit, and
-`A_MOD_SPELL_CRIT_CHANCE` spell crit (Scroll of Arcane Power I 211957, 1%). `A_MOD_CRIT_PCT` reaches
-every channel, so it lists melee, ranged and spell crit alike: Elixir of the Mongoose 13452 and the
-250337/250338/250348/250351 elixirs each carry 2, listed as 2 `PseudoStatMeleeCritPercent`, 2
-`PseudoStatRangedCritPercent` and 2 `PseudoStatSpellCritPercent`. The settings offer such a
-consumable to a spec whose `displayStats` or `epPseudoStats` name one of its percents
-(`consumablePseudoStatsOf` in `ui/sim/settings/consumables.ts`), not by the hit or crit rating the
-spec weighs, so the Hit food picker shows for the melee and ranged specs and not for the casters. The
-sim reads the rows, not these lists.
+Zanza items (23794, 23795, 23796) are not obtainable and `ConsumableDenyList` keeps them out. The two
+hit foods' 2% hit is listed outside the stat parse, as [below](#stats-dbjson-lists-outside-the-parse).
 
 **Adding a group.** Add an entry to `ConsumableExclusiveGroups`: `ElixirGroup` to put items into a row
 group, or a new key and label for a group of their own, and every item id with its name. An item the
@@ -238,6 +228,41 @@ groups; `TestAConsumableTakesItsExclusiveGroup`
 pins the groups of the consumables it names. The settings pick the new group up by its key with no
 change of their own.
 
+## Stats db.json lists outside the parse
+
+The settings offer and order a consumable by the stats db.json lists for it. `AddUnparsedStats`
+(`tools/database/consumable_unparsed_stats.go`) adds what the on-use grants that the stat parse leaves
+out.
+
+**One-channel percents.** The two hit foods apply `A_MOD_HIT_CHANCE` 2, which the stat parse does not
+list and which reaches melee and ranged attacks alone, so their db.json `pseudoStats` carry 2
+`PseudoStatMeleeHitPercent` and 2 `PseudoStatRangedHitPercent` (the ranged total includes the melee
+share, as `stats.PercentPseudoStats` reads it). The other one-channel auras go the same way:
+`A_MOD_SPELL_HIT_CHANCE` lists spell hit (Scroll of Arcane Accuracy I 211954, 1%),
+`A_MOD_WEAPON_CRIT_PERCENT` melee and ranged crit, and `A_MOD_SPELL_CRIT_CHANCE` spell crit (Scroll of
+Arcane Power I 211957, 1%). `A_MOD_CRIT_PCT` reaches every channel, so it lists melee, ranged and
+spell crit alike: Elixir of the Mongoose 13452 and the 250337/250338/250348/250351 elixirs each carry
+2, listed as 2 `PseudoStatMeleeCritPercent`, 2 `PseudoStatRangedCritPercent` and 2
+`PseudoStatSpellCritPercent`. A spec's default consumable filter holds the percents its
+`displayStats` or `epPseudoStats` name (`consumablePseudoStatsOf` in `ui/sim/settings/consumables.ts`),
+whatever hit or crit rating it weighs, so by default the Hit food picker shows for the melee and
+ranged specs and not for the casters.
+
+**Mob type stats.** A versus aura (`spelldata.VersusStat`: `A_MOD_MELEE_ATTACK_POWER_VERSUS`,
+`A_MOD_RANGED_ATTACK_POWER_VERSUS` or `A_MOD_FLAT_SPELL_DAMAGE_VERSUS`) grants its stat only against
+the creature types its misc value masks. Its amount goes into `mob_type_stats` (`mobTypeStats` in
+db.json, `MobTypeStats` in `proto/common.proto`) under the mob types that mask names
+(`spelldata.MobTypes`): Potion of Demon Slaying 9224 lists 180 attack power under Demon, Potion of
+Elemental Purging 250954 105 spell damage under Elemental. A versus aura whose mask names no mob type
+is listed as a plain stat.
+
+**Zone stats.** A Natural flask's zone bonus goes into `zone_stats` (`zoneStats`, `ZoneStats`) under
+the zones it applies in, as [the Natural flasks](#writing-an-effect-by-hand-the-natural-flasks)
+describe.
+
+The settings read these lists as described under [What the settings offer](#what-the-settings-offer).
+The sim reads the rows, not these lists.
+
 ## Writing an effect by hand: the Natural flasks
 
 Flasks of Natural Accuracy 274273, Aggression 274274, Precision 274275 and Swiftness 274276 cast
@@ -246,9 +271,9 @@ bonus the text grants in Mount Hyjal, Hyjal Summit and the Barrow Deeps, and the
 and name what the bonus is (hit, crit, a lower chance to be dodged or parried, haste). The parser does
 not attach an `A_DUMMY`, so the rows route as unsupported and no builder registers them.
 
-Two steps make them work. `ConsumableAllowList` names the four, so db.json ships them although they
-route as unsupported. `sim/common/forever/consumables_natural_flasks.go` registers each by hand, and
-still reads every number from its row:
+`ConsumableAllowList` names the four, so db.json ships them although they route as unsupported, and
+`sim/common/forever/consumables_natural_flasks.go` registers each by hand, still reading every number
+from its row:
 
 ```go
 var NaturalFlasks = []int32{274273, 274274, 274275, 274276}
@@ -289,14 +314,16 @@ as the later auras name it, as though every fight is in those zones; `A_MOD_EXPE
 hand-written effect for an id a builder does register takes that registration's place;
 deleting the hand-written one hands the id back to the rows.
 
-The settings offer a consumable by the stats db.json lists for it, and the parser lists only the
-Stamina. `AddUnparsedStats` (`tools/database/consumable_unparsed_stats.go`) adds the same
-`NaturalFlaskZoneBonusOf` to each flask's db.json stats at the rating one percent takes (Accuracy 50 hit rating,
+The stat parse lists only the Stamina in db.json. `AddUnparsedStats`
+(`tools/database/consumable_unparsed_stats.go`) lists the same `NaturalFlaskZoneBonusOf` in each
+flask's `zone_stats` (`zoneStats` in db.json) at the rating one percent takes (Accuracy 50 hit rating,
 Aggression 56 crit rating, Precision 50 expertise rating at
-`core.ExpertiseRatingPerExpertisePercent` (10), Swiftness 50 haste rating). One rating feeds the
-physical and the spell percent alike, so a flask that grants both lists the rating once; a hit or
-crit of one channel alone is listed by that channel's pseudo stats instead, as with the hit foods
-above. The sim reads the rows, not those stats.
+`core.ExpertiseRatingPerExpertisePercent` (10), Swiftness 50 haste rating), under the zones of
+`naturalFlaskZones`: Mount Hyjal 616 and Hyjal Summit 3606, which only the tooltip names; the Barrow
+Deeps has no AreaTable row. The pickers count those stats toward a flask's EP only while the
+encounter's zone is one of them. One rating feeds the physical and the spell percent alike, so a flask
+that grants both lists the rating once. The sim reads the rows, not those stats, and applies the bonus
+in every fight.
 
 ## Adding a consumable the rows do not support
 
@@ -367,7 +394,7 @@ should not take is a hand-written effect for the consumable.
   flasks have theirs in `sim/common/forever`.
 - The warrior suites select consumables from db.json; a regeneration that moves them shows up in their
   .results files.
-- `TestAConsumableTakesItsExclusiveGroup`, `TestTheRowsGroupEveryElixirAndOnlyTheBlastedLandsByCategory`
+- `TestAConsumableTakesItsExclusiveGroup`, `TestTheRowsGroupEveryElixirAndByCategoryOnlyWhereTheCategoryOutlastsTheBuff`
   and `TestEveryExclusiveGroupOverrideShips` (`tools/database`) pin the groups; the stat builder's
   tests which consumables of one group apply and which stack.
 - `ui/sim/settings/consumables.test.ts` pins the pickers and the relevance rules below, and
@@ -376,14 +403,26 @@ should not take is a hand-written effect for the consumable.
 ## What the settings offer
 
 The settings render every consumable db.json ships from its own fields; nothing in the UI names a
-consumable. `ui/sim/settings/consumables.ts` puts each in a picker by its type: `ConsumableTypeConjured`
-the conjured item, `ConsumableTypePotion` the combat potion, then the flask, `ConsumableTypeFood` the
-food, the explosive and the imbues. A consumable with an [exclusive group](#exclusive-groups) goes into
+consumable. `buildConsumeConfigs` (`ui/features/settings/components/ConsumesPicker/utils.ts`) puts
+each in a picker by its type (`consumableSlot` in `ui/sim/settings/consumables.ts`): `ConsumableTypeConjured`
+the conjured item, `ConsumableTypePotion` the potion pickers, then the flask, `ConsumableTypeFood` the
+food, the explosive, the imbues and, beside each hand's imbue, `ConsumableTypeWeaponImbue` the weapon
+imbue. An ungrouped consumable with a `holiday` goes into the Holiday row. A consumable with an [exclusive group](#exclusive-groups) goes into
 its group's picker instead (`makeConsumableGroupInput`), which writes at most one of the group's ids:
 into `elixir_ids` for an elixir, into `extra_ids` for anything else (Juju Power beside the Strength
 elixirs). The pickers are labelled with `group_name` and ordered by `group_key`: a group holding an
 elixir in the Elixirs row after the flask (a scroll of that group among them), one holding a scroll and
 no elixir as a column of the Scrolls row, and the rest (Hit food, Zanza) after the food. A group, a column or a row that offers the player nothing hides.
+
+A potion has three pickers, Offensive, Defensive and Resource, and each offers the
+potions whose `potion_classes` hold its class. `AddPotionClasses` (`tools/database/consumable_potion_classes.go`) fills
+them after `AddUnparsedStats`: a gain of mana, rage or energy the potion builder models is resource, a
+heal or absorb defensive, the stats the potion grants, its mob type stats among them, of the class the
+major cooldown manager files the buff under (`core.CooldownTypeOf`: any of `core.SurvivalStats`
+defensive, only `core.ManaStats` resource, anything else offensive), and a hit or crit percent
+offensive. A potion of several classes, such as Major Rejuvenation Potion or
+Mighty Rage Potion, is offered in each, and one of no class fails `gen_db`. A picker keeps offering the
+potion already picked, so a pick outside its class can be seen and cleared.
 Everything else is picked any number at a time into the spec's `extra_ids`: in the miscellaneous row,
 and an explosive with a cooldown of its own beside the shared one (Goblin Sapper Charge 10646) beside
 the explosive picker.
@@ -399,21 +438,37 @@ category) and 1153 a conjured item (Demonic Rune 12662 is not even a Consumable-
 drink categories 11 and 59 make food of what its subclass leaves neither a potion, a flask nor an elixir;
 everything else takes its item subclass.
 
-`isConsumableRelevant` then decides whether the player sees it:
+A picker offers a consumable when all of these hold (`offeredTo` in
+`ui/features/settings/model/consumables.ts`):
 
-- the class, profession and race the game files allow it (`class_allowlist`, `required_profession`,
-  `race_allowlist`, the last read from `ItemSparse.AllowableRace` by the generator);
-- a stat the spec weighs (its `epStats` and `consumableStats`; Stamina brings health and the
-  resistances, Attack Power flat physical damage), a resource it spends, or, for a consumable granting
-  neither, an effect of another kind (damage, an absorb, a weapon enchant);
-- for an imbue, the hand's item against the enchant's weapon subclass and inventory type masks, so a
-  shield coating shows on a shield.
+- the class, profession and race the game files allow it (`consumableAllowed`: `class_allowlist`,
+  `required_profession` at `req_prof_rank`, `race_allowlist`, the last read from
+  `ItemSparse.AllowableRace` by the generator);
+- its required level reaches the filter's minimum for its type;
+- it does something for the stats the consumables stat filter shows (`isConsumableRelevant`): it
+  grants one of them or a percent among them, restores a resource they spend, or, granting none of
+  these, has an effect of another kind (damage, an absorb, a weapon enchant). A stat it grants only
+  against some mob types or in some zones counts as granted;
+- for an imbue, the hand's item fits the enchant's weapon subclass and inventory type masks
+  (`handTakesImbue`), so a shield coating shows on a shield.
 
-Of the ranks of one name (Scroll of Agility .. IV) the settings offer the highest numeral among those
-the player is offered, so a top rank the class, the hand or the profession rules out leaves the rank
-below it in the picker. The UI keeps the rows and their text and the
-Windfury Totem rule for the main-hand imbue. `Player.getConsumes(true)` sends the relevant potions and conjured items as
-the spec's lists.
+The stat filter starts from the stats the spec weighs consumables by (`consumableStatsOf`: its
+`epStats` and `consumableStats`; Stamina brings health and the resistances, Attack Power flat
+physical damage) and the percents `consumablePseudoStatsOf` names, and the player can show or hide
+any stat some consumable grants. A consumable already picked stays offered below the minimum level or
+with its stats hidden, so it can be seen and cleared; with its stats hidden, it is marked as kept.
+
+Each picker and each row of toggles lists its consumables by the EP their stats and percents add at
+the player's EP weights, highest first (`orderedByEp`). A mob type stat counts only while the
+encounter's first target is of one of its mob types, and a zone stat only while the encounter's zone
+is one of its zones. A consumable that grants nothing countable there (a proc, a restore, damage, a
+stat against other mob types) comes after every one that does. Ties go by required level, highest
+first, then by name.
+
+`Player.getConsumes(true)` sends the potions and conjured items relevant to the spec's own stats as
+the spec's lists, whatever the filter shows (`relevantConsumableIds`). Of the ranks of one name that
+end in a numeral, it lists only the highest the player could use, so a top rank the class or the
+profession rules out leaves the rank below it. The UI keeps the rows and their text.
 
 `gen_db -gen=db` writes `ui/features/settings/model/consumables_auto_gen.ts` in the same pass as db.json:
 one named export per shipped consumable, carrying its item id (`MightyRagePotion = { id: 13442 }`).
@@ -428,5 +483,5 @@ the UI's db.json: every id field and every id list of the `ConsumesSpec` (the po
 items, `elixir_ids` and `extra_ids`). A consumable travels whole, its item effects and temporary
 enchant with it.
 
-`TestRequestCarriesEveryConsumableThePresetSelects` (`sim/common`) runs a warrior once with every
+`TestRequestCarriesEveryConsumableThePresetSelects` (`sim/core`, `with_db`) runs a warrior once with every
 consumable loaded and once with only those a request carries, and checks both apply the same.

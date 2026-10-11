@@ -1,14 +1,16 @@
 import * as PresetUtils from '@app/preset_utils';
 import * as Consumables from '@features/settings/model/consumables_auto_gen';
 import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
-import { ConsumesSpec, HealingModel, Profession, TristateEffect } from '@generated/proto/common';
+import { ConsumesSpec, HealingModel, Profession, Race, TristateEffect } from '@generated/proto/common';
 import { ProtectionPaladin_Options as ProtectionPaladinOptions } from '@generated/proto/paladin';
+import { SavedTalents } from '@generated/proto/ui';
 
 import DefaultApl from './apls/default.apl.json';
 import DefaultGear from './gear_sets/default.gear.json';
 
-// Seal of Righteousness, Judgement and Holy Strike on cooldown. A rotation worth the name waits
-// for the Forever numbers above level 20.
+// Retribution Aura and Seal of the Crusader before the pull, then Judgement, Swift Judgement, Seal
+// of Fury, Consecration, Holy Shock while Consecrated Ground is on the target, Holy Shield, Holy
+// Strike and Exorcism.
 export const APL_PRESET = PresetUtils.makePresetAPLRotation('Default', DefaultApl);
 
 // Level 60 blues from dungeons, quests, reputations and crafting: a placeholder until Phase 1
@@ -17,18 +19,31 @@ export const GEAR_DEFAULT = PresetUtils.makePresetGear('Default', DefaultGear, {
 	tooltip: 'Level 60 blues from dungeons, quests, reputations and crafting. A placeholder until the Phase 1 gear is known.',
 });
 
+export const DefaultTalents = PresetUtils.makePresetTalents('Default', SavedTalents.create({ talentsString: '50003-0530313321301531-5022' }));
+
 export const DefaultOptions = ProtectionPaladinOptions.create({
 	classOptions: {},
 });
 
 export const DefaultConsumables = ConsumesSpec.create({
 	flaskId: Consumables.FlaskOfSupremePower.id,
-	foodId: Consumables.NightfinSoup.id,
-	potId: Consumables.GreaterStoneshieldPotion.id,
+	foodId: Consumables.BakedSalmon.id,
+	defensivePotId: Consumables.GreaterStoneshieldPotion.id,
 	conjuredId: Consumables.DemonicRune.id,
 	mhImbueId: Consumables.BrilliantWizardOil.id,
 	explosiveId: Consumables.EzThroDynamiteII.id,
-	extraIds: [Consumables.GoblinSapperCharge.id, Consumables.ScrollOfStrengthIV.id, Consumables.ScrollOfAgilityIV.id, Consumables.ScrollOfProtectionIV.id],
+	extraIds: [Consumables.GoblinSapperCharge.id, Consumables.JujuMight.id, Consumables.ScrollOfStaminaIV.id],
+	elixirIds: [
+		Consumables.ElixirOfHolyPower.id,
+		Consumables.GreaterArcaneElixir.id,
+		Consumables.ElixirOfTheOwl.id,
+		Consumables.ElixirOfSages.id,
+		Consumables.ElixirOfGreaterFortitude.id,
+		Consumables.GreaterMagebloodElixir.id,
+		Consumables.ElixirOfGreaterDefense.id,
+		Consumables.ElixirOfFerocity.id,
+		Consumables.ElixirOfTheMongoose.id,
+	],
 });
 
 export const DefaultRaidBuffs = RaidBuffs.create({
@@ -41,10 +56,9 @@ export const DefaultRaidBuffs = RaidBuffs.create({
 
 export const DefaultPartyBuffs = PartyBuffs.create({
 	manaSpringTotem: TristateEffect.TristateEffectRegular,
-	graceOfAirTotem: false,
-	strengthOfEarthTotem: true,
-	windfuryTotem: false,
-	battleShout: TristateEffect.TristateEffectMissing,
+	leaderOfThePack: true,
+	windfuryTotem: true,
+	battleShout: TristateEffect.TristateEffectRegular,
 });
 
 export const DefaultIndividualBuffs = IndividualBuffs.create({
@@ -55,6 +69,7 @@ export const DefaultIndividualBuffs = IndividualBuffs.create({
 });
 
 export const DefaultDebuffs = Debuffs.create({
+	judgementOfTheCrusader: true,
 	curseOfElements: true,
 	judgementOfWisdom: true,
 	judgementOfLight: true,
@@ -62,10 +77,13 @@ export const DefaultDebuffs = Debuffs.create({
 	sunderArmor: true,
 	faerieFire: true,
 	exposeArmor: true,
+	giftOfArthas: true,
+	demoralizingShout: true,
 	insectSwarm: true,
 });
 
 export const OtherDefaults = {
+	race: Race.RaceHuman,
 	profession1: Profession.Engineering,
 	profession2: Profession.Enchanting,
 	distanceFromTarget: 5,

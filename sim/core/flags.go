@@ -201,7 +201,6 @@ const (
 	SpellFlagPotion                                         // Indicates this spell is a potion spell.
 	SpellFlagConjured                                       // Indicates this spell is a conjured item spell.
 	SpellFlagExplosive                                      // Indicates this spell is an engineering explosive.
-	SpellFlagCombatPotion                                   // Indicates this spell is the combat potion.
 	SpellFlagNoSpellMods                                    // Indicates that no spell mods should be applied to this spell
 	SpellFlagCanCastWhileMoving                             // Allows the cast to be casted while moving
 	SpellFlagPassiveSpell                                   // Indicates this spell is applied/cast as a result of another spell
@@ -213,6 +212,7 @@ const (
 	SpellFlagFullResistanceTicks                            // Its ticks meet the target's full resistance, as direct hits and channel ticks do, where other ticks meet a tenth, and roll partial resists even on a binary spell (Insect Swarm).
 	SpellFlagPushback                                       // Damage taken while hardcasting pushes the cast back: SpellInterrupts.InterruptFlags 0x2.
 	SpellFlagNoPartialResist                                // The spell's hits never lose damage to a partial resist, e.g. a wand's shots.
+	SpellFlagKeepsSwingTimer                                // Completing a cast of the spell leaves the melee swing timer running: Do Not Reset Combat Timers (Attributes[2] 0x20000).
 
 	// Used to let agents categorize their spells.
 	SpellFlagAgentReserved1

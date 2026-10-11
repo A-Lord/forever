@@ -37,14 +37,14 @@ func requestConsumableIDs(consumables *proto.ConsumesSpec) []int32 {
 }
 
 var requestPreset = &proto.ConsumesSpec{
-	PotId:       13442, // Mighty Rage Potion
-	Potions:     []int32{13446},
-	FlaskId:     13510,                // Flask of the Titans
-	ElixirIds:   []int32{9187, 13445}, // Elixir of Greater Agility, Elixir of Superior Defense
-	FoodId:      20452,                // Smoked Desert Dumplings
-	ExplosiveId: 18588,                // Ez-Thro Dynamite II
-	MhImbueId:   12404,                // Dense Sharpening Stone
-	OhImbueId:   12404,
+	ResourcePotId: 13442, // Mighty Rage Potion
+	Potions:       []int32{13446},
+	FlaskId:       13510,                // Flask of the Titans
+	ElixirIds:     []int32{9187, 13445}, // Elixir of Greater Agility, Elixir of Superior Defense
+	FoodId:        20452,                // Smoked Desert Dumplings
+	ExplosiveId:   18588,                // Ez-Thro Dynamite II
+	MhImbueId:     12404,                // Dense Sharpening Stone
+	OhImbueId:     12404,
 	// Goblin Sapper Charge, Scrolls of Strength, Intellect, Spirit and Stamina IV, Bogling Root
 	ExtraIds: []int32{10646, 10310, 10308, 10306, 10307, 5206},
 }

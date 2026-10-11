@@ -2462,6 +2462,9 @@
 								"title": {
 									"type": "string"
 								},
+								"trigger": {
+									"type": "string"
+								},
 								"min_lvl": {
 									"type": "string"
 								},
@@ -2500,7 +2503,7 @@
 								}
 							},
 							"additionalProperties": false,
-							"required": ["title", "min_lvl", "reset", "types"]
+							"required": ["title", "trigger", "min_lvl", "reset", "types"]
 						},
 						"potions": {
 							"type": "object",
@@ -2511,12 +2514,18 @@
 								"prepop": {
 									"type": "string"
 								},
-								"combat": {
+								"offensive": {
+									"type": "string"
+								},
+								"defensive": {
+									"type": "string"
+								},
+								"resource": {
 									"type": "string"
 								}
 							},
 							"additionalProperties": false,
-							"required": ["title", "prepop", "combat"]
+							"required": ["title", "prepop", "offensive", "defensive", "resource"]
 						},
 						"elixirs": {
 							"type": "object",
@@ -8491,9 +8500,6 @@
 										"stats_type": {
 											"type": "string"
 										},
-										"show_all_stats": {
-											"type": "string"
-										},
 										"dps_tps_reference": {
 											"type": "string"
 										},
@@ -8760,7 +8766,6 @@
 										"ep",
 										"weights",
 										"stats_type",
-										"show_all_stats",
 										"dps_tps_reference",
 										"healing_reference",
 										"mitigation_reference",
@@ -9209,22 +9214,6 @@
 						"title": {
 							"type": "string"
 						},
-						"mode": {
-							"type": "object",
-							"properties": {
-								"label": {
-									"type": "string"
-								},
-								"key": {
-									"type": "string"
-								},
-								"all": {
-									"type": "string"
-								}
-							},
-							"additionalProperties": false,
-							"required": ["label", "key", "all"]
-						},
 						"groups": {
 							"type": "object",
 							"properties": {
@@ -9447,7 +9436,6 @@
 					"additionalProperties": false,
 					"required": [
 						"title",
-						"mode",
 						"groups",
 						"hands",
 						"melee_crit_cap",
@@ -9464,6 +9452,69 @@
 			},
 			"additionalProperties": false,
 			"required": ["iterations", "warnings", "buttons", "header", "results", "character_stats"]
+		},
+		"stat_filters": {
+			"type": "object",
+			"properties": {
+				"title": {
+					"type": "string"
+				},
+				"triggers": {
+					"type": "object",
+					"properties": {
+						"character_stats": {
+							"type": "string"
+						},
+						"ep": {
+							"type": "string"
+						},
+						"buffs": {
+							"type": "string"
+						},
+						"debuffs": {
+							"type": "string"
+						}
+					},
+					"additionalProperties": false,
+					"required": ["character_stats", "ep", "buffs", "debuffs"]
+				},
+				"spec_defaults": {
+					"type": "string"
+				},
+				"all": {
+					"type": "string"
+				},
+				"groups": {
+					"type": "object",
+					"properties": {
+						"primary": {
+							"type": "string"
+						},
+						"ratings": {
+							"type": "string"
+						},
+						"other": {
+							"type": "string"
+						}
+					},
+					"additionalProperties": false,
+					"required": ["primary", "ratings", "other"]
+				},
+				"group_count": {
+					"type": "string"
+				},
+				"kept_tooltip": {
+					"type": "string"
+				},
+				"rating_label": {
+					"type": "string"
+				},
+				"percent_label": {
+					"type": "string"
+				}
+			},
+			"additionalProperties": false,
+			"required": ["title", "triggers", "spec_defaults", "all", "groups", "group_count", "kept_tooltip", "rating_label", "percent_label"]
 		}
 	},
 	"additionalProperties": false,
@@ -9480,7 +9531,8 @@
 		"import",
 		"export",
 		"info",
-		"sidebar"
+		"sidebar",
+		"stat_filters"
 	],
 	"$schema": "http://json-schema.org/draft-07/schema#",
 	"title": "Generated Schema",

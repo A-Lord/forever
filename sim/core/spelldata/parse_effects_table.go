@@ -618,15 +618,14 @@ var flatModTable = map[dbcenums.SpellModOp]row{
 var pctModTable = map[dbcenums.SpellModOp]row{
 	dbcenums.SPELLMOD_DAMAGE: func(p *parser, e *Effect, v float64) *attachment {
 		// Direct hits only: ticks take SPELLMOD_DOT, which a talent states beside it when it raises both.
-		return p.modFloat("SpellMod_DirectDamageDone_Flat", p.modConfig(e, core.SpellMod_DirectDamageDone_Flat), v)
+		return p.modFloat("SpellMod_DirectDamageDone_Pct", p.modConfig(e, core.SpellMod_DirectDamageDone_Pct), v)
 	},
 	dbcenums.SPELLMOD_ALL_EFFECTS: pctDamageDone,
 	dbcenums.SPELLMOD_DOT: func(p *parser, e *Effect, v float64) *attachment {
 		return p.modFloat("SpellMod_DotDamageDone_Pct", p.modConfig(e, core.SpellMod_DotDamageDone_Pct), v)
 	},
 	dbcenums.SPELLMOD_COST: func(p *parser, e *Effect, v float64) *attachment {
-		// The additive bucket, which is where sim/core/spell_mod.go files a 108 with misc 14.
-		return p.modFloat("SpellMod_PowerCost_Pct_Add", p.modConfig(e, core.SpellMod_PowerCost_Pct_Add), v)
+		return p.modFloat("SpellMod_PowerCost_Pct", p.modConfig(e, core.SpellMod_PowerCost_Pct), v)
 	},
 	dbcenums.SPELLMOD_CASTING_TIME: func(p *parser, e *Effect, v float64) *attachment {
 		return p.modFloat("SpellMod_CastTime_Pct", p.modConfig(e, core.SpellMod_CastTime_Pct), v)

@@ -52,11 +52,6 @@ export default defineSpec<Spec.SpecEnhancementShaman>({
 			Stat.StatArmorPenetration,
 			Stat.StatSpellDamage,
 			Stat.StatNatureDamage,
-			Stat.StatArcaneResistance,
-			Stat.StatFireResistance,
-			Stat.StatFrostResistance,
-			Stat.StatNatureResistance,
-			Stat.StatShadowResistance,
 		],
 		[
 			PseudoStat.PseudoStatMeleeHitPercent,

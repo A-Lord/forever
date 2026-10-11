@@ -58,6 +58,7 @@ type ResolvedBuff struct {
 	CastSpellID int32 // the cast, where the manifest pins one; SpellID otherwise
 	DurationMs  int32 // -1 or 0 never expires
 	CooldownMs  int32 // 0 when the game files state none; read from the cast
+	Totem       bool  // the cast summons into a totem slot, so the owner's true pets stand under it too
 
 	// Spell is the row the store carries for SpellID, built from the same
 	// captured game files rows the store is rendered from.
@@ -184,6 +185,7 @@ func loadBuffSpell(t *spellTables, row *ResolvedBuff) error {
 	row.Spell = storeRowSpell(spell)
 	row.DBName = spell.Name
 	row.DurationMs = spell.DurationMs
+	row.Totem = summonsTotem(t.row(row.CastSpellID))
 
 	if row.Kind != buffmanifest.KindExternalCD {
 		return nil
@@ -201,6 +203,16 @@ func loadBuffSpell(t *spellTables, row *ResolvedBuff) error {
 		row.unsupported("spell %d states no duration, which the external cooldown's aura needs", row.SpellID)
 	}
 	return nil
+}
+
+// The SummonProperties rows of the four totem slots (fire, earth, water and air), which a totem's
+// summon names in its second misc value. The game files database carries no SummonProperties table.
+var totemSlotSummonProperties = []int32{63, 81, 82, 83}
+
+func summonsTotem(cast storeSpell) bool {
+	return slices.ContainsFunc(cast.Effects, func(e storeEffect) bool {
+		return e.Type == dbcenums.E_SUMMON && slices.Contains(totemSlotSummonProperties, e.Misc2)
+	})
 }
 
 // The store's row as sim/core/spelldata states it, copied field by field from the generator's
@@ -714,7 +726,7 @@ func renderRow(row ResolvedBuff) buffRow {
 	out.HasValue = len(row.Applied) > 0 || row.Kind == buffmanifest.KindDamageShield
 	out.HasCooldown = row.CooldownMs > 0
 	out.Constructor = buffConstructor(row, out)
-	out.ApplyIf, out.ApplyBody, out.HasApply = buffApply(row)
+	out.ApplyIf, out.ApplyBody, out.HasApply = buffApply(row, out.SpellVar)
 	return out
 }
 
@@ -799,8 +811,10 @@ func buffConstructor(row ResolvedBuff, rendered buffRow) string {
 // uptime calls a driver of a fixed name that sim/core/buffs/drivers.go declares,
 // and so does a row the manifest marks as driven. A driver is handed the whole
 // scope message rather than its own field, because a driven buff often reads a
-// second one: Grace of Air does nothing under Windfury Totem.
-func buffApply(row ResolvedBuff) (string, string, bool) {
+// second one: Grace of Air does nothing under Windfury Totem. Any other totem
+// stands through standTotem, which puts it on the character's true pets too
+// unless the row's spell says only a player can carry it.
+func buffApply(row ResolvedBuff, spellVar string) (string, string, bool) {
 	unit, field := "char", buffScopeField(row.Scope)
 	if row.Scope == buffmanifest.ScopeDebuff {
 		unit = "target"
@@ -828,6 +842,8 @@ func buffApply(row ResolvedBuff) (string, string, bool) {
 			scope = "debuffs, raid"
 		}
 		body = fmt.Sprintf("drive%s(%s, %s)", row.Go, unit, scope)
+	case row.Totem && row.Scope != buffmanifest.ScopeDebuff:
+		body = fmt.Sprintf("standTotem(char, %s, %s, %s)", spellVar, buffBuilder(row.Go), points)
 	default:
 		target := "&char.Unit"
 		if row.Scope == buffmanifest.ScopeDebuff {

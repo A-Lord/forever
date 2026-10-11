@@ -1,7 +1,9 @@
 import type { ResolvedIcon } from '@ui-kit/Field/types';
+import { Icon } from '@ui-kit/Icon';
+import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import { WowheadAnchor, type WowheadAnchorProps } from '@ui-kit/WowheadAnchor';
 import clsx from 'clsx';
-import type { ReactNode } from 'react';
+import { type ReactNode, useId } from 'react';
 
 import { resolvedIconStyle } from '../utils/icons';
 
@@ -14,13 +16,20 @@ export interface IconSwatchProps extends Omit<WowheadAnchorProps, 'children' | '
 	text?: string;
 	/** Anchors laid over the swatch. They sit beside it in one positioned box, since an anchor cannot hold another. */
 	badges?: ReactNode;
+	/**
+	 * Set for a selection the caller keeps on offer only because it is selected: dims the swatch, with its badges, and
+	 * a corner badge beside it shows this on hover, so the swatch keeps its own link tooltip.
+	 */
+	keptTooltip?: string;
 }
 
-/** An icon as a link: wowhead's tooltip script finds it through the `href`. `className` lands on the box when there are badges. */
-export const IconSwatch = ({ icon, active, disabled, text, badges, className, style, ...rest }: IconSwatchProps) => {
+/** An icon as a link: wowhead's tooltip script finds it through the `href`. `className` lands on the box when there are badges or a kept badge. */
+export const IconSwatch = ({ icon, active, disabled, text, badges, keptTooltip, className, style, ...rest }: IconSwatchProps) => {
+	const tooltipId = useId();
+	const boxed = !!badges || !!keptTooltip;
 	const anchor = (
 		<WowheadAnchor
-			className={clsx('ui-icon-picker-swatch', !badges && className)}
+			className={clsx('ui-icon-picker-swatch', !boxed && className)}
 			data-active={active ? '' : undefined}
 			data-disabled={disabled ? '' : undefined}
 			disabled={disabled}
@@ -30,12 +39,30 @@ export const IconSwatch = ({ icon, active, disabled, text, badges, className, st
 		</WowheadAnchor>
 	);
 
-	if (!badges) return anchor;
+	if (!boxed) return anchor;
 
-	return (
-		<div className={clsx('ui-icon-swatch-box', className)}>
+	const box = (
+		<div className={clsx('ui-icon-swatch-box', className)} data-kept={keptTooltip ? '' : undefined}>
 			{anchor}
 			{badges}
+			{keptTooltip && (
+				<Icon
+					name="eye-slash"
+					className="ui-icon-swatch-kept"
+					title={keptTooltip}
+					testId="icon-swatch-kept"
+					{...tooltipAnchorProps(tooltipId, keptTooltip)}
+				/>
+			)}
 		</div>
+	);
+
+	if (!keptTooltip) return box;
+
+	return (
+		<>
+			{box}
+			<Tooltip id={tooltipId} />
+		</>
 	);
 };

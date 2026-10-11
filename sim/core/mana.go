@@ -38,9 +38,11 @@ type manaBar struct {
 	nextManaTick time.Duration
 	paidBy       *Spell // The spell that last paid mana, until a channel it starts claims the payment.
 
-	// For keeping track of OOM status.
-	waitingForMana          float64
-	waitingForManaStartTime time.Duration
+	// OOM while the rotation skips a spell it wants for its mana cost, whatever it casts instead. A pass
+	// the unit starts free to act updates it.
+	oom          bool
+	oomStartedAt time.Duration
+	costBlocked  bool // The current rotation pass skipped a spell for its mana cost.
 }
 
 // EnableManaBar will setup caster stat dependencies (int->mana and int->spellcrit)
@@ -142,9 +144,7 @@ func (mb *manaBar) doneIteration(sim *Simulation) {
 		return
 	}
 
-	if mb.waitingForMana != 0 {
-		mb.unit.Metrics.AddOOMTime(sim, sim.CurrentTime-mb.waitingForManaStartTime)
-	}
+	mb.EndOOMEvent(sim)
 
 	manaGainSpell := mb.unit.GetSpell(ActionID{OtherID: proto.OtherAction_OtherActionManaGain})
 
@@ -337,29 +337,29 @@ func (mb *manaBar) reset() {
 
 	mb.manaRegenMultiplier = 1.0
 
-	mb.waitingForMana = 0
-	mb.waitingForManaStartTime = 0
+	mb.oom = false
 	mb.paidBy = nil
 }
 
 func (mb *manaBar) IsOOM() bool {
-	return mb.waitingForMana != 0
+	return mb.oom
 }
-func (mb *manaBar) StartOOMEvent(sim *Simulation, requiredMana float64, isPet bool) {
-	mb.waitingForManaStartTime = sim.CurrentTime
-	mb.waitingForMana = requiredMana
-	if !isPet {
-		mb.unit.Metrics.MarkOOM(sim)
-	}
 
-}
-func (mb *manaBar) EndOOMEvent(sim *Simulation, isPet bool) {
-	eventDuration := sim.CurrentTime - mb.waitingForManaStartTime
-	if !isPet {
-		mb.unit.Metrics.AddOOMTime(sim, eventDuration)
+// Pets keep no OOM metrics, so they never go OOM.
+func (mb *manaBar) StartOOMEvent(sim *Simulation) {
+	if mb.oom || mb.unit.Type == PetUnit {
+		return
 	}
-	mb.waitingForManaStartTime = 0
-	mb.waitingForMana = 0
+	mb.oom = true
+	mb.oomStartedAt = sim.CurrentTime
+	mb.unit.Metrics.MarkOOM(sim)
+}
+func (mb *manaBar) EndOOMEvent(sim *Simulation) {
+	if !mb.oom {
+		return
+	}
+	mb.oom = false
+	mb.unit.Metrics.AddOOMTime(sim, sim.CurrentTime-mb.oomStartedAt)
 }
 
 type ManaCostOptions struct {
@@ -383,30 +383,26 @@ func newManaCost(spell *Spell, options ManaCostOptions) *SpellCost {
 	}
 }
 
+// A running hardcast pays its cost when it completes; the mana left after that is what counts.
+func (unit *Unit) manaAfterHardcast(sim *Simulation) float64 {
+	mana := unit.CurrentMana()
+	if unit.Hardcast.Expires > sim.CurrentTime {
+		mana -= unit.Hardcast.Cost
+	}
+	return mana
+}
+
+// For a rotation that checks a mana cost itself: the current pass skips a spell it wants for its cost.
+func (mb *manaBar) SkipForMana() {
+	mb.costBlocked = true
+}
+
 func (mc *ManaCost) MeetsRequirement(sim *Simulation, spell *Spell) bool {
 	spell.CurCast.Cost = spell.Cost.GetCurrentCost()
-	meetsRequirement := spell.Unit.CurrentMana() >= spell.CurCast.Cost
-	isPet := spell.Unit.Type == PetUnit
-	if spell.CurCast.Cost > 0 {
-		if meetsRequirement {
-			if spell.Unit.IsOOM() {
-				spell.Unit.EndOOMEvent(sim, isPet)
-			}
-		} else {
-			if spell.Unit.IsOOM() {
-				// Continuation of OOM event.
-				spell.Unit.waitingForMana = min(spell.Unit.waitingForMana, spell.CurCast.Cost)
-			} else {
-
-				spell.Unit.StartOOMEvent(sim, spell.CurCast.Cost, isPet)
-			}
-		}
-	}
-
-	return meetsRequirement
+	return spell.CurCast.Cost <= 0 || spell.Unit.manaAfterHardcast(sim) >= spell.CurCast.Cost
 }
 func (mc *ManaCost) CostFailureReason(sim *Simulation, spell *Spell) string {
-	return fmt.Sprintf("not enough mana (Current Mana = %0.03f, Mana Cost = %0.03f)", spell.Unit.CurrentMana(), spell.CurCast.Cost)
+	return fmt.Sprintf("not enough mana (Mana After Cast = %0.03f, Mana Cost = %0.03f)", spell.Unit.manaAfterHardcast(sim), spell.CurCast.Cost)
 }
 func (mc *ManaCost) SpendCost(sim *Simulation, spell *Spell) {
 	spell.Unit.paidBy = nil

@@ -64,7 +64,7 @@ func (hunter *Hunter) addPvpGloves() {
 	hunter.RegisterPvPGloveMod(
 		pvpGloveItemIDs,
 		core.SpellModConfig{
-			Kind:       core.SpellMod_DamageDone_Flat,
+			Kind:       core.SpellMod_DirectDamageDone_Pct,
 			ClassFlags: multiShotRank.ClassFlags,
 			FloatValue: pvpGloveMultiShot.EffectN(1).Percent(),
 		})
