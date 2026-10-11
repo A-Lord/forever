@@ -14,6 +14,17 @@ func standTotem(char *core.Character, build func(unit *core.Unit, isPlayer bool,
 	})
 }
 
+// A weapon totem stands for the fight, and its whole chain (totem aura, category bid and proc) stands
+// on each true pet that melees.
+func inheritWeaponTotem(char *core.Character, stand func(char *core.Character) *core.Aura) {
+	inheritTotem(char, core.MakePermanent(stand(char)), func(pet *core.Pet) *core.Aura {
+		if !pet.AutoAttacks.AutoSwingMelee {
+			return nil
+		}
+		return stand(&pet.Character)
+	})
+}
+
 // Each true pet's copy of the owner's totem aura is up while the owner's is and the pet is
 // summoned, however often the pet is dismissed and summoned again. A nil copy leaves that pet out.
 func inheritTotem(char *core.Character, totem *core.Aura, petCopy func(pet *core.Pet) *core.Aura) {

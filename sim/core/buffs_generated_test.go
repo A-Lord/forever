@@ -1532,10 +1532,9 @@ func setupPetOwnerSim(party *proto.PartyBuffs) (*core.Simulation, *petOwner) {
 				}},
 				Buffs: party,
 			}},
-			Buffs: &proto.RaidBuffs{},
 		},
 		Encounter: &proto.Encounter{
-			Targets:  []*proto.Target{{Name: "target", Level: 60, MobType: proto.MobType_MobTypeDemon}},
+			Targets:  []*proto.Target{{Name: "target", Level: 60}},
 			Duration: 180,
 		},
 	}, simsignals.CreateSignals())

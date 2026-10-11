@@ -244,6 +244,25 @@ func renderSyntheticBuffFiles(t *testing.T) map[string][]byte {
 	return files
 }
 
+// A cast is a totem when it summons into a totem slot; any other summon, or a slot named by
+// another effect, is not.
+func TestTotemIsASummonIntoATotemSlot(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		effects []storeEffect
+		want    bool
+	}{
+		{"totem slot", []storeEffect{{Type: dbcenums.E_SUMMON, Misc2: totemSlotSummonProperties[0]}}, true},
+		{"other summon", []storeEffect{{Type: dbcenums.E_SUMMON, Misc2: 1}}, false},
+		{"slot on another effect", []storeEffect{{Type: dbcenums.E_APPLY_AURA, Misc2: totemSlotSummonProperties[0]}}, false},
+		{"no effects", nil, false},
+	} {
+		if got := summonsTotem(storeSpell{Effects: tc.effects}); got != tc.want {
+			t.Errorf("%s: a totem %v, want %v", tc.name, got, tc.want)
+		}
+	}
+}
+
 func TestRenderedBuffFilesMatchTheFixtures(t *testing.T) {
 	files := renderSyntheticBuffFiles(t)
 

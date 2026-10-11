@@ -205,12 +205,7 @@ var windfuryTotemCast = spelldata.MustFind(10614)
 // hears and its 100 ms cooldown. The driver keeps the extra attack the proc
 // lands, and the totem aura that holds the category.
 func driveWindfuryTotem(char *core.Character, _ *proto.PartyBuffs) {
-	inheritTotem(char, core.MakePermanent(standWindfuryTotem(char)), func(pet *core.Pet) *core.Aura {
-		if !pet.AutoAttacks.AutoSwingMelee {
-			return nil
-		}
-		return standWindfuryTotem(&pet.Character)
-	})
+	inheritWeaponTotem(char, standWindfuryTotem)
 }
 
 func standWindfuryTotem(char *core.Character) *core.Aura {
@@ -290,8 +285,8 @@ func HoldOverWindfuryTotemRivals(totemAura *core.Aura) {
 	}
 }
 
-// A weapon totem's party aura stands for the fight and bids for the category,
-// which keeps the proc trigger up while it holds it. Outbid, by a main-hand
+// A weapon totem's party aura bids for the category while it is up, which keeps
+// the proc trigger up while it holds it. Outbid, by a main-hand
 // imbue, the shaman's own totem or a standing Windfury Totem, it stays up and takes
 // the category back once the higher bid goes.
 func holdTotemAura(totemAura *core.Aura, category string, priority float64, procTrigger *core.Aura) {
@@ -336,12 +331,7 @@ func driveFlametongueTotem(char *core.Character, party *proto.PartyBuffs) {
 	if party.WindfuryTotem {
 		return
 	}
-	inheritTotem(char, core.MakePermanent(standFlametongueTotem(char)), func(pet *core.Pet) *core.Aura {
-		if !pet.AutoAttacks.AutoSwingMelee {
-			return nil
-		}
-		return standFlametongueTotem(&pet.Character)
-	})
+	inheritWeaponTotem(char, standFlametongueTotem)
 }
 
 func standFlametongueTotem(char *core.Character) *core.Aura {
