@@ -33,57 +33,48 @@ export const HolyTalents = PresetUtils.makePresetTalents('Holy', SavedTalents.cr
 
 export const DiscSingleTargetEpWeights = PresetUtils.makePresetEpWeights(
 	'Disc Single-Target',
-	Stats.fromMap(
-		{
-			[Stat.StatHealingPower]: 1.00,
-			[Stat.StatCritRating]: 0.70,
-			[Stat.StatHasteRating]: 0.15,
-			[Stat.StatIntellect]: 0.20,
-			[Stat.StatSpirit]: 0.15,
-			[Stat.StatMP5]: 0.40,
-		}
-	),
+	Stats.fromMap({
+		[Stat.StatHealingPower]: 1.0,
+		[Stat.StatCritRating]: 0.7,
+		[Stat.StatHasteRating]: 0.15,
+		[Stat.StatIntellect]: 0.2,
+		[Stat.StatSpirit]: 0.15,
+		[Stat.StatMP5]: 0.4,
+	}),
 );
 
 export const DiscRaidHealingEpWeights = PresetUtils.makePresetEpWeights(
 	'Disc Raid Healing',
-	Stats.fromMap(
-		{
-			[Stat.StatHealingPower]: 1.00,
-			[Stat.StatCritRating]: 0.48,
-			[Stat.StatHasteRating]: 0.10,
-			[Stat.StatIntellect]: 0.20,
-			[Stat.StatSpirit]: 0.10,
-			[Stat.StatMP5]: 0.19,
-		}
-	)
-)
+	Stats.fromMap({
+		[Stat.StatHealingPower]: 1.0,
+		[Stat.StatCritRating]: 0.48,
+		[Stat.StatHasteRating]: 0.1,
+		[Stat.StatIntellect]: 0.2,
+		[Stat.StatSpirit]: 0.1,
+		[Stat.StatMP5]: 0.19,
+	}),
+);
 
 export const HolySingleTargetEpWeights = PresetUtils.makePresetEpWeights(
 	'Holy Single-Target',
-	Stats.fromMap(
-		{
-			[Stat.StatHealingPower]: 1.00,
-			[Stat.StatCritRating]: 0.30,
-			[Stat.StatHasteRating]: 0.50,
-			[Stat.StatIntellect]: 0.35,
-			[Stat.StatSpirit]: 0.30,
-			[Stat.StatMP5]: 0.60,
-		}
-	)
-)
-
+	Stats.fromMap({
+		[Stat.StatHealingPower]: 1.0,
+		[Stat.StatCritRating]: 0.3,
+		[Stat.StatHasteRating]: 0.5,
+		[Stat.StatIntellect]: 0.35,
+		[Stat.StatSpirit]: 0.3,
+		[Stat.StatMP5]: 0.6,
+	}),
+);
 
 export const HolyRaidHealingEpWeights = PresetUtils.makePresetEpWeights(
 	'Holy Raid Healing',
-	Stats.fromMap(
-		{
-			[Stat.StatHealingPower]: 1.00,
-			[Stat.StatCritRating]: 0.23,
-			[Stat.StatHasteRating]: 0.48,
-			[Stat.StatIntellect]: 0.30,
-			[Stat.StatSpirit]: 0.25,
-			[Stat.StatMP5]: 0.60,
-		}
-	)
-)
+	Stats.fromMap({
+		[Stat.StatHealingPower]: 1.0,
+		[Stat.StatCritRating]: 0.23,
+		[Stat.StatHasteRating]: 0.48,
+		[Stat.StatIntellect]: 0.3,
+		[Stat.StatSpirit]: 0.25,
+		[Stat.StatMP5]: 0.6,
+	}),
+);

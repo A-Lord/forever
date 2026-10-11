@@ -1,4 +1,3 @@
-
 import * as BuffDebuffInputs from '@features/settings/model/buffs_debuffs';
 import { APLRotation } from '@generated/proto/apl';
 import { Debuffs } from '@generated/proto/buffs';
