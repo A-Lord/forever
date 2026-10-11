@@ -102,8 +102,8 @@ message Consumable {
 	string holiday = 21;
 	// What the on-use grants only against a target of these mob types, which stats leaves out.
 	repeated MobTypeStats mob_type_stats = 22;
-	// What the on-use grants only while the encounter is in this kind of area, which stats leaves out.
-	repeated AreaStats area_stats = 23;
+	// What the on-use grants only while the encounter is in one of these zones, which stats leaves out.
+	repeated ZoneStats zone_stats = 23;
 }
 
 message ItemEffectRandPropPoints {

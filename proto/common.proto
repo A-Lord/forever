@@ -49,6 +49,12 @@ message MobTypeStats {
 	map<int32, double> stats = 2; // keys are the numeric values of Stat
 }
 
+// Stats that only apply while the encounter is in one of these zones, by AreaTable id.
+message ZoneStats {
+	repeated int32 zone_ids = 1;
+	map<int32, double> stats = 2; // keys are the numeric values of Stat
+}
+
 enum Spec {
 	SpecUnknown = 0;
 

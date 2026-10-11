@@ -36,8 +36,13 @@ func TestUnparsedStatsListChannelPercentsAndZoneBonus(t *testing.T) {
 		return spelldata.MustFind(spellID).FirstAura(aura).Average()
 	}
 	zoneBonus := func(spellID int32) float64 {
-		return spelldata.MustFind(spellID).EffectN(2).Average()
+		bonus := spelldata.MustFind(spellID).EffectN(2).Average()
+		if bonus == 0 {
+			t.Fatalf("%d states no zone bonus", spellID)
+		}
+		return bonus
 	}
+	stamina := map[proto.Stat]float64{proto.Stat_StatStamina: 60}
 	meleeAndRangedHit := func(spellID int32) map[proto.PseudoStat]float64 {
 		hit := amount(spellID, dbcenums.A_MOD_HIT_CHANCE)
 		return map[proto.PseudoStat]float64{proto.PseudoStat_PseudoStatMeleeHitPercent: hit, proto.PseudoStat_PseudoStatRangedHitPercent: hit}
@@ -51,6 +56,7 @@ func TestUnparsedStatsListChannelPercentsAndZoneBonus(t *testing.T) {
 	for id, want := range map[int32]struct {
 		stats       map[proto.Stat]float64
 		pseudoStats map[proto.PseudoStat]float64
+		zoneStats   map[proto.Stat]float64
 	}{
 		23327:  {pseudoStats: meleeAndRangedHit(29332)},
 		22237:  {pseudoStats: meleeAndRangedHit(27723)},
@@ -58,12 +64,23 @@ func TestUnparsedStatsListChannelPercentsAndZoneBonus(t *testing.T) {
 		211957: {pseudoStats: map[proto.PseudoStat]float64{proto.PseudoStat_PseudoStatSpellCritPercent: amount(430952, dbcenums.A_MOD_SPELL_CRIT_CHANCE)}},
 		13452:  {pseudoStats: allCrit(17538)},
 		250337: {pseudoStats: allCrit(1250940)},
-		274273: {stats: map[proto.Stat]float64{proto.Stat_StatStamina: 60, proto.Stat_StatHitRating: zoneBonus(1293740) * core.HitRatingPerHitPercent}},
-		274274: {stats: map[proto.Stat]float64{proto.Stat_StatStamina: 60, proto.Stat_StatCritRating: zoneBonus(1293741) * core.CritRatingPerCritPercent}},
-		274275: {stats: map[proto.Stat]float64{proto.Stat_StatStamina: 60, proto.Stat_StatExpertiseRating: zoneBonus(1293742) * core.ExpertiseRatingPerExpertisePercent}},
-		274276: {stats: map[proto.Stat]float64{proto.Stat_StatStamina: 60, proto.Stat_StatHasteRating: zoneBonus(1293743) * core.HasteRatingPerHastePercent}},
+		274273: {stats: stamina, zoneStats: map[proto.Stat]float64{proto.Stat_StatHitRating: zoneBonus(1293740) * core.HitRatingPerHitPercent}},
+		274274: {stats: stamina, zoneStats: map[proto.Stat]float64{proto.Stat_StatCritRating: zoneBonus(1293741) * core.CritRatingPerCritPercent}},
+		274275: {stats: stamina, zoneStats: map[proto.Stat]float64{proto.Stat_StatExpertiseRating: zoneBonus(1293742) * core.ExpertiseRatingPerExpertisePercent}},
+		274276: {stats: stamina, zoneStats: map[proto.Stat]float64{proto.Stat_StatHasteRating: zoneBonus(1293743) * core.HasteRatingPerHastePercent}},
 	} {
 		consumable := db.Consumables[id]
+		var wantZoneStats []*proto.ZoneStats
+		if want.zoneStats != nil {
+			zoneStats := &proto.ZoneStats{ZoneIds: naturalFlaskZones, Stats: map[int32]float64{}}
+			for stat, value := range want.zoneStats {
+				zoneStats.Stats[int32(stat)] = value
+			}
+			wantZoneStats = append(wantZoneStats, zoneStats)
+		}
+		if !slices.EqualFunc(consumable.ZoneStats, wantZoneStats, func(a, b *proto.ZoneStats) bool { return googleProto.Equal(a, b) }) {
+			t.Errorf("%d lists zone stats %v, want %v", id, consumable.ZoneStats, wantZoneStats)
+		}
 		if (len(consumable.Stats) == 0) != (len(want.stats) == 0) {
 			t.Errorf("%d lists stats %v, want %v", id, consumable.Stats, want.stats)
 		}
@@ -81,8 +98,8 @@ func TestUnparsedStatsListChannelPercentsAndZoneBonus(t *testing.T) {
 			}
 		}
 	}
-	if titans := db.Consumables[13510]; len(titans.Stats) != 0 || len(titans.PseudoStats) != 0 || len(titans.MobTypeStats) != 0 {
-		t.Errorf("Flask of the Titans lists %v %v %v, want nothing added", titans.Stats, titans.PseudoStats, titans.MobTypeStats)
+	if titans := db.Consumables[13510]; len(titans.Stats) != 0 || len(titans.PseudoStats) != 0 || len(titans.MobTypeStats) != 0 || len(titans.ZoneStats) != 0 {
+		t.Errorf("Flask of the Titans lists %v %v %v %v, want nothing added", titans.Stats, titans.PseudoStats, titans.MobTypeStats, titans.ZoneStats)
 	}
 }
 

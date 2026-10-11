@@ -1,6 +1,7 @@
 package database
 
 import (
+	"fmt"
 	"slices"
 
 	"github.com/wowsims/forever/sim/common/forever"
@@ -11,13 +12,17 @@ import (
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-// Adds to the stats, pseudo stats and mob type stats db.json lists for a consumable, which the
-// settings offer and order it by, what its on-use grants that the stat parse leaves out: the stats
-// against creature types as mob type stats under the mob types the aura's mask names (Potion of
-// Demon Slaying 9224's 11406: attack power against Demons), the hit and crit of one channel
-// (Fire-toasted Bun 23327's 29332: A_MOD_HIT_CHANCE 2 as 2% melee and ranged hit), an all-channel crit
-// (Elixir of the Mongoose 13452's 17538: A_MOD_CRIT_PCT 2 as 2% melee, ranged and spell crit), and a
-// Natural flask's zone bonus at the rating one percent takes, attack and casting speed as haste.
+// The zones the Natural flasks' tooltip names for their bonus; the Barrow Deeps has no AreaTable row.
+var naturalFlaskZones = []int32{616, 3606}
+
+// Adds to the stats, pseudo stats, mob type stats and zone stats db.json lists for a consumable,
+// which the settings offer and order it by, what its on-use grants that the stat parse leaves out:
+// the stats against creature types as mob type stats under the mob types the aura's mask names
+// (Potion of Demon Slaying 9224's 11406: attack power against Demons), the hit and crit of one
+// channel (Fire-toasted Bun 23327's 29332: A_MOD_HIT_CHANCE 2 as 2% melee and ranged hit), an
+// all-channel crit (Elixir of the Mongoose 13452's 17538: A_MOD_CRIT_PCT 2 as 2% melee, ranged and
+// spell crit), and a Natural flask's zone bonus as zone stats under naturalFlaskZones, at the rating
+// one percent takes, attack and casting speed as haste.
 func AddUnparsedStats(db *WowDatabase) error {
 	for id, consumable := range db.Consumables {
 		if len(consumable.ItemEffects) == 0 {
@@ -25,7 +30,7 @@ func AddUnparsedStats(db *WowDatabase) error {
 		}
 		row := spelldata.Find(consumable.ItemEffects[0].BuffId)
 
-		var granted, percents stats.Stats
+		var percents stats.Stats
 		var allCrit float64
 		for i := range row.Effects {
 			e := &row.Effects[i]
@@ -58,30 +63,20 @@ func AddUnparsedStats(db *WowDatabase) error {
 			if err != nil {
 				return err
 			}
-			percents = percents.Add(bonus.Stats)
-			granted[stats.HasteRating] += max(bonus.AttackHastePercent, bonus.CastHastePercent) * core.HasteRatingPerHastePercent
-		}
-		granted[stats.ExpertiseRating] += percents[stats.ExpertisePercent] * core.ExpertiseRatingPerExpertisePercent
-
-		pseudoStats := make([]float64, stats.PseudoStatsLen)
-		// One rating feeds the physical and the spell percent alike, so a consumable granting both is
-		// listed at the rating of the larger of the two, once. A consumable granting one of them is listed
-		// by that channel's pseudo stats: physical as melee and ranged, spell as spell.
-		for _, r := range core.RatingChannelTable {
-			if !r.HasPercentStats {
-				continue
+			zoneGranted, zonePseudoStats := ratingsOf(bonus.Stats)
+			zoneGranted[stats.HasteRating] += max(bonus.AttackHastePercent, bonus.CastHastePercent) * core.HasteRatingPerHastePercent
+			if slices.ContainsFunc(zonePseudoStats, func(v float64) bool { return v != 0 }) {
+				return fmt.Errorf("%d %s: the zone bonus reaches one channel alone, which zone stats cannot list", id, consumable.Name)
 			}
-			physical, spell := percents[r.PhysicalPercent], percents[r.SpellPercent]
-			switch {
-			case physical > 0 && spell > 0:
-				granted[r.Rating] += max(physical, spell) * r.RatingPerPercent
-			case physical > 0:
-				pseudoStats[r.Melee] += physical
-				pseudoStats[r.Ranged] += physical
-			case spell > 0:
-				pseudoStats[r.Spell] += spell
+			zoneStats := &proto.ZoneStats{ZoneIds: naturalFlaskZones, Stats: map[int32]float64{}}
+			for stat, value := range zoneGranted.ToProtoArray() {
+				if value != 0 {
+					zoneStats.Stats[int32(stat)] = value
+				}
 			}
+			consumable.ZoneStats = append(consumable.ZoneStats, zoneStats)
 		}
+		granted, pseudoStats := ratingsOf(percents)
 		if allCrit != 0 {
 			pseudoStats[proto.PseudoStat_PseudoStatMeleeCritPercent] += allCrit
 			pseudoStats[proto.PseudoStat_PseudoStatRangedCritPercent] += allCrit
@@ -96,4 +91,30 @@ func AddUnparsedStats(db *WowDatabase) error {
 		}
 	}
 	return nil
+}
+
+// The ratings and pseudo stats a consumable is listed by for these percents. One rating feeds the
+// physical and the spell percent alike, so a consumable granting both is listed at the rating of the
+// larger of the two, once. A consumable granting one of them is listed by that channel's pseudo
+// stats: physical as melee and ranged, spell as spell. Expertise is listed as its rating.
+func ratingsOf(percents stats.Stats) (stats.Stats, []float64) {
+	var granted stats.Stats
+	granted[stats.ExpertiseRating] = percents[stats.ExpertisePercent] * core.ExpertiseRatingPerExpertisePercent
+	pseudoStats := make([]float64, stats.PseudoStatsLen)
+	for _, r := range core.RatingChannelTable {
+		if !r.HasPercentStats {
+			continue
+		}
+		physical, spell := percents[r.PhysicalPercent], percents[r.SpellPercent]
+		switch {
+		case physical > 0 && spell > 0:
+			granted[r.Rating] += max(physical, spell) * r.RatingPerPercent
+		case physical > 0:
+			pseudoStats[r.Melee] += physical
+			pseudoStats[r.Ranged] += physical
+		case spell > 0:
+			pseudoStats[r.Spell] += spell
+		}
+	}
+	return granted, pseudoStats
 }
