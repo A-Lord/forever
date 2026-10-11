@@ -142,8 +142,8 @@ export class ActionId {
 				baseName = 'Defensive Potion';
 				iconUrl = 'https://wow.zamimg.com/images/wow/icons/large/inv_potion_69.jpg';
 				break;
-			case OtherAction.OtherActionThroughputPotion:
-				baseName = 'Throughput Potion';
+			case OtherAction.OtherActionOffensivePotion:
+				baseName = 'Offensive Potion';
 				iconUrl = 'https://wow.zamimg.com/images/wow/icons/large/inv_alchemy_elixir_04.jpg';
 				break;
 			case OtherAction.OtherActionMove:

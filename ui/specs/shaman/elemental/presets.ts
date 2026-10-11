@@ -64,5 +64,5 @@ export const DefaultConsumables = ConsumesSpec.create({
 	flaskId: Consumables.FlaskOfSupremePower.id,
 	foodId: Consumables.NightfinSoup.id,
 	mhImbueId: Consumables.BrilliantWizardOil.id,
-	throughputPotId: Consumables.MajorSpellblastingPotion.id,
+	offensivePotId: Consumables.MajorSpellblastingPotion.id,
 });

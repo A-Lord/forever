@@ -32,6 +32,13 @@ func ConsumableUnsupported(row *spelldata.Spell) []string {
 	return unsupported
 }
 
+// Whether the parts of a consumable's spell the builder models restore power, and whether they heal
+// or absorb.
+func ConsumableRestores(row *spelldata.Spell) (power, survival bool) {
+	parts, _ := consumablePartsOf(row)
+	return len(parts.gains) > 0, parts.heal != nil || parts.absorb != nil
+}
+
 type consumableParts struct {
 	heal       *spelldata.Effect
 	absorb     *spelldata.Effect

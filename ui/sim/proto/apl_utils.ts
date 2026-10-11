@@ -104,10 +104,10 @@ export const isEqualAPLRotation = (player: Player<Spec>, rotation?: APLRotation,
 	}
 };
 
-// The throughput potion before the pull, which a stat potion is drunk for so its buff covers the opening.
+// The offensive potion before the pull, which a stat potion is drunk for so its buff covers the opening.
 export function prepullPotionAction(doAt?: string): APLPrepullAction {
 	return APLPrepullAction.fromJsonString(
-		`{"action":{"castSpell":{"spellId":{"otherId":"OtherActionThroughputPotion"}}},"doAtValue":{"const":{"val":"${doAt || '-1s'}"}}}`,
+		`{"action":{"castSpell":{"spellId":{"otherId":"OtherActionOffensivePotion"}}},"doAtValue":{"const":{"val":"${doAt || '-1s'}"}}}`,
 	);
 }
 

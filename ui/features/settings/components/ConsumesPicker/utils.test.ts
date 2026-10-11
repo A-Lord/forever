@@ -48,7 +48,7 @@ const CONSUMABLES = [
 		itemEffects: [onUse(4)],
 		classAllowlist: [Class.ClassWarrior, Class.ClassDruid],
 		stats: strength(60),
-		potionClasses: [PotionClass.PotionClassResource, PotionClass.PotionClassThroughput],
+		potionClasses: [PotionClass.PotionClassResource, PotionClass.PotionClassOffensive],
 	}),
 	Consumable.create({ id: 9421, name: 'Major Healthstone', type: ConsumableType.ConsumableTypeConjured, categoryId: 1153, itemEffects: [onUse(1153)] }),
 	Consumable.create({ id: 13510, name: 'Flask of the Titans', type: ConsumableType.ConsumableTypeFlask, stats: strength(10) }),
@@ -208,7 +208,7 @@ describe('consumeConfigs', () => {
 				type: ConsumableType.ConsumableTypePotion,
 				lvl,
 				stats: strength(10),
-				potionClasses: [PotionClass.PotionClassThroughput],
+				potionClasses: [PotionClass.PotionClassOffensive],
 			});
 		const potions = { getConsumables: () => [potion(1, 20), potion(2, 50), potion(3, 35)], getSpellEffect: () => undefined } as unknown as Database;
 		const { player } = playerOf();

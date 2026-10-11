@@ -146,7 +146,7 @@ export const actionIdSets: Record<
 			const { categorised, uncategorised } = categorise(castableSpells, toOption);
 
 			const placeholders: Array<ActionId> = [
-				OtherAction.OtherActionThroughputPotion,
+				OtherAction.OtherActionOffensivePotion,
 				OtherAction.OtherActionDefensivePotion,
 				OtherAction.OtherActionResourcePotion,
 			].map(otherId => ActionId.fromOtherId(otherId));

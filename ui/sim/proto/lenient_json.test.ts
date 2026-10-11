@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { fromJsonStringLenient } from './lenient_json';
 
-// A saved rotation casting an APL placeholder the protos no longer list, beside one they do.
+// A saved rotation casting an APL placeholder the protos do not list, beside one they do.
 const savedSettings = JSON.stringify({
 	player: {
 		rotation: {
@@ -26,7 +26,7 @@ describe('fromJsonStringLenient', () => {
 	});
 
 	it('reads the same JSON as protobuf-ts does when every name is known', () => {
-		const known = savedSettings.replace('OtherActionRetiredPlaceholder', 'OtherActionThroughputPotion');
+		const known = savedSettings.replace('OtherActionRetiredPlaceholder', 'OtherActionOffensivePotion');
 
 		expect(fromJsonStringLenient(IndividualSimSettings, known)).toEqual(IndividualSimSettings.fromJsonString(known));
 	});

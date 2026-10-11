@@ -72,35 +72,25 @@ func consumableInDatabase(id int32) bool {
 	return !WITH_DB || GetConsumableByID(id).Id != 0
 }
 
-// The APL potion placeholders, each with the potion the consumes pick for it.
-func potionPicks(consumables *proto.ConsumesSpec) map[proto.OtherAction]int32 {
-	return map[proto.OtherAction]int32{
-		proto.OtherAction_OtherActionResourcePotion:   consumables.ResourcePotId,
-		proto.OtherAction_OtherActionDefensivePotion:  consumables.DefensivePotId,
-		proto.OtherAction_OtherActionThroughputPotion: consumables.ThroughputPotId,
+// The potion the consumes pick for an APL potion placeholder (0 where they pick none), and whether
+// the action is one. Consumes may be nil.
+func placeholderPotionID(consumables *proto.ConsumesSpec, action proto.OtherAction) (int32, bool) {
+	switch action {
+	case proto.OtherAction_OtherActionResourcePotion:
+		return consumables.GetResourcePotId(), true
+	case proto.OtherAction_OtherActionDefensivePotion:
+		return consumables.GetDefensivePotId(), true
+	case proto.OtherAction_OtherActionOffensivePotion:
+		return consumables.GetOffensivePotId(), true
 	}
-}
-
-// The potion the consumes pick for an APL potion placeholder, or 0 where they pick none or the action
-// is not one.
-func (character *Character) PlaceholderPotionID(action proto.OtherAction) int32 {
-	if character.Consumables == nil {
-		return 0
-	}
-	return potionPicks(character.Consumables)[action]
+	return 0, false
 }
 
 // Whether the consumes pick the potion for any APL potion placeholder.
 func (character *Character) IsPickedPotion(itemID int32) bool {
-	if character.Consumables == nil || itemID == 0 {
-		return false
-	}
-	for _, id := range potionPicks(character.Consumables) {
-		if id == itemID {
-			return true
-		}
-	}
-	return false
+	consumables := character.Consumables
+	return itemID != 0 && (itemID == consumables.GetResourcePotId() || itemID == consumables.GetDefensivePotId() ||
+		itemID == consumables.GetOffensivePotId())
 }
 
 // The character's own consumables the spec names, each once, in the order they apply.
@@ -113,7 +103,7 @@ func (character *Character) SelectedConsumableIDs() []int32 {
 
 // The agent's own consumables the spec names, each once, and of each exclusive group only the first.
 func selectedConsumableIDs(consumables *proto.ConsumesSpec) []int32 {
-	ids := append([]int32{consumables.ResourcePotId, consumables.DefensivePotId, consumables.ThroughputPotId, consumables.FlaskId}, consumables.ElixirIds...)
+	ids := append([]int32{consumables.ResourcePotId, consumables.DefensivePotId, consumables.OffensivePotId, consumables.FlaskId}, consumables.ElixirIds...)
 	ids = append(ids, consumables.FoodId, consumables.ConjuredId, consumables.ExplosiveId,
 		consumables.OhImbueId, consumables.OhWeaponImbueId, consumables.MhImbueId, consumables.MhWeaponImbueId,
 		consumables.SwapOhImbueId, consumables.SwapOhWeaponImbueId, consumables.SwapMhImbueId, consumables.SwapMhWeaponImbueId)

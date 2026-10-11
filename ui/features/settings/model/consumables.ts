@@ -10,7 +10,7 @@ import { ActionId } from '@sim/proto/action_id';
 export type ConsumableIdField =
 	| 'resourcePotId'
 	| 'defensivePotId'
-	| 'throughputPotId'
+	| 'offensivePotId'
 	| 'conjuredId'
 	| 'flaskId'
 	| 'foodId'

@@ -4,42 +4,61 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-func TestPotionClassesFollowTheirEffectsAndStats(t *testing.T) {
-	potion := func(id, spellID int32, granted stats.Stats) *proto.Consumable {
-		return &proto.Consumable{Id: id, Type: proto.ConsumableType_ConsumableTypePotion, Stats: granted.ToProtoArray(),
-			ItemEffects: []*proto.ItemEffect{{BuffId: spellID}}}
-	}
-	const (
-		resource   = proto.PotionClass_PotionClassResource
-		defensive  = proto.PotionClass_PotionClassDefensive
-		throughput = proto.PotionClass_PotionClassThroughput
-	)
-	db := NewWowDatabase()
-	db.Consumables[13444] = potion(13444, 17531, stats.Stats{})                                          // Major Mana Potion: E_ENERGIZE mana
-	db.Consumables[18253] = potion(18253, 22729, stats.Stats{})                                          // Major Rejuvenation Potion: a heal and mana
-	db.Consumables[13457] = potion(13457, 17543, stats.Stats{})                                          // Greater Fire Protection Potion: A_SCHOOL_ABSORB
-	db.Consumables[13442] = potion(13442, 17528, stats.Stats{stats.Strength: 60})                        // Mighty Rage Potion: rage and Strength
-	db.Consumables[13455] = potion(13455, 17540, stats.Stats{stats.Armor: 2000})                         // Greater Stoneshield Potion
-	db.Consumables[250937] = potion(250937, 1251932, stats.Stats{stats.SpellDamage: 45})                 // Major Spellblasting Potion
-	db.Consumables[13510] = &proto.Consumable{Id: 13510, Type: proto.ConsumableType_ConsumableTypeFlask, // Flask of the Titans
-		Stats: stats.Stats{stats.Health: 400}.ToProtoArray(), ItemEffects: []*proto.ItemEffect{{BuffId: 17626}}}
-	AddPotionClasses(db)
+// Edits the store's row of a spell for the test, restoring it afterwards.
+func editRow(t *testing.T, id int32, edit func(*spelldata.Spell)) {
+	t.Helper()
+	row := spelldata.MustFind(id)
+	original := *row
+	edit(row)
+	t.Cleanup(func() { *row = original })
+}
 
-	for id, want := range map[int32][]proto.PotionClass{
-		13444:  {resource},
-		18253:  {resource, defensive},
-		13457:  {defensive},
-		13442:  {resource, throughput},
-		13455:  {defensive},
-		250937: {throughput},
-		13510:  nil,
+func TestPotionClassesFollowTheirEffectsAndStats(t *testing.T) {
+	const host int32 = 17531 // Any row in the store: each case states its own effects.
+	onCaster := [2]dbcenums.ImplicitTarget{dbcenums.TARGET_UNIT_CASTER}
+	energize := func(power dbcenums.PowerType) spelldata.Effect {
+		return spelldata.Effect{Type: dbcenums.E_ENERGIZE, Misc: int32(power), Target: onCaster}
+	}
+	heal := spelldata.Effect{Type: dbcenums.E_HEAL, Target: onCaster}
+	absorb := spelldata.Effect{Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_SCHOOL_ABSORB, Target: onCaster}
+	const (
+		resource  = proto.PotionClass_PotionClassResource
+		defensive = proto.PotionClass_PotionClassDefensive
+		offensive = proto.PotionClass_PotionClassOffensive
+	)
+
+	for _, c := range []struct {
+		name    string
+		kind    proto.ConsumableType
+		effects []spelldata.Effect
+		granted stats.Stats
+		want    []proto.PotionClass
+	}{
+		{"mana", proto.ConsumableType_ConsumableTypePotion, []spelldata.Effect{energize(dbcenums.POWER_MANA)}, stats.Stats{}, []proto.PotionClass{resource}},
+		{"a heal and mana", proto.ConsumableType_ConsumableTypePotion, []spelldata.Effect{heal, energize(dbcenums.POWER_MANA)}, stats.Stats{}, []proto.PotionClass{resource, defensive}},
+		{"an absorb", proto.ConsumableType_ConsumableTypePotion, []spelldata.Effect{absorb}, stats.Stats{}, []proto.PotionClass{defensive}},
+		{"rage and strength", proto.ConsumableType_ConsumableTypePotion, []spelldata.Effect{energize(dbcenums.POWER_RAGE)}, stats.Stats{stats.Strength: 1}, []proto.PotionClass{resource, offensive}},
+		{"armor", proto.ConsumableType_ConsumableTypePotion, nil, stats.Stats{stats.Armor: 1}, []proto.PotionClass{defensive}},
+		{"spell damage", proto.ConsumableType_ConsumableTypePotion, nil, stats.Stats{stats.SpellDamage: 1}, []proto.PotionClass{offensive}},
+		{"a flask", proto.ConsumableType_ConsumableTypeFlask, nil, stats.Stats{stats.Health: 1}, nil},
 	} {
-		if got := db.Consumables[id].PotionClasses; !slices.Equal(got, want) {
-			t.Errorf("%d: classes %v, want %v", id, got, want)
-		}
+		t.Run(c.name, func(t *testing.T) {
+			editRow(t, host, func(s *spelldata.Spell) { s.Effects = c.effects })
+			db := NewWowDatabase()
+			db.Consumables[1] = &proto.Consumable{Id: 1, Type: c.kind, Stats: c.granted.ToProtoArray(),
+				ItemEffects: []*proto.ItemEffect{{BuffId: host}}}
+			if err := AddPotionClasses(db); err != nil {
+				t.Fatal(err)
+			}
+			if got := db.Consumables[1].PotionClasses; !slices.Equal(got, c.want) {
+				t.Errorf("classes %v, want %v", got, c.want)
+			}
+		})
 	}
 }

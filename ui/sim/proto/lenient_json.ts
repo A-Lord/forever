@@ -1,9 +1,10 @@
 import type { IMessageType, JsonReadOptions, JsonValue } from '@protobuf-ts/runtime';
 
-// Reads saved or imported JSON, skipping the fields and enum names the protos no longer list. With
+// Reads saved or imported JSON, skipping the fields and enum names the protos do not list. With
 // ignoreUnknownFields, protobuf-ts picks a oneof's case before it reads the value, so an enum name it
-// doesn't know (a retired APL placeholder in an ActionID, say) leaves the case set with an undefined
-// value, which throws once the message is written to binary. Those oneofs are cleared here.
+// doesn't know (an APL placeholder the protos do not list, in an ActionID, say) leaves the case set
+// with an undefined value, which throws once the message is written to binary. Those oneofs are
+// cleared here.
 export function fromJsonLenient<T extends object>(type: IMessageType<T>, json: JsonValue, options?: Partial<JsonReadOptions>): T {
 	return clearUnreadOneofs(type, type.fromJson(json, { ...options, ignoreUnknownFields: true }));
 }

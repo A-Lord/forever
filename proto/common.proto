@@ -494,7 +494,7 @@ message ConsumesSpec {
 	// The potion each APL potion placeholder casts, one per PotionClass.
 	int32 resource_pot_id = 28;
 	int32 defensive_pot_id = 29;
-	int32 throughput_pot_id = 30;
+	int32 offensive_pot_id = 30;
 }
 
 enum MobType {
@@ -688,7 +688,7 @@ enum PotionClass {
 	PotionClassUnknown = 0;
 	PotionClassResource = 1; // Restores mana, rage or energy, or buffs only mana regen.
 	PotionClassDefensive = 2; // Heals, absorbs, or buffs armor, avoidance, health or a resistance.
-	PotionClassThroughput = 3; // Buffs anything else, such as spell power or attack power.
+	PotionClassOffensive = 3; // Buffs anything else, such as spell power or attack power.
 }
 
 
@@ -762,7 +762,7 @@ enum OtherAction {
 	// Used by APL to refer to the potion the consumes pick for each PotionClass.
 	OtherActionResourcePotion = 24;
 	OtherActionDefensivePotion = 25;
-	OtherActionThroughputPotion = 26;
+	OtherActionOffensivePotion = 26;
 }
 
 message ActionID {

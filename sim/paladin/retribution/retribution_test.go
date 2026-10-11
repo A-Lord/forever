@@ -91,8 +91,8 @@ var DefaultConsumables = &proto.ConsumesSpec{
 		250341, // Greater Mageblood Elixir
 		12460,  // Juju Might
 	},
-	ExplosiveId:     18588,                // Ez-Thro Dynamite II
-	ExtraIds:        []int32{10646, 8410}, // Goblin Sapper Charge, R.O.I.D.S
-	MhImbueId:       20749,                // Brilliant Wizard Oil
-	ThroughputPotId: 250937,               // Major Spellblasting Potion
+	ExplosiveId:    18588,                // Ez-Thro Dynamite II
+	ExtraIds:       []int32{10646, 8410}, // Goblin Sapper Charge, R.O.I.D.S
+	MhImbueId:      20749,                // Brilliant Wizard Oil
+	OffensivePotId: 250937,               // Major Spellblasting Potion
 }

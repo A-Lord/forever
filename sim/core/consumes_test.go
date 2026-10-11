@@ -30,7 +30,7 @@ func TestSelectedConsumableIDs(t *testing.T) {
 	consumes := &proto.ConsumesSpec{
 		ResourcePotId:       resourcePot,
 		DefensivePotId:      defensivePot,
-		ThroughputPotId:     pot,
+		OffensivePotId:      pot,
 		Potions:             []int32{pot, potion},
 		FlaskId:             flask,
 		FoodId:              food,
