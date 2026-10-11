@@ -835,7 +835,7 @@ func applyGeneratedBuffs(char *core.Character, raid *proto.RaidBuffs, party *pro
 		core.MakePermanent(NewSpellDataLeaderOfThePackAura(&char.Unit, false, 0))
 	}
 	if party.ManaSpringTotem != proto.TristateEffect_TristateEffectMissing {
-		standTotem(char, NewSpellDataManaSpringTotemAura, core.GetTristateValueInt32(party.ManaSpringTotem, 0, 5))
+		standTotem(char, manaSpringTotemSpell, NewSpellDataManaSpringTotemAura, core.GetTristateValueInt32(party.ManaSpringTotem, 0, 5))
 	}
 	if party.ManaTideTotems > 0 {
 		driveManaTideTotems(char, party)
@@ -859,7 +859,7 @@ func applyGeneratedBuffs(char *core.Character, raid *proto.RaidBuffs, party *pro
 		driveAtieshWarlock(char, party)
 	}
 	if party.StrengthOfEarthTotem {
-		standTotem(char, NewSpellDataStrengthOfEarthTotemAura, 0)
+		standTotem(char, strengthOfEarthTotemSpell, NewSpellDataStrengthOfEarthTotemAura, 0)
 	}
 	if party.GraceOfAirTotem {
 		driveGraceOfAirTotem(char, party)
@@ -874,7 +874,7 @@ func applyGeneratedBuffs(char *core.Character, raid *proto.RaidBuffs, party *pro
 		driveAtieshPriest(char, party)
 	}
 	if party.StoneskinTotem != proto.TristateEffect_TristateEffectMissing {
-		standTotem(char, NewSpellDataStoneskinTotemAura, core.GetTristateValueInt32(party.StoneskinTotem, 0, 2))
+		standTotem(char, stoneskinTotemSpell, NewSpellDataStoneskinTotemAura, core.GetTristateValueInt32(party.StoneskinTotem, 0, 2))
 	}
 	if party.FuriousHowl {
 		core.MakePermanent(NewSpellDataFuriousHowlAura(&char.Unit, false, 0))
@@ -913,13 +913,13 @@ func applyGeneratedBuffs(char *core.Character, raid *proto.RaidBuffs, party *pro
 		core.MakePermanent(NewSpellDataShadowResistanceAura(&char.Unit, false, 0))
 	}
 	if raid.FireResistanceTotem {
-		standTotem(char, NewSpellDataFireResistanceTotemAura, 0)
+		standTotem(char, fireResistanceTotemSpell, NewSpellDataFireResistanceTotemAura, 0)
 	}
 	if raid.FrostResistanceTotem {
-		standTotem(char, NewSpellDataFrostResistanceTotemAura, 0)
+		standTotem(char, frostResistanceTotemSpell, NewSpellDataFrostResistanceTotemAura, 0)
 	}
 	if raid.NatureResistanceTotem {
-		standTotem(char, NewSpellDataNatureResistanceTotemAura, 0)
+		standTotem(char, natureResistanceTotemSpell, NewSpellDataNatureResistanceTotemAura, 0)
 	}
 	if raid.AspectOfTheWild {
 		core.MakePermanent(NewSpellDataAspectOfTheWildAura(&char.Unit, false, 0))

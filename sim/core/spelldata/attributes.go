@@ -51,6 +51,11 @@ func (s *Spell) CanProcFromProcs() bool {
 	return s.HasAttr(dbcenums.ATTR_INDEX_EX_3, dbcenums.ATTR_EX_3_CAN_PROC_FROM_PROCS)
 }
 
+// Whether only a player can carry the spell's aura, which leaves a pet without it.
+func (s *Spell) OnlyOnPlayers() bool {
+	return s.HasAttr(dbcenums.ATTR_INDEX_EX_3, dbcenums.ATTR_EX_3_ONLY_ON_PLAYER)
+}
+
 func (s *Spell) ClassSpellsOnly() bool {
 	return s.HasAttr(dbcenums.ATTR_INDEX_EX_12, dbcenums.ATTR_EX_12_ONLY_PROC_FROM_CLASS_ABILITIES)
 }
