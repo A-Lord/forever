@@ -618,7 +618,6 @@ var flatModTable = map[dbcenums.SpellModOp]row{
 var pctModTable = map[dbcenums.SpellModOp]row{
 	dbcenums.SPELLMOD_DAMAGE: func(p *parser, e *Effect, v float64) *attachment {
 		// Direct hits only: ticks take SPELLMOD_DOT, which a talent states beside it when it raises both.
-		// Each row is its own factor on the hit, so two of them on one spell multiply.
 		return p.modFloat("SpellMod_DirectDamageDone_Pct", p.modConfig(e, core.SpellMod_DirectDamageDone_Pct), v)
 	},
 	dbcenums.SPELLMOD_ALL_EFFECTS: pctDamageDone,
@@ -626,8 +625,6 @@ var pctModTable = map[dbcenums.SpellModOp]row{
 		return p.modFloat("SpellMod_DotDamageDone_Pct", p.modConfig(e, core.SpellMod_DotDamageDone_Pct), v)
 	},
 	dbcenums.SPELLMOD_COST: func(p *parser, e *Effect, v float64) *attachment {
-		// Each row is its own factor on the cost, so two of them on one spell multiply, and one of
-		// -100% or lower makes the spell free while it is up.
 		return p.modFloat("SpellMod_PowerCost_Pct", p.modConfig(e, core.SpellMod_PowerCost_Pct), v)
 	},
 	dbcenums.SPELLMOD_CASTING_TIME: func(p *parser, e *Effect, v float64) *attachment {

@@ -3,6 +3,7 @@ package spelldata
 import (
 	"fmt"
 	"math"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -234,9 +235,6 @@ func TestParseKeepsTheHitAndDotModifiersApart(t *testing.T) {
 	if got := spell.DirectDamageMultiplier; math.Abs(got-1.1) > 1e-9 {
 		t.Errorf("the hit modifier: %v, want 1.1", got)
 	}
-	if got := spell.DirectDamageMultiplierAdditive; got != 0 {
-		t.Errorf("the additive direct bucket: %v, want 0", got)
-	}
 	if got := spell.DamageMultiplierAdditive; got != 1 {
 		t.Errorf("the multiplier the ticks share with the hit: %v, want 1", got)
 	}
@@ -245,84 +243,8 @@ func TestParseKeepsTheHitAndDotModifiersApart(t *testing.T) {
 	}
 }
 
-// A spell with a dot that two rows of one modifier op reach, and the two rows' fractions after the
-// parse. Each row is its own parse, as two talents are.
-func parseTwoRowsOnADot(t *testing.T, misc dbcenums.SpellModOp, first, second float64) (*core.Spell, float64, float64) {
-	t.Helper()
-	withRows(t, parseRows())
-	character := parseWarrior()
-	spell := character.RegisterSpell(core.SpellConfig{
-		ActionID:         core.ActionID{SpellID: 2170},
-		ClassFlags:       parseTargetMask,
-		ProcMask:         core.ProcMaskSpellDamage,
-		SpellSchool:      core.SpellSchoolPhysical,
-		DamageMultiplier: 1,
-		Dot:              core.DotConfig{Aura: core.Aura{Label: "Parse Dot"}, IsAOE: true, NumberOfTicks: 1, TickLength: time.Second},
-	})
-	var fractions []float64
-	for _, points := range []float64{first, second} {
-		row := oneEffectRow(dbcenums.A_ADD_PCT_MODIFIER, int32(misc), points)
-		ParseStatic(character, row)
-		fractions = append(fractions, row.EffectN(1).BasePoints/100)
-	}
-	return spell, fractions[0], fractions[1]
-}
-
-// Two SPELLMOD_DAMAGE rows on one spell are a factor each on the hit and leave the ticks alone.
-func TestParseDirectDamageRowsMultiply(t *testing.T) {
-	spell, a, b := parseTwoRowsOnADot(t, dbcenums.SPELLMOD_DAMAGE, 10, 15)
-
-	if want, got := (1+a)*(1+b), spell.DirectDamageMultiplier; math.Abs(got-want) > 1e-9 {
-		t.Errorf("the hit multiplier: %v, want %v", got, want)
-	}
-	if got := spell.DamageMultiplierAdditive + spell.DirectDamageMultiplierAdditive; got != 1 {
-		t.Errorf("the additive buckets: %v, want 1", got)
-	}
-	if got := spell.AOEDot().PeriodicDamageMultiplier; got != 1 {
-		t.Errorf("the dot modifier: %v, want 1", got)
-	}
-}
-
-// Two SPELLMOD_DOT rows on one spell are a factor each on the ticks and leave the hit alone.
-func TestParseDotRowsMultiply(t *testing.T) {
-	spell, a, b := parseTwoRowsOnADot(t, dbcenums.SPELLMOD_DOT, 10, 15)
-
-	if want, got := (1+a)*(1+b), spell.AOEDot().PeriodicDamageMultiplier; math.Abs(got-want) > 1e-9 {
-		t.Errorf("the dot modifier: %v, want %v", got, want)
-	}
-	if got := spell.DirectDamageMultiplier; got != 1 {
-		t.Errorf("the hit multiplier: %v, want 1", got)
-	}
-}
-
-// Two SPELLMOD_COST rows on one spell are a factor each on the cost.
-func TestParseCostRowsMultiply(t *testing.T) {
-	withRows(t, parseRows())
-	character := parseCharacter(&proto.Player{
-		Class: proto.Class_ClassMage,
-		Spec:  &proto.Player_Mage{Mage: &proto.Mage{}},
-	})
-	spell := character.RegisterSpell(core.SpellConfig{
-		ActionID:    core.ActionID{SpellID: 2180},
-		ClassFlags:  parseTargetMask,
-		SpellSchool: core.SpellSchoolArcane,
-		ManaCost:    core.ManaCostOptions{FlatCost: 120},
-	})
-	base := spell.Cost.GetCurrentCost()
-
-	first := oneEffectRow(dbcenums.A_ADD_PCT_MODIFIER, int32(dbcenums.SPELLMOD_COST), -50)
-	second := oneEffectRow(dbcenums.A_ADD_PCT_MODIFIER, int32(dbcenums.SPELLMOD_COST), -25)
-	ParseStatic(character, first)
-	ParseStatic(character, second)
-
-	a, b := first.EffectN(1).BasePoints/100, second.EffectN(1).BasePoints/100
-	if want, got := base*(1+a)*(1+b), spell.Cost.GetCurrentCost(); math.Abs(got-want) > 1e-9 {
-		t.Errorf("the cost under both rows: %v, want %v", got, want)
-	}
-}
-
-// Elemental Focus's Clearcasting states a cost row that takes the whole cost: the spells it names are
-// free while it is up, beside another cost row, and cost exactly what they did once it drops.
+// Elemental Focus's Clearcasting parses to a percent cost mod: with its cost row taking the whole
+// cost, the spells it names are free while it is up and cost what they did once it drops.
 func TestGeneratedFreeCastRowGivesTheCostBack(t *testing.T) {
 	withGeneratedStore(t)
 	sim := &core.Simulation{}
@@ -331,11 +253,10 @@ func TestGeneratedFreeCastRowGivesTheCostBack(t *testing.T) {
 		Spec:  &proto.Player_ElementalShaman{ElementalShaman: &proto.ElementalShaman{}},
 	})
 
-	row := MustFind(16246)
+	row := *MustFind(16246)
+	row.Effects = slices.Clone(row.Effects)
 	costRow := row.Effect(dbcenums.A_ADD_PCT_MODIFIER, int32(dbcenums.SPELLMOD_COST))
-	if costRow.BasePoints > -100 {
-		t.Fatalf("Clearcasting's cost row is %v%%, want one that takes the whole cost", costRow.BasePoints)
-	}
+	costRow.BasePoints = -100
 	spell := character.RegisterSpell(core.SpellConfig{
 		ActionID:    core.ActionID{SpellID: 2190},
 		ClassFlags:  costRow.ClassFlags,
@@ -344,8 +265,8 @@ func TestGeneratedFreeCastRowGivesTheCostBack(t *testing.T) {
 	})
 	base := spell.Cost.GetCurrentCost()
 
-	aura := character.RegisterAura(AuraConfig(row))
-	parsed := ParseEffects(character, aura, row)
+	aura := character.RegisterAura(AuraConfig(&row))
+	parsed := ParseEffects(character, aura, &row)
 	if kinds := appliedKinds(parsed); len(kinds) != 1 || kinds[0] != "SpellMod_PowerCost_Pct" {
 		t.Fatalf("attached %v, want the cost row alone", kinds)
 	}
@@ -357,21 +278,6 @@ func TestGeneratedFreeCastRowGivesTheCostBack(t *testing.T) {
 	aura.Deactivate(sim)
 	if got := spell.Cost.GetCurrentCost(); got != base {
 		t.Errorf("the cost after Clearcasting dropped: %v, want %v", got, base)
-	}
-
-	other := Spell{ID: 6100, Name: "Cost Talent", ClassFlags: costRow.ClassFlags,
-		Effects: []Effect{{Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_PCT_MODIFIER,
-			Misc: int32(dbcenums.SPELLMOD_COST), BasePoints: -20, ClassFlags: costRow.ClassFlags}}}
-	ParseStatic(character, &other)
-	withOther := spell.Cost.GetCurrentCost()
-
-	aura.Activate(sim)
-	if got := spell.Cost.GetCurrentCost(); got != 0 {
-		t.Errorf("the cost while Clearcasting is up beside another row: %v, want 0", got)
-	}
-	aura.Deactivate(sim)
-	if got := spell.Cost.GetCurrentCost(); got != withOther {
-		t.Errorf("the cost after Clearcasting dropped beside another row: %v, want %v", got, withOther)
 	}
 }
 

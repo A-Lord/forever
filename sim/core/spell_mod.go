@@ -503,9 +503,9 @@ const (
 	SpellMod_DamageDone_Flat
 
 	// Will multiply spell.Cost.PercentModifier by 1 + the value. -5% = -0.05
-	// Each mod is its own factor, as the game files' SPELL_AURA_MOD_POWER_COST_SCHOOL_PCT (aura 72)
-	// and SPELL_AURA_ADD_PCT_MODIFIER (aura 108) with SPELLMOD_COST (misc 14) rows are in game.
-	// A mod of -100% or lower makes the cost 0 while it is active, whatever the other mods are.
+	// Two mods multiply, as two SPELL_AURA_ADD_PCT_MODIFIER (aura 108) SPELLMOD_COST (misc 14) rows
+	// do in game. SPELL_AURA_MOD_POWER_COST_SCHOOL_PCT (aura 72) school cost rows use it too.
+	// A value of -1 or lower makes the cost 0 while the mod is active.
 	// Uses FloatValue
 	SpellMod_PowerCost_Pct
 
@@ -645,6 +645,8 @@ const (
 	SpellMod_Range_Pct
 
 	// Will add the value to spell.DirectDamageMultiplierAdditive, which only direct hits and direct heals read.
+	// For a direct damage change the sim states by hand that adds to others of its kind; a game files
+	// SPELLMOD_DAMAGE row takes SpellMod_DirectDamageDone_Pct.
 	// Uses FloatValue
 	SpellMod_DirectDamageDone_Flat
 
@@ -886,8 +888,7 @@ func onResetDamageDoneAdd(mod *SpellMod) {
 	}
 }
 
-// A mod of -100% or lower is counted rather than multiplied in: a factor of 0 or below could not be
-// divided back out when it ends.
+// A factor of 0 or below could not be divided back out when the mod ends, so such a mod is counted.
 func applyPowerCostPercent(mod *SpellMod, spell *Spell) {
 	if spell.Cost == nil {
 		return

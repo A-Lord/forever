@@ -298,9 +298,12 @@ func TestDirectDamageDonePctModReachesDirectHeals(t *testing.T) {
 
 // A spell of the fake agent's with a cost of its own, which the percent cost mods reach.
 func newCostSpell(fa *FakeAgent, baseCost int32) *Spell {
-	spell := &Spell{Unit: &fa.Unit}
-	spell.Cost = &SpellCost{spell: spell, BaseCost: baseCost, PercentModifier: 1, AdditivePercentModifier: 1}
-	return spell
+	return fa.RegisterSpell(SpellConfig{
+		ActionID:    ActionID{SpellID: 43},
+		SpellSchool: SpellSchoolNature,
+		ProcMask:    ProcMaskSpellDamage,
+		ManaCost:    ManaCostOptions{FlatCost: baseCost},
+	})
 }
 
 // Two percent cost mods are a factor each, as two cost rows on one spell are in game.
@@ -334,7 +337,7 @@ func TestPowerCostPctModsMultiply(t *testing.T) {
 }
 
 // A mod that takes the whole cost or more makes the spell free while it is up, beside any other cost
-// mod, and gives the exact cost back when it ends: its factor of nothing or less is never multiplied in.
+// mod, and gives the exact cost back when it ends.
 func TestPowerCostPctModFreesTheSpellAndGivesTheCostBack(t *testing.T) {
 	for _, free := range []float64{-1, -10} {
 		sim := SetupFakeSim()

@@ -868,13 +868,11 @@ func (spell *Spell) casterHealingMultiplier(isPeriodic bool) float64 {
 	}
 
 	additive := spell.DamageMultiplierAdditive
-	direct := 1.0
 	if !isPeriodic {
-		additive += spell.DirectDamageMultiplierAdditive
-		direct = spell.DirectDamageMultiplier
+		additive = (additive + spell.DirectDamageMultiplierAdditive) * spell.DirectDamageMultiplier
 	}
 
-	multiplier := spell.DamageMultiplier * additive * direct * spell.Unit.PseudoStats.HealingDealtMultiplier
+	multiplier := spell.DamageMultiplier * additive * spell.Unit.PseudoStats.HealingDealtMultiplier
 
 	if isPeriodic {
 		multiplier *= spell.Unit.PseudoStats.PeriodicHealingDealtMultiplier

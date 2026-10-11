@@ -890,7 +890,7 @@ type SpellCost struct {
 	FlatModifier            int32   // Flat value added to base cost before pct mods
 	PercentModifier         float64 // Multiplier for cost, as of MoP a float
 	AdditivePercentModifier float64 // Additive pct cost bucket: defaults to 1, additive pct mods sum into it
-	percentModifierZeroes   int32   // Active percent cost mods of -100% or lower, which make the cost 0 and cannot be divided back out of PercentModifier.
+	percentModifierZeroes   int32   // Active percent cost mods of -100% or lower; the cost is 0 while any is active.
 	spell                   *Spell
 	ResourceCostImpl
 }
