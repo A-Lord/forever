@@ -2,12 +2,14 @@ import { iconEnumPickerShown } from '@features/inputs/components/ConnectedIconEn
 import type { IconEnumPickerConfig, IconPickerConfig } from '@features/inputs/configs';
 import i18n from '@i18n/config';
 import { usePlayer } from '@sim/context/SimHostContext';
-import { type StoreField, useStoreField } from '@sim/hooks/useStoreField';
+import { useStoreField } from '@sim/hooks/useStoreField';
 import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
 import type { Player } from '@sim/player/player';
 import { Field } from '@ui-kit/Field';
 import { FieldLabel } from '@ui-kit/FormControl';
 import { type ReactNode, useId } from 'react';
+
+import { CONSUMABLE_PICKER_FIELDS } from '../../model/consumables';
 
 export interface ConsumeRowViewProps {
 	label: string;
@@ -37,8 +39,6 @@ export const ConsumeRowView = ({ label, hidden, children }: ConsumeRowViewProps)
 
 export type ConsumeRowConfig = IconEnumPickerConfig<Player<any>, any> | IconPickerConfig<Player<any>, any>;
 
-const ROW_FIELDS: ReadonlyArray<StoreField> = ['player:*', 'sim:filters'];
-
 const rowConfigShown = (config: ConsumeRowConfig, player: Player<any>): boolean =>
 	'values' in config ? iconEnumPickerShown(config, player) : !config.showWhen || config.showWhen(player);
 
@@ -50,7 +50,7 @@ export interface ConsumeRowProps {
 
 export const ConsumeRow = ({ name, configs, children }: ConsumeRowProps) => {
 	const player = usePlayer();
-	const shown = useStoreSubscribe(useStoreField(ROW_FIELDS)!, () => configs.some(config => rowConfigShown(config, player)));
+	const shown = useStoreSubscribe(useStoreField(CONSUMABLE_PICKER_FIELDS)!, () => configs.some(config => rowConfigShown(config, player)));
 
 	// Hide, never unmount: a hidden ConnectedIconEnumPicker is what zeroes the field it is bound to
 	// when the player can no longer use it, and restores the value if they can again. Returning

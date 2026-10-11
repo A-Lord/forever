@@ -13,12 +13,12 @@ const KEY = 2;
 class Options {
 	engineer = true;
 	readonly storeKey = KEY;
-	readonly sim: { store: SimStore };
+	readonly sim: { store: SimStore; raid: { sim: { store: SimStore } } };
 
 	constructor() {
 		const store = createSimStore();
 		seedKeyed(store, 'players', KEY, { profession1: 0, profession2: 0, v: zeroVersions(PLAYER_FIELDS) } as unknown as PlayerSlice);
-		this.sim = { store };
+		this.sim = { store, raid: { sim: { store } } };
 	}
 
 	changeProfession(next: number) {
@@ -31,6 +31,10 @@ class Options {
 
 	changeFilters() {
 		this.sim.store.setState(s => ({ sim: { ...s.sim, filters: DatabaseFilters.create({ minConsumableLvl: { 1: 50 } }) } }));
+	}
+
+	changePartyBuffs() {
+		this.sim.store.setState(s => ({ raid: { ...s.raid, partyBuffs: [...s.raid.partyBuffs] } }));
 	}
 }
 
@@ -99,19 +103,21 @@ describe('ConsumeRow', () => {
 		expect(isHidden(element)).toBe(true);
 	});
 
-	it('re-evaluates on any player change, not only a profession change', () => {
-		// The rows gate on more than professions — imbues on gear and the party's Windfury Totem, the
-		// rest on the spec's stats — so this subscribes to the whole player-change aggregate rather
-		// than naming individual fields the way the profession-only rows would suggest.
+	it('re-evaluates on a party buff change, which the main-hand imbue reads', () => {
+		const options = new Options();
+		const element = row(options, [configFor(opts => opts.engineer)]);
+
+		options.engineer = false;
+		act(() => options.changePartyBuffs());
+		expect(isHidden(element)).toBe(true);
+	});
+
+	it('leaves the row alone on a write to a player field no picker reads', () => {
 		const options = new Options();
 		const element = row(options, [configFor(opts => opts.engineer)]);
 
 		options.engineer = false;
 		act(() => options.changeSomethingElse());
-		expect(isHidden(element)).toBe(true);
-
-		options.engineer = true;
-		act(() => options.changeProfession(1));
 		expect(isHidden(element)).toBe(false);
 	});
 
