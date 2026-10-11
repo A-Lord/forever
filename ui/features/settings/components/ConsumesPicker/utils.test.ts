@@ -181,6 +181,8 @@ const offered = (config: ConsumeConfig, player: Player<any>) =>
 		.map(value => value.value);
 const toggled = (toggles: ReadonlyArray<ConsumeToggle>, player: Player<any>) =>
 	toggles.filter(toggle => !toggle.showWhen || toggle.showWhen(player)).map(toggle => toggle.actionId.itemId);
+const marked = (config: ConsumeConfig | ConsumeToggle, player: Player<any>) =>
+	config.type === 'icon' ? config.keptBy!(player, config.getValue(player)) : config.keptBy!(player, config.getValue(player));
 
 describe('consumeConfigs', () => {
 	it('offers the Mighty Rage Potion to a class the game files allow it to', () => {
@@ -567,19 +569,19 @@ describe('consumeConfigs under the consumables stat filter', () => {
 	it('keeps a picked consumable whose stats the filter hides offered and marked, and in the consumables the sim gets', () => {
 		const { player, state } = agilityWarrior({ consumes: ConsumesSpec.create({ elixirIds: [9187], extraIds: [21023] }) });
 		const configs = consumeConfigs(player, agilityDb);
-		expect(configs.elixirs[1].keptBy!(player)).toBe(false);
+		expect(marked(configs.elixirs[1], player)).toBe(false);
 
 		state.filters = hiding(player, agilityDb, Stat.StatAgility);
 		expect(offered(configs.elixirs[1], player)).toEqual([9187]);
-		expect(configs.elixirs[1].keptBy!(player)).toBe(true);
+		expect(marked(configs.elixirs[1], player)).toBe(true);
 		const snack = configs.miscellaneous.find(toggle => toggle.actionId.itemId === 21023)!;
 		expect(snack.showWhen!(player)).toBe(true);
-		expect(snack.keptBy!(player)).toBe(true);
+		expect(marked(snack, player)).toBe(true);
 		expect([state.consumes.elixirIds, state.consumes.extraIds]).toEqual([[9187], [21023]]);
 
 		configs.elixirs[1].setValue(player, 0);
 		expect(agilityElixirs(player)).toEqual([]);
-		expect(configs.elixirs[1].keptBy!(player)).toBe(false);
+		expect(marked(configs.elixirs[1], player)).toBe(false);
 	});
 
 	it('keeps a picked consumable the class may not use hidden, whatever the filter shows', () => {
@@ -594,7 +596,7 @@ describe('consumeConfigs under the consumables stat filter', () => {
 		const { player } = playerOf({ minLvl: { [ConsumableType.ConsumableTypeExplosive]: 41 }, consumes: ConsumesSpec.create({ explosiveId: 18588 }) });
 		const configs = consumeConfigs(player, db);
 		expect(offered(configs.explosive, player)).toEqual([18588]);
-		expect(configs.explosive.keptBy!(player)).toBe(false);
+		expect(marked(configs.explosive, player)).toBe(false);
 	});
 
 	it('leaves the potions a sim request lists to the spec stats', () => {

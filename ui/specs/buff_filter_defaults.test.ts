@@ -2,9 +2,10 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { inputPicked } from '@features/inputs/components/ConnectedIconEnumPicker/utils';
 import { type ConsumeConfig, consumeConfigs, type ConsumeToggle } from '@features/settings/components/ConsumesPicker/utils';
 import { BUFFS_CONFIG, DEBUFFS_CONFIG, DEBUFFS_MISC_CONFIG, PARTY_BUFFS_CONFIG } from '@features/settings/model/buffs_debuffs';
-import { isIconEnumOption, isMultiIconOption, type PickerStatOptions, relevantStatOptions, statOptionScope } from '@features/settings/model/stat_options';
+import { type PickerStatOptions, relevantStatOptions, statOptionScope } from '@features/settings/model/stat_options';
 import { shownStats, type StatFilterSlot } from '@features/stat-filters/model/stat_filters';
 import { ConsumableType, type PseudoStat, Stat } from '@generated/proto/common';
 import type { Consumable } from '@generated/proto/db';
@@ -55,11 +56,9 @@ describe('the buff and debuff stat filters at their defaults', () => {
 	);
 });
 
-const picked = (row: PickerStatOptions, player: Player<any>) => {
-	if (isMultiIconOption(row)) return row.config.inputs.some(input => !!input.getValue(player));
-	if (isIconEnumOption(row)) return !row.config.equals(row.config.getValue(player), row.config.zeroValue);
-	return !!row.config.getValue(player);
-};
+// The kept mark an adapter shows, for the value it reads: the input's own, or for a multi icon whether any input is picked.
+const marked = (config: PickerStatOptions['config'], player: Player<any>) =>
+	!!config.keptBy?.(player, ('inputs' in config ? inputPicked(config, player) : config.getValue(player)) as never);
 
 const labelOf = (row: PickerStatOptions) => row.config.label ?? ('actionId' in row.config ? String(row.config.actionId.spellId) : '?');
 
@@ -134,8 +133,8 @@ describe("a spec's default picks at the default stat filters", () => {
 		const offered = relevantStatOptions(rows, spec, defaultShown(slot, rows, spec));
 		const relevant = specRule(rows, spec);
 		return {
-			kept: survivors.filter((_, index) => offered[index].config.keptBy?.(player)).map(labelOf),
-			expected: survivors.filter(row => picked(row, player) && !relevant.includes(row)).map(labelOf),
+			kept: survivors.filter((_, index) => marked(offered[index].config, player)).map(labelOf),
+			expected: survivors.filter(row => inputPicked(row.config, player) && !relevant.includes(row)).map(labelOf),
 		};
 	};
 
@@ -165,7 +164,11 @@ describe("a spec's default picks at the default stat filters", () => {
 		});
 		return {
 			picks,
-			kept: configs.filter(([, config]) => config.keptBy?.(player)).map(([field]) => field),
+			kept: configs
+				.filter(([, config]) =>
+					config.type === 'icon' ? config.keptBy?.(player, config.getValue(player)) : config.keptBy?.(player, config.getValue(player)),
+				)
+				.map(([field]) => field),
 			expected: picks.filter(({ consumable }) => !consumableRule(consumable, player)).map(({ field }) => field),
 		};
 	};

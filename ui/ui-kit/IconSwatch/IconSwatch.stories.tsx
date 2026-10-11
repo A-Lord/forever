@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { KEPT_TOOLTIP } from '@testing/storybook/fixtures/kept';
 import type { ResolvedIcon } from '@ui-kit/Field/types';
 import { expect, within } from 'storybook/test';
 
@@ -30,7 +31,6 @@ const meta = {
 		active: { control: 'boolean' },
 		disabled: { control: 'boolean' },
 		text: { control: 'text' },
-		kept: { control: 'boolean' },
 		keptTooltip: { control: 'text' },
 	},
 } satisfies Meta<typeof IconSwatch>;
@@ -69,15 +69,15 @@ export const WithBadges: Story = {
 	},
 };
 export const Kept: Story = {
-	args: { active: true, kept: true, keptTooltip: 'Shown because it is selected; the stat filter hides its stats.' },
+	args: { active: true, keptTooltip: KEPT_TOOLTIP },
 	play: async ({ canvasElement }) => {
 		const swatch = within(canvasElement).getByTestId('story-swatch');
 		const badge = within(canvasElement).getByTestId('icon-swatch-kept');
 		await expect(badge.parentElement).toBe(swatch.parentElement);
 		await expect(swatch.hasAttribute('data-tooltip-id')).toBe(false);
-		await expect(badge.getAttribute('data-tooltip-content')).toBe('Shown because it is selected; the stat filter hides its stats.');
+		await expect(badge.getAttribute('data-tooltip-content')).toBe(KEPT_TOOLTIP);
 	},
 };
 export const KeptWithBadges: Story = {
-	args: { ...WithBadges.args, kept: true, keptTooltip: 'Shown because it is selected; the stat filter hides its stats.' },
+	args: { ...WithBadges.args, keptTooltip: KEPT_TOOLTIP },
 };

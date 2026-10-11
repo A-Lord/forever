@@ -166,14 +166,17 @@ Both icon adapters call it:
   renders again, so an order that follows a field the picker does not subscribe to (the consumables'
   EP order) is fresh whenever the menu shows it.
 
-The icon, icon-enum and multi-icon input configs carry an optional `keptBy(modObject)`, declared once
-as `KeptInput` in `ui/features/inputs/input.ts`: while it holds, the swatch or trigger is dimmed and
+The icon, icon-enum and multi-icon input configs carry an optional `keptBy(modObject, value)`, declared
+once as `KeptInput` in `ui/features/inputs/input.ts`, where `value` is the one the adapter already
+read (a multi icon's is whether any input is on). While it holds, `keptTooltipOf` hands the kit picker
+the `stat_filters.kept_tooltip` text as its one `keptTooltip` prop: the swatch or trigger is dimmed and
 `IconSwatch` (`ui/ui-kit/IconSwatch/IconSwatch.tsx`) lays a corner badge beside it that shows the
-`stat_filters.kept_tooltip` text, a selection the stat filter hides that stays offered because it is
-selected. The swatch keeps only its link tooltip, and `IconEnumPicker`'s trigger keeps its own
-tooltip. `data-kept` then sits on the box that holds the swatch and its badges, not on the anchor. A
-kept multi icon offers only its picked inputs, each kept the same way. The adapters derive
-`kept` in the render body, not inside a `useStoreSubscribe` read, and `ConnectedMultiIconPicker`
+text, a selection the stat filter hides that stays offered because it is selected. The swatch keeps
+only its link tooltip, and `IconEnumPicker`'s trigger keeps its own tooltip. `data-kept` sits on the
+box that holds the swatch and its badges, never on the anchor. A kept multi icon offers only its picked
+inputs, each kept the same way; whether an input holds a pick is `inputPicked`, and whether a value is
+one `valuePicked` (`ui/features/inputs/components/ConnectedIconEnumPicker/utils.ts`). The adapters derive
+the tooltip in the render body, not inside a `useStoreSubscribe` read, and `ConnectedMultiIconPicker`
 (`ui/features/inputs/components/ConnectedMultiIconPicker/ConnectedMultiIconPicker.tsx`) reads its
 active input, `showWhen` and `keptBy` there too, subscribing only to re-render: the stat filter hands
 in a new config when its stats change, and a read cached in the snapshot would answer from the

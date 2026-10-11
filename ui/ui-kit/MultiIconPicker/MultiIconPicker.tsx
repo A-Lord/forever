@@ -1,25 +1,22 @@
 import i18n from '@i18n/config';
 import { Field } from '@ui-kit/Field';
 import type { ResolvedIcon } from '@ui-kit/Field/types';
-import { IconMenu } from '@ui-kit/IconSwatch';
+import { IconMenu, type IconSwatchProps } from '@ui-kit/IconSwatch';
 import { isRightClick } from '@ui-kit/utils/dom';
 import clsx from 'clsx';
 import { Children, type MouseEvent, type ReactNode, useId, useRef } from 'react';
 
-export interface MultiIconPickerProps {
+export interface MultiIconPickerProps extends Pick<IconSwatchProps, 'keptTooltip'> {
 	label?: string;
 	icon?: ResolvedIcon;
 	active: boolean;
 	onClear: () => void;
 	/** One menu entry per child, each an icon toggle; a child that renders nothing takes no entry. The popup unmounts while closed, and the children with it. */
 	children: ReactNode;
-	/** A selection kept on offer only because it is selected: the trigger dims and a corner badge shows `keptTooltip` on hover. */
-	kept?: boolean;
-	keptTooltip?: string;
 	testId?: string;
 }
 
-export const MultiIconPicker = ({ label, icon, active, onClear, children, kept, keptTooltip, testId }: MultiIconPickerProps) => {
+export const MultiIconPicker = ({ label, icon, active, onClear, children, keptTooltip, testId }: MultiIconPickerProps) => {
 	const labelId = useId();
 	const controlRef = useRef<HTMLAnchorElement>(null);
 	const menu = (
@@ -27,7 +24,6 @@ export const MultiIconPicker = ({ label, icon, active, onClear, children, kept, 
 			trigger={{
 				icon,
 				active,
-				kept,
 				keptTooltip,
 				className: clsx(!active && 'grayscale'),
 				testId: testId ?? 'multi-icon-picker-root',

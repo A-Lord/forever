@@ -1,6 +1,7 @@
 import { EncounterPicker, SavedEncounter } from '@features/encounter';
 import { SelectorModal } from '@features/gear/components/SelectorModal';
 import { OpenSelectorModalContext, useSelectorModalState } from '@features/gear/hooks/useSelectorModal';
+import { inputPicked } from '@features/inputs/components/ConnectedIconEnumPicker';
 import { BuffSection, ConsumesFilters, ConsumesPicker, CustomSection, OtherSettings, PlayerSettings, RaidBuffs, SavedSettings } from '@features/settings';
 import * as BuffDebuffInputs from '@features/settings/model/buffs_debuffs';
 import { applyOwnerClassLabels, relevantStatOptions, type RenderableStatOptions, statOptionScope } from '@features/settings/model/stat_options';
@@ -25,7 +26,7 @@ const BUFF_OPTIONS = [...BuffDebuffInputs.BUFFS_CONFIG, ...BuffDebuffInputs.PART
 const DEBUFF_OPTIONS = [...BuffDebuffInputs.DEBUFFS_CONFIG, ...BuffDebuffInputs.DEBUFFS_MISC_CONFIG];
 
 const anyOffered = (list: ReadonlyArray<RenderableStatOptions>, player: Player<any>) =>
-	list.some(option => !option.config.keptBy || option.config.keptBy(player));
+	list.some(option => !option.config.keptBy || inputPicked(option.config, player));
 
 // Whether any option is offered, worked out again only when the raid slice, the player's slice or the list changes. An
 // option's value is read from those two slices, so a write to any other slice returns the cached flag.

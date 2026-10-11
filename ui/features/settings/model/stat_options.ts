@@ -1,3 +1,4 @@
+import { inputPicked, valuePicked } from '@features/inputs/components/ConnectedIconEnumPicker/utils';
 import type { IconEnumPickerConfig, IconPickerConfig, MultiIconPickerConfig } from '@features/inputs/configs';
 import type { StatFilterScope } from '@features/stat-filters/model/stat_filters';
 import { Class, Stat } from '@generated/proto/common';
@@ -51,25 +52,20 @@ export const statOptionScope = (options: ReadonlyArray<PickerStatOptions>, confi
 	};
 };
 
-const pickedBy =
-	(option: PickerStatOptions) =>
-	(player: Player<any>): boolean => {
-		if (isMultiIconOption(option)) return option.config.inputs.some(input => !!input.getValue(player));
-		if (isIconEnumOption(option)) return !option.config.equals(option.config.getValue(player), option.config.zeroValue);
-		return !!option.config.getValue(player);
-	};
-
-const keptWhile = <Config extends { showWhen?: unknown }>(config: Config, picked: (player: Player<any>) => boolean): Config => {
+const keptWhile = <Config extends PickerStatOptions['config']>(config: Config): Config => {
 	const showWhen = config.showWhen as ((player: Player<any>) => boolean) | undefined;
-	return { ...config, showWhen: (player: Player<any>) => (!showWhen || showWhen(player)) && picked(player), keptBy: picked };
+	return {
+		...config,
+		showWhen: (player: Player<any>) => (!showWhen || showWhen(player)) && inputPicked(config, player),
+		keptBy: (_player: Player<any>, value: unknown) => valuePicked(config, value),
+	};
 };
 
 // A kept multi icon offers only its picked inputs, each marked kept: its inputs share its hidden stats.
 const keptWhilePicked = <OptionsType extends PickerStatOptions>(option: OptionsType): OptionsType => {
-	const config = keptWhile(option.config, pickedBy(option));
+	const config = keptWhile(option.config);
 	if (!isMultiIconOption(option)) return { ...option, config };
-	const inputs = option.config.inputs.map(input => keptWhile(input, (player: Player<any>) => !!input.getValue(player)));
-	return { ...option, config: { ...config, inputs } };
+	return { ...option, config: { ...config, inputs: option.config.inputs.map(input => keptWhile(input)) } };
 };
 
 // An option is offered when it carries no stat, a stat in `shown`, or the spec includes its config.

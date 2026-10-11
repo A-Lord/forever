@@ -377,7 +377,7 @@ describe('IconEnumPicker', () => {
 	});
 
 	it('marks a kept trigger, keeps its own tooltip and shows the kept tooltip on a corner badge', () => {
-		mount({ tooltip: 'Lethal Poison', kept: true, keptTooltip: 'Kept' });
+		mount({ tooltip: 'Lethal Poison', keptTooltip: 'Kept' });
 
 		expect(button().parentElement!.hasAttribute('data-kept')).toBe(true);
 		expect(button().getAttribute('data-tooltip-content')).toBe('Lethal Poison');

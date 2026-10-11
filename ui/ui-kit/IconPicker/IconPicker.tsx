@@ -1,13 +1,13 @@
 import { Field, hasFieldFrame } from '@ui-kit/Field';
 import type { ControlledProps, FieldFrameProps, ResolvedIcon } from '@ui-kit/Field/types';
-import { IconSwatch } from '@ui-kit/IconSwatch';
+import { IconSwatch, type IconSwatchProps } from '@ui-kit/IconSwatch';
 import { isRightClick } from '@ui-kit/utils/dom';
 import clsx from 'clsx';
 import { type MouseEvent, useId, useRef } from 'react';
 
 import { ImprovedAnchor } from './ImprovedAnchor';
 
-export interface IconPickerProps extends FieldFrameProps, ControlledProps<number> {
+export interface IconPickerProps extends FieldFrameProps, ControlledProps<number>, Pick<IconSwatchProps, 'keptTooltip'> {
 	/** The number of states the icon cycles through: 2 is on/off, 0 is unlimited. */
 	states: number;
 	icon?: ResolvedIcon;
@@ -15,9 +15,6 @@ export interface IconPickerProps extends FieldFrameProps, ControlledProps<number
 	improvedIcon?: ResolvedIcon;
 	/** Shown from states 4 up. */
 	improvedIcon2?: ResolvedIcon;
-	/** A selection kept on offer only because it is selected: the swatch dims and a corner badge shows `keptTooltip` on hover. */
-	kept?: boolean;
-	keptTooltip?: string;
 }
 
 /** Without a label, description or layout the swatch renders bare; with any of them it sits in a `Field` laid out as `icon`, whatever layout the caller passes. */
@@ -26,7 +23,6 @@ export const IconPicker = ({
 	icon,
 	improvedIcon,
 	improvedIcon2,
-	kept,
 	keptTooltip,
 	value,
 	onChange,
@@ -96,7 +92,6 @@ export const IconPicker = ({
 			disabled={disabled}
 			text={showCounterText ? String(value) : undefined}
 			badges={badges || undefined}
-			kept={kept}
 			keptTooltip={keptTooltip}
 			className={clsx(value === 0 && 'grayscale', !rooted && className)}
 			testId={testId ?? 'icon-picker-root'}

@@ -16,24 +16,22 @@ export interface IconSwatchProps extends Omit<WowheadAnchorProps, 'children' | '
 	text?: string;
 	/** Anchors laid over the swatch. They sit beside it in one positioned box, since an anchor cannot hold another. */
 	badges?: ReactNode;
-	/** Dims the swatch, with its badges, for a selection the caller keeps on offer only because it is selected. */
-	kept?: boolean;
-	/** While `kept`, a corner badge beside the swatch shows this on hover, so the swatch keeps its own link tooltip. */
+	/**
+	 * Set for a selection the caller keeps on offer only because it is selected: dims the swatch, with its badges, and
+	 * a corner badge beside it shows this on hover, so the swatch keeps its own link tooltip.
+	 */
 	keptTooltip?: string;
 }
 
 /** An icon as a link: wowhead's tooltip script finds it through the `href`. `className` lands on the box when there are badges or a kept badge. */
-export const IconSwatch = ({ icon, active, disabled, text, badges, kept, keptTooltip, className, style, ...rest }: IconSwatchProps) => {
+export const IconSwatch = ({ icon, active, disabled, text, badges, keptTooltip, className, style, ...rest }: IconSwatchProps) => {
 	const tooltipId = useId();
-	const keptTip = kept ? keptTooltip : undefined;
-	const boxed = !!badges || !!keptTip;
-	const keptAttribute = kept ? '' : undefined;
+	const boxed = !!badges || !!keptTooltip;
 	const anchor = (
 		<WowheadAnchor
 			className={clsx('ui-icon-picker-swatch', !boxed && className)}
 			data-active={active ? '' : undefined}
 			data-disabled={disabled ? '' : undefined}
-			data-kept={boxed ? undefined : keptAttribute}
 			disabled={disabled}
 			style={style ?? resolvedIconStyle(icon)}
 			{...rest}>
@@ -44,16 +42,22 @@ export const IconSwatch = ({ icon, active, disabled, text, badges, kept, keptToo
 	if (!boxed) return anchor;
 
 	const box = (
-		<div className={clsx('ui-icon-swatch-box', className)} data-kept={keptAttribute}>
+		<div className={clsx('ui-icon-swatch-box', className)} data-kept={keptTooltip ? '' : undefined}>
 			{anchor}
 			{badges}
-			{keptTip && (
-				<Icon name="eye-slash" className="ui-icon-swatch-kept" title={keptTip} testId="icon-swatch-kept" {...tooltipAnchorProps(tooltipId, keptTip)} />
+			{keptTooltip && (
+				<Icon
+					name="eye-slash"
+					className="ui-icon-swatch-kept"
+					title={keptTooltip}
+					testId="icon-swatch-kept"
+					{...tooltipAnchorProps(tooltipId, keptTooltip)}
+				/>
 			)}
 		</div>
 	);
 
-	if (!keptTip) return box;
+	if (!keptTooltip) return box;
 
 	return (
 		<>

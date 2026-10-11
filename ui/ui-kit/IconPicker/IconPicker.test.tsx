@@ -304,7 +304,7 @@ describe('IconPicker', () => {
 	});
 
 	it('marks a kept swatch and anchors the kept tooltip on its corner badge, not on the swatch', () => {
-		mount({ kept: true, keptTooltip: 'Kept', initial: 1 });
+		mount({ keptTooltip: 'Kept', initial: 1 });
 
 		expect(mainAnchor().parentElement!.hasAttribute('data-kept')).toBe(true);
 		expect(mainAnchor().hasAttribute('data-tooltip-id')).toBe(false);
@@ -312,16 +312,17 @@ describe('IconPicker', () => {
 	});
 
 	it('marks the box rather than the swatch when badges sit beside it', () => {
-		mount({ kept: true, keptTooltip: 'Kept', states: 3, improvedIcon, initial: 1 });
+		mount({ keptTooltip: 'Kept', states: 3, improvedIcon, initial: 1 });
 
 		expect(mainAnchor().hasAttribute('data-kept')).toBe(false);
 		expect(mainAnchor().parentElement!.hasAttribute('data-kept')).toBe(true);
 	});
 
-	it('carries neither the mark nor the tooltip unless kept', () => {
-		mount({ keptTooltip: 'Kept', initial: 1 });
+	it('carries neither the mark nor the badge without a kept tooltip', () => {
+		mount({ initial: 1 });
 
 		expect(mainAnchor().hasAttribute('data-kept')).toBe(false);
-		expect(mainAnchor().hasAttribute('data-tooltip-id')).toBe(false);
+		expect(mainAnchor().parentElement!.hasAttribute('data-kept')).toBe(false);
+		expect(screen.queryByTestId('icon-swatch-kept')).toBeNull();
 	});
 });

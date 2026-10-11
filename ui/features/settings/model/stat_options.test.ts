@@ -1,3 +1,4 @@
+import { inputPicked } from '@features/inputs/components/ConnectedIconEnumPicker/utils';
 import { Class, PseudoStat, Stat } from '@generated/proto/common';
 import type { Player } from '@sim/player/player';
 import { UnitStat } from '@sim/proto/stats';
@@ -40,6 +41,10 @@ const specStats = (parts: { epStats?: Array<Stat>; displayStats?: Array<UnitStat
 
 const offered = (shown: ReadonlyArray<PickerStatOptions>) => shown.filter(row => !row.config.keptBy);
 
+// The kept mark an adapter shows, for the value it reads: the input's own, or for a multi icon whether any input is picked.
+const marked = (config: PickerStatOptions['config'], player: Player<any>) =>
+	!!config.keptBy?.(player, ('inputs' in config ? inputPicked(config, player) : config.getValue(player)) as never);
+
 describe('relevantStatOptions', () => {
 	it('offers an option tagged with a shown stat and every untagged option, as the same objects', () => {
 		const shown = relevantStatOptions(options, lists(), new Set([Stat.StatMP5, Stat.StatStamina]));
@@ -55,9 +60,9 @@ describe('relevantStatOptions', () => {
 		expect(kept.stats).toEqual([Stat.StatStrength]);
 		expect(kept.config).not.toBe(strengthOfEarth.config);
 		expect(kept.config.showWhen!(playerWith({}))).toBe(false);
-		expect(kept.config.keptBy!(playerWith({}))).toBe(false);
+		expect(marked(kept.config, playerWith({}))).toBe(false);
 		expect(kept.config.showWhen!(playerWith({ 'Strength of Earth': true }))).toBe(true);
-		expect(kept.config.keptBy!(playerWith({ 'Strength of Earth': true }))).toBe(true);
+		expect(marked(kept.config, playerWith({ 'Strength of Earth': true }))).toBe(true);
 		expect(strengthOfEarth.config.keptBy).toBeUndefined();
 		expect(strengthOfEarth.config.showWhen).toBeUndefined();
 	});
@@ -82,10 +87,14 @@ describe('relevantStatOptions', () => {
 		const multiOption = { stats: [Stat.StatStrength], config: { inputs: [manaSpring.config, manaTide.config] } } as unknown as PickerStatOptions;
 		const [keptEnum, keptMulti] = relevantStatOptions([enumOption, multiOption], lists(), new Set());
 
-		expect(keptEnum.config.keptBy!(playerWith({}))).toBe(false);
-		expect(keptEnum.config.keptBy!(playerWith({ enum: 'greater' as unknown as number }))).toBe(true);
-		expect(keptMulti.config.keptBy!(playerWith({}))).toBe(false);
-		expect(keptMulti.config.keptBy!(playerWith({ 'Mana Tide': 2 }))).toBe(true);
+		expect(keptEnum.config.showWhen!(playerWith({}))).toBe(false);
+		expect(marked(keptEnum.config, playerWith({}))).toBe(false);
+		expect(keptEnum.config.showWhen!(playerWith({ enum: 'greater' as unknown as number }))).toBe(true);
+		expect(marked(keptEnum.config, playerWith({ enum: 'greater' as unknown as number }))).toBe(true);
+		expect(keptMulti.config.showWhen!(playerWith({}))).toBe(false);
+		expect(marked(keptMulti.config, playerWith({}))).toBe(false);
+		expect(keptMulti.config.showWhen!(playerWith({ 'Mana Tide': 2 }))).toBe(true);
+		expect(marked(keptMulti.config, playerWith({ 'Mana Tide': 2 }))).toBe(true);
 	});
 
 	it('offers only the picked inputs of a kept multi icon, each marked kept, and leaves the shared inputs as they were', () => {
@@ -95,9 +104,9 @@ describe('relevantStatOptions', () => {
 		const player = playerWith({ 'Mana Tide': 1 });
 
 		expect(spring.showWhen!(player)).toBe(false);
-		expect(spring.keptBy!(player)).toBe(false);
+		expect(marked(spring, player)).toBe(false);
 		expect(tide.showWhen!(player)).toBe(true);
-		expect(tide.keptBy!(player)).toBe(true);
+		expect(marked(tide, player)).toBe(true);
 		expect(manaSpring.config.showWhen).toBeUndefined();
 		expect(manaSpring.config.keptBy).toBeUndefined();
 	});

@@ -10,7 +10,7 @@ export interface IconEnumValueConfig<ModObject, T> extends Pick<IconEnumOption<T
 }
 
 interface IconEnumPickerBase<ModObject, T>
-	extends InputConfig<ModObject, T>, KeptInput<ModObject>, Pick<IconEnumPickerProps<T>, 'equals' | 'zeroValue' | 'tooltip' | 'direction'> {
+	extends InputConfig<ModObject, T>, KeptInput<ModObject, T>, Pick<IconEnumPickerProps<T>, 'equals' | 'zeroValue' | 'tooltip' | 'direction'> {
 	// A function is read on every render, for a picker whose shown values change.
 	numColumns?: number | ((obj: ModObject) => number);
 	// A function is read on every render and on every opening of the menu, for a picker whose values change order.

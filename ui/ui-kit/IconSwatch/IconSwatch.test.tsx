@@ -87,7 +87,7 @@ describe('IconSwatch', () => {
 	});
 
 	it('boxes a kept swatch with a corner badge that carries the kept tooltip, leaving the swatch only its link', () => {
-		const { container } = render(<IconSwatch icon={kings} href={kings.href} kept keptTooltip="Kept" testId="swatch" className="extra" />);
+		const { container } = render(<IconSwatch icon={kings} href={kings.href} keptTooltip="Kept" testId="swatch" className="extra" />);
 		const box = container.firstElementChild as HTMLElement;
 		const swatch = screen.getByTestId('swatch');
 		const badge = screen.getByTestId('icon-swatch-kept');
@@ -103,24 +103,17 @@ describe('IconSwatch', () => {
 	});
 
 	it('puts the kept badge after the other badges', () => {
-		render(<IconSwatch icon={kings} kept keptTooltip="Kept" testId="swatch" badges={<IconSwatch icon={kings} testId="badge-1" />} />);
+		render(<IconSwatch icon={kings} keptTooltip="Kept" testId="swatch" badges={<IconSwatch icon={kings} testId="badge-1" />} />);
 		const box = screen.getByTestId('swatch').parentElement!;
 
 		expect(Array.from(box.children)).toEqual([screen.getByTestId('swatch'), screen.getByTestId('badge-1'), screen.getByTestId('icon-swatch-kept')]);
 	});
 
-	it('dims a kept swatch with no tooltip as a bare anchor, without a badge', () => {
-		const { container } = render(<IconSwatch icon={kings} kept testId="swatch" />);
+	it('renders a bare anchor, neither boxed nor kept, without a kept tooltip', () => {
+		const { container } = render(<IconSwatch icon={kings} testId="swatch" />);
 
 		expect(container.firstElementChild).toBe(screen.getByTestId('swatch'));
-		expect(screen.getByTestId('swatch').hasAttribute('data-kept')).toBe(true);
-		expect(screen.queryByTestId('icon-swatch-kept')).toBeNull();
-	});
-
-	it('shows no badge for a tooltip alone, unless kept', () => {
-		const { container } = render(<IconSwatch icon={kings} keptTooltip="Kept" testId="swatch" />);
-
-		expect(container.firstElementChild).toBe(screen.getByTestId('swatch'));
+		expect(screen.getByTestId('swatch').hasAttribute('data-kept')).toBe(false);
 		expect(screen.queryByTestId('icon-swatch-kept')).toBeNull();
 	});
 

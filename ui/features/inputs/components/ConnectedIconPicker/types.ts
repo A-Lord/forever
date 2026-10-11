@@ -5,7 +5,7 @@ import type { InputConfig, KeptInput, StoreBinding } from '../../input';
 
 // One icon input, e.g. one for arcane brilliance and another for kings. ModObject is the object being
 // modified (Sim, Player or Target); ValueType is a number or a boolean.
-interface IconPickerBase<ModObject, ValueType> extends InputConfig<ModObject, ValueType>, KeptInput<ModObject>, Pick<IconPickerProps, 'states'> {
+interface IconPickerBase<ModObject, ValueType> extends InputConfig<ModObject, ValueType>, KeptInput<ModObject, ValueType>, Pick<IconPickerProps, 'states'> {
 	actionId: ActionId;
 	// Only used if states >= 3.
 	improvedId?: ActionId;

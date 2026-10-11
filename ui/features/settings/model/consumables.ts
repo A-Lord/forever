@@ -145,8 +145,8 @@ function consumablePicker(
 		zeroValue: 0,
 		storeField: CONSUMABLE_PICKER_FIELDS,
 		showWhen: options.showWhen,
-		keptBy: (player: Player<any>) => {
-			const picked = byId.get(pickOf(player.getConsumes()));
+		keptBy: (player: Player<any>, value: number) => {
+			const picked = byId.get(value);
 			return !!picked && !relevance.relevant(picked, player);
 		},
 		getValue: (player: Player<any>) => pickOf(player.getConsumes()),
@@ -171,7 +171,7 @@ export function makeIdListInput(consumable: Consumable, relevance: ConsumableRel
 		states: 2,
 		storeField: STORE_FIELDS,
 		showWhen: offeredTo(consumable, relevance, picked),
-		keptBy: (player: Player<any>) => picked(player) && !relevance.relevant(consumable, player),
+		keptBy: (player: Player<any>, value: boolean) => value && !relevance.relevant(consumable, player),
 		getValue: picked,
 		setValue: (player: Player<any>, newValue: boolean) => {
 			const consumes = player.getConsumes();

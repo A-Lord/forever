@@ -1,4 +1,3 @@
-import i18n from '@i18n/config';
 import { useActionIds } from '@sim/hooks/useActionIds';
 import { useResolvedIcon } from '@sim/hooks/useResolvedIcon';
 import { IconEnumPicker } from '@ui-kit/IconEnumPicker';
@@ -6,8 +5,9 @@ import { useState } from 'react';
 
 import { useConnectedField } from '../../hooks/useConnectedField';
 import { useHideZeroRestore } from '../../hooks/useHideZeroRestore';
+import { keptTooltipOf } from '../../input';
 import type { IconEnumPickerConfig, IconEnumValueConfig } from './types';
-import { iconEnumPickerShown, iconEnumValues } from './utils';
+import { iconEnumPickerShown, iconEnumValues, valuePicked } from './utils';
 
 export interface ConnectedIconEnumPickerProps<ModObject, T> {
 	modObject: ModObject;
@@ -25,7 +25,7 @@ export const ConnectedIconEnumPicker = <ModObject, T>({ modObject, config, testI
 	const { clearStored } = useHideZeroRestore(
 		{ value, setValue, hidden, revision },
 		config.zeroValue,
-		current => config.equals(current, config.zeroValue),
+		current => !valuePicked(config, current),
 		current => {
 			if (values.some(valueConfig => valueConfig.value === current && !shows(valueConfig))) setValue(config.zeroValue);
 		},
@@ -42,7 +42,6 @@ export const ConnectedIconEnumPicker = <ModObject, T>({ modObject, config, testI
 
 	if (hidden) return null;
 
-	const kept = config.keptBy?.(modObject);
 	return (
 		<IconEnumPicker
 			{...frameProps}
@@ -60,8 +59,7 @@ export const ConnectedIconEnumPicker = <ModObject, T>({ modObject, config, testI
 			zeroValue={config.zeroValue}
 			backupIcon={backupIcon}
 			tooltip={config.tooltip}
-			kept={kept}
-			keptTooltip={kept ? i18n.t('stat_filters.kept_tooltip') : undefined}
+			keptTooltip={keptTooltipOf(config, modObject, value)}
 			direction={config.direction}
 			numColumns={typeof config.numColumns === 'function' ? config.numColumns(modObject) : config.numColumns}
 			onOpenChange={open => {
