@@ -260,8 +260,9 @@ the manifest, for the one moment the sim cannot build: before protoc has seen a 
 
 ## The guard tests
 
-`go test ./tools/database/...` needs no game files database and runs in CI; only
-`TestManifestAnchorsMatchTheGameFiles` and `TestProcShapeOfNamedSpells` skip without one.
+`go test ./tools/database/...` needs no game files database. It is the "Test the buff generator" step
+of `.github/workflows/run_tests.yml`, the gate list run locally before each commit; only
+`TestManifestAnchorsMatchTheGameFiles` and `TestProcShapeOfNamedSpells` skip without a database.
 
 | Test                                                                       | What it holds                                                                                                                                        |
 | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
