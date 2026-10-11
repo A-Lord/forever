@@ -1570,12 +1570,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		249398, // Polished Driftwood Icon
-		[
-			"Allows 8% of your Mana regeneration to continue while casting.", // 1248756 - https://www.wowhead.com/forever/spell=1248756
-		]
-	],
-	[
 		249441, // Talons of Wrath
 		[
 			"Causes Wrath to have a 50% chance to restore 35 Mana.", // 1302521 - https://www.wowhead.com/forever/spell=1302521
