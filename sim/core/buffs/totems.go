@@ -2,22 +2,23 @@ package buffs
 
 import (
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-// A totem stands for the fight, and a true pet stands under every totem its owner does; a guardian
-// stands under none. The pet's copy is the same aura built on the pet's own unit, so it bids in the
-// same categories there as the owner's copy does on the owner.
-func standTotem(char *core.Character, build func(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura, talentPoints int32) {
+// A totem stands for the fight, and a true pet stands under each of its owner's totems whose aura a
+// pet may carry; a guardian stands under none. The pet's copy is the same aura built on the pet's
+// own unit, so it bids in the same categories there as the owner's copy does on the owner.
+func standTotem(char *core.Character, spell *spelldata.Spell, build func(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura, talentPoints int32) {
 	totem := core.MakePermanent(build(&char.Unit, false, talentPoints))
-	inheritTotem(char, totem, func(pet *core.Pet) *core.Aura {
+	inheritTotem(char, spell, totem, func(pet *core.Pet) *core.Aura {
 		return build(&pet.Unit, false, talentPoints)
 	})
 }
 
 // A weapon totem stands for the fight, and its whole chain (totem aura, category bid and proc) stands
 // on each true pet that melees.
-func inheritWeaponTotem(char *core.Character, stand func(char *core.Character) *core.Aura) {
-	inheritTotem(char, core.MakePermanent(stand(char)), func(pet *core.Pet) *core.Aura {
+func inheritWeaponTotem(char *core.Character, spell *spelldata.Spell, stand func(char *core.Character) *core.Aura) {
+	inheritTotem(char, spell, core.MakePermanent(stand(char)), func(pet *core.Pet) *core.Aura {
 		if !pet.AutoAttacks.AutoSwingMelee {
 			return nil
 		}
@@ -26,8 +27,12 @@ func inheritWeaponTotem(char *core.Character, stand func(char *core.Character) *
 }
 
 // Each true pet's copy of the owner's totem aura is up while the owner's is and the pet is
-// summoned, however often the pet is dismissed and summoned again. A nil copy leaves that pet out.
-func inheritTotem(char *core.Character, totem *core.Aura, petCopy func(pet *core.Pet) *core.Aura) {
+// summoned, however often the pet is dismissed and summoned again. A nil copy leaves that pet out,
+// and a totem whose aura only a player can carry leaves every pet out.
+func inheritTotem(char *core.Character, spell *spelldata.Spell, totem *core.Aura, petCopy func(pet *core.Pet) *core.Aura) {
+	if spell.OnlyOnPlayers() {
+		return
+	}
 	for _, pet := range char.Pets {
 		if pet.IsGuardian() {
 			continue

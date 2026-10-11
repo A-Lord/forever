@@ -1542,43 +1542,51 @@ func setupPetOwnerSim(party *proto.PartyBuffs) (*core.Simulation, *petOwner) {
 	return sim, sim.Raid.Parties[0].Players[0].(*petOwner)
 }
 
-// A true pet stands under its owner's totems with the owner's exclusivity: under Windfury Totem it
-// has the totem's proc and no Grace of Air agility. A guardian stands under none of them.
+// A true pet stands under its owner's totems with the owner's exclusivity, except those whose aura
+// only a player can carry: it has Mana Spring and, under Windfury Totem, the totem's proc, but never
+// Strength of Earth or Grace of Air. A guardian stands under none of them.
 func TestTruePetsStandUnderTheOwnersTotems(t *testing.T) {
 	for _, tc := range []struct {
 		name     string
 		party    *proto.PartyBuffs
-		agility  float64
 		windfury bool
 	}{
-		{"grace of air", &proto.PartyBuffs{StrengthOfEarthTotem: true, GraceOfAirTotem: true}, buffs.GraceOfAirTotemValue(0), false},
-		{"windfury", &proto.PartyBuffs{StrengthOfEarthTotem: true, GraceOfAirTotem: true, WindfuryTotem: true}, 0, true},
+		{"grace of air", &proto.PartyBuffs{ManaSpringTotem: proto.TristateEffect_TristateEffectRegular, StrengthOfEarthTotem: true, GraceOfAirTotem: true}, false},
+		{"windfury", &proto.PartyBuffs{ManaSpringTotem: proto.TristateEffect_TristateEffectRegular, StrengthOfEarthTotem: true, GraceOfAirTotem: true, WindfuryTotem: true}, true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			_, owner := setupPetOwnerSim(tc.party)
 			pet := owner.pet
 
-			if aura := pet.GetAura("Strength of Earth Totem (External)"); aura == nil || !aura.IsActive() {
-				t.Fatalf("the pet's Strength of Earth Totem is %v; the pet has %v", aura, auraLabels(&pet.Character))
+			if aura := owner.GetAura("Strength of Earth Totem (External)"); aura == nil || !aura.IsActive() {
+				t.Fatalf("the owner's Strength of Earth Totem is %v; the owner has %v", aura, auraLabels(&owner.Character))
 			}
-			if got, want := pet.GetStats()[stats.Strength], buffs.StrengthOfEarthTotemValue(0); got != want {
-				t.Errorf("the pet has %v strength, want the totem's %v", got, want)
+			if aura := pet.GetAura("Mana Spring Totem (External)"); aura == nil || !aura.IsActive() {
+				t.Fatalf("the pet's Mana Spring Totem is %v; the pet has %v", aura, auraLabels(&pet.Character))
 			}
-			if got := pet.GetStats()[stats.Agility]; got != tc.agility {
-				t.Errorf("the pet has %v agility, want %v", got, tc.agility)
+			if got, want := pet.GetStats()[stats.MP5], buffs.ManaSpringTotemValue(0); got != want {
+				t.Errorf("the pet has %v MP5, want the totem's %v", got, want)
+			}
+			for _, label := range []string{"Strength of Earth Totem (External)", "Grace of Air Totem (External)"} {
+				if pet.GetAura(label) != nil {
+					t.Errorf("the pet carries %q", label)
+				}
+			}
+			if got := pet.GetStats(); got[stats.Strength] != 0 || got[stats.Agility] != 0 {
+				t.Errorf("the pet has %v strength and %v agility, want none", got[stats.Strength], got[stats.Agility])
 			}
 			trigger := pet.GetAura("Windfury Totem Trigger")
 			if got := trigger != nil && trigger.IsActive(); got != tc.windfury {
 				t.Errorf("the pet's Windfury Totem proc is up %v, want %v", got, tc.windfury)
 			}
 
-			for _, label := range []string{"Strength of Earth Totem (External)", "Grace of Air Totem (External)", "Windfury Totem"} {
+			for _, label := range []string{"Mana Spring Totem (External)", "Windfury Totem"} {
 				if owner.guardian.GetAura(label) != nil {
 					t.Errorf("the guardian carries %q", label)
 				}
 			}
-			if got := owner.guardian.GetStats()[stats.Strength]; got != 0 {
-				t.Errorf("the guardian has %v strength, want none", got)
+			if got := owner.guardian.GetStats()[stats.MP5]; got != 0 {
+				t.Errorf("the guardian has %v MP5, want none", got)
 			}
 		})
 	}
@@ -1586,24 +1594,24 @@ func TestTruePetsStandUnderTheOwnersTotems(t *testing.T) {
 
 // A pet dismissed and summoned again stands under the totem again.
 func TestTruePetsStandUnderTheOwnersTotemsAfterASummon(t *testing.T) {
-	sim, owner := setupPetOwnerSim(&proto.PartyBuffs{StrengthOfEarthTotem: true})
+	sim, owner := setupPetOwnerSim(&proto.PartyBuffs{ManaSpringTotem: proto.TristateEffect_TristateEffectRegular})
 	pet := owner.pet
-	totem := pet.GetAura("Strength of Earth Totem (External)")
+	totem := pet.GetAura("Mana Spring Totem (External)")
 	if totem == nil {
-		t.Fatalf("the pet has %v, want Strength of Earth Totem", auraLabels(&pet.Character))
+		t.Fatalf("the pet has %v, want Mana Spring Totem", auraLabels(&pet.Character))
 	}
 
 	pet.Disable(sim)
-	if totem.IsActive() || pet.GetStats()[stats.Strength] != 0 {
-		t.Errorf("the dismissed pet stands under the totem %v with %v strength, want neither",
-			totem.IsActive(), pet.GetStats()[stats.Strength])
+	if totem.IsActive() || pet.GetStats()[stats.MP5] != 0 {
+		t.Errorf("the dismissed pet stands under the totem %v with %v MP5, want neither",
+			totem.IsActive(), pet.GetStats()[stats.MP5])
 	}
 	pet.Enable(sim, pet)
 	if !totem.IsActive() {
 		t.Fatal("the summoned pet does not stand under the totem")
 	}
-	if got, want := pet.GetStats()[stats.Strength], buffs.StrengthOfEarthTotemValue(0); got != want {
-		t.Errorf("the summoned pet has %v strength, want the totem's %v", got, want)
+	if got, want := pet.GetStats()[stats.MP5], buffs.ManaSpringTotemValue(0); got != want {
+		t.Errorf("the summoned pet has %v MP5, want the totem's %v", got, want)
 	}
 }
 

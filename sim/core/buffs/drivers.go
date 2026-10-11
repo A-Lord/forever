@@ -189,7 +189,7 @@ func driveManaTideTotems(char *core.Character, party *proto.PartyBuffs) {
 			return sim.CurrentTime >= initialDelay
 		},
 	})
-	inheritTotem(char, totem, func(pet *core.Pet) *core.Aura {
+	inheritTotem(char, manaTideTotemsSpell, totem, func(pet *core.Pet) *core.Aura {
 		return NewSpellDataManaTideTotemsAura(&pet.Unit, false, 0)
 	})
 }
@@ -205,7 +205,7 @@ var windfuryTotemCast = spelldata.MustFind(10614)
 // hears and its 100 ms cooldown. The driver keeps the extra attack the proc
 // lands, and the totem aura that holds the category.
 func driveWindfuryTotem(char *core.Character, _ *proto.PartyBuffs) {
-	inheritWeaponTotem(char, standWindfuryTotem)
+	inheritWeaponTotem(char, windfuryTotemPartyAura, standWindfuryTotem)
 }
 
 func standWindfuryTotem(char *core.Character) *core.Aura {
@@ -331,7 +331,7 @@ func driveFlametongueTotem(char *core.Character, party *proto.PartyBuffs) {
 	if party.WindfuryTotem {
 		return
 	}
-	inheritWeaponTotem(char, standFlametongueTotem)
+	inheritWeaponTotem(char, flametongueTotemSpell, standFlametongueTotem)
 }
 
 func standFlametongueTotem(char *core.Character) *core.Aura {
@@ -386,7 +386,7 @@ func driveGraceOfAirTotem(char *core.Character, party *proto.PartyBuffs) {
 	if party.WindfuryTotem {
 		return
 	}
-	standTotem(char, NewSpellDataGraceOfAirTotemAura, 0)
+	standTotem(char, graceOfAirTotemSpell, NewSpellDataGraceOfAirTotemAura, 0)
 }
 
 // The party's Retribution Aura is the top rank, and its damage carries the

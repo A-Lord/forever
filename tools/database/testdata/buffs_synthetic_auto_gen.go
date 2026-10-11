@@ -245,7 +245,7 @@ func NewSpellDataSynthThornsAura(unit *core.Unit, isPlayer bool, talentPoints in
 
 func applyGeneratedBuffs(char *core.Character, raid *proto.RaidBuffs, party *proto.PartyBuffs, individual *proto.IndividualBuffs) {
 	if party.ManaSpringTotem != proto.TristateEffect_TristateEffectMissing {
-		standTotem(char, NewSpellDataSynthManaSpringAura, core.GetTristateValueInt32(party.ManaSpringTotem, 0, 5))
+		standTotem(char, synthManaSpringSpell, NewSpellDataSynthManaSpringAura, core.GetTristateValueInt32(party.ManaSpringTotem, 0, 5))
 	}
 	if party.ManaTideTotems > 0 {
 		driveSynthManaTide(char, party)
@@ -263,7 +263,7 @@ func applyGeneratedBuffs(char *core.Character, raid *proto.RaidBuffs, party *pro
 		core.MakePermanent(NewSpellDataSynthFrostResistanceAura(&char.Unit, false, 0))
 	}
 	if raid.FrostResistanceTotem {
-		standTotem(char, NewSpellDataSynthFrostResistanceTotemAura, 0)
+		standTotem(char, synthFrostResistanceTotemSpell, NewSpellDataSynthFrostResistanceTotemAura, 0)
 	}
 	if individual.Innervates > 0 {
 		driveSynthInnervates(char, individual)

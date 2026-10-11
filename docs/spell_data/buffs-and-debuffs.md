@@ -226,14 +226,21 @@ delay, the metrics of a regen. The row compiles once the function is declared.
 
 ## Totems on pets
 
-A true pet stands under every totem its owner does, with the same exclusivity; a guardian
-(`PetConfig.IsGuardian`) stands under none. The apply block of a totem row that no driver handles calls
+A true pet stands under every totem its owner does whose aura a pet may carry, with the same
+exclusivity; a guardian (`PetConfig.IsGuardian`) stands under none. The apply block of a totem row that no driver handles calls
 `standTotem` in `sim/core/buffs/totems.go`, which makes the owner's copy permanent and builds the same
 constructor on each true pet's unit, so the pet's copy bids in the same categories on the pet. The
 four driven totems pass their pet copies to `inheritTotem` themselves: Mana Tide's copy of the
 external cooldown's aura, Grace of Air's through `standTotem`, and the weapon totems' whole chain
 (totem aura, category bid and proc) on the pet's character, for a pet that melees. Grace of Air and
 Flametongue Totem do nothing under Windfury Totem, on the pet as on the owner.
+
+The exception is a totem whose aura spell sets the only on player bit of Attributes[3]
+(`ATTR_EX_3_ONLY_ON_PLAYER`, read by `Spell.OnlyOnPlayers`): a target that is not a player is invalid,
+so `inheritTotem` gives no pet a copy. Every caller passes the spell the check reads: the row's own
+spell for Mana Tide, Grace of Air and every generated totem, and the party aura (10612, 15036) for a
+weapon totem. Strength of Earth and Grace of Air set the bit at every rank, so a pet never carries
+either.
 
 The pet's copy never expires on its own and is never in a build phase. It is up while the owner's
 copy is up and the pet is summoned: the owner's copy turns it on and off, and the pet's enable and
