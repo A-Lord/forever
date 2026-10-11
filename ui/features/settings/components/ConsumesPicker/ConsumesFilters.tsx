@@ -54,7 +54,6 @@ export const ConsumesFilters = () => {
 		<FilterPopover
 			ariaLabel={i18n.t('settings_tab.consumables.filters.trigger')}
 			title={i18n.t('settings_tab.consumables.filters.title')}
-			className="w-80"
 			triggerClassName="ml-auto"
 			triggerTestId="consumes-filters-button"
 			testId="consumes-filters-popover"
@@ -72,7 +71,7 @@ export const ConsumesFilters = () => {
 					<StatFilterList {...statFilter} {...groups} idPrefix="consumes-filters-stats" />
 				</Tabs.Panel>
 				<Tabs.Panel value={MIN_LVL_TAB} id={MIN_LVL_TAB} className="flex min-h-0 flex-col gap-2">
-					<div className="-mx-2 grid min-h-0 scrollbar-gutter-stable grid-cols-2 gap-2 overflow-y-auto px-2">
+					<div className="ui-popover-body grid grid-cols-2 gap-2">
 						{types.map(({ type, key, range }) => (
 							<NumberField
 								key={type}

@@ -56,13 +56,13 @@ export const StatFilterList = ({
 
 	return (
 		<div className="flex min-h-0 flex-col gap-2">
-			{/* Scrolls on its own, so the buttons stay in view in a popup capped to the viewport. It spans the popup's padding, so its scrollbar runs along the popup's edge. */}
+			{/* Scrolls on its own, so the buttons stay in view in a popup capped to the viewport. */}
 			<Accordion
 				value={openGroups}
 				onValueChange={onOpenGroupsChange}
 				variant="divided"
 				density="compact"
-				className="-mx-2 min-h-0 scrollbar-gutter-stable overflow-y-auto px-2"
+				className="ui-popover-body"
 				testId={`${idPrefix}-groups`}>
 				{groups.map(group => (
 					<AccordionItem
@@ -106,8 +106,6 @@ export const StatFilterList = ({
 export interface FilterPopoverProps {
 	ariaLabel: string;
 	title: string;
-	/** On the popup. */
-	className?: string;
 	triggerClassName?: string;
 	triggerTestId: string;
 	testId: string;
@@ -115,7 +113,7 @@ export interface FilterPopoverProps {
 	children: ReactNode;
 }
 
-export const FilterPopover = ({ ariaLabel, title, className, triggerClassName, triggerTestId, testId, onOpenChange, children }: FilterPopoverProps) => (
+export const FilterPopover = ({ ariaLabel, title, triggerClassName, triggerTestId, testId, onOpenChange, children }: FilterPopoverProps) => (
 	<Popover
 		onOpenChange={onOpenChange}
 		trigger={<Icon name="filter" />}
@@ -127,7 +125,7 @@ export const FilterPopover = ({ ariaLabel, title, className, triggerClassName, t
 		align="end"
 		backdrop
 		title={title}
-		className={['flex flex-col lg:max-h-filter-popover-max-h', className]}
+		className="w-80 lg:max-h-filter-popover-max-h"
 		testId={testId}>
 		{children}
 	</Popover>
@@ -139,7 +137,6 @@ export const StatFilterPopover = ({ ariaLabel, testId, groupsStorageKey, ...list
 		<FilterPopover
 			ariaLabel={ariaLabel}
 			title={i18n.t('stat_filters.title')}
-			className="w-80"
 			triggerTestId={`${testId}-button`}
 			testId={testId}
 			onOpenChange={onPopoverOpenChange}>
