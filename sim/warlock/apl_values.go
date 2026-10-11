@@ -20,9 +20,8 @@ func (warlock *Warlock) NewAPLValue(rot *core.APLRotation, config *proto.APLValu
 
 type APLValueWarlockAssignedCurseIsActive struct {
 	core.DefaultAPLValueImpl
-	warlock *Warlock
-	target  core.UnitReference
-	spell   *core.Spell
+	target core.UnitReference
+	spell  *core.Spell
 }
 
 func (warlock *Warlock) newValueWarlockAssignedCurseIsActive(rot *core.APLRotation, config *proto.APLValueWarlockAssignedCurseIsActive) core.APLValue {
@@ -32,9 +31,8 @@ func (warlock *Warlock) newValueWarlockAssignedCurseIsActive(rot *core.APLRotati
 		return nil
 	}
 	return &APLValueWarlockAssignedCurseIsActive{
-		warlock: warlock,
-		target:  target,
-		spell:   warlock.GetAssignedCurse(),
+		target: target,
+		spell:  warlock.GetAssignedCurse(),
 	}
 }
 
@@ -45,9 +43,10 @@ func (x *APLValueWarlockAssignedCurseIsActive) Type() proto.APLValueType {
 func (x *APLValueWarlockAssignedCurseIsActive) GetBool(sim *core.Simulation) bool {
 	target := x.target.Get()
 
-	// This warlock's own copies of the curse, plain or amplified: either one up is the curse up.
+	// This warlock's own copies of the curse, plain or amplified: either one up is the curse up. The warlock
+	// cast it, so it counts as up the moment it lands, with no reaction time.
 	for _, auras := range x.spell.RelatedAuraArrays {
-		if aura := auras.Get(target); aura.IsActive() && aura.TimeActive(sim) >= x.warlock.ReactionTime {
+		if aura := auras.Get(target); aura.IsActive() {
 			return true
 		}
 	}
