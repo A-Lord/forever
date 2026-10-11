@@ -29,7 +29,7 @@ export const Level60Gear = PresetUtils.makePresetGear('Level 60', Level60GearJso
 	tooltip: 'Leather at level 60 with no set bonus and no proc. The idol slot is empty: every idol has an effect.',
 });
 
-// A level 60 target swings for 6000 before armor.
+// The raid target swings for 6000 before armor.
 const level60Encounter = Encounter.defaultEncounterProto();
 level60Encounter.targets[0].minBaseDamage = 6000;
 export const Level60Encounter = {
@@ -64,7 +64,7 @@ export const Level60DpsEp = Stats.fromMap(
 	},
 );
 
-// Threat with agility as 1, on the same run.
+// Threat with agility as 1.
 export const Level60ThreatEp = Stats.fromMap(
 	{
 		[Stat.StatStrength]: 2.005,
