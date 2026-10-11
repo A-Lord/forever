@@ -1,7 +1,7 @@
 import * as PresetUtils from '@app/preset_utils';
 import * as Consumables from '@features/settings/model/consumables_auto_gen';
 import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
-import { ConsumesSpec, Profession, PseudoStat, Race, Stat, TristateEffect } from '@generated/proto/common';
+import { ConsumesSpec, Profession, Race, Stat, TristateEffect } from '@generated/proto/common';
 import { DpsPriest_Options as Options, PriestOptions_Armor } from '@generated/proto/priest';
 import { SavedTalents } from '@generated/proto/ui';
 import { Stats } from '@sim/proto/stats';
