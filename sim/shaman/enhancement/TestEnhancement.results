@@ -647,6 +647,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestEnhancement-AllItems-PolishedDriftwoodIcon-249398"
+ value: {
+  dps: 696.72523
+  tps: 368.25032
+  dtps: 9.85785
+ }
+}
+dps_results: {
  key: "TestEnhancement-AllItems-RageoftheStorm-280604"
  value: {
   dps: 701.98428

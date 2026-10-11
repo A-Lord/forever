@@ -10,6 +10,15 @@ import (
 var totemOfTheStormShare = spelldata.MustFind(1291078).EffectN(1).Percent()
 
 func init() {
+	// Polished Driftwood Icon
+	// https://www.wowhead.com/forever/item=249398/polished-driftwood-icon
+	//
+	// Allows 8% of your Mana regeneration to continue while casting.
+	shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 1248756},
+		[]shared.ItemVariant{
+			{ItemID: 249398, ItemName: "Polished Driftwood Icon"},
+		})
+
 	// Tidal Totem
 	// https://www.wowhead.com/forever/item=272431/tidal-totem
 	//
