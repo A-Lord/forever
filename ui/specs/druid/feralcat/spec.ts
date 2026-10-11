@@ -85,7 +85,6 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 			prayerOfSpirit: true,
 			giftOfTheWild: true,
 			prayerOfFortitude: true,
-			prayerOfShadowProtection: true,
 		}),
 		partyBuffs: PartyBuffs.create({
 			battleShout: TristateEffect.TristateEffectRegular,

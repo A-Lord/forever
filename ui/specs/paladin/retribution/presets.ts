@@ -112,7 +112,6 @@ export const DefaultRaidBuffs = RaidBuffs.create({
 	arcaneBrilliance: true,
 	giftOfTheWild: true,
 	prayerOfFortitude: true,
-	prayerOfShadowProtection: true,
 });
 
 export const DefaultPartyBuffs = PartyBuffs.create({

@@ -104,7 +104,6 @@ export const DefaultRaidBuffs = RaidBuffs.create({
 	prayerOfSpirit: true,
 	giftOfTheWild: true,
 	prayerOfFortitude: true,
-	prayerOfShadowProtection: true,
 });
 
 export const DefaultDebuffs = Debuffs.create({
