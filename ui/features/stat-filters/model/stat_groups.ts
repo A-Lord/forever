@@ -86,8 +86,8 @@ export const STAT_GROUPS: ReadonlyArray<{ key: StatGroupKey; stats: ReadonlyArra
 
 export type FilterGroupKey = StatGroupKey | 'ratings';
 
-// The character stats panel shows these in the row of the melee stat they follow.
-const offHandPercentAfter = new Map([
+/** The off-hand percent of each melee percent, by the melee stat's key: the character stats panel shows both in one row. */
+export const OFF_HAND_PERCENTS: ReadonlyMap<string, UnitStat> = new Map([
 	[UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeHitPercent).getKey(), UnitStat.fromPseudoStat(PseudoStat.PseudoStatOffHandHitPercent)],
 	[UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeCritPercent).getKey(), UnitStat.fromPseudoStat(PseudoStat.PseudoStatOffHandCritPercent)],
 ]);
@@ -100,7 +100,7 @@ const FILTER_GROUPS: ReadonlyArray<{ key: FilterGroupKey; stats: ReadonlyArray<U
 	...STAT_GROUPS.map(({ key, stats }) => ({
 		key,
 		stats: stats.flatMap(stat => {
-			const offHand = offHandPercentAfter.get(stat.getKey());
+			const offHand = OFF_HAND_PERCENTS.get(stat.getKey());
 			return offHand ? [stat, offHand] : [stat];
 		}),
 	})),

@@ -1,7 +1,7 @@
-import { STAT_GROUPS, type StatGroupKey } from '@features/stat-filters/model/stat_groups';
+import { OFF_HAND_PERCENTS, STAT_GROUPS, type StatGroupKey } from '@features/stat-filters/model/stat_groups';
 import { PseudoStat } from '@generated/proto/common';
 import type { Player } from '@sim/player/player';
-import { UnitStat } from '@sim/proto/stats';
+import type { UnitStat } from '@sim/proto/stats';
 
 import { shouldShowCritImmunity, shouldShowMeleeCritCap } from './stat_display';
 
@@ -28,13 +28,8 @@ export interface RowGroup {
 	rows: Row[];
 }
 
-const offHandStats: ReadonlyArray<[mainHand: UnitStat, offHand: UnitStat]> = [
-	[UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeHitPercent), UnitStat.fromPseudoStat(PseudoStat.PseudoStatOffHandHitPercent)],
-	[UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeCritPercent), UnitStat.fromPseudoStat(PseudoStat.PseudoStatOffHandCritPercent)],
-];
-
 const displayStatOf = (stat: UnitStat): DisplayStat => {
-	const offHandStat = offHandStats.find(([mainHand]) => mainHand.equals(stat))?.[1];
+	const offHandStat = OFF_HAND_PERCENTS.get(stat.getKey());
 	return offHandStat ? { stat, offHandStat } : { stat };
 };
 
