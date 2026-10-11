@@ -123,6 +123,7 @@ func (unit *Unit) Interrupt(sim *Simulation) {
 func (unit *Unit) CancelHardcast(sim *Simulation) {
 	unit.HardcastAvoidanceAura.Deactivate(sim)
 	unit.Hardcast.Expires = startingCDTime
+	unit.AutoAttacks.releaseMeleeHeldByCast(sim)
 	unit.endRotationCast()
 	unit.SetGCDTimer(sim, sim.CurrentTime+unit.ReactionTime)
 }

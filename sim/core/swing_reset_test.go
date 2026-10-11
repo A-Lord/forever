@@ -192,4 +192,51 @@ func TestCompletedCastResetsSwingTimer(t *testing.T) {
 			t.Fatalf("MH swing: expected the next one at %v, got %v", 2*mhSwingSpeed, aa.MainhandSwingAt())
 		}
 	})
+
+	t.Run("an interrupted cast lets the swings it held land at once", func(t *testing.T) {
+		sim, fc := setupSwingResetSim(t)
+		aa := &fc.AutoAttacks
+
+		fc.Resetting.Cast(sim, fc.CurrentTarget)
+		interruptAt := time.Millisecond * 2800
+		stepSwingSim(t, sim, interruptAt)
+		fc.Interrupt(sim)
+		stepSwingSim(t, sim, interruptAt+time.Millisecond)
+
+		if aa.MainhandPreviousSwing() != interruptAt || aa.OffhandPreviousSwing() != interruptAt {
+			t.Fatalf("expected both swings at the interrupt (%v), got MH at %v and OH at %v", interruptAt, aa.MainhandPreviousSwing(), aa.OffhandPreviousSwing())
+		}
+	})
+
+	t.Run("a cast that fails to complete lets the swings it held land at its end", func(t *testing.T) {
+		sim, fc := setupSwingResetSim(t)
+		aa := &fc.AutoAttacks
+
+		fc.Resetting.Cast(sim, fc.CurrentTarget)
+		castEnd := sim.CurrentTime + swingResetCastTime
+		stepSwingSim(t, sim, castEnd-time.Millisecond)
+		fc.PseudoStats.Incapacitated = true
+		stepSwingSim(t, sim, castEnd)
+		fc.PseudoStats.Incapacitated = false
+		stepSwingSim(t, sim, castEnd+time.Millisecond)
+
+		if aa.MainhandPreviousSwing() != castEnd || aa.OffhandPreviousSwing() != castEnd {
+			t.Fatalf("expected both swings at the cast's end (%v), got MH at %v and OH at %v", castEnd, aa.MainhandPreviousSwing(), aa.OffhandPreviousSwing())
+		}
+	})
+
+	t.Run("a weaver out of melee range wakes when the reset swing comes ready", func(t *testing.T) {
+		sim, fc := setupSwingResetSim(t)
+		aa := &fc.AutoAttacks
+		aa.AutoSwingRanged = true
+		aa.CancelMeleeSwing(sim)
+		aa.scheduleMeleeWeaveWakeup(sim)
+
+		fc.Resetting.Cast(sim, fc.CurrentTarget)
+		stepSwingSim(t, sim, sim.CurrentTime+swingResetCastTime)
+
+		if wakeup := aa.meleeWeaveWakeup; wakeup == nil || wakeup.consumed || wakeup.NextActionAt != aa.MainhandSwingAt() {
+			t.Fatalf("expected a pending weave wakeup at the reset MH swing (%v), got %+v", aa.MainhandSwingAt(), wakeup)
+		}
+	})
 }

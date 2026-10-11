@@ -1192,8 +1192,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p1_arms-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 489.94043
-  tps: 362.88461
+  dps: 489.327
+  tps: 362.57523
   dtps: 2.57127
  }
 }
@@ -1245,16 +1245,16 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p1_arms-DefaultTalents-Fury-arms_stance_dance-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 350.97754
-  tps: 202.7802
+  dps: 348.80084
+  tps: 201.56967
   dtps: 2.96131
  }
 }
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p1_arms-DefaultTalents-Fury-arms_stance_dance-FullBuffs-0.0yards-ShortSingleTarget"
  value: {
-  dps: 364.38681
-  tps: 214.28181
+  dps: 366.47731
+  tps: 215.46083
   dtps: 8.88393
  }
 }
@@ -1507,8 +1507,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Human-p1_fury-DefaultTalents-Fury-arms_stance_dance-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 574.40318
-  tps: 441.66675
+  dps: 572.1646
+  tps: 440.27347
   dtps: 2.8284
  }
 }
@@ -1732,8 +1732,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p1_arms-DefaultTalents-Fury-arms-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 500.78337
-  tps: 369.08998
+  dps: 501.62335
+  tps: 369.54686
   dtps: 2.57127
  }
 }
@@ -1785,16 +1785,16 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p1_arms-DefaultTalents-Fury-arms_stance_dance-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 367.47721
-  tps: 212.11997
+  dps: 364.92955
+  tps: 210.71004
   dtps: 2.96131
  }
 }
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p1_arms-DefaultTalents-Fury-arms_stance_dance-FullBuffs-0.0yards-ShortSingleTarget"
  value: {
-  dps: 381.5701
-  tps: 223.97845
+  dps: 383.65847
+  tps: 225.15627
   dtps: 8.88393
  }
 }
@@ -2047,8 +2047,8 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-Settings-Orc-p1_fury-DefaultTalents-Fury-arms_stance_dance-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 595.07424
-  tps: 453.20605
+  dps: 592.593
+  tps: 451.62055
   dtps: 2.87663
  }
 }

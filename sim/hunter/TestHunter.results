@@ -545,8 +545,8 @@ dps_results: {
 dps_results: {
  key: "TestHunter-AllItems-FlurryAxe-871"
  value: {
-  dps: 754.74906
-  tps: 545.12677
+  dps: 754.50322
+  tps: 544.95468
   dtps: 8.27814
  }
 }
@@ -657,8 +657,8 @@ dps_results: {
 dps_results: {
  key: "TestHunter-AllItems-HanzoSword-8190"
  value: {
-  dps: 747.51068
-  tps: 540.06862
+  dps: 747.77449
+  tps: 540.25329
   dtps: 8.20098
  }
 }
@@ -705,8 +705,8 @@ dps_results: {
 dps_results: {
  key: "TestHunter-AllItems-Julie'sDagger-6660"
  value: {
-  dps: 747.64701
-  tps: 540.15534
+  dps: 747.40117
+  tps: 539.98325
   dtps: 8.20098
  }
 }
@@ -737,8 +737,8 @@ dps_results: {
 dps_results: {
  key: "TestHunter-AllItems-Linken'sBoomerang-11905"
  value: {
-  dps: 759.47781
-  tps: 548.49418
+  dps: 758.87743
+  tps: 548.07391
   dtps: 8.09689
  }
 }
@@ -1049,8 +1049,8 @@ dps_results: {
 dps_results: {
  key: "TestHunter-AllItems-TheNeedler-13060"
  value: {
-  dps: 745.87451
-  tps: 538.87604
+  dps: 746.20543
+  tps: 539.10768
   dtps: 8.21527
  }
 }
@@ -1065,8 +1065,8 @@ dps_results: {
 dps_results: {
  key: "TestHunter-AllItems-ThrashBlade-17705"
  value: {
-  dps: 747.41583
-  tps: 540.00137
+  dps: 746.79246
+  tps: 539.56501
   dtps: 8.20098
  }
 }
@@ -1169,24 +1169,24 @@ dps_results: {
 dps_results: {
  key: "TestHunter-Average-Default"
  value: {
-  dps: 768.29206
-  tps: 554.80873
-  dtps: 8.02672
+  dps: 768.28816
+  tps: 554.79754
+  dtps: 8.01353
  }
 }
 dps_results: {
  key: "TestHunter-Settings-NightElf-p1-DefaultTalents-Default-default-FullBuffs-11.0yards-LongMultiTarget"
  value: {
-  dps: 1124.85186
-  tps: 1146.81427
+  dps: 1124.42444
+  tps: 1146.35118
   dtps: 4.34101
  }
 }
 dps_results: {
  key: "TestHunter-Settings-NightElf-p1-DefaultTalents-Default-default-FullBuffs-11.0yards-LongSingleTarget"
  value: {
-  dps: 768.55987
-  tps: 555.14727
+  dps: 768.05414
+  tps: 554.79326
   dtps: 8.87007
  }
 }
@@ -1222,16 +1222,16 @@ dps_results: {
 dps_results: {
  key: "TestHunter-Settings-NightElf-p1-SV-Default-default-FullBuffs-11.0yards-LongMultiTarget"
  value: {
-  dps: 997.59465
-  tps: 1075.15299
+  dps: 997.36743
+  tps: 1074.71695
   dtps: 2.81689
  }
 }
 dps_results: {
  key: "TestHunter-Settings-NightElf-p1-SV-Default-default-FullBuffs-11.0yards-LongSingleTarget"
  value: {
-  dps: 747.901
-  tps: 540.55181
+  dps: 747.69644
+  tps: 540.40862
   dtps: 4.32542
  }
 }
@@ -1267,8 +1267,8 @@ dps_results: {
 dps_results: {
  key: "TestHunter-Settings-Orc-p1-DefaultTalents-Default-default-FullBuffs-11.0yards-LongMultiTarget"
  value: {
-  dps: 1110.60425
-  tps: 1136.7926
+  dps: 1110.87528
+  tps: 1136.98232
   dtps: 4.25362
  }
 }

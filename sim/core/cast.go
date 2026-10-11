@@ -220,14 +220,15 @@ func (spell *Spell) makeCastFunc(config CastConfig) CastSuccessFunc {
 						spell.Unit.Log(sim, "Completed cast %s", spell.ActionID)
 					}
 
-					if spell.Unit.Hardcast.ResetsSwing {
-						spell.Unit.AutoAttacks.StopMeleeUntil(sim, sim.CurrentTime)
-					}
-
 					spell.Unit.HardcastAvoidanceAura.Deactivate(sim)
 
 					if !spell.CanCompleteCast(sim, target, true) {
+						spell.Unit.AutoAttacks.releaseMeleeHeldByCast(sim)
 						return
+					}
+
+					if spell.Unit.Hardcast.ResetsSwing {
+						spell.Unit.AutoAttacks.StopMeleeUntil(sim, sim.CurrentTime)
 					}
 
 					if spell.Cost != nil {
