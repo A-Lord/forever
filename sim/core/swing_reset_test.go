@@ -240,3 +240,32 @@ func TestCompletedCastResetsSwingTimer(t *testing.T) {
 		}
 	})
 }
+
+// An event at a cast's last instant that wakes the rotation, such as a rage tick, runs before the
+// cast's own completion. The rotation finds the cast complete.
+func TestRotationWokenAtCastEndFindsTheCastComplete(t *testing.T) {
+	sim, fc := setupSwingResetSim(t)
+	aa := &fc.AutoAttacks
+
+	fc.Resetting.Cast(sim, fc.CurrentTarget)
+	castEnd := sim.CurrentTime + swingResetCastTime
+	var casting bool
+	var mhSwingAt time.Duration
+	sim.AddPendingAction(&PendingAction{
+		NextActionAt: castEnd,
+		Priority:     ActionPriorityDOT,
+		OnAction: func(sim *Simulation) {
+			fc.ReactToEvent(sim, false, false)
+			casting = fc.Hardcast.Expires != startingCDTime
+			mhSwingAt = aa.MainhandSwingAt()
+		},
+	})
+	stepSwingSim(t, sim, castEnd+time.Millisecond)
+
+	if casting {
+		t.Fatalf("expected the cast complete when the rotation woke at its end (%v)", castEnd)
+	}
+	if expected := castEnd + aa.MainhandSwingSpeed(); mhSwingAt != expected {
+		t.Fatalf("MH swing: expected the completed cast to have reset it to %v, got %v", expected, mhSwingAt)
+	}
+}
