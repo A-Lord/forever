@@ -1,6 +1,4 @@
 import {
-	AreaStats,
-	AreaType,
 	Class,
 	ConsumableType,
 	HandType,
@@ -12,6 +10,7 @@ import {
 	Race,
 	Stat,
 	WeaponType,
+	ZoneStats,
 } from '@generated/proto/common';
 import { Consumable } from '@generated/proto/db';
 import { ItemEffect, ResourceType, SpellEffect } from '@generated/proto/spell';
@@ -271,7 +270,7 @@ describe('relevanceFor', () => {
 		expect(relevant(rogueOnly, user())).toBe(true);
 	});
 
-	it('takes a stat granted only against some mob types or in some areas as granted', () => {
+	it('takes a stat granted only against some mob types or in some zones as granted', () => {
 		const slaying = consumable({
 			id: 5,
 			type: ConsumableType.ConsumableTypePotion,
@@ -280,7 +279,7 @@ describe('relevanceFor', () => {
 		const natural = consumable({
 			id: 6,
 			type: ConsumableType.ConsumableTypeFlask,
-			areaStats: [AreaStats.create({ areaType: AreaType.AreaTypeSwamp, stats: { [Stat.StatHitRating]: 20 } })],
+			zoneStats: [ZoneStats.create({ zoneIds: [101], stats: { [Stat.StatHitRating]: 20 } })],
 		});
 		let shown = statsOf([Stat.StatAttackPower, Stat.StatHitRating]);
 		const relevant = relevanceFor([slaying, natural], db, () => shown);
@@ -308,7 +307,7 @@ describe('consumableUniverse', () => {
 		expect(new Set(keys)).toEqual(new Set(['StatStrength', 'StatAgility', 'PseudoStatMeleeCritPercent']));
 	});
 
-	it('lists a stat granted only against some mob types or in some areas', () => {
+	it('lists a stat granted only against some mob types or in some zones', () => {
 		const slaying = consumable({
 			id: 9,
 			type: ConsumableType.ConsumableTypePotion,
@@ -317,7 +316,7 @@ describe('consumableUniverse', () => {
 		const natural = consumable({
 			id: 10,
 			type: ConsumableType.ConsumableTypeFlask,
-			areaStats: [AreaStats.create({ areaType: AreaType.AreaTypeSwamp, stats: { [Stat.StatHitRating]: 20 } })],
+			zoneStats: [ZoneStats.create({ zoneIds: [101], stats: { [Stat.StatHitRating]: 20 } })],
 		});
 		const keys = consumableUniverse([slaying, natural], db).map(stat => stat.getKey());
 		expect(new Set(keys)).toEqual(new Set(['StatAttackPower', 'StatHitRating']));
@@ -370,7 +369,7 @@ describe('orderedByEp', () => {
 	const critical = consumable({ id: 2, name: 'Critical', lvl: 20, pseudoStats: pseudoStats({ [PseudoStat.PseudoStatMeleeCritPercent]: 1 }) });
 	const proc = consumable({ id: 3, name: 'Proc', lvl: 60 });
 	const ids = (consumables: Array<Consumable>) => consumables.map(({ id }) => id);
-	const anywhere = (consumables: Array<Consumable>, weights: Stats) => ids(orderedByEp(consumables, weights, undefined, []));
+	const anywhere = (consumables: Array<Consumable>, weights: Stats) => ids(orderedByEp(consumables, weights, undefined, 0));
 
 	it('orders by the EP the stats and percents add, highest first', () => {
 		const weights = Stats.fromMap({ [Stat.StatStrength]: 1 }, { [PseudoStat.PseudoStatMeleeCritPercent]: 20 });
@@ -402,25 +401,26 @@ describe('orderedByEp', () => {
 			mobTypeStats: [MobTypeStats.create({ mobTypes: [MobType.MobTypeDemon, MobType.MobTypeUndead], stats: { [Stat.StatAttackPower]: 20 } })],
 		});
 		const weights = Stats.fromMap({ [Stat.StatStrength]: 1, [Stat.StatAttackPower]: 1 });
-		expect(ids(orderedByEp([strong, proc, slaying], weights, MobType.MobTypeDemon, []))).toEqual([6, 1, 3]);
-		expect(ids(orderedByEp([strong, proc, slaying], weights, MobType.MobTypeUndead, []))).toEqual([6, 1, 3]);
-		expect(ids(orderedByEp([slaying, proc, strong], weights, MobType.MobTypeMechanical, []))).toEqual([1, 3, 6]);
-		expect(ids(orderedByEp([slaying, proc, strong], weights, undefined, []))).toEqual([1, 3, 6]);
+		expect(ids(orderedByEp([strong, proc, slaying], weights, MobType.MobTypeDemon, 0))).toEqual([6, 1, 3]);
+		expect(ids(orderedByEp([strong, proc, slaying], weights, MobType.MobTypeUndead, 0))).toEqual([6, 1, 3]);
+		expect(ids(orderedByEp([slaying, proc, strong], weights, MobType.MobTypeMechanical, 0))).toEqual([1, 3, 6]);
+		expect(ids(orderedByEp([slaying, proc, strong], weights, undefined, 0))).toEqual([1, 3, 6]);
 	});
 
-	it('counts an area stat in its area only, and the plain stats everywhere', () => {
+	it('counts a zone stat in one of its zones only, and the plain stats everywhere', () => {
 		const natural = consumable({
 			id: 7,
 			name: 'Natural',
 			lvl: 10,
 			stats: stats({ [Stat.StatStamina]: 10 }),
-			areaStats: [AreaStats.create({ areaType: AreaType.AreaTypeSwamp, stats: { [Stat.StatHitRating]: 20 } })],
+			zoneStats: [ZoneStats.create({ zoneIds: [101, 102], stats: { [Stat.StatHitRating]: 20 } })],
 		});
 		const sturdy = consumable({ id: 8, name: 'Sturdy', lvl: 10, stats: stats({ [Stat.StatStamina]: 15 }) });
 		const weights = Stats.fromMap({ [Stat.StatStamina]: 1, [Stat.StatHitRating]: 1 });
-		expect(ids(orderedByEp([sturdy, natural], weights, undefined, [AreaType.AreaTypeDesert, AreaType.AreaTypeSwamp]))).toEqual([7, 8]);
-		expect(ids(orderedByEp([natural, sturdy], weights, undefined, [AreaType.AreaTypeDesert]))).toEqual([8, 7]);
-		expect(ids(orderedByEp([natural, sturdy], weights, undefined, []))).toEqual([8, 7]);
+		expect(ids(orderedByEp([sturdy, natural], weights, undefined, 101))).toEqual([7, 8]);
+		expect(ids(orderedByEp([sturdy, natural], weights, undefined, 102))).toEqual([7, 8]);
+		expect(ids(orderedByEp([natural, sturdy], weights, undefined, 103))).toEqual([8, 7]);
+		expect(ids(orderedByEp([natural, sturdy], weights, undefined, 0))).toEqual([8, 7]);
 	});
 });
 

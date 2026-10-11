@@ -95,7 +95,7 @@ export const consumeConfigs = (player: Player<any>, db: Database): ConsumeConfig
 	const orderOf = (): ConsumableOrder => ({
 		weights: player.getEpWeights(),
 		mobType: player.sim.encounter.getTarget(0)?.mobType,
-		areaTypes: player.sim.encounter.getAreaTypes(),
+		zoneId: player.sim.encounter.getZoneId(),
 	});
 	const input = (slot: ConsumableSlot, options: Parameters<typeof makeConsumableInput>[3], consumables = inSlot(slot)) =>
 		makeConsumableInput(consumables, relevance, orderOf, options);

@@ -2,8 +2,6 @@
 // for each. `Player.getConsumes(true)` sends the potions and conjured items this finds, so it sits
 // below the view layer; the pickers in the settings feature read the same functions.
 import {
-	AreaStats,
-	AreaType,
 	Class,
 	ConsumableType,
 	HandType,
@@ -15,6 +13,7 @@ import {
 	Race,
 	Stat,
 	WeaponType,
+	ZoneStats,
 } from '@generated/proto/common';
 import { Consumable } from '@generated/proto/db';
 import { ResourceType, SpellEffect } from '@generated/proto/spell';
@@ -187,23 +186,23 @@ interface ConsumableFacts {
 	restores: Array<ResourceType>;
 }
 
-const statsWith = (consumable: Consumable, mobTypeStats: ReadonlyArray<MobTypeStats>, areaStats: ReadonlyArray<AreaStats>): Array<number> => {
+const statsWith = (consumable: Consumable, mobTypeStats: ReadonlyArray<MobTypeStats>, zoneStats: ReadonlyArray<ZoneStats>): Array<number> => {
 	const out = [...consumable.stats];
-	for (const { stats } of [...mobTypeStats, ...areaStats]) {
+	for (const { stats } of [...mobTypeStats, ...zoneStats]) {
 		for (const [stat, value] of Object.entries(stats)) out[Number(stat)] = (out[Number(stat)] ?? 0) + value;
 	}
 	return out;
 };
 
 // What relevance reads off a consumable and its spell effects, worked out once per consumable. A stat
-// the consumable grants only against some mob types or in some areas counts as granted.
+// the consumable grants only against some mob types or in some zones counts as granted.
 const factsCache = new WeakMap<Consumable, ConsumableFacts>();
 const factsOf = (consumable: Consumable, db: SpellEffectSource): ConsumableFacts => {
 	const cached = factsCache.get(consumable);
 	if (cached?.db === db) return cached;
 	const facts = {
 		db,
-		grantedStats: statsWith(consumable, consumable.mobTypeStats, consumable.areaStats).flatMap((value, stat) => (value > 0 ? [stat as Stat] : [])),
+		grantedStats: statsWith(consumable, consumable.mobTypeStats, consumable.zoneStats).flatMap((value, stat) => (value > 0 ? [stat as Stat] : [])),
 		grantedPseudoStats: consumable.pseudoStats.flatMap((value, pseudoStat) => (value > 0 ? [pseudoStat as PseudoStat] : [])),
 		restores: consumable.effectIds.flatMap(effectId => {
 			const miscValue = db.getSpellEffect(effectId)?.miscValue0;
@@ -324,21 +323,17 @@ export function consumableUniverse(consumables: ReadonlyArray<Consumable>, db: S
 }
 
 // The consumables by the EP their stats and percents add at these weights, highest first. A mob type
-// stat counts against a target of one of its mob types, an area stat in its area. One that grants
-// neither here (a proc, a restore, damage, a stat against other mob types) comes after every one
-// that does. Ties go by required level, highest first, then by name.
-export function orderedByEp(
-	consumables: ReadonlyArray<Consumable>,
-	weights: Stats,
-	mobType: MobType | undefined,
-	areaTypes: ReadonlyArray<AreaType>,
-): Array<Consumable> {
+// stat counts against a target of one of its mob types, a zone stat in one of its zones; zone 0, an
+// area set edited by hand, is none of them. One that grants neither here (a proc, a restore, damage,
+// a stat against other mob types) comes after every one that does. Ties go by required level,
+// highest first, then by name.
+export function orderedByEp(consumables: ReadonlyArray<Consumable>, weights: Stats, mobType: MobType | undefined, zoneId: number): Array<Consumable> {
 	return consumables
 		.map(consumable => {
 			const stats = statsWith(
 				consumable,
 				consumable.mobTypeStats.filter(({ mobTypes }) => mobType !== undefined && mobTypes.includes(mobType)),
-				consumable.areaStats.filter(({ areaType }) => areaTypes.includes(areaType)),
+				consumable.zoneStats.filter(({ zoneIds }) => zoneId !== 0 && zoneIds.includes(zoneId)),
 			);
 			const grants = stats.some(value => value > 0) || consumable.pseudoStats.some(value => value > 0);
 			return { consumable, grants, ep: grants ? new Stats(stats, consumable.pseudoStats).computeEP(weights) : 0 };

@@ -1,8 +1,6 @@
 import { iconEnumPickerShown } from '@features/inputs/components/ConnectedIconEnumPicker';
 import { shownStats, withSelection } from '@features/stat-filters/model/stat_filters';
 import {
-	AreaStats,
-	AreaType,
 	Class,
 	ConsumableType,
 	ConsumesSpec,
@@ -16,6 +14,7 @@ import {
 	Spec,
 	Stat,
 	WeaponType,
+	ZoneStats,
 } from '@generated/proto/common';
 import { Consumable } from '@generated/proto/db';
 import { ItemEffect } from '@generated/proto/spell';
@@ -124,7 +123,7 @@ interface PlayerState {
 	filters: DatabaseFilters;
 	epWeights: Stats;
 	mobType: MobType;
-	areaTypes: Array<AreaType>;
+	zoneId: number;
 }
 
 const playerOf = (state: Partial<PlayerState> = {}) => {
@@ -142,7 +141,7 @@ const playerOf = (state: Partial<PlayerState> = {}) => {
 		filters: DatabaseFilters.create(),
 		epWeights: new Stats(),
 		mobType: MobType.MobTypeHumanoid,
-		areaTypes: [],
+		zoneId: 0,
 		...state,
 	};
 	const inHand = (slot: ItemSlot, mainHand?: UIItem, offHand?: UIItem) => {
@@ -155,7 +154,7 @@ const playerOf = (state: Partial<PlayerState> = {}) => {
 			store: { getState: () => ({ sim: { filters: full.filters } }) },
 			encounter: {
 				getTarget: (index: number) => (index === 0 ? { mobType: full.mobType } : undefined),
-				getAreaTypes: () => full.areaTypes,
+				getZoneId: () => full.zoneId,
 			},
 		},
 		getClass: () => full.cls,
@@ -249,14 +248,14 @@ describe('consumeConfigs', () => {
 			expect(config.values[0].value).toBe(0);
 		});
 
-		it("orders again when the target's mob type or the areas change, on the configs already built", () => {
+		it("orders again when the target's mob type or the zone changes, on the configs already built", () => {
 			const slaying = Consumable.create({
 				...potion(1, 'Slaying', 0),
 				mobTypeStats: [MobTypeStats.create({ mobTypes: [MobType.MobTypeDemon], stats: { [Stat.StatStrength]: 20 } })],
 			});
 			const natural = Consumable.create({
 				...potion(2, 'Natural', 0, strength(5)),
-				areaStats: [AreaStats.create({ areaType: AreaType.AreaTypeSwamp, stats: { [Stat.StatStrength]: 20 } })],
+				zoneStats: [ZoneStats.create({ zoneIds: [101, 102], stats: { [Stat.StatStrength]: 20 } })],
 			});
 			const potions = dbOf([slaying, natural, potion(3, 'Strong', 0, strength(10))]);
 			const { player, state } = playerOf({ epWeights: Stats.fromMap({ [Stat.StatStrength]: 1 }) });
@@ -264,10 +263,12 @@ describe('consumeConfigs', () => {
 			expect(offered(config, player)).toEqual([3, 2, 1]);
 			state.mobType = MobType.MobTypeDemon;
 			expect(offered(config, player)).toEqual([1, 3, 2]);
-			state.areaTypes = [AreaType.AreaTypeSwamp];
+			state.zoneId = 102;
 			expect(offered(config, player)).toEqual([2, 1, 3]);
 			state.mobType = MobType.MobTypeMechanical;
 			expect(offered(config, player)).toEqual([2, 3, 1]);
+			state.zoneId = 0;
+			expect(offered(config, player)).toEqual([3, 2, 1]);
 		});
 	});
 
