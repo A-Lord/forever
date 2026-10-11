@@ -12,8 +12,8 @@ import (
 var arcaneChargesRank = spellData.ArcaneBlastTriggered.Highest()
 
 // The damage bonus per charge. The row states it twice, SPELLMOD_DAMAGE (effect 1) and
-// SPELLMOD_DOT (effect 3), both 10%. SPELLMOD_DAMAGE adds into the direct hits' additive bucket,
-// with Arcane Power and Arcane Instability; SPELLMOD_DOT multiplies the ticks.
+// SPELLMOD_DOT (effect 3), both 10%. SPELLMOD_DAMAGE multiplies the direct hits, a factor of its own
+// beside Arcane Power and Arcane Instability; SPELLMOD_DOT multiplies the ticks.
 var arcaneChargeDamagePerStack = arcaneChargesRank.Effect(dbcenums.A_ADD_PCT_MODIFIER, 0).Percent()
 
 const (
@@ -37,7 +37,7 @@ func (mage *Mage) registerArcaneCharges() {
 	// no bonus.
 	damageMod := mage.AddDynamicMod(core.SpellModConfig{
 		ClassMask: MageSpellsAllDamaging &^ (MageSpellArcaneBlast | arcaneChargesLocked | MageSpellPyroblastDot),
-		Kind:      core.SpellMod_DirectDamageDone_Flat,
+		Kind:      core.SpellMod_DirectDamageDone_Pct,
 	})
 
 	config := spelldata.AuraConfig(arcaneChargesRank)
@@ -80,13 +80,13 @@ func (lock arcaneChargesLock) set(target *core.Unit, bonus float64) {
 	lock[target] = bonus
 }
 
-// Runs a direct damage calculation of spell on target with the locked bonus in the direct hits'
-// additive bucket.
+// Runs a direct damage calculation of spell on target with its direct hits multiplied by the locked
+// bonus.
 func (lock arcaneChargesLock) deal(spell *core.Spell, target *core.Unit, calc func()) {
-	bonus := lock[target]
-	spell.DirectDamageMultiplierAdditive += bonus
+	multiplier := 1 + lock[target]
+	spell.DirectDamageMultiplier *= multiplier
 	calc()
-	spell.DirectDamageMultiplierAdditive -= bonus
+	spell.DirectDamageMultiplier /= multiplier
 }
 
 // Multiplies each of a DoT's ticks by the locked bonus.
