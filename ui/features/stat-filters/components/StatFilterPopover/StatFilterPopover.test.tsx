@@ -208,6 +208,15 @@ describe('StatFilterPopover', () => {
 			/>,
 		);
 
+	it('anchors a tooltip on the trigger that reads the popover title', () => {
+		mountPopover();
+
+		const tooltipId = screen.getByTestId('test-filter-button').getAttribute('data-tooltip-id');
+
+		expect(tooltipId).toBeTruthy();
+		expect(screen.getByRole('button', { name: 'Filter test stats' }).getAttribute('data-tooltip-id')).toBe(tooltipId);
+	});
+
 	it('opens the list from the trigger it names, under the shared title', () => {
 		mountPopover();
 

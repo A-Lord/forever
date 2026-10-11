@@ -6,7 +6,8 @@ import { BooleanPicker } from '@ui-kit/BooleanPicker';
 import { Button } from '@ui-kit/Button';
 import { Icon } from '@ui-kit/Icon';
 import { Popover } from '@ui-kit/Popover';
-import { type ReactNode, useMemo } from 'react';
+import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
+import { type ReactNode, useId, useMemo } from 'react';
 
 import { useOpenFilterGroups } from '../../hooks/useOpenFilterGroups';
 import { type FilterGroupKey, filterGroupsOf, filterLabelsOf } from '../../model/stat_groups';
@@ -115,30 +116,36 @@ export interface FilterPopoverProps {
 	children: ReactNode;
 }
 
-export const FilterPopover = ({ ariaLabel, title, triggerClassName, triggerTestId, testId, customised, onOpenChange, children }: FilterPopoverProps) => (
-	<Popover
-		onOpenChange={onOpenChange}
-		trigger={<Icon name="filter" />}
-		triggerRender={
-			<Button
-				variant="link"
-				size="sm"
-				data-customised={customised ? '' : undefined}
-				className="text-muted hover:text-link-hover data-customised:text-foreground"
-			/>
-		}
-		triggerClassName={triggerClassName}
-		triggerTestId={triggerTestId}
-		triggerProps={{ 'aria-label': ariaLabel }}
-		side="bottom"
-		align="end"
-		backdrop
-		title={title}
-		className="w-80 lg:max-h-filter-popover-max-h"
-		testId={testId}>
-		{children}
-	</Popover>
-);
+export const FilterPopover = ({ ariaLabel, title, triggerClassName, triggerTestId, testId, customised, onOpenChange, children }: FilterPopoverProps) => {
+	const tooltipId = useId();
+	return (
+		<>
+			<Popover
+				onOpenChange={onOpenChange}
+				trigger={<Icon name="filter" />}
+				triggerRender={
+					<Button
+						variant="link"
+						size="sm"
+						data-customised={customised ? '' : undefined}
+						className="text-muted hover:text-link-hover data-customised:text-foreground"
+					/>
+				}
+				triggerClassName={triggerClassName}
+				triggerTestId={triggerTestId}
+				triggerProps={{ 'aria-label': ariaLabel, ...tooltipAnchorProps(tooltipId) }}
+				side="bottom"
+				align="end"
+				backdrop
+				title={title}
+				className="w-80 lg:max-h-filter-popover-max-h"
+				testId={testId}>
+				{children}
+			</Popover>
+			<Tooltip id={tooltipId} content={title} />
+		</>
+	);
+};
 
 export const StatFilterPopover = ({ ariaLabel, testId, groupsStorageKey, ...listProps }: StatFilterPopoverProps) => {
 	const { onPopoverOpenChange, ...groups } = useOpenFilterGroups(groupsStorageKey, listProps.universe, listProps.shown);
