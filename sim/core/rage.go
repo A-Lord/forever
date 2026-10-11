@@ -14,8 +14,9 @@ const ThreatPerRageGained = 5
 // health and armor play no part.
 const DamageTakenRageFactor = 2.5
 
-// A by the attacker's level, measured on combat logs: 20% up to level 42, 30% at 44, 36% at 46 and 38% from 50.
-// Levels between two rows interpolate; no log covers 43, 45 or 47-49.
+// A by the attacker's level: 20% up to level 42, 30% at 44, 36% at 46 and 38% at 50, measured on combat logs, and
+// 40% at 63, the top of the 20% to 40% range the game build's notes give. Levels between two rows interpolate; no
+// log covers 43, 45, 47-49 or 61-63.
 var damageTakenRageAssumedArmor = []struct {
 	level     int32
 	reduction float64
@@ -24,6 +25,7 @@ var damageTakenRageAssumedArmor = []struct {
 	{level: 44, reduction: 0.30},
 	{level: 46, reduction: 0.36},
 	{level: 50, reduction: 0.38},
+	{level: 63, reduction: 0.40},
 }
 
 func damageTakenRageArmorReduction(attackerLevel int32) float64 {
