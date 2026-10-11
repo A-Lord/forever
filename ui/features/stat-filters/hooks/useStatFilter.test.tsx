@@ -7,14 +7,8 @@ import { act, fireEvent, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { StatFilterPopover } from '../components/StatFilterPopover';
-import type { StatFilterScope, StatFilterSlot } from '../model/stat_filters';
-import * as statFilters from '../model/stat_filters';
+import { type StatFilterScope, type StatFilterSlot, withSelection } from '../model/stat_filters';
 import { useStatFilter } from './useStatFilter';
-
-vi.mock('../model/stat_filters', async importOriginal => {
-	const actual = await importOriginal<typeof import('../model/stat_filters')>();
-	return { ...actual, shownStats: vi.fn(actual.shownStats) };
-});
 
 const strength = UnitStat.fromStat(Stat.StatStrength);
 const agility = UnitStat.fromStat(Stat.StatAgility);
@@ -108,7 +102,7 @@ describe('useStatFilter', () => {
 	});
 });
 
-describe('useStatFilter open groups', () => {
+describe('the stat filter popover open groups', () => {
 	const groupsScope: StatFilterScope = { defaults: [strength, armor], universe: [strength, agility, hitRating, armor] };
 	const GroupsProbe = ({ slot }: { slot: StatFilterSlot }) => {
 		latest = useStatFilter(slot, groupsScope);
@@ -140,7 +134,7 @@ describe('useStatFilter open groups', () => {
 
 	it('opens the groups of a filter that loaded after the hook mounted', async () => {
 		mountGroups('ep');
-		act(() => sim.setFilters(statFilters.withSelection(sim.getFilters(), 'ep', [hitRating])));
+		act(() => sim.setFilters(withSelection(sim.getFilters(), 'ep', [hitRating])));
 
 		await togglePopover();
 
@@ -161,17 +155,21 @@ describe('useStatFilter open groups', () => {
 		expect(expandedGroups()).toEqual(['attributes']);
 	});
 
-	it("stores a change under the panel's own key and reads it back on the next mount", () => {
+	it("stores a change under the panel's own key and reads it back on the next mount", async () => {
 		const view = mountGroups('ep');
+		await togglePopover();
 
-		act(() => latest.onOpenGroupsChange(['ratings']));
+		act(() => {
+			fireEvent.click(screen.getByTestId('test-filter-group-defense-trigger'));
+		});
 
-		expect(latest.openGroups).toEqual(['ratings']);
-		expect(JSON.parse(window.localStorage.getItem('test__epStatFilterGroups')!)).toEqual(['ratings']);
+		expect(expandedGroups()).toEqual(['attributes']);
+		expect(JSON.parse(window.localStorage.getItem('test__epStatFilterGroups')!)).toEqual(['attributes']);
 		expect(window.localStorage.getItem('test__consumablesStatFilterGroups')).toBeNull();
 		view.unmount();
 		mountGroups('ep');
-		expect(latest.openGroups).toEqual(['ratings']);
+		await togglePopover();
+		expect(expandedGroups()).toEqual(['attributes']);
 	});
 
 	it('takes the stored groups over the default', async () => {
@@ -186,14 +184,19 @@ describe('useStatFilter open groups', () => {
 
 describe('useStatFilter on unrelated writes', () => {
 	it('does not work out the shown stats again for a write to another slice', () => {
-		const spy = vi.mocked(statFilters.shownStats);
-		mount();
+		const filter = vi.fn(Array.prototype.filter);
+		const universe = Object.assign([strength, agility, stamina], { filter });
+		const Watched = () => {
+			latest = useStatFilter('buffs', { defaults: scope.defaults, universe: universe as unknown as UnitStat[] });
+			return null;
+		};
+		renderWithHost(<Watched />, { sim, player: { getClass: () => Class.ClassWarrior }, getStorageKey: (keyPart: string) => `test${keyPart}` });
 		const before = latest.shown;
-		spy.mockClear();
+		filter.mockClear();
 
 		act(() => patchSlice(store, 'ui', {}));
 
-		expect(spy).not.toHaveBeenCalled();
+		expect(filter).not.toHaveBeenCalled();
 		expect(latest.shown).toBe(before);
 	});
 });

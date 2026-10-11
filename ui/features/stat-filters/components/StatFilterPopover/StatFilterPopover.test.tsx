@@ -202,9 +202,7 @@ describe('StatFilterPopover', () => {
 				playerClass={Class.ClassWarrior}
 				onChange={() => {}}
 				onReset={() => {}}
-				openGroups={['attributes']}
-				onOpenGroupsChange={() => {}}
-				onPopoverOpenChange={() => {}}
+				groupsStorageKey="test__groups"
 				ariaLabel="Filter test stats"
 				testId="test-filter"
 			/>,

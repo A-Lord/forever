@@ -35,11 +35,10 @@ const useAnyOffered = (list: ReadonlyArray<RenderableStatOptions>, player: Playe
 	return useStore(player.sim.store, state => offered([state.raid, state.players[player.storeKey], list], () => anyOffered(list, player)));
 };
 
-export const SettingsTabBody = () => {
-	const host = useSimHost();
+// The buff, party buff and debuff sections, apart from the rest of the tab so a filter write re-renders only them.
+const BuffSections = ({ gearPlanner }: { gearPlanner: boolean }) => {
 	const config = useSpecConfig();
 	const player = usePlayer();
-	const ready = useSimReady();
 
 	const buffScope = useMemo(() => statOptionScope(BUFF_OPTIONS, config), [config]);
 	const debuffScope = useMemo(() => statOptionScope(DEBUFF_OPTIONS, config), [config]);
@@ -62,6 +61,36 @@ export const SettingsTabBody = () => {
 	const offersBuffs = useAnyOffered(options.buffs, player);
 	const offersPartyBuffs = useAnyOffered(options.partyBuffs, player);
 	const offersDebuffs = useAnyOffered(options.debuffs, player);
+
+	return (
+		<>
+			<BuffSection
+				section="raid_buffs"
+				empty={!offersBuffs}
+				filter={<StatFilterPopover {...buffFilter} ariaLabel={i18n.t('stat_filters.triggers.buffs')} testId="buffs-filter" />}>
+				<RaidBuffs options={options.buffs} miscOptions={[]} />
+			</BuffSection>
+			{offersPartyBuffs && (
+				<BuffSection section="party_buffs" empty={false}>
+					<RaidBuffs options={options.partyBuffs} miscOptions={[]} />
+				</BuffSection>
+			)}
+			{!gearPlanner && (
+				<BuffSection
+					section="debuffs"
+					empty={!offersDebuffs}
+					filter={<StatFilterPopover {...debuffFilter} ariaLabel={i18n.t('stat_filters.triggers.debuffs')} testId="debuffs-filter" />}>
+					<RaidBuffs options={options.debuffs} miscOptions={options.debuffsMisc} />
+				</BuffSection>
+			)}
+		</>
+	);
+};
+
+export const SettingsTabBody = () => {
+	const host = useSimHost();
+	const config = useSpecConfig();
+	const ready = useSimReady();
 
 	const itemSwapSlots = config.itemSwapSlots || [];
 	const hasOtherSettings = config.otherInputs.inputs.length > 0 || itemSwapSlots.length > 0;
@@ -113,33 +142,7 @@ export const SettingsTabBody = () => {
 						</>
 					)}
 				</TabPanelColumns.Col>
-				<TabPanelColumns.Col>
-					{ready && (
-						<>
-							<BuffSection
-								section="raid_buffs"
-								empty={!offersBuffs}
-								filter={<StatFilterPopover {...buffFilter} ariaLabel={i18n.t('stat_filters.triggers.buffs')} testId="buffs-filter" />}>
-								<RaidBuffs options={options.buffs} miscOptions={[]} />
-							</BuffSection>
-							{offersPartyBuffs && (
-								<BuffSection section="party_buffs" empty={false}>
-									<RaidBuffs options={options.partyBuffs} miscOptions={[]} />
-								</BuffSection>
-							)}
-							{!gearPlanner && (
-								<BuffSection
-									section="debuffs"
-									empty={!offersDebuffs}
-									filter={
-										<StatFilterPopover {...debuffFilter} ariaLabel={i18n.t('stat_filters.triggers.debuffs')} testId="debuffs-filter" />
-									}>
-									<RaidBuffs options={options.debuffs} miscOptions={options.debuffsMisc} />
-								</BuffSection>
-							)}
-						</>
-					)}
-				</TabPanelColumns.Col>
+				<TabPanelColumns.Col>{ready && <BuffSections gearPlanner={gearPlanner} />}</TabPanelColumns.Col>
 			</TabPanelColumns.Left>
 			<TabPanelColumns.Right>
 				<PresetConfigurationPicker categories={gearPlanner ? GEAR_PLANNER_PRESETS : SETTINGS_PRESETS} />

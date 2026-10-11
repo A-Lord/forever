@@ -1,8 +1,6 @@
 import { STAT_GROUPS, StatFilterPopover } from '@features/stat-filters';
-import { defaultOpenFilterGroups } from '@features/stat-filters/model/stat_groups';
 import { Class, PseudoStat, Stat } from '@generated/proto/common';
 import { UnitStat } from '@sim/proto/stats';
-import { useState } from 'react';
 import { fn } from 'storybook/test';
 
 // Every character stats group, Hit Rating and Main Hand DPS for Ratings, and Physical Damage, which no group holds and so lands under Other.
@@ -22,23 +20,16 @@ export const WARRIOR_STAT_DEFAULTS = [
 	UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeCritPercent),
 ];
 
-const StoryStatFilter = ({ testId, ariaLabel }: { testId: string; ariaLabel: string }) => {
-	const [openGroups, setOpenGroups] = useState<string[]>(() => defaultOpenFilterGroups(STAT_FILTER_UNIVERSE, WARRIOR_STAT_DEFAULTS));
-	return (
-		<StatFilterPopover
-			universe={STAT_FILTER_UNIVERSE}
-			shown={WARRIOR_STAT_DEFAULTS}
-			customised={false}
-			playerClass={Class.ClassWarrior}
-			onChange={fn()}
-			onReset={fn()}
-			openGroups={openGroups}
-			onOpenGroupsChange={setOpenGroups}
-			onPopoverOpenChange={fn()}
-			ariaLabel={ariaLabel}
-			testId={testId}
-		/>
-	);
-};
-
-export const storyStatFilter = (testId: string, ariaLabel: string) => <StoryStatFilter testId={testId} ariaLabel={ariaLabel} />;
+export const storyStatFilter = (testId: string, ariaLabel: string) => (
+	<StatFilterPopover
+		universe={STAT_FILTER_UNIVERSE}
+		shown={WARRIOR_STAT_DEFAULTS}
+		customised={false}
+		playerClass={Class.ClassWarrior}
+		onChange={fn()}
+		onReset={fn()}
+		groupsStorageKey={`storybook__${testId}Groups`}
+		ariaLabel={ariaLabel}
+		testId={testId}
+	/>
+);

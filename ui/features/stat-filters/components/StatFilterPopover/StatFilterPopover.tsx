@@ -8,9 +8,10 @@ import { Icon } from '@ui-kit/Icon';
 import { Popover } from '@ui-kit/Popover';
 import { type ReactNode, useMemo } from 'react';
 
+import { useOpenFilterGroups } from '../../hooks/useOpenFilterGroups';
 import { type FilterGroupKey, filterGroupsOf, filterLabelsOf } from '../../model/stat_groups';
 
-export interface StatFilterPopoverProps {
+export interface StatFilterListProps {
 	universe: ReadonlyArray<UnitStat>;
 	shown: ReadonlyArray<UnitStat>;
 	customised: boolean;
@@ -21,7 +22,12 @@ export interface StatFilterPopoverProps {
 	onReset: () => void;
 	openGroups: string[];
 	onOpenGroupsChange: (groups: string[]) => void;
-	onPopoverOpenChange: (open: boolean) => void;
+	idPrefix: string;
+}
+
+export interface StatFilterPopoverProps extends Omit<StatFilterListProps, 'openGroups' | 'onOpenGroupsChange' | 'idPrefix'> {
+	/** Where the browser keeps the popover's open groups. */
+	groupsStorageKey: string;
 	/** The trigger's name, one per panel: every stat filter popup shares one title. */
 	ariaLabel: string;
 	testId: string;
@@ -41,7 +47,7 @@ export const StatFilterList = ({
 	openGroups,
 	onOpenGroupsChange,
 	idPrefix,
-}: Omit<StatFilterPopoverProps, 'ariaLabel' | 'testId' | 'onPopoverOpenChange'> & { idPrefix: string }) => {
+}: StatFilterListProps) => {
 	const shownKeys = new Set(shown.map(stat => stat.getKey()));
 	const isShown = (stat: UnitStat) => shownKeys.has(stat.getKey());
 	const toggle = (stat: UnitStat, checked: boolean) => onChange(universe.filter(other => (other.equals(stat) ? checked : isShown(other))));
@@ -127,14 +133,17 @@ export const FilterPopover = ({ ariaLabel, title, className, triggerClassName, t
 	</Popover>
 );
 
-export const StatFilterPopover = ({ ariaLabel, testId, onPopoverOpenChange, ...listProps }: StatFilterPopoverProps) => (
-	<FilterPopover
-		ariaLabel={ariaLabel}
-		title={i18n.t('stat_filters.title')}
-		className="w-80"
-		triggerTestId={`${testId}-button`}
-		testId={testId}
-		onOpenChange={onPopoverOpenChange}>
-		<StatFilterList {...listProps} idPrefix={testId} />
-	</FilterPopover>
-);
+export const StatFilterPopover = ({ ariaLabel, testId, groupsStorageKey, ...listProps }: StatFilterPopoverProps) => {
+	const { onPopoverOpenChange, ...groups } = useOpenFilterGroups(groupsStorageKey, listProps.universe, listProps.shown);
+	return (
+		<FilterPopover
+			ariaLabel={ariaLabel}
+			title={i18n.t('stat_filters.title')}
+			className="w-80"
+			triggerTestId={`${testId}-button`}
+			testId={testId}
+			onOpenChange={onPopoverOpenChange}>
+			<StatFilterList {...listProps} {...groups} idPrefix={testId} />
+		</FilterPopover>
+	);
+};

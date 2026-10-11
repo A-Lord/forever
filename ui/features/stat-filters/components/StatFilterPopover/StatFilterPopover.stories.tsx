@@ -5,35 +5,19 @@ import { STAT_FILTER_UNIVERSE as UNIVERSE, WARRIOR_STAT_DEFAULTS as WARRIOR_DEFA
 import { useState } from 'react';
 import { fn, userEvent, within } from 'storybook/test';
 
-import { defaultOpenFilterGroups, STAT_GROUPS } from '../../model/stat_groups';
+import { STAT_GROUPS } from '../../model/stat_groups';
 import { StatFilterPopover, type StatFilterPopoverProps } from './StatFilterPopover';
 
 const TWO_GROUPS = STAT_GROUPS.filter(group => group.key === 'attributes' || group.key === 'defense').flatMap(group => group.stats);
 
-/**
- * Holds the list the way the hook does: a change sets the slot, a reset clears it back to `shown`, and the groups
- * holding a shown stat start open.
- */
-const StatFilterPopoverStory = ({
-	shown: initialShown,
-	customised: initialCustomised,
-	onChange,
-	onReset,
-	onOpenGroupsChange,
-	...props
-}: StatFilterPopoverProps) => {
+/** Holds the list the way the hook does: a change sets the slot, and a reset clears it back to `shown`. */
+const StatFilterPopoverStory = ({ shown: initialShown, customised: initialCustomised, onChange, onReset, ...props }: StatFilterPopoverProps) => {
 	const [selection, setSelection] = useState<UnitStat[] | null>(initialCustomised ? [...initialShown] : null);
-	const [openGroups, setOpenGroups] = useState<string[]>(() => defaultOpenFilterGroups(props.universe, initialShown));
 	return (
 		<StatFilterPopover
 			{...props}
 			shown={selection ?? initialShown}
 			customised={selection !== null}
-			openGroups={openGroups}
-			onOpenGroupsChange={groups => {
-				setOpenGroups(groups);
-				onOpenGroupsChange(groups);
-			}}
 			onChange={stats => {
 				setSelection(stats);
 				onChange(stats);
@@ -56,16 +40,13 @@ const meta = {
 		playerClass: Class.ClassWarrior,
 		onChange: fn(),
 		onReset: fn(),
-		openGroups: [],
-		onOpenGroupsChange: fn(),
-		onPopoverOpenChange: fn(),
+		groupsStorageKey: 'storybook__statFilterGroups',
 		ariaLabel: 'Filter character stats',
 		testId: 'stat-filter',
 	},
 	argTypes: {
 		universe: { control: false },
 		shown: { control: false },
-		openGroups: { control: false },
 	},
 	render: args => <StatFilterPopoverStory {...args} />,
 	play: async ({ canvasElement }) => {

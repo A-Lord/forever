@@ -1,5 +1,5 @@
 import { Tabs } from '@base-ui/react/tabs';
-import { FilterPopover, StatFilterList, useStatFilter } from '@features/stat-filters';
+import { FilterPopover, StatFilterList, useOpenFilterGroups, useStatFilter } from '@features/stat-filters';
 import { ConsumableType } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { useSimHost } from '@sim/context/SimHostContext';
@@ -34,7 +34,8 @@ export const ConsumesFilters = () => {
 	const { sim, player } = useSimHost();
 	const filters = useStoreSubscribe(subscribeSimField(sim, 'filters'), () => sim.getFilters());
 	const scope = useMemo(() => consumableFilterScope(player, Database.getSync()), [player]);
-	const statFilter = useStatFilter('consumables', scope);
+	const { groupsStorageKey, ...statFilter } = useStatFilter('consumables', scope);
+	const { onPopoverOpenChange, ...groups } = useOpenFilterGroups(groupsStorageKey, statFilter.universe, statFilter.shown);
 	const types = useMemo(() => {
 		const ranges = new Map<ConsumableType, [number, number]>();
 		for (const { type, lvl } of Database.getSync().getConsumables()) {
@@ -57,7 +58,7 @@ export const ConsumesFilters = () => {
 			triggerClassName="ml-auto"
 			triggerTestId="consumes-filters-button"
 			testId="consumes-filters-popover"
-			onOpenChange={statFilter.onPopoverOpenChange}>
+			onOpenChange={onPopoverOpenChange}>
 			<Tabs.Root defaultValue={STATS_TAB} className="flex min-h-0 flex-col">
 				<TabNav
 					wrap={false}
@@ -68,7 +69,7 @@ export const ConsumesFilters = () => {
 					]}
 				/>
 				<Tabs.Panel value={STATS_TAB} id={STATS_TAB} className="flex min-h-0 flex-col">
-					<StatFilterList {...statFilter} idPrefix="consumes-filters-stats" />
+					<StatFilterList {...statFilter} {...groups} idPrefix="consumes-filters-stats" />
 				</Tabs.Panel>
 				<Tabs.Panel value={MIN_LVL_TAB} id={MIN_LVL_TAB} className="flex min-h-0 flex-col gap-2">
 					<div className="-mx-2 grid min-h-0 scrollbar-gutter-stable grid-cols-2 gap-2 overflow-y-auto px-2">
