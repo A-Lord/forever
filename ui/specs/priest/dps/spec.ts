@@ -109,7 +109,7 @@ export default defineSpec<Spec.SpecDpsPriest>({
 	},
 
 	presets: {
-		epWeights: [],
+		epWeights: [Presets.ShadowEpWeights, Presets.SmiteEpWeights],
 		// Preset talents that the user can quickly select.
 		talents: [Presets.StandardTalents, Presets.SmiteTalents],
 		rotations: [Presets.ROTATION_PRESET_DEFAULT, Presets.ROTATION_SMITE_DEFAULT],

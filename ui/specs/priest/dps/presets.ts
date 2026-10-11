@@ -1,9 +1,10 @@
 import * as PresetUtils from '@app/preset_utils';
 import * as Consumables from '@features/settings/model/consumables_auto_gen';
 import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
-import { ConsumesSpec, Profession, Race, TristateEffect } from '@generated/proto/common';
+import { ConsumesSpec, Profession, PseudoStat, Race, Stat, TristateEffect } from '@generated/proto/common';
 import { DpsPriest_Options as Options, PriestOptions_Armor } from '@generated/proto/priest';
 import { SavedTalents } from '@generated/proto/ui';
+import { Stats } from '@sim/proto/stats';
 
 import DefaultApl from './apls/default.apl.json';
 import SmiteApl from './apls/smite.apl.json';
@@ -65,3 +66,36 @@ export const OtherDefaults = {
 	profession2: Profession.Tailoring,
 	race: Race.RaceTroll,
 };
+
+export const ShadowEpWeights = PresetUtils.makePresetEpWeights(
+	'Shadow',
+	Stats.fromMap(
+		{
+			[Stat.StatIntellect]: 0.24,
+			[Stat.StatSpellDamage]: 1.00,
+			[Stat.StatShadowDamage]: 1.00,
+			[Stat.StatSpirit]: 0.01,
+			[Stat.StatHitRating]: 1.14,
+			[Stat.StatCritRating]: 0.84,
+			[Stat.StatHasteRating]: 0.73,
+		},
+	),
+);
+
+export const SmiteEpWeights = PresetUtils.makePresetEpWeights(
+	'Smite',
+	Stats.fromMap(
+		{
+			[Stat.StatIntellect]: 0.58,
+			[Stat.StatSpellDamage]: 1.00,
+			[Stat.StatHolyDamage]: 0.81,
+			[Stat.StatShadowDamage]: 0.19,
+			[Stat.StatSpirit]: 0.57,
+			[Stat.StatHitRating]: 0.37,
+			[Stat.StatCritRating]: 0.32,
+			[Stat.StatHasteRating]: 0.43,
+			[Stat.StatMP5]: 1.46,
+		},
+	),
+);
+
