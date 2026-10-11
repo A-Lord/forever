@@ -21,7 +21,7 @@ func manaSpellConfig(id int32, cost int32, castTime time.Duration, castAt *[]tim
 }
 
 func TestOOMTracking(t *testing.T) {
-	t.Run("a cheaper mana filler cast while a costlier spell is unaffordable is not OOM", func(t *testing.T) {
+	t.Run("a costlier spell skipped for mana while a cheaper filler casts is OOM", func(t *testing.T) {
 		var filler *Spell
 		var fillerCasts []time.Duration
 		ct := newManaTickTest(func(char *Character) *Spell {
@@ -34,33 +34,34 @@ func TestOOMTracking(t *testing.T) {
 		if len(fillerCasts) == 0 {
 			t.Fatal("the filler was never cast")
 		}
-		if ct.fw.Metrics.WentOOM {
-			t.Errorf("went OOM at %v, want never", ct.fw.Metrics.FirstOOMTimestamp)
+		if !ct.fw.IsOOM() || ct.fw.Metrics.FirstOOMTimestamp != 0 {
+			t.Errorf("OOM %v from %v, want OOM from the pull", ct.fw.IsOOM(), ct.fw.Metrics.FirstOOMTimestamp)
 		}
 	})
 
-	t.Run("a cheaper mana filler queued while a costlier spell is unaffordable is not OOM", func(t *testing.T) {
+	t.Run("OOM ends at the first pass after the GCD that skips no spell for mana", func(t *testing.T) {
+		var costlyCasts []time.Duration
 		var filler *Spell
-		var fillerCasts []time.Duration
 		ct := newManaTickTest(func(char *Character) *Spell {
-			filler = char.RegisterSpell(manaSpellConfig(910328, 100, 0, &fillerCasts))
-			return char.RegisterSpell(manaSpellConfig(910329, unaffordableCost, 0, new([]time.Duration)))
+			filler = char.RegisterSpell(manaSpellConfig(910328, 100, 0, new([]time.Duration)))
+			return char.RegisterSpell(manaSpellConfig(910329, unaffordableCost, 0, &costlyCasts))
 		})
 		filler.finalize()
 		ct.start(ct.castOf(ct.spell), ct.castOf(filler))
-		queueAt := GCDDefault - MaxSpellQueueWindow/2
-		ct.runUntil(queueAt)
+		midGCD := GCDDefault / 2
+		ct.runUntil(midGCD)
+		ct.spell.Cost.FlatModifier = 100 - unaffordableCost
 		ct.fw.ReactToEvent(ct.sim, false, false)
-		ct.runUntil(queueAt)
-		if qs := ct.fw.QueuedSpell; qs == nil || qs.spell != filler || qs.QueueInitiatedAt != queueAt {
-			t.Fatal("the filler was not queued during the GCD")
+		ct.runUntil(midGCD)
+		if !ct.fw.IsOOM() {
+			t.Fatal("a pass during the GCD ended OOM")
 		}
 		ct.runUntil(GCDDefault + time.Second)
-		if len(fillerCasts) < 2 {
-			t.Fatalf("filler casts at %v, want a second at the end of the first GCD", fillerCasts)
+		if len(costlyCasts) == 0 || costlyCasts[0] != GCDDefault {
+			t.Fatalf("costlier spell cast at %v, want at the end of the first GCD", costlyCasts)
 		}
-		if ct.fw.Metrics.WentOOM {
-			t.Errorf("went OOM at %v, want never", ct.fw.Metrics.FirstOOMTimestamp)
+		if got := ct.fw.Metrics.OOMTime; ct.fw.IsOOM() || got != GCDDefault {
+			t.Errorf("OOM %v with %v OOM time, want %v: from the pull to the end of the GCD", ct.fw.IsOOM(), got, GCDDefault)
 		}
 	})
 
@@ -109,7 +110,7 @@ func TestOOMTracking(t *testing.T) {
 			return char.RegisterSpell(manaSpellConfig(910332, 100, 0, new([]time.Duration)))
 		})
 		offGCD.finalize()
-		ct.start(ct.castOf(offGCD), ct.castOf(ct.spell))
+		ct.start(ct.castOf(ct.spell), ct.castOf(offGCD))
 		midGCD := GCDDefault - MaxSpellQueueWindow - 100*time.Millisecond
 		ct.runUntil(midGCD)
 		ct.fw.ReactToEvent(ct.sim, false, false)

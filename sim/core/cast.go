@@ -190,9 +190,10 @@ func (spell *Spell) makeCastFunc(config CastConfig) CastSuccessFunc {
 		}
 
 		var manaCost float64
-		if spell.paysMana() {
-			manaCost = spell.CurCast.Cost
-			spell.commitManaSpell(sim)
+		if spell.Cost != nil {
+			if _, ok := spell.Cost.ResourceCostImpl.(*ManaCost); ok {
+				manaCost = spell.CurCast.Cost
+			}
 		}
 
 		if unshift {

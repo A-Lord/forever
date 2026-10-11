@@ -38,12 +38,11 @@ type manaBar struct {
 	nextManaTick time.Duration
 	paidBy       *Spell // The spell that last paid mana, until a channel it starts claims the payment.
 
-	// OOM while the rotation waits for mana: a pass finds a spell castable but for its mana cost and
-	// casts or queues no mana spell. A mana spell cast or queued ends the wait.
+	// OOM while the rotation skips a spell it wants for its mana cost, whatever it casts instead. A pass
+	// the unit starts free to act updates it.
 	oom          bool
 	oomStartedAt time.Duration
-	costBlocked  bool // A mana cost failed a check in the current rotation pass.
-	manaCast     bool // A mana spell was cast or queued in the current rotation pass.
+	costBlocked  bool // The current rotation pass skipped a spell for its mana cost.
 }
 
 // EnableManaBar will setup caster stat dependencies (int->mana and int->spellcrit)
@@ -393,19 +392,9 @@ func (unit *Unit) manaAfterHardcast(sim *Simulation) float64 {
 	return mana
 }
 
-// Whether the spell costs mana, even when a modifier makes this cast free.
-func (spell *Spell) paysMana() bool {
-	if spell.Cost == nil || spell.Cost.BaseCost <= 0 {
-		return false
-	}
-	_, ok := spell.Cost.ResourceCostImpl.(*ManaCost)
-	return ok
-}
-
-// The rotation commits to a mana spell, cast or queued, and so stops waiting for mana.
-func (spell *Spell) commitManaSpell(sim *Simulation) {
-	spell.Unit.manaCast = true
-	spell.Unit.EndOOMEvent(sim)
+// For a rotation that checks a mana cost itself: the current pass skips a spell it wants for its cost.
+func (mb *manaBar) SkipForMana() {
+	mb.costBlocked = true
 }
 
 func (mc *ManaCost) MeetsRequirement(sim *Simulation, spell *Spell) bool {
