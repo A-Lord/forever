@@ -290,13 +290,14 @@ hand-written effect for an id a builder does register takes that registration's 
 deleting the hand-written one hands the id back to the rows.
 
 The settings offer a consumable by the stats db.json lists for it, and the parser lists only the
-Stamina. `AddUnparsedStats` (`tools/database/consumable_unparsed_stats.go`) adds the same
-`NaturalFlaskZoneBonusOf` to each flask's db.json stats at the rating one percent takes (Accuracy 50 hit rating,
+Stamina. `AddUnparsedStats` (`tools/database/consumable_unparsed_stats.go`) lists the same
+`NaturalFlaskZoneBonusOf` in each flask's db.json `zoneStats` at the rating one percent takes (Accuracy 50 hit rating,
 Aggression 56 crit rating, Precision 50 expertise rating at
-`core.ExpertiseRatingPerExpertisePercent` (10), Swiftness 50 haste rating). One rating feeds the
-physical and the spell percent alike, so a flask that grants both lists the rating once; a hit or
-crit of one channel alone is listed by that channel's pseudo stats instead, as with the hit foods
-above. The sim reads the rows, not those stats.
+`core.ExpertiseRatingPerExpertisePercent` (10), Swiftness 50 haste rating), under the zones of
+`naturalFlaskZones`: Mount Hyjal 616 and Hyjal Summit 3606, which only the tooltip names; the Barrow
+Deeps has no AreaTable row. The settings weigh those stats only while the encounter's zone is one of
+them. One rating feeds the physical and the spell percent alike, so a flask that grants both lists
+the rating once. The sim reads the rows, not those stats, and applies the bonus in every fight.
 
 ## Adding a consumable the rows do not support
 
