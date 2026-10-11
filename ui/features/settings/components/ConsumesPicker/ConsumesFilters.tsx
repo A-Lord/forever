@@ -57,6 +57,7 @@ export const ConsumesFilters = () => {
 			triggerClassName="ml-auto"
 			triggerTestId="consumes-filters-button"
 			testId="consumes-filters-popover"
+			customised={statFilter.customised || minLvlsSet}
 			onOpenChange={onPopoverOpenChange}>
 			<Tabs.Root defaultValue={STATS_TAB} className="flex min-h-0 flex-col">
 				<TabNav

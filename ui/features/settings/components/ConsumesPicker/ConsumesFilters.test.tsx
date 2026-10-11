@@ -5,7 +5,7 @@ import i18n from '@i18n/config';
 import { UnitStat } from '@sim/proto/stats';
 import { createSimStore, patchSlice, type SimStore } from '@sim/state/sim_store';
 import { renderWithHost } from '@testing/react';
-import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const agility = Object.assign(new Array<number>(42).fill(0), { [Stat.StatAgility]: 25 });
@@ -99,6 +99,20 @@ describe('ConsumesFilters', () => {
 
 		fireEvent.click(reset);
 		expect(reset.hasAttribute('disabled')).toBe(true);
+	});
+
+	it('marks the trigger customised while the stats or a minimum level differ from the defaults', () => {
+		const customised = () => screen.getByTestId('consumes-filters-button').hasAttribute('data-customised');
+		open();
+		expect(customised()).toBe(false);
+
+		fireEvent.click(checkbox(Stat.StatAgility));
+		expect(customised()).toBe(true);
+		fireEvent.click(screen.getByTestId('consumes-filters-stats-reset'));
+		expect(customised()).toBe(false);
+
+		act(() => sim.setFilters(DatabaseFilters.create({ minConsumableLvl: { [ConsumableType.ConsumableTypeElixir]: 50 } })));
+		expect(customised()).toBe(true);
 	});
 
 	it('resets the stats and the levels apart', () => {

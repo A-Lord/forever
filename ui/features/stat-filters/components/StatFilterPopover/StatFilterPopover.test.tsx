@@ -193,12 +193,12 @@ describe('StatFilterList', () => {
 });
 
 describe('StatFilterPopover', () => {
-	const mountPopover = () =>
+	const mountPopover = (customised = false) =>
 		render(
 			<StatFilterPopover
 				universe={universe}
 				shown={[strength]}
-				customised={false}
+				customised={customised}
 				playerClass={Class.ClassWarrior}
 				onChange={() => {}}
 				onReset={() => {}}
@@ -216,5 +216,14 @@ describe('StatFilterPopover', () => {
 		const popup = screen.getByRole('dialog', { name: i18n.t('stat_filters.title') });
 		expect(within(popup).getAllByRole('heading')[0].textContent).toBe(i18n.t('stat_filters.title'));
 		expect(checkbox(strength).getAttribute('aria-checked')).toBe('true');
+	});
+
+	it('marks the trigger customised only while the slot is', () => {
+		const { unmount } = mountPopover();
+		expect(screen.getByTestId('test-filter-button').hasAttribute('data-customised')).toBe(false);
+		unmount();
+
+		mountPopover(true);
+		expect(screen.getByTestId('test-filter-button').hasAttribute('data-customised')).toBe(true);
 	});
 });

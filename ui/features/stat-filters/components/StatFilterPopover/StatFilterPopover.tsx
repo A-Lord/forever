@@ -109,15 +109,24 @@ export interface FilterPopoverProps {
 	triggerClassName?: string;
 	triggerTestId: string;
 	testId: string;
+	/** The panel holds a setting of the user's own; the trigger shows bright instead of muted. */
+	customised: boolean;
 	onOpenChange?: (open: boolean) => void;
 	children: ReactNode;
 }
 
-export const FilterPopover = ({ ariaLabel, title, triggerClassName, triggerTestId, testId, onOpenChange, children }: FilterPopoverProps) => (
+export const FilterPopover = ({ ariaLabel, title, triggerClassName, triggerTestId, testId, customised, onOpenChange, children }: FilterPopoverProps) => (
 	<Popover
 		onOpenChange={onOpenChange}
 		trigger={<Icon name="filter" />}
-		triggerRender={<Button variant="link" size="sm" className="text-muted hover:text-link-hover" />}
+		triggerRender={
+			<Button
+				variant="link"
+				size="sm"
+				data-customised={customised ? '' : undefined}
+				className="text-muted hover:text-link-hover data-customised:text-foreground"
+			/>
+		}
 		triggerClassName={triggerClassName}
 		triggerTestId={triggerTestId}
 		triggerProps={{ 'aria-label': ariaLabel }}
@@ -139,6 +148,7 @@ export const StatFilterPopover = ({ ariaLabel, testId, groupsStorageKey, ...list
 			title={i18n.t('stat_filters.title')}
 			triggerTestId={`${testId}-button`}
 			testId={testId}
+			customised={listProps.customised}
 			onOpenChange={onPopoverOpenChange}>
 			<StatFilterList {...listProps} {...groups} idPrefix={testId} />
 		</FilterPopover>
