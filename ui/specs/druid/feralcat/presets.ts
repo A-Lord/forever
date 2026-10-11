@@ -98,13 +98,10 @@ export const POUNCE_APL = PresetUtils.makePresetAPLRotation('Pounce opener', Pou
 // of the fight do not need. Needs the Primal Bite talent.
 export const BEARWEAVE_APL = PresetUtils.makePresetAPLRotation('Bearweave', BearweaveApl);
 
-// Rend and Tear 5/5 with Blood Frenzy 1, the fifth point out of Predatory Strikes: Rend and Tear now raises the
-// bleed ticks, which puts it 2.0 to 2.9 DPS ahead of Rend and Tear 4/5 with Predatory Strikes 3/3 from 300 to 45
-// seconds.
-export const CatTalents = PresetUtils.makePresetTalents('Monocat', SavedTalents.create({ talentsString: '050022-55000032021021212051-055' }));
-// Monocat with one Predatory Strikes point in Primal Bite: the best of the one-point changes tried for the
-// Bearweave list. Monocat is still 2 DPS ahead at 45 seconds and 6 to 7 ahead from 60 seconds on.
-export const BearweaveTalents = PresetUtils.makePresetTalents('Bearweave', SavedTalents.create({ talentsString: '050022-55000032021111212051-055' }));
+// Naturalist funds the full Predatory Strikes prerequisite for Rend and Tear.
+export const CatTalents = PresetUtils.makePresetTalents('Monocat', SavedTalents.create({ talentsString: '050022-55000032021031212051-054' }));
+// Primal Bite takes one additional point from Naturalist.
+export const BearweaveTalents = PresetUtils.makePresetTalents('Bearweave', SavedTalents.create({ talentsString: '050022-55000032021131212051-053' }));
 // Natural Shapeshifter and Reflection in place of the Balance points' melee hit and crit. About 47 DPS
 // behind Monocat at 180 seconds.
 export const ManaEfficientTalents = PresetUtils.makePresetTalents(
