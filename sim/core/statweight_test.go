@@ -19,11 +19,12 @@ func statWeightResult(dps float64) *proto.RaidSimResult {
 	return &proto.RaidSimResult{RaidMetrics: &proto.RaidMetrics{Parties: []*proto.PartyMetrics{{Players: []*proto.UnitMetrics{statWeightMetrics(dps)}}}}}
 }
 
+const syntheticBaselineDps = 1000.0
+
 // Builds the stat weight requests and answers each sub-sim with the DPS a point of its stat is worth
 // in dpsPerPoint, then computes the weights.
 func runSyntheticStatWeights(t *testing.T, statsToWeigh []proto.Stat, pseudoStatsToWeigh []proto.PseudoStat, dpsPerPoint map[stats.UnitStat]float64) (*proto.StatWeightRequestsData, *proto.StatWeightsResult) {
 	t.Helper()
-	const baseline = 1000.0
 	requests := buildStatWeightRequests(&proto.StatWeightsRequest{
 		Player:             &proto.Player{},
 		Encounter:          &proto.Encounter{},
@@ -38,16 +39,16 @@ func runSyntheticStatWeights(t *testing.T, statsToWeigh []proto.Stat, pseudoStat
 		stat := stats.UnitStatFromIdx(int(request.StatData.UnitStat))
 		result := &proto.StatWeightsStatResultData{
 			StatData:   request.StatData,
-			ResultHigh: statWeightResult(baseline + dpsPerPoint[stat]*request.StatData.ModHigh),
+			ResultHigh: statWeightResult(syntheticBaselineDps + dpsPerPoint[stat]*request.StatData.ModHigh),
 		}
 		if request.RequestLow != nil {
-			result.ResultLow = statWeightResult(baseline + dpsPerPoint[stat]*request.StatData.ModLow)
+			result.ResultLow = statWeightResult(syntheticBaselineDps + dpsPerPoint[stat]*request.StatData.ModLow)
 		}
 		results = append(results, result)
 	}
 
 	return requests, computeStatWeights(&proto.StatWeightsCalcRequest{
-		BaseResult:      statWeightResult(baseline),
+		BaseResult:      statWeightResult(syntheticBaselineDps),
 		EpReferenceStat: proto.Stat_StatAgility,
 		StatSimResults:  results,
 	})
@@ -126,5 +127,28 @@ func TestStatWeightsLeaveAnUnrequestedRatingAtZero(t *testing.T) {
 	}
 	if got := protoUnitStat(result.Dps.Weights, hitRatingUnitStat); got != 0 {
 		t.Errorf("hit rating weight = %v, want 0", got)
+	}
+}
+
+// A stat simulated below and above its baseline pools both sides' samples, hit rating has only the
+// side above, and the baseline DPS comes back without its per-iteration values.
+func TestStatWeightsReportSampleCountsAndBaselineDps(t *testing.T) {
+	_, result := runSyntheticStatWeights(t,
+		[]proto.Stat{proto.Stat_StatAgility, proto.Stat_StatHitRating},
+		nil,
+		map[stats.UnitStat]float64{agilityUnitStat: 1, hitRatingUnitStat: 3})
+
+	perSide := float64(len(statWeightMetrics(syntheticBaselineDps).Dps.AllValues))
+	if got := protoUnitStat(result.SampleCounts, agilityUnitStat); got != 2*perSide {
+		t.Errorf("agility samples = %v, want %v", got, 2*perSide)
+	}
+	if got := protoUnitStat(result.SampleCounts, hitRatingUnitStat); got != perSide {
+		t.Errorf("hit rating samples = %v, want %v", got, perSide)
+	}
+	if got := result.BaseDps.Avg; got != syntheticBaselineDps {
+		t.Errorf("baseline DPS avg = %v, want %v", got, syntheticBaselineDps)
+	}
+	if n := len(result.BaseDps.AllValues); n != 0 {
+		t.Errorf("baseline DPS carries %d per-iteration values, want none", n)
 	}
 }

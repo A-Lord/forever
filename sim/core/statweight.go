@@ -79,6 +79,9 @@ type StatWeightsResult struct {
 	Dtps   StatWeightValues
 	Tmi    StatWeightValues
 	PDeath StatWeightValues
+
+	SampleCounts UnitStats
+	BaseDps      *proto.DistributionMetrics
 }
 
 func NewStatWeightsResult() *StatWeightsResult {
@@ -89,6 +92,8 @@ func NewStatWeightsResult() *StatWeightsResult {
 		Dtps:   NewStatWeightValues(),
 		Tmi:    NewStatWeightValues(),
 		PDeath: NewStatWeightValues(),
+
+		SampleCounts: NewUnitStats(),
 	}
 }
 
@@ -100,6 +105,9 @@ func (swr *StatWeightsResult) ToProto() *proto.StatWeightsResult {
 		Dtps:   swr.Dtps.ToProto(),
 		Tmi:    swr.Tmi.ToProto(),
 		PDeath: swr.PDeath.ToProto(),
+
+		SampleCounts: swr.SampleCounts.ToProto(),
+		BaseDps:      swr.BaseDps,
 	}
 }
 
@@ -238,6 +246,13 @@ func computeStatWeights(swcr *proto.StatWeightsCalcRequest) *proto.StatWeightsRe
 	}
 
 	result := NewStatWeightsResult()
+	baseDps := swcr.BaseResult.RaidMetrics.Parties[0].Players[0].Dps
+	result.BaseDps = &proto.DistributionMetrics{
+		Avg:            baseDps.Avg,
+		Stdev:          baseDps.Stdev,
+		AggregatorData: baseDps.AggregatorData,
+	}
+
 	for _, statResult := range swcr.StatSimResults {
 		stat := stats.UnitStatFromIdx(int(statResult.StatData.UnitStat))
 
@@ -265,7 +280,7 @@ func computeStatWeights(swcr *proto.StatWeightsCalcRequest) *proto.StatWeightsRe
 			continue
 		}
 
-		calcWeightResults := func(baselineMetrics *proto.DistributionMetrics, modLowMetrics *proto.DistributionMetrics, modHighMetrics *proto.DistributionMetrics, weightResults *StatWeightValues) {
+		calcWeightResults := func(baselineMetrics *proto.DistributionMetrics, modLowMetrics *proto.DistributionMetrics, modHighMetrics *proto.DistributionMetrics, weightResults *StatWeightValues) int {
 			var lo, hi aggregator
 			if hasLowMeasurement {
 				for i := range baselineMetrics.AllValues {
@@ -288,9 +303,11 @@ func computeStatWeights(swcr *proto.StatWeightsCalcRequest) *proto.StatWeightsRe
 
 			weightResults.Weights.AddStat(stat, mean)
 			weightResults.WeightsStdev.AddStat(stat, stdev)
+			return aggr.n
 		}
 
-		calcWeightResults(baselinePlayer.Dps, modPlayerLow.Dps, modPlayerHigh.Dps, &result.Dps)
+		samples := calcWeightResults(baselinePlayer.Dps, modPlayerLow.Dps, modPlayerHigh.Dps, &result.Dps)
+		result.SampleCounts.AddStat(stat, float64(samples))
 		calcWeightResults(baselinePlayer.Hps, modPlayerLow.Hps, modPlayerHigh.Hps, &result.Hps)
 		calcWeightResults(baselinePlayer.Threat, modPlayerLow.Threat, modPlayerHigh.Threat, &result.Tps)
 		calcWeightResults(baselinePlayer.Dtps, modPlayerLow.Dtps, modPlayerHigh.Dtps, &result.Dtps)

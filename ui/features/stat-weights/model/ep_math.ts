@@ -18,13 +18,12 @@ export type ExcludedStats = {
 const normaliseEpValue = (refStat: Stat, values: StatWeightValues) => {
 	const refUnitStat = UnitStat.fromStat(refStat);
 	const refWeight = refUnitStat.getProtoValue(values.weights!);
-	const refStdev = refUnitStat.getProtoValue(values.weightsStdev!);
 	EP_UNIT_STATS.forEach(stat => {
 		const value = stat.getProtoValue(values.weights!);
 		stat.setProtoValue(values.epValues!, refWeight === 0 ? 0 : value / refWeight);
 
 		const valueStdev = stat.getProtoValue(values.weightsStdev!);
-		stat.setProtoValue(values.epValuesStdev!, refStdev === 0 ? 0 : valueStdev / refStdev);
+		stat.setProtoValue(values.epValuesStdev!, refWeight === 0 ? 0 : valueStdev / Math.abs(refWeight));
 	});
 };
 

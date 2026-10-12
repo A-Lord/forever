@@ -70,22 +70,27 @@ describe('calculateEp', () => {
 		expect(epOf(calculated.dps, AGILITY)).toBe(0);
 	});
 
-	it('writes zero rather than dividing when the ref stdev is zero', () => {
+	it('writes a zero stdev rather than dividing when the ref weight is zero', () => {
 		const calculated = calculateEp(
-			result({ dps: values({ [Stat.StatStrength]: 4, [Stat.StatAgility]: 2 }, { [Stat.StatStrength]: 0, [Stat.StatAgility]: 3 }) }),
+			result({ dps: values({ [Stat.StatStrength]: 0, [Stat.StatAgility]: 2 }, { [Stat.StatStrength]: 2, [Stat.StatAgility]: 3 }) }),
 			{ ...noRefs, dps: Stat.StatStrength },
 		);
 
 		expect(epStdevOf(calculated.dps, AGILITY)).toBe(0);
 	});
 
-	it('normalises the stdev against the stdev ref, not the weight ref', () => {
+	it('divides the stdev by the size of the ref weight, not by the ref stdev', () => {
 		const calculated = calculateEp(
 			result({ dps: values({ [Stat.StatStrength]: 4, [Stat.StatAgility]: 2 }, { [Stat.StatStrength]: 2, [Stat.StatAgility]: 3 }) }),
 			{ ...noRefs, dps: Stat.StatStrength },
 		);
+		const negativeRef = calculateEp(
+			result({ dps: values({ [Stat.StatStrength]: -4, [Stat.StatAgility]: 2 }, { [Stat.StatStrength]: 2, [Stat.StatAgility]: 3 }) }),
+			{ ...noRefs, dps: Stat.StatStrength },
+		);
 
-		expect(epStdevOf(calculated.dps, AGILITY)).toBe(1.5);
+		expect(epStdevOf(calculated.dps, AGILITY)).toBe(0.75);
+		expect(epStdevOf(negativeRef.dps, AGILITY)).toBe(0.75);
 	});
 
 	it('normalises the listed pseudo-stats too', () => {
