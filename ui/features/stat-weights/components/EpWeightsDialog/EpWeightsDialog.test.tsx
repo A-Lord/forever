@@ -244,7 +244,6 @@ const setup = () => {
 			getShowDamageMetrics: () => true,
 			getShowHealingMetrics: () => true,
 			getIterations: () => 1000,
-			getFixedRngSeed: () => 0,
 			nextRngSeed: () => 1,
 			// A player with no stats of its own: the final stats are the bonus.
 			getFinalStatsWithBonus: async (bonusStats: Stats) => bonusStats,
