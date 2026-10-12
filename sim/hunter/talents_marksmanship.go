@@ -82,7 +82,13 @@ func (hunter *Hunter) registerCarefulAim() {
 	hunter.AddStatDependency(stats.Intellect, stats.RangedAttackPower, rank.EffectN(2).Percent())
 }
 
-// Effect 2 is the damage bonus the next shot takes after a kill, which the sim does not model.
+var rapidKillingBuff = spellData.RapidKillingTriggered.Highest()
+
+// Effect 1 shortens Rapid Fire's cooldown. Effect 2 is the damage bonus 415407 gives the next Shot,
+// 10/20% by rank, where the buff row states a flat 20, so the row is scaled by the ranks taken. A
+// kill grants the buff, and no target dies in the sim, so only an APL that activates the aura does.
+//
+// The Shots its damage mod names spend its one charge at the cast's result, a miss included.
 func (hunter *Hunter) registerRapidKilling() {
 	if hunter.Talents.RapidKilling == 0 {
 		return
@@ -90,6 +96,28 @@ func (hunter *Hunter) registerRapidKilling() {
 
 	spelldata.ParseStatic(&hunter.Character, spellData.RapidKilling.Rank(hunter.Talents.RapidKilling),
 		spelldata.Effects(1))
+
+	buff := hunter.RegisterAura(spelldata.AuraConfig(rapidKillingBuff))
+	spelldata.ParseEffects(&hunter.Character, buff, rapidKillingBuff,
+		spelldata.ScaledByRanks(hunter.Talents.RapidKilling, 2), spelldata.IgnoreStacks())
+	buff.ApplyOnGain(func(aura *core.Aura, sim *core.Simulation) {
+		aura.SetStacks(sim, aura.MaxStacks)
+	})
+
+	spelldata.AttachChargeSpender(&hunter.Character, buff, rapidKillingBuff, "Rapid Killing - Spend",
+		func(_ *core.Character, trigger *core.ProcTrigger) {
+			trigger.Callback = core.CallbackOnCastResult
+			trigger.Outcome = core.OutcomeEmpty
+			trigger.RequireDamageDealt = false
+			trigger.RequireDamageComponent = false
+			trigger.TriggerImmediately = true
+
+			spend := trigger.Handler
+			trigger.Handler = func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
+				spend(sim, spell, result)
+				hunter.gainRapidRecuperation(sim, hunter.rapidRecuperationSpend)
+			}
+		})
 }
 
 func (hunter *Hunter) registerImprovedArcaneShot() {
@@ -125,19 +153,26 @@ func (hunter *Hunter) registerRapidRecuperation() {
 		return
 	}
 
-	// The regeneration share is the talent's own ladder - 25/50 by rank - where the buff row states a
-	// flat 50, so the row is scaled by the ranks taken.
+	// The buff row states a flat 50; the talent's effects set the share, see gainRapidRecuperation.
+	rank := spellData.RapidRecuperation.Rank(hunter.Talents.RapidRecuperation)
+	hit := rank.EffectN(1).Percent()
+	hunter.rapidRecuperationSpend = rank.EffectN(2).Percent()
 	buff := hunter.RegisterAura(spelldata.AuraConfig(rapidRecuperationBuff))
-	spelldata.ParseEffects(&hunter.Character, buff, rapidRecuperationBuff,
-		spelldata.ScaledByRanks(hunter.Talents.RapidRecuperation, 2))
+	buff.ApplyOnGain(func(aura *core.Aura, sim *core.Simulation) {
+		aura.Unit.PseudoStats.SpiritRegenRateCasting += hunter.rapidRecuperationShare
+		aura.Unit.UpdateManaRegenRates(sim)
+	}).ApplyOnExpire(func(aura *core.Aura, sim *core.Simulation) {
+		aura.Unit.PseudoStats.SpiritRegenRateCasting -= hunter.rapidRecuperationShare
+		aura.Unit.UpdateManaRegenRates(sim)
+	})
+	hunter.rapidRecuperationAura = buff
 
 	// The proc shape with no roll: 1223987 fires on a ranged ability and names Serpent Sting only
 	// in its tooltip, so the listener is narrowed to it by hand. The sting's application carries no
-	// proc mask and deals no damage of its own, which the listener has to accept. The Rapid Killing
-	// consumption the tooltip also names is not modelled.
-	trigger := spelldata.ProcTrigger(&hunter.Character, spellData.RapidRecuperation.Rank(hunter.Talents.RapidRecuperation),
+	// proc mask and deals no damage of its own, which the listener has to accept.
+	trigger := spelldata.ProcTrigger(&hunter.Character, rank,
 		func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-			buff.Activate(sim)
+			hunter.gainRapidRecuperation(sim, hit)
 		})
 	trigger.Name = "Rapid Recuperation - Trigger"
 	trigger.ProcMask = core.ProcMaskEmpty
@@ -145,6 +180,21 @@ func (hunter *Hunter) registerRapidRecuperation() {
 	trigger.RequireDamageDealt = false
 
 	hunter.MakeProcTriggerAura(trigger)
+}
+
+// Puts Rapid Recuperation up at the share its source grants: effect 1 for a Serpent Sting hit, 25/50%
+// by rank, and effect 2 for spending Rapid Killing, 50/100% by rank. A gain at another share replaces
+// the one up.
+func (hunter *Hunter) gainRapidRecuperation(sim *core.Simulation, share float64) {
+	if hunter.rapidRecuperationAura == nil {
+		return
+	}
+
+	if share != hunter.rapidRecuperationShare {
+		hunter.rapidRecuperationAura.Deactivate(sim)
+		hunter.rapidRecuperationShare = share
+	}
+	hunter.rapidRecuperationAura.Activate(sim)
 }
 
 // Effect 2 states the same bonus on the ticks of every hunter spell, with no mask. The tooltip

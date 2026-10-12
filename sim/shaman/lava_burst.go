@@ -31,9 +31,7 @@ func (shaman *Shaman) registerLavaBurstSpell(rank *spelldata.Spell) {
 		result := spell.CalcDamage(sim, target, damage.Average(), spell.OutcomeMagicHitAndCrit)
 		spell.DamageMultiplier /= multiplier
 
-		spell.WaitTravelTime(sim, func(sim *core.Simulation) {
-			spell.DealDamage(sim, result)
-		})
+		spell.DealDamageAfterTravel(sim, result)
 	}
 
 	shaman.LavaBurst = append(shaman.LavaBurst, shaman.RegisterSpell(config))

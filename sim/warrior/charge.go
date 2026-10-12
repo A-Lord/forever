@@ -15,6 +15,7 @@ func (warrior *Warrior) registerCharge() {
 	rank := core.Ternary(warrior.Talents.Vanguard, vanguardChargeRank, chargeRank)
 	actionID := core.ActionID{SpellID: chargeRank.ID}
 	metrics := warrior.NewRageMetrics(actionID)
+	metrics.NoThreat = rank.GeneratesNoThreat()
 
 	chargeRage := rank.EnergizeEffect().Tenths() + spellData.ImprovedCharge.TenthsAt(warrior.Talents.ImprovedCharge)
 

@@ -37,6 +37,38 @@ func init() {
 		character.ItemSwap.RegisterProc(7726, character.MakeProcTriggerAura(trigger))
 	})
 
+	// Force Reactive Disk
+	// https://www.wowhead.com/forever/item=18168/force-reactive-disk
+	//
+	// When the shield blocks, it releases an electrical charge that damages all nearby enemies.
+	core.NewItemEffect(18168, func(agent core.Agent) {
+		character := agent.GetCharacter()
+		row := spelldata.MustFind(22600)
+		damage := row.DamageEffect()
+
+		config := procSpellConfig(character, row)
+		config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
+			for _, result := range spell.CalcAoeDamage(sim, damage.Average()*sim.Encounter.AOECapMultiplier(), spell.OutcomeMagicHitAndCrit) {
+				spell.DealCastResult(sim, result)
+			}
+			spell.WaitTravelTime(sim, func(sim *core.Simulation) {
+				spell.DealBatchedAoeDamage(sim)
+			})
+		}
+		charge := character.RegisterSpell(config)
+
+		// The row's ProcTypeMask hears melee and ranged hits taken; the block is the tooltip's, and a
+		// block that leaves no damage still fires it.
+		trigger := spelldata.ProcTrigger(character, spelldata.MustFind(22618), func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) {
+			charge.Cast(sim, spell.Unit)
+		})
+		trigger.Name = "Force Reactive Disk"
+		trigger.ActionID = core.ActionID{ItemID: 18168}
+		trigger.Outcome = core.OutcomeBlock
+		trigger.RequireDamageDealt = false
+		character.ItemSwap.RegisterProc(18168, character.MakeProcTriggerAura(trigger))
+	})
+
 	// Black Grasp of the Destroyer
 	// https://www.wowhead.com/forever/item=22194/black-grasp-of-the-destroyer
 	//

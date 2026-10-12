@@ -95,7 +95,8 @@ func (hunter *Hunter) registerSummonHawk() {
 	config := spelldata.SpellConfig(&hunter.Unit, summonHawkRank, spelldata.Melee(core.ProcMaskRangedSpecial))
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		baseDamage := summonHawkBaseDamage + summonHawkAPShare*spell.RangedAttackPower(target)
-		spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeRangedCritOnly)
+		result := spell.CalcDamage(sim, target, baseDamage, spell.OutcomeRangedCritOnly)
+		spell.DealDamageAfterTravel(sim, result)
 
 		hawk := hunter.Hawks[hunter.nextHawk]
 		hunter.nextHawk = (hunter.nextHawk + 1) % len(hunter.Hawks)

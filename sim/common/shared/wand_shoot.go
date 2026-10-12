@@ -31,9 +31,7 @@ func RegisterShoot(character *core.Character) {
 	shotConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		baseDamage := weapon.CalculateWeaponDamage(sim, 0)
 		result := spell.CalcDamage(sim, target, baseDamage, spell.OutcomeMagicHitAndRangedCrit)
-		spell.WaitTravelTime(sim, func(sim *core.Simulation) {
-			spell.DealDamage(sim, result)
-		})
+		spell.DealDamageAfterTravel(sim, result)
 	}
 	shot := character.RegisterSpell(shotConfig)
 

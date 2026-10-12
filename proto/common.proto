@@ -33,9 +33,17 @@ message ScalingItemProperties {
     double unrounded_dps = 8;
     map<int32, double> stats = 4; // for compactness
 	int32 ilvl = 6;
+	// The damage the weapon deals with a random suffix that reduces caster DPS; unset on items with no such suffix option.
+	ReducedCasterWeaponDamage reduced_caster_weapon_damage = 9;
 
 	// Stats that only apply while the encounter is in that kind of area.
 	repeated AreaStats area_stats = 7;
+}
+
+message ReducedCasterWeaponDamage {
+	double weapon_damage_min = 1;
+	double weapon_damage_max = 2;
+	double unrounded_dps = 3;
 }
 
 message AreaStats {
@@ -658,6 +666,7 @@ message ItemRandomSuffix {
 	string name = 2;
 	repeated double stats = 3;
 	repeated double pseudo_stats = 4; // Indexed by PseudoStat; flat, not scaled by the item's random property points.
+	bool reduced_caster_dps = 5; // A weapon with the suffix deals the reduced_caster_weapon_damage of its scaling options.
 }
 
 message ItemSpec {
