@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
 func init() {
@@ -18,11 +19,15 @@ func init() {
 			ProcMask:    core.ProcMaskEmpty,
 			Flags:       core.SpellFlagNoOnCastComplete | core.SpellFlagPassiveSpell,
 
+			MissileSpeed: float64(spelldata.MustFind(22600).Speed),
+
 			DamageMultiplier: 1,
 			ThreatMultiplier: 1,
 
 			ApplyEffects: func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
-				spell.CalcAndDealAoeDamage(sim, 25, spell.OutcomeMagicHitAndCrit)
+				for _, result := range spell.CalcAoeDamage(sim, 25, spell.OutcomeMagicHitAndCrit) {
+					spell.DealDamageAfterTravel(sim, result)
+				}
 			},
 		})
 
