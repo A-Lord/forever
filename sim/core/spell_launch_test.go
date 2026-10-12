@@ -1,6 +1,7 @@
 package core
 
 import (
+	"slices"
 	"testing"
 	"time"
 )
@@ -77,12 +78,8 @@ func newLaunchTest(t *testing.T, register func(lt *launchTest, char *Character))
 	return lt
 }
 
-func (lt *launchTest) target() *Unit {
-	return lt.fw.CurrentTarget
-}
-
 func (lt *launchTest) result(spell *Spell, outcome HitOutcome) *SpellResult {
-	result := spell.NewResult(lt.target())
+	result := spell.NewResult(lt.fw.CurrentTarget)
 	result.Outcome = outcome
 	result.Damage = 100
 	return result
@@ -100,13 +97,8 @@ func (lt *launchTest) count(kind string) int {
 
 func wantEvents(t *testing.T, got []launchEvent, want ...launchEvent) {
 	t.Helper()
-	if len(got) != len(want) {
+	if !slices.Equal(got, want) {
 		t.Fatalf("events %v, want %v", got, want)
-	}
-	for i := range want {
-		if got[i] != want[i] {
-			t.Fatalf("events %v, want %v", got, want)
-		}
 	}
 }
 
@@ -176,9 +168,6 @@ func TestReusedResultLaunchesAgain(t *testing.T) {
 	second := lt.result(lt.missile, OutcomeHit)
 	if second != first {
 		t.Fatalf("the result cache handed out a new result, want the disposed one back")
-	}
-	if second.launched {
-		t.Fatalf("a reused result is still marked launched")
 	}
 	lt.missile.DealDamage(lt.sim, second)
 

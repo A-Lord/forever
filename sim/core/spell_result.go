@@ -458,8 +458,6 @@ func (spell *Spell) CalcAndDealOutcome(sim *Simulation, target *Unit, outcomeApp
 
 // Applies the fully computed spell result to the sim.
 func (spell *Spell) dealDamageInternal(sim *Simulation, isPeriodic bool, result *SpellResult) {
-	// Each direct result launches once: a missile at its cast when it calls Launch, anything
-	// else here, before its hit is dealt. Ticks and heals never launch.
 	if !isPeriodic {
 		spell.Launch(sim, result)
 	}
