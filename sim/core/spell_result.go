@@ -98,7 +98,6 @@ func (spell *Spell) CloneResult(result *SpellResult) *SpellResult {
 	newResult.PostOutcomeDamage = result.PostOutcomeDamage
 	newResult.BlockedDamage = result.BlockedDamage
 	newResult.PreMitigationDamage = result.PreMitigationDamage
-	newResult.launched = result.launched
 
 	return newResult
 }
@@ -459,6 +458,12 @@ func (spell *Spell) CalcAndDealOutcome(sim *Simulation, target *Unit, outcomeApp
 
 // Applies the fully computed spell result to the sim.
 func (spell *Spell) dealDamageInternal(sim *Simulation, isPeriodic bool, result *SpellResult) {
+	// Each direct result launches once: a missile at its cast when it calls Launch, anything
+	// else here, before its hit is dealt. Ticks and heals never launch.
+	if !isPeriodic {
+		spell.Launch(sim, result)
+	}
+
 	isPartialResist := result.DidResist()
 
 	if sim.CurrentTime >= 0 {
@@ -517,9 +522,6 @@ func (spell *Spell) dealDamageInternal(sim *Simulation, isPeriodic bool, result 
 			spell.Unit.OnPeriodicDamageDealt(sim, spell, result)
 			result.Target.OnPeriodicDamageTaken(sim, spell, result)
 		} else {
-			// Each direct result launches once: a missile at its cast when it calls Launch, anything
-			// else here, right before its hit is dealt. Ticks and heals never launch.
-			spell.Launch(sim, result)
 			spell.Unit.OnSpellHitDealt(sim, spell, result)
 			result.Target.OnSpellHitTaken(sim, spell, result)
 		}
