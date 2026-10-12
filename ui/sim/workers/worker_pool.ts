@@ -21,6 +21,8 @@ import {
 	StatWeightsCalcRequest,
 	StatWeightsRequest,
 	StatWeightsResult,
+	StatWeightsTopUpPlan,
+	StatWeightsTopUpRequest,
 } from '@generated/proto/api';
 import { AsyncSimRequest, SimRequest, WorkerReceiveMessage, WorkerSendMessage } from '@worker/types';
 
@@ -159,6 +161,11 @@ export class WorkerPool {
 	async statWeightCompute(request: StatWeightsCalcRequest): Promise<StatWeightsResult> {
 		const result = await this.makeApiCall(SimRequest.statWeightCompute, StatWeightsCalcRequest.toBinary(request));
 		return StatWeightsResult.fromBinary(result);
+	}
+
+	async statWeightTopUpPlan(request: StatWeightsTopUpRequest): Promise<StatWeightsTopUpPlan> {
+		const result = await this.makeApiCall(SimRequest.statWeightTopUpPlan, StatWeightsTopUpRequest.toBinary(request));
+		return StatWeightsTopUpPlan.fromBinary(result);
 	}
 
 	async raidSimAsync(request: RaidSimRequest, onProgress: WorkerProgressCallback, signals: SimSignals): Promise<RaidSimResult> {

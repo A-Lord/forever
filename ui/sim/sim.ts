@@ -97,6 +97,14 @@ export type RunSimOptions = {
 	raw?: boolean;
 };
 
+export type StatWeightsOptions = {
+	iterations?: number;
+	targetEpCi?: number; // The 90% ± of each DPS EP to reach by adding iterations; unset runs the iterations once.
+	maxIterationMultiplier?: number;
+	bonusStats?: Stats; // On top of the player's own bonus stats, pseudo stats included.
+	seed?: number;
+};
+
 // Core Sim module which deals only with api types, no UI-related stuff.
 export class Sim {
 	private readonly workerPool: WorkerPool;
@@ -573,6 +581,7 @@ export class Sim {
 		epPseudoStats: Array<PseudoStat>,
 		epReferenceStat: Stat,
 		onProgress: WorkerProgressCallback,
+		options: StatWeightsOptions = {},
 	): Promise<StatWeightsResult> {
 		this.requireRunnableSetup();
 
@@ -594,6 +603,9 @@ export class Sim {
 			// the stat's sub-sims with no flask, elixir, food or potion.
 			const playerProto = player.toProto(false, true);
 			extendPlayerProtoWithMissingEffects(playerProto, this.db);
+			if (options.bonusStats) {
+				playerProto.bonusStats = Stats.fromProto(playerProto.bonusStats).add(options.bonusStats).toProto();
+			}
 
 			const request = StatWeightsRequest.create({
 				player: playerProto,
@@ -602,8 +614,8 @@ export class Sim {
 				debuffs: this.raid.getDebuffs(),
 				encounter: this.encounter.toProto(),
 				simOptions: SimOptions.create({
-					iterations: this.getIterations(),
-					randomSeed: BigInt(this.nextRngSeed()),
+					iterations: options.iterations ?? this.getIterations(),
+					randomSeed: BigInt(options.seed ?? this.nextRngSeed()),
 					debug: false,
 				}),
 				tanks: tanks,
@@ -611,6 +623,8 @@ export class Sim {
 				statsToWeigh: epStats,
 				pseudoStatsToWeigh: epPseudoStats,
 				epReferenceStat: epReferenceStat,
+				targetEpCi: options.targetEpCi ?? 0,
+				maxIterationMultiplier: options.maxIterationMultiplier ?? 0,
 			});
 
 			const signals = this.signalManager.registerRunning(RequestTypes.StatWeights);

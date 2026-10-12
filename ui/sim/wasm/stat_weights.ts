@@ -2,11 +2,14 @@ import {
 	ErrorOutcome,
 	ErrorOutcomeType,
 	ProgressMetrics,
+	RaidSimRequest,
 	RaidSimResult,
 	StatWeightsCalcRequest,
+	StatWeightsCalcSegment,
 	StatWeightsRequest,
 	StatWeightsResult,
 	StatWeightsStatResultData,
+	StatWeightsTopUpRequest,
 } from '@generated/proto/api';
 import { SimRequest } from '@worker/types';
 
@@ -14,6 +17,11 @@ import { SimSignals } from '../sim_signal_manager';
 import { isDevMode } from '../utils/env';
 import { generateRequestId, WorkerPool, WorkerProgressCallback } from '../workers/worker_pool';
 import { runConcurrentSim } from './sim';
+
+// The defaults runStatWeights in sim/core/statweight.go uses: the cap as a multiple of the first
+// pass's iterations, and the first top-up plus two adaptive passes.
+const DEFAULT_MAX_ITERATION_MULTIPLIER = 8;
+const MAX_TOP_UP_PASSES = 3;
 
 const makeAndSendWeightsError = (err: string | ErrorOutcome, onProgress: WorkerProgressCallback): StatWeightsResult => {
 	const errRes = StatWeightsResult.create();
@@ -117,6 +125,82 @@ export const runConcurrentStatWeights = async (
 				resultHigh: highRes,
 			}),
 		);
+	}
+
+	if (request.targetEpCi > 0) {
+		const baseRequest = manualResponse.baseRequest!;
+		const probeIterations = baseRequest.simOptions!.iterations;
+		const seed = baseRequest.simOptions!.randomSeed;
+		const maxIterationsPerSide = probeIterations * (request.maxIterationMultiplier || DEFAULT_MAX_ITERATION_MULTIPLIER);
+		const statRequests = new Map(manualResponse.statSimRequests.map(statReqData => [statReqData.statData!.unitStat, statReqData]));
+		const statIterations = new Map(manualResponse.statSimRequests.map(statReqData => [statReqData.statData!.unitStat, probeIterations]));
+		let baselineIterations = probeIterations;
+
+		// Iteration i runs at seed randomSeed + i, so a run continued at the seed after its last iteration
+		// repeats what one longer run would have simulated.
+		const continueRun = (simRequest: RaidSimRequest, done: number, iterations: number) => {
+			const continued = RaidSimRequest.clone(simRequest);
+			continued.simOptions!.iterations = iterations;
+			continued.simOptions!.randomSeed = seed + BigInt(done);
+			continued.requestId = newRaidSimRequestId();
+			lastIterations = 0;
+			return runConcurrentSim(continued, workerPool, progressHandler, signals);
+		};
+
+		for (let pass = 0; pass < MAX_TOP_UP_PASSES; pass++) {
+			const plan = await workerPool.statWeightTopUpPlan(
+				StatWeightsTopUpRequest.create({ calc: calcRequest, targetEpCi: request.targetEpCi, maxIterationsPerSide }),
+			);
+			if (!plan.stats.length) break;
+
+			const baselineDelta = plan.baselineIterations - baselineIterations;
+			if (baselineDelta > 0) {
+				iterationsTotal += baselineDelta;
+				simsTotal += 1;
+			}
+			for (const planned of plan.stats) {
+				const runs = statRequests.get(planned.unitStat)!.requestLow ? 2 : 1;
+				iterationsTotal += runs * (planned.iterations - statIterations.get(planned.unitStat)!);
+				simsTotal += runs;
+			}
+
+			const segment = StatWeightsCalcSegment.create();
+			if (baselineDelta > 0) {
+				if (signals.abort.isTriggered())
+					return makeAndSendWeightsError(ErrorOutcome.create({ type: ErrorOutcomeType.ErrorOutcomeAborted }), onProgress);
+				const baseRes = await continueRun(baseRequest, baselineIterations, baselineDelta);
+				if (baseRes.error) return makeAndSendWeightsError(baseRes.error, onProgress);
+				segment.baseResult = baseRes;
+				baselineIterations = plan.baselineIterations;
+			}
+
+			for (const planned of plan.stats) {
+				if (signals.abort.isTriggered())
+					return makeAndSendWeightsError(ErrorOutcome.create({ type: ErrorOutcomeType.ErrorOutcomeAborted }), onProgress);
+
+				const statReqData = statRequests.get(planned.unitStat)!;
+				const done = statIterations.get(planned.unitStat)!;
+				const delta = planned.iterations - done;
+
+				let lowRes: RaidSimResult | undefined;
+				if (statReqData.requestLow) {
+					lowRes = await continueRun(statReqData.requestLow, done, delta);
+					if (lowRes.error) return makeAndSendWeightsError(lowRes.error, onProgress);
+				}
+				const highRes = await continueRun(statReqData.requestHigh!, done, delta);
+				if (highRes.error) return makeAndSendWeightsError(highRes.error, onProgress);
+
+				segment.statSimResults.push(
+					StatWeightsStatResultData.create({
+						statData: statReqData.statData,
+						resultLow: lowRes,
+						resultHigh: highRes,
+					}),
+				);
+				statIterations.set(planned.unitStat, planned.iterations);
+			}
+			calcRequest.extraSegments.push(segment);
+		}
 	}
 
 	if (isDevMode()) {

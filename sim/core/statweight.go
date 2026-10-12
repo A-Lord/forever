@@ -3,6 +3,7 @@ package core
 import (
 	"fmt"
 	"math"
+	"slices"
 	"strings"
 	"time"
 
@@ -233,7 +234,122 @@ func buildStatWeightRequests(swr *proto.StatWeightsRequest) *proto.StatWeightReq
 	return swBaseResponse
 }
 
+const (
+	statWeightZ90                           = 1.645 // The two-sided 90% interval, the ± shown behind each EP.
+	statWeightMaxAdaptivePasses             = 2     // Top-up passes after the first one, which sizes from the probe alone.
+	defaultStatWeightMaxIterationMultiplier = 8
+)
+
+func concatStatWeightDistributions(distributions []*proto.DistributionMetrics) *proto.DistributionMetrics {
+	var aggr aggregator
+	var allValues []float64
+	for _, distribution := range distributions {
+		for _, value := range distribution.AllValues {
+			aggr.add(value)
+		}
+		allValues = append(allValues, distribution.AllValues...)
+	}
+	mean, stdev := aggr.meanAndStdDev()
+	return &proto.DistributionMetrics{
+		Avg:            mean,
+		Stdev:          stdev,
+		AllValues:      allValues,
+		AggregatorData: &proto.AggregatorData{N: int32(aggr.n), SumSq: aggr.sumSq},
+	}
+}
+
+// One result holding the first player's metrics of every run, iterations in run order. The chance
+// of death is weighted by each run's iteration count.
+func concatStatWeightRuns(runs []*proto.RaidSimResult) *proto.RaidSimResult {
+	if len(runs) == 1 {
+		return runs[0]
+	}
+	players := MapSlice(runs, func(run *proto.RaidSimResult) *proto.UnitMetrics { return run.RaidMetrics.Parties[0].Players[0] })
+	metric := func(get func(*proto.UnitMetrics) *proto.DistributionMetrics) *proto.DistributionMetrics {
+		return concatStatWeightDistributions(MapSlice(players, get))
+	}
+
+	var iterations, deaths float64
+	for _, player := range players {
+		n := float64(len(player.Dps.AllValues))
+		iterations += n
+		deaths += player.ChanceOfDeath * n
+	}
+
+	merged := &proto.UnitMetrics{
+		Dps:           metric(func(p *proto.UnitMetrics) *proto.DistributionMetrics { return p.Dps }),
+		Hps:           metric(func(p *proto.UnitMetrics) *proto.DistributionMetrics { return p.Hps }),
+		Threat:        metric(func(p *proto.UnitMetrics) *proto.DistributionMetrics { return p.Threat }),
+		Dtps:          metric(func(p *proto.UnitMetrics) *proto.DistributionMetrics { return p.Dtps }),
+		Tmi:           metric(func(p *proto.UnitMetrics) *proto.DistributionMetrics { return p.Tmi }),
+		ChanceOfDeath: deaths / iterations,
+	}
+	return &proto.RaidSimResult{RaidMetrics: &proto.RaidMetrics{Parties: []*proto.PartyMetrics{{Players: []*proto.UnitMetrics{merged}}}}}
+}
+
+// Appends each extra segment's iterations to the runs it continues. The merged request is new, so
+// the input can take another segment and be merged again.
+func mergeStatWeightSegments(swcr *proto.StatWeightsCalcRequest) *proto.StatWeightsCalcRequest {
+	if len(swcr.ExtraSegments) == 0 {
+		return swcr
+	}
+
+	baseRuns := []*proto.RaidSimResult{swcr.BaseResult}
+	lowRuns := make(map[int32][]*proto.RaidSimResult)
+	highRuns := make(map[int32][]*proto.RaidSimResult)
+	for _, segment := range swcr.ExtraSegments {
+		if segment.BaseResult != nil {
+			baseRuns = append(baseRuns, segment.BaseResult)
+		}
+		for _, statResult := range segment.StatSimResults {
+			stat := statResult.StatData.UnitStat
+			if statResult.ResultLow != nil {
+				lowRuns[stat] = append(lowRuns[stat], statResult.ResultLow)
+			}
+			highRuns[stat] = append(highRuns[stat], statResult.ResultHigh)
+		}
+	}
+
+	merged := &proto.StatWeightsCalcRequest{
+		BaseResult:      concatStatWeightRuns(baseRuns),
+		EpReferenceStat: swcr.EpReferenceStat,
+	}
+	for _, statResult := range swcr.StatSimResults {
+		stat := statResult.StatData.UnitStat
+		mergedResult := &proto.StatWeightsStatResultData{
+			StatData:   statResult.StatData,
+			ResultHigh: concatStatWeightRuns(append([]*proto.RaidSimResult{statResult.ResultHigh}, highRuns[stat]...)),
+		}
+		if statResult.ResultLow != nil {
+			mergedResult.ResultLow = concatStatWeightRuns(append([]*proto.RaidSimResult{statResult.ResultLow}, lowRuns[stat]...))
+		}
+		merged.StatSimResults = append(merged.StatSimResults, mergedResult)
+	}
+	return merged
+}
+
+// Whether a run's values equal the baseline's first iterations, which ran at the same seeds.
+func matchesBaselinePrefix(mod *proto.UnitMetrics, baseline *proto.UnitMetrics) bool {
+	for _, pair := range [][2]*proto.DistributionMetrics{{mod.Dps, baseline.Dps}, {mod.Hps, baseline.Hps}, {mod.Tmi, baseline.Tmi}} {
+		modValues := pair[0].AllValues
+		if !slices.Equal(modValues, pair[1].AllValues[:len(modValues)]) {
+			return false
+		}
+	}
+	return true
+}
+
 func computeStatWeights(swcr *proto.StatWeightsCalcRequest) *proto.StatWeightsResult {
+	result, err := calcStatWeights(mergeStatWeightSegments(swcr))
+	if err != nil {
+		return &proto.StatWeightsResult{Error: err}
+	}
+	return result.ToProto()
+}
+
+// Each stat run pairs its iterations with the baseline's at the same seeds, so a run that stopped
+// early pairs with the baseline's first iterations.
+func calcStatWeights(swcr *proto.StatWeightsCalcRequest) (*StatWeightsResult, *proto.ErrorOutcome) {
 	haveRefStat := false
 	for _, statResult := range swcr.StatSimResults {
 		if statResult.StatData.UnitStat == int32(swcr.EpReferenceStat) {
@@ -242,7 +358,7 @@ func computeStatWeights(swcr *proto.StatWeightsCalcRequest) *proto.StatWeightsRe
 		}
 	}
 	if !haveRefStat {
-		return &proto.StatWeightsResult{Error: &proto.ErrorOutcome{Message: "No result for reference stat exists!"}}
+		return nil, &proto.ErrorOutcome{Message: "No result for reference stat exists!"}
 	}
 
 	result := NewStatWeightsResult()
@@ -266,33 +382,34 @@ func computeStatWeights(swcr *proto.StatWeightsCalcRequest) *proto.StatWeightsRe
 			modPlayerLow = baselinePlayer
 		}
 
+		modLow, modHigh := statResult.StatData.ModLow, statResult.StatData.ModHigh
 		if stat.IsPseudoStat() {
 			statName := proto.PseudoStat_name[int32(stat.PseudoStatIdx())]
 			if strings.Contains(statName, "SchoolHit") {
-				statResult.StatData.ModLow *= HitRatingPerHitPercent
-				statResult.StatData.ModHigh *= HitRatingPerHitPercent
+				modLow *= HitRatingPerHitPercent
+				modHigh *= HitRatingPerHitPercent
 			}
 		}
 
 		// Check for hard caps. Hard caps will have results identical to the baseline because RNG is fixed.
 		// When we find a hard-capped stat, just skip it (will return 0).
-		if modPlayerHigh.Dps.Avg == baselinePlayer.Dps.Avg && modPlayerHigh.Hps.Avg == baselinePlayer.Hps.Avg && modPlayerHigh.Tmi.Avg == baselinePlayer.Tmi.Avg {
+		if matchesBaselinePrefix(modPlayerHigh, baselinePlayer) {
 			continue
 		}
 
 		calcWeightResults := func(baselineMetrics *proto.DistributionMetrics, modLowMetrics *proto.DistributionMetrics, modHighMetrics *proto.DistributionMetrics, weightResults *StatWeightValues) int {
 			var lo, hi aggregator
 			if hasLowMeasurement {
-				for i := range baselineMetrics.AllValues {
+				for i := range modLowMetrics.AllValues {
 					lo.add(modLowMetrics.AllValues[i] - baselineMetrics.AllValues[i])
 				}
-				lo.scale(1 / statResult.StatData.ModLow)
+				lo.scale(1 / modLow)
 			}
 
-			for i := range baselineMetrics.AllValues {
+			for i := range modHighMetrics.AllValues {
 				hi.add(modHighMetrics.AllValues[i] - baselineMetrics.AllValues[i])
 			}
-			hi.scale(1 / statResult.StatData.ModHigh)
+			hi.scale(1 / modHigh)
 
 			var aggr = &hi
 			if hasLowMeasurement {
@@ -312,8 +429,8 @@ func computeStatWeights(swcr *proto.StatWeightsCalcRequest) *proto.StatWeightsRe
 		calcWeightResults(baselinePlayer.Threat, modPlayerLow.Threat, modPlayerHigh.Threat, &result.Tps)
 		calcWeightResults(baselinePlayer.Dtps, modPlayerLow.Dtps, modPlayerHigh.Dtps, &result.Dtps)
 		calcWeightResults(baselinePlayer.Tmi, modPlayerLow.Tmi, modPlayerHigh.Tmi, &result.Tmi)
-		meanLow := (modPlayerLow.ChanceOfDeath - baselinePlayer.ChanceOfDeath) / statResult.StatData.ModLow
-		meanHigh := (modPlayerHigh.ChanceOfDeath - baselinePlayer.ChanceOfDeath) / statResult.StatData.ModHigh
+		meanLow := (modPlayerLow.ChanceOfDeath - baselinePlayer.ChanceOfDeath) / modLow
+		meanHigh := (modPlayerHigh.ChanceOfDeath - baselinePlayer.ChanceOfDeath) / modHigh
 
 		pDeathAvg := meanHigh
 		if hasLowMeasurement {
@@ -349,7 +466,45 @@ func computeStatWeights(swcr *proto.StatWeightsCalcRequest) *proto.StatWeightsRe
 		calcEpResults(&result.PDeath, DTPSReferenceStat)
 	}
 
-	return result.ToProto()
+	return result, nil
+}
+
+// Per-side iteration totals that bring each stat's shown DPS EP ± down to the target. A stat at or
+// under the target, or with no weight, is left out, and the baseline runs as far as the furthest
+// stat. The sides divide the total because the low and high runs pool their samples.
+func planStatWeightTopUp(request *proto.StatWeightsTopUpRequest) *proto.StatWeightsTopUpPlan {
+	calc := mergeStatWeightSegments(request.Calc)
+	plan := &proto.StatWeightsTopUpPlan{
+		BaselineIterations: int32(len(calc.BaseResult.RaidMetrics.Parties[0].Players[0].Dps.AllValues)),
+	}
+	result, err := calcStatWeights(calc)
+	if err != nil {
+		return plan
+	}
+
+	for _, statResult := range calc.StatSimResults {
+		stat := stats.UnitStatFromIdx(int(statResult.StatData.UnitStat))
+		epStdev := result.Dps.EpValuesStdev.Get(stat)
+		samples := result.SampleCounts.Get(stat)
+		if result.Dps.Weights.Get(stat) == 0 || statWeightZ90*epStdev/math.Sqrt(samples) <= request.TargetEpCi {
+			continue
+		}
+
+		sides := 1.0
+		if statResult.ResultLow != nil {
+			sides = 2
+		}
+		current := int32(len(statResult.ResultHigh.RaidMetrics.Parties[0].Players[0].Dps.AllValues))
+		needed := math.Min(math.Ceil(math.Pow(statWeightZ90*epStdev/request.TargetEpCi, 2)/sides), float64(request.MaxIterationsPerSide))
+		iterations := max(current, int32(needed))
+		if iterations == current {
+			continue
+		}
+
+		plan.Stats = append(plan.Stats, &proto.StatWeightsStatIterations{UnitStat: statResult.StatData.UnitStat, Iterations: iterations})
+		plan.BaselineIterations = max(plan.BaselineIterations, iterations)
+	}
+	return plan
 }
 
 // Run stat weight sims and compute weights.
@@ -433,9 +588,94 @@ func runStatWeights(request *proto.StatWeightsRequest, progress chan *proto.Prog
 		})
 	}
 
-	return computeStatWeights(&proto.StatWeightsCalcRequest{
+	calc := &proto.StatWeightsCalcRequest{
 		BaseResult:      baselineResult,
 		EpReferenceStat: requestData.EpReferenceStat,
 		StatSimResults:  statResults,
-	})
+	}
+	if request.TargetEpCi <= 0 {
+		return computeStatWeights(calc)
+	}
+
+	// Iteration i runs at seed RandomSeed+i, so a run continued at the seed after its last iteration
+	// repeats what one longer run would have simulated.
+	continueRun := func(simRequest *proto.RaidSimRequest, done int32, iterations int32) *proto.RaidSimResult {
+		continued := googleProto.Clone(simRequest).(*proto.RaidSimRequest)
+		continued.SimOptions.Iterations = iterations
+		continued.SimOptions.RandomSeed += int64(done)
+		continuedProgress := make(chan *proto.ProgressMetrics, 100)
+		go simFunc(continued, continuedProgress, signals)
+		return waitForResult(continuedProgress)
+	}
+
+	probeIterations := requestData.BaseRequest.SimOptions.Iterations
+	multiplier := request.MaxIterationMultiplier
+	if multiplier <= 0 {
+		multiplier = defaultStatWeightMaxIterationMultiplier
+	}
+	statRequests := make(map[int32]*proto.StatWeightsStatRequestData)
+	statIterations := make(map[int32]int32)
+	for _, reqData := range requestData.StatSimRequests {
+		statRequests[reqData.StatData.UnitStat] = reqData
+		statIterations[reqData.StatData.UnitStat] = probeIterations
+	}
+	baselineIterations := probeIterations
+
+	for pass := 0; pass <= statWeightMaxAdaptivePasses; pass++ {
+		plan := planStatWeightTopUp(&proto.StatWeightsTopUpRequest{
+			Calc:                 calc,
+			TargetEpCi:           request.TargetEpCi,
+			MaxIterationsPerSide: probeIterations * multiplier,
+		})
+		if len(plan.Stats) == 0 {
+			break
+		}
+
+		baselineDelta := plan.BaselineIterations - baselineIterations
+		if baselineDelta > 0 {
+			iterationsTotal += baselineDelta
+			simsTotal++
+		}
+		for _, planned := range plan.Stats {
+			runs := TernaryInt32(statRequests[planned.UnitStat].RequestLow != nil, 2, 1)
+			iterationsTotal += runs * (planned.Iterations - statIterations[planned.UnitStat])
+			simsTotal += runs
+		}
+
+		segment := &proto.StatWeightsCalcSegment{}
+		if baselineDelta > 0 {
+			segment.BaseResult = continueRun(requestData.BaseRequest, baselineIterations, baselineDelta)
+			if segment.BaseResult.Error != nil {
+				return &proto.StatWeightsResult{Error: segment.BaseResult.Error}
+			}
+			baselineIterations = plan.BaselineIterations
+		}
+		for _, planned := range plan.Stats {
+			reqData := statRequests[planned.UnitStat]
+			done := statIterations[planned.UnitStat]
+			delta := planned.Iterations - done
+
+			var lowRes *proto.RaidSimResult
+			if reqData.RequestLow != nil {
+				lowRes = continueRun(reqData.RequestLow, done, delta)
+				if lowRes.Error != nil {
+					return &proto.StatWeightsResult{Error: lowRes.Error}
+				}
+			}
+			highRes := continueRun(reqData.RequestHigh, done, delta)
+			if highRes.Error != nil {
+				return &proto.StatWeightsResult{Error: highRes.Error}
+			}
+
+			segment.StatSimResults = append(segment.StatSimResults, &proto.StatWeightsStatResultData{
+				StatData:   reqData.StatData,
+				ResultLow:  lowRes,
+				ResultHigh: highRes,
+			})
+			statIterations[planned.UnitStat] = planned.Iterations
+		}
+		calc.ExtraSegments = append(calc.ExtraSegments, segment)
+	}
+
+	return computeStatWeights(calc)
 }

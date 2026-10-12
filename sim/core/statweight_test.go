@@ -2,10 +2,13 @@ package core
 
 import (
 	"math"
+	"slices"
 	"testing"
 
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/simsignals"
 	"github.com/wowsims/forever/sim/core/stats"
+	googleProto "google.golang.org/protobuf/proto"
 )
 
 func statWeightMetrics(dps float64) *proto.UnitMetrics {
@@ -150,5 +153,305 @@ func TestStatWeightsReportSampleCountsAndBaselineDps(t *testing.T) {
 	}
 	if n := len(result.BaseDps.AllValues); n != 0 {
 		t.Errorf("baseline DPS carries %d per-iteration values, want none", n)
+	}
+}
+
+func statWeightRun(dps []float64) *proto.RaidSimResult {
+	zeros := make([]float64, len(dps))
+	distribution := func(values []float64) *proto.DistributionMetrics {
+		return &proto.DistributionMetrics{AllValues: values}
+	}
+	return &proto.RaidSimResult{RaidMetrics: &proto.RaidMetrics{Parties: []*proto.PartyMetrics{{Players: []*proto.UnitMetrics{{
+		Dps: distribution(dps), Hps: distribution(zeros), Threat: distribution(zeros), Dtps: distribution(zeros), Tmi: distribution(zeros),
+	}}}}}}
+}
+
+var noisyDpsPerPoint = map[stats.UnitStat]float64{agilityUnitStat: 1, hitRatingUnitStat: 3}
+
+// Agility, the reference, simulated below and above the baseline, and hit rating above it only.
+func noisyStatWeightRequests() *proto.StatWeightRequestsData {
+	return buildStatWeightRequests(&proto.StatWeightsRequest{
+		Player:          &proto.Player{},
+		Encounter:       &proto.Encounter{},
+		SimOptions:      &proto.SimOptions{Iterations: 2, RandomSeed: 1},
+		StatsToWeigh:    []proto.Stat{proto.Stat_StatAgility, proto.Stat_StatHitRating},
+		EpReferenceStat: proto.Stat_StatAgility,
+	})
+}
+
+// The baseline and every stat's runs over iterations [from, to). Each iteration has a DPS shared by
+// all runs, and each run adds its stat's worth and noise of its own, so the paired differences vary.
+func noisyStatWeightResults(requests *proto.StatWeightRequestsData, from, to int) (*proto.RaidSimResult, []*proto.StatWeightsStatResultData) {
+	values := func(run int, shift float64) []float64 {
+		var dps []float64
+		for i := from; i < to; i++ {
+			dps = append(dps, syntheticBaselineDps+float64((i*7)%13)+shift+float64(((i+1)*(run+3)*5)%7))
+		}
+		return dps
+	}
+
+	var results []*proto.StatWeightsStatResultData
+	for j, request := range requests.StatSimRequests {
+		worth := noisyDpsPerPoint[stats.UnitStatFromIdx(int(request.StatData.UnitStat))]
+		result := &proto.StatWeightsStatResultData{
+			StatData:   request.StatData,
+			ResultHigh: statWeightRun(values(2*j+2, worth*request.StatData.ModHigh)),
+		}
+		if request.RequestLow != nil {
+			result.ResultLow = statWeightRun(values(2*j+1, worth*request.StatData.ModLow))
+		}
+		results = append(results, result)
+	}
+	return statWeightRun(values(0, 0)), results
+}
+
+func noisyStatWeightCalc(from, to int) *proto.StatWeightsCalcRequest {
+	requests := noisyStatWeightRequests()
+	base, results := noisyStatWeightResults(requests, from, to)
+	return &proto.StatWeightsCalcRequest{BaseResult: base, EpReferenceStat: requests.EpReferenceStat, StatSimResults: results}
+}
+
+func shownEpCi(result *proto.StatWeightsResult, stat stats.UnitStat) float64 {
+	return statWeightZ90 * protoUnitStat(result.Dps.EpValuesStdev, stat) / math.Sqrt(protoUnitStat(result.SampleCounts, stat))
+}
+
+func plannedIterations(plan *proto.StatWeightsTopUpPlan) map[stats.UnitStat]int32 {
+	planned := make(map[stats.UnitStat]int32)
+	for _, stat := range plan.Stats {
+		planned[stats.UnitStatFromIdx(int(stat.UnitStat))] = stat.Iterations
+	}
+	return planned
+}
+
+// The plan sizes each stat for the target from its EP spread and pooled sides, caps it, runs the
+// baseline as far as the furthest stat, and leaves out every stat already at or under the target.
+func TestStatWeightTopUpPlanSizesEachStatForTheTarget(t *testing.T) {
+	const perSide = 20
+	calc := noisyStatWeightCalc(0, perSide)
+	result := computeStatWeights(calc)
+	agilityCi, hitCi := shownEpCi(result, agilityUnitStat), shownEpCi(result, hitRatingUnitStat)
+	if agilityCi == 0 || hitCi == 0 || agilityCi == hitCi {
+		t.Fatalf("shown ± agility %v, hit rating %v: want two different spreads", agilityCi, hitCi)
+	}
+	sized := func(stat stats.UnitStat, target, sides float64) int32 {
+		return int32(math.Ceil(math.Pow(statWeightZ90*protoUnitStat(result.Dps.EpValuesStdev, stat)/target, 2) / sides))
+	}
+	plan := func(target float64, maxPerSide int32) *proto.StatWeightsTopUpPlan {
+		return planStatWeightTopUp(&proto.StatWeightsTopUpRequest{Calc: calc, TargetEpCi: target, MaxIterationsPerSide: maxPerSide})
+	}
+
+	t.Run("sized by the formula", func(t *testing.T) {
+		target := min(agilityCi, hitCi) / 4
+		got := plan(target, math.MaxInt32)
+		want := map[stats.UnitStat]int32{agilityUnitStat: sized(agilityUnitStat, target, 2), hitRatingUnitStat: sized(hitRatingUnitStat, target, 1)}
+		for stat, iterations := range want {
+			if plannedIterations(got)[stat] != iterations {
+				t.Errorf("stat %d planned %d iterations per side, want %d", stat, plannedIterations(got)[stat], iterations)
+			}
+		}
+		if got.BaselineIterations != max(want[agilityUnitStat], want[hitRatingUnitStat]) {
+			t.Errorf("baseline planned %d iterations, want the furthest stat's", got.BaselineIterations)
+		}
+	})
+
+	t.Run("capped", func(t *testing.T) {
+		got := plan(min(agilityCi, hitCi)/4, perSide+1)
+		for _, stat := range []stats.UnitStat{agilityUnitStat, hitRatingUnitStat} {
+			if plannedIterations(got)[stat] != perSide+1 {
+				t.Errorf("stat %d planned %d iterations per side, want the cap", stat, plannedIterations(got)[stat])
+			}
+		}
+		if got.BaselineIterations != perSide+1 {
+			t.Errorf("baseline planned %d iterations, want the cap", got.BaselineIterations)
+		}
+	})
+
+	t.Run("a stat at its target is left out", func(t *testing.T) {
+		got := plannedIterations(plan((agilityCi+hitCi)/2, math.MaxInt32))
+		wider, narrower := agilityUnitStat, hitRatingUnitStat
+		if hitCi > agilityCi {
+			wider, narrower = narrower, wider
+		}
+		if _, ok := got[narrower]; ok {
+			t.Errorf("stat %d is under the target and still planned", narrower)
+		}
+		if _, ok := got[wider]; !ok {
+			t.Errorf("stat %d is over the target and not planned", wider)
+		}
+	})
+
+	t.Run("done once every stat is at its target", func(t *testing.T) {
+		got := plan(max(agilityCi, hitCi), math.MaxInt32)
+		if len(got.Stats) != 0 || got.BaselineIterations != perSide {
+			t.Errorf("plan = %v, want no stats and the baseline's own count", got)
+		}
+	})
+}
+
+// A stat that stopped early pairs with the baseline's first iterations, so it weighs as if every run
+// had stopped where it did; extra segments merge into the same weights one longer run gives.
+func TestStatWeightsPairAStatThatStoppedEarlyWithTheBaselinePrefix(t *testing.T) {
+	const perSide = 12
+	requests := noisyStatWeightRequests()
+	firstBase, firstResults := noisyStatWeightResults(requests, 0, perSide)
+	secondBase, secondResults := noisyStatWeightResults(requests, perSide, 2*perSide)
+	longBase, longResults := noisyStatWeightResults(requests, 0, 2*perSide)
+	isHit := func(result *proto.StatWeightsStatResultData) bool {
+		return result.StatData.UnitStat == int32(hitRatingUnitStat)
+	}
+
+	// Hit rating keeps only its first iterations; agility and the baseline run on.
+	longResults[slices.IndexFunc(longResults, isHit)] = firstResults[slices.IndexFunc(firstResults, isHit)]
+	early := computeStatWeights(&proto.StatWeightsCalcRequest{BaseResult: longBase, EpReferenceStat: requests.EpReferenceStat, StatSimResults: longResults})
+	trimmed := computeStatWeights(&proto.StatWeightsCalcRequest{BaseResult: firstBase, EpReferenceStat: requests.EpReferenceStat, StatSimResults: firstResults})
+	segmented := computeStatWeights(&proto.StatWeightsCalcRequest{
+		BaseResult:      firstBase,
+		EpReferenceStat: requests.EpReferenceStat,
+		StatSimResults:  firstResults,
+		ExtraSegments: []*proto.StatWeightsCalcSegment{{
+			BaseResult:     secondBase,
+			StatSimResults: slices.DeleteFunc(secondResults, isHit),
+		}},
+	})
+
+	same := func(name string, got, want *proto.StatWeightsResult, stat stats.UnitStat) {
+		t.Helper()
+		for field, pair := range map[string][2]*proto.UnitStats{
+			"weight":  {got.Dps.Weights, want.Dps.Weights},
+			"stdev":   {got.Dps.WeightsStdev, want.Dps.WeightsStdev},
+			"samples": {got.SampleCounts, want.SampleCounts},
+		} {
+			if g, w := protoUnitStat(pair[0], stat), protoUnitStat(pair[1], stat); math.Abs(g-w) > 1e-9 {
+				t.Errorf("%s stat %d %s = %v, want %v", name, stat, field, g, w)
+			}
+		}
+	}
+	if protoUnitStat(early.SampleCounts, hitRatingUnitStat) != perSide {
+		t.Fatalf("hit rating samples = %v, want its own iterations", protoUnitStat(early.SampleCounts, hitRatingUnitStat))
+	}
+	same("stopped early", early, trimmed, hitRatingUnitStat)
+	for _, stat := range []stats.UnitStat{agilityUnitStat, hitRatingUnitStat} {
+		same("segmented", segmented, early, stat)
+	}
+}
+
+var attackPowerUnitStat = stats.UnitStatFromStat(stats.AttackPower)
+
+// The weapon tester weighing attack power, its reference, in a test sim. It auto-shoots, so it holds
+// a bow: an empty ranged slot deals NaN damage.
+func weaponTesterStatWeightsRequest(iterations int32) *proto.StatWeightsRequest {
+	return &proto.StatWeightsRequest{
+		Player:          weaponTestRaid(proto.Race_RaceHuman, WeaponTestSlots(WeaponTestSwordID, 0, WeaponTestBowID), nil).Parties[0].Players[0],
+		Encounter:       MakeSingleTargetEncounter(0),
+		SimOptions:      &proto.SimOptions{Iterations: iterations, RandomSeed: 1, IsTest: true},
+		StatsToWeigh:    []proto.Stat{proto.Stat_StatAttackPower},
+		EpReferenceStat: proto.Stat_StatAttackPower,
+	}
+}
+
+// A run continued at the seed after its last iteration, through the concurrent split and with labeled
+// rands, repeats the iterations one longer run has at those seeds, so its segment gives the same weights.
+func TestStatWeightTopUpRepeatsOneLongerRun(t *testing.T) {
+	const probe, topUp = 7, 5
+	requests := buildStatWeightRequests(weaponTesterStatWeightsRequest(2 * (probe + topUp)))
+	run := func(simRequest *proto.RaidSimRequest, done, iterations int32) *proto.RaidSimResult {
+		continued := googleProto.Clone(simRequest).(*proto.RaidSimRequest)
+		continued.SimOptions.Iterations = iterations
+		continued.SimOptions.RandomSeed += int64(done)
+		return runSimConcurrent(continued, nil, simsignals.CreateSignals())
+	}
+	statRequest := requests.StatSimRequests[0]
+
+	long := &proto.StatWeightsCalcRequest{
+		BaseResult:      run(requests.BaseRequest, 0, probe+topUp),
+		EpReferenceStat: requests.EpReferenceStat,
+		StatSimResults: []*proto.StatWeightsStatResultData{{
+			StatData:   statRequest.StatData,
+			ResultLow:  run(statRequest.RequestLow, 0, probe+topUp),
+			ResultHigh: run(statRequest.RequestHigh, 0, probe+topUp),
+		}},
+	}
+	continued := &proto.StatWeightsCalcRequest{
+		BaseResult:      run(requests.BaseRequest, 0, probe),
+		EpReferenceStat: requests.EpReferenceStat,
+		StatSimResults: []*proto.StatWeightsStatResultData{{
+			StatData:   statRequest.StatData,
+			ResultLow:  run(statRequest.RequestLow, 0, probe),
+			ResultHigh: run(statRequest.RequestHigh, 0, probe),
+		}},
+		ExtraSegments: []*proto.StatWeightsCalcSegment{{
+			BaseResult: run(requests.BaseRequest, probe, topUp),
+			StatSimResults: []*proto.StatWeightsStatResultData{{
+				StatData:   statRequest.StatData,
+				ResultLow:  run(statRequest.RequestLow, probe, topUp),
+				ResultHigh: run(statRequest.RequestHigh, probe, topUp),
+			}},
+		}},
+	}
+
+	merged := mergeStatWeightSegments(continued)
+	dpsValues := func(result *proto.RaidSimResult) []float64 {
+		return result.RaidMetrics.Parties[0].Players[0].Dps.AllValues
+	}
+	for name, pair := range map[string][2]*proto.RaidSimResult{
+		"baseline":           {merged.BaseResult, long.BaseResult},
+		"attack power below": {merged.StatSimResults[0].ResultLow, long.StatSimResults[0].ResultLow},
+		"attack power above": {merged.StatSimResults[0].ResultHigh, long.StatSimResults[0].ResultHigh},
+	} {
+		if !slices.Equal(dpsValues(pair[0]), dpsValues(pair[1])) {
+			t.Errorf("%s DPS per iteration = %v, want %v", name, dpsValues(pair[0]), dpsValues(pair[1]))
+		}
+	}
+
+	got, want := computeStatWeights(continued), computeStatWeights(long)
+	if protoUnitStat(want.Dps.Weights, attackPowerUnitStat) == 0 {
+		t.Fatal("attack power has no weight, so the runs cannot be told apart")
+	}
+	for field, pair := range map[string][2]*proto.UnitStats{
+		"weight":  {got.Dps.Weights, want.Dps.Weights},
+		"stdev":   {got.Dps.WeightsStdev, want.Dps.WeightsStdev},
+		"samples": {got.SampleCounts, want.SampleCounts},
+	} {
+		if g, w := protoUnitStat(pair[0], attackPowerUnitStat), protoUnitStat(pair[1], attackPowerUnitStat); math.Abs(g-w) > 1e-9*math.Abs(w) {
+			t.Errorf("attack power %s = %v, want %v", field, g, w)
+		}
+	}
+}
+
+// With a target ±, the runs go on until every DPS EP shows a ± at or under it or its runs reach the
+// cap, and a run that needs more iterations gets them.
+func TestStatWeightsTargetModeRunsToTheTargetOrTheCap(t *testing.T) {
+	const probePerSide, multiplier = 10, 4
+	weigh := func(target float64) *proto.StatWeightsResult {
+		request := weaponTesterStatWeightsRequest(2 * probePerSide)
+		request.StatsToWeigh = []proto.Stat{proto.Stat_StatAttackPower, proto.Stat_StatHitRating}
+		request.TargetEpCi = target
+		request.MaxIterationMultiplier = multiplier
+		return runStatWeights(request, nil, simsignals.CreateSignals())
+	}
+	weighed := []stats.UnitStat{attackPowerUnitStat, hitRatingUnitStat}
+
+	probe := weigh(0)
+	target := math.Inf(1)
+	for _, stat := range weighed {
+		target = min(target, shownEpCi(probe, stat)/2)
+	}
+	if target == 0 {
+		t.Fatal("a stat has no spread, so there is nothing to top up")
+	}
+
+	result := weigh(target)
+	if result.Error != nil {
+		t.Fatal(result.Error.Message)
+	}
+	for _, stat := range weighed {
+		sides := map[stats.UnitStat]float64{attackPowerUnitStat: 2, hitRatingUnitStat: 1}[stat]
+		samples := protoUnitStat(result.SampleCounts, stat)
+		if samples <= protoUnitStat(probe.SampleCounts, stat) {
+			t.Errorf("stat %d kept its probe's %v samples", stat, samples)
+		}
+		if ci := shownEpCi(result, stat); ci > target && samples != sides*probePerSide*multiplier {
+			t.Errorf("stat %d shows ± %v over the target %v with %v samples, under the cap", stat, ci, target, samples)
+		}
 	}
 }

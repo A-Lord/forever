@@ -2,10 +2,20 @@
 // zeroes their low-side stat modifier and only populates lowSimRequest when it is non-zero.
 // Nothing in the type system catches a missing guard here — a non-null assertion on the low
 // request type-checks and throws at runtime — so the absent-low path is covered explicitly.
-import { ProgressMetrics, RaidSimRequest, RaidSimResult, SimOptions, StatWeightsResult } from '@generated/proto/api';
+import {
+	ProgressMetrics,
+	RaidSimRequest,
+	RaidSimResult,
+	SimOptions,
+	StatWeightsRequest,
+	StatWeightsResult,
+	StatWeightsStatData,
+	StatWeightsTopUpPlan,
+} from '@generated/proto/api';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { SimSignals } from '../sim_signal_manager';
+import { noop } from '../utils/misc';
 import type { WorkerPool } from '../workers/worker_pool';
 import { runConcurrentStatWeights } from './stat_weights';
 
@@ -64,5 +74,69 @@ describe('runConcurrentStatWeights', () => {
 
 		const calcRequest = vi.mocked(pool.statWeightCompute).mock.calls[0][0];
 		expect(calcRequest.statSimResults[0].resultLow).toBeDefined();
+	});
+
+	describe('with a target ±', () => {
+		const probe = 100;
+		const seed = 7n;
+		const multiplier = 3;
+		const unitStat = 1;
+		const request = StatWeightsRequest.create({ targetEpCi: 0.01, maxIterationMultiplier: multiplier });
+
+		const makeTargetPool = (plan: (call: number) => StatWeightsTopUpPlan) => {
+			let calls = 0;
+			return {
+				statWeightRequests: vi.fn(async () => ({
+					baseRequest: RaidSimRequest.create({ simOptions: SimOptions.create({ iterations: probe, randomSeed: seed }) }),
+					epReferenceStat: 0,
+					statSimRequests: [
+						{
+							statData: StatWeightsStatData.create({ unitStat }),
+							requestLow: requestWithIterations(probe),
+							requestHigh: requestWithIterations(probe),
+						},
+					],
+				})),
+				statWeightTopUpPlan: vi.fn(async () => plan(calls++)),
+				statWeightCompute: vi.fn(async () => StatWeightsResult.create()),
+			} as unknown as WorkerPool;
+		};
+
+		it('continues each planned run at the seed after its last iteration and adds the pass as a segment', async () => {
+			const pool = makeTargetPool(call =>
+				call === 0
+					? StatWeightsTopUpPlan.create({ baselineIterations: 3 * probe, stats: [{ unitStat, iterations: 2 * probe }] })
+					: StatWeightsTopUpPlan.create(),
+			);
+			const progress: ProgressMetrics[] = [];
+
+			await runConcurrentStatWeights(request, pool, pm => progress.push(pm), signals);
+
+			expect(vi.mocked(pool.statWeightTopUpPlan).mock.calls[0][0].maxIterationsPerSide).toBe(probe * multiplier);
+			const topUps = runConcurrentSim.mock.calls.slice(3).map(([simRequest]) => (simRequest as RaidSimRequest).simOptions!);
+			expect(topUps.map(options => options.iterations)).toEqual([2 * probe, probe, probe]);
+			expect(topUps.map(options => options.randomSeed)).toEqual([seed + BigInt(probe), seed + BigInt(probe), seed + BigInt(probe)]);
+
+			const calcRequest = vi.mocked(pool.statWeightCompute).mock.calls[0][0];
+			expect(calcRequest.extraSegments).toHaveLength(1);
+			expect(calcRequest.extraSegments[0].baseResult).toBeDefined();
+			expect(calcRequest.extraSegments[0].statSimResults.map(result => result.statData!.unitStat)).toEqual([unitStat]);
+
+			const last = progress.filter(pm => !pm.finalWeightResult).at(-1)!;
+			expect(last.totalSims).toBe(6);
+			expect(last.totalIterations).toBe(3 * probe + 2 * (2 * probe));
+		});
+
+		it('stops after the first top-up and its adaptive passes', async () => {
+			const pool = makeTargetPool(call =>
+				StatWeightsTopUpPlan.create({ baselineIterations: (call + 2) * probe, stats: [{ unitStat, iterations: (call + 2) * probe }] }),
+			);
+
+			await runConcurrentStatWeights(request, pool, noop, signals);
+
+			const passes = vi.mocked(pool.statWeightTopUpPlan).mock.calls.length;
+			expect(vi.mocked(pool.statWeightCompute).mock.calls[0][0].extraSegments).toHaveLength(passes);
+			expect(passes).toBe(3);
+		});
 	});
 });

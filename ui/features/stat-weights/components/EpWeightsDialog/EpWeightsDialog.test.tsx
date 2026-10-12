@@ -565,6 +565,7 @@ describe('EpWeightsDialog', () => {
 				[PseudoStat.PseudoStatSpellHitPercent],
 				Stat.StatStrength,
 				expect.any(Function),
+				undefined,
 			);
 
 			const progress = rootElem.querySelector('[data-testid="progress-tracker-dialog"]')!;

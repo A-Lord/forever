@@ -680,6 +680,11 @@ message StatWeightsRequest {
 	repeated Stat stats_to_weigh = 6;
 	repeated PseudoStat pseudo_stats_to_weigh = 10;
 	Stat ep_reference_stat = 7;
+
+	// The 90% ± of each EP to reach by adding iterations; 0 runs the request's iteration count once.
+	double target_ep_ci = 11;
+	// Caps each run at this multiple of its first pass's iterations; 0 means 8.
+	int32 max_iteration_multiplier = 12;
 }
 
 message StatWeightsStatData {
@@ -708,6 +713,31 @@ message StatWeightsCalcRequest {
 	RaidSimResult base_result = 1;
 	Stat ep_reference_stat = 2;
 	repeated StatWeightsStatResultData stat_sim_results = 3;
+	// Later passes, in order, each continuing its runs' seed sequence where they stopped.
+	repeated StatWeightsCalcSegment extra_segments = 4;
+}
+
+// One pass of extra iterations. Only the runs that ran in the pass are listed; base_result is
+// unset when the baseline did not run.
+message StatWeightsCalcSegment {
+	RaidSimResult base_result = 1;
+	repeated StatWeightsStatResultData stat_sim_results = 2;
+}
+
+message StatWeightsTopUpRequest {
+	StatWeightsCalcRequest calc = 1;
+	double target_ep_ci = 2;
+	int32 max_iterations_per_side = 3;
+}
+
+// Target iteration totals per side. An empty stats list means every stat has reached the target.
+message StatWeightsTopUpPlan {
+	int32 baseline_iterations = 1;
+	repeated StatWeightsStatIterations stats = 2;
+}
+message StatWeightsStatIterations {
+	int32 unit_stat = 1;
+	int32 iterations = 2;
 }
 
 message StatWeightsResult {
