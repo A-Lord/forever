@@ -286,7 +286,8 @@ func (paladin *Paladin) applyChampionOfTheLight() {
 }
 
 // Instrument of Law - Reduces the cast time of your Hammer of Wrath by 0.5/1.0 sec, and reduces all
-// threat you generate by 10/20% while Righteous Fury is not active.
+// threat you generate by 10/20% while Righteous Fury is not active. The talent curve states the
+// threat as +10/20%, which is what the game applies, so the threat rises by that much.
 func (paladin *Paladin) applyInstrumentOfLaw() {
 	if paladin.Talents.InstrumentOfLaw == 0 {
 		return
@@ -295,7 +296,7 @@ func (paladin *Paladin) applyInstrumentOfLaw() {
 	rank := spellData.InstrumentOfLaw.Rank(paladin.Talents.InstrumentOfLaw)
 	spelldata.ParseStatic(&paladin.Character, rank, spelldata.Effects(1))
 
-	// The threat reduction is off while Righteous Fury is up.
+	// The threat effect is off while Righteous Fury is up.
 	threat := paladin.RegisterAura(core.Aura{
 		Label:    "Instrument of Law" + paladin.Label,
 		ActionID: core.ActionID{SpellID: rank.ID},

@@ -8021,7 +8021,7 @@ var generatedSpells = []Spell{
 		Effects: []Effect{
 			{ID: 689304, SpellID: 11160, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_PCT_MODIFIER, BasePoints: -15, BaseLevel: 1, PvpMult: 1, Misc: 14, ClassFlags: core.ClassFlags{Family: 3, Mask: [4]uint32{0: 655360, 1: 4096}}, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 			{ID: 689305, SpellID: 11160, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_THREAT, BasePoints: -30, BaseLevel: 1, PvpMult: 1, Misc: 16, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
-		}}, // override: CurveSign effect 2 -- Frost Channeling: row -30, tooltip 'reduces the threat caused by your Frost spells by $s2%'
+		}},
 	{ID: 11165, Name: "Improved Frost Nova", School: 1, Attr: [17]uint32{0: 0x1d0, 15: 0x2000}, SpellLevel: 1, BaseLevel: 1, ClassFlags: core.ClassFlags{Family: 3}, Labels: []int16{17}, ProcHint: core.ProcHintHeals | core.ProcHintNamedAbility,
 		Effects: []Effect{
 			{ID: 688989, SpellID: 11165, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_FLAT_MODIFIER, BasePoints: -4000, BaseLevel: 1, PvpMult: 1, Misc: 11, ClassFlags: core.ClassFlags{Family: 3, Mask: [4]uint32{0: 64}}, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
@@ -9443,7 +9443,7 @@ var generatedSpells = []Spell{
 		Effects: []Effect{
 			{ID: 691290, SpellID: 12962, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MECHANIC_DURATION_MOD, BasePoints: -15, PvpMult: 1, Misc: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 			{ID: 691291, SpellID: 12962, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MECHANIC_DURATION_MOD, BasePoints: -15, PvpMult: 1, Misc: 12, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
-		}}, // override: CurveSign effect 1 -- Iron Will: row -15, tooltip 'Reduces the duration of Stun and Fear effects inflicted on you by $s1%'
+		}},
 	{ID: 12963, Name: "Improved Overpower", Rank: "Rank 2", School: 1, Attr: [17]uint32{0: 0x1d0, 15: 0x2000}, SpellLevel: 1, BaseLevel: 1, ClassFlags: core.ClassFlags{Family: 4}, Labels: []int16{25}, ProcHint: core.ProcHintCrit | core.ProcHintNamedAbility,
 		Effects: []Effect{
 			{ID: 691292, SpellID: 12963, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_FLAT_MODIFIER, BasePoints: 50, BaseLevel: 1, PvpMult: 1, Misc: 7, ClassFlags: core.ClassFlags{Family: 4, Mask: [4]uint32{0: 4}}, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
@@ -16267,7 +16267,7 @@ var generatedSpells = []Spell{
 		Effects: []Effect{
 			{ID: 697104, SpellID: 19572, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_DUMMY, BasePoints: 50, BaseLevel: 60, SPCoef: 1, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 			{ID: 1340394, SpellID: 19572, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_PCT_MODIFIER, BasePoints: -20, BaseLevel: 60, PvpMult: 1, Misc: 14, ClassFlags: core.ClassFlags{Family: 9, Mask: [4]uint32{0: 8388608}}, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
-		}}, // override: CurveSign effect 2 -- Improved Mend Pet: row -20, tooltip 'reduces the Mana cost by $s2%'
+		}},
 	{ID: 19574, Name: "Bestial Wrath", School: 1, Attr: [17]uint32{0: 0x10000, 1: 0x8400, 15: 0x2000}, SpellLevel: 40, BaseLevel: 40, DurationMs: 18000, MaxRange: 100, CooldownMs: 120000, StartRecoveryCategory: 133, ClassFlags: core.ClassFlags{Family: 9, Mask: [4]uint32{1: 33554432}}, TargetCreatureType: 1, Labels: []int16{23},
 		Effects: []Effect{
 			{ID: 697222, SpellID: 19574, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_SCALE, BasePoints: 50, BaseLevel: 40, SPCoef: 1, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{5, 0}},
@@ -37083,7 +37083,7 @@ var generatedSpells = []Spell{
 		Effects: []Effect{
 			{ID: 1341131, SpellID: 1311085, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_FLAT_MODIFIER, BasePoints: -1000, BaseLevel: 60, SPCoef: 1, PvpMult: 1, Misc: 10, ClassFlags: core.ClassFlags{Family: 10, Mask: [4]uint32{1: 128}}, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 			{ID: 1341132, SpellID: 1311085, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_THREAT, BasePoints: -20, BaseLevel: 60, PvpMult: 1, Misc: 127, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
-		}}, // override: CurveSign effect 2 -- Instrument of Law: row -20, tooltip 'reduces all threat you generate by $m2% while Righteous Fury is not active'
+		}},
 	{ID: 1311087, Name: "Sacred Arbiter", School: 1, Attr: [17]uint32{0: 0x1d0, 15: 0x2000}, SpellLevel: 60, BaseLevel: 60, ClassFlags: core.ClassFlags{Family: 10}, Labels: []int16{26}, ProcHint: core.ProcHintNamedAbility,
 		Effects: []Effect{
 			{ID: 1341138, SpellID: 1311087, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_PCT_MODIFIER, BasePoints: 20, BaseLevel: 60, SPCoef: 1, PvpMult: 1, ClassFlags: core.ClassFlags{Family: 10, Mask: [4]uint32{3: 32768}}, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
@@ -37965,7 +37965,7 @@ var generatedCurves = map[int32][][]float64{
 	11119:   {{8, 16, 24, 32, 40}},
 	11124:   {{2, 4, 6, 8, 10}, {2, 4, 6, 8, 10}},
 	11151:   {{2, 4, 6}},
-	11160:   {{-5, -10, -15}, {-10, -20, -30}},
+	11160:   {{-5, -10, -15}, {10, 20, 30}},
 	11165:   {{-2000, -4000}},
 	11170:   {{17, 33, 50}},
 	11175:   {{11, 22, 33}, {-3, -7, -10}},
@@ -38007,7 +38007,7 @@ var generatedCurves = map[int32][][]float64{
 	12797:   {{20, 40, 60}},
 	12834:   {{20, 40, 60}},
 	12862:   {{-250, -500}, {-250, -500}},
-	12962:   {{-3, -6, -9, -12, -15}},
+	12962:   {{3, 6, 9, 12, 15}},
 	13705:   {{1, 2, 3}, {1, 2, 3}},
 	13712:   {{1, 2, 3, 4, 5}},
 	13713:   {{2, 4, 6}},
@@ -38180,7 +38180,7 @@ var generatedCurves = map[int32][][]float64{
 	19549:   {{2, 4, 6}, {5, 6, 7}},
 	19552:   {{2, 4, 6, 8, 10}, {2, 4, 6, 8, 10}},
 	19559:   {{3, 6}},
-	19572:   {{15, 50}, {-10, -20}},
+	19572:   {{15, 50}, {10, 20}},
 	19578:   {{1, 1}, {10, 5}},
 	19583:   {{3, 6, 9, 12, 15}},
 	19590:   {{10, 20}, {25, 50}},
@@ -38296,7 +38296,7 @@ var generatedCurves = map[int32][][]float64{
 	1311034: {{5, 10, 15, 20, 25}, {2, 4, 6, 8, 10}},
 	1311074: {{33, 66, 100}, {20, 40, 60}},
 	1311084: {{20, 40, 60}},
-	1311085: {{-500, -1000}, {-10, -20}},
+	1311085: {{-500, -1000}, {10, 20}},
 	1317006: {{5, 10}},
 	1322670: {{-4000, -8000}},
 	1323963: {{4, 7, 10}},
