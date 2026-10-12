@@ -30,7 +30,7 @@ func (paladin *Paladin) registerHolyWrath(_ int32, rank *spelldata.Spell) {
 			}
 		}
 		for _, result := range results {
-			spell.Launch(sim, result)
+			spell.DealCastResult(sim, result)
 		}
 
 		spell.WaitTravelTime(sim, func(sim *core.Simulation) {

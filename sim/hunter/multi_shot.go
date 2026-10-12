@@ -15,7 +15,7 @@ func (hunter *Hunter) registerMultiShot() {
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		baseDamage := hunter.RangedNormalizedWeaponDamage(sim, spell.RangedAttackPower(target))
 		for _, result := range spell.CalcCleaveDamage(sim, target, multiShotTargets, baseDamage, spell.OutcomeRangedHitAndCrit) {
-			spell.Launch(sim, result)
+			spell.DealCastResult(sim, result)
 		}
 
 		spell.WaitTravelTime(sim, func(sim *core.Simulation) {

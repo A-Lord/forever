@@ -131,7 +131,7 @@ func (shaman *Shaman) applyElementalFocus() {
 			clearcastingAura.Activate(sim)
 		})
 	trigger.Name = "Elemental Focus - Trigger"
-	trigger.Callback = trigger.Callback&^core.CallbackOnSpellHitDealt | core.CallbackOnSpellLaunch
+	trigger.Callback = trigger.Callback&^core.CallbackOnSpellHitDealt | core.CallbackOnCastResult
 	trigger.TriggerImmediately = true
 	trigger.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
 		return spell.SpellSchool.Matches(core.SpellSchoolFire | core.SpellSchoolFrost | core.SpellSchoolNature)
