@@ -8546,6 +8546,15 @@
 										"compute_weighted_ep": {
 											"type": "string"
 										},
+										"tabs": {
+											"type": "object",
+											"properties": {
+												"weights": { "type": "string" },
+												"sweep": { "type": "string" }
+											},
+											"additionalProperties": false,
+											"required": ["weights", "sweep"]
+										},
 										"dps_weight": {
 											"type": "object",
 											"properties": {
@@ -8788,6 +8797,7 @@
 										"update_ep",
 										"calculate",
 										"compute_weighted_ep",
+										"tabs",
 										"dps_weight",
 										"dps_ep",
 										"hps_weight",

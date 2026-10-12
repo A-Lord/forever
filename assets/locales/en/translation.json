@@ -2425,6 +2425,10 @@
 					"update_ep": "Update EP",
 					"calculate": "Calculate",
 					"compute_weighted_ep": "Compute Weighted EP",
+					"tabs": {
+						"weights": "Weights",
+						"sweep": "Stat sweep"
+					},
 					"dps_weight": {
 						"label": "DPS Weight",
 						"tooltip": "Per-point increase in DPS (Damage Per Second) for each stat."

@@ -235,6 +235,7 @@ export enum SimRunKind {
 	IndividualSim = 'individual-sim',
 	BulkSim = 'bulk-sim',
 	StatWeights = 'stat-weights',
+	StatSweep = 'stat-sweep',
 	ReforgeOptimize = 'reforge-optimize',
 }
 

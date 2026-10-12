@@ -1,6 +1,10 @@
+import { DistributionMetrics, type StatWeightsResult } from '@generated/proto/api';
+import { Stat } from '@generated/proto/common';
+import { Stats, UnitStat } from '@sim/proto/stats';
 import { describe, expect, it } from 'vitest';
 
-import { assignColorSlots, buildSweepOffsets } from './stat_sweep';
+import { emptyStatWeightsResult } from './ep_math';
+import { assignColorSlots, buildSweepOffsets, sweepPointFromResult } from './stat_sweep';
 
 describe('buildSweepOffsets', () => {
 	it('steps from -range to +range through 0', () => {
@@ -26,6 +30,37 @@ describe('buildSweepOffsets', () => {
 		expect(buildSweepOffsets(100, 50, -10)).toEqual([0]);
 		expect(buildSweepOffsets(100, -50, 10)).toEqual([0]);
 		expect(buildSweepOffsets(100, 0, 10)).toEqual([0]);
+	});
+});
+
+describe('sweepPointFromResult', () => {
+	const HIT = UnitStat.fromStat(Stat.StatHitRating);
+	const result = (): StatWeightsResult => {
+		const swept = emptyStatWeightsResult();
+		swept.dps!.weights = Stats.fromMap({ [Stat.StatStrength]: 2, [Stat.StatHitRating]: 8 }).toProto();
+		swept.dps!.weightsStdev = Stats.fromMap({ [Stat.StatHitRating]: 4 }).toProto();
+		swept.sampleCounts = Stats.fromMap({ [Stat.StatHitRating]: 400 }).toProto();
+		swept.baseDps = DistributionMetrics.create({ avg: 1500, stdev: 100, aggregatorData: { n: 2500, sumSq: 0 } });
+		return swept;
+	};
+
+	it('reads the EP against the reference stat and sizes both ± by their own sample counts', () => {
+		expect(sweepPointFromResult(result(), HIT, Stat.StatStrength, 120, -20)).toEqual({
+			offset: -20,
+			statValue: 100,
+			ep: 4,
+			epCi: (1.645 * 2) / 20,
+			dps: 1500,
+			dpsCi: (1.645 * 100) / 50,
+			samples: 400,
+		});
+	});
+
+	it('reports no ± for a stat with no samples', () => {
+		const empty = result();
+		empty.sampleCounts = new Stats().toProto();
+
+		expect(sweepPointFromResult(empty, HIT, Stat.StatStrength, 120, 0).epCi).toBe(0);
 	});
 });
 

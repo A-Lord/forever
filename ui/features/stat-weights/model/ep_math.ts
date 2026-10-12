@@ -1,6 +1,8 @@
 import { StatWeightsResult, StatWeightValues } from '@generated/proto/api';
 import { PseudoStat, Stat, UnitStats } from '@generated/proto/common';
 import { Stats, UnitStat } from '@sim/proto/stats';
+import type { EpPrecisionSettings } from '@sim/settings/stat_weight_settings';
+import type { StatWeightsOptions } from '@sim/sim';
 
 import { EP_UNIT_STATS } from './ep_unit_stats';
 
@@ -70,6 +72,12 @@ const combineScaled = (results: StatWeightsResult, epRatios: number[], select: (
 export const combineScaledEpValues = (results: StatWeightsResult, epRatios: number[]): Stats => combineScaled(results, epRatios, values => values.epValues);
 
 export const combineScaledWeights = (results: StatWeightsResult, epRatios: number[]): Stats => combineScaled(results, epRatios, values => values.weights);
+
+// An iteration count of 0 leaves the sim's own setting in charge.
+export const precisionRunOptions = ({ precisionMode, iterations, targetEpCi, maxIterationMultiplier }: EpPrecisionSettings): StatWeightsOptions => ({
+	iterations: iterations || undefined,
+	...(precisionMode === 'target' ? { targetEpCi, maxIterationMultiplier } : {}),
+});
 
 export const epWeightsWithoutExcluded = (newWeights: Stats, oldWeights: Stats, { excludedStats, excludedPseudoStats }: ExcludedStats): Stats => {
 	let merged = newWeights;

@@ -1,4 +1,10 @@
+import type { StatWeightsResult } from '@generated/proto/api';
+import type { Stat } from '@generated/proto/common';
 import type { StatSweepPoint, StatSweepPrecision, StatSweepRecord, StatSweepUnitStat } from '@sim/cache/stat_sweep_history';
+import type { UnitStat } from '@sim/proto/stats';
+import { stDevToConf90 } from '@sim/utils/math';
+
+import { calculateEp } from './ep_math';
 
 export type SweepPoint = StatSweepPoint;
 export type SweepPrecision = StatSweepPrecision;
@@ -22,6 +28,26 @@ export function buildSweepOffsets(current: number, range: number, step: number):
 		if (current - offset >= 0) offsets.push(-offset);
 	}
 	return offsets.sort((a, b) => a - b);
+}
+
+export const toSweepUnitStat = (unitStat: UnitStat): SweepUnitStat =>
+	unitStat.isStat() ? { kind: 'stat', index: unitStat.getStat() } : { kind: 'pseudo', index: unitStat.getPseudoStat() };
+
+/** One step's point: the swept stat's DPS EP against `refStat` and the baseline DPS, each with its 90% ±. */
+export function sweepPointFromResult(result: StatWeightsResult, unitStat: UnitStat, refStat: Stat, baseStatValue: number, offset: number): SweepPoint {
+	const dps = calculateEp(result, { dps: refStat, heal: undefined, tank: undefined }).dps!;
+	const samples = (result.sampleCounts && unitStat.getProtoValue(result.sampleCounts)) || 0;
+	const baseDps = result.baseDps;
+	const dpsSamples = baseDps?.aggregatorData?.n || samples;
+	return {
+		offset,
+		statValue: roundOffset(baseStatValue + offset),
+		ep: unitStat.getProtoValue(dps.epValues!) || 0,
+		epCi: samples ? stDevToConf90(unitStat.getProtoValue(dps.epValuesStdev!) || 0, samples) : 0,
+		dps: baseDps?.avg ?? 0,
+		dpsCi: baseDps && dpsSamples ? stDevToConf90(baseDps.stdev, dpsSamples) : 0,
+		samples,
+	};
 }
 
 /**

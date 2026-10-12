@@ -3,7 +3,7 @@ import { PseudoStat, Stat } from '@generated/proto/common';
 import { Stats, UnitStat } from '@sim/proto/stats';
 import { describe, expect, it } from 'vitest';
 
-import { calculateEp, combineScaledEpValues, combineScaledWeights, emptyStatWeightsResult, epWeightsWithoutExcluded } from './ep_math';
+import { calculateEp, combineScaledEpValues, combineScaledWeights, emptyStatWeightsResult, epWeightsWithoutExcluded, precisionRunOptions } from './ep_math';
 
 const AGILITY = UnitStat.fromStat(Stat.StatAgility);
 const MAIN_HAND_DPS = UnitStat.fromPseudoStat(PseudoStat.PseudoStatMainHandDps);
@@ -191,6 +191,19 @@ describe('combineScaledWeights', () => {
 		};
 
 		expect(combineScaledWeights(results, [2, 1, 1, 1, 1, 1]).getStat(Stat.StatAgility)).toBe(6);
+	});
+});
+
+describe('precisionRunOptions', () => {
+	const precision = { iterations: 4000, targetEpCi: 0.02, maxIterationMultiplier: 4 };
+
+	it('sends only the iteration count in iterations mode, and none when it is 0', () => {
+		expect(precisionRunOptions({ ...precision, precisionMode: 'iterations' })).toEqual({ iterations: 4000 });
+		expect(precisionRunOptions({ ...precision, precisionMode: 'iterations', iterations: 0 }).iterations).toBeUndefined();
+	});
+
+	it('adds the target and the cap in target mode', () => {
+		expect(precisionRunOptions({ ...precision, precisionMode: 'target' })).toEqual({ iterations: 4000, targetEpCi: 0.02, maxIterationMultiplier: 4 });
 	});
 });
 

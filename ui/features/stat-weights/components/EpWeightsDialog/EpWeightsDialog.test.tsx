@@ -1,10 +1,12 @@
 // The store, the worker and the saved-data manager are stubbed — what is under test is the view,
 // and every source it reads is driven directly.
 import { ErrorOutcomeType, type StatWeightsResult } from '@generated/proto/api';
-import { Class, PseudoStat, Stat } from '@generated/proto/common';
+import { Class, PseudoStat, Spec, Stat } from '@generated/proto/common';
 import { DatabaseFilters } from '@generated/proto/ui';
+import type { StatSweepRecord } from '@sim/cache/stat_sweep_history';
 import { SimHostProvider } from '@sim/context/SimHostContext';
 import { Stats, UnitStat } from '@sim/proto/stats';
+import type { EpPrecisionSettings } from '@sim/settings/stat_weight_settings';
 import { SimRuns } from '@sim/sim_runs';
 import { createSimStore, patchKeyed, patchSlice, PLAYER_FIELDS, seedKeyed, type SimStore, zeroVersions } from '@sim/state/sim_store';
 import { act, fireEvent, render, screen } from '@testing-library/react';
@@ -89,6 +91,14 @@ vi.mock('@i18n/localization', () => ({
 
 vi.mock('../SavedEpWeights', () => ({ SavedEpWeights: () => null }));
 
+// happy-dom has no IndexedDB.
+const sweepHistory = vi.hoisted(() => ({
+	listRuns: vi.fn(async () => []),
+	saveRun: vi.fn(async (_run: StatSweepRecord) => {}),
+	deleteRun: vi.fn(async () => {}),
+}));
+vi.mock('@sim/cache/stat_sweep_history', () => sweepHistory);
+
 // The vitest i18n stub has no resources, so `t` answers with the key and never interpolates — which
 // would make the reference-stat half of a column tooltip invisible. This keeps the key and shows the
 // interpolation beside it.
@@ -138,6 +148,9 @@ class FakePlayer {
 	getClass() {
 		return Class.ClassWarrior;
 	}
+	getSpec() {
+		return Spec.SpecUnknown;
+	}
 	getEpWeights() {
 		return this.epWeights;
 	}
@@ -163,7 +176,12 @@ class FakePlayer {
 class FakeSettings {
 	excludedStats: Stat[] = [];
 	excludedPseudoStats: PseudoStat[] = [];
+	precision: EpPrecisionSettings = { precisionMode: 'iterations', iterations: 0, targetEpCi: 0.01, maxIterationMultiplier: 8 };
 
+	setPrecision(patch: Partial<EpPrecisionSettings>) {
+		this.precision = { ...this.precision, ...patch };
+		source.notify('statWeights');
+	}
 	isStatExcludedFromCalc(stat: Stat) {
 		return this.excludedStats.includes(stat);
 	}
@@ -225,6 +243,7 @@ const setup = () => {
 			getShowDamageMetrics: () => true,
 			getShowHealingMetrics: () => true,
 			getIterations: () => 1000,
+			getFixedRngSeed: () => 0,
 			getFilters: () => DatabaseFilters.clone(store.getState().sim.filters),
 			setFilters: (filters: DatabaseFilters) => patchSlice(store, 'sim', { filters: DatabaseFilters.clone(filters) }),
 			store,
@@ -565,7 +584,7 @@ describe('EpWeightsDialog', () => {
 				[PseudoStat.PseudoStatSpellHitPercent],
 				Stat.StatStrength,
 				expect.any(Function),
-				undefined,
+				{},
 			);
 
 			const progress = rootElem.querySelector('[data-testid="progress-tracker-dialog"]')!;
@@ -731,6 +750,62 @@ describe('EpWeightsDialog', () => {
 			});
 			expect(openChanges).toEqual([false]);
 			expect(abortType).not.toHaveBeenCalled();
+		});
+
+		it('runs to the target ± against the chosen DPS reference stat', async () => {
+			player.computeStatWeights.mockResolvedValue(weightsResult([[STRENGTH, 2]]));
+			player.refStats.dpsRefStat = Stat.StatAgility;
+			settings.precision = { precisionMode: 'target', iterations: 4000, targetEpCi: 0.02, maxIterationMultiplier: 4 };
+			renderDialog();
+
+			await act(async () => {
+				fireEvent.click(calculate());
+			});
+			expect(player.computeStatWeights).toHaveBeenCalledWith(
+				[Stat.StatStrength, Stat.StatAgility, Stat.StatCritRating],
+				[PseudoStat.PseudoStatSpellHitPercent],
+				Stat.StatAgility,
+				expect.any(Function),
+				{ iterations: 4000, targetEpCi: 0.02, maxIterationMultiplier: 4 },
+			);
+		});
+	});
+
+	describe('stat sweep', () => {
+		const openSweepTab = async () => {
+			renderDialog();
+			await userEvent.click(screen.getByRole('tab', { name: 'sidebar.buttons.stat_weights.modal.tabs.sweep' }));
+		};
+
+		it('swaps the Calculate button for the sweep panel', async () => {
+			await openSweepTab();
+
+			expect(popup().querySelector('[data-testid="stat-sweep-pane"]')!.hasAttribute('hidden')).toBe(false);
+			expect(popup().querySelector('[data-testid="ep-weights-pane"]')!.hasAttribute('hidden')).toBe(true);
+			expect(calculate()).toBeNull();
+		});
+
+		it('runs every step at one seed against the DPS reference stat, and saves the run', async () => {
+			player.computeStatWeights.mockResolvedValue(weightsResult([[STRENGTH, 2]]));
+			player.refStats.dpsRefStat = Stat.StatAgility;
+			await openSweepTab();
+			const range = popup().querySelector<HTMLInputElement>('#stat-sweep-range')!;
+			await userEvent.clear(range);
+			await userEvent.type(range, '20');
+			fireEvent.change(range);
+
+			await act(async () => {
+				await userEvent.click(screen.getByRole('button', { name: 'sidebar.buttons.stat_weights.sweep.run' }));
+			});
+
+			const calls = player.computeStatWeights.mock.calls;
+			expect(calls.map(call => call[2])).toEqual([Stat.StatAgility, Stat.StatAgility, Stat.StatAgility]);
+			expect(calls.map(call => (call[4].bonusStats as Stats).getStat(Stat.StatStrength))).toEqual([0, 10, 20]);
+			expect(new Set(calls.map(call => call[4].seed)).size).toBe(1);
+			expect(sweepHistory.saveRun).toHaveBeenCalledTimes(1);
+			const saved = sweepHistory.saveRun.mock.calls[0][0];
+			expect(saved.refStat).toBe(Stat.StatAgility);
+			expect(saved.points.map(point => point.statValue)).toEqual([0, 10, 20]);
 		});
 	});
 
