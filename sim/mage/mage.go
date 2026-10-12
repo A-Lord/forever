@@ -26,9 +26,6 @@ type Mage struct {
 	ArcanePowerAura    *core.Aura
 	FingersOfFrostAura *core.Aura
 
-	// Rolls Fingers of Frost on a Chill missile's launch; set with Fingers of Frost and Frostbite.
-	fingersOfFrostLaunch func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult)
-
 	ImprovedScorchAuras core.AuraArray
 
 	Ignite *core.Spell

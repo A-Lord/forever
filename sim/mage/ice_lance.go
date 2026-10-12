@@ -37,9 +37,7 @@ func (mage *Mage) registerIceLanceRank(_ int32, rank *spelldata.Spell) {
 		result := spell.CalcDamage(sim, target, damage.Average(), spell.OutcomeMagicHitAndCrit)
 		spell.DamageMultiplier /= multiplier
 
-		spell.WaitTravelTime(sim, func(sim *core.Simulation) {
-			spell.DealDamage(sim, result)
-		})
+		spell.DealDamageAfterTravel(sim, result)
 	}
 
 	mage.RegisterSpell(config)
