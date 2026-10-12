@@ -157,12 +157,16 @@ func TestStatWeightsReportSampleCountsAndBaselineDps(t *testing.T) {
 }
 
 func statWeightRun(dps []float64) *proto.RaidSimResult {
+	return statWeightRunWithHps(dps, make([]float64, len(dps)))
+}
+
+func statWeightRunWithHps(dps, hps []float64) *proto.RaidSimResult {
 	zeros := make([]float64, len(dps))
 	distribution := func(values []float64) *proto.DistributionMetrics {
 		return &proto.DistributionMetrics{AllValues: values}
 	}
 	return &proto.RaidSimResult{RaidMetrics: &proto.RaidMetrics{Parties: []*proto.PartyMetrics{{Players: []*proto.UnitMetrics{{
-		Dps: distribution(dps), Hps: distribution(zeros), Threat: distribution(zeros), Dtps: distribution(zeros), Tmi: distribution(zeros),
+		Dps: distribution(dps), Hps: distribution(hps), Threat: distribution(zeros), Dtps: distribution(zeros), Tmi: distribution(zeros),
 	}}}}}}
 }
 
@@ -453,5 +457,111 @@ func TestStatWeightsTargetModeRunsToTheTargetOrTheCap(t *testing.T) {
 		if ci := shownEpCi(result, stat); ci > target && samples != sides*probePerSide*multiplier {
 			t.Errorf("stat %d shows ± %v over the target %v with %v samples, under the cap", stat, ci, target, samples)
 		}
+	}
+}
+
+var (
+	intellectUnitStat  = stats.UnitStatFromStat(stats.Intellect)
+	healingDpsPerPoint = map[stats.UnitStat]float64{agilityUnitStat: 1, hitRatingUnitStat: 3}
+	healingHpsPerPoint = map[stats.UnitStat]float64{agilityUnitStat: 0.5, hitRatingUnitStat: 0.2, intellectUnitStat: 2}
+)
+
+// Agility and hit rating weighed with agility as the DPS reference and intellect as the HPS one.
+func healingStatWeightsRequest(targetMetrics []proto.StatWeightsTargetMetric) *proto.StatWeightsRequest {
+	return &proto.StatWeightsRequest{
+		Player:           &proto.Player{},
+		Encounter:        &proto.Encounter{},
+		SimOptions:       &proto.SimOptions{Iterations: 2, RandomSeed: 1},
+		StatsToWeigh:     []proto.Stat{proto.Stat_StatAgility, proto.Stat_StatHitRating},
+		EpReferenceStat:  proto.Stat_StatAgility,
+		TargetMetrics:    targetMetrics,
+		HpsReferenceStat: proto.Stat_StatIntellect,
+	}
+}
+
+// The runs over perSide iterations with HPS targeted. Every run's DPS differs from the baseline's by
+// its stat's worth alone, so each DPS ± is 0, and each run's HPS carries noise of its own.
+func healingStatWeightCalc(perSide int) *proto.StatWeightsCalcRequest {
+	requests := buildStatWeightRequests(healingStatWeightsRequest([]proto.StatWeightsTargetMetric{proto.StatWeightsTargetMetric_StatWeightsTargetMetricHps}))
+	run := func(index int, stat stats.UnitStat, mod float64) *proto.RaidSimResult {
+		var dps, hps []float64
+		for i := range perSide {
+			dps = append(dps, syntheticBaselineDps+float64((i*7)%13)+healingDpsPerPoint[stat]*mod)
+			hps = append(hps, syntheticBaselineDps+float64((i*5)%11)+healingHpsPerPoint[stat]*mod+float64(((i+1)*(index+3)*5)%7))
+		}
+		return statWeightRunWithHps(dps, hps)
+	}
+
+	calc := &proto.StatWeightsCalcRequest{BaseResult: run(0, 0, 0), EpReferenceStat: requests.EpReferenceStat}
+	for j, request := range requests.StatSimRequests {
+		stat := stats.UnitStatFromIdx(int(request.StatData.UnitStat))
+		result := &proto.StatWeightsStatResultData{StatData: request.StatData, ResultHigh: run(2*j+2, stat, request.StatData.ModHigh)}
+		if request.RequestLow != nil {
+			result.ResultLow = run(2*j+1, stat, request.StatData.ModLow)
+		}
+		calc.StatSimResults = append(calc.StatSimResults, result)
+	}
+	return calc
+}
+
+// The HPS reference stat is simulated, below and above its baseline like the DPS one, only when HPS
+// is targeted.
+func TestStatWeightsSimulateTheHpsReferenceStatWhenHpsIsTargeted(t *testing.T) {
+	targeted := buildStatWeightRequests(healingStatWeightsRequest([]proto.StatWeightsTargetMetric{proto.StatWeightsTargetMetric_StatWeightsTargetMetricHps}))
+	index := slices.IndexFunc(targeted.StatSimRequests, func(request *proto.StatWeightsStatRequestData) bool {
+		return request.StatData.UnitStat == int32(intellectUnitStat)
+	})
+	if index < 0 {
+		t.Fatal("no sub-sim for intellect, the HPS reference stat")
+	}
+	if statData := targeted.StatSimRequests[index].StatData; statData.ModLow >= 0 || statData.ModHigh <= 0 {
+		t.Errorf("intellect modifiers %v and %v, want one below and one above", statData.ModLow, statData.ModHigh)
+	}
+
+	for _, metrics := range [][]proto.StatWeightsTargetMetric{nil, {proto.StatWeightsTargetMetric_StatWeightsTargetMetricDps, proto.StatWeightsTargetMetric_StatWeightsTargetMetricTps}} {
+		if simulatesStat(buildStatWeightRequests(healingStatWeightsRequest(metrics)), intellectUnitStat) {
+			t.Errorf("a sub-sim for intellect with targets %v, which leave HPS out", metrics)
+		}
+	}
+}
+
+// A stat whose DPS ± is under the target and whose HPS ± is over it is planned only when HPS is
+// targeted, and its HPS ± divides by the HPS reference stat's weight.
+func TestStatWeightTopUpPlanSizesTargetedHpsByTheHpsReference(t *testing.T) {
+	const perSide = 20
+	calc := healingStatWeightCalc(perSide)
+	result := computeStatWeights(calc)
+	samples := protoUnitStat(result.SampleCounts, agilityUnitStat)
+	hpsEpStdev := func(stat stats.UnitStat, ref stats.UnitStat) float64 {
+		return protoUnitStat(result.Hps.WeightsStdev, stat) / math.Abs(protoUnitStat(result.Hps.Weights, ref))
+	}
+	agilityHpsCi := statWeightZ90 * hpsEpStdev(agilityUnitStat, intellectUnitStat) / math.Sqrt(samples)
+	if agilityHpsCi == 0 || !(shownEpCi(result, agilityUnitStat) < agilityHpsCi/4) {
+		t.Fatalf("agility shows DPS ± %v and HPS ± %v: want the DPS one well under the HPS one", shownEpCi(result, agilityUnitStat), agilityHpsCi)
+	}
+	target := agilityHpsCi / 4
+	plan := func(metrics []proto.StatWeightsTargetMetric) map[stats.UnitStat]int32 {
+		return plannedIterations(planStatWeightTopUp(&proto.StatWeightsTopUpRequest{
+			Calc:                 calc,
+			TargetEpCi:           target,
+			MaxIterationsPerSide: math.MaxInt32,
+			TargetMetrics:        metrics,
+			HpsReferenceStat:     proto.Stat_StatIntellect,
+		}))
+	}
+
+	if got := plan(nil); len(got) != 0 {
+		t.Errorf("DPS alone planned %v, want nothing: every DPS ± is 0", got)
+	}
+
+	got := plan([]proto.StatWeightsTargetMetric{proto.StatWeightsTargetMetric_StatWeightsTargetMetricDps, proto.StatWeightsTargetMetric_StatWeightsTargetMetricHps})
+	sized := func(ref stats.UnitStat) int32 {
+		return int32(math.Ceil(math.Pow(statWeightZ90*hpsEpStdev(agilityUnitStat, ref)/target, 2) / 2))
+	}
+	if sized(intellectUnitStat) == sized(agilityUnitStat) {
+		t.Fatal("intellect and agility have the same HPS weight, so the references cannot be told apart")
+	}
+	if got[agilityUnitStat] != sized(intellectUnitStat) {
+		t.Errorf("agility planned %d iterations per side, want %d from the HPS reference's weight", got[agilityUnitStat], sized(intellectUnitStat))
 	}
 }

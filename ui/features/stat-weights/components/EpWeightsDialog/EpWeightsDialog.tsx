@@ -167,7 +167,7 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 				epPseudoStats: epPseudoStats.filter(pseudoStat => !settings.isPseudoStatExcludedFromCalc(pseudoStat)),
 				// The target is measured against this stat's weight, so it has to be the one the shown ± divides by.
 				epReferenceStat: precision.precisionMode === 'target' ? (refStats.dps ?? epReferenceStat) : epReferenceStat,
-				options: precisionRunOptions(precision),
+				options: precisionRunOptions(precision, { displayMetrics, hpsReferenceStat: refStats.heal }),
 			});
 			if (result.error) {
 				if (result.error.type === ErrorOutcomeType.ErrorOutcomeAborted) toastManager.add({ variant: 'info', body: 'Statweight sim cancelled.' });
@@ -185,7 +185,7 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 		if (!result) return;
 		setIterations(runIterations);
 		setSimResult(result);
-	}, [sim, settings, precision, refStats, epStats, epPseudoStats, epReferenceStat, isRunning, startStatWeights]);
+	}, [sim, settings, precision, displayMetrics, refStats, epStats, epPseudoStats, epReferenceStat, isRunning, startStatWeights]);
 
 	return (
 		<Dialog

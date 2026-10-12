@@ -22,6 +22,7 @@ import {
 	SimType,
 	StatWeightsRequest,
 	StatWeightsResult,
+	StatWeightsTargetMetric,
 } from '@generated/proto/api';
 import {
 	ArmorType,
@@ -99,8 +100,10 @@ export type RunSimOptions = {
 
 export type StatWeightsOptions = {
 	iterations?: number;
-	targetEpCi?: number; // The 90% ± of each DPS EP to reach by adding iterations; unset runs the iterations once.
+	targetEpCi?: number; // The 90% ± of each targeted EP to reach by adding iterations; unset runs the iterations once.
 	maxIterationMultiplier?: number;
+	targetMetrics?: StatWeightsTargetMetric[]; // The metrics the target applies to; unset means DPS only.
+	hpsReferenceStat?: Stat; // The stat HPS EP divides by; unset means the EP reference stat.
 	bonusStats?: Stats; // On top of the player's own bonus stats, pseudo stats included.
 	seed?: number;
 };
@@ -625,6 +628,8 @@ export class Sim {
 				epReferenceStat: epReferenceStat,
 				targetEpCi: options.targetEpCi ?? 0,
 				maxIterationMultiplier: options.maxIterationMultiplier ?? 0,
+				targetMetrics: options.targetMetrics ?? [],
+				hpsReferenceStat: options.hpsReferenceStat ?? epReferenceStat,
 			});
 
 			const signals = this.signalManager.registerRunning(RequestTypes.StatWeights);

@@ -685,6 +685,16 @@ message StatWeightsRequest {
 	double target_ep_ci = 11;
 	// Caps each run at this multiple of its first pass's iterations; 0 means 8.
 	int32 max_iteration_multiplier = 12;
+	// The metrics whose EP ± the target applies to; empty means DPS only.
+	repeated StatWeightsTargetMetric target_metrics = 13;
+	// The stat HPS EP divides by. DPS and TPS EP divide by ep_reference_stat.
+	Stat hps_reference_stat = 14;
+}
+
+enum StatWeightsTargetMetric {
+	StatWeightsTargetMetricDps = 0;
+	StatWeightsTargetMetricHps = 1;
+	StatWeightsTargetMetricTps = 2;
 }
 
 message StatWeightsStatData {
@@ -728,6 +738,8 @@ message StatWeightsTopUpRequest {
 	StatWeightsCalcRequest calc = 1;
 	double target_ep_ci = 2;
 	int32 max_iterations_per_side = 3;
+	repeated StatWeightsTargetMetric target_metrics = 4;
+	Stat hps_reference_stat = 5;
 }
 
 // Target iteration totals per side. An empty stats list means every stat has reached the target.

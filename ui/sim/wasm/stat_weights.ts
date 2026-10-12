@@ -149,7 +149,13 @@ export const runConcurrentStatWeights = async (
 
 		for (let pass = 0; pass < MAX_TOP_UP_PASSES; pass++) {
 			const plan = await workerPool.statWeightTopUpPlan(
-				StatWeightsTopUpRequest.create({ calc: calcRequest, targetEpCi: request.targetEpCi, maxIterationsPerSide }),
+				StatWeightsTopUpRequest.create({
+					calc: calcRequest,
+					targetEpCi: request.targetEpCi,
+					maxIterationsPerSide,
+					targetMetrics: request.targetMetrics,
+					hpsReferenceStat: request.hpsReferenceStat,
+				}),
 			);
 			if (!plan.stats.length) break;
 

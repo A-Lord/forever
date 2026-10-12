@@ -1,6 +1,6 @@
 // The store, the worker and the saved-data manager are stubbed — what is under test is the view,
 // and every source it reads is driven directly.
-import { ErrorOutcomeType, type StatWeightsResult } from '@generated/proto/api';
+import { ErrorOutcomeType, type StatWeightsResult, StatWeightsTargetMetric } from '@generated/proto/api';
 import { Class, PseudoStat, Spec, Stat } from '@generated/proto/common';
 import { DatabaseFilters } from '@generated/proto/ui';
 import type { StatSweepRecord } from '@sim/cache/stat_sweep_history';
@@ -752,9 +752,11 @@ describe('EpWeightsDialog', () => {
 			expect(abortType).not.toHaveBeenCalled();
 		});
 
-		it('runs to the target ± against the chosen DPS reference stat', async () => {
+		it('runs to the target ± in every shown metric, against the chosen DPS and healing reference stats', async () => {
 			player.computeStatWeights.mockResolvedValue(weightsResult([[STRENGTH, 2]]));
 			player.refStats.dpsRefStat = Stat.StatAgility;
+			player.refStats.healRefStat = Stat.StatIntellect;
+			host.sim.showThreatMetrics = true;
 			settings.precision = { precisionMode: 'target', iterations: 4000, targetEpCi: 0.02, maxIterationMultiplier: 4 };
 			renderDialog();
 
@@ -766,7 +768,17 @@ describe('EpWeightsDialog', () => {
 				[PseudoStat.PseudoStatSpellHitPercent],
 				Stat.StatAgility,
 				expect.any(Function),
-				{ iterations: 4000, targetEpCi: 0.02, maxIterationMultiplier: 4 },
+				{
+					iterations: 4000,
+					targetEpCi: 0.02,
+					maxIterationMultiplier: 4,
+					targetMetrics: [
+						StatWeightsTargetMetric.StatWeightsTargetMetricDps,
+						StatWeightsTargetMetric.StatWeightsTargetMetricHps,
+						StatWeightsTargetMetric.StatWeightsTargetMetricTps,
+					],
+					hpsReferenceStat: Stat.StatIntellect,
+				},
 			);
 		});
 	});
@@ -806,6 +818,25 @@ describe('EpWeightsDialog', () => {
 			const saved = sweepHistory.saveRun.mock.calls[0][0];
 			expect(saved.refStat).toBe(Stat.StatAgility);
 			expect(saved.points.map(point => point.statValue)).toEqual([0, 10, 20]);
+		});
+
+		it('runs a target ± sweep to the DPS target alone', async () => {
+			player.computeStatWeights.mockResolvedValue(weightsResult([[STRENGTH, 2]]));
+			player.refStats.healRefStat = Stat.StatIntellect;
+			settings.precision = { precisionMode: 'target', iterations: 4000, targetEpCi: 0.02, maxIterationMultiplier: 4 };
+			await openSweepTab();
+
+			await act(async () => {
+				await userEvent.click(screen.getByRole('button', { name: 'sidebar.buttons.stat_weights.sweep.run' }));
+			});
+
+			const calls = player.computeStatWeights.mock.calls;
+			expect(calls.length).toBeGreaterThan(0);
+			for (const call of calls) {
+				expect(call[4]).toMatchObject({ targetEpCi: 0.02 });
+				expect(call[4].targetMetrics).toBeUndefined();
+				expect(call[4].hpsReferenceStat).toBeUndefined();
+			}
 		});
 	});
 

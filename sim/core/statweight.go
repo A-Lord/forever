@@ -157,9 +157,13 @@ func buildStatWeightRequests(swr *proto.StatWeightsRequest) *proto.StatWeightReq
 	statModsLow := make([]float64, stats.UnitStatsLen)
 	statModsHigh := make([]float64, stats.UnitStatsLen)
 
-	// Make sure reference stat is included.
+	// Make sure the reference stats are included, the HPS one when HPS is targeted.
 	statModsLow[swr.EpReferenceStat] = -defaultStatMod
 	statModsHigh[swr.EpReferenceStat] = defaultStatMod
+	if slices.Contains(swr.TargetMetrics, proto.StatWeightsTargetMetric_StatWeightsTargetMetricHps) {
+		statModsLow[swr.HpsReferenceStat] = -defaultStatMod
+		statModsHigh[swr.HpsReferenceStat] = defaultStatMod
+	}
 
 	statsToWeigh := stats.ProtoArrayToStatsList(swr.StatsToWeigh)
 	for _, s := range statsToWeigh {
@@ -469,9 +473,11 @@ func calcStatWeights(swcr *proto.StatWeightsCalcRequest) (*StatWeightsResult, *p
 	return result, nil
 }
 
-// Per-side iteration totals that bring each stat's shown DPS EP ± down to the target. A stat at or
-// under the target, or with no weight, is left out, and the baseline runs as far as the furthest
-// stat. The sides divide the total because the low and high runs pool their samples.
+// Per-side iteration totals that bring each stat's shown EP ± down to the target in every targeted
+// metric, sized by the metric that needs the most. A metric is skipped for a stat whose weight or
+// reference weight in it is 0, a stat at or under the target in all of them is left out, and the
+// baseline runs as far as the furthest stat. The sides divide the total because the low and high
+// runs pool their samples.
 func planStatWeightTopUp(request *proto.StatWeightsTopUpRequest) *proto.StatWeightsTopUpPlan {
 	calc := mergeStatWeightSegments(request.Calc)
 	plan := &proto.StatWeightsTopUpPlan{
@@ -482,11 +488,37 @@ func planStatWeightTopUp(request *proto.StatWeightsTopUpRequest) *proto.StatWeig
 		return plan
 	}
 
+	targetMetrics := request.TargetMetrics
+	if len(targetMetrics) == 0 {
+		targetMetrics = []proto.StatWeightsTargetMetric{proto.StatWeightsTargetMetric_StatWeightsTargetMetricDps}
+	}
+	metricValues := func(metric proto.StatWeightsTargetMetric) (*StatWeightValues, stats.Stat) {
+		switch metric {
+		case proto.StatWeightsTargetMetric_StatWeightsTargetMetricHps:
+			return &result.Hps, stats.Stat(request.HpsReferenceStat)
+		case proto.StatWeightsTargetMetric_StatWeightsTargetMetricTps:
+			return &result.Tps, stats.Stat(calc.EpReferenceStat)
+		default:
+			return &result.Dps, stats.Stat(calc.EpReferenceStat)
+		}
+	}
+
 	for _, statResult := range calc.StatSimResults {
 		stat := stats.UnitStatFromIdx(int(statResult.StatData.UnitStat))
-		epStdev := result.Dps.EpValuesStdev.Get(stat)
 		samples := result.SampleCounts.Get(stat)
-		if result.Dps.Weights.Get(stat) == 0 || statWeightZ90*epStdev/math.Sqrt(samples) <= request.TargetEpCi {
+		epStdev := 0.0
+		for _, metric := range targetMetrics {
+			values, refStat := metricValues(metric)
+			refWeight := values.Weights.Stats[refStat]
+			if values.Weights.Get(stat) == 0 || refWeight == 0 {
+				continue
+			}
+			metricEpStdev := values.WeightsStdev.Get(stat) / math.Abs(refWeight)
+			if statWeightZ90*metricEpStdev/math.Sqrt(samples) > request.TargetEpCi {
+				epStdev = max(epStdev, metricEpStdev)
+			}
+		}
+		if epStdev == 0 {
 			continue
 		}
 
@@ -626,6 +658,8 @@ func runStatWeights(request *proto.StatWeightsRequest, progress chan *proto.Prog
 			Calc:                 calc,
 			TargetEpCi:           request.TargetEpCi,
 			MaxIterationsPerSide: probeIterations * multiplier,
+			TargetMetrics:        request.TargetMetrics,
+			HpsReferenceStat:     request.HpsReferenceStat,
 		})
 		if len(plan.Stats) == 0 {
 			break

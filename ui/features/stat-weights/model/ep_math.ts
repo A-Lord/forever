@@ -1,4 +1,4 @@
-import { StatWeightsResult, StatWeightValues } from '@generated/proto/api';
+import { StatWeightsResult, StatWeightsTargetMetric, StatWeightValues } from '@generated/proto/api';
 import { PseudoStat, Stat, UnitStats } from '@generated/proto/common';
 import { Stats, UnitStat } from '@sim/proto/stats';
 import type { EpPrecisionSettings } from '@sim/settings/stat_weight_settings';
@@ -73,10 +73,27 @@ export const combineScaledEpValues = (results: StatWeightsResult, epRatios: numb
 
 export const combineScaledWeights = (results: StatWeightsResult, epRatios: number[]): Stats => combineScaled(results, epRatios, values => values.weights);
 
-// An iteration count of 0 leaves the sim's own setting in charge.
-export const precisionRunOptions = ({ precisionMode, iterations, targetEpCi, maxIterationMultiplier }: EpPrecisionSettings): StatWeightsOptions => ({
+export type EpTargets = {
+	displayMetrics: { damage: boolean; healing: boolean; threat: boolean };
+	hpsReferenceStat?: Stat;
+};
+
+const targetMetricOptions = ({ displayMetrics, hpsReferenceStat }: EpTargets): StatWeightsOptions => ({
+	targetMetrics: [
+		...(displayMetrics.damage ? [StatWeightsTargetMetric.StatWeightsTargetMetricDps] : []),
+		...(displayMetrics.healing ? [StatWeightsTargetMetric.StatWeightsTargetMetricHps] : []),
+		...(displayMetrics.threat ? [StatWeightsTargetMetric.StatWeightsTargetMetricTps] : []),
+	],
+	hpsReferenceStat,
+});
+
+// An iteration count of 0 leaves the sim's own setting in charge. Without targets, the target ± applies to DPS EP alone.
+export const precisionRunOptions = (
+	{ precisionMode, iterations, targetEpCi, maxIterationMultiplier }: EpPrecisionSettings,
+	targets?: EpTargets,
+): StatWeightsOptions => ({
 	iterations: iterations || undefined,
-	...(precisionMode === 'target' ? { targetEpCi, maxIterationMultiplier } : {}),
+	...(precisionMode === 'target' ? { targetEpCi, maxIterationMultiplier, ...(targets ? targetMetricOptions(targets) : {}) } : {}),
 });
 
 export const epWeightsWithoutExcluded = (newWeights: Stats, oldWeights: Stats, { excludedStats, excludedPseudoStats }: ExcludedStats): Stats => {

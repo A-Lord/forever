@@ -1,4 +1,4 @@
-import { StatWeightsResult, StatWeightValues } from '@generated/proto/api';
+import { StatWeightsResult, StatWeightsTargetMetric, StatWeightValues } from '@generated/proto/api';
 import { PseudoStat, Stat } from '@generated/proto/common';
 import { Stats, UnitStat } from '@sim/proto/stats';
 import { describe, expect, it } from 'vitest';
@@ -202,8 +202,27 @@ describe('precisionRunOptions', () => {
 		expect(precisionRunOptions({ ...precision, precisionMode: 'iterations', iterations: 0 }).iterations).toBeUndefined();
 	});
 
-	it('adds the target and the cap in target mode', () => {
+	it('adds the target and the cap in target mode, and no metrics without targets', () => {
 		expect(precisionRunOptions({ ...precision, precisionMode: 'target' })).toEqual({ iterations: 4000, targetEpCi: 0.02, maxIterationMultiplier: 4 });
+	});
+
+	it('targets the shown metrics and the HPS reference stat in target mode only', () => {
+		const targets = { displayMetrics: { damage: true, healing: true, threat: true }, hpsReferenceStat: Stat.StatIntellect };
+		expect(precisionRunOptions({ ...precision, precisionMode: 'target' }, targets)).toEqual({
+			iterations: 4000,
+			targetEpCi: 0.02,
+			maxIterationMultiplier: 4,
+			targetMetrics: [
+				StatWeightsTargetMetric.StatWeightsTargetMetricDps,
+				StatWeightsTargetMetric.StatWeightsTargetMetricHps,
+				StatWeightsTargetMetric.StatWeightsTargetMetricTps,
+			],
+			hpsReferenceStat: Stat.StatIntellect,
+		});
+		expect(
+			precisionRunOptions({ ...precision, precisionMode: 'target' }, { displayMetrics: { damage: false, healing: true, threat: false } }).targetMetrics,
+		).toEqual([StatWeightsTargetMetric.StatWeightsTargetMetricHps]);
+		expect(precisionRunOptions({ ...precision, precisionMode: 'iterations' }, targets)).toEqual({ iterations: 4000 });
 	});
 });
 
