@@ -170,14 +170,22 @@ func (druid *Druid) applyEclipse() {
 		}
 	}
 
-	// Each Wrath whose hit roll lands grants the charges at its cast, so a Starfire queued behind it
-	// takes one. A miss or a full resist grants none.
-	druid.eclipseLaunch = func(sim *core.Simulation, result *core.SpellResult) {
-		if result.Landed() {
+	// Each Wrath whose hit roll lands grants the charges with its cast result, at its cast, so a
+	// Starfire queued behind it takes one. A miss or a full resist grants none.
+	trigger := spelldata.ProcTrigger(&druid.Character, rank,
+		func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
 			aura.Activate(sim)
 			aura.AddStacks(sim, chargesPerWrath)
-		}
+		})
+	trigger.Name = "Eclipse - Trigger"
+	trigger.Callback = core.CallbackOnCastResult
+	trigger.Outcome = core.OutcomeLanded
+	trigger.TriggerImmediately = true
+	trigger.ClassFlags = spellData.Wrath.Highest().ClassFlags
+	trigger.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
+		return spellData.Wrath.Contains(spell)
 	}
+	druid.MakeProcTriggerAura(trigger)
 }
 
 // Arcane and Nature damage done.
