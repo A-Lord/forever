@@ -219,22 +219,28 @@ func TestOffHandAutoAttackRageGeneration(t *testing.T) {
 }
 
 func TestDamageTakenRageGeneration(t *testing.T) {
-	// 1000 damage before mitigation at level 60: 2.5 * 1000 / 230.6 = 10.841, and half that for a
-	// physical hit, which counts as if armor halved it. A periodic tick grants rage the same way.
+	// 1000 damage before mitigation from a level 63 attacker, which assumes 40% armor: 2.5 * 0.6 * 1000 / 243.64
+	// = 6.157, whatever the school, and a periodic tick alike. From a level 30 attacker (20%): 2.5 * 0.8 * 1000 /
+	// 109.23 = 18.310; level 44 (30%): 2.5 * 0.7 * 1000 / 163.83 = 10.682; level 45 sits halfway between the 44 and
+	// 46 rows (33%): 2.5 * 0.67 * 1000 / 167.87 = 9.978.
 	const preMitigationDamage = 1000.0
 
 	tests := []struct {
-		name     string
-		school   SpellSchool
-		outcome  HitOutcome
-		periodic bool
-		wantRage float64
+		name          string
+		school        SpellSchool
+		outcome       HitOutcome
+		periodic      bool
+		attackerLevel int32
+		wantRage      float64
 	}{
-		{name: "physical hit", school: SpellSchoolPhysical, outcome: OutcomeHit, wantRage: 5.421},
-		{name: "fire hit", school: SpellSchoolFire, outcome: OutcomeHit, wantRage: 10.841},
+		{name: "physical hit", school: SpellSchoolPhysical, outcome: OutcomeHit, wantRage: 6.157},
+		{name: "fire hit", school: SpellSchoolFire, outcome: OutcomeHit, wantRage: 6.157},
 		{name: "dodge", school: SpellSchoolPhysical, outcome: OutcomeDodge, wantRage: 0},
-		{name: "nature tick", school: SpellSchoolNature, outcome: OutcomeHit, periodic: true, wantRage: 10.841},
-		{name: "physical tick", school: SpellSchoolPhysical, outcome: OutcomeHit, periodic: true, wantRage: 5.421},
+		{name: "nature tick", school: SpellSchoolNature, outcome: OutcomeHit, periodic: true, wantRage: 6.157},
+		{name: "physical tick", school: SpellSchoolPhysical, outcome: OutcomeHit, periodic: true, wantRage: 6.157},
+		{name: "lower level attacker", school: SpellSchoolPhysical, outcome: OutcomeHit, attackerLevel: 30, wantRage: 18.310},
+		{name: "attacker on a row", school: SpellSchoolPhysical, outcome: OutcomeHit, attackerLevel: 44, wantRage: 10.682},
+		{name: "attacker between rows", school: SpellSchoolPhysical, outcome: OutcomeHit, attackerLevel: 45, wantRage: 9.978},
 	}
 
 	for _, test := range tests {
@@ -242,6 +248,9 @@ func TestDamageTakenRageGeneration(t *testing.T) {
 			sim := SetupFakeRageSim()
 			fw := sim.Raid.Parties[0].Players[0].(*FakeRageWarrior)
 			attacker := sim.Encounter.ActiveTargetUnits[0]
+			if test.attackerLevel != 0 {
+				attacker.Level = test.attackerLevel
+			}
 
 			result := &SpellResult{
 				Target:              &fw.Unit,
@@ -300,9 +309,9 @@ func TestPreMitigationDamage(t *testing.T) {
 	if !WithinToleranceFloat64(2000, result.PreMitigationDamage, 0.001) {
 		t.Fatalf("Damage before mitigation: Expected: %0.3f, Actual: %0.3f", 2000.0, result.PreMitigationDamage)
 	}
-	// 2.5 * 2000 * 0.5 / 230.6 = 10.841.
-	if !WithinToleranceFloat64(10.841, gained, 0.001) {
-		t.Fatalf("Rage from the hit: Expected: %0.3f, Actual: %0.3f", 10.841, gained)
+	// 2.5 * 0.6 * 2000 / 243.64 = 12.313.
+	if !WithinToleranceFloat64(12.313, gained, 0.001) {
+		t.Fatalf("Rage from the hit: Expected: %0.3f, Actual: %0.3f", 12.313, gained)
 	}
 }
 

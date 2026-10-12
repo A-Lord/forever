@@ -159,7 +159,9 @@ func (unit *Unit) newAPLRotation(config *proto.APLRotation) *APLRotation {
 								// Warnings for prepull cast failure are detected by running a fake prepull,
 								// so this action.Execute needs to record warnings.
 								rotation.doAndRecordWarnings(&rotation.prepullValidations[prepullIdx], true, func() {
-									action.Execute(sim)
+									if action.condition == nil || action.condition.GetBool(sim) {
+										action.Execute(sim)
+									}
 								})
 							})
 						}

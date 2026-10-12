@@ -95,7 +95,7 @@ export const ActionPicker = memo(({ player, config, stacked, fullWidth }: Action
 			className={[clsx('m-0 min-w-0 grow gap-2', stacked ? 'flex-col' : 'flex-row items-baseline', fullWidth && 'w-full'), frameProps.className]}
 			testId="apl-action-picker-root"
 			disabled={disabled}>
-			{!isPrepull && !inSequence && <ValuePicker player={player} config={conditionConfig} testId="apl-action-condition" />}
+			{!inSequence && <ValuePicker player={player} config={conditionConfig} testId="apl-action-condition" />}
 			<div className="flex w-full flex-row flex-wrap items-baseline gap-2" data-kind={kind}>
 				<ConnectedChoiceField<Player<any>, ValidAPLActionKind>
 					modObject={player}
