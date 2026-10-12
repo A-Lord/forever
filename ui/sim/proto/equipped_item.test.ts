@@ -1,4 +1,4 @@
-import { ItemRandomSuffix, ItemType, PseudoStat, Stat } from '@generated/proto/common';
+import { ItemRandomSuffix, ItemSlot, ItemType, PseudoStat, Stat } from '@generated/proto/common';
 import { UIEnchant as Enchant, UIItem as Item } from '@generated/proto/ui';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -57,5 +57,43 @@ describe('EquippedItem with a random suffix', () => {
 		const once = new EquippedItem({ item: ring, randomSuffix: suffix }).withDynamicStats();
 		const twice = new EquippedItem({ item: once.item, randomSuffix: suffix }).withDynamicStats();
 		expect(twice.calcStats().equals(once.calcStats())).toBe(true);
+	});
+});
+
+describe('EquippedItem with a random suffix that reduces caster DPS', () => {
+	const axe = () =>
+		Item.create({
+			id: 3210,
+			name: 'Brutal War Axe',
+			type: ItemType.ItemTypeWeapon,
+			weaponSpeed: 3.6,
+			scalingOptions: {
+				0: {
+					ilvl: 30,
+					randPropPoints: 11,
+					weaponDamageMin: 58,
+					weaponDamageMax: 88,
+					unroundedDps: 20.483225,
+					stats: [],
+					areaStats: [],
+					reducedCasterWeaponDamage: { weaponDamageMin: 43, weaponDamageMax: 66, unroundedDps: 15.231116 },
+				},
+			},
+		});
+	const physician = ItemRandomSuffix.create({ id: 12911, name: 'of the Physician', stats: [], pseudoStats: [], reducedCasterDps: true });
+	const bear = ItemRandomSuffix.create({ id: 12718, name: 'of the Bear', stats: [], pseudoStats: [] });
+
+	it('swaps in the reduced damage range and its DPS', () => {
+		const equipped = new EquippedItem({ item: axe(), randomSuffix: physician }).withDynamicStats();
+		expect([equipped.item.weaponDamageMin, equipped.item.weaponDamageMax]).toEqual([43, 66]);
+		expect(equipped.calcStats(ItemSlot.ItemSlotMainHand).getPseudoStat(PseudoStat.PseudoStatMainHandDps)).toBeCloseTo((43 + 66) / 2 / 3.6);
+	});
+
+	it('keeps the weapon damage with any other suffix, and with none', () => {
+		for (const randomSuffix of [bear, null]) {
+			const equipped = new EquippedItem({ item: axe(), randomSuffix }).withDynamicStats();
+			expect([equipped.item.weaponDamageMin, equipped.item.weaponDamageMax]).toEqual([58, 88]);
+			expect(equipped.calcStats(ItemSlot.ItemSlotMainHand).getPseudoStat(PseudoStat.PseudoStatMainHandDps)).toBeCloseTo((58 + 88) / 2 / 3.6);
+		}
 	});
 });
