@@ -9,13 +9,14 @@ var chainLightningRanks = castableRanks(spellData.ChainLightning)
 
 func (shaman *Shaman) registerChainLightningSpell() {
 	chainLightningRanks.Each(func(_ int32, rank *spelldata.Spell) {
-		overload := shaman.RegisterSpell(shaman.newChainLightningSpellConfig(rank, nil))
+		overload := shaman.RegisterSpell(shaman.newChainLightningSpellConfig(overloadRank(chainLightningOverloadRanks, rank), nil))
 		shaman.RegisterSpell(shaman.newChainLightningSpellConfig(rank, overload))
 	})
 }
 
-// The cast, with the overload it may trigger; the overload itself, where overload is nil. Both jump
-// alike, so an overload reaches as many targets as the cast, starting on the target that triggered it.
+// The cast, with the overload it may trigger; the overload itself, from its own row, where overload is
+// nil. Both jump alike, so an overload reaches as many targets as the cast, starting on the target that
+// triggered it.
 func (shaman *Shaman) newChainLightningSpellConfig(rank *spelldata.Spell, overload *core.Spell) core.SpellConfig {
 	config := shaman.newElectricSpellConfig(rank, overload == nil)
 	config.ClassSpellMask = SpellMaskChainLightning
