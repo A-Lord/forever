@@ -318,9 +318,14 @@ func RegisterEurekaMods(read func(spellID int32) EurekaMods) {
 
 // Eureka! scopes its mods to each class's abilities by the game files' class masks: idx0 of each row
 // names the spells whose cost it lowers, idx1 the ones whose direct damage it raises, and idx2, on the
-// warlock and priest rows only, the channels whose ticks it raises once the channel spends a stack. A
-// stack goes at the cast result of an ability any of them names, a miss included; one that lands has to
-// have a damage component.
+// warlock and priest rows only, the channels whose ticks it raises when they start with a stack up. A
+// stack goes once per cast of an ability any of them names, at the cast's end, which for a direct
+// spell is its cast result, a miss included; one that lands has to have a damage component. A channel
+// is one cast: one that starts with a stack up holds it for every tick and every spell it casts, and
+// spends it when the channel ends, cut short or not, even when its own cast result deals nothing. Wand
+// Shoot is no such channel.
+// TODO: Ingame test needed: whether a channel still running when the 15 seconds run out keeps the
+// bonus to its end.
 func applyEureka(character *Character) {
 	var spellID int32
 	var resourceType proto.ResourceType
@@ -363,32 +368,9 @@ func applyEureka(character *Character) {
 		ProcMask:   procMask,
 		FloatValue: mods.Damage,
 	})
-	// TODO: Ingame test needed: whether a channel that spends a stack keeps the bonus on all of its
-	// ticks once the aura has ended, the last stack included.
 	isEurekaChannel := func(spell *Spell) bool {
 		return spell.Flags.Matches(SpellFlagChanneled) && !spell.Flags.Matches(SpellFlagNoSpellMods) &&
 			spell.MatchesFlags(mods.ChannelFlags) && procMask.Matches(spell.ProcMask)
-	}
-	var boostedChannels map[*Dot]bool
-	if !mods.ChannelFlags.IsZero() {
-		boostedChannels = make(map[*Dot]bool)
-		// The channel's own expire hook comes first, so its final tick keeps the bonus.
-		character.OnSpellRegistered(func(spell *Spell) {
-			if !isEurekaChannel(spell) {
-				return
-			}
-			for _, dot := range append(DotArray{spell.AOEDot()}, spell.dots...) {
-				if dot == nil {
-					continue
-				}
-				dot.ApplyOnExpire(func(_ *Aura, _ *Simulation) {
-					if boostedChannels[dot] {
-						dot.PeriodicDamageMultiplier /= 1 + mods.Channel
-						delete(boostedChannels, dot)
-					}
-				})
-			}
-		})
 	}
 
 	firstHit, resetFirstHit := OncePerCast()
@@ -415,28 +397,58 @@ func applyEureka(character *Character) {
 		spendFlags.Mask[i] |= mods.DamageFlags.Mask[i]
 	}
 
-	aura.AttachProcTrigger(ProcTrigger{
+	var heldChannel *Dot
+	spender := ProcTrigger{
 		Name:       "Eureka! - Spend",
 		Callback:   spendCallback,
 		ClassFlags: spendFlags,
 		ProcMask:   procMask,
 
 		ExtraCondition: func(sim *Simulation, spell *Spell, result *SpellResult) bool {
+			// A channel's cast result lands before or after its dot starts, as the class orders it; a
+			// landed one leaves the charge to the dot's start.
+			if heldChannel != nil || (spell.Flags.Matches(SpellFlagChanneled) && !character.Wand.IsShoot(spell) && result.Landed()) {
+				return false
+			}
 			return (!result.Landed() || result.Damage > 0 || spell.hasDot(result.Target)) && firstHit(sim, spell)
 		},
-		Handler: func(sim *Simulation, spell *Spell, result *SpellResult) {
-			if isEurekaChannel(spell) {
-				dot := spell.AOEDot()
-				if dot == nil {
-					dot = spell.Dot(result.Target)
-				}
-				if dot != nil && dot.IsActive() && !boostedChannels[dot] {
-					dot.PeriodicDamageMultiplier *= 1 + mods.Channel
-					boostedChannels[dot] = true
-				}
-			}
+		Handler: func(sim *Simulation, _ *Spell, _ *SpellResult) {
 			aura.RemoveStack(sim)
 		},
+	}
+	aura.AttachProcTrigger(spender)
+
+	// newDot's own gain hook comes first, so the unit's ChanneledDot is set here.
+	character.OnSpellRegistered(func(spell *Spell) {
+		if !spell.Flags.Matches(SpellFlagChanneled) || !spender.matchesSpell(spell) {
+			return
+		}
+		for _, dot := range append(DotArray{spell.AOEDot()}, spell.dots...) {
+			if dot == nil {
+				continue
+			}
+			dot.ApplyOnGain(func(_ *Aura, _ *Simulation) {
+				if aura.IsActive() && character.ChanneledDot == dot && !character.Wand.IsShoot(spell) {
+					heldChannel = dot
+					if isEurekaChannel(spell) {
+						dot.PeriodicDamageMultiplier *= 1 + mods.Channel
+					}
+				}
+			})
+		}
+	})
+	// The final tick has landed by now, so it keeps the bonus.
+	character.OnChannelEnd(func(sim *Simulation, dot *Dot) {
+		if dot != heldChannel {
+			return
+		}
+		heldChannel = nil
+		if isEurekaChannel(dot.Spell) {
+			dot.PeriodicDamageMultiplier /= 1 + mods.Channel
+		}
+		if aura.IsActive() {
+			aura.RemoveStack(sim)
+		}
 	})
 
 	spell := character.RegisterSpell(SpellConfig{
