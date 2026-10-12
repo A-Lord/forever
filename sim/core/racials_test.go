@@ -453,6 +453,47 @@ func TestGnomeEurekaChannelSpendsOnceAtItsEnd(t *testing.T) {
 	}
 }
 
+// Eureka! cast during a channel holds that channel's stack from its next hit, and a channel cast while
+// another still runs spends the other's stack and takes the bonus off its ticks.
+func TestGnomeEurekaHoldsTheRunningChannel(t *testing.T) {
+	sim, fw := setupFakeWarlockSim(proto.Race_RaceGnome)
+	target := fw.CurrentTarget
+	drainLife := fw.DrainLife.Dot(target)
+	rainOfFire := fw.RainOfFire.Dot(target)
+	runFor := func(d time.Duration) {
+		for end := sim.CurrentTime + d; sim.CurrentTime < end && !sim.Step(); {
+		}
+	}
+
+	fw.RainOfFire.SkipCastAndApplyEffects(sim, target)
+	runFor(time.Millisecond * 1500)
+	if !fw.GetSpell(ActionID{SpellID: 1259821}).Cast(sim, target) {
+		t.Fatalf("a gnome warlock should cast Eureka! during a channel")
+	}
+	eureka := fw.GetAura("Eureka!")
+	for rainOfFire.IsActive() && !sim.Step() {
+	}
+	if eureka.GetStacks() != 2 {
+		t.Fatalf("a Rain of Fire running when Eureka! is cast should spend one stack when it ends, %d left", eureka.GetStacks())
+	}
+
+	fw.DrainLife.SkipCastAndApplyEffects(sim, target)
+	runFor(time.Millisecond * 1500)
+	fw.RainOfFire.SkipCastAndApplyEffects(sim, target)
+	if !drainLife.IsActive() || eureka.GetStacks() != 1 {
+		t.Fatalf("a Rain of Fire cast during Drain Life should spend Drain Life's stack as it starts, %d left", eureka.GetStacks())
+	}
+	if got := drainLife.PeriodicDamageMultiplier; got != 1 {
+		t.Fatalf("Drain Life should lose the bonus once a Rain of Fire starts during it, got x%0.2f", got)
+	}
+	for (drainLife.IsActive() || rainOfFire.IsActive()) && !sim.Step() {
+	}
+	if eureka.IsActive() || drainLife.PeriodicDamageMultiplier != 1 {
+		t.Fatalf("the Rain of Fire should spend the last stack when it ends, %d left, Drain Life at x%0.2f",
+			eureka.GetStacks(), drainLife.PeriodicDamageMultiplier)
+	}
+}
+
 func TestTaurenEndurance(t *testing.T) {
 	_, human := setupRacialSim(proto.Race_RaceHuman)
 	_, tauren := setupRacialSim(proto.Race_RaceTauren)
