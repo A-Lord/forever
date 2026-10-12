@@ -652,8 +652,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-AllItems-MoltenHeartoftheMountain-249470"
  value: {
-  dps: 602.39278
-  tps: 325.4815
+  dps: 602.58109
+  tps: 325.57508
  }
 }
 dps_results: {
@@ -904,8 +904,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-AllItems-ZandalarianHeroMedallion-19949"
  value: {
-  dps: 603.79814
-  tps: 326.18003
+  dps: 604.69674
+  tps: 326.62663
  }
 }
 dps_results: {

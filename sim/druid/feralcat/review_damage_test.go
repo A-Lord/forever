@@ -202,3 +202,112 @@ func TestRendAndTearRaisesBleedTicks(t *testing.T) {
 		}
 	}
 }
+
+func TestFeralPhysicalDamageMatchesPawDamage(t *testing.T) {
+	for _, name := range []string{"Auto", "Shred", "Ravage", "Claw", "Maul", "Primal Bite", "Lacerate", "Rake", "Bite"} {
+		t.Run(name, func(t *testing.T) {
+			damage := func(mode string) (float64, float64) {
+				sim, cat := newCat(t, "050022-55000032021131212051-053", nil)
+				if name == "Maul" || name == "Primal Bite" || name == "Lacerate" {
+					cat.ClearForm(sim)
+					cat.DireBearFormAura.Activate(sim)
+				}
+				cat.AddStatDynamic(sim, stats.PhysicalHitPercent, 100)
+				cat.AddStatDynamic(sim, stats.PhysicalCritPercent, -100)
+				cat.AddStatDynamic(sim, stats.ExpertisePercent, 100)
+				cat.AddComboPoints(sim, 5, cat.NewComboPointMetrics(core.ActionID{SpellID: 1}))
+				const bonus = 7.0
+				if mode == "stat" {
+					cat.AddStatDynamic(sim, stats.PhysicalDamage, bonus)
+				} else if mode == "paw" {
+					cat.AutoAttacks.MH().BaseDamageMin += bonus
+					cat.AutoAttacks.MH().BaseDamageMax += bonus
+				}
+				spell := cat.MHAutoSpell
+				switch name {
+				case "Shred":
+					spell = cat.Shred.Spell
+				case "Ravage":
+					spell = cat.Ravage.Spell
+				case "Claw":
+					spell = cat.Claw.Spell
+				case "Maul":
+					spell = cat.GetSpell(cat.Maul.ActionID.WithTag(1))
+				case "Primal Bite":
+					spell = cat.PrimalBite.Spell
+				case "Lacerate":
+					spell = cat.Lacerate.Spell
+					dot := spell.Dot(cat.CurrentTarget)
+					dot.Apply(sim)
+					dot.SetStacks(sim, 2)
+				case "Rake":
+					spell = cat.Rake.Spell
+				case "Bite":
+					spell = cat.FerociousBite.Spell
+				}
+				expected := 0.0
+				if name == "Auto" {
+					expected = spell.ExpectedInitialDamage(sim, cat.CurrentTarget)
+				}
+				spell.ApplyEffects(sim, cat.CurrentTarget, spell)
+				return spell.SpellMetrics[cat.CurrentTarget.UnitIndex].TotalDamage, expected
+			}
+			plain, _ := damage("base")
+			stat, statExpected := damage("stat")
+			paw, pawExpected := damage("paw")
+			if math.Abs(stat-paw) > 1e-8 || math.Abs(statExpected-pawExpected) > 1e-8 {
+				t.Fatalf("flat physical damage gives %g (expected %g), paw damage gives %g (expected %g)", stat, statExpected, paw, pawExpected)
+			}
+			if name == "Rake" || name == "Bite" {
+				if math.Abs(stat-plain) > 1e-8 {
+					t.Fatalf("non-weapon hit gained %g damage", stat-plain)
+				}
+			} else if stat <= plain {
+				t.Fatalf("weapon damage did not increase: %g -> %g", plain, stat)
+			}
+		})
+	}
+}
+
+func TestFeralFlatDamageFollowsBuffsFormsAndReset(t *testing.T) {
+	sim, cat := newCat(t, "", nil)
+	const bonus = 9.0
+	check := func(inPaw bool) {
+		t.Helper()
+		// Remove weapon variance so this measures only the flat damage path.
+		cat.AutoAttacks.MH().BaseDamageMin = 0
+		cat.AutoAttacks.MH().BaseDamageMax = 0
+		wantWeapon, wantSpell := 0.0, 0.0
+		if inPaw {
+			wantWeapon = cat.GetStat(stats.PhysicalDamage)
+		} else {
+			wantSpell = cat.GetStat(stats.PhysicalDamage)
+		}
+		if got := cat.MHWeaponDamage(sim, 0); math.Abs(got-wantWeapon) > 1e-8 {
+			t.Fatalf("weapon flat damage = %g, want %g", got, wantWeapon)
+		}
+		if got := cat.MHNormalizedWeaponDamage(sim, 0); math.Abs(got-wantWeapon) > 1e-8 {
+			t.Fatalf("normalized weapon flat damage = %g, want %g", got, wantWeapon)
+		}
+		if got := cat.MHAutoSpell.BonusDamage(cat.AttackTables[cat.CurrentTarget.UnitIndex]); math.Abs(got-wantSpell) > 1e-8 {
+			t.Fatalf("spell flat damage = %g, want %g", got, wantSpell)
+		}
+	}
+	cat.AddStatDynamic(sim, stats.PhysicalDamage, bonus)
+	check(true)
+	for _, aura := range []*core.Aura{cat.BearFormAura, cat.DireBearFormAura, cat.CatFormAura} {
+		cat.ClearForm(sim)
+		check(false)
+		aura.Activate(sim)
+		check(true)
+	}
+	cat.AddStatDynamic(sim, stats.PhysicalDamage, -bonus)
+	check(true)
+	cat.AddStatDynamic(sim, stats.PhysicalDamage, bonus)
+	sim.Cleanup()
+	sim.Reset()
+	if got := cat.GetStat(stats.PhysicalDamage); got != 0 {
+		t.Fatalf("temporary flat damage survives reset: %g", got)
+	}
+	check(true)
+}

@@ -74,14 +74,24 @@ func (druid *Druid) ClearForm(sim *core.Simulation) {
 }
 
 func (druid *Druid) GetCatWeapon() core.Weapon {
-	unscaledWeapon := druid.WeaponFromMainHand()
+	return druid.feralWeapon(1)
+}
+
+// Enchants and weaponstones add to the paw after the equipped weapon's damage is scaled.
+func (druid *Druid) feralWeapon(swingSpeed float64) core.Weapon {
+	weapon := druid.WeaponFromMainHand()
+	flatDamage := 0.0
+	if item := druid.GetMHWeapon(); item != nil {
+		flatDamage = item.Enchant.WeaponDamage + item.TempEnchantWeaponDamage
+	}
 	return core.Weapon{
-		BaseDamageMin:        unscaledWeapon.BaseDamageMin / unscaledWeapon.SwingSpeed,
-		BaseDamageMax:        unscaledWeapon.BaseDamageMax / unscaledWeapon.SwingSpeed,
-		SwingSpeed:           1.0,
-		NormalizedSwingSpeed: 1.0,
-		AttackPowerPerDPS:    core.DefaultAttackPowerPerDPS,
-		MaxRange:             core.MaxMeleeRange,
+		BaseDamageMin:          (weapon.BaseDamageMin-flatDamage)/weapon.SwingSpeed*swingSpeed + flatDamage,
+		BaseDamageMax:          (weapon.BaseDamageMax-flatDamage)/weapon.SwingSpeed*swingSpeed + flatDamage,
+		SwingSpeed:             swingSpeed,
+		NormalizedSwingSpeed:   swingSpeed,
+		AttackPowerPerDPS:      core.DefaultAttackPowerPerDPS,
+		MaxRange:               core.MaxMeleeRange,
+		PhysicalDamageInWeapon: true,
 	}
 }
 
@@ -91,15 +101,7 @@ func (druid *Druid) GetCatWeapon() core.Weapon {
 const BearRageIsTwoHanded = true
 
 func (druid *Druid) GetBearWeapon() core.Weapon {
-	unscaledWeapon := druid.WeaponFromMainHand()
-	return core.Weapon{
-		BaseDamageMin:        unscaledWeapon.BaseDamageMin / unscaledWeapon.SwingSpeed * 2.5,
-		BaseDamageMax:        unscaledWeapon.BaseDamageMax / unscaledWeapon.SwingSpeed * 2.5,
-		SwingSpeed:           2.5,
-		NormalizedSwingSpeed: 2.5,
-		AttackPowerPerDPS:    core.DefaultAttackPowerPerDPS,
-		MaxRange:             core.MaxMeleeRange,
-	}
+	return druid.feralWeapon(2.5)
 }
 
 func (druid *Druid) RegisterCatFormAura() {
