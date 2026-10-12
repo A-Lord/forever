@@ -503,6 +503,13 @@ var WeaponProcs = []WeaponProc{
 	// 	Source:  "vanilla-carryover",
 	// },
 	// {
+	// 	ItemID:  3078,
+	// 	SpellID: 1292647,
+	// 	PPM:     0, // TODO: waiting for PPM data
+	// 	Reason:  "Naga Heartpiercer: no proc row",
+	// 	Source:  "vanilla-carryover",
+	// },
+	// {
 	// 	ItemID:  3854,
 	// 	SpellID: 13439,
 	// 	PPM:     0, // TODO: waiting for PPM data

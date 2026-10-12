@@ -46,6 +46,7 @@ func (warrior *Warrior) registerIronWill() {
 	if warrior.Talents.IronWill == 0 {
 		return
 	}
+	// The talent curve lengthens Stun and Fear by 3-15%, where the tooltip says it reduces them.
 	spelldata.ParseStatic(&warrior.Character, spellData.IronWill.Rank(warrior.Talents.IronWill))
 }
 
