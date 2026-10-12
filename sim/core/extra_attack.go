@@ -25,18 +25,14 @@ func (unit *Unit) ExtraAttackProc(trigger *ProcTrigger, tagSpellID int32, count 
 		if target == unit {
 			target = spell.Unit
 		}
-		pa := sim.GetConsumedPendingActionFromPool()
-		pa.NextActionAt = sim.CurrentTime
-		pa.Priority = ActionPriorityDOT
-		pa.OnAction = func(sim *Simulation) {
+		sim.RunAfterCurrentEvent(func(sim *Simulation) {
 			mainHand := unit.AutoAttacks.MHAuto()
 			extraAttack.SetSpellSchool(mainHand.SpellSchool)
 			extraAttack.BonusCoefficient = mainHand.BonusCoefficient
 			for range count {
 				unit.AutoAttacks.MaybeReplaceMHSwing(sim, extraAttack).Cast(sim, target)
 			}
-		}
-		sim.AddPendingAction(pa)
+		})
 	}
 	trigger.TriggerImmediately = true
 
