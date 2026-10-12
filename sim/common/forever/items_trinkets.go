@@ -201,9 +201,7 @@ func init() {
 				outcome = spell.OutcomeMagicHit
 			}
 			result := spell.CalcDamage(sim, target, damage.DirectAmount(sim), outcome)
-			spell.WaitTravelTime(sim, func(sim *core.Simulation) {
-				spell.DealDamage(sim, result)
-			})
+			spell.DealDamageAfterTravel(sim, result)
 		}
 		delivery := character.RegisterSpell(deliveryConfig)
 
