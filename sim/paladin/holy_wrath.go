@@ -29,6 +29,9 @@ func (paladin *Paladin) registerHolyWrath(_ int32, rank *spelldata.Spell) {
 				results = append(results, spell.CalcDamage(sim, aoeTarget, damage.Average(), spell.OutcomeMagicHitAndCrit))
 			}
 		}
+		for _, result := range results {
+			spell.DealCastResult(sim, result)
+		}
 
 		spell.WaitTravelTime(sim, func(sim *core.Simulation) {
 			for _, result := range results {
