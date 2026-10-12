@@ -176,13 +176,27 @@ func (druid *Druid) applyEclipse() {
 			aura.AddStacks(sim, chargesPerWrath)
 		})
 	trigger.Name = "Eclipse - Trigger"
-	// Up before the next cast starts, so the Starfire straight after a Wrath takes a charge.
+	// The row's mask reads as a cast trigger, which is when the charges come, but only for a Wrath
+	// whose hit roll lands: a miss or a full resist grants none. The roll is made at the cast, so the
+	// Wrath hands its result over as it is launched, and the charges are up at once for a Starfire
+	// queued behind it.
+	trigger.Callback = core.CallbackOnSpellHitDealt
+	trigger.Outcome = core.OutcomeLanded
 	trigger.TriggerImmediately = true
-	trigger.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
-		return spellData.Wrath.Contains(spell)
+
+	// Set while a Wrath's launch is handed to the trigger, so its later impact is told apart.
+	var launching bool
+	trigger.ExtraCondition = func(_ *core.Simulation, _ *core.Spell, _ *core.SpellResult) bool {
+		return launching
 	}
 
-	druid.MakeProcTriggerAura(trigger)
+	triggerAura := druid.MakeProcTriggerAura(trigger)
+
+	druid.eclipseLaunch = func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
+		launching = true
+		triggerAura.OnSpellHitDealt(triggerAura, sim, spell, result)
+		launching = false
+	}
 }
 
 // Arcane and Nature damage done.
