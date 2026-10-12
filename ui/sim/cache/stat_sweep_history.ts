@@ -28,6 +28,8 @@ export interface StatSweepRecord {
 	createdAt: number;
 	specId: Spec;
 	label: string;
+	/** The chart colour slot the run keeps across reloads; when unset, the run's index in the history stands in. */
+	colorSlot?: number;
 	/** `UnitStat.toJson()`: IndexedDB's structured clone drops class prototypes, so a stored UnitStat would come back without its methods. */
 	unitStat: object;
 	refStat: Stat;

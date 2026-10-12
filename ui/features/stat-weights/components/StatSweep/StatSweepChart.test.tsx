@@ -3,9 +3,10 @@ import type { StatSweepPoint } from '@sim/cache/stat_sweep_history';
 import { fakeCharts } from '@testing/chart-js-mock';
 import { makeHitSweepPoints } from '@testing/storybook/fixtures/stat-sweep';
 import { render, screen } from '@testing-library/react';
-import type { ChartOptions, LegendItem, TooltipItem } from 'chart.js';
+import type { ChartOptions, TooltipItem } from 'chart.js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { seriesColor } from './colors';
 import { StatSweepChart, type StatSweepSeries } from './StatSweepChart';
 
 vi.mock('chart.js', async () => (await import('@testing/chart-js-mock')).chartJsMock);
@@ -66,9 +67,14 @@ describe('StatSweepChart', () => {
 		expect(options.plugins!.legend!.display).toBe(true);
 
 		const shown = data.datasets.map((_, datasetIndex) => datasetIndex);
-		const legendFilter = options.plugins!.legend!.labels!.filter!;
+		const generateLabels = options.plugins!.legend!.labels!.generateLabels!;
 		const tooltipFilter = options.plugins!.tooltip!.filter!;
-		expect(shown.filter(datasetIndex => legendFilter({ datasetIndex } as LegendItem, data as never))).toEqual([2, 5]);
+		const items = generateLabels({ data, isDatasetVisible: () => true } as never);
+		expect(items.map(item => item.datasetIndex)).toEqual([2, 5]);
+		expect(items.map(item => [item.text, item.strokeStyle, item.fillStyle])).toEqual([
+			['a', seriesColor(0), seriesColor(0)],
+			['b', seriesColor(1), seriesColor(1)],
+		]);
 		expect(shown.filter(datasetIndex => tooltipFilter({ datasetIndex } as TooltipItem<'line'>, 0, [], {} as never))).toEqual([2, 5, 8, 11]);
 	});
 

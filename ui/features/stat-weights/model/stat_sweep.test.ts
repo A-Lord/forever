@@ -5,7 +5,7 @@ import { Stats, UnitStat } from '@sim/proto/stats';
 import { describe, expect, it } from 'vitest';
 
 import { emptyStatWeightsResult } from './ep_math';
-import { assignColorSlots, buildSweepOffsets, mergeSweepHistory, sweepPointFromResult, sweepSteps } from './stat_sweep';
+import { buildSweepOffsets, displayColorSlots, mergeSweepHistory, nextColorSlot, sweepPointFromResult, sweepSteps } from './stat_sweep';
 
 describe('buildSweepOffsets', () => {
 	it('steps from -range to +range through 0', () => {
@@ -92,19 +92,37 @@ describe('mergeSweepHistory', () => {
 	});
 });
 
-describe('assignColorSlots', () => {
-	it('gives new runs the lowest free slots in order', () => {
-		expect(assignColorSlots({}, ['a', 'b', 'c'], 8)).toEqual({ a: 0, b: 1, c: 2 });
+describe('nextColorSlot', () => {
+	it('starts at 0 and follows the newest saved run, wrapping at the slot count', () => {
+		expect(nextColorSlot([], 8)).toBe(0);
+		expect(nextColorSlot([{ colorSlot: 2 }, { colorSlot: 5 }], 8)).toBe(3);
+		expect(nextColorSlot([{ colorSlot: 7 }], 8)).toBe(0);
+	});
+});
+
+describe('displayColorSlots', () => {
+	it('keeps every run on its own slot while they differ', () => {
+		expect(
+			displayColorSlots(
+				[
+					{ id: 'a', colorSlot: 3 },
+					{ id: 'b', colorSlot: 1 },
+				],
+				8,
+			),
+		).toEqual({ a: 3, b: 1 });
 	});
 
-	it('keeps a shown run on its slot when another run leaves or joins', () => {
-		const first = assignColorSlots({}, ['a', 'b', 'c'], 8);
-		const withoutA = assignColorSlots(first, ['b', 'c'], 8);
-		expect(withoutA).toEqual({ b: 1, c: 2 });
-		expect(assignColorSlots(withoutA, ['b', 'c', 'd'], 8)).toEqual({ b: 1, c: 2, d: 0 });
-	});
-
-	it('leaves out a run once every slot is taken', () => {
-		expect(assignColorSlots({}, ['a', 'b', 'c'], 2)).toEqual({ a: 0, b: 1 });
+	it('moves the later of two runs sharing a slot to the next free one', () => {
+		expect(
+			displayColorSlots(
+				[
+					{ id: 'a', colorSlot: 1 },
+					{ id: 'b', colorSlot: 2 },
+					{ id: 'c', colorSlot: 1 },
+				],
+				4,
+			),
+		).toEqual({ a: 1, b: 2, c: 3 });
 	});
 });

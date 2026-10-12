@@ -31,6 +31,9 @@ const isLine = (datasetIndex: number) => datasetIndex % DATASETS_PER_RUN === LIN
 // The x range reaches this share of its span past the outermost value, so the end points draw whole inside the plot.
 const X_RANGE_PAD = 0.03;
 const BAND_ALPHA = '1a';
+const LEGEND_LINE_WIDTH = 3;
+// Each panel's scale fits its data, with this share of the span as room past the extremes.
+const Y_GRACE = '5%';
 
 const METRICS = {
 	ep: { value: (point: StatSweepPoint) => point.ep, ci: (point: StatSweepPoint) => point.epCi, digits: 3, title: 'ep_chart' },
@@ -111,6 +114,8 @@ const panelScale = (metric: Metric, weight: number) =>
 		stackWeight: 1,
 		weight,
 		offset: true,
+		beginAtZero: false,
+		grace: Y_GRACE,
 		title: { display: true, text: t(METRICS[metric].title) },
 		grid: { color: AXIS_GRID_COLOR },
 	}) as const;
@@ -129,10 +134,22 @@ function options(range: { min: number; max: number }, statLabel: string, showLeg
 				labels: {
 					usePointStyle: true,
 					pointStyle: 'line',
-					filter: (item, data) => {
-						const datasetIndex = item.datasetIndex ?? 0;
-						return isLine(datasetIndex) && (data.datasets[datasetIndex] as ChartDataset<'line'>).yAxisID === 'ep';
-					},
+					// The default items take their stroke from the point border, which is the surface colour, so the swatch would vanish.
+					generateLabels: chart =>
+						chart.data.datasets.flatMap((dataset, datasetIndex) => {
+							if (!isLine(datasetIndex) || (dataset as ChartDataset<'line'>).yAxisID !== 'ep') return [];
+							const color = (dataset as ChartDataset<'line'>).borderColor as string;
+							return [
+								{
+									text: dataset.label ?? '',
+									datasetIndex,
+									fillStyle: color,
+									strokeStyle: color,
+									lineWidth: LEGEND_LINE_WIDTH,
+									hidden: !chart.isDatasetVisible(datasetIndex),
+								},
+							];
+						}),
 				},
 			},
 			tooltip: {

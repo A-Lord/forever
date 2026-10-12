@@ -7,14 +7,14 @@ import type { EpPrecisionSettings } from '@sim/settings/stat_weight_settings';
 import { SimRunKind } from '@sim/state/sim_store';
 import { noop, randomUUID } from '@sim/utils/misc';
 import { toastManager } from '@ui-kit/Toast';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { SERIES_SLOT_COUNT } from '../components/StatSweep/colors';
 import type { StatSweepSeries } from '../components/StatSweep/StatSweepChart';
 import type { StatSweepHistoryEntry } from '../components/StatSweep/StatSweepHistory';
 import type { StatSweepProgress } from '../components/StatSweep/StatSweepPanel';
 import { precisionRunOptions } from '../model/ep_math';
-import { assignColorSlots, buildSweepOffsets, mergeSweepHistory, sweepPointFromResult, sweepSteps } from '../model/stat_sweep';
+import { buildSweepOffsets, displayColorSlots, mergeSweepHistory, nextColorSlot, sweepPointFromResult, sweepSteps } from '../model/stat_sweep';
 
 export interface StatSweepArgs {
 	unitStat: UnitStat;
@@ -32,28 +32,27 @@ interface SweepView {
 	/** The run in progress, drawn as its points arrive. */
 	live: StatSweepRecord | null;
 	overlaid: ReadonlyArray<string>;
-	colorSlots: Record<string, number>;
 }
 
 const shownRuns = ({ history, live, overlaid }: SweepView): StatSweepRecord[] => [...(live ? [live] : []), ...history.filter(run => overlaid.includes(run.id))];
 
-const withColorSlots = (view: SweepView): SweepView => ({
-	...view,
-	colorSlots: assignColorSlots(
-		view.colorSlots,
-		shownRuns(view).map(run => run.id),
+// The slot of each shown run, oldest first so a clash moves the newer run.
+const shownColorSlots = (view: SweepView, shown: StatSweepRecord[]) =>
+	displayColorSlots(
+		shown.map(run => ({ id: run.id, colorSlot: run.colorSlot ?? Math.max(view.history.indexOf(run), 0) % SERIES_SLOT_COUNT })).reverse(),
 		SERIES_SLOT_COUNT,
-	),
-});
+	);
 
 export const useStatSweep = () => {
 	const sim = useSim();
 	const player = usePlayer();
 	const { isRunning, abort } = useSimRun(SimRunKind.StatSweep);
-	const [view, setView] = useState<SweepView>({ history: [], live: null, overlaid: [], colorSlots: {} });
+	const [view, setView] = useState<SweepView>({ history: [], live: null, overlaid: [] });
 	const [progress, setProgress] = useState<StatSweepProgress>();
+	const history = useRef(view.history);
+	history.current = view.history;
 
-	const update = useCallback((change: (view: SweepView) => SweepView) => setView(current => withColorSlots(change(current))), []);
+	const update = setView;
 
 	useEffect(() => {
 		let active = true;
@@ -85,6 +84,7 @@ export const useStatSweep = () => {
 				createdAt: Date.now(),
 				specId: player.getSpec(),
 				label: args.label,
+				colorSlot: nextColorSlot(history.current, SERIES_SLOT_COUNT),
 				unitStat: unitStat.toJson(),
 				refStat,
 				range: args.range,
@@ -158,13 +158,10 @@ export const useStatSweep = () => {
 		[update],
 	);
 
-	// A shown run with no colour slot left is not drawn.
+	const colorSlots = useMemo(() => shownColorSlots(view, shownRuns(view)), [view]);
 	const series = useMemo<StatSweepSeries[]>(
-		() =>
-			shownRuns(view)
-				.filter(run => view.colorSlots[run.id] !== undefined)
-				.map(run => ({ id: run.id, label: run.label, colorSlot: view.colorSlots[run.id], points: run.points })),
-		[view],
+		() => shownRuns(view).map(run => ({ id: run.id, label: run.label, colorSlot: colorSlots[run.id], points: run.points })),
+		[view, colorSlots],
 	);
 	const historyEntries = useMemo<StatSweepHistoryEntry[]>(
 		() =>
@@ -173,9 +170,9 @@ export const useStatSweep = () => {
 				label: run.label,
 				createdAt: run.createdAt,
 				overlaid: view.overlaid.includes(run.id),
-				colorSlot: view.colorSlots[run.id],
+				colorSlot: colorSlots[run.id],
 			})),
-		[view],
+		[view, colorSlots],
 	);
 
 	return { isRunning, progress, series, historyEntries, run, cancel, remove, setOverlaid };

@@ -52,27 +52,22 @@ export function sweepPointFromResult(result: StatWeightsResult, unitStat: UnitSt
 	};
 }
 
+/** The slot a new run takes: the one after the newest saved run's, wrapping at `slotCount`. */
+export const nextColorSlot = (history: readonly Pick<StatSweepRecord, 'colorSlot'>[], slotCount: number): number =>
+	history.length ? ((history[0].colorSlot ?? 0) + 1) % slotCount : 0;
+
 /**
- * Gives each run a colour slot that stays its own while it is shown, so ticking or unticking another run never repaints
- * it. A new run takes the lowest free slot; one that finds none is left out.
+ * The slot each shown run is drawn in, given oldest first. A run keeps its own slot unless an earlier run holds it, which
+ * happens once the slots wrap around; it then takes the next free one.
  */
-export function assignColorSlots(previous: Readonly<Record<string, number>>, runIds: readonly string[], slotCount: number): Record<string, number> {
-	const assigned: Record<string, number> = {};
+export function displayColorSlots(runs: readonly { id: string; colorSlot: number }[], slotCount: number): Record<string, number> {
+	const shown: Record<string, number> = {};
 	const taken = new Set<number>();
-	for (const id of runIds) {
-		const slot = previous[id];
-		if (slot !== undefined && slot < slotCount) {
-			assigned[id] = slot;
-			taken.add(slot);
-		}
-	}
-	for (const id of runIds) {
-		if (assigned[id] !== undefined) continue;
-		let slot = 0;
-		while (taken.has(slot)) slot++;
-		if (slot >= slotCount) continue;
-		assigned[id] = slot;
+	for (const { id, colorSlot } of runs) {
+		let slot = colorSlot;
+		for (let tried = 0; taken.has(slot) && tried < slotCount; tried++) slot = (slot + 1) % slotCount;
+		shown[id] = slot;
 		taken.add(slot);
 	}
-	return assigned;
+	return shown;
 }
