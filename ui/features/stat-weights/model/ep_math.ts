@@ -87,12 +87,13 @@ const targetMetricOptions = ({ displayMetrics, hpsReferenceStat }: EpTargets): S
 	hpsReferenceStat,
 });
 
-// An iteration count of 0 leaves the sim's own setting in charge. Without targets, the target ± applies to DPS EP alone.
+// An iteration count of 0 leaves the sim's own setting in charge, and any other count is at least 2, one per side of the
+// stat. Without targets, the target ± applies to DPS EP alone.
 export const precisionRunOptions = (
 	{ precisionMode, iterations, targetEpCi, maxIterationMultiplier }: EpPrecisionSettings,
 	targets?: EpTargets,
 ): StatWeightsOptions => ({
-	iterations: iterations || undefined,
+	iterations: iterations ? Math.max(iterations, 2) : undefined,
 	...(precisionMode === 'target' ? { targetEpCi, maxIterationMultiplier, ...(targets ? targetMetricOptions(targets) : {}) } : {}),
 });
 

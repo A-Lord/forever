@@ -202,6 +202,11 @@ describe('precisionRunOptions', () => {
 		expect(precisionRunOptions({ ...precision, precisionMode: 'iterations', iterations: 0 }).iterations).toBeUndefined();
 	});
 
+	it('sends at least 2 iterations, one per side', () => {
+		expect(precisionRunOptions({ ...precision, precisionMode: 'iterations', iterations: 1 }).iterations).toBe(2);
+		expect(precisionRunOptions({ ...precision, precisionMode: 'target', iterations: 1 }).iterations).toBe(2);
+	});
+
 	it('adds the target and the cap in target mode, and no metrics without targets', () => {
 		expect(precisionRunOptions({ ...precision, precisionMode: 'target' })).toEqual({ iterations: 4000, targetEpCi: 0.02, maxIterationMultiplier: 4 });
 	});

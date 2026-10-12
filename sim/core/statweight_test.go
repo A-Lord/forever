@@ -565,3 +565,87 @@ func TestStatWeightTopUpPlanSizesTargetedHpsByTheHpsReference(t *testing.T) {
 		t.Errorf("agility planned %d iterations per side, want %d from the HPS reference's weight", got[agilityUnitStat], sized(intellectUnitStat))
 	}
 }
+
+func setChanceOfDeath(run *proto.RaidSimResult, chance float64) {
+	if run != nil {
+		run.RaidMetrics.Parties[0].Players[0].ChanceOfDeath = chance
+	}
+}
+
+// The chance of death weights compare the first runs alone, so runs topped up past them, and a
+// baseline topped up further than a stat, leave them as they were.
+func TestStatWeightsReadTheChanceOfDeathFromTheFirstRuns(t *testing.T) {
+	const perSide = 12
+	requests := noisyStatWeightRequests()
+	isHit := func(result *proto.StatWeightsStatResultData) bool {
+		return result.StatData.UnitStat == int32(hitRatingUnitStat)
+	}
+	probe := func() *proto.StatWeightsCalcRequest {
+		base, results := noisyStatWeightResults(requests, 0, perSide)
+		setChanceOfDeath(base, 0.1)
+		for _, result := range results {
+			setChanceOfDeath(result.ResultHigh, 0.3)
+			setChanceOfDeath(result.ResultLow, 0.05)
+		}
+		return &proto.StatWeightsCalcRequest{BaseResult: base, EpReferenceStat: requests.EpReferenceStat, StatSimResults: results}
+	}
+
+	topped := probe()
+	segmentBase, segmentResults := noisyStatWeightResults(requests, perSide, 2*perSide)
+	setChanceOfDeath(segmentBase, 0.9)
+	segmentResults = slices.DeleteFunc(segmentResults, isHit)
+	for _, result := range segmentResults {
+		setChanceOfDeath(result.ResultHigh, 0.9)
+		setChanceOfDeath(result.ResultLow, 0.9)
+	}
+	topped.ExtraSegments = []*proto.StatWeightsCalcSegment{{BaseResult: segmentBase, StatSimResults: segmentResults}}
+
+	probeOnly := computeStatWeights(probe())
+	toppedUp := computeStatWeights(topped)
+	hitModHigh := topped.StatSimResults[slices.IndexFunc(topped.StatSimResults, isHit)].StatData.ModHigh
+	if got, want := protoUnitStat(probeOnly.PDeath.Weights, hitRatingUnitStat), (0.3-0.1)/hitModHigh; math.Abs(got-want) > 1e-12 {
+		t.Fatalf("hit rating chance of death weight = %v, want %v", got, want)
+	}
+	for _, stat := range []stats.UnitStat{agilityUnitStat, hitRatingUnitStat} {
+		if got, want := protoUnitStat(toppedUp.PDeath.Weights, stat), protoUnitStat(probeOnly.PDeath.Weights, stat); got != want {
+			t.Errorf("stat %d chance of death weight after top-ups = %v, want the first runs' %v", stat, got, want)
+		}
+	}
+}
+
+func TestStatWeightRequestsRunAtLeastOneIterationPerSide(t *testing.T) {
+	requests := buildStatWeightRequests(&proto.StatWeightsRequest{
+		Player:          &proto.Player{},
+		Encounter:       &proto.Encounter{},
+		SimOptions:      &proto.SimOptions{Iterations: 1, RandomSeed: 1},
+		StatsToWeigh:    []proto.Stat{proto.Stat_StatAgility, proto.Stat_StatHitRating},
+		EpReferenceStat: proto.Stat_StatAgility,
+	})
+	if got := requests.BaseRequest.SimOptions.Iterations; got != 1 {
+		t.Errorf("baseline runs %d iterations, want 1", got)
+	}
+	for _, request := range requests.StatSimRequests {
+		for _, simRequest := range []*proto.RaidSimRequest{request.RequestLow, request.RequestHigh} {
+			if simRequest != nil && simRequest.SimOptions.Iterations != 1 {
+				t.Errorf("stat %d runs %d iterations, want 1", request.StatData.UnitStat, simRequest.SimOptions.Iterations)
+			}
+		}
+	}
+}
+
+// A stat run longer than the baseline has iterations with nothing to pair with, so the weights are
+// refused and the plan asks for nothing more.
+func TestStatWeightsRefuseAStatRunLongerThanTheBaseline(t *testing.T) {
+	const perSide = 12
+	requests := noisyStatWeightRequests()
+	base, _ := noisyStatWeightResults(requests, 0, perSide)
+	_, longResults := noisyStatWeightResults(requests, 0, 2*perSide)
+	calc := &proto.StatWeightsCalcRequest{BaseResult: base, EpReferenceStat: requests.EpReferenceStat, StatSimResults: longResults}
+
+	if result := computeStatWeights(calc); result.Error == nil {
+		t.Error("weights computed for stat runs longer than the baseline, want an error")
+	}
+	if plan := planStatWeightTopUp(&proto.StatWeightsTopUpRequest{Calc: calc, TargetEpCi: 1e-9, MaxIterationsPerSide: math.MaxInt32}); len(plan.Stats) != 0 {
+		t.Errorf("plan = %v, want no stats", plan)
+	}
+}
