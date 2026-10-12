@@ -67,3 +67,36 @@ func TestRandomSuffixEquipSpellDodge(t *testing.T) {
 		}
 	}
 }
+
+// A bonus list with an ITEM_BONUS_REDUCED_CASTER_DPS row marks its suffix, and a weapon offering one
+// carries the damage it deals with it: Brutal War Axe (3210) shows 43-66 with "of the Physician"
+// (12911) in game against 58-88 on its own. A weapon offering none, and the armor the lower lists
+// sit on, carry no such range.
+func TestReducedCasterDpsSuffixDamage(t *testing.T) {
+	withDBCInputs(t)
+	instance := dbc.GetDBC()
+
+	for id, want := range map[int]bool{12911: true, 12748: false} {
+		if got := instance.RandomSuffix[id].ReducedCasterDps; got != want {
+			t.Errorf("suffix %d reduces caster DPS: %v, want %v", id, got, want)
+		}
+	}
+
+	axe := instance.Items[3210]
+	scaling := axe.ToScaledUIItem(axe.ItemLevel).ScalingOptions[0]
+	if scaling.WeaponDamageMin != 58 || scaling.WeaponDamageMax != 88 {
+		t.Errorf("Brutal War Axe: damage %v-%v, want 58-88", scaling.WeaponDamageMin, scaling.WeaponDamageMax)
+	}
+	if reduced := scaling.ReducedCasterWeaponDamage; reduced == nil {
+		t.Error("Brutal War Axe: no reduced caster damage")
+	} else if reduced.WeaponDamageMin != 43 || reduced.WeaponDamageMax != 66 || reduced.UnroundedDps >= scaling.UnroundedDps {
+		t.Errorf("Brutal War Axe: reduced caster damage %v-%v at %v DPS, want 43-66 under %v", reduced.WeaponDamageMin, reduced.WeaponDamageMax, reduced.UnroundedDps, scaling.UnroundedDps)
+	}
+
+	for _, id := range []int{281721, 12017} { // Restored Cleaver, Prismatic Band
+		item := instance.Items[id]
+		if reduced := item.ToScaledUIItem(item.ItemLevel).ScalingOptions[0].ReducedCasterWeaponDamage; reduced != nil {
+			t.Errorf("%s: reduced caster damage %v, want none", item.Name, reduced)
+		}
+	}
+}

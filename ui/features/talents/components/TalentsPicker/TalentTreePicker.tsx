@@ -1,4 +1,5 @@
 import i18n from '@i18n/config';
+import { findBrokenTalents } from '@sim/talents/broken_talents';
 import type { TalentsConfig } from '@sim/talents/config';
 import type { TalentPoints } from '@sim/talents/talents_string';
 import { totalPointsSpent, treePointTotal, withTalentPoints, withTreeCleared } from '@sim/talents/talents_string';
@@ -32,15 +33,16 @@ export const TalentTreePicker = <TalentsProto,>({ config, graph, points, treeIdx
 	const allPointsSpent = totalPointsSpent(points) >= MAX_POINTS_PLAYER;
 
 	const canAdd = useMemo(
-		() => treeConfig.talents.map((_, idx) => canSetPoints(config, graph, points, treeIdx, idx, treePoints[idx] + 1)),
-		[config, graph, points, treeIdx, treeConfig, treePoints],
+		() => treeConfig.talents.map((_, idx) => canSetPoints(config, points, treeIdx, idx, treePoints[idx] + 1)),
+		[config, points, treeIdx, treeConfig, treePoints],
 	);
+	const broken = useMemo(() => findBrokenTalents(config, points)[treeIdx], [config, points, treeIdx]);
 
 	const setPoints = (talentIdx: number, newPoints: number) => {
 		const clamped = Math.min(treeConfig.talents[talentIdx].maxPoints, Math.max(0, newPoints));
 		// The change event fires even when the write was rejected; the facade's equality guard
 		// turns the unchanged points into a no-op write.
-		const accepted = canSetPoints(config, graph, points, treeIdx, talentIdx, clamped);
+		const accepted = canSetPoints(config, points, treeIdx, talentIdx, clamped);
 		onChange(accepted ? withTalentPoints(points, treeIdx, talentIdx, clamped) : points);
 	};
 
@@ -67,37 +69,42 @@ export const TalentTreePicker = <TalentsProto,>({ config, graph, points, treeIdx
 				</Button>
 				<Tooltip id={resetTooltipId} content={i18n.t('talents_tab.reset_button.tooltip')} />
 			</div>
-			<div
-				className="absolute top-14 right-0 bottom-0 left-0 z-0 bg-size-[100%_100%] bg-no-repeat shadow-talent-tree"
-				style={{ backgroundImage: `url('${treeConfig.backgroundUrl}')` }}
-			/>
-			<div
-				className="z-1 mx-[2vw] my-2 grid max-xxxl:mx-auto max-lg:mx-10"
-				data-testid="talent-tree-main"
-				style={{
-					gridTemplateRows: `repeat(${graph.numRows}, 1fr)`,
-					gridTemplateColumns: `repeat(${graph.numCols}, 1fr)`,
-					height: `calc(${CELL} * ${graph.numRows})`,
-					maxWidth: `calc(${CELL} * ${graph.numCols})`,
-				}}>
-				{treeGraph.arrows.map(arrow => (
-					<TalentReqArrow
-						key={`${arrow.parentIdx}-${arrow.childIdx}`}
-						arrow={arrow}
-						fulfilled={canAdd[arrow.childIdx] || treePoints[arrow.childIdx] >= treeConfig.talents[arrow.childIdx].maxPoints}
-					/>
-				))}
-				{treeConfig.talents.map((talent, talentIdx) => (
-					<TalentPicker
-						key={`${talent.location.rowIdx}-${talent.location.colIdx}`}
-						config={talent}
-						points={treePoints[talentIdx]}
-						canAdd={canAdd[talentIdx]}
-						allPointsSpent={allPointsSpent}
-						zIndex={treeGraph.zIndex[talentIdx]}
-						onSetPoints={newPoints => setPoints(talentIdx, newPoints)}
-					/>
-				))}
+			{/* The art fills this wrapper, so it starts where the header ends whatever height the header has. */}
+			<div className="relative flex flex-1 flex-col">
+				<div
+					className="absolute inset-0 z-0 bg-size-[100%_100%] bg-no-repeat shadow-talent-tree"
+					style={{ backgroundImage: `url('${treeConfig.backgroundUrl}')` }}
+				/>
+				<div
+					className="relative z-1 mx-[2vw] my-2 grid max-xxxl:mx-auto max-lg:mx-10"
+					data-testid="talent-tree-main"
+					style={{
+						gridTemplateRows: `repeat(${graph.numRows}, 1fr)`,
+						gridTemplateColumns: `repeat(${graph.numCols}, 1fr)`,
+						height: `calc(${CELL} * ${graph.numRows})`,
+						maxWidth: `calc(${CELL} * ${graph.numCols})`,
+					}}>
+					{treeGraph.arrows.map(arrow => (
+						<TalentReqArrow
+							key={`${arrow.parentIdx}-${arrow.childIdx}`}
+							arrow={arrow}
+							// A child that holds points and is not broken proves its prerequisite is met.
+							fulfilled={canAdd[arrow.childIdx] || (!broken[arrow.childIdx] && treePoints[arrow.childIdx] > 0)}
+						/>
+					))}
+					{treeConfig.talents.map((talent, talentIdx) => (
+						<TalentPicker
+							key={`${talent.location.rowIdx}-${talent.location.colIdx}`}
+							config={talent}
+							points={treePoints[talentIdx]}
+							canAdd={canAdd[talentIdx]}
+							broken={broken[talentIdx]}
+							allPointsSpent={allPointsSpent}
+							zIndex={treeGraph.zIndex[talentIdx]}
+							onSetPoints={newPoints => setPoints(talentIdx, newPoints)}
+						/>
+					))}
+				</div>
 			</div>
 		</Box>
 	);

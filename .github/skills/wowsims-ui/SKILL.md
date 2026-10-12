@@ -47,7 +47,8 @@ carries markup) and Zustand. Styling is Tailwind utilities, co-located `ui-*` cl
 in `ui/STYLING.md`; there is no SCSS or Bootstrap.
 
 A few facts that shape the code: several classes have one spec page (`mage/dps`, `hunter/dps`), there are no glyphs,
-`en` is the only locale, talents are three free-form trees, and there is no raid sim UI.
+`en` is the only locale, talents are three trees with tier and prerequisite rules (the picker lets a point be taken back
+anyway and marks what that breaks, see `references/talents.md`), and there is no raid sim UI.
 
 ## Which file to open
 
@@ -59,6 +60,7 @@ A few facts that shape the code: several classes have one spec page (`mage/dps`,
 | about to call a change done, or reading a red or flaky gate                                                  | `references/verification.md`    |
 | running real sims in a browser, taking screenshots, or running Storybook                                     | `references/running-locally.md` |
 | adding a spec, formatting code, or about to reopen a decision that was already made                          | `references/conventions.md`     |
+| touching the talent picker, the talents string, a talent preset, or the broken-talent rules                  | `references/talents.md`         |
 | writing a component, a container and its view, or a story                                                    | `ui/README.md`                  |
 | styling, component state as `data-*`, locating elements in a test, or a class gate failing                   | `ui/STYLING.md`                 |
 
@@ -89,6 +91,7 @@ as the code change. Copy no code and no counts that the command can print.
 | `vite.config.mts`, `vite.build-workers.mts`, `tools/vite/spec_pages.mts`, the makefile's dist targets         | `references/running-locally.md`                |
 | `.storybook/**`                                                                                               | `references/running-locally.md`                |
 | `.oxfmtrc.json`, how a spec is authored, or a decision recorded as settled                                    | `references/conventions.md`                    |
+| `ui/sim/talents/*.ts`, `ui/features/talents/**`, the broken-talent warning in `default_warnings.ts`           | `references/talents.md`                        |
 
 Then run the path check, which fails on any path this skill names that no longer exists and on any reference that
 `SKILL.md` does not route to:

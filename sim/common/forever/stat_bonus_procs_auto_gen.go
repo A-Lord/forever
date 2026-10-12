@@ -770,6 +770,19 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
+	// Blasts a target for 90 Fire damage.
+	// https://www.wowhead.com/forever/spell=13442
+	// unsupported: states no rate
+	// trigger 13442 (0%, core.CallbackEmpty, core.ProcMaskUnknown)
+	// shared.NewSpellDataDamageProc(shared.SpellDataProc{TriggerSpellID: 13442, BuffSpellID: 13442, IsWeaponProc: true},
+	//	[]shared.ItemVariant{
+	//	{ItemID: 18671, ItemName: "Baron Charr's Sceptre"},
+	// })
+
+	// TODO: Manual implementation required
+	//       This can be ignored if the effect has already been implemented.
+	//       With next db run the item will be removed if implemented.
+	//
 	// While equipped, the wearer suffers less damage from falls.
 	// https://www.wowhead.com/forever/spell=23409
 	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
