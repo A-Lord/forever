@@ -150,11 +150,29 @@ describe('TalentTreePicker tier gating', () => {
 	});
 });
 
-describe('TalentTreePicker prerequisites', () => {
-	it('refuses to free a prerequisite that a spent child depends on', () => {
+describe('TalentTreePicker broken talents', () => {
+	it('frees a prerequisite a spent child depends on, and the child keeps its point', () => {
 		const { written } = tree('510001');
 		fireEvent.mouseDown(talents()[1], { button: 2 });
-		expect(written()).toBe('510001');
+		expect(written()).toBe('500001');
+	});
+
+	it('marks a child whose prerequisite is not full as broken', () => {
+		tree('500001');
+		expect(talents()[5].dataset.broken).toBe('true');
+		expect(talents()[0].dataset.broken).toBe('false');
+	});
+
+	it('marks a talent whose tier lost a point as broken, and leaves the arrow above it dark', () => {
+		tree('310005');
+		expect(talents()[5].dataset.broken).toBe('true');
+		expect(talents()[1].dataset.broken).toBe('false');
+		expect(arrows()[0].dataset.reqActive).toBeUndefined();
+	});
+
+	it('leaves the child unbroken when its tier and prerequisite are full', () => {
+		tree('510001');
+		expect(talents()[5].dataset.broken).toBe('false');
 	});
 });
 
@@ -169,7 +187,7 @@ describe('TalentTreePicker arrows', () => {
 		expect(arrow.style.gridColumn).toBe('2 / 2');
 	});
 
-	it('lights the arrow only when the child can take a point or is already full', () => {
+	it('lights the arrow only when the child can take a point or holds points', () => {
 		tree('50');
 		expect(arrows()[0].dataset.reqActive).toBeUndefined();
 		document.body.innerHTML = '';
@@ -235,6 +253,13 @@ describe('TalentTreePicker touch', () => {
 		fireEvent.touchStart(talents()[0]);
 		fireEvent.touchEnd(talents()[0]);
 		expect(written()).toBe('');
+	});
+
+	it('clears a broken talent on a tap, since it cannot take another point', () => {
+		const { written } = tree('310001');
+		fireEvent.touchStart(talents()[5]);
+		fireEvent.touchEnd(talents()[5]);
+		expect(written()).toBe('31');
 	});
 
 	it('clears the talent on a long press, and the release that follows changes nothing', () => {
