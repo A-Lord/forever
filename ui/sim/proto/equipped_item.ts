@@ -6,8 +6,16 @@ import { ActionId } from './action_id';
 import { enchantAppliesToItem } from './items';
 import { Stats } from './stats';
 
-export const getWeaponDPS = (item: Item, upgradeStep: 0): number => {
-	const { weaponDamageMin, weaponDamageMax } = item.scalingOptions[upgradeStep];
+// The damage range the item deals with the suffix: one that reduces caster DPS swaps in the range the item carries for it.
+export const getWeaponDamageRange = (item: Item, upgradeStep: 0, randomSuffix?: ItemRandomSuffix | null) => {
+	const scalingOptions = item.scalingOptions[upgradeStep];
+	const reduced = randomSuffix?.reducedCasterDps ? scalingOptions.reducedCasterWeaponDamage : undefined;
+	const { weaponDamageMin, weaponDamageMax } = reduced ?? scalingOptions;
+	return { weaponDamageMin, weaponDamageMax };
+};
+
+export const getWeaponDPS = (item: Item, upgradeStep: 0, randomSuffix?: ItemRandomSuffix | null): number => {
+	const { weaponDamageMin, weaponDamageMax } = getWeaponDamageRange(item, upgradeStep, randomSuffix);
 	return (weaponDamageMin + weaponDamageMax) / 2 / (item.weaponSpeed || 1);
 };
 
@@ -30,9 +38,9 @@ export const enchantWeaponDamageEP = (enchant: Enchant, weaponSpeed: number, epP
 export const enchantEP = (enchant: Enchant, weights: Stats, weaponSpeed: number, epPerWeaponDps: number): number =>
 	new Stats(enchant.stats, enchant.pseudoStats).computeEP(weights) + enchantWeaponDamageEP(enchant, weaponSpeed, epPerWeaponDps);
 
-export const getWeaponStatsBySlot = (item: Item, slot: ItemSlot, upgradeStep: 0) => {
+export const getWeaponStatsBySlot = (item: Item, slot: ItemSlot, upgradeStep: 0, randomSuffix?: ItemRandomSuffix | null) => {
 	if (item.weaponSpeed > 0) {
-		return getWeaponDpsStatsBySlot(getWeaponDPS(item, upgradeStep), slot);
+		return getWeaponDpsStatsBySlot(getWeaponDPS(item, upgradeStep, randomSuffix), slot);
 	}
 	return new Stats();
 };
@@ -139,8 +147,7 @@ export class EquippedItem {
 		const scalingOptions = item.scalingOptions[0];
 
 		item.stats = new Stats().asProtoArray().map((_, index) => scalingOptions.stats[index] || 0);
-		item.weaponDamageMin = scalingOptions.weaponDamageMin;
-		item.weaponDamageMax = scalingOptions.weaponDamageMax;
+		({ weaponDamageMin: item.weaponDamageMin, weaponDamageMax: item.weaponDamageMax } = getWeaponDamageRange(item, 0, this._randomSuffix));
 		item.randPropPoints = scalingOptions.randPropPoints;
 
 		if (this._randomSuffix) {
@@ -166,7 +173,7 @@ export class EquippedItem {
 		const item = this.item;
 		let stats = new Stats(item.stats, item.pseudoStats);
 		if (this._randomSuffix) stats = stats.add(new Stats([], this._randomSuffix.pseudoStats));
-		if (typeof slot === 'number') stats = stats.add(getWeaponStatsBySlot(item, slot, 0));
+		if (typeof slot === 'number') stats = stats.add(getWeaponStatsBySlot(item, slot, 0, this._randomSuffix));
 		return stats;
 	}
 
