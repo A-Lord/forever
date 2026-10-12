@@ -595,8 +595,8 @@ dps_results: {
 dps_results: {
  key: "TestProtectionWarrior-AllItems-ForceReactiveDisk-18168"
  value: {
-  dps: 456.2536
-  tps: 973.59462
+  dps: 457.3093
+  tps: 975.2628
   dtps: 307.22422
   hps: 16.4
  }

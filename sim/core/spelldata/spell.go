@@ -2,6 +2,7 @@ package spelldata
 
 import (
 	"fmt"
+	"math"
 	"slices"
 	"time"
 
@@ -39,6 +40,11 @@ func (s *Spell) Duration() time.Duration {
 		return core.NeverExpires
 	}
 	return core.DurationFromMillis(s.DurationMs)
+}
+
+// SpellMisc.MinDuration, to the millisecond: the game files state it in seconds as a float.
+func (s *Spell) MissileMinDuration() time.Duration {
+	return core.DurationFromMillis(math.Round(float64(s.MinDuration) * 1000))
 }
 
 // SpellAuraOptions.ProcCategoryRecovery: the internal cooldown between two procs.

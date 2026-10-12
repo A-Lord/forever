@@ -194,6 +194,42 @@ func init() {
 		character.ItemSwap.RegisterProc(13040, character.MakeProcTriggerAura(trigger))
 	})
 
+	// Naga Heartpiercer
+	// https://www.wowhead.com/forever/item=3078/naga-heartpiercer
+	//
+	// Chance on hit: Wounds the target for 42 damage. Naga are Stunned for 2 sec.
+	//
+	// TODO: waiting for PPM data
+	//
+	// Pierce Heart rolls on the cast result of a shot that lands, at the shot's release, and strikes
+	// then. 1292647 is physical on the melee table. The stun on Naga is crowd control the sim leaves out.
+	// TODO: Ingame test needed: whether a missed shot rolls it too.
+	// core.NewItemEffect(3078, func(agent core.Agent) {
+	// 	character := agent.GetCharacter()
+	// 	row := spelldata.MustFind(1292647)
+	// 	damage := row.DamageEffect()
+	//
+	// 	config := procSpellConfig(character, row)
+	// 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+	// 		spell.CalcAndDealDamage(sim, target, damage.DirectAmount(sim), spell.OutcomeMeleeSpecialHitAndCrit)
+	// 	}
+	// 	pierceHeart := character.RegisterSpell(config)
+	//
+	// 	ppm := weaponProcPPM(3078, row.ID)
+	// 	trigger := spelldata.ProcTrigger(character, row, func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
+	// 		pierceHeart.Cast(sim, result.Target)
+	// 	}, spelldata.WeaponProc(), func(character *core.Character, trigger *core.ProcTrigger) {
+	// 		trigger.Callback = core.CallbackOnCastResult
+	// 		trigger.Outcome = core.OutcomeLanded
+	// 		trigger.ProcChance = 0
+	// 		trigger.DPM = character.NewDynamicLegacyProcForWeapon(3078, ppm, 0)
+	// 	})
+	// 	trigger.Name = "Naga Heartpiercer"
+	// 	trigger.ActionID = core.ActionID{ItemID: 3078}
+	// 	trigger.TriggerImmediately = true
+	// 	character.ItemSwap.RegisterProc(3078, character.MakeProcTriggerAura(trigger))
+	// })
+
 	// White Obsidian Wand
 	// https://www.wowhead.com/forever/item=274425/white-obsidian-wand
 	//

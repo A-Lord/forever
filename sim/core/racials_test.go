@@ -298,8 +298,8 @@ func TestGnomeEurekaReadsEachClassRow(t *testing.T) {
 	}
 }
 
-// Eureka!'s idx2 raises the ticks of a warlock channel its mask names that spends a stack, on all of
-// its ticks, also after the last stack is gone. A channel cast with no stack up takes no bonus, nor
+// Eureka!'s idx2 raises every tick of a warlock channel its mask names that starts with a stack up,
+// and the channel spends that stack when it ends. A channel cast with no stack up takes no bonus, nor
 // does a periodic spell that is not a channel, on the mask or off it.
 func TestGnomeWarlockEurekaChannel(t *testing.T) {
 	sim, fw := setupFakeWarlockSim(proto.Race_RaceGnome)
@@ -328,29 +328,45 @@ func TestGnomeWarlockEurekaChannel(t *testing.T) {
 		tickMultipliers = append(tickMultipliers, dot.PeriodicDamageMultiplier)
 		onTick(sim, target, dot)
 	}
-	castAndSpend := func(spell *Spell) {
+	cast := func(spell *Spell) {
 		tickMultipliers = nil
 		spell.SkipCastAndApplyEffects(sim, target)
 		for end := sim.CurrentTime + SpellBatchWindow; sim.CurrentTime <= end && !sim.Step(); {
 		}
 	}
-	channelTicks := func() []float64 {
+	channelTicks := func(want float64, what string) {
+		t.Helper()
 		for drainLife.IsActive() && !sim.Step() {
 		}
-		return tickMultipliers
+		if len(tickMultipliers) != 5 {
+			t.Fatalf("Drain Life should tick 5 times, got %d", len(tickMultipliers))
+		}
+		for i, got := range tickMultipliers {
+			if !WithinToleranceFloat64(want, got, 0.0001) {
+				t.Fatalf("%s should take x%0.2f on every tick, tick %d got x%0.2f", what, want, i+1, got)
+			}
+		}
+		if got := multiplier(fw.DrainLife); !WithinToleranceFloat64(1, got, 0.0001) {
+			t.Fatalf("Drain Life should drop the bonus when its channel ends, got x%0.2f", got)
+		}
 	}
 
 	if got := multiplier(fw.DrainLife); got != 1 {
-		t.Fatalf("Eureka! should leave Drain Life alone until a cast spends a stack, got x%0.2f", got)
+		t.Fatalf("Eureka! should leave Drain Life alone until a channel starts with a stack up, got x%0.2f", got)
 	}
-	castAndSpend(fw.DrainLife)
+	cast(fw.DrainLife)
+	if eureka.GetStacks() != 3 {
+		t.Fatalf("Drain Life should hold its stack while it channels, %d left", eureka.GetStacks())
+	}
+	channelTicks(boosted, "the Drain Life cast with a stack up")
 	if eureka.GetStacks() != 2 {
-		t.Fatalf("Drain Life's landed cast should spend a stack, %d left", eureka.GetStacks())
+		t.Fatalf("Drain Life should spend its stack when its channel ends, %d left", eureka.GetStacks())
 	}
-	if got := multiplier(fw.DrainLife); !WithinToleranceFloat64(boosted, got, 0.0001) {
-		t.Fatalf("Eureka! should raise the ticks of the Drain Life that spent a stack to x%0.2f, got x%0.2f", boosted, got)
+
+	cast(fw.Haunt)
+	if eureka.GetStacks() != 1 {
+		t.Fatalf("Haunt should spend a stack at its cast result, %d left", eureka.GetStacks())
 	}
-	castAndSpend(fw.Haunt)
 	if got := multiplier(fw.Haunt); got != 1 {
 		t.Fatalf("Eureka! should leave a periodic spell that is not a channel alone, even on its mask, got x%0.2f", got)
 	}
@@ -358,32 +374,123 @@ func TestGnomeWarlockEurekaChannel(t *testing.T) {
 		t.Fatalf("Eureka! should leave Corruption's ticks alone, got x%0.2f", got)
 	}
 
-	castAndSpend(fw.DrainLife)
+	cast(fw.DrainLife)
+	channelTicks(boosted, "the Drain Life holding the last stack")
 	if eureka.IsActive() {
-		t.Fatalf("Drain Life should spend the last stack, %d left", eureka.GetStacks())
-	}
-	ticks := channelTicks()
-	if len(ticks) != 5 {
-		t.Fatalf("Drain Life should tick 5 times, got %d", len(ticks))
-	}
-	for i, got := range ticks {
-		if !WithinToleranceFloat64(boosted, got, 0.0001) {
-			t.Fatalf("the Drain Life that spent the last stack should keep x%0.2f on every tick, tick %d got x%0.2f", boosted, i+1, got)
-		}
-	}
-	if got := multiplier(fw.DrainLife); !WithinToleranceFloat64(1, got, 0.0001) {
-		t.Fatalf("Drain Life should drop the bonus when its channel ends, got x%0.2f", got)
+		t.Fatalf("Drain Life should spend the last stack when its channel ends, %d left", eureka.GetStacks())
 	}
 
-	castAndSpend(fw.DrainLife)
-	ticks = channelTicks()
-	if len(ticks) != 5 {
-		t.Fatalf("Drain Life should tick 5 times, got %d", len(ticks))
+	cast(fw.DrainLife)
+	channelTicks(1, "a Drain Life cast after Eureka! ended")
+}
+
+// A channel spends one Eureka! stack when it ends, run out or cut short, however many damage spells
+// it casts, and the stack keeps the damage bonus up for all of them. A channel whose cast misses
+// spends at its cast result and holds no stack after.
+func TestGnomeEurekaChannelSpendsOnceAtItsEnd(t *testing.T) {
+	sim, fw := setupFakeWarlockSim(proto.Race_RaceGnome)
+	target := fw.CurrentTarget
+
+	if !fw.GetSpell(ActionID{SpellID: 1259821}).Cast(sim, target) {
+		t.Fatalf("a gnome warlock should cast Eureka! 1259821")
 	}
-	for i, got := range ticks {
-		if !WithinToleranceFloat64(1, got, 0.0001) {
-			t.Fatalf("a Drain Life cast after Eureka! ended should take no bonus, tick %d got x%0.2f", i+1, got)
+	eureka := fw.GetAura("Eureka!")
+	mods := eurekaMods(1259821)
+	if fw.RainOfFireTick.ClassFlags.IsZero() {
+		t.Fatalf("no class flag bit sits on the warlock's Eureka! damage mask %+v and off its channel mask %+v",
+			mods.DamageFlags, mods.ChannelFlags)
+	}
+	boosted := 1 + mods.Damage
+
+	channel := fw.RainOfFire.Dot(target)
+	var missileMultipliers []float64
+	onTick := channel.onTick
+	channel.onTick = func(sim *Simulation, target *Unit, dot *Dot) {
+		missileMultipliers = append(missileMultipliers, fw.RainOfFireTick.DirectDamageMultiplier)
+		onTick(sim, target, dot)
+	}
+	cast := func() {
+		missileMultipliers = nil
+		fw.RainOfFire.SkipCastAndApplyEffects(sim, target)
+		for end := sim.CurrentTime + SpellBatchWindow; sim.CurrentTime <= end && !sim.Step(); {
 		}
+	}
+
+	fw.missRainOfFire = true
+	cast()
+	fw.missRainOfFire = false
+	if channel.IsActive() || eureka.GetStacks() != 2 {
+		t.Fatalf("a Rain of Fire that misses should spend a stack at its cast result, %d left", eureka.GetStacks())
+	}
+
+	cast()
+	for len(missileMultipliers) == 0 && !sim.Step() {
+	}
+	if !channel.IsActive() || eureka.GetStacks() != 2 {
+		t.Fatalf("Rain of Fire should hold its stack after its first missile, %d left", eureka.GetStacks())
+	}
+	channel.Deactivate(sim)
+	if eureka.GetStacks() != 1 {
+		t.Fatalf("a Rain of Fire cut short should spend one stack when it ends, %d left", eureka.GetStacks())
+	}
+
+	cast()
+	for channel.IsActive() && !sim.Step() {
+		if channel.IsActive() && eureka.GetStacks() != 1 {
+			t.Fatalf("Rain of Fire should hold the last stack while it channels, %d left at %v", eureka.GetStacks(), sim.CurrentTime)
+		}
+	}
+	if len(missileMultipliers) != 5 {
+		t.Fatalf("Rain of Fire should cast 5 missiles, got %d", len(missileMultipliers))
+	}
+	for i, got := range missileMultipliers {
+		if !WithinToleranceFloat64(boosted, got, 0.0001) {
+			t.Fatalf("Eureka! should raise every missile of the channel to x%0.2f, missile %d got x%0.2f", boosted, i+1, got)
+		}
+	}
+	if eureka.IsActive() {
+		t.Fatalf("Rain of Fire and its missiles should spend the last stack when the channel ends, %d left", eureka.GetStacks())
+	}
+}
+
+// Eureka! cast during a channel holds that channel's stack from its next hit, and a channel cast while
+// another still runs spends the other's stack and takes the bonus off its ticks.
+func TestGnomeEurekaHoldsTheRunningChannel(t *testing.T) {
+	sim, fw := setupFakeWarlockSim(proto.Race_RaceGnome)
+	target := fw.CurrentTarget
+	drainLife := fw.DrainLife.Dot(target)
+	rainOfFire := fw.RainOfFire.Dot(target)
+	runFor := func(d time.Duration) {
+		for end := sim.CurrentTime + d; sim.CurrentTime < end && !sim.Step(); {
+		}
+	}
+
+	fw.RainOfFire.SkipCastAndApplyEffects(sim, target)
+	runFor(time.Millisecond * 1500)
+	if !fw.GetSpell(ActionID{SpellID: 1259821}).Cast(sim, target) {
+		t.Fatalf("a gnome warlock should cast Eureka! during a channel")
+	}
+	eureka := fw.GetAura("Eureka!")
+	for rainOfFire.IsActive() && !sim.Step() {
+	}
+	if eureka.GetStacks() != 2 {
+		t.Fatalf("a Rain of Fire running when Eureka! is cast should spend one stack when it ends, %d left", eureka.GetStacks())
+	}
+
+	fw.DrainLife.SkipCastAndApplyEffects(sim, target)
+	runFor(time.Millisecond * 1500)
+	fw.RainOfFire.SkipCastAndApplyEffects(sim, target)
+	if !drainLife.IsActive() || eureka.GetStacks() != 1 {
+		t.Fatalf("a Rain of Fire cast during Drain Life should spend Drain Life's stack as it starts, %d left", eureka.GetStacks())
+	}
+	if got := drainLife.PeriodicDamageMultiplier; got != 1 {
+		t.Fatalf("Drain Life should lose the bonus once a Rain of Fire starts during it, got x%0.2f", got)
+	}
+	for (drainLife.IsActive() || rainOfFire.IsActive()) && !sim.Step() {
+	}
+	if eureka.IsActive() || drainLife.PeriodicDamageMultiplier != 1 {
+		t.Fatalf("the Rain of Fire should spend the last stack when it ends, %d left, Drain Life at x%0.2f",
+			eureka.GetStacks(), drainLife.PeriodicDamageMultiplier)
 	}
 }
 
@@ -615,11 +722,14 @@ func init() {
 type fakeDotWarlock struct {
 	Character
 
-	Corruption    *Spell
-	Curse         *Spell
-	DrainLife     *Spell
-	Haunt         *Spell
-	damagingTicks int
+	Corruption     *Spell
+	Curse          *Spell
+	DrainLife      *Spell
+	Haunt          *Spell
+	RainOfFire     *Spell
+	RainOfFireTick *Spell
+	missRainOfFire bool
+	damagingTicks  int
 }
 
 func newFakeDotWarlock(char *Character, _ *proto.Player, _ *proto.Raid) Agent {
@@ -674,6 +784,37 @@ func (fw *fakeDotWarlock) Initialize() {
 	onEurekaMasks := oneClassFlagBit(ClassSpellFamilies[proto.Class_ClassWarlock], []ClassFlags{mods.ChannelFlags, mods.CostFlags}, nil)
 	fw.DrainLife = fw.RegisterSpell(fakeWarlockDot(689, "Drain Life", onEurekaMasks, SpellFlagChanneled))
 	fw.Haunt = fw.RegisterSpell(fakeWarlockDot(1293694, "Haunt", onEurekaMasks, 0))
+
+	// A channel that casts a damage spell each tick, both on the Eureka! damage mask, with its cast
+	// result dealt before its dot starts.
+	onDamageMask := oneClassFlagBit(ClassSpellFamilies[proto.Class_ClassWarlock], []ClassFlags{mods.DamageFlags}, []ClassFlags{mods.ChannelFlags})
+	fw.RainOfFireTick = fw.RegisterSpell(SpellConfig{
+		ActionID:         ActionID{SpellID: 1282385},
+		ClassFlags:       onDamageMask,
+		SpellSchool:      SpellSchoolFire,
+		DefenseType:      DefenseTypeMagic,
+		ProcMask:         ProcMaskSpellDamage,
+		DamageMultiplier: 1,
+		ThreatMultiplier: 1,
+
+		ApplyEffects: func(sim *Simulation, target *Unit, spell *Spell) {
+			spell.CalcAndDealDamage(sim, target, 100, spell.OutcomeAlwaysHit)
+		},
+	})
+	rainOfFire := fakeWarlockDot(11678, "Rain of Fire", onDamageMask, SpellFlagChanneled)
+	rainOfFire.Dot.OnTick = func(sim *Simulation, target *Unit, _ *Dot) {
+		fw.RainOfFireTick.SkipCastAndApplyEffects(sim, target)
+	}
+	rainOfFire.ApplyEffects = func(sim *Simulation, target *Unit, spell *Spell) {
+		outcome := spell.OutcomeAlwaysHit
+		if fw.missRainOfFire {
+			outcome = spell.OutcomeAlwaysMiss
+		}
+		if spell.CalcAndDealOutcome(sim, target, outcome).Landed() {
+			spell.Dot(target).Apply(sim)
+		}
+	}
+	fw.RainOfFire = fw.RegisterSpell(rainOfFire)
 }
 
 // A periodic warlock spell with the game files' family 5 flags, which always lands.

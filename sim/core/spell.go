@@ -19,12 +19,14 @@ type SpellConfig struct {
 	DefenseType    DefenseType
 	ProcMask       ProcMask
 	Flags          SpellFlag
-	MissileSpeed   float64
 	BaseCost       float64
 	MetricSplits   int
 	ClassSpellMask int64
 	ClassFlags     ClassFlags
 	Rank           int32
+
+	MissileSpeed       float64
+	MissileMinDuration time.Duration
 
 	ManaCost   ManaCostOptions
 	EnergyCost EnergyCostOptions
@@ -111,6 +113,8 @@ type Spell struct {
 	// Speed in yards/second. Spell missile speeds can be found in the game data.
 	// Example: https://wow.tools/dbc/?dbc=spellmisc&build=3.4.0.44996
 	MissileSpeed float64
+	// The shortest the missile flies, however close the target: a spell with no speed flies this long.
+	MissileMinDuration time.Duration
 
 	ResourceMetrics *ResourceMetrics
 	healthMetrics   []*ResourceMetrics
@@ -261,9 +265,11 @@ func (unit *Unit) RegisterSpell(config SpellConfig) *Spell {
 		DefenseType:    config.DefenseType,
 		ProcMask:       config.ProcMask,
 		Flags:          config.Flags,
-		MissileSpeed:   config.MissileSpeed,
 		ClassSpellMask: config.ClassSpellMask,
 		ClassFlags:     config.ClassFlags,
+
+		MissileSpeed:       config.MissileSpeed,
+		MissileMinDuration: config.MissileMinDuration,
 
 		DefaultCast:        config.Cast.DefaultCast,
 		CD:                 config.Cast.CD,
@@ -846,10 +852,9 @@ func (spell *Spell) CastTime() time.Duration {
 
 func (spell *Spell) TravelTime() time.Duration {
 	if spell.MissileSpeed == 0 {
-		return 0
-	} else {
-		return time.Duration(float64(time.Second) * spell.Unit.DistanceFromTarget / spell.MissileSpeed)
+		return spell.MissileMinDuration
 	}
+	return max(spell.MissileMinDuration, time.Duration(float64(time.Second)*spell.Unit.DistanceFromTarget/spell.MissileSpeed))
 }
 
 // Returns true if the given mask matches the spell mask

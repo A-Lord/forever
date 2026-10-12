@@ -3,6 +3,7 @@ import { Class, Spec } from '@generated/proto/common';
 import { PlayerSpec } from '../player/player_spec';
 import { specTypeFunctions } from '../proto/spec_functions';
 import type { SpecTalents } from '../proto/spec_types';
+import { brokenTalentNames } from './broken_talents';
 import { TalentsConfig } from './config';
 import { druidTalentsConfig } from './druid';
 import { hunterTalentsConfig } from './hunter';
@@ -40,6 +41,11 @@ export function playerTalentStringToProto<SpecType extends Spec>(playerSpec: Pla
 	const talentsConfig = classTalentsConfig[playerSpec.classID] as TalentsConfig<SpecTalents<SpecType>>;
 
 	return talentStringToProto(proto, talentString, talentsConfig);
+}
+
+export function playerBrokenTalentNames<SpecType extends Spec>(playerSpec: PlayerSpec<SpecType>, talentString: string): Array<string> {
+	const talentsConfig = classTalentsConfig[playerSpec.classID];
+	return brokenTalentNames(talentsConfig, parseTalentsString(talentsConfig, talentString));
 }
 
 function talentStringToProto<TalentsProto>(proto: TalentsProto, talentString: string, talentsConfig: TalentsConfig<TalentsProto>): TalentsProto {
