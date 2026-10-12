@@ -22,9 +22,7 @@ func (warlock *Warlock) registerIncinerate() {
 		if target.HasActiveAuraWithTag(immolateTag) {
 			scaleResult(sim, spell, result, immolateMult)
 		}
-		spell.WaitTravelTime(sim, func(sim *core.Simulation) {
-			spell.DealDamage(sim, result)
-		})
+		spell.DealDamageAfterTravel(sim, result)
 	}
 
 	// Calculate expected damage from the row's average hit, raised if any Immolate burns on the target
