@@ -50,20 +50,23 @@ func TestFireNovaHitsAreProcs(t *testing.T) {
 	devastatedByCrit := func(cast *core.Spell, hits *core.Spell) bool {
 		t.Helper()
 		devastation.Deactivate(sim)
-		for range 1000 {
+		ended := false
+		casts := 0
+		for casts < 1000 && !ended {
 			crits := hits.SpellMetrics[target.UnitIndex].Crits
 			cast.SkipCastAndApplyEffects(sim, target)
-			for end := sim.CurrentTime + core.SpellBatchWindow; sim.CurrentTime <= end && !sim.Step(); {
+			casts++
+			for end := sim.CurrentTime + core.SpellBatchWindow; sim.CurrentTime <= end && !ended; {
+				ended = sim.Step()
 			}
 			if hits.SpellMetrics[target.UnitIndex].Crits > crits {
 				return devastation.IsActive()
 			}
 		}
-		t.Fatalf("1000 casts of %v never crit", cast.ActionID)
+		t.Fatalf("%d casts of %v never crit", casts, cast.ActionID)
 		return false
 	}
 
-	sham.SearingTotem.SkipCastAndApplyEffects(sim, target)
 	if devastatedByCrit(sham.FireNova, novaHits) {
 		t.Error("a Fire Nova crit procced Elemental Devastation")
 	}
