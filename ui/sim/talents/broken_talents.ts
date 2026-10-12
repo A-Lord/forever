@@ -5,12 +5,11 @@
 // brings the build back, but they unlock nothing: rows below count only the points of talents that are
 // not broken, and a broken prerequisite breaks its children.
 
-import type { TalentLocation, TalentsConfig } from './config';
+import type { TalentsConfig } from './config';
+import { locationKey } from './config';
 import type { TalentPoints } from './talents_string';
 
-export const POINTS_PER_ROW = 5;
-
-const locationKey = (location: TalentLocation): string => `${location.rowIdx},${location.colIdx}`;
+const POINTS_PER_ROW = 5;
 
 /** `[treeIdx][talentIdx]`: true where the talent holds points it could not have been given. */
 export const findBrokenTalents = <TalentsProto>(config: TalentsConfig<TalentsProto>, points: TalentPoints): Array<Array<boolean>> =>
@@ -22,7 +21,7 @@ export const findBrokenTalents = <TalentsProto>(config: TalentsConfig<TalentsPro
 		const decided = talents.map(() => false);
 		let activeAbove = 0;
 
-		// A prerequisite sits in an earlier row or earlier in the same row, so it is always decided
+		// A prerequisite sits in an earlier row or on either side in the same row, so it is always decided
 		// against the same or a smaller `activeAbove` than its child.
 		const decide = (idx: number): boolean => {
 			if (decided[idx]) return broken[idx];
@@ -37,12 +36,17 @@ export const findBrokenTalents = <TalentsProto>(config: TalentsConfig<TalentsPro
 			return broken[idx];
 		};
 
-		const numRows = Math.max(0, ...talents.map(talent => talent.location.rowIdx + 1));
-		for (let row = 0; row < numRows; row++) {
-			const rowIdxs = talents.flatMap((talent, idx) => (talent.location.rowIdx === row ? [idx] : []));
-			rowIdxs.forEach(decide);
-			activeAbove += rowIdxs.reduce((total, idx) => total + (broken[idx] ? 0 : treePoints[idx]), 0);
-		}
+		// newTalentsConfig rejects a tree not listed row by row, so one pass sees each row whole.
+		let row = 0;
+		let rowActive = 0;
+		talents.forEach((talent, idx) => {
+			if (talent.location.rowIdx !== row) {
+				activeAbove += rowActive;
+				rowActive = 0;
+				row = talent.location.rowIdx;
+			}
+			if (!decide(idx)) rowActive += treePoints[idx];
+		});
 		return broken;
 	});
 

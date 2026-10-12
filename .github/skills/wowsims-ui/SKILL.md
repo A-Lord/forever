@@ -13,7 +13,8 @@ Go compiled to WASM behind `ui/worker/*`; the UI only ever speaks protobuf to it
 
 Facts about this tree that change the docs, not just the paths: several classes have a single spec
 page (one `mage/dps`, one `hunter/dps`), there are no glyphs anywhere in the proto or the locale set,
-`en` is the only shipped locale, and talents are three free-form trees.
+`en` is the only shipped locale, and talents are three trees with tier and prerequisite rules; the
+picker lets a point be taken back anyway and marks what that breaks (`references/talents.md`).
 
 The view layer is **React 19**, and it is the only dialect: no file carries a `@jsxImportSource`
 pragma, and there is no Bootstrap, no tippy and no `.scss` file anywhere in `ui/`. Both HTML entries
@@ -82,6 +83,7 @@ arguing with one.
 | running the sim in a browser, in a fresh worktree, or measuring a perf regression                            | `references/running-locally.md` |
 | running or building Storybook, or changing `.storybook/`                                                     | `references/running-locally.md` |
 | adding a spec, formatting code, or about to re-litigate a decision that was already made                     | `references/conventions.md`     |
+| touching the talent picker, the talents string, a talent preset, or the broken-talent rules                  | `references/talents.md`         |
 | writing a component, a view or a story, or a design-system page                                              | `ui/README.md`                  |
 | styling a component, adding state, or locating an element in a test/tool                                     | `ui/STYLING.md`                 |
 
@@ -138,6 +140,7 @@ change, the way you would a stale comment.
 | `vite.config.mts`, `vite.build-workers.mts`, `tools/vite/spec_pages.mts`, the makefile's dist targets                                                                                                                  | `references/running-locally.md`                |
 | `.storybook/**`                                                                                                                                                                                                        | `references/running-locally.md`                |
 | `.oxfmtrc.json`, `ui/specs/**` authoring, or a decision recorded as settled                                                                                                                                            | `references/conventions.md`                    |
+| `ui/sim/talents/*.ts`, `ui/features/talents/**`, the `broken_talents` warning in `default_warnings.ts`                                                                                                                 | `references/talents.md`                        |
 | the kit contract, the container/view split, `*.stories.tsx` conventions, `ui/testing/storybook/**`, `ui/design-system/**`                                                                                              | `ui/README.md`                                 |
 | `ui/styles/*.css`, a `ui-*` class, a class-hook gate, or how elements are located in tests/tools                                                                                                                       | `ui/STYLING.md`                                |
 

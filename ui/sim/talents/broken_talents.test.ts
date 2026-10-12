@@ -18,7 +18,8 @@ const mkTalent = (index: number, overrides: Record<string, unknown> = {}) => ({
 	...overrides,
 });
 
-// Talent 5 (row 1) needs talent 1 full; talent 9 (row 2) needs talent 5 full; talent 7 (row 1) needs talent 6 beside it.
+// Talent 5 (row 1) needs talent 1 full; talent 9 (row 2) needs talent 5 full; talent 7 (row 1) needs talent 6 on its
+// left, and talent 4 (row 1) needs talent 5 on its right.
 const config: TalentsConfig<Fake> = newTalentsConfig<Fake>([
 	{
 		name: 'A',
@@ -26,13 +27,15 @@ const config: TalentsConfig<Fake> = newTalentsConfig<Fake>([
 		talents: Array.from({ length: 4 * COLS }, (_, index) =>
 			mkTalent(
 				index,
-				index === 5
-					? { prereqLocation: { rowIdx: 0, colIdx: 1 } }
-					: index === 9
-						? { prereqLocation: { rowIdx: 1, colIdx: 1 } }
-						: index === 7
-							? { prereqLocation: { rowIdx: 1, colIdx: 2 } }
-							: {},
+				index === 4
+					? { prereqLocation: { rowIdx: 1, colIdx: 1 } }
+					: index === 5
+						? { prereqLocation: { rowIdx: 0, colIdx: 1 } }
+						: index === 9
+							? { prereqLocation: { rowIdx: 1, colIdx: 1 } }
+							: index === 7
+								? { prereqLocation: { rowIdx: 1, colIdx: 2 } }
+								: {},
 			),
 		),
 	},
@@ -62,7 +65,13 @@ describe('findBrokenTalents', () => {
 
 	it('cascades: a broken talent unlocks no tier and fills no prerequisite', () => {
 		expect(brokenIdxs('5400' + '0550' + '05')).toEqual([5, 9]);
-		expect(brokenIdxs('0400' + '5000' + '1')).toEqual([4, 8]);
+		expect(brokenIdxs('4000' + '5500' + '1')).toEqual([4, 5, 8]);
+	});
+
+	it('decides a prerequisite to the right of its child in the same row', () => {
+		expect(brokenIdxs('5500' + '15')).toEqual([]);
+		expect(brokenIdxs('5500' + '14')).toEqual([4]);
+		expect(brokenIdxs('5400' + '15')).toEqual([4, 5]);
 	});
 
 	it('checks every tree on its own', () => {

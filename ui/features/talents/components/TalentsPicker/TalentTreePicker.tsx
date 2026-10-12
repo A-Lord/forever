@@ -69,7 +69,7 @@ export const TalentTreePicker = <TalentsProto,>({ config, graph, points, treeIdx
 				</Button>
 				<Tooltip id={resetTooltipId} content={i18n.t('talents_tab.reset_button.tooltip')} />
 			</div>
-			{/* The art fills this wrapper rather than sitting at a fixed offset, so it starts where the header ends whatever height the header has. */}
+			{/* The art fills this wrapper, so it starts where the header ends whatever height the header has. */}
 			<div className="relative flex flex-1 flex-col">
 				<div
 					className="absolute inset-0 z-0 bg-size-[100%_100%] bg-no-repeat shadow-talent-tree"
@@ -88,10 +88,8 @@ export const TalentTreePicker = <TalentsProto,>({ config, graph, points, treeIdx
 						<TalentReqArrow
 							key={`${arrow.parentIdx}-${arrow.childIdx}`}
 							arrow={arrow}
-							fulfilled={
-								canAdd[arrow.childIdx] ||
-								(!broken[arrow.childIdx] && treePoints[arrow.childIdx] >= treeConfig.talents[arrow.childIdx].maxPoints)
-							}
+							// A child that holds points and is not broken proves its prerequisite is met.
+							fulfilled={canAdd[arrow.childIdx] || (!broken[arrow.childIdx] && treePoints[arrow.childIdx] > 0)}
 						/>
 					))}
 					{treeConfig.talents.map((talent, talentIdx) => (

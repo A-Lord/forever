@@ -52,7 +52,7 @@ describe('canSetPoints — adding', () => {
 	});
 
 	it('does not count the points of a broken talent towards the next tier', () => {
-		expect(can('4000' + '5' + '000', 0, 9, 1)).toBe(false);
+		expect(can('4000' + '55', 0, 9, 1)).toBe(false);
 	});
 
 	it('refuses a talent whose prerequisite is not filled', () => {

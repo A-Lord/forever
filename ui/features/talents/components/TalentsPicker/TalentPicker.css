@@ -53,8 +53,6 @@
 			border-color: var(--color-talent-full);
 		}
 
-		/* No filter here: a filter would also grey the border and the rank badge, and a broken talent
-		   would read the same as one that cannot take a point yet. */
 		&[data-broken='true'] {
 			border-color: var(--color-danger);
 			box-shadow:
