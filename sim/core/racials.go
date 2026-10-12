@@ -319,12 +319,13 @@ func RegisterEurekaMods(read func(spellID int32) EurekaMods) {
 // Eureka! scopes its mods to each class's abilities by the game files' class masks: idx0 of each row
 // names the spells whose cost it lowers, idx1 the ones whose direct damage it raises, and idx2, on the
 // warlock and priest rows only, the channels whose ticks it raises once the channel spends a stack. A
-// stack goes on a landed ability any of them names that has a damage component.
+// stack goes at the cast result of an ability any of them names, a miss included; one that lands has to
+// have a damage component.
 func applyEureka(character *Character) {
 	var spellID int32
 	var resourceType proto.ResourceType
 	procMask := ProcMaskSpecial
-	spendCallback := CallbackOnSpellHitDealt
+	spendCallback := CallbackOnCastResult
 
 	switch character.Class {
 	case proto.Class_ClassRogue:
@@ -419,12 +420,9 @@ func applyEureka(character *Character) {
 		Callback:   spendCallback,
 		ClassFlags: spendFlags,
 		ProcMask:   procMask,
-		Outcome:    OutcomeLanded,
 
-		RequireDamageComponent: true,
-
-		ExtraCondition: func(sim *Simulation, spell *Spell, _ *SpellResult) bool {
-			return firstHit(sim, spell)
+		ExtraCondition: func(sim *Simulation, spell *Spell, result *SpellResult) bool {
+			return (!result.Landed() || result.Damage > 0 || spell.hasDot(result.Target)) && firstHit(sim, spell)
 		},
 		Handler: func(sim *Simulation, spell *Spell, result *SpellResult) {
 			if isEurekaChannel(spell) {

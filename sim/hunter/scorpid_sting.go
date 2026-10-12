@@ -20,6 +20,7 @@ func (hunter *Hunter) registerScorpidSting() {
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		result := spell.CalcOutcome(sim, target, spell.OutcomeRangedHit)
+		spell.DealCastResult(sim, result)
 
 		spell.WaitTravelTime(sim, func(sim *core.Simulation) {
 			if result.Landed() {

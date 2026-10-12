@@ -57,9 +57,7 @@ func (shaman *Shaman) registerSearingTotemSpell() {
 	attackConfig.ClassSpellMask = SpellMaskSearingTotem
 	attackConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		result := spell.CalcDamage(sim, target, damage.Average(), spell.OutcomeMagicHitAndCrit)
-		spell.WaitTravelTime(sim, func(sim *core.Simulation) {
-			spell.DealDamage(sim, result)
-		})
+		spell.DealDamageAfterTravel(sim, result)
 	}
 	attack := shaman.RegisterSpell(attackConfig)
 

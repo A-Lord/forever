@@ -19,9 +19,7 @@ func (hunter *Hunter) registerArcaneShot() {
 		baseDamage := arcaneShotBaseDamage + arcaneShotAPShare*spell.RangedAttackPower(target)
 		result := spell.CalcDamage(sim, target, baseDamage, spell.OutcomeRangedHitAndCrit)
 
-		spell.WaitTravelTime(sim, func(sim *core.Simulation) {
-			spell.DealDamage(sim, result)
-		})
+		spell.DealDamageAfterTravel(sim, result)
 	}
 
 	hunter.RegisterSpell(config)
