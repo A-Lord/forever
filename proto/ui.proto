@@ -350,11 +350,21 @@ message SavedGearSet {
 	UnitStats bonus_stats_stats = 3;
 }
 
+enum EpPrecisionMode {
+	EpPrecisionModeUnknown = 0;
+	EpPrecisionModeIterations = 1;
+	EpPrecisionModeTarget = 2; // Simulates each stat until its shown EP ± reaches a target.
+}
+
 message SavedStatWeightSettings {
 	repeated Stat excluded_stats = 1;
     repeated PseudoStat excluded_pseudo_stats = 2;
     int32 api_version = 3; // Needed in case the Stat or PseudoStat enum orderings ever change
 
+	EpPrecisionMode precision_mode = 4;
+	int32 iterations = 5; // 0 runs the global sim iteration count.
+	double target_ep_ci = 6;
+	int32 max_iteration_multiplier = 7; // Caps a stat's iterations at this multiple of the probe count.
 }
 
 // Local storage data for other settings.

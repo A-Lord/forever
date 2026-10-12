@@ -1,4 +1,5 @@
 import { Stat } from '@generated/proto/common';
+import { SavedStatWeightSettings } from '@generated/proto/ui';
 import { describe, expect, it } from 'vitest';
 
 import type { Player } from '../player/player';
@@ -37,12 +38,28 @@ describe('StatWeightActionSettings precision', () => {
 		expect(loaded.excludedStats).toEqual([Stat.StatStrength]);
 	});
 
-	it('falls back to the defaults for stored values it cannot use', () => {
-		const storage = new Map([[KEY, JSON.stringify({ precisionMode: 'fast', iterations: -5, targetEpCi: 0, maxIterationMultiplier: 'x' })]]);
+	it('reads unset precision fields as the defaults', () => {
+		const storage = new Map([[KEY, SavedStatWeightSettings.toJsonString(SavedStatWeightSettings.create({ excludedStats: [Stat.StatAgility] }))]]);
 		const loaded = settingsOn(storage);
 		loaded.load();
 
 		expect(loaded.precision).toEqual({ precisionMode: 'iterations', iterations: 0, targetEpCi: 0.01, maxIterationMultiplier: 8 });
+		expect(loaded.excludedStats).toEqual([Stat.StatAgility]);
+	});
+
+	it('reads a stored mode name the proto does not list as the fixed count, and keeps the other fields', () => {
+		const stored = JSON.stringify({
+			excludedStats: ['StatAgility'],
+			precisionMode: 'target',
+			iterations: 4000,
+			targetEpCi: 0.005,
+			maxIterationMultiplier: 4,
+		});
+		const loaded = settingsOn(new Map([[KEY, stored]]));
+		loaded.load();
+
+		expect(loaded.precision).toEqual({ precisionMode: 'iterations', iterations: 4000, targetEpCi: 0.005, maxIterationMultiplier: 4 });
+		expect(loaded.excludedStats).toEqual([Stat.StatAgility]);
 	});
 
 	it('does not rewrite storage for a patch that changes nothing', () => {
