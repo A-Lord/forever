@@ -19,7 +19,7 @@ casts_results: {
   }
   casts: {
    key: "other_id:OtherActionRageGain"
-   value: 39
+   value: 38
   }
   casts: {
    key: "spell_id:1235827 rank:3"

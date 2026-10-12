@@ -91,7 +91,7 @@ dps_results: {
  key: "TestFeralCat-AllItems-BarbaricBelt-4264"
  value: {
   dps: 589.62166
-  tps: 319.41929
+  tps: 319.00012
  }
 }
 dps_results: {
@@ -919,21 +919,21 @@ dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-Bearweave-BleedAssumed-bearweave-FullBuffs-0.0yards-LongMultiTarget"
  value: {
   dps: 592.60475
-  tps: 812.97546
+  tps: 809.05102
  }
 }
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-Bearweave-BleedAssumed-bearweave-FullBuffs-0.0yards-LongSingleTarget"
  value: {
   dps: 592.60475
-  tps: 322.65926
+  tps: 322.64037
  }
 }
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-Bearweave-BleedAssumed-bearweave-FullBuffs-0.0yards-ShortSingleTarget"
  value: {
   dps: 632.35255
-  tps: 368.673
+  tps: 368.37863
  }
 }
 dps_results: {
@@ -1045,21 +1045,21 @@ dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-Bearweave-PrepullClearcasting-bearweave-FullBuffs-0.0yards-LongMultiTarget"
  value: {
   dps: 593.52702
-  tps: 807.87608
+  tps: 804.02963
  }
 }
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-Bearweave-PrepullClearcasting-bearweave-FullBuffs-0.0yards-LongSingleTarget"
  value: {
   dps: 593.52702
-  tps: 322.97369
+  tps: 322.95362
  }
 }
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-Bearweave-PrepullClearcasting-bearweave-FullBuffs-0.0yards-ShortSingleTarget"
  value: {
   dps: 642.05972
-  tps: 371.22953
+  tps: 370.94807
  }
 }
 dps_results: {
@@ -1171,21 +1171,21 @@ dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-Bearweave-Standard-bearweave-FullBuffs-0.0yards-LongMultiTarget"
  value: {
   dps: 591.64917
-  tps: 812.49949
+  tps: 808.57504
  }
 }
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-Bearweave-Standard-bearweave-FullBuffs-0.0yards-LongSingleTarget"
  value: {
   dps: 591.64917
-  tps: 322.18328
+  tps: 322.16439
  }
 }
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-Bearweave-Standard-bearweave-FullBuffs-0.0yards-ShortSingleTarget"
  value: {
   dps: 630.78928
-  tps: 367.82675
+  tps: 367.53237
  }
 }
 dps_results: {
