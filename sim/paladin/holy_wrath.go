@@ -26,10 +26,11 @@ func (paladin *Paladin) registerHolyWrath(_ int32, rank *spelldata.Spell) {
 		results := []*core.SpellResult{}
 		for _, aoeTarget := range sim.Encounter.ActiveTargetUnits {
 			if aoeTarget.MobType == proto.MobType_MobTypeUndead || aoeTarget.MobType == proto.MobType_MobTypeDemon {
-				result := spell.CalcDamage(sim, aoeTarget, damage.Average(), spell.OutcomeMagicHitAndCrit)
-				spell.Launch(sim, result)
-				results = append(results, result)
+				results = append(results, spell.CalcDamage(sim, aoeTarget, damage.Average(), spell.OutcomeMagicHitAndCrit))
 			}
+		}
+		for _, result := range results {
+			spell.Launch(sim, result)
 		}
 
 		spell.WaitTravelTime(sim, func(sim *core.Simulation) {
