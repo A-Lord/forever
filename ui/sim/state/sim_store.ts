@@ -191,10 +191,17 @@ export interface ReforgeSlice {
 	v: Record<ReforgeField, number>;
 }
 
+// A fixed iteration count, or simulating each stat until its shown EP ± reaches a target.
+export type EpPrecisionMode = 'iterations' | 'target';
+
 // Stat-weight modal settings, one slice per player (keyed by storeKey).
 export interface StatWeightsSlice {
 	excludedStats: Array<number>;
 	excludedPseudoStats: Array<number>;
+	precisionMode: EpPrecisionMode;
+	iterations: number; // 0 runs the global sim iteration count.
+	targetEpCi: number;
+	maxIterationMultiplier: number; // Caps a stat's iterations at this multiple of the probe count.
 	v: { settings: number };
 }
 

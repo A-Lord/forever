@@ -2497,6 +2497,38 @@
 				},
 				"saved_ep_weights": {
 					"title": "Saved EP weights"
+				},
+				"precision": {
+					"label": "Precision",
+					"mode_iterations": "Iterations",
+					"mode_target": "Target ±",
+					"iterations": "Iterations",
+					"iterations_tooltip": "Iterations per simulation. Empty uses the sim's iteration setting.",
+					"probe_iterations": "Probe iterations",
+					"probe_iterations_tooltip": "Iterations of the first pass, which measures how many more each stat needs. Empty uses the sim's iteration setting.",
+					"target_ep_ci": "Target ±",
+					"target_ep_ci_tooltip": "Keeps simulating each stat until the 90% ± behind its EP is at most this value.",
+					"max_multiplier": "Max ×",
+					"max_multiplier_tooltip": "The most iterations a stat may run, as a multiple of the probe iterations."
+				},
+				"sweep": {
+					"stat": "Stat",
+					"range": "Range ±",
+					"step": "Step",
+					"run": "Run sweep",
+					"cancel": "Cancel",
+					"progress": "Step {{current}} / {{total}}",
+					"run_label": "{{stat}} ±{{range}}",
+					"ep_chart": "EP",
+					"dps_chart": "DPS",
+					"current_value": "Current value",
+					"tooltip_value": "{{value}} ± {{ci}}",
+					"empty": "Run a sweep to plot EP and DPS across the stat's range.",
+					"history": {
+						"title": "History",
+						"delete": "Delete {{label}}",
+						"empty": "No saved sweeps yet."
+					}
 				}
 			},
 			"suggest_reforges": {

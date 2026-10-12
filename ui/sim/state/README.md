@@ -28,7 +28,7 @@ event system.
 | `raid`                  | `Raid` / `Party`                   | buffs, debuffs, tanks, targetDummies, numActiveParties, partyBuffs[5], composition[5][5] (player storeKeys) |
 | `players[storeKey]`     | `Player` / `ItemSwapSettings`      | the values (`PlayerSlice`) + per-field version counters (`v`, keyed by `PLAYER_FIELDS`)                     |
 | `reforge[storeKey]`     | `ReforgeSettings`                  | reforge-optimizer settings (`REFORGE_FIELDS`) + counters                                                    |
-| `statWeights[storeKey]` | `StatWeightActionSettings`         | excluded stats + counter                                                                                    |
+| `statWeights[storeKey]` | `StatWeightActionSettings`         | excluded stats, EP precision settings + counter                                                             |
 | `bulk[storeKey]`        | `ui/sim/settings/bulk_settings.ts` | batch items + picker groups, batch settings, run flag, results, combination count + counters                |
 | `runs`                  | `SimRuns` (`ui/sim/sim_runs.ts`)   | `{ isRunning, isAborting }` per `SimRunKind`, written through `patchRun`                                    |
 
