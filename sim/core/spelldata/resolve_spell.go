@@ -79,6 +79,8 @@ func SpellConfig(unit *core.Unit, s *Spell, opts ...SpellOpt) core.SpellConfig {
 		MaxRange:     float64(s.MaxRange),
 		Cast:         castConfig(unit, s),
 
+		MissileMinDuration: s.MissileMinDuration(),
+
 		CastRequirement: s.CastRequirement(),
 	}
 	applyCost(&config, s)
