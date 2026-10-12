@@ -116,7 +116,7 @@ func (hunter *Hunter) registerRapidKilling() {
 			spend := trigger.Handler
 			trigger.Handler = func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
 				spend(sim, spell, result)
-				hunter.gainRapidRecuperation(sim, 2)
+				hunter.gainRapidRecuperation(sim, hunter.rapidRecuperationSpend)
 			}
 		})
 }
@@ -156,6 +156,9 @@ func (hunter *Hunter) registerRapidRecuperation() {
 
 	// The share of regeneration while casting 1242512 grants is the talent's, by what grants it, where
 	// the buff row states a flat 50: see gainRapidRecuperation.
+	rank := spellData.RapidRecuperation.Rank(hunter.Talents.RapidRecuperation)
+	hunter.rapidRecuperationHit = rank.EffectN(1).Percent()
+	hunter.rapidRecuperationSpend = rank.EffectN(2).Percent()
 	buff := hunter.RegisterAura(spelldata.AuraConfig(rapidRecuperationBuff))
 	buff.ApplyOnGain(func(aura *core.Aura, sim *core.Simulation) {
 		aura.Unit.PseudoStats.SpiritRegenRateCasting += hunter.rapidRecuperationShare
@@ -171,7 +174,7 @@ func (hunter *Hunter) registerRapidRecuperation() {
 	// proc mask and deals no damage of its own, which the listener has to accept.
 	trigger := spelldata.ProcTrigger(&hunter.Character, spellData.RapidRecuperation.Rank(hunter.Talents.RapidRecuperation),
 		func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-			hunter.gainRapidRecuperation(sim, 1)
+			hunter.gainRapidRecuperation(sim, hunter.rapidRecuperationHit)
 		})
 	trigger.Name = "Rapid Recuperation - Trigger"
 	trigger.ProcMask = core.ProcMaskEmpty
@@ -181,15 +184,14 @@ func (hunter *Hunter) registerRapidRecuperation() {
 	hunter.MakeProcTriggerAura(trigger)
 }
 
-// Puts Rapid Recuperation up at the share the talent's effect for its source states: effect 1 for a
-// Serpent Sting hit, 25/50% by rank, and effect 2 for spending Rapid Killing, 50/100% by rank. A gain
-// at another share replaces the one up.
-func (hunter *Hunter) gainRapidRecuperation(sim *core.Simulation, effect int) {
+// Puts Rapid Recuperation up at the share its source grants: effect 1 for a Serpent Sting hit, 25/50%
+// by rank, and effect 2 for spending Rapid Killing, 50/100% by rank. A gain at another share replaces
+// the one up.
+func (hunter *Hunter) gainRapidRecuperation(sim *core.Simulation, share float64) {
 	if hunter.rapidRecuperationAura == nil {
 		return
 	}
 
-	share := spellData.RapidRecuperation.Rank(hunter.Talents.RapidRecuperation).EffectN(effect).Percent()
 	if share != hunter.rapidRecuperationShare {
 		hunter.rapidRecuperationAura.Deactivate(sim)
 		hunter.rapidRecuperationShare = share

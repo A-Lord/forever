@@ -47,10 +47,15 @@ func init() {
 		damage := row.DamageEffect()
 
 		config := procSpellConfig(character, row)
+		// The charge hits the enemies around the wearer, so it has no range to the wearer's target.
+		config.MaxRange = 0
 		config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
 			for _, result := range spell.CalcAoeDamage(sim, damage.Average(), spell.OutcomeMagicHitAndCrit) {
-				spell.DealDamageAfterTravel(sim, result)
+				spell.DealCastResult(sim, result)
 			}
+			spell.WaitTravelTime(sim, func(sim *core.Simulation) {
+				spell.DealBatchedAoeDamage(sim)
+			})
 		}
 		charge := character.RegisterSpell(config)
 

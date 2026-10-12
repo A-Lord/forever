@@ -31,6 +31,8 @@ type Hunter struct {
 
 	rapidRecuperationAura  *core.Aura
 	rapidRecuperationShare float64 // The share of regeneration while casting the aura grants, set by what granted it.
+	rapidRecuperationHit   float64 // The share a Serpent Sting hit grants.
+	rapidRecuperationSpend float64 // The share spending Rapid Killing grants.
 }
 
 func (hunter *Hunter) GetCharacter() *core.Character {
