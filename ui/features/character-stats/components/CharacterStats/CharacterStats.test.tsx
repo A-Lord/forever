@@ -2,19 +2,19 @@
 // display-stat list, so it is the last row either way; what is pinned here is that it skeletons
 // with its siblings instead of reading as settled while the stats are still in flight.
 import { Class, PseudoStat, Race, Stat, WeaponSkill } from '@generated/proto/common';
+import { DatabaseFilters } from '@generated/proto/ui';
 import i18n from '@i18n/config';
 import { translateWeaponSkill } from '@i18n/localization';
 import { getClassWeaponSkills } from '@sim/player/classes/capabilities';
 import { PlayerClasses } from '@sim/player/classes/index';
 import { WeaponSkillGroup, weaponSkillsInGroups } from '@sim/player/weapon_skill_groups';
 import { Stats, UnitStat } from '@sim/proto/stats';
-import { createSimStore, PLAYER_FIELDS, type PlayerSlice, seedKeyed, zeroVersions } from '@sim/state/sim_store';
+import { createSimStore, patchSlice, PLAYER_FIELDS, type PlayerSlice, seedKeyed, zeroVersions } from '@sim/state/sim_store';
 import { renderWithHost } from '@testing/react';
-import { fireEvent, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { act, fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it } from 'vitest';
 
-import { CharacterStats, CharacterStatsHeaderView, type CharacterStatsMode, CharacterStatsPanelView } from './CharacterStats';
-import { buildRows } from './utils/rows';
+import { CharacterStats, CharacterStatsHeaderView, CharacterStatsPanelView } from './CharacterStats';
 import { statDisplayString } from './utils/stat_display';
 
 const KEY = 7;
@@ -71,7 +71,11 @@ const renderSheet = ({ displayStats, displayWeaponSkillGroups, currentStats, inF
 			isDualWielding: () => false,
 			...player,
 		},
-		sim: { store },
+		sim: {
+			store,
+			getFilters: () => DatabaseFilters.clone(store.getState().sim.filters),
+			setFilters: (filters: DatabaseFilters) => patchSlice(store, 'sim', { filters: DatabaseFilters.clone(filters) }),
+		},
 		individualConfig: { displayStats, displayWeaponSkillGroups },
 		getStorageKey: (keyPart: string) => `test${keyPart}`,
 	});
@@ -135,53 +139,95 @@ describe('CharacterStats sheet', () => {
 	});
 });
 
-describe('CharacterStats Key/All toggle', () => {
-	const rowLabels = (view: ReturnType<typeof renderWithHost>) =>
-		Array.from(view.container.querySelectorAll('[data-testid="character-stats-table-row"]')).map(row => row.firstElementChild!.textContent);
-	const modeButton = (mode: 'key' | 'all') => screen.getByRole('button', { name: i18n.t(`sidebar.character_stats.mode.${mode}`) });
+const groupTriggers = () => screen.queryAllByTestId(/^character-stats-group-[a-z]+-trigger$/);
+const groupTrigger = (key: string) => screen.getByTestId(`character-stats-group-${key}-trigger`);
+const expandedGroups = () => groupTriggers().filter(trigger => trigger.getAttribute('aria-expanded') === 'true');
+const rowLabels = () => screen.queryAllByTestId('character-stats-table-row').map(row => row.firstElementChild!.textContent);
 
-	it('opens on Key, showing the spec display stats and the crit cap', () => {
-		const { view } = renderStats(true);
+const filterTrigger = () => screen.getByTestId('character-stats-filter-button');
+const openFilter = () =>
+	act(async () => {
+		fireEvent.click(filterTrigger());
+	});
+const toggleStats = async (...stats: UnitStat[]) => {
+	await openFilter();
+	screen
+		.queryAllByTestId(/^character-stats-filter-group-[a-z]+-trigger$/)
+		.filter(trigger => trigger.getAttribute('aria-expanded') !== 'true')
+		.forEach(trigger => act(() => fireEvent.click(trigger)));
+	for (const stat of stats) {
+		act(() => {
+			fireEvent.click(document.getElementById(`character-stats-filter-${stat.getKey()}`)!);
+		});
+	}
+};
+const showAll = async () => {
+	await openFilter();
+	act(() => {
+		fireEvent.click(screen.getByTestId('character-stats-filter-all'));
+	});
+};
 
-		expect(modeButton('key').getAttribute('aria-pressed')).toBe('true');
-		expect(rowLabels(view)).toEqual([
-			...DISPLAY_STATS.map(stat => stat.getShortName(Class.ClassWarrior)),
+const STAMINA = UnitStat.fromStat(Stat.StatStamina);
+const DEFENSE_RATING = UnitStat.fromStat(Stat.StatDefenseRating);
+
+describe('CharacterStats stat filter', () => {
+	afterEach(() => {
+		window.localStorage.clear();
+	});
+
+	it('shows the spec display stats and the crit cap while the filter is unset', () => {
+		renderStats(true);
+
+		expect(rowLabels()).toEqual([...DISPLAY_STATS.map(stat => stat.getShortName(Class.ClassWarrior)), i18n.t('sidebar.character_stats.melee_crit_cap')]);
+	});
+
+	it('drops the row of a stat hidden in the filter', async () => {
+		renderStats(true);
+
+		await toggleStats(DISPLAY_STATS[0]);
+
+		expect(rowLabels()).toEqual([
+			...DISPLAY_STATS.slice(1).map(stat => stat.getShortName(Class.ClassWarrior)),
 			i18n.t('sidebar.character_stats.melee_crit_cap'),
 		]);
 	});
 
-	it('shows every group on All, with the rows of the open ones, and the Key rows again on Key', () => {
-		const { view } = renderStats(true);
-		const keyLabels = rowLabels(view);
+	it('adds the row of an off-spec stat shown in the filter, in its own group', async () => {
+		renderStats(true);
 
-		fireEvent.click(modeButton('all'));
-		const allGroups = buildRows({ getPlayerSpec: () => ({ isTankSpec: false, isMeleeDpsSpec: true }) } as never, UnitStat.getAll()).groups;
-		const shownRows = allGroups.filter(group => ['primary', 'attributes', 'physical'].includes(group.key)).flatMap(group => group.rows);
-		expect(modeButton('all').getAttribute('aria-pressed')).toBe('true');
+		await toggleStats(STAMINA);
+
+		const staminaLabel = STAMINA.getShortName(Class.ClassWarrior);
+		const stamina = screen.getAllByTestId('character-stats-table-row').find(row => row.firstElementChild!.textContent === staminaLabel)!;
+		expect(screen.getByTestId('character-stats-group-attributes').contains(stamina)).toBe(true);
+	});
+
+	it('shows every group once the filter shows every stat', async () => {
+		renderStats(true);
+
+		await showAll();
+
 		expect(groupTriggers().map(trigger => trigger.getAttribute('data-testid'))).toEqual(
 			['attributes', 'physical', 'spell', 'defense', 'resistance'].map(key => `character-stats-group-${key}-trigger`),
 		);
-		expect(rowLabels(view).length).toBe(shownRows.length);
-		expect(rowLabels(view)).toEqual(expect.arrayContaining(keyLabels));
-
-		fireEvent.click(modeButton('key'));
-		expect(rowLabels(view)).toEqual(keyLabels);
 	});
 });
-
-const groupTriggers = () => screen.queryAllByTestId(/^character-stats-group-[a-z]+-trigger$/);
-const groupTrigger = (key: string) => screen.getByTestId(`character-stats-group-${key}-trigger`);
-const expandedGroups = () => groupTriggers().filter(trigger => trigger.getAttribute('aria-expanded') === 'true');
-const showAll = () => fireEvent.click(screen.getByRole('button', { name: i18n.t('sidebar.character_stats.mode.all') }));
 
 describe('CharacterStats groups', () => {
 	afterEach(() => {
 		window.localStorage.clear();
 	});
 
-	it('keeps health and mana above the groups, under no header', () => {
+	it('rules the groups apart rather than boxing each one', () => {
 		renderStats(true);
-		showAll();
+
+		expect(screen.getByTestId('character-stats-groups').getAttribute('data-variant')).toBe('divided');
+	});
+
+	it('keeps health and mana above the groups, under no header', async () => {
+		renderStats(true);
+		await showAll();
 
 		const healthLabel = UnitStat.fromStat(Stat.StatHealth).getShortName(Class.ClassWarrior);
 		const health = screen.getAllByTestId('character-stats-table-row').find(row => row.firstElementChild!.textContent === healthLabel)!;
@@ -191,16 +237,16 @@ describe('CharacterStats groups', () => {
 	it.each([
 		['a melee spec', renderStats, 'physical'],
 		['a tank', renderTankStats, 'defense'],
-	])('opens Attributes and the main group for %s, and leaves the rest closed', (_spec, render, main) => {
+	])('opens Attributes and the main group for %s, and leaves the rest closed', async (_spec, render, main) => {
 		render(true);
-		showAll();
+		await showAll();
 
 		expect(expandedGroups()).toEqual([groupTrigger('attributes'), groupTrigger(main)]);
 	});
 
-	it('keeps the open groups under the spec storage key, and a remount reads them back', () => {
+	it('keeps the open groups under the spec storage key, and a remount reads them back', async () => {
 		const { view } = renderStats(true);
-		showAll();
+		await showAll();
 
 		fireEvent.click(groupTrigger('spell'));
 		fireEvent.click(groupTrigger('attributes'));
@@ -208,7 +254,7 @@ describe('CharacterStats groups', () => {
 
 		view.unmount();
 		renderStats(true);
-		showAll();
+		await showAll();
 		expect(expandedGroups()).toEqual([groupTrigger('physical'), groupTrigger('spell')]);
 	});
 });
@@ -237,34 +283,30 @@ describe('CharacterStats weapon skills', () => {
 		['a hunter', Class.ClassHunter, [WeaponSkillGroup.Melee, WeaponSkillGroup.Ranged], WeaponSkill.WeaponSkillThrown],
 		['a warrior', Class.ClassWarrior, [WeaponSkillGroup.Melee], WeaponSkill.WeaponSkillBows],
 		['a priest', Class.ClassPriest, [WeaponSkillGroup.Wands], WeaponSkill.WeaponSkillStaves],
-	])('shows %s the spec weapon skill groups on Key and every class weapon skill on All', (_spec, playerClass, groups, keyHidden) => {
+	])('shows %s only the class weapon skills in the spec weapon skill groups', (_spec, playerClass, groups, keyHidden) => {
 		renderWeaponSkills(playerClass, groups);
 		fireEvent.click(groupTrigger('weapon-skill'));
 
 		const keySkills = weaponSkillsInGroups(groups);
 		expect(shownSkills(playerClass)).toEqual(getClassWeaponSkills(playerClass).filter(skill => keySkills.includes(skill)));
 		expect(shownSkills(playerClass)).not.toContain(keyHidden);
-
-		showAll();
-		expect(shownSkills(playerClass)).toEqual(getClassWeaponSkills(playerClass));
 	});
 
 	const allClasses = PlayerClasses.naturalOrder.map(({ classID }) => [Class[classID], classID] as const);
 	const wandClasses = [Class.ClassMage, Class.ClassPriest, Class.ClassWarlock];
-	it.each(allClasses)('lists Wands on All for %s only if it is a mage, priest or warlock', (_name, playerClass) => {
-		renderWeaponSkills(playerClass);
-		showAll();
+	it.each(allClasses)('lists Wands from a Wands group for %s only if it is a mage, priest or warlock', (_name, playerClass) => {
+		renderWeaponSkills(playerClass, [WeaponSkillGroup.Melee, WeaponSkillGroup.Wands]);
 		fireEvent.click(groupTrigger('weapon-skill'));
 
 		expect(screen.queryByText(translateWeaponSkill(WeaponSkill.WeaponSkillWands)) !== null).toBe(wandClasses.includes(playerClass));
 	});
 
-	it('leaves the weapon skill item out on Key for a spec that names no weapon skills', () => {
+	it('leaves the weapon skill item out for a spec that names no weapon skills, whatever the stat filter shows', async () => {
 		renderWeaponSkills(Class.ClassWarrior);
 		expect(screen.queryByTestId('character-stats-group-weapon-skill-trigger')).toBeNull();
 
-		showAll();
-		expect(screen.queryByTestId('character-stats-group-weapon-skill-trigger')).not.toBeNull();
+		await showAll();
+		expect(screen.queryByTestId('character-stats-group-weapon-skill-trigger')).toBeNull();
 	});
 });
 
@@ -321,6 +363,23 @@ describe('CharacterStats tank rows', () => {
 		}
 		expect(trio[0].querySelector('[data-testid="stat-value-link"]')!.textContent).toContain('7.00%');
 		expect(trio[1].querySelector('[data-testid="stat-value-link"]')!.textContent).toContain('64.00%');
+	});
+
+	it('leaves the three out for a spec that is not a tank, with Defense shown through the filter', async () => {
+		renderStats(true);
+		await toggleStats(DEFENSE_RATING);
+		fireEvent.click(groupTrigger('defense'));
+
+		expect(rowLabels()).toContain(DEFENSE_RATING.getShortName(Class.ClassWarrior));
+		expect(rowLabels().filter(label => labels.includes(label ?? ''))).toEqual([]);
+	});
+
+	it('drops the three with the Defense group once the filter hides every defense stat', async () => {
+		renderTankStats(true);
+		await toggleStats(DEFENSE_RATING, UnitStat.fromPseudoStat(PseudoStat.PseudoStatDodgePercent));
+
+		expect(screen.queryByTestId('character-stats-group-defense')).toBeNull();
+		expect(rowLabels().filter(label => labels.includes(label ?? ''))).toEqual([]);
 	});
 });
 
@@ -383,49 +442,20 @@ describe('CharacterStats combined melee hand rows', () => {
 	});
 });
 
-const LABELS = { title: 'Stats', modeAriaLabel: 'Stats shown', key: 'Key', all: 'All' };
-
-const mount = (mode: CharacterStatsMode) => {
-	const onModeChange = vi.fn();
-	return { onModeChange, ...render(<CharacterStatsHeaderView mode={mode} onModeChange={onModeChange} labels={LABELS} />) };
-};
-
-const pressed = () => screen.getAllByRole('button').map(button => [button.textContent, button.getAttribute('aria-pressed')]);
-
 describe('CharacterStatsHeaderView', () => {
-	it('sets the heading beside a labelled Key/All group', () => {
-		mount('key');
+	it('sets the heading beside the filter it is given', () => {
+		render(<CharacterStatsHeaderView title="Stats" filter={<button type="button">Filter</button>} />);
 
-		expect(screen.getByTestId('character-stats-label').textContent).toBe('Stats');
-		expect(screen.getByRole('group', { name: 'Stats shown' })).toBeTruthy();
-	});
-
-	it.each<[CharacterStatsMode, string, string]>([
-		['key', 'true', 'false'],
-		['all', 'false', 'true'],
-	])('presses the mode it is given (%s)', (mode, key, all) => {
-		mount(mode);
-		expect(pressed()).toEqual([
-			['Key', key],
-			['All', all],
-		]);
-	});
-
-	it('reports the other mode on a click, and nothing for the one already shown', () => {
-		const { onModeChange } = mount('key');
-
-		fireEvent.click(screen.getByRole('button', { name: 'Key' }));
-		expect(onModeChange).not.toHaveBeenCalled();
-		fireEvent.click(screen.getByRole('button', { name: 'All' }));
-		expect(onModeChange).toHaveBeenCalledWith('all');
+		const title = screen.getByTestId('character-stats-label');
+		expect(title.textContent).toBe('Stats');
+		expect(title.compareDocumentPosition(screen.getByRole('button', { name: 'Filter' })) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 	});
 });
 
 describe('CharacterStatsPanelView', () => {
-	it('shows the title above its content, and reports a mode change from the Key/All group', () => {
-		const onModeChange = vi.fn();
+	it('shows the title above its content', () => {
 		render(
-			<CharacterStatsPanelView mode="key" onModeChange={onModeChange} labels={LABELS}>
+			<CharacterStatsPanelView title="Stats">
 				<table data-testid="stats-table" />
 			</CharacterStatsPanelView>,
 		);
@@ -433,7 +463,5 @@ describe('CharacterStatsPanelView', () => {
 		const title = screen.getByTestId('character-stats-label');
 		expect(title.textContent).toBe('Stats');
 		expect(title.compareDocumentPosition(screen.getByTestId('stats-table')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-		fireEvent.click(screen.getByRole('button', { name: 'All' }));
-		expect(onModeChange).toHaveBeenCalledWith('all');
 	});
 });

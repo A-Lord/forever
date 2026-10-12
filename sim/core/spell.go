@@ -172,6 +172,7 @@ type Spell struct {
 	// Added to DamageMultiplierAdditive on direct hits and direct heals only. Unlike that bucket
 	// this one is 0 when nothing feeds it.
 	DirectDamageMultiplierAdditive float64
+	DirectDamageMultiplier         float64 // Multiplies direct hits and direct heals only, 1 = unmodified. Fed by SpellMod_DirectDamageDone_Pct.
 	CritMultiplierPct              float64 // Multiplies the base crit multiplier, 1 = unmodified. Fed by SpellMod_CritMultiplier_Pct.
 	CritMultiplierAdditive         float64 // Additive critical damage bonus
 
@@ -290,6 +291,7 @@ func (unit *Unit) RegisterSpell(config SpellConfig) *Spell {
 		unscaledGCD:              config.Cast.DefaultCast.GCD,
 		DamageMultiplier:         config.DamageMultiplier,
 		DamageMultiplierAdditive: config.DamageMultiplierAdditive,
+		DirectDamageMultiplier:   1,
 		CritMultiplierPct:        1,
 		CritMultiplierAdditive:   config.CritMultiplierAdditive,
 
@@ -888,11 +890,15 @@ type SpellCost struct {
 	FlatModifier            int32   // Flat value added to base cost before pct mods
 	PercentModifier         float64 // Multiplier for cost, as of MoP a float
 	AdditivePercentModifier float64 // Additive pct cost bucket: defaults to 1, additive pct mods sum into it
+	percentModifierZeroes   int32   // Active percent cost mods of -100% or lower; the cost is 0 while any is active.
 	spell                   *Spell
 	ResourceCostImpl
 }
 
 func (sc *SpellCost) ApplyCostModifiers(cost int32) float64 {
+	if sc.percentModifierZeroes > 0 {
+		return 0
+	}
 	spell := sc.spell
 	cost = max(0, cost+sc.FlatModifier)
 	cost = max(0, cost*spell.Unit.PseudoStats.SpellCostPercentModifier/100)

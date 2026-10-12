@@ -1,3 +1,4 @@
+import { iconEnumValues } from '@features/inputs/components/ConnectedIconEnumPicker/utils';
 import { ActionID as ActionIdProto, Cooldown, Cooldowns } from '@generated/proto/common';
 import { ActionId } from '@sim/proto/action_id';
 import { describe, expect, it, vi } from 'vitest';
@@ -47,7 +48,7 @@ describe('actionPickerConfig', () => {
 	const available = [ActionId.fromSpellId(spellId)];
 
 	it('offers an empty grey value ahead of every cooldown', () => {
-		const values = actionPickerConfig(available, 0).values;
+		const values = iconEnumValues(actionPickerConfig(available, 0), playerWith([]));
 		expect(values[0].color).toBe('#grey');
 		expect(ActionIdProto.equals(values[0].value, ActionIdProto.create())).toBe(true);
 		expect(values.slice(1).map(value => value.actionId)).toEqual(available);
