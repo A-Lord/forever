@@ -38,6 +38,7 @@ func (mage *Mage) registerPyroblastRank(_ int32, rank *spelldata.Spell) {
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		result := spell.CalcDamage(sim, target, damage.Average(), spell.OutcomeMagicHitAndCrit)
+		spell.DealCastResult(sim, result)
 		spell.WaitTravelTime(sim, func(s *core.Simulation) {
 			spell.DealDamage(sim, result)
 			if result.Landed() {
