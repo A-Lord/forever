@@ -9,10 +9,11 @@ import (
 
 // A random suffix is one bonus list of an item's bonus tree; its ID is the bonus list's.
 type RandomSuffix struct {
-	ID          int
-	Name        string
-	Stats       []RandomSuffixStat
-	EquipSpells []int // The spells of the list's ITEM_BONUS_ITEM_EFFECT rows.
+	ID               int
+	Name             string
+	Stats            []RandomSuffixStat
+	EquipSpells      []int // The spells of the list's ITEM_BONUS_ITEM_EFFECT rows.
+	ReducedCasterDps bool  // The list carries an ITEM_BONUS_REDUCED_CASTER_DPS row: a weapon with it deals a caster weapon's share of its damage table.
 }
 
 type RandomSuffixStat struct {
@@ -22,9 +23,10 @@ type RandomSuffixStat struct {
 
 func (raw RandomSuffix) ToProto() *proto.ItemRandomSuffix {
 	suffix := &proto.ItemRandomSuffix{
-		Name:  raw.Name,
-		Id:    int32(raw.ID),
-		Stats: stats.Stats{}.ToProtoArray(),
+		Name:             raw.Name,
+		Id:               int32(raw.ID),
+		Stats:            stats.Stats{}.ToProtoArray(),
+		ReducedCasterDps: raw.ReducedCasterDps,
 	}
 
 	// ITEM_MOD_HEALTH_REGEN ("of Regeneration") has no stat in the sim and is left out.
