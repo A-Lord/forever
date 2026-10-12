@@ -1029,6 +1029,9 @@ func (at *auraTracker) OnSpellHitTaken(sim *Simulation, spell *Spell, result *Sp
 	at.endDispatch()
 }
 func (at *auraTracker) OnSpellLaunch(sim *Simulation, spell *Spell, result *SpellResult) {
+	if len(at.onSpellLaunchAuras) == 0 {
+		return
+	}
 	for _, aura := range at.beginDispatch(at.onSpellLaunchAuras) {
 		if !aura.active {
 			continue
