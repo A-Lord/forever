@@ -13,7 +13,7 @@ func (druid *Druid) registerWrathSpell() {
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		result := spell.CalcDamage(sim, target, wrathDamage.Average(), spell.OutcomeMagicHitAndCrit)
 		if druid.eclipseLaunch != nil {
-			druid.eclipseLaunch(sim, spell, result)
+			druid.eclipseLaunch(sim, result)
 		}
 
 		spell.WaitTravelTime(sim, func(sim *core.Simulation) {
