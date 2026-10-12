@@ -196,11 +196,13 @@ func (rogue *Rogue) newMutilateHitSpell(isMH bool) *core.Spell {
 	}
 	mutilateHitBaseDamage := hitRank.DamageEffect().Average()
 	config := spelldata.SpellConfig(&rogue.Unit, hitRank, spellOpt)
-	config.Flags |= SpellFlagBuilder | SpellFlagColdBlooded
-	// The strikes are part of the Mutilate cast: they carry its action id, so a once-per-cast effect
-	// sees one cast, and its class flags, so Eureka!'s damage modifier, which names only the cast,
-	// reaches them.
+	// The strikes are part of the Mutilate cast. They carry its action id, so a charge spender sees one
+	// cast and the results count one cast, and its class flags, so every modifier and trigger that names
+	// the cast reaches them too. Eureka! is the one that matters today: its damage modifier names only
+	// the cast.
 	// TODO: Ingame test needed: whether Eureka! raises Mutilate's strikes and spends one charge on it.
+	config.Flags |= SpellFlagBuilder | SpellFlagColdBlooded | core.SpellFlagPassiveSpell
+	config.Flags &^= core.SpellFlagAPL
 	config.ActionID = core.ActionID{SpellID: mutilateCastRank.ID, Tag: core.TernaryInt32(isMH, 1, 2)}
 	for i := range config.ClassFlags.Mask {
 		config.ClassFlags.Mask[i] |= mutilateCastRank.ClassFlags.Mask[i]
