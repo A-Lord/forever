@@ -10,6 +10,7 @@ import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/simsignals"
+	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 	goproto "google.golang.org/protobuf/proto"
 )
@@ -246,6 +247,7 @@ func TestFeralAttackPowerConvertsOneForOneOnlyInFeralForms(t *testing.T) {
 
 func TestDashSpeedExpiresAfterItsDuration(t *testing.T) {
 	sim, cat := newFormScenario(t)
+	wantExpires := sim.CurrentTime + time.Duration(spelldata.MustFind(cat.Dash.SpellID).DurationMs)*time.Millisecond
 	before := cat.GetMovementSpeed()
 	if !cat.Dash.Cast(sim, cat.CurrentTarget) {
 		t.Fatal("Dash did not cast in Cat Form")
@@ -258,8 +260,8 @@ func TestDashSpeedExpiresAfterItsDuration(t *testing.T) {
 			t.Fatal("simulation ended before Dash expired")
 		}
 	}
-	if sim.CurrentTime < 15*time.Second {
-		t.Fatalf("Dash expired at %s, want at least 15s", sim.CurrentTime)
+	if sim.CurrentTime != wantExpires {
+		t.Fatalf("Dash expired at %s, want %s from its row", sim.CurrentTime, wantExpires)
 	}
 	if got := cat.GetMovementSpeed(); math.Abs(got-before) > 1e-9 {
 		t.Fatalf("movement after Dash = %g, want %g", got, before)
