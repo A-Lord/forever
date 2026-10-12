@@ -147,6 +147,7 @@ function options(range: { min: number; max: number }, statLabel: string, showLeg
 									strokeStyle: color,
 									lineWidth: LEGEND_LINE_WIDTH,
 									pointStyle: 'line',
+									fontColor: cssVarColor('--color-foreground'),
 									hidden: !chart.isDatasetVisible(datasetIndex),
 								},
 							];
