@@ -8,6 +8,7 @@ import { Stats } from '@sim/proto/stats';
 import BearweaveApl from './apls/bearweave.apl.json';
 import DefaultApl from './apls/default.apl.json';
 import EnergizedApl from './apls/energized.apl.json';
+import JvmesApl from './apls/jvmes.apl.json';
 import PounceApl from './apls/pounce.apl.json';
 import RavageApl from './apls/ravage.apl.json';
 import ShadowmeldApl from './apls/shadowmeld.apl.json';
@@ -92,6 +93,13 @@ export const SHADOWMELD_APL = PresetUtils.makePresetAPLRotation('Monocat, Shadow
 // Monocat with Read Ley Line, for a High Order Skyborne: cast in an idle GCD under 1400 mana. 0 to 4 DPS
 // from 60 to 300 seconds.
 export const ENERGIZED_APL = PresetUtils.makePresetAPLRotation('Monocat, Energized (High Order Skyborne)', EnergizedApl);
+// Uses Thistle Tea and optional Sapper, with racial actions gated by availability.
+// The Prowl opener requires prepull Clearcasting; Shadowmeld enables Ravage during combat.
+export const JVMES_APL = {
+	...PresetUtils.makePresetAPLRotation('Monocat, adaptive racials and Sapper', JvmesApl),
+	tooltip:
+		'Maintains Rip and Rake, saves Bite for fight end, and uses available racial abilities and optional Sapper. Opens with Ravage when prepull Clearcasting is enabled.',
+};
 export const RAVAGE_APL = PresetUtils.makePresetAPLRotation('Ravage opener', RavageApl);
 export const POUNCE_APL = PresetUtils.makePresetAPLRotation('Pounce opener', PounceApl);
 // Monocat with Dire Bear trips for Primal Bite and Maul, only on mana the Shifting Powers to the end

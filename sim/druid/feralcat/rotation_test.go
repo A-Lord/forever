@@ -249,3 +249,61 @@ func castsOf(actions []*proto.ActionMetrics, spellID int32) int32 {
 	}
 	return n
 }
+
+func TestJVMESSapperOnlyWhenSelected(t *testing.T) {
+	for _, selected := range []bool{false, true} {
+		t.Run(strconv.FormatBool(selected), func(t *testing.T) {
+			rotation := core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "jvmes").Rotation
+			request := sweepRequest(powershiftTalents, rotation, false, 1)
+			cat := request.Raid.Parties[0].Players[0]
+			cat.Profession1 = proto.Profession_Engineering
+			cat.Consumables = &proto.ConsumesSpec{ConjuredId: 7676}
+			if selected {
+				cat.Consumables.ExtraIds = []int32{10646}
+			}
+			player := runCat(t, request)
+			thrown := itemCastsOf(player.Actions, 10646)
+			if selected && thrown != 1 {
+				t.Errorf("Sapper casts = %d, want 1 when selected", thrown)
+			}
+			if !selected && thrown != 0 {
+				t.Errorf("Sapper casts = %d without the consumable selected", thrown)
+			}
+			if got, want := castsOf(player.Actions, 768), thrown+castsOf(player.Actions, spellInnervate); got != want {
+				t.Errorf("Cat Form casts = %d, want %d for Sapper and Innervate", got, want)
+			}
+			if castsOf(player.Actions, 9907) == 0 {
+				t.Error("Faerie Fire was never cast")
+			}
+		})
+	}
+}
+
+func TestJVMESUsesAvailableRacials(t *testing.T) {
+	for _, race := range []proto.Race{proto.Race_RaceNightElf, proto.Race_RaceHighOrderSkyborne, proto.Race_RaceTauren} {
+		t.Run(race.String(), func(t *testing.T) {
+			rotation := core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "jvmes").Rotation
+			request := sweepRequest(powershiftTalents, rotation, false, 10)
+			request.Encounter.Duration = 300
+			cat := request.Raid.Parties[0].Players[0]
+			cat.Race = race
+			cat.Consumables = &proto.ConsumesSpec{ConjuredId: 7676}
+			player := runCat(t, request)
+			for _, racial := range []struct {
+				id   int32
+				race proto.Race
+			}{{1259799, proto.Race_RaceNightElf}, {20580, proto.Race_RaceNightElf}, {1259705, proto.Race_RaceHighOrderSkyborne}} {
+				casts := castsOf(player.Actions, racial.id)
+				if (casts > 0) != (race == racial.race) {
+					t.Errorf("racial %d casts = %d for %s", racial.id, casts, race)
+				}
+			}
+			if melds, ravages := castsOf(player.Actions, 20580), castsOf(player.Actions, 9867); melds != ravages {
+				t.Errorf("Shadowmeld casts = %d, Ravage casts = %d without prepull Clearcasting", melds, ravages)
+			}
+			if forms, innervates := castsOf(player.Actions, 768), castsOf(player.Actions, spellInnervate); forms != innervates {
+				t.Errorf("Cat Form casts = %d, Innervate casts = %d without Sapper", forms, innervates)
+			}
+		})
+	}
+}
