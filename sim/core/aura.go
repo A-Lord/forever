@@ -75,7 +75,7 @@ type Aura struct {
 	onPeriodicHealDealtIndex   int32 // Position of this aura's index in the onPeriodicHealAuras array.
 	onPeriodicHealTakenIndex   int32 // Position of this aura's index in the onPeriodicHealAuras array.
 	onEncounterStartIndex      int32 // Position of this aura's index in the onEncounterStartAuras array.
-	onSpellLaunchIndex         int32 // Position of this aura's index in the onSpellLaunchAuras array.
+	onCastResultIndex          int32 // Position of this aura's index in the onCastResultAuras array.
 
 	// The number of stacks, or charges, of this aura. If this aura doesn't care
 	// about charges, is just 0.
@@ -103,7 +103,7 @@ type Aura struct {
 	OnPeriodicHealDealt   OnPeriodicDamage // Invoked when a hot tick occurs and this unit is the caster.
 	OnPeriodicHealTaken   OnPeriodicDamage // Invoked when a hot tick occurs and this unit is the target.
 	OnEncounterStart      OnEncounterStart // Invoked at the start of each encounter, after the pre-pull.
-	OnSpellLaunch         OnSpellHit       // Invoked when a direct damage result is launched and this unit is the caster.
+	OnCastResult          OnSpellHit       // Invoked when a direct damage result is dealt at the cast and this unit is the caster.
 
 	// If non-default, stat bonuses from the OnGain callback of this aura will be
 	// included in Character Stats in the UI.
@@ -443,7 +443,7 @@ type auraTracker struct {
 	onPeriodicHealDealtAuras   []*Aura
 	onPeriodicHealTakenAuras   []*Aura
 	onEncounterStartAuras      []*Aura
-	onSpellLaunchAuras         []*Aura
+	onCastResultAuras          []*Aura
 
 	dispatchBuffers [][]*Aura // One copy of a callback list per event being handled, nested events included.
 	dispatchDepth   int
@@ -530,7 +530,7 @@ func (at *auraTracker) registerAura(unit *Unit, aura Aura) *Aura {
 	newAura.onPeriodicHealDealtIndex = Inactive
 	newAura.onPeriodicHealTakenIndex = Inactive
 	newAura.onEncounterStartIndex = Inactive
-	newAura.onSpellLaunchIndex = Inactive
+	newAura.onCastResultIndex = Inactive
 
 	at.auras = append(at.auras, newAura)
 	if newAura.Tag != "" {
@@ -559,7 +559,7 @@ func (unit *Unit) GetOrRegisterAura(aura Aura) *Aura {
 		curAura.OnPeriodicHealDealt = aura.OnPeriodicHealDealt
 		curAura.OnPeriodicHealTaken = aura.OnPeriodicHealTaken
 		curAura.OnEncounterStart = aura.OnEncounterStart
-		curAura.OnSpellLaunch = aura.OnSpellLaunch
+		curAura.OnCastResult = aura.OnCastResult
 		return curAura
 	}
 }
@@ -625,7 +625,7 @@ func (at *auraTracker) reset(sim *Simulation) {
 	at.onPeriodicHealDealtAuras = at.onPeriodicHealDealtAuras[:0]
 	at.onPeriodicHealTakenAuras = at.onPeriodicHealTakenAuras[:0]
 	at.onEncounterStartAuras = at.onEncounterStartAuras[:0]
-	at.onSpellLaunchAuras = at.onSpellLaunchAuras[:0]
+	at.onCastResultAuras = at.onCastResultAuras[:0]
 
 	for _, resetEffect := range at.resetEffects {
 		resetEffect(sim)
@@ -786,9 +786,9 @@ func (aura *Aura) Activate(sim *Simulation) {
 		aura.Unit.onEncounterStartAuras = append(aura.Unit.onEncounterStartAuras, aura)
 	}
 
-	if aura.OnSpellLaunch != nil {
-		aura.onSpellLaunchIndex = int32(len(aura.Unit.onSpellLaunchAuras))
-		aura.Unit.onSpellLaunchAuras = append(aura.Unit.onSpellLaunchAuras, aura)
+	if aura.OnCastResult != nil {
+		aura.onCastResultIndex = int32(len(aura.Unit.onCastResultAuras))
+		aura.Unit.onCastResultAuras = append(aura.Unit.onCastResultAuras, aura)
 	}
 
 	if sim.Log != nil && !aura.ActionID.IsEmptyAction() {
@@ -937,13 +937,13 @@ func (aura *Aura) Deactivate(sim *Simulation) {
 		aura.onEncounterStartIndex = Inactive
 	}
 
-	if aura.onSpellLaunchIndex != Inactive {
-		removeOnSpellLaunchIndex := aura.onSpellLaunchIndex
-		aura.Unit.onSpellLaunchAuras = removeBySwappingToBack(aura.Unit.onSpellLaunchAuras, removeOnSpellLaunchIndex)
-		if removeOnSpellLaunchIndex < int32(len(aura.Unit.onSpellLaunchAuras)) {
-			aura.Unit.onSpellLaunchAuras[removeOnSpellLaunchIndex].onSpellLaunchIndex = removeOnSpellLaunchIndex
+	if aura.onCastResultIndex != Inactive {
+		removeOnCastResultIndex := aura.onCastResultIndex
+		aura.Unit.onCastResultAuras = removeBySwappingToBack(aura.Unit.onCastResultAuras, removeOnCastResultIndex)
+		if removeOnCastResultIndex < int32(len(aura.Unit.onCastResultAuras)) {
+			aura.Unit.onCastResultAuras[removeOnCastResultIndex].onCastResultIndex = removeOnCastResultIndex
 		}
-		aura.onSpellLaunchIndex = Inactive
+		aura.onCastResultIndex = Inactive
 	}
 
 	// don't invoke possible callbacks until the internal state is consistent
@@ -1028,15 +1028,15 @@ func (at *auraTracker) OnSpellHitTaken(sim *Simulation, spell *Spell, result *Sp
 	}
 	at.endDispatch()
 }
-func (at *auraTracker) OnSpellLaunch(sim *Simulation, spell *Spell, result *SpellResult) {
-	if len(at.onSpellLaunchAuras) == 0 {
+func (at *auraTracker) OnCastResult(sim *Simulation, spell *Spell, result *SpellResult) {
+	if len(at.onCastResultAuras) == 0 {
 		return
 	}
-	for _, aura := range at.beginDispatch(at.onSpellLaunchAuras) {
+	for _, aura := range at.beginDispatch(at.onCastResultAuras) {
 		if !aura.active {
 			continue
 		}
-		aura.OnSpellLaunch(aura, sim, spell, result)
+		aura.OnCastResult(aura, sim, spell, result)
 	}
 	at.endDispatch()
 }
