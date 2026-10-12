@@ -22,7 +22,8 @@ type SpellResult struct {
 	BlockedDamage                float64 // Damage a block took off this cast
 	PreMitigationDamage          float64 // Damage done by this cast with the Outcome's multiplier but before the target's armor, resistances, damage taken modifiers, block and absorbs
 
-	inUse bool
+	inUse    bool
+	launched bool
 }
 
 type SpellResultSlice []*SpellResult
@@ -78,6 +79,7 @@ func (spell *Spell) NewResult(target *Unit) *SpellResult {
 	result.PostOutcomeDamage = 0
 	result.BlockedDamage = 0
 	result.PreMitigationDamage = 0
+	result.launched = false
 
 	return result
 }
@@ -96,6 +98,7 @@ func (spell *Spell) CloneResult(result *SpellResult) *SpellResult {
 	newResult.PostOutcomeDamage = result.PostOutcomeDamage
 	newResult.BlockedDamage = result.BlockedDamage
 	newResult.PreMitigationDamage = result.PreMitigationDamage
+	newResult.launched = result.launched
 
 	return newResult
 }
@@ -514,6 +517,9 @@ func (spell *Spell) dealDamageInternal(sim *Simulation, isPeriodic bool, result 
 			spell.Unit.OnPeriodicDamageDealt(sim, spell, result)
 			result.Target.OnPeriodicDamageTaken(sim, spell, result)
 		} else {
+			// Each direct result launches once: a missile at its cast when it calls Launch, anything
+			// else here, right before its hit is dealt. Ticks and heals never launch.
+			spell.Launch(sim, result)
 			spell.Unit.OnSpellHitDealt(sim, spell, result)
 			result.Target.OnSpellHitTaken(sim, spell, result)
 		}
@@ -526,6 +532,25 @@ func (spell *Spell) DealDamage(sim *Simulation, result *SpellResult) {
 }
 func (spell *Spell) DealPeriodicDamage(sim *Simulation, result *SpellResult) {
 	spell.dealDamageInternal(sim, true, result)
+}
+
+// Fires the caster's OnSpellLaunch for a direct result rolled now and dealt later, once per result.
+func (spell *Spell) Launch(sim *Simulation, result *SpellResult) {
+	if result.launched {
+		return
+	}
+	result.launched = true
+	if !spell.Flags.Matches(SpellFlagNoOnDamageDealt) {
+		spell.Unit.OnSpellLaunch(sim, spell, result)
+	}
+}
+
+// Launches the result now and deals it once the spell's travel time has passed.
+func (spell *Spell) DealDamageAfterTravel(sim *Simulation, result *SpellResult) {
+	spell.Launch(sim, result)
+	spell.WaitTravelTime(sim, func(sim *Simulation) {
+		spell.DealDamage(sim, result)
+	})
 }
 
 func (spell *Spell) CalcAndDealDamage(sim *Simulation, target *Unit, baseDamage float64, outcomeApplier OutcomeApplier) *SpellResult {
