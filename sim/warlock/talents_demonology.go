@@ -217,39 +217,24 @@ func (warlock *Warlock) applyDecimation() {
 	noReagent := decimationRow.Effect(dbcenums.A_NO_REAGENT_USE, 0)
 	warlock.reagentWaivers = append(warlock.reagentWaivers, reagentWaiver{aura: decimationAura, flags: noReagent.ClassFlags})
 
-	// Set while a cast's launch is handed to the trigger, so the hit it deals is told apart.
-	var launching bool
-
 	// The buff comes with the cast, and only when its hit lands: a miss or a full resist grants nothing.
-	// Shadow Bolt and Searing Pain roll their hit at the cast and hand it over at the launch, before a bolt
-	// lands.
-	triggerAura := warlock.MakeProcTriggerAura(core.ProcTrigger{
-		Name:       "Decimation - Trigger",
-		Callback:   core.CallbackOnSpellHitDealt,
-		Outcome:    core.OutcomeLanded,
-		ClassFlags: executeBonus.ClassFlags,
+	// Shadow Bolt and Searing Pain roll their hit at the cast, so the trigger reads its cast result, before a
+	// bolt lands.
+	warlock.MakeProcTriggerAura(core.ProcTrigger{
+		Name:           "Decimation - Trigger",
+		Callback:       core.CallbackOnCastResult,
+		Outcome:        core.OutcomeLanded,
+		ClassFlags:     executeBonus.ClassFlags,
+		ClassSpellMask: WarlockSpellShadowBolt | WarlockSpellSearingPain,
 		// In the logs the buff comes in the same batch as the cast.
 		TriggerImmediately: true,
 		ExtraCondition: func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) bool {
-			return launching && sim.IsExecutePhase35()
+			return sim.IsExecutePhase35()
 		},
 		Handler: func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
 			decimationAura.Activate(sim)
 		},
 	})
-
-	warlock.decimationLaunch = func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-		launching = true
-		triggerAura.OnSpellHitDealt(triggerAura, sim, spell, result)
-		launching = false
-	}
-}
-
-// Hands the hit of a Shadow Bolt or Searing Pain, rolled at the cast, to Decimation as the spell is launched.
-func (warlock *Warlock) launchDecimationSpell(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-	if warlock.decimationLaunch != nil {
-		warlock.decimationLaunch(sim, spell, result)
-	}
 }
 
 // TODO: Not implemented, as it does not affect sims for now: demons are summoned before the fight.

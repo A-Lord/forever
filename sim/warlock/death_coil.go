@@ -21,6 +21,7 @@ func (warlock *Warlock) registerDeathCoil() {
 	// Roll the damage and to hit, then land it after the travel time and heal for what it dealt
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		result := spell.CalcDamage(sim, target, deathCoilHit.Average(), spell.OutcomeMagicHitAndCrit)
+		spell.DealCastResult(sim, result)
 		spell.WaitTravelTime(sim, func(sim *core.Simulation) {
 			spell.DealDamage(sim, result)
 			heal := result.Damage * warlock.PseudoStats.SelfHealingMultiplier * warlock.PseudoStats.HealingTakenMultiplier
