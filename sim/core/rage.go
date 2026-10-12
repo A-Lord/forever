@@ -68,6 +68,9 @@ type rageBar struct {
 	offHandRageMultiplier     float64
 	damageTakenRageMultiplier float64
 
+	rageGainSpell  *Spell
+	rageGainThreat map[*ResourceMetrics]float64 // Threat from this iteration's gains, by source, before the split between targets.
+
 	RageRefundMetrics     *ResourceMetrics
 	EncounterStartMetrics *ResourceMetrics
 }
@@ -157,7 +160,7 @@ func (unit *Unit) EnableRageBar(options RageBarOptions) {
 	})
 
 	// Not a real spell, just holds metrics from rage gain threat.
-	unit.RegisterSpell(SpellConfig{
+	rageGainSpell := unit.RegisterSpell(SpellConfig{
 		ActionID: ActionID{OtherID: proto.OtherAction_OtherActionRageGain},
 	})
 
@@ -169,6 +172,8 @@ func (unit *Unit) EnableRageBar(options RageBarOptions) {
 		startingRage:              max(0, options.StartingRage),
 		offHandRageMultiplier:     1,
 		damageTakenRageMultiplier: 1,
+		rageGainSpell:             rageGainSpell,
+		rageGainThreat:            make(map[*ResourceMetrics]float64),
 		RageRefundMetrics:         unit.NewRageMetrics(ActionID{OtherID: proto.OtherAction_OtherActionRefund}),
 		EncounterStartMetrics:     unit.NewRageMetrics(ActionID{OtherID: proto.OtherAction_OtherActionEncounterStart}),
 	}
@@ -212,6 +217,12 @@ func (rb *rageBar) AddRage(sim *Simulation, amount float64, metrics *ResourceMet
 	newRage := min(rb.currentRage+amount, rb.maxRage)
 	metrics.AddEvent(amount, newRage-rb.currentRage)
 
+	// Each rage gained is ThreatPerRageGained threat times the unit's threat multiplier at the time;
+	// doneIteration splits it between the targets in combat.
+	if gain := newRage - rb.currentRage; gain > 0 {
+		rb.rageGainThreat[metrics] += gain * ThreatPerRageGained * rb.rageGainSpell.unitThreatMultiplier()
+	}
+
 	if sim.Log != nil {
 		rb.unit.Log(sim, "Gained %0.3f rage from %s (%0.3f --> %0.3f) of %0.0f total.", amount, metrics.ActionID, rb.currentRage, newRage, rb.maxRage)
 	}
@@ -252,6 +263,7 @@ func (rb *rageBar) reset(_ *Simulation) {
 
 	rb.currentRage = min(rb.startingRage, rb.maxRage)
 	rb.damageTakenRageMultiplier = 1
+	clear(rb.rageGainThreat)
 }
 
 func (rb *rageBar) doneIteration() {
@@ -259,7 +271,8 @@ func (rb *rageBar) doneIteration() {
 		return
 	}
 
-	rageGainSpell := rb.unit.GetSpell(ActionID{OtherID: proto.OtherAction_OtherActionRageGain})
+	rageGainSpell := rb.rageGainSpell
+	targets := float64(len(rb.unit.Env.GetActiveTargetUnits()))
 
 	for _, resourceMetrics := range rb.unit.Metrics.resources {
 		if resourceMetrics.Type != proto.ResourceType_ResourceTypeRage {
@@ -283,7 +296,7 @@ func (rb *rageBar) doneIteration() {
 		}
 
 		rageGainSpell.SpellMetrics[0].Casts += resourceMetrics.EventsForCurrentIteration()
-		rageGainSpell.ApplyAOEThreatIgnoreMultipliers(resourceMetrics.ActualGainForCurrentIteration() * ThreatPerRageGained)
+		rageGainSpell.ApplyAOEThreatIgnoreMultipliers(rb.rageGainThreat[resourceMetrics] / targets)
 	}
 }
 
