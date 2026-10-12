@@ -21,10 +21,13 @@ func (mage *Mage) registerArcaneMissilesRank(_ int32, rank *spelldata.Spell) {
 	tickConfig.ClassSpellMask = MageSpellArcaneMissilesTick
 	// Every missile of a channel carries the Arcane Charges its cast spent.
 	chargeLock := arcaneChargesLock{}
+	// Each missile rolls when the tick fires it and lands after flying at the row's speed.
 	tickConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		var result *core.SpellResult
 		chargeLock.deal(spell, target, func() {
-			spell.CalcAndDealDamage(sim, target, missileDamage.Average(), spell.OutcomeTickMagicHitAndCrit)
+			result = spell.CalcDamage(sim, target, missileDamage.Average(), spell.OutcomeTickMagicHitAndCrit)
 		})
+		spell.DealDamageAfterTravel(sim, result)
 		spell.SpellMetrics[target.UnitIndex].Casts--
 	}
 
