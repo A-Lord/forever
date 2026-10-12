@@ -1,4 +1,6 @@
-import { buildSweepOffsets, type SweepPoint } from '../../../features/stat-weights/model/stat_sweep';
+import type { StatSweepPoint } from '@sim/cache/stat_sweep_history';
+
+import { buildSweepOffsets, sweepSteps } from '../../../features/stat-weights/model/stat_sweep';
 
 const HIT_CAP = 150;
 const EP_BELOW_CAP = 4.7;
@@ -10,9 +12,12 @@ const epAt = (value: number) => EP_ABOVE_CAP + (EP_BELOW_CAP - EP_ABOVE_CAP) / (
 const dpsAt = (value: number) => 1180 + DPS_PER_POINT * Math.min(value, HIT_CAP) - 0.004 * (Math.min(value, HIT_CAP) - 80) ** 2;
 
 /** A ±100 hit sweep in steps of 10 from `base`, against a hit cap at 150. */
-export const makeHitSweepPoints = (base: number, samples = 20_000): SweepPoint[] =>
-	buildSweepOffsets(base, 100, 10).map(offset => {
-		const statValue = base + offset;
+export const makeHitSweepPoints = (base: number, samples = 20_000): StatSweepPoint[] => {
+	const offsets = buildSweepOffsets(100, 10);
+	return sweepSteps(
+		offsets,
+		offsets.map(offset => base + offset),
+	).map(({ offset, statValue }) => {
 		const ep = epAt(statValue);
 		return {
 			offset,
@@ -24,3 +29,4 @@ export const makeHitSweepPoints = (base: number, samples = 20_000): SweepPoint[]
 			samples,
 		};
 	});
+};

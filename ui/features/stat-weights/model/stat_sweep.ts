@@ -1,73 +1,49 @@
 import type { StatWeightsResult } from '@generated/proto/api';
 import type { Stat } from '@generated/proto/common';
-import type { StatSweepPoint, StatSweepPrecision, StatSweepRecord, StatSweepUnitStat } from '@sim/cache/stat_sweep_history';
+import type { StatSweepPoint, StatSweepRecord } from '@sim/cache/stat_sweep_history';
 import type { UnitStat } from '@sim/proto/stats';
+import { distinct } from '@sim/utils/collections';
 import { stDevToConf90 } from '@sim/utils/math';
 
 import { calculateEp } from './ep_math';
 
-export type SweepPoint = StatSweepPoint;
-export type SweepPrecision = StatSweepPrecision;
-export type SweepRun = StatSweepRecord;
-export type SweepUnitStat = StatSweepUnitStat;
+export type StatSweepStep = Pick<StatSweepPoint, 'offset' | 'statValue'>;
 
-// Rounds away float steps like 3 × 0.1 = 0.30000000000000004, which would otherwise label an axis tick.
-const roundOffset = (value: number) => Math.round(value * 1e6) / 1e6;
+// Rounds away float noise like 3 × 0.1 = 0.30000000000000004, which would otherwise label an axis tick.
+const roundFloat = (value: number) => Math.round(value * 1e6) / 1e6;
 
 /**
- * Multiples of `step` from −`range` to +`range`, ascending, always with 0. Each offset is a bonus stat, which moves the
- * stat's total by `multiplier` times the offset. An offset that would take the total below 0 is dropped, and so is
- * ±`range` itself when `range` is not a multiple of `step`.
+ * Multiples of `step` from −`range` to +`range`, ascending, always with 0. ±`range` itself is left out when `range` is
+ * not a multiple of `step`.
  */
-export function buildSweepOffsets(current: number, range: number, step: number, multiplier = 1): number[] {
+export function buildSweepOffsets(range: number, step: number): number[] {
 	if (!(step > 0) || !(range > 0)) return [0];
 	const offsets = [0];
-	const count = Math.floor(roundOffset(range / step));
+	const count = Math.floor(roundFloat(range / step));
 	for (let k = 1; k <= count; k++) {
-		const offset = roundOffset(k * step);
-		offsets.push(offset);
-		if (roundOffset(current - multiplier * offset) >= 0) offsets.push(-offset);
+		const offset = roundFloat(k * step);
+		offsets.push(offset, -offset);
 	}
 	return offsets.sort((a, b) => a - b);
 }
 
-/**
- * How far the stat's total moves per bonus point, from its totals without and with `step` bonus points, since % stat
- * multipliers apply to bonus stats. 1 when the total does not rise.
- */
-export function sweepStatMultiplier(withoutBonus: number, withBonus: number, step: number): number {
-	const multiplier = (withBonus - withoutBonus) / step;
-	return multiplier > 0 && Number.isFinite(multiplier) ? multiplier : 1;
-}
+/** Each offset at the stat total it reaches, `totals` in the same order; an offset whose total falls below 0 is dropped. */
+export const sweepSteps = (offsets: readonly number[], totals: readonly number[]): StatSweepStep[] =>
+	offsets.map((offset, index) => ({ offset, statValue: roundFloat(totals[index]) })).filter(step => step.statValue >= 0);
 
 /** The stored runs plus any run in memory they do not hold yet, newest first. */
-export function mergeSweepHistory(inMemory: readonly SweepRun[], stored: readonly SweepRun[]): SweepRun[] {
-	const storedIds = new Set(stored.map(run => run.id));
-	return [...stored, ...inMemory.filter(run => !storedIds.has(run.id))].sort((a, b) => b.createdAt - a.createdAt);
-}
+export const mergeSweepHistory = (inMemory: readonly StatSweepRecord[], stored: readonly StatSweepRecord[]): StatSweepRecord[] =>
+	distinct([...stored, ...inMemory], (a, b) => a.id === b.id).sort((a, b) => b.createdAt - a.createdAt);
 
-export const toSweepUnitStat = (unitStat: UnitStat): SweepUnitStat =>
-	unitStat.isStat() ? { kind: 'stat', index: unitStat.getStat() } : { kind: 'pseudo', index: unitStat.getPseudoStat() };
-
-/**
- * One step's point: the swept stat's DPS EP against `refStat` and the baseline DPS, each with its 90% ±, at the stat's
- * total, which `offset` bonus points move by `multiplier` times the offset.
- */
-export function sweepPointFromResult(
-	result: StatWeightsResult,
-	unitStat: UnitStat,
-	refStat: Stat,
-	baseStatValue: number,
-	offset: number,
-	multiplier = 1,
-): SweepPoint {
+/** One step's point: the swept stat's DPS EP against `refStat` and the baseline DPS, each with its 90% ±. */
+export function sweepPointFromResult(result: StatWeightsResult, unitStat: UnitStat, refStat: Stat, { offset, statValue }: StatSweepStep): StatSweepPoint {
 	const dps = calculateEp(result, { dps: refStat, heal: undefined, tank: undefined }).dps!;
 	const samples = (result.sampleCounts && unitStat.getProtoValue(result.sampleCounts)) || 0;
 	const baseDps = result.baseDps;
-	const dpsSamples = baseDps?.aggregatorData?.n || samples;
+	const dpsSamples = baseDps?.aggregatorData?.n;
 	return {
 		offset,
-		statValue: roundOffset(baseStatValue + multiplier * offset),
+		statValue,
 		ep: unitStat.getProtoValue(dps.epValues!) || 0,
 		epCi: samples ? stDevToConf90(unitStat.getProtoValue(dps.epValuesStdev!) || 0, samples) : 0,
 		dps: baseDps?.avg ?? 0,

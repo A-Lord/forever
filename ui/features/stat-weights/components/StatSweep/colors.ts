@@ -14,4 +14,4 @@ export const SERIES_SWATCH_CLASSES = [
 
 export const SERIES_SLOT_COUNT = SERIES_SWATCH_CLASSES.length;
 
-export const seriesColor = (slot: number) => cssVarColor(`--color-chart-series-${(slot % SERIES_SLOT_COUNT) + 1}`);
+export const seriesColor = (slot: number) => cssVarColor(`--color-chart-series-${slot + 1}`);

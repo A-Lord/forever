@@ -3,6 +3,7 @@ import { BooleanPicker } from '@ui-kit/BooleanPicker';
 import { Button } from '@ui-kit/Button';
 import { Icon } from '@ui-kit/Icon';
 import clsx from 'clsx';
+import { useMemo } from 'react';
 
 import { SERIES_SWATCH_CLASSES } from './colors';
 
@@ -25,7 +26,8 @@ export interface StatSweepHistoryProps {
 const t = (key: string, options?: Record<string, unknown>) => i18n.t(`sidebar.buttons.stat_weights.sweep.history.${key}`, options);
 
 export const StatSweepHistory = ({ runs, onOverlayChange, onDelete }: StatSweepHistoryProps) => {
-	const dateFormat = new Intl.DateTimeFormat(i18n.language, { dateStyle: 'short', timeStyle: 'short' });
+	const language = i18n.language;
+	const dateFormat = useMemo(() => new Intl.DateTimeFormat(language, { dateStyle: 'short', timeStyle: 'short' }), [language]);
 	return (
 		<section className="grid content-start gap-2" aria-label={t('title')}>
 			<h6 className="mb-0">{t('title')}</h6>

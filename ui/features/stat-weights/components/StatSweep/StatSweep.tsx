@@ -9,6 +9,7 @@ import { subscribePlayerField, subscribeStatWeightsChange } from '@sim/state/sub
 import { useMemo, useState } from 'react';
 
 import { useStatSweep } from '../../hooks/useStatSweep';
+import { EP_UNIT_STATS } from '../../model/ep_unit_stats';
 import { EpPrecisionOptions } from '../EpPrecisionOptions/EpPrecisionOptions';
 import { StatSweepChart } from './StatSweepChart';
 import { StatSweepHistory } from './StatSweepHistory';
@@ -26,8 +27,12 @@ export const StatSweep = ({ settings }: StatSweepProps) => {
 	const { epStats, epPseudoStats, epReferenceStat } = useSpecConfig();
 	const sweep = useStatSweep();
 
+	// Only the stats the EP math fills a weight for.
 	const unitStats = useMemo(
-		() => [...epStats.map(stat => UnitStat.fromStat(stat)), ...(epPseudoStats ?? []).map(pseudoStat => UnitStat.fromPseudoStat(pseudoStat))],
+		() =>
+			[...epStats.map(stat => UnitStat.fromStat(stat)), ...(epPseudoStats ?? []).map(pseudoStat => UnitStat.fromPseudoStat(pseudoStat))].filter(stat =>
+				EP_UNIT_STATS.some(epStat => epStat.equals(stat)),
+			),
 		[epStats, epPseudoStats],
 	);
 	const statOptions = useMemo(() => unitStats.map(stat => ({ value: stat.getKey(), label: stat.getFullName(player.getClass()) })), [unitStats, player]);
@@ -58,15 +63,6 @@ export const StatSweep = ({ settings }: StatSweepProps) => {
 			.catch(console.error);
 	};
 
-	const series = useMemo(() => sweep.shown.map(({ run, colorSlot }) => ({ id: run.id, label: run.label, colorSlot, points: run.points })), [sweep.shown]);
-	const historyEntries = sweep.history.map(run => ({
-		id: run.id,
-		label: run.label,
-		createdAt: run.createdAt,
-		overlaid: sweep.overlaid.includes(run.id),
-		colorSlot: sweep.colorSlots[run.id],
-	}));
-
 	return (
 		<StatSweepPanel
 			statOptions={statOptions}
@@ -86,8 +82,8 @@ export const StatSweep = ({ settings }: StatSweepProps) => {
 					idPrefix="stat-sweep-precision"
 				/>
 			}
-			chart={<StatSweepChart series={series} statLabel={statLabel} currentValue={currentValue} />}
-			history={<StatSweepHistory runs={historyEntries} onOverlayChange={sweep.setOverlaid} onDelete={sweep.remove} />}
+			chart={<StatSweepChart series={sweep.series} statLabel={statLabel} currentValue={currentValue} />}
+			history={<StatSweepHistory runs={sweep.historyEntries} onOverlayChange={sweep.setOverlaid} onDelete={sweep.remove} />}
 			running={sweep.isRunning}
 			progress={sweep.progress}
 			onRun={onRun}

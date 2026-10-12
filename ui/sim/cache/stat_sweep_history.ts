@@ -1,20 +1,17 @@
-import type { PseudoStat, Spec, Stat } from '@generated/proto/common';
+import type { Spec, Stat } from '@generated/proto/common';
 import { type DBSchema, type IDBPDatabase, openDB } from 'idb';
 
 import { LOCAL_STORAGE_PREFIX } from '../constants/other';
-import type { EpPrecisionMode } from '../state/sim_store';
+import type { EpPrecisionSettings } from '../settings/stat_weight_settings';
 
 const STAT_SWEEP_DB_NAME = `${LOCAL_STORAGE_PREFIX}_stat-sweep`;
 const STAT_SWEEP_DB_VERSION = 1;
 const RUNS_STORE = 'runs';
 
-// Plain data: IndexedDB's structured clone drops class prototypes, so a stored UnitStat would come back without its methods.
-export type StatSweepUnitStat = { kind: 'stat'; index: Stat } | { kind: 'pseudo'; index: PseudoStat };
-
 export interface StatSweepPoint {
 	/** Bonus points of the swept stat, which % stat multipliers scale before they reach its total. */
 	offset: number;
-	/** The swept stat's total at this step: the base value plus `offset` times the sweep's measured multiplier. */
+	/** The swept stat's final total with `offset` bonus points, as the sim computes it. */
 	statValue: number;
 	ep: number;
 	/** The shown 90% ± behind `ep`. */
@@ -25,24 +22,18 @@ export interface StatSweepPoint {
 	samples: number;
 }
 
-export interface StatSweepPrecision {
-	mode: EpPrecisionMode;
-	iterations: number;
-	targetEpCi: number;
-	maxIterationMultiplier: number;
-}
-
 export interface StatSweepRecord {
 	id: string;
 	/** Epoch milliseconds. */
 	createdAt: number;
 	specId: Spec;
 	label: string;
-	unitStat: StatSweepUnitStat;
+	/** `UnitStat.toJson()`: IndexedDB's structured clone drops class prototypes, so a stored UnitStat would come back without its methods. */
+	unitStat: object;
 	refStat: Stat;
 	range: number;
 	step: number;
-	precision: StatSweepPrecision;
+	precision: EpPrecisionSettings;
 	baseStatValue: number;
 	points: StatSweepPoint[];
 }

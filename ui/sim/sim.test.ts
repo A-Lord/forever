@@ -305,7 +305,7 @@ describe('Sim.updateCharacterStats', () => {
 	});
 });
 
-describe('Sim.getFinalStatsWithBonus', () => {
+describe('Sim stats for an edited player', () => {
 	const hit = (value: number) => Stats.fromMap({ [Stat.StatHitRating]: value });
 
 	const makeBonusSim = () => {
@@ -317,6 +317,18 @@ describe('Sim.getFinalStatsWithBonus', () => {
 
 	beforeEach(() => {
 		mocks.computeStats.mockReset();
+	});
+
+	it('reports an error result for a gear set as a crash and still returns the stats', async () => {
+		const sim = makeBonusSim();
+		const crashes: unknown[] = [];
+		sim.crashEmitter.on(e => crashes.push(e));
+		mocks.computeStats.mockResolvedValue({ errorResult: 'boom', raidStats: { parties: [{ players: [{ finalStats: hit(7).toProto() }] }] } } as any);
+
+		const playerStats = await sim.getCharacterStatsForGear(makeGear('candidate'));
+
+		expect(crashes).toEqual([new SimError('boom')]);
+		expect(Stats.fromProto(playerStats.finalStats).getStat(Stat.StatHitRating)).toBe(7);
 	});
 
 	it("adds the bonus to the player's own bonus stats and returns its final stats", async () => {
@@ -333,6 +345,24 @@ describe('Sim.getFinalStatsWithBonus', () => {
 		mocks.computeStats.mockResolvedValue({ errorResult: 'boom' } as any);
 
 		await expect(makeBonusSim().getFinalStatsWithBonus(hit(10))).rejects.toThrow(SimError);
+	});
+});
+
+describe('Sim.nextRngSeed', () => {
+	it('never draws 0, which the sim would replace with the clock', () => {
+		const random = vi.spyOn(Math, 'random').mockReturnValue(0);
+		try {
+			expect(makeSim().nextRngSeed()).toBeGreaterThan(0);
+		} finally {
+			random.mockRestore();
+		}
+	});
+
+	it('returns the fixed seed when one is set', () => {
+		const sim = makeSim();
+		sim.setFixedRngSeed(42);
+
+		expect(sim.nextRngSeed()).toBe(42);
 	});
 });
 

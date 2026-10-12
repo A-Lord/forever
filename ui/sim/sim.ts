@@ -22,6 +22,7 @@ import {
 	SimType,
 	StatWeightsRequest,
 	StatWeightsResult,
+	StatWeightsTarget,
 	StatWeightsTargetMetric,
 } from '@generated/proto/api';
 import {
@@ -472,38 +473,40 @@ export class Sim {
 
 	// Stats for a hypothetical gear set, without touching the player's own current stats or
 	// metadata. Used by the gear optimizer.
-	async getCharacterStatsForGear(gear: Gear): Promise<PlayerStats> {
-		await this.waitForInit();
-
-		const raidProto = this.getModifiedRaidProto();
-		const player = raidProto.parties[0].players[0];
-		player.database = gear.toDatabase(this.db);
-		addPartyBuffItems(player.database, this.db, raidProto.parties[0].buffs);
-		player.equipment = gear.asSpec();
-		extendPlayerProtoWithMissingEffects(player, this.db);
-		raidProto.parties[0].players[0] = player;
-
-		const result = await this.workerPool.computeStats(
-			ComputeStatsRequest.create({
-				raid: raidProto,
-				encounter: this.encounter.toProto(),
-			}),
+	getCharacterStatsForGear(gear: Gear): Promise<PlayerStats> {
+		return this.computeEditedPlayerStats(
+			raidProto => {
+				const player = raidProto.parties[0].players[0];
+				player.database = gear.toDatabase(this.db);
+				addPartyBuffItems(player.database, this.db, raidProto.parties[0].buffs);
+				player.equipment = gear.asSpec();
+				extendPlayerProtoWithMissingEffects(player, this.db);
+			},
+			error => this.crashEmitter.emit(error),
 		);
-		if (result.errorResult != '') {
-			this.crashEmitter.emit(new SimError(result.errorResult));
-		}
-
-		return result.raidStats!.parties[0].players[0];
 	}
 
 	// The first player's final stats with `bonusStats` added to its bonus stats, without touching its current stats or
-	// metadata. Used by the stat sweep to measure how a bonus point of a stat scales.
+	// metadata. Used by the stat sweep to place each step at the stat's total.
 	async getFinalStatsWithBonus(bonusStats: Stats): Promise<Stats> {
+		const playerStats = await this.computeEditedPlayerStats(
+			raidProto => {
+				const player = raidProto.parties[0].players[0];
+				player.bonusStats = Stats.fromProto(player.bonusStats).add(bonusStats).toProto();
+			},
+			error => {
+				throw error;
+			},
+		);
+		return Stats.fromProto(playerStats.finalStats);
+	}
+
+	// The first player's stats on a copy of the raid that `edit` changes. An error result goes to `onError`.
+	private async computeEditedPlayerStats(edit: (raidProto: RaidProto) => void, onError: (error: SimError) => void): Promise<PlayerStats> {
 		await this.waitForInit();
 
 		const raidProto = this.getModifiedRaidProto();
-		const player = raidProto.parties[0].players[0];
-		player.bonusStats = Stats.fromProto(player.bonusStats).add(bonusStats).toProto();
+		edit(raidProto);
 
 		const result = await this.workerPool.computeStats(
 			ComputeStatsRequest.create({
@@ -512,9 +515,10 @@ export class Sim {
 			}),
 		);
 		if (result.errorResult != '') {
-			throw new SimError(result.errorResult);
+			onError(new SimError(result.errorResult));
 		}
-		return Stats.fromProto(result.raidStats!.parties[0].players[0].finalStats);
+
+		return result.raidStats!.parties[0].players[0];
 	}
 
 	// This should be invoked internally whenever stats might have changed.
@@ -647,10 +651,15 @@ export class Sim {
 				statsToWeigh: epStats,
 				pseudoStatsToWeigh: epPseudoStats,
 				epReferenceStat: epReferenceStat,
-				targetEpCi: options.targetEpCi ?? 0,
-				maxIterationMultiplier: options.maxIterationMultiplier ?? 0,
-				targetMetrics: options.targetMetrics ?? [],
-				hpsReferenceStat: options.hpsReferenceStat ?? epReferenceStat,
+				hpsReferenceStat: options.hpsReferenceStat,
+				target:
+					options.targetEpCi === undefined
+						? undefined
+						: StatWeightsTarget.create({
+								epCi: options.targetEpCi,
+								maxIterationMultiplier: options.maxIterationMultiplier,
+								metrics: options.targetMetrics,
+							}),
 			});
 
 			const signals = this.signalManager.registerRunning(RequestTypes.StatWeights);
@@ -727,12 +736,13 @@ export class Sim {
 	}
 
 	static MAX_RNG_SEED = Math.pow(2, 32) - 1;
-	private nextRngSeed(): number {
+	// Never 0: the sim replaces a 0 seed with the clock, so a seed shared by several requests would not hold.
+	nextRngSeed(): number {
 		let rngSeed = 0;
 		if (this.getFixedRngSeed()) {
 			rngSeed = this.getFixedRngSeed();
 		} else {
-			rngSeed = Math.floor(Math.random() * Sim.MAX_RNG_SEED);
+			rngSeed = Math.floor(Math.random() * Sim.MAX_RNG_SEED) + 1;
 		}
 
 		this.setLastUsedRngSeed(rngSeed);
