@@ -3,6 +3,7 @@ package core_test
 import (
 	"fmt"
 	"math"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -779,9 +780,9 @@ func TestGeneratedWindfuryTotemProcSpendsItsChargesOnAutoAttacks(t *testing.T) {
 
 // Windfury Totem's proc is the party aura 10612: a main-hand hit that deals
 // damage can fire it, auto or special, and no other hit can, a proc's hit
-// included. A main-hand auto that procs it has spent the first charge itself
-// and leaves the rest for the extra attack; a special leaves them all.
-func TestGeneratedWindfuryTotemProcsOffMainHandHitsWithTheChargesTheTriggerLeaves(t *testing.T) {
+// included. It rolls off the hit's cast result, so the proc starts with every
+// charge whichever main-hand hit fired it.
+func TestGeneratedWindfuryTotemProcsOffMainHandHitsWithEveryCharge(t *testing.T) {
 	setup := func(t *testing.T) (*core.Simulation, *core.Unit, *core.Aura, *[]int32) {
 		t.Helper()
 
@@ -808,7 +809,7 @@ func TestGeneratedWindfuryTotemProcsOffMainHandHitsWithTheChargesTheTriggerLeave
 	// Offers the trigger up to 200 landed hits of one kind and answers whether any of them procced.
 	offer := func(sim *core.Simulation, target *core.Unit, trigger *core.Aura, started *[]int32, spell *core.Spell, damage float64) bool {
 		for i := 0; i < 200 && len(*started) == 0; i++ {
-			trigger.OnSpellHitDealt(trigger, sim, spell, &core.SpellResult{Target: target, Outcome: core.OutcomeHit, Damage: damage})
+			trigger.OnCastResult(trigger, sim, spell, &core.SpellResult{Target: target, Outcome: core.OutcomeHit, Damage: damage})
 		}
 		return len(*started) > 0
 	}
@@ -816,10 +817,9 @@ func TestGeneratedWindfuryTotemProcsOffMainHandHitsWithTheChargesTheTriggerLeave
 	for _, row := range []struct {
 		name  string
 		spell *core.Spell
-		spent int32
 	}{
-		{"a main-hand auto spends one charge", &core.Spell{ProcMask: core.ProcMaskMeleeMHAuto}, 1},
-		{"a main-hand special leaves every charge", &core.Spell{ProcMask: core.ProcMaskMeleeMHSpecial}, 0},
+		{"a main-hand auto", &core.Spell{ProcMask: core.ProcMaskMeleeMHAuto}},
+		{"a main-hand special", &core.Spell{ProcMask: core.ProcMaskMeleeMHSpecial}},
 	} {
 		t.Run(row.name, func(t *testing.T) {
 			sim, target, trigger, started := setup(t)
@@ -827,8 +827,8 @@ func TestGeneratedWindfuryTotemProcsOffMainHandHitsWithTheChargesTheTriggerLeave
 			if !offer(sim, target, trigger, started, row.spell, 100) {
 				t.Fatal("200 landed hits never procced the totem")
 			}
-			if got, want := (*started)[0], charges-row.spent; got != want {
-				t.Errorf("the proc started with %d of its %d charges, want %d", got, charges, want)
+			if got := (*started)[0]; got != charges {
+				t.Errorf("%s procced it with %d of its %d charges, want all of them", row.name, got, charges)
 			}
 		})
 	}
@@ -859,6 +859,128 @@ func TestGeneratedWindfuryTotemProcsOffMainHandHitsWithTheChargesTheTriggerLeave
 		if want := spelldata.MustFind(10612).ICD(); trigger.Icd == nil || trigger.Icd.Duration != want {
 			t.Errorf("the trigger's cooldown is %v, want the game files' %v", trigger.Icd, want)
 		}
+	})
+}
+
+// Windfury Totem's proc puts every charge up at the hit's cast result. The hit
+// that fired it is dealt first and spends a charge if it is an auto; the extra
+// attack swings after it, in the same instant, and spends the next if it lands.
+// A special spends none, so its extra attack and the auto after it spend them.
+func TestGeneratedWindfuryTotemSpendsItsChargesOnTheHitThenTheExtraAttack(t *testing.T) {
+	setup := func(t *testing.T) (*core.Simulation, *core.Unit, *core.Aura, *core.Aura, *core.Spell, *[]int32) {
+		t.Helper()
+		sim, owner := setupPetOwnerSim(&proto.PartyBuffs{WindfuryTotem: true})
+		for _, unit := range slices.Concat(sim.Raid.AllUnits, sim.Encounter.AllTargetUnits) {
+			unit.AutoAttacks.CancelAutoSwing(sim)
+		}
+		pet := owner.pet
+		trigger := pet.GetAura("Windfury Totem Trigger")
+		proc := pet.GetAura("Windfury Totem (External)")
+		if trigger == nil || proc == nil || !trigger.IsActive() {
+			t.Fatalf("the pet's trigger is %v and proc %v, want both registered and the trigger up", trigger, proc)
+		}
+		if proc.MaxStacks < 2 {
+			t.Fatalf("the proc holds %d charges, want at least 2", proc.MaxStacks)
+		}
+		extraAttack := pet.GetSpell(pet.AutoAttacks.MHAuto().ActionID.WithTag(proc.ActionID.SpellID))
+		if extraAttack == nil {
+			t.Fatal("the pet registered no extra attack under the totem's tag")
+		}
+		var changes []int32
+		proc.ApplyOnStacksChange(func(_ *core.Aura, _ *core.Simulation, oldStacks int32, newStacks int32) {
+			if newStacks != oldStacks {
+				changes = append(changes, newStacks)
+			}
+		})
+		return sim, sim.Encounter.AllTargetUnits[0], trigger, proc, extraAttack, &changes
+	}
+	casts := func(spell *core.Spell, target *core.Unit) int32 {
+		return spell.SpellMetrics[target.UnitIndex].Casts
+	}
+	landed := func(spell *core.Spell, target *core.Unit) int32 {
+		m := spell.SpellMetrics[target.UnitIndex]
+		return m.Casts - m.Misses - m.Dodges - m.Parries
+	}
+	// Steps the sim until the proc's extra attack has swung, which it does without the clock moving.
+	swingExtraAttack := func(t *testing.T, sim *core.Simulation, extraAttack *core.Spell, target *core.Unit) {
+		t.Helper()
+		at, swung := sim.CurrentTime, casts(extraAttack, target)
+		for i := 0; i < 10 && casts(extraAttack, target) == swung; i++ {
+			sim.Step()
+		}
+		if got := casts(extraAttack, target) - swung; got != 1 {
+			t.Fatalf("the proc swung %d extra attacks, want 1", got)
+		}
+		if sim.CurrentTime != at {
+			t.Fatalf("the extra attack swung at %v, want the triggering hit's %v", sim.CurrentTime, at)
+		}
+	}
+
+	t.Run("a main-hand auto", func(t *testing.T) {
+		sim, target, trigger, proc, extraAttack, changes := setup(t)
+		mhAuto := proc.Unit.AutoAttacks.MHAuto()
+		charges := proc.MaxStacks
+		seen := map[bool]bool{}
+		for i := 0; i < 2000 && !(seen[true] && seen[false]); i++ {
+			*changes = nil
+			swung, hits := casts(extraAttack, target), landed(extraAttack, target)
+			mhAuto.Cast(sim, target)
+			if len(*changes) == 0 {
+				continue
+			}
+			if got, want := *changes, []int32{charges, charges - 1}; !slices.Equal(got, want) {
+				t.Fatalf("the auto that procced the totem left the charges going %v, want %v", got, want)
+			}
+			if casts(extraAttack, target) != swung {
+				t.Fatal("the extra attack swung before the auto that procced it was dealt")
+			}
+			swingExtraAttack(t, sim, extraAttack, target)
+			extraLanded := landed(extraAttack, target) > hits
+			want := []int32{charges, charges - 1}
+			if extraLanded {
+				want = append(want, charges-2)
+			}
+			if got := *changes; !slices.Equal(got, want) {
+				t.Errorf("with the extra attack landed %v the charges went %v, want %v", extraLanded, got, want)
+			}
+			seen[extraLanded] = true
+			proc.Deactivate(sim)
+			trigger.Icd.Reset()
+		}
+		if !seen[true] || !seen[false] {
+			t.Errorf("2000 autos saw an extra attack land %v and miss %v, want both", seen[true], seen[false])
+		}
+	})
+
+	t.Run("a main-hand special", func(t *testing.T) {
+		sim, target, trigger, proc, extraAttack, changes := setup(t)
+		special := &core.Spell{ProcMask: core.ProcMaskMeleeMHSpecial}
+		hit := &core.SpellResult{Target: target, Outcome: core.OutcomeHit, Damage: 100}
+		charges := proc.MaxStacks
+		for i := 0; i < 2000; i++ {
+			*changes = nil
+			trigger.OnCastResult(trigger, sim, special, hit)
+			if len(*changes) == 0 {
+				continue
+			}
+			proc.OnSpellHitDealt(proc, sim, special, hit)
+			if got, want := *changes, []int32{charges}; !slices.Equal(got, want) {
+				t.Fatalf("the special that procced the totem left the charges going %v, want %v", got, want)
+			}
+			hits := landed(extraAttack, target)
+			swingExtraAttack(t, sim, extraAttack, target)
+			if landed(extraAttack, target) == hits {
+				proc.Deactivate(sim)
+				trigger.Icd.Reset()
+				continue
+			}
+			proc.OnSpellHitDealt(proc, sim, &core.Spell{ProcMask: core.ProcMaskMeleeMHAuto}, hit)
+			if got, want := *changes, []int32{charges, charges - 1, charges - 2}; !slices.Equal(got, want) {
+				t.Errorf("the special's extra attack and the auto after it left the charges going %v, want %v", got, want)
+			}
+			return
+		}
+		t.Error("2000 specials never procced the totem with an extra attack that landed")
 	})
 }
 
@@ -1029,7 +1151,7 @@ func TestGeneratedWindfuryTotemHoldsOverFlametongueTotem(t *testing.T) {
 	}
 	target := sim.Encounter.AllTargetUnits[0]
 	for i := 0; i < 200 && !proc.IsActive(); i++ {
-		trigger.OnSpellHitDealt(trigger, sim, &core.Spell{ProcMask: core.ProcMaskMeleeMHSpecial},
+		trigger.OnCastResult(trigger, sim, &core.Spell{ProcMask: core.ProcMaskMeleeMHSpecial},
 			&core.SpellResult{Target: target, Outcome: core.OutcomeHit, Damage: 100})
 	}
 	if !proc.IsActive() {
