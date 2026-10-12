@@ -536,7 +536,8 @@ func (spell *Spell) DealPeriodicDamage(sim *Simulation, result *SpellResult) {
 	spell.dealDamageInternal(sim, true, result)
 }
 
-// Fires the caster's OnSpellLaunch for a direct result rolled now and dealt later, once per result.
+// Fires the caster's OnSpellLaunch for a direct result, once per result. A missile calls it at its cast;
+// any other direct result launches as it is dealt.
 func (spell *Spell) Launch(sim *Simulation, result *SpellResult) {
 	if result.launched {
 		return
