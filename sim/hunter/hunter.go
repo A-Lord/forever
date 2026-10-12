@@ -28,6 +28,9 @@ type Hunter struct {
 	AspectOfTheHawkAura  *core.Aura
 	AspectOfTheBeastAura *core.Aura
 	MongooseBiteAura     *core.Aura
+
+	rapidRecuperationAura  *core.Aura
+	rapidRecuperationShare float64 // The share of regeneration while casting the aura grants, set by what granted it.
 }
 
 func (hunter *Hunter) GetCharacter() *core.Character {
@@ -87,11 +90,12 @@ func NewHunter(character *core.Character, options *proto.Player, hunterOptions *
 		AutoSwingMelee:  true,
 	})
 
-	// Auto Shot is row 75: its range, the bow, gun or crossbow it needs, and the class flags that put
-	// the auto inside the talents naming it - Hawk Eye, Mortal Shots, Deadly Aspects.
+	// Auto Shot is row 75: its range, its missile speed, the bow, gun or crossbow it needs, and the
+	// class flags that put the auto inside the talents naming it - Hawk Eye, Mortal Shots, Deadly Aspects.
 	rangedConfig := hunter.AutoAttacks.RangedConfig()
 	rangedConfig.MinRange = core.MinRangedRange // Forever's, not the row's 8 yd
 	rangedConfig.MaxRange = float64(autoShotRank.MaxRange)
+	rangedConfig.MissileSpeed = float64(autoShotRank.Speed)
 	rangedConfig.ClassFlags = autoShotRank.ClassFlags
 	rangedConfig.CastRequirement = autoShotRank.CastRequirement()
 
