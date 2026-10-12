@@ -32,7 +32,7 @@ export const StatSweepHistory = ({ runs, onOverlayChange, onDelete }: StatSweepH
 			{runs.length ? (
 				<ul className="m-0 grid list-none gap-2 p-0">
 					{runs.map(run => (
-						<li key={run.id} className="flex items-center gap-2">
+						<li key={run.id} className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-2">
 							<span
 								aria-hidden
 								className={clsx(
@@ -42,16 +42,17 @@ export const StatSweepHistory = ({ runs, onOverlayChange, onDelete }: StatSweepH
 							/>
 							<BooleanPicker
 								id={`stat-sweep-overlay-${run.id}`}
-								className="min-w-0 flex-1"
+								className="min-w-0"
 								layout="inline"
+								reverse
 								label={run.label}
-								description={dateFormat.format(run.createdAt)}
 								value={run.overlaid}
 								onChange={overlaid => onOverlayChange(run.id, overlaid)}
 							/>
 							<Button iconOnly variant="link-danger" aria-label={t('delete', { label: run.label })} onClick={() => onDelete(run.id)}>
 								<Icon name="xmark" />
 							</Button>
+							<span className="col-start-2 text-xs text-muted">{dateFormat.format(run.createdAt)}</span>
 						</li>
 					))}
 				</ul>

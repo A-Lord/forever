@@ -75,7 +75,13 @@ export const useStatSweep = () => {
 		let active = true;
 		listRuns(player.getSpec())
 			.then(history => {
-				if (active) update(current => ({ ...current, history: mergeSweepHistory(current.history, history) }));
+				if (!active) return;
+				update(current => {
+					const merged = mergeSweepHistory(current.history, history);
+					// With no run in progress and none ticked yet, the newest stored run is drawn.
+					const overlaid = current.live || current.overlaid.length || !merged.length ? current.overlaid : [merged[0].id];
+					return { ...current, history: merged, overlaid };
+				});
 			})
 			.catch(console.error);
 		return () => {

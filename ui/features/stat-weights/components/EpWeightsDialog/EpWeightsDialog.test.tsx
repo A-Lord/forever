@@ -9,6 +9,7 @@ import { Stats, UnitStat } from '@sim/proto/stats';
 import type { EpPrecisionSettings } from '@sim/settings/stat_weight_settings';
 import { SimRuns } from '@sim/sim_runs';
 import { createSimStore, patchKeyed, patchSlice, PLAYER_FIELDS, seedKeyed, type SimStore, zeroVersions } from '@sim/state/sim_store';
+import { makeHitSweepPoints } from '@testing/storybook/fixtures/stat-sweep';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PortalContainerContext } from '@ui-kit/hooks/usePortalContainer';
@@ -781,6 +782,48 @@ describe('EpWeightsDialog', () => {
 				},
 			);
 		});
+
+		describe('HPS EP with no healing reference stat chosen', () => {
+			// The sim's HPS EP for Agility is 9, which is not Agility's HPS weight over Strength's (0.5): a shown 9.00 is
+			// the value as the sim sent it, a shown 0.50 is recomputed against Strength, the spec's reference stat.
+			const hpsResult = () => {
+				const result = weightsResult([
+					[STRENGTH, 2],
+					[AGILITY, 1],
+				]);
+				STRENGTH.setProtoValue(result.hps!.weights!, 2);
+				STRENGTH.setProtoValue(result.hps!.epValues!, 1);
+				AGILITY.setProtoValue(result.hps!.weights!, 1);
+				AGILITY.setProtoValue(result.hps!.epValues!, 9);
+				return result;
+			};
+			const hpsEp = (stat: string) => rowFor(stat).querySelectorAll('[data-column-type="ep"] [data-testid="results-avg"]')[1].textContent;
+
+			beforeEach(() => {
+				player.computeStatWeights.mockResolvedValue(hpsResult());
+				player.refStats.dpsRefStat = Stat.StatAgility;
+			});
+
+			it('targets HPS against the spec reference stat and shows HPS EP against it', async () => {
+				settings.precision = { precisionMode: 'target', iterations: 4000, targetEpCi: 0.02, maxIterationMultiplier: 4 };
+				renderDialog();
+
+				await act(async () => {
+					fireEvent.click(calculate());
+				});
+				expect(player.computeStatWeights.mock.calls[0][4].hpsReferenceStat).toBe(Stat.StatStrength);
+				expect(hpsEp('Agility')).toBe('0.50');
+			});
+
+			it('shows a fixed-iteration run’s HPS EP as the sim sent it', async () => {
+				renderDialog();
+
+				await act(async () => {
+					fireEvent.click(calculate());
+				});
+				expect(hpsEp('Agility')).toBe('9.00');
+			});
+		});
 	});
 
 	describe('stat sweep', () => {
@@ -795,6 +838,28 @@ describe('EpWeightsDialog', () => {
 			expect(popup().querySelector('[data-testid="stat-sweep-pane"]')!.hasAttribute('hidden')).toBe(false);
 			expect(popup().querySelector('[data-testid="ep-weights-pane"]')!.hasAttribute('hidden')).toBe(true);
 			expect(calculate()).toBeNull();
+		});
+
+		it('draws the newest stored run when the history loads with no run in progress', async () => {
+			const stored = (id: string, createdAt: number): StatSweepRecord => ({
+				id,
+				createdAt,
+				specId: Spec.SpecUnknown,
+				label: id,
+				unitStat: { kind: 'stat', index: Stat.StatStrength },
+				refStat: Stat.StatStrength,
+				range: 100,
+				step: 10,
+				precision: { mode: 'iterations', iterations: 1000, targetEpCi: 0.01, maxIterationMultiplier: 8 },
+				baseStatValue: 120,
+				points: makeHitSweepPoints(120),
+			});
+			sweepHistory.listRuns.mockResolvedValueOnce([stored('newer', 2), stored('older', 1)] as never);
+			await openSweepTab();
+
+			expect((await screen.findByRole('checkbox', { name: 'newer' })).getAttribute('aria-checked')).toBe('true');
+			expect(screen.getByRole('checkbox', { name: 'older' }).getAttribute('aria-checked')).toBe('false');
+			expect(screen.queryByText('sidebar.buttons.stat_weights.sweep.empty')).toBeNull();
 		});
 
 		it('runs every step at one seed against the DPS reference stat, and saves the run', async () => {

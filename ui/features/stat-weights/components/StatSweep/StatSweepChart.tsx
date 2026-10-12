@@ -30,6 +30,8 @@ const LINE_INDEX = 2;
 const isLine = (datasetIndex: number) => datasetIndex % DATASETS_PER_RUN === LINE_INDEX;
 // Both y axes take the same width, so a stat value sits at the same pixel in the EP and the DPS chart.
 const Y_AXIS_WIDTH = 64;
+// The x range reaches this share of its span past the outermost value, so the end points draw whole inside the plot.
+const X_RANGE_PAD = 0.03;
 const BAND_ALPHA = '1a';
 
 const METRICS = {
@@ -69,7 +71,10 @@ function datasets(series: ReadonlyArray<StatSweepSeries>, metric: Metric): Array
 
 function xRange(series: ReadonlyArray<StatSweepSeries>, currentValue: number) {
 	const values = series.flatMap(run => run.points.map(point => point.statValue));
-	return { min: Math.min(currentValue, ...values), max: Math.max(currentValue, ...values) };
+	const min = Math.min(currentValue, ...values);
+	const max = Math.max(currentValue, ...values);
+	const pad = (max - min) * X_RANGE_PAD || 1;
+	return { min: min - pad, max: max + pad };
 }
 
 function markerPlugin(current: RefObject<number>): Plugin<'line'> {
@@ -111,6 +116,7 @@ function options(metric: Metric, range: { min: number; max: number }, statLabel:
 			title: { display: true, text: t(title), align: 'start' },
 			legend: {
 				display: showLegend,
+				align: 'start',
 				labels: { usePointStyle: true, pointStyle: 'line', filter: item => isLine(item.datasetIndex ?? 0) },
 			},
 			tooltip: {
@@ -125,12 +131,13 @@ function options(metric: Metric, range: { min: number; max: number }, statLabel:
 			},
 		},
 		scales: {
+			// Both charts lay out the same tick labels, see-through on the EP chart, so the edge labels pad both plots alike and the x positions line up.
 			x: {
 				type: 'linear',
 				min: range.min,
 				max: range.max,
 				title: { display: showX, text: statLabel },
-				ticks: { display: showX },
+				ticks: { includeBounds: false, ...(showX ? {} : { color: 'transparent' }) },
 				grid: { color: AXIS_GRID_COLOR },
 			},
 			y: { afterFit: fitYAxis, grid: { color: AXIS_GRID_COLOR } },

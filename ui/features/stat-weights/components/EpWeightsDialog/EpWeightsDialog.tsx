@@ -68,7 +68,7 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 	const [tab, setTab] = useState(WEIGHTS_TAB);
 	const [statsType, setStatsType] = useState<StatsType>(StatsType.Ep);
 	const [iterations, setIterations] = useState(0);
-	const [simResult, setSimResult] = useState<StatWeightsResult | null>(null);
+	const [simResult, setSimResult] = useState<{ result: StatWeightsResult; fromTarget: boolean } | null>(null);
 	const [progress, setProgress] = useState<ProgressTrackerState>({ stage: 'initializing' });
 	const progressRef = useRef<ProgressTrackerHandle>(null);
 	const {
@@ -104,7 +104,11 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 	const { isRunning: isSweeping, abort: abortSweep } = useSimRun(SimRunKind.StatSweep);
 
 	// `calculateEp` writes `epValues` from `weights`, which normalisation leaves alone.
-	const result = useMemo(() => (simResult ? calculateEp(simResult, refStats) : null), [simResult, refStats]);
+	// The sim divides HPS EP by the run's reference stat, which a target run sets to the DPS one, so a target result's HPS EP is recomputed against the healing reference stat the column names.
+	const result = useMemo(() => {
+		if (!simResult) return null;
+		return calculateEp(simResult.result, simResult.fromTarget ? { ...refStats, heal: refStats.heal ?? epReferenceStat } : refStats);
+	}, [simResult, refStats, epReferenceStat]);
 	const prevSimResult = useMemo(() => result ?? emptyStatWeightsResult(), [result]);
 
 	const applyWeights = useCallback(
@@ -167,7 +171,7 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 				epPseudoStats: epPseudoStats.filter(pseudoStat => !settings.isPseudoStatExcludedFromCalc(pseudoStat)),
 				// The target is measured against this stat's weight, so it has to be the one the shown ± divides by.
 				epReferenceStat: precision.precisionMode === 'target' ? (refStats.dps ?? epReferenceStat) : epReferenceStat,
-				options: precisionRunOptions(precision, { displayMetrics, hpsReferenceStat: refStats.heal }),
+				options: precisionRunOptions(precision, { displayMetrics, hpsReferenceStat: refStats.heal ?? epReferenceStat }),
 			});
 			if (result.error) {
 				if (result.error.type === ErrorOutcomeType.ErrorOutcomeAborted) toastManager.add({ variant: 'info', body: 'Statweight sim cancelled.' });
@@ -184,7 +188,7 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 
 		if (!result) return;
 		setIterations(runIterations);
-		setSimResult(result);
+		setSimResult({ result, fromTarget: precision.precisionMode === 'target' });
 	}, [sim, settings, precision, displayMetrics, refStats, epStats, epPseudoStats, epReferenceStat, isRunning, startStatWeights]);
 
 	return (

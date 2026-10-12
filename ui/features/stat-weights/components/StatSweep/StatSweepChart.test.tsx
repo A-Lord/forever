@@ -27,14 +27,22 @@ describe('StatSweepChart', () => {
 		expect(charts).toHaveLength(0);
 	});
 
-	it('draws EP and DPS as two charts over one x range that covers every run and the current value', () => {
+	it('draws EP and DPS as two charts over one x range reaching past every run and the current value', () => {
 		render(<StatSweepChart series={[run('a', 120, 0), run('b', 40, 1)]} statLabel="Hit" currentValue={300} />);
 
 		expect(charts).toHaveLength(2);
-		for (const chart of charts) {
-			const x = chart.config.options.scales!.x!;
-			expect([x.min, x.max]).toEqual([0, 300]);
-		}
+		const [ep, dps] = charts.map(chart => chart.config.options.scales!.x!);
+		expect([ep.min, ep.max]).toEqual([dps.min, dps.max]);
+		expect(ep.min).toBeLessThan(0);
+		expect(ep.max).toBeGreaterThan(300);
+	});
+
+	it('lays out the same x tick labels on both charts and shows them only under the DPS chart', () => {
+		render(<StatSweepChart series={[run('a', 120, 0)]} statLabel="Hit" currentValue={120} />);
+
+		const [ep, dps] = charts.map(chart => chart.config.options.scales!.x!.ticks!);
+		expect(ep.color).toBe('transparent');
+		expect({ ...ep, color: undefined }).toEqual(dps);
 	});
 
 	it('wraps each run line in a band of value ± ci', () => {

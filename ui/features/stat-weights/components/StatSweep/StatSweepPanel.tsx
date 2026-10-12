@@ -51,7 +51,15 @@ export const StatSweepPanel = ({
 }: StatSweepPanelProps) => (
 	<div className="grid gap-4">
 		<div className="flex flex-wrap items-end gap-4">
-			<ChoiceField id="stat-sweep-stat" label={t('stat')} options={statOptions} value={stat} onChange={onStatChange} disabled={running} />
+			<ChoiceField
+				id="stat-sweep-stat"
+				className="min-w-48"
+				label={t('stat')}
+				options={statOptions}
+				value={stat}
+				onChange={onStatChange}
+				disabled={running}
+			/>
 			<NumberField id="stat-sweep-range" label={t('range')} float={fractional} positive disabled={running} value={range} onChange={onRangeChange} />
 			<NumberField id="stat-sweep-step" label={t('step')} float={fractional} positive disabled={running} value={step} onChange={onStepChange} />
 		</div>
