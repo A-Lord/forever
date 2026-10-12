@@ -27,6 +27,9 @@ type Druid struct {
 	WolfsheadEnergyBonus float64
 	WolfsheadEnrageBonus float64
 
+	// Eclipse's grant, given each Wrath's hit result as the Wrath is launched; nil without the talent.
+	eclipseLaunch func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult)
+
 	MHAutoSpell *core.Spell
 
 	Barkskin             *DruidSpell
