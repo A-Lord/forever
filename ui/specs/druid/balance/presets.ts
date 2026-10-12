@@ -89,6 +89,7 @@ export const DefaultConsumables = ConsumesSpec.create({
 	foodId: Consumables.LobsterStew.id,
 	mhImbueId: Consumables.BrilliantWizardOil.id,
 	offensivePotId: Consumables.MajorSpellblastingPotion.id,
+	resourcePotId: Consumables.MajorManaPotion.id,
 });
 
 export const OtherDefaults = {
