@@ -102,6 +102,7 @@ func (shaman *Shaman) registerFireNovaSpell() {
 		spelldata.Proc(),
 		spelldata.Flags(SpellFlagShamanSpell|core.SpellFlagProc))
 	novaConfig.ActionID = core.ActionID{SpellID: fireNovaRank.ID, Tag: 1}
+	novaConfig.MaxRange = 0 // The hit is centred on the totem, so the target's distance cannot stop it.
 	novaConfig.ClassSpellMask = SpellMaskFireNova
 	novaConfig.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
 		spell.CalcAndDealAoeDamage(sim, damage.Average(), spell.OutcomeMagicHitAndCrit)
