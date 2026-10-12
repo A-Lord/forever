@@ -150,10 +150,10 @@ func (unit *Unit) EnableRageBar(options RageBarOptions) {
 			} else {
 				if spell.ResourceMetrics == nil {
 					spell.ResourceMetrics = spell.Unit.NewRageMetrics(spell.ActionID)
+					spell.ResourceMetrics.NoThreat = true
 				}
 				metrics = spell.ResourceMetrics
 			}
-			metrics.NoThreat = true
 			unit.AddRage(sim, generatedRage, metrics)
 		},
 		OnSpellHitTaken:       rageFromDamageTaken,
@@ -217,9 +217,10 @@ func (rb *rageBar) AddRage(sim *Simulation, amount float64, metrics *ResourceMet
 	}
 
 	newRage := min(rb.currentRage+amount, rb.maxRage)
-	metrics.AddEvent(amount, newRage-rb.currentRage)
+	gain := newRage - rb.currentRage
+	metrics.AddEvent(amount, gain)
 
-	if gain := newRage - rb.currentRage; gain > 0 && !metrics.NoThreat {
+	if gain > 0 && !metrics.NoThreat {
 		rb.addRageGainThreat(sim, gain)
 	}
 
@@ -268,11 +269,8 @@ func (rb *rageBar) reset(_ *Simulation) {
 // Each rage gained is ThreatPerRageGained threat times the unit's threat multiplier at the time, split
 // between the targets in combat at the time.
 func (rb *rageBar) addRageGainThreat(sim *Simulation, gain float64) {
-	targets := sim.Encounter.ActiveTargetUnits
-	threat := gain * ThreatPerRageGained * rb.rageGainSpell.unitThreatMultiplier() / float64(len(targets))
-	for _, target := range targets {
-		rb.rageGainSpell.SpellMetrics[target.UnitIndex].TotalThreat += threat
-	}
+	targets := float64(len(sim.Encounter.ActiveTargetUnits))
+	rb.rageGainSpell.ApplyAOEThreatIgnoreMultipliers(gain * ThreatPerRageGained * rb.rageGainSpell.unitThreatMultiplier() / targets)
 	rb.rageGainSpell.SpellMetrics[0].Casts++
 }
 
