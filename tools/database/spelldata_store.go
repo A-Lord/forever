@@ -29,9 +29,10 @@ type storeSpell struct {
 	Name string
 	Rank string
 
-	School core.SpellSchool
-	Speed  float64
-	Attr   [17]uint32
+	School      core.SpellSchool
+	Speed       float64
+	MinDuration float64
+	Attr        [17]uint32
 
 	SpellLevel, BaseLevel, MaxLevel int16
 
@@ -193,6 +194,7 @@ type miscRow struct {
 	Speed                  float64
 	CastTimeMs, DurationMs int32
 	MinRange, MaxRange     float64
+	MinDuration            float64 `json:",omitempty"` // Stated on a few dozen rows, so the capture leaves the rest without it.
 }
 
 type levelsRow struct {
@@ -290,7 +292,7 @@ func (t *spellTables) row(id int32) storeSpell {
 	s := storeSpell{ID: id, Name: t.Names[id], Rank: t.Subtexts[id]}
 
 	m := t.Misc[id]
-	s.School, s.Speed, s.Attr = m.School, m.Speed, m.Attr
+	s.School, s.Speed, s.MinDuration, s.Attr = m.School, m.Speed, m.MinDuration, m.Attr
 	s.CastTimeMs, s.DurationMs = m.CastTimeMs, m.DurationMs
 	s.MinRange, s.MaxRange = m.MinRange, m.MaxRange
 
@@ -392,7 +394,7 @@ func (t *spellTables) loadMisc(db *sql.DB) error {
 		       m.Attributes_15, m.Attributes_16,
 		       COALESCE(m.SchoolMask, 0), COALESCE(m.Speed, 0),
 		       COALESCE(ct.Base, 0), COALESCE(d.Duration, 0),
-		       COALESCE(r.RangeMin_0, 0), COALESCE(r.RangeMax_0, 0)
+		       COALESCE(r.RangeMin_0, 0), COALESCE(r.RangeMax_0, 0), COALESCE(m.MinDuration, 0)
 		FROM SpellMisc m
 		LEFT JOIN SpellCastTimes ct ON ct.ID = m.CastingTimeIndex
 		LEFT JOIN SpellDuration d ON d.ID = m.DurationIndex
@@ -407,7 +409,7 @@ func (t *spellTables) loadMisc(db *sql.DB) error {
 		for i := range attr {
 			dest = append(dest, &attr[i])
 		}
-		dest = append(dest, &school, &m.Speed, &m.CastTimeMs, &m.DurationMs, &m.MinRange, &m.MaxRange)
+		dest = append(dest, &school, &m.Speed, &m.CastTimeMs, &m.DurationMs, &m.MinRange, &m.MaxRange, &m.MinDuration)
 		if err := rows.Scan(dest...); err != nil {
 			return err
 		}

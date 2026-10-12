@@ -68,16 +68,18 @@ func (e *Effect) HitsAnArea() bool {
 // s.MaxTargets itself.
 func SpellConfig(unit *core.Unit, s *Spell, opts ...SpellOpt) core.SpellConfig {
 	config := core.SpellConfig{
-		ActionID:     core.ActionID{SpellID: s.ID},
-		Rank:         rankOf(s),
-		SpellSchool:  s.SpellSchool(),
-		DefenseType:  s.DefenseTypeCore(),
-		ClassFlags:   s.ClassFlags,
-		Flags:        rowFlags(s),
-		MissileSpeed: float64(s.Speed),
-		MinRange:     float64(s.MinRange),
-		MaxRange:     float64(s.MaxRange),
-		Cast:         castConfig(unit, s),
+		ActionID:    core.ActionID{SpellID: s.ID},
+		Rank:        rankOf(s),
+		SpellSchool: s.SpellSchool(),
+		DefenseType: s.DefenseTypeCore(),
+		ClassFlags:  s.ClassFlags,
+		Flags:       rowFlags(s),
+		MinRange:    float64(s.MinRange),
+		MaxRange:    float64(s.MaxRange),
+		Cast:        castConfig(unit, s),
+
+		MissileSpeed:       float64(s.Speed),
+		MissileMinDuration: s.MissileMinDuration(),
 
 		CastRequirement: s.CastRequirement(),
 	}
@@ -86,6 +88,10 @@ func SpellConfig(unit *core.Unit, s *Spell, opts ...SpellOpt) core.SpellConfig {
 	// core.MinRangedRange.
 	if s.MinRange != 0 && s.EquipClass == dbcenums.ITEM_CLASS_WEAPON && s.EquipSubclass&(dbcenums.ITEM_SUBCLASS_BIT_WEAPON_BOW|dbcenums.ITEM_SUBCLASS_BIT_WEAPON_GUNS|dbcenums.ITEM_SUBCLASS_BIT_WEAPON_CROSSBOW) != 0 {
 		config.MinRange = core.MinRangedRange
+	}
+	// The row's range is to the caster's target; damage over an area around the caster needs none.
+	if damage := s.DamageEffect(); damage.HitsAnArea() && (damage.Target[0] == dbcenums.TARGET_DEST_CASTER || damage.Target[0] == dbcenums.TARGET_SRC_CASTER) {
+		config.MaxRange = 0
 	}
 	if threat := s.firstOfType(dbcenums.E_THREAT, dbcenums.E_THREAT_ALL); threat != NilEffect {
 		config.FlatThreatBonus = threat.Average()
