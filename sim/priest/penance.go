@@ -19,7 +19,8 @@ func (priest *Priest) registerPenance(_ int32, rank *spelldata.Spell) {
 	boltConfig := spelldata.SpellConfig(&priest.Unit, boltRow, spelldata.Magic(core.ProcMaskSpellDamage), spelldata.Proc())
 	boltConfig.ClassSpellMask = PriestSpellPenance
 	boltConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
-		spell.CalcAndDealDamage(sim, target, bolt.Average(), spell.OutcomeMagicHitAndCrit)
+		result := spell.CalcDamage(sim, target, bolt.Average(), spell.OutcomeMagicHitAndCrit)
+		spell.DealDamageAfterTravel(sim, result)
 	}
 	boltSpell := priest.RegisterSpell(boltConfig)
 
@@ -27,8 +28,17 @@ func (priest *Priest) registerPenance(_ int32, rank *spelldata.Spell) {
 	healBoltConfig.ClassSpellMask = PriestSpellPenance
 	healBoltConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		target = priest.healTarget(target)
+		var result *core.SpellResult
 		priest.withRenewedHopeBolt(target, spell, func() {
-			spell.CalcAndDealHealing(sim, target, healBolt.Average(), spell.OutcomeHealingCrit)
+			result = spell.CalcHealing(sim, target, healBolt.Average(), spell.OutcomeHealingCrit)
+		})
+		// A bolt on the priest lands at once; one on another unit travels at the row's speed.
+		if target == &priest.Unit {
+			spell.DealHealing(sim, result)
+			return
+		}
+		spell.WaitTravelTime(sim, func(sim *core.Simulation) {
+			spell.DealHealing(sim, result)
 		})
 	}
 	healBoltSpell := priest.RegisterSpell(healBoltConfig)
