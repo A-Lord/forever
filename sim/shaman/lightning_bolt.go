@@ -9,7 +9,9 @@ var lightningBoltRanks = castableRanks(spellData.LightningBolt)
 
 func (shaman *Shaman) registerLightningBoltSpell() {
 	lightningBoltRanks.Each(func(_ int32, rank *spelldata.Spell) {
-		overload := shaman.RegisterSpell(shaman.newLightningBoltSpellConfig(overloadRank(lightningBoltOverloadRanks, rank), nil))
+		overloadConfig := shaman.newLightningBoltSpellConfig(overloadRank(lightningBoltOverloadRanks, rank), nil)
+		overloadConfig.ActionID = core.ActionID{SpellID: rank.ID, Tag: CastTagLightningOverload}
+		overload := shaman.RegisterSpell(overloadConfig)
 		shaman.RegisterSpell(shaman.newLightningBoltSpellConfig(rank, overload))
 	})
 }

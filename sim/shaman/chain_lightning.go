@@ -9,7 +9,9 @@ var chainLightningRanks = castableRanks(spellData.ChainLightning)
 
 func (shaman *Shaman) registerChainLightningSpell() {
 	chainLightningRanks.Each(func(_ int32, rank *spelldata.Spell) {
-		overload := shaman.RegisterSpell(shaman.newChainLightningSpellConfig(overloadRank(chainLightningOverloadRanks, rank), nil))
+		overloadConfig := shaman.newChainLightningSpellConfig(overloadRank(chainLightningOverloadRanks, rank), nil)
+		overloadConfig.ActionID = core.ActionID{SpellID: rank.ID, Tag: CastTagLightningOverload}
+		overload := shaman.RegisterSpell(overloadConfig)
 		shaman.RegisterSpell(shaman.newChainLightningSpellConfig(rank, overload))
 	})
 }
