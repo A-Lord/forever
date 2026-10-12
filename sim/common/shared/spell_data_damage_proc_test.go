@@ -432,6 +432,7 @@ func TestOffHandWeaponProcStrikeInFlightIsHeardByNoWeaponProc(t *testing.T) {
 	})
 	sim, caster, target := newOffHandProcSim(t, weaponID, wound, &proto.ItemSpec{Id: neckID})
 	strike := mustGetSpell(t, caster, wound)
+	caster.DistanceFromTarget = 20
 	metrics := &strike.SpellMetrics[target.UnitIndex]
 
 	landSwing(sim, caster, target, core.ProcMaskMeleeOHAuto)

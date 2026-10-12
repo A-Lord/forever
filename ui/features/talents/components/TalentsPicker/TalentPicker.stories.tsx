@@ -10,7 +10,7 @@ const meta = {
 	title: 'Features/Talents/TalentsPicker/Components/TalentPicker',
 	component: TalentPicker,
 	tags: ['autodocs'],
-	args: { config: TALENT, points: 0, canAdd: true, allPointsSpent: false, onSetPoints: fn() },
+	args: { config: TALENT, points: 0, canAdd: true, broken: false, allPointsSpent: false, onSetPoints: fn() },
 	argTypes: { config: { control: false } },
 	parameters: { smoke: false, smokeReason: 'The talent fills its icon from the database through useActionId' },
 	decorators: [
@@ -32,3 +32,5 @@ export const Disabled: Story = { args: { canAdd: false, allPointsSpent: true } }
 export const Partial: Story = { args: { points: 2 } };
 
 export const Full: Story = { args: { points: TALENT.maxPoints, canAdd: false } };
+
+export const Broken: Story = { args: { points: 2, canAdd: false, broken: true } };

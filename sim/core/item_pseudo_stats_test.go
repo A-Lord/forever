@@ -122,3 +122,47 @@ func TestRandomSuffixStatsAddToTheItem(t *testing.T) {
 		}
 	}
 }
+
+// A random suffix that reduces caster DPS swaps in the damage the item carries for it; any other
+// suffix leaves the weapon's own damage.
+func TestReducedCasterDpsSuffixSwapsTheWeaponDamage(t *testing.T) {
+	const testItemID, reducingSuffixID, plainSuffixID = 990105, 990106, 990107
+
+	addToDatabase(&proto.SimDatabase{
+		Items: []*proto.SimItem{{
+			Id:          testItemID,
+			Name:        "Test Random Suffix Axe",
+			Type:        proto.ItemType_ItemTypeWeapon,
+			WeaponType:  proto.WeaponType_WeaponTypeAxe,
+			HandType:    proto.HandType_HandTypeTwoHand,
+			WeaponSpeed: 3.6,
+			ScalingOptions: map[int32]*proto.ScalingItemProperties{0: {
+				RandPropPoints:            11,
+				WeaponDamageMin:           58,
+				WeaponDamageMax:           88,
+				UnroundedDps:              20.483225,
+				ReducedCasterWeaponDamage: &proto.ReducedCasterWeaponDamage{WeaponDamageMin: 43, WeaponDamageMax: 66, UnroundedDps: 15.231116},
+			}},
+		}},
+		RandomSuffixes: []*proto.ItemRandomSuffix{
+			{Id: reducingSuffixID, Name: "of the Physician", Stats: make([]float64, stats.ProtoStatsLen), ReducedCasterDps: true},
+			{Id: plainSuffixID, Name: "of the Bear", Stats: make([]float64, stats.ProtoStatsLen)},
+		},
+	})
+
+	for _, tc := range []struct {
+		name          string
+		suffix        int32
+		min, max, dps float64
+	}{
+		{"no suffix", 0, 58, 88, 20.483225},
+		{"a suffix that does not reduce caster DPS", plainSuffixID, 58, 88, 20.483225},
+		{"a suffix that reduces caster DPS", reducingSuffixID, 43, 66, 15.231116},
+	} {
+		equipment := ProtoToEquipment(&proto.EquipmentSpec{Items: []*proto.ItemSpec{{Id: testItemID, RandomSuffix: tc.suffix}}})
+		item := equipment.MainHand()
+		if item.WeaponDamageMin != tc.min || item.WeaponDamageMax != tc.max || item.UnroundedDPS != tc.dps {
+			t.Errorf("%s: damage %v-%v at %v DPS, want %v-%v at %v", tc.name, item.WeaponDamageMin, item.WeaponDamageMax, item.UnroundedDPS, tc.min, tc.max, tc.dps)
+		}
+	}
+}
