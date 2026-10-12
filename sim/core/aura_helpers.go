@@ -25,6 +25,7 @@ const (
 	CallbackOnCastComplete
 	CallbackOnApplyEffects
 	CallbackOnPeriodicDamageTaken
+	CallbackOnSpellLaunch
 
 	CallbackLast
 )
@@ -312,6 +313,9 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 	}
 	if config.Callback.Matches(CallbackOnPeriodicDamageTaken) {
 		procAura.OnPeriodicDamageTaken = callback
+	}
+	if config.Callback.Matches(CallbackOnSpellLaunch) {
+		procAura.OnSpellLaunch = callback
 	}
 }
 
