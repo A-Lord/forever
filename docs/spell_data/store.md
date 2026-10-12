@@ -195,6 +195,12 @@ as one spell whose per-rank numbers live in a curve. Each rank is that spell wit
 the effects the curve covers; an effect the curve has no row for keeps the spell's own base value. Both
 `MustFind` every id, so a family that loses a spell fails at startup rather than registering nothing.
 
+The curve's value keeps the sign the game files state, also where the row's base points and the tooltip
+state the opposite. Frost Channeling's threat (effect 2: row -30, curve 10/20/30) raises Frost threat by
+30% at 3/3 in game, where the tooltip says it reduces it. Instrument of Law's threat, Iron Will's Stun and
+Fear duration and Improved Mend Pet's mana cost have the same shape, a positive curve under a reducing
+tooltip, and read the curve too.
+
 |                                          |                                                                                          |
 | ---------------------------------------- | ---------------------------------------------------------------------------------------- |
 | `Rank(n)`                                | the spell at rank n. Rank 0 is untaken and answers `Nil`, so no `if rank > 0` guard      |

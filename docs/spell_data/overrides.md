@@ -79,12 +79,6 @@ against the encounter's area set. The override is stale once the row states a `R
 own. The on-use stat actives that `shared.NewSimpleStatActive` registers read it; a proc chance the
 tooltip says is doubled has no reader yet.
 
-A talent's tree curve keeps the sign the game files state, also where the row's base points and the
-tooltip state the opposite: the game applies the curve. Frost Channeling's threat (effect 2: row -30,
-curve 10/20/30) raises Frost threat by 10/20/30% in game, where the tooltip says it reduces it.
-Instrument of Law's threat, Iron Will's Stun and Fear duration and Improved Mend Pet's mana cost carry
-the same positive curve under a reducing tooltip.
-
 A consumable's spells take these overrides like any other spell's; the lists that add, remove or
 replace a consumable itself are in [Consumables](../consumables.md).
 
