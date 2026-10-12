@@ -8460,6 +8460,9 @@
 						"unspent_talent_points": {
 							"type": "string"
 						},
+						"broken_talents": {
+							"type": "string"
+						},
 						"windfury_over_grace_of_air": {
 							"type": "string"
 						},
@@ -8471,7 +8474,14 @@
 						}
 					},
 					"additionalProperties": false,
-					"required": ["profession_requirement", "unspent_talent_points", "windfury_over_grace_of_air", "windfury_over_flametongue", "label"]
+					"required": [
+						"profession_requirement",
+						"unspent_talent_points",
+						"broken_talents",
+						"windfury_over_grace_of_air",
+						"windfury_over_flametongue",
+						"label"
+					]
 				},
 				"buttons": {
 					"type": "object",

@@ -6,8 +6,6 @@ import { getTalentPoints } from '@sim/proto/utils';
 import type { SimWarning } from '@sim/sim_host';
 import { subscribeAll, subscribePlayerField, subscribeRaidField } from '@sim/state/subscriptions';
 
-// Talents are three free-form trees, so there is no per-row requirement to check: the only
-// thing the string can be wrong about is the point total.
 const MAX_TALENT_POINTS = CHARACTER_LEVEL - 9;
 
 export function defaultSimWarnings<SpecType extends number>(player: Player<SpecType>): Array<SimWarning> {
@@ -45,6 +43,17 @@ export function defaultSimWarnings<SpecType extends number>(player: Player<SpecT
 				return i18n.t('sidebar.warnings.unspent_talent_points', {
 					count: MAX_TALENT_POINTS - talentPoints,
 				});
+			},
+		},
+		{
+			updateOn: subscribePlayerField(player, 'talentsString'),
+			getContent: () => {
+				const brokenTalents = player.getBrokenTalentNames();
+				if (brokenTalents.length == 0) {
+					return '';
+				}
+
+				return i18n.t('sidebar.warnings.broken_talents', { talents: brokenTalents.join(', ') });
 			},
 		},
 		{
