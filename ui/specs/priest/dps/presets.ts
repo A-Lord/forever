@@ -62,9 +62,7 @@ export const DefaultIndividualBuffs = IndividualBuffs.create({
 export const DefaultDebuffs = Debuffs.create({
 	judgementOfTheCrusader: true,
 	judgementOfWisdom: true,
-	faerieFire: true,
 	curseOfElements: true,
-	exposeArmor: true,
 });
 
 export const OtherDefaults = {
