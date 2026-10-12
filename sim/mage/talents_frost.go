@@ -124,15 +124,15 @@ func (mage *Mage) registerPiercingIce() {
 	spelldata.ParseStatic(&mage.Character, spellData.PiercingIce.Rank(mage.Talents.PiercingIce))
 }
 
-// "Reduces the mana cost of your Frost spells by 15% and reduces the threat caused by your Frost
-// spells by 30%."
+// Reduces the mana cost of your Frost spells by 5/10/15% and raises their threat by 10/20/30%, as the
+// talent curve states; the tooltip says the threat goes down.
 func (mage *Mage) registerFrostChanneling() {
 	if mage.Talents.FrostChanneling == 0 {
 		return
 	}
 
 	// Effect 1 is the mana cost, on the row's mask of Frost spells; effect 2 the threat, on misc 16, the
-	// Frost school, which the ladder reads as -10/-20/-30 through overrides.CurveSigns.
+	// Frost school, at the curve's 10/20/30.
 	spelldata.ParseStatic(&mage.Character, spellData.FrostChanneling.Rank(mage.Talents.FrostChanneling))
 }
 
