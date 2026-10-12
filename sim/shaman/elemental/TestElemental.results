@@ -1127,9 +1127,9 @@ dps_results: {
 dps_results: {
  key: "TestElemental-Settings-Dwarf-testing-Standard-default-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 575.8707
-  tps: 859.95215
-  dtps: 8.26995
+  dps: 4340.66955
+  tps: 4006.38716
+  dtps: 4.78936
  }
 }
 dps_results: {
@@ -1151,8 +1151,8 @@ dps_results: {
 dps_results: {
  key: "TestElemental-Settings-Dwarf-testing-Standard-default-NoBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 156.37275
-  tps: 141.78934
+  dps: 711.83343
+  tps: 659.71464
  }
 }
 dps_results: {
@@ -1172,9 +1172,9 @@ dps_results: {
 dps_results: {
  key: "TestElemental-Settings-Orc-testing-Standard-default-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 575.84041
-  tps: 856.25696
-  dtps: 8.35805
+  dps: 4362.03813
+  tps: 4020.36726
+  dtps: 4.75508
  }
 }
 dps_results: {
@@ -1196,8 +1196,8 @@ dps_results: {
 dps_results: {
  key: "TestElemental-Settings-Orc-testing-Standard-default-NoBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 158.28214
-  tps: 143.82727
+  dps: 716.39509
+  tps: 663.94076
  }
 }
 dps_results: {
@@ -1217,9 +1217,9 @@ dps_results: {
 dps_results: {
  key: "TestElemental-Settings-Troll-testing-Standard-default-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 578.79679
-  tps: 856.4831
-  dtps: 8.17503
+  dps: 4331.83622
+  tps: 4016.45255
+  dtps: 5.33497
  }
 }
 dps_results: {
@@ -1241,8 +1241,8 @@ dps_results: {
 dps_results: {
  key: "TestElemental-Settings-Troll-testing-Standard-default-NoBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 158.82138
-  tps: 143.84696
+  dps: 711.95783
+  tps: 659.67218
  }
 }
 dps_results: {
