@@ -36,13 +36,7 @@ func (warrior *Warrior) registerCleave() {
 		results := spell.CalcCleaveDamage(sim, target, cleaveTargets, baseDamage, spell.OutcomeMeleeWeaponSpecialHitAndCrit)
 
 		// The flat threat is the cleave's total, split between the targets it lands on.
-		landed := 0
-		for _, result := range results {
-			if result.Landed() {
-				landed++
-			}
-		}
-		if landed > 1 {
+		if landed := results.NumLandedHits(); landed > 1 {
 			flatThreat := spell.FlatThreatBonus
 			spell.FlatThreatBonus /= float64(landed)
 			for _, result := range results {
