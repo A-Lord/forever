@@ -28,8 +28,12 @@ type Spell struct {
 	// SpellMisc.SchoolMask, which core.SpellSchool states in the same bits.
 	School core.SpellSchool
 
-	// SpellMisc.Speed: how fast the missile flies, in yards per second. Zero hits on cast.
+	// SpellMisc.Speed: how fast the missile flies, in yards per second. Zero, with no MinDuration,
+	// hits on cast.
 	Speed float32
+
+	// SpellMisc.MinDuration: the shortest the missile flies, in seconds, however close the target.
+	MinDuration float32
 
 	// SpellMisc.Attributes_0..16, read through HasAttr and the named accessors in attributes.go.
 	Attr [17]uint32

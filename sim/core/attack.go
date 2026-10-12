@@ -564,7 +564,7 @@ func (unit *Unit) EnableAutoAttacks(agent Agent, options AutoAttackOptions) {
 		DefenseType:  DefenseTypeRanged,
 		ProcMask:     Ternary(options.ProcMask == ProcMaskUnknown, ProcMaskRangedAuto, options.ProcMask),
 		Flags:        SpellFlagMeleeMetrics | SpellFlagIncludeTargetBonusDamage,
-		MissileSpeed: 40,
+		MissileSpeed: 40, // Auto Shot's speed; the hunter reads it from the row.
 		MinRange:     unit.AutoAttacks.ranged.MinRange,
 		MaxRange:     unit.AutoAttacks.ranged.MaxRange,
 
