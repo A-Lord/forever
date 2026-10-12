@@ -31,7 +31,6 @@ type Hunter struct {
 
 	rapidRecuperationAura  *core.Aura
 	rapidRecuperationShare float64 // The share of regeneration while casting the aura grants, set by what granted it.
-	rapidRecuperationHit   float64 // The share a Serpent Sting hit grants.
 	rapidRecuperationSpend float64 // The share spending Rapid Killing grants.
 }
 
@@ -93,7 +92,8 @@ func NewHunter(character *core.Character, options *proto.Player, hunterOptions *
 	})
 
 	// Auto Shot is row 75: its range, its missile speed, the bow, gun or crossbow it needs, and the
-	// class flags that put the auto inside the talents naming it - Hawk Eye, Mortal Shots, Deadly Aspects.
+	// class flags that put the auto inside the talents that name it: Hawk Eye, Mortal Shots and
+	// Deadly Aspects.
 	rangedConfig := hunter.AutoAttacks.RangedConfig()
 	rangedConfig.MinRange = core.MinRangedRange // Forever's, not the row's 8 yd
 	rangedConfig.MaxRange = float64(autoShotRank.MaxRange)

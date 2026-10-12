@@ -88,8 +88,7 @@ var rapidKillingBuff = spellData.RapidKillingTriggered.Highest()
 // 10/20% by rank, where the buff row states a flat 20, so the row is scaled by the ranks taken. A
 // kill grants the buff, and no target dies in the sim, so only an APL that activates the aura does.
 //
-// The Shots its damage mod names spend its one charge at the cast's result, a miss included, once
-// per cast however many targets it hits.
+// The Shots its damage mod names spend its one charge at the cast's result, a miss included.
 func (hunter *Hunter) registerRapidKilling() {
 	if hunter.Talents.RapidKilling == 0 {
 		return
@@ -154,10 +153,9 @@ func (hunter *Hunter) registerRapidRecuperation() {
 		return
 	}
 
-	// The share of regeneration while casting 1242512 grants is the talent's, by what grants it, where
-	// the buff row states a flat 50: see gainRapidRecuperation.
+	// The buff row states a flat 50; the talent's effects set the share, see gainRapidRecuperation.
 	rank := spellData.RapidRecuperation.Rank(hunter.Talents.RapidRecuperation)
-	hunter.rapidRecuperationHit = rank.EffectN(1).Percent()
+	hit := rank.EffectN(1).Percent()
 	hunter.rapidRecuperationSpend = rank.EffectN(2).Percent()
 	buff := hunter.RegisterAura(spelldata.AuraConfig(rapidRecuperationBuff))
 	buff.ApplyOnGain(func(aura *core.Aura, sim *core.Simulation) {
@@ -172,9 +170,9 @@ func (hunter *Hunter) registerRapidRecuperation() {
 	// The proc shape with no roll: 1223987 fires on a ranged ability and names Serpent Sting only
 	// in its tooltip, so the listener is narrowed to it by hand. The sting's application carries no
 	// proc mask and deals no damage of its own, which the listener has to accept.
-	trigger := spelldata.ProcTrigger(&hunter.Character, spellData.RapidRecuperation.Rank(hunter.Talents.RapidRecuperation),
+	trigger := spelldata.ProcTrigger(&hunter.Character, rank,
 		func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
-			hunter.gainRapidRecuperation(sim, hunter.rapidRecuperationHit)
+			hunter.gainRapidRecuperation(sim, hit)
 		})
 	trigger.Name = "Rapid Recuperation - Trigger"
 	trigger.ProcMask = core.ProcMaskEmpty

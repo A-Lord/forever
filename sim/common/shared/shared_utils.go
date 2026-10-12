@@ -724,9 +724,9 @@ func spellDataProcDamageSpell(character *core.Character, damage *spelldata.Spell
 
 type afterDealt func(sim *core.Simulation, spell *core.Spell, target *core.Unit, results core.SpellResultSlice)
 
-// Deals the results the cast calculated, then runs after where it is set: at once, or where the spell
-// has a missile speed once it has flown the caster's distance to the target. The flight carries a
-// copy of the results, since the spell's next cast calculates into the same ones.
+// Deals the results the cast calculated, then runs after where it is set: at once, or, where the
+// spell has a travel time, once it has landed. The flight carries a copy of the results, since the
+// spell's next cast calculates into the same ones.
 func dealOnArrival(sim *core.Simulation, spell *core.Spell, target *core.Unit, results core.SpellResultSlice, after afterDealt) {
 	if spell.TravelTime() == 0 {
 		dealResults(sim, spell, target, results, after)

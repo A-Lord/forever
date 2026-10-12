@@ -44,7 +44,7 @@ func (s *Spell) Duration() time.Duration {
 
 // SpellMisc.MinDuration, to the millisecond: the game files state it in seconds as a float.
 func (s *Spell) MissileMinDuration() time.Duration {
-	return time.Duration(math.Round(float64(s.MinDuration)*1000)) * time.Millisecond
+	return core.DurationFromMillis(math.Round(float64(s.MinDuration) * 1000))
 }
 
 // SpellAuraOptions.ProcCategoryRecovery: the internal cooldown between two procs.
