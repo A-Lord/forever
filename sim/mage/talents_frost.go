@@ -237,8 +237,9 @@ func (mage *Mage) registerFingersOfFrost() {
 		}
 	}
 	// Arcane Missiles' channel spends no charge; each missile that lands spends one, and a miss
-	// keeps it. The missile's damage is rolled before its hit spends the charge.
-	config.OnSpellHitDealt = func(aura *core.Aura, sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
+	// keeps it. The charge goes on the missile's cast result, right after its damage is rolled, so
+	// the roll that read the target as Frozen is the one that spends it, whatever the travel time.
+	config.OnCastResult = func(aura *core.Aura, sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
 		if spell.Matches(MageSpellArcaneMissilesTick) && result.Landed() {
 			aura.RemoveStack(sim)
 		}
