@@ -677,6 +677,16 @@ func (sim *Simulation) GetConsumedPendingActionFromPool() *PendingAction {
 	return pa
 }
 
+// Runs the action at the current time, once the event in progress and its callbacks are done. It
+// goes ahead of the rotation and regen due at this time, and after any swing or task due then.
+func (sim *Simulation) RunAfterCurrentEvent(action func(*Simulation)) {
+	pa := sim.GetConsumedPendingActionFromPool()
+	pa.NextActionAt = sim.CurrentTime
+	pa.Priority = ActionPriorityDOT
+	pa.OnAction = action
+	sim.AddPendingAction(pa)
+}
+
 func (sim *Simulation) RegisterExecutePhaseCallback(callback func(sim *Simulation, isExecute int32)) {
 	sim.executePhaseCallbacks = append(sim.executePhaseCallbacks, callback)
 }

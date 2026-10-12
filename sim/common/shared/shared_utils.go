@@ -733,6 +733,9 @@ func dealOnArrival(sim *core.Simulation, spell *core.Spell, target *core.Unit, r
 		return
 	}
 	results = slices.Clone(results)
+	for _, result := range results {
+		spell.DealCastResult(sim, result)
+	}
 	suppress := spell.Flags & core.SpellFlagSuppressWeaponProcs
 	spell.WaitTravelTime(sim, func(sim *core.Simulation) {
 		withFlags(spell, suppress, func() { dealResults(sim, spell, target, results, after) })
@@ -747,6 +750,7 @@ func dealOneOnArrival(sim *core.Simulation, spell *core.Spell, target *core.Unit
 		dealOne(sim, spell, target, single, result, after)
 		return
 	}
+	spell.DealCastResult(sim, result)
 	suppress := spell.Flags & core.SpellFlagSuppressWeaponProcs
 	spell.WaitTravelTime(sim, func(sim *core.Simulation) {
 		withFlags(spell, suppress, func() { dealOne(sim, spell, target, single, result, after) })

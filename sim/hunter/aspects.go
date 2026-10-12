@@ -61,6 +61,11 @@ func (hunter *Hunter) registerDeadlyAspects() {
 		spelldata.Chance(spellData.DeadlyAspects.EffectAt(1).FractionAt(rank)))
 	hawk.Name = "Deadly Aspects - Quick Shots"
 	hawk.ProcMask = core.ProcMaskRangedAuto
+	// Quick Shots fires at the Auto Shot's release, a missed shot included.
+	hawk.Callback = core.CallbackOnCastResult
+	hawk.Outcome = core.OutcomeEmpty
+	hawk.RequireDamageDealt = false
+	hawk.TriggerImmediately = true
 	hunter.AspectOfTheHawkAura.AttachProcTrigger(hawk)
 
 	beast := spelldata.ProcTrigger(&hunter.Character, aspectOfTheBeastRank,

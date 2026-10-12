@@ -25,6 +25,7 @@ const (
 	CallbackOnCastComplete
 	CallbackOnApplyEffects
 	CallbackOnPeriodicDamageTaken
+	CallbackOnCastResult
 
 	CallbackLast
 )
@@ -307,6 +308,9 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 	}
 	if config.Callback.Matches(CallbackOnPeriodicDamageTaken) {
 		procAura.OnPeriodicDamageTaken = callback
+	}
+	if config.Callback.Matches(CallbackOnCastResult) {
+		procAura.OnCastResult = callback
 	}
 }
 
