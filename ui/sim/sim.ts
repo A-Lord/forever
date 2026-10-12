@@ -496,6 +496,27 @@ export class Sim {
 		return result.raidStats!.parties[0].players[0];
 	}
 
+	// The first player's final stats with `bonusStats` added to its bonus stats, without touching its current stats or
+	// metadata. Used by the stat sweep to measure how a bonus point of a stat scales.
+	async getFinalStatsWithBonus(bonusStats: Stats): Promise<Stats> {
+		await this.waitForInit();
+
+		const raidProto = this.getModifiedRaidProto();
+		const player = raidProto.parties[0].players[0];
+		player.bonusStats = Stats.fromProto(player.bonusStats).add(bonusStats).toProto();
+
+		const result = await this.workerPool.computeStats(
+			ComputeStatsRequest.create({
+				raid: raidProto,
+				encounter: this.encounter.toProto(),
+			}),
+		);
+		if (result.errorResult != '') {
+			throw new SimError(result.errorResult);
+		}
+		return Stats.fromProto(result.raidStats!.parties[0].players[0].finalStats);
+	}
+
 	// This should be invoked internally whenever stats might have changed.
 	private characterStatsVersion = 0;
 

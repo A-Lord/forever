@@ -11,7 +11,7 @@ import {
 	ReforgeOptimizeResult,
 	ReforgeSettings,
 } from '@generated/proto/api';
-import { ConsumableType, EquipmentSpec, ItemRandomSuffix, ItemSlot, ItemSpec, ItemType, Profession } from '@generated/proto/common';
+import { ConsumableType, EquipmentSpec, ItemRandomSuffix, ItemSlot, ItemSpec, ItemType, Profession, Stat } from '@generated/proto/common';
 import { UIEnchant, UIItem } from '@generated/proto/ui';
 import { makeEquippedItem } from '@testing/storybook/fixtures/gear';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -302,6 +302,37 @@ describe('Sim.updateCharacterStats', () => {
 		await stale;
 
 		expect(crashes).toEqual([]);
+	});
+});
+
+describe('Sim.getFinalStatsWithBonus', () => {
+	const hit = (value: number) => Stats.fromMap({ [Stat.StatHitRating]: value });
+
+	const makeBonusSim = () => {
+		const sim = makeSim();
+		vi.spyOn(sim, 'getModifiedRaidProto').mockReturnValue(RaidProto.create({ parties: [{ players: [{ bonusStats: hit(5).toProto() }] }] }));
+		vi.spyOn(sim.encounter, 'toProto').mockReturnValue({} as any);
+		return sim;
+	};
+
+	beforeEach(() => {
+		mocks.computeStats.mockReset();
+	});
+
+	it("adds the bonus to the player's own bonus stats and returns its final stats", async () => {
+		mocks.computeStats.mockResolvedValue({ errorResult: '', raidStats: { parties: [{ players: [{ finalStats: hit(33).toProto() }] }] } } as any);
+
+		const finalStats = await makeBonusSim().getFinalStatsWithBonus(hit(10));
+
+		const [request] = mocks.computeStats.mock.calls[0] as unknown as [{ raid: RaidProto }];
+		expect(Stats.fromProto(request.raid.parties[0].players[0].bonusStats).getStat(Stat.StatHitRating)).toBe(15);
+		expect(finalStats.getStat(Stat.StatHitRating)).toBe(33);
+	});
+
+	it('throws on an error result', async () => {
+		mocks.computeStats.mockResolvedValue({ errorResult: 'boom' } as any);
+
+		await expect(makeBonusSim().getFinalStatsWithBonus(hit(10))).rejects.toThrow(SimError);
 	});
 });
 

@@ -12,8 +12,9 @@ const RUNS_STORE = 'runs';
 export type StatSweepUnitStat = { kind: 'stat'; index: Stat } | { kind: 'pseudo'; index: PseudoStat };
 
 export interface StatSweepPoint {
+	/** Bonus points of the swept stat, which % stat multipliers scale before they reach its total. */
 	offset: number;
-	/** The swept stat's total at this step: the base value plus `offset`. */
+	/** The swept stat's total at this step: the base value plus `offset` times the sweep's measured multiplier. */
 	statValue: number;
 	ep: number;
 	/** The shown 90% ± behind `ep`. */

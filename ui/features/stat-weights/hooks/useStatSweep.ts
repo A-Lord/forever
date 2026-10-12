@@ -13,7 +13,16 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { SERIES_SLOT_COUNT } from '../components/StatSweep/colors';
 import type { StatSweepProgress } from '../components/StatSweep/StatSweepPanel';
 import { precisionRunOptions } from '../model/ep_math';
-import { assignColorSlots, buildSweepOffsets, type SweepPoint, sweepPointFromResult, type SweepRun, toSweepUnitStat } from '../model/stat_sweep';
+import {
+	assignColorSlots,
+	buildSweepOffsets,
+	mergeSweepHistory,
+	type SweepPoint,
+	sweepPointFromResult,
+	type SweepRun,
+	sweepStatMultiplier,
+	toSweepUnitStat,
+} from '../model/stat_sweep';
 
 export interface StatSweepArgs {
 	unitStat: UnitStat;
@@ -66,7 +75,7 @@ export const useStatSweep = () => {
 		let active = true;
 		listRuns(player.getSpec())
 			.then(history => {
-				if (active) update(current => ({ ...current, history }));
+				if (active) update(current => ({ ...current, history: mergeSweepHistory(current.history, history) }));
 			})
 			.catch(console.error);
 		return () => {
@@ -77,7 +86,17 @@ export const useStatSweep = () => {
 	const run = useCallback(
 		(args: StatSweepArgs) => {
 			const { unitStat, refStat, baseStatValue, precision } = args;
-			const offsets = buildSweepOffsets(baseStatValue, args.range, args.step);
+			const totalWithBonus = (bonus: number) =>
+				sim.getFinalStatsWithBonus(new Stats().withUnitStat(unitStat, bonus)).then(finalStats => finalStats.getUnitStat(unitStat));
+			const measureMultiplier = async () => {
+				try {
+					const [withoutBonus, withBonus] = await Promise.all([totalWithBonus(0), totalWithBonus(args.step)]);
+					return sweepStatMultiplier(withoutBonus, withBonus, args.step);
+				} catch (error) {
+					console.error(error);
+					return 1;
+				}
+			};
 			// Every step runs at the same seed, so the steps differ only by the swept stat.
 			const seed = sim.getFixedRngSeed() || Math.floor(Math.random() * Sim.MAX_RNG_SEED) + 1;
 			const options = { ...precisionRunOptions(precision), seed };
@@ -107,6 +126,8 @@ export const useStatSweep = () => {
 			return sim.runs.start(SimRunKind.StatSweep, async () => {
 				const points: SweepPoint[] = [];
 				try {
+					const multiplier = await measureMultiplier();
+					const offsets = buildSweepOffsets(baseStatValue, args.range, args.step, multiplier);
 					for (const [index, offset] of offsets.entries()) {
 						if (sim.runs.isAborting(SimRunKind.StatSweep)) break;
 						setProgress({ step: index + 1, steps: offsets.length });
@@ -116,7 +137,7 @@ export const useStatSweep = () => {
 						});
 						// An aborted step comes back as a result with an error, not as a throw.
 						if (result.error) break;
-						points.push(sweepPointFromResult(result, unitStat, refStat, baseStatValue, offset));
+						points.push(sweepPointFromResult(result, unitStat, refStat, baseStatValue, offset, multiplier));
 						const live = { ...record, points: points.slice() };
 						update(current => ({ ...current, live }));
 					}

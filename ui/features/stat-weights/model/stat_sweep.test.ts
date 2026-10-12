@@ -4,7 +4,7 @@ import { Stats, UnitStat } from '@sim/proto/stats';
 import { describe, expect, it } from 'vitest';
 
 import { emptyStatWeightsResult } from './ep_math';
-import { assignColorSlots, buildSweepOffsets, sweepPointFromResult } from './stat_sweep';
+import { assignColorSlots, buildSweepOffsets, mergeSweepHistory, sweepPointFromResult, type SweepRun, sweepStatMultiplier } from './stat_sweep';
 
 describe('buildSweepOffsets', () => {
 	it('steps from -range to +range through 0', () => {
@@ -23,6 +23,11 @@ describe('buildSweepOffsets', () => {
 
 	it('keeps fractional steps exact', () => {
 		expect(buildSweepOffsets(1, 0.3, 0.1)).toEqual([-0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3]);
+	});
+
+	it('keeps offsets whose total, scaled by the multiplier, stays at or above 0', () => {
+		expect(buildSweepOffsets(20, 30, 10, 1.1)).toEqual([-10, 0, 10, 20, 30]);
+		expect(buildSweepOffsets(22, 30, 10, 1.1)).toEqual([-20, -10, 0, 10, 20, 30]);
 	});
 
 	it('returns only 0 for a step or range that cannot sweep', () => {
@@ -56,11 +61,41 @@ describe('sweepPointFromResult', () => {
 		});
 	});
 
+	it('places the point at the base value plus the offset scaled by the multiplier', () => {
+		expect(sweepPointFromResult(result(), HIT, Stat.StatStrength, 120, -20, 1.1).statValue).toBe(98);
+	});
+
 	it('reports no ± for a stat with no samples', () => {
 		const empty = result();
 		empty.sampleCounts = new Stats().toProto();
 
 		expect(sweepPointFromResult(empty, HIT, Stat.StatStrength, 120, 0).epCi).toBe(0);
+	});
+});
+
+describe('sweepStatMultiplier', () => {
+	it('divides the rise in the total by the bonus points', () => {
+		expect(sweepStatMultiplier(200, 211, 10)).toBeCloseTo(1.1);
+	});
+
+	it('falls back to 1 when the total does not rise', () => {
+		expect(sweepStatMultiplier(200, 200, 10)).toBe(1);
+		expect(sweepStatMultiplier(200, 190, 10)).toBe(1);
+		expect(sweepStatMultiplier(200, 210, 0)).toBe(1);
+	});
+});
+
+describe('mergeSweepHistory', () => {
+	const sweepRun = (id: string, createdAt: number) => ({ id, createdAt }) as SweepRun;
+
+	it('keeps a run finished before the stored list arrived, newest first', () => {
+		const merged = mergeSweepHistory([sweepRun('new', 3)], [sweepRun('old', 1), sweepRun('older', 0)]);
+		expect(merged.map(run => run.id)).toEqual(['new', 'old', 'older']);
+	});
+
+	it('lists a run held both in memory and in storage once', () => {
+		const merged = mergeSweepHistory([sweepRun('a', 2)], [sweepRun('a', 2), sweepRun('b', 1)]);
+		expect(merged.map(run => run.id)).toEqual(['a', 'b']);
 	});
 });
 
