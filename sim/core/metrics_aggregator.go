@@ -283,7 +283,7 @@ func NewUnitMetrics() UnitMetrics {
 type ResourceMetrics struct {
 	ActionID ActionID
 	Type     proto.ResourceType
-	NoThreat bool // Gains generate no threat: the restore's row states No Threat in the game files.
+	NoThreat bool // Gains from this source generate no threat.
 
 	Events     int32
 	Gain       float64

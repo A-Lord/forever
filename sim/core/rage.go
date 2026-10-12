@@ -68,6 +68,8 @@ type rageBar struct {
 	offHandRageMultiplier     float64
 	damageTakenRageMultiplier float64
 
+	rageGainSpell *Spell
+
 	RageRefundMetrics     *ResourceMetrics
 	EncounterStartMetrics *ResourceMetrics
 }
@@ -80,6 +82,7 @@ type RageBarOptions struct {
 
 func (unit *Unit) EnableRageBar(options RageBarOptions) {
 	rageFromDamageTakenMetrics := unit.NewRageMetrics(ActionID{OtherID: proto.OtherAction_OtherActionDamageTaken})
+	rageFromDamageTakenMetrics.NoThreat = true
 	// Direct hits and periodic ticks from a unit grant rage alike.
 	// TODO: Ingame test needed -- the rule is measured on melee hits. Spells land at a multiple of it the logs do
 	// not explain yet: Immolate ticks, Shadow Bolt and Arcane Missiles about 1 times, Fireball and Mortal Strike
@@ -147,6 +150,7 @@ func (unit *Unit) EnableRageBar(options RageBarOptions) {
 			} else {
 				if spell.ResourceMetrics == nil {
 					spell.ResourceMetrics = spell.Unit.NewRageMetrics(spell.ActionID)
+					spell.ResourceMetrics.NoThreat = true
 				}
 				metrics = spell.ResourceMetrics
 			}
@@ -157,11 +161,13 @@ func (unit *Unit) EnableRageBar(options RageBarOptions) {
 	})
 
 	// Not a real spell, just holds metrics from rage gain threat.
-	unit.RegisterSpell(SpellConfig{
+	rageGainSpell := unit.RegisterSpell(SpellConfig{
 		ActionID: ActionID{OtherID: proto.OtherAction_OtherActionRageGain},
 	})
 
 	maxRage := max(100.0, options.MaxRage)
+	rageRefundMetrics := unit.NewRageMetrics(ActionID{OtherID: proto.OtherAction_OtherActionRefund})
+	rageRefundMetrics.NoThreat = true
 
 	unit.rageBar = rageBar{
 		unit:                      unit,
@@ -169,7 +175,8 @@ func (unit *Unit) EnableRageBar(options RageBarOptions) {
 		startingRage:              max(0, options.StartingRage),
 		offHandRageMultiplier:     1,
 		damageTakenRageMultiplier: 1,
-		RageRefundMetrics:         unit.NewRageMetrics(ActionID{OtherID: proto.OtherAction_OtherActionRefund}),
+		rageGainSpell:             rageGainSpell,
+		RageRefundMetrics:         rageRefundMetrics,
 		EncounterStartMetrics:     unit.NewRageMetrics(ActionID{OtherID: proto.OtherAction_OtherActionEncounterStart}),
 	}
 }
@@ -210,7 +217,12 @@ func (rb *rageBar) AddRage(sim *Simulation, amount float64, metrics *ResourceMet
 	}
 
 	newRage := min(rb.currentRage+amount, rb.maxRage)
-	metrics.AddEvent(amount, newRage-rb.currentRage)
+	gain := newRage - rb.currentRage
+	metrics.AddEvent(amount, gain)
+
+	if gain > 0 && !metrics.NoThreat {
+		rb.addRageGainThreat(sim, gain)
+	}
 
 	if sim.Log != nil {
 		rb.unit.Log(sim, "Gained %0.3f rage from %s (%0.3f --> %0.3f) of %0.0f total.", amount, metrics.ActionID, rb.currentRage, newRage, rb.maxRage)
@@ -254,37 +266,12 @@ func (rb *rageBar) reset(_ *Simulation) {
 	rb.damageTakenRageMultiplier = 1
 }
 
-func (rb *rageBar) doneIteration() {
-	if rb.unit == nil {
-		return
-	}
-
-	rageGainSpell := rb.unit.GetSpell(ActionID{OtherID: proto.OtherAction_OtherActionRageGain})
-
-	for _, resourceMetrics := range rb.unit.Metrics.resources {
-		if resourceMetrics.Type != proto.ResourceType_ResourceTypeRage {
-			continue
-		}
-		if resourceMetrics.ActionID.SameActionIgnoreTag(ActionID{OtherID: proto.OtherAction_OtherActionDamageTaken}) {
-			continue
-		}
-		if resourceMetrics.ActionID.SameActionIgnoreTag(ActionID{OtherID: proto.OtherAction_OtherActionRefund}) {
-			continue
-		}
-		if resourceMetrics.ActualGainForCurrentIteration() <= 0 {
-			continue
-		}
-
-		// Need to exclude rage gained from white hits. Rather than have a manual list of all IDs that would
-		// apply here (autos, WF attack, sword spec procs, etc), just check if the effect caused any damage.
-		sourceSpell := rb.unit.GetSpell(resourceMetrics.ActionID)
-		if sourceSpell != nil && sourceSpell.SpellMetrics[0].TotalDamage > 0 {
-			continue
-		}
-
-		rageGainSpell.SpellMetrics[0].Casts += resourceMetrics.EventsForCurrentIteration()
-		rageGainSpell.ApplyAOEThreatIgnoreMultipliers(resourceMetrics.ActualGainForCurrentIteration() * ThreatPerRageGained)
-	}
+// Each rage gained is ThreatPerRageGained threat times the unit's threat multiplier at the time, split
+// between the targets in combat at the time.
+func (rb *rageBar) addRageGainThreat(sim *Simulation, gain float64) {
+	targets := float64(len(sim.Encounter.ActiveTargetUnits))
+	rb.rageGainSpell.ApplyAOEThreatIgnoreMultipliers(gain * ThreatPerRageGained * rb.rageGainSpell.unitThreatMultiplier() / targets)
+	rb.rageGainSpell.SpellMetrics[0].Casts++
 }
 
 type RageCostOptions struct {
