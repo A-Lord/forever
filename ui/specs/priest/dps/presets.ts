@@ -30,10 +30,16 @@ export const DefaultOptions = Options.create({
 export const DefaultConsumables = ConsumesSpec.create({
 	flaskId: Consumables.FlaskOfSupremePower.id,
 	foodId: Consumables.NightfinSoup.id,
-	conjuredId: Consumables.DemonicRune.id,
 	mhImbueId: Consumables.BrilliantWizardOil.id,
 	offensivePotId: Consumables.MajorSpellblastingPotion.id,
-	explosiveId: Consumables.EzThroDynamiteII.id,
+	elixirIds: [
+		Consumables.ElixirOfShadowPower.id,
+		Consumables.GreaterArcaneElixir.id,
+		Consumables.ElixirOfCunning.id,
+		Consumables.ElixirOfTheOwl.id,
+		Consumables.ElixirOfSages.id,
+		Consumables.GreaterMagebloodElixir.id,
+	],
 });
 
 export const DefaultRaidBuffs = RaidBuffs.create({
@@ -45,6 +51,7 @@ export const DefaultRaidBuffs = RaidBuffs.create({
 
 export const DefaultPartyBuffs = PartyBuffs.create({
 	manaSpringTotem: TristateEffect.TristateEffectRegular,
+	moonkinAura: true,
 });
 
 export const DefaultIndividualBuffs = IndividualBuffs.create({
@@ -53,10 +60,9 @@ export const DefaultIndividualBuffs = IndividualBuffs.create({
 });
 
 export const DefaultDebuffs = Debuffs.create({
+	judgementOfTheCrusader: true,
 	judgementOfWisdom: true,
-	faerieFire: true,
 	curseOfElements: true,
-	exposeArmor: true,
 });
 
 export const OtherDefaults = {
@@ -64,7 +70,8 @@ export const OtherDefaults = {
 	distanceFromTarget: 28,
 	profession1: Profession.Enchanting,
 	profession2: Profession.Tailoring,
-	race: Race.RaceTroll,
+	race: Race.RaceUndead,
+	reactionTime: 100,
 };
 
 export const ShadowEpWeights = PresetUtils.makePresetEpWeights(
