@@ -32,7 +32,7 @@ sed -n '1,12p' ui/sim/talents/talents_string.ts ui/sim/talents/broken_talents.ts
   (row 4, column 1).
 - **Order:** `newTalentsConfig` throws unless a tree lists its talents row by row, left to right.
   `findBrokenTalents` relies on that to walk each tree in one pass.
-- **Cap:** `MAX_POINTS_PLAYER` is `CHARACTER_LEVEL - 9`, 51 at level 60, across all three trees.
+- **Cap:** `MAX_POINTS_PLAYER` is `CHARACTER_LEVEL - 9`, across all three trees.
 
 ## Broken talents
 
@@ -57,19 +57,19 @@ take another point until its gap is filled.
 - **Input:** left mousedown spends a point, right mousedown takes one back, and the context menu is
   suppressed so the right click reaches it. Mousedown commits, not click, so the click only cancels
   the Wowhead link. A tap spends a point and wraps a full talent back to 0; a tap on a broken talent
-  clears it, since it cannot take another point. A 750 ms long press clears the talent.
+  clears it, since it cannot take another point. A long press (`LONG_TOUCH_MS`) clears the talent.
 - **Touch listeners are native**, attached once in an effect and reading the current handlers
   through a ref: React attaches `touchstart` as passive, where `preventDefault` does nothing.
 - **A rejected click still fires `onChange`** with the unchanged points; the facade's equality guard
   turns it into a no-op write. Tests assert on the last written string, not on whether a write
   happened.
 - **Layout:** each tree is ONE CSS grid. Talents and prerequisite arrows are both grid items placed by
-  `gridRow`/`gridColumn`, and an arrow spans the cells from parent to child. The z-index ladder (root
-  20, each child 2 lower, each arrow 1 lower than its parent) makes a deeper chain paint under the one
+  `gridRow`/`gridColumn`, and an arrow spans the cells from parent to child. The z-index ladder (`ROOT_Z_INDEX` at
+  a root, each child 2 lower, each arrow 1 lower than its parent) makes a deeper chain paint under the one
   above it.
 - **Arrows** light when the child can take a point, or when it holds points and is not broken. A
-  child holding points proves its prerequisite is full, which matters once all 51 points are spent and
-  no talent can take a point.
+  child holding points proves its prerequisite is full, which matters once every point is spent and no
+  talent can take a point.
 - **Background art** fills a wrapper below the header, so it starts where the header ends whatever
   height the header has. Do not position it at a fixed offset from the top of the tree.
 - **Icons** are looked up at rank 1 whatever the points, so spending a point does not re-seed the
@@ -99,18 +99,18 @@ take a point yet.
   sidebar warning and a red talent as soon as it loads. A scratch test prints what is wrong:
 
     ```ts
-    brokenTalentNames(hunterTalentsConfig, parseTalentsString(hunterTalentsConfig, '-205305031150001-5502000300502201'));
+    brokenTalentNames(config, parseTalentsString(config, presetString));
     ```
 
-    Count the points too: `totalPointsSpent` under 51 also raises the unspent points warning.
+    Count the points too: `totalPointsSpent` under `MAX_POINTS_PLAYER` also raises the unspent points
+    warning.
 
 - **Write fixtures that tell the rules apart.** A tier test passes by accident when the raw point
   count is under the threshold either way. To prove broken points do not count, put the raw count
   over the threshold (`'4000' + '55'`: 14 points above row 2, only 4 of them live). To cover the
   arrow's `!broken` clause, use a _full_ broken child, not a partly spent one.
 - **Unit tests build their own trees** with `newTalentsConfig` (`can_set_points.test.ts`,
-  `broken_talents.test.ts`, `TalentTreePicker.test.tsx`) rather than a class's real tree, so a game
-  files change cannot move them. `TalentTreePicker.test.tsx` mocks `useActionId`, since no unit test
+  `broken_talents.test.ts`, `TalentTreePicker.test.tsx`), so a game files change cannot move them. `TalentTreePicker.test.tsx` mocks `useActionId`, since no unit test
   has the database.
 - **Stories:** `TalentTreePicker` and `TalentPicker` each have a `Broken` story. Both opt out of the
   smoke test (`smoke: false`) because the icons come from the database.

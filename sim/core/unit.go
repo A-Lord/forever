@@ -961,7 +961,6 @@ func (unit *Unit) doneIteration(sim *Simulation) {
 	unit.Hardcast = Hardcast{}
 
 	unit.manaBar.doneIteration(sim)
-	unit.rageBar.doneIteration()
 
 	unit.auraTracker.doneIteration(sim)
 	for _, spell := range unit.Spellbook {
@@ -1021,7 +1020,7 @@ func (unit *Unit) metadata(casters ...*Unit) *proto.UnitMetadata {
 			IsPotion:        spell.Flags.Matches(SpellFlagPotion),
 			IsConjured:      spell.Flags.Matches(SpellFlagConjured),
 			HasExpectedTick: spell.expectedTickDamageInternal != nil,
-			HasMissileSpeed: spell.MissileSpeed > 0.0,
+			HasMissileSpeed: spell.MissileSpeed > 0.0 || spell.MissileMinDuration > 0,
 			HasRanks:        spell.Rank > 0,
 			Category:        spell.category(),
 		}

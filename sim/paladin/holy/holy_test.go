@@ -48,9 +48,9 @@ func TestHolyPaladin(t *testing.T) {
 var StandardTalents = "55320030025131051-503050002"
 
 var FullConsumes = &proto.ConsumesSpec{
-	FlaskId: 13512,  // Flask of Supreme Power
-	FoodId:  250066, // Soaring Pamplona
-	PotId:   250949, // Major Mender's Potion
+	FlaskId:        13512,  // Flask of Supreme Power
+	FoodId:         250066, // Soaring Pamplona
+	OffensivePotId: 250949, // Major Mender's Potion
 }
 
 var PlayerOptions = &proto.Player_HolyPaladin{

@@ -399,6 +399,21 @@ const displayStatOrder: Array<UnitStat> = [
 	UnitStat.fromStat(Stat.StatShadowResistance),
 ];
 
+export interface StatSets {
+	stats: Set<Stat>;
+	pseudoStats: Set<PseudoStat>;
+}
+
+export const statSetsOf = (unitStats: ReadonlyArray<UnitStat>): StatSets => ({
+	stats: new Set(unitStats.filter(unitStat => unitStat.isStat()).map(unitStat => unitStat.getStat())),
+	pseudoStats: new Set(unitStats.filter(unitStat => unitStat.isPseudoStat()).map(unitStat => unitStat.getPseudoStat())),
+});
+
+export const unitStatsOf = ({ stats, pseudoStats }: StatSets): UnitStat[] => [
+	...[...stats].map(stat => UnitStat.fromStat(stat)),
+	...[...pseudoStats].map(pseudoStat => UnitStat.fromPseudoStat(pseudoStat)),
+];
+
 /**
  * Represents values for all character stats (stam, agi, spell power, hit raiting, etc).
  *

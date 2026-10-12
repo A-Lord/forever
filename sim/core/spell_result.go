@@ -22,7 +22,8 @@ type SpellResult struct {
 	BlockedDamage                float64 // Damage a block took off this cast
 	PreMitigationDamage          float64 // Damage done by this cast with the Outcome's multiplier but before the target's armor, resistances, damage taken modifiers, block and absorbs
 
-	inUse bool
+	inUse           bool
+	castResultDealt bool
 }
 
 type SpellResultSlice []*SpellResult
@@ -78,6 +79,7 @@ func (spell *Spell) NewResult(target *Unit) *SpellResult {
 	result.PostOutcomeDamage = 0
 	result.BlockedDamage = 0
 	result.PreMitigationDamage = 0
+	result.castResultDealt = false
 
 	return result
 }
@@ -370,7 +372,17 @@ func (spell *Spell) calcDamageInternal(sim *Simulation, target *Unit, baseDamage
 		partialOutcome = result.Outcome & OutcomePartial
 	}
 
-	outcomeApplier(sim, result, attackTable)
+	// A full resist is a miss, as a binary spell's resist is: it rolls no hit or crit and lands nothing.
+	if partialOutcome.ResistedTenths() == 10 {
+		partialOutcome = OutcomeEmpty
+		result.Outcome = OutcomeMiss
+		result.Damage = 0
+		if !spell.expecting {
+			spell.SpellMetrics[target.UnitIndex].Misses++
+		}
+	} else {
+		outcomeApplier(sim, result, attackTable)
+	}
 	afterOutcome := result.Damage
 
 	// The outcome scales the mitigated damage by its multiplier and then takes the block off, so the
@@ -446,6 +458,10 @@ func (spell *Spell) CalcAndDealOutcome(sim *Simulation, target *Unit, outcomeApp
 
 // Applies the fully computed spell result to the sim.
 func (spell *Spell) dealDamageInternal(sim *Simulation, isPeriodic bool, result *SpellResult) {
+	if !isPeriodic {
+		spell.DealCastResult(sim, result)
+	}
+
 	isPartialResist := result.DidResist()
 
 	if sim.CurrentTime >= 0 {
@@ -516,6 +532,26 @@ func (spell *Spell) DealDamage(sim *Simulation, result *SpellResult) {
 }
 func (spell *Spell) DealPeriodicDamage(sim *Simulation, result *SpellResult) {
 	spell.dealDamageInternal(sim, true, result)
+}
+
+// Fires the caster's OnCastResult for a direct result, once per result. A missile deals it at its cast;
+// any other direct result as it is dealt.
+func (spell *Spell) DealCastResult(sim *Simulation, result *SpellResult) {
+	if result.castResultDealt {
+		return
+	}
+	result.castResultDealt = true
+	if !spell.Flags.Matches(SpellFlagNoOnDamageDealt) {
+		spell.Unit.OnCastResult(sim, spell, result)
+	}
+}
+
+// Deals the cast result now and the result itself once the spell's travel time has passed.
+func (spell *Spell) DealDamageAfterTravel(sim *Simulation, result *SpellResult) {
+	spell.DealCastResult(sim, result)
+	spell.WaitTravelTime(sim, func(sim *Simulation) {
+		spell.DealDamage(sim, result)
+	})
 }
 
 func (spell *Spell) CalcAndDealDamage(sim *Simulation, target *Unit, baseDamage float64, outcomeApplier OutcomeApplier) *SpellResult {
@@ -783,7 +819,7 @@ func (spell *Spell) AttackerDamageMultiplier(attackTable *AttackTable, isDot boo
 	damageMultiplierAdditive := TernaryFloat64(
 		isDot,
 		spell.DamageMultiplierAdditive+spell.Unit.PseudoStats.DotDamageMultiplierAdditive-1,
-		spell.DamageMultiplierAdditive+spell.DirectDamageMultiplierAdditive,
+		(spell.DamageMultiplierAdditive+spell.DirectDamageMultiplierAdditive)*spell.DirectDamageMultiplier,
 	)
 
 	return spell.attackerDamageMultiplierInternal(attackTable) *
@@ -859,7 +895,7 @@ func (spell *Spell) casterHealingMultiplier(isPeriodic bool) float64 {
 
 	additive := spell.DamageMultiplierAdditive
 	if !isPeriodic {
-		additive += spell.DirectDamageMultiplierAdditive
+		additive = (additive + spell.DirectDamageMultiplierAdditive) * spell.DirectDamageMultiplier
 	}
 
 	multiplier := spell.DamageMultiplier * additive * spell.Unit.PseudoStats.HealingDealtMultiplier

@@ -9,12 +9,11 @@ interface ProbeProps {
 	revision: number;
 	value: number;
 	setValue: (next: number) => void;
-	restoreWhen?: (current: number) => boolean;
 	onSettled?: (current: number) => void;
 }
 
-const Probe = ({ hidden, revision, value, setValue, restoreWhen, onSettled }: ProbeProps) => {
-	useHideZeroRestore({ value, setValue, hidden, revision }, 0, restoreWhen, onSettled);
+const Probe = ({ hidden, revision, value, setValue, onSettled }: ProbeProps) => {
+	useHideZeroRestore({ value, setValue, hidden, revision }, 0, current => current === 0, onSettled);
 	return null;
 };
 
@@ -68,9 +67,7 @@ describe('useHideZeroRestore', () => {
 	it('settles on the value each notification leaves behind: the zero, the restored value, or the value as it stands', () => {
 		const setValue = vi.fn();
 		const onSettled = vi.fn();
-		const probe = (props: Pick<ProbeProps, 'hidden' | 'revision' | 'value'>) => (
-			<Probe {...props} setValue={setValue} onSettled={onSettled} restoreWhen={current => current === 0} />
-		);
+		const probe = (props: Pick<ProbeProps, 'hidden' | 'revision' | 'value'>) => <Probe {...props} setValue={setValue} onSettled={onSettled} />;
 		const { rerender } = render(probe({ hidden: false, revision: 0, value: 2 }));
 		expect(onSettled).not.toHaveBeenCalled();
 
@@ -85,14 +82,14 @@ describe('useHideZeroRestore', () => {
 		expect(onSettled).toHaveBeenCalledTimes(3);
 	});
 
-	it('settles on the value the source moved to when restoreWhen refuses the restore', () => {
+	it('keeps a value set while hidden rather than restoring over it, and settles on it', () => {
+		const setValue = vi.fn();
 		const onSettled = vi.fn();
-		const { rerender } = render(
-			<Probe hidden={false} revision={0} value={2} setValue={vi.fn()} onSettled={onSettled} restoreWhen={current => current === 0} />,
-		);
+		const { rerender } = render(<Probe hidden={false} revision={0} value={2} setValue={setValue} onSettled={onSettled} />);
 
-		rerender(<Probe hidden revision={1} value={2} setValue={vi.fn()} onSettled={onSettled} restoreWhen={current => current === 0} />);
-		rerender(<Probe hidden={false} revision={2} value={3} setValue={vi.fn()} onSettled={onSettled} restoreWhen={current => current === 0} />);
+		rerender(<Probe hidden revision={1} value={2} setValue={setValue} onSettled={onSettled} />);
+		rerender(<Probe hidden={false} revision={2} value={3} setValue={setValue} onSettled={onSettled} />);
+		expect(setValue).toHaveBeenCalledTimes(1);
 		expect(onSettled).toHaveBeenLastCalledWith(3);
 	});
 

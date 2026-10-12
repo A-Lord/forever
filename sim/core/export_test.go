@@ -72,3 +72,22 @@ func KeepOnlyConsumables(ids []int32) (restore func()) {
 		dbMu.Unlock()
 	}
 }
+
+// Narrows the loaded items to these ids until the returned function restores the rest, for a test
+// that runs the sim on the items a browser request carries.
+func KeepOnlyItems(ids []int32) (restore func()) {
+	dbMu.Lock()
+	defer dbMu.Unlock()
+	all := itemsByID
+	itemsByID = make(map[int32]Item, len(ids))
+	for _, id := range ids {
+		if item, ok := all[id]; ok {
+			itemsByID[id] = item
+		}
+	}
+	return func() {
+		dbMu.Lock()
+		itemsByID = all
+		dbMu.Unlock()
+	}
+}

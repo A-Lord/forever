@@ -26,7 +26,7 @@ describe('extendPlayerProtoWithMissingEffects', () => {
 	});
 
 	it('carries an item two fields name once', () => {
-		expect(sentIds({ potId: 13444, potions: [13444], extraIds: [10309] }, db)).toEqual([10309, 13444]);
+		expect(sentIds({ resourcePotId: 13444, potions: [13444], extraIds: [10309] }, db)).toEqual([10309, 13444]);
 	});
 
 	it('carries the temporary enchant an imbue puts on the weapon', () => {

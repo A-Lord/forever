@@ -502,7 +502,7 @@ func TestShieldHitsNeverProcMainHandWeaponEffects(t *testing.T) {
 			t.Errorf("%s procced the main hand's Crusader", name)
 		}
 		for i := 0; i < 200 && !windfury.IsActive(); i++ {
-			windfuryTrigger.OnSpellHitDealt(windfuryTrigger, sim, spell, &core.SpellResult{Target: target, Outcome: core.OutcomeHit, Damage: 100})
+			windfuryTrigger.OnCastResult(windfuryTrigger, sim, spell, &core.SpellResult{Target: target, Outcome: core.OutcomeHit, Damage: 100})
 		}
 		if windfury.IsActive() {
 			t.Errorf("%s procced Windfury Totem", name)
@@ -510,7 +510,7 @@ func TestShieldHitsNeverProcMainHandWeaponEffects(t *testing.T) {
 	}
 
 	for i := 0; i < 200 && !windfury.IsActive(); i++ {
-		windfuryTrigger.OnSpellHitDealt(windfuryTrigger, sim, mainHandSpecial, &core.SpellResult{Target: target, Outcome: core.OutcomeHit, Damage: 100})
+		windfuryTrigger.OnCastResult(windfuryTrigger, sim, mainHandSpecial, &core.SpellResult{Target: target, Outcome: core.OutcomeHit, Damage: 100})
 	}
 	if !windfury.IsActive() {
 		t.Error("200 main-hand specials never procced Windfury Totem, so the check above proves nothing")

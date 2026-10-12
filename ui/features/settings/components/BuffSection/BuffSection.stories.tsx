@@ -1,5 +1,7 @@
+import i18n from '@i18n/config';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { storyIcon, StoryIconToggle } from '@testing/storybook/fixtures/settings_reforge_bulk';
+import { storyStatFilter } from '@testing/storybook/fixtures/stat-filters';
 
 import { BuffSection } from './BuffSection';
 
@@ -19,7 +21,11 @@ const meta = {
 	component: BuffSection,
 	tags: ['autodocs'],
 	args: { section: 'raid_buffs', empty: false, children: BUFFS },
-	argTypes: { section: { control: 'select', options: ['raid_buffs', 'party_buffs', 'debuffs'] }, children: { control: false } },
+	argTypes: {
+		section: { control: 'select', options: ['raid_buffs', 'party_buffs', 'debuffs'] },
+		filter: { control: false },
+		children: { control: false },
+	},
 } satisfies Meta<typeof BuffSection>;
 
 export default meta;
@@ -29,6 +35,10 @@ export const RaidBuffs: Story = {};
 
 export const PartyBuffs: Story = { args: { section: 'party_buffs', children: BUFFS.slice(0, 1) } };
 
-export const Debuffs: Story = { args: { section: 'debuffs', children: DEBUFFS } };
+export const Debuffs: Story = {
+	args: { section: 'debuffs', children: DEBUFFS, filter: storyStatFilter('debuffs-filter', i18n.t('stat_filters.triggers.debuffs')) },
+};
 
 export const Empty: Story = { args: { empty: true } };
+
+export const WithStatFilter: Story = { args: { filter: storyStatFilter('buffs-filter', i18n.t('stat_filters.triggers.buffs')) } };

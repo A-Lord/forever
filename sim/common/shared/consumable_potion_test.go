@@ -128,21 +128,21 @@ func gainedBy(caster *testCaster, itemID int32) float64 {
 }
 
 // Major Mana Potion 13444 casts 17531, E_ENERGIZE mana with a spread; the test's on-use runs on
-// potion category 4 for 120 s. The spec's combat potion is a major cooldown the manager holds until
+// potion category 4 for 120 s. The spec's resource potion is a major cooldown the manager holds until
 // the whole gain fits; another potion the spec lists is only a spell, on the same category.
 func TestPotionRestoresManaOnThePotionCategory(t *testing.T) {
-	const combatID, otherID int32 = 992001, 992002
-	sim, drinker := newConsumableSim(t, manaUser(), &proto.ConsumesSpec{PotId: combatID, Potions: []int32{otherID}}, 0,
-		testConsumable{combatID, potion, testOnUse(17531, 0, 4, 120000)},
+	const resourceID, otherID int32 = 992001, 992002
+	sim, drinker := newConsumableSim(t, manaUser(), &proto.ConsumesSpec{ResourcePotId: resourceID, Potions: []int32{otherID}}, 0,
+		testConsumable{resourceID, potion, testOnUse(17531, 0, 4, 120000)},
 		testConsumable{otherID, potion, testOnUse(17531, 0, 4, 120000)})
-	potion, other := consumableSpell(t, drinker, combatID), consumableSpell(t, drinker, otherID)
+	potion, other := consumableSpell(t, drinker, resourceID), consumableSpell(t, drinker, otherID)
 
 	mcd := drinker.GetInitialMajorCooldown(potion.ActionID)
 	if mcd.Spell != potion || !mcd.Type.Matches(core.CooldownTypeMana) {
-		t.Fatalf("the combat potion is not a mana major cooldown: %v", mcd.Type)
+		t.Fatalf("the resource potion is not a mana major cooldown: %v", mcd.Type)
 	}
-	if !potion.Flags.Matches(core.SpellFlagCombatPotion|core.SpellFlagPotion|core.SpellFlagEncounterOnly) || other.Flags.Matches(core.SpellFlagCombatPotion) {
-		t.Errorf("flags: combat potion %v, other %v", potion.Flags, other.Flags)
+	if !potion.Flags.Matches(core.SpellFlagPotion | core.SpellFlagEncounterOnly) {
+		t.Errorf("flags: resource potion %v", potion.Flags)
 	}
 	if drinker.GetInitialMajorCooldown(other.ActionID).Spell != nil {
 		t.Errorf("the other potion is a major cooldown")
@@ -175,7 +175,7 @@ func TestPotionRestoresManaOnThePotionCategory(t *testing.T) {
 // A_MOD_STAT Strength for the row's duration.
 func TestPotionGivesRageAndItsStrength(t *testing.T) {
 	const potionID int32 = 992003
-	sim, drinker := newConsumableSim(t, rageUser(), &proto.ConsumesSpec{PotId: potionID}, 0,
+	sim, drinker := newConsumableSim(t, rageUser(), &proto.ConsumesSpec{ResourcePotId: potionID}, 0,
 		testConsumable{potionID, potion, testOnUse(17528, 0, 4, 120000)})
 	potion := consumableSpell(t, drinker, potionID)
 	strength := drinker.GetStat(stats.Strength)
@@ -386,7 +386,7 @@ func TestAlchemistsStoneRaisesHealingAndManaPotions(t *testing.T) {
 
 // Greater Fire Protection Potion 13457 casts 17543: A_SCHOOL_ABSORB of Fire on the drinker for the
 // row's duration, its spread removed in a copy; the test's on-use runs on potion category 4 for 120 s.
-// The combat potion is a survival major cooldown whose shield takes fire damage only; Alchemists'
+// The defensive potion is a survival major cooldown whose shield takes fire damage only; Alchemists'
 // Stone does not raise it.
 func TestProtectionPotionShieldsAgainstItsSchool(t *testing.T) {
 	const potionID int32 = 992021
@@ -395,7 +395,7 @@ func TestProtectionPotionShieldsAgainstItsSchool(t *testing.T) {
 	row := spelldata.MustFind(fireProtection)
 	absorbed := row.AbsorbEffect().Average()
 	needAmount(t, "17543's shield", absorbed)
-	sim, drinker := newConsumableSim(t, manaUser(), &proto.ConsumesSpec{PotId: potionID}, alchemistsStoneID,
+	sim, drinker := newConsumableSim(t, manaUser(), &proto.ConsumesSpec{DefensivePotId: potionID}, alchemistsStoneID,
 		testConsumable{potionID, potion, testOnUse(fireProtection, 0, 4, 120000)})
 	potion := consumableSpell(t, drinker, potionID)
 	shield := absorbAura(t, drinker, fireProtection, potionID)

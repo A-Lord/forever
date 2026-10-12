@@ -1,3 +1,4 @@
+import i18n from '@i18n/config';
 import type { StoreField } from '@sim/hooks/useStoreField';
 import type { StoreSubscribe } from '@sim/state/subscriptions';
 import type { FieldLayout } from '@ui-kit/Field';
@@ -25,6 +26,16 @@ export interface InputFrame<ModObject> {
 	// If set, will automatically hide the input when this evaluates to false.
 	showWhen?: (obj: ModObject) => boolean;
 }
+
+export interface KeptInput<ModObject, T> {
+	// Dims the swatch or trigger with the kept tooltip while it holds for the value the input shows: a selection the stat
+	// filter hides, still offered because it is selected. A multi icon's value is whether any of its inputs is on.
+	keptBy?: (obj: ModObject, value: T) => boolean;
+}
+
+/** The kit pickers' `keptTooltip` for the value the adapter read: the kept text while `keptBy` holds, otherwise none. */
+export const keptTooltipOf = <ModObject, T>(config: KeptInput<ModObject, T>, obj: ModObject, value: T): string | undefined =>
+	config.keptBy?.(obj, value) ? i18n.t('stat_filters.kept_tooltip') : undefined;
 
 /**
  * Data for creating a new input UI element, reading its own value off the mod object.

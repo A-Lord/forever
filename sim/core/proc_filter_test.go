@@ -15,7 +15,7 @@ func TestProcTriggerEligibility(t *testing.T) {
 		{"proc", ProcMaskMeleeMHSpecial, SpellFlagProc},
 		{"proc suppressing weapon procs", ProcMaskMeleeMHSpecial, SpellFlagProc | SpellFlagSuppressWeaponProcs},
 		{"ability suppressing weapon procs", ProcMaskMeleeMHSpecial, SpellFlagSuppressWeaponProcs},
-		{"item proc's damage", ProcMaskEmpty, SpellFlagProc},
+		{"magic item proc's damage", ProcMaskEmpty, SpellFlagProc},
 		{"spell", ProcMaskSpellDamage, SpellFlagNone},
 	}
 	listeners := []struct {

@@ -2,10 +2,11 @@
 // and every source it reads is driven directly.
 import { ErrorOutcomeType, type StatWeightsResult } from '@generated/proto/api';
 import { Class, PseudoStat, Stat } from '@generated/proto/common';
+import { DatabaseFilters } from '@generated/proto/ui';
 import { SimHostProvider } from '@sim/context/SimHostContext';
 import { Stats, UnitStat } from '@sim/proto/stats';
 import { SimRuns } from '@sim/sim_runs';
-import { createSimStore, patchKeyed, PLAYER_FIELDS, seedKeyed, type SimStore, zeroVersions } from '@sim/state/sim_store';
+import { createSimStore, patchKeyed, patchSlice, PLAYER_FIELDS, seedKeyed, type SimStore, zeroVersions } from '@sim/state/sim_store';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PortalContainerContext } from '@ui-kit/hooks/usePortalContainer';
@@ -67,6 +68,7 @@ vi.mock('@sim/state/subscriptions', () => {
 		},
 		subscribePlayerField: (_player: unknown, field: string) => source.subscribe(`player:${field}`),
 		subscribeUiField: (_sim: unknown, field: string) => source.subscribe(`ui:${field}`),
+		subscribeSimField: (_sim: unknown, field: string) => source.subscribe(`sim:${field}`),
 		subscribeStatWeightsChange: () => source.subscribe('statWeights'),
 		subscribePlayerStatWeightsField: () => source.subscribe('statWeights'),
 		subscribeRunState: () => runs,
@@ -110,6 +112,7 @@ vi.mock('../../../../tracking/utils', () => ({ trackEvent }));
 
 const STRENGTH = UnitStat.fromStat(Stat.StatStrength);
 const AGILITY = UnitStat.fromStat(Stat.StatAgility);
+const STAMINA = UnitStat.fromStat(Stat.StatStamina);
 
 class FakePlayer {
 	storeKey = 0;
@@ -212,6 +215,7 @@ const setup = () => {
 	host = {
 		rootElem,
 		player,
+		getStorageKey: (keyPart: string) => `test${keyPart}`,
 		sim: {
 			showThreatMetrics: false,
 			getShowThreatMetrics() {
@@ -221,6 +225,8 @@ const setup = () => {
 			getShowDamageMetrics: () => true,
 			getShowHealingMetrics: () => true,
 			getIterations: () => 1000,
+			getFilters: () => DatabaseFilters.clone(store.getState().sim.filters),
+			setFilters: (filters: DatabaseFilters) => patchSlice(store, 'sim', { filters: DatabaseFilters.clone(filters) }),
 			store,
 			runs,
 			signalManager: { abortType },
@@ -273,6 +279,12 @@ const pickOption = async (id: string, index: number) => {
 };
 const rowFor = (name: string) => [...table().querySelectorAll('tbody tr')].find(row => row.firstElementChild?.textContent === name)!;
 const calculate = () => popup().querySelector<HTMLButtonElement>('[data-testid="calc-weights"]')!;
+const statFilterTrigger = () => popup().querySelector<HTMLElement>('[data-testid="ep-stat-filter-button"]')!;
+const openStatFilter = () =>
+	act(async () => {
+		fireEvent.click(statFilterTrigger());
+	});
+const statFilterBox = (stat: UnitStat) => rootElem.querySelector<HTMLElement>(`#ep-stat-filter-${stat.getKey()}`)!;
 
 describe('EpWeightsDialog', () => {
 	beforeEach(setup);
@@ -349,31 +361,47 @@ describe('EpWeightsDialog', () => {
 		expect(table().querySelectorAll('thead tr')[0].querySelectorAll('th').length).toBeGreaterThan(2);
 	});
 
-	it('shows the spec stats, and the rest — without an include toggle — only once Show all stats is on', () => {
+	it('shows the spec stats, and a stat ticked in the stat filter without an include toggle', async () => {
 		renderDialog();
 		const names = () => [...table().querySelectorAll('tbody tr')].map(row => row.firstElementChild!.textContent);
 		expect(names()).toEqual(['Strength', 'Agility', 'Crit Rating', 'Spell Hit Percent']);
 
+		await openStatFilter();
 		act(() => {
-			fireEvent.click(popup().querySelector('#ep-show-all-stats')!);
+			fireEvent.click(statFilterBox(STAMINA));
 		});
-		expect(names().length).toBeGreaterThan(4);
 
-		const unweighted = UnitStat.fromStat(Stat.StatStamina).getFullName(Class.ClassWarrior);
-		expect(rowFor(unweighted)).toBeTruthy();
+		const unweighted = STAMINA.getFullName(Class.ClassWarrior);
+		expect(names()).toEqual(['Strength', 'Agility', unweighted, 'Crit Rating', 'Spell Hit Percent']);
 		expect(rowFor(unweighted).querySelector('[data-testid="swcalc-include-toggle"] input')).toBeNull();
 		expect(rowFor('Strength').querySelector('[data-testid="swcalc-include-toggle"] input')).not.toBeNull();
 	});
 
-	it('switches the table between EP and weight columns, and keeps that and the show-all pick in step across a close and reopen', async () => {
+	it('drops the row of a spec stat hidden in the stat filter, and still weights that stat', async () => {
+		player.computeStatWeights.mockResolvedValue(weightsResult([[STRENGTH, 2]]));
+		renderDialog();
+
+		await openStatFilter();
+		act(() => {
+			fireEvent.click(statFilterBox(AGILITY));
+		});
+		expect(rowFor('Agility')).toBeUndefined();
+
+		await act(async () => {
+			fireEvent.click(calculate());
+		});
+		expect(player.computeStatWeights.mock.calls[0][0]).toEqual([Stat.StatStrength, Stat.StatAgility, Stat.StatCritRating]);
+	});
+
+	it('switches the table between EP and weight columns, and keeps that and the stat filter in step across a close and reopen', async () => {
 		const { getByTestId } = renderDialog();
 		const select = () => popup().querySelector<HTMLElement>('#ep-type-select')!;
-		const showAll = () => popup().querySelector<HTMLInputElement>('#ep-show-all-stats')!;
 		expect(table().getAttribute('data-stats-type')).toBe('ep');
 		await pickOption('ep-type-select', 1);
 		expect(table().getAttribute('data-stats-type')).toBe('weight');
+		await openStatFilter();
 		act(() => {
-			fireEvent.click(showAll());
+			fireEvent.click(statFilterBox(STAMINA));
 		});
 
 		await act(async () => {
@@ -386,7 +414,7 @@ describe('EpWeightsDialog', () => {
 
 		expect(table().getAttribute('data-stats-type')).toBe('weight');
 		expect(select().textContent).toBe('sidebar.buttons.stat_weights.modal.weights');
-		expect(showAll().checked).toBe(true);
+		expect(rowFor(STAMINA.getFullName(Class.ClassWarrior))).toBeTruthy();
 	});
 
 	// DEFECT FIXED. `makeEpRatioCell` was applied to the six EP cells and the six weight cells, both

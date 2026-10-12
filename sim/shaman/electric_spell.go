@@ -27,13 +27,5 @@ func (shaman *Shaman) newElectricSpellConfig(rank *spelldata.Spell, isOverload b
 		return config
 	}
 
-	// A cast holds the melee swing until it finishes. Core applies the cast speed after this.
-	config.Cast.ModifyCast = func(sim *core.Simulation, spell *core.Spell, cast *core.Cast) {
-		castTime := shaman.ApplyCastSpeedForSpell(cast.CastTime, spell)
-		if sim.CurrentTime+castTime > shaman.AutoAttacks.NextAttackAt() {
-			shaman.AutoAttacks.StopMeleeUntil(sim, sim.CurrentTime+castTime)
-		}
-	}
-
 	return config
 }

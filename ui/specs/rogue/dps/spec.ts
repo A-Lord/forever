@@ -43,19 +43,7 @@ export default defineSpec<Spec.SpecRogue>({
 	epReferenceStat: Stat.StatAttackPower,
 	// Which stats to display in the Character Stats section, at the bottom of the left-hand sidebar.
 	displayStats: UnitStat.createDisplayStatArray(
-		[
-			Stat.StatHealth,
-			Stat.StatStamina,
-			Stat.StatAgility,
-			Stat.StatStrength,
-			Stat.StatAttackPower,
-			Stat.StatArmorPenetration,
-			Stat.StatArcaneResistance,
-			Stat.StatFireResistance,
-			Stat.StatFrostResistance,
-			Stat.StatNatureResistance,
-			Stat.StatShadowResistance,
-		],
+		[Stat.StatHealth, Stat.StatStamina, Stat.StatAgility, Stat.StatStrength, Stat.StatAttackPower, Stat.StatArmorPenetration],
 		[
 			PseudoStat.PseudoStatMeleeHitPercent,
 			PseudoStat.PseudoStatMeleeCritPercent,
