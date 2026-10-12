@@ -32,8 +32,8 @@ func (priest *Priest) registerPenance(_ int32, rank *spelldata.Spell) {
 		priest.withRenewedHopeBolt(target, spell, func() {
 			result = spell.CalcHealing(sim, target, healBolt.Average(), spell.OutcomeHealingCrit)
 		})
-		// A bolt on the priest lands at once; one on another unit travels at the row's speed. The sim
-		// has no distance from the priest to an ally, so the bolt flies the distance to the target.
+		// A bolt on the priest lands at once. The sim has no distance to an ally, so a bolt on one flies
+		// the enemy distance at the row's speed.
 		if target == &priest.Unit {
 			spell.DealHealing(sim, result)
 			return
