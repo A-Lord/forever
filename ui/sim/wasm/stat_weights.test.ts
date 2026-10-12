@@ -10,6 +10,7 @@ import {
 	StatWeightsRequest,
 	StatWeightsResult,
 	StatWeightsStatData,
+	StatWeightsTarget,
 	StatWeightsTargetMetric,
 	StatWeightsTopUpPlan,
 } from '@generated/proto/api';
@@ -81,15 +82,13 @@ describe('runConcurrentStatWeights', () => {
 	describe('with a target ±', () => {
 		const probe = 100;
 		const seed = 7n;
-		const multiplier = 3;
 		const unitStat = 1;
-		const targetMetrics = [StatWeightsTargetMetric.StatWeightsTargetMetricDps, StatWeightsTargetMetric.StatWeightsTargetMetricHps];
-		const request = StatWeightsRequest.create({
-			targetEpCi: 0.01,
-			maxIterationMultiplier: multiplier,
-			targetMetrics,
-			hpsReferenceStat: Stat.StatIntellect,
+		const target = StatWeightsTarget.create({
+			epCi: 0.01,
+			maxIterationMultiplier: 3,
+			metrics: [StatWeightsTargetMetric.StatWeightsTargetMetricDps, StatWeightsTargetMetric.StatWeightsTargetMetricHps],
 		});
+		const request = StatWeightsRequest.create({ target, hpsReferenceStat: Stat.StatIntellect });
 
 		const makeTargetPool = (plan: (call: number) => StatWeightsTopUpPlan) => {
 			let calls = 0;
@@ -97,6 +96,7 @@ describe('runConcurrentStatWeights', () => {
 				statWeightRequests: vi.fn(async () => ({
 					baseRequest: RaidSimRequest.create({ simOptions: SimOptions.create({ iterations: probe, randomSeed: seed }) }),
 					epReferenceStat: 0,
+					hpsReferenceStat: Stat.StatIntellect,
 					statSimRequests: [
 						{
 							statData: StatWeightsStatData.create({ unitStat }),
@@ -121,9 +121,8 @@ describe('runConcurrentStatWeights', () => {
 			await runConcurrentStatWeights(request, pool, pm => progress.push(pm), signals);
 
 			const topUpRequest = vi.mocked(pool.statWeightTopUpPlan).mock.calls[0][0];
-			expect(topUpRequest.maxIterationsPerSide).toBe(probe * multiplier);
-			expect(topUpRequest.targetMetrics).toEqual(targetMetrics);
-			expect(topUpRequest.hpsReferenceStat).toBe(Stat.StatIntellect);
+			expect(topUpRequest.target).toEqual(target);
+			expect(topUpRequest.calc!.hpsReferenceStat).toBe(Stat.StatIntellect);
 			const topUps = runConcurrentSim.mock.calls.slice(3).map(([simRequest]) => (simRequest as RaidSimRequest).simOptions!);
 			expect(topUps.map(options => options.iterations)).toEqual([2 * probe, probe, probe]);
 			expect(topUps.map(options => options.randomSeed)).toEqual([seed + BigInt(probe), seed + BigInt(probe), seed + BigInt(probe)]);
@@ -138,16 +137,18 @@ describe('runConcurrentStatWeights', () => {
 			expect(last.totalIterations).toBe(3 * probe + 2 * (2 * probe));
 		});
 
-		it('stops after the first top-up and its adaptive passes', async () => {
+		it('asks for a plan after every pass and stops at the first empty one', async () => {
+			const passes = 2;
 			const pool = makeTargetPool(call =>
-				StatWeightsTopUpPlan.create({ baselineIterations: (call + 2) * probe, stats: [{ unitStat, iterations: (call + 2) * probe }] }),
+				call < passes
+					? StatWeightsTopUpPlan.create({ baselineIterations: (call + 2) * probe, stats: [{ unitStat, iterations: (call + 2) * probe }] })
+					: StatWeightsTopUpPlan.create(),
 			);
 
 			await runConcurrentStatWeights(request, pool, noop, signals);
 
-			const passes = vi.mocked(pool.statWeightTopUpPlan).mock.calls.length;
+			expect(vi.mocked(pool.statWeightTopUpPlan).mock.calls).toHaveLength(passes + 1);
 			expect(vi.mocked(pool.statWeightCompute).mock.calls[0][0].extraSegments).toHaveLength(passes);
-			expect(passes).toBe(3);
 		});
 	});
 });

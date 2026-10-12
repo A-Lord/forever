@@ -18,11 +18,6 @@ import { isDevMode } from '../utils/env';
 import { generateRequestId, WorkerPool, WorkerProgressCallback } from '../workers/worker_pool';
 import { runConcurrentSim } from './sim';
 
-// The defaults runStatWeights in sim/core/statweight.go uses: the cap as a multiple of the first
-// pass's iterations, and the first top-up plus two adaptive passes.
-const DEFAULT_MAX_ITERATION_MULTIPLIER = 8;
-const MAX_TOP_UP_PASSES = 3;
-
 const makeAndSendWeightsError = (err: string | ErrorOutcome, onProgress: WorkerProgressCallback): StatWeightsResult => {
 	const errRes = StatWeightsResult.create();
 	if (typeof err === 'string') {
@@ -99,6 +94,7 @@ export const runConcurrentStatWeights = async (
 	const calcRequest = StatWeightsCalcRequest.create({
 		baseResult: baseLine,
 		epReferenceStat: manualResponse.epReferenceStat,
+		hpsReferenceStat: manualResponse.hpsReferenceStat,
 		statSimResults: [],
 	});
 
@@ -127,11 +123,10 @@ export const runConcurrentStatWeights = async (
 		);
 	}
 
-	if (request.targetEpCi > 0) {
+	if (request.target) {
 		const baseRequest = manualResponse.baseRequest!;
 		const probeIterations = baseRequest.simOptions!.iterations;
 		const seed = baseRequest.simOptions!.randomSeed;
-		const maxIterationsPerSide = probeIterations * (request.maxIterationMultiplier || DEFAULT_MAX_ITERATION_MULTIPLIER);
 		const statRequests = new Map(manualResponse.statSimRequests.map(statReqData => [statReqData.statData!.unitStat, statReqData]));
 		const statIterations = new Map(manualResponse.statSimRequests.map(statReqData => [statReqData.statData!.unitStat, probeIterations]));
 		let baselineIterations = probeIterations;
@@ -147,16 +142,8 @@ export const runConcurrentStatWeights = async (
 			return runConcurrentSim(continued, workerPool, progressHandler, signals);
 		};
 
-		for (let pass = 0; pass < MAX_TOP_UP_PASSES; pass++) {
-			const plan = await workerPool.statWeightTopUpPlan(
-				StatWeightsTopUpRequest.create({
-					calc: calcRequest,
-					targetEpCi: request.targetEpCi,
-					maxIterationsPerSide,
-					targetMetrics: request.targetMetrics,
-					hpsReferenceStat: request.hpsReferenceStat,
-				}),
-			);
+		for (;;) {
+			const plan = await workerPool.statWeightTopUpPlan(StatWeightsTopUpRequest.create({ calc: calcRequest, target: request.target }));
 			if (!plan.stats.length) break;
 
 			const baselineDelta = plan.baselineIterations - baselineIterations;

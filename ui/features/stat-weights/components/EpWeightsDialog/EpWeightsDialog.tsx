@@ -66,9 +66,11 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 	const statFilter = useStatFilter('ep', scope);
 
 	const [tab, setTab] = useState(WEIGHTS_TAB);
+	// The sweep mounts on its first visit and stays mounted, so a run in progress survives a tab switch.
+	const [visitedSweep, setVisitedSweep] = useState(false);
 	const [statsType, setStatsType] = useState<StatsType>(StatsType.Ep);
 	const [iterations, setIterations] = useState(0);
-	const [simResult, setSimResult] = useState<{ result: StatWeightsResult; fromTarget: boolean } | null>(null);
+	const [simResult, setSimResult] = useState<StatWeightsResult | null>(null);
 	const [progress, setProgress] = useState<ProgressTrackerState>({ stage: 'initializing' });
 	const progressRef = useRef<ProgressTrackerHandle>(null);
 	const {
@@ -97,6 +99,8 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 		heal: player.getRefStat('healRefStat'),
 		tank: player.getRefStat('tankRefStat'),
 	}));
+	const dpsReferenceStat = refStats.dps ?? epReferenceStat;
+	const hpsReferenceStat = refStats.heal ?? epReferenceStat;
 	const epRatios = useStoreSubscribe(subscribePlayerField(player, 'epRatios'), () => player.getEpRatios());
 	const epWeights = usePlayerStore('epWeights');
 	const precision = useStoreSubscribe(subscribeStatWeightsChange(settings), () => settings.precision);
@@ -104,11 +108,7 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 	const { isRunning: isSweeping, abort: abortSweep } = useSimRun(SimRunKind.StatSweep);
 
 	// `calculateEp` writes `epValues` from `weights`, which normalisation leaves alone.
-	// The sim divides HPS EP by the run's reference stat, which a target run sets to the DPS one, so a target result's HPS EP is recomputed against the healing reference stat the column names.
-	const result = useMemo(() => {
-		if (!simResult) return null;
-		return calculateEp(simResult.result, simResult.fromTarget ? { ...refStats, heal: refStats.heal ?? epReferenceStat } : refStats);
-	}, [simResult, refStats, epReferenceStat]);
+	const result = useMemo(() => (simResult ? calculateEp(simResult, refStats) : null), [simResult, refStats]);
 	const prevSimResult = useMemo(() => result ?? emptyStatWeightsResult(), [result]);
 
 	const applyWeights = useCallback(
@@ -122,13 +122,13 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 				statsTableColumns({
 					getPrevSimResult: () => prevSimResult,
 					getDefaultEpWeights: () => individualConfig.defaults.epWeights.toProto(),
-					getDpsEpRefStat: () => refStats.dps ?? epReferenceStat,
-					getHealEpRefStat: () => refStats.heal ?? epReferenceStat,
+					getDpsEpRefStat: () => dpsReferenceStat,
+					getHealEpRefStat: () => hpsReferenceStat,
 					getTankEpRefStat: () => refStats.tank ?? Stat.StatArmor,
 				}),
 				weights => applyWeights(Stats.fromProto(weights)),
 			),
-		[prevSimResult, individualConfig, refStats, epReferenceStat, applyWeights],
+		[prevSimResult, individualConfig, dpsReferenceStat, hpsReferenceStat, refStats, applyWeights],
 	);
 	const visibleColumns = useMemo(() => columns.filter(column => !column.metric || displayMetrics[column.metric]), [columns, displayMetrics]);
 
@@ -169,9 +169,9 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 			result = await startStatWeights({
 				epStats: epStats.filter(stat => !settings.isStatExcludedFromCalc(stat)),
 				epPseudoStats: epPseudoStats.filter(pseudoStat => !settings.isPseudoStatExcludedFromCalc(pseudoStat)),
-				// The target is measured against this stat's weight, so it has to be the one the shown ± divides by.
-				epReferenceStat: precision.precisionMode === 'target' ? (refStats.dps ?? epReferenceStat) : epReferenceStat,
-				options: precisionRunOptions(precision, { displayMetrics, hpsReferenceStat: refStats.heal ?? epReferenceStat }),
+				// A target is measured against these stats' weights, so they have to be the ones the shown ± divides by.
+				epReferenceStat: dpsReferenceStat,
+				options: { ...precisionRunOptions(precision, displayMetrics), hpsReferenceStat },
 			});
 			if (result.error) {
 				if (result.error.type === ErrorOutcomeType.ErrorOutcomeAborted) toastManager.add({ variant: 'info', body: 'Statweight sim cancelled.' });
@@ -188,8 +188,8 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 
 		if (!result) return;
 		setIterations(runIterations);
-		setSimResult({ result, fromTarget: precision.precisionMode === 'target' });
-	}, [sim, settings, precision, displayMetrics, refStats, epStats, epPseudoStats, epReferenceStat, isRunning, startStatWeights]);
+		setSimResult(result);
+	}, [sim, settings, precision, displayMetrics, dpsReferenceStat, hpsReferenceStat, epStats, epPseudoStats, isRunning, startStatWeights]);
 
 	return (
 		<Dialog
@@ -209,7 +209,12 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 					</Button>
 				)
 			}>
-			<Tabs.Root value={tab} onValueChange={next => setTab(String(next))}>
+			<Tabs.Root
+				value={tab}
+				onValueChange={next => {
+					setTab(String(next));
+					if (next === SWEEP_TAB) setVisitedSweep(true);
+				}}>
 				{!editOnly && (
 					<TabNav
 						tabs={[
@@ -273,7 +278,7 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 					</TabPanel>
 					{!editOnly && (
 						<TabPanel value={SWEEP_TAB} testId={SWEEP_TAB}>
-							<StatSweep settings={settings} />
+							{visitedSweep && <StatSweep settings={settings} />}
 						</TabPanel>
 					)}
 				</TabPanels>

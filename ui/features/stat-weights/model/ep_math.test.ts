@@ -202,18 +202,13 @@ describe('precisionRunOptions', () => {
 		expect(precisionRunOptions({ ...precision, precisionMode: 'iterations', iterations: 0 }).iterations).toBeUndefined();
 	});
 
-	it('sends at least 2 iterations, one per side', () => {
-		expect(precisionRunOptions({ ...precision, precisionMode: 'iterations', iterations: 1 }).iterations).toBe(2);
-		expect(precisionRunOptions({ ...precision, precisionMode: 'target', iterations: 1 }).iterations).toBe(2);
-	});
-
 	it('adds the target and the cap in target mode, and no metrics without targets', () => {
 		expect(precisionRunOptions({ ...precision, precisionMode: 'target' })).toEqual({ iterations: 4000, targetEpCi: 0.02, maxIterationMultiplier: 4 });
 	});
 
-	it('targets the shown metrics and the HPS reference stat in target mode only', () => {
-		const targets = { displayMetrics: { damage: true, healing: true, threat: true }, hpsReferenceStat: Stat.StatIntellect };
-		expect(precisionRunOptions({ ...precision, precisionMode: 'target' }, targets)).toEqual({
+	it('targets the shown metrics in target mode only', () => {
+		const shown = { damage: true, healing: true, threat: true };
+		expect(precisionRunOptions({ ...precision, precisionMode: 'target' }, shown)).toEqual({
 			iterations: 4000,
 			targetEpCi: 0.02,
 			maxIterationMultiplier: 4,
@@ -222,12 +217,11 @@ describe('precisionRunOptions', () => {
 				StatWeightsTargetMetric.StatWeightsTargetMetricHps,
 				StatWeightsTargetMetric.StatWeightsTargetMetricTps,
 			],
-			hpsReferenceStat: Stat.StatIntellect,
 		});
-		expect(
-			precisionRunOptions({ ...precision, precisionMode: 'target' }, { displayMetrics: { damage: false, healing: true, threat: false } }).targetMetrics,
-		).toEqual([StatWeightsTargetMetric.StatWeightsTargetMetricHps]);
-		expect(precisionRunOptions({ ...precision, precisionMode: 'iterations' }, targets)).toEqual({ iterations: 4000 });
+		expect(precisionRunOptions({ ...precision, precisionMode: 'target' }, { damage: false, healing: true, threat: false }).targetMetrics).toEqual([
+			StatWeightsTargetMetric.StatWeightsTargetMetricHps,
+		]);
+		expect(precisionRunOptions({ ...precision, precisionMode: 'iterations' }, shown)).toEqual({ iterations: 4000 });
 	});
 });
 

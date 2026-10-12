@@ -73,28 +73,22 @@ export const combineScaledEpValues = (results: StatWeightsResult, epRatios: numb
 
 export const combineScaledWeights = (results: StatWeightsResult, epRatios: number[]): Stats => combineScaled(results, epRatios, values => values.weights);
 
-export type EpTargets = {
-	displayMetrics: { damage: boolean; healing: boolean; threat: boolean };
-	hpsReferenceStat?: Stat;
-};
+type EpTargetMetrics = { damage: boolean; healing: boolean; threat: boolean };
 
-const targetMetricOptions = ({ displayMetrics, hpsReferenceStat }: EpTargets): StatWeightsOptions => ({
-	targetMetrics: [
-		...(displayMetrics.damage ? [StatWeightsTargetMetric.StatWeightsTargetMetricDps] : []),
-		...(displayMetrics.healing ? [StatWeightsTargetMetric.StatWeightsTargetMetricHps] : []),
-		...(displayMetrics.threat ? [StatWeightsTargetMetric.StatWeightsTargetMetricTps] : []),
-	],
-	hpsReferenceStat,
-});
+const targetMetrics = (displayMetrics: EpTargetMetrics): StatWeightsTargetMetric[] => [
+	...(displayMetrics.damage ? [StatWeightsTargetMetric.StatWeightsTargetMetricDps] : []),
+	...(displayMetrics.healing ? [StatWeightsTargetMetric.StatWeightsTargetMetricHps] : []),
+	...(displayMetrics.threat ? [StatWeightsTargetMetric.StatWeightsTargetMetricTps] : []),
+];
 
-// An iteration count of 0 leaves the sim's own setting in charge, and any other count is at least 2, one per side of the
-// stat. Without targets, the target ± applies to DPS EP alone.
+// An iteration count of 0 leaves the sim's own setting in charge. Without target metrics, the target ± applies to DPS
+// EP alone.
 export const precisionRunOptions = (
 	{ precisionMode, iterations, targetEpCi, maxIterationMultiplier }: EpPrecisionSettings,
-	targets?: EpTargets,
+	displayMetrics?: EpTargetMetrics,
 ): StatWeightsOptions => ({
-	iterations: iterations ? Math.max(iterations, 2) : undefined,
-	...(precisionMode === 'target' ? { targetEpCi, maxIterationMultiplier, ...(targets ? targetMetricOptions(targets) : {}) } : {}),
+	iterations: iterations || undefined,
+	...(precisionMode === 'target' ? { targetEpCi, maxIterationMultiplier, ...(displayMetrics ? { targetMetrics: targetMetrics(displayMetrics) } : {}) } : {}),
 });
 
 export const epWeightsWithoutExcluded = (newWeights: Stats, oldWeights: Stats, { excludedStats, excludedPseudoStats }: ExcludedStats): Stats => {

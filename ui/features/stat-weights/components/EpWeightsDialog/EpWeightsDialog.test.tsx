@@ -245,6 +245,9 @@ const setup = () => {
 			getShowHealingMetrics: () => true,
 			getIterations: () => 1000,
 			getFixedRngSeed: () => 0,
+			nextRngSeed: () => 1,
+			// A player with no stats of its own: the final stats are the bonus.
+			getFinalStatsWithBonus: async (bonusStats: Stats) => bonusStats,
 			getFilters: () => DatabaseFilters.clone(store.getState().sim.filters),
 			setFilters: (filters: DatabaseFilters) => patchSlice(store, 'sim', { filters: DatabaseFilters.clone(filters) }),
 			store,
@@ -585,7 +588,7 @@ describe('EpWeightsDialog', () => {
 				[PseudoStat.PseudoStatSpellHitPercent],
 				Stat.StatStrength,
 				expect.any(Function),
-				{},
+				{ hpsReferenceStat: Stat.StatStrength },
 			);
 
 			const progress = rootElem.querySelector('[data-testid="progress-tracker-dialog"]')!;
@@ -804,25 +807,21 @@ describe('EpWeightsDialog', () => {
 				player.refStats.dpsRefStat = Stat.StatAgility;
 			});
 
-			it('targets HPS against the spec reference stat and shows HPS EP against it', async () => {
-				settings.precision = { precisionMode: 'target', iterations: 4000, targetEpCi: 0.02, maxIterationMultiplier: 4 };
-				renderDialog();
+			it.each(['iterations', 'target'] as const)(
+				'runs in %s mode against the chosen DPS and the spec’s HPS reference stat, and shows HPS EP as the sim sent it',
+				async precisionMode => {
+					settings.precision = { precisionMode, iterations: 4000, targetEpCi: 0.02, maxIterationMultiplier: 4 };
+					renderDialog();
 
-				await act(async () => {
-					fireEvent.click(calculate());
-				});
-				expect(player.computeStatWeights.mock.calls[0][4].hpsReferenceStat).toBe(Stat.StatStrength);
-				expect(hpsEp('Agility')).toBe('0.50');
-			});
-
-			it('shows a fixed-iteration run’s HPS EP as the sim sent it', async () => {
-				renderDialog();
-
-				await act(async () => {
-					fireEvent.click(calculate());
-				});
-				expect(hpsEp('Agility')).toBe('9.00');
-			});
+					await act(async () => {
+						fireEvent.click(calculate());
+					});
+					const [call] = player.computeStatWeights.mock.calls;
+					expect(call[2]).toBe(Stat.StatAgility);
+					expect(call[4].hpsReferenceStat).toBe(Stat.StatStrength);
+					expect(hpsEp('Agility')).toBe('9.00');
+				},
+			);
 		});
 	});
 
@@ -840,17 +839,29 @@ describe('EpWeightsDialog', () => {
 			expect(calculate()).toBeNull();
 		});
 
+		it('mounts the sweep on its first visit and keeps it mounted across tab switches', async () => {
+			sweepHistory.listRuns.mockClear();
+			renderDialog();
+			expect(sweepHistory.listRuns).not.toHaveBeenCalled();
+
+			await userEvent.click(screen.getByRole('tab', { name: 'sidebar.buttons.stat_weights.modal.tabs.sweep' }));
+			await userEvent.click(screen.getByRole('tab', { name: 'sidebar.buttons.stat_weights.modal.tabs.weights' }));
+			await userEvent.click(screen.getByRole('tab', { name: 'sidebar.buttons.stat_weights.modal.tabs.sweep' }));
+
+			expect(sweepHistory.listRuns).toHaveBeenCalledTimes(1);
+		});
+
 		it('draws the newest stored run when the history loads with no run in progress', async () => {
 			const stored = (id: string, createdAt: number): StatSweepRecord => ({
 				id,
 				createdAt,
 				specId: Spec.SpecUnknown,
 				label: id,
-				unitStat: { kind: 'stat', index: Stat.StatStrength },
+				unitStat: STRENGTH.toJson(),
 				refStat: Stat.StatStrength,
 				range: 100,
 				step: 10,
-				precision: { mode: 'iterations', iterations: 1000, targetEpCi: 0.01, maxIterationMultiplier: 8 },
+				precision: { precisionMode: 'iterations', iterations: 1000, targetEpCi: 0.01, maxIterationMultiplier: 8 },
 				baseStatValue: 120,
 				points: makeHitSweepPoints(120),
 			});

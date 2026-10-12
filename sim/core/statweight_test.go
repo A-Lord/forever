@@ -11,9 +11,19 @@ import (
 	googleProto "google.golang.org/protobuf/proto"
 )
 
+// A distribution over values, with the aggregate data a sim result carries.
+func statWeightDistribution(values []float64) *proto.DistributionMetrics {
+	var aggr aggregator
+	for _, value := range values {
+		aggr.add(value)
+	}
+	mean, stdev := aggr.meanAndStdDev()
+	return &proto.DistributionMetrics{Avg: mean, Stdev: stdev, AllValues: values, AggregatorData: &proto.AggregatorData{N: int32(aggr.n), SumSq: aggr.sumSq}}
+}
+
 func statWeightMetrics(dps float64) *proto.UnitMetrics {
 	distribution := func(v float64) *proto.DistributionMetrics {
-		return &proto.DistributionMetrics{Avg: v, AllValues: []float64{v, v}}
+		return statWeightDistribution([]float64{v, v})
 	}
 	return &proto.UnitMetrics{Dps: distribution(dps), Hps: distribution(0), Threat: distribution(0), Dtps: distribution(0), Tmi: distribution(0)}
 }
@@ -162,11 +172,12 @@ func statWeightRun(dps []float64) *proto.RaidSimResult {
 
 func statWeightRunWithHps(dps, hps []float64) *proto.RaidSimResult {
 	zeros := make([]float64, len(dps))
-	distribution := func(values []float64) *proto.DistributionMetrics {
-		return &proto.DistributionMetrics{AllValues: values}
-	}
 	return &proto.RaidSimResult{RaidMetrics: &proto.RaidMetrics{Parties: []*proto.PartyMetrics{{Players: []*proto.UnitMetrics{{
-		Dps: distribution(dps), Hps: distribution(hps), Threat: distribution(zeros), Dtps: distribution(zeros), Tmi: distribution(zeros),
+		Dps:    statWeightDistribution(dps),
+		Hps:    statWeightDistribution(hps),
+		Threat: statWeightDistribution(zeros),
+		Dtps:   statWeightDistribution(zeros),
+		Tmi:    statWeightDistribution(zeros),
 	}}}}}}
 }
 
@@ -240,13 +251,14 @@ func TestStatWeightTopUpPlanSizesEachStatForTheTarget(t *testing.T) {
 	sized := func(stat stats.UnitStat, target, sides float64) int32 {
 		return int32(math.Ceil(math.Pow(statWeightZ90*protoUnitStat(result.Dps.EpValuesStdev, stat)/target, 2) / sides))
 	}
-	plan := func(target float64, maxPerSide int32) *proto.StatWeightsTopUpPlan {
-		return planStatWeightTopUp(&proto.StatWeightsTopUpRequest{Calc: calc, TargetEpCi: target, MaxIterationsPerSide: maxPerSide})
+	const uncapped = math.MaxInt32 / perSide
+	plan := func(target float64, multiplier int32) *proto.StatWeightsTopUpPlan {
+		return planStatWeightTopUp(&proto.StatWeightsTopUpRequest{Calc: calc, Target: &proto.StatWeightsTarget{EpCi: target, MaxIterationMultiplier: multiplier}})
 	}
 
 	t.Run("sized by the formula", func(t *testing.T) {
 		target := min(agilityCi, hitCi) / 4
-		got := plan(target, math.MaxInt32)
+		got := plan(target, uncapped)
 		want := map[stats.UnitStat]int32{agilityUnitStat: sized(agilityUnitStat, target, 2), hitRatingUnitStat: sized(hitRatingUnitStat, target, 1)}
 		for stat, iterations := range want {
 			if plannedIterations(got)[stat] != iterations {
@@ -259,19 +271,27 @@ func TestStatWeightTopUpPlanSizesEachStatForTheTarget(t *testing.T) {
 	})
 
 	t.Run("capped", func(t *testing.T) {
-		got := plan(min(agilityCi, hitCi)/4, perSide+1)
+		const multiplier = 2
+		got := plan(min(agilityCi, hitCi)/4, multiplier)
 		for _, stat := range []stats.UnitStat{agilityUnitStat, hitRatingUnitStat} {
-			if plannedIterations(got)[stat] != perSide+1 {
+			if plannedIterations(got)[stat] != multiplier*perSide {
 				t.Errorf("stat %d planned %d iterations per side, want the cap", stat, plannedIterations(got)[stat])
 			}
 		}
-		if got.BaselineIterations != perSide+1 {
+		if got.BaselineIterations != multiplier*perSide {
 			t.Errorf("baseline planned %d iterations, want the cap", got.BaselineIterations)
 		}
 	})
 
+	t.Run("capped at the default multiplier when unset", func(t *testing.T) {
+		got := plan(min(agilityCi, hitCi)/100, 0)
+		if got.BaselineIterations != defaultStatWeightMaxIterationMultiplier*perSide {
+			t.Errorf("baseline planned %d iterations, want the default cap", got.BaselineIterations)
+		}
+	})
+
 	t.Run("a stat at its target is left out", func(t *testing.T) {
-		got := plannedIterations(plan((agilityCi+hitCi)/2, math.MaxInt32))
+		got := plannedIterations(plan((agilityCi+hitCi)/2, uncapped))
 		wider, narrower := agilityUnitStat, hitRatingUnitStat
 		if hitCi > agilityCi {
 			wider, narrower = narrower, wider
@@ -285,11 +305,60 @@ func TestStatWeightTopUpPlanSizesEachStatForTheTarget(t *testing.T) {
 	})
 
 	t.Run("done once every stat is at its target", func(t *testing.T) {
-		got := plan(max(agilityCi, hitCi), math.MaxInt32)
+		got := plan(max(agilityCi, hitCi), uncapped)
 		if len(got.Stats) != 0 || got.BaselineIterations != perSide {
 			t.Errorf("plan = %v, want no stats and the baseline's own count", got)
 		}
 	})
+
+	t.Run("done once the passes have run", func(t *testing.T) {
+		target := &proto.StatWeightsTarget{EpCi: min(agilityCi, hitCi) / 4, MaxIterationMultiplier: uncapped}
+		withSegments := func(passes int) *proto.StatWeightsTopUpPlan {
+			segmented := googleProto.Clone(calc).(*proto.StatWeightsCalcRequest)
+			for range passes {
+				segmented.ExtraSegments = append(segmented.ExtraSegments, &proto.StatWeightsCalcSegment{})
+			}
+			return planStatWeightTopUp(&proto.StatWeightsTopUpRequest{Calc: segmented, Target: target})
+		}
+		if got := withSegments(statWeightMaxTopUpPasses - 1); len(got.Stats) == 0 {
+			t.Errorf("plan after %d passes = %v, want stats", statWeightMaxTopUpPasses-1, got)
+		}
+		if got := withSegments(statWeightMaxTopUpPasses); len(got.Stats) != 0 {
+			t.Errorf("plan after %d passes = %v, want no stats", statWeightMaxTopUpPasses, got)
+		}
+	})
+}
+
+// Runs merge with their iterations in run order, the mean and spread of all of them, and the first
+// run's chance of death.
+func TestStatWeightRunsConcatenateInOrder(t *testing.T) {
+	runs := []*proto.RaidSimResult{
+		statWeightRun([]float64{1000, 1012, 990}),
+		statWeightRun([]float64{1031, 975}),
+		statWeightRun([]float64{1004, 1019, 998, 1007}),
+	}
+	for i, run := range runs {
+		setChanceOfDeath(run, 0.1*float64(i+1))
+	}
+
+	merged := concatStatWeightRuns(runs).RaidMetrics.Parties[0].Players[0]
+	var want []float64
+	for _, run := range runs {
+		want = append(want, run.RaidMetrics.Parties[0].Players[0].Dps.AllValues...)
+	}
+	if !slices.Equal(merged.Dps.AllValues, want) {
+		t.Errorf("DPS per iteration = %v, want %v", merged.Dps.AllValues, want)
+	}
+	wantDps := statWeightDistribution(want)
+	if math.Abs(merged.Dps.Avg-wantDps.Avg) > 1e-9 || math.Abs(merged.Dps.Stdev-wantDps.Stdev) > 1e-9 {
+		t.Errorf("DPS avg %v stdev %v, want %v and %v", merged.Dps.Avg, merged.Dps.Stdev, wantDps.Avg, wantDps.Stdev)
+	}
+	if merged.Dps.AggregatorData.N != int32(len(want)) {
+		t.Errorf("DPS iterations = %d, want %d", merged.Dps.AggregatorData.N, len(want))
+	}
+	if merged.ChanceOfDeath != runs[0].RaidMetrics.Parties[0].Players[0].ChanceOfDeath {
+		t.Errorf("chance of death = %v, want the first run's", merged.ChanceOfDeath)
+	}
 }
 
 // A stat that stopped early pairs with the baseline's first iterations, so it weighs as if every run
@@ -429,8 +498,9 @@ func TestStatWeightsTargetModeRunsToTheTargetOrTheCap(t *testing.T) {
 	weigh := func(target float64) *proto.StatWeightsResult {
 		request := weaponTesterStatWeightsRequest(2 * probePerSide)
 		request.StatsToWeigh = []proto.Stat{proto.Stat_StatAttackPower, proto.Stat_StatHitRating}
-		request.TargetEpCi = target
-		request.MaxIterationMultiplier = multiplier
+		if target > 0 {
+			request.Target = &proto.StatWeightsTarget{EpCi: target, MaxIterationMultiplier: multiplier}
+		}
 		return runStatWeights(request, nil, simsignals.CreateSignals())
 	}
 	weighed := []stats.UnitStat{attackPowerUnitStat, hitRatingUnitStat}
@@ -466,23 +536,23 @@ var (
 	healingHpsPerPoint = map[stats.UnitStat]float64{agilityUnitStat: 0.5, hitRatingUnitStat: 0.2, intellectUnitStat: 2}
 )
 
-// Agility and hit rating weighed with agility as the DPS reference and intellect as the HPS one.
-func healingStatWeightsRequest(targetMetrics []proto.StatWeightsTargetMetric) *proto.StatWeightsRequest {
+// Agility and hit rating weighed with agility as the DPS reference and hpsReferenceStat as the HPS one.
+func healingStatWeightsRequest(hpsReferenceStat *proto.Stat) *proto.StatWeightsRequest {
 	return &proto.StatWeightsRequest{
 		Player:           &proto.Player{},
 		Encounter:        &proto.Encounter{},
 		SimOptions:       &proto.SimOptions{Iterations: 2, RandomSeed: 1},
 		StatsToWeigh:     []proto.Stat{proto.Stat_StatAgility, proto.Stat_StatHitRating},
 		EpReferenceStat:  proto.Stat_StatAgility,
-		TargetMetrics:    targetMetrics,
-		HpsReferenceStat: proto.Stat_StatIntellect,
+		HpsReferenceStat: hpsReferenceStat,
 	}
 }
 
-// The runs over perSide iterations with HPS targeted. Every run's DPS differs from the baseline's by
-// its stat's worth alone, so each DPS ± is 0, and each run's HPS carries noise of its own.
+// The runs over perSide iterations with intellect as the HPS reference. Every run's DPS differs from
+// the baseline's by its stat's worth alone, so each DPS ± is 0, and each run's HPS carries noise of
+// its own.
 func healingStatWeightCalc(perSide int) *proto.StatWeightsCalcRequest {
-	requests := buildStatWeightRequests(healingStatWeightsRequest([]proto.StatWeightsTargetMetric{proto.StatWeightsTargetMetric_StatWeightsTargetMetricHps}))
+	requests := buildStatWeightRequests(healingStatWeightsRequest(proto.Stat_StatIntellect.Enum()))
 	run := func(index int, stat stats.UnitStat, mod float64) *proto.RaidSimResult {
 		var dps, hps []float64
 		for i := range perSide {
@@ -492,7 +562,7 @@ func healingStatWeightCalc(perSide int) *proto.StatWeightsCalcRequest {
 		return statWeightRunWithHps(dps, hps)
 	}
 
-	calc := &proto.StatWeightsCalcRequest{BaseResult: run(0, 0, 0), EpReferenceStat: requests.EpReferenceStat}
+	calc := &proto.StatWeightsCalcRequest{BaseResult: run(0, 0, 0), EpReferenceStat: requests.EpReferenceStat, HpsReferenceStat: requests.HpsReferenceStat}
 	for j, request := range requests.StatSimRequests {
 		stat := stats.UnitStatFromIdx(int(request.StatData.UnitStat))
 		result := &proto.StatWeightsStatResultData{StatData: request.StatData, ResultHigh: run(2*j+2, stat, request.StatData.ModHigh)}
@@ -504,23 +574,38 @@ func healingStatWeightCalc(perSide int) *proto.StatWeightsCalcRequest {
 	return calc
 }
 
-// The HPS reference stat is simulated, below and above its baseline like the DPS one, only when HPS
-// is targeted.
-func TestStatWeightsSimulateTheHpsReferenceStatWhenHpsIsTargeted(t *testing.T) {
-	targeted := buildStatWeightRequests(healingStatWeightsRequest([]proto.StatWeightsTargetMetric{proto.StatWeightsTargetMetric_StatWeightsTargetMetricHps}))
-	index := slices.IndexFunc(targeted.StatSimRequests, func(request *proto.StatWeightsStatRequestData) bool {
+// A set HPS reference stat is simulated, below and above its baseline like the DPS one, and an unset
+// one is the DPS reference stat.
+func TestStatWeightsSimulateTheHpsReferenceStatWhenSet(t *testing.T) {
+	set := buildStatWeightRequests(healingStatWeightsRequest(proto.Stat_StatIntellect.Enum()))
+	index := slices.IndexFunc(set.StatSimRequests, func(request *proto.StatWeightsStatRequestData) bool {
 		return request.StatData.UnitStat == int32(intellectUnitStat)
 	})
 	if index < 0 {
 		t.Fatal("no sub-sim for intellect, the HPS reference stat")
 	}
-	if statData := targeted.StatSimRequests[index].StatData; statData.ModLow >= 0 || statData.ModHigh <= 0 {
+	if statData := set.StatSimRequests[index].StatData; statData.ModLow >= 0 || statData.ModHigh <= 0 {
 		t.Errorf("intellect modifiers %v and %v, want one below and one above", statData.ModLow, statData.ModHigh)
 	}
 
-	for _, metrics := range [][]proto.StatWeightsTargetMetric{nil, {proto.StatWeightsTargetMetric_StatWeightsTargetMetricDps, proto.StatWeightsTargetMetric_StatWeightsTargetMetricTps}} {
-		if simulatesStat(buildStatWeightRequests(healingStatWeightsRequest(metrics)), intellectUnitStat) {
-			t.Errorf("a sub-sim for intellect with targets %v, which leave HPS out", metrics)
+	unset := buildStatWeightRequests(healingStatWeightsRequest(nil))
+	if len(unset.StatSimRequests) != len(set.StatSimRequests)-1 || simulatesStat(unset, intellectUnitStat) {
+		t.Errorf("unset HPS reference simulates %d stats, want the weighed ones alone", len(unset.StatSimRequests))
+	}
+	if unset.HpsReferenceStat != proto.Stat_StatAgility {
+		t.Errorf("unset HPS reference = %v, want the DPS reference", unset.HpsReferenceStat)
+	}
+}
+
+// HPS EP divides by the HPS reference stat's HPS weight.
+func TestStatWeightsDivideHpsEpByTheHpsReference(t *testing.T) {
+	calc := healingStatWeightCalc(20)
+	for _, ref := range []stats.UnitStat{intellectUnitStat, agilityUnitStat} {
+		calc.HpsReferenceStat = proto.Stat(ref)
+		result := computeStatWeights(calc)
+		want := math.Abs(protoUnitStat(result.Hps.Weights, hitRatingUnitStat) / protoUnitStat(result.Hps.Weights, ref))
+		if got := protoUnitStat(result.Hps.EpValues, hitRatingUnitStat); want == 0 || math.Abs(got-want) > 1e-12 {
+			t.Errorf("hit rating HPS EP against stat %d = %v, want %v", ref, got, want)
 		}
 	}
 }
@@ -542,11 +627,8 @@ func TestStatWeightTopUpPlanSizesTargetedHpsByTheHpsReference(t *testing.T) {
 	target := agilityHpsCi / 4
 	plan := func(metrics []proto.StatWeightsTargetMetric) map[stats.UnitStat]int32 {
 		return plannedIterations(planStatWeightTopUp(&proto.StatWeightsTopUpRequest{
-			Calc:                 calc,
-			TargetEpCi:           target,
-			MaxIterationsPerSide: math.MaxInt32,
-			TargetMetrics:        metrics,
-			HpsReferenceStat:     proto.Stat_StatIntellect,
+			Calc:   calc,
+			Target: &proto.StatWeightsTarget{EpCi: target, MaxIterationMultiplier: math.MaxInt32 / perSide, Metrics: metrics},
 		}))
 	}
 
@@ -645,7 +727,7 @@ func TestStatWeightsRefuseAStatRunLongerThanTheBaseline(t *testing.T) {
 	if result := computeStatWeights(calc); result.Error == nil {
 		t.Error("weights computed for stat runs longer than the baseline, want an error")
 	}
-	if plan := planStatWeightTopUp(&proto.StatWeightsTopUpRequest{Calc: calc, TargetEpCi: 1e-9, MaxIterationsPerSide: math.MaxInt32}); len(plan.Stats) != 0 {
+	if plan := planStatWeightTopUp(&proto.StatWeightsTopUpRequest{Calc: calc, Target: &proto.StatWeightsTarget{EpCi: 1e-9}}); len(plan.Stats) != 0 {
 		t.Errorf("plan = %v, want no stats", plan)
 	}
 }

@@ -681,14 +681,17 @@ message StatWeightsRequest {
 	repeated PseudoStat pseudo_stats_to_weigh = 10;
 	Stat ep_reference_stat = 7;
 
-	// The 90% ± of each EP to reach by adding iterations; 0 runs the request's iteration count once.
-	double target_ep_ci = 11;
-	// Caps each run at this multiple of its first pass's iterations; 0 means 8.
-	int32 max_iteration_multiplier = 12;
-	// The metrics whose EP ± the target applies to; empty means DPS only.
-	repeated StatWeightsTargetMetric target_metrics = 13;
-	// The stat HPS EP divides by. DPS and TPS EP divide by ep_reference_stat.
-	Stat hps_reference_stat = 14;
+	// The stat HPS EP divides by, simulated like ep_reference_stat; unset means ep_reference_stat.
+	optional Stat hps_reference_stat = 11;
+	// Unset runs the request's iteration count once.
+	StatWeightsTarget target = 12;
+}
+
+// The ± each targeted EP runs extra iterations to reach.
+message StatWeightsTarget {
+	double ep_ci = 1; // The 90% ± of each EP to reach.
+	int32 max_iteration_multiplier = 2; // Caps each run at this multiple of its first pass's iterations; 0 means 8.
+	repeated StatWeightsTargetMetric metrics = 3; // The metrics whose EP ± the target applies to; empty means DPS only.
 }
 
 enum StatWeightsTargetMetric {
@@ -712,6 +715,7 @@ message StatWeightRequestsData {
 	RaidSimRequest base_request = 1;
 	Stat ep_reference_stat = 2;
 	repeated StatWeightsStatRequestData stat_sim_requests = 3;
+	Stat hps_reference_stat = 4;
 }
 
 message StatWeightsStatResultData {
@@ -725,6 +729,7 @@ message StatWeightsCalcRequest {
 	repeated StatWeightsStatResultData stat_sim_results = 3;
 	// Later passes, in order, each continuing its runs' seed sequence where they stopped.
 	repeated StatWeightsCalcSegment extra_segments = 4;
+	Stat hps_reference_stat = 5;
 }
 
 // One pass of extra iterations. Only the runs that ran in the pass are listed; base_result is
@@ -736,13 +741,11 @@ message StatWeightsCalcSegment {
 
 message StatWeightsTopUpRequest {
 	StatWeightsCalcRequest calc = 1;
-	double target_ep_ci = 2;
-	int32 max_iterations_per_side = 3;
-	repeated StatWeightsTargetMetric target_metrics = 4;
-	Stat hps_reference_stat = 5;
+	StatWeightsTarget target = 2;
 }
 
-// Target iteration totals per side. An empty stats list means every stat has reached the target.
+// Target iteration totals per side. An empty stats list means every stat has reached the target or
+// the passes have run out.
 message StatWeightsTopUpPlan {
 	int32 baseline_iterations = 1;
 	repeated StatWeightsStatIterations stats = 2;
