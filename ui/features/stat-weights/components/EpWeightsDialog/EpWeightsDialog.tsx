@@ -183,8 +183,6 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 			onOpenChange={handleOpenChange}
 			testId="ep-weights-menu"
 			size="xl"
-			maxWidthClassName="max-w-modal-inset-w w-modal-inset-w"
-			className="h-modal-inset-h"
 			scrollContents
 			title={i18n.t('sidebar.buttons.stat_weights.modal.title')}
 			footer={

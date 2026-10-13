@@ -97,6 +97,8 @@ export const DpsCurveDialog = ({ open, onOpenChange, settings }: DpsCurveDialogP
 			}}
 			testId="dps-curve-dialog"
 			size="xl"
+			maxWidthClassName="max-w-modal-inset-w w-modal-inset-w"
+			className="h-modal-inset-h"
 			scrollContents
 			title={t('title')}
 			footer={
