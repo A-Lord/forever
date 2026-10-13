@@ -15,15 +15,14 @@ type ReplaceMHSwing func(sim *Simulation, mhSwingSpell *Spell) *Spell
 // Represents a generic weapon. Pets / unarmed / various other cases don't use
 // actual weapon items so this is an abstraction of a Weapon.
 type Weapon struct {
-	BaseDamageMin          float64
-	BaseDamageMax          float64
-	AttackPowerPerDPS      float64
-	SwingSpeed             float64
-	NormalizedSwingSpeed   float64
-	SpellSchool            SpellSchool
-	MinRange               float64
-	MaxRange               float64
-	PhysicalDamageInWeapon bool // Flat physical damage enters the weapon before ability multipliers.
+	BaseDamageMin        float64
+	BaseDamageMax        float64
+	AttackPowerPerDPS    float64
+	SwingSpeed           float64
+	NormalizedSwingSpeed float64
+	SpellSchool          SpellSchool
+	MinRange             float64
+	MaxRange             float64
 }
 
 func (weapon *Weapon) DPS() float64 {
@@ -168,18 +167,11 @@ func (weapon *Weapon) CalculateNormalizedWeaponDamage(sim *Simulation, attackPow
 	return weapon.BaseDamage(sim) + (weapon.NormalizedSwingSpeed*attackPower)/weapon.AttackPowerPerDPS
 }
 
-func (unit *Unit) mainHandFlatDamage() float64 {
-	if unit.AutoAttacks.mh.PhysicalDamageInWeapon {
-		return unit.stats[stats.PhysicalDamage]
-	}
-	return 0
-}
-
 func (unit *Unit) MHWeaponDamage(sim *Simulation, attackPower float64) float64 {
-	return unit.AutoAttacks.mh.CalculateWeaponDamage(sim, attackPower) + unit.mainHandFlatDamage()
+	return unit.AutoAttacks.mh.CalculateWeaponDamage(sim, attackPower)
 }
 func (unit *Unit) MHNormalizedWeaponDamage(sim *Simulation, attackPower float64) float64 {
-	return unit.AutoAttacks.mh.CalculateNormalizedWeaponDamage(sim, attackPower) + unit.mainHandFlatDamage()
+	return unit.AutoAttacks.mh.CalculateNormalizedWeaponDamage(sim, attackPower)
 }
 
 func (unit *Unit) OHWeaponDamage(sim *Simulation, attackPower float64) float64 {
@@ -541,7 +533,7 @@ func (unit *Unit) EnableAutoAttacks(agent Agent, options AutoAttackOptions) {
 		},
 
 		ExpectedInitialDamage: func(sim *Simulation, target *Unit, spell *Spell, _ bool) *SpellResult {
-			baseDamage := spell.Unit.AutoAttacks.MH().CalculateAverageWeaponDamage(spell.MeleeAttackPower(target)) + spell.Unit.mainHandFlatDamage()
+			baseDamage := spell.Unit.AutoAttacks.MH().CalculateAverageWeaponDamage(spell.MeleeAttackPower(target))
 			return spell.CalcDamage(sim, target, baseDamage, spell.OutcomeExpectedMeleeWhite)
 		},
 	}

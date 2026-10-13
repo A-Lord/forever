@@ -77,22 +77,22 @@ func (druid *Druid) GetCatWeapon() core.Weapon {
 	return druid.feralWeapon(1)
 }
 
-// Enchants and weaponstones add to the paw after the equipped weapon's damage is scaled.
+// The paw swings the equipped weapon's damage per second at the form's speed. Enchant and stone damage
+// is added whole, after the scaling.
 func (druid *Druid) feralWeapon(swingSpeed float64) core.Weapon {
-	weapon := druid.WeaponFromMainHand()
-	flatDamage := 0.0
+	paw := core.Weapon{
+		SwingSpeed:           swingSpeed,
+		NormalizedSwingSpeed: swingSpeed,
+		AttackPowerPerDPS:    core.DefaultAttackPowerPerDPS,
+		MaxRange:             core.MaxMeleeRange,
+	}
 	if item := druid.GetMHWeapon(); item != nil {
-		flatDamage = item.Enchant.WeaponDamage + item.TempEnchantWeaponDamage
+		flat := item.Enchant.WeaponDamage + item.TempEnchantWeaponDamage
+		bonusDps := druid.PseudoStats.BonusMHDps
+		paw.BaseDamageMin = (item.WeaponDamageMin/item.SwingSpeed+bonusDps)*swingSpeed + flat
+		paw.BaseDamageMax = (item.WeaponDamageMax/item.SwingSpeed+bonusDps)*swingSpeed + flat
 	}
-	return core.Weapon{
-		BaseDamageMin:          (weapon.BaseDamageMin-flatDamage)/weapon.SwingSpeed*swingSpeed + flatDamage,
-		BaseDamageMax:          (weapon.BaseDamageMax-flatDamage)/weapon.SwingSpeed*swingSpeed + flatDamage,
-		SwingSpeed:             swingSpeed,
-		NormalizedSwingSpeed:   swingSpeed,
-		AttackPowerPerDPS:      core.DefaultAttackPowerPerDPS,
-		MaxRange:               core.MaxMeleeRange,
-		PhysicalDamageInWeapon: true,
-	}
+	return paw
 }
 
 // A bear's auto attack takes the two-hander rage factor: a combat log shows 11.25 rage a swing at the
