@@ -6,7 +6,8 @@ import type { StatSweepPrecision } from '../settings/stat_sweep_settings';
 import type { StatSweepMetric } from '../state/sim_store';
 
 const STAT_SWEEP_DB_NAME = `${LOCAL_STORAGE_PREFIX}_stat-sweep`;
-const STAT_SWEEP_DB_VERSION = 1;
+// Every upgrade drops the stored runs, so a change to the record shape never meets runs saved in the old one.
+const STAT_SWEEP_DB_VERSION = 2;
 const RUNS_STORE = 'runs';
 
 export interface MetricSummary {
@@ -57,6 +58,7 @@ interface StatSweepDb extends DBSchema {
 const openStatSweepDb = (): Promise<IDBPDatabase<StatSweepDb>> =>
 	openDB<StatSweepDb>(STAT_SWEEP_DB_NAME, STAT_SWEEP_DB_VERSION, {
 		upgrade(db) {
+			if (db.objectStoreNames.contains(RUNS_STORE)) db.deleteObjectStore(RUNS_STORE);
 			const store = db.createObjectStore(RUNS_STORE, { keyPath: 'id' });
 			store.createIndex('specId', 'specId');
 		},
