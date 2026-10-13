@@ -126,8 +126,9 @@ func (warlock *Warlock) petStatInheritance() core.PetStatInheritance {
 			stats.SpellHitPercent:    ownerStats[stats.SpellHitPercent],
 
 			// A demon's melee takes none of the warlock's crit: in the logs a Succubus melee-crits ~0.7% whether
-			// the warlock's sheet melee crit, and the Succubus's own, reads 0 or 4.58%.
-			// TODO: The ~0.7% itself, the other demons' melee, and the spell crit share are not measured.
+			// the warlock's sheet melee crit, and the Succubus's own, reads 0 or 4.58%, with 4.58% spell crit in the
+			// latter. Its Lash of Pain crits 6.3%, in line with that spell crit.
+			// TODO: The ~0.7% itself and the other demons' melee are not measured.
 			stats.SpellCritPercent: ownerStats[stats.SpellCritPercent],
 		}
 	}
