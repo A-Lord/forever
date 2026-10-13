@@ -367,22 +367,32 @@ message SavedStatWeightSettings {
 	int32 max_iteration_multiplier = 7; // Caps a stat's iterations at this multiple of the automatic first pass; 0 means no cap.
 }
 
-enum DpsCurvePrecisionMode {
-	DpsCurvePrecisionModeUnknown = 0;
-	DpsCurvePrecisionModeIterations = 1;
-	DpsCurvePrecisionModeTarget = 2; // Simulates each step until its DPS ± reaches a target.
+enum StatSweepPrecisionMode {
+	StatSweepPrecisionModeUnknown = 0;
+	StatSweepPrecisionModeIterations = 1;
+	StatSweepPrecisionModeTarget = 2; // Simulates each step until the ± of the run's metric reaches a target.
 }
 
-// The DPS curve's last setup; an unset range, step or target reads as the default.
-message SavedDpsCurveSettings {
+enum StatSweepMetric {
+	StatSweepMetricUnknown = 0; // Reads as DPS.
+	StatSweepMetricDps = 1;
+	StatSweepMetricHps = 2;
+	StatSweepMetricTps = 3;
+	StatSweepMetricDtps = 4;
+	StatSweepMetricTmi = 5;
+}
+
+// The stat sweep's last setup; an unset range, step or target reads as the default.
+message SavedStatSweepSettings {
 	int32 api_version = 1;
 	repeated UIStat stats = 2;
 	double range = 3;
 	double step = 4;
-	DpsCurvePrecisionMode precision_mode = 5;
+	StatSweepPrecisionMode precision_mode = 5;
 	int32 iterations = 6; // The iterations mode's count; 0 runs the global sim iteration count.
-	double target_dps_ci = 7;
+	double target_ci = 7; // In the units of the metric picked when the run starts.
 	int32 max_iteration_multiplier = 8; // Caps a step's iterations at this multiple of the automatic first pass; 0 means no cap.
+	StatSweepMetric metric = 9; // The plotted metric; a run's Target ± follows the one picked when it starts.
 }
 
 // Local storage data for other settings.

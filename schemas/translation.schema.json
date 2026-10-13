@@ -8865,7 +8865,7 @@
 							"additionalProperties": false,
 							"required": ["title", "modal", "saved_ep_weights", "precision"]
 						},
-						"dps_curve": {
+						"stat_sweep": {
 							"type": "object",
 							"properties": {
 								"title": { "type": "string" },
@@ -8888,7 +8888,7 @@
 								"progress": { "type": "string" },
 								"run_label": { "type": "string" },
 								"capped_label": { "type": "string" },
-								"dps_axis": { "type": "string" },
+								"metric": { "type": "string" },
 								"current_value": { "type": "string" },
 								"change_axis": { "type": "string" },
 								"tooltip_total": { "type": "string" },
@@ -8902,10 +8902,11 @@
 									"properties": {
 										"title": { "type": "string" },
 										"delete": { "type": "string" },
+										"metric": { "type": "string" },
 										"empty": { "type": "string" }
 									},
 									"additionalProperties": false,
-									"required": ["title", "delete", "empty"]
+									"required": ["title", "delete", "metric", "empty"]
 								},
 								"precision": {
 									"type": "object",
@@ -8915,8 +8916,8 @@
 										"mode_target": { "type": "string" },
 										"iterations": { "type": "string" },
 										"iterations_tooltip": { "type": "string" },
-										"target_dps_ci": { "type": "string" },
-										"target_dps_ci_tooltip": { "type": "string" },
+										"target_ci": { "type": "string" },
+										"target_ci_tooltip": { "type": "string" },
 										"max_multiplier": { "type": "string" },
 										"max_multiplier_tooltip": { "type": "string" },
 										"max_multiplier_none": { "type": "string" }
@@ -8928,8 +8929,8 @@
 										"mode_target",
 										"iterations",
 										"iterations_tooltip",
-										"target_dps_ci",
-										"target_dps_ci_tooltip",
+										"target_ci",
+										"target_ci_tooltip",
 										"max_multiplier",
 										"max_multiplier_tooltip",
 										"max_multiplier_none"
@@ -8947,7 +8948,7 @@
 								"progress",
 								"run_label",
 								"capped_label",
-								"dps_axis",
+								"metric",
 								"current_value",
 								"change_axis",
 								"tooltip_total",
@@ -9098,7 +9099,7 @@
 						}
 					},
 					"additionalProperties": false,
-					"required": ["simulate", "stat_weights", "dps_curve", "suggest_reforges"]
+					"required": ["simulate", "stat_weights", "stat_sweep", "suggest_reforges"]
 				},
 				"header": {
 					"type": "object",

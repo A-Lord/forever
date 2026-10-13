@@ -2514,8 +2514,8 @@
 					"max_multiplier_none": "None"
 				}
 			},
-			"dps_curve": {
-				"title": "DPS curve",
+			"stat_sweep": {
+				"title": "Stat sweep",
 				"settings": "Settings",
 				"stats": {
 					"label": "Stats",
@@ -2526,23 +2526,24 @@
 				},
 				"range": "Range ±",
 				"step": "Step",
-				"run": "Run DPS curve",
+				"run": "Run stat sweep",
 				"progress": "Step {{current}} / {{total}}",
 				"run_label": "{{stat}} ±{{range}}",
 				"capped_label": "{{label}} (capped at {{change}})",
-				"dps_axis": "DPS",
+				"metric": "Plotted metric",
 				"current_value": "Current value",
 				"change_axis": "Change from current value",
 				"tooltip_total": "{{stat}} {{total}} ({{change}})",
 				"tooltip_value": "{{value}} ± {{stdev}}",
 				"tooltip_value_capped": "{{value}} ± {{stdev}} (capped)",
-				"band_key": "Shaded: ± 1 standard deviation of a fight's DPS",
-				"empty": "Run a DPS curve to plot DPS across each stat's range.",
+				"band_key": "Shaded: ± 1 standard deviation of a fight's {{metric}}",
+				"empty": "Run a stat sweep to plot {{metric}} across each stat's range.",
 				"export_csv": "Export CSV",
 				"history": {
 					"title": "History",
 					"delete": "Delete {{label}}",
-					"empty": "No saved DPS curves yet."
+					"metric": "The metric plotted when this run started, which Target ± followed",
+					"empty": "No saved stat sweeps yet."
 				},
 				"precision": {
 					"label": "Precision",
@@ -2550,8 +2551,8 @@
 					"mode_target": "Target ±",
 					"iterations": "Iterations",
 					"iterations_tooltip": "Iterations per step. Empty uses the sim's iteration setting.",
-					"target_dps_ci": "Target ±",
-					"target_dps_ci_tooltip": "Keeps simulating each step until the 90% ± behind its DPS is at most this many DPS.",
+					"target_ci": "Target ± ({{metric}})",
+					"target_ci_tooltip": "Keeps simulating each step until the 90% ± of its {{metric}} is at most this value. A run follows the metric plotted when it starts.",
 					"max_multiplier": "Max ×",
 					"max_multiplier_tooltip": "The most iterations a step may run, as a multiple of the automatic first pass. Empty sets no cap.",
 					"max_multiplier_none": "None"

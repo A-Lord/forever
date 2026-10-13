@@ -1,6 +1,5 @@
 import { SidebarRegistry } from '@app/sidebar_registry';
 import { initBulk } from '@features/bulk/model/init';
-import { DpsCurveAction } from '@features/dps-curve/components/DpsCurveAction';
 import { watchTargetDummies } from '@features/encounter/model/target_dummies';
 import { repairTargetInputs } from '@features/encounter/model/target_inputs';
 import { registerAreaStatsNotices, registerSetBonusNotices } from '@features/gear/item_notices';
@@ -15,6 +14,7 @@ import type { ResultsPanelHandle } from '@features/results/model/results_panel_h
 import { WarningsRegistry } from '@features/results/model/warnings';
 import { applyEmptyAplRotation, applyIndividualDefaults } from '@features/settings/model/apply_defaults';
 import * as OtherInputs from '@features/settings/model/other_inputs';
+import { StatSweepAction } from '@features/stat-sweep/components/StatSweepAction';
 import { type ErrorOutcome, ErrorOutcomeType } from '@generated/proto/api';
 import { Spec } from '@generated/proto/common';
 import { IndividualSimSettings } from '@generated/proto/ui';
@@ -24,7 +24,7 @@ import { SimSettingCategories } from '@sim/constants/sim_settings';
 import { Player } from '@sim/player/player';
 import { Gear } from '@sim/proto/gear';
 import { SimResult } from '@sim/proto/sim_result';
-import { DpsCurveSettings } from '@sim/settings/dps_curve_settings';
+import { StatSweepSettings } from '@sim/settings/stat_sweep_settings';
 import { StatWeightActionSettings } from '@sim/settings/stat_weight_settings';
 import { RunSimOptions, Sim, SimError } from '@sim/sim';
 import type { IndividualSimHost, SimWarning } from '@sim/sim_host';
@@ -35,13 +35,13 @@ import { loadIndividualSettings, SETTINGS_STORAGE_SUFFIX, SHARED_SAVED_ENCOUNTER
 import { applyIndividualSimSettings, IndividualSimSerializationContext, individualSimSettingsToProto } from '@sim/state/serialization';
 import { SimRunKind } from '@sim/state/sim_store';
 import {
-	DPS_CURVE_SETTINGS_STORAGE_KEY,
 	SAVED_EP_WEIGHTS_STORAGE_KEY,
 	SAVED_GEAR_STORAGE_KEY,
 	SAVED_ROTATION_STORAGE_KEY,
 	SAVED_SETTINGS_STORAGE_KEY,
 	SAVED_TALENTS_STORAGE_KEY,
 	specStorageKey,
+	STAT_SWEEP_SETTINGS_STORAGE_KEY,
 	STAT_WEIGHT_SETTINGS_STORAGE_KEY,
 } from '@sim/state/storage_keys';
 import { subscribeAll, subscribeReforgeChange, subscribeSimChange } from '@sim/state/subscriptions';
@@ -88,7 +88,7 @@ export class SimHostObject<SpecType extends Spec> implements IndividualSimHost<S
 	readonly player: Player<SpecType>;
 	readonly individualConfig: IndividualSimUIConfig<SpecType>;
 	readonly statWeightActionSettings: StatWeightActionSettings;
-	readonly dpsCurveSettings: DpsCurveSettings;
+	readonly statSweepSettings: StatSweepSettings;
 
 	readonly raidSimResultsManager: SimResultsManager;
 	readonly crashReport = new CrashReportOpener();
@@ -120,7 +120,7 @@ export class SimHostObject<SpecType extends Spec> implements IndividualSimHost<S
 		this.individualConfig = this.applyDefaultConfigOptions(config);
 		this.raidSimResultsManager = new SimResultsManager(this.sim);
 		this.statWeightActionSettings = new StatWeightActionSettings(this.player, this.getStorageKey(STAT_WEIGHT_SETTINGS_STORAGE_KEY));
-		this.dpsCurveSettings = new DpsCurveSettings(this.player, this.getStorageKey(DPS_CURVE_SETTINGS_STORAGE_KEY));
+		this.statSweepSettings = new StatSweepSettings(this.player, this.getStorageKey(STAT_SWEEP_SETTINGS_STORAGE_KEY));
 
 		if ((config.itemSwapSlots || []).length > 0 && !itemSwapEnabledSpecs.includes(player.getSpec())) {
 			itemSwapEnabledSpecs.push(player.getSpec());
@@ -175,7 +175,7 @@ export class SimHostObject<SpecType extends Spec> implements IndividualSimHost<S
 				render: () => createElement(ReforgeSidebarGroup, { model: this.reforger!, options: this.reforgeOptions ?? undefined }),
 			});
 		}
-		this.sidebar.add({ id: 'dps-curve', render: () => createElement(DpsCurveAction, { settings: this.dpsCurveSettings }) });
+		this.sidebar.add({ id: 'stat-sweep', render: () => createElement(StatSweepAction, { settings: this.statSweepSettings }) });
 		for (const derived of config.derivedSettings || []) {
 			derived.apply(this.player, this.sim);
 			derived.subscribe(this.player, this.sim)(() => derived.apply(this.player, this.sim));
@@ -274,7 +274,7 @@ export class SimHostObject<SpecType extends Spec> implements IndividualSimHost<S
 			player: this.player,
 			autosaveSubscribe,
 			statWeightSettings: this.statWeightActionSettings,
-			dpsCurveSettings: this.dpsCurveSettings,
+			statSweepSettings: this.statSweepSettings,
 		});
 	}
 

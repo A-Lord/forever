@@ -360,22 +360,35 @@ describe('Sim stats for an edited player', () => {
 	});
 });
 
-describe('Sim.simulateDps', () => {
+describe('Sim.simulateStatSweepStep', () => {
 	beforeEach(() => {
 		mocks.raidSimAsync.mockReset();
 	});
 
-	it("runs one silent raid sim with the options and returns the first player's DPS without per-iteration values", async () => {
+	it("runs one silent raid sim with the options and returns the first player's DPS, HPS, TPS, DTPS and TMI without per-iteration values", async () => {
 		const sim = makeSim();
 		const emitted = vi.fn();
 		sim.simResultEmitter.on(emitted);
-		const dps = { avg: 1500, stdev: 120, allValues: [1400, 1600], aggregatorData: { n: 2, sumSq: 1400 ** 2 + 1600 ** 2 } };
-		mocks.raidSimAsync.mockResolvedValue(RaidSimResult.create({ raidMetrics: { parties: [{ players: [{ dps }] }] } }));
+		const metric = (low: number, high: number) => ({
+			avg: (low + high) / 2,
+			stdev: (high - low) / 2,
+			allValues: [low, high],
+			aggregatorData: { n: 2, sumSq: low ** 2 + high ** 2 },
+		});
+		const player = { dps: metric(1400, 1600), hps: metric(0, 20), threat: metric(2800, 3200), dtps: metric(900, 1100), tmi: metric(8, 12) };
+		mocks.raidSimAsync.mockResolvedValue(RaidSimResult.create({ raidMetrics: { parties: [{ players: [player] }] } }));
 		const options = { iterations: 2, seed: 9, bonusStats: new Stats(), onProgress: vi.fn() };
 
-		const sample = await sim.simulateDps(options);
+		const sample = await sim.simulateStatSweepStep(options);
 
-		expect(sample).toEqual({ avg: 1500, stdev: 120, n: 2, sumSq: 1400 ** 2 + 1600 ** 2 });
+		const summary = (low: number, high: number) => ({ avg: (low + high) / 2, stdev: (high - low) / 2, n: 2, sumSq: low ** 2 + high ** 2 });
+		expect(sample).toEqual({
+			dps: summary(1400, 1600),
+			hps: summary(0, 20),
+			tps: summary(2800, 3200),
+			dtps: summary(900, 1100),
+			tmi: summary(8, 12),
+		});
 		expect(sim.makeRaidSimRequest).toHaveBeenCalledWith(expect.objectContaining({ ...options, debugFirstIteration: false }));
 		expect(emitted).not.toHaveBeenCalled();
 	});
@@ -384,7 +397,7 @@ describe('Sim.simulateDps', () => {
 		const aborted = ErrorOutcome.create({ type: ErrorOutcomeType.ErrorOutcomeAborted });
 		mocks.raidSimAsync.mockResolvedValue(RaidSimResult.create({ error: aborted }));
 
-		expect(await makeSim().simulateDps({ iterations: 2, seed: 9, bonusStats: new Stats(), onProgress: vi.fn() })).toEqual(aborted);
+		expect(await makeSim().simulateStatSweepStep({ iterations: 2, seed: 9, bonusStats: new Stats(), onProgress: vi.fn() })).toEqual(aborted);
 	});
 });
 

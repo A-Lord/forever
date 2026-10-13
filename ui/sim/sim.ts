@@ -63,7 +63,7 @@ import { batch } from './state/batch';
 import type { Env } from './state/env';
 import { Emitter } from './state/events';
 import { makeReforgeConfigRequestFields } from './state/reforge_request';
-import { createSimStore, patchSlice, SimSettingsSlice, UISlice } from './state/sim_store';
+import { createSimStore, patchSlice, SimSettingsSlice, type StatSweepMetric, UISlice } from './state/sim_store';
 import { subscribeStatsInputs, subscribeUiField } from './state/subscriptions';
 import { getEnumValues } from './utils/collections';
 import { environmentOf } from './utils/env';
@@ -106,9 +106,11 @@ export type RunSimOptions = {
 	debugFirstIteration?: boolean; // Unset logs the first iteration.
 };
 
-export type DpsSimOptions = Required<Pick<RunSimOptions, 'iterations' | 'seed' | 'bonusStats' | 'onProgress'>>;
+export type StatSweepStepOptions = Required<Pick<RunSimOptions, 'iterations' | 'seed' | 'bonusStats' | 'onProgress'>>;
 
-export type DpsSample = Pick<DistributionMetrics, 'avg' | 'stdev'> & AggregatorData;
+export type MetricSample = Pick<DistributionMetrics, 'avg' | 'stdev'> & AggregatorData;
+
+export type StatSweepSample = Record<StatSweepMetric, MetricSample>;
 
 export type StatWeightsOptions = {
 	iterations?: number; // Unset uses the sim's iteration setting; a target ignores it and sizes its first pass itself.
@@ -307,12 +309,19 @@ export class Sim {
 		});
 	}
 
-	// The first player's DPS over one plain raid sim, which emits no result. An abort comes back as its error outcome.
-	async simulateDps(options: DpsSimOptions): Promise<DpsSample | ErrorOutcome> {
+	// The first player's DPS, HPS, TPS, DTPS and TMI over one plain raid sim, which emits no result. An abort comes back as its
+	// error outcome.
+	async simulateStatSweepStep(options: StatSweepStepOptions): Promise<StatSweepSample | ErrorOutcome> {
 		const result = await this.runSim({ ...options, raw: true, silent: true, debugFirstIteration: false });
 		if (!Array.isArray(result)) return result;
-		const { avg, stdev, aggregatorData } = result[1].raidMetrics!.parties[0].players[0].dps!;
-		return { avg, stdev, n: aggregatorData!.n, sumSq: aggregatorData!.sumSq };
+		const { dps, hps, threat, dtps, tmi } = result[1].raidMetrics!.parties[0].players[0];
+		const sample = ({ avg, stdev, aggregatorData }: DistributionMetrics): MetricSample => ({
+			avg,
+			stdev,
+			n: aggregatorData!.n,
+			sumSq: aggregatorData!.sumSq,
+		});
+		return { dps: sample(dps!), hps: sample(hps!), tps: sample(threat!), dtps: sample(dtps!), tmi: sample(tmi!) };
 	}
 
 	private requireRunnableSetup() {
@@ -509,7 +518,7 @@ export class Sim {
 	}
 
 	// The first player's final stats with `bonusStats` added to its bonus stats, without touching its current stats or
-	// metadata. Used by the DPS curve to place each step at the stat's total.
+	// metadata. Used by the stat sweep to place each step at the stat's total.
 	async getFinalStatsWithBonus(bonusStats: Stats): Promise<Stats> {
 		const playerStats = await this.computeEditedPlayerStats(
 			raidProto => {

@@ -5,14 +5,14 @@
 // Load order is a contract; do not reorder:
 //   defaults → saved localStorage settings → URL-hash link import (partial
 //   imports keep the rest) → clear hash → default player name → subscribe
-//   autosave LAST (so initialization doesn't re-store) → stat-weight and DPS
-//   curve settings.
+//   autosave LAST (so initialization doesn't re-store) → stat-weight and stat
+//   sweep settings.
 import { IndividualSimSettings } from '@generated/proto/ui';
 
 import type { SimSettingCategories } from '../constants/sim_settings';
 import type { Player } from '../player/player';
 import { fromJsonStringLenient } from '../proto/lenient_json';
-import type { DpsCurveSettings } from '../settings/dps_curve_settings';
+import type { StatSweepSettings } from '../settings/stat_sweep_settings';
 import type { StatWeightActionSettings } from '../settings/stat_weight_settings';
 import { batch } from './batch';
 import { tryParseUrlLocation } from './sim_links';
@@ -41,7 +41,7 @@ export function loadIndividualSettings(
 		// Store subscription whose fires trigger an autosave of the full envelope.
 		autosaveSubscribe: StoreSubscribe;
 		statWeightSettings: StatWeightActionSettings;
-		dpsCurveSettings: DpsCurveSettings;
+		statSweepSettings: StatSweepSettings;
 	},
 ) {
 	const env = opts.player.sim.env;
@@ -82,7 +82,7 @@ export function loadIndividualSettings(
 			opts.autosaveSubscribe(schedulePersist);
 
 			opts.statWeightSettings.load();
-			opts.dpsCurveSettings.load();
+			opts.statSweepSettings.load();
 		}),
 	);
 
