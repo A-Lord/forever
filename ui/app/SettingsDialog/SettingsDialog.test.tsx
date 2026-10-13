@@ -50,8 +50,8 @@ class FakeSim {
 	setShowExperimental(value: boolean) {
 		this.store.setState(state => ({ ui: { ...state.ui, showExperimental: value } }));
 	}
-	setShowAdvancedOptions(value: boolean) {
-		this.store.setState(state => ({ ui: { ...state.ui, showAdvancedOptions: value } }));
+	setShowPowerTools(value: boolean) {
+		this.store.setState(state => ({ ui: { ...state.ui, showPowerTools: value } }));
 	}
 	setShowQuickSwap(value: boolean) {
 		this.store.setState(state => ({ ui: { ...state.ui, showQuickSwap: value } }));
@@ -130,8 +130,8 @@ const props = (overrides: Partial<SettingsDialogViewProps> = {}): SettingsDialog
 	onShowThreatMetricsChange: vi.fn(),
 	showExperimental: false,
 	onShowExperimentalChange: vi.fn(),
-	showAdvancedOptions: false,
-	onShowAdvancedOptionsChange: vi.fn(),
+	showPowerTools: false,
+	onShowPowerToolsChange: vi.fn(),
 	showQuickSwap: true,
 	onShowQuickSwapChange: vi.fn(),
 	wasmConcurrency: 0,
@@ -177,14 +177,14 @@ describe('SettingsDialogView', () => {
 		act(() => {
 			fireEvent.click(byId('simui-show-threat-metrics'));
 			fireEvent.click(byId('simui-show-experimental'));
-			fireEvent.click(byId('simui-show-advanced-options'));
+			fireEvent.click(byId('simui-show-power-tools'));
 			fireEvent.click(byId('simui-show-quick-swap'));
 		});
 		await pick('simui-concurrent-workers-picker', '2');
 
 		expect(handlers.onShowThreatMetricsChange).toHaveBeenCalledWith(true);
 		expect(handlers.onShowExperimentalChange).toHaveBeenCalledWith(true);
-		expect(handlers.onShowAdvancedOptionsChange).toHaveBeenCalledWith(true);
+		expect(handlers.onShowPowerToolsChange).toHaveBeenCalledWith(true);
 		expect(handlers.onShowQuickSwapChange).toHaveBeenCalledWith(false);
 		expect(handlers.onWasmConcurrencyChange).toHaveBeenCalledWith(2);
 	});

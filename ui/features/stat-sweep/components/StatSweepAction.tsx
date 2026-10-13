@@ -18,7 +18,7 @@ export interface StatSweepActionProps {
 
 export const StatSweepAction = ({ settings }: StatSweepActionProps) => {
 	const host = useSimHost();
-	const shown = useUiStore('showAdvancedOptions');
+	const shown = useUiStore('showPowerTools');
 	const sidebarDisabled = use(SidebarDisabledContext);
 	const { status } = useSimStatus(useSim());
 	const [open, setOpen] = useState(false);

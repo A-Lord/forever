@@ -20,8 +20,8 @@ const meta = {
 		onShowThreatMetricsChange: fn(),
 		showExperimental: false,
 		onShowExperimentalChange: fn(),
-		showAdvancedOptions: false,
-		onShowAdvancedOptionsChange: fn(),
+		showPowerTools: false,
+		onShowPowerToolsChange: fn(),
 		showQuickSwap: true,
 		onShowQuickSwapChange: fn(),
 		wasmConcurrency: 4,
@@ -44,7 +44,7 @@ const LiveSettingsDialog = (args: ViewProps) => {
 	const [language, setLanguage] = useState(args.language);
 	const [showThreatMetrics, setShowThreatMetrics] = useState(args.showThreatMetrics);
 	const [showExperimental, setShowExperimental] = useState(args.showExperimental);
-	const [showAdvancedOptions, setShowAdvancedOptions] = useState(args.showAdvancedOptions);
+	const [showPowerTools, setShowPowerTools] = useState(args.showPowerTools);
 	const [showQuickSwap, setShowQuickSwap] = useState(args.showQuickSwap);
 	const [wasmConcurrency, setWasmConcurrency] = useState(args.wasmConcurrency);
 	const relay =
@@ -66,8 +66,8 @@ const LiveSettingsDialog = (args: ViewProps) => {
 			onShowThreatMetricsChange={relay(setShowThreatMetrics, args.onShowThreatMetricsChange)}
 			showExperimental={showExperimental}
 			onShowExperimentalChange={relay(setShowExperimental, args.onShowExperimentalChange)}
-			showAdvancedOptions={showAdvancedOptions}
-			onShowAdvancedOptionsChange={relay(setShowAdvancedOptions, args.onShowAdvancedOptionsChange)}
+			showPowerTools={showPowerTools}
+			onShowPowerToolsChange={relay(setShowPowerTools, args.onShowPowerToolsChange)}
 			showQuickSwap={showQuickSwap}
 			onShowQuickSwapChange={relay(setShowQuickSwap, args.onShowQuickSwapChange)}
 			wasmConcurrency={wasmConcurrency}

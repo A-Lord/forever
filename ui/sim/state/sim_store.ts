@@ -37,7 +37,7 @@ export interface UISlice {
 	showThreatMetrics: boolean;
 	showHealingMetrics: boolean;
 	showExperimental: boolean;
-	showAdvancedOptions: boolean;
+	showPowerTools: boolean;
 	wasmConcurrency: number;
 	showQuickSwap: boolean;
 	showEPValues: boolean;
@@ -297,7 +297,7 @@ const initialState = (): SimState => ({
 		showThreatMetrics: false,
 		showHealingMetrics: false,
 		showExperimental: false,
-		showAdvancedOptions: false,
+		showPowerTools: false,
 		wasmConcurrency: 0,
 		showQuickSwap: true,
 		showEPValues: false,

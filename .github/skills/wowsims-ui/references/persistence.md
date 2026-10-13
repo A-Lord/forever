@@ -44,7 +44,7 @@ spec's key. The suffixes live in `ui/sim/state/storage_keys.ts` (the saved-data 
 `STAT_WEIGHT_SETTINGS_STORAGE_KEY`) and in `persistence.ts` (`SETTINGS_STORAGE_SUFFIX` for the settings envelope).
 
 A few keys skip the spec prefix, so every sim shares them: `SHARED_SAVED_ENCOUNTER_STORAGE_KEY` (saved encounters),
-and in `ui/sim/sim.ts` the app-wide preferences `WASM_CONCURRENCY_STORAGE_KEY` and `SHOW_ADVANCED_OPTIONS_STORAGE_KEY`.
+and in `ui/sim/sim.ts` the app-wide preferences `WASM_CONCURRENCY_STORAGE_KEY` and `SHOW_POWER_TOOLS_STORAGE_KEY`.
 `Sim` reads those two in its constructor and writes them in their setters; they stay out of the settings envelope, so
 a spec's Restore Defaults leaves them alone. A new key goes through `getStorageKey` unless it must be shared across
 specs, and then says so in a comment, since the shared form is easy to copy by accident.

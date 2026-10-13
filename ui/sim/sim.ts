@@ -73,7 +73,7 @@ import { generateRequestId, WorkerPool, WorkerProgressCallback } from './workers
 
 export const WASM_CONCURRENCY_STORAGE_KEY = `${LOCAL_STORAGE_PREFIX}_wasmconcurrency`;
 // Without the spec prefix, so every spec page shares the one setting.
-export const SHOW_ADVANCED_OPTIONS_STORAGE_KEY = `${LOCAL_STORAGE_PREFIX}_showadvancedoptions`;
+export const SHOW_POWER_TOOLS_STORAGE_KEY = `${LOCAL_STORAGE_PREFIX}_showpowertools`;
 export type ReforgeOptimizeConfig = {
 	gear: Gear;
 	preCapEPWeights: Stats;
@@ -180,7 +180,7 @@ export class Sim {
 			}
 		}
 		this.setWasmConcurrency(wasmConcurrencySetting);
-		this.setShowAdvancedOptions(this.env.storage.getItem(SHOW_ADVANCED_OPTIONS_STORAGE_KEY) === 'true');
+		this.setShowPowerTools(this.env.storage.getItem(SHOW_POWER_TOOLS_STORAGE_KEY) === 'true');
 
 		this.signalManager = new SimSignalManager();
 		this.runs = new SimRuns(this.store, this.signalManager);
@@ -851,13 +851,13 @@ export class Sim {
 		if (newShowExperimental != this.ui.showExperimental) this.setUi({ showExperimental: newShowExperimental });
 	}
 
-	getShowAdvancedOptions(): boolean {
-		return this.ui.showAdvancedOptions;
+	getShowPowerTools(): boolean {
+		return this.ui.showPowerTools;
 	}
-	setShowAdvancedOptions(newShowAdvancedOptions: boolean) {
-		if (newShowAdvancedOptions != this.ui.showAdvancedOptions) {
-			this.env.storage.setItem(SHOW_ADVANCED_OPTIONS_STORAGE_KEY, newShowAdvancedOptions.toString());
-			this.setUi({ showAdvancedOptions: newShowAdvancedOptions });
+	setShowPowerTools(newShowPowerTools: boolean) {
+		if (newShowPowerTools != this.ui.showPowerTools) {
+			this.env.storage.setItem(SHOW_POWER_TOOLS_STORAGE_KEY, newShowPowerTools.toString());
+			this.setUi({ showPowerTools: newShowPowerTools });
 		}
 	}
 

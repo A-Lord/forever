@@ -19,18 +19,18 @@ const renderAction = (simDisabled = false) => {
 const action = () => screen.queryByRole('button', { name: i18n.t('sidebar.buttons.stat_sweep.title') });
 
 describe('StatSweepAction', () => {
-	it('shows only while Show advanced options is on, as an icon button named for the tool', () => {
+	it('shows only while Show power tools is on, as an icon button named for the tool', () => {
 		const store = renderAction();
 		expect(action()).toBeNull();
 
-		act(() => patchSlice(store, 'ui', { showAdvancedOptions: true }));
+		act(() => patchSlice(store, 'ui', { showPowerTools: true }));
 		expect(action()).not.toBeNull();
 		expect(action()!.textContent).toBe('');
 	});
 
 	it('opens the stat sweep dialog', async () => {
 		const store = renderAction();
-		act(() => patchSlice(store, 'ui', { showAdvancedOptions: true }));
+		act(() => patchSlice(store, 'ui', { showPowerTools: true }));
 		await act(async () => {});
 
 		fireEvent.click(action()!);
@@ -40,7 +40,7 @@ describe('StatSweepAction', () => {
 
 	it('stays hidden in a gear planner, which runs no sims', () => {
 		const store = renderAction(true);
-		act(() => patchSlice(store, 'ui', { showAdvancedOptions: true }));
+		act(() => patchSlice(store, 'ui', { showPowerTools: true }));
 
 		expect(action()).toBeNull();
 	});

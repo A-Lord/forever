@@ -68,31 +68,31 @@ describe('loadIndividualSettings', () => {
 	});
 });
 
-describe('Show advanced options', () => {
+describe('Show power tools', () => {
 	it('starts off', async () => {
 		const { sim } = await makeIndividualSim();
 
-		expect(sim.getShowAdvancedOptions()).toBe(false);
+		expect(sim.getShowPowerTools()).toBe(false);
 	});
 
 	it("is one setting for every spec page, outside a page's saved settings, and its defaults keep it", async () => {
 		const env = memoryEnv();
-		(await makeIndividualSim({ env })).sim.setShowAdvancedOptions(true);
+		(await makeIndividualSim({ env })).sim.setShowPowerTools(true);
 
 		const protection = await makeIndividualSim({ spec: Spec.SpecProtectionWarrior, env });
-		expect(protection.sim.getShowAdvancedOptions()).toBe(true);
+		expect(protection.sim.getShowPowerTools()).toBe(true);
 
 		loadSettings(protection);
 		protection.host.applyDefaults();
-		expect(protection.sim.getShowAdvancedOptions()).toBe(true);
-		expect(env.storage.getItem(STORAGE_KEY)).not.toContain('showAdvancedOptions');
+		expect(protection.sim.getShowPowerTools()).toBe(true);
+		expect(env.storage.getItem(STORAGE_KEY)).not.toContain('showPowerTools');
 	});
 
 	it('stays off on the next page once turned off', async () => {
 		const env = memoryEnv();
-		(await makeIndividualSim({ env })).sim.setShowAdvancedOptions(true);
-		(await makeIndividualSim({ env })).sim.setShowAdvancedOptions(false);
+		(await makeIndividualSim({ env })).sim.setShowPowerTools(true);
+		(await makeIndividualSim({ env })).sim.setShowPowerTools(false);
 
-		expect((await makeIndividualSim({ env })).sim.getShowAdvancedOptions()).toBe(false);
+		expect((await makeIndividualSim({ env })).sim.getShowPowerTools()).toBe(false);
 	});
 });

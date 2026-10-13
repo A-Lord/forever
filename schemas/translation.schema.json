@@ -8404,10 +8404,10 @@
 								"show_experimental": {
 									"type": "string"
 								},
-								"show_advanced_options": {
+								"show_power_tools": {
 									"type": "string"
 								},
-								"show_advanced_options_tooltip": {
+								"show_power_tools_tooltip": {
 									"type": "string"
 								},
 								"show_quick_swap": {
@@ -8415,13 +8415,7 @@
 								}
 							},
 							"additionalProperties": false,
-							"required": [
-								"show_threat_metrics",
-								"show_experimental",
-								"show_advanced_options",
-								"show_advanced_options_tooltip",
-								"show_quick_swap"
-							]
+							"required": ["show_threat_metrics", "show_experimental", "show_power_tools", "show_power_tools_tooltip", "show_quick_swap"]
 						},
 						"use_multiple_cpu_cores": {
 							"type": "object",

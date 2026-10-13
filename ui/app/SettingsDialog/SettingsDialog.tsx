@@ -30,8 +30,8 @@ export interface SettingsDialogViewProps {
 	onShowThreatMetricsChange: (show: boolean) => void;
 	showExperimental: boolean;
 	onShowExperimentalChange: (show: boolean) => void;
-	showAdvancedOptions: boolean;
-	onShowAdvancedOptionsChange: (show: boolean) => void;
+	showPowerTools: boolean;
+	onShowPowerToolsChange: (show: boolean) => void;
 	showQuickSwap: boolean;
 	onShowQuickSwapChange: (show: boolean) => void;
 	wasmConcurrency: number;
@@ -72,8 +72,8 @@ export const SettingsDialogView = ({
 	onShowThreatMetricsChange,
 	showExperimental,
 	onShowExperimentalChange,
-	showAdvancedOptions,
-	onShowAdvancedOptionsChange,
+	showPowerTools,
+	onShowPowerToolsChange,
 	showQuickSwap,
 	onShowQuickSwapChange,
 	wasmConcurrency,
@@ -147,14 +147,14 @@ export const SettingsDialogView = ({
 						onChange={onShowExperimentalChange}
 					/>
 				</div>
-				<div className="w-1/2 pr-2" data-testid="show-advanced-options-picker">
+				<div className="w-1/2 pr-2" data-testid="show-power-tools-picker">
 					<BooleanPicker
-						id="simui-show-advanced-options"
-						label={i18n.t('info.options.feature_toggles.show_advanced_options')}
-						labelTooltip={i18n.t('info.options.feature_toggles.show_advanced_options_tooltip')}
+						id="simui-show-power-tools"
+						label={i18n.t('info.options.feature_toggles.show_power_tools')}
+						labelTooltip={i18n.t('info.options.feature_toggles.show_power_tools_tooltip')}
 						layout="inline"
-						value={showAdvancedOptions}
-						onChange={onShowAdvancedOptionsChange}
+						value={showPowerTools}
+						onChange={onShowPowerToolsChange}
 					/>
 				</div>
 				<div className="w-1/2 pr-2" data-testid="show-quick-swap-picker">
@@ -196,7 +196,7 @@ export const SettingsDialog = ({ open, onOpenChange, host }: SettingsDialogProps
 	const language = useUiStore('language');
 	const showThreatMetrics = useUiStore('showThreatMetrics');
 	const showExperimental = useUiStore('showExperimental');
-	const showAdvancedOptions = useUiStore('showAdvancedOptions');
+	const showPowerTools = useUiStore('showPowerTools');
 	const showQuickSwap = useUiStore('showQuickSwap');
 	const wasmConcurrency = useUiStore('wasmConcurrency');
 
@@ -226,9 +226,9 @@ export const SettingsDialog = ({ open, onOpenChange, host }: SettingsDialogProps
 		sim.setShowExperimental(show);
 	};
 
-	const setShowAdvancedOptions = (show: boolean) => {
-		trackEvent({ action: 'settings', category: 'show-advanced-options', label: 'update', value: show });
-		sim.setShowAdvancedOptions(show);
+	const setShowPowerTools = (show: boolean) => {
+		trackEvent({ action: 'settings', category: 'show-power-tools', label: 'update', value: show });
+		sim.setShowPowerTools(show);
 	};
 
 	const setWasmConcurrency = (workers: number) => {
@@ -255,8 +255,8 @@ export const SettingsDialog = ({ open, onOpenChange, host }: SettingsDialogProps
 			onShowThreatMetricsChange={show => sim.setShowThreatMetrics(show)}
 			showExperimental={showExperimental}
 			onShowExperimentalChange={setShowExperimental}
-			showAdvancedOptions={showAdvancedOptions}
-			onShowAdvancedOptionsChange={setShowAdvancedOptions}
+			showPowerTools={showPowerTools}
+			onShowPowerToolsChange={setShowPowerTools}
 			showQuickSwap={showQuickSwap}
 			onShowQuickSwapChange={show => sim.setShowQuickSwap(show)}
 			wasmConcurrency={wasmConcurrency}
