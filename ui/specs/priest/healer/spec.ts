@@ -1,8 +1,7 @@
 import * as BuffDebuffInputs from '@features/settings/model/buffs_debuffs';
 import { APLRotation } from '@generated/proto/apl';
 import { Debuffs } from '@generated/proto/buffs';
-import { EquipmentSpec, PseudoStat, Spec, Stat } from '@generated/proto/common';
-import { SavedTalents } from '@generated/proto/ui';
+import { PseudoStat, Spec, Stat } from '@generated/proto/common';
 import { PlayerClasses } from '@sim/player/classes';
 import { Player } from '@sim/player/player';
 import { Stats, UnitStat } from '@sim/proto/stats';
@@ -22,10 +21,10 @@ export default defineSpec<Spec.SpecHealerPriest>({
 	className: 'healer-priest-sim-ui',
 	cssScheme: PlayerClasses.getCssScheme(PlayerClasses.Priest),
 	// List any known bugs / issues here and they'll be shown on the site.
-	knownIssues: [],
+	knownIssues: ["Holy Specialization does not show the extra crit percent"],
 
 	// All stats for which EP should be calculated.
-	epStats: [Stat.StatIntellect, Stat.StatSpirit, Stat.StatHealingPower, Stat.StatCritRating, Stat.StatHasteRating, Stat.StatMP5],
+	epStats: [Stat.StatIntellect, Stat.StatSpirit, Stat.StatHealingPower, Stat.StatCritRating, Stat.StatHasteRating, Stat.StatMP5, Stat.StatMana,],
 	// Reference stat against which to calculate EP.
 	epReferenceStat: Stat.StatHealingPower,
 	// Which stats to display in the Character Stats section, at the bottom of the left-hand sidebar.
@@ -36,13 +35,13 @@ export default defineSpec<Spec.SpecHealerPriest>({
 
 	defaults: {
 		// Default equipped gear.
-		gear: EquipmentSpec.create(),
+		gear: Presets.PreRaidGear.gear,
 		// Default EP weights for sorting gear in the gear picker.
 		epWeights: new Stats(),
 		// Default consumes settings.
 		consumables: Presets.DefaultConsumables,
 		// Default talents.
-		talents: SavedTalents.create(),
+		talents: Presets.HolyTalents.data,
 		// Default spec-specific settings.
 		specOptions: Presets.DefaultOptions,
 		other: Presets.OtherDefaults,
@@ -59,7 +58,15 @@ export default defineSpec<Spec.SpecHealerPriest>({
 	// Stamina is not an EP stat for healers, but the buff still belongs in the stats panel.
 	includeBuffDebuffInputs: [BuffDebuffInputs.PrayerOfFortitude],
 	// These encounter buffs do not affect the healer's current spell model.
-	excludeBuffDebuffInputs: [BuffDebuffInputs.Thorns, BuffDebuffInputs.Innervate, BuffDebuffInputs.PowerInfusion, BuffDebuffInputs.ManaTideTotem],
+	excludeBuffDebuffInputs: [
+		BuffDebuffInputs.Thorns,
+		BuffDebuffInputs.PowerInfusion,
+		BuffDebuffInputs.AtieshDruid,
+		BuffDebuffInputs.AtieshMage,
+		BuffDebuffInputs.AtieshPriest,
+		BuffDebuffInputs.AtieshWarlock,
+
+	],
 	// Inputs to include in the 'Other' section on the settings tab.
 	otherInputs: {
 		inputs: [

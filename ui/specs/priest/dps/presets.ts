@@ -32,6 +32,8 @@ export const DefaultConsumables = ConsumesSpec.create({
 	foodId: Consumables.NightfinSoup.id,
 	mhImbueId: Consumables.BrilliantWizardOil.id,
 	offensivePotId: Consumables.MajorSpellblastingPotion.id,
+	resourcePotId: Consumables.MajorManaPotion.id,
+	conjuredId: Consumables.DemonicRune.id,
 	elixirIds: [
 		Consumables.ElixirOfShadowPower.id,
 		Consumables.GreaterArcaneElixir.id,

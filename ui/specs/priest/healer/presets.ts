@@ -5,6 +5,8 @@ import { HealerPriest_Options as HealerPriestOptions, PriestOptions_Armor } from
 import { SavedTalents } from '@generated/proto/ui';
 import { Stats } from '@sim/proto/stats';
 
+import PreraidGearJson from './gear_sets/preraid.gear.json';
+
 export const DefaultOptions = HealerPriestOptions.create({
 	prayerOfMendingJumps: 5,
 	prayerOfMendingDelay: 2.5,
@@ -15,8 +17,18 @@ export const DefaultOptions = HealerPriestOptions.create({
 });
 
 export const DefaultConsumables = ConsumesSpec.create({
-	foodId: Consumables.SoaringPamplona.id,
+	foodId: Consumables.SunnyTea.id,
+	mhImbueId: Consumables.BrilliantManaOil.id,
 	resourcePotId: Consumables.MajorManaPotion.id,
+	conjuredId: Consumables.DemonicRune.id,
+	elixirIds: [
+		Consumables.ElixirOfTheGrizzly.id,
+		Consumables.ElixirOfCunning.id,
+		Consumables.ElixirOfTheOwl.id,
+		Consumables.ElixirOfSages.id,
+		Consumables.GreaterMagebloodElixir.id,
+		Consumables.GreaterClericsElixir.id,
+	],
 });
 
 export const OtherDefaults = {
@@ -25,11 +37,10 @@ export const OtherDefaults = {
 	profession2: Profession.Enchanting,
 };
 
-// export const PreraidGear = PresetUtils.makePresetGear('Pre-raid', PreraidGearJson);
-// export const PreraidSmite = PresetUtils.makePresetGear('Smite Pre-raid', PreraidSmiteGear);
-
 export const DiscTalents = PresetUtils.makePresetTalents('Disc', SavedTalents.create({ talentsString: '005023021305101531-335001030301' }));
 export const HolyTalents = PresetUtils.makePresetTalents('Holy', SavedTalents.create({ talentsString: '005203011301-33505003030121531' }));
+
+export const PreRaidGear = PresetUtils.makePresetGear('Pre-raid', PreraidGearJson);
 
 export const DiscSingleTargetEpWeights = PresetUtils.makePresetEpWeights(
 	'Disc Single-Target',

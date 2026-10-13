@@ -9,6 +9,7 @@ import { PriestSpecs } from '@sim/proto/spec_types';
 export const ArmorInput = <SpecType extends PriestSpecs>() =>
 	InputHelpers.makeClassOptionsEnumIconInput<SpecType, Armor>({
 		fieldName: 'armor',
+		label: 'Inner Fire',
 		values: [
 			{ value: Armor.NoArmor, tooltip: 'No Inner Fire' },
 			{ actionId: ActionId.fromSpellId(10952), value: Armor.InnerFire },
