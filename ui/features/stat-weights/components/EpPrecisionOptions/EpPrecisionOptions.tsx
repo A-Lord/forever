@@ -10,13 +10,11 @@ export interface EpPrecisionOptionsProps {
 	/** The sim's iteration setting, shown while `value.iterations` is 0. */
 	defaultIterations: number;
 	disabled?: boolean;
-	/** Keeps the field ids apart where the dialog mounts this once per tab. */
-	idPrefix?: string;
 }
 
 const t = (key: string) => i18n.t(`sidebar.buttons.stat_weights.precision.${key}`);
 
-export const EpPrecisionOptions = ({ value, onChange, defaultIterations, disabled, idPrefix = 'ep-precision' }: EpPrecisionOptionsProps) => {
+export const EpPrecisionOptions = ({ value, onChange, defaultIterations, disabled }: EpPrecisionOptionsProps) => {
 	const target = value.precisionMode === 'target';
 	return (
 		<div className="flex flex-col gap-2">
@@ -36,7 +34,7 @@ export const EpPrecisionOptions = ({ value, onChange, defaultIterations, disable
 			{target ? (
 				<div className="grid grid-cols-2 gap-4">
 					<NumberField
-						id={`${idPrefix}-target`}
+						id="ep-precision-target"
 						label={t('target_ep_ci')}
 						labelTooltip={t('target_ep_ci_tooltip')}
 						float
@@ -47,7 +45,7 @@ export const EpPrecisionOptions = ({ value, onChange, defaultIterations, disable
 						onChange={targetEpCi => onChange({ targetEpCi })}
 					/>
 					<NumberField
-						id={`${idPrefix}-max-multiplier`}
+						id="ep-precision-max-multiplier"
 						label={t('max_multiplier')}
 						labelTooltip={t('max_multiplier_tooltip')}
 						positive
@@ -60,7 +58,7 @@ export const EpPrecisionOptions = ({ value, onChange, defaultIterations, disable
 				</div>
 			) : (
 				<NumberField
-					id={`${idPrefix}-iterations`}
+					id="ep-precision-iterations"
 					label={t('iterations')}
 					labelTooltip={t('iterations_tooltip')}
 					positive

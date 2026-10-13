@@ -30,6 +30,8 @@ export interface SettingsDialogViewProps {
 	onShowThreatMetricsChange: (show: boolean) => void;
 	showExperimental: boolean;
 	onShowExperimentalChange: (show: boolean) => void;
+	showAdvancedOptions: boolean;
+	onShowAdvancedOptionsChange: (show: boolean) => void;
 	showQuickSwap: boolean;
 	onShowQuickSwapChange: (show: boolean) => void;
 	wasmConcurrency: number;
@@ -70,6 +72,8 @@ export const SettingsDialogView = ({
 	onShowThreatMetricsChange,
 	showExperimental,
 	onShowExperimentalChange,
+	showAdvancedOptions,
+	onShowAdvancedOptionsChange,
 	showQuickSwap,
 	onShowQuickSwapChange,
 	wasmConcurrency,
@@ -143,6 +147,16 @@ export const SettingsDialogView = ({
 						onChange={onShowExperimentalChange}
 					/>
 				</div>
+				<div className="w-1/2 pr-2" data-testid="show-advanced-options-picker">
+					<BooleanPicker
+						id="simui-show-advanced-options"
+						label={i18n.t('info.options.feature_toggles.show_advanced_options')}
+						labelTooltip={i18n.t('info.options.feature_toggles.show_advanced_options_tooltip')}
+						layout="inline"
+						value={showAdvancedOptions}
+						onChange={onShowAdvancedOptionsChange}
+					/>
+				</div>
 				<div className="w-1/2 pr-2" data-testid="show-quick-swap-picker">
 					<BooleanPicker
 						id="simui-show-quick-swap"
@@ -182,6 +196,7 @@ export const SettingsDialog = ({ open, onOpenChange, host }: SettingsDialogProps
 	const language = useUiStore('language');
 	const showThreatMetrics = useUiStore('showThreatMetrics');
 	const showExperimental = useUiStore('showExperimental');
+	const showAdvancedOptions = useUiStore('showAdvancedOptions');
 	const showQuickSwap = useUiStore('showQuickSwap');
 	const wasmConcurrency = useUiStore('wasmConcurrency');
 
@@ -211,6 +226,11 @@ export const SettingsDialog = ({ open, onOpenChange, host }: SettingsDialogProps
 		sim.setShowExperimental(show);
 	};
 
+	const setShowAdvancedOptions = (show: boolean) => {
+		trackEvent({ action: 'settings', category: 'show-advanced-options', label: 'update', value: show });
+		sim.setShowAdvancedOptions(show);
+	};
+
 	const setWasmConcurrency = (workers: number) => {
 		trackEvent({ action: 'settings', category: 'concurrency', label: 'update', value: workers });
 		sim.setWasmConcurrency(workers);
@@ -235,6 +255,8 @@ export const SettingsDialog = ({ open, onOpenChange, host }: SettingsDialogProps
 			onShowThreatMetricsChange={show => sim.setShowThreatMetrics(show)}
 			showExperimental={showExperimental}
 			onShowExperimentalChange={setShowExperimental}
+			showAdvancedOptions={showAdvancedOptions}
+			onShowAdvancedOptionsChange={setShowAdvancedOptions}
 			showQuickSwap={showQuickSwap}
 			onShowQuickSwapChange={show => sim.setShowQuickSwap(show)}
 			wasmConcurrency={wasmConcurrency}

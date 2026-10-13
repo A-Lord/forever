@@ -1,0 +1,248 @@
+import { deleteRun, type DpsCurvePoint, type DpsCurveRecord, listRuns, saveRun } from '@sim/cache/dps_curve_history';
+import { usePlayer, useSim } from '@sim/context/SimHostContext';
+import { useSimRun } from '@sim/hooks/useSimRun';
+import { Stats, UnitStat } from '@sim/proto/stats';
+import type { DpsCurvePrecision } from '@sim/settings/dps_curve_settings';
+import { SimRunKind } from '@sim/state/sim_store';
+import { randomUUID } from '@sim/utils/misc';
+import { toastManager } from '@ui-kit/Toast';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
+import { SERIES_SLOT_COUNT } from '../components/DpsCurveDialog/colors';
+import type { DpsCurveSeries } from '../components/DpsCurveDialog/DpsCurveChart';
+import type { DpsCurveHistoryEntry } from '../components/DpsCurveDialog/DpsCurveHistory';
+import {
+	advanceCurveProgress,
+	buildCurveOffsets,
+	curveSteps,
+	displayColorSlots,
+	type DpsCurveProgress,
+	type DpsPassRunner,
+	measureDpsStep,
+	mergeCurveHistory,
+	nextColorSlot,
+	startCurveProgress,
+} from '../model/dps_curve';
+
+export interface DpsCurveStatArgs {
+	unitStat: UnitStat;
+	label: string;
+	/** The stat's current total. */
+	baseStatValue: number;
+}
+
+export interface DpsCurveArgs {
+	/** Run one after another, each on its own and saved as its own run. */
+	stats: DpsCurveStatArgs[];
+	range: number;
+	step: number;
+	precision: DpsCurvePrecision;
+}
+
+export interface UseDpsCurveOptions {
+	onProgress?: (progress: DpsCurveProgress) => void;
+}
+
+interface CurveView {
+	history: DpsCurveRecord[];
+	/** The run in progress, drawn as its points arrive. */
+	live: DpsCurveRecord | null;
+	overlaid: ReadonlyArray<string>;
+}
+
+const shownRuns = ({ history, live, overlaid }: CurveView): DpsCurveRecord[] => [...(live ? [live] : []), ...history.filter(run => overlaid.includes(run.id))];
+
+// The slot of each shown run, oldest first so a clash moves the newer run.
+const shownColorSlots = (shown: DpsCurveRecord[]) => displayColorSlots(shown.slice().reverse(), SERIES_SLOT_COUNT);
+
+export const useDpsCurve = ({ onProgress }: UseDpsCurveOptions = {}) => {
+	const sim = useSim();
+	const player = usePlayer();
+	// Read at emit time, so a caller may pass a fresh closure every render.
+	const progressRef = useRef(onProgress);
+	progressRef.current = onProgress;
+	const { isRunning, abort } = useSimRun(SimRunKind.DpsCurve);
+	const [view, setView] = useState<CurveView>({ history: [], live: null, overlaid: [] });
+	const history = useRef(view.history);
+	history.current = view.history;
+
+	useEffect(() => {
+		let active = true;
+		listRuns(player.getSpec())
+			.then(stored => {
+				if (!active) return;
+				setView(current => {
+					const merged = mergeCurveHistory(current.history, stored);
+					// With no run in progress and none ticked yet, the newest stored run is drawn.
+					const overlaid = current.live || current.overlaid.length || !merged.length ? current.overlaid : [merged[0].id];
+					return { ...current, history: merged, overlaid };
+				});
+			})
+			.catch(console.error);
+		return () => {
+			active = false;
+		};
+	}, [player]);
+
+	const run = useCallback(
+		(args: DpsCurveArgs) => {
+			const { precision } = args;
+			// Every step of every stat runs at this seed, so the steps differ only by the stat.
+			const seed = sim.nextRngSeed();
+			const defaultIterations = sim.getIterations();
+			// The history read here holds none of this run's stats, so each stat takes the slot after the one before.
+			const firstSlot = nextColorSlot(history.current, SERIES_SLOT_COUNT);
+
+			// Moves a stat's run into the history and saves it, or drops it when no step finished.
+			const keep = async (record: DpsCurveRecord, points: DpsCurvePoint[]) => {
+				if (!points.length) {
+					setView(current => ({ ...current, live: null, overlaid: current.overlaid.filter(id => id !== record.id) }));
+					return;
+				}
+				const finished = { ...record, points };
+				setView(current => ({ ...current, live: null, history: [finished, ...current.history] }));
+				await saveRun(finished).catch(console.error);
+			};
+
+			return sim.runs.start(SimRunKind.DpsCurve, async () => {
+				try {
+					const offsets = buildCurveOffsets(args.range, args.step);
+					// Reported before the totals resolve, so the progress dialog has its full layout from the start.
+					progressRef.current?.(startCurveProgress(args.stats.map(() => offsets.length)));
+					// Every stat's totals before the first step, so the bar and the estimate span the whole run.
+					const batch = await Promise.all(
+						args.stats.map(({ unitStat }) =>
+							Promise.all(
+								offsets.map(offset =>
+									sim.getFinalStatsWithBonus(new Stats().withUnitStat(unitStat, offset)).then(finalStats => finalStats.getUnitStat(unitStat)),
+								),
+							).then(totals => curveSteps(offsets, totals)),
+						),
+					);
+					const startedAt = Date.now();
+					let progress = startCurveProgress(batch.map(steps => steps.length));
+					progressRef.current?.(progress);
+					let stepsBefore = 0;
+					// The last finished step's iterations: in Target ± mode a step's total is known only after its first pass, and
+					// neighbouring steps need about as many, so the bar sizes a step by it until its own plan is larger.
+					let lastStepIterations = 0;
+					for (const [statIndex, { unitStat, label, baseStatValue }] of args.stats.entries()) {
+						if (sim.runs.isAborting(SimRunKind.DpsCurve)) break;
+						const record: DpsCurveRecord = {
+							id: randomUUID(),
+							createdAt: Date.now(),
+							specId: player.getSpec(),
+							label,
+							colorSlot: (firstSlot + statIndex) % SERIES_SLOT_COUNT,
+							unitStat: unitStat.toJson(),
+							range: args.range,
+							step: args.step,
+							precision,
+							baseStatValue,
+							points: [],
+						};
+						setView(current => ({ ...current, live: record, overlaid: [...current.overlaid, record.id] }));
+						const points: DpsCurvePoint[] = [];
+						let stopped = false;
+						try {
+							for (const [index, step] of batch[statIndex].entries()) {
+								if (sim.runs.isAborting(SimRunKind.DpsCurve)) {
+									stopped = true;
+									break;
+								}
+								const bonusStats = new Stats().withUnitStat(unitStat, step.offset);
+								let planned = 0;
+								const report = (done: number) => {
+									progress = advanceCurveProgress(
+										progress,
+										stepsBefore + index,
+										done,
+										Math.max(planned, lastStepIterations),
+										(Date.now() - startedAt) / 1000,
+									);
+									progressRef.current?.(progress);
+								};
+								const runPass: DpsPassRunner = async (iterations, seedOffset) => {
+									if (sim.runs.isAborting(SimRunKind.DpsCurve)) return null;
+									const result = await sim.simulateDps({
+										iterations,
+										seed: seed + seedOffset,
+										bonusStats,
+										onProgress: metrics => report(seedOffset + metrics.completedIterations),
+									});
+									// An aborted pass comes back as its error outcome.
+									return 'avg' in result ? result : null;
+								};
+								const sample = await measureDpsStep(runPass, precision, defaultIterations, total => {
+									planned = total;
+								});
+								if (!sample) {
+									stopped = true;
+									break;
+								}
+								lastStepIterations = sample.n;
+								points.push({ ...step, dps: sample.avg, dpsStdev: sample.stdev, samples: sample.n });
+								const live = { ...record, points: points.slice() };
+								setView(current => ({ ...current, live }));
+							}
+						} finally {
+							await keep(record, points);
+						}
+						if (stopped) break;
+						stepsBefore += batch[statIndex].length;
+					}
+				} catch (error: any) {
+					console.error(error);
+					toastManager.add({ variant: 'error', body: error?.message || 'Something went wrong running the DPS curve.' });
+				}
+			});
+		},
+		[sim, player],
+	);
+
+	const cancel = useCallback(() => {
+		abort().catch(console.error);
+	}, [abort]);
+
+	const remove = useCallback((id: string) => {
+		setView(current => ({
+			...current,
+			history: current.history.filter(run => run.id !== id),
+			overlaid: current.overlaid.filter(other => other !== id),
+		}));
+		deleteRun(id).catch(console.error);
+	}, []);
+
+	const setOverlaid = useCallback(
+		(id: string, overlaid: boolean) =>
+			setView(current => ({ ...current, overlaid: overlaid ? [...current.overlaid, id] : current.overlaid.filter(other => other !== id) })),
+		[],
+	);
+
+	const series = useMemo<DpsCurveSeries[]>(() => {
+		const shown = shownRuns(view);
+		const colorSlots = shownColorSlots(shown);
+		return shown.map(run => ({
+			id: run.id,
+			label: run.label,
+			colorSlot: colorSlots[run.id],
+			statLabel: UnitStat.fromJson(run.unitStat).getFullName(player.getClass()),
+			baseStatValue: run.baseStatValue,
+			points: run.points,
+		}));
+	}, [view, player]);
+	const historyEntries = useMemo<DpsCurveHistoryEntry[]>(() => {
+		const colorSlots = Object.fromEntries(series.map(run => [run.id, run.colorSlot]));
+		return view.history.map(run => ({
+			id: run.id,
+			label: run.label,
+			createdAt: run.createdAt,
+			overlaid: view.overlaid.includes(run.id),
+			colorSlot: colorSlots[run.id],
+		}));
+	}, [view, series]);
+
+	return { isRunning, series, historyEntries, run, cancel, remove, setOverlaid };
+};
+
+export type DpsCurve = ReturnType<typeof useDpsCurve>;

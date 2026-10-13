@@ -1,13 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
-import { StatSweepTimeRemaining } from './StatSweepTimeRemaining';
+import { DpsCurveTimeRemaining } from './DpsCurveTimeRemaining';
 
 const meta = {
-	title: 'Features/StatWeights/StatSweep/StatSweepTimeRemaining',
-	component: StatSweepTimeRemaining,
+	title: 'Features/DpsCurve/DpsCurveTimeRemaining',
+	component: DpsCurveTimeRemaining,
 	tags: ['autodocs'],
 	args: { seconds: 95 },
-} satisfies Meta<typeof StatSweepTimeRemaining>;
+} satisfies Meta<typeof DpsCurveTimeRemaining>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

@@ -26,7 +26,7 @@ back the character-stat recomputation until the load ends and then runs it once:
 4. `env.location.setHash('')`
 5. `player.setName('Player')`
 6. `opts.autosaveSubscribe(schedulePersist)`, last, so initialization does not re-store what it just loaded
-7. `opts.statWeightSettings.load()`
+7. `opts.statWeightSettings.load()`, then `opts.dpsCurveSettings.load()`
 
 Then one explicit `persist()` outside the batch, because the autosave subscription only sees changes made after it
 existed.

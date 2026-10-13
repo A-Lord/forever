@@ -2382,6 +2382,8 @@
 			"feature_toggles": {
 				"show_threat_metrics": "Show Threat/Tank Options",
 				"show_experimental": "Show Experimental",
+				"show_advanced_options": "Show advanced options",
+				"show_advanced_options_tooltip": "Unlocks additional theorycrafting-focused tools.",
 				"show_quick_swap": "Show quick swap interface"
 			},
 			"use_multiple_cpu_cores": {
@@ -2426,10 +2428,6 @@
 					"update_ep": "Update EP",
 					"calculate": "Calculate",
 					"compute_weighted_ep": "Compute Weighted EP",
-					"tabs": {
-						"weights": "Weights",
-						"sweep": "Stat sweep"
-					},
 					"dps_weight": {
 						"label": "DPS Weight",
 						"tooltip": "Per-point increase in DPS (Damage Per Second) for each stat."
@@ -2514,33 +2512,47 @@
 					"max_multiplier": "Max ×",
 					"max_multiplier_tooltip": "The most iterations a stat may run, as a multiple of the automatic first pass. Empty sets no cap.",
 					"max_multiplier_none": "None"
+				}
+			},
+			"dps_curve": {
+				"title": "DPS curve",
+				"settings": "Settings",
+				"stats": {
+					"label": "Stats",
+					"placeholder": "Select stat(s)",
+					"empty": "No stat matches",
+					"open": "Show all stats",
+					"remove": "Remove stat"
 				},
-				"sweep": {
-					"stats": {
-						"label": "Stats",
-						"placeholder": "Select stat(s)",
-						"empty": "No stat matches",
-						"open": "Show all stats",
-						"remove": "Remove stat"
-					},
-					"range": "Range ±",
-					"step": "Step",
-					"run": "Run sweep",
-					"progress": "Step {{current}} / {{total}}",
-					"progress_stats": "Stat {{stat}} / {{stats}} · Step {{current}} / {{total}}",
-					"run_label": "{{stat}} ±{{range}}",
-					"ep_chart": "EP",
-					"dps_chart": "DPS",
-					"current_value": "Current value",
-					"change_axis": "Change from current value",
-					"tooltip_total": "{{stat}} {{total}} ({{change}})",
-					"tooltip_value": "{{value}} ± {{ci}}",
-					"empty": "Run a sweep to plot EP and DPS across the stat's range.",
-					"history": {
-						"title": "History",
-						"delete": "Delete {{label}}",
-						"empty": "No saved sweeps yet."
-					}
+				"range": "Range ±",
+				"step": "Step",
+				"run": "Run DPS curve",
+				"progress": "Step {{current}} / {{total}}",
+				"progress_stats": "Stat {{stat}} / {{stats}} · Step {{current}} / {{total}}",
+				"run_label": "{{stat}} ±{{range}}",
+				"dps_axis": "DPS",
+				"current_value": "Current value",
+				"change_axis": "Change from current value",
+				"tooltip_total": "{{stat}} {{total}} ({{change}})",
+				"tooltip_value": "{{value}} ± {{ci}}",
+				"empty": "Run a DPS curve to plot DPS across each stat's range.",
+				"export_csv": "Export CSV",
+				"history": {
+					"title": "History",
+					"delete": "Delete {{label}}",
+					"empty": "No saved DPS curves yet."
+				},
+				"precision": {
+					"label": "Precision",
+					"mode_iterations": "Iterations",
+					"mode_target": "Target ±",
+					"iterations": "Iterations",
+					"iterations_tooltip": "Iterations per step. Empty uses the sim's iteration setting.",
+					"target_dps_ci": "Target ±",
+					"target_dps_ci_tooltip": "Keeps simulating each step until the 90% ± behind its DPS is at most this many DPS.",
+					"max_multiplier": "Max ×",
+					"max_multiplier_tooltip": "The most iterations a step may run, as a multiple of the automatic first pass. Empty sets no cap.",
+					"max_multiplier_none": "None"
 				}
 			},
 			"suggest_reforges": {

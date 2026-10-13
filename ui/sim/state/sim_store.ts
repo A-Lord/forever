@@ -37,6 +37,7 @@ export interface UISlice {
 	showThreatMetrics: boolean;
 	showHealingMetrics: boolean;
 	showExperimental: boolean;
+	showAdvancedOptions: boolean;
 	wasmConcurrency: number;
 	showQuickSwap: boolean;
 	showEPValues: boolean;
@@ -202,9 +203,21 @@ export interface StatWeightsSlice {
 	iterations: number; // 0 runs the global sim iteration count.
 	targetEpCi: number;
 	maxIterationMultiplier: number; // Caps a stat's iterations at this multiple of the probe count; 0 means no cap.
-	sweepStats: UnitStat[] | null; // The stat sweep's stats; null, or only ones the spec does not offer, means the first one offered, and [] means none.
-	sweepRange: number;
-	sweepStep: number;
+	v: { settings: number };
+}
+
+// A fixed iteration count, or simulating each step until its DPS ± reaches a target.
+export type DpsCurvePrecisionMode = 'iterations' | 'target';
+
+// DPS curve settings, one slice per player (keyed by storeKey).
+export interface DpsCurveSlice {
+	stats: UnitStat[] | null; // null, or only ones the spec does not offer, means the first one offered, and [] means none.
+	range: number;
+	step: number;
+	precisionMode: DpsCurvePrecisionMode;
+	iterations: number; // 0 runs the global sim iteration count.
+	targetDpsCi: number;
+	maxIterationMultiplier: number; // Caps a step's iterations at this multiple of its first pass; 0 means no cap.
 	v: { settings: number };
 }
 
@@ -238,7 +251,7 @@ export enum SimRunKind {
 	IndividualSim = 'individual-sim',
 	BulkSim = 'bulk-sim',
 	StatWeights = 'stat-weights',
-	StatSweep = 'stat-sweep',
+	DpsCurve = 'dps-curve',
 	ReforgeOptimize = 'reforge-optimize',
 }
 
@@ -253,6 +266,7 @@ export interface SimState {
 	runs: Record<SimRunKind, RunSlice>;
 	reforge: { [storeKey: number]: ReforgeSlice };
 	statWeights: { [storeKey: number]: StatWeightsSlice };
+	dpsCurve: { [storeKey: number]: DpsCurveSlice };
 	bulk: { [storeKey: number]: BulkSlice };
 	sim: SimSettingsSlice;
 	ui: UISlice;
@@ -278,6 +292,7 @@ const initialState = (): SimState => ({
 		showThreatMetrics: false,
 		showHealingMetrics: false,
 		showExperimental: false,
+		showAdvancedOptions: false,
 		wasmConcurrency: 0,
 		showQuickSwap: true,
 		showEPValues: false,
@@ -305,6 +320,7 @@ const initialState = (): SimState => ({
 	players: {},
 	reforge: {},
 	statWeights: {},
+	dpsCurve: {},
 	bulk: {},
 });
 
@@ -337,7 +353,7 @@ export function patchSlice<N extends UnkeyedSlice>(store: SimStore, slice: N, pa
 // The slices keyed by a player's storeKey. Single source of truth: `KeyedSlice`
 // is derived from it, and deleteKeyed iterates it, so adding a keyed slice
 // cannot leave the disposal path behind.
-export const KEYED_SLICES = ['players', 'reforge', 'statWeights', 'bulk'] as const;
+export const KEYED_SLICES = ['players', 'reforge', 'statWeights', 'dpsCurve', 'bulk'] as const;
 type KeyedSlice = (typeof KEYED_SLICES)[number];
 type KeyedEntry<N extends KeyedSlice> = SimState[N][number];
 type Versions<N extends KeyedSlice> = KeyedEntry<N>['v'];

@@ -27,33 +27,6 @@
 		@apply pt-2 pr-2 pb-2 pl-2;
 	}
 
-	/* At lg and up the tabs, the panels, each pane and its layout row shrink with the dialog body, so a capped dialog
-	   leaves the body nothing to scroll: the main column and the sidebar each fill the body's height and scroll on
-	   their own. A dialog that fits keeps its content's height. */
-	.ui-ep-weights-tabs {
-		@apply lg:flex lg:min-h-0 lg:flex-1 lg:flex-col;
-	}
-
-	.ui-ep-weights-panels {
-		@apply lg:min-h-0 lg:flex-1 lg:grid-rows-1;
-	}
-
-	.ui-ep-weights-pane {
-		@apply lg:flex lg:min-h-0 lg:flex-col lg:self-stretch;
-	}
-
-	.ui-ep-weights-layout {
-		@apply flex flex-col gap-4 lg:min-h-0 lg:flex-1 lg:flex-row;
-	}
-
-	.ui-ep-weights-main {
-		@apply order-1 w-full min-w-0 lg:order-0 lg:flex-1 lg:overflow-y-auto;
-	}
-
-	.ui-ep-weights-sidebar {
-		@apply order-0 flex flex-col gap-4 lg:order-1 lg:w-64 lg:shrink-0 lg:overflow-y-auto;
-	}
-
 	.ui-ep-weights-settings-grid {
 		@apply grid gap-x-4 gap-y-2 sm:grid-cols-3 lg:grid-cols-1;
 	}

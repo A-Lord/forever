@@ -1,4 +1,5 @@
 import {
+	type AggregatorData,
 	BulkCandidatesRequest,
 	BulkCandidatesResult,
 	BulkCombinationCountRequest,
@@ -9,6 +10,7 @@ import {
 	BulkSimRequest,
 	BulkSimResult,
 	ComputeStatsRequest,
+	type DistributionMetrics,
 	ErrorOutcome,
 	ErrorOutcomeType,
 	PlayerStats,
@@ -97,7 +99,14 @@ export type RunSimOptions = {
 	gear?: Gear;
 	onProgress?: WorkerProgressCallback;
 	raw?: boolean;
+	seed?: number; // Unset draws the next seed.
+	bonusStats?: Stats; // On top of the first player's own bonus stats, pseudo stats included.
+	debugFirstIteration?: boolean; // Unset logs the first iteration.
 };
+
+export type DpsSimOptions = Required<Pick<RunSimOptions, 'iterations' | 'seed' | 'bonusStats' | 'onProgress'>>;
+
+export type DpsSample = Pick<DistributionMetrics, 'avg' | 'stdev'> & AggregatorData;
 
 export type StatWeightsOptions = {
 	iterations?: number; // Unset uses the sim's iteration setting; a target ignores it and sizes its first pass itself.
@@ -105,8 +114,6 @@ export type StatWeightsOptions = {
 	maxIterationMultiplier?: number;
 	targetMetrics?: StatWeightsTargetMetric[]; // The metrics the target applies to; unset means DPS only.
 	hpsReferenceStat?: Stat; // The stat HPS EP divides by; unset means the EP reference stat.
-	bonusStats?: Stats; // On top of the player's own bonus stats, pseudo stats included.
-	seed?: number;
 };
 
 // Core Sim module which deals only with api types, no UI-related stuff.
@@ -277,6 +284,10 @@ export class Sim {
 	makeRaidSimRequest(options: RunSimOptions = {}): RaidSimRequest {
 		const raid = this.getModifiedRaidProto();
 		const encounter = this.encounter.toProto();
+		if (options.bonusStats) {
+			const player = raid.parties[0].players[0];
+			player.bonusStats = Stats.fromProto(player.bonusStats).add(options.bonusStats).toProto();
+		}
 
 		// TODO: remove any replenishment from sim request here? probably makes more sense to do it inside the sim to protect against accidents
 		return RaidSimRequest.create({
@@ -286,11 +297,19 @@ export class Sim {
 			encounter: encounter,
 			simOptions: SimOptions.create({
 				iterations: options.singleIteration ? 1 : (options.iterations ?? this.getIterations()),
-				randomSeed: BigInt(this.nextRngSeed()),
-				debugFirstIteration: true,
+				randomSeed: BigInt(options.seed ?? this.nextRngSeed()),
+				debugFirstIteration: options.debugFirstIteration ?? true,
 				debug: options.debug ?? false,
 			}),
 		});
+	}
+
+	// The first player's DPS over one plain raid sim, which emits no result. An abort comes back as its error outcome.
+	async simulateDps(options: DpsSimOptions): Promise<DpsSample | ErrorOutcome> {
+		const result = await this.runSim({ ...options, raw: true, silent: true, debugFirstIteration: false });
+		if (!Array.isArray(result)) return result;
+		const { avg, stdev, aggregatorData } = result[1].raidMetrics!.parties[0].players[0].dps!;
+		return { avg, stdev, n: aggregatorData!.n, sumSq: aggregatorData!.sumSq };
 	}
 
 	private requireRunnableSetup() {
@@ -487,7 +506,7 @@ export class Sim {
 	}
 
 	// The first player's final stats with `bonusStats` added to its bonus stats, without touching its current stats or
-	// metadata. Used by the stat sweep to place each step at the stat's total.
+	// metadata. Used by the DPS curve to place each step at the stat's total.
 	async getFinalStatsWithBonus(bonusStats: Stats): Promise<Stats> {
 		const playerStats = await this.computeEditedPlayerStats(
 			raidProto => {
@@ -631,9 +650,6 @@ export class Sim {
 			// the stat's sub-sims with no flask, elixir, food or potion.
 			const playerProto = player.toProto(false, true);
 			extendPlayerProtoWithMissingEffects(playerProto, this.db);
-			if (options.bonusStats) {
-				playerProto.bonusStats = Stats.fromProto(playerProto.bonusStats).add(options.bonusStats).toProto();
-			}
 
 			const request = StatWeightsRequest.create({
 				player: playerProto,
@@ -643,7 +659,7 @@ export class Sim {
 				encounter: this.encounter.toProto(),
 				simOptions: SimOptions.create({
 					iterations: options.iterations ?? this.getIterations(),
-					randomSeed: BigInt(options.seed ?? this.nextRngSeed()),
+					randomSeed: BigInt(this.nextRngSeed()),
 					debug: false,
 				}),
 				tanks: tanks,
@@ -823,6 +839,13 @@ export class Sim {
 		if (newShowExperimental != this.ui.showExperimental) this.setUi({ showExperimental: newShowExperimental });
 	}
 
+	getShowAdvancedOptions(): boolean {
+		return this.ui.showAdvancedOptions;
+	}
+	setShowAdvancedOptions(newShowAdvancedOptions: boolean) {
+		if (newShowAdvancedOptions != this.ui.showAdvancedOptions) this.setUi({ showAdvancedOptions: newShowAdvancedOptions });
+	}
+
 	getWasmConcurrency(): number {
 		return this.ui.wasmConcurrency;
 	}
@@ -897,6 +920,7 @@ export class Sim {
 			showThreatMetrics: this.getShowThreatMetrics(),
 			showHealingMetrics: this.getShowHealingMetrics(),
 			showExperimental: this.getShowExperimental(),
+			showAdvancedOptions: this.getShowAdvancedOptions(),
 			showQuickSwap: this.getShowQuickSwap(),
 			showEpValues: this.getShowEPValues(),
 			language: this.getLanguage(),
@@ -914,6 +938,7 @@ export class Sim {
 			this.setShowThreatMetrics(proto.showThreatMetrics);
 			this.setShowHealingMetrics(proto.showHealingMetrics);
 			this.setShowExperimental(proto.showExperimental);
+			this.setShowAdvancedOptions(proto.showAdvancedOptions);
 			this.setShowQuickSwap(proto.showQuickSwap);
 			this.setShowEPValues(proto.showEpValues);
 			this.setLanguage(proto.language);

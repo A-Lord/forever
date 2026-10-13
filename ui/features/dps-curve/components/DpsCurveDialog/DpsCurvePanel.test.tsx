@@ -2,11 +2,11 @@ import i18n from '@i18n/config';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { StatSweepPanel, type StatSweepPanelProps } from './StatSweepPanel';
+import { DpsCurvePanel, type DpsCurvePanelProps } from './DpsCurvePanel';
 
-const t = (key: string) => i18n.t(`sidebar.buttons.stat_weights.sweep.${key}`);
+const t = (key: string) => i18n.t(`sidebar.buttons.dps_curve.${key}`);
 
-const props = (overrides: Partial<StatSweepPanelProps> = {}): StatSweepPanelProps => ({
+const props = (overrides: Partial<DpsCurvePanelProps> = {}): DpsCurvePanelProps => ({
 	statOptions: [
 		{ value: 'hit', label: 'Hit Rating' },
 		{ value: 'crit', label: 'Crit Rating' },
@@ -25,9 +25,9 @@ const props = (overrides: Partial<StatSweepPanelProps> = {}): StatSweepPanelProp
 	...overrides,
 });
 
-describe('StatSweepPanel', () => {
-	it('locks the sweep inputs while running', () => {
-		render(<StatSweepPanel {...props({ running: true })} />);
+describe('DpsCurvePanel', () => {
+	it('locks the setup inputs while running', () => {
+		render(<DpsCurvePanel {...props({ running: true })} />);
 
 		expect(screen.getByLabelText<HTMLInputElement>(t('range')).disabled).toBe(true);
 		expect(screen.getByLabelText<HTMLInputElement>(t('step')).disabled).toBe(true);
@@ -36,7 +36,7 @@ describe('StatSweepPanel', () => {
 	it('reports an entered range and step', () => {
 		const onRangeChange = vi.fn();
 		const onStepChange = vi.fn();
-		render(<StatSweepPanel {...props({ onRangeChange, onStepChange })} />);
+		render(<DpsCurvePanel {...props({ onRangeChange, onStepChange })} />);
 
 		fireEvent.change(screen.getByLabelText(t('range')), { target: { value: '50' } });
 		fireEvent.change(screen.getByLabelText(t('step')), { target: { value: '5' } });
@@ -46,7 +46,7 @@ describe('StatSweepPanel', () => {
 
 	it('shows the picked stats as chips and reports a pick and a removal by stat key', () => {
 		const onStatsChange = vi.fn();
-		render(<StatSweepPanel {...props({ stats: ['haste', 'crit'], onStatsChange })} />);
+		render(<DpsCurvePanel {...props({ stats: ['haste', 'crit'], onStatsChange })} />);
 		expect(screen.getAllByTestId('multi-combo-box-chip').map(chip => chip.textContent)).toEqual(['Crit Rating', 'Haste Rating']);
 
 		fireEvent.click(screen.getAllByRole('button', { name: t('stats.remove') })[0]);

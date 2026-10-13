@@ -6,8 +6,8 @@ const REQUEST_TYPE: Record<SimRunKind, RequestTypes> = {
 	[SimRunKind.IndividualSim]: RequestTypes.IndividualSim,
 	[SimRunKind.BulkSim]: RequestTypes.BulkSim,
 	[SimRunKind.StatWeights]: RequestTypes.StatWeights,
-	// Each step is one stat-weights request, so an abort reaches the step in flight.
-	[SimRunKind.StatSweep]: RequestTypes.StatWeights,
+	// Each step is one raid sim request, so an abort reaches the step in flight.
+	[SimRunKind.DpsCurve]: RequestTypes.IndividualSim,
 	[SimRunKind.ReforgeOptimize]: RequestTypes.ReforgeOptimize,
 };
 
@@ -18,7 +18,7 @@ const REQUEST_TYPE: Record<SimRunKind, RequestTypes> = {
 const ABORT_SCOPE: Record<SimRunKind, RequestTypes> = {
 	...REQUEST_TYPE,
 	[SimRunKind.StatWeights]: RequestTypes.All,
-	[SimRunKind.StatSweep]: RequestTypes.All,
+	[SimRunKind.DpsCurve]: RequestTypes.All,
 };
 
 export interface RunContext<TProgress> {

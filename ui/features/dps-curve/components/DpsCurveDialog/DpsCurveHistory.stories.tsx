@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';
 
-import { StatSweepHistory } from './StatSweepHistory';
+import { DpsCurveHistory } from './DpsCurveHistory';
 
 const meta = {
-	title: 'Features/StatWeights/StatSweep/StatSweepHistory',
-	component: StatSweepHistory,
+	title: 'Features/DpsCurve/DpsCurveHistory',
+	component: DpsCurveHistory,
 	tags: ['autodocs'],
 	args: {
 		runs: [
@@ -15,6 +15,7 @@ const meta = {
 		],
 		onOverlayChange: fn(),
 		onDelete: fn(),
+		onExportCsv: fn(),
 	},
 	argTypes: { runs: { control: 'object' } },
 	decorators: [
@@ -24,11 +25,11 @@ const meta = {
 			</div>
 		),
 	],
-} satisfies Meta<typeof StatSweepHistory>;
+} satisfies Meta<typeof DpsCurveHistory>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
-export const Empty: Story = { args: { runs: [] } };
+export const Empty: Story = { args: { runs: [], onExportCsv: undefined } };

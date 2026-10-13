@@ -346,6 +346,46 @@ describe('Sim stats for an edited player', () => {
 
 		await expect(makeBonusSim().getFinalStatsWithBonus(hit(10))).rejects.toThrow(SimError);
 	});
+
+	it("builds a raid sim request with the bonus on the player's own bonus stats, at the given seed and with no first-iteration log", () => {
+		const sim = makeBonusSim();
+		vi.mocked(sim.makeRaidSimRequest).mockRestore();
+		const draw = vi.spyOn(sim, 'nextRngSeed');
+
+		const request = sim.makeRaidSimRequest({ iterations: 500, seed: 99, bonusStats: hit(10), debugFirstIteration: false });
+
+		expect(Stats.fromProto(request.raid!.parties[0].players[0].bonusStats).getStat(Stat.StatHitRating)).toBe(15);
+		expect(request.simOptions).toMatchObject({ iterations: 500, randomSeed: 99n, debugFirstIteration: false });
+		expect(draw).not.toHaveBeenCalled();
+	});
+});
+
+describe('Sim.simulateDps', () => {
+	beforeEach(() => {
+		mocks.raidSimAsync.mockReset();
+	});
+
+	it("runs one silent raid sim with the options and returns the first player's DPS without per-iteration values", async () => {
+		const sim = makeSim();
+		const emitted = vi.fn();
+		sim.simResultEmitter.on(emitted);
+		const dps = { avg: 1500, stdev: 120, allValues: [1400, 1600], aggregatorData: { n: 2, sumSq: 1400 ** 2 + 1600 ** 2 } };
+		mocks.raidSimAsync.mockResolvedValue(RaidSimResult.create({ raidMetrics: { parties: [{ players: [{ dps }] }] } }));
+		const options = { iterations: 2, seed: 9, bonusStats: new Stats(), onProgress: vi.fn() };
+
+		const sample = await sim.simulateDps(options);
+
+		expect(sample).toEqual({ avg: 1500, stdev: 120, n: 2, sumSq: 1400 ** 2 + 1600 ** 2 });
+		expect(sim.makeRaidSimRequest).toHaveBeenCalledWith(expect.objectContaining({ ...options, debugFirstIteration: false }));
+		expect(emitted).not.toHaveBeenCalled();
+	});
+
+	it('returns an aborted run as its error outcome', async () => {
+		const aborted = ErrorOutcome.create({ type: ErrorOutcomeType.ErrorOutcomeAborted });
+		mocks.raidSimAsync.mockResolvedValue(RaidSimResult.create({ error: aborted }));
+
+		expect(await makeSim().simulateDps({ iterations: 2, seed: 9, bonusStats: new Stats(), onProgress: vi.fn() })).toEqual(aborted);
+	});
 });
 
 describe('Sim.nextRngSeed', () => {

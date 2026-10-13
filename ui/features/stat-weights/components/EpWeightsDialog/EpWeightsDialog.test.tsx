@@ -3,14 +3,12 @@
 import { ErrorOutcomeType, type StatWeightsResult, StatWeightsTargetMetric } from '@generated/proto/api';
 import { Class, PseudoStat, Spec, Stat } from '@generated/proto/common';
 import { DatabaseFilters } from '@generated/proto/ui';
-import type { StatSweepRecord } from '@sim/cache/stat_sweep_history';
 import { SimHostProvider } from '@sim/context/SimHostContext';
 import { Stats, UnitStat } from '@sim/proto/stats';
-import type { EpPrecisionSettings, StatSweepSettings } from '@sim/settings/stat_weight_settings';
+import type { EpPrecisionSettings } from '@sim/settings/stat_weight_settings';
 import { SimRuns } from '@sim/sim_runs';
 import { createSimStore, patchKeyed, patchSlice, PLAYER_FIELDS, seedKeyed, type SimStore, zeroVersions } from '@sim/state/sim_store';
-import { makeHitSweepPoints } from '@testing/storybook/fixtures/stat-sweep';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PortalContainerContext } from '@ui-kit/hooks/usePortalContainer';
 import { useState } from 'react';
@@ -92,15 +90,6 @@ vi.mock('@i18n/localization', () => ({
 
 vi.mock('../SavedEpWeights', () => ({ SavedEpWeights: () => null }));
 
-// happy-dom has no IndexedDB.
-const sweepHistory = vi.hoisted(() => ({
-	listRuns: vi.fn(async () => []),
-	saveRun: vi.fn(async (_run: StatSweepRecord) => {}),
-	deleteRun: vi.fn(async () => {}),
-}));
-vi.mock('@sim/cache/stat_sweep_history', () => sweepHistory);
-vi.mock('chart.js', async () => (await import('@testing/chart-js-mock')).chartJsMock);
-
 // The vitest i18n stub has no resources, so `t` answers with the key and never interpolates — which
 // would make the reference-stat half of a column tooltip invisible. This keeps the key and shows the
 // interpolation beside it.
@@ -179,14 +168,9 @@ class FakeSettings {
 	excludedStats: Stat[] = [];
 	excludedPseudoStats: PseudoStat[] = [];
 	precision: EpPrecisionSettings = { precisionMode: 'iterations', iterations: 0, targetEpCi: 0.01, maxIterationMultiplier: 0 };
-	sweep: StatSweepSettings = { sweepStats: null, sweepRange: 100, sweepStep: 10 };
 
 	setPrecision(patch: Partial<EpPrecisionSettings>) {
 		this.precision = { ...this.precision, ...patch };
-		source.notify('statWeights');
-	}
-	setSweep(patch: Partial<StatSweepSettings>) {
-		this.sweep = { ...this.sweep, ...patch };
 		source.notify('statWeights');
 	}
 	isStatExcludedFromCalc(stat: Stat) {
@@ -250,9 +234,6 @@ const setup = () => {
 			getShowDamageMetrics: () => true,
 			getShowHealingMetrics: () => true,
 			getIterations: () => 1000,
-			nextRngSeed: () => 1,
-			// A player with no stats of its own: the final stats are the bonus.
-			getFinalStatsWithBonus: async (bonusStats: Stats) => bonusStats,
 			getFilters: () => DatabaseFilters.clone(store.getState().sim.filters),
 			setFilters: (filters: DatabaseFilters) => patchSlice(store, 'sim', { filters: DatabaseFilters.clone(filters) }),
 			store,
@@ -815,251 +796,6 @@ describe('EpWeightsDialog', () => {
 					expect(hpsEp('Agility')).toBe('9.00');
 				},
 			);
-		});
-	});
-
-	describe('stat sweep', () => {
-		beforeEach(() => sweepHistory.saveRun.mockClear());
-
-		const openSweepTab = async () => {
-			renderDialog();
-			await userEvent.click(screen.getByRole('tab', { name: 'sidebar.buttons.stat_weights.modal.tabs.sweep' }));
-		};
-
-		it('swaps the Calculate button for Run sweep and the sweep panel', async () => {
-			await openSweepTab();
-
-			expect(popup().querySelector('[data-testid="stat-sweep-pane"]')!.hasAttribute('inert')).toBe(false);
-			expect(popup().querySelector('[data-testid="ep-weights-pane"]')!.hasAttribute('inert')).toBe(true);
-			await waitFor(() => expect(popup().querySelector('[data-testid="ep-weights-pane"]')!.hasAttribute('data-hidden')).toBe(true));
-			expect(popup().querySelector('[data-testid="stat-sweep-pane"]')!.hasAttribute('data-hidden')).toBe(false);
-			expect(calculate()).toBeNull();
-			expect(screen.getByRole('button', { name: 'sidebar.buttons.stat_weights.sweep.run' })).toBeTruthy();
-		});
-
-		it('shows a running sweep in the progress dialog, with Run sweep and Calculate disabled, and cancels it there, keeping the finished steps', async () => {
-			let settleSecond!: (result: StatWeightsResult) => void;
-			player.computeStatWeights.mockResolvedValueOnce(weightsResult([[STRENGTH, 2]])).mockImplementationOnce((...args: any[]) => {
-				args[3]({ completedIterations: 250, totalIterations: 1000, completedSims: 1, totalSims: 3 });
-				return new Promise<StatWeightsResult>(resolve => (settleSecond = resolve));
-			});
-			settings.sweep = { sweepStats: null, sweepRange: 20, sweepStep: 10 };
-			await openSweepTab();
-			const run = screen.getByRole<HTMLButtonElement>('button', { name: 'sidebar.buttons.stat_weights.sweep.run' });
-			const weightsTab = screen.getByRole('tab', { name: 'sidebar.buttons.stat_weights.modal.tabs.weights' });
-
-			await act(async () => {
-				fireEvent.click(run);
-			});
-			const tracker = () => rootElem.querySelector('[data-testid="stat-sweep-progress-dialog"]');
-			// The second of three steps, a quarter done: the bar reads across the whole sweep.
-			expect(tracker()!.querySelector('[data-testid="progress-tracker-modal-progress-title"]')!.textContent).toBe(
-				'sidebar.buttons.stat_weights.sweep.progress',
-			);
-			expect(tracker()!.querySelector('[data-testid="progress-tracker-modal-progress-text"]')!.textContent).toBe('1250/3000');
-			expect(tracker()!.querySelector('[data-testid="stat-sweep-time-remaining"]')!.textContent).toBe('sidebar.results.progress.time_remaining');
-			expect(run.disabled).toBe(true);
-			fireEvent.click(weightsTab);
-			expect(calculate().disabled).toBe(true);
-
-			abortType.mockClear();
-			await act(async () => {
-				fireEvent.click(tracker()!.querySelector('[data-testid="progress-tracker-modal-cancel-btn"]')!);
-			});
-			expect(abortType).toHaveBeenCalledTimes(1);
-			await act(async () => {
-				settleSecond({ ...emptyStatWeightsResult(), error: { type: ErrorOutcomeType.ErrorOutcomeAborted, message: '' } });
-			});
-
-			expect(tracker()).toBeNull();
-			expect(sweepHistory.saveRun).toHaveBeenCalledTimes(1);
-			expect(sweepHistory.saveRun.mock.calls[0][0].points).toHaveLength(1);
-		});
-
-		it('mounts the sweep with the dialog, out of reach until its tab is open, and keeps it mounted across tab switches', async () => {
-			sweepHistory.listRuns.mockClear();
-			renderDialog();
-			expect(sweepHistory.listRuns).toHaveBeenCalledTimes(1);
-			const range = popup().querySelector<HTMLInputElement>('#stat-sweep-range')!;
-			range.focus();
-			expect(document.activeElement).not.toBe(range);
-
-			await userEvent.click(screen.getByRole('tab', { name: 'sidebar.buttons.stat_weights.modal.tabs.sweep' }));
-			range.focus();
-			expect(document.activeElement).toBe(range);
-			await userEvent.click(screen.getByRole('tab', { name: 'sidebar.buttons.stat_weights.modal.tabs.weights' }));
-			await userEvent.click(screen.getByRole('tab', { name: 'sidebar.buttons.stat_weights.modal.tabs.sweep' }));
-
-			expect(sweepHistory.listRuns).toHaveBeenCalledTimes(1);
-		});
-
-		it('draws the newest stored run when the history loads with no run in progress', async () => {
-			const stored = (id: string, createdAt: number): StatSweepRecord => ({
-				id,
-				createdAt,
-				specId: Spec.SpecUnknown,
-				label: id,
-				unitStat: STRENGTH.toJson(),
-				refStat: Stat.StatStrength,
-				range: 100,
-				step: 10,
-				precision: { precisionMode: 'iterations', iterations: 1000, targetEpCi: 0.01, maxIterationMultiplier: 0 },
-				baseStatValue: 120,
-				points: makeHitSweepPoints(120),
-			});
-			sweepHistory.listRuns.mockResolvedValueOnce([stored('newer', 2), stored('older', 1)] as never);
-			await openSweepTab();
-
-			expect((await screen.findByRole('checkbox', { name: 'newer' })).getAttribute('aria-checked')).toBe('true');
-			expect(screen.getByRole('checkbox', { name: 'older' }).getAttribute('aria-checked')).toBe('false');
-			expect(screen.queryByText('sidebar.buttons.stat_weights.sweep.empty')).toBeNull();
-		});
-
-		it('runs every step at one seed against the DPS reference stat, and saves the run', async () => {
-			player.computeStatWeights.mockResolvedValue(weightsResult([[STRENGTH, 2]]));
-			player.refStats.dpsRefStat = Stat.StatAgility;
-			await openSweepTab();
-			const range = popup().querySelector<HTMLInputElement>('#stat-sweep-range')!;
-			await userEvent.clear(range);
-			await userEvent.type(range, '20');
-			fireEvent.change(range);
-
-			await act(async () => {
-				await userEvent.click(screen.getByRole('button', { name: 'sidebar.buttons.stat_weights.sweep.run' }));
-			});
-
-			const calls = player.computeStatWeights.mock.calls;
-			expect(calls.map(call => call[2])).toEqual([Stat.StatAgility, Stat.StatAgility, Stat.StatAgility]);
-			expect(calls.map(call => (call[4].bonusStats as Stats).getStat(Stat.StatStrength))).toEqual([0, 10, 20]);
-			expect(new Set(calls.map(call => call[4].seed)).size).toBe(1);
-			expect(sweepHistory.saveRun).toHaveBeenCalledTimes(1);
-			const saved = sweepHistory.saveRun.mock.calls[0][0];
-			expect(saved.refStat).toBe(Stat.StatAgility);
-			expect(saved.points.map(point => point.statValue)).toEqual([0, 10, 20]);
-			expect(settings.sweep.sweepRange).toBe(20);
-		});
-
-		it('sweeps the stored stat, range and step', async () => {
-			player.computeStatWeights.mockResolvedValue(weightsResult([[AGILITY, 2]]));
-			settings.sweep = { sweepStats: [AGILITY], sweepRange: 40, sweepStep: 20 };
-			await openSweepTab();
-			expect(popup().querySelector<HTMLInputElement>('#stat-sweep-range')!.value).toBe('40');
-
-			await act(async () => {
-				await userEvent.click(screen.getByRole('button', { name: 'sidebar.buttons.stat_weights.sweep.run' }));
-			});
-
-			const bonuses = player.computeStatWeights.mock.calls.map(call => call[4].bonusStats as Stats);
-			expect(bonuses.map(bonus => bonus.getStat(Stat.StatAgility))).toEqual([0, 20, 40]);
-		});
-
-		it('sweeps each stored stat on its own in the order offered, saving each as its own drawn run', async () => {
-			player.computeStatWeights.mockResolvedValue(weightsResult([[STRENGTH, 2]]));
-			settings.sweep = { sweepStats: [AGILITY, STAMINA, STRENGTH], sweepRange: 20, sweepStep: 10 };
-			await openSweepTab();
-			expect(screen.getAllByTestId('multi-combo-box-chip').map(chip => chip.textContent)).toEqual(['Strength', 'Agility']);
-
-			await act(async () => {
-				await userEvent.click(screen.getByRole('button', { name: 'sidebar.buttons.stat_weights.sweep.run' }));
-			});
-
-			const calls = player.computeStatWeights.mock.calls;
-			expect(calls.map(call => call[0])).toEqual([...Array(3).fill([Stat.StatStrength]), ...Array(3).fill([Stat.StatAgility])]);
-			expect(
-				calls.map(call => [(call[4].bonusStats as Stats).getStat(Stat.StatStrength), (call[4].bonusStats as Stats).getStat(Stat.StatAgility)]),
-			).toEqual([
-				[0, 0],
-				[10, 0],
-				[20, 0],
-				[0, 0],
-				[0, 10],
-				[0, 20],
-			]);
-			const saved = sweepHistory.saveRun.mock.calls.map(call => call[0]);
-			expect(saved.map(run => UnitStat.fromJson(run.unitStat).getKey())).toEqual([STRENGTH.getKey(), AGILITY.getKey()]);
-			expect(saved.map(run => run.points.length)).toEqual([3, 3]);
-			expect(saved[0].colorSlot).not.toBe(saved[1].colorSlot);
-			const drawn = screen.getAllByRole('checkbox', { name: 'sidebar.buttons.stat_weights.sweep.run_label' });
-			expect(drawn.map(checkbox => checkbox.getAttribute('aria-checked'))).toEqual(['true', 'true']);
-		});
-
-		it("reads the progress across every stat, and a cancel keeps the finished stats and the current stat's finished steps", async () => {
-			let settleFifth!: (result: StatWeightsResult) => void;
-			player.computeStatWeights.mockResolvedValue(weightsResult([[STRENGTH, 2]]));
-			for (let call = 0; call < 4; call++) player.computeStatWeights.mockResolvedValueOnce(weightsResult([[STRENGTH, 2]]));
-			player.computeStatWeights.mockImplementationOnce((...args: any[]) => {
-				args[3]({ completedIterations: 250, totalIterations: 1000, completedSims: 1, totalSims: 3 });
-				return new Promise<StatWeightsResult>(resolve => (settleFifth = resolve));
-			});
-			settings.sweep = { sweepStats: [STRENGTH, AGILITY], sweepRange: 20, sweepStep: 10 };
-			await openSweepTab();
-
-			await act(async () => {
-				fireEvent.click(screen.getByRole('button', { name: 'sidebar.buttons.stat_weights.sweep.run' }));
-			});
-			const tracker = () => rootElem.querySelector('[data-testid="stat-sweep-progress-dialog"]');
-			// The second step of the second stat, a quarter done: four of six steps are behind it.
-			expect(tracker()!.querySelector('[data-testid="progress-tracker-modal-progress-title"]')!.textContent).toBe(
-				'sidebar.buttons.stat_weights.sweep.progress_stats',
-			);
-			expect(tracker()!.querySelector('[data-testid="progress-tracker-modal-progress-text"]')!.textContent).toBe('4250/6000');
-			expect(sweepHistory.saveRun).toHaveBeenCalledTimes(1);
-
-			await act(async () => {
-				fireEvent.click(tracker()!.querySelector('[data-testid="progress-tracker-modal-cancel-btn"]')!);
-			});
-			await act(async () => {
-				settleFifth({ ...emptyStatWeightsResult(), error: { type: ErrorOutcomeType.ErrorOutcomeAborted, message: '' } });
-			});
-
-			expect(tracker()).toBeNull();
-			expect(player.computeStatWeights).toHaveBeenCalledTimes(5);
-			expect(sweepHistory.saveRun.mock.calls.map(call => call[0].points.length)).toEqual([3, 1]);
-		});
-
-		it('disables Run sweep with every stat removed', async () => {
-			settings.sweep = { sweepStats: [], sweepRange: 20, sweepStep: 10 };
-			await openSweepTab();
-
-			expect(screen.queryAllByTestId('multi-combo-box-chip')).toHaveLength(0);
-			expect(screen.getByRole<HTMLButtonElement>('button', { name: 'sidebar.buttons.stat_weights.sweep.run' }).disabled).toBe(true);
-		});
-
-		it('sweeps the first offered stat when no stored one is offered', async () => {
-			player.computeStatWeights.mockResolvedValue(weightsResult([[STRENGTH, 2]]));
-			settings.sweep = { sweepStats: [STAMINA], sweepRange: 20, sweepStep: 10 };
-			await openSweepTab();
-
-			await act(async () => {
-				await userEvent.click(screen.getByRole('button', { name: 'sidebar.buttons.stat_weights.sweep.run' }));
-			});
-
-			const bonuses = player.computeStatWeights.mock.calls.map(call => call[4].bonusStats as Stats);
-			expect(bonuses.map(bonus => [bonus.getStat(Stat.StatStrength), bonus.getStat(Stat.StatStamina)])).toEqual([
-				[0, 0],
-				[10, 0],
-				[20, 0],
-			]);
-		});
-
-		it('runs a target ± sweep to the DPS target alone', async () => {
-			player.computeStatWeights.mockResolvedValue(weightsResult([[STRENGTH, 2]]));
-			player.refStats.healRefStat = Stat.StatIntellect;
-			settings.precision = { precisionMode: 'target', iterations: 4000, targetEpCi: 0.02, maxIterationMultiplier: 4 };
-			await openSweepTab();
-
-			await act(async () => {
-				await userEvent.click(screen.getByRole('button', { name: 'sidebar.buttons.stat_weights.sweep.run' }));
-			});
-
-			const calls = player.computeStatWeights.mock.calls;
-			expect(calls.length).toBeGreaterThan(0);
-			for (const call of calls) {
-				expect(call[4]).toMatchObject({ targetEpCi: 0.02 });
-				expect(call[4]).not.toHaveProperty('iterations');
-				expect(call[4].targetMetrics).toBeUndefined();
-				expect(call[4].hpsReferenceStat).toBeUndefined();
-			}
 		});
 	});
 

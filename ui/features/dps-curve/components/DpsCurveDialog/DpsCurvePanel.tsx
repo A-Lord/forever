@@ -1,10 +1,11 @@
 import i18n from '@i18n/config';
 import { ContentBlock } from '@ui-kit/ContentBlock';
+import { DialogColumns } from '@ui-kit/DialogColumns';
 import { MultiComboBox } from '@ui-kit/MultiComboBox';
 import { NumberField } from '@ui-kit/TextField';
 import { type ReactNode, useMemo } from 'react';
 
-export interface StatSweepPanelProps {
+export interface DpsCurvePanelProps {
 	/** Keyed by `UnitStat.getKey()`. */
 	statOptions: ReadonlyArray<{ value: string; label: string }>;
 	stats: ReadonlyArray<string>;
@@ -13,7 +14,7 @@ export interface StatSweepPanelProps {
 	onRangeChange: (range: number) => void;
 	step: number;
 	onStepChange: (step: number) => void;
-	/** Percent stats sweep in fractions of a point. */
+	/** Percent stats step in fractions of a point. */
 	fractional?: boolean;
 	precision: ReactNode;
 	chart: ReactNode;
@@ -21,9 +22,9 @@ export interface StatSweepPanelProps {
 	running: boolean;
 }
 
-const t = (key: string) => i18n.t(`sidebar.buttons.stat_weights.sweep.${key}`);
+const t = (key: string) => i18n.t(`sidebar.buttons.dps_curve.${key}`);
 
-export const StatSweepPanel = ({
+export const DpsCurvePanel = ({
 	statOptions,
 	stats,
 	onStatsChange,
@@ -36,17 +37,17 @@ export const StatSweepPanel = ({
 	chart,
 	history,
 	running,
-}: StatSweepPanelProps) => {
+}: DpsCurvePanelProps) => {
 	// The combo box picks numbers, so each option goes by its index.
 	const statValues = useMemo(() => statOptions.map((option, index) => ({ name: option.label, value: index })), [statOptions]);
 	const picked = useMemo(() => statOptions.flatMap((option, index) => (stats.includes(option.value) ? [index] : [])), [statOptions, stats]);
 
 	return (
-		<div className="ui-ep-weights-layout">
-			<div className="ui-ep-weights-main flex flex-col gap-4">
+		<DialogColumns.Root>
+			<DialogColumns.Main className="flex flex-col gap-4">
 				<div className="flex flex-wrap items-start gap-4">
 					<MultiComboBox
-						id="stat-sweep-stats"
+						id="dps-curve-stats"
 						className="min-w-64 flex-1"
 						label={t('stats.label')}
 						placeholder={t('stats.placeholder')}
@@ -57,10 +58,10 @@ export const StatSweepPanel = ({
 						value={picked}
 						onChange={indices => onStatsChange(indices.map(index => statOptions[index].value))}
 						disabled={running}
-						testId="stat-sweep-stats"
+						testId="dps-curve-stats"
 					/>
 					<NumberField
-						id="stat-sweep-range"
+						id="dps-curve-range"
 						label={t('range')}
 						float={fractional}
 						positive
@@ -68,14 +69,14 @@ export const StatSweepPanel = ({
 						value={range}
 						onChange={onRangeChange}
 					/>
-					<NumberField id="stat-sweep-step" label={t('step')} float={fractional} positive disabled={running} value={step} onChange={onStepChange} />
+					<NumberField id="dps-curve-step" label={t('step')} float={fractional} positive disabled={running} value={step} onChange={onStepChange} />
 				</div>
 				{chart}
-			</div>
-			<div className="ui-ep-weights-sidebar">
-				<ContentBlock config={{ header: { title: i18n.t('sidebar.buttons.stat_weights.modal.settings') } }}>{precision}</ContentBlock>
+			</DialogColumns.Main>
+			<DialogColumns.Sidebar>
+				<ContentBlock config={{ header: { title: t('settings') } }}>{precision}</ContentBlock>
 				{history}
-			</div>
-		</div>
+			</DialogColumns.Sidebar>
+		</DialogColumns.Root>
 	);
 };

@@ -1,5 +1,6 @@
 import { SidebarRegistry } from '@app/sidebar_registry';
 import { initBulk } from '@features/bulk/model/init';
+import { DpsCurveAction } from '@features/dps-curve/components/DpsCurveAction';
 import { watchTargetDummies } from '@features/encounter/model/target_dummies';
 import { repairTargetInputs } from '@features/encounter/model/target_inputs';
 import { registerAreaStatsNotices, registerSetBonusNotices } from '@features/gear/item_notices';
@@ -23,6 +24,7 @@ import { SimSettingCategories } from '@sim/constants/sim_settings';
 import { Player } from '@sim/player/player';
 import { Gear } from '@sim/proto/gear';
 import { SimResult } from '@sim/proto/sim_result';
+import { DpsCurveSettings } from '@sim/settings/dps_curve_settings';
 import { StatWeightActionSettings } from '@sim/settings/stat_weight_settings';
 import { RunSimOptions, Sim, SimError } from '@sim/sim';
 import type { IndividualSimHost, SimWarning } from '@sim/sim_host';
@@ -33,6 +35,7 @@ import { loadIndividualSettings, SETTINGS_STORAGE_SUFFIX, SHARED_SAVED_ENCOUNTER
 import { applyIndividualSimSettings, IndividualSimSerializationContext, individualSimSettingsToProto } from '@sim/state/serialization';
 import { SimRunKind } from '@sim/state/sim_store';
 import {
+	DPS_CURVE_SETTINGS_STORAGE_KEY,
 	SAVED_EP_WEIGHTS_STORAGE_KEY,
 	SAVED_GEAR_STORAGE_KEY,
 	SAVED_ROTATION_STORAGE_KEY,
@@ -85,6 +88,7 @@ export class SimHostObject<SpecType extends Spec> implements IndividualSimHost<S
 	readonly player: Player<SpecType>;
 	readonly individualConfig: IndividualSimUIConfig<SpecType>;
 	readonly statWeightActionSettings: StatWeightActionSettings;
+	readonly dpsCurveSettings: DpsCurveSettings;
 
 	readonly raidSimResultsManager: SimResultsManager;
 	readonly crashReport = new CrashReportOpener();
@@ -116,6 +120,7 @@ export class SimHostObject<SpecType extends Spec> implements IndividualSimHost<S
 		this.individualConfig = this.applyDefaultConfigOptions(config);
 		this.raidSimResultsManager = new SimResultsManager(this.sim);
 		this.statWeightActionSettings = new StatWeightActionSettings(this.player, this.getStorageKey(STAT_WEIGHT_SETTINGS_STORAGE_KEY));
+		this.dpsCurveSettings = new DpsCurveSettings(this.player, this.getStorageKey(DPS_CURVE_SETTINGS_STORAGE_KEY));
 
 		if ((config.itemSwapSlots || []).length > 0 && !itemSwapEnabledSpecs.includes(player.getSpec())) {
 			itemSwapEnabledSpecs.push(player.getSpec());
@@ -170,6 +175,7 @@ export class SimHostObject<SpecType extends Spec> implements IndividualSimHost<S
 				render: () => createElement(ReforgeSidebarGroup, { model: this.reforger!, options: this.reforgeOptions ?? undefined }),
 			});
 		}
+		this.sidebar.add({ id: 'dps-curve', render: () => createElement(DpsCurveAction, { settings: this.dpsCurveSettings }) });
 		for (const derived of config.derivedSettings || []) {
 			derived.apply(this.player, this.sim);
 			derived.subscribe(this.player, this.sim)(() => derived.apply(this.player, this.sim));
@@ -268,6 +274,7 @@ export class SimHostObject<SpecType extends Spec> implements IndividualSimHost<S
 			player: this.player,
 			autosaveSubscribe,
 			statWeightSettings: this.statWeightActionSettings,
+			dpsCurveSettings: this.dpsCurveSettings,
 		});
 	}
 
