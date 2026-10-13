@@ -90,8 +90,8 @@ func (mage *Mage) registerIceShards() {
 // "Increases the duration of your Chill effects by 33% and reduces the target's speed by an
 // additional 10%."
 //
-// Not modelled: both effects act on the slow alone, which does nothing to a boss the sim fights. The
-// chance a Chill effect rolls for Frostbite and Fingers of Frost is per hit, not per second chilled.
+// Not modelled: both effects act on the slow alone, which does nothing to a boss the sim fights. A
+// Chill rolls for Frostbite or Fingers of Frost per hit, not per second chilled.
 func (mage *Mage) registerPermafrost() {
 	if mage.Talents.Permafrost == 0 {
 		return
@@ -110,8 +110,7 @@ func (mage *Mage) registerImprovedFrostNova() {
 //
 // The freeze (12494) is not modelled: it is a root, which a boss the sim fights is immune to, the
 // same reason Frost Nova's root is not modelled. A target is only ever Frozen through Fingers of
-// Frost. With Fingers of Frost taken, the talent's roll is made in registerFingersOfFrost, where it
-// is what grants the charges; without it nothing rolls.
+// Frost, whose charges this talent's roll grants (registerFingersOfFrost).
 func (mage *Mage) registerFrostbite() {
 	if mage.Talents.Frostbite == 0 {
 		return
@@ -252,16 +251,6 @@ func (mage *Mage) registerFingersOfFrost() {
 
 	frostbite := mage.Talents.Frostbite > 0
 
-	// With Frostbite, Fingers of Frost makes no roll of its own: the charges come exactly when a
-	// Chill's Frostbite procs, at Frostbite's rank chance (5/10/15%). In the logs 119 of 119 landed
-	// Frostbolts that froze granted them and 2 of 608 that did not, both with Frostbite missing or
-	// resisted. A Frostbite that misses, is resisted or meets an immune target still grants, so this
-	// one roll, with the freeze unmodelled, only grants the charges.
-	var opts []spelldata.ProcOpt
-	if frostbite {
-		opts = append(opts, spelldata.ChanceFrom(spellData.Frostbite.Rank(mage.Talents.Frostbite).EffectN(1)))
-	}
-
 	trigger := spelldata.ProcTrigger(&mage.Character, talentRank,
 		func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) {
 			// Charges granted inside a rotation spell's own cast spend none on it.
@@ -270,16 +259,19 @@ func (mage *Mage) registerFingersOfFrost() {
 			}
 			mage.FingersOfFrostAura.Activate(sim)
 			mage.FingersOfFrostAura.SetStacks(sim, charges)
-		}, opts...)
+		})
 	trigger.Name = "Fingers of Frost - Trigger"
 
-	// Without Frostbite the proc rolls on the landed hit, with the charges up at once. With
-	// Frostbite a Chill rolls on its cast result, so a missile grants at its cast (a spell queued
-	// behind it is already Frozen) and a Chill without travel time (Cone of Cold, a Blizzard tick)
-	// still rolls on each hit. A miss or full resist grants none either way.
+	// Without Frostbite the proc rolls its own chance on the landed hit, with the charges up at once.
+	// With Frostbite it makes no roll of its own: the charges come when a Chill's Frostbite procs, at
+	// Frostbite's chance, whether or not the freeze lands. That roll is on the cast result, so a
+	// missile grants at its cast (a spell queued behind it is already Frozen) and a Chill without
+	// travel time (Cone of Cold, a Blizzard tick) still rolls on each hit. A miss or full resist grants
+	// none either way.
 	trigger.Callback = core.CallbackOnSpellHitDealt
 	if frostbite {
 		trigger.Callback = core.CallbackOnCastResult
+		trigger.ProcChance = spellData.Frostbite.FractionAt(mage.Talents.Frostbite)
 	}
 	trigger.Outcome = core.OutcomeLanded
 	trigger.TriggerImmediately = true
