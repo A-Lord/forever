@@ -27,6 +27,18 @@
 		@apply pt-2 pr-2 pb-2 pl-2;
 	}
 
+	.ui-ep-weights-layout {
+		@apply flex flex-col gap-4 lg:flex-row lg:items-start;
+	}
+
+	.ui-ep-weights-main {
+		@apply order-1 w-full min-w-0 lg:order-0 lg:flex-1;
+	}
+
+	.ui-ep-weights-sidebar {
+		@apply order-0 flex flex-col gap-4 lg:sticky lg:top-0 lg:z-sticky lg:order-1 lg:w-64 lg:shrink-0;
+	}
+
 	.ui-ep-weights-sidebar .ui-saved-data-create-container {
 		@apply max-w-50;
 	}

@@ -1,6 +1,7 @@
 import i18n from '@i18n/config';
 import { BooleanPicker } from '@ui-kit/BooleanPicker';
 import { Button } from '@ui-kit/Button';
+import { ContentBlock } from '@ui-kit/ContentBlock';
 import { Icon } from '@ui-kit/Icon';
 import clsx from 'clsx';
 import { useMemo } from 'react';
@@ -29,8 +30,7 @@ export const StatSweepHistory = ({ runs, onOverlayChange, onDelete }: StatSweepH
 	const language = i18n.language;
 	const dateFormat = useMemo(() => new Intl.DateTimeFormat(language, { dateStyle: 'short', timeStyle: 'short' }), [language]);
 	return (
-		<section className="grid content-start gap-2" aria-label={t('title')}>
-			<h6 className="mb-0">{t('title')}</h6>
+		<ContentBlock config={{ header: { title: t('title') } }}>
 			{runs.length ? (
 				<ul className="m-0 grid list-none gap-2 p-0">
 					{runs.map(run => (
@@ -61,6 +61,6 @@ export const StatSweepHistory = ({ runs, onOverlayChange, onDelete }: StatSweepH
 			) : (
 				<p className="mb-0 text-gray-400">{t('empty')}</p>
 			)}
-		</section>
+		</ContentBlock>
 	);
 };

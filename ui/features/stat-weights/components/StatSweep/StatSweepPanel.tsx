@@ -1,6 +1,7 @@
 import i18n from '@i18n/config';
 import { Button } from '@ui-kit/Button';
 import { ChoiceField, type ChoiceOption } from '@ui-kit/ChoiceField';
+import { ContentBlock } from '@ui-kit/ContentBlock';
 import { NumberField } from '@ui-kit/TextField';
 import type { ReactNode } from 'react';
 
@@ -49,35 +50,41 @@ export const StatSweepPanel = ({
 	onRun,
 	onCancel,
 }: StatSweepPanelProps) => (
-	<div className="grid gap-4">
-		<div className="flex flex-wrap items-end gap-4">
-			<ChoiceField
-				id="stat-sweep-stat"
-				className="min-w-48"
-				label={t('stat')}
-				options={statOptions}
-				value={stat}
-				onChange={onStatChange}
-				disabled={running}
-			/>
-			<NumberField id="stat-sweep-range" label={t('range')} float={fractional} positive disabled={running} value={range} onChange={onRangeChange} />
-			<NumberField id="stat-sweep-step" label={t('step')} float={fractional} positive disabled={running} value={step} onChange={onStepChange} />
-		</div>
-		{precision}
-		<div className="flex items-center justify-end gap-4">
-			{running && progress && <span aria-live="polite">{t('progress', { current: progress.step, total: progress.steps })}</span>}
-			{running ? (
-				<Button variant="cancel" onClick={onCancel}>
-					{t('cancel')}
-				</Button>
-			) : (
-				<Button variant="primary" onClick={onRun}>
-					{t('run')}
-				</Button>
-			)}
-		</div>
-		<div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_16rem]">
+	<div className="ui-ep-weights-layout">
+		<div className="ui-ep-weights-main flex flex-col gap-4">
+			<div className="flex flex-wrap items-end gap-4">
+				<ChoiceField
+					id="stat-sweep-stat"
+					className="min-w-48"
+					label={t('stat')}
+					options={statOptions}
+					value={stat}
+					onChange={onStatChange}
+					disabled={running}
+				/>
+				<NumberField id="stat-sweep-range" label={t('range')} float={fractional} positive disabled={running} value={range} onChange={onRangeChange} />
+				<NumberField id="stat-sweep-step" label={t('step')} float={fractional} positive disabled={running} value={step} onChange={onStepChange} />
+			</div>
 			{chart}
+		</div>
+		<div className="ui-ep-weights-sidebar">
+			<ContentBlock config={{ header: { title: i18n.t('sidebar.buttons.stat_weights.modal.settings') } }}>
+				<div className="flex flex-col gap-4">
+					{precision}
+					<div className="flex items-center justify-end gap-4">
+						{running && progress && <span aria-live="polite">{t('progress', { current: progress.step, total: progress.steps })}</span>}
+						{running ? (
+							<Button variant="cancel" onClick={onCancel}>
+								{t('cancel')}
+							</Button>
+						) : (
+							<Button variant="primary" onClick={onRun}>
+								{t('run')}
+							</Button>
+						)}
+					</div>
+				</div>
+			</ContentBlock>
 			{history}
 		</div>
 	</div>

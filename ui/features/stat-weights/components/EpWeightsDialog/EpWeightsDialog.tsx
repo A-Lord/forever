@@ -226,8 +226,8 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 				)}
 				<TabPanels>
 					<TabPanel value={WEIGHTS_TAB} testId={WEIGHTS_TAB}>
-						<div className="flex flex-col gap-4 lg:flex-row lg:items-start">
-							<div className="order-1 w-full min-w-0 lg:order-0 lg:flex-1">
+						<div className="ui-ep-weights-layout">
+							<div className="ui-ep-weights-main">
 								<p>
 									{i18n.t('sidebar.buttons.stat_weights.modal.current_ep_description')}
 									{!editOnly && (
@@ -257,7 +257,7 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 									statAction={<StatFilterPopover {...statFilter} ariaLabel={i18n.t('stat_filters.triggers.ep')} testId="ep-stat-filter" />}
 								/>
 							</div>
-							<div className="ui-ep-weights-sidebar order-0 flex flex-col gap-4 lg:sticky lg:top-0 lg:z-sticky lg:order-1 lg:w-64 lg:shrink-0">
+							<div className="ui-ep-weights-sidebar">
 								<ContentBlock config={{ header: { title: i18n.t('sidebar.buttons.stat_weights.modal.settings') } }}>
 									<div className="flex flex-col gap-4">
 										<EpWeightsOptions statsType={statsType} onStatsTypeChange={setStatsType} />
