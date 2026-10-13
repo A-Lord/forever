@@ -397,14 +397,10 @@ export const actionKinds: { [f in NonNullable<APLActionKind>]: ActionKindModel<A
 		fields: [],
 	}),
 	['groupReference']: inputBuilder({
-		label: 'Group Reference',
-		submenu: ['Groups'],
-		shortDescription: 'References an action group defined in the Groups section.',
-		fullDescription: `
-			<p>Executes all actions in the referenced group in order. Groups allow you to create reusable action sequences.</p>
-			<p>Example: If you have a group named "careful_aim" with actions [serpent_sting, chimera_shot, steady_shot],
-			referencing this group will execute those three actions in sequence.</p>
-		`,
+		label: i18n.t('rotation_tab.apl.actions.group_reference.label'),
+		submenu: ['groups'],
+		shortDescription: i18n.t('rotation_tab.apl.actions.group_reference.tooltip'),
+		fullDescription: i18n.t('rotation_tab.apl.actions.group_reference.full_description'),
 		newValue: () =>
 			APLActionGroupReference.create({
 				groupName: '',
@@ -412,11 +408,11 @@ export const actionKinds: { [f in NonNullable<APLActionKind>]: ActionKindModel<A
 			}),
 		fields: [
 			groupNameFieldConfig('groupName', {
-				labelTooltip: 'Name of the group to reference (must match a group defined in the Groups section)',
+				labelTooltip: i18n.t('rotation_tab.apl.actions.group_reference.group_name_tooltip'),
 			}),
 			groupReferenceVariablesFieldConfig('variables', 'groupName', {
-				label: 'Group Variables',
-				labelTooltip: "Variables to pass to the group. These will override the group's internal variables.",
+				label: i18n.t('rotation_tab.apl.actions.group_reference.variables'),
+				labelTooltip: i18n.t('rotation_tab.apl.actions.group_reference.variables_tooltip'),
 			}),
 		],
 	}),
@@ -431,8 +427,8 @@ export const actionKinds: { [f in NonNullable<APLActionKind>]: ActionKindModel<A
 	},
 	['castWarlockAssignedCurse']: inputBuilder({
 		label: i18n.t('rotation_tab.apl.actions.warlock_cast_assigned_curse.label'),
-		submenu: ['Warlock'],
-		shortDescription: "Casts the Warlock's Assigned Curse",
+		submenu: ['warlock'],
+		shortDescription: i18n.t('rotation_tab.apl.actions.warlock_cast_assigned_curse.short_description'),
 		includeIf: (player: Player<any>, _isPrepull: boolean) => player.getSpec() == Spec.SpecWarlock,
 		newValue: () => APLActionCastWarlockAssignedCurse.create({}),
 		fields: [unitFieldConfig('target', 'targets')],
