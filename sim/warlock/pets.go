@@ -111,14 +111,16 @@ func meleeDemonStats(baseHealth float64) stats.Stats {
 // attack power, spell damage, resistances, armor, hit, crit, haste, mana regen - but states no amounts,
 // which the server supplies, so the shares are hand-kept. The pet model sheet gives Stamina and Intellect
 // a share of 0, yet its totals give every demon more health and ~10,870 more mana than its own stats, and
-// the same in-combat regen (its own MP5 only out of combat) - all from the warlock, by rules not yet known.
-// TODO: The warlock's share of health, mana and in-combat regen; resistances and haste.
+// the same in-combat regen (its own MP5 only out of combat) - all from the warlock. Health is 7.5 a point of
+// the warlock's Stamina.
+// TODO: The warlock's share of mana and in-combat regen; resistances and haste.
 func (warlock *Warlock) petStatInheritance() core.PetStatInheritance {
 	return func(ownerStats stats.Stats) stats.Stats {
 		// The warlock's spell damage, as its own tooltips read it: the better of its two schools
 		spellDamage := ownerStats[stats.SpellDamage] + max(ownerStats[stats.ShadowDamage], ownerStats[stats.FireDamage])
 
 		return stats.Stats{
+			stats.Health:      ownerStats[stats.Stamina] * 7.5,
 			stats.Armor:       ownerStats[stats.Armor] * 0.35,
 			stats.AttackPower: spellDamage * 0.17,
 			// A third: in the logs a Sayaad has 42 Spell Damage under a warlock whose spell damage reads 126,
