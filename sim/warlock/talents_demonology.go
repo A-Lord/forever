@@ -246,8 +246,8 @@ func (warlock *Warlock) applyFelDomination() {
 
 // Searing Pain brands the target (1293696) for 10 sec; the demon's next attacks against it each consume a
 // charge and deal the brand's damage (pets.go). Effect 1, Searing Pain's lower threat, is parsed.
-// TODO: The ladder prices effect 2 (the charges) 2/4/6 by rank, but the tooltip reads 3 at 3/3, the row's
-// own value, which is taken; confirm in-game.
+// The brand row has no charges of its own; the ladder's effect 2, a charges modifier, gives them, 2/4/6 by
+// rank: in the logs the brand lands with 6 at 3/3, though the tooltip reads 3.
 func (warlock *Warlock) applyDemonicBrand() {
 	if warlock.Talents.DemonicBrand == 0 {
 		return
@@ -267,6 +267,8 @@ func (warlock *Warlock) applyDemonicBrand() {
 		Name:     "Demonic Brand - Trigger",
 		Callback: core.CallbackOnSpellHitDealt,
 		Outcome:  core.OutcomeLanded,
+		// In the logs the brand lands in the same batch as Searing Pain's hit.
+		TriggerImmediately: true,
 		ExtraCondition: func(_ *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
 			return spellData.SearingPain.Contains(spell)
 		},
