@@ -25,31 +25,40 @@ export const useStatSweepControls = (settings: StatWeightActionSettings, options
 		[epStats, epPseudoStats],
 	);
 	const statOptions = useMemo(() => unitStats.map(stat => ({ value: stat.getKey(), label: stat.getFullName(player.getClass()) })), [unitStats, player]);
-	const { sweepStat, sweepRange: range, sweepStep: step } = useStoreSubscribe(subscribeStatWeightsChange(settings), () => settings.sweep);
-	const unitStat = (sweepStat && unitStats.find(stat => stat.equals(sweepStat))) || unitStats[0];
-	const statLabel = statOptions.find(option => option.value === unitStat?.getKey())?.label ?? '';
+	const { sweepStats, sweepRange: range, sweepStep: step } = useStoreSubscribe(subscribeStatWeightsChange(settings), () => settings.sweep);
+	// The stored stats the spec offers, in the order offered; with none stored, or none of them offered, the first one offered. A cleared list stays empty.
+	const selectedStats = useMemo(() => {
+		if (sweepStats?.length === 0) return [];
+		const offered = unitStats.filter(stat => sweepStats?.some(stored => stored.equals(stat)));
+		return offered.length ? offered : unitStats.slice(0, 1);
+	}, [unitStats, sweepStats]);
 
 	const currentStats = usePlayerStore('currentStats');
-	const currentValue = unitStat && currentStats?.finalStats ? Stats.fromProto(currentStats.finalStats).getUnitStat(unitStat) : 0;
 	const refStat = useStoreSubscribe(subscribePlayerField(player, 'epRefStat'), () => player.getRefStat('dpsRefStat')) ?? epReferenceStat;
 	const precision = useStoreSubscribe(subscribeStatWeightsChange(settings), () => settings.precision);
 
 	const onRun = () => {
-		if (!unitStat) return;
+		if (!selectedStats.length) return;
+		const finalStats = currentStats?.finalStats ? Stats.fromProto(currentStats.finalStats) : null;
 		sweep
 			.run({
-				unitStat,
-				label: i18n.t('sidebar.buttons.stat_weights.sweep.run_label', { stat: statLabel, range }),
+				stats: selectedStats.map(unitStat => ({
+					unitStat,
+					label: i18n.t('sidebar.buttons.stat_weights.sweep.run_label', {
+						stat: statOptions.find(option => option.value === unitStat.getKey())?.label ?? '',
+						range,
+					}),
+					baseStatValue: finalStats?.getUnitStat(unitStat) ?? 0,
+				})),
 				range,
 				step,
 				refStat,
-				baseStatValue: currentValue,
 				precision,
 			})
 			.catch(console.error);
 	};
 
-	return { sweep, unitStats, unitStat, statOptions, range, step, precision, onRun };
+	return { sweep, unitStats, selectedStats, statOptions, range, step, precision, onRun };
 };
 
 export type StatSweepControls = ReturnType<typeof useStatSweepControls>;

@@ -2516,11 +2516,18 @@
 					"max_multiplier_none": "None"
 				},
 				"sweep": {
-					"stat": "Stat",
+					"stats": {
+						"label": "Stats",
+						"placeholder": "Select stat(s)",
+						"empty": "No stat matches",
+						"open": "Show all stats",
+						"remove": "Remove stat"
+					},
 					"range": "Range ±",
 					"step": "Step",
 					"run": "Run sweep",
 					"progress": "Step {{current}} / {{total}}",
+					"progress_stats": "Stat {{stat}} / {{stats}} · Step {{current}} / {{total}}",
 					"run_label": "{{stat}} ±{{range}}",
 					"ep_chart": "EP",
 					"dps_chart": "DPS",

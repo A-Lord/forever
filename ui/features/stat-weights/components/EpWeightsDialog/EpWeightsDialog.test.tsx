@@ -179,7 +179,7 @@ class FakeSettings {
 	excludedStats: Stat[] = [];
 	excludedPseudoStats: PseudoStat[] = [];
 	precision: EpPrecisionSettings = { precisionMode: 'iterations', iterations: 0, targetEpCi: 0.01, maxIterationMultiplier: 0 };
-	sweep: StatSweepSettings = { sweepStat: null, sweepRange: 100, sweepStep: 10 };
+	sweep: StatSweepSettings = { sweepStats: null, sweepRange: 100, sweepStep: 10 };
 
 	setPrecision(patch: Partial<EpPrecisionSettings>) {
 		this.precision = { ...this.precision, ...patch };
@@ -843,7 +843,7 @@ describe('EpWeightsDialog', () => {
 				args[3]({ completedIterations: 250, totalIterations: 1000, completedSims: 1, totalSims: 3 });
 				return new Promise<StatWeightsResult>(resolve => (settleSecond = resolve));
 			});
-			settings.sweep = { sweepStat: null, sweepRange: 20, sweepStep: 10 };
+			settings.sweep = { sweepStats: null, sweepRange: 20, sweepStep: 10 };
 			await openSweepTab();
 			const run = screen.getByRole<HTMLButtonElement>('button', { name: 'sidebar.buttons.stat_weights.sweep.run' });
 			const weightsTab = screen.getByRole('tab', { name: 'sidebar.buttons.stat_weights.modal.tabs.weights' });
@@ -941,7 +941,7 @@ describe('EpWeightsDialog', () => {
 
 		it('sweeps the stored stat, range and step', async () => {
 			player.computeStatWeights.mockResolvedValue(weightsResult([[AGILITY, 2]]));
-			settings.sweep = { sweepStat: AGILITY, sweepRange: 40, sweepStep: 20 };
+			settings.sweep = { sweepStats: [AGILITY], sweepRange: 40, sweepStep: 20 };
 			await openSweepTab();
 			expect(popup().querySelector<HTMLInputElement>('#stat-sweep-range')!.value).toBe('40');
 
@@ -953,9 +953,81 @@ describe('EpWeightsDialog', () => {
 			expect(bonuses.map(bonus => bonus.getStat(Stat.StatAgility))).toEqual([0, 20, 40]);
 		});
 
-		it('sweeps the first offered stat when the stored one is not offered', async () => {
+		it('sweeps each stored stat on its own in the order offered, saving each as its own drawn run', async () => {
 			player.computeStatWeights.mockResolvedValue(weightsResult([[STRENGTH, 2]]));
-			settings.sweep = { sweepStat: STAMINA, sweepRange: 20, sweepStep: 10 };
+			settings.sweep = { sweepStats: [AGILITY, STAMINA, STRENGTH], sweepRange: 20, sweepStep: 10 };
+			await openSweepTab();
+			expect(screen.getAllByTestId('multi-combo-box-chip').map(chip => chip.textContent)).toEqual(['Strength', 'Agility']);
+
+			await act(async () => {
+				await userEvent.click(screen.getByRole('button', { name: 'sidebar.buttons.stat_weights.sweep.run' }));
+			});
+
+			const calls = player.computeStatWeights.mock.calls;
+			expect(calls.map(call => call[0])).toEqual([...Array(3).fill([Stat.StatStrength]), ...Array(3).fill([Stat.StatAgility])]);
+			expect(
+				calls.map(call => [(call[4].bonusStats as Stats).getStat(Stat.StatStrength), (call[4].bonusStats as Stats).getStat(Stat.StatAgility)]),
+			).toEqual([
+				[0, 0],
+				[10, 0],
+				[20, 0],
+				[0, 0],
+				[0, 10],
+				[0, 20],
+			]);
+			const saved = sweepHistory.saveRun.mock.calls.map(call => call[0]);
+			expect(saved.map(run => UnitStat.fromJson(run.unitStat).getKey())).toEqual([STRENGTH.getKey(), AGILITY.getKey()]);
+			expect(saved.map(run => run.points.length)).toEqual([3, 3]);
+			expect(saved[0].colorSlot).not.toBe(saved[1].colorSlot);
+			const drawn = screen.getAllByRole('checkbox', { name: 'sidebar.buttons.stat_weights.sweep.run_label' });
+			expect(drawn.map(checkbox => checkbox.getAttribute('aria-checked'))).toEqual(['true', 'true']);
+		});
+
+		it("reads the progress across every stat, and a cancel keeps the finished stats and the current stat's finished steps", async () => {
+			let settleFifth!: (result: StatWeightsResult) => void;
+			player.computeStatWeights.mockResolvedValue(weightsResult([[STRENGTH, 2]]));
+			for (let call = 0; call < 4; call++) player.computeStatWeights.mockResolvedValueOnce(weightsResult([[STRENGTH, 2]]));
+			player.computeStatWeights.mockImplementationOnce((...args: any[]) => {
+				args[3]({ completedIterations: 250, totalIterations: 1000, completedSims: 1, totalSims: 3 });
+				return new Promise<StatWeightsResult>(resolve => (settleFifth = resolve));
+			});
+			settings.sweep = { sweepStats: [STRENGTH, AGILITY], sweepRange: 20, sweepStep: 10 };
+			await openSweepTab();
+
+			await act(async () => {
+				fireEvent.click(screen.getByRole('button', { name: 'sidebar.buttons.stat_weights.sweep.run' }));
+			});
+			const tracker = () => rootElem.querySelector('[data-testid="stat-sweep-progress-dialog"]');
+			// The second step of the second stat, a quarter done: four of six steps are behind it.
+			expect(tracker()!.querySelector('[data-testid="progress-tracker-modal-progress-title"]')!.textContent).toBe(
+				'sidebar.buttons.stat_weights.sweep.progress_stats',
+			);
+			expect(tracker()!.querySelector('[data-testid="progress-tracker-modal-progress-text"]')!.textContent).toBe('4250/6000');
+			expect(sweepHistory.saveRun).toHaveBeenCalledTimes(1);
+
+			await act(async () => {
+				fireEvent.click(tracker()!.querySelector('[data-testid="progress-tracker-modal-cancel-btn"]')!);
+			});
+			await act(async () => {
+				settleFifth({ ...emptyStatWeightsResult(), error: { type: ErrorOutcomeType.ErrorOutcomeAborted, message: '' } });
+			});
+
+			expect(tracker()).toBeNull();
+			expect(player.computeStatWeights).toHaveBeenCalledTimes(5);
+			expect(sweepHistory.saveRun.mock.calls.map(call => call[0].points.length)).toEqual([3, 1]);
+		});
+
+		it('disables Run sweep with every stat removed', async () => {
+			settings.sweep = { sweepStats: [], sweepRange: 20, sweepStep: 10 };
+			await openSweepTab();
+
+			expect(screen.queryAllByTestId('multi-combo-box-chip')).toHaveLength(0);
+			expect(screen.getByRole<HTMLButtonElement>('button', { name: 'sidebar.buttons.stat_weights.sweep.run' }).disabled).toBe(true);
+		});
+
+		it('sweeps the first offered stat when no stored one is offered', async () => {
+			player.computeStatWeights.mockResolvedValue(weightsResult([[STRENGTH, 2]]));
+			settings.sweep = { sweepStats: [STAMINA], sweepRange: 20, sweepStep: 10 };
 			await openSweepTab();
 
 			await act(async () => {

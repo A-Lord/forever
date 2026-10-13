@@ -1,5 +1,5 @@
 import i18n from '@i18n/config';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { StatSweepPanel, type StatSweepPanelProps } from './StatSweepPanel';
@@ -7,9 +7,13 @@ import { StatSweepPanel, type StatSweepPanelProps } from './StatSweepPanel';
 const t = (key: string) => i18n.t(`sidebar.buttons.stat_weights.sweep.${key}`);
 
 const props = (overrides: Partial<StatSweepPanelProps> = {}): StatSweepPanelProps => ({
-	statOptions: [{ value: 'hit', label: 'Hit Rating' }],
-	stat: 'hit',
-	onStatChange: vi.fn(),
+	statOptions: [
+		{ value: 'hit', label: 'Hit Rating' },
+		{ value: 'crit', label: 'Crit Rating' },
+		{ value: 'haste', label: 'Haste Rating' },
+	],
+	stats: ['crit'],
+	onStatsChange: vi.fn(),
 	range: 100,
 	onRangeChange: vi.fn(),
 	step: 10,
@@ -38,5 +42,18 @@ describe('StatSweepPanel', () => {
 		fireEvent.change(screen.getByLabelText(t('step')), { target: { value: '5' } });
 		expect(onRangeChange).toHaveBeenCalledWith(50);
 		expect(onStepChange).toHaveBeenCalledWith(5);
+	});
+
+	it('shows the picked stats as chips and reports a pick and a removal by stat key', () => {
+		const onStatsChange = vi.fn();
+		render(<StatSweepPanel {...props({ stats: ['haste', 'crit'], onStatsChange })} />);
+		expect(screen.getAllByTestId('multi-combo-box-chip').map(chip => chip.textContent)).toEqual(['Crit Rating', 'Haste Rating']);
+
+		fireEvent.click(screen.getAllByRole('button', { name: t('stats.remove') })[0]);
+		expect(onStatsChange).toHaveBeenLastCalledWith(['haste']);
+
+		fireEvent.click(screen.getByTestId('multi-combo-box-trigger'));
+		fireEvent.click(within(screen.getByTestId('multi-combo-box-list')).getAllByRole('option')[0]);
+		expect(onStatsChange).toHaveBeenLastCalledWith(['crit', 'haste', 'hit']);
 	});
 });

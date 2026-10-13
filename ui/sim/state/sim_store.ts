@@ -202,7 +202,7 @@ export interface StatWeightsSlice {
 	iterations: number; // 0 runs the global sim iteration count.
 	targetEpCi: number;
 	maxIterationMultiplier: number; // Caps a stat's iterations at this multiple of the probe count; 0 means no cap.
-	sweepStat: UnitStat | null; // The stat sweep's stat; null, or one the spec does not offer, means the first one offered.
+	sweepStats: UnitStat[] | null; // The stat sweep's stats; null, or only ones the spec does not offer, means the first one offered, and [] means none.
 	sweepRange: number;
 	sweepStep: number;
 	v: { settings: number };

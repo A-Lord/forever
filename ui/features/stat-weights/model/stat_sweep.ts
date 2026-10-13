@@ -3,7 +3,7 @@ import type { Stat } from '@generated/proto/common';
 import type { StatSweepPoint, StatSweepRecord } from '@sim/cache/stat_sweep_history';
 import type { UnitStat } from '@sim/proto/stats';
 import { distinct } from '@sim/utils/collections';
-import { stDevToConf90, timeRemainingAtRate } from '@sim/utils/math';
+import { stDevToConf90, sum, timeRemainingAtRate } from '@sim/utils/math';
 
 import { calculateEp } from './ep_math';
 
@@ -56,33 +56,56 @@ export function sweepPointFromResult(result: StatWeightsResult, unitStat: UnitSt
 }
 
 export interface StatSweepProgress {
-	/** 1-based step being simulated. */
+	/** 1-based stat being swept. */
+	stat: number;
+	stats: number;
+	/** 1-based step of that stat being simulated. */
 	step: number;
+	/** That stat's steps. */
 	steps: number;
-	/** Steps done, with the running step's done share of its iterations; never falls. */
+	/** Steps done across every stat, with the running step's done share of its iterations; never falls. */
 	completed: number;
+	/** Steps across every stat. */
+	totalSteps: number;
+	/** Each stat's steps, in sweep order. */
+	stepCounts: number[];
 	/** The latest step's iteration total, 0 until a step reports one. */
 	iterationsPerStep: number;
 	secondsRemaining?: number;
 }
 
-export const startSweepProgress = (steps: number): StatSweepProgress => ({ step: 1, steps, completed: 0, iterationsPerStep: 0 });
+export const startSweepProgress = (stepCounts: number[]): StatSweepProgress => ({
+	stat: 1,
+	stats: stepCounts.length,
+	step: 1,
+	steps: stepCounts[0] ?? 0,
+	completed: 0,
+	totalSteps: sum(stepCounts),
+	stepCounts,
+	iterationsPerStep: 0,
+});
 
-/** `progress` after step `index` (0-based) reports `metrics`, `elapsedSeconds` into the sweep. */
+/** `progress` after step `index` (0-based, counted across every stat) reports `metrics`, `elapsedSeconds` into the sweep. */
 export function advanceSweepProgress(
 	progress: StatSweepProgress,
 	index: number,
 	metrics: Pick<ProgressMetrics, 'completedIterations' | 'totalIterations'>,
 	elapsedSeconds: number,
 ): StatSweepProgress {
+	const { stepCounts, totalSteps } = progress;
+	let stat = 0;
+	let step = index;
+	while (stat < stepCounts.length - 1 && step >= stepCounts[stat]) step -= stepCounts[stat++];
 	const share = metrics.totalIterations > 0 ? Math.min(1, metrics.completedIterations / metrics.totalIterations) : 0;
 	const completed = Math.max(progress.completed, index + share);
 	return {
-		step: index + 1,
-		steps: progress.steps,
+		...progress,
+		stat: stat + 1,
+		step: step + 1,
+		steps: stepCounts[stat],
 		completed,
 		iterationsPerStep: metrics.totalIterations || progress.iterationsPerStep,
-		secondsRemaining: timeRemainingAtRate(elapsedSeconds, completed, progress.steps) ?? progress.secondsRemaining,
+		secondsRemaining: timeRemainingAtRate(elapsedSeconds, completed, totalSteps) ?? progress.secondsRemaining,
 	};
 }
 

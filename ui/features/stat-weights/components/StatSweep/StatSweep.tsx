@@ -1,5 +1,6 @@
 import { useSimStore } from '@sim/hooks/useSimStore';
 import type { StatWeightActionSettings } from '@sim/settings/stat_weight_settings';
+import { useMemo } from 'react';
 
 import type { StatSweepControls } from '../../hooks/useStatSweepControls';
 import { EpPrecisionOptions } from '../EpPrecisionOptions/EpPrecisionOptions';
@@ -13,19 +14,20 @@ export interface StatSweepProps {
 }
 
 export const StatSweep = ({ settings, controls }: StatSweepProps) => {
-	const { sweep, unitStats, unitStat, statOptions, range, step, precision } = controls;
+	const { sweep, unitStats, selectedStats, statOptions, range, step, precision } = controls;
 	const defaultIterations = useSimStore('iterations');
+	const selectedKeys = useMemo(() => selectedStats.map(stat => stat.getKey()), [selectedStats]);
 
 	return (
 		<StatSweepPanel
 			statOptions={statOptions}
-			stat={unitStat?.getKey() ?? ''}
-			onStatChange={key => settings.setSweep({ sweepStat: unitStats.find(stat => stat.getKey() === key) ?? null })}
+			stats={selectedKeys}
+			onStatsChange={keys => settings.setSweep({ sweepStats: unitStats.filter(stat => keys.includes(stat.getKey())) })}
 			range={range}
 			onRangeChange={sweepRange => settings.setSweep({ sweepRange })}
 			step={step}
 			onStepChange={sweepStep => settings.setSweep({ sweepStep })}
-			fractional={unitStat?.isPseudoStat()}
+			fractional={selectedStats.some(stat => stat.isPseudoStat())}
 			precision={
 				<EpPrecisionOptions
 					value={precision}

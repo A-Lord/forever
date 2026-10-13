@@ -35,7 +35,7 @@ against an in-memory `Env`.
 | `raid`                  | `Raid` / `Party`                   | buffs, debuffs, tanks, targetDummies, numActiveParties, `partyBuffs[5]`, `composition[5][5]`        |
 | `players[storeKey]`     | `Player` / `ItemSwapSettings`      | the values, as `PlayerSlice`, plus a per-field version counter `v` keyed by `PLAYER_FIELDS`         |
 | `reforge[storeKey]`     | `ReforgeSettings`                  | gear-optimizer settings (`REFORGE_FIELDS`) and counters                                             |
-| `statWeights[storeKey]` | `StatWeightActionSettings`         | excluded stats, EP precision settings, the stat sweep's stat, range and step, and a counter         |
+| `statWeights[storeKey]` | `StatWeightActionSettings`         | excluded stats, EP precision settings, the stat sweep's stats, range and step, and a counter        |
 | `bulk[storeKey]`        | `ui/sim/settings/bulk_settings.ts` | the batch's items, picker groups, limits, run flags and results, plus `v: { settings, items }`      |
 | `runs`                  | `SimRuns` (`ui/sim/sim_runs.ts`)   | `{ isRunning, isAborting }` per `SimRunKind`: one user-visible operation, not one worker request    |
 

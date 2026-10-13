@@ -8862,11 +8862,23 @@
 								"sweep": {
 									"type": "object",
 									"properties": {
-										"stat": { "type": "string" },
+										"stats": {
+											"type": "object",
+											"properties": {
+												"label": { "type": "string" },
+												"placeholder": { "type": "string" },
+												"empty": { "type": "string" },
+												"open": { "type": "string" },
+												"remove": { "type": "string" }
+											},
+											"additionalProperties": false,
+											"required": ["label", "placeholder", "empty", "open", "remove"]
+										},
 										"range": { "type": "string" },
 										"step": { "type": "string" },
 										"run": { "type": "string" },
 										"progress": { "type": "string" },
+										"progress_stats": { "type": "string" },
 										"run_label": { "type": "string" },
 										"ep_chart": { "type": "string" },
 										"dps_chart": { "type": "string" },
@@ -8888,11 +8900,12 @@
 									},
 									"additionalProperties": false,
 									"required": [
-										"stat",
+										"stats",
 										"range",
 										"step",
 										"run",
 										"progress",
+										"progress_stats",
 										"run_label",
 										"ep_chart",
 										"dps_chart",

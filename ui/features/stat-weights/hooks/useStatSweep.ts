@@ -26,14 +26,19 @@ import {
 	sweepSteps,
 } from '../model/stat_sweep';
 
-export interface StatSweepArgs {
+export interface StatSweepStatArgs {
 	unitStat: UnitStat;
 	label: string;
+	/** The stat's current total. */
+	baseStatValue: number;
+}
+
+export interface StatSweepArgs {
+	/** Swept one after another, each on its own and saved as its own run. */
+	stats: StatSweepStatArgs[];
 	range: number;
 	step: number;
 	refStat: Stat;
-	/** The swept stat's current total. */
-	baseStatValue: number;
 	precision: EpPrecisionSettings;
 }
 
@@ -90,63 +95,14 @@ export const useStatSweep = ({ onProgress }: UseStatSweepOptions = {}) => {
 
 	const run = useCallback(
 		(args: StatSweepArgs) => {
-			const { unitStat, refStat, precision } = args;
+			const { refStat, precision } = args;
 			// Every step runs at the same seed, so the steps differ only by the swept stat.
 			const options = { ...precisionRunOptions(precision), seed: sim.nextRngSeed() };
-			const stats = unitStat.isStat() ? [unitStat.getStat()] : [];
-			const pseudoStats = unitStat.isPseudoStat() ? [unitStat.getPseudoStat()] : [];
-			const record: StatSweepRecord = {
-				id: randomUUID(),
-				createdAt: Date.now(),
-				specId: player.getSpec(),
-				label: args.label,
-				colorSlot: nextColorSlot(history.current, SERIES_SLOT_COUNT),
-				unitStat: unitStat.toJson(),
-				refStat,
-				range: args.range,
-				step: args.step,
-				precision,
-				baseStatValue: args.baseStatValue,
-				points: [],
-			};
-			update(current => ({ ...current, live: record, overlaid: [...current.overlaid, record.id] }));
+			// The history read here holds none of this sweep's runs, so each stat takes the slot after the one before.
+			const firstSlot = nextColorSlot(history.current, SERIES_SLOT_COUNT);
 
-			return sim.runs.start(SimRunKind.StatSweep, async () => {
-				const points: StatSweepPoint[] = [];
-				try {
-					const offsets = buildSweepOffsets(args.range, args.step);
-					// Reported before the totals resolve, so the progress dialog has its full layout from the start.
-					progressRef.current?.(startSweepProgress(offsets.length));
-					const totals = await Promise.all(
-						offsets.map(offset =>
-							sim.getFinalStatsWithBonus(new Stats().withUnitStat(unitStat, offset)).then(finalStats => finalStats.getUnitStat(unitStat)),
-						),
-					);
-					const steps = sweepSteps(offsets, totals);
-					const startedAt = Date.now();
-					let progress = startSweepProgress(steps.length);
-					progressRef.current?.(progress);
-					for (const [index, step] of steps.entries()) {
-						if (sim.runs.isAborting(SimRunKind.StatSweep)) break;
-						const onStepProgress = (metrics: ProgressMetrics) => {
-							progress = advanceSweepProgress(progress, index, metrics, (Date.now() - startedAt) / 1000);
-							progressRef.current?.(progress);
-						};
-						const result = await player.computeStatWeights(stats, pseudoStats, refStat, onStepProgress, {
-							...options,
-							bonusStats: new Stats().withUnitStat(unitStat, step.offset),
-						});
-						// An aborted step comes back as a result with an error, not as a throw.
-						if (result.error) break;
-						points.push(sweepPointFromResult(result, unitStat, refStat, step));
-						const live = { ...record, points: points.slice() };
-						update(current => ({ ...current, live }));
-					}
-				} catch (error: any) {
-					console.error(error);
-					toastManager.add({ variant: 'error', body: error?.message || 'Something went wrong running the stat sweep.' });
-				}
-
+			// Moves a stat's run into the history and saves it, or drops it when no step finished.
+			const keep = async (record: StatSweepRecord, points: StatSweepPoint[]) => {
 				if (!points.length) {
 					update(current => ({ ...current, live: null, overlaid: current.overlaid.filter(id => id !== record.id) }));
 					return;
@@ -154,6 +110,81 @@ export const useStatSweep = ({ onProgress }: UseStatSweepOptions = {}) => {
 				const finished = { ...record, points };
 				update(current => ({ ...current, live: null, history: [finished, ...current.history] }));
 				await saveRun(finished).catch(console.error);
+			};
+
+			return sim.runs.start(SimRunKind.StatSweep, async () => {
+				try {
+					const offsets = buildSweepOffsets(args.range, args.step);
+					// Reported before the totals resolve, so the progress dialog has its full layout from the start.
+					progressRef.current?.(startSweepProgress(args.stats.map(() => offsets.length)));
+					// Every stat's totals before the first step, so the bar and the estimate span the whole sweep.
+					const batch = await Promise.all(
+						args.stats.map(({ unitStat }) =>
+							Promise.all(
+								offsets.map(offset =>
+									sim.getFinalStatsWithBonus(new Stats().withUnitStat(unitStat, offset)).then(finalStats => finalStats.getUnitStat(unitStat)),
+								),
+							).then(totals => sweepSteps(offsets, totals)),
+						),
+					);
+					const startedAt = Date.now();
+					let progress = startSweepProgress(batch.map(steps => steps.length));
+					progressRef.current?.(progress);
+					let stepsBefore = 0;
+					for (const [statIndex, { unitStat, label, baseStatValue }] of args.stats.entries()) {
+						if (sim.runs.isAborting(SimRunKind.StatSweep)) break;
+						const stats = unitStat.isStat() ? [unitStat.getStat()] : [];
+						const pseudoStats = unitStat.isPseudoStat() ? [unitStat.getPseudoStat()] : [];
+						const record: StatSweepRecord = {
+							id: randomUUID(),
+							createdAt: Date.now(),
+							specId: player.getSpec(),
+							label,
+							colorSlot: (firstSlot + statIndex) % SERIES_SLOT_COUNT,
+							unitStat: unitStat.toJson(),
+							refStat,
+							range: args.range,
+							step: args.step,
+							precision,
+							baseStatValue,
+							points: [],
+						};
+						update(current => ({ ...current, live: record, overlaid: [...current.overlaid, record.id] }));
+						const points: StatSweepPoint[] = [];
+						let stopped = false;
+						try {
+							for (const [index, step] of batch[statIndex].entries()) {
+								if (sim.runs.isAborting(SimRunKind.StatSweep)) {
+									stopped = true;
+									break;
+								}
+								const onStepProgress = (metrics: ProgressMetrics) => {
+									progress = advanceSweepProgress(progress, stepsBefore + index, metrics, (Date.now() - startedAt) / 1000);
+									progressRef.current?.(progress);
+								};
+								const result = await player.computeStatWeights(stats, pseudoStats, refStat, onStepProgress, {
+									...options,
+									bonusStats: new Stats().withUnitStat(unitStat, step.offset),
+								});
+								// An aborted step comes back as a result with an error, not as a throw.
+								if (result.error) {
+									stopped = true;
+									break;
+								}
+								points.push(sweepPointFromResult(result, unitStat, refStat, step));
+								const live = { ...record, points: points.slice() };
+								update(current => ({ ...current, live }));
+							}
+						} finally {
+							await keep(record, points);
+						}
+						if (stopped) break;
+						stepsBefore += batch[statIndex].length;
+					}
+				} catch (error: any) {
+					console.error(error);
+					toastManager.add({ variant: 'error', body: error?.message || 'Something went wrong running the stat sweep.' });
+				}
 			});
 		},
 		[sim, player, update],

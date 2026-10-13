@@ -18,13 +18,22 @@ import {
 
 describe('advanceSweepProgress', () => {
 	it('counts the steps done plus the running step share, and estimates the rest at the rate so far', () => {
-		const progress = advanceSweepProgress(startSweepProgress(4), 1, { completedIterations: 500, totalIterations: 1000 }, 30);
+		const progress = advanceSweepProgress(startSweepProgress([4]), 1, { completedIterations: 500, totalIterations: 1000 }, 30);
 
-		expect(progress).toEqual({ step: 2, steps: 4, completed: 1.5, iterationsPerStep: 1000, secondsRemaining: 50 });
+		expect(progress).toMatchObject({ stat: 1, stats: 1, step: 2, steps: 4, completed: 1.5, totalSteps: 4, iterationsPerStep: 1000, secondsRemaining: 50 });
+	});
+
+	it("places a step counted across every stat at its stat and that stat's own step, and estimates over the whole batch", () => {
+		const start = startSweepProgress([3, 2, 4]);
+		const third = advanceSweepProgress(start, 5, { completedIterations: 500, totalIterations: 1000 }, 55);
+
+		expect(start).toMatchObject({ stat: 1, stats: 3, step: 1, steps: 3, totalSteps: 9 });
+		expect(third).toMatchObject({ stat: 3, step: 1, steps: 4, completed: 5.5, secondsRemaining: 35 });
+		expect(advanceSweepProgress(start, 4, { completedIterations: 0, totalIterations: 1000 }, 1)).toMatchObject({ stat: 2, step: 2, steps: 2 });
 	});
 
 	it('never falls back, keeping the last iteration count and estimate while a new step has not reported a total', () => {
-		const before = advanceSweepProgress(startSweepProgress(4), 1, { completedIterations: 900, totalIterations: 1000 }, 30);
+		const before = advanceSweepProgress(startSweepProgress([4]), 1, { completedIterations: 900, totalIterations: 1000 }, 30);
 		const grown = advanceSweepProgress(before, 1, { completedIterations: 900, totalIterations: 3000 }, 31);
 		const fresh = advanceSweepProgress(grown, 2, { completedIterations: 0, totalIterations: 0 }, 32);
 
@@ -34,7 +43,7 @@ describe('advanceSweepProgress', () => {
 	});
 
 	it('has no estimate before anything completes', () => {
-		expect(advanceSweepProgress(startSweepProgress(4), 0, { completedIterations: 0, totalIterations: 1000 }, 5).secondsRemaining).toBeUndefined();
+		expect(advanceSweepProgress(startSweepProgress([4]), 0, { completedIterations: 0, totalIterations: 1000 }, 5).secondsRemaining).toBeUndefined();
 	});
 });
 

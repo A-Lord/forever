@@ -1,14 +1,14 @@
 import i18n from '@i18n/config';
-import { ChoiceField, type ChoiceOption } from '@ui-kit/ChoiceField';
 import { ContentBlock } from '@ui-kit/ContentBlock';
+import { MultiComboBox } from '@ui-kit/MultiComboBox';
 import { NumberField } from '@ui-kit/TextField';
-import type { ReactNode } from 'react';
+import { type ReactNode, useMemo } from 'react';
 
 export interface StatSweepPanelProps {
 	/** Keyed by `UnitStat.getKey()`. */
-	statOptions: ReadonlyArray<ChoiceOption<string>>;
-	stat: string;
-	onStatChange: (stat: string) => void;
+	statOptions: ReadonlyArray<{ value: string; label: string }>;
+	stats: ReadonlyArray<string>;
+	onStatsChange: (stats: string[]) => void;
 	range: number;
 	onRangeChange: (range: number) => void;
 	step: number;
@@ -25,8 +25,8 @@ const t = (key: string) => i18n.t(`sidebar.buttons.stat_weights.sweep.${key}`);
 
 export const StatSweepPanel = ({
 	statOptions,
-	stat,
-	onStatChange,
+	stats,
+	onStatsChange,
 	range,
 	onRangeChange,
 	step,
@@ -36,27 +36,46 @@ export const StatSweepPanel = ({
 	chart,
 	history,
 	running,
-}: StatSweepPanelProps) => (
-	<div className="ui-ep-weights-layout">
-		<div className="ui-ep-weights-main flex flex-col gap-4">
-			<div className="flex flex-wrap items-end gap-4">
-				<ChoiceField
-					id="stat-sweep-stat"
-					className="min-w-48"
-					label={t('stat')}
-					options={statOptions}
-					value={stat}
-					onChange={onStatChange}
-					disabled={running}
-				/>
-				<NumberField id="stat-sweep-range" label={t('range')} float={fractional} positive disabled={running} value={range} onChange={onRangeChange} />
-				<NumberField id="stat-sweep-step" label={t('step')} float={fractional} positive disabled={running} value={step} onChange={onStepChange} />
+}: StatSweepPanelProps) => {
+	// The combo box picks numbers, so each option goes by its index.
+	const statValues = useMemo(() => statOptions.map((option, index) => ({ name: option.label, value: index })), [statOptions]);
+	const picked = useMemo(() => statOptions.flatMap((option, index) => (stats.includes(option.value) ? [index] : [])), [statOptions, stats]);
+
+	return (
+		<div className="ui-ep-weights-layout">
+			<div className="ui-ep-weights-main flex flex-col gap-4">
+				<div className="flex flex-wrap items-start gap-4">
+					<MultiComboBox
+						id="stat-sweep-stats"
+						className="min-w-64 flex-1"
+						label={t('stats.label')}
+						placeholder={t('stats.placeholder')}
+						emptyText={t('stats.empty')}
+						removeLabel={t('stats.remove')}
+						openLabel={t('stats.open')}
+						values={statValues}
+						value={picked}
+						onChange={indices => onStatsChange(indices.map(index => statOptions[index].value))}
+						disabled={running}
+						testId="stat-sweep-stats"
+					/>
+					<NumberField
+						id="stat-sweep-range"
+						label={t('range')}
+						float={fractional}
+						positive
+						disabled={running}
+						value={range}
+						onChange={onRangeChange}
+					/>
+					<NumberField id="stat-sweep-step" label={t('step')} float={fractional} positive disabled={running} value={step} onChange={onStepChange} />
+				</div>
+				{chart}
 			</div>
-			{chart}
+			<div className="ui-ep-weights-sidebar">
+				<ContentBlock config={{ header: { title: i18n.t('sidebar.buttons.stat_weights.modal.settings') } }}>{precision}</ContentBlock>
+				{history}
+			</div>
 		</div>
-		<div className="ui-ep-weights-sidebar">
-			<ContentBlock config={{ header: { title: i18n.t('sidebar.buttons.stat_weights.modal.settings') } }}>{precision}</ContentBlock>
-			{history}
-		</div>
-	</div>
-);
+	);
+};

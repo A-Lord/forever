@@ -1,3 +1,4 @@
+import { UIStat } from '@generated/proto/api';
 import { PseudoStat, Stat } from '@generated/proto/common';
 import { SavedStatWeightSettings } from '@generated/proto/ui';
 import { describe, expect, it } from 'vitest';
@@ -84,34 +85,49 @@ describe('StatWeightActionSettings precision', () => {
 });
 
 describe('StatWeightActionSettings sweep', () => {
-	it('starts with no stat, a range of 100 and a step of 10', () => {
-		expect(settingsOn(new Map()).sweep).toEqual({ sweepStat: null, sweepRange: 100, sweepStep: 10 });
+	it('starts with no stats, a range of 100 and a step of 10', () => {
+		expect(settingsOn(new Map()).sweep).toEqual({ sweepStats: null, sweepRange: 100, sweepStep: 10 });
 	});
 
-	it('loads back the stored stat, range and step, a pseudo stat in fractions of a point', () => {
+	it('loads back the stored stats in order, range and step, a pseudo stat in fractions of a point', () => {
 		const storage = new Map<string, string>();
-		settingsOn(storage).setSweep({ sweepStat: UnitStat.fromPseudoStat(PseudoStat.PseudoStatSpellHitPercent), sweepRange: 2.5, sweepStep: 0.5 });
+		const stats = [UnitStat.fromPseudoStat(PseudoStat.PseudoStatSpellHitPercent), UnitStat.fromStat(Stat.StatCritRating)];
+		settingsOn(storage).setSweep({ sweepStats: stats, sweepRange: 2.5, sweepStep: 0.5 });
 
 		const loaded = settingsOn(storage);
 		loaded.load();
 
-		expect(loaded.sweep.sweepStat?.equals(UnitStat.fromPseudoStat(PseudoStat.PseudoStatSpellHitPercent))).toBe(true);
+		expect(loaded.sweep.sweepStats?.map(stat => stat.getKey())).toEqual(stats.map(stat => stat.getKey()));
 		expect([loaded.sweep.sweepRange, loaded.sweep.sweepStep]).toEqual([2.5, 0.5]);
 	});
 
-	it('reads a stored stat that names neither a stat nor a pseudo stat as no stat', () => {
-		const loaded = settingsOn(new Map([[KEY, JSON.stringify({ sweepStat: { apiVersion: 1 }, sweepRange: 50 })]]));
-		loaded.load();
+	it('drops a stored stat that names neither a stat nor a pseudo stat, and reads none left as no stats', () => {
+		const stored = (sweepStats: object[]) => new Map([[KEY, JSON.stringify({ sweepStats, sweepRange: 50 })]]);
+		const kept = settingsOn(stored([{ apiVersion: 1 }, UIStat.toJson(UnitStat.fromStat(Stat.StatHitRating).toProto()) as object]));
+		kept.load();
+		const none = settingsOn(stored([{ apiVersion: 1 }]));
+		none.load();
 
-		expect(loaded.sweep).toEqual({ sweepStat: null, sweepRange: 50, sweepStep: 10 });
+		expect(kept.sweep.sweepStats?.map(stat => stat.getKey())).toEqual([UnitStat.fromStat(Stat.StatHitRating).getKey()]);
+		expect(none.sweep).toEqual({ sweepStats: null, sweepRange: 50, sweepStep: 10 });
 	});
 
-	it('does not rewrite storage for the same stat in a new instance', () => {
+	it('reads a cleared selection back as no stats', () => {
+		const storage = new Map<string, string>();
+		settingsOn(storage).setSweep({ sweepStats: [] });
+
+		const loaded = settingsOn(storage);
+		loaded.load();
+
+		expect(loaded.sweep.sweepStats).toBeNull();
+	});
+
+	it('does not rewrite storage for the same stats in a new list', () => {
 		const storage = new Map<string, string>();
 		const settings = settingsOn(storage);
-		settings.setSweep({ sweepStat: UnitStat.fromStat(Stat.StatHitRating) });
+		settings.setSweep({ sweepStats: [UnitStat.fromStat(Stat.StatHitRating), UnitStat.fromStat(Stat.StatCritRating)] });
 		storage.clear();
-		settings.setSweep({ sweepStat: UnitStat.fromStat(Stat.StatHitRating), sweepRange: 100 });
+		settings.setSweep({ sweepStats: [UnitStat.fromStat(Stat.StatHitRating), UnitStat.fromStat(Stat.StatCritRating)], sweepRange: 100 });
 
 		expect(storage.has(KEY)).toBe(false);
 	});

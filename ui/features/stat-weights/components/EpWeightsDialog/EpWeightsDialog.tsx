@@ -55,10 +55,14 @@ const trackerProgress = (metrics: ProgressMetrics): ProgressTrackerProgress => (
 	total: metrics.totalIterations,
 });
 
-// The bar spans the whole sweep, read out in iterations at the latest step's count; before any step reports one it counts steps.
-const sweepTrackerProgress = ({ step, steps, completed, iterationsPerStep }: StatSweepProgress): ProgressTrackerProgress => {
+// The bar spans the whole sweep, every stat's steps, read out in iterations at the latest step's count; before any step reports one it counts steps.
+const sweepTrackerProgress = ({ stat, stats, step, steps, completed, totalSteps, iterationsPerStep }: StatSweepProgress): ProgressTrackerProgress => {
 	const scale = iterationsPerStep || 1;
-	return { title: i18n.t('sidebar.buttons.stat_weights.sweep.progress', { current: step, total: steps }), current: completed * scale, total: steps * scale };
+	const title =
+		stats > 1
+			? i18n.t('sidebar.buttons.stat_weights.sweep.progress_stats', { stat, stats, current: step, total: steps })
+			: i18n.t('sidebar.buttons.stat_weights.sweep.progress', { current: step, total: steps });
+	return { title, current: completed * scale, total: totalSteps * scale };
 };
 
 export interface EpWeightsDialogProps {
@@ -215,7 +219,7 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 			footer={
 				// A gear planner keeps the editor and drops the calculation: there is no sim to run it on.
 				host.simDisabled ? undefined : tab === SWEEP_TAB ? (
-					<Button variant="primary" disabled={isSweeping} onClick={sweepControls.onRun}>
+					<Button variant="primary" disabled={isSweeping || !sweepControls.selectedStats.length} onClick={sweepControls.onRun}>
 						{i18n.t('sidebar.buttons.stat_weights.sweep.run')}
 					</Button>
 				) : (
