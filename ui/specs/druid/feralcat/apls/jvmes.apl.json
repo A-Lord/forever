@@ -1660,7 +1660,7 @@
 				},
 				"castSpell": {
 					"spellId": {
-						"otherId": "OtherActionResourcePotion"
+						"otherId": "OtherActionOffensivePotion"
 					}
 				}
 			}
