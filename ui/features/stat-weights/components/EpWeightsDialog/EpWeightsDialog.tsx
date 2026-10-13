@@ -254,14 +254,13 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 									showEpRatios={showEpRatios}
 									displayMetrics={displayMetrics}
 									showUpdateColumn={!editOnly}
+									statAction={<StatFilterPopover {...statFilter} ariaLabel={i18n.t('stat_filters.triggers.ep')} testId="ep-stat-filter" />}
 								/>
 							</div>
 							<div className="ui-ep-weights-sidebar order-0 flex flex-col gap-4 lg:sticky lg:top-0 lg:z-sticky lg:order-1 lg:w-64 lg:shrink-0">
 								<ContentBlock config={{ header: { title: i18n.t('sidebar.buttons.stat_weights.modal.settings') } }}>
 									<div className="flex flex-col gap-4">
-										<EpWeightsOptions statsType={statsType} onStatsTypeChange={setStatsType}>
-											<StatFilterPopover {...statFilter} ariaLabel={i18n.t('stat_filters.triggers.ep')} testId="ep-stat-filter" />
-										</EpWeightsOptions>
+										<EpWeightsOptions statsType={statsType} onStatsTypeChange={setStatsType} />
 										{!editOnly && (
 											<>
 												<EpReferenceOptions epStats={epStats} epReferenceStat={epReferenceStat} displayMetrics={displayMetrics} />
