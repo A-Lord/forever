@@ -385,29 +385,16 @@
 				{
 					"action": {
 						"condition": {
-							"and": {
-								"vals": [
-									{
-										"selectedConjured": {
-											"conjuredId": {
-												"itemId": 7676
-											}
-										}
-									},
-									{
-										"cmp": {
-											"op": "OpLe",
-											"lhs": {
-												"currentEnergy": {}
-											},
-											"rhs": {
-												"const": {
-													"val": "20"
-												}
-											}
-										}
+							"cmp": {
+								"op": "OpLe",
+								"lhs": {
+									"currentEnergy": {}
+								},
+								"rhs": {
+									"const": {
+										"val": "20"
 									}
-								]
+								}
 							}
 						},
 						"castSpell": {

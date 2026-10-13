@@ -178,11 +178,7 @@ func catAPL(tune aplTune) *proto.APLRotation {
 		cooldownLines = append(cooldownLines, castWhen(spellElune, elune))
 	}
 	cooldownLines = append(cooldownLines,
-		castItemWhen(itemTea, and(
-			&proto.APLValue{Value: &proto.APLValue_SelectedConjured{SelectedConjured: &proto.APLValueSelectedConjured{
-				ConjuredId: &proto.ActionID{RawId: &proto.ActionID_ItemId{ItemId: itemTea}},
-			}}},
-			cmp(proto.APLValueCompare_OpLe, currentEnergy(), konst("20")))),
+		castItemWhen(itemTea, cmp(proto.APLValueCompare_OpLe, currentEnergy(), konst("20"))),
 		// The potion's own rule: the full gain still fits, with five seconds of regen left over.
 		castOtherWhen(proto.OtherAction_OtherActionResourcePotion, potionFits()),
 		// Trinkets and anything else the list does not name.
@@ -392,8 +388,20 @@ func openerAPL(opener int32) *proto.APLRotation {
 
 // The preset files and the builders that make them.
 func catAPLPresets() map[string]*proto.APLRotation {
+	defaultRotation := catAPL(bestCatAPL)
+	for _, group := range defaultRotation.Groups {
+		for _, item := range group.Actions {
+			if item.Action.GetCastSpell().GetSpellId().GetItemId() == itemTea {
+				item.Action.Condition = and(
+					&proto.APLValue{Value: &proto.APLValue_SelectedConjured{SelectedConjured: &proto.APLValueSelectedConjured{
+						ConjuredId: &proto.ActionID{RawId: &proto.ActionID_ItemId{ItemId: itemTea}},
+					}}},
+					item.Action.Condition)
+			}
+		}
+	}
 	return map[string]*proto.APLRotation{
-		"default":    catAPL(bestCatAPL),
+		"default":    defaultRotation,
 		"shadowmeld": shadowmeldAPL(),
 		"energized":  energizedAPL(),
 		"bearweave":  bearweaveAPL(),

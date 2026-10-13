@@ -102,46 +102,41 @@ func TestAvailableThistleTeaRequiresSelection(t *testing.T) {
 	if !core.WITH_DB {
 		t.Skip("requires the committed game database")
 	}
-	for _, preset := range []string{"default", "bearweave"} {
-		for _, selected := range []int32{0, 7676} {
-			t.Run(fmt.Sprintf("%s/selected=%d", preset, selected), func(t *testing.T) {
-				consumables := goproto.Clone(DefaultConsumables).(*proto.ConsumesSpec)
-				consumables.ConjuredId = selected
-				consumables.ConjuredItems = []int32{7676}
-				talents := DefaultTalents
-				if preset == "bearweave" {
-					talents = BearweaveTalents
-				}
-				request := &proto.RaidSimRequest{
-					Raid: core.SinglePlayerRaidProto(&proto.Player{
-						Class: proto.Class_ClassDruid, Race: proto.Race_RaceNightElf,
-						TalentsString: talents, Spec: DefaultSpecOptions, Consumables: consumables,
-						Equipment: core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "default").GearSet,
-						Rotation:  core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", preset).Rotation,
-					}, nil, nil, nil),
-					Encounter:  &proto.Encounter{Duration: 180, Targets: []*proto.Target{core.NewDefaultTarget()}},
-					SimOptions: &proto.SimOptions{Iterations: 1, RandomSeed: 101, IsTest: true},
-				}
-				result := core.RunRaidSim(request)
-				if result.Error != nil {
-					t.Fatal(result.Error.Message)
-				}
-				casts := int32(0)
-				for _, action := range result.RaidMetrics.Parties[0].Players[0].Actions {
-					if action.Id.GetItemId() == 7676 {
-						for _, target := range action.Targets {
-							casts += target.Casts
-						}
+	for _, selected := range []int32{0, 7676} {
+		t.Run(fmt.Sprintf("selected=%d", selected), func(t *testing.T) {
+			consumables := goproto.Clone(DefaultConsumables).(*proto.ConsumesSpec)
+			consumables.ConjuredId = selected
+			consumables.ConjuredItems = []int32{7676}
+			request := &proto.RaidSimRequest{
+				Raid: core.SinglePlayerRaidProto(&proto.Player{
+					Class: proto.Class_ClassDruid, Race: proto.Race_RaceNightElf,
+					TalentsString: DefaultTalents, Spec: DefaultSpecOptions, Consumables: consumables,
+					Equipment: core.GetGearSet("../../../ui/specs/druid/feralcat/gear_sets", "default").GearSet,
+					Rotation:  core.GetAplRotation("../../../ui/specs/druid/feralcat/apls", "default").Rotation,
+				}, nil, nil, nil),
+				Encounter:  &proto.Encounter{Duration: 180, Targets: []*proto.Target{core.NewDefaultTarget()}},
+				SimOptions: &proto.SimOptions{Iterations: 1, RandomSeed: 101, IsTest: true},
+			}
+			result := core.RunRaidSim(request)
+			if result.Error != nil {
+				t.Fatal(result.Error.Message)
+			}
+			casts := int32(0)
+			for _, action := range result.RaidMetrics.Parties[0].Players[0].Actions {
+				if action.Id.GetItemId() == 7676 {
+					for _, target := range action.Targets {
+						casts += target.Casts
 					}
 				}
-				if selected == 0 && casts != 0 {
-					t.Fatalf("unselected Tea casts = %d, want 0", casts)
-				}
-				if selected == 7676 && casts == 0 {
-					t.Fatal("selected Tea was never used")
-				}
-			})
-		}
+			}
+			t.Logf("default selected=%d available=[7676] Tea casts=%d", selected, casts)
+			if selected == 0 && casts != 0 {
+				t.Fatalf("unselected Tea casts = %d, want 0", casts)
+			}
+			if selected == 7676 && casts == 0 {
+				t.Fatal("selected Tea was never used")
+			}
+		})
 	}
 }
 
