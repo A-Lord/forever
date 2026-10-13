@@ -138,8 +138,8 @@ func (druid *Druid) applyNaturesGrace() {
 	trigger.Name = "Nature's Grace - Trigger"
 	trigger.Callback = core.CallbackOnSpellHitDealt | core.CallbackOnHealDealt
 	trigger.Outcome = core.OutcomeCrit
-	// Up before the next cast starts, which the crit that granted it can be followed by at once.
-	trigger.TriggerImmediately = true
+	// The buff comes a spell batch after the crit, so a cast that starts as the crit lands, such as
+	// the one queued behind a Starfire, is not hasted.
 
 	druid.MakeProcTriggerAura(trigger)
 }
