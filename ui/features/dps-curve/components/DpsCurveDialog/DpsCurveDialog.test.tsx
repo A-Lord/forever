@@ -29,7 +29,9 @@ vi.mock('@ui-kit/utils/dom', async importOriginal => ({ ...(await importOriginal
 const STRENGTH = UnitStat.fromStat(Stat.StatStrength);
 const AGILITY = UnitStat.fromStat(Stat.StatAgility);
 
-const sample = (iterations: number) => ({ avg: 1000, stdev: 100, n: iterations, sumSq: iterations * (100 ** 2 + 1000 ** 2) });
+const sample = (iterations: number, avg = 1000) => ({ avg, stdev: 100, n: iterations, sumSq: iterations * (100 ** 2 + avg ** 2) });
+// One DPS per bonus point of either stat, so every step's DPS differs.
+const dpsOf = ({ bonusStats }: DpsSimOptions) => 1000 + bonusStats.getStat(Stat.StatStrength) + bonusStats.getStat(Stat.StatAgility);
 
 const rootElem = document.createElement('div');
 let settings: DpsCurveSettings;
@@ -43,7 +45,7 @@ const setup = () => {
 	const env = { storage: { getItem: (key: string) => storage.get(key) ?? null, setItem: (key: string, value: string) => storage.set(key, value) } };
 	seedKeyed(store, 'players', 0, { v: zeroVersions(PLAYER_FIELDS) } as never);
 	abortType = vi.fn().mockResolvedValue(undefined);
-	simulateDps = vi.fn(async (options: DpsSimOptions) => sample(options.iterations));
+	simulateDps = vi.fn(async (options: DpsSimOptions) => sample(options.iterations, dpsOf(options)));
 	const sim = {
 		store,
 		env,
@@ -107,9 +109,26 @@ describe('DpsCurveDialog', () => {
 		const saved = history.saveRun.mock.calls[0][0];
 		expect(saved.points.map(point => [point.statValue, point.dps, point.samples])).toEqual([
 			[0, 1000, 3000],
-			[10, 1000, 3000],
-			[20, 1000, 3000],
+			[10, 1010, 3000],
+			[20, 1020, 3000],
 		]);
+		expect(saved.cappedAt).toBeUndefined();
+	});
+
+	it('stops a stat going up once a step gives the DPS of the step below it, and saves where it capped', async () => {
+		simulateDps.mockImplementation(async options => sample(options.iterations, Math.min(dpsOf(options), 1020)));
+		settings.setSetup({ range: 50, step: 10 });
+		renderDialog();
+
+		await act(async () => {
+			fireEvent.click(runButton());
+		});
+
+		expect(simulateDps.mock.calls.map(call => bonusOf(call, Stat.StatStrength))).toEqual([0, 10, 20, 30]);
+		const saved = history.saveRun.mock.calls[0][0];
+		expect(saved.points.map(point => point.statValue)).toEqual([0, 10, 20, 30]);
+		expect(saved.cappedAt).toBe(20);
+		expect(screen.getByText('sidebar.buttons.dps_curve.capped_label')).toBeTruthy();
 	});
 
 	it('runs each picked stat on its own in the order offered, saving each as its own run', async () => {

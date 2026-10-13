@@ -34,6 +34,8 @@ export interface DpsCurveRecord {
 	precision: DpsCurvePrecision;
 	baseStatValue: number;
 	points: DpsCurvePoint[];
+	/** The change past which more of the stat left DPS unchanged, so the run skipped the steps above the next one. */
+	cappedAt?: number;
 }
 
 interface DpsCurveDb extends DBSchema {

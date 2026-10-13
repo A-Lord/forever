@@ -18,13 +18,15 @@ export interface DpsCurveSeries {
 	/** The swept stat's total when the run started; the run plots each point at its change from it. */
 	baseStatValue: number;
 	points: ReadonlyArray<DpsCurvePoint>;
+	/** The change past which more of the stat left DPS unchanged. */
+	cappedAt?: number;
 }
 
 export interface DpsCurveChartProps {
 	series: ReadonlyArray<DpsCurveSeries>;
 }
 
-type CurveDatum = { x: number; y: number; point: DpsCurvePoint; statLabel: string };
+type CurveDatum = { x: number; y: number; point: DpsCurvePoint; statLabel: string; capped: boolean };
 
 // Each run draws the band's upper edge, its lower edge, then the DPS line. Upper fills down to the next dataset, so the order is load-bearing.
 // The band is one standard deviation of a single fight's DPS either side of the average, the spread the sim card's ± reports.
@@ -51,7 +53,10 @@ function datasets(series: ReadonlyArray<DpsCurveSeries>): Array<ChartDataset<'li
 	return series.flatMap(run => {
 		const color = seriesColor(run.colorSlot);
 		const at = (y: (point: DpsCurvePoint) => number) =>
-			run.points.map(point => ({ x: curveChange(point.statValue, run.baseStatValue), y: y(point), point, statLabel: run.statLabel }));
+			run.points.map(point => {
+				const x = curveChange(point.statValue, run.baseStatValue);
+				return { x, y: y(point), point, statLabel: run.statLabel, capped: run.cappedAt !== undefined && x >= run.cappedAt };
+			});
 		const edge = {
 			pointRadius: 0,
 			pointHoverRadius: 0,
@@ -92,6 +97,10 @@ function xRange(series: ReadonlyArray<DpsCurveSeries>) {
 
 const signed = (change: number) => (change > 0 ? `+${change}` : String(change));
 
+/** The run's label, with the change it capped at when more of the stat stopped changing DPS. */
+export const runLabel = ({ label, cappedAt }: { label: string; cappedAt?: number }) =>
+	cappedAt === undefined ? label : t('capped_label', { label, change: signed(cappedAt) });
+
 const markerPlugin: Plugin<'line'> = {
 	id: 'dpsCurveMarker',
 	afterDatasetsDraw: chart => {
@@ -116,7 +125,8 @@ const markerPlugin: Plugin<'line'> = {
 
 const PLUGINS = [markerPlugin];
 
-function options(range: { min: number; max: number }, showLegend: boolean): ChartOptions<'line'> {
+function options(series: ReadonlyArray<DpsCurveSeries>): ChartOptions<'line'> {
+	const range = xRange(series);
 	return {
 		animation: false,
 		responsive: true,
@@ -125,7 +135,7 @@ function options(range: { min: number; max: number }, showLegend: boolean): Char
 		interaction: { mode: 'nearest', axis: 'x', intersect: false },
 		plugins: {
 			legend: {
-				display: showLegend,
+				display: series.length >= 2,
 				position: 'bottom',
 				align: 'start',
 				labels: {
@@ -138,7 +148,7 @@ function options(range: { min: number; max: number }, showLegend: boolean): Char
 							const color = (dataset as ChartDataset<'line'>).borderColor as string;
 							return [
 								{
-									text: dataset.label ?? '',
+									text: runLabel(series[Math.floor(datasetIndex / DATASETS_PER_RUN)]),
 									datasetIndex,
 									fillStyle: color,
 									strokeStyle: color,
@@ -163,8 +173,9 @@ function options(range: { min: number; max: number }, showLegend: boolean): Char
 							}),
 						),
 					label: item => {
-						const { point, y } = item.raw as CurveDatum;
-						return `${item.dataset.label}: ${t('tooltip_value', { value: formatDps(y), stdev: formatDpsError(point.dpsStdev) })}`;
+						const { point, y, capped } = item.raw as CurveDatum;
+						const value = { value: formatDps(y), stdev: formatDpsError(point.dpsStdev) };
+						return `${item.dataset.label}: ${t(capped ? 'tooltip_value_capped' : 'tooltip_value', value)}`;
 					},
 				},
 			},
@@ -191,7 +202,7 @@ function options(range: { min: number; max: number }, showLegend: boolean): Char
 
 export const DpsCurveChart = ({ series }: DpsCurveChartProps) => {
 	const data = useMemo(() => ({ datasets: datasets(series) }) satisfies ChartData<'line', CurveDatum[]>, [series]);
-	const chartOptions = useMemo(() => options(xRange(series), series.length >= 2), [series]);
+	const chartOptions = useMemo(() => options(series), [series]);
 	const hasPoints = series.some(run => run.points.length);
 
 	// The empty text sits in the chart's box, so the first point does not resize the dialog.

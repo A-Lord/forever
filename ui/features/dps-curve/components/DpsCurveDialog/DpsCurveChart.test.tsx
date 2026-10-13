@@ -138,4 +138,27 @@ describe('DpsCurveChart', () => {
 		expect(t).toHaveBeenCalledWith('sidebar.buttons.dps_curve.tooltip_value', { value: point.dps.toFixed(2), stdev: point.dpsStdev.toFixed(0) });
 		t.mockRestore();
 	});
+
+	it('names where a capped run capped in the legend, and marks its points from there on as capped in the tooltip', () => {
+		render(<DpsCurveChart series={[{ ...run('a', 120, 0), cappedAt: 20 }, run('b', 90, 1)]} />);
+		const { data, options } = charts[0].config;
+		const t = vi.spyOn(i18n, 't');
+
+		options.plugins!.legend!.labels!.generateLabels!({ data, isDatasetVisible: () => true } as never);
+		expect(t).toHaveBeenCalledWith('sidebar.buttons.dps_curve.capped_label', { label: 'a', change: '+20' });
+
+		const label = options.plugins!.tooltip!.callbacks!.label! as unknown as (item: object) => string;
+		const keyAt = (datasetIndex: number, change: number) => {
+			t.mockClear();
+			label({ dataset: data.datasets[datasetIndex], raw: data.datasets[datasetIndex].data.find(datum => datum.x === change) });
+			return t.mock.calls[0][0];
+		};
+		expect([keyAt(2, 10), keyAt(2, 20), keyAt(2, 30), keyAt(5, 30)]).toEqual([
+			'sidebar.buttons.dps_curve.tooltip_value',
+			'sidebar.buttons.dps_curve.tooltip_value_capped',
+			'sidebar.buttons.dps_curve.tooltip_value_capped',
+			'sidebar.buttons.dps_curve.tooltip_value',
+		]);
+		t.mockRestore();
+	});
 });

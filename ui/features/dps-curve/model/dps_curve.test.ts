@@ -17,6 +17,9 @@ import {
 	mergeCurveHistory,
 	mergeDpsSamples,
 	nextColorSlot,
+	outwardOrder,
+	runCurveStat,
+	skipCurveSteps,
 	startCurveProgress,
 } from './dps_curve';
 
@@ -157,6 +160,19 @@ describe('measureDpsStep', () => {
 		expect(seedOffsets).toEqual([0, iterations[0], iterations[0] + iterations[1]]);
 	});
 
+	it("keeps the first pass's average beside the average over every pass", async () => {
+		const run = vi
+			.fn<DpsPassRunner>()
+			.mockResolvedValueOnce({ ...sampleOf([900, 1100]), n: DPS_CURVE_PROBE_ITERATIONS })
+			.mockResolvedValueOnce({ ...sampleOf([1200, 1400]), n: DPS_CURVE_PROBE_ITERATIONS });
+
+		const sample = await measureDpsStep(run, precision({ precisionMode: 'target', targetDpsCi: 0.1, maxIterationMultiplier: 2 }), 12500);
+
+		expect(sample?.firstPassAvg).toBe(1000);
+		expect(sample?.avg).not.toBe(1000);
+		expect((await measureDpsStep(vi.fn<DpsPassRunner>().mockResolvedValue(sampleOf([800, 1000])), precision(), 12500))?.firstPassAvg).toBe(900);
+	});
+
 	it('reports nothing when a pass stops', async () => {
 		const run = vi
 			.fn<(iterations: number, seedOffset: number) => Promise<DpsSample | null>>()
@@ -164,6 +180,84 @@ describe('measureDpsStep', () => {
 			.mockResolvedValueOnce(null);
 
 		expect(await measureDpsStep(run, precision({ precisionMode: 'target', targetDpsCi: 0.1 }), 12500)).toBeNull();
+	});
+});
+
+describe('outwardOrder', () => {
+	it('runs up from 0 to the top, then down from the first step below 0', () => {
+		const steps = [-20, -10, 0, 10, 20].map(offset => ({ offset, statValue: 50 + offset }));
+
+		expect(outwardOrder(steps).map(step => step.offset)).toEqual([0, 10, 20, -10, -20]);
+	});
+});
+
+describe('runCurveStat', () => {
+	const stepsOf = (...offsets: number[]) => offsets.map(offset => ({ offset, statValue: 100 + offset }));
+	const measureBy = (dps: (offset: number) => number) =>
+		vi.fn(async ({ offset }: { offset: number }, _ran: number) => ({ avg: dps(offset), stdev: 10, n: 1000, sumSq: 0, firstPassAvg: dps(offset) }));
+
+	it('stops going up at the first step whose DPS matches the step below it exactly, keeping that step', async () => {
+		const measure = measureBy(offset => 1000 + Math.min(offset, 20));
+		const onSkip = vi.fn();
+
+		const run = await runCurveStat(stepsOf(-20, -10, 0, 10, 20, 30, 40, 50), measure, undefined, onSkip);
+
+		expect(measure.mock.calls.map(([step, ran]) => [step.offset, ran])).toEqual([
+			[0, 0],
+			[10, 1],
+			[20, 2],
+			[30, 3],
+			[-10, 4],
+			[-20, 5],
+		]);
+		expect(onSkip).toHaveBeenCalledExactlyOnceWith(2);
+		expect(run.cappedStep).toEqual({ offset: 20, statValue: 120 });
+		expect(run.points.map(point => point.offset)).toEqual([-20, -10, 0, 10, 20, 30]);
+		expect(run.stopped).toBe(false);
+	});
+
+	it('runs every step when DPS changes by any amount', async () => {
+		const measure = measureBy(offset => 1000 + Math.min(offset, 20) + offset * 1e-9);
+		const onSkip = vi.fn();
+
+		const run = await runCurveStat(stepsOf(0, 10, 20, 30, 40), measure, undefined, onSkip);
+
+		expect(measure).toHaveBeenCalledTimes(5);
+		expect(onSkip).not.toHaveBeenCalled();
+		expect(run.cappedStep).toBeUndefined();
+	});
+
+	it('runs every step below 0, even where DPS stops changing', async () => {
+		const measure = measureBy(offset => 1000 + Math.max(offset, -10));
+
+		const run = await runCurveStat(stepsOf(-40, -30, -20, -10, 0, 10), measure);
+
+		expect(run.points).toHaveLength(6);
+		expect(run.cappedStep).toBeUndefined();
+	});
+
+	it("compares each step's first pass, not its average over every pass", async () => {
+		const measure = vi.fn(async ({ offset }: { offset: number }) => ({ avg: 1000 + offset, stdev: 10, n: 3000, sumSq: 0, firstPassAvg: 1000 }));
+
+		const run = await runCurveStat(stepsOf(0, 10, 20), measure);
+
+		expect(measure).toHaveBeenCalledTimes(2);
+		expect(run.cappedStep?.offset).toBe(0);
+		expect(run.points.map(point => point.dps)).toEqual([1000, 1010]);
+	});
+
+	it('reports the run after each step, and stops with the finished steps when a step comes back empty', async () => {
+		const measure = vi
+			.fn<(step: { offset: number }) => Promise<{ avg: number; stdev: number; n: number; sumSq: number; firstPassAvg: number } | null>>()
+			.mockResolvedValueOnce({ avg: 1000, stdev: 10, n: 1000, sumSq: 0, firstPassAvg: 1000 })
+			.mockResolvedValueOnce(null);
+		const onUpdate = vi.fn();
+
+		const run = await runCurveStat(stepsOf(-10, 0, 10), measure, onUpdate);
+
+		expect(run.stopped).toBe(true);
+		expect(run.points.map(point => point.offset)).toEqual([0]);
+		expect(onUpdate).toHaveBeenCalledTimes(1);
 	});
 });
 
@@ -187,6 +281,17 @@ describe('advanceCurveProgress', () => {
 
 		expect(grown.completed).toBe(before.completed);
 		expect(grown.iterationsPerStep).toBe(5000);
+	});
+
+	it("takes skipped steps out of their stat and the total, so the bar only moves on and the next stat's steps place after the ones that ran", () => {
+		const before = advanceCurveProgress(startCurveProgress([6, 4]), 3, 500, 1000, 35);
+
+		const skipped = skipCurveSteps(before, 0, 2);
+
+		expect(skipped).toMatchObject({ stat: 1, step: 4, steps: 4, stepCounts: [4, 4], totalSteps: 8, completed: 3.5 });
+		expect(skipped.completed / skipped.totalSteps).toBeGreaterThan(before.completed / before.totalSteps);
+		const next = advanceCurveProgress(skipped, 4, 0, 1000, 50);
+		expect(next).toMatchObject({ stat: 2, step: 1, steps: 4, completed: 4, secondsRemaining: 50 });
 	});
 
 	it('has no estimate before anything completes', () => {

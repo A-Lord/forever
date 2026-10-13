@@ -57,6 +57,9 @@ export const iterationsForCi = (stdev: number, targetCi: number) => Math.ceil(((
 /** Runs `iterations` more from `seedOffset` past the run's seed; null when the run stopped. */
 export type DpsPassRunner = (iterations: number, seedOffset: number) => Promise<DpsSample | null>;
 
+/** A step's DPS over all its passes, with the average of its first pass, which every step runs at the same seed and size. */
+export type DpsStepSample = DpsSample & { firstPassAvg: number };
+
 /**
  * One step's DPS. Iterations mode runs once. Target ± mode runs a fixed first pass, then up to
  * DPS_CURVE_MAX_TOP_UP_PASSES more, each up to the total its ± needs and capped at Max × the first pass. A pass continues at
@@ -67,14 +70,17 @@ export async function measureDpsStep(
 	precision: DpsCurvePrecision,
 	defaultIterations: number,
 	onPlanned?: (total: number) => void,
-): Promise<DpsSample | null> {
+): Promise<DpsStepSample | null> {
 	if (precision.precisionMode !== 'target') {
 		const iterations = precision.iterations || defaultIterations;
 		onPlanned?.(iterations);
-		return run(iterations, 0);
+		const sample = await run(iterations, 0);
+		return sample && { ...sample, firstPassAvg: sample.avg };
 	}
 	onPlanned?.(DPS_CURVE_PROBE_ITERATIONS);
 	let sample = await run(DPS_CURVE_PROBE_ITERATIONS, 0);
+	if (!sample) return null;
+	const firstPassAvg = sample.avg;
 	const cap = precision.maxIterationMultiplier > 0 ? DPS_CURVE_PROBE_ITERATIONS * precision.maxIterationMultiplier : Infinity;
 	for (let pass = 0; sample && pass < DPS_CURVE_MAX_TOP_UP_PASSES; pass++) {
 		const total = Math.min(iterationsForCi(sample.stdev, precision.targetDpsCi), cap);
@@ -83,7 +89,55 @@ export async function measureDpsStep(
 		const more = await run(total - sample.n, sample.n);
 		sample = more && mergeDpsSamples(sample, more);
 	}
-	return sample;
+	return sample && { ...sample, firstPassAvg };
+}
+
+/** `steps` in the order a stat runs them: up from change 0 to the top, then down from the first step below 0. */
+export const outwardOrder = (steps: readonly DpsCurveStep[]): DpsCurveStep[] => [
+	...steps.filter(step => step.offset >= 0).sort((a, b) => a.offset - b.offset),
+	...steps.filter(step => step.offset < 0).sort((a, b) => b.offset - a.offset),
+];
+
+export interface DpsCurveStatRun {
+	/** The finished steps, sorted by change. */
+	points: DpsCurvePoint[];
+	/** The highest step whose DPS changed: the step above it gave the same DPS, so more of the stat does nothing. */
+	cappedStep?: DpsCurveStep;
+	/** Set when a step came back with no DPS, which ends the run. */
+	stopped: boolean;
+}
+
+/**
+ * Runs one stat's steps in `outwardOrder`. Every step runs at the same seed, so a stat that no longer changes anything
+ * gives the exact first-pass average of the step below it: that step is kept and the steps above it are skipped, with
+ * `onSkip` told how many. The steps below 0 always all run. `measure` hears each step with the count of steps run before
+ * it, and `onUpdate` hears the run after each step.
+ */
+export async function runCurveStat(
+	steps: readonly DpsCurveStep[],
+	measure: (step: DpsCurveStep, ran: number) => Promise<DpsStepSample | null>,
+	onUpdate?: (run: DpsCurveStatRun) => void,
+	onSkip?: (count: number) => void,
+): Promise<DpsCurveStatRun> {
+	const ordered = outwardOrder(steps);
+	const run: DpsCurveStatRun = { points: [], stopped: false };
+	let below: { step: DpsCurveStep; avg: number } | undefined;
+	for (const [index, step] of ordered.entries()) {
+		if (run.cappedStep && step.offset > 0) continue;
+		const sample = await measure(step, run.points.length);
+		if (!sample) return { ...run, stopped: true };
+		run.points = [...run.points, { ...step, dps: sample.avg, dpsStdev: sample.stdev, samples: sample.n }].sort((a, b) => a.offset - b.offset);
+		if (step.offset >= 0) {
+			if (step.offset > 0 && below?.avg === sample.firstPassAvg) {
+				run.cappedStep = below.step;
+				const skipped = ordered.slice(index + 1).filter(next => next.offset > 0).length;
+				if (skipped) onSkip?.(skipped);
+			}
+			below = { step, avg: sample.firstPassAvg };
+		}
+		onUpdate?.({ ...run });
+	}
+	return run;
 }
 
 export interface DpsCurveProgress {
@@ -136,6 +190,12 @@ export function advanceCurveProgress(progress: DpsCurveProgress, index: number, 
 		iterationsPerStep: expected || progress.iterationsPerStep,
 		secondsRemaining: timeRemainingAtRate(elapsedSeconds, completed, totalSteps) ?? progress.secondsRemaining,
 	};
+}
+
+/** `progress` with `count` steps of stat `statIndex` (0-based) that will not run taken out of its step count and the total. */
+export function skipCurveSteps(progress: DpsCurveProgress, statIndex: number, count: number): DpsCurveProgress {
+	const stepCounts = progress.stepCounts.map((steps, index) => (index === statIndex ? steps - count : steps));
+	return { ...progress, stepCounts, steps: stepCounts[progress.stat - 1], totalSteps: progress.totalSteps - count };
 }
 
 /** The slot a new run takes: the one after the newest saved run's, wrapping at `slotCount`. */
