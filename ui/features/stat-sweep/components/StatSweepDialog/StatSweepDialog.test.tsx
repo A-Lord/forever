@@ -104,8 +104,17 @@ const pressedMetric = () =>
 const precisionMode = (mode: 'iterations' | 'target') =>
 	// Also behind the modal progress dialog.
 	screen.getByRole<HTMLButtonElement>('button', { name: `common.precision.mode_${mode}`, hidden: true });
-const overlayTicks = () =>
-	[...rootElem.querySelectorAll('[id^="stat-sweep-overlay-"]')].map(box => box.getAttribute('aria-checked') ?? String((box as HTMLInputElement).checked));
+const ticks = (selector: string) => [...rootElem.querySelectorAll<HTMLInputElement>(selector)].map(box => (box.indeterminate ? 'mixed' : String(box.checked)));
+// Each run's box, in list order.
+const overlayTicks = () => ticks('[id^="stat-sweep-overlay-"]:not([id^="stat-sweep-overlay-batch-"])');
+const batchTicks = () => ticks('[id^="stat-sweep-overlay-batch-"]');
+const batchBox = (index = 0) => rootElem.querySelectorAll<HTMLElement>('[id^="stat-sweep-overlay-batch-"]')[index];
+const runBox = (index: number) => rootElem.querySelectorAll<HTMLElement>('[id^="stat-sweep-overlay-"]:not([id^="stat-sweep-overlay-batch-"])')[index];
+const batchLabels = () => [...rootElem.querySelectorAll('label[for^="stat-sweep-overlay-batch-"]')].map(label => label.textContent);
+const deleteButtons = (key: 'delete' | 'delete_batch') => screen.getAllByRole('button', { name: `sidebar.buttons.stat_sweep.history.${key}`, hidden: true });
+const expanders = () => screen.getAllByRole('button', { name: 'sidebar.buttons.stat_sweep.history.expand' });
+const STRENGTH_NAME = STRENGTH.getFullName(Class.ClassWarrior);
+const AGILITY_NAME = AGILITY.getFullName(Class.ClassWarrior);
 // Iterations of each pass, by Strength added.
 const passesByStep = () => {
 	const passes: Record<number, number[]> = {};
@@ -114,16 +123,17 @@ const passesByStep = () => {
 };
 // Every metric stops at 1010 DPS, which Strength reaches at +10.
 const cappedAtTen = () => simulatePass.mockImplementation(async options => makeSweepSample(options.iterations, Math.min(sweepStepDps(options), 1010)));
-const storedRun = (id: string, createdAt: number, colorSlot: number): StatSweepRecord => ({
+const storedRun = (id: string, createdAt: number, colorSlot: number, batchId?: string, unitStat = STRENGTH): StatSweepRecord => ({
 	id,
 	createdAt,
 	specId: Spec.SpecUnknown,
 	label: id,
 	colorSlot,
-	unitStat: STRENGTH.toJson(),
+	unitStat: unitStat.toJson(),
 	metric: 'dps',
 	baseStatValue: 120,
 	points: makeHitSweepPoints(120),
+	...(batchId && { batchId, batchLabel: `${batchId} label` }),
 });
 
 beforeEach(() => {
@@ -144,10 +154,12 @@ describe('StatSweepDialog', () => {
 			await showPowerTools(true);
 			expect(action()!.textContent).toBe('');
 			expect(dialog()).toBeNull();
+			expect(history.listRuns).not.toHaveBeenCalled();
 			await act(async () => {
 				fireEvent.click(action()!);
 			});
 			expect(dialog()).not.toBeNull();
+			expect(history.listRuns).toHaveBeenCalledTimes(1);
 		});
 
 		it('stays hidden in a gear planner, which runs no sims', async () => {
@@ -409,6 +421,90 @@ describe('StatSweepDialog', () => {
 			expect(overlayTicks()).toEqual(['true', 'true', 'false']);
 		});
 
+		it('saves the runs of one sweep as one batch, listed under one header naming its stats in run order', async () => {
+			settings.set({ stats: [AGILITY, STRENGTH], range: 10, step: 10 });
+			await openDialog();
+
+			await run();
+
+			const [first, second] = history.saveRun.mock.calls.map(call => call[0]);
+			expect(first.batchId).toBeTruthy();
+			expect(second.batchId).toBe(first.batchId);
+			expect(second.batchLabel).toBe(first.batchLabel);
+			expect(batchLabels()).toEqual([`${STRENGTH_NAME}, ${AGILITY_NAME}`]);
+			expect(batchTicks()).toEqual(['true']);
+
+			act(() => settings.set({ stats: [STRENGTH] }));
+			await run();
+			expect(saved(2).batchId).not.toBe(first.batchId);
+			// The one-stat sweep is a plain row above the earlier sweep's header.
+			expect(batchLabels()).toEqual([`${STRENGTH_NAME}, ${AGILITY_NAME}`]);
+			expect(overlayTicks()).toEqual(['true', 'false', 'false']);
+		});
+
+		it("ticks and unticks every run of a batch with the batch's box, which shows mixed while only some are ticked", async () => {
+			settings.set({ stats: [AGILITY, STRENGTH], range: 10, step: 10 });
+			await openDialog();
+			await run();
+
+			fireEvent.click(runBox(1));
+			expect(overlayTicks()).toEqual(['true', 'false']);
+			expect(batchTicks()).toEqual(['mixed']);
+
+			fireEvent.click(batchBox());
+			expect(overlayTicks()).toEqual(['true', 'true']);
+			expect(batchTicks()).toEqual(['true']);
+			expect(lastChart().data.datasets).toHaveLength(6);
+
+			fireEvent.click(batchBox());
+			expect(overlayTicks()).toEqual(['false', 'false']);
+			expect(batchTicks()).toEqual(['false']);
+			expect(screen.getByRole<HTMLButtonElement>('button', { name: 'sidebar.buttons.stat_sweep.export_csv' }).disabled).toBe(true);
+		});
+
+		it('deletes one run inside a batch, and every run of a batch with its delete', async () => {
+			history.listRuns.mockResolvedValueOnce([
+				storedRun('third', 3, 2, 'sweep', AGILITY),
+				storedRun('second', 2, 1, 'sweep'),
+				storedRun('first', 1, 0, 'sweep', AGILITY),
+				storedRun('older', 0, 3),
+			]);
+			await openDialog();
+			expect(overlayTicks()).toEqual(['true', 'true', 'true', 'false']);
+
+			fireEvent.click(deleteButtons('delete')[1]);
+			expect(history.deleteRun).toHaveBeenCalledExactlyOnceWith('second');
+			expect(overlayTicks()).toEqual(['true', 'true', 'false']);
+			expect(batchLabels()).toEqual([`${AGILITY_NAME}, ${AGILITY_NAME}`]);
+
+			history.deleteRun.mockClear();
+			fireEvent.click(deleteButtons('delete_batch')[0]);
+			expect(history.deleteRun.mock.calls.map(call => call[0])).toEqual(['first', 'third']);
+			expect(overlayTicks()).toEqual(['false']);
+			expect(batchLabels()).toEqual([]);
+		});
+
+		it('lists a run saved with no batch as a row of its own, and opens only the newest batch', async () => {
+			history.listRuns.mockResolvedValueOnce([
+				storedRun('new-b', 5, 1, 'new', AGILITY),
+				storedRun('new-a', 4, 0, 'new'),
+				storedRun('unbatched', 3, 2),
+				storedRun('old-b', 2, 4, 'old', AGILITY),
+				storedRun('old-a', 1, 3, 'old'),
+			]);
+			await openDialog();
+
+			expect(overlayTicks()).toEqual(['true', 'true', 'false', 'false', 'false']);
+			expect(rootElem.querySelector('#stat-sweep-overlay-unbatched')!.closest('[data-testid="stat-sweep-history-batch"]')).toBeNull();
+			expect(expanders().map(button => button.getAttribute('aria-expanded'))).toEqual(['true', 'false']);
+			expect(screen.queryByRole('checkbox', { name: 'old-a' })).toBeNull();
+
+			fireEvent.click(expanders()[1]);
+			expect(expanders()[1].getAttribute('aria-expanded')).toBe('true');
+			fireEvent.click(screen.getByRole('checkbox', { name: 'old-a' }));
+			expect(batchTicks()).toEqual(['true', 'mixed']);
+		});
+
 		it('draws the newest saved run, overlays another when it is ticked, and deletes a run', async () => {
 			history.listRuns.mockResolvedValueOnce([storedRun('new', 2, 0), storedRun('old', 1, 1)]);
 			await openDialog();
@@ -440,7 +536,8 @@ describe('StatSweepDialog', () => {
 			const [csv, fileName, mimeType] = download.mock.calls[0];
 			const lines = csv.trim().split('\n');
 			expect(lines).toHaveLength(3);
-			expect(lines[0]).toBe('run,stat,base_total,added,total,dps,dps_stdev,hps,hps_stdev,tps,tps_stdev,dtps,dtps_stdev,tmi,tmi_stdev,samples');
+			expect(lines[0]).toBe('run,batch,stat,base_total,added,total,dps,dps_stdev,hps,hps_stdev,tps,tps_stdev,dtps,dtps_stdev,tmi,tmi_stdev,samples');
+			expect(lines.slice(1).map((line: string) => line.split(',')[1])).toEqual([saved().batchLabel, saved().batchLabel]);
 			expect([fileName, mimeType]).toEqual(['wowsims-stat-sweep.csv', 'text/csv']);
 		});
 	});

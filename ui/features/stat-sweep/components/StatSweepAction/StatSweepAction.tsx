@@ -33,7 +33,7 @@ export const StatSweepAction = ({ settings }: StatSweepActionProps) => {
 					setOpen(true);
 				}}
 			/>
-			{open && <StatSweepDialog onClose={() => setOpen(false)} settings={settings} />}
+			<StatSweepDialog open={open} onOpenChange={setOpen} settings={settings} />
 		</>
 	);
 };

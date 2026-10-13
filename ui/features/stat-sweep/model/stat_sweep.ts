@@ -50,6 +50,22 @@ export const sweepSteps = (offsets: readonly number[], totals: readonly number[]
 export const mergeSweepHistory = (inMemory: readonly StatSweepRecord[], stored: readonly StatSweepRecord[]): StatSweepRecord[] =>
 	distinct([...stored, ...inMemory], (a, b) => a.id === b.id).sort((a, b) => b.createdAt - a.createdAt);
 
+export interface SweepBatch<R> {
+	id: string;
+	/** In run order. */
+	runs: R[];
+}
+
+/** `runs`, given newest first, grouped by sweep, newest sweep first; a run with no batch id is a batch of its own, keyed by its id. */
+export function sweepBatches<R extends Pick<StatSweepRecord, 'id' | 'batchId'>>(runs: readonly R[]): SweepBatch<R>[] {
+	const batches = new Map<string, R[]>();
+	for (const run of runs) {
+		const id = run.batchId ?? run.id;
+		batches.set(id, [run, ...(batches.get(id) ?? [])]);
+	}
+	return [...batches].map(([id, runs]) => ({ id, runs }));
+}
+
 // A step's first pass in Target ± mode, as many as the EP calculation's probe; the iterations setting plays no part there.
 const PROBE_ITERATIONS = STAT_WEIGHT_TARGET_PROBE_ITERATIONS;
 // Passes after the first in Target ± mode, as many as the EP calculation's Target ± runs: the first top-up, which sizes
@@ -242,6 +258,8 @@ export function displayColorSlots(runs: readonly { id: string; colorSlot: number
 
 export interface StatSweepCsvRun {
 	label: string;
+	/** Empty for a run saved with no batch. */
+	batchLabel: string;
 	statLabel: string;
 	baseStatValue: number;
 	points: ReadonlyArray<StatSweepPoint>;
@@ -249,6 +267,7 @@ export interface StatSweepCsvRun {
 
 export const STAT_SWEEP_CSV_COLUMNS = [
 	'run',
+	'batch',
 	'stat',
 	'base_total',
 	'added',
@@ -266,6 +285,7 @@ export function statSweepCsv(runs: ReadonlyArray<StatSweepCsvRun>): string {
 	const rows = runs.flatMap(run =>
 		run.points.map(point => [
 			run.label,
+			run.batchLabel,
 			run.statLabel,
 			run.baseStatValue,
 			point.offset,

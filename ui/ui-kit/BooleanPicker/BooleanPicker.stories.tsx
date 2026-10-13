@@ -51,3 +51,5 @@ export const Reverse: Story = { args: { label: 'Dual Wield', reverse: true, layo
 export const Inline: Story = { args: { label: 'Show All Stats', layout: 'inline' } };
 export const Disabled: Story = { args: { disabled: true, value: true } };
 export const Unlabelled: Story = { args: { label: undefined } };
+/** One box over several values, some on and some off; a click turns them all on. */
+export const Indeterminate: Story = { args: { label: 'All runs', reverse: true, layout: 'inline', indeterminate: true } };

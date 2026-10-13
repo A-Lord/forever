@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { SWEEP_HISTORY_BATCHES } from '@testing/storybook/fixtures/stat-sweep';
 import { fn } from 'storybook/test';
 
 import { StatSweepHistory } from './StatSweepHistory';
@@ -8,16 +9,12 @@ const meta = {
 	component: StatSweepHistory,
 	tags: ['autodocs'],
 	args: {
-		runs: [
-			{ id: 'hit-new', label: 'Hit Rating ±100', createdAt: Date.UTC(2026, 9, 12, 14, 3), overlaid: true, colorSlot: 0, metric: 'dps' },
-			{ id: 'hit-old', label: 'Hit Rating ±100', createdAt: Date.UTC(2026, 9, 11, 21, 40), overlaid: true, colorSlot: 1, metric: 'tps' },
-			{ id: 'crit', label: 'Crit Rating ±50', createdAt: Date.UTC(2026, 9, 10, 18, 15), overlaid: false, metric: 'dps' },
-		],
+		batches: SWEEP_HISTORY_BATCHES,
 		onOverlayChange: fn(),
 		onDelete: fn(),
 		onExportCsv: fn(),
 	},
-	argTypes: { runs: { control: 'object' } },
+	argTypes: { batches: { control: 'object' } },
 	decorators: [
 		Story => (
 			<div className="w-64">
@@ -30,6 +27,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+/** The newest sweep open with every run drawn, a one-stat sweep as a plain row, and an older sweep with one of its runs drawn. */
 export const Default: Story = {};
 
-export const Empty: Story = { args: { runs: [], onExportCsv: undefined } };
+export const Empty: Story = { args: { batches: [], onExportCsv: undefined } };

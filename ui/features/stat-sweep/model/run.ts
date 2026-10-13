@@ -51,6 +51,8 @@ export interface StatSweepArgs {
 	precision: PrecisionSettings;
 	/** The first stat's colour slot; each stat after it takes the next one. */
 	firstColorSlot: number;
+	/** Saved on every run of the sweep, with one batch id the sweep draws. */
+	batchLabel: string;
 }
 
 export interface StatSweepCallbacks {
@@ -94,6 +96,7 @@ export function runStatSweep({ sim, specId }: StatSweepDeps, args: StatSweepArgs
 			const ownBonus = Stats.fromProto(base.raid!.parties[0].players[0].bonusStats);
 			const defaultIterations = sim.getIterations();
 			const offsets = buildSweepOffsets(args.range, args.step);
+			const batchId = randomUUID();
 			const startedAt = Date.now();
 			// Every stat at every offset until its totals are known, so the bar and the estimate only shrink as offsets drop out.
 			let progress = startSweepProgress(args.stats.map(() => offsets.length));
@@ -119,6 +122,8 @@ export function runStatSweep({ sim, specId }: StatSweepDeps, args: StatSweepArgs
 					metric,
 					baseStatValue,
 					points: [],
+					batchId,
+					batchLabel: args.batchLabel,
 				};
 				onRunUpdate(record);
 				let finished = record;

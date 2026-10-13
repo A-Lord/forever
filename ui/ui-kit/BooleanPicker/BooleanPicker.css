@@ -22,7 +22,8 @@
 			@apply border-input-focus-border shadow-focus-checkbox outline-none;
 		}
 
-		&[data-checked] {
+		&[data-checked],
+		&[data-indeterminate] {
 			@apply border-primary bg-primary;
 		}
 

@@ -40,6 +40,10 @@ export interface StatSweepRecord {
 	points: StatSweepPoint[];
 	/** The stat added past which more of the stat left every metric unchanged, so the run skipped the steps above the next one. */
 	cappedAt?: number;
+	/** Shared by every run one sweep saved; a run without one is a batch of its own. */
+	batchId?: string;
+	/** The sweep's stats in run order with its range, the same on every run of the batch. */
+	batchLabel?: string;
 }
 
 interface StatSweepDb extends DBSchema {

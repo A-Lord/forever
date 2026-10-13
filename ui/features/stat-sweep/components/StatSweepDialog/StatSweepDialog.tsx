@@ -3,18 +3,20 @@ import { EP_UNIT_STATS, isEpStat } from '@features/stat-weights/model/ep_unit_st
 import i18n from '@i18n/config';
 import { usePlayer, useSim, useSpecConfig } from '@sim/context/SimHostContext';
 import { useDisplayMetrics } from '@sim/hooks/useDisplayMetrics';
+import { useSimRun } from '@sim/hooks/useSimRun';
 import { useSimStore } from '@sim/hooks/useSimStore';
 import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
 import { Stats } from '@sim/proto/stats';
 import { precisionRunnable } from '@sim/settings/precision';
 import type { StatSweepSettings } from '@sim/settings/stat_sweep_settings';
+import { SimRunKind } from '@sim/state/sim_store';
 import { subscribeStatSweepChange } from '@sim/state/subscriptions';
 import { sum } from '@sim/utils/math';
 import { Button } from '@ui-kit/Button';
 import { Dialog } from '@ui-kit/Dialog';
 import { ProgressTrackerDialog, type ProgressTrackerHandle, type ProgressTrackerProgress } from '@ui-kit/ProgressTrackerDialog';
 import { downloadString } from '@ui-kit/utils/dom';
-import { useMemo, useRef } from 'react';
+import { type Ref, useImperativeHandle, useMemo, useRef } from 'react';
 
 import { useStatSweep } from '../../hooks/useStatSweep';
 import { offeredSweepMetrics, shownSweepMetric, statSweepCsv, type StatSweepProgress, sweepStepPosition } from '../../model/stat_sweep';
@@ -39,19 +41,10 @@ const trackerProgress = ({ stepCounts, running, completed, iterationsPerStep, se
 	};
 };
 
-export interface StatSweepDialogProps {
-	onClose: () => void;
-	settings: StatSweepSettings;
-}
-
-/** Mounted only while open, so its history loads and a run goes only then; closing it cancels a run. */
-export const StatSweepDialog = ({ onClose, settings }: StatSweepDialogProps) => {
+// The sweep the settings and the spec describe; store reads only, so the dialog keeps it while closed.
+const useSweepSetup = (settings: StatSweepSettings) => {
 	const player = usePlayer();
 	const { epStats, epPseudoStats } = useSpecConfig();
-	const progressRef = useRef<ProgressTrackerHandle>(null);
-	const statListRef = useRef<StatSweepStatListHandle>(null);
-	const sweep = useStatSweep();
-	const defaultIterations = useSimStore('iterations');
 	const displayMetrics = useDisplayMetrics(useSim());
 	const metrics = useMemo(() => offeredSweepMetrics(displayMetrics), [displayMetrics]);
 
@@ -70,51 +63,64 @@ export const StatSweepDialog = ({ onClose, settings }: StatSweepDialogProps) => 
 	const selectedKeys = useMemo(() => selectedStats.map(stat => stat.getKey()), [selectedStats]);
 	const labelOf = (key: string) => statOptions.find(option => option.value === key)?.label ?? '';
 	const runnable = selectedStats.length > 0 && precisionRunnable(precision);
+	return { player, unitStats, statOptions, metrics, metric, range, step, showSpread, precision, selectedStats, selectedKeys, labelOf, runnable };
+};
 
-	const onRun = () => {
-		if (!runnable) return;
-		const finalStats = player.getCurrentStats()?.finalStats;
-		const totals = finalStats ? Stats.fromProto(finalStats) : null;
-		sweep
-			.run(
-				{
-					stats: selectedStats.map(unitStat => ({
-						unitStat,
-						label: t('run_label', { stat: labelOf(unitStat.getKey()), range }),
-						baseStatValue: totals?.getUnitStat(unitStat) ?? 0,
-					})),
-					range,
-					step,
-					metric,
-					precision,
-				},
-				progress => {
-					progressRef.current?.setProgress(trackerProgress(progress));
-					statListRef.current?.setRunning(sweepStepPosition(progress.stepCounts, progress.running).stat);
-				},
-			)
-			.catch(console.error);
-	};
+type SweepSetup = ReturnType<typeof useSweepSetup>;
+
+interface StatSweepBodyHandle {
+	run: () => void;
+}
+
+interface StatSweepBodyProps {
+	settings: StatSweepSettings;
+	setup: SweepSetup;
+	ref: Ref<StatSweepBodyHandle>;
+}
+
+// The dialog's popup mounts this on open and drops it once the close transition ends, so the history loads and a run
+// goes only while the dialog shows.
+const StatSweepBody = ({ settings, setup, ref }: StatSweepBodyProps) => {
+	const { player, unitStats, statOptions, metrics, metric, range, step, showSpread, precision, selectedStats, selectedKeys, labelOf, runnable } = setup;
+	const progressRef = useRef<ProgressTrackerHandle>(null);
+	const statListRef = useRef<StatSweepStatListHandle>(null);
+	const sweep = useStatSweep();
+	const defaultIterations = useSimStore('iterations');
+
+	useImperativeHandle(ref, () => ({
+		run: () => {
+			if (!runnable) return;
+			const finalStats = player.getCurrentStats()?.finalStats;
+			const totals = finalStats ? Stats.fromProto(finalStats) : null;
+			sweep
+				.run(
+					{
+						stats: selectedStats.map(unitStat => ({
+							unitStat,
+							label: t('run_label', { stat: labelOf(unitStat.getKey()), range }),
+							baseStatValue: totals?.getUnitStat(unitStat) ?? 0,
+						})),
+						range,
+						step,
+						metric,
+						precision,
+						batchLabel: t('batch_label', { stats: selectedKeys.map(labelOf).join(', '), range }),
+					},
+					progress => {
+						progressRef.current?.setProgress(trackerProgress(progress));
+						statListRef.current?.setRunning(sweepStepPosition(progress.stepCounts, progress.running).stat);
+					},
+				)
+				.catch(console.error);
+		},
+	}));
 
 	const onExportCsv = sweep.series.some(run => run.points.length) ? () => downloadString(statSweepCsv(sweep.series), CSV_FILE_NAME, 'text/csv') : undefined;
 	const metricLabel = i18n.t(`sidebar.results.metrics.${metric}.label`);
 	const precisionText = (key: string) => t(`precision.${key}`, { metric: metricLabel });
 
 	return (
-		<Dialog
-			open
-			onOpenChange={open => {
-				if (!open) onClose();
-			}}
-			testId="stat-sweep-dialog"
-			size="full"
-			scrollContents
-			title={t('title')}
-			footer={
-				<Button variant="primary" disabled={sweep.isRunning || !runnable} onClick={onRun}>
-					{t('run')}
-				</Button>
-			}>
+		<>
 			<StatSweepPanel
 				statOptions={statOptions}
 				stats={selectedKeys}
@@ -148,7 +154,9 @@ export const StatSweepDialog = ({ onClose, settings }: StatSweepDialogProps) => 
 						onShowSpreadChange={showSpread => settings.set({ showSpread })}
 					/>
 				}
-				history={<StatSweepHistory runs={sweep.historyEntries} onOverlayChange={sweep.setOverlaid} onDelete={sweep.remove} onExportCsv={onExportCsv} />}
+				history={
+					<StatSweepHistory batches={sweep.historyBatches} onOverlayChange={sweep.setOverlaid} onDelete={sweep.remove} onExportCsv={onExportCsv} />
+				}
 				running={sweep.isRunning}
 			/>
 			{sweep.isRunning && (
@@ -162,6 +170,39 @@ export const StatSweepDialog = ({ onClose, settings }: StatSweepDialogProps) => 
 					onCancel={sweep.cancel}
 				/>
 			)}
+		</>
+	);
+};
+
+export interface StatSweepDialogProps {
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	settings: StatSweepSettings;
+}
+
+/** Closing it cancels a run. */
+export const StatSweepDialog = ({ open, onOpenChange, settings }: StatSweepDialogProps) => {
+	const setup = useSweepSetup(settings);
+	const { isRunning, abort } = useSimRun(SimRunKind.StatSweep);
+	const bodyRef = useRef<StatSweepBodyHandle>(null);
+
+	return (
+		<Dialog
+			open={open}
+			onOpenChange={next => {
+				if (!next) abort().catch(console.error);
+				onOpenChange(next);
+			}}
+			testId="stat-sweep-dialog"
+			size="full"
+			scrollContents
+			title={t('title')}
+			footer={
+				<Button variant="primary" disabled={isRunning || !setup.runnable} onClick={() => bodyRef.current?.run()}>
+					{t('run')}
+				</Button>
+			}>
+			<StatSweepBody ref={bodyRef} settings={settings} setup={setup} />
 		</Dialog>
 	);
 };

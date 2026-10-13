@@ -17,7 +17,8 @@ import { SimRuns } from '@sim/sim_runs';
 import { createSimStore, patchSlice, PLAYER_FIELDS, seedKeyed, type SimStore, type StatSweepMetric, zeroVersions } from '@sim/state/sim_store';
 
 import type { StatSweepSeries } from '../../../features/stat-sweep/components/StatSweepChart';
-import { buildSweepOffsets, type MetricSample, type StatSweepSample, sweepSteps } from '../../../features/stat-sweep/model/stat_sweep';
+import type { StatSweepHistoryEntry } from '../../../features/stat-sweep/components/StatSweepHistory';
+import { buildSweepOffsets, type MetricSample, type StatSweepSample, type SweepBatch, sweepSteps } from '../../../features/stat-sweep/model/stat_sweep';
 
 const HIT_CAP = 150;
 const DPS_PER_POINT = 2.1;
@@ -77,6 +78,36 @@ export const sweepSeries = (
 	colorSlot = 0,
 	label = `${statLabel} ±100`,
 ): StatSweepSeries => ({ id, label, colorSlot, statLabel, baseStatValue: base, points });
+
+const historyEntry = (
+	id: string,
+	statLabel: string,
+	createdAt: number,
+	overlaid: boolean,
+	colorSlot?: number,
+	metric: StatSweepMetric = 'dps',
+): StatSweepHistoryEntry => ({ id, label: `${statLabel} ±40`, statLabel, createdAt, overlaid, colorSlot, metric });
+
+/** Newest first: a four-stat sweep drawn whole, a one-stat sweep, and an older TPS sweep with one of its two runs drawn. */
+export const SWEEP_HISTORY_BATCHES: SweepBatch<StatSweepHistoryEntry>[] = [
+	{
+		id: 'melee',
+		runs: [
+			historyEntry('crit', 'Crit Rating', Date.UTC(2026, 9, 13, 14, 3), true, 0),
+			historyEntry('haste', 'Haste Rating', Date.UTC(2026, 9, 13, 14, 5), true, 1),
+			historyEntry('arp', 'Armor Penetration', Date.UTC(2026, 9, 13, 14, 7), true, 2),
+			historyEntry('expertise', 'Expertise Rating', Date.UTC(2026, 9, 13, 14, 9), true, 3),
+		],
+	},
+	{ id: 'hit', runs: [historyEntry('hit', 'Hit Rating', Date.UTC(2026, 9, 12, 21, 40), false)] },
+	{
+		id: 'threat',
+		runs: [
+			historyEntry('strength', 'Strength', Date.UTC(2026, 9, 10, 18, 15), true, 4, 'tps'),
+			historyEntry('agility', 'Agility', Date.UTC(2026, 9, 10, 18, 17), false, undefined, 'tps'),
+		],
+	},
+];
 
 const flatSample = (avg: number, stdev: number, n: number): MetricSample => ({ avg, stdev, n, sumSq: n * (stdev ** 2 + avg ** 2) });
 

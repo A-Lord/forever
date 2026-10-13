@@ -1,7 +1,7 @@
 import { PrecisionOptions } from '@features/stat-weights/components/PrecisionOptions';
 import i18n from '@i18n/config';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { makeHitSweepPoints, sweepSeries } from '@testing/storybook/fixtures/stat-sweep';
+import { makeHitSweepPoints, SWEEP_HISTORY_BATCHES, sweepSeries } from '@testing/storybook/fixtures/stat-sweep';
 import { fn } from 'storybook/test';
 
 import { StatSweepChart } from '../StatSweepChart';
@@ -9,11 +9,6 @@ import { StatSweepHistory } from '../StatSweepHistory';
 import { StatSweepPanel } from './StatSweepPanel';
 
 const precisionText = (key: string) => i18n.t(`sidebar.buttons.stat_sweep.precision.${key}`, { metric: i18n.t('sidebar.results.metrics.dps.label') });
-
-const HISTORY = [
-	{ id: 'hit-new', label: 'Hit Rating ±100', createdAt: Date.UTC(2026, 9, 12, 14, 3), overlaid: true, colorSlot: 1, metric: 'dps' as const },
-	{ id: 'crit', label: 'Crit Rating ±50', createdAt: Date.UTC(2026, 9, 10, 18, 15), overlaid: false, metric: 'tps' as const },
-];
 
 const meta = {
 	title: 'Features/StatSweep/StatSweepPanel',
@@ -45,7 +40,7 @@ const meta = {
 			/>
 		),
 		chart: <StatSweepChart series={[]} metric="dps" metrics={['dps', 'tps']} onMetricChange={fn()} showSpread onShowSpreadChange={fn()} />,
-		history: <StatSweepHistory runs={HISTORY} onOverlayChange={fn()} onDelete={fn()} />,
+		history: <StatSweepHistory batches={SWEEP_HISTORY_BATCHES} onOverlayChange={fn()} onDelete={fn()} />,
 		running: false,
 	},
 	argTypes: { statOptions: { control: false }, precision: { control: false }, chart: { control: false }, history: { control: false } },

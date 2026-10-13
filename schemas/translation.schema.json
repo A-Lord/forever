@@ -8878,6 +8878,7 @@
 								"run": { "type": "string" },
 								"progress": { "type": "string" },
 								"run_label": { "type": "string" },
+								"batch_label": { "type": "string" },
 								"capped_label": { "type": "string" },
 								"metric": { "type": "string" },
 								"show_spread": { "type": "string" },
@@ -8896,11 +8897,14 @@
 									"properties": {
 										"title": { "type": "string" },
 										"delete": { "type": "string" },
+										"delete_batch": { "type": "string" },
+										"expand": { "type": "string" },
+										"more_stats": { "type": "string" },
 										"metric": { "type": "string" },
 										"empty": { "type": "string" }
 									},
 									"additionalProperties": false,
-									"required": ["title", "delete", "metric", "empty"]
+									"required": ["title", "delete", "delete_batch", "expand", "more_stats", "metric", "empty"]
 								},
 								"precision": {
 									"type": "object",
@@ -8924,6 +8928,7 @@
 								"run",
 								"progress",
 								"run_label",
+								"batch_label",
 								"capped_label",
 								"metric",
 								"show_spread",

@@ -9,7 +9,15 @@ import { runLabel, type StatSweepSeries } from '../components/StatSweepChart';
 import type { StatSweepHistoryEntry } from '../components/StatSweepHistory';
 import { SERIES_SLOT_COUNT } from '../model/colors';
 import { runStatSweep, type StatSweepArgs } from '../model/run';
-import { displayColorSlots, mergeSweepHistory, nextColorSlot, type StatSweepProgress } from '../model/stat_sweep';
+import {
+	displayColorSlots,
+	mergeSweepHistory,
+	nextColorSlot,
+	type StatSweepCsvRun,
+	type StatSweepProgress,
+	type SweepBatch,
+	sweepBatches,
+} from '../model/stat_sweep';
 
 interface SweepView {
 	history: StatSweepRecord[];
@@ -18,7 +26,7 @@ interface SweepView {
 	overlaid: ReadonlyArray<string>;
 }
 
-/** The stat sweep's runs and history while its dialog is open; a run still going when the dialog closes is cancelled. */
+/** The stat sweep's runs and history while its dialog is open; a run still going when it unmounts is cancelled. */
 export const useStatSweep = () => {
 	const sim = useSim();
 	const player = usePlayer();
@@ -34,8 +42,9 @@ export const useStatSweep = () => {
 				if (!active) return;
 				setView(current => {
 					const merged = mergeSweepHistory(current.history, stored);
-					// With no run in progress and none ticked yet, the newest stored run is drawn.
-					const overlaid = current.live || current.overlaid.length || !merged.length ? current.overlaid : [merged[0].id];
+					// With no run in progress and none ticked yet, the newest stored sweep is drawn.
+					const overlaid =
+						current.live || current.overlaid.length || !merged.length ? current.overlaid : sweepBatches(merged)[0].runs.map(run => run.id);
 					return { ...current, history: merged, overlaid };
 				});
 			})
@@ -85,18 +94,21 @@ export const useStatSweep = () => {
 		abort().catch(console.error);
 	}, [abort]);
 
-	const remove = useCallback((id: string) => {
+	const remove = useCallback((ids: readonly string[]) => {
 		setView(current => ({
 			...current,
-			history: current.history.filter(run => run.id !== id),
-			overlaid: current.overlaid.filter(other => other !== id),
+			history: current.history.filter(run => !ids.includes(run.id)),
+			overlaid: current.overlaid.filter(other => !ids.includes(other)),
 		}));
-		deleteRun(id).catch(console.error);
+		for (const id of ids) deleteRun(id).catch(console.error);
 	}, []);
 
 	const setOverlaid = useCallback(
-		(id: string, overlaid: boolean) =>
-			setView(current => ({ ...current, overlaid: overlaid ? [...current.overlaid, id] : current.overlaid.filter(other => other !== id) })),
+		(ids: readonly string[], overlaid: boolean) =>
+			setView(current => {
+				const others = current.overlaid.filter(other => !ids.includes(other));
+				return { ...current, overlaid: overlaid ? [...others, ...ids] : others };
+			}),
 		[],
 	);
 
@@ -112,33 +124,39 @@ export const useStatSweep = () => {
 		return displayColorSlots(shown.reverse(), SERIES_SLOT_COUNT);
 	}, [view.history, view.overlaid, liveId, liveColorSlot]);
 
-	const series = useMemo<StatSweepSeries[]>(
+	const statLabel = useCallback((run: StatSweepRecord) => UnitStat.fromJson(run.unitStat).getFullName(player.getClass()), [player]);
+	const series = useMemo<Array<StatSweepSeries & StatSweepCsvRun>>(
 		() =>
 			[...(view.live ? [view.live] : []), ...view.history.filter(run => view.overlaid.includes(run.id))].map(run => ({
 				id: run.id,
 				label: run.label,
+				batchLabel: run.batchLabel ?? '',
 				colorSlot: colorSlots[run.id],
-				statLabel: UnitStat.fromJson(run.unitStat).getFullName(player.getClass()),
+				statLabel: statLabel(run),
 				baseStatValue: run.baseStatValue,
 				points: run.points,
 				cappedAt: run.cappedAt,
 			})),
-		[view, colorSlots, player],
+		[view, colorSlots, statLabel],
 	);
-	const historyEntries = useMemo<StatSweepHistoryEntry[]>(
+	const historyBatches = useMemo<SweepBatch<StatSweepHistoryEntry>[]>(
 		() =>
-			view.history.map(run => ({
-				id: run.id,
-				label: runLabel(run),
-				createdAt: run.createdAt,
-				overlaid: view.overlaid.includes(run.id),
-				colorSlot: colorSlots[run.id],
-				metric: run.metric,
+			sweepBatches(view.history).map(({ id, runs }) => ({
+				id,
+				runs: runs.map(run => ({
+					id: run.id,
+					label: runLabel(run),
+					statLabel: statLabel(run),
+					createdAt: run.createdAt,
+					overlaid: view.overlaid.includes(run.id),
+					colorSlot: colorSlots[run.id],
+					metric: run.metric,
+				})),
 			})),
-		[view.history, view.overlaid, colorSlots],
+		[view.history, view.overlaid, colorSlots, statLabel],
 	);
 
-	return { isRunning, series, historyEntries, run, cancel, remove, setOverlaid };
+	return { isRunning, series, historyBatches, run, cancel, remove, setOverlaid };
 };
 
 export type StatSweep = ReturnType<typeof useStatSweep>;

@@ -2531,6 +2531,7 @@
 				"run": "Run stat sweep",
 				"progress": "Step {{current}} / {{total}}",
 				"run_label": "{{stat}} ±{{range}}",
+				"batch_label": "{{stats}} ±{{range}}",
 				"capped_label": "{{label}} (capped at {{added}})",
 				"metric": "Plotted metric",
 				"show_spread": "Show spread",
@@ -2547,6 +2548,9 @@
 				"history": {
 					"title": "History",
 					"delete": "Delete {{label}}",
+					"delete_batch": "Delete every run of {{label}}",
+					"expand": "Show each run of {{label}}",
+					"more_stats": "{{stats}} +{{count}}",
 					"metric": "The metric plotted when this run started, which Target ± followed",
 					"empty": "No saved stat sweeps yet."
 				},
