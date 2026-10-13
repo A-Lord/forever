@@ -67,8 +67,6 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 	const statFilter = useStatFilter('ep', scope);
 
 	const [tab, setTab] = useState(WEIGHTS_TAB);
-	// The sweep mounts on its first visit and stays mounted, so a run in progress survives a tab switch.
-	const [visitedSweep, setVisitedSweep] = useState(false);
 	const [statsType, setStatsType] = useState<StatsType>(StatsType.Ep);
 	const [iterations, setIterations] = useState(0);
 	const [simResult, setSimResult] = useState<StatWeightsResult | null>(null);
@@ -210,12 +208,7 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 					</Button>
 				)
 			}>
-			<Tabs.Root
-				value={tab}
-				onValueChange={next => {
-					setTab(String(next));
-					if (next === SWEEP_TAB) setVisitedSweep(true);
-				}}>
+			<Tabs.Root value={tab} onValueChange={next => setTab(String(next))}>
 				{!editOnly && (
 					<TabNav
 						tabs={[
@@ -224,8 +217,9 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 						]}
 					/>
 				)}
+				{/* Both panels stay laid out, so the dialog keeps the taller one's height on either tab and a sweep in progress survives a tab switch. */}
 				<TabPanels>
-					<TabPanel value={WEIGHTS_TAB} testId={WEIGHTS_TAB}>
+					<TabPanel value={WEIGHTS_TAB} testId={WEIGHTS_TAB} preserveHeight>
 						<div className="ui-ep-weights-layout">
 							<div className="ui-ep-weights-main">
 								<p>
@@ -281,8 +275,8 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 						</div>
 					</TabPanel>
 					{!editOnly && (
-						<TabPanel value={SWEEP_TAB} testId={SWEEP_TAB}>
-							{visitedSweep && <StatSweep settings={settings} />}
+						<TabPanel value={SWEEP_TAB} testId={SWEEP_TAB} preserveHeight>
+							<StatSweep settings={settings} />
 						</TabPanel>
 					)}
 				</TabPanels>

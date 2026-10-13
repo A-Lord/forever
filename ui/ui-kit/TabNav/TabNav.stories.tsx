@@ -75,3 +75,33 @@ export const Switches: Story = {
 		await expect(canvas.getByTestId('story-talents-panel').hasAttribute('hidden')).toBe(false);
 	},
 };
+
+export const PreserveHeight: Story = {
+	args: { tabs: TABS.slice(0, 2) },
+	render: args => (
+		<Tabs.Root defaultValue={args.tabs[0].id}>
+			<TabNav {...args} />
+			<TabPanels testId="story-panels">
+				<TabPanel value={args.tabs[0].id} testId={`${args.tabs[0].id}-panel`} preserveHeight>
+					<p>{args.tabs[0].label} content</p>
+				</TabPanel>
+				<TabPanel value={args.tabs[1].id} testId={`${args.tabs[1].id}-panel`} preserveHeight>
+					{['Strength', 'Agility', 'Stamina', 'Intellect', 'Spirit'].map(stat => (
+						<p key={stat}>{stat}</p>
+					))}
+				</TabPanel>
+			</TabPanels>
+		</Tabs.Root>
+	),
+	play: async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+		const settings = canvas.getByTestId('story-settings-panel');
+		await expect(settings.hasAttribute('hidden')).toBe(false);
+		await expect(settings.hasAttribute('inert')).toBe(true);
+
+		await fireEvent.click(canvas.getByText('Settings'));
+
+		await expect(settings.hasAttribute('inert')).toBe(false);
+		await expect(canvas.getByTestId('story-gear-panel').hasAttribute('inert')).toBe(true);
+	},
+};

@@ -10,7 +10,7 @@ import type { EpPrecisionSettings, StatSweepSettings } from '@sim/settings/stat_
 import { SimRuns } from '@sim/sim_runs';
 import { createSimStore, patchKeyed, patchSlice, PLAYER_FIELDS, seedKeyed, type SimStore, zeroVersions } from '@sim/state/sim_store';
 import { makeHitSweepPoints } from '@testing/storybook/fixtures/stat-sweep';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PortalContainerContext } from '@ui-kit/hooks/usePortalContainer';
 import { useState } from 'react';
@@ -826,17 +826,24 @@ describe('EpWeightsDialog', () => {
 		it('swaps the Calculate button for the sweep panel', async () => {
 			await openSweepTab();
 
-			expect(popup().querySelector('[data-testid="stat-sweep-pane"]')!.hasAttribute('hidden')).toBe(false);
-			expect(popup().querySelector('[data-testid="ep-weights-pane"]')!.hasAttribute('hidden')).toBe(true);
+			expect(popup().querySelector('[data-testid="stat-sweep-pane"]')!.hasAttribute('inert')).toBe(false);
+			expect(popup().querySelector('[data-testid="ep-weights-pane"]')!.hasAttribute('inert')).toBe(true);
+			await waitFor(() => expect(popup().querySelector('[data-testid="ep-weights-pane"]')!.hasAttribute('data-hidden')).toBe(true));
+			expect(popup().querySelector('[data-testid="stat-sweep-pane"]')!.hasAttribute('data-hidden')).toBe(false);
 			expect(calculate()).toBeNull();
 		});
 
-		it('mounts the sweep on its first visit and keeps it mounted across tab switches', async () => {
+		it('mounts the sweep with the dialog, out of reach until its tab is open, and keeps it mounted across tab switches', async () => {
 			sweepHistory.listRuns.mockClear();
 			renderDialog();
-			expect(sweepHistory.listRuns).not.toHaveBeenCalled();
+			expect(sweepHistory.listRuns).toHaveBeenCalledTimes(1);
+			const run = screen.getByRole('button', { name: 'sidebar.buttons.stat_weights.sweep.run' });
+			run.focus();
+			expect(document.activeElement).not.toBe(run);
 
 			await userEvent.click(screen.getByRole('tab', { name: 'sidebar.buttons.stat_weights.modal.tabs.sweep' }));
+			run.focus();
+			expect(document.activeElement).toBe(run);
 			await userEvent.click(screen.getByRole('tab', { name: 'sidebar.buttons.stat_weights.modal.tabs.weights' }));
 			await userEvent.click(screen.getByRole('tab', { name: 'sidebar.buttons.stat_weights.modal.tabs.sweep' }));
 
