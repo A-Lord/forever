@@ -68,7 +68,9 @@ func (druid *Druid) applyThickHide() {
 	// Effect 2 prices armor as the level times its base points: 60, 120 or 180 at level 60. Effect 1 /
 	// 100 is base armor per point of defense skill beyond five times the level, which is the defense the
 	// gear and buffs add (one rating is one skill point). Both are base armor, which the bear forms scale.
-	// TODO: Ingame research needed -- level × base points (60/120/180) or the game files' per-level formula (178/179/180).
+	// A level 30 character measured 30, 60 and 90 armor from ranks 1 to 3 in Cat Form and 84, 168 and 252 in Bear
+	// Form, so ranks 1 and 2 follow the level times the base points, not the game files' per-level formula
+	// (178 and 179 at level 60).
 	bonus := float64(druid.level()) * row.EffectN(2).BaseValue()
 	perDefense := row.EffectN(1).BaseValue() / 100 / core.DefenseRatingPerDefenseLevel
 	for _, form := range []struct {
