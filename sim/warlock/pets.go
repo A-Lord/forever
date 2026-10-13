@@ -119,9 +119,10 @@ func (warlock *Warlock) petStatInheritance() core.PetStatInheritance {
 		return stats.Stats{
 			stats.Armor:       ownerStats[stats.Armor] * 0.35,
 			stats.AttackPower: spellDamage * 0.17,
-			// A third: in the logs a Succubus has 42 Spell Damage under a warlock whose spell damage reads 126.
-			// TODO: Measured at one value and on the Succubus only. Its Lash of Pain rank 1 reads 37 on the
-			// tooltip and in the logs, above the row's (16 + 0.429 × 42) × 1.05 = 35.7.
+			// A third: in the logs a Sayaad has 42 Spell Damage under a warlock whose spell damage reads 126.
+			// TODO: Measured at one value and on the Sayaad only. Its Lash of Pain rank 1 reads 37 on the
+			// tooltip and in the logs, where the row with the 1.05 damageMod gives (16 + 0.429 × 42) × 1.05 =
+			// 35.7; 16 + 0.5 × 42 = 37 would fit with no damageMod, so the coefficient or the 1.05 is in doubt.
 			stats.SpellDamage: spellDamage / 3,
 
 			// TODO: Assumed 1:1, not yet measured.
