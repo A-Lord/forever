@@ -125,4 +125,12 @@ describe('MultiIconPicker', () => {
 		trigger().dispatchEvent(event);
 		expect(event.defaultPrevented).toBe(true);
 	});
+
+	it('marks a kept trigger and anchors the kept tooltip on its corner badge, not on the trigger', () => {
+		mount({ active: true, keptTooltip: 'Kept' });
+
+		expect(trigger().parentElement!.hasAttribute('data-kept')).toBe(true);
+		expect(trigger().hasAttribute('data-tooltip-id')).toBe(false);
+		expect(screen.getByTestId('icon-swatch-kept').getAttribute('data-tooltip-content')).toBe('Kept');
+	});
 });

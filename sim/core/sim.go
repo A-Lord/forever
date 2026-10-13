@@ -196,6 +196,7 @@ func newSimWithEnv(env *Environment, simOptions *proto.SimOptions, signals simsi
 	rseed := simOptions.RandomSeed
 	if rseed == 0 {
 		rseed = time.Now().UnixNano()
+		simOptions.RandomSeed = rseed
 	}
 
 	return &Simulation{
@@ -675,6 +676,16 @@ func (sim *Simulation) GetConsumedPendingActionFromPool() *PendingAction {
 	pa.CleanUp = nil
 	pa.cancelled = false
 	return pa
+}
+
+// Runs the action at the current time, once the event in progress and its callbacks are done. It
+// goes ahead of the rotation and regen due at this time, and after any swing or task due then.
+func (sim *Simulation) RunAfterCurrentEvent(action func(*Simulation)) {
+	pa := sim.GetConsumedPendingActionFromPool()
+	pa.NextActionAt = sim.CurrentTime
+	pa.Priority = ActionPriorityDOT
+	pa.OnAction = action
+	sim.AddPendingAction(pa)
 }
 
 func (sim *Simulation) RegisterExecutePhaseCallback(callback func(sim *Simulation, isExecute int32)) {

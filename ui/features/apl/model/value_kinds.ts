@@ -180,7 +180,6 @@ export const valueKinds: { [f in ValidAPLValueKind]: ValueKindModel<APLValueImpl
 		shortDescription: i18n.t('rotation_tab.apl.values.const.tooltip'),
 		fullDescription: i18n.t('rotation_tab.apl.values.const.full_description'),
 		newValue: APLValueConst.create,
-		includeIf: (_: Player<any>, isPrepull: boolean) => !isPrepull,
 		fields: [stringFieldConfig('val')],
 	}),
 	cmp: inputBuilder({
@@ -223,7 +222,6 @@ export const valueKinds: { [f in ValidAPLValueKind]: ValueKindModel<APLValueImpl
 		submenu: ['logic'],
 		shortDescription: i18n.t('rotation_tab.apl.values.any_of.tooltip'),
 		newValue: APLValueOr.create,
-		includeIf: (_: Player<any>, isPrepull: boolean) => !isPrepull,
 		fields: [valueListFieldConfig('vals')],
 	}),
 	not: inputBuilder({
@@ -231,7 +229,6 @@ export const valueKinds: { [f in ValidAPLValueKind]: ValueKindModel<APLValueImpl
 		submenu: ['logic'],
 		shortDescription: i18n.t('rotation_tab.apl.values.not.tooltip'),
 		newValue: APLValueNot.create,
-		includeIf: (_: Player<any>, isPrepull: boolean) => !isPrepull,
 		fields: [valueFieldConfig('val')],
 	}),
 
@@ -281,7 +278,6 @@ export const valueKinds: { [f in ValidAPLValueKind]: ValueKindModel<APLValueImpl
 		submenu: ['encounter'],
 		shortDescription: i18n.t('rotation_tab.apl.values.num_targets.tooltip'),
 		newValue: APLValueNumberTargets.create,
-		includeIf: (_: Player<any>, isPrepull: boolean) => !isPrepull,
 		fields: [],
 	}),
 	frontOfTarget: inputBuilder({

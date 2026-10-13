@@ -788,10 +788,10 @@ func LoadAndWriteRawRandomSuffixes(dbHelper *DBHelper, inputsDir string) ([]dbc.
 	FROM ItemBonus b
 	LEFT JOIN ItemNameDescription d ON b.Type = %[1]d AND d.ID = b.Value_0
 	LEFT JOIN ItemEffect e ON b.Type = %[2]d AND e.ID = b.Value_0
-	WHERE b.Type IN (%[1]d, %[2]d, %[3]d)
+	WHERE b.Type IN (%[1]d, %[2]d, %[3]d, %[5]d)
 		AND b.ParentItemBonusListID IN (SELECT n.ChildItemBonusListID %[4]s)
 	ORDER BY b.ParentItemBonusListID, b.OrderIndex
-`, dbc.ITEM_BONUS_SUFFIX, dbc.ITEM_BONUS_ITEM_EFFECT, dbc.ITEM_BONUS_STAT, randomSuffixNodes)
+`, dbc.ITEM_BONUS_SUFFIX, dbc.ITEM_BONUS_ITEM_EFFECT, dbc.ITEM_BONUS_STAT, randomSuffixNodes, dbc.ITEM_BONUS_REDUCED_CASTER_DPS)
 	rows, err := LoadRows(dbHelper.db, query, func(rows *sql.Rows) (randomSuffixRow, error) {
 		var row randomSuffixRow
 		err := rows.Scan(&row.listID, &row.bonusType, &row.value0, &row.value1, &row.name, &row.spellID)
@@ -814,6 +814,8 @@ func LoadAndWriteRawRandomSuffixes(dbHelper *DBHelper, inputsDir string) ([]dbc.
 			suffix.Name = row.name
 		case dbc.ITEM_BONUS_ITEM_EFFECT:
 			suffix.EquipSpells = append(suffix.EquipSpells, row.spellID)
+		case dbc.ITEM_BONUS_REDUCED_CASTER_DPS:
+			suffix.ReducedCasterDps = true
 		}
 	}
 

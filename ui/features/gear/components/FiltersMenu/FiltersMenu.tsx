@@ -26,8 +26,8 @@ const factionRestrictionsToLabels: Record<UIItem_FactionRestriction, string> = {
 const sourceKeys = Object.keys(sourceFilterI18nKeys) as unknown as SourceFilterOption[];
 const SOURCES = [...Sim.ALL_SOURCES].sort((a, b) => sourceKeys.indexOf(a) - sourceKeys.indexOf(b));
 
-type FilterListField = { [K in keyof DatabaseFilters]: DatabaseFilters[K] extends Array<number> ? K : never }[keyof DatabaseFilters];
-type FilterNumberField = { [K in keyof DatabaseFilters]: DatabaseFilters[K] extends number ? K : never }[keyof DatabaseFilters];
+type FilterListField = { [K in keyof DatabaseFilters]-?: DatabaseFilters[K] extends Array<number> ? K : never }[keyof DatabaseFilters];
+type FilterNumberField = { [K in keyof DatabaseFilters]-?: DatabaseFilters[K] extends number ? K : never }[keyof DatabaseFilters];
 
 const SPEED_OPTIONS = { float: true, positive: true };
 

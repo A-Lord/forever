@@ -53,11 +53,6 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 			Stat.StatAttackPower,
 			Stat.StatMana,
 			Stat.StatArmorPenetration,
-			Stat.StatArcaneResistance,
-			Stat.StatFireResistance,
-			Stat.StatFrostResistance,
-			Stat.StatNatureResistance,
-			Stat.StatShadowResistance,
 		],
 		[
 			PseudoStat.PseudoStatMeleeHitPercent,
@@ -90,7 +85,6 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 			prayerOfSpirit: true,
 			giftOfTheWild: true,
 			prayerOfFortitude: true,
-			prayerOfShadowProtection: true,
 		}),
 		partyBuffs: PartyBuffs.create({
 			battleShout: TristateEffect.TristateEffectRegular,

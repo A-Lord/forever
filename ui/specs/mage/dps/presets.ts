@@ -44,7 +44,7 @@ export const DefaultConsumables = ConsumesSpec.create({
 	elixirIds: [Consumables.GreaterArcaneElixir.id, Consumables.ElixirOfTheSages.id],
 	foodId: Consumables.NightfinSoup.id,
 	mhImbueId: Consumables.BrilliantWizardOil.id,
-	potId: Consumables.MajorManaPotion.id,
+	resourcePotId: Consumables.MajorManaPotion.id,
 });
 
 export const DefaultRaidBuffs = RaidBuffs.create({
@@ -52,7 +52,6 @@ export const DefaultRaidBuffs = RaidBuffs.create({
 	arcaneBrilliance: true,
 	giftOfTheWild: true,
 	prayerOfFortitude: true,
-	prayerOfShadowProtection: true,
 });
 
 export const DefaultPartyBuffs = PartyBuffs.create({

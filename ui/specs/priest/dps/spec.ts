@@ -51,11 +51,6 @@ export default defineSpec<Spec.SpecDpsPriest>({
 			Stat.StatSpellDamage,
 			Stat.StatShadowDamage,
 			Stat.StatHolyDamage,
-			Stat.StatArcaneResistance,
-			Stat.StatFireResistance,
-			Stat.StatFrostResistance,
-			Stat.StatNatureResistance,
-			Stat.StatShadowResistance,
 		],
 		[
 			PseudoStat.PseudoStatSpellHitPercent,

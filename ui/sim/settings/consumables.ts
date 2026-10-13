@@ -1,13 +1,29 @@
 // Which consumables the settings offer a spec, and in which picker, from the fields db.json carries
 // for each. `Player.getConsumes(true)` sends the potions and conjured items this finds, so it sits
 // below the view layer; the pickers in the settings feature read the same functions.
-import { Class, ConsumableType, HandType, ItemSlot, Profession, PseudoStat, Race, Stat, WeaponType } from '@generated/proto/common';
+import {
+	Class,
+	ConsumableType,
+	HandType,
+	ItemSlot,
+	MobType,
+	MobTypeStats,
+	Profession,
+	PseudoStat,
+	Race,
+	Stat,
+	WeaponType,
+	ZoneStats,
+} from '@generated/proto/common';
 import { Consumable } from '@generated/proto/db';
 import { ResourceType, SpellEffect } from '@generated/proto/spell';
 import { UIEnchant as Enchant, UIItem as Item } from '@generated/proto/ui';
 
-import type { SpecConfigData } from '../player/player';
+import type { StoreField } from '../hooks/useStoreField';
+import type { Player, SpecConfigData } from '../player/player';
 import type { EquippedItem } from '../proto/equipped_item';
+import { Stats, type StatSets, type UnitStat, unitStatsOf } from '../proto/stats';
+import { memoLast } from '../utils/misc';
 
 export enum ConsumableSlot {
 	Potion,
@@ -145,7 +161,7 @@ export function consumablePseudoStatsOf(specConfig: Pick<SpecConfigData<any>, 'e
 
 type EnchantRelevanceSpec = Pick<SpecConfigData<any>, 'epStats' | 'epPseudoStats' | 'displayStats'>;
 
-const enchantRelevanceCache = new WeakMap<EnchantRelevanceSpec, { stats: Set<Stat>; pseudoStats: Set<PseudoStat> }>();
+const enchantRelevanceCache = new WeakMap<EnchantRelevanceSpec, StatSets>();
 
 // The consumables' rule on the stats the spec weighs: an enchant counts when it grants one of them or a percent the
 // spec shows or weighs, flat weapon damage counting as physical damage. One that grants none of these (a proc) counts.
@@ -172,14 +188,20 @@ interface ConsumableFacts {
 	restores: Array<ResourceType>;
 }
 
-// What relevance reads off a consumable and its spell effects, worked out once per consumable.
+const statsWith = (consumable: Consumable, conditional: ReadonlyArray<MobTypeStats | ZoneStats>): Stats =>
+	conditional.reduce((sum, { stats }) => sum.add(Stats.fromMap(stats)), new Stats(consumable.stats, consumable.pseudoStats));
+
+// What relevance reads off a consumable and its spell effects, worked out once per consumable. A stat
+// the consumable grants only against some mob types or in some zones counts as granted.
 const factsCache = new WeakMap<Consumable, ConsumableFacts>();
 const factsOf = (consumable: Consumable, db: SpellEffectSource): ConsumableFacts => {
 	const cached = factsCache.get(consumable);
 	if (cached?.db === db) return cached;
 	const facts = {
 		db,
-		grantedStats: consumable.stats.flatMap((value, stat) => (value > 0 ? [stat as Stat] : [])),
+		grantedStats: statsWith(consumable, [...consumable.mobTypeStats, ...consumable.zoneStats])
+			.asProtoArray()
+			.flatMap((value, stat) => (value > 0 ? [stat as Stat] : [])),
 		grantedPseudoStats: consumable.pseudoStats.flatMap((value, pseudoStat) => (value > 0 ? [pseudoStat as PseudoStat] : [])),
 		restores: consumable.effectIds.flatMap(effectId => {
 			const miscValue = db.getSpellEffect(effectId)?.miscValue0;
@@ -212,17 +234,19 @@ const STAT_TYPES = [
 	ConsumableType.ConsumableTypeElixir,
 ];
 
-// Whether the settings offer the consumable to this player: the class, race, profession and skill the
-// game files allow it to, and either a stat the spec weighs, a percent the spec shows or weighs, a
-// resource the spec spends, or, for a consumable that grants none of these, an effect of another kind
-// (damage, an absorb, a weapon enchant). A temporary enchant is checked against a hand with
-// handTakesImbue.
-function isConsumableRelevant(consumable: Consumable, user: ConsumableUser, db: SpellEffectSource, stats: Set<Stat>, pseudoStats: Set<PseudoStat>): boolean {
+// The class, race, profession and skill the game files allow the consumable to.
+export function consumableAllowed(consumable: Consumable, user: ConsumableUser): boolean {
 	if (consumable.classAllowlist.length && !consumable.classAllowlist.includes(user.getClass())) return false;
 	if (consumable.requiredProfession !== Profession.ProfessionUnknown && !user.hasProfession(consumable.requiredProfession, consumable.reqProfRank))
 		return false;
-	if (consumable.raceAllowlist.length && !consumable.raceAllowlist.includes(user.getRace())) return false;
+	return !consumable.raceAllowlist.length || consumable.raceAllowlist.includes(user.getRace());
+}
 
+// Whether the consumable does something for these stats: a stat among them, a percent among them, a
+// resource they spend, or, for a consumable that grants none of these, an effect of another kind
+// (damage, an absorb, a weapon enchant). A temporary enchant is checked against a hand with
+// handTakesImbue.
+function isConsumableRelevant(consumable: Consumable, db: SpellEffectSource, stats: Set<Stat>, pseudoStats: Set<PseudoStat>): boolean {
 	const { grantedStats, grantedPseudoStats, restores } = factsOf(consumable, db);
 	if (
 		consumable.buffsMainStat ||
@@ -261,37 +285,80 @@ function highestRanks(consumables: ReadonlyArray<Consumable>): Array<Consumable>
 	return consumables.filter(consumable => kept.has(consumable));
 }
 
-// isConsumableRelevant for one spec's stats and percents, remembered for as long as the class, race
-// and the profession requirements the player meets stay the same.
+// The stat part of relevance for the stats `statsOf` gives, remembered for as long as it gives the
+// same object. The class, race and profession are consumableAllowed's.
 export function relevanceFor(
 	consumables: ReadonlyArray<Consumable>,
 	db: SpellEffectSource,
-	stats: Set<Stat>,
-	pseudoStats: Set<PseudoStat>,
+	statsOf: (user: ConsumableUser) => StatSets,
 ): (consumable: Consumable, user: ConsumableUser) => boolean {
-	const requirements = [
-		...new Map(
-			consumables
-				.filter(consumable => consumable.requiredProfession !== Profession.ProfessionUnknown)
-				.map(consumable => [`${consumable.requiredProfession}:${consumable.reqProfRank}`, consumable] as const),
-		),
-	];
-	let key = '';
-	let relevant = new Map<Consumable, boolean>();
+	const cacheFor = memoLast<Map<Consumable, boolean>>();
 	return (consumable, user) => {
-		const met = requirements.filter(([, requirement]) => user.hasProfession(requirement.requiredProfession, requirement.reqProfRank));
-		const userKey = `${user.getClass()}:${user.getRace()}:${met.map(([requirementKey]) => requirementKey)}`;
-		if (userKey !== key) {
-			key = userKey;
-			relevant = new Map();
-		}
+		const current = statsOf(user);
+		const relevant = cacheFor([current], () => new Map());
 		let result = relevant.get(consumable);
 		if (result === undefined) {
-			result = isConsumableRelevant(consumable, user, db, stats, pseudoStats);
+			result = isConsumableRelevant(consumable, db, current.stats, current.pseudoStats);
 			relevant.set(consumable, result);
 		}
 		return result;
 	};
+}
+
+// Every stat and percent some consumable grants, each once, in no set order.
+export function consumableUniverse(consumables: ReadonlyArray<Consumable>, db: SpellEffectSource): UnitStat[] {
+	const stats = new Set<Stat>();
+	const pseudoStats = new Set<PseudoStat>();
+	for (const consumable of consumables) {
+		const { grantedStats, grantedPseudoStats } = factsOf(consumable, db);
+		grantedStats.forEach(stat => stats.add(stat));
+		grantedPseudoStats.forEach(pseudoStat => pseudoStats.add(pseudoStat));
+	}
+	return unitStatsOf({ stats, pseudoStats });
+}
+
+// What the pickers order consumables by: the EP weights, and the target's mob type and the
+// encounter's zone, which decide the stats a consumable grants only against some targets or in some zones.
+export interface ConsumableOrder {
+	weights: Stats;
+	mobType: MobType | undefined;
+	zoneId: number;
+}
+
+export const consumableOrderOf = (player: Player<any>): ConsumableOrder => ({
+	weights: player.getEpWeights(),
+	mobType: player.sim.encounter.getTarget(0)?.mobType,
+	zoneId: player.sim.encounter.getZoneId(),
+});
+
+// The store fields consumableOrderOf reads.
+export const CONSUMABLE_ORDER_FIELDS: ReadonlyArray<StoreField> = ['epWeights', 'encounter:targets', 'encounter:zoneId'];
+
+// The items by the EP their consumables' stats and percents add at the order's weights, highest
+// first. A mob type stat counts against a target of one of its mob types, a zone stat in one of its
+// zones; zone 0, an area set edited by hand, is none of them. One that grants neither here (a proc, a
+// restore, damage, a stat against other mob types) comes after every one that does. Ties go by
+// required level, highest first, then by name.
+export function orderedByEp<T>(items: ReadonlyArray<T>, consumableOf: (item: T) => Consumable, { weights, mobType, zoneId }: ConsumableOrder): Array<T> {
+	return items
+		.map(item => {
+			const consumable = consumableOf(item);
+			const conditional = [
+				...consumable.mobTypeStats.filter(({ mobTypes }) => mobType !== undefined && mobTypes.includes(mobType)),
+				...consumable.zoneStats.filter(({ zoneIds }) => zoneIds.includes(zoneId)),
+			];
+			const stats = statsWith(consumable, conditional);
+			const grants = stats.asProtoArray().some(value => value > 0) || consumable.pseudoStats.some(value => value > 0);
+			return { item, consumable, grants, ep: grants ? stats.computeEP(weights) : 0 };
+		})
+		.sort(
+			(a, b) =>
+				Number(b.grants) - Number(a.grants) ||
+				b.ep - a.ep ||
+				b.consumable.lvl - a.consumable.lvl ||
+				a.consumable.name.localeCompare(b.consumable.name, 'en'),
+		)
+		.map(({ item }) => item);
 }
 
 // The ids of the potions and conjured items the spec could use, which a sim request lists for the
@@ -305,6 +372,9 @@ export function relevantConsumableIds(
 	const stats = consumableStatsOf(user.getSpecConfig());
 	const pseudoStats = consumablePseudoStatsOf(user.getSpecConfig());
 	return highestRanks(
-		consumables.filter(consumable => consumableSlot(consumable) === slot && isConsumableRelevant(consumable, user, db, stats, pseudoStats)),
+		consumables.filter(
+			consumable =>
+				consumableSlot(consumable) === slot && consumableAllowed(consumable, user) && isConsumableRelevant(consumable, db, stats, pseudoStats),
+		),
 	).map(consumable => consumable.id);
 }

@@ -24,9 +24,13 @@ func TestSelectedConsumableIDs(t *testing.T) {
 		extra4
 		swapMhImbue
 		swapOhWeaponImbue
+		resourcePot
+		defensivePot
 	)
 	consumes := &proto.ConsumesSpec{
-		PotId:               pot,
+		ResourcePotId:       resourcePot,
+		DefensivePotId:      defensivePot,
+		OffensivePotId:      pot,
 		Potions:             []int32{pot, potion},
 		FlaskId:             flask,
 		FoodId:              food,
@@ -42,7 +46,7 @@ func TestSelectedConsumableIDs(t *testing.T) {
 	}
 
 	got := selectedConsumableIDs(consumes)
-	want := []int32{pot, flask, food, explosive, ohImbue, mhImbue, mhWeaponImbue, swapOhWeaponImbue, swapMhImbue,
+	want := []int32{resourcePot, defensivePot, pot, flask, food, explosive, ohImbue, mhImbue, mhWeaponImbue, swapOhWeaponImbue, swapMhImbue,
 		extra1, extra2, extra3, extra4, potion, conjured}
 	if !slices.Equal(got, want) {
 		t.Errorf("selected %v, want %v", got, want)

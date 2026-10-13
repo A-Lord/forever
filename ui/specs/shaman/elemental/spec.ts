@@ -19,38 +19,30 @@ export default defineSpec<Spec.SpecElementalShaman>({
 	warnings: [],
 
 	// All stats for which EP should be calculated.
-	epStats: [Stat.StatIntellect, Stat.StatSpellDamage, Stat.StatNatureDamage, Stat.StatHitRating, Stat.StatCritRating, Stat.StatHasteRating, Stat.StatMP5],
-	epPseudoStats: [PseudoStat.PseudoStatSchoolHitPercentNature],
+	epStats: [
+		Stat.StatIntellect,
+		Stat.StatSpirit,
+		Stat.StatSpellDamage,
+		Stat.StatFireDamage,
+		Stat.StatNatureDamage,
+		Stat.StatHitRating,
+		Stat.StatCritRating,
+		Stat.StatHasteRating,
+		Stat.StatMP5,
+	],
+	epPseudoStats: [],
 	// Reference stat against which to calculate EP.
 	epReferenceStat: Stat.StatSpellDamage,
 	// Which stats to display in the Character Stats section, at the bottom of the left-hand sidebar.
 	displayStats: UnitStat.createDisplayStatArray(
-		[
-			Stat.StatHealth,
-			Stat.StatMana,
-			Stat.StatStamina,
-			Stat.StatIntellect,
-			Stat.StatSpellDamage,
-			Stat.StatNatureDamage,
-			Stat.StatMP5,
-			Stat.StatArcaneResistance,
-			Stat.StatFireResistance,
-			Stat.StatFrostResistance,
-			Stat.StatNatureResistance,
-			Stat.StatShadowResistance,
-		],
-		[
-			PseudoStat.PseudoStatSpellCritPercent,
-			PseudoStat.PseudoStatSpellHastePercent,
-			PseudoStat.PseudoStatSpellHitPercent,
-			PseudoStat.PseudoStatSchoolHitPercentNature,
-		],
+		[Stat.StatHealth, Stat.StatMana, Stat.StatStamina, Stat.StatIntellect, Stat.StatSpellDamage, Stat.StatNatureDamage, Stat.StatMP5],
+		[PseudoStat.PseudoStatSpellCritPercent, PseudoStat.PseudoStatSpellHastePercent, PseudoStat.PseudoStatSpellHitPercent],
 	),
 	defaults: {
 		// Default equipped gear.
-		gear: Presets.TestingGear.gear,
+		gear: Presets.DefaultGear.gear,
 		// Default EP weights for sorting gear in the gear picker.
-		epWeights: new Stats(),
+		epWeights: Presets.DefaultEpWeights.epWeights,
 		statCaps: (() => {
 			return new Stats().withPseudoStat(PseudoStat.PseudoStatSchoolHitPercentNature, 17);
 		})(),
@@ -70,7 +62,7 @@ export default defineSpec<Spec.SpecElementalShaman>({
 	// IconInputs to include in the 'Player' section on the settings tab.
 	playerIconInputs: [],
 	// Buff and Debuff inputs to include/exclude, overriding the EP-based defaults.
-	includeBuffDebuffInputs: [Stat.StatAttackPower, Stat.StatFireDamage],
+	includeBuffDebuffInputs: [Stat.StatFireDamage],
 	excludeBuffDebuffInputs: [],
 	// Inputs to include in the 'Other' section on the settings tab.
 	otherInputs: {
@@ -83,13 +75,13 @@ export default defineSpec<Spec.SpecElementalShaman>({
 	},
 
 	presets: {
-		epWeights: [],
+		epWeights: [Presets.DefaultEpWeights],
 		// Preset talents that the user can quickly select.
 		talents: [Presets.StandardTalents],
 		// Preset rotations that the user can quickly select.
 		rotations: [Presets.ROTATION_PRESET_DEFAULT],
 		// Preset gear configurations that the user can quickly select.
-		gear: [Presets.TestingGear],
+		gear: [Presets.DefaultGear],
 		// Preset builds that the user can quickly select.
 		builds: [Presets.TestingBuild],
 	},

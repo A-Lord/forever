@@ -97,11 +97,11 @@ var DefaultFuryTalents = "30305013002-25053005052010501"
 var DefaultArmsTalents = "30325213132515201-0505-2"
 
 var DefaultConsumables = &proto.ConsumesSpec{
-	PotId:       250943, // Major Frenzy Potion
-	FlaskId:     274274, // Flask of Natural Aggression
-	FoodId:      20452,  // Smoked Desert Dumplings
-	ExplosiveId: 18588,
-	OhImbueId:   12404,
+	ResourcePotId: 13442,  // Mighty Rage Potion
+	FlaskId:       274274, // Flask of Natural Aggression
+	FoodId:        20452,  // Smoked Desert Dumplings
+	ExplosiveId:   18588,
+	OhImbueId:     12404,
 	// Goblin Sapper Charge, Scroll of Agility IV, Scroll of Strength IV
 	ExtraIds: []int32{10646, 10309, 10310},
 }

@@ -21,20 +21,13 @@ func (paladin *Paladin) registerHammerOfWrath(_ int32, rank *spelldata.Spell) {
 	// it.
 	config.Cast.DefaultCast.GCDMin = rank.GCD()
 
-	config.Cast.ModifyCast = core.Ternary(paladin.Talents.InstrumentOfLaw == 2, nil, func(sim *core.Simulation, spell *core.Spell, cast *core.Cast) {
-		castTime := paladin.ApplyCastSpeedForSpell(cast.CastTime, spell)
-		paladin.AutoAttacks.StopMeleeUntil(sim, sim.CurrentTime+castTime)
-	})
-
 	config.ExtraCastCondition = func(sim *core.Simulation, _ *core.Unit) bool {
 		return sim.IsExecutePhase20()
 	}
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
 		result := spell.CalcDamage(sim, target, damage.Average(), spell.OutcomeRangedHitAndCrit)
-		spell.WaitTravelTime(sim, func(sim *core.Simulation) {
-			spell.DealDamage(sim, result)
-		})
+		spell.DealDamageAfterTravel(sim, result)
 	}
 
 	paladin.RegisterSpell(config)

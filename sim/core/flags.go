@@ -195,13 +195,12 @@ const (
 	SpellFlagAPL                                            // Indicates this spell can be used from an APL rotation.
 	SpellFlagMCD                                            // Indicates this spell is a MajorCooldown.
 	SpellFlagReactive                                       // Allows a spell flagged as an MCD to be cast off-GCD. Used for instant cast defensive CDs.
-	SpellFlagNoOnDamageDealt                                // Disables the damage callbacks for this spell, dealt and taken alike: OnSpellHitDealt, OnPeriodicDamageDealt, OnSpellHitTaken and OnPeriodicDamageTaken.
+	SpellFlagNoOnDamageDealt                                // Disables the damage callbacks for this spell, dealt and taken alike: OnCastResult, OnSpellHitDealt, OnPeriodicDamageDealt, OnSpellHitTaken and OnPeriodicDamageTaken.
 	SpellFlagPrepullOnly                                    // Indicates this spell should only be used during prepull. Not enforced, just a signal for the APL UI.
 	SpellFlagEncounterOnly                                  // Indicates this spell should only be used during the encounter (not prepull). Not enforced, just a signal for the APL UI.
 	SpellFlagPotion                                         // Indicates this spell is a potion spell.
 	SpellFlagConjured                                       // Indicates this spell is a conjured item spell.
 	SpellFlagExplosive                                      // Indicates this spell is an engineering explosive.
-	SpellFlagCombatPotion                                   // Indicates this spell is the combat potion.
 	SpellFlagNoSpellMods                                    // Indicates that no spell mods should be applied to this spell
 	SpellFlagCanCastWhileMoving                             // Allows the cast to be casted while moving
 	SpellFlagPassiveSpell                                   // Indicates this spell is applied/cast as a result of another spell
@@ -213,6 +212,7 @@ const (
 	SpellFlagFullResistanceTicks                            // Its ticks meet the target's full resistance, as direct hits and channel ticks do, where other ticks meet a tenth, and roll partial resists even on a binary spell (Insect Swarm).
 	SpellFlagPushback                                       // Damage taken while hardcasting pushes the cast back: SpellInterrupts.InterruptFlags 0x2.
 	SpellFlagNoPartialResist                                // The spell's hits never lose damage to a partial resist, e.g. a wand's shots.
+	SpellFlagKeepsSwingTimer                                // Completing a cast of the spell leaves the melee swing timer running: Do Not Reset Combat Timers (Attributes[2] 0x20000).
 
 	// Used to let agents categorize their spells.
 	SpellFlagAgentReserved1

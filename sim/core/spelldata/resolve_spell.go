@@ -68,16 +68,18 @@ func (e *Effect) HitsAnArea() bool {
 // s.MaxTargets itself.
 func SpellConfig(unit *core.Unit, s *Spell, opts ...SpellOpt) core.SpellConfig {
 	config := core.SpellConfig{
-		ActionID:     core.ActionID{SpellID: s.ID},
-		Rank:         rankOf(s),
-		SpellSchool:  s.SpellSchool(),
-		DefenseType:  s.DefenseTypeCore(),
-		ClassFlags:   s.ClassFlags,
-		Flags:        rowFlags(s),
-		MissileSpeed: float64(s.Speed),
-		MinRange:     float64(s.MinRange),
-		MaxRange:     float64(s.MaxRange),
-		Cast:         castConfig(unit, s),
+		ActionID:    core.ActionID{SpellID: s.ID},
+		Rank:        rankOf(s),
+		SpellSchool: s.SpellSchool(),
+		DefenseType: s.DefenseTypeCore(),
+		ClassFlags:  s.ClassFlags,
+		Flags:       rowFlags(s),
+		MinRange:    float64(s.MinRange),
+		MaxRange:    float64(s.MaxRange),
+		Cast:        castConfig(unit, s),
+
+		MissileSpeed:       float64(s.Speed),
+		MissileMinDuration: s.MissileMinDuration(),
 
 		CastRequirement: s.CastRequirement(),
 	}
@@ -86,6 +88,11 @@ func SpellConfig(unit *core.Unit, s *Spell, opts ...SpellOpt) core.SpellConfig {
 	// core.MinRangedRange.
 	if s.MinRange != 0 && s.EquipClass == dbcenums.ITEM_CLASS_WEAPON && s.EquipSubclass&(dbcenums.ITEM_SUBCLASS_BIT_WEAPON_BOW|dbcenums.ITEM_SUBCLASS_BIT_WEAPON_GUNS|dbcenums.ITEM_SUBCLASS_BIT_WEAPON_CROSSBOW) != 0 {
 		config.MinRange = core.MinRangedRange
+	}
+	// The row's range is to the caster's target; damage over an area around the caster, or around the
+	// point the triggering spell chose, needs none.
+	if damage := s.DamageEffect(); damage.HitsAnArea() && (damage.Target[0] == dbcenums.TARGET_DEST_CASTER || damage.Target[0] == dbcenums.TARGET_SRC_CASTER || damage.Target[0] == dbcenums.TARGET_DEST_DEST) {
+		config.MaxRange = 0
 	}
 	if threat := s.firstOfType(dbcenums.E_THREAT, dbcenums.E_THREAT_ALL); threat != NilEffect {
 		config.FlatThreatBonus = threat.Average()
@@ -107,11 +114,11 @@ func SpellConfig(unit *core.Unit, s *Spell, opts ...SpellOpt) core.SpellConfig {
 
 // The proc mask, the melee metrics bucket and the multipliers an ability needs, for a physical spell.
 func Melee(mask core.ProcMask) SpellOpt {
-	return func(config *core.SpellConfig, _ *Spell) {
+	return func(config *core.SpellConfig, s *Spell) {
 		config.ProcMask = mask
 		config.Flags |= core.SpellFlagMeleeMetrics | core.SpellFlagAPL
 		config.DamageMultiplier = 1
-		config.ThreatMultiplier = 1
+		config.ThreatMultiplier = threatMultiplier(s)
 		config.Cast.IgnoreHaste = true
 	}
 }
@@ -123,10 +130,17 @@ func Magic(mask core.ProcMask) SpellOpt {
 		config.ProcMask = mask
 		config.Flags |= core.SpellFlagAPL
 		config.DamageMultiplier = 1
-		config.ThreatMultiplier = 1
+		config.ThreatMultiplier = threatMultiplier(s)
 		config.BonusCoefficient = spellPowerCoeff(s)
 		config.DirectVariance = amountEffect(s).DirectVariance()
 	}
+}
+
+func threatMultiplier(s *Spell) float64 {
+	if s.GeneratesNoThreat() {
+		return 0
+	}
+	return 1
 }
 
 // A spell another spell or an aura casts: it is out of the rotation Melee and Magic put it in, it
@@ -265,6 +279,9 @@ func rowFlags(s *Spell) core.SpellFlag {
 	}
 	if s.PushedBack() {
 		flags |= core.SpellFlagPushback
+	}
+	if s.KeepsCombatTimers() {
+		flags |= core.SpellFlagKeepsSwingTimer
 	}
 	// Helpful decides who the APL casts the spell on, so it follows the first effect's target. An
 	// attack whose first effect is a self side-effect reads as helpful here and the caller clears it.

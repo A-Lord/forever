@@ -65,12 +65,12 @@ const DefaultTalents = "050533102-053030031005112251"
 // elixirs, Winterfall Firewater, EZ-Thro Dark Bomb, Goblin Sapper Charge, and Elemental Sharpening Stone
 // on the main hand beside the shaman's imbue.
 var DefaultConsumables = &proto.ConsumesSpec{
-	PotId:       13444,
-	FlaskId:     13512,
-	FoodId:      20452,
-	ConjuredId:  12662,
-	ElixirIds:   []int32{250337, 250338, 250341, 250343, 13454, 12820, 250328, 250350},
-	ExplosiveId: 260817,
-	ExtraIds:    []int32{10646},
-	MhImbueId:   18262,
+	ResourcePotId: 13444,
+	FlaskId:       13512,
+	FoodId:        20452,
+	ConjuredId:    12662,
+	ElixirIds:     []int32{250337, 250338, 250341, 250343, 13454, 12820, 250328, 250350},
+	ExplosiveId:   260817,
+	ExtraIds:      []int32{10646},
+	MhImbueId:     18262,
 }

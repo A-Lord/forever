@@ -28,7 +28,7 @@ export const DefaultOptions = DruidOptions.create({
 export const DefaultConsumables = ConsumesSpec.create({
 	elixirIds: [Consumables.ElixirOfTheMongoose.id, Consumables.GiftOfArthas.id],
 	foodId: Consumables.DirgesKickinChimaerokChops.id,
-	potId: Consumables.GreaterStoneshieldPotion.id,
+	defensivePotId: Consumables.GreaterStoneshieldPotion.id,
 	conjuredId: Consumables.MajorHealthstone9421.id,
 	mhImbueId: Consumables.DenseWeightstone.id,
 	extraIds: [Consumables.GoblinSapperCharge.id, Consumables.ScrollOfStrengthIV.id, Consumables.ScrollOfProtectionIV.id],
