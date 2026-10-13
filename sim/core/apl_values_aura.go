@@ -49,20 +49,30 @@ func (value *APLValueAuraIsActive) Type() proto.APLValueType {
 }
 func (value *APLValueAuraIsActive) GetBool(sim *Simulation) bool {
 	aura := value.aura.Get()
-	if !value.includeReactionTime || aura == nil {
-		return aura.IsActive()
+	if aura == nil {
+		return false
+	}
+	if !value.includeReactionTime {
+		return aura.IsActive() || aura.pendingActivations > 0
 	}
 	// The player knows at once that an aura their own cast put up is there, and reacts only to it running out;
 	// any other aura, such as a proc, takes the reaction time to notice as it lands.
+	if aura.pendingOwnActivations > 0 {
+		return true
+	}
 	if value.castByPlayer(aura) {
 		return aura.IsActive() || (aura.expired && aura.TimeInactive(sim) < value.reactionTime)
 	}
 	return aura.IsActive() && aura.TimeActive(sim) >= value.reactionTime
 }
 
-// Whether one of the player's spells was cast as the aura landed or while it was up. A proc sharing a spell's id,
-// such as the Revenge window, starts before that spell is cast, so it stays a proc.
+// Whether one of the player's spells was cast, or a guaranteed declared proc off a unit's own APL spell ran, as
+// the aura landed or while it was up. A proc sharing a spell's id, such as the Revenge window, starts before that
+// spell is cast, so it stays a proc.
 func (value *APLValueAuraIsActive) castByPlayer(aura *Aura) bool {
+	if aura.lastOwnProcAt >= aura.startTime {
+		return true
+	}
 	for _, spell := range value.ownSpells {
 		if spell.lastAppliedAt >= aura.startTime {
 			return true
@@ -104,7 +114,7 @@ func (value *APLValueAuraIsInactive) GetBool(sim *Simulation) bool {
 	if value.includeReactionTime {
 		return !aura.IsActive() && aura.TimeInactive(sim) >= value.reactionTime
 	}
-	return !aura.IsActive()
+	return !aura.IsActive() && (aura == nil || aura.pendingActivations == 0)
 }
 func (value *APLValueAuraIsInactive) String() string {
 	return fmt.Sprintf("Aura Inactive(%s)", value.aura.String())

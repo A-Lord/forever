@@ -56,6 +56,8 @@ type ProcTrigger struct {
 	ICD                 time.Duration
 	Handler             ProcHandler
 	TriggerImmediately  bool       // If false (default), the handler will be called one spell batch window later for improved realism.
+	ActivatesAura       *Aura      // The aura the handler activates, which the APL then reads as active while the handler waits out the spell batch window.
+	ActivatesAuras      AuraArray  // The same for a per-target aura, the one on the result's target; a trigger without a result falls back to ActivatesAura.
 	ClassSpellMask      int64      // The sim's own custom spell masks, not from the game files.
 	ClassFlags          ClassFlags // The spells this trigger fires on (EffectSpellClassMask in the game files); with ClassSpellMask, both must match.
 	ProcSpellClassFlags ClassFlags // The proccing spell's class flags, which proc chance talents match (e.g. Improved Poisons on Instant Poison).
@@ -148,7 +150,16 @@ type deferredProc struct {
 	spell     *Spell
 	result    SpellResult
 	hasResult bool
+	pending   *Aura // The declared aura, pending activation until the handler runs.
+	own       bool  // Whether a guaranteed trigger fired off a spell its unit cast from its APL.
 	cleanUp   func(*Simulation)
+}
+
+func (config *ProcTrigger) activatedAura(result *SpellResult) *Aura {
+	if config.ActivatesAuras != nil && result != nil {
+		return config.ActivatesAuras.Get(result.Target)
+	}
+	return config.ActivatesAura
 }
 
 func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) {
@@ -171,7 +182,14 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 	var freeDeferred []*deferredProc
 
 	applyHandler := func(sim *Simulation, spell *Spell, result *SpellResult) {
+		activated := config.activatedAura(result)
+		// The player can count on a proc that always fires off their own cast; a rolled one they only see land.
+		guaranteed := config.ProcChance == 1 && dpm == nil
+		own := activated != nil && guaranteed && spell.Unit == unit && spell.Flags.Matches(SpellFlagAPL)
 		if config.TriggerImmediately {
+			if own {
+				activated.lastOwnProcAt = sim.CurrentTime
+			}
 			handler(sim, spell, result)
 			return
 		}
@@ -184,7 +202,18 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 			freeDeferred = freeDeferred[:n-1]
 		} else {
 			dp = &deferredProc{}
+			settle := func() {
+				if dp.pending == nil {
+					return
+				}
+				dp.pending.pendingActivations--
+				if dp.own {
+					dp.pending.pendingOwnActivations--
+				}
+				dp.pending = nil
+			}
 			release := func() {
+				settle()
 				dp.spell = nil
 				freeDeferred = append(freeDeferred, dp)
 			}
@@ -193,10 +222,22 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 				if !dp.hasResult {
 					res = nil
 				}
+				if dp.own {
+					dp.pending.lastOwnProcAt = sim.CurrentTime
+				}
+				settle()
 				handler(sim, dp.spell, res)
 				release()
 			}
 			dp.cleanUp = func(sim *Simulation) { release() }
+		}
+		dp.pending = activated
+		dp.own = own
+		if activated != nil {
+			activated.pendingActivations++
+			if own {
+				activated.pendingOwnActivations++
+			}
 		}
 		dp.spell = spell
 		dp.hasResult = result != nil

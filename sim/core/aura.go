@@ -59,6 +59,10 @@ type Aura struct {
 	fadeTime  time.Duration // Time at which the aura was actually removed.
 	expired   bool          // Whether the aura last fell off by running out, rather than being removed early.
 
+	pendingActivations    int32         // Deferred proc handlers declared to activate the aura that have not run yet.
+	pendingOwnActivations int32         // Those of them from a guaranteed trigger off a spell its unit cast from its APL.
+	lastOwnProcAt         time.Duration // When such a handler last ran; -NeverExpires if not yet this iteration.
+
 	// The unit this aura is attached to.
 	Unit *Unit
 
@@ -138,6 +142,9 @@ func (aura *Aura) reset(sim *Simulation) {
 	aura.metrics.reset()
 	aura.fadeTime = -NeverExpires
 	aura.expired = false
+	aura.pendingActivations = 0
+	aura.pendingOwnActivations = 0
+	aura.lastOwnProcAt = -NeverExpires
 
 	if aura.OnReset != nil {
 		aura.OnReset(aura, sim)
