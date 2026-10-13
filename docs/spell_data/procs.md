@@ -55,11 +55,12 @@ which scales the internal cooldown a proc starts: Moonkin Form 24858 takes Omen 
 10 s to 5 s while the form is up. The length is read each time a proc starts the cooldown, so one
 already running keeps its length.
 
-|                 |                                                                                                                                                               |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `PPM(n)`        | a rate the game files do not carry. It clears the chance and binds a manager to the trigger's proc mask, so an option that narrows the mask has to come first |
-| `Chance(f)`     | a rate the caller states outright, manager included                                                                                                           |
-| `ChanceFrom(e)` | the chance an effect states, for a `$mN` the generator could not resolve                                                                                      |
+|                     |                                                                                                                                                                               |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PPM(n)`            | a rate the game files do not carry. It clears the chance and binds a manager to the trigger's proc mask, so an option that narrows the mask has to come first                 |
+| `WeaponSpeedPPM(n)` | the same, on the main hand's speed as Seal of the Crusader leaves it: the seal's faster swings each carry 1/1.4 of the chance and haste leaves it alone. Vindication rolls it |
+| `Chance(f)`         | a rate the caller states outright, manager included                                                                                                                           |
+| `ChanceFrom(e)`     | the chance an effect states, for a `$mN` the generator could not resolve                                                                                                      |
 
 A trigger that ends with neither a chance nor a manager panics and names the spell, because a row with
 no stated rate never means a listener that fires on every qualifying hit. A procs-per-minute rate with
