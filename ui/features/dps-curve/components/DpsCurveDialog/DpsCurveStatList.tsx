@@ -10,7 +10,7 @@ export interface DpsCurveStatListProps {
 
 // Every row and its status slot are there from the start, so the progress dialog keeps its height through the run.
 export const DpsCurveStatList = ({ labels, running }: DpsCurveStatListProps) => (
-	<ul className="mx-auto mt-2 mb-0 flex w-fit list-none flex-col gap-1 p-0 text-left" data-testid="dps-curve-stat-list">
+	<ul className="mt-2 mb-0 flex list-none flex-col items-center gap-1 p-0" data-testid="dps-curve-stat-list">
 		{labels.map((label, index) => {
 			const state = index < running ? 'done' : index === running ? 'running' : 'pending';
 			return (
@@ -20,6 +20,8 @@ export const DpsCurveStatList = ({ labels, running }: DpsCurveStatListProps) => 
 					data-state={state}
 					aria-current={state === 'running' ? 'step' : undefined}
 					data-testid="dps-curve-stat">
+					{/* Balances the status slot, so the label sits on the dialog's centre line. */}
+					<span className="w-4" aria-hidden />
 					{label}
 					<span className="flex w-4 items-center justify-center">
 						{state === 'done' && <Icon name="circle-check" className="text-success" />}
