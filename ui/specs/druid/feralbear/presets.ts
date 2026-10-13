@@ -29,25 +29,25 @@ export const Level60Gear = PresetUtils.makePresetGear('Level 60', Level60GearJso
 	tooltip: 'Leather at level 60 with no set bonus and no proc. The idol slot is empty: every idol has an effect.',
 });
 
-// The default raid target swings for 15113 before armor, which kills a level 60 bear on every pull.
+// The raid target swings for 6000 before armor.
 const level60Encounter = Encounter.defaultEncounterProto();
 level60Encounter.targets[0].minBaseDamage = 6000;
 export const Level60Encounter = {
 	...PresetUtils.makePresetEncounter('Level 60 boss', level60Encounter),
-	tooltip: 'The raid target, hitting for 6000 before armor instead of 15113.',
+	tooltip: 'The raid target, hitting for 6000 before armor.',
 };
 
-// EP on the Level 60 preset, the APL preset and the Level 60 boss, with a raid bleed assumed, 200000
-// iterations. DPS and threat have agility as 1. A bear's agility is crit, armor and dodge but no attack
+// EP estimates with agility as 1. A bear's agility is crit, armor and dodge but no attack
 // power, so strength is worth about two agility. Dodge costs damage: fewer hits taken is less rage.
 // Defense nets to 0, its Thick Hide armor against the hits it avoids. Stamina keeps the bear alive longer.
+// Feral attack power uses attack power's weight through the form-only dependency.
 export const Level60DpsEp = Stats.fromMap(
 	{
 		[Stat.StatStrength]: 2.0714,
 		[Stat.StatAgility]: 1,
 		[Stat.StatStamina]: 0.1103,
 		[Stat.StatAttackPower]: 0.9415,
-		[Stat.StatFeralAttackPower]: 0,
+		[Stat.StatFeralAttackPower]: 0.9415,
 		[Stat.StatArmor]: 0.026,
 		[Stat.StatBonusArmor]: 0.026,
 		[Stat.StatDodgeRating]: -0.1059,
@@ -64,14 +64,14 @@ export const Level60DpsEp = Stats.fromMap(
 	},
 );
 
-// Threat with agility as 1, on the same run.
+// Threat with agility as 1.
 export const Level60ThreatEp = Stats.fromMap(
 	{
 		[Stat.StatStrength]: 2.005,
 		[Stat.StatAgility]: 1,
 		[Stat.StatStamina]: 0.1084,
 		[Stat.StatAttackPower]: 0.9114,
-		[Stat.StatFeralAttackPower]: 0,
+		[Stat.StatFeralAttackPower]: 0.9114,
 		[Stat.StatArmor]: 0.0255,
 		[Stat.StatBonusArmor]: 0.0255,
 		[Stat.StatDodgeRating]: -0.1069,

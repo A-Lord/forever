@@ -388,8 +388,20 @@ func openerAPL(opener int32) *proto.APLRotation {
 
 // The preset files and the builders that make them.
 func catAPLPresets() map[string]*proto.APLRotation {
+	defaultRotation := catAPL(bestCatAPL)
+	for _, group := range defaultRotation.Groups {
+		for _, item := range group.Actions {
+			if item.Action.GetCastSpell().GetSpellId().GetItemId() == itemTea {
+				item.Action.Condition = and(
+					&proto.APLValue{Value: &proto.APLValue_SelectedConjured{SelectedConjured: &proto.APLValueSelectedConjured{
+						ConjuredId: &proto.ActionID{RawId: &proto.ActionID_ItemId{ItemId: itemTea}},
+					}}},
+					item.Action.Condition)
+			}
+		}
+	}
 	return map[string]*proto.APLRotation{
-		"default":    catAPL(bestCatAPL),
+		"default":    defaultRotation,
 		"shadowmeld": shadowmeldAPL(),
 		"energized":  energizedAPL(),
 		"bearweave":  bearweaveAPL(),

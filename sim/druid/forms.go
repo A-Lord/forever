@@ -106,9 +106,11 @@ func (druid *Druid) RegisterCatFormAura() {
 	form := spellData.CatForm.Highest()
 	druid.CatFormAura = druid.registerFormAura(form, druid.StartingForm.Matches(Cat))
 	spelldata.ParseEffects(&druid.Character, druid.CatFormAura, spellData.CatFormTriggered.Highest())
+	druid.CatFormAura.AttachStatDependency(druid.NewDynamicStatDependency(stats.FeralAttackPower, stats.AttackPower, 1))
 
 	druid.CatFormAura.ApplyOnGain(func(_ *core.Aura, sim *core.Simulation) {
 		druid.setForm(Cat)
+		druid.SetFeralCombat(true)
 		druid.SetCurrentPowerBar(core.EnergyBar)
 		if !druid.Env.MeasuringStats {
 			druid.AutoAttacks.SetMH(druid.GetCatWeapon())
@@ -118,6 +120,7 @@ func (druid *Druid) RegisterCatFormAura() {
 	druid.CatFormAura.ApplyOnExpire(func(_ *core.Aura, sim *core.Simulation) {
 		druid.rememberCatEnergy(sim, druid.CurrentEnergy())
 		druid.breakProwl(sim)
+		druid.SetFeralCombat(false)
 		druid.restoreHumanoidBody()
 	})
 	druid.CatFormAura.ApplyOnReset(func(_ *core.Aura, _ *core.Simulation) {
@@ -139,6 +142,7 @@ func (druid *Druid) RegisterBearFormAura() {
 
 func (druid *Druid) registerBearAura(form *spelldata.Spell, passive *spelldata.Spell, kind DruidForm, starting bool) *core.Aura {
 	aura := druid.registerFormAura(form, starting)
+	aura.AttachStatDependency(druid.NewDynamicStatDependency(stats.FeralAttackPower, stats.AttackPower, 1))
 	// Armor from items, health, attack power and the Faerie Fire spell mods are parsed.
 	// TODO: Ingame research needed -- effect 4 of Bear Form and Dire Bear Form is aura 668, which core
 	// does not name.
@@ -156,6 +160,7 @@ func (druid *Druid) registerBearAura(form *spelldata.Spell, passive *spelldata.S
 	}
 	aura.ApplyOnGain(func(_ *core.Aura, sim *core.Simulation) {
 		druid.setForm(kind)
+		druid.SetFeralCombat(true)
 		druid.SetCurrentPowerBar(core.RageBar)
 		if !druid.Env.MeasuringStats {
 			druid.AutoAttacks.SetMH(druid.GetBearWeapon())
@@ -166,6 +171,7 @@ func (druid *Druid) registerBearAura(form *spelldata.Spell, passive *spelldata.S
 	aura.ApplyOnExpire(func(_ *core.Aura, sim *core.Simulation) {
 		druid.PseudoStats.ThreatMultiplier /= bearFormThreatMultiplier
 		druid.forfeitCatEnergy(sim)
+		druid.SetFeralCombat(false)
 		druid.restoreHumanoidBody()
 	})
 	return aura
