@@ -197,6 +197,7 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 	applyHandler := func(sim *Simulation, spell *Spell, result *SpellResult) {
 		activated := config.activatedAura(result)
 		// The player can count on a proc that always fires off their own cast; a rolled one they only see land.
+		// Read at the hit: an unstated chance only becomes 1 further down, after this closure is built.
 		guaranteed := config.ProcChance == 1 && dpm == nil
 		own := activated != nil && guaranteed && spell.Unit == unit && spell.Flags.Matches(SpellFlagAPL)
 		if config.TriggerImmediately {
