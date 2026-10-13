@@ -14,6 +14,8 @@ const (
 	testPendingImmediateID  = 910306
 	testPendingRolledID     = 910307
 	testPendingManagedID    = 910308
+	testPendingRefusedID    = 910309
+	testPendingRefusedNowID = 910310
 )
 
 type pendingProcTest struct {
@@ -24,6 +26,8 @@ type pendingProcTest struct {
 	immediate    *Aura
 	rolled       *Aura
 	managed      *Aura
+	refused      *Aura
+	refusedNow   *Aura
 	aplSpell     *Spell
 	procSpell    *Spell
 	castTriggers int
@@ -32,8 +36,9 @@ type pendingProcTest struct {
 // A spell cast from the APL and one that is not, each a landed hit. Deferred triggers on those hits put up a
 // buff and a debuff on the hit target, both declared, and a second buff left undeclared; an immediate trigger
 // puts up a third, declared, at the hit. Two more deferred triggers declare a buff each, one rolling a stated
-// chance below 1 and one a proc manager that always fires. A cast trigger declares the debuff too, though a
-// cast carries no target to find it on.
+// chance below 1 and one a proc manager that always fires. A deferred and an immediate trigger declare a buff
+// each whose handler never puts it up. A cast trigger declares the debuff too, though a cast carries no target
+// to find it on.
 func newPendingProcTest() *pendingProcTest {
 	pt := &pendingProcTest{}
 	pt.channelTest = newChannelTest(func(_ *channelTest, char *Character) *Spell {
@@ -62,6 +67,8 @@ func newPendingProcTest() *pendingProcTest {
 		pt.immediate = buff("Immediate Buff", testPendingImmediateID)
 		pt.rolled = buff("Rolled Buff", testPendingRolledID)
 		pt.managed = buff("Managed Buff", testPendingManagedID)
+		pt.refused = buff("Refused Buff", testPendingRefusedID)
+		pt.refusedNow = buff("Refused Immediate Buff", testPendingRefusedNowID)
 		pt.debuffs = char.NewEnemyAuraArray(func(target *Unit) *Aura {
 			return target.RegisterAura(Aura{Label: "Pending Debuff", ActionID: ActionID{SpellID: testPendingDebuffID}, Duration: 10 * time.Second})
 		})
@@ -98,6 +105,15 @@ func newPendingProcTest() *pendingProcTest {
 			ActivatesAura: pt.managed,
 			Handler:       func(sim *Simulation, _ *Spell, _ *SpellResult) { pt.managed.Activate(sim) },
 		})
+		trigger("Refusing Buff Trigger", ProcTrigger{
+			ActivatesAura: pt.refused,
+			Handler:       func(*Simulation, *Spell, *SpellResult) {},
+		})
+		trigger("Refusing Immediate Buff Trigger", ProcTrigger{
+			TriggerImmediately: true,
+			ActivatesAura:      pt.refusedNow,
+			Handler:            func(*Simulation, *Spell, *SpellResult) {},
+		})
 		trigger("Undeclared Buff Trigger", ProcTrigger{
 			Handler: func(sim *Simulation, _ *Spell, _ *SpellResult) { pt.undeclared.Activate(sim) },
 		})
@@ -118,8 +134,8 @@ func (pt *pendingProcTest) isActive(id int32, includeReactionTime bool) APLValue
 	return pt.rot.newValueAuraIsActive(&proto.APLValueAuraIsActive{AuraId: ActionID{SpellID: id}.ToProto(), IncludeReactionTime: includeReactionTime}, nil)
 }
 
-func (pt *pendingProcTest) isInactive(id int32) APLValue {
-	return pt.rot.newValueAuraIsInactive(&proto.APLValueAuraIsInactive{AuraId: ActionID{SpellID: id}.ToProto()}, nil)
+func (pt *pendingProcTest) isInactive(id int32, includeReactionTime bool) APLValue {
+	return pt.rot.newValueAuraIsInactive(&proto.APLValueAuraIsInactive{AuraId: ActionID{SpellID: id}.ToProto(), IncludeReactionTime: includeReactionTime}, nil)
 }
 
 func (pt *pendingProcTest) debuffIsActive(includeReactionTime bool) APLValue {
@@ -133,9 +149,9 @@ func (pt *pendingProcTest) debuffIsActive(includeReactionTime bool) APLValue {
 // Inside the spell batch window a declared aura reads as up to the APL, and an undeclared one does not.
 func TestAuraIsActiveSeesADeclaredProcBeforeItsHandlerRuns(t *testing.T) {
 	pt := newPendingProcTest()
-	active, inactive := pt.isActive(testPendingBuffID, false), pt.isInactive(testPendingBuffID)
+	active, inactive := pt.isActive(testPendingBuffID, false), pt.isInactive(testPendingBuffID, false)
 	debuffActive := pt.debuffIsActive(false)
-	undeclaredActive, undeclaredInactive := pt.isActive(testPendingUndeclaredID, false), pt.isInactive(testPendingUndeclaredID)
+	undeclaredActive, undeclaredInactive := pt.isActive(testPendingUndeclaredID, false), pt.isInactive(testPendingUndeclaredID, false)
 
 	pt.runUntil(time.Second)
 	pt.procSpell.SkipCastAndApplyEffects(pt.sim, pt.fw.CurrentTarget)
@@ -214,20 +230,25 @@ func TestReactionTimeHidesAPendingProcOffANonAPLSpell(t *testing.T) {
 }
 
 // With the reaction time, a declared proc off a spell cast from the APL counts as the player's own: seen while it
-// waits and as it lands, and for the reaction time after it runs out. A cast trigger declaring a per-target aura
-// marks nothing, having no target to find it on.
+// waits and as it lands, and for the reaction time after it runs out; Aura Is Inactive agrees while it waits. A
+// cast trigger declaring a per-target aura marks nothing, having no target to find it on.
 func TestReactionTimeCountsAProcOffAnAPLSpellAsOwn(t *testing.T) {
 	pt := newPendingProcTest()
 	reacted, debuffReacted := pt.isActive(testPendingBuffID, true), pt.debuffIsActive(true)
+	inactiveReacted := pt.isInactive(testPendingBuffID, true)
 	debuff := pt.debuffs.Get(pt.fw.CurrentTarget)
 
 	pt.runUntil(time.Second)
+	if !inactiveReacted.GetBool(pt.sim) {
+		t.Errorf("before the cast: inactive = false, want true")
+	}
 	pt.aplSpell.Cast(pt.sim, pt.fw.CurrentTarget)
 	if pt.castTriggers != 0 || debuff.pendingActivations != 1 {
 		t.Errorf("after the cast: cast triggers run = %d, debuff pending = %d, want 0, 1", pt.castTriggers, debuff.pendingActivations)
 	}
-	if !reacted.GetBool(pt.sim) || !debuffReacted.GetBool(pt.sim) {
-		t.Errorf("in the batch window: active = %t, debuff active = %t, want true, true", reacted.GetBool(pt.sim), debuffReacted.GetBool(pt.sim))
+	if !reacted.GetBool(pt.sim) || !debuffReacted.GetBool(pt.sim) || inactiveReacted.GetBool(pt.sim) {
+		t.Errorf("in the batch window: active = %t, debuff active = %t, inactive = %t, want true, true, false",
+			reacted.GetBool(pt.sim), debuffReacted.GetBool(pt.sim), inactiveReacted.GetBool(pt.sim))
 	}
 	pt.runUntil(time.Second + SpellBatchWindow)
 	if pt.castTriggers != 1 || !reacted.GetBool(pt.sim) || !debuffReacted.GetBool(pt.sim) {
@@ -297,6 +318,38 @@ func TestReactionTimeHidesARolledProcOffAnAPLSpell(t *testing.T) {
 	for name := range auras {
 		if !reacted[name].GetBool(pt.sim) {
 			t.Errorf("%s at the reaction time after landing: active = false, want true", name)
+		}
+	}
+}
+
+// With the reaction time, an aura something else put up stays a proc when an own trigger's handler refuses to
+// put it up again, deferred or immediate.
+func TestReactionTimeIgnoresAnOwnProcWhoseHandlerRefuses(t *testing.T) {
+	pt := newPendingProcTest()
+	auras := map[string]*Aura{"deferred": pt.refused, "immediate": pt.refusedNow}
+	reacted := map[string]APLValue{
+		"deferred":  pt.isActive(testPendingRefusedID, true),
+		"immediate": pt.isActive(testPendingRefusedNowID, true),
+	}
+
+	pt.runUntil(time.Second)
+	for _, aura := range auras {
+		aura.Activate(pt.sim)
+	}
+	pt.runUntil(time.Second + 50*time.Millisecond)
+	pt.aplSpell.SkipCastAndApplyEffects(pt.sim, pt.fw.CurrentTarget)
+	pt.runUntil(time.Second + 50*time.Millisecond + SpellBatchWindow)
+	for name, aura := range auras {
+		if !aura.IsActive() || aura.pendingActivations != 0 || reacted[name].GetBool(pt.sim) {
+			t.Errorf("%s, after the handler refused inside the reaction time: buff up = %t, pending = %d, active = %t, want true, 0, false",
+				name, aura.IsActive(), aura.pendingActivations, reacted[name].GetBool(pt.sim))
+		}
+	}
+
+	pt.runUntil(time.Second + 100*time.Millisecond)
+	for name := range auras {
+		if !reacted[name].GetBool(pt.sim) {
+			t.Errorf("%s at the reaction time after it went up: active = false, want true", name)
 		}
 	}
 }

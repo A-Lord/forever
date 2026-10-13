@@ -111,10 +111,13 @@ func (value *APLValueAuraIsInactive) Type() proto.APLValueType {
 }
 func (value *APLValueAuraIsInactive) GetBool(sim *Simulation) bool {
 	aura := value.aura.Get()
-	if value.includeReactionTime {
-		return !aura.IsActive() && aura.TimeInactive(sim) >= value.reactionTime
+	if aura == nil {
+		return true
 	}
-	return !aura.IsActive() && (aura == nil || aura.pendingActivations == 0)
+	if value.includeReactionTime {
+		return !aura.IsActive() && aura.pendingOwnActivations == 0 && aura.TimeInactive(sim) >= value.reactionTime
+	}
+	return !aura.IsActive() && aura.pendingActivations == 0
 }
 func (value *APLValueAuraIsInactive) String() string {
 	return fmt.Sprintf("Aura Inactive(%s)", value.aura.String())

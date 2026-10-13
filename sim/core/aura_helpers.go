@@ -181,16 +181,26 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 	handler := config.Handler
 	var freeDeferred []*deferredProc
 
+	// An own trigger marks the aura as the player's only if its handler put the aura up or refreshed it.
+	runHandler := func(sim *Simulation, spell *Spell, result *SpellResult, activated *Aura, own bool) {
+		if !own {
+			handler(sim, spell, result)
+			return
+		}
+		wasActive, expiresAt := activated.IsActive(), activated.ExpiresAt()
+		handler(sim, spell, result)
+		if activated.IsActive() && (!wasActive || activated.ExpiresAt() != expiresAt) {
+			activated.lastOwnProcAt = sim.CurrentTime
+		}
+	}
+
 	applyHandler := func(sim *Simulation, spell *Spell, result *SpellResult) {
 		activated := config.activatedAura(result)
 		// The player can count on a proc that always fires off their own cast; a rolled one they only see land.
 		guaranteed := config.ProcChance == 1 && dpm == nil
 		own := activated != nil && guaranteed && spell.Unit == unit && spell.Flags.Matches(SpellFlagAPL)
 		if config.TriggerImmediately {
-			if own {
-				activated.lastOwnProcAt = sim.CurrentTime
-			}
-			handler(sim, spell, result)
+			runHandler(sim, spell, result, activated, own)
 			return
 		}
 
@@ -213,7 +223,6 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 				dp.pending = nil
 			}
 			release := func() {
-				settle()
 				dp.spell = nil
 				freeDeferred = append(freeDeferred, dp)
 			}
@@ -222,14 +231,15 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 				if !dp.hasResult {
 					res = nil
 				}
-				if dp.own {
-					dp.pending.lastOwnProcAt = sim.CurrentTime
-				}
+				activated, own := dp.pending, dp.own
 				settle()
-				handler(sim, dp.spell, res)
+				runHandler(sim, dp.spell, res, activated, own)
 				release()
 			}
-			dp.cleanUp = func(sim *Simulation) { release() }
+			dp.cleanUp = func(sim *Simulation) {
+				settle()
+				release()
+			}
 		}
 		dp.pending = activated
 		dp.own = own
