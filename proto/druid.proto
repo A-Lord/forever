@@ -89,7 +89,7 @@ message FeralCatDruid {
   message Options {
     DruidOptions class_options = 1;
     bool cannot_shred_target = 2;
-    // Rend and Tear treats the target as bleeding whatever the druid's own bleeds.
+    // Rend and Tear and the Bleed Is Active APL value treat the target as bleeding whatever bleeds it has.
     bool assume_bleed_active = 3;
     // Clearcasting is up at the pull, fished for out of combat with spells before it.
     bool prepull_clearcasting = 4;
@@ -104,7 +104,7 @@ message FeralBearDruid {
   message Options {
     DruidOptions class_options = 1;
     double starting_rage = 2;
-    // Rend and Tear treats the target as bleeding whatever the druid's own bleeds.
+    // Rend and Tear and the Bleed Is Active APL value treat the target as bleeding whatever bleeds it has.
     bool assume_bleed_active = 3;
   }
   Options options = 3;

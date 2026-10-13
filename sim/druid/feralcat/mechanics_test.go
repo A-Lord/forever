@@ -332,6 +332,30 @@ func TestShiftingPowerTradesManaForEnergy(t *testing.T) {
 	}
 }
 
+// A dot is tagged as a bleed from its row's bleed mechanic, on the dot the sim registers: Rake states
+// it only on its periodic effect, Rip and Lacerate on the spell. Balance tests that Moonfire is not.
+func TestDruidDotsAreTaggedAsBleedsFromTheirRows(t *testing.T) {
+	_, cat := newCat(t, "", nil)
+	target := cat.CurrentTarget
+	for _, c := range []struct {
+		name  string
+		spell *druid.DruidSpell
+		want  string
+	}{
+		{"Rake", cat.Rake, core.BleedTag},
+		{"Rip", cat.Rip, core.BleedTag},
+		{"Lacerate", cat.Lacerate, core.BleedTag},
+	} {
+		if c.spell == nil || c.spell.Dot(target) == nil {
+			t.Errorf("%s has no dot on the target", c.name)
+			continue
+		}
+		if got := c.spell.Dot(target).Aura.Tag; got != c.want {
+			t.Errorf("%s dot tag = %q, want %q", c.name, got, c.want)
+		}
+	}
+}
+
 func TestShiftingPowerNeedsTheTalentAndCatForm(t *testing.T) {
 	sim, cat := newCat(t, "", nil)
 	fillResource(sim, cat)

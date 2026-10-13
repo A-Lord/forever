@@ -152,7 +152,7 @@ end answers unset instead of panicking. `sim/core/spelldata/attributes.go` names
 on: `IsPassive`, `IsChanneled`, `RefundsOnMiss` with `MissRefund()` (the 0.8 a
 `RageCostOptions.Refund` takes), `PeriodicCanCrit`, `CanProcFromProcs`, `ClassSpellsOnly`,
 `CannotCrit`, `IsAProc`, `SuppressesWeaponProcs` and `IsWeaponProcAura`; `IsBleed` reads
-`SpellCategories.Mechanic` instead.
+`SpellCategories.Mechanic` instead, and `AppliesBleed` also reads each effect's `EffectMechanic`.
 
 |                     |                                                                                                        |
 | ------------------- | ------------------------------------------------------------------------------------------------------ |

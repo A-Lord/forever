@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/dbcenums"
 )
 
 func TestAuraConfigFromARow(t *testing.T) {
@@ -22,6 +23,30 @@ func TestAuraConfigFromARow(t *testing.T) {
 	}
 	if aura.MaxStacks != 5 {
 		t.Errorf("max stacks = %d, want the row's 5", aura.MaxStacks)
+	}
+}
+
+// A row with the bleed mechanic, on the spell (Rip) or only on an effect (Rake's periodic damage),
+// tags its aura as a bleed. A dot that states no bleed mechanic anywhere (Moonfire) is not tagged.
+func TestAuraConfigTagsBleeds(t *testing.T) {
+	periodic := func(id int32, mechanic dbcenums.Mechanic) []Effect {
+		return []Effect{
+			{SpellID: id, Type: dbcenums.E_SCHOOL_DAMAGE},
+			{SpellID: id, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_DAMAGE, Mechanic: mechanic},
+		}
+	}
+	withRows(t, []Spell{
+		{ID: 901, Name: "Spell Bleed", Mechanic: dbcenums.MECHANIC_BLEED, Effects: periodic(901, 0)},
+		{ID: 902, Name: "Effect Bleed", Effects: periodic(902, dbcenums.MECHANIC_BLEED)},
+		{ID: 903, Name: "Plain Dot", Effects: periodic(903, 0)},
+	})
+	for _, c := range []struct {
+		id   int32
+		want string
+	}{{901, core.BleedTag}, {902, core.BleedTag}, {903, ""}} {
+		if got := AuraConfig(Find(c.id)).Tag; got != c.want {
+			t.Errorf("%s: tag = %q, want %q", Find(c.id).Name, got, c.want)
+		}
 	}
 }
 

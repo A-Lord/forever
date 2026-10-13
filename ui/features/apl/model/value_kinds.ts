@@ -20,6 +20,7 @@ import {
 	APLValueAutoSwingTime,
 	APLValueAutoTimeSinceLast,
 	APLValueAutoTimeToNext,
+	APLValueBleedIsActive,
 	APLValueBossCurrentTarget,
 	APLValueBossSpellIsCasting,
 	APLValueBossSpellTimeToReady,
@@ -923,6 +924,14 @@ export const valueKinds: { [f in ValidAPLValueKind]: ValueKindModel<APLValueImpl
 		newValue: APLValueDotIsActive.create,
 		includeIf: (_: Player<any>, isPrepull: boolean) => !isPrepull,
 		fields: [unitFieldConfig('targetUnit', 'targets'), actionIdFieldConfig('spellId', 'dot_spells', '')],
+	}),
+	bleedIsActive: inputBuilder({
+		label: i18n.t('rotation_tab.apl.values.bleed_is_active.label'),
+		submenu: ['dot'],
+		shortDescription: i18n.t('rotation_tab.apl.values.bleed_is_active.tooltip'),
+		newValue: APLValueBleedIsActive.create,
+		includeIf: (_: Player<any>, isPrepull: boolean) => !isPrepull,
+		fields: [unitFieldConfig('targetUnit', 'targets')],
 	}),
 	dotIsActiveOnAllTargets: inputBuilder({
 		label: i18n.t('rotation_tab.apl.values.dot_is_active_on_all_targets.label'),

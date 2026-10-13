@@ -153,7 +153,7 @@ func TestAssumedBleedRaisesShredLikeOwnBleed(t *testing.T) {
 	const rendAndTear5 = "0000000000000000-00000000000000000050-0000000000000000"
 	shred := func(assume, rake bool) float64 {
 		sim, cat := newCat(t, rendAndTear5, nil)
-		cat.AssumeBleedActive = assume
+		cat.PseudoStats.AssumeBleedActive = assume
 		target := cat.CurrentTarget
 		cat.AddStatDynamic(sim, stats.PhysicalCritPercent, -100)
 		cat.AddStatDynamic(sim, stats.PhysicalHitPercent, 100)

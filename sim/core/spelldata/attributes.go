@@ -41,6 +41,20 @@ func (s *Spell) IsBleed() bool {
 	return s.Mechanic == dbcenums.MECHANIC_BLEED
 }
 
+// Whether the spell or one of its effects states the bleed mechanic. Rake states it only on its
+// periodic effect, which IsBleed does not read.
+func (s *Spell) AppliesBleed() bool {
+	if s.IsBleed() {
+		return true
+	}
+	for i := range s.Effects {
+		if s.Effects[i].Mechanic == dbcenums.MECHANIC_BLEED {
+			return true
+		}
+	}
+	return false
+}
+
 func (s *Spell) RefundsOnMiss() bool {
 	return s.HasAttr(dbcenums.ATTR_INDEX_EX_1, dbcenums.ATTR_EX_1_DISCOUNT_POWER_ON_MISS)
 }

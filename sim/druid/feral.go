@@ -6,15 +6,12 @@ import (
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
-// Bleed auras share a tag so Rend and Tear can see them without naming every spell.
-const druidBleedTag = "DruidBleed"
-
 func (druid *Druid) level() int32 {
 	return druid.Level
 }
 
 func (druid *Druid) rendAndTearMultiplier(target *core.Unit) float64 {
-	if druid.Talents.RendAndTear == 0 || !(druid.AssumeBleedActive || target.HasActiveAuraWithTag(druidBleedTag)) {
+	if druid.Talents.RendAndTear == 0 || !druid.TargetIsBleeding(target) {
 		return 1
 	}
 	// Melee special attacks and bleed ticks against a bleeding target; white swings are not raised. A
@@ -71,12 +68,6 @@ func (druid *Druid) isComboBuilder(spell *core.Spell) bool {
 // Whether Shred, Ravage and Pounce can land: the druid is behind the target and the target can be shredded.
 func (druid *Druid) BehindTarget() bool {
 	return !druid.PseudoStats.InFrontOfTarget && !druid.CannotShredTarget
-}
-
-func bleedAuraOpt() spelldata.AuraOpt {
-	return func(aura *core.Aura) {
-		aura.Tag = druidBleedTag
-	}
 }
 
 func (druid *Druid) breakProwl(sim *core.Simulation) {

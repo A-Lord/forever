@@ -5,7 +5,9 @@
 `core.NeverExpires`. The stacks are `CumulativeAura` where the row states one and `ProcCharges`
 otherwise, since the sim keeps stacks and charges in one field. A row that states no duration at all
 resolves to 0, and core refuses to activate an aura with that duration. Such an aura needs
-`Permanent()` or a duration the caller supplies.
+`Permanent()` or a duration the caller supplies. A row with the bleed mechanic, on the spell or on
+one of its effects, tags the aura `core.BleedTag`, which `Unit.TargetIsBleeding` and the
+`bleedIsActive` APL value read.
 
 `Label(name)` renames the aura, and two auras of the same spell on one unit need it.
 `RankLabel(rank, owner)` labels it by `rank.RankedLabel(owner)` ("Holy Fire Rank 8 - Priest (#1)"): a

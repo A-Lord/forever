@@ -32,7 +32,7 @@ func NewFeralBearDruid(character *core.Character, options *proto.Player) *Guardi
 		Druid:   druid.New(character, druid.DireBear, selfBuffs, options.TalentsString),
 		Options: tankOptions.Options,
 	}
-	bear.AssumeBleedActive = tankOptions.Options.GetAssumeBleedActive()
+	bear.PseudoStats.AssumeBleedActive = tankOptions.Options.GetAssumeBleedActive()
 
 	healingModel := options.HealingModel
 	if healingModel != nil {

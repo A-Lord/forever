@@ -212,6 +212,7 @@ message APLValue {
 		APLValueDotPercentIncrease dot_percent_increase = 101;
 		APLValueDotPercentIncrease dot_crit_percent_increase = 109;
         APLValueDotPercentIncrease dot_tick_rate_percent_increase = 110;
+        APLValueBleedIsActive bleed_is_active = 135;
 
         // Sequence values
         APLValueSequenceIsComplete sequence_is_complete = 44;
@@ -706,6 +707,10 @@ message APLValueAnyStatBuffCooldownsMinDuration {
 message APLValueDotIsActive {
     UnitReference target_unit = 2;
     ActionID spell_id = 1;
+}
+// True while the target bleeds, from any caster's bleed, or while the player assumes a bleed.
+message APLValueBleedIsActive {
+    UnitReference target_unit = 1;
 }
 message APLValueDotIsActiveOnAllTargets {
     ActionID spell_id = 1;
