@@ -1,15 +1,8 @@
 import i18n from '@i18n/config';
-import { Button } from '@ui-kit/Button';
 import { ChoiceField, type ChoiceOption } from '@ui-kit/ChoiceField';
 import { ContentBlock } from '@ui-kit/ContentBlock';
 import { NumberField } from '@ui-kit/TextField';
 import type { ReactNode } from 'react';
-
-export interface StatSweepProgress {
-	/** 1-based step being simulated. */
-	step: number;
-	steps: number;
-}
 
 export interface StatSweepPanelProps {
 	/** Keyed by `UnitStat.getKey()`. */
@@ -26,12 +19,9 @@ export interface StatSweepPanelProps {
 	chart: ReactNode;
 	history: ReactNode;
 	running: boolean;
-	progress?: StatSweepProgress;
-	onRun: () => void;
-	onCancel: () => void;
 }
 
-const t = (key: string, options?: Record<string, unknown>) => i18n.t(`sidebar.buttons.stat_weights.sweep.${key}`, options);
+const t = (key: string) => i18n.t(`sidebar.buttons.stat_weights.sweep.${key}`);
 
 export const StatSweepPanel = ({
 	statOptions,
@@ -46,9 +36,6 @@ export const StatSweepPanel = ({
 	chart,
 	history,
 	running,
-	progress,
-	onRun,
-	onCancel,
 }: StatSweepPanelProps) => (
 	<div className="ui-ep-weights-layout">
 		<div className="ui-ep-weights-main flex flex-col gap-4">
@@ -68,27 +55,7 @@ export const StatSweepPanel = ({
 			{chart}
 		</div>
 		<div className="ui-ep-weights-sidebar">
-			<ContentBlock config={{ header: { title: i18n.t('sidebar.buttons.stat_weights.modal.settings') } }}>
-				<div className="flex flex-col gap-4">
-					{precision}
-					<div className="flex flex-col gap-2">
-						{running ? (
-							<Button variant="cancel" className="w-full" onClick={onCancel}>
-								{t('cancel')}
-							</Button>
-						) : (
-							<Button variant="primary" className="w-full" onClick={onRun}>
-								{t('run')}
-							</Button>
-						)}
-						{running && progress && (
-							<span className="text-center" aria-live="polite">
-								{t('progress', { current: progress.step, total: progress.steps })}
-							</span>
-						)}
-					</div>
-				</div>
-			</ContentBlock>
+			<ContentBlock config={{ header: { title: i18n.t('sidebar.buttons.stat_weights.modal.settings') } }}>{precision}</ContentBlock>
 			{history}
 		</div>
 	</div>

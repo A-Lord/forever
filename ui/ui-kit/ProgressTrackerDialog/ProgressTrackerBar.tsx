@@ -26,7 +26,7 @@ export const ProgressTrackerBar = ({ running, progress, title, readout, classNam
 			</Progress.Track>
 		</Progress.Root>
 		{running && readout && (
-			<div className="text-right text-xs text-gray-400" data-testid="progress-tracker-modal-progress-text">
+			<div className="text-right text-xs text-gray-400 tabular-nums" data-testid="progress-tracker-modal-progress-text">
 				{readout}
 			</div>
 		)}

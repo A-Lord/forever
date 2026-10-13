@@ -99,6 +99,7 @@ const sweepHistory = vi.hoisted(() => ({
 	deleteRun: vi.fn(async () => {}),
 }));
 vi.mock('@sim/cache/stat_sweep_history', () => sweepHistory);
+vi.mock('chart.js', async () => (await import('@testing/chart-js-mock')).chartJsMock);
 
 // The vitest i18n stub has no resources, so `t` answers with the key and never interpolates — which
 // would make the reference-stat half of a column tooltip invisible. This keeps the key and shows the
@@ -818,12 +819,14 @@ describe('EpWeightsDialog', () => {
 	});
 
 	describe('stat sweep', () => {
+		beforeEach(() => sweepHistory.saveRun.mockClear());
+
 		const openSweepTab = async () => {
 			renderDialog();
 			await userEvent.click(screen.getByRole('tab', { name: 'sidebar.buttons.stat_weights.modal.tabs.sweep' }));
 		};
 
-		it('swaps the Calculate button for the sweep panel', async () => {
+		it('swaps the Calculate button for Run sweep and the sweep panel', async () => {
 			await openSweepTab();
 
 			expect(popup().querySelector('[data-testid="stat-sweep-pane"]')!.hasAttribute('inert')).toBe(false);
@@ -831,19 +834,59 @@ describe('EpWeightsDialog', () => {
 			await waitFor(() => expect(popup().querySelector('[data-testid="ep-weights-pane"]')!.hasAttribute('data-hidden')).toBe(true));
 			expect(popup().querySelector('[data-testid="stat-sweep-pane"]')!.hasAttribute('data-hidden')).toBe(false);
 			expect(calculate()).toBeNull();
+			expect(screen.getByRole('button', { name: 'sidebar.buttons.stat_weights.sweep.run' })).toBeTruthy();
+		});
+
+		it('shows a running sweep in the progress dialog, with Run sweep and Calculate disabled, and cancels it there, keeping the finished steps', async () => {
+			let settleSecond!: (result: StatWeightsResult) => void;
+			player.computeStatWeights.mockResolvedValueOnce(weightsResult([[STRENGTH, 2]])).mockImplementationOnce((...args: any[]) => {
+				args[3]({ completedIterations: 250, totalIterations: 1000, completedSims: 1, totalSims: 3 });
+				return new Promise<StatWeightsResult>(resolve => (settleSecond = resolve));
+			});
+			settings.sweep = { sweepStat: null, sweepRange: 20, sweepStep: 10 };
+			await openSweepTab();
+			const run = screen.getByRole<HTMLButtonElement>('button', { name: 'sidebar.buttons.stat_weights.sweep.run' });
+			const weightsTab = screen.getByRole('tab', { name: 'sidebar.buttons.stat_weights.modal.tabs.weights' });
+
+			await act(async () => {
+				fireEvent.click(run);
+			});
+			const tracker = () => rootElem.querySelector('[data-testid="stat-sweep-progress-dialog"]');
+			// The second of three steps, a quarter done: the bar reads across the whole sweep.
+			expect(tracker()!.querySelector('[data-testid="progress-tracker-modal-progress-title"]')!.textContent).toBe(
+				'sidebar.buttons.stat_weights.sweep.progress',
+			);
+			expect(tracker()!.querySelector('[data-testid="progress-tracker-modal-progress-text"]')!.textContent).toBe('1250/3000');
+			expect(tracker()!.querySelector('[data-testid="stat-sweep-time-remaining"]')!.textContent).toBe('sidebar.results.progress.time_remaining');
+			expect(run.disabled).toBe(true);
+			fireEvent.click(weightsTab);
+			expect(calculate().disabled).toBe(true);
+
+			abortType.mockClear();
+			await act(async () => {
+				fireEvent.click(tracker()!.querySelector('[data-testid="progress-tracker-modal-cancel-btn"]')!);
+			});
+			expect(abortType).toHaveBeenCalledTimes(1);
+			await act(async () => {
+				settleSecond({ ...emptyStatWeightsResult(), error: { type: ErrorOutcomeType.ErrorOutcomeAborted, message: '' } });
+			});
+
+			expect(tracker()).toBeNull();
+			expect(sweepHistory.saveRun).toHaveBeenCalledTimes(1);
+			expect(sweepHistory.saveRun.mock.calls[0][0].points).toHaveLength(1);
 		});
 
 		it('mounts the sweep with the dialog, out of reach until its tab is open, and keeps it mounted across tab switches', async () => {
 			sweepHistory.listRuns.mockClear();
 			renderDialog();
 			expect(sweepHistory.listRuns).toHaveBeenCalledTimes(1);
-			const run = screen.getByRole('button', { name: 'sidebar.buttons.stat_weights.sweep.run' });
-			run.focus();
-			expect(document.activeElement).not.toBe(run);
+			const range = popup().querySelector<HTMLInputElement>('#stat-sweep-range')!;
+			range.focus();
+			expect(document.activeElement).not.toBe(range);
 
 			await userEvent.click(screen.getByRole('tab', { name: 'sidebar.buttons.stat_weights.modal.tabs.sweep' }));
-			run.focus();
-			expect(document.activeElement).toBe(run);
+			range.focus();
+			expect(document.activeElement).toBe(range);
 			await userEvent.click(screen.getByRole('tab', { name: 'sidebar.buttons.stat_weights.modal.tabs.weights' }));
 			await userEvent.click(screen.getByRole('tab', { name: 'sidebar.buttons.stat_weights.modal.tabs.sweep' }));
 

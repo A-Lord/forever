@@ -1,11 +1,10 @@
 import i18n from '@i18n/config';
 import { fireEvent, render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 import { StatSweepPanel, type StatSweepPanelProps } from './StatSweepPanel';
 
-const t = (key: string, options?: Record<string, unknown>) => i18n.t(`sidebar.buttons.stat_weights.sweep.${key}`, options);
+const t = (key: string) => i18n.t(`sidebar.buttons.stat_weights.sweep.${key}`);
 
 const props = (overrides: Partial<StatSweepPanelProps> = {}): StatSweepPanelProps => ({
 	statOptions: [{ value: 'hit', label: 'Hit Rating' }],
@@ -19,30 +18,15 @@ const props = (overrides: Partial<StatSweepPanelProps> = {}): StatSweepPanelProp
 	chart: null,
 	history: null,
 	running: false,
-	onRun: vi.fn(),
-	onCancel: vi.fn(),
 	...overrides,
 });
 
 describe('StatSweepPanel', () => {
-	it('runs a sweep while idle', async () => {
-		const onRun = vi.fn();
-		render(<StatSweepPanel {...props({ onRun })} />);
+	it('locks the sweep inputs while running', () => {
+		render(<StatSweepPanel {...props({ running: true })} />);
 
-		expect(screen.queryByRole('button', { name: t('cancel') })).toBeNull();
-		await userEvent.click(screen.getByRole('button', { name: t('run') }));
-		expect(onRun).toHaveBeenCalledOnce();
-	});
-
-	it('shows the step and a cancel button while running, and locks the sweep inputs', async () => {
-		const onCancel = vi.fn();
-		render(<StatSweepPanel {...props({ running: true, progress: { step: 7, steps: 21 }, onCancel })} />);
-
-		expect(screen.getByText(t('progress', { current: 7, total: 21 }))).toBeTruthy();
-		expect(screen.queryByRole('button', { name: t('run') })).toBeNull();
 		expect(screen.getByLabelText<HTMLInputElement>(t('range')).disabled).toBe(true);
-		await userEvent.click(screen.getByRole('button', { name: t('cancel') }));
-		expect(onCancel).toHaveBeenCalledOnce();
+		expect(screen.getByLabelText<HTMLInputElement>(t('step')).disabled).toBe(true);
 	});
 
 	it('reports an entered range and step', () => {

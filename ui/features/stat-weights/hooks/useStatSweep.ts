@@ -1,3 +1,4 @@
+import type { ProgressMetrics } from '@generated/proto/api';
 import type { Stat } from '@generated/proto/common';
 import { deleteRun, listRuns, saveRun, type StatSweepPoint, type StatSweepRecord } from '@sim/cache/stat_sweep_history';
 import { usePlayer, useSim } from '@sim/context/SimHostContext';
@@ -5,16 +6,25 @@ import { useSimRun } from '@sim/hooks/useSimRun';
 import { Stats, UnitStat } from '@sim/proto/stats';
 import type { EpPrecisionSettings } from '@sim/settings/stat_weight_settings';
 import { SimRunKind } from '@sim/state/sim_store';
-import { noop, randomUUID } from '@sim/utils/misc';
+import { randomUUID } from '@sim/utils/misc';
 import { toastManager } from '@ui-kit/Toast';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { SERIES_SLOT_COUNT } from '../components/StatSweep/colors';
 import type { StatSweepSeries } from '../components/StatSweep/StatSweepChart';
 import type { StatSweepHistoryEntry } from '../components/StatSweep/StatSweepHistory';
-import type { StatSweepProgress } from '../components/StatSweep/StatSweepPanel';
 import { precisionRunOptions } from '../model/ep_math';
-import { buildSweepOffsets, displayColorSlots, mergeSweepHistory, nextColorSlot, sweepPointFromResult, sweepSteps } from '../model/stat_sweep';
+import {
+	advanceSweepProgress,
+	buildSweepOffsets,
+	displayColorSlots,
+	mergeSweepHistory,
+	nextColorSlot,
+	startSweepProgress,
+	type StatSweepProgress,
+	sweepPointFromResult,
+	sweepSteps,
+} from '../model/stat_sweep';
 
 export interface StatSweepArgs {
 	unitStat: UnitStat;
@@ -25,6 +35,10 @@ export interface StatSweepArgs {
 	/** The swept stat's current total. */
 	baseStatValue: number;
 	precision: EpPrecisionSettings;
+}
+
+export interface UseStatSweepOptions {
+	onProgress?: (progress: StatSweepProgress) => void;
 }
 
 interface SweepView {
@@ -43,12 +57,14 @@ const shownColorSlots = (view: SweepView, shown: StatSweepRecord[]) =>
 		SERIES_SLOT_COUNT,
 	);
 
-export const useStatSweep = () => {
+export const useStatSweep = ({ onProgress }: UseStatSweepOptions = {}) => {
 	const sim = useSim();
 	const player = usePlayer();
+	// Read at emit time, so a caller may pass a fresh closure every render.
+	const progressRef = useRef(onProgress);
+	progressRef.current = onProgress;
 	const { isRunning, abort } = useSimRun(SimRunKind.StatSweep);
 	const [view, setView] = useState<SweepView>({ history: [], live: null, overlaid: [] });
-	const [progress, setProgress] = useState<StatSweepProgress>();
 	const history = useRef(view.history);
 	history.current = view.history;
 
@@ -99,16 +115,24 @@ export const useStatSweep = () => {
 				const points: StatSweepPoint[] = [];
 				try {
 					const offsets = buildSweepOffsets(args.range, args.step);
+					// Reported before the totals resolve, so the progress dialog has its full layout from the start.
+					progressRef.current?.(startSweepProgress(offsets.length));
 					const totals = await Promise.all(
 						offsets.map(offset =>
 							sim.getFinalStatsWithBonus(new Stats().withUnitStat(unitStat, offset)).then(finalStats => finalStats.getUnitStat(unitStat)),
 						),
 					);
 					const steps = sweepSteps(offsets, totals);
+					const startedAt = Date.now();
+					let progress = startSweepProgress(steps.length);
+					progressRef.current?.(progress);
 					for (const [index, step] of steps.entries()) {
 						if (sim.runs.isAborting(SimRunKind.StatSweep)) break;
-						setProgress({ step: index + 1, steps: steps.length });
-						const result = await player.computeStatWeights(stats, pseudoStats, refStat, noop, {
+						const onStepProgress = (metrics: ProgressMetrics) => {
+							progress = advanceSweepProgress(progress, index, metrics, (Date.now() - startedAt) / 1000);
+							progressRef.current?.(progress);
+						};
+						const result = await player.computeStatWeights(stats, pseudoStats, refStat, onStepProgress, {
 							...options,
 							bonusStats: new Stats().withUnitStat(unitStat, step.offset),
 						});
@@ -123,7 +147,6 @@ export const useStatSweep = () => {
 					toastManager.add({ variant: 'error', body: error?.message || 'Something went wrong running the stat sweep.' });
 				}
 
-				setProgress(undefined);
 				if (!points.length) {
 					update(current => ({ ...current, live: null, overlaid: current.overlaid.filter(id => id !== record.id) }));
 					return;
@@ -183,5 +206,5 @@ export const useStatSweep = () => {
 		[view, colorSlots],
 	);
 
-	return { isRunning, progress, series, historyEntries, run, cancel, remove, setOverlaid };
+	return { isRunning, series, historyEntries, run, cancel, remove, setOverlaid };
 };

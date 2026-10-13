@@ -38,8 +38,6 @@ const meta = {
 		chart: <StatSweepChart series={[]} />,
 		history: <StatSweepHistory runs={HISTORY} onOverlayChange={fn()} onDelete={fn()} />,
 		running: false,
-		onRun: fn(),
-		onCancel: fn(),
 	},
 	argTypes: { statOptions: { control: false }, precision: { control: false }, chart: { control: false }, history: { control: false } },
 } satisfies Meta<typeof StatSweepPanel>;
@@ -52,7 +50,6 @@ export const Idle: Story = {};
 export const Running: Story = {
 	args: {
 		running: true,
-		progress: { step: 7, steps: 21 },
 		chart: (
 			<StatSweepChart
 				series={[

@@ -10,6 +10,10 @@ export function sum(arr: Array<number>): number {
 
 export const percentOf = (part: number, whole: number) => (part / whole) * 100;
 
+// What is left of `total` at the rate `completed` took `elapsed`, in `elapsed`'s unit; undefined before anything completes.
+export const timeRemainingAtRate = (elapsed: number, completed: number, total: number): number | undefined =>
+	completed > 0 ? (elapsed / completed) * Math.max(0, total - completed) : undefined;
+
 export const Z_95 = BULK_SIM_Z95;
 
 // The sim's standard two-sample significance test; every "are these two results actually

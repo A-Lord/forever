@@ -2520,7 +2520,6 @@
 					"range": "Range ±",
 					"step": "Step",
 					"run": "Run sweep",
-					"cancel": "Cancel",
 					"progress": "Step {{current}} / {{total}}",
 					"run_label": "{{stat}} ±{{range}}",
 					"ep_chart": "EP",

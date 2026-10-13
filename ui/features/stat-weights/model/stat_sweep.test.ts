@@ -5,7 +5,38 @@ import { Stats, UnitStat } from '@sim/proto/stats';
 import { describe, expect, it } from 'vitest';
 
 import { emptyStatWeightsResult } from './ep_math';
-import { buildSweepOffsets, displayColorSlots, mergeSweepHistory, nextColorSlot, sweepPointFromResult, sweepSteps } from './stat_sweep';
+import {
+	advanceSweepProgress,
+	buildSweepOffsets,
+	displayColorSlots,
+	mergeSweepHistory,
+	nextColorSlot,
+	startSweepProgress,
+	sweepPointFromResult,
+	sweepSteps,
+} from './stat_sweep';
+
+describe('advanceSweepProgress', () => {
+	it('counts the steps done plus the running step share, and estimates the rest at the rate so far', () => {
+		const progress = advanceSweepProgress(startSweepProgress(4), 1, { completedIterations: 500, totalIterations: 1000 }, 30);
+
+		expect(progress).toEqual({ step: 2, steps: 4, completed: 1.5, iterationsPerStep: 1000, secondsRemaining: 50 });
+	});
+
+	it('never falls back, keeping the last iteration count and estimate while a new step has not reported a total', () => {
+		const before = advanceSweepProgress(startSweepProgress(4), 1, { completedIterations: 900, totalIterations: 1000 }, 30);
+		const grown = advanceSweepProgress(before, 1, { completedIterations: 900, totalIterations: 3000 }, 31);
+		const fresh = advanceSweepProgress(grown, 2, { completedIterations: 0, totalIterations: 0 }, 32);
+
+		expect(grown.completed).toBe(before.completed);
+		expect(fresh).toMatchObject({ step: 3, completed: 2, iterationsPerStep: 3000 });
+		expect(fresh.secondsRemaining).toBeDefined();
+	});
+
+	it('has no estimate before anything completes', () => {
+		expect(advanceSweepProgress(startSweepProgress(4), 0, { completedIterations: 0, totalIterations: 1000 }, 5).secondsRemaining).toBeUndefined();
+	});
+});
 
 describe('buildSweepOffsets', () => {
 	it('steps from -range to +range through 0', () => {

@@ -59,11 +59,6 @@
 	--spacing-log-body-min-h: calc(100dvh - var(--spacing-sim-header) - var(--spacing-page));
 	--spacing-bulk-settings-max-h: calc(100dvh - var(--spacing-sim-header) - var(--spacing-page));
 	--spacing-filter-popover-max-h: min(60vh, var(--available-height));
-	/* A scrolling dialog's body at its tallest, less its bottom padding: the popup's borders, the header (title line, padding, border) and a footer of one button (button, padding, border) come off the popup's height, as Dialog.css lays them out. */
-	--spacing-ep-weights-sidebar-max-h: calc(
-		var(--spacing-modal-inset-h) - 2 * var(--modal-border-width) - (--spacing(8) + var(--text-lg) * 1.5 + 1px) -
-			(--spacing(8) + var(--control-font-size) * 1.5 + 2 * var(--control-padding-y) + 2px + 1px) - --spacing(4)
-	);
 
 	--spacing-timeline-pos: calc(var(--pps) * var(--t));
 	--spacing-timeline-segment: calc(var(--pps) * var(--dur));

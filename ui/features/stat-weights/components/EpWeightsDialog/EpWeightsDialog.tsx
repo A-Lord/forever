@@ -1,31 +1,30 @@
 import { Tabs } from '@base-ui/react/tabs';
 import { showsEpRatios } from '@features/results/model/sim_results';
 import { StatFilterPopover, useStatFilter } from '@features/stat-filters';
-import { ErrorOutcomeType, type StatWeightsResult } from '@generated/proto/api';
+import { ErrorOutcomeType, type ProgressMetrics, type StatWeightsResult } from '@generated/proto/api';
 import { Stat } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { useSimHost, useSpecConfig } from '@sim/context/SimHostContext';
 import { useDisplayMetrics } from '@sim/hooks/useDisplayMetrics';
 import { usePlayerStore } from '@sim/hooks/usePlayerStore';
-import { useSimRun } from '@sim/hooks/useSimRun';
 import { useSimStore } from '@sim/hooks/useSimStore';
 import { useStatWeights } from '@sim/hooks/useStatWeights';
 import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
 import { Stats } from '@sim/proto/stats';
 import type { StatWeightActionSettings } from '@sim/settings/stat_weight_settings';
-import { SimRunKind } from '@sim/state/sim_store';
 import { subscribePlayerField, subscribeStatWeightsChange } from '@sim/state/subscriptions';
 import { Button } from '@ui-kit/Button';
 import { ContentBlock } from '@ui-kit/ContentBlock';
 import { Dialog } from '@ui-kit/Dialog';
 import { Icon } from '@ui-kit/Icon';
-import { ProgressTrackerDialog, type ProgressTrackerHandle, type ProgressTrackerState } from '@ui-kit/ProgressTrackerDialog';
+import { ProgressTrackerDialog, type ProgressTrackerHandle, type ProgressTrackerProgress, type ProgressTrackerState } from '@ui-kit/ProgressTrackerDialog';
 import { TabNav, TabPanel, TabPanels } from '@ui-kit/TabNav';
 import { toastManager } from '@ui-kit/Toast';
 import { Tooltip } from '@ui-kit/Tooltip';
 import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { trackEvent } from '../../../../tracking/utils';
+import { useStatSweepControls } from '../../hooks/useStatSweepControls';
 import {
 	calculateEp,
 	combineScaledEpValues,
@@ -35,10 +34,12 @@ import {
 	precisionRunOptions,
 } from '../../model/ep_math';
 import { epFilterScope } from '../../model/ep_unit_stats';
+import type { StatSweepProgress } from '../../model/stat_sweep';
 import { statsTableColumns } from '../../model/stats_table';
 import { EpPrecisionOptions } from '../EpPrecisionOptions/EpPrecisionOptions';
 import { SavedEpWeights } from '../SavedEpWeights';
 import { StatSweep } from '../StatSweep/StatSweep';
+import { HandleStatSweepTimeRemaining, type StatSweepTimeRemainingHandle } from '../StatSweep/StatSweepTimeRemaining';
 import { EpReferenceOptions } from './EpReferenceOptions';
 import { EpWeightsOptions } from './EpWeightsOptions';
 import { EpWeightsTable } from './EpWeightsTable';
@@ -47,6 +48,18 @@ import { buildEpColumns, EP_TOOLTIP_ID } from './utils';
 
 const WEIGHTS_TAB = 'ep-weights-pane';
 const SWEEP_TAB = 'stat-sweep-pane';
+
+const trackerProgress = (metrics: ProgressMetrics): ProgressTrackerProgress => ({
+	title: `${metrics.completedSims} / ${metrics.totalSims} ${i18n.t('sidebar.buttons.stat_weights.modal.progress.simulations_complete')}`,
+	current: metrics.completedIterations,
+	total: metrics.totalIterations,
+});
+
+// The bar spans the whole sweep, read out in iterations at the latest step's count; before any step reports one it counts steps.
+const sweepTrackerProgress = ({ step, steps, completed, iterationsPerStep }: StatSweepProgress): ProgressTrackerProgress => {
+	const scale = iterationsPerStep || 1;
+	return { title: i18n.t('sidebar.buttons.stat_weights.sweep.progress', { current: step, total: steps }), current: completed * scale, total: steps * scale };
+};
 
 export interface EpWeightsDialogProps {
 	open: boolean;
@@ -77,14 +90,7 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 		isAborting,
 		abort,
 		start: startStatWeights,
-	} = useStatWeights({
-		onProgress: metrics =>
-			progressRef.current?.setProgress({
-				title: `${metrics.completedSims} / ${metrics.totalSims} ${i18n.t('sidebar.buttons.stat_weights.modal.progress.simulations_complete')}`,
-				current: metrics.completedIterations,
-				total: metrics.totalIterations,
-			}),
-	});
+	} = useStatWeights({ onProgress: metrics => progressRef.current?.setProgress(trackerProgress(metrics)) });
 
 	const simDisplayMetrics = useDisplayMetrics(sim);
 	// A gear planner never computes weights, so none of the computed columns apply: only the
@@ -104,7 +110,15 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 	const epWeights = usePlayerStore('epWeights');
 	const precision = useStoreSubscribe(subscribeStatWeightsChange(settings), () => settings.precision);
 	const defaultIterations = useSimStore('iterations');
-	const { isRunning: isSweeping, abort: abortSweep } = useSimRun(SimRunKind.StatSweep);
+	const sweepProgressRef = useRef<ProgressTrackerHandle>(null);
+	const sweepRemainingRef = useRef<StatSweepTimeRemainingHandle>(null);
+	const sweepControls = useStatSweepControls(settings, {
+		onProgress: progress => {
+			sweepProgressRef.current?.setProgress(sweepTrackerProgress(progress));
+			sweepRemainingRef.current?.setSeconds(progress.secondsRemaining);
+		},
+	});
+	const { isRunning: isSweeping, cancel: cancelSweep } = sweepControls.sweep;
 
 	// `calculateEp` writes `epValues` from `weights`, which normalisation leaves alone.
 	const result = useMemo(() => (simResult ? calculateEp(simResult, refStats) : null), [simResult, refStats]);
@@ -141,10 +155,10 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 			onOpenChange(next);
 			if (!next) {
 				abort().catch(console.error);
-				abortSweep().catch(console.error);
+				cancelSweep();
 			}
 		},
-		[onOpenChange, abort, abortSweep],
+		[onOpenChange, abort, cancelSweep],
 	);
 
 	const onCancel = useCallback(() => {
@@ -200,15 +214,18 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 			title={i18n.t('sidebar.buttons.stat_weights.modal.title')}
 			footer={
 				// A gear planner keeps the editor and drops the calculation: there is no sim to run it on.
-				// The sweep tab runs from its own button.
-				host.simDisabled || tab === SWEEP_TAB ? undefined : (
+				host.simDisabled ? undefined : tab === SWEEP_TAB ? (
+					<Button variant="primary" disabled={isSweeping} onClick={sweepControls.onRun}>
+						{i18n.t('sidebar.buttons.stat_weights.sweep.run')}
+					</Button>
+				) : (
 					<Button data-testid="calc-weights" disabled={isRunning || isSweeping} onClick={() => void onCalculate()}>
 						<Icon name="calculator" />
 						{i18n.t('sidebar.buttons.stat_weights.modal.calculate')}
 					</Button>
 				)
 			}>
-			<Tabs.Root value={tab} onValueChange={next => setTab(String(next))}>
+			<Tabs.Root className="ui-ep-weights-tabs" value={tab} onValueChange={next => setTab(String(next))}>
 				{!editOnly && (
 					<TabNav
 						tabs={[
@@ -217,9 +234,9 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 						]}
 					/>
 				)}
-				{/* Both panels stay laid out, so the dialog keeps the taller one's height on either tab and a sweep in progress survives a tab switch. */}
-				<TabPanels>
-					<TabPanel value={WEIGHTS_TAB} testId={WEIGHTS_TAB} preserveHeight>
+				{/* Both panels stay laid out, so the dialog keeps the taller one's height on either tab. */}
+				<TabPanels className="ui-ep-weights-panels">
+					<TabPanel value={WEIGHTS_TAB} testId={WEIGHTS_TAB} className="ui-ep-weights-pane" preserveHeight>
 						<div className="ui-ep-weights-layout">
 							<div className="ui-ep-weights-main">
 								<p>
@@ -275,8 +292,8 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 						</div>
 					</TabPanel>
 					{!editOnly && (
-						<TabPanel value={SWEEP_TAB} testId={SWEEP_TAB} preserveHeight>
-							<StatSweep settings={settings} />
+						<TabPanel value={SWEEP_TAB} testId={SWEEP_TAB} className="ui-ep-weights-pane" preserveHeight>
+							<StatSweep settings={settings} controls={sweepControls} />
 						</TabPanel>
 					)}
 				</TabPanels>
@@ -291,6 +308,17 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 					state={progress}
 					hasProgressBar
 					onCancel={onCancel}
+				/>
+			)}
+			{isSweeping && (
+				<ProgressTrackerDialog
+					ref={sweepProgressRef}
+					open
+					testId="stat-sweep-progress-dialog"
+					title={i18n.t('sidebar.buttons.stat_weights.modal.tabs.sweep')}
+					state={{ stage: 'running', message: <HandleStatSweepTimeRemaining ref={sweepRemainingRef} /> }}
+					hasProgressBar
+					onCancel={cancelSweep}
 				/>
 			)}
 		</Dialog>

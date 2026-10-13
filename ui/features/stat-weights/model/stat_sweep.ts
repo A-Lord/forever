@@ -1,9 +1,9 @@
-import type { StatWeightsResult } from '@generated/proto/api';
+import type { ProgressMetrics, StatWeightsResult } from '@generated/proto/api';
 import type { Stat } from '@generated/proto/common';
 import type { StatSweepPoint, StatSweepRecord } from '@sim/cache/stat_sweep_history';
 import type { UnitStat } from '@sim/proto/stats';
 import { distinct } from '@sim/utils/collections';
-import { stDevToConf90 } from '@sim/utils/math';
+import { stDevToConf90, timeRemainingAtRate } from '@sim/utils/math';
 
 import { calculateEp } from './ep_math';
 
@@ -52,6 +52,37 @@ export function sweepPointFromResult(result: StatWeightsResult, unitStat: UnitSt
 		dps: baseDps?.avg ?? 0,
 		dpsCi: baseDps && dpsSamples ? stDevToConf90(baseDps.stdev, dpsSamples) : 0,
 		samples,
+	};
+}
+
+export interface StatSweepProgress {
+	/** 1-based step being simulated. */
+	step: number;
+	steps: number;
+	/** Steps done, with the running step's done share of its iterations; never falls. */
+	completed: number;
+	/** The latest step's iteration total, 0 until a step reports one. */
+	iterationsPerStep: number;
+	secondsRemaining?: number;
+}
+
+export const startSweepProgress = (steps: number): StatSweepProgress => ({ step: 1, steps, completed: 0, iterationsPerStep: 0 });
+
+/** `progress` after step `index` (0-based) reports `metrics`, `elapsedSeconds` into the sweep. */
+export function advanceSweepProgress(
+	progress: StatSweepProgress,
+	index: number,
+	metrics: Pick<ProgressMetrics, 'completedIterations' | 'totalIterations'>,
+	elapsedSeconds: number,
+): StatSweepProgress {
+	const share = metrics.totalIterations > 0 ? Math.min(1, metrics.completedIterations / metrics.totalIterations) : 0;
+	const completed = Math.max(progress.completed, index + share);
+	return {
+		step: index + 1,
+		steps: progress.steps,
+		completed,
+		iterationsPerStep: metrics.totalIterations || progress.iterationsPerStep,
+		secondsRemaining: timeRemainingAtRate(elapsedSeconds, completed, progress.steps) ?? progress.secondsRemaining,
 	};
 }
 
