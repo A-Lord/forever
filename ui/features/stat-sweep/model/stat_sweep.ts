@@ -1,11 +1,17 @@
+import type { AggregatorData, DistributionMetrics } from '@generated/proto/api';
 import type { MetricSummary, StatSweepPoint, StatSweepRecord } from '@sim/cache/stat_sweep_history';
-import type { StatSweepPrecision } from '@sim/settings/stat_sweep_settings';
-import type { MetricSample, StatSweepSample } from '@sim/sim';
+import { precisionRunnable, type PrecisionSettings } from '@sim/settings/precision';
 import type { StatSweepMetric } from '@sim/state/sim_store';
 import { distinct } from '@sim/utils/collections';
-import { sum, timeRemainingAtRate, Z_90 } from '@sim/utils/math';
+import { mergeAggregates, sum, timeRemainingAtRate, Z_90 } from '@sim/utils/math';
+import { STAT_WEIGHT_MAX_TOP_UP_PASSES, STAT_WEIGHT_TARGET_PROBE_ITERATIONS } from '@sim/wasm/stat_weights_constants_auto_gen';
 
 export type StatSweepStep = Pick<StatSweepPoint, 'offset' | 'statValue'>;
+
+export type MetricSample = Pick<DistributionMetrics, 'avg' | 'stdev'> & AggregatorData;
+
+/** The first player's DPS, HPS, TPS, DTPS and TMI over one pass. */
+export type StatSweepSample = Record<StatSweepMetric, MetricSample>;
 
 /** Every metric a step records, in the order the toggle and the CSV list them. */
 export const STAT_SWEEP_METRICS: ReadonlyArray<StatSweepMetric> = ['dps', 'hps', 'tps', 'dtps', 'tmi'];
@@ -44,27 +50,17 @@ export const sweepSteps = (offsets: readonly number[], totals: readonly number[]
 export const mergeSweepHistory = (inMemory: readonly StatSweepRecord[], stored: readonly StatSweepRecord[]): StatSweepRecord[] =>
 	distinct([...stored, ...inMemory], (a, b) => a.id === b.id).sort((a, b) => b.createdAt - a.createdAt);
 
-// A step's first pass in Target ± mode; the iterations setting plays no part there.
-const PROBE_ITERATIONS = 1000;
-// Passes after the first in Target ± mode: the first top-up, which sizes from the first pass alone, and two that resize
-// from the iterations so far. The EP calculation's Target ± runs the same three (statWeightMaxTopUpPasses in sim/core/statweight.go).
-const MAX_TOP_UP_PASSES = 3;
+// A step's first pass in Target ± mode, as many as the EP calculation's probe; the iterations setting plays no part there.
+const PROBE_ITERATIONS = STAT_WEIGHT_TARGET_PROBE_ITERATIONS;
+// Passes after the first in Target ± mode, as many as the EP calculation's Target ± runs: the first top-up, which sizes
+// from the first pass alone, and two that resize from the iterations so far.
+const MAX_TOP_UP_PASSES = STAT_WEIGHT_MAX_TOP_UP_PASSES;
 // The sim takes a request's iteration count as an int32.
 const MAX_ITERATIONS = 2 ** 31 - 1;
 
-/** Whether a run can start at `precision`: Target ± needs a target above 0. */
-export const sweepPrecisionRunnable = (precision: StatSweepPrecision) => precision.precisionMode !== 'target' || precision.targetCi > 0;
-
-// Two runs' metric as one run over both runs' iterations reports it.
-function mergeMetricSamples(a: MetricSample, b: MetricSample): MetricSample {
-	const n = a.n + b.n;
-	const avg = (a.avg * a.n + b.avg * b.n) / n;
-	const sumSq = a.sumSq + b.sumSq;
-	return { avg, stdev: Math.sqrt(Math.max(0, sumSq / n - avg * avg)), n, sumSq };
-}
-
+// Two runs' metrics as one run over both runs' iterations reports them.
 const mergeSweepSamples = (a: StatSweepSample, b: StatSweepSample): StatSweepSample =>
-	Object.fromEntries(STAT_SWEEP_METRICS.map(metric => [metric, mergeMetricSamples(a[metric], b[metric])])) as StatSweepSample;
+	Object.fromEntries(STAT_SWEEP_METRICS.map(metric => [metric, mergeAggregates(a[metric], b[metric])])) as StatSweepSample;
 
 // The iterations at which a metric spread of `stdev` has a 90% ± of `targetCi`; a spread that is not a number asks for none.
 const iterationsForCi = (stdev: number, targetCi: number) => Math.ceil(((Z_90 * (Number.isFinite(stdev) ? stdev : 0)) / targetCi) ** 2);
@@ -90,7 +86,7 @@ const averages = (sample: StatSweepSample): FirstPass => Object.fromEntries(STAT
  */
 export async function measureSweepStep(
 	run: SweepPassRunner,
-	precision: StatSweepPrecision,
+	precision: PrecisionSettings,
 	metric: StatSweepMetric,
 	defaultIterations: number,
 	onPlanned?: (total: number) => void,
@@ -106,7 +102,7 @@ export async function measureSweepStep(
 	let sample = await run(PROBE_ITERATIONS, 0);
 	if (!sample) return null;
 	const firstPass = averages(sample);
-	if (!sweepPrecisionRunnable(precision) || confirmsCap?.(firstPass)) return { metrics: sample, firstPass };
+	if (!precisionRunnable(precision) || confirmsCap?.(firstPass)) return { metrics: sample, firstPass };
 	const cap = Math.min(precision.maxIterationMultiplier > 0 ? PROBE_ITERATIONS * precision.maxIterationMultiplier : Infinity, MAX_ITERATIONS);
 	for (let pass = 0; sample && pass < MAX_TOP_UP_PASSES; pass++) {
 		const done = sample[metric].n;
@@ -159,84 +155,70 @@ export async function runSweepStat(
 	const ordered = outwardOrder(steps);
 	const run: StatSweepStatRun = { points: [], stopped: false };
 	const upward: Array<{ step: StatSweepStep; firstPass: FirstPass }> = [];
-	const repeatsLast = (firstPass: FirstPass) => upward.length > 0 && sameFirstPass(upward[upward.length - 1].firstPass, firstPass);
-	const lastRepeated = () => upward.length > 1 && sameFirstPass(upward[upward.length - 2].firstPass, upward[upward.length - 1].firstPass);
 	for (const [index, step] of ordered.entries()) {
 		if (run.cappedStep && step.offset > 0) continue;
 		const up = step.offset >= 0;
-		const sample = await measure(step, run.points.length, firstPass => up && lastRepeated() && repeatsLast(firstPass));
+		const beforeLast = upward.at(-2);
+		const last = upward.at(-1);
+		const wouldCap = (firstPass: FirstPass) =>
+			up && !!beforeLast && !!last && sameFirstPass(beforeLast.firstPass, last.firstPass) && sameFirstPass(last.firstPass, firstPass);
+		const sample = await measure(step, run.points.length, wouldCap);
 		if (!sample) return { ...run, stopped: true };
 		run.points = [...run.points, { ...step, metrics: summaries(sample.metrics) }].sort((a, b) => a.offset - b.offset);
-		if (up) {
-			if (lastRepeated() && repeatsLast(sample.firstPass)) {
-				run.cappedStep = upward[upward.length - 2].step;
-				const skipped = ordered.slice(index + 1).filter(next => next.offset > 0).length;
-				if (skipped) onSkip?.(skipped);
-			}
-			upward.push({ step, firstPass: sample.firstPass });
+		if (wouldCap(sample.firstPass)) {
+			run.cappedStep = beforeLast!.step;
+			const skipped = ordered.slice(index + 1).filter(next => next.offset > 0).length;
+			if (skipped) onSkip?.(skipped);
 		}
+		if (up) upward.push({ step, firstPass: sample.firstPass });
 		onUpdate?.({ ...run });
 	}
 	return run;
 }
 
 export interface StatSweepProgress {
-	/** 1-based stat being run. */
-	stat: number;
-	stats: number;
-	/** 1-based step of that stat being simulated. */
-	step: number;
-	/** That stat's steps. */
-	steps: number;
-	/** Steps done across every stat, with the running step's done share; never falls. */
-	completed: number;
-	/** Steps across every stat. */
-	totalSteps: number;
 	/** Each stat's steps, in run order. */
 	stepCounts: number[];
+	/** The step being simulated, 0-based and counted across every stat. */
+	running: number;
+	/** Steps done across every stat, with the running step's done share; never falls. */
+	completed: number;
 	/** The running step's expected iterations, 0 until one is known. */
 	iterationsPerStep: number;
 	secondsRemaining?: number;
 }
 
-export const startSweepProgress = (stepCounts: number[]): StatSweepProgress => ({
-	stat: 1,
-	stats: stepCounts.length,
-	step: 1,
-	steps: stepCounts[0] ?? 0,
-	completed: 0,
-	totalSteps: sum(stepCounts),
-	stepCounts,
-	iterationsPerStep: 0,
-});
+export const startSweepProgress = (stepCounts: number[]): StatSweepProgress => ({ stepCounts, running: 0, completed: 0, iterationsPerStep: 0 });
+
+/** The 0-based stat that step `index`, counted across every stat, belongs to, and that stat's 0-based step. */
+export function sweepStepPosition(stepCounts: readonly number[], index: number): { stat: number; step: number } {
+	let stat = 0;
+	let step = index;
+	while (stat < stepCounts.length - 1 && step >= stepCounts[stat]) step -= stepCounts[stat++];
+	return { stat, step };
+}
 
 /**
  * `progress` with step `index` (0-based, counted across every stat) `done` iterations into the `expected` it is likely
  * to run, `elapsedSeconds` into the run.
  */
 export function advanceSweepProgress(progress: StatSweepProgress, index: number, done: number, expected: number, elapsedSeconds: number): StatSweepProgress {
-	const { stepCounts, totalSteps } = progress;
-	let stat = 0;
-	let step = index;
-	while (stat < stepCounts.length - 1 && step >= stepCounts[stat]) step -= stepCounts[stat++];
 	const share = expected > 0 ? Math.min(1, done / expected) : 0;
 	const completed = Math.max(progress.completed, index + share);
 	return {
 		...progress,
-		stat: stat + 1,
-		step: step + 1,
-		steps: stepCounts[stat],
+		running: index,
 		completed,
 		iterationsPerStep: expected || progress.iterationsPerStep,
-		secondsRemaining: timeRemainingAtRate(elapsedSeconds, completed, totalSteps) ?? progress.secondsRemaining,
+		secondsRemaining: timeRemainingAtRate(elapsedSeconds, completed, sum(progress.stepCounts)) ?? progress.secondsRemaining,
 	};
 }
 
-/** `progress` with `count` steps of stat `statIndex` (0-based) that will not run taken out of its step count and the total. */
-export function skipSweepSteps(progress: StatSweepProgress, statIndex: number, count: number): StatSweepProgress {
-	const stepCounts = progress.stepCounts.map((steps, index) => (index === statIndex ? steps - count : steps));
-	return { ...progress, stepCounts, steps: stepCounts[progress.stat - 1], totalSteps: progress.totalSteps - count };
-}
+/** `progress` with `count` steps of stat `statIndex` (0-based) that will not run taken out of its step count. */
+export const skipSweepSteps = (progress: StatSweepProgress, statIndex: number, count: number): StatSweepProgress => ({
+	...progress,
+	stepCounts: progress.stepCounts.map((steps, index) => (index === statIndex ? steps - count : steps)),
+});
 
 /** The slot a new run takes: the one after the newest saved run's, wrapping at `slotCount`. */
 export const nextColorSlot = (history: readonly Pick<StatSweepRecord, 'colorSlot'>[], slotCount: number): number =>

@@ -1,15 +1,23 @@
-import type { ErrorOutcome } from '@generated/proto/api';
+import {
+	ComputeStatsResult,
+	DistributionMetrics,
+	type ErrorOutcome,
+	PlayerStats,
+	type ProgressMetrics,
+	type Raid as RaidProto,
+	RaidSimRequest,
+	RaidSimResult,
+} from '@generated/proto/api';
 import { Class, Spec, Stat } from '@generated/proto/common';
 import type { MetricSummary, StatSweepPoint } from '@sim/cache/stat_sweep_history';
-import type { Stats } from '@sim/proto/stats';
+import { Stats } from '@sim/proto/stats';
 import { StatSweepSettings } from '@sim/settings/stat_sweep_settings';
-import type { MetricSample, StatSweepSample, StatSweepStepOptions } from '@sim/sim';
 import type { IndividualSimHost } from '@sim/sim_host';
 import { SimRuns } from '@sim/sim_runs';
 import { createSimStore, patchSlice, PLAYER_FIELDS, seedKeyed, type SimStore, type StatSweepMetric, zeroVersions } from '@sim/state/sim_store';
 
 import type { StatSweepSeries } from '../../../features/stat-sweep/components/StatSweepChart';
-import { buildSweepOffsets, sweepSteps } from '../../../features/stat-sweep/model/stat_sweep';
+import { buildSweepOffsets, type MetricSample, type StatSweepSample, sweepSteps } from '../../../features/stat-sweep/model/stat_sweep';
 
 const HIT_CAP = 150;
 const DPS_PER_POINT = 2.1;
@@ -81,11 +89,20 @@ export const makeSweepSample = (iterations: number, dps = 1000, tmi = dps / 100)
 	tmi: flatSample(tmi, 2, iterations),
 });
 
+/** One pass of a sweep step, as the fake sim reads it off the request. */
+export interface SweepPass {
+	iterations: number;
+	seed: number;
+	/** The first player's bonus stats, the step's offset included. */
+	bonusStats: Stats;
+	onProgress: (progress: ProgressMetrics) => void;
+}
+
 /** One DPS per bonus point of Strength or Agility, so every step's DPS differs. */
-export const sweepStepDps = ({ bonusStats }: StatSweepStepOptions) => 1000 + bonusStats.getStat(Stat.StatStrength) + bonusStats.getStat(Stat.StatAgility);
+export const sweepStepDps = ({ bonusStats }: SweepPass) => 1000 + bonusStats.getStat(Stat.StatStrength) + bonusStats.getStat(Stat.StatAgility);
 
 export interface StatSweepHostParts {
-	simulateStatSweepStep?: (options: StatSweepStepOptions) => Promise<StatSweepSample | ErrorOutcome>;
+	simulatePass?: (pass: SweepPass) => Promise<StatSweepSample | ErrorOutcome>;
 	abortType?: (typeMask: number) => Promise<void>;
 	simDisabled?: boolean;
 	showPowerTools?: boolean;
@@ -97,35 +114,59 @@ export interface StatSweepHostFixture {
 	settings: StatSweepSettings;
 }
 
+const firstPlayerBonus = (raid: RaidProto | undefined) => Stats.fromProto(raid!.parties[0].players[0].bonusStats);
+
+const metricOf = ({ avg, stdev, n, sumSq }: MetricSample) => DistributionMetrics.create({ avg, stdev, aggregatorData: { n, sumSq } });
+
+const resultOf = ({ dps, hps, tps, dtps, tmi }: StatSweepSample) =>
+	RaidSimResult.create({
+		raidMetrics: { parties: [{ players: [{ dps: metricOf(dps), hps: metricOf(hps), threat: metricOf(tps), dtps: metricOf(dtps), tmi: metricOf(tmi) }] }] },
+	});
+
 /**
  * A host for the stat sweep: a warrior weighing Strength and Agility with no stats of its own, so a step's totals are its
- * bonus, on a sim that draws seed 7 and runs `simulateStatSweepStep` for each pass, by default at `sweepStepDps`.
+ * bonus, on a sim that draws seed 7 and runs `simulatePass` for each pass, by default at `sweepStepDps`.
  */
-export const makeStatSweepHost = ({
-	simulateStatSweepStep,
-	abortType,
-	simDisabled = false,
-	showPowerTools = false,
-}: StatSweepHostParts = {}): StatSweepHostFixture => {
+export const makeStatSweepHost = ({ simulatePass, abortType, simDisabled = false, showPowerTools = false }: StatSweepHostParts = {}): StatSweepHostFixture => {
 	const store = createSimStore();
 	patchSlice(store, 'ui', { showPowerTools });
 	const storage = new Map<string, string>();
 	const env = { storage: { getItem: (key: string) => storage.get(key) ?? null, setItem: (key: string, value: string) => storage.set(key, value) } };
 	seedKeyed(store, 'players', 0, { v: zeroVersions(PLAYER_FIELDS) } as never);
+	const simulate = simulatePass ?? (async (pass: SweepPass) => makeSweepSample(pass.iterations, sweepStepDps(pass)));
 	const sim = {
 		store,
 		env,
 		runs: new SimRuns(store, { abortType: abortType ?? (async () => {}) }),
 		waitForInit: () => Promise.resolve(),
 		getIterations: () => 1000,
-		nextRngSeed: () => 7,
 		getShowDamageMetrics: () => store.getState().ui.showDamageMetrics,
 		getShowHealingMetrics: () => store.getState().ui.showHealingMetrics,
 		getShowThreatMetrics: () => store.getState().ui.showThreatMetrics,
-		getFinalStatsWithBonus: async (bonusStats: Stats) => bonusStats,
-		simulateStatSweepStep: simulateStatSweepStep ?? (async (options: StatSweepStepOptions) => makeSweepSample(options.iterations, sweepStepDps(options))),
+		makeRaidSimRequest: () =>
+			RaidSimRequest.create({
+				raid: { parties: [{ players: [{ bonusStats: new Stats().toProto() }] }] },
+				simOptions: { iterations: 1000, randomSeed: 7n },
+			}),
+		computeRaidStats: async (raid: RaidProto) =>
+			ComputeStatsResult.create({ raidStats: { parties: [{ players: [{ finalStats: firstPlayerBonus(raid).toProto() }] }] } }),
+		runRaidSimRequest: async ({ raid, simOptions }: RaidSimRequest, _type: number, onProgress: (progress: ProgressMetrics) => void) => {
+			const sample = await simulate({
+				iterations: simOptions!.iterations,
+				seed: Number(simOptions!.randomSeed),
+				bonusStats: firstPlayerBonus(raid),
+				onProgress,
+			});
+			return 'dps' in sample ? resultOf(sample) : RaidSimResult.create({ error: sample });
+		},
 	};
-	const player = { storeKey: 0, sim, getClass: () => Class.ClassWarrior, getSpec: () => Spec.SpecUnknown };
+	const player = {
+		storeKey: 0,
+		sim,
+		getClass: () => Class.ClassWarrior,
+		getSpec: () => Spec.SpecUnknown,
+		getCurrentStats: () => PlayerStats.create(),
+	};
 	const settings = new StatSweepSettings(player as never, 'stat-sweep-fixture');
 	const host = {
 		player,

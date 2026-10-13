@@ -1,7 +1,7 @@
 import { StatWeightsResult, StatWeightsTargetMetric, StatWeightValues } from '@generated/proto/api';
 import { PseudoStat, Stat, UnitStats } from '@generated/proto/common';
 import { Stats, UnitStat } from '@sim/proto/stats';
-import type { EpPrecisionSettings } from '@sim/settings/stat_weight_settings';
+import type { PrecisionSettings } from '@sim/settings/precision';
 import type { StatWeightsOptions } from '@sim/sim';
 
 import { EP_UNIT_STATS } from './ep_unit_stats';
@@ -82,13 +82,13 @@ const targetMetrics = (displayMetrics: EpTargetMetrics): StatWeightsTargetMetric
 ];
 
 // An iteration count of 0 leaves the sim's own setting in charge. A target sends no count, since the sim sizes its first
-// pass itself. Without target metrics, the target ± applies to DPS EP alone.
+// pass itself, and applies to the shown metrics' EP; with none shown, the sim targets DPS EP alone.
 export const precisionRunOptions = (
-	{ precisionMode, iterations, targetEpCi, maxIterationMultiplier }: EpPrecisionSettings,
-	displayMetrics?: EpTargetMetrics,
+	{ precisionMode, iterations, targetCi, maxIterationMultiplier }: PrecisionSettings,
+	displayMetrics: EpTargetMetrics,
 ): StatWeightsOptions =>
 	precisionMode === 'target'
-		? { targetEpCi, maxIterationMultiplier, ...(displayMetrics ? { targetMetrics: targetMetrics(displayMetrics) } : {}) }
+		? { targetEpCi: targetCi, maxIterationMultiplier, targetMetrics: targetMetrics(displayMetrics) }
 		: { iterations: iterations || undefined };
 
 export const epWeightsWithoutExcluded = (newWeights: Stats, oldWeights: Stats, { excludedStats, excludedPseudoStats }: ExcludedStats): Stats => {

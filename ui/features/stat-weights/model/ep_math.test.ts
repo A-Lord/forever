@@ -195,19 +195,24 @@ describe('combineScaledWeights', () => {
 });
 
 describe('precisionRunOptions', () => {
-	const precision = { iterations: 4000, targetEpCi: 0.02, maxIterationMultiplier: 4 };
+	const precision = { iterations: 4000, targetCi: 0.02, maxIterationMultiplier: 4 };
+	const shown = { damage: true, healing: true, threat: true };
+	const none = { damage: false, healing: false, threat: false };
 
 	it('sends only the iteration count in iterations mode, and none when it is 0', () => {
-		expect(precisionRunOptions({ ...precision, precisionMode: 'iterations' })).toEqual({ iterations: 4000 });
-		expect(precisionRunOptions({ ...precision, precisionMode: 'iterations', iterations: 0 }).iterations).toBeUndefined();
+		expect(precisionRunOptions({ ...precision, precisionMode: 'iterations' }, shown)).toEqual({ iterations: 4000 });
+		expect(precisionRunOptions({ ...precision, precisionMode: 'iterations', iterations: 0 }, shown).iterations).toBeUndefined();
 	});
 
-	it('sends the target and the cap in target mode, with no iteration count and no metrics without targets', () => {
-		expect(precisionRunOptions({ ...precision, precisionMode: 'target' })).toStrictEqual({ targetEpCi: 0.02, maxIterationMultiplier: 4 });
+	it('sends the target and the cap in target mode, with no iteration count and no metrics when none is shown', () => {
+		expect(precisionRunOptions({ ...precision, precisionMode: 'target' }, none)).toStrictEqual({
+			targetEpCi: 0.02,
+			maxIterationMultiplier: 4,
+			targetMetrics: [],
+		});
 	});
 
 	it('targets the shown metrics in target mode only', () => {
-		const shown = { damage: true, healing: true, threat: true };
 		expect(precisionRunOptions({ ...precision, precisionMode: 'target' }, shown)).toStrictEqual({
 			targetEpCi: 0.02,
 			maxIterationMultiplier: 4,

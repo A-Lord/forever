@@ -11,7 +11,7 @@ const meta = {
 	title: 'Features/StatSweep/StatSweepDialog',
 	component: StatSweepDialog,
 	tags: ['autodocs'],
-	args: { open: true, onOpenChange: fn(), settings: fixture.settings },
+	args: { onClose: fn(), settings: fixture.settings },
 	argTypes: { settings: { control: false } },
 	decorators: [
 		Story => (

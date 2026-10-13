@@ -746,10 +746,10 @@ message StatWeightsStatPairs {
 message StatWeightsCalcRequest {
 	Stat ep_reference_stat = 2;
 	Stat hps_reference_stat = 4;
-	// Each baseline run's DPS in run order, without all_values; the first is the probe.
-	repeated DistributionMetrics base_dps = 5;
-	double base_chance_of_death = 6; // The first baseline run's.
-	repeated StatWeightsStatPairs stat_pairs = 7;
+	int32 probe_iterations = 5; // The first baseline run's.
+	int32 baseline_iterations = 6; // Every baseline run's together.
+	double base_chance_of_death = 7; // The first baseline run's.
+	repeated StatWeightsStatPairs stat_pairs = 8;
 }
 
 message StatWeightsTopUpRequest {

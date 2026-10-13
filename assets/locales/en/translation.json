@@ -294,6 +294,14 @@
 			"action_has_errors": "This action has errors, and will not behave as expected.",
 			"toggle_item": "Show or hide {{itemLabel}}"
 		},
+		"precision": {
+			"label": "Precision",
+			"mode_iterations": "Iterations",
+			"mode_target": "Target ±",
+			"iterations": "Iterations",
+			"max_multiplier": "Max ×",
+			"max_multiplier_none": "None"
+		},
 		"preset": {
 			"ep_weights": "EP Weights",
 			"gear": "Gear",
@@ -2502,16 +2510,10 @@
 					"title": "Saved EP weights"
 				},
 				"precision": {
-					"label": "Precision",
-					"mode_iterations": "Iterations",
-					"mode_target": "Target ±",
-					"iterations": "Iterations",
 					"iterations_tooltip": "Iterations per simulation. Empty uses the sim's iteration setting.",
-					"target_ep_ci": "Target ±",
-					"target_ep_ci_tooltip": "Keeps simulating each stat until the 90% ± behind its EP is at most this value.",
-					"max_multiplier": "Max ×",
-					"max_multiplier_tooltip": "The most iterations a stat may run, as a multiple of the automatic first pass. Empty sets no cap.",
-					"max_multiplier_none": "None"
+					"target_ci": "Target ±",
+					"target_ci_tooltip": "Keeps simulating each stat until the 90% ± behind its EP is at most this value.",
+					"max_multiplier_tooltip": "The most iterations a stat may run, as a multiple of the automatic first pass. Empty sets no cap."
 				}
 			},
 			"stat_sweep": {
@@ -2549,16 +2551,10 @@
 					"empty": "No saved stat sweeps yet."
 				},
 				"precision": {
-					"label": "Precision",
-					"mode_iterations": "Iterations",
-					"mode_target": "Target ±",
-					"iterations": "Iterations",
 					"iterations_tooltip": "Iterations per step. Empty uses the sim's iteration setting.",
 					"target_ci": "Target ± ({{metric}})",
 					"target_ci_tooltip": "Keeps simulating each step until the 90% ± of its {{metric}} is at most this value. A run follows the metric plotted when it starts.",
-					"max_multiplier": "Max ×",
-					"max_multiplier_tooltip": "The most iterations a step may run, as a multiple of the automatic first pass. Empty sets no cap.",
-					"max_multiplier_none": "None"
+					"max_multiplier_tooltip": "The most iterations a step may run, as a multiple of the automatic first pass. Empty sets no cap."
 				}
 			},
 			"suggest_reforges": {

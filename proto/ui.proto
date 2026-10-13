@@ -350,10 +350,11 @@ message SavedGearSet {
 	UnitStats bonus_stats_stats = 3;
 }
 
-enum EpPrecisionMode {
-	EpPrecisionModeUnknown = 0;
-	EpPrecisionModeIterations = 1;
-	EpPrecisionModeTarget = 2; // Simulates each stat until its shown EP ± reaches a target.
+// How the EP calculation and the stat sweep size their runs.
+enum PrecisionMode {
+	PrecisionModeUnknown = 0;
+	PrecisionModeIterations = 1;
+	PrecisionModeTarget = 2; // Simulates each stat or step until its ± reaches a target.
 }
 
 message SavedStatWeightSettings {
@@ -361,16 +362,10 @@ message SavedStatWeightSettings {
     repeated PseudoStat excluded_pseudo_stats = 2;
     int32 api_version = 3; // Needed in case the Stat or PseudoStat enum orderings ever change
 
-	EpPrecisionMode precision_mode = 4;
+	PrecisionMode precision_mode = 4;
 	int32 iterations = 5; // The iterations mode's count; 0 runs the global sim iteration count.
-	double target_ep_ci = 6;
+	double target_ci = 6; // The 90% ± of each EP to reach.
 	int32 max_iteration_multiplier = 7; // Caps a stat's iterations at this multiple of the automatic first pass; 0 means no cap.
-}
-
-enum StatSweepPrecisionMode {
-	StatSweepPrecisionModeUnknown = 0;
-	StatSweepPrecisionModeIterations = 1;
-	StatSweepPrecisionModeTarget = 2; // Simulates each step until the ± of the run's metric reaches a target.
 }
 
 enum StatSweepMetric {
@@ -388,7 +383,7 @@ message SavedStatSweepSettings {
 	repeated UIStat stats = 2;
 	double range = 3;
 	double step = 4;
-	StatSweepPrecisionMode precision_mode = 5;
+	PrecisionMode precision_mode = 5;
 	int32 iterations = 6; // The iterations mode's count; 0 runs the global sim iteration count.
 	double target_ci = 7; // In the units of the metric picked when the run starts.
 	int32 max_iteration_multiplier = 8; // Caps a step's iterations at this multiple of the automatic first pass; 0 means no cap.

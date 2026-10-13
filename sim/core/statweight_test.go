@@ -46,10 +46,11 @@ func isHitRatingRuns(runs statWeightStatRuns) bool {
 func pairedStatWeightCalc(requests *proto.StatWeightRequestsData, base *proto.RaidSimResult, runs []statWeightStatRuns) *proto.StatWeightsCalcRequest {
 	baseline := statWeightValuesOf(base)
 	calc := &proto.StatWeightsCalcRequest{
-		EpReferenceStat:   requests.EpReferenceStat,
-		HpsReferenceStat:  requests.HpsReferenceStat,
-		BaseDps:           []*proto.DistributionMetrics{statWeightBaseDps(base)},
-		BaseChanceOfDeath: base.RaidMetrics.Parties[0].Players[0].ChanceOfDeath,
+		EpReferenceStat:    requests.EpReferenceStat,
+		HpsReferenceStat:   requests.HpsReferenceStat,
+		ProbeIterations:    int32(len(baseline[0])),
+		BaselineIterations: int32(len(baseline[0])),
+		BaseChanceOfDeath:  base.RaidMetrics.Parties[0].Players[0].ChanceOfDeath,
 	}
 	for _, statRuns := range runs {
 		pairs := &proto.StatWeightsStatPairs{StatData: statRuns.statData, High: pairStatWeightRun(baseline, statRuns.high, 0)}
@@ -65,7 +66,7 @@ func pairedStatWeightCalc(requests *proto.StatWeightRequestsData, base *proto.Ra
 // baseline's values over every pass, and base, when set, is the baseline's run in this pass.
 func addStatWeightPass(calc *proto.StatWeightsCalcRequest, baseline statWeightRunValues, base *proto.RaidSimResult, runs []statWeightStatRuns) {
 	if base != nil {
-		calc.BaseDps = append(calc.BaseDps, statWeightBaseDps(base))
+		calc.BaselineIterations += int32(len(statWeightValuesOf(base)[0]))
 	}
 	for _, statRuns := range runs {
 		pairs := calc.StatPairs[slices.IndexFunc(calc.StatPairs, func(pairs *proto.StatWeightsStatPairs) bool {
@@ -375,7 +376,7 @@ func TestStatWeightProgressCountsFitInt32(t *testing.T) {
 }
 
 func shownEpCi(result *proto.StatWeightsResult, stat stats.UnitStat) float64 {
-	return statWeightZ90 * protoUnitStat(result.Dps.EpValuesStdev, stat) / math.Sqrt(protoUnitStat(result.SampleCounts, stat))
+	return StatWeightZ90 * protoUnitStat(result.Dps.EpValuesStdev, stat) / math.Sqrt(protoUnitStat(result.SampleCounts, stat))
 }
 
 func plannedIterations(plan *proto.StatWeightsTopUpPlan) map[stats.UnitStat]int32 {
@@ -398,7 +399,7 @@ func TestStatWeightTopUpPlanSizesEachStatForTheTarget(t *testing.T) {
 		t.Fatalf("shown ± agility %v, hit rating %v: want two different spreads", agilityCi, hitCi)
 	}
 	sized := func(stat stats.UnitStat, target, sides float64) int32 {
-		return int32(math.Ceil(math.Pow(statWeightZ90*protoUnitStat(result.Dps.EpValuesStdev, stat)/target, 2) / sides))
+		return int32(math.Ceil(math.Pow(StatWeightZ90*protoUnitStat(result.Dps.EpValuesStdev, stat)/target, 2) / sides))
 	}
 	const uncapped = math.MaxInt32 / perSide
 	plan := func(target float64, multiplier int32) *proto.StatWeightsTopUpPlan {
@@ -435,7 +436,7 @@ func TestStatWeightTopUpPlanSizesEachStatForTheTarget(t *testing.T) {
 	t.Run("capped by the first baseline run, the baseline counted over all of them", func(t *testing.T) {
 		const multiplier = 3
 		topped := googleProto.Clone(calc).(*proto.StatWeightsCalcRequest)
-		topped.BaseDps = append(topped.BaseDps, statWeightDistribution(make([]float64, perSide)))
+		topped.BaselineIterations += perSide
 		got := planStatWeightTopUp(&proto.StatWeightsTopUpRequest{Calc: topped, Target: &proto.StatWeightsTarget{EpCi: min(agilityCi, hitCi) / 4, MaxIterationMultiplier: multiplier}})
 		for _, stat := range []stats.UnitStat{agilityUnitStat, hitRatingUnitStat} {
 			if plannedIterations(got)[stat] != multiplier*perSide {
@@ -488,11 +489,11 @@ func TestStatWeightTopUpPlanSizesEachStatForTheTarget(t *testing.T) {
 		after := func(passes int32) *proto.StatWeightsTopUpPlan {
 			return planStatWeightTopUp(&proto.StatWeightsTopUpRequest{Calc: calc, Target: target, Passes: passes})
 		}
-		if got := after(statWeightMaxTopUpPasses - 1); len(got.Stats) == 0 {
-			t.Errorf("plan after %d passes = %v, want stats", statWeightMaxTopUpPasses-1, got)
+		if got := after(StatWeightMaxTopUpPasses - 1); len(got.Stats) == 0 {
+			t.Errorf("plan after %d passes = %v, want stats", StatWeightMaxTopUpPasses-1, got)
 		}
-		if got := after(statWeightMaxTopUpPasses); len(got.Stats) != 0 {
-			t.Errorf("plan after %d passes = %v, want no stats", statWeightMaxTopUpPasses, got)
+		if got := after(StatWeightMaxTopUpPasses); len(got.Stats) != 0 {
+			t.Errorf("plan after %d passes = %v, want no stats", StatWeightMaxTopUpPasses, got)
 		}
 	})
 }
@@ -615,9 +616,9 @@ func TestStatWeightTopUpRepeatsOneLongerRun(t *testing.T) {
 // With a target ±, the runs go on until every DPS EP shows a ± at or under it or its runs reach the
 // cap, and a run that needs more iterations gets them.
 func TestStatWeightsTargetModeRunsToTheTargetOrTheCap(t *testing.T) {
-	const probePerSide, multiplier = statWeightTargetProbeIterations / 2, 4
+	const probePerSide, multiplier = StatWeightTargetProbeIterations / 2, 4
 	weigh := func(target float64) *proto.StatWeightsResult {
-		request := weaponTesterStatWeightsRequest(statWeightTargetProbeIterations)
+		request := weaponTesterStatWeightsRequest(StatWeightTargetProbeIterations)
 		request.StatsToWeigh = []proto.Stat{proto.Stat_StatAttackPower, proto.Stat_StatHitRating}
 		if target > 0 {
 			request.Target = &proto.StatWeightsTarget{EpCi: target, MaxIterationMultiplier: multiplier}
@@ -741,7 +742,7 @@ func TestStatWeightTopUpPlanSizesTargetedHpsByTheHpsReference(t *testing.T) {
 	hpsEpStdev := func(stat stats.UnitStat, ref stats.UnitStat) float64 {
 		return protoUnitStat(result.Hps.WeightsStdev, stat) / math.Abs(protoUnitStat(result.Hps.Weights, ref))
 	}
-	agilityHpsCi := statWeightZ90 * hpsEpStdev(agilityUnitStat, intellectUnitStat) / math.Sqrt(samples)
+	agilityHpsCi := StatWeightZ90 * hpsEpStdev(agilityUnitStat, intellectUnitStat) / math.Sqrt(samples)
 	if agilityHpsCi == 0 || !(shownEpCi(result, agilityUnitStat) < agilityHpsCi/4) {
 		t.Fatalf("agility shows DPS ± %v and HPS ± %v: want the DPS one well under the HPS one", shownEpCi(result, agilityUnitStat), agilityHpsCi)
 	}
@@ -759,7 +760,7 @@ func TestStatWeightTopUpPlanSizesTargetedHpsByTheHpsReference(t *testing.T) {
 
 	got := plan([]proto.StatWeightsTargetMetric{proto.StatWeightsTargetMetric_StatWeightsTargetMetricDps, proto.StatWeightsTargetMetric_StatWeightsTargetMetricHps})
 	sized := func(ref stats.UnitStat) int32 {
-		return int32(math.Ceil(math.Pow(statWeightZ90*hpsEpStdev(agilityUnitStat, ref)/target, 2) / 2))
+		return int32(math.Ceil(math.Pow(StatWeightZ90*hpsEpStdev(agilityUnitStat, ref)/target, 2) / 2))
 	}
 	if sized(intellectUnitStat) == sized(agilityUnitStat) {
 		t.Fatal("intellect and agility have the same HPS weight, so the references cannot be told apart")
@@ -835,7 +836,7 @@ func TestStatWeightRequestsRunAtLeastOneIterationPerSide(t *testing.T) {
 // its count.
 func TestStatWeightRequestsProbeATargetAtAFixedCount(t *testing.T) {
 	for _, target := range []*proto.StatWeightsTarget{nil, {EpCi: 0.01}} {
-		for _, iterations := range []int32{10, 100 * statWeightTargetProbeIterations} {
+		for _, iterations := range []int32{10, 100 * StatWeightTargetProbeIterations} {
 			requests := buildStatWeightRequests(&proto.StatWeightsRequest{
 				Player:          &proto.Player{},
 				Encounter:       &proto.Encounter{},
@@ -846,7 +847,7 @@ func TestStatWeightRequestsProbeATargetAtAFixedCount(t *testing.T) {
 			})
 			want := iterations / 2
 			if target != nil {
-				want = statWeightTargetProbeIterations / 2
+				want = StatWeightTargetProbeIterations / 2
 			}
 			if got := requests.BaseRequest.SimOptions.Iterations; got != want {
 				t.Errorf("target %v, %d requested: baseline runs %d iterations, want %d", target, iterations, got, want)
@@ -867,10 +868,9 @@ func TestStatWeightRequestsProbeATargetAtAFixedCount(t *testing.T) {
 func TestStatWeightsRefuseAStatRunLongerThanTheBaseline(t *testing.T) {
 	const perSide = 12
 	requests := noisyStatWeightRequests()
-	base, _ := noisyStatWeightResults(requests, 0, perSide)
 	longBase, longRuns := noisyStatWeightResults(requests, 0, 2*perSide)
 	calc := pairedStatWeightCalc(requests, longBase, longRuns)
-	calc.BaseDps = []*proto.DistributionMetrics{statWeightBaseDps(base)}
+	calc.ProbeIterations, calc.BaselineIterations = perSide, perSide
 
 	if result := computeStatWeights(calc); result.Error == nil {
 		t.Error("weights computed for stat runs longer than the baseline, want an error")

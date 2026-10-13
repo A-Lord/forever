@@ -1,11 +1,14 @@
+import { PrecisionOptions } from '@features/stat-weights/components/PrecisionOptions';
+import i18n from '@i18n/config';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { makeHitSweepPoints, sweepSeries } from '@testing/storybook/fixtures/stat-sweep';
 import { fn } from 'storybook/test';
 
 import { StatSweepChart } from '../StatSweepChart';
 import { StatSweepHistory } from '../StatSweepHistory';
-import { StatSweepPrecisionOptions } from '../StatSweepPrecisionOptions';
 import { StatSweepPanel } from './StatSweepPanel';
+
+const precisionText = (key: string) => i18n.t(`sidebar.buttons.stat_sweep.precision.${key}`, { metric: i18n.t('sidebar.results.metrics.dps.label') });
 
 const HISTORY = [
 	{ id: 'hit-new', label: 'Hit Rating ±100', createdAt: Date.UTC(2026, 9, 12, 14, 3), overlaid: true, colorSlot: 1, metric: 'dps' as const },
@@ -29,11 +32,16 @@ const meta = {
 		step: 10,
 		onStepChange: fn(),
 		precision: (
-			<StatSweepPrecisionOptions
+			<PrecisionOptions
 				value={{ precisionMode: 'iterations', iterations: 0, targetCi: 1, maxIterationMultiplier: 0 }}
 				onChange={fn()}
-				metric="dps"
 				defaultIterations={10000}
+				idPrefix="stat-sweep-precision"
+				targetLabel={precisionText('target_ci')}
+				targetTooltip={precisionText('target_ci_tooltip')}
+				iterationsTooltip={precisionText('iterations_tooltip')}
+				maxMultiplierTooltip={precisionText('max_multiplier_tooltip')}
+				maxDecimalDigits={2}
 			/>
 		),
 		chart: <StatSweepChart series={[]} metric="dps" metrics={['dps', 'tps']} onMetricChange={fn()} showSpread onShowSpreadChange={fn()} />,

@@ -1,54 +1,15 @@
-import i18n from '@i18n/config';
-import { deleteRun, listRuns, saveRun, type StatSweepRecord } from '@sim/cache/stat_sweep_history';
+import { deleteRun, listRuns, type StatSweepRecord } from '@sim/cache/stat_sweep_history';
 import { usePlayer, useSim } from '@sim/context/SimHostContext';
 import { useSimRun } from '@sim/hooks/useSimRun';
-import { Stats, UnitStat } from '@sim/proto/stats';
-import type { StatSweepPrecision } from '@sim/settings/stat_sweep_settings';
-import { SimRunKind, type StatSweepMetric } from '@sim/state/sim_store';
-import { randomUUID } from '@sim/utils/misc';
-import { toastManager } from '@ui-kit/Toast';
+import { UnitStat } from '@sim/proto/stats';
+import { SimRunKind } from '@sim/state/sim_store';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { runLabel, type StatSweepSeries } from '../components/StatSweepChart';
 import type { StatSweepHistoryEntry } from '../components/StatSweepHistory';
 import { SERIES_SLOT_COUNT } from '../model/colors';
-import {
-	advanceSweepProgress,
-	buildSweepOffsets,
-	displayColorSlots,
-	measureSweepStep,
-	mergeSweepHistory,
-	nextColorSlot,
-	runSweepStat,
-	skipSweepSteps,
-	startSweepProgress,
-	type StatSweepProgress,
-	type StatSweepStep,
-	type StatSweepStepSample,
-	type SweepPassRunner,
-	sweepSteps,
-} from '../model/stat_sweep';
-
-export interface StatSweepStatArgs {
-	unitStat: UnitStat;
-	label: string;
-	/** The stat's current total. */
-	baseStatValue: number;
-}
-
-export interface StatSweepArgs {
-	/** Run one after another, each on its own and saved as its own run. */
-	stats: StatSweepStatArgs[];
-	range: number;
-	step: number;
-	/** Sizes Target ±. */
-	metric: StatSweepMetric;
-	precision: StatSweepPrecision;
-}
-
-export interface UseStatSweepOptions {
-	onProgress?: (progress: StatSweepProgress) => void;
-}
+import { runStatSweep, type StatSweepArgs } from '../model/run';
+import { displayColorSlots, mergeSweepHistory, nextColorSlot, type StatSweepProgress } from '../model/stat_sweep';
 
 interface SweepView {
 	history: StatSweepRecord[];
@@ -57,17 +18,10 @@ interface SweepView {
 	overlaid: ReadonlyArray<string>;
 }
 
-const shownRuns = ({ history, live, overlaid }: SweepView): StatSweepRecord[] => [...(live ? [live] : []), ...history.filter(run => overlaid.includes(run.id))];
-
-// The slot of each shown run, oldest first so a clash moves the newer run.
-const shownColorSlots = (shown: StatSweepRecord[]) => displayColorSlots(shown.slice().reverse(), SERIES_SLOT_COUNT);
-
-export const useStatSweep = ({ onProgress }: UseStatSweepOptions = {}) => {
+/** The stat sweep's runs and history while its dialog is open; a run still going when the dialog closes is cancelled. */
+export const useStatSweep = () => {
 	const sim = useSim();
 	const player = usePlayer();
-	// Read at emit time, so a caller may pass a fresh closure every render.
-	const progressRef = useRef(onProgress);
-	progressRef.current = onProgress;
 	const { isRunning, abort } = useSimRun(SimRunKind.StatSweep);
 	const [view, setView] = useState<SweepView>({ history: [], live: null, overlaid: [] });
 	const history = useRef(view.history);
@@ -100,141 +54,29 @@ export const useStatSweep = ({ onProgress }: UseStatSweepOptions = {}) => {
 	);
 
 	const run = useCallback(
-		(args: StatSweepArgs) => {
-			const { precision, metric } = args;
-			// Every step of every stat runs at this seed, so the steps differ only by the stat.
-			const seed = sim.nextRngSeed();
-			const defaultIterations = sim.getIterations();
-			// The history read here holds none of this run's stats, so each stat takes the slot after the one before.
-			const firstSlot = nextColorSlot(history.current, SERIES_SLOT_COUNT);
-
-			// Moves a stat's run into the history and saves it, or drops it when no step finished.
-			const keep = async (finished: StatSweepRecord) => {
-				if (!finished.points.length) {
-					setView(current => ({ ...current, live: null, overlaid: current.overlaid.filter(id => id !== finished.id) }));
-					return;
-				}
-				setView(current => ({ ...current, live: null, history: [finished, ...current.history] }));
-				await saveRun(finished).catch(console.error);
-			};
-
+		(args: Omit<StatSweepArgs, 'firstColorSlot'>, onProgress: (progress: StatSweepProgress) => void) => {
 			// Only this batch's runs are drawn; the user may tick older ones again afterwards.
 			setView(current => ({ ...current, overlaid: [] }));
-
-			return sim.runs.start(SimRunKind.StatSweep, async () => {
-				// Set when a step comes back aborted though the sweep itself was not cancelled, as when another run aborts every request.
-				let stoppedElsewhere = false;
-				try {
-					const offsets = buildSweepOffsets(args.range, args.step);
-					const startedAt = Date.now();
-					// Every stat at every offset until its totals are known, so the bar and the estimate only shrink as offsets drop out.
-					let progress = startSweepProgress(args.stats.map(() => offsets.length));
-					progressRef.current?.(progress);
-					let stepsBefore = 0;
-					// The last finished step's iterations: in Target ± mode a step's total is known only after its first pass, and
-					// neighbouring steps need about as many, so the bar sizes a step by it until its own plan is larger.
-					let lastStepIterations = 0;
-					for (const [statIndex, { unitStat, label, baseStatValue }] of args.stats.entries()) {
-						if (sim.runs.isAborting(SimRunKind.StatSweep)) break;
-						const record: StatSweepRecord = {
-							id: randomUUID(),
-							createdAt: Date.now(),
-							specId: player.getSpec(),
-							label,
-							colorSlot: (firstSlot + statIndex) % SERIES_SLOT_COUNT,
-							unitStat: unitStat.toJson(),
-							range: args.range,
-							step: args.step,
-							metric,
-							precision,
-							baseStatValue,
-							points: [],
-						};
-						setView(current => ({ ...current, live: record, overlaid: [...current.overlaid, record.id] }));
-						let finished: StatSweepRecord = record;
-						let stopped = false;
-						try {
-							// The stat's totals as it starts, so one stat's stat computations are in flight at a time.
-							const totals = await Promise.all(
-								offsets.map(offset =>
-									sim.getFinalStatsWithBonus(new Stats().withUnitStat(unitStat, offset)).then(finalStats => finalStats.getUnitStat(unitStat)),
-								),
-							);
-							const steps = sweepSteps(offsets, totals);
-							if (steps.length < offsets.length) {
-								progress = skipSweepSteps(progress, statIndex, offsets.length - steps.length);
-								progressRef.current?.(progress);
-							}
-							const measure = async (
-								step: StatSweepStep,
-								index: number,
-								confirmsCap: (firstPass: StatSweepStepSample['firstPass']) => boolean,
-							) => {
-								if (sim.runs.isAborting(SimRunKind.StatSweep)) return null;
-								const bonusStats = new Stats().withUnitStat(unitStat, step.offset);
-								let planned = 0;
-								const report = (done: number) => {
-									progress = advanceSweepProgress(
-										progress,
-										stepsBefore + index,
-										done,
-										Math.max(planned, lastStepIterations),
-										(Date.now() - startedAt) / 1000,
-									);
-									progressRef.current?.(progress);
-								};
-								const runPass: SweepPassRunner = async (iterations, seedOffset) => {
-									if (sim.runs.isAborting(SimRunKind.StatSweep)) return null;
-									const result = await sim.simulateStatSweepStep({
-										iterations,
-										seed: seed + seedOffset,
-										bonusStats,
-										onProgress: metrics => report(seedOffset + metrics.completedIterations),
-									});
-									if ('dps' in result) return result;
-									// An aborted pass comes back as its error outcome.
-									if (!sim.runs.isAborting(SimRunKind.StatSweep)) stoppedElsewhere = true;
-									return null;
-								};
-								const sample = await measureSweepStep(
-									runPass,
-									precision,
-									metric,
-									defaultIterations,
-									total => {
-										planned = total;
-									},
-									confirmsCap,
-								);
-								if (sample) lastStepIterations = sample.metrics[metric].n;
-								return sample;
-							};
-							const statRun = await runSweepStat(
-								steps,
-								measure,
-								({ points, cappedStep }) => {
-									const live = { ...record, points, ...(cappedStep && { cappedAt: cappedStep.offset }) };
-									finished = live;
-									setView(current => ({ ...current, live }));
-								},
-								skipped => {
-									progress = skipSweepSteps(progress, statIndex, skipped);
-									progressRef.current?.(progress);
-								},
-							);
-							stopped = statRun.stopped;
-							stepsBefore += statRun.points.length;
-						} finally {
-							await keep(finished);
-						}
-						if (stopped) break;
-					}
-				} catch (error: any) {
-					console.error(error);
-					toastManager.add({ variant: 'error', body: error?.message || 'Something went wrong running the stat sweep.' });
-				}
-				if (stoppedElsewhere) toastManager.add({ variant: 'info', body: i18n.t('sidebar.buttons.stat_sweep.stopped') });
-			});
+			return runStatSweep(
+				{ sim, specId: player.getSpec() },
+				// The history read here holds none of this run's stats, so each stat takes the slot after the one before.
+				{ ...args, firstColorSlot: nextColorSlot(history.current, SERIES_SLOT_COUNT) },
+				{
+					onProgress,
+					onRunUpdate: live =>
+						setView(current => ({
+							...current,
+							live,
+							overlaid: current.overlaid.includes(live.id) ? current.overlaid : [...current.overlaid, live.id],
+						})),
+					onRunEnd: finished =>
+						setView(current =>
+							finished.points.length
+								? { ...current, live: null, history: [finished, ...current.history] }
+								: { ...current, live: null, overlaid: current.overlaid.filter(id => id !== finished.id) },
+						),
+				},
+			);
 		},
 		[sim, player],
 	);
@@ -258,30 +100,43 @@ export const useStatSweep = ({ onProgress }: UseStatSweepOptions = {}) => {
 		[],
 	);
 
-	const series = useMemo<StatSweepSeries[]>(() => {
-		const shown = shownRuns(view);
-		const colorSlots = shownColorSlots(shown);
-		return shown.map(run => ({
-			id: run.id,
-			label: run.label,
-			colorSlot: colorSlots[run.id],
-			statLabel: UnitStat.fromJson(run.unitStat).getFullName(player.getClass()),
-			baseStatValue: run.baseStatValue,
-			points: run.points,
-			cappedAt: run.cappedAt,
-		}));
-	}, [view, player]);
-	const historyEntries = useMemo<StatSweepHistoryEntry[]>(() => {
-		const colorSlots = Object.fromEntries(series.map(run => [run.id, run.colorSlot]));
-		return view.history.map(run => ({
-			id: run.id,
-			label: runLabel(run),
-			createdAt: run.createdAt,
-			overlaid: view.overlaid.includes(run.id),
-			colorSlot: colorSlots[run.id],
-			metric: run.metric,
-		}));
-	}, [view, series]);
+	// The slot of each shown run, oldest first so a clash moves the newer run. A live run keeps its slot from its start, so
+	// its points arriving leave this alone.
+	const liveId = view.live?.id;
+	const liveColorSlot = view.live?.colorSlot;
+	const colorSlots = useMemo(() => {
+		const shown = [
+			...(liveId !== undefined && liveColorSlot !== undefined ? [{ id: liveId, colorSlot: liveColorSlot }] : []),
+			...view.history.filter(run => view.overlaid.includes(run.id)),
+		];
+		return displayColorSlots(shown.reverse(), SERIES_SLOT_COUNT);
+	}, [view.history, view.overlaid, liveId, liveColorSlot]);
+
+	const series = useMemo<StatSweepSeries[]>(
+		() =>
+			[...(view.live ? [view.live] : []), ...view.history.filter(run => view.overlaid.includes(run.id))].map(run => ({
+				id: run.id,
+				label: run.label,
+				colorSlot: colorSlots[run.id],
+				statLabel: UnitStat.fromJson(run.unitStat).getFullName(player.getClass()),
+				baseStatValue: run.baseStatValue,
+				points: run.points,
+				cappedAt: run.cappedAt,
+			})),
+		[view, colorSlots, player],
+	);
+	const historyEntries = useMemo<StatSweepHistoryEntry[]>(
+		() =>
+			view.history.map(run => ({
+				id: run.id,
+				label: runLabel(run),
+				createdAt: run.createdAt,
+				overlaid: view.overlaid.includes(run.id),
+				colorSlot: colorSlots[run.id],
+				metric: run.metric,
+			})),
+		[view.history, view.overlaid, colorSlots],
+	);
 
 	return { isRunning, series, historyEntries, run, cancel, remove, setOverlaid };
 };

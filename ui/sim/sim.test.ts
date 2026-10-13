@@ -332,110 +332,89 @@ describe('Sim stats for an edited player', () => {
 		expect(Stats.fromProto(playerStats.finalStats).getStat(Stat.StatHitRating)).toBe(7);
 	});
 
-	it("adds the bonus to the player's own bonus stats and returns its final stats", async () => {
-		mocks.computeStats.mockResolvedValue({ errorResult: '', raidStats: { parties: [{ players: [{ finalStats: hit(33).toProto() }] }] } } as any);
-
-		const finalStats = await makeBonusSim().getFinalStatsWithBonus(hit(10));
-
-		const [request] = mocks.computeStats.mock.calls[0] as unknown as [{ raid: RaidProto }];
-		expect(Stats.fromProto(request.raid.parties[0].players[0].bonusStats).getStat(Stat.StatHitRating)).toBe(15);
-		expect(finalStats.getStat(Stat.StatHitRating)).toBe(33);
-	});
-
-	it('throws on an error result', async () => {
-		mocks.computeStats.mockResolvedValue({ errorResult: 'boom' } as any);
-
-		await expect(makeBonusSim().getFinalStatsWithBonus(hit(10))).rejects.toThrow(SimError);
-	});
-
-	it("builds a raid sim request with the bonus on the player's own bonus stats, at the given seed and with no first-iteration log", () => {
+	it('hands back the stats of the raid it is given, an error result included, and reports no crash', async () => {
 		const sim = makeBonusSim();
-		vi.mocked(sim.makeRaidSimRequest).mockRestore();
-		const draw = vi.spyOn(sim, 'nextRngSeed');
+		const crashes: unknown[] = [];
+		sim.crashEmitter.on(e => crashes.push(e));
+		const result = { errorResult: 'boom', raidStats: { parties: [{ players: [{ finalStats: hit(7).toProto() }] }] } };
+		mocks.computeStats.mockResolvedValue(result as any);
+		const raid = RaidProto.create({ parties: [{ players: [{ bonusStats: hit(15).toProto() }] }] });
 
-		const request = sim.makeRaidSimRequest({ iterations: 500, seed: 99, bonusStats: hit(10), debugFirstIteration: false, useLabeledRands: true });
-
-		expect(Stats.fromProto(request.raid!.parties[0].players[0].bonusStats).getStat(Stat.StatHitRating)).toBe(15);
-		expect(request.simOptions).toMatchObject({ iterations: 500, randomSeed: 99n, debugFirstIteration: false, useLabeledRands: true });
-		expect(draw).not.toHaveBeenCalled();
+		expect(await sim.computeRaidStats(raid)).toBe(result);
+		const [request] = mocks.computeStats.mock.calls[0] as unknown as [{ raid: RaidProto }];
+		expect(request.raid).toEqual(raid);
+		expect(crashes).toEqual([]);
 	});
 });
 
-describe('Sim.simulateStatSweepStep', () => {
+describe('Sim.runRaidSimRequest', () => {
 	beforeEach(() => {
 		mocks.raidSimAsync.mockReset();
 	});
 
-	it("runs one silent raid sim with the options and returns the first player's DPS, HPS, TPS, DTPS and TMI without per-iteration values", async () => {
+	it('runs the request it is given and emits no result', async () => {
 		const sim = makeSim();
 		const emitted = vi.fn();
 		sim.simResultEmitter.on(emitted);
-		const metric = (low: number, high: number) => ({
-			avg: (low + high) / 2,
-			stdev: (high - low) / 2,
-			allValues: [low, high],
-			aggregatorData: { n: 2, sumSq: low ** 2 + high ** 2 },
-		});
-		const player = { dps: metric(1400, 1600), hps: metric(0, 20), threat: metric(2800, 3200), dtps: metric(900, 1100), tmi: metric(8, 12) };
-		mocks.raidSimAsync.mockResolvedValue(RaidSimResult.create({ raidMetrics: { parties: [{ players: [player] }] } }));
-		const options = { iterations: 2, seed: 9, bonusStats: new Stats(), onProgress: vi.fn() };
+		const result = RaidSimResult.create({ raidMetrics: { parties: [] } });
+		mocks.raidSimAsync.mockResolvedValue(result);
+		const request = makeRequest(2);
 
-		const sample = await sim.simulateStatSweepStep(options);
-
-		const summary = (low: number, high: number) => ({ avg: (low + high) / 2, stdev: (high - low) / 2, n: 2, sumSq: low ** 2 + high ** 2 });
-		expect(sample).toEqual({
-			dps: summary(1400, 1600),
-			hps: summary(0, 20),
-			tps: summary(2800, 3200),
-			dtps: summary(900, 1100),
-			tmi: summary(8, 12),
-		});
-		expect(sim.makeRaidSimRequest).toHaveBeenCalledWith(expect.objectContaining({ ...options, debugFirstIteration: false, useLabeledRands: true }));
+		expect(await sim.runRaidSimRequest(request, RequestTypes.StatSweep, vi.fn())).toBe(result);
+		expect(mocks.raidSimAsync.mock.calls[0][0]).toBe(request);
 		expect(emitted).not.toHaveBeenCalled();
 	});
 
-	it('is stopped by a stat sweep abort and not by an abort of the plain sims', async () => {
+	it('is stopped by an abort of its own type and not by an abort of the plain sims', async () => {
 		const sim = makeSim();
 		const aborted = ErrorOutcome.create({ type: ErrorOutcomeType.ErrorOutcomeAborted });
 		mocks.raidSimAsync.mockImplementation(
 			(_request, _onProgress, signals) => new Promise(resolve => signals.abort.onTrigger(async () => resolve(RaidSimResult.create({ error: aborted })))),
 		);
-		const step = sim.simulateStatSweepStep({ iterations: 2, seed: 9, bonusStats: new Stats(), onProgress: vi.fn() });
+		const run = sim.runRaidSimRequest(makeRequest(2), RequestTypes.StatSweep, vi.fn());
 		await vi.waitFor(() => expect(mocks.raidSimAsync).toHaveBeenCalled());
 
 		await sim.signalManager.abortType(RequestTypes.IndividualSim | RequestTypes.BulkSim);
 		let settled = false;
-		void step.then(() => (settled = true));
+		void run.then(() => (settled = true));
 		await Promise.resolve();
 		expect(settled).toBe(false);
 
 		await sim.signalManager.abortType(RequestTypes.StatSweep);
-		expect(await step).toEqual(aborted);
+		expect((await run).error).toEqual(aborted);
 	});
 
-	it('returns an aborted run as its error outcome', async () => {
-		const aborted = ErrorOutcome.create({ type: ErrorOutcomeType.ErrorOutcomeAborted });
-		mocks.raidSimAsync.mockResolvedValue(RaidSimResult.create({ error: aborted }));
+	it('throws a run that failed', async () => {
+		mocks.raidSimAsync.mockResolvedValue(
+			RaidSimResult.create({ error: ErrorOutcome.create({ type: ErrorOutcomeType.ErrorOutcomeError, message: 'boom' }) }),
+		);
 
-		expect(await makeSim().simulateStatSweepStep({ iterations: 2, seed: 9, bonusStats: new Stats(), onProgress: vi.fn() })).toEqual(aborted);
+		await expect(makeSim().runRaidSimRequest(makeRequest(2), RequestTypes.StatSweep, vi.fn())).rejects.toThrow(new SimError('boom'));
 	});
 });
 
-describe('Sim.nextRngSeed', () => {
+describe('Sim.makeRaidSimRequest seed', () => {
+	const seedOf = (sim: Sim) => {
+		vi.mocked(sim.makeRaidSimRequest).mockRestore();
+		vi.spyOn(sim, 'getModifiedRaidProto').mockReturnValue(RaidProto.create());
+		vi.spyOn(sim.encounter, 'toProto').mockReturnValue({} as any);
+		return sim.makeRaidSimRequest().simOptions!.randomSeed;
+	};
+
 	it('never draws 0, which the sim would replace with the clock', () => {
 		const random = vi.spyOn(Math, 'random').mockReturnValue(0);
 		try {
-			expect(makeSim().nextRngSeed()).toBeGreaterThan(0);
+			expect(seedOf(makeSim())).toBeGreaterThan(0n);
 		} finally {
 			random.mockRestore();
 		}
 	});
 
-	it('returns the fixed seed when one is set', () => {
+	it('takes the fixed seed when one is set', () => {
 		const sim = makeSim();
 		sim.setFixedRngSeed(42);
 
-		expect(sim.nextRngSeed()).toBe(42);
+		expect(seedOf(sim)).toBe(42n);
 	});
 });
 

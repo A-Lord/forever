@@ -22,19 +22,19 @@ const settingsOn = (storage: Map<string, string>) => {
 
 describe('StatWeightActionSettings precision', () => {
 	it('starts on the fixed iteration count with the default target and no multiplier cap', () => {
-		expect(settingsOn(new Map()).precision).toEqual({ precisionMode: 'iterations', iterations: 0, targetEpCi: 0.01, maxIterationMultiplier: 0 });
+		expect(settingsOn(new Map()).precision).toEqual({ precisionMode: 'iterations', iterations: 0, targetCi: 0.01, maxIterationMultiplier: 0 });
 	});
 
 	it('loads back what it stored, next to the excluded stats', () => {
 		const storage = new Map<string, string>();
 		const saved = settingsOn(storage);
 		saved.setStatExcluded(UnitStat.fromStat(Stat.StatStrength), true);
-		saved.setPrecision({ precisionMode: 'target', iterations: 4000, targetEpCi: 0.005, maxIterationMultiplier: 4 });
+		saved.setPrecision({ precisionMode: 'target', iterations: 4000, targetCi: 0.005, maxIterationMultiplier: 4 });
 
 		const loaded = settingsOn(storage);
 		loaded.load();
 
-		expect(loaded.precision).toEqual({ precisionMode: 'target', iterations: 4000, targetEpCi: 0.005, maxIterationMultiplier: 4 });
+		expect(loaded.precision).toEqual({ precisionMode: 'target', iterations: 4000, targetCi: 0.005, maxIterationMultiplier: 4 });
 		expect(loaded.excludedStats).toEqual([Stat.StatStrength]);
 	});
 
@@ -43,7 +43,7 @@ describe('StatWeightActionSettings precision', () => {
 		const loaded = settingsOn(storage);
 		loaded.load();
 
-		expect(loaded.precision).toEqual({ precisionMode: 'iterations', iterations: 0, targetEpCi: 0.01, maxIterationMultiplier: 0 });
+		expect(loaded.precision).toEqual({ precisionMode: 'iterations', iterations: 0, targetCi: 0.01, maxIterationMultiplier: 0 });
 		expect(loaded.excludedStats).toEqual([Stat.StatAgility]);
 	});
 
@@ -64,20 +64,20 @@ describe('StatWeightActionSettings precision', () => {
 			excludedStats: ['StatAgility'],
 			precisionMode: 'target',
 			iterations: 4000,
-			targetEpCi: 0.005,
+			targetCi: 0.005,
 			maxIterationMultiplier: 4,
 		});
 		const loaded = settingsOn(new Map([[KEY, stored]]));
 		loaded.load();
 
-		expect(loaded.precision).toEqual({ precisionMode: 'iterations', iterations: 4000, targetEpCi: 0.005, maxIterationMultiplier: 4 });
+		expect(loaded.precision).toEqual({ precisionMode: 'iterations', iterations: 4000, targetCi: 0.005, maxIterationMultiplier: 4 });
 		expect(loaded.excludedStats).toEqual([Stat.StatAgility]);
 	});
 
 	it('does not rewrite storage for a patch that changes nothing', () => {
 		const storage = new Map<string, string>();
 		const settings = settingsOn(storage);
-		settings.setPrecision({ targetEpCi: 0.01 });
+		settings.setPrecision({ targetCi: 0.01 });
 
 		expect(storage.has(KEY)).toBe(false);
 	});

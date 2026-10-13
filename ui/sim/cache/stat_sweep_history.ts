@@ -2,7 +2,6 @@ import type { Spec } from '@generated/proto/common';
 import { type DBSchema, type IDBPDatabase, openDB } from 'idb';
 
 import { LOCAL_STORAGE_PREFIX } from '../constants/other';
-import type { StatSweepPrecision } from '../settings/stat_sweep_settings';
 import type { StatSweepMetric } from '../state/sim_store';
 
 const STAT_SWEEP_DB_NAME = `${LOCAL_STORAGE_PREFIX}_stat-sweep`;
@@ -35,11 +34,8 @@ export interface StatSweepRecord {
 	colorSlot: number;
 	/** `UnitStat.toJson()`: IndexedDB's structured clone drops class prototypes, so a stored UnitStat would come back without its methods. */
 	unitStat: object;
-	range: number;
-	step: number;
 	/** The metric plotted when the run started, which Target ± sizes the steps by. */
 	metric: StatSweepMetric;
-	precision: StatSweepPrecision;
 	baseStatValue: number;
 	points: StatSweepPoint[];
 	/** The stat added past which more of the stat left every metric unchanged, so the run skipped the steps above the next one. */

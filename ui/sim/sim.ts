@@ -1,5 +1,4 @@
 import {
-	type AggregatorData,
 	BulkCandidatesRequest,
 	BulkCandidatesResult,
 	BulkCombinationCountRequest,
@@ -10,7 +9,7 @@ import {
 	BulkSimRequest,
 	BulkSimResult,
 	ComputeStatsRequest,
-	type DistributionMetrics,
+	type ComputeStatsResult,
 	ErrorOutcome,
 	ErrorOutcomeType,
 	PlayerStats,
@@ -58,12 +57,12 @@ import { StatCap, Stats } from './proto/stats';
 import { Encounter } from './raid/encounter';
 import { Raid } from './raid/raid';
 import { SimRuns } from './sim_runs';
-import { RequestTypes, SimSignalManager } from './sim_signal_manager';
+import { RequestTypes, SimSignalManager, type SimSignals } from './sim_signal_manager';
 import { batch } from './state/batch';
 import type { Env } from './state/env';
 import { Emitter } from './state/events';
 import { makeReforgeConfigRequestFields } from './state/reforge_request';
-import { createSimStore, patchSlice, SimSettingsSlice, type StatSweepMetric, UISlice } from './state/sim_store';
+import { createSimStore, patchSlice, SimSettingsSlice, UISlice } from './state/sim_store';
 import { subscribeStatsInputs, subscribeUiField } from './state/subscriptions';
 import { getEnumValues } from './utils/collections';
 import { environmentOf } from './utils/env';
@@ -101,17 +100,7 @@ export type RunSimOptions = {
 	gear?: Gear;
 	onProgress?: WorkerProgressCallback;
 	raw?: boolean;
-	seed?: number; // Unset draws the next seed.
-	bonusStats?: Stats; // On top of the first player's own bonus stats, pseudo stats included.
-	debugFirstIteration?: boolean; // Unset logs the first iteration.
-	useLabeledRands?: boolean; // One random stream per kind of roll, so a roll added or dropped leaves every other stream as it was.
 };
-
-export type StatSweepStepOptions = Required<Pick<RunSimOptions, 'iterations' | 'seed' | 'bonusStats' | 'onProgress'>>;
-
-export type MetricSample = Pick<DistributionMetrics, 'avg' | 'stdev'> & AggregatorData;
-
-export type StatSweepSample = Record<StatSweepMetric, MetricSample>;
 
 export type StatWeightsOptions = {
 	iterations?: number; // Unset uses the sim's iteration setting; a target ignores it and sizes its first pass itself.
@@ -290,10 +279,6 @@ export class Sim {
 	makeRaidSimRequest(options: RunSimOptions = {}): RaidSimRequest {
 		const raid = this.getModifiedRaidProto();
 		const encounter = this.encounter.toProto();
-		if (options.bonusStats) {
-			const player = raid.parties[0].players[0];
-			player.bonusStats = Stats.fromProto(player.bonusStats).add(options.bonusStats).toProto();
-		}
 
 		// TODO: remove any replenishment from sim request here? probably makes more sense to do it inside the sim to protect against accidents
 		return RaidSimRequest.create({
@@ -303,33 +288,11 @@ export class Sim {
 			encounter: encounter,
 			simOptions: SimOptions.create({
 				iterations: options.singleIteration ? 1 : (options.iterations ?? this.getIterations()),
-				randomSeed: BigInt(options.seed ?? this.nextRngSeed()),
-				debugFirstIteration: options.debugFirstIteration ?? true,
+				randomSeed: BigInt(this.nextRngSeed()),
+				debugFirstIteration: true,
 				debug: options.debug ?? false,
-				useLabeledRands: options.useLabeledRands ?? false,
 			}),
 		});
-	}
-
-	// The first player's DPS, HPS, TPS, DTPS and TMI over one plain raid sim, which emits no result. It runs as its own request
-	// type, so only a stat sweep abort or an abort of every type stops it, and an abort comes back as its error outcome.
-	async simulateStatSweepStep(options: StatSweepStepOptions): Promise<StatSweepSample | ErrorOutcome> {
-		const result = await this.runRaidSim(RequestTypes.StatSweep, {
-			...options,
-			raw: true,
-			silent: true,
-			debugFirstIteration: false,
-			useLabeledRands: true,
-		});
-		if (!Array.isArray(result)) return result;
-		const { dps, hps, threat, dtps, tmi } = result[1].raidMetrics!.parties[0].players[0];
-		const sample = ({ avg, stdev, aggregatorData }: DistributionMetrics): MetricSample => ({
-			avg,
-			stdev,
-			n: aggregatorData!.n,
-			sumSq: aggregatorData!.sumSq,
-		});
-		return { dps: sample(dps!), hps: sample(hps!), tps: sample(threat!), dtps: sample(dtps!), tmi: sample(tmi!) };
 	}
 
 	private requireRunnableSetup() {
@@ -340,21 +303,39 @@ export class Sim {
 		}
 	}
 
-	runSim(options: RunSimOptions & { raw: true }): Promise<[RaidSimRequest, RaidSimResult] | ErrorOutcome>;
-	runSim(options?: RunSimOptions & { raw?: false }): Promise<SimResult | ErrorOutcome>;
-	runSim(options: RunSimOptions = {}): Promise<SimResult | ErrorOutcome | [RaidSimRequest, RaidSimResult]> {
-		return this.runRaidSim(RequestTypes.IndividualSim, options);
-	}
-
-	private runRaidSim(type: RequestTypes, options: RunSimOptions & { raw: true }): Promise<[RaidSimRequest, RaidSimResult] | ErrorOutcome>;
-	private runRaidSim(type: RequestTypes, options: RunSimOptions): Promise<SimResult | ErrorOutcome | [RaidSimRequest, RaidSimResult]>;
-	private async runRaidSim(type: RequestTypes, options: RunSimOptions): Promise<SimResult | ErrorOutcome | [RaidSimRequest, RaidSimResult]> {
+	// Runs `run` registered as `type`, so an abort of that type or of every type reaches its signals.
+	private async runRegistered<T>(type: RequestTypes, run: (signals: SimSignals) => Promise<T>): Promise<T> {
 		this.requireRunnableSetup();
 
 		const signals = this.signalManager.registerRunning(type);
 		try {
 			await this.waitForInit();
+			return await run(signals);
+		} catch (error) {
+			if (error instanceof SimError) throw error;
+			console.error(error);
+			throw new Error('Something went wrong running your sim. Reload the page and try again.');
+		} finally {
+			this.signalManager.unregisterRunning(signals);
+		}
+	}
 
+	// An aborted run comes back with its error set; any other error throws.
+	private async simulate(request: RaidSimRequest, onProgress: WorkerProgressCallback, signals: SimSignals): Promise<RaidSimResult> {
+		// Only use worker based concurrency when running wasm (local sim has native threading),
+		// and never for a lone iteration, which has nothing to split.
+		const result =
+			request.simOptions!.iterations > 1 && (await this.shouldUseWasmConcurrency())
+				? await runConcurrentSim(request, this.workerPool, onProgress, signals)
+				: await this.workerPool.raidSimAsync(request, onProgress, signals);
+		if (result.error && result.error.type == ErrorOutcomeType.ErrorOutcomeError) throw new SimError(result.error.message);
+		return result;
+	}
+
+	runSim(options: RunSimOptions & { raw: true }): Promise<[RaidSimRequest, RaidSimResult] | ErrorOutcome>;
+	runSim(options?: RunSimOptions & { raw?: false }): Promise<SimResult | ErrorOutcome>;
+	runSim(options: RunSimOptions = {}): Promise<SimResult | ErrorOutcome | [RaidSimRequest, RaidSimResult]> {
+		return this.runRegistered(RequestTypes.IndividualSim, async (signals): Promise<SimResult | ErrorOutcome | [RaidSimRequest, RaidSimResult]> => {
 			const request = this.makeRaidSimRequest(options);
 			const player = request.raid!.parties[0].players[0];
 
@@ -366,18 +347,8 @@ export class Sim {
 				if (player.consumables) player.consumables = gear.adjustImbues(player.consumables);
 			}
 
-			const onProgress = options.onProgress ?? noop;
-			// Only use worker based concurrency when running wasm (local sim has native threading),
-			// and never for a lone iteration, which has nothing to split.
-			const result =
-				request.simOptions!.iterations > 1 && (await this.shouldUseWasmConcurrency())
-					? await runConcurrentSim(request, this.workerPool, onProgress, signals)
-					: await this.workerPool.raidSimAsync(request, onProgress, signals);
-
-			if (result.error) {
-				if (result.error.type != ErrorOutcomeType.ErrorOutcomeError) return result.error;
-				throw new SimError(result.error.message);
-			}
+			const result = await this.simulate(request, options.onProgress ?? noop, signals);
+			if (result.error) return result.error;
 
 			if (options.raw) return [request, result];
 
@@ -386,13 +357,12 @@ export class Sim {
 				this.simResultEmitter.emit(simResult);
 			}
 			return simResult;
-		} catch (error) {
-			if (error instanceof SimError) throw error;
-			console.error(error);
-			throw new Error('Something went wrong running your sim. Reload the page and try again.');
-		} finally {
-			this.signalManager.unregisterRunning(signals);
-		}
+		});
+	}
+
+	// Runs a request built by makeRaidSimRequest as `type`, emitting no result. An aborted run comes back with its error set.
+	runRaidSimRequest(request: RaidSimRequest, type: RequestTypes, onProgress: WorkerProgressCallback): Promise<RaidSimResult> {
+		return this.runRegistered(type, signals => this.simulate(request, onProgress, signals));
 	}
 
 	// Normalizes gear for a sim/bulk/reforge request
@@ -518,52 +488,34 @@ export class Sim {
 
 	// Stats for a hypothetical gear set, without touching the player's own current stats or
 	// metadata. Used by the gear optimizer.
-	getCharacterStatsForGear(gear: Gear): Promise<PlayerStats> {
-		return this.computeEditedPlayerStats(
-			raidProto => {
-				const player = raidProto.parties[0].players[0];
-				player.database = gear.toDatabase(this.db);
-				addPartyBuffItems(player.database, this.db, raidProto.parties[0].buffs);
-				player.equipment = gear.asSpec();
-				extendPlayerProtoWithMissingEffects(player, this.db);
-			},
-			error => this.crashEmitter.emit(error),
-		);
-	}
-
-	// The first player's final stats with `bonusStats` added to its bonus stats, without touching its current stats or
-	// metadata. Used by the stat sweep to place each step at the stat's total.
-	async getFinalStatsWithBonus(bonusStats: Stats): Promise<Stats> {
-		const playerStats = await this.computeEditedPlayerStats(
-			raidProto => {
-				const player = raidProto.parties[0].players[0];
-				player.bonusStats = Stats.fromProto(player.bonusStats).add(bonusStats).toProto();
-			},
-			error => {
-				throw error;
-			},
-		);
-		return Stats.fromProto(playerStats.finalStats);
-	}
-
-	// The first player's stats on a copy of the raid that `edit` changes. An error result goes to `onError`.
-	private async computeEditedPlayerStats(edit: (raidProto: RaidProto) => void, onError: (error: SimError) => void): Promise<PlayerStats> {
+	async getCharacterStatsForGear(gear: Gear): Promise<PlayerStats> {
 		await this.waitForInit();
 
 		const raidProto = this.getModifiedRaidProto();
-		edit(raidProto);
+		const player = raidProto.parties[0].players[0];
+		player.database = gear.toDatabase(this.db);
+		addPartyBuffItems(player.database, this.db, raidProto.parties[0].buffs);
+		player.equipment = gear.asSpec();
+		extendPlayerProtoWithMissingEffects(player, this.db);
 
-		const result = await this.workerPool.computeStats(
+		const result = await this.computeRaidStats(raidProto);
+		if (result.errorResult != '') {
+			this.crashEmitter.emit(new SimError(result.errorResult));
+		}
+
+		return result.raidStats!.parties[0].players[0];
+	}
+
+	// The stats of `raidProto`, a raid from getModifiedRaidProto() the caller has edited, without touching the players' own
+	// current stats or metadata. An error comes back in `errorResult` for the caller to raise.
+	async computeRaidStats(raidProto: RaidProto): Promise<ComputeStatsResult> {
+		await this.waitForInit();
+		return this.workerPool.computeStats(
 			ComputeStatsRequest.create({
 				raid: raidProto,
 				encounter: this.encounter.toProto(),
 			}),
 		);
-		if (result.errorResult != '') {
-			onError(new SimError(result.errorResult));
-		}
-
-		return result.raidStats!.parties[0].players[0];
 	}
 
 	// This should be invoked internally whenever stats might have changed.
@@ -779,7 +731,7 @@ export class Sim {
 
 	static MAX_RNG_SEED = Math.pow(2, 32) - 1;
 	// Never 0: the sim replaces a 0 seed with the clock, so a seed shared by several requests would not hold.
-	nextRngSeed(): number {
+	private nextRngSeed(): number {
 		let rngSeed = 0;
 		if (this.getFixedRngSeed()) {
 			rngSeed = this.getFixedRngSeed();

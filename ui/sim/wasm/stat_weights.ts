@@ -1,5 +1,4 @@
 import {
-	DistributionMetrics,
 	ErrorOutcome,
 	ErrorOutcomeType,
 	ProgressMetrics,
@@ -66,11 +65,6 @@ const addPairs = (side: StatWeightsSidePairs, pass: StatWeightsSidePairs) => {
 	}
 };
 
-const baseDps = (result: RaidSimResult) => {
-	const { avg, stdev, aggregatorData } = firstPlayer(result).dps!;
-	return DistributionMetrics.create({ avg, stdev, aggregatorData });
-};
-
 export const runConcurrentStatWeights = async (
 	request: StatWeightsRequest,
 	workerPool: WorkerPool,
@@ -83,12 +77,12 @@ export const runConcurrentStatWeights = async (
 
 	const newRaidSimRequestId = () => generateRequestId(SimRequest.raidSimAsync);
 
+	const aborted = () => makeAndSendWeightsError(ErrorOutcome.create({ type: ErrorOutcomeType.ErrorOutcomeAborted }), onProgress);
+
 	const manualResponse = await workerPool.statWeightRequests(request);
 	manualResponse.baseRequest!.requestId = newRaidSimRequestId();
 
-	if (signals.abort.isTriggered()) {
-		return makeAndSendWeightsError(ErrorOutcome.create({ type: ErrorOutcomeType.ErrorOutcomeAborted }), onProgress);
-	}
+	if (signals.abort.isTriggered()) return aborted();
 
 	let iterationsTotal = manualResponse.baseRequest!.simOptions!.iterations;
 	let iterationsDone = 0;
@@ -138,8 +132,7 @@ export const runConcurrentStatWeights = async (
 	};
 
 	const baseLine = await runReduced(manualResponse.baseRequest!, result => ({
-		values: runValues(result).map(values => values.slice()),
-		dps: baseDps(result),
+		values: runValues(result),
 		chanceOfDeath: firstPlayer(result).chanceOfDeath,
 	}));
 	if (baseLine.error) return makeAndSendWeightsError(baseLine.error, onProgress);
@@ -149,13 +142,14 @@ export const runConcurrentStatWeights = async (
 	const calcRequest = StatWeightsCalcRequest.create({
 		epReferenceStat: manualResponse.epReferenceStat,
 		hpsReferenceStat: manualResponse.hpsReferenceStat,
-		baseDps: [baseLine.value.dps],
+		probeIterations: baselineValues[0].length,
+		baselineIterations: baselineValues[0].length,
 		baseChanceOfDeath: baseLine.value.chanceOfDeath,
 	});
 	const statPairs = new Map<number, StatWeightsStatPairs>();
 
 	for (const statReqData of manualResponse.statSimRequests) {
-		if (signals.abort.isTriggered()) return makeAndSendWeightsError(ErrorOutcome.create({ type: ErrorOutcomeType.ErrorOutcomeAborted }), onProgress);
+		if (signals.abort.isTriggered()) return aborted();
 
 		const pairs = StatWeightsStatPairs.create({ statData: statReqData.statData });
 		lastIterations = 0;
@@ -184,19 +178,22 @@ export const runConcurrentStatWeights = async (
 		// Iteration i runs at seed randomSeed + i, so a run continued at the seed after its last iteration
 		// repeats what one longer run would have simulated.
 		const continueRun = <T>(simRequest: RaidSimRequest, done: number, iterations: number, reduce: (result: RaidSimResult) => T) => {
-			const continued = RaidSimRequest.clone(simRequest);
-			continued.simOptions!.iterations = iterations;
-			continued.simOptions!.randomSeed = seed + BigInt(done);
-			continued.requestId = newRaidSimRequestId();
 			lastIterations = 0;
-			return runReduced(continued, reduce);
+			return runReduced(
+				{
+					...simRequest,
+					requestId: newRaidSimRequestId(),
+					simOptions: { ...simRequest.simOptions!, iterations, randomSeed: seed + BigInt(done) },
+				},
+				reduce,
+			);
 		};
 
 		for (let passes = 0; ; passes++) {
 			const plan = await workerPool.statWeightTopUpPlan(StatWeightsTopUpRequest.create({ calc: calcRequest, target: request.target, passes }));
 			if (!plan.stats.length) break;
 
-			const baselineIterations = baselineValues[0].length;
+			const baselineIterations = calcRequest.baselineIterations;
 			const baselineDelta = plan.baselineIterations - baselineIterations;
 			if (baselineDelta > 0) {
 				iterationsTotal += baselineDelta;
@@ -209,21 +206,18 @@ export const runConcurrentStatWeights = async (
 			}
 
 			if (baselineDelta > 0) {
-				if (signals.abort.isTriggered())
-					return makeAndSendWeightsError(ErrorOutcome.create({ type: ErrorOutcomeType.ErrorOutcomeAborted }), onProgress);
+				if (signals.abort.isTriggered()) return aborted();
 				const base = await continueRun(baseRequest, baselineIterations, baselineDelta, result => {
 					runValues(result).forEach((values, metric) => {
 						for (const value of values) baselineValues[metric].push(value);
 					});
-					return baseDps(result);
 				});
 				if (base.error) return makeAndSendWeightsError(base.error, onProgress);
-				calcRequest.baseDps.push(base.value);
+				calcRequest.baselineIterations = baselineValues[0].length;
 			}
 
 			for (const planned of plan.stats) {
-				if (signals.abort.isTriggered())
-					return makeAndSendWeightsError(ErrorOutcome.create({ type: ErrorOutcomeType.ErrorOutcomeAborted }), onProgress);
+				if (signals.abort.isTriggered()) return aborted();
 
 				const statReqData = statRequests.get(planned.unitStat)!;
 				const pairs = statPairs.get(planned.unitStat)!;

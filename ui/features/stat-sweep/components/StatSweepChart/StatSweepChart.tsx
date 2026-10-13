@@ -36,11 +36,13 @@ export interface StatSweepChartProps {
 
 type SweepDatum = { x: number; y: number; stdev: number; point: StatSweepPoint; statLabel: string; capped: boolean };
 
+// `id` is `${run.id}:${role}`, by which the chart keeps each dataset's state across updates.
+type SweepDataset = ChartDataset<'line', SweepDatum[]> & { id: string; role: 'upper' | 'lower' | 'line'; runId: string };
+
 // Each run draws the band's upper edge, its lower edge, then the metric's line. Upper fills down to the next dataset, so the order is load-bearing.
 // The band is one standard deviation of a single fight's value either side of the average, the spread the sim card's ± reports.
 // Without the band a run draws its line alone.
-const datasetsPerRun = (showSpread: boolean) => (showSpread ? 3 : 1);
-const isLine = (datasetIndex: number, showSpread: boolean) => datasetIndex % datasetsPerRun(showSpread) === datasetsPerRun(showSpread) - 1;
+const isLine = (dataset: object) => (dataset as SweepDataset).role === 'line';
 // The x range reaches this share of its span past the outermost value, so the end points draw whole inside the plot.
 const X_RANGE_PAD = 0.03;
 const BAND_ALPHA = '2e';
@@ -67,9 +69,9 @@ const cardMetric = (metric: StatSweepMetric, average: number, stdev = 0): Result
 const formatValue = (metric: StatSweepMetric, average: number) => formatAverage(cardMetric(metric, average), 'list');
 const formatError = (metric: StatSweepMetric, stdev: number) => formatStdev(cardMetric(metric, 0, stdev), 'list');
 
-function datasets(series: ReadonlyArray<StatSweepSeries>, metric: StatSweepMetric, showSpread: boolean): Array<ChartDataset<'line', SweepDatum[]>> {
+function datasets(series: ReadonlyArray<StatSweepSeries>, metric: StatSweepMetric, showSpread: boolean): SweepDataset[] {
 	const surface = cssVarColor('--color-background');
-	return series.flatMap(run => {
+	return series.flatMap((run): SweepDataset[] => {
 		const color = seriesColor(run.colorSlot);
 		const at = (sign: number) =>
 			run.points.map(point => {
@@ -84,16 +86,20 @@ function datasets(series: ReadonlyArray<StatSweepSeries>, metric: StatSweepMetri
 			borderDash: [4, 3],
 			borderColor: color + BAND_EDGE_ALPHA,
 			label: run.label,
+			runId: run.id,
 		};
-		const band: Array<ChartDataset<'line', SweepDatum[]>> = showSpread
+		const band: SweepDataset[] = showSpread
 			? [
-					{ ...edge, data: at(1), backgroundColor: color + BAND_ALPHA, fill: '+1' },
-					{ ...edge, data: at(-1), fill: false },
+					{ ...edge, id: `${run.id}:upper`, role: 'upper', data: at(1), backgroundColor: color + BAND_ALPHA, fill: '+1' },
+					{ ...edge, id: `${run.id}:lower`, role: 'lower', data: at(-1), fill: false },
 				]
 			: [];
 		return [
 			...band,
 			{
+				id: `${run.id}:line`,
+				role: 'line',
+				runId: run.id,
 				label: run.label,
 				data: at(0),
 				borderColor: color,
@@ -150,8 +156,9 @@ const markerPlugin: Plugin<'line'> = {
 
 const PLUGINS = [markerPlugin];
 
-function options(series: ReadonlyArray<StatSweepSeries>, metric: StatSweepMetric, showSpread: boolean): ChartOptions<'line'> {
+function options(series: ReadonlyArray<StatSweepSeries>, metric: StatSweepMetric): ChartOptions<'line'> {
 	const range = xRange(series);
+	const runs = new Map(series.map(run => [run.id, run]));
 	return {
 		animation: false,
 		responsive: true,
@@ -169,11 +176,11 @@ function options(series: ReadonlyArray<StatSweepSeries>, metric: StatSweepMetric
 					// The default items take their stroke from the point border, which is the surface colour, so the swatch would vanish.
 					generateLabels: chart =>
 						chart.data.datasets.flatMap((dataset, datasetIndex) => {
-							if (!isLine(datasetIndex, showSpread)) return [];
-							const color = (dataset as ChartDataset<'line'>).borderColor as string;
+							if (!isLine(dataset)) return [];
+							const color = (dataset as SweepDataset).borderColor as string;
 							return [
 								{
-									text: runLabel(series[Math.floor(datasetIndex / datasetsPerRun(showSpread))]),
+									text: runLabel(runs.get((dataset as SweepDataset).runId)!),
 									datasetIndex,
 									fillStyle: color,
 									strokeStyle: color,
@@ -187,7 +194,7 @@ function options(series: ReadonlyArray<StatSweepSeries>, metric: StatSweepMetric
 				},
 			},
 			tooltip: {
-				filter: item => isLine(item.datasetIndex, showSpread),
+				filter: item => isLine(item.dataset),
 				callbacks: {
 					// One line per distinct stat total, so runs of one stat from one base value share a line.
 					title: items =>
@@ -227,13 +234,12 @@ function options(series: ReadonlyArray<StatSweepSeries>, metric: StatSweepMetric
 
 export const StatSweepChart = ({ series, metric, metrics, onMetricChange, showSpread, onShowSpreadChange }: StatSweepChartProps) => {
 	const data = useMemo(() => ({ datasets: datasets(series, metric, showSpread) }) satisfies ChartData<'line', SweepDatum[]>, [series, metric, showSpread]);
-	const chartOptions = useMemo(() => options(series, metric, showSpread), [series, metric, showSpread]);
+	const chartOptions = useMemo(() => options(series, metric), [series, metric]);
 	const metricOptions = useMemo(() => metrics.map(value => ({ value, label: metricLabel(value) })), [metrics]);
 	const hasPoints = series.some(run => run.points.length);
 	const label = metricLabel(metric);
 
 	// The empty text sits in the chart's box, so the first point does not resize the dialog.
-	// The chart remounts with the band: it pairs datasets by label, so a line would inherit the dashed edge it replaces.
 	return (
 		<figure className="m-0 flex min-h-0 min-w-0 flex-1 flex-col gap-2">
 			<div className="flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -256,7 +262,7 @@ export const StatSweepChart = ({ series, metric, metrics, onMetricChange, showSp
 			</div>
 			<div className="relative flex min-h-112 w-full min-w-0 flex-1 items-center justify-center lg:min-h-64">
 				{hasPoints ? (
-					<Line key={String(showSpread)} data={data} options={chartOptions} plugins={PLUGINS} />
+					<Line datasetIdKey="id" data={data} options={chartOptions} plugins={PLUGINS} />
 				) : (
 					<p className="mb-0 text-muted">{t('empty', { metric: label })}</p>
 				)}

@@ -192,22 +192,19 @@ export interface ReforgeSlice {
 	v: Record<ReforgeField, number>;
 }
 
-// A fixed iteration count, or simulating each stat until its shown EP ± reaches a target.
-export type EpPrecisionMode = 'iterations' | 'target';
+// A fixed iteration count, or simulating each EP stat or sweep step until its ± reaches a target.
+export type PrecisionMode = 'iterations' | 'target';
 
 // Stat-weight modal settings, one slice per player (keyed by storeKey).
 export interface StatWeightsSlice {
 	excludedStats: Array<number>;
 	excludedPseudoStats: Array<number>;
-	precisionMode: EpPrecisionMode;
+	precisionMode: PrecisionMode;
 	iterations: number; // 0 runs the global sim iteration count.
-	targetEpCi: number;
+	targetCi: number; // The 90% ± of each EP to reach.
 	maxIterationMultiplier: number; // Caps a stat's iterations at this multiple of the probe count; 0 means no cap.
 	v: { settings: number };
 }
-
-// A fixed iteration count, or simulating each step until the ± of the run's metric reaches a target.
-export type StatSweepPrecisionMode = 'iterations' | 'target';
 
 // The metrics a stat sweep records at every step.
 export type StatSweepMetric = 'dps' | 'hps' | 'tps' | 'dtps' | 'tmi';
@@ -219,7 +216,7 @@ export interface StatSweepSlice {
 	step: number;
 	metric: StatSweepMetric; // Plotted when offered, else DPS; a run's Target ± follows the one plotted when it starts.
 	showSpread: boolean; // Shades ± 1 standard deviation around each line.
-	precisionMode: StatSweepPrecisionMode;
+	precisionMode: PrecisionMode;
 	iterations: number; // 0 runs the global sim iteration count.
 	targetCi: number; // In the units of the run's metric.
 	maxIterationMultiplier: number; // Caps a step's iterations at this multiple of its first pass; 0 means no cap.

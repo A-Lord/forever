@@ -10,6 +10,7 @@ import { useSimStore } from '@sim/hooks/useSimStore';
 import { useStatWeights } from '@sim/hooks/useStatWeights';
 import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
 import { Stats } from '@sim/proto/stats';
+import { precisionRunnable } from '@sim/settings/precision';
 import type { StatWeightActionSettings } from '@sim/settings/stat_weight_settings';
 import { subscribePlayerField, subscribeStatWeightsChange } from '@sim/state/subscriptions';
 import { Button } from '@ui-kit/Button';
@@ -33,13 +34,15 @@ import {
 } from '../../model/ep_math';
 import { epFilterScope } from '../../model/ep_unit_stats';
 import { statsTableColumns } from '../../model/stats_table';
-import { EpPrecisionOptions } from '../EpPrecisionOptions/EpPrecisionOptions';
+import { PrecisionOptions } from '../PrecisionOptions';
 import { SavedEpWeights } from '../SavedEpWeights';
 import { EpReferenceOptions } from './EpReferenceOptions';
 import { EpWeightsOptions } from './EpWeightsOptions';
 import { EpWeightsTable } from './EpWeightsTable';
 import { StatsType } from './types';
 import { buildEpColumns, EP_TOOLTIP_ID } from './utils';
+
+const precisionText = (key: string) => i18n.t(`sidebar.buttons.stat_weights.precision.${key}`);
 
 const trackerProgress = (metrics: ProgressMetrics): ProgressTrackerProgress => ({
 	title: `${metrics.completedSims} / ${metrics.totalSims} ${i18n.t('sidebar.buttons.stat_weights.modal.progress.simulations_complete')}`,
@@ -188,10 +191,7 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 			footer={
 				// A gear planner keeps the editor and drops the calculation: there is no sim to run it on.
 				host.simDisabled ? undefined : (
-					<Button
-						data-testid="calc-weights"
-						disabled={isRunning || (precision.precisionMode === 'target' && !(precision.targetEpCi > 0))}
-						onClick={() => void onCalculate()}>
+					<Button data-testid="calc-weights" disabled={isRunning || !precisionRunnable(precision)} onClick={() => void onCalculate()}>
 						<Icon name="calculator" />
 						{i18n.t('sidebar.buttons.stat_weights.modal.calculate')}
 					</Button>
@@ -238,10 +238,16 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 							{!editOnly && (
 								<>
 									<EpReferenceOptions epStats={epStats} epReferenceStat={epReferenceStat} displayMetrics={displayMetrics} />
-									<EpPrecisionOptions
+									<PrecisionOptions
 										value={precision}
 										onChange={patch => settings.setPrecision(patch)}
 										defaultIterations={defaultIterations}
+										idPrefix="ep-precision"
+										targetLabel={precisionText('target_ci')}
+										targetTooltip={precisionText('target_ci_tooltip')}
+										iterationsTooltip={precisionText('iterations_tooltip')}
+										maxMultiplierTooltip={precisionText('max_multiplier_tooltip')}
+										maxDecimalDigits={4}
 										disabled={isRunning}
 									/>
 								</>

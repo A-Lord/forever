@@ -1,4 +1,4 @@
-import { SavedStatSweepSettings, StatSweepMetric as SavedMetric, StatSweepPrecisionMode as SavedPrecisionMode } from '@generated/proto/ui';
+import { SavedStatSweepSettings, StatSweepMetric as SavedMetric } from '@generated/proto/ui';
 
 import { CURRENT_API_VERSION } from '../constants/other';
 import type { Player } from '../player/player';
@@ -6,12 +6,10 @@ import { UnitStat } from '../proto/stats';
 import type { Env } from '../state/env';
 import { patchKeyed, seedKeyed, type SimStore, type StatSweepMetric, type StatSweepSlice } from '../state/sim_store';
 import { subscribeStatSweepChange } from '../state/subscriptions';
+import { arrayEquals, equalsOrBothNull, isUnchangedPatch } from '../utils/collections';
+import { precisionModeFromProto, precisionModeToProto } from './precision';
 
-export type StatSweepSetup = Pick<StatSweepSlice, 'stats' | 'range' | 'step'>;
-
-export type StatSweepPrecision = Pick<StatSweepSlice, 'precisionMode' | 'iterations' | 'targetCi' | 'maxIterationMultiplier'>;
-
-type StatSweepValues = Omit<StatSweepSlice, 'v'>;
+export type StatSweepValues = Omit<StatSweepSlice, 'v'>;
 
 const DEFAULTS: StatSweepValues = {
 	stats: null,
@@ -46,14 +44,14 @@ const fromProto = (saved: SavedStatSweepSettings): StatSweepValues => {
 		step: saved.step || DEFAULTS.step,
 		metric: metricFromProto(saved.metric),
 		showSpread: !saved.hideSpread,
-		precisionMode: saved.precisionMode === SavedPrecisionMode.StatSweepPrecisionModeTarget ? 'target' : 'iterations',
+		precisionMode: precisionModeFromProto(saved.precisionMode),
 		iterations: saved.iterations,
 		targetCi: saved.targetCi || DEFAULTS.targetCi,
 		maxIterationMultiplier: saved.maxIterationMultiplier,
 	};
 };
 
-const sameStats = (a: UnitStat[] | null, b: UnitStat[] | null) => (a && b ? a.length === b.length && a.every((stat, index) => stat.equals(b[index])) : a === b);
+const sameStats = (a: UnitStat[] | null, b: UnitStat[] | null) => equalsOrBothNull(a, b, (a, b) => arrayEquals(a, b, (x, y) => x.equals(y)));
 
 // Stat sweep settings. Values live in the sim store (`statSweep[player.storeKey]`) with a version counter; persists itself
 // to localStorage on every change.
@@ -75,55 +73,18 @@ export class StatSweepSettings {
 		});
 	}
 
-	private get slice(): StatSweepSlice {
-		return this.store.getState().statSweep[this.storeKey];
-	}
-
 	private write(patch: Partial<StatSweepValues>) {
 		patchKeyed(this.store, 'statSweep', this.storeKey, patch, ['settings']);
 	}
 
-	private update(patch: Partial<StatSweepValues>) {
-		const current = this.slice;
-		const unchanged = (Object.keys(patch) as Array<keyof StatSweepValues>).every(key =>
-			key === 'stats' ? sameStats(patch.stats ?? null, current.stats) : patch[key] === current[key],
-		);
-		if (!unchanged) this.write(patch);
+	/** The stored values; the dialog plots the stored metric only while the display settings offer it. */
+	get values(): StatSweepValues {
+		const { v: _, ...values } = this.store.getState().statSweep[this.storeKey];
+		return values;
 	}
 
-	get setup(): StatSweepSetup {
-		const { stats, range, step } = this.slice;
-		return { stats, range, step };
-	}
-
-	setSetup(patch: Partial<StatSweepSetup>) {
-		this.update(patch);
-	}
-
-	/** The stored pick, which the dialog plots only while the display settings offer it. */
-	get metric(): StatSweepMetric {
-		return this.slice.metric;
-	}
-
-	setMetric(metric: StatSweepMetric) {
-		this.update({ metric });
-	}
-
-	get showSpread(): boolean {
-		return this.slice.showSpread;
-	}
-
-	setShowSpread(showSpread: boolean) {
-		this.update({ showSpread });
-	}
-
-	get precision(): StatSweepPrecision {
-		const { precisionMode, iterations, targetCi, maxIterationMultiplier } = this.slice;
-		return { precisionMode, iterations, targetCi, maxIterationMultiplier };
-	}
-
-	setPrecision(patch: Partial<StatSweepPrecision>) {
-		this.update(patch);
+	set(patch: Partial<StatSweepValues>) {
+		if (!isUnchangedPatch(this.values, patch, { stats: sameStats })) this.write(patch);
 	}
 
 	applyDefaults() {
@@ -138,7 +99,7 @@ export class StatSweepSettings {
 	}
 
 	toProto(): SavedStatSweepSettings {
-		const { stats, range, step, metric, showSpread, precisionMode, iterations, targetCi, maxIterationMultiplier } = this.slice;
+		const { stats, range, step, metric, showSpread, precisionMode, iterations, targetCi, maxIterationMultiplier } = this.values;
 		return SavedStatSweepSettings.create({
 			apiVersion: CURRENT_API_VERSION,
 			stats: stats?.map(stat => stat.toProto()) ?? [],
@@ -146,7 +107,7 @@ export class StatSweepSettings {
 			step,
 			metric: SAVED_METRICS[metric],
 			hideSpread: !showSpread,
-			precisionMode: precisionMode === 'target' ? SavedPrecisionMode.StatSweepPrecisionModeTarget : SavedPrecisionMode.StatSweepPrecisionModeIterations,
+			precisionMode: precisionModeToProto(precisionMode),
 			iterations,
 			targetCi,
 			maxIterationMultiplier,

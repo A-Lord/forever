@@ -7,7 +7,7 @@ import { Button } from '@ui-kit/Button';
 import { Icon } from '@ui-kit/Icon';
 import { Popover } from '@ui-kit/Popover';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
-import { type ReactNode, useId, useMemo, useState } from 'react';
+import { type ReactNode, useId, useMemo } from 'react';
 
 import { useOpenFilterGroups } from '../../hooks/useOpenFilterGroups';
 import { type FilterGroupKey, filterGroupsOf, filterLabelsOf } from '../../model/stat_groups';
@@ -118,7 +118,6 @@ export interface FilterPopoverProps {
 
 export const FilterPopover = ({ ariaLabel, title, triggerClassName, triggerTestId, testId, customised, onOpenChange, children }: FilterPopoverProps) => {
 	const tooltipId = useId();
-	const [trigger, setTrigger] = useState<HTMLButtonElement | null>(null);
 	return (
 		<>
 			<Popover
@@ -126,7 +125,6 @@ export const FilterPopover = ({ ariaLabel, title, triggerClassName, triggerTestI
 				trigger={<Icon name="filter" />}
 				triggerRender={
 					<Button
-						ref={setTrigger}
 						variant="link"
 						size="sm"
 						data-customised={customised ? '' : undefined}
@@ -138,8 +136,6 @@ export const FilterPopover = ({ ariaLabel, title, triggerClassName, triggerTestI
 				triggerProps={{ 'aria-label': ariaLabel, ...tooltipAnchorProps(tooltipId) }}
 				side="bottom"
 				align="end"
-				// The popup is portaled out of the dialog the trigger sits in, so only this keeps it inside that dialog.
-				collisionBoundary={trigger?.closest('[role="dialog"]') ?? undefined}
 				backdrop
 				title={title}
 				className="w-80 lg:max-h-filter-popover-max-h"

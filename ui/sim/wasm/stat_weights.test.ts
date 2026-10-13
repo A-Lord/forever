@@ -136,7 +136,7 @@ describe('runConcurrentStatWeights', () => {
 		const calcRequest = vi.mocked(pool.statWeightCompute).mock.calls[0][0];
 		expect(calcRequest.statPairs[0].low).toEqual(expectedPairs(100, -10, 0));
 		expect(calcRequest.statPairs[0].high).toEqual(expectedPairs(100, 10, 0));
-		expect(calcRequest.baseDps.map(dps => dps.aggregatorData!.n)).toEqual([100]);
+		expect([calcRequest.probeIterations, calcRequest.baselineIterations]).toEqual([100, 100]);
 		expect(carriesPerIterationValues(calcRequest)).toBe(false);
 	});
 
@@ -192,7 +192,7 @@ describe('runConcurrentStatWeights', () => {
 			const probeChanceOfDeath = Number(seed) / 1000;
 			expect(calcRequest.statPairs[0].low).toEqual(expectedPairs(2 * probe, -10, probeChanceOfDeath));
 			expect(calcRequest.statPairs[0].high).toEqual(expectedPairs(2 * probe, 10, probeChanceOfDeath));
-			expect(calcRequest.baseDps.map(dps => dps.aggregatorData!.n)).toEqual([probe, 2 * probe]);
+			expect([calcRequest.probeIterations, calcRequest.baselineIterations]).toEqual([probe, 3 * probe]);
 			expect(calcRequest.baseChanceOfDeath).toBe(probeChanceOfDeath);
 
 			const last = progress.filter(pm => !pm.finalWeightResult).at(-1)!;
@@ -215,7 +215,7 @@ describe('runConcurrentStatWeights', () => {
 			const calcRequest = vi.mocked(pool.statWeightCompute).mock.calls[0][0];
 			expect(calcRequest.statPairs[0].low).toEqual(expectedPairs(3 * probe, -10, Number(seed) / 1000));
 			expect(calcRequest.statPairs[0].high).toEqual(expectedPairs(3 * probe, 10, Number(seed) / 1000));
-			expect(calcRequest.baseDps.map(dps => dps.aggregatorData!.n)).toEqual([probe, 2 * probe]);
+			expect([calcRequest.probeIterations, calcRequest.baselineIterations]).toEqual([probe, 3 * probe]);
 		});
 
 		it('sends no per-iteration values to the worker', async () => {

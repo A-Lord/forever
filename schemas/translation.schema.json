@@ -1057,6 +1057,19 @@
 						"toggle_item"
 					]
 				},
+				"precision": {
+					"type": "object",
+					"properties": {
+						"label": { "type": "string" },
+						"mode_iterations": { "type": "string" },
+						"mode_target": { "type": "string" },
+						"iterations": { "type": "string" },
+						"max_multiplier": { "type": "string" },
+						"max_multiplier_none": { "type": "string" }
+					},
+					"additionalProperties": false,
+					"required": ["label", "mode_iterations", "mode_target", "iterations", "max_multiplier", "max_multiplier_none"]
+				},
 				"preset": {
 					"type": "object",
 					"properties": {
@@ -1156,6 +1169,7 @@
 				"currency",
 				"copy_button",
 				"list_picker",
+				"precision",
 				"preset"
 			]
 		},
@@ -8830,30 +8844,13 @@
 								"precision": {
 									"type": "object",
 									"properties": {
-										"label": { "type": "string" },
-										"mode_iterations": { "type": "string" },
-										"mode_target": { "type": "string" },
-										"iterations": { "type": "string" },
 										"iterations_tooltip": { "type": "string" },
-										"target_ep_ci": { "type": "string" },
-										"target_ep_ci_tooltip": { "type": "string" },
-										"max_multiplier": { "type": "string" },
-										"max_multiplier_tooltip": { "type": "string" },
-										"max_multiplier_none": { "type": "string" }
+										"target_ci": { "type": "string" },
+										"target_ci_tooltip": { "type": "string" },
+										"max_multiplier_tooltip": { "type": "string" }
 									},
 									"additionalProperties": false,
-									"required": [
-										"label",
-										"mode_iterations",
-										"mode_target",
-										"iterations",
-										"iterations_tooltip",
-										"target_ep_ci",
-										"target_ep_ci_tooltip",
-										"max_multiplier",
-										"max_multiplier_tooltip",
-										"max_multiplier_none"
-									]
+									"required": ["iterations_tooltip", "target_ci", "target_ci_tooltip", "max_multiplier_tooltip"]
 								}
 							},
 							"additionalProperties": false,
@@ -8908,30 +8905,13 @@
 								"precision": {
 									"type": "object",
 									"properties": {
-										"label": { "type": "string" },
-										"mode_iterations": { "type": "string" },
-										"mode_target": { "type": "string" },
-										"iterations": { "type": "string" },
 										"iterations_tooltip": { "type": "string" },
 										"target_ci": { "type": "string" },
 										"target_ci_tooltip": { "type": "string" },
-										"max_multiplier": { "type": "string" },
-										"max_multiplier_tooltip": { "type": "string" },
-										"max_multiplier_none": { "type": "string" }
+										"max_multiplier_tooltip": { "type": "string" }
 									},
 									"additionalProperties": false,
-									"required": [
-										"label",
-										"mode_iterations",
-										"mode_target",
-										"iterations",
-										"iterations_tooltip",
-										"target_ci",
-										"target_ci_tooltip",
-										"max_multiplier",
-										"max_multiplier_tooltip",
-										"max_multiplier_none"
-									]
+									"required": ["iterations_tooltip", "target_ci", "target_ci_tooltip", "max_multiplier_tooltip"]
 								}
 							},
 							"additionalProperties": false,

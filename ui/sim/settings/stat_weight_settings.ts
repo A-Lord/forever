@@ -1,5 +1,5 @@
 import { PseudoStat, Stat } from '@generated/proto/common';
-import { EpPrecisionMode as SavedEpPrecisionMode, SavedStatWeightSettings } from '@generated/proto/ui';
+import { SavedStatWeightSettings } from '@generated/proto/ui';
 
 import { CURRENT_API_VERSION } from '../constants/other';
 import type { Player } from '../player/player';
@@ -7,16 +7,16 @@ import { UnitStat } from '../proto/stats';
 import type { Env } from '../state/env';
 import { patchKeyed, seedKeyed, SimStore, StatWeightsSlice } from '../state/sim_store';
 import { subscribeStatWeightsChange } from '../state/subscriptions';
+import { isUnchangedPatch } from '../utils/collections';
+import { precisionModeFromProto, precisionModeToProto, type PrecisionSettings } from './precision';
 
-export type EpPrecisionSettings = Pick<StatWeightsSlice, 'precisionMode' | 'iterations' | 'targetEpCi' | 'maxIterationMultiplier'>;
-
-const PRECISION_DEFAULTS: EpPrecisionSettings = { precisionMode: 'iterations', iterations: 0, targetEpCi: 0.01, maxIterationMultiplier: 0 };
+const PRECISION_DEFAULTS: PrecisionSettings = { precisionMode: 'iterations', iterations: 0, targetCi: 0.01, maxIterationMultiplier: 0 };
 
 // Proto3 cannot tell an unset field from 0, so a zero target reads as the default.
-const precisionFromProto = (saved: SavedStatWeightSettings): EpPrecisionSettings => ({
-	precisionMode: saved.precisionMode === SavedEpPrecisionMode.EpPrecisionModeTarget ? 'target' : 'iterations',
+const precisionFromProto = (saved: SavedStatWeightSettings): PrecisionSettings => ({
+	precisionMode: precisionModeFromProto(saved.precisionMode),
 	iterations: saved.iterations,
-	targetEpCi: saved.targetEpCi || PRECISION_DEFAULTS.targetEpCi,
+	targetCi: saved.targetCi || PRECISION_DEFAULTS.targetCi,
 	maxIterationMultiplier: saved.maxIterationMultiplier,
 });
 
@@ -63,15 +63,13 @@ export class StatWeightActionSettings {
 		return this.slice.excludedPseudoStats.slice();
 	}
 
-	get precision(): EpPrecisionSettings {
-		const { precisionMode, iterations, targetEpCi, maxIterationMultiplier } = this.slice;
-		return { precisionMode, iterations, targetEpCi, maxIterationMultiplier };
+	get precision(): PrecisionSettings {
+		const { precisionMode, iterations, targetCi, maxIterationMultiplier } = this.slice;
+		return { precisionMode, iterations, targetCi, maxIterationMultiplier };
 	}
 
-	setPrecision(patch: Partial<EpPrecisionSettings>) {
-		const current = this.precision;
-		if ((Object.keys(patch) as Array<keyof EpPrecisionSettings>).every(key => patch[key] === current[key])) return;
-		this.write(patch);
+	setPrecision(patch: Partial<PrecisionSettings>) {
+		if (!isUnchangedPatch(this.precision, patch)) this.write(patch);
 	}
 
 	applyDefaults() {
@@ -91,14 +89,14 @@ export class StatWeightActionSettings {
 	}
 
 	toProto(): SavedStatWeightSettings {
-		const { precisionMode, iterations, targetEpCi, maxIterationMultiplier } = this.precision;
+		const { precisionMode, iterations, targetCi, maxIterationMultiplier } = this.precision;
 		return SavedStatWeightSettings.create({
 			apiVersion: CURRENT_API_VERSION,
 			excludedStats: this.excludedStats,
 			excludedPseudoStats: this.excludedPseudoStats,
-			precisionMode: precisionMode === 'target' ? SavedEpPrecisionMode.EpPrecisionModeTarget : SavedEpPrecisionMode.EpPrecisionModeIterations,
+			precisionMode: precisionModeToProto(precisionMode),
 			iterations,
-			targetEpCi,
+			targetCi,
 			maxIterationMultiplier,
 		});
 	}

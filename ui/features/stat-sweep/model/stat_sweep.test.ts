@@ -1,6 +1,5 @@
 import type { StatSweepRecord } from '@sim/cache/stat_sweep_history';
-import type { StatSweepPrecision } from '@sim/settings/stat_sweep_settings';
-import type { MetricSample, StatSweepSample } from '@sim/sim';
+import type { PrecisionSettings } from '@sim/settings/precision';
 import type { StatSweepMetric } from '@sim/state/sim_store';
 import { Z_90 } from '@sim/utils/math';
 import { describe, expect, it, vi } from 'vitest';
@@ -11,6 +10,7 @@ import {
 	displayColorSlots,
 	measureSweepStep,
 	mergeSweepHistory,
+	type MetricSample,
 	nextColorSlot,
 	offeredSweepMetrics,
 	runSweepStat,
@@ -18,9 +18,10 @@ import {
 	skipSweepSteps,
 	startSweepProgress,
 	statSweepCsv,
+	type StatSweepSample,
 	type StatSweepStepSample,
 	type SweepPassRunner,
-	sweepPrecisionRunnable,
+	sweepStepPosition,
 	sweepSteps,
 } from './stat_sweep';
 
@@ -49,7 +50,7 @@ const sweepSample = (iterations: number, stdevs: Partial<Record<StatSweepMetric,
 	tmi: flat(12, stdevs.tmi ?? 3, iterations),
 });
 
-const precision = (patch: Partial<StatSweepPrecision> = {}): StatSweepPrecision => ({
+const precision = (patch: Partial<PrecisionSettings> = {}): PrecisionSettings => ({
 	precisionMode: 'iterations',
 	iterations: 0,
 	targetCi: 1,
@@ -104,15 +105,6 @@ describe('sweepSteps', () => {
 
 	it('rounds float noise out of the totals', () => {
 		expect(sweepSteps([10], [0.1 + 0.2])).toEqual([{ offset: 10, statValue: 0.3 }]);
-	});
-});
-
-describe('sweepPrecisionRunnable', () => {
-	it('needs a target above 0 in Target ± mode only', () => {
-		expect(sweepPrecisionRunnable(precision({ precisionMode: 'target', targetCi: 0.5 }))).toBe(true);
-		expect(sweepPrecisionRunnable(precision({ precisionMode: 'target', targetCi: 0 }))).toBe(false);
-		expect(sweepPrecisionRunnable(precision({ precisionMode: 'target', targetCi: NaN }))).toBe(false);
-		expect(sweepPrecisionRunnable(precision({ targetCi: 0 }))).toBe(true);
 	});
 });
 
@@ -413,14 +405,15 @@ describe('advanceSweepProgress', () => {
 	it('counts the steps done plus the running step share of its expected iterations, and estimates the rest at the rate so far', () => {
 		const progress = advanceSweepProgress(startSweepProgress([4]), 1, 500, 1000, 30);
 
-		expect(progress).toMatchObject({ stat: 1, stats: 1, step: 2, steps: 4, completed: 1.5, totalSteps: 4, iterationsPerStep: 1000, secondsRemaining: 50 });
+		expect(progress).toEqual({ stepCounts: [4], running: 1, completed: 1.5, iterationsPerStep: 1000, secondsRemaining: 50 });
 	});
 
 	it("places a step counted across every stat at its stat and that stat's own step", () => {
 		const start = startSweepProgress([3, 2, 4]);
 
-		expect(advanceSweepProgress(start, 5, 500, 1000, 55)).toMatchObject({ stat: 3, step: 1, steps: 4, completed: 5.5, secondsRemaining: 35 });
-		expect(advanceSweepProgress(start, 4, 0, 1000, 1)).toMatchObject({ stat: 2, step: 2, steps: 2 });
+		expect(advanceSweepProgress(start, 5, 500, 1000, 55)).toMatchObject({ running: 5, completed: 5.5, secondsRemaining: 35 });
+		expect(sweepStepPosition([3, 2, 4], 5)).toEqual({ stat: 2, step: 0 });
+		expect(sweepStepPosition([3, 2, 4], 4)).toEqual({ stat: 1, step: 1 });
 	});
 
 	it('never falls back when a step plans more iterations than it expected', () => {
@@ -436,10 +429,12 @@ describe('advanceSweepProgress', () => {
 
 		const skipped = skipSweepSteps(before, 0, 2);
 
-		expect(skipped).toMatchObject({ stat: 1, step: 4, steps: 4, stepCounts: [4, 4], totalSteps: 8, completed: 3.5 });
-		expect(skipped.completed / skipped.totalSteps).toBeGreaterThan(before.completed / before.totalSteps);
+		expect(skipped).toMatchObject({ running: 3, stepCounts: [4, 4], completed: 3.5 });
+		expect(sweepStepPosition(skipped.stepCounts, skipped.running)).toEqual({ stat: 0, step: 3 });
+		expect(skipped.completed / 8).toBeGreaterThan(before.completed / 10);
 		const next = advanceSweepProgress(skipped, 4, 0, 1000, 50);
-		expect(next).toMatchObject({ stat: 2, step: 1, steps: 4, completed: 4, secondsRemaining: 50 });
+		expect(next).toMatchObject({ running: 4, completed: 4, secondsRemaining: 50 });
+		expect(sweepStepPosition(next.stepCounts, next.running)).toEqual({ stat: 1, step: 0 });
 	});
 
 	it('has no estimate before anything completes', () => {

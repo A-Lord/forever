@@ -5,7 +5,7 @@ import { Class, PseudoStat, Spec, Stat } from '@generated/proto/common';
 import { DatabaseFilters } from '@generated/proto/ui';
 import { SimHostProvider } from '@sim/context/SimHostContext';
 import { Stats, UnitStat } from '@sim/proto/stats';
-import type { EpPrecisionSettings } from '@sim/settings/stat_weight_settings';
+import type { PrecisionSettings } from '@sim/settings/precision';
 import { SimRuns } from '@sim/sim_runs';
 import { createSimStore, patchKeyed, patchSlice, PLAYER_FIELDS, seedKeyed, type SimStore, zeroVersions } from '@sim/state/sim_store';
 import { act, fireEvent, render, screen } from '@testing-library/react';
@@ -167,9 +167,9 @@ class FakePlayer {
 class FakeSettings {
 	excludedStats: Stat[] = [];
 	excludedPseudoStats: PseudoStat[] = [];
-	precision: EpPrecisionSettings = { precisionMode: 'iterations', iterations: 0, targetEpCi: 0.01, maxIterationMultiplier: 0 };
+	precision: PrecisionSettings = { precisionMode: 'iterations', iterations: 0, targetCi: 0.01, maxIterationMultiplier: 0 };
 
-	setPrecision(patch: Partial<EpPrecisionSettings>) {
+	setPrecision(patch: Partial<PrecisionSettings>) {
 		this.precision = { ...this.precision, ...patch };
 		source.notify('statWeights');
 	}
@@ -294,6 +294,7 @@ const openStatFilter = () =>
 		fireEvent.click(statFilterTrigger());
 	});
 const statFilterBox = (stat: UnitStat) => rootElem.querySelector<HTMLElement>(`#ep-stat-filter-${stat.getKey()}`)!;
+const precisionText = (key: string) => `common.precision.${key}`;
 
 describe('EpWeightsDialog', () => {
 	beforeEach(setup);
@@ -735,7 +736,7 @@ describe('EpWeightsDialog', () => {
 			player.refStats.dpsRefStat = Stat.StatAgility;
 			player.refStats.healRefStat = Stat.StatIntellect;
 			host.sim.showThreatMetrics = true;
-			settings.precision = { precisionMode: 'target', iterations: 4000, targetEpCi: 0.02, maxIterationMultiplier: 4 };
+			settings.precision = { precisionMode: 'target', iterations: 4000, targetCi: 0.02, maxIterationMultiplier: 4 };
 			renderDialog();
 
 			await act(async () => {
@@ -761,16 +762,56 @@ describe('EpWeightsDialog', () => {
 		});
 
 		it('disables Calculate in Target ± mode while the target is empty, and enables it in iterations mode', () => {
-			settings.precision = { precisionMode: 'target', iterations: 0, targetEpCi: 0.02, maxIterationMultiplier: 0 };
+			settings.precision = { precisionMode: 'target', iterations: 0, targetCi: 0.02, maxIterationMultiplier: 0 };
 			renderDialog();
 			expect(calculate().disabled).toBe(false);
 
 			fireEvent.change(popup().querySelector('#ep-precision-target')!, { target: { value: '' } });
-			expect(settings.precision.targetEpCi).toBe(0);
+			expect(settings.precision.targetCi).toBe(0);
 			expect(calculate().disabled).toBe(true);
 
-			fireEvent.click(screen.getByRole('button', { name: 'sidebar.buttons.stat_weights.precision.mode_iterations' }));
+			fireEvent.click(screen.getByRole('button', { name: precisionText('mode_iterations') }));
 			expect(calculate().disabled).toBe(false);
+		});
+
+		it('shows the iteration count with the sim setting as placeholder in iterations mode, and the target and cap alone in target mode', () => {
+			renderDialog();
+			const iterations = popup().querySelector<HTMLInputElement>('#ep-precision-iterations')!;
+			expect([iterations.value, iterations.placeholder]).toEqual(['', String(host.sim.store.getState().sim.iterations)]);
+			expect(popup().querySelector('#ep-precision-target')).toBeNull();
+
+			fireEvent.change(iterations, { target: { value: '4000' } });
+			expect(settings.precision.iterations).toBe(4000);
+
+			fireEvent.click(screen.getByRole('button', { name: precisionText('mode_target') }));
+			const cap = popup().querySelector<HTMLInputElement>('#ep-precision-max-multiplier')!;
+			expect([cap.value, cap.placeholder]).toEqual(['', precisionText('max_multiplier_none')]);
+			expect(popup().querySelector('#ep-precision-iterations')).toBeNull();
+
+			fireEvent.change(cap, { target: { value: '4' } });
+			expect(settings.precision.maxIterationMultiplier).toBe(4);
+		});
+
+		it('keeps four decimals of the target', () => {
+			settings.precision = { precisionMode: 'target', iterations: 0, targetCi: 0.0025, maxIterationMultiplier: 0 };
+			renderDialog();
+			const target = popup().querySelector<HTMLInputElement>('#ep-precision-target')!;
+			expect(target.value).toBe('0.0025');
+
+			fireEvent.change(target, { target: { value: '0.0075' } });
+			expect(settings.precision.targetCi).toBe(0.0075);
+		});
+
+		it('locks the precision mode and fields while a calculation runs', async () => {
+			player.computeStatWeights.mockImplementation(() => new Promise(() => {}));
+			settings.precision = { precisionMode: 'target', iterations: 0, targetCi: 0.02, maxIterationMultiplier: 0 };
+			renderDialog();
+
+			await act(async () => {
+				fireEvent.click(calculate());
+			});
+			expect(screen.getByRole<HTMLButtonElement>('button', { name: precisionText('mode_iterations'), hidden: true }).disabled).toBe(true);
+			expect(popup().querySelector<HTMLInputElement>('#ep-precision-target')!.disabled).toBe(true);
 		});
 
 		describe('HPS EP with no healing reference stat chosen', () => {
@@ -797,7 +838,7 @@ describe('EpWeightsDialog', () => {
 			it.each(['iterations', 'target'] as const)(
 				'runs in %s mode against the chosen DPS and the spec’s HPS reference stat, and shows HPS EP as the sim sent it',
 				async precisionMode => {
-					settings.precision = { precisionMode, iterations: 4000, targetEpCi: 0.02, maxIterationMultiplier: 4 };
+					settings.precision = { precisionMode, iterations: 4000, targetCi: 0.02, maxIterationMultiplier: 4 };
 					renderDialog();
 
 					await act(async () => {
