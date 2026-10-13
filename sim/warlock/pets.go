@@ -119,7 +119,10 @@ func (warlock *Warlock) petStatInheritance() core.PetStatInheritance {
 		return stats.Stats{
 			stats.Armor:       ownerStats[stats.Armor] * 0.35,
 			stats.AttackPower: spellDamage * 0.17,
-			stats.SpellDamage: spellDamage * 0.10,
+			// A third: in the logs a Succubus has 42 Spell Damage under a warlock whose spell damage reads 126,
+			// and its Lash of Pain hits for (17 + 0.429 × 42) × 1.05.
+			// TODO: Measured at one value and on the Succubus only.
+			stats.SpellDamage: spellDamage / 3,
 
 			// TODO: Assumed 1:1, not yet measured.
 			stats.PhysicalHitPercent: ownerStats[stats.SpellHitPercent],
