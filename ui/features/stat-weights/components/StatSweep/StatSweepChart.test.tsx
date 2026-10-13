@@ -4,7 +4,7 @@ import { fakeCharts } from '@testing/chart-js-mock';
 import { makeCritSweepPoints, makeHitSweepPoints, sweepSeries } from '@testing/storybook/fixtures/stat-sweep';
 import { render, screen } from '@testing-library/react';
 import type { ChartOptions, Plugin, TooltipItem } from 'chart.js';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { seriesColor } from './colors';
 import { StatSweepChart, type StatSweepSeries } from './StatSweepChart';
@@ -18,6 +18,14 @@ const charts = fakeCharts as Array<{ config: { data: { datasets: Dataset[] }; op
 const run = (id: string, base: number, colorSlot: number): StatSweepSeries => sweepSeries(id, 'Hit', base, makeHitSweepPoints(base), colorSlot, id);
 const sweepT = (key: string) => i18n.t(`sidebar.buttons.stat_weights.sweep.${key}`);
 
+// jsdom loads no theme, and the chart caches each colour on first read, so the colours are set before any render.
+beforeAll(() => {
+	const root = document.documentElement.style;
+	root.setProperty('--color-chart-series-1', '#111111');
+	root.setProperty('--color-chart-series-2', '#222222');
+	root.setProperty('--color-background', '#000000');
+});
+
 beforeEach(() => {
 	charts.length = 0;
 });
@@ -30,13 +38,16 @@ describe('StatSweepChart', () => {
 		expect(charts).toHaveLength(0);
 	});
 
-	it('stacks the EP panel over the DPS panel in one chart, over the change from the current value', () => {
+	it('plots EP on the left axis and DPS on the right one over one plot, over the change from the current value', () => {
 		render(<StatSweepChart series={[run('a', 120, 0), run('b', 40, 1)]} />);
 
 		expect(charts).toHaveLength(1);
 		const { x, ep, dps } = charts[0].config.options.scales! as Record<string, any>;
-		expect(ep.stack).toBe(dps.stack);
-		expect(ep.weight).toBeGreaterThan(dps.weight);
+		expect([ep.position, ep.title.text]).toEqual(['left', sweepT('ep_chart')]);
+		expect([dps.position, dps.title.text]).toEqual(['right', sweepT('dps_chart')]);
+		expect(ep.stack).toBeUndefined();
+		expect(ep.grid.drawOnChartArea).not.toBe(false);
+		expect(dps.grid.drawOnChartArea).toBe(false);
 		expect(x.title.text).toBe(sweepT('change_axis'));
 		expect(x.min).toBeLessThan(-100);
 		expect(x.max).toBeGreaterThan(100);
@@ -47,7 +58,7 @@ describe('StatSweepChart', () => {
 		const crit = sweepSeries('crit', 'Crit', 210, makeCritSweepPoints(210), 1);
 		render(<StatSweepChart series={[hit, crit]} />);
 
-		const lines = charts[0].config.data.datasets.filter((_, index) => index % 3 === 2);
+		const lines = charts[0].config.data.datasets.filter((_, index) => index % 4 === 2);
 		const [hitEp, critEp] = lines;
 		expect(hitEp.data.map(datum => datum.x)).toEqual(hit.points.map(point => point.statValue - 40));
 		expect(critEp.data.map(datum => datum.x)).toEqual(crit.points.map(point => point.statValue - 210));
@@ -73,7 +84,7 @@ describe('StatSweepChart', () => {
 		expect(moveTo).toHaveBeenCalledWith(40, 0);
 	});
 
-	it('wraps each run line in a band of value ± ci on its own panel', () => {
+	it('draws each run as a solid EP line in a band of EP ± ci and a dashed DPS line with hollow points', () => {
 		const single = run('a', 120, 0);
 		render(<StatSweepChart series={[single]} />);
 
@@ -83,10 +94,23 @@ describe('StatSweepChart', () => {
 			['ep', point.ep + point.epCi],
 			['ep', point.ep - point.epCi],
 			['ep', point.ep],
-			['dps', point.dps + point.dpsCi],
-			['dps', point.dps - point.dpsCi],
 			['dps', point.dps],
 		]);
+		const [, , ep, dps] = datasets as Array<Dataset & Record<string, unknown>>;
+		expect(ep.borderDash).toBeUndefined();
+		expect(dps.borderDash).toEqual(expect.any(Array));
+		expect([ep.borderColor, dps.borderColor, dps.pointBorderColor]).toEqual([seriesColor(0), seriesColor(0), seriesColor(0)]);
+		expect(dps.backgroundColor).toBe(ep.pointBorderColor);
+		expect(dps.backgroundColor).not.toBe(seriesColor(0));
+		expect(dps.pointRadius).toBeLessThan(ep.pointRadius as number);
+	});
+
+	it('keys solid as EP, dashed as DPS and the current value under the chart, even for one run', () => {
+		render(<StatSweepChart series={[run('a', 120, 0)]} />);
+
+		const caption = screen.getByText(sweepT('current_value')).closest('figcaption')!;
+		expect(caption.textContent).toContain(sweepT('ep_chart'));
+		expect(caption.textContent).toContain(sweepT('dps_chart'));
 	});
 
 	it('lists each run once in the legend, both its lines in the tooltip, and shows the legend only for two or more runs', () => {
@@ -102,12 +126,12 @@ describe('StatSweepChart', () => {
 		const generateLabels = options.plugins!.legend!.labels!.generateLabels!;
 		const tooltipFilter = options.plugins!.tooltip!.filter!;
 		const items = generateLabels({ data, isDatasetVisible: () => true } as never);
-		expect(items.map(item => item.datasetIndex)).toEqual([2, 5]);
+		expect(items.map(item => item.datasetIndex)).toEqual([2, 6]);
 		expect(items.map(item => [item.text, item.strokeStyle, item.fillStyle])).toEqual([
 			['a', seriesColor(0), seriesColor(0)],
 			['b', seriesColor(1), seriesColor(1)],
 		]);
-		expect(shown.filter(datasetIndex => tooltipFilter({ datasetIndex } as TooltipItem<'line'>, 0, [], {} as never))).toEqual([2, 5, 8, 11]);
+		expect(shown.filter(datasetIndex => tooltipFilter({ datasetIndex } as TooltipItem<'line'>, 0, [], {} as never))).toEqual([2, 3, 6, 7]);
 	});
 
 	it('titles the tooltip with each hovered stat total and its change, once per total', () => {
@@ -124,13 +148,13 @@ describe('StatSweepChart', () => {
 				((_key: string, options: { stat: string; total: number; change: string }) => `${options.stat} ${options.total} (${options.change})`) as never,
 			);
 
-		expect(title([at(2, 20), at(8, 20)])).toEqual(['Hit 140 (+20)']);
-		expect(title([at(2, -20), at(5, -20), at(8, -20), at(11, -20)])).toEqual(['Hit 100 (-20)', 'Hit 70 (-20)']);
+		expect(title([at(2, 20), at(3, 20)])).toEqual(['Hit 140 (+20)']);
+		expect(title([at(2, -20), at(3, -20), at(6, -20), at(7, -20)])).toEqual(['Hit 100 (-20)', 'Hit 70 (-20)']);
 		expect(t).toHaveBeenCalledWith('sidebar.buttons.stat_weights.sweep.tooltip_total', { stat: 'Hit', total: 140, change: '+20' });
 		t.mockRestore();
 	});
 
-	it('reads the hovered value with its ± and panel, EP to three decimals and DPS to one', () => {
+	it('reads the hovered value with its ± and measure, EP to three decimals and DPS to one', () => {
 		const single = run('a', 120, 0);
 		render(<StatSweepChart series={[single]} />);
 		const { data, options } = charts[0].config;
@@ -138,7 +162,7 @@ describe('StatSweepChart', () => {
 		const t = vi.spyOn(i18n, 't');
 		const point = single.points[0];
 
-		const [ep, dps] = [data.datasets[2], data.datasets[5]].map(dataset => label({ dataset, raw: dataset.data[0] }));
+		const [ep, dps] = [data.datasets[2], data.datasets[3]].map(dataset => label({ dataset, raw: dataset.data[0] }));
 
 		expect(ep.startsWith(`a (${sweepT('ep_chart')}): `)).toBe(true);
 		expect(dps.startsWith(`a (${sweepT('dps_chart')}): `)).toBe(true);

@@ -26,15 +26,17 @@ export interface StatSweepChartProps {
 type Metric = 'ep' | 'dps';
 type SweepDatum = { x: number; y: number; point: StatSweepPoint; statLabel: string };
 
-// Each run draws the band's upper edge, its lower edge, then the line. Upper fills down to the next dataset, so the order is load-bearing.
-const DATASETS_PER_RUN = 3;
-const LINE_INDEX = 2;
-const isLine = (datasetIndex: number) => datasetIndex % DATASETS_PER_RUN === LINE_INDEX;
+// Each run draws the EP band's upper edge, its lower edge, the EP line, then the DPS line. Upper fills down to the next dataset, so the order is load-bearing.
+const DATASETS_PER_RUN = 4;
+const EP_LINE_INDEX = 2;
+const isLine = (datasetIndex: number) => datasetIndex % DATASETS_PER_RUN >= EP_LINE_INDEX;
 // The x range reaches this share of its span past the outermost value, so the end points draw whole inside the plot.
 const X_RANGE_PAD = 0.03;
 const BAND_ALPHA = '1a';
 const LEGEND_LINE_WIDTH = 3;
-// Each panel's scale fits its data, with this share of the span as room past the extremes.
+// Its period differs from the current-value marker's, so the two dashed lines read apart.
+const DPS_DASH = [6, 3];
+// Each y scale fits its data, with this share of the span as room past the extremes.
 const Y_GRACE = '5%';
 
 const METRICS = {
@@ -44,31 +46,37 @@ const METRICS = {
 
 const t = (key: string, options?: Record<string, unknown>) => i18n.t(`sidebar.buttons.stat_weights.sweep.${key}`, options);
 
-function datasets(series: ReadonlyArray<StatSweepSeries>, metric: Metric): Array<ChartDataset<'line', SweepDatum[]>> {
-	const { value, ci } = METRICS[metric];
+function datasets(series: ReadonlyArray<StatSweepSeries>): Array<ChartDataset<'line', SweepDatum[]>> {
 	const surface = cssVarColor('--color-background');
 	return series.flatMap(run => {
 		const color = seriesColor(run.colorSlot);
 		const at = (y: (point: StatSweepPoint) => number) =>
 			run.points.map(point => ({ x: sweepChange(point.statValue, run.baseStatValue), y: y(point), point, statLabel: run.statLabel }));
-		const edge = { yAxisID: metric, pointRadius: 0, pointHoverRadius: 0, borderWidth: 0, label: run.label };
+		const edge = { yAxisID: 'ep', pointRadius: 0, pointHoverRadius: 0, borderWidth: 0, label: run.label };
+		const line = { label: run.label, borderColor: color, borderWidth: 2, borderJoinStyle: 'round', borderCapStyle: 'round', fill: false } as const;
 		return [
-			{ ...edge, data: at(point => value(point) + ci(point)), backgroundColor: color + BAND_ALPHA, fill: '+1' },
-			{ ...edge, data: at(point => value(point) - ci(point)), fill: false },
+			{ ...edge, data: at(point => point.ep + point.epCi), backgroundColor: color + BAND_ALPHA, fill: '+1' },
+			{ ...edge, data: at(point => point.ep - point.epCi), fill: false },
 			{
-				yAxisID: metric,
-				label: run.label,
-				data: at(value),
-				borderColor: color,
+				...line,
+				yAxisID: 'ep',
+				data: at(METRICS.ep.value),
 				backgroundColor: color,
-				borderWidth: 2,
-				borderJoinStyle: 'round',
-				borderCapStyle: 'round',
 				pointRadius: 4,
 				pointHoverRadius: 6,
 				pointBorderColor: surface,
 				pointBorderWidth: 2,
-				fill: false,
+			},
+			{
+				...line,
+				yAxisID: 'dps',
+				data: at(METRICS.dps.value),
+				borderDash: DPS_DASH,
+				backgroundColor: surface,
+				pointRadius: 3,
+				pointHoverRadius: 5,
+				pointBorderColor: color,
+				pointBorderWidth: 1.5,
 			},
 		];
 	});
@@ -109,21 +117,15 @@ const markerPlugin: Plugin<'line'> = {
 
 const PLUGINS = [markerPlugin];
 
-// The EP and DPS panels stack on one left edge over the shared x scale. Chart.js puts the stacked scale with the higher
-// weight on top, and `offset` keeps each panel's end ticks half a tick step inside it, so the labels where the panels
-// meet do not collide.
-const panelScale = (metric: Metric, weight: number) =>
+// EP reads on the left and DPS on the right over one plot. Only the EP scale draws grid lines, so the two grids do not cross.
+const valueScale = (metric: Metric, position: 'left' | 'right') =>
 	({
 		type: 'linear',
-		position: 'left',
-		stack: 'sweep',
-		stackWeight: 1,
-		weight,
-		offset: true,
+		position,
 		beginAtZero: false,
 		grace: Y_GRACE,
-		title: { display: true, text: t(METRICS[metric].title) },
-		grid: { color: AXIS_GRID_COLOR },
+		title: { display: true, text: t(METRICS[metric].title), color: cssVarColor('--color-foreground') },
+		grid: position === 'left' ? { color: AXIS_GRID_COLOR } : { drawOnChartArea: false },
 	}) as const;
 
 function options(range: { min: number; max: number }, showLegend: boolean): ChartOptions<'line'> {
@@ -188,14 +190,14 @@ function options(range: { min: number; max: number }, showLegend: boolean): Char
 				ticks: { includeBounds: false },
 				grid: { color: AXIS_GRID_COLOR },
 			},
-			ep: panelScale('ep', 1),
-			dps: panelScale('dps', 0),
+			ep: valueScale('ep', 'left'),
+			dps: valueScale('dps', 'right'),
 		},
 	};
 }
 
 export const StatSweepChart = ({ series }: StatSweepChartProps) => {
-	const data = useMemo(() => ({ datasets: [...datasets(series, 'ep'), ...datasets(series, 'dps')] }) satisfies ChartData<'line', SweepDatum[]>, [series]);
+	const data = useMemo(() => ({ datasets: datasets(series) }) satisfies ChartData<'line', SweepDatum[]>, [series]);
 	const chartOptions = useMemo(() => options(xRange(series), series.length >= 2), [series]);
 
 	if (!series.some(run => run.points.length)) {
@@ -207,9 +209,19 @@ export const StatSweepChart = ({ series }: StatSweepChartProps) => {
 			<div className="h-112 w-full">
 				<Line data={data} options={chartOptions} plugins={PLUGINS} />
 			</div>
-			<figcaption className="flex items-center gap-2 text-sm text-muted">
-				<span className="h-4 border-l border-dashed border-muted" />
-				{t('current_value')}
+			<figcaption className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted">
+				<span className="flex items-center gap-2">
+					<span className="w-6 border-t-2 border-foreground" />
+					{t('ep_chart')}
+				</span>
+				<span className="flex items-center gap-2">
+					<span className="w-6 border-t-2 border-dashed border-foreground" />
+					{t('dps_chart')}
+				</span>
+				<span className="flex items-center gap-2">
+					<span className="h-4 border-l border-dashed border-muted" />
+					{t('current_value')}
+				</span>
 			</figcaption>
 		</figure>
 	);
