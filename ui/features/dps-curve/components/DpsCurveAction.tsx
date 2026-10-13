@@ -31,6 +31,7 @@ export const DpsCurveAction = ({ settings }: DpsCurveActionProps) => {
 		<>
 			<Button
 				variant="outline-primary"
+				className="aspect-square px-0"
 				aria-label={label}
 				data-testid="dps-curve-action"
 				data-sidebar-action=""

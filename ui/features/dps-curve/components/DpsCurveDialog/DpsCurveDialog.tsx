@@ -135,8 +135,8 @@ export const DpsCurveDialog = ({ open, onOpenChange, settings }: DpsCurveDialogP
 						stage: 'running',
 						message: (
 							<>
-								<HandleDpsCurveTimeRemaining ref={remainingRef} />
 								<HandleDpsCurveStatList ref={statListRef} labels={selectedLabels} />
+								<HandleDpsCurveTimeRemaining ref={remainingRef} />
 							</>
 						),
 					}}

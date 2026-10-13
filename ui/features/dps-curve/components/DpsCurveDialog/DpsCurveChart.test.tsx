@@ -125,7 +125,7 @@ describe('DpsCurveChart', () => {
 		t.mockRestore();
 	});
 
-	it('reads the hovered DPS with its ± to one decimal', () => {
+	it('reads the hovered DPS and its ± rounded as the sim card does', () => {
 		const single = run('a', 120, 0);
 		render(<DpsCurveChart series={[single]} />);
 		const { data, options } = charts[0].config;
@@ -136,7 +136,7 @@ describe('DpsCurveChart', () => {
 		const text = label({ dataset: data.datasets[2], raw: data.datasets[2].data[0] });
 
 		expect(text.startsWith('a: ')).toBe(true);
-		expect(t).toHaveBeenCalledWith('sidebar.buttons.dps_curve.tooltip_value', { value: point.dps.toFixed(1), ci: pointCi(point).toFixed(1) });
+		expect(t).toHaveBeenCalledWith('sidebar.buttons.dps_curve.tooltip_value', { value: point.dps.toFixed(2), ci: pointCi(point).toFixed(0) });
 		t.mockRestore();
 	});
 });

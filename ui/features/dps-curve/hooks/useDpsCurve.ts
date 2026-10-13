@@ -104,6 +104,9 @@ export const useDpsCurve = ({ onProgress }: UseDpsCurveOptions = {}) => {
 				await saveRun(finished).catch(console.error);
 			};
 
+			// Only this batch's runs are drawn; the user may tick older ones again afterwards.
+			setView(current => ({ ...current, overlaid: [] }));
+
 			return sim.runs.start(SimRunKind.DpsCurve, async () => {
 				try {
 					const offsets = buildCurveOffsets(args.range, args.step);

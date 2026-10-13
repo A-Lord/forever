@@ -2371,7 +2371,7 @@
 		"options": {
 			"title": "Options",
 			"fixed_rng_seed": {
-				"label": "Fixed RNG Seed",
+				"label": "Fixed RNG seed",
 				"tooltip": "Seed value for the random number generator used during sims, or 0 to use different randomness each run. Use this to share exact sim results or for debugging.",
 				"last_used": "Last used RNG seed:"
 			},
@@ -2380,14 +2380,14 @@
 				"tooltip": "Controls the language for Wowhead tooltips."
 			},
 			"feature_toggles": {
-				"show_threat_metrics": "Show Threat/Tank Options",
-				"show_experimental": "Show Experimental",
+				"show_threat_metrics": "Show threat/tank options",
+				"show_experimental": "Show experimental",
 				"show_advanced_options": "Show advanced options",
 				"show_advanced_options_tooltip": "Unlocks additional theorycrafting-focused tools.",
 				"show_quick_swap": "Show quick swap interface"
 			},
 			"use_multiple_cpu_cores": {
-				"label": "Use Multiple CPU Cores"
+				"label": "Use multiple CPU cores"
 			},
 			"restore_defaults": {
 				"button": "Restore Defaults",

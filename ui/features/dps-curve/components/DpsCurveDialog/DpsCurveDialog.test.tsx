@@ -132,6 +132,26 @@ describe('DpsCurveDialog', () => {
 		expect(saved[0].colorSlot).not.toBe(saved[1].colorSlot);
 	});
 
+	it('unticks the earlier runs when a run starts, keeping every run of the new batch ticked', async () => {
+		settings.setSetup({ stats: [STRENGTH], range: 10, step: 10 });
+		renderDialog();
+		const ticks = () =>
+			[...rootElem.querySelectorAll('[id^="dps-curve-overlay-"]')].map(
+				box => box.getAttribute('aria-checked') ?? String((box as HTMLInputElement).checked),
+			);
+
+		await act(async () => {
+			fireEvent.click(runButton());
+		});
+		expect(ticks()).toEqual(['true']);
+
+		act(() => settings.setSetup({ stats: [AGILITY, STRENGTH] }));
+		await act(async () => {
+			fireEvent.click(runButton());
+		});
+		expect(ticks()).toEqual(['true', 'true', 'false']);
+	});
+
 	it('probes each step in Target ± mode and tops it up at the seed after the probe', async () => {
 		settings.setSetup({ range: 5, step: 10 });
 		settings.setPrecision({ precisionMode: 'target', targetDpsCi: 2 });

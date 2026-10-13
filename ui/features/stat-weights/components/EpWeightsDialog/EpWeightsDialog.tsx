@@ -183,6 +183,8 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 			onOpenChange={handleOpenChange}
 			testId="ep-weights-menu"
 			size="xl"
+			maxWidthClassName="max-w-modal-inset-w w-modal-inset-w"
+			className="h-modal-inset-h"
 			scrollContents
 			title={i18n.t('sidebar.buttons.stat_weights.modal.title')}
 			footer={
@@ -226,6 +228,7 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 					/>
 				</DialogColumns.Main>
 				<DialogColumns.Sidebar className="ui-ep-weights-sidebar">
+					<SavedEpWeights />
 					<ContentBlock config={{ header: { title: i18n.t('sidebar.buttons.stat_weights.modal.settings') } }}>
 						<div className="flex flex-col gap-4">
 							<div className="ui-ep-weights-settings-grid">
@@ -244,7 +247,6 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 							)}
 						</div>
 					</ContentBlock>
-					<SavedEpWeights />
 				</DialogColumns.Sidebar>
 			</DialogColumns.Root>
 			<Tooltip id={EP_TOOLTIP_ID} />

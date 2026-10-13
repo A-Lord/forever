@@ -8,7 +8,7 @@ export interface DpsCurveTimeRemainingProps {
 
 // Keeps its line while there is no estimate yet, so the progress dialog does not grow when one arrives.
 export const DpsCurveTimeRemaining = ({ seconds }: DpsCurveTimeRemainingProps) => (
-	<span className="tabular-nums" data-testid="dps-curve-time-remaining">
+	<span className="mt-4 block tabular-nums" data-testid="dps-curve-time-remaining">
 		{seconds === undefined ? ' ' : i18n.t('sidebar.results.progress.time_remaining', { time: formatDurationSeconds(seconds) })}
 	</span>
 );

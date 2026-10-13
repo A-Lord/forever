@@ -1,3 +1,4 @@
+import { formatAverage, formatStdev } from '@features/results/components/ResultMetricList/utils';
 import { AXIS_GRID_COLOR, cssVarColor } from '@features/results/components/Timeline/chart/colors';
 import i18n from '@i18n/config';
 import type { DpsCurvePoint } from '@sim/cache/dps_curve_history';
@@ -35,9 +36,12 @@ const BAND_ALPHA = '1a';
 const LEGEND_LINE_WIDTH = 3;
 // The y scale fits its data, with this share of the span as room past the extremes.
 const Y_GRACE = '5%';
-const DPS_DIGITS = 1;
 
 const t = (key: string, options?: Record<string, unknown>) => i18n.t(`sidebar.buttons.dps_curve.${key}`, options);
+
+// The sim card's own formatting of its DPS and its ±.
+const formatDps = (average: number) => formatAverage({ metric: 'dps', name: '', average }, 'list');
+const formatDpsError = (stdev: number) => formatStdev({ metric: 'dps', name: '', average: 0, stdev }, 'list');
 
 function datasets(series: ReadonlyArray<DpsCurveSeries>): Array<ChartDataset<'line', CurveDatum[]>> {
 	const surface = cssVarColor('--color-background');
@@ -112,6 +116,7 @@ function options(range: { min: number; max: number }, showLegend: boolean): Char
 		plugins: {
 			legend: {
 				display: showLegend,
+				position: 'bottom',
 				align: 'start',
 				labels: {
 					usePointStyle: true,
@@ -149,7 +154,7 @@ function options(range: { min: number; max: number }, showLegend: boolean): Char
 						),
 					label: item => {
 						const { point, y } = item.raw as CurveDatum;
-						return `${item.dataset.label}: ${t('tooltip_value', { value: y.toFixed(DPS_DIGITS), ci: pointCi(point).toFixed(DPS_DIGITS) })}`;
+						return `${item.dataset.label}: ${t('tooltip_value', { value: formatDps(y), ci: formatDpsError(pointCi(point)) })}`;
 					},
 				},
 			},
