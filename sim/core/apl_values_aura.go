@@ -66,9 +66,9 @@ func (value *APLValueAuraIsActive) GetBool(sim *Simulation) bool {
 	return aura.IsActive() && aura.TimeActive(sim) >= value.reactionTime
 }
 
-// Whether one of the player's spells was cast, or a guaranteed declared proc off a unit's own APL spell ran, as
-// the aura landed or while it was up. A proc sharing a spell's id, such as the Revenge window, starts before that
-// spell is cast, so it stays a proc.
+// Whether one of the player's spells was cast, or a guaranteed declared proc off a unit's own APL spell put the
+// aura up or refreshed it, as the aura landed or while it was up. A proc sharing a spell's id, such as the Revenge
+// window, starts before that spell is cast, so it stays a proc.
 func (value *APLValueAuraIsActive) castByPlayer(aura *Aura) bool {
 	if aura.lastOwnProcAt >= aura.startTime {
 		return true

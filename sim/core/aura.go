@@ -61,7 +61,7 @@ type Aura struct {
 
 	pendingActivations    int32         // Deferred proc handlers declared to activate the aura that have not run yet.
 	pendingOwnActivations int32         // Those of them from a guaranteed trigger off a spell its unit cast from its APL.
-	lastOwnProcAt         time.Duration // When such a handler last ran; -NeverExpires if not yet this iteration.
+	lastOwnProcAt         time.Duration // When an own trigger's handler last put the aura up or refreshed it; -NeverExpires if not yet this iteration.
 
 	// The unit this aura is attached to.
 	Unit *Unit
