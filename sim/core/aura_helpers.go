@@ -793,6 +793,18 @@ func (parentAura *Aura) AttachMultiplyMeleeSpeed(multiplier float64) *Aura {
 	return parentAura
 }
 
+func (parentAura *Aura) AttachMultiplyWeaponSpeed(multiplier float64) *Aura {
+	parentAura.ApplyOnGain(func(_ *Aura, sim *Simulation) {
+		parentAura.Unit.MultiplyWeaponSpeed(sim, multiplier)
+	})
+
+	parentAura.ApplyOnExpire(func(_ *Aura, sim *Simulation) {
+		parentAura.Unit.MultiplyWeaponSpeed(sim, 1/multiplier)
+	})
+
+	return parentAura
+}
+
 func (parentAura *Aura) AttachMultiplyAttackSpeed(multiplier float64) *Aura {
 	parentAura.ApplyOnGain(func(_ *Aura, sim *Simulation) {
 		parentAura.Unit.MultiplyAttackSpeed(sim, multiplier)
