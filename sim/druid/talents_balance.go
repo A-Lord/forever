@@ -134,12 +134,12 @@ func (druid *Druid) applyNaturesGrace() {
 			aura.Activate(sim)
 		})
 	// The tooltip's "cast" hint decodes to a cast trigger, but it asks for a crit, which is known
-	// only once the hit resolves. The direct hit and heal callbacks leave the periodic ones out.
+	// only once the hit resolves. The direct hit and heal callbacks leave the periodic ones out. The
+	// buff comes a spell batch after the crit, so a cast that starts as the crit lands, such as the
+	// one queued behind a Starfire, is not hasted.
 	trigger.Name = "Nature's Grace - Trigger"
 	trigger.Callback = core.CallbackOnSpellHitDealt | core.CallbackOnHealDealt
 	trigger.Outcome = core.OutcomeCrit
-	// Up before the next cast starts, which the crit that granted it can be followed by at once.
-	trigger.TriggerImmediately = true
 
 	druid.MakeProcTriggerAura(trigger)
 }
