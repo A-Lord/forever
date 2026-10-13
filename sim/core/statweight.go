@@ -81,7 +81,6 @@ type StatWeightsResult struct {
 	PDeath StatWeightValues
 
 	SampleCounts UnitStats
-	BaseDps      *proto.DistributionMetrics
 }
 
 func NewStatWeightsResult() *StatWeightsResult {
@@ -107,7 +106,6 @@ func (swr *StatWeightsResult) ToProto() *proto.StatWeightsResult {
 		PDeath: swr.PDeath.ToProto(),
 
 		SampleCounts: swr.SampleCounts.ToProto(),
-		BaseDps:      swr.BaseDps,
 	}
 }
 
@@ -318,24 +316,6 @@ func statWeightBaselineIterations(baseDps []*proto.DistributionMetrics) int32 {
 	return iterations
 }
 
-// The baseline DPS over every baseline run, without per-iteration values.
-func mergeStatWeightBaseDps(baseDps []*proto.DistributionMetrics) *proto.DistributionMetrics {
-	merged := baseDps[0]
-	if len(baseDps) > 1 {
-		iterations := statWeightBaselineIterations(baseDps)
-		merged = &proto.DistributionMetrics{
-			Min:            math.MaxFloat64,
-			MinSeed:        math.MaxInt64,
-			Hist:           make(map[int32]int32),
-			AggregatorData: &proto.AggregatorData{},
-		}
-		for i, run := range baseDps {
-			CombineDistributionMetrics(merged, run, i == len(baseDps)-1, float64(run.AggregatorData.N)/float64(iterations))
-		}
-	}
-	return &proto.DistributionMetrics{Avg: merged.Avg, Stdev: merged.Stdev, AggregatorData: merged.AggregatorData}
-}
-
 func computeStatWeights(swcr *proto.StatWeightsCalcRequest) *proto.StatWeightsResult {
 	result, err := calcStatWeights(swcr)
 	if err != nil {
@@ -357,7 +337,6 @@ func calcStatWeights(swcr *proto.StatWeightsCalcRequest) (*StatWeightsResult, *p
 	}
 
 	result := NewStatWeightsResult()
-	result.BaseDps = mergeStatWeightBaseDps(swcr.BaseDps)
 	baselineIterations := statWeightBaselineIterations(swcr.BaseDps)
 
 	for _, statPairs := range swcr.StatPairs {

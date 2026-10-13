@@ -186,9 +186,9 @@ func TestStatWeightsLeaveAnUnrequestedRatingAtZero(t *testing.T) {
 	}
 }
 
-// A stat simulated below and above its baseline pools both sides' samples, hit rating has only the
-// side above, and the baseline DPS comes back without its per-iteration values.
-func TestStatWeightsReportSampleCountsAndBaselineDps(t *testing.T) {
+// A stat simulated below and above its baseline pools both sides' samples, and hit rating has only the
+// side above.
+func TestStatWeightsReportSampleCounts(t *testing.T) {
 	_, result := runSyntheticStatWeights(t,
 		[]proto.Stat{proto.Stat_StatAgility, proto.Stat_StatHitRating},
 		nil,
@@ -200,12 +200,6 @@ func TestStatWeightsReportSampleCountsAndBaselineDps(t *testing.T) {
 	}
 	if got := protoUnitStat(result.SampleCounts, hitRatingUnitStat); got != perSide {
 		t.Errorf("hit rating samples = %v, want %v", got, perSide)
-	}
-	if got := result.BaseDps.Avg; got != syntheticBaselineDps {
-		t.Errorf("baseline DPS avg = %v, want %v", got, syntheticBaselineDps)
-	}
-	if n := len(result.BaseDps.AllValues); n != 0 {
-		t.Errorf("baseline DPS carries %d per-iteration values, want none", n)
 	}
 }
 
@@ -495,9 +489,6 @@ func TestStatWeightsPairAStatThatStoppedEarlyWithTheBaselinePrefix(t *testing.T)
 	same("stopped early", early, trimmed, hitRatingUnitStat)
 	for _, stat := range []stats.UnitStat{agilityUnitStat, hitRatingUnitStat} {
 		same("two passes", twoPass, early, stat)
-	}
-	if twoPass.BaseDps.AggregatorData.N != 2*perSide || math.Abs(twoPass.BaseDps.Avg-early.BaseDps.Avg) > 1e-9 {
-		t.Errorf("two-pass baseline DPS %v over %d iterations, want %v over %d", twoPass.BaseDps.Avg, twoPass.BaseDps.AggregatorData.N, early.BaseDps.Avg, 2*perSide)
 	}
 }
 

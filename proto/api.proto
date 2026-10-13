@@ -778,7 +778,6 @@ message StatWeightsResult {
 	StatWeightValues p_death = 6;
 	ErrorOutcome error = 7;
 	UnitStats sample_counts = 8; // Paired samples behind each stat's weight.
-	DistributionMetrics base_dps = 9; // Baseline DPS avg and stdev, without all_values.
 }
 message StatWeightValues {
 	UnitStats weights = 1;
