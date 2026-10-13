@@ -8507,6 +8507,9 @@
 										"weights": {
 											"type": "string"
 										},
+										"settings": {
+											"type": "string"
+										},
 										"show_as": {
 											"type": "string"
 										},
@@ -8784,6 +8787,7 @@
 										"title",
 										"ep",
 										"weights",
+										"settings",
 										"show_as",
 										"dps_tps_reference",
 										"healing_reference",

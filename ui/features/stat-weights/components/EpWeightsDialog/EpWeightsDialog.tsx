@@ -16,6 +16,7 @@ import type { StatWeightActionSettings } from '@sim/settings/stat_weight_setting
 import { SimRunKind } from '@sim/state/sim_store';
 import { subscribePlayerField, subscribeStatWeightsChange } from '@sim/state/subscriptions';
 import { Button } from '@ui-kit/Button';
+import { ContentBlock } from '@ui-kit/ContentBlock';
 import { Dialog } from '@ui-kit/Dialog';
 import { Icon } from '@ui-kit/Icon';
 import { ProgressTrackerDialog, type ProgressTrackerHandle, type ProgressTrackerState } from '@ui-kit/ProgressTrackerDialog';
@@ -256,20 +257,24 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 								/>
 							</div>
 							<div className="ui-ep-weights-sidebar order-0 flex flex-col gap-4 lg:sticky lg:top-0 lg:z-sticky lg:order-1 lg:w-64 lg:shrink-0">
-								<EpWeightsOptions statsType={statsType} onStatsTypeChange={setStatsType}>
-									<StatFilterPopover {...statFilter} ariaLabel={i18n.t('stat_filters.triggers.ep')} testId="ep-stat-filter" />
-								</EpWeightsOptions>
-								{!editOnly && (
-									<>
-										<EpReferenceOptions epStats={epStats} epReferenceStat={epReferenceStat} displayMetrics={displayMetrics} />
-										<EpPrecisionOptions
-											value={precision}
-											onChange={patch => settings.setPrecision(patch)}
-											defaultIterations={defaultIterations}
-											disabled={isRunning}
-										/>
-									</>
-								)}
+								<ContentBlock config={{ header: { title: i18n.t('sidebar.buttons.stat_weights.modal.settings') } }}>
+									<div className="flex flex-col gap-4">
+										<EpWeightsOptions statsType={statsType} onStatsTypeChange={setStatsType}>
+											<StatFilterPopover {...statFilter} ariaLabel={i18n.t('stat_filters.triggers.ep')} testId="ep-stat-filter" />
+										</EpWeightsOptions>
+										{!editOnly && (
+											<>
+												<EpReferenceOptions epStats={epStats} epReferenceStat={epReferenceStat} displayMetrics={displayMetrics} />
+												<EpPrecisionOptions
+													value={precision}
+													onChange={patch => settings.setPrecision(patch)}
+													defaultIterations={defaultIterations}
+													disabled={isRunning}
+												/>
+											</>
+										)}
+									</div>
+								</ContentBlock>
 								<SavedEpWeights />
 							</div>
 						</div>
