@@ -90,8 +90,8 @@ func (mage *Mage) registerIceShards() {
 // "Increases the duration of your Chill effects by 33% and reduces the target's speed by an
 // additional 10%."
 //
-// Not modelled: both effects act on the slow alone, which does nothing to a boss the sim fights. The
-// chance a Chill effect rolls for Frostbite and Fingers of Frost is per hit, not per second chilled.
+// Not modelled: both effects act on the slow alone, which does nothing to a boss the sim fights. A
+// Chill rolls for Frostbite or Fingers of Frost per hit, not per second chilled.
 func (mage *Mage) registerPermafrost() {
 	if mage.Talents.Permafrost == 0 {
 		return
@@ -108,8 +108,9 @@ func (mage *Mage) registerImprovedFrostNova() {
 
 // "Gives your Chill effects a 15% chance to Freeze the target for 5 sec."
 //
-// Not modelled: the freeze (12494) is a root, which a boss the sim fights is immune to, the same
-// reason Frost Nova's root is not modelled. A target is only ever Frozen through Fingers of Frost.
+// The freeze (12494) is not modelled: it is a root, which a boss the sim fights is immune to, the
+// same reason Frost Nova's root is not modelled. A target is only ever Frozen through Fingers of
+// Frost, whose charges this talent's roll grants (registerFingersOfFrost).
 func (mage *Mage) registerFrostbite() {
 	if mage.Talents.Frostbite == 0 {
 		return
@@ -205,9 +206,10 @@ func (mage *Mage) registerImprovedConeOfCold() {
 // "Gives your Chill effects a 15% chance to grant you the Fingers of Frost effect, which treats your
 // next 2 spells cast as if the target were Frozen. Lasts 15 sec."
 //
-// The chance is effect 2 (15 at both ranks), which the resolver reads; the charges are effect 1 (1
-// and 2). The buff's own row (400669) names only Deep Freeze, which is not in Forever, so what
-// "as if Frozen" reaches is the tooltip's: every spell reading isFrozen, Shatter and Ice Lance.
+// Without Frostbite the chance is effect 2 (15 at both ranks), which the resolver reads; with it,
+// Frostbite's chance. The charges are effect 1 (1 and 2). The buff's own row (400669) names only
+// Deep Freeze, which is not in Forever, so what "as if Frozen" reaches is the tooltip's: every spell
+// reading isFrozen, Shatter and Ice Lance.
 func (mage *Mage) registerFingersOfFrost() {
 	if mage.Talents.FingersOfFrost == 0 {
 		return
@@ -260,14 +262,16 @@ func (mage *Mage) registerFingersOfFrost() {
 		})
 	trigger.Name = "Fingers of Frost - Trigger"
 
-	// Without Frostbite the proc rolls on the landed hit, with the charges up at once. With
-	// Frostbite a Chill rolls on its cast result, so a missile grants at its cast (a spell queued
-	// behind it is already Frozen; a miss or full resist grants none) and a Chill without travel
-	// time (Cone of Cold, a Blizzard tick) still rolls on each hit.
-	// TODO: assumed; no Frostbite log has a missed or fully resisted Frostbolt yet.
+	// Without Frostbite the proc rolls its own chance on the landed hit, with the charges up at once.
+	// With Frostbite it makes no roll of its own: the charges come when a Chill's Frostbite procs, at
+	// Frostbite's chance, whether or not the freeze lands. That roll is on the cast result, so a
+	// missile grants at its cast (a spell queued behind it is already Frozen) and a Chill without
+	// travel time (Cone of Cold, a Blizzard tick) still rolls on each hit. A miss or full resist grants
+	// none either way.
 	trigger.Callback = core.CallbackOnSpellHitDealt
 	if frostbite {
 		trigger.Callback = core.CallbackOnCastResult
+		trigger.ProcChance = spellData.Frostbite.FractionAt(mage.Talents.Frostbite)
 	}
 	trigger.Outcome = core.OutcomeLanded
 	trigger.TriggerImmediately = true
