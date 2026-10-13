@@ -568,6 +568,7 @@ export const makeMultistateIconInput = <SpecType extends Spec, Message, ModObjec
 export type TypedIconEnumPickerConfig<ModObject, T> = IconEnumPickerConfig<ModObject, T> & { type: 'iconEnum' };
 
 type WrappedEnumIconInputConfig<SpecType extends Spec, ModObject, T> = IconEnumPickerConfig<ModObject, T> & {
+	values: Array<IconEnumValueConfig<ModObject, T>>;
 	getModObject: (player: Player<SpecType>) => ModObject;
 };
 const makeWrappedEnumIconInput = <SpecType extends Spec, ModObject, T>(

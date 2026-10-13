@@ -69,9 +69,7 @@ var DefaultOptions = &proto.Player_ProtectionPaladin{
 	},
 }
 
-// 8/43: every Protection talent the sim models but Guardian's Favor and Improved Hammer of
-// Justice, with Improved Holy Strike, Divine Intellect and one point of Improved Seals.
-var DefaultProtectionTalents = "05001-5530513321301551"
+var DefaultProtectionTalents = "50003-0530313321301531-5022"
 
 var DefaultConsumables = &proto.ConsumesSpec{
 	ConjuredId: 12662, // Demonic Rune

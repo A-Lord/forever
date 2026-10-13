@@ -123,7 +123,8 @@ func (shaman *Shaman) newWindfuryImbueSpell() *core.Spell {
 }
 
 // 439431 rolls its 20% on the main hand's melee hits, once per 1.5 s, and fires the rank's 16361,
-// whose extra attacks count is how many strikes follow.
+// whose extra attacks count is how many strikes follow. It rolls off the hit's cast result, and the
+// strikes follow once that hit has been dealt, in the same instant.
 func (shaman *Shaman) RegisterWindfuryImbue() {
 	if !shaman.carriesImbue(proto.ShamanImbue_WindfuryWeapon) {
 		return
@@ -134,9 +135,12 @@ func (shaman *Shaman) RegisterWindfuryImbue() {
 
 	chance := windfuryWeaponPassive.StatedChance()
 	trigger := spelldata.ProcTrigger(&shaman.Character, windfuryWeaponPassive, func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
-		for range count {
-			strike.Cast(sim, result.Target)
-		}
+		target := result.Target
+		sim.RunAfterCurrentEvent(func(sim *core.Simulation) {
+			for range count {
+				strike.Cast(sim, target)
+			}
+		})
 	}, func(_ *core.Character, trigger *core.ProcTrigger) {
 		trigger.ProcChance = 0
 		trigger.DPM = shaman.imbueProcManager(proto.ShamanImbue_WindfuryWeapon, 0, chance)
@@ -145,6 +149,7 @@ func (shaman *Shaman) RegisterWindfuryImbue() {
 		}
 	})
 	trigger.Name = "Windfury Weapon Trigger"
+	trigger.Callback = core.CallbackOnCastResult
 	trigger.TriggerImmediately = true
 	shaman.MakeProcTriggerAura(trigger)
 

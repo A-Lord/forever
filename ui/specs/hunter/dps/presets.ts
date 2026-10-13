@@ -66,7 +66,7 @@ const talents = (name: string, talentsString: string) => ({ name, data: SavedTal
 
 // The best build found for each tree and playstyle, on the P1 gear over a three minute fight.
 export const SurvivalWeaveTalents = talents('SV Weave', '-00530501114-550200030050220151');
-export const MarksmanshipWeaveTalents = talents('MM Weave', '-005305031150001-5502000300502201');
+export const MarksmanshipWeaveTalents = talents('MM Weave', '-205305031150001-5502000300502201');
 export const BeastMasteryWeaveTalents = talents('BM Weave', '5320001505101251-0053250001-4');
 export const MarksmanshipTalents = talents('MM', '5-005355251152205-5');
 export const BeastMasteryTalents = talents('BM', '5320001505101251-0053250001-4');
@@ -104,7 +104,6 @@ export const DefaultRaidBuffs = RaidBuffs.create({
 	prayerOfSpirit: true,
 	giftOfTheWild: true,
 	prayerOfFortitude: true,
-	prayerOfShadowProtection: true,
 });
 
 export const DefaultDebuffs = Debuffs.create({
@@ -122,7 +121,7 @@ export const DefaultDebuffs = Debuffs.create({
 export const DefaultConsumables = ConsumesSpec.create({
 	elixirIds: [Consumables.ElixirOfTheMongoose.id, Consumables.GreaterMagebloodElixir.id],
 	foodId: Consumables.SwiftstrikeSteak.id,
-	potId: Consumables.MajorManaPotion.id,
+	resourcePotId: Consumables.MajorManaPotion.id,
 	conjuredId: Consumables.DemonicRune.id,
 	explosiveId: Consumables.EzThroDynamiteII.id,
 	extraIds: [Consumables.GoblinSapperCharge.id, Consumables.ScrollOfStrengthIV.id],

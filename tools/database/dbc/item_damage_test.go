@@ -1,6 +1,7 @@
 package dbc
 
 import (
+	"math"
 	"testing"
 
 	"github.com/wowsims/forever/sim/core/proto"
@@ -46,9 +47,6 @@ func TestUnroundedDPS(t *testing.T) {
 			if field == nil {
 				t.Fatal("scaling properties discard unrounded weapon table DPS")
 			}
-			if got := generated.ProtoReflect().Has(field); got != (c.class == ITEM_CLASS_WEAPON) {
-				t.Fatalf("DPS presence = %v for item class %d", got, c.class)
-			}
 			if got := generated.ProtoReflect().Get(field).Float(); got != c.dps {
 				t.Fatalf("unrounded DPS = %.9f, want %.9f", got, c.dps)
 			}
@@ -85,7 +83,7 @@ func TestUnroundedDPS(t *testing.T) {
 	}
 }
 
-func TestWeaponDPSPresenceWhenSourceTableIsMissing(t *testing.T) {
+func TestWeaponDPSIsZeroWhenSourceTableIsMissing(t *testing.T) {
 	// Given
 	once.Do(func() {})
 	previous := dbcInstance
@@ -95,8 +93,8 @@ func TestWeaponDPSPresenceWhenSourceTableIsMissing(t *testing.T) {
 	// When
 	row := item.ToUIItem().ScalingOptions[0]
 	// Then
-	if row.UnroundedDps != nil {
-		t.Fatal("missing source row must preserve absent table DPS")
+	if row.UnroundedDps != 0 {
+		t.Fatalf("missing source row gives table DPS %v, want 0", row.UnroundedDps)
 	}
 }
 
@@ -166,6 +164,46 @@ func TestWeaponDamageRange(t *testing.T) {
 			OverallQuality: 3, Flags1: tc.caster, Flags4: tc.reduced, DmgVariance: 0.4, QualityModifier: tc.qualityModifier}
 		if got, want := [2]float64{item.WeaponDmgMin(0), item.WeaponDmgMax(0)}, [2]float64{tc.min, tc.max}; got != want {
 			t.Errorf("%s: damage %v-%v, want %v-%v", tc.name, got[0], got[1], want[0], want[1])
+		}
+	}
+}
+
+// A random suffix whose bonus list reduces caster DPS leaves the weapon's own damage alone and gives
+// it a second range: the share of the table cell, floored and rounded as the game shows it, with the
+// item's own variance.
+func TestReducedCasterWeaponDPS(t *testing.T) {
+	once.Do(func() {})
+	previous := dbcInstance
+	dbcInstance = NewDBC()
+	t.Cleanup(func() { dbcInstance = previous })
+	for name, dps := range map[string]float64{"ItemDamageOneHand": 30, "ItemDamageTwoHand": 39} {
+		dbcInstance.ItemDamageTable[name] = map[int]ItemDamageTable{50: {Quality: []float64{0, 0, 0, dps, 0, 0, 0}}}
+	}
+
+	for _, tc := range []struct {
+		name           string
+		inventory      int
+		delay          int
+		variance       float64
+		ownMin, ownMax float64
+		dps            float64
+		min, max       float64
+	}{
+		{"two hand, 29/39 of 39 DPS at 3.0 with 0.4 variance", INVTYPE_2HWEAPON, 3000, 0.4, 93, 140, 29, 69, 104},
+		{"two hand with 0.6 variance", INVTYPE_2HWEAPON, 3000, 0.6, 81, 152, 29, 60, 113},
+		{"one hand, 2/3 of 30 DPS at 2.0", INVTYPE_WEAPON, 2000, 0.4, 48, 72, 20, 32, 48},
+	} {
+		item := Item{Id: 1, ItemClass: ITEM_CLASS_WEAPON, InventoryType: tc.inventory, ItemDelay: tc.delay, ItemLevel: 50,
+			OverallQuality: 3, DmgVariance: tc.variance}
+		dps, present := dbcInstance.ReducedCasterWeaponDPS(&item, 0)
+		if !present || math.Abs(dps-tc.dps) > 1e-9 {
+			t.Errorf("%s: reduced DPS %v (%v), want %v", tc.name, dps, present, tc.dps)
+		}
+		if got, want := [2]float64{item.WeaponDmgMin(0), item.WeaponDmgMax(0)}, [2]float64{tc.ownMin, tc.ownMax}; got != want {
+			t.Errorf("%s: the item's own damage is %v-%v, want the whole table's %v-%v", tc.name, got[0], got[1], want[0], want[1])
+		}
+		if low, high := item.WeaponDamage(dps); low != tc.min || high != tc.max {
+			t.Errorf("%s: reduced damage %v-%v, want %v-%v", tc.name, low, high, tc.min, tc.max)
 		}
 	}
 }

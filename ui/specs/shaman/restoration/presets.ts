@@ -8,7 +8,7 @@ export const DefaultOptions = RestorationShamanOptions.create({
 
 export const DefaultConsumables = ConsumesSpec.create({
 	foodId: Consumables.SoaringPamplona.id,
-	potId: Consumables.MajorManaPotion.id,
+	resourcePotId: Consumables.MajorManaPotion.id,
 });
 
 export const OtherDefaults = {

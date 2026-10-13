@@ -145,7 +145,11 @@ export const actionIdSets: Record<
 			const toOption = (spell: SpellStats, submenu: Array<string | ActionId>) => ({ value: spell.id, submenu, listScope: listScopeOf(spell) });
 			const { categorised, uncategorised } = categorise(castableSpells, toOption);
 
-			const placeholders: Array<ActionId> = [ActionId.fromOtherId(OtherAction.OtherActionPotion)];
+			const placeholders: Array<ActionId> = [
+				OtherAction.OtherActionOffensivePotion,
+				OtherAction.OtherActionDefensivePotion,
+				OtherAction.OtherActionResourcePotion,
+			].map(otherId => ActionId.fromOtherId(otherId));
 
 			return [
 				uncategorised.map(spell => toOption(spell, createSpellSubmenu(spell.id, castableSpells, ['spell']))),

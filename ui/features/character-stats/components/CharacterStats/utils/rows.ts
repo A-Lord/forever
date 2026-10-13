@@ -1,6 +1,7 @@
-import { PseudoStat, Stat } from '@generated/proto/common';
+import { OFF_HAND_PERCENTS, STAT_GROUPS, type StatGroupKey } from '@features/stat-filters/model/stat_groups';
+import { PseudoStat } from '@generated/proto/common';
 import type { Player } from '@sim/player/player';
-import { UnitStat } from '@sim/proto/stats';
+import type { UnitStat } from '@sim/proto/stats';
 
 import { shouldShowCritImmunity, shouldShowMeleeCritCap } from './stat_display';
 
@@ -22,97 +23,17 @@ export type Row =
 	| { kind: 'crit-immunity'; id: string }
 	| { kind: 'melee-crit-cap'; id: string };
 
-/** `primary` (health and mana) shows without a header; the rest are collapsible. */
-export type StatGroupKey = 'primary' | 'attributes' | 'physical' | 'spell' | 'defense' | 'resistance';
-
 export interface RowGroup {
 	key: StatGroupKey;
 	rows: Row[];
 }
 
-const statGroups = new Map<StatGroupKey, Array<DisplayStat>>([
-	['primary', [{ stat: UnitStat.fromStat(Stat.StatHealth) }, { stat: UnitStat.fromStat(Stat.StatMana) }]],
-	[
-		'attributes',
-		[
-			{ stat: UnitStat.fromStat(Stat.StatStrength) },
-			{ stat: UnitStat.fromStat(Stat.StatAgility) },
-			{ stat: UnitStat.fromStat(Stat.StatStamina) },
-			{ stat: UnitStat.fromStat(Stat.StatIntellect) },
-			{ stat: UnitStat.fromStat(Stat.StatSpirit) },
-		],
-	],
-	[
-		'physical',
-		[
-			{ stat: UnitStat.fromStat(Stat.StatAttackPower) },
-			{ stat: UnitStat.fromStat(Stat.StatFeralAttackPower) },
-			{ stat: UnitStat.fromStat(Stat.StatRangedAttackPower) },
-			{
-				stat: UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeHitPercent),
-				offHandStat: UnitStat.fromPseudoStat(PseudoStat.PseudoStatOffHandHitPercent),
-			},
-			{
-				stat: UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeCritPercent),
-				offHandStat: UnitStat.fromPseudoStat(PseudoStat.PseudoStatOffHandCritPercent),
-			},
-			{ stat: UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeHastePercent) },
-			{ stat: UnitStat.fromPseudoStat(PseudoStat.PseudoStatRangedHitPercent) },
-			{ stat: UnitStat.fromPseudoStat(PseudoStat.PseudoStatRangedCritPercent) },
-			{ stat: UnitStat.fromPseudoStat(PseudoStat.PseudoStatRangedHastePercent) },
-			{ stat: UnitStat.fromPseudoStat(PseudoStat.PseudoStatMeleeSpeedMultiplier) },
-			{ stat: UnitStat.fromPseudoStat(PseudoStat.PseudoStatRangedSpeedMultiplier) },
-			{ stat: UnitStat.fromPseudoStat(PseudoStat.PseudoStatExpertisePercent) },
-			{ stat: UnitStat.fromStat(Stat.StatArmorPenetration) },
-		],
-	],
-	[
-		'spell',
-		[
-			{ stat: UnitStat.fromStat(Stat.StatSpellDamage) },
-			{ stat: UnitStat.fromStat(Stat.StatHealingPower) },
-			{ stat: UnitStat.fromStat(Stat.StatArcaneDamage) },
-			{ stat: UnitStat.fromStat(Stat.StatFireDamage) },
-			{ stat: UnitStat.fromStat(Stat.StatFrostDamage) },
-			{ stat: UnitStat.fromStat(Stat.StatHolyDamage) },
-			{ stat: UnitStat.fromStat(Stat.StatNatureDamage) },
-			{ stat: UnitStat.fromStat(Stat.StatShadowDamage) },
-			{ stat: UnitStat.fromPseudoStat(PseudoStat.PseudoStatSpellHitPercent) },
-			{ stat: UnitStat.fromPseudoStat(PseudoStat.PseudoStatSchoolHitPercentArcane) },
-			{ stat: UnitStat.fromPseudoStat(PseudoStat.PseudoStatSchoolHitPercentFire) },
-			{ stat: UnitStat.fromPseudoStat(PseudoStat.PseudoStatSchoolHitPercentFrost) },
-			{ stat: UnitStat.fromPseudoStat(PseudoStat.PseudoStatSchoolHitPercentHoly) },
-			{ stat: UnitStat.fromPseudoStat(PseudoStat.PseudoStatSchoolHitPercentNature) },
-			{ stat: UnitStat.fromPseudoStat(PseudoStat.PseudoStatSchoolHitPercentShadow) },
-			{ stat: UnitStat.fromPseudoStat(PseudoStat.PseudoStatSpellCritPercent) },
-			{ stat: UnitStat.fromPseudoStat(PseudoStat.PseudoStatSpellHastePercent) },
-			{ stat: UnitStat.fromStat(Stat.StatSpellPiercing) },
-			{ stat: UnitStat.fromStat(Stat.StatMP5) },
-		],
-	],
-	[
-		'defense',
-		[
-			{ stat: UnitStat.fromStat(Stat.StatArmor) },
-			{ stat: UnitStat.fromStat(Stat.StatBonusArmor) },
-			{ stat: UnitStat.fromStat(Stat.StatDefenseRating) },
-			{ stat: UnitStat.fromPseudoStat(PseudoStat.PseudoStatDodgePercent) },
-			{ stat: UnitStat.fromPseudoStat(PseudoStat.PseudoStatParryPercent) },
-			{ stat: UnitStat.fromPseudoStat(PseudoStat.PseudoStatBlockPercent) },
-			{ stat: UnitStat.fromStat(Stat.StatBlockValue) },
-		],
-	],
-	[
-		'resistance',
-		[
-			{ stat: UnitStat.fromStat(Stat.StatArcaneResistance) },
-			{ stat: UnitStat.fromStat(Stat.StatFireResistance) },
-			{ stat: UnitStat.fromStat(Stat.StatFrostResistance) },
-			{ stat: UnitStat.fromStat(Stat.StatNatureResistance) },
-			{ stat: UnitStat.fromStat(Stat.StatShadowResistance) },
-		],
-	],
-]);
+const displayStatOf = (stat: UnitStat): DisplayStat => {
+	const offHandStat = OFF_HAND_PERCENTS.get(stat.getKey());
+	return offHandStat ? { stat, offHandStat } : { stat };
+};
+
+const statGroups = new Map<StatGroupKey, Array<DisplayStat>>(STAT_GROUPS.map(({ key, stats }) => [key, stats.map(displayStatOf)]));
 
 const statsInGroup = (groupedStats: ReadonlyArray<DisplayStat>, stats: ReadonlyArray<UnitStat>) =>
 	groupedStats.filter(displayStat => stats.some(stat => stat.equals(displayStat.stat)));

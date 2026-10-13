@@ -637,6 +637,14 @@ func (unit *Unit) MultiplyMeleeSpeed(sim *Simulation, amount float64) {
 	unit.AutoAttacks.UpdateSwingTimers(sim)
 }
 
+// For an attack speed aura that swings the weapon as a faster, lighter one: the swings speed up as
+// melee speed does, and WeaponSpeedMultiplier carries the factor for the procs that read the weapon's
+// speed.
+func (unit *Unit) MultiplyWeaponSpeed(sim *Simulation, amount float64) {
+	unit.PseudoStats.WeaponSpeedMultiplier *= amount
+	unit.MultiplyMeleeSpeed(sim, amount)
+}
+
 func (unit *Unit) updateRangedAttackSpeed() {
 	oldRangedAttackSpeed := unit.rangedAttackSpeed
 	unit.rangedAttackSpeed = unit.TotalRangedHasteMultiplier()
@@ -961,7 +969,6 @@ func (unit *Unit) doneIteration(sim *Simulation) {
 	unit.Hardcast = Hardcast{}
 
 	unit.manaBar.doneIteration(sim)
-	unit.rageBar.doneIteration()
 
 	unit.auraTracker.doneIteration(sim)
 	for _, spell := range unit.Spellbook {
@@ -1021,7 +1028,7 @@ func (unit *Unit) metadata(casters ...*Unit) *proto.UnitMetadata {
 			IsPotion:        spell.Flags.Matches(SpellFlagPotion),
 			IsConjured:      spell.Flags.Matches(SpellFlagConjured),
 			HasExpectedTick: spell.expectedTickDamageInternal != nil,
-			HasMissileSpeed: spell.MissileSpeed > 0.0,
+			HasMissileSpeed: spell.MissileSpeed > 0.0 || spell.MissileMinDuration > 0,
 			HasRanks:        spell.Rank > 0,
 			Category:        spell.category(),
 		}

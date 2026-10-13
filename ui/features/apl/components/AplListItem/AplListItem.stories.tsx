@@ -48,7 +48,7 @@ export const Default: Story = {};
 /** A row the eye has disabled stays on screen, greyed out. */
 export const Hidden: Story = { args: rowOf(APLRotation.create({ priorityList: [waitAfterTen(true)] })) };
 
-/** A pre-pull row, which offers the pre-pull set of kinds and has no condition picker. */
+/** A pre-pull row, which offers the pre-pull set of kinds. */
 export const PrePull: Story = {
 	args: rowOf(APLRotation.create({ priorityList: [waitAfterTen()] })),
 	decorators: [withAplScope({ isPrepull: true })],

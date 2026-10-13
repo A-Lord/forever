@@ -35,6 +35,7 @@ import { CURRENT_API_VERSION } from '../constants/other';
 import { SimSettingCategories } from '../constants/sim_settings';
 import type { PresetEpWeights } from '../presets/types';
 import { ActionId } from '../proto/action_id';
+import { addPartyBuffItems } from '../proto/buff_items';
 import { Database } from '../proto/database';
 import { enchantWeaponDamageEP, EquippedItem, getWeaponDpsStatsBySlot } from '../proto/equipped_item';
 import { Gear, ItemSwapGear } from '../proto/gear';
@@ -50,7 +51,7 @@ import { ItemSwapSettings } from '../settings/item_swap_settings';
 import { Sim } from '../sim';
 import { batch } from '../state/batch';
 import { deleteKeyed, patchKeyed, PLAYER_FIELDS, PlayerField, PlayerSlice, seedKeyed, zeroVersions } from '../state/sim_store';
-import { playerTalentStringToProto } from '../talents/factory';
+import { playerBrokenTalentNames, playerTalentStringToProto } from '../talents/factory';
 import { arrayEquals, omitDeep, stringComparator } from '../utils/collections';
 import { WorkerProgressCallback } from '../workers/worker_pool';
 import { PlayerClass } from './player_class';
@@ -516,12 +517,9 @@ export class Player<SpecType extends Spec> {
 		return this.sim.db.getItems(slot).filter(item => canEquipItem(item, this.playerSpec, slot));
 	}
 
-	// Returns all random suffixes that this player would be interested in for the given base item.
+	// Returns all random suffixes the given base item can roll.
 	getRandomSuffixes(item: Item): Array<ItemRandomSuffix> {
-		const randPropPoints = item.scalingOptions[0]?.randPropPoints ?? item.randPropPoints;
-		return item.randomSuffixOptions
-			.map(id => this.sim.db.getRandomSuffixById(id))
-			.filter((suffix): suffix is ItemRandomSuffix => !!suffix && this.computeRandomSuffixEP(suffix, randPropPoints) > 0);
+		return item.randomSuffixOptions.map(id => this.sim.db.getRandomSuffixById(id)).filter((suffix): suffix is ItemRandomSuffix => !!suffix);
 	}
 
 	// Returns all enchants that this player can wear in the given slot.
@@ -1032,6 +1030,11 @@ export class Player<SpecType extends Spec> {
 		this.patch('talentsString', newTalentsString);
 	}
 
+	// Talents whose points the tier or prerequisite above them do not allow. The sim still applies them, so a build can be tested without a talent it depends on.
+	getBrokenTalentNames(): Array<string> {
+		return playerBrokenTalentNames(this.playerSpec, this.getTalentsString());
+	}
+
 	getTalentTreePoints(): Array<number> {
 		return getTalentTreePoints(this.getTalentsString());
 	}
@@ -1432,7 +1435,9 @@ export class Player<SpecType extends Spec> {
 	private toDatabase(): SimDatabase {
 		const dbGear = this.getGear().toDatabase(this.sim.db);
 		const dbItemSwapGear = this.itemSwapSettings.getGear().toDatabase(this.sim.db);
-		return Database.mergeSimDatabases(dbGear, dbItemSwapGear);
+		const database = Database.mergeSimDatabases(dbGear, dbItemSwapGear);
+		addPartyBuffItems(database, this.sim.db, this.getParty()?.getBuffs());
+		return database;
 	}
 
 	toProto(forExport?: boolean, forSimming?: boolean, exportCategories?: Array<SimSettingCategories>): PlayerProto {

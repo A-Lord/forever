@@ -72,7 +72,7 @@ export const OtherDefaults = {
 };
 
 export const DefaultConsumables = ConsumesSpec.create({
-	potId: Consumables.MajorManaPotion.id,
+	resourcePotId: Consumables.MajorManaPotion.id,
 	flaskId: Consumables.FlaskOfSupremePower.id,
 	foodId: Consumables.SmokedDesertDumplings.id,
 	conjuredId: Consumables.DemonicRune.id,

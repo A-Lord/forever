@@ -92,10 +92,12 @@ func (paladin *Paladin) applyConviction() {
 // Vindication - Gives your damaging melee attacks a chance to reduce the target's Attack Power by
 // 68/136/204, and increase your Attack Power by 1/2/3% for 30 sec.
 //
-// The Classic, TBC and Forever game files all state the chance as 100%, which the tooltip's "a chance"
-// and the players who used it say it never was; the WotLK game files say 50%, the only number Blizzard
-// ever shipped below 100, and that is what rolls here.
-const vindicationProcChance = 0.5
+// The game files state no rate: the ProcChance column reads 100. In game it is 5 procs a minute on
+// the weapon's speed, measured on swings at 1.6 and 3.6 speed under Seal of Righteousness and Seal of
+// the Crusader. The row's proc mask also hears melee specials, which roll the same chance and were not
+// measured. The target's debuff is a magic spell of its own that can miss; the paladin's buff comes
+// with every proc.
+const vindicationPPM = 5
 
 func (paladin *Paladin) applyVindication() {
 	if paladin.Talents.Vindication == 0 {
@@ -118,10 +120,22 @@ func (paladin *Paladin) applyVindication() {
 		Duration: rank.Duration(),
 	}).AttachStatDependency(attackPowerDep)
 
+	// Magic in SpellCategories: the debuff rolls spell hit.
+	debuffConfig := spelldata.SpellConfig(&paladin.Unit, rank, spelldata.Magic(core.ProcMaskEmpty), spelldata.Proc())
+	debuffConfig.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		result := spell.CalcOutcome(sim, target, spell.OutcomeMagicHit)
+		if result.Landed() {
+			targetAuras.Get(target).Activate(sim)
+		}
+		spell.DealOutcome(sim, result)
+	}
+	debuffConfig.RelatedAuraArrays = targetAuras.ToMap()
+	debuff := paladin.RegisterSpell(debuffConfig)
+
 	trigger := spelldata.ProcTrigger(&paladin.Character, spellData.Vindication.Rank(paladin.Talents.Vindication), func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
-		targetAuras.Get(result.Target).Activate(sim)
+		debuff.Cast(sim, result.Target)
 		selfAura.Activate(sim)
-	}, spelldata.Chance(vindicationProcChance))
+	}, spelldata.WeaponSpeedPPM(vindicationPPM))
 	trigger.Name = "Vindication - Trigger" + paladin.Label
 	paladin.MakeProcTriggerAura(trigger)
 }
@@ -285,8 +299,9 @@ func (paladin *Paladin) applyChampionOfTheLight() {
 	spelldata.ParseStatic(&paladin.Character, spellData.ChampionOfTheLight.Rank(paladin.Talents.ChampionOfTheLight))
 }
 
-// Instrument of Law - Reduces the cast time of your Hammer of Wrath by 0.5/1.0 sec, and reduces all
-// threat you generate by 10/20% while Righteous Fury is not active.
+// Instrument of Law - Reduces the cast time of your Hammer of Wrath by 0.5/1.0 sec, and raises all
+// threat you generate by 10/20% while Righteous Fury is not active, as the talent curve states (the
+// tooltip says reduces).
 func (paladin *Paladin) applyInstrumentOfLaw() {
 	if paladin.Talents.InstrumentOfLaw == 0 {
 		return
@@ -295,7 +310,7 @@ func (paladin *Paladin) applyInstrumentOfLaw() {
 	rank := spellData.InstrumentOfLaw.Rank(paladin.Talents.InstrumentOfLaw)
 	spelldata.ParseStatic(&paladin.Character, rank, spelldata.Effects(1))
 
-	// The threat reduction is off while Righteous Fury is up.
+	// The threat effect is off while Righteous Fury is up.
 	threat := paladin.RegisterAura(core.Aura{
 		Label:    "Instrument of Law" + paladin.Label,
 		ActionID: core.ActionID{SpellID: rank.ID},

@@ -57,6 +57,11 @@ type Aura struct {
 	startTime time.Duration // Time at which the aura was applied.
 	expires   time.Duration // Time at which aura will be removed.
 	fadeTime  time.Duration // Time at which the aura was actually removed.
+	expired   bool          // Whether the aura last fell off by running out, rather than being removed early.
+
+	pendingActivations    int32         // Deferred proc handlers declared to activate the aura that have not run yet.
+	pendingOwnActivations int32         // Those of them from a guaranteed trigger off a spell its unit cast from its APL.
+	lastOwnProcAt         time.Duration // When an own trigger's handler last put the aura up, refreshed it or changed its stacks; -NeverExpires if not yet this iteration.
 
 	// The unit this aura is attached to.
 	Unit *Unit
@@ -74,6 +79,7 @@ type Aura struct {
 	onPeriodicHealDealtIndex   int32 // Position of this aura's index in the onPeriodicHealAuras array.
 	onPeriodicHealTakenIndex   int32 // Position of this aura's index in the onPeriodicHealAuras array.
 	onEncounterStartIndex      int32 // Position of this aura's index in the onEncounterStartAuras array.
+	onCastResultIndex          int32 // Position of this aura's index in the onCastResultAuras array.
 
 	// The number of stacks, or charges, of this aura. If this aura doesn't care
 	// about charges, is just 0.
@@ -101,6 +107,7 @@ type Aura struct {
 	OnPeriodicHealDealt   OnPeriodicDamage // Invoked when a hot tick occurs and this unit is the caster.
 	OnPeriodicHealTaken   OnPeriodicDamage // Invoked when a hot tick occurs and this unit is the target.
 	OnEncounterStart      OnEncounterStart // Invoked at the start of each encounter, after the pre-pull.
+	OnCastResult          OnSpellHit       // Invoked when a direct damage result is dealt at the cast and this unit is the caster.
 
 	// If non-default, stat bonuses from the OnGain callback of this aura will be
 	// included in Character Stats in the UI.
@@ -134,6 +141,11 @@ func (aura *Aura) reset(sim *Simulation) {
 	}
 	aura.metrics.reset()
 	aura.fadeTime = -NeverExpires
+	aura.expired = false
+	// Deferred handlers still waiting when the last iteration ended never ran to count themselves off.
+	aura.pendingActivations = 0
+	aura.pendingOwnActivations = 0
+	aura.lastOwnProcAt = -NeverExpires
 
 	if aura.OnReset != nil {
 		aura.OnReset(aura, sim)
@@ -142,6 +154,22 @@ func (aura *Aura) reset(sim *Simulation) {
 	if aura.Dpm != nil {
 		aura.Dpm.Reset()
 	}
+}
+
+// Counts n deferred handlers on or off the aura's pending activations; a nil aura, undeclared, counts nothing.
+func (aura *Aura) addPending(own bool, n int32) {
+	if aura == nil {
+		return
+	}
+	aura.pendingActivations += n
+	if own {
+		aura.pendingOwnActivations += n
+	}
+}
+
+// Up, or declared by a deferred proc handler that has not run yet.
+func (aura *Aura) activeOrPending() bool {
+	return aura.IsActive() || aura.pendingActivations > 0
 }
 
 func (aura *Aura) doneIteration(sim *Simulation) {
@@ -439,6 +467,7 @@ type auraTracker struct {
 	onPeriodicHealDealtAuras   []*Aura
 	onPeriodicHealTakenAuras   []*Aura
 	onEncounterStartAuras      []*Aura
+	onCastResultAuras          []*Aura
 
 	dispatchBuffers [][]*Aura // One copy of a callback list per event being handled, nested events included.
 	dispatchDepth   int
@@ -525,6 +554,7 @@ func (at *auraTracker) registerAura(unit *Unit, aura Aura) *Aura {
 	newAura.onPeriodicHealDealtIndex = Inactive
 	newAura.onPeriodicHealTakenIndex = Inactive
 	newAura.onEncounterStartIndex = Inactive
+	newAura.onCastResultIndex = Inactive
 
 	at.auras = append(at.auras, newAura)
 	if newAura.Tag != "" {
@@ -553,6 +583,7 @@ func (unit *Unit) GetOrRegisterAura(aura Aura) *Aura {
 		curAura.OnPeriodicHealDealt = aura.OnPeriodicHealDealt
 		curAura.OnPeriodicHealTaken = aura.OnPeriodicHealTaken
 		curAura.OnEncounterStart = aura.OnEncounterStart
+		curAura.OnCastResult = aura.OnCastResult
 		return curAura
 	}
 }
@@ -618,6 +649,7 @@ func (at *auraTracker) reset(sim *Simulation) {
 	at.onPeriodicHealDealtAuras = at.onPeriodicHealDealtAuras[:0]
 	at.onPeriodicHealTakenAuras = at.onPeriodicHealTakenAuras[:0]
 	at.onEncounterStartAuras = at.onEncounterStartAuras[:0]
+	at.onCastResultAuras = at.onCastResultAuras[:0]
 
 	for _, resetEffect := range at.resetEffects {
 		resetEffect(sim)
@@ -778,6 +810,11 @@ func (aura *Aura) Activate(sim *Simulation) {
 		aura.Unit.onEncounterStartAuras = append(aura.Unit.onEncounterStartAuras, aura)
 	}
 
+	if aura.OnCastResult != nil {
+		aura.onCastResultIndex = int32(len(aura.Unit.onCastResultAuras))
+		aura.Unit.onCastResultAuras = append(aura.Unit.onCastResultAuras, aura)
+	}
+
 	if sim.Log != nil && !aura.ActionID.IsEmptyAction() {
 		aura.Unit.Log(sim, "Aura gained: %s", aura.ActionID)
 	}
@@ -813,6 +850,7 @@ func (aura *Aura) Deactivate(sim *Simulation) {
 		sim.CurrentTime = oldTime
 	}
 
+	aura.expired = sim.CurrentTime >= aura.expires
 	aura.expires = 0
 	aura.fadeTime = sim.CurrentTime
 	if aura.activeIndex != Inactive {
@@ -923,6 +961,15 @@ func (aura *Aura) Deactivate(sim *Simulation) {
 		aura.onEncounterStartIndex = Inactive
 	}
 
+	if aura.onCastResultIndex != Inactive {
+		removeOnCastResultIndex := aura.onCastResultIndex
+		aura.Unit.onCastResultAuras = removeBySwappingToBack(aura.Unit.onCastResultAuras, removeOnCastResultIndex)
+		if removeOnCastResultIndex < int32(len(aura.Unit.onCastResultAuras)) {
+			aura.Unit.onCastResultAuras[removeOnCastResultIndex].onCastResultIndex = removeOnCastResultIndex
+		}
+		aura.onCastResultIndex = Inactive
+	}
+
 	// don't invoke possible callbacks until the internal state is consistent
 	if aura.stacks != 0 {
 		aura.SetStacks(sim, 0)
@@ -1002,6 +1049,18 @@ func (at *auraTracker) OnSpellHitTaken(sim *Simulation, spell *Spell, result *Sp
 			continue
 		}
 		aura.OnSpellHitTaken(aura, sim, spell, result)
+	}
+	at.endDispatch()
+}
+func (at *auraTracker) OnCastResult(sim *Simulation, spell *Spell, result *SpellResult) {
+	if len(at.onCastResultAuras) == 0 {
+		return
+	}
+	for _, aura := range at.beginDispatch(at.onCastResultAuras) {
+		if !aura.active {
+			continue
+		}
+		aura.OnCastResult(aura, sim, spell, result)
 	}
 	at.endDispatch()
 }

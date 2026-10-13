@@ -11,6 +11,8 @@ import { TalentTreePicker, type TalentTreePickerProps } from './TalentTreePicker
 
 // A full 51-point Forever mage build: Arcane and Frost spent, Fire empty.
 const MAGE_BUILD = '2552252231221--2555';
+// The same Arcane tree with four points left in row 0, which breaks every talent below it.
+const BROKEN_BUILD = '2202252231221--2555';
 
 const graph = buildTalentGraph(mageTalentsConfig);
 
@@ -41,3 +43,5 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = { args: { points: parseTalentsString(mageTalentsConfig, MAGE_BUILD) } };
+
+export const Broken: Story = { args: { points: parseTalentsString(mageTalentsConfig, BROKEN_BUILD) } };

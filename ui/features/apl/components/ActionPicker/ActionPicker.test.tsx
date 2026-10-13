@@ -95,7 +95,7 @@ describe('ActionPicker', () => {
 		expect(roots()).toHaveLength(2);
 	}, 30000);
 
-	it('renders no condition picker in the pre-pull list', () => {
+	it('renders a condition picker in the pre-pull list', () => {
 		setup(APLAction.create({ action: { oneofKind: 'resetSequence', resetSequence: { sequenceName: 'seq' } } }));
 		render(
 			<AplProvider isPrepull>
@@ -104,7 +104,7 @@ describe('ActionPicker', () => {
 		);
 
 		expect(roots()).toHaveLength(1);
-		expect(document.querySelector('[data-testid="apl-action-condition"]')).toBeNull();
+		expect(document.querySelector('[data-testid="apl-action-condition"]')).not.toBeNull();
 	});
 
 	it('keeps a schedule’s own condition and renders none for the action it schedules', async () => {

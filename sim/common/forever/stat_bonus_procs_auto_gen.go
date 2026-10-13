@@ -12,6 +12,19 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
+	// Increases Feral Combat +1.
+	// https://www.wowhead.com/forever/spell=1320726
+	// unsupported: effect 1 A_MOD_SKILL misc 3014 is not parsed on the wearer
+	// equip: 1320726 (A_MOD_SKILL)
+	// shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 1320726},
+	//	[]shared.ItemVariant{
+	//	{ItemID: 9414, ItemName: "Oilskin Leggings"},
+	// })
+
+	// TODO: Manual implementation required
+	//       This can be ignored if the effect has already been implemented.
+	//       With next db run the item will be removed if implemented.
+	//
 	// Reduces your damage taken by 5% in the Battle Ring and The Maul.
 	// https://www.wowhead.com/forever/spell=1317285
 	// unsupported: the row applies only in area group 9337, which names no area type
@@ -751,6 +764,19 @@ func RegisterAllProcs() {
 	// shared.NewSpellDataDamageProc(shared.SpellDataProc{TriggerSpellID: 29655, BuffSpellID: 29655, IsWeaponProc: true},
 	//	[]shared.ItemVariant{
 	//	{ItemID: 17753, ItemName: "Verdant Keeper's Aim"},
+	// })
+
+	// TODO: Manual implementation required
+	//       This can be ignored if the effect has already been implemented.
+	//       With next db run the item will be removed if implemented.
+	//
+	// Blasts a target for 90 Fire damage.
+	// https://www.wowhead.com/forever/spell=13442
+	// unsupported: states no rate
+	// trigger 13442 (0%, core.CallbackEmpty, core.ProcMaskUnknown)
+	// shared.NewSpellDataDamageProc(shared.SpellDataProc{TriggerSpellID: 13442, BuffSpellID: 13442, IsWeaponProc: true},
+	//	[]shared.ItemVariant{
+	//	{ItemID: 18671, ItemName: "Baron Charr's Sceptre"},
 	// })
 
 	// TODO: Manual implementation required
@@ -2749,6 +2775,8 @@ func RegisterAllProcs() {
 	// https://www.wowhead.com/forever/spell=13496
 	// Not simulated: Girdle of the Blindwatcher: "Stealth Detection 05" (1292149) - ignored aura type 17
 	// https://www.wowhead.com/forever/spell=1292149
+	// Not simulated: Medal of Courage: "Resist Fear 02" (1324578) - ignored aura type 117
+	// https://www.wowhead.com/forever/spell=1324578
 	// Not simulated: Mask of Thero-shan: "Stealth 06" (17746) - ignored aura type 154
 	// https://www.wowhead.com/forever/spell=17746
 	// Not simulated: Nightscape Boots: "Stealth 06" (17746) - ignored aura type 154

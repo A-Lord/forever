@@ -25,6 +25,16 @@ describe('BuffSection', () => {
 		expect(block(name).contains(screen.getByTestId('buff-pickers'))).toBe(true);
 	});
 
+	it.each<BuffSectionProps['section']>(['raid_buffs', 'debuffs'])('puts the filter in the %s header', section => {
+		render(
+			<BuffSection section={section} empty={true} filter={<button data-testid="buff-filter" />}>
+				<span />
+			</BuffSection>,
+		);
+
+		expect(screen.getByTestId('content-block-header').contains(screen.getByTestId('buff-filter'))).toBe(true);
+	});
+
 	it('drops the body of an empty section and keeps its header', () => {
 		renderSection({ section: 'raid_buffs', empty: true });
 

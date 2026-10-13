@@ -376,6 +376,14 @@ describe('IconEnumPicker', () => {
 		expect(optionAnchor(1).hasAttribute('data-tooltip-id')).toBe(false);
 	});
 
+	it('marks a kept trigger, keeps its own tooltip and shows the kept tooltip on a corner badge', () => {
+		mount({ tooltip: 'Lethal Poison', keptTooltip: 'Kept' });
+
+		expect(button().parentElement!.hasAttribute('data-kept')).toBe(true);
+		expect(button().getAttribute('data-tooltip-content')).toBe('Lethal Poison');
+		expect(screen.getByTestId('icon-swatch-kept').getAttribute('data-tooltip-content')).toBe('Kept');
+	});
+
 	it('renders no tooltip anchor at all when nothing configures one', () => {
 		const { container } = mount({ options: [{ value: 0 }, { value: 1, icon: frostIcon }] });
 		expect(container.querySelectorAll('[data-tooltip-id]')).toHaveLength(0);

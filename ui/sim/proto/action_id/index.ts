@@ -138,8 +138,16 @@ export class ActionId {
 				baseName = 'Incoming HPS';
 				iconUrl = 'https://wow.zamimg.com/images/wow/icons/large/spell_holy_renew.jpg';
 				break;
-			case OtherAction.OtherActionPotion:
-				baseName = 'Potion';
+			case OtherAction.OtherActionResourcePotion:
+				baseName = 'Resource Potion';
+				iconUrl = 'https://wow.zamimg.com/images/wow/icons/large/inv_potion_76.jpg';
+				break;
+			case OtherAction.OtherActionDefensivePotion:
+				baseName = 'Defensive Potion';
+				iconUrl = 'https://wow.zamimg.com/images/wow/icons/large/inv_potion_69.jpg';
+				break;
+			case OtherAction.OtherActionOffensivePotion:
+				baseName = 'Offensive Potion';
 				iconUrl = 'https://wow.zamimg.com/images/wow/icons/large/inv_alchemy_elixir_04.jpg';
 				break;
 			case OtherAction.OtherActionMove:
@@ -396,11 +404,16 @@ export class ActionId {
 			case 'Flame Shock':
 			case 'Earth Shock':
 			case 'Frost Shock':
-			case 'Fire Nova':
 				if (tag == 1) {
 					name += ' (DoT)';
 				} else if (tag == 7) {
 					name += ' (Echo)';
+				}
+				break;
+			case 'Fire Nova':
+				// The cast's hits report under its spell, tagged 1, so they share its row.
+				if (tag === 1) {
+					name += ' (Damage)';
 				}
 				break;
 			case 'Fulmination':

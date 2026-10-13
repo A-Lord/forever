@@ -22,9 +22,10 @@ const (
 
 // ItemBonus.Type values of the rows a random suffix's bonus list carries.
 const (
-	ITEM_BONUS_STAT        int = 2  // Value_0 the ITEM_MOD stat, Value_1 its allocation per 10000 of the item's random property points.
-	ITEM_BONUS_SUFFIX      int = 5  // Value_0 the ItemNameDescription the item's name ends with.
-	ITEM_BONUS_ITEM_EFFECT int = 23 // Value_0 the ItemEffect whose spell the item gains.
+	ITEM_BONUS_STAT               int = 2  // Value_0 the ITEM_MOD stat, Value_1 its allocation per 10000 of the item's random property points.
+	ITEM_BONUS_SUFFIX             int = 5  // Value_0 the ItemNameDescription the item's name ends with.
+	ITEM_BONUS_ITEM_EFFECT        int = 23 // Value_0 the ItemEffect whose spell the item gains.
+	ITEM_BONUS_REDUCED_CASTER_DPS int = 54 // No value: a weapon with the list deals the REDUCED_CASTER_DPS share of its damage table.
 )
 
 const (
