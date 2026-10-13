@@ -39,7 +39,7 @@ describe('ItemListHeaderRow', () => {
 	it('sorts by item level and by EP from their headers', () => {
 		const { onSort } = renderRow();
 		fireEvent.click(within(screen.getByTestId('ilvl-label')).getByRole('button'));
-		fireEvent.click(within(screen.getByTestId('ep-label')).getByRole('button', { name: /^EP/ }));
+		fireEvent.click(within(screen.getByTestId('ep-label')).getByRole('button', { name: /^gear_tab\.gear_picker\.table_headers\.ep/ }));
 		expect(onSort.mock.calls).toEqual([[ItemListSortBy.ILVL], [ItemListSortBy.EP]]);
 	});
 
