@@ -202,14 +202,13 @@ describe('precisionRunOptions', () => {
 		expect(precisionRunOptions({ ...precision, precisionMode: 'iterations', iterations: 0 }).iterations).toBeUndefined();
 	});
 
-	it('adds the target and the cap in target mode, and no metrics without targets', () => {
-		expect(precisionRunOptions({ ...precision, precisionMode: 'target' })).toEqual({ iterations: 4000, targetEpCi: 0.02, maxIterationMultiplier: 4 });
+	it('sends the target and the cap in target mode, with no iteration count and no metrics without targets', () => {
+		expect(precisionRunOptions({ ...precision, precisionMode: 'target' })).toStrictEqual({ targetEpCi: 0.02, maxIterationMultiplier: 4 });
 	});
 
 	it('targets the shown metrics in target mode only', () => {
 		const shown = { damage: true, healing: true, threat: true };
-		expect(precisionRunOptions({ ...precision, precisionMode: 'target' }, shown)).toEqual({
-			iterations: 4000,
+		expect(precisionRunOptions({ ...precision, precisionMode: 'target' }, shown)).toStrictEqual({
 			targetEpCi: 0.02,
 			maxIterationMultiplier: 4,
 			targetMetrics: [

@@ -33,18 +33,7 @@ export const EpPrecisionOptions = ({ value, onChange, defaultIterations, disable
 					onChange={precisionMode => onChange({ precisionMode })}
 				/>
 			</div>
-			<NumberField
-				id={`${idPrefix}-iterations`}
-				label={t(target ? 'probe_iterations' : 'iterations')}
-				labelTooltip={t(target ? 'probe_iterations_tooltip' : 'iterations_tooltip')}
-				positive
-				showZeroes={false}
-				placeholder={String(defaultIterations)}
-				disabled={disabled}
-				value={value.iterations}
-				onChange={iterations => onChange({ iterations })}
-			/>
-			{target && (
+			{target ? (
 				<>
 					<NumberField
 						id={`${idPrefix}-target`}
@@ -69,6 +58,18 @@ export const EpPrecisionOptions = ({ value, onChange, defaultIterations, disable
 						onChange={maxIterationMultiplier => onChange({ maxIterationMultiplier })}
 					/>
 				</>
+			) : (
+				<NumberField
+					id={`${idPrefix}-iterations`}
+					label={t('iterations')}
+					labelTooltip={t('iterations_tooltip')}
+					positive
+					showZeroes={false}
+					placeholder={String(defaultIterations)}
+					disabled={disabled}
+					value={value.iterations}
+					onChange={iterations => onChange({ iterations })}
+				/>
 			)}
 		</div>
 	);

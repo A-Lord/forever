@@ -21,7 +21,7 @@ type Story = StoryObj<typeof meta>;
 export const Iterations: Story = {};
 
 export const TargetPrecision: Story = {
-	args: { value: { precisionMode: 'target', iterations: 4000, targetEpCi: 0.01, maxIterationMultiplier: 0 } },
+	args: { value: { precisionMode: 'target', iterations: 0, targetEpCi: 0.01, maxIterationMultiplier: 0 } },
 };
 
 export const Disabled: Story = {

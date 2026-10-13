@@ -581,9 +581,9 @@ func TestStatWeightTopUpRepeatsOneLongerRun(t *testing.T) {
 // With a target ±, the runs go on until every DPS EP shows a ± at or under it or its runs reach the
 // cap, and a run that needs more iterations gets them.
 func TestStatWeightsTargetModeRunsToTheTargetOrTheCap(t *testing.T) {
-	const probePerSide, multiplier = 10, 4
+	const probePerSide, multiplier = statWeightTargetProbeIterations / 2, 4
 	weigh := func(target float64) *proto.StatWeightsResult {
-		request := weaponTesterStatWeightsRequest(2 * probePerSide)
+		request := weaponTesterStatWeightsRequest(statWeightTargetProbeIterations)
 		request.StatsToWeigh = []proto.Stat{proto.Stat_StatAttackPower, proto.Stat_StatHitRating}
 		if target > 0 {
 			request.Target = &proto.StatWeightsTarget{EpCi: target, MaxIterationMultiplier: multiplier}
@@ -792,6 +792,37 @@ func TestStatWeightRequestsRunAtLeastOneIterationPerSide(t *testing.T) {
 		for _, simRequest := range []*proto.RaidSimRequest{request.RequestLow, request.RequestHigh} {
 			if simRequest != nil && simRequest.SimOptions.Iterations != 1 {
 				t.Errorf("stat %d runs %d iterations, want 1", request.StatData.UnitStat, simRequest.SimOptions.Iterations)
+			}
+		}
+	}
+}
+
+// A request with a target probes at a fixed count whatever its iteration count, and one without runs
+// its count.
+func TestStatWeightRequestsProbeATargetAtAFixedCount(t *testing.T) {
+	for _, target := range []*proto.StatWeightsTarget{nil, {EpCi: 0.01}} {
+		for _, iterations := range []int32{10, 100 * statWeightTargetProbeIterations} {
+			requests := buildStatWeightRequests(&proto.StatWeightsRequest{
+				Player:          &proto.Player{},
+				Encounter:       &proto.Encounter{},
+				SimOptions:      &proto.SimOptions{Iterations: iterations, RandomSeed: 1},
+				StatsToWeigh:    []proto.Stat{proto.Stat_StatAgility, proto.Stat_StatHitRating},
+				EpReferenceStat: proto.Stat_StatAgility,
+				Target:          target,
+			})
+			want := iterations / 2
+			if target != nil {
+				want = statWeightTargetProbeIterations / 2
+			}
+			if got := requests.BaseRequest.SimOptions.Iterations; got != want {
+				t.Errorf("target %v, %d requested: baseline runs %d iterations, want %d", target, iterations, got, want)
+			}
+			for _, request := range requests.StatSimRequests {
+				for _, simRequest := range []*proto.RaidSimRequest{request.RequestLow, request.RequestHigh} {
+					if simRequest != nil && simRequest.SimOptions.Iterations != want {
+						t.Errorf("target %v, %d requested: stat %d runs %d iterations, want %d", target, iterations, request.StatData.UnitStat, simRequest.SimOptions.Iterations, want)
+					}
+				}
 			}
 		}
 	}

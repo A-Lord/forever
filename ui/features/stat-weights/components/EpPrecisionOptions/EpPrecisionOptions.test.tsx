@@ -10,7 +10,7 @@ const t = (key: string) => i18n.t(`sidebar.buttons.stat_weights.precision.${key}
 const ITERATIONS: EpPrecisionSettings = { precisionMode: 'iterations', iterations: 0, targetEpCi: 0.01, maxIterationMultiplier: 0 };
 
 describe('EpPrecisionOptions', () => {
-	it('shows the target fields only in target mode, and reports a mode switch', async () => {
+	it('shows the iteration count in iterations mode and the target fields alone in target mode, and reports a mode switch', async () => {
 		const onChange = vi.fn();
 		const { rerender } = render(<EpPrecisionOptions value={ITERATIONS} onChange={onChange} defaultIterations={10000} />);
 		expect(screen.queryByLabelText(t('target_ep_ci'))).toBeNull();
@@ -22,7 +22,7 @@ describe('EpPrecisionOptions', () => {
 		rerender(<EpPrecisionOptions value={{ ...ITERATIONS, precisionMode: 'target' }} onChange={onChange} defaultIterations={10000} />);
 		expect(screen.getByLabelText(t('target_ep_ci'))).toBeTruthy();
 		expect(screen.getByLabelText(t('max_multiplier'))).toBeTruthy();
-		expect(screen.getByLabelText(t('probe_iterations'))).toBeTruthy();
+		expect(screen.queryByLabelText(t('iterations'))).toBeNull();
 	});
 
 	it('leaves an unset iteration count empty with the sim setting as placeholder, and reports an entered count', () => {

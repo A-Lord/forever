@@ -100,7 +100,7 @@ export type RunSimOptions = {
 };
 
 export type StatWeightsOptions = {
-	iterations?: number;
+	iterations?: number; // Unset uses the sim's iteration setting; a target ignores it and sizes its first pass itself.
 	targetEpCi?: number; // The 90% ± of each targeted EP to reach by adding iterations; unset runs the iterations once.
 	maxIterationMultiplier?: number;
 	targetMetrics?: StatWeightsTargetMetric[]; // The metrics the target applies to; unset means DPS only.

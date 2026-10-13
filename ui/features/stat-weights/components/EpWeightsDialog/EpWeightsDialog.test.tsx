@@ -748,7 +748,7 @@ describe('EpWeightsDialog', () => {
 			expect(abortType).not.toHaveBeenCalled();
 		});
 
-		it('runs to the target ± in every shown metric, against the chosen DPS and healing reference stats', async () => {
+		it('runs to the target ± in every shown metric, against the chosen DPS and healing reference stats, with no iteration count', async () => {
 			player.computeStatWeights.mockResolvedValue(weightsResult([[STRENGTH, 2]]));
 			player.refStats.dpsRefStat = Stat.StatAgility;
 			player.refStats.healRefStat = Stat.StatIntellect;
@@ -765,7 +765,6 @@ describe('EpWeightsDialog', () => {
 				Stat.StatAgility,
 				expect.any(Function),
 				{
-					iterations: 4000,
 					targetEpCi: 0.02,
 					maxIterationMultiplier: 4,
 					targetMetrics: [
@@ -776,6 +775,7 @@ describe('EpWeightsDialog', () => {
 					hpsReferenceStat: Stat.StatIntellect,
 				},
 			);
+			expect(player.computeStatWeights.mock.calls[0][4]).not.toHaveProperty('iterations');
 		});
 
 		describe('HPS EP with no healing reference stat chosen', () => {
@@ -934,6 +934,7 @@ describe('EpWeightsDialog', () => {
 			expect(calls.length).toBeGreaterThan(0);
 			for (const call of calls) {
 				expect(call[4]).toMatchObject({ targetEpCi: 0.02 });
+				expect(call[4]).not.toHaveProperty('iterations');
 				expect(call[4].targetMetrics).toBeUndefined();
 				expect(call[4].hpsReferenceStat).toBeUndefined();
 			}

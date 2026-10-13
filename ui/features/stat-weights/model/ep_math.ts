@@ -81,15 +81,15 @@ const targetMetrics = (displayMetrics: EpTargetMetrics): StatWeightsTargetMetric
 	...(displayMetrics.threat ? [StatWeightsTargetMetric.StatWeightsTargetMetricTps] : []),
 ];
 
-// An iteration count of 0 leaves the sim's own setting in charge. Without target metrics, the target ± applies to DPS
-// EP alone.
+// An iteration count of 0 leaves the sim's own setting in charge. A target sends no count, since the sim sizes its first
+// pass itself. Without target metrics, the target ± applies to DPS EP alone.
 export const precisionRunOptions = (
 	{ precisionMode, iterations, targetEpCi, maxIterationMultiplier }: EpPrecisionSettings,
 	displayMetrics?: EpTargetMetrics,
-): StatWeightsOptions => ({
-	iterations: iterations || undefined,
-	...(precisionMode === 'target' ? { targetEpCi, maxIterationMultiplier, ...(displayMetrics ? { targetMetrics: targetMetrics(displayMetrics) } : {}) } : {}),
-});
+): StatWeightsOptions =>
+	precisionMode === 'target'
+		? { targetEpCi, maxIterationMultiplier, ...(displayMetrics ? { targetMetrics: targetMetrics(displayMetrics) } : {}) }
+		: { iterations: iterations || undefined };
 
 export const epWeightsWithoutExcluded = (newWeights: Stats, oldWeights: Stats, { excludedStats, excludedPseudoStats }: ExcludedStats): Stats => {
 	let merged = newWeights;

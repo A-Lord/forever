@@ -362,9 +362,9 @@ message SavedStatWeightSettings {
     int32 api_version = 3; // Needed in case the Stat or PseudoStat enum orderings ever change
 
 	EpPrecisionMode precision_mode = 4;
-	int32 iterations = 5; // 0 runs the global sim iteration count.
+	int32 iterations = 5; // The iterations mode's count; 0 runs the global sim iteration count.
 	double target_ep_ci = 6;
-	int32 max_iteration_multiplier = 7; // Caps a stat's iterations at this multiple of the probe count; 0 means no cap.
+	int32 max_iteration_multiplier = 7; // Caps a stat's iterations at this multiple of the automatic first pass; 0 means no cap.
 
 	// The stat sweep's last stat, range and step; an unset range or step reads as the default.
 	UIStat sweep_stat = 8;

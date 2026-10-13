@@ -683,7 +683,8 @@ message StatWeightsRequest {
 
 	// The stat HPS EP divides by, simulated like ep_reference_stat; unset means ep_reference_stat.
 	optional Stat hps_reference_stat = 11;
-	// Unset runs the request's iteration count once.
+	// Unset runs the request's iteration count once. Set, the first pass runs a fixed count the sim picks
+	// and the request's count plays no part.
 	StatWeightsTarget target = 12;
 }
 

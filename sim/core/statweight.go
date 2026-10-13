@@ -127,6 +127,10 @@ func buildStatWeightRequests(swr *proto.StatWeightsRequest) *proto.StatWeightReq
 
 	swr.SimOptions.SaveAllValues = true
 
+	if swr.Target != nil {
+		swr.SimOptions.Iterations = statWeightTargetProbeIterations
+	}
+
 	// Cut in half since we're doing above and below separately.
 	// This number needs to be the same for the baseline sim too, so that RNG lines up perfectly.
 	// At least 1, since a sim split across workers fails on 0.
@@ -243,8 +247,9 @@ func buildStatWeightRequests(swr *proto.StatWeightsRequest) *proto.StatWeightReq
 }
 
 const (
-	statWeightZ90            = 1.645 // The two-sided 90% interval, the ± shown behind each EP.
-	statWeightMaxTopUpPasses = 3     // The first top-up, which sizes from the probe alone, and two that resize from the runs so far.
+	statWeightZ90                   = 1.645 // The two-sided 90% interval, the ± shown behind each EP.
+	statWeightMaxTopUpPasses        = 3     // The first top-up, which sizes from the probe alone, and two that resize from the runs so far.
+	statWeightTargetProbeIterations = 1000  // The probe's iterations with a target, both sides together; the request's own count plays no part.
 )
 
 // The first player's per-iteration DPS, HPS, threat, DTPS and TMI of a run.
