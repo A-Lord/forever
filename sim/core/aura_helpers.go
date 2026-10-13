@@ -178,15 +178,17 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 		procAura.Dpm = config.DPM
 	}
 
+	if config.ProcChance == 0 {
+		config.ProcChance = 1
+	}
+	// The player can count on a proc that always fires off their own cast; a rolled one they only see land.
+	guaranteed := config.ProcChance == 1 && dpm == nil
+
 	handler := config.Handler
 	var freeDeferred []*deferredProc
 
 	// An own trigger marks the aura as the player's only if its handler put the aura up or refreshed it.
-	runHandler := func(sim *Simulation, spell *Spell, result *SpellResult, activated *Aura, own bool) {
-		if !own {
-			handler(sim, spell, result)
-			return
-		}
+	runOwnHandler := func(sim *Simulation, spell *Spell, result *SpellResult, activated *Aura) {
 		wasActive, expiresAt := activated.IsActive(), activated.ExpiresAt()
 		handler(sim, spell, result)
 		if activated.IsActive() && (!wasActive || activated.ExpiresAt() != expiresAt) {
@@ -196,12 +198,13 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 
 	applyHandler := func(sim *Simulation, spell *Spell, result *SpellResult) {
 		activated := config.activatedAura(result)
-		// The player can count on a proc that always fires off their own cast; a rolled one they only see land.
-		// Read at the hit: an unstated chance only becomes 1 further down, after this closure is built.
-		guaranteed := config.ProcChance == 1 && dpm == nil
-		own := activated != nil && guaranteed && spell.Unit == unit && spell.Flags.Matches(SpellFlagAPL)
+		own := guaranteed && activated != nil && spell.Unit == unit && spell.Flags.Matches(SpellFlagAPL)
 		if config.TriggerImmediately {
-			runHandler(sim, spell, result, activated, own)
+			if own {
+				runOwnHandler(sim, spell, result, activated)
+			} else {
+				handler(sim, spell, result)
+			}
 			return
 		}
 
@@ -213,16 +216,6 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 			freeDeferred = freeDeferred[:n-1]
 		} else {
 			dp = &deferredProc{}
-			settle := func() {
-				if dp.pending == nil {
-					return
-				}
-				dp.pending.pendingActivations--
-				if dp.own {
-					dp.pending.pendingOwnActivations--
-				}
-				dp.pending = nil
-			}
 			release := func() {
 				dp.spell = nil
 				freeDeferred = append(freeDeferred, dp)
@@ -232,24 +225,18 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 				if !dp.hasResult {
 					res = nil
 				}
-				activated, own := dp.pending, dp.own
-				settle()
-				runHandler(sim, dp.spell, res, activated, own)
+				dp.pending.addPending(dp.own, -1)
+				if dp.own {
+					runOwnHandler(sim, dp.spell, res, dp.pending)
+				} else {
+					handler(sim, dp.spell, res)
+				}
 				release()
 			}
-			dp.cleanUp = func(sim *Simulation) {
-				settle()
-				release()
-			}
+			dp.cleanUp = func(sim *Simulation) { release() }
 		}
-		dp.pending = activated
-		dp.own = own
-		if activated != nil {
-			activated.pendingActivations++
-			if own {
-				activated.pendingOwnActivations++
-			}
-		}
+		dp.pending, dp.own = activated, own
+		dp.pending.addPending(own, 1)
 		dp.spell = spell
 		dp.hasResult = result != nil
 		if result != nil {
@@ -292,10 +279,6 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 			icd.Use(sim)
 		}
 		applyHandler(sim, spell, result)
-	}
-
-	if config.ProcChance == 0 {
-		config.ProcChance = 1
 	}
 
 	if config.Callback.Matches(CallbackOnSpellHitDealt) {

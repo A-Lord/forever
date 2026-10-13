@@ -7,17 +7,6 @@ import (
 	"github.com/wowsims/forever/sim/core/proto"
 )
 
-const (
-	testPendingBuffID       = 910301
-	testPendingDebuffID     = 910302
-	testPendingUndeclaredID = 910303
-	testPendingImmediateID  = 910306
-	testPendingRolledID     = 910307
-	testPendingManagedID    = 910308
-	testPendingRefusedID    = 910309
-	testPendingRefusedNowID = 910310
-)
-
 type pendingProcTest struct {
 	*channelTest
 	buff         *Aura
@@ -43,18 +32,12 @@ func newPendingProcTest() *pendingProcTest {
 	pt := &pendingProcTest{}
 	pt.channelTest = newChannelTest(func(_ *channelTest, char *Character) *Spell {
 		hit := func(id int32, flags SpellFlag) *Spell {
-			return char.RegisterSpell(SpellConfig{
-				ActionID:         ActionID{SpellID: id},
-				Flags:            flags,
-				SpellSchool:      SpellSchoolFire,
-				DefenseType:      DefenseTypeMagic,
-				ProcMask:         ProcMaskSpellDamage,
-				DamageMultiplier: 1,
-				ThreatMultiplier: 1,
-				ApplyEffects: func(sim *Simulation, target *Unit, spell *Spell) {
-					spell.CalcAndDealDamage(sim, target, 100, spell.OutcomeAlwaysHit)
-				},
-			})
+			config := castResultSpellConfig(id, flags)
+			config.MissileSpeed = 0
+			config.ApplyEffects = func(sim *Simulation, target *Unit, spell *Spell) {
+				spell.CalcAndDealDamage(sim, target, 100, spell.OutcomeAlwaysHit)
+			}
+			return char.RegisterSpell(config)
 		}
 		pt.aplSpell = hit(910304, SpellFlagAPL)
 		pt.procSpell = hit(910305, SpellFlagNone)
@@ -62,15 +45,15 @@ func newPendingProcTest() *pendingProcTest {
 		buff := func(label string, id int32) *Aura {
 			return char.RegisterAura(Aura{Label: label, ActionID: ActionID{SpellID: id}, Duration: 10 * time.Second})
 		}
-		pt.buff = buff("Pending Buff", testPendingBuffID)
-		pt.undeclared = buff("Undeclared Buff", testPendingUndeclaredID)
-		pt.immediate = buff("Immediate Buff", testPendingImmediateID)
-		pt.rolled = buff("Rolled Buff", testPendingRolledID)
-		pt.managed = buff("Managed Buff", testPendingManagedID)
-		pt.refused = buff("Refused Buff", testPendingRefusedID)
-		pt.refusedNow = buff("Refused Immediate Buff", testPendingRefusedNowID)
+		pt.buff = buff("Pending Buff", 910301)
+		pt.undeclared = buff("Undeclared Buff", 910303)
+		pt.immediate = buff("Immediate Buff", 910306)
+		pt.rolled = buff("Rolled Buff", 910307)
+		pt.managed = buff("Managed Buff", 910308)
+		pt.refused = buff("Refused Buff", 910309)
+		pt.refusedNow = buff("Refused Immediate Buff", 910310)
 		pt.debuffs = char.NewEnemyAuraArray(func(target *Unit) *Aura {
-			return target.RegisterAura(Aura{Label: "Pending Debuff", ActionID: ActionID{SpellID: testPendingDebuffID}, Duration: 10 * time.Second})
+			return target.RegisterAura(Aura{Label: "Pending Debuff", ActionID: ActionID{SpellID: 910302}, Duration: 10 * time.Second})
 		})
 
 		trigger := func(name string, config ProcTrigger) {
@@ -130,18 +113,22 @@ func newPendingProcTest() *pendingProcTest {
 	return pt
 }
 
-func (pt *pendingProcTest) isActive(id int32, includeReactionTime bool) APLValue {
-	return pt.rot.newValueAuraIsActive(&proto.APLValueAuraIsActive{AuraId: ActionID{SpellID: id}.ToProto(), IncludeReactionTime: includeReactionTime}, nil)
+func (pt *pendingProcTest) hit(spell *Spell) {
+	spell.SkipCastAndApplyEffects(pt.sim, pt.fw.CurrentTarget)
 }
 
-func (pt *pendingProcTest) isInactive(id int32, includeReactionTime bool) APLValue {
-	return pt.rot.newValueAuraIsInactive(&proto.APLValueAuraIsInactive{AuraId: ActionID{SpellID: id}.ToProto(), IncludeReactionTime: includeReactionTime}, nil)
+func (pt *pendingProcTest) isActive(aura *Aura, includeReactionTime bool) APLValue {
+	return pt.rot.newValueAuraIsActive(&proto.APLValueAuraIsActive{AuraId: aura.ActionID.ToProto(), IncludeReactionTime: includeReactionTime}, nil)
+}
+
+func (pt *pendingProcTest) isInactive(aura *Aura, includeReactionTime bool) APLValue {
+	return pt.rot.newValueAuraIsInactive(&proto.APLValueAuraIsInactive{AuraId: aura.ActionID.ToProto(), IncludeReactionTime: includeReactionTime}, nil)
 }
 
 func (pt *pendingProcTest) debuffIsActive(includeReactionTime bool) APLValue {
 	return pt.rot.newValueAuraIsActive(&proto.APLValueAuraIsActive{
 		SourceUnit:          &proto.UnitReference{Type: proto.UnitReference_CurrentTarget},
-		AuraId:              ActionID{SpellID: testPendingDebuffID}.ToProto(),
+		AuraId:              pt.debuffs.Get(pt.fw.CurrentTarget).ActionID.ToProto(),
 		IncludeReactionTime: includeReactionTime,
 	}, nil)
 }
@@ -149,12 +136,12 @@ func (pt *pendingProcTest) debuffIsActive(includeReactionTime bool) APLValue {
 // Inside the spell batch window a declared aura reads as up to the APL, and an undeclared one does not.
 func TestAuraIsActiveSeesADeclaredProcBeforeItsHandlerRuns(t *testing.T) {
 	pt := newPendingProcTest()
-	active, inactive := pt.isActive(testPendingBuffID, false), pt.isInactive(testPendingBuffID, false)
+	active, inactive := pt.isActive(pt.buff, false), pt.isInactive(pt.buff, false)
 	debuffActive := pt.debuffIsActive(false)
-	undeclaredActive, undeclaredInactive := pt.isActive(testPendingUndeclaredID, false), pt.isInactive(testPendingUndeclaredID, false)
+	undeclaredActive, undeclaredInactive := pt.isActive(pt.undeclared, false), pt.isInactive(pt.undeclared, false)
 
 	pt.runUntil(time.Second)
-	pt.procSpell.SkipCastAndApplyEffects(pt.sim, pt.fw.CurrentTarget)
+	pt.hit(pt.procSpell)
 	if pt.buff.IsActive() {
 		t.Fatalf("buff active before its handler ran, want the handler deferred")
 	}
@@ -177,13 +164,13 @@ func TestAuraIsActiveSeesADeclaredProcBeforeItsHandlerRuns(t *testing.T) {
 // carry into the next.
 func TestPendingProcCountsEachDeferralAndClearsAtTheIterationEnd(t *testing.T) {
 	pt := newPendingProcTest()
-	active := pt.isActive(testPendingBuffID, false)
+	active := pt.isActive(pt.buff, false)
 	pending := func() int32 { return pt.buff.pendingActivations }
 
 	pt.runUntil(time.Second)
-	pt.procSpell.SkipCastAndApplyEffects(pt.sim, pt.fw.CurrentTarget)
+	pt.hit(pt.procSpell)
 	pt.runUntil(time.Second + SpellBatchWindow/2)
-	pt.procSpell.SkipCastAndApplyEffects(pt.sim, pt.fw.CurrentTarget)
+	pt.hit(pt.procSpell)
 	if pending() != 2 {
 		t.Errorf("two handlers waiting: pending = %d, want 2", pending())
 	}
@@ -200,32 +187,47 @@ func TestPendingProcCountsEachDeferralAndClearsAtTheIterationEnd(t *testing.T) {
 
 	pt.start()
 	pt.runUntil(time.Second)
-	pt.procSpell.SkipCastAndApplyEffects(pt.sim, pt.fw.CurrentTarget)
+	pt.hit(pt.procSpell)
 	pt.runUntil(time.Second + SpellBatchWindow)
 	if pending() != 0 || !pt.buff.IsActive() {
 		t.Errorf("a proc in the next iteration: pending = %d, buff up = %t, want 0, true", pending(), pt.buff.IsActive())
 	}
 }
 
-// With the reaction time, a proc off a spell the APL did not cast is a proc: unseen while it waits and for the
+// With the reaction time, a proc the player cannot count on stays a proc: one off a spell the APL did not cast,
+// and one off an APL spell that rolls a stated chance or a proc manager. It is unseen while it waits and for the
 // reaction time after it lands.
-func TestReactionTimeHidesAPendingProcOffANonAPLSpell(t *testing.T) {
-	pt := newPendingProcTest()
-	reacted := pt.isActive(testPendingBuffID, true)
+func TestReactionTimeHidesAProcThePlayerCannotCountOn(t *testing.T) {
+	for _, c := range []struct {
+		name string
+		apl  bool
+		aura func(*pendingProcTest) *Aura
+	}{
+		{"off the other spell", false, func(pt *pendingProcTest) *Aura { return pt.buff }},
+		{"stated chance", true, func(pt *pendingProcTest) *Aura { return pt.rolled }},
+		{"proc manager", true, func(pt *pendingProcTest) *Aura { return pt.managed }},
+	} {
+		pt := newPendingProcTest()
+		aura := c.aura(pt)
+		reacted := pt.isActive(aura, true)
 
-	pt.runUntil(time.Second)
-	pt.procSpell.SkipCastAndApplyEffects(pt.sim, pt.fw.CurrentTarget)
-	if reacted.GetBool(pt.sim) {
-		t.Errorf("in the batch window: active = true, want false")
-	}
-	landed := time.Second + SpellBatchWindow
-	pt.runUntil(landed + 50*time.Millisecond)
-	if reacted.GetBool(pt.sim) {
-		t.Errorf("inside the reaction time after landing: active = true, want false")
-	}
-	pt.runUntil(landed + 100*time.Millisecond)
-	if !reacted.GetBool(pt.sim) {
-		t.Errorf("at the reaction time after landing: active = false, want true")
+		pt.runUntil(time.Second)
+		pt.hit(Ternary(c.apl, pt.aplSpell, pt.procSpell))
+		if aura.pendingActivations != 1 {
+			t.Fatalf("%s: pending = %d after the hit, want the proc to fire", c.name, aura.pendingActivations)
+		}
+		if reacted.GetBool(pt.sim) {
+			t.Errorf("%s in the batch window: active = true, want false", c.name)
+		}
+		landed := time.Second + SpellBatchWindow
+		pt.runUntil(landed + 50*time.Millisecond)
+		if !aura.IsActive() || reacted.GetBool(pt.sim) {
+			t.Errorf("%s inside the reaction time after landing: buff up = %t, active = %t, want true, false", c.name, aura.IsActive(), reacted.GetBool(pt.sim))
+		}
+		pt.runUntil(landed + 100*time.Millisecond)
+		if !reacted.GetBool(pt.sim) {
+			t.Errorf("%s at the reaction time after landing: active = false, want true", c.name)
+		}
 	}
 }
 
@@ -234,8 +236,8 @@ func TestReactionTimeHidesAPendingProcOffANonAPLSpell(t *testing.T) {
 // cast trigger declaring a per-target aura marks nothing, having no target to find it on.
 func TestReactionTimeCountsAProcOffAnAPLSpellAsOwn(t *testing.T) {
 	pt := newPendingProcTest()
-	reacted, debuffReacted := pt.isActive(testPendingBuffID, true), pt.debuffIsActive(true)
-	inactiveReacted := pt.isInactive(testPendingBuffID, true)
+	reacted, debuffReacted := pt.isActive(pt.buff, true), pt.debuffIsActive(true)
+	inactiveReacted := pt.isInactive(pt.buff, true)
 	debuff := pt.debuffs.Get(pt.fw.CurrentTarget)
 
 	pt.runUntil(time.Second)
@@ -271,54 +273,18 @@ func TestReactionTimeCountsAProcOffAnAPLSpellAsOwn(t *testing.T) {
 // it lands, and one off a spell the APL did not cast stays a proc.
 func TestReactionTimeCountsAnImmediateProcOffAnAPLSpellAsOwn(t *testing.T) {
 	pt := newPendingProcTest()
-	reacted := pt.isActive(testPendingImmediateID, true)
+	reacted := pt.isActive(pt.immediate, true)
 
 	pt.runUntil(time.Second)
-	pt.aplSpell.SkipCastAndApplyEffects(pt.sim, pt.fw.CurrentTarget)
+	pt.hit(pt.aplSpell)
 	if !pt.immediate.IsActive() || !reacted.GetBool(pt.sim) {
 		t.Errorf("off the APL spell, as it lands: buff up = %t, active = %t, want true, true", pt.immediate.IsActive(), reacted.GetBool(pt.sim))
 	}
 
 	pt.runUntil(pt.immediate.ExpiresAt() + time.Second)
-	pt.procSpell.SkipCastAndApplyEffects(pt.sim, pt.fw.CurrentTarget)
+	pt.hit(pt.procSpell)
 	if !pt.immediate.IsActive() || reacted.GetBool(pt.sim) {
 		t.Errorf("off the other spell, as it lands: buff up = %t, active = %t, want true, false", pt.immediate.IsActive(), reacted.GetBool(pt.sim))
-	}
-}
-
-// With the reaction time, a declared proc off a spell cast from the APL that rolls a chance or a proc manager
-// stays a proc: unseen while it waits and for the reaction time after it lands.
-func TestReactionTimeHidesARolledProcOffAnAPLSpell(t *testing.T) {
-	pt := newPendingProcTest()
-	auras := map[string]*Aura{"stated chance": pt.rolled, "proc manager": pt.managed}
-	reacted := map[string]APLValue{
-		"stated chance": pt.isActive(testPendingRolledID, true),
-		"proc manager":  pt.isActive(testPendingManagedID, true),
-	}
-
-	pt.runUntil(time.Second)
-	pt.aplSpell.SkipCastAndApplyEffects(pt.sim, pt.fw.CurrentTarget)
-	for name, aura := range auras {
-		if aura.pendingActivations != 1 {
-			t.Fatalf("%s: pending = %d after the cast, want the proc to fire", name, aura.pendingActivations)
-		}
-		if reacted[name].GetBool(pt.sim) {
-			t.Errorf("%s in the batch window: active = true, want false", name)
-		}
-	}
-
-	landed := time.Second + SpellBatchWindow
-	pt.runUntil(landed + 50*time.Millisecond)
-	for name, aura := range auras {
-		if !aura.IsActive() || reacted[name].GetBool(pt.sim) {
-			t.Errorf("%s inside the reaction time after landing: buff up = %t, active = %t, want true, false", name, aura.IsActive(), reacted[name].GetBool(pt.sim))
-		}
-	}
-	pt.runUntil(landed + 100*time.Millisecond)
-	for name := range auras {
-		if !reacted[name].GetBool(pt.sim) {
-			t.Errorf("%s at the reaction time after landing: active = false, want true", name)
-		}
 	}
 }
 
@@ -326,30 +292,33 @@ func TestReactionTimeHidesARolledProcOffAnAPLSpell(t *testing.T) {
 // put it up again, deferred or immediate.
 func TestReactionTimeIgnoresAnOwnProcWhoseHandlerRefuses(t *testing.T) {
 	pt := newPendingProcTest()
-	auras := map[string]*Aura{"deferred": pt.refused, "immediate": pt.refusedNow}
-	reacted := map[string]APLValue{
-		"deferred":  pt.isActive(testPendingRefusedID, true),
-		"immediate": pt.isActive(testPendingRefusedNowID, true),
+	cases := []struct {
+		name    string
+		aura    *Aura
+		reacted APLValue
+	}{
+		{"deferred", pt.refused, pt.isActive(pt.refused, true)},
+		{"immediate", pt.refusedNow, pt.isActive(pt.refusedNow, true)},
 	}
 
 	pt.runUntil(time.Second)
-	for _, aura := range auras {
-		aura.Activate(pt.sim)
+	for _, c := range cases {
+		c.aura.Activate(pt.sim)
 	}
 	pt.runUntil(time.Second + 50*time.Millisecond)
-	pt.aplSpell.SkipCastAndApplyEffects(pt.sim, pt.fw.CurrentTarget)
+	pt.hit(pt.aplSpell)
 	pt.runUntil(time.Second + 50*time.Millisecond + SpellBatchWindow)
-	for name, aura := range auras {
-		if !aura.IsActive() || aura.pendingActivations != 0 || reacted[name].GetBool(pt.sim) {
+	for _, c := range cases {
+		if !c.aura.IsActive() || c.aura.pendingActivations != 0 || c.reacted.GetBool(pt.sim) {
 			t.Errorf("%s, after the handler refused inside the reaction time: buff up = %t, pending = %d, active = %t, want true, 0, false",
-				name, aura.IsActive(), aura.pendingActivations, reacted[name].GetBool(pt.sim))
+				c.name, c.aura.IsActive(), c.aura.pendingActivations, c.reacted.GetBool(pt.sim))
 		}
 	}
 
 	pt.runUntil(time.Second + 100*time.Millisecond)
-	for name := range auras {
-		if !reacted[name].GetBool(pt.sim) {
-			t.Errorf("%s at the reaction time after it went up: active = false, want true", name)
+	for _, c := range cases {
+		if !c.reacted.GetBool(pt.sim) {
+			t.Errorf("%s at the reaction time after it went up: active = false, want true", c.name)
 		}
 	}
 }

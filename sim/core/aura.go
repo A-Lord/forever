@@ -142,6 +142,7 @@ func (aura *Aura) reset(sim *Simulation) {
 	aura.metrics.reset()
 	aura.fadeTime = -NeverExpires
 	aura.expired = false
+	// Deferred handlers still waiting when the last iteration ended never ran to count themselves off.
 	aura.pendingActivations = 0
 	aura.pendingOwnActivations = 0
 	aura.lastOwnProcAt = -NeverExpires
@@ -152,6 +153,17 @@ func (aura *Aura) reset(sim *Simulation) {
 
 	if aura.Dpm != nil {
 		aura.Dpm.Reset()
+	}
+}
+
+// Counts n deferred handlers on or off the aura's pending activations; a nil aura, undeclared, counts nothing.
+func (aura *Aura) addPending(own bool, n int32) {
+	if aura == nil {
+		return
+	}
+	aura.pendingActivations += n
+	if own {
+		aura.pendingOwnActivations += n
 	}
 }
 
