@@ -13,6 +13,13 @@ const meta = {
 		defaultIterations: 10000,
 	},
 	argTypes: { value: { control: 'object' } },
+	decorators: [
+		Story => (
+			<div className="w-64">
+				<Story />
+			</div>
+		),
+	],
 } satisfies Meta<typeof EpPrecisionOptions>;
 
 export default meta;

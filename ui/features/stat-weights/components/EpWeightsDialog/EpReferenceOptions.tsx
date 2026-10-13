@@ -56,7 +56,7 @@ export const EpReferenceOptions = ({ epStats, epReferenceStat, displayMetrics }:
 
 	return (
 		<div data-testid="ep-reference-options" className="[&_.ui-field-label]:font-bold">
-			<div className="grid gap-x-4 gap-y-2 sm:grid-cols-3 lg:grid-cols-1">
+			<div className="ui-ep-weights-settings-grid">
 				{references.map(reference => (
 					<ConnectedChoiceField
 						key={reference.id}

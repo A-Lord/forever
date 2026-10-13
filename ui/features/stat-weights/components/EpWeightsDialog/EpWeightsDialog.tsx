@@ -260,7 +260,9 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 							<div className="ui-ep-weights-sidebar">
 								<ContentBlock config={{ header: { title: i18n.t('sidebar.buttons.stat_weights.modal.settings') } }}>
 									<div className="flex flex-col gap-4">
-										<EpWeightsOptions statsType={statsType} onStatsTypeChange={setStatsType} />
+										<div className="ui-ep-weights-settings-grid">
+											<EpWeightsOptions statsType={statsType} onStatsTypeChange={setStatsType} />
+										</div>
 										{!editOnly && (
 											<>
 												<EpReferenceOptions epStats={epStats} epReferenceStat={epReferenceStat} displayMetrics={displayMetrics} />

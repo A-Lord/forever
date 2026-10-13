@@ -71,16 +71,20 @@ export const StatSweepPanel = ({
 			<ContentBlock config={{ header: { title: i18n.t('sidebar.buttons.stat_weights.modal.settings') } }}>
 				<div className="flex flex-col gap-4">
 					{precision}
-					<div className="flex items-center justify-end gap-4">
-						{running && progress && <span aria-live="polite">{t('progress', { current: progress.step, total: progress.steps })}</span>}
+					<div className="flex flex-col gap-2">
 						{running ? (
-							<Button variant="cancel" onClick={onCancel}>
+							<Button variant="cancel" className="w-full" onClick={onCancel}>
 								{t('cancel')}
 							</Button>
 						) : (
-							<Button variant="primary" onClick={onRun}>
+							<Button variant="primary" className="w-full" onClick={onRun}>
 								{t('run')}
 							</Button>
+						)}
+						{running && progress && (
+							<span className="text-center" aria-live="polite">
+								{t('progress', { current: progress.step, total: progress.steps })}
+							</span>
 						)}
 					</div>
 				</div>

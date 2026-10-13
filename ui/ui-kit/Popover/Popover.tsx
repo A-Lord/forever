@@ -30,6 +30,8 @@ export interface PopoverProps {
 	side?: PopoverSide;
 	align?: PopoverAlign;
 	sideOffset?: BasePopover.Positioner.Props['sideOffset'];
+	/** The box the popup flips, shifts and sizes itself to stay inside, within the viewport; omit it for the viewport alone. */
+	collisionBoundary?: BasePopover.Positioner.Props['collisionBoundary'];
 	/** Dims the page behind the popup, as a dialog does; a press on it closes the popover. */
 	backdrop?: boolean;
 	/**
@@ -59,6 +61,7 @@ export const Popover = ({
 	side = 'bottom',
 	align = 'center',
 	sideOffset = ANCHOR_DISTANCE,
+	collisionBoundary,
 	backdrop = false,
 	title,
 	children,
@@ -86,7 +89,8 @@ export const Popover = ({
 					anchor={anchor}
 					side={side}
 					align={align}
-					sideOffset={sideOffset}>
+					sideOffset={sideOffset}
+					collisionBoundary={collisionBoundary}>
 					<BasePopover.Popup
 						className={clsx(
 							maxWidthClassName ?? 'max-w-(--available-width)',

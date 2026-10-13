@@ -19,8 +19,8 @@ const t = (key: string) => i18n.t(`sidebar.buttons.stat_weights.precision.${key}
 export const EpPrecisionOptions = ({ value, onChange, defaultIterations, disabled, idPrefix = 'ep-precision' }: EpPrecisionOptionsProps) => {
 	const target = value.precisionMode === 'target';
 	return (
-		<div className="flex flex-wrap items-end gap-4">
-			<div className="flex flex-col gap-1">
+		<div className="flex flex-col gap-2">
+			<div className="flex flex-col items-start gap-1">
 				<span className="text-sm font-semibold">{t('label')}</span>
 				<ToggleGroup<EpPrecisionMode>
 					size="sm"
@@ -34,7 +34,7 @@ export const EpPrecisionOptions = ({ value, onChange, defaultIterations, disable
 				/>
 			</div>
 			{target ? (
-				<>
+				<div className="grid grid-cols-2 gap-4">
 					<NumberField
 						id={`${idPrefix}-target`}
 						label={t('target_ep_ci')}
@@ -57,7 +57,7 @@ export const EpPrecisionOptions = ({ value, onChange, defaultIterations, disable
 						value={value.maxIterationMultiplier}
 						onChange={maxIterationMultiplier => onChange({ maxIterationMultiplier })}
 					/>
-				</>
+				</div>
 			) : (
 				<NumberField
 					id={`${idPrefix}-iterations`}
