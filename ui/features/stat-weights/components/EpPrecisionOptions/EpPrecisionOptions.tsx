@@ -21,7 +21,7 @@ export const EpPrecisionOptions = ({ value, onChange, defaultIterations, disable
 	return (
 		<div className="flex flex-wrap items-end gap-4">
 			<div className="flex flex-col gap-1">
-				<span>{t('label')}</span>
+				<span className="text-sm font-semibold">{t('label')}</span>
 				<ToggleGroup<EpPrecisionMode>
 					size="sm"
 					aria-label={t('label')}
