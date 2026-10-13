@@ -218,6 +218,7 @@ export interface StatSweepSlice {
 	range: number;
 	step: number;
 	metric: StatSweepMetric; // Plotted when offered, else DPS; a run's Target ± follows the one plotted when it starts.
+	showSpread: boolean; // Shades ± 1 standard deviation around each line.
 	precisionMode: StatSweepPrecisionMode;
 	iterations: number; // 0 runs the global sim iteration count.
 	targetCi: number; // In the units of the run's metric.

@@ -7,9 +7,10 @@ import { StatSweepChart, type StatSweepChartProps } from './StatSweepChart';
 
 const CANVAS = { smoke: false, smokeReason: 'chart.js needs a canvas' };
 
-// Holds the picked metric, so the toggle redraws the chart as it does in the dialog.
+// Holds the picked metric and spread, so the controls redraw the chart as they do in the dialog.
 const Interactive = (props: StatSweepChartProps) => {
 	const [metric, setMetric] = useState(props.metric);
+	const [showSpread, setShowSpread] = useState(props.showSpread);
 	return (
 		<StatSweepChart
 			{...props}
@@ -17,6 +18,11 @@ const Interactive = (props: StatSweepChartProps) => {
 			onMetricChange={next => {
 				setMetric(next);
 				props.onMetricChange(next);
+			}}
+			showSpread={showSpread}
+			onShowSpreadChange={next => {
+				setShowSpread(next);
+				props.onShowSpreadChange(next);
 			}}
 		/>
 	);
@@ -26,7 +32,7 @@ const meta = {
 	title: 'Features/StatSweep/StatSweepChart',
 	component: StatSweepChart,
 	tags: ['autodocs'],
-	args: { series: [], metric: 'dps', metrics: ['dps', 'tps'], onMetricChange: fn() },
+	args: { series: [], metric: 'dps', metrics: ['dps', 'tps'], onMetricChange: fn(), showSpread: true, onShowSpreadChange: fn() },
 	argTypes: { series: { control: false } },
 	render: args => <Interactive {...args} />,
 	decorators: [
@@ -45,6 +51,11 @@ export const Empty: Story = {};
 
 export const SingleRun: Story = {
 	args: { series: [sweepSeries('current', 'Hit Rating', 120, makeHitSweepPoints(120))] },
+	parameters: CANVAS,
+};
+
+export const SpreadOff: Story = {
+	args: { ...SingleRun.args, showSpread: false },
 	parameters: CANVAS,
 };
 

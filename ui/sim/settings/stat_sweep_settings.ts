@@ -18,6 +18,7 @@ const DEFAULTS: StatSweepValues = {
 	range: 100,
 	step: 10,
 	metric: 'dps',
+	showSpread: true,
 	precisionMode: 'iterations',
 	iterations: 0,
 	targetCi: 1,
@@ -44,6 +45,7 @@ const fromProto = (saved: SavedStatSweepSettings): StatSweepValues => {
 		range: saved.range || DEFAULTS.range,
 		step: saved.step || DEFAULTS.step,
 		metric: metricFromProto(saved.metric),
+		showSpread: !saved.hideSpread,
 		precisionMode: saved.precisionMode === SavedPrecisionMode.StatSweepPrecisionModeTarget ? 'target' : 'iterations',
 		iterations: saved.iterations,
 		targetCi: saved.targetCi || DEFAULTS.targetCi,
@@ -107,6 +109,14 @@ export class StatSweepSettings {
 		this.update({ metric });
 	}
 
+	get showSpread(): boolean {
+		return this.slice.showSpread;
+	}
+
+	setShowSpread(showSpread: boolean) {
+		this.update({ showSpread });
+	}
+
 	get precision(): StatSweepPrecision {
 		const { precisionMode, iterations, targetCi, maxIterationMultiplier } = this.slice;
 		return { precisionMode, iterations, targetCi, maxIterationMultiplier };
@@ -128,13 +138,14 @@ export class StatSweepSettings {
 	}
 
 	toProto(): SavedStatSweepSettings {
-		const { stats, range, step, metric, precisionMode, iterations, targetCi, maxIterationMultiplier } = this.slice;
+		const { stats, range, step, metric, showSpread, precisionMode, iterations, targetCi, maxIterationMultiplier } = this.slice;
 		return SavedStatSweepSettings.create({
 			apiVersion: CURRENT_API_VERSION,
 			stats: stats?.map(stat => stat.toProto()) ?? [],
 			range,
 			step,
 			metric: SAVED_METRICS[metric],
+			hideSpread: !showSpread,
 			precisionMode: precisionMode === 'target' ? SavedPrecisionMode.StatSweepPrecisionModeTarget : SavedPrecisionMode.StatSweepPrecisionModeIterations,
 			iterations,
 			targetCi,

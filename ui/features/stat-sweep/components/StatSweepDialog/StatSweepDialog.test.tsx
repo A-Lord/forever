@@ -146,6 +146,20 @@ describe('StatSweepDialog', () => {
 		expect(saved.cappedAt).toBeUndefined();
 	});
 
+	it('shows the band key while the spread is on, and hides it with the spread checkbox, which stores the pick', () => {
+		renderDialog();
+		const bandKey = () => screen.queryByText(i18n.t('sidebar.buttons.stat_sweep.band_key', { metric: metricLabel('dps') }));
+		expect(bandKey()).toBeTruthy();
+
+		fireEvent.click(within(screen.getByTestId('stat-sweep-show-spread')).getByRole('checkbox'));
+		expect(settings.showSpread).toBe(false);
+		expect(bandKey()).toBeNull();
+
+		fireEvent.click(within(screen.getByTestId('stat-sweep-show-spread')).getByRole('checkbox'));
+		expect(settings.showSpread).toBe(true);
+		expect(bandKey()).toBeTruthy();
+	});
+
 	it('offers DPS and TPS, adds DTPS and TMI with the threat and tank options, and HPS with the healing metrics', () => {
 		renderDialog();
 		expect(offeredMetrics()).toEqual([metricLabel('dps'), metricLabel('tps')]);

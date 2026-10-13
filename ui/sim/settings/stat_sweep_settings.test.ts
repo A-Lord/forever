@@ -36,10 +36,12 @@ describe('StatSweepSettings', () => {
 		const saved = settingsOn(storage);
 		saved.setSetup({ stats, range: 2.5, step: 0.5 });
 		saved.setMetric('tmi');
+		saved.setShowSpread(false);
 		saved.setPrecision({ precisionMode: 'target', iterations: 4000, targetCi: 0.5, maxIterationMultiplier: 8 });
 
 		const loaded = settingsOn(storage);
 		loaded.load();
+		expect(loaded.showSpread).toBe(false);
 
 		expect(loaded.setup.stats?.map(stat => stat.getKey())).toEqual(stats.map(stat => stat.getKey()));
 		expect([loaded.setup.range, loaded.setup.step]).toEqual([2.5, 0.5]);
@@ -53,6 +55,7 @@ describe('StatSweepSettings', () => {
 
 		expect(loaded.setup).toEqual({ stats: null, range: 100, step: 10 });
 		expect(loaded.metric).toBe('dps');
+		expect(loaded.showSpread).toBe(true);
 		expect(loaded.precision).toEqual({ precisionMode: 'iterations', iterations: 0, targetCi: 1, maxIterationMultiplier: 0 });
 	});
 
@@ -74,6 +77,7 @@ describe('StatSweepSettings', () => {
 		storage.clear();
 		settings.setSetup({ stats: [UnitStat.fromStat(Stat.StatHitRating), UnitStat.fromStat(Stat.StatCritRating)], range: 100 });
 		settings.setMetric('dps');
+		settings.setShowSpread(true);
 		settings.setPrecision({ targetCi: 1 });
 
 		expect(storage.has(KEY)).toBe(false);
@@ -83,9 +87,11 @@ describe('StatSweepSettings', () => {
 		const settings = settingsOn(new Map());
 		settings.setSetup({ stats: [], range: 40 });
 		settings.setMetric('tps');
+		settings.setShowSpread(false);
 		settings.setPrecision({ precisionMode: 'target' });
 		settings.applyDefaults();
 
+		expect(settings.showSpread).toBe(true);
 		expect(settings.setup).toEqual({ stats: null, range: 100, step: 10 });
 		expect(settings.metric).toBe('dps');
 		expect(settings.precision.precisionMode).toBe('iterations');

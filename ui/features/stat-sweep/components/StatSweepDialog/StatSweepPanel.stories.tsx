@@ -36,7 +36,7 @@ const meta = {
 				defaultIterations={10000}
 			/>
 		),
-		chart: <StatSweepChart series={[]} metric="dps" metrics={['dps', 'tps']} onMetricChange={fn()} />,
+		chart: <StatSweepChart series={[]} metric="dps" metrics={['dps', 'tps']} onMetricChange={fn()} showSpread onShowSpreadChange={fn()} />,
 		history: <StatSweepHistory runs={HISTORY} onOverlayChange={fn()} onDelete={fn()} />,
 		running: false,
 	},
@@ -60,6 +60,8 @@ export const Running: Story = {
 				metric="dps"
 				metrics={['dps', 'tps']}
 				onMetricChange={fn()}
+				showSpread
+				onShowSpreadChange={fn()}
 			/>
 		),
 	},

@@ -21,7 +21,9 @@ const sweepT = (key: string, options?: Record<string, unknown>) => i18n.t(`sideb
 const metricLabel = (metric: StatSweepMetric) => i18n.t(`sidebar.results.metrics.${metric}.label`);
 
 const renderChart = (series: StatSweepSeries[], props: Partial<StatSweepChartProps> = {}) =>
-	render(<StatSweepChart series={series} metric="dps" metrics={['dps', 'tps']} onMetricChange={vi.fn()} {...props} />);
+	render(
+		<StatSweepChart series={series} metric="dps" metrics={['dps', 'tps']} onMetricChange={vi.fn()} showSpread onShowSpreadChange={vi.fn()} {...props} />,
+	);
 
 // jsdom loads no theme, and the chart caches each colour on first read, so the colours are set before any render.
 beforeAll(() => {
@@ -93,6 +95,33 @@ describe('StatSweepChart', () => {
 		expect(datasets[2].borderColor).toBe(seriesColor(0));
 	});
 
+	it('draws only the lines, lists each run once in the legend and tooltip, and drops the band key without the spread', () => {
+		const single = run('a', 120, 0);
+		renderChart([single, run('b', 90, 1)], { showSpread: false });
+
+		const { data, options } = charts[0].config;
+		expect(data.datasets.map(dataset => dataset.data[3].y)).toEqual([single.points[3].metrics.dps.avg, expect.any(Number)]);
+		expect(data.datasets.map(dataset => dataset.borderColor)).toEqual([seriesColor(0), seriesColor(1)]);
+		const items = options.plugins!.legend!.labels!.generateLabels!({ data, isDatasetVisible: () => true } as never);
+		expect(items.map(item => [item.datasetIndex, item.text])).toEqual([
+			[0, 'a'],
+			[1, 'b'],
+		]);
+		const tooltipFilter = options.plugins!.tooltip!.filter!;
+		expect([0, 1].filter(datasetIndex => tooltipFilter({ datasetIndex } as TooltipItem<'line'>, 0, [], {} as never))).toEqual([0, 1]);
+		expect(screen.queryByText(sweepT('band_key', { metric: metricLabel('dps') }))).toBeNull();
+	});
+
+	it('reports the spread checkbox and shows it as given', () => {
+		const onShowSpreadChange = vi.fn();
+		renderChart([run('a', 120, 0)], { onShowSpreadChange });
+
+		const checkbox = within(screen.getByTestId('stat-sweep-show-spread')).getByRole('checkbox');
+		expect(checkbox.getAttribute('aria-checked')).toBe('true');
+		fireEvent.click(checkbox);
+		expect(onShowSpreadChange).toHaveBeenCalledWith(false);
+	});
+
 	it('offers the given metrics in a toggle and reports a pick', () => {
 		const onMetricChange = vi.fn();
 		renderChart([run('a', 120, 0)], { metrics: ['dps', 'tps', 'dtps', 'tmi'], onMetricChange });
@@ -117,7 +146,16 @@ describe('StatSweepChart', () => {
 		const tank = sweepSeries('def', 'Defense', 300, makeDefenseSweepPoints(300));
 		const { rerender } = renderChart([tank], { metrics: ['dps', 'tps', 'dtps', 'tmi'] });
 
-		rerender(<StatSweepChart series={[tank]} metric="dtps" metrics={['dps', 'tps', 'dtps', 'tmi']} onMetricChange={vi.fn()} />);
+		rerender(
+			<StatSweepChart
+				series={[tank]}
+				metric="dtps"
+				metrics={['dps', 'tps', 'dtps', 'tmi']}
+				onMetricChange={vi.fn()}
+				showSpread
+				onShowSpreadChange={vi.fn()}
+			/>,
+		);
 
 		const { data, options } = charts[charts.length - 1].config;
 		const { avg, stdev } = tank.points[3].metrics.dtps;

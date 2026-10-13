@@ -393,6 +393,7 @@ message SavedStatSweepSettings {
 	double target_ci = 7; // In the units of the metric picked when the run starts.
 	int32 max_iteration_multiplier = 8; // Caps a step's iterations at this multiple of the automatic first pass; 0 means no cap.
 	StatSweepMetric metric = 9; // The plotted metric; a run's Target ± follows the one picked when it starts.
+	bool hide_spread = 10; // Leaves the ± 1 standard deviation band off the chart; unset shows it.
 }
 
 // Local storage data for other settings.

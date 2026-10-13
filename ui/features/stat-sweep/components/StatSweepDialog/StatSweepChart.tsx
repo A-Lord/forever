@@ -5,6 +5,7 @@ import i18n from '@i18n/config';
 import type { StatSweepPoint } from '@sim/cache/stat_sweep_history';
 import type { StatSweepMetric } from '@sim/state/sim_store';
 import { distinct } from '@sim/utils/collections';
+import { BooleanPicker } from '@ui-kit/BooleanPicker';
 import { ToggleGroup } from '@ui-kit/ToggleGroup';
 import type { ChartData, ChartDataset, ChartOptions, Plugin } from 'chart.js';
 import { useMemo } from 'react';
@@ -31,15 +32,18 @@ export interface StatSweepChartProps {
 	/** The metrics the toggle offers, in order. */
 	metrics: ReadonlyArray<StatSweepMetric>;
 	onMetricChange: (metric: StatSweepMetric) => void;
+	/** Shades the standard deviation around each line, and fits the y scale to it. */
+	showSpread: boolean;
+	onShowSpreadChange: (showSpread: boolean) => void;
 }
 
 type SweepDatum = { x: number; y: number; stdev: number; point: StatSweepPoint; statLabel: string; capped: boolean };
 
 // Each run draws the band's upper edge, its lower edge, then the metric's line. Upper fills down to the next dataset, so the order is load-bearing.
 // The band is one standard deviation of a single fight's value either side of the average, the spread the sim card's ± reports.
-const DATASETS_PER_RUN = 3;
-const LINE_INDEX = 2;
-const isLine = (datasetIndex: number) => datasetIndex % DATASETS_PER_RUN === LINE_INDEX;
+// Without the band a run draws its line alone.
+const datasetsPerRun = (showSpread: boolean) => (showSpread ? 3 : 1);
+const isLine = (datasetIndex: number, showSpread: boolean) => datasetIndex % datasetsPerRun(showSpread) === datasetsPerRun(showSpread) - 1;
 // The x range reaches this share of its span past the outermost value, so the end points draw whole inside the plot.
 const X_RANGE_PAD = 0.03;
 const BAND_ALPHA = '2e';
@@ -64,7 +68,7 @@ const cardMetric = (metric: StatSweepMetric, average: number, stdev = 0): Result
 const formatValue = (metric: StatSweepMetric, average: number) => formatAverage(cardMetric(metric, average), 'list');
 const formatError = (metric: StatSweepMetric, stdev: number) => formatStdev(cardMetric(metric, 0, stdev), 'list');
 
-function datasets(series: ReadonlyArray<StatSweepSeries>, metric: StatSweepMetric): Array<ChartDataset<'line', SweepDatum[]>> {
+function datasets(series: ReadonlyArray<StatSweepSeries>, metric: StatSweepMetric, showSpread: boolean): Array<ChartDataset<'line', SweepDatum[]>> {
 	const surface = cssVarColor('--color-background');
 	return series.flatMap(run => {
 		const color = seriesColor(run.colorSlot);
@@ -82,9 +86,14 @@ function datasets(series: ReadonlyArray<StatSweepSeries>, metric: StatSweepMetri
 			borderColor: color + BAND_EDGE_ALPHA,
 			label: run.label,
 		};
+		const band: Array<ChartDataset<'line', SweepDatum[]>> = showSpread
+			? [
+					{ ...edge, data: at(1), backgroundColor: color + BAND_ALPHA, fill: '+1' },
+					{ ...edge, data: at(-1), fill: false },
+				]
+			: [];
 		return [
-			{ ...edge, data: at(1), backgroundColor: color + BAND_ALPHA, fill: '+1' },
-			{ ...edge, data: at(-1), fill: false },
+			...band,
 			{
 				label: run.label,
 				data: at(0),
@@ -142,7 +151,7 @@ const markerPlugin: Plugin<'line'> = {
 
 const PLUGINS = [markerPlugin];
 
-function options(series: ReadonlyArray<StatSweepSeries>, metric: StatSweepMetric): ChartOptions<'line'> {
+function options(series: ReadonlyArray<StatSweepSeries>, metric: StatSweepMetric, showSpread: boolean): ChartOptions<'line'> {
 	const range = xRange(series);
 	return {
 		animation: false,
@@ -161,11 +170,11 @@ function options(series: ReadonlyArray<StatSweepSeries>, metric: StatSweepMetric
 					// The default items take their stroke from the point border, which is the surface colour, so the swatch would vanish.
 					generateLabels: chart =>
 						chart.data.datasets.flatMap((dataset, datasetIndex) => {
-							if (!isLine(datasetIndex)) return [];
+							if (!isLine(datasetIndex, showSpread)) return [];
 							const color = (dataset as ChartDataset<'line'>).borderColor as string;
 							return [
 								{
-									text: runLabel(series[Math.floor(datasetIndex / DATASETS_PER_RUN)]),
+									text: runLabel(series[Math.floor(datasetIndex / datasetsPerRun(showSpread))]),
 									datasetIndex,
 									fillStyle: color,
 									strokeStyle: color,
@@ -179,7 +188,7 @@ function options(series: ReadonlyArray<StatSweepSeries>, metric: StatSweepMetric
 				},
 			},
 			tooltip: {
-				filter: item => isLine(item.datasetIndex),
+				filter: item => isLine(item.datasetIndex, showSpread),
 				callbacks: {
 					// One line per distinct stat total, so runs of one stat from one base value share a line.
 					title: items =>
@@ -217,37 +226,53 @@ function options(series: ReadonlyArray<StatSweepSeries>, metric: StatSweepMetric
 	};
 }
 
-export const StatSweepChart = ({ series, metric, metrics, onMetricChange }: StatSweepChartProps) => {
-	const data = useMemo(() => ({ datasets: datasets(series, metric) }) satisfies ChartData<'line', SweepDatum[]>, [series, metric]);
-	const chartOptions = useMemo(() => options(series, metric), [series, metric]);
+export const StatSweepChart = ({ series, metric, metrics, onMetricChange, showSpread, onShowSpreadChange }: StatSweepChartProps) => {
+	const data = useMemo(() => ({ datasets: datasets(series, metric, showSpread) }) satisfies ChartData<'line', SweepDatum[]>, [series, metric, showSpread]);
+	const chartOptions = useMemo(() => options(series, metric, showSpread), [series, metric, showSpread]);
 	const metricOptions = useMemo(() => metrics.map(value => ({ value, label: metricLabel(value) })), [metrics]);
 	const hasPoints = series.some(run => run.points.length);
 	const label = metricLabel(metric);
 
 	// The empty text sits in the chart's box, so the first point does not resize the dialog.
+	// The chart remounts with the band: it pairs datasets by label, so a line would inherit the dashed edge it replaces.
 	return (
 		<figure className="m-0 flex min-h-0 min-w-0 flex-1 flex-col gap-2">
-			<ToggleGroup<StatSweepMetric>
-				size="sm"
-				className="self-start"
-				aria-label={t('metric')}
-				options={metricOptions}
-				value={metric}
-				onChange={onMetricChange}
-				testId="stat-sweep-metric"
-			/>
+			<div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+				<ToggleGroup<StatSweepMetric>
+					size="sm"
+					aria-label={t('metric')}
+					options={metricOptions}
+					value={metric}
+					onChange={onMetricChange}
+					testId="stat-sweep-metric"
+				/>
+				<BooleanPicker
+					id="stat-sweep-show-spread"
+					label={t('show_spread')}
+					labelTooltip={t('show_spread_tooltip')}
+					value={showSpread}
+					onChange={onShowSpreadChange}
+					testId="stat-sweep-show-spread"
+				/>
+			</div>
 			<div className="relative flex min-h-112 w-full min-w-0 flex-1 items-center justify-center lg:min-h-64">
-				{hasPoints ? <Line data={data} options={chartOptions} plugins={PLUGINS} /> : <p className="mb-0 text-muted">{t('empty', { metric: label })}</p>}
+				{hasPoints ? (
+					<Line key={String(showSpread)} data={data} options={chartOptions} plugins={PLUGINS} />
+				) : (
+					<p className="mb-0 text-muted">{t('empty', { metric: label })}</p>
+				)}
 			</div>
 			<figcaption className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted">
 				<span className="flex items-center gap-2">
 					<span className="h-4 border-l border-dashed border-muted" />
 					{t('current_value')}
 				</span>
-				<span className="flex items-center gap-2">
-					<span className="h-4 w-4 rounded-sm bg-muted/30" />
-					{t('band_key', { metric: label })}
-				</span>
+				{showSpread && (
+					<span className="flex items-center gap-2">
+						<span className="h-4 w-4 rounded-sm bg-muted/30" />
+						{t('band_key', { metric: label })}
+					</span>
+				)}
 			</figcaption>
 		</figure>
 	);

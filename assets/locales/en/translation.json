@@ -2531,6 +2531,8 @@
 				"run_label": "{{stat}} ±{{range}}",
 				"capped_label": "{{label}} (capped at {{change}})",
 				"metric": "Plotted metric",
+				"show_spread": "Show spread",
+				"show_spread_tooltip": "Shades ± 1 standard deviation of a fight's value around each line.",
 				"current_value": "Current value",
 				"change_axis": "Change from current value",
 				"tooltip_total": "{{stat}} {{total}} ({{change}})",

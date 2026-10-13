@@ -67,6 +67,7 @@ export const StatSweepDialog = ({ open, onOpenChange, settings }: StatSweepDialo
 		useStoreSubscribe(subscribeStatSweepChange(settings), () => settings.metric),
 		metrics,
 	);
+	const showSpread = useStoreSubscribe(subscribeStatSweepChange(settings), () => settings.showSpread);
 	// The stored stats the spec offers, in the order offered; with none stored, or none of them offered, the first one offered. A cleared list stays empty.
 	const selectedStats = useMemo(() => {
 		if (storedStats?.length === 0) return [];
@@ -132,7 +133,16 @@ export const StatSweepDialog = ({ open, onOpenChange, settings }: StatSweepDialo
 						disabled={sweep.isRunning}
 					/>
 				}
-				chart={<StatSweepChart series={sweep.series} metric={metric} metrics={metrics} onMetricChange={next => settings.setMetric(next)} />}
+				chart={
+					<StatSweepChart
+						series={sweep.series}
+						metric={metric}
+						metrics={metrics}
+						onMetricChange={next => settings.setMetric(next)}
+						showSpread={showSpread}
+						onShowSpreadChange={next => settings.setShowSpread(next)}
+					/>
+				}
 				history={<StatSweepHistory runs={sweep.historyEntries} onOverlayChange={sweep.setOverlaid} onDelete={sweep.remove} onExportCsv={onExportCsv} />}
 				running={sweep.isRunning}
 			/>
