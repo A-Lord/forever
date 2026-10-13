@@ -33,7 +33,9 @@ const LINE_INDEX = 2;
 const isLine = (datasetIndex: number) => datasetIndex % DATASETS_PER_RUN === LINE_INDEX;
 // The x range reaches this share of its span past the outermost value, so the end points draw whole inside the plot.
 const X_RANGE_PAD = 0.03;
-const BAND_ALPHA = '1a';
+const BAND_ALPHA = '2e';
+// The band's dashed edges keep each run's band traceable where two bands overlap.
+const BAND_EDGE_ALPHA = '99';
 const LEGEND_LINE_WIDTH = 3;
 // The y scale fits its data, with this share of the span as room past the extremes.
 const Y_GRACE = '5%';
@@ -50,7 +52,14 @@ function datasets(series: ReadonlyArray<DpsCurveSeries>): Array<ChartDataset<'li
 		const color = seriesColor(run.colorSlot);
 		const at = (y: (point: DpsCurvePoint) => number) =>
 			run.points.map(point => ({ x: curveChange(point.statValue, run.baseStatValue), y: y(point), point, statLabel: run.statLabel }));
-		const edge = { pointRadius: 0, pointHoverRadius: 0, borderWidth: 0, label: run.label };
+		const edge = {
+			pointRadius: 0,
+			pointHoverRadius: 0,
+			borderWidth: 1,
+			borderDash: [4, 3],
+			borderColor: color + BAND_EDGE_ALPHA,
+			label: run.label,
+		};
 		return [
 			{ ...edge, data: at(point => point.dps + point.dpsStdev), backgroundColor: color + BAND_ALPHA, fill: '+1' },
 			{ ...edge, data: at(point => point.dps - point.dpsStdev), fill: false },
