@@ -196,7 +196,7 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 			open={open}
 			onOpenChange={handleOpenChange}
 			testId="ep-weights-menu"
-			size={showThreatMetrics ? 'xl' : 'lg'}
+			size="xl"
 			scrollContents
 			title={i18n.t('sidebar.buttons.stat_weights.modal.title')}
 			footer={
@@ -226,23 +226,7 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 				<TabPanels>
 					<TabPanel value={WEIGHTS_TAB} testId={WEIGHTS_TAB}>
 						<div className="flex flex-col gap-4 lg:flex-row lg:items-start">
-							<div className="order-1 w-full lg:order-0">
-								<EpWeightsOptions statsType={statsType} onStatsTypeChange={setStatsType}>
-									<StatFilterPopover {...statFilter} ariaLabel={i18n.t('stat_filters.triggers.ep')} testId="ep-stat-filter" />
-								</EpWeightsOptions>
-								{!editOnly && (
-									<>
-										<EpReferenceOptions epStats={epStats} epReferenceStat={epReferenceStat} displayMetrics={displayMetrics} />
-										<div className="mb-2">
-											<EpPrecisionOptions
-												value={precision}
-												onChange={patch => settings.setPrecision(patch)}
-												defaultIterations={defaultIterations}
-												disabled={isRunning}
-											/>
-										</div>
-									</>
-								)}
+							<div className="order-1 w-full min-w-0 lg:order-0 lg:flex-1">
 								<p>
 									{i18n.t('sidebar.buttons.stat_weights.modal.current_ep_description')}
 									{!editOnly && (
@@ -271,7 +255,21 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 									showUpdateColumn={!editOnly}
 								/>
 							</div>
-							<div className="ui-ep-weights-sidebar order-0 min-w-42 lg:sticky lg:top-0 lg:z-sticky lg:order-1">
+							<div className="ui-ep-weights-sidebar order-0 flex flex-col gap-4 lg:sticky lg:top-0 lg:z-sticky lg:order-1 lg:w-64 lg:shrink-0">
+								<EpWeightsOptions statsType={statsType} onStatsTypeChange={setStatsType}>
+									<StatFilterPopover {...statFilter} ariaLabel={i18n.t('stat_filters.triggers.ep')} testId="ep-stat-filter" />
+								</EpWeightsOptions>
+								{!editOnly && (
+									<>
+										<EpReferenceOptions epStats={epStats} epReferenceStat={epReferenceStat} displayMetrics={displayMetrics} />
+										<EpPrecisionOptions
+											value={precision}
+											onChange={patch => settings.setPrecision(patch)}
+											defaultIterations={defaultIterations}
+											disabled={isRunning}
+										/>
+									</>
+								)}
 								<SavedEpWeights />
 							</div>
 						</div>

@@ -8507,7 +8507,7 @@
 										"weights": {
 											"type": "string"
 										},
-										"stats_type": {
+										"show_as": {
 											"type": "string"
 										},
 										"dps_tps_reference": {
@@ -8784,7 +8784,7 @@
 										"title",
 										"ep",
 										"weights",
-										"stats_type",
+										"show_as",
 										"dps_tps_reference",
 										"healing_reference",
 										"mitigation_reference",

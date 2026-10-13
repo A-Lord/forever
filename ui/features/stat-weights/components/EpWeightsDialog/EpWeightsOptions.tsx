@@ -11,10 +11,11 @@ export interface EpWeightsOptionsProps {
 }
 
 export const EpWeightsOptions = ({ statsType, onStatsTypeChange, children }: EpWeightsOptionsProps) => (
-	<div className="mb-2 grid gap-x-4 sm:grid-cols-4">
+	<div className="flex items-center gap-2">
 		<ChoiceField
 			id="ep-type-select"
-			ariaLabel={i18n.t('sidebar.buttons.stat_weights.modal.stats_type')}
+			label={i18n.t('sidebar.buttons.stat_weights.modal.show_as')}
+			layout="inline"
 			options={[
 				{ value: StatsType.Ep, label: i18n.t('sidebar.buttons.stat_weights.modal.ep') },
 				{ value: StatsType.Weight, label: i18n.t('sidebar.buttons.stat_weights.modal.weights') },

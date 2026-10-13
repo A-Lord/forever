@@ -514,18 +514,6 @@ describe('EpWeightsDialog', () => {
 		expect(dpsEpLabel().getAttribute('data-tooltip-content')).not.toContain('Strength');
 	});
 
-	// DEFECT FIXED. `getModalConfig` read `getShowThreatMetrics()` once, at construction.
-	it('follows the threat-metrics toggle in the dialog size', () => {
-		renderDialog();
-		expect(popup().getAttribute('data-size')).toBe('lg');
-
-		act(() => {
-			host.sim.showThreatMetrics = true;
-			source.notify('ui:showThreatMetrics');
-		});
-		expect(popup().getAttribute('data-size')).toBe('xl');
-	});
-
 	it('copies a column into the current EP weights, leaving excluded stats alone', () => {
 		host.sim.showThreatMetrics = true;
 		host.individualConfig.defaults.epWeights = new Stats().withStat(Stat.StatAgility, 7).withStat(Stat.StatStrength, 11);
