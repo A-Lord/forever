@@ -2,7 +2,7 @@ import type { Stat } from '@generated/proto/common';
 import { deleteRun, listRuns, saveRun, type StatSweepPoint, type StatSweepRecord } from '@sim/cache/stat_sweep_history';
 import { usePlayer, useSim } from '@sim/context/SimHostContext';
 import { useSimRun } from '@sim/hooks/useSimRun';
-import { Stats, type UnitStat } from '@sim/proto/stats';
+import { Stats, UnitStat } from '@sim/proto/stats';
 import type { EpPrecisionSettings } from '@sim/settings/stat_weight_settings';
 import { SimRunKind } from '@sim/state/sim_store';
 import { noop, randomUUID } from '@sim/utils/misc';
@@ -160,8 +160,16 @@ export const useStatSweep = () => {
 
 	const colorSlots = useMemo(() => shownColorSlots(view, shownRuns(view)), [view]);
 	const series = useMemo<StatSweepSeries[]>(
-		() => shownRuns(view).map(run => ({ id: run.id, label: run.label, colorSlot: colorSlots[run.id], points: run.points })),
-		[view, colorSlots],
+		() =>
+			shownRuns(view).map(run => ({
+				id: run.id,
+				label: run.label,
+				colorSlot: colorSlots[run.id],
+				statLabel: UnitStat.fromJson(run.unitStat).getFullName(player.getClass()),
+				baseStatValue: run.baseStatValue,
+				points: run.points,
+			})),
+		[view, colorSlots, player],
 	);
 	const historyEntries = useMemo<StatSweepHistoryEntry[]>(
 		() =>

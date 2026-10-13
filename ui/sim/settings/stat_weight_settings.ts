@@ -10,15 +10,31 @@ import { subscribeStatWeightsChange } from '../state/subscriptions';
 
 export type EpPrecisionSettings = Pick<StatWeightsSlice, 'precisionMode' | 'iterations' | 'targetEpCi' | 'maxIterationMultiplier'>;
 
-const PRECISION_DEFAULTS: EpPrecisionSettings = { precisionMode: 'iterations', iterations: 0, targetEpCi: 0.01, maxIterationMultiplier: 8 };
+export type StatSweepSettings = Pick<StatWeightsSlice, 'sweepStat' | 'sweepRange' | 'sweepStep'>;
 
-// Proto3 cannot tell an unset field from 0, so a zero target or multiplier reads as the default.
+const PRECISION_DEFAULTS: EpPrecisionSettings = { precisionMode: 'iterations', iterations: 0, targetEpCi: 0.01, maxIterationMultiplier: 0 };
+const SWEEP_DEFAULTS: StatSweepSettings = { sweepStat: null, sweepRange: 100, sweepStep: 10 };
+
+// Proto3 cannot tell an unset field from 0, so a zero target, sweep range or sweep step reads as the default.
 const precisionFromProto = (saved: SavedStatWeightSettings): EpPrecisionSettings => ({
 	precisionMode: saved.precisionMode === SavedEpPrecisionMode.EpPrecisionModeTarget ? 'target' : 'iterations',
 	iterations: saved.iterations,
 	targetEpCi: saved.targetEpCi || PRECISION_DEFAULTS.targetEpCi,
-	maxIterationMultiplier: saved.maxIterationMultiplier || PRECISION_DEFAULTS.maxIterationMultiplier,
+	maxIterationMultiplier: saved.maxIterationMultiplier,
 });
+
+const sweepStatFromProto = (saved: SavedStatWeightSettings): UnitStat | null => {
+	const stat = saved.sweepStat && UnitStat.fromProto(saved.sweepStat);
+	return stat && (stat.isStat() || stat.isPseudoStat()) ? stat : null;
+};
+
+const sweepFromProto = (saved: SavedStatWeightSettings): StatSweepSettings => ({
+	sweepStat: sweepStatFromProto(saved),
+	sweepRange: saved.sweepRange || SWEEP_DEFAULTS.sweepRange,
+	sweepStep: saved.sweepStep || SWEEP_DEFAULTS.sweepStep,
+});
+
+const sameSweepStat = (a: UnitStat | null, b: UnitStat | null) => (a && b ? a.equals(b) : a === b);
 
 // Stat-weight modal settings. Values live in the sim store
 // (`statWeights[player.storeKey]`) with a version counter; persists itself to
@@ -35,7 +51,13 @@ export class StatWeightActionSettings {
 		this.store = player.sim.store;
 		this.storeKey = player.storeKey;
 
-		seedKeyed(this.store, 'statWeights', this.storeKey, { excludedStats: [], excludedPseudoStats: [], ...PRECISION_DEFAULTS, v: { settings: 0 } });
+		seedKeyed(this.store, 'statWeights', this.storeKey, {
+			excludedStats: [],
+			excludedPseudoStats: [],
+			...PRECISION_DEFAULTS,
+			...SWEEP_DEFAULTS,
+			v: { settings: 0 },
+		});
 		subscribeStatWeightsChange(this)(() => {
 			this.env.storage.setItem(this.storageKey, SavedStatWeightSettings.toJsonString(this.toProto()));
 		});
@@ -69,8 +91,22 @@ export class StatWeightActionSettings {
 		this.write(patch);
 	}
 
+	get sweep(): StatSweepSettings {
+		const { sweepStat, sweepRange, sweepStep } = this.slice;
+		return { sweepStat, sweepRange, sweepStep };
+	}
+
+	setSweep(patch: Partial<StatSweepSettings>) {
+		const current = this.sweep;
+		const unchanged = (Object.keys(patch) as Array<keyof StatSweepSettings>).every(key =>
+			key === 'sweepStat' ? sameSweepStat(patch.sweepStat ?? null, current.sweepStat) : patch[key] === current[key],
+		);
+		if (unchanged) return;
+		this.write(patch);
+	}
+
 	applyDefaults() {
-		this.write({ excludedStats: [], excludedPseudoStats: [], ...PRECISION_DEFAULTS });
+		this.write({ excludedStats: [], excludedPseudoStats: [], ...PRECISION_DEFAULTS, ...SWEEP_DEFAULTS });
 	}
 
 	load() {
@@ -81,12 +117,14 @@ export class StatWeightActionSettings {
 				excludedStats: settingsProto.excludedStats || [],
 				excludedPseudoStats: settingsProto.excludedPseudoStats || [],
 				...precisionFromProto(settingsProto),
+				...sweepFromProto(settingsProto),
 			});
 		}
 	}
 
 	toProto(): SavedStatWeightSettings {
 		const { precisionMode, iterations, targetEpCi, maxIterationMultiplier } = this.precision;
+		const { sweepStat, sweepRange, sweepStep } = this.sweep;
 		return SavedStatWeightSettings.create({
 			apiVersion: CURRENT_API_VERSION,
 			excludedStats: this.excludedStats,
@@ -95,6 +133,9 @@ export class StatWeightActionSettings {
 			iterations,
 			targetEpCi,
 			maxIterationMultiplier,
+			sweepStat: sweepStat?.toProto(),
+			sweepRange,
+			sweepStep,
 		});
 	}
 

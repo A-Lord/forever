@@ -7,7 +7,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { EpPrecisionOptions } from './EpPrecisionOptions';
 
 const t = (key: string) => i18n.t(`sidebar.buttons.stat_weights.precision.${key}`);
-const ITERATIONS: EpPrecisionSettings = { precisionMode: 'iterations', iterations: 0, targetEpCi: 0.01, maxIterationMultiplier: 8 };
+const ITERATIONS: EpPrecisionSettings = { precisionMode: 'iterations', iterations: 0, targetEpCi: 0.01, maxIterationMultiplier: 0 };
 
 describe('EpPrecisionOptions', () => {
 	it('shows the target fields only in target mode, and reports a mode switch', async () => {
@@ -33,6 +33,16 @@ describe('EpPrecisionOptions', () => {
 
 		fireEvent.change(input, { target: { value: '4000' } });
 		expect(onChange).toHaveBeenCalledWith({ iterations: 4000 });
+	});
+
+	it('leaves an unset multiplier empty as no cap, and reports an entered one', () => {
+		const onChange = vi.fn();
+		render(<EpPrecisionOptions value={{ ...ITERATIONS, precisionMode: 'target' }} onChange={onChange} defaultIterations={10000} />);
+		const input = screen.getByLabelText<HTMLInputElement>(t('max_multiplier'));
+		expect([input.value, input.placeholder]).toEqual(['', t('max_multiplier_none')]);
+
+		fireEvent.change(input, { target: { value: '4' } });
+		expect(onChange).toHaveBeenCalledWith({ maxIterationMultiplier: 4 });
 	});
 
 	it('keeps four decimals of the target', () => {

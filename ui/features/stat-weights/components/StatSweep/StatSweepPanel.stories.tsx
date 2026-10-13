@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { makeHitSweepPoints } from '@testing/storybook/fixtures/stat-sweep';
+import { makeHitSweepPoints, sweepSeries } from '@testing/storybook/fixtures/stat-sweep';
 import { fn } from 'storybook/test';
 
 import { EpPrecisionOptions } from '../EpPrecisionOptions/EpPrecisionOptions';
@@ -30,12 +30,12 @@ const meta = {
 		onStepChange: fn(),
 		precision: (
 			<EpPrecisionOptions
-				value={{ precisionMode: 'iterations', iterations: 0, targetEpCi: 0.01, maxIterationMultiplier: 8 }}
+				value={{ precisionMode: 'iterations', iterations: 0, targetEpCi: 0.01, maxIterationMultiplier: 0 }}
 				onChange={fn()}
 				defaultIterations={10000}
 			/>
 		),
-		chart: <StatSweepChart series={[]} statLabel="Hit Rating" currentValue={120} />,
+		chart: <StatSweepChart series={[]} />,
 		history: <StatSweepHistory runs={HISTORY} onOverlayChange={fn()} onDelete={fn()} />,
 		running: false,
 		onRun: fn(),
@@ -56,11 +56,9 @@ export const Running: Story = {
 		chart: (
 			<StatSweepChart
 				series={[
-					{ id: 'current', label: 'Hit Rating ±100', colorSlot: 0, points: makeHitSweepPoints(120).slice(0, 7) },
-					{ id: 'hit-new', label: 'Hit Rating ±100', colorSlot: 1, points: makeHitSweepPoints(90) },
+					sweepSeries('current', 'Hit Rating', 120, makeHitSweepPoints(120).slice(0, 7)),
+					sweepSeries('hit-new', 'Hit Rating', 90, makeHitSweepPoints(90), 1),
 				]}
-				statLabel="Hit Rating"
-				currentValue={120}
 			/>
 		),
 	},

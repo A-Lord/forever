@@ -244,9 +244,8 @@ func buildStatWeightRequests(swr *proto.StatWeightsRequest) *proto.StatWeightReq
 }
 
 const (
-	statWeightZ90                           = 1.645 // The two-sided 90% interval, the ± shown behind each EP.
-	statWeightMaxTopUpPasses                = 3     // The first top-up, which sizes from the probe alone, and two that resize from the runs so far.
-	defaultStatWeightMaxIterationMultiplier = 8
+	statWeightZ90            = 1.645 // The two-sided 90% interval, the ± shown behind each EP.
+	statWeightMaxTopUpPasses = 3     // The first top-up, which sizes from the probe alone, and two that resize from the runs so far.
 )
 
 // One result holding the first player's per-iteration metrics of every run, iterations in run order.
@@ -479,8 +478,8 @@ func calcStatWeights(swcr *proto.StatWeightsCalcRequest) (*StatWeightsResult, *p
 // metric, sized by the metric that needs the most. A metric is skipped for a stat whose weight or
 // reference weight in it is 0, a stat at or under the target in all of them is left out, and the
 // baseline runs as far as the furthest stat. The sides divide the total because the low and high
-// runs pool their samples. Each run is capped at the multiplier times the first pass's iterations,
-// and the plan is empty once statWeightMaxTopUpPasses segments have run.
+// runs pool their samples. A set multiplier caps each run at that multiple of the first pass's
+// iterations, and the plan is empty once statWeightMaxTopUpPasses segments have run.
 func planStatWeightTopUp(request *proto.StatWeightsTopUpRequest) *proto.StatWeightsTopUpPlan {
 	target := request.Target
 	calc := mergeStatWeightSegments(request.Calc)
@@ -495,11 +494,11 @@ func planStatWeightTopUp(request *proto.StatWeightsTopUpRequest) *proto.StatWeig
 		return plan
 	}
 
-	multiplier := target.MaxIterationMultiplier
-	if multiplier <= 0 {
-		multiplier = defaultStatWeightMaxIterationMultiplier
+	// Without a multiplier the int32 range still bounds the count, so the conversion below stays defined.
+	maxIterationsPerSide := float64(math.MaxInt32)
+	if target.MaxIterationMultiplier > 0 {
+		maxIterationsPerSide = min(maxIterationsPerSide, float64(len(request.Calc.BaseResult.RaidMetrics.Parties[0].Players[0].Dps.AllValues))*float64(target.MaxIterationMultiplier))
 	}
-	maxIterationsPerSide := float64(len(request.Calc.BaseResult.RaidMetrics.Parties[0].Players[0].Dps.AllValues)) * float64(multiplier)
 	targetMetrics := target.Metrics
 	if len(targetMetrics) == 0 {
 		targetMetrics = []proto.StatWeightsTargetMetric{proto.StatWeightsTargetMetric_StatWeightsTargetMetricDps}

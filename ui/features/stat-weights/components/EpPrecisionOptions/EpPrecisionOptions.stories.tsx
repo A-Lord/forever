@@ -8,7 +8,7 @@ const meta = {
 	component: EpPrecisionOptions,
 	tags: ['autodocs'],
 	args: {
-		value: { precisionMode: 'iterations', iterations: 0, targetEpCi: 0.01, maxIterationMultiplier: 8 },
+		value: { precisionMode: 'iterations', iterations: 0, targetEpCi: 0.01, maxIterationMultiplier: 0 },
 		onChange: fn(),
 		defaultIterations: 10000,
 	},
@@ -21,7 +21,7 @@ type Story = StoryObj<typeof meta>;
 export const Iterations: Story = {};
 
 export const TargetPrecision: Story = {
-	args: { value: { precisionMode: 'target', iterations: 4000, targetEpCi: 0.01, maxIterationMultiplier: 8 } },
+	args: { value: { precisionMode: 'target', iterations: 4000, targetEpCi: 0.01, maxIterationMultiplier: 0 } },
 };
 
 export const Disabled: Story = {

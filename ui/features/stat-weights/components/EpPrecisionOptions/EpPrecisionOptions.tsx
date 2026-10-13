@@ -62,6 +62,8 @@ export const EpPrecisionOptions = ({ value, onChange, defaultIterations, disable
 						label={t('max_multiplier')}
 						labelTooltip={t('max_multiplier_tooltip')}
 						positive
+						showZeroes={false}
+						placeholder={t('max_multiplier_none')}
 						disabled={disabled}
 						value={value.maxIterationMultiplier}
 						onChange={maxIterationMultiplier => onChange({ maxIterationMultiplier })}

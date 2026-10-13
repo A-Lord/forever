@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { makeHitSweepPoints } from '@testing/storybook/fixtures/stat-sweep';
+import { makeCritSweepPoints, makeHitSweepPoints, sweepSeries } from '@testing/storybook/fixtures/stat-sweep';
 
 import { StatSweepChart } from './StatSweepChart';
 
@@ -9,7 +9,7 @@ const meta = {
 	title: 'Features/StatWeights/StatSweep/StatSweepChart',
 	component: StatSweepChart,
 	tags: ['autodocs'],
-	args: { series: [], statLabel: 'Hit Rating', currentValue: 120 },
+	args: { series: [] },
 	argTypes: { series: { control: false } },
 	decorators: [
 		Story => (
@@ -26,16 +26,23 @@ type Story = StoryObj<typeof meta>;
 export const Empty: Story = {};
 
 export const SingleRun: Story = {
-	args: { series: [{ id: 'current', label: 'Hit Rating ±100', colorSlot: 0, points: makeHitSweepPoints(120) }] },
+	args: { series: [sweepSeries('current', 'Hit Rating', 120, makeHitSweepPoints(120))] },
 	parameters: CANVAS,
 };
 
 export const Overlay: Story = {
 	args: {
 		series: [
-			{ id: 'current', label: 'Hit Rating ±100', colorSlot: 0, points: makeHitSweepPoints(120) },
-			{ id: 'older', label: 'Hit Rating ±100 (old gear)', colorSlot: 1, points: makeHitSweepPoints(90, 10_000) },
+			sweepSeries('current', 'Hit Rating', 120, makeHitSweepPoints(120)),
+			sweepSeries('older', 'Hit Rating', 90, makeHitSweepPoints(90, 10_000), 1, 'Hit Rating ±100 (old gear)'),
 		],
+	},
+	parameters: CANVAS,
+};
+
+export const OverlayOtherStat: Story = {
+	args: {
+		series: [sweepSeries('hit', 'Hit Rating', 120, makeHitSweepPoints(120)), sweepSeries('crit', 'Crit Rating', 210, makeCritSweepPoints(210), 1)],
 	},
 	parameters: CANVAS,
 };

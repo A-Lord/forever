@@ -8840,7 +8840,8 @@
 										"target_ep_ci": { "type": "string" },
 										"target_ep_ci_tooltip": { "type": "string" },
 										"max_multiplier": { "type": "string" },
-										"max_multiplier_tooltip": { "type": "string" }
+										"max_multiplier_tooltip": { "type": "string" },
+										"max_multiplier_none": { "type": "string" }
 									},
 									"additionalProperties": false,
 									"required": [
@@ -8854,7 +8855,8 @@
 										"target_ep_ci",
 										"target_ep_ci_tooltip",
 										"max_multiplier",
-										"max_multiplier_tooltip"
+										"max_multiplier_tooltip",
+										"max_multiplier_none"
 									]
 								},
 								"sweep": {
@@ -8870,6 +8872,8 @@
 										"ep_chart": { "type": "string" },
 										"dps_chart": { "type": "string" },
 										"current_value": { "type": "string" },
+										"change_axis": { "type": "string" },
+										"tooltip_total": { "type": "string" },
 										"tooltip_value": { "type": "string" },
 										"empty": { "type": "string" },
 										"history": {
@@ -8895,6 +8899,8 @@
 										"ep_chart",
 										"dps_chart",
 										"current_value",
+										"change_axis",
+										"tooltip_total",
 										"tooltip_value",
 										"empty",
 										"history"

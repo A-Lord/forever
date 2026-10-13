@@ -6,7 +6,7 @@ import { DatabaseFilters } from '@generated/proto/ui';
 import type { StatSweepRecord } from '@sim/cache/stat_sweep_history';
 import { SimHostProvider } from '@sim/context/SimHostContext';
 import { Stats, UnitStat } from '@sim/proto/stats';
-import type { EpPrecisionSettings } from '@sim/settings/stat_weight_settings';
+import type { EpPrecisionSettings, StatSweepSettings } from '@sim/settings/stat_weight_settings';
 import { SimRuns } from '@sim/sim_runs';
 import { createSimStore, patchKeyed, patchSlice, PLAYER_FIELDS, seedKeyed, type SimStore, zeroVersions } from '@sim/state/sim_store';
 import { makeHitSweepPoints } from '@testing/storybook/fixtures/stat-sweep';
@@ -177,10 +177,15 @@ class FakePlayer {
 class FakeSettings {
 	excludedStats: Stat[] = [];
 	excludedPseudoStats: PseudoStat[] = [];
-	precision: EpPrecisionSettings = { precisionMode: 'iterations', iterations: 0, targetEpCi: 0.01, maxIterationMultiplier: 8 };
+	precision: EpPrecisionSettings = { precisionMode: 'iterations', iterations: 0, targetEpCi: 0.01, maxIterationMultiplier: 0 };
+	sweep: StatSweepSettings = { sweepStat: null, sweepRange: 100, sweepStep: 10 };
 
 	setPrecision(patch: Partial<EpPrecisionSettings>) {
 		this.precision = { ...this.precision, ...patch };
+		source.notify('statWeights');
+	}
+	setSweep(patch: Partial<StatSweepSettings>) {
+		this.sweep = { ...this.sweep, ...patch };
 		source.notify('statWeights');
 	}
 	isStatExcludedFromCalc(stat: Stat) {
@@ -860,7 +865,7 @@ describe('EpWeightsDialog', () => {
 				refStat: Stat.StatStrength,
 				range: 100,
 				step: 10,
-				precision: { precisionMode: 'iterations', iterations: 1000, targetEpCi: 0.01, maxIterationMultiplier: 8 },
+				precision: { precisionMode: 'iterations', iterations: 1000, targetEpCi: 0.01, maxIterationMultiplier: 0 },
 				baseStatValue: 120,
 				points: makeHitSweepPoints(120),
 			});
@@ -893,6 +898,38 @@ describe('EpWeightsDialog', () => {
 			const saved = sweepHistory.saveRun.mock.calls[0][0];
 			expect(saved.refStat).toBe(Stat.StatAgility);
 			expect(saved.points.map(point => point.statValue)).toEqual([0, 10, 20]);
+			expect(settings.sweep.sweepRange).toBe(20);
+		});
+
+		it('sweeps the stored stat, range and step', async () => {
+			player.computeStatWeights.mockResolvedValue(weightsResult([[AGILITY, 2]]));
+			settings.sweep = { sweepStat: AGILITY, sweepRange: 40, sweepStep: 20 };
+			await openSweepTab();
+			expect(popup().querySelector<HTMLInputElement>('#stat-sweep-range')!.value).toBe('40');
+
+			await act(async () => {
+				await userEvent.click(screen.getByRole('button', { name: 'sidebar.buttons.stat_weights.sweep.run' }));
+			});
+
+			const bonuses = player.computeStatWeights.mock.calls.map(call => call[4].bonusStats as Stats);
+			expect(bonuses.map(bonus => bonus.getStat(Stat.StatAgility))).toEqual([0, 20, 40]);
+		});
+
+		it('sweeps the first offered stat when the stored one is not offered', async () => {
+			player.computeStatWeights.mockResolvedValue(weightsResult([[STRENGTH, 2]]));
+			settings.sweep = { sweepStat: STAMINA, sweepRange: 20, sweepStep: 10 };
+			await openSweepTab();
+
+			await act(async () => {
+				await userEvent.click(screen.getByRole('button', { name: 'sidebar.buttons.stat_weights.sweep.run' }));
+			});
+
+			const bonuses = player.computeStatWeights.mock.calls.map(call => call[4].bonusStats as Stats);
+			expect(bonuses.map(bonus => [bonus.getStat(Stat.StatStrength), bonus.getStat(Stat.StatStamina)])).toEqual([
+				[0, 0],
+				[10, 0],
+				[20, 0],
+			]);
 		});
 
 		it('runs a target ± sweep to the DPS target alone', async () => {

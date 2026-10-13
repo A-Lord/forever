@@ -1,5 +1,6 @@
 import type { StatSweepPoint } from '@sim/cache/stat_sweep_history';
 
+import type { StatSweepSeries } from '../../../features/stat-weights/components/StatSweep/StatSweepChart';
 import { buildSweepOffsets, sweepSteps } from '../../../features/stat-weights/model/stat_sweep';
 
 const HIT_CAP = 150;
@@ -30,3 +31,29 @@ export const makeHitSweepPoints = (base: number, samples = 20_000): StatSweepPoi
 		};
 	});
 };
+
+/** A ±100 crit sweep in steps of 10 from `base`, with no cap in reach. */
+export const makeCritSweepPoints = (base: number, samples = 20_000): StatSweepPoint[] => {
+	const offsets = buildSweepOffsets(100, 10);
+	return sweepSteps(
+		offsets,
+		offsets.map(offset => base + offset),
+	).map(({ offset, statValue }) => ({
+		offset,
+		statValue,
+		ep: 2.1 - 0.001 * statValue,
+		epCi: 0.01,
+		dps: 1300 + 1.1 * statValue,
+		dpsCi: 1.8,
+		samples,
+	}));
+};
+
+export const sweepSeries = (
+	id: string,
+	statLabel: string,
+	base: number,
+	points: StatSweepPoint[],
+	colorSlot = 0,
+	label = `${statLabel} ±100`,
+): StatSweepSeries => ({ id, label, colorSlot, statLabel, baseStatValue: base, points });

@@ -283,10 +283,17 @@ func TestStatWeightTopUpPlanSizesEachStatForTheTarget(t *testing.T) {
 		}
 	})
 
-	t.Run("capped at the default multiplier when unset", func(t *testing.T) {
-		got := plan(min(agilityCi, hitCi)/100, 0)
-		if got.BaselineIterations != defaultStatWeightMaxIterationMultiplier*perSide {
-			t.Errorf("baseline planned %d iterations, want the default cap", got.BaselineIterations)
+	t.Run("uncapped when unset", func(t *testing.T) {
+		target := min(agilityCi, hitCi) / 100
+		got := plan(target, 0)
+		want := map[stats.UnitStat]int32{agilityUnitStat: sized(agilityUnitStat, target, 2), hitRatingUnitStat: sized(hitRatingUnitStat, target, 1)}
+		for stat, iterations := range want {
+			if plannedIterations(got)[stat] != iterations {
+				t.Errorf("stat %d planned %d iterations per side, want %d", stat, plannedIterations(got)[stat], iterations)
+			}
+		}
+		if got.BaselineIterations != max(want[agilityUnitStat], want[hitRatingUnitStat]) {
+			t.Errorf("baseline planned %d iterations, want the furthest stat's", got.BaselineIterations)
 		}
 	})
 

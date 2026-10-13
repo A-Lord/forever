@@ -2513,7 +2513,8 @@
 					"target_ep_ci": "Target ±",
 					"target_ep_ci_tooltip": "Keeps simulating each stat until the 90% ± behind its EP is at most this value.",
 					"max_multiplier": "Max ×",
-					"max_multiplier_tooltip": "The most iterations a stat may run, as a multiple of the probe iterations."
+					"max_multiplier_tooltip": "The most iterations a stat may run, as a multiple of the probe iterations. Empty sets no cap.",
+					"max_multiplier_none": "None"
 				},
 				"sweep": {
 					"stat": "Stat",
@@ -2526,6 +2527,8 @@
 					"ep_chart": "EP",
 					"dps_chart": "DPS",
 					"current_value": "Current value",
+					"change_axis": "Change from current value",
+					"tooltip_total": "{{stat}} {{total}} ({{change}})",
 					"tooltip_value": "{{value}} ± {{ci}}",
 					"empty": "Run a sweep to plot EP and DPS across the stat's range.",
 					"history": {

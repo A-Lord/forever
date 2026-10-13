@@ -29,7 +29,7 @@ import { ENCOUNTER_DEFAULTS } from '../constants/encounter';
 import { CURRENT_PHASE } from '../constants/other';
 import type { EquippedItem } from '../proto/equipped_item';
 import type { Gear, ItemSwapGear } from '../proto/gear';
-import type { StatCap, Stats } from '../proto/stats';
+import type { StatCap, Stats, UnitStat } from '../proto/stats';
 
 // Presentation flags (owned by UISettings).
 export interface UISlice {
@@ -201,7 +201,10 @@ export interface StatWeightsSlice {
 	precisionMode: EpPrecisionMode;
 	iterations: number; // 0 runs the global sim iteration count.
 	targetEpCi: number;
-	maxIterationMultiplier: number; // Caps a stat's iterations at this multiple of the probe count.
+	maxIterationMultiplier: number; // Caps a stat's iterations at this multiple of the probe count; 0 means no cap.
+	sweepStat: UnitStat | null; // The stat sweep's stat; null, or one the spec does not offer, means the first one offered.
+	sweepRange: number;
+	sweepStep: number;
 	v: { settings: number };
 }
 

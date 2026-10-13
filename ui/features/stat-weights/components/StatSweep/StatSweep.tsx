@@ -6,7 +6,7 @@ import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
 import { Stats, UnitStat } from '@sim/proto/stats';
 import type { StatWeightActionSettings } from '@sim/settings/stat_weight_settings';
 import { subscribePlayerField, subscribeStatWeightsChange } from '@sim/state/subscriptions';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 import { useStatSweep } from '../../hooks/useStatSweep';
 import { EP_UNIT_STATS } from '../../model/ep_unit_stats';
@@ -18,9 +18,6 @@ import { StatSweepPanel } from './StatSweepPanel';
 export interface StatSweepProps {
 	settings: StatWeightActionSettings;
 }
-
-const DEFAULT_RANGE = 100;
-const DEFAULT_STEP = 10;
 
 export const StatSweep = ({ settings }: StatSweepProps) => {
 	const player = usePlayer();
@@ -36,10 +33,8 @@ export const StatSweep = ({ settings }: StatSweepProps) => {
 		[epStats, epPseudoStats],
 	);
 	const statOptions = useMemo(() => unitStats.map(stat => ({ value: stat.getKey(), label: stat.getFullName(player.getClass()) })), [unitStats, player]);
-	const [statKey, setStatKey] = useState(() => unitStats[0]?.getKey() ?? '');
-	const [range, setRange] = useState(DEFAULT_RANGE);
-	const [step, setStep] = useState(DEFAULT_STEP);
-	const unitStat = unitStats.find(stat => stat.getKey() === statKey) ?? unitStats[0];
+	const { sweepStat, sweepRange: range, sweepStep: step } = useStoreSubscribe(subscribeStatWeightsChange(settings), () => settings.sweep);
+	const unitStat = (sweepStat && unitStats.find(stat => stat.equals(sweepStat))) || unitStats[0];
 	const statLabel = statOptions.find(option => option.value === unitStat?.getKey())?.label ?? '';
 
 	const currentStats = usePlayerStore('currentStats');
@@ -67,11 +62,11 @@ export const StatSweep = ({ settings }: StatSweepProps) => {
 		<StatSweepPanel
 			statOptions={statOptions}
 			stat={unitStat?.getKey() ?? ''}
-			onStatChange={setStatKey}
+			onStatChange={key => settings.setSweep({ sweepStat: unitStats.find(stat => stat.getKey() === key) ?? null })}
 			range={range}
-			onRangeChange={setRange}
+			onRangeChange={sweepRange => settings.setSweep({ sweepRange })}
 			step={step}
-			onStepChange={setStep}
+			onStepChange={sweepStep => settings.setSweep({ sweepStep })}
 			fractional={unitStat?.isPseudoStat()}
 			precision={
 				<EpPrecisionOptions
@@ -82,7 +77,7 @@ export const StatSweep = ({ settings }: StatSweepProps) => {
 					idPrefix="stat-sweep-precision"
 				/>
 			}
-			chart={<StatSweepChart series={sweep.series} statLabel={statLabel} currentValue={currentValue} />}
+			chart={<StatSweepChart series={sweep.series} />}
 			history={<StatSweepHistory runs={sweep.historyEntries} onOverlayChange={sweep.setOverlaid} onDelete={sweep.remove} />}
 			running={sweep.isRunning}
 			progress={sweep.progress}
