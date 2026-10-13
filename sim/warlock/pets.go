@@ -36,7 +36,8 @@ type petModel struct {
 }
 
 // The sheet gives no crit from Agility or Intellect, and models regen as MP5 and Intellect alone. Its
-// totals give a demon no crit or armor of its own: both are the warlock's (see petStatInheritance).
+// totals give a demon no crit or armor of its own: its armor and spell crit are the warlock's (see
+// petStatInheritance).
 var petModels = map[proto.WarlockOptions_Summon]petModel{
 	proto.WarlockOptions_Imp: {
 		baseStats: stats.Stats{
@@ -124,8 +125,10 @@ func (warlock *Warlock) petStatInheritance() core.PetStatInheritance {
 			stats.PhysicalHitPercent: ownerStats[stats.SpellHitPercent],
 			stats.SpellHitPercent:    ownerStats[stats.SpellHitPercent],
 
-			stats.PhysicalCritPercent: ownerStats[stats.SpellCritPercent],
-			stats.SpellCritPercent:    ownerStats[stats.SpellCritPercent],
+			// A demon's melee takes none of the warlock's crit: in the logs a Succubus melee-crits ~0.7% whether
+			// the warlock's sheet melee crit, and the Succubus's own, reads 0 or 4.58%.
+			// TODO: The ~0.7% itself, the other demons' melee, and the spell crit share are not measured.
+			stats.SpellCritPercent: ownerStats[stats.SpellCritPercent],
 		}
 	}
 }
