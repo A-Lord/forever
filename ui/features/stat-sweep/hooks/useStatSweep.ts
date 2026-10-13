@@ -23,7 +23,6 @@ import {
 	startSweepProgress,
 	type StatSweepProgress,
 	type StatSweepStep,
-	sweepChange,
 	type SweepPassRunner,
 	sweepSteps,
 } from '../model/stat_sweep';
@@ -189,7 +188,7 @@ export const useStatSweep = ({ onProgress }: UseStatSweepOptions = {}) => {
 								batch[statIndex],
 								measure,
 								({ points, cappedStep }) => {
-									const live = { ...record, points, ...(cappedStep && { cappedAt: sweepChange(cappedStep.statValue, baseStatValue) }) };
+									const live = { ...record, points, ...(cappedStep && { cappedAt: cappedStep.offset }) };
 									finished = live;
 									setView(current => ({ ...current, live }));
 								},

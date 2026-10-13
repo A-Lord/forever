@@ -42,7 +42,7 @@ export interface StatSweepRecord {
 	precision: StatSweepPrecision;
 	baseStatValue: number;
 	points: StatSweepPoint[];
-	/** The change past which more of the stat left every metric unchanged, so the run skipped the steps above the next one. */
+	/** The stat added past which more of the stat left every metric unchanged, so the run skipped the steps above the next one. */
 	cappedAt?: number;
 }
 

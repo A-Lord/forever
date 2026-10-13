@@ -448,7 +448,7 @@ describe('statSweepCsv', () => {
 		tmi: { avg: 9.5, stdev: 0.25, n },
 	});
 
-	it('writes one row per point of every run, with the change, every metric and its spread, and a quoted label', () => {
+	it('writes one row per point of every run, with the stat added, every metric and its spread, and a quoted label', () => {
 		const csv = statSweepCsv([
 			{
 				label: 'Hit, ±100',
@@ -459,14 +459,14 @@ describe('statSweepCsv', () => {
 					{ offset: 0, statValue: 120, metrics: metrics(1520, 0, 10000) },
 				],
 			},
-			{ label: 'Crit', statLabel: 'Crit "Rating"', baseStatValue: 50, points: [{ offset: 10, statValue: 60, metrics: metrics(1600, 200, 400) }] },
+			{ label: 'Crit', statLabel: 'Crit "Rating"', baseStatValue: 50, points: [{ offset: 10, statValue: 61, metrics: metrics(1600, 200, 400) }] },
 		]);
 
 		expect(csv.split('\n')).toEqual([
-			'run,stat,base_total,change,total,dps,dps_stdev,hps,hps_stdev,tps,tps_stdev,dtps,dtps_stdev,tmi,tmi_stdev,samples',
+			'run,stat,base_total,added,total,dps,dps_stdev,hps,hps_stdev,tps,tps_stdev,dtps,dtps_stdev,tmi,tmi_stdev,samples',
 			'"Hit, ±100",Hit Rating,120,-20,100,1500.5,100,5,1,3001,200,300,30,9.5,0.25,10000',
 			'"Hit, ±100",Hit Rating,120,0,120,1520,0,5,1,3040,0,300,30,9.5,0.25,10000',
-			'Crit,"Crit ""Rating""",50,10,60,1600,200,5,1,3200,400,300,30,9.5,0.25,400',
+			'Crit,"Crit ""Rating""",50,10,61,1600,200,5,1,3200,400,300,30,9.5,0.25,400',
 			'',
 		]);
 	});

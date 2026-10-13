@@ -11,7 +11,6 @@ import type { ChartData, ChartDataset, ChartOptions, Plugin } from 'chart.js';
 import { useMemo } from 'react';
 import { Line } from 'react-chartjs-2';
 
-import { sweepChange } from '../../model/stat_sweep';
 import { seriesColor } from './colors';
 
 export interface StatSweepSeries {
@@ -19,10 +18,10 @@ export interface StatSweepSeries {
 	label: string;
 	colorSlot: number;
 	statLabel: string;
-	/** The swept stat's total when the run started; the run plots each point at its change from it. */
+	/** The swept stat's total when the run started. */
 	baseStatValue: number;
 	points: ReadonlyArray<StatSweepPoint>;
-	/** The change past which more of the stat left every metric unchanged. */
+	/** The stat added past which more of the stat left every metric unchanged. */
 	cappedAt?: number;
 }
 
@@ -74,7 +73,7 @@ function datasets(series: ReadonlyArray<StatSweepSeries>, metric: StatSweepMetri
 		const color = seriesColor(run.colorSlot);
 		const at = (sign: number) =>
 			run.points.map(point => {
-				const x = sweepChange(point.statValue, run.baseStatValue);
+				const x = point.offset;
 				const { avg, stdev } = point.metrics[metric];
 				return { x, y: avg + sign * stdev, stdev, point, statLabel: run.statLabel, capped: run.cappedAt !== undefined && x >= run.cappedAt };
 			});
@@ -114,18 +113,18 @@ function datasets(series: ReadonlyArray<StatSweepSeries>, metric: StatSweepMetri
 
 // The current value sits at 0, so the range always reaches it.
 function xRange(series: ReadonlyArray<StatSweepSeries>) {
-	const changes = series.flatMap(run => run.points.map(point => sweepChange(point.statValue, run.baseStatValue)));
-	const min = Math.min(0, ...changes);
-	const max = Math.max(0, ...changes);
+	const offsets = series.flatMap(run => run.points.map(point => point.offset));
+	const min = Math.min(0, ...offsets);
+	const max = Math.max(0, ...offsets);
 	const pad = (max - min) * X_RANGE_PAD || 1;
 	return { min: min - pad, max: max + pad };
 }
 
-const signed = (change: number) => (change > 0 ? `+${change}` : String(change));
+const signed = (added: number) => (added > 0 ? `+${added}` : String(added));
 
-/** The run's label, with the change it capped at when more of the stat stopped changing any metric. */
+/** The run's label, with the stat added at which more of the stat stopped changing any metric. */
 export const runLabel = ({ label, cappedAt }: { label: string; cappedAt?: number }) =>
-	cappedAt === undefined ? label : t('capped_label', { label, change: signed(cappedAt) });
+	cappedAt === undefined ? label : t('capped_label', { label, added: signed(cappedAt) });
 
 const markerPlugin: Plugin<'line'> = {
 	id: 'statSweepMarker',
@@ -195,7 +194,7 @@ function options(series: ReadonlyArray<StatSweepSeries>, metric: StatSweepMetric
 						distinct(
 							items.map(item => {
 								const { x, point, statLabel } = item.raw as SweepDatum;
-								return t('tooltip_total', { stat: statLabel, total: point.statValue, change: signed(x) });
+								return t('tooltip_total', { stat: statLabel, total: point.statValue, added: signed(x) });
 							}),
 						),
 					label: item => {
@@ -211,7 +210,7 @@ function options(series: ReadonlyArray<StatSweepSeries>, metric: StatSweepMetric
 				type: 'linear',
 				min: range.min,
 				max: range.max,
-				title: { display: true, text: t('change_axis') },
+				title: { display: true, text: t('added_axis') },
 				ticks: { includeBounds: false },
 				grid: { color: AXIS_GRID_COLOR },
 			},

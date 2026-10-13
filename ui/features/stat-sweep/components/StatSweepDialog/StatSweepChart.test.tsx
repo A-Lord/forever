@@ -45,27 +45,37 @@ describe('StatSweepChart', () => {
 		expect(charts).toHaveLength(0);
 	});
 
-	it('plots the metric on one axis over the change from the current value', () => {
+	it('plots the metric on one axis over the stat added', () => {
 		renderChart([run('a', 120, 0), run('b', 40, 1)]);
 
 		expect(charts).toHaveLength(1);
 		const scales = charts[0].config.options.scales! as Record<string, any>;
 		expect(Object.keys(scales)).toEqual(['x', 'y']);
 		expect(scales.y.title.text).toBe(metricLabel('dps'));
-		expect(scales.x.title.text).toBe(sweepT('change_axis'));
+		expect(scales.x.title.text).toBe(sweepT('added_axis'));
 		expect(scales.x.min).toBeLessThan(-100);
 		expect(scales.x.max).toBeGreaterThan(100);
 	});
 
-	it('plots every run at its change from its own current value, so runs of other stats and bases line up around 0', () => {
+	it('plots every run at the stat added, so runs of other stats and bases line up around 0', () => {
 		const hit = run('hit', 40, 0);
 		const crit = sweepSeries('crit', 'Crit', 210, makeCritSweepPoints(210), 1);
 		renderChart([hit, crit]);
 
 		const [hitLine, critLine] = charts[0].config.data.datasets.filter((_, index) => index % 3 === 2);
-		expect(hitLine.data.map(datum => datum.x)).toEqual(hit.points.map(point => point.statValue - 40));
-		expect(critLine.data.map(datum => datum.x)).toEqual(crit.points.map(point => point.statValue - 210));
+		expect(hitLine.data.map(datum => datum.x)).toEqual(hit.points.map(point => point.offset));
+		expect(critLine.data.map(datum => datum.x)).toEqual(crit.points.map(point => point.offset));
 		expect(hitLine.data.some(datum => datum.x === 0) && critLine.data.some(datum => datum.x === 0)).toBe(true);
+	});
+
+	it('plots a stat with a multiplier at the points added, not at the change of its total', () => {
+		const base = run('a', 100, 0);
+		const multiplied = { ...base, points: base.points.map(point => ({ ...point, statValue: 100 + point.offset * 1.1 })) };
+		renderChart([multiplied]);
+
+		const line = charts[0].config.data.datasets[2];
+		expect(line.data.map(datum => datum.x)).toEqual(multiplied.points.map(point => point.offset));
+		expect(line.data.find(datum => datum.x === 10)!.point.statValue).toBeCloseTo(111);
 	});
 
 	it('marks the current value at 0', () => {
@@ -184,7 +194,7 @@ describe('StatSweepChart', () => {
 		expect(shown.filter(datasetIndex => tooltipFilter({ datasetIndex } as TooltipItem<'line'>, 0, [], {} as never))).toEqual([2, 5]);
 	});
 
-	it('titles the tooltip with each hovered stat total and its change, once per total', () => {
+	it('titles the tooltip with each hovered stat total and the stat added, once per total', () => {
 		renderChart([run('a', 120, 0), run('b', 90, 1)]);
 		const { data, options } = charts[0].config;
 		const title = options.plugins!.tooltip!.callbacks!.title! as unknown as (items: object[]) => string[];
@@ -192,7 +202,7 @@ describe('StatSweepChart', () => {
 		const t = vi
 			.spyOn(i18n, 't')
 			.mockImplementation(
-				((_key: string, options: { stat: string; total: number; change: string }) => `${options.stat} ${options.total} (${options.change})`) as never,
+				((_key: string, options: { stat: string; total: number; added: string }) => `${options.stat} ${options.total} (${options.added})`) as never,
 			);
 
 		expect(title([at(2, 20)])).toEqual(['Hit 140 (+20)']);
@@ -227,7 +237,7 @@ describe('StatSweepChart', () => {
 		const t = vi.spyOn(i18n, 't');
 
 		options.plugins!.legend!.labels!.generateLabels!({ data, isDatasetVisible: () => true } as never);
-		expect(t).toHaveBeenCalledWith('sidebar.buttons.stat_sweep.capped_label', { label: 'a', change: '+20' });
+		expect(t).toHaveBeenCalledWith('sidebar.buttons.stat_sweep.capped_label', { label: 'a', added: '+20' });
 
 		const label = options.plugins!.tooltip!.callbacks!.label! as unknown as (item: object) => string;
 		const keyAt = (datasetIndex: number, change: number) => {

@@ -40,9 +40,6 @@ export function buildSweepOffsets(range: number, step: number): number[] {
 export const sweepSteps = (offsets: readonly number[], totals: readonly number[]): StatSweepStep[] =>
 	offsets.map((offset, index) => ({ offset, statValue: roundFloat(totals[index]) })).filter(step => step.statValue >= 0);
 
-/** A step's total as its change from the run's current value. */
-export const sweepChange = (statValue: number, baseStatValue: number) => roundFloat(statValue - baseStatValue);
-
 /** The stored runs plus any run in memory they do not hold yet, newest first. */
 export const mergeSweepHistory = (inMemory: readonly StatSweepRecord[], stored: readonly StatSweepRecord[]): StatSweepRecord[] =>
 	distinct([...stored, ...inMemory], (a, b) => a.id === b.id).sort((a, b) => b.createdAt - a.createdAt);
@@ -258,7 +255,7 @@ export const STAT_SWEEP_CSV_COLUMNS = [
 	'run',
 	'stat',
 	'base_total',
-	'change',
+	'added',
 	'total',
 	...STAT_SWEEP_METRICS.flatMap(metric => [metric, `${metric}_stdev`]),
 	'samples',
@@ -275,7 +272,7 @@ export function statSweepCsv(runs: ReadonlyArray<StatSweepCsvRun>): string {
 			run.label,
 			run.statLabel,
 			run.baseStatValue,
-			sweepChange(point.statValue, run.baseStatValue),
+			point.offset,
 			point.statValue,
 			...STAT_SWEEP_METRICS.flatMap(metric => [point.metrics[metric].avg, point.metrics[metric].stdev]),
 			// Every metric comes from the same iterations.
