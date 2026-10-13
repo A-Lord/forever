@@ -43,7 +43,7 @@ func TestSchoolSpellPiercingLowersOnlyItsSchool(t *testing.T) {
 }
 
 // Against 150 resistance a plain spell is often partially resisted, as are a binary spell's hits and
-// ticks once it lands, and one flagged SpellFlagNoPartialResist never is.
+// ticks once it lands, and one flagged SpellFlagNoPartialResist never is, binary or not.
 func TestNoPartialResistKeepsTheWholeHit(t *testing.T) {
 	attacker := &Unit{Type: PlayerUnit, Level: 60, PseudoStats: stats.NewPseudoStats()}
 	defender := &Unit{Type: EnemyUnit, Level: 60, PseudoStats: stats.NewPseudoStats()}
@@ -73,6 +73,9 @@ func TestNoPartialResistKeepsTheWholeHit(t *testing.T) {
 	}
 	if n := partials(SpellFlagBinary, true); n == 0 {
 		t.Errorf("a binary spell's tick was never partially resisted in 1000 against 150 shadow resistance")
+	}
+	if n := partials(SpellFlagBinary|SpellFlagNoPartialResist, false); n != 0 {
+		t.Errorf("a binary spell flagged SpellFlagNoPartialResist was partially resisted %d times in 1000 hits, want 0", n)
 	}
 }
 
