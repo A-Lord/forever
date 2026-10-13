@@ -196,8 +196,16 @@ func (rogue *Rogue) newMutilateHitSpell(isMH bool) *core.Spell {
 	}
 	mutilateHitBaseDamage := hitRank.DamageEffect().Average()
 	config := spelldata.SpellConfig(&rogue.Unit, hitRank, spellOpt)
-	config.Flags |= SpellFlagBuilder | SpellFlagColdBlooded
+	// Part of the Mutilate cast: its spell id, so metrics and charge spenders see one cast, and its class
+	// flags, so whatever names the cast reaches the strikes, Eureka!'s damage modifier and Head Rush alike.
+	// TODO: Ingame test needed: whether Eureka! raises Mutilate's strikes and spends one charge on it.
+	config.Flags |= SpellFlagBuilder | SpellFlagColdBlooded | core.SpellFlagPassiveSpell
+	config.Flags &^= core.SpellFlagAPL
+	config.SpellID = mutilateCastRank.ID
 	config.Tag = core.TernaryInt32(isMH, 1, 2)
+	for i := range config.ClassFlags.Mask {
+		config.ClassFlags.Mask[i] |= mutilateCastRank.ClassFlags.Mask[i]
+	}
 	config.DamageMultiplier = hitRank.EffectN(2).Percent()
 
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
