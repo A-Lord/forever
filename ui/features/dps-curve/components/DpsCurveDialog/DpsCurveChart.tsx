@@ -186,7 +186,7 @@ export const DpsCurveChart = ({ series }: DpsCurveChartProps) => {
 
 	// The empty text sits in the chart's box, so the first point does not resize the dialog.
 	return (
-		<figure className="m-0 grid gap-2">
+		<figure className="m-0 grid grid-cols-1 gap-2">
 			<div className="flex h-112 w-full items-center justify-center">
 				{hasPoints ? <Line data={data} options={chartOptions} plugins={PLUGINS} /> : <p className="mb-0 text-muted">{t('empty')}</p>}
 			</div>
