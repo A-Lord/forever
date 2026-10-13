@@ -106,19 +106,24 @@ func (hunter *Hunter) NewHunterPet() *HunterPet {
 
 // Hunter Pet Scaling (415429) states every inherited stat without an amount, the server pricing
 // them: 2 health a point of stamina, 30% of armor, 10% of the higher attack power and the owner's
-// physical crit less 0.04% a point of main-hand skill below the level-based maximum, at least 0,
-// the melee crit the in-game character sheet shows. Ranged crit does not reach the pet. Not
-// linear, so the pet snapshots them; registerStatInheritance says when.
+// melee crit (inheritedMeleeCrit). Not linear, so the pet snapshots them; registerStatInheritance
+// says when.
 func (hunter *Hunter) makeStatInheritance() core.PetStatInheritance {
 	return func(ownerStats stats.Stats) stats.Stats {
-		mhSkillBonus := core.GetWeaponSkill(&hunter.Unit, hunter.GetMHWeapon())
 		return stats.Stats{
 			stats.Health:              ownerStats[stats.Stamina] * 2,
 			stats.Armor:               ownerStats[stats.Armor] * 0.3,
 			stats.AttackPower:         max(ownerStats[stats.AttackPower], ownerStats[stats.RangedAttackPower]) * 0.1,
-			stats.PhysicalCritPercent: max(0, ownerStats[stats.PhysicalCritPercent]+min(mhSkillBonus, 0)*0.04),
+			stats.PhysicalCritPercent: hunter.inheritedMeleeCrit(ownerStats),
 		}
 	}
+}
+
+// The melee crit the in-game character sheet shows: the owner's physical crit less 0.04% a point of
+// main-hand skill below the level-based maximum, at least 0. Ranged crit does not reach a pet.
+func (hunter *Hunter) inheritedMeleeCrit(ownerStats stats.Stats) float64 {
+	mhSkillBonus := core.GetWeaponSkill(&hunter.Unit, hunter.GetMHWeapon())
+	return max(0, ownerStats[stats.PhysicalCritPercent]+min(mhSkillBonus, 0)*0.04)
 }
 
 // The server's HunterPetInheritance: the pet snapshots its owner's stats when summoned and again on

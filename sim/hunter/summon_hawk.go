@@ -4,7 +4,6 @@ import (
 	"strconv"
 
 	"github.com/wowsims/forever/sim/core"
-	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
@@ -35,7 +34,7 @@ func (hawk *HawkPet) ExecuteCustomRotation(sim *core.Simulation) {
 
 // Effect 3 is the number of hawks up at once. Hunter Guardian Hawk Pet Scaling 01 (1293586) gives
 // each its owner's attack speed, damage done and melee crit chance, all of each; the row is not in
-// the store.
+// the store. The crit is the tamed pet's (inheritedMeleeCrit), with none from Agility; no hawk logs yet.
 func (hunter *Hunter) newHawks() []*HawkPet {
 	if !hunter.Talents.SummonHawk {
 		return nil
@@ -48,14 +47,13 @@ func (hunter *Hunter) newHawks() []*HawkPet {
 			Owner:     &hunter.Character,
 			BaseStats: petBaseStats,
 			StatInheritance: func(ownerStats stats.Stats) stats.Stats {
-				return stats.Stats{stats.PhysicalCritPercent: ownerStats[stats.PhysicalCritPercent]}
+				return stats.Stats{stats.PhysicalCritPercent: hunter.inheritedMeleeCrit(ownerStats)}
 			},
 			IsGuardian:                      true,
 			IsDynamic:                       true,
 			HasDynamicMeleeSpeedInheritance: true,
 		})}
 		addPetStatDependencies(&hawk.Character)
-		hawk.AddStatDependency(stats.Agility, stats.PhysicalCritPercent, core.CritPerAgiMaxLevel[proto.Class_ClassWarrior])
 		hawk.EnableAutoAttacks(hawk, core.AutoAttackOptions{
 			MainHand:       petSwing,
 			AutoSwingMelee: true,
