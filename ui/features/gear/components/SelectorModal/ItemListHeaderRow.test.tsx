@@ -48,7 +48,8 @@ describe('ItemListHeaderRow', () => {
 		[ItemListSortBy.EP, SortDirection.DESC, 'ep-label', 'ilvl-label', 'gear_tab.gear_picker.sorted_descending'],
 	] as const)('names the sort direction on the active column’s button only (sort %s, direction %s)', (sortBy, sortDirection, active, other, directionKey) => {
 		renderRow({ sortBy, sortDirection });
-		const headerName = (id: 'ilvl-label' | 'ep-label') => (id === 'ep-label' ? 'EP' : i18n.t('gear_tab.gear_picker.table_headers.ilvl'));
+		const headerName = (id: 'ilvl-label' | 'ep-label') =>
+			id === 'ep-label' ? i18n.t('gear_tab.gear_picker.table_headers.ep') : i18n.t('gear_tab.gear_picker.table_headers.ilvl');
 		expect(
 			within(screen.getByTestId(active)).getByRole('button', { name: new RegExp(`^${headerName(active)}\\s*,\\s*${i18n.t(directionKey)}$`) }),
 		).toBeTruthy();
