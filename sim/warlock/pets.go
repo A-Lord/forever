@@ -76,7 +76,9 @@ var petModels = map[proto.WarlockOptions_Summon]petModel{
 		meleeMin:         95,
 		meleeMax:         131,
 		swingSpeed:       2,
-		damageMod:        1.05,
+		// In the logs Lash of Pain deals (16 + 0.429 × Spell Damage) × 1.10 under 5/5 Unholy Power, with no
+		// multiplier of the Sayaad's own.
+		damageMod: 1,
 	},
 	proto.WarlockOptions_Felhunter: {
 		baseStats:        meleeDemonStats(0),
@@ -119,7 +121,10 @@ func (warlock *Warlock) petStatInheritance() core.PetStatInheritance {
 		return stats.Stats{
 			stats.Armor:       ownerStats[stats.Armor] * 0.35,
 			stats.AttackPower: spellDamage * 0.17,
-			stats.SpellDamage: spellDamage * 0.10,
+			// A third: in the logs a Sayaad has 42 Spell Damage under a warlock whose spell damage reads 126,
+			// and its Lash of Pain deals (16 + 0.429 × 42) × 1.10 (5/5 Unholy Power) = 37.4.
+			// TODO: Measured at one value and on the Sayaad only.
+			stats.SpellDamage: spellDamage / 3,
 
 			// TODO: Assumed 1:1, not yet measured.
 			stats.PhysicalHitPercent: ownerStats[stats.SpellHitPercent],
