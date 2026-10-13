@@ -29,6 +29,7 @@ export const EpPrecisionOptions = ({ value, onChange, defaultIterations, disable
 					]}
 					value={value.precisionMode}
 					onChange={precisionMode => onChange({ precisionMode })}
+					disabled={disabled}
 				/>
 			</div>
 			{target ? (

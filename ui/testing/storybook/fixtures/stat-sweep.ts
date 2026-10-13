@@ -1,7 +1,14 @@
+import type { ErrorOutcome } from '@generated/proto/api';
+import { Class, Spec, Stat } from '@generated/proto/common';
 import type { MetricSummary, StatSweepPoint } from '@sim/cache/stat_sweep_history';
-import type { StatSweepMetric } from '@sim/state/sim_store';
+import type { Stats } from '@sim/proto/stats';
+import { StatSweepSettings } from '@sim/settings/stat_sweep_settings';
+import type { MetricSample, StatSweepSample, StatSweepStepOptions } from '@sim/sim';
+import type { IndividualSimHost } from '@sim/sim_host';
+import { SimRuns } from '@sim/sim_runs';
+import { createSimStore, patchSlice, PLAYER_FIELDS, seedKeyed, type SimStore, type StatSweepMetric, zeroVersions } from '@sim/state/sim_store';
 
-import type { StatSweepSeries } from '../../../features/stat-sweep/components/StatSweepDialog/StatSweepChart';
+import type { StatSweepSeries } from '../../../features/stat-sweep/components/StatSweepChart';
 import { buildSweepOffsets, sweepSteps } from '../../../features/stat-sweep/model/stat_sweep';
 
 const HIT_CAP = 150;
@@ -62,3 +69,69 @@ export const sweepSeries = (
 	colorSlot = 0,
 	label = `${statLabel} ±100`,
 ): StatSweepSeries => ({ id, label, colorSlot, statLabel, baseStatValue: base, points });
+
+const flatSample = (avg: number, stdev: number, n: number): MetricSample => ({ avg, stdev, n, sumSq: n * (stdev ** 2 + avg ** 2) });
+
+/** One sweep step's metrics over `iterations`, each moving with `dps`; TPS has the widest spread. */
+export const makeSweepSample = (iterations: number, dps = 1000, tmi = dps / 100): StatSweepSample => ({
+	dps: flatSample(dps, 100, iterations),
+	hps: flatSample(10, 5, iterations),
+	tps: flatSample(2 * dps, 400, iterations),
+	dtps: flatSample(3000 - dps, 300, iterations),
+	tmi: flatSample(tmi, 2, iterations),
+});
+
+/** One DPS per bonus point of Strength or Agility, so every step's DPS differs. */
+export const sweepStepDps = ({ bonusStats }: StatSweepStepOptions) => 1000 + bonusStats.getStat(Stat.StatStrength) + bonusStats.getStat(Stat.StatAgility);
+
+export interface StatSweepHostParts {
+	simulateStatSweepStep?: (options: StatSweepStepOptions) => Promise<StatSweepSample | ErrorOutcome>;
+	abortType?: (typeMask: number) => Promise<void>;
+	simDisabled?: boolean;
+	showPowerTools?: boolean;
+}
+
+export interface StatSweepHostFixture {
+	host: IndividualSimHost<any>;
+	store: SimStore;
+	settings: StatSweepSettings;
+}
+
+/**
+ * A host for the stat sweep: a warrior weighing Strength and Agility with no stats of its own, so a step's totals are its
+ * bonus, on a sim that draws seed 7 and runs `simulateStatSweepStep` for each pass, by default at `sweepStepDps`.
+ */
+export const makeStatSweepHost = ({
+	simulateStatSweepStep,
+	abortType,
+	simDisabled = false,
+	showPowerTools = false,
+}: StatSweepHostParts = {}): StatSweepHostFixture => {
+	const store = createSimStore();
+	patchSlice(store, 'ui', { showPowerTools });
+	const storage = new Map<string, string>();
+	const env = { storage: { getItem: (key: string) => storage.get(key) ?? null, setItem: (key: string, value: string) => storage.set(key, value) } };
+	seedKeyed(store, 'players', 0, { v: zeroVersions(PLAYER_FIELDS) } as never);
+	const sim = {
+		store,
+		env,
+		runs: new SimRuns(store, { abortType: abortType ?? (async () => {}) }),
+		waitForInit: () => Promise.resolve(),
+		getIterations: () => 1000,
+		nextRngSeed: () => 7,
+		getShowDamageMetrics: () => store.getState().ui.showDamageMetrics,
+		getShowHealingMetrics: () => store.getState().ui.showHealingMetrics,
+		getShowThreatMetrics: () => store.getState().ui.showThreatMetrics,
+		getFinalStatsWithBonus: async (bonusStats: Stats) => bonusStats,
+		simulateStatSweepStep: simulateStatSweepStep ?? (async (options: StatSweepStepOptions) => makeSweepSample(options.iterations, sweepStepDps(options))),
+	};
+	const player = { storeKey: 0, sim, getClass: () => Class.ClassWarrior, getSpec: () => Spec.SpecUnknown };
+	const settings = new StatSweepSettings(player as never, 'stat-sweep-fixture');
+	const host = {
+		player,
+		sim,
+		simDisabled,
+		individualConfig: { epStats: [Stat.StatStrength, Stat.StatAgility], epPseudoStats: [], epReferenceStat: Stat.StatStrength },
+	};
+	return { host: host as never, store, settings };
+};

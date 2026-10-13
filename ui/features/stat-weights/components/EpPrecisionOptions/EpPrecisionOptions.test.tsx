@@ -45,6 +45,13 @@ describe('EpPrecisionOptions', () => {
 		expect(onChange).toHaveBeenCalledWith({ maxIterationMultiplier: 4 });
 	});
 
+	it('locks the mode toggle with the fields while disabled', () => {
+		render(<EpPrecisionOptions value={{ ...ITERATIONS, precisionMode: 'target' }} onChange={vi.fn()} defaultIterations={10000} disabled />);
+
+		expect(screen.getByRole<HTMLButtonElement>('button', { name: t('mode_iterations') }).disabled).toBe(true);
+		expect(screen.getByLabelText<HTMLInputElement>(t('target_ep_ci')).disabled).toBe(true);
+	});
+
 	it('keeps four decimals of the target', () => {
 		const onChange = vi.fn();
 		render(<EpPrecisionOptions value={{ ...ITERATIONS, precisionMode: 'target', targetEpCi: 0.0025 }} onChange={onChange} defaultIterations={10000} />);

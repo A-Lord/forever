@@ -3,7 +3,7 @@ import type { StatSweepPrecision } from '@sim/settings/stat_sweep_settings';
 import type { MetricSample, StatSweepSample } from '@sim/sim';
 import type { StatSweepMetric } from '@sim/state/sim_store';
 import { distinct } from '@sim/utils/collections';
-import { sum, timeRemainingAtRate } from '@sim/utils/math';
+import { sum, timeRemainingAtRate, Z_90 } from '@sim/utils/math';
 
 export type StatSweepStep = Pick<StatSweepPoint, 'offset' | 'statValue'>;
 
@@ -44,26 +44,30 @@ export const sweepSteps = (offsets: readonly number[], totals: readonly number[]
 export const mergeSweepHistory = (inMemory: readonly StatSweepRecord[], stored: readonly StatSweepRecord[]): StatSweepRecord[] =>
 	distinct([...stored, ...inMemory], (a, b) => a.id === b.id).sort((a, b) => b.createdAt - a.createdAt);
 
-/** A step's first pass in Target ± mode; the iterations setting plays no part there. */
-export const STAT_SWEEP_PROBE_ITERATIONS = 1000;
-/** Passes after the first in Target ± mode, each sized from every iteration so far. */
-export const STAT_SWEEP_MAX_TOP_UP_PASSES = 2;
-const Z90 = 1.645;
+// A step's first pass in Target ± mode; the iterations setting plays no part there.
+const PROBE_ITERATIONS = 1000;
+// Passes after the first in Target ± mode: the first top-up, which sizes from the first pass alone, and two that resize
+// from the iterations so far. The EP calculation's Target ± runs the same three (statWeightMaxTopUpPasses in sim/core/statweight.go).
+const MAX_TOP_UP_PASSES = 3;
+// The sim takes a request's iteration count as an int32.
+const MAX_ITERATIONS = 2 ** 31 - 1;
 
-/** Two runs' metric as one run over both runs' iterations reports it. */
-export function mergeMetricSamples(a: MetricSample, b: MetricSample): MetricSample {
+/** Whether a run can start at `precision`: Target ± needs a target above 0. */
+export const sweepPrecisionRunnable = (precision: StatSweepPrecision) => precision.precisionMode !== 'target' || precision.targetCi > 0;
+
+// Two runs' metric as one run over both runs' iterations reports it.
+function mergeMetricSamples(a: MetricSample, b: MetricSample): MetricSample {
 	const n = a.n + b.n;
 	const avg = (a.avg * a.n + b.avg * b.n) / n;
 	const sumSq = a.sumSq + b.sumSq;
 	return { avg, stdev: Math.sqrt(Math.max(0, sumSq / n - avg * avg)), n, sumSq };
 }
 
-/** Two runs' metrics, each merged as one run over both runs' iterations reports it. */
-export const mergeSweepSamples = (a: StatSweepSample, b: StatSweepSample): StatSweepSample =>
+const mergeSweepSamples = (a: StatSweepSample, b: StatSweepSample): StatSweepSample =>
 	Object.fromEntries(STAT_SWEEP_METRICS.map(metric => [metric, mergeMetricSamples(a[metric], b[metric])])) as StatSweepSample;
 
-/** The iterations at which a metric spread of `stdev` has a 90% ± of `targetCi`. */
-export const iterationsForCi = (stdev: number, targetCi: number) => Math.ceil(((Z90 * stdev) / targetCi) ** 2);
+// The iterations at which a metric spread of `stdev` has a 90% ± of `targetCi`; a spread that is not a number asks for none.
+const iterationsForCi = (stdev: number, targetCi: number) => Math.ceil(((Z_90 * (Number.isFinite(stdev) ? stdev : 0)) / targetCi) ** 2);
 
 /** Runs `iterations` more from `seedOffset` past the run's seed; null when the run stopped. */
 export type SweepPassRunner = (iterations: number, seedOffset: number) => Promise<StatSweepSample | null>;
@@ -74,14 +78,15 @@ export interface StatSweepStepSample {
 	firstPass: Record<StatSweepMetric, number>;
 }
 
-const averages = (sample: StatSweepSample): Record<StatSweepMetric, number> =>
-	Object.fromEntries(STAT_SWEEP_METRICS.map(metric => [metric, sample[metric].avg])) as Record<StatSweepMetric, number>;
+type FirstPass = StatSweepStepSample['firstPass'];
+
+const averages = (sample: StatSweepSample): FirstPass => Object.fromEntries(STAT_SWEEP_METRICS.map(metric => [metric, sample[metric].avg])) as FirstPass;
 
 /**
- * One step's metrics. Iterations mode runs once. Target ± mode runs a fixed first pass, then up to
- * STAT_SWEEP_MAX_TOP_UP_PASSES more, each up to the total the ± of `metric` needs and capped at Max × the first pass. A pass
- * continues at the seed after the last iteration, so the passes add up to one longer run. `onPlanned` hears each total
- * before its pass.
+ * One step's metrics. Iterations mode runs once. Target ± mode runs a fixed first pass, then up to three more, each up to
+ * the total the ± of `metric` needs and capped at Max × the first pass. A pass continues at the seed after the last
+ * iteration, so the passes add up to one longer run. `onPlanned` hears each total before its pass. Without a target above
+ * 0, or when `confirmsCap` says the first pass shows the stat capped, the first pass is all the step runs.
  */
 export async function measureSweepStep(
 	run: SweepPassRunner,
@@ -89,6 +94,7 @@ export async function measureSweepStep(
 	metric: StatSweepMetric,
 	defaultIterations: number,
 	onPlanned?: (total: number) => void,
+	confirmsCap?: (firstPass: FirstPass) => boolean,
 ): Promise<StatSweepStepSample | null> {
 	if (precision.precisionMode !== 'target') {
 		const iterations = precision.iterations || defaultIterations;
@@ -96,12 +102,13 @@ export async function measureSweepStep(
 		const sample = await run(iterations, 0);
 		return sample && { metrics: sample, firstPass: averages(sample) };
 	}
-	onPlanned?.(STAT_SWEEP_PROBE_ITERATIONS);
-	let sample = await run(STAT_SWEEP_PROBE_ITERATIONS, 0);
+	onPlanned?.(PROBE_ITERATIONS);
+	let sample = await run(PROBE_ITERATIONS, 0);
 	if (!sample) return null;
 	const firstPass = averages(sample);
-	const cap = precision.maxIterationMultiplier > 0 ? STAT_SWEEP_PROBE_ITERATIONS * precision.maxIterationMultiplier : Infinity;
-	for (let pass = 0; sample && pass < STAT_SWEEP_MAX_TOP_UP_PASSES; pass++) {
+	if (!sweepPrecisionRunnable(precision) || confirmsCap?.(firstPass)) return { metrics: sample, firstPass };
+	const cap = Math.min(precision.maxIterationMultiplier > 0 ? PROBE_ITERATIONS * precision.maxIterationMultiplier : Infinity, MAX_ITERATIONS);
+	for (let pass = 0; sample && pass < MAX_TOP_UP_PASSES; pass++) {
 		const done = sample[metric].n;
 		const total = Math.min(iterationsForCi(sample[metric].stdev, precision.targetCi), cap);
 		if (total <= done) break;
@@ -118,48 +125,55 @@ const summaries = (sample: StatSweepSample): Record<StatSweepMetric, MetricSumma
 		MetricSummary
 	>;
 
-/** `steps` in the order a stat runs them: up from change 0 to the top, then down from the first step below 0. */
-export const outwardOrder = (steps: readonly StatSweepStep[]): StatSweepStep[] => [
+// Up from change 0 to the top, then down from the first step below 0.
+const outwardOrder = (steps: readonly StatSweepStep[]): StatSweepStep[] => [
 	...steps.filter(step => step.offset >= 0).sort((a, b) => a.offset - b.offset),
 	...steps.filter(step => step.offset < 0).sort((a, b) => b.offset - a.offset),
 ];
 
+const sameFirstPass = (a: FirstPass, b: FirstPass) => STAT_SWEEP_METRICS.every(metric => a[metric] === b[metric]);
+
 export interface StatSweepStatRun {
 	/** The finished steps, sorted by change. */
 	points: StatSweepPoint[];
-	/** The highest step that changed a metric: the step above it gave the same value of every metric, so more of the stat does nothing. */
+	/** The highest step that changed a metric: the two steps above it each gave the same value of every metric as the step below, so more of the stat does nothing. */
 	cappedStep?: StatSweepStep;
 	/** Set when a step came back with no result, which ends the run. */
 	stopped: boolean;
 }
 
 /**
- * Runs one stat's steps in `outwardOrder`. Every step runs at the same seed, so a stat that no longer changes anything
- * gives the exact first-pass average of every metric of the step below it: that step is kept and the steps above it are skipped, with
- * `onSkip` told how many. The steps below 0 always all run. `measure` hears each step with the count of steps run before
- * it, and `onUpdate` hears the run after each step.
+ * Runs one stat's steps up from change 0 to the top, then down from the first step below 0. Every step runs at the same
+ * seed, so a stat that no longer changes anything gives the exact first-pass average of every metric of the step below
+ * it. One such repeat can be a step too small to change any roll, so the stat stops going up after two in a row: the step
+ * before the first repeat is the capped step, and the steps above the second are skipped, with `onSkip` told how many.
+ * The steps below 0 always all run. `measure` hears each step with the count of steps run before it and whether a first
+ * pass would make that step the second repeat, and `onUpdate` hears the run after each step.
  */
 export async function runSweepStat(
 	steps: readonly StatSweepStep[],
-	measure: (step: StatSweepStep, ran: number) => Promise<StatSweepStepSample | null>,
+	measure: (step: StatSweepStep, ran: number, confirmsCap: (firstPass: FirstPass) => boolean) => Promise<StatSweepStepSample | null>,
 	onUpdate?: (run: StatSweepStatRun) => void,
 	onSkip?: (count: number) => void,
 ): Promise<StatSweepStatRun> {
 	const ordered = outwardOrder(steps);
 	const run: StatSweepStatRun = { points: [], stopped: false };
-	let below: { step: StatSweepStep; firstPass: Record<StatSweepMetric, number> } | undefined;
+	const upward: Array<{ step: StatSweepStep; firstPass: FirstPass }> = [];
+	const repeatsLast = (firstPass: FirstPass) => upward.length > 0 && sameFirstPass(upward[upward.length - 1].firstPass, firstPass);
+	const lastRepeated = () => upward.length > 1 && sameFirstPass(upward[upward.length - 2].firstPass, upward[upward.length - 1].firstPass);
 	for (const [index, step] of ordered.entries()) {
 		if (run.cappedStep && step.offset > 0) continue;
-		const sample = await measure(step, run.points.length);
+		const up = step.offset >= 0;
+		const sample = await measure(step, run.points.length, firstPass => up && lastRepeated() && repeatsLast(firstPass));
 		if (!sample) return { ...run, stopped: true };
 		run.points = [...run.points, { ...step, metrics: summaries(sample.metrics) }].sort((a, b) => a.offset - b.offset);
-		if (step.offset >= 0) {
-			if (step.offset > 0 && below && STAT_SWEEP_METRICS.every(metric => below!.firstPass[metric] === sample.firstPass[metric])) {
-				run.cappedStep = below.step;
+		if (up) {
+			if (lastRepeated() && repeatsLast(sample.firstPass)) {
+				run.cappedStep = upward[upward.length - 2].step;
 				const skipped = ordered.slice(index + 1).filter(next => next.offset > 0).length;
 				if (skipped) onSkip?.(skipped);
 			}
-			below = { step, firstPass: sample.firstPass };
+			upward.push({ step, firstPass: sample.firstPass });
 		}
 		onUpdate?.({ ...run });
 	}

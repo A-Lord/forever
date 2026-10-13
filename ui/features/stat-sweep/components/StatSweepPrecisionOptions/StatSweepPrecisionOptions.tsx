@@ -32,6 +32,7 @@ export const StatSweepPrecisionOptions = ({ value, onChange, metric, defaultIter
 					]}
 					value={value.precisionMode}
 					onChange={precisionMode => onChange({ precisionMode })}
+					disabled={disabled}
 				/>
 			</div>
 			{target ? (

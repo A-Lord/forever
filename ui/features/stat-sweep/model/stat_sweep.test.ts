@@ -2,31 +2,32 @@ import type { StatSweepRecord } from '@sim/cache/stat_sweep_history';
 import type { StatSweepPrecision } from '@sim/settings/stat_sweep_settings';
 import type { MetricSample, StatSweepSample } from '@sim/sim';
 import type { StatSweepMetric } from '@sim/state/sim_store';
+import { Z_90 } from '@sim/utils/math';
 import { describe, expect, it, vi } from 'vitest';
 
 import {
 	advanceSweepProgress,
 	buildSweepOffsets,
 	displayColorSlots,
-	iterationsForCi,
 	measureSweepStep,
-	mergeMetricSamples,
 	mergeSweepHistory,
-	mergeSweepSamples,
 	nextColorSlot,
 	offeredSweepMetrics,
-	outwardOrder,
 	runSweepStat,
 	shownSweepMetric,
 	skipSweepSteps,
 	startSweepProgress,
-	STAT_SWEEP_MAX_TOP_UP_PASSES,
-	STAT_SWEEP_PROBE_ITERATIONS,
 	statSweepCsv,
 	type StatSweepStepSample,
 	type SweepPassRunner,
+	sweepPrecisionRunnable,
 	sweepSteps,
 } from './stat_sweep';
+
+// The first pass of a Target ± step.
+const PROBE = 1000;
+// The total that brings a 90% ± of a spread of `stdev` down to `targetCi`.
+const totalFor = (stdev: number, targetCi: number) => Math.ceil(((Z_90 * stdev) / targetCi) ** 2);
 
 // A run of `values`, as the sim reports it: population stdev and the sum of squares.
 const sampleOf = (values: number[]): MetricSample => {
@@ -106,52 +107,12 @@ describe('sweepSteps', () => {
 	});
 });
 
-describe('mergeMetricSamples', () => {
-	it('gives the mean, spread and count of one run over both runs', () => {
-		const first = [1000, 1100, 1250];
-		const second = [900, 1300];
-
-		const merged = mergeMetricSamples(sampleOf(first), sampleOf(second));
-		const whole = sampleOf([...first, ...second]);
-
-		expect(merged.n).toBe(whole.n);
-		expect(merged.avg).toBeCloseTo(whole.avg, 9);
-		expect(merged.stdev).toBeCloseTo(whole.stdev, 9);
-		expect(merged.sumSq).toBeCloseTo(whole.sumSq, 6);
-	});
-
-	it('merges every metric of two passes on its own', () => {
-		const a: StatSweepSample = {
-			dps: sampleOf([1000, 1100]),
-			hps: sampleOf([0, 10]),
-			tps: sampleOf([2000, 2300]),
-			dtps: sampleOf([400, 500]),
-			tmi: sampleOf([10, 14]),
-		};
-		const b: StatSweepSample = {
-			dps: sampleOf([1200]),
-			hps: sampleOf([20]),
-			tps: sampleOf([2600]),
-			dtps: sampleOf([300]),
-			tmi: sampleOf([6]),
-		};
-
-		const merged = mergeSweepSamples(a, b);
-
-		expect(merged.dps.avg).toBeCloseTo(1100, 9);
-		expect(merged.hps.avg).toBeCloseTo(10, 9);
-		expect(merged.tps.avg).toBeCloseTo(2300, 9);
-		expect(merged.dtps.avg).toBeCloseTo(400, 9);
-		expect(merged.tmi.avg).toBeCloseTo(10, 9);
-		expect(merged.tmi.stdev).toBeCloseTo(sampleOf([10, 14, 6]).stdev, 9);
-		expect(Object.values(merged).map(sample => sample.n)).toEqual([3, 3, 3, 3, 3]);
-	});
-});
-
-describe('iterationsForCi', () => {
-	it('sizes the run whose 90% ± of the spread meets the target', () => {
-		expect(iterationsForCi(100, 1)).toBe(Math.ceil(164.5 ** 2));
-		expect(iterationsForCi(100, 2)).toBe(Math.ceil(82.25 ** 2));
+describe('sweepPrecisionRunnable', () => {
+	it('needs a target above 0 in Target ± mode only', () => {
+		expect(sweepPrecisionRunnable(precision({ precisionMode: 'target', targetCi: 0.5 }))).toBe(true);
+		expect(sweepPrecisionRunnable(precision({ precisionMode: 'target', targetCi: 0 }))).toBe(false);
+		expect(sweepPrecisionRunnable(precision({ precisionMode: 'target', targetCi: NaN }))).toBe(false);
+		expect(sweepPrecisionRunnable(precision({ targetCi: 0 }))).toBe(true);
 	});
 });
 
@@ -177,12 +138,12 @@ describe('measureSweepStep', () => {
 			planned.push(total),
 		);
 
-		const total = iterationsForCi(10, 0.5);
+		const total = totalFor(10, 0.5);
 		expect(run.mock.calls).toEqual([
-			[STAT_SWEEP_PROBE_ITERATIONS, 0],
-			[total - STAT_SWEEP_PROBE_ITERATIONS, STAT_SWEEP_PROBE_ITERATIONS],
+			[PROBE, 0],
+			[total - PROBE, PROBE],
 		]);
-		expect(planned).toEqual([STAT_SWEEP_PROBE_ITERATIONS, total]);
+		expect(planned).toEqual([PROBE, total]);
 		expect(sample?.metrics.dps.n).toBe(total);
 		expect(sample?.metrics.tmi.n).toBe(total);
 	});
@@ -196,8 +157,64 @@ describe('measureSweepStep', () => {
 		const sample = await measureSweepStep(byTps, precision({ precisionMode: 'target', targetCi: 1 }), 'tps', 12500);
 
 		expect(byDps).toHaveBeenCalledTimes(1);
-		expect(byTps.mock.calls[1][0]).toBe(iterationsForCi(20, 1) - STAT_SWEEP_PROBE_ITERATIONS);
-		expect(sample?.metrics.tps.n).toBe(iterationsForCi(20, 1));
+		expect(byTps.mock.calls[1][0]).toBe(totalFor(20, 1) - PROBE);
+		expect(sample?.metrics.tps.n).toBe(totalFor(20, 1));
+	});
+
+	it('merges the passes into one run over every iteration, each metric on its own', async () => {
+		const pass = (dps: number[], tmi: number[]): StatSweepSample => ({
+			...sweepSample(dps.length),
+			dps: sampleOf(dps),
+			tmi: sampleOf(tmi),
+		});
+		const run = vi
+			.fn<SweepPassRunner>()
+			.mockResolvedValueOnce(pass([1000, 1100, 1250], [10, 14, 6]))
+			.mockResolvedValue(pass([900, 1300], [8, 12]));
+
+		const sample = await measureSweepStep(run, precision({ precisionMode: 'target', targetCi: 0.001 }), 'dps', 12500);
+
+		expect(run).toHaveBeenCalledTimes(4);
+		const dps = sampleOf([1000, 1100, 1250, 900, 1300, 900, 1300, 900, 1300]);
+		const tmi = sampleOf([10, 14, 6, 8, 12, 8, 12, 8, 12]);
+		expect(sample?.metrics.dps.n).toBe(dps.n);
+		expect(sample?.metrics.dps.avg).toBeCloseTo(dps.avg, 9);
+		expect(sample?.metrics.dps.stdev).toBeCloseTo(dps.stdev, 9);
+		expect(sample?.metrics.dps.sumSq).toBeCloseTo(dps.sumSq, 6);
+		expect(sample?.metrics.tmi.avg).toBeCloseTo(tmi.avg, 9);
+		expect(sample?.metrics.tmi.stdev).toBeCloseTo(tmi.stdev, 9);
+	});
+
+	it('runs the first pass alone without a target above 0, or with a spread that is not a number', async () => {
+		for (const targetCi of [0, -1, NaN]) {
+			const run = runner({ dps: 100 });
+			const sample = await measureSweepStep(run, precision({ precisionMode: 'target', targetCi }), 'dps', 12500);
+			expect(run.mock.calls).toEqual([[PROBE, 0]]);
+			expect(sample?.metrics.dps.n).toBe(PROBE);
+		}
+		const noSpread = runner({ dps: NaN });
+		await measureSweepStep(noSpread, precision({ precisionMode: 'target', targetCi: 0.5 }), 'dps', 12500);
+		expect(noSpread).toHaveBeenCalledTimes(1);
+	});
+
+	it('asks for no more iterations than the sim takes in one request, with no cap set', async () => {
+		const run = runner({ dps: 1e6 });
+
+		await measureSweepStep(run, precision({ precisionMode: 'target', targetCi: 1e-6 }), 'dps', 12500);
+
+		expect(run.mock.calls[1]).toEqual([2 ** 31 - 1 - PROBE, PROBE]);
+		expect(run.mock.calls.every(([iterations]) => Number.isInteger(iterations) && iterations > 0)).toBe(true);
+	});
+
+	it('runs the first pass alone when it confirms the stat capped', async () => {
+		const run = runner({ dps: 100 });
+		const confirmsCap = vi.fn(() => true);
+
+		const sample = await measureSweepStep(run, precision({ precisionMode: 'target', targetCi: 0.1 }), 'dps', 12500, undefined, confirmsCap);
+
+		expect(confirmsCap).toHaveBeenCalledExactlyOnceWith({ dps: 1000, hps: 50, tps: 2000, dtps: 400, tmi: 12 });
+		expect(run).toHaveBeenCalledTimes(1);
+		expect(sample?.metrics.dps.n).toBe(PROBE);
 	});
 
 	it('stops after the probe when it already meets the target', async () => {
@@ -213,10 +230,10 @@ describe('measureSweepStep', () => {
 
 		const sample = await measureSweepStep(run, precision({ precisionMode: 'target', targetCi: 0.1, maxIterationMultiplier: 4 }), 'dps', 12500);
 
-		expect(sample?.metrics.dps.n).toBe(4 * STAT_SWEEP_PROBE_ITERATIONS);
+		expect(sample?.metrics.dps.n).toBe(4 * PROBE);
 	});
 
-	it('resizes each top-up from every iteration so far, and stops after the last pass', async () => {
+	it('resizes each top-up from every iteration so far, and stops after the third, as the EP calculation does', async () => {
 		// The spread grows with each pass, so every plan asks for more.
 		let stdev = 10;
 		const run = vi.fn<SweepPassRunner>(async iterations => {
@@ -226,14 +243,14 @@ describe('measureSweepStep', () => {
 
 		await measureSweepStep(run, precision({ precisionMode: 'target', targetCi: 0.5 }), 'dps', 12500);
 
-		expect(run).toHaveBeenCalledTimes(1 + STAT_SWEEP_MAX_TOP_UP_PASSES);
+		expect(run).toHaveBeenCalledTimes(4);
 		const seedOffsets = run.mock.calls.map(call => call[1]);
 		const iterations = run.mock.calls.map(call => call[0]);
-		expect(seedOffsets).toEqual([0, iterations[0], iterations[0] + iterations[1]]);
+		expect(seedOffsets).toEqual([0, iterations[0], iterations[0] + iterations[1], iterations[0] + iterations[1] + iterations[2]]);
 	});
 
 	it("keeps every metric's first-pass average beside its average over every pass", async () => {
-		const pass = (tps: number[]) => ({ ...sweepSample(STAT_SWEEP_PROBE_ITERATIONS), tps: { ...sampleOf(tps), n: STAT_SWEEP_PROBE_ITERATIONS } });
+		const pass = (tps: number[]) => ({ ...sweepSample(PROBE), tps: { ...sampleOf(tps), n: PROBE } });
 		const run = vi
 			.fn<SweepPassRunner>()
 			.mockResolvedValueOnce(pass([1900, 2100]))
@@ -248,17 +265,9 @@ describe('measureSweepStep', () => {
 	});
 
 	it('reports nothing when a pass stops', async () => {
-		const run = vi.fn<SweepPassRunner>().mockResolvedValueOnce(sweepSample(STAT_SWEEP_PROBE_ITERATIONS)).mockResolvedValueOnce(null);
+		const run = vi.fn<SweepPassRunner>().mockResolvedValueOnce(sweepSample(PROBE)).mockResolvedValueOnce(null);
 
 		expect(await measureSweepStep(run, precision({ precisionMode: 'target', targetCi: 0.1 }), 'dps', 12500)).toBeNull();
-	});
-});
-
-describe('outwardOrder', () => {
-	it('runs up from 0 to the top, then down from the first step below 0', () => {
-		const steps = [-20, -10, 0, 10, 20].map(offset => ({ offset, statValue: 50 + offset }));
-
-		expect(outwardOrder(steps).map(step => step.offset)).toEqual([0, 10, 20, -10, -20]);
 	});
 });
 
@@ -273,26 +282,60 @@ describe('runSweepStat', () => {
 			firstPass: { dps: firstPass.dps.avg, hps: firstPass.hps.avg, tps: firstPass.tps.avg, dtps: firstPass.dtps.avg, tmi: firstPass.tmi.avg },
 		};
 	};
-	const measureBy = (value: (offset: number) => number) => vi.fn(async ({ offset }: { offset: number }, _ran: number) => stepSample(value(offset)));
+	const measureBy = (value: (offset: number) => number) =>
+		vi.fn(async ({ offset }: { offset: number }, _ran: number, _confirmsCap: (firstPass: StatSweepStepSample['firstPass']) => boolean) =>
+			stepSample(value(offset)),
+		);
 
-	it('stops going up at the first step whose every metric matches the step below it exactly, keeping that step', async () => {
+	it('runs up from 0 to the top, then down from the first step below 0, and stops going up after two steps in a row repeat every metric of the step below', async () => {
 		const measure = measureBy(offset => 1000 + Math.min(offset, 20));
 		const onSkip = vi.fn();
 
-		const run = await runSweepStat(stepsOf(-20, -10, 0, 10, 20, 30, 40, 50), measure, undefined, onSkip);
+		const run = await runSweepStat(stepsOf(-20, -10, 0, 10, 20, 30, 40, 50, 60), measure, undefined, onSkip);
 
 		expect(measure.mock.calls.map(([step, ran]) => [step.offset, ran])).toEqual([
 			[0, 0],
 			[10, 1],
 			[20, 2],
 			[30, 3],
-			[-10, 4],
-			[-20, 5],
+			[40, 4],
+			[-10, 5],
+			[-20, 6],
 		]);
 		expect(onSkip).toHaveBeenCalledExactlyOnceWith(2);
 		expect(run.cappedStep).toEqual({ offset: 20, statValue: 120 });
-		expect(run.points.map(point => point.offset)).toEqual([-20, -10, 0, 10, 20, 30]);
+		expect(run.points.map(point => point.offset)).toEqual([-20, -10, 0, 10, 20, 30, 40]);
 		expect(run.stopped).toBe(false);
+	});
+
+	it('keeps going up past one step that repeats the step below, which may be a step too small to change any roll', async () => {
+		const measure = measureBy(offset => 1000 + (offset >= 20 ? offset : 0));
+		const onSkip = vi.fn();
+
+		const run = await runSweepStat(stepsOf(0, 10, 20, 30, 40), measure, undefined, onSkip);
+
+		expect(measure).toHaveBeenCalledTimes(5);
+		expect(onSkip).not.toHaveBeenCalled();
+		expect(run.cappedStep).toBeUndefined();
+	});
+
+	it('tells measure that a first pass confirms the cap only on the step that would be the second repeat in a row', async () => {
+		const repeat = stepSample(1010).firstPass;
+		const confirms: Array<[number, boolean, boolean]> = [];
+		const measure = vi.fn(async ({ offset }: { offset: number }, _ran: number, confirmsCap: (firstPass: StatSweepStepSample['firstPass']) => boolean) => {
+			confirms.push([offset, confirmsCap(repeat), confirmsCap(stepSample(1011).firstPass)]);
+			return stepSample(1000 + Math.min(offset, 10));
+		});
+
+		await runSweepStat(stepsOf(-10, 0, 10, 20, 30), measure);
+
+		expect(confirms).toEqual([
+			[0, false, false],
+			[10, false, false],
+			[20, false, false],
+			[30, true, false],
+			[-10, false, false],
+		]);
 	});
 
 	it('runs every step when a metric changes by any amount', async () => {
@@ -329,11 +372,11 @@ describe('runSweepStat', () => {
 	it("compares each step's first pass, not its average over every pass", async () => {
 		const measure = vi.fn(async ({ offset }: { offset: number }) => stepSample(1000 + offset, 1000));
 
-		const run = await runSweepStat(stepsOf(0, 10, 20), measure);
+		const run = await runSweepStat(stepsOf(0, 10, 20, 30), measure);
 
-		expect(measure).toHaveBeenCalledTimes(2);
+		expect(measure).toHaveBeenCalledTimes(3);
 		expect(run.cappedStep?.offset).toBe(0);
-		expect(run.points.map(point => point.metrics.dps.avg)).toEqual([1000, 1010]);
+		expect(run.points.map(point => point.metrics.dps.avg)).toEqual([1000, 1010, 1020]);
 	});
 
 	it('keeps every metric of each step without the sums of squares', async () => {

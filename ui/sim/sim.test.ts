@@ -20,6 +20,7 @@ import { EquippedItem } from './proto/equipped_item';
 import { Gear } from './proto/gear';
 import { Stats } from './proto/stats';
 import { Sim, SimError } from './sim';
+import { RequestTypes } from './sim_signal_manager';
 import type { Env } from './state/env';
 
 const mocks = vi.hoisted(() => ({
@@ -352,10 +353,10 @@ describe('Sim stats for an edited player', () => {
 		vi.mocked(sim.makeRaidSimRequest).mockRestore();
 		const draw = vi.spyOn(sim, 'nextRngSeed');
 
-		const request = sim.makeRaidSimRequest({ iterations: 500, seed: 99, bonusStats: hit(10), debugFirstIteration: false });
+		const request = sim.makeRaidSimRequest({ iterations: 500, seed: 99, bonusStats: hit(10), debugFirstIteration: false, useLabeledRands: true });
 
 		expect(Stats.fromProto(request.raid!.parties[0].players[0].bonusStats).getStat(Stat.StatHitRating)).toBe(15);
-		expect(request.simOptions).toMatchObject({ iterations: 500, randomSeed: 99n, debugFirstIteration: false });
+		expect(request.simOptions).toMatchObject({ iterations: 500, randomSeed: 99n, debugFirstIteration: false, useLabeledRands: true });
 		expect(draw).not.toHaveBeenCalled();
 	});
 });
@@ -389,8 +390,27 @@ describe('Sim.simulateStatSweepStep', () => {
 			dtps: summary(900, 1100),
 			tmi: summary(8, 12),
 		});
-		expect(sim.makeRaidSimRequest).toHaveBeenCalledWith(expect.objectContaining({ ...options, debugFirstIteration: false }));
+		expect(sim.makeRaidSimRequest).toHaveBeenCalledWith(expect.objectContaining({ ...options, debugFirstIteration: false, useLabeledRands: true }));
 		expect(emitted).not.toHaveBeenCalled();
+	});
+
+	it('is stopped by a stat sweep abort and not by an abort of the plain sims', async () => {
+		const sim = makeSim();
+		const aborted = ErrorOutcome.create({ type: ErrorOutcomeType.ErrorOutcomeAborted });
+		mocks.raidSimAsync.mockImplementation(
+			(_request, _onProgress, signals) => new Promise(resolve => signals.abort.onTrigger(async () => resolve(RaidSimResult.create({ error: aborted })))),
+		);
+		const step = sim.simulateStatSweepStep({ iterations: 2, seed: 9, bonusStats: new Stats(), onProgress: vi.fn() });
+		await vi.waitFor(() => expect(mocks.raidSimAsync).toHaveBeenCalled());
+
+		await sim.signalManager.abortType(RequestTypes.IndividualSim | RequestTypes.BulkSim);
+		let settled = false;
+		void step.then(() => (settled = true));
+		await Promise.resolve();
+		expect(settled).toBe(false);
+
+		await sim.signalManager.abortType(RequestTypes.StatSweep);
+		expect(await step).toEqual(aborted);
 	});
 
 	it('returns an aborted run as its error outcome', async () => {

@@ -2541,6 +2541,7 @@
 				"band_key": "Shaded: ± 1 standard deviation of a fight's {{metric}}",
 				"empty": "Run a stat sweep to plot {{metric}} across each stat's range.",
 				"export_csv": "Export CSV",
+				"stopped": "Stat sweep stopped by another run. Its finished steps are kept.",
 				"history": {
 					"title": "History",
 					"delete": "Delete {{label}}",

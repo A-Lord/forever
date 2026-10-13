@@ -11,8 +11,6 @@ import type { ChartData, ChartDataset, ChartOptions, Plugin } from 'chart.js';
 import { useMemo } from 'react';
 import { Line } from 'react-chartjs-2';
 
-import { seriesColor } from './colors';
-
 export interface StatSweepSeries {
 	id: string;
 	label: string;
@@ -55,6 +53,8 @@ const Y_GRACE = '5%';
 const t = (key: string, options?: Record<string, unknown>) => i18n.t(`sidebar.buttons.stat_sweep.${key}`, options);
 
 const metricLabel = (metric: StatSweepMetric) => i18n.t(`sidebar.results.metrics.${metric}.label`);
+
+const seriesColor = (slot: number) => cssVarColor(`--color-chart-series-${slot + 1}`);
 
 // The sim card's own formatting of a metric and its ±; TMI is the one the card gives in percent.
 const cardMetric = (metric: StatSweepMetric, average: number, stdev = 0): ResultMetric => ({

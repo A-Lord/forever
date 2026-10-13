@@ -1,3 +1,4 @@
+import i18n from '@i18n/config';
 import { deleteRun, listRuns, saveRun, type StatSweepRecord } from '@sim/cache/stat_sweep_history';
 import { usePlayer, useSim } from '@sim/context/SimHostContext';
 import { useSimRun } from '@sim/hooks/useSimRun';
@@ -8,9 +9,9 @@ import { randomUUID } from '@sim/utils/misc';
 import { toastManager } from '@ui-kit/Toast';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { SERIES_SLOT_COUNT } from '../components/StatSweepDialog/colors';
-import { runLabel, type StatSweepSeries } from '../components/StatSweepDialog/StatSweepChart';
-import type { StatSweepHistoryEntry } from '../components/StatSweepDialog/StatSweepHistory';
+import { runLabel, type StatSweepSeries } from '../components/StatSweepChart';
+import type { StatSweepHistoryEntry } from '../components/StatSweepHistory';
+import { SERIES_SLOT_COUNT } from '../model/colors';
 import {
 	advanceSweepProgress,
 	buildSweepOffsets,
@@ -23,6 +24,7 @@ import {
 	startSweepProgress,
 	type StatSweepProgress,
 	type StatSweepStep,
+	type StatSweepStepSample,
 	type SweepPassRunner,
 	sweepSteps,
 } from '../model/stat_sweep';
@@ -89,6 +91,14 @@ export const useStatSweep = ({ onProgress }: UseStatSweepOptions = {}) => {
 		};
 	}, [player]);
 
+	// A sweep runs only while its dialog is mounted, so one does not keep simulating after power tools are turned off.
+	useEffect(
+		() => () => {
+			sim.runs.abort(SimRunKind.StatSweep).catch(console.error);
+		},
+		[sim],
+	);
+
 	const run = useCallback(
 		(args: StatSweepArgs) => {
 			const { precision, metric } = args;
@@ -112,22 +122,13 @@ export const useStatSweep = ({ onProgress }: UseStatSweepOptions = {}) => {
 			setView(current => ({ ...current, overlaid: [] }));
 
 			return sim.runs.start(SimRunKind.StatSweep, async () => {
+				// Set when a step comes back aborted though the sweep itself was not cancelled, as when another run aborts every request.
+				let stoppedElsewhere = false;
 				try {
 					const offsets = buildSweepOffsets(args.range, args.step);
-					// Reported before the totals resolve, so the progress dialog has its full layout from the start.
-					progressRef.current?.(startSweepProgress(args.stats.map(() => offsets.length)));
-					// Every stat's totals before the first step, so the bar and the estimate span the whole run.
-					const batch = await Promise.all(
-						args.stats.map(({ unitStat }) =>
-							Promise.all(
-								offsets.map(offset =>
-									sim.getFinalStatsWithBonus(new Stats().withUnitStat(unitStat, offset)).then(finalStats => finalStats.getUnitStat(unitStat)),
-								),
-							).then(totals => sweepSteps(offsets, totals)),
-						),
-					);
 					const startedAt = Date.now();
-					let progress = startSweepProgress(batch.map(steps => steps.length));
+					// Every stat at every offset until its totals are known, so the bar and the estimate only shrink as offsets drop out.
+					let progress = startSweepProgress(args.stats.map(() => offsets.length));
 					progressRef.current?.(progress);
 					let stepsBefore = 0;
 					// The last finished step's iterations: in Target ± mode a step's total is known only after its first pass, and
@@ -153,7 +154,22 @@ export const useStatSweep = ({ onProgress }: UseStatSweepOptions = {}) => {
 						let finished: StatSweepRecord = record;
 						let stopped = false;
 						try {
-							const measure = async (step: StatSweepStep, index: number) => {
+							// The stat's totals as it starts, so one stat's stat computations are in flight at a time.
+							const totals = await Promise.all(
+								offsets.map(offset =>
+									sim.getFinalStatsWithBonus(new Stats().withUnitStat(unitStat, offset)).then(finalStats => finalStats.getUnitStat(unitStat)),
+								),
+							);
+							const steps = sweepSteps(offsets, totals);
+							if (steps.length < offsets.length) {
+								progress = skipSweepSteps(progress, statIndex, offsets.length - steps.length);
+								progressRef.current?.(progress);
+							}
+							const measure = async (
+								step: StatSweepStep,
+								index: number,
+								confirmsCap: (firstPass: StatSweepStepSample['firstPass']) => boolean,
+							) => {
 								if (sim.runs.isAborting(SimRunKind.StatSweep)) return null;
 								const bonusStats = new Stats().withUnitStat(unitStat, step.offset);
 								let planned = 0;
@@ -175,17 +191,26 @@ export const useStatSweep = ({ onProgress }: UseStatSweepOptions = {}) => {
 										bonusStats,
 										onProgress: metrics => report(seedOffset + metrics.completedIterations),
 									});
+									if ('dps' in result) return result;
 									// An aborted pass comes back as its error outcome.
-									return 'dps' in result ? result : null;
+									if (!sim.runs.isAborting(SimRunKind.StatSweep)) stoppedElsewhere = true;
+									return null;
 								};
-								const sample = await measureSweepStep(runPass, precision, metric, defaultIterations, total => {
-									planned = total;
-								});
+								const sample = await measureSweepStep(
+									runPass,
+									precision,
+									metric,
+									defaultIterations,
+									total => {
+										planned = total;
+									},
+									confirmsCap,
+								);
 								if (sample) lastStepIterations = sample.metrics[metric].n;
 								return sample;
 							};
 							const statRun = await runSweepStat(
-								batch[statIndex],
+								steps,
 								measure,
 								({ points, cappedStep }) => {
 									const live = { ...record, points, ...(cappedStep && { cappedAt: cappedStep.offset }) };
@@ -208,6 +233,7 @@ export const useStatSweep = ({ onProgress }: UseStatSweepOptions = {}) => {
 					console.error(error);
 					toastManager.add({ variant: 'error', body: error?.message || 'Something went wrong running the stat sweep.' });
 				}
+				if (stoppedElsewhere) toastManager.add({ variant: 'info', body: i18n.t('sidebar.buttons.stat_sweep.stopped') });
 			});
 		},
 		[sim, player],

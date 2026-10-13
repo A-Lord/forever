@@ -9,8 +9,8 @@ import { SidebarDisabledContext } from '@ui-kit/SidebarActionButton';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import { use, useId, useState } from 'react';
 
-import { trackPageView } from '../../../tracking/utils';
-import { StatSweepDialog } from './StatSweepDialog/StatSweepDialog';
+import { trackPageView } from '../../../../tracking/utils';
+import { StatSweepDialog } from '../StatSweepDialog';
 
 export interface StatSweepActionProps {
 	settings: StatSweepSettings;

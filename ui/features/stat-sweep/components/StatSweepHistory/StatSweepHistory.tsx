@@ -8,7 +8,7 @@ import { Pill } from '@ui-kit/Pill';
 import clsx from 'clsx';
 import { useMemo } from 'react';
 
-import { SERIES_SWATCH_CLASSES } from './colors';
+import { SERIES_SWATCH_CLASSES } from '../../model/colors';
 
 export interface StatSweepHistoryEntry {
 	id: string;

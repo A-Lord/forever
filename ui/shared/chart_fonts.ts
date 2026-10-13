@@ -1,6 +1,6 @@
 import { Chart } from 'chart.js';
 
-export const cssLengthToPx = (value: string, rootPx: number): number => {
+const cssLengthToPx = (value: string, rootPx: number): number => {
 	const length = parseFloat(value);
 	return value.trim().endsWith('rem') ? length * rootPx : length;
 };

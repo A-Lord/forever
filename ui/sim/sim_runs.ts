@@ -6,8 +6,7 @@ const REQUEST_TYPE: Record<SimRunKind, RequestTypes> = {
 	[SimRunKind.IndividualSim]: RequestTypes.IndividualSim,
 	[SimRunKind.BulkSim]: RequestTypes.BulkSim,
 	[SimRunKind.StatWeights]: RequestTypes.StatWeights,
-	// Each step is one raid sim request, so an abort reaches the step in flight.
-	[SimRunKind.StatSweep]: RequestTypes.IndividualSim,
+	[SimRunKind.StatSweep]: RequestTypes.StatSweep,
 	[SimRunKind.ReforgeOptimize]: RequestTypes.ReforgeOptimize,
 };
 

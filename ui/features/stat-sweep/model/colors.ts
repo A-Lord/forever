@@ -1,5 +1,3 @@
-import { cssVarColor } from '@features/results/components/Timeline/chart/colors';
-
 // One per colour slot, in slot order; the order keeps neighbouring slots apart under colour-vision deficiency.
 export const SERIES_SWATCH_CLASSES = [
 	'bg-chart-series-1',
@@ -13,5 +11,3 @@ export const SERIES_SWATCH_CLASSES = [
 ] as const;
 
 export const SERIES_SLOT_COUNT = SERIES_SWATCH_CLASSES.length;
-
-export const seriesColor = (slot: number) => cssVarColor(`--color-chart-series-${slot + 1}`);

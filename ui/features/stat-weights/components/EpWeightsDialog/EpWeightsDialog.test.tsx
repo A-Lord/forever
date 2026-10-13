@@ -760,6 +760,19 @@ describe('EpWeightsDialog', () => {
 			expect(player.computeStatWeights.mock.calls[0][4]).not.toHaveProperty('iterations');
 		});
 
+		it('disables Calculate in Target ± mode while the target is empty, and enables it in iterations mode', () => {
+			settings.precision = { precisionMode: 'target', iterations: 0, targetEpCi: 0.02, maxIterationMultiplier: 0 };
+			renderDialog();
+			expect(calculate().disabled).toBe(false);
+
+			fireEvent.change(popup().querySelector('#ep-precision-target')!, { target: { value: '' } });
+			expect(settings.precision.targetEpCi).toBe(0);
+			expect(calculate().disabled).toBe(true);
+
+			fireEvent.click(screen.getByRole('button', { name: 'sidebar.buttons.stat_weights.precision.mode_iterations' }));
+			expect(calculate().disabled).toBe(false);
+		});
+
 		describe('HPS EP with no healing reference stat chosen', () => {
 			// The sim's HPS EP for Agility is 9, which is not Agility's HPS weight over Strength's (0.5): a shown 9.00 is
 			// the value as the sim sent it, a shown 0.50 is recomputed against Strength, the spec's reference stat.

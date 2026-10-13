@@ -188,7 +188,10 @@ export const EpWeightsDialog = ({ open, onOpenChange, settings }: EpWeightsDialo
 			footer={
 				// A gear planner keeps the editor and drops the calculation: there is no sim to run it on.
 				host.simDisabled ? undefined : (
-					<Button data-testid="calc-weights" disabled={isRunning} onClick={() => void onCalculate()}>
+					<Button
+						data-testid="calc-weights"
+						disabled={isRunning || (precision.precisionMode === 'target' && !(precision.targetEpCi > 0))}
+						onClick={() => void onCalculate()}>
 						<Icon name="calculator" />
 						{i18n.t('sidebar.buttons.stat_weights.modal.calculate')}
 					</Button>

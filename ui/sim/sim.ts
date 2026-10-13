@@ -104,6 +104,7 @@ export type RunSimOptions = {
 	seed?: number; // Unset draws the next seed.
 	bonusStats?: Stats; // On top of the first player's own bonus stats, pseudo stats included.
 	debugFirstIteration?: boolean; // Unset logs the first iteration.
+	useLabeledRands?: boolean; // One random stream per kind of roll, so a roll added or dropped leaves every other stream as it was.
 };
 
 export type StatSweepStepOptions = Required<Pick<RunSimOptions, 'iterations' | 'seed' | 'bonusStats' | 'onProgress'>>;
@@ -305,14 +306,21 @@ export class Sim {
 				randomSeed: BigInt(options.seed ?? this.nextRngSeed()),
 				debugFirstIteration: options.debugFirstIteration ?? true,
 				debug: options.debug ?? false,
+				useLabeledRands: options.useLabeledRands ?? false,
 			}),
 		});
 	}
 
-	// The first player's DPS, HPS, TPS, DTPS and TMI over one plain raid sim, which emits no result. An abort comes back as its
-	// error outcome.
+	// The first player's DPS, HPS, TPS, DTPS and TMI over one plain raid sim, which emits no result. It runs as its own request
+	// type, so only a stat sweep abort or an abort of every type stops it, and an abort comes back as its error outcome.
 	async simulateStatSweepStep(options: StatSweepStepOptions): Promise<StatSweepSample | ErrorOutcome> {
-		const result = await this.runSim({ ...options, raw: true, silent: true, debugFirstIteration: false });
+		const result = await this.runRaidSim(RequestTypes.StatSweep, {
+			...options,
+			raw: true,
+			silent: true,
+			debugFirstIteration: false,
+			useLabeledRands: true,
+		});
 		if (!Array.isArray(result)) return result;
 		const { dps, hps, threat, dtps, tmi } = result[1].raidMetrics!.parties[0].players[0];
 		const sample = ({ avg, stdev, aggregatorData }: DistributionMetrics): MetricSample => ({
@@ -334,10 +342,16 @@ export class Sim {
 
 	runSim(options: RunSimOptions & { raw: true }): Promise<[RaidSimRequest, RaidSimResult] | ErrorOutcome>;
 	runSim(options?: RunSimOptions & { raw?: false }): Promise<SimResult | ErrorOutcome>;
-	async runSim(options: RunSimOptions = {}): Promise<SimResult | ErrorOutcome | [RaidSimRequest, RaidSimResult]> {
+	runSim(options: RunSimOptions = {}): Promise<SimResult | ErrorOutcome | [RaidSimRequest, RaidSimResult]> {
+		return this.runRaidSim(RequestTypes.IndividualSim, options);
+	}
+
+	private runRaidSim(type: RequestTypes, options: RunSimOptions & { raw: true }): Promise<[RaidSimRequest, RaidSimResult] | ErrorOutcome>;
+	private runRaidSim(type: RequestTypes, options: RunSimOptions): Promise<SimResult | ErrorOutcome | [RaidSimRequest, RaidSimResult]>;
+	private async runRaidSim(type: RequestTypes, options: RunSimOptions): Promise<SimResult | ErrorOutcome | [RaidSimRequest, RaidSimResult]> {
 		this.requireRunnableSetup();
 
-		const signals = this.signalManager.registerRunning(RequestTypes.IndividualSim);
+		const signals = this.signalManager.registerRunning(type);
 		try {
 			await this.waitForInit();
 

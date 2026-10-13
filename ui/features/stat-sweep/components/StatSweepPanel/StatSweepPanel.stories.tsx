@@ -2,10 +2,10 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { makeHitSweepPoints, sweepSeries } from '@testing/storybook/fixtures/stat-sweep';
 import { fn } from 'storybook/test';
 
-import { StatSweepChart } from './StatSweepChart';
-import { StatSweepHistory } from './StatSweepHistory';
+import { StatSweepChart } from '../StatSweepChart';
+import { StatSweepHistory } from '../StatSweepHistory';
+import { StatSweepPrecisionOptions } from '../StatSweepPrecisionOptions';
 import { StatSweepPanel } from './StatSweepPanel';
-import { StatSweepPrecisionOptions } from './StatSweepPrecisionOptions';
 
 const HISTORY = [
 	{ id: 'hit-new', label: 'Hit Rating ±100', createdAt: Date.UTC(2026, 9, 12, 14, 3), overlaid: true, colorSlot: 1, metric: 'dps' as const },

@@ -8893,6 +8893,7 @@
 								"band_key": { "type": "string" },
 								"empty": { "type": "string" },
 								"export_csv": { "type": "string" },
+								"stopped": { "type": "string" },
 								"history": {
 									"type": "object",
 									"properties": {
@@ -8955,6 +8956,7 @@
 								"band_key",
 								"empty",
 								"export_csv",
+								"stopped",
 								"history",
 								"precision"
 							]

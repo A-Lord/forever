@@ -1,99 +1,97 @@
-// The sim and the history store are stubbed; the settings, the store and the run flags are real.
+// Driven through the sidebar action as a user does. The sim and the history store are stubbed; the settings, the store and the
+// run flags are real.
 import { ErrorOutcomeType } from '@generated/proto/api';
 import { Class, Spec, Stat } from '@generated/proto/common';
 import i18n from '@i18n/config';
-import type { StatSweepRecord } from '@sim/cache/stat_sweep_history';
+import type { StatSweepPoint, StatSweepRecord } from '@sim/cache/stat_sweep_history';
 import { SimHostProvider } from '@sim/context/SimHostContext';
-import { Stats, UnitStat } from '@sim/proto/stats';
-import { StatSweepSettings } from '@sim/settings/stat_sweep_settings';
-import type { MetricSample, StatSweepSample, StatSweepStepOptions } from '@sim/sim';
-import { SimRuns } from '@sim/sim_runs';
-import { createSimStore, patchSlice, PLAYER_FIELDS, seedKeyed, type SimStore, zeroVersions } from '@sim/state/sim_store';
+import { UnitStat } from '@sim/proto/stats';
+import type { StatSweepSettings } from '@sim/settings/stat_sweep_settings';
+import type { StatSweepStepOptions } from '@sim/sim';
+import type { IndividualSimHost } from '@sim/sim_host';
+import { RequestTypes } from '@sim/sim_signal_manager';
+import { patchSlice, type SimStore } from '@sim/state/sim_store';
+import { Z_90 } from '@sim/utils/math';
+import { fakeCharts } from '@testing/chart-js-mock';
+import { makeHitSweepPoints, makeStatSweepHost, makeSweepSample, sweepStepDps } from '@testing/storybook/fixtures/stat-sweep';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { PortalContainerContext } from '@ui-kit/hooks/usePortalContainer';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { toastManager } from '@ui-kit/Toast';
+import type { ChartOptions, Plugin } from 'chart.js';
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
 
-import { iterationsForCi, STAT_SWEEP_PROBE_ITERATIONS } from '../../model/stat_sweep';
-import { StatSweepDialog } from './StatSweepDialog';
+import { StatSweepAction } from '../StatSweepAction';
 
 // happy-dom has no IndexedDB.
 const history = vi.hoisted(() => ({
-	listRuns: vi.fn(async () => [] as StatSweepRecord[]),
+	listRuns: vi.fn(async (_specId: number) => [] as StatSweepRecord[]),
 	saveRun: vi.fn(async (_run: StatSweepRecord) => {}),
-	deleteRun: vi.fn(async () => {}),
+	deleteRun: vi.fn(async (_id: string) => {}),
 }));
 vi.mock('@sim/cache/stat_sweep_history', () => history);
 vi.mock('chart.js', async () => (await import('@testing/chart-js-mock')).chartJsMock);
 const download = vi.hoisted(() => vi.fn());
 vi.mock('@ui-kit/utils/dom', async importOriginal => ({ ...(await importOriginal<typeof import('@ui-kit/utils/dom')>()), downloadString: download }));
+vi.mock('../../../../tracking/utils', () => ({ trackPageView: vi.fn() }));
 
 const STRENGTH = UnitStat.fromStat(Stat.StatStrength);
 const AGILITY = UnitStat.fromStat(Stat.StatAgility);
+// A Target ± step's first pass.
+const PROBE = 1000;
 
-const flat = (avg: number, stdev: number, n: number): MetricSample => ({ avg, stdev, n, sumSq: n * (stdev ** 2 + avg ** 2) });
-// Each metric moves with `dps`, and TPS has the widest spread.
-const sample = (iterations: number, dps = 1000, tmi = dps / 100): StatSweepSample => ({
-	dps: flat(dps, 100, iterations),
-	hps: flat(10, 5, iterations),
-	tps: flat(2 * dps, 400, iterations),
-	dtps: flat(3000 - dps, 300, iterations),
-	tmi: flat(tmi, 2, iterations),
-});
-// One DPS per bonus point of either stat, so every step's DPS differs.
-const dpsOf = ({ bonusStats }: StatSweepStepOptions) => 1000 + bonusStats.getStat(Stat.StatStrength) + bonusStats.getStat(Stat.StatAgility);
+type Datum = { x: number; y: number; point: StatSweepPoint };
+type Dataset = { label: string; data: Datum[] } & Record<string, unknown>;
+type FakeChart = { config: { data: { datasets: Dataset[] }; options: ChartOptions<'line'>; plugins: Array<Plugin<'line'>> } };
+const charts = fakeCharts as FakeChart[];
+const lastChart = () => charts[charts.length - 1].config;
 
 const rootElem = document.createElement('div');
 let store: SimStore;
 let settings: StatSweepSettings;
-let simulateStatSweepStep: ReturnType<typeof vi.fn<(options: StatSweepStepOptions) => Promise<object>>>;
-let abortType: ReturnType<typeof vi.fn>;
-let host: any;
+let host: IndividualSimHost<any>;
+let simulateStatSweepStep: Mock<(options: StatSweepStepOptions) => Promise<object>>;
+let abortType: Mock<(typeMask: number) => Promise<void>>;
 
-const setup = () => {
-	store = createSimStore();
-	const storage = new Map<string, string>();
-	const env = { storage: { getItem: (key: string) => storage.get(key) ?? null, setItem: (key: string, value: string) => storage.set(key, value) } };
-	seedKeyed(store, 'players', 0, { v: zeroVersions(PLAYER_FIELDS) } as never);
-	abortType = vi.fn().mockResolvedValue(undefined);
-	simulateStatSweepStep = vi.fn(async (options: StatSweepStepOptions) => sample(options.iterations, dpsOf(options)));
-	const sim = {
-		store,
-		env,
-		runs: new SimRuns(store, { abortType: abortType as unknown as (mask: number) => Promise<void> }),
-		getIterations: () => 1000,
-		nextRngSeed: () => 7,
-		getShowDamageMetrics: () => store.getState().ui.showDamageMetrics,
-		getShowHealingMetrics: () => store.getState().ui.showHealingMetrics,
-		getShowThreatMetrics: () => store.getState().ui.showThreatMetrics,
-		// A player with no stats of its own: the final stats are the bonus.
-		getFinalStatsWithBonus: async (bonusStats: Stats) => bonusStats,
-		simulateStatSweepStep,
-	};
-	const player = { storeKey: 0, sim, getClass: () => Class.ClassWarrior, getSpec: () => Spec.SpecUnknown };
-	settings = new StatSweepSettings(player as never, 'stat-sweep-test');
-	host = {
-		player,
-		sim,
-		individualConfig: { epStats: [Stat.StatStrength, Stat.StatAgility], epPseudoStats: [], epReferenceStat: Stat.StatStrength },
-	};
+const setup = (simDisabled = false) => {
+	abortType = vi.fn(async () => {});
+	simulateStatSweepStep = vi.fn(async (options: StatSweepStepOptions) => makeSweepSample(options.iterations, sweepStepDps(options)));
+	({ host, store, settings } = makeStatSweepHost({ simulateStatSweepStep: simulateStatSweepStep as never, abortType, simDisabled }));
 };
 
-const renderDialog = () => {
+const renderAction = () => {
 	document.body.appendChild(rootElem);
-	const onOpenChange = vi.fn();
 	render(
 		<PortalContainerContext value={rootElem}>
 			<SimHostProvider host={host}>
-				<StatSweepDialog open onOpenChange={onOpenChange} settings={settings} />
+				<StatSweepAction settings={settings} />
 			</SimHostProvider>
 		</PortalContainerContext>,
 	);
-	return onOpenChange;
 };
 
+const action = () => screen.queryByRole<HTMLButtonElement>('button', { name: i18n.t('sidebar.buttons.stat_sweep.title') });
+const showPowerTools = async (shown: boolean) => {
+	await act(async () => patchSlice(store, 'ui', { showPowerTools: shown }));
+};
+const openDialog = async () => {
+	renderAction();
+	await showPowerTools(true);
+	await act(async () => {
+		fireEvent.click(action()!);
+	});
+};
+
+const dialog = () => rootElem.querySelector('[data-testid="stat-sweep-dialog"]');
 const runButton = () => screen.getByRole<HTMLButtonElement>('button', { name: 'sidebar.buttons.stat_sweep.run' });
+const run = async () => {
+	await act(async () => {
+		fireEvent.click(runButton());
+	});
+};
 const tracker = () => rootElem.querySelector('[data-testid="stat-sweep-progress-dialog"]');
 const bonusOf = (call: [StatSweepStepOptions], stat: Stat) => call[0].bonusStats.getStat(stat);
+const strengthSteps = () => simulateStatSweepStep.mock.calls.map(call => bonusOf(call, Stat.StatStrength));
+const saved = (index = 0) => history.saveRun.mock.calls[index][0];
 const metricLabel = (metric: string) => i18n.t(`sidebar.results.metrics.${metric}.label`);
 const metricToggle = () => within(rootElem.querySelector<HTMLElement>('[data-testid="stat-sweep-metric"]')!);
 const offeredMetrics = () =>
@@ -104,50 +102,130 @@ const pressedMetric = () =>
 	metricToggle()
 		.getAllByRole('button')
 		.find(button => button.getAttribute('aria-pressed') === 'true')?.textContent;
+const precisionMode = (mode: 'iterations' | 'target') =>
+	// Also behind the modal progress dialog.
+	screen.getByRole<HTMLButtonElement>('button', { name: `sidebar.buttons.stat_sweep.precision.mode_${mode}`, hidden: true });
+const overlayTicks = () =>
+	[...rootElem.querySelectorAll('[id^="stat-sweep-overlay-"]')].map(box => box.getAttribute('aria-checked') ?? String((box as HTMLInputElement).checked));
+// Iterations of each pass, by Strength added.
+const passesByStep = () => {
+	const passes: Record<number, number[]> = {};
+	for (const call of simulateStatSweepStep.mock.calls) (passes[bonusOf(call, Stat.StatStrength)] ??= []).push(call[0].iterations);
+	return passes;
+};
+// Every metric stops at 1010 DPS, which Strength reaches at +10.
+const cappedAtTen = () => simulateStatSweepStep.mockImplementation(async options => makeSweepSample(options.iterations, Math.min(sweepStepDps(options), 1010)));
+const storedRun = (id: string, createdAt: number, colorSlot: number): StatSweepRecord => ({
+	id,
+	createdAt,
+	specId: Spec.SpecUnknown,
+	label: id,
+	colorSlot,
+	unitStat: STRENGTH.toJson(),
+	range: 100,
+	step: 10,
+	metric: 'dps',
+	precision: { precisionMode: 'iterations', iterations: 0, targetCi: 1, maxIterationMultiplier: 0 },
+	baseStatValue: 120,
+	points: makeHitSweepPoints(120),
+});
 
 beforeEach(() => {
 	setup();
+	charts.length = 0;
+	history.listRuns.mockClear();
 	history.saveRun.mockClear();
+	history.deleteRun.mockClear();
 	download.mockClear();
 });
 
 describe('StatSweepDialog', () => {
+	describe('the sidebar action', () => {
+		it('shows only while Show power tools is on, as an icon button named for the tool, and opens the dialog', async () => {
+			renderAction();
+			expect(action()).toBeNull();
+
+			await showPowerTools(true);
+			expect(action()!.textContent).toBe('');
+			expect(dialog()).toBeNull();
+			await act(async () => {
+				fireEvent.click(action()!);
+			});
+			expect(dialog()).not.toBeNull();
+		});
+
+		it('stays hidden in a gear planner, which runs no sims', async () => {
+			setup(true);
+			renderAction();
+			await showPowerTools(true);
+
+			expect(action()).toBeNull();
+		});
+	});
+
 	it('runs one plain sim per step at one seed with the step as bonus stats, and saves every metric of each step', async () => {
 		settings.setSetup({ range: 20, step: 10 });
 		settings.setPrecision({ iterations: 3000 });
-		renderDialog();
+		await openDialog();
 
-		await act(async () => {
-			fireEvent.click(runButton());
-		});
+		await run();
 
-		const calls = simulateStatSweepStep.mock.calls;
-		expect(calls.map(call => bonusOf(call, Stat.StatStrength))).toEqual([0, 10, 20]);
-		expect(calls.map(call => [call[0].iterations, call[0].seed])).toEqual([
+		expect(strengthSteps()).toEqual([0, 10, 20]);
+		expect(simulateStatSweepStep.mock.calls.map(call => [call[0].iterations, call[0].seed])).toEqual([
 			[3000, 7],
 			[3000, 7],
 			[3000, 7],
 		]);
 		expect(history.saveRun).toHaveBeenCalledTimes(1);
-		const saved = history.saveRun.mock.calls[0][0];
-		expect(saved.metric).toBe('dps');
-		expect(saved.points.map(point => [point.statValue, point.metrics.dps.avg, point.metrics.dps.n])).toEqual([
+		expect(saved().metric).toBe('dps');
+		expect(saved().points.map(point => [point.statValue, point.metrics.dps.avg, point.metrics.dps.n])).toEqual([
 			[0, 1000, 3000],
 			[10, 1010, 3000],
 			[20, 1020, 3000],
 		]);
-		expect(saved.points[1].metrics).toEqual({
+		expect(saved().points[1].metrics).toEqual({
 			dps: { avg: 1010, stdev: 100, n: 3000 },
 			hps: { avg: 10, stdev: 5, n: 3000 },
 			tps: { avg: 2020, stdev: 400, n: 3000 },
 			dtps: { avg: 1990, stdev: 300, n: 3000 },
 			tmi: { avg: 10.1, stdev: 2, n: 3000 },
 		});
-		expect(saved.cappedAt).toBeUndefined();
+		expect(saved().cappedAt).toBeUndefined();
 	});
 
-	it('shows the band key while the spread is on, and hides it with the spread checkbox, which stores the pick', () => {
-		renderDialog();
+	it('stores an entered range and step, and the stats picked and removed by key', async () => {
+		await openDialog();
+
+		fireEvent.change(screen.getByLabelText('sidebar.buttons.stat_sweep.range'), { target: { value: '50' } });
+		fireEvent.change(screen.getByLabelText('sidebar.buttons.stat_sweep.step'), { target: { value: '5' } });
+		expect(settings.setup).toMatchObject({ range: 50, step: 5 });
+
+		expect(screen.getAllByTestId('multi-combo-box-chip').map(chip => chip.textContent)).toEqual([STRENGTH.getFullName(Class.ClassWarrior)]);
+		fireEvent.click(screen.getByRole('button', { name: 'sidebar.buttons.stat_sweep.stats.remove' }));
+		expect(settings.setup.stats).toEqual([]);
+		expect(runButton().disabled).toBe(true);
+
+		fireEvent.click(screen.getByTestId('multi-combo-box-trigger'));
+		const agility = within(screen.getByTestId('multi-combo-box-list'))
+			.getAllByRole('option')
+			.find(option => option.textContent?.includes(AGILITY.getFullName(Class.ClassWarrior)))!;
+		fireEvent.click(agility);
+		expect(settings.setup.stats!.map(stat => stat.getKey())).toEqual([AGILITY.getKey()]);
+	});
+
+	it('locks the setup and the precision options while a run goes', async () => {
+		simulateStatSweepStep.mockImplementation(() => new Promise(() => {}));
+		await openDialog();
+
+		await run();
+		expect(screen.getByLabelText<HTMLInputElement>('sidebar.buttons.stat_sweep.range').disabled).toBe(true);
+		expect(screen.getByLabelText<HTMLInputElement>('sidebar.buttons.stat_sweep.step').disabled).toBe(true);
+		expect(precisionMode('target').disabled).toBe(true);
+		expect(screen.getByLabelText<HTMLInputElement>('sidebar.buttons.stat_sweep.precision.iterations').disabled).toBe(true);
+	});
+
+	it('shows the band key while the spread is on, and hides it with the spread checkbox, which stores the pick', async () => {
+		await openDialog();
 		const bandKey = () => screen.queryByText(i18n.t('sidebar.buttons.stat_sweep.band_key', { metric: metricLabel('dps') }));
 		expect(bandKey()).toBeTruthy();
 
@@ -160,8 +238,8 @@ describe('StatSweepDialog', () => {
 		expect(bandKey()).toBeTruthy();
 	});
 
-	it('offers DPS and TPS, adds DTPS and TMI with the threat and tank options, and HPS with the healing metrics', () => {
-		renderDialog();
+	it('offers DPS and TPS, adds DTPS and TMI with the threat and tank options, and HPS with the healing metrics', async () => {
+		await openDialog();
 		expect(offeredMetrics()).toEqual([metricLabel('dps'), metricLabel('tps')]);
 
 		act(() => patchSlice(store, 'ui', { showThreatMetrics: true }));
@@ -171,9 +249,9 @@ describe('StatSweepDialog', () => {
 		expect(offeredMetrics()).toEqual(['dps', 'hps', 'tps', 'dtps', 'tmi'].map(metricLabel));
 	});
 
-	it('stores the picked metric, and shows DPS while the stored one is not offered', () => {
+	it('stores the picked metric, and shows DPS while the stored one is not offered', async () => {
 		act(() => patchSlice(store, 'ui', { showThreatMetrics: true }));
-		renderDialog();
+		await openDialog();
 
 		fireEvent.click(metricToggle().getByRole('button', { name: metricLabel('tmi') }));
 		expect(settings.metric).toBe('tmi');
@@ -184,210 +262,360 @@ describe('StatSweepDialog', () => {
 		expect(settings.metric).toBe('tmi');
 	});
 
-	it('stops a stat going up once a step gives every metric of the step below it, and saves where it capped', async () => {
-		simulateStatSweepStep.mockImplementation(async options => sample(options.iterations, Math.min(dpsOf(options), 1020)));
-		settings.setSetup({ range: 50, step: 10 });
-		renderDialog();
+	describe('the chart', () => {
+		it('plots each run over the stat added as a line in a band of ± one standard deviation, and the line alone with the spread off', async () => {
+			settings.setSetup({ range: 10, step: 10 });
+			await openDialog();
+			await run();
 
-		await act(async () => {
-			fireEvent.click(runButton());
+			const atTen = (datasets: Dataset[]) => datasets.map(dataset => dataset.data.find(datum => datum.x === 10)!.y);
+			expect(lastChart().data.datasets[2].data.map(datum => datum.x)).toEqual([0, 10]);
+			expect(atTen(lastChart().data.datasets)).toEqual([1110, 910, 1010]);
+			expect(lastChart().options.plugins!.legend!.display).toBe(false);
+
+			fireEvent.click(within(screen.getByTestId('stat-sweep-show-spread')).getByRole('checkbox'));
+			expect(atTen(lastChart().data.datasets)).toEqual([1010]);
 		});
 
-		expect(simulateStatSweepStep.mock.calls.map(call => bonusOf(call, Stat.StatStrength))).toEqual([0, 10, 20, 30]);
-		const saved = history.saveRun.mock.calls[0][0];
-		expect(saved.points.map(point => point.statValue)).toEqual([0, 10, 20, 30]);
-		expect(saved.cappedAt).toBe(20);
+		it('marks the current value at 0', async () => {
+			settings.setSetup({ range: 10, step: 10 });
+			await openDialog();
+			await run();
+			const marker = lastChart().plugins.find(plugin => plugin.id === 'statSweepMarker')!;
+			const getPixelForValue = vi.fn(() => 40);
+			const moveTo = vi.fn();
+			const ctx = { save: vi.fn(), restore: vi.fn(), setLineDash: vi.fn(), beginPath: vi.fn(), moveTo, lineTo: vi.fn(), stroke: vi.fn() };
+
+			(marker.afterDatasetsDraw as (chart: unknown) => void)({
+				ctx,
+				chartArea: { left: 0, right: 100, top: 0, bottom: 50 },
+				scales: { x: { getPixelForValue } },
+			});
+
+			expect(getPixelForValue).toHaveBeenCalledWith(0);
+			expect(moveTo).toHaveBeenCalledWith(40, 0);
+		});
+
+		it('lists each run once in the legend from two runs on, and titles the tooltip with each stat total and the stat added', async () => {
+			settings.setSetup({ stats: [STRENGTH, AGILITY], range: 10, step: 10 });
+			await openDialog();
+			await run();
+
+			const { data, options } = lastChart();
+			expect(options.plugins!.legend!.display).toBe(true);
+			const items = options.plugins!.legend!.labels!.generateLabels!({ data, isDatasetVisible: () => true } as never);
+			expect(items.map(item => item.datasetIndex)).toEqual([2, 5]);
+			const tooltipFilter = options.plugins!.tooltip!.filter!;
+			const lines = data.datasets
+				.map((_, datasetIndex) => datasetIndex)
+				.filter(datasetIndex => tooltipFilter({ datasetIndex } as never, 0, [], {} as never));
+			expect(lines).toEqual([2, 5]);
+
+			// The newest run is drawn first.
+			const expected = [AGILITY, STRENGTH].map(stat => `${stat.getFullName(Class.ClassWarrior)} 10 (+10)`);
+			const title = options.plugins!.tooltip!.callbacks!.title! as unknown as (items: object[]) => string[];
+			const at = (datasetIndex: number, added: number) => ({ raw: data.datasets[datasetIndex].data.find(datum => datum.x === added)! });
+			const t = vi
+				.spyOn(i18n, 't')
+				.mockImplementation(
+					((_key: string, values: { stat: string; total: number; added: string }) => `${values.stat} ${values.total} (${values.added})`) as never,
+				);
+			expect(title([at(2, 10), at(5, 10)])).toEqual(expected);
+			t.mockRestore();
+		});
+
+		it('reads the hovered value and its ± as the sim card does, and marks each point from the cap on as capped', async () => {
+			cappedAtTen();
+			settings.setSetup({ range: 40, step: 10 });
+			await openDialog();
+			await run();
+
+			const { data, options } = lastChart();
+			const label = options.plugins!.tooltip!.callbacks!.label! as unknown as (item: object) => string;
+			const t = vi.spyOn(i18n, 't');
+			const valueAt = (added: number) => {
+				t.mockClear();
+				label({ dataset: data.datasets[2], raw: data.datasets[2].data.find(datum => datum.x === added) });
+				return t.mock.calls.find(([key]) => String(key).startsWith('sidebar.buttons.stat_sweep.tooltip_value'));
+			};
+			expect(valueAt(0)).toEqual(['sidebar.buttons.stat_sweep.tooltip_value', { value: (1000).toFixed(2), stdev: (100).toFixed(0) }]);
+			expect([10, 20, 30].map(added => valueAt(added)![0])).toEqual([
+				'sidebar.buttons.stat_sweep.tooltip_value_capped',
+				'sidebar.buttons.stat_sweep.tooltip_value_capped',
+				'sidebar.buttons.stat_sweep.tooltip_value_capped',
+			]);
+			t.mockRestore();
+		});
+	});
+
+	it('stops a stat going up after two steps in a row give every metric of the step below, and saves where it capped', async () => {
+		cappedAtTen();
+		settings.setSetup({ range: 50, step: 10 });
+		await openDialog();
+
+		await run();
+
+		expect(strengthSteps()).toEqual([0, 10, 20, 30]);
+		expect(saved().points.map(point => point.statValue)).toEqual([0, 10, 20, 30]);
+		expect(saved().cappedAt).toBe(10);
 		expect(screen.getByText('sidebar.buttons.stat_sweep.capped_label')).toBeTruthy();
 	});
 
 	it('keeps a stat going up while it changes only TMI, whatever metric the run follows, and records that metric on the run', async () => {
 		// Every metric but TMI stays put across the steps.
-		simulateStatSweepStep.mockImplementation(async options => sample(options.iterations, 1000, 10 + dpsOf(options) / 100));
+		simulateStatSweepStep.mockImplementation(async options => makeSweepSample(options.iterations, 1000, 10 + sweepStepDps(options) / 100));
 		settings.setSetup({ range: 40, step: 10 });
 		settings.setMetric('tps');
-		renderDialog();
+		await openDialog();
 
-		await act(async () => {
-			fireEvent.click(runButton());
-		});
+		await run();
 
-		expect(simulateStatSweepStep.mock.calls.map(call => bonusOf(call, Stat.StatStrength))).toEqual([0, 10, 20, 30, 40]);
-		const saved = history.saveRun.mock.calls[0][0];
-		expect(saved.metric).toBe('tps');
-		expect(saved.cappedAt).toBeUndefined();
+		expect(strengthSteps()).toEqual([0, 10, 20, 30, 40]);
+		expect(saved().metric).toBe('tps');
+		expect(saved().cappedAt).toBeUndefined();
 		expect(screen.getByTestId('stat-sweep-history-metric').textContent).toBe(metricLabel('tps'));
 	});
 
-	it('runs each picked stat on its own in the order offered, saving each as its own run', async () => {
-		settings.setSetup({ stats: [AGILITY, STRENGTH], range: 10, step: 10 });
-		renderDialog();
-
-		await act(async () => {
-			fireEvent.click(runButton());
+	it("runs each picked stat on its own in the order offered, saving each as its own run, and works out each stat's totals as it starts", async () => {
+		const totals = vi.spyOn(host.sim, 'getFinalStatsWithBonus');
+		const totalsBefore: number[] = [];
+		simulateStatSweepStep.mockImplementation(async options => {
+			totalsBefore.push(totals.mock.calls.length);
+			return makeSweepSample(options.iterations, sweepStepDps(options));
 		});
+		settings.setSetup({ stats: [AGILITY, STRENGTH], range: 10, step: 10 });
+		await openDialog();
 
-		const calls = simulateStatSweepStep.mock.calls;
-		expect(calls.map(call => [bonusOf(call, Stat.StatStrength), bonusOf(call, Stat.StatAgility)])).toEqual([
+		await run();
+
+		expect(simulateStatSweepStep.mock.calls.map(call => [bonusOf(call, Stat.StatStrength), bonusOf(call, Stat.StatAgility)])).toEqual([
 			[0, 0],
 			[10, 0],
 			[0, 0],
 			[0, 10],
 		]);
-		const saved = history.saveRun.mock.calls.map(call => call[0]);
-		expect(saved.map(run => UnitStat.fromJson(run.unitStat).getKey())).toEqual([STRENGTH.getKey(), AGILITY.getKey()]);
-		expect(saved[0].colorSlot).not.toBe(saved[1].colorSlot);
+		expect(totalsBefore).toEqual([3, 3, 6, 6]);
+		const runs = history.saveRun.mock.calls.map(call => call[0]);
+		expect(runs.map(record => UnitStat.fromJson(record.unitStat).getKey())).toEqual([STRENGTH.getKey(), AGILITY.getKey()]);
+		expect(runs[0].colorSlot).not.toBe(runs[1].colorSlot);
 	});
 
-	it('unticks the earlier runs when a run starts, keeping every run of the new batch ticked', async () => {
-		settings.setSetup({ stats: [STRENGTH], range: 10, step: 10 });
-		renderDialog();
-		const ticks = () =>
-			[...rootElem.querySelectorAll('[id^="stat-sweep-overlay-"]')].map(
-				box => box.getAttribute('aria-checked') ?? String((box as HTMLInputElement).checked),
-			);
+	describe('the history', () => {
+		it('unticks the earlier runs when a run starts, keeping every run of the new batch ticked', async () => {
+			settings.setSetup({ stats: [STRENGTH], range: 10, step: 10 });
+			await openDialog();
 
-		await act(async () => {
-			fireEvent.click(runButton());
-		});
-		expect(ticks()).toEqual(['true']);
+			await run();
+			expect(overlayTicks()).toEqual(['true']);
 
-		act(() => settings.setSetup({ stats: [AGILITY, STRENGTH] }));
-		await act(async () => {
-			fireEvent.click(runButton());
+			act(() => settings.setSetup({ stats: [AGILITY, STRENGTH] }));
+			await run();
+			expect(overlayTicks()).toEqual(['true', 'true', 'false']);
 		});
-		expect(ticks()).toEqual(['true', 'true', 'false']);
+
+		it('draws the newest saved run, overlays another when it is ticked, and deletes a run', async () => {
+			history.listRuns.mockResolvedValueOnce([storedRun('new', 2, 0), storedRun('old', 1, 1)]);
+			await openDialog();
+			expect(overlayTicks()).toEqual(['true', 'false']);
+			// A saved run's points sit at the stat added, not at its total, which starts at 120 here.
+			const stored = makeHitSweepPoints(120);
+			expect(stored[0].statValue).not.toBe(stored[0].offset);
+			expect(lastChart().data.datasets[2].data.map(datum => datum.x)).toEqual(stored.map(point => point.offset));
+
+			fireEvent.click(rootElem.querySelector('#stat-sweep-overlay-old')!);
+			expect(overlayTicks()).toEqual(['true', 'true']);
+			expect(lastChart().data.datasets.map(dataset => dataset.label)).toEqual(['new', 'new', 'new', 'old', 'old', 'old']);
+
+			fireEvent.click(screen.getAllByRole('button', { name: 'sidebar.buttons.stat_sweep.history.delete' })[1]);
+			expect(history.deleteRun).toHaveBeenCalledWith('old');
+			expect(overlayTicks()).toEqual(['true']);
+		});
+
+		it('exports the drawn runs as CSV with every metric, and offers no export with nothing drawn', async () => {
+			settings.setSetup({ range: 10, step: 10 });
+			await openDialog();
+			const exportButton = () => screen.getByRole<HTMLButtonElement>('button', { name: 'sidebar.buttons.stat_sweep.export_csv' });
+			expect(exportButton().disabled).toBe(true);
+
+			await run();
+			fireEvent.click(exportButton());
+
+			expect(download).toHaveBeenCalledTimes(1);
+			const [csv, fileName, mimeType] = download.mock.calls[0];
+			const lines = csv.trim().split('\n');
+			expect(lines).toHaveLength(3);
+			expect(lines[0]).toBe('run,stat,base_total,added,total,dps,dps_stdev,hps,hps_stdev,tps,tps_stdev,dtps,dtps_stdev,tmi,tmi_stdev,samples');
+			expect([fileName, mimeType]).toEqual(['wowsims-stat-sweep.csv', 'text/csv']);
+		});
 	});
 
-	it('probes each step in Target ± mode and tops it up at the seed after the probe', async () => {
-		settings.setSetup({ range: 5, step: 10 });
-		settings.setPrecision({ precisionMode: 'target', targetCi: 2 });
-		renderDialog();
+	describe('Target ±', () => {
+		it('probes each step and tops it up at the seed after the probe', async () => {
+			settings.setSetup({ range: 5, step: 10 });
+			settings.setPrecision({ precisionMode: 'target', targetCi: 2 });
+			await openDialog();
 
-		await act(async () => {
-			fireEvent.click(runButton());
+			await run();
+
+			const calls = simulateStatSweepStep.mock.calls.map(call => [call[0].iterations, call[0].seed]);
+			expect(calls[0]).toEqual([PROBE, 7]);
+			expect(calls[1][1]).toBe(7 + PROBE);
+			expect(saved().points[0].metrics.dps.n).toBe(PROBE + calls[1][0]);
 		});
 
-		const calls = simulateStatSweepStep.mock.calls.map(call => [call[0].iterations, call[0].seed]);
-		expect(calls[0]).toEqual([STAT_SWEEP_PROBE_ITERATIONS, 7]);
-		expect(calls[1][1]).toBe(7 + STAT_SWEEP_PROBE_ITERATIONS);
-		expect(history.saveRun.mock.calls[0][0].points[0].metrics.dps.n).toBe(STAT_SWEEP_PROBE_ITERATIONS + calls[1][0]);
+		it("sizes the run by the picked metric's spread, with the target in that metric's units", async () => {
+			settings.setSetup({ range: 5, step: 10 });
+			settings.setMetric('tps');
+			settings.setPrecision({ precisionMode: 'target', targetCi: 20 });
+			await openDialog();
+			expect(rootElem.querySelector('label[for="stat-sweep-precision-target"]')!.textContent).toContain('sidebar.buttons.stat_sweep.precision.target_ci');
+
+			await run();
+
+			// TPS spreads 400 a fight, where DPS spreads 100: a ± of 20 needs that many iterations of TPS.
+			const total = Math.ceil(((Z_90 * 400) / 20) ** 2);
+			expect(simulateStatSweepStep.mock.calls.map(call => call[0].iterations)).toEqual([PROBE, total - PROBE]);
+			expect(saved().points[0].metrics.tps.n).toBe(total);
+		});
+
+		it('tops up the first step that repeats the step below, and runs only the probe of the step that confirms the cap', async () => {
+			cappedAtTen();
+			settings.setSetup({ range: 40, step: 10 });
+			settings.setPrecision({ precisionMode: 'target', targetCi: 2 });
+			await openDialog();
+
+			await run();
+
+			const topUp = Math.ceil(((Z_90 * 100) / 2) ** 2) - PROBE;
+			expect(passesByStep()).toEqual({ 0: [PROBE, topUp], 10: [PROBE, topUp], 20: [PROBE, topUp], 30: [PROBE] });
+			expect(saved().cappedAt).toBe(10);
+		});
+
+		it('disables Run while the target is empty, and enables it in iterations mode', async () => {
+			settings.setPrecision({ precisionMode: 'target', targetCi: 2 });
+			await openDialog();
+			expect(runButton().disabled).toBe(false);
+
+			fireEvent.change(rootElem.querySelector('#stat-sweep-precision-target')!, { target: { value: '' } });
+			expect(settings.precision.targetCi).toBe(0);
+			expect(runButton().disabled).toBe(true);
+
+			fireEvent.click(precisionMode('iterations'));
+			expect(runButton().disabled).toBe(false);
+		});
 	});
 
-	it("sizes Target ± by the picked metric's spread, with the target in that metric's units", async () => {
-		settings.setSetup({ range: 5, step: 10 });
-		settings.setMetric('tps');
-		settings.setPrecision({ precisionMode: 'target', targetCi: 20 });
-		renderDialog();
-		expect(rootElem.querySelector('label[for="stat-sweep-precision-target"]')!.textContent).toContain('sidebar.buttons.stat_sweep.precision.target_ci');
-
-		await act(async () => {
-			fireEvent.click(runButton());
-		});
-
-		// TPS spreads 400 a fight, where DPS spreads 100: a ± of 20 needs that many iterations of TPS.
-		const total = iterationsForCi(400, 20);
-		expect(simulateStatSweepStep.mock.calls.map(call => call[0].iterations)).toEqual([STAT_SWEEP_PROBE_ITERATIONS, total - STAT_SWEEP_PROBE_ITERATIONS]);
-		expect(history.saveRun.mock.calls[0][0].points[0].metrics.tps.n).toBe(total);
-	});
-
-	it('shows the run in the progress dialog and cancels it there, keeping the finished steps', async () => {
-		let settleSecond!: (result: object) => void;
-		simulateStatSweepStep.mockResolvedValueOnce(sample(1000)).mockImplementationOnce(options => {
-			options.onProgress({ completedIterations: 250, totalIterations: 1000 } as never);
-			return new Promise(resolve => (settleSecond = resolve));
-		});
-		settings.setSetup({ range: 20, step: 10 });
-		renderDialog();
-		const run = runButton();
-
-		await act(async () => {
-			fireEvent.click(run);
-		});
-		// The second of three steps, a quarter done: the bar reads across the whole run.
-		expect(tracker()!.querySelector('[data-testid="progress-tracker-modal-progress-title"]')!.textContent).toBe('sidebar.buttons.stat_sweep.progress');
-		expect(tracker()!.querySelector('[data-testid="progress-tracker-modal-progress-text"]')!.textContent).toBe('1250/3000');
-		expect(run.disabled).toBe(true);
-
-		abortType.mockClear();
-		await act(async () => {
-			fireEvent.click(tracker()!.querySelector('[data-testid="progress-tracker-modal-cancel-btn"]')!);
-		});
-		expect(abortType).toHaveBeenCalledTimes(1);
-		await act(async () => {
-			settleSecond({ type: ErrorOutcomeType.ErrorOutcomeAborted, message: '' });
-		});
-
-		expect(tracker()).toBeNull();
-		expect(simulateStatSweepStep).toHaveBeenCalledTimes(2);
-		expect(history.saveRun.mock.calls[0][0].points).toHaveLength(1);
-	});
-
-	it("lists the run's stats in the progress dialog, done up to the running one, and titles it with that stat's step", async () => {
-		let settleThird!: (result: object) => void;
-		simulateStatSweepStep
-			.mockResolvedValueOnce(sample(1000))
-			.mockResolvedValueOnce(sample(1000))
-			.mockImplementationOnce(options => {
+	describe('the progress dialog', () => {
+		it('shows the run across every step with the time left, and cancels it there, keeping the finished steps', async () => {
+			const toast = vi.spyOn(toastManager, 'add');
+			let settleSecond!: (result: object) => void;
+			simulateStatSweepStep.mockResolvedValueOnce(makeSweepSample(1000)).mockImplementationOnce(options => {
 				options.onProgress({ completedIterations: 250, totalIterations: 1000 } as never);
-				return new Promise(resolve => (settleThird = resolve));
+				return new Promise(resolve => (settleSecond = resolve));
 			});
-		settings.setSetup({ stats: [AGILITY, STRENGTH], range: 10, step: 10 });
-		renderDialog();
+			settings.setSetup({ range: 20, step: 10 });
+			await openDialog();
+			// The progress dialog is modal, so the button is found before it opens.
+			const runAgain = runButton();
 
-		await act(async () => {
-			fireEvent.click(runButton());
-		});
-		const states = () => [...tracker()!.querySelectorAll('[data-testid="stat-sweep-stat"]')].map(row => row.getAttribute('data-state'));
-		expect(states()).toEqual(['done', 'running']);
-		expect(tracker()!.querySelector('[data-testid="progress-tracker-modal-progress-title"]')!.textContent).toBe('sidebar.buttons.stat_sweep.progress');
+			await run();
+			// The second of three steps, a quarter done: the bar reads across the whole run.
+			expect(tracker()!.querySelector('[data-testid="progress-tracker-modal-progress-title"]')!.textContent).toBe('sidebar.buttons.stat_sweep.progress');
+			expect(tracker()!.querySelector('[data-testid="progress-tracker-modal-progress-text"]')!.textContent).toBe('1250/3000');
+			expect(tracker()!.querySelector('[data-testid="stat-sweep-time-remaining"]')!.textContent).toBe('sidebar.results.progress.time_remaining');
+			expect(runAgain.disabled).toBe(true);
 
-		await act(async () => {
-			fireEvent.click(tracker()!.querySelector('[data-testid="progress-tracker-modal-cancel-btn"]')!);
+			abortType.mockClear();
+			await act(async () => {
+				fireEvent.click(tracker()!.querySelector('[data-testid="progress-tracker-modal-cancel-btn"]')!);
+			});
+			expect(abortType).toHaveBeenCalledExactlyOnceWith(RequestTypes.StatSweep);
+			await act(async () => {
+				settleSecond({ type: ErrorOutcomeType.ErrorOutcomeAborted, message: '' });
+			});
+
+			expect(tracker()).toBeNull();
+			expect(simulateStatSweepStep).toHaveBeenCalledTimes(2);
+			expect(saved().points).toHaveLength(1);
+			expect(toast).not.toHaveBeenCalled();
+			toast.mockRestore();
 		});
-		expect(states()).toEqual(['done', 'running']);
-		await act(async () => {
-			settleThird({ type: ErrorOutcomeType.ErrorOutcomeAborted, message: '' });
+
+		it("lists the run's stats, done up to the running one, which holds the spinner", async () => {
+			let settleThird!: (result: object) => void;
+			simulateStatSweepStep
+				.mockResolvedValueOnce(makeSweepSample(1000))
+				.mockResolvedValueOnce(makeSweepSample(1000))
+				.mockImplementationOnce(options => {
+					options.onProgress({ completedIterations: 250, totalIterations: 1000 } as never);
+					return new Promise(resolve => (settleThird = resolve));
+				});
+			settings.setSetup({ stats: [AGILITY, STRENGTH], range: 10, step: 10 });
+			await openDialog();
+
+			await run();
+			const rows = () => [...tracker()!.querySelectorAll('[data-testid="stat-sweep-stat"]')];
+			expect(rows().map(row => [row.textContent, row.getAttribute('data-state'), row.getAttribute('aria-current')])).toEqual([
+				[STRENGTH.getFullName(Class.ClassWarrior), 'done', null],
+				[AGILITY.getFullName(Class.ClassWarrior), 'running', 'step'],
+			]);
+			expect(tracker()!.querySelectorAll('[data-testid="stat-sweep-stat-spinner"]')).toHaveLength(1);
+			expect(rows()[1].querySelector('[data-testid="stat-sweep-stat-spinner"]')).not.toBeNull();
+
+			await act(async () => {
+				fireEvent.click(tracker()!.querySelector('[data-testid="progress-tracker-modal-cancel-btn"]')!);
+			});
+			await act(async () => {
+				settleThird({ type: ErrorOutcomeType.ErrorOutcomeAborted, message: '' });
+			});
+			expect(tracker()).toBeNull();
 		});
-		expect(tracker()).toBeNull();
 	});
 
-	it('exports the drawn runs as CSV with every metric', async () => {
-		settings.setSetup({ range: 10, step: 10 });
-		renderDialog();
-		await act(async () => {
-			fireEvent.click(runButton());
-		});
+	it('tells the user when another run stops the sweep, keeping the finished steps', async () => {
+		const toast = vi.spyOn(toastManager, 'add');
+		simulateStatSweepStep.mockResolvedValueOnce(makeSweepSample(1000)).mockResolvedValueOnce({ type: ErrorOutcomeType.ErrorOutcomeAborted, message: '' });
+		settings.setSetup({ range: 20, step: 10 });
+		await openDialog();
 
-		fireEvent.click(screen.getByRole('button', { name: 'sidebar.buttons.stat_sweep.export_csv' }));
+		await run();
 
-		expect(download).toHaveBeenCalledTimes(1);
-		const [csv, fileName, mimeType] = download.mock.calls[0];
-		const lines = csv.trim().split('\n');
-		expect(lines).toHaveLength(3);
-		expect(lines[0]).toBe('run,stat,base_total,added,total,dps,dps_stdev,hps,hps_stdev,tps,tps_stdev,dtps,dtps_stdev,tmi,tmi_stdev,samples');
-		expect([fileName, mimeType]).toEqual(['wowsims-stat-sweep.csv', 'text/csv']);
+		expect(toast).toHaveBeenCalledExactlyOnceWith({ variant: 'info', body: 'sidebar.buttons.stat_sweep.stopped' });
+		expect(simulateStatSweepStep).toHaveBeenCalledTimes(2);
+		expect(saved().points).toHaveLength(1);
+		toast.mockRestore();
 	});
 
-	it('disables Run with every stat removed', () => {
+	it('disables Run with every stat removed', async () => {
 		settings.setSetup({ stats: [] });
-		renderDialog();
+		await openDialog();
 
 		expect(runButton().disabled).toBe(true);
 	});
 
 	it('cancels a run when the dialog closes', async () => {
 		simulateStatSweepStep.mockImplementation(() => new Promise(() => {}));
-		const onOpenChange = renderDialog();
-		await act(async () => {
-			fireEvent.click(runButton());
-		});
+		await openDialog();
+		await run();
 		abortType.mockClear();
 
 		await act(async () => {
 			fireEvent.click(rootElem.querySelector('[data-testid="stat-sweep-dialog"] [data-testid="sim-dialog-close"]')!);
 		});
 
-		expect(onOpenChange).toHaveBeenCalledWith(false);
-		expect(abortType).toHaveBeenCalled();
+		expect(abortType).toHaveBeenCalledWith(RequestTypes.StatSweep);
+	});
+
+	it('cancels a run when Show power tools is turned off, which takes the dialog away', async () => {
+		simulateStatSweepStep.mockImplementation(() => new Promise(() => {}));
+		await openDialog();
+		await run();
+		abortType.mockClear();
+
+		await showPowerTools(false);
+
+		expect(action()).toBeNull();
+		expect(dialog()).toBeNull();
+		expect(abortType).toHaveBeenCalledExactlyOnceWith(RequestTypes.StatSweep);
 	});
 });

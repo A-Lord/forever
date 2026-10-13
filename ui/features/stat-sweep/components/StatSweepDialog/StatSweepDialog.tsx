@@ -14,13 +14,13 @@ import { downloadString } from '@ui-kit/utils/dom';
 import { useMemo, useRef } from 'react';
 
 import { useStatSweep } from '../../hooks/useStatSweep';
-import { offeredSweepMetrics, shownSweepMetric, statSweepCsv, type StatSweepProgress } from '../../model/stat_sweep';
-import { StatSweepChart } from './StatSweepChart';
-import { StatSweepHistory } from './StatSweepHistory';
-import { StatSweepPanel } from './StatSweepPanel';
-import { StatSweepPrecisionOptions } from './StatSweepPrecisionOptions';
-import { HandleStatSweepStatList, type StatSweepStatListHandle } from './StatSweepStatList';
-import { HandleStatSweepTimeRemaining, type StatSweepTimeRemainingHandle } from './StatSweepTimeRemaining';
+import { offeredSweepMetrics, shownSweepMetric, statSweepCsv, type StatSweepProgress, sweepPrecisionRunnable } from '../../model/stat_sweep';
+import { StatSweepChart } from '../StatSweepChart';
+import { StatSweepHistory } from '../StatSweepHistory';
+import { StatSweepPanel } from '../StatSweepPanel';
+import { StatSweepPrecisionOptions } from '../StatSweepPrecisionOptions';
+import { HandleStatSweepStatList, type StatSweepStatListHandle } from '../StatSweepStatList';
+import { HandleStatSweepTimeRemaining, type StatSweepTimeRemainingHandle } from '../StatSweepTimeRemaining';
 
 const t = (key: string, options?: Record<string, unknown>) => i18n.t(`sidebar.buttons.stat_sweep.${key}`, options);
 
@@ -76,9 +76,10 @@ export const StatSweepDialog = ({ open, onOpenChange, settings }: StatSweepDialo
 	}, [unitStats, storedStats]);
 	const selectedKeys = useMemo(() => selectedStats.map(stat => stat.getKey()), [selectedStats]);
 	const selectedLabels = useMemo(() => selectedKeys.map(key => statOptions.find(option => option.value === key)?.label ?? ''), [selectedKeys, statOptions]);
+	const runnable = selectedStats.length > 0 && sweepPrecisionRunnable(precision);
 
 	const onRun = () => {
-		if (!selectedStats.length) return;
+		if (!runnable) return;
 		const finalStats = currentStats?.finalStats ? Stats.fromProto(currentStats.finalStats) : null;
 		sweep
 			.run({
@@ -111,7 +112,7 @@ export const StatSweepDialog = ({ open, onOpenChange, settings }: StatSweepDialo
 			scrollContents
 			title={t('title')}
 			footer={
-				<Button variant="primary" disabled={sweep.isRunning || !selectedStats.length} onClick={onRun}>
+				<Button variant="primary" disabled={sweep.isRunning || !runnable} onClick={onRun}>
 					{t('run')}
 				</Button>
 			}>

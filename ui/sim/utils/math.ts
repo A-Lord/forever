@@ -15,6 +15,8 @@ export const timeRemainingAtRate = (elapsed: number, completed: number, total: n
 	completed > 0 ? (elapsed / completed) * Math.max(0, total - completed) : undefined;
 
 export const Z_95 = BULK_SIM_Z95;
+// The two-sided 90% interval, the ± shown behind each EP and the one Target ± sizes runs by.
+export const Z_90 = 1.645;
 
 // The sim's standard two-sample significance test; every "are these two results actually
 // different" decision should go through this so thresholds never diverge.
@@ -36,7 +38,7 @@ export function zTest(
 }
 
 export function stDevToConf90(stDev: number, N: number) {
-	return (1.645 * stDev) / Math.sqrt(N);
+	return (Z_90 * stDev) / Math.sqrt(N);
 }
 
 export function stDevToConf95(stDev: number, N: number) {
