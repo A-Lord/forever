@@ -2533,7 +2533,8 @@
 				"current_value": "Current value",
 				"change_axis": "Change from current value",
 				"tooltip_total": "{{stat}} {{total}} ({{change}})",
-				"tooltip_value": "{{value}} ± {{ci}}",
+				"tooltip_value": "{{value}} ± {{stdev}}",
+				"band_key": "Shaded: ± 1 standard deviation of a fight's DPS",
 				"empty": "Run a DPS curve to plot DPS across each stat's range.",
 				"export_csv": "Export CSV",
 				"history": {

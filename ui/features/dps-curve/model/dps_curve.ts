@@ -165,7 +165,7 @@ export interface DpsCurveCsvRun {
 	points: ReadonlyArray<DpsCurvePoint>;
 }
 
-export const DPS_CURVE_CSV_COLUMNS = ['run', 'stat', 'base_total', 'change', 'total', 'dps', 'dps_ci90', 'samples'] as const;
+export const DPS_CURVE_CSV_COLUMNS = ['run', 'stat', 'base_total', 'change', 'total', 'dps', 'dps_stdev', 'dps_ci90', 'samples'] as const;
 
 const csvField = (value: string | number) => {
 	const text = String(value);
@@ -181,6 +181,7 @@ export function dpsCurveCsv(runs: ReadonlyArray<DpsCurveCsvRun>): string {
 			curveChange(point.statValue, run.baseStatValue),
 			point.statValue,
 			point.dps,
+			point.dpsStdev,
 			pointCi(point),
 			point.samples,
 		]),

@@ -7,7 +7,7 @@ import type { ChartData, ChartDataset, ChartOptions, Plugin } from 'chart.js';
 import { useMemo } from 'react';
 import { Line } from 'react-chartjs-2';
 
-import { curveChange, pointCi } from '../../model/dps_curve';
+import { curveChange } from '../../model/dps_curve';
 import { seriesColor } from './colors';
 
 export interface DpsCurveSeries {
@@ -27,6 +27,7 @@ export interface DpsCurveChartProps {
 type CurveDatum = { x: number; y: number; point: DpsCurvePoint; statLabel: string };
 
 // Each run draws the band's upper edge, its lower edge, then the DPS line. Upper fills down to the next dataset, so the order is load-bearing.
+// The band is one standard deviation of a single fight's DPS either side of the average, the spread the sim card's ± reports.
 const DATASETS_PER_RUN = 3;
 const LINE_INDEX = 2;
 const isLine = (datasetIndex: number) => datasetIndex % DATASETS_PER_RUN === LINE_INDEX;
@@ -51,8 +52,8 @@ function datasets(series: ReadonlyArray<DpsCurveSeries>): Array<ChartDataset<'li
 			run.points.map(point => ({ x: curveChange(point.statValue, run.baseStatValue), y: y(point), point, statLabel: run.statLabel }));
 		const edge = { pointRadius: 0, pointHoverRadius: 0, borderWidth: 0, label: run.label };
 		return [
-			{ ...edge, data: at(point => point.dps + pointCi(point)), backgroundColor: color + BAND_ALPHA, fill: '+1' },
-			{ ...edge, data: at(point => point.dps - pointCi(point)), fill: false },
+			{ ...edge, data: at(point => point.dps + point.dpsStdev), backgroundColor: color + BAND_ALPHA, fill: '+1' },
+			{ ...edge, data: at(point => point.dps - point.dpsStdev), fill: false },
 			{
 				label: run.label,
 				data: at(point => point.dps),
@@ -154,7 +155,7 @@ function options(range: { min: number; max: number }, showLegend: boolean): Char
 						),
 					label: item => {
 						const { point, y } = item.raw as CurveDatum;
-						return `${item.dataset.label}: ${t('tooltip_value', { value: formatDps(y), ci: formatDpsError(pointCi(point)) })}`;
+						return `${item.dataset.label}: ${t('tooltip_value', { value: formatDps(y), stdev: formatDpsError(point.dpsStdev) })}`;
 					},
 				},
 			},
@@ -194,6 +195,10 @@ export const DpsCurveChart = ({ series }: DpsCurveChartProps) => {
 				<span className="flex items-center gap-2">
 					<span className="h-4 border-l border-dashed border-muted" />
 					{t('current_value')}
+				</span>
+				<span className="flex items-center gap-2">
+					<span className="h-4 w-4 rounded-sm bg-muted/30" />
+					{t('band_key')}
 				</span>
 			</figcaption>
 		</figure>

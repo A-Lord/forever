@@ -8892,6 +8892,7 @@
 								"change_axis": { "type": "string" },
 								"tooltip_total": { "type": "string" },
 								"tooltip_value": { "type": "string" },
+								"band_key": { "type": "string" },
 								"empty": { "type": "string" },
 								"export_csv": { "type": "string" },
 								"history": {
@@ -8948,6 +8949,7 @@
 								"change_axis",
 								"tooltip_total",
 								"tooltip_value",
+								"band_key",
 								"empty",
 								"export_csv",
 								"history",

@@ -230,7 +230,7 @@ describe('color slots', () => {
 });
 
 describe('dpsCurveCsv', () => {
-	it('writes one row per point of every run, with the change, the 90% ± and a quoted label', () => {
+	it('writes one row per point of every run, with the change, the spread, the 90% ± and a quoted label', () => {
 		const csv = dpsCurveCsv([
 			{
 				label: 'Hit, ±100',
@@ -245,10 +245,10 @@ describe('dpsCurveCsv', () => {
 		]);
 
 		expect(csv.split('\n')).toEqual([
-			'run,stat,base_total,change,total,dps,dps_ci90,samples',
-			'"Hit, ±100",Hit Rating,120,-20,100,1500.5,1.645,10000',
-			'"Hit, ±100",Hit Rating,120,0,120,1520,0,10000',
-			'Crit,"Crit ""Rating""",50,10,60,1600,16.45,400',
+			'run,stat,base_total,change,total,dps,dps_stdev,dps_ci90,samples',
+			'"Hit, ±100",Hit Rating,120,-20,100,1500.5,100,1.645,10000',
+			'"Hit, ±100",Hit Rating,120,0,120,1520,0,0,10000',
+			'Crit,"Crit ""Rating""",50,10,60,1600,200,16.45,400',
 			'',
 		]);
 	});

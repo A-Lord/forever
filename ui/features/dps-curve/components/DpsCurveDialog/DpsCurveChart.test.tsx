@@ -6,7 +6,6 @@ import { render, screen } from '@testing-library/react';
 import type { ChartOptions, Plugin, TooltipItem } from 'chart.js';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { pointCi } from '../../model/dps_curve';
 import { seriesColor } from './colors';
 import { DpsCurveChart, type DpsCurveSeries } from './DpsCurveChart';
 
@@ -79,13 +78,13 @@ describe('DpsCurveChart', () => {
 		expect(moveTo).toHaveBeenCalledWith(40, 0);
 	});
 
-	it("draws each run as a DPS line in a band of DPS ± its 90% ± in the run's colour", () => {
+	it("draws each run as a DPS line in a band of DPS ± one standard deviation in the run's colour", () => {
 		const single = run('a', 120, 0);
 		render(<DpsCurveChart series={[single]} />);
 
 		const datasets = charts[0].config.data.datasets;
 		const point = single.points[3];
-		expect(datasets.map(dataset => dataset.data[3].y)).toEqual([point.dps + pointCi(point), point.dps - pointCi(point), point.dps]);
+		expect(datasets.map(dataset => dataset.data[3].y)).toEqual([point.dps + point.dpsStdev, point.dps - point.dpsStdev, point.dps]);
 		expect(datasets[2].borderColor).toBe(seriesColor(0));
 	});
 
@@ -136,7 +135,7 @@ describe('DpsCurveChart', () => {
 		const text = label({ dataset: data.datasets[2], raw: data.datasets[2].data[0] });
 
 		expect(text.startsWith('a: ')).toBe(true);
-		expect(t).toHaveBeenCalledWith('sidebar.buttons.dps_curve.tooltip_value', { value: point.dps.toFixed(2), ci: pointCi(point).toFixed(0) });
+		expect(t).toHaveBeenCalledWith('sidebar.buttons.dps_curve.tooltip_value', { value: point.dps.toFixed(2), stdev: point.dpsStdev.toFixed(0) });
 		t.mockRestore();
 	});
 });
