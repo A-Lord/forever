@@ -179,6 +179,35 @@ describe('DpsCurveDialog', () => {
 		expect(history.saveRun.mock.calls[0][0].points).toHaveLength(1);
 	});
 
+	it("lists the run's stats in the progress dialog, done up to the running one, and titles it with that stat's step", async () => {
+		let settleThird!: (result: object) => void;
+		simulateDps
+			.mockResolvedValueOnce(sample(1000))
+			.mockResolvedValueOnce(sample(1000))
+			.mockImplementationOnce(options => {
+				options.onProgress({ completedIterations: 250, totalIterations: 1000 } as never);
+				return new Promise(resolve => (settleThird = resolve));
+			});
+		settings.setSetup({ stats: [AGILITY, STRENGTH], range: 10, step: 10 });
+		renderDialog();
+
+		await act(async () => {
+			fireEvent.click(runButton());
+		});
+		const states = () => [...tracker()!.querySelectorAll('[data-testid="dps-curve-stat"]')].map(row => row.getAttribute('data-state'));
+		expect(states()).toEqual(['done', 'running']);
+		expect(tracker()!.querySelector('[data-testid="progress-tracker-modal-progress-title"]')!.textContent).toBe('sidebar.buttons.dps_curve.progress');
+
+		await act(async () => {
+			fireEvent.click(tracker()!.querySelector('[data-testid="progress-tracker-modal-cancel-btn"]')!);
+		});
+		expect(states()).toEqual(['done', 'running']);
+		await act(async () => {
+			settleThird({ type: ErrorOutcomeType.ErrorOutcomeAborted, message: '' });
+		});
+		expect(tracker()).toBeNull();
+	});
+
 	it('exports the drawn runs as CSV', async () => {
 		settings.setSetup({ range: 10, step: 10 });
 		renderDialog();

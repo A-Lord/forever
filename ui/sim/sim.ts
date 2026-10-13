@@ -72,6 +72,8 @@ import { runConcurrentBulkSim, runConcurrentSim, runConcurrentStatWeights } from
 import { generateRequestId, WorkerPool, WorkerProgressCallback } from './workers/worker_pool';
 
 export const WASM_CONCURRENCY_STORAGE_KEY = `${LOCAL_STORAGE_PREFIX}_wasmconcurrency`;
+// Without the spec prefix, so every spec page shares the one setting.
+export const SHOW_ADVANCED_OPTIONS_STORAGE_KEY = `${LOCAL_STORAGE_PREFIX}_showadvancedoptions`;
 export type ReforgeOptimizeConfig = {
 	gear: Gear;
 	preCapEPWeights: Stats;
@@ -176,6 +178,7 @@ export class Sim {
 			}
 		}
 		this.setWasmConcurrency(wasmConcurrencySetting);
+		this.setShowAdvancedOptions(this.env.storage.getItem(SHOW_ADVANCED_OPTIONS_STORAGE_KEY) === 'true');
 
 		this.signalManager = new SimSignalManager();
 		this.runs = new SimRuns(this.store, this.signalManager);
@@ -843,7 +846,10 @@ export class Sim {
 		return this.ui.showAdvancedOptions;
 	}
 	setShowAdvancedOptions(newShowAdvancedOptions: boolean) {
-		if (newShowAdvancedOptions != this.ui.showAdvancedOptions) this.setUi({ showAdvancedOptions: newShowAdvancedOptions });
+		if (newShowAdvancedOptions != this.ui.showAdvancedOptions) {
+			this.env.storage.setItem(SHOW_ADVANCED_OPTIONS_STORAGE_KEY, newShowAdvancedOptions.toString());
+			this.setUi({ showAdvancedOptions: newShowAdvancedOptions });
+		}
 	}
 
 	getWasmConcurrency(): number {
@@ -920,7 +926,6 @@ export class Sim {
 			showThreatMetrics: this.getShowThreatMetrics(),
 			showHealingMetrics: this.getShowHealingMetrics(),
 			showExperimental: this.getShowExperimental(),
-			showAdvancedOptions: this.getShowAdvancedOptions(),
 			showQuickSwap: this.getShowQuickSwap(),
 			showEpValues: this.getShowEPValues(),
 			language: this.getLanguage(),
@@ -938,7 +943,6 @@ export class Sim {
 			this.setShowThreatMetrics(proto.showThreatMetrics);
 			this.setShowHealingMetrics(proto.showHealingMetrics);
 			this.setShowExperimental(proto.showExperimental);
-			this.setShowAdvancedOptions(proto.showAdvancedOptions);
 			this.setShowQuickSwap(proto.showQuickSwap);
 			this.setShowEPValues(proto.showEpValues);
 			this.setLanguage(proto.language);

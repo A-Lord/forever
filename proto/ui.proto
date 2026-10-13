@@ -314,7 +314,6 @@ message SimSettings {
 	bool show_threat_metrics = 4;
 	bool show_healing_metrics = 7;
 	bool show_experimental = 5;
-	bool show_advanced_options = 15;
 	bool show_quick_swap = 12;
 	bool show_ep_values = 11;
 	bool use_custom_ep_values = 13 [deprecated=true];

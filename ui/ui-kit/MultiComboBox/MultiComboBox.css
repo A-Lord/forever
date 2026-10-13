@@ -21,6 +21,10 @@
 		&:empty {
 			@apply hidden;
 		}
+
+		&[data-disabled] {
+			@apply pointer-events-none;
+		}
 	}
 
 	.ui-multi-combo-box-trigger {

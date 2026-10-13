@@ -41,7 +41,7 @@ export const MultiComboBox = ({
 						<Icon name="chevron-down" />
 					</Combobox.Trigger>
 				</Combobox.InputGroup>
-				<Combobox.Chips className="ui-multi-combo-box-chips" data-testid="multi-combo-box-chips">
+				<Combobox.Chips className="ui-multi-combo-box-chips" data-disabled={disabled ? '' : undefined} data-testid="multi-combo-box-chips">
 					<Combobox.Value>
 						{(picks: Array<EnumValueConfig>) =>
 							picks.map(entry => (
@@ -52,10 +52,11 @@ export const MultiComboBox = ({
 										<Chip
 											label={entry.name}
 											nameAs="span"
-											rootProps={{ ...props }}
+											// Base UI marks a disabled chip data-disabled, which hides a kit Chip; the picks stay in view.
+											rootProps={{ ...props, 'data-disabled': undefined }}
 											confirmDelete={false}
 											deleteLabel={removeLabel}
-											onDelete={() => onChange(value.filter(picked => picked !== entry.value))}
+											onDelete={disabled ? undefined : () => onChange(value.filter(picked => picked !== entry.value))}
 											testId="multi-combo-box-chip"
 										/>
 									)}

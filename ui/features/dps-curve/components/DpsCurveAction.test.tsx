@@ -1,3 +1,4 @@
+import i18n from '@i18n/config';
 import { createSimStore, patchSlice } from '@sim/state/sim_store';
 import { renderWithHost } from '@testing/react';
 import { act, fireEvent, screen } from '@testing-library/react';
@@ -13,15 +14,16 @@ const renderAction = (simDisabled = false) => {
 	renderWithHost(<DpsCurveAction settings={{} as never} />, { sim: { store, waitForInit: () => Promise.resolve() }, simDisabled });
 	return store;
 };
-const action = () => screen.queryByTestId('dps-curve-action');
+const action = () => screen.queryByRole('button', { name: i18n.t('sidebar.buttons.dps_curve.title') });
 
 describe('DpsCurveAction', () => {
-	it('shows only while Show advanced options is on', () => {
+	it('shows only while Show advanced options is on, as an icon button named for the tool', () => {
 		const store = renderAction();
 		expect(action()).toBeNull();
 
 		act(() => patchSlice(store, 'ui', { showAdvancedOptions: true }));
 		expect(action()).not.toBeNull();
+		expect(action()!.textContent).toBe('');
 	});
 
 	it('opens the DPS curve dialog', async () => {

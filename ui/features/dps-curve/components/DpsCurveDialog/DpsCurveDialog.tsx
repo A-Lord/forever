@@ -18,6 +18,7 @@ import { DpsCurveChart } from './DpsCurveChart';
 import { DpsCurveHistory } from './DpsCurveHistory';
 import { DpsCurvePanel } from './DpsCurvePanel';
 import { DpsCurvePrecisionOptions } from './DpsCurvePrecisionOptions';
+import { type DpsCurveStatListHandle, HandleDpsCurveStatList } from './DpsCurveStatList';
 import { type DpsCurveTimeRemainingHandle, HandleDpsCurveTimeRemaining } from './DpsCurveTimeRemaining';
 
 const t = (key: string, options?: Record<string, unknown>) => i18n.t(`sidebar.buttons.dps_curve.${key}`, options);
@@ -25,10 +26,9 @@ const t = (key: string, options?: Record<string, unknown>) => i18n.t(`sidebar.bu
 const CSV_FILE_NAME = 'wowsims-dps-curve.csv';
 
 // The bar spans every stat's steps, read out in iterations at the running step's expected count; before a step has one it counts steps.
-const trackerProgress = ({ stat, stats, step, steps, completed, totalSteps, iterationsPerStep }: DpsCurveProgress): ProgressTrackerProgress => {
+const trackerProgress = ({ step, steps, completed, totalSteps, iterationsPerStep }: DpsCurveProgress): ProgressTrackerProgress => {
 	const scale = iterationsPerStep || 1;
-	const title = stats > 1 ? t('progress_stats', { stat, stats, current: step, total: steps }) : t('progress', { current: step, total: steps });
-	return { title, current: completed * scale, total: totalSteps * scale };
+	return { title: t('progress', { current: step, total: steps }), current: completed * scale, total: totalSteps * scale };
 };
 
 export interface DpsCurveDialogProps {
@@ -42,10 +42,12 @@ export const DpsCurveDialog = ({ open, onOpenChange, settings }: DpsCurveDialogP
 	const { epStats, epPseudoStats } = useSpecConfig();
 	const progressRef = useRef<ProgressTrackerHandle>(null);
 	const remainingRef = useRef<DpsCurveTimeRemainingHandle>(null);
+	const statListRef = useRef<DpsCurveStatListHandle>(null);
 	const curve = useDpsCurve({
 		onProgress: progress => {
 			progressRef.current?.setProgress(trackerProgress(progress));
 			remainingRef.current?.setSeconds(progress.secondsRemaining);
+			statListRef.current?.setRunning(progress.stat - 1);
 		},
 	});
 	const defaultIterations = useSimStore('iterations');
@@ -65,6 +67,7 @@ export const DpsCurveDialog = ({ open, onOpenChange, settings }: DpsCurveDialogP
 		return offered.length ? offered : unitStats.slice(0, 1);
 	}, [unitStats, storedStats]);
 	const selectedKeys = useMemo(() => selectedStats.map(stat => stat.getKey()), [selectedStats]);
+	const selectedLabels = useMemo(() => selectedKeys.map(key => statOptions.find(option => option.value === key)?.label ?? ''), [selectedKeys, statOptions]);
 
 	const onRun = () => {
 		if (!selectedStats.length) return;
@@ -128,7 +131,15 @@ export const DpsCurveDialog = ({ open, onOpenChange, settings }: DpsCurveDialogP
 					open
 					testId="dps-curve-progress-dialog"
 					title={t('title')}
-					state={{ stage: 'running', message: <HandleDpsCurveTimeRemaining ref={remainingRef} /> }}
+					state={{
+						stage: 'running',
+						message: (
+							<>
+								<HandleDpsCurveTimeRemaining ref={remainingRef} />
+								<HandleDpsCurveStatList ref={statListRef} labels={selectedLabels} />
+							</>
+						),
+					}}
 					hasProgressBar
 					onCancel={curve.cancel}
 				/>

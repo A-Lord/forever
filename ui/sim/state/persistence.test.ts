@@ -1,3 +1,4 @@
+import { Spec } from '@generated/proto/common';
 import { DatabaseFilters, IndividualSimSettings, SimSettings, StatFilters } from '@generated/proto/ui';
 import { makeIndividualSim, serveDatabase } from '@testing/sim/individual_sim';
 import { memoryEnv } from '@testing/sim/memory_env';
@@ -64,5 +65,34 @@ describe('loadIndividualSettings', () => {
 		const linked = envelope(SimSettings.create({ filters: DatabaseFilters.create({ minIlvl: 50, statFilters: linkedStatFilters }) }));
 
 		expect(DatabaseFilters.equals(await load(linkLocation(linked, null)), await load())).toBe(true);
+	});
+});
+
+describe('Show advanced options', () => {
+	it('starts off', async () => {
+		const { sim } = await makeIndividualSim();
+
+		expect(sim.getShowAdvancedOptions()).toBe(false);
+	});
+
+	it("is one setting for every spec page, outside a page's saved settings, and its defaults keep it", async () => {
+		const env = memoryEnv();
+		(await makeIndividualSim({ env })).sim.setShowAdvancedOptions(true);
+
+		const protection = await makeIndividualSim({ spec: Spec.SpecProtectionWarrior, env });
+		expect(protection.sim.getShowAdvancedOptions()).toBe(true);
+
+		loadSettings(protection);
+		protection.host.applyDefaults();
+		expect(protection.sim.getShowAdvancedOptions()).toBe(true);
+		expect(env.storage.getItem(STORAGE_KEY)).not.toContain('showAdvancedOptions');
+	});
+
+	it('stays off on the next page once turned off', async () => {
+		const env = memoryEnv();
+		(await makeIndividualSim({ env })).sim.setShowAdvancedOptions(true);
+		(await makeIndividualSim({ env })).sim.setShowAdvancedOptions(false);
+
+		expect((await makeIndividualSim({ env })).sim.getShowAdvancedOptions()).toBe(false);
 	});
 });

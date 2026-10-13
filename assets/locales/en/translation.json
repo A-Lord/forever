@@ -2528,7 +2528,6 @@
 				"step": "Step",
 				"run": "Run DPS curve",
 				"progress": "Step {{current}} / {{total}}",
-				"progress_stats": "Stat {{stat}} / {{stats}} · Step {{current}} / {{total}}",
 				"run_label": "{{stat}} ±{{range}}",
 				"dps_axis": "DPS",
 				"current_value": "Current value",

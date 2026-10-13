@@ -6,7 +6,8 @@ import type { DpsCurveSettings } from '@sim/settings/dps_curve_settings';
 import { Button } from '@ui-kit/Button';
 import { Icon } from '@ui-kit/Icon';
 import { SidebarDisabledContext } from '@ui-kit/SidebarActionButton';
-import { use, useState } from 'react';
+import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
+import { use, useId, useState } from 'react';
 
 import { trackPageView } from '../../../tracking/utils';
 import { DpsCurveDialog } from './DpsCurveDialog/DpsCurveDialog';
@@ -21,23 +22,27 @@ export const DpsCurveAction = ({ settings }: DpsCurveActionProps) => {
 	const sidebarDisabled = use(SidebarDisabledContext);
 	const { status } = useSimStatus(useSim());
 	const [open, setOpen] = useState(false);
+	const tooltipId = useId();
 
 	if (!shown || host.simDisabled) return null;
 
+	const label = i18n.t('sidebar.buttons.dps_curve.title');
 	return (
 		<>
 			<Button
 				variant="outline-primary"
+				aria-label={label}
 				data-testid="dps-curve-action"
 				data-sidebar-action=""
 				disabled={status !== 'ready' || sidebarDisabled}
 				onClick={() => {
 					trackPageView('DPS Curve', '/dps-curve');
 					setOpen(true);
-				}}>
+				}}
+				{...tooltipAnchorProps(tooltipId)}>
 				<Icon name="stairs" />
-				{i18n.t('sidebar.buttons.dps_curve.title')}
 			</Button>
+			<Tooltip id={tooltipId} content={label} place="bottom" />
 			<DpsCurveDialog open={open} onOpenChange={setOpen} settings={settings} />
 		</>
 	);
