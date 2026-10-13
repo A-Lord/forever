@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/stats"
 )
 
 type pendingProcTest struct {
@@ -17,17 +18,21 @@ type pendingProcTest struct {
 	managed      *Aura
 	refused      *Aura
 	refusedNow   *Aura
+	stacking     *Aura
+	statProc     *StatBuffAura
 	aplSpell     *Spell
 	procSpell    *Spell
+	mcdSpell     *Spell
 	castTriggers int
 }
 
-// A spell cast from the APL and one that is not, each a landed hit. Deferred triggers on those hits put up a
-// buff and a debuff on the hit target, both declared, and a second buff left undeclared; an immediate trigger
-// puts up a third, declared, at the hit. Two more deferred triggers declare a buff each, one rolling a stated
-// chance below 1 and one a proc manager that always fires. A deferred and an immediate trigger declare a buff
-// each whose handler never puts it up. A cast trigger declares the debuff too, though a cast carries no target
-// to find it on.
+// A spell cast from the APL, one that is not and a major cooldown, each a landed hit. Deferred triggers on those
+// hits put up a buff and a debuff on the hit target, both declared, and a second buff left undeclared; an
+// immediate trigger puts up a third, declared, at the hit. Two more deferred triggers declare a buff each, one
+// rolling a stated chance below 1 and one a proc manager that always fires. A deferred and an immediate trigger
+// declare a buff each whose handler never puts it up. Two more deferred triggers declare a stacking buff whose
+// handler only adds a stack while it is up, and a Strength item proc. A cast trigger declares the debuff too,
+// though a cast carries no target to find it on, and a hit-taken trigger declares it on the attacker.
 func newPendingProcTest() *pendingProcTest {
 	pt := &pendingProcTest{}
 	pt.channelTest = newChannelTest(func(_ *channelTest, char *Character) *Spell {
@@ -41,6 +46,7 @@ func newPendingProcTest() *pendingProcTest {
 		}
 		pt.aplSpell = hit(910304, SpellFlagAPL)
 		pt.procSpell = hit(910305, SpellFlagNone)
+		pt.mcdSpell = hit(910311, SpellFlagAPL|SpellFlagMCD)
 
 		buff := func(label string, id int32) *Aura {
 			return char.RegisterAura(Aura{Label: label, ActionID: ActionID{SpellID: id}, Duration: 10 * time.Second})
@@ -52,6 +58,9 @@ func newPendingProcTest() *pendingProcTest {
 		pt.managed = buff("Managed Buff", 910308)
 		pt.refused = buff("Refused Buff", 910309)
 		pt.refusedNow = buff("Refused Immediate Buff", 910310)
+		pt.stacking = char.RegisterAura(Aura{Label: "Stacking Buff", ActionID: ActionID{SpellID: 910312}, Duration: time.Minute, MaxStacks: 5})
+		pt.statProc = newStatAura(char, "Stat Proc", 910313, stats.Strength, 10*time.Second)
+		char.ItemProcBuffs = append(char.ItemProcBuffs, pt.statProc)
 		pt.debuffs = char.NewEnemyAuraArray(func(target *Unit) *Aura {
 			return target.RegisterAura(Aura{Label: "Pending Debuff", ActionID: ActionID{SpellID: 910302}, Duration: 10 * time.Second})
 		})
@@ -97,6 +106,18 @@ func newPendingProcTest() *pendingProcTest {
 			ActivatesAura:      pt.refusedNow,
 			Handler:            func(*Simulation, *Spell, *SpellResult) {},
 		})
+		trigger("Stacking Buff Trigger", ProcTrigger{
+			ActivatesAura: pt.stacking,
+			Handler: func(sim *Simulation, _ *Spell, _ *SpellResult) {
+				if pt.stacking.IsActive() {
+					pt.stacking.AddStack(sim)
+				}
+			},
+		})
+		trigger("Stat Proc Trigger", ProcTrigger{
+			ActivatesAura: pt.statProc.Aura,
+			Handler:       func(sim *Simulation, _ *Spell, _ *SpellResult) { pt.statProc.Activate(sim) },
+		})
 		trigger("Undeclared Buff Trigger", ProcTrigger{
 			Handler: func(sim *Simulation, _ *Spell, _ *SpellResult) { pt.undeclared.Activate(sim) },
 		})
@@ -105,9 +126,16 @@ func newPendingProcTest() *pendingProcTest {
 			ActivatesAuras: pt.debuffs,
 			Handler:        func(*Simulation, *Spell, *SpellResult) { pt.castTriggers++ },
 		})
+		trigger("Pending Debuff Hit Taken Trigger", ProcTrigger{
+			Callback:       CallbackOnSpellHitTaken,
+			Outcome:        OutcomeLanded,
+			ActivatesAuras: pt.debuffs,
+			Handler:        func(sim *Simulation, spell *Spell, _ *SpellResult) { pt.debuffs.Get(spell.Unit).Activate(sim) },
+		})
 		return pt.aplSpell
 	})
 	pt.procSpell.finalize()
+	pt.mcdSpell.finalize()
 	pt.fw.ReactionTime = 100 * time.Millisecond
 	pt.start()
 	return pt
@@ -195,24 +223,25 @@ func TestPendingProcCountsEachDeferralAndClearsAtTheIterationEnd(t *testing.T) {
 }
 
 // With the reaction time, a proc the player cannot count on stays a proc: one off a spell the APL did not cast,
-// and one off an APL spell that rolls a stated chance or a proc manager. It is unseen while it waits and for the
-// reaction time after it lands.
+// one off a major cooldown, which the cooldown manager may cast on its own, and one off an APL spell that rolls
+// a stated chance or a proc manager. It is unseen while it waits and for the reaction time after it lands.
 func TestReactionTimeHidesAProcThePlayerCannotCountOn(t *testing.T) {
 	for _, c := range []struct {
-		name string
-		apl  bool
-		aura func(*pendingProcTest) *Aura
+		name  string
+		spell func(*pendingProcTest) *Spell
+		aura  func(*pendingProcTest) *Aura
 	}{
-		{"off the other spell", false, func(pt *pendingProcTest) *Aura { return pt.buff }},
-		{"stated chance", true, func(pt *pendingProcTest) *Aura { return pt.rolled }},
-		{"proc manager", true, func(pt *pendingProcTest) *Aura { return pt.managed }},
+		{"off the other spell", func(pt *pendingProcTest) *Spell { return pt.procSpell }, func(pt *pendingProcTest) *Aura { return pt.buff }},
+		{"off a major cooldown", func(pt *pendingProcTest) *Spell { return pt.mcdSpell }, func(pt *pendingProcTest) *Aura { return pt.buff }},
+		{"stated chance", func(pt *pendingProcTest) *Spell { return pt.aplSpell }, func(pt *pendingProcTest) *Aura { return pt.rolled }},
+		{"proc manager", func(pt *pendingProcTest) *Spell { return pt.aplSpell }, func(pt *pendingProcTest) *Aura { return pt.managed }},
 	} {
 		pt := newPendingProcTest()
 		aura := c.aura(pt)
 		reacted := pt.isActive(aura, true)
 
 		pt.runUntil(time.Second)
-		pt.hit(Ternary(c.apl, pt.aplSpell, pt.procSpell))
+		pt.hit(c.spell(pt))
 		if aura.pendingActivations != 1 {
 			t.Fatalf("%s: pending = %d after the hit, want the proc to fire", c.name, aura.pendingActivations)
 		}
@@ -320,5 +349,58 @@ func TestReactionTimeIgnoresAnOwnProcWhoseHandlerRefuses(t *testing.T) {
 		if !c.reacted.GetBool(pt.sim) {
 			t.Errorf("%s at the reaction time after it went up: active = false, want true", c.name)
 		}
+	}
+}
+
+// With the reaction time, an aura something else put up counts as the player's own once an own trigger's handler
+// adds a stack to it.
+func TestReactionTimeCountsAnOwnProcThatOnlyAddsAStack(t *testing.T) {
+	pt := newPendingProcTest()
+	reacted := pt.isActive(pt.stacking, true)
+
+	pt.runUntil(time.Second)
+	pt.stacking.Activate(pt.sim)
+	pt.stacking.SetStacks(pt.sim, 1)
+	pt.runUntil(time.Second + 50*time.Millisecond)
+	pt.hit(pt.aplSpell)
+	pt.runUntil(time.Second + 50*time.Millisecond + SpellBatchWindow)
+	if pt.stacking.GetStacks() != 2 || pt.stacking.pendingActivations != 0 || !reacted.GetBool(pt.sim) {
+		t.Errorf("after the handler added a stack inside the reaction time: stacks = %d, pending = %d, active = %t, want 2, 0, true",
+			pt.stacking.GetStacks(), pt.stacking.pendingActivations, reacted.GetBool(pt.sim))
+	}
+}
+
+// A hit-taken trigger declaring a per-target aura marks the one on the attacker pending.
+func TestPendingProcOffAHitTakenMarksTheAttacker(t *testing.T) {
+	pt := newPendingProcTest()
+	attacker := pt.fw.CurrentTarget
+	debuff := pt.debuffs.Get(attacker)
+	active := pt.debuffIsActive(false)
+
+	pt.runUntil(time.Second)
+	pt.fw.Unit.OnSpellHitTaken(pt.sim, &Spell{Unit: attacker, ProcMask: ProcMaskSpellDamage}, &SpellResult{Target: &pt.fw.Unit, Outcome: OutcomeHit})
+	if debuff.IsActive() || debuff.pendingActivations != 1 || !active.GetBool(pt.sim) {
+		t.Errorf("in the batch window: debuff up = %t, pending = %d, active = %t, want false, 1, true", debuff.IsActive(), debuff.pendingActivations, active.GetBool(pt.sim))
+	}
+	pt.runUntil(time.Second + SpellBatchWindow)
+	if !debuff.IsActive() || debuff.pendingActivations != 0 {
+		t.Errorf("after the handler ran: debuff up = %t, pending = %d, want true, 0", debuff.IsActive(), debuff.pendingActivations)
+	}
+}
+
+// Inside the spell batch window a declared item stat proc reads as up to Any and All Item Stat Procs Active.
+func TestItemStatProcsActiveSeeADeclaredProcBeforeItsHandlerRuns(t *testing.T) {
+	pt := newPendingProcTest()
+	str := int32(proto.Stat_StatStrength)
+	anyActive := pt.rot.newValueAnyItemStatProcsActive(&proto.APLValueAnyItemStatProcsActive{StatType1: str, StatType2: -1, StatType3: -1}, nil)
+	allActive := pt.rot.newValueAllItemStatProcsActive(&proto.APLValueAllItemStatProcsActive{StatType1: str, StatType2: -1, StatType3: -1}, nil)
+
+	pt.runUntil(time.Second)
+	if anyActive.GetBool(pt.sim) || allActive.GetBool(pt.sim) {
+		t.Errorf("before the hit: any = %t, all = %t, want false, false", anyActive.GetBool(pt.sim), allActive.GetBool(pt.sim))
+	}
+	pt.hit(pt.procSpell)
+	if pt.statProc.IsActive() || !anyActive.GetBool(pt.sim) || !allActive.GetBool(pt.sim) {
+		t.Errorf("in the batch window: proc up = %t, any = %t, all = %t, want false, true, true", pt.statProc.IsActive(), anyActive.GetBool(pt.sim), allActive.GetBool(pt.sim))
 	}
 }

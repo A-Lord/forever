@@ -61,7 +61,7 @@ type Aura struct {
 
 	pendingActivations    int32         // Deferred proc handlers declared to activate the aura that have not run yet.
 	pendingOwnActivations int32         // Those of them from a guaranteed trigger off a spell its unit cast from its APL.
-	lastOwnProcAt         time.Duration // When an own trigger's handler last put the aura up or refreshed it; -NeverExpires if not yet this iteration.
+	lastOwnProcAt         time.Duration // When an own trigger's handler last put the aura up, refreshed it or changed its stacks; -NeverExpires if not yet this iteration.
 
 	// The unit this aura is attached to.
 	Unit *Unit
@@ -165,6 +165,11 @@ func (aura *Aura) addPending(own bool, n int32) {
 	if own {
 		aura.pendingOwnActivations += n
 	}
+}
+
+// Up, or declared by a deferred proc handler that has not run yet.
+func (aura *Aura) activeOrPending() bool {
+	return aura.IsActive() || aura.pendingActivations > 0
 }
 
 func (aura *Aura) doneIteration(sim *Simulation) {

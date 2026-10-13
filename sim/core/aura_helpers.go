@@ -57,7 +57,7 @@ type ProcTrigger struct {
 	Handler             ProcHandler
 	TriggerImmediately  bool       // If false (default), the handler will be called one spell batch window later for improved realism.
 	ActivatesAura       *Aura      // The aura the handler activates, which the APL then reads as active while the handler waits out the spell batch window.
-	ActivatesAuras      AuraArray  // The same for a per-target aura, the one on the result's target; a trigger without a result falls back to ActivatesAura.
+	ActivatesAuras      AuraArray  // The same for a per-target aura, the one on the result's target, or on the attacker for a hit taken; a trigger without a result falls back to ActivatesAura.
 	ClassSpellMask      int64      // The sim's own custom spell masks, not from the game files.
 	ClassFlags          ClassFlags // The spells this trigger fires on (EffectSpellClassMask in the game files); with ClassSpellMask, both must match.
 	ProcSpellClassFlags ClassFlags // The proccing spell's class flags, which proc chance talents match (e.g. Improved Poisons on Instant Poison).
@@ -155,11 +155,15 @@ type deferredProc struct {
 	cleanUp   func(*Simulation)
 }
 
-func (config *ProcTrigger) activatedAura(result *SpellResult) *Aura {
-	if config.ActivatesAuras != nil && result != nil {
-		return config.ActivatesAuras.Get(result.Target)
+func (config *ProcTrigger) activatedAura(spell *Spell, result *SpellResult) *Aura {
+	if config.ActivatesAuras == nil || result == nil {
+		return config.ActivatesAura
 	}
-	return config.ActivatesAura
+	// A hit taken lands on the wearer, so a per-target aura goes on the attacker.
+	if config.Callback.Matches(CallbackOnSpellHitTaken) {
+		return config.ActivatesAuras.Get(spell.Unit)
+	}
+	return config.ActivatesAuras.Get(result.Target)
 }
 
 func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) {
@@ -187,18 +191,20 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 	handler := config.Handler
 	var freeDeferred []*deferredProc
 
-	// An own trigger marks the aura as the player's only if its handler put the aura up or refreshed it.
+	// An own trigger marks the aura as the player's only if its handler put the aura up, refreshed it or changed its stacks.
 	runOwnHandler := func(sim *Simulation, spell *Spell, result *SpellResult, activated *Aura) {
-		wasActive, expiresAt := activated.IsActive(), activated.ExpiresAt()
+		wasActive, expiresAt, stacks := activated.IsActive(), activated.ExpiresAt(), activated.GetStacks()
 		handler(sim, spell, result)
-		if activated.IsActive() && (!wasActive || activated.ExpiresAt() != expiresAt) {
+		if activated.IsActive() && (!wasActive || activated.ExpiresAt() != expiresAt || activated.GetStacks() != stacks) {
 			activated.lastOwnProcAt = sim.CurrentTime
 		}
 	}
 
 	applyHandler := func(sim *Simulation, spell *Spell, result *SpellResult) {
-		activated := config.activatedAura(result)
-		own := guaranteed && activated != nil && spell.Unit == unit && spell.Flags.Matches(SpellFlagAPL)
+		activated := config.activatedAura(spell, result)
+		// A major cooldown's proc stays a proc, as the cooldown manager may cast it on its own.
+		own := guaranteed && activated != nil && spell.Unit == unit &&
+			spell.Flags.Matches(SpellFlagAPL) && !spell.Flags.Matches(SpellFlagMCD)
 		if config.TriggerImmediately {
 			if own {
 				runOwnHandler(sim, spell, result, activated)
