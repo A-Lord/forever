@@ -294,7 +294,7 @@ func statWeightAggregator(sums *proto.StatWeightsPairedSums) aggregator {
 
 // Whether every paired difference of the side is 0, as for a stat whose runs repeat the baseline.
 func matchesBaseline(side *proto.StatWeightsSidePairs) bool {
-	for _, sums := range []*proto.StatWeightsPairedSums{side.Dps, side.Hps, side.Tmi} {
+	for _, sums := range []*proto.StatWeightsPairedSums{side.Dps, side.Hps, side.Tps, side.Dtps, side.Tmi} {
 		if sums.Sum != 0 || sums.SumSq != 0 {
 			return false
 		}
@@ -437,14 +437,15 @@ func calcStatWeights(swcr *proto.StatWeightsCalcRequest) (*StatWeightsResult, *p
 // reference weight in it is 0, a stat at or under the target in all of them is left out, and the
 // baseline runs as far as the furthest stat. The sides divide the total because the low and high
 // runs pool their samples. A set multiplier caps each run at that multiple of the first pass's
-// iterations, and the plan is empty once statWeightMaxTopUpPasses passes have run.
+// iterations, and the plan is empty once statWeightMaxTopUpPasses passes have run or without a
+// target above 0.
 func planStatWeightTopUp(request *proto.StatWeightsTopUpRequest) *proto.StatWeightsTopUpPlan {
 	target := request.Target
 	calc := request.Calc
 	plan := &proto.StatWeightsTopUpPlan{
 		BaselineIterations: statWeightBaselineIterations(calc.BaseDps),
 	}
-	if target == nil || request.Passes >= statWeightMaxTopUpPasses {
+	if target == nil || !(target.EpCi > 0) || request.Passes >= statWeightMaxTopUpPasses {
 		return plan
 	}
 	result, err := calcStatWeights(calc)
@@ -507,34 +508,44 @@ func planStatWeightTopUp(request *proto.StatWeightsTopUpRequest) *proto.StatWeig
 	return plan
 }
 
+// The iteration counts a progress message carries as int32, both scaled by one factor once the total
+// passes the int32 range, which a plan of up to MaxInt32 iterations per side reaches over two stats.
+func statWeightProgressCounts(done int64, total int64) (int32, int32) {
+	if total <= math.MaxInt32 {
+		return int32(done), int32(total)
+	}
+	return int32(float64(done) * math.MaxInt32 / float64(total)), math.MaxInt32
+}
+
 // Run stat weight sims and compute weights.
 func runStatWeights(request *proto.StatWeightsRequest, progress chan *proto.ProgressMetrics, signals simsignals.Signals) *proto.StatWeightsResult {
 	requestData := buildStatWeightRequests(request)
 
-	var iterationsTotal int32 = requestData.BaseRequest.SimOptions.Iterations
-	var iterationsDone int32 = 0
+	var iterationsTotal int64 = int64(requestData.BaseRequest.SimOptions.Iterations)
+	var iterationsDone int64 = 0
 	var simsTotal int32 = 1
 	var simsCompleted int32 = 0
 
 	for _, reqData := range requestData.StatSimRequests {
 		if reqData.RequestLow != nil {
-			iterationsTotal += reqData.RequestLow.SimOptions.Iterations
+			iterationsTotal += int64(reqData.RequestLow.SimOptions.Iterations)
 			simsTotal += 1
 		}
-		iterationsTotal += reqData.RequestHigh.SimOptions.Iterations
+		iterationsTotal += int64(reqData.RequestHigh.SimOptions.Iterations)
 		simsTotal += 1
 	}
 
 	waitForResult := func(srcProgressChannel chan *proto.ProgressMetrics) *proto.RaidSimResult {
 		var lastCompleted int32 = 0
 		for metrics := range srcProgressChannel {
-			iterationsDone += metrics.CompletedIterations - lastCompleted
+			iterationsDone += int64(metrics.CompletedIterations - lastCompleted)
 			lastCompleted = metrics.CompletedIterations
 
 			if progress != nil {
+				completedIterations, totalIterations := statWeightProgressCounts(iterationsDone, iterationsTotal)
 				progress <- &proto.ProgressMetrics{
-					TotalIterations:     iterationsTotal,
-					CompletedIterations: iterationsDone,
+					TotalIterations:     totalIterations,
+					CompletedIterations: completedIterations,
 					CompletedSims:       simsCompleted,
 					TotalSims:           simsTotal,
 				}
@@ -624,12 +635,12 @@ func runStatWeights(request *proto.StatWeightsRequest, progress chan *proto.Prog
 		baselineIterations := int32(len(baselineValues[0]))
 		baselineDelta := plan.BaselineIterations - baselineIterations
 		if baselineDelta > 0 {
-			iterationsTotal += baselineDelta
+			iterationsTotal += int64(baselineDelta)
 			simsTotal++
 		}
 		for _, planned := range plan.Stats {
 			runs := TernaryInt32(statRequests[planned.UnitStat].RequestLow != nil, 2, 1)
-			iterationsTotal += runs * (planned.Iterations - statPairs[planned.UnitStat].High.Dps.N)
+			iterationsTotal += int64(runs) * int64(planned.Iterations-statPairs[planned.UnitStat].High.Dps.N)
 			simsTotal += runs
 		}
 

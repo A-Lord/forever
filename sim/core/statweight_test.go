@@ -303,7 +303,7 @@ func noisyStatWeightCalc(perSide int) *proto.StatWeightsCalcRequest {
 }
 
 // A stat whose run above the baseline repeats it has hit a hard cap and gets no weight. One whose
-// differences only cancel out is weighed.
+// differences only cancel out is weighed, as is one that moves threat or DTPS alone.
 func TestStatWeightsSkipAStatWhoseRunRepeatsTheBaseline(t *testing.T) {
 	const perSide = 12
 	requests := noisyStatWeightRequests()
@@ -328,6 +328,49 @@ func TestStatWeightsSkipAStatWhoseRunRepeatsTheBaseline(t *testing.T) {
 	weighed := computeStatWeights(pairedStatWeightCalc(requests, base, runs))
 	if got := protoUnitStat(weighed.SampleCounts, hitRatingUnitStat); got != perSide {
 		t.Errorf("hit rating whose differences cancel out has %v samples, want %d", got, perSide)
+	}
+
+	for _, metric := range []string{"threat", "DTPS"} {
+		moved := make([]float64, perSide)
+		for i := range moved {
+			moved[i] = float64(i % 3)
+		}
+		runs[hit].high = statWeightRun(slices.Clone(baseDps))
+		player := runs[hit].high.RaidMetrics.Parties[0].Players[0]
+		if metric == "threat" {
+			player.Threat = statWeightDistribution(moved)
+		} else {
+			player.Dtps = statWeightDistribution(moved)
+		}
+		weighed := computeStatWeights(pairedStatWeightCalc(requests, base, runs))
+		if got := protoUnitStat(weighed.SampleCounts, hitRatingUnitStat); got != perSide {
+			t.Errorf("hit rating that moves only %s has %v samples, want %d", metric, got, perSide)
+		}
+	}
+}
+
+// A target of 0 or below, or one that is not a number, plans nothing.
+func TestStatWeightTopUpPlanNeedsATargetAboveZero(t *testing.T) {
+	calc := noisyStatWeightCalc(20)
+	if plan := planStatWeightTopUp(&proto.StatWeightsTopUpRequest{Calc: calc, Target: &proto.StatWeightsTarget{EpCi: 1e-3}}); len(plan.Stats) == 0 {
+		t.Fatal("a target above 0 plans nothing, want a top-up")
+	}
+	for _, target := range []float64{0, -0.01, math.NaN()} {
+		if plan := planStatWeightTopUp(&proto.StatWeightsTopUpRequest{Calc: calc, Target: &proto.StatWeightsTarget{EpCi: target}}); len(plan.Stats) != 0 {
+			t.Errorf("target %v plans %v, want nothing", target, plannedIterations(plan))
+		}
+	}
+}
+
+// The progress counts stay in the int32 range and keep their ratio past it.
+func TestStatWeightProgressCountsFitInt32(t *testing.T) {
+	if done, total := statWeightProgressCounts(250, 1000); done != 250 || total != 1000 {
+		t.Errorf("progress 250/1000 = %v/%v, want it as is", done, total)
+	}
+	total := 3 * int64(math.MaxInt32)
+	done, scaledTotal := statWeightProgressCounts(total/3, total)
+	if scaledTotal != math.MaxInt32 || done <= 0 || math.Abs(float64(done)/float64(scaledTotal)-1.0/3) > 1e-6 {
+		t.Errorf("progress %v/%v = %v/%v, want a third of MaxInt32", total/3, total, done, scaledTotal)
 	}
 }
 
