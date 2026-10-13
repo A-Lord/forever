@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
@@ -54,6 +55,7 @@ func (hunter *Hunter) newHawks() []*HawkPet {
 			HasDynamicMeleeSpeedInheritance: true,
 		})}
 		addPetStatDependencies(&hawk.Character)
+		hawk.AddStatDependency(stats.Agility, stats.PhysicalCritPercent, core.CritPerAgiMaxLevel[proto.Class_ClassWarrior])
 		hawk.EnableAutoAttacks(hawk, core.AutoAttackOptions{
 			MainHand:       petSwing,
 			AutoSwingMelee: true,

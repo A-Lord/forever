@@ -41,7 +41,6 @@ var petBaseStats = stats.Stats{
 
 func addPetStatDependencies(pet *core.Character) {
 	pet.AddStatDependency(stats.Strength, stats.AttackPower, 2.0)
-	pet.AddStatDependency(stats.Agility, stats.PhysicalCritPercent, core.CritPerAgiMaxLevel[proto.Class_ClassWarrior])
 }
 
 // Classic's 18.17-27.66 damage a second of a 2 s swing.
@@ -87,7 +86,7 @@ func (hunter *Hunter) NewHunterPet() *HunterPet {
 
 	// Agility gives the pet no crit. In game a level 30 pet crits at its owner's melee crit plus its
 	// skill over the target's defense, with no crit of its own.
-	hp.AddStatDependency(stats.Strength, stats.AttackPower, 2.0)
+	addPetStatDependencies(&hp.Character)
 
 	// Bestial Discipline's effect 1 raises every effect of the pet's focus passive: +50% a rank.
 	hp.EnableFocusBar(spellData.BestialDiscipline.EffectAt(1).MultiplierAt(hunter.Talents.BestialDiscipline))
@@ -106,18 +105,18 @@ func (hunter *Hunter) NewHunterPet() *HunterPet {
 }
 
 // Hunter Pet Scaling (415429) states every inherited stat without an amount, the server pricing
-// them: 2 health a point of stamina, 30% of armor, 10% of the higher attack power and the melee
-// crit chance the owner's character sheet shows. That sheet crit loses 0.04% a point of main-hand
-// skill below the level-based maximum and stops at 0. Ranged crit does not reach the pet. Not
+// them: 2 health a point of stamina, 30% of armor, 10% of the higher attack power and the owner's
+// physical crit less 0.04% a point of main-hand skill below the level-based maximum, at least 0,
+// the melee crit the in-game character sheet shows. Ranged crit does not reach the pet. Not
 // linear, so the pet snapshots them; registerStatInheritance says when.
 func (hunter *Hunter) makeStatInheritance() core.PetStatInheritance {
 	return func(ownerStats stats.Stats) stats.Stats {
-		mhSkill := core.GetWeaponSkill(&hunter.Unit, hunter.GetMHWeapon())
+		mhSkillBonus := core.GetWeaponSkill(&hunter.Unit, hunter.GetMHWeapon())
 		return stats.Stats{
 			stats.Health:              ownerStats[stats.Stamina] * 2,
 			stats.Armor:               ownerStats[stats.Armor] * 0.3,
 			stats.AttackPower:         max(ownerStats[stats.AttackPower], ownerStats[stats.RangedAttackPower]) * 0.1,
-			stats.PhysicalCritPercent: max(0, ownerStats[stats.PhysicalCritPercent]+min(mhSkill, 0)*0.04),
+			stats.PhysicalCritPercent: max(0, ownerStats[stats.PhysicalCritPercent]+min(mhSkillBonus, 0)*0.04),
 		}
 	}
 }
