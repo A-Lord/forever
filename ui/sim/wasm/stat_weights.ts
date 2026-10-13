@@ -1,14 +1,16 @@
 import {
+	DistributionMetrics,
 	ErrorOutcome,
 	ErrorOutcomeType,
 	ProgressMetrics,
 	RaidSimRequest,
 	RaidSimResult,
 	StatWeightsCalcRequest,
-	StatWeightsCalcSegment,
+	StatWeightsPairedSums,
 	StatWeightsRequest,
 	StatWeightsResult,
-	StatWeightsStatResultData,
+	StatWeightsSidePairs,
+	StatWeightsStatPairs,
 	StatWeightsTopUpRequest,
 } from '@generated/proto/api';
 import { SimRequest } from '@worker/types';
@@ -29,6 +31,44 @@ const makeAndSendWeightsError = (err: string | ErrorOutcome, onProgress: WorkerP
 	}
 	onProgress(ProgressMetrics.create({ finalWeightResult: errRes }));
 	return errRes;
+};
+
+const firstPlayer = (result: RaidSimResult) => result.raidMetrics!.parties[0].players[0];
+
+// The first player's per-iteration DPS, HPS, threat, DTPS and TMI of a run.
+const runValues = (result: RaidSimResult): number[][] => {
+	const player = firstPlayer(result);
+	return [player.dps!, player.hps!, player.threat!, player.dtps!, player.tmi!].map(metric => metric.allValues);
+};
+
+// Pairs each iteration of a stat run with the baseline's iteration offset + i, which ran at the same
+// seed, in the same order of operations as pairStatWeightRun in sim/core/statweight.go.
+const pairRun = (baseline: number[][], result: RaidSimResult, offset: number): StatWeightsSidePairs => {
+	const [dps, hps, tps, dtps, tmi] = runValues(result).map((values, metric) => {
+		let sum = 0;
+		let sumSq = 0;
+		for (let i = 0; i < values.length; i++) {
+			const diff = values[i] - baseline[metric][offset + i];
+			sum += diff;
+			sumSq += diff * diff;
+		}
+		return StatWeightsPairedSums.create({ n: values.length, sum, sumSq });
+	});
+	return StatWeightsSidePairs.create({ dps, hps, tps, dtps, tmi, chanceOfDeath: firstPlayer(result).chanceOfDeath });
+};
+
+// Adds a later pass's pairs to a side's. The chance of death stays the first run's.
+const addPairs = (side: StatWeightsSidePairs, pass: StatWeightsSidePairs) => {
+	for (const metric of ['dps', 'hps', 'tps', 'dtps', 'tmi'] as const) {
+		side[metric]!.n += pass[metric]!.n;
+		side[metric]!.sum += pass[metric]!.sum;
+		side[metric]!.sumSq += pass[metric]!.sumSq;
+	}
+};
+
+const baseDps = (result: RaidSimResult) => {
+	const { avg, stdev, aggregatorData } = firstPlayer(result).dps!;
+	return DistributionMetrics.create({ avg, stdev, aggregatorData });
 };
 
 export const runConcurrentStatWeights = async (
@@ -88,64 +128,75 @@ export const runConcurrentStatWeights = async (
 		if (pm.finalRaidResult) simsDone++;
 	};
 
-	const baseLine = await runConcurrentSim(manualResponse.baseRequest!, workerPool, progressHandler, signals);
+	// Runs a sim and keeps only what reduce takes from its result, so no whole result outlives the call.
+	const runReduced = async <T>(
+		simRequest: RaidSimRequest,
+		reduce: (result: RaidSimResult) => T,
+	): Promise<{ error: ErrorOutcome } | { error?: undefined; value: T }> => {
+		const result = await runConcurrentSim(simRequest, workerPool, progressHandler, signals);
+		return result.error ? { error: result.error } : { value: reduce(result) };
+	};
+
+	const baseLine = await runReduced(manualResponse.baseRequest!, result => ({
+		values: runValues(result).map(values => values.slice()),
+		dps: baseDps(result),
+		chanceOfDeath: firstPlayer(result).chanceOfDeath,
+	}));
 	if (baseLine.error) return makeAndSendWeightsError(baseLine.error, onProgress);
 
+	// Only the baseline keeps its per-iteration values, for the stat runs of later passes to pair with.
+	const baselineValues = baseLine.value.values;
 	const calcRequest = StatWeightsCalcRequest.create({
-		baseResult: baseLine,
 		epReferenceStat: manualResponse.epReferenceStat,
 		hpsReferenceStat: manualResponse.hpsReferenceStat,
-		statSimResults: [],
+		baseDps: [baseLine.value.dps],
+		baseChanceOfDeath: baseLine.value.chanceOfDeath,
 	});
+	const statPairs = new Map<number, StatWeightsStatPairs>();
 
 	for (const statReqData of manualResponse.statSimRequests) {
 		if (signals.abort.isTriggered()) return makeAndSendWeightsError(ErrorOutcome.create({ type: ErrorOutcomeType.ErrorOutcomeAborted }), onProgress);
 
+		const pairs = StatWeightsStatPairs.create({ statData: statReqData.statData });
 		lastIterations = 0;
-		let lowRes: RaidSimResult | undefined;
 		if (statReqData.requestLow) {
 			statReqData.requestLow.requestId = newRaidSimRequestId();
-			lowRes = await runConcurrentSim(statReqData.requestLow, workerPool, progressHandler, signals);
-			if (lowRes.error) return makeAndSendWeightsError(lowRes.error, onProgress);
+			const low = await runReduced(statReqData.requestLow, result => pairRun(baselineValues, result, 0));
+			if (low.error) return makeAndSendWeightsError(low.error, onProgress);
+			pairs.low = low.value;
 		}
 
 		lastIterations = 0;
 		statReqData.requestHigh!.requestId = newRaidSimRequestId();
-		const highRes = await runConcurrentSim(statReqData.requestHigh!, workerPool, progressHandler, signals);
-		if (highRes.error) return makeAndSendWeightsError(highRes.error, onProgress);
+		const high = await runReduced(statReqData.requestHigh!, result => pairRun(baselineValues, result, 0));
+		if (high.error) return makeAndSendWeightsError(high.error, onProgress);
+		pairs.high = high.value;
 
-		calcRequest.statSimResults.push(
-			StatWeightsStatResultData.create({
-				statData: statReqData.statData,
-				resultLow: lowRes,
-				resultHigh: highRes,
-			}),
-		);
+		calcRequest.statPairs.push(pairs);
+		statPairs.set(statReqData.statData!.unitStat, pairs);
 	}
 
 	if (request.target) {
 		const baseRequest = manualResponse.baseRequest!;
-		const probeIterations = baseRequest.simOptions!.iterations;
 		const seed = baseRequest.simOptions!.randomSeed;
 		const statRequests = new Map(manualResponse.statSimRequests.map(statReqData => [statReqData.statData!.unitStat, statReqData]));
-		const statIterations = new Map(manualResponse.statSimRequests.map(statReqData => [statReqData.statData!.unitStat, probeIterations]));
-		let baselineIterations = probeIterations;
 
 		// Iteration i runs at seed randomSeed + i, so a run continued at the seed after its last iteration
 		// repeats what one longer run would have simulated.
-		const continueRun = (simRequest: RaidSimRequest, done: number, iterations: number) => {
+		const continueRun = <T>(simRequest: RaidSimRequest, done: number, iterations: number, reduce: (result: RaidSimResult) => T) => {
 			const continued = RaidSimRequest.clone(simRequest);
 			continued.simOptions!.iterations = iterations;
 			continued.simOptions!.randomSeed = seed + BigInt(done);
 			continued.requestId = newRaidSimRequestId();
 			lastIterations = 0;
-			return runConcurrentSim(continued, workerPool, progressHandler, signals);
+			return runReduced(continued, reduce);
 		};
 
-		for (;;) {
-			const plan = await workerPool.statWeightTopUpPlan(StatWeightsTopUpRequest.create({ calc: calcRequest, target: request.target }));
+		for (let passes = 0; ; passes++) {
+			const plan = await workerPool.statWeightTopUpPlan(StatWeightsTopUpRequest.create({ calc: calcRequest, target: request.target, passes }));
 			if (!plan.stats.length) break;
 
+			const baselineIterations = baselineValues[0].length;
 			const baselineDelta = plan.baselineIterations - baselineIterations;
 			if (baselineDelta > 0) {
 				iterationsTotal += baselineDelta;
@@ -153,18 +204,21 @@ export const runConcurrentStatWeights = async (
 			}
 			for (const planned of plan.stats) {
 				const runs = statRequests.get(planned.unitStat)!.requestLow ? 2 : 1;
-				iterationsTotal += runs * (planned.iterations - statIterations.get(planned.unitStat)!);
+				iterationsTotal += runs * (planned.iterations - statPairs.get(planned.unitStat)!.high!.dps!.n);
 				simsTotal += runs;
 			}
 
-			const segment = StatWeightsCalcSegment.create();
 			if (baselineDelta > 0) {
 				if (signals.abort.isTriggered())
 					return makeAndSendWeightsError(ErrorOutcome.create({ type: ErrorOutcomeType.ErrorOutcomeAborted }), onProgress);
-				const baseRes = await continueRun(baseRequest, baselineIterations, baselineDelta);
-				if (baseRes.error) return makeAndSendWeightsError(baseRes.error, onProgress);
-				segment.baseResult = baseRes;
-				baselineIterations = plan.baselineIterations;
+				const base = await continueRun(baseRequest, baselineIterations, baselineDelta, result => {
+					runValues(result).forEach((values, metric) => {
+						for (const value of values) baselineValues[metric].push(value);
+					});
+					return baseDps(result);
+				});
+				if (base.error) return makeAndSendWeightsError(base.error, onProgress);
+				calcRequest.baseDps.push(base.value);
 			}
 
 			for (const planned of plan.stats) {
@@ -172,27 +226,19 @@ export const runConcurrentStatWeights = async (
 					return makeAndSendWeightsError(ErrorOutcome.create({ type: ErrorOutcomeType.ErrorOutcomeAborted }), onProgress);
 
 				const statReqData = statRequests.get(planned.unitStat)!;
-				const done = statIterations.get(planned.unitStat)!;
+				const pairs = statPairs.get(planned.unitStat)!;
+				const done = pairs.high!.dps!.n;
 				const delta = planned.iterations - done;
 
-				let lowRes: RaidSimResult | undefined;
 				if (statReqData.requestLow) {
-					lowRes = await continueRun(statReqData.requestLow, done, delta);
-					if (lowRes.error) return makeAndSendWeightsError(lowRes.error, onProgress);
+					const low = await continueRun(statReqData.requestLow, done, delta, result => pairRun(baselineValues, result, done));
+					if (low.error) return makeAndSendWeightsError(low.error, onProgress);
+					addPairs(pairs.low!, low.value);
 				}
-				const highRes = await continueRun(statReqData.requestHigh!, done, delta);
-				if (highRes.error) return makeAndSendWeightsError(highRes.error, onProgress);
-
-				segment.statSimResults.push(
-					StatWeightsStatResultData.create({
-						statData: statReqData.statData,
-						resultLow: lowRes,
-						resultHigh: highRes,
-					}),
-				);
-				statIterations.set(planned.unitStat, planned.iterations);
+				const high = await continueRun(statReqData.requestHigh!, done, delta, result => pairRun(baselineValues, result, done));
+				if (high.error) return makeAndSendWeightsError(high.error, onProgress);
+				addPairs(pairs.high!, high.value);
 			}
-			calcRequest.extraSegments.push(segment);
 		}
 	}
 

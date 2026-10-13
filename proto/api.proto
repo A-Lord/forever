@@ -718,30 +718,43 @@ message StatWeightRequestsData {
 	Stat hps_reference_stat = 4;
 }
 
-message StatWeightsStatResultData {
-	StatWeightsStatData stat_data = 1;
-	RaidSimResult result_low = 2;
-	RaidSimResult result_high = 3;
-}
-message StatWeightsCalcRequest {
-	RaidSimResult base_result = 1;
-	Stat ep_reference_stat = 2;
-	repeated StatWeightsStatResultData stat_sim_results = 3;
-	// Later passes, in order, each continuing its runs' seed sequence where they stopped.
-	repeated StatWeightsCalcSegment extra_segments = 4;
-	Stat hps_reference_stat = 5;
+// The differences of one metric between a stat run and the baseline at the same iterations, before
+// the stat's modifier scales them. Sums from several passes add up.
+message StatWeightsPairedSums {
+	int32 n = 1;
+	double sum = 2;
+	double sum_sq = 3;
 }
 
-// One pass of extra iterations. Only the runs that ran in the pass are listed; base_result is
-// unset when the baseline did not run.
-message StatWeightsCalcSegment {
-	RaidSimResult base_result = 1;
-	repeated StatWeightsStatResultData stat_sim_results = 2;
+// One side of a stat, paired with the baseline.
+message StatWeightsSidePairs {
+	StatWeightsPairedSums dps = 1;
+	StatWeightsPairedSums hps = 2;
+	StatWeightsPairedSums tps = 3;
+	StatWeightsPairedSums dtps = 4;
+	StatWeightsPairedSums tmi = 5;
+	double chance_of_death = 6; // The first run's, which shares its iterations with the first baseline run.
+}
+
+message StatWeightsStatPairs {
+	StatWeightsStatData stat_data = 1;
+	StatWeightsSidePairs low = 2; // Unset for a stat simulated above the baseline only.
+	StatWeightsSidePairs high = 3;
+}
+
+message StatWeightsCalcRequest {
+	Stat ep_reference_stat = 2;
+	Stat hps_reference_stat = 4;
+	// Each baseline run's DPS in run order, without all_values; the first is the probe.
+	repeated DistributionMetrics base_dps = 5;
+	double base_chance_of_death = 6; // The first baseline run's.
+	repeated StatWeightsStatPairs stat_pairs = 7;
 }
 
 message StatWeightsTopUpRequest {
 	StatWeightsCalcRequest calc = 1;
 	StatWeightsTarget target = 2;
+	int32 passes = 3; // The top-up passes already run.
 }
 
 // Target iteration totals per side. An empty stats list means every stat has reached the target or
