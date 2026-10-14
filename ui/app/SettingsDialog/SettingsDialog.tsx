@@ -46,8 +46,6 @@ export interface SettingsDialogViewProps {
 
 const LANGUAGE_OPTIONS: Array<ChoiceOption<string>> = Object.entries(supportedLanguages).map(([language, name]) => ({ value: language, label: name }));
 
-const FIREFOX_WORKER_NOTE = `Too many workers can cause significant memory usage! If sim doesn't finish due to RAM running out use a lower number.`;
-
 const LastUsedRngSeed = ({ seed }: { seed: number }) => (
 	<HelpText as="div">
 		<span>{i18n.t('info.options.fixed_rng_seed.last_used')}</span>&nbsp;{seed}
@@ -56,7 +54,7 @@ const LastUsedRngSeed = ({ seed }: { seed: number }) => (
 
 const WorkerNote = ({ shown }: { shown: boolean }) => (
 	<HelpText as="div" hidden={!shown}>
-		{shown ? FIREFOX_WORKER_NOTE : ''}
+		{shown ? i18n.t('info.options.use_multiple_cpu_cores.firefox_note') : ''}
 	</HelpText>
 );
 
@@ -86,7 +84,7 @@ export const SettingsDialogView = ({
 	const restoreTooltipId = useId();
 
 	const workerOptions = useMemo(() => {
-		const options: Array<ChoiceOption<number>> = [{ value: 0, label: 'Off' }];
+		const options: Array<ChoiceOption<number>> = [{ value: 0, label: i18n.t('info.options.use_multiple_cpu_cores.off') }];
 		for (let workers = 2; workers <= maxWorkers; workers++) {
 			options.push({ value: workers, label: workers.toString() });
 		}
@@ -131,7 +129,7 @@ export const SettingsDialogView = ({
 					<BooleanPicker
 						id="simui-show-threat-metrics"
 						label={i18n.t('info.options.feature_toggles.show_threat_metrics')}
-						labelTooltip="Shows all options and metrics relevant to tanks, like TPS/DTPS."
+						labelTooltip={i18n.t('info.options.feature_toggles.show_threat_metrics_tooltip')}
 						layout="inline"
 						value={showThreatMetrics}
 						onChange={onShowThreatMetricsChange}
@@ -141,7 +139,7 @@ export const SettingsDialogView = ({
 					<BooleanPicker
 						id="simui-show-experimental"
 						label={i18n.t('info.options.feature_toggles.show_experimental')}
-						labelTooltip="Shows experimental options, if there are any active experiments."
+						labelTooltip={i18n.t('info.options.feature_toggles.show_experimental_tooltip')}
 						layout="inline"
 						value={showExperimental}
 						onChange={onShowExperimentalChange}
@@ -161,7 +159,7 @@ export const SettingsDialogView = ({
 					<BooleanPicker
 						id="simui-show-quick-swap"
 						label={i18n.t('info.options.feature_toggles.show_quick_swap')}
-						labelTooltip="Allows you to quickly swap enchants through your favorites. (Disabled on touch devices)"
+						labelTooltip={i18n.t('info.options.feature_toggles.show_quick_swap_tooltip')}
 						layout="inline"
 						value={showQuickSwap}
 						onChange={onShowQuickSwapChange}
@@ -171,7 +169,7 @@ export const SettingsDialogView = ({
 					<ChoiceField
 						id="simui-concurrent-workers-picker"
 						label={i18n.t('info.options.use_multiple_cpu_cores.label')}
-						labelTooltip="Use web workers to spread sim workload over multiple CPU cores."
+						labelTooltip={i18n.t('info.options.use_multiple_cpu_cores.tooltip')}
 						options={workerOptions}
 						value={wasmConcurrency}
 						onChange={onWasmConcurrencyChange}

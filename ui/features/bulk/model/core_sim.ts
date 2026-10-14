@@ -48,7 +48,7 @@ export async function runCoreBulkSim(context: CoreBulkSimContext, signal: AbortS
 		throw new Error(result?.message);
 	}
 	if (!result.baseline?.dpsMetrics) {
-		throw new Error('Bulk sim did not return baseline results.');
+		throw new Error(i18n.t('bulk_tab.notifications.no_baseline_results'));
 	}
 
 	const topGearResults = result.topResults
