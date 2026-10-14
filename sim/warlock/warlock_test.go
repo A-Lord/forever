@@ -140,6 +140,48 @@ func TestSoulFireShardAndDecimation(t *testing.T) {
 	}
 }
 
+// A demon's melee and spell crit are the warlock's spell crit, and follow it when it changes in combat.
+func TestDemonCritIsTheWarlocksSpellCrit(t *testing.T) {
+	player := &proto.Player{
+		Name:      "Demon crit",
+		Race:      proto.Race_RaceOrc,
+		Class:     proto.Class_ClassWarlock,
+		Equipment: &proto.EquipmentSpec{},
+		Spec: &proto.Player_Warlock{Warlock: &proto.Warlock{Options: &proto.Warlock_Options{
+			ClassOptions: &proto.WarlockOptions{Summon: proto.WarlockOptions_Succubus},
+		}}},
+		Rotation: &proto.APLRotation{},
+	}
+	sim := core.NewSim(&proto.RaidSimRequest{
+		Raid:       core.SinglePlayerRaidProto(player, &proto.PartyBuffs{}, &proto.RaidBuffs{}, &proto.Debuffs{}),
+		Encounter:  core.MakeSingleTargetEncounter(0),
+		SimOptions: &proto.SimOptions{RandomSeed: 1},
+	}, simsignals.CreateSignals())
+	sim.Reset()
+	warlock := sim.Raid.Parties[0].Players[0].(*Warlock)
+	sayaad := warlock.Succubus
+	if !sayaad.IsEnabled() {
+		t.Fatalf("Sayaad not summoned at the start")
+	}
+
+	check := func(when string) {
+		spellCrit := warlock.GetStat(stats.SpellCritPercent)
+		if spellCrit <= 0 {
+			t.Fatalf("%s: warlock has %.2f%% spell crit, want some to inherit", when, spellCrit)
+		}
+		for _, stat := range []stats.Stat{stats.PhysicalCritPercent, stats.SpellCritPercent} {
+			if got := sayaad.GetStat(stat); got != spellCrit {
+				t.Errorf("%s: Sayaad %s %.2f%%, want the warlock's spell crit %.2f%%", when, stat.StatName(), got, spellCrit)
+			}
+		}
+	}
+	check("at the start")
+	warlock.AddStatsDynamic(sim, stats.Stats{stats.SpellCritPercent: 5})
+	for end := sim.CurrentTime + core.PetUpdateInterval; sim.CurrentTime <= end && !sim.Step(); {
+	}
+	check("a pet update after +5% spell crit")
+}
+
 // In execute, Decimation's buff (440873) comes with the cast of a Shadow Bolt or Searing Pain whose hit lands,
 // before a Shadow Bolt reaches the target; a miss or a full resist grants nothing, and the bolt's impact
 // grants nothing either.

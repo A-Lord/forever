@@ -132,11 +132,10 @@ func (warlock *Warlock) petStatInheritance() core.PetStatInheritance {
 			stats.PhysicalHitPercent: ownerStats[stats.SpellHitPercent],
 			stats.SpellHitPercent:    ownerStats[stats.SpellHitPercent],
 
-			// A demon takes the warlock's spell crit as its melee and spell crit, with no crit of its own, as the
-			// game team intends: https://github.com/ClassicWoWCommunity/forever-bugs/issues/331#issuecomment-6160342081
-			// In game the demons still have a crit of their own (melee ~0.7%, spell about a player's) and take
-			// only the warlock's "+X% critical strike" gear.
-			// TODO: Verify in game once that change is live.
+			// A demon takes the warlock's spell crit as its melee and spell crit, with no crit of its own:
+			// https://github.com/ClassicWoWCommunity/forever-bugs/issues/331#issuecomment-6160342081
+			// TODO: Not live yet: in game a demon still has its own crit (melee ~0.7%) and takes only the
+			// warlock's "+X% critical strike" gear. Verify in game once the change ships.
 			stats.PhysicalCritPercent: ownerStats[stats.SpellCritPercent],
 			stats.SpellCritPercent:    ownerStats[stats.SpellCritPercent],
 		}
