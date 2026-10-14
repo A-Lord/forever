@@ -426,7 +426,7 @@ dps_results: {
 dps_results: {
  key: "TestAffliction-AllItems-FrozenHeartoftheMountain-249469"
  value: {
-  dps: 335.47401
+  dps: 334.79801
   tps: 186.51233
  }
 }
