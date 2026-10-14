@@ -53,8 +53,8 @@ const fromProto = (saved: SavedStatSweepSettings): StatSweepValues => {
 
 const sameStats = (a: UnitStat[] | null, b: UnitStat[] | null) => equalsOrBothNull(a, b, (a, b) => arrayEquals(a, b, (x, y) => x.equals(y)));
 
-// Stat sweep settings. Values live in the sim store (`statSweep[player.storeKey]`) with a version counter; persists itself
-// to localStorage on every change.
+// The stat sweep dialog's stored setup. Values live in the sim store (`statSweep[player.storeKey]`) with a version
+// counter, and every change is saved to localStorage.
 export class StatSweepSettings {
 	private readonly storageKey: string;
 	private readonly env: Env;

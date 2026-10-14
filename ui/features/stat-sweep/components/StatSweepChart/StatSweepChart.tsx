@@ -39,7 +39,7 @@ type SweepDatum = { x: number; y: number; stdev: number; point: StatSweepPoint; 
 // `id` is `${run.id}:${role}`, by which the chart keeps each dataset's state across updates.
 type SweepDataset = ChartDataset<'line', SweepDatum[]> & { id: string; role: 'upper' | 'lower' | 'line'; runId: string };
 
-// Each run draws the band's upper edge, its lower edge, then the metric's line. Upper fills down to the next dataset, so the order is load-bearing.
+// Each run draws the band's upper edge, its lower edge, then the metric's line. The upper edge fills down to the next dataset, so the band depends on this order.
 // The band is one standard deviation of a single fight's value either side of the average, the spread the sim card's ± reports.
 // Without the band a run draws its line alone.
 const isLine = (dataset: object) => (dataset as SweepDataset).role === 'line';

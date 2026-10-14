@@ -2391,7 +2391,7 @@
 				"show_threat_metrics": "Show threat/tank options",
 				"show_experimental": "Show experimental",
 				"show_power_tools": "Show power tools",
-				"show_power_tools_tooltip": "Unlocks additional theorycrafting-focused tools.",
+				"show_power_tools_tooltip": "Shows more tools for theorycrafting.",
 				"show_quick_swap": "Show quick swap interface"
 			},
 			"use_multiple_cpu_cores": {
