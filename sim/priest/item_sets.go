@@ -1,6 +1,8 @@
 package priest
 
 import (
+	"slices"
+
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
@@ -28,8 +30,9 @@ var dungeonSetSlots = []proto.ItemSlot{
 	proto.ItemSlot_ItemSlotFeet,
 }
 
-// The six slots of a Conviction set and of a PvP set. None of the six pieces a Conviction ItemSet
-// row lists ships; the four that do carry other ids, and no head or chest piece ships.
+// The six slots of a Conviction set and of a PvP set. A Conviction ItemSet row lists six pieces the
+// game files do not ship; the shoulders, hands, legs and feet ship under other ids, and no head or
+// chest piece ships.
 var sixPieceSetSlots = []proto.ItemSlot{
 	proto.ItemSlot_ItemSlotHead,
 	proto.ItemSlot_ItemSlotShoulder,
@@ -159,12 +162,9 @@ var (
 // The 4-piece bonus (28809) shields the target of a Greater Heal crit with Armor of Faith, which
 // the sim does not model.
 var ItemSetVestmentsOfFaith = core.NewItemSet(core.ItemSet{
-	ID:   525,
-	Name: "Vestments of Faith",
-	Slots: append(append([]proto.ItemSlot{}, dungeonSetSlots...),
-		proto.ItemSlot_ItemSlotFinger1,
-		proto.ItemSlot_ItemSlotFinger2,
-	),
+	ID:    525,
+	Name:  "Vestments of Faith",
+	Slots: slices.Concat(dungeonSetSlots, []proto.ItemSlot{proto.ItemSlot_ItemSlotFinger1, proto.ItemSlot_ItemSlotFinger2}),
 	Bonuses: map[int32]core.ApplySetBonus{
 		2: parsedSetBonus(28807), // Reduces the mana cost of your Renew spell by 12%.
 		6: parsedSetBonus(28808), // Reduces the threat from your healing spells.
@@ -234,25 +234,24 @@ var ItemSetRaimentsOfConviction = core.NewItemSet(core.ItemSet{
 // differ by set, and a bonus to Psychic Scream's duration (23044), which the sim does not cast.
 func init() {
 	for _, set := range []struct {
-		id      int32
-		name    string
-		bonuses map[int32]int32
+		id                 int32
+		name               string
+		twoPiece, sixPiece int32
 	}{
-		{342, "Champion's Raiment", map[int32]int32{2: 14047, 6: 14462}},
-		{344, "Lieutenant Commander's Raiment", map[int32]int32{2: 14047, 6: 14467}},
-		{389, "Field Marshal's Raiment", map[int32]int32{2: 14467, 6: 14047}},
-		{390, "Warlord's Raiment", map[int32]int32{2: 14467, 6: 14047}},
-		{540, "Champion's Investiture", map[int32]int32{2: 14047, 6: 14467}},
-		{549, "Champion's Raiment", map[int32]int32{2: 14047, 6: 14467}},
-		{2072, "Champion's Investiture", map[int32]int32{2: 467550, 6: 14467}},
-		{2073, "Warlord's Investiture", map[int32]int32{2: 14467, 6: 467550}},
-		{2074, "Field Marshal's Investiture", map[int32]int32{2: 14467, 6: 467550}},
-		{2075, "Lieutenant Commander's Investiture", map[int32]int32{2: 467550, 6: 14467}},
+		{342, "Champion's Raiment", 14047, 14462},
+		{344, "Lieutenant Commander's Raiment", 14047, 14467},
+		{389, "Field Marshal's Raiment", 14467, 14047},
+		{390, "Warlord's Raiment", 14467, 14047},
+		{540, "Champion's Investiture", 14047, 14467},
+		{549, "Champion's Raiment", 14047, 14467},
+		{2072, "Champion's Investiture", 467550, 14467},
+		{2073, "Warlord's Investiture", 14467, 467550},
+		{2074, "Field Marshal's Investiture", 14467, 467550},
+		{2075, "Lieutenant Commander's Investiture", 467550, 14467},
 	} {
-		bonuses := make(map[int32]core.ApplySetBonus, len(set.bonuses))
-		for pieces, id := range set.bonuses {
-			bonuses[pieces] = parsedSetBonus(id)
-		}
-		core.NewItemSet(core.ItemSet{ID: set.id, Name: set.name, Slots: sixPieceSetSlots, Bonuses: bonuses})
+		core.NewItemSet(core.ItemSet{ID: set.id, Name: set.name, Slots: sixPieceSetSlots, Bonuses: map[int32]core.ApplySetBonus{
+			2: parsedSetBonus(set.twoPiece),
+			6: parsedSetBonus(set.sixPiece),
+		}})
 	}
 }

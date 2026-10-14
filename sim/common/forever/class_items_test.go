@@ -265,8 +265,8 @@ func TestFineryOfInfiniteWisdomRaisesShadowWordPain(t *testing.T) {
 	if !core.WithinToleranceFloat64(want, painWith, 1e-6) {
 		t.Errorf("with the 3-piece bonus, Shadow Word: Pain ticks for %v, want %v", painWith, want)
 	}
-	if got := blast.ExpectedInitialDamage(sim, target); !core.WithinToleranceFloat64(got, blastWith, 1e-6) {
-		t.Errorf("with the 3-piece bonus, Mind Blast hits for %v, want %v as without it", blastWith, got)
+	if blastWithout := blast.ExpectedInitialDamage(sim, target); !core.WithinToleranceFloat64(blastWithout, blastWith, 1e-6) {
+		t.Errorf("with the 3-piece bonus, Mind Blast hits for %v, want %v as without it", blastWith, blastWithout)
 	}
 }
 
