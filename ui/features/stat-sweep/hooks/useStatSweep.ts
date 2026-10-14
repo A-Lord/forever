@@ -1,4 +1,4 @@
-import { deleteRun, listRuns, type StatSweepRecord } from '@sim/cache/stat_sweep_history';
+import { deleteRuns, listRuns, type StatSweepRecord } from '@sim/cache/stat_sweep_history';
 import { usePlayer, useSim } from '@sim/context/SimHostContext';
 import { useSimRun } from '@sim/hooks/useSimRun';
 import { UnitStat } from '@sim/proto/stats';
@@ -100,7 +100,7 @@ export const useStatSweep = () => {
 			history: current.history.filter(run => !ids.includes(run.id)),
 			overlaid: current.overlaid.filter(other => !ids.includes(other)),
 		}));
-		for (const id of ids) deleteRun(id).catch(console.error);
+		deleteRuns(ids).catch(console.error);
 	}, []);
 
 	const setOverlaid = useCallback(

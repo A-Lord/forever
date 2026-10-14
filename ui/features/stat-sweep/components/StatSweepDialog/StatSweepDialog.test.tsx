@@ -25,7 +25,7 @@ import { StatSweepAction } from '../StatSweepAction';
 const history = vi.hoisted(() => ({
 	listRuns: vi.fn(async (_specId: number) => [] as StatSweepRecord[]),
 	saveRun: vi.fn(async (_run: StatSweepRecord) => {}),
-	deleteRun: vi.fn(async (_id: string) => {}),
+	deleteRuns: vi.fn(async (_ids: readonly string[]) => {}),
 }));
 vi.mock('@sim/cache/stat_sweep_history', () => history);
 vi.mock('chart.js', async () => (await import('@testing/chart-js-mock')).chartJsMock);
@@ -120,9 +120,12 @@ const runBox = (index: number) => eyes(false)[index];
 const batchTitles = () => [...rootElem.querySelectorAll('[data-testid="stat-sweep-history-batch"] > button[aria-expanded] > span:first-of-type')];
 const batchLabels = () => batchTitles().map(title => title.textContent);
 const deleteButtons = (key: 'delete' | 'delete_batch') => screen.getAllByRole('button', { name: `sidebar.buttons.stat_sweep.history.${key}`, hidden: true });
-const expanders = () => screen.getAllByRole('button', { name: 'sidebar.buttons.stat_sweep.history.expand' });
 const STRENGTH_NAME = STRENGTH.getFullName(Class.ClassWarrior);
 const AGILITY_NAME = AGILITY.getFullName(Class.ClassWarrior);
+const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+// A batch's header button is named by what it shows, which starts with the batch's stats.
+const expanders = () => screen.getAllByRole('button', { name: new RegExp(`^(${STRENGTH_NAME}|${AGILITY_NAME}), `) });
+const historyDate = (createdAt: number) => new Intl.DateTimeFormat(i18n.language, { dateStyle: 'short', timeStyle: 'short' }).format(createdAt);
 // Iterations of each pass, by Strength added.
 const passesByStep = () => {
 	const passes: Record<number, number[]> = {};
@@ -149,7 +152,7 @@ beforeEach(() => {
 	charts.length = 0;
 	history.listRuns.mockClear();
 	history.saveRun.mockClear();
-	history.deleteRun.mockClear();
+	history.deleteRuns.mockClear();
 	download.mockClear();
 });
 
@@ -484,13 +487,13 @@ describe('StatSweepDialog', () => {
 			expect(overlayTicks()).toEqual(['true', 'true', 'true', 'false']);
 
 			fireEvent.click(deleteButtons('delete')[1]);
-			expect(history.deleteRun).toHaveBeenCalledExactlyOnceWith('second');
+			expect(history.deleteRuns).toHaveBeenCalledExactlyOnceWith(['second']);
 			expect(overlayTicks()).toEqual(['true', 'true', 'false']);
 			expect(batchLabels()).toEqual([`${AGILITY_NAME}, ${AGILITY_NAME}`]);
 
-			history.deleteRun.mockClear();
+			history.deleteRuns.mockClear();
 			fireEvent.click(deleteButtons('delete_batch')[0]);
-			expect(history.deleteRun.mock.calls.map(call => call[0])).toEqual(['first', 'third']);
+			expect(history.deleteRuns).toHaveBeenCalledExactlyOnceWith(['first', 'third']);
 			expect(overlayTicks()).toEqual(['false']);
 			expect(batchLabels()).toEqual([]);
 		});
@@ -518,6 +521,68 @@ describe('StatSweepDialog', () => {
 			expect(batchTicks()).toEqual(['true', 'mixed']);
 		});
 
+		it("names a batch's header by its stats, date and metric, and tells whether it is open", async () => {
+			history.listRuns.mockResolvedValueOnce([
+				{ ...storedRun('b', 5, 1, 'sweep', AGILITY), metric: 'tps' },
+				{ ...storedRun('a', 4, 0, 'sweep'), metric: 'tps' },
+			]);
+			await openDialog();
+
+			const shown = [`${STRENGTH_NAME}, ${AGILITY_NAME}`, historyDate(4), metricLabel('tps')].map(escapeRegExp).join('\\s*');
+			const header = screen.getByRole('button', { name: new RegExp(`^${shown}$`) });
+			expect(header.getAttribute('aria-expanded')).toBe('true');
+			fireEvent.click(header);
+			expect(header.getAttribute('aria-expanded')).toBe('false');
+		});
+
+		it('leaves the batches open or closed as they are when the newest is deleted, and opens only the newest when a newer sweep arrives', async () => {
+			history.listRuns.mockResolvedValueOnce([
+				storedRun('new-b', 6, 1, 'new', AGILITY),
+				storedRun('new-a', 5, 0, 'new'),
+				storedRun('mid-b', 4, 3, 'mid', AGILITY),
+				storedRun('mid-a', 3, 2, 'mid'),
+				storedRun('old-b', 2, 5, 'old', AGILITY),
+				storedRun('old-a', 1, 4, 'old'),
+			]);
+			settings.set({ stats: [AGILITY, STRENGTH], range: 10, step: 10 });
+			await openDialog();
+			const opened = () => expanders().map(button => button.getAttribute('aria-expanded'));
+			fireEvent.click(expanders()[2]);
+			expect(opened()).toEqual(['true', 'false', 'true']);
+
+			fireEvent.click(deleteButtons('delete_batch')[0]);
+			expect(opened()).toEqual(['false', 'true']);
+
+			await run();
+			expect(opened()).toEqual(['true', 'false', 'false']);
+		});
+
+		it('keeps the history behind the progress dialog while a sweep runs, so no run can be deleted until it ends', async () => {
+			history.listRuns.mockResolvedValueOnce([storedRun('older', 1, 0)]);
+			let settleThird!: (result: object) => void;
+			simulatePass
+				.mockResolvedValueOnce(makeSweepSample(1000))
+				.mockResolvedValueOnce(makeSweepSample(1000))
+				.mockImplementationOnce(() => new Promise(resolve => (settleThird = resolve)));
+			settings.set({ stats: [AGILITY, STRENGTH], range: 10, step: 10 });
+			await openDialog();
+			const deletes = (hidden: boolean) => screen.queryAllByRole('button', { name: 'sidebar.buttons.stat_sweep.history.delete', hidden });
+
+			await run();
+			// The sweep's finished Strength run is listed, but only behind the modal progress dialog.
+			expect(deletes(true)).toHaveLength(2);
+			expect(deletes(false)).toHaveLength(0);
+
+			await act(async () => {
+				fireEvent.click(tracker()!.querySelector('[data-testid="progress-tracker-modal-cancel-btn"]')!);
+			});
+			await act(async () => {
+				settleThird({ type: ErrorOutcomeType.ErrorOutcomeAborted, message: '' });
+			});
+			expect(tracker()).toBeNull();
+			expect(deletes(false)).toHaveLength(2);
+		});
+
 		it('draws the newest saved run, overlays another when it is ticked, and deletes a run', async () => {
 			history.listRuns.mockResolvedValueOnce([storedRun('new', 2, 0), storedRun('old', 1, 1)]);
 			await openDialog();
@@ -532,7 +597,7 @@ describe('StatSweepDialog', () => {
 			expect(lastChart().data.datasets.map(dataset => dataset.label)).toEqual(['new', 'new', 'new', 'old', 'old', 'old']);
 
 			fireEvent.click(screen.getAllByRole('button', { name: 'sidebar.buttons.stat_sweep.history.delete' })[1]);
-			expect(history.deleteRun).toHaveBeenCalledWith('old');
+			expect(history.deleteRuns).toHaveBeenCalledExactlyOnceWith(['old']);
 			expect(overlayTicks()).toEqual(['true']);
 		});
 

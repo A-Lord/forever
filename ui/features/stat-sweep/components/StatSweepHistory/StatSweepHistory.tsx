@@ -127,7 +127,6 @@ const BatchRow = ({ batch, open, onOpenChange, onOverlayChange, onDelete, dateFo
 			<Button
 				variant="unstyled"
 				className="col-span-full row-span-2 row-start-1 grid cursor-pointer grid-cols-subgrid grid-rows-subgrid items-center text-left text-foreground hover:text-link-hover focus-visible:focus-ring"
-				aria-label={t('history.expand', { label: title })}
 				aria-expanded={open}
 				aria-controls={runsId}
 				onClick={() => onOpenChange(!open)}
@@ -162,15 +161,18 @@ const BatchRow = ({ batch, open, onOpenChange, onOverlayChange, onDelete, dateFo
 	);
 };
 
-const newestOnly = (newest: string | undefined) => ({ newest, ids: newest === undefined ? [] : [newest] });
+type Batches = StatSweepHistoryProps['batches'];
+
+// The newest run's time: a newer run arriving raises it, and deleting runs never does.
+const newestAt = (batches: Batches) => (batches.length ? Math.max(...batches[0].runs.map(run => run.createdAt)) : -Infinity);
+const newestOnly = (batches: Batches) => ({ at: newestAt(batches), ids: batches.length ? [batches[0].id] : [] });
 
 export const StatSweepHistory = ({ batches, onOverlayChange, onDelete, onExportCsv }: StatSweepHistoryProps) => {
 	const language = i18n.language;
 	const dateFormat = useMemo(() => new Intl.DateTimeFormat(language, { dateStyle: 'short', timeStyle: 'short' }), [language]);
-	// The newest batch opens and the older ones close each time a newer batch arrives.
-	const newest = batches[0]?.id;
-	const [expanded, setExpanded] = useState(() => newestOnly(newest));
-	if (expanded.newest !== newest) setExpanded(newestOnly(newest));
+	// The newest batch opens and the older ones close each time a newer run arrives; a delete leaves them as they are.
+	const [expanded, setExpanded] = useState(() => newestOnly(batches));
+	if (newestAt(batches) > expanded.at) setExpanded(newestOnly(batches));
 	const setOpen = (id: string, open: boolean) =>
 		setExpanded(current => ({ ...current, ids: open ? [...current.ids, id] : current.ids.filter(other => other !== id) }));
 	return (

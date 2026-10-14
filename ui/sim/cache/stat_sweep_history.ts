@@ -84,10 +84,12 @@ export async function listRuns(specId: Spec): Promise<StatSweepRecord[]> {
 	}
 }
 
-export async function deleteRun(id: string): Promise<void> {
+/** Either every run goes or none does. */
+export async function deleteRuns(ids: readonly string[]): Promise<void> {
 	const db = await openStatSweepDb();
 	try {
-		await db.delete(RUNS_STORE, id);
+		const tx = db.transaction(RUNS_STORE, 'readwrite');
+		await Promise.all([...ids.map(id => tx.store.delete(id)), tx.done]);
 	} finally {
 		db.close();
 	}

@@ -2552,7 +2552,6 @@
 					"show": "Show {{label}}",
 					"hide": "Hide {{label}}",
 					"show_hidden": "Show {{label}}, some runs are hidden",
-					"expand": "Show each run of {{label}}",
 					"more_stats": "{{stats}} +{{count}}",
 					"metric": "The metric plotted when this run started, which Target ± followed",
 					"empty": "No saved stat sweeps yet."

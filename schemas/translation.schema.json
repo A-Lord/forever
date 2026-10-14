@@ -8901,13 +8901,12 @@
 										"show": { "type": "string" },
 										"hide": { "type": "string" },
 										"show_hidden": { "type": "string" },
-										"expand": { "type": "string" },
 										"more_stats": { "type": "string" },
 										"metric": { "type": "string" },
 										"empty": { "type": "string" }
 									},
 									"additionalProperties": false,
-									"required": ["title", "delete", "delete_batch", "show", "hide", "show_hidden", "expand", "more_stats", "metric", "empty"]
+									"required": ["title", "delete", "delete_batch", "show", "hide", "show_hidden", "more_stats", "metric", "empty"]
 								},
 								"precision": {
 									"type": "object",

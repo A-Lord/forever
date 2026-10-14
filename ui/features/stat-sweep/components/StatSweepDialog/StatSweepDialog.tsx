@@ -41,7 +41,7 @@ const trackerProgress = ({ stepCounts, running, completed, iterationsPerStep, se
 	};
 };
 
-// The sweep the settings and the spec describe; store reads only, so the dialog keeps it while closed.
+// The sweep the settings and the spec describe.
 const useSweepSetup = (settings: StatSweepSettings) => {
 	const player = usePlayer();
 	const { epStats, epPseudoStats } = useSpecConfig();
@@ -66,22 +66,20 @@ const useSweepSetup = (settings: StatSweepSettings) => {
 	return { player, unitStats, statOptions, metrics, metric, range, step, showSpread, precision, selectedStats, selectedKeys, labelOf, runnable };
 };
 
-type SweepSetup = ReturnType<typeof useSweepSetup>;
-
 interface StatSweepBodyHandle {
 	run: () => void;
 }
 
 interface StatSweepBodyProps {
 	settings: StatSweepSettings;
-	setup: SweepSetup;
 	ref: Ref<StatSweepBodyHandle>;
 }
 
-// The dialog's popup mounts this on open and drops it once the close transition ends, so the history loads and a run
-// goes only while the dialog shows.
-const StatSweepBody = ({ settings, setup, ref }: StatSweepBodyProps) => {
-	const { player, unitStats, statOptions, metrics, metric, range, step, showSpread, precision, selectedStats, selectedKeys, labelOf, runnable } = setup;
+// The dialog's popup mounts this and the Run button on open and drops them once the close transition ends, so the
+// setup is read, the history loads and a run goes only while the dialog shows.
+const StatSweepBody = ({ settings, ref }: StatSweepBodyProps) => {
+	const { player, unitStats, statOptions, metrics, metric, range, step, showSpread, precision, selectedStats, selectedKeys, labelOf, runnable } =
+		useSweepSetup(settings);
 	const progressRef = useRef<ProgressTrackerHandle>(null);
 	const statListRef = useRef<StatSweepStatListHandle>(null);
 	const sweep = useStatSweep();
@@ -180,29 +178,34 @@ export interface StatSweepDialogProps {
 	settings: StatSweepSettings;
 }
 
+const RunButton = ({ settings, onRun }: { settings: StatSweepSettings; onRun: () => void }) => {
+	const { runnable } = useSweepSetup(settings);
+	const { isRunning } = useSimRun(SimRunKind.StatSweep);
+	return (
+		<Button variant="primary" disabled={isRunning || !runnable} onClick={onRun}>
+			{t('run')}
+		</Button>
+	);
+};
+
 /** Closing it cancels a run. */
 export const StatSweepDialog = ({ open, onOpenChange, settings }: StatSweepDialogProps) => {
-	const setup = useSweepSetup(settings);
-	const { isRunning, abort } = useSimRun(SimRunKind.StatSweep);
+	const sim = useSim();
 	const bodyRef = useRef<StatSweepBodyHandle>(null);
 
 	return (
 		<Dialog
 			open={open}
 			onOpenChange={next => {
-				if (!next) abort().catch(console.error);
+				if (!next) sim.runs.abort(SimRunKind.StatSweep).catch(console.error);
 				onOpenChange(next);
 			}}
 			testId="stat-sweep-dialog"
 			size="full"
 			scrollContents
 			title={t('title')}
-			footer={
-				<Button variant="primary" disabled={isRunning || !setup.runnable} onClick={() => bodyRef.current?.run()}>
-					{t('run')}
-				</Button>
-			}>
-			<StatSweepBody ref={bodyRef} settings={settings} setup={setup} />
+			footer={<RunButton settings={settings} onRun={() => bodyRef.current?.run()} />}>
+			<StatSweepBody ref={bodyRef} settings={settings} />
 		</Dialog>
 	);
 };
