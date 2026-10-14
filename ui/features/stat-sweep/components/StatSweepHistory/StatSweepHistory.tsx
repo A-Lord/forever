@@ -1,6 +1,5 @@
 import i18n from '@i18n/config';
 import type { StatSweepMetric } from '@sim/state/sim_store';
-import { BooleanPicker } from '@ui-kit/BooleanPicker';
 import { Button } from '@ui-kit/Button';
 import { ContentBlock } from '@ui-kit/ContentBlock';
 import { Icon } from '@ui-kit/Icon';
@@ -39,7 +38,8 @@ const t = (key: string, options?: Record<string, unknown>) => i18n.t(`sidebar.bu
 // A batch header names this many stats and counts the rest.
 const HEADER_STATS = 3;
 
-const ROW_CLASS = clsx('grid grid-cols-[1.25rem_minmax(0,1fr)_auto] items-center gap-x-2');
+// The marker (swatch or chevron), the text, then the eye and the delete button.
+const ROW_CLASS = 'grid grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-x-2';
 
 const batchTitle = (runs: ReadonlyArray<StatSweepHistoryEntry>) => {
 	const stats = runs.map(run => run.statLabel);
@@ -48,7 +48,7 @@ const batchTitle = (runs: ReadonlyArray<StatSweepHistoryEntry>) => {
 };
 
 const RunDetails = ({ createdAt, metric, dateFormat }: Pick<StatSweepHistoryEntry, 'createdAt' | 'metric'> & { dateFormat: Intl.DateTimeFormat }) => (
-	<span className="col-start-2 flex items-center gap-2 text-xs text-muted">
+	<span className="col-span-3 col-start-2 flex items-center gap-2 text-xs text-muted">
 		{dateFormat.format(createdAt)}
 		{metric !== 'dps' && (
 			<Pill size="xs" tone="primary" title={t('history.metric')} testId="stat-sweep-history-metric">
@@ -58,6 +58,31 @@ const RunDetails = ({ createdAt, metric, dateFormat }: Pick<StatSweepHistoryEntr
 	</span>
 );
 
+interface EyeToggleProps {
+	label: string;
+	/** How many of the runs it stands for are drawn. */
+	drawn: number;
+	total: number;
+	onChange: (overlaid: boolean) => void;
+}
+
+/** The eye that draws or hides the runs it stands for; a click on a mixed group draws them all. */
+const EyeToggle = ({ label, drawn, total, onChange }: EyeToggleProps) => {
+	const all = drawn === total;
+	const mixed = drawn > 0 && !all;
+	return (
+		<Button
+			iconOnly
+			aria-label={t(mixed ? 'history.show_hidden' : all ? 'history.hide' : 'history.show', { label })}
+			aria-pressed={mixed ? 'mixed' : all}
+			data-mixed={mixed || undefined}
+			className="data-mixed:opacity-50"
+			onClick={() => onChange(!all)}>
+			<Icon name={drawn > 0 ? 'eye' : 'eye-slash'} style="base" size="xl" />
+		</Button>
+	);
+};
+
 interface RunRowProps extends Pick<StatSweepHistoryProps, 'onOverlayChange' | 'onDelete'> {
 	run: StatSweepHistoryEntry;
 	children?: ReactNode;
@@ -65,19 +90,11 @@ interface RunRowProps extends Pick<StatSweepHistoryProps, 'onOverlayChange' | 'o
 
 const RunRow = ({ run, onOverlayChange, onDelete, children }: RunRowProps) => (
 	<li className={ROW_CLASS}>
-		<span
-			aria-hidden
-			className={clsx('size-2 justify-self-center rounded-full', run.colorSlot === undefined ? 'invisible' : SERIES_SWATCH_CLASSES[run.colorSlot])}
-		/>
-		<BooleanPicker
-			id={`stat-sweep-overlay-${run.id}`}
-			className="min-w-0"
-			layout="inline"
-			reverse
-			label={run.label}
-			value={run.overlaid}
-			onChange={overlaid => onOverlayChange([run.id], overlaid)}
-		/>
+		<span aria-hidden className={clsx('size-2 rounded-full', run.colorSlot === undefined ? 'invisible' : SERIES_SWATCH_CLASSES[run.colorSlot])} />
+		<span className="min-w-0 truncate" title={run.label}>
+			{run.label}
+		</span>
+		<EyeToggle label={run.label} drawn={run.overlaid ? 1 : 0} total={1} onChange={overlaid => onOverlayChange([run.id], overlaid)} />
 		<Button iconOnly variant="link-danger" aria-label={t('history.delete', { label: run.label })} onClick={() => onDelete([run.id])}>
 			<Icon name="xmark" />
 		</Button>
@@ -109,21 +126,15 @@ const BatchRow = ({ batch, open, onOpenChange, onOverlayChange, onDelete, dateFo
 				onClick={() => onOpenChange(!open)}>
 				<Icon name={open ? 'chevron-down' : 'chevron-right'} fixedWidth />
 			</Button>
-			<BooleanPicker
-				id={`stat-sweep-overlay-batch-${batch.id}`}
-				className="min-w-0"
-				layout="inline"
-				reverse
-				label={title}
-				value={ticked === ids.length}
-				indeterminate={ticked > 0 && ticked < ids.length}
-				onChange={overlaid => onOverlayChange(ids, overlaid)}
-			/>
+			<span className="min-w-0 truncate" title={title}>
+				{title}
+			</span>
+			<EyeToggle label={title} drawn={ticked} total={ids.length} onChange={overlaid => onOverlayChange(ids, overlaid)} />
 			<Button iconOnly variant="link-danger" aria-label={t('history.delete_batch', { label: title })} onClick={() => onDelete(ids)}>
 				<Icon name="xmark" />
 			</Button>
 			<RunDetails createdAt={first.createdAt} metric={first.metric} dateFormat={dateFormat} />
-			<ul id={runsId} hidden={!open} className="col-span-2 col-start-2 m-0 mt-2 grid list-none gap-2 p-0">
+			<ul id={runsId} hidden={!open} className="col-span-3 col-start-2 m-0 mt-2 grid list-none gap-2 p-0">
 				{batch.runs.map(run => (
 					<RunRow key={run.id} run={run} onOverlayChange={onOverlayChange} onDelete={onDelete} />
 				))}

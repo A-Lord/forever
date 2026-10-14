@@ -104,13 +104,19 @@ const pressedMetric = () =>
 const precisionMode = (mode: 'iterations' | 'target') =>
 	// Also behind the modal progress dialog.
 	screen.getByRole<HTMLButtonElement>('button', { name: `common.precision.mode_${mode}`, hidden: true });
-const ticks = (selector: string) => [...rootElem.querySelectorAll<HTMLInputElement>(selector)].map(box => (box.indeterminate ? 'mixed' : String(box.checked)));
-// Each run's box, in list order.
-const overlayTicks = () => ticks('[id^="stat-sweep-overlay-"]:not([id^="stat-sweep-overlay-batch-"])');
-const batchTicks = () => ticks('[id^="stat-sweep-overlay-batch-"]');
-const batchBox = (index = 0) => rootElem.querySelectorAll<HTMLElement>('[id^="stat-sweep-overlay-batch-"]')[index];
-const runBox = (index: number) => rootElem.querySelectorAll<HTMLElement>('[id^="stat-sweep-overlay-"]:not([id^="stat-sweep-overlay-batch-"])')[index];
-const batchLabels = () => [...rootElem.querySelectorAll('label[for^="stat-sweep-overlay-batch-"]')].map(label => label.textContent);
+const HISTORY_EYE = /^sidebar\.buttons\.stat_sweep\.history\.(show|hide|show_hidden)$/;
+// The eyes also include the runs inside a closed batch; a batch's own eye is a direct child of its row.
+const eyes = (inBatch: boolean) =>
+	screen
+		.getAllByRole<HTMLButtonElement>('button', { name: HISTORY_EYE, hidden: true })
+		.filter(eye => eye.parentElement!.matches('[data-testid="stat-sweep-history-batch"]') === inBatch);
+const drawnState = (eye: HTMLElement) => eye.getAttribute('aria-pressed');
+// Each run's eye, in list order.
+const overlayTicks = () => eyes(false).map(drawnState);
+const batchTicks = () => eyes(true).map(drawnState);
+const batchBox = (index = 0) => eyes(true)[index];
+const runBox = (index: number) => eyes(false)[index];
+const batchLabels = () => [...rootElem.querySelectorAll('[data-testid="stat-sweep-history-batch"] > span[title]')].map(title => title.textContent);
 const deleteButtons = (key: 'delete' | 'delete_batch') => screen.getAllByRole('button', { name: `sidebar.buttons.stat_sweep.history.${key}`, hidden: true });
 const expanders = () => screen.getAllByRole('button', { name: 'sidebar.buttons.stat_sweep.history.expand' });
 const STRENGTH_NAME = STRENGTH.getFullName(Class.ClassWarrior);
@@ -442,7 +448,7 @@ describe('StatSweepDialog', () => {
 			expect(overlayTicks()).toEqual(['true', 'false', 'false']);
 		});
 
-		it("ticks and unticks every run of a batch with the batch's box, which shows mixed while only some are ticked", async () => {
+		it("draws and hides every run of a batch with the batch's eye, which reads mixed while only some are drawn", async () => {
 			settings.set({ stats: [AGILITY, STRENGTH], range: 10, step: 10 });
 			await openDialog();
 			await run();
@@ -495,13 +501,15 @@ describe('StatSweepDialog', () => {
 			await openDialog();
 
 			expect(overlayTicks()).toEqual(['true', 'true', 'false', 'false', 'false']);
-			expect(rootElem.querySelector('#stat-sweep-overlay-unbatched')!.closest('[data-testid="stat-sweep-history-batch"]')).toBeNull();
+			expect(runBox(2).closest('[data-testid="stat-sweep-history-batch"]')).toBeNull();
 			expect(expanders().map(button => button.getAttribute('aria-expanded'))).toEqual(['true', 'false']);
-			expect(screen.queryByRole('checkbox', { name: 'old-a' })).toBeNull();
+			// The closed batch's runs are not reachable.
+			expect(screen.getAllByRole('button', { name: HISTORY_EYE })).toHaveLength(5);
 
 			fireEvent.click(expanders()[1]);
 			expect(expanders()[1].getAttribute('aria-expanded')).toBe('true');
-			fireEvent.click(screen.getByRole('checkbox', { name: 'old-a' }));
+			expect(screen.getAllByRole('button', { name: HISTORY_EYE })).toHaveLength(7);
+			fireEvent.click(runBox(4));
 			expect(batchTicks()).toEqual(['true', 'mixed']);
 		});
 
@@ -514,7 +522,7 @@ describe('StatSweepDialog', () => {
 			expect(stored[0].statValue).not.toBe(stored[0].offset);
 			expect(lastChart().data.datasets[2].data.map(datum => datum.x)).toEqual(stored.map(point => point.offset));
 
-			fireEvent.click(rootElem.querySelector('#stat-sweep-overlay-old')!);
+			fireEvent.click(runBox(1));
 			expect(overlayTicks()).toEqual(['true', 'true']);
 			expect(lastChart().data.datasets.map(dataset => dataset.label)).toEqual(['new', 'new', 'new', 'old', 'old', 'old']);
 
