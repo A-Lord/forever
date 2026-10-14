@@ -90,7 +90,7 @@ interface RunRowProps extends Pick<StatSweepHistoryProps, 'onOverlayChange' | 'o
 
 const RunRow = ({ run, onOverlayChange, onDelete }: RunRowProps) => (
 	<li className={ROW_CLASS}>
-		<span aria-hidden className={clsx('size-2 rounded-full', run.colorSlot === undefined ? 'invisible' : SERIES_SWATCH_CLASSES[run.colorSlot])} />
+		<span aria-hidden className={clsx('size-2 rounded-full', run.colorSlot === undefined ? 'bg-muted/40' : SERIES_SWATCH_CLASSES[run.colorSlot])} />
 		<span className="min-w-0 truncate" title={run.label}>
 			{run.label}
 		</span>
