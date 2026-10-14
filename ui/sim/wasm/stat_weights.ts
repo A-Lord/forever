@@ -16,6 +16,7 @@ import { SimRequest } from '@worker/types';
 
 import { SimSignals } from '../sim_signal_manager';
 import { isDevMode } from '../utils/env';
+import { sum } from '../utils/math';
 import { generateRequestId, WorkerPool, WorkerProgressCallback } from '../workers/worker_pool';
 import { runConcurrentSimQueue } from './sim';
 
@@ -34,30 +35,37 @@ const makeAndSendWeightsError = (err: string | ErrorOutcome, onProgress: WorkerP
 
 const firstPlayer = (result: RaidSimResult) => result.raidMetrics!.parties[0].players[0];
 
-// The first player's per-iteration DPS, HPS, threat, DTPS and TMI of a run, from its splits in split order, which is the
-// order their combined result lists them in.
-const runValues = (splits: RaidSimResult[]): number[][] =>
-	(['dps', 'hps', 'threat', 'dtps', 'tmi'] as const).map(metric => splits.flatMap(split => firstPlayer(split)[metric]!.allValues));
+// The first player's per-iteration DPS, HPS, threat, DTPS and TMI, in this order. A run's splits list them in split order,
+// which is the order their combined result lists them in.
+const RUN_METRICS = ['dps', 'hps', 'threat', 'dtps', 'tmi'] as const;
+
+const pushRunValues = (values: number[][], splits: RaidSimResult[]) =>
+	RUN_METRICS.forEach((metric, m) => {
+		for (const split of splits) for (const value of firstPlayer(split)[metric]!.allValues) values[m].push(value);
+	});
 
 // The first player's chance of death in the splits' combined result: each split's weighted by its share of the iterations,
 // summed in split order, in the same order of operations as CombineConcurrentSimResults in sim/core/sim_concurrent.go.
 const chanceOfDeath = (splits: RaidSimResult[]): number => {
-	const iterations = splits.reduce((total, split) => total + split.iterationsDone, 0);
+	const iterations = sum(splits.map(split => split.iterationsDone));
 	return splits.reduce((chance, split) => chance + firstPlayer(split).chanceOfDeath * (split.iterationsDone / iterations), 0);
 };
 
 // Pairs each iteration of a stat run with the baseline's iteration offset + i, which ran at the same
 // seed, in the same order of operations as pairStatWeightRun in sim/core/statweight.go.
 const pairRun = (baseline: number[][], splits: RaidSimResult[], offset: number): StatWeightsSidePairs => {
-	const [dps, hps, tps, dtps, tmi] = runValues(splits).map((values, metric) => {
-		let sum = 0;
+	const [dps, hps, tps, dtps, tmi] = RUN_METRICS.map((metric, m) => {
+		let i = 0;
+		let total = 0;
 		let sumSq = 0;
-		for (let i = 0; i < values.length; i++) {
-			const diff = values[i] - baseline[metric][offset + i];
-			sum += diff;
-			sumSq += diff * diff;
+		for (const split of splits) {
+			for (const value of firstPlayer(split)[metric]!.allValues) {
+				const diff = value - baseline[m][offset + i++];
+				total += diff;
+				sumSq += diff * diff;
+			}
 		}
-		return StatWeightsPairedSums.create({ n: values.length, sum, sumSq });
+		return StatWeightsPairedSums.create({ n: i, sum: total, sumSq });
 	});
 	return StatWeightsSidePairs.create({ dps, hps, tps, dtps, tmi, chanceOfDeath: chanceOfDeath(splits) });
 };
@@ -146,23 +154,26 @@ export const runConcurrentStatWeights = async (
 			signals,
 		);
 
-	let baseLine = { values: [] as number[][], chanceOfDeath: 0 };
+	// Only the baseline keeps its per-iteration values, for the stat runs of later passes to pair with.
+	const baselineValues: number[][] = RUN_METRICS.map(() => []);
+	let baseChanceOfDeath = 0;
 	const baseError = await runSims([
 		{
 			request: manualResponse.baseRequest!,
-			take: splits => (baseLine = { values: runValues(splits), chanceOfDeath: chanceOfDeath(splits) }),
+			take: splits => {
+				pushRunValues(baselineValues, splits);
+				baseChanceOfDeath = chanceOfDeath(splits);
+			},
 		},
 	]);
 	if (baseError) return makeAndSendWeightsError(baseError, onProgress);
 
-	// Only the baseline keeps its per-iteration values, for the stat runs of later passes to pair with.
-	const baselineValues = baseLine.values;
 	const calcRequest = StatWeightsCalcRequest.create({
 		epReferenceStat: manualResponse.epReferenceStat,
 		hpsReferenceStat: manualResponse.hpsReferenceStat,
 		probeIterations: baselineValues[0].length,
 		baselineIterations: baselineValues[0].length,
-		baseChanceOfDeath: baseLine.chanceOfDeath,
+		baseChanceOfDeath,
 	});
 	const statPairs = new Map<number, StatWeightsStatPairs>();
 
@@ -217,10 +228,7 @@ export const runConcurrentStatWeights = async (
 				const baseError = await runSims([
 					{
 						request: continued(baseRequest, baselineIterations, baselineDelta),
-						take: splits =>
-							runValues(splits).forEach((values, metric) => {
-								for (const value of values) baselineValues[metric].push(value);
-							}),
+						take: splits => pushRunValues(baselineValues, splits),
 					},
 				]);
 				if (baseError) return makeAndSendWeightsError(baseError, onProgress);

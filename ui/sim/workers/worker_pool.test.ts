@@ -1,4 +1,4 @@
-import { ProgressMetrics, RaidSimRequest, RaidSimResult, SimOptions } from '@generated/proto/api';
+import { ProgressMetrics, RaidSimRequest, RaidSimRequestSplitRequest, RaidSimRequestSplitResult, RaidSimResult, SimOptions } from '@generated/proto/api';
 import type { WorkerReceiveMessage, WorkerSendMessage } from '@worker/types';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -37,16 +37,16 @@ const raidSimsPosted = () => FakeWorker.instances.map(worker => worker.posted.fi
 
 const request = (requestId: string) => RaidSimRequest.create({ requestId, simOptions: SimOptions.create({ iterations: 1 }) });
 
+beforeEach(() => {
+	FakeWorker.instances = [];
+	vi.stubGlobal('Worker', FakeWorker);
+});
+
+afterEach(() => {
+	vi.unstubAllGlobals();
+});
+
 describe('WorkerPool.raidSimAsync', () => {
-	beforeEach(() => {
-		FakeWorker.instances = [];
-		vi.stubGlobal('Worker', FakeWorker);
-	});
-
-	afterEach(() => {
-		vi.unstubAllGlobals();
-	});
-
 	it('runs on the worker at the index it is given, whichever worker is least busy', async () => {
 		const pool = new WorkerPool(3);
 
@@ -63,5 +63,25 @@ describe('WorkerPool.raidSimAsync', () => {
 		await pool.raidSimAsync(request('dropped'), noop, signals, 2);
 
 		expect(raidSimsPosted()).toEqual([1, 0, 0]);
+	});
+});
+
+describe('WorkerPool.raidSimRequestSplit', () => {
+	const splitOf = async (requestId: string) => {
+		const pool = new WorkerPool(1);
+		// The sim clones the request into each split, its id included.
+		const split = request(requestId);
+		const splits = RaidSimRequestSplitResult.create({ splitsDone: 2, requests: [split, RaidSimRequest.clone(split)] });
+		vi.spyOn(pool, 'makeApiCall').mockResolvedValue(RaidSimRequestSplitResult.toBinary(splits));
+		const result = await pool.raidSimRequestSplit(RaidSimRequestSplitRequest.create({ splitCount: 2, request: split }));
+		return result.requests.map(split => split.requestId);
+	};
+
+	it('gives each split its own id, as one worker can be handed two splits of a sim', async () => {
+		expect(await splitOf('raidSimAsync-1')).toEqual(['raidSimAsync-1-0', 'raidSimAsync-1-1']);
+	});
+
+	it('leaves the splits of a request with no id without one', async () => {
+		expect(await splitOf('')).toEqual(['', '']);
 	});
 });

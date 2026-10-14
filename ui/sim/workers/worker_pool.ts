@@ -213,9 +213,14 @@ export class WorkerPool {
 		return BulkCandidatesResult.fromBinary(result);
 	}
 
+	/** Each split under its own id when the request has one, as a worker keys its runs by id and may be handed two splits of a sim. */
 	async raidSimRequestSplit(request: RaidSimRequestSplitRequest): Promise<RaidSimRequestSplitResult> {
-		const result = await this.makeApiCall(SimRequest.raidSimRequestSplit, RaidSimRequestSplitRequest.toBinary(request));
-		return RaidSimRequestSplitResult.fromBinary(result);
+		const result = RaidSimRequestSplitResult.fromBinary(
+			await this.makeApiCall(SimRequest.raidSimRequestSplit, RaidSimRequestSplitRequest.toBinary(request)),
+		);
+		const parent = request.request?.requestId;
+		if (parent) result.requests.forEach((split, i) => (split.requestId = `${parent}-${i}`));
+		return result;
 	}
 
 	async raidSimResultCombination(request: RaidSimResultCombinationRequest): Promise<RaidSimResult> {

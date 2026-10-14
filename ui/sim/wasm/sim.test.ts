@@ -1,7 +1,6 @@
 import {
 	ErrorOutcome,
 	ErrorOutcomeType,
-	ProgressMetrics,
 	RaidSimRequest,
 	RaidSimRequestSplitRequest,
 	RaidSimRequestSplitResult,
@@ -13,7 +12,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { SimSignals } from '../sim_signal_manager';
 import { noop } from '../utils/misc';
 import type { WorkerPool } from '../workers/worker_pool';
-import { runConcurrentSim, runConcurrentSimQueue } from './sim';
+import { runConcurrentSimQueue } from './sim';
 
 type QueuedSim = Parameters<typeof runConcurrentSimQueue>[0][number];
 
@@ -29,11 +28,17 @@ const makeSignals = () => {
 	} as unknown as SimSignals;
 };
 
-// Splits a request in two halves under its own id, as the sim does.
+// Splits a request in two halves, each under the request's id and its index, as the worker pool does.
 const splitInTwo = async ({ request }: RaidSimRequestSplitRequest) =>
 	RaidSimRequestSplitResult.create({
 		splitsDone: 2,
-		requests: [0, 1].map(() => RaidSimRequest.create({ ...request, simOptions: SimOptions.create({ iterations: request!.simOptions!.iterations / 2 }) })),
+		requests: [0, 1].map(i =>
+			RaidSimRequest.create({
+				...request,
+				requestId: `${request!.requestId}-${i}`,
+				simOptions: SimOptions.create({ iterations: request!.simOptions!.iterations / 2 }),
+			}),
+		),
 	});
 
 // A pool of two workers whose splits end when the test ends them, in the order it chooses.
@@ -66,29 +71,6 @@ const queuedSim = (iterations: number, requestId: string) => ({
 	request: RaidSimRequest.create({ requestId, simOptions: SimOptions.create({ iterations }) }),
 	onProgress: vi.fn(),
 	onResult: vi.fn(),
-});
-
-describe('runConcurrentSim', () => {
-	it('sends each split under its own id, as one worker can be handed two splits of a sim', async () => {
-		const split = RaidSimRequest.create({ requestId: 'raidSimAsync-1', simOptions: SimOptions.create({ iterations: 50 }) });
-		const pool = {
-			getNumWorkers: () => 2,
-			raidSimRequestSplit: vi.fn(async () => RaidSimRequestSplitResult.create({ splitsDone: 2, requests: [split, RaidSimRequest.clone(split)] })),
-			raidSimAsync: vi.fn(async (_request: RaidSimRequest, onProgress: (pm: ProgressMetrics) => void) => {
-				const result = RaidSimResult.create();
-				onProgress(ProgressMetrics.create({ completedIterations: 50, finalRaidResult: result }));
-				return result;
-			}),
-			raidSimResultCombination: vi.fn(async () => RaidSimResult.create()),
-		} as unknown as WorkerPool;
-
-		await runConcurrentSim(RaidSimRequest.create({ simOptions: SimOptions.create({ iterations: 100 }) }), pool, noop, makeSignals());
-
-		const ids = vi.mocked(pool.raidSimAsync).mock.calls.map(([request]) => request.requestId);
-		expect(ids).toHaveLength(2);
-		expect(new Set(ids).size).toBe(2);
-		expect(ids.every(id => id.startsWith('raidSimAsync-1'))).toBe(true);
-	});
 });
 
 describe('runConcurrentSimQueue', () => {

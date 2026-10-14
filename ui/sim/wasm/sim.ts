@@ -11,6 +11,7 @@ import {
 
 import { SimSignals } from '../sim_signal_manager';
 import { isDevMode } from '../utils/env';
+import { sum } from '../utils/math';
 import { noop } from '../utils/misc';
 import { WorkerPool, WorkerProgressCallback } from '../workers/worker_pool';
 
@@ -151,10 +152,7 @@ const runSims = (
 		};
 
 		for (let i = 0; i < requests.length; i++) {
-			// Each split under its own id, as a worker keys its runs by id: the least busy worker is not always one without
-			// a split of the same sim.
-			const request = { ...requests[i], requestId: `${requests[i].requestId}-${i}` };
-			wp.raidSimAsync(request, pm => progressHandler(i, pm), signals).catch(error => resolveWithError(i, error));
+			wp.raidSimAsync(requests[i], pm => progressHandler(i, pm), signals).catch(error => resolveWithError(i, error));
 		}
 	});
 };
@@ -313,10 +311,10 @@ export const runConcurrentSimQueue = async (sims: QueuedSim[], workerPool: Worke
 				run.completed[split] = pm.completedIterations;
 				// As often as runSims reports a sim, once a message from each worker.
 				if (++progressCounter % splitCount) return;
-				const completedIterations = run.completed.reduce((total, done) => total + done, 0);
+				const completedIterations = sum(run.completed);
 				sims[sim].onProgress(ProgressMetrics.create({ totalIterations: sims[sim].request.simOptions!.iterations, completedIterations }));
 			};
-			const result = await workerPool.raidSimAsync({ ...request, requestId: `${request.requestId}-${split}` }, onProgress, signals, workerIndex);
+			const result = await workerPool.raidSimAsync(request, onProgress, signals, workerIndex);
 			if (result.error) return fail(result.error);
 			run.results[split] = result;
 			if (++run.returned === run.splitsDone) finish(sim);
