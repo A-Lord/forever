@@ -54,11 +54,10 @@ type Pet struct {
 	enableEffects  []OnPetEnable
 	disableEffects []OnPetDisable
 
-	// Calculates inherited stats based on owner stats or stat changes.
+	// Calculates inherited stats based on the owner's stats.
 	statInheritance        PetStatInheritance
 	dynamicStatInheritance PetStatInheritance
 	inheritedStats         stats.Stats
-	pendingStatInheritance stats.Stats
 	statInheritanceAction  *PendingAction
 
 	// A pet inherits its owner's melee speed and cast speed rather than
@@ -162,8 +161,8 @@ func (pet *Pet) inheritOwnerStats(sim *Simulation) {
 	pet.AddStatsDynamic(sim, pet.inheritedStats)
 }
 
-// Snapshots the owner's stats again, for a pet that inherits them on its own schedule rather than
-// on every change to its owner's.
+// Snapshots the owner's stats again: a dynamic pet at the pet heartbeat after its owner's stats
+// change, any other pet on its own schedule.
 func (pet *Pet) RefreshInheritedStats(sim *Simulation) {
 	inheritedStats := pet.statInheritance(pet.Owner.GetStats())
 	pet.AddStatsDynamic(sim, inheritedStats.Subtract(pet.inheritedStats))
@@ -181,28 +180,15 @@ func (pet *Pet) enableDynamicStats(sim *Simulation) {
 	pet.inheritOwnerStats(sim)
 	pet.Owner.DynamicStatsPets = append(pet.Owner.DynamicStatsPets, pet)
 	pet.dynamicStatInheritance = pet.statInheritance
-	pet.pendingStatInheritance = stats.Stats{}
 	pet.statInheritanceAction = &PendingAction{
 		Priority: ActionPriorityDOT,
 
 		OnAction: func(sim *Simulation) {
 			if pet.enabled {
-				pet.AddOwnerStats(sim, pet.pendingStatInheritance)
+				pet.RefreshInheritedStats(sim)
 			}
-
-			pet.pendingStatInheritance = stats.Stats{}
 		},
 	}
-}
-
-// Updates the stats for this pet in response to a stat change on the owner.
-// addedStats is the amount of stats added to the owner (will be negative if the
-// owner lost stats).
-func (pet *Pet) AddOwnerStats(sim *Simulation, addedStats stats.Stats) {
-	inheritedChange := pet.dynamicStatInheritance(addedStats)
-
-	pet.inheritedStats.AddInplace(&inheritedChange)
-	pet.AddStatsDynamic(sim, inheritedChange)
 }
 
 func (pet *Pet) resetInheritedOwnerStats(sim *Simulation) {
@@ -223,7 +209,6 @@ func (pet *Pet) resetDynamicStats(sim *Simulation) {
 
 	pet.dynamicStatInheritance = nil
 	pet.resetInheritedOwnerStats(sim)
-	pet.pendingStatInheritance = stats.Stats{}
 }
 
 func (pet *Pet) reset(sim *Simulation, agent PetAgent) {
