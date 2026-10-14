@@ -39,7 +39,7 @@ const t = (key: string, options?: Record<string, unknown>) => i18n.t(`sidebar.bu
 const HEADER_STATS = 3;
 
 // The marker (swatch or chevron), the text, then the eye and the delete button.
-const ROW_CLASS = 'grid grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-x-2';
+const ROW_CLASS = 'grid grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-x-2 text-ui';
 
 const batchTitle = (runs: ReadonlyArray<StatSweepHistoryEntry>) => {
 	const stats = runs.map(run => run.statLabel);
@@ -78,7 +78,7 @@ const EyeToggle = ({ label, drawn, total, onChange }: EyeToggleProps) => {
 			data-mixed={mixed || undefined}
 			className="data-mixed:opacity-50"
 			onClick={() => onChange(!all)}>
-			<Icon name={drawn > 0 ? 'eye' : 'eye-slash'} style="base" size="xl" />
+			<Icon name={drawn > 0 ? 'eye' : 'eye-slash'} style="base" />
 		</Button>
 	);
 };
