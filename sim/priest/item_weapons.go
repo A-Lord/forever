@@ -10,7 +10,8 @@ func init() {
 	//
 	// Increases the critical effect chance of your Holy spells by 2%.
 	//
-	// Reaches the Holy spells by class flags, which no priest Holy spell sets until they are ported.
+	// Reaches the Holy spells by class flags: Smite, Holy Fire, Holy Nova, Lesser Heal, Heal, Flash Heal,
+	// Greater Heal and Prayer of Healing. Renew is not in its mask.
 	// The staff's on-use 23041 turns it into Anathema and has no effect in the sim.
 	shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 23236},
 		[]shared.ItemVariant{
