@@ -39,7 +39,7 @@ const t = (key: string, options?: Record<string, unknown>) => i18n.t(`sidebar.bu
 // A batch header names this many stats and counts the rest.
 const HEADER_STATS = 3;
 
-// The marker (swatch or chevron), the text, then the eye and the delete button.
+// The swatch, the text, then the eye and the delete button; a batch's header spans the first two.
 const ROW_CLASS = 'grid grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-x-2 text-ui';
 
 const batchTitle = (runs: ReadonlyArray<StatSweepHistoryEntry>) => {
@@ -48,8 +48,13 @@ const batchTitle = (runs: ReadonlyArray<StatSweepHistoryEntry>) => {
 	return stats.length > HEADER_STATS ? t('history.more_stats', { stats: named, count: stats.length - HEADER_STATS }) : named;
 };
 
-const RunDetails = ({ createdAt, metric, dateFormat }: Pick<StatSweepHistoryEntry, 'createdAt' | 'metric'> & { dateFormat: Intl.DateTimeFormat }) => (
-	<span className="col-[2/-1] flex items-center gap-2 text-xs text-muted">
+const RunDetails = ({
+	createdAt,
+	metric,
+	dateFormat,
+	className,
+}: Pick<StatSweepHistoryEntry, 'createdAt' | 'metric'> & { dateFormat: Intl.DateTimeFormat; className: string }) => (
+	<span className={clsx(className, 'flex items-center gap-2 text-xs text-muted')}>
 		{dateFormat.format(createdAt)}
 		{metric !== 'dps' && (
 			<Pill size="xs" tone="primary" title={t('history.metric')} testId="stat-sweep-history-metric">
@@ -121,15 +126,15 @@ const BatchRow = ({ batch, open, onOpenChange, onOverlayChange, onDelete, dateFo
 		<li className={ROW_CLASS} data-testid="stat-sweep-history-batch">
 			<Button
 				variant="unstyled"
-				className="col-span-2 row-span-2 grid cursor-pointer grid-cols-subgrid grid-rows-subgrid items-center text-left focus-visible:focus-ring"
+				className="col-span-2 row-span-2 grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] grid-rows-subgrid items-center gap-x-2 text-left hover:text-link-hover focus-visible:focus-ring"
 				aria-label={t('history.expand', { label: title })}
 				aria-expanded={open}
 				aria-controls={runsId}
 				onClick={() => onOpenChange(!open)}
 				{...tooltipAnchorProps(statsTooltipId)}>
-				<Icon name={open ? 'chevron-down' : 'chevron-right'} fixedWidth className="justify-self-center" />
 				<span className="min-w-0 truncate">{title}</span>
-				<RunDetails createdAt={first.createdAt} metric={first.metric} dateFormat={dateFormat} />
+				<Icon name="chevron-down" fixedWidth className={clsx('transition-transform duration-150', !open && '-rotate-90')} />
+				<RunDetails className="col-start-1" createdAt={first.createdAt} metric={first.metric} dateFormat={dateFormat} />
 			</Button>
 			<Tooltip
 				id={statsTooltipId}
@@ -146,7 +151,7 @@ const BatchRow = ({ batch, open, onOpenChange, onOverlayChange, onDelete, dateFo
 			<Button iconOnly variant="link-danger" aria-label={t('history.delete_batch', { label: title })} onClick={() => onDelete(ids)}>
 				<Icon name="xmark" />
 			</Button>
-			<ul id={runsId} hidden={!open} className="col-span-3 col-start-2 m-0 mt-2 grid list-none gap-2 p-0">
+			<ul id={runsId} hidden={!open} className="col-span-full m-0 mt-2 grid list-none gap-2 p-0">
 				{batch.runs.map(run => (
 					<RunRow key={run.id} run={run} onOverlayChange={onOverlayChange} onDelete={onDelete} />
 				))}
@@ -174,7 +179,12 @@ export const StatSweepHistory = ({ batches, onOverlayChange, onDelete, onExportC
 						{batches.map(batch =>
 							batch.runs.length === 1 ? (
 								<RunRow key={batch.id} run={batch.runs[0]} onOverlayChange={onOverlayChange} onDelete={onDelete}>
-									<RunDetails createdAt={batch.runs[0].createdAt} metric={batch.runs[0].metric} dateFormat={dateFormat} />
+									<RunDetails
+										className="col-[2/-1]"
+										createdAt={batch.runs[0].createdAt}
+										metric={batch.runs[0].metric}
+										dateFormat={dateFormat}
+									/>
 								</RunRow>
 							) : (
 								<BatchRow
