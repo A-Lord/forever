@@ -612,7 +612,7 @@ func runStatWeights(request *proto.StatWeightsRequest, progress chan *proto.Prog
 		}
 		return nil
 	}
-	runStat :=func(run statWeightStatRun, done int32, iterations int32) *proto.ErrorOutcome {
+	runStat := func(run statWeightStatRun, done int32, iterations int32) *proto.ErrorOutcome {
 		if run.reqData.RequestLow != nil {
 			if err := pairSide(run.reqData.RequestLow, &run.pairs.Low, done, iterations); err != nil {
 				return err
