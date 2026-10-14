@@ -19,7 +19,8 @@ type WarlockPet struct {
 	MinMana           float64 // The mana the pet keeps before it casts again
 }
 
-// A demon's level 60 stats and what its own stats convert into, from the team's pet model sheet.
+// A demon's level 60 stats and what its own stats convert into, from the team's pet model sheet where no
+// share of the creature values below is known.
 type petModel struct {
 	baseStats stats.Stats // before the conversions below: Health and Mana are the base pools
 
@@ -35,9 +36,21 @@ type petModel struct {
 	damageMod          float64
 }
 
-// The sheet gives no crit from Agility or Intellect, and models regen as MP5 and Intellect alone. Its
-// totals give a demon no crit or armor of its own: its armor and crit are the warlock's (see
-// petStatInheritance).
+// The creature values of ExpectedStat's level 60 row (ExpansionID −2) in the game files. A demon's own health,
+// armor and weapon are fixed shares of them, each demon with its own shares.
+const (
+	creatureHealth        = 4365
+	creatureArmor         = 3566
+	creatureAutoAttackDps = 60.4529
+)
+
+// The Sayaad's average swing before attack power: 0.698 of the creature dps at 2.0 s, ranging 21.5% either side.
+const sayaadSwingAverage = 0.698 * creatureAutoAttackDps * 2
+
+// The sheet gives no crit from Agility or Intellect, and models regen as MP5 and Intellect alone. A demon has
+// no crit of its own: its crit is the warlock's (see petStatInheritance). The Imp's and Sayaad's own health
+// and armor are shares of the creature values and the Sayaad's attack power is fixed, with nothing from
+// Stamina or Strength; the Voidwalker and Felhunter have no armor of their own.
 var petModels = map[proto.WarlockOptions_Summon]petModel{
 	proto.WarlockOptions_Imp: {
 		baseStats: stats.Stats{
@@ -47,11 +60,12 @@ var petModels = map[proto.WarlockOptions_Summon]petModel{
 			stats.Intellect: 264,
 			stats.Spirit:    260,
 
-			stats.Health: 142.5,
+			stats.Health: 0.395 * creatureHealth,
+			stats.Armor:  0.325 * creatureArmor,
 			stats.Mana:   576,
 			stats.MP5:    95,
 		},
-		healthPerStamina: 3.5,
+		healthPerStamina: 0,
 		manaPerIntellect: 5,
 		mp5PerIntellect:  0.1,
 		apPerStrength:    2,
@@ -68,13 +82,18 @@ var petModels = map[proto.WarlockOptions_Summon]petModel{
 		damageMod:        1,
 	},
 	proto.WarlockOptions_Succubus: {
-		baseStats:        meleeDemonStats(14).Add(stats.Stats{stats.MP5: 95}), // TODO: The Imp's base MP5; the Sayaad's in-combat regen is not measured.
-		healthPerStamina: 7,
+		baseStats: meleeDemonStats(0.699 * creatureHealth).Add(stats.Stats{
+			stats.Armor: 0.630 * creatureArmor,
+			// TODO: 3 × level + 6, a line through levels 20 and 30, not yet read at 60.
+			stats.AttackPower: 186,
+			stats.MP5:         95, // TODO: The Imp's base MP5; the Sayaad's in-combat regen is not measured.
+		}),
+		healthPerStamina: 0,
 		manaPerIntellect: 11.5,
 		mp5PerIntellect:  0.1, // TODO: The Imp's per-Intellect MP5; the Sayaad's in-combat regen is not measured.
-		apPerStrength:    2,
-		meleeMin:         95,
-		meleeMax:         131,
+		apPerStrength:    0,
+		meleeMin:         sayaadSwingAverage * (1 - 0.215),
+		meleeMax:         sayaadSwingAverage * (1 + 0.215),
 		swingSpeed:       2,
 		// In the logs Lash of Pain deals (16 + 0.429 × Spell Damage) × 1.10 under 5/5 Unholy Power, with no
 		// multiplier of the Sayaad's own.
@@ -93,7 +112,7 @@ var petModels = map[proto.WarlockOptions_Summon]petModel{
 	},
 }
 
-// The Voidwalker, Sayaad and Felhunter share their level 60 stats and base mana; only base health differs.
+// The Voidwalker, Sayaad and Felhunter share their level 60 stats and base mana, each with its own base health.
 func meleeDemonStats(baseHealth float64) stats.Stats {
 	return stats.Stats{
 		stats.Strength:  129,
