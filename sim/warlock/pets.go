@@ -36,15 +36,17 @@ type petModel struct {
 	damageMod          float64
 }
 
-// The creature values of ExpectedStat's level 60 row (ExpansionID −2) in the game files. A demon's own health,
-// armor and weapon are fixed shares of them, each demon with its own shares.
+// The creature values of ExpectedStat's level 60 row (ExpansionID −2) in the game files, game build
+// 1.60.1.70374. A demon's own health, armor and weapon are fixed shares of them, each demon with its own shares.
+// TODO: The shares are read at levels 20 and 30 (the Imp's at 20 only), not yet at 60.
 const (
 	creatureHealth        = 4365
 	creatureArmor         = 3566
 	creatureAutoAttackDps = 60.4529
 )
 
-// The Sayaad's average swing before attack power: 0.698 of the creature dps at 2.0 s, ranging 21.5% either side.
+// The Sayaad's average swing before attack power: 0.698 of the creature dps at 2.0 s. Its sheet's damage range
+// spans 22.8% either side of the average at level 20 and 20.7% at 30, so 21.5%.
 const sayaadSwingAverage = 0.698 * creatureAutoAttackDps * 2
 
 // The sheet gives no crit from Agility or Intellect, and models regen as MP5 and Intellect alone. A demon has
@@ -60,7 +62,7 @@ var petModels = map[proto.WarlockOptions_Summon]petModel{
 			stats.Intellect: 264,
 			stats.Spirit:    260,
 
-			stats.Health: 0.395 * creatureHealth,
+			stats.Health: 0.359 * creatureHealth,
 			stats.Armor:  0.325 * creatureArmor,
 			stats.Mana:   576,
 			stats.MP5:    95,
@@ -113,6 +115,7 @@ var petModels = map[proto.WarlockOptions_Summon]petModel{
 }
 
 // The Voidwalker, Sayaad and Felhunter share their level 60 stats and base mana, each with its own base health.
+// The Sayaad's Stamina and Strength convert to nothing (its health and attack power are set directly).
 func meleeDemonStats(baseHealth float64) stats.Stats {
 	return stats.Stats{
 		stats.Strength:  129,
