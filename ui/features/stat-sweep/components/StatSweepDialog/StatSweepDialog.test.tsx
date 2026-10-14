@@ -122,8 +122,7 @@ const batchLabels = () =>
 const deleteButtons = (key: 'delete' | 'delete_batch') => screen.getAllByRole('button', { name: `sidebar.buttons.stat_sweep.history.${key}`, hidden: true });
 const STRENGTH_NAME = STRENGTH.getFullName(Class.ClassWarrior);
 const AGILITY_NAME = AGILITY.getFullName(Class.ClassWarrior);
-// A batch's header button is named by what it shows, which starts with the batch's stats.
-const expanders = () => screen.getAllByRole('button', { name: new RegExp(`^(${STRENGTH_NAME}|${AGILITY_NAME}), `) });
+const expanders = () => screen.getAllByRole('button').filter(button => button.matches('[data-testid="stat-sweep-history-batch"] > button'));
 // Iterations of each pass, by Strength added.
 const passesByStep = () => {
 	const passes: Record<number, number[]> = {};
@@ -453,9 +452,11 @@ describe('StatSweepDialog', () => {
 			act(() => settings.set({ stats: [STRENGTH] }));
 			await run();
 			expect(saved(2).batchId).not.toBe(first.batchId);
-			// The one-stat sweep is a plain row above the earlier sweep's header.
-			expect(batchLabels()).toEqual([`${STRENGTH_NAME}, ${AGILITY_NAME}`]);
+			// The one-stat sweep gets a header of its own, open above the earlier sweep's closed one.
+			expect(batchLabels()).toEqual([STRENGTH_NAME, `${STRENGTH_NAME}, ${AGILITY_NAME}`]);
+			expect(expanders().map(button => button.getAttribute('aria-expanded'))).toEqual(['true', 'false']);
 			expect(overlayTicks()).toEqual(['true', 'false', 'false']);
+			expect(batchTicks()).toEqual(['true', 'false']);
 		});
 
 		it("draws and hides every run of a batch with the batch's eye, which reads mixed while only some are drawn", async () => {
@@ -491,16 +492,16 @@ describe('StatSweepDialog', () => {
 			fireEvent.click(deleteButtons('delete')[1]);
 			expect(history.deleteRuns).toHaveBeenCalledExactlyOnceWith(['second']);
 			expect(overlayTicks()).toEqual(['true', 'true', 'false']);
-			expect(batchLabels()).toEqual([`${AGILITY_NAME}, ${AGILITY_NAME}`]);
+			expect(batchLabels()).toEqual([`${AGILITY_NAME}, ${AGILITY_NAME}`, STRENGTH_NAME]);
 
 			history.deleteRuns.mockClear();
 			fireEvent.click(deleteButtons('delete_batch')[0]);
 			expect(history.deleteRuns).toHaveBeenCalledExactlyOnceWith(['first', 'third']);
 			expect(overlayTicks()).toEqual(['false']);
-			expect(batchLabels()).toEqual([]);
+			expect(batchLabels()).toEqual([STRENGTH_NAME]);
 		});
 
-		it('lists a run saved with no batch as a row of its own, and opens only the newest batch', async () => {
+		it('lists a run saved with no batch as a batch of its own, and opens only the newest batch', async () => {
 			history.listRuns.mockResolvedValueOnce([
 				storedRun('new-b', 5, 1, 'new', AGILITY),
 				storedRun('new-a', 4, 0, 'new'),
@@ -511,16 +512,18 @@ describe('StatSweepDialog', () => {
 			await openDialog();
 
 			expect(overlayTicks()).toEqual(['true', 'true', 'false', 'false', 'false']);
-			expect(runEye(2).closest('[data-testid="stat-sweep-history-batch"]')).toBeNull();
-			expect(expanders().map(button => button.getAttribute('aria-expanded'))).toEqual(['true', 'false']);
-			// The closed batch's runs are not reachable.
+			expect(batchLabels()).toEqual([`${STRENGTH_NAME}, ${AGILITY_NAME}`, STRENGTH_NAME, `${STRENGTH_NAME}, ${AGILITY_NAME}`]);
+			expect(expanders().map(button => button.getAttribute('aria-expanded'))).toEqual(['true', 'false', 'false']);
+			// The closed batches' runs are not reachable.
 			expect(screen.getAllByRole('button', { name: HISTORY_EYE })).toHaveLength(5);
 
 			fireEvent.click(expanders()[1]);
 			expect(expanders()[1].getAttribute('aria-expanded')).toBe('true');
-			expect(screen.getAllByRole('button', { name: HISTORY_EYE })).toHaveLength(7);
+			expect(screen.getAllByRole('button', { name: HISTORY_EYE })).toHaveLength(6);
+			fireEvent.click(expanders()[2]);
+			expect(screen.getAllByRole('button', { name: HISTORY_EYE })).toHaveLength(8);
 			fireEvent.click(runEye(4));
-			expect(batchTicks()).toEqual(['true', 'mixed']);
+			expect(batchTicks()).toEqual(['true', 'false', 'mixed']);
 		});
 
 		it("names a batch's header by its stats, date and metric, and tells whether it is open", async () => {
@@ -569,10 +572,10 @@ describe('StatSweepDialog', () => {
 				.mockImplementationOnce(() => new Promise(resolve => (settleThird = resolve)));
 			settings.set({ stats: [AGILITY, STRENGTH], range: 10, step: 10 });
 			await openDialog();
-			const deletes = (hidden: boolean) => screen.queryAllByRole('button', { name: 'sidebar.buttons.stat_sweep.history.delete', hidden });
+			const deletes = (hidden: boolean) => screen.queryAllByRole('button', { name: 'sidebar.buttons.stat_sweep.history.delete_batch', hidden });
 
 			await run();
-			// The sweep's finished Strength run is listed, but only behind the modal progress dialog.
+			// The sweep's batch is listed with its finished Strength run, but only behind the modal progress dialog.
 			expect(deletes(true)).toHaveLength(2);
 			expect(deletes(false)).toHaveLength(0);
 
@@ -595,6 +598,7 @@ describe('StatSweepDialog', () => {
 			expect(stored[0].statValue).not.toBe(stored[0].offset);
 			expect(lastChart().data.datasets[2].data.map(datum => datum.x)).toEqual(stored.map(point => point.offset));
 
+			fireEvent.click(expanders()[1]);
 			fireEvent.click(runEye(1));
 			expect(overlayTicks()).toEqual(['true', 'true']);
 			expect(lastChart().data.datasets.map(dataset => dataset.label)).toEqual(['new', 'new', 'new', 'old', 'old', 'old']);

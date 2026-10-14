@@ -6,7 +6,7 @@ import { Icon } from '@ui-kit/Icon';
 import { Pill } from '@ui-kit/Pill';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import clsx from 'clsx';
-import { type ReactNode, useId, useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 
 import { SERIES_SWATCH_CLASSES } from '../../model/colors';
 import type { SweepBatch } from '../../model/stat_sweep';
@@ -48,13 +48,8 @@ const batchTitle = (runs: ReadonlyArray<StatSweepHistoryEntry>) => {
 	return stats.length > HEADER_STATS ? t('history.more_stats', { stats: named, count: stats.length - HEADER_STATS }) : named;
 };
 
-const RunDetails = ({
-	createdAt,
-	metric,
-	dateFormat,
-	className,
-}: Pick<StatSweepHistoryEntry, 'createdAt' | 'metric'> & { dateFormat: Intl.DateTimeFormat; className: string }) => (
-	<span className={clsx(className, 'flex items-center gap-2 text-xs text-muted')}>
+const RunDetails = ({ createdAt, metric, dateFormat }: Pick<StatSweepHistoryEntry, 'createdAt' | 'metric'> & { dateFormat: Intl.DateTimeFormat }) => (
+	<span className="col-span-2 col-start-1 flex items-center gap-2 text-xs text-muted">
 		{dateFormat.format(createdAt)}
 		{metric !== 'dps' && (
 			<Pill size="xs" tone="primary" title={t('history.metric')} testId="stat-sweep-history-metric">
@@ -91,10 +86,9 @@ const EyeToggle = ({ label, drawn, total, onChange }: EyeToggleProps) => {
 
 interface RunRowProps extends Pick<StatSweepHistoryProps, 'onOverlayChange' | 'onDelete'> {
 	run: StatSweepHistoryEntry;
-	children?: ReactNode;
 }
 
-const RunRow = ({ run, onOverlayChange, onDelete, children }: RunRowProps) => (
+const RunRow = ({ run, onOverlayChange, onDelete }: RunRowProps) => (
 	<li className={ROW_CLASS}>
 		<span aria-hidden className={clsx('size-2 rounded-full', run.colorSlot === undefined ? 'invisible' : SERIES_SWATCH_CLASSES[run.colorSlot])} />
 		<span className="min-w-0 truncate" title={run.label}>
@@ -104,7 +98,6 @@ const RunRow = ({ run, onOverlayChange, onDelete, children }: RunRowProps) => (
 		<Button iconOnly variant="link-danger" aria-label={t('history.delete', { label: run.label })} onClick={() => onDelete([run.id])}>
 			<Icon name="xmark" />
 		</Button>
-		{children}
 	</li>
 );
 
@@ -134,7 +127,7 @@ const BatchRow = ({ batch, open, onOpenChange, onOverlayChange, onDelete, dateFo
 				{...tooltipAnchorProps(statsTooltipId)}>
 				<span className="col-span-2 min-w-0 truncate">{title}</span>
 				<Icon name="chevron-down" fixedWidth className={clsx('col-start-5 transition-transform duration-150', !open && '-rotate-90')} />
-				<RunDetails className="col-span-2 col-start-1" createdAt={first.createdAt} metric={first.metric} dateFormat={dateFormat} />
+				<RunDetails createdAt={first.createdAt} metric={first.metric} dateFormat={dateFormat} />
 			</Button>
 			<span className="relative z-10 col-span-2 col-start-3 row-start-1 flex items-center gap-x-2">
 				<EyeToggle label={title} drawn={ticked} total={ids.length} onChange={overlaid => onOverlayChange(ids, overlaid)} />
@@ -171,29 +164,18 @@ export const StatSweepHistory = ({ batches, onOverlayChange, onDelete, onExportC
 			<div className="flex flex-col gap-4">
 				{batches.length ? (
 					<ul className="m-0 grid list-none gap-2 p-0">
-						{batches.map(batch =>
-							batch.runs.length === 1 ? (
-								<RunRow key={batch.id} run={batch.runs[0]} onOverlayChange={onOverlayChange} onDelete={onDelete}>
-									<RunDetails
-										className="col-[2/-1]"
-										createdAt={batch.runs[0].createdAt}
-										metric={batch.runs[0].metric}
-										dateFormat={dateFormat}
-									/>
-								</RunRow>
-							) : (
-								<BatchRow
-									key={batch.id}
-									batch={batch}
-									open={expanded.ids.includes(batch.id)}
-									onOpenChange={open => setOpen(batch.id, open)}
-									onOverlayChange={onOverlayChange}
-									onDelete={onDelete}
-									dateFormat={dateFormat}
-									statsTooltipId={statsTooltipId}
-								/>
-							),
-						)}
+						{batches.map(batch => (
+							<BatchRow
+								key={batch.id}
+								batch={batch}
+								open={expanded.ids.includes(batch.id)}
+								onOpenChange={open => setOpen(batch.id, open)}
+								onOverlayChange={onOverlayChange}
+								onDelete={onDelete}
+								dateFormat={dateFormat}
+								statsTooltipId={statsTooltipId}
+							/>
+						))}
 					</ul>
 				) : (
 					<p className="mb-0 text-gray-400">{t('history.empty')}</p>

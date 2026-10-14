@@ -27,7 +27,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** The newest sweep open with every run drawn, a one-stat sweep as a plain row, and an older sweep with one of its runs drawn. */
+/** The newest sweep open with every run drawn, then a closed one-stat sweep and a closed older sweep with one of its runs drawn. */
 export const Default: Story = {};
 
 export const Empty: Story = { args: { batches: [], onExportCsv: undefined } };
