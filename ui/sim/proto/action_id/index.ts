@@ -562,6 +562,11 @@ export class ActionId {
 					});
 				}
 				break;
+			case 'Penance':
+				if (tag === 1) {
+					name += ' (Heal)';
+				}
+				break;
 			default:
 				if (tag === -1) {
 					name += ` (${i18n.t('common.action_tags.external')})`;
