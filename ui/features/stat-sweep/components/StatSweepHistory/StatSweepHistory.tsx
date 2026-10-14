@@ -178,7 +178,7 @@ export const StatSweepHistory = ({ batches, onOverlayChange, onDelete, onExportC
 						))}
 					</ul>
 				) : (
-					<p className="mb-0 text-gray-400">{t('history.empty')}</p>
+					<p className="mb-0 text-ui text-muted">{t('history.empty')}</p>
 				)}
 				<Tooltip
 					id={statsTooltipId}
