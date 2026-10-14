@@ -36,18 +36,14 @@ type petModel struct {
 	damageMod          float64
 }
 
-// The creature values of ExpectedStat's level 60 row (ExpansionID −2) in the game files, game build
-// 1.60.1.70374. A demon's own health, armor and weapon are fixed shares of them, each demon with its own shares.
+// A demon's own health, armor and weapon are fixed shares of the creature values for its level in the game
+// files (core.CreatureHealthMaxLevel, core.CreatureArmorMaxLevel, core.CreatureAutoAttackDpsMaxLevel), each
+// demon with its own shares.
 // TODO: The shares are read at levels 20 and 30 (the Imp's at 20 only), not yet at 60.
-const (
-	creatureHealth        = 4365
-	creatureArmor         = 3566
-	creatureAutoAttackDps = 60.4529
-)
-
+//
 // The Sayaad's average swing before attack power: 0.698 of the creature dps at 2.0 s. Its sheet's damage range
 // spans 22.8% either side of the average at level 20 and 20.7% at 30, so 21.5%.
-const sayaadSwingAverage = 0.698 * creatureAutoAttackDps * 2
+const sayaadSwingAverage = 0.698 * core.CreatureAutoAttackDpsMaxLevel * 2
 
 // The sheet gives no crit from Agility or Intellect, and models regen as MP5 and Intellect alone. A demon has
 // no crit of its own: its crit is the warlock's (see petStatInheritance). The Imp's and Sayaad's own health
@@ -62,8 +58,8 @@ var petModels = map[proto.WarlockOptions_Summon]petModel{
 			stats.Intellect: 264,
 			stats.Spirit:    260,
 
-			stats.Health: 0.359 * creatureHealth,
-			stats.Armor:  0.325 * creatureArmor,
+			stats.Health: 0.359 * core.CreatureHealthMaxLevel,
+			stats.Armor:  0.325 * core.CreatureArmorMaxLevel,
 			stats.Mana:   576,
 			stats.MP5:    95,
 		},
@@ -84,9 +80,9 @@ var petModels = map[proto.WarlockOptions_Summon]petModel{
 		damageMod:        1,
 	},
 	proto.WarlockOptions_Succubus: {
-		baseStats: meleeDemonStats(0.699 * creatureHealth).Add(stats.Stats{
+		baseStats: meleeDemonStats(0.699 * core.CreatureHealthMaxLevel).Add(stats.Stats{
 			// TODO: Level 30's share; the warlock's Demon Armor is not inherited, and at level 20 the share reads 0.630.
-			stats.Armor: 0.692 * creatureArmor,
+			stats.Armor: 0.692 * core.CreatureArmorMaxLevel,
 			// TODO: 3 × level + 6, a line through levels 20 and 30, not yet read at 60.
 			stats.AttackPower: 186,
 			stats.MP5:         95, // TODO: The Imp's base MP5; the Sayaad's in-combat regen is not measured.
