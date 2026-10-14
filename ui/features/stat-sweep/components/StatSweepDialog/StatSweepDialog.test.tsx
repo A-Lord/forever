@@ -105,11 +105,11 @@ const precisionMode = (mode: 'iterations' | 'target') =>
 	// Also behind the modal progress dialog.
 	screen.getByRole<HTMLButtonElement>('button', { name: `common.precision.mode_${mode}`, hidden: true });
 const HISTORY_EYE = /^sidebar\.buttons\.stat_sweep\.history\.(show|hide|show_hidden)$/;
-// The eyes also include the runs inside a closed batch; a batch's own eye is a direct child of its row.
+// The eyes also include the runs inside a closed batch; a batch's own eye is the one whose nearest row is the batch's.
 const eyes = (inBatch: boolean) =>
 	screen
 		.getAllByRole<HTMLButtonElement>('button', { name: HISTORY_EYE, hidden: true })
-		.filter(eye => eye.parentElement!.matches('[data-testid="stat-sweep-history-batch"]') === inBatch);
+		.filter(eye => eye.closest('li')!.matches('[data-testid="stat-sweep-history-batch"]') === inBatch);
 const drawnState = (eye: HTMLElement) => eye.getAttribute('aria-pressed');
 // Each run's eye, in list order.
 const overlayTicks = () => eyes(false).map(drawnState);

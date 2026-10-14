@@ -39,8 +39,8 @@ const t = (key: string, options?: Record<string, unknown>) => i18n.t(`sidebar.bu
 // A batch header names this many stats and counts the rest.
 const HEADER_STATS = 3;
 
-// The swatch, the text, then the eye and the delete button; a batch's header spans the first two.
-const ROW_CLASS = 'grid grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-x-2 text-ui';
+// The swatch, the text, the eye, the delete button, then a batch's chevron. A batch's header button spans the whole row, under its eye and delete button.
+const ROW_CLASS = 'grid grid-cols-[auto_minmax(0,1fr)_auto_auto_1.25em] items-center gap-x-2 text-ui';
 
 const batchTitle = (runs: ReadonlyArray<StatSweepHistoryEntry>) => {
 	const stats = runs.map(run => run.statLabel);
@@ -126,15 +126,15 @@ const BatchRow = ({ batch, open, onOpenChange, onOverlayChange, onDelete, dateFo
 		<li className={ROW_CLASS} data-testid="stat-sweep-history-batch">
 			<Button
 				variant="unstyled"
-				className="col-span-2 row-span-2 grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] grid-rows-subgrid items-center gap-x-2 text-left hover:text-link-hover focus-visible:focus-ring"
+				className="col-span-full row-span-2 row-start-1 grid cursor-pointer grid-cols-subgrid grid-rows-subgrid items-center text-left text-foreground hover:text-link-hover focus-visible:focus-ring"
 				aria-label={t('history.expand', { label: title })}
 				aria-expanded={open}
 				aria-controls={runsId}
 				onClick={() => onOpenChange(!open)}
 				{...tooltipAnchorProps(statsTooltipId)}>
-				<span className="min-w-0 truncate">{title}</span>
-				<Icon name="chevron-down" fixedWidth className={clsx('transition-transform duration-150', !open && '-rotate-90')} />
-				<RunDetails className="col-start-1" createdAt={first.createdAt} metric={first.metric} dateFormat={dateFormat} />
+				<span className="col-span-2 min-w-0 truncate">{title}</span>
+				<Icon name="chevron-down" fixedWidth className={clsx('col-start-5 transition-transform duration-150', !open && '-rotate-90')} />
+				<RunDetails className="col-span-2 col-start-1" createdAt={first.createdAt} metric={first.metric} dateFormat={dateFormat} />
 			</Button>
 			<Tooltip
 				id={statsTooltipId}
@@ -147,10 +147,12 @@ const BatchRow = ({ batch, open, onOpenChange, onOverlayChange, onDelete, dateFo
 					</ul>
 				}
 			/>
-			<EyeToggle label={title} drawn={ticked} total={ids.length} onChange={overlaid => onOverlayChange(ids, overlaid)} />
-			<Button iconOnly variant="link-danger" aria-label={t('history.delete_batch', { label: title })} onClick={() => onDelete(ids)}>
-				<Icon name="xmark" />
-			</Button>
+			<span className="relative z-10 col-span-2 col-start-3 row-start-1 flex items-center gap-x-2">
+				<EyeToggle label={title} drawn={ticked} total={ids.length} onChange={overlaid => onOverlayChange(ids, overlaid)} />
+				<Button iconOnly variant="link-danger" aria-label={t('history.delete_batch', { label: title })} onClick={() => onDelete(ids)}>
+					<Icon name="xmark" />
+				</Button>
+			</span>
 			<ul id={runsId} hidden={!open} className="col-span-full m-0 mt-2 grid list-none gap-2 p-0">
 				{batch.runs.map(run => (
 					<RunRow key={run.id} run={run} onOverlayChange={onOverlayChange} onDelete={onDelete} />
