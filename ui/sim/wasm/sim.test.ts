@@ -13,7 +13,9 @@ import { describe, expect, it, vi } from 'vitest';
 import type { SimSignals } from '../sim_signal_manager';
 import { noop } from '../utils/misc';
 import type { WorkerPool } from '../workers/worker_pool';
-import { type QueuedSim, runConcurrentSim, runConcurrentSimQueue } from './sim';
+import { runConcurrentSim, runConcurrentSimQueue } from './sim';
+
+type QueuedSim = Parameters<typeof runConcurrentSimQueue>[0][number];
 
 const makeSignals = () => {
 	let triggered = false;
@@ -36,11 +38,25 @@ const splitInTwo = async ({ request }: RaidSimRequestSplitRequest) =>
 
 // A pool of two workers whose splits end when the test ends them, in the order it chooses.
 const makeHeldPool = () => {
-	const held: Array<{ request: RaidSimRequest; end: (result: RaidSimResult) => void }> = [];
+	const held: Array<{ request: RaidSimRequest; workerIndex?: number; ended: boolean; end: (result: RaidSimResult) => void }> = [];
 	const pool = {
 		getNumWorkers: () => 2,
 		raidSimRequestSplit: vi.fn(splitInTwo),
-		raidSimAsync: vi.fn((request: RaidSimRequest) => new Promise<RaidSimResult>(end => held.push({ request, end }))),
+		raidSimAsync: vi.fn(
+			(request: RaidSimRequest, _onProgress: unknown, _signals: unknown, workerIndex?: number) =>
+				new Promise<RaidSimResult>(resolve => {
+					const split = {
+						request,
+						workerIndex,
+						ended: false,
+						end: (result: RaidSimResult) => {
+							split.ended = true;
+							resolve(result);
+						},
+					};
+					held.push(split);
+				}),
+		),
 		raidSimResultCombination: vi.fn(),
 	} as unknown as WorkerPool;
 	return { pool, held };
@@ -97,6 +113,42 @@ describe('runConcurrentSimQueue', () => {
 		expect(vi.mocked(pool.raidSimAsync).mock.calls).toHaveLength(4);
 	});
 
+	it('sends no worker a split while one runs on it, and the next to the worker that came back', async () => {
+		const { pool, held } = makeHeldPool();
+		const running = () => held.filter(split => !split.ended).map(split => split.workerIndex);
+
+		const queue = runConcurrentSimQueue([queuedSim(100, 'a'), queuedSim(60, 'b'), queuedSim(40, 'c')], pool, makeSignals());
+		await vi.waitFor(() => expect(held).toHaveLength(2));
+		expect(running().sort()).toEqual([0, 1]);
+
+		for (const freed of [1, 0, 3, 2, 4, 5]) {
+			const sent = held.length;
+			held[freed].end(RaidSimResult.create({ iterationsDone: 1 }));
+			if (sent === 6) continue;
+			await vi.waitFor(() => expect(held).toHaveLength(sent + 1));
+			expect(held[sent].workerIndex).toBe(held[freed].workerIndex);
+			expect(new Set(running()).size).toBe(running().length);
+		}
+
+		expect(await queue).toBeUndefined();
+		expect(held.map(({ request }) => request.requestId)).toEqual(['a-0', 'a-1', 'b-0', 'b-1', 'c-0', 'c-1']);
+	});
+
+	it('sends no split claimed while an abort lands, and reports the abort', async () => {
+		const { pool } = makeHeldPool();
+		const signals = makeSignals();
+		let returnSplit: () => void = noop;
+		vi.mocked(pool.raidSimRequestSplit).mockImplementation(request => new Promise(resolve => (returnSplit = () => resolve(splitInTwo(request)))));
+
+		const queue = runConcurrentSimQueue([queuedSim(100, 'a')], pool, signals);
+		await vi.waitFor(() => expect(pool.raidSimRequestSplit).toHaveBeenCalled());
+		await signals.abort.trigger();
+		returnSplit();
+
+		expect(await queue).toEqual(ErrorOutcome.create({ type: ErrorOutcomeType.ErrorOutcomeAborted }));
+		expect(pool.raidSimAsync).not.toHaveBeenCalled();
+	});
+
 	it('hands each sim its split results in split order, uncombined, with a final progress', async () => {
 		const { pool, held } = makeHeldPool();
 		const sim = queuedSim(100, 'a');
@@ -109,6 +161,7 @@ describe('runConcurrentSimQueue', () => {
 
 		expect(sim.onResult).toHaveBeenCalledWith([RaidSimResult.create({ iterationsDone: 51 }), RaidSimResult.create({ iterationsDone: 49 })]);
 		expect(sim.onProgress.mock.calls.at(-1)![0].completedIterations).toBe(100);
+		expect(sim.onResult.mock.invocationCallOrder[0]).toBeLessThan(sim.onProgress.mock.invocationCallOrder.at(-1)!);
 		expect(pool.raidSimResultCombination).not.toHaveBeenCalled();
 	});
 

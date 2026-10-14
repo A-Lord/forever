@@ -168,8 +168,9 @@ export class WorkerPool {
 		return StatWeightsTopUpPlan.fromBinary(result);
 	}
 
-	async raidSimAsync(request: RaidSimRequest, onProgress: WorkerProgressCallback, signals: SimSignals): Promise<RaidSimResult> {
-		const worker = this.getLeastBusyWorker();
+	/** Runs on the worker at workerIndex when given and the pool still has it, else on the least busy worker. */
+	async raidSimAsync(request: RaidSimRequest, onProgress: WorkerProgressCallback, signals: SimSignals, workerIndex?: number): Promise<RaidSimResult> {
+		const worker = (workerIndex !== undefined && this.concurrencyPool.getWorkers()[workerIndex]) || this.getLeastBusyWorker();
 		// A bulk run issues one of these per candidate, and the request carries the merged
 		// database, so this must stay lazy.
 		worker.log(() => 'Raid sim request: ' + RaidSimRequest.toJsonString(request));

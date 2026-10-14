@@ -11,6 +11,8 @@ import {
 	ProgressMetrics,
 	RaidMetrics,
 	RaidSimRequest,
+	RaidSimRequestSplitRequest,
+	RaidSimRequestSplitResult,
 	RaidSimResult,
 	SimOptions,
 	StatWeightsCalcRequest,
@@ -31,8 +33,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SimSignals } from '../sim_signal_manager';
 import { noop } from '../utils/misc';
 import type { WorkerPool } from '../workers/worker_pool';
-import type { QueuedSim } from './sim';
 import { runConcurrentStatWeights } from './stat_weights';
+
+type QueuedSim = Parameters<(typeof import('./sim'))['runConcurrentSimQueue']>[0][number];
 
 const runConcurrentSimQueue = vi.hoisted(() => vi.fn());
 vi.mock('./sim', () => ({ runConcurrentSimQueue }));
@@ -100,10 +103,33 @@ describe('runConcurrentStatWeights', () => {
 		// Report one iteration per sim so the caller's progress handler runs and exposes the totals.
 		runConcurrentSimQueue.mockImplementation(async (sims: QueuedSim[]) => {
 			for (const { request, onProgress, onResult } of sims) {
-				onProgress(ProgressMetrics.create({ completedIterations: request.simOptions!.iterations }));
 				onResult(simulateSplits(request));
+				onProgress(ProgressMetrics.create({ completedIterations: request.simOptions!.iterations }));
 			}
 		});
+	});
+
+	it('counts every sim in the last progress', async () => {
+		const { runConcurrentSimQueue: queue } = await vi.importActual<typeof import('./sim')>('./sim');
+		runConcurrentSimQueue.mockImplementation(queue);
+		const pool = Object.assign(makePool([{ requestLow: requestWithIterations(20), requestHigh: requestWithIterations(30) }]), {
+			getNumWorkers: () => 1,
+			raidSimRequestSplit: async ({ request }: RaidSimRequestSplitRequest) => RaidSimRequestSplitResult.create({ splitsDone: 1, requests: [request!] }),
+			raidSimAsync: async (request: RaidSimRequest, onProgress: (pm: ProgressMetrics) => void) => {
+				const result = simulate(request);
+				onProgress(
+					ProgressMetrics.create({ totalIterations: result.iterationsDone, completedIterations: result.iterationsDone, finalRaidResult: result }),
+				);
+				return result;
+			},
+		});
+		const progress: ProgressMetrics[] = [];
+
+		await runConcurrentStatWeights({} as never, pool, pm => progress.push(pm), signals);
+
+		const last = progress.filter(pm => !pm.finalWeightResult).at(-1)!;
+		expect([last.completedSims, last.totalSims]).toEqual([3, 3]);
+		expect([last.completedIterations, last.totalIterations]).toEqual([150, 150]);
 	});
 
 	it('skips the low sim, and its iterations, when requestLow is unset', async () => {

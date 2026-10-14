@@ -231,27 +231,29 @@ export const runConcurrentSim = async (
 	return combiResult;
 };
 
-export interface QueuedSim {
+interface QueuedSim {
 	request: RaidSimRequest;
 	onProgress: WorkerProgressCallback;
-	/** The sim's split results in split order, uncombined. */
+	/** The sim's split results in split order, uncombined. Runs before the sim's final progress. */
 	onResult: (splits: RaidSimResult[]) => void;
 }
 
 /**
  * Runs the sims, each split across the workers as runConcurrentSim splits it, as one queue of splits: a worker that hands
- * back a split takes the next one, of the same sim or the next, so no worker waits for the slowest split of a sim. A split
- * goes out only once one has come back, so it lands on the worker that one left free and no worker runs two at once: a
- * worker running two holds every call to it, an abort included, until one of them ends. Each sim's split results go to
- * its onResult uncombined, for a caller that reads only part of a result to put that part together itself. Returns the
- * first error, preferring a failure to the aborts it sets off.
+ * back a split takes the next one, of the same sim or the next, so no worker waits for the slowest split of a sim. Each
+ * worker of the pool, as many as it has when the queue starts, takes its own splits one at a time, so no worker runs two
+ * at once: a worker running two holds every call to it, an abort included, until one of them ends. When the pool shrinks
+ * meanwhile, the splits of a worker it dropped go to the least busy one. Each sim's split results go to its onResult
+ * uncombined, for a caller that reads only part of a result to put that part together itself. Returns the first error,
+ * preferring a failure to the aborts it sets off.
  */
 export const runConcurrentSimQueue = async (sims: QueuedSim[], workerPool: WorkerPool, signals: SimSignals): Promise<ErrorOutcome | undefined> => {
 	const splitCount = workerPool.getNumWorkers();
-	const splits: Array<Promise<RaidSimRequestSplitResult>> = [];
+	// Each sim's split requests, until its last split goes out.
+	const splits: Array<Promise<RaidSimRequestSplitResult> | undefined> = [];
 	const splitOf = (sim: number) =>
 		(splits[sim] ??= workerPool.raidSimRequestSplit(RaidSimRequestSplitRequest.create({ splitCount, request: sims[sim].request })));
-	const runs = sims.map(() => ({ results: [] as RaidSimResult[], completed: [] as number[], returned: 0 }));
+	const runs = sims.map(() => ({ results: [] as RaidSimResult[], completed: [] as number[], returned: 0, splitsDone: 0 }));
 
 	const errors: ErrorOutcome[] = [];
 	const fail = (error: ErrorOutcome) => {
@@ -270,8 +272,10 @@ export const runConcurrentSimQueue = async (sims: QueuedSim[], workerPool: Worke
 			const splitResult = await splitOf(sim);
 			if (splitResult.errorResult) throw new Error(splitResult.errorResult);
 			if (sim !== nextSim) continue;
+			runs[sim].splitsDone = splitResult.splitsDone;
 			const split = nextSplit++;
 			if (nextSplit === splitResult.splitsDone) {
+				splits[sim] = undefined;
 				nextSim++;
 				nextSplit = 0;
 			}
@@ -287,15 +291,22 @@ export const runConcurrentSimQueue = async (sims: QueuedSim[], workerPool: Worke
 		const { results } = runs[sim];
 		runs[sim].results = [];
 		const iterations = sims[sim].request.simOptions!.iterations;
-		sims[sim].onProgress(ProgressMetrics.create({ totalIterations: iterations, completedIterations: iterations }));
 		sims[sim].onResult(results);
+		sims[sim].onProgress(ProgressMetrics.create({ totalIterations: iterations, completedIterations: iterations }));
 	};
 
-	const worker = async () => {
-		while (!errors.length) {
-			if (signals.abort.isTriggered()) return fail(ErrorOutcome.create({ type: ErrorOutcomeType.ErrorOutcomeAborted }));
+	// Checked again once a split is claimed: an abort sent before its sim starts never reaches the sim.
+	const stopped = () => {
+		if (errors.length) return true;
+		if (!signals.abort.isTriggered()) return false;
+		fail(ErrorOutcome.create({ type: ErrorOutcomeType.ErrorOutcomeAborted }));
+		return true;
+	};
+
+	const worker = async (workerIndex: number) => {
+		while (!stopped()) {
 			const claimed = await claim();
-			if (!claimed) return;
+			if (!claimed || stopped()) return;
 			const { sim, split, request } = claimed;
 			const run = runs[sim];
 			const onProgress = (pm: ProgressMetrics) => {
@@ -305,13 +316,13 @@ export const runConcurrentSimQueue = async (sims: QueuedSim[], workerPool: Worke
 				const completedIterations = run.completed.reduce((total, done) => total + done, 0);
 				sims[sim].onProgress(ProgressMetrics.create({ totalIterations: sims[sim].request.simOptions!.iterations, completedIterations }));
 			};
-			const result = await workerPool.raidSimAsync({ ...request, requestId: `${request.requestId}-${split}` }, onProgress, signals);
+			const result = await workerPool.raidSimAsync({ ...request, requestId: `${request.requestId}-${split}` }, onProgress, signals, workerIndex);
 			if (result.error) return fail(result.error);
 			run.results[split] = result;
-			if (++run.returned === (await splitOf(sim)).splitsDone) finish(sim);
+			if (++run.returned === run.splitsDone) finish(sim);
 		}
 	};
 
-	await Promise.all(Array.from({ length: splitCount }, () => worker().catch(failWith)));
+	await Promise.all(Array.from({ length: splitCount }, (_, workerIndex) => worker(workerIndex).catch(failWith)));
 	return errors.find(error => error.type !== ErrorOutcomeType.ErrorOutcomeAborted) ?? errors[0];
 };
