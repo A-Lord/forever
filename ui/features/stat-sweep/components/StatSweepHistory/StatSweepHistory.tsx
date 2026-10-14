@@ -4,6 +4,7 @@ import { Button } from '@ui-kit/Button';
 import { ContentBlock } from '@ui-kit/ContentBlock';
 import { Icon } from '@ui-kit/Icon';
 import { Pill } from '@ui-kit/Pill';
+import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import clsx from 'clsx';
 import { type ReactNode, useId, useMemo, useState } from 'react';
 
@@ -111,6 +112,7 @@ interface BatchRowProps extends Pick<StatSweepHistoryProps, 'onOverlayChange' | 
 
 const BatchRow = ({ batch, open, onOpenChange, onOverlayChange, onDelete, dateFormat }: BatchRowProps) => {
 	const runsId = useId();
+	const statsTooltipId = useId();
 	const [first] = batch.runs;
 	const ids = batch.runs.map(run => run.id);
 	const ticked = batch.runs.filter(run => run.overlaid).length;
@@ -126,9 +128,20 @@ const BatchRow = ({ batch, open, onOpenChange, onOverlayChange, onDelete, dateFo
 				onClick={() => onOpenChange(!open)}>
 				<Icon name={open ? 'chevron-down' : 'chevron-right'} fixedWidth />
 			</Button>
-			<span className="min-w-0 truncate" title={title}>
+			<span tabIndex={0} className="min-w-0 truncate" {...tooltipAnchorProps(statsTooltipId)}>
 				{title}
 			</span>
+			<Tooltip
+				id={statsTooltipId}
+				align="start"
+				content={
+					<ul className="m-0 list-none p-0">
+						{batch.runs.map(run => (
+							<li key={run.id}>{run.statLabel}</li>
+						))}
+					</ul>
+				}
+			/>
 			<EyeToggle label={title} drawn={ticked} total={ids.length} onChange={overlaid => onOverlayChange(ids, overlaid)} />
 			<Button iconOnly variant="link-danger" aria-label={t('history.delete_batch', { label: title })} onClick={() => onDelete(ids)}>
 				<Icon name="xmark" />

@@ -116,7 +116,8 @@ const overlayTicks = () => eyes(false).map(drawnState);
 const batchTicks = () => eyes(true).map(drawnState);
 const batchBox = (index = 0) => eyes(true)[index];
 const runBox = (index: number) => eyes(false)[index];
-const batchLabels = () => [...rootElem.querySelectorAll('[data-testid="stat-sweep-history-batch"] > span[title]')].map(title => title.textContent);
+const batchTitles = () => [...rootElem.querySelectorAll('[data-testid="stat-sweep-history-batch"] > span[data-tooltip-id]')];
+const batchLabels = () => batchTitles().map(title => title.textContent);
 const deleteButtons = (key: 'delete' | 'delete_batch') => screen.getAllByRole('button', { name: `sidebar.buttons.stat_sweep.history.${key}`, hidden: true });
 const expanders = () => screen.getAllByRole('button', { name: 'sidebar.buttons.stat_sweep.history.expand' });
 const STRENGTH_NAME = STRENGTH.getFullName(Class.ClassWarrior);
@@ -427,7 +428,7 @@ describe('StatSweepDialog', () => {
 			expect(overlayTicks()).toEqual(['true', 'true', 'false']);
 		});
 
-		it('saves the runs of one sweep as one batch, listed under one header naming its stats in run order', async () => {
+		it('saves the runs of one sweep as one batch, listed under one header naming its stats in run order, each on a line of its tooltip', async () => {
 			settings.set({ stats: [AGILITY, STRENGTH], range: 10, step: 10 });
 			await openDialog();
 
@@ -439,6 +440,9 @@ describe('StatSweepDialog', () => {
 			expect(second.batchLabel).toBe(first.batchLabel);
 			expect(batchLabels()).toEqual([`${STRENGTH_NAME}, ${AGILITY_NAME}`]);
 			expect(batchTicks()).toEqual(['true']);
+			fireEvent.mouseEnter(batchTitles()[0]);
+			const statList = within(await screen.findByRole('tooltip')).getAllByRole('listitem');
+			expect(statList.map(stat => stat.textContent)).toEqual([STRENGTH_NAME, AGILITY_NAME]);
 
 			act(() => settings.set({ stats: [STRENGTH] }));
 			await run();
