@@ -289,13 +289,12 @@ func (mage *Mage) registerFingersOfFrost() {
 		mage.MakeProcTriggerAura(frostbiteTrigger)
 
 		trigger.ProcChance = (chance - freezeChance) / (1 - freezeChance)
-		// A trigger with no chance would fire on every hit.
-		if trigger.ProcChance <= 0 {
-			return
-		}
 	}
 
-	mage.MakeProcTriggerAura(trigger)
+	// A trigger with no chance would fire on every hit.
+	if trigger.ProcChance > 1e-9 {
+		mage.MakeProcTriggerAura(trigger)
+	}
 }
 
 // A Frost spell that lands has a 20% chance per point to put a stack of Winter's Chill (12579) on
