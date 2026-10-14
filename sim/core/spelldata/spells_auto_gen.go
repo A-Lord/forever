@@ -15138,6 +15138,10 @@ var generatedSpells = []Spell{
 			{ID: 694897, SpellID: 18082, Index: 1, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_DAMAGE, BasePoints: 12, PvpMult: 1, PeriodMs: 2000, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
 		Powers: []Power{{Cost: 45}}},
+	{ID: 18083, Name: "Firebolt", School: 4, Attr: [17]uint32{15: 0x2000}, SpellLevel: 30, MaxRange: 100, DefenseType: 1,
+		Effects: []Effect{
+			{ID: 694118, SpellID: 18083, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 77, Variance: 0.3333333432674408, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+		}},
 	{ID: 18089, Name: "Lightning Bolt", School: 8, Speed: 15, Attr: [17]uint32{0: 0x10000, 15: 0x2000}, SpellLevel: 30, MaxRange: 30, DefenseType: 1,
 		Effects: []Effect{
 			{ID: 695940, SpellID: 18089, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 98, Variance: 0.5, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
@@ -35398,6 +35402,10 @@ var generatedSpells = []Spell{
 		Effects: []Effect{
 			{ID: 1314826, SpellID: 1293820, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_DODGE_PERCENT, BasePoints: 3, BaseLevel: 60, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}}, // override: AreaBonus x2 (duration x1) in [9326] -- Toy Soldier: 'This effect is doubled in Strongholds and Cities'; no companion row
+	{ID: 1293980, Name: "Firebolt", School: 4, Attr: [17]uint32{0: 0x1c0, 15: 0x2000}, SpellLevel: 30, MaxRange: 100, DefenseType: 1, ProcChance: 100, ProcFlags: [2]uint32{0: 0x10000}, ICDMs: 100, RefIDs: []int32{18083}, ProcChanceSource: ProcChancePPM,
+		Effects: []Effect{
+			{ID: 1315088, SpellID: 1293980, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PROC_TRIGGER_SPELL, Variance: 0.3333333432674408, PvpMult: 1, TriggerID: 18083, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
+		}},
 	{ID: 1294006, Name: "Nutritious Food", School: 1, Attr: [17]uint32{0: 0x18000180, 15: 0x2000}, DurationMs: 10000, CategoryCooldownMs: 1000, Category: 11, InterruptFlags: 1, AuraInterrupt: [2]uint32{0: 0x40080}, RefIDs: []int32{1294007},
 		Effects: []Effect{
 			{ID: 1315124, SpellID: 1294006, Type: dbcenums.E_TRIGGER_SPELL, PvpMult: 1, Amplitude: 1, TriggerID: 1131, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
