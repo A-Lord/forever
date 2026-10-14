@@ -20,7 +20,6 @@ import {
 	APLValueAutoSwingTime,
 	APLValueAutoTimeSinceLast,
 	APLValueAutoTimeToNext,
-	APLValueBleedIsActive,
 	APLValueBossCurrentTarget,
 	APLValueBossSpellIsCasting,
 	APLValueBossSpellTimeToReady,
@@ -46,6 +45,7 @@ import {
 	APLValueDotRemainingTime,
 	APLValueDotTickFrequency,
 	APLValueDotTimeToNextTick,
+	APLValueDruidBleedIsActive,
 	APLValueEncounterInArea,
 	APLValueEnergyTimeToTarget,
 	APLValueFrontOfTarget,
@@ -925,14 +925,6 @@ export const valueKinds: { [f in ValidAPLValueKind]: ValueKindModel<APLValueImpl
 		includeIf: (_: Player<any>, isPrepull: boolean) => !isPrepull,
 		fields: [unitFieldConfig('targetUnit', 'targets'), actionIdFieldConfig('spellId', 'dot_spells', '')],
 	}),
-	bleedIsActive: inputBuilder({
-		label: i18n.t('rotation_tab.apl.values.bleed_is_active.label'),
-		submenu: ['dot'],
-		shortDescription: i18n.t('rotation_tab.apl.values.bleed_is_active.tooltip'),
-		newValue: APLValueBleedIsActive.create,
-		includeIf: (_: Player<any>, isPrepull: boolean) => !isPrepull,
-		fields: [unitFieldConfig('targetUnit', 'targets')],
-	}),
 	dotIsActiveOnAllTargets: inputBuilder({
 		label: i18n.t('rotation_tab.apl.values.dot_is_active_on_all_targets.label'),
 		submenu: ['dot'],
@@ -1062,6 +1054,17 @@ export const valueKinds: { [f in ValidAPLValueKind]: ValueKindModel<APLValueImpl
 		newValue: APLValueProtectionPaladinDamageTakenLastGlobal.create,
 		includeIf: (player: Player<any>, isPrepull: boolean) => !isPrepull && player.getSpec() === Spec.SpecProtectionPaladin,
 		fields: [],
+	}),
+	druidBleedIsActive: inputBuilder({
+		label: i18n.t('rotation_tab.apl.values.druid_bleed_is_active.label'),
+		submenu: ['feral_druid'],
+		shortDescription: i18n.t('rotation_tab.apl.values.druid_bleed_is_active.tooltip'),
+		newValue: APLValueDruidBleedIsActive.create,
+		includeIf(player: Player<any>, isPrepull: boolean) {
+			const spec = player.getSpec();
+			return !isPrepull && (spec === Spec.SpecFeralCatDruid || spec === Spec.SpecFeralBearDruid);
+		},
+		fields: [unitFieldConfig('targetUnit', 'targets')],
 	}),
 	variableRef: inputBuilder({
 		label: 'Variable Reference',

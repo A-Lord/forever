@@ -5741,7 +5741,7 @@
 									"additionalProperties": false,
 									"required": ["label", "tooltip"]
 								},
-								"bleed_is_active": {
+								"druid_bleed_is_active": {
 									"type": "object",
 									"properties": {
 										"label": {
@@ -6146,7 +6146,7 @@
 								"any_stat_buff_cooldowns_active",
 								"any_stat_buff_cooldowns_min_duration",
 								"dot_is_active",
-								"bleed_is_active",
+								"druid_bleed_is_active",
 								"dot_is_active_on_all_targets",
 								"dot_remaining_time",
 								"dot_lowest_remaining_time",

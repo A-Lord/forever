@@ -22,9 +22,6 @@ func AuraConfig(s *Spell, opts ...AuraOpt) core.Aura {
 		Duration:  s.Duration(),
 		MaxStacks: maxStacks(s),
 	}
-	if s.AppliesBleed() {
-		aura.Tag = core.BleedTag
-	}
 
 	for _, opt := range opts {
 		opt(&aura)

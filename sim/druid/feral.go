@@ -11,7 +11,7 @@ func (druid *Druid) level() int32 {
 }
 
 func (druid *Druid) rendAndTearMultiplier(target *core.Unit) float64 {
-	if druid.Talents.RendAndTear == 0 || !druid.TargetIsBleeding(target) {
+	if druid.Talents.RendAndTear == 0 || !druid.targetIsBleeding(target) {
 		return 1
 	}
 	// Melee special attacks and bleed ticks against a bleeding target; white swings are not raised. A
@@ -68,6 +68,20 @@ func (druid *Druid) isComboBuilder(spell *core.Spell) bool {
 // Whether Shred, Ravage and Pounce can land: the druid is behind the target and the target can be shredded.
 func (druid *Druid) BehindTarget() bool {
 	return !druid.PseudoStats.InFrontOfTarget && !druid.CannotShredTarget
+}
+
+// Whether the target is bleeding, for Rend and Tear and the Bleed Is Active APL value: one of the
+// druid's bleeds is up on it, or the druid assumes another raid member's.
+func (druid *Druid) targetIsBleeding(target *core.Unit) bool {
+	if druid.AssumeBleedActive {
+		return true
+	}
+	for _, bleed := range [...]*DruidSpell{druid.Rake, druid.Rip, druid.Lacerate, druid.PounceBleed} {
+		if bleed != nil && bleed.Dot(target).IsActive() {
+			return true
+		}
+	}
+	return false
 }
 
 func (druid *Druid) breakProwl(sim *core.Simulation) {

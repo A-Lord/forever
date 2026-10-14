@@ -549,7 +549,6 @@ type PseudoStats struct {
 	WeaponSkills       [proto.WeaponSkill_WeaponSkillWands + 1]float64 // Bonus skill over the level-based maximum per weapon skill, which a skill below it makes negative.
 	FeralCombatSkill   float64
 	FeralCombatEnabled bool // While set, FeralCombatSkill replaces the skill of the equipped weapon.
-	AssumeBleedActive  bool // Every target counts as bleeding, for the bleeds of raid members the sim does not run.
 
 	ThreatMultiplier       float64            // Modulates the threat generated. Affected by things like salv.
 	SchoolThreatMultiplier [SchoolLen]float64 // The threat of one spell school, on top of ThreatMultiplier.

@@ -133,7 +133,6 @@ func (warrior *Warrior) registerDeepWounds() {
 	config.Dot = core.DotConfig{
 		Aura: core.Aura{
 			Label: "DeepWounds",
-			Tag:   core.BleedTag, // Built by hand, so AuraConfig does not tag it from 412609's bleed mechanic.
 		},
 		NumberOfTicks: int32(deepWoundsBleed.Duration() / tick.Period()),
 		TickLength:    tick.Period(),

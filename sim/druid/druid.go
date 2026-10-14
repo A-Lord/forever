@@ -20,6 +20,8 @@ type Druid struct {
 	StartingForm DruidForm
 
 	CannotShredTarget bool
+	// Another raid member keeps a bleed on the target, so Rend and Tear always applies.
+	AssumeBleedActive bool
 
 	// Wolfshead Helm (8345): energy added to Shifting Power, and the share added to Enrage's instant rage.
 	WolfsheadEnergyBonus float64

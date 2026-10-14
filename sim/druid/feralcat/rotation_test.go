@@ -213,7 +213,7 @@ func catPowershiftRequest(talents string, rotation *proto.APLRotation, cannotShr
 // ticks; with it the target bleeds from the pull and Rake is never cast.
 func TestBleedIsActiveSeesRakeAndTheAssumedBleed(t *testing.T) {
 	const rake, claw = 9904, 9850
-	bleeding := &proto.APLValue{Value: &proto.APLValue_BleedIsActive{BleedIsActive: &proto.APLValueBleedIsActive{}}}
+	bleeding := &proto.APLValue{Value: &proto.APLValue_DruidBleedIsActive{DruidBleedIsActive: &proto.APLValueDruidBleedIsActive{}}}
 	rotation := &proto.APLRotation{PriorityList: []*proto.APLListItem{castWhen(claw, bleeding), castWhen(rake, not(bleeding))}}
 
 	player := runCat(t, catPowershiftRequest("", rotation, false))

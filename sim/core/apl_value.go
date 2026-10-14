@@ -244,8 +244,6 @@ func (rot *APLRotation) newAPLValueWithContext(config *proto.APLValue, groupVari
 		value = rot.newValueDotIsActiveOnAllTargets(config.GetDotIsActiveOnAllTargets(), config.Uuid)
 	case *proto.APLValue_DotRemainingTime:
 		value = rot.newValueDotRemainingTime(config.GetDotRemainingTime(), config.Uuid)
-	case *proto.APLValue_BleedIsActive:
-		value = rot.newValueBleedIsActive(config.GetBleedIsActive(), config.Uuid)
 	case *proto.APLValue_DotLowestRemainingTime:
 		value = rot.newValueDotLowestRemainingTime(config.GetDotLowestRemainingTime(), config.Uuid)
 	case *proto.APLValue_DotTickFrequency:

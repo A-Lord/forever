@@ -32,7 +32,7 @@ func NewFeralCatDruid(character *core.Character, options *proto.Player) *FeralDr
 	}
 
 	cat.CannotShredTarget = feralOptions.Options.CannotShredTarget
-	cat.PseudoStats.AssumeBleedActive = feralOptions.Options.GetAssumeBleedActive()
+	cat.AssumeBleedActive = feralOptions.Options.GetAssumeBleedActive()
 	cat.prepullClearcasting = feralOptions.Options.GetPrepullClearcasting()
 
 	cat.EnableEnergyBar(core.EnergyBarOptions{

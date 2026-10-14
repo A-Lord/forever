@@ -516,16 +516,3 @@ func TestShieldHitsNeverProcMainHandWeaponEffects(t *testing.T) {
 		t.Error("200 main-hand specials never procced Windfury Totem, so the check above proves nothing")
 	}
 }
-
-// Deep Wounds builds its dot by hand rather than through spelldata.AuraConfig, so it carries the bleed
-// tag itself, and Rend and Tear and the Bleed Is Active APL value see it like any other bleed.
-func TestDeepWoundsIsTaggedAsABleed(t *testing.T) {
-	sim, warrior := orcWarriorSim(t, "p1_fury", armsTalents)
-	if warrior.DeepWounds == nil {
-		t.Fatal("the arms talents do not register Deep Wounds")
-	}
-	target := sim.Encounter.AllTargetUnits[0]
-	if got := warrior.DeepWounds.Dot(target).Aura.Tag; got != core.BleedTag {
-		t.Errorf("Deep Wounds dot tag = %q, want %q", got, core.BleedTag)
-	}
-}

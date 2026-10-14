@@ -9,6 +9,7 @@ import (
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/stats"
+	"github.com/wowsims/forever/sim/druid"
 )
 
 func TestBiteDodgeConsumesEnergyAndKeepsComboPoints(t *testing.T) {
@@ -147,19 +148,19 @@ func TestCatStealthPresetsRun(t *testing.T) {
 	}
 }
 
-// Rend and Tear raises Shred on a bleeding target. With the bleed assumed, a target with no bleed of
-// the cat's own takes the same raised Shred.
+// Rend and Tear raises Shred on a bleeding target, by the same amount under each of the cat's own
+// bleeds. With the bleed assumed, a target with no bleed of the cat's own takes the same raised Shred.
 func TestAssumedBleedRaisesShredLikeOwnBleed(t *testing.T) {
 	const rendAndTear5 = "0000000000000000-00000000000000000050-0000000000000000"
-	shred := func(assume, rake bool) float64 {
+	shred := func(assume bool, bleed func(*FeralDruid) *druid.DruidSpell) float64 {
 		sim, cat := newCat(t, rendAndTear5, nil)
-		cat.PseudoStats.AssumeBleedActive = assume
+		cat.AssumeBleedActive = assume
 		target := cat.CurrentTarget
 		cat.AddStatDynamic(sim, stats.PhysicalCritPercent, -100)
 		cat.AddStatDynamic(sim, stats.PhysicalHitPercent, 100)
 		target.PseudoStats.BaseDodgeChance = 0
-		if rake {
-			cat.Rake.Dot(target).Apply(sim)
+		if bleed != nil {
+			bleed(cat).Dot(target).Apply(sim)
 		}
 		fillResource(sim, cat)
 		if !cat.Shred.Cast(sim, target) {
@@ -167,11 +168,21 @@ func TestAssumedBleedRaisesShredLikeOwnBleed(t *testing.T) {
 		}
 		return cat.Shred.SpellMetrics[target.UnitIndex].TotalDamage
 	}
-	plain, bleeding, assumed := shred(false, false), shred(false, true), shred(true, false)
+	plain := shred(false, nil)
+	bleeding := shred(false, func(cat *FeralDruid) *druid.DruidSpell { return cat.Rake })
 	if plain <= 0 || bleeding <= plain*1.01 {
 		t.Fatalf("shred %g without a bleed, %g with Rake up: Rend and Tear did not apply", plain, bleeding)
 	}
-	if math.Abs(assumed-bleeding) > 1e-6 {
+	for name, bleed := range map[string]func(*FeralDruid) *druid.DruidSpell{
+		"Rip":          func(cat *FeralDruid) *druid.DruidSpell { return cat.Rip },
+		"Lacerate":     func(cat *FeralDruid) *druid.DruidSpell { return cat.Lacerate },
+		"Pounce Bleed": func(cat *FeralDruid) *druid.DruidSpell { return cat.PounceBleed },
+	} {
+		if got := shred(false, bleed); math.Abs(got-bleeding) > 1e-6 {
+			t.Errorf("shred with %s up = %g, with Rake up = %g", name, got, bleeding)
+		}
+	}
+	if assumed := shred(true, nil); math.Abs(assumed-bleeding) > 1e-6 {
 		t.Fatalf("shred with the bleed assumed = %g, with Rake up = %g", assumed, bleeding)
 	}
 }
