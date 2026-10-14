@@ -74,15 +74,25 @@ func (druid *Druid) ClearForm(sim *core.Simulation) {
 }
 
 func (druid *Druid) GetCatWeapon() core.Weapon {
-	unscaledWeapon := druid.WeaponFromMainHand()
-	return core.Weapon{
-		BaseDamageMin:        unscaledWeapon.BaseDamageMin / unscaledWeapon.SwingSpeed,
-		BaseDamageMax:        unscaledWeapon.BaseDamageMax / unscaledWeapon.SwingSpeed,
-		SwingSpeed:           1.0,
-		NormalizedSwingSpeed: 1.0,
+	return druid.feralWeapon(1)
+}
+
+// The paw swings the equipped weapon's damage per second at the form's speed. Enchant and stone damage
+// is added whole, after the scaling.
+func (druid *Druid) feralWeapon(swingSpeed float64) core.Weapon {
+	paw := core.Weapon{
+		SwingSpeed:           swingSpeed,
+		NormalizedSwingSpeed: swingSpeed,
 		AttackPowerPerDPS:    core.DefaultAttackPowerPerDPS,
 		MaxRange:             core.MaxMeleeRange,
 	}
+	if item := druid.GetMHWeapon(); item != nil {
+		flat := item.Enchant.WeaponDamage + item.TempEnchantWeaponDamage
+		bonusDps := druid.PseudoStats.BonusMHDps
+		paw.BaseDamageMin = (item.WeaponDamageMin/item.SwingSpeed+bonusDps)*swingSpeed + flat
+		paw.BaseDamageMax = (item.WeaponDamageMax/item.SwingSpeed+bonusDps)*swingSpeed + flat
+	}
+	return paw
 }
 
 // A bear's auto attack takes the two-hander rage factor: a combat log shows 11.25 rage a swing at the
@@ -91,15 +101,7 @@ func (druid *Druid) GetCatWeapon() core.Weapon {
 const BearRageIsTwoHanded = true
 
 func (druid *Druid) GetBearWeapon() core.Weapon {
-	unscaledWeapon := druid.WeaponFromMainHand()
-	return core.Weapon{
-		BaseDamageMin:        unscaledWeapon.BaseDamageMin / unscaledWeapon.SwingSpeed * 2.5,
-		BaseDamageMax:        unscaledWeapon.BaseDamageMax / unscaledWeapon.SwingSpeed * 2.5,
-		SwingSpeed:           2.5,
-		NormalizedSwingSpeed: 2.5,
-		AttackPowerPerDPS:    core.DefaultAttackPowerPerDPS,
-		MaxRange:             core.MaxMeleeRange,
-	}
+	return druid.feralWeapon(2.5)
 }
 
 func (druid *Druid) RegisterCatFormAura() {
