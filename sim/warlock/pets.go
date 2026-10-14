@@ -123,10 +123,11 @@ func (warlock *Warlock) petStatInheritance() core.PetStatInheritance {
 			stats.Health:      ownerStats[stats.Stamina] * 7.5,
 			stats.Armor:       ownerStats[stats.Armor] * 0.35,
 			stats.AttackPower: spellDamage * 0.17,
-			// A third: in the logs a Sayaad has 42 Spell Damage under a warlock whose spell damage reads 126,
-			// and its Lash of Pain deals (16 + 0.429 × 42) × 1.10 (5/5 Unholy Power) = 37.4.
-			// TODO: Measured at one value and on the Sayaad only.
-			stats.SpellDamage: spellDamage / 3,
+			// A tenth: at 30 spell damage the warlock's tooltip reads "Increases your pet's Attack Power by 5
+			// and Spell Damage by 3", and in the logs a Sayaad's Spell Damage is a tenth of the warlock's, plus
+			// Demonic Knowledge's own share when taken.
+			// TODO: Measured on the Sayaad only.
+			stats.SpellDamage: spellDamage * 0.10,
 
 			// TODO: Assumed 1:1, not yet measured.
 			stats.PhysicalHitPercent: ownerStats[stats.SpellHitPercent],
