@@ -6,7 +6,6 @@ import {
 	RaidSimRequestSplitRequest,
 	RaidSimRequestSplitResult,
 	RaidSimResult,
-	RaidSimResultCombinationRequest,
 	SimOptions,
 } from '@generated/proto/api';
 import { describe, expect, it, vi } from 'vitest';
@@ -42,12 +41,7 @@ const makeHeldPool = () => {
 		getNumWorkers: () => 2,
 		raidSimRequestSplit: vi.fn(splitInTwo),
 		raidSimAsync: vi.fn((request: RaidSimRequest) => new Promise<RaidSimResult>(end => held.push({ request, end }))),
-		raidSimResultCombination: vi.fn(async ({ results }: RaidSimResultCombinationRequest) =>
-			RaidSimResult.create({
-				iterationsDone: results.reduce((total, result) => total + result.iterationsDone, 0),
-				avgIterationDuration: results[0].iterationsDone,
-			}),
-		),
+		raidSimResultCombination: vi.fn(),
 	} as unknown as WorkerPool;
 	return { pool, held };
 };
@@ -103,7 +97,7 @@ describe('runConcurrentSimQueue', () => {
 		expect(vi.mocked(pool.raidSimAsync).mock.calls).toHaveLength(4);
 	});
 
-	it('combines each sim from its splits in split order and hands the result over with a final progress', async () => {
+	it('hands each sim its split results in split order, uncombined, with a final progress', async () => {
 		const { pool, held } = makeHeldPool();
 		const sim = queuedSim(100, 'a');
 
@@ -113,10 +107,9 @@ describe('runConcurrentSimQueue', () => {
 		held[0].end(RaidSimResult.create({ iterationsDone: 51 }));
 		await queue;
 
-		const combined = vi.mocked(pool.raidSimResultCombination).mock.calls[0][0].results;
-		expect(combined.map(result => result.iterationsDone)).toEqual([51, 49]);
-		expect(sim.onResult).toHaveBeenCalledWith(RaidSimResult.create({ iterationsDone: 100, avgIterationDuration: 51 }));
-		expect(sim.onProgress.mock.calls.at(-1)![0].finalRaidResult).toBeDefined();
+		expect(sim.onResult).toHaveBeenCalledWith([RaidSimResult.create({ iterationsDone: 51 }), RaidSimResult.create({ iterationsDone: 49 })]);
+		expect(sim.onProgress.mock.calls.at(-1)![0].completedIterations).toBe(100);
+		expect(pool.raidSimResultCombination).not.toHaveBeenCalled();
 	});
 
 	it('stops at a failure and reports it over the aborts it sets off', async () => {

@@ -61,8 +61,11 @@ const simulate = (request: RaidSimRequest) => {
 		tmi: metric(5),
 		chanceOfDeath: Number(randomSeed) / 1000,
 	});
-	return RaidSimResult.create({ raidMetrics: RaidMetrics.create({ parties: [PartyMetrics.create({ players: [player] })] }) });
+	return RaidSimResult.create({ raidMetrics: RaidMetrics.create({ parties: [PartyMetrics.create({ players: [player] })] }), iterationsDone: iterations });
 };
+
+// A run that the queue left in one split.
+const simulateSplits = (request: RaidSimRequest) => [simulate(request)];
 
 // The pairs of n iterations of a run that adds worth to every baseline iteration.
 const expectedPairs = (n: number, worth: number, chanceOfDeath: number) => {
@@ -98,7 +101,7 @@ describe('runConcurrentStatWeights', () => {
 		runConcurrentSimQueue.mockImplementation(async (sims: QueuedSim[]) => {
 			for (const { request, onProgress, onResult } of sims) {
 				onProgress(ProgressMetrics.create({ completedIterations: request.simOptions!.iterations }));
-				onResult(simulate(request));
+				onResult(simulateSplits(request));
 			}
 		});
 	});
@@ -153,7 +156,7 @@ describe('runConcurrentStatWeights', () => {
 			{ statData: StatWeightsStatData.create({ unitStat: 2 }), requestHigh: requestWithIterations(100, 20) },
 		]);
 		runConcurrentSimQueue.mockImplementation(async (sims: QueuedSim[]) => {
-			for (const { request, onResult } of [...sims].reverse()) onResult(simulate(request));
+			for (const { request, onResult } of [...sims].reverse()) onResult(simulateSplits(request));
 		});
 
 		await runConcurrentStatWeights({} as never, pool, noop, signals);
@@ -166,13 +169,40 @@ describe('runConcurrentStatWeights', () => {
 		expect(calcRequest.statPairs[1].high).toEqual(expectedPairs(100, 20, 0));
 	});
 
+	it("reads a run's splits as the run whole, with its chance of death weighted by each split's iterations", async () => {
+		const seed = 7n;
+		const pool = makePool([]);
+		vi.mocked(pool.statWeightRequests).mockResolvedValue({
+			baseRequest: requestWithIterations(100, 0, seed),
+			epReferenceStat: 0,
+			hpsReferenceStat: 0,
+			statSimRequests: [{ statData: StatWeightsStatData.create({ unitStat: 1 }), requestHigh: requestWithIterations(100, 10, seed) }],
+		});
+		// The first 60 iterations on one worker and the last 40 on another, as the sim splits a run.
+		runConcurrentSimQueue.mockImplementation(async (sims: QueuedSim[]) => {
+			for (const { request, onResult } of sims) {
+				const { iterations, randomSeed } = request.simOptions!;
+				const split = (n: number, offset: number) =>
+					simulate({ ...request, simOptions: SimOptions.create({ iterations: n, randomSeed: randomSeed + BigInt(offset) }) });
+				onResult([split(60, 0), split(iterations - 60, 60)]);
+			}
+		});
+
+		await runConcurrentStatWeights({} as never, pool, noop, signals);
+
+		const calcRequest = vi.mocked(pool.statWeightCompute).mock.calls[0][0];
+		const chanceOfDeath = 0 + (7 / 1000) * (60 / 100) + (67 / 1000) * (40 / 100);
+		expect(calcRequest.baseChanceOfDeath).toBe(chanceOfDeath);
+		expect(calcRequest.statPairs[0].high).toEqual(expectedPairs(100, 10, chanceOfDeath));
+	});
+
 	it('stops at a failed sim and reports its error', async () => {
 		vi.spyOn(console, 'error').mockImplementation(noop);
 		const pool = makePool([{ requestHigh: requestWithIterations(100, 10) }]);
 		const failure = ErrorOutcome.create({ type: ErrorOutcomeType.ErrorOutcomeError, message: 'failed' });
 		runConcurrentSimQueue.mockImplementation(async (sims: QueuedSim[]) => {
 			if (runConcurrentSimQueue.mock.calls.length > 1) return failure;
-			sims.forEach(({ request, onResult }) => onResult(simulate(request)));
+			sims.forEach(({ request, onResult }) => onResult(simulateSplits(request)));
 		});
 
 		const result = await runConcurrentStatWeights({} as never, pool, noop, signals);

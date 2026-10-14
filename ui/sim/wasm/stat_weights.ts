@@ -34,16 +34,22 @@ const makeAndSendWeightsError = (err: string | ErrorOutcome, onProgress: WorkerP
 
 const firstPlayer = (result: RaidSimResult) => result.raidMetrics!.parties[0].players[0];
 
-// The first player's per-iteration DPS, HPS, threat, DTPS and TMI of a run.
-const runValues = (result: RaidSimResult): number[][] => {
-	const player = firstPlayer(result);
-	return [player.dps!, player.hps!, player.threat!, player.dtps!, player.tmi!].map(metric => metric.allValues);
+// The first player's per-iteration DPS, HPS, threat, DTPS and TMI of a run, from its splits in split order, which is the
+// order their combined result lists them in.
+const runValues = (splits: RaidSimResult[]): number[][] =>
+	(['dps', 'hps', 'threat', 'dtps', 'tmi'] as const).map(metric => splits.flatMap(split => firstPlayer(split)[metric]!.allValues));
+
+// The first player's chance of death in the splits' combined result: each split's weighted by its share of the iterations,
+// summed in split order, in the same order of operations as CombineConcurrentSimResults in sim/core/sim_concurrent.go.
+const chanceOfDeath = (splits: RaidSimResult[]): number => {
+	const iterations = splits.reduce((total, split) => total + split.iterationsDone, 0);
+	return splits.reduce((chance, split) => chance + firstPlayer(split).chanceOfDeath * (split.iterationsDone / iterations), 0);
 };
 
 // Pairs each iteration of a stat run with the baseline's iteration offset + i, which ran at the same
 // seed, in the same order of operations as pairStatWeightRun in sim/core/statweight.go.
-const pairRun = (baseline: number[][], result: RaidSimResult, offset: number): StatWeightsSidePairs => {
-	const [dps, hps, tps, dtps, tmi] = runValues(result).map((values, metric) => {
+const pairRun = (baseline: number[][], splits: RaidSimResult[], offset: number): StatWeightsSidePairs => {
+	const [dps, hps, tps, dtps, tmi] = runValues(splits).map((values, metric) => {
 		let sum = 0;
 		let sumSq = 0;
 		for (let i = 0; i < values.length; i++) {
@@ -53,7 +59,7 @@ const pairRun = (baseline: number[][], result: RaidSimResult, offset: number): S
 		}
 		return StatWeightsPairedSums.create({ n: values.length, sum, sumSq });
 	});
-	return StatWeightsSidePairs.create({ dps, hps, tps, dtps, tmi, chanceOfDeath: firstPlayer(result).chanceOfDeath });
+	return StatWeightsSidePairs.create({ dps, hps, tps, dtps, tmi, chanceOfDeath: chanceOfDeath(splits) });
 };
 
 // Adds a later pass's pairs to a side's. The chance of death stays the first run's.
@@ -120,16 +126,22 @@ export const runConcurrentStatWeights = async (
 					completedSims: simsDone,
 				}),
 			);
-
-			if (pm.finalRaidResult) simsDone++;
 		};
 	};
 
-	// Runs the sims as one queue of splits across the workers. Each hands its result to `use` as it ends, so no whole result
-	// outlives its sim, and as each `use` writes its own slot the values do not depend on which sim ends first.
-	const runSims = (sims: Array<{ request: RaidSimRequest; use: (result: RaidSimResult) => void }>) =>
+	// Runs the sims as one queue of splits across the workers. Each hands its splits to `take` as it ends, so no whole result
+	// outlives its sim, and as each `take` writes its own slot the values do not depend on which sim ends first. The splits
+	// stay uncombined: the weights read the first player's values alone, which the splits hold in full.
+	const runSims = (sims: Array<{ request: RaidSimRequest; take: (splits: RaidSimResult[]) => void }>) =>
 		runConcurrentSimQueue(
-			sims.map(({ request, use }) => ({ request, onProgress: progressHandler(), onResult: use })),
+			sims.map(({ request, take }) => ({
+				request,
+				onProgress: progressHandler(),
+				onResult: splits => {
+					simsDone++;
+					take(splits);
+				},
+			})),
 			workerPool,
 			signals,
 		);
@@ -138,7 +150,7 @@ export const runConcurrentStatWeights = async (
 	const baseError = await runSims([
 		{
 			request: manualResponse.baseRequest!,
-			use: result => (baseLine = { values: runValues(result), chanceOfDeath: firstPlayer(result).chanceOfDeath }),
+			take: splits => (baseLine = { values: runValues(splits), chanceOfDeath: chanceOfDeath(splits) }),
 		},
 	]);
 	if (baseError) return makeAndSendWeightsError(baseError, onProgress);
@@ -154,9 +166,9 @@ export const runConcurrentStatWeights = async (
 	});
 	const statPairs = new Map<number, StatWeightsStatPairs>();
 
-	const paired = (request: RaidSimRequest, offset: number, use: (pairs: StatWeightsSidePairs) => void) => ({
+	const paired = (request: RaidSimRequest, offset: number, take: (pairs: StatWeightsSidePairs) => void) => ({
 		request,
-		use: (result: RaidSimResult) => use(pairRun(baselineValues, result, offset)),
+		take: (splits: RaidSimResult[]) => take(pairRun(baselineValues, splits, offset)),
 	});
 
 	const statSims = manualResponse.statSimRequests.flatMap(statReqData => {
@@ -205,8 +217,8 @@ export const runConcurrentStatWeights = async (
 				const baseError = await runSims([
 					{
 						request: continued(baseRequest, baselineIterations, baselineDelta),
-						use: result =>
-							runValues(result).forEach((values, metric) => {
+						take: splits =>
+							runValues(splits).forEach((values, metric) => {
 								for (const value of values) baselineValues[metric].push(value);
 							}),
 					},
