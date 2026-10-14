@@ -51,6 +51,7 @@ export default defineSpec<Spec.SpecMage>({
 			Stat.StatFrostDamage,
 			Stat.StatFireDamage,
 			Stat.StatArcaneDamage,
+			Stat.StatSpellPiercing,
 		],
 		[
 			PseudoStat.PseudoStatSpellHitPercent,
