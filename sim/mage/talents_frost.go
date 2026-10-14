@@ -206,10 +206,10 @@ func (mage *Mage) registerImprovedConeOfCold() {
 // "Gives your Chill effects a 15% chance to grant you the Fingers of Frost effect, which treats your
 // next 2 spells cast as if the target were Frozen. Lasts 15 sec."
 //
-// Without Frostbite the chance is effect 2 (15 at both ranks), which the resolver reads; with it,
-// Frostbite's chance. The charges are effect 1 (1 and 2). The buff's own row (400669) names only
-// Deep Freeze, which is not in Forever, so what "as if Frozen" reaches is the tooltip's: every spell
-// reading isFrozen, Shatter and Ice Lance.
+// The chance is effect 2 (15 at both ranks), which the resolver reads; with Frostbite it is split
+// between Frostbite's roll and the talent's own. The charges are effect 1 (1 and 2). The buff's own
+// row (400669) names only Deep Freeze, which is not in Forever, so what "as if Frozen" reaches is the
+// tooltip's: every spell reading isFrozen, Shatter and Ice Lance.
 func (mage *Mage) registerFingersOfFrost() {
 	if mage.Talents.FingersOfFrost == 0 {
 		return
@@ -249,34 +249,50 @@ func (mage *Mage) registerFingersOfFrost() {
 
 	mage.FingersOfFrostAura = mage.RegisterAura(config)
 
-	frostbite := mage.Talents.Frostbite > 0
-
-	trigger := spelldata.ProcTrigger(&mage.Character, talentRank,
-		func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) {
+	grant := func(atCast bool) core.ProcHandler {
+		return func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) {
 			// Charges granted inside a rotation spell's own cast spend none on it.
-			if spell.Flags.Matches(core.SpellFlagAPL) && (frostbite || spell.MissileSpeed == 0) {
+			if spell.Flags.Matches(core.SpellFlagAPL) && (atCast || spell.MissileSpeed == 0) {
 				grantedBy = spell
 			}
 			mage.FingersOfFrostAura.Activate(sim)
 			mage.FingersOfFrostAura.SetStacks(sim, charges)
-		})
-	trigger.Name = "Fingers of Frost - Trigger"
-
-	// Without Frostbite the proc rolls its own chance on the landed hit, with the charges up at once.
-	// With Frostbite it makes no roll of its own: the charges come when a Chill's Frostbite procs, at
-	// Frostbite's chance, whether or not the freeze lands. That roll is on the cast result, so a
-	// missile grants at its cast (a spell queued behind it is already Frozen) and a Chill without
-	// travel time (Cone of Cold, a Blizzard tick) still rolls on each hit. A miss or full resist grants
-	// none either way.
-	trigger.Callback = core.CallbackOnSpellHitDealt
-	if frostbite {
-		trigger.Callback = core.CallbackOnCastResult
-		trigger.ProcChance = spellData.Frostbite.FractionAt(mage.Talents.Frostbite)
+		}
 	}
+
+	// The talent's own roll, on the landed hit, with the charges up at once. A miss or full resist
+	// grants none.
+	trigger := spelldata.ProcTrigger(&mage.Character, talentRank, grant(false))
+	trigger.Name = "Fingers of Frost - Trigger"
+	trigger.Callback = core.CallbackOnSpellHitDealt
 	trigger.Outcome = core.OutcomeLanded
 	trigger.TriggerImmediately = true
 	trigger.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
 		return mage.isChill(spell)
+	}
+
+	// With Frostbite a Chill rolls twice, independently. Frostbite's roll grants the charges at its
+	// rank's chance whether or not the freeze lands; it is on the cast result, so a missile grants
+	// at its cast (a spell queued behind it is already Frozen) and a Chill without travel time
+	// (Cone of Cold, a Blizzard tick) rolls on each hit. The talent's own roll keeps what is left of
+	// its chance, so a Chill still grants at least once at that chance; at Frostbite's top rank
+	// nothing is left and the roll is gone. A second grant only refreshes the charges.
+	if mage.Talents.Frostbite > 0 {
+		chance := trigger.ProcChance
+		freezeChance := spellData.Frostbite.FractionAt(mage.Talents.Frostbite)
+
+		frostbiteTrigger := trigger
+		frostbiteTrigger.Name = "Fingers of Frost - Frostbite Trigger"
+		frostbiteTrigger.Callback = core.CallbackOnCastResult
+		frostbiteTrigger.ProcChance = freezeChance
+		frostbiteTrigger.Handler = grant(true)
+		mage.MakeProcTriggerAura(frostbiteTrigger)
+
+		trigger.ProcChance = (chance - freezeChance) / (1 - freezeChance)
+		// A trigger with no chance would fire on every hit.
+		if trigger.ProcChance <= 0 {
+			return
+		}
 	}
 
 	mage.MakeProcTriggerAura(trigger)
