@@ -49,7 +49,7 @@ const batchTitle = (runs: ReadonlyArray<StatSweepHistoryEntry>) => {
 };
 
 const RunDetails = ({ createdAt, metric, dateFormat }: Pick<StatSweepHistoryEntry, 'createdAt' | 'metric'> & { dateFormat: Intl.DateTimeFormat }) => (
-	<span className="col-span-3 col-start-2 flex items-center gap-2 text-xs text-muted">
+	<span className="col-[2/-1] flex items-center gap-2 text-xs text-muted">
 		{dateFormat.format(createdAt)}
 		{metric !== 'dps' && (
 			<Pill size="xs" tone="primary" title={t('history.metric')} testId="stat-sweep-history-metric">
@@ -120,17 +120,17 @@ const BatchRow = ({ batch, open, onOpenChange, onOverlayChange, onDelete, dateFo
 	return (
 		<li className={ROW_CLASS} data-testid="stat-sweep-history-batch">
 			<Button
-				iconOnly
-				className="justify-self-center"
+				variant="unstyled"
+				className="col-span-2 row-span-2 grid cursor-pointer grid-cols-subgrid grid-rows-subgrid items-center text-left focus-visible:focus-ring"
 				aria-label={t('history.expand', { label: title })}
 				aria-expanded={open}
 				aria-controls={runsId}
-				onClick={() => onOpenChange(!open)}>
-				<Icon name={open ? 'chevron-down' : 'chevron-right'} fixedWidth />
+				onClick={() => onOpenChange(!open)}
+				{...tooltipAnchorProps(statsTooltipId)}>
+				<Icon name={open ? 'chevron-down' : 'chevron-right'} fixedWidth className="justify-self-center" />
+				<span className="min-w-0 truncate">{title}</span>
+				<RunDetails createdAt={first.createdAt} metric={first.metric} dateFormat={dateFormat} />
 			</Button>
-			<span tabIndex={0} className="min-w-0 truncate" {...tooltipAnchorProps(statsTooltipId)}>
-				{title}
-			</span>
 			<Tooltip
 				id={statsTooltipId}
 				align="start"
@@ -146,7 +146,6 @@ const BatchRow = ({ batch, open, onOpenChange, onOverlayChange, onDelete, dateFo
 			<Button iconOnly variant="link-danger" aria-label={t('history.delete_batch', { label: title })} onClick={() => onDelete(ids)}>
 				<Icon name="xmark" />
 			</Button>
-			<RunDetails createdAt={first.createdAt} metric={first.metric} dateFormat={dateFormat} />
 			<ul id={runsId} hidden={!open} className="col-span-3 col-start-2 m-0 mt-2 grid list-none gap-2 p-0">
 				{batch.runs.map(run => (
 					<RunRow key={run.id} run={run} onOverlayChange={onOverlayChange} onDelete={onDelete} />
