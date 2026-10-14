@@ -894,9 +894,9 @@ dps_results: {
 dps_results: {
  key: "TestShadowPriest-AllItems-VestmentsoftheDevout"
  value: {
-  dps: 620.6542
-  tps: 313.7103
-  dtps: 3.80895
+  dps: 621.13069
+  tps: 314.08315
+  dtps: 0.68602
  }
 }
 dps_results: {
