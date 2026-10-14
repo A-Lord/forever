@@ -112,7 +112,7 @@ def GenCreatureExpectedStats(dbPath: str, level: int):
     conn = sqlite3.connect(dbPath)
     rows = conn.execute(
         """SELECT CreatureHealth, CreatureArmor, CreatureAutoAttackDps
-           FROM ExpectedStat WHERE Lvl = ?""",
+           FROM ExpectedStat WHERE Lvl = ? AND ContentSetID = 0""",
         (level,),
     ).fetchall()
     conn.close()
@@ -120,7 +120,7 @@ def GenCreatureExpectedStats(dbPath: str, level: int):
     if len(rows) != 1:
         raise SystemExit(f"ExpectedStat has {len(rows)} level {level} rows, expected one")
     health, armor, autoAttackDps = rows[0]
-    return {"Health": health, "Armor": armor, "AutoAttackDps": autoAttackDps}
+    return {"Health": float(health), "Armor": float(armor), "AutoAttackDps": float(autoAttackDps)}
 
 
 class ClassStats:
