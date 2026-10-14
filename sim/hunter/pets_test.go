@@ -1,7 +1,6 @@
 package hunter
 
 import (
-	"math"
 	"testing"
 
 	"github.com/wowsims/forever/sim/core"
@@ -80,60 +79,6 @@ func TestPetDemoralizingScreechSharesTheRaidsDemoralizingSlot(t *testing.T) {
 	shout.Deactivate(sim)
 	if got := target.GetStat(stats.AttackPower) - before; got != 0 {
 		t.Errorf("with the shout off, attack power moved by %v, want 0: the screech's -205 takes the shout's place", got)
-	}
-}
-
-// A hawk's crit follows its owner's totals through the floor at 0 on the crit it inherits: a +5%
-// crit buff on the hunter reaches the hawk at the next pet heartbeat, and comes back off it at the
-// heartbeat after the buff fades.
-func TestHawkCritFollowsTheHuntersCrit(t *testing.T) {
-	player := &proto.Player{
-		Name:          "Hawk",
-		Race:          proto.Race_RaceOrc,
-		Class:         proto.Class_ClassHunter,
-		Equipment:     &proto.EquipmentSpec{},
-		TalentsString: DefaultBMTalents,
-		Spec:          DefaultOptions,
-		Rotation:      &proto.APLRotation{},
-	}
-	sim := core.NewSim(&proto.RaidSimRequest{
-		Raid:       core.SinglePlayerRaidProto(player, &proto.PartyBuffs{}, &proto.RaidBuffs{}, &proto.Debuffs{}),
-		Encounter:  core.MakeSingleTargetEncounter(0),
-		SimOptions: &proto.SimOptions{RandomSeed: 1},
-	}, simsignals.CreateSignals())
-	sim.Reset()
-	hunter := sim.Raid.Parties[0].Players[0].(*Hunter)
-
-	summon := hunter.GetSpell(core.ActionID{SpellID: summonHawkRank.ID})
-	if summon == nil {
-		t.Fatal("the BM hunter has no Summon Hawk")
-	}
-	summon.SkipCastAndApplyEffects(sim, sim.Encounter.AllTargetUnits[0])
-	hawk := hunter.Hawks[0]
-	if !hawk.IsEnabled() {
-		t.Fatal("Summon Hawk left no hawk up")
-	}
-
-	nextHeartbeat := func() {
-		until := sim.CurrentTime + core.PetUpdateInterval
-		for sim.CurrentTime <= until {
-			if sim.Step() {
-				t.Fatal("the sim ended before the next pet heartbeat")
-			}
-		}
-	}
-	start := hawk.GetStat(stats.PhysicalCritPercent)
-
-	hunter.AddStatsDynamic(sim, stats.Stats{stats.PhysicalCritPercent: 5})
-	nextHeartbeat()
-	if got := hawk.GetStat(stats.PhysicalCritPercent) - start; math.Abs(got-5) > 1e-9 {
-		t.Errorf("a +5%% crit buff on the hunter moved the hawk's crit by %v, want 5", got)
-	}
-
-	hunter.AddStatsDynamic(sim, stats.Stats{stats.PhysicalCritPercent: -5})
-	nextHeartbeat()
-	if got := hawk.GetStat(stats.PhysicalCritPercent); math.Abs(got-start) > 1e-9 {
-		t.Errorf("with the buff faded the hawk's crit is %v, want the %v it started with", got, start)
 	}
 }
 

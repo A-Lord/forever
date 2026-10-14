@@ -54,11 +54,11 @@ type Pet struct {
 	enableEffects  []OnPetEnable
 	disableEffects []OnPetDisable
 
-	// Calculates inherited stats based on the owner's stats.
-	statInheritance        PetStatInheritance
-	dynamicStatInheritance PetStatInheritance
-	inheritedStats         stats.Stats
-	statInheritanceAction  *PendingAction
+	// How the owner's stats map to the pet's, what the pet holds from them now, and for a dynamic
+	// pet the refresh queued for the next pet heartbeat.
+	statInheritance       PetStatInheritance
+	inheritedStats        stats.Stats
+	statInheritanceAction *PendingAction
 
 	// A pet inherits its owner's melee speed and cast speed rather than
 	// having the haste aura applied to it.
@@ -165,6 +165,9 @@ func (pet *Pet) inheritOwnerStats(sim *Simulation) {
 // change, any other pet on its own schedule.
 func (pet *Pet) RefreshInheritedStats(sim *Simulation) {
 	inheritedStats := pet.statInheritance(pet.Owner.GetStats())
+	if inheritedStats == pet.inheritedStats {
+		return
+	}
 	pet.AddStatsDynamic(sim, inheritedStats.Subtract(pet.inheritedStats))
 	pet.inheritedStats = inheritedStats
 }
@@ -179,15 +182,16 @@ func (pet *Pet) enableDynamicStats(sim *Simulation) {
 
 	pet.inheritOwnerStats(sim)
 	pet.Owner.DynamicStatsPets = append(pet.Owner.DynamicStatsPets, pet)
-	pet.dynamicStatInheritance = pet.statInheritance
-	pet.statInheritanceAction = &PendingAction{
-		Priority: ActionPriorityDOT,
+	if pet.statInheritanceAction == nil {
+		pet.statInheritanceAction = &PendingAction{
+			Priority: ActionPriorityDOT,
 
-		OnAction: func(sim *Simulation) {
-			if pet.enabled {
-				pet.RefreshInheritedStats(sim)
-			}
-		},
+			OnAction: func(sim *Simulation) {
+				if pet.enabled {
+					pet.RefreshInheritedStats(sim)
+				}
+			},
+		}
 	}
 }
 
@@ -197,7 +201,7 @@ func (pet *Pet) resetInheritedOwnerStats(sim *Simulation) {
 }
 
 func (pet *Pet) resetDynamicStats(sim *Simulation) {
-	if pet.dynamicStatInheritance == nil || !pet.isDynamic {
+	if !pet.isDynamic {
 		return
 	}
 
@@ -207,7 +211,10 @@ func (pet *Pet) resetDynamicStats(sim *Simulation) {
 		panic("Pet not present in dynamic stats pet list!")
 	}
 
-	pet.dynamicStatInheritance = nil
+	// The action is kept across summons and iterations: a refresh still queued is dropped, and
+	// NextActionAt at 0 lets processDynamicBonus queue it again after the next summon.
+	pet.statInheritanceAction.Cancel(sim)
+	pet.statInheritanceAction.NextActionAt = 0
 	pet.resetInheritedOwnerStats(sim)
 }
 
