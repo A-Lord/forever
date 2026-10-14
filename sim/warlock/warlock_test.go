@@ -92,26 +92,34 @@ func TestDestruction(t *testing.T) {
 	}))
 }
 
-// Soul Fire takes the Soul Shard its row states, and none while Decimation's buff (440873) is up.
-func TestSoulFireShardAndDecimation(t *testing.T) {
+// A reset sim of one ungeared warlock with no rotation.
+func newWarlockSim(talents string, options *proto.WarlockOptions, encounter *proto.Encounter) (*core.Simulation, *Warlock) {
 	player := &proto.Player{
-		Name:          "Decimation",
+		Name:          "Warlock",
 		Race:          proto.Race_RaceOrc,
 		Class:         proto.Class_ClassWarlock,
 		Equipment:     &proto.EquipmentSpec{},
-		TalentsString: "-000000000002",
-		Spec: &proto.Player_Warlock{Warlock: &proto.Warlock{Options: &proto.Warlock_Options{
-			ClassOptions: &proto.WarlockOptions{SoulShards: 1},
-		}}},
-		Rotation: &proto.APLRotation{},
+		TalentsString: talents,
+		Spec:          &proto.Player_Warlock{Warlock: &proto.Warlock{Options: &proto.Warlock_Options{ClassOptions: options}}},
+		Rotation:      &proto.APLRotation{},
 	}
 	sim := core.NewSim(&proto.RaidSimRequest{
 		Raid:       core.SinglePlayerRaidProto(player, &proto.PartyBuffs{}, &proto.RaidBuffs{}, &proto.Debuffs{}),
-		Encounter:  core.MakeSingleTargetEncounter(0),
+		Encounter:  encounter,
 		SimOptions: &proto.SimOptions{RandomSeed: 1},
 	}, simsignals.CreateSignals())
 	sim.Reset()
-	warlock := sim.Raid.Parties[0].Players[0].(*Warlock)
+	return sim, sim.Raid.Parties[0].Players[0].(*Warlock)
+}
+
+func stepFor(sim *core.Simulation, d time.Duration) {
+	for end := sim.CurrentTime + d; sim.CurrentTime < end && !sim.Step(); {
+	}
+}
+
+// Soul Fire takes the Soul Shard its row states, and none while Decimation's buff (440873) is up.
+func TestSoulFireShardAndDecimation(t *testing.T) {
+	sim, warlock := newWarlockSim("-000000000002", &proto.WarlockOptions{SoulShards: 1}, core.MakeSingleTargetEncounter(0))
 	target := sim.Encounter.AllTargetUnits[0]
 	soulFire := warlock.Soulfire
 	decimation := warlock.GetAuraByID(core.ActionID{SpellID: 440873})
@@ -142,23 +150,7 @@ func TestSoulFireShardAndDecimation(t *testing.T) {
 
 // A demon's melee and spell crit are the warlock's spell crit, and follow it when it changes in combat.
 func TestDemonCritIsTheWarlocksSpellCrit(t *testing.T) {
-	player := &proto.Player{
-		Name:      "Demon crit",
-		Race:      proto.Race_RaceOrc,
-		Class:     proto.Class_ClassWarlock,
-		Equipment: &proto.EquipmentSpec{},
-		Spec: &proto.Player_Warlock{Warlock: &proto.Warlock{Options: &proto.Warlock_Options{
-			ClassOptions: &proto.WarlockOptions{Summon: proto.WarlockOptions_Succubus},
-		}}},
-		Rotation: &proto.APLRotation{},
-	}
-	sim := core.NewSim(&proto.RaidSimRequest{
-		Raid:       core.SinglePlayerRaidProto(player, &proto.PartyBuffs{}, &proto.RaidBuffs{}, &proto.Debuffs{}),
-		Encounter:  core.MakeSingleTargetEncounter(0),
-		SimOptions: &proto.SimOptions{RandomSeed: 1},
-	}, simsignals.CreateSignals())
-	sim.Reset()
-	warlock := sim.Raid.Parties[0].Players[0].(*Warlock)
+	sim, warlock := newWarlockSim("", &proto.WarlockOptions{Summon: proto.WarlockOptions_Succubus}, core.MakeSingleTargetEncounter(0))
 	sayaad := warlock.Succubus
 	if !sayaad.IsEnabled() {
 		t.Fatalf("Sayaad not summoned at the start")
@@ -177,8 +169,7 @@ func TestDemonCritIsTheWarlocksSpellCrit(t *testing.T) {
 	}
 	check("at the start")
 	warlock.AddStatsDynamic(sim, stats.Stats{stats.SpellCritPercent: 5})
-	for end := sim.CurrentTime + core.PetUpdateInterval; sim.CurrentTime <= end && !sim.Step(); {
-	}
+	stepFor(sim, core.PetUpdateInterval)
 	check("a pet update after +5% spell crit")
 }
 
@@ -186,36 +177,17 @@ func TestDemonCritIsTheWarlocksSpellCrit(t *testing.T) {
 // before a Shadow Bolt reaches the target; a miss or a full resist grants nothing, and the bolt's impact
 // grants nothing either.
 func TestDecimationGrantedOnLandedCast(t *testing.T) {
-	player := &proto.Player{
-		Name:          "Decimation",
-		Race:          proto.Race_RaceOrc,
-		Class:         proto.Class_ClassWarlock,
-		Equipment:     &proto.EquipmentSpec{},
-		TalentsString: "-000000000002",
-		Spec:          &proto.Player_Warlock{Warlock: &proto.Warlock{Options: &proto.Warlock_Options{ClassOptions: &proto.WarlockOptions{}}}},
-		Rotation:      &proto.APLRotation{},
-	}
 	newSim := func(resistance float64) (*core.Simulation, *Warlock, *core.Unit) {
 		encounter := core.MakeSingleTargetEncounter(0)
 		encounter.Duration = 3600
 		encounter.ExecuteProportion_90, encounter.ExecuteProportion_45, encounter.ExecuteProportion_35 = 1, 1, 1
 		encounter.Targets[0].Stats[stats.FireResistance] = resistance
 		encounter.Targets[0].Stats[stats.ShadowResistance] = resistance
-		sim := core.NewSim(&proto.RaidSimRequest{
-			Raid:       core.SinglePlayerRaidProto(player, &proto.PartyBuffs{}, &proto.RaidBuffs{}, &proto.Debuffs{}),
-			Encounter:  encounter,
-			SimOptions: &proto.SimOptions{RandomSeed: 1},
-		}, simsignals.CreateSignals())
-		sim.Reset()
+		sim, warlock := newWarlockSim("-000000000002", &proto.WarlockOptions{}, encounter)
 		for !sim.IsExecutePhase35() && !sim.Step() {
 		}
-		warlock := sim.Raid.Parties[0].Players[0].(*Warlock)
 		warlock.DistanceFromTarget = 30
 		return sim, warlock, sim.Encounter.AllTargetUnits[0]
-	}
-	stepFor := func(sim *core.Simulation, d time.Duration) {
-		for end := sim.CurrentTime + d; sim.CurrentTime < end && !sim.Step(); {
-		}
 	}
 
 	sim, warlock, target := newSim(0)
