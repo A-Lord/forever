@@ -114,18 +114,16 @@ const drawnState = (eye: HTMLElement) => eye.getAttribute('aria-pressed');
 // Each run's eye, in list order.
 const overlayTicks = () => eyes(false).map(drawnState);
 const batchTicks = () => eyes(true).map(drawnState);
-const batchBox = (index = 0) => eyes(true)[index];
-const runBox = (index: number) => eyes(false)[index];
+const batchEye = (index = 0) => eyes(true)[index];
+const runEye = (index: number) => eyes(false)[index];
 // The title is the first text of the header button, which also holds the chevron and the date.
-const batchTitles = () => [...rootElem.querySelectorAll('[data-testid="stat-sweep-history-batch"] > button[aria-expanded] > span:first-of-type')];
-const batchLabels = () => batchTitles().map(title => title.textContent);
+const batchLabels = () =>
+	[...rootElem.querySelectorAll('[data-testid="stat-sweep-history-batch"] > button[aria-expanded] > span:first-of-type')].map(title => title.textContent);
 const deleteButtons = (key: 'delete' | 'delete_batch') => screen.getAllByRole('button', { name: `sidebar.buttons.stat_sweep.history.${key}`, hidden: true });
 const STRENGTH_NAME = STRENGTH.getFullName(Class.ClassWarrior);
 const AGILITY_NAME = AGILITY.getFullName(Class.ClassWarrior);
-const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 // A batch's header button is named by what it shows, which starts with the batch's stats.
 const expanders = () => screen.getAllByRole('button', { name: new RegExp(`^(${STRENGTH_NAME}|${AGILITY_NAME}), `) });
-const historyDate = (createdAt: number) => new Intl.DateTimeFormat(i18n.language, { dateStyle: 'short', timeStyle: 'short' }).format(createdAt);
 // Iterations of each pass, by Strength added.
 const passesByStep = () => {
 	const passes: Record<number, number[]> = {};
@@ -444,8 +442,12 @@ describe('StatSweepDialog', () => {
 			expect(second.batchLabel).toBe(first.batchLabel);
 			expect(batchLabels()).toEqual([`${STRENGTH_NAME}, ${AGILITY_NAME}`]);
 			expect(batchTicks()).toEqual(['true']);
-			fireEvent.mouseEnter(expanders()[0]);
-			const statList = within(await screen.findByRole('tooltip')).getAllByRole('listitem');
+			// The tooltip ignores a hover in the 50 ms after focus moves, as it does when the progress dialog closes.
+			const tooltip = await vi.waitFor(() => {
+				fireEvent.mouseEnter(expanders()[0]);
+				return screen.getByRole('tooltip');
+			});
+			const statList = within(tooltip).getAllByRole('listitem');
 			expect(statList.map(stat => stat.textContent)).toEqual([STRENGTH_NAME, AGILITY_NAME]);
 
 			act(() => settings.set({ stats: [STRENGTH] }));
@@ -461,16 +463,16 @@ describe('StatSweepDialog', () => {
 			await openDialog();
 			await run();
 
-			fireEvent.click(runBox(1));
+			fireEvent.click(runEye(1));
 			expect(overlayTicks()).toEqual(['true', 'false']);
 			expect(batchTicks()).toEqual(['mixed']);
 
-			fireEvent.click(batchBox());
+			fireEvent.click(batchEye());
 			expect(overlayTicks()).toEqual(['true', 'true']);
 			expect(batchTicks()).toEqual(['true']);
 			expect(lastChart().data.datasets).toHaveLength(6);
 
-			fireEvent.click(batchBox());
+			fireEvent.click(batchEye());
 			expect(overlayTicks()).toEqual(['false', 'false']);
 			expect(batchTicks()).toEqual(['false']);
 			expect(screen.getByRole<HTMLButtonElement>('button', { name: 'sidebar.buttons.stat_sweep.export_csv' }).disabled).toBe(true);
@@ -509,7 +511,7 @@ describe('StatSweepDialog', () => {
 			await openDialog();
 
 			expect(overlayTicks()).toEqual(['true', 'true', 'false', 'false', 'false']);
-			expect(runBox(2).closest('[data-testid="stat-sweep-history-batch"]')).toBeNull();
+			expect(runEye(2).closest('[data-testid="stat-sweep-history-batch"]')).toBeNull();
 			expect(expanders().map(button => button.getAttribute('aria-expanded'))).toEqual(['true', 'false']);
 			// The closed batch's runs are not reachable.
 			expect(screen.getAllByRole('button', { name: HISTORY_EYE })).toHaveLength(5);
@@ -517,7 +519,7 @@ describe('StatSweepDialog', () => {
 			fireEvent.click(expanders()[1]);
 			expect(expanders()[1].getAttribute('aria-expanded')).toBe('true');
 			expect(screen.getAllByRole('button', { name: HISTORY_EYE })).toHaveLength(7);
-			fireEvent.click(runBox(4));
+			fireEvent.click(runEye(4));
 			expect(batchTicks()).toEqual(['true', 'mixed']);
 		});
 
@@ -528,7 +530,8 @@ describe('StatSweepDialog', () => {
 			]);
 			await openDialog();
 
-			const shown = [`${STRENGTH_NAME}, ${AGILITY_NAME}`, historyDate(4), metricLabel('tps')].map(escapeRegExp).join('\\s*');
+			const date = new Intl.DateTimeFormat(i18n.language, { dateStyle: 'short', timeStyle: 'short' }).format(4);
+			const shown = [`${STRENGTH_NAME}, ${AGILITY_NAME}`, date, metricLabel('tps')].map(text => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s*');
 			const header = screen.getByRole('button', { name: new RegExp(`^${shown}$`) });
 			expect(header.getAttribute('aria-expanded')).toBe('true');
 			fireEvent.click(header);
@@ -592,7 +595,7 @@ describe('StatSweepDialog', () => {
 			expect(stored[0].statValue).not.toBe(stored[0].offset);
 			expect(lastChart().data.datasets[2].data.map(datum => datum.x)).toEqual(stored.map(point => point.offset));
 
-			fireEvent.click(runBox(1));
+			fireEvent.click(runEye(1));
 			expect(overlayTicks()).toEqual(['true', 'true']);
 			expect(lastChart().data.datasets.map(dataset => dataset.label)).toEqual(['new', 'new', 'new', 'old', 'old', 'old']);
 

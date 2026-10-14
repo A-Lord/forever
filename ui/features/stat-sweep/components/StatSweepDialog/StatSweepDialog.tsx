@@ -3,7 +3,6 @@ import { EP_UNIT_STATS, isEpStat } from '@features/stat-weights/model/ep_unit_st
 import i18n from '@i18n/config';
 import { usePlayer, useSim, useSpecConfig } from '@sim/context/SimHostContext';
 import { useDisplayMetrics } from '@sim/hooks/useDisplayMetrics';
-import { useSimRun } from '@sim/hooks/useSimRun';
 import { useSimStore } from '@sim/hooks/useSimStore';
 import { useStoreSubscribe } from '@sim/hooks/useStoreSubscribe';
 import { Stats } from '@sim/proto/stats';
@@ -16,7 +15,7 @@ import { Button } from '@ui-kit/Button';
 import { Dialog } from '@ui-kit/Dialog';
 import { ProgressTrackerDialog, type ProgressTrackerHandle, type ProgressTrackerProgress } from '@ui-kit/ProgressTrackerDialog';
 import { downloadString } from '@ui-kit/utils/dom';
-import { type Ref, useImperativeHandle, useMemo, useRef } from 'react';
+import { type Ref, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 
 import { useStatSweep } from '../../hooks/useStatSweep';
 import { offeredSweepMetrics, shownSweepMetric, statSweepCsv, type StatSweepProgress, sweepStepPosition } from '../../model/stat_sweep';
@@ -70,20 +69,28 @@ interface StatSweepBodyHandle {
 	run: () => void;
 }
 
+interface RunState {
+	runnable: boolean;
+	isRunning: boolean;
+}
+
 interface StatSweepBodyProps {
 	settings: StatSweepSettings;
 	ref: Ref<StatSweepBodyHandle>;
+	onRunStateChange: (state: RunState) => void;
 }
 
-// The dialog's popup mounts this and the Run button on open and drops them once the close transition ends, so the
-// setup is read, the history loads and a run goes only while the dialog shows.
-const StatSweepBody = ({ settings, ref }: StatSweepBodyProps) => {
+// The dialog's popup mounts this on open and drops it once the close transition ends, so the setup is read, the history
+// loads and a run goes only while the dialog shows.
+const StatSweepBody = ({ settings, ref, onRunStateChange }: StatSweepBodyProps) => {
 	const { player, unitStats, statOptions, metrics, metric, range, step, showSpread, precision, selectedStats, selectedKeys, labelOf, runnable } =
 		useSweepSetup(settings);
 	const progressRef = useRef<ProgressTrackerHandle>(null);
 	const statListRef = useRef<StatSweepStatListHandle>(null);
 	const sweep = useStatSweep();
 	const defaultIterations = useSimStore('iterations');
+
+	useEffect(() => onRunStateChange({ runnable, isRunning: sweep.isRunning }), [onRunStateChange, runnable, sweep.isRunning]);
 
 	useImperativeHandle(ref, () => ({
 		run: () => {
@@ -178,20 +185,11 @@ export interface StatSweepDialogProps {
 	settings: StatSweepSettings;
 }
 
-const RunButton = ({ settings, onRun }: { settings: StatSweepSettings; onRun: () => void }) => {
-	const { runnable } = useSweepSetup(settings);
-	const { isRunning } = useSimRun(SimRunKind.StatSweep);
-	return (
-		<Button variant="primary" disabled={isRunning || !runnable} onClick={onRun}>
-			{t('run')}
-		</Button>
-	);
-};
-
 /** Closing it cancels a run. */
 export const StatSweepDialog = ({ open, onOpenChange, settings }: StatSweepDialogProps) => {
 	const sim = useSim();
 	const bodyRef = useRef<StatSweepBodyHandle>(null);
+	const [runState, setRunState] = useState<RunState>({ runnable: false, isRunning: false });
 
 	return (
 		<Dialog
@@ -204,8 +202,12 @@ export const StatSweepDialog = ({ open, onOpenChange, settings }: StatSweepDialo
 			size="full"
 			scrollContents
 			title={t('title')}
-			footer={<RunButton settings={settings} onRun={() => bodyRef.current?.run()} />}>
-			<StatSweepBody ref={bodyRef} settings={settings} />
+			footer={
+				<Button variant="primary" disabled={runState.isRunning || !runState.runnable} onClick={() => bodyRef.current?.run()}>
+					{t('run')}
+				</Button>
+			}>
+			<StatSweepBody ref={bodyRef} settings={settings} onRunStateChange={setRunState} />
 		</Dialog>
 	);
 };

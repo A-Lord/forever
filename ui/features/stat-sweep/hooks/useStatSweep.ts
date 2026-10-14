@@ -139,7 +139,7 @@ export const useStatSweep = () => {
 			})),
 		[view, colorSlots, statLabel],
 	);
-	const historyBatches = useMemo<SweepBatch<StatSweepHistoryEntry>[]>(
+	const savedBatches = useMemo<SweepBatch<Omit<StatSweepHistoryEntry, 'overlaid' | 'colorSlot'>>[]>(
 		() =>
 			sweepBatches(view.history).map(({ id, runs }) => ({
 				id,
@@ -148,13 +148,18 @@ export const useStatSweep = () => {
 					label: runLabel(run),
 					statLabel: statLabel(run),
 					createdAt: run.createdAt,
-					overlaid: view.overlaid.includes(run.id),
-					colorSlot: colorSlots[run.id],
 					metric: run.metric,
 				})),
 			})),
-		[view.history, view.overlaid, colorSlots, statLabel],
+		[view.history, statLabel],
 	);
+	const historyBatches = useMemo<SweepBatch<StatSweepHistoryEntry>[]>(() => {
+		const overlaid = new Set(view.overlaid);
+		return savedBatches.map(({ id, runs }) => ({
+			id,
+			runs: runs.map(run => ({ ...run, overlaid: overlaid.has(run.id), colorSlot: colorSlots[run.id] })),
+		}));
+	}, [savedBatches, view.overlaid, colorSlots]);
 
 	return { isRunning, series, historyBatches, run, cancel, remove, setOverlaid };
 };

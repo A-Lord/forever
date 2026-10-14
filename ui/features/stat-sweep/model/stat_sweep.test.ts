@@ -461,12 +461,19 @@ describe('sweepBatches', () => {
 	it('groups runs by sweep, newest sweep first with its runs in run order, and makes a run with no batch a batch of its own', () => {
 		const run = (id: string, batchId?: string) => ({ id, batchId });
 
-		const batches = sweepBatches([run('agility', 'new'), run('strength', 'new'), run('saved-before-batches'), run('hit', 'old')]);
+		const batches = sweepBatches([
+			run('agility', 'new'),
+			run('strength', 'new'),
+			run('saved-before-batches'),
+			run('haste', 'old'),
+			run('crit', 'old'),
+			run('hit', 'old'),
+		]);
 
 		expect(batches.map(({ id, runs }) => [id, runs.map(run => run.id)])).toEqual([
 			['new', ['strength', 'agility']],
 			['saved-before-batches', ['saved-before-batches']],
-			['old', ['hit']],
+			['old', ['hit', 'crit', 'haste']],
 		]);
 	});
 });

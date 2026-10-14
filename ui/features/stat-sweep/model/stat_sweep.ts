@@ -61,9 +61,11 @@ export function sweepBatches<R extends Pick<StatSweepRecord, 'id' | 'batchId'>>(
 	const batches = new Map<string, R[]>();
 	for (const run of runs) {
 		const id = run.batchId ?? run.id;
-		batches.set(id, [run, ...(batches.get(id) ?? [])]);
+		const batch = batches.get(id);
+		if (batch) batch.push(run);
+		else batches.set(id, [run]);
 	}
-	return [...batches].map(([id, runs]) => ({ id, runs }));
+	return [...batches].map(([id, runs]) => ({ id, runs: runs.reverse() }));
 }
 
 // A step's first pass in Target ± mode, as many as the EP calculation's probe; the iterations setting plays no part there.

@@ -113,11 +113,11 @@ interface BatchRowProps extends Pick<StatSweepHistoryProps, 'onOverlayChange' | 
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	dateFormat: Intl.DateTimeFormat;
+	statsTooltipId: string;
 }
 
-const BatchRow = ({ batch, open, onOpenChange, onOverlayChange, onDelete, dateFormat }: BatchRowProps) => {
+const BatchRow = ({ batch, open, onOpenChange, onOverlayChange, onDelete, dateFormat, statsTooltipId }: BatchRowProps) => {
 	const runsId = useId();
-	const statsTooltipId = useId();
 	const [first] = batch.runs;
 	const ids = batch.runs.map(run => run.id);
 	const ticked = batch.runs.filter(run => run.overlaid).length;
@@ -130,22 +130,12 @@ const BatchRow = ({ batch, open, onOpenChange, onOverlayChange, onDelete, dateFo
 				aria-expanded={open}
 				aria-controls={runsId}
 				onClick={() => onOpenChange(!open)}
+				data-batch-id={batch.id}
 				{...tooltipAnchorProps(statsTooltipId)}>
 				<span className="col-span-2 min-w-0 truncate">{title}</span>
 				<Icon name="chevron-down" fixedWidth className={clsx('col-start-5 transition-transform duration-150', !open && '-rotate-90')} />
 				<RunDetails className="col-span-2 col-start-1" createdAt={first.createdAt} metric={first.metric} dateFormat={dateFormat} />
 			</Button>
-			<Tooltip
-				id={statsTooltipId}
-				align="start"
-				content={
-					<ul className="m-0 list-none p-0">
-						{batch.runs.map(run => (
-							<li key={run.id}>{run.statLabel}</li>
-						))}
-					</ul>
-				}
-			/>
 			<span className="relative z-10 col-span-2 col-start-3 row-start-1 flex items-center gap-x-2">
 				<EyeToggle label={title} drawn={ticked} total={ids.length} onChange={overlaid => onOverlayChange(ids, overlaid)} />
 				<Button iconOnly variant="link-danger" aria-label={t('history.delete_batch', { label: title })} onClick={() => onDelete(ids)}>
@@ -170,6 +160,7 @@ const newestOnly = (batches: Batches) => ({ at: newestAt(batches), ids: batches.
 export const StatSweepHistory = ({ batches, onOverlayChange, onDelete, onExportCsv }: StatSweepHistoryProps) => {
 	const language = i18n.language;
 	const dateFormat = useMemo(() => new Intl.DateTimeFormat(language, { dateStyle: 'short', timeStyle: 'short' }), [language]);
+	const statsTooltipId = useId();
 	// The newest batch opens and the older ones close each time a newer run arrives; a delete leaves them as they are.
 	const [expanded, setExpanded] = useState(() => newestOnly(batches));
 	if (newestAt(batches) > expanded.at) setExpanded(newestOnly(batches));
@@ -199,6 +190,7 @@ export const StatSweepHistory = ({ batches, onOverlayChange, onDelete, onExportC
 									onOverlayChange={onOverlayChange}
 									onDelete={onDelete}
 									dateFormat={dateFormat}
+									statsTooltipId={statsTooltipId}
 								/>
 							),
 						)}
@@ -206,6 +198,22 @@ export const StatSweepHistory = ({ batches, onOverlayChange, onDelete, onExportC
 				) : (
 					<p className="mb-0 text-gray-400">{t('history.empty')}</p>
 				)}
+				<Tooltip
+					id={statsTooltipId}
+					align="start"
+					render={({ activeAnchor }) => {
+						const runs = batches.find(batch => batch.id === activeAnchor?.getAttribute('data-batch-id'))?.runs;
+						return (
+							runs && (
+								<ul className="m-0 list-none p-0">
+									{runs.map(run => (
+										<li key={run.id}>{run.statLabel}</li>
+									))}
+								</ul>
+							)
+						);
+					}}
+				/>
 				<Button variant="outline-primary" size="sm" className="self-start" disabled={!onExportCsv} onClick={onExportCsv}>
 					<Icon name="download" />
 					{t('export_csv')}
