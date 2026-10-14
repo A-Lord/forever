@@ -18,6 +18,7 @@ export const MultiComboBox = ({
 	removeLabel,
 	openLabel,
 	testId,
+	fitOptions,
 	...frameProps
 }: MultiComboBoxProps) => {
 	const portalContainer = usePortalContainer();
@@ -26,7 +27,11 @@ export const MultiComboBox = ({
 	const selected = useMemo(() => values.filter(entry => value.includes(entry.value)), [values, value]);
 
 	return (
-		<Field {...frameProps} disabled={disabled} testId={testId ?? 'multi-combo-box-root'}>
+		<Field
+			{...frameProps}
+			className={[fitOptions && 'ui-multi-combo-box-fit', frameProps.className]}
+			disabled={disabled}
+			testId={testId ?? 'multi-combo-box-root'}>
 			<Combobox.Root
 				multiple
 				items={values}
@@ -37,6 +42,13 @@ export const MultiComboBox = ({
 				disabled={disabled}>
 				<Combobox.InputGroup ref={anchor} className="ui-multi-combo-box-field" data-testid="multi-combo-box-field">
 					<Combobox.Input id={frameProps.id} className="ui-multi-combo-box-input" placeholder={placeholder} data-testid="multi-combo-box-input" />
+					{fitOptions && (
+						<span className="ui-multi-combo-box-sizer" aria-hidden>
+							{[placeholder, ...values.map(entry => entry.name)].map((text, index) => (
+								<span key={index} data-label={text} />
+							))}
+						</span>
+					)}
 					<Combobox.Trigger className="ui-multi-combo-box-trigger" aria-label={openLabel} data-testid="multi-combo-box-trigger">
 						<Icon name="chevron-down" />
 					</Combobox.Trigger>

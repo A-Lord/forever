@@ -48,7 +48,7 @@ export const StatSweepPanel = ({
 				<div className="flex flex-wrap items-start gap-4">
 					<MultiComboBox
 						id="stat-sweep-stats"
-						className="min-w-64 flex-1"
+						fitOptions
 						label={t('stats.label')}
 						placeholder={t('stats.placeholder')}
 						emptyText={t('stats.empty')}
