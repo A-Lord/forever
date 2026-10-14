@@ -17,7 +17,7 @@ import { SimRequest } from '@worker/types';
 import { SimSignals } from '../sim_signal_manager';
 import { isDevMode } from '../utils/env';
 import { generateRequestId, WorkerPool, WorkerProgressCallback } from '../workers/worker_pool';
-import { runConcurrentSim } from './sim';
+import { runConcurrentSimQueue } from './sim';
 
 const makeAndSendWeightsError = (err: string | ErrorOutcome, onProgress: WorkerProgressCallback): StatWeightsResult => {
 	const errRes = StatWeightsResult.create();
@@ -105,70 +105,72 @@ export const runConcurrentStatWeights = async (
 		console.log(`Need to run a total of ${simsTotal} sims and ${iterationsTotal} iterations.`);
 	}
 
-	let lastIterations = 0;
-	const progressHandler = (pm: ProgressMetrics) => {
-		iterationsDone += pm.completedIterations - lastIterations;
-		lastIterations = pm.completedIterations;
+	// One per sim, as the sims of a pass run at once.
+	const progressHandler = () => {
+		let lastIterations = 0;
+		return (pm: ProgressMetrics) => {
+			iterationsDone += pm.completedIterations - lastIterations;
+			lastIterations = pm.completedIterations;
 
-		onProgress(
-			ProgressMetrics.create({
-				totalIterations: iterationsTotal,
-				completedIterations: iterationsDone,
-				totalSims: simsTotal,
-				completedSims: simsDone,
-			}),
+			onProgress(
+				ProgressMetrics.create({
+					totalIterations: iterationsTotal,
+					completedIterations: iterationsDone,
+					totalSims: simsTotal,
+					completedSims: simsDone,
+				}),
+			);
+
+			if (pm.finalRaidResult) simsDone++;
+		};
+	};
+
+	// Runs the sims as one queue of splits across the workers. Each hands its result to `use` as it ends, so no whole result
+	// outlives its sim, and as each `use` writes its own slot the values do not depend on which sim ends first.
+	const runSims = (sims: Array<{ request: RaidSimRequest; use: (result: RaidSimResult) => void }>) =>
+		runConcurrentSimQueue(
+			sims.map(({ request, use }) => ({ request, onProgress: progressHandler(), onResult: use })),
+			workerPool,
+			signals,
 		);
 
-		if (pm.finalRaidResult) simsDone++;
-	};
-
-	// Runs a sim and keeps only what reduce takes from its result, so no whole result outlives the call.
-	const runReduced = async <T>(
-		simRequest: RaidSimRequest,
-		reduce: (result: RaidSimResult) => T,
-	): Promise<{ error: ErrorOutcome } | { error?: undefined; value: T }> => {
-		const result = await runConcurrentSim(simRequest, workerPool, progressHandler, signals);
-		return result.error ? { error: result.error } : { value: reduce(result) };
-	};
-
-	const baseLine = await runReduced(manualResponse.baseRequest!, result => ({
-		values: runValues(result),
-		chanceOfDeath: firstPlayer(result).chanceOfDeath,
-	}));
-	if (baseLine.error) return makeAndSendWeightsError(baseLine.error, onProgress);
+	let baseLine = { values: [] as number[][], chanceOfDeath: 0 };
+	const baseError = await runSims([
+		{
+			request: manualResponse.baseRequest!,
+			use: result => (baseLine = { values: runValues(result), chanceOfDeath: firstPlayer(result).chanceOfDeath }),
+		},
+	]);
+	if (baseError) return makeAndSendWeightsError(baseError, onProgress);
 
 	// Only the baseline keeps its per-iteration values, for the stat runs of later passes to pair with.
-	const baselineValues = baseLine.value.values;
+	const baselineValues = baseLine.values;
 	const calcRequest = StatWeightsCalcRequest.create({
 		epReferenceStat: manualResponse.epReferenceStat,
 		hpsReferenceStat: manualResponse.hpsReferenceStat,
 		probeIterations: baselineValues[0].length,
 		baselineIterations: baselineValues[0].length,
-		baseChanceOfDeath: baseLine.value.chanceOfDeath,
+		baseChanceOfDeath: baseLine.chanceOfDeath,
 	});
 	const statPairs = new Map<number, StatWeightsStatPairs>();
 
-	for (const statReqData of manualResponse.statSimRequests) {
-		if (signals.abort.isTriggered()) return aborted();
+	const paired = (request: RaidSimRequest, offset: number, use: (pairs: StatWeightsSidePairs) => void) => ({
+		request,
+		use: (result: RaidSimResult) => use(pairRun(baselineValues, result, offset)),
+	});
 
+	const statSims = manualResponse.statSimRequests.flatMap(statReqData => {
 		const pairs = StatWeightsStatPairs.create({ statData: statReqData.statData });
-		lastIterations = 0;
-		if (statReqData.requestLow) {
-			statReqData.requestLow.requestId = newRaidSimRequestId();
-			const low = await runReduced(statReqData.requestLow, result => pairRun(baselineValues, result, 0));
-			if (low.error) return makeAndSendWeightsError(low.error, onProgress);
-			pairs.low = low.value;
-		}
-
-		lastIterations = 0;
-		statReqData.requestHigh!.requestId = newRaidSimRequestId();
-		const high = await runReduced(statReqData.requestHigh!, result => pairRun(baselineValues, result, 0));
-		if (high.error) return makeAndSendWeightsError(high.error, onProgress);
-		pairs.high = high.value;
-
 		calcRequest.statPairs.push(pairs);
 		statPairs.set(statReqData.statData!.unitStat, pairs);
-	}
+		statReqData.requestHigh!.requestId = newRaidSimRequestId();
+		const high = paired(statReqData.requestHigh!, 0, high => (pairs.high = high));
+		if (!statReqData.requestLow) return [high];
+		statReqData.requestLow.requestId = newRaidSimRequestId();
+		return [paired(statReqData.requestLow, 0, low => (pairs.low = low)), high];
+	});
+	const statError = await runSims(statSims);
+	if (statError) return makeAndSendWeightsError(statError, onProgress);
 
 	if (request.target) {
 		const baseRequest = manualResponse.baseRequest!;
@@ -177,17 +179,11 @@ export const runConcurrentStatWeights = async (
 
 		// Iteration i runs at seed randomSeed + i, so a run continued at the seed after its last iteration
 		// repeats what one longer run would have simulated.
-		const continueRun = <T>(simRequest: RaidSimRequest, done: number, iterations: number, reduce: (result: RaidSimResult) => T) => {
-			lastIterations = 0;
-			return runReduced(
-				{
-					...simRequest,
-					requestId: newRaidSimRequestId(),
-					simOptions: { ...simRequest.simOptions!, iterations, randomSeed: seed + BigInt(done) },
-				},
-				reduce,
-			);
-		};
+		const continued = (simRequest: RaidSimRequest, done: number, iterations: number): RaidSimRequest => ({
+			...simRequest,
+			requestId: newRaidSimRequestId(),
+			simOptions: { ...simRequest.simOptions!, iterations, randomSeed: seed + BigInt(done) },
+		});
 
 		for (let passes = 0; ; passes++) {
 			const plan = await workerPool.statWeightTopUpPlan(StatWeightsTopUpRequest.create({ calc: calcRequest, target: request.target, passes }));
@@ -206,33 +202,30 @@ export const runConcurrentStatWeights = async (
 			}
 
 			if (baselineDelta > 0) {
-				if (signals.abort.isTriggered()) return aborted();
-				const base = await continueRun(baseRequest, baselineIterations, baselineDelta, result => {
-					runValues(result).forEach((values, metric) => {
-						for (const value of values) baselineValues[metric].push(value);
-					});
-				});
-				if (base.error) return makeAndSendWeightsError(base.error, onProgress);
+				const baseError = await runSims([
+					{
+						request: continued(baseRequest, baselineIterations, baselineDelta),
+						use: result =>
+							runValues(result).forEach((values, metric) => {
+								for (const value of values) baselineValues[metric].push(value);
+							}),
+					},
+				]);
+				if (baseError) return makeAndSendWeightsError(baseError, onProgress);
 				calcRequest.baselineIterations = baselineValues[0].length;
 			}
 
-			for (const planned of plan.stats) {
-				if (signals.abort.isTriggered()) return aborted();
-
+			const topUps = plan.stats.flatMap(planned => {
 				const statReqData = statRequests.get(planned.unitStat)!;
 				const pairs = statPairs.get(planned.unitStat)!;
 				const done = pairs.high!.dps!.n;
 				const delta = planned.iterations - done;
-
-				if (statReqData.requestLow) {
-					const low = await continueRun(statReqData.requestLow, done, delta, result => pairRun(baselineValues, result, done));
-					if (low.error) return makeAndSendWeightsError(low.error, onProgress);
-					addPairs(pairs.low!, low.value);
-				}
-				const high = await continueRun(statReqData.requestHigh!, done, delta, result => pairRun(baselineValues, result, done));
-				if (high.error) return makeAndSendWeightsError(high.error, onProgress);
-				addPairs(pairs.high!, high.value);
-			}
+				const high = paired(continued(statReqData.requestHigh!, done, delta), done, high => addPairs(pairs.high!, high));
+				if (!statReqData.requestLow) return [high];
+				return [paired(continued(statReqData.requestLow, done, delta), done, low => addPairs(pairs.low!, low)), high];
+			});
+			const topUpError = await runSims(topUps);
+			if (topUpError) return makeAndSendWeightsError(topUpError, onProgress);
 		}
 	}
 

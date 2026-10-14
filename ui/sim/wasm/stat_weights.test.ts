@@ -5,6 +5,8 @@
 import {
 	AggregatorData,
 	DistributionMetrics,
+	ErrorOutcome,
+	ErrorOutcomeType,
 	PartyMetrics,
 	ProgressMetrics,
 	RaidMetrics,
@@ -29,10 +31,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SimSignals } from '../sim_signal_manager';
 import { noop } from '../utils/misc';
 import type { WorkerPool } from '../workers/worker_pool';
+import type { QueuedSim } from './sim';
 import { runConcurrentStatWeights } from './stat_weights';
 
-const runConcurrentSim = vi.hoisted(() => vi.fn());
-vi.mock('./sim', () => ({ runConcurrentSim }));
+const runConcurrentSimQueue = vi.hoisted(() => vi.fn());
+vi.mock('./sim', () => ({ runConcurrentSimQueue }));
+
+const queued = () => runConcurrentSimQueue.mock.calls.flatMap(([sims]) => (sims as QueuedSim[]).map(sim => sim.request));
 
 // A request whose run adds worth to every iteration, carried in the encounter duration for the fake sim to read.
 const requestWithIterations = (iterations: number, worth = 0, randomSeed = 0n) =>
@@ -88,11 +93,13 @@ const makePool = (statSimRequests: Array<{ statData?: StatWeightsStatData; reque
 
 describe('runConcurrentStatWeights', () => {
 	beforeEach(() => {
-		runConcurrentSim.mockReset();
+		runConcurrentSimQueue.mockReset();
 		// Report one iteration per sim so the caller's progress handler runs and exposes the totals.
-		runConcurrentSim.mockImplementation(async (request: RaidSimRequest, _pool: WorkerPool, onProgress: (pm: ProgressMetrics) => void) => {
-			onProgress(ProgressMetrics.create({ completedIterations: request.simOptions!.iterations }));
-			return simulate(request);
+		runConcurrentSimQueue.mockImplementation(async (sims: QueuedSim[]) => {
+			for (const { request, onProgress, onResult } of sims) {
+				onProgress(ProgressMetrics.create({ completedIterations: request.simOptions!.iterations }));
+				onResult(simulate(request));
+			}
 		});
 	});
 
@@ -103,7 +110,7 @@ describe('runConcurrentStatWeights', () => {
 		await runConcurrentStatWeights({} as never, pool, pm => progress.push(pm), signals);
 
 		// Baseline + high only; the absent low sim is neither run nor counted.
-		expect(runConcurrentSim).toHaveBeenCalledTimes(2);
+		expect(queued()).toHaveLength(2);
 		expect(progress[0].totalSims).toBe(2);
 		expect(progress[0].totalIterations).toBe(130);
 
@@ -118,7 +125,7 @@ describe('runConcurrentStatWeights', () => {
 
 		await runConcurrentStatWeights({} as never, pool, pm => progress.push(pm), signals);
 
-		expect(runConcurrentSim).toHaveBeenCalledTimes(3);
+		expect(queued()).toHaveLength(3);
 		expect(progress[0].totalSims).toBe(3);
 		expect(progress[0].totalIterations).toBe(150);
 
@@ -138,6 +145,40 @@ describe('runConcurrentStatWeights', () => {
 		expect(calcRequest.statPairs[0].high).toEqual(expectedPairs(100, 10, 0));
 		expect([calcRequest.probeIterations, calcRequest.baselineIterations]).toEqual([100, 100]);
 		expect(carriesPerIterationValues(calcRequest)).toBe(false);
+	});
+
+	it('runs every stat sim in one queue and pairs each with the baseline whichever ends first', async () => {
+		const pool = makePool([
+			{ statData: StatWeightsStatData.create({ unitStat: 1 }), requestLow: requestWithIterations(100, -10), requestHigh: requestWithIterations(100, 10) },
+			{ statData: StatWeightsStatData.create({ unitStat: 2 }), requestHigh: requestWithIterations(100, 20) },
+		]);
+		runConcurrentSimQueue.mockImplementation(async (sims: QueuedSim[]) => {
+			for (const { request, onResult } of [...sims].reverse()) onResult(simulate(request));
+		});
+
+		await runConcurrentStatWeights({} as never, pool, noop, signals);
+
+		expect(runConcurrentSimQueue.mock.calls.map(([sims]) => sims.length)).toEqual([1, 3]);
+		const calcRequest = vi.mocked(pool.statWeightCompute).mock.calls[0][0];
+		expect(calcRequest.statPairs.map(pairs => pairs.statData!.unitStat)).toEqual([1, 2]);
+		expect(calcRequest.statPairs[0].low).toEqual(expectedPairs(100, -10, 0));
+		expect(calcRequest.statPairs[0].high).toEqual(expectedPairs(100, 10, 0));
+		expect(calcRequest.statPairs[1].high).toEqual(expectedPairs(100, 20, 0));
+	});
+
+	it('stops at a failed sim and reports its error', async () => {
+		vi.spyOn(console, 'error').mockImplementation(noop);
+		const pool = makePool([{ requestHigh: requestWithIterations(100, 10) }]);
+		const failure = ErrorOutcome.create({ type: ErrorOutcomeType.ErrorOutcomeError, message: 'failed' });
+		runConcurrentSimQueue.mockImplementation(async (sims: QueuedSim[]) => {
+			if (runConcurrentSimQueue.mock.calls.length > 1) return failure;
+			sims.forEach(({ request, onResult }) => onResult(simulate(request)));
+		});
+
+		const result = await runConcurrentStatWeights({} as never, pool, noop, signals);
+
+		expect(result.error).toEqual(failure);
+		expect(pool.statWeightCompute).not.toHaveBeenCalled();
 	});
 
 	describe('with a target ±', () => {
@@ -184,7 +225,9 @@ describe('runConcurrentStatWeights', () => {
 			const topUpRequest = vi.mocked(pool.statWeightTopUpPlan).mock.calls[0][0];
 			expect(topUpRequest.target).toEqual(target);
 			expect(topUpRequest.calc!.hpsReferenceStat).toBe(Stat.StatIntellect);
-			const topUps = runConcurrentSim.mock.calls.slice(3).map(([simRequest]) => (simRequest as RaidSimRequest).simOptions!);
+			const topUps = queued()
+				.slice(3)
+				.map(simRequest => simRequest.simOptions!);
 			expect(topUps.map(options => options.iterations)).toEqual([2 * probe, probe, probe]);
 			expect(topUps.map(options => options.randomSeed)).toEqual([seed + BigInt(probe), seed + BigInt(probe), seed + BigInt(probe)]);
 
@@ -211,7 +254,7 @@ describe('runConcurrentStatWeights', () => {
 
 			expect(vi.mocked(pool.statWeightTopUpPlan).mock.calls.map(([topUpRequest]) => topUpRequest.passes)).toEqual([0, 1, 2]);
 			// The probe's three runs, the first pass's baseline and stat runs, and the second pass's stat runs alone.
-			expect(runConcurrentSim).toHaveBeenCalledTimes(3 + 3 + 2);
+			expect(queued()).toHaveLength(3 + 3 + 2);
 			const calcRequest = vi.mocked(pool.statWeightCompute).mock.calls[0][0];
 			expect(calcRequest.statPairs[0].low).toEqual(expectedPairs(3 * probe, -10, Number(seed) / 1000));
 			expect(calcRequest.statPairs[0].high).toEqual(expectedPairs(3 * probe, 10, Number(seed) / 1000));
