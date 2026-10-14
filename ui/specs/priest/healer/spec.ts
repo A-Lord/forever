@@ -21,10 +21,10 @@ export default defineSpec<Spec.SpecHealerPriest>({
 	className: 'healer-priest-sim-ui',
 	cssScheme: PlayerClasses.getCssScheme(PlayerClasses.Priest),
 	// List any known bugs / issues here and they'll be shown on the site.
-	knownIssues: ["Holy Specialization does not show the extra crit percent"],
+	knownIssues: ['Holy Specialization does not show the extra crit percent'],
 
 	// All stats for which EP should be calculated.
-	epStats: [Stat.StatIntellect, Stat.StatSpirit, Stat.StatHealingPower, Stat.StatCritRating, Stat.StatHasteRating, Stat.StatMP5, Stat.StatMana,],
+	epStats: [Stat.StatIntellect, Stat.StatSpirit, Stat.StatHealingPower, Stat.StatCritRating, Stat.StatHasteRating, Stat.StatMP5, Stat.StatMana],
 	// Reference stat against which to calculate EP.
 	epReferenceStat: Stat.StatHealingPower,
 	// Which stats to display in the Character Stats section, at the bottom of the left-hand sidebar.
@@ -65,7 +65,6 @@ export default defineSpec<Spec.SpecHealerPriest>({
 		BuffDebuffInputs.AtieshMage,
 		BuffDebuffInputs.AtieshPriest,
 		BuffDebuffInputs.AtieshWarlock,
-
 	],
 	// Inputs to include in the 'Other' section on the settings tab.
 	otherInputs: {

@@ -93,11 +93,7 @@ export default defineSpec<Spec.SpecDpsPriest>({
 	playerIconInputs: [PriestSharedInputs.ArmorInput(), PriestInputs.ShadowformInput()],
 	// Buff and Debuff inputs to include/exclude, overriding the EP-based defaults.
 	includeBuffDebuffInputs: [],
-	excludeBuffDebuffInputs: [
-		BuffDebuffInputs.AtieshDruid,
-		BuffDebuffInputs.AtieshMage,
-		BuffDebuffInputs.AtieshWarlock,
-	],
+	excludeBuffDebuffInputs: [BuffDebuffInputs.AtieshDruid, BuffDebuffInputs.AtieshMage, BuffDebuffInputs.AtieshWarlock],
 	// Inputs to include in the 'Other' section on the settings tab.
 	otherInputs: {
 		inputs: [OtherInputs.InputDelay, OtherInputs.ChannelClipDelay, OtherInputs.TankAssignment, OtherInputs.DistanceFromTarget],
