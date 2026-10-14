@@ -36,7 +36,7 @@ type petModel struct {
 }
 
 // The sheet gives no crit from Agility or Intellect, and models regen as MP5 and Intellect alone. Its
-// totals give a demon no crit or armor of its own: its armor and spell crit are the warlock's (see
+// totals give a demon no crit or armor of its own: its armor and crit are the warlock's (see
 // petStatInheritance).
 var petModels = map[proto.WarlockOptions_Summon]petModel{
 	proto.WarlockOptions_Imp: {
@@ -132,11 +132,12 @@ func (warlock *Warlock) petStatInheritance() core.PetStatInheritance {
 			stats.PhysicalHitPercent: ownerStats[stats.SpellHitPercent],
 			stats.SpellHitPercent:    ownerStats[stats.SpellHitPercent],
 
-			// A demon's melee takes none of the warlock's crit: in the logs a Succubus melee-crits ~0.7% whether
-			// the warlock's sheet melee crit, and the Succubus's own, reads 0 or 4.58%, with 4.58% spell crit in the
-			// latter. Its Lash of Pain crits 6.3%, in line with that spell crit.
-			// TODO: The ~0.7% itself and the other demons' melee are not measured.
-			stats.SpellCritPercent: ownerStats[stats.SpellCritPercent],
+			// A demon takes the warlock's spell crit as its melee and spell crit, with no crit of its own:
+			// https://github.com/ClassicWoWCommunity/forever-bugs/issues/331#issuecomment-6160342081
+			// TODO: Not live yet: in game a demon still has its own crit (melee ~0.7%) and takes only the
+			// warlock's "+X% critical strike" gear. Verify in game once the change ships.
+			stats.PhysicalCritPercent: ownerStats[stats.SpellCritPercent],
+			stats.SpellCritPercent:    ownerStats[stats.SpellCritPercent],
 		}
 	}
 }
