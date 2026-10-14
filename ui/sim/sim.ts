@@ -9,6 +9,7 @@ import {
 	BulkSimRequest,
 	BulkSimResult,
 	ComputeStatsRequest,
+	type ComputeStatsResult,
 	ErrorOutcome,
 	ErrorOutcomeType,
 	PlayerStats,
@@ -22,6 +23,8 @@ import {
 	SimType,
 	StatWeightsRequest,
 	StatWeightsResult,
+	StatWeightsTarget,
+	StatWeightsTargetMetric,
 } from '@generated/proto/api';
 import {
 	ArmorType,
@@ -37,6 +40,7 @@ import {
 	WeaponType,
 } from '@generated/proto/common';
 import { DatabaseFilters, RaidFilterOption, SimSettings as SimSettingsProto, SourceFilterOption } from '@generated/proto/ui';
+import i18n from '@i18n/config';
 import { getLang } from '@i18n/locale_service';
 import { SimRequest } from '@worker/types';
 
@@ -54,7 +58,7 @@ import { StatCap, Stats } from './proto/stats';
 import { Encounter } from './raid/encounter';
 import { Raid } from './raid/raid';
 import { SimRuns } from './sim_runs';
-import { RequestTypes, SimSignalManager } from './sim_signal_manager';
+import { RequestTypes, SimSignalManager, type SimSignals } from './sim_signal_manager';
 import { batch } from './state/batch';
 import type { Env } from './state/env';
 import { Emitter } from './state/events';
@@ -68,6 +72,8 @@ import { runConcurrentBulkSim, runConcurrentSim, runConcurrentStatWeights } from
 import { generateRequestId, WorkerPool, WorkerProgressCallback } from './workers/worker_pool';
 
 export const WASM_CONCURRENCY_STORAGE_KEY = `${LOCAL_STORAGE_PREFIX}_wasmconcurrency`;
+// Without the spec prefix, so every spec page shares the one setting.
+export const SHOW_POWER_TOOLS_STORAGE_KEY = `${LOCAL_STORAGE_PREFIX}_showpowertools`;
 export type ReforgeOptimizeConfig = {
 	gear: Gear;
 	preCapEPWeights: Stats;
@@ -95,6 +101,14 @@ export type RunSimOptions = {
 	gear?: Gear;
 	onProgress?: WorkerProgressCallback;
 	raw?: boolean;
+};
+
+export type StatWeightsOptions = {
+	iterations?: number; // Unset uses the sim's iteration setting; a target ignores it and sizes its first pass itself.
+	targetEpCi?: number; // The 90% ± of each targeted EP to reach by adding iterations; unset runs the iterations once.
+	maxIterationMultiplier?: number;
+	targetMetrics?: StatWeightsTargetMetric[]; // The metrics the target applies to; unset means DPS only.
+	hpsReferenceStat?: Stat; // The stat HPS EP divides by; unset means the EP reference stat.
 };
 
 // Core Sim module which deals only with api types, no UI-related stuff.
@@ -157,6 +171,7 @@ export class Sim {
 			}
 		}
 		this.setWasmConcurrency(wasmConcurrencySetting);
+		this.setShowPowerTools(this.env.storage.getItem(SHOW_POWER_TOOLS_STORAGE_KEY) === 'true');
 
 		this.signalManager = new SimSignalManager();
 		this.runs = new SimRuns(this.store, this.signalManager);
@@ -283,21 +298,45 @@ export class Sim {
 
 	private requireRunnableSetup() {
 		if (this.raid.isEmpty()) {
-			throw new Error('Raid is empty! Try adding some players first.');
+			throw new Error(i18n.t('sim.run_errors.raid_empty'));
 		} else if (this.encounter.getTargets().length < 1) {
-			throw new Error('Encounter has no targets! Try adding some targets first.');
+			throw new Error(i18n.t('sim.run_errors.no_targets'));
 		}
+	}
+
+	// Runs `run` registered as `type`, so an abort of that type or of every type reaches its signals.
+	private async runRegistered<T>(type: RequestTypes, run: (signals: SimSignals) => Promise<T>): Promise<T> {
+		this.requireRunnableSetup();
+
+		const signals = this.signalManager.registerRunning(type);
+		try {
+			await this.waitForInit();
+			return await run(signals);
+		} catch (error) {
+			if (error instanceof SimError) throw error;
+			console.error(error);
+			throw new Error(i18n.t('sim.run_errors.sim_failed'));
+		} finally {
+			this.signalManager.unregisterRunning(signals);
+		}
+	}
+
+	// An aborted run comes back with its error set; any other error throws.
+	private async simulate(request: RaidSimRequest, onProgress: WorkerProgressCallback, signals: SimSignals): Promise<RaidSimResult> {
+		// Only use worker based concurrency when running wasm (local sim has native threading),
+		// and never for a lone iteration, which has nothing to split.
+		const result =
+			request.simOptions!.iterations > 1 && (await this.shouldUseWasmConcurrency())
+				? await runConcurrentSim(request, this.workerPool, onProgress, signals)
+				: await this.workerPool.raidSimAsync(request, onProgress, signals);
+		if (result.error && result.error.type == ErrorOutcomeType.ErrorOutcomeError) throw new SimError(result.error.message);
+		return result;
 	}
 
 	runSim(options: RunSimOptions & { raw: true }): Promise<[RaidSimRequest, RaidSimResult] | ErrorOutcome>;
 	runSim(options?: RunSimOptions & { raw?: false }): Promise<SimResult | ErrorOutcome>;
-	async runSim(options: RunSimOptions = {}): Promise<SimResult | ErrorOutcome | [RaidSimRequest, RaidSimResult]> {
-		this.requireRunnableSetup();
-
-		const signals = this.signalManager.registerRunning(RequestTypes.IndividualSim);
-		try {
-			await this.waitForInit();
-
+	runSim(options: RunSimOptions = {}): Promise<SimResult | ErrorOutcome | [RaidSimRequest, RaidSimResult]> {
+		return this.runRegistered(RequestTypes.IndividualSim, async (signals): Promise<SimResult | ErrorOutcome | [RaidSimRequest, RaidSimResult]> => {
 			const request = this.makeRaidSimRequest(options);
 			const player = request.raid!.parties[0].players[0];
 
@@ -309,18 +348,8 @@ export class Sim {
 				if (player.consumables) player.consumables = gear.adjustImbues(player.consumables);
 			}
 
-			const onProgress = options.onProgress ?? noop;
-			// Only use worker based concurrency when running wasm (local sim has native threading),
-			// and never for a lone iteration, which has nothing to split.
-			const result =
-				request.simOptions!.iterations > 1 && (await this.shouldUseWasmConcurrency())
-					? await runConcurrentSim(request, this.workerPool, onProgress, signals)
-					: await this.workerPool.raidSimAsync(request, onProgress, signals);
-
-			if (result.error) {
-				if (result.error.type != ErrorOutcomeType.ErrorOutcomeError) return result.error;
-				throw new SimError(result.error.message);
-			}
+			const result = await this.simulate(request, options.onProgress ?? noop, signals);
+			if (result.error) return result.error;
 
 			if (options.raw) return [request, result];
 
@@ -329,13 +358,12 @@ export class Sim {
 				this.simResultEmitter.emit(simResult);
 			}
 			return simResult;
-		} catch (error) {
-			if (error instanceof SimError) throw error;
-			console.error(error);
-			throw new Error('Something went wrong running your sim. Reload the page and try again.');
-		} finally {
-			this.signalManager.unregisterRunning(signals);
-		}
+		});
+	}
+
+	// Runs a request built by makeRaidSimRequest as `type`, emitting no result. An aborted run comes back with its error set.
+	runRaidSimRequest(request: RaidSimRequest, type: RequestTypes, onProgress: WorkerProgressCallback): Promise<RaidSimResult> {
+		return this.runRegistered(type, signals => this.simulate(request, onProgress, signals));
 	}
 
 	// Normalizes gear for a sim/bulk/reforge request
@@ -386,7 +414,7 @@ export class Sim {
 			if (useWasmBulkSim) {
 				const bulkCandidatesResult = await this.getBulkCandidates(bulkSettings);
 				if (bulkCandidatesResult.error) {
-					throw new SimError(bulkCandidatesResult.error.message || 'Failed to build bulk candidates');
+					throw new SimError(bulkCandidatesResult.error.message || i18n.t('sim.run_errors.bulk_candidates_failed'));
 				}
 				const gearSets = bulkCandidatesResult.candidates.flatMap(candidate => (candidate.gear ? [candidate.gear] : []));
 				candidates = dedupeGearSets(gearSets, [baselineGear.asSpec()]).map((gear, index) => ({ index, gear }));
@@ -417,7 +445,7 @@ export class Sim {
 		} catch (error) {
 			if (error instanceof SimError) throw error;
 			console.error(error);
-			throw new Error('Something went wrong running your bulk sim. Reload the page and try again.');
+			throw new Error(i18n.t('sim.run_errors.bulk_sim_failed'));
 		} finally {
 			this.signalManager.unregisterRunning(signals);
 		}
@@ -470,19 +498,25 @@ export class Sim {
 		addPartyBuffItems(player.database, this.db, raidProto.parties[0].buffs);
 		player.equipment = gear.asSpec();
 		extendPlayerProtoWithMissingEffects(player, this.db);
-		raidProto.parties[0].players[0] = player;
 
-		const result = await this.workerPool.computeStats(
-			ComputeStatsRequest.create({
-				raid: raidProto,
-				encounter: this.encounter.toProto(),
-			}),
-		);
+		const result = await this.computeRaidStats(raidProto);
 		if (result.errorResult != '') {
 			this.crashEmitter.emit(new SimError(result.errorResult));
 		}
 
 		return result.raidStats!.parties[0].players[0];
+	}
+
+	// The stats of `raidProto`, a raid from getModifiedRaidProto() the caller has edited, without touching the players' own
+	// current stats or metadata. An error comes back in `errorResult` for the caller to raise.
+	async computeRaidStats(raidProto: RaidProto): Promise<ComputeStatsResult> {
+		await this.waitForInit();
+		return this.workerPool.computeStats(
+			ComputeStatsRequest.create({
+				raid: raidProto,
+				encounter: this.encounter.toProto(),
+			}),
+		);
 	}
 
 	// This should be invoked internally whenever stats might have changed.
@@ -573,6 +607,7 @@ export class Sim {
 		epPseudoStats: Array<PseudoStat>,
 		epReferenceStat: Stat,
 		onProgress: WorkerProgressCallback,
+		options: StatWeightsOptions = {},
 	): Promise<StatWeightsResult> {
 		this.requireRunnableSetup();
 
@@ -602,7 +637,7 @@ export class Sim {
 				debuffs: this.raid.getDebuffs(),
 				encounter: this.encounter.toProto(),
 				simOptions: SimOptions.create({
-					iterations: this.getIterations(),
+					iterations: options.iterations ?? this.getIterations(),
 					randomSeed: BigInt(this.nextRngSeed()),
 					debug: false,
 				}),
@@ -611,6 +646,15 @@ export class Sim {
 				statsToWeigh: epStats,
 				pseudoStatsToWeigh: epPseudoStats,
 				epReferenceStat: epReferenceStat,
+				hpsReferenceStat: options.hpsReferenceStat,
+				target:
+					options.targetEpCi === undefined
+						? undefined
+						: StatWeightsTarget.create({
+								epCi: options.targetEpCi,
+								maxIterationMultiplier: options.maxIterationMultiplier,
+								metrics: options.targetMetrics,
+							}),
 			});
 
 			const signals = this.signalManager.registerRunning(RequestTypes.StatWeights);
@@ -630,7 +674,7 @@ export class Sim {
 			} catch (error) {
 				if (error instanceof SimError) throw error;
 				console.error(error);
-				throw new Error('Something went wrong calculating your stat weights. Reload the page and try again.');
+				throw new Error(i18n.t('sim.run_errors.stat_weights_failed'));
 			} finally {
 				this.signalManager.unregisterRunning(signals);
 			}
@@ -687,12 +731,13 @@ export class Sim {
 	}
 
 	static MAX_RNG_SEED = Math.pow(2, 32) - 1;
+	// Never 0: the sim replaces a 0 seed with the clock, so a seed shared by several requests would not hold.
 	private nextRngSeed(): number {
 		let rngSeed = 0;
 		if (this.getFixedRngSeed()) {
 			rngSeed = this.getFixedRngSeed();
 		} else {
-			rngSeed = Math.floor(Math.random() * Sim.MAX_RNG_SEED);
+			rngSeed = Math.floor(Math.random() * Sim.MAX_RNG_SEED) + 1;
 		}
 
 		this.setLastUsedRngSeed(rngSeed);
@@ -771,6 +816,16 @@ export class Sim {
 	}
 	setShowExperimental(newShowExperimental: boolean) {
 		if (newShowExperimental != this.ui.showExperimental) this.setUi({ showExperimental: newShowExperimental });
+	}
+
+	getShowPowerTools(): boolean {
+		return this.ui.showPowerTools;
+	}
+	setShowPowerTools(newShowPowerTools: boolean) {
+		if (newShowPowerTools != this.ui.showPowerTools) {
+			this.env.storage.setItem(SHOW_POWER_TOOLS_STORAGE_KEY, newShowPowerTools.toString());
+			this.setUi({ showPowerTools: newShowPowerTools });
+		}
 	}
 
 	getWasmConcurrency(): number {

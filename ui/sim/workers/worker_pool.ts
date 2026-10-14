@@ -21,7 +21,10 @@ import {
 	StatWeightsCalcRequest,
 	StatWeightsRequest,
 	StatWeightsResult,
+	StatWeightsTopUpPlan,
+	StatWeightsTopUpRequest,
 } from '@generated/proto/api';
+import i18n from '@i18n/config';
 import { AsyncSimRequest, SimRequest, WorkerReceiveMessage, WorkerSendMessage } from '@worker/types';
 
 import { REPO_NAME } from '../constants/other';
@@ -43,7 +46,7 @@ let sharedWasmModule: Promise<WebAssembly.Module> | undefined;
 const getSharedWasmModule = (): Promise<WebAssembly.Module> => {
 	sharedWasmModule ??= (async () => {
 		if (typeof DecompressionStream === 'undefined') {
-			throw new Error('This browser does not support DecompressionStream; the in-browser sim requires a current browser version.');
+			throw new Error(i18n.t('sim.run_errors.browser_unsupported'));
 		}
 		const response = await fetch(SIM_WASM_URL);
 		if (!response.ok || !response.body) {
@@ -161,8 +164,14 @@ export class WorkerPool {
 		return StatWeightsResult.fromBinary(result);
 	}
 
-	async raidSimAsync(request: RaidSimRequest, onProgress: WorkerProgressCallback, signals: SimSignals): Promise<RaidSimResult> {
-		const worker = this.getLeastBusyWorker();
+	async statWeightTopUpPlan(request: StatWeightsTopUpRequest): Promise<StatWeightsTopUpPlan> {
+		const result = await this.makeApiCall(SimRequest.statWeightTopUpPlan, StatWeightsTopUpRequest.toBinary(request));
+		return StatWeightsTopUpPlan.fromBinary(result);
+	}
+
+	/** Runs on the worker at workerIndex when given and the pool still has it, else on the least busy worker. */
+	async raidSimAsync(request: RaidSimRequest, onProgress: WorkerProgressCallback, signals: SimSignals, workerIndex?: number): Promise<RaidSimResult> {
+		const worker = (workerIndex !== undefined && this.concurrencyPool.getWorkers()[workerIndex]) || this.getLeastBusyWorker();
 		// A bulk run issues one of these per candidate, and the request carries the merged
 		// database, so this must stay lazy.
 		worker.log(() => 'Raid sim request: ' + RaidSimRequest.toJsonString(request));
@@ -205,9 +214,14 @@ export class WorkerPool {
 		return BulkCandidatesResult.fromBinary(result);
 	}
 
+	/** Each split under its own id when the request has one, as a worker keys its runs by id and may be handed two splits of a sim. */
 	async raidSimRequestSplit(request: RaidSimRequestSplitRequest): Promise<RaidSimRequestSplitResult> {
-		const result = await this.makeApiCall(SimRequest.raidSimRequestSplit, RaidSimRequestSplitRequest.toBinary(request));
-		return RaidSimRequestSplitResult.fromBinary(result);
+		const result = RaidSimRequestSplitResult.fromBinary(
+			await this.makeApiCall(SimRequest.raidSimRequestSplit, RaidSimRequestSplitRequest.toBinary(request)),
+		);
+		const parent = request.request?.requestId;
+		if (parent) result.requests.forEach((split, i) => (split.requestId = `${parent}-${i}`));
+		return result;
 	}
 
 	async raidSimResultCombination(request: RaidSimResultCombinationRequest): Promise<RaidSimResult> {

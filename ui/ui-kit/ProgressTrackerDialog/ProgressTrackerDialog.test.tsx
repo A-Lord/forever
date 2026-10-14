@@ -4,6 +4,8 @@
 // on wasm (sim/core/sim.go:336 throttles each sim to one report per 100 ms, and
 // ui/sim/wasm/sim.ts:118 decimates by worker count) and ~2/s on the native host, which is why the
 // bar renders per message instead of coalescing across frames.
+import i18n from '@i18n/config';
+import { formatDurationSeconds } from '@sim/utils/format';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { Profiler, useState } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -106,6 +108,23 @@ describe('ProgressTrackerDialog', () => {
 		expect(bar().hasAttribute('data-complete')).toBe(true);
 	});
 
+	it('writes the time left on a line of its own, held empty until there is an estimate, and adds no line for a run that sends none', () => {
+		renderDialog();
+		const remaining = () => screen.queryByTestId('progress-tracker-time-remaining');
+
+		act(() => handle!.setProgress({ current: 1, total: 4 }));
+		expect(remaining()).toBeNull();
+
+		act(() => handle!.setProgress({ current: 1, total: 4, secondsRemaining: null }));
+		expect(remaining()!.textContent).toBe(' ');
+
+		const t = vi.spyOn(i18n, 't');
+		act(() => handle!.setProgress({ current: 2, total: 4, secondsRemaining: 95 }));
+		expect(t).toHaveBeenCalledWith('sidebar.results.progress.time_remaining', { time: formatDurationSeconds(95) });
+		expect(remaining()!.textContent).toBe(t.mock.results.at(-1)!.value);
+		t.mockRestore();
+	});
+
 	it('keeps what is pushed the moment the handle attaches', () => {
 		const pushOnAttach = (value: ProgressTrackerHandle | null) => value?.setProgress({ current: 2, total: 8 });
 		render(<ProgressTrackerDialog ref={pushOnAttach} open title="Bulk Sim" state={{ stage: 'running' }} hasProgressBar />);
@@ -151,7 +170,7 @@ describe('ProgressTrackerDialog', () => {
 		const onCancel = vi.fn();
 		renderDialog({ onCancel });
 
-		expect(screen.queryByRole('button', { name: 'Close' })).toBeNull();
+		expect(screen.queryByRole('button', { name: 'common.close' })).toBeNull();
 
 		const cancel = screen.getByTestId('progress-tracker-modal-cancel-btn');
 		expect(cancel.getAttribute('type')).toBe('button');

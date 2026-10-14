@@ -30,6 +30,8 @@ export interface SettingsDialogViewProps {
 	onShowThreatMetricsChange: (show: boolean) => void;
 	showExperimental: boolean;
 	onShowExperimentalChange: (show: boolean) => void;
+	showPowerTools: boolean;
+	onShowPowerToolsChange: (show: boolean) => void;
 	showQuickSwap: boolean;
 	onShowQuickSwapChange: (show: boolean) => void;
 	wasmConcurrency: number;
@@ -44,8 +46,6 @@ export interface SettingsDialogViewProps {
 
 const LANGUAGE_OPTIONS: Array<ChoiceOption<string>> = Object.entries(supportedLanguages).map(([language, name]) => ({ value: language, label: name }));
 
-const FIREFOX_WORKER_NOTE = `Too many workers can cause significant memory usage! If sim doesn't finish due to RAM running out use a lower number.`;
-
 const LastUsedRngSeed = ({ seed }: { seed: number }) => (
 	<HelpText as="div">
 		<span>{i18n.t('info.options.fixed_rng_seed.last_used')}</span>&nbsp;{seed}
@@ -54,7 +54,7 @@ const LastUsedRngSeed = ({ seed }: { seed: number }) => (
 
 const WorkerNote = ({ shown }: { shown: boolean }) => (
 	<HelpText as="div" hidden={!shown}>
-		{shown ? FIREFOX_WORKER_NOTE : ''}
+		{shown ? i18n.t('info.options.use_multiple_cpu_cores.firefox_note') : ''}
 	</HelpText>
 );
 
@@ -70,6 +70,8 @@ export const SettingsDialogView = ({
 	onShowThreatMetricsChange,
 	showExperimental,
 	onShowExperimentalChange,
+	showPowerTools,
+	onShowPowerToolsChange,
 	showQuickSwap,
 	onShowQuickSwapChange,
 	wasmConcurrency,
@@ -82,7 +84,7 @@ export const SettingsDialogView = ({
 	const restoreTooltipId = useId();
 
 	const workerOptions = useMemo(() => {
-		const options: Array<ChoiceOption<number>> = [{ value: 0, label: 'Off' }];
+		const options: Array<ChoiceOption<number>> = [{ value: 0, label: i18n.t('info.options.use_multiple_cpu_cores.off') }];
 		for (let workers = 2; workers <= maxWorkers; workers++) {
 			options.push({ value: workers, label: workers.toString() });
 		}
@@ -127,7 +129,7 @@ export const SettingsDialogView = ({
 					<BooleanPicker
 						id="simui-show-threat-metrics"
 						label={i18n.t('info.options.feature_toggles.show_threat_metrics')}
-						labelTooltip="Shows all options and metrics relevant to tanks, like TPS/DTPS."
+						labelTooltip={i18n.t('info.options.feature_toggles.show_threat_metrics_tooltip')}
 						layout="inline"
 						value={showThreatMetrics}
 						onChange={onShowThreatMetricsChange}
@@ -137,17 +139,27 @@ export const SettingsDialogView = ({
 					<BooleanPicker
 						id="simui-show-experimental"
 						label={i18n.t('info.options.feature_toggles.show_experimental')}
-						labelTooltip="Shows experimental options, if there are any active experiments."
+						labelTooltip={i18n.t('info.options.feature_toggles.show_experimental_tooltip')}
 						layout="inline"
 						value={showExperimental}
 						onChange={onShowExperimentalChange}
+					/>
+				</div>
+				<div className="w-1/2 pr-2" data-testid="show-power-tools-picker">
+					<BooleanPicker
+						id="simui-show-power-tools"
+						label={i18n.t('info.options.feature_toggles.show_power_tools')}
+						labelTooltip={i18n.t('info.options.feature_toggles.show_power_tools_tooltip')}
+						layout="inline"
+						value={showPowerTools}
+						onChange={onShowPowerToolsChange}
 					/>
 				</div>
 				<div className="w-1/2 pr-2" data-testid="show-quick-swap-picker">
 					<BooleanPicker
 						id="simui-show-quick-swap"
 						label={i18n.t('info.options.feature_toggles.show_quick_swap')}
-						labelTooltip="Allows you to quickly swap enchants through your favorites. (Disabled on touch devices)"
+						labelTooltip={i18n.t('info.options.feature_toggles.show_quick_swap_tooltip')}
 						layout="inline"
 						value={showQuickSwap}
 						onChange={onShowQuickSwapChange}
@@ -157,7 +169,7 @@ export const SettingsDialogView = ({
 					<ChoiceField
 						id="simui-concurrent-workers-picker"
 						label={i18n.t('info.options.use_multiple_cpu_cores.label')}
-						labelTooltip="Use web workers to spread sim workload over multiple CPU cores."
+						labelTooltip={i18n.t('info.options.use_multiple_cpu_cores.tooltip')}
 						options={workerOptions}
 						value={wasmConcurrency}
 						onChange={onWasmConcurrencyChange}
@@ -182,6 +194,7 @@ export const SettingsDialog = ({ open, onOpenChange, host }: SettingsDialogProps
 	const language = useUiStore('language');
 	const showThreatMetrics = useUiStore('showThreatMetrics');
 	const showExperimental = useUiStore('showExperimental');
+	const showPowerTools = useUiStore('showPowerTools');
 	const showQuickSwap = useUiStore('showQuickSwap');
 	const wasmConcurrency = useUiStore('wasmConcurrency');
 
@@ -211,6 +224,11 @@ export const SettingsDialog = ({ open, onOpenChange, host }: SettingsDialogProps
 		sim.setShowExperimental(show);
 	};
 
+	const setShowPowerTools = (show: boolean) => {
+		trackEvent({ action: 'settings', category: 'show-power-tools', label: 'update', value: show });
+		sim.setShowPowerTools(show);
+	};
+
 	const setWasmConcurrency = (workers: number) => {
 		trackEvent({ action: 'settings', category: 'concurrency', label: 'update', value: workers });
 		sim.setWasmConcurrency(workers);
@@ -235,6 +253,8 @@ export const SettingsDialog = ({ open, onOpenChange, host }: SettingsDialogProps
 			onShowThreatMetricsChange={show => sim.setShowThreatMetrics(show)}
 			showExperimental={showExperimental}
 			onShowExperimentalChange={setShowExperimental}
+			showPowerTools={showPowerTools}
+			onShowPowerToolsChange={setShowPowerTools}
 			showQuickSwap={showQuickSwap}
 			onShowQuickSwapChange={show => sim.setShowQuickSwap(show)}
 			wasmConcurrency={wasmConcurrency}

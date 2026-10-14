@@ -1,11 +1,12 @@
 import { Dialog as BaseDialog } from '@base-ui/react/dialog';
+import i18n from '@i18n/config';
 import { Button } from '@ui-kit/Button';
 import { usePortalContainer } from '@ui-kit/hooks/usePortalContainer';
 import { Icon } from '@ui-kit/Icon';
 import clsx from 'clsx';
 import type { KeyboardEventHandler, ReactNode } from 'react';
 
-export type DialogSize = 'sm' | 'md' | 'lg' | 'xl';
+export type DialogSize = 'sm' | 'md' | 'lg' | 'xl' | 'full';
 
 export interface DialogProps {
 	open: boolean;
@@ -97,7 +98,7 @@ export const Dialog = ({
 								{headerChildren}
 								{!preventClose && (
 									<BaseDialog.Close
-										render={<Button iconOnly aria-label="Close" className={clsx('ui-dialog-close', closeClassName)} />}
+										render={<Button iconOnly aria-label={i18n.t('common.close')} className={clsx('ui-dialog-close', closeClassName)} />}
 										data-testid="sim-dialog-close">
 										<Icon name="xmark" size="2xl" />
 									</BaseDialog.Close>
