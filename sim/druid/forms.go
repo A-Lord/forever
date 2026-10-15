@@ -207,8 +207,17 @@ func (druid *Druid) registerShapeshiftSpell(rank *spelldata.Spell, aura *core.Au
 	config.ExtraCastCondition = func(_ *core.Simulation, _ *core.Unit) bool {
 		return aura != nil && !aura.IsActive()
 	}
+	// A shift into Bear or Dire Bear Form starts the rage bar at 0, and Furor's rage comes on top. The
+	// starting form is not cast, so the pull keeps the starting rage.
+	var rageMetrics *core.ResourceMetrics
+	if aura == druid.BearFormAura || aura == druid.DireBearFormAura {
+		rageMetrics = druid.NewRageMetrics(core.ActionID{SpellID: rank.ID})
+	}
 	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, _ *core.Spell) {
 		druid.leaveForm(sim)
+		if rageMetrics != nil && druid.CurrentRage() > 0 {
+			druid.SpendRage(sim, druid.CurrentRage(), rageMetrics)
+		}
 		aura.Activate(sim)
 	}
 	return druid.RegisterSpell(config)
