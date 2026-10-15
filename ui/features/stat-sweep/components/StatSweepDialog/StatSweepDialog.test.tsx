@@ -206,7 +206,7 @@ describe('StatSweepDialog', () => {
 			dtps: { avg: 1990, stdev: 300, n: 3000 },
 			tmi: { avg: 10.1, stdev: 2, n: 3000 },
 		});
-		expect(saved().cappedAt).toBeUndefined();
+		expect(saved().capped).toBeUndefined();
 	});
 
 	it('steps a % stat by the % its rating gives, plotting the step as the rating', async () => {
@@ -218,12 +218,11 @@ describe('StatSweepDialog', () => {
 		await run();
 
 		expect(simulatePass.mock.calls.map(call => call[0].bonusStats.getUnitStat(shadowHit))).toEqual([0, 1, 2]);
-		expect(saved().points.map(point => [point.offset, point.statValue])).toEqual([
-			[0, 0],
-			[10, 1],
-			[20, 2],
+		expect(saved().points.map(point => [point.offset, point.bonus, point.statValue])).toEqual([
+			[0, 0, 0],
+			[10, 1, 1],
+			[20, 2, 2],
 		]);
-		expect(saved().points.map(point => point.bonus)).toEqual([0, 1, 2]);
 		expect(lastChart().data.datasets[2].data.map(datum => datum.x)).toEqual([0, 10, 20]);
 
 		const { data, options } = lastChart();
@@ -398,7 +397,7 @@ describe('StatSweepDialog', () => {
 
 		expect(strengthSteps()).toEqual([0, 10, 20, 30]);
 		expect(saved().points.map(point => point.statValue)).toEqual([0, 10, 20, 30]);
-		expect(saved().cappedAt).toBe(10);
+		expect(saved().capped).toEqual({ offset: 10, bonus: 10 });
 		expect(screen.getByText('sidebar.buttons.stat_sweep.capped_label')).toBeTruthy();
 	});
 
@@ -413,7 +412,7 @@ describe('StatSweepDialog', () => {
 
 		expect(strengthSteps()).toEqual([0, 10, 20, 30, 40]);
 		expect(saved().metric).toBe('tps');
-		expect(saved().cappedAt).toBeUndefined();
+		expect(saved().capped).toBeUndefined();
 		expect(screen.getByTestId('stat-sweep-history-metric').textContent).toBe(metricLabel('tps'));
 	});
 
@@ -693,7 +692,7 @@ describe('StatSweepDialog', () => {
 
 			const topUp = Math.ceil(((Z_90 * 100) / 2) ** 2) - PROBE;
 			expect(passesByStep()).toEqual({ 0: [PROBE, topUp], 10: [PROBE, topUp], 20: [PROBE, topUp], 30: [PROBE] });
-			expect(saved().cappedAt).toBe(10);
+			expect(saved().capped).toEqual({ offset: 10, bonus: 10 });
 		});
 
 		it('disables Run while the target is empty, and enables it in iterations mode', async () => {

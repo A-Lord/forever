@@ -34,7 +34,7 @@ const pointsFrom = (base: number, samples: number, metricsAt: MetricsAt): StatSw
 		UnitStat.fromStat(Stat.StatHitRating),
 		offsets,
 		offsets.map(offset => base + offset),
-	).map(({ offset, bonus, statValue }) => ({ offset, bonus, statValue, metrics: metricsAt(statValue, samples) }));
+	).map(step => ({ ...step, metrics: metricsAt(step.statValue, samples) }));
 };
 
 // A damage dealer: threat follows damage, and nothing is healed or taken.

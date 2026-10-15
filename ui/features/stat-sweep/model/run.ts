@@ -193,7 +193,7 @@ export function runStatSweep({ sim, specId }: StatSweepDeps, args: StatSweepArgs
 						steps,
 						measure,
 						({ points, cappedStep }) => {
-							finished = { ...record, points, ...(cappedStep && { cappedAt: cappedStep.offset }) };
+							finished = { ...record, points, ...(cappedStep && { capped: { offset: cappedStep.offset, bonus: cappedStep.bonus } }) };
 							onRunUpdate(finished);
 						},
 						skipped => report(skipSweepSteps(progress, statIndex, skipped)),

@@ -20,8 +20,8 @@ export interface StatSweepSeries {
 	/** The swept stat's total when the run started. */
 	baseStatValue: number;
 	points: ReadonlyArray<StatSweepPoint>;
-	/** The stat added past which more of the stat left every metric unchanged. */
-	cappedAt?: number;
+	/** The step past which more of the stat left every metric unchanged. */
+	capped?: Pick<StatSweepPoint, 'offset' | 'bonus'>;
 }
 
 export interface StatSweepChartProps {
@@ -78,7 +78,7 @@ function datasets(series: ReadonlyArray<StatSweepSeries>, metric: StatSweepMetri
 			run.points.map(point => {
 				const x = point.offset;
 				const { avg, stdev } = point.metrics[metric];
-				return { x, y: avg + sign * stdev, stdev, point, statLabel: run.statLabel, capped: run.cappedAt !== undefined && x >= run.cappedAt };
+				return { x, y: avg + sign * stdev, stdev, point, statLabel: run.statLabel, capped: run.capped !== undefined && x >= run.capped.offset };
 			});
 		const edge = {
 			pointRadius: 0,
@@ -127,14 +127,13 @@ function xRange(series: ReadonlyArray<StatSweepSeries>) {
 	return { min: min - pad, max: max + pad };
 }
 
-// Two decimals at most, since a % stat's total and bonus come from a rating that does not divide evenly.
-const shown = (value: number) => formatToNumber(value, { maximumFractionDigits: 2, useGrouping: false });
+const shown = (value: number) => formatToNumber(value, { useGrouping: false });
 
-const signed = (added: number) => (added > 0 ? `+${shown(added)}` : shown(added));
+const signed = (added: number) => formatToNumber(added, { signDisplay: 'exceptZero', useGrouping: false });
 
 /** The run's label, with the stat added at which more of the stat stopped changing any metric, in the stat's own units as the tooltip gives it. */
-export const runLabel = ({ label, cappedAt, points }: { label: string; cappedAt?: number; points: ReadonlyArray<Pick<StatSweepPoint, 'offset' | 'bonus'>> }) =>
-	cappedAt === undefined ? label : t('capped_label', { label, added: signed(points.find(point => point.offset === cappedAt)?.bonus ?? cappedAt) });
+export const runLabel = ({ label, capped }: Pick<StatSweepSeries, 'label' | 'capped'>) =>
+	capped === undefined ? label : t('capped_label', { label, added: signed(capped.bonus) });
 
 const markerPlugin: Plugin<'line'> = {
 	id: 'statSweepMarker',

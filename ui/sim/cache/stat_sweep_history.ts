@@ -40,8 +40,8 @@ export interface StatSweepRecord {
 	metric: StatSweepMetric;
 	baseStatValue: number;
 	points: StatSweepPoint[];
-	/** The stat added past which more of the stat left every metric unchanged, so the run skipped the steps above the next one. */
-	cappedAt?: number;
+	/** The step past which more of the stat left every metric unchanged, so the run skipped the steps above the next one. */
+	capped?: Pick<StatSweepPoint, 'offset' | 'bonus'>;
 	/** Shared by every run one sweep saved; a run without one is a batch of its own. */
 	batchId?: string;
 	/** The sweep's stats in run order with its range, the same on every run of the batch. */
