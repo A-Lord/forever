@@ -768,7 +768,7 @@
 			},
 			"assume_bleed_active": {
 				"label": "Assume Bleed Always Active",
-				"tooltip": "Assume bleed always exists for 'Rend and Tear' calculations. Otherwise will only calculate based on own rip/rake/lacerate."
+				"tooltip": "Assume bleed always exists for 'Rend and Tear' calculations and the 'Bleed Is Active' APL condition. Otherwise will only calculate based on your own bleeds."
 			},
 			"prepull_clearcasting": {
 				"label": "Clearcasting at the Pull",
@@ -1825,6 +1825,10 @@
 				"dot_is_active": {
 					"label": "Dot Is Active",
 					"tooltip": "<b>True</b> if the specified dot is currently ticking, otherwise <b>False</b>."
+				},
+				"druid_bleed_is_active": {
+					"label": "Bleed Is Active",
+					"tooltip": "<b>True</b> if one of your bleeds is on the target, or if <b>Assume Bleed Always Active</b> is enabled, otherwise <b>False</b>."
 				},
 				"dot_is_active_on_all_targets": {
 					"label": "Dot Is Active On All Targets",

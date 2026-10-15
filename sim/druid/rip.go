@@ -10,7 +10,7 @@ func (druid *Druid) registerRipSpell() {
 	tick := rank.PeriodicDamageEffect()
 	config := spelldata.SpellConfig(&druid.Unit, rank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
 	config.ExtraCastCondition = druid.requiresComboPoints(rank)
-	config.Dot = spelldata.DotConfig(rank, tick, bleedAuraOpt())
+	config.Dot = spelldata.DotConfig(rank, tick)
 	// Combo points are captured when the dot is applied. Attack power is read on the tick, and scales
 	// per combo point with the fifth counted as the fourth.
 	// TODO: Ingame research needed -- whether Rip snapshots attack power.

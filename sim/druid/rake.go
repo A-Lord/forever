@@ -13,7 +13,7 @@ func (druid *Druid) registerRakeSpell() {
 	// only the periodic effect states the bleed mechanic. The ticks are periodic physical damage, which
 	// core keeps out of armor anyway.
 	config.Flags |= core.SpellFlagIgnoreResists
-	config.Dot = spelldata.DotConfig(rank, rank.PeriodicDamageEffect(), bleedAuraOpt())
+	config.Dot = spelldata.DotConfig(rank, rank.PeriodicDamageEffect())
 	tick := rank.PeriodicDamageEffect()
 	// TODO: Verify whether changing attack power after application changes subsequent ticks.
 	config.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {

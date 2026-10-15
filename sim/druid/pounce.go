@@ -13,7 +13,7 @@ func (druid *Druid) registerPounceSpell() {
 	// states none, so the bleed here takes no class-flag modifier.
 	bleedConfig := spelldata.SpellConfig(&druid.Unit, bleedRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial), spelldata.Proc())
 	bleedTick := bleedRank.PeriodicDamageEffect()
-	bleedConfig.Dot = spelldata.DotConfig(bleedRank, bleedTick, bleedAuraOpt())
+	bleedConfig.Dot = spelldata.DotConfig(bleedRank, bleedTick)
 	bleedConfig.Dot.OnTick = func(sim *core.Simulation, target *core.Unit, dot *core.Dot) {
 		dot.Spell.CalcAndDealPeriodicDamage(sim, target, bleedTick.Average()*druid.rendAndTearMultiplier(target), bleedRank.TickOutcome(dot))
 	}

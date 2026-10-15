@@ -10,7 +10,7 @@ func (druid *Druid) registerLacerateSpell() {
 	tick := rank.PeriodicDamageEffect()
 	perStack := rank.EffectN(2).Percent()
 	config := spelldata.SpellConfig(&druid.Unit, rank, spelldata.Melee(core.ProcMaskMeleeMHSpecial))
-	config.Dot = spelldata.DotConfig(rank, tick, bleedAuraOpt())
+	config.Dot = spelldata.DotConfig(rank, tick)
 	// TODO: Ingame research needed -- the tooltip's "Causes a high amount of threat"; the row states no
 	// threat effect, so the cast threatens only for its damage.
 	// Each application stacks the bleed, so a tick is the row's amount per stack.

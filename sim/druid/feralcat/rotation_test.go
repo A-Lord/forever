@@ -208,6 +208,30 @@ func catPowershiftRequest(talents string, rotation *proto.APLRotation, cannotShr
 	}
 }
 
+// Bleed Is Active sees the cat's own Rake and the assumed raid bleed. The APL claws while the target
+// bleeds and rakes while it does not: without the assumption Rake opens and Claw follows while it
+// ticks; with it the target bleeds from the pull and Rake is never cast.
+func TestBleedIsActiveSeesRakeAndTheAssumedBleed(t *testing.T) {
+	const rake, claw = 9904, 9850
+	bleeding := &proto.APLValue{Value: &proto.APLValue_DruidBleedIsActive{DruidBleedIsActive: &proto.APLValueDruidBleedIsActive{}}}
+	rotation := &proto.APLRotation{PriorityList: []*proto.APLListItem{castWhen(claw, bleeding), castWhen(rake, not(bleeding))}}
+
+	player := runCat(t, catPowershiftRequest("", rotation, false))
+	if rakes, claws := castsOf(player.Actions, rake), castsOf(player.Actions, claw); rakes == 0 || claws == 0 {
+		t.Errorf("Rake %d and Claw %d casts, want Rake to open and Claw while it ticks", rakes, claws)
+	}
+
+	assumed := catPowershiftRequest("", rotation, false)
+	assumed.Raid.Parties[0].Players[0].GetFeralCatDruid().Options.AssumeBleedActive = true
+	player = runCat(t, assumed)
+	if got := castsOf(player.Actions, rake); got != 0 {
+		t.Errorf("Rake casts = %d with a bleed assumed, want 0", got)
+	}
+	if castsOf(player.Actions, claw) == 0 {
+		t.Error("Claw was never cast with a bleed assumed")
+	}
+}
+
 func TestManaPotionAndThistleTeaAreUsed(t *testing.T) {
 	const iterations int32 = 100
 	req := sweepRequest(powershiftTalents, defaultCatRotation(), false, iterations)
