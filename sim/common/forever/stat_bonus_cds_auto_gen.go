@@ -28,6 +28,8 @@ func RegisterAllOnUseCds() {
 	// unsupported: 22641 deals no damage and heals no one (E_CHARGE, E_TRIGGER_SPELL)
 	// shared.NewSimpleStatActive(9394) // Horned Viking Helmet - https://www.wowhead.com/forever/spell=22641
 	// unsupported: 12438 deals no damage and heals no one (A_FEATHER_FALL)
+	// shared.NewSimpleStatActive(9404) // Olaf's All Purpose Shield - https://www.wowhead.com/forever/spell=12438
+	// unsupported: 12438 deals no damage and heals no one (A_FEATHER_FALL)
 	// shared.NewSimpleStatActive(10518) // Parachute Cloak - https://www.wowhead.com/forever/spell=12438
 	// unsupported: 22641 deals no damage and heals no one (E_CHARGE, E_TRIGGER_SPELL)
 	// shared.NewSimpleStatActive(10588) // Goblin Rocket Helmet - https://www.wowhead.com/forever/spell=22641
