@@ -91,7 +91,7 @@ func TestProcCooldownModScalesTheICDsItNames(t *testing.T) {
 			Handler:             func(_ *Simulation, _ *Spell, _ *SpellResult) {},
 		})
 		aura.OnSpellHitDealt(aura, sim, &Spell{ProcMask: ProcMaskMeleeMH}, &SpellResult{Outcome: OutcomeHit})
-		return aura.Icd.Duration
+		return aura.Icd.TimeToReady(sim)
 	}
 
 	unit := &Unit{}

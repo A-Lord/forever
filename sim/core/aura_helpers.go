@@ -183,8 +183,7 @@ func (procAura *Aura) AttachProcTriggerCallback(unit *Unit, config ProcTrigger) 
 		if config.ICD == 0 {
 			return
 		}
-		icd.Duration = icdOwner.ModifiedProcCooldown(config.ProcSpellClassFlags, config.ICD)
-		icd.Use(sim)
+		icd.Set(sim.CurrentTime + icdOwner.ModifiedProcCooldown(config.ProcSpellClassFlags, config.ICD))
 	}
 
 	var dpm *DynamicProcManager
