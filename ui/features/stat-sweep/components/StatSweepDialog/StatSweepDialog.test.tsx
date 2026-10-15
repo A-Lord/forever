@@ -646,7 +646,9 @@ describe('StatSweepDialog', () => {
 			const [csv, fileName, mimeType] = download.mock.calls[0];
 			const lines = csv.trim().split('\n');
 			expect(lines).toHaveLength(3);
-			expect(lines[0]).toBe('run,batch,stat,base_total,added,total,dps,dps_stdev,hps,hps_stdev,tps,tps_stdev,dtps,dtps_stdev,tmi,tmi_stdev,samples');
+			expect(lines[0]).toBe(
+				'run,batch,stat,base_total,added,bonus,total,dps,dps_stdev,hps,hps_stdev,tps,tps_stdev,dtps,dtps_stdev,tmi,tmi_stdev,samples',
+			);
 			expect(lines.slice(1).map((line: string) => line.split(',')[1])).toEqual([saved().batchLabel, saved().batchLabel]);
 			expect([fileName, mimeType]).toEqual(['wowsims-stat-sweep.csv', 'text/csv']);
 		});

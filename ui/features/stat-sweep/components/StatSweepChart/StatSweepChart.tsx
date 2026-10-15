@@ -132,9 +132,9 @@ const shown = (value: number) => formatToNumber(value, { maximumFractionDigits: 
 
 const signed = (added: number) => (added > 0 ? `+${shown(added)}` : shown(added));
 
-/** The run's label, with the stat added at which more of the stat stopped changing any metric. */
-export const runLabel = ({ label, cappedAt }: { label: string; cappedAt?: number }) =>
-	cappedAt === undefined ? label : t('capped_label', { label, added: signed(cappedAt) });
+/** The run's label, with the stat added at which more of the stat stopped changing any metric, in the stat's own units as the tooltip gives it. */
+export const runLabel = ({ label, cappedAt, points }: { label: string; cappedAt?: number; points: ReadonlyArray<Pick<StatSweepPoint, 'offset' | 'bonus'>> }) =>
+	cappedAt === undefined ? label : t('capped_label', { label, added: signed(points.find(point => point.offset === cappedAt)?.bonus ?? cappedAt) });
 
 const markerPlugin: Plugin<'line'> = {
 	id: 'statSweepMarker',

@@ -533,17 +533,17 @@ describe('statSweepCsv', () => {
 			{
 				label: 'Crit',
 				batchLabel: '',
-				statLabel: 'Crit "Rating"',
-				baseStatValue: 50,
-				points: [{ offset: 10, bonus: 10, statValue: 61, metrics: metrics(1600, 200, 400) }],
+				statLabel: 'Spell "Crit"',
+				baseStatValue: 5,
+				points: [{ offset: 14, bonus: 1, statValue: 6, metrics: metrics(1600, 200, 400) }],
 			},
 		]);
 
 		expect(csv.split('\n')).toEqual([
-			'run,batch,stat,base_total,added,total,dps,dps_stdev,hps,hps_stdev,tps,tps_stdev,dtps,dtps_stdev,tmi,tmi_stdev,samples',
-			'"Hit, ±100","Hit Rating, Crit Rating ±100",Hit Rating,120,-20,100,1500.5,100,5,1,3001,200,300,30,9.5,0.25,10000',
-			'"Hit, ±100","Hit Rating, Crit Rating ±100",Hit Rating,120,0,120,1520,0,5,1,3040,0,300,30,9.5,0.25,10000',
-			'Crit,,"Crit ""Rating""",50,10,61,1600,200,5,1,3200,400,300,30,9.5,0.25,400',
+			'run,batch,stat,base_total,added,bonus,total,dps,dps_stdev,hps,hps_stdev,tps,tps_stdev,dtps,dtps_stdev,tmi,tmi_stdev,samples',
+			'"Hit, ±100","Hit Rating, Crit Rating ±100",Hit Rating,120,-20,-20,100,1500.5,100,5,1,3001,200,300,30,9.5,0.25,10000',
+			'"Hit, ±100","Hit Rating, Crit Rating ±100",Hit Rating,120,0,0,120,1520,0,5,1,3040,0,300,30,9.5,0.25,10000',
+			'Crit,,"Spell ""Crit""",5,14,1,6,1600,200,5,1,3200,400,300,30,9.5,0.25,400',
 			'',
 		]);
 	});

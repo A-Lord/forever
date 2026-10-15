@@ -280,6 +280,7 @@ export const STAT_SWEEP_CSV_COLUMNS = [
 	'stat',
 	'base_total',
 	'added',
+	'bonus',
 	'total',
 	...STAT_SWEEP_METRICS.flatMap(metric => [metric, `${metric}_stdev`]),
 	'samples',
@@ -298,6 +299,7 @@ export function statSweepCsv(runs: ReadonlyArray<StatSweepCsvRun>): string {
 			run.statLabel,
 			run.baseStatValue,
 			point.offset,
+			point.bonus,
 			point.statValue,
 			...STAT_SWEEP_METRICS.flatMap(metric => [point.metrics[metric].avg, point.metrics[metric].stdev]),
 			// Every metric comes from the same iterations.
