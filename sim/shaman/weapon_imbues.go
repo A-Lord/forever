@@ -20,6 +20,7 @@ var (
 	flametongueWeaponAttack  = spellData.FlametongueWeapon.Highest().Refs()[1]
 	frostbrandWeaponAttack   = spellData.FrostbrandWeapon.Highest().Refs()[0]
 	rockbiterWeaponPassive   = spellData.RockbiterWeapon.Highest().Refs()[0]
+	rockbiterWeaponProc      = spelldata.MustFind(20871)
 )
 
 // Each imbue registers only where the main hand, equipped or in the swap set, carries it. A shaman's
@@ -252,4 +253,31 @@ func (shaman *Shaman) RegisterRockbiterImbue() {
 			aura.Deactivate(sim)
 		}
 	})
+
+	threatSpell := shaman.newRockbiterThreatSpell()
+	trigger := spelldata.ProcTrigger(&shaman.Character, rockbiterWeaponPassive, func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
+		threatSpell.Cast(sim, result.Target)
+	}, func(_ *core.Character, trigger *core.ProcTrigger) {
+		trigger.ProcChance = 0
+		trigger.DPM = shaman.imbueProcManager(proto.ShamanImbue_RockbiterWeapon, 0, 1)
+	})
+	trigger.Name = "Rockbiter Weapon Trigger"
+	trigger.TriggerImmediately = true
+	shaman.MakeProcTriggerAura(trigger)
+}
+
+// The top rank's passive, 16313, casts 20871 off each melee hit, the top of the 20860 to 20871 ladder;
+// its script effect adds its base points of threat for every second of the main hand's swing.
+func (shaman *Shaman) newRockbiterThreatSpell() *core.Spell {
+	config := spelldata.SpellConfig(&shaman.Unit, rockbiterWeaponProc, spelldata.Proc())
+	config.ProcMask = core.ProcMaskEmpty
+	config.ThreatMultiplier = 1
+	config.FlatThreatBonus = rockbiterWeaponProc.EffectN(1).Average()
+	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+		perSecond := spell.FlatThreatBonus
+		spell.FlatThreatBonus *= shaman.AutoAttacks.MH().SwingSpeed
+		spell.CalcAndDealOutcome(sim, target, spell.OutcomeAlwaysHit)
+		spell.FlatThreatBonus = perSecond
+	}
+	return shaman.RegisterSpell(config)
 }
