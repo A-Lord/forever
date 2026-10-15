@@ -122,7 +122,7 @@ func (config *ProcTrigger) matchesSpell(spell *Spell) bool {
 }
 
 // Whether the trigger's rolls let a hit of this proc mask through. The stated chance draws unless it
-// is exactly 1; a manager then rolls its own chance for the mask, and a mask none of its masks hears
+// is 1 or more; a manager then rolls its own chance for the mask, and a mask none of its masks hears
 // fails without a draw. The unit's proc chance mods raise the manager's chance where there is one and
 // the stated chance otherwise. The cast and apply-effects listeners roll no manager.
 func (config *ProcTrigger) rolls(sim *Simulation, unit *Unit, dpm *DynamicProcManager, procMask ProcMask) bool {
@@ -134,7 +134,7 @@ func (config *ProcTrigger) rolls(sim *Simulation, unit *Unit, dpm *DynamicProcMa
 	if dpm == nil {
 		stated = unit.ModifiedProcChance(config.ProcSpellClassFlags, stated)
 	}
-	if stated != 1 && sim.RandomFloat(config.Name) > stated {
+	if stated < 1 && sim.RandomFloat(config.Name) > stated {
 		return false
 	}
 	if dpm == nil {
