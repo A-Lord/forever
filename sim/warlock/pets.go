@@ -81,8 +81,7 @@ var petModels = map[proto.WarlockOptions_Summon]petModel{
 	},
 	proto.WarlockOptions_Succubus: {
 		baseStats: meleeDemonStats(0.699 * core.CreatureHealthMaxLevel).Add(stats.Stats{
-			// TODO: Level 30's share; the warlock's Demon Armor is not inherited, and at level 20 the share reads 0.630.
-			stats.Armor: 0.692 * core.CreatureArmorMaxLevel,
+			stats.Armor: 0.630 * core.CreatureArmorMaxLevel,
 			// TODO: 3 × level + 6, a line through levels 20 and 30, not yet read at 60.
 			stats.AttackPower: 186,
 			stats.MP5:         95, // TODO: The Imp's base MP5; the Sayaad's in-combat regen is not measured.
@@ -140,8 +139,10 @@ func (warlock *Warlock) petStatInheritance() core.PetStatInheritance {
 
 		return stats.Stats{
 			stats.Health: ownerStats[stats.Stamina] * 7.5,
-			// In the logs a demon's armor holds while the warlock's drops by the Demon Armor that fell off.
-			stats.Armor:       max(0, ownerStats[stats.Armor]-warlock.demonArmorArmor) * 0.35,
+			// Demon Armor included: a level 30 Imp's own armor is the level 20 share only with it.
+			// TODO: In game a demon's armor is fixed at the summon (it held when Demon Armor fell off),
+			// while its attack power and spell damage follow the warlock's.
+			stats.Armor:       ownerStats[stats.Armor] * 0.35,
 			stats.AttackPower: spellDamage * 0.17,
 			// A tenth: at 30 spell damage the warlock's tooltip reads "Increases your pet's Attack Power by 5
 			// and Spell Damage by 3", and in the logs a Sayaad's Spell Damage is a tenth of the warlock's, plus
