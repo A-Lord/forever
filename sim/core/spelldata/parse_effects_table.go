@@ -565,12 +565,10 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 // A_ADD_FLAT_MODIFIER: the game files' own amount, in the property's units.
 var flatModTable = map[dbcenums.SpellModOp]row{
 	dbcenums.SPELLMOD_COST: func(p *parser, e *Effect, v float64) *attachment {
-		// The game files state rage on a 0-1000 bar, so a -30 here is 3 rage, and energy as it is
-		// (Shredding Attacks takes 18 Energy off Shred and 30 off Lacerate's 150 Rage).
-		if p.namesRageCosts(e) {
-			v /= 10
-		}
-		return p.modInt("SpellMod_PowerCost_Flat", p.modConfig(e, core.SpellMod_PowerCost_Flat), v)
+		cfg := p.modConfig(e, core.SpellMod_Custom)
+		cfg.ApplyCustom = func(mod *core.SpellMod, spell *core.Spell) { addFlatCost(spell, mod.GetIntValue()) }
+		cfg.RemoveCustom = func(mod *core.SpellMod, spell *core.Spell) { addFlatCost(spell, -mod.GetIntValue()) }
+		return p.modInt("SpellMod_PowerCost_Flat", cfg, v)
 	},
 	dbcenums.SPELLMOD_CASTING_TIME: func(p *parser, e *Effect, v float64) *attachment {
 		return p.modTime("SpellMod_CastTime_Flat", p.modConfig(e, core.SpellMod_CastTime_Flat), v)
@@ -786,33 +784,17 @@ func (p *parser) namesSpell(e *Effect) func(*core.Spell) bool {
 	}
 }
 
-// Whether the power a flat cost modifier lowers is rage. The effect does not state a power type, so the
-// rows its class flags name do: rage when every costed row it names costs rage. Where they mix powers,
-// or name no costed row, the caster's bar decides.
-func (p *parser) namesRageCosts(e *Effect) bool {
-	flags := p.classFlags(e)
-	var rage, other bool
-	if !flags.IsZero() {
-		for _, s := range All() {
-			if !flags.Matches(s.ClassFlags) {
-				continue
-			}
-			for _, power := range s.Powers {
-				if power.Cost == 0 && power.CostPct == 0 {
-					continue
-				}
-				if power.Type == dbcenums.POWER_RAGE {
-					rage = true
-				} else {
-					other = true
-				}
-			}
-		}
+// A flat cost modifier on one spell, in the units of the power that spell costs. The effect states no
+// power type and the game files state rage on a 0-1000 bar, so a -30 is 3 rage off a rage cost and 30
+// off any other (Shredding Attacks takes 18 Energy off Shred and 30 off Lacerate's 150 Rage).
+func addFlatCost(spell *core.Spell, v int32) {
+	if spell.Cost == nil {
+		return
 	}
-	if rage != other {
-		return rage
+	if _, ok := spell.Cost.ResourceCostImpl.(*core.RageCost); ok {
+		v /= 10
 	}
-	return p.unit.HasRageBar()
+	spell.Cost.FlatModifier += v
 }
 
 // WeaponScope, narrowed to the hand OnHand names for a row bound to a weapon. Answers false for a row
