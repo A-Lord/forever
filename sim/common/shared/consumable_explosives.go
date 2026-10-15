@@ -34,8 +34,9 @@ func NewSpellDataExplosive(itemID int32) {
 			config := spellDataOnUseDamageSpell(character, row)
 			config.ActionID = core.ActionID{ItemID: itemID}
 			config.Flags |= core.SpellFlagExplosive
-			// The game files do not mark Engineering explosives not-shapeshifted, but in game they cannot
-			// be used in a shapeshift form: a druid leaves the form to throw one.
+			// The row of every Engineering explosive but Goblin Sapper Charge's 13241 marks it not usable
+			// in a shapeshift form, which the row's cast requirement already carries. In game the sapper
+			// cannot be used in one either: a druid leaves the form to throw it.
 			if consumable.RequiredProfession == proto.Profession_Engineering {
 				config.CastRequirement.NotShapeshifted = true
 			}
