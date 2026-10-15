@@ -83,8 +83,6 @@ message BalanceDruid {
 message FeralCatDruid {
   // The cat plays APL rotations only.
   message Rotation {}
-  reserved 1;
-  reserved "rotation";
 
   message Options {
     DruidOptions class_options = 1;
