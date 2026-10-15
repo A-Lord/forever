@@ -198,13 +198,13 @@ func TestWandSkillSetsTheRangedHandsSpellMiss(t *testing.T) {
 		{285, 60, 0.17},
 		{275, 60, 0.17},
 		{305, 63, 0.06},
-		{310, 60, 0.04},
+		{310, 60, 0.02},
 		{310, 65, 0.05},
 		{315, 65, 0.04},
 		{303, 61, 0.04},
 		{303, 62, 0.05},
 		{308, 62, 0.04},
-		{312, 61, 0.04},
+		{312, 61, 0.03},
 	} {
 		character := NewCharacter(&Party{}, 0, &proto.Player{
 			Name:         "Wand Tester",

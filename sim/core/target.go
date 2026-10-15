@@ -449,7 +449,12 @@ func combatLevelDiff(attacker *Unit, defender *Unit) int32 {
 	return min(defender.Level-attacker.Level, 3)
 }
 
+// The level-based spell miss for the defender's level minus the attacker's: 4% at equal level, 5%, 6% and
+// 17% at +1, +2 and +3 and above, and one point less per level below, down to 0% at -4 and lower.
 func spellMissChance(levelDiff int32) float64 {
+	if levelDiff < 0 {
+		return max(0, 0.04+0.01*float64(levelDiff))
+	}
 	return UnitLevelFloat64(levelDiff, 0.04, 0.05, 0.06, 0.17)
 }
 
