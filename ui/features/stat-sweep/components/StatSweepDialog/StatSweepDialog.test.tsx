@@ -1,7 +1,7 @@
 // Driven through the sidebar action as a user does. The sim and the history store are stubbed; the settings, the store and the
 // run flags are real.
 import { ErrorOutcomeType } from '@generated/proto/api';
-import { Class, Spec, Stat } from '@generated/proto/common';
+import { Class, PseudoStat, Spec, Stat } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import type { StatSweepPoint, StatSweepRecord } from '@sim/cache/stat_sweep_history';
 import { SimHostProvider } from '@sim/context/SimHostContext';
@@ -207,6 +207,31 @@ describe('StatSweepDialog', () => {
 			tmi: { avg: 10.1, stdev: 2, n: 3000 },
 		});
 		expect(saved().cappedAt).toBeUndefined();
+	});
+
+	it('steps a % stat by the % its rating gives, plotting the step as the rating', async () => {
+		const shadowHit = UnitStat.fromPseudoStat(PseudoStat.PseudoStatSchoolHitPercentShadow);
+		host.individualConfig.epPseudoStats = [shadowHit.getPseudoStat()];
+		settings.set({ stats: [shadowHit], range: 20, step: 10 });
+		await openDialog();
+
+		await run();
+
+		expect(simulatePass.mock.calls.map(call => call[0].bonusStats.getUnitStat(shadowHit))).toEqual([0, 1, 2]);
+		expect(saved().points.map(point => [point.offset, point.statValue])).toEqual([
+			[0, 0],
+			[10, 1],
+			[20, 2],
+		]);
+		expect(saved().points.map(point => point.bonus)).toEqual([0, 1, 2]);
+		expect(lastChart().data.datasets[2].data.map(datum => datum.x)).toEqual([0, 10, 20]);
+
+		const { data, options } = lastChart();
+		const title = options.plugins!.tooltip!.callbacks!.title! as unknown as (items: object[]) => string[];
+		const t = vi.spyOn(i18n, 't');
+		title([{ raw: data.datasets[2].data.find(datum => datum.x === 10)! }]);
+		expect(t.mock.calls.find(([key]) => key === 'sidebar.buttons.stat_sweep.tooltip_total')![1]).toMatchObject({ total: '1', added: '+1' });
+		t.mockRestore();
 	});
 
 	it('stores an entered range and step, and the stats picked and removed by key', async () => {

@@ -5,6 +5,7 @@ import i18n from '@i18n/config';
 import type { StatSweepPoint } from '@sim/cache/stat_sweep_history';
 import type { StatSweepMetric } from '@sim/state/sim_store';
 import { distinct } from '@sim/utils/collections';
+import { formatToNumber } from '@sim/utils/format';
 import { BooleanPicker } from '@ui-kit/BooleanPicker';
 import { ToggleGroup } from '@ui-kit/ToggleGroup';
 import type { ChartData, ChartDataset, ChartOptions, Plugin } from 'chart.js';
@@ -126,7 +127,10 @@ function xRange(series: ReadonlyArray<StatSweepSeries>) {
 	return { min: min - pad, max: max + pad };
 }
 
-const signed = (added: number) => (added > 0 ? `+${added}` : String(added));
+// Two decimals at most, since a % stat's total and bonus come from a rating that does not divide evenly.
+const shown = (value: number) => formatToNumber(value, { maximumFractionDigits: 2, useGrouping: false });
+
+const signed = (added: number) => (added > 0 ? `+${shown(added)}` : shown(added));
 
 /** The run's label, with the stat added at which more of the stat stopped changing any metric. */
 export const runLabel = ({ label, cappedAt }: { label: string; cappedAt?: number }) =>
@@ -200,8 +204,8 @@ function options(series: ReadonlyArray<StatSweepSeries>, metric: StatSweepMetric
 					title: items =>
 						distinct(
 							items.map(item => {
-								const { x, point, statLabel } = item.raw as SweepDatum;
-								return t('tooltip_total', { stat: statLabel, total: point.statValue, added: signed(x) });
+								const { point, statLabel } = item.raw as SweepDatum;
+								return t('tooltip_total', { stat: statLabel, total: shown(point.statValue), added: signed(point.bonus) });
 							}),
 						),
 					label: item => {
