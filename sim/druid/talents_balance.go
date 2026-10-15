@@ -39,10 +39,7 @@ func (druid *Druid) registerBalanceTalents() {
 
 // Wrath's cast time and mana cost.
 func (druid *Druid) applyImprovedWrath() {
-	if druid.Talents.ImprovedWrath == 0 {
-		return
-	}
-	spelldata.ParseStatic(&druid.Character, spellData.ImprovedWrath.Rank(druid.Talents.ImprovedWrath))
+	druid.parseTalent(druid.Talents.ImprovedWrath, spellData.ImprovedWrath)
 }
 
 // Periodic damage and healing on the spells its class flags name: Moonfire, Insect Swarm, Rip, Rake,
@@ -53,18 +50,12 @@ func (druid *Druid) applyGenesis() {
 
 // The mana cost of the damaging spells.
 func (druid *Druid) applyMoonglow() {
-	if druid.Talents.Moonglow == 0 {
-		return
-	}
-	spelldata.ParseStatic(&druid.Character, spellData.Moonglow.Rank(druid.Talents.Moonglow))
+	druid.parseTalent(druid.Talents.Moonglow, spellData.Moonglow)
 }
 
 // Moonfire's crit chance, and the damage of its hit and of its dot.
 func (druid *Druid) applyImprovedMoonfire() {
-	if druid.Talents.ImprovedMoonfire == 0 {
-		return
-	}
-	spelldata.ParseStatic(&druid.Character, spellData.ImprovedMoonfire.Rank(druid.Talents.ImprovedMoonfire))
+	druid.parseTalent(druid.Talents.ImprovedMoonfire, spellData.ImprovedMoonfire)
 }
 
 // Nature's Majesty is spell and melee critical strike chance, in every form.
@@ -99,19 +90,13 @@ func (druid *Druid) applyInsectSwarm() {
 
 // The crit damage bonus of the Arcane and Nature spells.
 func (druid *Druid) applyVengeance() {
-	if druid.Talents.Vengeance == 0 {
-		return
-	}
-	spelldata.ParseStatic(&druid.Character, spellData.Vengeance.Rank(druid.Talents.Vengeance))
+	druid.parseTalent(druid.Talents.Vengeance, spellData.Vengeance)
 }
 
 // Starfire's cast time. Its second effect, the chance to stun, is reported as skipped: a stun does
 // nothing to the targets the sim fights.
 func (druid *Druid) applyImprovedStarfire() {
-	if druid.Talents.ImprovedStarfire == 0 {
-		return
-	}
-	spelldata.ParseStatic(&druid.Character, spellData.ImprovedStarfire.Rank(druid.Talents.ImprovedStarfire))
+	druid.parseTalent(druid.Talents.ImprovedStarfire, spellData.ImprovedStarfire)
 }
 
 // More targets for Entangling Roots, which the sim does not cast: the bosses it fights cannot be rooted.
@@ -190,8 +175,5 @@ func (druid *Druid) applyEclipse() {
 
 // Arcane and Nature damage done.
 func (druid *Druid) applyMoonfury() {
-	if druid.Talents.Moonfury == 0 {
-		return
-	}
-	spelldata.ParseStatic(&druid.Character, spellData.Moonfury.Rank(druid.Talents.Moonfury))
+	druid.parseTalent(druid.Talents.Moonfury, spellData.Moonfury)
 }
