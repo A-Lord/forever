@@ -706,20 +706,14 @@ func discoverTraitLadders(db *sql.DB, treeID int) (map[string]traitLadder, map[s
 		}
 		spellOf[d.Name] = d.SpellID
 
-		// A one-rank node usually grants an ability rather than describing a ladder - Hemorrhage and
-		// Water Shield are nodes on a spell the game teaches - and the one row it would yield names
-		// the node's spell, which is not the spell the ability's own ranks are keyed on. A one-rank
-		// node on a passive nothing teaches is the talent itself - Raging Blows, Vanguard - and
-		// yields its one row at the spell's base points.
-		oneRankPassive := false
+		// A one-rank node the game teaches grants an ability rather than describing a ladder. Hemorrhage
+		// is a node on a spell the trainer lists, and the one row it would yield names the node's
+		// spell, which is not the spell the ability's own ranks are keyed on. A one-rank node nothing
+		// teaches is the talent itself, whether or not the spell is passive: Raging Blows, Water
+		// Shield, and Berserk, whose spell is active and is not on a skill line. It yields its one
+		// row at the spell's base points.
+		oneRankUntaught := false
 		if d.MaxRanks <= 1 {
-			passive, err := SpellIsPassive(db, d.SpellID)
-			if err != nil {
-				return nil, nil, nil, err
-			}
-			if !passive {
-				continue
-			}
 			taught, err := taughtBySkillLine(db, d.SpellID)
 			if err != nil {
 				return nil, nil, nil, err
@@ -727,7 +721,7 @@ func discoverTraitLadders(db *sql.DB, treeID int) (map[string]traitLadder, map[s
 			if taught {
 				continue
 			}
-			oneRankPassive = true
+			oneRankUntaught = true
 		}
 
 		effects, err := effectIndicesOf(db, d.SpellID)
@@ -761,7 +755,7 @@ func discoverTraitLadders(db *sql.DB, treeID int) (map[string]traitLadder, map[s
 		}
 
 		if len(points) == 0 {
-			if !oneRankPassive {
+			if !oneRankUntaught {
 				skipped[d.Name] = fmt.Sprintf("the talent tree states no per-rank value for spell %d", d.SpellID)
 				continue
 			}

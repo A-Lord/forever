@@ -565,13 +565,10 @@ var auraTable = map[dbcenums.EffectAuraType]row{
 // A_ADD_FLAT_MODIFIER: the game files' own amount, in the property's units.
 var flatModTable = map[dbcenums.SpellModOp]row{
 	dbcenums.SPELLMOD_COST: func(p *parser, e *Effect, v float64) *attachment {
-		// The game files state rage on a 0-1000 bar, so a -30 here is 3 rage. The caster's bar
-		// stands in for the power type of the spells the modifier reaches, which the effect does
-		// not state.
-		if p.unit.HasRageBar() {
-			v /= 10
-		}
-		return p.modInt("SpellMod_PowerCost_Flat", p.modConfig(e, core.SpellMod_PowerCost_Flat), v)
+		cfg := p.modConfig(e, core.SpellMod_Custom)
+		cfg.ApplyCustom = func(mod *core.SpellMod, spell *core.Spell) { addFlatCost(spell, mod.GetIntValue()) }
+		cfg.RemoveCustom = func(mod *core.SpellMod, spell *core.Spell) { addFlatCost(spell, -mod.GetIntValue()) }
+		return p.modInt("SpellMod_PowerCost_Flat", cfg, v)
 	},
 	dbcenums.SPELLMOD_CASTING_TIME: func(p *parser, e *Effect, v float64) *attachment {
 		return p.modTime("SpellMod_CastTime_Flat", p.modConfig(e, core.SpellMod_CastTime_Flat), v)
@@ -645,6 +642,9 @@ var pctModTable = map[dbcenums.SpellModOp]row{
 	},
 	dbcenums.SPELLMOD_CHANCE_OF_SUCCESS: func(p *parser, e *Effect, v float64) *attachment {
 		return p.modFloat("SpellMod_ProcChance_Pct", p.modConfig(e, core.SpellMod_ProcChance_Pct), v)
+	},
+	dbcenums.SPELLMOD_PROC_COOLDOWN: func(p *parser, e *Effect, v float64) *attachment {
+		return p.modFloat("SpellMod_ProcCooldown_Pct", p.modConfig(e, core.SpellMod_ProcCooldown_Pct), v)
 	},
 	dbcenums.SPELLMOD_GLOBAL_COOLDOWN: func(p *parser, e *Effect, v float64) *attachment {
 		return p.modFloat("SpellMod_GlobalCooldown_Pct", p.modConfig(e, core.SpellMod_GlobalCooldown_Pct), v)
@@ -782,6 +782,19 @@ func (p *parser) namesSpell(e *Effect) func(*core.Spell) bool {
 	return func(spell *core.Spell) bool {
 		return spell.MatchesFlags(flags)
 	}
+}
+
+// A flat cost modifier on one spell, in the units of the power that spell costs. The effect states no
+// power type and the game files state rage on a 0-1000 bar, so a -30 is 3 rage off a rage cost and 30
+// off any other (Shredding Attacks takes 18 Energy off Shred and 30 off Lacerate's 150 Rage).
+func addFlatCost(spell *core.Spell, v int32) {
+	if spell.Cost == nil {
+		return
+	}
+	if _, ok := spell.Cost.ResourceCostImpl.(*core.RageCost); ok {
+		v /= 10
+	}
+	spell.Cost.FlatModifier += v
 }
 
 // WeaponScope, narrowed to the hand OnHand names for a row bound to a weapon. Answers false for a row

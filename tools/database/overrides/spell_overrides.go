@@ -417,6 +417,62 @@ var Spells = []Override{
 		Reason:  "Thunder Clap Rank 6: Rank 1's measured share",
 		Source:  "combat log, Thunder Clap Rank 1, 2026-10-01",
 	},
+	{
+		SpellID: 16864,
+		Field:   PPM,
+		Value:   2,
+		Reason:  "Omen of Clarity: 2.0 procs per minute, measured in combat logs; the game files state none",
+		Source:  "issue #225",
+	},
+	{
+		SpellID: 9896,
+		Field:   APCoefPeriodic,
+		Value:   0.01,
+		Reason:  "Rip: 0.06 attack power per combo point over six ticks, capped at four points; higher-rank verification remains open",
+		Source:  "Rip AP Scaling Testing, 2026-09-26, https://docs.google.com/spreadsheets/d/1fQiaAQzz1r_wS-2pD5e1Y6wZLxajru2R8GK5Uw1Lo60",
+	},
+	{
+		SpellID: 1822,
+		Field:   APCoefPeriodic,
+		Value:   0.055,
+		Reason:  "Rake Rank 1: periodic attack power share fitted to 136, 162, 217 and 237 AP with reported damage modifiers",
+		Source:  "Aus and Chalkie, Rake and swipe AP scaling tests, 2026-10-01; PR #149 evidence notes",
+	},
+	{
+		SpellID: 1823,
+		Field:   APCoefPeriodic,
+		Value:   0.055,
+		Reason:  "Rake Rank 2: Rank 1's measured periodic share; TODO: verify at this rank",
+		Source:  "Aus and Chalkie, Rake and swipe AP scaling tests, 2026-10-01; PR #149 evidence notes",
+	},
+	{
+		SpellID: 1824,
+		Field:   APCoefPeriodic,
+		Value:   0.055,
+		Reason:  "Rake Rank 3: Rank 1's measured periodic share; TODO: verify at this rank",
+		Source:  "Aus and Chalkie, Rake and swipe AP scaling tests, 2026-10-01; PR #149 evidence notes",
+	},
+	{
+		SpellID: 9904,
+		Field:   APCoefPeriodic,
+		Value:   0.055,
+		Reason:  "Rake Rank 4: Rank 1's measured periodic share; TODO: verify at this rank",
+		Source:  "Aus and Chalkie, Rake and swipe AP scaling tests, 2026-10-01; PR #149 evidence notes",
+	},
+	{
+		SpellID: 9908,
+		Field:   APCoefDirect,
+		Value:   0.03,
+		Reason:  "Swipe Rank 5: 3% of attack power on each hit; the game files state none",
+		Source:  "Aus and Chalkie, Rake and swipe AP scaling tests, 2026-10-01; PR #149 evidence notes",
+	},
+	{
+		SpellID: 22829,
+		Field:   APCoefDirect,
+		Value:   0.03,
+		Reason:  "Placeholder: Ferocious Bite attack power per combo point; the game files state none",
+		Source:  "classic-carryover",
+	},
 
 	// Revenge's Attack Power shares, read off how its non-crit hits move with Attack Power inside each
 	// log, with Defensive Stance's 10% and Improved Revenge taken out. Only Ranks 1 and 2 were measured;

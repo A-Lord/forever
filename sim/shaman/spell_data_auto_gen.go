@@ -17,6 +17,7 @@ import (
 //   Maelstrom Weapon: effect 1, 2 of spell 408498 has no rank curve and is held at its base points
 //   Mental Dexterity: effect 1 of spell 415140 has no rank curve and is held at its base points
 //   Shamanistic Focus: effect 0 of spell 1223030 has no rank curve and is held at its base points
+//   Water Shield: effect 0, 1 of spell 408510 has no rank curve and is held at its base points
 
 type generatedSpellData struct {
 	AncestralFortitude             spelldata.Ladder
@@ -150,6 +151,8 @@ type generatedSpellData struct {
 	TwoHandedAxesAndMaces          spelldata.Ladder
 	TwoHandedAxesAndMacesTriggered spelldata.Ladder
 	WaterBreathing                 spelldata.Ladder
+	WaterShield                    spelldata.Ladder
+	WaterShieldTriggered           spelldata.Ladder
 	WaterWalking                   spelldata.Ladder
 	WeaponMastery                  spelldata.Ladder
 	WindfuryTotem                  spelldata.Ladder
@@ -292,6 +295,8 @@ var spellData = generatedSpellData{
 	TwoHandedAxesAndMaces:          spelldata.Ranked(16269),
 	TwoHandedAxesAndMacesTriggered: spelldata.Ranked(197, 199),
 	WaterBreathing:                 spelldata.Ranked(131),
+	WaterShield:                    spelldata.Talent(408510, 1),
+	WaterShieldTriggered:           spelldata.Ranked(408511),
 	WaterWalking:                   spelldata.Ranked(546),
 	WeaponMastery:                  spelldata.Ranked(29082, 29084, 29086, 29087, 29088),
 	WindfuryTotem:                  spelldata.Ranked(8512, 10613, 10614),

@@ -1588,12 +1588,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		249441, // Talons of Wrath
-		[
-			"Causes Wrath to have a 50% chance to restore 35 Mana.", // 1302521 - https://www.wowhead.com/forever/spell=1302521
-		]
-	],
-	[
 		249443, // Totem of Ancestral Protection
 		[
 			"Reduces the cooldown of Grounding Totem by 1 sec.", // 1249011 - https://www.wowhead.com/forever/spell=1249011

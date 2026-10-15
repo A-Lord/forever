@@ -1481,21 +1481,6 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
-	// Causes Wrath to have a 50% chance to restore 35 Mana.
-	// https://www.wowhead.com/forever/spell=1302521
-	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
-	//	Callback:           core.CallbackEmpty,
-	//	ProcMask:           core.ProcMaskUnknown,
-	//	Outcome:            core.OutcomeEmpty,
-	//	RequireDamageDealt: false
-	// }, []shared.ItemVariant{
-	//	{ItemID: 249441, ItemName: "Talons of Wrath"},
-	// })
-
-	// TODO: Manual implementation required
-	//       This can be ignored if the effect has already been implemented.
-	//       With next db run the item will be removed if implemented.
-	//
 	// Reduces the cooldown of Grounding Totem by 1 sec.
 	// https://www.wowhead.com/forever/spell=1249011
 	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
