@@ -46,6 +46,51 @@
 		},
 		{
 			"action": {
+				"condition": {
+					"variableRef": {
+						"name": "Clearcasting into Shred"
+					}
+				},
+				"castSpell": {
+					"spellId": {
+						"spellId": 9830
+					}
+				}
+			}
+		},
+		{
+			"action": {
+				"condition": {
+					"and": {
+						"vals": [
+							{
+								"variableRef": {
+									"name": "Clearcasting into Shred"
+								}
+							},
+							{
+								"not": {
+									"val": {
+										"spellCanCast": {
+											"spellId": {
+												"spellId": 9830
+											}
+										}
+									}
+								}
+							}
+						]
+					}
+				},
+				"castSpell": {
+					"spellId": {
+						"spellId": 9850
+					}
+				}
+			}
+		},
+		{
+			"action": {
 				"groupReference": {
 					"groupName": "Bleeds"
 				}
@@ -1198,6 +1243,29 @@
 							"spellCanCast": {
 								"spellId": {
 									"spellId": 9907
+								}
+							}
+						}
+					]
+				}
+			}
+		},
+		{
+			"name": "Clearcasting into Shred",
+			"value": {
+				"and": {
+					"vals": [
+						{
+							"auraIsActive": {
+								"auraId": {
+									"spellId": 768
+								}
+							}
+						},
+						{
+							"auraIsActive": {
+								"auraId": {
+									"spellId": 16870
 								}
 							}
 						}
