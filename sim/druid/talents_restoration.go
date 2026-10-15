@@ -3,7 +3,7 @@ package druid
 func (druid *Druid) registerRestorationTalents() {
 	// Tier 1
 	druid.applyNaturesFocus()
-	druid.applyFuror()
+	// Furor is read on entering Cat Form and the bear forms (forms.go).
 
 	// Tier 2
 	druid.applyNaturalist()
@@ -55,10 +55,6 @@ func (druid *Druid) applyNaturesFocus() {
 		return
 	}
 	druid.PseudoStats.PushbackChance -= spellData.NaturesFocus.FractionAt(druid.Talents.NaturesFocus)
-}
-
-func (druid *Druid) applyFuror() {
-	// Entering Cat Form and the bear forms reads the rank (forms.go). There is no aura to attach.
 }
 
 func (druid *Druid) applyReflection() {

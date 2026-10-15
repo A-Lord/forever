@@ -6,8 +6,9 @@ import (
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-// The feral tree in its own order. Shifting Power and Primal Bite are spells whose cast condition is
-// the talent; registerFeralKit registers them.
+// The feral tree in its own order. Feral Charge, Shifting Power and Primal Bite are spells whose cast
+// condition is the talent; registerFeralKit registers them. AddPartyBuffs publishes Leader of the
+// Pack, and the melee specials read Rend and Tear when they deal damage.
 func (druid *Druid) registerFeralCombatTalents() {
 	druid.applyFerocity()
 	druid.applyHeartOfTheWild()
@@ -17,15 +18,12 @@ func (druid *Druid) registerFeralCombatTalents() {
 	druid.applyThickHide()
 	druid.applyShreddingAttacks()
 	druid.applySavageFury()
-	druid.applyFeralCharge()
 	druid.applySharpenedClaws()
 	druid.applyPredatoryStrikes()
 	druid.applyBloodFrenzy()
 	druid.applyImprovedShiftingPower()
-	druid.applyLeaderOfThePack()
 	druid.applyNaturalInstinct()
 	druid.applyNaturalReaction()
-	druid.applyRendAndTear()
 	druid.applyBerserk()
 }
 
@@ -145,16 +143,8 @@ func (druid *Druid) applyHeartOfTheWild() {
 	}
 }
 
-func (druid *Druid) applyLeaderOfThePack() {
-	// 24932 is the party crit aura. AddPartyBuffs publishes it while the druid is in cat or bear.
-}
-
 func (druid *Druid) applyNaturalInstinct() {
 	druid.parseTalent(druid.Talents.NaturalInstinct, spellData.NaturalInstinct)
-}
-
-func (druid *Druid) applyRendAndTear() {
-	// Melee specials read the talent when they deal damage.
 }
 
 func (druid *Druid) applyBloodFrenzy() {
@@ -203,10 +193,6 @@ func (druid *Druid) applyNaturalReaction() {
 	})
 	trigger.Outcome = core.OutcomeDodge
 	druid.MakeProcTriggerAura(trigger)
-}
-
-func (druid *Druid) applyFeralCharge() {
-	// The spell's cast condition is the talent.
 }
 
 func (druid *Druid) applyBerserk() {

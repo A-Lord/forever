@@ -125,11 +125,6 @@ func (druid *Druid) RegisterCatFormAura() {
 		druid.SetFeralCombat(false)
 		druid.restoreHumanoidBody()
 	})
-	druid.CatFormAura.ApplyOnReset(func(_ *core.Aura, _ *core.Simulation) {
-		druid.furorStoredValid = false
-		druid.furorStoredEnergy = 0
-		druid.furorLeftCatAt = 0
-	})
 }
 
 // Bear Form (Passive2) 21178 is the bear forms' threat: A_MOD_THREAT on every school, 50 in the hotfixed
