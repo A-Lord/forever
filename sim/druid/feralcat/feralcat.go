@@ -76,9 +76,11 @@ func (cat *FeralDruid) AddPartyBuffs(partyBuffs *proto.PartyBuffs) {
 func (cat *FeralDruid) Initialize() {
 	if cat.prepullClearcasting {
 		// Omen of Clarity procs off any druid spell, so a cat can fish for it out of combat; the
-		// shift back to Cat Form takes a GCD before the pull.
+		// shift back to Cat Form takes a GCD before the pull. The proc started Omen of Clarity's ICD
+		// then at the latest.
 		cat.RegisterPrepullAction(-core.GCDDefault, func(sim *core.Simulation) {
 			cat.ClearcastingAura.Activate(sim)
+			cat.OmenOfClarityAura.Icd.Use(sim)
 		})
 	}
 	cat.Druid.Initialize()
