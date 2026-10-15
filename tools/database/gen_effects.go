@@ -602,7 +602,7 @@ var literalRates = []literalRate{
 // The origin a rate's Source names, or "" for one measured on Forever, which needs no notice.
 func rateOrigin(source string) string {
 	switch {
-	case strings.HasPrefix(source, "wcl:"), strings.HasPrefix(source, "issue #"):
+	case strings.HasPrefix(source, "wcl:"), strings.HasPrefix(source, "issue #"), strings.HasPrefix(source, "combat log, "):
 		return ""
 	case source == "vanilla-carryover":
 		return "vanilla"

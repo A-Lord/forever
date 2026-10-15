@@ -95,7 +95,7 @@ type Override struct {
 	Field   Field
 	Value   float64
 	Reason  string
-	Source  string // "tbc-carryover", "tooltip", "wcl:<report>/<fight>", "issue #N"
+	Source  string // "tbc-carryover", "tooltip", "wcl:<report>/<fight>", "issue #N", "combat log, <spell and rank>, <date>"
 }
 
 // Tooltip-only area bonuses ("doubled in X areas"). Groups are AreaGroup ids; any counts.
@@ -154,8 +154,8 @@ var AreaBonuses = []AreaBonus{
 // The procs whose rate the game files keep outside the spell data and that belong to the spell
 // rather than to one weapon: a chance-on-hit weapon's rate is its own and lives in WeaponProcs. The
 // ProcChance column reads the 100 or 101 sentinel, which the store would otherwise take for "fires
-// on every hit", or the spell has no proc row at all. Each rate is a carry-over, as its Source says;
-// none has been measured on this server.
+// on every hit", or the spell has no proc row at all. Each row's Source says where its number came
+// from.
 var Spells = []Override{
 	{
 		SpellID: 23686,
@@ -236,6 +236,91 @@ var Spells = []Override{
 		Value:   10000,
 		Reason:  "Shadow Oil: no proc on 425 landed hits within 10 s of the last one, 80 on 633 after; procs at least 10.26 s apart, none on hits from 9.98 s",
 		Source:  "wcl:Y4mTwRvPtqAn36CB/1-9, 2026-10-07",
+	},
+
+	// Seal of Light and Judgement of Light, measured in game at level 30 on Rank 1 across two combat
+	// logs, one with a 1.6 s weapon and one with a 3.7 s one. The seal healed on 463 of 1101 and 509
+	// of 554 landed melee hits while it was up, which only a per-minute rate fits, and the judgement
+	// on 825 of the 1693 landed while it was up, 534 of 1090 at 1.6 s and 256 of 537 at 3.7 s, which
+	// is a flat chance. Neither fired on a dodge, a parry or a miss. The other ranks carry Rank 1's
+	// numbers until a log at their level says otherwise, and Judgement of Wisdom carries Judgement of
+	// Light's chance until a log measures it.
+	{
+		SpellID: 20165,
+		Field:   PPM,
+		Value:   15,
+		Reason:  "Seal of Light Rank 1: 463 of 1101 landed hits at 1.6 s and 509 of 554 at 3.7 s; 15 per minute fits both, 14 fits neither and 16 fails the 3.7 s log",
+		Source:  "combat log, Seal of Light Rank 1, 2026-10-14 and 2026-10-15",
+	},
+	{
+		SpellID: 20347,
+		Field:   PPM,
+		Value:   15, // TODO: Measure Seal of Light Rank 2 in game.
+		Reason:  "Seal of Light Rank 2: Rank 1's measured rate",
+		Source:  "combat log, Seal of Light Rank 1, 2026-10-14 and 2026-10-15",
+	},
+	{
+		SpellID: 20348,
+		Field:   PPM,
+		Value:   15, // TODO: Measure Seal of Light Rank 3 in game.
+		Reason:  "Seal of Light Rank 3: Rank 1's measured rate",
+		Source:  "combat log, Seal of Light Rank 1, 2026-10-14 and 2026-10-15",
+	},
+	{
+		SpellID: 20349,
+		Field:   PPM,
+		Value:   15, // TODO: Measure Seal of Light Rank 4 in game.
+		Reason:  "Seal of Light Rank 4: Rank 1's measured rate",
+		Source:  "combat log, Seal of Light Rank 1, 2026-10-14 and 2026-10-15",
+	},
+	{
+		SpellID: 20185,
+		Field:   ProcChancePct,
+		Value:   50,
+		Reason:  "Judgement of Light Rank 1: 825 of 1693 landed hits, 534 of 1090 at 1.6 s and 256 of 537 at 3.7 s",
+		Source:  "combat log, Judgement of Light Rank 1, 2026-10-14 and 2026-10-15",
+	},
+	{
+		SpellID: 20344,
+		Field:   ProcChancePct,
+		Value:   50, // TODO: Measure Judgement of Light Rank 2 in game.
+		Reason:  "Judgement of Light Rank 2: Rank 1's measured chance",
+		Source:  "combat log, Judgement of Light Rank 1, 2026-10-14 and 2026-10-15",
+	},
+	{
+		SpellID: 20345,
+		Field:   ProcChancePct,
+		Value:   50, // TODO: Measure Judgement of Light Rank 3 in game.
+		Reason:  "Judgement of Light Rank 3: Rank 1's measured chance",
+		Source:  "combat log, Judgement of Light Rank 1, 2026-10-14 and 2026-10-15",
+	},
+	{
+		SpellID: 20346,
+		Field:   ProcChancePct,
+		Value:   50, // TODO: Measure Judgement of Light Rank 4 in game.
+		Reason:  "Judgement of Light Rank 4: Rank 1's measured chance",
+		Source:  "combat log, Judgement of Light Rank 1, 2026-10-14 and 2026-10-15",
+	},
+	{
+		SpellID: 20186,
+		Field:   ProcChancePct,
+		Value:   50, // TODO: Measure Judgement of Wisdom Rank 1 in game.
+		Reason:  "Judgement of Wisdom Rank 1: Judgement of Light Rank 1's measured chance",
+		Source:  "estimate",
+	},
+	{
+		SpellID: 20354,
+		Field:   ProcChancePct,
+		Value:   50, // TODO: Measure Judgement of Wisdom Rank 2 in game.
+		Reason:  "Judgement of Wisdom Rank 2: Judgement of Light Rank 1's measured chance",
+		Source:  "estimate",
+	},
+	{
+		SpellID: 20355,
+		Field:   ProcChancePct,
+		Value:   50, // TODO: Measure Judgement of Wisdom Rank 3 in game.
+		Reason:  "Judgement of Wisdom Rank 3: Judgement of Light Rank 1's measured chance",
+		Source:  "estimate",
 	},
 
 	// Attack Power shares measured in game at levels 13 and 14, against the sheet's Attack Power from
