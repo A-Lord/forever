@@ -74,8 +74,7 @@ type Warlock struct {
 	Voidwalker *WarlockPet
 
 	// Armors
-	DemonArmor      *core.Aura
-	demonArmorArmor float64 // the armor Demon Armor adds while it is the warlock's armor, which demons do not inherit
+	DemonArmor *core.Aura
 
 	SoulShardsAura *core.Aura      // the Soul Shards left this iteration, as its stacks
 	reagentWaivers []reagentWaiver // the effects that lift the reagents of some spells while up
