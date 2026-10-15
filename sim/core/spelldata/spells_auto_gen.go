@@ -17621,6 +17621,10 @@ var generatedSpells = []Spell{
 			{ID: 698892, SpellID: 20869, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 75, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		},
 		Powers: []Power{{Cost: 80}}},
+	{ID: 20871, Name: "Rockbiter Weapon Proc", Rank: "Rank 7", School: 1, Attr: [17]uint32{0: 0x40180, 15: 0x2000}, SpellLevel: 54, BaseLevel: 54, MaxLevel: 62, MaxRange: 100, ClassFlags: core.ClassFlags{Family: 11}, Labels: []int16{24},
+		Effects: []Effect{
+			{ID: 698894, SpellID: 20871, Type: dbcenums.E_SCRIPT_EFFECT, BasePoints: 72, BaseLevel: 54, MaxLevel: 62, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+		}},
 	{ID: 20875, Name: "Rumsey Rum", School: 1, Attr: [17]uint32{15: 0x2000}, SpellLevel: 1, CastTimeMs: 1000, DurationMs: 900000, DefenseType: 1, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 699839, SpellID: 20875, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_STAT, BasePoints: 10, PvpMult: 1, Misc: 2, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},

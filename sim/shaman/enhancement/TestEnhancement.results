@@ -1012,7 +1012,7 @@ dps_results: {
  key: "TestEnhancement-Settings-Orc-prebis-Rockbiter-default-FullBuffs-0.0yards-LongMultiTarget"
  value: {
   dps: 3031.65978
-  tps: 3255.05911
+  tps: 3383.13268
   dtps: 11.32478
  }
 }
@@ -1020,7 +1020,7 @@ dps_results: {
  key: "TestEnhancement-Settings-Orc-prebis-Rockbiter-default-FullBuffs-0.0yards-LongSingleTarget"
  value: {
   dps: 713.10823
-  tps: 674.89734
+  tps: 802.41678
   dtps: 11.4368
  }
 }
@@ -1028,7 +1028,7 @@ dps_results: {
  key: "TestEnhancement-Settings-Orc-prebis-Rockbiter-default-FullBuffs-0.0yards-ShortSingleTarget"
  value: {
   dps: 781.20911
-  tps: 738.24668
+  tps: 879.75794
   dtps: 17.05997
  }
 }
@@ -1036,21 +1036,21 @@ dps_results: {
  key: "TestEnhancement-Settings-Orc-prebis-Rockbiter-default-NoBuffs-0.0yards-LongMultiTarget"
  value: {
   dps: 617.61136
-  tps: 804.12999
+  tps: 952.26113
  }
 }
 dps_results: {
  key: "TestEnhancement-Settings-Orc-prebis-Rockbiter-default-NoBuffs-0.0yards-LongSingleTarget"
  value: {
   dps: 263.12595
-  tps: 342.58999
+  tps: 490.32533
  }
 }
 dps_results: {
  key: "TestEnhancement-Settings-Orc-prebis-Rockbiter-default-NoBuffs-0.0yards-ShortSingleTarget"
  value: {
   dps: 336.62694
-  tps: 438.28828
+  tps: 600.0748
  }
 }
 dps_results: {
@@ -1192,7 +1192,7 @@ dps_results: {
  key: "TestEnhancement-Settings-Troll-prebis-Rockbiter-default-FullBuffs-0.0yards-LongMultiTarget"
  value: {
   dps: 3039.01117
-  tps: 3271.51273
+  tps: 3400.55604
   dtps: 11.40284
  }
 }
@@ -1200,7 +1200,7 @@ dps_results: {
  key: "TestEnhancement-Settings-Troll-prebis-Rockbiter-default-FullBuffs-0.0yards-LongSingleTarget"
  value: {
   dps: 708.50554
-  tps: 670.82142
+  tps: 799.5184
   dtps: 11.05483
  }
 }
@@ -1208,7 +1208,7 @@ dps_results: {
  key: "TestEnhancement-Settings-Troll-prebis-Rockbiter-default-FullBuffs-0.0yards-ShortSingleTarget"
  value: {
   dps: 768.09386
-  tps: 726.07389
+  tps: 869.03974
   dtps: 16.05436
  }
 }
@@ -1216,21 +1216,21 @@ dps_results: {
  key: "TestEnhancement-Settings-Troll-prebis-Rockbiter-default-NoBuffs-0.0yards-LongMultiTarget"
  value: {
   dps: 611.51481
-  tps: 796.19228
+  tps: 944.32342
  }
 }
 dps_results: {
  key: "TestEnhancement-Settings-Troll-prebis-Rockbiter-default-NoBuffs-0.0yards-LongSingleTarget"
  value: {
   dps: 255.39609
-  tps: 332.52571
+  tps: 480.45895
  }
 }
 dps_results: {
  key: "TestEnhancement-Settings-Troll-prebis-Rockbiter-default-NoBuffs-0.0yards-ShortSingleTarget"
  value: {
   dps: 324.61013
-  tps: 422.64238
+  tps: 585.02262
  }
 }
 dps_results: {
