@@ -182,6 +182,33 @@ func (druid *Druid) registerFormAura(form *spelldata.Spell, starting bool) *core
 	}))
 }
 
+// A change of form keeps the health percentage while the forms' health and Stamina move the maximum.
+// It wraps the forms' handlers whole, so it runs in Initialize, after the talents have attached theirs.
+func (druid *Druid) keepHealthPercentAcrossForms() {
+	for _, aura := range []*core.Aura{druid.CatFormAura, druid.BearFormAura, druid.DireBearFormAura, druid.MoonkinFormAura} {
+		if aura == nil {
+			continue
+		}
+		onGain, onExpire := aura.OnGain, aura.OnExpire
+		aura.OnGain = func(aura *core.Aura, sim *core.Simulation) {
+			percent := druid.CurrentHealthPercent()
+			onGain(aura, sim)
+			druid.keepHealthPercent(percent)
+		}
+		aura.OnExpire = func(aura *core.Aura, sim *core.Simulation) {
+			percent := druid.CurrentHealthPercent()
+			onExpire(aura, sim)
+			druid.keepHealthPercent(percent)
+		}
+	}
+}
+
+func (druid *Druid) keepHealthPercent(percent float64) {
+	if !druid.Env.MeasuringStats {
+		druid.SetCurrentHealthPercent(percent)
+	}
+}
+
 func (druid *Druid) restoreHumanoidBody() {
 	if druid.Env != nil && !druid.Env.MeasuringStats && druid.AutoAttacks.MH() != nil {
 		druid.AutoAttacks.SetMH(druid.WeaponFromMainHand())

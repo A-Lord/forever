@@ -125,6 +125,7 @@ func (druid *Druid) RegisterSpell(config core.SpellConfig) *DruidSpell {
 
 func (druid *Druid) Initialize() {
 	druid.setForm(druid.StartingForm)
+	druid.keepHealthPercentAcrossForms()
 	druid.AutoUnshift = druid.ClearForm
 	druid.registerProwlBreakingCasts()
 
