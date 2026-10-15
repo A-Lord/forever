@@ -39,16 +39,21 @@ type petModel struct {
 // A demon's own health, armor and weapon are fixed shares of the creature values for its level in the game
 // files (core.CreatureHealthMaxLevel, core.CreatureArmorMaxLevel, core.CreatureAutoAttackDpsMaxLevel), each
 // demon with its own shares.
-// TODO: The shares are read at levels 20 and 30 (the Imp's at 20 only), not yet at 60.
+// TODO: The shares are read at levels 20 and 30 (the Voidwalker's at 30 only), not yet at 60.
 //
 // The Sayaad's average swing before attack power: 0.698 of the creature dps at 2.0 s. Its sheet's damage range
 // spans 22.8% either side of the average at level 20 and 20.7% at 30, so 21.5%.
 const sayaadSwingAverage = 0.698 * core.CreatureAutoAttackDpsMaxLevel * 2
 
+// The Voidwalker's average swing before attack power and before its melee is halved: 0.494 of the creature dps
+// at 2.0 s, spanning 26.4% either side. The best fit to three level 30 sheets at attack power 96, 108 and 116
+// (16-22, 17-23 and 17-24).
+const voidwalkerSwingAverage = 0.494 * core.CreatureAutoAttackDpsMaxLevel * 2
+
 // The sheet gives no crit from Agility or Intellect, and models regen as MP5 and Intellect alone. A demon has
-// no crit of its own: its crit is the warlock's (see petStatInheritance). The Imp's and Sayaad's own health
-// and armor are shares of the creature values and the Sayaad's attack power is fixed, with nothing from
-// Stamina or Strength; the Voidwalker and Felhunter have no armor of their own.
+// no crit of its own: its crit is the warlock's (see petStatInheritance). The Imp's, Voidwalker's and Sayaad's
+// own health and armor are shares of the creature values and the Voidwalker's and Sayaad's attack power is
+// fixed, with nothing from Stamina or Strength; the Felhunter has no armor of its own.
 var petModels = map[proto.WarlockOptions_Summon]petModel{
 	proto.WarlockOptions_Imp: {
 		baseStats: stats.Stats{
@@ -70,14 +75,19 @@ var petModels = map[proto.WarlockOptions_Summon]petModel{
 		damageMod:        1,
 	},
 	proto.WarlockOptions_Voidwalker: {
-		baseStats:        meleeDemonStats(28),
-		healthPerStamina: 14,
+		baseStats: meleeDemonStats(1.400 * core.CreatureHealthMaxLevel).Add(stats.Stats{
+			stats.Armor: 1.352 * core.CreatureArmorMaxLevel,
+			// TODO: 3 × level + 6 as the Sayaad's, read at level 30 only.
+			stats.AttackPower: 186,
+		}),
+		healthPerStamina: 0,
 		manaPerIntellect: 11.5,
-		apPerStrength:    2,
-		meleeMin:         31,
-		meleeMax:         46,
+		apPerStrength:    0,
+		meleeMin:         voidwalkerSwingAverage * (1 - 0.264),
+		meleeMax:         voidwalkerSwingAverage * (1 + 0.264),
 		swingSpeed:       2,
-		damageMod:        1,
+		// Its melee is halved: at level 30, +20 attack power moved its sheet's damage by half of 20 × 2 / 14.
+		damageMod: 0.5,
 	},
 	proto.WarlockOptions_Succubus: {
 		baseStats: meleeDemonStats(0.699 * core.CreatureHealthMaxLevel).Add(stats.Stats{
@@ -111,7 +121,8 @@ var petModels = map[proto.WarlockOptions_Summon]petModel{
 }
 
 // The Voidwalker, Sayaad and Felhunter share their level 60 stats and base mana, each with its own base health.
-// The Sayaad's Stamina and Strength convert to nothing (its health and attack power are set directly).
+// The Voidwalker's and Sayaad's Stamina and Strength convert to nothing (their health and attack power are set
+// directly).
 func meleeDemonStats(baseHealth float64) stats.Stats {
 	return stats.Stats{
 		stats.Strength:  129,
