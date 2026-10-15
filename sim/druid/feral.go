@@ -103,9 +103,7 @@ func (druid *Druid) registerProwlBreakingCasts() {
 		}
 		row := spelldata.Find(spell.SpellID)
 		if spell.ItemID != 0 {
-			if effects := core.GetConsumableByID(spell.ItemID).OnUseEffects(); len(effects) > 0 {
-				row = spelldata.Find(effects[0].GetBuffId())
-			}
+			row = itemOnUseRow(spell.ItemID)
 		}
 		if row.IsPassive() || row.HasAttr(dbcenums.ATTR_INDEX_EX_1, dbcenums.ATTR_EX_1_NO_STEALTH_BREAK) || spellData.Prowl.Contains(spell) || spell.SpellID == shadowmeldSpellID {
 			return
@@ -116,6 +114,22 @@ func (druid *Druid) registerProwlBreakingCasts() {
 			apply(sim, target, spell)
 		}
 	})
+}
+
+// The row of the spell an item casts when used: a consumable's first on-use, or a worn item's, such
+// as a trinket.
+func itemOnUseRow(itemID int32) *spelldata.Spell {
+	if effects := core.GetConsumableByID(itemID).OnUseEffects(); len(effects) > 0 {
+		return spelldata.Find(effects[0].GetBuffId())
+	}
+	if item := core.GetItemByID(itemID); item != nil {
+		for _, effect := range item.ItemEffects {
+			if effect.GetOnUse() != nil {
+				return spelldata.Find(effect.GetBuffId())
+			}
+		}
+	}
+	return spelldata.Nil
 }
 
 // The number of targets Primal Bite strikes under Berserk, the primary included:
