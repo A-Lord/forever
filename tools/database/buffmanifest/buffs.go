@@ -158,7 +158,7 @@ var Raid = []BuffSpec{
 		Category:   "LeaderOfThePack",
 		SingleAura: true,
 		Stats: []proto.Stat{
-			proto.Stat_StatCritRating,
+			proto.Stat_StatAttackPower,
 		},
 	},
 	{
@@ -168,7 +168,7 @@ var Raid = []BuffSpec{
 		Category:   "MoonkinAura",
 		SingleAura: true,
 		Stats: []proto.Stat{
-			proto.Stat_StatCritRating,
+			proto.Stat_StatSpellDamage,
 		},
 	},
 }

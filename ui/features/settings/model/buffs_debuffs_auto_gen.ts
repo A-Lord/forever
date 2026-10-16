@@ -483,12 +483,12 @@ export const GENERATED_RAID_BUFFS_CONFIG: RenderableStatOptions[] = [
 	},
 	{
 		config: LeaderOfThePack,
-		stats: [Stat.StatCritRating],
+		stats: [Stat.StatAttackPower],
 		ownerClass: Class.ClassDruid,
 	},
 	{
 		config: MoonkinAura,
-		stats: [Stat.StatCritRating],
+		stats: [Stat.StatSpellDamage],
 		ownerClass: Class.ClassDruid,
 	},
 ];
