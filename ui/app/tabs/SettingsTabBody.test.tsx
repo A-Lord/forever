@@ -45,7 +45,8 @@ const SPEC = {
 	autoRotation: () => APLRotation.create(),
 	presets: { epWeights: [] },
 	displayStats: [UnitStat.fromStat(Stat.StatStrength)],
-	epStats: [Stat.StatAttackPower],
+	// Stamina keeps Blood Pact on offer, so the Party Buffs section renders between the raid buffs and the debuffs.
+	epStats: [Stat.StatAttackPower, Stat.StatStamina],
 	includeBuffDebuffInputs: [] as unknown[],
 	excludeBuffDebuffInputs: [] as unknown[],
 	otherInputs: { inputs: [] },
