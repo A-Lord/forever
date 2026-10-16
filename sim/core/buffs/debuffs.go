@@ -35,6 +35,11 @@ func NewSpellDataCurseOfElementsAuraFor(target *core.Unit, warlock *core.Unit) *
 	return newCasterDebuff(target, curseOfElementsMeta, warlock, CurseOfElementsCategory, 0)
 }
 
+// A warlock's own Curse of Weakness, one per warlock, bidding in the curse's category.
+func NewSpellDataCurseOfWeaknessAuraFor(target *core.Unit, warlock *core.Unit) *core.Aura {
+	return newCasterDebuff(target, curseOfWeaknessMeta, warlock, CurseOfWeaknessCategory, 0)
+}
+
 // A warlock's own Curse of Recklessness, one per warlock, bidding in the curse's category.
 func NewSpellDataCurseOfRecklessnessAuraFor(target *core.Unit, warlock *core.Unit) *core.Aura {
 	return newCasterDebuff(target, curseOfRecklessnessMeta, warlock, CurseOfRecklessnessCategory, 0)
