@@ -157,7 +157,7 @@ func spellCrit(spell *spelldata.Spell) map[string]float64 {
 }
 
 func fiveComboPointArmor(spell *spelldata.Spell) map[string]float64 {
-	return map[string]float64{"stat Armor": float64(auraEffect(spell, dbcenums.A_MOD_RESISTANCE).PointsPerResource) * 5}
+	return map[string]float64{"stat Armor": float64(auraEffect(spell, dbcenums.A_MOD_ARMOR_NO_MODS).PointsPerResource) * 5}
 }
 
 func flatArmor(spell *spelldata.Spell) map[string]float64 {
