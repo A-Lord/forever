@@ -30,7 +30,7 @@ func TestArcane(t *testing.T) {
 				},
 			}},
 			GearSet:  core.GetGearSet("../../ui/specs/mage/dps/gear_sets", "p1Arcane"),
-			Talents:  "0501225003100301531--255500002",
+			Talents:  "0502205003100301531--055500032",
 			Rotation: core.GetAplRotation("../../ui/specs/mage/dps/apls", "default"),
 			ItemFilter: core.ItemFilter{
 				WeaponTypes: []proto.WeaponType{

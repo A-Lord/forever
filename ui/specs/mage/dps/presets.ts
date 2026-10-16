@@ -13,7 +13,7 @@ export const P1ArcaneGear = PresetUtils.makePresetGear('P1 Arcane', P1ArcaneGear
 export const ArcaneTalents = {
 	name: 'Arcane',
 	data: SavedTalents.create({
-		talentsString: '0501225003100301531--255500002',
+		talentsString: '0502205003100301531--055500032',
 	}),
 };
 
