@@ -35427,6 +35427,10 @@ var generatedSpells = []Spell{
 		Effects: []Effect{
 			{ID: 1314269, SpellID: 1293539, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PROC_TRIGGER_DAMAGE, BasePoints: 14, Variance: 0.20000000298023224, BaseLevel: 60, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}},
+	{ID: 1293540, Name: "Improved Revival", School: 1, Attr: [17]uint32{0: 0x1c0}, SpellLevel: 60, BaseLevel: 60,
+		Effects: []Effect{
+			{ID: 1314273, SpellID: 1293540, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_DUMMY, BasePoints: 20, BaseLevel: 60, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
+		}},
 	{ID: 1293542, Name: "Flash Heal Cast Pushback Reduction", School: 1, Attr: [17]uint32{0: 0x1c0, 15: 0x2000}, SpellLevel: 60, BaseLevel: 60, ClassFlags: core.ClassFlags{Family: 6},
 		Effects: []Effect{
 			{ID: 1314281, SpellID: 1293542, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_PCT_MODIFIER, BasePoints: 50, BaseLevel: 60, PvpMult: 1, Misc: 9, ClassFlags: core.ClassFlags{Family: 6, Mask: [4]uint32{0: 2048}}, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
