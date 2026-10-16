@@ -1,6 +1,7 @@
 package warlock
 
 import (
+	"math"
 	"testing"
 	"time"
 
@@ -239,5 +240,65 @@ func TestDecimationGrantedOnLandedCast(t *testing.T) {
 	}
 	if misses := warlock.SearingPain.SpellMetrics[target.UnitIndex].Misses; misses != 50 {
 		t.Fatalf("%d of 50 Searing Pains against the fully resisting target missed, want all resisted in full", misses)
+	}
+}
+
+// Bane of Agony's ticks are set at cast: Amplify Curse (talent 9) raises the base that ramps in thirds, and the
+// spell power share is the spell power at cast, on every tick alike. Each tick leaves its base and share in
+// the dot's snapshot base, which the last tick clears as the dot ends, so the test reads the first 11.
+func TestBaneOfAgonyTicksSetAtCast(t *testing.T) {
+	encounter := core.MakeSingleTargetEncounter(0)
+	encounter.Duration = 600
+	sim, warlock := newWarlockSim("000000001", &proto.WarlockOptions{}, encounter)
+	target := sim.Encounter.AllTargetUnits[0]
+	agony := warlock.BaneOfAgony
+	dot := agony.Dot(target)
+	warlock.AddStatsDynamic(sim, stats.Stats{stats.SpellDamage: 300, stats.SpellHitPercent: 100})
+
+	// The snapshot base of the first 11 ticks of one cast, with spellPower more spell power from the fifth on.
+	castTicks := func(amplified bool, spellPower float64) []float64 {
+		if amplified {
+			warlock.AmplifyCurseAura.Activate(sim)
+		}
+		agony.SkipCastAndApplyEffects(sim, target)
+		if !dot.IsActive() {
+			t.Fatalf("Bane of Agony did not land")
+		}
+		var ticks []float64
+		for len(ticks) < 11 {
+			before := dot.TickCount()
+			for dot.TickCount() == before && !sim.Step() {
+			}
+			ticks = append(ticks, dot.SnapshotBaseDamage)
+			if len(ticks) == 4 {
+				warlock.AddStatsDynamic(sim, stats.Stats{stats.SpellDamage: spellPower})
+			}
+		}
+		return ticks
+	}
+
+	plain := castTicks(false, 500)
+	for i, want := range []float64{plain[0], plain[4], plain[8]} {
+		for _, got := range plain[4*i : min(4*i+4, len(plain))] {
+			if math.Abs(got-want) > 1e-6 {
+				t.Fatalf("third %d ticks %v, want each the same with 500 spell power gained mid-dot", i+1, plain)
+			}
+		}
+	}
+	base := 2 * (plain[4] - plain[0])
+	if step := plain[8] - plain[4]; base <= 0 || math.Abs(step-base/2) > 1e-6 {
+		t.Fatalf("thirds %.3f, %.3f, %.3f do not ramp at half, one and one and a half of a base", plain[0], plain[4], plain[8])
+	}
+	share := plain[0] - base/2
+
+	amplified := castTicks(true, 0)
+	coefficient := dot.BonusCoefficient
+	ampShare := share + 500*coefficient
+	for i, ramp := range []float64{0.5, 1, 1.5} {
+		want := base*ramp*warlock.AmplifyCurseMultiplier + ampShare
+		if got := amplified[4*i]; math.Abs(got-want) > 1e-6 {
+			t.Errorf("amplified third %d tick %.3f, want %.3f: the base %.3f amplified, plus the share at cast %.3f",
+				i+1, got, want, base*ramp, ampShare)
+		}
 	}
 }
