@@ -87,7 +87,6 @@ export const DefaultConsumables = ConsumesSpec.create({
 });
 
 export const DefaultPartyBuffs = PartyBuffs.create({
-	leaderOfThePack: true,
 	battleShout: TristateEffect.TristateEffectRegular,
 });
 
@@ -97,6 +96,7 @@ export const DefaultRaidBuffs = RaidBuffs.create({
 	arcaneBrilliance: true,
 	strengthOfEarthTotem: true,
 	windfuryTotem: true,
+	leaderOfThePack: true,
 });
 
 export const DefaultDebuffs = Debuffs.create({
