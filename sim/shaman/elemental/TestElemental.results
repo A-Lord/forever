@@ -1127,46 +1127,46 @@ dps_results: {
 dps_results: {
  key: "TestElemental-Settings-Dwarf-testing-Standard-default-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 2351.36778
-  tps: 2072.15883
-  dtps: 8.95413
+  dps: 2326.7404
+  tps: 2055.39242
+  dtps: 8.90139
  }
 }
 dps_results: {
  key: "TestElemental-Settings-Dwarf-testing-Standard-default-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 553.90296
-  tps: 390.91919
-  dtps: 7.74299
+  dps: 548.23718
+  tps: 387.14037
+  dtps: 7.68866
  }
 }
 dps_results: {
  key: "TestElemental-Settings-Dwarf-testing-Standard-default-FullBuffs-0.0yards-ShortSingleTarget"
  value: {
-  dps: 579.44304
-  tps: 411.26813
-  dtps: 6.17061
+  dps: 573.36837
+  tps: 407.19936
+  dtps: 6.15444
  }
 }
 dps_results: {
  key: "TestElemental-Settings-Dwarf-testing-Standard-default-NoBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 557.86035
-  tps: 555.43342
+  dps: 553.50918
+  tps: 551.22065
  }
 }
 dps_results: {
  key: "TestElemental-Settings-Dwarf-testing-Standard-default-NoBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 178.00749
-  tps: 169.68569
+  dps: 176.68154
+  tps: 168.43101
  }
 }
 dps_results: {
  key: "TestElemental-Settings-Dwarf-testing-Standard-default-NoBuffs-0.0yards-ShortSingleTarget"
  value: {
-  dps: 327.30539
-  tps: 312.74198
+  dps: 324.76647
+  tps: 310.34897
  }
 }
 dps_results: {
