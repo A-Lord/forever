@@ -88,9 +88,9 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 			prayerOfFortitude: true,
 			windfuryTotem: true,
 			strengthOfEarthTotem: true,
+			battleShout: TristateEffect.TristateEffectRegular,
 		}),
 		partyBuffs: PartyBuffs.create({
-			battleShout: TristateEffect.TristateEffectRegular,
 			manaSpringTotem: TristateEffect.TristateEffectRegular,
 		}),
 		individualBuffs: IndividualBuffs.create({

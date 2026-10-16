@@ -40,7 +40,9 @@ export const Level60Encounter = {
 // EP estimates with agility as 1. A bear's agility is crit, armor and dodge but no attack
 // power, so strength is worth about two agility. Dodge costs damage: fewer hits taken is less rage.
 // Defense nets to 0, its Thick Hide armor against the hits it avoids. Stamina keeps the bear alive longer.
-// Feral attack power uses attack power's weight through the form-only dependency.
+// Feral attack power uses attack power's weight through the form-only dependency. In each preset
+// ArmorNoMods weighs the armor weight over 4.6: Dire Bear Form makes a point of armor from items 4.6
+// points of armor and leaves ArmorNoMods as it is.
 export const Level60DpsEp = Stats.fromMap(
 	{
 		[Stat.StatStrength]: 2.0714,
@@ -50,6 +52,7 @@ export const Level60DpsEp = Stats.fromMap(
 		[Stat.StatFeralAttackPower]: 0.9415,
 		[Stat.StatArmor]: 0.026,
 		[Stat.StatBonusArmor]: 0.026,
+		[Stat.StatArmorNoMods]: 0.0057,
 		[Stat.StatDodgeRating]: -0.1059,
 		[Stat.StatDefenseRating]: 0,
 		[Stat.StatHitRating]: 3.7805,
@@ -74,6 +77,7 @@ export const Level60ThreatEp = Stats.fromMap(
 		[Stat.StatFeralAttackPower]: 0.9114,
 		[Stat.StatArmor]: 0.0255,
 		[Stat.StatBonusArmor]: 0.0255,
+		[Stat.StatArmorNoMods]: 0.0055,
 		[Stat.StatDodgeRating]: -0.1069,
 		[Stat.StatDefenseRating]: 0,
 		[Stat.StatHitRating]: 3.7022,
@@ -97,6 +101,7 @@ export const Level60SurvivalEp = Stats.fromMap({
 	[Stat.StatAgility]: 0.1964,
 	[Stat.StatArmor]: 0.1617,
 	[Stat.StatBonusArmor]: 0.1617,
+	[Stat.StatArmorNoMods]: 0.0352,
 	[Stat.StatDodgeRating]: 0.1777,
 	[Stat.StatDefenseRating]: 0.8496,
 	[Stat.StatExpertiseRating]: 0.3212,

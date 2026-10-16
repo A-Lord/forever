@@ -6,6 +6,7 @@
     "prayerOfFortitude": true,
     "graceOfAirTotem": true,
     "flametongueTotem": true,
+    "battleShout": "TristateEffectRegular",
     "leaderOfThePack": true
   },
   "debuffs": {
@@ -19,7 +20,6 @@
     "giftOfArthas": true
   },
   "partyBuffs": {
-    "battleShout": "TristateEffectRegular"
   },
   "player": {
     "apiVersion": 2,

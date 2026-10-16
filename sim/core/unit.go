@@ -853,6 +853,8 @@ func AddRatingConversions(sdm *stats.StatDependencyManager) {
 // structs) and to NPCs (represented as Target structs).
 func (unit *Unit) addUniversalStatDependencies() {
 	AddRatingConversions(&unit.StatDependencyManager)
+	// A_MOD_ARMOR_NO_MODS armor, which no percent armor modifier scales.
+	unit.AddUnmultipliedStatDependency(stats.ArmorNoMods, stats.Armor)
 }
 
 func (unit *Unit) finalize() {

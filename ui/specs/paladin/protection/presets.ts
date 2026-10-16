@@ -53,12 +53,12 @@ export const DefaultRaidBuffs = RaidBuffs.create({
 	prayerOfFortitude: true,
 	prayerOfShadowProtection: true,
 	windfuryTotem: true,
+	battleShout: TristateEffect.TristateEffectRegular,
 	leaderOfThePack: true,
 });
 
 export const DefaultPartyBuffs = PartyBuffs.create({
 	manaSpringTotem: TristateEffect.TristateEffectRegular,
-	battleShout: TristateEffect.TristateEffectRegular,
 });
 
 export const DefaultIndividualBuffs = IndividualBuffs.create({
