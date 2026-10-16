@@ -4,8 +4,7 @@ import * as OtherInputs from '@features/settings/model/other_inputs';
 import { StatCapType } from '@generated/proto/api';
 import { APLListItem, APLRotation, APLRotation_Type, APLValueVariable } from '@generated/proto/apl';
 import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
-import { Cooldowns, EquipmentSpec, ItemSlot, PseudoStat, Spec, Stat, TristateEffect } from '@generated/proto/common';
-import { SavedTalents } from '@generated/proto/ui';
+import { Cooldowns, ItemSlot, PseudoStat, Spec, Stat, TristateEffect } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import * as Mechanics from '@sim/constants/mechanics';
 import { PlayerClasses } from '@sim/player/classes';
@@ -64,7 +63,7 @@ export default defineSpec<Spec.SpecRogue>({
 
 	defaults: {
 		// Default equipped gear.
-		gear: EquipmentSpec.create(),
+		gear: Presets.P1_SLOW_MH_GEAR.gear,
 		// Default EP weights for sorting gear in the gear picker.
 		epWeights: new Stats(),
 		statCaps: (() => {
@@ -86,7 +85,7 @@ export default defineSpec<Spec.SpecRogue>({
 		// Default consumes settings.
 		consumables: Presets.DefaultConsumables,
 		// Default talents.
-		talents: SavedTalents.create(),
+		talents: Presets.TALENTS_COMBAT_SS.data,
 		// Default spec-specific settings.
 		specOptions: Presets.DefaultOptions,
 		// Default raid/party buffs settings.
@@ -95,6 +94,9 @@ export default defineSpec<Spec.SpecRogue>({
 			strengthOfEarthTotem: true,
 			windfuryTotem: true,
 			leaderOfThePack: true,
+			graceOfAirTotem: true,
+			moonkinAura: true,
+			prayerOfFortitude: true,
 		}),
 		partyBuffs: PartyBuffs.create({
 			battleShout: TristateEffect.TristateEffectRegular,
@@ -102,6 +104,7 @@ export default defineSpec<Spec.SpecRogue>({
 		individualBuffs: IndividualBuffs.create({
 			greaterBlessingOfKings: true,
 			greaterBlessingOfMight: true,
+			greaterBlessingOfSalvation: true,
 		}),
 		debuffs: Debuffs.create({
 			curseOfRecklessness: true,
@@ -109,6 +112,7 @@ export default defineSpec<Spec.SpecRogue>({
 			giftOfArthas: true,
 			sunderArmor: true,
 			curseOfElements: true,
+			armorShatter: true,
 		}),
 	},
 

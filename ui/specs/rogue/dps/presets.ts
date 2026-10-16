@@ -51,12 +51,12 @@ export const TALENTS_SUB_BS = {
 	}),
 };
 
-export const DEFAULT_APL = PresetUtils.makePresetAPLRotation('Default (APL)', DefaultAPL);
+export const DEFAULT_APL = PresetUtils.makePresetAPLRotation('Direct APL', DefaultAPL);
 
 export const DEFAULT_SIMPLE_ROTATION = RogueRotation.create({ useBackstab: false, useExposeArmor: false });
-export const SIMPLE_ROTATION = PresetUtils.makePresetSimpleRotation('Simple', Spec.SpecRogue, DEFAULT_SIMPLE_ROTATION);
+export const SIMPLE_ROTATION = PresetUtils.makePresetSimpleRotation('Configurable', Spec.SpecRogue, DEFAULT_SIMPLE_ROTATION);
 const SIMPLE_BACKSTAB_BUILD_ROTATION = PresetUtils.makePresetSimpleRotation(
-	'Simple',
+	'Configurable',
 	Spec.SpecRogue,
 	RogueRotation.create({ useBackstab: true, useExposeArmor: false }),
 );
@@ -71,10 +71,12 @@ export const DefaultOptions = RogueOptions.create({
 });
 
 export const DefaultConsumables = ConsumesSpec.create({
-	elixirIds: [Consumables.ElixirOfTheMongoose.id, Consumables.ElixirOfGreaterFortitude.id],
+	elixirIds: [Consumables.ElixirOfTheMongoose.id, Consumables.ElixirOfGreaterFortitude.id, Consumables.ElixirOfFerocity.id, Consumables.JujuMight.id],
 	foodId: Consumables.SwiftstrikeSteak.id,
 	offensivePotId: Consumables.MajorFrenzyPotion.id,
 	conjuredId: Consumables.ThistleTea.id,
+	mhImbueId: Consumables.DenseWeightstone.id,
+	ohImbueId: Consumables.DenseSharpeningStone.id,
 	mhWeaponImbueId: Consumables.InstantPoisonVI.id,
 	ohWeaponImbueId: Consumables.DeadlyPoisonIV.id,
 });
