@@ -41,7 +41,7 @@ export const enchantWeaponDamageEP = (enchant: Enchant, weaponSpeed: number, epP
 export const enchantNoModsArmorEP = (enchant: Enchant, weights: Stats, itemArmorScale: number): number =>
 	enchant.noModsArmor && itemArmorScale > 0 ? (enchant.noModsArmor / itemArmorScale - enchant.noModsArmor) * weights.getStat(Stat.StatArmor) : 0;
 
-export const enchantEP = (enchant: Enchant, weights: Stats, weaponSpeed: number, epPerWeaponDps: number, itemArmorScale = 1): number =>
+export const enchantEP = (enchant: Enchant, weights: Stats, weaponSpeed: number, epPerWeaponDps: number, itemArmorScale: number): number =>
 	new Stats(enchant.stats, enchant.pseudoStats).computeEP(weights) +
 	enchantWeaponDamageEP(enchant, weaponSpeed, epPerWeaponDps) +
 	enchantNoModsArmorEP(enchant, weights, itemArmorScale);

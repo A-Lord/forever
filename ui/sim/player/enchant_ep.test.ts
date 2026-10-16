@@ -1,3 +1,4 @@
+import { PlayerStats } from '@generated/proto/api';
 import { ItemSlot, PseudoStat, Stat } from '@generated/proto/common';
 import { UIEnchant as Enchant, UIItem as Item } from '@generated/proto/ui';
 import { describe, expect, it, vi } from 'vitest';
@@ -10,8 +11,16 @@ import { Player } from './player';
 
 const weights = Stats.fromMap({ [Stat.StatStrength]: 2 }, { [PseudoStat.PseudoStatMainHandDps]: 10, [PseudoStat.PseudoStatOffHandDps]: 4 });
 
+// The sheet armor one point of armor from items gives, as a Dire Bear's.
+const itemArmorScale = 4.6;
+
 const computeEnchantEP = (enchant: Enchant, slot?: ItemSlot, weapon?: Item | null, epWeights: Stats = weights) => {
-	const player = { enchantEPCache: new Map<number, number>(), computeStatsEP: (stats: Stats) => stats.computeEP(epWeights) } as unknown as Player<any>;
+	const player = {
+		enchantEPCache: new Map<number, number>(),
+		computeStatsEP: (stats: Stats) => stats.computeEP(epWeights),
+		getEpWeights: () => epWeights,
+		slice: () => ({ currentStats: PlayerStats.create({ itemArmorScale }) }),
+	} as unknown as Player<any>;
 	const epPerWeaponDps = slot === undefined ? 0 : Player.prototype.computeWeaponDpsEP.call(player, slot);
 	return Player.prototype.computeEnchantEP.call(player, enchant, weapon?.weaponSpeed ?? 0, epPerWeaponDps);
 };
@@ -36,6 +45,13 @@ describe('Player.computeEnchantEP', () => {
 	it('gives weapon damage nothing without a weapon to read the speed off', () => {
 		expect(computeEnchantEP(striking, ItemSlot.ItemSlotMainHand, null)).toBe(0);
 		expect(computeEnchantEP(striking)).toBe(0);
+	});
+
+	it("values a no-mods armor share at the Armor weight over the sheet's item armor scale", () => {
+		const armorWeights = Stats.fromMap({ [Stat.StatArmor]: 0.5 });
+		const armor = (noModsArmor: number) => Enchant.create({ effectId: 1504, stats: new Stats().withStat(Stat.StatArmor, 125).asProtoArray(), noModsArmor });
+		expect(computeEnchantEP(armor(125), undefined, undefined, armorWeights)).toBeCloseTo((125 / itemArmorScale) * 0.5);
+		expect(computeEnchantEP(armor(0), undefined, undefined, armorWeights)).toBeCloseTo(125 * 0.5);
 	});
 });
 

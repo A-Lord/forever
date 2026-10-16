@@ -39,7 +39,7 @@ var HandTriggers = []HandTrigger{
 		Triggers: 24575,
 		Reason: "Zandalarian Hero Badge's on-use Brittle Armor applies the stacking buff its tooltip describes: " +
 			"same name, 200 armor (A_MOD_ARMOR_NO_MODS) and 3 defense a stack, the 2000 and 30 of ten stacks, and " +
-			"each stack its proc's script effect 24590 takes off",
+			"the script effect 24590 of its proc takes a stack off per hit taken",
 		Source: "game-files-rows",
 	},
 	{

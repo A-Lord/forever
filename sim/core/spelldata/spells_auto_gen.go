@@ -38533,7 +38533,7 @@ var generatedCurves = map[int32][][]float64{
 var generatedHandTriggers = map[int32][]int32{
 	16389:   {16368},   // Flametongue Totem Proc is a dummy holding the base points, and the hit logs in game as 16368 Flametongue Attack: fire school damage with the magic defense type and no bonus coefficient
 	20230:   {20240},   // Retaliation's dummy aura (aura 4) casts the counterattack 20240: same name, class set and icon, weapon damage with no base, a cost of 1 in SpellPower that is a tenth of a rage
-	24574:   {24575},   // Zandalarian Hero Badge's on-use Brittle Armor applies the stacking buff its tooltip describes: same name, 200 armor (A_MOD_ARMOR_NO_MODS) and 3 defense a stack, the 2000 and 30 of ten stacks, and each stack its proc's script effect 24590 takes off
+	24574:   {24575},   // Zandalarian Hero Badge's on-use Brittle Armor applies the stacking buff its tooltip describes: same name, 200 armor (A_MOD_ARMOR_NO_MODS) and 3 defense a stack, the 2000 and 30 of ten stacks, and the script effect 24590 of its proc takes a stack off per hit taken
 	408341:  {408423},  // Fire Nova Rank 1 hits for 408423, the level 12 Fire Nova Rank 1 row, not the 8349 its tooltip reads
 	408342:  {408424},  // Fire Nova Rank 2 hits for 408424, the level 22 Fire Nova Rank 2 row, not the 8502 its tooltip reads
 	408343:  {408426},  // Fire Nova Rank 3 hits for 408426, the level 32 Fire Nova Rank 3 row, as ranks 1 and 2 hit for theirs

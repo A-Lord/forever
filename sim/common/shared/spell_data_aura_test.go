@@ -525,8 +525,9 @@ func TestSwordOfZealAddsPhysicalDamageAndArmor(t *testing.T) {
 
 // An item effect's armor stays outside the wearer's percent armor modifiers where the buff's row
 // states its armor on the wearer with A_MOD_ARMOR_NO_MODS, on an on-use, a proc and a stacking proc
-// alike: the wearer gains the entry's armor whole for each stack and loses as much when the buff fades. The same entry on a row
-// stating no such aura gains armor the modifiers scale. The wearer's neck doubles its armor.
+// alike: the wearer gains the entry's armor whole for each stack and loses as much when the buff
+// fades. The same entry on a row stating no such aura gains armor the modifiers scale. The wearer's
+// neck doubles its armor.
 func TestNoModsArmorFromAnItemStaysOutOfThePercentArmorModifiers(t *testing.T) {
 	armor := spelldata.MustFind(saviorsSacrifice).FirstAura(dbcenums.A_MOD_ARMOR_NO_MODS).BasePoints
 	needAmount(t, "18826's armor", armor)

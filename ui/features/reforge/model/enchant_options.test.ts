@@ -68,7 +68,7 @@ const makePresetPlayer = (checked: Record<string, PresetSlots>, { enchants = ALL
 
 const optimize = (player: Player<any>, gear: Gear, frozenSlots: ItemSlot[], weights: Stats, presetPool?: BulkEnchantSlotOptions[]) => {
 	const slots = classifyEnchantSlots(player, gear, frozenSlots, presetPool);
-	return { options: buildEnchantOptions(slots, weights, !!presetPool), skipped: skippedEnchantSlots(slots) };
+	return { options: buildEnchantOptions(slots, weights, !!presetPool, 1), skipped: skippedEnchantSlots(slots) };
 };
 
 const fromPresets = (player: Player<any>, gear: Gear) => optimize(player, gear, [], WEIGHTS, enchantPresetPool(player));

@@ -53,7 +53,7 @@ export const skippedEnchantSlots = (slots: readonly EnchantSlot[]): SkippedEncha
 
 // The static enchants the gear optimizer may pick per slot: those worth more than 0 EP, or from a preset pool, every
 // listed one whatever its EP. itemArmorScale is the sheet's PlayerStats.itemArmorScale, which values a no-mods armor share.
-export const buildEnchantOptions = (slots: readonly EnchantSlot[], weights: Stats, fromPresetPool: boolean, itemArmorScale = 1): BulkEnchantSlotOptions[] =>
+export const buildEnchantOptions = (slots: readonly EnchantSlot[], weights: Stats, fromPresetPool: boolean, itemArmorScale: number): BulkEnchantSlotOptions[] =>
 	slots.flatMap(entry => {
 		if ('reason' in entry) return [];
 		const { slot, equipped, fitting } = entry;
