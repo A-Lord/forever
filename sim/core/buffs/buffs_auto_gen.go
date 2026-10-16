@@ -724,10 +724,10 @@ func NewSpellDataGreaterBlessingOfWisdomAura(unit *core.Unit, isPlayer bool, tal
 	return newBuff(unit, greaterBlessingOfWisdomMeta, isPlayer, talentPoints)
 }
 
-// Greater Blessing of Salvation
+// Mass Salvation
 var greaterBlessingOfSalvationSpell = spelldata.MustFind(25895)
 var greaterBlessingOfSalvationMeta = &Meta{
-	Label: "Greater Blessing of Salvation",
+	Label: "Mass Salvation",
 	Spell: greaterBlessingOfSalvationSpell,
 }
 
