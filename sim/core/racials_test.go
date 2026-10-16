@@ -257,22 +257,24 @@ func TestGnomeWarrior(t *testing.T) {
 	for range 5 {
 		mortalStrike.SkipCastAndApplyEffects(sim, fw.CurrentTarget)
 	}
-	var upAtTheEnd bool
+	var upAtTheEnd, upAfter, done bool
 	var multiplierAtTheEnd float64
-	sim.AddPendingAction(NewDelayedAction(DelayedActionOptions{
-		DoAt: castAt + mods.Duration - time.Millisecond,
-		OnAction: func(_ *Simulation) {
-			upAtTheEnd, multiplierAtTheEnd = eureka.IsActive(), mortalStrike.DirectDamageMultiplier
-		},
-	}))
-	for eureka.IsActive() && !sim.Step() {
+	at := func(when time.Duration, action func(sim *Simulation)) {
+		sim.AddPendingAction(NewDelayedAction(DelayedActionOptions{DoAt: when, OnAction: action}))
+	}
+	at(castAt+mods.Duration-time.Millisecond, func(_ *Simulation) {
+		upAtTheEnd, multiplierAtTheEnd = eureka.IsActive(), mortalStrike.DirectDamageMultiplier
+	})
+	// An aura runs out when the sim advances to its end, which takes a pending action at that time.
+	at(castAt+mods.Duration, func(_ *Simulation) { upAfter, done = eureka.IsActive(), true })
+	for !done && !sim.Step() {
 	}
 	if !upAtTheEnd || !WithinToleranceFloat64(1+mods.Damage, multiplierAtTheEnd, 0.0001) {
 		t.Fatalf("Eureka! should keep Mortal Strike at x%0.2f to the end of its %v, got up %t at x%0.2f",
 			1+mods.Damage, mods.Duration, upAtTheEnd, multiplierAtTheEnd)
 	}
-	if got := sim.CurrentTime - castAt; got != mods.Duration {
-		t.Fatalf("Eureka! should end %v after its cast, ended after %v", mods.Duration, got)
+	if upAfter {
+		t.Fatalf("Eureka! should end %v after its cast", mods.Duration)
 	}
 	if mortalStrike.DirectDamageMultiplier != 1 || mortalStrike.Cost.GetCurrentCost() != 30 {
 		t.Fatalf("Eureka! should drop its damage bonus and cost cut when it ends, got x%0.2f and %0.1f Rage",
@@ -404,6 +406,17 @@ func TestCritDamageRacials(t *testing.T) {
 			if want := human[name] * 1.02; !WithinToleranceFloat64(want, got, 1e-9) {
 				t.Errorf("%s: a %s should crit for x%0.4f, got x%0.4f", race, name, want, got)
 			}
+		}
+	}
+}
+
+// Endurance carries no hit, so a tauren holds a human's physical and spell hit.
+func TestTaurenEnduranceGrantsNoHit(t *testing.T) {
+	_, human := setupRacialSim(proto.Race_RaceHuman)
+	_, tauren := setupRacialSim(proto.Race_RaceTauren)
+	for _, stat := range []stats.Stat{stats.PhysicalHitPercent, stats.SpellHitPercent} {
+		if got, want := tauren.GetStat(stat), human.GetStat(stat); got != want {
+			t.Errorf("a tauren should hold a human's %s %v, got %v", stat.StatName(), want, got)
 		}
 	}
 }
@@ -740,29 +753,31 @@ func TestTouchOfTheGraveProcsOnceIn25Seconds(t *testing.T) {
 	if !touchOfTheGraveProcsWithin(sim, aura, 200, hit) {
 		t.Fatalf("Touch of the Grave should proc within 200 landed casts")
 	}
-	procAt, procs := sim.CurrentTime, drains()
+	procAt := sim.CurrentTime
 
-	procsBefore, procsAfter, done := false, false, false
+	procsAfter, done := false, false
 	at := func(when time.Duration, action func(sim *Simulation)) {
 		sim.AddPendingAction(NewDelayedAction(DelayedActionOptions{DoAt: when, OnAction: action}))
 	}
+	// A proc from these hits would restart the cooldown, and the hits at 25 seconds could not proc.
 	at(procAt+25*time.Second-time.Millisecond, func(_ *Simulation) {
 		for range 200 {
 			hit()
 		}
-		procsBefore = drains() != procs
 	})
 	at(procAt+25*time.Second, func(sim *Simulation) {
-		procsAfter, done = touchOfTheGraveProcsWithin(sim, aura, 200, hit), true
+		procsAfter = touchOfTheGraveProcsWithin(sim, aura, 200, hit)
 	})
+	// Each drain lands one spell batch after its proc.
+	at(procAt+25*time.Second+2*SpellBatchWindow, func(_ *Simulation) { done = true })
 	for !done && !sim.Step() {
 	}
 
-	if procsBefore {
-		t.Errorf("Touch of the Grave should not proc again within 25 seconds of a proc")
+	if !procsAfter {
+		t.Errorf("Touch of the Grave should proc again on the first hits once 25 seconds have passed, and on none before")
 	}
-	if !procsAfter || drains() != procs+1 {
-		t.Errorf("Touch of the Grave should proc again once 25 seconds have passed, %d drains after the first", drains()-procs)
+	if got := drains(); got != 2 {
+		t.Errorf("Touch of the Grave should drain twice, at its first proc and 25 seconds later, got %d", got)
 	}
 }
 

@@ -12,7 +12,10 @@ func applyRaceEffects(agent Agent) {
 
 	switch character.Race {
 	case proto.Race_RaceDwarf:
-		character.PseudoStats.CritDamageMultiplier *= 1.02 // Earth Fury 1259719
+		// Earth Fury 1259719. Its row keeps a mace equip row, which its tooltip does not name, so it
+		// holds with any weapon.
+		// TODO: Ingame test needed: whether Earth Fury holds without a mace.
+		character.PseudoStats.CritDamageMultiplier *= 1.02
 		applyCreatureTypeSlaying(character, proto.MobType_MobTypeBeast)
 
 		actionID := ActionID{SpellID: 20594}
