@@ -23,6 +23,13 @@ var (
 	plagueThreat      = spelldata.MustFind(28746)   // 6pc: threat
 	demonheartHit     = spelldata.MustFind(1300966) // 2pc: hit
 	demonheartDemons  = spelldata.MustFind(1301094) // 4pc: spell damage against Demons
+	dungeonResistance = spelldata.MustFind(18679)   // 2pc of both dungeon sets: all resistances
+	dreadmistDamage   = spelldata.MustFind(9346)    // 3pc: spell damage
+	dreadmistHealProc = spelldata.MustFind(450585)  // 5pc: the proc
+	dreadmistHeal     = spelldata.MustFind(450583)  // 5pc: Dark Reward, the heal it casts
+	dreadmistMP5      = spelldata.MustFind(18378)   // 6pc: mana per 5 sec
+	deathmistDamage   = spelldata.MustFind(14047)   // 6pc: spell damage
+	deathmistArmor    = spelldata.MustFind(14803)   // 8pc: armor
 )
 
 // The six slots of a cloth PvP set, and of Demonheart Raiment.
@@ -31,6 +38,18 @@ var sixPieceSlots = []proto.ItemSlot{
 	proto.ItemSlot_ItemSlotShoulder,
 	proto.ItemSlot_ItemSlotChest,
 	proto.ItemSlot_ItemSlotHands,
+	proto.ItemSlot_ItemSlotLegs,
+	proto.ItemSlot_ItemSlotFeet,
+}
+
+// The eight slots of a dungeon set.
+var dungeonSetSlots = []proto.ItemSlot{
+	proto.ItemSlot_ItemSlotHead,
+	proto.ItemSlot_ItemSlotShoulder,
+	proto.ItemSlot_ItemSlotChest,
+	proto.ItemSlot_ItemSlotWrist,
+	proto.ItemSlot_ItemSlotHands,
+	proto.ItemSlot_ItemSlotWaist,
 	proto.ItemSlot_ItemSlotLegs,
 	proto.ItemSlot_ItemSlotFeet,
 }
@@ -91,6 +110,53 @@ var ItemSetLieutenantCommandersDreadgear = core.NewItemSet(core.ItemSet{
 	Name:    "Lieutenant Commander's Dreadgear",
 	Slots:   sixPieceSlots,
 	Bonuses: pvpSetBonuses(2, 4, 6),
+})
+
+// Dungeon Set 1
+var ItemSetDreadmistRaiment = core.NewItemSet(core.ItemSet{
+	ID:    183,
+	Name:  "Dreadmist Raiment",
+	Slots: dungeonSetSlots,
+	Bonuses: map[int32]core.ApplySetBonus{
+		2: parsedSetBonus(dungeonResistance),
+		3: parsedSetBonus(dreadmistDamage),
+		// TODO: 4pc (27780) fears an attacker when struck, which the sim does not model.
+		5: func(agent core.Agent, setBonusAura *core.Aura) {
+			warlock := agent.(WarlockAgent).GetWarlock()
+			heal := dreadmistHeal.HealEffect()
+
+			config := spelldata.SpellConfig(&warlock.Unit, dreadmistHeal, spelldata.Magic(core.ProcMaskSpellHealing), spelldata.Proc())
+			// The row states no defense type, and a heal crits for the magic multiplier.
+			config.DefenseType = core.DefenseTypeMagic
+			config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, spell *core.Spell) {
+				spell.CalcAndDealHealing(sim, target, heal.DirectAmount(sim), spell.OutcomeHealingCrit)
+			}
+			darkReward := warlock.RegisterSpell(config)
+
+			// The proc chance column with no cooldown, rolled on every spell cast.
+			trigger := spelldata.ProcTrigger(&warlock.Character, dreadmistHealProc,
+				func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
+					darkReward.Cast(sim, &warlock.Unit)
+				})
+			trigger.Name = "Dreadmist Raiment - 5PC"
+
+			setBonusAura.AttachProcTrigger(trigger)
+		},
+		6: parsedSetBonus(dreadmistMP5),
+	},
+})
+
+// Dungeon Set 2
+var ItemSetDeathmistRaiment = core.NewItemSet(core.ItemSet{
+	ID:    518,
+	Name:  "Deathmist Raiment",
+	Slots: dungeonSetSlots,
+	Bonuses: map[int32]core.ApplySetBonus{
+		2: parsedSetBonus(dungeonResistance),
+		// TODO: 4pc (27780) fears an attacker when struck, which the sim does not model.
+		6: parsedSetBonus(deathmistDamage),
+		8: parsedSetBonus(deathmistArmor),
+	},
 })
 
 // Zul'Gurub
