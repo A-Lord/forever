@@ -23,7 +23,7 @@ func (hunter *Hunter) registerMarksmanshipTalents() {
 	hunter.registerLoneWolf()
 
 	// Tier 4
-	// Trueshot Aura: a party buff, hunter.go
+	// Trueshot Aura: a raid buff, hunter.go
 	hunter.registerMortalShots()
 
 	// Tier 5
