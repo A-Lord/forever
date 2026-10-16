@@ -147,6 +147,7 @@ const (
 	MageSpellArcanePower
 	MageSpellArcaneMissilesCast
 	MageSpellArcaneMissilesTick
+	MageSpellArcaneWrath
 	MageSpellBlastWave
 	MageSpellBlizzard
 	MageSpellColdSnap
@@ -182,7 +183,7 @@ const (
 	MageSpellFrost = MageSpellFrostbolt | MageSpellBlizzard | MageSpellFrostNova | MageSpellConeOfCold | MageSpellIceLance
 	MageSpellFire  = MageSpellFireball | MageSpellCombustion |
 		MageSpellFireBlast | MageSpellFlamestrike | MageSpellIgnite | MageSpellPyroblast | MageSpellScorch
-	MageSpellsAllDamaging = MageSpellArcaneBlast | MageSpellArcaneExplosion | MageSpellArcaneMissilesTick | MageSpellBlizzard |
+	MageSpellsAllDamaging = MageSpellArcaneBlast | MageSpellArcaneExplosion | MageSpellArcaneMissilesTick | MageSpellArcaneWrath | MageSpellBlizzard |
 		MageSpellBlastWave | MageSpellConeOfCold | MageSpellFireBlast | MageSpellFireball | MageSpellFireballDot |
 		MageSpellFlamestrike | MageSpellFlamestrikeDot | MageSpellFrostbolt | MageSpellFrostfireBolt | MageSpellFrostfireBoltDot | MageSpellFrostNova |
 		MageSpellIceLance | MageSpellPyroblast | MageSpellPyroblastDot | MageSpellScorch
