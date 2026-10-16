@@ -7,6 +7,7 @@ import (
 )
 
 // TODO: Faerie Fire does not reset the swing timer.
+// TODO: Ingame research needed: Faerie Fire's threat in Bear and Dire Bear Form; its E_THREAT effect states 0.
 func (druid *Druid) registerFaerieFireSpell() {
 	rank := spellData.FaerieFire.Highest()
 	druid.FaerieFireAuras = druid.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
