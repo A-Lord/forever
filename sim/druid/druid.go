@@ -88,14 +88,14 @@ type Druid struct {
 
 	form DruidForm
 
-	// Energy left when cat form dropped, or 0 when a bear form ended, and when that was. Reset clears
-	// them.
-	furorStoredEnergy float64
-	furorStoredValid  bool
-	furorLeftCatAt    time.Duration
-	furorEnergyMetric *core.ResourceMetrics
-	furorRageMetric   *core.ResourceMetrics
-	enrageMetric      *core.ResourceMetrics
+	// Stored Cat energy and the start of its regeneration interval outside Bear forms.
+	furorEnergyPerTick float64
+	furorStoredEnergy  float64
+	furorStoredValid   bool
+	furorLeftCatAt     time.Duration
+	furorEnergyMetric  *core.ResourceMetrics
+	furorRageMetric    *core.ResourceMetrics
+	enrageMetric       *core.ResourceMetrics
 
 	// Maul queue (fires on next auto-attack swing, like warrior Heroic Strike)
 	maulQueueAura  *core.Aura

@@ -156,6 +156,7 @@ func (druid *Druid) registerBearAura(form *spelldata.Spell, passive *spelldata.S
 		})
 	}
 	aura.ApplyOnGain(func(_ *core.Aura, sim *core.Simulation) {
+		druid.pauseCatEnergy(sim)
 		druid.setForm(kind)
 		druid.SetFeralCombat(true)
 		druid.SetCurrentPowerBar(core.RageBar)
@@ -167,7 +168,10 @@ func (druid *Druid) registerBearAura(form *spelldata.Spell, passive *spelldata.S
 	})
 	aura.ApplyOnExpire(func(_ *core.Aura, sim *core.Simulation) {
 		druid.PseudoStats.ThreatMultiplier /= bearFormThreatMultiplier
-		druid.forfeitCatEnergy(sim)
+		if druid.HasEnergyBar() && !druid.Env.MeasuringStats {
+			druid.EnergyPerTick = druid.furorEnergyPerTick
+			druid.rememberCatEnergy(sim, druid.furorStoredEnergy)
+		}
 		druid.SetFeralCombat(false)
 		druid.restoreHumanoidBody()
 	})
@@ -266,15 +270,19 @@ func (druid *Druid) rememberCatEnergy(sim *core.Simulation, energy float64) {
 	druid.furorLeftCatAt = sim.CurrentTime
 }
 
-// Tooltip 17056: a bear form forfeits the energy Cat Form would restore, the energy left in Cat Form
-// and the seconds counted since, and halts the count while it is active. Ending a bear form stores
-// no energy and starts the count from then, so a bear form with no Cat Form before it in the
-// iteration forfeits the same way.
-//
-// TODO: Ingame research needed -- whether the count starts again when the bear form ends, as here.
-// The tooltip does not say.
-func (druid *Druid) forfeitCatEnergy(sim *core.Simulation) {
-	druid.rememberCatEnergy(sim, 0)
+// Bear forms preserve the stored energy and pause regeneration until the form ends.
+func (druid *Druid) pauseCatEnergy(sim *core.Simulation) {
+	if !druid.HasEnergyBar() || druid.Env.MeasuringStats {
+		return
+	}
+	energy := druid.CurrentEnergy()
+	if druid.furorStoredValid {
+		seconds := max(0, (sim.CurrentTime - druid.furorLeftCatAt).Seconds())
+		energy = min(druid.furorStoredEnergy+10*seconds, 100)
+	}
+	druid.rememberCatEnergy(sim, energy)
+	druid.furorEnergyPerTick = druid.EnergyPerTick
+	druid.EnergyPerTick = 0
 }
 
 // The tooltip's rule, priced with $m2: the energy left in Cat Form plus ${10*($m2/100)} for each

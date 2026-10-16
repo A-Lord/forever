@@ -918,22 +918,22 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-Bearweave-BleedAssumed-bearweave-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 636.36591
-  tps: 830.51044
+  dps: 636.03341
+  tps: 830.73039
  }
 }
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-Bearweave-BleedAssumed-bearweave-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 636.36591
-  tps: 343.90816
+  dps: 636.03341
+  tps: 343.66103
  }
 }
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-Bearweave-BleedAssumed-bearweave-FullBuffs-0.0yards-ShortSingleTarget"
  value: {
-  dps: 666.14555
-  tps: 386.44685
+  dps: 681.14316
+  tps: 393.70522
  }
 }
 dps_results: {
@@ -1044,22 +1044,22 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-Bearweave-PrepullClearcasting-bearweave-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 634.70705
-  tps: 824.68998
+  dps: 636.28044
+  tps: 825.63584
  }
 }
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-Bearweave-PrepullClearcasting-bearweave-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 634.70705
-  tps: 343.53777
+  dps: 636.28044
+  tps: 344.32793
  }
 }
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-Bearweave-PrepullClearcasting-bearweave-FullBuffs-0.0yards-ShortSingleTarget"
  value: {
-  dps: 670.74112
-  tps: 384.12817
+  dps: 681.67214
+  tps: 388.90595
  }
 }
 dps_results: {
@@ -1170,22 +1170,22 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-Bearweave-Standard-bearweave-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 635.36195
-  tps: 830.01147
+  dps: 635.11135
+  tps: 830.27213
  }
 }
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-Bearweave-Standard-bearweave-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 635.36195
-  tps: 343.40919
+  dps: 635.11135
+  tps: 343.20277
  }
 }
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-Bearweave-Standard-bearweave-FullBuffs-0.0yards-ShortSingleTarget"
  value: {
-  dps: 664.90324
-  tps: 385.72943
+  dps: 679.60657
+  tps: 392.88127
  }
 }
 dps_results: {
