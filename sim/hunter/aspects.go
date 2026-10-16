@@ -51,7 +51,6 @@ func (hunter *Hunter) registerDeadlyAspects() {
 
 	quickShotsAura := hunter.RegisterAura(spelldata.AuraConfig(quickShots))
 	spelldata.ParseEffects(&hunter.Character, quickShotsAura, quickShots)
-	hunter.hawksFollowQuickShots(quickShotsAura)
 	quickStrikesAura := hunter.RegisterAura(spelldata.AuraConfig(quickStrikes))
 	spelldata.ParseEffects(&hunter.Character, quickStrikesAura, quickStrikes)
 

@@ -4,7 +4,6 @@ import (
 	"strconv"
 
 	"github.com/wowsims/forever/sim/core"
-	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
@@ -18,27 +17,10 @@ var hawkSummon = spellData.SummonHawkTriggered.ByID(1293248)
 // The tooltip's ${$s1+($rap*($s4/100))}: effect 4 is the share of ranged attack power.
 var summonHawkAPShare = summonHawkRank.EffectN(4).Percent()
 
-// Quick Shots' ranged haste, which a hawk takes as melee speed.
-var hawkQuickShotsSpeed = 1 + quickShots.Effect(dbcenums.A_MOD_RANGED_HASTE, 0).Percent()
-
-// A hawk the dive leaves behind: a guardian with a pet's base stats and swing, summoned at the
-// enemy by the cast.
+// A hawk the dive leaves behind: a guardian with a pet's base stats and swing damage, summoned at
+// the enemy by the cast.
 type HawkPet struct {
 	core.Pet
-
-	atQuickShotsSpeed bool
-}
-
-func (hawk *HawkPet) setQuickShots(sim *core.Simulation, active bool) {
-	if hawk.atQuickShotsSpeed == active {
-		return
-	}
-	hawk.atQuickShotsSpeed = active
-	if active {
-		hawk.MultiplyMeleeSpeed(sim, hawkQuickShotsSpeed)
-	} else {
-		hawk.MultiplyMeleeSpeed(sim, 1/hawkQuickShotsSpeed)
-	}
 }
 
 func (hawk *HawkPet) GetPet() *core.Pet                   { return &hawk.Pet }
@@ -50,10 +32,10 @@ func (hawk *HawkPet) ExecuteCustomRotation(sim *core.Simulation) {
 	hawk.WaitUntil(sim, sim.CurrentTime+hawkSummon.Duration())
 }
 
-// Effect 3 is the number of hawks up at once. Hunter Guardian Hawk Pet Scaling 01 (1293586) gives
-// each its owner's attack speed, damage done and melee crit chance, all of each; the row is not in
-// the store. In game Quick Shots' haste reaches a hawk (hawksFollowQuickShots) and Berserking's does
-// not. The crit is the tamed pet's (inheritedMeleeCrit), with none from Agility.
+// Effect 3 is the number of hawks up at once. A hawk's swing follows its owner's ranged speed while
+// it is up, a quiver's and Quick Shots' included; Berserking's attack speed does not reach it in
+// game. Its crit is the tamed pet's (inheritedMeleeCrit), with none from Agility. The row that
+// scales a hawk, Hunter Guardian Hawk Pet Scaling 01 (1293586), is not in the store.
 func (hunter *Hunter) newHawks() []*HawkPet {
 	if !hunter.Talents.SummonHawk {
 		return nil
@@ -68,12 +50,15 @@ func (hunter *Hunter) newHawks() []*HawkPet {
 			StatInheritance: func(ownerStats stats.Stats) stats.Stats {
 				return stats.Stats{stats.PhysicalCritPercent: hunter.inheritedMeleeCrit(ownerStats)}
 			},
-			IsGuardian: true,
-			IsDynamic:  true,
+			IsGuardian:                       true,
+			IsDynamic:                        true,
+			HasDynamicRangedSpeedInheritance: true,
 		})}
 		addPetStatDependencies(&hawk.Character)
+		swing := petSwing
+		swing.SwingSpeed = 2.5 // In game 2.5 s over the owner's ranged speed: 2.277 s beside a 10% quiver, 1.764 s with Quick Shots too.
 		hawk.EnableAutoAttacks(hawk, core.AutoAttackOptions{
-			MainHand:       petSwing,
+			MainHand:       swing,
 			AutoSwingMelee: true,
 		})
 		// The damage done is the owner's as the hawk is summoned, on top of the hawk's own.
@@ -89,31 +74,6 @@ func (hunter *Hunter) newHawks() []*HawkPet {
 		hawks[i] = hawk
 	}
 	return hawks
-}
-
-// A hawk swings faster by Quick Shots' haste while it is up, live: from the summon when it is up
-// then, back to its own speed when it drops.
-func (hunter *Hunter) hawksFollowQuickShots(quickShotsAura *core.Aura) {
-	quickShotsAura.ApplyOnGain(func(_ *core.Aura, sim *core.Simulation) {
-		for _, hawk := range hunter.Hawks {
-			if hawk.IsEnabled() {
-				hawk.setQuickShots(sim, true)
-			}
-		}
-	}).ApplyOnExpire(func(_ *core.Aura, sim *core.Simulation) {
-		for _, hawk := range hunter.Hawks {
-			hawk.setQuickShots(sim, false)
-		}
-	})
-
-	for _, hawk := range hunter.Hawks {
-		hawk.RegisterEnableEffect(func(sim *core.Simulation) {
-			hawk.setQuickShots(sim, quickShotsAura.IsActive())
-		})
-		hawk.RegisterDisableEffect(func(sim *core.Simulation) {
-			hawk.setQuickShots(sim, false)
-		})
-	}
 }
 
 // The tamed pet and the hawks: what the talents that name the pet reach.
