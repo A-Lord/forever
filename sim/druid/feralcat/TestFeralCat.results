@@ -477,8 +477,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-AllItems-GryphonRider'sStormhammer-9651"
  value: {
-  dps: 571.78892
-  tps: 310.13494
+  dps: 571.58647
+  tps: 310.03432
  }
 }
 dps_results: {
@@ -911,8 +911,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-Average-Default"
  value: {
-  dps: 645.26759
-  tps: 346.92414
+  dps: 645.27941
+  tps: 346.93034
  }
 }
 dps_results: {
@@ -1002,15 +1002,15 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-Bearweave-BleedAssumed-shadowmeld-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 644.92028
-  tps: 833.54184
+  dps: 645.22016
+  tps: 833.98385
  }
 }
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-Bearweave-BleedAssumed-shadowmeld-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 644.92028
-  tps: 346.68869
+  dps: 645.22016
+  tps: 346.81931
  }
 }
 dps_results: {
@@ -1023,15 +1023,15 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-Bearweave-BleedAssumed-shadowmeld-NoBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 314.98677
-  tps: 224.38224
+  dps: 314.87906
+  tps: 224.30577
  }
 }
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-Bearweave-BleedAssumed-shadowmeld-NoBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 314.98677
-  tps: 224.38224
+  dps: 314.87906
+  tps: 224.30577
  }
 }
 dps_results: {
@@ -1128,15 +1128,15 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-Bearweave-PrepullClearcasting-shadowmeld-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 644.13827
-  tps: 830.39479
+  dps: 646.21636
+  tps: 830.17993
  }
 }
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-Bearweave-PrepullClearcasting-shadowmeld-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 644.13827
-  tps: 346.11208
+  dps: 646.21636
+  tps: 347.14277
  }
 }
 dps_results: {
@@ -1149,15 +1149,15 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-Bearweave-PrepullClearcasting-shadowmeld-NoBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 313.45456
-  tps: 223.30066
+  dps: 313.5665
+  tps: 223.38014
  }
 }
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-Bearweave-PrepullClearcasting-shadowmeld-NoBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 313.45456
-  tps: 223.30066
+  dps: 313.5665
+  tps: 223.38014
  }
 }
 dps_results: {
@@ -1254,15 +1254,15 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-Bearweave-Standard-shadowmeld-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 644.11602
-  tps: 833.14212
+  dps: 644.29968
+  tps: 833.52637
  }
 }
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-Bearweave-Standard-shadowmeld-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 644.11602
-  tps: 346.28897
+  dps: 644.29968
+  tps: 346.36183
  }
 }
 dps_results: {
@@ -1275,15 +1275,15 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-Bearweave-Standard-shadowmeld-NoBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 313.98543
-  tps: 223.66815
+  dps: 313.87359
+  tps: 223.58875
  }
 }
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-Bearweave-Standard-shadowmeld-NoBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 313.98543
-  tps: 223.66815
+  dps: 313.87359
+  tps: 223.58875
  }
 }
 dps_results: {
@@ -1380,15 +1380,15 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-DefaultTalents-BleedAssumed-shadowmeld-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 650.94008
-  tps: 836.53875
+  dps: 651.24314
+  tps: 836.98202
  }
 }
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-DefaultTalents-BleedAssumed-shadowmeld-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 650.94008
-  tps: 349.6856
+  dps: 651.24314
+  tps: 349.81748
  }
 }
 dps_results: {
@@ -1401,15 +1401,15 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-DefaultTalents-BleedAssumed-shadowmeld-NoBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 318.04489
-  tps: 226.56071
+  dps: 317.93614
+  tps: 226.4835
  }
 }
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-DefaultTalents-BleedAssumed-shadowmeld-NoBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 318.04489
-  tps: 226.56071
+  dps: 317.93614
+  tps: 226.4835
  }
 }
 dps_results: {
@@ -1506,15 +1506,15 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-DefaultTalents-PrepullClearcasting-shadowmeld-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 650.14973
-  tps: 833.38707
+  dps: 652.24814
+  tps: 833.1829
  }
 }
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-DefaultTalents-PrepullClearcasting-shadowmeld-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 650.14973
-  tps: 349.10436
+  dps: 652.24814
+  tps: 350.14574
  }
 }
 dps_results: {
@@ -1527,15 +1527,15 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-DefaultTalents-PrepullClearcasting-shadowmeld-NoBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 316.49781
-  tps: 225.46863
+  dps: 316.61084
+  tps: 225.54888
  }
 }
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-DefaultTalents-PrepullClearcasting-shadowmeld-NoBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 316.49781
-  tps: 225.46863
+  dps: 316.61084
+  tps: 225.54888
  }
 }
 dps_results: {
@@ -1632,15 +1632,15 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-DefaultTalents-Standard-shadowmeld-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 650.12801
-  tps: 836.13515
+  dps: 650.31372
+  tps: 836.5201
  }
 }
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-DefaultTalents-Standard-shadowmeld-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 650.12801
-  tps: 349.282
+  dps: 650.31372
+  tps: 349.35556
  }
 }
 dps_results: {
@@ -1653,15 +1653,15 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-DefaultTalents-Standard-shadowmeld-NoBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 317.03383
-  tps: 225.83969
+  dps: 316.92091
+  tps: 225.75952
  }
 }
 dps_results: {
  key: "TestFeralCat-Settings-NightElf-default-DefaultTalents-Standard-shadowmeld-NoBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 317.03383
-  tps: 225.83969
+  dps: 316.92091
+  tps: 225.75952
  }
 }
 dps_results: {
