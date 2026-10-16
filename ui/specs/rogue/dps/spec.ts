@@ -65,7 +65,7 @@ export default defineSpec<Spec.SpecRogue>({
 		// Default equipped gear.
 		gear: Presets.P1_SLOW_MH_GEAR.gear,
 		// Default EP weights for sorting gear in the gear picker.
-		epWeights: new Stats(),
+		epWeights: Presets.EP_PRESET_COMBAT_SINISTER.epWeights,
 		statCaps: (() => {
 			const expCap = new Stats().withPseudoStat(PseudoStat.PseudoStatExpertisePercent, 6.5);
 			return expCap;
@@ -146,7 +146,7 @@ export default defineSpec<Spec.SpecRogue>({
 	},
 
 	presets: {
-		epWeights: [],
+		epWeights: [Presets.EP_PRESET_ASSASSINATION, Presets.EP_PRESET_COMBAT_DAGS, Presets.EP_PRESET_COMBAT_SINISTER, Presets.EP_PRESET_SUBTLETY],
 		// Preset talents that the user can quickly select.
 		talents: [
 			Presets.TALENTS_MUTILATE_ASN,

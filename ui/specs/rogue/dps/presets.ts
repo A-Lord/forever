@@ -1,8 +1,9 @@
 import * as PresetUtils from '@app/preset_utils';
 import * as Consumables from '@features/settings/model/consumables_auto_gen';
-import { ConsumesSpec, Spec } from '@generated/proto/common';
+import { ConsumesSpec, PseudoStat, Spec, Stat } from '@generated/proto/common';
 import { Rogue_Options as RogueOptions, Rogue_Rotation as RogueRotation } from '@generated/proto/rogue';
 import { SavedTalents } from '@generated/proto/ui';
+import { Stats } from '@sim/proto/stats';
 
 import DefaultAPL from './apls/default.apl.json';
 import P1BsCombatGear from './gear_sets/p1_bscombat.gear.json';
@@ -66,6 +67,99 @@ export const P1_MUTI_GEAR = PresetUtils.makePresetGear('Mutilate', P1MutiGear);
 export const P1_SLOW_MH_GEAR = PresetUtils.makePresetGear('Slow Main Hand', P1SlowMhGear);
 export const P1_BS_SUB_GEAR = PresetUtils.makePresetGear('Backstab Subtlety', P1BsSubGear);
 
+// Preset options for EP weights
+export const EP_PRESET_COMBAT_SINISTER = PresetUtils.makePresetEpWeights(
+	'Combat Sinister',
+	Stats.fromMap(
+		{
+			[Stat.StatStamina]: 0.01,
+			[Stat.StatAgility]: 1.96,
+			[Stat.StatStrength]: 1.1,
+			[Stat.StatCritRating]: 1.7,
+			[Stat.StatHasteRating]: 1.72,
+			[Stat.StatHitRating]: 2.42,
+			[Stat.StatExpertiseRating]: 2.55,
+			[Stat.StatArmorPenetration]: 0.41,
+			[Stat.StatSpellPiercing]: 0.19,
+			[Stat.StatAttackPower]: 1.0,
+			[Stat.StatPhysicalDamage]: 7.97,
+		},
+		{
+			[PseudoStat.PseudoStatMainHandDps]: 10.57,
+			[PseudoStat.PseudoStatOffHandDps]: 2.93,
+		},
+	),
+);
+
+export const EP_PRESET_COMBAT_DAGS = PresetUtils.makePresetEpWeights(
+	'Combat Daggers',
+	Stats.fromMap(
+		{
+			[Stat.StatStamina]: 0.01,
+			[Stat.StatAgility]: 1.95,
+			[Stat.StatStrength]: 1.1,
+			[Stat.StatCritRating]: 1.68,
+			[Stat.StatHasteRating]: 1.7,
+			[Stat.StatHitRating]: 2.35,
+			[Stat.StatExpertiseRating]: 2.21,
+			[Stat.StatArmorPenetration]: 0.43,
+			[Stat.StatSpellPiercing]: 0.21,
+			[Stat.StatAttackPower]: 1.0,
+			[Stat.StatPhysicalDamage]: 9.9,
+		},
+		{
+			[PseudoStat.PseudoStatMainHandDps]: 10.18,
+			[PseudoStat.PseudoStatOffHandDps]: 2.97,
+		},
+	),
+);
+
+export const EP_PRESET_SUBTLETY = PresetUtils.makePresetEpWeights(
+	'Subtlety',
+	Stats.fromMap(
+		{
+			[Stat.StatStamina]: 0.01,
+			[Stat.StatAgility]: 1.93,
+			[Stat.StatStrength]: 1.1,
+			[Stat.StatCritRating]: 1.63,
+			[Stat.StatHasteRating]: 1.43,
+			[Stat.StatHitRating]: 2.12,
+			[Stat.StatExpertiseRating]: 2.42,
+			[Stat.StatArmorPenetration]: 0.33,
+			[Stat.StatSpellPiercing]: 0.16,
+			[Stat.StatAttackPower]: 1.0,
+			[Stat.StatPhysicalDamage]: 6.83,
+		},
+		{
+			[PseudoStat.PseudoStatMainHandDps]: 10.47,
+			[PseudoStat.PseudoStatOffHandDps]: 2.27,
+		},
+	),
+);
+
+export const EP_PRESET_ASSASSINATION = PresetUtils.makePresetEpWeights(
+	'Assassination',
+	Stats.fromMap(
+		{
+			[Stat.StatStamina]: 0.01,
+			[Stat.StatAgility]: 2.06,
+			[Stat.StatStrength]: 1.1,
+			[Stat.StatCritRating]: 2.02,
+			[Stat.StatHasteRating]: 1.93,
+			[Stat.StatHitRating]: 2.8,
+			[Stat.StatExpertiseRating]: 2.77,
+			[Stat.StatArmorPenetration]: 0.4,
+			[Stat.StatSpellPiercing]: 0.65,
+			[Stat.StatAttackPower]: 1.0,
+			[Stat.StatPhysicalDamage]: 10.55,
+		},
+		{
+			[PseudoStat.PseudoStatMainHandDps]: 8.44,
+			[PseudoStat.PseudoStatOffHandDps]: 4.16,
+		},
+	),
+);
+
 export const DefaultOptions = RogueOptions.create({
 	classOptions: {},
 });
@@ -101,6 +195,7 @@ export const PRESET_BUILD_MUTILATE_ASN = PresetUtils.makePresetBuild('Asn Muti',
 	rotation: SIMPLE_ROTATION,
 	gear: P1_MUTI_GEAR,
 	settings: IP_MH_Settings,
+	epWeights: EP_PRESET_ASSASSINATION,
 });
 
 export const PRESET_BUILD_MUTILATE_COM = PresetUtils.makePresetBuild('Combat Muti', {
@@ -108,6 +203,7 @@ export const PRESET_BUILD_MUTILATE_COM = PresetUtils.makePresetBuild('Combat Mut
 	rotation: SIMPLE_ROTATION,
 	gear: P1_MUTI_GEAR,
 	settings: IP_MH_Settings,
+	epWeights: EP_PRESET_COMBAT_DAGS,
 });
 
 export const PRESET_BUILD_COMBAT_SS = PresetUtils.makePresetBuild('Combat SS', {
@@ -115,6 +211,7 @@ export const PRESET_BUILD_COMBAT_SS = PresetUtils.makePresetBuild('Combat SS', {
 	rotation: SIMPLE_ROTATION,
 	gear: P1_SLOW_MH_GEAR,
 	settings: IP_MH_Settings,
+	epWeights: EP_PRESET_COMBAT_SINISTER,
 });
 
 export const PRESET_BUILD_COMBAT_BS = PresetUtils.makePresetBuild('Combat BS', {
@@ -122,6 +219,7 @@ export const PRESET_BUILD_COMBAT_BS = PresetUtils.makePresetBuild('Combat BS', {
 	rotation: SIMPLE_BACKSTAB_BUILD_ROTATION,
 	gear: P1_BS_COMBAT_GEAR,
 	settings: IP_MH_Settings,
+	epWeights: EP_PRESET_COMBAT_DAGS,
 });
 
 export const PRESET_BUILD_SUB_HEMO = PresetUtils.makePresetBuild('Subtlety Hemo', {
@@ -129,6 +227,7 @@ export const PRESET_BUILD_SUB_HEMO = PresetUtils.makePresetBuild('Subtlety Hemo'
 	rotation: SIMPLE_ROTATION,
 	gear: P1_SLOW_MH_GEAR,
 	settings: IP_MH_Settings,
+	epWeights: EP_PRESET_SUBTLETY,
 });
 
 export const PRESET_BUILD_SUB_BS = PresetUtils.makePresetBuild('Subtlety BS', {
@@ -136,6 +235,7 @@ export const PRESET_BUILD_SUB_BS = PresetUtils.makePresetBuild('Subtlety BS', {
 	rotation: SIMPLE_BACKSTAB_BUILD_ROTATION,
 	gear: P1_BS_SUB_GEAR,
 	settings: IP_MH_Settings,
+	epWeights: EP_PRESET_SUBTLETY,
 });
 
 export const OtherDefaults = {
