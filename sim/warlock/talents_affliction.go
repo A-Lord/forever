@@ -212,7 +212,7 @@ func (warlock *Warlock) applySoulHarvest() {
 	}
 }
 
-// Increases the range of your Affliction spells by X%.
+// Grim Reach raises the range of the Affliction spells by 10/20%, read from its row.
 func (warlock *Warlock) applyGrimReach() {
 	if warlock.Talents.GrimReach == 0 {
 		return
