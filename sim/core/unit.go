@@ -571,7 +571,7 @@ func (unit *Unit) ApplyCastSpeed(dur time.Duration) time.Duration {
 	return time.Duration(float64(dur) * unit.CastSpeed)
 }
 func (unit *Unit) ApplyCastSpeedForSpell(dur time.Duration, spell *Spell) time.Duration {
-	return time.Duration(float64(dur) * unit.CastSpeed * max(0, spell.CastTimeMultiplier))
+	return max(0, time.Duration(float64(dur)*unit.CastSpeed*max(0, spell.CastTimeMultiplier)))
 }
 
 // ApplyRangedSpeed applies ranged haste to a duration, for ranged abilities that should be affected by ranged haste
