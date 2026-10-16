@@ -424,11 +424,7 @@ func NewAttackTable(attacker *Unit, defender *Unit) *AttackTable {
 		levelDiff := combatLevelDiff(defender, attacker)
 		levelDelta := -0.002 * float64(levelDiff)
 
-		if levelDiff > 0 {
-			table.BaseSpellMissChance = 0.04 - 0.01*float64(levelDiff)
-		} else {
-			table.BaseSpellMissChance = spellMissChance(-levelDiff)
-		}
+		table.BaseSpellMissChance = spellMissChance(-levelDiff)
 		table.BaseCrushChance = TernaryFloat64(levelDiff >= 3, 0.15, 0)
 
 		table.MH = AttackTableHand{
@@ -449,13 +445,13 @@ func combatLevelDiff(attacker *Unit, defender *Unit) int32 {
 	return min(defender.Level-attacker.Level, 3)
 }
 
-// The level-based spell miss for the defender's level minus the attacker's: 4% at equal level, 5%, 6% and
-// 17% at +1, +2 and +3 and above, and one point less per level below, down to 0% at -4 and lower.
+// The level-based spell miss for the defender's level minus the attacker's: 4% at equal level, one point
+// per level either side, 0% at -4 and below, and 17% at +3 and above.
 func spellMissChance(levelDiff int32) float64 {
-	if levelDiff < 0 {
-		return max(0, 0.04+0.01*float64(levelDiff))
+	if levelDiff >= 3 {
+		return 0.17
 	}
-	return UnitLevelFloat64(levelDiff, 0.04, 0.05, 0.06, 0.17)
+	return max(0, 0.04+0.01*float64(levelDiff))
 }
 
 // The parts of an attack table that depend on the weapon skill of the attacking hand.

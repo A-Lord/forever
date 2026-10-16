@@ -61,7 +61,7 @@ type Pet struct {
 	inheritedStats        stats.Stats
 	statInheritanceAction *PendingAction
 
-	// A pet inherits its owner's melee speed and cast speed rather than
+	// A pet inherits its owner's melee, ranged and cast speed rather than
 	// having the haste aura applied to it.
 	dynamicMeleeSpeedInheritance   PetSpeedInheritance
 	inheritedMeleeSpeedMultiplier  float64
@@ -74,7 +74,7 @@ type Pet struct {
 	isDynamic bool
 	// If true the pet will automatically inherit the owner's melee speed
 	hasDynamicMeleeSpeedInheritance bool
-	// If true the pet will automatically inherit the owner's ranged speed
+	// If true the owner's ranged speed becomes the pet's melee speed
 	hasDynamicRangedSpeedInheritance bool
 	// If true the pet will automatically inherit the owner's cast speed
 	hasDynamicCastSpeedInheritance bool

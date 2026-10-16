@@ -56,7 +56,8 @@ func (hunter *Hunter) newHawks() []*HawkPet {
 		})}
 		addPetStatDependencies(&hawk.Character)
 		swing := petSwing
-		swing.SwingSpeed = 2.5 // In game 2.5 s over the owner's ranged speed: 2.277 s beside a 10% quiver, 1.764 s with Quick Shots too.
+		// 2.5 s in game, before the owner's ranged speed.
+		swing.SwingSpeed = 2.5
 		hawk.EnableAutoAttacks(hawk, core.AutoAttackOptions{
 			MainHand:       swing,
 			AutoSwingMelee: true,
