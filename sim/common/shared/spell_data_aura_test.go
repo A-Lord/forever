@@ -588,3 +588,46 @@ func TestNoModsArmorFromAnItemStaysOutOfThePercentArmorModifiers(t *testing.T) {
 		}
 	}
 }
+
+// An enchant's no-mods armor share reaches the wearer whole, past both the scaling of armor from items
+// and a percent armor modifier, while an enchant whose armor has no such share is scaled by both. The
+// wearer's neck doubles the armor from items and then doubles its armor; the amount is the armor Lesser
+// Arcane Amalgamation's equip spell 15390 states with A_MOD_ARMOR_NO_MODS.
+func TestNoModsArmorFromAnEnchantStaysOutOfEveryArmorScaling(t *testing.T) {
+	armor := spelldata.MustFind(15390).FirstAura(dbcenums.A_MOD_ARMOR_NO_MODS).BasePoints
+	needAmount(t, "15390's armor", armor)
+
+	const scaling = 2
+	const noModsEnchantID, plainEnchantID, chestID, neckID int32 = 992321, 992322, 992323, 992324
+	enchantArmor := stats.Stats{stats.Armor: armor}.ToProtoArray()
+	core.AddToDatabase(&proto.SimDatabase{
+		Items: []*proto.SimItem{
+			{Id: chestID, Name: "Test Chest", Type: proto.ItemType_ItemTypeChest,
+				ScalingOptions: map[int32]*proto.ScalingItemProperties{0: {}}},
+			{Id: neckID, Name: "Test Armor Scaling Neck", Type: proto.ItemType_ItemTypeNeck,
+				ScalingOptions: map[int32]*proto.ScalingItemProperties{0: {}}},
+		},
+		Enchants: []*proto.SimEnchant{
+			{EffectId: noModsEnchantID, Name: "Test No Mods Armor", Type: proto.ItemType_ItemTypeChest, Stats: enchantArmor, NoModsArmor: armor},
+			{EffectId: plainEnchantID, Name: "Test Armor", Type: proto.ItemType_ItemTypeChest, Stats: enchantArmor},
+		},
+	})
+	core.NewItemEffect(neckID, func(agent core.Agent) {
+		character := agent.GetCharacter()
+		character.ApplyEquipScaling(stats.Armor, scaling)
+		character.MultiplyStat(stats.Armor, scaling)
+	})
+
+	armorWith := func(enchantID int32) float64 {
+		player := shaman("Wearer", map[proto.ItemSlot]int32{proto.ItemSlot_ItemSlotChest: chestID, proto.ItemSlot_ItemSlotNeck: neckID})
+		player.Equipment.Items[proto.ItemSlot_ItemSlotChest].Enchant = enchantID
+		return auraTesterAt(newAuraSim(player), 0).GetStat(stats.Armor)
+	}
+	unenchanted := armorWith(0)
+	if got := armorWith(noModsEnchantID) - unenchanted; !core.WithinToleranceFloat64(armor, got, 1e-6) {
+		t.Errorf("the no-mods enchant added %v armor, want its %v unscaled", got, armor)
+	}
+	if got, want := armorWith(plainEnchantID)-unenchanted, armor*scaling*scaling; !core.WithinToleranceFloat64(want, got, 1e-6) {
+		t.Errorf("the plain armor enchant added %v armor, want its %v scaled to %v", got, armor, want)
+	}
+}

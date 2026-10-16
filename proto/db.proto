@@ -29,6 +29,7 @@ message SimEnchant {
 	repeated double pseudo_stats = 8; // Indexed by PseudoStat.
 	double weapon_damage = 9; // Flat damage on the enchanted weapon's minimum and maximum.
 	EnchantProcKind proc_kind = 10;
+	double no_mods_armor = 11; // See UIEnchant.no_mods_armor.
 }
 
 // Contains only the Item info needed by the sim.

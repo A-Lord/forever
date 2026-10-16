@@ -212,6 +212,9 @@ message UIEnchant {
 	Profession required_profession = 12;
 	repeated ItemEffect enchant_effects = 14;
 	EnchantProcKind proc_kind = 18;
+	// The share of the armor in stats that the enchant's equip spells state with A_MOD_ARMOR_NO_MODS,
+	// which neither the percent armor modifiers nor the scaling of armor from items touch; 0 for none.
+	double no_mods_armor = 19;
 }
 
 

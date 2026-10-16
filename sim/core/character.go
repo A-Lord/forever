@@ -272,6 +272,9 @@ func (character *Character) applyEquipment() {
 		panic("Equipment stats already applied to character!")
 	}
 	character.AddStats(character.EquipStats())
+	noModsArmor := character.Equipment.NoModsArmor()
+	character.AddUnmultiplied(stats.Armor, noModsArmor)
+	character.AddStat(stats.Armor, noModsArmor)
 	character.equipStatsApplied = true
 }
 

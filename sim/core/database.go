@@ -275,6 +275,7 @@ type Enchant struct {
 	EnchantType    proto.EnchantType
 	ExtraTypes     []proto.ItemType
 	ProcKind       proto.EnchantProcKind
+	NoModsArmor    float64 // The share of Stats' armor outside the percent armor modifiers and equip scaling; see Equipment.NoModsArmor.
 }
 
 func EnchantFromProto(pData *proto.SimEnchant) Enchant {
@@ -289,6 +290,7 @@ func EnchantFromProto(pData *proto.SimEnchant) Enchant {
 		EnchantType:    pData.EnchantType,
 		ExtraTypes:     append([]proto.ItemType(nil), pData.ExtraTypes...),
 		ProcKind:       pData.ProcKind,
+		NoModsArmor:    pData.NoModsArmor,
 	}
 }
 
@@ -697,6 +699,19 @@ func (equipment *Equipment) Stats(spec proto.Spec) stats.Stats {
 	return equipStats
 }
 
+// The armor the equipped enchants state with A_MOD_ARMOR_NO_MODS. Stats leaves it out, so the scaling
+// of armor from items never reaches it, and the character adds it as the share of armor the percent
+// armor modifiers leave alone.
+func (equipment *Equipment) NoModsArmor() float64 {
+	var armor float64
+	for _, item := range equipment {
+		if item.ID != 0 {
+			armor += item.Enchant.NoModsArmor
+		}
+	}
+	return armor
+}
+
 // Returns the base stats on the equipment. That is all stats without Enchants
 func ItemEquipmentBaseStats(item Item) stats.Stats {
 	equipStats := stats.Stats{}
@@ -726,6 +741,7 @@ func ItemEquipmentEnchantStats(item Item) stats.Stats {
 
 	equipStats := stats.Stats{}
 	equipStats = equipStats.Add(item.Enchant.Stats)
+	equipStats[stats.Armor] -= item.Enchant.NoModsArmor
 	equipStats = equipStats.Add(stats.FromPseudoStatsProto(item.Enchant.PseudoStats))
 	if item.TempEnchantStats != nil {
 		equipStats = equipStats.Add(*item.TempEnchantStats)

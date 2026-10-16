@@ -66,6 +66,7 @@ func init() {
 			EnchantType:    enchant.EnchantType,
 			ExtraTypes:     enchant.ExtraTypes,
 			ProcKind:       enchant.ProcKind,
+			NoModsArmor:    enchant.NoModsArmor,
 		}
 	}
 

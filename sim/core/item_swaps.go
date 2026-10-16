@@ -39,6 +39,10 @@ type ItemSwap struct {
 type ItemSwapStats struct {
 	allSlots    stats.Stats
 	weaponSlots stats.Stats
+
+	// The change in Equipment.NoModsArmor, which the stats above leave out.
+	allSlotsNoModsArmor    float64
+	weaponSlotsNoModsArmor float64
 }
 
 func (character *Character) enableItemSwap(itemSwap *proto.ItemSwap) {
@@ -391,6 +395,15 @@ func (swap *ItemSwap) SwapItems(sim *Simulation, swapSet proto.APLActionItemSwap
 	}
 	character.AddDynamicEquipStats(sim, statsToSwap)
 
+	noModsArmor := Ternary(isPrepull, swap.equipmentStats.allSlotsNoModsArmor, swap.equipmentStats.weaponSlotsNoModsArmor)
+	if swap.IsSwapped() {
+		noModsArmor = -noModsArmor
+	}
+	if noModsArmor != 0 {
+		character.AddUnmultiplied(stats.Armor, noModsArmor)
+		character.AddStatDynamic(sim, stats.Armor, noModsArmor)
+	}
+
 	if !isPrepull && !isReset && weaponSlotSwapped {
 		character.AutoAttacks.StopMeleeUntil(sim, sim.CurrentTime)
 		character.AutoAttacks.StopRangedUntil(sim, sim.CurrentTime)
@@ -498,6 +511,9 @@ func calcItemSwapStatsOffset(originalEquipment Equipment, swapEquipment Equipmen
 	return ItemSwapStats{
 		allSlots:    allSlotStats,
 		weaponSlots: weaponSlotStats,
+
+		allSlotsNoModsArmor:    swapStatEquipment.NoModsArmor() - originalEquipment.NoModsArmor(),
+		weaponSlotsNoModsArmor: weaponStatEquipment.NoModsArmor() - originalEquipment.NoModsArmor(),
 	}
 }
 

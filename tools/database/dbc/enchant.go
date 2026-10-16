@@ -255,5 +255,24 @@ func (enchant *Enchant) ToProtoWithSlots() (*proto.UIEnchant, []EnchantProcSlot)
 			uiEnchant.WeaponDamage += float64(enchant.EffectPoints[i])
 		}
 	}
+	uiEnchant.NoModsArmor = noModsArmor(enchant.Effects, effectArgs)
 	return uiEnchant, slots
+}
+
+// The armor that the enchant's folded equip spells state with A_MOD_ARMOR_NO_MODS on armor alone: the
+// share of its armor that no armor percentage or equip scaling touches.
+func noModsArmor(effects []int, effectArgs []int) float64 {
+	var armor float64
+	for i, effect := range effects {
+		if effect != ITEM_ENCHANTMENT_EQUIP_SPELL || !EquipSpellFolds(effectArgs[i]) {
+			continue
+		}
+		for _, e := range dbcInstance.SpellEffectsInOrder(effectArgs[i]) {
+			if e.EffectType == dbcenums.E_APPLY_AURA && e.EffectAura == dbcenums.A_MOD_ARMOR_NO_MODS &&
+				e.EffectMiscValues[0] == int(core.SpellSchoolPhysical) {
+				armor += e.EffectBasePoints + e.EffectDieSides
+			}
+		}
+	}
+	return armor
 }
