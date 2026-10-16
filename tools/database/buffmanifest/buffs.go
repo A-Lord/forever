@@ -143,6 +143,27 @@ var Raid = []BuffSpec{
 			proto.Stat_StatAttackPower,
 		},
 	},
+	// Melee and ranged crit only, so it stacks with Moonkin Aura's spell crit.
+	{
+		Field:      "leader_of_the_pack",
+		SpellID:    24932,
+		CastID:     17007,
+		Category:   "LeaderOfThePack",
+		SingleAura: true,
+		Stats: []proto.Stat{
+			proto.Stat_StatCritRating,
+		},
+	},
+	{
+		Field:      "moonkin_aura",
+		SpellID:    24907,
+		TooltipID:  24858,
+		Category:   "MoonkinAura",
+		SingleAura: true,
+		Stats: []proto.Stat{
+			proto.Stat_StatCritRating,
+		},
+	},
 	{
 		Field:   "aspect_of_the_wild",
 		SpellID: 20190,
@@ -183,18 +204,6 @@ var Party = []BuffSpec{
 			proto.Stat_StatArmor,
 		},
 	},
-	// A_MOD_CRIT_PCT names no school, so the 3 goes on every kind of crit. 17007 calls the aura
-	// exclusive with Moonkin Aura, which is the category the two share.
-	{
-		Field:      "leader_of_the_pack",
-		SpellID:    24932,
-		CastID:     17007,
-		Category:   "DruidCritAura",
-		SingleAura: true,
-		Stats: []proto.Stat{
-			proto.Stat_StatCritRating,
-		},
-	},
 	{
 		Field:    "mana_spring_totem",
 		SpellID:  10494,
@@ -216,17 +225,6 @@ var Party = []BuffSpec{
 			proto.Stat_StatMP5,
 		},
 		Label: "Mana Tide Totem",
-	},
-	// See leader_of_the_pack.
-	{
-		Field:      "moonkin_aura",
-		SpellID:    24907,
-		TooltipID:  24858,
-		Category:   "DruidCritAura",
-		SingleAura: true,
-		Stats: []proto.Stat{
-			proto.Stat_StatCritRating,
-		},
 	},
 	// Driven because the damage scales with the providing paladin's Holy spell power.
 	{

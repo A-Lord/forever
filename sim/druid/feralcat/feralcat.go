@@ -65,12 +65,12 @@ func (cat *FeralDruid) GetDruid() *druid.Druid {
 	return cat.Druid
 }
 
+// Leader of the Pack comes from the druid's own talent.
 func (cat *FeralDruid) AddRaidBuffs(raidBuffs *proto.RaidBuffs) {
+	cat.Druid.AddRaidBuffs(raidBuffs)
 }
 
-// Leader of the Pack comes from the druid's own talent.
-func (cat *FeralDruid) AddPartyBuffs(partyBuffs *proto.PartyBuffs) {
-	cat.Druid.AddPartyBuffs(partyBuffs)
+func (cat *FeralDruid) AddPartyBuffs(_ *proto.PartyBuffs) {
 }
 
 func (cat *FeralDruid) Initialize() {

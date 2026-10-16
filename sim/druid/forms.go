@@ -342,7 +342,7 @@ func (druid *Druid) RegisterMoonkinFormAura() {
 	}
 	druid.MoonkinFormAura = druid.registerFormAura(spellData.MoonkinForm.Highest(), druid.StartingForm.Matches(Moonkin))
 	// Moonkin Form (Passive) 24905 states the form's armor from items; its A_MOD_BONUS_ARMOR_PCT has no sim
-	// kind and is reported as skipped. The party crit of Moonkin Aura 24907 is the raid buff AddPartyBuffs
+	// kind and is reported as skipped. The spell crit of Moonkin Aura 24907 is the raid buff AddRaidBuffs
 	// turns on.
 	spelldata.ParseEffects(&druid.Character, druid.MoonkinFormAura, spellData.MoonkinFormTriggered.ByID(24905))
 	// Of the form's own effects only Omen of Clarity's proc chance and proc cooldown have a sim kind.

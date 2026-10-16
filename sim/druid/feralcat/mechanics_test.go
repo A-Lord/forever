@@ -404,8 +404,9 @@ func TestHowlingIdolShortensShiftingPower(t *testing.T) {
 	if !cat.ShiftingPower.Cast(sim, cat.CurrentTarget) {
 		t.Fatal("shifting power did not cast")
 	}
-	if got := cat.ShiftingPower.ReadyAt(); got != 15*time.Second {
-		t.Errorf("shifting power ready at %v with the idol, want 15s", got)
+	// 1291059 takes half a second off the 16 s cooldown.
+	if got := cat.ShiftingPower.ReadyAt(); got != 15500*time.Millisecond {
+		t.Errorf("shifting power ready at %v with the idol, want 15.5s", got)
 	}
 }
 

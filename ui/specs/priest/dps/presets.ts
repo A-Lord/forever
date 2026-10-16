@@ -49,11 +49,11 @@ export const DefaultRaidBuffs = RaidBuffs.create({
 	giftOfTheWild: true,
 	prayerOfFortitude: true,
 	prayerOfSpirit: true,
+	moonkinAura: true,
 });
 
 export const DefaultPartyBuffs = PartyBuffs.create({
 	manaSpringTotem: TristateEffect.TristateEffectRegular,
-	moonkinAura: true,
 });
 
 export const DefaultIndividualBuffs = IndividualBuffs.create({

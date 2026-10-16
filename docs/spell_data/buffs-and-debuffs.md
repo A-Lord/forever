@@ -346,13 +346,12 @@ Neither copy is permanent, and the two are worth the same unless one side wears 
 `TestPlayerBattleShoutTakesTheCategoryOnATie` holds the player's own copy to the tie and
 `TestTheStrongerBattleShoutTakesTheCategory` holds the stronger one to the rest. The rows this decides
 are `thorns`, `leader_of_the_pack`, `moonkin_aura` and `trueshot_aura`: `sim/druid/druid.go`,
-`sim/druid/feralcat` and `sim/druid/feralbear` raise the party's Leader of the Pack or Moonkin Aura
+`sim/druid/feralcat` and `sim/druid/feralbear` raise the raid's Leader of the Pack or Moonkin Aura
 from a talent, `sim/hunter/hunter.go` raises Trueshot Aura, and the druid's own Thorns waits on the
 druid port. `thorns`, `battle_shout`, `leader_of_the_pack` and `moonkin_aura` carry a category, so a
 druid registering its own copy of any of them has nothing to decide: the copy joins the same category
-and the two bid. The last two share one, `DruidCritAura`, because spell 17007 calls Leader of the
-Pack exclusive with Moonkin Aura. A druid's own cast of either joins it, so a party that ticks both and
-a druid who casts one are worth the game files' 3, not two threes. Only `trueshot_aura` is left
+and the two bid. Leader of the Pack and Moonkin Aura each have their own, since one raises melee and
+ranged crit and the other spell crit, so a raid that ticks both gets both. Only `trueshot_aura` is left
 without a category, so the hunter port has to choose. The priest's three prayers (`registerPrayer` in
 `sim/priest/priest.go`) bid without `SingleAura`: `prayer_of_fortitude` and `prayer_of_spirit` each
 stat on its own in `StatBuff`, with Arcane Brilliance and the scrolls, and `prayer_of_shadow_protection`
