@@ -750,3 +750,39 @@ func TestFurorBearTicksAndDirectTransitions(t *testing.T) {
 		t.Fatalf("Cat regeneration = %v, want 40", cat.CurrentEnergy())
 	}
 }
+
+func TestFaerieFireOmenEligibilityByForm(t *testing.T) {
+	for _, form := range []druid.DruidForm{druid.Humanoid, druid.Cat, druid.Bear, druid.DireBear} {
+		t.Run(fmt.Sprint(form), func(t *testing.T) {
+			sim, cat := newCat(t, furorTalents, nil)
+			cat.ClearForm(sim)
+			switch form {
+			case druid.Cat:
+				cat.CatFormAura.Activate(sim)
+			case druid.Bear:
+				cat.BearFormAura.Activate(sim)
+			case druid.DireBear:
+				cat.DireBearFormAura.Activate(sim)
+			}
+			procs := 0
+			cat.AutoAttacks.CancelAutoSwing(sim)
+			cat.ClearcastingAura.ApplyOnGain(func(_ *core.Aura, _ *core.Simulation) { procs++ })
+			for i := 0; i < 400; i++ {
+				sim.AddPendingAction(&core.PendingAction{NextActionAt: time.Duration(i+1) * 100 * time.Millisecond, OnAction: func(sim *core.Simulation) {
+					cat.ClearcastingAura.Deactivate(sim)
+					cat.OmenOfClarityAura.Icd.Set(0)
+					cat.FaerieFire.CalcAndDealOutcome(sim, cat.CurrentTarget, cat.FaerieFire.OutcomeAlwaysHit)
+				}})
+			}
+			for !sim.Step() {
+			}
+
+			if form == druid.Humanoid && procs == 0 {
+				t.Fatal("caster Faerie Fire never triggered Omen")
+			}
+			if form != druid.Humanoid && procs != 0 {
+				t.Fatalf("in-form Faerie Fire triggered Omen %d times", procs)
+			}
+		})
+	}
+}
