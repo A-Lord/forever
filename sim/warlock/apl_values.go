@@ -48,8 +48,8 @@ func (x *APLValueWarlockAssignedCurseIsActive) GetBool(sim *core.Simulation) boo
 	}
 	target := x.target.Get()
 
-	// This warlock's own copies of the curse, plain or amplified: either one up is the curse up. The warlock
-	// cast it, so it counts as up the moment it lands, with no reaction time.
+	// This warlock's own copy of the curse. The warlock cast it, so it counts as up the moment it lands, with
+	// no reaction time.
 	for _, auras := range x.spell.RelatedAuraArrays {
 		if aura := auras.Get(target); aura.IsActive() {
 			return true
