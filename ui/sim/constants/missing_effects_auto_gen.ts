@@ -2285,6 +2285,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 			"Slows nearby enemies by 50% for 10s, increased to 80% in Desert areas.", // 1320579 - https://www.wowhead.com/forever/spell=1320579
 		]
 	],
+	[
+		286982, // Unearthed Barrier
+		[
+			"Deals 22 Nature damage every time you block. Damage is doubled in swamps.", // 1324685 - https://www.wowhead.com/forever/spell=1324685
+		]
+	],
 ])
 
 export const MISSING_ENCHANT_EFFECTS = new Map<number, string[]>([
