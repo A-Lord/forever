@@ -231,8 +231,8 @@ func (mage *Mage) registerArcaneWrathTalent() {
 // "Gives your Arcane Blast spell a 20/40% chance, and your Arcane Wrath, Fireball, Frostbolt, and
 // Frostfire Bolt spells a 10/20% chance to reduce the channeled duration of your next Arcane Missiles
 // spell by 50%, reduce the Mana cost by 100%, and missiles fire every 0.5 sec." Arcane Missile hits
-// and Frost Blast proc it too, which the tooltip does not say. Both are unconfirmed and stay until
-// tested in game: the Missiles rate below, Frost Blast in #476.
+// and Frost Blast proc it too, which the tooltip does not say. Frost Blast proccing it is confirmed
+// in game.
 func (mage *Mage) registerMissileBarrage() {
 	if mage.Talents.MissileBarrage == 0 {
 		return
@@ -268,8 +268,8 @@ func (mage *Mage) registerMissileBarrage() {
 			}
 		}, spelldata.Chance(1))
 	trigger.Name = "Missile Barrage - Trigger"
-	// Frost Blast at Frostbolt's half chance, from the note giving it every talent that affects
-	// Frostbolt; unconfirmed (#476).
+	// Frost Blast at Frostbolt's half chance, from the 15 October 2026 patch note giving it every
+	// talent that affects Frostbolt.
 	trigger.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
 		return spellData.ArcaneBlast.Contains(spell) || spellData.ArcaneWrath.Contains(spell) || spellData.Fireball.Contains(spell) ||
 			spellData.Frostbolt.Contains(spell) || spellData.FrostBlast.Contains(spell) || spellData.FrostfireBolt.Contains(spell)
