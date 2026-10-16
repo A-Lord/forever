@@ -137,7 +137,6 @@ func (warlock *Warlock) applyImprovedSayaad() {
 // the Felhunter health every 4 sec (18790), which does not affect sims. The demon sacrificed before the
 // fight (settled in resolveSacrifice) is sacrificed at the start; casting the talent's spell (18788)
 // sacrifices the demon out. The row states no cast time, cost or cooldown.
-// TODO: Looking for a way to nicely correlate demons/buffs for frontend display in warlock settings.
 func (warlock *Warlock) applyDemonicSacrifice() {
 	if !warlock.Talents.DemonicSacrifice {
 		return
@@ -198,6 +197,8 @@ func (warlock *Warlock) applyDemonicSacrifice() {
 	}
 	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, _ *core.Spell) {
 		pet := warlock.ActivePet
+		// Before the dismissal, so a summon's stun ending does not set the sacrificed demon's swings going again
+		pet.summonStun.Deactivate(sim)
 		pet.Disable(sim)
 		warlock.ActivePet = nil
 
