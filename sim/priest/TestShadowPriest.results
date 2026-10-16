@@ -2,7 +2,7 @@ character_stats_results: {
  key: "TestShadowPriest-CharacterStats-Default"
  value: {
   final_stats: 115
-  final_stats: 63
+  final_stats: 161
   final_stats: 273
   final_stats: 348
   final_stats: 307
@@ -28,7 +28,7 @@ character_stats_results: {
   final_stats: 0
   final_stats: 0
   final_stats: 0
-  final_stats: 1748
+  final_stats: 1944
   final_stats: 70
   final_stats: 3947
   final_stats: 6316
@@ -41,12 +41,12 @@ character_stats_results: {
   final_stats: 0
   final_stats: 1
   final_stats: 1
-  final_stats: 9.65
+  final_stats: 14.55
   final_stats: 13.1464
   final_stats: 0
   final_stats: 0
   final_stats: 0
-  final_stats: 6.15
+  final_stats: 11.05
   final_stats: 0
   final_stats: 0
   final_stats: 0

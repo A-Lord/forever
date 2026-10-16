@@ -487,9 +487,9 @@ func measureGeneratedBuffStats(char *core.Character) {
 	char.SetStats(char.SortAndApplyStatDependencies(char.GetStats()).FloorGameStats())
 }
 
-// Grace of Air stands for the fight on its own, and gives way to Windfury
-// Totem: under both, the party gets no agility from it.
-func TestGeneratedGraceOfAirGivesWayToWindfuryTotem(t *testing.T) {
+// Grace of Air stands for the fight, and as of 1.60.1.70425 stacks with
+// Windfury Totem: under both, the party still gets its agility.
+func TestGeneratedGraceOfAirStacksWithWindfuryTotem(t *testing.T) {
 	standing := core.NewGeneratedBuffTestCharacter()
 	core.ApplyBuffEffects(standing,
 		&proto.RaidBuffs{GraceOfAirTotem: true}, &proto.PartyBuffs{}, &proto.IndividualBuffs{})
@@ -518,11 +518,11 @@ func TestGeneratedGraceOfAirGivesWayToWindfuryTotem(t *testing.T) {
 		&proto.PartyBuffs{}, &proto.IndividualBuffs{})
 	underWindfury.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
 
-	if got := underWindfury.GetStats()[stats.Agility]; got != 0 {
-		t.Errorf("under Windfury Totem the totem applied %v agility, want none", got)
+	if got, want := underWindfury.GetStats()[stats.Agility], graceOfAirTotemAgility(t); got != want {
+		t.Errorf("under Windfury Totem the totem applied %v agility, want the game files' %v", got, want)
 	}
-	if underWindfury.GetAura("Grace of Air Totem (External)") != nil {
-		t.Error("under Windfury Totem the totem registered its aura")
+	if underWindfury.GetAura("Grace of Air Totem (External)") == nil {
+		t.Errorf("under Windfury Totem no aura is labelled %q; the unit has %v", "Grace of Air Totem (External)", auraLabels(underWindfury))
 	}
 }
 
@@ -1234,9 +1234,9 @@ func newTotemSim(t *testing.T, raid *proto.RaidBuffs, setup func(c *core.Charact
 var graceOfAirAgility = core.ExclusiveStatCategory(buffs.GraceOfAirTotemCategory, stats.Agility.StatName(), false)
 
 // A Windfury Totem of the shaman's own casting stands only part of the fight:
-// while it is down, the party's Grace of Air and Flametongue Totem work, and
-// while it stands, neither does.
-func TestGeneratedOwnWindfuryTotemHoldsOverThePartysTotems(t *testing.T) {
+// while it stands, the party's Flametongue Totem does nothing, and the party's
+// Grace of Air keeps its agility throughout.
+func TestGeneratedOwnWindfuryTotemHoldsOverThePartysFlametongueTotem(t *testing.T) {
 	var windfury *core.Aura
 	sim, char := newTotemSim(t, &proto.RaidBuffs{GraceOfAirTotem: true, FlametongueTotem: true}, func(c *core.Character) {
 		windfury = standWindfuryTotem(c)
@@ -1252,17 +1252,12 @@ func TestGeneratedOwnWindfuryTotemHoldsOverThePartysTotems(t *testing.T) {
 	}
 
 	windfury.Activate(sim)
-	if agility.GetActiveAura() == graceOfAir {
-		t.Error("under the shaman's Windfury Totem, Grace of Air still holds the agility")
-	}
-	if got, want := before-char.GetStats()[stats.Agility], graceOfAirTotemAgility(t); got != want {
-		t.Errorf("the totem took %v agility away, want Grace of Air's %v", got, want)
+	if agility.GetActiveAura() != graceOfAir || char.GetStats()[stats.Agility] != before {
+		t.Errorf("under the shaman's Windfury Totem the agility is held by %v at %v, want Grace of Air at %v",
+			agility.GetActiveAura(), char.GetStats()[stats.Agility], before)
 	}
 	if flametongue.IsActive() {
 		t.Error("under the shaman's Windfury Totem, Flametongue Totem's trigger is up")
-	}
-	if !graceOfAir.IsActive() {
-		t.Error("the party's Grace of Air went down, want it standing and doing nothing")
 	}
 
 	windfury.Deactivate(sim)
@@ -1275,9 +1270,9 @@ func TestGeneratedOwnWindfuryTotemHoldsOverThePartysTotems(t *testing.T) {
 	}
 }
 
-// The party's Windfury Totem holds over the shaman's own Grace of Air and
-// Flametongue Totem: each stands and does nothing.
-func TestGeneratedPartyWindfuryTotemHoldsOverOwnTotems(t *testing.T) {
+// The party's Windfury Totem holds over the shaman's own Flametongue Totem,
+// which stands and does nothing, and stacks with the shaman's own Grace of Air.
+func TestGeneratedPartyWindfuryTotemHoldsOverOwnFlametongueTotem(t *testing.T) {
 	var graceOfAir, flametongue *core.Aura
 	sim, char := newTotemSim(t, &proto.RaidBuffs{WindfuryTotem: true}, func(c *core.Character) {
 		graceOfAir = buffs.NewSpellDataGraceOfAirTotemAura(&c.Unit, true, 0)
@@ -1291,8 +1286,8 @@ func TestGeneratedPartyWindfuryTotemHoldsOverOwnTotems(t *testing.T) {
 	if !graceOfAir.IsActive() || !flametongue.IsActive() {
 		t.Fatalf("Grace of Air is up %v and Flametongue Totem %v, want both standing", graceOfAir.IsActive(), flametongue.IsActive())
 	}
-	if got := char.GetStats()[stats.Agility]; got != before {
-		t.Errorf("the shaman's Grace of Air moved agility from %v to %v under the party's Windfury Totem", before, got)
+	if got, want := char.GetStats()[stats.Agility]-before, graceOfAirTotemAgility(t); got != want {
+		t.Errorf("the shaman's Grace of Air added %v agility under the party's Windfury Totem, want the game files' %v", got, want)
 	}
 	if char.GetAura("Flametongue Totem Trigger").IsActive() {
 		t.Error("the shaman's Flametongue Totem turned its trigger on under the party's Windfury Totem")

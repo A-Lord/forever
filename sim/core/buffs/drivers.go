@@ -19,7 +19,7 @@ import (
 // hands the driver the *Character the buffs are applied to and the message its
 // field lives on, a debuff-scope row the *Unit the debuffs land on plus the
 // debuffs and the raid. The driver reads its own field out of the message, and
-// any other field it needs: Grace of Air does nothing under Windfury Totem.
+// any other field it needs: Flametongue Totem does nothing under Windfury Totem.
 
 // Three pieces of Battlegear of Wrath are worth 30 more attack power on Battle
 // Shout: item set 218's ItemSetSpell at three pieces is 23563, which adds a flat
@@ -223,12 +223,11 @@ func standWindfuryTotem(char *core.Character) *core.Aura {
 
 const windfuryTotemTriggerLabel = "Windfury Totem Trigger"
 
-// Windfury Totem does not stack with Flametongue Totem or Grace of Air Totem:
-// while it stands, it outbids Flametongue Totem's proc and the agility of Grace
-// of Air, the one stat its row adds, whoever stands each totem.
+// Windfury Totem does not stack with Flametongue Totem: while it stands, it
+// outbids Flametongue Totem's proc, whoever stands each totem. Grace of Air
+// Totem stacks with it as of 1.60.1.70425.
 var windfuryTotemHoldsOver = []string{
 	FlametongueTotemCategory,
-	core.ExclusiveStatCategory(GraceOfAirTotemCategory, stats.Agility.StatName(), false),
 }
 
 // The Windfury Totem proc on the character's main hand, inactive until a totem
@@ -379,15 +378,6 @@ func NewFlametongueTotemProcTrigger(char *core.Character) *core.Aura {
 	trigger.TriggerImmediately = true
 	trigger.ProcMask &= core.ProcMaskMeleeMH
 	return char.MakeProcTriggerAura(trigger)
-}
-
-// Windfury Totem and Grace of Air Totem do not stack: under both, Windfury
-// Totem holds and Grace of Air does nothing.
-func driveGraceOfAirTotem(char *core.Character, raid *proto.RaidBuffs) {
-	if raid.WindfuryTotem {
-		return
-	}
-	standTotem(char, graceOfAirTotemSpell, NewSpellDataGraceOfAirTotemAura, 0)
 }
 
 // The party's Retribution Aura is the top rank, and its damage carries the

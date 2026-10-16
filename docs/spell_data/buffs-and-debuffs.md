@@ -220,7 +220,7 @@ A row the generator cannot express outright either states `Driver: true` or is a
 needs one, and the apply block calls `drive<Go>` instead. The contract is in
 `sim/core/buffs/drivers.go`: a buff row's driver takes the `*Character` and the whole scope message,
 and a debuff row's takes the `*Unit`, the debuffs and the raid. Because the driver gets the whole
-message, Grace of Air can read `raid.WindfuryTotem`. The driver builds the generated aura with its
+message, Flametongue Totem can read `raid.WindfuryTotem`. The driver builds the generated aura with its
 `NewSpellData...` constructor and adds what the game files do not state: a proc trigger, a cooldown, a
 delay, the metrics of a regen. The row compiles once the function is declared.
 
@@ -230,15 +230,15 @@ A true pet stands under every totem its owner does whose aura a pet may carry, w
 exclusivity; a guardian (`PetConfig.IsGuardian`) stands under none. The apply block of a totem row that no driver handles calls
 `standTotem` in `sim/core/buffs/totems.go`, which makes the owner's copy permanent and builds the same
 constructor on each true pet's unit, so the pet's copy bids in the same categories on the pet. The
-four driven totems pass their pet copies to `inheritTotem` themselves: Mana Tide's copy of the
-external cooldown's aura, Grace of Air's through `standTotem`, and the weapon totems' whole chain
-(totem aura, category bid and proc) on the pet's character, for a pet that melees. Grace of Air and
-Flametongue Totem do nothing under Windfury Totem.
+three driven totems pass their pet copies to `inheritTotem` themselves: Mana Tide's copy of the
+external cooldown's aura, and the weapon totems' whole chain (totem aura, category bid and proc) on the
+pet's character, for a pet that melees. Flametongue Totem does nothing under Windfury Totem; Grace of
+Air stacks with it as of 1.60.1.70425.
 
 The exception is a totem whose aura spell sets the only on player bit of Attributes[3]
 (`ATTR_EX_3_ONLY_ON_PLAYER`, read by `Spell.OnlyOnPlayers`): a target that is not a player is invalid,
 so `inheritTotem` gives no pet a copy. Every caller passes the spell the check reads: the row's own
-spell for Mana Tide, Grace of Air and every generated totem, and the raid aura (10612, 15036) for a
+spell for Mana Tide and every generated totem, and the raid aura (10612, 15036) for a
 weapon totem. Strength of Earth, Grace of Air, Windfury Totem and Flametongue Totem set the bit, so a
 pet carries none of them.
 
