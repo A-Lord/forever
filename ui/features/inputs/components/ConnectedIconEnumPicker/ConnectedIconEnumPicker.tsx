@@ -1,4 +1,6 @@
+import { actionIdHref } from '@sim/hooks/useActionId';
 import { useActionIds } from '@sim/hooks/useActionIds';
+import { useActionIdWowheadDatasets } from '@sim/hooks/useActionIdWowheadDatasets';
 import { useResolvedIcon } from '@sim/hooks/useResolvedIcon';
 import { IconEnumPicker } from '@ui-kit/IconEnumPicker';
 import { useState } from 'react';
@@ -38,9 +40,19 @@ export const ConnectedIconEnumPicker = <ModObject, T>({ modObject, config, testI
 	const selected = values.find(valueConfig => config.equals(valueConfig.value, value));
 	const [selectedIcon] = useActionIds([selected && shows(selected) ? selected.actionId : undefined]);
 	const icons = useActionIds(values.map(valueConfig => (openings > 0 && shows(valueConfig) ? valueConfig.actionId : undefined)));
+	const buffDatasets = useActionIdWowheadDatasets(
+		values.map(valueConfig => ((openings > 0 || valueConfig === selected) && shows(valueConfig) ? valueConfig.buffActionId : undefined)),
+		true,
+	);
 	const backupIcon = useResolvedIcon(selected ? undefined : config.backupIconUrl?.(value));
 
 	if (hidden) return null;
+
+	const iconOf = (valueConfig: IconEnumValueConfig<ModObject, T>, index: number) => {
+		const icon = icons[index] ?? (valueConfig === selected ? selectedIcon : undefined);
+		if (!icon || !valueConfig.buffActionId) return icon;
+		return { ...icon, href: actionIdHref(valueConfig.buffActionId) || undefined };
+	};
 
 	return (
 		<IconEnumPicker
@@ -48,11 +60,12 @@ export const ConnectedIconEnumPicker = <ModObject, T>({ modObject, config, testI
 			testId={testId}
 			options={values.map((valueConfig, index) => ({
 				value: valueConfig.value,
-				icon: icons[index] ?? (valueConfig === selected ? selectedIcon : undefined),
+				icon: iconOf(valueConfig, index),
 				color: valueConfig.color,
 				iconUrl: valueConfig.iconUrl,
 				text: valueConfig.text,
 				tooltip: valueConfig.tooltip,
+				wowhead: buffDatasets[index],
 				hidden: !shows(valueConfig),
 			}))}
 			equals={config.equals}

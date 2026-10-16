@@ -18,6 +18,8 @@ export interface IconEnumOption<T> {
 	text?: string;
 	// Hover tooltip.
 	tooltip?: string;
+	// The `data-wowhead` tooltip attributes, spread onto the option's swatch, and onto the trigger's while it is selected.
+	wowhead?: Record<string, string>;
 	// A hidden option is left out of the menu, and selecting its value shows as no selection.
 	hidden?: boolean;
 }
