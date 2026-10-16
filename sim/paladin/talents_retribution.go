@@ -151,6 +151,7 @@ func (paladin *Paladin) applySanctifiedJudgement() {
 	}
 
 	manaMetrics := paladin.NewManaMetrics(core.ActionID{SpellID: spellData.SanctifiedJudgement.Highest().ID})
+	manaMetrics.NoThreat = spellData.SanctifiedJudgementTriggered.Highest().GeneratesNoThreat()
 	refund := spellData.SanctifiedJudgement.EffectAt(2).FractionAt(paladin.Talents.SanctifiedJudgement)
 
 	paladin.MakeProcTriggerAura(core.ProcTrigger{

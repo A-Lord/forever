@@ -124,6 +124,7 @@ type generatedSpellData struct {
 	SacredDuty                    spelldata.Ladder
 	Salvation                     spelldata.Ladder
 	SanctifiedJudgement           spelldata.Ladder
+	SanctifiedJudgementTriggered  spelldata.Ladder
 	SealOfCommand                 spelldata.Ladder
 	SealOfCommandTriggered        spelldata.Ladder
 	SealOfFury                    spelldata.Ladder
@@ -266,6 +267,7 @@ var spellData = generatedSpellData{
 	SacredDuty:                    spelldata.Talent(1224697, 2),
 	Salvation:                     spelldata.Ranked(1038),
 	SanctifiedJudgement:           spelldata.Talent(1311074, 3),
+	SanctifiedJudgementTriggered:  spelldata.Ranked(1311077),
 	SealOfCommand:                 spelldata.Ranked(20375, 20915, 20918, 20919, 20920),
 	SealOfCommandTriggered:        spelldata.Ranked(20424, 20467, 20963, 20964, 20965, 20966),
 	SealOfFury:                    spelldata.Ranked(1311649, 1311656, 20163, 20419, 20421, 20422, 20423),
