@@ -229,9 +229,10 @@ func (paladin *Paladin) applyReckoning() {
 	// Reckoning, at the same target. The copies spend none.
 	var extraAttack *core.Spell
 	paladin.MakeProcTriggerAura(core.ProcTrigger{
-		Name:     "Reckoning - Swing" + paladin.Label,
-		Callback: core.CallbackOnSpellHitDealt,
-		ProcMask: core.ProcMaskMeleeMHAuto,
+		Name:               "Reckoning - Swing" + paladin.Label,
+		Callback:           core.CallbackOnSpellHitDealt,
+		ProcMask:           core.ProcMaskMeleeMHAuto,
+		TriggerImmediately: true,
 		ExtraCondition: func(_ *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
 			return extraAttack != nil && spell != extraAttack && stored.IsActive()
 		},
@@ -240,6 +241,9 @@ func (paladin *Paladin) applyReckoning() {
 			stored.Deactivate(sim)
 			target := result.Target
 			sim.RunAfterCurrentEvent(func(sim *core.Simulation) {
+				mainHand := paladin.AutoAttacks.MHAuto()
+				extraAttack.SetSpellSchool(mainHand.SpellSchool)
+				extraAttack.BonusCoefficient = mainHand.BonusCoefficient
 				for range count {
 					extraAttack.Cast(sim, target)
 				}
