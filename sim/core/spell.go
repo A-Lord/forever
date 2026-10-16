@@ -168,7 +168,8 @@ type Spell struct {
 	BonusExpertisePercent    float64
 	CastTimeMultiplier       float64
 	CdMultiplier             float64       // The product of the nonzero cooldown multiplier mods; CooldownMultiplier reads it.
-	cdMultiplierZeroes       int32         // Active cooldown multiplier mods of 0, which remove the cooldown and cannot be divided back out.
+	cdMultiplierZeroes       int32         // Active cooldown multiplier mods of 0 or below, which remove the cooldown and cannot be divided back out.
+	cdFlatDeficit            time.Duration // How far the flat cooldown mods take the cooldown below 0, where CD.Duration stops.
 	GCDMultiplier            float64       // Scales DefaultCast.GCD, after the flat GCD mods and before haste and the GCD minimum; 1 = unmodified. Fed by SpellMod_GlobalCooldown_Pct.
 	unscaledGCD              time.Duration // DefaultCast.GCD is rewritten from this on every GCD mod, so a direct write there is lost.
 	RangeMultiplier          float64       // Scales MaxRange, after the flat range mods; 1 = unmodified. Fed by SpellMod_Range_Pct.
