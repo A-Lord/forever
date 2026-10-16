@@ -237,7 +237,7 @@ dps_results: {
  value: {
   dps: 435.55993
   tps: 939.15818
-  dtps: 321.669
+  dtps: 321.69456
   hps: 16.4
  }
 }
@@ -253,9 +253,9 @@ dps_results: {
 dps_results: {
  key: "TestProtectionWarrior-AllItems-CloakofFlames-3475"
  value: {
-  dps: 435.98728
-  tps: 939.79707
-  dtps: 321.2867
+  dps: 441.11758
+  tps: 951.45177
+  dtps: 319.87192
   hps: 16.4
  }
 }
@@ -1045,9 +1045,9 @@ dps_results: {
 dps_results: {
  key: "TestProtectionWarrior-AllItems-RingofSaviors-1447"
  value: {
-  dps: 425.63459
-  tps: 913.92411
-  dtps: 319.81864
+  dps: 425.18079
+  tps: 912.43586
+  dtps: 319.757
   hps: 16.4
  }
 }
@@ -1207,9 +1207,9 @@ dps_results: {
 dps_results: {
  key: "TestProtectionWarrior-AllItems-TheGreenTower-1204"
  value: {
-  dps: 444.98936
-  tps: 959.90672
-  dtps: 346.34005
+  dps: 447.33034
+  tps: 965.21213
+  dtps: 346.24128
   hps: 16.4
  }
 }

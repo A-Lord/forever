@@ -117,6 +117,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDpsWarrior-AllItems-BladeofHanna-2801"
+ value: {
+  dps: 407.34879
+  tps: 239.47276
+  dtps: 3.05866
+ }
+}
+dps_results: {
  key: "TestDpsWarrior-AllItems-BlazefuryMedallion-17111"
  value: {
   dps: 424.23759
@@ -175,9 +183,9 @@ dps_results: {
 dps_results: {
  key: "TestDpsWarrior-AllItems-CloakofFlames-3475"
  value: {
-  dps: 407.34879
-  tps: 239.47276
-  dtps: 2.97628
+  dps: 408.27549
+  tps: 239.98455
+  dtps: 3.05866
  }
 }
 dps_results: {

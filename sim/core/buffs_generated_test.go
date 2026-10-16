@@ -874,18 +874,17 @@ func TestGeneratedWindfuryTotemSpendsItsChargesOnTheHitThenTheExtraAttack(t *tes
 		for _, unit := range slices.Concat(sim.Raid.AllUnits, sim.Encounter.AllTargetUnits) {
 			unit.AutoAttacks.CancelAutoSwing(sim)
 		}
-		pet := owner.pet
-		trigger := pet.GetAura("Windfury Totem Trigger")
-		proc := pet.GetAura("Windfury Totem (External)")
+		trigger := owner.GetAura("Windfury Totem Trigger")
+		proc := owner.GetAura("Windfury Totem (External)")
 		if trigger == nil || proc == nil || !trigger.IsActive() {
-			t.Fatalf("the pet's trigger is %v and proc %v, want both registered and the trigger up", trigger, proc)
+			t.Fatalf("the trigger is %v and proc %v, want both registered and the trigger up", trigger, proc)
 		}
 		if proc.MaxStacks < 2 {
 			t.Fatalf("the proc holds %d charges, want at least 2", proc.MaxStacks)
 		}
-		extraAttack := pet.GetSpell(pet.AutoAttacks.MHAuto().ActionID.WithTag(proc.ActionID.SpellID))
+		extraAttack := owner.GetSpell(owner.AutoAttacks.MHAuto().ActionID.WithTag(proc.ActionID.SpellID))
 		if extraAttack == nil {
-			t.Fatal("the pet registered no extra attack under the totem's tag")
+			t.Fatal("no extra attack is registered under the totem's tag")
 		}
 		var changes []int32
 		proc.ApplyOnStacksChange(func(_ *core.Aura, _ *core.Simulation, oldStacks int32, newStacks int32) {
@@ -1700,6 +1699,10 @@ func init() {
 				IsDynamic: true,
 			})}
 			owner.AddPet(owner.dynamic)
+			owner.EnableAutoAttacks(owner, core.AutoAttackOptions{
+				MainHand:       core.Weapon{BaseDamageMin: 10, BaseDamageMax: 20, SwingSpeed: 2, NormalizedSwingSpeed: 2},
+				AutoSwingMelee: true,
+			})
 			return owner
 		},
 		func(player *proto.Player, spec interface{}) {
@@ -1761,8 +1764,8 @@ func setupPetOwnerSim(party *proto.PartyBuffs) (*core.Simulation, *petOwner) {
 }
 
 // A true pet stands under its owner's totems with the owner's exclusivity, except those whose aura
-// only a player can carry: it has Mana Spring and, under Windfury Totem, the totem's proc, but never
-// Strength of Earth or Grace of Air. A guardian stands under none of them.
+// only a player can carry: it has Mana Spring, but never Strength of Earth, Grace of Air or Windfury
+// Totem's proc. A guardian stands under none of them.
 func TestTruePetsStandUnderTheOwnersTotems(t *testing.T) {
 	for _, tc := range []struct {
 		name     string
@@ -1770,7 +1773,7 @@ func TestTruePetsStandUnderTheOwnersTotems(t *testing.T) {
 		windfury bool
 	}{
 		{"grace of air", &proto.PartyBuffs{ManaSpringTotem: proto.TristateEffect_TristateEffectRegular, StrengthOfEarthTotem: true, GraceOfAirTotem: true}, false},
-		{"windfury", &proto.PartyBuffs{ManaSpringTotem: proto.TristateEffect_TristateEffectRegular, StrengthOfEarthTotem: true, GraceOfAirTotem: true, WindfuryTotem: true}, true},
+		{"windfury", &proto.PartyBuffs{ManaSpringTotem: proto.TristateEffect_TristateEffectRegular, StrengthOfEarthTotem: true, GraceOfAirTotem: true, WindfuryTotem: true}, false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			_, owner := setupPetOwnerSim(tc.party)

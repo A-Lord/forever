@@ -139,8 +139,8 @@ dps_results: {
 dps_results: {
  key: "TestBalance-AllItems-CloakofFlames-3475"
  value: {
-  dps: 586.52195
-  tps: 417.80731
+  dps: 586.57131
+  tps: 417.89923
  }
 }
 dps_results: {
@@ -603,6 +603,13 @@ dps_results: {
  value: {
   dps: 552.96858
   tps: 394.31995
+ }
+}
+dps_results: {
+ key: "TestBalance-AllItems-LordSakrasis'Scepter-5028"
+ value: {
+  dps: 606.88338
+  tps: 432.20781
  }
 }
 dps_results: {

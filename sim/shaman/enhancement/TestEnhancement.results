@@ -167,9 +167,9 @@ dps_results: {
 dps_results: {
  key: "TestEnhancement-AllItems-CloakofFlames-3475"
  value: {
-  dps: 687.90794
-  tps: 363.17593
-  dtps: 11.36717
+  dps: 692.55514
+  tps: 365.32455
+  dtps: 10.94452
  }
 }
 dps_results: {
@@ -425,8 +425,8 @@ dps_results: {
 dps_results: {
  key: "TestEnhancement-AllItems-FieryWarAxe-870"
  value: {
-  dps: 698.98548
-  tps: 368.43071
+  dps: 704.67654
+  tps: 371.21933
   dtps: 11.03495
  }
 }
@@ -673,9 +673,9 @@ dps_results: {
 dps_results: {
  key: "TestEnhancement-AllItems-RingofSaviors-1447"
  value: {
-  dps: 689.81756
-  tps: 364.06367
-  dtps: 11.60812
+  dps: 689.29372
+  tps: 363.85387
+  dtps: 11.63217
  }
 }
 dps_results: {

@@ -217,20 +217,6 @@ var Spells = []Override{
 		Source:  "owner decision, PR #99",
 	},
 	{
-		SpellID: 1299796,
-		Field:   StatMask,
-		Value:   16, // TODO: Verify in game that Insight's proc doubles Spirit, not Strength.
-		Reason:  "Insight: misc 0 and 0 is Strength by index, the tooltip reads 'Increases your Spirit by 100%'",
-		Source:  "tooltip",
-	},
-	{
-		SpellID: 1248751,
-		Field:   StatMask,
-		Value:   16, // TODO: Verify in game that Mystic Mushroom raises Spirit, not Strength.
-		Reason:  "Increased Spirit: misc 0 and 0 is Strength by index, the tooltip reads 'Increases Spirit by 5%'",
-		Source:  "tooltip",
-	},
-	{
 		SpellID: 350026,
 		Field:   ICDMs,
 		Value:   10000,
