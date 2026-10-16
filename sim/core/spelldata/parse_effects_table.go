@@ -1449,6 +1449,13 @@ func armorNoModsStats(mask int32) []stats.Stat {
 	return nil
 }
 
+// Whether the effect states armor alone with A_MOD_ARMOR_NO_MODS: armor that neither the percent armor
+// modifiers nor the scaling of armor from items touch. The item builders and the enchant generator
+// decide by it, by the same mask the parser's row reads.
+func (e *Effect) NoModsArmor() bool {
+	return e.Aura == dbcenums.A_MOD_ARMOR_NO_MODS && len(armorNoModsStats(e.Misc)) > 0
+}
+
 // The ratings a combat rating mask names, read bit by bit, so a mask naming several ratings gives each
 // of them. One rating feeds melee, ranged and spells alike, so its melee and spell bits name the same
 // stat. The ranged bits are not read: beside the melee or spell bit of the same rating they add

@@ -48,6 +48,9 @@ const (
 	// Savior's Sacrifice, Ring of Saviors 1447's on-use: armor on the wearer (A_MOD_ARMOR_NO_MODS).
 	saviorsSacrifice int32 = 18826
 
+	// Lesser Arcane Amalgamation 1504's equip spell: armor on the wearer (A_MOD_ARMOR_NO_MODS).
+	arcaneAmalgamationArmor int32 = 15390
+
 	petClawID int32 = 992004
 )
 
@@ -521,8 +524,8 @@ func TestSwordOfZealAddsPhysicalDamageAndArmor(t *testing.T) {
 }
 
 // An item effect's armor stays outside the wearer's percent armor modifiers where the buff's row
-// states its armor on the wearer with A_MOD_ARMOR_NO_MODS, on an on-use and on a proc alike: the
-// wearer gains the entry's armor whole and loses as much when the buff fades. The same entry on a row
+// states its armor on the wearer with A_MOD_ARMOR_NO_MODS, on an on-use, a proc and a stacking proc
+// alike: the wearer gains the entry's armor whole for each stack and loses as much when the buff fades. The same entry on a row
 // stating no such aura gains armor the modifiers scale. The wearer's neck doubles its armor.
 func TestNoModsArmorFromAnItemStaysOutOfThePercentArmorModifiers(t *testing.T) {
 	armor := spelldata.MustFind(saviorsSacrifice).FirstAura(dbcenums.A_MOD_ARMOR_NO_MODS).BasePoints
@@ -539,15 +542,20 @@ func TestNoModsArmorFromAnItemStaysOutOfThePercentArmorModifiers(t *testing.T) {
 		agent.GetCharacter().MultiplyStat(stats.Armor, multiplier)
 	})
 
+	// The stacking cases come last: they give the rows a stack count for the rest of the test.
+	const stacks = 3
 	for i, tc := range []struct {
-		buff int32
-		proc bool
-		want float64
+		buff   int32
+		proc   bool
+		stacks int32
+		want   float64
 	}{
-		{saviorsSacrifice, false, armor},
-		{eyeOfDiminution, false, armor * multiplier},
-		{saviorsSacrifice, true, armor},
-		{eyeOfDiminution, true, armor * multiplier},
+		{saviorsSacrifice, false, 0, armor},
+		{eyeOfDiminution, false, 0, armor * multiplier},
+		{saviorsSacrifice, true, 0, armor},
+		{eyeOfDiminution, true, 0, armor * multiplier},
+		{saviorsSacrifice, true, stacks, armor * stacks},
+		{eyeOfDiminution, true, stacks, armor * multiplier * stacks},
 	} {
 		itemID := 992312 + int32(i)
 		label := fmt.Sprintf("Test Armor %d", i)
@@ -560,6 +568,9 @@ func TestNoModsArmorFromAnItemStaysOutOfThePercentArmorModifiers(t *testing.T) {
 			entry.Effect = &proto.ItemEffect_Proc{Proc: &proto.ProcEffect{}}
 			withAuraItem(itemID, proto.ItemType_ItemTypeWeapon, entry)
 			everyHit(t, tc.buff)
+			if tc.stacks > 0 {
+				editRow(t, tc.buff, func(s *spelldata.Spell) { s.MaxStack = int16(tc.stacks) })
+			}
 			NewSpellDataProc(SpellDataProc{TriggerSpellID: tc.buff, IsWeaponProc: true},
 				[]ItemVariant{{ItemID: itemID, ItemName: label}})
 			label += " Proc"
@@ -579,12 +590,15 @@ func TestNoModsArmorFromAnItemStaysOutOfThePercentArmorModifiers(t *testing.T) {
 
 		before := wearer.GetStat(stats.Armor)
 		buff.Activate(sim)
+		if tc.stacks > 0 {
+			buff.SetStacks(sim, tc.stacks)
+		}
 		if got := wearer.GetStat(stats.Armor) - before; !core.WithinToleranceFloat64(tc.want, got, 1e-6) {
-			t.Errorf("%d (proc %v): the buff added %v armor, want %v", tc.buff, tc.proc, got, tc.want)
+			t.Errorf("%d (proc %v, %d stacks): the buff added %v armor, want %v", tc.buff, tc.proc, tc.stacks, got, tc.want)
 		}
 		buff.Deactivate(sim)
 		if got := wearer.GetStat(stats.Armor) - before; !core.WithinToleranceFloat64(0, got, 1e-6) {
-			t.Errorf("%d (proc %v): %v armor is left after the buff fades, want none", tc.buff, tc.proc, got)
+			t.Errorf("%d (proc %v, %d stacks): %v armor is left after the buff fades, want none", tc.buff, tc.proc, tc.stacks, got)
 		}
 	}
 }
@@ -592,9 +606,9 @@ func TestNoModsArmorFromAnItemStaysOutOfThePercentArmorModifiers(t *testing.T) {
 // An enchant's no-mods armor share reaches the wearer whole, past both the scaling of armor from items
 // and a percent armor modifier, while an enchant whose armor has no such share is scaled by both. The
 // wearer's neck doubles the armor from items and then doubles its armor; the amount is the armor Lesser
-// Arcane Amalgamation's equip spell 15390 states with A_MOD_ARMOR_NO_MODS.
+// Arcane Amalgamation's equip spell states with A_MOD_ARMOR_NO_MODS.
 func TestNoModsArmorFromAnEnchantStaysOutOfEveryArmorScaling(t *testing.T) {
-	armor := spelldata.MustFind(15390).FirstAura(dbcenums.A_MOD_ARMOR_NO_MODS).BasePoints
+	armor := spelldata.MustFind(arcaneAmalgamationArmor).FirstAura(dbcenums.A_MOD_ARMOR_NO_MODS).BasePoints
 	needAmount(t, "15390's armor", armor)
 
 	const scaling = 2

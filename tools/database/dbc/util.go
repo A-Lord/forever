@@ -232,11 +232,21 @@ func equipFold(s *spelldata.Spell, e *spelldata.Effect) EquipFold {
 // The fold of a game files effect, read off its row in the spell store. An effect of a spell the store
 // does not carry names no weapon.
 func EquipEffectFold(effect SpellEffect) EquipFold {
+	return equipFold(storeEffect(effect))
+}
+
+// A game files effect as the spell store carries it, or its aura and first misc value where the store
+// does not carry its spell.
+func storeEffect(effect SpellEffect) (*spelldata.Spell, *spelldata.Effect) {
 	s := spelldata.Find(int32(effect.SpellID))
 	if e := s.EffectAtIndex(uint8(effect.EffectIndex)); e != spelldata.NilEffect {
-		return equipFold(s, e)
+		return s, e
 	}
-	return equipFold(s, &spelldata.Effect{Aura: effect.EffectAura, Misc: int32(effect.EffectMiscValues[0])})
+	built := &spelldata.Effect{Aura: effect.EffectAura}
+	if len(effect.EffectMiscValues) > 0 {
+		built.Misc = int32(effect.EffectMiscValues[0])
+	}
+	return s, built
 }
 
 // Whether an equip spell folds into the stats of the item or enchant carrying it: it does unless an

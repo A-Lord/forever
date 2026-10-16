@@ -442,9 +442,14 @@ type StackingStatAura struct {
 	BonusPerStack stats.Stats
 }
 
+// A handler the config's aura already states runs ahead of the stat change on each change of stacks.
 func MakeStackingAura(character *Character, config StackingStatAura) *StatBuffAura {
 	bonusPerStack := config.BonusPerStack
+	before := config.Aura.OnStacksChange
 	config.Aura.OnStacksChange = func(aura *Aura, sim *Simulation, oldStacks int32, newStacks int32) {
+		if before != nil {
+			before(aura, sim, oldStacks, newStacks)
+		}
 		character.AddStatsDynamic(sim, bonusPerStack.Multiply(float64(newStacks-oldStacks)))
 	}
 	return &StatBuffAura{

@@ -584,6 +584,7 @@ func spellDataProcAura(character *core.Character, cfg SpellDataProc, trigger *sp
 	// on the trigger while the buff it applies states none.
 	if stacks := max(buff.MaxStack, trigger.MaxStack); stacks > 0 {
 		aura.MaxStacks = int32(stacks)
+		aura.OnStacksChange = NoModsArmorStacks(character, buff, buffStats)
 		return core.MakeStackingAura(character, core.StackingStatAura{Aura: aura, BonusPerStack: buffStats})
 	}
 
@@ -592,11 +593,11 @@ func spellDataProcAura(character *core.Character, cfg SpellDataProc, trigger *sp
 	// this aura's business.
 	aura.MaxStacks = int32(buff.ProcCharges)
 
-	procAura := character.NewTemporaryStatsAuraWrapped(aura.Label, aura.ActionID, buffStats, aura.Duration, func(config *core.Aura) {
+	keepNoModsArmor := keepNoModsArmorUnmultiplied(character, buff, buffStats)
+	return character.NewTemporaryStatsAuraWrapped(aura.Label, aura.ActionID, buffStats, aura.Duration, func(config *core.Aura) {
 		config.MaxStacks = aura.MaxStacks
+		keepNoModsArmor(config)
 	})
-	keepNoModsArmorUnmultiplied(character, procAura.Aura, buff, buffStats)
-	return procAura
 }
 
 // How long the buff lasts. The game files leave it off the buff's own row on a fair few procs and
@@ -1095,32 +1096,53 @@ func NewSimpleStatActive(itemID int32) {
 			}
 
 			buffStats, buffDuration := onUseStatBuff(character, itemEffect)
-			aura := core.RegisterTemporaryStatsOnUseCD(character, itemEffect.BuffName, buffStats, buffDuration, spellConfig)
-			keepNoModsArmorUnmultiplied(character, aura.Aura, spelldata.Find(itemEffect.BuffId), buffStats)
+			core.RegisterTemporaryStatsOnUseCD(character, itemEffect.BuffName, buffStats, buffDuration, spellConfig,
+				keepNoModsArmorUnmultiplied(character, spelldata.Find(itemEffect.BuffId), buffStats))
 		}
 	})
 }
 
-// Keeps the armor of an item effect's stats out of the percent armor modifiers while the aura is up,
-// where the buff's row states its armor on the wearer with A_MOD_ARMOR_NO_MODS: the parser keeps the
-// same row's armor out of them. The share is recorded ahead of the aura's own stat change on gain and
-// on expiry, so the recompute that change runs already leaves it out.
-func keepNoModsArmorUnmultiplied(character *core.Character, aura *core.Aura, buff *spelldata.Spell, buffStats stats.Stats) {
-	armor := buffStats[stats.Armor]
-	if armor == 0 || !slices.ContainsFunc(buff.Effects, func(e spelldata.Effect) bool {
-		return e.Aura == dbcenums.A_MOD_ARMOR_NO_MODS && e.Misc == int32(core.SpellSchoolPhysical) && LandsOnTheUser(&e)
-	}) {
-		return
+// The armor of an item buff's stats that the percent armor modifiers leave alone: all of it where the
+// buff's row states its armor on the wearer with A_MOD_ARMOR_NO_MODS, as the parser keeps the same
+// row's armor out of them.
+func noModsArmor(buff *spelldata.Spell, buffStats stats.Stats) float64 {
+	if !slices.ContainsFunc(buff.Effects, func(e spelldata.Effect) bool { return e.NoModsArmor() && LandsOnTheUser(&e) }) {
+		return 0
 	}
+	return buffStats[stats.Armor]
+}
 
-	onGain, onExpire := aura.OnGain, aura.OnExpire
-	aura.OnGain = func(aura *core.Aura, sim *core.Simulation) {
-		character.AddUnmultiplied(stats.Armor, armor)
-		onGain(aura, sim)
+// Records that share ahead of the aura's own stat change on gain and on expiry, so the recompute that
+// change runs already leaves it out. It changes the config before the aura is registered, so a second
+// registration under the same label, which keeps the first aura's handlers, does not add it twice.
+func keepNoModsArmorUnmultiplied(character *core.Character, buff *spelldata.Spell, buffStats stats.Stats) func(*core.Aura) {
+	armor := noModsArmor(buff, buffStats)
+	return func(config *core.Aura) {
+		if armor == 0 {
+			return
+		}
+		onGain, onExpire := config.OnGain, config.OnExpire
+		config.OnGain = func(aura *core.Aura, sim *core.Simulation) {
+			character.AddUnmultiplied(stats.Armor, armor)
+			onGain(aura, sim)
+		}
+		config.OnExpire = func(aura *core.Aura, sim *core.Simulation) {
+			character.AddUnmultiplied(stats.Armor, -armor)
+			onExpire(aura, sim)
+		}
 	}
-	aura.OnExpire = func(aura *core.Aura, sim *core.Simulation) {
-		character.AddUnmultiplied(stats.Armor, -armor)
-		onExpire(aura, sim)
+}
+
+// The same share for a stacking buff, per stack gained or lost, for the aura config MakeStackingAura
+// builds on: it runs ahead of the stat change there, and expiry drops the stacks to 0 through it. Nil
+// where the row states no such armor.
+func NoModsArmorStacks(character *core.Character, buff *spelldata.Spell, perStack stats.Stats) core.OnStacksChange {
+	armor := noModsArmor(buff, perStack)
+	if armor == 0 {
+		return nil
+	}
+	return func(_ *core.Aura, _ *core.Simulation, oldStacks int32, newStacks int32) {
+		character.AddUnmultiplied(stats.Armor, armor*float64(newStacks-oldStacks))
 	}
 }
 

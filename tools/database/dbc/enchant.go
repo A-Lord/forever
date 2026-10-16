@@ -255,24 +255,25 @@ func (enchant *Enchant) ToProtoWithSlots() (*proto.UIEnchant, []EnchantProcSlot)
 			uiEnchant.WeaponDamage += float64(enchant.EffectPoints[i])
 		}
 	}
-	uiEnchant.NoModsArmor = noModsArmor(enchant.Effects, effectArgs)
+	uiEnchant.NoModsArmor = noModsArmor(enchant.Effects, effectArgs, enchantStats[proto.Stat_StatArmor])
 	return uiEnchant, slots
 }
 
 // The armor that the enchant's folded equip spells state with A_MOD_ARMOR_NO_MODS on armor alone: the
-// share of its armor that no armor percentage or equip scaling touches.
-func noModsArmor(effects []int, effectArgs []int) float64 {
+// share of its armor that no armor percentage or equip scaling touches. An effect counts where it adds
+// to the enchant's stats, a FoldStats aura, and the amount is the one processEnchantmentEffects adds.
+// The share is never more than the armor the stats carry.
+func noModsArmor(effects []int, effectArgs []int, armorStat float64) float64 {
 	var armor float64
 	for i, effect := range effects {
 		if effect != ITEM_ENCHANTMENT_EQUIP_SPELL || !EquipSpellFolds(effectArgs[i]) {
 			continue
 		}
 		for _, e := range dbcInstance.SpellEffectsInOrder(effectArgs[i]) {
-			if e.EffectType == dbcenums.E_APPLY_AURA && e.EffectAura == dbcenums.A_MOD_ARMOR_NO_MODS &&
-				e.EffectMiscValues[0] == int(core.SpellSchoolPhysical) {
+			if _, row := storeEffect(e); e.EffectType == dbcenums.E_APPLY_AURA && row.NoModsArmor() && EquipEffectFold(e) == FoldStats {
 				armor += e.EffectBasePoints + e.EffectDieSides
 			}
 		}
 	}
-	return armor
+	return min(armor, armorStat)
 }
