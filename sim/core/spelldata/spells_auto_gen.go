@@ -33950,6 +33950,18 @@ var generatedSpells = []Spell{
 		Effects: []Effect{
 			{ID: 1257774, SpellID: 1252543, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PERIODIC_DAMAGE, BasePoints: 33, Variance: 0.10000000149011612, BaseLevel: 60, PvpMult: 1, PeriodMs: 1000, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		}},
+	{ID: 1252544, Name: "Disorienting Smog Potion", School: 1, Speed: 10, MinDuration: 1.5, SpellLevel: 60, BaseLevel: 60, MaxRange: 20, CategoryCooldownMs: 120000, Category: 4, Labels: []int16{4519}, RefIDs: []int32{1252545, 1252546},
+		Effects: []Effect{
+			{ID: 1257775, SpellID: 1252544, Type: dbcenums.E_TRIGGER_MISSILE, BaseLevel: 60, PvpMult: 1, RadiusMax: 5, TriggerID: 1252545, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{87, 0}},
+		}},
+	{ID: 1252545, Name: "Disorienting Smog Potion", School: 1, SpellLevel: 60, BaseLevel: 60, DurationMs: 8000, MaxRange: 20, CategoryCooldownMs: 120000, Category: 4, Labels: []int16{4519},
+		Effects: []Effect{
+			{ID: 1257776, SpellID: 1252545, Type: dbcenums.E_CREATE_AREATRIGGER, BaseLevel: 60, PvpMult: 1, Misc: 39426, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{87, 0}},
+		}},
+	{ID: 1252546, Name: "Disorienting Smog Potion", School: 8, Attr: [17]uint32{0: 0xd000000, 1: 0x20, 2: 0x30084000, 3: 0x440200, 4: 0x80, 5: 0x60208, 6: 0x200004, 8: 0x1020, 9: 0x100800, 10: 0x400000, 11: 0x4000000, 13: 0x10000002, 14: 0x10, 15: 0x2000}, SpellLevel: 60, BaseLevel: 60, DurationMs: -1, MaxRange: 50000, DefenseType: 1, Mechanic: 6, Labels: []int16{4519},
+		Effects: []Effect{
+			{ID: 1257777, SpellID: 1252546, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_HIT_CHANCE, BasePoints: -10, BaseLevel: 60, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+		}},
 	{ID: 1252554, Name: "Dragonfire Potion", School: 4, Speed: 1, Attr: [17]uint32{0: 0x4000000, 2: 0x20000000, 3: 0x440000, 8: 0x1000, 9: 0x10, 15: 0x2000}, SpellLevel: 60, BaseLevel: 60, DurationMs: 8000, CategoryCooldownMs: 120000, Category: 4, DefenseType: 1, DispelType: 1, Labels: []int16{4519},
 		Effects: []Effect{
 			{ID: 1257791, SpellID: 1252554, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 280, BaseLevel: 60, PvpMult: 1, RadiusMax: 12, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{104, 0}},
@@ -37582,6 +37594,10 @@ var generatedSpells = []Spell{
 	{ID: 1316101, Name: "Repentance Duration Increase", School: 1, Attr: [17]uint32{0: 0x1d0, 15: 0x2000}, SpellLevel: 60, BaseLevel: 60, ClassFlags: core.ClassFlags{Family: 10},
 		Effects: []Effect{
 			{ID: 1348773, SpellID: 1316101, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_ADD_FLAT_MODIFIER, BasePoints: 1000, BaseLevel: 60, SPCoef: 1, PvpMult: 1, Misc: 1, ClassFlags: core.ClassFlags{Family: 10, Mask: [4]uint32{0: 4}}, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
+		}},
+	{ID: 1316346, Name: "Sliced Ankle", School: 1, Attr: [17]uint32{0: 0x10, 3: 0x90000, 4: 0x800000, 6: 0x200000, 15: 0x2000}, SpellLevel: 30, DurationMs: 6000, MaxRange: 100, DefenseType: 2, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
+		Effects: []Effect{
+			{ID: 1348985, SpellID: 1316346, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_DECREASE_SPEED, BasePoints: -30, PvpMult: 1, ChainAmp: 1, Mechanic: 11, Target: [2]dbcenums.ImplicitTarget{6, 0}},
 		}},
 	{ID: 1316591, Name: "Stock Crate", School: 1, Attr: [17]uint32{0: 0x10000000, 2: 0x10000000, 3: 0x200, 6: 0x4, 10: 0x800000, 13: 0x10000000, 15: 0x2000}, SpellLevel: 60, BaseLevel: 60, CastTimeMs: 1500, InterruptFlags: 47,
 		Effects: []Effect{
