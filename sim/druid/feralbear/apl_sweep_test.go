@@ -82,11 +82,11 @@ func bearRequest(rotation *proto.APLRotation, iterations int32) *proto.RaidSimRe
 					Rotation: rotation,
 				}},
 				Buffs: &proto.PartyBuffs{
-					BattleShout:     proto.TristateEffect_TristateEffectRegular,
 					ManaSpringTotem: proto.TristateEffect_TristateEffectRegular,
 				},
 			}},
 			Buffs: &proto.RaidBuffs{
+				BattleShout:              proto.TristateEffect_TristateEffectRegular,
 				ArcaneBrilliance:         true,
 				GiftOfTheWild:            true,
 				PrayerOfFortitude:        true,

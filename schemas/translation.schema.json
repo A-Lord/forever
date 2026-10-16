@@ -754,6 +754,9 @@
 						"bonus_armor": {
 							"type": "string"
 						},
+						"armor_no_mods": {
+							"type": "string"
+						},
 						"health": {
 							"type": "string"
 						},
@@ -965,6 +968,7 @@
 						"spell_power",
 						"armor",
 						"bonus_armor",
+						"armor_no_mods",
 						"health",
 						"mana",
 						"mp5",

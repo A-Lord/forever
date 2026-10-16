@@ -62,6 +62,7 @@ var FullRaidBuffs = &proto.RaidBuffs{
 	GraceOfAirTotem:      true,
 	StrengthOfEarthTotem: true,
 	WindfuryTotem:        true,
+	BattleShout:          proto.TristateEffect_TristateEffectRegular,
 	TrueshotAura:         true,
 	LeaderOfThePack:      true,
 	MoonkinAura:          true,
@@ -79,8 +80,6 @@ var FullPartyBuffs = &proto.PartyBuffs{
 
 	ManaSpringTotem: proto.TristateEffect_TristateEffectImproved,
 	ManaTideTotems:  1,
-
-	BattleShout: proto.TristateEffect_TristateEffectRegular,
 }
 
 var FullIndividualBuffs = &proto.IndividualBuffs{

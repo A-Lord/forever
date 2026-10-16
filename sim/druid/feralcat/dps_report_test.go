@@ -50,11 +50,10 @@ func uiDefaultRaidSim(talents string, rotation *proto.APLRotation, duration, var
 					Rotation: rotation,
 				}},
 				Buffs: &proto.PartyBuffs{
-					BattleShout:     proto.TristateEffect_TristateEffectRegular,
 					ManaSpringTotem: proto.TristateEffect_TristateEffectRegular,
 				},
 			}},
-			Buffs: &proto.RaidBuffs{ArcaneBrilliance: true, PrayerOfSpirit: true, GiftOfTheWild: true, PrayerOfFortitude: true,
+			Buffs: &proto.RaidBuffs{BattleShout: proto.TristateEffect_TristateEffectRegular, ArcaneBrilliance: true, PrayerOfSpirit: true, GiftOfTheWild: true, PrayerOfFortitude: true,
 				StrengthOfEarthTotem: true, WindfuryTotem: true},
 			Debuffs: &proto.Debuffs{JudgementOfWisdom: true, FaerieFire: true, SunderArmor: true, GiftOfArthas: true},
 		},
