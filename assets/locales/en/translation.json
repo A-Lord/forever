@@ -826,6 +826,22 @@
 				"title": "Assigned Curse",
 				"description": "The selected curse will prevent the selected external debuff from being cast."
 			},
+			"warlock_soul_shards": {
+				"label": "Soul Shards",
+				"tooltip": "Soul Shards carried into the fight. Soul Fire and Shadowburn each take one, and cannot be cast without one."
+			},
+			"warlock_pet": {
+				"label": "Pet",
+				"tooltip": "The demon out when the fight starts. Summons in the APL can change it."
+			},
+			"warlock_armor": {
+				"label": "Armor",
+				"tooltip": "The armor spell up for the fight."
+			},
+			"warlock_demonic_sacrifice": {
+				"label": "Demonic Sacrifice",
+				"tooltip": "The effect up when the fight starts, labelled with the demon sacrificed for it. Without Demonic Pact, a sacrifice leaves no demon out."
+			},
 			"pet_training": {
 				"cobra_reflexes": {
 					"label": "Cobra Reflexes",
@@ -1886,6 +1902,10 @@
 					"label": "Is Assigned Curse",
 					"tooltip": "True if the warlock is assigned the specified curse"
 				},
+				"warlock_active_pet": {
+					"label": "Active Pet Is",
+					"tooltip": "True while the specified demon is out. No Pet is true while no demon is."
+				},
 				"protection_paladin_damage_taken_last_global": {
 					"label": "Damage Taken Last Global",
 					"tooltip": "Amount of damage taken in the last 1.5s."
@@ -1985,10 +2005,17 @@
 				"water": "Water"
 			},
 			"curse_types": {
-				"agony": "Curse of Agony",
-				"doom": "Curse of Doom",
 				"elements": "Curse of Elements",
-				"recklessness": "Curse of Recklessness"
+				"recklessness": "Curse of Recklessness",
+				"weakness": "Curse of Weakness",
+				"no_curse": "No Curse"
+			},
+			"summon_types": {
+				"imp": "Imp",
+				"voidwalker": "Voidwalker",
+				"succubus": "Succubus",
+				"felhunter": "Felhunter",
+				"no_summon": "No Pet"
 			},
 			"submenus": {
 				"logic": "Logic",

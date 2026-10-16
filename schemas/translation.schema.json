@@ -2939,6 +2939,58 @@
 							"additionalProperties": false,
 							"required": ["title", "description"]
 						},
+						"warlock_pet": {
+							"type": "object",
+							"properties": {
+								"label": {
+									"type": "string"
+								},
+								"tooltip": {
+									"type": "string"
+								}
+							},
+							"additionalProperties": false,
+							"required": ["label", "tooltip"]
+						},
+						"warlock_armor": {
+							"type": "object",
+							"properties": {
+								"label": {
+									"type": "string"
+								},
+								"tooltip": {
+									"type": "string"
+								}
+							},
+							"additionalProperties": false,
+							"required": ["label", "tooltip"]
+						},
+						"warlock_demonic_sacrifice": {
+							"type": "object",
+							"properties": {
+								"label": {
+									"type": "string"
+								},
+								"tooltip": {
+									"type": "string"
+								}
+							},
+							"additionalProperties": false,
+							"required": ["label", "tooltip"]
+						},
+						"warlock_soul_shards": {
+							"type": "object",
+							"properties": {
+								"label": {
+									"type": "string"
+								},
+								"tooltip": {
+									"type": "string"
+								}
+							},
+							"additionalProperties": false,
+							"required": ["label", "tooltip"]
+						},
 						"pet_attack_speed": {
 							"type": "object",
 							"properties": {
@@ -3057,6 +3109,10 @@
 						"blessings",
 						"shaman_shield_procrate",
 						"warlock_assigned_curse",
+						"warlock_soul_shards",
+						"warlock_pet",
+						"warlock_armor",
+						"warlock_demonic_sacrifice",
 						"pet_attack_speed",
 						"pet_training",
 						"pet_section"
@@ -6577,6 +6633,19 @@
 									"additionalProperties": false,
 									"required": ["label", "tooltip"]
 								},
+								"warlock_active_pet": {
+									"type": "object",
+									"properties": {
+										"label": {
+											"type": "string"
+										},
+										"tooltip": {
+											"type": "string"
+										}
+									},
+									"additionalProperties": false,
+									"required": ["label", "tooltip"]
+								},
 								"warlock_is_assigned_curse": {
 									"type": "object",
 									"properties": {
@@ -6936,6 +7005,7 @@
 								"totem_remaining_time",
 								"warlock_assigned_curse_is_active",
 								"warlock_is_assigned_curse",
+								"warlock_active_pet",
 								"protection_paladin_damage_taken_last_global",
 								"aura_remaining_icd",
 								"aura_icd_is_ready",
@@ -7046,21 +7116,43 @@
 						"curse_types": {
 							"type": "object",
 							"properties": {
-								"agony": {
-									"type": "string"
-								},
-								"doom": {
-									"type": "string"
-								},
 								"elements": {
 									"type": "string"
 								},
 								"recklessness": {
 									"type": "string"
+								},
+								"weakness": {
+									"type": "string"
+								},
+								"no_curse": {
+									"type": "string"
 								}
 							},
 							"additionalProperties": false,
-							"required": ["agony", "doom", "elements", "recklessness"]
+							"required": ["elements", "recklessness", "weakness", "no_curse"]
+						},
+						"summon_types": {
+							"type": "object",
+							"properties": {
+								"imp": {
+									"type": "string"
+								},
+								"voidwalker": {
+									"type": "string"
+								},
+								"succubus": {
+									"type": "string"
+								},
+								"felhunter": {
+									"type": "string"
+								},
+								"no_summon": {
+									"type": "string"
+								}
+							},
+							"additionalProperties": false,
+							"required": ["imp", "voidwalker", "succubus", "felhunter", "no_summon"]
 						},
 						"submenus": {
 							"type": "object",
@@ -7468,6 +7560,7 @@
 						"execute_phases",
 						"totem_types",
 						"curse_types",
+						"summon_types",
 						"submenus",
 						"item_swap_sets",
 						"helpers"
