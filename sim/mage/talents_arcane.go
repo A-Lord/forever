@@ -11,6 +11,7 @@ func (mage *Mage) registerArcaneTalents() {
 	mage.registerWandSpecialization()
 	mage.registerArcaneFocus()
 	mage.registerImprovedChanneling()
+	mage.registerMissileBarrage()
 
 	// Tier 2
 	mage.registerArcaneSubtlety()
@@ -27,7 +28,7 @@ func (mage *Mage) registerArcaneTalents() {
 	mage.registerArcaneShielding()
 	mage.registerImprovedCounterspell()
 	mage.registerArcaneMeditation()
-	mage.registerMissileBarrage()
+	mage.registerArcaneWrathTalent()
 
 	// Tier 5
 	mage.registerPresenceOfMindTalent()
@@ -206,6 +207,14 @@ func (mage *Mage) registerArcaneMeditation() {
 	spelldata.ParseStatic(&mage.Character, spellData.ArcaneMeditation.Rank(mage.Talents.ArcaneMeditation))
 }
 
+func (mage *Mage) registerArcaneWrathTalent() {
+	if !mage.Talents.ArcaneWrath {
+		return
+	}
+
+	mage.registerArcaneWrathSpell()
+}
+
 // "Gives your Arcane Blast spell a 20/40% chance, and your Arcane Wrath, Fireball, Frostbolt, and
 // Frostfire Bolt spells a 10/20% chance to reduce the channeled duration of your next Arcane Missiles
 // spell by 50%, reduce the Mana cost by 100%, and missiles fire every 0.5 sec."
@@ -245,7 +254,7 @@ func (mage *Mage) registerMissileBarrage() {
 		}, spelldata.Chance(1))
 	trigger.Name = "Missile Barrage - Trigger"
 	trigger.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
-		return spellData.ArcaneBlast.Contains(spell) || spellData.Fireball.Contains(spell) ||
+		return spellData.ArcaneBlast.Contains(spell) || spellData.ArcaneWrath.Contains(spell) || spellData.Fireball.Contains(spell) ||
 			spellData.Frostbolt.Contains(spell) || spellData.FrostfireBolt.Contains(spell)
 	}
 
