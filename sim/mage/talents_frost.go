@@ -380,9 +380,9 @@ func (mage *Mage) registerIceBarrier() {
 	mage.registerIceBarrierSpell()
 }
 
-// The Chill effects Frostbite and Permafrost name (family 3, mask 0x100000): Frostbolt, Cone of Cold,
-// Frostfire Bolt and the armors' Chilled.
-var chillFlags = spellData.Frostbite.Highest().EffectN(1).ClassFlags
+// The Chill effects Permafrost's mask names (family 3, mask 0x100000): Frostbolt, Frost Blast, Cone
+// of Cold, Frostfire Bolt and the armors' Chilled.
+var chillFlags = spellData.Permafrost.Highest().EffectN(1).ClassFlags
 
 // Whether the spell applies a Chill effect: one the Chill mask names, or Blizzard with Improved
 // Blizzard, which adds a Chill the mask does not carry.
