@@ -143,6 +143,13 @@ var Raid = []BuffSpec{
 			proto.Stat_StatAttackPower,
 		},
 	},
+	{
+		Field:   "aspect_of_the_wild",
+		SpellID: 20190,
+		Stats: []proto.Stat{
+			proto.Stat_StatNatureResistance,
+		},
+	},
 	// Melee and ranged crit only, so it stacks with Moonkin Aura's spell crit.
 	{
 		Field:      "leader_of_the_pack",
@@ -162,13 +169,6 @@ var Raid = []BuffSpec{
 		SingleAura: true,
 		Stats: []proto.Stat{
 			proto.Stat_StatCritRating,
-		},
-	},
-	{
-		Field:   "aspect_of_the_wild",
-		SpellID: 20190,
-		Stats: []proto.Stat{
-			proto.Stat_StatNatureResistance,
 		},
 	},
 }

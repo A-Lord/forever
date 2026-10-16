@@ -616,6 +616,23 @@ func NewSpellDataFlametongueTotemAura(unit *core.Unit, isPlayer bool, talentPoin
 	return newBuff(unit, flametongueTotemMeta, isPlayer, talentPoints)
 }
 
+// Aspect of the Wild
+var aspectOfTheWildSpell = spelldata.MustFind(20190)
+var aspectOfTheWildMeta = &Meta{
+	Label: "Aspect of the Wild",
+	Spell: aspectOfTheWildSpell,
+}
+
+func AspectOfTheWildValue(talentPoints int32) float64 {
+	return aspectOfTheWildMeta.Value(talentPoints)
+}
+func AspectOfTheWildDuration(talentPoints int32) time.Duration {
+	return aspectOfTheWildMeta.Duration(talentPoints)
+}
+func NewSpellDataAspectOfTheWildAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+	return newBuff(unit, aspectOfTheWildMeta, isPlayer, talentPoints)
+}
+
 // Leader of the Pack
 var LeaderOfThePackCategory = "LeaderOfThePack"
 var leaderOfThePackSpell = spelldata.MustFind(24932)
@@ -654,23 +671,6 @@ func MoonkinAuraDuration(talentPoints int32) time.Duration {
 }
 func NewSpellDataMoonkinAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
 	return newBuff(unit, moonkinAuraMeta, isPlayer, talentPoints)
-}
-
-// Aspect of the Wild
-var aspectOfTheWildSpell = spelldata.MustFind(20190)
-var aspectOfTheWildMeta = &Meta{
-	Label: "Aspect of the Wild",
-	Spell: aspectOfTheWildSpell,
-}
-
-func AspectOfTheWildValue(talentPoints int32) float64 {
-	return aspectOfTheWildMeta.Value(talentPoints)
-}
-func AspectOfTheWildDuration(talentPoints int32) time.Duration {
-	return aspectOfTheWildMeta.Duration(talentPoints)
-}
-func NewSpellDataAspectOfTheWildAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
-	return newBuff(unit, aspectOfTheWildMeta, isPlayer, talentPoints)
 }
 
 // Greater Blessing of Kings
@@ -917,14 +917,14 @@ func applyGeneratedBuffs(char *core.Character, raid *proto.RaidBuffs, party *pro
 	if raid.FlametongueTotem {
 		driveFlametongueTotem(char, raid)
 	}
+	if raid.AspectOfTheWild {
+		core.MakePermanent(NewSpellDataAspectOfTheWildAura(&char.Unit, false, 0))
+	}
 	if raid.LeaderOfThePack {
 		core.MakePermanent(NewSpellDataLeaderOfThePackAura(&char.Unit, false, 0))
 	}
 	if raid.MoonkinAura {
 		core.MakePermanent(NewSpellDataMoonkinAura(&char.Unit, false, 0))
-	}
-	if raid.AspectOfTheWild {
-		core.MakePermanent(NewSpellDataAspectOfTheWildAura(&char.Unit, false, 0))
 	}
 	if individual.GreaterBlessingOfKings {
 		core.MakePermanent(NewSpellDataGreaterBlessingOfKingsAura(&char.Unit, false, 0))

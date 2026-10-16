@@ -23,9 +23,9 @@ message RaidBuffs {
 	bool grace_of_air_totem = 13;
 	bool windfury_totem = 14;
 	bool flametongue_totem = 15;
-	bool leader_of_the_pack = 16;
-	bool moonkin_aura = 17;
-	bool aspect_of_the_wild = 18;
+	bool aspect_of_the_wild = 16;
+	bool leader_of_the_pack = 17;
+	bool moonkin_aura = 18;
 }
 
 // Buffs that affect a single party.

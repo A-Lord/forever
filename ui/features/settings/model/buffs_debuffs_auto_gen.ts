@@ -208,6 +208,12 @@ export const FlametongueTotem = makeBooleanRaidBuffInput({
 	label: 'Flametongue Totem',
 });
 
+export const AspectOfTheWild = makeBooleanRaidBuffInput({
+	actionId: ActionId.fromSpellId(20190),
+	fieldName: 'aspectOfTheWild',
+	label: 'Aspect of the Wild',
+});
+
 export const LeaderOfThePack = makeBooleanRaidBuffInput({
 	actionId: ActionId.fromSpellId(17007),
 	fieldName: 'leaderOfThePack',
@@ -218,12 +224,6 @@ export const MoonkinAura = makeBooleanRaidBuffInput({
 	actionId: ActionId.fromSpellId(24858),
 	fieldName: 'moonkinAura',
 	label: 'Moonkin Aura',
-});
-
-export const AspectOfTheWild = makeBooleanRaidBuffInput({
-	actionId: ActionId.fromSpellId(20190),
-	fieldName: 'aspectOfTheWild',
-	label: 'Aspect of the Wild',
 });
 
 export const GreaterBlessingOfKings = makeBooleanIndividualBuffInput({
@@ -477,6 +477,11 @@ export const GENERATED_RAID_BUFFS_CONFIG: RenderableStatOptions[] = [
 		ownerClass: Class.ClassShaman,
 	},
 	{
+		config: AspectOfTheWild,
+		stats: [Stat.StatNatureResistance],
+		ownerClass: Class.ClassHunter,
+	},
+	{
 		config: LeaderOfThePack,
 		stats: [Stat.StatCritRating],
 		ownerClass: Class.ClassDruid,
@@ -485,11 +490,6 @@ export const GENERATED_RAID_BUFFS_CONFIG: RenderableStatOptions[] = [
 		config: MoonkinAura,
 		stats: [Stat.StatCritRating],
 		ownerClass: Class.ClassDruid,
-	},
-	{
-		config: AspectOfTheWild,
-		stats: [Stat.StatNatureResistance],
-		ownerClass: Class.ClassHunter,
 	},
 ];
 

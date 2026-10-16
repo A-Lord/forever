@@ -54,9 +54,9 @@ describe('the buff registries', () => {
 			'Grace of Air Totem',
 			'Windfury Totem',
 			'Flametongue Totem',
+			'Aspect of the Wild',
 			'Leader of the Pack',
 			'Moonkin Aura',
-			'Aspect of the Wild',
 			'Innervates',
 			'Power Infusions',
 		]);
