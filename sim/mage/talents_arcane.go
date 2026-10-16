@@ -230,9 +230,8 @@ func (mage *Mage) registerArcaneWrathTalent() {
 
 // "Gives your Arcane Blast spell a 20/40% chance, and your Arcane Wrath, Fireball, Frostbolt, and
 // Frostfire Bolt spells a 10/20% chance to reduce the channeled duration of your next Arcane Missiles
-// spell by 50%, reduce the Mana cost by 100%, and missiles fire every 0.5 sec." Arcane Missile hits
-// and Frost Blast proc it too, which the tooltip does not say. Frost Blast proccing it is confirmed
-// in game.
+// spell by 50%, reduce the Mana cost by 100%, and missiles fire every 0.5 sec." Frost Blast procs
+// it too, which the tooltip does not say; that is confirmed in game. Arcane Missiles does not proc it.
 func (mage *Mage) registerMissileBarrage() {
 	if mage.Talents.MissileBarrage == 0 {
 		return
@@ -276,21 +275,6 @@ func (mage *Mage) registerMissileBarrage() {
 	}
 
 	mage.MakeProcTriggerAura(trigger)
-
-	// Each Arcane Missile that lands rolls a quarter of the Arcane Blast chance, 10% at rank 2. The
-	// game files state no chance for it and the tooltip leaves it out; 5% at rank 1 is unconfirmed
-	// and stays until tested in game.
-	// The talent's mask hears casts only, so the missile's hit needs a listener of its own.
-	missileTrigger := spelldata.ProcTrigger(&mage.Character, talentRank,
-		func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
-			buffAura.Activate(sim)
-		}, spelldata.Chance(arcaneBlastChance/4))
-	missileTrigger.Name = "Missile Barrage - Missile Trigger"
-	missileTrigger.Callback = core.CallbackOnSpellHitDealt
-	missileTrigger.Outcome = core.OutcomeLanded
-	missileTrigger.ClassSpellMask = MageSpellArcaneMissilesTick
-
-	mage.MakeProcTriggerAura(missileTrigger)
 }
 
 // "Increases your Intellect by 10% and increases the critical strike damage bonus of your Arcane
