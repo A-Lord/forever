@@ -350,8 +350,8 @@ are `thorns`, `leader_of_the_pack`, `moonkin_aura` and `trueshot_aura`: `sim/dru
 from a talent, `sim/hunter/hunter.go` raises Trueshot Aura, and the druid's own Thorns waits on the
 druid port. `thorns`, `battle_shout`, `leader_of_the_pack` and `moonkin_aura` carry a category, so a
 druid registering its own copy of any of them has nothing to decide: the copy joins the same category
-and the two bid. Leader of the Pack and Moonkin Aura each have their own, since one raises melee and
-ranged crit and the other spell crit, so a raid that ticks both gets both. Only `trueshot_aura` is left
+and the two bid. Leader of the Pack and Moonkin Aura each have their own category: one raises melee and
+ranged crit, the other spell crit, so a raid that ticks both gets both. Only `trueshot_aura` is left
 without a category, so the hunter port has to choose. The priest's three prayers (`registerPrayer` in
 `sim/priest/priest.go`) bid without `SingleAura`: `prayer_of_fortitude` and `prayer_of_spirit` each
 stat on its own in `StatBuff`, with Arcane Brilliance and the scrolls, and `prayer_of_shadow_protection`
