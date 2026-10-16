@@ -17,9 +17,11 @@ func (warlock *Warlock) registerLifeTap() {
 	manaMetrics := warlock.NewManaMetrics(core.ActionID{SpellID: rankedSpell.ID})
 
 	// Demonic Energies: the demon out gains a share of the mana
-	var petManaMetrics *core.ResourceMetrics
-	if warlock.lifeTapPetShare > 0 && warlock.ActivePet != nil {
-		petManaMetrics = warlock.ActivePet.NewManaMetrics(core.ActionID{SpellID: rankedSpell.ID})
+	petManaMetrics := map[*WarlockPet]*core.ResourceMetrics{}
+	if warlock.lifeTapPetShare > 0 {
+		for _, pet := range warlock.demons() {
+			petManaMetrics[pet] = pet.NewManaMetrics(core.ActionID{SpellID: rankedSpell.ID})
+		}
 	}
 
 	config := spelldata.SpellConfig(&warlock.Unit, rankedSpell, spelldata.Flags(core.SpellFlagAPL))
@@ -31,8 +33,8 @@ func (warlock *Warlock) registerLifeTap() {
 		warlock.RemoveHealth(sim, amount)
 		warlock.AddMana(sim, amount*improvedLifeTapMult, manaMetrics)
 
-		if petManaMetrics != nil && warlock.ActivePet.IsEnabled() {
-			warlock.ActivePet.AddMana(sim, amount*improvedLifeTapMult*warlock.lifeTapPetShare, petManaMetrics)
+		if pet := warlock.ActivePet; pet != nil && petManaMetrics[pet] != nil && pet.IsEnabled() {
+			pet.AddMana(sim, amount*improvedLifeTapMult*warlock.lifeTapPetShare, petManaMetrics[pet])
 		}
 	}
 

@@ -78,10 +78,13 @@ message WarlockOptions {
 		DemonArmor = 2;
 	}
 
-	// Agony and Doom are Banes in Forever, cast directly rather than as the assigned curse.
+	// Agony and Doom are Banes in Forever, cast directly rather than as the assigned curse. NoCurse
+	// assigns none, and leaves every raid curse on.
 	enum CurseOptions {
 		Elements = 0;
 		Recklessness = 3;
+		NoCurse = 4;
+		Weakness = 5;
 	}
 
 	// The demon out. With a sacrifice and no Demonic Pact, none is: summoning any demon cancels the effect.

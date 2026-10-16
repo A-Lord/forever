@@ -122,7 +122,7 @@ func (warlock *Warlock) applyDemonicEnergies() {
 
 // --- Tier 3 ---
 
-// Raises Lash of Pain, on the Sayaad. Effect 2 (Seduction's duration) does not affect sims.
+// Raises Lash of Pain, on the Succubus. Effect 2 (Seduction's duration) does not affect sims.
 func (warlock *Warlock) applyImprovedSayaad() {
 	if warlock.Talents.ImprovedSayaad == 0 || warlock.Succubus == nil {
 		return
@@ -131,47 +131,91 @@ func (warlock *Warlock) applyImprovedSayaad() {
 	spelldata.ParseStatic(&warlock.Succubus.Character, spellData.ImprovedSayaad.Rank(warlock.Talents.ImprovedSayaad))
 }
 
-// The sacrificed demon (settled in resolveSacrifice) grants its effect for the fight: the Imp 15% more
-// Shadow damage (18789), the Sayaad 15% more Fire damage (18791), the Voidwalker mana every 4 sec (18792).
-// The Felhunter's health every 4 sec (18790) does not affect sims.
-// TODO: Looking for a way to nicely correlate demons/buffs for frontend display in warlock settings.
+// The sacrificed demon grants its effect until a summon cancels it (summonDemon): the Imp 15% more
+// Shadow damage (18789), the Succubus 15% more Fire damage (18791), the Voidwalker mana every 4 sec (18792),
+// the Felhunter health every 4 sec (18790), which does not affect sims. The demon sacrificed before the
+// fight (settled in resolveSacrifice) is sacrificed at the start; casting the talent's spell (18788)
+// sacrifices the demon out. The row states no cast time, cost or cooldown.
 func (warlock *Warlock) applyDemonicSacrifice() {
-	var effectRow *spelldata.Spell
-	switch warlock.Options.SacrificedDemon {
-	case proto.WarlockOptions_Imp:
-		effectRow = spellData.DemonicSacrificeTriggered.ByID(18789)
-	case proto.WarlockOptions_Succubus:
-		effectRow = spellData.DemonicSacrificeTriggered.ByID(18791)
-	case proto.WarlockOptions_Voidwalker:
-		effectRow = spellData.DemonicSacrificeTriggered.ByID(18792)
-	default:
+	if !warlock.Talents.DemonicSacrifice {
 		return
 	}
 
-	aura := warlock.RegisterAura(spelldata.AuraConfig(effectRow))
-	spelldata.ParseEffects(&warlock.Character, aura, effectRow)
-	core.MakePermanent(aura)
+	warlock.DemonicSacrificeAuras = map[proto.WarlockOptions_Summon]*core.Aura{}
+	for _, effect := range []struct {
+		summon proto.WarlockOptions_Summon
+		id     int32
+	}{
+		{proto.WarlockOptions_Imp, 18789},
+		{proto.WarlockOptions_Felhunter, 18790},
+		{proto.WarlockOptions_Succubus, 18791},
+		{proto.WarlockOptions_Voidwalker, 18792},
+	} {
+		summon := effect.summon
+		effectRow := spellData.DemonicSacrificeTriggered.ByID(effect.id)
+		auraConfig := spelldata.AuraConfig(effectRow)
+		auraConfig.Duration = core.NeverExpires
+		// Auras reset after the reset effects, so the demon sacrificed before the fight is marked here.
+		if summon == warlock.Options.SacrificedDemon {
+			auraConfig.OnReset = func(aura *core.Aura, sim *core.Simulation) {
+				warlock.sacrificedDemon = summon
+				aura.Activate(sim)
+			}
+		}
+		aura := warlock.RegisterAura(auraConfig)
+		spelldata.ParseEffects(&warlock.Character, aura, effectRow)
+		warlock.DemonicSacrificeAuras[summon] = aura
 
-	// Fel Energy's A_OBS_MOD_POWER: a share of maximum mana every period, which the parse skips.
-	if warlock.Options.SacrificedDemon == proto.WarlockOptions_Voidwalker {
-		restore := effectRow.EffectN(1)
-		manaMetrics := warlock.NewManaMetrics(core.ActionID{SpellID: effectRow.ID})
-		warlock.RegisterResetEffect(func(sim *core.Simulation) {
-			core.StartPeriodicAction(sim, core.PeriodicActionOptions{
-				Period: restore.Period(),
-				OnAction: func(sim *core.Simulation) {
-					warlock.AddMana(sim, warlock.MaxMana()*restore.Percent(), manaMetrics)
-				},
+		// Fel Energy's A_OBS_MOD_POWER: a share of maximum mana every period while the aura is up,
+		// which the parse skips.
+		if summon == proto.WarlockOptions_Voidwalker {
+			restore := effectRow.EffectN(1)
+			manaMetrics := warlock.NewManaMetrics(core.ActionID{SpellID: effectRow.ID})
+			var restoreAction *core.PendingAction
+			aura.ApplyOnGain(func(_ *core.Aura, sim *core.Simulation) {
+				restoreAction = core.StartPeriodicAction(sim, core.PeriodicActionOptions{
+					Period: restore.Period(),
+					OnAction: func(sim *core.Simulation) {
+						warlock.AddMana(sim, warlock.MaxMana()*restore.Percent(), manaMetrics)
+					},
+				})
+			}).ApplyOnExpire(func(_ *core.Aura, sim *core.Simulation) {
+				restoreAction.Cancel(sim)
 			})
-		})
+		}
 	}
+
+	warlock.RegisterResetEffect(func(_ *core.Simulation) {
+		warlock.sacrificedDemon = proto.WarlockOptions_NoSummon
+	})
+
+	config := spelldata.SpellConfig(&warlock.Unit, spellData.DemonicSacrifice.ByID(18788), spelldata.Flags(core.SpellFlagAPL))
+	config.ProcMask = core.ProcMaskEmpty
+	config.ExtraCastCondition = func(_ *core.Simulation, _ *core.Unit) bool {
+		return warlock.ActivePet != nil && warlock.ActivePet.IsEnabled()
+	}
+	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, _ *core.Spell) {
+		pet := warlock.ActivePet
+		// Before the dismissal, so a summon's stun ending does not set the sacrificed demon's swings going again
+		pet.summonStun.Deactivate(sim)
+		pet.Disable(sim)
+		warlock.ActivePet = nil
+
+		warlock.DemonicSacrificeAuras[warlock.sacrificedDemon].Deactivate(sim)
+		warlock.sacrificedDemon = pet.summon
+		warlock.DemonicSacrificeAuras[pet.summon].Activate(sim)
+	}
+	warlock.DemonicSacrifice = warlock.RegisterSpell(config)
 }
 
-// TODO: Not implemented, as it does not affect sims for now: demons are summoned before the fight.
+// Shortens the summons' cast (effect 1) and lowers their cost (effect 2), through the class flags the
+// summon rows share.
 func (warlock *Warlock) applyMasterSummoner() {
 	if warlock.Talents.MasterSummoner == 0 {
 		return
 	}
+
+	spelldata.ParseStatic(&warlock.Character, spellData.MasterSummoner.Rank(warlock.Talents.MasterSummoner))
 }
 
 // --- Tier 4 ---
@@ -236,11 +280,30 @@ func (warlock *Warlock) applyDecimation() {
 	})
 }
 
-// TODO: Not implemented, as it does not affect sims for now: demons are summoned before the fight.
+// For 15 sec, the next summon casts 5.5 sec faster (effect 1) for half the mana (effect 2), and spends
+// the buff.
 func (warlock *Warlock) applyFelDomination() {
 	if !warlock.Talents.FelDomination {
 		return
 	}
+
+	rankedSpell := spellData.FelDomination.ByID(18708)
+	summons := rankedSpell.EffectN(1).ClassFlags
+
+	auraConfig := spelldata.AuraConfig(rankedSpell)
+	auraConfig.OnCastComplete = func(aura *core.Aura, sim *core.Simulation, spell *core.Spell) {
+		if spell.MatchesFlags(summons) {
+			aura.Deactivate(sim)
+		}
+	}
+	warlock.FelDominationAura = warlock.RegisterAura(auraConfig)
+	spelldata.ParseEffects(&warlock.Character, warlock.FelDominationAura, rankedSpell)
+
+	config := spelldata.SpellConfig(&warlock.Unit, rankedSpell, spelldata.Flags(core.SpellFlagAPL))
+	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, _ *core.Spell) {
+		warlock.FelDominationAura.Activate(sim)
+	}
+	warlock.RegisterSpell(config)
 }
 
 // Searing Pain brands the target (1293696) for 10 sec; the demon's next attacks against it each consume a
@@ -293,7 +356,7 @@ func (warlock *Warlock) applyImprovedFelhunter() {
 // While a demon is out, it and the warlock deal more damage (25228, effect 1). The share of damage
 // the demon takes instead does not affect sims.
 func (warlock *Warlock) applySoulLink() {
-	if !warlock.Talents.SoulLink || warlock.ActivePet == nil {
+	if !warlock.Talents.SoulLink {
 		return
 	}
 
@@ -313,7 +376,7 @@ func (warlock *Warlock) applySoulLink() {
 // While a demon is out, the warlock and the demon gain spell damage of up to the rank's share of the
 // warlock's level. The row's value is a dummy only the tooltip reads.
 func (warlock *Warlock) applyDemonicKnowledge() {
-	if warlock.Talents.DemonicKnowledge == 0 || warlock.ActivePet == nil {
+	if warlock.Talents.DemonicKnowledge == 0 {
 		return
 	}
 
@@ -335,19 +398,25 @@ func (warlock *Warlock) applyDemonicKnowledge() {
 // --- Tier 6 ---
 
 // Grants the warlock and the demon out an effect by demon, its four dummies read by the tooltip: the Imp
-// more Fire damage (effect 1), the Voidwalker less Physical damage taken (effect 2), the Sayaad more Shadow
-// damage (effect 3), the Felhunter less magic damage taken (effect 4).
+// more Fire damage (effect 1), the Voidwalker less Physical damage taken (effect 2), the Succubus more Shadow
+// damage (effect 3), the Felhunter less magic damage taken (effect 4). The warlock's share lasts while
+// that demon is out; the demon's own is always on it, as it acts only while out.
 func (warlock *Warlock) applyMasterDemonologist() {
-	if warlock.Talents.MasterDemonologist == 0 || warlock.ActivePet == nil {
+	if warlock.Talents.MasterDemonologist == 0 {
 		return
 	}
 
 	rank := spellData.MasterDemonologist.Rank(warlock.Talents.MasterDemonologist)
+	for _, pet := range warlock.demons() {
+		warlock.applyMasterDemonologistFor(pet, rank)
+	}
+}
 
+func (warlock *Warlock) applyMasterDemonologistFor(pet *WarlockPet, rank *spelldata.Spell) {
 	var schools []stats.SchoolIndex
 	var amount float64
 	dealt := true
-	switch warlock.Options.Summon {
+	switch pet.summon {
 	case proto.WarlockOptions_Imp:
 		schools, amount = []stats.SchoolIndex{stats.SchoolIndexFire}, rank.EffectN(1).Percent()
 	case proto.WarlockOptions_Voidwalker:
@@ -373,25 +442,25 @@ func (warlock *Warlock) applyMasterDemonologist() {
 		return fields
 	}
 
-	warlock.MasterDemonologistAura = warlock.RegisterAura(core.Aura{
-		Label:    "Master Demonologist",
-		ActionID: core.ActionID{SpellID: rank.ID},
+	aura := warlock.RegisterAura(core.Aura{
+		Label:    "Master Demonologist - " + pet.Name,
+		ActionID: core.ActionID{SpellID: rank.ID, Tag: int32(pet.summon)},
 		Duration: core.NeverExpires,
 	})
 	for _, field := range multipliers(&warlock.Unit) {
-		warlock.MasterDemonologistAura.AttachMultiplicativePseudoStatBuff(field, 1+amount)
+		aura.AttachMultiplicativePseudoStatBuff(field, 1+amount)
 	}
-	warlock.addPetActiveAura(warlock.MasterDemonologistAura)
+	pet.ownerAuras = append(pet.ownerAuras, aura)
 
-	for _, field := range multipliers(&warlock.ActivePet.Unit) {
+	for _, field := range multipliers(&pet.Unit) {
 		*field *= 1 + amount
 	}
 }
 
 // --- Tier 7 ---
 
-// The talent is read by resolveSacrifice (warlock.go): with it, a sacrificed demon's bonus holds while another
-// demon is out. Nothing is applied here, as demons are not resummoned during the fight.
+// Keeps Demonic Sacrifice's effect through a summon of another demon: resolveSacrifice and summonDemon
+// read the talent.
 func (warlock *Warlock) applyDemonicPact() {
 	if !warlock.Talents.DemonicPact {
 		return

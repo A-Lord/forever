@@ -36,6 +36,9 @@ type Warlock struct {
 	CurseOfElementsAuras     core.AuraArray
 	CurseOfRecklessness      *core.Spell
 	CurseOfRecklessnessAuras core.AuraArray
+	CurseOfWeakness          *core.Spell
+	CurseOfWeaknessAuras     core.AuraArray
+	CurseOfWeaknessAmpAuras  core.AuraArray
 	Curses                   []*core.Spell
 
 	// Banes
@@ -46,14 +49,23 @@ type Warlock struct {
 	BaneOfHavoc      *core.Spell
 	BaneOfHavocAuras core.AuraArray
 
+	// Summons
+	SummonImp        *core.Spell
+	SummonVoidwalker *core.Spell
+	SummonSuccubus   *core.Spell
+	SummonFelhunter  *core.Spell
+
 	// Talent Tree Spells
-	AmplifyCurse *core.Spell
-	Conflagrate  *core.Spell
-	Shadowburn   *core.Spell
-	SiphonLife   *core.Spell
-	Wrack        *core.Spell
+	AmplifyCurse     *core.Spell
+	DemonicSacrifice *core.Spell
+	Conflagrate      *core.Spell
+	Shadowburn       *core.Spell
+	SiphonLife       *core.Spell
+	Wrack            *core.Spell
 
 	// Auras
+	DemonicSacrificeAuras  map[proto.WarlockOptions_Summon]*core.Aura // Demonic Sacrifice's effect, by the demon sacrificed
+	FelDominationAura      *core.Aura
 	AmplifyCurseAura       *core.Aura
 	AmplifyCurseMultiplier float64
 
@@ -63,7 +75,6 @@ type Warlock struct {
 	NightfallProcAura        *core.Aura
 	ShadowEmbraceAura        *core.Aura
 	DemonicKnowledgeAura     *core.Aura
-	MasterDemonologistAura   *core.Aura
 
 	// Pets
 	ActivePet  *WarlockPet
@@ -78,8 +89,9 @@ type Warlock struct {
 	SoulShardsAura *core.Aura      // the Soul Shards left this iteration, as its stacks
 	reagentWaivers []reagentWaiver // the effects that lift the reagents of some spells while up
 
-	petActiveAuras  []*core.Aura // the warlock's effects that last while a demon is out
-	lifeTapPetShare float64      // Demonic Energies: the share of Life Tap's mana the demon gains
+	petActiveAuras  []*core.Aura                // the warlock's effects that last while a demon is out
+	sacrificedDemon proto.WarlockOptions_Summon // the demon whose Demonic Sacrifice effect is up, NoSummon for none
+	lifeTapPetShare float64                     // Demonic Energies: the share of Life Tap's mana the demon gains
 }
 
 func (warlock *Warlock) GetCharacter() *core.Character {
@@ -114,6 +126,7 @@ func (warlock *Warlock) Initialize() {
 	warlock.registerBaneOfDoom()
 	warlock.registerBaneOfAgony()
 	warlock.registerCurseOfRecklessness()
+	warlock.registerCurseOfWeakness()
 
 	warlock.registerCorruption()
 	warlock.registerDeathCoil()
@@ -129,6 +142,8 @@ func (warlock *Warlock) Initialize() {
 	warlock.registerSoulfire()
 	warlock.registerSoulShards()
 	shared.RegisterShoot(&warlock.Character)
+
+	warlock.registerSummons()
 
 	warlock.registerArmors()
 
@@ -162,9 +177,15 @@ func NewWarlock(character *core.Character, options *proto.Player, warlockOptions
 	warlock.resolveSacrifice()
 
 	if raid.Debuffs != nil {
-		if warlock.Options.CurseOptions == proto.WarlockOptions_Recklessness {
+		// The assigned curse replaces the raid's copy of it, which is turned off. Matches GetAssignedCurse:
+		// NoCurse turns off none, and any value it does not name is Elements.
+		switch warlock.Options.CurseOptions {
+		case proto.WarlockOptions_NoCurse:
+		case proto.WarlockOptions_Recklessness:
 			raid.Debuffs.CurseOfRecklessness = false
-		} else {
+		case proto.WarlockOptions_Weakness:
+			raid.Debuffs.CurseOfWeakness = false
+		default:
 			raid.Debuffs.CurseOfElements = false
 		}
 	}
@@ -307,8 +328,11 @@ const (
 	WarlockSpellSuccubusLashOfPain
 	WarlockSpellRainOfFire
 	WarlockSpellCurseOfRecklessness
+	WarlockSpellCurseOfWeakness
 	WarlockSpellSiphonLife
 	WarlockSpellWrack
 	WarlockSpellDrainSoul
 	WarlockSpellDeathCoil
+	WarlockSpellSummonDemon
+	WarlockSpellAll int64 = 1<<iota - 1
 )
