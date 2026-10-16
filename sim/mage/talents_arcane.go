@@ -269,6 +269,9 @@ func (mage *Mage) registerMissileBarrage() {
 			}
 		}, spelldata.Chance(1))
 	trigger.Name = "Missile Barrage - Trigger"
+	// The buff goes up on the hit that procs it, with no spell batch window delay, so a proc while
+	// it is up only refreshes it and the next Arcane Missiles consumes it with nothing landing after.
+	trigger.TriggerImmediately = true
 	// Frost Blast at Frostbolt's half chance, from the 15 October 2026 patch note giving it every
 	// talent that affects Frostbolt.
 	trigger.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
