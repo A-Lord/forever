@@ -93,23 +93,11 @@ func (warlock *Warlock) applyShadowburn() {
 	warlock.registerShadowBurn()
 }
 
-// TODO: To be implemented. Port the TBC Destructive Reach implementation below; not yet verified against the Forever game files.
+// TODO: To be implemented. The row holds only a range effect on the Destruction spells, which is what is left to port.
 func (warlock *Warlock) applyDestructiveReach() {
 	if warlock.Talents.DestructiveReach == 0 {
 		return
 	}
-
-	// The TBC implementation, kept for the port:
-	// if warlock.Talents.DestructiveReach == 0 {
-	// 	return
-	// }
-	//
-	// warlock.AddStaticMod(core.SpellModConfig{
-	// 	Kind:       core.SpellMod_ThreatMultiplier_Pct,
-	// 	FloatValue: -0.05 * float64(warlock.Talents.DestructiveReach),
-	// 	ClassMask:  WarlockDestructionSpells,
-	// })
-	//
 }
 
 // TODO: To be implemented. Port the TBC Ruin implementation below; not yet verified against the Forever game files.
