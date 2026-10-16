@@ -8,15 +8,10 @@ import { Stats } from '@sim/proto/stats';
 
 import DefaultApl from './apls/default.apl.json';
 import TestingBuildJson from './builds/testing.build.json';
-import PreBiSGearJson from './gear_sets/prebis.gear.json';
 
 export const ROTATION_PRESET_DEFAULT = PresetUtils.makePresetAPLRotation('Default', DefaultApl);
 
-// Dungeon and world drops, the shaman's dungeon tier set, crafted items whose reagents include no raid
-// materials and vendor items; no reputation or PvP rewards. The cloak, the second ring and the Adaptive
-// Combat Assistant are sold by the Undermine Trader in Stranglethorn Vale. The patterns of the head, chest and
-// leggings, the shoulders and the first ring have no known source.
-export const PreBiSGear = PresetUtils.makePresetGear('Pre-BiS', PreBiSGearJson);
+export const DefaultGear = PresetUtils.makePresetGear('Testing', TestingBuildJson.player.equipment);
 
 export const TestingBuild = PresetUtils.makePresetBuildFromJSON('Testing', Spec.SpecEnhancementShaman, TestingBuildJson);
 
