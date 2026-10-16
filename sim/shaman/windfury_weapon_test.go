@@ -7,7 +7,9 @@ import (
 
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
+	"github.com/wowsims/forever/sim/core/simsignals"
 	"github.com/wowsims/forever/sim/core/spelldata"
+	"github.com/wowsims/forever/sim/shaman"
 )
 
 // Windfury Weapon's strikes are white in name only: Flametongue Totem, which hears auto attacks
@@ -62,4 +64,43 @@ func TestWindfuryWeaponStrikesProcFlametongueTotemAndNeverGlance(t *testing.T) {
 		t.Errorf("Flametongue Totem procced %d times, want one for each of the %d swings and %d Windfury Weapon strikes that landed",
 			got, landed(&mainHand), landed(&strikes))
 	}
+}
+
+// Windfury Weapon's strikes spend no Flurry charge, though they are white for every proc: a main-hand
+// swing spends one.
+func TestWindfuryWeaponStrikesSpendNoFlurryCharge(t *testing.T) {
+	player := windfuryShaman(&proto.APLRotation{})
+	player.TalentsString = enhancementTalents
+	sim := core.NewSim(&proto.RaidSimRequest{
+		Raid:       core.SinglePlayerRaidProto(player, &proto.PartyBuffs{}, &proto.RaidBuffs{}, &proto.Debuffs{}),
+		Encounter:  core.MakeSingleTargetEncounter(0),
+		SimOptions: &proto.SimOptions{RandomSeed: 1},
+	}, simsignals.CreateSignals())
+	sim.Reset()
+
+	sham := sim.Raid.Parties[0].Players[0].(shaman.ShamanAgent).GetShaman()
+	target := sham.CurrentTarget
+	flurry := sham.GetAuraByID(core.ActionID{SpellID: spelldata.MustFind(16257).ID})
+	strike := sham.GetSpell(core.ActionID{OtherID: proto.OtherAction_OtherActionAttack, Tag: spelldata.MustFind(16362).Refs()[0].ID})
+	if flurry == nil || strike == nil {
+		t.Fatalf("Flurry %v, Windfury Weapon's strike %v; want both registered", flurry, strike)
+	}
+	flurry.Activate(sim)
+	flurry.SetStacks(sim, flurry.MaxStacks)
+
+	for range 50 {
+		strike.SkipCastAndApplyEffects(sim, target)
+		if got := flurry.GetStacks(); got != flurry.MaxStacks {
+			t.Fatalf("a Windfury Weapon strike left Flurry at %d charges, want %d", got, flurry.MaxStacks)
+		}
+	}
+
+	swing := sham.AutoAttacks.MHAuto()
+	for range 50 {
+		swing.SkipCastAndApplyEffects(sim, target)
+		if flurry.GetStacks() < flurry.MaxStacks {
+			return
+		}
+	}
+	t.Error("50 main-hand swings never spent a Flurry charge, so the check above proves nothing")
 }

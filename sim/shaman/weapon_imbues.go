@@ -140,8 +140,8 @@ func (shaman *Shaman) holdTotemCategoryOnMainHand(category string, imbue proto.S
 
 // The extra attacks are logged as 439440, with 16361's attack power added. They are white in name
 // only: auto attack procs such as Flametongue Totem hear them, but they roll the weapon special's
-// table of miss, dodge, parry and crit, and never glance. Like every extra attack they report as a
-// main-hand attack tagged with the spell that grants them.
+// table of miss, dodge, parry and crit, never glance, and spend no Flurry charge. Like every extra
+// attack they report as a main-hand attack tagged with the spell that grants them.
 func (shaman *Shaman) newWindfuryImbueSpell() *core.Spell {
 	// Elemental Weapons raises effect 1, which the parse would read as damage.
 	attackPower := windfuryWeaponAttack.EffectN(1).Average() * shaman.windfuryWeaponMultiplier
@@ -166,6 +166,7 @@ func (shaman *Shaman) newWindfuryImbueSpell() *core.Spell {
 // strikes follow once that hit has been dealt, in the same instant.
 func (shaman *Shaman) RegisterWindfuryImbue() {
 	strike := shaman.newWindfuryImbueSpell()
+	shaman.windfuryWeaponStrike = strike
 	count := int(windfuryWeaponAttack.ExtraAttacksEffect().BaseValue())
 
 	chance := windfuryWeaponPassive.StatedChance()
