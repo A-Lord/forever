@@ -144,7 +144,7 @@ func (paladin *Paladin) applyImprovedRighteousFury() {
 }
 
 // Shield Specialization - Increases the amount of damage absorbed by your shield by 10/20/30%, and
-// gives your blocks a 33/66/100% chance to restore 6% of your maximum Mana. May only occur once
+// gives your blocks a 33/66/100% chance to restore 4% of your maximum Mana. May only occur once
 // every 3 sec.
 func (paladin *Paladin) applyShieldSpecialization() {
 	if paladin.Talents.ShieldSpecialization == 0 {
