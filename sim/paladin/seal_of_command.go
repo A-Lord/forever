@@ -33,10 +33,9 @@ func (paladin *Paladin) registerSealOfCommand(_ int32, rank *spelldata.Spell) {
 	judgeRank := spellData.JudgementOfCommand.Rank(rank.RankNumber())
 	judgeDamageRank := spellData.SealOfCommandTriggered.ByID(int32(judgeRank.EffectN(1).BaseValue()))
 	judgeDamage := judgeDamageRank.DamageEffect()
-	alwaysHits := judgeDamageRank.AlwaysHits()
 
-	// Melee in SpellCategories with No Active Defense: crit on the melee table, never dodged, parried
-	// or blocked. The damage spell is flagged Always Hit, so it rolls no miss either.
+	// Melee in SpellCategories with No Active Defense: hit and crit on the melee table, never
+	// dodged, parried or blocked.
 	judgementConfig := spelldata.SpellConfig(&paladin.Unit, judgeRank, spelldata.Melee(core.ProcMaskMeleeMHSpecial), spelldata.RemoveFlags(core.SpellFlagAPL))
 	judgementConfig.ClassSpellMask = SpellMaskJudgementOfCommand
 	// The judgement's dummy states no class flags; the damage spell it names does, and modifiers find
@@ -49,11 +48,7 @@ func (paladin *Paladin) registerSealOfCommand(_ int32, rank *spelldata.Spell) {
 		if !target.PseudoStats.Stunned {
 			baseDamage /= 2
 		}
-		outcome := spell.OutcomeMeleeSpecialNoBlockDodgeParry
-		if alwaysHits {
-			outcome = spell.OutcomeMeleeSpecialCritOnly
-		}
-		spell.CalcAndDealDamage(sim, target, baseDamage, outcome)
+		spell.CalcAndDealDamage(sim, target, baseDamage, spell.OutcomeMeleeSpecialNoBlockDodgeParry)
 	}
 	judgement := paladin.RegisterSpell(judgementConfig)
 
