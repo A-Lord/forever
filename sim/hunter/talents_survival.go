@@ -103,8 +103,8 @@ func (hunter *Hunter) registerResourcefulness() {
 	buff := hunter.RegisterAura(spelldata.AuraConfig(resourcefulnessBuff))
 	spelldata.ParseEffects(&hunter.Character, buff, resourcefulnessBuff)
 
-	// The row states the chance on effect 2. The tooltip limits the trigger to ability crits, which
-	// the row's mask does not say.
+	// The row states the chance on effect 2. Its proc flags (0x110) state melee and ranged abilities
+	// and no crit; the tooltip limits the trigger to those abilities' crits.
 	trigger := spelldata.ProcTrigger(&hunter.Character, rank,
 		func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
 			buff.Activate(sim)

@@ -410,7 +410,7 @@ func (hp *HunterPet) registerDustCloud(rank *spelldata.Spell) *core.Spell {
 	return hp.RegisterSpell(config)
 }
 
-// The party's attack power. TODO: the party within 15 yd; the hunter and the pet are what is here.
+// The pet's and the hunter's attack power. TODO: the row's target is the raid within 15 yd.
 func (hp *HunterPet) registerFuriousHowl(rank *spelldata.Spell) *core.Spell {
 	var auras []*core.Aura
 	for _, character := range []*core.Character{&hp.Character, &hp.hunterOwner.Character} {
