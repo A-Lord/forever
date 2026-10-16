@@ -203,6 +203,21 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
+	// Reduces the cast time of spells and effects that revive targets by 20%.
+	// https://www.wowhead.com/forever/spell=1293540
+	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
+	//	Callback:           core.CallbackEmpty,
+	//	ProcMask:           core.ProcMaskUnknown,
+	//	Outcome:            core.OutcomeEmpty,
+	//	RequireDamageDealt: false
+	// }, []shared.ItemVariant{
+	//	{ItemID: 7720, ItemName: "Whitemane's Chapeau"},
+	// })
+
+	// TODO: Manual implementation required
+	//       This can be ignored if the effect has already been implemented.
+	//       With next db run the item will be removed if implemented.
+	//
 	// Disarm target's weapon for 10s.
 	// https://www.wowhead.com/forever/spell=13534
 	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{

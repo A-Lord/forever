@@ -28,6 +28,13 @@ var HandTriggers = []HandTrigger{
 		Source: "game-files-rows",
 	},
 	{
+		Spell:    1311074,
+		Triggers: 1311077,
+		Reason: "Sanctified Judgement's talent aura (two dummies) casts the mana refund 1311077: same name and icon, " +
+			"a mana energize whose tooltip reads Judging restores a portion of the Judged Seal's Mana cost",
+		Source: "game-files-rows",
+	},
+	{
 		Spell:    1323967,
 		Triggers: 1323969,
 		Reason: "Gore Drinker's talent aura (two dummies) applies the buff its tooltip describes: same name, class " +

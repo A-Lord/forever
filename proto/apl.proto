@@ -224,6 +224,7 @@ message APLValue {
         APLValueTotemRemainingTime totem_remaining_time = 49;
 APLValueWarlockAssignedCurseIsActive warlock_assigned_curse_is_active = 59;
 		APLValueWarlockIsAssignedCurse warlock_is_assigned_curse = 129;
+		APLValueWarlockActivePet warlock_active_pet = 135;
 		APLValueProtectionPaladinDamageTakenLastGlobal protection_paladin_damage_taken_last_global = 100;
 		APLValueDruidBleedIsActive druid_bleed_is_active = 68;
 
@@ -743,6 +744,10 @@ message APLValueWarlockAssignedCurseIsActive {
 }
 message APLValueWarlockIsAssignedCurse {
 	WarlockOptions.CurseOptions curse_type = 1;
+}
+// True while this demon is out; NoSummon is true while no demon is.
+message APLValueWarlockActivePet {
+	WarlockOptions.Summon summon = 1;
 }
 // True while one of the druid's bleeds is up on the target, or while the druid assumes a bleed.
 message APLValueDruidBleedIsActive {

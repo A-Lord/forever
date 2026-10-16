@@ -65,6 +65,9 @@ type Shaman struct {
 	rockbiterWeaponMultiplier    float64
 	spiritWeaponsRockbiterThreat float64
 
+	// Windfury Weapon's extra strikes, which spend no Flurry charge.
+	windfuryWeaponStrike *core.Spell
+
 	// The equipped main hand and the swap set's, which the imbue options name.
 	mainHandID     int32
 	swapMainHandID int32
@@ -90,7 +93,7 @@ type Shaman struct {
 	LightningShield     *core.Spell
 	LightningShieldAura *core.Aura
 	WaterShieldAura     *core.Aura
-	// Spends a Lightning Shield charge the way a hit taken does, for the shield proc rate option.
+	// Spends a charge of the shield that is up the way a hit taken does, for the shield proc rate option.
 	ShieldSelfProc func(sim *core.Simulation)
 
 	EarthShock []*core.Spell // One per rank in castableRanks.

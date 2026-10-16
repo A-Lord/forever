@@ -143,7 +143,7 @@ func TestGeneratedCurseOfTheElementsHitsEverySchoolAndResistance(t *testing.T) {
 // point the row states.
 func exposeArmorAtFivePoints(t *testing.T) float64 {
 	t.Helper()
-	perPoint := float64(rowEffect(t, 11198, dbcenums.A_MOD_RESISTANCE).PointsPerResource)
+	perPoint := float64(rowEffect(t, 11198, dbcenums.A_MOD_ARMOR_NO_MODS).PointsPerResource)
 	if perPoint == 0 {
 		t.Fatal("Expose Armor states no armor per combo point")
 	}
