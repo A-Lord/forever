@@ -14225,6 +14225,10 @@ var generatedSpells = []Spell{
 		Effects: []Effect{
 			{ID: 696793, SpellID: 17485, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_TOTAL_STAT_PERCENTAGE, BasePoints: 10, BaseLevel: 60, SPCoef: 1, PvpMult: 1, Misc2: 8, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}},
+	{ID: 17496, Name: "Crest of Retribution", School: 1, Attr: [17]uint32{15: 0x2000}, SpellLevel: 60, CastTimeMs: 1000, MaxRange: 100, DefenseType: 1,
+		Effects: []Effect{
+			{ID: 694852, SpellID: 17496, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 22, Variance: 1.5, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+		}},
 	{ID: 17498, Name: "Speed", School: 1, Attr: [17]uint32{0: 0x40040, 15: 0x2000}, SpellLevel: 60, BaseLevel: 60, DurationMs: -1, ProcChance: 101, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 695198, SpellID: 17498, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_MOD_INCREASE_SPEED, BasePoints: 5, BaseLevel: 60, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
@@ -37957,6 +37961,15 @@ var generatedSpells = []Spell{
 	{ID: 1324684, Name: "Defias Juggernaut", School: 1, Attr: [17]uint32{0: 0x40, 1: 0x10000000, 15: 0x2000}, SpellLevel: 60, ProcChance: 100, ProcFlags: [2]uint32{0: 0x1014, 1: 0x20}, RefIDs: []int32{1324683}, ProcChanceSource: ProcChanceAlways,
 		Effects: []Effect{
 			{ID: 1361618, SpellID: 1324684, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PROC_TRIGGER_SPELL, BasePoints: 25, PvpMult: 1, TriggerID: 1324683, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
+		}},
+	{ID: 1324685, Name: "Unearthed Barrier", School: 8, Attr: [17]uint32{15: 0x2000}, SpellLevel: 35, CastTimeMs: 1000, MaxRange: 100, DefenseType: 1,
+		Effects: []Effect{
+			{ID: 1361620, SpellID: 1324685, Type: dbcenums.E_SCHOOL_DAMAGE, BasePoints: 15, Variance: 1.5, PvpMult: 1, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{6, 0}},
+			{ID: 1361621, SpellID: 1324685, Index: 1, Type: dbcenums.E_DUMMY, BasePoints: 30, PvpMult: 1, ChainAmp: 1},
+		}},
+	{ID: 1324686, Name: "Unearthed Barrier", School: 1, Attr: [17]uint32{0: 0x40, 1: 0x10000000, 15: 0x2000}, SpellLevel: 60, ProcChance: 100, ProcFlags: [2]uint32{0: 0x2a8}, RefIDs: []int32{17496}, ProcChanceSource: ProcChanceAlways, ProcHint: core.ProcHintOutcomeTaken,
+		Effects: []Effect{
+			{ID: 1361622, SpellID: 1324686, Type: dbcenums.E_APPLY_AURA, Aura: dbcenums.A_PROC_TRIGGER_SPELL, BasePoints: 1, PvpMult: 1, TriggerID: 1324685, ChainAmp: 1, Target: [2]dbcenums.ImplicitTarget{1, 0}},
 		}},
 	{ID: 1325228, Name: "The Green Tower", School: 8, Attr: [17]uint32{0: 0x40, 1: 0x10000000, 15: 0x2000}, SpellLevel: 40,
 		Effects: []Effect{
