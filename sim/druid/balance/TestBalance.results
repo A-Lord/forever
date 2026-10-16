@@ -670,6 +670,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestBalance-AllItems-MysticMushroom-249396"
+ value: {
+  dps: 594.50081
+  tps: 423.39251
+ }
+}
+dps_results: {
  key: "TestBalance-AllItems-OrbofFire-12805"
  value: {
   dps: 552.96858
