@@ -224,7 +224,7 @@ func TestWandSkillSetsTheRangedHandsSpellMiss(t *testing.T) {
 }
 
 func TestFeralCombatSkillReplacesTheWeaponsSkillInAForm(t *testing.T) {
-	staff := &Item{WeaponType: proto.WeaponType_WeaponTypeStaff, HandType: proto.HandType_HandTypeTwoHand}
+	staff := &Item{ID: 1, WeaponType: proto.WeaponType_WeaponTypeStaff, HandType: proto.HandType_HandTypeTwoHand}
 	for _, tc := range []struct {
 		name        string
 		inForm      bool
@@ -243,6 +243,37 @@ func TestFeralCombatSkillReplacesTheWeaponsSkillInAForm(t *testing.T) {
 		if got := GetWeaponSkill(unit, tc.weapon); got != tc.weaponSkill {
 			t.Errorf("%s: weapon skill %v, want %v", tc.name, got, tc.weaponSkill)
 		}
+	}
+}
+
+func TestFeralCombatRefreshesExistingAttackTables(t *testing.T) {
+	character := NewCharacter(&Party{}, 0, &proto.Player{
+		Class:     proto.Class_ClassDruid,
+		Race:      proto.Race_RaceNightElf,
+		Spec:      &proto.Player_FeralCatDruid{FeralCatDruid: &proto.FeralCatDruid{}},
+		Equipment: &proto.EquipmentSpec{},
+		WeaponSkills: []*proto.WeaponSkillValue{{
+			Skill: proto.WeaponSkill_WeaponSkillStaves,
+			Value: 280,
+		}},
+	})
+	staff := &Item{ID: 1, WeaponType: proto.WeaponType_WeaponTypeStaff, HandType: proto.HandType_HandTypeTwoHand}
+	defender := &Unit{Type: EnemyUnit, Level: 63, PseudoStats: stats.NewPseudoStats()}
+	character.AttackTables = []*AttackTable{NewAttackTable(&character.Unit, defender)}
+	character.Equipment[proto.ItemSlot_ItemSlotMainHand] = *staff
+	character.UpdateAttackTableWeapons()
+	if got := character.AttackTables[0].MH.BaseMissChance; math.Abs(got-0.12) > 1e-9 {
+		t.Fatalf("280 staff skill miss = %v, want 0.12", got)
+	}
+
+	character.SetFeralCombat(true)
+	if got := character.AttackTables[0].MH.BaseMissChance; math.Abs(got-0.08) > 1e-9 {
+		t.Fatalf("feral combat miss = %v, want 0.08", got)
+	}
+
+	character.SetFeralCombat(false)
+	if got := character.AttackTables[0].MH.BaseMissChance; math.Abs(got-0.12) > 1e-9 {
+		t.Fatalf("restored staff skill miss = %v, want 0.12", got)
 	}
 }
 

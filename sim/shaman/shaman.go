@@ -69,6 +69,12 @@ type Shaman struct {
 	mainHandID     int32
 	swapMainHandID int32
 
+	// The imbue on each of those main hands as the sim runs: the options set them at reset, and an
+	// imbue's cast replaces the one on the main hand in use.
+	imbues        [2]proto.ShamanImbue
+	imbueAuras    [proto.ShamanImbue_RockbiterWeapon + 1]*core.Aura // Active while the main hand in use carries that imbue.
+	onImbueChange []func(sim *core.Simulation)
+
 	Talents   *proto.ShamanTalents
 	SelfBuffs SelfBuffs
 
@@ -84,7 +90,7 @@ type Shaman struct {
 	LightningShield     *core.Spell
 	LightningShieldAura *core.Aura
 	WaterShieldAura     *core.Aura
-	// Spends a Lightning Shield charge the way a hit taken does, for the shield proc rate option.
+	// Spends a charge of the shield that is up the way a hit taken does, for the shield proc rate option.
 	ShieldSelfProc func(sim *core.Simulation)
 
 	EarthShock []*core.Spell // One per rank in castableRanks.
@@ -153,6 +159,9 @@ func (shaman *Shaman) Reset(sim *core.Simulation) {
 	shaman.TotemExpirations[AirTotem] = -10 * time.Hour
 	shaman.TotemExpirations[EarthTotem] = -10 * time.Hour
 	shaman.TotemExpirations[WaterTotem] = -10 * time.Hour
+
+	shaman.imbues = [2]proto.ShamanImbue{shaman.SelfBuffs.ImbueMH, shaman.SelfBuffs.ImbueMHSwap}
+	shaman.applyImbues(sim)
 }
 
 func (shaman *Shaman) OnEncounterStart(sim *core.Simulation) {

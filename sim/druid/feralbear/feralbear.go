@@ -29,9 +29,10 @@ func NewFeralBearDruid(character *core.Character, options *proto.Player) *Guardi
 	selfBuffs := druid.SelfBuffs{}
 
 	bear := &GuardianDruid{
-		Druid:   druid.New(character, druid.Bear, selfBuffs, options.TalentsString),
+		Druid:   druid.New(character, druid.DireBear, selfBuffs, options.TalentsString),
 		Options: tankOptions.Options,
 	}
+	bear.AssumeBleedActive = tankOptions.Options.GetAssumeBleedActive()
 
 	healingModel := options.HealingModel
 	if healingModel != nil {
@@ -46,8 +47,9 @@ func NewFeralBearDruid(character *core.Character, options *proto.Player) *Guardi
 		UnitClass:      proto.Class_ClassDruid,
 	})
 	bear.EnableRageBar(core.RageBarOptions{
-		BaseRageMultiplier: 2.5,
+		BaseRageMultiplier: 1,
 		StartingRage:       tankOptions.Options.GetStartingRage(),
+		TwoHandRage:        druid.BearRageIsTwoHanded,
 	})
 	bear.EnableAutoAttacks(bear, core.AutoAttackOptions{
 		// Base paw weapon.
@@ -65,8 +67,7 @@ func NewFeralBearDruid(character *core.Character, options *proto.Player) *Guardi
 type GuardianDruid struct {
 	*druid.Druid
 
-	Options      *proto.FeralBearDruid_Options
-	BearRotation BearRotation
+	Options *proto.FeralBearDruid_Options
 }
 
 func (bear *GuardianDruid) GetDruid() *druid.Druid {
@@ -81,9 +82,7 @@ func (bear *GuardianDruid) ApplyTalents() {
 }
 
 func (bear *GuardianDruid) AddPartyBuffs(partyBuffs *proto.PartyBuffs) {
-	if bear.Talents.LeaderOfThePack {
-		partyBuffs.LeaderOfThePack = true
-	}
+	bear.Druid.AddPartyBuffs(partyBuffs)
 }
 
 func (bear *GuardianDruid) Initialize() {
@@ -94,7 +93,7 @@ func (bear *GuardianDruid) Initialize() {
 func (bear *GuardianDruid) Reset(sim *core.Simulation) {
 	bear.Druid.Reset(sim)
 	bear.Druid.ClearForm(sim)
-	bear.BearFormAura.Activate(sim)
+	bear.DireBearFormAura.Activate(sim)
 	bear.Druid.PseudoStats.Stunned = false
 }
 

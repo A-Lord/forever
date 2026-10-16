@@ -57,10 +57,10 @@ export function defaultSimWarnings<SpecType extends number>(player: Player<SpecT
 			},
 		},
 		{
-			updateOn: subscribeRaidField(player.sim.raid, 'partyBuffs'),
+			updateOn: subscribeRaidField(player.sim.raid, 'buffs'),
 			getContent: () => {
-				const buffs = player.getParty()?.getBuffs();
-				if (!buffs?.windfuryTotem) {
+				const buffs = player.sim.raid.getBuffs();
+				if (!buffs.windfuryTotem) {
 					return '';
 				}
 

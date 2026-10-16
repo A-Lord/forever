@@ -58,7 +58,7 @@ func imbueOptions(imbue proto.ShamanImbue) *proto.Player_EnhancementShaman {
 	}
 }
 
-const DefaultTalents = "050533102-053030031005112251"
+const DefaultTalents = "053503102-053030031005112251"
 
 // The UI's Enhancement defaults: Major Mana Potion, Flask of Supreme Power, Smoked Desert Dumplings,
 // Demonic Rune, the Owl, Sages, Greater Mageblood, Nature Power, Greater Arcane, Cunning and Ferocity

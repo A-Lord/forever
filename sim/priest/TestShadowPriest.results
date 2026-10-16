@@ -159,9 +159,9 @@ dps_results: {
 dps_results: {
  key: "TestShadowPriest-AllItems-CloakofFlames-3475"
  value: {
-  dps: 669.23089
-  tps: 338.38037
-  dtps: 5.46303
+  dps: 671.25313
+  tps: 339.53547
+  dtps: 5.10552
  }
 }
 dps_results: {
@@ -645,6 +645,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestShadowPriest-AllItems-LordSakrasis'Scepter-5028"
+ value: {
+  dps: 701.47151
+  tps: 354.32275
+  dtps: 5.37936
+ }
+}
+dps_results: {
  key: "TestShadowPriest-AllItems-MajorRecombobulator-18637"
  value: {
   dps: 673.87793
@@ -735,9 +743,9 @@ dps_results: {
 dps_results: {
  key: "TestShadowPriest-AllItems-RingofSaviors-1447"
  value: {
-  dps: 672.85087
-  tps: 340.32141
-  dtps: 5.11863
+  dps: 672.94442
+  tps: 340.3642
+  dtps: 5.10552
  }
 }
 dps_results: {
