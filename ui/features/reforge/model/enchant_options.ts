@@ -52,8 +52,8 @@ export const skippedEnchantSlots = (slots: readonly EnchantSlot[]): SkippedEncha
 	slots.filter((entry): entry is SkippedEnchantSlot => 'reason' in entry);
 
 // The static enchants the gear optimizer may pick per slot: those worth more than 0 EP, or from a preset pool, every
-// listed one whatever its EP. itemArmorScale is the sheet's PlayerStats.itemArmorScale, which values a no-mods armor share.
-export const buildEnchantOptions = (slots: readonly EnchantSlot[], weights: Stats, fromPresetPool: boolean, itemArmorScale: number): BulkEnchantSlotOptions[] =>
+// listed one whatever its EP.
+export const buildEnchantOptions = (slots: readonly EnchantSlot[], weights: Stats, fromPresetPool: boolean): BulkEnchantSlotOptions[] =>
 	slots.flatMap(entry => {
 		if ('reason' in entry) return [];
 		const { slot, equipped, fitting } = entry;
@@ -61,7 +61,7 @@ export const buildEnchantOptions = (slots: readonly EnchantSlot[], weights: Stat
 		const epPerWeaponDps = weaponSpeed ? getWeaponDpsStatsBySlot(1, slot).computeEP(weights) : 0;
 		const effectIds = fitting
 			.filter(isStaticEnchant)
-			.filter(enchant => fromPresetPool || enchantEP(enchant, weights, weaponSpeed, epPerWeaponDps, itemArmorScale) > 0)
+			.filter(enchant => fromPresetPool || enchantEP(enchant, weights, weaponSpeed, epPerWeaponDps) > 0)
 			.map(enchant => enchant.effectId);
 		return effectIds.length ? [BulkEnchantSlotOptions.create({ slot, effectIds: [...new Set(effectIds)].sort((a, b) => a - b) })] : [];
 	});

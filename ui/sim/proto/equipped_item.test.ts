@@ -99,33 +99,20 @@ describe('EquippedItem with a random suffix that reduces caster DPS', () => {
 	});
 });
 
-// An Armor weight is per point of armor from items, each worth the sheet's item armor scale in sheet armor. A no-mods
-// armor share reaches the sheet whole, so it is worth the weight over that scale, while the rest of the armor keeps the
-// weight; a scale of 0 or 1 values both alike.
-describe('enchantEP with a no-mods armor share', () => {
+// One point of ArmorNoMods is one point of sheet armor and has a weight of its own, which the gear optimizer's candidate
+// filter reads with no scale; the Armor weight is per point of armor from items.
+describe('enchantEP with ArmorNoMods', () => {
 	const armor = 125;
-	const armorWeight = 0.5;
-	const scale = 4.6;
-	const weights = Stats.fromMap({ [Stat.StatArmor]: armorWeight, [Stat.StatStamina]: 2 });
-	const armorEnchant = (noModsArmor: number) =>
-		Enchant.create({ effectId: 1504, stats: Stats.fromMap({ [Stat.StatArmor]: armor, [Stat.StatStamina]: 3 }).asProtoArray(), noModsArmor });
+	const armorEnchant = (stat: Stat) => Enchant.create({ effectId: 1504, stats: Stats.fromMap({ [stat]: armor, [Stat.StatStamina]: 3 }).asProtoArray() });
 
-	it('values the share at the Armor weight over the item armor scale', () => {
-		expect(enchantEP(armorEnchant(armor), weights, 0, 0, scale)).toBeCloseTo((armor / scale) * armorWeight + 3 * 2);
+	it('values ArmorNoMods at its own weight and Armor at the Armor weight', () => {
+		const weights = Stats.fromMap({ [Stat.StatArmor]: 0.5, [Stat.StatArmorNoMods]: 0.125, [Stat.StatStamina]: 2 });
+		expect(enchantEP(armorEnchant(Stat.StatArmorNoMods), weights, 0, 0)).toBeCloseTo(armor * 0.125 + 3 * 2);
+		expect(enchantEP(armorEnchant(Stat.StatArmor), weights, 0, 0)).toBeCloseTo(armor * 0.5 + 3 * 2);
 	});
 
-	it('values the armor of an enchant with no share at the Armor weight whatever the scale', () => {
-		expect(enchantEP(armorEnchant(0), weights, 0, 0, scale)).toBeCloseTo(armor * armorWeight + 3 * 2);
-	});
-
-	it('values a share part of the armor apart from the rest', () => {
-		const share = 25;
-		expect(enchantEP(armorEnchant(share), weights, 0, 0, scale)).toBeCloseTo((armor - share) * armorWeight + (share / scale) * armorWeight + 3 * 2);
-	});
-
-	it('values the share like the rest of the armor where the scale is 1 or not measured', () => {
-		for (const unscaled of [1, 0]) {
-			expect(enchantEP(armorEnchant(armor), weights, 0, 0, unscaled)).toBeCloseTo(armor * armorWeight + 3 * 2);
-		}
+	it('gives ArmorNoMods nothing where only Armor has a weight', () => {
+		const weights = Stats.fromMap({ [Stat.StatArmor]: 0.5 });
+		expect(enchantEP(armorEnchant(Stat.StatArmorNoMods), weights, 0, 0)).toBe(0);
 	});
 });

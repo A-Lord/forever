@@ -22,7 +22,7 @@ const (
 	attackPowerShoulderID
 	critShoulderID
 	plainArmorEnchantID
-	noModsArmorEnchantID
+	armorNoModsEnchantID
 	armorScalingNeckID
 )
 
@@ -185,20 +185,22 @@ func TestOptimizeValuesAPercentEnchantThroughItsRating(t *testing.T) {
 	}
 }
 
-// An Armor weight is per point of armor from items, each worth the sheet's item armor scale in sheet
-// armor; a fixture neck triples the armor from items and then doubles the armor, a percent armor
-// modifier, so the scale carries both. An enchant's plain armor is worth the weight per point, while
-// its no-mods armor share reaches the sheet whole and is worth the weight over that scale.
-func TestOptimizeValuesANoModsArmorShareOverTheItemArmorScale(t *testing.T) {
+// An enchant's ArmorNoMods is worth its own weight per point, with no scale, and its Armor the Armor
+// weight. A fixture neck triples the armor from items and then doubles the armor, a percent armor
+// modifier, which leaves the ArmorNoMods whole in the cap space's armor as it does on the sheet.
+func TestOptimizeValuesArmorNoModsAtItsOwnWeight(t *testing.T) {
 	const armor = 120
-	values := make([]float64, len(proto.Stat_name))
-	values[proto.Stat_StatArmor] = armor
+	values := func(stat proto.Stat) []float64 {
+		values := make([]float64, len(proto.Stat_name))
+		values[stat] = armor
+		return values
+	}
 	core.AddToDatabase(&proto.SimDatabase{
 		Items: []*proto.SimItem{{Id: armorScalingNeckID, Name: "Test Armor Scaling Neck", Type: proto.ItemType_ItemTypeNeck,
 			ScalingOptions: map[int32]*proto.ScalingItemProperties{0: {}}}},
 		Enchants: []*proto.SimEnchant{
-			{EffectId: plainArmorEnchantID, Type: proto.ItemType_ItemTypeChest, Stats: values},
-			{EffectId: noModsArmorEnchantID, Type: proto.ItemType_ItemTypeChest, Stats: values, NoModsArmor: armor},
+			{EffectId: plainArmorEnchantID, Type: proto.ItemType_ItemTypeChest, Stats: values(proto.Stat_StatArmor)},
+			{EffectId: armorNoModsEnchantID, Type: proto.ItemType_ItemTypeChest, Stats: values(proto.Stat_StatArmorNoMods)},
 		},
 	})
 	if !core.HasItemEffect(armorScalingNeckID) {
@@ -211,23 +213,24 @@ func TestOptimizeValuesANoModsArmorShareOverTheItemArmorScale(t *testing.T) {
 	raid := protectionWarriorRaid("preraid")
 	raid.Parties[0].Players[0].Equipment.Items[proto.ItemSlot_ItemSlotNeck] = &proto.ItemSpec{Id: armorScalingNeckID}
 
-	sheet := core.ComputeStats(&proto.ComputeStatsRequest{Raid: protopkg.Clone(raid).(*proto.Raid), SkipRotation: true})
-	if sheet.ErrorResult != "" {
-		t.Fatalf("ComputeStats: %s", sheet.ErrorResult)
+	baseResult, sdm, sheet := computeReforgeStatsAndDeps(&proto.ComputeStatsRequest{Raid: protopkg.Clone(raid).(*proto.Raid)})
+	if baseResult.ErrorResult != "" {
+		t.Fatalf("ComputeStats: %s", baseResult.ErrorResult)
 	}
-	scale := sheet.RaidStats.Parties[0].Players[0].GetItemArmorScale()
-	if scale < 6 {
-		t.Fatalf("the sheet's item armor scale is %v with the neck's tripling and doubling, want at least 6", scale)
+	o := &reforgeOptimizer{statDeps: sdm, sheet: sheet, baseStats: protoToCoreUnitStats(baseResult.RaidStats.Parties[0].Players[0].FinalStats)}
+	capCoeffs := o.resolveCapCoeffs(rawUnitStatsFromStats(stats.Stats{stats.ArmorNoMods: armor}))
+	if got := capCoeffs[statCoeffKey(proto.Stat_StatArmor)]; math.Abs(got-armor) > 1e-9 {
+		t.Errorf("%v ArmorNoMods moves the cap space's armor by %v, want all of it", armor, got)
 	}
 
-	const armorEP = 2
-	weights := map[proto.Stat]float64{proto.Stat_StatArmor: armorEP}
+	const armorEP, armorNoModsEP = 2, 0.25
+	weights := map[proto.Stat]float64{proto.Stat_StatArmor: armorEP, proto.Stat_StatArmorNoMods: armorNoModsEP}
 	for _, tc := range []struct {
 		enchant int32
 		want    float64
 	}{
 		{plainArmorEnchantID, armor * armorEP},
-		{noModsArmorEnchantID, armor / scale * armorEP},
+		{armorNoModsEnchantID, armor * armorNoModsEP},
 	} {
 		chest := &proto.BulkEnchantSlotOptions{Slot: proto.ItemSlot_ItemSlotChest, EffectIds: []int32{tc.enchant}}
 		result := optimize(t, enchantRequest(protopkg.Clone(raid).(*proto.Raid), weights, chest))

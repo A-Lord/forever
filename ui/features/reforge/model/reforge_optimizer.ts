@@ -149,7 +149,7 @@ export const createReforgeOptimizer = (sim: Sim, player: Player<any>, options: R
 			undershootCaps: settings.undershootCaps,
 			settings: proto,
 			softCaps: softCapsConfigWithLimits(),
-			enchantOptions: buildEnchantOptions(enchantSlots(gear), preCapEPs(), settings.useEnchantPresets, player.getCurrentStats().itemArmorScale),
+			enchantOptions: buildEnchantOptions(enchantSlots(gear), preCapEPs(), settings.useEnchantPresets),
 		};
 	};
 

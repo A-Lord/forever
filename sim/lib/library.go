@@ -142,7 +142,6 @@ func getDatabase(itemIds *int32, numItems int32, enchantIds *int32, numEnchants 
 				EnchantType:    enchant.EnchantType,
 				ExtraTypes:     enchant.ExtraTypes,
 				ProcKind:       enchant.ProcKind,
-				NoModsArmor:    enchant.NoModsArmor,
 			})
 		}
 	}

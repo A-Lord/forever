@@ -37,7 +37,7 @@ import type { PresetEpWeights } from '../presets/types';
 import { ActionId } from '../proto/action_id';
 import { addPartyBuffItems } from '../proto/buff_items';
 import { Database } from '../proto/database';
-import { enchantNoModsArmorEP, enchantWeaponDamageEP, EquippedItem, getWeaponDpsStatsBySlot } from '../proto/equipped_item';
+import { enchantWeaponDamageEP, EquippedItem, getWeaponDpsStatsBySlot } from '../proto/equipped_item';
 import { Gear, ItemSwapGear } from '../proto/gear';
 import { canEquipEnchant, canEquipItem, enchantAppliesToItem, isPVPItem } from '../proto/items';
 import { specTypeFunctions, withSpec } from '../proto/spec_functions';
@@ -1185,10 +1185,7 @@ export class Player<SpecType extends Spec> {
 			ep = this.computeStatsEP(new Stats(enchant.stats, enchant.pseudoStats));
 			this.enchantEPCache.set(enchant.effectId, ep);
 		}
-		// The no-mods armor share's worth follows the gear and form through the sheet's item armor scale, so it stays out
-		// of the cache.
-		const noModsArmorEP = enchant.noModsArmor ? enchantNoModsArmorEP(enchant, this.getEpWeights(), this.slice().currentStats.itemArmorScale) : 0;
-		return ep + enchantWeaponDamageEP(enchant, weaponSpeed, epPerWeaponDps) + noModsArmorEP;
+		return ep + enchantWeaponDamageEP(enchant, weaponSpeed, epPerWeaponDps);
 	}
 
 	computeWeaponDpsEP(slot: ItemSlot): number {
