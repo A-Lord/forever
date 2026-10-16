@@ -11083,7 +11083,6 @@
 {"id":15267,"name":"Holy Fire","icon":"spell_holy_searinglight","rank":7,"hasBuff":true},
 {"id":15270,"name":"Spirit Tap","icon":"spell_shadow_requiem"},
 {"id":15273,"name":"Improved Mind Blast","icon":"spell_shadow_unholyfrenzy"},
-{"id":15274,"name":"Improved Fade","icon":"spell_magic_lesserinvisibilty"},
 {"id":15275,"name":"Improved Shadow Word: Pain","icon":"spell_shadow_shadowwordpain"},
 {"id":15286,"name":"Vampiric Embrace","icon":"spell_shadow_unsummonbuilding","hasBuff":true},
 {"id":15290,"name":"Vampiric Embrace","icon":"spell_shadow_unsummonbuilding","hasBuff":true},
@@ -11092,7 +11091,6 @@
 {"id":15294,"name":"Dark Iron Sunderer","icon":"spell_shadow_sealofkings"},
 {"id":15295,"name":"Dark Iron Shoulders","icon":"spell_shadow_sealofkings"},
 {"id":15296,"name":"Dark Iron Plate","icon":"spell_shadow_sealofkings"},
-{"id":15318,"name":"Shadow Affinity","icon":"spell_shadow_shadowward"},
 {"id":15326,"name":"Blackout","icon":"spell_shadow_gathershadows","rank":5},
 {"id":15392,"name":"Improved Psychic Scream","icon":"spell_shadow_psychicscream"},
 {"id":15407,"name":"Mind Flay","icon":"spell_shadow_siphonmana","rank":1,"hasBuff":true},
@@ -12686,7 +12684,9 @@
 {"id":1325256,"name":"Mana Tide Totem","icon":"spell_frost_summonwaterelemental","rank":4},
 {"id":1325257,"name":"Mana Tide","icon":"spell_frost_summonwaterelemental","rank":4,"hasBuff":true},
 {"id":1326047,"name":"Lava Burst","icon":"spell_shaman_lavaburst","rank":4},
-{"id":1326084,"name":"Reckoning","icon":"spell_holy_blessingofstrength","hasBuff":true}
+{"id":1326084,"name":"Reckoning","icon":"spell_holy_blessingofstrength","hasBuff":true},
+{"id":1326159,"name":"Dark Inspiration","icon":"spell_warlock_demonsoul"},
+{"id":1326168,"name":"Dark Inspiration","icon":"spell_warlock_demonsoul","hasBuff":true}
 ],
 "encounters":[
 {"path":"Default/Raid Target","targets":[{"path":"Default/Raid Target","target":{"id":31146,"name":"Raid Target","level":63,"mobType":7,"stats":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,3731,0,1428900,0,0,0,0,0,0,0,0],"minBaseDamage":2601,"damageSpread":0.5,"swingSpeed":2,"parryHaste":true,"canCrush":true}}]},
