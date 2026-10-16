@@ -3,6 +3,7 @@
 package feralcat
 
 import (
+	"fmt"
 	"math"
 	"strings"
 	"testing"
@@ -116,8 +117,7 @@ func TestFurorRestoresEnergyAfterLeavingCat(t *testing.T) {
 	}
 }
 
-// Tooltip 17056: a bear form forfeits the stored energy and halts the count while it is active.
-func TestFurorForfeitsEnergyInABearForm(t *testing.T) {
+func TestFurorPreservesEnergyInABearForm(t *testing.T) {
 	sim, cat := newCat(t, furorTalents, nil)
 	fillResource(sim, cat)
 	cat.SpendEnergy(sim, 60, cat.NewEnergyMetrics(core.ActionID{SpellID: 1}))
@@ -132,8 +132,8 @@ func TestFurorForfeitsEnergyInABearForm(t *testing.T) {
 	if !cat.CatForm.Cast(sim, cat.CurrentTarget) {
 		t.Fatal("cat form did not cast on the way back")
 	}
-	if got := cat.CurrentEnergy(); got != 0 {
-		t.Errorf("energy back in cat form after dire bear form = %v, want 0", got)
+	if got := cat.CurrentEnergy(); got != 40 {
+		t.Errorf("energy back in cat form after dire bear form = %v, want 40", got)
 	}
 }
 
@@ -404,8 +404,10 @@ func TestHowlingIdolShortensShiftingPower(t *testing.T) {
 	if !cat.ShiftingPower.Cast(sim, cat.CurrentTarget) {
 		t.Fatal("shifting power did not cast")
 	}
-	if got := cat.ShiftingPower.ReadyAt(); got != 15*time.Second {
-		t.Errorf("shifting power ready at %v with the idol, want 15s", got)
+	// 1291059's effect 1 states the reduction as negative milliseconds.
+	want := spelldata.MustFind(cat.ShiftingPower.SpellID).Cooldown() + spelldata.MustFind(1291059).EffectN(1).TimeValue()
+	if got := cat.ShiftingPower.ReadyAt(); got != want {
+		t.Errorf("shifting power ready at %v with the idol, want %v", got, want)
 	}
 }
 
@@ -660,5 +662,129 @@ func TestPrepullClearcastingStartsTheFightClearcasting(t *testing.T) {
 		if got != on {
 			t.Errorf("option %v: Clearcasting gained before the pull = %v", on, got)
 		}
+	}
+}
+
+func TestFurorPausesEnergyInBear(t *testing.T) {
+	for rank := 0; rank <= 5; rank++ {
+		for _, dire := range []bool{false, true} {
+			for _, elapsed := range []time.Duration{0, 3 * time.Second, 20 * time.Second} {
+				t.Run(fmt.Sprintf("rank%d/dire%t/%v", rank, dire, elapsed), func(t *testing.T) {
+					sim, cat := newCat(t, fmt.Sprintf("0000000000000000-00000000000000000000-0%d00000000000000", rank), nil)
+					cat.SpendEnergy(sim, 60, cat.NewEnergyMetrics(core.ActionID{SpellID: 1}))
+					cat.CatFormAura.Deactivate(sim)
+					sim.CurrentTime += 2 * time.Second
+					bear := cat.BearFormAura
+					if dire {
+						bear = cat.DireBearFormAura
+					}
+					bear.Activate(sim)
+					sim.CurrentTime += elapsed
+					bear.Deactivate(sim)
+					sim.CurrentTime += time.Second
+					cat.CatFormAura.Activate(sim)
+					want := float64(rank) / 5 * 70
+					if math.Abs(cat.CurrentEnergy()-want) > 1e-9 {
+						t.Fatalf("energy = %v, want %v", cat.CurrentEnergy(), want)
+					}
+					cat.CatFormAura.Deactivate(sim)
+					bear.Activate(sim)
+					sim.CurrentTime += 20 * time.Second
+					bear.Deactivate(sim)
+					cat.CatFormAura.Activate(sim)
+					want *= float64(rank) / 5
+					if math.Abs(cat.CurrentEnergy()-want) > 1e-9 {
+						t.Fatalf("repeated shift energy = %v, want %v", cat.CurrentEnergy(), want)
+					}
+					cat.CatFormAura.Deactivate(sim)
+					bear.Activate(sim)
+					sim.Cleanup()
+					sim.Reset()
+					if cat.CurrentEnergy() != 100 || cat.EnergyPerTick != 1 || !cat.InForm(druid.Cat) {
+						t.Fatalf("reset: energy %v, tick %v, form %v", cat.CurrentEnergy(), cat.EnergyPerTick, cat.InForm(druid.Cat))
+					}
+				})
+			}
+		}
+	}
+}
+
+func TestFurorBearTicksAndDirectTransitions(t *testing.T) {
+	sim, cat := newCat(t, furorTalents, nil)
+	cat.SpendEnergy(sim, 70, cat.NewEnergyMetrics(core.ActionID{SpellID: 1}))
+	if !cat.BearForm.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("Bear entry failed")
+	}
+	for sim.CurrentTime < 2*time.Second {
+		if sim.Step() {
+			t.Fatal("simulation ended in Bear")
+		}
+	}
+	if cat.CurrentEnergy() != 30 {
+		t.Fatalf("Bear regenerated energy: %v", cat.CurrentEnergy())
+	}
+	cat.AddMana(sim, cat.MaxMana(), cat.NewManaMetrics(core.ActionID{SpellID: 1}))
+	if !cat.DireBearForm.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("Dire Bear entry failed")
+	}
+	for sim.CurrentTime < 4*time.Second {
+		if sim.Step() {
+			t.Fatal("simulation ended in Dire Bear")
+		}
+	}
+	if cat.CurrentEnergy() != 30 {
+		t.Fatalf("Dire Bear regenerated energy: %v", cat.CurrentEnergy())
+	}
+	cat.AddMana(sim, cat.MaxMana(), cat.NewManaMetrics(core.ActionID{SpellID: 1}))
+	if !cat.CatForm.Cast(sim, cat.CurrentTarget) {
+		t.Fatal("Cat return failed")
+	}
+	if cat.CurrentEnergy() != 30 {
+		t.Fatalf("Cat energy = %v, want 30", cat.CurrentEnergy())
+	}
+	returned := sim.CurrentTime
+	for sim.CurrentTime < returned+time.Second {
+		if sim.Step() {
+			t.Fatal("simulation ended in Cat")
+		}
+	}
+	if math.Abs(cat.CurrentEnergy()-40) > 1e-9 {
+		t.Fatalf("Cat regeneration = %v, want 40", cat.CurrentEnergy())
+	}
+}
+
+func TestFaerieFireOmenEligibilityByForm(t *testing.T) {
+	for _, form := range []druid.DruidForm{druid.Humanoid, druid.Cat, druid.Bear, druid.DireBear} {
+		t.Run(fmt.Sprint(form), func(t *testing.T) {
+			sim, cat := newCat(t, furorTalents, nil)
+			cat.ClearForm(sim)
+			switch form {
+			case druid.Cat:
+				cat.CatFormAura.Activate(sim)
+			case druid.Bear:
+				cat.BearFormAura.Activate(sim)
+			case druid.DireBear:
+				cat.DireBearFormAura.Activate(sim)
+			}
+			procs := 0
+			cat.AutoAttacks.CancelAutoSwing(sim)
+			cat.ClearcastingAura.ApplyOnGain(func(_ *core.Aura, _ *core.Simulation) { procs++ })
+			for i := 0; i < 400; i++ {
+				sim.AddPendingAction(&core.PendingAction{NextActionAt: time.Duration(i+1) * 100 * time.Millisecond, OnAction: func(sim *core.Simulation) {
+					cat.ClearcastingAura.Deactivate(sim)
+					cat.OmenOfClarityAura.Icd.Set(0)
+					cat.FaerieFire.CalcAndDealOutcome(sim, cat.CurrentTarget, cat.FaerieFire.OutcomeAlwaysHit)
+				}})
+			}
+			for !sim.Step() {
+			}
+
+			if form == druid.Humanoid && procs == 0 {
+				t.Fatal("caster Faerie Fire never triggered Omen")
+			}
+			if form != druid.Humanoid && procs != 0 {
+				t.Fatalf("in-form Faerie Fire triggered Omen %d times", procs)
+			}
+		})
 	}
 }

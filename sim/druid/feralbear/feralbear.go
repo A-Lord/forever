@@ -75,14 +75,14 @@ func (bear *GuardianDruid) GetDruid() *druid.Druid {
 }
 
 func (bear *GuardianDruid) AddRaidBuffs(raidBuffs *proto.RaidBuffs) {
+	bear.Druid.AddRaidBuffs(raidBuffs)
 }
 
 func (bear *GuardianDruid) ApplyTalents() {
 	bear.Druid.ApplyTalents()
 }
 
-func (bear *GuardianDruid) AddPartyBuffs(partyBuffs *proto.PartyBuffs) {
-	bear.Druid.AddPartyBuffs(partyBuffs)
+func (bear *GuardianDruid) AddPartyBuffs(_ *proto.PartyBuffs) {
 }
 
 func (bear *GuardianDruid) Initialize() {

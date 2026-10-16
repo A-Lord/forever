@@ -85,10 +85,10 @@ export default defineSpec<Spec.SpecRogue>({
 			giftOfTheWild: true,
 			strengthOfEarthTotem: true,
 			windfuryTotem: true,
+			leaderOfThePack: true,
 		}),
 		partyBuffs: PartyBuffs.create({
 			battleShout: TristateEffect.TristateEffectRegular,
-			leaderOfThePack: true,
 		}),
 		individualBuffs: IndividualBuffs.create({
 			greaterBlessingOfKings: true,

@@ -62,12 +62,12 @@ var FullRaidBuffs = &proto.RaidBuffs{
 	GraceOfAirTotem:      true,
 	StrengthOfEarthTotem: true,
 	WindfuryTotem:        true,
+	LeaderOfThePack:      true,
+	MoonkinAura:          true,
 }
 
 var FullPartyBuffs = &proto.PartyBuffs{
 	BloodPact:         true,
-	MoonkinAura:       true,
-	LeaderOfThePack:   true,
 	DevotionAura:      true,
 	RetributionAura:   true,
 	ConcentrationAura: true,

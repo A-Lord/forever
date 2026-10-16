@@ -7,7 +7,7 @@ import (
 )
 
 // The feral tree in its own order. Feral Charge, Shifting Power and Primal Bite are spells whose cast
-// condition is the talent; registerFeralKit registers them. AddPartyBuffs publishes Leader of the
+// condition is the talent; registerFeralKit registers them. AddRaidBuffs publishes Leader of the
 // Pack, and the melee specials read Rend and Tear when they deal damage.
 func (druid *Druid) registerFeralCombatTalents() {
 	druid.applyFerocity()
