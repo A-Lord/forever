@@ -29,7 +29,7 @@ var sealOfRighteousnessProcIDs = map[int32]int32{1: 25742, 2: 25740, 3: 25739, 4
 //
 //	proc = value/100 * speed * hand(speed) + coefficient * (spell power + Judgement of the Crusader)
 //	  two-hander:  hand = 1.2,                                  coefficient 0.12
-//	  one-hander:  hand = 0.85 - 0.2 * max(0, 2.0 - speed),     coefficient 0.0765
+//	  one-hander:  hand = 0.85 - 0.2 * max(0, 2.0 - speed),     coefficient 0.1
 //
 // The hand factors were measured on the 1.60.1 beta at level 20, ranks 1-3, eighteen weapons from
 // 1.7 to 3.7 (2026-09-26). The two-hander line is exact from 2.6 to 3.7. One-handers sit on 0.85
@@ -38,6 +38,11 @@ var sealOfRighteousnessProcIDs = map[int32]int32{1: 25742, 2: 25740, 3: 25739, 4
 // shapes the data allows and they agree to a percent down to 1.5. The spell power part takes one
 // coefficient per hand type at every speed and rank, outside the fast-weapon penalty, and Judgement
 // of the Crusader counts as spell power at the same coefficient. A crit doubles the unrounded total.
+//
+// The coefficients were measured on the 1.60.1.70425 beta at level 30, rank 4, at 0 and 50 spell
+// power (2026-10-16). One-handers at 1.8, 2.2 and 2.8 all fit 0.096 to 0.101, and two-handers at
+// 2.9 and 3.8 fit 0.117 to 0.124. The tooltip's 0.0765 fits none of the one-handers: it would put
+// a 1.8 hit at 13.5 and a 2.2 hit at 16.3, where they land at 14 to 15 and 17 to 18.
 func (paladin *Paladin) registerSealOfRighteousness(_ int32, rank *spelldata.Spell) {
 	judgeRank := spellData.JudgementOfRighteousness.ByID(int32(rank.EffectN(2).BaseValue()))
 	judgeDamage := judgeRank.DamageEffect()
@@ -104,13 +109,11 @@ func (paladin *Paladin) registerSealOfRighteousness(_ int32, rank *spelldata.Spe
 	})
 }
 
-// The measured weapon multiplier of a Seal of Righteousness hit for the weapon in the main hand, and
-// its spell power coefficient from the seal tooltip's $2h and $1h description variables: see
-// registerSealOfRighteousness.
-// TODO: Ingame test needed: the spell power part of a hit at several weapon speeds.
+// The measured weapon multiplier and spell power coefficient of a Seal of Righteousness hit for the
+// weapon in the main hand: see registerSealOfRighteousness.
 func sealOfRighteousnessHand(mh *core.Item) (hand float64, coefficient float64) {
 	if mh.HandType == proto.HandType_HandTypeTwoHand {
 		return 1.2, 0.12
 	}
-	return 0.85 - 0.2*max(0, 2.0-mh.SwingSpeed), 0.0765
+	return 0.85 - 0.2*max(0, 2.0-mh.SwingSpeed), 0.1
 }
