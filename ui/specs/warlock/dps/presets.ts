@@ -15,10 +15,12 @@ export const DEFAULT_APL = PresetUtils.makePresetAPLRotation('Default', DefaultA
 // Defaults
 export const DefaultOptions = WarlockOptions.create({
 	classOptions: {
-		armor: WarlockOptions_Armor.FelArmor,
+		armor: WarlockOptions_Armor.DemonArmor,
 		curseOptions: WarlockOptions_CurseOptions.Recklessness,
-		sacrificeSummon: true,
-		summon: WarlockOptions_Summon.Succubus,
+		sacrificedDemon: WarlockOptions_Summon.Succubus,
+		summon: WarlockOptions_Summon.Imp,
+		// A full Felcloth Bag (21341), the largest Soul Bag a warlock can carry.
+		soulShards: 32,
 	},
 });
 

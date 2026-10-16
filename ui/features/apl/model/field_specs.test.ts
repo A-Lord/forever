@@ -32,6 +32,7 @@ import {
 	reactionTimeCheckbox,
 	statTypeFieldConfig,
 	stringFieldConfig,
+	summonTypeFieldConfig,
 	totemTypeFieldConfig,
 	unitFieldConfig,
 	valueFieldConfig,
@@ -52,6 +53,7 @@ describe('resolveField kinds', () => {
 	it('resolves the fixed-enum descriptor types to kind enum', () => {
 		const descriptors = [
 			curseTypeFieldConfig('f'),
+			summonTypeFieldConfig('f'),
 			autoTypeFieldConfig('f'),
 			autoSwingTypeFieldConfig('f'),
 			statTypeFieldConfig('f'),
