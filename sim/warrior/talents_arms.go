@@ -253,8 +253,8 @@ func (warrior *Warrior) registerBloodthrill() {
 	talent := spellData.Bloodthrill.Rank(warrior.Talents.Bloodthrill)
 
 	// The proc opens Overpower's window as a dodge would, for the window's own duration, and the
-	// cast consumes it. The rate is the shape where the tooltip's $s1 names an effect, so the row's
-	// own ProcChanceEffectN reads the ladder; the Rend the tooltip asks for is the caller's.
+	// cast consumes it. The tooltip's $s1 names an effect, so the row's own ProcChanceEffectN
+	// reads the rate ladder. The caller checks for the Rend the tooltip asks for.
 	trigger := spelldata.ProcTrigger(&warrior.Character, talent,
 		func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
 			warrior.OverpowerAura.Activate(sim)

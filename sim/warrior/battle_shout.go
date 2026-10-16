@@ -15,9 +15,9 @@ const ShoutExpirationThreshold = time.Second * 3
 var battleShoutRank = spellData.BattleShout.Highest()
 
 func (warrior *Warrior) registerBattleShout() {
-	// A warrior that shouts builds a copy of its own; one that shouts nothing
-	// gets the isPlayer=false constructor, whose aura is the raid's external
-	// copy, and what that copy is worth is the raid's Battle Shout state's to say.
+	// A warrior that shouts builds its own copy. One that never shouts gets the
+	// isPlayer=false constructor, whose aura is the raid's external copy, and the
+	// raid's Battle Shout state sets what that copy is worth.
 	castsOwnShout := warrior.UseBattleShout
 
 	// Three pieces of Battlegear of Wrath add a flat 30 to the shout. HasBsT2 is

@@ -186,11 +186,11 @@ func TestWarriorShoutsForTheTierTwoBonus(t *testing.T) {
 	}
 }
 
-// What the warrior does about the Battle Shout category. The buff is the
-// unit's, so a 169 shout from the raid or from the warrior standing next to
-// this one is the same category: a 139 shout the category would turn away is a
-// global and some rage thrown away, and so is refreshing a copy that still has
-// most of its three minutes to run.
+// How the warrior treats the Battle Shout category. The buff belongs to the
+// unit, so a 169 shout from the raid and one from the warrior standing next to
+// this one fill the same category. Casting a 139 shout the category would turn
+// away wastes a global and rage, and so does refreshing a copy with most of its
+// three minutes left.
 func TestWarriorShoutsOnlyWhenTheCategoryWillTakeIt(t *testing.T) {
 	warriorProto := func(name string, hasT2 bool) *proto.Player {
 		return &proto.Player{
