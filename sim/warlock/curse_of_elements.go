@@ -9,8 +9,7 @@ func (warlock *Warlock) registerCurseOfElements() {
 
 	// The TBC implementation, kept for the port:
 	// warlock.CurseOfElementsAuras = warlock.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
-	// 	// The warlock's own copy of the aura. Malediction's modifier masks do
-	// 	// not cover this curse, so there are no talent points to pass.
+	// 	// The warlock's own copy of the aura, with no talent points to pass.
 	// 	return buffs.NewSpellDataCurseOfElementsAura(target, true, 0)
 	// })
 	// warlock.CurseOfElements = warlock.RegisterSpell(core.SpellConfig{

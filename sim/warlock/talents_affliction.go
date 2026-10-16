@@ -1,5 +1,7 @@
 package warlock
 
+import "github.com/wowsims/forever/sim/core/spelldata"
+
 func (warlock *Warlock) registerAfflictionTalents() {
 	// Tier 1
 	// Improved Life Tap implemented in lifetap.go
@@ -9,7 +11,7 @@ func (warlock *Warlock) registerAfflictionTalents() {
 	warlock.applyEmpoweredCorruption()
 
 	// Tier 2
-	// Malediction implemented in curse_of_elements.go
+	warlock.applyGrimReach()
 	warlock.applySoulHarvest()
 	warlock.applyImprovedDrains()
 
@@ -208,6 +210,15 @@ func (warlock *Warlock) applySoulHarvest() {
 	if warlock.Talents.SoulHarvest == 0 {
 		return
 	}
+}
+
+// Increases the range of your Affliction spells by X%.
+func (warlock *Warlock) applyGrimReach() {
+	if warlock.Talents.GrimReach == 0 {
+		return
+	}
+
+	spelldata.ParseStatic(&warlock.Character, spellData.GrimReach.Rank(warlock.Talents.GrimReach))
 }
 
 // applyImprovedDrains implements Improved Drains, new in Forever.
