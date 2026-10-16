@@ -166,23 +166,6 @@ func NewSpellDataConcentrationAura(unit *core.Unit, isPlayer bool, talentPoints 
 	return newBuff(unit, concentrationAuraMeta, isPlayer, talentPoints)
 }
 
-// Trueshot Aura
-var trueshotAuraSpell = spelldata.MustFind(20906)
-var trueshotAuraMeta = &Meta{
-	Label: "Trueshot Aura",
-	Spell: trueshotAuraSpell,
-}
-
-func TrueshotAuraValue(talentPoints int32) float64 {
-	return trueshotAuraMeta.Value(talentPoints)
-}
-func TrueshotAuraDuration(talentPoints int32) time.Duration {
-	return trueshotAuraMeta.Duration(talentPoints)
-}
-func NewSpellDataTrueshotAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
-	return newBuff(unit, trueshotAuraMeta, isPlayer, talentPoints)
-}
-
 // Atiesh - Mage
 var atieshMageSpell = spelldata.MustFind(28142)
 var atieshMageMeta = &Meta{
@@ -271,26 +254,6 @@ func StoneskinTotemDuration(talentPoints int32) time.Duration {
 }
 func NewSpellDataStoneskinTotemAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
 	return newBuff(unit, stoneskinTotemMeta, isPlayer, talentPoints)
-}
-
-// Furious Howl
-var FuriousHowlCategory = "BattleShout"
-var furiousHowlSpell = spelldata.MustFind(24597)
-var furiousHowlMeta = &Meta{
-	Label:      "Furious Howl",
-	Spell:      furiousHowlSpell,
-	Category:   FuriousHowlCategory,
-	SingleAura: true,
-}
-
-func FuriousHowlValue(talentPoints int32) float64 {
-	return furiousHowlMeta.Value(talentPoints)
-}
-func FuriousHowlDuration(talentPoints int32) time.Duration {
-	return furiousHowlMeta.Duration(talentPoints)
-}
-func NewSpellDataFuriousHowlAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
-	return newBuff(unit, furiousHowlMeta, isPlayer, talentPoints)
 }
 
 // Darkspear
@@ -616,6 +579,43 @@ func NewSpellDataFlametongueTotemAura(unit *core.Unit, isPlayer bool, talentPoin
 	return newBuff(unit, flametongueTotemMeta, isPlayer, talentPoints)
 }
 
+// Trueshot Aura
+var trueshotAuraSpell = spelldata.MustFind(20906)
+var trueshotAuraMeta = &Meta{
+	Label: "Trueshot Aura",
+	Spell: trueshotAuraSpell,
+}
+
+func TrueshotAuraValue(talentPoints int32) float64 {
+	return trueshotAuraMeta.Value(talentPoints)
+}
+func TrueshotAuraDuration(talentPoints int32) time.Duration {
+	return trueshotAuraMeta.Duration(talentPoints)
+}
+func NewSpellDataTrueshotAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+	return newBuff(unit, trueshotAuraMeta, isPlayer, talentPoints)
+}
+
+// Furious Howl
+var FuriousHowlCategory = "BattleShout"
+var furiousHowlSpell = spelldata.MustFind(24597)
+var furiousHowlMeta = &Meta{
+	Label:      "Furious Howl",
+	Spell:      furiousHowlSpell,
+	Category:   FuriousHowlCategory,
+	SingleAura: true,
+}
+
+func FuriousHowlValue(talentPoints int32) float64 {
+	return furiousHowlMeta.Value(talentPoints)
+}
+func FuriousHowlDuration(talentPoints int32) time.Duration {
+	return furiousHowlMeta.Duration(talentPoints)
+}
+func NewSpellDataFuriousHowlAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+	return newBuff(unit, furiousHowlMeta, isPlayer, talentPoints)
+}
+
 // Aspect of the Wild
 var aspectOfTheWildSpell = spelldata.MustFind(20190)
 var aspectOfTheWildMeta = &Meta{
@@ -845,9 +845,6 @@ func applyGeneratedBuffs(char *core.Character, raid *proto.RaidBuffs, party *pro
 	if party.ConcentrationAura {
 		core.MakePermanent(NewSpellDataConcentrationAura(&char.Unit, false, 0))
 	}
-	if party.TrueshotAura {
-		core.MakePermanent(NewSpellDataTrueshotAura(&char.Unit, false, 0))
-	}
 	if party.AtieshMage > 0 {
 		driveAtieshMage(char, party)
 	}
@@ -862,9 +859,6 @@ func applyGeneratedBuffs(char *core.Character, raid *proto.RaidBuffs, party *pro
 	}
 	if party.StoneskinTotem != proto.TristateEffect_TristateEffectMissing {
 		standTotem(char, stoneskinTotemSpell, NewSpellDataStoneskinTotemAura, core.GetTristateValueInt32(party.StoneskinTotem, 0, 2))
-	}
-	if party.FuriousHowl {
-		core.MakePermanent(NewSpellDataFuriousHowlAura(&char.Unit, false, 0))
 	}
 	if party.Darkspear {
 		driveDarkspear(char, party)
@@ -916,6 +910,12 @@ func applyGeneratedBuffs(char *core.Character, raid *proto.RaidBuffs, party *pro
 	}
 	if raid.FlametongueTotem {
 		driveFlametongueTotem(char, raid)
+	}
+	if raid.TrueshotAura {
+		core.MakePermanent(NewSpellDataTrueshotAura(&char.Unit, false, 0))
+	}
+	if raid.FuriousHowl {
+		core.MakePermanent(NewSpellDataFuriousHowlAura(&char.Unit, false, 0))
 	}
 	if raid.AspectOfTheWild {
 		core.MakePermanent(NewSpellDataAspectOfTheWildAura(&char.Unit, false, 0))
