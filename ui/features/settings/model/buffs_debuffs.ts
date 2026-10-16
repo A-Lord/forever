@@ -62,11 +62,7 @@ export const PARTY_BUFFS_CONFIG = inDisplayOrder(Generated.GENERATED_PARTY_BUFFS
 	Generated.AtieshPriest,
 	Generated.Darkspear,
 	Generated.AdmiralsHat,
-	Generated.StrengthOfEarthTotem,
 	Generated.StoneskinTotem,
-	Generated.GraceOfAirTotem,
-	Generated.WindfuryTotem,
-	Generated.FlametongueTotem,
 ]);
 
 export const BUFFS_CONFIG = inDisplayOrder(
@@ -89,6 +85,10 @@ export const BUFFS_CONFIG = inDisplayOrder(
 		Generated.FireResistanceTotem,
 		Generated.FrostResistanceTotem,
 		Generated.NatureResistanceTotem,
+		Generated.StrengthOfEarthTotem,
+		Generated.GraceOfAirTotem,
+		Generated.WindfuryTotem,
+		Generated.FlametongueTotem,
 		Generated.AspectOfTheWild,
 		Generated.Innervates,
 		Generated.PowerInfusions,

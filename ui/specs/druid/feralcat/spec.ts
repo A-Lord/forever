@@ -86,12 +86,12 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 			prayerOfSpirit: true,
 			giftOfTheWild: true,
 			prayerOfFortitude: true,
+			windfuryTotem: true,
+			strengthOfEarthTotem: true,
 		}),
 		partyBuffs: PartyBuffs.create({
 			battleShout: TristateEffect.TristateEffectRegular,
-			windfuryTotem: true,
 			manaSpringTotem: TristateEffect.TristateEffectRegular,
-			strengthOfEarthTotem: true,
 		}),
 		individualBuffs: IndividualBuffs.create({
 			greaterBlessingOfKings: true,

@@ -487,12 +487,12 @@ func measureGeneratedBuffStats(char *core.Character) {
 	char.SetStats(char.SortAndApplyStatDependencies(char.GetStats()).FloorGameStats())
 }
 
-// Grace of Air stands for the fight on its own, and gives way to Windfury
-// Totem: under both, the party gets no agility from it.
-func TestGeneratedGraceOfAirGivesWayToWindfuryTotem(t *testing.T) {
+// Grace of Air stands for the fight, and as of 1.60.1.70425 stacks with
+// Windfury Totem: under both, the party still gets its agility.
+func TestGeneratedGraceOfAirStacksWithWindfuryTotem(t *testing.T) {
 	standing := core.NewGeneratedBuffTestCharacter()
 	core.ApplyBuffEffects(standing,
-		&proto.RaidBuffs{}, &proto.PartyBuffs{GraceOfAirTotem: true}, &proto.IndividualBuffs{})
+		&proto.RaidBuffs{GraceOfAirTotem: true}, &proto.PartyBuffs{}, &proto.IndividualBuffs{})
 	standing.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
 
 	if got, want := standing.GetStats()[stats.Agility], graceOfAirTotemAgility(t); got != want {
@@ -506,23 +506,23 @@ func TestGeneratedGraceOfAirGivesWayToWindfuryTotem(t *testing.T) {
 		t.Errorf("the totem's aura lasts %v, want it to stand for the fight", aura.Duration)
 	}
 
-	sim := setupFakeSimWithBuffs(&proto.RaidBuffs{},
-		&proto.PartyBuffs{GraceOfAirTotem: true}, &proto.IndividualBuffs{})
+	sim := setupFakeSimWithBuffs(&proto.RaidBuffs{GraceOfAirTotem: true},
+		&proto.PartyBuffs{}, &proto.IndividualBuffs{})
 	permanent := sim.Raid.Parties[0].Players[0].GetCharacter().GetAura("Grace of Air Totem (External)")
 	if !permanent.IsActive() {
 		t.Error("the totem is down at the pull, want it up for the fight")
 	}
 
 	underWindfury := core.NewGeneratedBuffTestCharacter()
-	core.ApplyBuffEffects(underWindfury, &proto.RaidBuffs{},
-		&proto.PartyBuffs{GraceOfAirTotem: true, WindfuryTotem: true}, &proto.IndividualBuffs{})
+	core.ApplyBuffEffects(underWindfury, &proto.RaidBuffs{GraceOfAirTotem: true, WindfuryTotem: true},
+		&proto.PartyBuffs{}, &proto.IndividualBuffs{})
 	underWindfury.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
 
-	if got := underWindfury.GetStats()[stats.Agility]; got != 0 {
-		t.Errorf("under Windfury Totem the totem applied %v agility, want none", got)
+	if got, want := underWindfury.GetStats()[stats.Agility], graceOfAirTotemAgility(t); got != want {
+		t.Errorf("under Windfury Totem the totem applied %v agility, want the game files' %v", got, want)
 	}
-	if underWindfury.GetAura("Grace of Air Totem (External)") != nil {
-		t.Error("under Windfury Totem the totem registered its aura")
+	if underWindfury.GetAura("Grace of Air Totem (External)") == nil {
+		t.Errorf("under Windfury Totem no aura is labelled %q; the unit has %v", "Grace of Air Totem (External)", auraLabels(underWindfury))
 	}
 }
 
@@ -661,7 +661,7 @@ func TestPartyDarkspearReadsTheItemTheRequestCarries(t *testing.T) {
 // The windfury proc grants the attack power the game files state for as long as
 // the aura lasts; the totem aura around it holds the category and the trigger.
 func TestGeneratedWindfuryTotemProcAppliesItsAttackPower(t *testing.T) {
-	sim := setupFakeSimWithBuffs(&proto.RaidBuffs{}, &proto.PartyBuffs{WindfuryTotem: true}, &proto.IndividualBuffs{})
+	sim := setupFakeSimWithBuffs(&proto.RaidBuffs{WindfuryTotem: true}, &proto.PartyBuffs{}, &proto.IndividualBuffs{})
 	char := sim.Raid.Parties[0].Players[0].GetCharacter()
 
 	proc := char.GetAura("Windfury Totem (External)")
@@ -705,7 +705,7 @@ func windfuryTotem(t *testing.T) float64 {
 // hand, spends one. A melee special or a missed swing spends none, and a proc no
 // auto lands on keeps its attack power for its whole duration.
 func TestGeneratedWindfuryTotemProcSpendsItsChargesOnAutoAttacks(t *testing.T) {
-	sim := setupFakeSimWithBuffs(&proto.RaidBuffs{}, &proto.PartyBuffs{WindfuryTotem: true}, &proto.IndividualBuffs{})
+	sim := setupFakeSimWithBuffs(&proto.RaidBuffs{WindfuryTotem: true}, &proto.PartyBuffs{}, &proto.IndividualBuffs{})
 	char := sim.Raid.Parties[0].Players[0].GetCharacter()
 	proc := char.GetAura("Windfury Totem (External)")
 	if proc == nil {
@@ -787,7 +787,7 @@ func TestGeneratedWindfuryTotemProcsOffMainHandHitsWithEveryCharge(t *testing.T)
 	setup := func(t *testing.T) (*core.Simulation, *core.Unit, *core.Aura, *[]int32) {
 		t.Helper()
 
-		sim := setupFakeSimWithBuffs(&proto.RaidBuffs{}, &proto.PartyBuffs{WindfuryTotem: true}, &proto.IndividualBuffs{})
+		sim := setupFakeSimWithBuffs(&proto.RaidBuffs{WindfuryTotem: true}, &proto.PartyBuffs{}, &proto.IndividualBuffs{})
 		char := sim.Raid.Parties[0].Players[0].GetCharacter()
 		trigger := char.GetAura("Windfury Totem Trigger")
 		proc := char.GetAura("Windfury Totem (External)")
@@ -870,22 +870,21 @@ func TestGeneratedWindfuryTotemProcsOffMainHandHitsWithEveryCharge(t *testing.T)
 func TestGeneratedWindfuryTotemSpendsItsChargesOnTheHitThenTheExtraAttack(t *testing.T) {
 	setup := func(t *testing.T) (*core.Simulation, *core.Unit, *core.Aura, *core.Aura, *core.Spell, *[]int32) {
 		t.Helper()
-		sim, owner := setupPetOwnerSim(&proto.PartyBuffs{WindfuryTotem: true})
+		sim, owner := setupPetOwnerSim(&proto.RaidBuffs{WindfuryTotem: true}, &proto.PartyBuffs{})
 		for _, unit := range slices.Concat(sim.Raid.AllUnits, sim.Encounter.AllTargetUnits) {
 			unit.AutoAttacks.CancelAutoSwing(sim)
 		}
-		pet := owner.pet
-		trigger := pet.GetAura("Windfury Totem Trigger")
-		proc := pet.GetAura("Windfury Totem (External)")
+		trigger := owner.GetAura("Windfury Totem Trigger")
+		proc := owner.GetAura("Windfury Totem (External)")
 		if trigger == nil || proc == nil || !trigger.IsActive() {
-			t.Fatalf("the pet's trigger is %v and proc %v, want both registered and the trigger up", trigger, proc)
+			t.Fatalf("the trigger is %v and proc %v, want both registered and the trigger up", trigger, proc)
 		}
 		if proc.MaxStacks < 2 {
 			t.Fatalf("the proc holds %d charges, want at least 2", proc.MaxStacks)
 		}
-		extraAttack := pet.GetSpell(pet.AutoAttacks.MHAuto().ActionID.WithTag(proc.ActionID.SpellID))
+		extraAttack := owner.GetSpell(owner.AutoAttacks.MHAuto().ActionID.WithTag(proc.ActionID.SpellID))
 		if extraAttack == nil {
-			t.Fatal("the pet registered no extra attack under the totem's tag")
+			t.Fatal("no extra attack is registered under the totem's tag")
 		}
 		var changes []int32
 		proc.ApplyOnStacksChange(func(_ *core.Aura, _ *core.Simulation, oldStacks int32, newStacks int32) {
@@ -997,7 +996,7 @@ func TestGeneratedFlametongueTotemDamageFollowsWeaponSpeed(t *testing.T) {
 // fire damage scaled by the weapon's speed, on the spell hit and crit tables; a
 // special, an off-hand hit or a missed swing strikes nothing.
 func TestGeneratedFlametongueTotemStrikesOnMainHandHits(t *testing.T) {
-	sim := setupFakeSimWithBuffs(&proto.RaidBuffs{}, &proto.PartyBuffs{FlametongueTotem: true}, &proto.IndividualBuffs{})
+	sim := setupFakeSimWithBuffs(&proto.RaidBuffs{FlametongueTotem: true}, &proto.PartyBuffs{}, &proto.IndividualBuffs{})
 	char := sim.Raid.Parties[0].Players[0].GetCharacter()
 	target := sim.Encounter.AllTargetUnits[0]
 
@@ -1101,8 +1100,7 @@ func TestGeneratedFlametongueTotemStaysThroughAMainHandSwap(t *testing.T) {
 				EnableItemSwap: true,
 				ItemSwap:       &proto.ItemSwap{Items: withMainHand(whirlwindAxe)},
 			}},
-			Buffs: &proto.PartyBuffs{FlametongueTotem: true},
-		}}},
+		}}, Buffs: &proto.RaidBuffs{FlametongueTotem: true}},
 		Encounter: &proto.Encounter{Targets: []*proto.Target{{Name: "target", Level: 60}}, Duration: 180},
 	}, simsignals.CreateSignals())
 	sim.Reset()
@@ -1131,8 +1129,8 @@ func TestGeneratedFlametongueTotemStaysThroughAMainHandSwap(t *testing.T) {
 // The two totems do not stack: under both, Windfury Totem holds and Flametongue
 // Totem registers nothing.
 func TestGeneratedWindfuryTotemHoldsOverFlametongueTotem(t *testing.T) {
-	sim := setupFakeSimWithBuffs(&proto.RaidBuffs{},
-		&proto.PartyBuffs{WindfuryTotem: true, FlametongueTotem: true}, &proto.IndividualBuffs{})
+	sim := setupFakeSimWithBuffs(&proto.RaidBuffs{WindfuryTotem: true, FlametongueTotem: true},
+		&proto.PartyBuffs{}, &proto.IndividualBuffs{})
 	char := sim.Raid.Parties[0].Players[0].GetCharacter()
 
 	if char.GetAura("Flametongue Totem Trigger") != nil || char.GetSpell(core.ActionID{SpellID: 16387, Tag: 1}) != nil {
@@ -1210,8 +1208,8 @@ func standWindfuryTotem(c *core.Character) *core.Aura {
 	return totem
 }
 
-// One shaman under the party buffs, standing what setup gives it.
-func newTotemSim(t *testing.T, party *proto.PartyBuffs, setup func(c *core.Character)) (*core.Simulation, *core.Character) {
+// One shaman under the raid buffs, standing what setup gives it.
+func newTotemSim(t *testing.T, raid *proto.RaidBuffs, setup func(c *core.Character)) (*core.Simulation, *core.Character) {
 	t.Helper()
 	totemSetup = setup
 	t.Cleanup(func() { totemSetup = nil })
@@ -1226,8 +1224,7 @@ func newTotemSim(t *testing.T, party *proto.PartyBuffs, setup func(c *core.Chara
 				Spec:      &proto.Player_EnhancementShaman{},
 				Equipment: &proto.EquipmentSpec{},
 			}},
-			Buffs: party,
-		}}},
+		}}, Buffs: raid},
 		Encounter: &proto.Encounter{Targets: []*proto.Target{{Name: "target", Level: 60}}, Duration: 180},
 	}, simsignals.CreateSignals())
 	sim.Reset()
@@ -1237,11 +1234,11 @@ func newTotemSim(t *testing.T, party *proto.PartyBuffs, setup func(c *core.Chara
 var graceOfAirAgility = core.ExclusiveStatCategory(buffs.GraceOfAirTotemCategory, stats.Agility.StatName(), false)
 
 // A Windfury Totem of the shaman's own casting stands only part of the fight:
-// while it is down, the party's Grace of Air and Flametongue Totem work, and
-// while it stands, neither does.
-func TestGeneratedOwnWindfuryTotemHoldsOverThePartysTotems(t *testing.T) {
+// while it stands, the party's Flametongue Totem does nothing, and the party's
+// Grace of Air keeps its agility throughout.
+func TestGeneratedOwnWindfuryTotemHoldsOverThePartysFlametongueTotem(t *testing.T) {
 	var windfury *core.Aura
-	sim, char := newTotemSim(t, &proto.PartyBuffs{GraceOfAirTotem: true, FlametongueTotem: true}, func(c *core.Character) {
+	sim, char := newTotemSim(t, &proto.RaidBuffs{GraceOfAirTotem: true, FlametongueTotem: true}, func(c *core.Character) {
 		windfury = standWindfuryTotem(c)
 	})
 	graceOfAir := char.GetAura("Grace of Air Totem (External)")
@@ -1255,17 +1252,12 @@ func TestGeneratedOwnWindfuryTotemHoldsOverThePartysTotems(t *testing.T) {
 	}
 
 	windfury.Activate(sim)
-	if agility.GetActiveAura() == graceOfAir {
-		t.Error("under the shaman's Windfury Totem, Grace of Air still holds the agility")
-	}
-	if got, want := before-char.GetStats()[stats.Agility], graceOfAirTotemAgility(t); got != want {
-		t.Errorf("the totem took %v agility away, want Grace of Air's %v", got, want)
+	if agility.GetActiveAura() != graceOfAir || char.GetStats()[stats.Agility] != before {
+		t.Errorf("under the shaman's Windfury Totem the agility is held by %v at %v, want Grace of Air at %v",
+			agility.GetActiveAura(), char.GetStats()[stats.Agility], before)
 	}
 	if flametongue.IsActive() {
 		t.Error("under the shaman's Windfury Totem, Flametongue Totem's trigger is up")
-	}
-	if !graceOfAir.IsActive() {
-		t.Error("the party's Grace of Air went down, want it standing and doing nothing")
 	}
 
 	windfury.Deactivate(sim)
@@ -1278,11 +1270,11 @@ func TestGeneratedOwnWindfuryTotemHoldsOverThePartysTotems(t *testing.T) {
 	}
 }
 
-// The party's Windfury Totem holds over the shaman's own Grace of Air and
-// Flametongue Totem: each stands and does nothing.
-func TestGeneratedPartyWindfuryTotemHoldsOverOwnTotems(t *testing.T) {
+// The party's Windfury Totem holds over the shaman's own Flametongue Totem,
+// which stands and does nothing, and stacks with the shaman's own Grace of Air.
+func TestGeneratedPartyWindfuryTotemHoldsOverOwnFlametongueTotem(t *testing.T) {
 	var graceOfAir, flametongue *core.Aura
-	sim, char := newTotemSim(t, &proto.PartyBuffs{WindfuryTotem: true}, func(c *core.Character) {
+	sim, char := newTotemSim(t, &proto.RaidBuffs{WindfuryTotem: true}, func(c *core.Character) {
 		graceOfAir = buffs.NewSpellDataGraceOfAirTotemAura(&c.Unit, true, 0)
 		flametongue = standWeaponTotem(c, "Flametongue Totem (Self)", buffs.FlametongueTotemCategory,
 			buffs.FlametongueTotemPriority(), buffs.NewFlametongueTotemProcTrigger(c))
@@ -1294,8 +1286,8 @@ func TestGeneratedPartyWindfuryTotemHoldsOverOwnTotems(t *testing.T) {
 	if !graceOfAir.IsActive() || !flametongue.IsActive() {
 		t.Fatalf("Grace of Air is up %v and Flametongue Totem %v, want both standing", graceOfAir.IsActive(), flametongue.IsActive())
 	}
-	if got := char.GetStats()[stats.Agility]; got != before {
-		t.Errorf("the shaman's Grace of Air moved agility from %v to %v under the party's Windfury Totem", before, got)
+	if got, want := char.GetStats()[stats.Agility]-before, graceOfAirTotemAgility(t); got != want {
+		t.Errorf("the shaman's Grace of Air added %v agility under the party's Windfury Totem, want the game files' %v", got, want)
 	}
 	if char.GetAura("Flametongue Totem Trigger").IsActive() {
 		t.Error("the shaman's Flametongue Totem turned its trigger on under the party's Windfury Totem")
@@ -1306,7 +1298,7 @@ func TestGeneratedPartyWindfuryTotemHoldsOverOwnTotems(t *testing.T) {
 // down, and the standing totem still holds over Flametongue Totem.
 func TestGeneratedWindfuryTotemHoldsOverFlametongueTotemUnderWindfuryWeapon(t *testing.T) {
 	var windfury, imbue *core.Aura
-	sim, char := newTotemSim(t, &proto.PartyBuffs{FlametongueTotem: true}, func(c *core.Character) {
+	sim, char := newTotemSim(t, &proto.RaidBuffs{FlametongueTotem: true}, func(c *core.Character) {
 		windfury = standWindfuryTotem(c)
 		imbue = c.RegisterAura(core.Aura{Label: "Windfury Weapon (Main Hand)", Duration: core.NeverExpires})
 		imbue.NewExclusiveEffect(buffs.WindfuryTotemCategory, false, core.ExclusiveEffect{Priority: math.MaxFloat64})
@@ -1563,11 +1555,11 @@ func TestGeneratedManaTideTotemRestoresItsMana(t *testing.T) {
 	if aura == nil {
 		t.Fatalf("no aura is labelled %q; the unit has %v", "Mana Tide Totem (External)", auraLabels(char))
 	}
-	if want := rowDuration(t, 17359); aura.Duration != want {
+	if want := rowDuration(t, 1325256); aura.Duration != want {
 		t.Errorf("the totem stands for %v, want the cast's %v", aura.Duration, want)
 	}
-	tick := rowEffect(t, 17360, dbcenums.A_PERIODIC_ENERGIZE)
-	mp5 := rowAmount(t, 17360, dbcenums.A_PERIODIC_ENERGIZE) * 5000 / float64(tick.PeriodMs)
+	tick := rowEffect(t, 1325257, dbcenums.A_PERIODIC_ENERGIZE)
+	mp5 := rowAmount(t, 1325257, dbcenums.A_PERIODIC_ENERGIZE) * 5000 / float64(tick.PeriodMs)
 
 	before := char.GetStats()[stats.MP5]
 	aura.Activate(sim)
@@ -1582,12 +1574,14 @@ func TestGeneratedManaTideTotemRestoresItsMana(t *testing.T) {
 // totem enchant, so Flametongue Totem is measured on a party without Windfury.
 func TestGeneratedDrivenBuffsAreNotBuildPhaseAuras(t *testing.T) {
 	for _, tc := range []struct {
+		raid       *proto.RaidBuffs
 		party      *proto.PartyBuffs
 		individual *proto.IndividualBuffs
 		labels     []string
 	}{
 		{
-			party:      &proto.PartyBuffs{ManaTideTotems: 1, WindfuryTotem: true},
+			raid:       &proto.RaidBuffs{WindfuryTotem: true},
+			party:      &proto.PartyBuffs{ManaTideTotems: 1},
 			individual: &proto.IndividualBuffs{Innervates: 1, PowerInfusions: 1},
 			labels: []string{
 				"Innervates (External)", "Power Infusions (External)", "Mana Tide Totem (External)",
@@ -1595,12 +1589,13 @@ func TestGeneratedDrivenBuffsAreNotBuildPhaseAuras(t *testing.T) {
 			},
 		},
 		{
-			party:      &proto.PartyBuffs{FlametongueTotem: true},
+			raid:       &proto.RaidBuffs{FlametongueTotem: true},
+			party:      &proto.PartyBuffs{},
 			individual: &proto.IndividualBuffs{},
 			labels:     []string{"Flametongue Totem (External)"},
 		},
 	} {
-		sim := setupFakeSimWithBuffs(&proto.RaidBuffs{}, tc.party, tc.individual)
+		sim := setupFakeSimWithBuffs(tc.raid, tc.party, tc.individual)
 		char := sim.Raid.Parties[0].Players[0].GetCharacter()
 
 		for _, label := range tc.labels {
@@ -1700,6 +1695,10 @@ func init() {
 				IsDynamic: true,
 			})}
 			owner.AddPet(owner.dynamic)
+			owner.EnableAutoAttacks(owner, core.AutoAttackOptions{
+				MainHand:       core.Weapon{BaseDamageMin: 10, BaseDamageMax: 20, SwingSpeed: 2, NormalizedSwingSpeed: 2},
+				AutoSwingMelee: true,
+			})
 			return owner
 		},
 		func(player *proto.Player, spec interface{}) {
@@ -1737,7 +1736,7 @@ func (p *testPet) OnEncounterStart(_ *core.Simulation) {}
 
 func (p *testPet) ExecuteCustomRotation(_ *core.Simulation) {}
 
-func setupPetOwnerSim(party *proto.PartyBuffs) (*core.Simulation, *petOwner) {
+func setupPetOwnerSim(raid *proto.RaidBuffs, party *proto.PartyBuffs) (*core.Simulation, *petOwner) {
 	sim := core.NewSim(&proto.RaidSimRequest{
 		SimOptions: &proto.SimOptions{RandomSeed: 100},
 		Raid: &proto.Raid{
@@ -1750,6 +1749,7 @@ func setupPetOwnerSim(party *proto.PartyBuffs) (*core.Simulation, *petOwner) {
 				}},
 				Buffs: party,
 			}},
+			Buffs: raid,
 		},
 		Encounter: &proto.Encounter{
 			Targets:  []*proto.Target{{Name: "target", Level: 60}},
@@ -1761,19 +1761,18 @@ func setupPetOwnerSim(party *proto.PartyBuffs) (*core.Simulation, *petOwner) {
 }
 
 // A true pet stands under its owner's totems with the owner's exclusivity, except those whose aura
-// only a player can carry: it has Mana Spring and, under Windfury Totem, the totem's proc, but never
-// Strength of Earth or Grace of Air. A guardian stands under none of them.
+// only a player can carry: it has Mana Spring, but never Strength of Earth, Grace of Air or Windfury
+// Totem's proc. A guardian stands under none of them.
 func TestTruePetsStandUnderTheOwnersTotems(t *testing.T) {
 	for _, tc := range []struct {
-		name     string
-		party    *proto.PartyBuffs
-		windfury bool
+		name string
+		raid *proto.RaidBuffs
 	}{
-		{"grace of air", &proto.PartyBuffs{ManaSpringTotem: proto.TristateEffect_TristateEffectRegular, StrengthOfEarthTotem: true, GraceOfAirTotem: true}, false},
-		{"windfury", &proto.PartyBuffs{ManaSpringTotem: proto.TristateEffect_TristateEffectRegular, StrengthOfEarthTotem: true, GraceOfAirTotem: true, WindfuryTotem: true}, true},
+		{"grace of air", &proto.RaidBuffs{StrengthOfEarthTotem: true, GraceOfAirTotem: true}},
+		{"windfury", &proto.RaidBuffs{StrengthOfEarthTotem: true, GraceOfAirTotem: true, WindfuryTotem: true}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			_, owner := setupPetOwnerSim(tc.party)
+			_, owner := setupPetOwnerSim(tc.raid, &proto.PartyBuffs{ManaSpringTotem: proto.TristateEffect_TristateEffectRegular})
 			pet := owner.pet
 
 			if aura := owner.GetAura("Strength of Earth Totem (External)"); aura == nil || !aura.IsActive() {
@@ -1793,9 +1792,8 @@ func TestTruePetsStandUnderTheOwnersTotems(t *testing.T) {
 			if got := pet.GetStats(); got[stats.Strength] != 0 || got[stats.Agility] != 0 {
 				t.Errorf("the pet has %v strength and %v agility, want none", got[stats.Strength], got[stats.Agility])
 			}
-			trigger := pet.GetAura("Windfury Totem Trigger")
-			if got := trigger != nil && trigger.IsActive(); got != tc.windfury {
-				t.Errorf("the pet's Windfury Totem proc is up %v, want %v", got, tc.windfury)
+			if trigger := pet.GetAura("Windfury Totem Trigger"); trigger != nil && trigger.IsActive() {
+				t.Error("the pet's Windfury Totem proc is up, want it down")
 			}
 
 			for _, label := range []string{"Mana Spring Totem (External)", "Windfury Totem"} {
@@ -1812,7 +1810,7 @@ func TestTruePetsStandUnderTheOwnersTotems(t *testing.T) {
 
 // A pet dismissed and summoned again stands under the totem again.
 func TestTruePetsStandUnderTheOwnersTotemsAfterASummon(t *testing.T) {
-	sim, owner := setupPetOwnerSim(&proto.PartyBuffs{ManaSpringTotem: proto.TristateEffect_TristateEffectRegular})
+	sim, owner := setupPetOwnerSim(&proto.RaidBuffs{}, &proto.PartyBuffs{ManaSpringTotem: proto.TristateEffect_TristateEffectRegular})
 	pet := owner.pet
 	totem := pet.GetAura("Mana Spring Totem (External)")
 	if totem == nil {
@@ -1835,7 +1833,7 @@ func TestTruePetsStandUnderTheOwnersTotemsAfterASummon(t *testing.T) {
 
 // Mana Tide is up on a true pet for as long as it is up on the owner.
 func TestTruePetsStandUnderTheOwnersManaTide(t *testing.T) {
-	sim, owner := setupPetOwnerSim(&proto.PartyBuffs{ManaTideTotems: 1})
+	sim, owner := setupPetOwnerSim(&proto.RaidBuffs{}, &proto.PartyBuffs{ManaTideTotems: 1})
 	totem := owner.GetAura("Mana Tide Totem (External)")
 	petTotem := owner.pet.GetAura("Mana Tide Totem (External)")
 	if totem == nil || petTotem == nil {
