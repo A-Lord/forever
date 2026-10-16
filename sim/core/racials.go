@@ -12,10 +12,16 @@ func applyRaceEffects(agent Agent) {
 
 	switch character.Race {
 	case proto.Race_RaceDwarf:
-		// Earth Fury 1259719. Its row keeps a mace equip row, which its tooltip does not name, so it
-		// holds with any weapon.
-		// TODO: Ingame test needed: whether Earth Fury holds without a mace.
-		character.PseudoStats.CritDamageMultiplier *= 1.02
+		// Earth Fury 1259719 holds while any weapon slot holds a mace, one- or two-handed, and follows
+		// item swaps.
+		earthFuryActive := false
+		character.NewEquipGate(EquipRequirement{SubclassMask: WeaponSubclassMask(proto.WeaponType_WeaponTypeMace)}, func(_ *Simulation, level float64) {
+			if (level > 0) == earthFuryActive {
+				return
+			}
+			earthFuryActive = level > 0
+			character.PseudoStats.CritDamageMultiplier *= Ternary(earthFuryActive, 1.02, 1/1.02)
+		}).SetLevel(nil, 1)
 		applyCreatureTypeSlaying(character, proto.MobType_MobTypeBeast)
 
 		actionID := ActionID{SpellID: 20594}

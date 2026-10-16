@@ -378,35 +378,127 @@ func TestGnomeWarlockEurekaChannel(t *testing.T) {
 	channelFrom(start+mods.Duration, "a Drain Life running past the end of Eureka!", boosted, boosted, 1, 1, 1)
 }
 
-// Endurance and Earth Fury raise the crit damage bonus of attacks, spells and heals alike by 2% of
-// the base multiplier, with no weapon held.
-func TestCritDamageRacials(t *testing.T) {
-	critMultipliers := func(race proto.Race) map[string]float64 {
-		_, fw := setupRacialSim(race)
-		magic := func(id int32, procMask ProcMask, school SpellSchool) *Spell {
-			return fw.RegisterSpell(SpellConfig{
-				ActionID:         ActionID{SpellID: id},
-				DefenseType:      DefenseTypeMagic,
-				ProcMask:         procMask,
-				SpellSchool:      school,
-				DamageMultiplier: 1,
-			})
-		}
-		attackTable := fw.AttackTables[fw.CurrentTarget.UnitIndex]
-		return map[string]float64{
-			"main-hand swing": fw.AutoAttacks.MHAuto().CritDamageMultiplier(attackTable),
-			"spell":           magic(990801, ProcMaskSpellDamage, SpellSchoolFire).CritDamageMultiplier(attackTable),
-			"heal":            magic(990802, ProcMaskSpellHealing, SpellSchoolHoly).CritDamageMultiplier(nil),
+const (
+	racialTestMaceID int32 = 991511 + iota
+	racialTestTwoHandMaceID
+)
+
+func addRacialTestMaces() {
+	mace := func(id int32, handType proto.HandType) *proto.SimItem {
+		return &proto.SimItem{
+			Id:             id,
+			Name:           "Test Mace",
+			Type:           proto.ItemType_ItemTypeWeapon,
+			WeaponType:     proto.WeaponType_WeaponTypeMace,
+			HandType:       handType,
+			WeaponSpeed:    2.6,
+			ScalingOptions: map[int32]*proto.ScalingItemProperties{0: {WeaponDamageMin: 50, WeaponDamageMax: 90}},
 		}
 	}
+	addToDatabase(&proto.SimDatabase{Items: []*proto.SimItem{
+		mace(racialTestMaceID, proto.HandType_HandTypeOneHand),
+		mace(racialTestTwoHandMaceID, proto.HandType_HandTypeTwoHand),
+	}})
+}
 
-	human := critMultipliers(proto.Race_RaceHuman)
-	for _, race := range []proto.Race{proto.Race_RaceTauren, proto.Race_RaceDwarf} {
-		for name, got := range critMultipliers(race) {
-			if want := human[name] * 1.02; !WithinToleranceFloat64(want, got, 1e-9) {
-				t.Errorf("%s: a %s should crit for x%0.4f, got x%0.4f", race, name, want, got)
+// The crit multipliers of a main-hand swing, a spell and a heal.
+func racialCritMultipliers(sim *Simulation, character *Character) map[string]float64 {
+	magic := func(id int32, procMask ProcMask, school SpellSchool) *Spell {
+		if spell := character.GetSpell(ActionID{SpellID: id}); spell != nil {
+			return spell
+		}
+		return character.RegisterSpell(SpellConfig{
+			ActionID:         ActionID{SpellID: id},
+			DefenseType:      DefenseTypeMagic,
+			ProcMask:         procMask,
+			SpellSchool:      school,
+			DamageMultiplier: 1,
+		})
+	}
+	attackTable := character.AttackTables[sim.Encounter.ActiveTargetUnits[0].UnitIndex]
+	return map[string]float64{
+		"main-hand swing": character.AutoAttacks.MHAuto().CritDamageMultiplier(attackTable),
+		"spell":           magic(990801, ProcMaskSpellDamage, SpellSchoolFire).CritDamageMultiplier(attackTable),
+		"heal":            magic(990802, ProcMaskSpellHealing, SpellSchoolHoly).CritDamageMultiplier(nil),
+	}
+}
+
+// Endurance raises the crit damage bonus of attacks, spells and heals alike by 2% of the base
+// multiplier with any weapon or none, and Earth Fury does while any weapon slot holds a mace.
+func TestCritDamageRacials(t *testing.T) {
+	addRacialTestMaces()
+	bareHands := WeaponTestSlots(0, 0, 0)
+	sword := WeaponTestSlots(WeaponTestSwordID, 0, 0)
+
+	for _, tc := range []struct {
+		name    string
+		race    proto.Race
+		weapons []*proto.ItemSpec
+		want    float64
+	}{
+		{"tauren with bare hands", proto.Race_RaceTauren, bareHands, 1.02},
+		{"tauren with a sword", proto.Race_RaceTauren, sword, 1.02},
+		{"dwarf with a mace", proto.Race_RaceDwarf, WeaponTestSlots(racialTestMaceID, 0, 0), 1.02},
+		{"dwarf with a two-handed mace", proto.Race_RaceDwarf, WeaponTestSlots(racialTestTwoHandMaceID, 0, 0), 1.02},
+		{"dwarf with a mace in the off hand", proto.Race_RaceDwarf, WeaponTestSlots(WeaponTestDaggerID, racialTestMaceID, 0), 1.02},
+		{"dwarf with a sword", proto.Race_RaceDwarf, sword, 1},
+		{"dwarf with bare hands", proto.Race_RaceDwarf, bareHands, 1},
+	} {
+		human := racialCritMultipliers(NewWeaponTestSim(t, proto.Race_RaceHuman, tc.weapons, nil, nil))
+		for name, got := range racialCritMultipliers(NewWeaponTestSim(t, tc.race, tc.weapons, nil, nil)) {
+			if want := human[name] * tc.want; !WithinToleranceFloat64(want, got, 1e-9) {
+				t.Errorf("%s: a %s should crit for x%0.4f, got x%0.4f", tc.name, name, want, got)
 			}
 		}
+	}
+}
+
+// Earth Fury follows the weapons through an item swap in combat, and an iteration that ends on the
+// swapped weapons starts the next one with the crit damage it began with.
+func TestEarthFuryFollowsAnItemSwapInCombat(t *testing.T) {
+	addRacialTestMaces()
+	withMace := WeaponTestSlots(racialTestMaceID, WeaponTestDaggerID, WeaponTestBowID)
+	withSword := WeaponTestSlots(WeaponTestSwordID, WeaponTestDaggerID, WeaponTestBowID)
+
+	for _, tc := range []struct {
+		name              string
+		equipped, swapped []*proto.ItemSpec
+		before, after     float64
+	}{
+		{"mace swapped for a sword", withMace, withSword, 1.02, 1},
+		{"sword swapped for a mace", withSword, withMace, 1, 1.02},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			sim, dwarf := NewWeaponTestSim(t, proto.Race_RaceDwarf, tc.equipped, tc.swapped, nil)
+			base := racialCritMultipliers(NewWeaponTestSim(t, proto.Race_RaceHuman, tc.equipped, nil, nil))
+			check := func(when string, want float64) {
+				t.Helper()
+				for name, got := range racialCritMultipliers(sim, dwarf) {
+					if !WithinToleranceFloat64(base[name]*want, got, 1e-9) {
+						t.Errorf("%s at %v: a %s should crit for x%0.4f, got x%0.4f", when, sim.CurrentTime, name, base[name]*want, got)
+					}
+				}
+			}
+
+			sim.PrePull()
+			for sim.CurrentTime < 3*time.Second {
+				sim.Step()
+			}
+			check("before the swap", tc.before)
+			dwarf.ItemSwap.SwapItems(sim, proto.APLActionItemSwap_Swap1, false)
+			check("after the swap", tc.after)
+
+			for sim.CurrentTime < 6*time.Second {
+				sim.Step()
+			}
+			dwarf.ItemSwap.SwapItems(sim, proto.APLActionItemSwap_Main, false)
+			check("after the swap back", tc.before)
+
+			dwarf.ItemSwap.SwapItems(sim, proto.APLActionItemSwap_Swap1, false)
+			sim.Cleanup()
+			sim.Reset()
+			check("in the next iteration", tc.before)
+		})
 	}
 }
 
