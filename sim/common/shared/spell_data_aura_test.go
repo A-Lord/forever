@@ -485,7 +485,7 @@ func TestSwordOfZealAddsPhysicalDamageAndArmor(t *testing.T) {
 		EffectDurationMs: 15000,
 		Effect:           &proto.ItemEffect_Proc{Proc: &proto.ProcEffect{}},
 		ScalingOptions: map[int32]*proto.ScalingItemEffectProperties{0: {Stats: map[int32]float64{
-			int32(proto.Stat_StatArmor): 150, int32(proto.Stat_StatPhysicalDamage): 10,
+			int32(proto.Stat_StatArmorNoMods): 150, int32(proto.Stat_StatPhysicalDamage): 10,
 		}}},
 	})
 	everyHit(t, zeal)
@@ -523,56 +523,60 @@ func TestSwordOfZealAddsPhysicalDamageAndArmor(t *testing.T) {
 	}
 }
 
-// An item effect's armor stays outside the wearer's percent armor modifiers where the buff's row
-// states its armor on the wearer with A_MOD_ARMOR_NO_MODS, on an on-use, a proc and a stacking proc
-// alike: the wearer gains the entry's armor whole for each stack and loses as much when the buff
-// fades. The same entry on a row stating no such aura gains armor the modifiers scale. The wearer's
-// neck doubles its armor.
+// The buff at stacks, or unstacked for 0, adds want armor to the wearer, and none is left once it fades.
+func checkBuffArmor(t *testing.T, sim *core.Simulation, wearer *auraTester, buff *core.Aura, stacks int32, want float64, what string) {
+	t.Helper()
+	before := wearer.GetStat(stats.Armor)
+	buff.Activate(sim)
+	if stacks > 0 {
+		buff.SetStacks(sim, stacks)
+	}
+	if got := wearer.GetStat(stats.Armor) - before; !core.WithinToleranceFloat64(want, got, 1e-6) {
+		t.Errorf("%s: the buff added %v armor, want %v", what, got, want)
+	}
+	buff.Deactivate(sim)
+	if got := wearer.GetStat(stats.Armor) - before; !core.WithinToleranceFloat64(0, got, 1e-6) {
+		t.Errorf("%s: %v armor is left after the buff fades, want none", what, got)
+	}
+}
+
+// An item buff's ArmorNoMods, the stat the generator writes for a buff row's A_MOD_ARMOR_NO_MODS armor,
+// stays outside the wearer's percent armor modifiers on an on-use, a proc and a stacking proc alike: the
+// wearer gains it whole for each stack and loses as much when the buff fades. The same amount of Armor
+// gains armor the modifiers scale. The wearer's neck doubles its armor.
 func TestNoModsArmorFromAnItemStaysOutOfThePercentArmorModifiers(t *testing.T) {
+	noModsArmorFixtures(t)
 	armor := spelldata.MustFind(saviorsSacrifice).FirstAura(dbcenums.A_MOD_ARMOR_NO_MODS).BasePoints
 	needAmount(t, "18826's armor", armor)
-	if spelldata.MustFind(eyeOfDiminution).FirstAura(dbcenums.A_MOD_ARMOR_NO_MODS) != spelldata.NilEffect {
-		t.Fatalf("%d states A_MOD_ARMOR_NO_MODS, so it cannot stand for a row that does not", eyeOfDiminution)
-	}
 
-	const multiplier = 2
-	const neckID int32 = 992311
-	core.AddToDatabase(&proto.SimDatabase{Items: []*proto.SimItem{{Id: neckID, Name: "Test Armor Neck",
-		Type: proto.ItemType_ItemTypeNeck, ScalingOptions: map[int32]*proto.ScalingItemProperties{0: {}}}}})
-	core.NewItemEffect(neckID, func(agent core.Agent) {
-		agent.GetCharacter().MultiplyStat(stats.Armor, multiplier)
-	})
-
-	// The stacking cases come last: they give the rows a stack count for the rest of the test.
+	// The stacking cases come last: they give the row a stack count for the rest of the test.
 	const stacks = 3
 	for i, tc := range []struct {
-		buff   int32
+		stat   proto.Stat
 		proc   bool
 		stacks int32
 		want   float64
 	}{
-		{saviorsSacrifice, false, 0, armor},
-		{eyeOfDiminution, false, 0, armor * multiplier},
-		{saviorsSacrifice, true, 0, armor},
-		{eyeOfDiminution, true, 0, armor * multiplier},
-		{saviorsSacrifice, true, stacks, armor * stacks},
-		{eyeOfDiminution, true, stacks, armor * multiplier * stacks},
+		{proto.Stat_StatArmorNoMods, false, 0, armor},
+		{proto.Stat_StatArmor, false, 0, armor * armorScaling},
+		{proto.Stat_StatArmorNoMods, true, 0, armor},
+		{proto.Stat_StatArmor, true, 0, armor * armorScaling},
+		{proto.Stat_StatArmorNoMods, true, stacks, armor * stacks},
+		{proto.Stat_StatArmor, true, stacks, armor * armorScaling * stacks},
 	} {
 		itemID := 992312 + int32(i)
 		label := fmt.Sprintf("Test Armor %d", i)
-		entry := &proto.ItemEffect{BuffId: tc.buff, BuffName: label, EffectDurationMs: 20000,
-			ScalingOptions: map[int32]*proto.ScalingItemEffectProperties{0: {Stats: map[int32]float64{
-				int32(proto.Stat_StatArmor): armor,
-			}}}}
+		entry := &proto.ItemEffect{BuffId: saviorsSacrifice, BuffName: label, EffectDurationMs: 20000,
+			ScalingOptions: map[int32]*proto.ScalingItemEffectProperties{0: {Stats: map[int32]float64{int32(tc.stat): armor}}}}
 		slot := proto.ItemSlot_ItemSlotTrinket1
 		if tc.proc {
 			entry.Effect = &proto.ItemEffect_Proc{Proc: &proto.ProcEffect{}}
 			withAuraItem(itemID, proto.ItemType_ItemTypeWeapon, entry)
-			everyHit(t, tc.buff)
+			everyHit(t, saviorsSacrifice)
 			if tc.stacks > 0 {
-				editRow(t, tc.buff, func(s *spelldata.Spell) { s.MaxStack = int16(tc.stacks) })
+				editRow(t, saviorsSacrifice, func(s *spelldata.Spell) { s.MaxStack = int16(tc.stacks) })
 			}
-			NewSpellDataProc(SpellDataProc{TriggerSpellID: tc.buff, IsWeaponProc: true},
+			NewSpellDataProc(SpellDataProc{TriggerSpellID: saviorsSacrifice, IsWeaponProc: true},
 				[]ItemVariant{{ItemID: itemID, ItemName: label}})
 			label += " Proc"
 			slot = proto.ItemSlot_ItemSlotMainHand
@@ -582,31 +586,19 @@ func TestNoModsArmorFromAnItemStaysOutOfThePercentArmorModifiers(t *testing.T) {
 			NewSimpleStatActive(itemID)
 		}
 
-		sim := newAuraSim(shaman("Wearer", map[proto.ItemSlot]int32{slot: itemID, proto.ItemSlot_ItemSlotNeck: neckID}))
+		sim := newAuraSim(shaman("Wearer", map[proto.ItemSlot]int32{slot: itemID, proto.ItemSlot_ItemSlotNeck: armorScalingNeckID}))
 		wearer := auraTesterAt(sim, 0)
 		buff := wearer.GetAura(label)
 		if buff == nil || buff.IsActive() {
-			t.Fatalf("%d (proc %v): the item registered no buff %q, or it is up before it is used", tc.buff, tc.proc, label)
+			t.Fatalf("%v (proc %v): the item registered no buff %q, or it is up before it is used", tc.stat, tc.proc, label)
 		}
-
-		before := wearer.GetStat(stats.Armor)
-		buff.Activate(sim)
-		if tc.stacks > 0 {
-			buff.SetStacks(sim, tc.stacks)
-		}
-		if got := wearer.GetStat(stats.Armor) - before; !core.WithinToleranceFloat64(tc.want, got, 1e-6) {
-			t.Errorf("%d (proc %v, %d stacks): the buff added %v armor, want %v", tc.buff, tc.proc, tc.stacks, got, tc.want)
-		}
-		buff.Deactivate(sim)
-		if got := wearer.GetStat(stats.Armor) - before; !core.WithinToleranceFloat64(0, got, 1e-6) {
-			t.Errorf("%d (proc %v, %d stacks): %v armor is left after the buff fades, want none", tc.buff, tc.proc, tc.stacks, got)
-		}
+		checkBuffArmor(t, sim, wearer, buff, tc.stacks, tc.want, fmt.Sprintf("%v (proc %v, %d stacks)", tc.stat, tc.proc, tc.stacks))
 	}
 }
 
-// A stacking on-use item keeps the same armor outside the percent armor modifiers for each stack where
-// its buff's row states A_MOD_ARMOR_NO_MODS, and loses it whole when the buff fades. The same entry on a
-// row stating no such aura gains armor the modifiers scale. The wearer's neck doubles its armor.
+// A stacking on-use item's ArmorNoMods stays outside the percent armor modifiers for each stack, and
+// the wearer loses it whole when the buff fades. The same amount of Armor gains armor the modifiers
+// scale. The wearer's neck doubles its armor.
 func TestNoModsArmorFromAStackingOnUseStaysOutOfThePercentArmorModifiers(t *testing.T) {
 	noModsArmorFixtures(t)
 	armor := spelldata.MustFind(saviorsSacrifice).FirstAura(dbcenums.A_MOD_ARMOR_NO_MODS).BasePoints
@@ -614,20 +606,18 @@ func TestNoModsArmorFromAStackingOnUseStaysOutOfThePercentArmorModifiers(t *test
 
 	const stacks = 3
 	for i, tc := range []struct {
-		buff int32
+		stat proto.Stat
 		want float64
 	}{
-		{saviorsSacrifice, armor * stacks},
-		{eyeOfDiminution, armor * armorScaling * stacks},
+		{proto.Stat_StatArmorNoMods, armor * stacks},
+		{proto.Stat_StatArmor, armor * armorScaling * stacks},
 	} {
 		itemID := 992331 + int32(i)
 		name := fmt.Sprintf("Test Stacking Armor %d", i)
 		withAuraItem(itemID, proto.ItemType_ItemTypeTrinket, &proto.ItemEffect{
-			BuffId: tc.buff, BuffName: name, EffectDurationMs: 20000, MaxCumulativeStacks: stacks,
-			Effect: &proto.ItemEffect_OnUse{OnUse: &proto.OnUseEffect{CooldownMs: 120000}},
-			ScalingOptions: map[int32]*proto.ScalingItemEffectProperties{0: {Stats: map[int32]float64{
-				int32(proto.Stat_StatArmor): armor,
-			}}},
+			BuffId: saviorsSacrifice, BuffName: name, EffectDurationMs: 20000, MaxCumulativeStacks: stacks,
+			Effect:         &proto.ItemEffect_OnUse{OnUse: &proto.OnUseEffect{CooldownMs: 120000}},
+			ScalingOptions: map[int32]*proto.ScalingItemEffectProperties{0: {Stats: map[int32]float64{int32(tc.stat): armor}}},
 		})
 		NewStackingStatBonusCD(StackingStatBonusCD{Name: name, ID: itemID, CD: 2 * time.Minute,
 			Callback: core.CallbackOnSpellHitTaken, ProcMask: core.ProcMaskMelee})
@@ -637,19 +627,9 @@ func TestNoModsArmorFromAStackingOnUseStaysOutOfThePercentArmorModifiers(t *test
 		wearer := auraTesterAt(sim, 0)
 		buff := wearer.GetAura(name + " Proc")
 		if buff == nil || buff.IsActive() {
-			t.Fatalf("%d: the item registered no buff %q, or it is up before it is used", tc.buff, name+" Proc")
+			t.Fatalf("%v: the item registered no buff %q, or it is up before it is used", tc.stat, name+" Proc")
 		}
-
-		before := wearer.GetStat(stats.Armor)
-		buff.Activate(sim)
-		buff.SetStacks(sim, stacks)
-		if got := wearer.GetStat(stats.Armor) - before; !core.WithinToleranceFloat64(tc.want, got, 1e-6) {
-			t.Errorf("%d: %d stacks added %v armor, want %v", tc.buff, stacks, got, tc.want)
-		}
-		buff.Deactivate(sim)
-		if got := wearer.GetStat(stats.Armor) - before; !core.WithinToleranceFloat64(0, got, 1e-6) {
-			t.Errorf("%d: %v armor is left after the buff fades, want none", tc.buff, got)
-		}
+		checkBuffArmor(t, sim, wearer, buff, stacks, tc.want, fmt.Sprintf("%v at %d stacks", tc.stat, stacks))
 	}
 }
 
@@ -663,15 +643,14 @@ const (
 	armorScaling = 2
 )
 
-// A test chest, an armor enchant for it with a no-mods armor share and one without, and a neck that
-// doubles the wearer's armor from items and then doubles its armor. The amount is the armor Lesser
-// Arcane Amalgamation's equip spell states with A_MOD_ARMOR_NO_MODS.
+// A test chest, an enchant for it of ArmorNoMods and one of the same Armor, and a neck that doubles
+// the wearer's armor from items and then doubles its armor. The amount is the armor Lesser Arcane
+// Amalgamation's equip spell states with A_MOD_ARMOR_NO_MODS.
 func noModsArmorFixtures(t *testing.T) float64 {
 	t.Helper()
 	armor := spelldata.MustFind(arcaneAmalgamationArmor).FirstAura(dbcenums.A_MOD_ARMOR_NO_MODS).BasePoints
 	needAmount(t, "15390's armor", armor)
 
-	enchantArmor := stats.Stats{stats.Armor: armor}.ToProtoArray()
 	core.AddToDatabase(&proto.SimDatabase{
 		Items: []*proto.SimItem{
 			{Id: testChestID, Name: "Test Chest", Type: proto.ItemType_ItemTypeChest,
@@ -680,8 +659,10 @@ func noModsArmorFixtures(t *testing.T) float64 {
 				ScalingOptions: map[int32]*proto.ScalingItemProperties{0: {}}},
 		},
 		Enchants: []*proto.SimEnchant{
-			{EffectId: noModsArmorEnchantID, Name: "Test No Mods Armor", Type: proto.ItemType_ItemTypeChest, Stats: enchantArmor, NoModsArmor: armor},
-			{EffectId: plainArmorEnchantID, Name: "Test Armor", Type: proto.ItemType_ItemTypeChest, Stats: enchantArmor},
+			{EffectId: noModsArmorEnchantID, Name: "Test Armor No Mods", Type: proto.ItemType_ItemTypeChest,
+				Stats: stats.Stats{stats.ArmorNoMods: armor}.ToProtoArray()},
+			{EffectId: plainArmorEnchantID, Name: "Test Armor", Type: proto.ItemType_ItemTypeChest,
+				Stats: stats.Stats{stats.Armor: armor}.ToProtoArray()},
 		},
 	})
 	if !core.HasItemEffect(armorScalingNeckID) {
@@ -701,8 +682,9 @@ func chestWearer(enchantID int32) *proto.Player {
 	return player
 }
 
-// An enchant's no-mods armor share reaches the wearer whole, past both the scaling of armor from items
-// and a percent armor modifier, while an enchant whose armor has no such share is scaled by both.
+// An enchant's ArmorNoMods, the stat the generator writes for an equip spell's A_MOD_ARMOR_NO_MODS
+// armor, reaches the wearer whole past both the scaling of armor from items and a percent armor
+// modifier, while the same amount of Armor is scaled by both.
 func TestNoModsArmorFromAnEnchantStaysOutOfEveryArmorScaling(t *testing.T) {
 	armor := noModsArmorFixtures(t)
 	armorWith := func(enchantID int32) float64 {
@@ -717,8 +699,8 @@ func TestNoModsArmorFromAnEnchantStaysOutOfEveryArmorScaling(t *testing.T) {
 	}
 }
 
-// A pre-pull item swap that takes the chest with the no-mods enchant off takes the share off whole, and
-// the swap back puts it on whole, with the neck's scaling up throughout.
+// A pre-pull item swap that takes the chest with the ArmorNoMods enchant off takes that armor off
+// whole, and the swap back puts it on whole, with the neck's scaling up throughout.
 func TestItemSwapMovesTheNoModsArmorShareWhole(t *testing.T) {
 	armor := noModsArmorFixtures(t)
 	swapTo := func(doAt string, set proto.APLActionItemSwap_SwapSet) *proto.APLPrepullAction {

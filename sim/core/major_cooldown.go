@@ -420,14 +420,8 @@ func (mcdm *majorCooldownManager) sort() {
 
 // Add a major cooldown to the given agent, which provides a temporary boost to a single stat.
 // This is use for effects like Icon of the Silver Crescent and Bloodlust Brooch.
-// modConfig, where given, changes the aura's config as NewTemporaryStatsAuraWrapped's does.
-func RegisterTemporaryStatsOnUseCD(character *Character, auraLabel string, tempStats stats.Stats, duration time.Duration, config SpellConfig,
-	modConfig ...func(*Aura)) *StatBuffAura {
-	aura := character.NewTemporaryStatsAuraWrapped(auraLabel, config.ActionID, tempStats, duration, func(auraConfig *Aura) {
-		for _, mod := range modConfig {
-			mod(auraConfig)
-		}
-	})
+func RegisterTemporaryStatsOnUseCD(character *Character, auraLabel string, tempStats stats.Stats, duration time.Duration, config SpellConfig) *StatBuffAura {
+	aura := character.NewTemporaryStatsAura(auraLabel, config.ActionID, tempStats, duration)
 	cdType := aura.InferCDType()
 	if config.Cast.CD.Duration > 0 {
 		aura.Icd = &config.Cast.CD

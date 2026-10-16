@@ -273,38 +273,33 @@ func buildProcAura(character *core.Character, config ProcStatBonusEffect, effect
 	duration := time.Millisecond * time.Duration(effect.EffectDurationMs)
 
 	if stackingAura := effect.StackingAura; stackingAura != nil {
-		perStack := stats.FromProtoMap(stackingAura.GetScalingOptions()[int32(0)].GetStats())
 		return character.NewTemporaryStatBuffWithStacks(core.TemporaryStatBuffWithStacksConfig{
 			AuraLabel:            label,
 			ActionID:             action,
 			Duration:             duration,
 			MaxStacks:            stackingAura.MaxCumulativeStacks,
-			BonusPerStack:        perStack,
+			BonusPerStack:        stats.FromProtoMap(stackingAura.GetScalingOptions()[int32(0)].GetStats()),
 			StackingAuraActionID: core.ActionID{SpellID: stackingAura.BuffId},
 			StackingAuraLabel:    config.Name + " Stacks",
 			TimePerStack:         time.Millisecond * time.Duration(effect.GetStackPeriodMs()),
 			TickImmediately:      true,
 			StacksFromEvent:      effect.GetStackProc() != nil,
-			OnStacksChange:       NoModsArmorStacks(character, stackingAura.BuffId, perStack),
 		})
 	}
 
-	buffStats := stats.FromProtoMap(effect.GetScalingOptions()[int32(0)].GetStats())
 	if effect.MaxCumulativeStacks > 0 {
 		return core.MakeStackingAura(character, core.StackingStatAura{
 			Aura: core.Aura{
-				Label:          label,
-				ActionID:       action,
-				Duration:       duration,
-				MaxStacks:      effect.MaxCumulativeStacks,
-				OnStacksChange: NoModsArmorStacks(character, effect.BuffId, buffStats),
+				Label:     label,
+				ActionID:  action,
+				Duration:  duration,
+				MaxStacks: effect.MaxCumulativeStacks,
 			},
-			BonusPerStack: buffStats,
+			BonusPerStack: stats.FromProtoMap(effect.GetScalingOptions()[int32(0)].GetStats()),
 		}), nil
 	}
 
-	return character.NewTemporaryStatsAuraWrapped(label, action, buffStats, duration,
-		keepNoModsArmorUnmultiplied(character, effect.BuffId, buffStats)), nil
+	return character.NewTemporaryStatsAura(label, action, stats.FromProtoMap(effect.GetScalingOptions()[int32(0)].GetStats()), duration), nil
 }
 
 func procDPM(character *core.Character, config ProcStatBonusEffect, source effectSource, proc *proto.ProcEffect) *core.DynamicProcManager {
@@ -589,7 +584,6 @@ func spellDataProcAura(character *core.Character, cfg SpellDataProc, trigger *sp
 	// on the trigger while the buff it applies states none.
 	if stacks := max(buff.MaxStack, trigger.MaxStack); stacks > 0 {
 		aura.MaxStacks = int32(stacks)
-		aura.OnStacksChange = NoModsArmorStacks(character, buff.ID, buffStats)
 		return core.MakeStackingAura(character, core.StackingStatAura{Aura: aura, BonusPerStack: buffStats})
 	}
 
@@ -598,10 +592,8 @@ func spellDataProcAura(character *core.Character, cfg SpellDataProc, trigger *sp
 	// this aura's business.
 	aura.MaxStacks = int32(buff.ProcCharges)
 
-	keepNoModsArmor := keepNoModsArmorUnmultiplied(character, buff.ID, buffStats)
 	return character.NewTemporaryStatsAuraWrapped(aura.Label, aura.ActionID, buffStats, aura.Duration, func(config *core.Aura) {
 		config.MaxStacks = aura.MaxStacks
-		keepNoModsArmor(config)
 	})
 }
 
@@ -1101,55 +1093,9 @@ func NewSimpleStatActive(itemID int32) {
 			}
 
 			buffStats, buffDuration := onUseStatBuff(character, itemEffect)
-			core.RegisterTemporaryStatsOnUseCD(character, itemEffect.BuffName, buffStats, buffDuration, spellConfig,
-				keepNoModsArmorUnmultiplied(character, itemEffect.BuffId, buffStats))
+			core.RegisterTemporaryStatsOnUseCD(character, itemEffect.BuffName, buffStats, buffDuration, spellConfig)
 		}
 	})
-}
-
-// The armor of an item buff's stats that the percent armor modifiers leave alone: all of it where the
-// buff's row states its armor on the wearer with A_MOD_ARMOR_NO_MODS, as the parser keeps the same
-// row's armor out of them. A buff id of 0, or one the store has no row for, keeps none.
-func noModsArmor(buffID int32, buffStats stats.Stats) float64 {
-	buff := spelldata.Find(buffID)
-	if !slices.ContainsFunc(buff.Effects, func(e spelldata.Effect) bool { return e.ArmorNoMods() && LandsOnTheUser(&e) }) {
-		return 0
-	}
-	return buffStats[stats.Armor]
-}
-
-// Records that share ahead of the aura's own stat change on gain and on expiry, so the recompute that
-// change runs already leaves it out. It changes the config before the aura is registered, so a second
-// registration under the same label, which keeps the first aura's handlers, does not add it twice.
-func keepNoModsArmorUnmultiplied(character *core.Character, buffID int32, buffStats stats.Stats) func(*core.Aura) {
-	armor := noModsArmor(buffID, buffStats)
-	return func(config *core.Aura) {
-		if armor == 0 {
-			return
-		}
-		onGain, onExpire := config.OnGain, config.OnExpire
-		config.OnGain = func(aura *core.Aura, sim *core.Simulation) {
-			character.AddUnmultiplied(stats.Armor, armor)
-			onGain(aura, sim)
-		}
-		config.OnExpire = func(aura *core.Aura, sim *core.Simulation) {
-			character.AddUnmultiplied(stats.Armor, -armor)
-			onExpire(aura, sim)
-		}
-	}
-}
-
-// The same share for a stacking buff, per stack gained or lost, for the aura config MakeStackingAura
-// builds on: it runs ahead of the stat change there, and expiry drops the stacks to 0 through it. Nil
-// where the row states no such armor.
-func NoModsArmorStacks(character *core.Character, buffID int32, perStack stats.Stats) core.OnStacksChange {
-	armor := noModsArmor(buffID, perStack)
-	if armor == 0 {
-		return nil
-	}
-	return func(_ *core.Aura, _ *core.Simulation, oldStacks int32, newStacks int32) {
-		character.AddUnmultiplied(stats.Armor, armor*float64(newStacks-oldStacks))
-	}
 }
 
 // An on-use item whose spell deals damage to its target: the direct damage its row rolls, the damage
@@ -1204,13 +1150,7 @@ func NewSpellDataAbsorbOnUse(itemID int32) {
 				continue
 			}
 			if buffStats, _ := onUseStatBuff(character, itemEffect); buffStats != (stats.Stats{}) {
-				share := stats.Stats{stats.Armor: noModsArmor(absorb.ID, buffStats)}
-				config.RelatedSelfBuff.ApplyOnGain(func(_ *core.Aura, sim *core.Simulation) {
-					character.AddStatsDynamicWithUnmultipliedShare(sim, buffStats, share)
-				})
-				config.RelatedSelfBuff.ApplyOnExpire(func(_ *core.Aura, sim *core.Simulation) {
-					character.AddStatsDynamicWithUnmultipliedShare(sim, buffStats.Invert(), share.Invert())
-				})
+				config.RelatedSelfBuff.AttachStatsBuff(buffStats)
 			}
 		}
 		return config
@@ -1465,17 +1405,15 @@ func stackingAuraID(effect *proto.ItemEffect, itemID int32) core.ActionID {
 // window and both returns are the same object, which is what the caller's identity check keys off.
 func buildStackingCDAuras(character *core.Character, config StackingStatBonusCD, effect *proto.ItemEffect, stacks stackingStats) (*core.StatBuffAura, *core.Aura) {
 	auraDuration := time.Millisecond * time.Duration(effect.EffectDurationMs)
-	perStack := stats.FromProtoMap(stacks.perStack)
 
 	statAura := core.MakeStackingAura(character, core.StackingStatAura{
 		Aura: core.Aura{
-			Label:          config.Name + " Proc",
-			ActionID:       stacks.actionID,
-			Duration:       core.TernaryDuration(stacks.windowBounded, core.NeverExpires, auraDuration),
-			MaxStacks:      stacks.maxStacks,
-			OnStacksChange: NoModsArmorStacks(character, stacks.actionID.SpellID, perStack),
+			Label:     config.Name + " Proc",
+			ActionID:  stacks.actionID,
+			Duration:  core.TernaryDuration(stacks.windowBounded, core.NeverExpires, auraDuration),
+			MaxStacks: stacks.maxStacks,
 		},
-		BonusPerStack: perStack,
+		BonusPerStack: stats.FromProtoMap(stacks.perStack),
 	})
 
 	if !stacks.windowBounded {

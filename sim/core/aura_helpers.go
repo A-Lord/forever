@@ -442,14 +442,9 @@ type StackingStatAura struct {
 	BonusPerStack stats.Stats
 }
 
-// A handler the config's aura already states runs ahead of the stat change on each change of stacks.
 func MakeStackingAura(character *Character, config StackingStatAura) *StatBuffAura {
 	bonusPerStack := config.BonusPerStack
-	before := config.Aura.OnStacksChange
 	config.Aura.OnStacksChange = func(aura *Aura, sim *Simulation, oldStacks int32, newStacks int32) {
-		if before != nil {
-			before(aura, sim, oldStacks, newStacks)
-		}
 		character.AddStatsDynamic(sim, bonusPerStack.Multiply(float64(newStacks-oldStacks)))
 	}
 	return &StatBuffAura{
@@ -498,18 +493,15 @@ type TemporaryStatBuffWithStacksConfig struct {
 	// trigger. The stacking aura is then given no duration of its own and is dropped when the
 	// window ends, which is what a child aura with no duration in the game files does.
 	StacksFromEvent bool
-	// The stacking aura's, run ahead of its stat change on each change of stacks.
-	OnStacksChange OnStacksChange
 }
 
 func (character *Character) NewTemporaryStatBuffWithStacks(config TemporaryStatBuffWithStacksConfig) (*StatBuffAura, *Aura) {
 	stackingAura := MakeStackingAura(character, StackingStatAura{
 		Aura: Aura{
-			Label:          Ternary(config.StackingAuraLabel != "", config.StackingAuraLabel, config.AuraLabel),
-			ActionID:       Ternary(!config.StackingAuraActionID.IsEmptyAction(), config.StackingAuraActionID, config.ActionID),
-			Duration:       Ternary(config.StacksFromEvent, NeverExpires, config.Duration),
-			MaxStacks:      config.MaxStacks,
-			OnStacksChange: config.OnStacksChange,
+			Label:     Ternary(config.StackingAuraLabel != "", config.StackingAuraLabel, config.AuraLabel),
+			ActionID:  Ternary(!config.StackingAuraActionID.IsEmptyAction(), config.StackingAuraActionID, config.ActionID),
+			Duration:  Ternary(config.StacksFromEvent, NeverExpires, config.Duration),
+			MaxStacks: config.MaxStacks,
 		},
 		BonusPerStack: config.BonusPerStack,
 	})

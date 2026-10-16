@@ -139,10 +139,10 @@ func init() {
 		row := spelldata.MustFind(24574)
 		stack := spelldata.MustFind(24575)
 		perStack := stats.Stats{
-			stats.Armor:         stack.FirstAura(dbcenums.A_MOD_ARMOR_NO_MODS).BasePoints,
+			stats.ArmorNoMods:   stack.FirstAura(dbcenums.A_MOD_ARMOR_NO_MODS).BasePoints,
 			stats.DefenseRating: stack.FirstAura(dbcenums.A_MOD_SKILL).BasePoints * core.DefenseRatingPerDefenseLevel,
 		}
-		registerCountdownOnUse(character, 19948, row, stack, int32(stack.MaxStack), perStack, core.CooldownTypeSurvival,
+		registerCountdownOnUse(character, 19948, row, int32(stack.MaxStack), perStack, core.CooldownTypeSurvival,
 			spelldata.ProcTrigger(character, row, nil))
 	})
 
@@ -152,7 +152,7 @@ func init() {
 		character := agent.GetCharacter()
 		row := spelldata.MustFind(24661)
 		perStack := stats.Stats{stats.PhysicalDamage: 2}
-		registerCountdownOnUse(character, 19949, row, spelldata.Find(24662), 20, perStack, core.CooldownTypeDPS, spelldata.ProcTrigger(character, row, nil))
+		registerCountdownOnUse(character, 19949, row, 20, perStack, core.CooldownTypeDPS, spelldata.ProcTrigger(character, row, nil))
 	})
 
 	// Zandalarian Hero Charm: 204 spell damage and 408 healing, less 17 and 34 for each spell cast.
@@ -168,7 +168,7 @@ func init() {
 			Callback: core.CallbackOnCastComplete,
 			ProcMask: core.ProcMaskSpellDamage | core.ProcMaskSpellHealing,
 		}
-		registerCountdownOnUse(character, 19950, row, spelldata.Find(24659), 12, perStack, core.CooldownTypeDPS, trigger)
+		registerCountdownOnUse(character, 19950, row, 12, perStack, core.CooldownTypeDPS, trigger)
 	})
 
 	// Petrified Scarab: 100 to every resistance, less 10 for each hostile spell that lands. Mercurial
@@ -183,7 +183,7 @@ func init() {
 			stats.NatureResistance: 10,
 			stats.ShadowResistance: 10,
 		}
-		registerCountdownOnUse(character, 21685, row, spelldata.Find(26464), 10, perStack, core.CooldownTypeSurvival, spelldata.ProcTrigger(character, row, nil))
+		registerCountdownOnUse(character, 21685, row, 10, perStack, core.CooldownTypeSurvival, spelldata.ProcTrigger(character, row, nil))
 	})
 
 	// Everlook Delivery Bot: 1295271 marks the target, and once as many spells or attacks as its first
@@ -344,17 +344,15 @@ var eternalPowerHeals = []spelldata.Ladder{
 }
 
 // A buff that goes on with all its stacks, each worth perStack, for the row's duration, and loses one
-// each time the trigger fires while it is up. The stack row, spelldata.Nil where the store lacks it,
-// decides by its aura type whether a stack's armor stays out of the percent armor modifiers.
-func registerCountdownOnUse(character *core.Character, itemID int32, row *spelldata.Spell, stackRow *spelldata.Spell, stacks int32,
-	perStack stats.Stats, cdType core.CooldownType, trigger core.ProcTrigger) {
+// each time the trigger fires while it is up.
+func registerCountdownOnUse(character *core.Character, itemID int32, row *spelldata.Spell, stacks int32, perStack stats.Stats,
+	cdType core.CooldownType, trigger core.ProcTrigger) {
 	buff := core.MakeStackingAura(character, core.StackingStatAura{
 		Aura: core.Aura{
-			Label:          row.Name,
-			ActionID:       core.ActionID{SpellID: row.ID},
-			Duration:       row.Duration(),
-			MaxStacks:      stacks,
-			OnStacksChange: shared.NoModsArmorStacks(character, stackRow.ID, perStack),
+			Label:     row.Name,
+			ActionID:  core.ActionID{SpellID: row.ID},
+			Duration:  row.Duration(),
+			MaxStacks: stacks,
 		},
 		BonusPerStack: perStack,
 	})
