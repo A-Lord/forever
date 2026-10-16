@@ -286,14 +286,14 @@ func (druid *Druid) pauseCatEnergy(sim *core.Simulation) {
 }
 
 // The tooltip's rule, priced with $m2: the energy left in Cat Form plus ${10*($m2/100)} for each
-// second spent outside Bear, Cat and Dire Bear Form, up to ${100*($m2/100)}. At 5/5 that is 10 a
+// second spent outside Bear Form or Dire Bear Form, up to ${100*($m2/100)}. At 5/5 that is 10 a
 // second, the Cat Form rate. With the talent untaken the cat comes back with none.
 func (druid *Druid) restoreCatEnergy(sim *core.Simulation) {
 	if !druid.HasEnergyBar() || druid.Env.MeasuringStats {
 		return
 	}
-	// The energy bar ticks in every form, so a first entry with no bear form before it keeps the pull's
-	// bar.
+	// The energy bar ticks outside the bear forms, so a first entry with no bear form before it keeps
+	// the pull's bar.
 	// TODO: Ingame research needed -- what death or cancelling the form does to the stored energy, and
 	// what a first entry later in the fight starts with.
 	if !druid.furorStoredValid {
