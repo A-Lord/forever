@@ -4,6 +4,12 @@
 
 export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 	[
+		867, // Gloves of Holy Might
+		[
+			"Smite your target for 112 Holy damage. Damage is tripled against Undead.", // 1325229 - https://www.wowhead.com/forever/spell=1325229
+		]
+	],
+	[
 		869, // Dazzling Longsword
 		[
 			"Decrease the armor of the target by 100 for 30s. While affected, the target cannot stealth or turn invisible.", // 13752 - https://www.wowhead.com/forever/spell=13752
@@ -37,6 +43,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		1131, // Totem of Infliction
 		[
 			"When struck in combat has a 1% chance of inflicting 100 Shadow damage to the attacker.", // 16783 - https://www.wowhead.com/forever/spell=16783
+		]
+	],
+	[
+		1204, // The Green Tower
+		[
+			"When struck in combat, inflicts 3 Physical damage to the attacker.", // 1325228 - https://www.wowhead.com/forever/spell=1325228
 		]
 	],
 	[
@@ -253,12 +265,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		4984, // Skull of Impending Doom
 		[
 			"Increase your run speed by 60% for 10s, but deals 300 damage and drains 300 mana every 2 seconds.", // 5024 - https://www.wowhead.com/forever/spell=5024
-		]
-	],
-	[
-		5028, // Lord Sakrasis' Scepter
-		[
-			"Smite your target with the power of the holy spring, inflicting 56 Holy damage.", // 1312330 - https://www.wowhead.com/forever/spell=1312330
 		]
 	],
 	[
@@ -1873,7 +1879,7 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 	[
 		273137, // Skum's Bucket
 		[
-			"Restores 0 mana over 24s. Must remain seated while drinking.", // 1291782 - https://www.wowhead.com/forever/spell=1291782
+			"Restores 835 mana over 24s. Must remain seated while drinking.", // 1291782 - https://www.wowhead.com/forever/spell=1291782
 		]
 	],
 	[
@@ -2156,7 +2162,7 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 	[
 		279251, // Idol of the Ursine Twins
 		[
-			"Your Lacerate hits have a 10% chance to reset the cooldown on Mangle (Bear).", // 1306483 - https://www.wowhead.com/forever/spell=1306483
+			"Your Lacerate hits have a 10% chance to reset the cooldown on Primal Bite.", // 1306483 - https://www.wowhead.com/forever/spell=1306483
 		]
 	],
 	[
@@ -2270,7 +2276,7 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 	[
 		286541, // Bael'dun Tankard
 		[
-			"Restores 0 mana over 27s. Must remain seated while drinking.", // 1133 - https://www.wowhead.com/forever/spell=1133
+			"Restores 1345 mana over 27s. Must remain seated while drinking.", // 1133 - https://www.wowhead.com/forever/spell=1133
 		]
 	],
 	[

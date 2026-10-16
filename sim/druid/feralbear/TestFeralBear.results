@@ -192,7 +192,7 @@ dps_results: {
  value: {
   dps: 450.38792
   tps: 705.02506
-  dtps: 398.86538
+  dtps: 398.97532
   hps: 59.48212
  }
 }
@@ -226,10 +226,10 @@ dps_results: {
 dps_results: {
  key: "TestFeralBear-AllItems-CloakofFlames-3475"
  value: {
-  dps: 450.10353
-  tps: 704.56638
-  dtps: 397.66431
-  hps: 58.24766
+  dps: 458.86606
+  tps: 717.58521
+  dtps: 397.38699
+  hps: 57.92932
  }
 }
 dps_results: {
@@ -919,10 +919,10 @@ dps_results: {
 dps_results: {
  key: "TestFeralBear-AllItems-RingofSaviors-1447"
  value: {
-  dps: 457.87296
-  tps: 716.4437
-  dtps: 396.09824
-  hps: 59.536
+  dps: 456.89765
+  tps: 714.97824
+  dtps: 395.72494
+  hps: 60.52241
  }
 }
 dps_results: {
@@ -973,8 +973,8 @@ dps_results: {
 dps_results: {
  key: "TestFeralBear-AllItems-Sulfuras,HandofRagnaros-17182"
  value: {
-  dps: 453.78621
-  tps: 710.4134
+  dps: 454.33804
+  tps: 711.24115
   dtps: 378.70567
   hps: 60.64476
  }
