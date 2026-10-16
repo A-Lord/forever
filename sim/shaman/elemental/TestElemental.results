@@ -222,6 +222,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestElemental-AllItems-CryptstalkerArmor"
+ value: {
+  dps: 447.62838
+  tps: 319.71791
+  dtps: 6.90048
+ }
+}
+dps_results: {
  key: "TestElemental-AllItems-DarkmoonCard:BlueDragon-19288"
  value: {
   dps: 546.55719
@@ -243,6 +251,14 @@ dps_results: {
   dps: 546.26435
   tps: 386.4706
   dtps: 7.58207
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-DeathmistRaiment"
+ value: {
+  dps: 502.97698
+  tps: 357.32516
+  dtps: 5.52207
  }
 }
 dps_results: {
@@ -291,6 +307,15 @@ dps_results: {
   dps: 533.39224
   tps: 378.05581
   dtps: 7.62568
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-DreadmistRaiment"
+ value: {
+  dps: 472.99577
+  tps: 336.92303
+  dtps: 6.18982
+  hps: 8.74034
  }
 }
 dps_results: {
@@ -462,6 +487,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestElemental-AllItems-FeralheartRaiment"
+ value: {
+  dps: 468.91114
+  tps: 334.20034
+  dtps: 5.82328
+ }
+}
+dps_results: {
  key: "TestElemental-AllItems-FetishofChitinousSpikes-21488"
  value: {
   dps: 546.26435
@@ -507,6 +540,14 @@ dps_results: {
   dps: 542.11363
   tps: 383.68117
   dtps: 7.58207
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-FrostfireRegalia"
+ value: {
+  dps: 675.16278
+  tps: 395.50106
+  dtps: 4.66428
  }
 }
 dps_results: {
@@ -702,6 +743,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestElemental-AllItems-Magister'sRegalia"
+ value: {
+  dps: 473.94308
+  tps: 338.96802
+  dtps: 4.82946
+ }
+}
+dps_results: {
  key: "TestElemental-AllItems-MajorRecombobulator-18637"
  value: {
   dps: 546.26435
@@ -806,6 +855,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestElemental-AllItems-PlagueheartRaiment"
+ value: {
+  dps: 621.99421
+  tps: 435.7638
+  dtps: 6.26483
+ }
+}
+dps_results: {
  key: "TestElemental-AllItems-PolishedDriftwoodIcon-249398"
  value: {
   dps: 540.70726
@@ -883,6 +940,14 @@ dps_results: {
   dps: 546.26435
   tps: 386.4706
   dtps: 7.49002
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-Sorcerer'sRegalia"
+ value: {
+  dps: 508.04927
+  tps: 360.45034
+  dtps: 5.13336
  }
 }
 dps_results: {
@@ -1054,6 +1119,30 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestElemental-AllItems-VestmentsofFaith"
+ value: {
+  dps: 417.17309
+  tps: 299.43068
+  dtps: 4.15702
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-VestmentsoftheDevout"
+ value: {
+  dps: 453.25618
+  tps: 325.31082
+  dtps: 4.1591
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-VestmentsoftheVirtuous"
+ value: {
+  dps: 486.11903
+  tps: 344.83021
+  dtps: 4.25146
+ }
+}
+dps_results: {
  key: "TestElemental-AllItems-VileProtector-7747"
  value: {
   dps: 542.11363
@@ -1075,6 +1164,14 @@ dps_results: {
   dps: 547.52181
   tps: 387.22951
   dtps: 5.55049
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-WildheartRaiment"
+ value: {
+  dps: 450.48114
+  tps: 323.77599
+  dtps: 4.84825
  }
 }
 dps_results: {
