@@ -603,45 +603,103 @@ func TestNoModsArmorFromAnItemStaysOutOfThePercentArmorModifiers(t *testing.T) {
 	}
 }
 
-// An enchant's no-mods armor share reaches the wearer whole, past both the scaling of armor from items
-// and a percent armor modifier, while an enchant whose armor has no such share is scaled by both. The
-// wearer's neck doubles the armor from items and then doubles its armor; the amount is the armor Lesser
+const (
+	noModsArmorEnchantID int32 = 992321 + iota
+	plainArmorEnchantID
+	testChestID
+	armorScalingNeckID
+
+	// The neck's scaling of armor from items, and its percent armor modifier.
+	armorScaling = 2
+)
+
+// A test chest, an armor enchant for it with a no-mods armor share and one without, and a neck that
+// doubles the wearer's armor from items and then doubles its armor. The amount is the armor Lesser
 // Arcane Amalgamation's equip spell states with A_MOD_ARMOR_NO_MODS.
-func TestNoModsArmorFromAnEnchantStaysOutOfEveryArmorScaling(t *testing.T) {
+func noModsArmorFixtures(t *testing.T) float64 {
+	t.Helper()
 	armor := spelldata.MustFind(arcaneAmalgamationArmor).FirstAura(dbcenums.A_MOD_ARMOR_NO_MODS).BasePoints
 	needAmount(t, "15390's armor", armor)
 
-	const scaling = 2
-	const noModsEnchantID, plainEnchantID, chestID, neckID int32 = 992321, 992322, 992323, 992324
 	enchantArmor := stats.Stats{stats.Armor: armor}.ToProtoArray()
 	core.AddToDatabase(&proto.SimDatabase{
 		Items: []*proto.SimItem{
-			{Id: chestID, Name: "Test Chest", Type: proto.ItemType_ItemTypeChest,
+			{Id: testChestID, Name: "Test Chest", Type: proto.ItemType_ItemTypeChest,
 				ScalingOptions: map[int32]*proto.ScalingItemProperties{0: {}}},
-			{Id: neckID, Name: "Test Armor Scaling Neck", Type: proto.ItemType_ItemTypeNeck,
+			{Id: armorScalingNeckID, Name: "Test Armor Scaling Neck", Type: proto.ItemType_ItemTypeNeck,
 				ScalingOptions: map[int32]*proto.ScalingItemProperties{0: {}}},
 		},
 		Enchants: []*proto.SimEnchant{
-			{EffectId: noModsEnchantID, Name: "Test No Mods Armor", Type: proto.ItemType_ItemTypeChest, Stats: enchantArmor, NoModsArmor: armor},
-			{EffectId: plainEnchantID, Name: "Test Armor", Type: proto.ItemType_ItemTypeChest, Stats: enchantArmor},
+			{EffectId: noModsArmorEnchantID, Name: "Test No Mods Armor", Type: proto.ItemType_ItemTypeChest, Stats: enchantArmor, NoModsArmor: armor},
+			{EffectId: plainArmorEnchantID, Name: "Test Armor", Type: proto.ItemType_ItemTypeChest, Stats: enchantArmor},
 		},
 	})
-	core.NewItemEffect(neckID, func(agent core.Agent) {
-		character := agent.GetCharacter()
-		character.ApplyEquipScaling(stats.Armor, scaling)
-		character.MultiplyStat(stats.Armor, scaling)
-	})
+	if !core.HasItemEffect(armorScalingNeckID) {
+		core.NewItemEffect(armorScalingNeckID, func(agent core.Agent) {
+			character := agent.GetCharacter()
+			character.ApplyEquipScaling(stats.Armor, armorScaling)
+			character.MultiplyStat(stats.Armor, armorScaling)
+		})
+	}
+	return armor
+}
 
+// A wearer of the scaling neck and the test chest with the enchant.
+func chestWearer(enchantID int32) *proto.Player {
+	player := shaman("Wearer", map[proto.ItemSlot]int32{proto.ItemSlot_ItemSlotChest: testChestID, proto.ItemSlot_ItemSlotNeck: armorScalingNeckID})
+	player.Equipment.Items[proto.ItemSlot_ItemSlotChest].Enchant = enchantID
+	return player
+}
+
+// An enchant's no-mods armor share reaches the wearer whole, past both the scaling of armor from items
+// and a percent armor modifier, while an enchant whose armor has no such share is scaled by both.
+func TestNoModsArmorFromAnEnchantStaysOutOfEveryArmorScaling(t *testing.T) {
+	armor := noModsArmorFixtures(t)
 	armorWith := func(enchantID int32) float64 {
-		player := shaman("Wearer", map[proto.ItemSlot]int32{proto.ItemSlot_ItemSlotChest: chestID, proto.ItemSlot_ItemSlotNeck: neckID})
-		player.Equipment.Items[proto.ItemSlot_ItemSlotChest].Enchant = enchantID
-		return auraTesterAt(newAuraSim(player), 0).GetStat(stats.Armor)
+		return auraTesterAt(newAuraSim(chestWearer(enchantID)), 0).GetStat(stats.Armor)
 	}
 	unenchanted := armorWith(0)
-	if got := armorWith(noModsEnchantID) - unenchanted; !core.WithinToleranceFloat64(armor, got, 1e-6) {
+	if got := armorWith(noModsArmorEnchantID) - unenchanted; !core.WithinToleranceFloat64(armor, got, 1e-6) {
 		t.Errorf("the no-mods enchant added %v armor, want its %v unscaled", got, armor)
 	}
-	if got, want := armorWith(plainEnchantID)-unenchanted, armor*scaling*scaling; !core.WithinToleranceFloat64(want, got, 1e-6) {
+	if got, want := armorWith(plainArmorEnchantID)-unenchanted, armor*armorScaling*armorScaling; !core.WithinToleranceFloat64(want, got, 1e-6) {
 		t.Errorf("the plain armor enchant added %v armor, want its %v scaled to %v", got, armor, want)
+	}
+}
+
+// A pre-pull item swap that takes the chest with the no-mods enchant off takes the share off whole, and
+// the swap back puts it on whole, with the neck's scaling up throughout.
+func TestItemSwapMovesTheNoModsArmorShareWhole(t *testing.T) {
+	armor := noModsArmorFixtures(t)
+	swapTo := func(doAt string, set proto.APLActionItemSwap_SwapSet) *proto.APLPrepullAction {
+		return &proto.APLPrepullAction{
+			DoAtValue: &proto.APLValue{Value: &proto.APLValue_Const{Const: &proto.APLValueConst{Val: doAt}}},
+			Action:    &proto.APLAction{Action: &proto.APLAction_ItemSwap{ItemSwap: &proto.APLActionItemSwap{SwapSet: set}}},
+		}
+	}
+	player := chestWearer(noModsArmorEnchantID)
+	swapItems := make([]*proto.ItemSpec, proto.ItemSlot_ItemSlotRanged+1)
+	for i := range swapItems {
+		swapItems[i] = &proto.ItemSpec{}
+	}
+	swapItems[proto.ItemSlot_ItemSlotChest] = &proto.ItemSpec{Id: testChestID}
+	player.EnableItemSwap = true
+	player.ItemSwap = &proto.ItemSwap{Items: swapItems}
+	player.Rotation = &proto.APLRotation{Type: proto.APLRotation_TypeAPL, PrepullActions: []*proto.APLPrepullAction{
+		swapTo("-2s", proto.APLActionItemSwap_Swap1),
+		swapTo("-1s", proto.APLActionItemSwap_Main),
+	}}
+
+	sim := newAuraSim(player)
+	wearer := auraTesterAt(sim, 0)
+	enchanted := wearer.GetStat(stats.Armor)
+	sim.PrePull()
+	stepPast(t, sim, -1500*time.Millisecond)
+	if got := enchanted - wearer.GetStat(stats.Armor); !core.WithinToleranceFloat64(armor, got, 1e-6) {
+		t.Errorf("swapping the chest off took %v armor, want the share's %v", got, armor)
+	}
+	stepPast(t, sim, -500*time.Millisecond)
+	if got := wearer.GetStat(stats.Armor); !core.WithinToleranceFloat64(enchanted, got, 1e-6) {
+		t.Errorf("after the swap back the wearer has %v armor, want the %v it started with", got, enchanted)
 	}
 }
