@@ -108,17 +108,13 @@ func (warlock *Warlock) registerAmplifyCurse() {
 	rankedSpell := spellData.AmplifyCurse.ByID(18288)
 	warlock.AmplifyCurseMultiplier = 1 + rankedSpell.EffectN(1).Percent()
 
-	// Both effects name the curses they amplify, which are the ones that spend it.
-	// Effect 1 is Bane of Agony and Curse of Weakness
-	// Effect 2's mask is shared by Curse of Exhaustion (18223) and Curse of the Elements; the tooltip names
-	// only Exhaustion.
-	// TODO: Confirm in game whether Curse of the Elements is amplified.
-	amplifiedCurses, amplifiedElements := rankedSpell.EffectN(1).ClassFlags, rankedSpell.EffectN(2).ClassFlags
+	// Effect 1 names the curses it amplifies, Bane of Agony and Curse of Weakness, which are the ones that spend it.
+	amplifiedCurses := rankedSpell.EffectN(1).ClassFlags
 
 	// TODO: Confirm that the amp is consumed on cast, regardless of hit.
 	auraConfig := spelldata.AuraConfig(rankedSpell)
 	auraConfig.OnCastComplete = func(aura *core.Aura, sim *core.Simulation, spell *core.Spell) {
-		if spell.MatchesFlags(amplifiedCurses) || spell.MatchesFlags(amplifiedElements) {
+		if spell.MatchesFlags(amplifiedCurses) {
 			aura.Deactivate(sim)
 		}
 	}

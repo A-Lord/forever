@@ -34,7 +34,6 @@ type Warlock struct {
 	// Curses
 	CurseOfElements          *core.Spell
 	CurseOfElementsAuras     core.AuraArray
-	CurseOfElementsAmpAuras  core.AuraArray
 	CurseOfRecklessness      *core.Spell
 	CurseOfRecklessnessAuras core.AuraArray
 	Curses                   []*core.Spell
