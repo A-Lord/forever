@@ -6,7 +6,7 @@ option go_package = "./proto";
 import "common.proto";
 
 // Buffs that affect the entire raid.
-// Next index: 18
+// Next index: 20
 message RaidBuffs {
 	bool arcane_brilliance = 1;
 	bool prayer_of_spirit = 2;
@@ -24,11 +24,13 @@ message RaidBuffs {
 	bool windfury_totem = 14;
 	bool flametongue_totem = 15;
 	TristateEffect battle_shout = 16;
-	bool aspect_of_the_wild = 17;
+	bool trueshot_aura = 17;
+	bool furious_howl = 18;
+	bool aspect_of_the_wild = 19;
 }
 
 // Buffs that affect a single party.
-// Next index: 19
+// Next index: 17
 message PartyBuffs {
 	bool blood_pact = 1;
 	bool devotion_aura = 2;
@@ -39,15 +41,13 @@ message PartyBuffs {
 	bool retribution_aura = 7;
 	double retribution_aura_spell_power = 8;
 	bool concentration_aura = 9;
-	bool trueshot_aura = 10;
-	int32 atiesh_mage = 11;
-	int32 atiesh_warlock = 12;
-	int32 atiesh_druid = 13;
-	int32 atiesh_priest = 14;
-	TristateEffect stoneskin_totem = 15;
-	bool furious_howl = 16;
-	bool darkspear = 17;
-	bool admirals_hat = 18;
+	int32 atiesh_mage = 10;
+	int32 atiesh_warlock = 11;
+	int32 atiesh_druid = 12;
+	int32 atiesh_priest = 13;
+	TristateEffect stoneskin_totem = 14;
+	bool darkspear = 15;
+	bool admirals_hat = 16;
 }
 
 // These are usually individual actions taken by other Characters.

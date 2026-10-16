@@ -65,12 +65,6 @@ export const ConcentrationAura = makeBooleanPartyBuffInput({
 	label: 'Concentration Aura',
 });
 
-export const TrueshotAura = makeBooleanPartyBuffInput({
-	actionId: ActionId.fromSpellId(20906),
-	fieldName: 'trueshotAura',
-	label: 'Trueshot Aura',
-});
-
 export const AtieshMage = makeMultistatePartyBuffInput({
 	actionId: ActionId.fromSpellId(28142),
 	numStates: 5,
@@ -104,12 +98,6 @@ export const StoneskinTotem = makeTristatePartyBuffInput({
 	impId: ActionId.fromSpellId(16258),
 	fieldName: 'stoneskinTotem',
 	label: 'Stoneskin Totem',
-});
-
-export const FuriousHowl = makeBooleanPartyBuffInput({
-	actionId: ActionId.fromSpellId(24597),
-	fieldName: 'furiousHowl',
-	label: 'Furious Howl',
 });
 
 export const Darkspear = makeBooleanPartyBuffInput({
@@ -219,6 +207,18 @@ export const BattleShout = makeTristateRaidBuffInput({
 	impId: ActionId.fromSpellId(23563),
 	fieldName: 'battleShout',
 	label: 'Battle Shout',
+});
+
+export const TrueshotAura = makeBooleanRaidBuffInput({
+	actionId: ActionId.fromSpellId(20906),
+	fieldName: 'trueshotAura',
+	label: 'Trueshot Aura',
+});
+
+export const FuriousHowl = makeBooleanRaidBuffInput({
+	actionId: ActionId.fromSpellId(24597),
+	fieldName: 'furiousHowl',
+	label: 'Furious Howl',
 });
 
 export const AspectOfTheWild = makeBooleanRaidBuffInput({
@@ -483,6 +483,16 @@ export const GENERATED_RAID_BUFFS_CONFIG: RenderableStatOptions[] = [
 		ownerClass: Class.ClassWarrior,
 	},
 	{
+		config: TrueshotAura,
+		stats: [Stat.StatRangedAttackPower],
+		ownerClass: Class.ClassHunter,
+	},
+	{
+		config: FuriousHowl,
+		stats: [Stat.StatAttackPower],
+		ownerClass: Class.ClassHunter,
+	},
+	{
 		config: AspectOfTheWild,
 		stats: [Stat.StatNatureResistance],
 		ownerClass: Class.ClassHunter,
@@ -526,11 +536,6 @@ export const GENERATED_PARTY_BUFFS_CONFIG: RenderableStatOptions[] = [
 		ownerClass: Class.ClassPaladin,
 	},
 	{
-		config: TrueshotAura,
-		stats: [Stat.StatRangedAttackPower],
-		ownerClass: Class.ClassHunter,
-	},
-	{
 		config: AtieshMage,
 		stats: [Stat.StatCritRating],
 		ownerClass: Class.ClassMage,
@@ -554,11 +559,6 @@ export const GENERATED_PARTY_BUFFS_CONFIG: RenderableStatOptions[] = [
 		config: StoneskinTotem,
 		stats: [Stat.StatDefenseRating],
 		ownerClass: Class.ClassShaman,
-	},
-	{
-		config: FuriousHowl,
-		stats: [Stat.StatAttackPower],
-		ownerClass: Class.ClassHunter,
 	},
 	{
 		config: Darkspear,
