@@ -1007,85 +1007,85 @@ dps_results: {
 dps_results: {
  key: "TestBalance-Settings-Tauren-p1-Standard-default-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 3227.22095
-  tps: 2770.49094
+  dps: 3194.85968
+  tps: 2747.89383
  }
 }
 dps_results: {
  key: "TestBalance-Settings-Tauren-p1-Standard-default-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 592.49236
-  tps: 422.03577
+  dps: 598.61957
+  tps: 426.26745
  }
 }
 dps_results: {
  key: "TestBalance-Settings-Tauren-p1-Standard-default-FullBuffs-0.0yards-ShortSingleTarget"
  value: {
-  dps: 596.66568
-  tps: 424.83847
+  dps: 595.30916
+  tps: 423.86433
  }
 }
 dps_results: {
  key: "TestBalance-Settings-Tauren-p1-Standard-default-NoBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 2555.95976
-  tps: 2555.95976
+  dps: 2455.19137
+  tps: 2455.19137
  }
 }
 dps_results: {
  key: "TestBalance-Settings-Tauren-p1-Standard-default-NoBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 325.75069
-  tps: 325.75069
+  dps: 325.56047
+  tps: 325.56047
  }
 }
 dps_results: {
  key: "TestBalance-Settings-Tauren-p1-Standard-default-NoBuffs-0.0yards-ShortSingleTarget"
  value: {
-  dps: 501.78233
-  tps: 501.78233
+  dps: 497.88563
+  tps: 497.88563
  }
 }
 dps_results: {
  key: "TestBalance-Settings-Tauren-prebis-Standard-default-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 3077.46458
-  tps: 2659.87803
+  dps: 3033.45213
+  tps: 2644.88734
  }
 }
 dps_results: {
  key: "TestBalance-Settings-Tauren-prebis-Standard-default-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 533.92566
-  tps: 380.86699
+  dps: 539.11492
+  tps: 384.40933
  }
 }
 dps_results: {
  key: "TestBalance-Settings-Tauren-prebis-Standard-default-FullBuffs-0.0yards-ShortSingleTarget"
  value: {
-  dps: 527.574
-  tps: 376.35139
+  dps: 524.2553
+  tps: 373.8808
  }
 }
 dps_results: {
  key: "TestBalance-Settings-Tauren-prebis-Standard-default-NoBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 1758.27148
-  tps: 1758.27148
+  dps: 1742.80705
+  tps: 1742.80705
  }
 }
 dps_results: {
  key: "TestBalance-Settings-Tauren-prebis-Standard-default-NoBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 228.68861
-  tps: 228.68861
+  dps: 228.81904
+  tps: 228.81904
  }
 }
 dps_results: {
  key: "TestBalance-Settings-Tauren-prebis-Standard-default-NoBuffs-0.0yards-ShortSingleTarget"
  value: {
-  dps: 440.10773
-  tps: 440.10773
+  dps: 436.90606
+  tps: 436.90606
  }
 }
 dps_results: {
