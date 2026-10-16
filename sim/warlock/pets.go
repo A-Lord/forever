@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/buffs"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
@@ -348,6 +349,16 @@ func (pet *WarlockPet) ExecuteCustomRotation(sim *core.Simulation) {
 }
 
 // --- Imp ---
+
+// The Imp's Blood Pact on the warlock, up while the Imp is out. It shares the party buff's category, so
+// a Blood Pact ticked in the settings and the Imp's own are worth one buff.
+func (warlock *Warlock) registerBloodPact() {
+	if warlock.Imp == nil {
+		return
+	}
+
+	warlock.Imp.ownerAuras = append(warlock.Imp.ownerAuras, buffs.NewSpellDataBloodPactAura(&warlock.Unit, true, 0))
+}
 
 func (pet *WarlockPet) registerFirebolt() {
 	rankedSpell := spellData.Firebolt.ByID(11763)

@@ -7,6 +7,7 @@ import (
 
 	"github.com/wowsims/forever/sim/common"
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/buffs"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/simsignals"
 	"github.com/wowsims/forever/sim/core/stats"
@@ -95,6 +96,11 @@ func TestDestruction(t *testing.T) {
 
 // A reset sim of one ungeared warlock with no rotation.
 func newWarlockSim(talents string, options *proto.WarlockOptions, encounter *proto.Encounter) (*core.Simulation, *Warlock) {
+	return newWarlockSimWithPartyBuffs(talents, options, encounter, &proto.PartyBuffs{})
+}
+
+// newWarlockSim, with these party buffs ticked.
+func newWarlockSimWithPartyBuffs(talents string, options *proto.WarlockOptions, encounter *proto.Encounter, partyBuffs *proto.PartyBuffs) (*core.Simulation, *Warlock) {
 	player := &proto.Player{
 		Name:          "Warlock",
 		Race:          proto.Race_RaceOrc,
@@ -105,7 +111,7 @@ func newWarlockSim(talents string, options *proto.WarlockOptions, encounter *pro
 		Rotation:      &proto.APLRotation{},
 	}
 	sim := core.NewSim(&proto.RaidSimRequest{
-		Raid:       core.SinglePlayerRaidProto(player, &proto.PartyBuffs{}, &proto.RaidBuffs{}, &proto.Debuffs{}),
+		Raid:       core.SinglePlayerRaidProto(player, partyBuffs, &proto.RaidBuffs{}, &proto.Debuffs{}),
 		Encounter:  encounter,
 		SimOptions: &proto.SimOptions{RandomSeed: 1},
 	}, simsignals.CreateSignals())
@@ -300,5 +306,43 @@ func TestBaneOfAgonyTicksSetAtCast(t *testing.T) {
 			t.Errorf("amplified third %d tick %.3f, want %.3f: the base %.3f amplified, plus the share at cast %.3f",
 				i+1, got, want, base*ramp, ampShare)
 		}
+	}
+}
+
+// The Imp's Blood Pact is up on the warlock while the Imp is out and drops with it, and a Blood Pact ticked in the
+// party buffs adds nothing while the Imp's is up.
+func TestBloodPactLastsWhileTheImpIsOut(t *testing.T) {
+	bloodPact := buffs.BloodPactValue(0)
+	sim, warlock := newWarlockSim("", &proto.WarlockOptions{Summon: proto.WarlockOptions_Imp}, core.MakeSingleTargetEncounter(0))
+	aura := warlock.GetAura("Blood Pact (Player)")
+	if aura == nil {
+		t.Fatalf("A warlock with an Imp registers no Blood Pact (Player)")
+	}
+	if !aura.IsActive() {
+		t.Fatalf("Blood Pact is not up with the Imp out at the start")
+	}
+	withImp := warlock.GetStat(stats.Stamina)
+
+	warlock.summonDemon(sim, warlock.Voidwalker)
+	if aura.IsActive() {
+		t.Errorf("Blood Pact is still up after the Voidwalker replaces the Imp")
+	}
+	if got := withImp - warlock.GetStat(stats.Stamina); math.Abs(got-bloodPact) > 1e-9 {
+		t.Errorf("dismissing the Imp lowers Stamina by %.2f, want Blood Pact's %.2f", got, bloodPact)
+	}
+
+	warlock.summonDemon(sim, warlock.Imp)
+	if !aura.IsActive() {
+		t.Errorf("Blood Pact is not up after the Imp is summoned again")
+	}
+
+	_, ticked := newWarlockSimWithPartyBuffs("", &proto.WarlockOptions{Summon: proto.WarlockOptions_Imp}, core.MakeSingleTargetEncounter(0), &proto.PartyBuffs{BloodPact: true})
+	if got := ticked.GetStat(stats.Stamina); got != withImp {
+		t.Errorf("Stamina %.2f with the Imp and a ticked Blood Pact, want the Imp's alone %.2f", got, withImp)
+	}
+
+	_, noImp := newWarlockSim("", &proto.WarlockOptions{Summon: proto.WarlockOptions_Voidwalker}, core.MakeSingleTargetEncounter(0))
+	if noImp.GetAura("Blood Pact (Player)").IsActive() {
+		t.Errorf("Blood Pact is up with the Voidwalker out at the start")
 	}
 }

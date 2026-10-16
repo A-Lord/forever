@@ -209,8 +209,10 @@ var Raid = []BuffSpec{
 
 var Party = []BuffSpec{
 	{
-		Field:   "blood_pact",
-		SpellID: 11767,
+		Field:      "blood_pact",
+		SpellID:    11767,
+		Category:   "BloodPact",
+		SingleAura: true,
 		Stats: []proto.Stat{
 			proto.Stat_StatStamina,
 		},
