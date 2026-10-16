@@ -231,7 +231,9 @@ func (mage *Mage) registerArcaneWrathTalent() {
 // "Gives your Arcane Blast spell a 20/40% chance, and your Arcane Wrath, Fireball, Frostbolt, and
 // Frostfire Bolt spells a 10/20% chance to reduce the channeled duration of your next Arcane Missiles
 // spell by 50%, reduce the Mana cost by 100%, and missiles fire every 0.5 sec."
-// Frost Blast takes Frostbolt's rate, as the 15 Oct patch notes state.
+// Frost Blast takes Frostbolt's rate, as the 15 Oct patch notes state. Each Arcane Missiles missile
+// that hits procs it at 5/10%: the patch notes name the missiles but no rate, and the game files
+// state neither, so the rate is the owner's assumption until measured.
 func (mage *Mage) registerMissileBarrage() {
 	if mage.Talents.MissileBarrage == 0 {
 		return
@@ -267,14 +269,30 @@ func (mage *Mage) registerMissileBarrage() {
 			}
 		}, spelldata.Chance(1))
 	trigger.Name = "Missile Barrage - Trigger"
-	// Arcane Missiles hits do not proc it: the 15 Oct patch notes say they do, but the game's tooltip
-	// and rows do not name them.
 	trigger.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
 		return spellData.ArcaneBlast.Contains(spell) || spellData.ArcaneWrath.Contains(spell) || spellData.Fireball.Contains(spell) ||
 			spellData.Frostbolt.Contains(spell) || spellData.FrostBlast.Contains(spell) || spellData.FrostfireBolt.Contains(spell)
 	}
 
 	mage.MakeProcTriggerAura(trigger)
+
+	// The trigger above hears casts, misses included, so a missile rolls on its own cast result and
+	// only when it lands. The quarter of Arcane Blast's chance is the owner's assumption until
+	// measured.
+	missileTrigger := trigger
+	missileTrigger.Name = "Missile Barrage - Missile Trigger"
+	missileTrigger.Callback = core.CallbackOnCastResult
+	missileTrigger.Outcome = core.OutcomeLanded
+	missileTrigger.Handler = func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
+		if sim.Proc(arcaneBlastChance/4, "Missile Barrage") {
+			buffAura.Activate(sim)
+		}
+	}
+	missileTrigger.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
+		return spell.Matches(MageSpellArcaneMissilesTick)
+	}
+
+	mage.MakeProcTriggerAura(missileTrigger)
 }
 
 // "Increases your Intellect by 10% and increases the critical strike damage bonus of your Arcane
