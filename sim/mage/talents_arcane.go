@@ -206,15 +206,15 @@ func (mage *Mage) registerArcaneMeditation() {
 	spelldata.ParseStatic(&mage.Character, spellData.ArcaneMeditation.Rank(mage.Talents.ArcaneMeditation))
 }
 
-// "Gives your Arcane Blast spell a 40% chance, and your Fireball, Frostbolt, and Frostfire Bolt
-// spells a 20% chance to reduce the channeled duration of your next Arcane Missiles spell by 50%,
-// reduce the Mana cost by 100%, and missiles fire every 0.5 sec."
+// "Gives your Arcane Blast spell a 20/40% chance, and your Arcane Wrath, Fireball, Frostbolt, and
+// Frostfire Bolt spells a 10/20% chance to reduce the channeled duration of your next Arcane Missiles
+// spell by 50%, reduce the Mana cost by 100%, and missiles fire every 0.5 sec."
 func (mage *Mage) registerMissileBarrage() {
-	if !mage.Talents.MissileBarrage {
+	if mage.Talents.MissileBarrage == 0 {
 		return
 	}
 
-	talentRank := spellData.MissileBarrage.Highest()
+	talentRank := spellData.MissileBarrage.Rank(mage.Talents.MissileBarrage)
 	buffRank := spellData.MissileBarrageTriggered.Highest()
 	arcaneBlastChance := talentRank.EffectN(1).Percent()
 

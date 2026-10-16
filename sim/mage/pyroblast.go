@@ -15,8 +15,7 @@ func (mage *Mage) registerPyroblastSpell() {
 // https://www.wowhead.com/forever/spell=18809
 //
 // The periodic damage is a separate spell (MageSpellPyroblastDot) so that class-mask mods can
-// tell it from the hit. Arcane Charges raise the hit only: the row's SPELLMOD_DOT names Fireball
-// and Frostfire Bolt, not Pyroblast.
+// tell it from the hit.
 func (mage *Mage) registerPyroblastRank(_ int32, rank *spelldata.Spell) {
 	damage := rank.DamageEffect()
 

@@ -9,7 +9,7 @@ import (
 
 func (mage *Mage) registerFireTalents() {
 	// Tier 1
-	mage.registerWakeOfFire()
+	mage.registerImprovedFireBlast()
 	mage.registerIncineration()
 	mage.registerImprovedFireball()
 
@@ -40,14 +40,12 @@ func (mage *Mage) registerFireTalents() {
 	mage.registerCombustionTalent()
 }
 
-func (mage *Mage) registerWakeOfFire() {
-	if mage.Talents.WakeOfFire == 0 {
+func (mage *Mage) registerImprovedFireBlast() {
+	if mage.Talents.ImprovedFireBlast == 0 {
 		return
 	}
 
-	// Effect 1's cooldown cut only: the kill proc (PROC_FLAG_KILL, 1312934) needs a target to die,
-	// and the sim's targets die only when the fight ends.
-	spelldata.ParseStatic(&mage.Character, spellData.WakeOfFire.Rank(mage.Talents.WakeOfFire))
+	spelldata.ParseStatic(&mage.Character, spellData.ImprovedFireBlast.Rank(mage.Talents.ImprovedFireBlast))
 }
 
 func (mage *Mage) registerIncineration() {

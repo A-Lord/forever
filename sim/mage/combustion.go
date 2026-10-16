@@ -56,7 +56,7 @@ func (mage *Mage) registerCombustionSpell() {
 
 	chargesAura := mage.RegisterAura(chargesConfig)
 
-	// An off-GCD cast of its own, so it does not consume Arcane Charges.
+	// An off-GCD cast of its own.
 	config := spelldata.SpellConfig(&mage.Unit, combustionRank, spelldata.Flags(core.SpellFlagAPL|core.SpellFlagNoOnCastComplete))
 	config.ClassSpellMask = MageSpellCombustion
 

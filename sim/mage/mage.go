@@ -10,7 +10,7 @@ import (
 	"github.com/wowsims/forever/sim/core/stats"
 )
 
-var TalentTreeSizes = [3]int{18, 17, 19}
+var TalentTreeSizes = [3]int{19, 17, 19}
 
 type Mage struct {
 	core.Character

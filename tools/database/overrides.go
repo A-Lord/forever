@@ -1660,7 +1660,4 @@ var EnchantOverrides = []*proto.UIEnchant{
 	{EffectId: 2681, ItemId: 22635, SpellId: 28162, Name: "Savage Guard", Stats: stats.Stats{stats.NatureResistance: 10}.ToProtoArray()},
 	{EffectId: 2682, ItemId: 22636, SpellId: 28164, Name: "Ice Guard", Stats: stats.Stats{stats.FrostResistance: 10}.ToProtoArray()},
 	{EffectId: 2683, ItemId: 22638, SpellId: 28166, Name: "Shadow Guard", Stats: stats.Stats{stats.ShadowResistance: 10}.ToProtoArray()},
-	// 13419 names the cloak inventory type but the weapon item class in the game files; every other
-	// cloak enchant names the armor class.
-	{EffectId: 247, ItemId: 11039, SpellId: 7778, Name: "Enchant Cloak - Minor Agility", Type: proto.ItemType_ItemTypeBack},
 }

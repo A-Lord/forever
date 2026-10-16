@@ -16,14 +16,11 @@ func (mage *Mage) registerBlizzardSpell() {
 // do not crit. The cast's row names no tick spell, only an area trigger, so the two pair by rank.
 func (mage *Mage) registerBlizzardRank(rank int32, castRank *spelldata.Spell) {
 	tickRank := spellData.BlizzardTriggered.Rank(rank)
-	chargeLock := arcaneChargesLock{}
 
 	tickConfig := spelldata.SpellConfig(&mage.Unit, tickRank, spelldata.Magic(core.ProcMaskSpellDamage), spelldata.Proc())
 	tickConfig.ClassSpellMask = MageSpellBlizzard
 	tickConfig.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
-		chargeLock.deal(spell, &mage.Unit, func() {
-			spell.CalcAndDealAoeDamageWithVariance(sim, spell.OutcomeMagicHit, rollDamage(tickRank.DamageEffect()))
-		})
+		spell.CalcAndDealAoeDamageWithVariance(sim, spell.OutcomeMagicHit, rollDamage(tickRank.DamageEffect()))
 	}
 	tickSpell := mage.RegisterSpell(tickConfig)
 
@@ -36,7 +33,6 @@ func (mage *Mage) registerBlizzardRank(rank int32, castRank *spelldata.Spell) {
 	}
 
 	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, spell *core.Spell) {
-		chargeLock.set(&mage.Unit, mage.arcaneChargesBonus())
 		spell.AOEDot().Apply(sim)
 	}
 
