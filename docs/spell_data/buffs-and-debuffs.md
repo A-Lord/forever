@@ -123,7 +123,7 @@ placed anywhere but the end renumbers the rows after it. `buffmanifest.All()` pa
 | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `Field`          | the proto field, snake_case                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | `SpellID`        | the spell the numbers are read from, and a root of the store: the top rank of the castable family, or the aura that family's cast applies when the cast is a summon or a dummy                                                                                                                                                                                                                                                                                                                                                           |
-| `CastID`         | the cast the player learns, where it is not `SpellID`. It names the buff and times an external cooldown: Mana Tide's aura 17360 carries the mana, the cast 17359 the 13 seconds and the 5 minutes                                                                                                                                                                                                                                                                                                                                        |
+| `CastID`         | the cast the player learns, where it is not `SpellID`. It names the buff and times an external cooldown: Mana Tide's aura 1325257 carries the mana, the cast 1325256 the 13 seconds and the 5 minutes                                                                                                                                                                                                                                                                                                                                    |
 | `TooltipID`      | the settings input's icon and tooltip spell, for a row whose aura states no `Description_lang` and whose `CastID` is not that spell either (Moonkin Aura's row points at Moonkin Form, Vindication's at the talent). `0` defers to `CastID`, then `SpellID`; it never changes the numbers the row reads                                                                                                                                                                                                                                  |
 | `Talent`         | the spell of the trait node that prices the improved state. Its one spell modifier whose class mask reaches `SpellID` is the improvement (two fail the pass), and a `SPELLMOD_DURATION` modifier scales the duration, any other the value. The generated `Meta.TalentEffect` names that effect by its `EffectN` position. Where no modifier reaches it, a tooltip term `${$m1/-N*$<SpellID>m1}` prices the buff at rank/N of its amount (Vindication), which the generated `Meta.TalentDivisor` states as N; with neither the pass fails |
 | `Category`       | the exclusive-effect category the aura bids in, `""` for none                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
@@ -220,7 +220,7 @@ A row the generator cannot express outright either states `Driver: true` or is a
 needs one, and the apply block calls `drive<Go>` instead. The contract is in
 `sim/core/buffs/drivers.go`: a buff row's driver takes the `*Character` and the whole scope message,
 and a debuff row's takes the `*Unit`, the debuffs and the raid. Because the driver gets the whole
-message, Grace of Air can read `party.WindfuryTotem`. The driver builds the generated aura with its
+message, Grace of Air can read `raid.WindfuryTotem`. The driver builds the generated aura with its
 `NewSpellData...` constructor and adds what the game files do not state: a proc trigger, a cooldown, a
 delay, the metrics of a regen. The row compiles once the function is declared.
 
@@ -233,14 +233,14 @@ constructor on each true pet's unit, so the pet's copy bids in the same categori
 four driven totems pass their pet copies to `inheritTotem` themselves: Mana Tide's copy of the
 external cooldown's aura, Grace of Air's through `standTotem`, and the weapon totems' whole chain
 (totem aura, category bid and proc) on the pet's character, for a pet that melees. Grace of Air and
-Flametongue Totem do nothing under Windfury Totem, on the pet as on the owner.
+Flametongue Totem do nothing under Windfury Totem.
 
 The exception is a totem whose aura spell sets the only on player bit of Attributes[3]
 (`ATTR_EX_3_ONLY_ON_PLAYER`, read by `Spell.OnlyOnPlayers`): a target that is not a player is invalid,
 so `inheritTotem` gives no pet a copy. Every caller passes the spell the check reads: the row's own
-spell for Mana Tide, Grace of Air and every generated totem, and the party aura (10612, 15036) for a
-weapon totem. Strength of Earth and Grace of Air set the bit at every rank, so a pet never carries
-either.
+spell for Mana Tide, Grace of Air and every generated totem, and the raid aura (10612, 15036) for a
+weapon totem. Strength of Earth, Grace of Air, Windfury Totem and Flametongue Totem set the bit, so a
+pet carries none of them.
 
 The pet's copy never expires on its own and is never in a build phase. It is up while the owner's
 copy is up and the pet is summoned: the owner's copy turns it on and off, and the pet's enable and

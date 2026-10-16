@@ -165,8 +165,8 @@ func resolveBuff(t *spellTables, nodes []traitNode, spec buffmanifest.Row) (Reso
 // The spell's name, its row and duration, and the cooldown of a buff other
 // players cast on their own: the shared timer the sim hands the next source is
 // the cast's cooldown, and a totem's aura states neither how long the totem
-// stands nor when the next one may be dropped. Mana Tide is that row - 17360
-// carries the mana, the cast 17359 the 13 seconds and the 5 minutes.
+// stands nor when the next one may be dropped. Mana Tide is that row - 1325257
+// carries the mana, the cast 1325256 the 13 seconds and the 5 minutes.
 func loadBuffSpell(t *spellTables, row *ResolvedBuff) error {
 	if row.SpellID = row.BuffSpec.SpellID; row.SpellID == 0 {
 		return fmt.Errorf("names no spell")

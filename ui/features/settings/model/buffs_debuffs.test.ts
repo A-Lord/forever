@@ -29,11 +29,7 @@ describe('the buff registries', () => {
 			'Atiesh - Priest',
 			'Darkspear',
 			"Admiral's Hat",
-			'Strength of Earth Totem',
 			'Stoneskin Totem',
-			'Grace of Air Totem',
-			'Windfury Totem',
-			'Flametongue Totem',
 		]);
 	});
 
@@ -56,6 +52,10 @@ describe('the buff registries', () => {
 			'Fire Resistance Totem',
 			'Frost Resistance Totem',
 			'Nature Resistance Totem',
+			'Strength of Earth Totem',
+			'Grace of Air Totem',
+			'Windfury Totem',
+			'Flametongue Totem',
 			'Aspect of the Wild',
 			'Innervates',
 			'Power Infusions',

@@ -82,10 +82,8 @@ func bearRequest(rotation *proto.APLRotation, iterations int32) *proto.RaidSimRe
 					Rotation: rotation,
 				}},
 				Buffs: &proto.PartyBuffs{
-					BattleShout:          proto.TristateEffect_TristateEffectRegular,
-					WindfuryTotem:        true,
-					ManaSpringTotem:      proto.TristateEffect_TristateEffectRegular,
-					StrengthOfEarthTotem: true,
+					BattleShout:     proto.TristateEffect_TristateEffectRegular,
+					ManaSpringTotem: proto.TristateEffect_TristateEffectRegular,
 				},
 			}},
 			Buffs: &proto.RaidBuffs{
@@ -94,6 +92,8 @@ func bearRequest(rotation *proto.APLRotation, iterations int32) *proto.RaidSimRe
 				PrayerOfFortitude:        true,
 				PrayerOfShadowProtection: true,
 				PrayerOfSpirit:           true,
+				WindfuryTotem:            true,
+				StrengthOfEarthTotem:     true,
 			},
 			Debuffs: &proto.Debuffs{
 				ExposeArmor:         true,
