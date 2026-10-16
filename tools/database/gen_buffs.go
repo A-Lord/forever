@@ -811,7 +811,7 @@ func buffConstructor(row ResolvedBuff, rendered buffRow) string {
 // uptime calls a driver of a fixed name that sim/core/buffs/drivers.go declares,
 // and so does a row the manifest marks as driven. A driver is handed the whole
 // scope message rather than its own field, because a driven buff often reads a
-// second one: Grace of Air does nothing under Windfury Totem. Any other totem
+// second one: Flametongue Totem does nothing under Windfury Totem. Any other totem
 // stands through standTotem, which puts it on the character's true pets too
 // unless the row's spell says only a player can carry it.
 func buffApply(row ResolvedBuff, spellVar string) (string, string, bool) {

@@ -113,13 +113,11 @@ var Raid = []BuffSpec{
 			proto.Stat_StatStrength,
 		},
 	},
-	// Driven because Windfury Totem takes the air slot: under both, Grace of Air does nothing.
 	{
 		Field:    "grace_of_air_totem",
 		SpellID:  25360,
 		CastID:   25359,
 		Category: "GraceOfAirTotem",
-		Driver:   true,
 		Stats: []proto.Stat{
 			proto.Stat_StatAgility,
 		},

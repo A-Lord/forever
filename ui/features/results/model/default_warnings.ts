@@ -60,18 +60,11 @@ export function defaultSimWarnings<SpecType extends number>(player: Player<SpecT
 			updateOn: subscribeRaidField(player.sim.raid, 'buffs'),
 			getContent: () => {
 				const buffs = player.sim.raid.getBuffs();
-				if (!buffs.windfuryTotem) {
+				if (!buffs.windfuryTotem || !buffs.flametongueTotem) {
 					return '';
 				}
 
-				const warnings: Array<string> = [];
-				if (buffs.graceOfAirTotem) {
-					warnings.push(i18n.t('sidebar.warnings.windfury_over_grace_of_air'));
-				}
-				if (buffs.flametongueTotem) {
-					warnings.push(i18n.t('sidebar.warnings.windfury_over_flametongue'));
-				}
-				return warnings;
+				return i18n.t('sidebar.warnings.windfury_over_flametongue');
 			},
 		},
 	];

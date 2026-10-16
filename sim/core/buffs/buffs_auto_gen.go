@@ -915,7 +915,7 @@ func applyGeneratedBuffs(char *core.Character, raid *proto.RaidBuffs, party *pro
 		standTotem(char, strengthOfEarthTotemSpell, NewSpellDataStrengthOfEarthTotemAura, 0)
 	}
 	if raid.GraceOfAirTotem {
-		driveGraceOfAirTotem(char, raid)
+		standTotem(char, graceOfAirTotemSpell, NewSpellDataGraceOfAirTotemAura, 0)
 	}
 	if raid.WindfuryTotem {
 		driveWindfuryTotem(char, raid)

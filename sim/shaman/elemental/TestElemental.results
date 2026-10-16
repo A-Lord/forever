@@ -2,7 +2,7 @@ character_stats_results: {
  key: "TestElemental-CharacterStats-Default"
  value: {
   final_stats: 170
-  final_stats: 80
+  final_stats: 178
   final_stats: 286
   final_stats: 270
   final_stats: 582
@@ -28,7 +28,7 @@ character_stats_results: {
   final_stats: 0
   final_stats: 0
   final_stats: 0
-  final_stats: 2374
+  final_stats: 2570
   final_stats: 210
   final_stats: 3960
   final_stats: 5290
@@ -41,12 +41,12 @@ character_stats_results: {
   final_stats: 0
   final_stats: 8
   final_stats: 8
-  final_stats: 17.264
+  final_stats: 22.2424
   final_stats: 21.363
   final_stats: 0
   final_stats: 0
   final_stats: 0
-  final_stats: 5.764
+  final_stats: 10.7424
   final_stats: 0
   final_stats: 0
   final_stats: 0
