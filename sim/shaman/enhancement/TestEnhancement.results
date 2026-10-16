@@ -761,8 +761,8 @@ dps_results: {
 dps_results: {
  key: "TestEnhancement-AllItems-TalismanofAscendance-22678"
  value: {
-  dps: 705.38555
-  tps: 369.60544
+  dps: 703.7849
+  tps: 368.82112
   dtps: 9.53761
  }
 }
