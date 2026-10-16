@@ -140,18 +140,16 @@ beside the parse counts its hit twice.
 
 Armor has two flat auras on misc 1. `A_MOD_RESISTANCE` (22) is armor like any other, and
 `A_MOD_ARMOR_NO_MODS` (674) is the one the class armor buffs and debuffs state: Mark of the Wild,
-Devotion Aura, Sunder Armor, Expose Armor, Faerie Fire and Curse of Recklessness. Armor on 674 stays
-outside every percent armor modifier: the unit records it as a share of Armor the multipliers leave
-alone (`StatDependencyManager.AddUnmultiplied`), scales the rest and adds it after. The row takes misc
-1 alone and skips any other mask with a reason.
-
-Item buffs and procs keep 674 armor outside the percent armor modifiers through the shared builders in
-`sim/common/shared`. Where the buff's row states its armor with 674, each builder records the buff's
-armor as that share before the aura changes the stats, on gain, on expiry and for each stack. An
-enchant carries the share of its armor its equip spells state with 674 as `no_mods_armor`, which stays
-outside the equip scaling of armor too: `ItemEquipmentEnchantStats` subtracts it from the enchant's
-stats, and the character adds it as unmultiplied armor. An Armor EP weight is per point of armor from
-items, so the reforge optimizer values the share at that weight divided by `PlayerStats.item_armor_scale`.
+Devotion Aura, Sunder Armor, Expose Armor, Faerie Fire and Curse of Recklessness. Armor on 674 is the
+`ArmorNoMods` stat, on players, pets and enemies alike. Every unit adds it to Armor through one
+unmultiplied dependency (`AddUnmultipliedStatDependency`), which the percent armor modifiers leave
+whole: they scale the rest of Armor and the dependency adds ArmorNoMods after. The equip scaling of
+armor scales Armor alone, so it never reaches ArmorNoMods either. The row takes misc 1 alone and skips
+any other mask with a reason, and `spelldata.ArmorNoModsStats` is the one rule the parser and the
+item generator read it by. The item database writes 674 armor as ArmorNoMods for item equip spells,
+item buffs, enchants and consumables, so the shared builders and the item swap carry it in the stats
+like any other stat. Its EP is a weight of its own, which the stat weights measure whenever they
+measure Armor.
 
 Armor has two percentage auras. `A_MOD_BASE_RESISTANCE_PCT` scales the armor from items, which is what
 its tooltip states, and `A_MOD_RESISTANCE_PCT` multiplies the whole stat but the 674 armor:
