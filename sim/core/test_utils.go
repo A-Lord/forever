@@ -62,6 +62,7 @@ var FullRaidBuffs = &proto.RaidBuffs{
 	GraceOfAirTotem:      true,
 	StrengthOfEarthTotem: true,
 	WindfuryTotem:        true,
+	TrueshotAura:         true,
 }
 
 var FullPartyBuffs = &proto.PartyBuffs{
@@ -71,7 +72,6 @@ var FullPartyBuffs = &proto.PartyBuffs{
 	DevotionAura:      true,
 	RetributionAura:   true,
 	ConcentrationAura: true,
-	TrueshotAura:      true,
 	AtieshDruid:       1,
 	AtieshMage:        1,
 	AtieshPriest:      1,

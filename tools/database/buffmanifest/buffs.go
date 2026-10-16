@@ -143,6 +143,27 @@ var Raid = []BuffSpec{
 			proto.Stat_StatAttackPower,
 		},
 	},
+	// TODO: rank 5 states 50 ranged attack power and rank 4 states 75; in-game testing has to say
+	// which one the top rank grants.
+	{
+		Field:   "trueshot_aura",
+		SpellID: 20906,
+		Stats: []proto.Stat{
+			proto.Stat_StatRangedAttackPower,
+		},
+	},
+	// A pet ability the hunter class family does not file, so the owner is stated. It does not stack
+	// with Battle Shout: the two share one category and the stronger applies.
+	{
+		Field:      "furious_howl",
+		SpellID:    24597,
+		Owner:      proto.Class_ClassHunter,
+		Category:   "BattleShout",
+		SingleAura: true,
+		Stats: []proto.Stat{
+			proto.Stat_StatAttackPower,
+		},
+	},
 	{
 		Field:   "aspect_of_the_wild",
 		SpellID: 20190,
@@ -257,15 +278,6 @@ var Party = []BuffSpec{
 			proto.Stat_StatHealingPower,
 		},
 	},
-	// TODO: rank 5 states 50 ranged attack power and rank 4 states 75; in-game testing has to say
-	// which one the top rank grants.
-	{
-		Field:   "trueshot_aura",
-		SpellID: 20906,
-		Stats: []proto.Stat{
-			proto.Stat_StatRangedAttackPower,
-		},
-	},
 	{
 		Field:   "atiesh_mage",
 		SpellID: 28142,
@@ -315,18 +327,6 @@ var Party = []BuffSpec{
 		Category: "StoneskinTotem",
 		Stats: []proto.Stat{
 			proto.Stat_StatDefenseRating,
-		},
-	},
-	// A pet ability the hunter class family does not file, so the owner is stated. It does not stack
-	// with Battle Shout: the two share one category and the stronger applies.
-	{
-		Field:      "furious_howl",
-		SpellID:    24597,
-		Owner:      proto.Class_ClassHunter,
-		Category:   "BattleShout",
-		SingleAura: true,
-		Stats: []proto.Stat{
-			proto.Stat_StatAttackPower,
 		},
 	},
 	// Darkspear 12802's chance on hit lands 16939 on the wielder's party, so the party's copy is up
