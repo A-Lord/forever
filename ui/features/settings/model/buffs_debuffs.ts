@@ -20,7 +20,7 @@ export const ManaTideTotem = Generated.ManaTideTotems;
 export const GreaterBlessingOfSalvation = makeBooleanIndividualBuffInput({
 	actionId: ActionId.fromSpellId(25895),
 	fieldName: 'greaterBlessingOfSalvation',
-	label: 'Greater Blessing of Salvation',
+	label: 'Mass Salvation',
 	showWhen: player => !player.getPlayerSpec().isTankSpec && !player.getPlayerSpec().isHealingSpec,
 });
 export const GreaterBlessingOfLight = makeBooleanIndividualBuffInput({

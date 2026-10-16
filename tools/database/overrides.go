@@ -1563,7 +1563,7 @@ var SharedSpellsIcons = []int32{
 	23563, // Enhanced Battle Shout
 	25076, // Cobra Reflexes
 	21564, // Prayer of Fortitude
-	25895, // Greater Blessing of Salvation
+	25895, // Mass Salvation
 	25916, // Greater Blessing of Might
 	25918, // Greater Blessing of Wisdom
 	27681, // Prayer of Spirit

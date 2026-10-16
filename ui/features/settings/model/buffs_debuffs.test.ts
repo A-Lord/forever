@@ -39,7 +39,7 @@ describe('the buff registries', () => {
 			'Prayer of Fortitude',
 			'Greater Blessing of Might',
 			'Greater Blessing of Wisdom',
-			'Greater Blessing of Salvation',
+			'Mass Salvation',
 			'Greater Blessing of Light',
 			'Prayer of Shadow Protection',
 			'Fire Resistance Aura',
