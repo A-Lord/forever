@@ -144,10 +144,11 @@ type Unit struct {
 	// Pets owned by this Unit.
 	PetAgents []PetAgent
 
-	DynamicStatsPets      []*Pet
-	DynamicMeleeSpeedPets []*Pet
-	DynamicCastSpeedPets  []*Pet
-	RegenInheritancePets  []*Pet
+	DynamicStatsPets       []*Pet
+	DynamicMeleeSpeedPets  []*Pet
+	DynamicRangedSpeedPets []*Pet
+	DynamicCastSpeedPets   []*Pet
+	RegenInheritancePets   []*Pet
 
 	// AutoAttacks is the manager for auto attack swings.
 	// Must be enabled to use, with "EnableAutoAttacks()".
@@ -656,6 +657,13 @@ func (unit *Unit) updateRangedAttackSpeed() {
 func (unit *Unit) MultiplyRangedSpeed(sim *Simulation, amount float64) {
 	unit.PseudoStats.RangedSpeedMultiplier *= amount
 	unit.updateRangedAttackSpeed()
+
+	// The pets that take the owner's ranged speed take each change at once, not at the next pet
+	// heartbeat.
+	for _, pet := range unit.DynamicRangedSpeedPets {
+		pet.dynamicRangedSpeedInheritance(sim, amount)
+	}
+
 	unit.AutoAttacks.UpdateSwingTimers(sim)
 }
 
@@ -935,6 +943,7 @@ func (unit *Unit) reset(sim *Simulation, _ Agent) {
 
 	unit.DynamicStatsPets = unit.DynamicStatsPets[:0]
 	unit.DynamicMeleeSpeedPets = unit.DynamicMeleeSpeedPets[:0]
+	unit.DynamicRangedSpeedPets = unit.DynamicRangedSpeedPets[:0]
 	clear(unit.SpellsInFlight)
 
 	if unit.Type != PetUnit {
