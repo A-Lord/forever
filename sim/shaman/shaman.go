@@ -90,7 +90,7 @@ type Shaman struct {
 	LightningShield     *core.Spell
 	LightningShieldAura *core.Aura
 	WaterShieldAura     *core.Aura
-	// Spends a Lightning Shield charge the way a hit taken does, for the shield proc rate option.
+	// Spends a charge of the shield that is up the way a hit taken does, for the shield proc rate option.
 	ShieldSelfProc func(sim *core.Simulation)
 
 	EarthShock []*core.Spell // One per rank in castableRanks.
