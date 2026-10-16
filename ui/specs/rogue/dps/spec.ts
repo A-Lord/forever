@@ -83,11 +83,11 @@ export default defineSpec<Spec.SpecRogue>({
 		// Default raid/party buffs settings.
 		raidBuffs: RaidBuffs.create({
 			giftOfTheWild: true,
+			strengthOfEarthTotem: true,
+			windfuryTotem: true,
 		}),
 		partyBuffs: PartyBuffs.create({
 			battleShout: TristateEffect.TristateEffectRegular,
-			strengthOfEarthTotem: true,
-			windfuryTotem: true,
 			leaderOfThePack: true,
 		}),
 		individualBuffs: IndividualBuffs.create({

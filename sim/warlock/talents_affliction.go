@@ -12,7 +12,7 @@ func (warlock *Warlock) registerAfflictionTalents() {
 	warlock.applyImprovedCorruption()
 
 	// Tier 2
-	warlock.applyMalediction()
+	warlock.applyGrimReach()
 	warlock.applySoulHarvest()
 	warlock.applyImprovedDrains()
 
@@ -57,12 +57,13 @@ func (warlock *Warlock) applyImprovedCorruption() {
 
 // --- Tier 2 ---
 
-func (warlock *Warlock) applyMalediction() {
-	if warlock.Talents.Malediction == 0 {
+// Grim Reach raises the range of the Affliction spells by 10/20%, read from its row.
+func (warlock *Warlock) applyGrimReach() {
+	if warlock.Talents.GrimReach == 0 {
 		return
 	}
 
-	spelldata.ParseStatic(&warlock.Character, spellData.Malediction.Rank(warlock.Talents.Malediction))
+	spelldata.ParseStatic(&warlock.Character, spellData.GrimReach.Rank(warlock.Talents.GrimReach))
 }
 
 // TODO: Not implemented due to lack of a kill event: adds "leave" the encounter on a set timer rather

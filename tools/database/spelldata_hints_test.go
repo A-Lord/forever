@@ -70,6 +70,8 @@ func TestProcShapeOfNamedSpells(t *testing.T) {
 			0, `"after dealing a melee critical strike" is the crit the caller reads off the result, since the same listener has to see the white hits that spend a charge`},
 		{12834, "Deep Wounds", procChanceAlways, 0, `"$m1%" is the share of weapon damage, and a crit is the condition`,
 			core.ProcHintCrit, `"Your critical strikes" names the trigger`},
+		{30160, "Elemental Devastation", procChanceAlways, 0, `"$m1%" is the melee crit it grants, and a crit is the condition`,
+			core.ProcHintCrit | core.ProcHintDamage, `"Your Critical Strikes", capitalized, names the trigger, and "direct damage spells" restricts it to damage`},
 		{16928, "Armor Shatter", procChanceAlways, 0, "the 101 sentinel; the rate is Annihilator's, on its item effect",
 			0, "the tooltip is the armor reduction, not a trigger"},
 		{1308935, "Striking", procChanceColumn, 0, "no tooltip at all, so the column is all there is",

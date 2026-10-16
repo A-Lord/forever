@@ -62,7 +62,6 @@ func (warlock *Warlock) applyImprovedImp() {
 }
 
 // Effect 1 raises total Stamina, as the tooltip says.
-// TODO: Effect 2's -1% Spirit is not in the tooltip and is left out until it is confirmed in game.
 func (warlock *Warlock) applyDemonicEmbrace() {
 	if warlock.Talents.DemonicEmbrace == 0 {
 		return

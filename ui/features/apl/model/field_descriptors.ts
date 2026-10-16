@@ -25,7 +25,6 @@ type FieldDescriptorPayloads = {
 	placeholderName: { field: string; options?: FieldOptions };
 	groupName: { field: string; options?: FieldOptions };
 	groupReferenceVariables: { field: string; groupNameField: string; options?: FieldOptions };
-	eclipseType: { field: string };
 	curseType: { field: string };
 	summonType: { field: string };
 	autoType: { field: string };
@@ -98,10 +97,6 @@ export function groupNameFieldConfig(field: string, options?: FieldOptions): Des
 
 export function groupReferenceVariablesFieldConfig(field: string, groupNameField: string, options?: FieldOptions): Descriptor<'groupReferenceVariables'> {
 	return { type: 'groupReferenceVariables', field, groupNameField, options };
-}
-
-export function eclipseTypeFieldConfig(field: string): Descriptor<'eclipseType'> {
-	return { type: 'eclipseType', field };
 }
 
 export function curseTypeFieldConfig(field: string): Descriptor<'curseType'> {
