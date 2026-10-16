@@ -892,6 +892,15 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestFeralBear-AllItems-MysticMushroom-249396"
+ value: {
+  dps: 466.81135
+  tps: 731.24969
+  dtps: 341.40804
+  hps: 60.25928
+ }
+}
+dps_results: {
  key: "TestFeralBear-AllItems-OrbofFire-12805"
  value: {
   dps: 453.39486
