@@ -232,21 +232,11 @@ func equipFold(s *spelldata.Spell, e *spelldata.Effect) EquipFold {
 // The fold of a game files effect, read off its row in the spell store. An effect of a spell the store
 // does not carry names no weapon.
 func EquipEffectFold(effect SpellEffect) EquipFold {
-	return equipFold(storeEffect(effect))
-}
-
-// A game files effect as the spell store carries it, or its aura and first misc value where the store
-// does not carry its spell.
-func storeEffect(effect SpellEffect) (*spelldata.Spell, *spelldata.Effect) {
 	s := spelldata.Find(int32(effect.SpellID))
 	if e := s.EffectAtIndex(uint8(effect.EffectIndex)); e != spelldata.NilEffect {
-		return s, e
+		return equipFold(s, e)
 	}
-	built := &spelldata.Effect{Aura: effect.EffectAura}
-	if len(effect.EffectMiscValues) > 0 {
-		built.Misc = int32(effect.EffectMiscValues[0])
-	}
-	return s, built
+	return equipFold(s, &spelldata.Effect{Aura: effect.EffectAura, Misc: int32(effect.EffectMiscValues[0])})
 }
 
 // Whether an equip spell folds into the stats of the item or enchant carrying it: it does unless an
@@ -407,8 +397,13 @@ func ConvertEffectAuraToStatIndex(effectAura EffectAuraType, effectMisc int) pro
 		return -1
 	case dbcenums.A_MOD_TARGET_RESISTANCE:
 		return ConvertTargetResistanceFlagToPenetrationStat(effectMisc)
-	case dbcenums.A_MOD_RESISTANCE, dbcenums.A_MOD_ARMOR_NO_MODS:
+	case dbcenums.A_MOD_RESISTANCE:
 		return ConvertResistanceFlagToResistanceStat(effectMisc)
+	case dbcenums.A_MOD_ARMOR_NO_MODS:
+		if sts := spelldata.ArmorNoModsStats(int32(effectMisc)); len(sts) == 1 {
+			return proto.Stat(sts[0])
+		}
+		return -1
 	case dbcenums.A_MOD_RATING:
 		return ConvertModRatingFlagToRatingStat(effectMisc)
 	case dbcenums.A_MOD_SHIELD_BLOCKVALUE:
