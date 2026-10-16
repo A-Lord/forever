@@ -69,6 +69,7 @@ type generatedSpellData struct {
 	DrainMana                   spelldata.Ladder
 	DrainSoul                   spelldata.Ladder
 	ExplorerImp                 spelldata.Ladder
+	EyeOfKilrogg                spelldata.Ladder
 	Fear                        spelldata.Ladder
 	FelConcentration            spelldata.Ladder
 	FelDomination               spelldata.Ladder
@@ -105,6 +106,8 @@ type generatedSpellData struct {
 	ImprovedSubjugateDemon      spelldata.Ladder
 	ImprovedVoidwalker          spelldata.Ladder
 	Incinerate                  spelldata.Ladder
+	Inferno                     spelldata.Ladder
+	InfernoTriggered            spelldata.Ladder
 	Intensity                   spelldata.Ladder
 	LashOfPain                  spelldata.Ladder
 	LashOfPainTriggered         spelldata.Ladder
@@ -150,6 +153,11 @@ type generatedSpellData struct {
 	SpellLockTriggered          spelldata.Ladder
 	SubjugateDemon              spelldata.Ladder
 	Suffering                   spelldata.Ladder
+	SummonFelhunter             spelldata.Ladder
+	SummonImp                   spelldata.Ladder
+	SummonIncubus               spelldata.Ladder
+	SummonSuccubus              spelldata.Ladder
+	SummonVoidwalker            spelldata.Ladder
 	Suppression                 spelldata.Ladder
 	TaintedBlood                spelldata.Ladder
 	TaintedBloodTriggered       spelldata.Ladder
@@ -213,6 +221,7 @@ var spellData = generatedSpellData{
 	DrainMana:                   spelldata.Ranked(5138, 6226, 11703, 11704),
 	DrainSoul:                   spelldata.Ranked(1120, 8288, 8289, 11675),
 	ExplorerImp:                 spelldata.Ranked(445459),
+	EyeOfKilrogg:                spelldata.Ranked(126),
 	Fear:                        spelldata.Ranked(5782, 6213, 6215),
 	FelConcentration:            spelldata.Talent(17783, 3),
 	FelDomination:               spelldata.Ranked(18708),
@@ -249,6 +258,8 @@ var spellData = generatedSpellData{
 	ImprovedSubjugateDemon:      spelldata.Ranked(18821, 18822, 18823, 18824, 18825),
 	ImprovedVoidwalker:          spelldata.Talent(18705, 3),
 	Incinerate:                  spelldata.Ranked(412758, 1293812, 1293813),
+	Inferno:                     spelldata.Ranked(1122),
+	InfernoTriggered:            spelldata.Ranked(20310, 20882, 22699),
 	Intensity:                   spelldata.Talent(18135, 3),
 	LashOfPain:                  spelldata.Ranked(7814, 7815, 7816, 11778, 11779, 11780),
 	LashOfPainTriggered:         spelldata.Ranked(18769),
@@ -294,6 +305,11 @@ var spellData = generatedSpellData{
 	SpellLockTriggered:          spelldata.Ranked(24259),
 	SubjugateDemon:              spelldata.Ranked(1098, 11725, 11726),
 	Suffering:                   spelldata.Ranked(17735, 17750, 17751, 17752),
+	SummonFelhunter:             spelldata.Ranked(691),
+	SummonImp:                   spelldata.Ranked(688),
+	SummonIncubus:               spelldata.Ranked(713),
+	SummonSuccubus:              spelldata.Ranked(712),
+	SummonVoidwalker:            spelldata.Ranked(697),
 	Suppression:                 spelldata.Talent(18174, 5),
 	TaintedBlood:                spelldata.Ranked(19478, 19655, 19656, 19660),
 	TaintedBloodTriggered:       spelldata.Ranked(19479, 19652, 19653, 19654),
