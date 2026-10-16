@@ -4,7 +4,8 @@
     "arcaneBrilliance": true,
     "prayerOfSpirit": true,
     "giftOfTheWild": true,
-    "prayerOfFortitude": true
+    "prayerOfFortitude": true,
+    "moonkinAura": true
   },
   "debuffs": {
     "judgementOfWisdom": true,
@@ -16,7 +17,6 @@
     "giftOfArthas": true
   },
   "partyBuffs": {
-    "moonkinAura": true
   },
   "player": {
     "apiVersion": 2,

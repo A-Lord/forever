@@ -33,12 +33,6 @@ export const DevotionAura = makeBooleanPartyBuffInput({
 	label: 'Devotion Aura',
 });
 
-export const LeaderOfThePack = makeBooleanPartyBuffInput({
-	actionId: ActionId.fromSpellId(17007),
-	fieldName: 'leaderOfThePack',
-	label: 'Leader of the Pack',
-});
-
 export const ManaSpringTotem = makeTristatePartyBuffInput({
 	actionId: ActionId.fromSpellId(10497),
 	impId: ActionId.fromSpellId(16187),
@@ -51,12 +45,6 @@ export const ManaTideTotems = makeMultistatePartyBuffInput({
 	numStates: 5,
 	fieldName: 'manaTideTotems',
 	label: 'Mana Tide Totem',
-});
-
-export const MoonkinAura = makeBooleanPartyBuffInput({
-	actionId: ActionId.fromSpellId(24858),
-	fieldName: 'moonkinAura',
-	label: 'Moonkin Aura',
 });
 
 // retribution_aura: the hand-written input shows itself for tank specs only, since a damage shield only matters on the unit being hit; a role gate no manifest
@@ -224,6 +212,18 @@ export const AspectOfTheWild = makeBooleanRaidBuffInput({
 	actionId: ActionId.fromSpellId(20190),
 	fieldName: 'aspectOfTheWild',
 	label: 'Aspect of the Wild',
+});
+
+export const LeaderOfThePack = makeBooleanRaidBuffInput({
+	actionId: ActionId.fromSpellId(17007),
+	fieldName: 'leaderOfThePack',
+	label: 'Leader of the Pack',
+});
+
+export const MoonkinAura = makeBooleanRaidBuffInput({
+	actionId: ActionId.fromSpellId(24858),
+	fieldName: 'moonkinAura',
+	label: 'Moonkin Aura',
 });
 
 export const GreaterBlessingOfKings = makeBooleanIndividualBuffInput({
@@ -491,6 +491,16 @@ export const GENERATED_RAID_BUFFS_CONFIG: RenderableStatOptions[] = [
 		stats: [Stat.StatNatureResistance],
 		ownerClass: Class.ClassHunter,
 	},
+	{
+		config: LeaderOfThePack,
+		stats: [Stat.StatAttackPower],
+		ownerClass: Class.ClassDruid,
+	},
+	{
+		config: MoonkinAura,
+		stats: [Stat.StatSpellDamage],
+		ownerClass: Class.ClassDruid,
+	},
 ];
 
 export const GENERATED_PARTY_BUFFS_CONFIG: RenderableStatOptions[] = [
@@ -510,11 +520,6 @@ export const GENERATED_PARTY_BUFFS_CONFIG: RenderableStatOptions[] = [
 		ownerClass: Class.ClassPaladin,
 	},
 	{
-		config: LeaderOfThePack,
-		stats: [Stat.StatCritRating],
-		ownerClass: Class.ClassDruid,
-	},
-	{
 		config: ManaSpringTotem,
 		stats: [Stat.StatMP5],
 		ownerClass: Class.ClassShaman,
@@ -523,11 +528,6 @@ export const GENERATED_PARTY_BUFFS_CONFIG: RenderableStatOptions[] = [
 		config: ManaTideTotems,
 		stats: [Stat.StatMP5],
 		ownerClass: Class.ClassShaman,
-	},
-	{
-		config: MoonkinAura,
-		stats: [Stat.StatCritRating],
-		ownerClass: Class.ClassDruid,
 	},
 	{
 		config: ConcentrationAura,
