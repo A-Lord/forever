@@ -32,26 +32,6 @@ func NewSpellDataBloodPactAura(unit *core.Unit, isPlayer bool, talentPoints int3
 	return newBuff(unit, bloodPactMeta, isPlayer, talentPoints)
 }
 
-// Battle Shout
-var BattleShoutCategory = "BattleShout"
-var battleShoutSpell = spelldata.MustFind(25289)
-var battleShoutMeta = &Meta{
-	Label:      "Battle Shout",
-	Spell:      battleShoutSpell,
-	Category:   BattleShoutCategory,
-	SingleAura: true,
-}
-
-func BattleShoutValue(talentPoints int32) float64 {
-	return battleShoutMeta.Value(talentPoints)
-}
-func BattleShoutDuration(talentPoints int32) time.Duration {
-	return battleShoutMeta.Duration(talentPoints)
-}
-func NewSpellDataBattleShoutAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
-	return newBuff(unit, battleShoutMeta, isPlayer, talentPoints)
-}
-
 // Devotion Aura
 var DevotionAuraCategory = "DevotionAura"
 var devotionAuraSpell = spelldata.MustFind(10293)
@@ -579,6 +559,26 @@ func NewSpellDataFlametongueTotemAura(unit *core.Unit, isPlayer bool, talentPoin
 	return newBuff(unit, flametongueTotemMeta, isPlayer, talentPoints)
 }
 
+// Battle Shout
+var BattleShoutCategory = "BattleShout"
+var battleShoutSpell = spelldata.MustFind(25289)
+var battleShoutMeta = &Meta{
+	Label:      "Battle Shout",
+	Spell:      battleShoutSpell,
+	Category:   BattleShoutCategory,
+	SingleAura: true,
+}
+
+func BattleShoutValue(talentPoints int32) float64 {
+	return battleShoutMeta.Value(talentPoints)
+}
+func BattleShoutDuration(talentPoints int32) time.Duration {
+	return battleShoutMeta.Duration(talentPoints)
+}
+func NewSpellDataBattleShoutAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+	return newBuff(unit, battleShoutMeta, isPlayer, talentPoints)
+}
+
 // Trueshot Aura
 var trueshotAuraSpell = spelldata.MustFind(20906)
 var trueshotAuraMeta = &Meta{
@@ -827,9 +827,6 @@ func applyGeneratedBuffs(char *core.Character, raid *proto.RaidBuffs, party *pro
 	if party.BloodPact {
 		core.MakePermanent(NewSpellDataBloodPactAura(&char.Unit, false, 0))
 	}
-	if party.BattleShout != proto.TristateEffect_TristateEffectMissing {
-		driveBattleShout(char, party)
-	}
 	if party.DevotionAura {
 		core.MakePermanent(NewSpellDataDevotionAura(&char.Unit, false, 0))
 	}
@@ -910,6 +907,9 @@ func applyGeneratedBuffs(char *core.Character, raid *proto.RaidBuffs, party *pro
 	}
 	if raid.FlametongueTotem {
 		driveFlametongueTotem(char, raid)
+	}
+	if raid.BattleShout != proto.TristateEffect_TristateEffectMissing {
+		driveBattleShout(char, raid)
 	}
 	if raid.TrueshotAura {
 		core.MakePermanent(NewSpellDataTrueshotAura(&char.Unit, false, 0))

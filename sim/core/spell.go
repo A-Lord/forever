@@ -447,6 +447,9 @@ func (spell *Spell) CurDot() *Dot {
 	return spell.dots.Get(spell.Unit.CurrentTarget)
 }
 func (spell *Spell) AOEDot() *Dot {
+	if spell.aoeDot == nil && spell.RelatedDotSpell != nil {
+		return spell.RelatedDotSpell.AOEDot()
+	}
 	return spell.aoeDot
 }
 

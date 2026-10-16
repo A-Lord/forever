@@ -219,6 +219,7 @@
 			"spell_power": "Spell Power",
 			"armor": "Armor",
 			"bonus_armor": "Bonus Armor",
+			"armor_no_mods": "Armor (No Mods)",
 			"health": "Health",
 			"mana": "Mana",
 			"mp5": "MP5",

@@ -143,6 +143,19 @@ var Raid = []BuffSpec{
 			proto.Stat_StatAttackPower,
 		},
 	},
+	// The improved state is a warrior wearing three pieces of Battlegear of Wrath, whose set spell
+	// 23563 adds 30 to every effect of the shout. No set spell is resolved, so driveBattleShout adds it.
+	{
+		Field:      "battle_shout",
+		SpellID:    25289,
+		Category:   "BattleShout",
+		SingleAura: true,
+		Driver:     true,
+		ImpAction:  &ActionRef{SpellID: 23563},
+		Stats: []proto.Stat{
+			proto.Stat_StatAttackPower,
+		},
+	},
 	// TODO: rank 5 states 50 ranged attack power and rank 4 states 75; in-game testing has to say
 	// which one the top rank grants.
 	{
@@ -200,19 +213,6 @@ var Party = []BuffSpec{
 		SpellID: 11767,
 		Stats: []proto.Stat{
 			proto.Stat_StatStamina,
-		},
-	},
-	// The improved state is a warrior wearing three pieces of Battlegear of Wrath, whose set spell
-	// 23563 adds 30 to every effect of the shout. No set spell is resolved, so driveBattleShout adds it.
-	{
-		Field:      "battle_shout",
-		SpellID:    25289,
-		Category:   "BattleShout",
-		SingleAura: true,
-		Driver:     true,
-		ImpAction:  &ActionRef{SpellID: 23563},
-		Stats: []proto.Stat{
-			proto.Stat_StatAttackPower,
 		},
 	},
 	{
