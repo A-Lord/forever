@@ -592,9 +592,11 @@ func spellDataProcAura(character *core.Character, cfg SpellDataProc, trigger *sp
 	// this aura's business.
 	aura.MaxStacks = int32(buff.ProcCharges)
 
-	return character.NewTemporaryStatsAuraWrapped(aura.Label, aura.ActionID, buffStats, aura.Duration, func(config *core.Aura) {
+	procAura := character.NewTemporaryStatsAuraWrapped(aura.Label, aura.ActionID, buffStats, aura.Duration, func(config *core.Aura) {
 		config.MaxStacks = aura.MaxStacks
 	})
+	keepNoModsArmorUnmultiplied(character, procAura.Aura, buff, buffStats)
+	return procAura
 }
 
 // How long the buff lasts. The game files leave it off the buff's own row on a fair few procs and
@@ -1093,9 +1095,33 @@ func NewSimpleStatActive(itemID int32) {
 			}
 
 			buffStats, buffDuration := onUseStatBuff(character, itemEffect)
-			core.RegisterTemporaryStatsOnUseCD(character, itemEffect.BuffName, buffStats, buffDuration, spellConfig)
+			aura := core.RegisterTemporaryStatsOnUseCD(character, itemEffect.BuffName, buffStats, buffDuration, spellConfig)
+			keepNoModsArmorUnmultiplied(character, aura.Aura, spelldata.Find(itemEffect.BuffId), buffStats)
 		}
 	})
+}
+
+// Keeps the armor of an item effect's stats out of the percent armor modifiers while the aura is up,
+// where the buff's row states its armor on the wearer with A_MOD_ARMOR_NO_MODS: the parser keeps the
+// same row's armor out of them. The share is recorded ahead of the aura's own stat change on gain and
+// on expiry, so the recompute that change runs already leaves it out.
+func keepNoModsArmorUnmultiplied(character *core.Character, aura *core.Aura, buff *spelldata.Spell, buffStats stats.Stats) {
+	armor := buffStats[stats.Armor]
+	if armor == 0 || !slices.ContainsFunc(buff.Effects, func(e spelldata.Effect) bool {
+		return e.Aura == dbcenums.A_MOD_ARMOR_NO_MODS && e.Misc == int32(core.SpellSchoolPhysical) && LandsOnTheUser(&e)
+	}) {
+		return
+	}
+
+	onGain, onExpire := aura.OnGain, aura.OnExpire
+	aura.OnGain = func(aura *core.Aura, sim *core.Simulation) {
+		character.AddUnmultiplied(stats.Armor, armor)
+		onGain(aura, sim)
+	}
+	aura.OnExpire = func(aura *core.Aura, sim *core.Simulation) {
+		character.AddUnmultiplied(stats.Armor, -armor)
+		onExpire(aura, sim)
+	}
 }
 
 // An on-use item whose spell deals damage to its target: the direct damage its row rolls, the damage

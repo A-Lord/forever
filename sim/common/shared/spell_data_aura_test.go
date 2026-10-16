@@ -1,6 +1,7 @@
 package shared
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -40,9 +41,12 @@ const (
 	spellVulnerability int32 = 23605
 
 	// Sword of Zeal 6622's chance on hit: 8191, physical damage done (A_MOD_DAMAGE_DONE) and armor
-	// (A_MOD_RESISTANCE), which the test's item effect carries as 10 and 150. The tests hand the proc a
-	// chance of their own.
+	// (A_MOD_ARMOR_NO_MODS), which the test's item effect carries as 10 and 150. The tests hand the proc
+	// a chance of their own.
 	zeal int32 = 8191
+
+	// Savior's Sacrifice, Ring of Saviors 1447's on-use: armor on the wearer (A_MOD_ARMOR_NO_MODS).
+	saviorsSacrifice int32 = 18826
 
 	petClawID int32 = 992004
 )
@@ -513,5 +517,74 @@ func TestSwordOfZealAddsPhysicalDamageAndArmor(t *testing.T) {
 	}
 	if got := dealt(sim, wielder.bolt, target); !core.WithinToleranceFloat64(100, got, 1e-6) {
 		t.Errorf("after Zeal an arcane bolt dealt %v, want 100", got)
+	}
+}
+
+// An item effect's armor stays outside the wearer's percent armor modifiers where the buff's row
+// states its armor on the wearer with A_MOD_ARMOR_NO_MODS, on an on-use and on a proc alike: the
+// wearer gains the entry's armor whole and loses as much when the buff fades. The same entry on a row
+// stating no such aura gains armor the modifiers scale. The wearer's neck doubles its armor.
+func TestNoModsArmorFromAnItemStaysOutOfThePercentArmorModifiers(t *testing.T) {
+	armor := spelldata.MustFind(saviorsSacrifice).FirstAura(dbcenums.A_MOD_ARMOR_NO_MODS).BasePoints
+	needAmount(t, "18826's armor", armor)
+	if spelldata.MustFind(eyeOfDiminution).FirstAura(dbcenums.A_MOD_ARMOR_NO_MODS) != spelldata.NilEffect {
+		t.Fatalf("%d states A_MOD_ARMOR_NO_MODS, so it cannot stand for a row that does not", eyeOfDiminution)
+	}
+
+	const multiplier = 2
+	const neckID int32 = 992311
+	core.AddToDatabase(&proto.SimDatabase{Items: []*proto.SimItem{{Id: neckID, Name: "Test Armor Neck",
+		Type: proto.ItemType_ItemTypeNeck, ScalingOptions: map[int32]*proto.ScalingItemProperties{0: {}}}}})
+	core.NewItemEffect(neckID, func(agent core.Agent) {
+		agent.GetCharacter().MultiplyStat(stats.Armor, multiplier)
+	})
+
+	for i, tc := range []struct {
+		buff int32
+		proc bool
+		want float64
+	}{
+		{saviorsSacrifice, false, armor},
+		{eyeOfDiminution, false, armor * multiplier},
+		{saviorsSacrifice, true, armor},
+		{eyeOfDiminution, true, armor * multiplier},
+	} {
+		itemID := 992312 + int32(i)
+		label := fmt.Sprintf("Test Armor %d", i)
+		entry := &proto.ItemEffect{BuffId: tc.buff, BuffName: label, EffectDurationMs: 20000,
+			ScalingOptions: map[int32]*proto.ScalingItemEffectProperties{0: {Stats: map[int32]float64{
+				int32(proto.Stat_StatArmor): armor,
+			}}}}
+		slot := proto.ItemSlot_ItemSlotTrinket1
+		if tc.proc {
+			entry.Effect = &proto.ItemEffect_Proc{Proc: &proto.ProcEffect{}}
+			withAuraItem(itemID, proto.ItemType_ItemTypeWeapon, entry)
+			everyHit(t, tc.buff)
+			NewSpellDataProc(SpellDataProc{TriggerSpellID: tc.buff, IsWeaponProc: true},
+				[]ItemVariant{{ItemID: itemID, ItemName: label}})
+			label += " Proc"
+			slot = proto.ItemSlot_ItemSlotMainHand
+		} else {
+			entry.Effect = &proto.ItemEffect_OnUse{OnUse: &proto.OnUseEffect{CooldownMs: 120000}}
+			withAuraItem(itemID, proto.ItemType_ItemTypeTrinket, entry)
+			NewSimpleStatActive(itemID)
+		}
+
+		sim := newAuraSim(shaman("Wearer", map[proto.ItemSlot]int32{slot: itemID, proto.ItemSlot_ItemSlotNeck: neckID}))
+		wearer := auraTesterAt(sim, 0)
+		buff := wearer.GetAura(label)
+		if buff == nil || buff.IsActive() {
+			t.Fatalf("%d (proc %v): the item registered no buff %q, or it is up before it is used", tc.buff, tc.proc, label)
+		}
+
+		before := wearer.GetStat(stats.Armor)
+		buff.Activate(sim)
+		if got := wearer.GetStat(stats.Armor) - before; !core.WithinToleranceFloat64(tc.want, got, 1e-6) {
+			t.Errorf("%d (proc %v): the buff added %v armor, want %v", tc.buff, tc.proc, got, tc.want)
+		}
+		buff.Deactivate(sim)
+		if got := wearer.GetStat(stats.Armor) - before; !core.WithinToleranceFloat64(0, got, 1e-6) {
+			t.Errorf("%d (proc %v): %v armor is left after the buff fades, want none", tc.buff, tc.proc, got)
+		}
 	}
 }
