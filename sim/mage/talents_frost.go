@@ -125,15 +125,14 @@ func (mage *Mage) registerPiercingIce() {
 	spelldata.ParseStatic(&mage.Character, spellData.PiercingIce.Rank(mage.Talents.PiercingIce))
 }
 
-// Reduces the mana cost of your Frost spells by 5/10/15% and raises their threat by 10/20/30%, as the
-// talent curve states; the tooltip says the threat goes down.
+// Reduces the mana cost of your Frost spells by 5/10/15% and their threat by 10/20/30%.
 func (mage *Mage) registerFrostChanneling() {
 	if mage.Talents.FrostChanneling == 0 {
 		return
 	}
 
 	// Effect 1 is the mana cost, on the row's mask of Frost spells; effect 2 the threat, on misc 16, the
-	// Frost school, at the curve's 10/20/30.
+	// Frost school.
 	spelldata.ParseStatic(&mage.Character, spellData.FrostChanneling.Rank(mage.Talents.FrostChanneling))
 }
 
@@ -297,15 +296,16 @@ func (mage *Mage) registerFingersOfFrost() {
 	}
 }
 
-// A Frost spell that lands has a 20% chance per point to put a stack of Winter's Chill (12579) on
-// the target, 2% extra crit per stack for 15 sec, up to 1-5 stacks by rank.
+// "Gives your Frostbolt, Frost Blast, and Fingers of Frost empowered Ice Lance spells a 20/40/60/80/100%
+// chance to apply Winter's Chill, increasing the target's damage taken from your next Cone of Cold by
+// 5% and it gains an additional 7% of your spell damage, stacking up to 5 times."
 //
-// The talent (11180) hears every harmful spell and names no class mask, so the Frost school is
-// checked here; its chance is effect 2, which the resolver reads, and its stack cap is effect 1 ("Stacks
-// up to $s1 times"). The debuff is A_MOD_CRIT_CHANCE_FOR_CASTER_WITH_ABILITIES: it raises only this
-// mage's crit, and only for the spells its class mask names (Frostbolt and Ice Lance), so it is
-// parsed onto this mage's attack table against the target. Each mage's debuff carries its own
-// label, so each keeps its own rank's cap.
+// The talent (11180) names no class mask, so the spells are checked here; its chance is effect 2,
+// which the resolver reads, and its stack cap effect 1. The debuff's (12579) damage taken is
+// A_MOD_SPELL_DAMAGE_FROM_CASTER on Cone of Cold's class flags, so it is parsed onto this mage's
+// attack table against the target; its spell damage is a dummy (effect 2), which Cone of Cold adds
+// to its coefficient per stack (wintersChillCoefficient). Cone of Cold spends the stacks on each
+// target it lands on (consumeWintersChill). Each mage's debuff carries its own label.
 func (mage *Mage) registerWinterChill() {
 	if mage.Talents.WintersChill == 0 {
 		return
@@ -313,9 +313,9 @@ func (mage *Mage) registerWinterChill() {
 
 	talentRank := spellData.WintersChill.Rank(mage.Talents.WintersChill)
 	debuff := spellData.WintersChillTriggered.Highest()
-	critFlags := debuff.EffectN(1).ClassFlags
+	coneFlags := debuff.EffectN(1).ClassFlags
 
-	wcAuras := mage.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
+	mage.WintersChillAuras = mage.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
 		config := spelldata.AuraConfig(debuff, spelldata.Label(debuff.Name+mage.Label))
 		config.MaxStacks = int32(talentRank.EffectN(1).BaseValue())
 		aura := target.RegisterAura(config)
@@ -325,28 +325,51 @@ func (mage *Mage) registerWinterChill() {
 
 	mage.Env.RegisterPreFinalizeEffect(func() {
 		for _, spell := range mage.Spellbook {
-			if spell.MatchesFlags(critFlags) {
-				spell.RelatedAuraArrays = wcAuras.ToMap()
+			if spell.MatchesFlags(coneFlags) {
+				spell.RelatedAuraArrays = mage.WintersChillAuras.ToMap()
 			}
 		}
 	})
 
-	trigger := spelldata.ProcTrigger(&mage.Character, talentRank,
-		func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
-			aura := wcAuras.Get(result.Target)
-			aura.Activate(sim)
-			aura.AddStack(sim)
-		})
-	trigger.Name = "Winter's Chill - Trigger"
+	addStack := func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
+		aura := mage.WintersChillAuras.Get(result.Target)
+		aura.Activate(sim)
+		aura.AddStack(sim)
+	}
+
 	// PROC_FLAG_DEAL_HARMFUL_SPELL decodes to the cast, which names no target; the debuff goes on
-	// the one a Frost spell landed on.
+	// the one the bolt landed on, when it lands.
+	trigger := spelldata.ProcTrigger(&mage.Character, talentRank, addStack)
+	trigger.Name = "Winter's Chill - Trigger"
 	trigger.Callback = core.CallbackOnSpellHitDealt
 	trigger.Outcome = core.OutcomeLanded
 	trigger.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
-		return spell.SpellSchool.Matches(core.SpellSchoolFrost)
+		return spellData.Frostbolt.Contains(spell) || spellData.FrostBlast.Contains(spell)
 	}
-
 	mage.MakeProcTriggerAura(trigger)
+
+	// Ice Lance rolls on its cast result, where its damage read the target as Frozen: Fingers of Frost
+	// may have no charge left by the time the lance lands.
+	iceLanceTrigger := trigger
+	iceLanceTrigger.Name = "Winter's Chill - Ice Lance Trigger"
+	iceLanceTrigger.Callback = core.CallbackOnCastResult
+	iceLanceTrigger.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, result *core.SpellResult) bool {
+		return spellData.IceLance.Contains(spell) && mage.isFrozen(result.Target)
+	}
+	mage.MakeProcTriggerAura(iceLanceTrigger)
+}
+
+// The spell power coefficient Winter's Chill adds to this mage's Cone of Cold on the target: 7% of
+// spell damage per stack (12579 effect 2), which the talent states as "an additional 7% of your spell
+// damage", a share added to the coefficient.
+func (mage *Mage) wintersChillCoefficient(target *core.Unit) float64 {
+	stacks := mage.WintersChillAuras.Get(target).GetStacks()
+	return float64(stacks) * spellData.WintersChillTriggered.Highest().EffectN(2).Percent()
+}
+
+// Cone of Cold spends every stack on a target it lands on.
+func (mage *Mage) consumeWintersChill(sim *core.Simulation, target *core.Unit) {
+	mage.WintersChillAuras.Get(target).Deactivate(sim)
 }
 
 func (mage *Mage) registerIceBarrier() {

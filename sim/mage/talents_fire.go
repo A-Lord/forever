@@ -190,9 +190,11 @@ func (mage *Mage) registerHeatingUp() {
 
 	config := spelldata.AuraConfig(heatingUpBuff)
 
-	// A Pyroblast consumes every stack, checked in game.
+	// A Pyroblast consumes every stack, checked in game, unless Presence of Mind made it instant.
+	// Presence of Mind may drop before or after this runs on the same cast, so the time it has been
+	// down tells both apart.
 	config.OnCastComplete = func(aura *core.Aura, sim *core.Simulation, spell *core.Spell) {
-		if spell.Matches(MageSpellPyroblast) {
+		if spell.Matches(MageSpellPyroblast) && mage.PresenceOfMindAura.TimeInactive(sim) != 0 {
 			aura.Deactivate(sim)
 		}
 	}
@@ -201,12 +203,12 @@ func (mage *Mage) registerHeatingUp() {
 
 	spelldata.ParseEffects(&mage.Character, heatingUpAura, heatingUpBuff, spelldata.Effects(1))
 
-	trigger := spelldata.ProcTrigger(&mage.Character,
-		spellData.HeatingUp.Rank(1),
-		func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
-			heatingUpAura.Activate(sim)
-			heatingUpAura.AddStack(sim)
-		})
+	addStack := func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
+		heatingUpAura.Activate(sim)
+		heatingUpAura.AddStack(sim)
+	}
+
+	trigger := spelldata.ProcTrigger(&mage.Character, spellData.HeatingUp.Rank(1), addStack)
 	trigger.Name = "Heating Up - Trigger"
 	trigger.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
 		return spellData.Fireball.Contains(spell) || spellData.FrostfireBolt.Contains(spell) ||
@@ -214,6 +216,18 @@ func (mage *Mage) registerHeatingUp() {
 	}
 
 	mage.MakeProcTriggerAura(trigger)
+
+	// "Fire Blast grants an additional stack every time it deals damage", crit or not, so a crit
+	// grants two.
+	fireBlastTrigger := trigger
+	fireBlastTrigger.Name = "Heating Up - Fire Blast Trigger"
+	fireBlastTrigger.Outcome = core.OutcomeLanded
+	fireBlastTrigger.RequireDamageDealt = true
+	fireBlastTrigger.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
+		return spellData.FireBlast.Contains(spell)
+	}
+
+	mage.MakeProcTriggerAura(fireBlastTrigger)
 }
 
 func (mage *Mage) registerMasterOfElements() {
@@ -253,10 +267,51 @@ func (mage *Mage) registerCriticalMass() {
 	spelldata.ParseStatic(&mage.Character, spellData.CriticalMass.Rank(mage.Talents.CriticalMass))
 }
 
+// The most Fire effects Fire Power counts, from its tooltip's "up to a maximum increase of ${$s1*4}%".
+const firePowerMaxEffects = 4
+
+// "Increases the damage done by your Fire spells by 1/2/3% per your Fire effects on the target, up to
+// a maximum increase of 12%. Effects which mix multiple schools of magic do not qualify."
+//
+// Both effects are dummies, so the count is by hand: Ignite, Improved Scorch and the Fireball and
+// Pyroblast DoTs, each counted once. Impact's stun is not modelled, so it never counts, and the
+// Frostfire Bolt DoT mixes schools; Frostfire Bolt still takes the bonus as a Fire spell. Ignite
+// ignores every modifier, so it takes none.
 func (mage *Mage) registerFirePower() {
 	if mage.Talents.FirePower == 0 {
 		return
 	}
 
-	spelldata.ParseStatic(&mage.Character, spellData.FirePower.Rank(mage.Talents.FirePower))
+	perEffect := spellData.FirePower.Rank(mage.Talents.FirePower).EffectN(1).Percent()
+
+	var fireEffects []*core.Spell
+	mage.Env.RegisterPreFinalizeEffect(func() {
+		for _, spell := range mage.Spellbook {
+			if spell.Matches(MageSpellIgnite | MageSpellFireballDot | MageSpellPyroblastDot) {
+				fireEffects = append(fireEffects, spell)
+			}
+		}
+	})
+
+	mage.NewEnemyAuraArray(func(target *core.Unit) *core.Aura {
+		return core.MakePermanent(target.RegisterAura(core.Aura{
+			Label: "Fire Power - " + mage.Label,
+		})).AttachDDBC(DDBC_FirePower, DDBC_Total, &mage.AttackTables, func(_ *core.Simulation, spell *core.Spell, _ *core.AttackTable) float64 {
+			if !spell.ProcMask.Matches(core.ProcMaskSpellDamage) || !spell.SpellSchool.Matches(core.SpellSchoolFire) {
+				return 1
+			}
+
+			count := 0
+			if mage.ImprovedScorchAuras.Get(target).IsActive() {
+				count++
+			}
+			for _, effect := range fireEffects {
+				if effect.Dot(target).IsActive() {
+					count++
+				}
+			}
+
+			return 1 + perEffect*float64(min(count, firePowerMaxEffects))
+		})
+	})
 }

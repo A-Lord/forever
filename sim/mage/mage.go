@@ -27,6 +27,7 @@ type Mage struct {
 	FingersOfFrostAura *core.Aura
 
 	ImprovedScorchAuras core.AuraArray
+	WintersChillAuras   core.AuraArray
 
 	Ignite *core.Spell
 }
@@ -79,6 +80,7 @@ func (mage *Mage) registerSpells() {
 	mage.registerBlizzardSpell()
 	mage.registerConeOfColdSpell()
 	mage.registerFrostboltSpell()
+	mage.registerFrostBlastSpell()
 	mage.registerEvocation()
 	mage.registerFireballSpell()
 	mage.registerFireBlastSpell()
@@ -125,11 +127,12 @@ func NewMage(character *core.Character, options *proto.Player) *Mage {
 	return mage
 }
 
-// The slots the mage's caster-only debuffs hold on its attack table against a target, one per
-// FromCaster parse.
+// The slots on the mage's attack table against a target for what raises only its own attacks there:
+// one per FromCaster parse, and Fire Power.
 const (
 	DDBC_FireVulnerability int = iota
 	DDBC_WintersChill
+	DDBC_FirePower
 
 	DDBC_Total
 )
@@ -161,6 +164,7 @@ const (
 	MageSpellFrostArmor
 	MageSpellIceArmor
 	MageSpellFrostbolt
+	MageSpellFrostBlast
 	MageSpellFrostNova
 	MageSpellIceBarrier
 	MageSpellIceBlock
@@ -180,12 +184,12 @@ const (
 
 	MageSpellLast
 	MageSpellsAll  = MageSpellLast<<1 - 1
-	MageSpellFrost = MageSpellFrostbolt | MageSpellBlizzard | MageSpellFrostNova | MageSpellConeOfCold | MageSpellIceLance
+	MageSpellFrost = MageSpellFrostbolt | MageSpellFrostBlast | MageSpellBlizzard | MageSpellFrostNova | MageSpellConeOfCold | MageSpellIceLance
 	MageSpellFire  = MageSpellFireball | MageSpellCombustion |
 		MageSpellFireBlast | MageSpellFlamestrike | MageSpellIgnite | MageSpellPyroblast | MageSpellScorch
 	MageSpellsAllDamaging = MageSpellArcaneBlast | MageSpellArcaneExplosion | MageSpellArcaneMissilesTick | MageSpellArcaneWrath | MageSpellBlizzard |
 		MageSpellBlastWave | MageSpellConeOfCold | MageSpellFireBlast | MageSpellFireball | MageSpellFireballDot |
-		MageSpellFlamestrike | MageSpellFlamestrikeDot | MageSpellFrostbolt | MageSpellFrostfireBolt | MageSpellFrostfireBoltDot | MageSpellFrostNova |
+		MageSpellFlamestrike | MageSpellFlamestrikeDot | MageSpellFrostbolt | MageSpellFrostBlast | MageSpellFrostfireBolt | MageSpellFrostfireBoltDot | MageSpellFrostNova |
 		MageSpellIceLance | MageSpellPyroblast | MageSpellPyroblastDot | MageSpellScorch
 	MageSpellInstantCast = MageSpellArcaneMissilesCast | MageSpellArcaneMissilesTick | MageSpellFireBlast | MageSpellArcaneExplosion | MageSpellPyroblastDot | MageSpellFireballDot |
 		MageSpellCombustion | MageSpellConeOfCold | MageSpellIceLance | MageSpellManaGems | MageSpellPresenceOfMind

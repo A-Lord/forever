@@ -15,7 +15,7 @@ func (mage *Mage) registerIceLanceSpell() {
 // https://www.wowhead.com/forever/spell=1240047
 //
 // Frost damage to one enemy, raised by effect 2's percentage ("Deals $s2% increased damage to Frozen
-// targets", 300) while the target is frozen.
+// targets", 200) while the target is frozen.
 //
 // The damage effect states no spell power coefficient; the store carries one as an override
 // (tools/database/overrides). Effects 3 (20) and 4 (5) are server-side scripts the tooltip does not

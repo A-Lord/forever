@@ -1,6 +1,8 @@
 package mage
 
 import (
+	"time"
+
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/dbcenums"
 	"github.com/wowsims/forever/sim/core/spelldata"
@@ -124,9 +126,20 @@ func (mage *Mage) registerArcaneConcentration() {
 		})
 	trigger.Name = "Arcane Concentration - Trigger"
 	trigger.ProcMask = core.ProcMaskSpellDamage
+	// An area spell, or one Blizzard tick, rolls once however many targets it lands on. The condition
+	// runs just before the roll, so the first target to reach it takes the roll.
+	var rolledSpell *core.Spell
+	var rolledAt time.Duration
+	mage.RegisterResetEffect(func(_ *core.Simulation) {
+		rolledSpell = nil
+	})
 	// The Arcane Missiles channel lands an outcome with no damage; its missiles are the hits.
-	trigger.ExtraCondition = func(_ *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
-		return !spellData.ArcaneMissiles.Contains(spell)
+	trigger.ExtraCondition = func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
+		if spellData.ArcaneMissiles.Contains(spell) || (spell == rolledSpell && sim.CurrentTime == rolledAt) {
+			return false
+		}
+		rolledSpell, rolledAt = spell, sim.CurrentTime
+		return true
 	}
 
 	mage.MakeProcTriggerAura(trigger)
