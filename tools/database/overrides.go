@@ -1556,9 +1556,9 @@ var SharedSpellsIcons = []int32{
 	19615, // Frenzy Effect
 	20554, // Berserking
 	20572, // Blood Fury
-	20574, // Axe Specialization
+	20574, // Savage
 	20594, // Stoneform
-	20597, // Sword Specialization
+	20597, // Ruthless
 	23110, // Dash
 	23563, // Enhanced Battle Shout
 	25076, // Cobra Reflexes
@@ -1576,7 +1576,7 @@ var SharedSpellsIcons = []int32{
 	1259686, // Skysight
 	1259688, // Elemental Blessing
 	1259705, // Read Ley Line
-	1259719, // Mace Specialization
+	1259719, // Earth Fury
 	1259799, // Elune's Light
 	1259812, // Eureka!
 	1259813, // Eureka!
