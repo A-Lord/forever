@@ -143,11 +143,53 @@ var Raid = []BuffSpec{
 			proto.Stat_StatAttackPower,
 		},
 	},
+	// TODO: rank 5 states 50 ranged attack power and rank 4 states 75; in-game testing has to say
+	// which one the top rank grants.
+	{
+		Field:   "trueshot_aura",
+		SpellID: 20906,
+		Stats: []proto.Stat{
+			proto.Stat_StatRangedAttackPower,
+		},
+	},
+	// A pet ability the hunter class family does not file, so the owner is stated. It does not stack
+	// with Battle Shout: the two share one category and the stronger applies.
+	{
+		Field:      "furious_howl",
+		SpellID:    24597,
+		Owner:      proto.Class_ClassHunter,
+		Category:   "BattleShout",
+		SingleAura: true,
+		Stats: []proto.Stat{
+			proto.Stat_StatAttackPower,
+		},
+	},
 	{
 		Field:   "aspect_of_the_wild",
 		SpellID: 20190,
 		Stats: []proto.Stat{
 			proto.Stat_StatNatureResistance,
+		},
+	},
+	// Melee and ranged crit only, so it stacks with Moonkin Aura's spell crit.
+	{
+		Field:      "leader_of_the_pack",
+		SpellID:    24932,
+		CastID:     17007,
+		Category:   "LeaderOfThePack",
+		SingleAura: true,
+		Stats: []proto.Stat{
+			proto.Stat_StatAttackPower,
+		},
+	},
+	{
+		Field:      "moonkin_aura",
+		SpellID:    24907,
+		TooltipID:  24858,
+		Category:   "MoonkinAura",
+		SingleAura: true,
+		Stats: []proto.Stat{
+			proto.Stat_StatSpellDamage,
 		},
 	},
 }
@@ -183,18 +225,6 @@ var Party = []BuffSpec{
 			proto.Stat_StatArmor,
 		},
 	},
-	// A_MOD_CRIT_PCT names no school, so the 3 goes on every kind of crit. 17007 calls the aura
-	// exclusive with Moonkin Aura, which is the category the two share.
-	{
-		Field:      "leader_of_the_pack",
-		SpellID:    24932,
-		CastID:     17007,
-		Category:   "DruidCritAura",
-		SingleAura: true,
-		Stats: []proto.Stat{
-			proto.Stat_StatCritRating,
-		},
-	},
 	{
 		Field:    "mana_spring_totem",
 		SpellID:  10494,
@@ -216,17 +246,6 @@ var Party = []BuffSpec{
 			proto.Stat_StatMP5,
 		},
 		Label: "Mana Tide Totem",
-	},
-	// See leader_of_the_pack.
-	{
-		Field:      "moonkin_aura",
-		SpellID:    24907,
-		TooltipID:  24858,
-		Category:   "DruidCritAura",
-		SingleAura: true,
-		Stats: []proto.Stat{
-			proto.Stat_StatCritRating,
-		},
 	},
 	// Driven because the damage scales with the providing paladin's Holy spell power.
 	{
@@ -255,15 +274,6 @@ var Party = []BuffSpec{
 		Stats: []proto.Stat{
 			proto.Stat_StatSpellDamage,
 			proto.Stat_StatHealingPower,
-		},
-	},
-	// TODO: rank 5 states 50 ranged attack power and rank 4 states 75; in-game testing has to say
-	// which one the top rank grants.
-	{
-		Field:   "trueshot_aura",
-		SpellID: 20906,
-		Stats: []proto.Stat{
-			proto.Stat_StatRangedAttackPower,
 		},
 	},
 	{
@@ -315,18 +325,6 @@ var Party = []BuffSpec{
 		Category: "StoneskinTotem",
 		Stats: []proto.Stat{
 			proto.Stat_StatDefenseRating,
-		},
-	},
-	// A pet ability the hunter class family does not file, so the owner is stated. It does not stack
-	// with Battle Shout: the two share one category and the stronger applies.
-	{
-		Field:      "furious_howl",
-		SpellID:    24597,
-		Owner:      proto.Class_ClassHunter,
-		Category:   "BattleShout",
-		SingleAura: true,
-		Stats: []proto.Stat{
-			proto.Stat_StatAttackPower,
 		},
 	},
 	// Darkspear 12802's chance on hit lands 16939 on the wielder's party, so the party's copy is up

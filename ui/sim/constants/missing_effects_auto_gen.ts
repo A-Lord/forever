@@ -514,6 +514,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		7720, // Whitemane's Chapeau
+		[
+			"Reduces the cast time of spells and effects that revive targets by 20%.", // 1293540 - https://www.wowhead.com/forever/spell=1293540
+		]
+	],
+	[
 		7730, // Cobalt Crusher
 		[
 			"Blasts a target for 133 Frost damage.", // 18204 - https://www.wowhead.com/forever/spell=18204
@@ -2283,6 +2289,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		286556, // Winds of Tanaris
 		[
 			"Slows nearby enemies by 50% for 10s, increased to 80% in Desert areas.", // 1320579 - https://www.wowhead.com/forever/spell=1320579
+		]
+	],
+	[
+		286982, // Unearthed Barrier
+		[
+			"Deals 22 Nature damage every time you block. Damage is doubled in swamps.", // 1324685 - https://www.wowhead.com/forever/spell=1324685
 		]
 	],
 ])

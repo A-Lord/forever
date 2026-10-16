@@ -74,26 +74,6 @@ func NewSpellDataDevotionAura(unit *core.Unit, isPlayer bool, talentPoints int32
 	return newBuff(unit, devotionAuraMeta, isPlayer, talentPoints)
 }
 
-// Leader of the Pack
-var LeaderOfThePackCategory = "DruidCritAura"
-var leaderOfThePackSpell = spelldata.MustFind(24932)
-var leaderOfThePackMeta = &Meta{
-	Label:      "Leader of the Pack",
-	Spell:      leaderOfThePackSpell,
-	Category:   LeaderOfThePackCategory,
-	SingleAura: true,
-}
-
-func LeaderOfThePackValue(talentPoints int32) float64 {
-	return leaderOfThePackMeta.Value(talentPoints)
-}
-func LeaderOfThePackDuration(talentPoints int32) time.Duration {
-	return leaderOfThePackMeta.Duration(talentPoints)
-}
-func NewSpellDataLeaderOfThePackAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
-	return newBuff(unit, leaderOfThePackMeta, isPlayer, talentPoints)
-}
-
 // Mana Spring Totem
 var ManaSpringTotemCategory = "ManaSpringTotem"
 var manaSpringTotemSpell = spelldata.MustFind(10494)
@@ -136,26 +116,6 @@ func ManaTideTotemsCooldown() time.Duration {
 }
 func NewSpellDataManaTideTotemsAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
 	return newBuff(unit, manaTideTotemsMeta, isPlayer, talentPoints)
-}
-
-// Moonkin Aura
-var MoonkinAuraCategory = "DruidCritAura"
-var moonkinAuraSpell = spelldata.MustFind(24907)
-var moonkinAuraMeta = &Meta{
-	Label:      "Moonkin Aura",
-	Spell:      moonkinAuraSpell,
-	Category:   MoonkinAuraCategory,
-	SingleAura: true,
-}
-
-func MoonkinAuraValue(talentPoints int32) float64 {
-	return moonkinAuraMeta.Value(talentPoints)
-}
-func MoonkinAuraDuration(talentPoints int32) time.Duration {
-	return moonkinAuraMeta.Duration(talentPoints)
-}
-func NewSpellDataMoonkinAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
-	return newBuff(unit, moonkinAuraMeta, isPlayer, talentPoints)
 }
 
 // Retribution Aura
@@ -204,23 +164,6 @@ func ConcentrationAuraDuration(talentPoints int32) time.Duration {
 }
 func NewSpellDataConcentrationAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
 	return newBuff(unit, concentrationAuraMeta, isPlayer, talentPoints)
-}
-
-// Trueshot Aura
-var trueshotAuraSpell = spelldata.MustFind(20906)
-var trueshotAuraMeta = &Meta{
-	Label: "Trueshot Aura",
-	Spell: trueshotAuraSpell,
-}
-
-func TrueshotAuraValue(talentPoints int32) float64 {
-	return trueshotAuraMeta.Value(talentPoints)
-}
-func TrueshotAuraDuration(talentPoints int32) time.Duration {
-	return trueshotAuraMeta.Duration(talentPoints)
-}
-func NewSpellDataTrueshotAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
-	return newBuff(unit, trueshotAuraMeta, isPlayer, talentPoints)
 }
 
 // Atiesh - Mage
@@ -311,26 +254,6 @@ func StoneskinTotemDuration(talentPoints int32) time.Duration {
 }
 func NewSpellDataStoneskinTotemAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
 	return newBuff(unit, stoneskinTotemMeta, isPlayer, talentPoints)
-}
-
-// Furious Howl
-var FuriousHowlCategory = "BattleShout"
-var furiousHowlSpell = spelldata.MustFind(24597)
-var furiousHowlMeta = &Meta{
-	Label:      "Furious Howl",
-	Spell:      furiousHowlSpell,
-	Category:   FuriousHowlCategory,
-	SingleAura: true,
-}
-
-func FuriousHowlValue(talentPoints int32) float64 {
-	return furiousHowlMeta.Value(talentPoints)
-}
-func FuriousHowlDuration(talentPoints int32) time.Duration {
-	return furiousHowlMeta.Duration(talentPoints)
-}
-func NewSpellDataFuriousHowlAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
-	return newBuff(unit, furiousHowlMeta, isPlayer, talentPoints)
 }
 
 // Darkspear
@@ -656,6 +579,43 @@ func NewSpellDataFlametongueTotemAura(unit *core.Unit, isPlayer bool, talentPoin
 	return newBuff(unit, flametongueTotemMeta, isPlayer, talentPoints)
 }
 
+// Trueshot Aura
+var trueshotAuraSpell = spelldata.MustFind(20906)
+var trueshotAuraMeta = &Meta{
+	Label: "Trueshot Aura",
+	Spell: trueshotAuraSpell,
+}
+
+func TrueshotAuraValue(talentPoints int32) float64 {
+	return trueshotAuraMeta.Value(talentPoints)
+}
+func TrueshotAuraDuration(talentPoints int32) time.Duration {
+	return trueshotAuraMeta.Duration(talentPoints)
+}
+func NewSpellDataTrueshotAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+	return newBuff(unit, trueshotAuraMeta, isPlayer, talentPoints)
+}
+
+// Furious Howl
+var FuriousHowlCategory = "BattleShout"
+var furiousHowlSpell = spelldata.MustFind(24597)
+var furiousHowlMeta = &Meta{
+	Label:      "Furious Howl",
+	Spell:      furiousHowlSpell,
+	Category:   FuriousHowlCategory,
+	SingleAura: true,
+}
+
+func FuriousHowlValue(talentPoints int32) float64 {
+	return furiousHowlMeta.Value(talentPoints)
+}
+func FuriousHowlDuration(talentPoints int32) time.Duration {
+	return furiousHowlMeta.Duration(talentPoints)
+}
+func NewSpellDataFuriousHowlAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+	return newBuff(unit, furiousHowlMeta, isPlayer, talentPoints)
+}
+
 // Aspect of the Wild
 var aspectOfTheWildSpell = spelldata.MustFind(20190)
 var aspectOfTheWildMeta = &Meta{
@@ -671,6 +631,46 @@ func AspectOfTheWildDuration(talentPoints int32) time.Duration {
 }
 func NewSpellDataAspectOfTheWildAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
 	return newBuff(unit, aspectOfTheWildMeta, isPlayer, talentPoints)
+}
+
+// Leader of the Pack
+var LeaderOfThePackCategory = "LeaderOfThePack"
+var leaderOfThePackSpell = spelldata.MustFind(24932)
+var leaderOfThePackMeta = &Meta{
+	Label:      "Leader of the Pack",
+	Spell:      leaderOfThePackSpell,
+	Category:   LeaderOfThePackCategory,
+	SingleAura: true,
+}
+
+func LeaderOfThePackValue(talentPoints int32) float64 {
+	return leaderOfThePackMeta.Value(talentPoints)
+}
+func LeaderOfThePackDuration(talentPoints int32) time.Duration {
+	return leaderOfThePackMeta.Duration(talentPoints)
+}
+func NewSpellDataLeaderOfThePackAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+	return newBuff(unit, leaderOfThePackMeta, isPlayer, talentPoints)
+}
+
+// Moonkin Aura
+var MoonkinAuraCategory = "MoonkinAura"
+var moonkinAuraSpell = spelldata.MustFind(24907)
+var moonkinAuraMeta = &Meta{
+	Label:      "Moonkin Aura",
+	Spell:      moonkinAuraSpell,
+	Category:   MoonkinAuraCategory,
+	SingleAura: true,
+}
+
+func MoonkinAuraValue(talentPoints int32) float64 {
+	return moonkinAuraMeta.Value(talentPoints)
+}
+func MoonkinAuraDuration(talentPoints int32) time.Duration {
+	return moonkinAuraMeta.Duration(talentPoints)
+}
+func NewSpellDataMoonkinAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+	return newBuff(unit, moonkinAuraMeta, isPlayer, talentPoints)
 }
 
 // Greater Blessing of Kings
@@ -724,10 +724,10 @@ func NewSpellDataGreaterBlessingOfWisdomAura(unit *core.Unit, isPlayer bool, tal
 	return newBuff(unit, greaterBlessingOfWisdomMeta, isPlayer, talentPoints)
 }
 
-// Greater Blessing of Salvation
+// Mass Salvation
 var greaterBlessingOfSalvationSpell = spelldata.MustFind(25895)
 var greaterBlessingOfSalvationMeta = &Meta{
-	Label: "Greater Blessing of Salvation",
+	Label: "Mass Salvation",
 	Spell: greaterBlessingOfSalvationSpell,
 }
 
@@ -833,26 +833,17 @@ func applyGeneratedBuffs(char *core.Character, raid *proto.RaidBuffs, party *pro
 	if party.DevotionAura {
 		core.MakePermanent(NewSpellDataDevotionAura(&char.Unit, false, 0))
 	}
-	if party.LeaderOfThePack {
-		core.MakePermanent(NewSpellDataLeaderOfThePackAura(&char.Unit, false, 0))
-	}
 	if party.ManaSpringTotem != proto.TristateEffect_TristateEffectMissing {
 		standTotem(char, manaSpringTotemSpell, NewSpellDataManaSpringTotemAura, core.GetTristateValueInt32(party.ManaSpringTotem, 0, 5))
 	}
 	if party.ManaTideTotems > 0 {
 		driveManaTideTotems(char, party)
 	}
-	if party.MoonkinAura {
-		core.MakePermanent(NewSpellDataMoonkinAura(&char.Unit, false, 0))
-	}
 	if party.RetributionAura {
 		driveRetributionAura(char, party)
 	}
 	if party.ConcentrationAura {
 		core.MakePermanent(NewSpellDataConcentrationAura(&char.Unit, false, 0))
-	}
-	if party.TrueshotAura {
-		core.MakePermanent(NewSpellDataTrueshotAura(&char.Unit, false, 0))
 	}
 	if party.AtieshMage > 0 {
 		driveAtieshMage(char, party)
@@ -868,9 +859,6 @@ func applyGeneratedBuffs(char *core.Character, raid *proto.RaidBuffs, party *pro
 	}
 	if party.StoneskinTotem != proto.TristateEffect_TristateEffectMissing {
 		standTotem(char, stoneskinTotemSpell, NewSpellDataStoneskinTotemAura, core.GetTristateValueInt32(party.StoneskinTotem, 0, 2))
-	}
-	if party.FuriousHowl {
-		core.MakePermanent(NewSpellDataFuriousHowlAura(&char.Unit, false, 0))
 	}
 	if party.Darkspear {
 		driveDarkspear(char, party)
@@ -923,8 +911,20 @@ func applyGeneratedBuffs(char *core.Character, raid *proto.RaidBuffs, party *pro
 	if raid.FlametongueTotem {
 		driveFlametongueTotem(char, raid)
 	}
+	if raid.TrueshotAura {
+		core.MakePermanent(NewSpellDataTrueshotAura(&char.Unit, false, 0))
+	}
+	if raid.FuriousHowl {
+		core.MakePermanent(NewSpellDataFuriousHowlAura(&char.Unit, false, 0))
+	}
 	if raid.AspectOfTheWild {
 		core.MakePermanent(NewSpellDataAspectOfTheWildAura(&char.Unit, false, 0))
+	}
+	if raid.LeaderOfThePack {
+		core.MakePermanent(NewSpellDataLeaderOfThePackAura(&char.Unit, false, 0))
+	}
+	if raid.MoonkinAura {
+		core.MakePermanent(NewSpellDataMoonkinAura(&char.Unit, false, 0))
 	}
 	if individual.GreaterBlessingOfKings {
 		core.MakePermanent(NewSpellDataGreaterBlessingOfKingsAura(&char.Unit, false, 0))

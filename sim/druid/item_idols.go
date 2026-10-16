@@ -23,7 +23,7 @@ func init() {
 	// Howling Idol
 	// https://www.wowhead.com/forever/item=272427/howling-idol
 	//
-	// Reduces the cooldown of your Shifting Power ability by 1 sec.
+	// Reduces the cooldown of your Shifting Power ability by 0.5 sec.
 	shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 1291059},
 		[]shared.ItemVariant{
 			{ItemID: 272427, ItemName: "Howling Idol"},

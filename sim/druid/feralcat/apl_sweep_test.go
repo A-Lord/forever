@@ -68,6 +68,9 @@ type aplTune struct {
 	// energizedMana; "cd" casts it on cooldown.
 	energized     bool
 	energizedMana string
+	// ccShred spends Clearcasting on Shred (Claw where Shred cannot land) ahead of the bleeds,
+	// Shifting Power and Ferocious Bite: Shred is the most energy Clearcasting can save.
+	ccShred bool
 }
 
 // aplVars holds the named conditions of a list, which the APL editor shows as variables so a reader
@@ -192,8 +195,18 @@ func catAPL(tune aplTune) *proto.APLRotation {
 			sequenceWhen(openRake, spellAction(spellBerserk), spellAction(spellRake)),
 			sequenceWhen(openShred, spellAction(spellBerserk), spellAction(spellShred))),
 		groups.def("Cooldowns", cooldownLines...),
-		groups.def("Bleeds", castWhen(spellRip, ripNow), castWhen(spellRake, rakeNow)),
 	}
+	if tune.ccShred {
+		spend := and(inCat, clearcasting)
+		if tune.shadowmeld {
+			// Ravage saves more than Shred, so a ready Shadowmeld keeps Clearcasting for it.
+			spend = and(spend, not(spellReady(spellShadowmeld)))
+		}
+		spend = vars.def("Clearcasting into Shred", spend)
+		list = append(list, castWhen(spellShred, spend), castWhen(spellClaw, and(spend, not(spellCanCast(spellShred)))))
+	}
+	list = append(list,
+		groups.def("Bleeds", castWhen(spellRip, ripNow), castWhen(spellRake, rakeNow)))
 	if tune.biteEnd {
 		bite := []*proto.APLValue{and(cp5, not(fightLong))}
 		if tune.biteLow != "" {
@@ -252,7 +265,7 @@ func manaShort() *proto.APLValue {
 }
 
 // BestCatAPL is the list ui/specs/druid/feralcat/apls/default.apl.json holds.
-var bestCatAPL = aplTune{elune: "after", omen: true, innervate: true, rakePool: "1s", biteEnd: true, biteLow: "3s", rakeCut: "6s"}
+var bestCatAPL = aplTune{elune: "after", omen: true, innervate: true, rakePool: "1s", biteEnd: true, biteLow: "3s", rakeCut: "6s", ccShred: true}
 
 // The cat UI's default talents (presets.ts CatTalents), and the ones bearweaveAPL is played with: one
 // more point out of Rend and Tear into Primal Bite. Genesis stays at 5, which Nature's Majesty and
