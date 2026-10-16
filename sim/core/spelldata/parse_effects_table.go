@@ -1087,15 +1087,18 @@ func (p *parser) addStats(sts []stats.Stat) func(sim *core.Simulation, delta flo
 	}
 }
 
-// Stats the stats' own multipliers leave alone. The unit records the share before the stats change,
-// so the recompute that follows already keeps it out of the multipliers.
+// Stats the stats' own multipliers leave alone.
 func (p *parser) addUnmultipliedStats(sts []stats.Stat) func(sim *core.Simulation, delta float64) {
-	add := p.addStats(sts)
 	return func(sim *core.Simulation, delta float64) {
+		bonus := stats.Stats{}
 		for _, stat := range sts {
-			p.unit.AddUnmultiplied(stat, delta)
+			bonus[stat] = delta
 		}
-		add(sim, delta)
+		if sim == nil {
+			p.unit.AddStatsWithUnmultipliedShare(bonus, bonus)
+		} else {
+			p.unit.AddStatsDynamicWithUnmultipliedShare(sim, bonus, bonus)
+		}
 	}
 }
 

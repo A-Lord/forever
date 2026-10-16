@@ -354,7 +354,7 @@ func registerCountdownOnUse(character *core.Character, itemID int32, row *spelld
 			ActionID:       core.ActionID{SpellID: row.ID},
 			Duration:       row.Duration(),
 			MaxStacks:      stacks,
-			OnStacksChange: shared.NoModsArmorStacks(character, stackRow, perStack),
+			OnStacksChange: shared.NoModsArmorStacks(character, stackRow.ID, perStack),
 		},
 		BonusPerStack: perStack,
 	})

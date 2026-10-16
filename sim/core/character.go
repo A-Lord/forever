@@ -206,8 +206,12 @@ func (character *Character) NewEquipScalingManager() *EquipScalingManager {
 	}
 }
 
-func (character *Character) AddDynamicEquipStats(sim *Simulation, equipStats stats.Stats) {
-	character.AddStatsDynamic(sim, equipStats.ApplyMultipliers(character.itemStatMultipliers))
+// Adds a change of equipment stats under the equip scaling, together with noModsArmor, the change in
+// Equipment.NoModsArmor, which neither the equip scaling nor the percent armor modifiers touch.
+func (character *Character) AddDynamicEquipStats(sim *Simulation, equipStats stats.Stats, noModsArmor float64) {
+	bonus := equipStats.ApplyMultipliers(character.itemStatMultipliers)
+	bonus[stats.Armor] += noModsArmor
+	character.AddStatsDynamicWithUnmultipliedShare(sim, bonus, stats.Stats{stats.Armor: noModsArmor})
 	character.equipCacheValid = false
 }
 
@@ -283,10 +287,10 @@ func (character *Character) applyEquipment() {
 	if character.equipStatsApplied {
 		panic("Equipment stats already applied to character!")
 	}
-	character.AddStats(character.EquipStats())
+	equipStats := character.EquipStats()
 	noModsArmor := character.Equipment.NoModsArmor()
-	character.AddUnmultiplied(stats.Armor, noModsArmor)
-	character.AddStat(stats.Armor, noModsArmor)
+	equipStats[stats.Armor] += noModsArmor
+	character.AddStatsWithUnmultipliedShare(equipStats, stats.Stats{stats.Armor: noModsArmor})
 	character.equipStatsApplied = true
 }
 

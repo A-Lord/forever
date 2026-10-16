@@ -145,6 +145,14 @@ outside every percent armor modifier: the unit records it as a share of Armor th
 alone (`StatDependencyManager.AddUnmultiplied`), scales the rest and adds it after. The row takes misc
 1 alone and skips any other mask with a reason.
 
+Item buffs and procs keep 674 armor outside the percent armor modifiers through the shared builders in
+`sim/common/shared`. Where the buff's row states its armor with 674, each builder records the buff's
+armor as that share before the aura changes the stats, on gain, on expiry and for each stack. An
+enchant carries the share of its armor its equip spells state with 674 as `no_mods_armor`, which stays
+outside the equip scaling of armor too: `ItemEquipmentEnchantStats` subtracts it from the enchant's
+stats, and the character adds it as unmultiplied armor. An Armor EP weight is per point of armor from
+items, so the reforge optimizer values the share at that weight divided by `PlayerStats.item_armor_scale`.
+
 Armor has two percentage auras. `A_MOD_BASE_RESISTANCE_PCT` scales the armor from items, which is what
 its tooltip states, and `A_MOD_RESISTANCE_PCT` multiplies the whole stat but the 674 armor:
 Inspiration's 8 is 8% more armor, whatever else it came from.

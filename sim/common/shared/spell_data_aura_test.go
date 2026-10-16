@@ -604,6 +604,55 @@ func TestNoModsArmorFromAnItemStaysOutOfThePercentArmorModifiers(t *testing.T) {
 	}
 }
 
+// A stacking on-use item keeps the same armor outside the percent armor modifiers for each stack where
+// its buff's row states A_MOD_ARMOR_NO_MODS, and loses it whole when the buff fades. The same entry on a
+// row stating no such aura gains armor the modifiers scale. The wearer's neck doubles its armor.
+func TestNoModsArmorFromAStackingOnUseStaysOutOfThePercentArmorModifiers(t *testing.T) {
+	noModsArmorFixtures(t)
+	armor := spelldata.MustFind(saviorsSacrifice).FirstAura(dbcenums.A_MOD_ARMOR_NO_MODS).BasePoints
+	needAmount(t, "18826's armor", armor)
+
+	const stacks = 3
+	for i, tc := range []struct {
+		buff int32
+		want float64
+	}{
+		{saviorsSacrifice, armor * stacks},
+		{eyeOfDiminution, armor * armorScaling * stacks},
+	} {
+		itemID := 992331 + int32(i)
+		name := fmt.Sprintf("Test Stacking Armor %d", i)
+		withAuraItem(itemID, proto.ItemType_ItemTypeTrinket, &proto.ItemEffect{
+			BuffId: tc.buff, BuffName: name, EffectDurationMs: 20000, MaxCumulativeStacks: stacks,
+			Effect: &proto.ItemEffect_OnUse{OnUse: &proto.OnUseEffect{CooldownMs: 120000}},
+			ScalingOptions: map[int32]*proto.ScalingItemEffectProperties{0: {Stats: map[int32]float64{
+				int32(proto.Stat_StatArmor): armor,
+			}}},
+		})
+		NewStackingStatBonusCD(StackingStatBonusCD{Name: name, ID: itemID, CD: 2 * time.Minute,
+			Callback: core.CallbackOnSpellHitTaken, ProcMask: core.ProcMaskMelee})
+
+		sim := newAuraSim(shaman("Wearer", map[proto.ItemSlot]int32{
+			proto.ItemSlot_ItemSlotTrinket1: itemID, proto.ItemSlot_ItemSlotNeck: armorScalingNeckID}))
+		wearer := auraTesterAt(sim, 0)
+		buff := wearer.GetAura(name + " Proc")
+		if buff == nil || buff.IsActive() {
+			t.Fatalf("%d: the item registered no buff %q, or it is up before it is used", tc.buff, name+" Proc")
+		}
+
+		before := wearer.GetStat(stats.Armor)
+		buff.Activate(sim)
+		buff.SetStacks(sim, stacks)
+		if got := wearer.GetStat(stats.Armor) - before; !core.WithinToleranceFloat64(tc.want, got, 1e-6) {
+			t.Errorf("%d: %d stacks added %v armor, want %v", tc.buff, stacks, got, tc.want)
+		}
+		buff.Deactivate(sim)
+		if got := wearer.GetStat(stats.Armor) - before; !core.WithinToleranceFloat64(0, got, 1e-6) {
+			t.Errorf("%d: %v armor is left after the buff fades, want none", tc.buff, got)
+		}
+	}
+}
+
 const (
 	noModsArmorEnchantID int32 = 992321 + iota
 	plainArmorEnchantID

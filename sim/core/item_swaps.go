@@ -386,23 +386,16 @@ func (swap *ItemSwap) SwapItems(sim *Simulation, swapSet proto.APLActionItemSwap
 	}
 
 	statsToSwap := Ternary(isPrepull, swap.equipmentStats.allSlots, swap.equipmentStats.weaponSlots)
+	noModsArmor := Ternary(isPrepull, swap.equipmentStats.allSlotsNoModsArmor, swap.equipmentStats.weaponSlotsNoModsArmor)
 	if swap.IsSwapped() {
 		statsToSwap = statsToSwap.Invert()
+		noModsArmor = -noModsArmor
 	}
 
 	if sim.Log != nil {
 		sim.Log("Item Swap - Stats Change: %v", statsToSwap.FlatString())
 	}
-	character.AddDynamicEquipStats(sim, statsToSwap)
-
-	noModsArmor := Ternary(isPrepull, swap.equipmentStats.allSlotsNoModsArmor, swap.equipmentStats.weaponSlotsNoModsArmor)
-	if swap.IsSwapped() {
-		noModsArmor = -noModsArmor
-	}
-	if noModsArmor != 0 {
-		character.AddUnmultiplied(stats.Armor, noModsArmor)
-		character.AddStatDynamic(sim, stats.Armor, noModsArmor)
-	}
+	character.AddDynamicEquipStats(sim, statsToSwap, noModsArmor)
 
 	if !isPrepull && !isReset && weaponSlotSwapped {
 		character.AutoAttacks.StopMeleeUntil(sim, sim.CurrentTime)

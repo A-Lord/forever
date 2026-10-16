@@ -498,15 +498,18 @@ type TemporaryStatBuffWithStacksConfig struct {
 	// trigger. The stacking aura is then given no duration of its own and is dropped when the
 	// window ends, which is what a child aura with no duration in the game files does.
 	StacksFromEvent bool
+	// The stacking aura's, run ahead of its stat change on each change of stacks.
+	OnStacksChange OnStacksChange
 }
 
 func (character *Character) NewTemporaryStatBuffWithStacks(config TemporaryStatBuffWithStacksConfig) (*StatBuffAura, *Aura) {
 	stackingAura := MakeStackingAura(character, StackingStatAura{
 		Aura: Aura{
-			Label:     Ternary(config.StackingAuraLabel != "", config.StackingAuraLabel, config.AuraLabel),
-			ActionID:  Ternary(!config.StackingAuraActionID.IsEmptyAction(), config.StackingAuraActionID, config.ActionID),
-			Duration:  Ternary(config.StacksFromEvent, NeverExpires, config.Duration),
-			MaxStacks: config.MaxStacks,
+			Label:          Ternary(config.StackingAuraLabel != "", config.StackingAuraLabel, config.AuraLabel),
+			ActionID:       Ternary(!config.StackingAuraActionID.IsEmptyAction(), config.StackingAuraActionID, config.ActionID),
+			Duration:       Ternary(config.StacksFromEvent, NeverExpires, config.Duration),
+			MaxStacks:      config.MaxStacks,
+			OnStacksChange: config.OnStacksChange,
 		},
 		BonusPerStack: config.BonusPerStack,
 	})
