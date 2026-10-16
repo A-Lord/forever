@@ -92,9 +92,7 @@ export const DefaultIndividualBuffs = IndividualBuffs.create({
 	greaterBlessingOfKings: true,
 });
 
-export const DefaultPartyBuffs = PartyBuffs.create({
-	leaderOfThePack: true,
-});
+export const DefaultPartyBuffs = PartyBuffs.create({});
 
 export const DefaultRaidBuffs = RaidBuffs.create({
 	arcaneBrilliance: true,
@@ -104,6 +102,7 @@ export const DefaultRaidBuffs = RaidBuffs.create({
 	graceOfAirTotem: true,
 	strengthOfEarthTotem: true,
 	battleShout: TristateEffect.TristateEffectRegular,
+	leaderOfThePack: true,
 });
 
 export const DefaultDebuffs = Debuffs.create({

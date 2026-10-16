@@ -115,11 +115,11 @@ export const DefaultRaidBuffs = RaidBuffs.create({
 	strengthOfEarthTotem: true,
 	windfuryTotem: true,
 	battleShout: TristateEffect.TristateEffectRegular,
+	leaderOfThePack: true,
 });
 
 export const DefaultPartyBuffs = PartyBuffs.create({
 	manaSpringTotem: TristateEffect.TristateEffectRegular,
-	leaderOfThePack: true,
 });
 
 export const DefaultIndividualBuffs = IndividualBuffs.create({

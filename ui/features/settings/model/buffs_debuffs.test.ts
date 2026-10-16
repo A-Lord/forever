@@ -14,10 +14,8 @@ describe('the buff registries', () => {
 		expect(labelsOf(BuffDebuffInputs.PARTY_BUFFS_CONFIG)).toEqual([
 			'Blood Pact',
 			'Devotion Aura',
-			'Leader of the Pack',
 			'Mana Spring Totem',
 			'Mana Tide Totem',
-			'Moonkin Aura',
 			'Retribution Aura',
 			'Concentration Aura',
 			'Atiesh - Mage',
@@ -40,7 +38,7 @@ describe('the buff registries', () => {
 			'Prayer of Fortitude',
 			'Greater Blessing of Might',
 			'Greater Blessing of Wisdom',
-			'Greater Blessing of Salvation',
+			'Mass Salvation',
 			'Greater Blessing of Light',
 			'Prayer of Shadow Protection',
 			'Fire Resistance Aura',
@@ -57,6 +55,8 @@ describe('the buff registries', () => {
 			'Trueshot Aura',
 			'Furious Howl',
 			'Aspect of the Wild',
+			'Leader of the Pack',
+			'Moonkin Aura',
 			'Innervates',
 			'Power Infusions',
 		]);

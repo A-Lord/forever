@@ -20,7 +20,7 @@ export const ManaTideTotem = Generated.ManaTideTotems;
 export const GreaterBlessingOfSalvation = makeBooleanIndividualBuffInput({
 	actionId: ActionId.fromSpellId(25895),
 	fieldName: 'greaterBlessingOfSalvation',
-	label: 'Greater Blessing of Salvation',
+	label: 'Mass Salvation',
 	showWhen: player => !player.getPlayerSpec().isTankSpec && !player.getPlayerSpec().isHealingSpec,
 });
 export const GreaterBlessingOfLight = makeBooleanIndividualBuffInput({
@@ -43,10 +43,8 @@ export const RetributionAura = makeBooleanPartyBuffInput({
 export const PARTY_BUFFS_CONFIG = inDisplayOrder(Generated.GENERATED_PARTY_BUFFS_CONFIG, [
 	Generated.BloodPact,
 	Generated.DevotionAura,
-	Generated.LeaderOfThePack,
 	Generated.ManaSpringTotem,
 	Generated.ManaTideTotems,
-	Generated.MoonkinAura,
 	{
 		config: RetributionAura,
 		stats: [Stat.StatDefenseRating],
@@ -90,6 +88,8 @@ export const BUFFS_CONFIG = inDisplayOrder(
 		Generated.TrueshotAura,
 		Generated.FuriousHowl,
 		Generated.AspectOfTheWild,
+		Generated.LeaderOfThePack,
+		Generated.MoonkinAura,
 		Generated.Innervates,
 		Generated.PowerInfusions,
 	],

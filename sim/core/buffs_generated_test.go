@@ -358,34 +358,32 @@ func TestGeneratedManaSpringTotemTakesTheTalentedValue(t *testing.T) {
 	}
 }
 
-// The two rows whose stats the manifest names. Each is worth its game files'
-// amount on every kind of crit, and neither touches RangedCritPercent, which the
-// sim adds on top of the physical one, so a ranged attack gains the amount once.
-//
-// Spell 17007 calls Leader of the Pack exclusive with Moonkin Aura, so the two
-// share a category that holds one aura: a party with both ticked is worth the
-// stronger, and the copy that loses stays registered without applying anything.
-func TestGeneratedCritAurasApplyToEveryKindOfCrit(t *testing.T) {
+// The two rows whose stats the manifest names. Leader of the Pack is worth its
+// game files' amount on melee and ranged crit and Moonkin Aura on spell crit.
+// Neither touches RangedCritPercent, which the sim adds on top of the physical
+// one, so a ranged attack gains Leader of the Pack's amount once.
+func TestGeneratedCritAurasApplyToTheirKindOfCrit(t *testing.T) {
 	for _, row := range []struct {
-		name  string
-		party *proto.PartyBuffs
-		want  float64
+		name     string
+		raid     *proto.RaidBuffs
+		physical float64
+		spell    float64
 	}{
-		{"Leader of the Pack", &proto.PartyBuffs{LeaderOfThePack: true}, leaderOfThePack(t)},
-		{"Moonkin Aura", &proto.PartyBuffs{MoonkinAura: true}, moonkinAura(t)},
-		{"both", &proto.PartyBuffs{LeaderOfThePack: true, MoonkinAura: true}, max(leaderOfThePack(t), moonkinAura(t))},
+		{"Leader of the Pack", &proto.RaidBuffs{LeaderOfThePack: true}, leaderOfThePack(t), 0},
+		{"Moonkin Aura", &proto.RaidBuffs{MoonkinAura: true}, 0, moonkinAura(t)},
+		{"both", &proto.RaidBuffs{LeaderOfThePack: true, MoonkinAura: true}, leaderOfThePack(t), moonkinAura(t)},
 	} {
 		t.Run(row.name, func(t *testing.T) {
 			char := core.NewGeneratedBuffTestCharacter()
 
-			core.ApplyBuffEffects(char, &proto.RaidBuffs{}, row.party, &proto.IndividualBuffs{})
+			core.ApplyBuffEffects(char, row.raid, &proto.PartyBuffs{}, &proto.IndividualBuffs{})
 			char.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
 
-			if got := char.GetStats()[stats.PhysicalCritPercent]; got != row.want {
-				t.Errorf("%s applied %v physical crit, want the game files' %v", row.name, got, row.want)
+			if got := char.GetStats()[stats.PhysicalCritPercent]; got != row.physical {
+				t.Errorf("%s applied %v physical crit, want the game files' %v", row.name, got, row.physical)
 			}
-			if got := char.GetStats()[stats.SpellCritPercent]; got != row.want {
-				t.Errorf("%s applied %v spell crit, want the game files' %v", row.name, got, row.want)
+			if got := char.GetStats()[stats.SpellCritPercent]; got != row.spell {
+				t.Errorf("%s applied %v spell crit, want the game files' %v", row.name, got, row.spell)
 			}
 			if got := char.GetStats()[stats.RangedCritPercent]; got != 0 {
 				t.Errorf("%s applied %v on top of the physical crit a ranged attack already reads", row.name, got)
@@ -396,42 +394,31 @@ func TestGeneratedCritAurasApplyToEveryKindOfCrit(t *testing.T) {
 
 func leaderOfThePack(t *testing.T) float64 {
 	t.Helper()
-	return rowAmount(t, 24932, dbcenums.A_MOD_CRIT_PCT)
+	return rowAmount(t, 24932, dbcenums.A_MOD_WEAPON_CRIT_PERCENT)
 }
 
 func moonkinAura(t *testing.T) float64 {
 	t.Helper()
-	return rowAmount(t, 24907, dbcenums.A_MOD_CRIT_PCT)
+	return rowAmount(t, 24907, dbcenums.A_MOD_SPELL_CRIT_CHANCE)
 }
 
-// The loser of the category is still a registered aura on the character, so a
-// class port can find it and a log can name it; it simply holds nothing.
-func TestGeneratedCritAurasLeaveTheOutbidCopyRegisteredAndInert(t *testing.T) {
+// Each aura holds its own single-aura category, so a raid with both ticked has
+// both active.
+func TestGeneratedCritAurasHoldSeparateCategories(t *testing.T) {
 	char := core.NewGeneratedBuffTestCharacter()
 
-	core.ApplyBuffEffects(char, &proto.RaidBuffs{},
-		&proto.PartyBuffs{LeaderOfThePack: true, MoonkinAura: true}, &proto.IndividualBuffs{})
+	core.ApplyBuffEffects(char, &proto.RaidBuffs{LeaderOfThePack: true, MoonkinAura: true},
+		&proto.PartyBuffs{}, &proto.IndividualBuffs{})
 	char.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
 
-	pack := char.GetAura("Leader of the Pack (External)")
-	moonkin := char.GetAura("Moonkin Aura (External)")
-	if pack == nil || moonkin == nil {
-		t.Fatalf("the two copies are registered as %v and %v, want both", pack, moonkin)
-	}
-	if pack.IsActive() == moonkin.IsActive() {
-		t.Errorf("both copies are active: %v, want exactly one holding the category", pack.IsActive())
-	}
-
-	category := char.ExclusiveEffectManager.GetExclusiveEffectCategory(buffs.LeaderOfThePackCategory)
-	if !category.SingleAura {
-		t.Error("the DruidCritAura category is not single-aura, so both copies could sit on the character")
-	}
-	if len(category.Effects()) != 2 {
-		t.Errorf("%d effects bid for DruidCritAura, want both copies", len(category.Effects()))
-	}
-	want := max(leaderOfThePack(t), moonkinAura(t))
-	if active := category.GetActiveEffect(); active == nil || active.Priority != want {
-		t.Errorf("the category is held at %v, want the stronger copy's %v", active, want)
+	for _, category := range []string{buffs.LeaderOfThePackCategory, buffs.MoonkinAuraCategory} {
+		effects := char.ExclusiveEffectManager.GetExclusiveEffectCategory(category)
+		if !effects.SingleAura {
+			t.Errorf("the %s category is not single-aura, so two copies could sit on the character", category)
+		}
+		if active := effects.GetActiveEffect(); active == nil {
+			t.Errorf("nothing holds the %s category, want the raid's copy", category)
+		}
 	}
 }
 

@@ -86,9 +86,7 @@ export const DefaultConsumables = ConsumesSpec.create({
 	extraIds: [Consumables.GoblinSapperCharge.id],
 });
 
-export const DefaultPartyBuffs = PartyBuffs.create({
-	leaderOfThePack: true,
-});
+export const DefaultPartyBuffs = PartyBuffs.create({});
 
 export const DefaultRaidBuffs = RaidBuffs.create({
 	prayerOfFortitude: true,
@@ -97,6 +95,7 @@ export const DefaultRaidBuffs = RaidBuffs.create({
 	strengthOfEarthTotem: true,
 	windfuryTotem: true,
 	battleShout: TristateEffect.TristateEffectRegular,
+	leaderOfThePack: true,
 });
 
 export const DefaultDebuffs = Debuffs.create({

@@ -64,12 +64,12 @@ var FullRaidBuffs = &proto.RaidBuffs{
 	WindfuryTotem:        true,
 	BattleShout:          proto.TristateEffect_TristateEffectRegular,
 	TrueshotAura:         true,
+	LeaderOfThePack:      true,
+	MoonkinAura:          true,
 }
 
 var FullPartyBuffs = &proto.PartyBuffs{
 	BloodPact:         true,
-	MoonkinAura:       true,
-	LeaderOfThePack:   true,
 	DevotionAura:      true,
 	RetributionAura:   true,
 	ConcentrationAura: true,
