@@ -93,7 +93,6 @@ export const DefaultIndividualBuffs = IndividualBuffs.create({
 });
 
 export const DefaultPartyBuffs = PartyBuffs.create({
-	battleShout: TristateEffect.TristateEffectRegular,
 	leaderOfThePack: true,
 });
 
@@ -104,6 +103,7 @@ export const DefaultRaidBuffs = RaidBuffs.create({
 	prayerOfFortitude: true,
 	graceOfAirTotem: true,
 	strengthOfEarthTotem: true,
+	battleShout: TristateEffect.TristateEffectRegular,
 });
 
 export const DefaultDebuffs = Debuffs.create({

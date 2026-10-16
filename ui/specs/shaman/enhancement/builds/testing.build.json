@@ -5,7 +5,8 @@
     "giftOfTheWild": true,
     "prayerOfFortitude": true,
     "graceOfAirTotem": true,
-    "flametongueTotem": true
+    "flametongueTotem": true,
+    "battleShout": "TristateEffectRegular"
   },
   "debuffs": {
     "huntersMark": true,
@@ -18,7 +19,6 @@
     "giftOfArthas": true
   },
   "partyBuffs": {
-    "battleShout": "TristateEffectRegular",
     "leaderOfThePack": true
   },
   "player": {

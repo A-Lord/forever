@@ -42,7 +42,6 @@ export const RetributionAura = makeBooleanPartyBuffInput({
 
 export const PARTY_BUFFS_CONFIG = inDisplayOrder(Generated.GENERATED_PARTY_BUFFS_CONFIG, [
 	Generated.BloodPact,
-	Generated.BattleShout,
 	Generated.DevotionAura,
 	Generated.LeaderOfThePack,
 	Generated.ManaSpringTotem,
@@ -89,6 +88,7 @@ export const BUFFS_CONFIG = inDisplayOrder(
 		Generated.GraceOfAirTotem,
 		Generated.WindfuryTotem,
 		Generated.FlametongueTotem,
+		Generated.BattleShout,
 		Generated.AspectOfTheWild,
 		Generated.Innervates,
 		Generated.PowerInfusions,

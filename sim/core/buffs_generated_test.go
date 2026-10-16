@@ -19,16 +19,16 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
-func TestPartyBattleShoutAppliesTheGeneratedAura(t *testing.T) {
+func TestRaidBattleShoutAppliesTheGeneratedAura(t *testing.T) {
 	char := core.NewGeneratedBuffTestCharacter()
 
 	core.ApplyBuffEffects(char,
-		&proto.RaidBuffs{}, &proto.PartyBuffs{BattleShout: proto.TristateEffect_TristateEffectRegular}, &proto.IndividualBuffs{})
+		&proto.RaidBuffs{BattleShout: proto.TristateEffect_TristateEffectRegular}, &proto.PartyBuffs{}, &proto.IndividualBuffs{})
 	char.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
 
 	shout := battleShout(t)
 	if got := char.GetStats()[stats.AttackPower]; got != shout {
-		t.Errorf("the party's Battle Shout applied %v attack power, want the game files' %v", got, shout)
+		t.Errorf("the raid's Battle Shout applied %v attack power, want the game files' %v", got, shout)
 	}
 
 	aura := char.GetAura("Battle Shout (External)")
@@ -79,7 +79,7 @@ func TestPlayerBattleShoutTakesTheCategoryOnATie(t *testing.T) {
 	char := core.NewGeneratedBuffTestCharacter()
 
 	core.ApplyBuffEffects(char,
-		&proto.RaidBuffs{}, &proto.PartyBuffs{BattleShout: proto.TristateEffect_TristateEffectRegular}, &proto.IndividualBuffs{})
+		&proto.RaidBuffs{BattleShout: proto.TristateEffect_TristateEffectRegular}, &proto.PartyBuffs{}, &proto.IndividualBuffs{})
 
 	player := buffs.NewSpellDataBattleShoutAura(&char.Unit, true, 0)
 	if want := (core.ActionID{SpellID: 25289, Tag: 0}); player.ActionID != want {
@@ -108,26 +108,26 @@ func TestPlayerBattleShoutTakesTheCategoryOnATie(t *testing.T) {
 	}
 }
 
-// The improved state says the warrior who shouted for the party wears three
+// The improved state says the warrior who shouted for the raid wears three
 // pieces of Battlegear of Wrath, so the external copy is worth the game files'
 // shout plus the set's bonus.
-func TestImprovedPartyBattleShoutAddsTheTierTwoBonus(t *testing.T) {
+func TestImprovedRaidBattleShoutAddsTheTierTwoBonus(t *testing.T) {
 	for _, row := range []struct {
-		name  string
-		party *proto.PartyBuffs
-		want  float64
+		name string
+		raid *proto.RaidBuffs
+		want float64
 	}{
-		{"with the set", &proto.PartyBuffs{BattleShout: proto.TristateEffect_TristateEffectImproved}, battleShout(t) + battleShoutSetBonus(t)},
-		{"without it", &proto.PartyBuffs{BattleShout: proto.TristateEffect_TristateEffectRegular}, battleShout(t)},
+		{"with the set", &proto.RaidBuffs{BattleShout: proto.TristateEffect_TristateEffectImproved}, battleShout(t) + battleShoutSetBonus(t)},
+		{"without it", &proto.RaidBuffs{BattleShout: proto.TristateEffect_TristateEffectRegular}, battleShout(t)},
 	} {
 		t.Run(row.name, func(t *testing.T) {
 			char := core.NewGeneratedBuffTestCharacter()
 
-			core.ApplyBuffEffects(char, &proto.RaidBuffs{}, row.party, &proto.IndividualBuffs{})
+			core.ApplyBuffEffects(char, row.raid, &proto.PartyBuffs{}, &proto.IndividualBuffs{})
 			char.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
 
 			if got := char.GetStats()[stats.AttackPower]; got != row.want {
-				t.Errorf("the party's Battle Shout applied %v attack power, want %v", got, row.want)
+				t.Errorf("the raid's Battle Shout applied %v attack power, want %v", got, row.want)
 			}
 			if got := char.GetAura("Battle Shout (External)").ExclusiveEffects[0].Priority; got != row.want {
 				t.Errorf("the external copy bids %v, want %v", got, row.want)
@@ -142,17 +142,17 @@ func TestImprovedPartyBattleShoutAddsTheTierTwoBonus(t *testing.T) {
 func TestTheStrongerBattleShoutTakesTheCategory(t *testing.T) {
 	for _, row := range []struct {
 		name         string
-		party        *proto.PartyBuffs
+		raid         *proto.RaidBuffs
 		playerBonus  float64
 		wantPlayerUp bool
 	}{
-		{"the player wears the set", &proto.PartyBuffs{BattleShout: proto.TristateEffect_TristateEffectRegular}, buffs.BattleShoutT2Bonus, true},
-		{"the external warrior does", &proto.PartyBuffs{BattleShout: proto.TristateEffect_TristateEffectImproved}, 0, false},
+		{"the player wears the set", &proto.RaidBuffs{BattleShout: proto.TristateEffect_TristateEffectRegular}, buffs.BattleShoutT2Bonus, true},
+		{"the external warrior does", &proto.RaidBuffs{BattleShout: proto.TristateEffect_TristateEffectImproved}, 0, false},
 	} {
 		t.Run(row.name, func(t *testing.T) {
 			char := core.NewGeneratedBuffTestCharacter()
 
-			core.ApplyBuffEffects(char, &proto.RaidBuffs{}, row.party, &proto.IndividualBuffs{})
+			core.ApplyBuffEffects(char, row.raid, &proto.PartyBuffs{}, &proto.IndividualBuffs{})
 
 			player := buffs.NewSpellDataBattleShoutAura(&char.Unit, true, 0)
 			if row.playerBonus != 0 {
@@ -1657,8 +1657,8 @@ func TestGeneratedFuriousHowlDoesNotStackWithBattleShout(t *testing.T) {
 	}
 
 	char := core.NewGeneratedBuffTestCharacter()
-	core.ApplyBuffEffects(char, &proto.RaidBuffs{},
-		&proto.PartyBuffs{BattleShout: proto.TristateEffect_TristateEffectRegular, FuriousHowl: true}, &proto.IndividualBuffs{})
+	core.ApplyBuffEffects(char, &proto.RaidBuffs{BattleShout: proto.TristateEffect_TristateEffectRegular},
+		&proto.PartyBuffs{FuriousHowl: true}, &proto.IndividualBuffs{})
 	char.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
 	if got, want := char.GetStats()[stats.AttackPower], max(battleShout(t), howl); got != want {
 		t.Errorf("attack power is %v under both shouts, want the stronger one's %v alone", got, want)

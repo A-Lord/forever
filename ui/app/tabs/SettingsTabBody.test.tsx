@@ -3,7 +3,7 @@ import type { RenderableStatOptions } from '@features/settings/model/stat_option
 import { withSelection } from '@features/stat-filters/model/stat_filters';
 import { APLRotation } from '@generated/proto/apl';
 import { PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
-import { Stat, TristateEffect } from '@generated/proto/common';
+import { Stat } from '@generated/proto/common';
 import { UnitStat } from '@sim/proto/stats';
 import { patchSlice } from '@sim/state/sim_store';
 import { renderWithHost } from '@testing/react';
@@ -113,7 +113,7 @@ describe('SettingsTabBody sections', () => {
 		const { player } = await setup(noPartyBuffStats);
 		const party = player.getParty()!;
 
-		act(() => party.setBuffs(PartyBuffs.create({ battleShout: TristateEffect.TristateEffectRegular })));
+		act(() => party.setBuffs(PartyBuffs.create({ bloodPact: true })));
 		expect(section('party_buffs')).not.toBeNull();
 
 		act(() => party.setBuffs(PartyBuffs.create()));

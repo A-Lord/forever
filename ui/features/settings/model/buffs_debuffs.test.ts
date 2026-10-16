@@ -13,7 +13,6 @@ describe('the buff registries', () => {
 	it('shows the party buffs in their settled order', () => {
 		expect(labelsOf(BuffDebuffInputs.PARTY_BUFFS_CONFIG)).toEqual([
 			'Blood Pact',
-			'Battle Shout',
 			'Devotion Aura',
 			'Leader of the Pack',
 			'Mana Spring Totem',
@@ -56,6 +55,7 @@ describe('the buff registries', () => {
 			'Grace of Air Totem',
 			'Windfury Totem',
 			'Flametongue Totem',
+			'Battle Shout',
 			'Aspect of the Wild',
 			'Innervates',
 			'Power Infusions',
@@ -101,8 +101,8 @@ describe('the buff registries', () => {
 	});
 
 	it('gives the generated rows their owner class, so the settings tab can mark them external', () => {
-		expect(BuffDebuffInputs.PARTY_BUFFS_CONFIG[1].config).toBe(BuffDebuffInputs.BattleShout);
-		expect(BuffDebuffInputs.PARTY_BUFFS_CONFIG[1].ownerClass).toBe(Class.ClassWarrior);
+		const battleShout = BuffDebuffInputs.BUFFS_CONFIG.find(option => option.config === BuffDebuffInputs.BattleShout);
+		expect(battleShout?.ownerClass).toBe(Class.ClassWarrior);
 		expect(BuffDebuffInputs.BUFFS_CONFIG[8].ownerClass).toBeUndefined();
 	});
 });
