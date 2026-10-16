@@ -263,6 +263,18 @@ func (character *Character) EquipStats() stats.Stats {
 	return character.cachedEquipStats.ApplyMultipliers(character.itemStatMultipliers)
 }
 
+// The sheet armor one point of armor from items gives: the equip scaling of armor times the percent
+// armor modifiers the stat dependencies apply to a change, which Equipment.NoModsArmor escapes.
+func (character *Character) itemArmorScale() float64 {
+	scale := 1.0
+	if character.EquipScalingManager != nil {
+		if multiplier, ok := character.itemStatMultipliers[stats.Armor]; ok {
+			scale = multiplier
+		}
+	}
+	return scale * character.ApplyStatDependenciesToChange(stats.Stats{stats.Armor: 1})[stats.Armor]
+}
+
 func (character *Character) applyEquipment() {
 	if character.EquipScalingManager == nil {
 		return
@@ -503,6 +515,7 @@ func (character *Character) FillPlayerStats(playerStats *proto.PlayerStats) {
 		ApiVersion:  GetCurrentProtoVersion(),
 	}
 	playerStats.WeaponSkills = character.weaponSkillsProto()
+	playerStats.ItemArmorScale = character.itemArmorScale()
 
 	character.clearBuildPhaseAuras(CharacterBuildPhaseAll)
 	playerStats.Sets = character.GetActiveSetBonusNames()

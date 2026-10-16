@@ -21,6 +21,9 @@ const (
 	agilityWeaponID
 	attackPowerShoulderID
 	critShoulderID
+	plainArmorChestID
+	noModsArmorChestID
+	armorScalingNeckID
 )
 
 const (
@@ -179,6 +182,59 @@ func TestOptimizeValuesAPercentEnchantThroughItsRating(t *testing.T) {
 	}
 	if got, want := result.GetScore(), critShoulderAP+core.CritRatingPerCritPercent*critRatingEP; math.Abs(got-want) > 1e-9 {
 		t.Errorf("score %v, want %v", got, want)
+	}
+}
+
+// An Armor weight is per point of armor from items, each worth the sheet's item armor scale in sheet
+// armor; a fixture neck triples the armor from items. An enchant's plain armor is worth the weight
+// per point, while its no-mods armor share reaches the sheet whole and is worth the weight over that
+// scale.
+func TestOptimizeValuesANoModsArmorShareOverTheItemArmorScale(t *testing.T) {
+	const armor = 120
+	values := make([]float64, len(proto.Stat_name))
+	values[proto.Stat_StatArmor] = armor
+	core.AddToDatabase(&proto.SimDatabase{
+		Items: []*proto.SimItem{{Id: armorScalingNeckID, Name: "Test Armor Scaling Neck", Type: proto.ItemType_ItemTypeNeck,
+			ScalingOptions: map[int32]*proto.ScalingItemProperties{0: {}}}},
+		Enchants: []*proto.SimEnchant{
+			{EffectId: plainArmorChestID, Type: proto.ItemType_ItemTypeChest, Stats: values},
+			{EffectId: noModsArmorChestID, Type: proto.ItemType_ItemTypeChest, Stats: values, NoModsArmor: armor},
+		},
+	})
+	if !core.HasItemEffect(armorScalingNeckID) {
+		core.NewItemEffect(armorScalingNeckID, func(agent core.Agent) {
+			agent.GetCharacter().ApplyEquipScaling(stats.Armor, 3)
+		})
+	}
+	raid := protectionWarriorRaid("preraid")
+	raid.Parties[0].Players[0].Equipment.Items[proto.ItemSlot_ItemSlotNeck] = &proto.ItemSpec{Id: armorScalingNeckID}
+
+	sheet := core.ComputeStats(&proto.ComputeStatsRequest{Raid: protopkg.Clone(raid).(*proto.Raid), SkipRotation: true})
+	if sheet.ErrorResult != "" {
+		t.Fatalf("ComputeStats: %s", sheet.ErrorResult)
+	}
+	scale := sheet.RaidStats.Parties[0].Players[0].GetItemArmorScale()
+	if scale < 3 {
+		t.Fatalf("the sheet's item armor scale is %v with the neck's tripling, want at least 3", scale)
+	}
+
+	const armorEP = 2
+	weights := map[proto.Stat]float64{proto.Stat_StatArmor: armorEP}
+	for _, tc := range []struct {
+		enchant int32
+		want    float64
+	}{
+		{plainArmorChestID, armor * armorEP},
+		{noModsArmorChestID, armor / scale * armorEP},
+	} {
+		chest := &proto.BulkEnchantSlotOptions{Slot: proto.ItemSlot_ItemSlotChest, EffectIds: []int32{tc.enchant}}
+		result := optimize(t, enchantRequest(protopkg.Clone(raid).(*proto.Raid), weights, chest))
+		if got := slotEnchant(result, proto.ItemSlot_ItemSlotChest); got != tc.enchant {
+			t.Errorf("chest enchant %d, want %d", got, tc.enchant)
+		}
+		if got := result.GetScore(); math.Abs(got-tc.want) > 1e-9 {
+			t.Errorf("enchant %d scores %v, want %v", tc.enchant, got, tc.want)
+		}
 	}
 }
 

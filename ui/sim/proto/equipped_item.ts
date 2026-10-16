@@ -1,4 +1,4 @@
-import { type AreaType, ItemRandomSuffix, ItemSlot, ItemSpec, Profession, PseudoStat, ScalingItemProperties } from '@generated/proto/common';
+import { type AreaType, ItemRandomSuffix, ItemSlot, ItemSpec, Profession, PseudoStat, ScalingItemProperties, Stat } from '@generated/proto/common';
 import { UIEnchant as Enchant, UIItem as Item } from '@generated/proto/ui';
 
 import { distinct } from '../utils/collections';
@@ -35,8 +35,16 @@ export const getWeaponDpsStatsBySlot = (weaponDps: number, slot: ItemSlot): Stat
 export const enchantWeaponDamageEP = (enchant: Enchant, weaponSpeed: number, epPerWeaponDps: number): number =>
 	enchant.weaponDamage && weaponSpeed ? (enchant.weaponDamage / weaponSpeed) * epPerWeaponDps : 0;
 
-export const enchantEP = (enchant: Enchant, weights: Stats, weaponSpeed: number, epPerWeaponDps: number): number =>
-	new Stats(enchant.stats, enchant.pseudoStats).computeEP(weights) + enchantWeaponDamageEP(enchant, weaponSpeed, epPerWeaponDps);
+// The stats count the enchant's no-mods armor share at the Armor weight, which is per point of armor from items, each
+// worth itemArmorScale points of sheet armor (PlayerStats.itemArmorScale). The share reaches the sheet whole, so it is
+// worth the weight over that scale; this is the difference. A scale of 0 is one not measured and reads as 1.
+export const enchantNoModsArmorEP = (enchant: Enchant, weights: Stats, itemArmorScale: number): number =>
+	enchant.noModsArmor && itemArmorScale > 0 ? (enchant.noModsArmor / itemArmorScale - enchant.noModsArmor) * weights.getStat(Stat.StatArmor) : 0;
+
+export const enchantEP = (enchant: Enchant, weights: Stats, weaponSpeed: number, epPerWeaponDps: number, itemArmorScale = 1): number =>
+	new Stats(enchant.stats, enchant.pseudoStats).computeEP(weights) +
+	enchantWeaponDamageEP(enchant, weaponSpeed, epPerWeaponDps) +
+	enchantNoModsArmorEP(enchant, weights, itemArmorScale);
 
 export const getWeaponStatsBySlot = (item: Item, slot: ItemSlot, upgradeStep: 0, randomSuffix?: ItemRandomSuffix | null) => {
 	if (item.weaponSpeed > 0) {

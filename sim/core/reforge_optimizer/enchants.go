@@ -96,15 +96,24 @@ func (o *reforgeOptimizer) buildEnchantModel(weights core.UnitStats) (*lpVariabl
 			pseudoStats[dpsStat] += candidate.weaponDps
 		}
 
+		// The no-mods armor share reaches the sheet whole, so it passes the stat dependencies by, and the
+		// Armor weight is per point of armor from items, each worth itemArmorScale points of sheet armor.
+		noModsArmor := candidate.enchant.NoModsArmor
 		capDelta := core.NewUnitStats()
 		capDelta.Stats = candidate.enchant.Stats.Add(stats.FromPseudoStatsProto(pseudoStats))
+		capDelta.Stats[stats.Armor] -= noModsArmor
 		copy(capDelta.PseudoStats, pseudoStats)
 		capCoeffs := o.resolveCapCoeffs(capDelta)
+		enchantStats := candidate.enchant.Stats
+		if noModsArmor != 0 {
+			capCoeffs[statCoeffKey(proto.Stat_StatArmor)] += noModsArmor
+			enchantStats[stats.Armor] += noModsArmor/o.itemArmorScale - noModsArmor
+		}
 		capCoeffs[enchantSlotKey(candidate.slot)] = 1
 
 		objCoeffs := map[string]float64{tieBreakCoeffKey: candidate.tieBreak}
 		for statIdx := 0; statIdx < int(stats.ProtoStatsLen); statIdx++ {
-			if value := candidate.enchant.Stats[statIdx]; value != 0 {
+			if value := enchantStats[statIdx]; value != 0 {
 				o.applyReforgeStat(objCoeffs, stats.Stat(statIdx), value, weights)
 			}
 		}

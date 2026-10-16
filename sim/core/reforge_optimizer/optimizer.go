@@ -89,9 +89,10 @@ type reforgeOptimizer struct {
 	statDeps *stats.StatDependencyManager
 	sheet    core.SheetAvoidance
 
-	candidates []enchantCandidate
-	baseGear   *proto.EquipmentSpec
-	baseStats  core.UnitStats
+	candidates     []enchantCandidate
+	baseGear       *proto.EquipmentSpec
+	baseStats      core.UnitStats
+	itemArmorScale float64 // The baseline's PlayerStats.item_armor_scale, 1 where it states none.
 }
 
 // Builds the optimizer context from a clone of the request, whose raid becomes the baseline: the
@@ -130,7 +131,9 @@ func newReforgeOptimizer(request *proto.ReforgeOptimizeRequest, signals simsigna
 	}
 	o.statDeps = baseSDM
 	o.sheet = sheet
-	o.baseStats = protoToCoreUnitStats(baseResult.RaidStats.Parties[0].Players[0].FinalStats)
+	basePlayer := baseResult.RaidStats.Parties[0].Players[0]
+	o.baseStats = protoToCoreUnitStats(basePlayer.FinalStats)
+	o.itemArmorScale = core.TernaryFloat64(basePlayer.ItemArmorScale > 0, basePlayer.ItemArmorScale, 1)
 	return o, nil
 }
 

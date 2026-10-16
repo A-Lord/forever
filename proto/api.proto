@@ -648,6 +648,11 @@ message PlayerStats {
 
 	// The full skill per weapon skill, with every bonus the gear, talents and buffs add.
 	repeated WeaponSkillValue weapon_skills = 13;
+
+	// The sheet armor one point of armor from items gives at the final stats: the equip scaling of armor
+	// times the percent armor modifiers. An Armor weight is per point of armor from items, so an enchant's
+	// no_mods_armor is worth that weight divided by this. 0 where it was not measured, which reads as 1.
+	double item_armor_scale = 5;
 }
 message PartyStats {
 	repeated PlayerStats players = 1;
