@@ -458,7 +458,7 @@ func TestGeneratedTrueshotAuraGivesTheTopRanksRangedAttackPower(t *testing.T) {
 	char := core.NewGeneratedBuffTestCharacter()
 
 	core.ApplyBuffEffects(char,
-		&proto.RaidBuffs{}, &proto.PartyBuffs{TrueshotAura: true}, &proto.IndividualBuffs{})
+		&proto.RaidBuffs{TrueshotAura: true}, &proto.PartyBuffs{}, &proto.IndividualBuffs{})
 	char.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
 
 	if got, want := char.GetStats()[stats.RangedAttackPower], rowAmount(t, 20906, dbcenums.A_MOD_RANGED_ATTACK_POWER); got != want {
@@ -1650,15 +1650,15 @@ func TestGeneratedFuriousHowlDoesNotStackWithBattleShout(t *testing.T) {
 	}
 
 	howlOnly := core.NewGeneratedBuffTestCharacter()
-	core.ApplyBuffEffects(howlOnly, &proto.RaidBuffs{}, &proto.PartyBuffs{FuriousHowl: true}, &proto.IndividualBuffs{})
+	core.ApplyBuffEffects(howlOnly, &proto.RaidBuffs{FuriousHowl: true}, &proto.PartyBuffs{}, &proto.IndividualBuffs{})
 	howlOnly.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
 	if got := howlOnly.GetStats()[stats.AttackPower]; got != howl {
 		t.Errorf("Furious Howl alone applied %v attack power, want %v", got, howl)
 	}
 
 	char := core.NewGeneratedBuffTestCharacter()
-	core.ApplyBuffEffects(char, &proto.RaidBuffs{},
-		&proto.PartyBuffs{BattleShout: proto.TristateEffect_TristateEffectRegular, FuriousHowl: true}, &proto.IndividualBuffs{})
+	core.ApplyBuffEffects(char, &proto.RaidBuffs{FuriousHowl: true},
+		&proto.PartyBuffs{BattleShout: proto.TristateEffect_TristateEffectRegular}, &proto.IndividualBuffs{})
 	char.ApplyBuildPhaseAuras(core.CharacterBuildPhaseBuffs)
 	if got, want := char.GetStats()[stats.AttackPower], max(battleShout(t), howl); got != want {
 		t.Errorf("attack power is %v under both shouts, want the stronger one's %v alone", got, want)

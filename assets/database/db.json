@@ -12623,6 +12623,7 @@
 {"id":1310707,"name":"Mutilate","icon":"ability_rogue_deadlybrew","rank":1},
 {"id":1310711,"name":"Flawless Execution","icon":"inv_sword_35"},
 {"id":1310721,"name":"Thousand Cuts","icon":"ability_rogue_rupture"},
+{"id":1310726,"name":"Expose Prey","icon":"ability_hunter_swiftstrike","hasBuff":true},
 {"id":1310728,"name":"Quietus","icon":"ability_rogue_garrote"},
 {"id":1310735,"name":"Twist of Light","icon":"spell_holy_blessedresillience"},
 {"id":1310786,"name":"Sniper Shot","icon":"hunter_pvp_snipershot","rank":3,"hasBuff":true},

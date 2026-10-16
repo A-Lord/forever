@@ -34,7 +34,8 @@ func (hawk *HawkPet) ExecuteCustomRotation(sim *core.Simulation) {
 
 // Effect 3 is the number of hawks up at once. Hunter Guardian Hawk Pet Scaling 01 (1293586) gives
 // each its owner's attack speed, damage done and melee crit chance, all of each; the row is not in
-// the store. The crit is the tamed pet's (inheritedMeleeCrit), with none from Agility; no hawk logs yet.
+// the store. The crit is the tamed pet's, the higher of melee and ranged (inheritedCrit), with none
+// from Agility; no hawk logs yet.
 func (hunter *Hunter) newHawks() []*HawkPet {
 	if !hunter.Talents.SummonHawk {
 		return nil
@@ -47,7 +48,7 @@ func (hunter *Hunter) newHawks() []*HawkPet {
 			Owner:     &hunter.Character,
 			BaseStats: petBaseStats,
 			StatInheritance: func(ownerStats stats.Stats) stats.Stats {
-				return stats.Stats{stats.PhysicalCritPercent: hunter.inheritedMeleeCrit(ownerStats)}
+				return stats.Stats{stats.PhysicalCritPercent: hunter.inheritedCrit(ownerStats)}
 			},
 			IsGuardian:                      true,
 			IsDynamic:                       true,
