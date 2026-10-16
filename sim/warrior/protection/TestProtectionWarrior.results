@@ -119,18 +119,18 @@ dps_results: {
 dps_results: {
  key: "TestProtectionWarrior-AllItems-BattlegearofGlory"
  value: {
-  dps: 451.90284
-  tps: 973.37997
-  dtps: 310.95237
+  dps: 446.65441
+  tps: 961.07522
+  dtps: 310.60415
   hps: 16.4
  }
 }
 dps_results: {
  key: "TestProtectionWarrior-AllItems-BattleplateofGlory"
  value: {
-  dps: 458.43401
-  tps: 984.06335
-  dtps: 303.03178
+  dps: 456.73629
+  tps: 985.44493
+  dtps: 302.83978
   hps: 16.4
  }
 }
