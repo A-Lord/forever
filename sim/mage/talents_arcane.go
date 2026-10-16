@@ -133,9 +133,11 @@ func (mage *Mage) registerArcaneConcentration() {
 	mage.RegisterResetEffect(func(_ *core.Simulation) {
 		rolledSpell = nil
 	})
-	// The Arcane Missiles channel lands an outcome with no damage; its missiles are the hits.
+	// Arcane Missiles never rolls: the channel lands an outcome with no damage, and its missiles do
+	// not roll either.
 	trigger.ExtraCondition = func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
-		if spellData.ArcaneMissiles.Contains(spell) || (spell == rolledSpell && sim.CurrentTime == rolledAt) {
+		if spellData.ArcaneMissiles.Contains(spell) || spellData.ArcaneMissilesTriggered.Contains(spell) ||
+			(spell == rolledSpell && sim.CurrentTime == rolledAt) {
 			return false
 		}
 		rolledSpell, rolledAt = spell, sim.CurrentTime
