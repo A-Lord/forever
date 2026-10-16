@@ -36,7 +36,7 @@ func init() {
 	)
 }
 
-func catWithMainHand(t *testing.T, mainHand int32, consumes *proto.ConsumesSpec, partyBuffs *proto.PartyBuffs) *core.Character {
+func catWithMainHand(t *testing.T, mainHand int32, consumes *proto.ConsumesSpec, raidBuffs *proto.RaidBuffs) *core.Character {
 	t.Helper()
 	items := make([]*proto.ItemSpec, proto.ItemSlot_ItemSlotMainHand+1)
 	for i := range items {
@@ -55,8 +55,8 @@ func catWithMainHand(t *testing.T, mainHand int32, consumes *proto.ConsumesSpec,
 				Buffs:       &proto.IndividualBuffs{},
 				Rotation:    &proto.APLRotation{},
 			}},
-			Buffs: partyBuffs,
-		}}},
+			Buffs: &proto.PartyBuffs{},
+		}}, Buffs: raidBuffs},
 		Encounter: &proto.Encounter{Targets: []*proto.Target{{Name: "target", Level: 63}}, Duration: 180},
 	}, simsignals.CreateSignals())
 	sim.Reset()
@@ -68,7 +68,7 @@ func catWithMainHand(t *testing.T, mainHand int32, consumes *proto.ConsumesSpec,
 // 60 / 2.4 + 8 to 90 / 2.4 + 8.
 func TestCatPawTakesTheWeaponstoneOnce(t *testing.T) {
 	const monksStaff, denseWeightstone = 866, 12643
-	character := catWithMainHand(t, monksStaff, &proto.ConsumesSpec{MhImbueId: denseWeightstone}, &proto.PartyBuffs{})
+	character := catWithMainHand(t, monksStaff, &proto.ConsumesSpec{MhImbueId: denseWeightstone}, &proto.RaidBuffs{})
 
 	paw := character.AutoAttacks.MH()
 	if wantMin, wantMax := 60/2.4+8, 90/2.4+8; !approxEqual(paw.BaseDamageMin, wantMin) || !approxEqual(paw.BaseDamageMax, wantMax) {
@@ -80,7 +80,7 @@ func TestCatPawTakesTheWeaponstoneOnce(t *testing.T) {
 // paw keeps the stone's 8, once.
 func TestCatPawKeepsTheWeaponstoneWhenRebuilt(t *testing.T) {
 	const monksStaff, denseWeightstone = 866, 12643
-	character := catWithMainHand(t, monksStaff, &proto.ConsumesSpec{MhImbueId: denseWeightstone}, &proto.PartyBuffs{})
+	character := catWithMainHand(t, monksStaff, &proto.ConsumesSpec{MhImbueId: denseWeightstone}, &proto.RaidBuffs{})
 	cat := character.Env.Raid.Parties[0].Players[0].(*pawDruid)
 
 	for range 2 {
@@ -96,7 +96,7 @@ func TestCatPawKeepsTheWeaponstoneWhenRebuilt(t *testing.T) {
 // once, through shifts to the paw and back: 60 / 2.4 * 2.5 + 8 to 90 / 2.4 * 2.5 + 8.
 func TestBearWeaponTakesTheWeaponstoneOnce(t *testing.T) {
 	const monksStaff, denseWeightstone = 866, 12643
-	character := catWithMainHand(t, monksStaff, &proto.ConsumesSpec{MhImbueId: denseWeightstone}, &proto.PartyBuffs{})
+	character := catWithMainHand(t, monksStaff, &proto.ConsumesSpec{MhImbueId: denseWeightstone}, &proto.RaidBuffs{})
 	cat := character.Env.Raid.Parties[0].Players[0].(*pawDruid)
 
 	for range 2 {
@@ -115,7 +115,7 @@ func TestBearWeaponTakesTheWeaponstoneOnce(t *testing.T) {
 // procs and keeps the stone: 60 / 2.4 + 8.
 func TestCatHearsWindfuryTotemAndKeepsItsMainHandImbue(t *testing.T) {
 	const monksStaff, denseWeightstone = 866, 12643
-	character := catWithMainHand(t, monksStaff, &proto.ConsumesSpec{MhImbueId: denseWeightstone}, &proto.PartyBuffs{WindfuryTotem: true})
+	character := catWithMainHand(t, monksStaff, &proto.ConsumesSpec{MhImbueId: denseWeightstone}, &proto.RaidBuffs{WindfuryTotem: true})
 
 	if got := character.Equipment[proto.ItemSlot_ItemSlotMainHand].TempEnchant; got != 1703 {
 		t.Errorf("the main hand carries temporary enchant %d, want Dense Weightstone's 1703", got)
@@ -132,7 +132,7 @@ func TestCatHearsWindfuryTotemAndKeepsItsMainHandImbue(t *testing.T) {
 // the stone.
 func TestCatHearsFlametongueTotemAndKeepsItsMainHandImbue(t *testing.T) {
 	const monksStaff, denseWeightstone = 866, 12643
-	character := catWithMainHand(t, monksStaff, &proto.ConsumesSpec{MhImbueId: denseWeightstone}, &proto.PartyBuffs{FlametongueTotem: true})
+	character := catWithMainHand(t, monksStaff, &proto.ConsumesSpec{MhImbueId: denseWeightstone}, &proto.RaidBuffs{FlametongueTotem: true})
 
 	if got := character.Equipment[proto.ItemSlot_ItemSlotMainHand].TempEnchant; got != 1703 {
 		t.Errorf("the main hand carries temporary enchant %d, want Dense Weightstone's 1703", got)
@@ -151,7 +151,7 @@ func approxEqual(a, b float64) bool {
 
 func TestFeralEnchantsAndStonesAreIndependentOfWeaponSpeed(t *testing.T) {
 	for _, itemID := range []int32{866, 19323} {
-		character := catWithMainHand(t, itemID, &proto.ConsumesSpec{MhImbueId: 12643}, &proto.PartyBuffs{})
+		character := catWithMainHand(t, itemID, &proto.ConsumesSpec{MhImbueId: 12643}, &proto.RaidBuffs{})
 		druid := character.Env.Raid.Parties[0].Players[0].(*pawDruid)
 		item := character.GetMHWeapon()
 		item.Enchant = *core.GetEnchantByEffectID(963)
