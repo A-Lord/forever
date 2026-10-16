@@ -413,27 +413,6 @@ func (unit *Unit) AddStatDynamic(sim *Simulation, stat stats.Stat, amount float6
 	unit.addStatsDynamic(sim, &bonus)
 }
 
-// Adds bonus, of which share is the part the stats' own multipliers leave alone. The share is recorded
-// before the stats change, so the recompute the change runs already keeps it out of the multipliers.
-func (unit *Unit) AddStatsDynamicWithUnmultipliedShare(sim *Simulation, bonus stats.Stats, share stats.Stats) {
-	unit.addUnmultipliedShare(share)
-	unit.AddStatsDynamic(sim, bonus)
-}
-
-// The same before the unit is finalized, where the stats change without a recompute.
-func (unit *Unit) AddStatsWithUnmultipliedShare(bonus stats.Stats, share stats.Stats) {
-	unit.addUnmultipliedShare(share)
-	unit.AddStats(bonus)
-}
-
-func (unit *Unit) addUnmultipliedShare(share stats.Stats) {
-	for stat, amount := range share {
-		if amount != 0 {
-			unit.AddUnmultiplied(stats.Stat(stat), amount)
-		}
-	}
-}
-
 func (unit *Unit) processDynamicBonus(sim *Simulation, bonus *stats.Stats) {
 	if bonus[stats.MP5] != 0 || bonus[stats.Intellect] != 0 || bonus[stats.Spirit] != 0 {
 		unit.UpdateManaRegenRates(sim)

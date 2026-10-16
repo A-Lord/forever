@@ -119,18 +119,6 @@ func (dep *StatDependency) UpdateValue(newAmount float64) {
 type StatDependencyManager struct {
 	deps      []*StatDependency
 	finalized bool
-
-	// The share of each stat that the stat's own multipliers leave alone, and that share when the
-	// deps were finalized, which a reset returns to.
-	unmultiplied        Stats
-	initialUnmultiplied Stats
-}
-
-// Adds to the share of a stat that the stat's own multipliers leave alone. The amount is part of the
-// stat as well, which the caller adds after this: the multipliers scale the rest of the stat, and
-// every dependency that reads the stat counts all of it.
-func (sdm *StatDependencyManager) AddUnmultiplied(s Stat, amount float64) {
-	sdm.unmultiplied[s] += amount
 }
 
 func NewStatDependencyManager() StatDependencyManager {
@@ -275,7 +263,6 @@ func (sdm *StatDependencyManager) FinalizeStatDeps() {
 	}
 	sdm.sortDeps()
 	sdm.finalized = true
-	sdm.initialUnmultiplied = sdm.unmultiplied
 }
 
 func (sdm *StatDependencyManager) ResetStatDeps() {
@@ -284,7 +271,6 @@ func (sdm *StatDependencyManager) ResetStatDeps() {
 			dep.enabled = false
 		}
 	}
-	sdm.unmultiplied = sdm.initialUnmultiplied
 }
 
 func (sdm *StatDependencyManager) IsFinalized() bool {
@@ -293,19 +279,7 @@ func (sdm *StatDependencyManager) IsFinalized() bool {
 
 // ApplyStatDependenciesInPlace is ApplyStatDependencies without copying the array.
 func (sdm *StatDependencyManager) ApplyStatDependenciesInPlace(s *Stats) {
-	sdm.applyStatDependencies(s, &sdm.unmultiplied)
-}
-
-// Applies the dependencies to a change in stats rather than to whole stats: a change is scaled by
-// every multiplier, since the share the multipliers leave alone is a constant of the whole.
-func (sdm *StatDependencyManager) ApplyStatDependenciesToChange(s Stats) Stats {
-	var none Stats
-	sdm.applyStatDependencies(&s, &none)
-	return s
-}
-
-func (sdm *StatDependencyManager) applyStatDependencies(s *Stats, recorded *Stats) {
-	unmultiplied := *recorded
+	var unmultiplied Stats
 	for _, dep := range sdm.deps {
 		if dep.enabled {
 			if dep.src == dep.dst {
