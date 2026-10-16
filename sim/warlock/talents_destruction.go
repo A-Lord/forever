@@ -39,7 +39,7 @@ func (warlock *Warlock) registerDestructionTalents() {
 
 // --- Tier 1 ---
 
-// TODO: Not implemented, as it does not affect sims for now: the row raises range and radius only.
+// TODO: Not implemented, as it does not affect sims for now: the row raises range only.
 func (warlock *Warlock) applyDestructiveReach() {
 	if warlock.Talents.DestructiveReach == 0 {
 		return

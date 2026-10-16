@@ -47,7 +47,7 @@ export const ManaSpringTotem = makeTristatePartyBuffInput({
 });
 
 export const ManaTideTotems = makeMultistatePartyBuffInput({
-	actionId: ActionId.fromSpellId(17359),
+	actionId: ActionId.fromSpellId(1325256),
 	numStates: 5,
 	fieldName: 'manaTideTotems',
 	label: 'Mana Tide Totem',
@@ -91,24 +91,6 @@ export const AtieshWarlock = makeMultistatePartyBuffInput({
 	label: 'Atiesh - Warlock',
 });
 
-export const StrengthOfEarthTotem = makeBooleanPartyBuffInput({
-	actionId: ActionId.fromSpellId(25361),
-	fieldName: 'strengthOfEarthTotem',
-	label: 'Strength of Earth Totem',
-});
-
-export const GraceOfAirTotem = makeBooleanPartyBuffInput({
-	actionId: ActionId.fromSpellId(25359),
-	fieldName: 'graceOfAirTotem',
-	label: 'Grace of Air Totem',
-});
-
-export const WindfuryTotem = makeBooleanPartyBuffInput({
-	actionId: ActionId.fromSpellId(10614),
-	fieldName: 'windfuryTotem',
-	label: 'Windfury Totem',
-});
-
 export const AtieshDruid = makeMultistatePartyBuffInput({
 	actionId: ActionId.fromSpellId(28145),
 	numStates: 5,
@@ -134,12 +116,6 @@ export const FuriousHowl = makeBooleanPartyBuffInput({
 	actionId: ActionId.fromSpellId(24597),
 	fieldName: 'furiousHowl',
 	label: 'Furious Howl',
-});
-
-export const FlametongueTotem = makeBooleanPartyBuffInput({
-	actionId: ActionId.fromSpellId(16387),
-	fieldName: 'flametongueTotem',
-	label: 'Flametongue Totem',
 });
 
 export const Darkspear = makeBooleanPartyBuffInput({
@@ -218,6 +194,30 @@ export const NatureResistanceTotem = makeBooleanRaidBuffInput({
 	actionId: ActionId.fromSpellId(10601),
 	fieldName: 'natureResistanceTotem',
 	label: 'Nature Resistance Totem',
+});
+
+export const StrengthOfEarthTotem = makeBooleanRaidBuffInput({
+	actionId: ActionId.fromSpellId(25361),
+	fieldName: 'strengthOfEarthTotem',
+	label: 'Strength of Earth Totem',
+});
+
+export const GraceOfAirTotem = makeBooleanRaidBuffInput({
+	actionId: ActionId.fromSpellId(25359),
+	fieldName: 'graceOfAirTotem',
+	label: 'Grace of Air Totem',
+});
+
+export const WindfuryTotem = makeBooleanRaidBuffInput({
+	actionId: ActionId.fromSpellId(10614),
+	fieldName: 'windfuryTotem',
+	label: 'Windfury Totem',
+});
+
+export const FlametongueTotem = makeBooleanRaidBuffInput({
+	actionId: ActionId.fromSpellId(16387),
+	fieldName: 'flametongueTotem',
+	label: 'Flametongue Totem',
 });
 
 export const AspectOfTheWild = makeBooleanRaidBuffInput({
@@ -457,6 +457,26 @@ export const GENERATED_RAID_BUFFS_CONFIG: RenderableStatOptions[] = [
 		ownerClass: Class.ClassShaman,
 	},
 	{
+		config: StrengthOfEarthTotem,
+		stats: [Stat.StatStrength],
+		ownerClass: Class.ClassShaman,
+	},
+	{
+		config: GraceOfAirTotem,
+		stats: [Stat.StatAgility],
+		ownerClass: Class.ClassShaman,
+	},
+	{
+		config: WindfuryTotem,
+		stats: [Stat.StatAttackPower],
+		ownerClass: Class.ClassShaman,
+	},
+	{
+		config: FlametongueTotem,
+		stats: [Stat.StatAttackPower],
+		ownerClass: Class.ClassShaman,
+	},
+	{
 		config: AspectOfTheWild,
 		stats: [Stat.StatNatureResistance],
 		ownerClass: Class.ClassHunter,
@@ -520,21 +540,6 @@ export const GENERATED_PARTY_BUFFS_CONFIG: RenderableStatOptions[] = [
 		ownerClass: Class.ClassWarlock,
 	},
 	{
-		config: StrengthOfEarthTotem,
-		stats: [Stat.StatStrength],
-		ownerClass: Class.ClassShaman,
-	},
-	{
-		config: GraceOfAirTotem,
-		stats: [Stat.StatAgility],
-		ownerClass: Class.ClassShaman,
-	},
-	{
-		config: WindfuryTotem,
-		stats: [Stat.StatAttackPower],
-		ownerClass: Class.ClassShaman,
-	},
-	{
 		config: AtieshDruid,
 		stats: [Stat.StatMP5],
 		ownerClass: Class.ClassDruid,
@@ -553,11 +558,6 @@ export const GENERATED_PARTY_BUFFS_CONFIG: RenderableStatOptions[] = [
 		config: FuriousHowl,
 		stats: [Stat.StatAttackPower],
 		ownerClass: Class.ClassHunter,
-	},
-	{
-		config: FlametongueTotem,
-		stats: [Stat.StatAttackPower],
-		ownerClass: Class.ClassShaman,
 	},
 	{
 		config: Darkspear,
