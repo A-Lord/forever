@@ -103,14 +103,14 @@ func (hunter *Hunter) registerResourcefulness() {
 	buff := hunter.RegisterAura(spelldata.AuraConfig(resourcefulnessBuff))
 	spelldata.ParseEffects(&hunter.Character, buff, resourcefulnessBuff)
 
-	// The tooltip's chance is $m3, an effect the row does not carry. In game it is 30/60% by rank,
-	// the cost discount's own ladder.
-	chance := -spellData.Resourcefulness.EffectAt(1).FractionAt(hunter.Talents.Resourcefulness)
+	// The row states the chance on effect 2. The tooltip limits the trigger to ability crits, which
+	// the row's mask does not say.
 	trigger := spelldata.ProcTrigger(&hunter.Character, rank,
 		func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
 			buff.Activate(sim)
-		}, spelldata.Chance(chance))
+		})
 	trigger.Name = "Resourcefulness - Trigger"
+	trigger.Outcome = core.OutcomeCrit
 
 	hunter.MakeProcTriggerAura(trigger)
 }
