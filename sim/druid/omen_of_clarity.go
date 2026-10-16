@@ -28,6 +28,8 @@ func (druid *Druid) registerOmenOfClarity() {
 	// TODO: Ingame research needed -- whether Hurricane's ticks roll it. Each tick is its own instant hit
 	// here and rolls once per target, while the logs show no periodic tick ever proccing it.
 	trigger.ExtraCondition = func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
+		// The 15 October development notes take Faerie Fire cast in Cat, Bear or Dire Bear Form off
+		// Omen of Clarity. No row states it.
 		if spellData.FaerieFire.Contains(spell) && druid.InForm(Cat|Bear|DireBear) {
 			return false
 		}
