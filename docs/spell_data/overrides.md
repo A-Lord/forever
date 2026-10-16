@@ -9,7 +9,8 @@ do not state. One row per number:
 
 The next reader weighs the number against `Reason` and `Source`, and the generator refuses a row without
 a reason. `Source` names where the number came from: `tbc-carryover`, `tooltip`, `wcl:<report>/<fight>`,
-`issue #N`.
+`issue #N`, `combat log, <spell and rank>, <date>`. A `wcl:`, `issue #` or `combat log` source is a
+measurement on Forever; a carry-over or an `estimate` is listed as unvalidated on the gear it reaches.
 
 Every field names a rule the generator checks before it writes the value, so a stale override lasts
 until the next regeneration at most:

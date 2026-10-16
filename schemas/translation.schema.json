@@ -1108,6 +1108,19 @@
 						"toggle_item"
 					]
 				},
+				"precision": {
+					"type": "object",
+					"properties": {
+						"label": { "type": "string" },
+						"mode_iterations": { "type": "string" },
+						"mode_target": { "type": "string" },
+						"iterations": { "type": "string" },
+						"max_multiplier": { "type": "string" },
+						"max_multiplier_none": { "type": "string" }
+					},
+					"additionalProperties": false,
+					"required": ["label", "mode_iterations", "mode_target", "iterations", "max_multiplier", "max_multiplier_none"]
+				},
 				"preset": {
 					"type": "object",
 					"properties": {
@@ -1577,6 +1590,7 @@
 				"currency",
 				"copy_button",
 				"list_picker",
+				"precision",
 				"preset",
 				"dungeon_difficulties",
 				"rep_levels",
@@ -2769,7 +2783,7 @@
 							"additionalProperties": false,
 							"required": ["label", "tooltip"]
 						},
-						"cannot_shred_target": {
+						"prepull_clearcasting": {
 							"type": "object",
 							"properties": {
 								"label": {
@@ -2782,7 +2796,7 @@
 							"additionalProperties": false,
 							"required": ["label", "tooltip"]
 						},
-						"okf_uptime": {
+						"cannot_shred_target": {
 							"type": "object",
 							"properties": {
 								"label": {
@@ -3031,8 +3045,8 @@
 						"has_bs_tier_2",
 						"queue_delay",
 						"assume_bleed_active",
+						"prepull_clearcasting",
 						"cannot_shred_target",
-						"okf_uptime",
 						"show_1h_weapons",
 						"show_2h_weapons",
 						"show_all_enchants",
@@ -5834,45 +5848,6 @@
 									"additionalProperties": false,
 									"required": ["label", "tooltip"]
 								},
-								"solar_energy": {
-									"type": "object",
-									"properties": {
-										"label": {
-											"type": "string"
-										},
-										"tooltip": {
-											"type": "string"
-										}
-									},
-									"additionalProperties": false,
-									"required": ["label", "tooltip"]
-								},
-								"lunar_energy": {
-									"type": "object",
-									"properties": {
-										"label": {
-											"type": "string"
-										},
-										"tooltip": {
-											"type": "string"
-										}
-									},
-									"additionalProperties": false,
-									"required": ["label", "tooltip"]
-								},
-								"current_eclipse_phase": {
-									"type": "object",
-									"properties": {
-										"label": {
-											"type": "string"
-										},
-										"tooltip": {
-											"type": "string"
-										}
-									},
-									"additionalProperties": false,
-									"required": ["label", "tooltip"]
-								},
 								"generic_resource": {
 									"type": "object",
 									"properties": {
@@ -6446,6 +6421,19 @@
 									"additionalProperties": false,
 									"required": ["label", "tooltip"]
 								},
+								"druid_bleed_is_active": {
+									"type": "object",
+									"properties": {
+										"label": {
+											"type": "string"
+										},
+										"tooltip": {
+											"type": "string"
+										}
+									},
+									"additionalProperties": false,
+									"required": ["label", "tooltip"]
+								},
 								"dot_is_active_on_all_targets": {
 									"type": "object",
 									"properties": {
@@ -6892,9 +6880,6 @@
 								"estimated_time_to_target_energy",
 								"current_combo_points",
 								"max_combo_points",
-								"solar_energy",
-								"lunar_energy",
-								"current_eclipse_phase",
 								"generic_resource",
 								"gcd_is_ready",
 								"gcd_time_to_ready",
@@ -6938,6 +6923,7 @@
 								"any_stat_buff_cooldowns_active",
 								"any_stat_buff_cooldowns_min_duration",
 								"dot_is_active",
+								"druid_bleed_is_active",
 								"dot_is_active_on_all_targets",
 								"dot_remaining_time",
 								"dot_lowest_remaining_time",
@@ -7160,9 +7146,6 @@
 								"combo_points": {
 									"type": "string"
 								},
-								"eclipse": {
-									"type": "string"
-								},
 								"cooldowns": {
 									"type": "string"
 								},
@@ -7235,7 +7218,6 @@
 								"focus",
 								"energy",
 								"combo_points",
-								"eclipse",
 								"cooldowns",
 								"potions",
 								"conjured_items",
@@ -7376,22 +7358,6 @@
 										"variable_assignment_tooltip"
 									]
 								},
-								"eclipse_types": {
-									"type": "object",
-									"properties": {
-										"lunar": {
-											"type": "string"
-										},
-										"solar": {
-											"type": "string"
-										},
-										"neutral": {
-											"type": "string"
-										}
-									},
-									"additionalProperties": false,
-									"required": ["lunar", "solar", "neutral"]
-								},
 								"rotation_types": {
 									"type": "object",
 									"properties": {
@@ -7472,7 +7438,6 @@
 							"required": [
 								"action_id_sets",
 								"field_configs",
-								"eclipse_types",
 								"rotation_types",
 								"unit_labels",
 								"placeholder_tooltip",
@@ -7595,237 +7560,6 @@
 				"options": {
 					"type": "object",
 					"properties": {
-						"druid": {
-							"type": "object",
-							"properties": {
-								"feral_cat": {
-									"type": "object",
-									"properties": {
-										"finishing_move": {
-											"type": "object",
-											"properties": {
-												"label": {
-													"type": "string"
-												},
-												"tooltip": {
-													"type": "string"
-												},
-												"values": {
-													"type": "object",
-													"properties": {
-														"rip": {
-															"type": "string"
-														},
-														"bite": {
-															"type": "string"
-														},
-														"none": {
-															"type": "string"
-														}
-													},
-													"additionalProperties": false,
-													"required": ["rip", "bite", "none"]
-												}
-											},
-											"additionalProperties": false,
-											"required": ["label", "tooltip", "values"]
-										},
-										"biteweave": {
-											"type": "object",
-											"properties": {
-												"label": {
-													"type": "string"
-												},
-												"tooltip": {
-													"type": "string"
-												}
-											},
-											"additionalProperties": false,
-											"required": ["label", "tooltip"]
-										},
-										"ripweave": {
-											"type": "object",
-											"properties": {
-												"label": {
-													"type": "string"
-												},
-												"tooltip": {
-													"type": "string"
-												}
-											},
-											"additionalProperties": false,
-											"required": ["label", "tooltip"]
-										},
-										"rip_min_combo_points": {
-											"type": "object",
-											"properties": {
-												"label": {
-													"type": "string"
-												},
-												"tooltip": {
-													"type": "string"
-												}
-											},
-											"additionalProperties": false,
-											"required": ["label", "tooltip"]
-										},
-										"bite_min_combo_points": {
-											"type": "object",
-											"properties": {
-												"label": {
-													"type": "string"
-												},
-												"tooltip": {
-													"type": "string"
-												}
-											},
-											"additionalProperties": false,
-											"required": ["label", "tooltip"]
-										},
-										"mangle_trick": {
-											"type": "object",
-											"properties": {
-												"label": {
-													"type": "string"
-												},
-												"tooltip": {
-													"type": "string"
-												}
-											},
-											"additionalProperties": false,
-											"required": ["label", "tooltip"]
-										},
-										"rake_trick": {
-											"type": "object",
-											"properties": {
-												"label": {
-													"type": "string"
-												},
-												"tooltip": {
-													"type": "string"
-												}
-											},
-											"additionalProperties": false,
-											"required": ["label", "tooltip"]
-										},
-										"maintain_faerie_fire": {
-											"type": "object",
-											"properties": {
-												"label": {
-													"type": "string"
-												},
-												"tooltip": {
-													"type": "string"
-												}
-											},
-											"additionalProperties": false,
-											"required": ["label", "tooltip"]
-										}
-									},
-									"additionalProperties": false,
-									"required": [
-										"finishing_move",
-										"biteweave",
-										"ripweave",
-										"rip_min_combo_points",
-										"bite_min_combo_points",
-										"mangle_trick",
-										"rake_trick",
-										"maintain_faerie_fire"
-									]
-								},
-								"feral_bear": {
-									"type": "object",
-									"properties": {
-										"maul_rage_threshold": {
-											"type": "object",
-											"properties": {
-												"label": {
-													"type": "string"
-												},
-												"tooltip": {
-													"type": "string"
-												}
-											},
-											"additionalProperties": false,
-											"required": ["label", "tooltip"]
-										},
-										"swipe_usage": {
-											"type": "object",
-											"properties": {
-												"label": {
-													"type": "string"
-												},
-												"tooltip": {
-													"type": "string"
-												},
-												"values": {
-													"type": "object",
-													"properties": {
-														"never": {
-															"type": "string"
-														},
-														"with_enough_ap": {
-															"type": "string"
-														},
-														"spam": {
-															"type": "string"
-														}
-													},
-													"additionalProperties": false,
-													"required": ["never", "with_enough_ap", "spam"]
-												}
-											},
-											"additionalProperties": false,
-											"required": ["label", "tooltip", "values"]
-										},
-										"swipe_ap_threshold": {
-											"type": "object",
-											"properties": {
-												"label": {
-													"type": "string"
-												},
-												"tooltip": {
-													"type": "string"
-												}
-											},
-											"additionalProperties": false,
-											"required": ["label", "tooltip"]
-										},
-										"maintain_demo_roar": {
-											"type": "object",
-											"properties": {
-												"label": {
-													"type": "string"
-												},
-												"tooltip": {
-													"type": "string"
-												}
-											},
-											"additionalProperties": false,
-											"required": ["label", "tooltip"]
-										},
-										"maintain_faerie_fire": {
-											"type": "object",
-											"properties": {
-												"label": {
-													"type": "string"
-												},
-												"tooltip": {
-													"type": "string"
-												}
-											},
-											"additionalProperties": false,
-											"required": ["label", "tooltip"]
-										}
-									},
-									"additionalProperties": false,
-									"required": ["maul_rage_threshold", "swipe_usage", "swipe_ap_threshold", "maintain_demo_roar", "maintain_faerie_fire"]
-								}
-							},
-							"additionalProperties": false,
-							"required": ["feral_cat", "feral_bear"]
-						},
 						"rogue": {
 							"type": "object",
 							"properties": {
@@ -8133,7 +7867,7 @@
 						}
 					},
 					"additionalProperties": false,
-					"required": ["druid", "rogue", "shaman", "warlock", "hunter", "warrior"]
+					"required": ["rogue", "shaman", "warlock", "hunter", "warrior"]
 				}
 			},
 			"additionalProperties": false,
@@ -9665,6 +9399,12 @@
 								"show_experimental": {
 									"type": "string"
 								},
+								"show_power_tools": {
+									"type": "string"
+								},
+								"show_power_tools_tooltip": {
+									"type": "string"
+								},
 								"show_quick_swap": {
 									"type": "string"
 								},
@@ -9682,6 +9422,8 @@
 							"required": [
 								"show_threat_metrics",
 								"show_experimental",
+								"show_power_tools",
+								"show_power_tools_tooltip",
 								"show_quick_swap",
 								"show_threat_metrics_tooltip",
 								"show_experimental_tooltip",
@@ -9810,7 +9552,10 @@
 										"weights": {
 											"type": "string"
 										},
-										"stats_type": {
+										"settings": {
+											"type": "string"
+										},
+										"show_as": {
 											"type": "string"
 										},
 										"dps_tps_reference": {
@@ -10091,7 +9836,8 @@
 										"title",
 										"ep",
 										"weights",
-										"stats_type",
+										"settings",
+										"show_as",
 										"dps_tps_reference",
 										"healing_reference",
 										"mitigation_reference",
@@ -10133,10 +9879,113 @@
 									},
 									"additionalProperties": false,
 									"required": ["title"]
+								},
+								"precision": {
+									"type": "object",
+									"properties": {
+										"iterations_tooltip": { "type": "string" },
+										"target_ci": { "type": "string" },
+										"target_ci_tooltip": { "type": "string" },
+										"max_multiplier_tooltip": { "type": "string" }
+									},
+									"additionalProperties": false,
+									"required": ["iterations_tooltip", "target_ci", "target_ci_tooltip", "max_multiplier_tooltip"]
 								}
 							},
 							"additionalProperties": false,
-							"required": ["title", "modal", "saved_ep_weights"]
+							"required": ["title", "modal", "saved_ep_weights", "precision"]
+						},
+						"stat_sweep": {
+							"type": "object",
+							"properties": {
+								"title": { "type": "string" },
+								"settings": { "type": "string" },
+								"stats": {
+									"type": "object",
+									"properties": {
+										"label": { "type": "string" },
+										"placeholder": { "type": "string" },
+										"empty": { "type": "string" },
+										"open": { "type": "string" },
+										"remove": { "type": "string" }
+									},
+									"additionalProperties": false,
+									"required": ["label", "placeholder", "empty", "open", "remove"]
+								},
+								"range": { "type": "string" },
+								"step": { "type": "string" },
+								"run": { "type": "string" },
+								"progress": { "type": "string" },
+								"run_label": { "type": "string" },
+								"batch_label": { "type": "string" },
+								"capped_label": { "type": "string" },
+								"metric": { "type": "string" },
+								"show_spread": { "type": "string" },
+								"show_spread_tooltip": { "type": "string" },
+								"current_value": { "type": "string" },
+								"added_axis": { "type": "string" },
+								"tooltip_total": { "type": "string" },
+								"tooltip_value": { "type": "string" },
+								"tooltip_value_capped": { "type": "string" },
+								"band_key": { "type": "string" },
+								"empty": { "type": "string" },
+								"export_csv": { "type": "string" },
+								"stopped": { "type": "string" },
+								"history": {
+									"type": "object",
+									"properties": {
+										"title": { "type": "string" },
+										"delete": { "type": "string" },
+										"delete_batch": { "type": "string" },
+										"show": { "type": "string" },
+										"hide": { "type": "string" },
+										"show_hidden": { "type": "string" },
+										"more_stats": { "type": "string" },
+										"metric": { "type": "string" },
+										"empty": { "type": "string" }
+									},
+									"additionalProperties": false,
+									"required": ["title", "delete", "delete_batch", "show", "hide", "show_hidden", "more_stats", "metric", "empty"]
+								},
+								"precision": {
+									"type": "object",
+									"properties": {
+										"iterations_tooltip": { "type": "string" },
+										"target_ci": { "type": "string" },
+										"target_ci_tooltip": { "type": "string" },
+										"max_multiplier_tooltip": { "type": "string" }
+									},
+									"additionalProperties": false,
+									"required": ["iterations_tooltip", "target_ci", "target_ci_tooltip", "max_multiplier_tooltip"]
+								}
+							},
+							"additionalProperties": false,
+							"required": [
+								"title",
+								"settings",
+								"stats",
+								"range",
+								"step",
+								"run",
+								"progress",
+								"run_label",
+								"batch_label",
+								"capped_label",
+								"metric",
+								"show_spread",
+								"show_spread_tooltip",
+								"current_value",
+								"added_axis",
+								"tooltip_total",
+								"tooltip_value",
+								"tooltip_value_capped",
+								"band_key",
+								"empty",
+								"export_csv",
+								"stopped",
+								"history",
+								"precision"
+							]
 						},
 						"suggest_reforges": {
 							"type": "object",
@@ -10309,7 +10158,7 @@
 						}
 					},
 					"additionalProperties": false,
-					"required": ["simulate", "stat_weights", "suggest_reforges"]
+					"required": ["simulate", "stat_weights", "stat_sweep", "suggest_reforges"]
 				},
 				"header": {
 					"type": "object",

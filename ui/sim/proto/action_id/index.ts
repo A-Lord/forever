@@ -562,6 +562,11 @@ export class ActionId {
 					});
 				}
 				break;
+			case 'Penance':
+				if (tag === 1) {
+					name += ' (Heal)';
+				}
+				break;
 			case 'Hack and Slash':
 				if (tag == 1) {
 					name += ' (Axe/Sword)';
