@@ -21,6 +21,13 @@ func (warlock *Warlock) registerSummon(spellID int32, pet *WarlockPet) *core.Spe
 	config.ProcMask = core.ProcMaskEmpty
 	config.ClassSpellMask = WarlockSpellSummonDemon
 
+	// The demon out is stunned from the start of the cast. The APL checks the summon can be cast first.
+	config.Cast.ModifyCast = func(sim *core.Simulation, _ *core.Spell, _ *core.Cast) {
+		if warlock.ActivePet != nil && warlock.ActivePet.IsEnabled() {
+			core.ApplyStun(sim, warlock.ActivePet.summonStun)
+		}
+	}
+
 	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, _ *core.Spell) {
 		warlock.summonDemon(sim, pet)
 	}
@@ -32,6 +39,8 @@ func (warlock *Warlock) registerSummon(spellID int32, pet *WarlockPet) *core.Spe
 // demon without Demonic Pact, and with it only the demon sacrificed.
 func (warlock *Warlock) summonDemon(sim *core.Simulation, pet *WarlockPet) {
 	if warlock.ActivePet != nil {
+		// Before the dismissal, so the stun ending does not set the dismissed demon's swings going again
+		warlock.ActivePet.summonStun.Deactivate(sim)
 		warlock.ActivePet.Disable(sim)
 	}
 	warlock.ActivePet = pet

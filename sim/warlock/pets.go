@@ -18,6 +18,7 @@ type WarlockPet struct {
 	AutoCastAbilities []*core.Spell
 	MinMana           float64      // The mana the pet keeps before it casts again
 	ownerAuras        []*core.Aura // the warlock's effects that last while this demon, and no other, is out
+	summonStun        *core.Aura   // Summoning Disorientation, from the start of the warlock's summon until it runs out or the summon dismisses this demon
 }
 
 // A demon's level 60 stats and what its own stats convert into, from the team's pet model sheet where no
@@ -298,6 +299,11 @@ func (pet *WarlockPet) Initialize() {
 	if pet.owner.DemonicBrandAuras != nil {
 		pet.registerDemonicBrand()
 	}
+
+	// Summoning Disorientation, for its row's 6 sec. A summon cast in less, under Fel Domination or Master
+	// Summoner, dismisses the demon before it runs out.
+	disorientation := spelldata.AuraConfig(spelldata.MustFind(1249755))
+	pet.summonStun = pet.RegisterStunAura(disorientation.Label, disorientation.ActionID, disorientation.Duration)
 }
 
 func (pet *WarlockPet) Reset(_ *core.Simulation) {
