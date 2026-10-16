@@ -270,7 +270,7 @@ func noModsArmor(effects []int, effectArgs []int, armorStat float64) float64 {
 			continue
 		}
 		for _, e := range dbcInstance.SpellEffectsInOrder(effectArgs[i]) {
-			if s, row := storeEffect(e); e.EffectType == dbcenums.E_APPLY_AURA && row.NoModsArmor() && equipFold(s, row) == FoldStats {
+			if s, row := storeEffect(e); e.EffectType == dbcenums.E_APPLY_AURA && row.ArmorNoMods() && equipFold(s, row) == FoldStats {
 				armor += e.EffectBasePoints + e.EffectDieSides
 			}
 		}

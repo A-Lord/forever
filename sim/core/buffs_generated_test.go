@@ -240,7 +240,7 @@ func TestGeneratedResistancesCompeteAcrossBuffs(t *testing.T) {
 	_, prayerOnly := measure(&proto.RaidBuffs{PrayerOfShadowProtection: true})
 	char, both := measure(&proto.RaidBuffs{GiftOfTheWild: true, PrayerOfShadowProtection: true})
 
-	for _, stat := range []stats.Stat{stats.ShadowResistance, stats.FrostResistance, stats.Armor, stats.Stamina} {
+	for _, stat := range []stats.Stat{stats.ShadowResistance, stats.FrostResistance, stats.ArmorNoMods, stats.Stamina} {
 		if giftOnly[stat] <= 0 {
 			t.Fatalf("Gift of the Wild alone applied %v %s, want some", giftOnly[stat], stat.StatName())
 		}
@@ -254,7 +254,7 @@ func TestGeneratedResistancesCompeteAcrossBuffs(t *testing.T) {
 	if got, want := both[stats.ShadowResistance], max(giftOnly[stats.ShadowResistance], prayerOnly[stats.ShadowResistance]); got != want {
 		t.Errorf("shadow resistance is %v, want only the stronger of the two, %v", got, want)
 	}
-	for _, stat := range []stats.Stat{stats.FrostResistance, stats.Armor, stats.Stamina} {
+	for _, stat := range []stats.Stat{stats.FrostResistance, stats.ArmorNoMods, stats.Stamina} {
 		if got, want := both[stat], giftOnly[stat]; got != want {
 			t.Errorf("%s is %v, want Gift of the Wild's %v", stat.StatName(), got, want)
 		}
@@ -309,7 +309,7 @@ func TestGeneratedPaladinAuraJoinsTheSharedCategoryOnThePlayerCopyOnly(t *testin
 	if external.IsActive() {
 		t.Error("the external copy stayed active, so both copies of the aura are on the character")
 	}
-	if got, want := char.GetStats()[stats.Armor], armorAmount(t, 10293); got != want {
+	if got, want := char.GetStats()[stats.ArmorNoMods], armorAmount(t, 10293); got != want {
 		t.Errorf("both copies together applied %v armor, want the game files' %v", got, want)
 	}
 }

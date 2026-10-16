@@ -1112,7 +1112,7 @@ func NewSimpleStatActive(itemID int32) {
 // row's armor out of them. A buff id of 0, or one the store has no row for, keeps none.
 func noModsArmor(buffID int32, buffStats stats.Stats) float64 {
 	buff := spelldata.Find(buffID)
-	if !slices.ContainsFunc(buff.Effects, func(e spelldata.Effect) bool { return e.NoModsArmor() && LandsOnTheUser(&e) }) {
+	if !slices.ContainsFunc(buff.Effects, func(e spelldata.Effect) bool { return e.ArmorNoMods() && LandsOnTheUser(&e) }) {
 		return 0
 	}
 	return buffStats[stats.Armor]
