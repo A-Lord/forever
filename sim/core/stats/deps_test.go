@@ -132,18 +132,25 @@ func TestMultipleStatDep(t *testing.T) {
 // The doubling scales the 200 armor and adds the 100 ArmorNoMods after it, whichever was registered
 // first, and a dependency reading armor counts all of it.
 func TestUnmultipliedStatDependencyStaysOutOfTheSameStatMultiplier(t *testing.T) {
-	sdm := NewStatDependencyManager()
-	sdm.AddUnmultipliedStatDependency(ArmorNoMods, Armor)
-	sdm.MultiplyStat(Armor, 2)
-	sdm.AddStatDependency(Armor, AttackPower, 0.1)
-	sdm.FinalizeStatDeps()
+	for _, unmultipliedFirst := range []bool{true, false} {
+		sdm := NewStatDependencyManager()
+		if unmultipliedFirst {
+			sdm.AddUnmultipliedStatDependency(ArmorNoMods, Armor)
+			sdm.MultiplyStat(Armor, 2)
+		} else {
+			sdm.MultiplyStat(Armor, 2)
+			sdm.AddUnmultipliedStatDependency(ArmorNoMods, Armor)
+		}
+		sdm.AddStatDependency(Armor, AttackPower, 0.1)
+		sdm.FinalizeStatDeps()
 
-	got := sdm.ApplyStatDependencies(Stats{Armor: 200, ArmorNoMods: 100})
-	if got[Armor] != 500 {
-		t.Errorf("armor: %v, want 200*2+100 = 500", got[Armor])
-	}
-	if got[AttackPower] != 50 {
-		t.Errorf("attack power from armor: %v, want 500*0.1 = 50", got[AttackPower])
+		got := sdm.ApplyStatDependencies(Stats{Armor: 200, ArmorNoMods: 100})
+		if got[Armor] != 500 {
+			t.Errorf("ArmorNoMods registered first %v: armor %v, want 200*2+100 = 500", unmultipliedFirst, got[Armor])
+		}
+		if got[AttackPower] != 50 {
+			t.Errorf("ArmorNoMods registered first %v: attack power from armor %v, want 500*0.1 = 50", unmultipliedFirst, got[AttackPower])
+		}
 	}
 }
 

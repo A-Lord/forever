@@ -692,7 +692,7 @@ func TestNoModsArmorFromAnEnchantStaysOutOfEveryArmorScaling(t *testing.T) {
 	}
 	unenchanted := armorWith(0)
 	if got := armorWith(noModsArmorEnchantID) - unenchanted; !core.WithinToleranceFloat64(armor, got, 1e-6) {
-		t.Errorf("the no-mods enchant added %v armor, want its %v unscaled", got, armor)
+		t.Errorf("the ArmorNoMods enchant added %v armor, want its %v unscaled", got, armor)
 	}
 	if got, want := armorWith(plainArmorEnchantID)-unenchanted, armor*armorScaling*armorScaling; !core.WithinToleranceFloat64(want, got, 1e-6) {
 		t.Errorf("the plain armor enchant added %v armor, want its %v scaled to %v", got, armor, want)
@@ -701,7 +701,7 @@ func TestNoModsArmorFromAnEnchantStaysOutOfEveryArmorScaling(t *testing.T) {
 
 // A pre-pull item swap that takes the chest with the ArmorNoMods enchant off takes that armor off
 // whole, and the swap back puts it on whole, with the neck's scaling up throughout.
-func TestItemSwapMovesTheNoModsArmorShareWhole(t *testing.T) {
+func TestItemSwapMovesArmorNoModsWhole(t *testing.T) {
 	armor := noModsArmorFixtures(t)
 	swapTo := func(doAt string, set proto.APLActionItemSwap_SwapSet) *proto.APLPrepullAction {
 		return &proto.APLPrepullAction{
@@ -728,7 +728,7 @@ func TestItemSwapMovesTheNoModsArmorShareWhole(t *testing.T) {
 	sim.PrePull()
 	stepPast(t, sim, -1500*time.Millisecond)
 	if got := enchanted - wearer.GetStat(stats.Armor); !core.WithinToleranceFloat64(armor, got, 1e-6) {
-		t.Errorf("swapping the chest off took %v armor, want the share's %v", got, armor)
+		t.Errorf("swapping the chest off took %v armor, want the enchant's %v", got, armor)
 	}
 	stepPast(t, sim, -500*time.Millisecond)
 	if got := wearer.GetStat(stats.Armor); !core.WithinToleranceFloat64(enchanted, got, 1e-6) {

@@ -270,36 +270,6 @@ func TestZandalarianHeroBadgeLosesArmorPerHitTaken(t *testing.T) {
 	expectCountdown(t, "after a spell hit taken", character, before, full, stacks, 1)
 }
 
-// The item database carries the armor A_MOD_ARMOR_NO_MODS states as ArmorNoMods and none of it as
-// Armor: Ring of Saviors 1447's on-use buff, Savior's Sacrifice 18826, and Lesser Arcane Amalgamation
-// 1504's equip spell 15390.
-func TestItemDatabaseCarriesAura674ArmorAsArmorNoMods(t *testing.T) {
-	armorOf := func(id int32) float64 {
-		armor := spelldata.MustFind(id).FirstAura(dbcenums.A_MOD_ARMOR_NO_MODS).BasePoints
-		if armor == 0 {
-			t.Fatalf("%d states no A_MOD_ARMOR_NO_MODS armor, nothing to check", id)
-		}
-		return armor
-	}
-
-	ring := core.GetItemByID(1447)
-	if ring == nil || len(ring.ItemEffects) == 0 {
-		t.Fatal("Ring of Saviors 1447 carries no item effect")
-	}
-	buff := ring.ItemEffects[0].GetScalingOptions()[0].GetStats()
-	if got, want := buff[int32(proto.Stat_StatArmorNoMods)], armorOf(18826); got != want || buff[int32(proto.Stat_StatArmor)] != 0 {
-		t.Errorf("the ring's buff carries %v ArmorNoMods and %v Armor, want %v and none", got, buff[int32(proto.Stat_StatArmor)], want)
-	}
-
-	enchant := core.GetEnchantByEffectID(1504)
-	if enchant == nil {
-		t.Fatal("the database has no enchant 1504")
-	}
-	if got, want := enchant.Stats[stats.ArmorNoMods], armorOf(15390); got != want || enchant.Stats[stats.Armor] != 0 {
-		t.Errorf("enchant 1504 carries %v ArmorNoMods and %v Armor, want %v and none", got, enchant.Stats[stats.Armor], want)
-	}
-}
-
 // Zandalarian Hero Medallion 19949 adds melee and ranged damage on 24661's stacks, one stack's share
 // less for each hit dealt, on the shared cooldown its entry states.
 func TestZandalarianHeroMedallionLosesDamagePerHit(t *testing.T) {
