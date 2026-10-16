@@ -60,7 +60,7 @@ func (warlock *Warlock) applyImprovedImp() {
 	// })
 }
 
-// TODO: To be implemented. Port the TBC Demonic Embrace implementation below; not yet verified against the Forever game files.
+// TODO: To be implemented. The row holds only the Stamina bonus, which is what is left to port; the TBC line below is not yet verified against the Forever game files.
 func (warlock *Warlock) applyDemonicEmbrace() {
 	if warlock.Talents.DemonicEmbrace == 0 {
 		return
@@ -72,7 +72,6 @@ func (warlock *Warlock) applyDemonicEmbrace() {
 	// }
 	//
 	// warlock.MultiplyStat(stats.Stamina, 1.0+(0.03)*float64(warlock.Talents.DemonicEmbrace))
-	// warlock.MultiplyStat(stats.Spirit, 1.0-(0.01)*float64(warlock.Talents.DemonicEmbrace))
 }
 
 // TODO: To be implemented. Port the TBC Improved Sayaad implementation below; not yet verified against the Forever game files.

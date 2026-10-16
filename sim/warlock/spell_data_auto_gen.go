@@ -13,7 +13,6 @@ import (
 
 // Generated with an effect held at its base points, the talent tree stating no rank value for it:
 //   Decimation: effect 2 of spell 440870 has no rank curve and is held at its base points
-//   Demonic Embrace: effect 1 of spell 18697 has no rank curve and is held at its base points
 //   Demonic Pact: effect 0 of spell 425464 has no rank curve and is held at its base points
 //   Pyroclasm: effect 1 of spell 18073 has no rank curve and is held at its base points
 
@@ -78,6 +77,7 @@ type generatedSpellData struct {
 	FireAndBrimstone            spelldata.Ladder
 	Firebolt                    spelldata.Ladder
 	FireboltTriggered           spelldata.Ladder
+	GrimReach                   spelldata.Ladder
 	HealthFunnel                spelldata.Ladder
 	Hellfire                    spelldata.Ladder
 	HellfireTriggered           spelldata.Ladder
@@ -111,7 +111,6 @@ type generatedSpellData struct {
 	LesserInvisibility          spelldata.Ladder
 	LifeTap                     spelldata.Ladder
 	LifeTapTriggered            spelldata.Ladder
-	Malediction                 spelldata.Ladder
 	Malevolence                 spelldata.Ladder
 	MasterDemonologist          spelldata.Ladder
 	MasterSummoner              spelldata.Ladder
@@ -222,6 +221,7 @@ var spellData = generatedSpellData{
 	FireAndBrimstone:            spelldata.Talent(412751, 3),
 	Firebolt:                    spelldata.Ranked(3110, 7799, 7800, 7801, 7802, 11762, 11763),
 	FireboltTriggered:           spelldata.Ranked(18769),
+	GrimReach:                   spelldata.Talent(18218, 2),
 	HealthFunnel:                spelldata.Ranked(755, 3698, 3699, 3700, 11693, 11694, 11695),
 	Hellfire:                    spelldata.Ranked(1949, 11683, 11684),
 	HellfireTriggered:           spelldata.Ranked(5857, 11681, 11682),
@@ -255,7 +255,6 @@ var spellData = generatedSpellData{
 	LesserInvisibility:          spelldata.Ranked(7870),
 	LifeTap:                     spelldata.Ranked(1454, 1455, 1456, 11687, 11688, 11689),
 	LifeTapTriggered:            spelldata.Ranked(18182),
-	Malediction:                 spelldata.Talent(1225177, 5),
 	Malevolence:                 spelldata.Talent(1310949, 5),
 	MasterDemonologist:          spelldata.Talent(23785, 5),
 	MasterSummoner:              spelldata.Talent(18709, 2),
