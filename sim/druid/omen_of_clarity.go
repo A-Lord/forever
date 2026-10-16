@@ -20,7 +20,7 @@ func (druid *Druid) registerOmenOfClarity() {
 	trigger := spelldata.ProcTrigger(&druid.Character, omen, func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
 		druid.ClearcastingAura.Activate(sim)
 	}, spelldata.Chance(1))
-	// A landed debuff such as Faerie Fire rolls it, so a hit needs no damage.
+	// A landed caster-form debuff can roll it without dealing damage.
 	trigger.RequireDamageComponent = false
 	// Chance(1) keeps the resolver from building a procs-per-minute manager and leaves core no roll of
 	// its own. The chance depends on what hit, so it is drawn here, after the ICD check and before the
@@ -28,6 +28,11 @@ func (druid *Druid) registerOmenOfClarity() {
 	// TODO: Ingame research needed -- whether Hurricane's ticks roll it. Each tick is its own instant hit
 	// here and rolls once per target, while the logs show no periodic tick ever proccing it.
 	trigger.ExtraCondition = func(sim *core.Simulation, spell *core.Spell, _ *core.SpellResult) bool {
+		// The 15 October development notes take Faerie Fire cast in Cat, Bear or Dire Bear Form off
+		// Omen of Clarity. No row states it.
+		if spellData.FaerieFire.Contains(spell) && druid.InForm(Cat|Bear|DireBear) {
+			return false
+		}
 		if !spell.ProcMask.Matches(core.ProcMaskMeleeWhiteHit) && spell.ClassFlags.Family != omen.ClassFlags.Family {
 			return false
 		}

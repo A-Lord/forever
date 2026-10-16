@@ -114,7 +114,7 @@ func shieldTestSim(t *testing.T) (*core.Simulation, *core.Character, *core.Unit)
 		Rotation:      core.GetAplRotation("../../ui/specs/warrior/protection/apls", "default").Rotation,
 	}
 	sim := core.NewSim(&proto.RaidSimRequest{
-		Raid: core.SinglePlayerRaidProto(player, &proto.PartyBuffs{WindfuryTotem: true}, &proto.RaidBuffs{},
+		Raid: core.SinglePlayerRaidProto(player, &proto.PartyBuffs{}, &proto.RaidBuffs{WindfuryTotem: true},
 			&proto.Debuffs{}),
 		Encounter:  core.MakeSingleTargetEncounter(0),
 		SimOptions: &proto.SimOptions{RandomSeed: 1},
@@ -432,7 +432,7 @@ func TestOverpowerAndRevengeWindowsOpenOnAvoidedMeleeHits(t *testing.T) {
 
 // Furious Precision 3/3 gives the off-hand axe's attacks 10% hit and the main hand's none.
 // Cruelty 5/5 gives each axe 5% crit, and a two-handed axe also takes Weaponmaster's 5%, whose aura is
-// up. Axe Specialization is crit on every attack, not a mod on the axes.
+// up. Savage is crit on every attack, not a mod on the axes.
 func TestTalentsReachTheirWeapons(t *testing.T) {
 	for _, c := range []struct {
 		name     string

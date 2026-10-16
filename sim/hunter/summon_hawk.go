@@ -34,8 +34,9 @@ func (hawk *HawkPet) ExecuteCustomRotation(sim *core.Simulation) {
 
 // Effect 3 is the number of hawks up at once. A hawk's swing follows its owner's ranged speed while
 // it is up, a quiver's and Quick Shots' included; Berserking's attack speed does not reach it in
-// game. Its crit is the tamed pet's (inheritedMeleeCrit), with none from Agility. The row that
-// scales a hawk, Hunter Guardian Hawk Pet Scaling 01 (1293586), is not in the store.
+// game. Its crit is the tamed pet's, the higher of melee and ranged (inheritedCrit), with none from
+// Agility. The row that scales a hawk, Hunter Guardian Hawk Pet Scaling 01 (1293586), is not in the
+// store.
 func (hunter *Hunter) newHawks() []*HawkPet {
 	if !hunter.Talents.SummonHawk {
 		return nil
@@ -48,7 +49,7 @@ func (hunter *Hunter) newHawks() []*HawkPet {
 			Owner:     &hunter.Character,
 			BaseStats: petBaseStats,
 			StatInheritance: func(ownerStats stats.Stats) stats.Stats {
-				return stats.Stats{stats.PhysicalCritPercent: hunter.inheritedMeleeCrit(ownerStats)}
+				return stats.Stats{stats.PhysicalCritPercent: hunter.inheritedCrit(ownerStats)}
 			},
 			IsGuardian:                       true,
 			IsDynamic:                        true,

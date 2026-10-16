@@ -97,6 +97,7 @@ import {
 	APLValueTotemRemainingTime,
 	APLValueUnitDistance,
 	APLValueUnitIsMoving,
+	APLValueWarlockActivePet,
 	APLValueWarlockAssignedCurseIsActive,
 	APLValueWarlockIsAssignedCurse,
 } from '@generated/proto/apl';
@@ -124,6 +125,7 @@ import {
 	reactionTimeCheckbox,
 	statTypeFieldConfig,
 	stringFieldConfig,
+	summonTypeFieldConfig,
 	totemTypeFieldConfig,
 	unitFieldConfig,
 	valueFieldConfig,
@@ -1046,6 +1048,14 @@ export const valueKinds: { [f in ValidAPLValueKind]: ValueKindModel<APLValueImpl
 		newValue: APLValueWarlockIsAssignedCurse.create,
 		includeIf: (player: Player<any>, isPrepull: boolean) => !isPrepull && player.getSpec() == Spec.SpecWarlock,
 		fields: [curseTypeFieldConfig('curseType')],
+	}),
+	warlockActivePet: inputBuilder({
+		label: i18n.t('rotation_tab.apl.values.warlock_active_pet.label'),
+		submenu: ['warlock'],
+		shortDescription: i18n.t('rotation_tab.apl.values.warlock_active_pet.tooltip'),
+		newValue: APLValueWarlockActivePet.create,
+		includeIf: (player: Player<any>, isPrepull: boolean) => !isPrepull && player.getSpec() == Spec.SpecWarlock,
+		fields: [summonTypeFieldConfig('summon')],
 	}),
 	protectionPaladinDamageTakenLastGlobal: inputBuilder({
 		label: i18n.t('rotation_tab.apl.values.protection_paladin_damage_taken_last_global.label'),
