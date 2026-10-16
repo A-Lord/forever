@@ -117,11 +117,11 @@ func NewSpellDataManaSpringTotemAura(unit *core.Unit, isPlayer bool, talentPoint
 
 // Mana Tide Totem
 var ManaTideTotemsCategory = "ManaTideTotem"
-var manaTideTotemsSpell = spelldata.MustFind(17360)
+var manaTideTotemsSpell = spelldata.MustFind(1325257)
 var manaTideTotemsMeta = &Meta{
 	Label:    "Mana Tide Totem",
 	Spell:    manaTideTotemsSpell,
-	Cast:     spelldata.MustFind(17359),
+	Cast:     spelldata.MustFind(1325256),
 	Category: ManaTideTotemsCategory,
 }
 
@@ -257,63 +257,6 @@ func NewSpellDataAtieshWarlockAura(unit *core.Unit, isPlayer bool, talentPoints 
 	return newItemCountBuff(unit, atieshWarlockMeta, isPlayer, count)
 }
 
-// Strength of Earth Totem
-var StrengthOfEarthTotemCategory = "StrengthOfEarthTotem"
-var strengthOfEarthTotemSpell = spelldata.MustFind(25362)
-var strengthOfEarthTotemMeta = &Meta{
-	Label:    "Strength of Earth Totem",
-	Spell:    strengthOfEarthTotemSpell,
-	Category: StrengthOfEarthTotemCategory,
-}
-
-func StrengthOfEarthTotemValue(talentPoints int32) float64 {
-	return strengthOfEarthTotemMeta.Value(talentPoints)
-}
-func StrengthOfEarthTotemDuration(talentPoints int32) time.Duration {
-	return strengthOfEarthTotemMeta.Duration(talentPoints)
-}
-func NewSpellDataStrengthOfEarthTotemAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
-	return newBuff(unit, strengthOfEarthTotemMeta, isPlayer, talentPoints)
-}
-
-// Grace of Air Totem
-var GraceOfAirTotemCategory = "GraceOfAirTotem"
-var graceOfAirTotemSpell = spelldata.MustFind(25360)
-var graceOfAirTotemMeta = &Meta{
-	Label:    "Grace of Air Totem",
-	Spell:    graceOfAirTotemSpell,
-	Category: GraceOfAirTotemCategory,
-}
-
-func GraceOfAirTotemValue(talentPoints int32) float64 {
-	return graceOfAirTotemMeta.Value(talentPoints)
-}
-func GraceOfAirTotemDuration(talentPoints int32) time.Duration {
-	return graceOfAirTotemMeta.Duration(talentPoints)
-}
-func NewSpellDataGraceOfAirTotemAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
-	return newBuff(unit, graceOfAirTotemMeta, isPlayer, talentPoints)
-}
-
-// Windfury Totem
-var WindfuryTotemCategory = "WindfuryTotem"
-var windfuryTotemSpell = spelldata.MustFind(10610)
-var windfuryTotemMeta = &Meta{
-	Label:    "Windfury Totem",
-	Spell:    windfuryTotemSpell,
-	Category: WindfuryTotemCategory,
-}
-
-func WindfuryTotemValue(talentPoints int32) float64 {
-	return windfuryTotemMeta.Value(talentPoints)
-}
-func WindfuryTotemDuration(talentPoints int32) time.Duration {
-	return windfuryTotemMeta.Duration(talentPoints)
-}
-func NewSpellDataWindfuryTotemAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
-	return newBuff(unit, windfuryTotemMeta, isPlayer, talentPoints)
-}
-
 // Atiesh - Druid
 var atieshDruidSpell = spelldata.MustFind(28145)
 var atieshDruidMeta = &Meta{
@@ -388,23 +331,6 @@ func FuriousHowlDuration(talentPoints int32) time.Duration {
 }
 func NewSpellDataFuriousHowlAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
 	return newBuff(unit, furiousHowlMeta, isPlayer, talentPoints)
-}
-
-// Flametongue Totem
-// Left out: effect 1 A_PROC_TRIGGER_SPELL(42) misc 0
-var FlametongueTotemCategory = "FlametongueTotem"
-var flametongueTotemSpell = spelldata.MustFind(15036)
-var flametongueTotemMeta = &Meta{
-	Label:    "Flametongue Totem",
-	Spell:    flametongueTotemSpell,
-	Category: FlametongueTotemCategory,
-}
-
-func FlametongueTotemDuration(talentPoints int32) time.Duration {
-	return flametongueTotemMeta.Duration(talentPoints)
-}
-func NewSpellDataFlametongueTotemAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
-	return newBuff(unit, flametongueTotemMeta, isPlayer, talentPoints)
 }
 
 // Darkspear
@@ -656,6 +582,80 @@ func NewSpellDataNatureResistanceTotemAura(unit *core.Unit, isPlayer bool, talen
 	return newBuff(unit, natureResistanceTotemMeta, isPlayer, talentPoints)
 }
 
+// Strength of Earth Totem
+var StrengthOfEarthTotemCategory = "StrengthOfEarthTotem"
+var strengthOfEarthTotemSpell = spelldata.MustFind(25362)
+var strengthOfEarthTotemMeta = &Meta{
+	Label:    "Strength of Earth Totem",
+	Spell:    strengthOfEarthTotemSpell,
+	Category: StrengthOfEarthTotemCategory,
+}
+
+func StrengthOfEarthTotemValue(talentPoints int32) float64 {
+	return strengthOfEarthTotemMeta.Value(talentPoints)
+}
+func StrengthOfEarthTotemDuration(talentPoints int32) time.Duration {
+	return strengthOfEarthTotemMeta.Duration(talentPoints)
+}
+func NewSpellDataStrengthOfEarthTotemAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+	return newBuff(unit, strengthOfEarthTotemMeta, isPlayer, talentPoints)
+}
+
+// Grace of Air Totem
+var GraceOfAirTotemCategory = "GraceOfAirTotem"
+var graceOfAirTotemSpell = spelldata.MustFind(25360)
+var graceOfAirTotemMeta = &Meta{
+	Label:    "Grace of Air Totem",
+	Spell:    graceOfAirTotemSpell,
+	Category: GraceOfAirTotemCategory,
+}
+
+func GraceOfAirTotemValue(talentPoints int32) float64 {
+	return graceOfAirTotemMeta.Value(talentPoints)
+}
+func GraceOfAirTotemDuration(talentPoints int32) time.Duration {
+	return graceOfAirTotemMeta.Duration(talentPoints)
+}
+func NewSpellDataGraceOfAirTotemAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+	return newBuff(unit, graceOfAirTotemMeta, isPlayer, talentPoints)
+}
+
+// Windfury Totem
+var WindfuryTotemCategory = "WindfuryTotem"
+var windfuryTotemSpell = spelldata.MustFind(10610)
+var windfuryTotemMeta = &Meta{
+	Label:    "Windfury Totem",
+	Spell:    windfuryTotemSpell,
+	Category: WindfuryTotemCategory,
+}
+
+func WindfuryTotemValue(talentPoints int32) float64 {
+	return windfuryTotemMeta.Value(talentPoints)
+}
+func WindfuryTotemDuration(talentPoints int32) time.Duration {
+	return windfuryTotemMeta.Duration(talentPoints)
+}
+func NewSpellDataWindfuryTotemAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+	return newBuff(unit, windfuryTotemMeta, isPlayer, talentPoints)
+}
+
+// Flametongue Totem
+// Left out: effect 1 A_PROC_TRIGGER_SPELL(42) misc 0
+var FlametongueTotemCategory = "FlametongueTotem"
+var flametongueTotemSpell = spelldata.MustFind(15036)
+var flametongueTotemMeta = &Meta{
+	Label:    "Flametongue Totem",
+	Spell:    flametongueTotemSpell,
+	Category: FlametongueTotemCategory,
+}
+
+func FlametongueTotemDuration(talentPoints int32) time.Duration {
+	return flametongueTotemMeta.Duration(talentPoints)
+}
+func NewSpellDataFlametongueTotemAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+	return newBuff(unit, flametongueTotemMeta, isPlayer, talentPoints)
+}
+
 // Aspect of the Wild
 var aspectOfTheWildSpell = spelldata.MustFind(20190)
 var aspectOfTheWildMeta = &Meta{
@@ -860,15 +860,6 @@ func applyGeneratedBuffs(char *core.Character, raid *proto.RaidBuffs, party *pro
 	if party.AtieshWarlock > 0 {
 		driveAtieshWarlock(char, party)
 	}
-	if party.StrengthOfEarthTotem {
-		standTotem(char, strengthOfEarthTotemSpell, NewSpellDataStrengthOfEarthTotemAura, 0)
-	}
-	if party.GraceOfAirTotem {
-		driveGraceOfAirTotem(char, party)
-	}
-	if party.WindfuryTotem {
-		driveWindfuryTotem(char, party)
-	}
 	if party.AtieshDruid > 0 {
 		driveAtieshDruid(char, party)
 	}
@@ -880,9 +871,6 @@ func applyGeneratedBuffs(char *core.Character, raid *proto.RaidBuffs, party *pro
 	}
 	if party.FuriousHowl {
 		core.MakePermanent(NewSpellDataFuriousHowlAura(&char.Unit, false, 0))
-	}
-	if party.FlametongueTotem {
-		driveFlametongueTotem(char, party)
 	}
 	if party.Darkspear {
 		driveDarkspear(char, party)
@@ -922,6 +910,18 @@ func applyGeneratedBuffs(char *core.Character, raid *proto.RaidBuffs, party *pro
 	}
 	if raid.NatureResistanceTotem {
 		standTotem(char, natureResistanceTotemSpell, NewSpellDataNatureResistanceTotemAura, 0)
+	}
+	if raid.StrengthOfEarthTotem {
+		standTotem(char, strengthOfEarthTotemSpell, NewSpellDataStrengthOfEarthTotemAura, 0)
+	}
+	if raid.GraceOfAirTotem {
+		driveGraceOfAirTotem(char, raid)
+	}
+	if raid.WindfuryTotem {
+		driveWindfuryTotem(char, raid)
+	}
+	if raid.FlametongueTotem {
+		driveFlametongueTotem(char, raid)
 	}
 	if raid.AspectOfTheWild {
 		core.MakePermanent(NewSpellDataAspectOfTheWildAura(&char.Unit, false, 0))

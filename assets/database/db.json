@@ -11083,8 +11083,8 @@
 {"id":16043,"name":"Earth's Grasp","icon":"spell_nature_stoneclawtotem"},
 {"id":16086,"name":"Trial by Fire","icon":"spell_fire_sealoffire"},
 {"id":16089,"name":"Elemental Fury","icon":"spell_fire_volcano"},
-{"id":16120,"name":"Call of Thunder","icon":"spell_nature_callstorm"},
 {"id":16164,"name":"Elemental Focus","icon":"spell_shadow_manaburn"},
+{"id":16166,"name":"Elemental Mastery","icon":"spell_nature_wispheal","hasBuff":true},
 {"id":16173,"name":"Totemic Focus","icon":"spell_nature_moonglow"},
 {"id":16176,"name":"Ancestral Healing","icon":"spell_nature_undyingstrength"},
 {"id":16178,"name":"Purification","icon":"spell_frost_wizardmark"},
@@ -11221,8 +11221,6 @@
 {"id":17313,"name":"Mind Flay","icon":"spell_shadow_siphonmana","rank":4,"hasBuff":true},
 {"id":17314,"name":"Mind Flay","icon":"spell_shadow_siphonmana","rank":5,"hasBuff":true},
 {"id":17322,"name":"Shadow Reach","icon":"spell_shadow_chilltouch"},
-{"id":17359,"name":"Mana Tide Totem","icon":"spell_frost_summonwaterelemental","rank":3},
-{"id":17360,"name":"Mana Tide","icon":"spell_frost_summonwaterelemental","rank":3,"hasBuff":true},
 {"id":17364,"name":"Stormstrike","icon":"ability_shaman_stormstrike","hasBuff":true},
 {"id":17402,"name":"Hurricane","icon":"spell_nature_cyclone","rank":3},
 {"id":17485,"name":"Ancestral Knowledge","icon":"spell_shadow_grimward"},
@@ -11860,7 +11858,6 @@
 {"id":1237268,"name":"Holy Conduit","icon":"spell_holy_devineaegis"},
 {"id":1238073,"name":"Primal Bite","icon":"ability_racial_cannibalize","rank":4},
 {"id":1238122,"name":"Feral Charge","icon":"ability_hunter_pet_bear","hasBuff":true},
-{"id":1238299,"name":"Lava Burst","icon":"spell_shaman_lavaburst","rank":2},
 {"id":1238300,"name":"Lava Burst","icon":"spell_shaman_lavaburst","rank":3},
 {"id":1238931,"name":"Improved Stormstrike","icon":"spell_shaman_improvedstormstrike","hasBuff":true},
 {"id":1240720,"name":"Penance","icon":"spell_holy_penance","rank":2},
@@ -12637,7 +12634,10 @@
 {"id":1323964,"name":"Lingering Rage","icon":"ability_warrior_secondwind"},
 {"id":1323967,"name":"Gore Drinker","icon":"racial_troll_berserk"},
 {"id":1323968,"name":"Gore Drinker","icon":"racial_troll_berserk"},
-{"id":1323969,"name":"Gore Drinker","icon":"racial_troll_berserk","hasBuff":true}
+{"id":1323969,"name":"Gore Drinker","icon":"racial_troll_berserk","hasBuff":true},
+{"id":1325256,"name":"Mana Tide Totem","icon":"spell_frost_summonwaterelemental","rank":4},
+{"id":1325257,"name":"Mana Tide","icon":"spell_frost_summonwaterelemental","rank":4,"hasBuff":true},
+{"id":1326047,"name":"Lava Burst","icon":"spell_shaman_lavaburst","rank":4}
 ],
 "encounters":[
 {"path":"Default/Raid Target","targets":[{"path":"Default/Raid Target","target":{"id":31146,"name":"Raid Target","level":63,"mobType":7,"stats":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0,3731,0,1428900,0,0,0,0,0,0,0,0],"minBaseDamage":2601,"damageSpread":0.5,"swingSpeed":2,"parryHaste":true,"canCrush":true}}]},

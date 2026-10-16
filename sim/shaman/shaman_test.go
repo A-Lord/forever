@@ -17,7 +17,7 @@ func init() {
 }
 
 // The Enhancement suite's talents, which take Elemental Devastation.
-const enhancementTalents = "050533102-053030031005112251"
+const enhancementTalents = "053503102-053030031005112251"
 
 // Fire Nova's hits are a spell the cast triggers, and the row lacks Not a Proc, so Elemental
 // Devastation, which cannot proc from procs, never hears their crits. It hears an Earth Shock's.

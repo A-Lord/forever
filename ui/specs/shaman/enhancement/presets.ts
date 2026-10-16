@@ -23,7 +23,7 @@ export const TestingBuild = PresetUtils.makePresetBuildFromJSON('Testing', Spec.
 export const StandardTalents = {
 	name: 'Standard',
 	data: SavedTalents.create({
-		talentsString: '050533102-053030031005112251',
+		talentsString: '053503102-053030031005112251',
 	}),
 };
 
@@ -94,14 +94,14 @@ export const DefaultConsumables = ConsumesSpec.create({
 export const DefaultPartyBuffs = PartyBuffs.create({
 	leaderOfThePack: true,
 	battleShout: TristateEffect.TristateEffectRegular,
-	strengthOfEarthTotem: true,
-	windfuryTotem: true,
 });
 
 export const DefaultRaidBuffs = RaidBuffs.create({
 	prayerOfFortitude: true,
 	giftOfTheWild: true,
 	arcaneBrilliance: true,
+	strengthOfEarthTotem: true,
+	windfuryTotem: true,
 });
 
 export const DefaultDebuffs = Debuffs.create({

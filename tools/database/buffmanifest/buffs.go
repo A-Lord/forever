@@ -105,6 +105,47 @@ var Raid = []BuffSpec{
 		},
 	},
 	{
+		Field:    "strength_of_earth_totem",
+		SpellID:  25362,
+		CastID:   25361,
+		Category: "StrengthOfEarthTotem",
+		Stats: []proto.Stat{
+			proto.Stat_StatStrength,
+		},
+	},
+	// Driven because Windfury Totem takes the air slot: under both, Grace of Air does nothing.
+	{
+		Field:    "grace_of_air_totem",
+		SpellID:  25360,
+		CastID:   25359,
+		Category: "GraceOfAirTotem",
+		Driver:   true,
+		Stats: []proto.Stat{
+			proto.Stat_StatAgility,
+		},
+	},
+	{
+		Field:    "windfury_totem",
+		SpellID:  10610,
+		CastID:   10614,
+		Kind:     KindProc,
+		Category: "WindfuryTotem",
+		Stats: []proto.Stat{
+			proto.Stat_StatAttackPower,
+		},
+	},
+	// The totem's raid aura procs 16389 on every main-hand auto attack; the fire damage is the driver's.
+	{
+		Field:    "flametongue_totem",
+		SpellID:  15036,
+		CastID:   16387,
+		Kind:     KindProc,
+		Category: "FlametongueTotem",
+		Stats: []proto.Stat{
+			proto.Stat_StatAttackPower,
+		},
+	},
+	{
 		Field:   "aspect_of_the_wild",
 		SpellID: 20190,
 		Stats: []proto.Stat{
@@ -169,8 +210,8 @@ var Party = []BuffSpec{
 	// The cast states the totem's 13 s life and the 5 min cooldown, the aura the mana.
 	{
 		Field:    "mana_tide_totems",
-		SpellID:  17360,
-		CastID:   17359,
+		SpellID:  1325257,
+		CastID:   1325256,
 		Kind:     KindExternalCD,
 		Category: "ManaTideTotem",
 		Stats: []proto.Stat{
@@ -249,36 +290,6 @@ var Party = []BuffSpec{
 		},
 	},
 	{
-		Field:    "strength_of_earth_totem",
-		SpellID:  25362,
-		CastID:   25361,
-		Category: "StrengthOfEarthTotem",
-		Stats: []proto.Stat{
-			proto.Stat_StatStrength,
-		},
-	},
-	// Driven because Windfury Totem takes the air slot: under both, Grace of Air does nothing.
-	{
-		Field:    "grace_of_air_totem",
-		SpellID:  25360,
-		CastID:   25359,
-		Category: "GraceOfAirTotem",
-		Driver:   true,
-		Stats: []proto.Stat{
-			proto.Stat_StatAgility,
-		},
-	},
-	{
-		Field:    "windfury_totem",
-		SpellID:  10610,
-		CastID:   10614,
-		Kind:     KindProc,
-		Category: "WindfuryTotem",
-		Stats: []proto.Stat{
-			proto.Stat_StatAttackPower,
-		},
-	},
-	{
 		Field:   "atiesh_druid",
 		SpellID: 28145,
 		Owner:   proto.Class_ClassDruid,
@@ -316,17 +327,6 @@ var Party = []BuffSpec{
 		Owner:      proto.Class_ClassHunter,
 		Category:   "BattleShout",
 		SingleAura: true,
-		Stats: []proto.Stat{
-			proto.Stat_StatAttackPower,
-		},
-	},
-	// The totem's party aura procs 16389 on every main-hand auto attack; the fire damage is the driver's.
-	{
-		Field:    "flametongue_totem",
-		SpellID:  15036,
-		CastID:   16387,
-		Kind:     KindProc,
-		Category: "FlametongueTotem",
 		Stats: []proto.Stat{
 			proto.Stat_StatAttackPower,
 		},
