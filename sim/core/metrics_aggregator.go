@@ -135,27 +135,27 @@ const numHitKinds = int(proto.HitKind_HitKindShield) + 1
 
 // Value ranges of one spell split against one target, accumulated over all iterations.
 type hitRanges struct {
-	kinds  [numHitKinds]ValueRange
+	kinds  [numHitKinds]valueRange
 	custom []customMetric
 }
 
 type customMetric struct {
 	key string
-	ValueRange
+	valueRange
 }
 
-func (hr *hitRanges) customRange(key string) *ValueRange {
+func (hr *hitRanges) customRange(key string) *valueRange {
 	for i := range hr.custom {
 		if hr.custom[i].key == key {
-			return &hr.custom[i].ValueRange
+			return &hr.custom[i].valueRange
 		}
 	}
 	hr.custom = append(hr.custom, customMetric{key: key})
-	return &hr.custom[len(hr.custom)-1].ValueRange
+	return &hr.custom[len(hr.custom)-1].valueRange
 }
 
 func (actionMetrics *ActionMetrics) hitRangesToProto(targetIdx int, tam *proto.TargetedActionMetrics) {
-	var kinds [numHitKinds]ValueRange
+	var kinds [numHitKinds]valueRange
 	var custom []customMetric
 	for _, source := range actionMetrics.rangeSources {
 		hr := source[targetIdx]
@@ -172,7 +172,7 @@ func (actionMetrics *ActionMetrics) hitRangesToProto(targetIdx int, tam *proto.T
 				custom = append(custom, customMetric{key: cm.key})
 				idx = len(custom) - 1
 			}
-			custom[idx].merge(&cm.ValueRange)
+			custom[idx].merge(&cm.valueRange)
 		}
 	}
 

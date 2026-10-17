@@ -7,8 +7,8 @@ import (
 	"github.com/wowsims/forever/sim/core/proto"
 )
 
-func rangeOf(values ...float64) *ValueRange {
-	r := &ValueRange{}
+func rangeOf(values ...float64) *valueRange {
+	r := &valueRange{}
 	for _, v := range values {
 		r.add(v)
 	}
@@ -36,12 +36,12 @@ func TestValueRangeMerge(t *testing.T) {
 	a := rangeOf(3, 7)
 	b := rangeOf(1, 5)
 
-	merged := &ValueRange{}
+	merged := &valueRange{}
 	merged.merge(a)
 	if *merged != *a {
 		t.Fatalf("empty receiver should copy: %+v vs %+v", *merged, *a)
 	}
-	merged.merge(&ValueRange{})
+	merged.merge(&valueRange{})
 	if *merged != *a {
 		t.Fatalf("empty argument should be a no-op: %+v", *merged)
 	}

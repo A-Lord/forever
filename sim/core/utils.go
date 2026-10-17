@@ -272,13 +272,13 @@ func (x *aggregator) meanAndStdDev() (float64, float64) {
 
 // The zero value is empty. Mean and m2 (the sum of squared deviations) are kept Welford-style, so the
 // stdev stays stable for large counts of near-equal values and is exactly 0 for constant ones.
-type ValueRange struct {
+type valueRange struct {
 	n        int
 	mean, m2 float64
 	min, max float64
 }
 
-func (r *ValueRange) add(v float64) {
+func (r *valueRange) add(v float64) {
 	if r.n == 0 {
 		r.min, r.max = v, v
 	} else {
@@ -291,7 +291,7 @@ func (r *ValueRange) add(v float64) {
 	r.m2 += d * (v - r.mean)
 }
 
-func (r *ValueRange) merge(o *ValueRange) {
+func (r *valueRange) merge(o *valueRange) {
 	if o.n == 0 {
 		return
 	}
@@ -308,7 +308,7 @@ func (r *ValueRange) merge(o *ValueRange) {
 	r.max = math.Max(r.max, o.max)
 }
 
-func (r *ValueRange) toProto() *proto.DistributionMetrics {
+func (r *valueRange) toProto() *proto.DistributionMetrics {
 	stdev := 0.0
 	if r.n > 0 {
 		stdev = math.Sqrt(math.Max(0, r.m2/float64(r.n)))

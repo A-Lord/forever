@@ -41,7 +41,7 @@ func (shield *Shield) Apply(sim *Simulation, shieldAmount float64) {
 	shield.Spell.SpellMetrics[target.UnitIndex].TotalThreat += threat
 	shield.Spell.SpellMetrics[target.UnitIndex].TotalShielding += shieldAmount
 	shield.Spell.SpellMetrics[target.UnitIndex].Hits++
-	if shieldAmount > 0 && !shield.Spell.Flags.Matches(SpellFlagNoMetrics) {
+	if sim.CurrentTime >= 0 && shieldAmount > 0 && !shield.Spell.Flags.Matches(SpellFlagNoMetrics) {
 		shield.Spell.recordHit(target, proto.HitKind_HitKindShield, shieldAmount)
 	}
 

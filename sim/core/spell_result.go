@@ -783,7 +783,7 @@ func (spell *Spell) dealHealingInternal(sim *Simulation, isPeriodic bool, result
 	}
 	spell.SpellMetrics[result.Target.UnitIndex].TotalHealing += result.Damage
 	spell.SpellMetrics[result.Target.UnitIndex].TotalThreat += result.Threat
-	if result.Damage > 0 && !spell.Flags.Matches(SpellFlagNoMetrics) {
+	if sim.CurrentTime >= 0 && result.Damage > 0 && !spell.Flags.Matches(SpellFlagNoMetrics) {
 		kind := proto.HitKind_HitKindHeal
 		switch {
 		case isPeriodic && result.DidCrit():

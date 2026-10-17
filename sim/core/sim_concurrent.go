@@ -192,38 +192,18 @@ func rangeN(m *proto.DistributionMetrics) int32 {
 	return m.AggregatorData.N
 }
 
-func copyHitRange(m *proto.DistributionMetrics) *proto.DistributionMetrics {
-	if rangeN(m) == 0 {
-		return &proto.DistributionMetrics{AggregatorData: &proto.AggregatorData{}}
+func valueRangeFromProto(m *proto.DistributionMetrics) *valueRange {
+	n := rangeN(m)
+	if n == 0 {
+		return &valueRange{}
 	}
-	return &proto.DistributionMetrics{
-		Avg:            m.Avg,
-		Stdev:          m.Stdev,
-		Min:            m.Min,
-		Max:            m.Max,
-		AggregatorData: &proto.AggregatorData{N: m.AggregatorData.N},
-	}
+	return &valueRange{n: int(n), mean: m.Avg, m2: m.Stdev * m.Stdev * float64(n), min: m.Min, max: m.Max}
 }
 
-// Merges two ranges into a new message from their counts, means and stdevs; an empty side leaves the other as is.
 func combineHitRanges(base, add *proto.DistributionMetrics) *proto.DistributionMetrics {
-	bn, an := rangeN(base), rangeN(add)
-	if an == 0 {
-		return copyHitRange(base)
-	}
-	if bn == 0 {
-		return copyHitRange(add)
-	}
-	n := float64(bn + an)
-	delta := add.Avg - base.Avg
-	m2 := base.Stdev*base.Stdev*float64(bn) + add.Stdev*add.Stdev*float64(an) + delta*delta*float64(bn)*float64(an)/n
-	return &proto.DistributionMetrics{
-		Avg:            base.Avg + delta*float64(an)/n,
-		Stdev:          math.Sqrt(m2 / n),
-		Min:            math.Min(base.Min, add.Min),
-		Max:            math.Max(base.Max, add.Max),
-		AggregatorData: &proto.AggregatorData{N: bn + an},
-	}
+	merged := valueRangeFromProto(base)
+	merged.merge(valueRangeFromProto(add))
+	return merged.toProto()
 }
 
 func combineTargetHitRanges(base, add *proto.TargetedActionMetrics) {
@@ -236,7 +216,7 @@ func combineTargetHitRanges(base, add *proto.TargetedActionMetrics) {
 	for _, addCustom := range add.CustomMetrics {
 		idx := slices.IndexFunc(base.CustomMetrics, func(c *proto.CustomActionMetric) bool { return c.Key == addCustom.Key })
 		if idx < 0 {
-			base.CustomMetrics = append(base.CustomMetrics, &proto.CustomActionMetric{Key: addCustom.Key, Range: copyHitRange(addCustom.Range)})
+			base.CustomMetrics = append(base.CustomMetrics, &proto.CustomActionMetric{Key: addCustom.Key, Range: combineHitRanges(nil, addCustom.Range)})
 			continue
 		}
 		baseCustom := base.CustomMetrics[idx]
