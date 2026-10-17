@@ -98,7 +98,6 @@ export const DefaultRaidBuffs = RaidBuffs.create({
 	arcaneBrilliance: true,
 	prayerOfSpirit: true,
 	giftOfTheWild: true,
-	prayerOfFortitude: true,
 	graceOfAirTotem: true,
 	strengthOfEarthTotem: true,
 	battleShout: TristateEffect.TristateEffectRegular,
