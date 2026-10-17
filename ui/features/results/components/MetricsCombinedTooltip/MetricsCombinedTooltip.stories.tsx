@@ -75,7 +75,7 @@ export const WithRanges: Story = {
 				name: 'Spec metrics',
 				totalPercentage: 100,
 				spellSchool: SpellSchool.SpellSchoolHoly,
-				data: [{ name: 'Divine Aegis shield', value: 12, percentage: 100, average: 410, min: 300, max: 520 }],
+				data: [{ name: 'Divine Aegis shield', value: 4920, percentage: 89, average: 410, min: 300, max: 520 }],
 			},
 		],
 	},

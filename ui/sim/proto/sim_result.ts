@@ -1264,7 +1264,9 @@ export class ActionMetrics {
 
 	get customMetrics() {
 		return this.combinedMetrics.customMetrics.flatMap(({ key, range }) =>
-			range && rangeCount(range) > 0 ? [{ key, value: rangeCount(range) / this.iterations, average: range.avg, min: range.min, max: range.max }] : [],
+			range && rangeCount(range) > 0
+				? [{ key, value: (range.avg * rangeCount(range)) / this.iterations, average: range.avg, min: range.min, max: range.max }]
+				: [],
 		);
 	}
 
@@ -1273,23 +1275,42 @@ export class ActionMetrics {
 		return range ? { min: range.min, max: range.max } : {};
 	}
 
+	// Per iteration. Shielding comes from the action's shielding total, which absorb auras credit without
+	// recording a range; heals with no recorded range split the healing total into normal and critical.
 	get healingDone() {
-		const entry = (kind: HitKind) => {
+		const entry = (value: number, average: number | undefined, kind: HitKind) => ({
+			value,
+			percentage: percentOf(value, this.avgHealing),
+			average,
+			...this.bounds(kind),
+		});
+		const fromRange = (kind: HitKind) => {
 			const range = this.range(kind);
-			const value = range ? (range.avg * rangeCount(range)) / this.iterations : 0;
-			return {
-				value,
-				percentage: percentOf(value, this.avgHealing),
-				average: range?.avg ?? 0,
-				...this.bounds(kind),
-			};
+			return entry(range ? (range.avg * rangeCount(range)) / this.iterations : 0, range?.avg ?? 0, kind);
 		};
+		const per = (value: number, count: number) => (count ? value / count : undefined);
+
+		const shielding = this.shielding / this.iterations;
+		const shield = entry(shielding, this.range(HitKind.HitKindShield)?.avg ?? per(shielding, this.landedHits), HitKind.HitKindShield);
+		const healKinds = [HitKind.HitKindHeal, HitKind.HitKindCritHeal, HitKind.HitKindHealTick, HitKind.HitKindCritHealTick];
+		if (healKinds.some(kind => this.range(kind))) {
+			return {
+				heal: fromRange(HitKind.HitKindHeal),
+				critHeal: fromRange(HitKind.HitKindCritHeal),
+				tick: fromRange(HitKind.HitKindHealTick),
+				critTick: fromRange(HitKind.HitKindCritHealTick),
+				shield,
+			};
+		}
+
+		const critHealing = this.avgCritHealing;
+		const normalHealing = this.avgHealing - shielding - critHealing;
 		return {
-			heal: entry(HitKind.HitKindHeal),
-			critHeal: entry(HitKind.HitKindCritHeal),
-			tick: entry(HitKind.HitKindHealTick),
-			critTick: entry(HitKind.HitKindCritHealTick),
-			shield: entry(HitKind.HitKindShield),
+			heal: entry(normalHealing, per(normalHealing, this.hits || this.ticks), HitKind.HitKindHeal),
+			critHeal: entry(critHealing, per(critHealing, this.crits || this.critTicks), HitKind.HitKindCritHeal),
+			tick: fromRange(HitKind.HitKindHealTick),
+			critTick: fromRange(HitKind.HitKindCritHealTick),
+			shield,
 		};
 	}
 

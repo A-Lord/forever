@@ -213,7 +213,7 @@ describe('per-value ranges', () => {
 		expect(merged.range(HitKind.HitKindTick)!.aggregatorData!.n).toBe(4);
 	});
 
-	it('merges custom metrics by key and reports them per iteration', async () => {
+	it('merges custom metrics by key and reports their amount per iteration', async () => {
 		const actions = await rangedActions(
 			[{ customMetrics: [{ key: 'ignite_added', range: range(4, 100, 0, 80, 120) }] }],
 			[
@@ -227,8 +227,8 @@ describe('per-value ranges', () => {
 		);
 
 		const byKey = Object.fromEntries(ActionMetrics.merge(actions).customMetrics.map(metric => [metric.key, metric]));
-		expect(byKey.ignite_added).toMatchObject({ value: 4, average: 150, min: 80, max: 260 });
-		expect(byKey.divine_aegis).toMatchObject({ value: 1, average: 50 });
+		expect(byKey.ignite_added).toMatchObject({ value: 600, average: 150, min: 80, max: 260 });
+		expect(byKey.divine_aegis).toMatchObject({ value: 50, average: 50 });
 	});
 
 	it('gives each damage kind its bounds only when the kind landed values', async () => {
@@ -260,5 +260,26 @@ describe('per-value ranges', () => {
 		expect(done.shield).toMatchObject({ value: 50, average: 100 });
 		expect(done.heal.percentage).toBeCloseTo((200 / 550) * 100);
 		expect(done.tick).toEqual({ value: 0, percentage: 0, average: 0 });
+	});
+
+	it('takes the shield row from the shielding total when the absorb recorded no range', async () => {
+		const [action] = await rangedActions([{ hits: 4, shielding: 1000 }]);
+
+		const done = action.healingDone;
+		expect(done.shield).toEqual({ value: 500, percentage: expect.closeTo(100), average: 250 });
+		expect(done.heal.value).toBe(0);
+		expect(done.critHeal.value).toBe(0);
+		expect(done.shield.value).toBe(action.avgHealing);
+	});
+
+	it('splits the healing total into normal and critical heals when no heal range was recorded', async () => {
+		const [action] = await rangedActions([{ hits: 10, crits: 2, healing: 1000, critHealing: 400 }]);
+
+		const done = action.healingDone;
+		expect(done.heal).toMatchObject({ value: 300, average: 60 });
+		expect(done.critHeal).toMatchObject({ value: 200, average: 200 });
+		expect(done.heal.percentage).toBeCloseTo(60);
+		expect(done.critHeal.percentage).toBeCloseTo(40);
+		expect(done.shield.value).toBe(0);
 	});
 });

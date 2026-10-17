@@ -38,8 +38,12 @@ const damageBreakdownGroup = (metric: ActionMetrics, { crush }: AttackBreakdownO
 	};
 };
 
-/** The values a class or spec records on the action, one row per key, or no group when it records none. */
-export const customMetricsGroups = (metric: ActionMetrics): Array<MetricsCombinedTooltipGroup> =>
+/**
+ * The values a class or spec records on the action, one row per key, or no group when it records none.
+ * Each row's percentage is its amount against `actionTotal`, the action's own per-iteration amount in
+ * the same tooltip, since these values come on top of that amount and are no share of it.
+ */
+export const customMetricsGroups = (metric: ActionMetrics, actionTotal: number): Array<MetricsCombinedTooltipGroup> =>
 	metric.customMetrics.length
 		? [
 				{
@@ -48,7 +52,7 @@ export const customMetricsGroups = (metric: ActionMetrics): Array<MetricsCombine
 					totalPercentage: 100,
 					data: metric.customMetrics.map(({ key, ...entry }) => ({
 						name: i18n.t(`results_tab.details.custom_metrics.${key}`, { defaultValue: key }),
-						percentage: 100,
+						percentage: percentOf(entry.value, actionTotal),
 						...entry,
 					})),
 				},
@@ -159,7 +163,7 @@ export const threatTooltip = (metric: ActionMetrics, value: number, showThreatMe
 	showThreatMetrics && value ? <MetricsCombinedTooltip headerValues={amountHeader()} groups={[threatGroup(metric, value)]} /> : null;
 
 export const damageBreakdownTooltip = (metric: ActionMetrics, options?: AttackBreakdownOptions) => (
-	<MetricsCombinedTooltip headerValues={amountHeader()} groups={[damageBreakdownGroup(metric, options), ...customMetricsGroups(metric)]} />
+	<MetricsCombinedTooltip headerValues={amountHeader()} groups={[damageBreakdownGroup(metric, options), ...customMetricsGroups(metric, metric.avgDamage)]} />
 );
 
 export const castsTooltip = (metric: ActionMetrics, options?: AttackBreakdownOptions) =>

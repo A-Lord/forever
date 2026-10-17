@@ -83,7 +83,7 @@ export const MetricsCombinedTooltip = ({ groups, headerValues }: MetricsCombined
 								.sort((a, b) => b.value - a.value)
 								.map(({ name, value, percentage, average, min, max }) => (
 									<TableRow className={className} key={name}>
-										<TableCell className="ui-metrics-cell">{name}</TableCell>
+										<TableCell className="ui-metrics-cell whitespace-nowrap">{name}</TableCell>
 										<TableCell className="ui-metrics-cell">
 											<MetricsTotalBar
 												spellSchool={spellSchool}
