@@ -438,7 +438,7 @@ func (unitMetrics *UnitMetrics) addSpellMetrics(spell *Spell, actionID ActionID,
 		}
 	}
 
-	if !slices.ContainsFunc(actionMetrics.rangeSources, func(s []*hitRanges) bool { return &s[0] == &ranges[0] }) {
+	if len(ranges) > 0 && !slices.ContainsFunc(actionMetrics.rangeSources, func(s []*hitRanges) bool { return &s[0] == &ranges[0] }) {
 		actionMetrics.rangeSources = append(actionMetrics.rangeSources, ranges)
 	}
 
