@@ -270,6 +270,54 @@ func (x *aggregator) meanAndStdDev() (float64, float64) {
 	return mean, stdDev
 }
 
+// The zero value is empty.
+type ValueRange struct {
+	aggregator
+	min, max float64
+}
+
+func (r *ValueRange) add(v float64) {
+	if r.n == 0 {
+		r.min, r.max = v, v
+	} else {
+		r.min = math.Min(r.min, v)
+		r.max = math.Max(r.max, v)
+	}
+	r.aggregator.add(v)
+}
+
+func (r *ValueRange) merge(o *ValueRange) {
+	if o.n == 0 {
+		return
+	}
+	if r.n == 0 {
+		*r = *o
+		return
+	}
+	r.n += o.n
+	r.sum += o.sum
+	r.sumSq += o.sumSq
+	r.min = math.Min(r.min, o.min)
+	r.max = math.Max(r.max, o.max)
+}
+
+func (r *ValueRange) toProto() *proto.DistributionMetrics {
+	avg, stdev := r.meanAndStdDev()
+	if math.IsNaN(stdev) {
+		stdev = 0
+	}
+	return &proto.DistributionMetrics{
+		Avg:   avg,
+		Stdev: stdev,
+		Min:   r.min,
+		Max:   r.max,
+		AggregatorData: &proto.AggregatorData{
+			N:     int32(r.n),
+			SumSq: r.sumSq,
+		},
+	}
+}
+
 func GetCurrentProtoVersion() int32 {
 	versionMessage := &proto.ProtoVersion{}
 	options := versionMessage.ProtoReflect().Descriptor().Options()

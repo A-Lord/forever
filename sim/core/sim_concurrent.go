@@ -185,6 +185,65 @@ func (rsrc *raidSimResultCombiner) combineDistMetrics(base *proto.DistributionMe
 	CombineDistributionMetrics(base, add, isLast, weight)
 }
 
+func rangeN(m *proto.DistributionMetrics) int32 {
+	if m == nil || m.AggregatorData == nil {
+		return 0
+	}
+	return m.AggregatorData.N
+}
+
+func copyHitRange(m *proto.DistributionMetrics) *proto.DistributionMetrics {
+	if rangeN(m) == 0 {
+		return &proto.DistributionMetrics{AggregatorData: &proto.AggregatorData{}}
+	}
+	return &proto.DistributionMetrics{
+		Avg:            m.Avg,
+		Stdev:          m.Stdev,
+		Min:            m.Min,
+		Max:            m.Max,
+		AggregatorData: &proto.AggregatorData{N: m.AggregatorData.N, SumSq: m.AggregatorData.SumSq},
+	}
+}
+
+// Merges two ranges by their sample counts into a new message; an empty side leaves the other as is.
+func combineHitRanges(base, add *proto.DistributionMetrics) *proto.DistributionMetrics {
+	bn, an := rangeN(base), rangeN(add)
+	if an == 0 {
+		return copyHitRange(base)
+	}
+	if bn == 0 {
+		return copyHitRange(add)
+	}
+	n := bn + an
+	avg := (base.Avg*float64(bn) + add.Avg*float64(an)) / float64(n)
+	sumSq := base.AggregatorData.SumSq + add.AggregatorData.SumSq
+	return &proto.DistributionMetrics{
+		Avg:            avg,
+		Stdev:          math.Sqrt(math.Max(0, sumSq/float64(n)-avg*avg)),
+		Min:            math.Min(base.Min, add.Min),
+		Max:            math.Max(base.Max, add.Max),
+		AggregatorData: &proto.AggregatorData{N: n, SumSq: sumSq},
+	}
+}
+
+func combineTargetHitRanges(base, add *proto.TargetedActionMetrics) {
+	for kind, addRange := range add.Ranges {
+		if base.Ranges == nil {
+			base.Ranges = make(map[int32]*proto.DistributionMetrics, len(add.Ranges))
+		}
+		base.Ranges[kind] = combineHitRanges(base.Ranges[kind], addRange)
+	}
+	for _, addCustom := range add.CustomMetrics {
+		idx := slices.IndexFunc(base.CustomMetrics, func(c *proto.CustomActionMetric) bool { return c.Key == addCustom.Key })
+		if idx < 0 {
+			base.CustomMetrics = append(base.CustomMetrics, &proto.CustomActionMetric{Key: addCustom.Key, Range: copyHitRange(addCustom.Range)})
+			continue
+		}
+		baseCustom := base.CustomMetrics[idx]
+		baseCustom.Range = combineHitRanges(baseCustom.Range, addCustom.Range)
+	}
+}
+
 func (rsrc *raidSimResultCombiner) addActionMetrics(unit *proto.UnitMetrics, add *proto.ActionMetrics) {
 	actionIndex, ok := rsrc.actionIndexByUnit[unit]
 	if !ok {
@@ -256,6 +315,7 @@ func (rsrc *raidSimResultCombiner) addActionMetrics(unit *proto.UnitMetrics, add
 		baseTgt.CritHealing += addTgt.CritHealing
 		baseTgt.Shielding += addTgt.Shielding
 		baseTgt.CastTimeMs += addTgt.CastTimeMs
+		combineTargetHitRanges(baseTgt, addTgt)
 	}
 }
 

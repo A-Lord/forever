@@ -127,6 +127,67 @@ type ActionMetrics struct {
 
 	// Metrics for this action, for each possible target.
 	Targets []TargetedActionMetrics
+
+	rangeSources [][]*hitRanges // One slice per spell and split feeding this action, indexed by target.
+}
+
+const numHitKinds = int(proto.HitKind_HitKindShield) + 1
+
+// Value ranges of one spell split against one target, accumulated over all iterations.
+type hitRanges struct {
+	kinds  [numHitKinds]ValueRange
+	custom []customMetric
+}
+
+type customMetric struct {
+	key string
+	ValueRange
+}
+
+func (hr *hitRanges) customRange(key string) *ValueRange {
+	for i := range hr.custom {
+		if hr.custom[i].key == key {
+			return &hr.custom[i].ValueRange
+		}
+	}
+	hr.custom = append(hr.custom, customMetric{key: key})
+	return &hr.custom[len(hr.custom)-1].ValueRange
+}
+
+func (actionMetrics *ActionMetrics) hitRangesToProto(targetIdx int, tam *proto.TargetedActionMetrics) {
+	var kinds [numHitKinds]ValueRange
+	var custom []customMetric
+	for _, source := range actionMetrics.rangeSources {
+		hr := source[targetIdx]
+		if hr == nil {
+			continue
+		}
+		for k := range kinds {
+			kinds[k].merge(&hr.kinds[k])
+		}
+		for i := range hr.custom {
+			cm := &hr.custom[i]
+			idx := slices.IndexFunc(custom, func(c customMetric) bool { return c.key == cm.key })
+			if idx < 0 {
+				custom = append(custom, customMetric{key: cm.key})
+				idx = len(custom) - 1
+			}
+			custom[idx].merge(&cm.ValueRange)
+		}
+	}
+
+	for k := range kinds {
+		if kinds[k].n == 0 {
+			continue
+		}
+		if tam.Ranges == nil {
+			tam.Ranges = make(map[int32]*proto.DistributionMetrics)
+		}
+		tam.Ranges[int32(k)] = kinds[k].toProto()
+	}
+	for i := range custom {
+		tam.CustomMetrics = append(tam.CustomMetrics, &proto.CustomActionMetric{Key: custom[i].key, Range: custom[i].toProto()})
+	}
 }
 
 type tmiListItem struct {
@@ -136,8 +197,10 @@ type tmiListItem struct {
 
 func (actionMetrics *ActionMetrics) ToProto(actionID ActionID) *proto.ActionMetrics {
 	targetMetrics := make([]*proto.TargetedActionMetrics, 0, len(actionMetrics.Targets))
-	for _, tam := range actionMetrics.Targets {
-		targetMetrics = append(targetMetrics, tam.ToProto())
+	for i, tam := range actionMetrics.Targets {
+		tamProto := tam.ToProto()
+		actionMetrics.hitRangesToProto(i, tamProto)
+		targetMetrics = append(targetMetrics, tamProto)
 	}
 
 	id := actionID.ToProto()
@@ -355,7 +418,7 @@ func (unit *Unit) NewGenericMetric(actionID ActionID) *ResourceMetrics {
 }
 
 // Adds the results of a spell to the character metrics.
-func (unitMetrics *UnitMetrics) addSpellMetrics(spell *Spell, actionID ActionID, spellMetrics []SpellMetrics) {
+func (unitMetrics *UnitMetrics) addSpellMetrics(spell *Spell, actionID ActionID, spellMetrics []SpellMetrics, ranges []*hitRanges) {
 	actionMetrics, ok := unitMetrics.actions[actionID]
 
 	// no targets, nothing to add here
@@ -379,6 +442,10 @@ func (unitMetrics *UnitMetrics) addSpellMetrics(spell *Spell, actionID ActionID,
 			tam := &actionMetrics.Targets[i]
 			tam.UnitIndex = spell.Unit.AttackTables[i].Defender.UnitIndex
 		}
+	}
+
+	if len(ranges) > 0 && !slices.ContainsFunc(actionMetrics.rangeSources, func(s []*hitRanges) bool { return &s[0] == &ranges[0] }) {
+		actionMetrics.rangeSources = append(actionMetrics.rangeSources, ranges)
 	}
 
 	for i, spellTargetMetrics := range spellMetrics {
