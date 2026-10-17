@@ -9,12 +9,26 @@
 		"home": {
 			"title": "WoWSims - Forever",
 			"description": "A powerful simulation tool for World of Warcraft: Forever",
-			"welcomeDescription": "Welcome to WoWSims - Forever! This is a community-driven project to provide class and raid simulations for World of Warcraft® Forever together with the leading theorycrafters and class representatives."
+			"heading": "<expansion>Forever</expansion> Simulations",
+			"allSpecs": "All Specializations",
+			"welcomeDescription": "<brand>WoWSims</brand> is a fan-made open-source project started in 2021 with the goal of providing user-friendly tools for players to simulate their gameplay in <bold>World of Warcraft® Classic</bold>. Since then we've supported every Classic release, and now we're carrying that forward into <expansion>World of Warcraft®: Forever</expansion>. It's thanks to dozens of developers, hundreds of players, and thousands of hours of time that we've been able to keep the project going so that our users can continue to make the most out of their gameplay."
 		},
 		"header": {
 			"wowsims": "WoWSims",
-			"expansion": "Forever",
-			"supportDevs": "Support our devs"
+			"subtitle": "World of Warcraft Simulations",
+			"discord": "Discord",
+			"github": "GitHub",
+			"addon": "Download the WoWSims Exporter addon",
+			"patreon": "Become a Patron!"
+		},
+		"actions": {
+			"discord": "Join our Discord",
+			"github": "Contribute on GitHub",
+			"addon": "Get the Exporter addon"
+		},
+		"footer": {
+			"copyright": "© 2021-{{year}} WoWSims team",
+			"disclaimer": "A fan-made project, not affiliated with Blizzard Entertainment."
 		}
 	},
 	"common": {

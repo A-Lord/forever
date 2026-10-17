@@ -32,12 +32,18 @@
 						"description": {
 							"type": "string"
 						},
+						"heading": {
+							"type": "string"
+						},
+						"allSpecs": {
+							"type": "string"
+						},
 						"welcomeDescription": {
 							"type": "string"
 						}
 					},
 					"additionalProperties": false,
-					"required": ["title", "description", "welcomeDescription"]
+					"required": ["title", "description", "heading", "allSpecs", "welcomeDescription"]
 				},
 				"header": {
 					"type": "object",
@@ -45,19 +51,57 @@
 						"wowsims": {
 							"type": "string"
 						},
-						"expansion": {
+						"subtitle": {
 							"type": "string"
 						},
-						"supportDevs": {
+						"discord": {
+							"type": "string"
+						},
+						"github": {
+							"type": "string"
+						},
+						"addon": {
+							"type": "string"
+						},
+						"patreon": {
 							"type": "string"
 						}
 					},
 					"additionalProperties": false,
-					"required": ["wowsims", "expansion", "supportDevs"]
+					"required": ["wowsims", "subtitle", "discord", "github", "addon", "patreon"]
+				},
+				"actions": {
+					"type": "object",
+					"properties": {
+						"discord": {
+							"type": "string"
+						},
+						"github": {
+							"type": "string"
+						},
+						"addon": {
+							"type": "string"
+						}
+					},
+					"additionalProperties": false,
+					"required": ["discord", "github", "addon"]
+				},
+				"footer": {
+					"type": "object",
+					"properties": {
+						"copyright": {
+							"type": "string"
+						},
+						"disclaimer": {
+							"type": "string"
+						}
+					},
+					"additionalProperties": false,
+					"required": ["copyright", "disclaimer"]
 				}
 			},
 			"additionalProperties": false,
-			"required": ["navigation", "home", "header"]
+			"required": ["navigation", "home", "header", "actions", "footer"]
 		},
 		"common": {
 			"type": "object",

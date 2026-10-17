@@ -19,6 +19,7 @@
 	--radius-sm: --spacing(2);
 	--radius-md: --spacing(4);
 	--radius-lg: --spacing(6);
+	--radius-landing-card: 0.75rem;
 
 	--shadow-focus-ring: 0 0 0 0.25rem rgb(13 110 253 / 0.25);
 	--shadow-popup: 0 0.5rem 1rem rgb(0 0 0 / 0.15);
@@ -31,7 +32,7 @@
 		--alpha(var(--color-white) / 8%) 75%
 	);
 	--background-image-select-chevron: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='white' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
-	--background-image-landing: url('/forever/assets/img/tbc.jpg');
+	--background-image-landing: url('/forever/assets/img/forever_cover.webp');
 
 	--background-image-cr-scene: radial-gradient(ellipse at 50% 80%, var(--color-cr-scene-glow) 0%, var(--color-background) 70%);
 	--background-image-cr-vignette: radial-gradient(ellipse at 50% 50%, transparent 40%, --alpha(var(--color-black) / 70%) 100%);
@@ -48,6 +49,7 @@
 	--shadow-glow-8: 0 0 8px;
 	--shadow-glow-10: 0 0 10px;
 	--shadow-glow-white-30: 0 0 10px --alpha(var(--color-white) / 30%);
+	--background-image-landing-sheen: linear-gradient(105deg, transparent 30%, var(--color-landing-sheen-tint) 50%, transparent 70%);
 	--background-image-sim: linear-gradient(var(--color-sim-backdrop), var(--color-sim-backdrop)), var(--theme-background-image);
 	--background-image-progress: linear-gradient(
 		90deg,
