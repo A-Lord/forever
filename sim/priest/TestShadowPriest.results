@@ -256,8 +256,8 @@ dps_results: {
 dps_results: {
  key: "TestShadowPriest-AllItems-DreadmistRaiment"
  value: {
-  dps: 685.42795
-  tps: 346.39244
+  dps: 685.63873
+  tps: 346.49572
   dtps: 4.63642
   hps: 7.7435
  }
@@ -481,8 +481,8 @@ dps_results: {
 dps_results: {
  key: "TestShadowPriest-AllItems-FrostfireRegalia"
  value: {
-  dps: 919.79508
-  tps: 381.94323
+  dps: 905.0158
+  tps: 375.89441
   dtps: 5.77263
  }
 }

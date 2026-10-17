@@ -200,8 +200,8 @@ dps_results: {
 dps_results: {
  key: "TestRetribution-AllItems-CryptstalkerArmor"
  value: {
-  dps: 798.20357
-  tps: 685.95071
+  dps: 816.31725
+  tps: 701.1662
   dtps: 7.88099
  }
 }
@@ -241,8 +241,8 @@ dps_results: {
 dps_results: {
  key: "TestRetribution-AllItems-DeathmistRaiment"
  value: {
-  dps: 717.78
-  tps: 618.41554
+  dps: 739.47799
+  tps: 636.64185
   dtps: 7.11266
  }
 }
@@ -313,8 +313,8 @@ dps_results: {
 dps_results: {
  key: "TestRetribution-AllItems-DreadmistRaiment"
  value: {
-  dps: 683.68783
-  tps: 589.37057
+  dps: 702.54088
+  tps: 605.20713
   dtps: 7.33732
   hps: 1.30238
  }
@@ -322,8 +322,8 @@ dps_results: {
 dps_results: {
  key: "TestRetribution-AllItems-Dreadnaught'sBattlegear"
  value: {
-  dps: 708.0627
-  tps: 610.253
+  dps: 715.10821
+  tps: 616.17124
   dtps: 6.98872
  }
 }
@@ -475,8 +475,8 @@ dps_results: {
 dps_results: {
  key: "TestRetribution-AllItems-FeralheartRaiment"
  value: {
-  dps: 735.44739
-  tps: 632.93797
+  dps: 754.3162
+  tps: 648.78778
   dtps: 7.69923
  }
 }
@@ -523,8 +523,8 @@ dps_results: {
 dps_results: {
  key: "TestRetribution-AllItems-FrostfireRegalia"
  value: {
-  dps: 838.73211
-  tps: 660.94846
+  dps: 860.32492
+  tps: 676.94132
   dtps: 7.95438
  }
 }
@@ -755,8 +755,8 @@ dps_results: {
 dps_results: {
  key: "TestRetribution-AllItems-Magister'sRegalia"
  value: {
-  dps: 687.71251
-  tps: 593.14732
+  dps: 711.00408
+  tps: 612.71223
   dtps: 7.25196
  }
 }
@@ -867,8 +867,8 @@ dps_results: {
 dps_results: {
  key: "TestRetribution-AllItems-PlagueheartRaiment"
  value: {
-  dps: 800.90865
-  tps: 688.2436
+  dps: 823.99803
+  tps: 707.63868
   dtps: 7.13492
  }
 }
@@ -971,8 +971,8 @@ dps_results: {
 dps_results: {
  key: "TestRetribution-AllItems-Sorcerer'sRegalia"
  value: {
-  dps: 709.15627
-  tps: 610.88642
+  dps: 731.37723
+  tps: 629.55202
   dtps: 7.36724
  }
 }
@@ -1131,24 +1131,24 @@ dps_results: {
 dps_results: {
  key: "TestRetribution-AllItems-VestmentsofFaith"
  value: {
-  dps: 646.92912
-  tps: 557.31054
+  dps: 672.67148
+  tps: 578.93412
   dtps: 6.18287
  }
 }
 dps_results: {
  key: "TestRetribution-AllItems-VestmentsoftheDevout"
  value: {
-  dps: 673.22769
-  tps: 580.77354
+  dps: 693.61181
+  tps: 597.8962
   dtps: 7.20032
  }
 }
 dps_results: {
  key: "TestRetribution-AllItems-VestmentsoftheVirtuous"
  value: {
-  dps: 695.09972
-  tps: 598.60925
+  dps: 713.96408
+  tps: 614.45531
   dtps: 7.16635
  }
 }
@@ -1171,8 +1171,8 @@ dps_results: {
 dps_results: {
  key: "TestRetribution-AllItems-WildheartRaiment"
  value: {
-  dps: 683.97687
-  tps: 590.10469
+  dps: 703.34199
+  tps: 606.37139
   dtps: 7.40003
  }
 }

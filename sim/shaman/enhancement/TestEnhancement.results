@@ -475,8 +475,8 @@ dps_results: {
 dps_results: {
  key: "TestEnhancement-AllItems-FrostfireRegalia"
  value: {
-  dps: 745.40975
-  tps: 364.29833
+  dps: 744.23474
+  tps: 363.80466
   dtps: 10.05625
  }
 }

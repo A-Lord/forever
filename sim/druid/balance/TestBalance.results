@@ -421,8 +421,8 @@ dps_results: {
 dps_results: {
  key: "TestBalance-AllItems-FrostfireRegalia"
  value: {
-  dps: 711.81602
-  tps: 434.88567
+  dps: 705.32464
+  tps: 431.11605
  }
 }
 dps_results: {

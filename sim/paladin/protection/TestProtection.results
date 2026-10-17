@@ -217,9 +217,9 @@ dps_results: {
 dps_results: {
  key: "TestProtection-AllItems-CryptstalkerArmor"
  value: {
-  dps: 441.11291
-  tps: 470.51275
-  dtps: 372.24967
+  dps: 430.28723
+  tps: 459.54022
+  dtps: 373.07673
  }
 }
 dps_results: {
@@ -250,9 +250,9 @@ dps_results: {
 dps_results: {
  key: "TestProtection-AllItems-DeathmistRaiment"
  value: {
-  dps: 421.82849
-  tps: 451.0328
-  dtps: 617.36522
+  dps: 412.73449
+  tps: 441.81902
+  dtps: 618.19307
  }
 }
 dps_results: {
@@ -306,18 +306,18 @@ dps_results: {
 dps_results: {
  key: "TestProtection-AllItems-DreadmistRaiment"
  value: {
-  dps: 398.01932
-  tps: 426.76772
-  dtps: 631.22009
+  dps: 389.12821
+  tps: 417.76256
+  dtps: 632.06365
   hps: 1.57038
  }
 }
 dps_results: {
  key: "TestProtection-AllItems-Dreadnaught'sBattlegear"
  value: {
-  dps: 414.7578
-  tps: 446.36339
-  dtps: 267.09126
+  dps: 405.73718
+  tps: 437.22873
+  dtps: 267.77851
  }
 }
 dps_results: {
@@ -492,9 +492,9 @@ dps_results: {
 dps_results: {
  key: "TestProtection-AllItems-FeralheartRaiment"
  value: {
-  dps: 425.09179
-  tps: 454.18906
-  dtps: 552.07809
+  dps: 416.03524
+  tps: 445.01426
+  dtps: 552.89729
  }
 }
 dps_results: {
@@ -532,9 +532,9 @@ dps_results: {
 dps_results: {
  key: "TestProtection-AllItems-FrostfireRegalia"
  value: {
-  dps: 536.77121
-  tps: 513.55449
-  dtps: 624.56358
+  dps: 521.78046
+  tps: 500.13265
+  dtps: 625.96501
  }
 }
 dps_results: {
@@ -821,9 +821,9 @@ dps_results: {
 dps_results: {
  key: "TestProtection-AllItems-Magister'sRegalia"
  value: {
-  dps: 397.68661
-  tps: 426.20108
-  dtps: 634.65686
+  dps: 388.78352
+  tps: 417.18507
+  dtps: 635.49727
  }
 }
 dps_results: {
@@ -926,9 +926,9 @@ dps_results: {
 dps_results: {
  key: "TestProtection-AllItems-PlagueheartRaiment"
  value: {
-  dps: 501.53829
-  tps: 531.91746
-  dtps: 625.6405
+  dps: 491.90433
+  tps: 522.16143
+  dtps: 626.52646
  }
 }
 dps_results: {
@@ -1054,9 +1054,9 @@ dps_results: {
 dps_results: {
  key: "TestProtection-AllItems-Sorcerer'sRegalia"
  value: {
-  dps: 416.53718
-  tps: 445.54008
-  dtps: 627.85901
+  dps: 407.5655
+  tps: 436.45358
+  dtps: 628.70806
  }
 }
 dps_results: {
@@ -1223,25 +1223,25 @@ dps_results: {
 dps_results: {
  key: "TestProtection-AllItems-VestmentsofFaith"
  value: {
-  dps: 368.34486
-  tps: 395.36081
-  dtps: 632.60913
+  dps: 359.50347
+  tps: 386.40269
+  dtps: 633.43305
  }
 }
 dps_results: {
  key: "TestProtection-AllItems-VestmentsoftheDevout"
  value: {
-  dps: 385.77987
-  tps: 414.65209
-  dtps: 634.88761
+  dps: 377.02538
+  tps: 405.7843
+  dtps: 635.71938
  }
 }
 dps_results: {
  key: "TestProtection-AllItems-VestmentsoftheVirtuous"
  value: {
-  dps: 406.3806
-  tps: 434.75221
-  dtps: 618.77981
+  dps: 397.56349
+  tps: 425.82257
+  dtps: 619.61708
  }
 }
 dps_results: {
@@ -1279,9 +1279,9 @@ dps_results: {
 dps_results: {
  key: "TestProtection-AllItems-WildheartRaiment"
  value: {
-  dps: 391.17777
-  tps: 420.23249
-  dtps: 605.1617
+  dps: 382.42328
+  tps: 411.36471
+  dtps: 605.99347
  }
 }
 dps_results: {

@@ -273,10 +273,10 @@ dps_results: {
 dps_results: {
  key: "TestFeralBear-AllItems-DeathmistRaiment"
  value: {
-  dps: 408.65475
-  tps: 640.19358
-  dtps: 494.30486
-  hps: 61.81904
+  dps: 411.6481
+  tps: 644.68456
+  dtps: 494.96463
+  hps: 61.85954
  }
 }
 dps_results: {
@@ -327,10 +327,10 @@ dps_results: {
 dps_results: {
  key: "TestFeralBear-AllItems-DreadmistRaiment"
  value: {
-  dps: 399.35353
-  tps: 625.99879
-  dtps: 505.52244
-  hps: 59.12171
+  dps: 400.79786
+  tps: 628.21092
+  dtps: 506.16146
+  hps: 59.14713
  }
 }
 dps_results: {
@@ -588,10 +588,10 @@ dps_results: {
 dps_results: {
  key: "TestFeralBear-AllItems-FrostfireRegalia"
  value: {
-  dps: 423.41803
-  tps: 663.56503
-  dtps: 478.24031
-  hps: 61.36301
+  dps: 426.1082
+  tps: 667.35958
+  dtps: 475.3655
+  hps: 62.11215
  }
 }
 dps_results: {
@@ -849,10 +849,10 @@ dps_results: {
 dps_results: {
  key: "TestFeralBear-AllItems-Magister'sRegalia"
  value: {
-  dps: 400.27391
-  tps: 627.34958
-  dtps: 506.55764
-  hps: 54.56268
+  dps: 402.07269
+  tps: 630.08038
+  dtps: 506.43509
+  hps: 55.05442
  }
 }
 dps_results: {
@@ -957,10 +957,10 @@ dps_results: {
 dps_results: {
  key: "TestFeralBear-AllItems-PlagueheartRaiment"
  value: {
-  dps: 436.54874
-  tps: 684.25726
-  dtps: 482.22213
-  hps: 65.49511
+  dps: 436.82262
+  tps: 684.38932
+  dtps: 478.54507
+  hps: 65.14532
  }
 }
 dps_results: {
@@ -1029,10 +1029,10 @@ dps_results: {
 dps_results: {
  key: "TestFeralBear-AllItems-Sorcerer'sRegalia"
  value: {
-  dps: 405.55147
-  tps: 635.73184
-  dtps: 497.4538
-  hps: 57.7068
+  dps: 402.92848
+  tps: 631.61864
+  dtps: 498.61805
+  hps: 57.93999
  }
 }
 dps_results: {
@@ -1173,28 +1173,28 @@ dps_results: {
 dps_results: {
  key: "TestFeralBear-AllItems-VestmentsofFaith"
  value: {
-  dps: 392.88051
-  tps: 616.15854
-  dtps: 477.75608
-  hps: 60.58933
+  dps: 394.00605
+  tps: 617.88026
+  dtps: 479.23756
+  hps: 60.54348
  }
 }
 dps_results: {
  key: "TestFeralBear-AllItems-VestmentsoftheDevout"
  value: {
-  dps: 394.76246
-  tps: 618.891
-  dtps: 507.02209
-  hps: 54.49778
+  dps: 394.13381
+  tps: 618.00162
+  dtps: 506.48573
+  hps: 54.99968
  }
 }
 dps_results: {
  key: "TestFeralBear-AllItems-VestmentsoftheVirtuous"
  value: {
-  dps: 396.82165
-  tps: 622.37104
-  dtps: 489.9602
-  hps: 58.66594
+  dps: 394.18809
+  tps: 618.42533
+  dtps: 491.79935
+  hps: 59.01218
  }
 }
 dps_results: {
