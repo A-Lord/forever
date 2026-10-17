@@ -31,7 +31,7 @@ const meta = {
 	argTypes: { groups: { control: false } },
 	decorators: [
 		Story => (
-			<div className="w-96 text-xs">
+			<div className="w-fit min-w-96 text-xs">
 				<Story />
 			</div>
 		),
