@@ -1,7 +1,7 @@
 import { Emitter } from '@sim/state/events';
 import { createSimStore } from '@sim/state/sim_store';
 import { renderWithHost } from '@testing/react';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { TabPanel } from '@ui-kit/TabNav';
 import { act } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -257,7 +257,7 @@ const TABS: Array<DetailedResultsTabConfig> = [
 const SlotReader = () => <span data-testid="slot-reader">{useDrStickySlot()?.getAttribute('data-testid') ?? 'none'}</span>;
 
 const mount = (props: Partial<DetailedResultsViewProps> = {}) => {
-	const handlers = { onActiveIdChange: vi.fn(), onSimulateIteration: vi.fn(), onSimulateDeath: vi.fn() };
+	const handlers = { onActiveIdChange: vi.fn(), onSimulateIteration: vi.fn(), onSimulateDeath: vi.fn(), onGroupRanksChange: vi.fn() };
 	const view = render(
 		<DetailedResultsView
 			tabs={TABS}
@@ -266,6 +266,7 @@ const mount = (props: Partial<DetailedResultsViewProps> = {}) => {
 			iterationDisabled={false}
 			deathDisabled
 			targetPicker={<span data-testid="filter-slot" />}
+			groupRanks
 			{...handlers}
 			{...props}>
 			<TabPanel value="damageTab">damage pane</TabPanel>
@@ -320,6 +321,16 @@ describe('DetailedResultsView', () => {
 
 		expect(onActiveIdChange).toHaveBeenCalledWith('logTab');
 		expect(screen.getByTestId('results-filter').contains(screen.getByTestId('filter-slot'))).toBe(true);
+	});
+
+	it('puts the group ranks toggle in the toolbar row, and reports a change', () => {
+		const { onGroupRanksChange } = mount();
+
+		const toggle = within(screen.getByTestId('results-filter')).getByRole('checkbox');
+		expect(toggle.getAttribute('aria-checked')).toBe('true');
+		fireEvent.click(toggle);
+
+		expect(onGroupRanksChange).toHaveBeenCalledWith(false);
 	});
 
 	it('hands the panes the sticky slot under the toolbar', () => {

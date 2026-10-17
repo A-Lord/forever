@@ -2252,6 +2252,7 @@
 			"sim_1_death": "Simulate a Death",
 			"all_targets": "All Targets",
 			"target_number": "Target {{number}}",
+			"group_ranks": "Group ranks",
 			"damage": {
 				"dps_histogram": "DPS Histogram"
 			},

@@ -8014,6 +8014,9 @@
 						"target_number": {
 							"type": "string"
 						},
+						"group_ranks": {
+							"type": "string"
+						},
 						"damage": {
 							"type": "object",
 							"properties": {
@@ -8960,6 +8963,7 @@
 						"sim_1_death",
 						"all_targets",
 						"target_number",
+						"group_ranks",
 						"damage",
 						"timeline",
 						"logs",

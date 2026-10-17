@@ -6,8 +6,10 @@ import { useMemo } from 'react';
 import { useSimResult } from '../../hooks/useSimResult';
 import { buildMetricRows, indexMetricRows, type MetricGrouping, type MetricRow } from '../../model/grouping';
 import { groupActionsWithPets } from '../../model/pet_groups';
+import { groupRanks, rankParentId } from '../../model/rank_groups';
 import type { SimResultData } from '../../model/result_data';
 import { amountHeader, attackFormat, attackMetricsColumns, castsTooltip, hitsTooltip, missTooltip, useMetricMax } from '../AttackMetricsColumns';
+import { useGroupRanks } from '../DetailedResults/context/GroupRanksContext';
 import { MetricsCombinedTooltip } from '../MetricsCombinedTooltip';
 import { createMetricsColumnHelper, metricForAnchor, MetricsTable, MetricTooltip } from '../MetricsTable';
 
@@ -23,15 +25,16 @@ const TOOLTIP = {
 	tps: 'threat-metrics-tps',
 };
 
-const threatGroups = (resultData: SimResultData): Array<Array<ActionMetrics>> => {
+const threatGroups = (resultData: SimResultData, ranksGrouped: boolean): Array<Array<ActionMetrics>> => {
 	const players = resultData.result.getRaidIndexedPlayers(resultData.filter);
 	if (!players.length) return [];
 
-	return groupActionsWithPets(players[0], unit => unit.getThreatActions().map(action => action.forTarget(resultData.filter)));
+	const groups = groupActionsWithPets(players[0], unit => unit.getThreatActions().map(action => action.forTarget(resultData.filter)));
+	return ranksGrouped ? groupRanks(groups) : groups;
 };
 
 const grouping: MetricGrouping<ActionMetrics> = {
-	merge: metrics => ActionMetrics.merge(metrics, { removeTag: true, actionIdOverride: metrics[0].unit?.petActionId || undefined }),
+	merge: metrics => ActionMetrics.merge(metrics, { removeTag: true, actionIdOverride: metrics[0].unit?.petActionId || rankParentId(metrics) }),
 	shouldCollapse: metric => !metric.unit?.isPet,
 };
 
@@ -42,8 +45,9 @@ const grouping: MetricGrouping<ActionMetrics> = {
  */
 export const ThreatMetricsTable = () => {
 	const resultData = useSimResult();
+	const ranksGrouped = useGroupRanks();
 
-	const rows = useMemo(() => (resultData ? buildMetricRows(threatGroups(resultData), grouping) : NO_ROWS), [resultData]);
+	const rows = useMemo(() => (resultData ? buildMetricRows(threatGroups(resultData, ranksGrouped), grouping) : NO_ROWS), [resultData, ranksGrouped]);
 	const metricsByRowId = useMemo(() => indexMetricRows(rows), [rows]);
 	const maxThreat = useMetricMax(rows, metric => metric.threat);
 

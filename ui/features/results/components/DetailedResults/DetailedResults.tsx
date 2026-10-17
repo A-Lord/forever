@@ -2,11 +2,14 @@ import { Tabs } from '@base-ui/react/tabs';
 import { SimRun, SimRunData } from '@generated/proto/ui';
 import i18n from '@i18n/config';
 import { useSimHost } from '@sim/context/SimHostContext';
+import { LOCAL_STORAGE_PREFIX } from '@sim/constants/other';
 import { useDisplayMetrics } from '@sim/hooks/useDisplayMetrics';
 import { SimResult } from '@sim/proto/sim_result';
 import { subscribeSimSettingsChange } from '@sim/state/subscriptions';
 import { isDevMode } from '@sim/utils/env';
+import { BooleanPicker } from '@ui-kit/BooleanPicker';
 import { Button } from '@ui-kit/Button';
+import { useLocalStorageState } from '@ui-kit/hooks/useLocalStorageState';
 import { useStickyToolbar } from '@ui-kit/hooks/useStickyToolbar';
 import { TabPanels } from '@ui-kit/TabNav';
 import clsx from 'clsx';
@@ -26,9 +29,15 @@ import { ALL_UNITS, hasTarget, ResultsFilter, simResultFilter } from '../Results
 import { ThreatMetricsTable } from '../ThreatMetricsTable';
 import { Timeline } from '../Timeline';
 import { DrStickySlotContext } from './context/DrStickySlotContext';
+import { GroupRanksContext } from './context/GroupRanksContext';
 import { DetailedResultsPane } from './DetailedResultsPane';
 import { DetailedResultsTabs } from './DetailedResultsTabs';
 import { DEFAULT_DETAILED_RESULTS_TAB, DETAILED_RESULTS_TABS, type DetailedResultsTabConfig } from './utils';
+
+// The viewer's choice, shared by every spec page.
+const GROUP_RANKS_STORAGE_KEY = `${LOCAL_STORAGE_PREFIX}_results-group-ranks.v1`;
+
+const parseFlag = (value: unknown): boolean | undefined => (typeof value === 'boolean' ? value : undefined);
 
 export interface DetailedResultsViewProps {
 	tabs: ReadonlyArray<DetailedResultsTabConfig>;
@@ -40,6 +49,9 @@ export interface DetailedResultsViewProps {
 	onSimulateIteration: () => void;
 	onSimulateDeath: () => void;
 	targetPicker: ReactNode;
+	/** Whether the Damage, Threat, Healing and Damage Taken tables join the ranks of a spell under one row. */
+	groupRanks: boolean;
+	onGroupRanksChange: (groupRanks: boolean) => void;
 	/** One `DetailedResultsPane` per tab, its value the tab's id. */
 	children: ReactNode;
 }
@@ -54,6 +66,8 @@ export const DetailedResultsView = ({
 	onSimulateIteration,
 	onSimulateDeath,
 	targetPicker,
+	groupRanks,
+	onGroupRanksChange,
 	children,
 }: DetailedResultsViewProps) => {
 	const { ref: toolbarRef, stuck, className: stickyToolbarClassName } = useStickyToolbar<HTMLDivElement>();
@@ -80,6 +94,14 @@ export const DetailedResultsView = ({
 						<div data-testid="dr-toolbar-row" className="flex min-h-0 w-full items-center">
 							<div data-testid="results-filter" className="flex min-h-0 items-center">
 								{targetPicker}
+								<BooleanPicker
+									id="results-group-ranks"
+									className="ml-4 group-data-no-results/dr:hidden"
+									label={i18n.t('results_tab.details.group_ranks')}
+									layout="inline"
+									value={groupRanks}
+									onChange={onGroupRanksChange}
+								/>
 							</div>
 							<div className="min-h-0 grow" />
 							<DetailedResultsTabs tabs={tabs} />
@@ -127,6 +149,7 @@ export const DetailedResults = ({ resultsManager }: DetailedResultsProps) => {
 	const [activeId, setActiveId] = useState<string>(DEFAULT_DETAILED_RESULTS_TAB);
 	const [deathDisabled, setDeathDisabled] = useState(true);
 	const [target, setTarget] = useState(ALL_UNITS);
+	const [groupRanks, setGroupRanks] = useLocalStorageState(GROUP_RANKS_STORAGE_KEY, parseFlag, () => true);
 	const hasResults = useSimResult() !== null;
 
 	// `updateResults` is bound to the emitter, not to the filter, so the selection it reads is a ref.
@@ -236,65 +259,69 @@ export const DetailedResults = ({ resultsManager }: DetailedResultsProps) => {
 	};
 
 	return (
-		<DetailedResultsView
-			tabs={visibleTabs}
-			activeId={activeId}
-			onActiveIdChange={setActiveId}
-			hasResults={hasResults}
-			iterationDisabled={host.disabled}
-			deathDisabled={deathDisabled}
-			onSimulateIteration={() => {
-				trackEvent({ action: 'sim', category: 'simulate', label: 'once' });
-				void host.runSingleIteration();
-			}}
-			onSimulateDeath={onSimulateDeath}
-			targetPicker={
-				<ResultsFilter
-					target={target}
-					onTargetChange={next => {
-						targetRef.current = next;
-						setTarget(next);
-					}}
-				/>
-			}>
-			{showDamage && (
-				<DetailedResultsPane id="damageTab" className="[&_.ui-metrics-table]:text-xs" topline histogram>
-					<DamageMetricsTable />
+		<GroupRanksContext.Provider value={groupRanks}>
+			<DetailedResultsView
+				tabs={visibleTabs}
+				activeId={activeId}
+				onActiveIdChange={setActiveId}
+				hasResults={hasResults}
+				iterationDisabled={host.disabled}
+				deathDisabled={deathDisabled}
+				onSimulateIteration={() => {
+					trackEvent({ action: 'sim', category: 'simulate', label: 'once' });
+					void host.runSingleIteration();
+				}}
+				onSimulateDeath={onSimulateDeath}
+				targetPicker={
+					<ResultsFilter
+						target={target}
+						onTargetChange={next => {
+							targetRef.current = next;
+							setTarget(next);
+						}}
+					/>
+				}
+				groupRanks={groupRanks}
+				onGroupRanksChange={setGroupRanks}>
+				{showDamage && (
+					<DetailedResultsPane id="damageTab" className="[&_.ui-metrics-table]:text-xs" topline histogram>
+						<DamageMetricsTable />
+					</DetailedResultsPane>
+				)}
+				{showThreat && (
+					<DetailedResultsPane id="threatTab" className="[&_.ui-metrics-table]:text-xs" topline>
+						<ThreatMetricsTable />
+					</DetailedResultsPane>
+				)}
+				{showHealing && (
+					<DetailedResultsPane id="healingTab" className="[&_.ui-metrics-table]:text-xs" topline>
+						<HealingMetricsTable />
+					</DetailedResultsPane>
+				)}
+				{showThreat && (
+					<DetailedResultsPane id="damageTakenTab" topline>
+						<DtpsMetricsTable />
+					</DetailedResultsPane>
+				)}
+				<DetailedResultsPane id="buffsTab">
+					<AuraMetricsTable useDebuffs={false} />
 				</DetailedResultsPane>
-			)}
-			{showThreat && (
-				<DetailedResultsPane id="threatTab" className="[&_.ui-metrics-table]:text-xs" topline>
-					<ThreatMetricsTable />
+				<DetailedResultsPane id="debuffsTab">
+					<AuraMetricsTable useDebuffs={true} />
 				</DetailedResultsPane>
-			)}
-			{showHealing && (
-				<DetailedResultsPane id="healingTab" className="[&_.ui-metrics-table]:text-xs" topline>
-					<HealingMetricsTable />
+				<DetailedResultsPane id="castsTab">
+					<CastMetricsTable />
 				</DetailedResultsPane>
-			)}
-			{showThreat && (
-				<DetailedResultsPane id="damageTakenTab" topline>
-					<DtpsMetricsTable />
+				<DetailedResultsPane id="resourcesTab">
+					<ResourceMetricsTable />
 				</DetailedResultsPane>
-			)}
-			<DetailedResultsPane id="buffsTab">
-				<AuraMetricsTable useDebuffs={false} />
-			</DetailedResultsPane>
-			<DetailedResultsPane id="debuffsTab">
-				<AuraMetricsTable useDebuffs={true} />
-			</DetailedResultsPane>
-			<DetailedResultsPane id="castsTab">
-				<CastMetricsTable />
-			</DetailedResultsPane>
-			<DetailedResultsPane id="resourcesTab">
-				<ResourceMetricsTable />
-			</DetailedResultsPane>
-			<DetailedResultsPane id="timelineTab" filling>
-				<Timeline active={activeId === 'timelineTab'} />
-			</DetailedResultsPane>
-			<DetailedResultsPane id="logTab">
-				<LogRunner active={activeId === 'logTab'} />
-			</DetailedResultsPane>
-		</DetailedResultsView>
+				<DetailedResultsPane id="timelineTab" filling>
+					<Timeline active={activeId === 'timelineTab'} />
+				</DetailedResultsPane>
+				<DetailedResultsPane id="logTab">
+					<LogRunner active={activeId === 'logTab'} />
+				</DetailedResultsPane>
+			</DetailedResultsView>
+		</GroupRanksContext.Provider>
 	);
 };

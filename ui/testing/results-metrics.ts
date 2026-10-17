@@ -1,5 +1,10 @@
 import type { SimResultData } from '@features/results/model/result_data';
+import { ActionMetrics as ActionMetricsProto, TargetedActionMetrics as TargetedActionMetricsProto } from '@generated/proto/api';
+import { ActionID } from '@generated/proto/common';
+import { IconData } from '@generated/proto/ui';
+import { Database } from '@sim/proto/database';
 import { ActionMetrics } from '@sim/proto/sim_result';
+import { makeSimRun } from '@testing/storybook/fixtures/results';
 import { vi } from 'vitest';
 
 const NONE = { value: 0, percentage: 0, average: 0 };
@@ -132,3 +137,31 @@ export const metricRows = (container: HTMLElement) => [...container.querySelecto
 export const metricsTooltipTable = () => document.querySelector('.sim-tooltip table[data-testid="metrics-table"]');
 
 export const metricsTooltipRowNames = () => [...metricsTooltipTable()!.querySelectorAll<HTMLTableRowElement>('tbody tr')].map(row => row.cells[0].textContent);
+
+export interface SpellActionFixture {
+	spellId: number;
+	tag?: number;
+	damage: number;
+}
+
+/** `makeSimRun` with the warrior's auto attack swapped for one spell action per entry, each with the auto attack's outcomes on the target. */
+export const spellActionsRun = (spells: Array<SpellActionFixture>) => {
+	const run = makeSimRun();
+	const player = run.result.raidMetrics!.parties[0].players[0];
+	const template = player.actions[0];
+	player.actions = spells.map(({ spellId, tag = 0, damage }) =>
+		ActionMetricsProto.create({
+			...template,
+			isMelee: false,
+			id: ActionID.create({ rawId: { oneofKind: 'spellId', spellId }, tag }),
+			targets: [TargetedActionMetricsProto.create({ ...template.targets[0], damage })],
+		}),
+	);
+	return run;
+};
+
+/** Answers the spell lookups `ActionId.fill` makes with the given name and rank per spell id. */
+export const stubSpellIcons = (spells: Record<number, { name: string; rank?: number }>) =>
+	vi
+		.spyOn(Database, 'getSpellIconData')
+		.mockImplementation(spellId => Promise.resolve(IconData.create({ id: spellId, icon: 'spell_fire_flamebolt', ...spells[spellId] })));

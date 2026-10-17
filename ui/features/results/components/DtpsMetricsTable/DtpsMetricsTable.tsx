@@ -6,6 +6,7 @@ import { useMemo } from 'react';
 
 import { useSimResult } from '../../hooks/useSimResult';
 import { buildMetricRows, indexMetricRows, type MetricGrouping, type MetricRow } from '../../model/grouping';
+import { groupRanks, rankParentId } from '../../model/rank_groups';
 import type { SimResultData } from '../../model/result_data';
 import {
 	type AttackBreakdownOptions,
@@ -17,6 +18,7 @@ import {
 	missTooltip,
 	useMetricMax,
 } from '../AttackMetricsColumns';
+import { useGroupRanks } from '../DetailedResults/context/GroupRanksContext';
 import { createMetricsColumnHelper, metricForAnchor, MetricsTable, MetricTooltip } from '../MetricsTable';
 
 const helper = createMetricsColumnHelper<ActionMetrics>();
@@ -35,7 +37,7 @@ const TOOLTIP = {
 	missPercentHeader: 'dtps-metrics-miss-percent-header',
 };
 
-const dtpsGroups = (resultData: SimResultData): Array<Array<ActionMetrics>> => {
+const dtpsGroups = (resultData: SimResultData, ranksGrouped: boolean): Array<Array<ActionMetrics>> => {
 	const players = resultData.result.getRaidIndexedPlayers(resultData.filter);
 	if (!players.length) return [];
 
@@ -44,18 +46,20 @@ const dtpsGroups = (resultData: SimResultData): Array<Array<ActionMetrics>> => {
 		.getTargets(resultData.filter)
 		.flatMap(target => target.getDamageActions().map(action => action.forTarget({ player: player.unitIndex })));
 
-	return ActionMetrics.groupById([...targetActions, ...resultData.result.getOwnSideDamageOn(player)]);
+	const groups = ActionMetrics.groupById([...targetActions, ...resultData.result.getOwnSideDamageOn(player)]);
+	return ranksGrouped ? groupRanks(groups) : groups;
 };
 
 const grouping: MetricGrouping<ActionMetrics> = {
-	merge: metrics => ActionMetrics.merge(metrics, { removeTag: true, actionIdOverride: metrics[0].unit?.petActionId || undefined }),
+	merge: metrics => ActionMetrics.merge(metrics, { removeTag: true, actionIdOverride: metrics[0].unit?.petActionId || rankParentId(metrics) }),
 	shouldCollapse: () => true,
 };
 
 export const DtpsMetricsTable = () => {
 	const resultData = useSimResult();
+	const ranksGrouped = useGroupRanks();
 
-	const rows = useMemo(() => (resultData ? buildMetricRows(dtpsGroups(resultData), grouping) : NO_ROWS), [resultData]);
+	const rows = useMemo(() => (resultData ? buildMetricRows(dtpsGroups(resultData, ranksGrouped), grouping) : NO_ROWS), [resultData, ranksGrouped]);
 	const metricsByRowId = useMemo(() => indexMetricRows(rows), [rows]);
 	const maxDamage = useMetricMax(rows, metric => metric.damage);
 	const damageTaken = resultData?.result.getRaidIndexedPlayers(resultData.filter)[0]?.totalDamageTaken;
