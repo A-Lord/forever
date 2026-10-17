@@ -6870,6 +6870,19 @@
 									"required": ["label", "tooltip"],
 									"additionalProperties": false
 								},
+								"dot_expected_dps": {
+									"type": "object",
+									"properties": {
+										"label": {
+											"type": "string"
+										},
+										"tooltip": {
+											"type": "string"
+										}
+									},
+									"required": ["label", "tooltip"],
+									"additionalProperties": false
+								},
 								"variable_ref": {
 									"type": "object",
 									"properties": {
@@ -7045,6 +7058,7 @@
 								"offset",
 								"dot_base_duration",
 								"dot_tick_rate_percent_increase",
+								"dot_expected_dps",
 								"variable_ref",
 								"variable_placeholder",
 								"action_group_used",

@@ -208,6 +208,7 @@ message APLValue {
         APLValueDotBaseDuration dot_base_duration = 114;
 		APLValueDotPercentIncrease dot_percent_increase = 101;
         APLValueDotPercentIncrease dot_tick_rate_percent_increase = 110;
+        APLValueDotExpectedDps dot_expected_dps = 109;
 
         // Sequence values
         APLValueSequenceIsComplete sequence_is_complete = 44;
@@ -761,6 +762,11 @@ message APLValueProtectionPaladinDamageTakenLastGlobal {}
 
 message APLValueDotBaseDuration {
 	ActionID spell_id = 1;
+}
+
+message APLValueDotExpectedDps {
+	ActionID spell_id = 1;
+	UnitReference target_unit = 2;
 }
 
 message APLValueDotPercentIncrease {
