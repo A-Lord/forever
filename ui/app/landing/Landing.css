@@ -117,7 +117,7 @@
 					color-mix(in srgb, var(--color-black) 55%, transparent) 45%,
 					color-mix(in srgb, var(--color-black) 10%, transparent)
 				),
-				color-mix(in srgb, var(--color-black) 55%, transparent);
+				color-mix(in srgb, var(--color-black) 40%, transparent);
 		}
 
 		&:is(:hover, :focus-within) {
@@ -145,7 +145,7 @@
 	}
 
 	.ui-landing-class-card-title {
-		@apply text-(--ui-landing-card-accent);
+		@apply self-start rounded-full bg-black/55 py-1 pr-4 pl-1 text-(--ui-landing-card-accent);
 
 		& .ui-sim-link-content {
 			--sim-link-padding-x: 0;
