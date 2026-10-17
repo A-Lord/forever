@@ -25,20 +25,21 @@ export interface MetricsCombinedTooltipGroup {
 
 export interface MetricsCombinedTooltipProps {
 	groups: Array<MetricsCombinedTooltipGroup>;
-	/** Overrides for the Type / Count / Average / Min / Max headers, by position. */
+	/** Overrides for the Type and Count headers, by position. The Min, Average and Max headers are fixed. */
 	headerValues?: Array<string | undefined>;
 }
+
+type ValueField = 'min' | 'average' | 'max';
+
+const VALUE_FIELDS: Array<ValueField> = ['min', 'average', 'max'];
 
 /** The tooltip *body* only — a nested breakdown table. It parameterises the rows and the bars; the anchor, the open/close and the veto belong to the column's one `<Tooltip>`, which is what keeps a 19-row table at seven tooltip instances instead of 133. */
 export const MetricsCombinedTooltip = ({ groups, headerValues }: MetricsCombinedTooltipProps) => {
 	const displayGroups = groups
 		.filter(group => group.data.some(entry => entry.value))
 		.map(group => ({ ...group, data: group.data.filter(entry => entry.value) }));
-	const hasColumn = (field: 'average' | 'min' | 'max') => displayGroups.some(group => group.data.some(entry => typeof entry[field] === 'number'));
-	const hasAverageColumn = hasColumn('average');
-	const hasMinColumn = hasColumn('min');
-	const hasMaxColumn = hasColumn('max');
-	const columnCount = 2 + Number(hasAverageColumn) + Number(hasMinColumn) + Number(hasMaxColumn);
+	const valueColumns = VALUE_FIELDS.filter(field => displayGroups.some(group => group.data.some(entry => typeof entry[field] === 'number')));
+	const columnCount = 2 + valueColumns.length;
 
 	return (
 		<Table striped hover className="ui-metrics-table" testId="metrics-table">
@@ -50,21 +51,11 @@ export const MetricsCombinedTooltip = ({ groups, headerValues }: MetricsCombined
 					<TableHeaderCell testId="metrics-table-header-cell" className="ui-metrics-header-cell">
 						{headerValues?.[1] || i18n.t('results_tab.details.tooltip_table.count')}
 					</TableHeaderCell>
-					{hasMinColumn && (
-						<TableHeaderCell testId="metrics-table-header-cell" className="ui-metrics-header-cell">
-							{headerValues?.[3] || i18n.t('results_tab.details.tooltip_table.min')}
+					{valueColumns.map(field => (
+						<TableHeaderCell key={field} testId="metrics-table-header-cell" className="ui-metrics-header-cell">
+							{i18n.t(`results_tab.details.tooltip_table.${field}`)}
 						</TableHeaderCell>
-					)}
-					{hasAverageColumn && (
-						<TableHeaderCell testId="metrics-table-header-cell" className="ui-metrics-header-cell">
-							{headerValues?.[2] || i18n.t('results_tab.details.tooltip_table.average')}
-						</TableHeaderCell>
-					)}
-					{hasMaxColumn && (
-						<TableHeaderCell testId="metrics-table-header-cell" className="ui-metrics-header-cell">
-							{headerValues?.[4] || i18n.t('results_tab.details.tooltip_table.max')}
-						</TableHeaderCell>
-					)}
+					))}
 				</TableRow>
 			</thead>
 			<tbody data-testid="metrics-table-body">
@@ -81,29 +72,26 @@ export const MetricsCombinedTooltip = ({ groups, headerValues }: MetricsCombined
 							)}
 							{[...data]
 								.sort((a, b) => b.value - a.value)
-								.map(({ name, value, percentage, average, min, max }) => (
-									<TableRow className={className} key={name}>
-										<TableCell className="ui-metrics-cell whitespace-nowrap">{name}</TableCell>
+								.map(entry => (
+									<TableRow className={className} key={entry.name}>
+										<TableCell className="ui-metrics-cell whitespace-nowrap">{entry.name}</TableCell>
 										<TableCell className="ui-metrics-cell">
 											<MetricsTotalBar
 												spellSchool={spellSchool}
-												percentage={(percentage / totalPercentage) * 100}
+												percentage={(entry.percentage / totalPercentage) * 100}
 												max={maxValue}
-												total={value}
-												value={value}
+												total={entry.value}
+												value={entry.value}
 											/>
 										</TableCell>
-										{hasMinColumn && (
-											<TableCell className="ui-metrics-cell">{typeof min === 'number' ? formatToCompactNumber(min) : ''}</TableCell>
-										)}
-										{hasAverageColumn && (
-											<TableCell className="ui-metrics-cell">
-												{typeof average === 'number' ? formatToCompactNumber(average) : ''}
-											</TableCell>
-										)}
-										{hasMaxColumn && (
-											<TableCell className="ui-metrics-cell">{typeof max === 'number' ? formatToCompactNumber(max) : ''}</TableCell>
-										)}
+										{valueColumns.map(field => {
+											const fieldValue = entry[field];
+											return (
+												<TableCell key={field} className="ui-metrics-cell">
+													{typeof fieldValue === 'number' ? formatToCompactNumber(fieldValue) : ''}
+												</TableCell>
+											);
+										})}
 									</TableRow>
 								))}
 						</Fragment>

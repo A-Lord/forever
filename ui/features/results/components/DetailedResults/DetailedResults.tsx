@@ -115,7 +115,7 @@ export const DetailedResultsView = ({
 							className="col-start-1 row-start-1 flex items-center justify-center p-6 text-base opacity-100 transition-opacity duration-150 ease-linear group-not-data-no-results/dr:hidden">
 							{i18n.t('results_tab.details.no_results')}
 						</div>
-						{children}
+						<GroupRanksContext.Provider value={groupRanks}>{children}</GroupRanksContext.Provider>
 					</TabPanels>
 				</Tabs.Root>
 			</DrStickySlotContext.Provider>
@@ -259,69 +259,67 @@ export const DetailedResults = ({ resultsManager }: DetailedResultsProps) => {
 	};
 
 	return (
-		<GroupRanksContext.Provider value={groupRanks}>
-			<DetailedResultsView
-				tabs={visibleTabs}
-				activeId={activeId}
-				onActiveIdChange={setActiveId}
-				hasResults={hasResults}
-				iterationDisabled={host.disabled}
-				deathDisabled={deathDisabled}
-				onSimulateIteration={() => {
-					trackEvent({ action: 'sim', category: 'simulate', label: 'once' });
-					void host.runSingleIteration();
-				}}
-				onSimulateDeath={onSimulateDeath}
-				targetPicker={
-					<ResultsFilter
-						target={target}
-						onTargetChange={next => {
-							targetRef.current = next;
-							setTarget(next);
-						}}
-					/>
-				}
-				groupRanks={groupRanks}
-				onGroupRanksChange={setGroupRanks}>
-				{showDamage && (
-					<DetailedResultsPane id="damageTab" className="[&_.ui-metrics-table]:text-xs" topline histogram>
-						<DamageMetricsTable />
-					</DetailedResultsPane>
-				)}
-				{showThreat && (
-					<DetailedResultsPane id="threatTab" className="[&_.ui-metrics-table]:text-xs" topline>
-						<ThreatMetricsTable />
-					</DetailedResultsPane>
-				)}
-				{showHealing && (
-					<DetailedResultsPane id="healingTab" className="[&_.ui-metrics-table]:text-xs" topline>
-						<HealingMetricsTable />
-					</DetailedResultsPane>
-				)}
-				{showThreat && (
-					<DetailedResultsPane id="damageTakenTab" topline>
-						<DtpsMetricsTable />
-					</DetailedResultsPane>
-				)}
-				<DetailedResultsPane id="buffsTab">
-					<AuraMetricsTable useDebuffs={false} />
+		<DetailedResultsView
+			tabs={visibleTabs}
+			activeId={activeId}
+			onActiveIdChange={setActiveId}
+			hasResults={hasResults}
+			iterationDisabled={host.disabled}
+			deathDisabled={deathDisabled}
+			onSimulateIteration={() => {
+				trackEvent({ action: 'sim', category: 'simulate', label: 'once' });
+				void host.runSingleIteration();
+			}}
+			onSimulateDeath={onSimulateDeath}
+			targetPicker={
+				<ResultsFilter
+					target={target}
+					onTargetChange={next => {
+						targetRef.current = next;
+						setTarget(next);
+					}}
+				/>
+			}
+			groupRanks={groupRanks}
+			onGroupRanksChange={setGroupRanks}>
+			{showDamage && (
+				<DetailedResultsPane id="damageTab" className="[&_.ui-metrics-table]:text-xs" topline histogram>
+					<DamageMetricsTable />
 				</DetailedResultsPane>
-				<DetailedResultsPane id="debuffsTab">
-					<AuraMetricsTable useDebuffs={true} />
+			)}
+			{showThreat && (
+				<DetailedResultsPane id="threatTab" className="[&_.ui-metrics-table]:text-xs" topline>
+					<ThreatMetricsTable />
 				</DetailedResultsPane>
-				<DetailedResultsPane id="castsTab">
-					<CastMetricsTable />
+			)}
+			{showHealing && (
+				<DetailedResultsPane id="healingTab" className="[&_.ui-metrics-table]:text-xs" topline>
+					<HealingMetricsTable />
 				</DetailedResultsPane>
-				<DetailedResultsPane id="resourcesTab">
-					<ResourceMetricsTable />
+			)}
+			{showThreat && (
+				<DetailedResultsPane id="damageTakenTab" topline>
+					<DtpsMetricsTable />
 				</DetailedResultsPane>
-				<DetailedResultsPane id="timelineTab" filling>
-					<Timeline active={activeId === 'timelineTab'} />
-				</DetailedResultsPane>
-				<DetailedResultsPane id="logTab">
-					<LogRunner active={activeId === 'logTab'} />
-				</DetailedResultsPane>
-			</DetailedResultsView>
-		</GroupRanksContext.Provider>
+			)}
+			<DetailedResultsPane id="buffsTab">
+				<AuraMetricsTable useDebuffs={false} />
+			</DetailedResultsPane>
+			<DetailedResultsPane id="debuffsTab">
+				<AuraMetricsTable useDebuffs={true} />
+			</DetailedResultsPane>
+			<DetailedResultsPane id="castsTab">
+				<CastMetricsTable />
+			</DetailedResultsPane>
+			<DetailedResultsPane id="resourcesTab">
+				<ResourceMetricsTable />
+			</DetailedResultsPane>
+			<DetailedResultsPane id="timelineTab" filling>
+				<Timeline active={activeId === 'timelineTab'} />
+			</DetailedResultsPane>
+			<DetailedResultsPane id="logTab">
+				<LogRunner active={activeId === 'logTab'} />
+			</DetailedResultsPane>
+		</DetailedResultsView>
 	);
 };

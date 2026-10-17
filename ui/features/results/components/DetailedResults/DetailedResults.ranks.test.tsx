@@ -1,7 +1,7 @@
 import { Emitter } from '@sim/state/events';
 import { createSimStore } from '@sim/state/sim_store';
 import { renderWithHost } from '@testing/react';
-import { metricRows, spellActionsRun, stubSpellIcons } from '@testing/results-metrics';
+import { metricRows, RANKED_SPELLS, spellActionsRun, stubRankedSpellIcons } from '@testing/results-metrics';
 import { act, fireEvent, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -23,9 +23,7 @@ vi.mock('../AuraMetricsTable', () => ({ AuraMetricsTable: () => <div /> }));
 
 import { DetailedResults } from './DetailedResults';
 
-const FIREBALL_1 = 133;
-const FIREBALL_2 = 143;
-const FROSTBOLT = 116;
+const { FIREBALL_1, FIREBALL_2, FROSTBOLT } = RANKED_SPELLS;
 
 const RANK = 'common.action_tags.rank';
 
@@ -68,11 +66,7 @@ beforeEach(() => {
 	window.localStorage.clear();
 	resultChannel = new ResultChannel();
 	currentChangeEmitter = new Emitter<void>();
-	stubSpellIcons({
-		[FIREBALL_1]: { name: 'Fireball', rank: 1 },
-		[FIREBALL_2]: { name: 'Fireball', rank: 2 },
-		[FROSTBOLT]: { name: 'Frostbolt' },
-	});
+	stubRankedSpellIcons();
 });
 
 describe('DetailedResults rank grouping', () => {

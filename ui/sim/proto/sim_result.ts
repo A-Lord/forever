@@ -1262,12 +1262,18 @@ export class ActionMetrics {
 		return this.combinedMetrics.range(kind);
 	}
 
+	private perIteration(range: DistributionMetricsProto) {
+		return (range.avg * rangeCount(range)) / this.iterations;
+	}
+
+	// Each value against the action's own amount: its damage, or its healing when it deals none.
 	get customMetrics() {
-		return this.combinedMetrics.customMetrics.flatMap(({ key, range }) =>
-			range && rangeCount(range) > 0
-				? [{ key, value: (range.avg * rangeCount(range)) / this.iterations, average: range.avg, min: range.min, max: range.max }]
-				: [],
-		);
+		const actionTotal = this.avgDamage || this.avgHealing;
+		return this.combinedMetrics.customMetrics.flatMap(({ key, range }) => {
+			if (!range) return [];
+			const value = this.perIteration(range);
+			return [{ key, value, percentage: percentOf(value, actionTotal), average: range.avg, min: range.min, max: range.max }];
+		});
 	}
 
 	private bounds(kind: HitKind) {
@@ -1275,42 +1281,18 @@ export class ActionMetrics {
 		return range ? { min: range.min, max: range.max } : {};
 	}
 
-	// Per iteration. Shielding comes from the action's shielding total, which absorb auras credit without
-	// recording a range; heals with no recorded range split the healing total into normal and critical.
 	get healingDone() {
-		const entry = (value: number, average: number | undefined, kind: HitKind) => ({
-			value,
-			percentage: percentOf(value, this.avgHealing),
-			average,
-			...this.bounds(kind),
-		});
-		const fromRange = (kind: HitKind) => {
+		const entry = (kind: HitKind) => {
 			const range = this.range(kind);
-			return entry(range ? (range.avg * rangeCount(range)) / this.iterations : 0, range?.avg ?? 0, kind);
+			const value = range ? this.perIteration(range) : 0;
+			return { value, percentage: percentOf(value, this.avgHealing), average: range?.avg ?? 0, ...this.bounds(kind) };
 		};
-		const per = (value: number, count: number) => (count ? value / count : undefined);
-
-		const shielding = this.shielding / this.iterations;
-		const shield = entry(shielding, this.range(HitKind.HitKindShield)?.avg ?? per(shielding, this.landedHits), HitKind.HitKindShield);
-		const healKinds = [HitKind.HitKindHeal, HitKind.HitKindCritHeal, HitKind.HitKindHealTick, HitKind.HitKindCritHealTick];
-		if (healKinds.some(kind => this.range(kind))) {
-			return {
-				heal: fromRange(HitKind.HitKindHeal),
-				critHeal: fromRange(HitKind.HitKindCritHeal),
-				tick: fromRange(HitKind.HitKindHealTick),
-				critTick: fromRange(HitKind.HitKindCritHealTick),
-				shield,
-			};
-		}
-
-		const critHealing = this.avgCritHealing;
-		const normalHealing = this.avgHealing - shielding - critHealing;
 		return {
-			heal: entry(normalHealing, per(normalHealing, this.hits || this.ticks), HitKind.HitKindHeal),
-			critHeal: entry(critHealing, per(critHealing, this.crits || this.critTicks), HitKind.HitKindCritHeal),
-			tick: fromRange(HitKind.HitKindHealTick),
-			critTick: fromRange(HitKind.HitKindCritHealTick),
-			shield,
+			heal: entry(HitKind.HitKindHeal),
+			critHeal: entry(HitKind.HitKindCritHeal),
+			tick: entry(HitKind.HitKindHealTick),
+			critTick: entry(HitKind.HitKindCritHealTick),
+			shield: entry(HitKind.HitKindShield),
 		};
 	}
 
@@ -1530,6 +1512,7 @@ const mergeRanges = (ranges: Array<DistributionMetricsProto | undefined>): Distr
 };
 
 const mergeRangeMaps = (maps: Array<TargetedActionMetricsProto['ranges']>): TargetedActionMetricsProto['ranges'] => {
+	if (maps.length === 1) return maps[0];
 	const merged: TargetedActionMetricsProto['ranges'] = {};
 	for (const kind of new Set(maps.flatMap(map => Object.keys(map).map(Number)))) {
 		const range = mergeRanges(maps.map(map => map[kind]));
@@ -1539,6 +1522,7 @@ const mergeRangeMaps = (maps: Array<TargetedActionMetricsProto['ranges']>): Targ
 };
 
 const mergeCustomMetrics = (lists: Array<TargetedActionMetricsProto['customMetrics']>): TargetedActionMetricsProto['customMetrics'] => {
+	if (lists.length === 1) return lists[0];
 	const keys = [...new Set(lists.flatMap(list => list.map(metric => metric.key)))];
 	return keys.flatMap(key => {
 		const range = mergeRanges(lists.map(list => list.find(metric => metric.key == key)?.range));
@@ -1796,10 +1780,10 @@ class TargetedActionMetrics {
 		return (this.data.healing + this.data.shielding) / this.iterations / this.landedHits;
 	}
 
-	// The per-value range of an outcome, absent when the action landed none.
+	// The per-value range of an outcome, absent when the action landed none: the sim sends only kinds with
+	// values, and a merge of several targets drops an empty one.
 	range(kind: HitKind): DistributionMetricsProto | undefined {
-		const range = this.data.ranges[kind];
-		return rangeCount(range) > 0 ? range : undefined;
+		return this.data.ranges[kind];
 	}
 
 	get customMetrics() {

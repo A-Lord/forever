@@ -1,15 +1,13 @@
 import { HitKind } from '@generated/proto/api';
 import { ActionMetrics, SimResult } from '@sim/proto/sim_result';
-import { type SpellActionFixture, spellActionsRun, stubSpellIcons } from '@testing/results-metrics';
+import { RANKED_SPELLS, type SpellActionFixture, spellActionsRun, stubRankedSpellIcons, stubSpellIcons } from '@testing/results-metrics';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@i18n/localization', async () => (await import('@testing/sim/localization')).localizationStub);
 
-import { groupRanks, rankParentId } from './rank_groups';
+import { groupRanks, mergeActionRow, rankParentId } from './rank_groups';
 
-const FIREBALL_1 = 133;
-const FIREBALL_2 = 143;
-const FROSTBOLT = 116;
+const { FIREBALL_1, FIREBALL_2, FROSTBOLT } = RANKED_SPELLS;
 
 const groupsOf = async (spells: Array<SpellActionFixture>) => {
 	const { request, result } = spellActionsRun(spells);
@@ -21,11 +19,7 @@ const spellIds = (groups: Array<Array<ActionMetrics>>) => groups.map(group => gr
 
 describe('groupRanks', () => {
 	beforeEach(() => {
-		stubSpellIcons({
-			[FIREBALL_1]: { name: 'Fireball', rank: 1 },
-			[FIREBALL_2]: { name: 'Fireball', rank: 2 },
-			[FROSTBOLT]: { name: 'Frostbolt' },
-		});
+		stubRankedSpellIcons();
 	});
 
 	it('joins the ranks of a spell into one group, each rank merged over its tags', async () => {
@@ -71,29 +65,37 @@ describe('groupRanks', () => {
 		expect(spellIds(groupRanks(groups))).toEqual([[FIREBALL_2], [FROSTBOLT]]);
 		expect(rankParentId([groups[0][0], groups[1][0]])).toBeUndefined();
 	});
+});
 
-	it('names the merged row after the highest rank without its rank, and merges the counts and ranges', async () => {
-		const grouped = groupRanks(
+describe('mergeActionRow', () => {
+	beforeEach(() => {
+		stubRankedSpellIcons();
+	});
+
+	it('names the row of joined ranks after the highest rank without its rank, and merges the counts and ranges', async () => {
+		const [ranks] = groupRanks(
 			await groupsOf([
 				{ spellId: FIREBALL_1, damage: 100 },
 				{ spellId: FIREBALL_2, damage: 300 },
 			]),
-		)[0];
-		const parent = ActionMetrics.merge(grouped, { removeTag: true, actionIdOverride: rankParentId(grouped) });
+		);
+		const parent = mergeActionRow(ranks);
 
 		expect(parent.name).toBe('Fireball');
 		expect(parent.actionId.spellId).toBe(FIREBALL_2);
 		expect(parent.actionId.hasRank).toBe(false);
 		expect(parent.damage).toBe(400);
-		expect(parent.hits).toBe(grouped[0].hits + grouped[1].hits);
-		expect(parent.range(HitKind.HitKindHit)!.aggregatorData!.n).toBe(2 * grouped[0].range(HitKind.HitKindHit)!.aggregatorData!.n);
+		expect(parent.hits).toBe(ranks[0].hits + ranks[1].hits);
+		expect(parent.range(HitKind.HitKindHit)!.aggregatorData!.n).toBe(2 * ranks[0].range(HitKind.HitKindHit)!.aggregatorData!.n);
 	});
 
-	it('gives a group of one spell no id of its own, so it keeps the id of its first member', async () => {
+	it('keeps the id of the first member, without its tag, for the tags of one spell', async () => {
 		const [tags] = await groupsOf([
 			{ spellId: FIREBALL_2, damage: 300 },
 			{ spellId: FIREBALL_2, tag: 1, damage: 30 },
 		]);
+
 		expect(rankParentId(tags)).toBeUndefined();
+		expect(mergeActionRow(tags).actionId.equals(tags[0].actionId.withoutTag())).toBe(true);
 	});
 });

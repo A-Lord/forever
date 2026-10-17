@@ -1,11 +1,10 @@
 import {
 	ActionMetrics as ActionMetricsProto,
-	DistributionMetrics as DistributionMetricsProto,
 	HitKind,
 	TargetedActionMetrics as TargetedActionMetricsProto,
 	UnitMetrics as UnitMetricsProto,
 } from '@generated/proto/api';
-import { makeSimRun } from '@testing/storybook/fixtures/results';
+import { makeSimRun, valueRange as range } from '@testing/storybook/fixtures/results';
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('@i18n/localization', async () => (await import('@testing/sim/localization')).localizationStub);
@@ -152,9 +151,6 @@ describe('TargetedActionMetrics blocked-crit and crush getters', () => {
 	});
 });
 
-const range = (n: number, avg: number, stdev: number, min: number, max: number) =>
-	DistributionMetricsProto.create({ avg, stdev, min, max, aggregatorData: { n, sumSq: 0 } });
-
 // One main-hand action per entry list, each listing its entries as targets, over two iterations.
 const rangedActions = async (...perAction: Array<Array<Entry>>) => {
 	const { request, result } = makeSimRun();
@@ -231,10 +227,18 @@ describe('per-value ranges', () => {
 		expect(byKey.divine_aegis).toMatchObject({ value: 50, average: 50 });
 	});
 
+	it('gives a custom metric its share of the damage of the action, or of its healing when it deals none', async () => {
+		const [damaging, healing] = await rangedActions(
+			[{ damage: 1000, customMetrics: [{ key: 'ignite_added', range: range(4, 100, 0, 80, 120) }] }],
+			[{ healing: 1000, customMetrics: [{ key: 'divine_aegis', range: range(2, 50, 0, 50, 50) }] }],
+		);
+
+		expect(damaging.customMetrics[0].percentage).toBeCloseTo(40);
+		expect(healing.customMetrics[0].percentage).toBeCloseTo(10);
+	});
+
 	it('gives each damage kind its bounds only when the kind landed values', async () => {
-		const [action] = await rangedActions([
-			{ hits: 4, ranges: { [HitKind.HitKindHit]: range(4, 10, 0, 8, 12), [HitKind.HitKindCrit]: range(0, 0, 0, 0, 0) } },
-		]);
+		const [action] = await rangedActions([{ hits: 4, ranges: { [HitKind.HitKindHit]: range(4, 10, 0, 8, 12) } }]);
 
 		expect(action.damageDone.hit).toMatchObject({ min: 8, max: 12 });
 		expect(action.damageDone.critHit).not.toHaveProperty('min');
@@ -262,24 +266,13 @@ describe('per-value ranges', () => {
 		expect(done.tick).toEqual({ value: 0, percentage: 0, average: 0 });
 	});
 
-	it('takes the shield row from the shielding total when the absorb recorded no range', async () => {
-		const [action] = await rangedActions([{ hits: 4, shielding: 1000 }]);
+	it('shows a shield range as the shield row of an action that only shields', async () => {
+		const [action] = await rangedActions([{ hits: 2, shielding: 1000, ranges: { [HitKind.HitKindShield]: range(4, 250, 0, 200, 300) } }]);
 
 		const done = action.healingDone;
-		expect(done.shield).toEqual({ value: 500, percentage: expect.closeTo(100), average: 250 });
+		expect(done.shield).toMatchObject({ value: 500, average: 250, min: 200, max: 300 });
+		expect(done.shield.percentage).toBeCloseTo(100);
 		expect(done.heal.value).toBe(0);
 		expect(done.critHeal.value).toBe(0);
-		expect(done.shield.value).toBe(action.avgHealing);
-	});
-
-	it('splits the healing total into normal and critical heals when no heal range was recorded', async () => {
-		const [action] = await rangedActions([{ hits: 10, crits: 2, healing: 1000, critHealing: 400 }]);
-
-		const done = action.healingDone;
-		expect(done.heal).toMatchObject({ value: 300, average: 60 });
-		expect(done.critHeal).toMatchObject({ value: 200, average: 200 });
-		expect(done.heal.percentage).toBeCloseTo(60);
-		expect(done.critHeal.percentage).toBeCloseTo(40);
-		expect(done.shield.value).toBe(0);
 	});
 });

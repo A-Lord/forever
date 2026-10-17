@@ -38,7 +38,7 @@ const distribution = (avg: number) => {
 	});
 };
 
-const valueRange = (n: number, avg: number, stdev: number, min: number, max: number) =>
+export const valueRange = (n: number, avg: number, stdev: number, min: number, max: number) =>
 	DistributionMetrics.create({ avg, stdev, min, max, aggregatorData: { n, sumSq: 0 } });
 
 export interface SimRunOptions {

@@ -8,7 +8,7 @@ import { useMemo } from 'react';
 import { useSimResult } from '../../hooks/useSimResult';
 import { buildMetricRows, filterMetricRows, indexMetricRows, type MetricGrouping, type MetricRow } from '../../model/grouping';
 import { groupActionsWithPets } from '../../model/pet_groups';
-import { groupRanks, rankParentId } from '../../model/rank_groups';
+import { mergeActionRow } from '../../model/rank_groups';
 import type { SimResultData } from '../../model/result_data';
 import {
 	attackFormat,
@@ -38,16 +38,15 @@ const TOOLTIP = {
 	dps: 'damage-metrics-dps',
 };
 
-const damageGroups = (resultData: SimResultData, ranksGrouped: boolean): Array<Array<ActionMetrics>> => {
+const damageGroups = (resultData: SimResultData): Array<Array<ActionMetrics>> => {
 	const players = resultData.result.getRaidIndexedPlayers(resultData.filter);
 	if (!players.length) return [];
 
-	const groups = groupActionsWithPets(players[0], unit => unit.getDamageActions().map(action => action.forTarget(resultData.filter)));
-	return ranksGrouped ? groupRanks(groups) : groups;
+	return groupActionsWithPets(players[0], unit => unit.getDamageActions().map(action => action.forTarget(resultData.filter)));
 };
 
 const grouping: MetricGrouping<ActionMetrics> = {
-	merge: metrics => ActionMetrics.merge(metrics, { removeTag: true, actionIdOverride: metrics[0].unit?.petActionId || rankParentId(metrics) }),
+	merge: mergeActionRow,
 	shouldCollapse: metric => !metric.unit?.isPet,
 };
 
@@ -57,12 +56,12 @@ export const DamageMetricsTable = () => {
 	const resultData = useSimResult();
 	const sim = useSim();
 	const { threat: showThreatMetrics } = useDisplayMetrics(sim);
-	const ranksGrouped = useGroupRanks();
+	const rankGroups = useGroupRanks();
 
 	const rows = useMemo(() => {
-		const built = resultData ? buildMetricRows(damageGroups(resultData, ranksGrouped), grouping) : NO_ROWS;
+		const built = resultData ? buildMetricRows(rankGroups(damageGroups(resultData)), grouping) : NO_ROWS;
 		return showThreatMetrics ? built : filterMetricRows(built, isThreatOnly);
-	}, [resultData, showThreatMetrics, ranksGrouped]);
+	}, [resultData, showThreatMetrics, rankGroups]);
 	const metricsByRowId = useMemo(() => indexMetricRows(rows), [rows]);
 	const maxDamage = useMetricMax(rows, metric => metric.damage);
 

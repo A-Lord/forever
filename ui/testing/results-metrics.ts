@@ -165,3 +165,13 @@ export const stubSpellIcons = (spells: Record<number, { name: string; rank?: num
 	vi
 		.spyOn(Database, 'getSpellIconData')
 		.mockImplementation(spellId => Promise.resolve(IconData.create({ id: spellId, icon: 'spell_fire_flamebolt', ...spells[spellId] })));
+
+/** Two ranks of one spell and a spell with no rank, for the rank grouping tests. */
+export const RANKED_SPELLS = { FIREBALL_1: 133, FIREBALL_2: 143, FROSTBOLT: 116 };
+
+export const stubRankedSpellIcons = () =>
+	stubSpellIcons({
+		[RANKED_SPELLS.FIREBALL_1]: { name: 'Fireball', rank: 1 },
+		[RANKED_SPELLS.FIREBALL_2]: { name: 'Fireball', rank: 2 },
+		[RANKED_SPELLS.FROSTBOLT]: { name: 'Frostbolt' },
+	});

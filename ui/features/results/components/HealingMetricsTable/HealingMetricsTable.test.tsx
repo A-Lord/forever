@@ -78,8 +78,10 @@ describe('HealingMetricsTable', () => {
 		expect(metricsTooltipRowNames()).toEqual(['results_tab.details.attack_types.hit', 'results_tab.details.attack_types.critical_hit']);
 	});
 
-	it('adds a spec metrics group to the healing breakdown, each value against the healing of the action', async () => {
-		result = playerResult([metric('Prayer of Healing', { customMetrics: [{ key: 'divine_aegis', value: 30, average: 410, min: 300, max: 520 }] })]);
+	it('adds a spec metrics group to the healing breakdown, with the share the action gives each value', async () => {
+		result = playerResult([
+			metric('Prayer of Healing', { customMetrics: [{ key: 'divine_aegis', value: 30, percentage: 30, average: 410, min: 300, max: 520 }] }),
+		]);
 		const { container } = render(<HealingMetricsTable />);
 
 		fireEvent.mouseEnter(container.querySelector('td[data-primary-metric]')!);
