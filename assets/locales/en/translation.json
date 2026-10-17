@@ -2258,6 +2258,7 @@
 			"sim_1_death": "Simulate a Death",
 			"all_targets": "All Targets",
 			"target_number": "Target {{number}}",
+			"group_ranks": "Group ranks",
 			"damage": {
 				"dps_histogram": "DPS Histogram"
 			},
@@ -2487,16 +2488,23 @@
 				"crush": "Crush",
 				"glance": "Glance",
 				"block": "Block",
-				"critical_block": "Critical Block"
+				"critical_block": "Critical Block",
+				"shield": "Shield"
 			},
 			"tooltip_table": {
 				"type": "Type",
 				"count": "Count",
 				"average": "Average",
+				"min": "Min",
+				"max": "Max",
 				"amount": "Amount",
 				"per_cast": "Per Cast",
 				"per_hit": "Per Hit",
 				"ticks": "Ticks"
+			},
+			"custom_metrics": {
+				"group": "Spec metrics",
+				"divine_aegis": "Divine Aegis shield"
 			},
 			"unit": "Unit",
 			"damage_result": {
