@@ -2161,6 +2161,41 @@
 						"not_yet_implemented": {
 							"type": "string"
 						},
+						"not_fully_supported": {
+							"type": "string"
+						},
+						"partial_set_bonus": {
+							"type": "object",
+							"properties": {
+								"grovekeeper_eclipse_4": {
+									"type": "string"
+								},
+								"wildheart_raiment_5": {
+									"type": "string"
+								},
+								"implements_of_unspoken_names_3": {
+									"type": "string"
+								},
+								"dreadnaughts_battlegear_4": {
+									"type": "string"
+								},
+								"dreadnaughts_battlegear_8": {
+									"type": "string"
+								},
+								"battleplate_of_glory_3": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"grovekeeper_eclipse_4",
+								"wildheart_raiment_5",
+								"implements_of_unspoken_names_3",
+								"dreadnaughts_battlegear_4",
+								"dreadnaughts_battlegear_8",
+								"battleplate_of_glory_3"
+							],
+							"additionalProperties": false
+						},
 						"set_bonus_warnings": {
 							"type": "string"
 						},
@@ -2179,6 +2214,8 @@
 						"will_not_be_implemented",
 						"unvalidated_rate",
 						"not_yet_implemented",
+						"not_fully_supported",
+						"partial_set_bonus",
 						"set_bonus_warnings",
 						"set_bonus_piece",
 						"area_stats"
