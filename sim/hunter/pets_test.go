@@ -176,8 +176,8 @@ func TestQuiversMatchTheOptions(t *testing.T) {
 	}
 }
 
-// With a pet out, Lone Wolf takes 16% off the pet and gives the hunter nothing; without one, the
-// hunter has the row's 20%.
+// With a pet out, Lone Wolf divides the pet's damage by 1.2 and gives the hunter nothing; without
+// one, the hunter has the row's 20%.
 func TestLoneWolfCutsThePetsDamage(t *testing.T) {
 	withoutLoneWolf := strings.Replace(DefaultMMTalents, "25115", "25015", 1)
 	sim, pet, _ := newPetSimWithTalents(withoutLoneWolf, proto.HunterOptions_Cat, nil)
@@ -193,8 +193,8 @@ func TestLoneWolfCutsThePetsDamage(t *testing.T) {
 	if !hunter.Talents.LoneWolf {
 		t.Fatalf("talents %s leave out Lone Wolf", DefaultMMTalents)
 	}
-	if got := pet.PseudoStats.DamageDealtMultiplier / petBase; math.Abs(got-0.84) > 1e-9 {
-		t.Errorf("Lone Wolf multiplies the pet's damage by %v, want 0.84", got)
+	if got := pet.PseudoStats.DamageDealtMultiplier / petBase; math.Abs(got-1/1.2) > 1e-9 {
+		t.Errorf("Lone Wolf multiplies the pet's damage by %v, want 1/1.2", got)
 	}
 	if got := hunter.PseudoStats.DamageDealtMultiplier / hunterBase; got != 1 {
 		t.Errorf("Lone Wolf with a pet out multiplies the hunter's damage by %v, want 1", got)
