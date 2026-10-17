@@ -188,6 +188,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestRogue-AllItems-DeathmistRaiment"
+ value: {
+  dps: 468.82756
+  tps: 233.0073
+ }
+}
+dps_results: {
  key: "TestRogue-AllItems-Defender'sGripStabilizer-272440"
  value: {
   dps: 600.93487
@@ -220,6 +227,13 @@ dps_results: {
  value: {
   dps: 600.93487
   tps: 298.66463
+ }
+}
+dps_results: {
+ key: "TestRogue-AllItems-DreadmistRaiment"
+ value: {
+  dps: 462.53982
+  tps: 229.88229
  }
 }
 dps_results: {
@@ -371,6 +385,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestRogue-AllItems-FeralheartRaiment"
+ value: {
+  dps: 503.6058
+  tps: 250.29208
+ }
+}
+dps_results: {
  key: "TestRogue-AllItems-FetishofChitinousSpikes-21488"
  value: {
   dps: 600.93487
@@ -396,6 +417,13 @@ dps_results: {
  value: {
   dps: 606.79296
   tps: 301.5761
+ }
+}
+dps_results: {
+ key: "TestRogue-AllItems-FrostfireRegalia"
+ value: {
+  dps: 481.1618
+  tps: 239.13741
  }
 }
 dps_results: {
@@ -567,6 +595,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestRogue-AllItems-Magister'sRegalia"
+ value: {
+  dps: 461.56968
+  tps: 229.40013
+ }
+}
+dps_results: {
  key: "TestRogue-AllItems-MajorRecombobulator-18637"
  value: {
   dps: 600.93487
@@ -634,6 +669,13 @@ dps_results: {
  value: {
   dps: 606.79296
   tps: 301.5761
+ }
+}
+dps_results: {
+ key: "TestRogue-AllItems-PlagueheartRaiment"
+ value: {
+  dps: 486.21449
+  tps: 241.6486
  }
 }
 dps_results: {
@@ -711,6 +753,13 @@ dps_results: {
  value: {
   dps: 600.93487
   tps: 298.66463
+ }
+}
+dps_results: {
+ key: "TestRogue-AllItems-Sorcerer'sRegalia"
+ value: {
+  dps: 467.36301
+  tps: 232.27941
  }
 }
 dps_results: {
@@ -819,6 +868,27 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestRogue-AllItems-VestmentsofFaith"
+ value: {
+  dps: 446.63029
+  tps: 221.97525
+ }
+}
+dps_results: {
+ key: "TestRogue-AllItems-VestmentsoftheDevout"
+ value: {
+  dps: 457.78973
+  tps: 227.52149
+ }
+}
+dps_results: {
+ key: "TestRogue-AllItems-VestmentsoftheVirtuous"
+ value: {
+  dps: 461.56279
+  tps: 229.3967
+ }
+}
+dps_results: {
  key: "TestRogue-AllItems-VolcanicHammer-12792"
  value: {
   dps: 606.79296
@@ -837,6 +907,13 @@ dps_results: {
  value: {
   dps: 601.15214
   tps: 298.77261
+ }
+}
+dps_results: {
+ key: "TestRogue-AllItems-WildheartRaiment"
+ value: {
+  dps: 468.48044
+  tps: 232.83478
  }
 }
 dps_results: {
