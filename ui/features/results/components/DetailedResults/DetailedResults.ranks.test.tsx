@@ -63,6 +63,8 @@ const damageRows = (container: HTMLElement) =>
 	]);
 
 const RANKED = `Fireball (${RANK})`;
+// Fireball names its tag 1 as the damage over time part.
+const RANKED_DOT = `Fireball (common.action_tags.dot) (${RANK})`;
 
 const toggle = (container: HTMLElement) => within(container.querySelector<HTMLElement>('[data-testid="results-filter"]')!).getByRole('checkbox');
 
@@ -83,7 +85,7 @@ describe('DetailedResults rank grouping', () => {
 				['Fireball', true, false],
 				[RANKED, true, true],
 				[RANKED, false, true],
-				[RANKED, false, true],
+				[RANKED_DOT, false, true],
 				[RANKED, false, true],
 				['Frostbolt', false, false],
 			]),
@@ -96,7 +98,7 @@ describe('DetailedResults rank grouping', () => {
 		expect(damageRows(container)).toEqual([
 			[RANKED, true, false],
 			[RANKED, false, true],
-			[RANKED, false, true],
+			[RANKED_DOT, false, true],
 			[RANKED, false, false],
 			['Frostbolt', false, false],
 		]);
