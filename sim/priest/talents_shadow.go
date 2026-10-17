@@ -114,18 +114,11 @@ func (priest *Priest) applyDarkInspiration() {
 	buff := spellData.DarkInspirationTriggered.Highest()
 	// The buff's row states the full five-rank amount, which the talent's ranks scale.
 	ranks := spelldata.ScaledByRanks(priest.Talents.DarkInspiration, spellData.DarkInspiration.Len())
-	auras := make([]*core.Aura, 0, len(priest.Party.Players))
-	for _, agent := range priest.Party.Players {
-		member := agent.GetCharacter()
+	auras := priest.NewPartyAuraArray(func(member *core.Character) *core.Aura {
 		aura := member.RegisterAura(spelldata.AuraConfig(buff, spelldata.RankLabel(buff, &priest.Unit)))
 		spelldata.ParseEffects(member, aura, buff, ranks, spelldata.Exclusive("DarkInspiration", true))
-		auras = append(auras, aura)
-	}
-	activate := func(sim *core.Simulation) {
-		for _, aura := range auras {
-			aura.Activate(sim)
-		}
-	}
+		return aura
+	})
 
 	priest.MakeProcTriggerAura(core.ProcTrigger{
 		Name:           "Dark Inspiration Trigger",
@@ -133,7 +126,7 @@ func (priest *Priest) applyDarkInspiration() {
 		Callback:       core.CallbackOnSpellHitDealt,
 		Outcome:        core.OutcomeLanded,
 		Handler: func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
-			activate(sim)
+			auras.ActivateAll(sim)
 		},
 	})
 	priest.MakeProcTriggerAura(core.ProcTrigger{
@@ -142,7 +135,7 @@ func (priest *Priest) applyDarkInspiration() {
 		Callback:       core.CallbackOnPeriodicDamageDealt,
 		Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
 			if spell.Dot(result.Target).RemainingTicks() == 0 {
-				activate(sim)
+				auras.ActivateAll(sim)
 			}
 		},
 	})
