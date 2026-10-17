@@ -615,7 +615,10 @@ func (spell *Spell) doneIteration() {
 	}
 }
 
-func (spell *Spell) hitRangesFor(target *Unit) *hitRanges {
+func (spell *Spell) hitRangesFor(target *Unit, value float64) *hitRanges {
+	if value <= 0 || spell.Flags.Matches(SpellFlagNoMetrics) {
+		return nil
+	}
 	hr := spell.hitRanges[target.UnitIndex]
 	if hr == nil {
 		hr = &hitRanges{}
@@ -625,8 +628,8 @@ func (spell *Spell) hitRangesFor(target *Unit) *hitRanges {
 }
 
 func (spell *Spell) recordHit(target *Unit, kind proto.HitKind, value float64) {
-	if value > 0 {
-		spell.hitRangesFor(target).kinds[kind].add(value)
+	if hr := spell.hitRangesFor(target, value); hr != nil {
+		hr.kinds[kind].add(value)
 	}
 }
 
@@ -638,10 +641,9 @@ func (spell *Spell) RecordShielding(target *Unit, amount float64) {
 
 // Feeds the named range in this spell's details, for values the hit kinds do not cover.
 func (spell *Spell) RecordCustomMetric(sim *Simulation, target *Unit, key string, value float64) {
-	if sim.CurrentTime < 0 || value <= 0 {
-		return
+	if hr := spell.hitRangesFor(target, value); hr != nil {
+		hr.customRange(key).add(value)
 	}
-	spell.hitRangesFor(target).customRange(key).add(value)
 }
 
 func (spell *Spell) HealthMetrics(target *Unit) *ResourceMetrics {
