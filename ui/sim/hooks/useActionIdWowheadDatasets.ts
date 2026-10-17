@@ -8,12 +8,13 @@ import type { WowheadDatasetProps } from './useWowheadDataset';
 type Datasets = ReadonlyArray<WowheadDatasetProps | undefined>;
 
 /**
- * A list of `ActionId`s as the Wowhead tooltip datasets to spread onto their anchors, index for index; an absent id, or
- * one still resolving, is `undefined`. With `useBuffAura`, a spell that applies a buff shows the buff's tooltip. The ids
- * are compared by content, so a fresh array of the same ids per render does not resolve again.
+ * A list of `ActionId`s as the Wowhead tooltip datasets to spread onto their anchors, index for index, each showing the
+ * tooltip of the buff its spell applies. An absent id, one still resolving, or one whose lookup fails is `undefined`
+ * without holding back the others. The ids are compared by content, so a fresh array of the same ids per render does
+ * not resolve again.
  */
-export const useActionIdWowheadDatasets = (actionIds: ReadonlyArray<ActionId | undefined>, useBuffAura?: boolean): Datasets => {
-	const key = `${!!useBuffAura}:${actionIds.map(actionIdKey).join(',')}`;
+export const useActionIdWowheadDatasets = (actionIds: ReadonlyArray<ActionId | undefined>): Datasets => {
+	const key = actionIds.map(actionIdKey).join(',');
 	const idsRef = useRef(actionIds);
 	idsRef.current = actionIds;
 
@@ -24,13 +25,17 @@ export const useActionIdWowheadDatasets = (actionIds: ReadonlyArray<ActionId | u
 		if (ids.every(id => !id)) return;
 
 		const controller = new AbortController();
-		void Promise.all(ids.map(id => (id ? actionIdWowheadTooltipData(id, { useBuffAura }) : undefined)))
-			.then(urls => {
-				if (!controller.signal.aborted) setState({ key, datasets: urls.map(url => (url ? { 'data-wowhead': url } : undefined)) });
-			})
-			.catch(console.error);
+		void Promise.allSettled(ids.map(id => (id ? actionIdWowheadTooltipData(id, { useBuffAura: true }) : Promise.resolve(undefined)))).then(results => {
+			if (controller.signal.aborted) return;
+			setState({
+				key,
+				datasets: results.map(result => (result.status === 'fulfilled' && result.value ? { 'data-wowhead': result.value } : undefined)),
+			});
+			const failed = results.find((result): result is PromiseRejectedResult => result.status === 'rejected');
+			if (failed) console.error(failed.reason);
+		});
 		return () => controller.abort();
-	}, [key, useBuffAura]);
+	}, [key]);
 
 	return state.key === key ? state.datasets : [];
 };
