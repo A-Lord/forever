@@ -1962,13 +1962,13 @@
 					"label": "Dot Base Duration",
 					"tooltip": "The base duration of the DoT."
 				},
-				"dot_crit_percent_increase": {
-					"label": "Dot Crit Chance Increase %",
-					"tooltip": "How much higher a new DoT's Critical Strike Chance would be compared to the old."
-				},
 				"dot_tick_rate_percent_increase": {
 					"label": "Dot Tick Rate Increase %",
 					"tooltip": "How much faster a new DoT would tick compared to the old."
+				},
+				"dot_expected_dps": {
+					"label": "Dot Expected DPS",
+					"tooltip": "The expected damage per second of the DoT or channel if cast now: its average tick, with crits, over its tick period. Compares spells that tick at different rates."
 				},
 				"variable_ref": {
 					"label": "Variable Reference",

@@ -6857,7 +6857,7 @@
 									"required": ["label", "tooltip"],
 									"additionalProperties": false
 								},
-								"dot_crit_percent_increase": {
+								"dot_tick_rate_percent_increase": {
 									"type": "object",
 									"properties": {
 										"label": {
@@ -6870,7 +6870,7 @@
 									"required": ["label", "tooltip"],
 									"additionalProperties": false
 								},
-								"dot_tick_rate_percent_increase": {
+								"dot_expected_dps": {
 									"type": "object",
 									"properties": {
 										"label": {
@@ -7057,8 +7057,8 @@
 								"selected_conjured",
 								"offset",
 								"dot_base_duration",
-								"dot_crit_percent_increase",
 								"dot_tick_rate_percent_increase",
+								"dot_expected_dps",
 								"variable_ref",
 								"variable_placeholder",
 								"action_group_used",
