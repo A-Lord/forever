@@ -44,7 +44,7 @@ export const LandingClassCard = ({ playerClass }: LandingClassCardProps) => {
 	const className = translatePlayerClass(playerClass);
 	const scheme = PlayerClasses.getCssScheme(playerClass);
 	const specs = Object.values(playerClass.specs) as Array<PlayerSpec<any>>;
-	// Picked once per page load, so a re-render keeps the card's background.
+	// Picked when the card mounts, so a re-render keeps the card's background.
 	const [coverSpec] = useState(() => specs[Math.floor(Math.random() * specs.length)]);
 	// Priest's class-level icon (`getIcon`) is a spell icon (spell_shadow_shadowwordpain), not the
 	// generic class_*.jpg every other class returns, so the landing page hardcodes class_priest.jpg here.

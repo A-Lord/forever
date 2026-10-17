@@ -41,7 +41,7 @@
 		@apply focus-visible:-translate-y-landing-action-lift focus-visible:border-white/40 focus-visible:bg-landing-action-hover focus-visible:text-white;
 
 		&::after {
-			@apply pointer-events-none absolute inset-0 -translate-x-full bg-[linear-gradient(105deg,transparent_30%,rgba(255,250,235,0.3)_50%,transparent_70%)] content-[''];
+			@apply pointer-events-none absolute inset-0 -translate-x-full bg-landing-sheen content-[''];
 		}
 
 		&:is(:hover, :focus-visible)::after {
@@ -154,7 +154,7 @@
 	}
 
 	.ui-landing-class-card-sheen {
-		@apply pointer-events-none absolute inset-0 z-3 -translate-x-full bg-[linear-gradient(105deg,transparent_30%,rgba(255,250,235,0.28)_50%,transparent_70%)];
+		@apply pointer-events-none absolute inset-0 z-3 -translate-x-full bg-landing-sheen;
 	}
 
 	.ui-landing-spec-pill {

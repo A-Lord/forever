@@ -43,6 +43,7 @@ const COLOR_TOKENS = [
 	'expansion',
 	'discord',
 	'discord-hover',
+	'landing-sheen-tint',
 	'landing-action-hover',
 	'muted',
 	'link',

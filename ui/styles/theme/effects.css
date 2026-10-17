@@ -49,6 +49,7 @@
 	--shadow-glow-8: 0 0 8px;
 	--shadow-glow-10: 0 0 10px;
 	--shadow-glow-white-30: 0 0 10px --alpha(var(--color-white) / 30%);
+	--background-image-landing-sheen: linear-gradient(105deg, transparent 30%, var(--color-landing-sheen-tint) 50%, transparent 70%);
 	--background-image-sim: linear-gradient(var(--color-sim-backdrop), var(--color-sim-backdrop)), var(--theme-background-image);
 	--background-image-progress: linear-gradient(
 		90deg,
