@@ -19,7 +19,7 @@ type WarlockPet struct {
 	AutoCastAbilities []*core.Spell
 	MinMana           float64      // The mana the pet keeps before it casts again
 	ownerAuras        []*core.Aura // the warlock's effects that last while this demon, and no other, is out
-	partyAuras        []*core.Aura // the effects on the warlock's party that last while this demon is out; summonDemon puts them up, and a demon out at the start puts them up with each player's reset
+	partyAuras        []*core.Aura // the effects on the warlock's party that last while this demon is out
 	summonStun        *core.Aura   // Summoning Disorientation, from the start of the warlock's summon until it runs out or the summon dismisses this demon
 }
 
@@ -356,18 +356,16 @@ func (pet *WarlockPet) ExecuteCustomRotation(sim *core.Simulation) {
 
 // The Imp's Blood Pact on each player in the warlock's party, the warlock among them and no pets, up while
 // the Imp is out. With the Imp out at the start it counts in the build phase. It shares the party buff's
-// category, so a Blood Pact ticked in the settings and the Imp's own are worth one buff. Two warlocks in
-// one party share each player's copy.
+// category, so a Blood Pact ticked in the settings and the Imp's own are worth one buff. Each warlock's
+// Imp puts up its own copy, and with two Imps out the strongest applies.
 func (warlock *Warlock) registerBloodPact() {
 	impAtStart := warlock.Imp.EnabledOnStart()
 	auras := warlock.NewPartyAuraArray(func(member *core.Character) *core.Aura {
-		aura := buffs.NewSpellDataBloodPactAura(&member.Unit, true, 0)
+		aura := buffs.NewSpellDataBloodPactAuraFor(&member.Unit, &warlock.Unit)
 		if impAtStart {
 			aura.BuildPhase = core.CharacterBuildPhaseBuffs
 			// The Imp comes out in the warlock's reset, before the players after it in the party reset.
-			aura.ApplyOnReset(func(aura *core.Aura, sim *core.Simulation) {
-				aura.Activate(sim)
-			})
+			core.MakePermanent(aura)
 		}
 		return aura
 	})

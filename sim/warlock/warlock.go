@@ -155,9 +155,6 @@ func (warlock *Warlock) AddRaidBuffs(raidBuffs *proto.RaidBuffs) {
 
 }
 
-func (warlock *Warlock) AddPartyBuffs(partyBuffs *proto.PartyBuffs) {
-}
-
 func (warlock *Warlock) Reset(sim *core.Simulation) {
 }
 
