@@ -2,17 +2,16 @@ import { Class } from '@generated/proto/common';
 import { LaunchStatus } from '@sim/constants/other';
 import type { PlayerClass } from '@sim/player/player_class';
 
-// The landing page's class order, spelled out because it is neither alphabetical nor the
-// dropdown's natural order.
+// The landing page's class order: alphabetical by class name.
 export const LANDING_CLASS_ORDER: Class[] = [
-	Class.ClassPriest,
 	Class.ClassDruid,
-	Class.ClassRogue,
 	Class.ClassHunter,
-	Class.ClassShaman,
 	Class.ClassMage,
-	Class.ClassWarlock,
 	Class.ClassPaladin,
+	Class.ClassPriest,
+	Class.ClassRogue,
+	Class.ClassShaman,
+	Class.ClassWarlock,
 	Class.ClassWarrior,
 ];
 

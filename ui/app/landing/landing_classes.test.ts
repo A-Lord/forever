@@ -12,6 +12,11 @@ describe('the landing page class list', () => {
 		expect(new Set(LANDING_CLASS_ORDER).size).toBe(LANDING_CLASS_ORDER.length);
 	});
 
+	it('sorts the classes by name', () => {
+		const names = classes().map(playerClass => playerClass.friendlyName);
+		expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)));
+	});
+
 	// The landing page is the only place all 18 spec links exist, so a class that lost its specs
 	// would drop them silently.
 	it('reaches all eighteen specs', () => {
