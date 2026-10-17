@@ -1553,21 +1553,10 @@ class TargetedActionMetrics {
 		this.landedHitsRaw = this.data.hits + this.data.crits + this.data.blocks + this.data.blockedCrits + this.data.glances + this.data.crushes;
 		this.landedTicksRaw = this.data.ticks + this.data.critTicks;
 
+		// A DoT counts no hit when its cast lands, so a spell that lands only ticks takes its casts,
+		// which include the misses, as its hit attempts.
 		this.hitAttempts =
-			this.data.misses +
-			this.data.dodges +
-			this.data.parries +
-			this.data.blocks +
-			this.data.blockedCrits +
-			this.data.glances +
-			this.data.crits +
-			this.data.crushes;
-
-		if (this.data.hits != 0) {
-			this.hitAttempts += this.data.hits;
-		} else if (this.data.hits == 0 && this.data.ticks > 0) {
-			this.hitAttempts += this.data.casts;
-		}
+			this.landedHitsRaw == 0 && this.landedTicksRaw > 0 ? this.data.casts : this.data.misses + this.data.dodges + this.data.parries + this.landedHitsRaw;
 	}
 
 	get damage() {

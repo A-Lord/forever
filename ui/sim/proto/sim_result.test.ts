@@ -149,6 +149,25 @@ describe('TargetedActionMetrics blocked-crit and crush getters', () => {
 		expect(m.avgCrushDamage).toBe(2000);
 		expect(m.crushPercent).toBe(50);
 	});
+
+	it('takes the casts of a DoT as its hit attempts when every tick crits', async () => {
+		const normalTicks = await metrics({ casts: 10, misses: 1, ticks: 50 });
+		const critTicks = await metrics({ casts: 10, misses: 1, critTicks: 50 });
+		expect(critTicks.hitAttempts).toBe(normalTicks.hitAttempts);
+		expect(critTicks.missPercent).toBe(normalTicks.missPercent);
+	});
+
+	it('takes the casts of a DoT, its misses among them, as its hit attempts', async () => {
+		const m = await metrics({ casts: 10, misses: 1, ticks: 50 });
+		expect(m.hitAttempts).toBe(10);
+		expect(m.missPercent).toBe(10);
+	});
+
+	it('takes the direct outcomes of a spell that also ticks as its hit attempts when every direct hit crits', async () => {
+		const m = await metrics({ casts: 10, misses: 1, crits: 9, ticks: 40 });
+		expect(m.hitAttempts).toBe(10);
+		expect(m.missPercent).toBe(10);
+	});
 });
 
 // One main-hand action per entry list, each listing its entries as targets, over two iterations.
