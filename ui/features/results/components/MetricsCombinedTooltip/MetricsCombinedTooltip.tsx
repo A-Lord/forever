@@ -66,7 +66,7 @@ export const MetricsCombinedTooltip = ({ groups, headerValues }: MetricsCombined
 							{groupName && displayGroups.length > 1 && (
 								<TableRow testId="metrics-table-group-header" className={className}>
 									<TableHeaderCell
-										className="border-b border-border-muted px-2 pt-3 pb-1 text-left font-medium tracking-wide text-muted uppercase"
+										className="border-b border-border-muted px-2 pt-3 pb-1 text-left font-medium text-muted"
 										colSpan={columnCount}>
 										{groupName}
 									</TableHeaderCell>
