@@ -270,9 +270,11 @@ func (x *aggregator) meanAndStdDev() (float64, float64) {
 	return mean, stdDev
 }
 
-// The zero value is empty.
+// The zero value is empty. Mean and m2 (the sum of squared deviations) are kept Welford-style, so the
+// stdev stays stable for large counts of near-equal values and is exactly 0 for constant ones.
 type ValueRange struct {
-	aggregator
+	n        int
+	mean, m2 float64
 	min, max float64
 }
 
@@ -283,7 +285,10 @@ func (r *ValueRange) add(v float64) {
 		r.min = math.Min(r.min, v)
 		r.max = math.Max(r.max, v)
 	}
-	r.aggregator.add(v)
+	r.n++
+	d := v - r.mean
+	r.mean += d / float64(r.n)
+	r.m2 += d * (v - r.mean)
 }
 
 func (r *ValueRange) merge(o *ValueRange) {
@@ -294,27 +299,26 @@ func (r *ValueRange) merge(o *ValueRange) {
 		*r = *o
 		return
 	}
+	n := float64(r.n + o.n)
+	delta := o.mean - r.mean
+	r.m2 += o.m2 + delta*delta*float64(r.n)*float64(o.n)/n
+	r.mean += delta * float64(o.n) / n
 	r.n += o.n
-	r.sum += o.sum
-	r.sumSq += o.sumSq
 	r.min = math.Min(r.min, o.min)
 	r.max = math.Max(r.max, o.max)
 }
 
 func (r *ValueRange) toProto() *proto.DistributionMetrics {
-	avg, stdev := r.meanAndStdDev()
-	if math.IsNaN(stdev) {
-		stdev = 0
+	stdev := 0.0
+	if r.n > 0 {
+		stdev = math.Sqrt(math.Max(0, r.m2/float64(r.n)))
 	}
 	return &proto.DistributionMetrics{
-		Avg:   avg,
-		Stdev: stdev,
-		Min:   r.min,
-		Max:   r.max,
-		AggregatorData: &proto.AggregatorData{
-			N:     int32(r.n),
-			SumSq: r.sumSq,
-		},
+		Avg:            r.mean,
+		Stdev:          stdev,
+		Min:            r.min,
+		Max:            r.max,
+		AggregatorData: &proto.AggregatorData{N: int32(r.n)},
 	}
 }
 

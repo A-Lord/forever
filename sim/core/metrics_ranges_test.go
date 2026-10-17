@@ -17,8 +17,8 @@ func rangeOf(values ...float64) *ValueRange {
 
 func TestValueRangeAddTracksMinMaxAndAggregate(t *testing.T) {
 	r := rangeOf(4, 2, 9, 5)
-	if r.n != 4 || r.sum != 20 || r.sumSq != 16+4+81+25 {
-		t.Fatalf("aggregate wrong: n=%d sum=%v sumSq=%v", r.n, r.sum, r.sumSq)
+	if r.n != 4 || r.mean != 5 || math.Abs(r.m2-(1+9+16+0)) > 1e-12 {
+		t.Fatalf("aggregate wrong: n=%d mean=%v m2=%v", r.n, r.mean, r.m2)
 	}
 	if r.min != 2 || r.max != 9 {
 		t.Fatalf("min/max wrong: %v/%v", r.min, r.max)
@@ -46,11 +46,26 @@ func TestValueRangeMerge(t *testing.T) {
 		t.Fatalf("empty argument should be a no-op: %+v", *merged)
 	}
 	merged.merge(b)
-	if merged.n != 4 || merged.sum != 16 || merged.min != 1 || merged.max != 7 {
+	if merged.n != 4 || merged.mean != 4 || merged.min != 1 || merged.max != 7 {
 		t.Fatalf("merge wrong: %+v", *merged)
 	}
-	if *merged != *rangeOf(3, 7, 1, 5) {
-		t.Fatalf("merge differs from adding every value: %+v", *merged)
+}
+
+func TestValueRangeMergedHalvesEqualOneRange(t *testing.T) {
+	var values []float64
+	for i := range 1000 {
+		values = append(values, 1000+math.Sin(float64(i))*3+float64(i%7))
+	}
+	whole := rangeOf(values...)
+	merged := rangeOf(values[:377]...)
+	merged.merge(rangeOf(values[377:]...))
+
+	w, m := whole.toProto(), merged.toProto()
+	if math.Abs(w.Avg-m.Avg) > 1e-12*math.Abs(w.Avg) || math.Abs(w.Stdev-m.Stdev) > 1e-12*w.Stdev {
+		t.Fatalf("merged %+v, whole %+v", m, w)
+	}
+	if m.AggregatorData.N != 1000 || m.Min != w.Min || m.Max != w.Max {
+		t.Fatalf("merged %+v, whole %+v", m, w)
 	}
 }
 
@@ -59,15 +74,24 @@ func TestValueRangeToProto(t *testing.T) {
 	if m.Avg != 5 || math.Abs(m.Stdev-2) > 1e-9 || m.Min != 2 || m.Max != 9 {
 		t.Fatalf("unexpected summary: %+v", m)
 	}
-	if m.AggregatorData.N != 8 || m.AggregatorData.SumSq != 4+16*3+25*2+49+81 {
+	if m.AggregatorData.N != 8 {
 		t.Fatalf("unexpected aggregator data: %+v", m.AggregatorData)
 	}
 }
 
-func TestValueRangeToProtoConstantValuesHaveZeroStdev(t *testing.T) {
-	m := rangeOf(0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1).toProto()
-	if math.IsNaN(m.Stdev) || m.Stdev < 0 {
-		t.Fatalf("stdev should clamp to zero, got %v", m.Stdev)
+func TestValueRangeConstantValuesHaveExactlyZeroStdev(t *testing.T) {
+	const v = 1234.5678
+	added := rangeOf(v, v, v, v, v, v, v)
+	if s := added.toProto().Stdev; s != 0 {
+		t.Fatalf("added stdev %v", s)
+	}
+	merged := rangeOf(v, v, v)
+	merged.merge(rangeOf(v, v, v, v))
+	if s := merged.toProto().Stdev; s != 0 {
+		t.Fatalf("merged stdev %v", s)
+	}
+	if s := combineHitRanges(rangeOf(v, v).toProto(), rangeOf(v, v, v).toProto()).Stdev; s != 0 {
+		t.Fatalf("combined stdev %v", s)
 	}
 }
 
@@ -165,14 +189,11 @@ func TestActionRangesFromDotTicksMatchCounters(t *testing.T) {
 
 	tick := tam.Ranges[int32(proto.HitKind_HitKindTick)]
 	critTick := tam.Ranges[int32(proto.HitKind_HitKindCritTick)]
-	if critTick == nil || tick == nil {
-		t.Fatalf("expected both tick and crit tick ranges over %d ticks, got %v", ticks, tam.Ranges)
+	if rangeN(critTick) != spellMetrics.CritTicks {
+		t.Fatalf("crit tick N %d, counter %d", rangeN(critTick), spellMetrics.CritTicks)
 	}
-	if int32(critTick.AggregatorData.N) != spellMetrics.CritTicks {
-		t.Fatalf("crit tick N %d, counter %d", critTick.AggregatorData.N, spellMetrics.CritTicks)
-	}
-	if tick.AggregatorData.N+critTick.AggregatorData.N != ticks {
-		t.Fatalf("every tick landed, got %d + %d of %d", tick.AggregatorData.N, critTick.AggregatorData.N, ticks)
+	if rangeN(tick)+rangeN(critTick) != ticks {
+		t.Fatalf("every tick landed, got %d + %d of %d", rangeN(tick), rangeN(critTick), ticks)
 	}
 
 	var total float64

@@ -201,11 +201,11 @@ func copyHitRange(m *proto.DistributionMetrics) *proto.DistributionMetrics {
 		Stdev:          m.Stdev,
 		Min:            m.Min,
 		Max:            m.Max,
-		AggregatorData: &proto.AggregatorData{N: m.AggregatorData.N, SumSq: m.AggregatorData.SumSq},
+		AggregatorData: &proto.AggregatorData{N: m.AggregatorData.N},
 	}
 }
 
-// Merges two ranges by their sample counts into a new message; an empty side leaves the other as is.
+// Merges two ranges into a new message from their counts, means and stdevs; an empty side leaves the other as is.
 func combineHitRanges(base, add *proto.DistributionMetrics) *proto.DistributionMetrics {
 	bn, an := rangeN(base), rangeN(add)
 	if an == 0 {
@@ -214,15 +214,15 @@ func combineHitRanges(base, add *proto.DistributionMetrics) *proto.DistributionM
 	if bn == 0 {
 		return copyHitRange(add)
 	}
-	n := bn + an
-	avg := (base.Avg*float64(bn) + add.Avg*float64(an)) / float64(n)
-	sumSq := base.AggregatorData.SumSq + add.AggregatorData.SumSq
+	n := float64(bn + an)
+	delta := add.Avg - base.Avg
+	m2 := base.Stdev*base.Stdev*float64(bn) + add.Stdev*add.Stdev*float64(an) + delta*delta*float64(bn)*float64(an)/n
 	return &proto.DistributionMetrics{
-		Avg:            avg,
-		Stdev:          math.Sqrt(math.Max(0, sumSq/float64(n)-avg*avg)),
+		Avg:            base.Avg + delta*float64(an)/n,
+		Stdev:          math.Sqrt(m2 / n),
 		Min:            math.Min(base.Min, add.Min),
 		Max:            math.Max(base.Max, add.Max),
-		AggregatorData: &proto.AggregatorData{N: n, SumSq: sumSq},
+		AggregatorData: &proto.AggregatorData{N: bn + an},
 	}
 }
 
