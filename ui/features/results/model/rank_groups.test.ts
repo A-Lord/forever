@@ -9,6 +9,7 @@ import type { MetricRow } from './grouping';
 import { buildActionRows } from './rank_groups';
 
 const { FIREBALL_1, FIREBALL_2, FROSTBOLT } = RANKED_SPELLS;
+const [PENANCE_HEAL_1, PENANCE_HEAL_2, PENANCE_1, PENANCE_2] = [1001, 1002, 1003, 1004];
 
 const groupsOf = async (spells: Array<SpellActionFixture>) => {
 	const { request, result } = spellActionsRun(spells);
@@ -39,6 +40,7 @@ describe('buildActionRows', () => {
 	it('puts the ranks of a spell under one row, and the tags of a rank under that rank', async () => {
 		const groups = await groupsOf([
 			{ spellId: FIREBALL_1, damage: 100 },
+			{ spellId: FIREBALL_1, tag: 1, damage: 10 },
 			{ spellId: FROSTBOLT, damage: 50 },
 			{ spellId: FIREBALL_2, damage: 300 },
 			{ spellId: FIREBALL_2, tag: 1, damage: 30 },
@@ -51,7 +53,15 @@ describe('buildActionRows', () => {
 				rank: 0,
 				tag: 0,
 				subRows: [
-					{ spellId: FIREBALL_1, rank: 1, tag: 0 },
+					{
+						spellId: FIREBALL_1,
+						rank: 1,
+						tag: 0,
+						subRows: [
+							{ spellId: FIREBALL_1, rank: 1, tag: 0 },
+							{ spellId: FIREBALL_1, rank: 1, tag: 1 },
+						],
+					},
 					{
 						spellId: FIREBALL_2,
 						rank: 2,
@@ -65,7 +75,7 @@ describe('buildActionRows', () => {
 			},
 			{ spellId: FROSTBOLT, rank: 0, tag: 0 },
 		]);
-		expect(rows[0].subRows![0].metric).toBe(groups[0][0]);
+		expect(rows[0].subRows![0].subRows![0].metric).toBe(groups[0][0]);
 		expect(rows[0].subRows![1].subRows![1].metric).toBe(groups[2][1]);
 		expect(rows[1].metric).toBe(groups[1][0]);
 	});
@@ -73,6 +83,7 @@ describe('buildActionRows', () => {
 	it('names the row of joined ranks after the highest rank without its rank, and merges the counts and ranges of every rank', async () => {
 		const groups = await groupsOf([
 			{ spellId: FIREBALL_1, damage: 100 },
+			{ spellId: FIREBALL_1, tag: 1, damage: 10 },
 			{ spellId: FIREBALL_2, damage: 300 },
 			{ spellId: FIREBALL_2, tag: 1, damage: 30 },
 		]);
@@ -82,10 +93,10 @@ describe('buildActionRows', () => {
 		expect(parent.name).toBe('Fireball');
 		expect(parent.actionId.spellId).toBe(FIREBALL_2);
 		expect(parent.actionId.hasRank).toBe(false);
-		expect(parent.damage).toBe(430);
+		expect(parent.damage).toBe(440);
 		expect(subRows![1].metric.damage).toBe(330);
 		expect(parent.hits).toBeCloseTo(members.reduce((sum, member) => sum + member.hits, 0));
-		expect(parent.range(HitKind.HitKindHit)!.aggregatorData!.n).toBe(3 * members[0].range(HitKind.HitKindHit)!.aggregatorData!.n);
+		expect(parent.range(HitKind.HitKindHit)!.aggregatorData!.n).toBe(4 * members[0].range(HitKind.HitKindHit)!.aggregatorData!.n);
 	});
 
 	it('builds a row per spell id, ranks apart, while ranks are not grouped', async () => {
@@ -151,12 +162,73 @@ describe('buildActionRows', () => {
 		]);
 	});
 
-	it('drops the tag of a rank whose only member carries one, like the ranks merged over their tags', async () => {
+	it('joins a rank that landed no tag 1 values with a rank that did', async () => {
 		const groups = await groupsOf([
-			{ spellId: FIREBALL_1, tag: 1, damage: 100 },
+			{ spellId: FIREBALL_1, damage: 100 },
 			{ spellId: FIREBALL_2, damage: 300 },
+			{ spellId: FIREBALL_2, tag: 1, damage: 30 },
 		]);
+		const rows = buildActionRows(groups, true);
 
-		expect(shape(buildActionRows(groups, true))[0].subRows![0]).toEqual({ spellId: FIREBALL_1, rank: 1, tag: 0 });
+		expect(shape(rows)).toEqual([
+			{
+				spellId: FIREBALL_2,
+				rank: 0,
+				tag: 0,
+				subRows: [
+					{ spellId: FIREBALL_1, rank: 1, tag: 0 },
+					{
+						spellId: FIREBALL_2,
+						rank: 2,
+						tag: 0,
+						subRows: [
+							{ spellId: FIREBALL_2, rank: 2, tag: 0 },
+							{ spellId: FIREBALL_2, rank: 2, tag: 1 },
+						],
+					},
+				],
+			},
+		]);
+		expect(rows[0].metric.name).toBe('Fireball');
+		expect(rows[0].subRows![0].metric).toBe(groups[0][0]);
+	});
+
+	it('keeps apart two spells of one name that differ by tag, and names each after its tag', async () => {
+		stubSpellIcons({
+			[PENANCE_HEAL_1]: { name: 'Penance', rank: 1 },
+			[PENANCE_HEAL_2]: { name: 'Penance', rank: 2 },
+			[PENANCE_1]: { name: 'Penance', rank: 1 },
+			[PENANCE_2]: { name: 'Penance', rank: 2 },
+		});
+		const groups = await groupsOf([
+			{ spellId: PENANCE_HEAL_1, tag: 1, damage: 100 },
+			{ spellId: PENANCE_1, damage: 100 },
+			{ spellId: PENANCE_HEAL_2, tag: 1, damage: 200 },
+			{ spellId: PENANCE_2, damage: 200 },
+		]);
+		const rows = buildActionRows(groups, true);
+
+		expect(shape(rows)).toEqual([
+			{
+				spellId: PENANCE_HEAL_2,
+				rank: 0,
+				tag: 1,
+				subRows: [
+					{ spellId: PENANCE_HEAL_1, rank: 1, tag: 1 },
+					{ spellId: PENANCE_HEAL_2, rank: 2, tag: 1 },
+				],
+			},
+			{
+				spellId: PENANCE_2,
+				rank: 0,
+				tag: 0,
+				subRows: [
+					{ spellId: PENANCE_1, rank: 1, tag: 0 },
+					{ spellId: PENANCE_2, rank: 2, tag: 0 },
+				],
+			},
+		]);
+		expect(rows.map(row => row.metric.name)).toEqual(['Penance (Heal)', 'Penance']);
+		expect(rows[0].subRows![1].metric).toBe(groups[2][0]);
 	});
 });

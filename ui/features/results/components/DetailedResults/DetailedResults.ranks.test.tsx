@@ -33,6 +33,7 @@ let currentChangeEmitter: Emitter<void>;
 const renderPane = async () => {
 	const run = spellActionsRun([
 		{ spellId: FIREBALL_1, damage: 100 },
+		{ spellId: FIREBALL_1, tag: 1, damage: 10 },
 		{ spellId: FIREBALL_2, damage: 300 },
 		{ spellId: FIREBALL_2, tag: 1, damage: 30 },
 		{ spellId: FROSTBOLT, damage: 50 },
@@ -86,7 +87,9 @@ describe('DetailedResults rank grouping', () => {
 				[RANKED, true, true],
 				[RANKED, false, true],
 				[RANKED_DOT, false, true],
+				[RANKED, true, true],
 				[RANKED, false, true],
+				[RANKED_DOT, false, true],
 				['Frostbolt', false, false],
 			]),
 		);
@@ -99,14 +102,16 @@ describe('DetailedResults rank grouping', () => {
 			[RANKED, true, false],
 			[RANKED, false, true],
 			[RANKED_DOT, false, true],
-			[RANKED, false, false],
+			[RANKED, true, false],
+			[RANKED, false, true],
+			[RANKED_DOT, false, true],
 			['Frostbolt', false, false],
 		]);
 	});
 
 	it('opens the damage breakdown on a tag row two levels down', async () => {
 		const { container } = await renderPane();
-		await waitFor(() => expect(damageRows(container)).toHaveLength(6));
+		await waitFor(() => expect(damageRows(container)).toHaveLength(8));
 
 		const tagCell = metricRows(container.querySelector<HTMLElement>('[data-testid="damage-metrics-root"]')!)[2].querySelector('td[data-primary-metric]')!;
 		expect(tagCell.getAttribute('data-row-id')).toBe('0.1.0');
@@ -116,7 +121,7 @@ describe('DetailedResults rank grouping', () => {
 
 	it('remembers a cleared toggle for the next time the pane opens', async () => {
 		const first = await renderPane();
-		await waitFor(() => expect(damageRows(first.container)).toHaveLength(6));
+		await waitFor(() => expect(damageRows(first.container)).toHaveLength(8));
 		await act(async () => {
 			fireEvent.click(toggle(first.container));
 		});
@@ -124,7 +129,7 @@ describe('DetailedResults rank grouping', () => {
 
 		const { container } = await renderPane();
 		expect(toggle(container).getAttribute('aria-checked')).toBe('false');
-		await waitFor(() => expect(damageRows(container)).toHaveLength(5));
+		await waitFor(() => expect(damageRows(container)).toHaveLength(7));
 		expect(damageRows(container)[0][0]).toBe(RANKED);
 	});
 });
