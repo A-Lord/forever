@@ -2481,16 +2481,24 @@
 				"crush": "Crush",
 				"glance": "Glance",
 				"block": "Block",
-				"critical_block": "Critical Block"
+				"critical_block": "Critical Block",
+				"shield": "Shield"
 			},
 			"tooltip_table": {
 				"type": "Type",
 				"count": "Count",
 				"average": "Average",
+				"min": "Min",
+				"max": "Max",
 				"amount": "Amount",
 				"per_cast": "Per Cast",
 				"per_hit": "Per Hit",
 				"ticks": "Ticks"
+			},
+			"custom_metrics": {
+				"group": "Spec metrics",
+				"divine_aegis": "Divine Aegis shield",
+				"ignite_added": "Ignite added"
 			},
 			"unit": "Unit",
 			"damage_result": {

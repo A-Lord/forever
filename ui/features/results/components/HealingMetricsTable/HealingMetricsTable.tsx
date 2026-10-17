@@ -10,7 +10,7 @@ import { useMemo } from 'react';
 import { useSimResult } from '../../hooks/useSimResult';
 import { buildMetricRows, filterMetricRows, indexMetricRows, type MetricGrouping, type MetricRow } from '../../model/grouping';
 import type { SimResultData } from '../../model/result_data';
-import { attackFormat, attackMetricsColumns, threatTooltip, useMetricMax } from '../AttackMetricsColumns';
+import { attackFormat, attackMetricsColumns, customMetricsGroups, threatTooltip, useMetricMax } from '../AttackMetricsColumns';
 import { MetricsCombinedTooltip, type MetricsCombinedTooltipGroup } from '../MetricsCombinedTooltip';
 import { createMetricsColumnHelper, metricForAnchor, MetricsTable, MetricTooltip } from '../MetricsTable';
 
@@ -41,24 +41,20 @@ const grouping: MetricGrouping<ActionMetrics> = {
 	shouldCollapse: metric => !metric.unit?.isPet,
 };
 
-const healingGroup = (metric: ActionMetrics): MetricsCombinedTooltipGroup => ({
-	spellSchool: metric.spellSchool,
-	totalPercentage: 100,
-	data: [
-		{
-			name: i18n.t('results_tab.details.attack_types.hit'),
-			value: metric.avgHealing - metric.avgCritHealing,
-			percentage: metric.healingPercent,
-			average: (metric.avgHealing - metric.avgCritHealing) / (metric.hits || metric.ticks),
-		},
-		{
-			name: i18n.t('results_tab.details.attack_types.critical_hit'),
-			value: metric.avgCritHealing,
-			percentage: metric.healingCritPercent,
-			average: metric.avgCritHealing / (metric.crits || metric.critTicks),
-		},
-	],
-});
+const healingGroup = (metric: ActionMetrics): MetricsCombinedTooltipGroup => {
+	const done = metric.healingDone;
+	return {
+		spellSchool: metric.spellSchool,
+		totalPercentage: 100,
+		data: [
+			{ name: i18n.t('results_tab.details.attack_types.hit'), ...done.heal },
+			{ name: i18n.t('results_tab.details.attack_types.critical_hit'), ...done.critHeal },
+			{ name: i18n.t('results_tab.details.attack_types.tick'), ...done.tick },
+			{ name: i18n.t('results_tab.details.attack_types.critical_tick'), ...done.critTick },
+			{ name: i18n.t('results_tab.details.attack_types.shield'), ...done.shield },
+		],
+	};
+};
 
 const healingHitGroups = (metric: ActionMetrics): Array<MetricsCombinedTooltipGroup> => [
 	{
@@ -209,7 +205,7 @@ export const HealingMetricsTable = () => {
 			<Tooltip id={TOOLTIP.avgCastHeader} />
 			<Tooltip id={TOOLTIP.hitsHeader} />
 			<Tooltip id={TOOLTIP.avgHitHeader} />
-			<MetricTooltip id={TOOLTIP.healing} forAnchor={forAnchor} body={metric => <MetricsCombinedTooltip groups={[healingGroup(metric)]} />} />
+			<MetricTooltip id={TOOLTIP.healing} forAnchor={forAnchor} body={metric => <MetricsCombinedTooltip groups={[healingGroup(metric), ...customMetricsGroups(metric)]} />} />
 			<MetricTooltip
 				id={TOOLTIP.avgCast}
 				forAnchor={forAnchor}

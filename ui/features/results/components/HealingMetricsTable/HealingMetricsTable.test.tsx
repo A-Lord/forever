@@ -62,14 +62,28 @@ describe('HealingMetricsTable', () => {
 		expect(container.querySelectorAll('td[data-primary-metric] [data-testid="metrics-total-bar-fill"]')).toHaveLength(1);
 	});
 
-	it('opens the healing breakdown with its average column from the primary-metric cell', async () => {
+	it('opens the healing breakdown with its average, min and max columns from the primary-metric cell', async () => {
 		result = playerResult([metric('Healing Touch')]);
 		const { container } = render(<HealingMetricsTable />);
 
 		fireEvent.mouseEnter(container.querySelector('td[data-primary-metric]')!);
 		await waitFor(() => expect(tooltipTable()).toBeTruthy());
-		expect([...tooltipTable()!.querySelectorAll('thead th')]).toHaveLength(3);
+		expect([...tooltipTable()!.querySelectorAll('thead th')]).toHaveLength(5);
 		expect(metricsTooltipRowNames()).toEqual(['results_tab.details.attack_types.hit', 'results_tab.details.attack_types.critical_hit']);
+	});
+
+	it('adds a spec metrics group to the healing breakdown when the action records any', async () => {
+		result = playerResult([metric('Prayer of Healing', { customMetrics: [{ key: 'divine_aegis', value: 3, average: 410, min: 300, max: 520 }] })]);
+		const { container } = render(<HealingMetricsTable />);
+
+		fireEvent.mouseEnter(container.querySelector('td[data-primary-metric]')!);
+		await waitFor(() => expect(tooltipTable()).toBeTruthy());
+		expect(metricsTooltipRowNames()).toEqual([
+			'results_tab.details.attack_types.hit',
+			'results_tab.details.attack_types.critical_hit',
+			'results_tab.details.custom_metrics.group',
+			'divine_aegis',
+		]);
 	});
 
 	it('keeps a threat tooltip shut while threat metrics are hidden, and opens it once they are shown', async () => {

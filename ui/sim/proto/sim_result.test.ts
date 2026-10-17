@@ -1,5 +1,7 @@
 import {
 	ActionMetrics as ActionMetricsProto,
+	DistributionMetrics as DistributionMetricsProto,
+	HitKind,
 	TargetedActionMetrics as TargetedActionMetricsProto,
 	UnitMetrics as UnitMetricsProto,
 } from '@generated/proto/api';
@@ -8,7 +10,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('@i18n/localization', async () => (await import('@testing/sim/localization')).localizationStub);
 
-import { SimResult } from './sim_result';
+import { ActionMetrics, SimResult } from './sim_result';
 
 // makeSimRun()'s warrior and its target.
 const PLAYER = 0;
@@ -147,5 +149,108 @@ describe('TargetedActionMetrics blocked-crit and crush getters', () => {
 		expect(m.crushDamage).toBe(4000);
 		expect(m.avgCrushDamage).toBe(2000);
 		expect(m.crushPercent).toBe(50);
+	});
+});
+
+const range = (n: number, avg: number, stdev: number, min: number, max: number) =>
+	DistributionMetricsProto.create({ avg, stdev, min, max, aggregatorData: { n, sumSq: n * (avg * avg + stdev * stdev) } });
+
+// One main-hand action per entry list, each listing its entries as targets, over two iterations.
+const rangedActions = async (...perAction: Array<Array<Entry>>) => {
+	const { request, result } = makeSimRun();
+	request.simOptions!.iterations = 2;
+	const player = result.raidMetrics!.parties[0].players[0];
+	const template = player.actions[0];
+	player.actions = perAction.map(entries =>
+		ActionMetricsProto.create({
+			...template,
+			targets: entries.map(entry => TargetedActionMetricsProto.create({ unitIndex: TARGET, ...entry })),
+		}),
+	);
+	return (await SimResult.makeNew(request, result)).getFirstPlayer()!.actions;
+};
+
+describe('per-value ranges', () => {
+	it('merges the targets of an action by count, weighted mean and the widest bounds', async () => {
+		const [action] = await rangedActions([
+			{ ranges: { [HitKind.HitKindHit]: range(2, 10, 2, 8, 12) } },
+			{ ranges: { [HitKind.HitKindHit]: range(6, 20, 0, 15, 30) } },
+		]);
+
+		const hit = action.range(HitKind.HitKindHit)!;
+		expect(hit.aggregatorData!.n).toBe(8);
+		expect(hit.avg).toBeCloseTo(17.5);
+		expect(hit.min).toBe(8);
+		expect(hit.max).toBe(30);
+		expect(hit.stdev).toBeCloseTo(Math.sqrt(19.75));
+	});
+
+	it('ignores a side that landed nothing when taking the bounds', async () => {
+		const [action] = await rangedActions([
+			{ ranges: { [HitKind.HitKindCrit]: range(0, 0, 0, 0, 0) } },
+			{ ranges: { [HitKind.HitKindCrit]: range(3, 50, 0, 40, 60) } },
+		]);
+
+		const crit = action.range(HitKind.HitKindCrit)!;
+		expect(crit.min).toBe(40);
+		expect(crit.max).toBe(60);
+		expect(action.range(HitKind.HitKindTick)).toBeUndefined();
+	});
+
+	it('merges the same kind across actions and keeps the kinds one side lacks', async () => {
+		const actions = await rangedActions(
+			[{ ranges: { [HitKind.HitKindHit]: range(2, 10, 0, 9, 11), [HitKind.HitKindTick]: range(4, 5, 0, 4, 6) } }],
+			[{ ranges: { [HitKind.HitKindHit]: range(2, 30, 0, 25, 35) } }],
+		);
+
+		const merged = ActionMetrics.merge(actions);
+		const hit = merged.range(HitKind.HitKindHit)!;
+		expect(hit.aggregatorData!.n).toBe(4);
+		expect(hit.avg).toBeCloseTo(20);
+		expect(hit.min).toBe(9);
+		expect(hit.max).toBe(35);
+		expect(merged.range(HitKind.HitKindTick)!.aggregatorData!.n).toBe(4);
+	});
+
+	it('merges custom metrics by key and reports them per iteration', async () => {
+		const actions = await rangedActions(
+			[{ customMetrics: [{ key: 'ignite_added', range: range(4, 100, 0, 80, 120) }] }],
+			[{ customMetrics: [{ key: 'ignite_added', range: range(4, 200, 0, 150, 260) }, { key: 'divine_aegis', range: range(2, 50, 0, 50, 50) }] }],
+		);
+
+		const byKey = Object.fromEntries(ActionMetrics.merge(actions).customMetrics.map(metric => [metric.key, metric]));
+		expect(byKey.ignite_added).toMatchObject({ value: 4, average: 150, min: 80, max: 260 });
+		expect(byKey.divine_aegis).toMatchObject({ value: 1, average: 50 });
+	});
+
+	it('gives each damage kind its bounds only when the kind landed values', async () => {
+		const [action] = await rangedActions([
+			{ hits: 4, ranges: { [HitKind.HitKindHit]: range(4, 10, 0, 8, 12), [HitKind.HitKindCrit]: range(0, 0, 0, 0, 0) } },
+		]);
+
+		expect(action.damageDone.hit).toMatchObject({ min: 8, max: 12 });
+		expect(action.damageDone.critHit).not.toHaveProperty('min');
+		expect(action.damageDone.critHit).not.toHaveProperty('max');
+	});
+
+	it('averages each healing kind and shares the total over healing and shielding', async () => {
+		const [action] = await rangedActions([
+			{
+				healing: 1000,
+				shielding: 100,
+				ranges: {
+					[HitKind.HitKindHeal]: range(4, 100, 0, 90, 110),
+					[HitKind.HitKindCritHeal]: range(2, 300, 0, 280, 320),
+					[HitKind.HitKindShield]: range(1, 100, 0, 100, 100),
+				},
+			},
+		]);
+
+		const done = action.healingDone;
+		expect(done.heal).toMatchObject({ value: 200, average: 100, min: 90, max: 110 });
+		expect(done.critHeal).toMatchObject({ value: 300, average: 300, min: 280, max: 320 });
+		expect(done.shield).toMatchObject({ value: 50, average: 100 });
+		expect(done.heal.percentage).toBeCloseTo((200 / 550) * 100);
+		expect(done.tick).toEqual({ value: 0, percentage: 0, average: 0 });
 	});
 });

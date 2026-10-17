@@ -3,6 +3,7 @@ import {
 	AuraMetrics as AuraMetricsProto,
 	DistributionMetrics as DistributionMetricsProto,
 	EncounterMetrics as EncounterMetricsProto,
+	HitKind,
 	Party as PartyProto,
 	PartyMetrics as PartyMetricsProto,
 	Player as PlayerProto,
@@ -1257,6 +1258,43 @@ export class ActionMetrics {
 		return this.combinedMetrics.healingCritPercent;
 	}
 
+	range(kind: HitKind) {
+		return this.combinedMetrics.range(kind);
+	}
+
+	get customMetrics() {
+		return this.combinedMetrics.customMetrics.flatMap(({ key, range }) =>
+			range && rangeCount(range) > 0
+				? [{ key, value: rangeCount(range) / this.iterations, average: range.avg, min: range.min, max: range.max }]
+				: [],
+		);
+	}
+
+	private bounds(kind: HitKind) {
+		const range = this.range(kind);
+		return range ? { min: range.min, max: range.max } : {};
+	}
+
+	get healingDone() {
+		const entry = (kind: HitKind) => {
+			const range = this.range(kind);
+			const value = range ? (range.avg * rangeCount(range)) / this.iterations : 0;
+			return {
+				value,
+				percentage: percentOf(value, this.avgHealing),
+				average: range?.avg ?? 0,
+				...this.bounds(kind),
+			};
+		};
+		return {
+			heal: entry(HitKind.HitKindHeal),
+			critHeal: entry(HitKind.HitKindCritHeal),
+			tick: entry(HitKind.HitKindHealTick),
+			critTick: entry(HitKind.HitKindCritHealTick),
+			shield: entry(HitKind.HitKindShield),
+		};
+	}
+
 	get damageDone() {
 		const normalHitAvgDamage = Number(
 			(
@@ -1291,61 +1329,73 @@ export class ActionMetrics {
 				value: normalHitAvgDamage,
 				percentage: percentOf(normalHitAvgDamage, this.avgDamage),
 				average: normalHitAvgDamage / (this.hits - this.resistedHits),
+				...this.bounds(HitKind.HitKindHit),
 			},
 			resistedHit: {
 				value: normalResistedHitAvgDamage,
 				percentage: percentOf(normalResistedHitAvgDamage, this.avgDamage),
 				average: normalResistedHitAvgDamage / this.resistedHits,
+				...this.bounds(HitKind.HitKindResistedHit),
 			},
 			critHit: {
 				value: critHitAvgDamage,
 				percentage: percentOf(critHitAvgDamage, this.avgDamage),
 				average: critHitAvgDamage / (this.crits - this.resistedCrits),
+				...this.bounds(HitKind.HitKindCrit),
 			},
 			resistedCritHit: {
 				value: resistedCritHitAvgDamage,
 				percentage: percentOf(resistedCritHitAvgDamage, this.avgDamage),
 				average: resistedCritHitAvgDamage / this.resistedCrits,
+				...this.bounds(HitKind.HitKindResistedCrit),
 			},
 			tick: {
 				value: normalTickAvgDamage,
 				percentage: percentOf(normalTickAvgDamage, this.avgDamage),
 				average: normalTickAvgDamage / (this.ticks - this.resistedTicks),
+				...this.bounds(HitKind.HitKindTick),
 			},
 			resistedTick: {
 				value: normalResistedTickAvgDamage,
 				percentage: percentOf(normalResistedTickAvgDamage, this.avgDamage),
 				average: normalResistedTickAvgDamage / this.resistedTicks,
+				...this.bounds(HitKind.HitKindResistedTick),
 			},
 			critTick: {
 				value: normalCritTickAvgDamage,
 				percentage: percentOf(normalCritTickAvgDamage, this.avgDamage),
 				average: normalCritTickAvgDamage / (this.critTicks - this.resistedCritTicks),
+				...this.bounds(HitKind.HitKindCritTick),
 			},
 			resistedCritTick: {
 				value: this.avgResistedCritTickDamage,
 				percentage: percentOf(this.avgResistedCritTickDamage, this.avgDamage),
 				average: this.avgResistedCritTickDamage / this.resistedCritTicks,
+				...this.bounds(HitKind.HitKindResistedCritTick),
 			},
 			glance: {
 				value: this.avgGlanceDamage,
 				percentage: percentOf(this.avgGlanceDamage, this.avgDamage),
 				average: this.avgGlanceDamage / this.glances,
+				...this.bounds(HitKind.HitKindGlance),
 			},
 			block: {
 				value: this.avgBlockDamage,
 				percentage: percentOf(this.avgBlockDamage, this.avgDamage),
 				average: this.avgBlockDamage / this.blocks,
+				...this.bounds(HitKind.HitKindBlock),
 			},
 			blockedCrit: {
 				value: this.avgBlockedCritDamage,
 				percentage: percentOf(this.avgBlockedCritDamage, this.avgDamage),
 				average: this.avgBlockedCritDamage / this.blockedCrits,
+				...this.bounds(HitKind.HitKindBlockedCrit),
 			},
 			crush: {
 				value: this.avgCrushDamage,
 				percentage: percentOf(this.avgCrushDamage, this.avgDamage),
 				average: this.avgCrushDamage / this.crushes,
+				...this.bounds(HitKind.HitKindCrush),
 			},
 		};
 	}
@@ -1430,6 +1480,43 @@ export class ActionMetrics {
 type TargetedActionMetricsOptions = {
 	iterations: number;
 	duration: number;
+};
+
+const rangeCount = (range: DistributionMetricsProto | undefined) => range?.aggregatorData?.n ?? 0;
+
+// Joins per-value ranges into one: the counts and squared sums add, the mean is weighted by count and
+// the bounds skip a side that landed no values.
+const mergeRanges = (ranges: Array<DistributionMetricsProto | undefined>): DistributionMetricsProto | undefined => {
+	const filled = ranges.filter((range): range is DistributionMetricsProto => rangeCount(range) > 0);
+	if (!filled.length) return undefined;
+
+	const n = sum(filled.map(rangeCount));
+	const sumSq = sum(filled.map(range => range.aggregatorData!.sumSq));
+	const avg = sum(filled.map(range => range.avg * rangeCount(range))) / n;
+	return DistributionMetricsProto.create({
+		avg,
+		stdev: Math.sqrt(Math.max(0, sumSq / n - avg * avg)),
+		min: Math.min(...filled.map(range => range.min)),
+		max: Math.max(...filled.map(range => range.max)),
+		aggregatorData: { n, sumSq },
+	});
+};
+
+const mergeRangeMaps = (maps: Array<TargetedActionMetricsProto['ranges']>): TargetedActionMetricsProto['ranges'] => {
+	const merged: TargetedActionMetricsProto['ranges'] = {};
+	for (const kind of new Set(maps.flatMap(map => Object.keys(map).map(Number)))) {
+		const range = mergeRanges(maps.map(map => map[kind]));
+		if (range) merged[kind] = range;
+	}
+	return merged;
+};
+
+const mergeCustomMetrics = (lists: Array<TargetedActionMetricsProto['customMetrics']>): TargetedActionMetricsProto['customMetrics'] => {
+	const keys = [...new Set(lists.flatMap(list => list.map(metric => metric.key)))];
+	return keys.flatMap(key => {
+		const range = mergeRanges(lists.map(list => list.find(metric => metric.key == key)?.range));
+		return range ? [{ key, range }] : [];
+	});
 };
 
 // Manages the metrics for a single action applied to a specific target.
@@ -1682,6 +1769,16 @@ class TargetedActionMetrics {
 		return (this.data.healing + this.data.shielding) / this.iterations / this.landedHits;
 	}
 
+	// The per-value range of an outcome, absent when the action landed none.
+	range(kind: HitKind): DistributionMetricsProto | undefined {
+		const range = this.data.ranges[kind];
+		return rangeCount(range) > 0 ? range : undefined;
+	}
+
+	get customMetrics() {
+		return this.data.customMetrics;
+	}
+
 	get avgHitThreat() {
 		const lhr = this.landedHitsRaw;
 		return lhr == 0 ? 0 : this.data.threat / lhr;
@@ -1858,6 +1955,8 @@ class TargetedActionMetrics {
 				critHealing: sum(actions.map(a => a.data.critHealing)),
 				shielding: sum(actions.map(a => a.data.shielding)),
 				castTimeMs: sum(actions.map(a => a.data.castTimeMs)),
+				ranges: mergeRangeMaps(actions.map(a => a.data.ranges)),
+				customMetrics: mergeCustomMetrics(actions.map(a => a.data.customMetrics)),
 			}),
 			{
 				iterations,

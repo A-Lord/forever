@@ -11,6 +11,8 @@ export interface MetricsCombinedTooltipEntry {
 	value: number;
 	percentage: number;
 	average?: number;
+	min?: number;
+	max?: number;
 }
 
 export interface MetricsCombinedTooltipGroup {
@@ -23,7 +25,7 @@ export interface MetricsCombinedTooltipGroup {
 
 export interface MetricsCombinedTooltipProps {
 	groups: Array<MetricsCombinedTooltipGroup>;
-	/** Overrides for the Type / Count / Average headers, by position. */
+	/** Overrides for the Type / Count / Average / Min / Max headers, by position. */
 	headerValues?: Array<string | undefined>;
 }
 
@@ -32,7 +34,11 @@ export const MetricsCombinedTooltip = ({ groups, headerValues }: MetricsCombined
 	const displayGroups = groups
 		.filter(group => group.data.some(entry => entry.value))
 		.map(group => ({ ...group, data: group.data.filter(entry => entry.value) }));
-	const hasAverageColumn = displayGroups.some(group => group.data.some(entry => typeof entry.average === 'number'));
+	const hasColumn = (field: 'average' | 'min' | 'max') => displayGroups.some(group => group.data.some(entry => typeof entry[field] === 'number'));
+	const hasAverageColumn = hasColumn('average');
+	const hasMinColumn = hasColumn('min');
+	const hasMaxColumn = hasColumn('max');
+	const columnCount = 2 + Number(hasAverageColumn) + Number(hasMinColumn) + Number(hasMaxColumn);
 
 	return (
 		<Table striped hover className="ui-metrics-table" testId="metrics-table">
@@ -44,9 +50,19 @@ export const MetricsCombinedTooltip = ({ groups, headerValues }: MetricsCombined
 					<TableHeaderCell testId="metrics-table-header-cell" className="ui-metrics-header-cell">
 						{headerValues?.[1] || i18n.t('results_tab.details.tooltip_table.count')}
 					</TableHeaderCell>
+					{hasMinColumn && (
+						<TableHeaderCell testId="metrics-table-header-cell" className="ui-metrics-header-cell">
+							{headerValues?.[3] || i18n.t('results_tab.details.tooltip_table.min')}
+						</TableHeaderCell>
+					)}
 					{hasAverageColumn && (
 						<TableHeaderCell testId="metrics-table-header-cell" className="ui-metrics-header-cell">
 							{headerValues?.[2] || i18n.t('results_tab.details.tooltip_table.average')}
+						</TableHeaderCell>
+					)}
+					{hasMaxColumn && (
+						<TableHeaderCell testId="metrics-table-header-cell" className="ui-metrics-header-cell">
+							{headerValues?.[4] || i18n.t('results_tab.details.tooltip_table.max')}
 						</TableHeaderCell>
 					)}
 				</TableRow>
@@ -54,7 +70,6 @@ export const MetricsCombinedTooltip = ({ groups, headerValues }: MetricsCombined
 			<tbody data-testid="metrics-table-body">
 				{displayGroups.map(({ name: groupName, className, data, spellSchool, totalPercentage }, groupIndex) => {
 					const maxValue = Math.max(...data.map(entry => entry.value));
-					const columnCount = data.some(entry => typeof entry.average === 'number') ? 3 : 2;
 					return (
 						<Fragment key={groupName ?? groupIndex}>
 							{groupName && displayGroups.length > 1 && (
@@ -66,7 +81,7 @@ export const MetricsCombinedTooltip = ({ groups, headerValues }: MetricsCombined
 							)}
 							{[...data]
 								.sort((a, b) => b.value - a.value)
-								.map(({ name, value, percentage, average }) => (
+								.map(({ name, value, percentage, average, min, max }) => (
 									<TableRow className={className} key={name}>
 										<TableCell className="ui-metrics-cell">{name}</TableCell>
 										<TableCell className="ui-metrics-cell">
@@ -78,7 +93,11 @@ export const MetricsCombinedTooltip = ({ groups, headerValues }: MetricsCombined
 												value={value}
 											/>
 										</TableCell>
-										{typeof average === 'number' && <TableCell className="ui-metrics-cell">{formatToCompactNumber(average)}</TableCell>}
+										{hasMinColumn && <TableCell className="ui-metrics-cell">{typeof min === 'number' ? formatToCompactNumber(min) : ''}</TableCell>}
+										{hasAverageColumn && (
+											<TableCell className="ui-metrics-cell">{typeof average === 'number' ? formatToCompactNumber(average) : ''}</TableCell>
+										)}
+										{hasMaxColumn && <TableCell className="ui-metrics-cell">{typeof max === 'number' ? formatToCompactNumber(max) : ''}</TableCell>}
 									</TableRow>
 								))}
 						</Fragment>
