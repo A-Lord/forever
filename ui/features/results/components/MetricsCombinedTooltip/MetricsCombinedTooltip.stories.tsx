@@ -31,11 +31,16 @@ const meta = {
 	argTypes: { groups: { control: false } },
 	decorators: [
 		Story => (
-			<div className="w-fit min-w-96 text-xs">
+			<div className="min-w-96 text-xs">
 				<Story />
 			</div>
 		),
 		withTooltipSurface,
+		Story => (
+			<div className="w-max">
+				<Story />
+			</div>
+		),
 	],
 } satisfies Meta<typeof MetricsCombinedTooltip>;
 
