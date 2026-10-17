@@ -2,14 +2,11 @@ import i18n from '@i18n/config';
 import { ActionMetrics } from '@sim/proto/sim_result';
 import { useMemo } from 'react';
 
-import { useSimResult } from '../../hooks/useSimResult';
-import { buildMetricRows, type MetricGrouping, type MetricRow } from '../../model/grouping';
+import { useActionRows } from '../../hooks/useActionRows';
 import type { SimResultData } from '../../model/result_data';
 import { createMetricsColumnHelper, MetricsActionCell, MetricsTable } from '../MetricsTable';
 
 const helper = createMetricsColumnHelper<ActionMetrics>();
-
-const NO_ROWS: Array<MetricRow<ActionMetrics>> = [];
 
 const castGroups = (resultData: SimResultData): Array<Array<ActionMetrics>> => {
 	const players = resultData.result.getRaidIndexedPlayers(resultData.filter);
@@ -22,14 +19,10 @@ const castGroups = (resultData: SimResultData): Array<Array<ActionMetrics>> => {
 	return ActionMetrics.groupById(actions).concat(petGroups);
 };
 
-const grouping: MetricGrouping<ActionMetrics> = {
-	merge: metrics => ActionMetrics.merge(metrics, { removeTag: true, actionIdOverride: metrics[0].unit?.petActionId || undefined }),
-	shouldCollapse: metric => !metric.unit?.isPet,
-};
+const shouldCollapse = (metric: ActionMetrics) => !metric.unit?.isPet;
 
 export const CastMetricsTable = () => {
-	const resultData = useSimResult();
-	const rows = useMemo(() => (resultData ? buildMetricRows(castGroups(resultData), grouping) : NO_ROWS), [resultData]);
+	const { resultData, rows } = useActionRows(castGroups, shouldCollapse);
 
 	const columns = useMemo(
 		() =>

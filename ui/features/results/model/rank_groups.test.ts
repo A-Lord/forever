@@ -5,7 +5,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@i18n/localization', async () => (await import('@testing/sim/localization')).localizationStub);
 
-import { groupRanks, mergeActionRow, rankParentId } from './rank_groups';
+import type { MetricRow } from './grouping';
+import { buildActionRows, mergeActionRow, rankParentId } from './rank_groups';
 
 const { FIREBALL_1, FIREBALL_2, FROSTBOLT } = RANKED_SPELLS;
 
@@ -15,29 +16,84 @@ const groupsOf = async (spells: Array<SpellActionFixture>) => {
 	return ActionMetrics.groupById(player.getDamageActions());
 };
 
-const spellIds = (groups: Array<Array<ActionMetrics>>) => groups.map(group => group.map(action => action.actionId.spellId));
+const collapse = () => true;
 
-describe('groupRanks', () => {
+interface RowShape {
+	spellId: number;
+	rank: number;
+	tag: number;
+	subRows?: Array<RowShape>;
+}
+
+const shape = (rows: Array<MetricRow<ActionMetrics>>): Array<RowShape> =>
+	rows.map(({ metric: { actionId }, subRows }) => ({
+		spellId: actionId.spellId,
+		rank: actionId.rank,
+		tag: actionId.tag,
+		...(subRows && { subRows: shape(subRows) }),
+	}));
+
+describe('buildActionRows', () => {
 	beforeEach(() => {
 		stubRankedSpellIcons();
 	});
 
-	it('joins the ranks of a spell into one group, each rank merged over its tags', async () => {
+	it('puts the ranks of a spell under one row, and the tags of a rank under that rank', async () => {
 		const groups = await groupsOf([
 			{ spellId: FIREBALL_1, damage: 100 },
 			{ spellId: FROSTBOLT, damage: 50 },
 			{ spellId: FIREBALL_2, damage: 300 },
 			{ spellId: FIREBALL_2, tag: 1, damage: 30 },
 		]);
-		expect(spellIds(groups)).toEqual([[FIREBALL_1], [FROSTBOLT], [FIREBALL_2, FIREBALL_2]]);
+		const rows = buildActionRows(groups, collapse, true);
 
-		const grouped = groupRanks(groups);
-		expect(spellIds(grouped)).toEqual([[FIREBALL_1, FIREBALL_2], [FROSTBOLT]]);
-		expect(grouped[0][0]).toBe(groups[0][0]);
-		expect(grouped[0][1].damage).toBe(330);
-		expect(grouped[0][1].actionId.tag).toBe(0);
-		expect(grouped[0][1].actionId.rank).toBe(2);
-		expect(grouped[1]).toBe(groups[1]);
+		expect(shape(rows)).toEqual([
+			{
+				spellId: FIREBALL_2,
+				rank: 0,
+				tag: 0,
+				subRows: [
+					{ spellId: FIREBALL_1, rank: 1, tag: 0 },
+					{
+						spellId: FIREBALL_2,
+						rank: 2,
+						tag: 0,
+						subRows: [
+							{ spellId: FIREBALL_2, rank: 2, tag: 0 },
+							{ spellId: FIREBALL_2, rank: 2, tag: 1 },
+						],
+					},
+				],
+			},
+			{ spellId: FROSTBOLT, rank: 0, tag: 0 },
+		]);
+		expect(rows[0].metric.name).toBe('Fireball');
+		expect(rows[0].metric.damage).toBe(430);
+		expect(rows[0].subRows![1].metric.damage).toBe(330);
+		expect(rows[0].subRows![0].metric).toBe(groups[0][0]);
+		expect(rows[0].subRows![1].subRows![1].metric).toBe(groups[2][1]);
+		expect(rows[1].metric).toBe(groups[1][0]);
+	});
+
+	it('builds a row per spell id, ranks apart, while ranks are not grouped', async () => {
+		const groups = await groupsOf([
+			{ spellId: FIREBALL_1, damage: 100 },
+			{ spellId: FIREBALL_2, damage: 300 },
+			{ spellId: FIREBALL_2, tag: 1, damage: 30 },
+		]);
+
+		expect(shape(buildActionRows(groups, collapse, false))).toEqual([
+			{ spellId: FIREBALL_1, rank: 1, tag: 0 },
+			{
+				spellId: FIREBALL_2,
+				rank: 2,
+				tag: 0,
+				subRows: [
+					{ spellId: FIREBALL_2, rank: 2, tag: 0 },
+					{ spellId: FIREBALL_2, rank: 2, tag: 1 },
+				],
+			},
+		]);
 	});
 
 	it('leaves a spell with one rank, and a group carrying another spell, as they are', async () => {
@@ -45,25 +101,46 @@ describe('groupRanks', () => {
 			{ spellId: FIREBALL_2, damage: 300 },
 			{ spellId: FROSTBOLT, damage: 50 },
 		]);
-		const same = (before: Array<Array<ActionMetrics>>) => {
-			const after = groupRanks(before);
-			return after.length === before.length && after.every((group, index) => group === before[index]);
-		};
-		expect(same(groups)).toBe(true);
-
 		const withRider = [[...groups[0], ...groups[1]], ...(await groupsOf([{ spellId: FIREBALL_1, damage: 100 }]))];
-		expect(same(withRider)).toBe(true);
+
+		for (const sample of [groups, withRider]) {
+			expect(shape(buildActionRows(sample, collapse, true))).toEqual(shape(buildActionRows(sample, collapse, false)));
+		}
 	});
 
-	it('keeps a ranked spell apart from an unranked spell of the same name', async () => {
-		stubSpellIcons({ [FIREBALL_2]: { name: 'Fireball', rank: 2 }, [FROSTBOLT]: { name: 'Fireball' } });
+	it('keeps an unranked spell apart from the ranks of a spell of the same name', async () => {
+		stubSpellIcons({
+			[FIREBALL_1]: { name: 'Fireball', rank: 1 },
+			[FIREBALL_2]: { name: 'Fireball', rank: 2 },
+			[FROSTBOLT]: { name: 'Fireball' },
+		});
 		const groups = await groupsOf([
-			{ spellId: FIREBALL_2, damage: 300 },
+			{ spellId: FIREBALL_1, damage: 100 },
 			{ spellId: FROSTBOLT, damage: 50 },
+			{ spellId: FIREBALL_2, damage: 300 },
 		]);
 
-		expect(spellIds(groupRanks(groups))).toEqual([[FIREBALL_2], [FROSTBOLT]]);
-		expect(rankParentId([groups[0][0], groups[1][0]])).toBeUndefined();
+		expect(shape(buildActionRows(groups, collapse, true))).toEqual([
+			{
+				spellId: FIREBALL_2,
+				rank: 0,
+				tag: 0,
+				subRows: [
+					{ spellId: FIREBALL_1, rank: 1, tag: 0 },
+					{ spellId: FIREBALL_2, rank: 2, tag: 0 },
+				],
+			},
+			{ spellId: FROSTBOLT, rank: 0, tag: 0 },
+		]);
+	});
+
+	it('drops the tag of a rank whose only member carries one, like the ranks merged over their tags', async () => {
+		const groups = await groupsOf([
+			{ spellId: FIREBALL_1, tag: 1, damage: 100 },
+			{ spellId: FIREBALL_2, damage: 300 },
+		]);
+
+		expect(shape(buildActionRows(groups, collapse, true))[0].subRows![0]).toEqual({ spellId: FIREBALL_1, rank: 1, tag: 0 });
 	});
 });
 
@@ -73,12 +150,11 @@ describe('mergeActionRow', () => {
 	});
 
 	it('names the row of joined ranks after the highest rank without its rank, and merges the counts and ranges', async () => {
-		const [ranks] = groupRanks(
-			await groupsOf([
-				{ spellId: FIREBALL_1, damage: 100 },
-				{ spellId: FIREBALL_2, damage: 300 },
-			]),
-		);
+		const groups = await groupsOf([
+			{ spellId: FIREBALL_1, damage: 100 },
+			{ spellId: FIREBALL_2, damage: 300 },
+		]);
+		const ranks = groups.flat();
 		const parent = mergeActionRow(ranks);
 
 		expect(parent.name).toBe('Fireball');

@@ -16,6 +16,7 @@ import clsx from 'clsx';
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { trackEvent } from '../../../../tracking/utils';
+import { GroupRanksContext } from '../../context/GroupRanksContext';
 import { useSimResult } from '../../hooks/useSimResult';
 import type { SimResultsManager } from '../../model/results_manager';
 import { AuraMetricsTable } from '../AuraMetricsTable';
@@ -29,7 +30,6 @@ import { ALL_UNITS, hasTarget, ResultsFilter, simResultFilter } from '../Results
 import { ThreatMetricsTable } from '../ThreatMetricsTable';
 import { Timeline } from '../Timeline';
 import { DrStickySlotContext } from './context/DrStickySlotContext';
-import { GroupRanksContext } from './context/GroupRanksContext';
 import { DetailedResultsPane } from './DetailedResultsPane';
 import { DetailedResultsTabs } from './DetailedResultsTabs';
 import { DEFAULT_DETAILED_RESULTS_TAB, DETAILED_RESULTS_TABS, type DetailedResultsTabConfig } from './utils';
@@ -49,7 +49,7 @@ export interface DetailedResultsViewProps {
 	onSimulateIteration: () => void;
 	onSimulateDeath: () => void;
 	targetPicker: ReactNode;
-	/** Whether the Damage, Threat, Healing and Damage Taken tables join the ranks of a spell under one row. */
+	/** Whether the tables of the tabs marked `groupsRanks` join the ranks of a spell under one row. */
 	groupRanks: boolean;
 	onGroupRanksChange: (groupRanks: boolean) => void;
 	/** One `DetailedResultsPane` per tab, its value the tab's id. */
@@ -94,14 +94,16 @@ export const DetailedResultsView = ({
 						<div data-testid="dr-toolbar-row" className="flex min-h-0 w-full items-center">
 							<div data-testid="results-filter" className="flex min-h-0 items-center">
 								{targetPicker}
-								<BooleanPicker
-									id="results-group-ranks"
-									className="ml-4 group-data-no-results/dr:hidden"
-									label={i18n.t('results_tab.details.group_ranks')}
-									layout="inline"
-									value={groupRanks}
-									onChange={onGroupRanksChange}
-								/>
+								{tabs.find(tab => tab.id === activeId)?.groupsRanks && (
+									<BooleanPicker
+										id="results-group-ranks"
+										className="ml-4 group-data-no-results/dr:hidden"
+										label={i18n.t('results_tab.details.group_ranks')}
+										layout="inline"
+										value={groupRanks}
+										onChange={onGroupRanksChange}
+									/>
+								)}
 							</div>
 							<div className="min-h-0 grow" />
 							<DetailedResultsTabs tabs={tabs} />

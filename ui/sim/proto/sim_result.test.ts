@@ -237,12 +237,19 @@ describe('per-value ranges', () => {
 		expect(healing.customMetrics[0].percentage).toBeCloseTo(10);
 	});
 
-	it('gives each damage kind its bounds only when the kind landed values', async () => {
-		const [action] = await rangedActions([{ hits: 4, ranges: { [HitKind.HitKindHit]: range(4, 10, 0, 8, 12) } }]);
+	it('gives each damage kind its bounds only when the kind landed values, and drops an empty custom metric', async () => {
+		const [action] = await rangedActions([
+			{
+				hits: 4,
+				ranges: { [HitKind.HitKindHit]: range(4, 10, 0, 8, 12), [HitKind.HitKindCrit]: range(0, 0, 0, 0, 0) },
+				customMetrics: [{ key: 'divine_aegis', range: range(0, 0, 0, 0, 0) }],
+			},
+		]);
 
 		expect(action.damageDone.hit).toMatchObject({ min: 8, max: 12 });
 		expect(action.damageDone.critHit).not.toHaveProperty('min');
 		expect(action.damageDone.critHit).not.toHaveProperty('max');
+		expect(action.customMetrics).toEqual([]);
 	});
 
 	it('averages each healing kind and shares the total over healing and shielding', async () => {

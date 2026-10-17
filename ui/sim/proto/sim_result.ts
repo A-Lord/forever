@@ -1269,10 +1269,9 @@ export class ActionMetrics {
 	// Each value against the action's own amount: its damage, or its healing when it deals none.
 	get customMetrics() {
 		const actionTotal = this.avgDamage || this.avgHealing;
-		return this.combinedMetrics.customMetrics.flatMap(({ key, range }) => {
-			if (!range) return [];
-			const value = this.perIteration(range);
-			return [{ key, value, percentage: percentOf(value, actionTotal), average: range.avg, min: range.min, max: range.max }];
+		return this.combinedMetrics.customMetrics.map(({ key, range }) => {
+			const value = this.perIteration(range!);
+			return { key, value, percentage: percentOf(value, actionTotal), average: range!.avg, min: range!.min, max: range!.max };
 		});
 	}
 
@@ -1780,14 +1779,14 @@ class TargetedActionMetrics {
 		return (this.data.healing + this.data.shielding) / this.iterations / this.landedHits;
 	}
 
-	// The per-value range of an outcome, absent when the action landed none: the sim sends only kinds with
-	// values, and a merge of several targets drops an empty one.
+	// The per-value range of an outcome, absent when the action landed none.
 	range(kind: HitKind): DistributionMetricsProto | undefined {
-		return this.data.ranges[kind];
+		const range = this.data.ranges[kind];
+		return rangeCount(range) > 0 ? range : undefined;
 	}
 
 	get customMetrics() {
-		return this.data.customMetrics;
+		return this.data.customMetrics.filter(metric => rangeCount(metric.range) > 0);
 	}
 
 	get avgHitThreat() {

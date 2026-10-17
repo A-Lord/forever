@@ -1,7 +1,7 @@
 import { Emitter } from '@sim/state/events';
 import { createSimStore } from '@sim/state/sim_store';
 import { renderWithHost } from '@testing/react';
-import { metricRows, RANKED_SPELLS, spellActionsRun, stubRankedSpellIcons } from '@testing/results-metrics';
+import { metricRows, metricsTooltipTable, RANKED_SPELLS, spellActionsRun, stubRankedSpellIcons } from '@testing/results-metrics';
 import { act, fireEvent, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -34,6 +34,7 @@ const renderPane = async () => {
 	const run = spellActionsRun([
 		{ spellId: FIREBALL_1, damage: 100 },
 		{ spellId: FIREBALL_2, damage: 300 },
+		{ spellId: FIREBALL_2, tag: 1, damage: 30 },
 		{ spellId: FROSTBOLT, damage: 50 },
 	]);
 	const view = renderWithHost(<DetailedResults resultsManager={{ currentChangeEmitter, getRunData: () => ({ run }) } as never} />, {
@@ -57,8 +58,11 @@ const renderPane = async () => {
 const damageRows = (container: HTMLElement) =>
 	metricRows(container.querySelector<HTMLElement>('[data-testid="damage-metrics-root"]')!).map(row => [
 		row.cells[0].textContent,
+		row.hasAttribute('data-parent'),
 		row.hasAttribute('data-child'),
 	]);
+
+const RANKED = `Fireball (${RANK})`;
 
 const toggle = (container: HTMLElement) => within(container.querySelector<HTMLElement>('[data-testid="results-filter"]')!).getByRole('checkbox');
 
@@ -70,16 +74,18 @@ beforeEach(() => {
 });
 
 describe('DetailedResults rank grouping', () => {
-	it('opens with the ranks of a spell under one row named without a rank, and lists every rank as its own row once the toggle is cleared', async () => {
+	it('opens with the ranks of a spell under one row named without a rank and the tags of a rank under that rank, and lists every rank as its own row once the toggle is cleared', async () => {
 		const { container } = await renderPane();
 
 		expect(toggle(container).getAttribute('aria-checked')).toBe('true');
 		await waitFor(() =>
 			expect(damageRows(container)).toEqual([
-				['Fireball', false],
-				[`Fireball (${RANK})`, true],
-				[`Fireball (${RANK})`, true],
-				['Frostbolt', false],
+				['Fireball', true, false],
+				[RANKED, true, true],
+				[RANKED, false, true],
+				[RANKED, false, true],
+				[RANKED, false, true],
+				['Frostbolt', false, false],
 			]),
 		);
 
@@ -88,15 +94,27 @@ describe('DetailedResults rank grouping', () => {
 		});
 
 		expect(damageRows(container)).toEqual([
-			[`Fireball (${RANK})`, false],
-			[`Fireball (${RANK})`, false],
-			['Frostbolt', false],
+			[RANKED, true, false],
+			[RANKED, false, true],
+			[RANKED, false, true],
+			[RANKED, false, false],
+			['Frostbolt', false, false],
 		]);
+	});
+
+	it('opens the damage breakdown on a tag row two levels down', async () => {
+		const { container } = await renderPane();
+		await waitFor(() => expect(damageRows(container)).toHaveLength(6));
+
+		const tagCell = metricRows(container.querySelector<HTMLElement>('[data-testid="damage-metrics-root"]')!)[2].querySelector('td[data-primary-metric]')!;
+		expect(tagCell.getAttribute('data-row-id')).toBe('0.1.0');
+		fireEvent.mouseEnter(tagCell);
+		await waitFor(() => expect(metricsTooltipTable()).toBeTruthy());
 	});
 
 	it('remembers a cleared toggle for the next time the pane opens', async () => {
 		const first = await renderPane();
-		await waitFor(() => expect(damageRows(first.container)).toHaveLength(4));
+		await waitFor(() => expect(damageRows(first.container)).toHaveLength(6));
 		await act(async () => {
 			fireEvent.click(toggle(first.container));
 		});
@@ -104,7 +122,7 @@ describe('DetailedResults rank grouping', () => {
 
 		const { container } = await renderPane();
 		expect(toggle(container).getAttribute('aria-checked')).toBe('false');
-		await waitFor(() => expect(damageRows(container)).toHaveLength(3));
-		expect(damageRows(container).every(([, child]) => !child)).toBe(true);
+		await waitFor(() => expect(damageRows(container)).toHaveLength(5));
+		expect(damageRows(container)[0][0]).toBe(RANKED);
 	});
 });

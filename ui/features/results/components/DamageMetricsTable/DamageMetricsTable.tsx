@@ -1,14 +1,13 @@
 import i18n from '@i18n/config';
 import { useSim } from '@sim/context/SimHostContext';
 import { useDisplayMetrics } from '@sim/hooks/useDisplayMetrics';
-import { ActionMetrics } from '@sim/proto/sim_result';
+import type { ActionMetrics } from '@sim/proto/sim_result';
 import { Tooltip } from '@ui-kit/Tooltip';
 import { useMemo } from 'react';
 
-import { useSimResult } from '../../hooks/useSimResult';
-import { buildMetricRows, filterMetricRows, indexMetricRows, type MetricGrouping, type MetricRow } from '../../model/grouping';
+import { useActionRows } from '../../hooks/useActionRows';
+import { filterMetricRows, indexMetricRows } from '../../model/grouping';
 import { groupActionsWithPets } from '../../model/pet_groups';
-import { mergeActionRow } from '../../model/rank_groups';
 import type { SimResultData } from '../../model/result_data';
 import {
 	attackFormat,
@@ -20,12 +19,9 @@ import {
 	threatTooltip,
 	useMetricMax,
 } from '../AttackMetricsColumns';
-import { useGroupRanks } from '../DetailedResults/context/GroupRanksContext';
 import { createMetricsColumnHelper, metricForAnchor, MetricsTable, MetricTooltip } from '../MetricsTable';
 
 const helper = createMetricsColumnHelper<ActionMetrics>();
-
-const NO_ROWS: Array<MetricRow<ActionMetrics>> = [];
 
 const TOOLTIP = {
 	damage: 'damage-metrics-damage',
@@ -45,23 +41,16 @@ const damageGroups = (resultData: SimResultData): Array<Array<ActionMetrics>> =>
 	return groupActionsWithPets(players[0], unit => unit.getDamageActions().map(action => action.forTarget(resultData.filter)));
 };
 
-const grouping: MetricGrouping<ActionMetrics> = {
-	merge: mergeActionRow,
-	shouldCollapse: metric => !metric.unit?.isPet,
-};
+const shouldCollapse = (metric: ActionMetrics) => !metric.unit?.isPet;
 
 const isThreatOnly = (metric: ActionMetrics) => metric.hitAttempts == 0 && metric.dps == 0;
 
 export const DamageMetricsTable = () => {
-	const resultData = useSimResult();
 	const sim = useSim();
 	const { threat: showThreatMetrics } = useDisplayMetrics(sim);
-	const rankGroups = useGroupRanks();
+	const { resultData, rows: built } = useActionRows(damageGroups, shouldCollapse);
 
-	const rows = useMemo(() => {
-		const built = resultData ? buildMetricRows(rankGroups(damageGroups(resultData)), grouping) : NO_ROWS;
-		return showThreatMetrics ? built : filterMetricRows(built, isThreatOnly);
-	}, [resultData, showThreatMetrics, rankGroups]);
+	const rows = useMemo(() => (showThreatMetrics ? built : filterMetricRows(built, isThreatOnly)), [built, showThreatMetrics]);
 	const metricsByRowId = useMemo(() => indexMetricRows(rows), [rows]);
 	const maxDamage = useMetricMax(rows, metric => metric.damage);
 

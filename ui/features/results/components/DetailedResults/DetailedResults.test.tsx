@@ -250,7 +250,7 @@ describe('DetailedResults', () => {
 });
 
 const TABS: Array<DetailedResultsTabConfig> = [
-	{ id: 'damageTab', labelKey: 'results_tab.details.tabs.damage' },
+	{ id: 'damageTab', labelKey: 'results_tab.details.tabs.damage', groupsRanks: true },
 	{ id: 'logTab', labelKey: 'results_tab.details.tabs.log' },
 ];
 
@@ -331,6 +331,12 @@ describe('DetailedResultsView', () => {
 		fireEvent.click(toggle);
 
 		expect(onGroupRanksChange).toHaveBeenCalledWith(false);
+	});
+
+	it('shows the group ranks toggle only on a tab whose table groups ranks', () => {
+		mount({ activeId: 'logTab' });
+
+		expect(within(screen.getByTestId('results-filter')).queryByRole('checkbox')).toBeNull();
 	});
 
 	it('hands the panes the sticky slot under the toolbar', () => {

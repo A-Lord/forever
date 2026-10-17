@@ -7,18 +7,14 @@ import { percentOf } from '@sim/utils/math';
 import { Tooltip } from '@ui-kit/Tooltip';
 import { useMemo } from 'react';
 
-import { useSimResult } from '../../hooks/useSimResult';
-import { buildMetricRows, filterMetricRows, indexMetricRows, type MetricGrouping, type MetricRow } from '../../model/grouping';
-import { mergeActionRow } from '../../model/rank_groups';
+import { useActionRows } from '../../hooks/useActionRows';
+import { filterMetricRows, indexMetricRows } from '../../model/grouping';
 import type { SimResultData } from '../../model/result_data';
 import { amountHeader, attackFormat, attackMetricsColumns, customMetricsGroups, threatTooltip, useMetricMax } from '../AttackMetricsColumns';
-import { useGroupRanks } from '../DetailedResults/context/GroupRanksContext';
 import { MetricsCombinedTooltip, type MetricsCombinedTooltipGroup } from '../MetricsCombinedTooltip';
 import { createMetricsColumnHelper, metricForAnchor, MetricsTable, MetricTooltip } from '../MetricsTable';
 
 const helper = createMetricsColumnHelper<ActionMetrics>();
-
-const NO_ROWS: Array<MetricRow<ActionMetrics>> = [];
 
 const TOOLTIP = {
 	healing: 'healing-metrics-healing',
@@ -38,10 +34,7 @@ const healingGroups = (resultData: SimResultData): Array<Array<ActionMetrics>> =
 	return ActionMetrics.groupById(players[0].getHealingActions().filter(action => action.hps > 0));
 };
 
-const grouping: MetricGrouping<ActionMetrics> = {
-	merge: mergeActionRow,
-	shouldCollapse: metric => !metric.unit?.isPet,
-};
+const shouldCollapse = (metric: ActionMetrics) => !metric.unit?.isPet;
 
 const healingGroup = (metric: ActionMetrics): MetricsCombinedTooltipGroup => {
 	const done = metric.healingDone;
@@ -93,15 +86,11 @@ const healingHitGroups = (metric: ActionMetrics): Array<MetricsCombinedTooltipGr
 const isThreatOnly = (metric: ActionMetrics) => metric.hitAttempts == 0 && metric.hps == 0;
 
 export const HealingMetricsTable = () => {
-	const resultData = useSimResult();
 	const sim = useSim();
 	const { threat: showThreatMetrics } = useDisplayMetrics(sim);
-	const rankGroups = useGroupRanks();
+	const { resultData, rows: built } = useActionRows(healingGroups, shouldCollapse);
 
-	const rows = useMemo(() => {
-		const built = resultData ? buildMetricRows(rankGroups(healingGroups(resultData)), grouping) : NO_ROWS;
-		return showThreatMetrics ? built : filterMetricRows(built, isThreatOnly);
-	}, [resultData, showThreatMetrics, rankGroups]);
+	const rows = useMemo(() => (showThreatMetrics ? built : filterMetricRows(built, isThreatOnly)), [built, showThreatMetrics]);
 	const metricsByRowId = useMemo(() => indexMetricRows(rows), [rows]);
 	const maxHealing = useMetricMax(rows, metric => metric.healing);
 

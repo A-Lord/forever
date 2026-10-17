@@ -4,9 +4,8 @@ import { percentOf } from '@sim/utils/math';
 import { Tooltip } from '@ui-kit/Tooltip';
 import { useMemo } from 'react';
 
-import { useSimResult } from '../../hooks/useSimResult';
-import { buildMetricRows, indexMetricRows, type MetricGrouping, type MetricRow } from '../../model/grouping';
-import { mergeActionRow } from '../../model/rank_groups';
+import { useActionRows } from '../../hooks/useActionRows';
+import { indexMetricRows } from '../../model/grouping';
 import type { SimResultData } from '../../model/result_data';
 import {
 	type AttackBreakdownOptions,
@@ -18,15 +17,12 @@ import {
 	missTooltip,
 	useMetricMax,
 } from '../AttackMetricsColumns';
-import { useGroupRanks } from '../DetailedResults/context/GroupRanksContext';
 import { createMetricsColumnHelper, metricForAnchor, MetricsTable, MetricTooltip } from '../MetricsTable';
 
 const helper = createMetricsColumnHelper<ActionMetrics>();
 
 /** Crushing blows land on the player, so this is the one table whose breakdowns carry them. */
 const TAKEN: AttackBreakdownOptions = { crush: true };
-
-const NO_ROWS: Array<MetricRow<ActionMetrics>> = [];
 
 const TOOLTIP = {
 	damageTaken: 'dtps-metrics-damage-taken',
@@ -49,16 +45,10 @@ const dtpsGroups = (resultData: SimResultData): Array<Array<ActionMetrics>> => {
 	return ActionMetrics.groupById([...targetActions, ...resultData.result.getOwnSideDamageOn(player)]);
 };
 
-const grouping: MetricGrouping<ActionMetrics> = {
-	merge: mergeActionRow,
-	shouldCollapse: () => true,
-};
+const shouldCollapse = () => true;
 
 export const DtpsMetricsTable = () => {
-	const resultData = useSimResult();
-	const rankGroups = useGroupRanks();
-
-	const rows = useMemo(() => (resultData ? buildMetricRows(rankGroups(dtpsGroups(resultData)), grouping) : NO_ROWS), [resultData, rankGroups]);
+	const { resultData, rows } = useActionRows(dtpsGroups, shouldCollapse);
 	const metricsByRowId = useMemo(() => indexMetricRows(rows), [rows]);
 	const maxDamage = useMetricMax(rows, metric => metric.damage);
 	const damageTaken = resultData?.result.getRaidIndexedPlayers(resultData.filter)[0]?.totalDamageTaken;
