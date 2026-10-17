@@ -1099,6 +1099,24 @@ var ConsumableAllowList = []int32{
 	274275, // Flask of Natural Precision
 	274276, // Flask of Natural Swiftness
 }
+
+// Weapon imbues a class builds itself: they ship whatever the imbue builder makes of their rows, and
+// the generated imbue registrations leave them out. Keep these sorted by item ID.
+var ClassBuiltImbues = map[int32]struct{}{
+	// The poisons sim/rogue builds from the rank each hand's imbue casts
+	2892:  {}, // Deadly Poison
+	2893:  {}, // Deadly Poison II
+	6947:  {}, // Instant Poison
+	6949:  {}, // Instant Poison II
+	6950:  {}, // Instant Poison III
+	8926:  {}, // Instant Poison IV
+	8927:  {}, // Instant Poison V
+	8928:  {}, // Instant Poison VI
+	8984:  {}, // Deadly Poison III
+	8985:  {}, // Deadly Poison IV
+	20844: {}, // Deadly Poison V
+}
+
 var ConsumableDenyList = []int32{
 	// Not obtainable in the game
 	5265,  // Watered-down Beer

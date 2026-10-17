@@ -597,6 +597,24 @@ var literalRates = []literalRate{
 		Reason: "Totem of the Storm: half of Maelstrom Weapon's rate per minute, which the shaman talent " +
 			"code keeps as its own literal; the item cannot carry it without the talent reading it from the item",
 	},
+	{
+		Gear:   "set bonus",
+		ID:     184,
+		Pieces: 5,
+		Kind:   overrides.RatePPM,
+		Origin: "unknown",
+		Reason: "Shadowcraft Armor: the energy proc's row states 100% on every melee hit with no rate per minute, " +
+			"so the sim keeps 1 per minute as a literal",
+	},
+	{
+		Gear:   "set bonus",
+		ID:     512,
+		Pieces: 4,
+		Kind:   overrides.RatePPM,
+		Origin: "unknown",
+		Reason: "Darkmantle Armor: the energy proc's row states 100% on every melee hit with no rate per minute, " +
+			"so the sim keeps 1 per minute as a literal",
+	},
 }
 
 // The origin a rate's Source names, or "" for one measured on Forever, which needs no notice.

@@ -3,6 +3,7 @@ package forever
 import (
 	"slices"
 
+	"github.com/wowsims/forever/sim/common/shared"
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
@@ -314,6 +315,57 @@ var ItemSetFeralheartRaiment = core.NewItemSet(core.ItemSet{
 	Bonuses: map[int32]core.ApplySetBonus{
 		2: parsedSetBonus(dungeonResistances),
 		6: parsedSetBonus(spelldata.MustFind(9344), spelldata.MustFind(9334)), // +15 spell damage, +26 attack power
+		8: parsedSetBonus(dungeonTwoArmor),
+	},
+})
+
+var (
+	rogueArmorEnergyProc = spelldata.MustFind(27787) // Shadowcraft 5pc, Darkmantle 4pc: Rogue Armor Energize, the proc
+	rogueArmorEnergy     = spelldata.MustFind(27788) // the energy it restores
+)
+
+// The energy proc of the two rogue dungeon sets. The row states 100% on every melee hit and no rate
+// per minute, so the sim keeps 1 per minute as a literal. A wearer with no energy bar gets nothing.
+func rogueArmorEnergize(name string) core.ApplySetBonus {
+	return func(agent core.Agent, setBonusAura *core.Aura) {
+		character := agent.GetCharacter()
+		gain := shared.FiredSpellHandler(character, core.ActionID{SpellID: rogueArmorEnergy.ID}, rogueArmorEnergyProc)
+		if gain == nil {
+			return
+		}
+
+		trigger := spelldata.ProcTrigger(character, rogueArmorEnergyProc, gain, spelldata.PPM(1.0))
+		trigger.Name = name
+		setBonusAura.AttachProcTrigger(trigger)
+	}
+}
+
+// Dungeon Set 1
+// https://www.wowhead.com/forever/item-set=184/shadowcraft-armor
+//
+// The 4-piece bonus removes a snare when struck and the 6-piece bonus restores health over time,
+// neither of which has a place in the sim.
+var ItemSetShadowcraftArmor = core.NewItemSet(core.ItemSet{
+	ID:    184,
+	Name:  "Shadowcraft Armor",
+	Slots: eightPieceSlots,
+	Bonuses: map[int32]core.ApplySetBonus{
+		2: parsedSetBonus(dungeonResistances),
+		3: parsedSetBonus(spelldata.MustFind(9336)), // +30 attack power
+		5: rogueArmorEnergize("Shadowcraft 5-piece Proc"),
+	},
+})
+
+// Dungeon Set 2
+// https://www.wowhead.com/forever/item-set=512/darkmantle-armor
+var ItemSetDarkmantleArmor = core.NewItemSet(core.ItemSet{
+	ID:    512,
+	Name:  "Darkmantle Armor",
+	Slots: eightPieceSlots,
+	Bonuses: map[int32]core.ApplySetBonus{
+		2: parsedSetBonus(dungeonResistances),
+		4: rogueArmorEnergize("Darkmantle 4-piece Proc"),
+		6: parsedSetBonus(spelldata.MustFind(14049)), // +40 attack power
 		8: parsedSetBonus(dungeonTwoArmor),
 	},
 })

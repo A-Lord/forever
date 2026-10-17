@@ -2156,6 +2156,12 @@
 		},
 		"options": {
 			"rogue": {
+				"use_backstab": {
+					"label": "Use Backstab"
+				},
+				"use_expose_armor": {
+					"label": "Use Expose Armor"
+				},
 				"apply_poisons_manually": {
 					"label": "Configure poisons manually",
 					"tooltip": "Prevent automatic poison configuration that is based on equipped weapons."
