@@ -5,7 +5,7 @@ import { PlayerClasses } from '@sim/player/classes/index';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { classLaunchStatus } from './landing_classes';
+import { classLaunchStatus, SPEC_THEME_CLASS } from './landing_classes';
 import { LandingClassCard } from './LandingClassCard';
 
 const specsOf = (playerClass: (typeof PlayerClasses.naturalOrder)[number]) => Object.values(playerClass.specs);
@@ -21,7 +21,7 @@ describe('LandingClassCard', () => {
 		expect(screen.getByTestId('class-card').tagName).not.toBe('A');
 	});
 
-	it('gives a one-sim class a single All Specs link with the class icon, and leaves the card itself unlinked', () => {
+	it('gives a one-sim class a single All Specializations link with the class icon, and leaves the card itself unlinked', () => {
 		render(<LandingClassCard playerClass={singleSpec} />);
 		const [link] = screen.getAllByTestId('spec-link');
 		expect(screen.getAllByTestId('spec-link')).toHaveLength(1);
@@ -32,12 +32,19 @@ describe('LandingClassCard', () => {
 		expect(screen.getByTestId('class-card').tagName).not.toBe('A');
 	});
 
+	it("covers the card with the background of one of the class's own specs", () => {
+		render(<LandingClassCard playerClass={multiSpec} />);
+		const cover = screen.getByTestId('class-card').querySelector('[aria-hidden="true"]')!;
+		const own = specsOf(multiSpec).map(spec => SPEC_THEME_CLASS[spec.specID as keyof typeof SPEC_THEME_CLASS]);
+		expect([...cover.classList].filter(name => name.endsWith('-sim-ui'))).toEqual([expect.toBeOneOf(own)]);
+	});
+
 	it('tints the card by its class', () => {
 		render(<LandingClassCard playerClass={multiSpec} />);
 		expect(screen.getByTestId('class-card').dataset.class).toBe(PlayerClasses.getCssScheme(multiSpec));
 	});
 
-	it('badges the card with the class status unless the sim has launched', () => {
+	it('shows the class status under its name unless the sim has launched', () => {
 		render(<LandingClassCard playerClass={multiSpec} />);
 		const badge = screen.queryByTestId('launch-status-label');
 		if (classLaunchStatus(multiSpec) === LaunchStatus.Launched) expect(badge).toBeNull();

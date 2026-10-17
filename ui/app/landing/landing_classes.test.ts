@@ -2,7 +2,8 @@ import { LaunchStatus } from '@sim/constants/other';
 import { PlayerClasses } from '@sim/player/classes/index';
 import { describe, expect, it } from 'vitest';
 
-import { classLaunchStatus, LANDING_CLASS_ORDER } from './landing_classes';
+import specsCss from '../../styles/theme/specs.css?raw';
+import { classLaunchStatus, LANDING_CLASS_ORDER, SPEC_THEME_CLASS } from './landing_classes';
 
 const classes = () => LANDING_CLASS_ORDER.map(id => PlayerClasses.fromProto(id));
 
@@ -21,6 +22,17 @@ describe('the landing page class list', () => {
 	// would drop them silently.
 	it('reaches all eighteen specs', () => {
 		expect(classes().flatMap(playerClass => Object.values(playerClass.specs))).toHaveLength(18);
+	});
+});
+
+describe('SPEC_THEME_CLASS', () => {
+	it('names a theme class for every spec on the page, each with its own background in theme/specs.css', () => {
+		const specs = classes().flatMap(playerClass => Object.values(playerClass.specs));
+		specs.forEach(spec => {
+			const themeClass = SPEC_THEME_CLASS[spec.specID as keyof typeof SPEC_THEME_CLASS];
+			expect(themeClass, spec.friendlyName).toBeDefined();
+			expect(specsCss, themeClass).toMatch(new RegExp(`\\.${themeClass} \\{[^}]*--theme-background-image: url\\(`));
+		});
 	});
 });
 

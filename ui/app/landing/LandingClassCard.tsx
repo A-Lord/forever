@@ -6,39 +6,33 @@ import { PlayerClasses } from '@sim/player/classes/index';
 import type { PlayerClass } from '@sim/player/player_class';
 import type { PlayerSpec } from '@sim/player/player_spec';
 import { Button } from '@ui-kit/Button';
-import type { ReactNode } from 'react';
+import { SimLinkContent } from '@ui-kit/SimLinkContent';
+import clsx from 'clsx';
+import { type ReactNode, useState } from 'react';
 
-import { classLaunchStatus } from './landing_classes';
+import { classLaunchStatus, SPEC_THEME_CLASS } from './landing_classes';
 
 export interface LandingClassCardProps {
 	playerClass: PlayerClass<Class>;
 }
 
-// A launched sim needs no badge; every other status is shown on the card.
+// A launched sim shows no status; every other status is shown under the class name.
 const statusBadge = (status: LaunchStatus): string | undefined => (status === LaunchStatus.Launched ? undefined : translateStatus(status));
 
 interface CardContentProps {
+	coverClassName: string;
 	iconPath: string;
 	title: string;
 	status?: string;
 	children?: ReactNode;
 }
 
-const CardContent = ({ iconPath, title, status, children }: CardContentProps) => (
+const CardContent = ({ coverClassName, iconPath, title, status, children }: CardContentProps) => (
 	<>
-		<span className="ui-landing-class-card-cover" aria-hidden="true" />
+		<span className={clsx('ui-landing-class-card-cover', coverClassName)} aria-hidden="true" />
 		<span className="ui-landing-class-card-body">
-			{status && (
-				<span className="ui-landing-class-card-badge" data-testid="launch-status-label">
-					<span className="ui-landing-class-card-badge-dot" aria-hidden="true" />
-					{status}
-				</span>
-			)}
-			<span className="flex flex-col items-start gap-2">
-				<img className="ui-landing-class-card-logo" src={iconPath} alt="" />
-				<span className="ui-landing-class-card-title" data-testid="class-card-title">
-					{title}
-				</span>
+			<span className="ui-landing-class-card-title">
+				<SimLinkContent iconPath={iconPath} title={title} status={status} />
 			</span>
 			{children}
 		</span>
@@ -50,12 +44,14 @@ export const LandingClassCard = ({ playerClass }: LandingClassCardProps) => {
 	const className = translatePlayerClass(playerClass);
 	const scheme = PlayerClasses.getCssScheme(playerClass);
 	const specs = Object.values(playerClass.specs) as Array<PlayerSpec<any>>;
+	// Picked once per page load, so a re-render keeps the card's background.
+	const [coverSpec] = useState(() => specs[Math.floor(Math.random() * specs.length)]);
 	// Priest's class-level icon (`getIcon`) is a spell icon (spell_shadow_shadowwordpain), not the
 	// generic class_*.jpg every other class returns, so the landing page hardcodes class_priest.jpg here.
 	const classIconPath =
 		playerClass.classID === Class.ClassPriest ? 'https://wow.zamimg.com/images/wow/icons/large/class_priest.jpg' : playerClass.getIcon('large');
 
-	// A class with one sim for all its specs gets a single "All Specs" link, under the class icon.
+	// A class with one sim for all its specs gets a single "All Specializations" link, under the class icon.
 	const links =
 		specs.length === 1
 			? [{ href: specs[0].simLink, iconPath: classIconPath, label: i18n.t('landing.home.allSpecs') }]
@@ -63,7 +59,11 @@ export const LandingClassCard = ({ playerClass }: LandingClassCardProps) => {
 
 	return (
 		<div className="ui-landing-class-card" data-class={scheme} data-testid="class-card">
-			<CardContent iconPath={classIconPath} title={className} status={statusBadge(classLaunchStatus(playerClass))}>
+			<CardContent
+				coverClassName={SPEC_THEME_CLASS[coverSpec.specID as keyof typeof SPEC_THEME_CLASS]}
+				iconPath={classIconPath}
+				title={className}
+				status={statusBadge(classLaunchStatus(playerClass))}>
 				<span className="flex flex-wrap gap-2">
 					{links.map(link => (
 						<Button key={link.href} href={link.href} variant="unstyled" className="ui-landing-spec-pill" data-testid="spec-link">

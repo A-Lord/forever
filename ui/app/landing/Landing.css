@@ -69,47 +69,38 @@
 
 		&[data-class='druid'] {
 			--ui-landing-card-accent: var(--color-class-druid);
-			--ui-landing-card-cover: url(/forever/assets/img/balance_druid_background.jpg);
 		}
 
 		&[data-class='hunter'] {
 			--ui-landing-card-accent: var(--color-class-hunter);
-			--ui-landing-card-cover: url(/forever/assets/img/hunter_background.jpg);
 		}
 
 		&[data-class='mage'] {
 			--ui-landing-card-accent: var(--color-class-mage);
-			--ui-landing-card-cover: url(/forever/assets/img/mage_background.jpg);
 		}
 
 		&[data-class='paladin'] {
 			--ui-landing-card-accent: var(--color-class-paladin);
-			--ui-landing-card-cover: url(/forever/assets/img/retribution_paladin.jpg);
 		}
 
 		&[data-class='priest'] {
 			--ui-landing-card-accent: var(--color-class-priest);
-			--ui-landing-card-cover: url(/forever/assets/img/shadow_priest_background.jpg);
 		}
 
 		&[data-class='rogue'] {
 			--ui-landing-card-accent: var(--color-class-rogue);
-			--ui-landing-card-cover: url(/forever/assets/img/rogue_background.jpg);
 		}
 
 		&[data-class='shaman'] {
 			--ui-landing-card-accent: var(--color-class-shaman);
-			--ui-landing-card-cover: url(/forever/assets/img/elemental_shaman_background.jpg);
 		}
 
 		&[data-class='warlock'] {
 			--ui-landing-card-accent: var(--color-class-warlock);
-			--ui-landing-card-cover: url(/forever/assets/img/warlock_background.jpg);
 		}
 
 		&[data-class='warrior'] {
 			--ui-landing-card-accent: var(--color-class-warrior);
-			--ui-landing-card-cover: url(/forever/assets/img/warrior_background.jpg);
 		}
 
 		&::before {
@@ -126,7 +117,7 @@
 					color-mix(in srgb, var(--color-black) 55%, transparent) 45%,
 					color-mix(in srgb, var(--color-black) 10%, transparent)
 				),
-				color-mix(in srgb, var(--color-black) 40%, transparent);
+				color-mix(in srgb, var(--color-black) 55%, transparent);
 		}
 
 		&:is(:hover, :focus-within) {
@@ -146,29 +137,20 @@
 	}
 
 	.ui-landing-class-card-cover {
-		@apply absolute inset-0 -z-1 bg-(image:--ui-landing-card-cover) bg-cover bg-center bg-no-repeat transition-transform duration-400 motion-reduce:transition-none;
+		@apply absolute inset-0 -z-1 bg-(image:--theme-background-image) bg-cover bg-center bg-no-repeat transition-transform duration-400 motion-reduce:transition-none;
 	}
 
 	.ui-landing-class-card-body {
 		@apply relative z-1 flex w-full flex-col justify-between gap-4 p-6;
 	}
 
-	.ui-landing-class-card-badge {
-		@apply absolute top-4 right-4 inline-flex items-center gap-[0.5em] rounded-full border border-solid border-(--ui-landing-card-accent) px-[0.8em] py-[0.4em] text-[0.7rem] text-(--ui-landing-card-accent) uppercase;
-		background: color-mix(in srgb, var(--ui-landing-card-accent) 15%, color-mix(in srgb, var(--color-black) 75%, transparent));
-	}
-
-	.ui-landing-class-card-badge-dot {
-		@apply size-[0.5em] rounded-full bg-(--ui-landing-card-accent);
-	}
-
-	.ui-landing-class-card-logo {
-		@apply size-16 rounded-full border-2 border-solid border-(--ui-landing-card-accent);
-		filter: drop-shadow(0 0.25rem 0.75rem color-mix(in srgb, var(--color-black) 60%, transparent));
-	}
-
 	.ui-landing-class-card-title {
-		@apply text-lg font-medium text-(--ui-landing-card-accent);
+		@apply text-(--ui-landing-card-accent);
+
+		& .ui-sim-link-content {
+			--sim-link-padding-x: 0;
+			--sim-link-padding-y: 0;
+		}
 	}
 
 	.ui-landing-class-card-sheen {
