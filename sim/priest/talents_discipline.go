@@ -268,12 +268,13 @@ func (priest *Priest) applyDivineAegis() {
 	priest.MakeProcTriggerAura(core.ProcTrigger{
 		Name:     "Divine Aegis",
 		Callback: core.CallbackOnHealDealt,
-		Handler: func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
+		Handler: func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
 			if !result.DidCrit() {
 				return
 			}
 			shield := shields.Get(result.Target)
 			strength := result.Damage * shieldFraction
+			spell.RecordCustomMetric(sim, result.Target, "divine_aegis", strength)
 			if shield.IsActive() {
 				shield.Aura.Activate(sim)
 			} else {
