@@ -6857,19 +6857,6 @@
 									"required": ["label", "tooltip"],
 									"additionalProperties": false
 								},
-								"dot_crit_percent_increase": {
-									"type": "object",
-									"properties": {
-										"label": {
-											"type": "string"
-										},
-										"tooltip": {
-											"type": "string"
-										}
-									},
-									"required": ["label", "tooltip"],
-									"additionalProperties": false
-								},
 								"dot_tick_rate_percent_increase": {
 									"type": "object",
 									"properties": {
@@ -7057,7 +7044,6 @@
 								"selected_conjured",
 								"offset",
 								"dot_base_duration",
-								"dot_crit_percent_increase",
 								"dot_tick_rate_percent_increase",
 								"variable_ref",
 								"variable_placeholder",
