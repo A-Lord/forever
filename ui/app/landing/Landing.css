@@ -163,7 +163,7 @@
 	}
 
 	.ui-landing-class-card-logo {
-		@apply size-16 rounded-sm border border-solid border-(--ui-landing-card-accent);
+		@apply size-16 rounded-full border-2 border-solid border-(--ui-landing-card-accent);
 		filter: drop-shadow(0 0.25rem 0.75rem color-mix(in srgb, var(--color-black) 60%, transparent));
 	}
 
