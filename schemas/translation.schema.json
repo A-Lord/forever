@@ -8849,6 +8849,9 @@
 								},
 								"critical_block": {
 									"type": "string"
+								},
+								"shield": {
+									"type": "string"
 								}
 							},
 							"additionalProperties": false,
@@ -8873,7 +8876,8 @@
 								"crush",
 								"glance",
 								"block",
-								"critical_block"
+								"critical_block",
+								"shield"
 							]
 						},
 						"tooltip_table": {
@@ -8886,6 +8890,12 @@
 									"type": "string"
 								},
 								"average": {
+									"type": "string"
+								},
+								"min": {
+									"type": "string"
+								},
+								"max": {
 									"type": "string"
 								},
 								"amount": {
@@ -8902,7 +8912,19 @@
 								}
 							},
 							"additionalProperties": false,
-							"required": ["type", "count", "average", "amount", "per_cast", "per_hit", "ticks"]
+							"required": ["type", "count", "average", "min", "max", "amount", "per_cast", "per_hit", "ticks"]
+						},
+						"custom_metrics": {
+							"type": "object",
+							"properties": {
+								"group": {
+									"type": "string"
+								}
+							},
+							"additionalProperties": {
+								"type": "string"
+							},
+							"required": ["group"]
 						},
 						"unit": {
 							"type": "string"
@@ -8946,6 +8968,7 @@
 						"tooltips",
 						"attack_types",
 						"tooltip_table",
+						"custom_metrics",
 						"unit",
 						"damage_result"
 					]

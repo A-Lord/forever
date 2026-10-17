@@ -39,7 +39,7 @@ const distribution = (avg: number) => {
 };
 
 const valueRange = (n: number, avg: number, stdev: number, min: number, max: number) =>
-	DistributionMetrics.create({ avg, stdev, min, max, aggregatorData: { n, sumSq: n * (avg * avg + stdev * stdev) } });
+	DistributionMetrics.create({ avg, stdev, min, max, aggregatorData: { n, sumSq: 0 } });
 
 export interface SimRunOptions {
 	// Multiplies every damage and threat figure, so a second run reads as a change against the first.

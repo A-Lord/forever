@@ -1264,9 +1264,7 @@ export class ActionMetrics {
 
 	get customMetrics() {
 		return this.combinedMetrics.customMetrics.flatMap(({ key, range }) =>
-			range && rangeCount(range) > 0
-				? [{ key, value: rangeCount(range) / this.iterations, average: range.avg, min: range.min, max: range.max }]
-				: [],
+			range && rangeCount(range) > 0 ? [{ key, value: rangeCount(range) / this.iterations, average: range.avg, min: range.min, max: range.max }] : [],
 		);
 	}
 
@@ -1484,21 +1482,29 @@ type TargetedActionMetricsOptions = {
 
 const rangeCount = (range: DistributionMetricsProto | undefined) => range?.aggregatorData?.n ?? 0;
 
-// Joins per-value ranges into one: the counts and squared sums add, the mean is weighted by count and
-// the bounds skip a side that landed no values.
+// Joins per-value ranges into one with Chan's pairwise update of the count, mean and sum of squared
+// deviations; a range carries only its count, so the bounds skip a side that landed no values.
 const mergeRanges = (ranges: Array<DistributionMetricsProto | undefined>): DistributionMetricsProto | undefined => {
 	const filled = ranges.filter((range): range is DistributionMetricsProto => rangeCount(range) > 0);
 	if (!filled.length) return undefined;
 
-	const n = sum(filled.map(rangeCount));
-	const sumSq = sum(filled.map(range => range.aggregatorData!.sumSq));
-	const avg = sum(filled.map(range => range.avg * rangeCount(range))) / n;
+	let n = 0;
+	let avg = 0;
+	let m2 = 0;
+	for (const range of filled) {
+		const rn = rangeCount(range);
+		const delta = range.avg - avg;
+		const total = n + rn;
+		m2 += range.stdev * range.stdev * rn + (delta * delta * n * rn) / total;
+		avg += (delta * rn) / total;
+		n = total;
+	}
 	return DistributionMetricsProto.create({
 		avg,
-		stdev: Math.sqrt(Math.max(0, sumSq / n - avg * avg)),
+		stdev: Math.sqrt(m2 / n),
 		min: Math.min(...filled.map(range => range.min)),
 		max: Math.max(...filled.map(range => range.max)),
-		aggregatorData: { n, sumSq },
+		aggregatorData: { n, sumSq: 0 },
 	});
 };
 

@@ -93,11 +93,17 @@ export const MetricsCombinedTooltip = ({ groups, headerValues }: MetricsCombined
 												value={value}
 											/>
 										</TableCell>
-										{hasMinColumn && <TableCell className="ui-metrics-cell">{typeof min === 'number' ? formatToCompactNumber(min) : ''}</TableCell>}
-										{hasAverageColumn && (
-											<TableCell className="ui-metrics-cell">{typeof average === 'number' ? formatToCompactNumber(average) : ''}</TableCell>
+										{hasMinColumn && (
+											<TableCell className="ui-metrics-cell">{typeof min === 'number' ? formatToCompactNumber(min) : ''}</TableCell>
 										)}
-										{hasMaxColumn && <TableCell className="ui-metrics-cell">{typeof max === 'number' ? formatToCompactNumber(max) : ''}</TableCell>}
+										{hasAverageColumn && (
+											<TableCell className="ui-metrics-cell">
+												{typeof average === 'number' ? formatToCompactNumber(average) : ''}
+											</TableCell>
+										)}
+										{hasMaxColumn && (
+											<TableCell className="ui-metrics-cell">{typeof max === 'number' ? formatToCompactNumber(max) : ''}</TableCell>
+										)}
 									</TableRow>
 								))}
 						</Fragment>

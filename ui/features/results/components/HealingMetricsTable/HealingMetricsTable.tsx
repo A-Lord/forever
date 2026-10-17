@@ -205,7 +205,11 @@ export const HealingMetricsTable = () => {
 			<Tooltip id={TOOLTIP.avgCastHeader} />
 			<Tooltip id={TOOLTIP.hitsHeader} />
 			<Tooltip id={TOOLTIP.avgHitHeader} />
-			<MetricTooltip id={TOOLTIP.healing} forAnchor={forAnchor} body={metric => <MetricsCombinedTooltip groups={[healingGroup(metric), ...customMetricsGroups(metric)]} />} />
+			<MetricTooltip
+				id={TOOLTIP.healing}
+				forAnchor={forAnchor}
+				body={metric => <MetricsCombinedTooltip groups={[healingGroup(metric), ...customMetricsGroups(metric)]} />}
+			/>
 			<MetricTooltip
 				id={TOOLTIP.avgCast}
 				forAnchor={forAnchor}

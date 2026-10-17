@@ -55,7 +55,7 @@ export const customMetricsGroups = (metric: ActionMetrics): Array<MetricsCombine
 			]
 		: [];
 
-const castsGroup =(metric: ActionMetrics, { crush }: AttackBreakdownOptions = {}): MetricsCombinedTooltipGroup => {
+const castsGroup = (metric: ActionMetrics, { crush }: AttackBreakdownOptions = {}): MetricsCombinedTooltipGroup => {
 	const landed = metric.landedHits || metric.casts;
 	const blocked = metric.blocks + metric.blockedCrits;
 	return {

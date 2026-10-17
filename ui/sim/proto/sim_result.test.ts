@@ -153,7 +153,7 @@ describe('TargetedActionMetrics blocked-crit and crush getters', () => {
 });
 
 const range = (n: number, avg: number, stdev: number, min: number, max: number) =>
-	DistributionMetricsProto.create({ avg, stdev, min, max, aggregatorData: { n, sumSq: n * (avg * avg + stdev * stdev) } });
+	DistributionMetricsProto.create({ avg, stdev, min, max, aggregatorData: { n, sumSq: 0 } });
 
 // One main-hand action per entry list, each listing its entries as targets, over two iterations.
 const rangedActions = async (...perAction: Array<Array<Entry>>) => {
@@ -183,6 +183,7 @@ describe('per-value ranges', () => {
 		expect(hit.min).toBe(8);
 		expect(hit.max).toBe(30);
 		expect(hit.stdev).toBeCloseTo(Math.sqrt(19.75));
+		expect(hit.aggregatorData!.sumSq).toBe(0);
 	});
 
 	it('ignores a side that landed nothing when taking the bounds', async () => {
@@ -215,7 +216,14 @@ describe('per-value ranges', () => {
 	it('merges custom metrics by key and reports them per iteration', async () => {
 		const actions = await rangedActions(
 			[{ customMetrics: [{ key: 'ignite_added', range: range(4, 100, 0, 80, 120) }] }],
-			[{ customMetrics: [{ key: 'ignite_added', range: range(4, 200, 0, 150, 260) }, { key: 'divine_aegis', range: range(2, 50, 0, 50, 50) }] }],
+			[
+				{
+					customMetrics: [
+						{ key: 'ignite_added', range: range(4, 200, 0, 150, 260) },
+						{ key: 'divine_aegis', range: range(2, 50, 0, 50, 50) },
+					],
+				},
+			],
 		);
 
 		const byKey = Object.fromEntries(ActionMetrics.merge(actions).customMetrics.map(metric => [metric.key, metric]));
