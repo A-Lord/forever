@@ -293,7 +293,7 @@ func TestGeneratedRowsBuildTheirShapes(t *testing.T) {
 		{"BloodPact", false, false, NewSpellDataBloodPactAura, auraShape{
 			Label: "Blood Pact (External)", ActionID: external(11767), Tag: "BloodPact", Duration: BloodPactDuration(0),
 			BuildPhase: core.CharacterBuildPhaseBuffs,
-			Bids:       []string{bid("BloodPact", true, math.Abs(bloodPact))},
+			Bids:       []string{bid("BloodPactStaminaAdd", false, bloodPact)},
 			Stacks:     statsOnly(onCharacter(map[stats.Stat]float64{stats.Stamina: bloodPact})),
 		}},
 		{"Darkspear", false, true, NewSpellDataDarkspearAura, auraShape{

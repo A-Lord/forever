@@ -19,6 +19,7 @@ type WarlockPet struct {
 	AutoCastAbilities []*core.Spell
 	MinMana           float64      // The mana the pet keeps before it casts again
 	ownerAuras        []*core.Aura // the warlock's effects that last while this demon, and no other, is out
+	partyAuras        []*core.Aura // the effects on the warlock's party that last while this demon is out; summonDemon puts them up, and a demon out at the start puts them up with each player's reset
 	summonStun        *core.Aura   // Summoning Disorientation, from the start of the warlock's summon until it runs out or the summon dismisses this demon
 }
 
@@ -259,6 +260,9 @@ func (warlock *Warlock) registerPet(summon proto.WarlockOptions_Summon, name str
 		for _, aura := range pet.ownerAuras {
 			aura.Deactivate(sim)
 		}
+		for _, aura := range pet.partyAuras {
+			aura.Deactivate(sim)
+		}
 	}
 
 	warlock.AddPet(pet)
@@ -350,14 +354,28 @@ func (pet *WarlockPet) ExecuteCustomRotation(sim *core.Simulation) {
 
 // --- Imp ---
 
-// The Imp's Blood Pact on the warlock, up while the Imp is out. It shares the party buff's category, so
-// a Blood Pact ticked in the settings and the Imp's own are worth one buff.
+// The Imp's Blood Pact on each player in the warlock's party, the warlock among them and no pets, up while
+// the Imp is out. With the Imp out at the start it counts in the build phase. It shares the party buff's
+// category, so a Blood Pact ticked in the settings and the Imp's own are worth one buff. Two warlocks in
+// one party share each player's copy.
 func (warlock *Warlock) registerBloodPact() {
-	if warlock.Imp == nil {
-		return
+	impAtStart := warlock.Imp.EnabledOnStart()
+	auras := warlock.NewPartyAuraArray(func(member *core.Character) *core.Aura {
+		aura := buffs.NewSpellDataBloodPactAura(&member.Unit, true, 0)
+		if impAtStart {
+			aura.BuildPhase = core.CharacterBuildPhaseBuffs
+			// The Imp comes out in the warlock's reset, before the players after it in the party reset.
+			aura.ApplyOnReset(func(aura *core.Aura, sim *core.Simulation) {
+				aura.Activate(sim)
+			})
+		}
+		return aura
+	})
+	for _, aura := range auras {
+		if aura != nil {
+			warlock.Imp.partyAuras = append(warlock.Imp.partyAuras, aura)
+		}
 	}
-
-	warlock.Imp.ownerAuras = append(warlock.Imp.ownerAuras, buffs.NewSpellDataBloodPactAura(&warlock.Unit, true, 0))
 }
 
 func (pet *WarlockPet) registerFirebolt() {
