@@ -206,6 +206,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestRetribution-AllItems-DarkmantleArmor"
+ value: {
+  dps: 757.54353
+  tps: 651.35166
+  dtps: 8.11213
+ }
+}
+dps_results: {
  key: "TestRetribution-AllItems-DarkmoonCard:BlueDragon-19288"
  value: {
   dps: 803.96821
@@ -942,6 +950,14 @@ dps_results: {
   dps: 808.23581
   tps: 693.58387
   dtps: 7.22146
+ }
+}
+dps_results: {
+ key: "TestRetribution-AllItems-ShadowcraftArmor"
+ value: {
+  dps: 717.97841
+  tps: 617.96482
+  dtps: 7.19665
  }
 }
 dps_results: {

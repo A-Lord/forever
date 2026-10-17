@@ -159,6 +159,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestFeralCat-AllItems-DarkmantleArmor"
+ value: {
+  dps: 632.68883
+  tps: 339.76141
+ }
+}
+dps_results: {
  key: "TestFeralCat-AllItems-DarkmoonCard:BlueDragon-19288"
  value: {
   dps: 634.47164
@@ -740,6 +747,13 @@ dps_results: {
  value: {
   dps: 634.52665
   tps: 340.50171
+ }
+}
+dps_results: {
+ key: "TestFeralCat-AllItems-ShadowcraftArmor"
+ value: {
+  dps: 596.47817
+  tps: 321.56736
  }
 }
 dps_results: {

@@ -306,6 +306,15 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestProtectionWarrior-AllItems-DarkmantleArmor"
+ value: {
+  dps: 492.05432
+  tps: 1058.57996
+  dtps: 336.91877
+  hps: 16.4
+ }
+}
+dps_results: {
  key: "TestProtectionWarrior-AllItems-DarkmoonCard:BlueDragon-19288"
  value: {
   dps: 464.27824
@@ -1166,6 +1175,15 @@ dps_results: {
   dps: 462.97526
   tps: 995.289
   dtps: 284.80113
+  hps: 16.4
+ }
+}
+dps_results: {
+ key: "TestProtectionWarrior-AllItems-ShadowcraftArmor"
+ value: {
+  dps: 461.59566
+  tps: 987.43638
+  dtps: 356.34607
   hps: 16.4
  }
 }

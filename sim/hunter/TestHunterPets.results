@@ -270,6 +270,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestHunterPets-AllItems-DarkmantleArmor"
+ value: {
+  dps: 645.66893
+  tps: 296.62428
+  dtps: 7.36118
+ }
+}
+dps_results: {
  key: "TestHunterPets-AllItems-DarkmoonCard:BlueDragon-19288"
  value: {
   dps: 647.43437
@@ -1139,6 +1147,14 @@ dps_results: {
   dps: 650.05364
   tps: 299.74342
   dtps: 7.60541
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-ShadowcraftArmor"
+ value: {
+  dps: 623.27986
+  tps: 284.20846
+  dtps: 7.44263
  }
 }
 dps_results: {

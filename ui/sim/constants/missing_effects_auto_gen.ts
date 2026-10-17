@@ -2582,6 +2582,17 @@ export const MISSING_SET_BONUSES = new Map<number, Map<number, string[]>>([
 		]),
 	],
 	[
+		185, // Wildheart Raiment
+		new Map([
+			[
+				4,
+				[
+					"When struck in combat, has a 5% chance to increase your movement speed by 10% for 8s. Can only occur once every 60 sec.", // 1302708 - https://www.wowhead.com/forever/spell=1302708
+				],
+			],
+		]),
+	],
+	[
 		186, // Beaststalker Armor
 		new Map([
 			[
@@ -4013,35 +4024,6 @@ export const MISSING_SET_BONUSES = new Map<number, Map<number, string[]>>([
 				4,
 				[
 					"Chance on melee attack to heal you for 110.", // 27419 - https://www.wowhead.com/forever/spell=27419
-				],
-			],
-			[
-				6,
-				[
-					"+40 Attack Power.", // 14049 - https://www.wowhead.com/forever/spell=14049
-				],
-			],
-			[
-				8,
-				[
-					"+200 Armor.", // 14803 - https://www.wowhead.com/forever/spell=14803
-				],
-			],
-		]),
-	],
-	[
-		512, // Darkmantle Armor
-		new Map([
-			[
-				2,
-				[
-					"+8 All Resistances.", // 18679 - https://www.wowhead.com/forever/spell=18679
-				],
-			],
-			[
-				4,
-				[
-					"Chance on melee attack to restore 20 Energy.", // 27787 - https://www.wowhead.com/forever/spell=27787
 				],
 			],
 			[
@@ -5751,4 +5733,16 @@ export const UNVALIDATED_RATE_ENCHANTS = new Map<number, UnvalidatedRate>([
 
 // Keyed by set id, then by the bonus's piece count.
 export const UNVALIDATED_RATE_SET_BONUSES = new Map<number, Map<number, UnvalidatedRate>>([
+	[
+		184, // Shadowcraft Armor
+		new Map([
+			[5, { kind: 'ppm', origin: 'unknown' }],
+		]),
+	],
+	[
+		512, // Darkmantle Armor
+		new Map([
+			[4, { kind: 'ppm', origin: 'unknown' }],
+		]),
+	],
 ])
