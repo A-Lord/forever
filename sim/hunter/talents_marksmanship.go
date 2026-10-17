@@ -129,9 +129,16 @@ func (hunter *Hunter) registerImprovedArcaneShot() {
 }
 
 // Effect 2 is a dummy restating the bonus. The row states a stack of one, which would keep the
-// parse off a pseudo-stat multiplier.
+// parse off a pseudo-stat multiplier. With a pet out the hunter gains nothing and the pet deals 16%
+// less: two level 30 Cat sheets, one at 1.3 s and 152 attack power (36-48) and one read with and
+// without the talent (41-54 to 35-45), both the model × 0.84 where the dummy's 20 misses.
 func (hunter *Hunter) registerLoneWolf() {
-	if !hunter.Talents.LoneWolf || hunter.Pet != nil {
+	if !hunter.Talents.LoneWolf {
+		return
+	}
+
+	if hunter.Pet != nil {
+		hunter.Pet.PseudoStats.DamageDealtMultiplier *= 0.84
 		return
 	}
 
