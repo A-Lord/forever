@@ -2557,33 +2557,9 @@ export const MISSING_SET_BONUSES = new Map<number, Map<number, string[]>>([
 		183, // Dreadmist Raiment
 		new Map([
 			[
-				2,
-				[
-					"+8 All Resistances.", // 18679 - https://www.wowhead.com/forever/spell=18679
-				],
-			],
-			[
-				3,
-				[
-					"Increases damage and healing done by magical spells and effects by up to 18.", // 9346 - https://www.wowhead.com/forever/spell=9346
-				],
-			],
-			[
 				4,
 				[
 					"When struck in combat has a 2% chance of causing the attacker to flee in terror for 2s. Can only occur once every 60 sec.", // 27780 - https://www.wowhead.com/forever/spell=27780
-				],
-			],
-			[
-				5,
-				[
-					"Your spellcasts have a 5% chance to heal you for 300.", // 450585 - https://www.wowhead.com/forever/spell=450585
-				],
-			],
-			[
-				6,
-				[
-					"Restores 8 mana per 5 sec.", // 18378 - https://www.wowhead.com/forever/spell=18378
 				],
 			],
 		]),
@@ -4218,27 +4194,9 @@ export const MISSING_SET_BONUSES = new Map<number, Map<number, string[]>>([
 		518, // Deathmist Raiment
 		new Map([
 			[
-				2,
-				[
-					"+8 All Resistances.", // 18679 - https://www.wowhead.com/forever/spell=18679
-				],
-			],
-			[
 				4,
 				[
 					"When struck in combat has a 2% chance of causing the attacker to flee in terror for 2s. Can only occur once every 60 sec.", // 27780 - https://www.wowhead.com/forever/spell=27780
-				],
-			],
-			[
-				6,
-				[
-					"Increases damage and healing done by magical spells and effects by up to 23.", // 14047 - https://www.wowhead.com/forever/spell=14047
-				],
-			],
-			[
-				8,
-				[
-					"+200 Armor.", // 14803 - https://www.wowhead.com/forever/spell=14803
 				],
 			],
 		]),
