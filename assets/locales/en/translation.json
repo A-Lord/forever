@@ -590,6 +590,15 @@
 				"chance_unknown": "In-game validation needed. Currently using an estimated proc chance"
 			},
 			"not_yet_implemented": "Not yet implemented",
+			"not_fully_supported": "Not fully supported:",
+			"partial_set_bonus": {
+				"grovekeeper_eclipse_4": "only spell damage against Demons is raised, not the damage of melee attacks.",
+				"wildheart_raiment_5": "only the mana on a spell cast is modelled, not the energy on a melee attack or the rage when struck by one.",
+				"implements_of_unspoken_names_3": "the extra 5% damage on Firebolt and Lash of Pain is not modelled.",
+				"dreadnaughts_battlegear_4": "Taunt and Challenging Shout always hit in the sim, so the bonus changes nothing.",
+				"dreadnaughts_battlegear_8": "only heals a healer casts in the sim take the bonus, not the incoming healing the tank sim models.",
+				"battleplate_of_glory_3": "the sim does not cast Intervene, so the bonus changes nothing."
+			},
 			"set_bonus_warnings": "This item set has the following warnings:",
 			"set_bonus_piece": "{{pieces}}-piece:",
 			"area_stats": "Only while the encounter is in one of these areas:"

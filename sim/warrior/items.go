@@ -3,6 +3,7 @@ package warrior
 import (
 	"github.com/wowsims/forever/sim/common/shared"
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
 	"github.com/wowsims/forever/sim/core/stats"
 )
@@ -162,59 +163,62 @@ var ItemSetConquerorsBattlegear = core.NewItemSet(core.ItemSet{
 	},
 })
 
+// The six pieces the Tier 1 ItemSet rows list.
+// TODO: only the shoulders, hands, legs and feet have ItemSparse rows in the game files, so the
+// 5-piece bonuses cannot be worn yet.
+var tierOneSlots = []proto.ItemSlot{
+	proto.ItemSlot_ItemSlotHead,
+	proto.ItemSlot_ItemSlotShoulder,
+	proto.ItemSlot_ItemSlotChest,
+	proto.ItemSlot_ItemSlotHands,
+	proto.ItemSlot_ItemSlotLegs,
+	proto.ItemSlot_ItemSlotFeet,
+}
+
+// Every aura the Tier 1 rows state has a row in the parse table, so each bonus is its row parsed.
+func parsedSetBonus(row *spelldata.Spell) core.ApplySetBonus {
+	return func(agent core.Agent, setBonusAura *core.Aura) {
+		spelldata.ParseEffects(agent.GetCharacter(), setBonusAura, row)
+	}
+}
+
 var (
-	dreadnaughtRevenge        = spelldata.MustFind(28844) // 2pc: Revenge
-	dreadnaughtTauntHit       = spelldata.MustFind(28843) // 4pc: Increased Spell Hit Chance
-	dreadnaughtAbilityHit     = spelldata.MustFind(28842) // 6pc: Increased Hit Chance
-	dreadnaughtCheatDeath     = spelldata.MustFind(28845) // 8pc: Cheat Death, the proc
-	dreadnaughtCheatDeathBuff = spelldata.MustFind(28846) // 8pc: Cheat Death, the healing buff
+	battlegearGloryHaste          = spelldata.MustFind(1300968) // 2pc: attack speed, and cast speed, which no physical ability takes
+	battlegearGloryShoutCooldown  = spelldata.MustFind(1301069) // 3pc: Intimidating Shout's cooldown
+	battlegearGloryHumanoidPower  = spelldata.MustFind(1301095) // 4pc: attack power against Humanoids
+	battlegearGloryRecklessnessCD = spelldata.MustFind(1301721) // 5pc: Recklessness's cooldown
 )
 
-var ItemSetDreadnaughtsBattlegear = core.NewItemSet(core.ItemSet{
-	Name: "Dreadnaught's Battlegear",
-	ID:   523,
+// Tier 1 - Arms/Fury
+var ItemSetBattlegearOfGlory = core.NewItemSet(core.ItemSet{
+	Name:  "Battlegear of Glory",
+	ID:    2102,
+	Slots: tierOneSlots,
 	Bonuses: map[int32]core.ApplySetBonus{
-		2: func(agent core.Agent, setBonusAura *core.Aura) {
-			// A_ADD_FLAT_MODIFIER on the damage has no sim kind in the parse table, so only the
-			// amount and the spell it names come off the row.
-			setBonusAura.AttachSpellMod(core.SpellModConfig{
-				ClassFlags: dreadnaughtRevenge.EffectN(1).ClassFlags,
-				Kind:       core.SpellMod_BaseDamage_Flat,
-				FloatValue: dreadnaughtRevenge.EffectN(1).BaseValue(),
-			})
-		},
-		4: func(agent core.Agent, setBonusAura *core.Aura) {
-			// TODO: both spells resolve on OutcomeAlwaysHit, so the bonus changes nothing until
-			// they roll against the spell hit table.
-			warrior := agent.(WarriorAgent).GetWarrior()
-			spelldata.ParseEffects(&warrior.Character, setBonusAura, dreadnaughtTauntHit)
-		},
-		6: func(agent core.Agent, setBonusAura *core.Aura) {
-			warrior := agent.(WarriorAgent).GetWarrior()
-			spelldata.ParseEffects(&warrior.Character, setBonusAura, dreadnaughtAbilityHit)
-		},
-		8: func(agent core.Agent, setBonusAura *core.Aura) {
-			// Spell 28845 states that below 20% health, healing spells cast on you gain up to 160
-			// healing (spell 28846) for 5 seconds.
-			// TODO: the tank sim's modelled incoming healing bypasses the bonus; only heals a healer
-			// unit casts take it.
-			warrior := agent.(WarriorAgent).GetWarrior()
+		2: parsedSetBonus(battlegearGloryHaste),
+		3: parsedSetBonus(battlegearGloryShoutCooldown),
+		4: parsedSetBonus(battlegearGloryHumanoidPower),
+		5: parsedSetBonus(battlegearGloryRecklessnessCD),
+	},
+})
 
-			cheatDeath := warrior.RegisterAura(spelldata.AuraConfig(dreadnaughtCheatDeathBuff))
-			spelldata.ParseEffects(&warrior.Character, cheatDeath, dreadnaughtCheatDeathBuff)
+var (
+	battleplateGloryDefense      = spelldata.MustFind(1300970) // 2pc: Defense skill
+	battleplateGloryIntervene    = spelldata.MustFind(1301071) // 3pc: Intervene's cooldown
+	battleplateGloryExpertise    = spelldata.MustFind(1301096) // 4pc: expertise rating
+	battleplateGloryShieldWallCD = spelldata.MustFind(1301722) // 5pc: Shield Wall's cooldown
+)
 
-			trigger := spelldata.ProcTrigger(&warrior.Character, dreadnaughtCheatDeath,
-				func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
-					cheatDeath.Activate(sim)
-				})
-			trigger.Name = "Cheat Death - Trigger"
-			// The health threshold is the whole of the tooltip's condition and the row states none
-			// of it.
-			trigger.ExtraCondition = func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) bool {
-				return warrior.CurrentHealthPercent() < 0.2
-			}
-
-			setBonusAura.AttachProcTrigger(trigger)
-		},
+// Tier 1 - Protection
+var ItemSetBattleplateOfGlory = core.NewItemSet(core.ItemSet{
+	Name:  "Battleplate of Glory",
+	ID:    2103,
+	Slots: tierOneSlots,
+	Bonuses: map[int32]core.ApplySetBonus{
+		2: parsedSetBonus(battleplateGloryDefense),
+		// TODO: the sim does not cast Intervene, so the cooldown the row takes off it reaches no spell.
+		3: parsedSetBonus(battleplateGloryIntervene),
+		4: parsedSetBonus(battleplateGloryExpertise),
+		5: parsedSetBonus(battleplateGloryShieldWallCD),
 	},
 })

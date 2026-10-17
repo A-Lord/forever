@@ -37,7 +37,7 @@ func TestAffliction(t *testing.T) {
 				},
 			}},
 			GearSet:  core.GetGearSet("../../ui/specs/warlock/dps/gear_sets", "preraid"),
-			Talents:  "25550320135201351--053",
+			Talents:  "25520320135201351--05501",
 			Rotation: core.GetAplRotation("../../ui/specs/warlock/dps/apls", "affliction"),
 			ItemFilter: core.ItemFilter{
 				WeaponTypes: []proto.WeaponType{
@@ -249,8 +249,8 @@ func TestDecimationGrantedOnLandedCast(t *testing.T) {
 	}
 }
 
-// Bane of Agony's ticks are set at cast: Amplify Curse (talent 9) raises the base that ramps in thirds, and the
-// spell power share is the spell power at cast, on every tick alike. Each tick leaves its base and share in
+// Bane of Agony's ticks are set at cast: the base ramps in thirds, the spell power share is the spell power at
+// cast on every tick alike, and Amplify Curse (talent 9) raises both. Each tick leaves its base and share in
 // the dot's snapshot base, which the last tick clears as the dot ends, so the test reads the first 11.
 func TestBaneOfAgonyTicksSetAtCast(t *testing.T) {
 	encounter := core.MakeSingleTargetEncounter(0)
@@ -301,9 +301,9 @@ func TestBaneOfAgonyTicksSetAtCast(t *testing.T) {
 	coefficient := dot.BonusCoefficient
 	ampShare := share + 500*coefficient
 	for i, ramp := range []float64{0.5, 1, 1.5} {
-		want := base*ramp*warlock.AmplifyCurseMultiplier + ampShare
+		want := (base*ramp + ampShare) * warlock.AmplifyCurseMultiplier
 		if got := amplified[4*i]; math.Abs(got-want) > 1e-6 {
-			t.Errorf("amplified third %d tick %.3f, want %.3f: the base %.3f amplified, plus the share at cast %.3f",
+			t.Errorf("amplified third %d tick %.3f, want %.3f: the base %.3f plus the share at cast %.3f, amplified",
 				i+1, got, want, base*ramp, ampShare)
 		}
 	}
