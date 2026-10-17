@@ -211,11 +211,11 @@ describe('per-value ranges', () => {
 
 	it('merges custom metrics by key and reports their amount per iteration', async () => {
 		const actions = await rangedActions(
-			[{ customMetrics: [{ key: 'ignite_added', range: range(4, 100, 0, 80, 120) }] }],
+			[{ customMetrics: [{ key: 'spec_metric', range: range(4, 100, 0, 80, 120) }] }],
 			[
 				{
 					customMetrics: [
-						{ key: 'ignite_added', range: range(4, 200, 0, 150, 260) },
+						{ key: 'spec_metric', range: range(4, 200, 0, 150, 260) },
 						{ key: 'divine_aegis', range: range(2, 50, 0, 50, 50) },
 					],
 				},
@@ -223,13 +223,13 @@ describe('per-value ranges', () => {
 		);
 
 		const byKey = Object.fromEntries(ActionMetrics.merge(actions).customMetrics.map(metric => [metric.key, metric]));
-		expect(byKey.ignite_added).toMatchObject({ value: 600, average: 150, min: 80, max: 260 });
+		expect(byKey.spec_metric).toMatchObject({ value: 600, average: 150, min: 80, max: 260 });
 		expect(byKey.divine_aegis).toMatchObject({ value: 50, average: 50 });
 	});
 
 	it('gives a custom metric its share of the damage of the action, or of its healing when it deals none', async () => {
 		const [damaging, healing] = await rangedActions(
-			[{ damage: 1000, customMetrics: [{ key: 'ignite_added', range: range(4, 100, 0, 80, 120) }] }],
+			[{ damage: 1000, customMetrics: [{ key: 'spec_metric', range: range(4, 100, 0, 80, 120) }] }],
 			[{ healing: 1000, customMetrics: [{ key: 'divine_aegis', range: range(2, 50, 0, 50, 50) }] }],
 		);
 

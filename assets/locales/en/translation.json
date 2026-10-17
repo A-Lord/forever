@@ -2498,8 +2498,7 @@
 			},
 			"custom_metrics": {
 				"group": "Spec metrics",
-				"divine_aegis": "Divine Aegis shield",
-				"ignite_added": "Ignite added"
+				"divine_aegis": "Divine Aegis shield"
 			},
 			"unit": "Unit",
 			"damage_result": {

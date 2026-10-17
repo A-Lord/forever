@@ -85,7 +85,7 @@ export const makeSimRun = ({ dpsScale = 1 }: SimRunOptions = {}): { request: Rai
 					[HitKind.HitKindHit]: valueRange(3_800, 773, 40, 650, 900),
 					[HitKind.HitKindCrit]: valueRange(1_700, 1_546, 80, 1_300, 1_800),
 				},
-				customMetrics: [{ key: 'ignite_added', range: valueRange(200, 410, 50, 300, 520) }],
+				customMetrics: [{ key: 'divine_aegis', range: valueRange(200, 410, 50, 300, 520) }],
 			}),
 		],
 	});

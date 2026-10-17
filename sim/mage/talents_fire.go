@@ -94,12 +94,10 @@ func (mage *Mage) registerIgnite() {
 	mage.Ignite = mage.RegisterSpell(config)
 
 	trigger := spelldata.ProcTrigger(&mage.Character, spellData.Ignite.Rank(mage.Talents.Ignite),
-		func(sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
+		func(sim *core.Simulation, _ *core.Spell, result *core.SpellResult) {
 			target := result.Target
 			dot := mage.Ignite.Dot(target)
-			added := result.Damage * igniteFraction
-			spell.RecordCustomMetric(sim, target, "ignite_added", added)
-			totalDamage := dot.OutstandingDmg() + added
+			totalDamage := dot.OutstandingDmg() + result.Damage*igniteFraction
 
 			mage.Ignite.Cast(sim, target)
 			dot.SnapshotBaseDamage = totalDamage / float64(dot.BaseTickCount)
