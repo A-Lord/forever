@@ -302,6 +302,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestHunterPets-AllItems-DeathmistRaiment"
+ value: {
+  dps: 579.39594
+  tps: 259.61697
+  dtps: 7.58979
+ }
+}
+dps_results: {
  key: "TestHunterPets-AllItems-Defender'sGripStabilizer-272440"
  value: {
   dps: 647.43437
@@ -355,6 +363,14 @@ dps_results: {
   dps: 631.89097
   tps: 289.2378
   dtps: 7.28639
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-DreadmistRaiment"
+ value: {
+  dps: 565.74625
+  tps: 251.59298
+  dtps: 6.74622
  }
 }
 dps_results: {
@@ -534,6 +550,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestHunterPets-AllItems-FeralheartRaiment"
+ value: {
+  dps: 597.62136
+  tps: 269.19819
+  dtps: 7.25564
+ }
+}
+dps_results: {
  key: "TestHunterPets-AllItems-Ferra'sCollar-18355"
  value: {
   dps: 650.26466
@@ -587,6 +611,14 @@ dps_results: {
   dps: 650.05364
   tps: 299.74342
   dtps: 7.60541
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-FrostfireRegalia"
+ value: {
+  dps: 602.29104
+  tps: 270.11675
+  dtps: 7.71032
  }
 }
 dps_results: {
@@ -870,6 +902,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestHunterPets-AllItems-Magister'sRegalia"
+ value: {
+  dps: 572.96098
+  tps: 256.83398
+  dtps: 7.71529
+ }
+}
+dps_results: {
  key: "TestHunterPets-AllItems-MajorRecombobulator-18637"
  value: {
   dps: 647.43437
@@ -987,6 +1027,14 @@ dps_results: {
   dps: 650.05364
   tps: 299.74342
   dtps: 7.60541
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-PlagueheartRaiment"
+ value: {
+  dps: 605.08338
+  tps: 269.35666
+  dtps: 7.575
  }
 }
 dps_results: {
@@ -1123,6 +1171,14 @@ dps_results: {
   dps: 647.43437
   tps: 298.7192
   dtps: 7.45221
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-Sorcerer'sRegalia"
+ value: {
+  dps: 577.01335
+  tps: 257.69582
+  dtps: 7.93018
  }
 }
 dps_results: {
@@ -1294,6 +1350,30 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestHunterPets-AllItems-VestmentsofFaith"
+ value: {
+  dps: 569.71407
+  tps: 251.60093
+  dtps: 2.89874
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-VestmentsoftheDevout"
+ value: {
+  dps: 567.57236
+  tps: 251.03319
+  dtps: 5.20514
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-VestmentsoftheVirtuous"
+ value: {
+  dps: 570.02543
+  tps: 250.21593
+  dtps: 3.89206
+ }
+}
+dps_results: {
  key: "TestHunterPets-AllItems-VileProtector-7747"
  value: {
   dps: 650.05364
@@ -1323,6 +1403,14 @@ dps_results: {
   dps: 648.74806
   tps: 299.16617
   dtps: 7.60541
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-WildheartRaiment"
+ value: {
+  dps: 570.50324
+  tps: 253.27472
+  dtps: 5.6238
  }
 }
 dps_results: {

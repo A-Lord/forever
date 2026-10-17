@@ -206,6 +206,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestShadowPriest-AllItems-DeathmistRaiment"
+ value: {
+  dps: 719.1424
+  tps: 363.17437
+  dtps: 5.42132
+ }
+}
+dps_results: {
  key: "TestShadowPriest-AllItems-Defender'sGripStabilizer-272440"
  value: {
   dps: 720.34225
@@ -243,6 +251,15 @@ dps_results: {
   dps: 720.34225
   tps: 363.60669
   dtps: 5.20359
+ }
+}
+dps_results: {
+ key: "TestShadowPriest-AllItems-DreadmistRaiment"
+ value: {
+  dps: 685.63873
+  tps: 346.49572
+  dtps: 4.63642
+  hps: 7.7435
  }
 }
 dps_results: {
@@ -462,6 +479,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestShadowPriest-AllItems-FrostfireRegalia"
+ value: {
+  dps: 905.0158
+  tps: 375.89441
+  dtps: 5.77263
+ }
+}
+dps_results: {
  key: "TestShadowPriest-AllItems-FrozenHeartoftheMountain-249469"
  value: {
   dps: 727.87625
@@ -654,6 +679,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestShadowPriest-AllItems-Magister'sRegalia"
+ value: {
+  dps: 684.25875
+  tps: 346.82619
+  dtps: 3.69544
+ }
+}
+dps_results: {
  key: "TestShadowPriest-AllItems-MajorRecombobulator-18637"
  value: {
   dps: 720.34225
@@ -734,6 +767,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestShadowPriest-AllItems-PlagueheartRaiment"
+ value: {
+  dps: 847.05396
+  tps: 426.01283
+  dtps: 5.29175
+ }
+}
+dps_results: {
  key: "TestShadowPriest-AllItems-RaimentsofConviction"
  value: {
   dps: 680.47729
@@ -779,6 +820,14 @@ dps_results: {
   dps: 720.34225
   tps: 363.60669
   dtps: 5.20359
+ }
+}
+dps_results: {
+ key: "TestShadowPriest-AllItems-Sorcerer'sRegalia"
+ value: {
+  dps: 717.57404
+  tps: 362.34546
+  dtps: 5.45887
  }
 }
 dps_results: {

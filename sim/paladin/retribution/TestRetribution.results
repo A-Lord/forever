@@ -198,6 +198,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestRetribution-AllItems-CryptstalkerArmor"
+ value: {
+  dps: 816.31725
+  tps: 701.1662
+  dtps: 7.88099
+ }
+}
+dps_results: {
  key: "TestRetribution-AllItems-DarkmoonCard:BlueDragon-19288"
  value: {
   dps: 803.96821
@@ -228,6 +236,14 @@ dps_results: {
   dps: 826.95778
   tps: 709.72071
   dtps: 7.83332
+ }
+}
+dps_results: {
+ key: "TestRetribution-AllItems-DeathmistRaiment"
+ value: {
+  dps: 739.47799
+  tps: 636.64185
+  dtps: 7.11266
  }
 }
 dps_results: {
@@ -292,6 +308,23 @@ dps_results: {
   dps: 791.77114
   tps: 680.44234
   dtps: 7.77295
+ }
+}
+dps_results: {
+ key: "TestRetribution-AllItems-DreadmistRaiment"
+ value: {
+  dps: 702.54088
+  tps: 605.20713
+  dtps: 7.33732
+  hps: 1.30238
+ }
+}
+dps_results: {
+ key: "TestRetribution-AllItems-Dreadnaught'sBattlegear"
+ value: {
+  dps: 715.10821
+  tps: 616.17124
+  dtps: 6.98872
  }
 }
 dps_results: {
@@ -440,6 +473,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestRetribution-AllItems-FeralheartRaiment"
+ value: {
+  dps: 754.3162
+  tps: 648.78778
+  dtps: 7.69923
+ }
+}
+dps_results: {
  key: "TestRetribution-AllItems-FetishofChitinousSpikes-21488"
  value: {
   dps: 803.95284
@@ -477,6 +518,14 @@ dps_results: {
   dps: 799.93591
   tps: 686.87748
   dtps: 7.16119
+ }
+}
+dps_results: {
+ key: "TestRetribution-AllItems-FrostfireRegalia"
+ value: {
+  dps: 860.32492
+  tps: 676.94132
+  dtps: 7.95438
  }
 }
 dps_results: {
@@ -704,6 +753,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestRetribution-AllItems-Magister'sRegalia"
+ value: {
+  dps: 711.00408
+  tps: 612.71223
+  dtps: 7.25196
+ }
+}
+dps_results: {
  key: "TestRetribution-AllItems-MajorRecombobulator-18637"
  value: {
   dps: 803.95284
@@ -808,6 +865,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestRetribution-AllItems-PlagueheartRaiment"
+ value: {
+  dps: 823.99803
+  tps: 707.63868
+  dtps: 7.13492
+ }
+}
+dps_results: {
  key: "TestRetribution-AllItems-PremierChampion'sLamellarGloves-274250"
  value: {
   dps: 803.12099
@@ -901,6 +966,14 @@ dps_results: {
   dps: 803.95284
   tps: 690.20403
   dtps: 7.64916
+ }
+}
+dps_results: {
+ key: "TestRetribution-AllItems-Sorcerer'sRegalia"
+ value: {
+  dps: 731.37723
+  tps: 629.55202
+  dtps: 7.36724
  }
 }
 dps_results: {
@@ -1056,6 +1129,30 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestRetribution-AllItems-VestmentsofFaith"
+ value: {
+  dps: 672.67148
+  tps: 578.93412
+  dtps: 6.18287
+ }
+}
+dps_results: {
+ key: "TestRetribution-AllItems-VestmentsoftheDevout"
+ value: {
+  dps: 693.61181
+  tps: 597.8962
+  dtps: 7.20032
+ }
+}
+dps_results: {
+ key: "TestRetribution-AllItems-VestmentsoftheVirtuous"
+ value: {
+  dps: 713.96408
+  tps: 614.45531
+  dtps: 7.16635
+ }
+}
+dps_results: {
  key: "TestRetribution-AllItems-WarmthofForgiveness-23027"
  value: {
   dps: 804.48569
@@ -1069,6 +1166,14 @@ dps_results: {
   dps: 812.7533
   tps: 697.59642
   dtps: 7.72053
+ }
+}
+dps_results: {
+ key: "TestRetribution-AllItems-WildheartRaiment"
+ value: {
+  dps: 703.34199
+  tps: 606.37139
+  dtps: 7.40003
  }
 }
 dps_results: {
