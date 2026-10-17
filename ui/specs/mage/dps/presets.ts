@@ -1,6 +1,5 @@
 import * as PresetUtils from '@app/preset_utils';
 import * as Consumables from '@features/settings/model/consumables_auto_gen';
-import { APLRotation_Type as APLRotationType } from '@generated/proto/apl';
 import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
 import { ConsumesSpec, Profession } from '@generated/proto/common';
 import { Mage_Options as MageOptions, MageArmor } from '@generated/proto/mage';
