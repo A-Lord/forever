@@ -180,6 +180,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestArcane-AllItems-DeathmistRaiment"
+ value: {
+  dps: 416.01044
+  tps: 226.79685
+ }
+}
+dps_results: {
  key: "TestArcane-AllItems-Defender'sGripStabilizer-272440"
  value: {
   dps: 539.72412
@@ -219,6 +226,14 @@ dps_results: {
  value: {
   dps: 539.72412
   tps: 244.80997
+ }
+}
+dps_results: {
+ key: "TestArcane-AllItems-DreadmistRaiment"
+ value: {
+  dps: 419.41849
+  tps: 229.60558
+  hps: 13.73883
  }
 }
 dps_results: {
@@ -635,6 +650,13 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestArcane-AllItems-PlagueheartRaiment"
+ value: {
+  dps: 502.52994
+  tps: 270.7967
+ }
+}
+dps_results: {
  key: "TestArcane-AllItems-RingofSaviors-1447"
  value: {
   dps: 546.73514
@@ -800,6 +822,27 @@ dps_results: {
  value: {
   dps: 542.37638
   tps: 245.93202
+ }
+}
+dps_results: {
+ key: "TestArcane-AllItems-VestmentsofFaith"
+ value: {
+  dps: 438.23732
+  tps: 241.30948
+ }
+}
+dps_results: {
+ key: "TestArcane-AllItems-VestmentsoftheDevout"
+ value: {
+  dps: 441.68424
+  tps: 245.8924
+ }
+}
+dps_results: {
+ key: "TestArcane-AllItems-VestmentsoftheVirtuous"
+ value: {
+  dps: 443.47537
+  tps: 241.94506
  }
 }
 dps_results: {
