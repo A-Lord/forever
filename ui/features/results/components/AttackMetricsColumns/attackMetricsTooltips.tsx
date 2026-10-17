@@ -39,20 +39,21 @@ const damageBreakdownGroup = (metric: ActionMetrics, { crush }: AttackBreakdownO
 };
 
 /** The values a class or spec records on the action, one row per key, or no group when it records none. */
-export const customMetricsGroups = (metric: ActionMetrics): Array<MetricsCombinedTooltipGroup> =>
-	metric.customMetrics.length
-		? [
-				{
-					name: i18n.t('results_tab.details.custom_metrics.group'),
-					spellSchool: metric.spellSchool,
-					totalPercentage: 100,
-					data: metric.customMetrics.map(({ key, ...entry }) => ({
-						name: i18n.t(`results_tab.details.custom_metrics.${key}`, { defaultValue: key }),
-						...entry,
-					})),
-				},
-			]
-		: [];
+export const customMetricsGroups = (metric: ActionMetrics): Array<MetricsCombinedTooltipGroup> => {
+	const customMetrics = metric.customMetrics;
+	if (!customMetrics.length) return [];
+	return [
+		{
+			name: i18n.t('results_tab.details.custom_metrics.group'),
+			spellSchool: metric.spellSchool,
+			totalPercentage: 100,
+			data: customMetrics.map(({ key, ...entry }) => ({
+				name: i18n.t(`results_tab.details.custom_metrics.${key}`, { defaultValue: key }),
+				...entry,
+			})),
+		},
+	];
+};
 
 const castsGroup = (metric: ActionMetrics, { crush }: AttackBreakdownOptions = {}): MetricsCombinedTooltipGroup => {
 	const landed = metric.landedHits || metric.casts;

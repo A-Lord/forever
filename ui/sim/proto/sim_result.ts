@@ -1269,9 +1269,10 @@ export class ActionMetrics {
 	// Each value against the action's own amount: its damage, or its healing when it deals none.
 	get customMetrics() {
 		const actionTotal = this.avgDamage || this.avgHealing;
-		return this.combinedMetrics.customMetrics.map(({ key, range }) => {
-			const value = this.perIteration(range!);
-			return { key, value, percentage: percentOf(value, actionTotal), average: range!.avg, min: range!.min, max: range!.max };
+		return this.combinedMetrics.customMetrics.flatMap(({ key, range }) => {
+			if (!range) return [];
+			const value = this.perIteration(range);
+			return [{ key, value, percentage: percentOf(value, actionTotal), average: range.avg, min: range.min, max: range.max }];
 		});
 	}
 
@@ -1542,7 +1543,12 @@ class TargetedActionMetrics {
 	constructor(data: TargetedActionMetricsProto, { iterations, duration }: TargetedActionMetricsOptions) {
 		this.iterations = iterations;
 		this.duration = duration;
-		this.data = data;
+		// A range or custom metric that holds no values is dropped here, so no read has to check for one.
+		this.data = {
+			...data,
+			ranges: Object.fromEntries(Object.entries(data.ranges).filter(([, range]) => rangeCount(range) > 0)),
+			customMetrics: data.customMetrics.filter(metric => rangeCount(metric.range) > 0),
+		};
 
 		this.landedHitsRaw = this.data.hits + this.data.crits + this.data.blocks + this.data.blockedCrits + this.data.glances + this.data.crushes;
 		this.landedTicksRaw = this.data.ticks + this.data.critTicks;
@@ -1781,12 +1787,11 @@ class TargetedActionMetrics {
 
 	// The per-value range of an outcome, absent when the action landed none.
 	range(kind: HitKind): DistributionMetricsProto | undefined {
-		const range = this.data.ranges[kind];
-		return rangeCount(range) > 0 ? range : undefined;
+		return this.data.ranges[kind];
 	}
 
 	get customMetrics() {
-		return this.data.customMetrics.filter(metric => rangeCount(metric.range) > 0);
+		return this.data.customMetrics;
 	}
 
 	get avgHitThreat() {

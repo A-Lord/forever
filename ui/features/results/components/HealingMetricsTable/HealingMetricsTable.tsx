@@ -34,8 +34,6 @@ const healingGroups = (resultData: SimResultData): Array<Array<ActionMetrics>> =
 	return ActionMetrics.groupById(players[0].getHealingActions().filter(action => action.hps > 0));
 };
 
-const shouldCollapse = (metric: ActionMetrics) => !metric.unit?.isPet;
-
 const healingGroup = (metric: ActionMetrics): MetricsCombinedTooltipGroup => {
 	const done = metric.healingDone;
 	return {
@@ -88,7 +86,7 @@ const isThreatOnly = (metric: ActionMetrics) => metric.hitAttempts == 0 && metri
 export const HealingMetricsTable = () => {
 	const sim = useSim();
 	const { threat: showThreatMetrics } = useDisplayMetrics(sim);
-	const { resultData, rows: built } = useActionRows(healingGroups, shouldCollapse);
+	const { resultData, rows: built } = useActionRows(healingGroups);
 
 	const rows = useMemo(() => (showThreatMetrics ? built : filterMetricRows(built, isThreatOnly)), [built, showThreatMetrics]);
 	const metricsByRowId = useMemo(() => indexMetricRows(rows), [rows]);

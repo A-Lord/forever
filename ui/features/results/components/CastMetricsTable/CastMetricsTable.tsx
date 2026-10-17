@@ -14,15 +14,15 @@ const castGroups = (resultData: SimResultData): Array<Array<ActionMetrics>> => {
 
 	const player = players[0];
 	const actions = player.actions.filter(action => action.casts != 0).map(action => action.forTarget(resultData.filter));
-	const petGroups = player.pets.map(pet => pet.actions.filter(action => action.casts != 0).map(action => action.forTarget(resultData.filter)));
+	const petGroups = player.pets
+		.map(pet => pet.actions.filter(action => action.casts != 0).map(action => action.forTarget(resultData.filter)))
+		.filter(group => group.length);
 
 	return ActionMetrics.groupById(actions).concat(petGroups);
 };
 
-const shouldCollapse = (metric: ActionMetrics) => !metric.unit?.isPet;
-
 export const CastMetricsTable = () => {
-	const { resultData, rows } = useActionRows(castGroups, shouldCollapse);
+	const { resultData, rows } = useActionRows(castGroups);
 
 	const columns = useMemo(
 		() =>

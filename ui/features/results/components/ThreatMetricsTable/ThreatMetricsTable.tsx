@@ -28,15 +28,13 @@ const threatGroups = (resultData: SimResultData): Array<Array<ActionMetrics>> =>
 	return groupActionsWithPets(players[0], unit => unit.getThreatActions().map(action => action.forTarget(resultData.filter)));
 };
 
-const shouldCollapse = (metric: ActionMetrics) => !metric.unit?.isPet;
-
 /**
  * The per-action threat table. Threat is a first-class metric here — TPS decides who tanks — so it
  * gets its own tab rather than the per-column threat tooltips the damage table carries. The table is
  * mounted only while `showThreatMetrics` is on; nothing inside it re-checks that.
  */
 export const ThreatMetricsTable = () => {
-	const { resultData, rows } = useActionRows(threatGroups, shouldCollapse);
+	const { resultData, rows } = useActionRows(threatGroups);
 	const metricsByRowId = useMemo(() => indexMetricRows(rows), [rows]);
 	const maxThreat = useMetricMax(rows, metric => metric.threat);
 

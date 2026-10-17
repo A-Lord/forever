@@ -2,7 +2,7 @@ import type { ActionId } from '@sim/proto/action_id';
 import { ActionMetrics } from '@sim/proto/sim_result';
 import { bucket } from '@sim/utils/collections';
 
-import { buildMetricRows, type MetricRow } from './grouping';
+import { buildMetricRows, type MetricGrouping, type MetricRow } from './grouping';
 
 type ActionGroup = Array<ActionMetrics>;
 
@@ -14,42 +14,44 @@ const rankKey = (group: ActionGroup): string | undefined => {
 	return `${unit?.unitIndex}|${actionId.baseName}`;
 };
 
-const spansRanks = (ids: Array<ActionId>) => new Set(ids.filter(id => id.hasRank).map(id => id.rank)).size > 1;
+const spansRanks = (ids: Array<ActionId>) => new Set(ids.map(id => id.rank)).size > 1;
+
+const notPet = (metric: ActionMetrics) => !metric.unit?.isPet;
 
 /**
- * The id a merged row takes when its members are ranks of one spell: the highest rank's, without the rank.
- * Undefined for any other group, which keeps the first member's id.
- */
-export const rankParentId = (metrics: ActionGroup): ActionId | undefined => {
-	if (!spansRanks(metrics.map(metric => metric.actionId))) return undefined;
-	return metrics.reduce((top, metric) => (metric.actionId.rank > top.actionId.rank ? metric : top)).actionId.withoutRank();
-};
-
-/** The parent row of a group in the action tables: named after the pet that owns it, or after the spell whose ranks it joins. */
-export const mergeActionRow = (metrics: ActionGroup): ActionMetrics =>
-	ActionMetrics.merge(metrics, { removeTag: true, actionIdOverride: metrics[0]?.unit?.petActionId || rankParentId(metrics) });
-
-// One rank of a spell: a leaf without its tag, or the rank merged over its tags with a row per tag.
-const rankRow = (group: ActionGroup): MetricRow<ActionMetrics> =>
-	group.length === 1
-		? { metric: group[0].actionId.tag ? ActionMetrics.merge(group, { removeTag: true }) : group[0] }
-		: { metric: ActionMetrics.merge(group, { removeTag: true }), subRows: group.map(metric => ({ metric })) };
-
-/**
- * The rows of an action table, one per group as `buildMetricRows` builds them. With `ranksGrouped`, the
- * groups of one unit's ranked spells that share a base name and hold at least two ranks become one row
- * with a child row per rank, and a rank with several tags keeps a row per tag under it.
+ * The rows of an action table, one per group as `buildMetricRows` builds them, a pet's actions under the
+ * pet. With `ranksGrouped`, the groups of one unit's ranked spells that share a base name and hold at least
+ * two ranks become one row named after the highest rank without its rank, with a child row per rank, and
+ * a rank with several tags keeps a row per tag under it.
  */
 export const buildActionRows = (
 	groups: Array<ActionGroup>,
-	shouldCollapse: (metric: ActionMetrics) => boolean,
 	ranksGrouped: boolean,
+	shouldCollapse: (metric: ActionMetrics) => boolean = notPet,
 ): Array<MetricRow<ActionMetrics>> => {
-	const grouping = { merge: mergeActionRow, shouldCollapse };
+	const grouping: MetricGrouping<ActionMetrics> = {
+		merge: metrics => ActionMetrics.merge(metrics, { removeTag: true, actionIdOverride: metrics[0].unit?.petActionId || undefined }),
+		shouldCollapse,
+	};
 	if (!ranksGrouped) return buildMetricRows(groups, grouping);
 
+	// One rank of a spell: a leaf without its tag, or the rank merged over its tags with a row per tag.
+	const rankRow = (group: ActionGroup): MetricRow<ActionMetrics> =>
+		group.length === 1
+			? { metric: group[0].actionId.tag ? ActionMetrics.merge(group, { removeTag: true }) : group[0] }
+			: buildMetricRows([group], grouping)[0];
+	const familyRow = (family: Array<ActionGroup>): MetricRow<ActionMetrics> => {
+		const highest = family.reduce((top, group) => (group[0].actionId.rank > top[0].actionId.rank ? group : top));
+		const ranks = family.map(rankRow);
+		const metric = ActionMetrics.merge(
+			ranks.map(rank => rank.metric),
+			{ removeTag: true, actionIdOverride: highest[0].actionId.withoutRank() },
+		);
+		return { metric, subRows: ranks };
+	};
+
 	const keyed = groups.flatMap(group => {
-		const key = group.length ? rankKey(group) : undefined;
+		const key = rankKey(group);
 		return key ? [{ group, key }] : [];
 	});
 	const families = Object.values(bucket(keyed, entry => entry.key))
@@ -60,7 +62,7 @@ export const buildActionRows = (
 
 	return groups.flatMap(group => {
 		const family = familyAt.get(group);
-		if (family) return [{ metric: mergeActionRow(family.flat()), subRows: family.map(rankRow) }];
+		if (family) return [familyRow(family)];
 		return joined.has(group) ? [] : buildMetricRows([group], grouping);
 	});
 };

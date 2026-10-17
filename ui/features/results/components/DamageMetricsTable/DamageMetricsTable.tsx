@@ -41,14 +41,12 @@ const damageGroups = (resultData: SimResultData): Array<Array<ActionMetrics>> =>
 	return groupActionsWithPets(players[0], unit => unit.getDamageActions().map(action => action.forTarget(resultData.filter)));
 };
 
-const shouldCollapse = (metric: ActionMetrics) => !metric.unit?.isPet;
-
 const isThreatOnly = (metric: ActionMetrics) => metric.hitAttempts == 0 && metric.dps == 0;
 
 export const DamageMetricsTable = () => {
 	const sim = useSim();
 	const { threat: showThreatMetrics } = useDisplayMetrics(sim);
-	const { resultData, rows: built } = useActionRows(damageGroups, shouldCollapse);
+	const { resultData, rows: built } = useActionRows(damageGroups);
 
 	const rows = useMemo(() => (showThreatMetrics ? built : filterMetricRows(built, isThreatOnly)), [built, showThreatMetrics]);
 	const metricsByRowId = useMemo(() => indexMetricRows(rows), [rows]);
