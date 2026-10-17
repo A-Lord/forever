@@ -1,8 +1,8 @@
 import { Tabs } from '@base-ui/react/tabs';
 import { SimRun, SimRunData } from '@generated/proto/ui';
 import i18n from '@i18n/config';
-import { useSimHost } from '@sim/context/SimHostContext';
 import { LOCAL_STORAGE_PREFIX } from '@sim/constants/other';
+import { useSimHost } from '@sim/context/SimHostContext';
 import { useDisplayMetrics } from '@sim/hooks/useDisplayMetrics';
 import { SimResult } from '@sim/proto/sim_result';
 import { subscribeSimSettingsChange } from '@sim/state/subscriptions';
