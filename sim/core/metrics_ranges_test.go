@@ -174,8 +174,8 @@ func TestActionRangesFromDotTicksMatchCounters(t *testing.T) {
 		fa.Dot.TickOnce(sim)
 	}
 	target := sim.Encounter.ActiveTargetUnits[0]
-	fa.Spell.RecordCustomMetric(sim, target, "bonus", 7)
-	fa.Spell.RecordCustomMetric(sim, target, "bonus", 9)
+	fa.Spell.RecordCustomMetric(target, "bonus", 7)
+	fa.Spell.RecordCustomMetric(target, "bonus", 9)
 
 	spellMetrics := fa.Spell.SpellMetrics[target.UnitIndex]
 	fa.Spell.doneIteration()

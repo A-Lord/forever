@@ -282,7 +282,7 @@ func (priest *Priest) applyDivineAegis() {
 			before := shield.ShieldStrength
 			shield.ShieldStrength = min(before+strength, maxShield)
 			if gained := shield.ShieldStrength - before; gained > 0 {
-				spell.RecordCustomMetric(sim, result.Target, "divine_aegis", gained)
+				spell.RecordCustomMetric(result.Target, "divine_aegis", gained)
 			}
 			shield.SetStacks(sim, max(1, int32(shield.ShieldStrength)))
 		},

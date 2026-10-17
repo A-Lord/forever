@@ -180,6 +180,9 @@ func (actionMetrics *ActionMetrics) hitRangesToProto(targetIdx int, tam *proto.T
 		tam.Ranges[int32(k)] = merged.kinds[k].toProto()
 	}
 	for i := range merged.custom {
+		if merged.custom[i].n == 0 {
+			continue
+		}
 		tam.CustomMetrics = append(tam.CustomMetrics, &proto.CustomActionMetric{Key: merged.custom[i].key, Range: merged.custom[i].toProto()})
 	}
 }
