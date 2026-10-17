@@ -272,7 +272,7 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-AllItems-DarkmantleArmor"
  value: {
-  dps: 645.66893
+  dps: 797.71722
   tps: 296.62428
   dtps: 7.36118
  }
@@ -1152,7 +1152,7 @@ dps_results: {
 dps_results: {
  key: "TestHunterPets-AllItems-ShadowcraftArmor"
  value: {
-  dps: 623.27986
+  dps: 772.58178
   tps: 284.20846
   dtps: 7.44263
  }
