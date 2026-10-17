@@ -189,11 +189,12 @@ func TestActionRangesFromDotTicksMatchCounters(t *testing.T) {
 
 	tick := tam.Ranges[int32(proto.HitKind_HitKindTick)]
 	critTick := tam.Ranges[int32(proto.HitKind_HitKindCritTick)]
-	if rangeN(critTick) != spellMetrics.CritTicks {
-		t.Fatalf("crit tick N %d, counter %d", rangeN(critTick), spellMetrics.CritTicks)
+	tickN, critTickN := tick.GetAggregatorData().GetN(), critTick.GetAggregatorData().GetN()
+	if critTickN != spellMetrics.CritTicks {
+		t.Fatalf("crit tick N %d, counter %d", critTickN, spellMetrics.CritTicks)
 	}
-	if rangeN(tick)+rangeN(critTick) != ticks {
-		t.Fatalf("every tick landed, got %d + %d of %d", rangeN(tick), rangeN(critTick), ticks)
+	if tickN+critTickN != ticks {
+		t.Fatalf("every tick landed, got %d + %d of %d", tickN, critTickN, ticks)
 	}
 
 	var total float64

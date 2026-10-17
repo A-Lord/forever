@@ -155,38 +155,32 @@ func (hr *hitRanges) customRange(key string) *valueRange {
 }
 
 func (actionMetrics *ActionMetrics) hitRangesToProto(targetIdx int, tam *proto.TargetedActionMetrics) {
-	var kinds [numHitKinds]valueRange
-	var custom []customMetric
+	var merged hitRanges
 	for _, source := range actionMetrics.rangeSources {
 		hr := source[targetIdx]
 		if hr == nil {
 			continue
 		}
-		for k := range kinds {
-			kinds[k].merge(&hr.kinds[k])
+		for k := range merged.kinds {
+			merged.kinds[k].merge(&hr.kinds[k])
 		}
 		for i := range hr.custom {
 			cm := &hr.custom[i]
-			idx := slices.IndexFunc(custom, func(c customMetric) bool { return c.key == cm.key })
-			if idx < 0 {
-				custom = append(custom, customMetric{key: cm.key})
-				idx = len(custom) - 1
-			}
-			custom[idx].merge(&cm.valueRange)
+			merged.customRange(cm.key).merge(&cm.valueRange)
 		}
 	}
 
-	for k := range kinds {
-		if kinds[k].n == 0 {
+	for k := range merged.kinds {
+		if merged.kinds[k].n == 0 {
 			continue
 		}
 		if tam.Ranges == nil {
 			tam.Ranges = make(map[int32]*proto.DistributionMetrics)
 		}
-		tam.Ranges[int32(k)] = kinds[k].toProto()
+		tam.Ranges[int32(k)] = merged.kinds[k].toProto()
 	}
-	for i := range custom {
-		tam.CustomMetrics = append(tam.CustomMetrics, &proto.CustomActionMetric{Key: custom[i].key, Range: custom[i].toProto()})
+	for i := range merged.custom {
+		tam.CustomMetrics = append(tam.CustomMetrics, &proto.CustomActionMetric{Key: merged.custom[i].key, Range: merged.custom[i].toProto()})
 	}
 }
 
@@ -444,7 +438,7 @@ func (unitMetrics *UnitMetrics) addSpellMetrics(spell *Spell, actionID ActionID,
 		}
 	}
 
-	if len(ranges) > 0 && !slices.ContainsFunc(actionMetrics.rangeSources, func(s []*hitRanges) bool { return &s[0] == &ranges[0] }) {
+	if !slices.ContainsFunc(actionMetrics.rangeSources, func(s []*hitRanges) bool { return &s[0] == &ranges[0] }) {
 		actionMetrics.rangeSources = append(actionMetrics.rangeSources, ranges)
 	}
 

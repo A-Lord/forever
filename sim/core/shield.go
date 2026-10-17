@@ -1,10 +1,6 @@
 package core
 
-import (
-	"strconv"
-
-	"github.com/wowsims/forever/sim/core/proto"
-)
+import "strconv"
 
 type ShieldConfig struct {
 	SelfOnly bool // Set to true to only create the self-shield.
@@ -39,11 +35,8 @@ func (shield *Shield) Apply(sim *Simulation, shieldAmount float64) {
 
 	threat := 0.0 // TODO
 	shield.Spell.SpellMetrics[target.UnitIndex].TotalThreat += threat
-	shield.Spell.SpellMetrics[target.UnitIndex].TotalShielding += shieldAmount
+	shield.Spell.RecordShielding(target, shieldAmount)
 	shield.Spell.SpellMetrics[target.UnitIndex].Hits++
-	if sim.CurrentTime >= 0 && shieldAmount > 0 && !shield.Spell.Flags.Matches(SpellFlagNoMetrics) {
-		shield.Spell.recordHit(target, proto.HitKind_HitKindShield, shieldAmount)
-	}
 
 	if sim.Log != nil {
 		caster.Log(sim, "%s %s Hit for %0.3f shielding. (Threat: %0.3f)", target.LogLabel(), shield.Spell.ActionID, shieldAmount, threat)

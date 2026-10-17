@@ -532,7 +532,7 @@ func (spell *Spell) dealDamageInternal(sim *Simulation, isPeriodic bool, result 
 		}
 		spell.SpellMetrics[result.Target.UnitIndex].TotalThreat += result.Threat
 
-		if result.Landed() && result.Damage > 0 && !spell.Flags.Matches(SpellFlagNoMetrics) {
+		if result.Landed() {
 			spell.recordHit(result.Target, hitKind(result, isPeriodic), result.Damage)
 		}
 	}
@@ -783,18 +783,16 @@ func (spell *Spell) dealHealingInternal(sim *Simulation, isPeriodic bool, result
 	}
 	spell.SpellMetrics[result.Target.UnitIndex].TotalHealing += result.Damage
 	spell.SpellMetrics[result.Target.UnitIndex].TotalThreat += result.Threat
-	if sim.CurrentTime >= 0 && result.Damage > 0 && !spell.Flags.Matches(SpellFlagNoMetrics) {
-		kind := proto.HitKind_HitKindHeal
-		switch {
-		case isPeriodic && result.DidCrit():
-			kind = proto.HitKind_HitKindCritHealTick
-		case isPeriodic:
-			kind = proto.HitKind_HitKindHealTick
-		case result.DidCrit():
-			kind = proto.HitKind_HitKindCritHeal
-		}
-		spell.recordHit(result.Target, kind, result.Damage)
+	kind := proto.HitKind_HitKindHeal
+	switch {
+	case isPeriodic && result.DidCrit():
+		kind = proto.HitKind_HitKindCritHealTick
+	case isPeriodic:
+		kind = proto.HitKind_HitKindHealTick
+	case result.DidCrit():
+		kind = proto.HitKind_HitKindCritHeal
 	}
+	spell.recordHit(result.Target, kind, result.Damage)
 	if result.Target.HasHealthBar() {
 		result.Target.GainHealth(sim, result.Damage, spell.HealthMetrics(result.Target))
 	}

@@ -185,15 +185,8 @@ func (rsrc *raidSimResultCombiner) combineDistMetrics(base *proto.DistributionMe
 	CombineDistributionMetrics(base, add, isLast, weight)
 }
 
-func rangeN(m *proto.DistributionMetrics) int32 {
-	if m == nil || m.AggregatorData == nil {
-		return 0
-	}
-	return m.AggregatorData.N
-}
-
 func valueRangeFromProto(m *proto.DistributionMetrics) *valueRange {
-	n := rangeN(m)
+	n := m.GetAggregatorData().GetN()
 	if n == 0 {
 		return &valueRange{}
 	}
@@ -216,8 +209,8 @@ func combineTargetHitRanges(base, add *proto.TargetedActionMetrics) {
 	for _, addCustom := range add.CustomMetrics {
 		idx := slices.IndexFunc(base.CustomMetrics, func(c *proto.CustomActionMetric) bool { return c.Key == addCustom.Key })
 		if idx < 0 {
-			base.CustomMetrics = append(base.CustomMetrics, &proto.CustomActionMetric{Key: addCustom.Key, Range: combineHitRanges(nil, addCustom.Range)})
-			continue
+			base.CustomMetrics = append(base.CustomMetrics, &proto.CustomActionMetric{Key: addCustom.Key})
+			idx = len(base.CustomMetrics) - 1
 		}
 		baseCustom := base.CustomMetrics[idx]
 		baseCustom.Range = combineHitRanges(baseCustom.Range, addCustom.Range)

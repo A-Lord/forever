@@ -625,12 +625,20 @@ func (spell *Spell) hitRangesFor(target *Unit) *hitRanges {
 }
 
 func (spell *Spell) recordHit(target *Unit, kind proto.HitKind, value float64) {
-	spell.hitRangesFor(target).kinds[kind].add(value)
+	if value > 0 {
+		spell.hitRangesFor(target).kinds[kind].add(value)
+	}
+}
+
+// Credits an absorbed or applied amount to the spell's shielding total and its shield range.
+func (spell *Spell) RecordShielding(target *Unit, amount float64) {
+	spell.SpellMetrics[target.UnitIndex].TotalShielding += amount
+	spell.recordHit(target, proto.HitKind_HitKindShield, amount)
 }
 
 // Feeds the named range in this spell's details, for values the hit kinds do not cover.
 func (spell *Spell) RecordCustomMetric(sim *Simulation, target *Unit, key string, value float64) {
-	if sim.CurrentTime < 0 || spell.Flags.Matches(SpellFlagNoMetrics) {
+	if sim.CurrentTime < 0 || value <= 0 {
 		return
 	}
 	spell.hitRangesFor(target).customRange(key).add(value)
