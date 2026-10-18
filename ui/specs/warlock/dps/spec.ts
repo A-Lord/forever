@@ -114,7 +114,14 @@ export default defineSpec<Spec.SpecWarlock>({
 		// Preset talents that the user can quickly select.
 		talents: [],
 		// Preset rotations that the user can quickly select.
-		rotations: [Presets.DEFAULT_APL, Presets.DEMO_FIRE_BRAND_APL, Presets.DEMO_SHADOW_BRAND_APL, Presets.DESTRO_APL, Presets.SM_RUIN_APL, Presets.AFF_WRACK_APL],
+		rotations: [
+			Presets.DEFAULT_APL,
+			Presets.DEMO_FIRE_BRAND_APL,
+			Presets.DEMO_SHADOW_BRAND_APL,
+			Presets.DESTRO_APL,
+			Presets.SM_RUIN_APL,
+			Presets.AFF_WRACK_APL,
+		],
 
 		// Preset gear configurations that the user can quickly select.
 		gear: [],
