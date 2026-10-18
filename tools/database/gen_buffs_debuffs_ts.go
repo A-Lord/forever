@@ -21,7 +21,8 @@ const buffsDebuffsTSFile = "ui/features/settings/model/buffs_debuffs_auto_gen.ts
 
 // The state count a multistate input counts up to. An int32 field counts casts
 // or mana, and how far it counts is a UI choice the game files do not
-// state; the four Atiesh inputs share one count.
+// state; the four Atiesh inputs share one count. Dark Inspiration counts the
+// talent's ranks, 0 to 5.
 var buffInputNumStates = map[string]int{
 	"atiesh_mage":      5,
 	"atiesh_warlock":   5,
@@ -30,6 +31,7 @@ var buffInputNumStates = map[string]int{
 	"mana_tide_totems": 5,
 	"innervates":       11,
 	"power_infusions":  11,
+	"dark_inspiration": 6,
 }
 
 // The rows whose settings input stays hand-written: it needs something no manifest

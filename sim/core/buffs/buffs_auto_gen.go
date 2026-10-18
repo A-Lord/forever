@@ -278,6 +278,25 @@ func NewSpellDataAdmiralsHatAura(unit *core.Unit, isPlayer bool, talentPoints in
 	return newBuff(unit, admiralsHatMeta, isPlayer, talentPoints)
 }
 
+// Dark Inspiration
+var DarkInspirationCategory = "DarkInspiration"
+var darkInspirationSpell = spelldata.MustFind(1326168)
+var darkInspirationMeta = &Meta{
+	Label:    "Dark Inspiration",
+	Spell:    darkInspirationSpell,
+	Category: DarkInspirationCategory,
+}
+
+func DarkInspirationValue(talentPoints int32) float64 {
+	return darkInspirationMeta.Value(talentPoints)
+}
+func DarkInspirationDuration(talentPoints int32) time.Duration {
+	return darkInspirationMeta.Duration(talentPoints)
+}
+func NewSpellDataDarkInspirationAura(unit *core.Unit, isPlayer bool, talentPoints int32) *core.Aura {
+	return newBuff(unit, darkInspirationMeta, isPlayer, talentPoints)
+}
+
 // Arcane Brilliance
 var ArcaneBrillianceCategory = "StatBuff"
 var arcaneBrillianceSpell = spelldata.MustFind(23028)
@@ -864,6 +883,9 @@ func applyGeneratedBuffs(char *core.Character, raid *proto.RaidBuffs, party *pro
 	}
 	if party.AdmiralsHat {
 		core.MakePermanent(NewSpellDataAdmiralsHatAura(&char.Unit, false, 0))
+	}
+	if party.DarkInspiration > 0 {
+		driveDarkInspiration(char, party)
 	}
 	if raid.ArcaneBrilliance {
 		core.MakePermanent(NewSpellDataArcaneBrillianceAura(&char.Unit, false, 0))

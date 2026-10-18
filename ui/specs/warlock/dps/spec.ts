@@ -23,6 +23,7 @@ export default defineSpec<Spec.SpecWarlock>({
 	epStats: [
 		Stat.StatStamina,
 		Stat.StatIntellect,
+		Stat.StatSpirit,
 		Stat.StatSpellDamage,
 		Stat.StatShadowDamage,
 		Stat.StatFireDamage,
@@ -96,7 +97,7 @@ export default defineSpec<Spec.SpecWarlock>({
 	playerIconInputs: [WarlockInputs.PetInput(), WarlockInputs.ArmorInput(), WarlockInputs.DemonicSacrificeInput()],
 
 	// Buff and Debuff inputs to include/exclude, overriding the EP-based defaults.
-	includeBuffDebuffInputs: [Stat.StatAttackPower],
+	includeBuffDebuffInputs: [],
 	excludeBuffDebuffInputs: [],
 	// Inputs to include in the 'Other' section on the settings tab.
 	otherInputs: {

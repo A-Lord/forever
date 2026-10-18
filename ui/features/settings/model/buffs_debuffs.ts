@@ -51,6 +51,7 @@ export const PARTY_BUFFS_CONFIG = inDisplayOrder(Generated.GENERATED_PARTY_BUFFS
 		ownerClass: Class.ClassPaladin,
 	},
 	Generated.ConcentrationAura,
+	Generated.DarkInspiration,
 	Generated.AtieshMage,
 	Generated.AtieshWarlock,
 	Generated.AtieshDruid,
