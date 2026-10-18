@@ -136,9 +136,9 @@ dps_results: {
 dps_results: {
  key: "TestRetribution-AllItems-BladeofHanna-2801"
  value: {
-  dps: 1014.07396
-  tps: 866.90683
-  dtps: 7.84734
+  dps: 835.5944
+  tps: 717.1115
+  dtps: 7.52148
  }
 }
 dps_results: {
