@@ -80,6 +80,14 @@ describe('UnitStat', () => {
 		expect(UnitStat.fromPseudoStat(PseudoStat.PseudoStatOffHandCritPercent).convertPercentToRating(1)).toBeCloseTo(Mechanics.CRIT_RATING_PER_CRIT_PERCENT);
 	});
 
+	it('counts a rating, or a percent rooted at one, as a percent rating, but not defense', () => {
+		expect(UnitStat.fromStat(Stat.StatDodgeRating).isPercentRating()).toBe(true);
+		expect(UnitStat.fromPseudoStat(PseudoStat.PseudoStatOffHandCritPercent).isPercentRating()).toBe(true);
+		expect(UnitStat.fromStat(Stat.StatDefenseRating).isPercentRating()).toBe(false);
+		expect(UnitStat.fromStat(Stat.StatDefenseRating).convertPercentToRating(1)).toBeCloseTo(Mechanics.DEFENSE_RATING_PER_DEFENSE_LEVEL);
+		expect(UnitStat.fromStat(Stat.StatStrength).isPercentRating()).toBe(false);
+	});
+
 	// The inverse of the parentStat case below: convertRatingToPercent has no branch for
 	// ReducedCritTakenPercent either, so it returns null. convertEpToRatingScale declares
 	// `number` and asserted that null away with `!`, handing callers a null that only blew up
