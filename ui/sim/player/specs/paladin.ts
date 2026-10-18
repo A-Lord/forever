@@ -106,7 +106,7 @@ export class RetributionPaladin extends PlayerSpec<Spec.SpecRetributionPaladin> 
 
 	static launch: SimStatus = {
 		phase: CURRENT_PHASE,
-		status: LaunchStatus.Unlaunched,
+		status: LaunchStatus.Alpha,
 	};
 
 	readonly specIndex = RetributionPaladin.specIndex;
