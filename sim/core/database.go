@@ -199,6 +199,8 @@ type Item struct {
 	TempEnchantWeaponDamage float64
 	WeaponImbue             int32        // The Effect 360 imbue (poison, firestone, class imbue), beside the Effect 54 TempEnchant.
 	TempEnchantStats        *stats.Stats // The stats the TempEnchant and the WeaponImbue put on the item, counted with its enchant's.
+	TempEnchantPseudoStats  []float64    // The TempEnchant's pseudo stats, whose haste registerEquipSpeedAuras applies.
+	WeaponImbuePseudoStats  []float64    // The WeaponImbue's pseudo stats, whose haste registerEquipSpeedAuras applies.
 	ScalingOptions          map[int32]*proto.ScalingItemProperties
 	RandPropPoints          int32
 	ItemEffects             []*proto.ItemEffect
@@ -267,7 +269,7 @@ func RandomSuffixFromProto(pData *proto.ItemRandomSuffix) RandomSuffix {
 type Enchant struct {
 	EffectID       int32 // Used by UI to apply effect to tooltip
 	Stats          stats.Stats
-	PseudoStats    []float64 // Indexed by proto.PseudoStat; percents through stats.FromPseudoStatsProto, haste through registerEquipSpeedAuras or, on a temporary enchant, its consumable's per-hand aura
+	PseudoStats    []float64 // Indexed by proto.PseudoStat; percents through stats.FromPseudoStatsProto, haste through registerEquipSpeedAuras
 	WeaponDamage   float64   // Applied by newWeaponFromItem
 	EnchantEffects []*proto.ItemEffect
 	Name           string         // Only needed for unit tests
