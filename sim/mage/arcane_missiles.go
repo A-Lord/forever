@@ -8,7 +8,8 @@ import (
 // Only the highest rank is registered: the mage casts the rank configured here, not every rank
 // spellData.ArcaneMissiles lists.
 func (mage *Mage) registerArcaneMissilesSpell() {
-	mage.registerArcaneMissilesRank(spellData.ArcaneMissiles.Len(), spellData.ArcaneMissiles.Highest())
+	//Rank 7 is last trainer taught spell
+	mage.registerArcaneMissilesRank(spellData.ArcaneMissiles.Len(), spellData.ArcaneMissiles.Rank(7))
 }
 
 // The channel's periodic effect names the missile it fires each tick, a rank of

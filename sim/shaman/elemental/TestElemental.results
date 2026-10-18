@@ -222,14 +222,6 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestElemental-AllItems-CryptstalkerArmor"
- value: {
-  dps: 457.05605
-  tps: 326.49662
-  dtps: 7.79261
- }
-}
-dps_results: {
  key: "TestElemental-AllItems-DarkmantleArmor"
  value: {
   dps: 425.78036
@@ -543,14 +535,6 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestElemental-AllItems-FrostfireRegalia"
- value: {
-  dps: 682.70864
-  tps: 398.12186
-  dtps: 5.23703
- }
-}
-dps_results: {
  key: "TestElemental-AllItems-FrozenHeartoftheMountain-249469"
  value: {
   dps: 572.75385
@@ -855,14 +839,6 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestElemental-AllItems-PlagueheartRaiment"
- value: {
-  dps: 635.8791
-  tps: 445.17608
-  dtps: 6.89944
- }
-}
-dps_results: {
  key: "TestElemental-AllItems-PolishedDriftwoodIcon-249398"
  value: {
   dps: 557.08669
@@ -1124,14 +1100,6 @@ dps_results: {
   dps: 567.49169
   tps: 400.65106
   dtps: 7.98917
- }
-}
-dps_results: {
- key: "TestElemental-AllItems-VestmentsofFaith"
- value: {
-  dps: 429.60101
-  tps: 306.16887
-  dtps: 4.23252
  }
 }
 dps_results: {

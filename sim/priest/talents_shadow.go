@@ -2,6 +2,7 @@ package priest
 
 import (
 	"github.com/wowsims/forever/sim/core"
+	"github.com/wowsims/forever/sim/core/buffs"
 	"github.com/wowsims/forever/sim/core/spelldata"
 )
 
@@ -105,19 +106,15 @@ func (priest *Priest) applyImprovedMindFlay() {}
 
 // Your Mind Blast and fully channeled Mind Flay causes Dark Inspiration, increasing yours and your party's Spirit by X% for 10 sec.
 // The buff's row targets the caster's party (target 20). The sim buffs the party's players, the priest
-// among them, and not their pets. Each player carries one copy per priest, and only the strongest applies.
+// among them, and not their pets. Each player carries one copy per priest, and only the strongest applies,
+// the party buff from the settings included.
 func (priest *Priest) applyDarkInspiration() {
 	if priest.Talents.DarkInspiration == 0 {
 		return
 	}
 
-	buff := spellData.DarkInspirationTriggered.Highest()
-	// The buff's row states the full five-rank amount, which the talent's ranks scale.
-	ranks := spelldata.ScaledByRanks(priest.Talents.DarkInspiration, spellData.DarkInspiration.Len())
 	auras := priest.NewPartyAuraArray(func(member *core.Character) *core.Aura {
-		aura := member.RegisterAura(spelldata.AuraConfig(buff, spelldata.RankLabel(buff, &priest.Unit)))
-		spelldata.ParseEffects(member, aura, buff, ranks, spelldata.Exclusive("DarkInspiration", true))
-		return aura
+		return buffs.NewSpellDataDarkInspirationAuraFor(&member.Unit, &priest.Unit, priest.Talents.DarkInspiration)
 	})
 
 	priest.MakeProcTriggerAura(core.ProcTrigger{

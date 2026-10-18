@@ -7,8 +7,8 @@
 		{"action":{"autocastOtherCooldowns":{}}},
 		{"action":{"condition":{"cmp":{"op":"OpEq","lhs":{"auraNumStacks":{"auraId":{"spellId":400625}}},"rhs":{"const":{"val":"3"}}}},"castSpell":{"spellId":{"spellId":18809}}}},
 		{"action":{"castSpell":{"spellId":{"spellId":10199}}}},
-		{"action":{"condition":{"auraIsActive":{"auraId":{"spellId":400589},"includeReactionTime":true}},"castSpell":{"spellId":{"spellId":25345}}}},
-		{"action":{"castSpell":{"spellId":{"spellId":25306}}}}
+		{"action":{"condition":{"auraIsActive":{"auraId":{"spellId":400589},"includeReactionTime":true}},"castSpell":{"spellId":{"spellId":10212}}}},
+		{"action":{"castSpell":{"spellId":{"spellId":10151}}}}
 	],
 	"groups": [
         {"name":"Evocation","actions":[{"action":{"condition":{"and":{"vals":[{"not":{"val":{"auraIsActive":{"auraId":{"spellId":1270842}}}}},{"spellIsKnown":{"spellId":{"spellId":1259705}}}]}},"castSpell":{"spellId":{"spellId":1259705}}}},{"action":{"channelSpell":{"spellId":{"spellId":12051},"interruptIf":{"cmp":{"op":"OpGe","lhs":{"currentManaPercent":{}},"rhs":{"const":{"val":"99%"}}}}}}}]}

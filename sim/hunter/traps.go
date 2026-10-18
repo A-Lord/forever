@@ -15,7 +15,7 @@ const trapTotalAPShare = 0.10
 // TODO: In-game testing required. The game files carry no trap object, so its trigger radius and
 // arming delay are not in the store. Forever lets traps be placed in combat; a trap lies where the
 // hunter stood and springs on a target within this radius once armed.
-const trapTriggerRadius = 3
+const trapTriggerRadius = 5
 const trapArmingDelay = 500 * time.Millisecond
 
 var immolationTrapRank = spellData.ImmolationTrap.Highest()
@@ -36,7 +36,9 @@ func (hunter *Hunter) trapConfig(rank *spelldata.Spell, trigger *core.Spell) cor
 	config.ProcMask = core.ProcMaskEmpty
 	config.CastRequirement.NotInCombat = false
 	config.ApplyEffects = func(sim *core.Simulation, target *core.Unit, _ *core.Spell) {
-		if hunter.DistanceFromTarget > trapTriggerRadius {
+		// A trap placed mid-walk lies where the hunter is now, not where the walk started.
+		hunter.UpdatePosition(sim, false)
+		if hunter.DistanceFromTarget > trapTriggerRadius+1e-6 {
 			return
 		}
 		sim.AddPendingAction(&core.PendingAction{

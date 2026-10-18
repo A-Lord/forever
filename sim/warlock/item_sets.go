@@ -1,6 +1,7 @@
 package warlock
 
 import (
+	"github.com/wowsims/forever/sim/common/shared"
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
@@ -149,6 +150,26 @@ var ItemSetImplementsOfUnspokenNames = core.NewItemSet(core.ItemSet{
 				pet.PseudoStats.DamageDealtMultiplier *= petMult
 			}
 		},
+	},
+})
+
+var (
+	plagueCorruption = spelldata.MustFind(28829) // 4pc: Corruption's damage
+	plagueThreat     = spelldata.MustFind(28746) // 6pc: threat
+)
+
+// Tier 3
+var ItemSetPlagueheartRaiment = core.NewItemSet(core.ItemSet{
+	ID:    529,
+	Name:  "Plagueheart Raiment",
+	Slots: shared.TierThreeSlots,
+	Bonuses: map[int32]core.ApplySetBonus{
+		// 2pc (28831) heals the wearer off Shadow Bolt hits, which does not affect sims.
+		4: shared.ParsedSetBonus(plagueCorruption),
+		// Effect 2 lowers the threat of Corruption, Immolate, Curse of Agony and Siphon Life. Effect 1,
+		// 25% less threat from spell crits, has no place in the sim's threat.
+		6: shared.ParsedSetBonus(plagueThreat),
+		// 8pc (28830) takes 12% off Life Tap's health cost, which does not affect sims.
 	},
 })
 

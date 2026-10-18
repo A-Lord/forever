@@ -30,8 +30,9 @@ type petModel struct {
 
 	healthPerStamina float64
 	manaPerIntellect float64
-	mp5PerIntellect  float64
 	apPerStrength    float64
+
+	mp5PerOwnerIntellect float64 // MP5 per point of the warlock's Intellect
 
 	// Melee, for the demons that have it: the weapon's damage range and swing, and a multiplier on
 	// everything the demon deals.
@@ -54,7 +55,7 @@ const sayaadSwingAverage = 0.698 * core.CreatureAutoAttackDpsMaxLevel * 2
 // (16-22, 17-23 and 17-24).
 const voidwalkerSwingAverage = 0.494 * core.CreatureAutoAttackDpsMaxLevel * 2
 
-// The sheet gives no crit from Agility or Intellect, and models regen as MP5 and Intellect alone. A demon has
+// The sheet gives no crit from Agility or Intellect, and a demon's own stats give no regen. A demon has
 // no crit of its own: its crit is the warlock's (see petStatInheritance). The Imp's, Voidwalker's and Sayaad's
 // own health and armor are shares of the creature values and the Voidwalker's and Sayaad's attack power is
 // fixed, with nothing from Stamina or Strength; the Felhunter has no armor of its own.
@@ -70,13 +71,12 @@ var petModels = map[proto.WarlockOptions_Summon]petModel{
 			stats.Health: 0.359 * core.CreatureHealthMaxLevel,
 			stats.Armor:  0.325 * core.CreatureArmorMaxLevel,
 			stats.Mana:   576,
-			stats.MP5:    95,
 		},
-		healthPerStamina: 0,
-		manaPerIntellect: 5,
-		mp5PerIntellect:  0.1,
-		apPerStrength:    2,
-		damageMod:        1,
+		healthPerStamina:     0,
+		manaPerIntellect:     5,
+		apPerStrength:        2,
+		mp5PerOwnerIntellect: 0.30,
+		damageMod:            1,
 	},
 	proto.WarlockOptions_Voidwalker: {
 		baseStats: meleeDemonStats(1.400 * core.CreatureHealthMaxLevel).Add(stats.Stats{
@@ -84,12 +84,13 @@ var petModels = map[proto.WarlockOptions_Summon]petModel{
 			// TODO: 3 × level + 6 as the Sayaad's, read at level 30 only.
 			stats.AttackPower: 186,
 		}),
-		healthPerStamina: 0,
-		manaPerIntellect: 11.5,
-		apPerStrength:    0,
-		meleeMin:         voidwalkerSwingAverage * (1 - 0.264),
-		meleeMax:         voidwalkerSwingAverage * (1 + 0.264),
-		swingSpeed:       2,
+		healthPerStamina:     0,
+		manaPerIntellect:     11.5,
+		apPerStrength:        0,
+		mp5PerOwnerIntellect: 0.10,
+		meleeMin:             voidwalkerSwingAverage * (1 - 0.264),
+		meleeMax:             voidwalkerSwingAverage * (1 + 0.264),
+		swingSpeed:           2,
 		// Its melee is halved: at level 30, +20 attack power moved its sheet's damage by half of 20 × 2 / 14.
 		damageMod: 0.5,
 	},
@@ -98,29 +99,28 @@ var petModels = map[proto.WarlockOptions_Summon]petModel{
 			stats.Armor: 0.630 * core.CreatureArmorMaxLevel,
 			// TODO: 3 × level + 6, a line through levels 20 and 30, not yet read at 60.
 			stats.AttackPower: 186,
-			stats.MP5:         95, // TODO: The Imp's base MP5; the Sayaad's in-combat regen is not measured.
 		}),
-		healthPerStamina: 0,
-		manaPerIntellect: 11.5,
-		mp5PerIntellect:  0.1, // TODO: The Imp's per-Intellect MP5; the Sayaad's in-combat regen is not measured.
-		apPerStrength:    0,
-		meleeMin:         sayaadSwingAverage * (1 - 0.215),
-		meleeMax:         sayaadSwingAverage * (1 + 0.215),
-		swingSpeed:       2,
+		healthPerStamina:     0,
+		manaPerIntellect:     11.5,
+		apPerStrength:        0,
+		mp5PerOwnerIntellect: 0.10,
+		meleeMin:             sayaadSwingAverage * (1 - 0.215),
+		meleeMax:             sayaadSwingAverage * (1 + 0.215),
+		swingSpeed:           2,
 		// In the logs Lash of Pain deals (16 + 0.429 × Spell Damage) × 1.10 under 5/5 Unholy Power, with no
 		// multiplier of the Sayaad's own.
 		damageMod: 1,
 	},
 	proto.WarlockOptions_Felhunter: {
-		baseStats:        meleeDemonStats(0),
-		healthPerStamina: 9.5,
-		manaPerIntellect: 11.55,
-		mp5PerIntellect:  0.02,
-		apPerStrength:    2,
-		meleeMin:         70,
-		meleeMax:         97,
-		swingSpeed:       2,
-		damageMod:        0.8,
+		baseStats:            meleeDemonStats(0),
+		healthPerStamina:     9.5,
+		manaPerIntellect:     11.55,
+		apPerStrength:        2,
+		mp5PerOwnerIntellect: 0.10,
+		meleeMin:             70,
+		meleeMax:             97,
+		swingSpeed:           2,
+		damageMod:            0.8,
 	},
 }
 
@@ -143,17 +143,20 @@ func meleeDemonStats(baseHealth float64) stats.Stats {
 // What a demon takes from the warlock. Warlock Pet Scaling (416189) names the stats it inherits - health,
 // attack power, spell damage, resistances, armor, hit, crit, haste, mana regen - but states no amounts,
 // which the server supplies, so the shares are hand-kept. The pet model sheet gives Stamina and Intellect
-// a share of 0, yet its totals give every demon more health and ~10,870 more mana than its own stats, and
-// the same in-combat regen (its own MP5 only out of combat) - all from the warlock. Health is 7.5 a point of
-// the warlock's Stamina.
-// TODO: The warlock's share of mana and in-combat regen; resistances and haste.
-func (warlock *Warlock) petStatInheritance() core.PetStatInheritance {
+// a share of 0, yet its totals give every demon more health and ~10,870 more mana than its own stats, all
+// from the warlock. Health is 7.5 a point of the warlock's Stamina. Regen is each demon's share of the
+// warlock's Intellect as MP5: at level 30 with 110 Intellect, the pet panes read 33 for the Imp and 11 for
+// the Voidwalker and Sayaad.
+// TODO: The regen shares are read at level 30 only, and the Felhunter's not at all. The warlock's share of
+// mana; resistances and haste.
+func (warlock *Warlock) petStatInheritance(mp5PerOwnerIntellect float64) core.PetStatInheritance {
 	return func(ownerStats stats.Stats) stats.Stats {
 		// The warlock's spell damage, as its own tooltips read it: the better of its two schools
 		spellDamage := ownerStats[stats.SpellDamage] + max(ownerStats[stats.ShadowDamage], ownerStats[stats.FireDamage])
 
 		return stats.Stats{
 			stats.Health: ownerStats[stats.Stamina] * 7.5,
+			stats.MP5:    ownerStats[stats.Intellect] * mp5PerOwnerIntellect,
 			// Demon Armor included: a level 30 Imp's own armor is the level 20 share only with it.
 			// TODO: In game a demon's armor is fixed at the summon (it held when Demon Armor fell off),
 			// while its attack power and spell damage follow the warlock's.
@@ -214,7 +217,7 @@ func (warlock *Warlock) registerPet(summon proto.WarlockOptions_Summon, name str
 			Name:            name,
 			Owner:           &warlock.Character,
 			BaseStats:       model.baseStats,
-			StatInheritance: warlock.petStatInheritance(),
+			StatInheritance: warlock.petStatInheritance(model.mp5PerOwnerIntellect),
 			IsDynamic:       true,
 			EnabledOnStart:  enabledOnStart,
 		}),
@@ -226,10 +229,9 @@ func (warlock *Warlock) registerPet(summon proto.WarlockOptions_Summon, name str
 	pet.AddStatDependency(stats.Stamina, stats.Health, model.healthPerStamina-10)
 	pet.AddStatDependency(stats.Agility, stats.Armor, -2)
 	pet.AddStatDependency(stats.Intellect, stats.Mana, model.manaPerIntellect)
-	pet.AddStatDependency(stats.Intellect, stats.MP5, model.mp5PerIntellect)
 	pet.AddStatDependency(stats.Strength, stats.AttackPower, model.apPerStrength)
 
-	// Regen is MP5 and Intellect alone in the model: Spirit adds none.
+	// Spirit adds no regen.
 	pet.PseudoStats.SpiritRegenMultiplier = 0
 	pet.PseudoStats.DamageDealtMultiplier *= model.damageMod
 

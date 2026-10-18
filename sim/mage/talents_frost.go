@@ -222,11 +222,14 @@ func (mage *Mage) registerFingersOfFrost() {
 
 	// A cast that granted the charges from inside its own effects, which spends none of them.
 	var grantedBy *core.Spell
+	// Counts the grants, so a spend can tell whether charges were granted after it was cast.
+	var grants int
 
 	// Every damage spell the rotation casts spends a charge, except a channel and the cast that
-	// granted them: in the logs, Blizzard casts made with charges up spent none. The charge goes
-	// after the cast's effects, so the spell that spends the last one still reads the target as
-	// Frozen.
+	// granted them: in the logs, Blizzard casts made with charges up spent none. The charge goes a
+	// spell batch after the cast, so a spell queued in the same batch still reads the target as
+	// Frozen and spends the same charge. A grant inside that batch leaves the charges full: the
+	// spend came before it.
 	config.OnCastComplete = func(aura *core.Aura, sim *core.Simulation, spell *core.Spell) {
 		if spell == grantedBy {
 			grantedBy = nil
@@ -234,7 +237,16 @@ func (mage *Mage) registerFingersOfFrost() {
 		}
 		if spell.Flags.Matches(core.SpellFlagAPL) && !spell.Flags.Matches(core.SpellFlagChanneled) &&
 			spell.ProcMask.Matches(core.ProcMaskSpellDamage) {
-			aura.RemoveStack(sim)
+			grantsAtCast := grants
+			pa := sim.GetConsumedPendingActionFromPool()
+			pa.NextActionAt = sim.CurrentTime + core.SpellBatchWindow
+			pa.Priority = core.ActionPriorityDOT
+			pa.OnAction = func(sim *core.Simulation) {
+				if grants == grantsAtCast {
+					aura.RemoveStack(sim)
+				}
+			}
+			sim.AddPendingAction(pa)
 		}
 	}
 	// Arcane Missiles' channel spends no charge; each missile that lands spends one, and a miss
@@ -256,6 +268,7 @@ func (mage *Mage) registerFingersOfFrost() {
 			}
 			mage.FingersOfFrostAura.Activate(sim)
 			mage.FingersOfFrostAura.SetStacks(sim, charges)
+			grants++
 		}
 	}
 
