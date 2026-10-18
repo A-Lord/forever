@@ -1148,7 +1148,6 @@
 	},
 	"bulk_tab": {
 		"title": "Batch",
-		"description": "<span className=\"bold\">Batch Simming</span> is a new feature akin to the <span className=\"bold\">Top Gear</span> sim on <a href=\"https://raidbots.com\" target=\"_blank\">Raidbots.com</a> that allows you to select multiple items and sim them to find the best combinations.<br />This is an <span className=\"text-brand\">Alpha</span> feature, so if you have feedback or found a bug, please report it!",
 		"download_native": "Download the local sim for faster results.",
 		"tabs": {
 			"setup": "Setup",
@@ -1177,8 +1176,21 @@
 			"total_iterations": "Minimum iterations",
 			"total_iterations_tooltip": "The batch sims at least this many iterations. The error target adds more as it runs.",
 			"groups": {
+				"encounters": "Encounters",
 				"enchants": "Enchants",
 				"frozen_slots": "Frozen slots"
+			},
+			"encounters": {
+				"description": "The batch runs once per encounter, and each encounter gets its own results. Save encounters in Settings → Saved Encounters.",
+				"current": "Current encounter",
+				"presets": "Presets",
+				"saved": "Saved",
+				"empty": "No saved encounters yet. Save one in Settings → Saved Encounters to run the batch against it too.",
+				"duplicate": "Same as another encounter, skipped",
+				"count": "Encounters",
+				"health_summary": "Health",
+				"targets_one": "{{count}} target",
+				"targets_other": "{{count}} targets"
 			},
 			"iterations": "Iterations",
 			"freeze_ring": {
@@ -1254,9 +1266,26 @@
 			"run_simulation": "Run a simulation to view results",
 			"equip_button": "Equip",
 			"gear_equipped": "Batch gear equipped!",
-			"current_gear": "Current Gear",
+			"current_gear": "Current gear",
 			"margin_of_error": "95% confidence interval of the mean DPS. Rankings closer than this can change between runs.",
-			"tied_group": "Statistically tied — the order within this group can change between runs"
+			"tied_group": "Statistically tied — the order within this group can change between runs",
+			"encounters": "Encounters",
+			"encounters_caption": "The best set's DPS and its gain over your current gear, per encounter. Pick one to see its ranking.",
+			"current": "Current",
+			"export_csv": "Export CSV"
+		},
+		"compare": {
+			"button": "Compare encounters",
+			"title": "Compare encounters",
+			"short_set": "S{{number}}",
+			"readout_rank": "#{{rank}} · {{dps}} DPS",
+			"readout_current": "{{dps}} DPS",
+			"readout_spread": "±{{spread}} per fight",
+			"not_ranked": "Not ranked",
+			"table_caption": "Each set's gain over your current gear in every encounter, its DPS underneath. A dashed cell is an encounter that did not rank the set; point at a cell for its rank and spread.",
+			"table_set": "Gear set",
+			"table_legend_best": "Best in the encounter",
+			"table_legend_gap": "Not ranked in that encounter"
 		},
 		"import_modal": {
 			"title": "Bag Item Import",

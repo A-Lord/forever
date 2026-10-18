@@ -4127,9 +4127,6 @@
 				"title": {
 					"type": "string"
 				},
-				"description": {
-					"type": "string"
-				},
 				"download_native": {
 					"type": "string"
 				},
@@ -4231,12 +4228,63 @@
 								"enchants": {
 									"type": "string"
 								},
+								"encounters": {
+									"type": "string"
+								},
 								"frozen_slots": {
 									"type": "string"
 								}
 							},
 							"additionalProperties": false,
-							"required": ["enchants", "frozen_slots"]
+							"required": ["encounters", "enchants", "frozen_slots"]
+						},
+						"encounters": {
+							"type": "object",
+							"properties": {
+								"description": {
+									"type": "string"
+								},
+								"current": {
+									"type": "string"
+								},
+								"presets": {
+									"type": "string"
+								},
+								"saved": {
+									"type": "string"
+								},
+								"empty": {
+									"type": "string"
+								},
+								"duplicate": {
+									"type": "string"
+								},
+								"count": {
+									"type": "string"
+								},
+								"health_summary": {
+									"type": "string"
+								},
+								"targets_one": {
+									"type": "string"
+								},
+								"targets_other": {
+									"type": "string"
+								}
+							},
+							"additionalProperties": false,
+							"required": [
+								"description",
+								"current",
+								"presets",
+								"saved",
+								"empty",
+								"duplicate",
+								"count",
+								"health_summary",
+								"targets_one",
+								"targets_other"
+							]
 						},
 						"iterations": {
 							"type": "string"
@@ -4375,6 +4423,7 @@
 						"total_iterations",
 						"total_iterations_tooltip",
 						"groups",
+						"encounters",
 						"iterations",
 						"freeze_ring",
 						"freeze_trinket",
@@ -4519,10 +4568,63 @@
 						},
 						"tied_group": {
 							"type": "string"
+						},
+						"encounters": {
+							"type": "string"
+						},
+						"encounters_caption": {
+							"type": "string"
+						},
+						"current": {
+							"type": "string"
+						},
+						"export_csv": {
+							"type": "string"
 						}
 					},
 					"additionalProperties": false,
-					"required": ["run_simulation", "equip_button", "gear_equipped", "current_gear", "margin_of_error", "tied_group"]
+					"required": [
+						"run_simulation",
+						"equip_button",
+						"gear_equipped",
+						"current_gear",
+						"margin_of_error",
+						"tied_group",
+						"encounters",
+						"encounters_caption",
+						"current",
+						"export_csv"
+					]
+				},
+				"compare": {
+					"type": "object",
+					"properties": {
+						"button": { "type": "string" },
+						"title": { "type": "string" },
+						"short_set": { "type": "string" },
+						"readout_rank": { "type": "string" },
+						"readout_current": { "type": "string" },
+						"readout_spread": { "type": "string" },
+						"not_ranked": { "type": "string" },
+						"table_caption": { "type": "string" },
+						"table_set": { "type": "string" },
+						"table_legend_best": { "type": "string" },
+						"table_legend_gap": { "type": "string" }
+					},
+					"additionalProperties": false,
+					"required": [
+						"button",
+						"title",
+						"short_set",
+						"readout_rank",
+						"readout_current",
+						"readout_spread",
+						"not_ranked",
+						"table_caption",
+						"table_set",
+						"table_legend_best",
+						"table_legend_gap"
+					]
 				},
 				"import_modal": {
 					"type": "object",
@@ -4544,7 +4646,6 @@
 			"additionalProperties": false,
 			"required": [
 				"title",
-				"description",
 				"download_native",
 				"tabs",
 				"actions",
@@ -4555,6 +4656,7 @@
 				"warning",
 				"picker",
 				"results",
+				"compare",
 				"import_modal"
 			]
 		},
