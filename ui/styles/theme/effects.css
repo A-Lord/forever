@@ -43,6 +43,8 @@
 }
 
 @theme static inline {
+	--animate-landing-rise-in: landing-rise-in 0.5s ease-out var(--ui-landing-rise-in-delay, 0ms) backwards;
+	--animate-landing-rise-in-slow: landing-rise-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) var(--ui-landing-rise-in-delay, 0ms) backwards;
 	--drop-shadow-glow-danger: 0 0 0.5rem var(--color-danger), 0 0 0.5rem var(--color-danger);
 	--drop-shadow-glow-link: 0 0 0.5rem var(--color-link);
 	--shadow-focus-theme: 0 0 0 0.25rem color-mix(in srgb, var(--color-primary) 50%, transparent);
@@ -83,5 +85,12 @@
 
 	to {
 		background-position: -200% 0;
+	}
+}
+
+@keyframes landing-rise-in {
+	from {
+		opacity: 0;
+		transform: translateY(16px);
 	}
 }

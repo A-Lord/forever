@@ -20,11 +20,12 @@
 	}
 
 	.ui-landing-hero-title {
-		@apply m-0 mb-4 text-[clamp(2rem,4vw,3.25rem)] leading-[1.1] font-extrabold text-white;
+		@apply m-0 mb-4 text-[clamp(2rem,4vw,3.25rem)] leading-[1.1] font-extrabold text-white motion-safe:animate-landing-rise-in-slow;
 	}
 
 	.ui-landing-hero-blurb {
-		@apply m-0 mb-6 text-[1.05rem] leading-[1.6] text-white/80;
+		@apply m-0 mb-6 text-[1.05rem] leading-[1.6] text-white/80 motion-safe:animate-landing-rise-in-slow;
+		--ui-landing-rise-in-delay: 350ms;
 	}
 
 	.ui-landing-nav-link {
@@ -39,6 +40,16 @@
 		@apply relative inline-flex items-center gap-2 overflow-hidden rounded-full border border-solid border-white/20 bg-background/75 px-landing-action-x py-landing-action-y text-base font-bold text-white no-underline transition-[background-color,border-color,transform] duration-200;
 		@apply hover:-translate-y-landing-action-lift hover:border-white/40 hover:bg-landing-action-hover hover:text-white;
 		@apply focus-visible:-translate-y-landing-action-lift focus-visible:border-white/40 focus-visible:bg-landing-action-hover focus-visible:text-white;
+		@apply motion-safe:animate-landing-rise-in;
+		--ui-landing-rise-in-delay: 450ms;
+
+		&:nth-child(2) {
+			--ui-landing-rise-in-delay: 520ms;
+		}
+
+		&:nth-child(3) {
+			--ui-landing-rise-in-delay: 590ms;
+		}
 
 		&::after {
 			@apply pointer-events-none absolute inset-0 -translate-x-full bg-landing-sheen content-[''];
@@ -58,8 +69,9 @@
 	}
 
 	.ui-landing-class-card {
-		@apply relative isolate flex min-h-50 w-full overflow-hidden rounded-landing-card border border-solid border-white/8 p-0 text-left text-white no-underline transition-[transform,box-shadow,border-color] duration-200;
+		@apply relative isolate flex min-h-50 w-full overflow-hidden rounded-landing-card border border-solid border-white/8 p-0 text-left text-white no-underline transition-[transform,box-shadow,border-color] duration-200 motion-safe:animate-landing-rise-in;
 		--ui-landing-card-accent: var(--color-white);
+		--ui-landing-rise-in-delay: calc(var(--ui-landing-card-index, 0) * 70ms + 300ms);
 		background: linear-gradient(
 			135deg,
 			color-mix(in srgb, var(--ui-landing-card-accent) 25%, var(--color-background)),

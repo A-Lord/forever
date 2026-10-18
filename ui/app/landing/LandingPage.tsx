@@ -15,8 +15,8 @@ export const LandingPage = () => (
 				<div className="ui-landing-container flex flex-col pt-12 pb-22">
 					<LandingHero />
 					<div className="grid auto-rows-fr grid-cols-landing-cards gap-6" id="sim-links">
-						{LANDING_CLASS_ORDER.map(classId => (
-							<LandingClassCard key={classId} playerClass={PlayerClasses.fromProto(classId)} />
+						{LANDING_CLASS_ORDER.map((classId, index) => (
+							<LandingClassCard key={classId} playerClass={PlayerClasses.fromProto(classId)} index={index} />
 						))}
 					</div>
 				</div>
