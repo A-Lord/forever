@@ -31,5 +31,5 @@ var EightPieceSlots = []proto.ItemSlot{
 	proto.ItemSlot_ItemSlotFeet,
 }
 
-// A Naxxramas tier 3 set: the eight armor pieces and the ring, which only the set's class wears.
+// A Naxxramas tier 3 set: the eight armor pieces and the ring, all worn only by the set's class.
 var TierThreeSlots = slices.Concat(EightPieceSlots, []proto.ItemSlot{proto.ItemSlot_ItemSlotFinger1, proto.ItemSlot_ItemSlotFinger2})

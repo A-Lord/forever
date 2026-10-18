@@ -3,6 +3,7 @@
 package sim
 
 import (
+	"os"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -12,6 +13,7 @@ import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/simsignals"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 // The class allowlist each item states in the database reaches the sim's item as it is, and names
@@ -88,17 +90,21 @@ func TestClassRestrictedOnUseRegistersOnlyForItsClass(t *testing.T) {
 	}
 }
 
-// Every gear set the specs ship holds only items its class may use; the class is the folder the spec
-// sits in, ui/specs/<class>/<spec>/gear_sets.
+// Every gear set and build the specs ship holds only items its class may use; the class is the folder
+// the spec sits in, ui/specs/<class>/<spec>/gear_sets or ui/specs/<class>/<spec>/builds.
 func TestGearSetsHoldOnlyTheirClassItems(t *testing.T) {
-	files, err := filepath.Glob("../ui/specs/*/*/gear_sets/*.gear.json")
+	gearFiles, err := filepath.Glob("../ui/specs/*/*/gear_sets/*.gear.json")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(files) == 0 {
-		t.Fatal("no gear sets under ../ui/specs")
+	buildFiles, err := filepath.Glob("../ui/specs/*/*/builds/*.build.json")
+	if err != nil {
+		t.Fatal(err)
 	}
-	for _, file := range files {
+	if len(gearFiles) == 0 || len(buildFiles) == 0 {
+		t.Fatalf("found %d gear sets and %d builds under ../ui/specs", len(gearFiles), len(buildFiles))
+	}
+	for _, file := range slices.Concat(gearFiles, buildFiles) {
 		className := strings.Split(filepath.ToSlash(file), "/")[3]
 		classValue, ok := proto.Class_value["Class"+strings.ToUpper(className[:1])+className[1:]]
 		if !ok {
@@ -107,8 +113,21 @@ func TestGearSetsHoldOnlyTheirClassItems(t *testing.T) {
 		}
 		class := proto.Class(classValue)
 
-		gearSet := core.GetGearSet(filepath.Dir(file), strings.TrimSuffix(filepath.Base(file), ".gear.json"))
-		for _, spec := range gearSet.GearSet.Items {
+		var equipment *proto.EquipmentSpec
+		if strings.HasSuffix(file, ".build.json") {
+			data, err := os.ReadFile(file)
+			if err != nil {
+				t.Fatal(err)
+			}
+			build := &proto.IndividualSimSettings{}
+			if err := protojson.Unmarshal(data, build); err != nil {
+				t.Fatalf("%s: %v", file, err)
+			}
+			equipment = build.Player.GetEquipment()
+		} else {
+			equipment = core.GetGearSet(filepath.Dir(file), strings.TrimSuffix(filepath.Base(file), ".gear.json")).GearSet
+		}
+		for _, spec := range equipment.GetItems() {
 			if spec.Id == 0 {
 				continue
 			}
