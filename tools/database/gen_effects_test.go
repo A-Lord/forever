@@ -14,27 +14,6 @@ import (
 	"github.com/wowsims/forever/tools/database/overrides"
 )
 
-// A damage spell behind a trigger the game casts only on a condition is not found from the spell that
-// holds the condition. Blade of Hanna's 1325509 stacks to 30 before it casts Perfected Form 1325508, so
-// 1325509 routes to no damage shape, while 1325508 still resolves its own damage.
-func TestDamageBehindAStackCountRoutesNoProc(t *testing.T) {
-	withDBCInputs(t)
-	dbc.GetDBC()
-
-	const stackSpellID, damageSpellID = 1325509, 1325508
-
-	shape, id := pickNoStatShape(stackSpellID, stackSpellID)
-	if shape != ShapeStats || id != 0 {
-		t.Errorf("spell %d routed to shape %v with id %d, want shape %v with id 0", stackSpellID, shape, id, ShapeStats)
-	}
-	if got := dbc.ResolveDamageEffect(stackSpellID); got != nil {
-		t.Errorf("spell %d resolved damage on spell %d, want none", stackSpellID, got.SpellID)
-	}
-	if got := dbc.ResolveDamageEffect(damageSpellID); got == nil || got.SpellID != damageSpellID {
-		t.Errorf("spell %d resolved %v, want its own damage", damageSpellID, got)
-	}
-}
-
 // A chance-on-hit item whose spell is a heal over time on the wearer routes to the heal shape. Julie's
 // Dagger registers on the rate its override gives it; Reforged Spear has none, and while the game files
 // state no rate for it stays commented out.
@@ -169,6 +148,29 @@ func TestChanceOnHitDamageOverTimeRoutesAsDamage(t *testing.T) {
 		if !rated.Supported() {
 			t.Errorf("item %d at 1 PPM refused for %q, want registered", tc.itemID, rated.Unsupported)
 		}
+	}
+}
+
+// A damage spell behind a trigger the game casts only on a condition is not found from the spell that
+// holds the condition. Blade of Hanna's 1325535 stacks 1325509 on each swing, and 1325509 casts Perfected
+// Form 1325508 only at 30 stacks, so neither routes to a proc, while 1325508 still resolves its own
+// damage. 1325508's removal of 1325509 is no link back to it.
+func TestDamageBehindAStackCountRoutesNoProc(t *testing.T) {
+	withDBCInputs(t)
+	dbc.GetDBC()
+
+	const triggerSpellID, stackSpellID, damageSpellID = 1325535, 1325509, 1325508
+
+	for _, spellID := range []int{triggerSpellID, stackSpellID} {
+		if shape, id := pickNoStatShape(spellID, int32(spellID)); shape != ShapeStats || id != 0 {
+			t.Errorf("spell %d routed to shape %v with id %d, want shape %v with id 0", spellID, shape, id, ShapeStats)
+		}
+	}
+	if got := dbc.ResolveDamageEffect(damageSpellID); got == nil || got.SpellID != damageSpellID {
+		t.Errorf("spell %d resolved %v, want its own damage", damageSpellID, got)
+	}
+	if got := dbc.ResolveTriggered(damageSpellID, func(s *spelldata.Spell) bool { return s.ID == stackSpellID }); got != 0 {
+		t.Errorf("spell %d reached spell %d through the aura it removes, want no link", damageSpellID, got)
 	}
 }
 
