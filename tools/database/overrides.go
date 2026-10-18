@@ -98,6 +98,21 @@ var ItemOverrides = []*proto.UIItem{
 	},
 }
 
+// Each Naxxramas tier 3 armor piece comes from its own class's quest, and the game files open every
+// one to every class: AllowableClass is 32767, or 1535 on Dreadnaught's and most of Bonescythe's. Only
+// the set's ring names the class, so each piece of the set takes it. Keyed by item set id.
+var ItemSetClasses = map[int32]proto.Class{
+	521: proto.Class_ClassDruid,   // Dreamwalker Raiment
+	523: proto.Class_ClassWarrior, // Dreadnaught's Battlegear
+	524: proto.Class_ClassRogue,   // Bonescythe Armor
+	525: proto.Class_ClassPriest,  // Vestments of Faith
+	526: proto.Class_ClassMage,    // Frostfire Regalia
+	527: proto.Class_ClassShaman,  // The Earthshatterer
+	528: proto.Class_ClassPaladin, // Redemption Armor
+	529: proto.Class_ClassWarlock, // Plagueheart Raiment
+	530: proto.Class_ClassHunter,  // Cryptstalker Armor
+}
+
 // Keep these sorted by item ID.
 var ItemAllowList = map[int32]struct{}{
 	1168:  {}, // Skullflame Shield

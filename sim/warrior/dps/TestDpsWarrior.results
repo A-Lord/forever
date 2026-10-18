@@ -512,14 +512,6 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestDpsWarrior-AllItems-FrostfireRegalia"
- value: {
-  dps: 472.16377
-  tps: 276.94555
-  dtps: 3.33811
- }
-}
-dps_results: {
  key: "TestDpsWarrior-AllItems-Frostguard-12797"
  value: {
   dps: 458.12737
@@ -824,14 +816,6 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestDpsWarrior-AllItems-PlagueheartRaiment"
- value: {
-  dps: 476.63671
-  tps: 279.80266
-  dtps: 3.31166
- }
-}
-dps_results: {
  key: "TestDpsWarrior-AllItems-RageofMugamba-19577"
  value: {
   dps: 460.52465
@@ -1061,14 +1045,6 @@ dps_results: {
   dps: 458.12737
   tps: 268.84514
   dtps: 3.05866
- }
-}
-dps_results: {
- key: "TestDpsWarrior-AllItems-VestmentsofFaith"
- value: {
-  dps: 414.79723
-  tps: 244.26565
-  dtps: 3.16165
  }
 }
 dps_results: {

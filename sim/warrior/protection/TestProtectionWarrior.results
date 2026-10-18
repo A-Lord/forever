@@ -297,15 +297,6 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestProtectionWarrior-AllItems-CryptstalkerArmor"
- value: {
-  dps: 497.04635
-  tps: 1062.20803
-  dtps: 258.06372
-  hps: 17.6
- }
-}
-dps_results: {
  key: "TestProtectionWarrior-AllItems-DarkmantleArmor"
  value: {
   dps: 492.05432
@@ -663,15 +654,6 @@ dps_results: {
   tps: 1011.44477
   dtps: 275.78636
   hps: 16.4
- }
-}
-dps_results: {
- key: "TestProtectionWarrior-AllItems-FrostfireRegalia"
- value: {
-  dps: 439.95242
-  tps: 938.43506
-  dtps: 439.49555
-  hps: 17
  }
 }
 dps_results: {
@@ -1062,15 +1044,6 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestProtectionWarrior-AllItems-PlagueheartRaiment"
- value: {
-  dps: 443.25558
-  tps: 946.04271
-  dtps: 438.45327
-  hps: 17.6
- }
-}
-dps_results: {
  key: "TestProtectionWarrior-AllItems-PremierChampion'sMortarplateGauntlets-272513"
  value: {
   dps: 467.75728
@@ -1391,15 +1364,6 @@ dps_results: {
   dps: 464.53108
   tps: 1002.36898
   dtps: 286.72029
-  hps: 16.4
- }
-}
-dps_results: {
- key: "TestProtectionWarrior-AllItems-VestmentsofFaith"
- value: {
-  dps: 398.84715
-  tps: 859.48175
-  dtps: 441.23341
   hps: 16.4
  }
 }

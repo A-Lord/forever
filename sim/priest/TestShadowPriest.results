@@ -479,14 +479,6 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestShadowPriest-AllItems-FrostfireRegalia"
- value: {
-  dps: 913.2669
-  tps: 382.11982
-  dtps: 5.07156
- }
-}
-dps_results: {
  key: "TestShadowPriest-AllItems-FrozenHeartoftheMountain-249469"
  value: {
   dps: 779.89217
@@ -764,14 +756,6 @@ dps_results: {
   dps: 768.08402
   tps: 386.99785
   dtps: 5.12976
- }
-}
-dps_results: {
- key: "TestShadowPriest-AllItems-PlagueheartRaiment"
- value: {
-  dps: 854.26189
-  tps: 429.55673
-  dtps: 5.24456
  }
 }
 dps_results: {

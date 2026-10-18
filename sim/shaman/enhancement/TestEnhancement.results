@@ -182,14 +182,6 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestEnhancement-AllItems-CryptstalkerArmor"
- value: {
-  dps: 693.08422
-  tps: 363.86648
-  dtps: 8.97271
- }
-}
-dps_results: {
  key: "TestEnhancement-AllItems-DarkmantleArmor"
  value: {
   dps: 642.08312
@@ -481,14 +473,6 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestEnhancement-AllItems-FrostfireRegalia"
- value: {
-  dps: 744.23474
-  tps: 363.80466
-  dtps: 10.05625
- }
-}
-dps_results: {
  key: "TestEnhancement-AllItems-GauntletsoftheSea-8346"
  value: {
   dps: 692.84307
@@ -702,14 +686,6 @@ dps_results: {
   dps: 693.5712
   tps: 364.06872
   dtps: 9.75249
- }
-}
-dps_results: {
- key: "TestEnhancement-AllItems-PlagueheartRaiment"
- value: {
-  dps: 710.96613
-  tps: 372.83467
-  dtps: 9.80645
  }
 }
 dps_results: {
@@ -934,14 +910,6 @@ dps_results: {
   dps: 694.91443
   tps: 364.72691
   dtps: 9.76174
- }
-}
-dps_results: {
- key: "TestEnhancement-AllItems-VestmentsofFaith"
- value: {
-  dps: 595.9016
-  tps: 312.77765
-  dtps: 7.46737
  }
 }
 dps_results: {

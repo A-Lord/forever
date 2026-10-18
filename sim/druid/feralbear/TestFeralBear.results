@@ -595,15 +595,6 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestFeralBear-AllItems-FrostfireRegalia"
- value: {
-  dps: 426.1082
-  tps: 667.35958
-  dtps: 475.3655
-  hps: 62.11215
- }
-}
-dps_results: {
  key: "TestFeralBear-AllItems-FrozenHeartoftheMountain-249469"
  value: {
   dps: 468.84578
@@ -964,15 +955,6 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestFeralBear-AllItems-PlagueheartRaiment"
- value: {
-  dps: 436.82262
-  tps: 684.38932
-  dtps: 478.54507
-  hps: 65.14532
- }
-}
-dps_results: {
  key: "TestFeralBear-AllItems-PristineEnchantedSouthSeasKelp-19613"
  value: {
   dps: 464.53689
@@ -1186,15 +1168,6 @@ dps_results: {
   tps: 725.15879
   dtps: 339.52636
   hps: 60.92996
- }
-}
-dps_results: {
- key: "TestFeralBear-AllItems-VestmentsofFaith"
- value: {
-  dps: 394.00605
-  tps: 617.88026
-  dtps: 479.23756
-  hps: 60.54348
  }
 }
 dps_results: {

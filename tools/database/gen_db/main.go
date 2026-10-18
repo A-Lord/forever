@@ -210,6 +210,11 @@ func main() {
 	}
 
 	db.MergeItems(database.ItemOverrides)
+	for _, item := range db.Items {
+		if class, ok := database.ItemSetClasses[item.SetId]; ok {
+			item.ClassAllowlist = []proto.Class{class}
+		}
+	}
 	db.MergeEnchants(database.EnchantOverrides)
 	ApplyGlobalFilters(db)
 	database.AddConsumableIcons(db, consumables, instance, iconsMap)
