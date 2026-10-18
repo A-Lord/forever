@@ -7,15 +7,11 @@
     "prayerOfSpirit": true,
     "moonkinAura": true
   },
-  "partyBuffs": {
-    "manaSpringTotem": "TristateEffectRegular"
-  },
+  "partyBuffs": {},
   "debuffs": {
     "judgementOfWisdom": true,
     "sunderArmor": true,
     "faerieFire": true,
-    "curseOfRecklessness": true,
-    "curseOfElements": true,
     "giftOfArthas": true,
     "exposeArmor": true
   },
@@ -41,7 +37,7 @@
         "classOptions": {
           "summon": "Succubus",
           "armor": "DemonArmor",
-          "curseOptions": "Recklessness",
+          "curseOptions": "Elements",
           "soulShards": 32
         }
       }

@@ -1,7 +1,7 @@
 import * as PresetUtils from '@app/preset_utils';
 import * as Consumables from '@features/settings/model/consumables_auto_gen';
 import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/proto/buffs';
-import { ConsumesSpec, Profession, Spec, TristateEffect } from '@generated/proto/common';
+import { ConsumesSpec, Profession, Spec } from '@generated/proto/common';
 import { SavedTalents } from '@generated/proto/ui';
 import { Warlock_Options as WarlockOptions, WarlockOptions_Armor, WarlockOptions_CurseOptions, WarlockOptions_Summon } from '@generated/proto/warlock';
 
@@ -34,7 +34,7 @@ export const AffWrackTalents = talentsOf('Aff (Wrack)', AffWrackBuildJson);
 export const DefaultOptions = WarlockOptions.create({
 	classOptions: {
 		armor: WarlockOptions_Armor.DemonArmor,
-		curseOptions: WarlockOptions_CurseOptions.Recklessness,
+		curseOptions: WarlockOptions_CurseOptions.Elements,
 		sacrificedDemon: WarlockOptions_Summon.Succubus,
 		summon: WarlockOptions_Summon.Imp,
 		// A full Felcloth Bag (21341), the largest Soul Bag a warlock can carry.
@@ -65,9 +65,7 @@ export const DefaultRaidBuffs = RaidBuffs.create({
 	moonkinAura: true,
 });
 
-export const DefaultPartyBuffs = PartyBuffs.create({
-	manaSpringTotem: TristateEffect.TristateEffectRegular,
-});
+export const DefaultPartyBuffs = PartyBuffs.create({});
 
 export const DefaultIndividualBuffs = IndividualBuffs.create({
 	greaterBlessingOfKings: true,
@@ -78,8 +76,6 @@ export const DefaultDebuffs = Debuffs.create({
 	judgementOfWisdom: true,
 	sunderArmor: true,
 	faerieFire: true,
-	curseOfRecklessness: true,
-	curseOfElements: true,
 	giftOfArthas: true,
 	exposeArmor: true,
 });
