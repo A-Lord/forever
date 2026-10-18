@@ -267,7 +267,7 @@ func RandomSuffixFromProto(pData *proto.ItemRandomSuffix) RandomSuffix {
 type Enchant struct {
 	EffectID       int32 // Used by UI to apply effect to tooltip
 	Stats          stats.Stats
-	PseudoStats    []float64 // Indexed by proto.PseudoStat; percents through stats.FromPseudoStatsProto, haste through registerEquipSpeedAuras
+	PseudoStats    []float64 // Indexed by proto.PseudoStat; percents through stats.FromPseudoStatsProto, haste through registerEquipSpeedAuras or, on a temporary enchant, its consumable's per-hand aura
 	WeaponDamage   float64   // Applied by newWeaponFromItem
 	EnchantEffects []*proto.ItemEffect
 	Name           string         // Only needed for unit tests
