@@ -4,13 +4,23 @@ import { Debuffs, IndividualBuffs, PartyBuffs, RaidBuffs } from '@generated/prot
 import { ConsumesSpec, Profession, TristateEffect } from '@generated/proto/common';
 import { Warlock_Options as WarlockOptions, WarlockOptions_Armor, WarlockOptions_CurseOptions, WarlockOptions_Summon } from '@generated/proto/warlock';
 
+import AffWrackApl from './apls/aff_wrack.apl.json';
 import DefaultApl from './apls/default.apl.json';
+import DemoFireBrandApl from './apls/demo_fire_brand.apl.json';
+import DemoShadowBrandApl from './apls/demo_shadow_brand.apl.json';
+import DestroApl from './apls/destro.apl.json';
+import SmRuinApl from './apls/sm_ruin.apl.json';
 
 // Preset options for this spec.
 // Eventually we will import these values for the raid sim too, so its good to
 // keep them in a separate file.
 
 export const DEFAULT_APL = PresetUtils.makePresetAPLRotation('Default', DefaultApl);
+export const DEMO_FIRE_BRAND_APL = PresetUtils.makePresetAPLRotation('Demo (Fire Brand)', DemoFireBrandApl);
+export const DEMO_SHADOW_BRAND_APL = PresetUtils.makePresetAPLRotation('Demo (Shadow Brand)', DemoShadowBrandApl);
+export const DESTRO_APL = PresetUtils.makePresetAPLRotation('Destro', DestroApl);
+export const SM_RUIN_APL = PresetUtils.makePresetAPLRotation('SM/Ruin', SmRuinApl);
+export const AFF_WRACK_APL = PresetUtils.makePresetAPLRotation('Aff (Wrack)', AffWrackApl);
 
 // Defaults
 export const DefaultOptions = WarlockOptions.create({
