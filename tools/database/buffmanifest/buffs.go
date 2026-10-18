@@ -354,6 +354,19 @@ var Party = []BuffSpec{
 			proto.Stat_StatStamina,
 		},
 	},
+	// A shadow priest's talent 1326159 raises the buff for 10 s on Mind Blast and a full Mind Flay;
+	// the party's copy is up for the fight, and the field is the talent's rank. It bids per stat, so a
+	// priest's stronger copy holds the Spirit while it is up and the party's holds it again after.
+	{
+		Field:    "dark_inspiration",
+		SpellID:  1326168,
+		Talent:   1326159,
+		Category: "DarkInspiration",
+		Proto:    ProtoInt32,
+		Stats: []proto.Stat{
+			proto.Stat_StatSpirit,
+		},
+	},
 }
 
 var Individual = []BuffSpec{

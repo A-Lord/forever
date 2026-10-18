@@ -20,3 +20,14 @@ func init() {
 func NewSpellDataBloodPactAuraFor(unit *core.Unit, warlock *core.Unit) *core.Aura {
 	return newCasterBuff(unit, bloodPactMeta, warlock, 0)
 }
+
+// A priest's own Dark Inspiration at the talent's rank, one per priest, bidding in the party buff's
+// category. It yields ties, so a copy no stronger than the party's leaves the party's holding the
+// Spirit while it is up.
+func NewSpellDataDarkInspirationAuraFor(unit *core.Unit, priest *core.Unit, ranks int32) *core.Aura {
+	aura := newCasterBuff(unit, darkInspirationMeta, priest, ranks)
+	for _, effect := range aura.ExclusiveEffects {
+		effect.YieldsTies = true
+	}
+	return aura
+}

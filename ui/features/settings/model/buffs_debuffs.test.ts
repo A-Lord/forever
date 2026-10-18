@@ -18,6 +18,7 @@ describe('the buff registries', () => {
 			'Mana Tide Totem',
 			'Retribution Aura',
 			'Concentration Aura',
+			'Dark Inspiration',
 			'Atiesh - Mage',
 			'Atiesh - Warlock',
 			'Atiesh - Druid',
