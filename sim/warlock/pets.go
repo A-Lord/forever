@@ -32,7 +32,7 @@ type petModel struct {
 	manaPerIntellect float64
 	apPerStrength    float64
 
-	mp5PerOwnerIntellect float64 // MP5 per point of the warlock's Intellect, the demon's only regen
+	mp5PerOwnerIntellect float64 // MP5 per point of the warlock's Intellect
 
 	// Melee, for the demons that have it: the weapon's damage range and swing, and a multiplier on
 	// everything the demon deals.
@@ -147,7 +147,8 @@ func meleeDemonStats(baseHealth float64) stats.Stats {
 // from the warlock. Health is 7.5 a point of the warlock's Stamina. Regen is a share of the warlock's
 // Intellect as MP5, 30% for the Imp and 10% for every other demon: at level 30 with 110 Intellect, the pet
 // panes read 33 for the Imp and 11 for the Voidwalker and Sayaad.
-// TODO: The warlock's share of mana; resistances and haste.
+// TODO: The regen shares are read at level 30 only, and the Felhunter's not at all. The warlock's share of
+// mana; resistances and haste.
 func (warlock *Warlock) petStatInheritance(mp5PerOwnerIntellect float64) core.PetStatInheritance {
 	return func(ownerStats stats.Stats) stats.Stats {
 		// The warlock's spell damage, as its own tooltips read it: the better of its two schools
@@ -230,7 +231,7 @@ func (warlock *Warlock) registerPet(summon proto.WarlockOptions_Summon, name str
 	pet.AddStatDependency(stats.Intellect, stats.Mana, model.manaPerIntellect)
 	pet.AddStatDependency(stats.Strength, stats.AttackPower, model.apPerStrength)
 
-	// Regen is the MP5 from the warlock's Intellect alone: Spirit adds none.
+	// Spirit adds no regen: a demon's own regen is the MP5 from the warlock's Intellect.
 	pet.PseudoStats.SpiritRegenMultiplier = 0
 	pet.PseudoStats.DamageDealtMultiplier *= model.damageMod
 
