@@ -146,8 +146,8 @@
                   {
                     "not": {
                       "val": {
-                        "isExecutePhase": {
-                          "threshold": "E35"
+                        "variableRef": {
+                          "name": "In execute"
                         }
                       }
                     }
@@ -436,8 +436,8 @@
                   "or": {
                     "vals": [
                       {
-                        "isExecutePhase": {
-                          "threshold": "E35"
+                        "variableRef": {
+                          "name": "In execute"
                         }
                       },
                       {
@@ -471,8 +471,8 @@
                   "or": {
                     "vals": [
                       {
-                        "isExecutePhase": {
-                          "threshold": "E35"
+                        "variableRef": {
+                          "name": "In execute"
                         }
                       },
                       {
@@ -539,6 +539,24 @@
                       "name": "Execute at"
                     }
                   }
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "In execute",
+          "value": {
+            "cmp": {
+              "op": "OpLe",
+              "lhs": {
+                "variableRef": {
+                  "name": "Time to execute"
+                }
+              },
+              "rhs": {
+                "const": {
+                  "val": "0s"
                 }
               }
             }
