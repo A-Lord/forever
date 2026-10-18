@@ -10,9 +10,9 @@ import TestingBuildJson from './builds/testing.build.json';
 
 export const ROTATION_PRESET_DEFAULT = PresetUtils.makePresetAPLRotation('Default', TestingBuildJson.player.rotation);
 
-export const DefaultGear = PresetUtils.makePresetGear('Testing', TestingBuildJson.player.equipment);
+export const DefaultGear = PresetUtils.makePresetGear('Testing', TestingBuildJson.player.equipment, { devOnly: true });
 
-export const TestingBuild = PresetUtils.makePresetBuildFromJSON('Testing', Spec.SpecElementalShaman, TestingBuildJson);
+export const TestingBuild = PresetUtils.makePresetBuildFromJSON('Testing', Spec.SpecElementalShaman, TestingBuildJson, { gear: DefaultGear });
 
 // Measured on the Testing gear with the Standard talents over a three minute fight. Hit is its value below the
 // 17% cap.

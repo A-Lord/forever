@@ -62,10 +62,10 @@ const SIMPLE_BACKSTAB_BUILD_ROTATION = PresetUtils.makePresetSimpleRotation(
 	RogueRotation.create({ useBackstab: true, useExposeArmor: false }),
 );
 
-export const P1_BS_COMBAT_GEAR = PresetUtils.makePresetGear('Backstab Combat', P1BsCombatGear);
-export const P1_MUTI_GEAR = PresetUtils.makePresetGear('Mutilate', P1MutiGear);
-export const P1_SLOW_MH_GEAR = PresetUtils.makePresetGear('Slow Main Hand', P1SlowMhGear);
-export const P1_BS_SUB_GEAR = PresetUtils.makePresetGear('Backstab Subtlety', P1BsSubGear);
+export const P1_BS_COMBAT_GEAR = PresetUtils.makePresetGear('Backstab Combat', P1BsCombatGear, { devOnly: true });
+export const P1_MUTI_GEAR = PresetUtils.makePresetGear('Mutilate', P1MutiGear, { devOnly: true });
+export const P1_SLOW_MH_GEAR = PresetUtils.makePresetGear('Slow Main Hand', P1SlowMhGear, { devOnly: true });
+export const P1_BS_SUB_GEAR = PresetUtils.makePresetGear('Backstab Subtlety', P1BsSubGear, { devOnly: true });
 
 // Preset options for EP weights
 export const EP_PRESET_COMBAT_SINISTER = PresetUtils.makePresetEpWeights(

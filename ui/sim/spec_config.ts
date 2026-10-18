@@ -17,6 +17,7 @@ import { StatCap, Stats, UnitStat } from './proto/stats';
 import type { Sim } from './sim';
 import type { IndividualSimHost, SimWarning } from './sim_host';
 import type { StoreSubscribe } from './state/subscriptions';
+import { isDevMode } from './utils/env';
 
 /** Per-stat tooltip content a spec contributes to the reforge panel. */
 export type StatTooltipContent = { [key in Stat]?: () => ReactNode };
@@ -206,11 +207,28 @@ export interface SpecDefinition<SpecType extends Spec> extends IndividualSimUICo
 	spec: SpecType;
 }
 
-// Identity function; exists purely so `ui/specs/<class>/<spec>/spec.ts` gets the
-// config checked against `SpecDefinition` without an `as` cast or a type
-// annotation that would widen the literal spec type.
+// Lets `ui/specs/<class>/<spec>/spec.ts` get the config checked against
+// `SpecDefinition` without an `as` cast or a type annotation that would widen
+// the literal spec type. Outside the dev server it also drops the dev-only
+// gearsets, see `withoutDevOnlyGear`.
 export function defineSpec<SpecType extends Spec>(def: SpecDefinition<SpecType>): SpecDefinition<SpecType> {
-	return def;
+	return isDevMode() ? def : withoutDevOnlyGear(def);
+}
+
+// Removes dev-only gearsets from the gear presets and from the builds, dropping a
+// build left empty. The default gear stays only when it is a production gearset
+// the spec lists, so a default taken from an unlisted preset is cleared as well.
+function withoutDevOnlyGear<SpecType extends Spec>(def: SpecDefinition<SpecType>): SpecDefinition<SpecType> {
+	const gear = def.presets.gear.filter(preset => !preset.devOnly);
+	const builds = def.presets.builds
+		?.map(build => (build.gear?.devOnly ? { ...build, gear: undefined } : build))
+		.filter(({ name: _name, phase: _phase, group: _group, ...categories }) => Object.values(categories).some(value => value !== undefined));
+	const productionGear = [...gear, ...(builds ?? []).map(build => build.gear)].map(preset => preset?.gear);
+	return {
+		...def,
+		defaults: { ...def.defaults, gear: productionGear.includes(def.defaults.gear) ? def.defaults.gear : EquipmentSpec.create() },
+		presets: { ...def.presets, gear, builds },
+	};
 }
 
 export function registerSpecConfig<SpecType extends Spec>(spec: SpecType, config: IndividualSimUIConfig<SpecType>): IndividualSimUIConfig<SpecType> {
