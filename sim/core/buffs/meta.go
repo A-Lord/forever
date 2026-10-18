@@ -33,7 +33,7 @@ type Meta struct {
 	TalentEffect         int32
 	TalentScalesDuration bool
 	// TalentDivisor prices the buff at talentPoints/TalentDivisor of the spell's amount, for a talent
-	// that states its effect only in its tooltip; 0 for a talent priced by a spell modifier.
+	// a tooltip prices by rank; 0 for a talent priced by a spell modifier.
 	TalentDivisor int32
 
 	// The aura effects the buff leaves out, by aura.
