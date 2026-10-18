@@ -1,22 +1,11 @@
 import { ConnectedNumberField } from '@features/inputs/components/ConnectedTextField';
 import type { NumberFieldConfig } from '@features/inputs/configs';
-import { Stat } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { usePlayer } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
 import type { UnitStat } from '@sim/proto/stats';
 import { ToggleGroup } from '@ui-kit/ToggleGroup';
 import { useCallback, useMemo, useRef, useState } from 'react';
-
-const PERCENT_INPUT_STATS = new Set<Stat>([
-	Stat.StatHitRating,
-	Stat.StatCritRating,
-	Stat.StatHasteRating,
-	Stat.StatExpertiseRating,
-	Stat.StatDodgeRating,
-	Stat.StatParryRating,
-	Stat.StatBlockRating,
-]);
 
 export interface BonusStatsPickerProps {
 	unitStat: UnitStat;
@@ -31,7 +20,7 @@ export interface BonusStatsPickerProps {
 export const BonusStatsPicker = ({ unitStat, label, onCommit }: BonusStatsPickerProps) => {
 	const player = usePlayer();
 	const rootStat = unitStat.hasRootStat() ? unitStat.getRootStat() : undefined;
-	const supportsPercent = rootStat !== undefined && PERCENT_INPUT_STATS.has(rootStat);
+	const supportsPercent = unitStat.isPercentRating();
 	const [inputUnit, setInputUnit] = useState<'rating' | 'percent'>(supportsPercent ? 'percent' : 'rating');
 	const percentInput = supportsPercent && inputUnit === 'percent';
 	const ratingSuffix = i18n.t('sidebar.character_stats.rating_suffix');
