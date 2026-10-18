@@ -255,7 +255,8 @@ func EquipSpellFolds(spellID int) bool {
 // Adds the stat ConvertEffectAuraToStatIndex names for an equip spell's aura to out, value points of
 // it, and reports whether it named one. A FoldStats effect alone adds. A resistance to every magic
 // school is each of the five resistances, a spell whose description says "forms only" gives feral
-// attack power, and armor penetration and spell piercing count as positive.
+// attack power, flat damage done is each stat spelldata.DamageDoneStats names for its mask, and armor
+// penetration and spell piercing count as positive.
 func addEquipAuraStat(out *stats.Stats, effect SpellEffect, value float64) bool {
 	if EquipEffectFold(effect) != FoldStats {
 		return false
@@ -266,6 +267,12 @@ func addEquipAuraStat(out *stats.Stats, effect SpellEffect, value float64) bool 
 	}
 	if strings.Contains(dbcInstance.Spells[effect.SpellID].Description, "forms only") {
 		stat = proto.Stat_StatFeralAttackPower
+	} else if effect.EffectAura == dbcenums.A_MOD_DAMAGE_DONE {
+		damage := spelldata.DamageDoneStats(int32(effect.EffectMiscValues[0]))
+		for _, school := range damage {
+			out[school] += value
+		}
+		return len(damage) > 0
 	}
 	switch stat {
 	case -2:

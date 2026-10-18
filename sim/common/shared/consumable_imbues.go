@@ -24,7 +24,8 @@ type SchoolPiercing struct {
 // weapon carries its own copy of the equip aura, and an aura bound to a matching weapon reaches that
 // hand's attacks alone. An equip spell that procs, such as Scroll of Imbue Manablade's 1308913, is a
 // listener built from its row instead. The piercing is a stat slot of the enchant that has no place
-// in the stat array, held by the same per-hand aura.
+// in the stat array, held by the same per-hand aura, and so are the melee, ranged and cast speed
+// percents of the enchant's pseudo stats, such as Major Spellstone's 2% cast speed.
 func NewSpellDataTemporaryEnchant(itemID int32, piercing SchoolPiercing, equipSpellIDs ...int32) {
 	core.NewSpellDataConsumableEffect(itemID, func(agent core.Agent) {
 		character := agent.GetCharacter()
@@ -42,7 +43,7 @@ func NewSpellDataTemporaryEnchant(itemID int32, piercing SchoolPiercing, equipSp
 			}
 			equipSpells = append(equipSpells, row)
 		}
-		if piercing.Amount == 0 && len(equipSpells) == 0 {
+		if piercing.Amount == 0 && len(equipSpells) == 0 && !changesSpeed(consumable.TemporaryEnchant.PseudoStats) {
 			return
 		}
 		for _, slot := range slots {
@@ -99,23 +100,37 @@ func registerTemporaryEnchantHand(character *core.Character, consumable core.Con
 	if len(equipSpells) == 1 {
 		actionID = core.ActionID{SpellID: equipSpells[0].ID}
 	}
+	equipped := character.Equipment[slot].HasTempEnchant(enchantID)
 	aura := character.RegisterAura(core.Aura{
 		Label:    fmt.Sprintf("%s (%s)", consumable.Name, core.Ternary(slot == proto.ItemSlot_ItemSlotMainHand, "Main Hand", "Off Hand")),
 		ActionID: actionID.WithTag(int32(slot)),
 		Duration: core.NeverExpires,
+		// On the hand from the start, the enchant is part of the gear the character sheet shows.
+		BuildPhase: core.Ternary(equipped, core.CharacterBuildPhaseGear, core.CharacterBuildPhaseNone),
 	})
 	if piercing.Amount != 0 {
 		aura.AttachAdditivePseudoStatBuff(&character.PseudoStats.SchoolSpellPiercing[piercing.School], piercing.Amount)
 	}
+	aura.AttachHastePseudoStats(consumable.TemporaryEnchant.PseudoStats)
 	hand := character.GetProcMaskForWeaponSlot(slot)
 	for _, row := range equipSpells {
 		spelldata.ParseEffects(character, aura, row, spelldata.OnHand(hand), spelldata.Count(1))
 	}
 
-	if character.Equipment[slot].HasTempEnchant(enchantID) {
+	if equipped {
 		core.MakePermanent(aura)
 	}
 	character.ItemSwap.RegisterEnchantProcWithSlots(enchantID, aura, []proto.ItemSlot{slot})
+}
+
+func changesSpeed(pseudoStats []float64) bool {
+	for _, haste := range []proto.PseudoStat{proto.PseudoStat_PseudoStatMeleeHastePercent,
+		proto.PseudoStat_PseudoStatRangedHastePercent, proto.PseudoStat_PseudoStatSpellHastePercent} {
+		if stats.PseudoStatValue(pseudoStats, haste) != 0 {
+			return true
+		}
+	}
+	return false
 }
 
 func TemporaryEnchantEquipSpellProcs(row *spelldata.Spell) bool {
