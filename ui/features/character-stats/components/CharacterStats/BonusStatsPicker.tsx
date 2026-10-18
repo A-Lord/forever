@@ -4,11 +4,19 @@ import { Stat } from '@generated/proto/common';
 import i18n from '@i18n/config';
 import { usePlayer } from '@sim/context/SimHostContext';
 import type { Player } from '@sim/player/player';
-import { UnitStat } from '@sim/proto/stats';
+import type { UnitStat } from '@sim/proto/stats';
 import { ToggleGroup } from '@ui-kit/ToggleGroup';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
-const PERCENT_INPUT_STATS = new Set<Stat>([Stat.StatHitRating, Stat.StatCritRating, Stat.StatHasteRating, Stat.StatExpertiseRating]);
+const PERCENT_INPUT_STATS = new Set<Stat>([
+	Stat.StatHitRating,
+	Stat.StatCritRating,
+	Stat.StatHasteRating,
+	Stat.StatExpertiseRating,
+	Stat.StatDodgeRating,
+	Stat.StatParryRating,
+	Stat.StatBlockRating,
+]);
 
 export interface BonusStatsPickerProps {
 	unitStat: UnitStat;
@@ -30,6 +38,10 @@ export const BonusStatsPicker = ({ unitStat, label, onCommit }: BonusStatsPicker
 	const percentSuffix = i18n.t('sidebar.character_stats.percent_suffix');
 	const percentLabel = i18n.t('sidebar.character_stats.percent_label');
 	const inputLabel = percentInput ? `${label.endsWith(ratingSuffix) ? label.slice(0, -ratingSuffix.length).trimEnd() : label} (${percentSuffix})` : label;
+	const toggle = useRef<HTMLDivElement>(null);
+	// Safari and Firefox on macOS do not focus a clicked button, so a press on the toggle is
+	// tracked by pointer; keyboard focus moving onto the toggle is caught one frame later.
+	const pressedToggle = useRef(false);
 	const commitInput = useCallback(() => {
 		if (!supportsPercent) {
 			onCommit();
@@ -37,7 +49,7 @@ export const BonusStatsPicker = ({ unitStat, label, onCommit }: BonusStatsPicker
 		}
 
 		requestAnimationFrame(() => {
-			if (document.activeElement?.closest('[data-testid="bonus-stats-unit-toggle"]')) return;
+			if (pressedToggle.current || toggle.current?.contains(document.activeElement)) return;
 			onCommit();
 		});
 	}, [onCommit, supportsPercent]);
@@ -52,49 +64,38 @@ export const BonusStatsPicker = ({ unitStat, label, onCommit }: BonusStatsPicker
 			storeField: 'bonusStats',
 			getValue: subject => {
 				const bonusStats = subject.getBonusStats();
-				const value = unitStat.hasRootStat() ? bonusStats.getStat(unitStat.getRootStat()) : bonusStats.getUnitStat(unitStat);
-				if (!percentInput || rootStat === undefined) return value;
-				const percent = UnitStat.fromStat(rootStat).convertRatingToPercent(value);
-				if (percent === null) throw new Error(`Cannot convert ${Stat[rootStat]} to percent`);
-				return percent;
+				const value = rootStat !== undefined ? bonusStats.getStat(rootStat) : bonusStats.getUnitStat(unitStat);
+				return percentInput ? unitStat.convertRatingToPercent(value)! : value;
 			},
 			setValue: (subject, newValue) => {
 				const bonusStats = subject.getBonusStats();
-				let value = newValue;
-				if (percentInput && rootStat !== undefined) {
-					const rating = UnitStat.fromStat(rootStat).convertPercentToRating(newValue);
-					if (rating === null) throw new Error(`Cannot convert percent to ${Stat[rootStat]}`);
-					value = rating;
-				}
-				subject.setBonusStats(
-					unitStat.hasRootStat()
-						? bonusStats.withStat(unitStat.getRootStat(), value)
-						: unitStat.isPseudoStat()
-							? bonusStats.withPseudoStat(unitStat.getPseudoStat(), value)
-							: bonusStats.withStat(unitStat.getStat(), value),
-				);
+				// Ratings are whole numbers in game.
+				const value = percentInput ? Math.round(unitStat.convertPercentToRating(newValue)!) : newValue;
+				subject.setBonusStats(rootStat !== undefined ? bonusStats.withStat(rootStat, value) : bonusStats.withUnitStat(unitStat, value));
 				commitInput();
 			},
 		}),
-		[unitStat, inputLabel, percentInput, rootStat, commitInput],
+		[unitStat, rootStat, inputLabel, percentInput, commitInput],
 	);
 
 	const input = <ConnectedNumberField key={inputUnit} modObject={player} config={config} />;
 	if (!supportsPercent) return input;
 
 	return (
-		<div className="flex flex-col gap-2">
-			<ToggleGroup
-				options={[
-					{ value: 'rating', label: ratingSuffix },
-					{ value: 'percent', label: percentLabel },
-				]}
-				value={inputUnit}
-				onChange={setInputUnit}
-				aria-label={label}
-				size="xs"
-				testId="bonus-stats-unit-toggle"
-			/>
+		<div className="flex flex-col gap-2" onPointerDownCapture={event => (pressedToggle.current = !!toggle.current?.contains(event.target as Node))}>
+			<div ref={toggle}>
+				<ToggleGroup
+					options={[
+						{ value: 'rating', label: ratingSuffix },
+						{ value: 'percent', label: percentLabel },
+					]}
+					value={inputUnit}
+					onChange={setInputUnit}
+					aria-label={label}
+					size="xs"
+					testId="bonus-stats-unit-toggle"
+				/>
+			</div>
 			{input}
 		</div>
 	);
