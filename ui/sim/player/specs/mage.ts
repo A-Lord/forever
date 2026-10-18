@@ -21,7 +21,7 @@ export class Mage extends PlayerSpec<Spec.SpecMage> {
 
 	static launch: SimStatus = {
 		phase: CURRENT_PHASE,
-		status: LaunchStatus.Alpha,
+		status: LaunchStatus.Unlaunched,
 	};
 
 	readonly specIndex = Mage.specIndex;

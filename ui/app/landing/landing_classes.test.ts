@@ -37,10 +37,14 @@ describe('SPEC_THEME_CLASS', () => {
 });
 
 describe('classLaunchStatus', () => {
+	// A class whose specs sit at the given statuses; `classLaunchStatus` reads only `specs`.
+	const classWith = (...statuses: LaunchStatus[]) =>
+		({ specs: Object.fromEntries(statuses.map((status, i) => [i, { launch: { status } }])) }) as unknown as Parameters<typeof classLaunchStatus>[0];
+
 	it('reports the furthest-along spec, so one unlaunched spec does not demote the class', () => {
-		expect(classLaunchStatus(PlayerClasses.Druid)).toBe(LaunchStatus.Alpha);
-		expect(classLaunchStatus(PlayerClasses.Paladin)).toBe(LaunchStatus.Alpha);
+		expect(classLaunchStatus(classWith(LaunchStatus.Unlaunched, LaunchStatus.Alpha))).toBe(LaunchStatus.Alpha);
 		// A gear planner ranks above unlaunched and below alpha, so the class keeps its alpha label.
-		expect(classLaunchStatus(PlayerClasses.Priest)).toBe(LaunchStatus.Alpha);
+		expect(classLaunchStatus(classWith(LaunchStatus.GearPlanner, LaunchStatus.Alpha, LaunchStatus.Unlaunched))).toBe(LaunchStatus.Alpha);
+		expect(classLaunchStatus(classWith(LaunchStatus.Unlaunched, LaunchStatus.Unlaunched))).toBe(LaunchStatus.Unlaunched);
 	});
 });
