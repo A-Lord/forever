@@ -135,6 +135,24 @@ func (effect *SpellEffect) IsDummy() bool {
 	return effect.EffectAura == dbcenums.A_DUMMY || effect.EffectAura == dbcenums.A_PERIODIC_DUMMY
 }
 
+// Reports whether a chain walk may follow the effect to its trigger. A removal names the aura it
+// removes, and the conditional auras cast theirs only at a stack count or a power or health threshold
+// the walk does not check.
+func (effect *SpellEffect) CastsItsTrigger() bool {
+	if effect.EffectTriggerSpell == 0 || effect.EffectType == dbcenums.E_REMOVE_AURA || effect.EffectType == dbcenums.E_REMOVE_AURA_2 {
+		return false
+	}
+
+	switch effect.EffectAura {
+	case dbcenums.A_TRIGGER_SPELL_ON_STACK_AMOUNT,
+		dbcenums.A_TRIGGER_SPELL_ON_POWER_PCT,
+		dbcenums.A_TRIGGER_SPELL_ON_POWER_AMOUNT,
+		dbcenums.A_TRIGGER_SPELL_ON_HEALTH_BELOW_PCT:
+		return false
+	}
+	return true
+}
+
 // The aura types capable of resolving to stats. resolveStatsSpell walks a trigger chain looking for
 // one of these to decide which spell an item's stats are read off, so anything ParseStatEffect
 // learns to resolve has to be listed here as well or the chain walk stops short of it. The reverse
