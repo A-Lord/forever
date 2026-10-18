@@ -1258,7 +1258,7 @@
 		},
 		"import_modal": {
 			"title": "Bag Item Import",
-			"description_line1": "Import bag items from a JSON file, which can be created by the WowSimsExporter in-game AddOn.",
+			"description_line1": "Import bag items from a JSON file, which can be created by the WoWSimsExporter in-game AddOn.",
 			"description_line2": "To import, upload the file or paste the text below, then click, 'Import'."
 		}
 	},
@@ -2717,7 +2717,8 @@
 			}
 		},
 		"download_native_sim": "Download simulator for faster simulating",
-		"native_sim_outdated": "Newer version of simulator available for download"
+		"native_sim_outdated": "Newer version of simulator available for download",
+		"forever_notice": "Forever sims are still changing rapidly and may have issues. If your results look wrong or your sim won't run, try restoring the default settings."
 	},
 	"sidebar": {
 		"iterations": "Iterations",
