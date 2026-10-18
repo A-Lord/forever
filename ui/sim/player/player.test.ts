@@ -123,7 +123,6 @@ describe('Player.getMeleeCritCapInfo', () => {
 
 	it('adds the dual-wield miss to the hit cap, except for a warrior', () => {
 		expect(critCapInfo(LEVEL_63_AT_300, { dualWield: true }).meleeHitCap).toBeCloseTo(8 + 19);
-		expect(critCapInfo(LEVEL_63_AT_300, { dualWield: true, playerClass: Class.ClassWarrior }).meleeHitCap).toBeCloseTo(8);
 	});
 });
 

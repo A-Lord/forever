@@ -36,13 +36,13 @@ export const TALENTS_COMBAT_SS = {
 export const TALENTS_COMBAT_BS = {
 	name: 'Combat BS',
 	data: SavedTalents.create({
-		talentsString: '00530310301-32030320201515231-002',
+		talentsString: '00532310101-32030320201515231-002',
 	}),
 };
 export const TALENTS_SUB_HEMO = {
 	name: 'Subtlety Hemo',
 	data: SavedTalents.create({
-		talentsString: '0053031-320003-4323200300013211501',
+		talentsString: '005323101014--4323200300013211501',
 	}),
 };
 export const TALENTS_SUB_BS = {
