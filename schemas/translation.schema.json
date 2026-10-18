@@ -1658,6 +1658,12 @@
 				"description": {
 					"type": "string"
 				},
+				"title_class": {
+					"type": "string"
+				},
+				"description_class": {
+					"type": "string"
+				},
 				"basic_bis_disclaimer": {
 					"type": "string"
 				},
@@ -1798,6 +1804,8 @@
 			"required": [
 				"title",
 				"description",
+				"title_class",
+				"description_class",
 				"basic_bis_disclaimer",
 				"healing_sim_disclaimer",
 				"notice_native_download",
