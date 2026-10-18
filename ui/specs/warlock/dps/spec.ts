@@ -1,7 +1,6 @@
 import * as OtherInputs from '@features/settings/model/other_inputs';
 import { APLRotation } from '@generated/proto/apl';
 import { EquipmentSpec, ItemSlot, PseudoStat, Spec, Stat } from '@generated/proto/common';
-import { SavedTalents } from '@generated/proto/ui';
 import { PlayerClasses } from '@sim/player/classes';
 import { Player } from '@sim/player/player';
 import { WeaponSkillGroup } from '@sim/player/weapon_skill_groups';
@@ -66,7 +65,7 @@ export default defineSpec<Spec.SpecWarlock>({
 		consumables: Presets.DefaultConsumables,
 
 		// Default talents.
-		talents: SavedTalents.create(),
+		talents: Presets.DemoFireBrandTalents.data,
 		// Default spec-specific settings.
 		specOptions: Presets.DefaultOptions,
 
@@ -114,14 +113,7 @@ export default defineSpec<Spec.SpecWarlock>({
 		// Preset talents that the user can quickly select.
 		talents: [Presets.DemoFireBrandTalents, Presets.DemoShadowBrandTalents, Presets.DestroTalents, Presets.SmRuinTalents, Presets.AffWrackTalents],
 		// Preset rotations that the user can quickly select.
-		rotations: [
-			Presets.DEFAULT_APL,
-			Presets.DEMO_FIRE_BRAND_APL,
-			Presets.DEMO_SHADOW_BRAND_APL,
-			Presets.DESTRO_APL,
-			Presets.SM_RUIN_APL,
-			Presets.AFF_WRACK_APL,
-		],
+		rotations: [Presets.DEMO_FIRE_BRAND_APL, Presets.DEMO_SHADOW_BRAND_APL, Presets.DESTRO_APL, Presets.SM_RUIN_APL, Presets.AFF_WRACK_APL],
 
 		// Preset gear configurations that the user can quickly select.
 		gear: [],
@@ -130,7 +122,7 @@ export default defineSpec<Spec.SpecWarlock>({
 	},
 
 	autoRotation: (_player: Player<Spec.SpecWarlock>): APLRotation => {
-		return Presets.DEFAULT_APL.rotation.rotation!;
+		return Presets.DEMO_FIRE_BRAND_APL.rotation.rotation!;
 	},
 	sections: [WarlockInputs.CursesSection],
 

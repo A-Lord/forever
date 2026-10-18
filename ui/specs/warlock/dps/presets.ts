@@ -5,7 +5,6 @@ import { ConsumesSpec, Profession, Spec, TristateEffect } from '@generated/proto
 import { SavedTalents } from '@generated/proto/ui';
 import { Warlock_Options as WarlockOptions, WarlockOptions_Armor, WarlockOptions_CurseOptions, WarlockOptions_Summon } from '@generated/proto/warlock';
 
-import DefaultApl from './apls/default.apl.json';
 import AffWrackBuildJson from './builds/aff_wrack.build.json';
 import DemoFireBrandBuildJson from './builds/demo_fire_brand.build.json';
 import DemoShadowBrandBuildJson from './builds/demo_shadow_brand.build.json';
@@ -16,7 +15,6 @@ import SmRuinBuildJson from './builds/sm_ruin.build.json';
 // Eventually we will import these values for the raid sim too, so its good to
 // keep them in a separate file.
 
-export const DEFAULT_APL = PresetUtils.makePresetAPLRotation('Default', DefaultApl);
 export const DEMO_FIRE_BRAND_APL = PresetUtils.makePresetAPLRotation('Demo (Fire Brand)', DemoFireBrandBuildJson.player.rotation);
 export const DEMO_SHADOW_BRAND_APL = PresetUtils.makePresetAPLRotation('Demo (Shadow Brand)', DemoShadowBrandBuildJson.player.rotation);
 export const DESTRO_APL = PresetUtils.makePresetAPLRotation('Destro', DestroBuildJson.player.rotation);
