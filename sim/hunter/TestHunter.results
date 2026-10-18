@@ -592,14 +592,6 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestHunter-AllItems-FrostfireRegalia"
- value: {
-  dps: 768.80856
-  tps: 554.80567
-  dtps: 7.23831
- }
-}
-dps_results: {
  key: "TestHunter-AllItems-Frostguard-12797"
  value: {
   dps: 810.32362
@@ -921,14 +913,6 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestHunter-AllItems-PlagueheartRaiment"
- value: {
-  dps: 767.18986
-  tps: 554.57275
-  dtps: 8.8035
- }
-}
-dps_results: {
  key: "TestHunter-AllItems-PremierChainGauntlets-272495"
  value: {
   dps: 829.9791
@@ -1190,14 +1174,6 @@ dps_results: {
   dps: 827.29068
   tps: 596.5332
   dtps: 7.86769
- }
-}
-dps_results: {
- key: "TestHunter-AllItems-VestmentsofFaith"
- value: {
-  dps: 708.07385
-  tps: 510.42783
-  dtps: 3.88884
  }
 }
 dps_results: {

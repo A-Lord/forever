@@ -650,13 +650,6 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestFFB-AllItems-PlagueheartRaiment"
- value: {
-  dps: 987.88252
-  tps: 717.20629
- }
-}
-dps_results: {
  key: "TestFFB-AllItems-RingofSaviors-1447"
  value: {
   dps: 1009.11288
@@ -822,13 +815,6 @@ dps_results: {
  value: {
   dps: 985.05641
   tps: 584.28894
- }
-}
-dps_results: {
- key: "TestFFB-AllItems-VestmentsofFaith"
- value: {
-  dps: 666.34041
-  tps: 486.56651
  }
 }
 dps_results: {

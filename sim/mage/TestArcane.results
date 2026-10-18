@@ -650,13 +650,6 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestArcane-AllItems-PlagueheartRaiment"
- value: {
-  dps: 803.07649
-  tps: 495.8533
- }
-}
-dps_results: {
  key: "TestArcane-AllItems-RingofSaviors-1447"
  value: {
   dps: 837.72239
@@ -822,13 +815,6 @@ dps_results: {
  value: {
   dps: 825.67744
   tps: 430.89254
- }
-}
-dps_results: {
- key: "TestArcane-AllItems-VestmentsofFaith"
- value: {
-  dps: 609.04327
-  tps: 376.1763
  }
 }
 dps_results: {

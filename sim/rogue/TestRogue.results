@@ -420,13 +420,6 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestRogue-AllItems-FrostfireRegalia"
- value: {
-  dps: 481.1618
-  tps: 239.13741
- }
-}
-dps_results: {
  key: "TestRogue-AllItems-Frostguard-12797"
  value: {
   dps: 606.79296
@@ -672,13 +665,6 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestRogue-AllItems-PlagueheartRaiment"
- value: {
-  dps: 486.21449
-  tps: 241.6486
- }
-}
-dps_results: {
  key: "TestRogue-AllItems-Renataki'sCharmofTrickery-19954"
  value: {
   dps: 609.26258
@@ -865,13 +851,6 @@ dps_results: {
  value: {
   dps: 607.15826
   tps: 301.75765
- }
-}
-dps_results: {
- key: "TestRogue-AllItems-VestmentsofFaith"
- value: {
-  dps: 446.63029
-  tps: 221.97525
  }
 }
 dps_results: {

@@ -1,6 +1,7 @@
 package priest
 
 import (
+	"github.com/wowsims/forever/sim/common/shared"
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/spelldata"
@@ -84,6 +85,45 @@ var ItemSetGarmentsOfTheOracle = core.NewItemSet(core.ItemSet{
 	},
 	Bonuses: map[int32]core.ApplySetBonus{
 		5: parsedSetBonus(26171), // Increases the duration of your Renew spell by 3 sec.
+	},
+})
+
+var (
+	faithEpiphanyProc = spelldata.MustFind(28802) // 8pc: Epiphany, the proc
+	faithEpiphanyBuff = spelldata.MustFind(28804) // 8pc: Epiphany, the mana regeneration
+)
+
+// Tier 3
+// https://www.wowhead.com/forever/item-set=525/vestments-of-faith
+//
+// The 4-piece bonus (28809) shields the target of a Greater Heal crit with Armor of Faith, which
+// the sim does not model.
+var ItemSetVestmentsOfFaith = core.NewItemSet(core.ItemSet{
+	ID:    525,
+	Name:  "Vestments of Faith",
+	Slots: shared.TierThreeSlots,
+	Bonuses: map[int32]core.ApplySetBonus{
+		2: parsedSetBonus(28807), // Renew costs 12% less.
+		6: parsedSetBonus(28808), // Less threat from healing spells.
+		8: func(agent core.Agent, setBonusAura *core.Aura) {
+			// Each spell you cast can trigger an Epiphany, increasing your mana regeneration by 24
+			// for 30 sec.
+			character := agent.GetCharacter()
+			epiphany := character.RegisterAura(spelldata.AuraConfig(faithEpiphanyBuff))
+			spelldata.ParseEffects(character, epiphany, faithEpiphanyBuff)
+
+			// The proc effect's class flags name Shadow Word: Pain alone; the tooltip says each spell
+			// you cast, and the tooltip wins: the flags come off.
+			trigger := spelldata.ProcTrigger(character, faithEpiphanyProc,
+				func(sim *core.Simulation, _ *core.Spell, _ *core.SpellResult) {
+					epiphany.Activate(sim)
+				})
+			trigger.Name = "Vestments of Faith - 8PC"
+			trigger.ClassFlags = core.ClassFlags{}
+
+			setBonusAura.AttachProcTrigger(trigger)
+			setBonusAura.ExposeToAPL(faithEpiphanyProc.ID)
+		},
 	},
 })
 

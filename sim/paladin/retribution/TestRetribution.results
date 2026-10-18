@@ -198,14 +198,6 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestRetribution-AllItems-CryptstalkerArmor"
- value: {
-  dps: 816.32276
-  tps: 699.63576
-  dtps: 5.87729
- }
-}
-dps_results: {
  key: "TestRetribution-AllItems-DarkmantleArmor"
  value: {
   dps: 757.54353
@@ -325,14 +317,6 @@ dps_results: {
   tps: 603.82169
   dtps: 5.90945
   hps: 1.30238
- }
-}
-dps_results: {
- key: "TestRetribution-AllItems-Dreadnaught'sBattlegear"
- value: {
-  dps: 715.01852
-  tps: 615.63065
-  dtps: 8.01647
  }
 }
 dps_results: {
@@ -526,14 +510,6 @@ dps_results: {
   dps: 799.93591
   tps: 686.87748
   dtps: 7.16119
- }
-}
-dps_results: {
- key: "TestRetribution-AllItems-FrostfireRegalia"
- value: {
-  dps: 860.33066
-  tps: 676.12849
-  dtps: 7.16217
  }
 }
 dps_results: {
@@ -873,14 +849,6 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestRetribution-AllItems-PlagueheartRaiment"
- value: {
-  dps: 823.8951
-  tps: 707.08698
-  dtps: 8.16835
- }
-}
-dps_results: {
  key: "TestRetribution-AllItems-PremierChampion'sLamellarGloves-274250"
  value: {
   dps: 803.12099
@@ -1142,14 +1110,6 @@ dps_results: {
   dps: 805.78435
   tps: 691.7425
   dtps: 7.72053
- }
-}
-dps_results: {
- key: "TestRetribution-AllItems-VestmentsofFaith"
- value: {
-  dps: 672.6073
-  tps: 576.15503
-  dtps: 3.84649
  }
 }
 dps_results: {
