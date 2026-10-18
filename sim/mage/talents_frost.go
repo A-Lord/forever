@@ -223,6 +223,36 @@ func (mage *Mage) registerFingersOfFrost() {
 	// A cast that granted the charges from inside its own effects, which spends none of them.
 	var grantedBy *core.Spell
 
+	// The last charge stays up to the end of the spell batch it is spent in, as in game: an Ice Lance
+	// or Fire Blast cast as a Frostfire Bolt completes reads the target as Frozen too, and spends
+	// nothing more.
+	fading := false
+	fade := &core.PendingAction{
+		Priority: core.ActionPriorityDOT,
+		OnAction: func(sim *core.Simulation) {
+			fading = false
+			mage.FingersOfFrostAura.SetStacks(sim, 0)
+		},
+	}
+	stopFading := func(sim *core.Simulation) {
+		if fading {
+			fading = false
+			fade.Cancel(sim)
+		}
+	}
+	spend := func(aura *core.Aura, sim *core.Simulation) {
+		if fading {
+			return
+		}
+		if aura.GetStacks() > 1 {
+			aura.RemoveStack(sim)
+			return
+		}
+		fading = true
+		fade.NextActionAt = sim.CurrentTime + core.SpellBatchWindow
+		sim.AddPendingAction(fade)
+	}
+
 	// Every damage spell the rotation casts spends a charge, except a channel and the cast that
 	// granted them: in the logs, Blizzard casts made with charges up spent none. The charge goes
 	// after the cast's effects, so the spell that spends the last one still reads the target as
@@ -234,7 +264,7 @@ func (mage *Mage) registerFingersOfFrost() {
 		}
 		if spell.Flags.Matches(core.SpellFlagAPL) && !spell.Flags.Matches(core.SpellFlagChanneled) &&
 			spell.ProcMask.Matches(core.ProcMaskSpellDamage) {
-			aura.RemoveStack(sim)
+			spend(aura, sim)
 		}
 	}
 	// Arcane Missiles' channel spends no charge; each missile that lands spends one, and a miss
@@ -242,8 +272,14 @@ func (mage *Mage) registerFingersOfFrost() {
 	// the roll that read the target as Frozen is the one that spends it, whatever the travel time.
 	config.OnCastResult = func(aura *core.Aura, sim *core.Simulation, spell *core.Spell, result *core.SpellResult) {
 		if spell.Matches(MageSpellArcaneMissilesTick) && result.Landed() {
-			aura.RemoveStack(sim)
+			spend(aura, sim)
 		}
+	}
+	config.OnExpire = func(_ *core.Aura, sim *core.Simulation) {
+		stopFading(sim)
+	}
+	config.OnReset = func(_ *core.Aura, _ *core.Simulation) {
+		fading = false
 	}
 
 	mage.FingersOfFrostAura = mage.RegisterAura(config)
@@ -254,6 +290,7 @@ func (mage *Mage) registerFingersOfFrost() {
 			if spell.Flags.Matches(core.SpellFlagAPL) && (atCast || spell.MissileSpeed == 0) {
 				grantedBy = spell
 			}
+			stopFading(sim)
 			mage.FingersOfFrostAura.Activate(sim)
 			mage.FingersOfFrostAura.SetStacks(sim, charges)
 		}
