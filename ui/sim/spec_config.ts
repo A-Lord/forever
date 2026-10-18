@@ -17,7 +17,6 @@ import { StatCap, Stats, UnitStat } from './proto/stats';
 import type { Sim } from './sim';
 import type { IndividualSimHost, SimWarning } from './sim_host';
 import type { StoreSubscribe } from './state/subscriptions';
-import { isDevMode } from './utils/env';
 
 /** Per-stat tooltip content a spec contributes to the reforge panel. */
 export type StatTooltipContent = { [key in Stat]?: () => ReactNode };
@@ -207,18 +206,18 @@ export interface SpecDefinition<SpecType extends Spec> extends IndividualSimUICo
 	spec: SpecType;
 }
 
-// Lets `ui/specs/<class>/<spec>/spec.ts` get the config checked against
-// `SpecDefinition` without an `as` cast or a type annotation that would widen
-// the literal spec type. Outside the dev server it also drops the dev-only
-// gearsets, see `withoutDevOnlyGear`.
+// Identity function; exists purely so `ui/specs/<class>/<spec>/spec.ts` gets the
+// config checked against `SpecDefinition` without an `as` cast or a type
+// annotation that would widen the literal spec type.
 export function defineSpec<SpecType extends Spec>(def: SpecDefinition<SpecType>): SpecDefinition<SpecType> {
-	return isDevMode() ? def : withoutDevOnlyGear(def);
+	return def;
 }
 
 // Removes dev-only gearsets from the gear presets and from the builds, dropping a
 // build left empty. The default gear stays only when it is a production gearset
 // the spec lists, so a default taken from an unlisted preset is cleared as well.
-function withoutDevOnlyGear<SpecType extends Spec>(def: SpecDefinition<SpecType>): SpecDefinition<SpecType> {
+// `ui/app/spec_entry.tsx` applies it outside the dev server and the previews.
+export function withoutDevOnlyGear<SpecType extends Spec>(def: SpecDefinition<SpecType>): SpecDefinition<SpecType> {
 	const gear = def.presets.gear.filter(preset => !preset.devOnly);
 	const builds = def.presets.builds
 		?.map(build => (build.gear?.devOnly ? { ...build, gear: undefined } : build))

@@ -28,7 +28,7 @@ export interface PresetOptionsBase extends Pick<PresetBase, 'onLoad'> {
 
 export interface PresetGear extends PresetBase {
 	gear: EquipmentSpec;
-	// Shown only on the local dev server; `defineSpec` drops it from production builds.
+	// Shown only on the dev server and the pull request previews, see `isPreviewOrDevMode`.
 	devOnly?: boolean;
 }
 export interface PresetGearOptions extends PresetOptionsBase, Pick<PresetBase, 'tooltip'>, Pick<PresetGear, 'devOnly'> {

@@ -1,8 +1,8 @@
 import { EquipmentSpec, ItemSpec } from '@generated/proto/common';
 import { SavedTalents } from '@generated/proto/ui';
 import type { PresetGear } from '@sim/presets/types';
-import { defineSpec, type SpecDefinition } from '@sim/spec_config';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { type SpecDefinition, withoutDevOnlyGear } from '@sim/spec_config';
+import { describe, expect, it } from 'vitest';
 
 const gearOf = (id: number) => EquipmentSpec.create({ items: [ItemSpec.create({ id })] });
 
@@ -10,7 +10,7 @@ const devGear: PresetGear = { name: 'Dev', gear: gearOf(1), devOnly: true };
 const releasedGear: PresetGear = { name: 'Released', gear: gearOf(2) };
 const talents = { name: 'Talents', data: SavedTalents.create({ talentsString: '1' }) };
 
-// Only the fields `defineSpec` reads; the rest of a spec does not matter here.
+// Only the fields `withoutDevOnlyGear` reads; the rest of a spec does not matter here.
 const spec = (defaultGear: EquipmentSpec) =>
 	({
 		defaults: { gear: defaultGear },
@@ -24,43 +24,27 @@ const spec = (defaultGear: EquipmentSpec) =>
 		},
 	}) as unknown as SpecDefinition<any>;
 
-describe('defineSpec', () => {
-	afterEach(() => {
-		vi.unstubAllEnvs();
+describe('withoutDevOnlyGear', () => {
+	it('drops dev-only gearsets from the gear presets', () => {
+		expect(withoutDevOnlyGear(spec(devGear.gear)).presets.gear).toEqual([releasedGear]);
 	});
 
-	it('keeps every gearset on the dev server', () => {
-		const def = spec(devGear.gear);
-		expect(defineSpec(def)).toBe(def);
+	it('strips dev-only gear from builds and drops a build left empty', () => {
+		expect(withoutDevOnlyGear(spec(devGear.gear)).presets.builds).toEqual([
+			{ name: 'Dev with talents', gear: undefined, talents },
+			{ name: 'Released', gear: releasedGear },
+		]);
 	});
 
-	describe('in production', () => {
-		const production = (defaultGear: EquipmentSpec) => {
-			vi.stubEnv('DEV', false);
-			return defineSpec(spec(defaultGear));
-		};
+	it('clears a dev-only default gear', () => {
+		expect(EquipmentSpec.equals(withoutDevOnlyGear(spec(devGear.gear)).defaults.gear, EquipmentSpec.create())).toBe(true);
+	});
 
-		it('drops dev-only gearsets from the gear presets', () => {
-			expect(production(devGear.gear).presets.gear).toEqual([releasedGear]);
-		});
+	it('clears a default gear no preset lists', () => {
+		expect(EquipmentSpec.equals(withoutDevOnlyGear(spec(gearOf(2))).defaults.gear, EquipmentSpec.create())).toBe(true);
+	});
 
-		it('strips dev-only gear from builds and drops a build left empty', () => {
-			expect(production(devGear.gear).presets.builds).toEqual([
-				{ name: 'Dev with talents', gear: undefined, talents },
-				{ name: 'Released', gear: releasedGear },
-			]);
-		});
-
-		it('clears a dev-only default gear', () => {
-			expect(EquipmentSpec.equals(production(devGear.gear).defaults.gear, EquipmentSpec.create())).toBe(true);
-		});
-
-		it('clears a default gear no preset lists', () => {
-			expect(EquipmentSpec.equals(production(gearOf(2)).defaults.gear, EquipmentSpec.create())).toBe(true);
-		});
-
-		it('keeps a released default gear', () => {
-			expect(production(releasedGear.gear).defaults.gear).toBe(releasedGear.gear);
-		});
+	it('keeps a released default gear', () => {
+		expect(withoutDevOnlyGear(spec(releasedGear.gear)).defaults.gear).toBe(releasedGear.gear);
 	});
 });
