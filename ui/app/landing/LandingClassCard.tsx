@@ -8,12 +8,14 @@ import type { PlayerSpec } from '@sim/player/player_spec';
 import { Button } from '@ui-kit/Button';
 import { SimLinkContent } from '@ui-kit/SimLinkContent';
 import clsx from 'clsx';
-import { type ReactNode, useState } from 'react';
+import { type CSSProperties, type ReactNode, useState } from 'react';
 
 import { classLaunchStatus, SPEC_THEME_CLASS } from './landing_classes';
 
 export interface LandingClassCardProps {
 	playerClass: PlayerClass<Class>;
+	// Position in the grid, used to stagger the entrance animation.
+	index: number;
 }
 
 // A launched sim shows no status; every other status is shown under the class name.
@@ -40,7 +42,7 @@ const CardContent = ({ coverClassName, iconPath, title, status, children }: Card
 	</>
 );
 
-export const LandingClassCard = ({ playerClass }: LandingClassCardProps) => {
+export const LandingClassCard = ({ playerClass, index }: LandingClassCardProps) => {
 	const className = translatePlayerClass(playerClass);
 	const scheme = PlayerClasses.getCssScheme(playerClass);
 	const specs = Object.values(playerClass.specs) as Array<PlayerSpec<any>>;
@@ -58,7 +60,7 @@ export const LandingClassCard = ({ playerClass }: LandingClassCardProps) => {
 			: specs.map(spec => ({ href: spec.simLink, iconPath: spec.getIcon('large'), label: translatePlayerSpec(spec) }));
 
 	return (
-		<div className="ui-landing-class-card" data-class={scheme} data-testid="class-card">
+		<div className="ui-landing-class-card" data-class={scheme} data-testid="class-card" style={{ '--ui-landing-card-index': index } as CSSProperties}>
 			<CardContent
 				coverClassName={SPEC_THEME_CLASS[coverSpec.specID as keyof typeof SPEC_THEME_CLASS]}
 				iconPath={classIconPath}

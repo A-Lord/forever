@@ -8,7 +8,7 @@ const meta = {
 	component: LandingClassCard,
 	tags: ['autodocs'],
 	parameters: { spec: 'none' },
-	args: { playerClass: PlayerClasses.Druid },
+	args: { playerClass: PlayerClasses.Druid, index: 0 },
 	argTypes: { playerClass: { control: false } },
 	decorators: [
 		Story => (

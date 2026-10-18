@@ -14,7 +14,7 @@ const singleSpec = PlayerClasses.naturalOrder.find(playerClass => specsOf(player
 
 describe('LandingClassCard', () => {
 	it('links every spec of a multi-spec class from the card', () => {
-		render(<LandingClassCard playerClass={multiSpec} />);
+		render(<LandingClassCard playerClass={multiSpec} index={0} />);
 		const links = screen.getAllByTestId('spec-link');
 		expect(links.map(link => link.getAttribute('href'))).toEqual(specsOf(multiSpec).map(spec => spec.simLink));
 		expect(links.map(link => link.textContent)).toEqual(specsOf(multiSpec).map(spec => translatePlayerSpec(spec)));
@@ -22,7 +22,7 @@ describe('LandingClassCard', () => {
 	});
 
 	it('gives a one-sim class a single All Specializations link with the class icon, and leaves the card itself unlinked', () => {
-		render(<LandingClassCard playerClass={singleSpec} />);
+		render(<LandingClassCard playerClass={singleSpec} index={0} />);
 		const [link] = screen.getAllByTestId('spec-link');
 		expect(screen.getAllByTestId('spec-link')).toHaveLength(1);
 		expect(link.getAttribute('href')).toBe(specsOf(singleSpec)[0].simLink);
@@ -33,26 +33,26 @@ describe('LandingClassCard', () => {
 	});
 
 	it("covers the card with the background of one of the class's own specs", () => {
-		render(<LandingClassCard playerClass={multiSpec} />);
+		render(<LandingClassCard playerClass={multiSpec} index={0} />);
 		const cover = screen.getByTestId('class-card').querySelector('[aria-hidden="true"]')!;
 		const own = specsOf(multiSpec).map(spec => SPEC_THEME_CLASS[spec.specID as keyof typeof SPEC_THEME_CLASS]);
 		expect([...cover.classList].filter(name => name.endsWith('-sim-ui'))).toEqual([expect.toBeOneOf(own)]);
 	});
 
 	it('tints the card by its class', () => {
-		render(<LandingClassCard playerClass={multiSpec} />);
+		render(<LandingClassCard playerClass={multiSpec} index={0} />);
 		expect(screen.getByTestId('class-card').dataset.class).toBe(PlayerClasses.getCssScheme(multiSpec));
 	});
 
 	it('shows the class status under its name unless the sim has launched', () => {
-		render(<LandingClassCard playerClass={multiSpec} />);
+		render(<LandingClassCard playerClass={multiSpec} index={0} />);
 		const badge = screen.queryByTestId('launch-status-label');
 		if (classLaunchStatus(multiSpec) === LaunchStatus.Launched) expect(badge).toBeNull();
 		else expect(badge!.textContent).toBe(translateStatus(classLaunchStatus(multiSpec)));
 	});
 
 	it('uses the generic class crest for the priest, and each spec link its own icon', () => {
-		render(<LandingClassCard playerClass={PlayerClasses.Priest} />);
+		render(<LandingClassCard playerClass={PlayerClasses.Priest} index={0} />);
 		const card = screen.getByTestId('class-card');
 		const [crest, ...specIcons] = [...card.querySelectorAll('img')].map(img => img.getAttribute('src'));
 		expect(crest).toContain('class_priest.jpg');
