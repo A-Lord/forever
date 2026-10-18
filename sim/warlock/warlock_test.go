@@ -18,65 +18,42 @@ func init() {
 	common.RegisterAllEffects()
 }
 
-func TestAffliction(t *testing.T) {
-	core.RunTestSuite(t, t.Name(), core.FullCharacterTestSuiteGenerator([]core.CharacterSuiteConfig{
-		{
-			Class:      proto.Class_ClassWarlock,
-			Race:       proto.Race_RaceOrc,
-			OtherRaces: []proto.Race{proto.Race_RaceHuman},
-			SpecOptions: core.SpecOptionsCombo{Label: "Affliction", SpecOptions: &proto.Player_Warlock{
-				Warlock: &proto.Warlock{
-					Options: &proto.Warlock_Options{
-						ClassOptions: &proto.WarlockOptions{
-							Summon:       proto.WarlockOptions_Imp,
-							Armor:        proto.WarlockOptions_DemonArmor,
-							CurseOptions: proto.WarlockOptions_Elements,
-							SoulShards:   32,
-						},
-					},
-				},
-			}},
-			GearSet:  core.GetGearSet("../../ui/specs/warlock/dps/gear_sets", "preraid"),
-			Talents:  "25520320135201351--05501",
-			Rotation: core.GetAplRotation("../../ui/specs/warlock/dps/apls", "affliction"),
-			ItemFilter: core.ItemFilter{
-				WeaponTypes: []proto.WeaponType{
-					proto.WeaponType_WeaponTypeDagger,
-					proto.WeaponType_WeaponTypeStaff,
-					proto.WeaponType_WeaponTypeSword,
-				},
-				ArmorType: proto.ArmorType_ArmorTypeCloth,
-				RangedWeaponTypes: []proto.RangedWeaponType{
-					proto.RangedWeaponType_RangedWeaponTypeWand,
-				},
-				EnchantBlacklist: []int32{2673, 3225, 3273},
-				IDBlacklist:      []int32{28556},
-			},
-		},
-	}))
+// Each suite runs a build preset from ui/specs/warlock/dps/builds, the file the UI's build of that name reads:
+// its talents, demons, consumables and rotation, on the preraid gear set.
+func TestDemonologyFireBrand(t *testing.T) {
+	runBuildSuite(t, "Fire Brand", "demo_fire_brand", proto.Race_RaceHuman)
+}
+
+func TestDemonologyShadowBrand(t *testing.T) {
+	runBuildSuite(t, "Shadow Brand", "demo_shadow_brand", proto.Race_RaceHuman)
 }
 
 func TestDestruction(t *testing.T) {
+	runBuildSuite(t, "Destruction", "destro", proto.Race_RaceGnome)
+}
+
+func TestAffliction(t *testing.T) {
+	runBuildSuite(t, "Affliction", "sm_ruin", proto.Race_RaceHuman)
+}
+
+func TestAfflictionWrack(t *testing.T) {
+	runBuildSuite(t, "Wrack", "aff_wrack", proto.Race_RaceHuman)
+}
+
+func runBuildSuite(t *testing.T, label string, buildFile string, otherRace proto.Race) {
+	build := core.GetTestBuildFromJSON(proto.Class_ClassWarlock, "../../ui/specs/warlock/dps/builds", buildFile, core.ItemFilter{}, nil, nil)
 	core.RunTestSuite(t, t.Name(), core.FullCharacterTestSuiteGenerator([]core.CharacterSuiteConfig{
 		{
-			Class:      proto.Class_ClassWarlock,
-			Race:       proto.Race_RaceOrc,
-			OtherRaces: []proto.Race{proto.Race_RaceGnome},
-			SpecOptions: core.SpecOptionsCombo{Label: "Destruction", SpecOptions: &proto.Player_Warlock{
-				Warlock: &proto.Warlock{
-					Options: &proto.Warlock_Options{
-						ClassOptions: &proto.WarlockOptions{
-							SacrificedDemon: proto.WarlockOptions_Imp,
-							Armor:           proto.WarlockOptions_DemonArmor,
-							CurseOptions:    proto.WarlockOptions_Elements,
-							SoulShards:      32,
-						},
-					},
-				},
-			}},
-			GearSet:  core.GetGearSet("../../ui/specs/warlock/dps/gear_sets", "preraid"),
-			Talents:  "03-0050203001-0550355103100351",
-			Rotation: core.GetAplRotation("../../ui/specs/warlock/dps/apls", "destruction"),
+			Class:       proto.Class_ClassWarlock,
+			Race:        build.Race,
+			OtherRaces:  []proto.Race{otherRace},
+			SpecOptions: core.SpecOptionsCombo{Label: label, SpecOptions: build.SpecOptions.SpecOptions},
+			GearSet:     core.GetGearSet("../../ui/specs/warlock/dps/gear_sets", "preraid"),
+			Talents:     build.Talents,
+			Consumables: build.Consumables,
+			Profession1: build.Profession1,
+			Profession2: build.Profession2,
+			Rotation:    core.RotationCombo{Label: buildFile, Rotation: build.Rotation.Rotation},
 			ItemFilter: core.ItemFilter{
 				WeaponTypes: []proto.WeaponType{
 					proto.WeaponType_WeaponTypeDagger,
