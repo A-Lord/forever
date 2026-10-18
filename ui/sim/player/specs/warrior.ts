@@ -20,7 +20,7 @@ export class DpsWarrior extends PlayerSpec<Spec.SpecDpsWarrior> {
 
 	static launch: SimStatus = {
 		phase: CURRENT_PHASE,
-		status: LaunchStatus.Unlaunched,
+		status: LaunchStatus.Alpha,
 	};
 
 	readonly specIndex = DpsWarrior.specIndex;
