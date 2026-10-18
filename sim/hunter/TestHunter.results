@@ -152,9 +152,9 @@ dps_results: {
 dps_results: {
  key: "TestHunter-AllItems-BladeofHanna-2801"
  value: {
-  dps: 915.05106
-  tps: 658.80718
-  dtps: 9.41959
+  dps: 815.30366
+  tps: 588.88346
+  dtps: 9.17097
  }
 }
 dps_results: {

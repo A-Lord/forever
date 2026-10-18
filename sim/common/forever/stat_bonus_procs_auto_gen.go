@@ -2445,15 +2445,6 @@ func RegisterAllProcs() {
 			{ItemID: 2164, ItemName: "Gut Ripper"},
 		})
 
-	// Each melee hit grants you a stack of Improving Form. At 30 stacks perfect your form, inflicting 490 Physical
-	// damage to your current target and increasing all your stats by 20 for 20s.
-	// https://www.wowhead.com/forever/spell=1325509
-	// trigger 1325535 (every time, core.CallbackOnSpellHitDealt, core.ProcMaskMeleeMHAuto) -> buff 1325508
-	shared.NewSpellDataDamageProc(shared.SpellDataProc{TriggerSpellID: 1325535, BuffSpellID: 1325508},
-		[]shared.ItemVariant{
-			{ItemID: 2801, ItemName: "Blade of Hanna"},
-		})
-
 	// Fires a Searing Arrow at the target for 28 Fire damage.
 	// https://www.wowhead.com/forever/spell=29638
 	// trigger 29638 (3.35 ppm on the item, core.CallbackEmpty, core.ProcMaskUnknown)
