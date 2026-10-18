@@ -54,7 +54,13 @@ func TestManifestAnchorsMatchTheGameFiles(t *testing.T) {
 	for _, row := range resolveCommittedBuffs(t) {
 		fields[row.Field] = true
 		// A row without a castable family - an item's aura, an elixir's debuff - is pinned by hand.
-		if _, unanchored := unanchoredBuffs[row.Field]; row.Name == "" || unanchored {
+		if row.Name == "" {
+			continue
+		}
+		if _, unanchored := unanchoredBuffs[row.Field]; unanchored {
+			if runes[row.SpellID] {
+				t.Errorf("%s: spell %d is granted by a rune, which is a class rune and not a raid buff", row.Field, row.SpellID)
+			}
 			continue
 		}
 

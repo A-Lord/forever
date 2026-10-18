@@ -113,13 +113,8 @@ func (priest *Priest) applyDarkInspiration() {
 		return
 	}
 
-	buff := spellData.DarkInspirationTriggered.Highest()
-	// The buff's row states the full five-rank amount, which the talent's ranks scale.
-	ranks := spelldata.ScaledByRanks(priest.Talents.DarkInspiration, spellData.DarkInspiration.Len())
 	auras := priest.NewPartyAuraArray(func(member *core.Character) *core.Aura {
-		aura := member.RegisterAura(spelldata.AuraConfig(buff, spelldata.RankLabel(buff, &priest.Unit)))
-		spelldata.ParseEffects(member, aura, buff, ranks, spelldata.ExclusivePerStat(buffs.DarkInspirationCategory))
-		return aura
+		return buffs.NewSpellDataDarkInspirationAuraFor(&member.Unit, &priest.Unit, priest.Talents.DarkInspiration)
 	})
 
 	priest.MakeProcTriggerAura(core.ProcTrigger{

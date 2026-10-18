@@ -1844,10 +1844,9 @@ func TestTruePetsStandUnderTheOwnersManaTide(t *testing.T) {
 	}
 }
 
-// The party's Dark Inspiration is the buff row's five-rank amount at the talent's rank out of five,
-// up for the fight; rank 0 puts nothing on the character.
+// The party's Dark Inspiration is the buff's amount at the talent's rank the field states, up for the
+// fight; rank 0 puts nothing on the character.
 func TestGeneratedDarkInspirationTakesTheTalentsRank(t *testing.T) {
-	full := rowAmount(t, 1326168, dbcenums.A_MOD_PERCENT_STAT)
 	for rank := int32(0); rank <= 5; rank++ {
 		char := core.NewGeneratedBuffTestCharacter()
 		char.SetStats(stats.Stats{stats.Spirit: 1000})
@@ -1867,7 +1866,7 @@ func TestGeneratedDarkInspirationTakesTheTalentsRank(t *testing.T) {
 		if aura.Duration != core.NeverExpires {
 			t.Errorf("rank %d lasts %v, want the whole fight", rank, aura.Duration)
 		}
-		want := math.Floor(1000 * core.MultiplierFromPercent(math.Round(full*float64(rank)/5)))
+		want := math.Floor(1000 * buffs.DarkInspirationValue(rank))
 		if got := char.GetStats()[stats.Spirit]; got != want {
 			t.Errorf("rank %d raised 1000 Spirit to %v, want %v", rank, got, want)
 		}
@@ -1919,10 +1918,9 @@ func darkInspirationParty(t *testing.T, partyRank int32, priestRank int32) (*cor
 
 // The party's copy and a priest's own bid in one category per stat, so a member has the stronger
 // amount alone. The party's copy stays up throughout: a stronger priest's copy holds the Spirit while
-// it is up and the party's applies again once it ends, and an equal or weaker one never pulls the
-// party's down.
+// it is up and the party's holds it again once it ends, and an equal or weaker one never takes the
+// Spirit from the party's.
 func TestGeneratedDarkInspirationAndAPriestsCopyDoNotStack(t *testing.T) {
-	full := rowAmount(t, 1326168, dbcenums.A_MOD_PERCENT_STAT)
 	for _, tc := range []struct {
 		name                  string
 		partyRank, priestRank int32
@@ -1933,13 +1931,17 @@ func TestGeneratedDarkInspirationAndAPriestsCopyDoNotStack(t *testing.T) {
 	} {
 		sim, priestChar, member := darkInspirationParty(t, tc.partyRank, tc.priestRank)
 		party := member.GetAura("Dark Inspiration (External)")
-		own := member.GetAura(spelldata.MustFind(1326168).RankedLabel(&priestChar.Unit))
+		own := member.GetAura("Dark Inspiration-" + priestChar.Label)
 		if party == nil || own == nil {
 			t.Fatalf("%s: the member carries %v, want the party's copy and the priest's", tc.name, auraLabels(&member.Character))
 		}
 		if !party.IsActive() || own.IsActive() {
 			t.Fatalf("%s: at the pull the party's copy is up %v and the priest's %v, want only the party's", tc.name, party.IsActive(), own.IsActive())
 		}
+		if len(party.ExclusiveEffects) != 1 {
+			t.Fatalf("%s: the party's copy bids in %d categories, want Spirit's alone", tc.name, len(party.ExclusiveEffects))
+		}
+		spirit := party.ExclusiveEffects[0].Category
 
 		party.Deactivate(sim)
 		base := member.GetStat(stats.Spirit)
@@ -1947,10 +1949,8 @@ func TestGeneratedDarkInspirationAndAPriestsCopyDoNotStack(t *testing.T) {
 			t.Fatalf("the member has %v Spirit, which no multiplier moves", base)
 		}
 		party.Activate(sim)
-		spiritAt := func(percent float64) float64 { return math.Floor(base * core.MultiplierFromPercent(percent)) }
-		partyPercent := math.Round(full * float64(tc.partyRank) / 5)
-		priestPercent := math.Round(full * float64(tc.priestRank) / 5)
-		check := func(when string, want float64) {
+		spiritAt := func(rank int32) float64 { return math.Floor(base * buffs.DarkInspirationValue(rank)) }
+		check := func(when string, want float64, holder *core.Aura) {
 			t.Helper()
 			if got := member.GetStat(stats.Spirit); got != want {
 				t.Errorf("%s %s: Spirit is %v, want %v", tc.name, when, got, want)
@@ -1958,17 +1958,24 @@ func TestGeneratedDarkInspirationAndAPriestsCopyDoNotStack(t *testing.T) {
 			if !party.IsActive() {
 				t.Errorf("%s %s: the party's copy is down", tc.name, when)
 			}
+			if got := spirit.GetActiveAura(); got != holder {
+				label := "nothing"
+				if got != nil {
+					label = got.Label
+				}
+				t.Errorf("%s %s: %s holds the Spirit, want %q", tc.name, when, label, holder.Label)
+			}
 		}
-		check("alone", spiritAt(partyPercent))
+		check("alone", spiritAt(tc.partyRank), party)
 
 		own.Activate(sim)
-		check("under the priest's copy", spiritAt(max(priestPercent, partyPercent)))
+		check("under the priest's copy", spiritAt(max(tc.priestRank, tc.partyRank)), core.Ternary(tc.priestRank > tc.partyRank, own, party))
 
 		stepTo(t, sim, sim.CurrentTime+own.Duration+time.Millisecond)
 		if own.IsActive() {
 			t.Errorf("%s: the priest's copy outlasted its %v", tc.name, own.Duration)
 		}
-		check("after the priest's copy ends", spiritAt(partyPercent))
+		check("after the priest's copy ends", spiritAt(tc.partyRank), party)
 	}
 }
 

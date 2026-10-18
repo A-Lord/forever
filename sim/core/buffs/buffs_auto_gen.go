@@ -282,9 +282,12 @@ func NewSpellDataAdmiralsHatAura(unit *core.Unit, isPlayer bool, talentPoints in
 var DarkInspirationCategory = "DarkInspiration"
 var darkInspirationSpell = spelldata.MustFind(1326168)
 var darkInspirationMeta = &Meta{
-	Label:    "Dark Inspiration",
-	Spell:    darkInspirationSpell,
-	Category: DarkInspirationCategory,
+	Label:         "Dark Inspiration",
+	Spell:         darkInspirationSpell,
+	Category:      DarkInspirationCategory,
+	Talent:        spelldata.Talent(1326159, 5),
+	TalentEffect:  1,
+	TalentDivisor: 5,
 }
 
 func DarkInspirationValue(talentPoints int32) float64 {
@@ -885,7 +888,7 @@ func applyGeneratedBuffs(char *core.Character, raid *proto.RaidBuffs, party *pro
 		core.MakePermanent(NewSpellDataAdmiralsHatAura(&char.Unit, false, 0))
 	}
 	if party.DarkInspiration > 0 {
-		driveDarkInspiration(char, party)
+		core.MakePermanent(NewSpellDataDarkInspirationAura(&char.Unit, false, min(party.DarkInspiration, 5)))
 	}
 	if raid.ArcaneBrilliance {
 		core.MakePermanent(NewSpellDataArcaneBrillianceAura(&char.Unit, false, 0))
