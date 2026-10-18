@@ -9679,6 +9679,9 @@
 				},
 				"native_sim_outdated": {
 					"type": "string"
+				},
+				"forever_notice": {
+					"type": "string"
 				}
 			},
 			"additionalProperties": false,
@@ -9692,7 +9695,8 @@
 				"status",
 				"options",
 				"download_native_sim",
-				"native_sim_outdated"
+				"native_sim_outdated",
+				"forever_notice"
 			]
 		},
 		"sidebar": {
