@@ -7,7 +7,9 @@
     "prayerOfSpirit": true,
     "moonkinAura": true
   },
-  "partyBuffs": {},
+  "partyBuffs": {
+    "manaSpringTotem": "TristateEffectRegular"
+  },
   "debuffs": {
     "judgementOfWisdom": true,
     "sunderArmor": true,
