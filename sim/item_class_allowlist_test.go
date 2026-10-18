@@ -3,7 +3,9 @@
 package sim
 
 import (
+	"path/filepath"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/wowsims/forever/assets/database"
@@ -83,5 +85,41 @@ func TestClassRestrictedOnUseRegistersOnlyForItsClass(t *testing.T) {
 		DpsWarrior: &proto.DpsWarrior{Options: &proto.DpsWarrior_Options{ClassOptions: &proto.WarriorOptions{}}}}}
 	if onUseFor(warrior) != nil {
 		t.Errorf("a warrior wearing item %d has its on-use", charmID)
+	}
+}
+
+// Every gear set the specs ship holds only items its class may use; the class is the folder the spec
+// sits in, ui/specs/<class>/<spec>/gear_sets.
+func TestGearSetsHoldOnlyTheirClassItems(t *testing.T) {
+	files, err := filepath.Glob("../ui/specs/*/*/gear_sets/*.gear.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(files) == 0 {
+		t.Fatal("no gear sets under ../ui/specs")
+	}
+	for _, file := range files {
+		className := strings.Split(filepath.ToSlash(file), "/")[3]
+		classValue, ok := proto.Class_value["Class"+strings.ToUpper(className[:1])+className[1:]]
+		if !ok {
+			t.Errorf("%s: %s is not a class", file, className)
+			continue
+		}
+		class := proto.Class(classValue)
+
+		gearSet := core.GetGearSet(filepath.Dir(file), strings.TrimSuffix(filepath.Base(file), ".gear.json"))
+		for _, spec := range gearSet.GearSet.Items {
+			if spec.Id == 0 {
+				continue
+			}
+			item := core.GetItemByID(spec.Id)
+			if item == nil {
+				t.Errorf("%s: item %d is not in the sim's database", file, spec.Id)
+				continue
+			}
+			if !item.UsableBy(class) {
+				t.Errorf("%s: item %d %s may only be used by %v, not %v", file, item.ID, item.Name, item.ClassAllowlist, class)
+			}
+		}
 	}
 }
