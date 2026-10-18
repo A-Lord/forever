@@ -37,8 +37,46 @@ func TestAffliction(t *testing.T) {
 				},
 			}},
 			GearSet:  core.GetGearSet("../../ui/specs/warlock/dps/gear_sets", "preraid"),
-			Talents:  "25520320135201351--05501",
-			Rotation: core.GetAplRotation("../../ui/specs/warlock/dps/apls", "affliction"),
+			Talents:  "2540002013520105--0550305003",
+			Rotation: core.GetAplRotation("../../ui/specs/warlock/dps/apls", "sm_ruin"),
+			ItemFilter: core.ItemFilter{
+				WeaponTypes: []proto.WeaponType{
+					proto.WeaponType_WeaponTypeDagger,
+					proto.WeaponType_WeaponTypeStaff,
+					proto.WeaponType_WeaponTypeSword,
+				},
+				ArmorType: proto.ArmorType_ArmorTypeCloth,
+				RangedWeaponTypes: []proto.RangedWeaponType{
+					proto.RangedWeaponType_RangedWeaponTypeWand,
+				},
+				EnchantBlacklist: []int32{2673, 3225, 3273},
+				IDBlacklist:      []int32{28556},
+			},
+		},
+	}))
+}
+
+func TestAfflictionWrack(t *testing.T) {
+	core.RunTestSuite(t, t.Name(), core.FullCharacterTestSuiteGenerator([]core.CharacterSuiteConfig{
+		{
+			Class:      proto.Class_ClassWarlock,
+			Race:       proto.Race_RaceOrc,
+			OtherRaces: []proto.Race{proto.Race_RaceHuman},
+			SpecOptions: core.SpecOptionsCombo{Label: "Wrack", SpecOptions: &proto.Player_Warlock{
+				Warlock: &proto.Warlock{
+					Options: &proto.Warlock_Options{
+						ClassOptions: &proto.WarlockOptions{
+							Summon:       proto.WarlockOptions_Imp,
+							Armor:        proto.WarlockOptions_DemonArmor,
+							CurseOptions: proto.WarlockOptions_Elements,
+							SoulShards:   32,
+						},
+					},
+				},
+			}},
+			GearSet:  core.GetGearSet("../../ui/specs/warlock/dps/gear_sets", "preraid"),
+			Talents:  "25300020135201351--0550005003",
+			Rotation: core.GetAplRotation("../../ui/specs/warlock/dps/apls", "aff_wrack"),
 			ItemFilter: core.ItemFilter{
 				WeaponTypes: []proto.WeaponType{
 					proto.WeaponType_WeaponTypeDagger,
@@ -76,7 +114,7 @@ func TestDestruction(t *testing.T) {
 			}},
 			GearSet:  core.GetGearSet("../../ui/specs/warlock/dps/gear_sets", "preraid"),
 			Talents:  "03-0050203001-0550355103100351",
-			Rotation: core.GetAplRotation("../../ui/specs/warlock/dps/apls", "destruction"),
+			Rotation: core.GetAplRotation("../../ui/specs/warlock/dps/apls", "destro"),
 			ItemFilter: core.ItemFilter{
 				WeaponTypes: []proto.WeaponType{
 					proto.WeaponType_WeaponTypeDagger,
