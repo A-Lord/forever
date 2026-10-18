@@ -210,6 +210,7 @@ func main() {
 	}
 
 	db.MergeItems(database.ItemOverrides)
+	database.ApplyItemSetClasses(db)
 	db.MergeEnchants(database.EnchantOverrides)
 	ApplyGlobalFilters(db)
 	database.AddConsumableIcons(db, consumables, instance, iconsMap)
