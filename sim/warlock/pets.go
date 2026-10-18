@@ -24,7 +24,7 @@ type WarlockPet struct {
 }
 
 // A demon's level 60 stats and what its own stats convert into, from the team's pet model sheet where no
-// share of the creature values below is known, and the share of the warlock's Intellect it takes as regen.
+// share of the creature values below is known.
 type petModel struct {
 	baseStats stats.Stats // before the conversions below: Health and Mana are the base pools
 
@@ -144,9 +144,9 @@ func meleeDemonStats(baseHealth float64) stats.Stats {
 // attack power, spell damage, resistances, armor, hit, crit, haste, mana regen - but states no amounts,
 // which the server supplies, so the shares are hand-kept. The pet model sheet gives Stamina and Intellect
 // a share of 0, yet its totals give every demon more health and ~10,870 more mana than its own stats, all
-// from the warlock. Health is 7.5 a point of the warlock's Stamina. Regen is a share of the warlock's
-// Intellect as MP5, 30% for the Imp and 10% for every other demon: at level 30 with 110 Intellect, the pet
-// panes read 33 for the Imp and 11 for the Voidwalker and Sayaad.
+// from the warlock. Health is 7.5 a point of the warlock's Stamina. Regen is each demon's share of the
+// warlock's Intellect as MP5: at level 30 with 110 Intellect, the pet panes read 33 for the Imp and 11 for
+// the Voidwalker and Sayaad.
 // TODO: The regen shares are read at level 30 only, and the Felhunter's not at all. The warlock's share of
 // mana; resistances and haste.
 func (warlock *Warlock) petStatInheritance(mp5PerOwnerIntellect float64) core.PetStatInheritance {
@@ -231,7 +231,7 @@ func (warlock *Warlock) registerPet(summon proto.WarlockOptions_Summon, name str
 	pet.AddStatDependency(stats.Intellect, stats.Mana, model.manaPerIntellect)
 	pet.AddStatDependency(stats.Strength, stats.AttackPower, model.apPerStrength)
 
-	// Spirit adds no regen: a demon's own regen is the MP5 from the warlock's Intellect.
+	// Spirit adds no regen.
 	pet.PseudoStats.SpiritRegenMultiplier = 0
 	pet.PseudoStats.DamageDealtMultiplier *= model.damageMod
 
