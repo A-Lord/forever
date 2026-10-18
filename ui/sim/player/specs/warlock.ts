@@ -21,7 +21,7 @@ export class Warlock extends PlayerSpec<Spec.SpecWarlock> {
 
 	static launch: SimStatus = {
 		phase: CURRENT_PHASE,
-		status: LaunchStatus.Unlaunched,
+		status: LaunchStatus.Alpha,
 	};
 
 	readonly specIndex = Warlock.specIndex;
