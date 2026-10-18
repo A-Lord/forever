@@ -390,7 +390,11 @@ func ConvertEffectAuraToStatIndex(effectAura EffectAuraType, effectMisc int) pro
 	case dbcenums.A_MOD_RANGED_ATTACK_POWER:
 		return proto.Stat_StatRangedAttackPower
 	case dbcenums.A_MOD_DAMAGE_DONE:
-		return ConvertSpellDamageFlagToSchoolDamageStat(effectMisc)
+		// The first stat spelldata.DamageDoneStats names; a mask of several schools names more.
+		if damage := spelldata.DamageDoneStats(int32(effectMisc)); len(damage) > 0 {
+			return proto.Stat(damage[0])
+		}
+		return -1
 	case dbcenums.A_MOD_HEALING_DONE:
 		return proto.Stat_StatHealingPower
 	case dbcenums.A_MOD_INCREASE_HEALTH, dbcenums.A_MOD_INCREASE_HEALTH_2:
