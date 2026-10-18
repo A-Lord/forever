@@ -10,7 +10,7 @@ import deepFire from './apls/deepFire.apl.json';
 import ffb from './apls/ffb.apl.json';
 import P1ArcaneGearJson from './gear_sets/p1Arcane.gear.json';
 
-export const P1ArcaneGear = PresetUtils.makePresetGear('P1 Arcane', P1ArcaneGearJson);
+export const P1ArcaneGear = PresetUtils.makePresetGear('P1 Arcane', P1ArcaneGearJson, { devOnly: true });
 
 export const ArcaneAplPreset = PresetUtils.makePresetAPLRotation('Arcane', arcane);
 export const FFBAplPreset = PresetUtils.makePresetAPLRotation('FFB', ffb);
