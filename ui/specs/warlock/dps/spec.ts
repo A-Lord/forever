@@ -112,7 +112,7 @@ export default defineSpec<Spec.SpecWarlock>({
 	presets: {
 		epWeights: [],
 		// Preset talents that the user can quickly select.
-		talents: [],
+		talents: [Presets.DemoFireBrandTalents, Presets.DemoShadowBrandTalents, Presets.DestroTalents, Presets.SmRuinTalents, Presets.AffWrackTalents],
 		// Preset rotations that the user can quickly select.
 		rotations: [
 			Presets.DEFAULT_APL,
@@ -125,6 +125,8 @@ export default defineSpec<Spec.SpecWarlock>({
 
 		// Preset gear configurations that the user can quickly select.
 		gear: [],
+		// Talents, demons and rotation together, one per build.
+		builds: Presets.Builds,
 	},
 
 	autoRotation: (_player: Player<Spec.SpecWarlock>): APLRotation => {
