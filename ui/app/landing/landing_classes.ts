@@ -38,7 +38,6 @@ export const SPEC_THEME_CLASS: Record<Exclude<Spec, Spec.SpecUnknown>, string> =
 	[Spec.SpecProtectionWarrior]: 'protection-warrior-sim-ui',
 };
 
-// The furthest-along of the class's specs: every multi-spec Forever class has at least one
-// Alpha spec and is labelled Alpha, including the three that also carry an Unlaunched one.
+// The furthest-along of the class's specs, so one unlaunched spec does not demote the class.
 export const classLaunchStatus = (playerClass: PlayerClass<Class>): LaunchStatus =>
 	Object.values(playerClass.specs).reduce<LaunchStatus>((best, spec) => Math.max(best, spec.launch.status), LaunchStatus.Unlaunched);

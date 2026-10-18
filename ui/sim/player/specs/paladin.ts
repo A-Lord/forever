@@ -21,7 +21,7 @@ export class HolyPaladin extends PlayerSpec<Spec.SpecHolyPaladin> {
 
 	static launch: SimStatus = {
 		phase: CURRENT_PHASE,
-		status: LaunchStatus.GearPlanner,
+		status: LaunchStatus.Unlaunched,
 	};
 
 	readonly specIndex = HolyPaladin.specIndex;
@@ -64,7 +64,7 @@ export class ProtectionPaladin extends PlayerSpec<Spec.SpecProtectionPaladin> {
 
 	static launch: SimStatus = {
 		phase: CURRENT_PHASE,
-		status: LaunchStatus.Alpha,
+		status: LaunchStatus.Unlaunched,
 	};
 
 	readonly specIndex = ProtectionPaladin.specIndex;
@@ -106,7 +106,7 @@ export class RetributionPaladin extends PlayerSpec<Spec.SpecRetributionPaladin> 
 
 	static launch: SimStatus = {
 		phase: CURRENT_PHASE,
-		status: LaunchStatus.Alpha,
+		status: LaunchStatus.Unlaunched,
 	};
 
 	readonly specIndex = RetributionPaladin.specIndex;
