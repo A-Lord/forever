@@ -238,15 +238,15 @@ func (mage *Mage) registerFingersOfFrost() {
 		if spell.Flags.Matches(core.SpellFlagAPL) && !spell.Flags.Matches(core.SpellFlagChanneled) &&
 			spell.ProcMask.Matches(core.ProcMaskSpellDamage) {
 			grantsAtCast := grants
-			sim.AddPendingAction(core.NewDelayedAction(core.DelayedActionOptions{
-				DoAt:     sim.CurrentTime + core.SpellBatchWindow,
-				Priority: core.ActionPriorityDOT,
-				OnAction: func(sim *core.Simulation) {
-					if grants == grantsAtCast && aura.IsActive() {
-						aura.RemoveStack(sim)
-					}
-				},
-			}))
+			pa := sim.GetConsumedPendingActionFromPool()
+			pa.NextActionAt = sim.CurrentTime + core.SpellBatchWindow
+			pa.Priority = core.ActionPriorityDOT
+			pa.OnAction = func(sim *core.Simulation) {
+				if grants == grantsAtCast {
+					aura.RemoveStack(sim)
+				}
+			}
+			sim.AddPendingAction(pa)
 		}
 	}
 	// Arcane Missiles' channel spends no charge; each missile that lands spends one, and a miss
