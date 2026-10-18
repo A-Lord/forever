@@ -14,7 +14,7 @@ func (hunter *Hunter) registerSurvivalTalents() {
 	// Entrapment (19184) roots on a trap the sim does not place.
 	hunter.registerSavageStrikes()
 	hunter.registerSurvivalist()
-	// Improved Wing Clip (19228) is a root chance on a snare the sim does not cast.
+	// Improved Wing Clip (19228) is a root chance on Wing Clip, which a boss shrugs off.
 
 	// Tier 3
 	hunter.registerCleverTraps()

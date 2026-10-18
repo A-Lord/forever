@@ -2239,7 +2239,7 @@
 				},
 				"time_to_weave": {
 					"label": "Time to weave (ms)",
-					"tooltip": "Amount of time, in milliseconds, between when you start moving towards the boss and when you re-engage your ranged autos."
+					"tooltip": "How long, in milliseconds, you stay in melee after the weave swing before walking back out. Never shorter than your input delay."
 				},
 				"use_aimed": {
 					"label": "Use Aimed Shot",
