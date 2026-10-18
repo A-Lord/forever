@@ -89,8 +89,6 @@ var ItemSetGarmentsOfTheOracle = core.NewItemSet(core.ItemSet{
 })
 
 var (
-	faithRenewCost    = spelldata.MustFind(28807) // 2pc: Renew costs 12% less
-	faithHealThreat   = spelldata.MustFind(28808) // 6pc: less threat from healing spells
 	faithEpiphanyProc = spelldata.MustFind(28802) // 8pc: Epiphany, the proc
 	faithEpiphanyBuff = spelldata.MustFind(28804) // 8pc: Epiphany, the mana regeneration
 )
@@ -105,8 +103,8 @@ var ItemSetVestmentsOfFaith = core.NewItemSet(core.ItemSet{
 	Name:  "Vestments of Faith",
 	Slots: shared.TierThreeSlots,
 	Bonuses: map[int32]core.ApplySetBonus{
-		2: shared.ParsedSetBonus(faithRenewCost),
-		6: shared.ParsedSetBonus(faithHealThreat),
+		2: parsedSetBonus(28807), // Renew costs 12% less.
+		6: parsedSetBonus(28808), // Less threat from healing spells.
 		8: func(agent core.Agent, setBonusAura *core.Aura) {
 			// Each spell you cast can trigger an Epiphany, increasing your mana regeneration by 24
 			// for 30 sec.

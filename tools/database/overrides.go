@@ -113,6 +113,16 @@ var ItemSetClasses = map[int32]proto.Class{
 	530: proto.Class_ClassHunter,  // Cryptstalker Armor
 }
 
+// Every item of a set in ItemSetClasses gets that class as its whole allowlist. It replaces the list
+// rather than merging, so the ring, which already names the class, does not name it twice.
+func ApplyItemSetClasses(db *WowDatabase) {
+	for _, item := range db.Items {
+		if class, ok := ItemSetClasses[item.SetId]; ok {
+			item.ClassAllowlist = []proto.Class{class}
+		}
+	}
+}
+
 // Keep these sorted by item ID.
 var ItemAllowList = map[int32]struct{}{
 	1168:  {}, // Skullflame Shield

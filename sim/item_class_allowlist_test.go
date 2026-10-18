@@ -3,7 +3,6 @@
 package sim
 
 import (
-	"os"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -13,7 +12,6 @@ import (
 	"github.com/wowsims/forever/sim/core"
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/simsignals"
-	"google.golang.org/protobuf/encoding/protojson"
 )
 
 // The class allowlist each item states in the database reaches the sim's item as it is, and names
@@ -113,19 +111,12 @@ func TestGearSetsHoldOnlyTheirClassItems(t *testing.T) {
 		}
 		class := proto.Class(classValue)
 
+		dir, name := filepath.Dir(file), filepath.Base(file)
 		var equipment *proto.EquipmentSpec
-		if strings.HasSuffix(file, ".build.json") {
-			data, err := os.ReadFile(file)
-			if err != nil {
-				t.Fatal(err)
-			}
-			build := &proto.IndividualSimSettings{}
-			if err := protojson.Unmarshal(data, build); err != nil {
-				t.Fatalf("%s: %v", file, err)
-			}
-			equipment = build.Player.GetEquipment()
+		if build, ok := strings.CutSuffix(name, ".build.json"); ok {
+			equipment = core.GetTestBuildFromJSON(class, dir, build, core.ItemFilter{}, nil, nil).GearSet.GearSet
 		} else {
-			equipment = core.GetGearSet(filepath.Dir(file), strings.TrimSuffix(filepath.Base(file), ".gear.json")).GearSet
+			equipment = core.GetGearSet(dir, strings.TrimSuffix(name, ".gear.json")).GearSet
 		}
 		for _, spec := range equipment.GetItems() {
 			if spec.Id == 0 {
