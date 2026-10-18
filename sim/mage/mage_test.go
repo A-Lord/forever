@@ -32,7 +32,7 @@ func BenchmarkMage(b *testing.B) {
 }
 
 func arcaneSuite() core.CharacterSuiteConfig {
-	return mageSuite(ArcaneTalents, "arcane")
+	return mageSuite(ArcaneTalents, "arcaneFrost")
 }
 
 func ffbSuite() core.CharacterSuiteConfig {
@@ -57,12 +57,12 @@ func mageSuite(talents string, apl string) core.CharacterSuiteConfig {
 				},
 			},
 		}},
-		Consumables:     DefaultConsumables,
-		Profession1:     proto.Profession_Engineering,
-		Profession2:     proto.Profession_Tailoring,
-		GearSet:         core.GetGearSet("../../ui/specs/mage/dps/gear_sets", "p1Arcane"),
-		Talents:         talents,
-		Rotation:        core.GetAplRotation("../../ui/specs/mage/dps/apls", apl),
+		Consumables: DefaultConsumables,
+		Profession1: proto.Profession_Engineering,
+		Profession2: proto.Profession_Tailoring,
+		GearSet:     core.GetGearSet("../../ui/specs/mage/dps/gear_sets", "p1Arcane"),
+		Talents:     talents,
+		Rotation:    core.GetAplRotation("../../ui/specs/mage/dps/apls", apl),
 		ItemFilter: core.ItemFilter{
 			WeaponTypes: []proto.WeaponType{
 				proto.WeaponType_WeaponTypeDagger,
