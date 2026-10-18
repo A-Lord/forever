@@ -14,6 +14,27 @@ import (
 	"github.com/wowsims/forever/tools/database/overrides"
 )
 
+// A damage spell behind a trigger the game casts only on a condition is not found from the spell that
+// holds the condition. Blade of Hanna's 1325509 stacks to 30 before it casts Perfected Form 1325508, so
+// 1325509 routes to no damage shape, while 1325508 still resolves its own damage.
+func TestDamageBehindAStackCountRoutesNoProc(t *testing.T) {
+	withDBCInputs(t)
+	dbc.GetDBC()
+
+	const stackSpellID, damageSpellID = 1325509, 1325508
+
+	shape, id := pickNoStatShape(stackSpellID, stackSpellID)
+	if shape != ShapeStats || id != 0 {
+		t.Errorf("spell %d routed to shape %v with id %d, want shape %v with id 0", stackSpellID, shape, id, ShapeStats)
+	}
+	if got := dbc.ResolveDamageEffect(stackSpellID); got != nil {
+		t.Errorf("spell %d resolved damage on spell %d, want none", stackSpellID, got.SpellID)
+	}
+	if got := dbc.ResolveDamageEffect(damageSpellID); got == nil || got.SpellID != damageSpellID {
+		t.Errorf("spell %d resolved %v, want its own damage", damageSpellID, got)
+	}
+}
+
 // A chance-on-hit item whose spell is a heal over time on the wearer routes to the heal shape. Julie's
 // Dagger registers on the rate its override gives it; Reforged Spear has none, and while the game files
 // state no rate for it stays commented out.
