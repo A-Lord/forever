@@ -20,7 +20,7 @@ export class Rogue extends PlayerSpec<Spec.SpecRogue> {
 
 	static launch: SimStatus = {
 		phase: CURRENT_PHASE,
-		status: LaunchStatus.Alpha,
+		status: LaunchStatus.Unlaunched,
 	};
 
 	readonly specIndex = Rogue.specIndex;

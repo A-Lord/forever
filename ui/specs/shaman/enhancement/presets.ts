@@ -11,9 +11,9 @@ import TestingBuildJson from './builds/testing.build.json';
 
 export const ROTATION_PRESET_DEFAULT = PresetUtils.makePresetAPLRotation('Default', DefaultApl);
 
-export const DefaultGear = PresetUtils.makePresetGear('Testing', TestingBuildJson.player.equipment);
+export const DefaultGear = PresetUtils.makePresetGear('Testing', TestingBuildJson.player.equipment, { devOnly: true });
 
-export const TestingBuild = PresetUtils.makePresetBuildFromJSON('Testing', Spec.SpecEnhancementShaman, TestingBuildJson);
+export const TestingBuild = PresetUtils.makePresetBuildFromJSON('Testing', Spec.SpecEnhancementShaman, TestingBuildJson, { gear: DefaultGear });
 
 export const StandardTalents = {
 	name: 'Standard',
