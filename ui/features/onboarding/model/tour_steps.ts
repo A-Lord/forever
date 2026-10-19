@@ -1,7 +1,7 @@
 import type { Env } from '@sim/state/env';
 
-/** What a step points at: a CSS selector, or a lookup for what a selector cannot say. */
-export type TourTarget = string | ((root: ParentNode) => Element | null);
+/** Where a simulation started from the page is, for a step that waits for one to finish. */
+export type SimulationState = 'idle' | 'running' | 'done';
 
 /**
  * One card of a tour. A step with no target sits in the middle of the page (the welcome and the last
@@ -9,7 +9,8 @@ export type TourTarget = string | ((root: ParentNode) => Element | null);
  */
 export interface TourStep<Context = unknown> {
 	id: string;
-	target?: TourTarget;
+	/** A CSS selector for the part of the page the card explains. */
+	target?: string;
 	/** The tab to open before the target is looked for. */
 	tab?: string;
 	/** The card waits for a simulation to finish, then moves on by itself. */

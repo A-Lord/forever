@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { readTourOutcome } from '../../model/tour_steps';
-import { FIRST_OPEN_DELAY_MS, OnboardingProvider, type TourRun, useOnboardingRestart } from './OnboardingProvider';
+import { OnboardingProvider, type TourRun, useOnboardingRestart } from './OnboardingProvider';
 
 const RestartButton = () => {
 	const restart = useOnboardingRestart();
@@ -37,27 +37,34 @@ describe('OnboardingProvider', () => {
 
 	it('opens once the page is ready and has settled, and remembers how it ended', () => {
 		const { storage, view } = mount(false);
-		act(() => vi.advanceTimersByTime(FIRST_OPEN_DELAY_MS * 2));
+		act(() => vi.advanceTimersByTime(5000));
 		expect(screen.queryByTestId('running-tour')).toBeNull();
 		view.rerender(
 			<OnboardingProvider ready storage={storage} storageKey="tour" renderTour={run => <Tour run={run} />}>
 				<RestartButton />
 			</OnboardingProvider>,
 		);
-		act(() => vi.advanceTimersByTime(FIRST_OPEN_DELAY_MS));
+		act(() => vi.advanceTimersByTime(100));
+		expect(screen.queryByTestId('running-tour')).toBeNull();
+		act(() => vi.advanceTimersByTime(1000));
 		expect(screen.getByTestId('running-tour').getAttribute('data-trigger')).toBe('auto');
 		fireEvent.click(screen.getByTestId('end'));
 		expect(screen.queryByTestId('running-tour')).toBeNull();
 		expect(readTourOutcome(storage, 'tour')).toBe('done');
 	});
 
-	it('does not open by itself once a tour has ended, but opens when asked', () => {
+	it('does not open by itself once a tour has ended, but opens when asked and gives the focus back after', () => {
 		const storage = memoryEnv().storage;
 		storage.setItem('tour', 'skipped');
 		mount(true, storage);
-		act(() => vi.advanceTimersByTime(FIRST_OPEN_DELAY_MS * 2));
+		act(() => vi.advanceTimersByTime(5000));
 		expect(screen.queryByTestId('running-tour')).toBeNull();
-		fireEvent.click(screen.getByTestId('restart'));
+		const restart = screen.getByTestId('restart');
+		restart.focus();
+		fireEvent.click(restart);
 		expect(screen.getByTestId('running-tour').getAttribute('data-trigger')).toBe('restart');
+		screen.getByTestId('end').focus();
+		fireEvent.click(screen.getByTestId('end'));
+		expect(document.activeElement).toBe(restart);
 	});
 });

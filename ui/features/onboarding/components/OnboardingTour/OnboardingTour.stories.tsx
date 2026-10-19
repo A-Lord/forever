@@ -37,7 +37,7 @@ const meta = {
 		text: (step: TourStep) => WORDS[step.id],
 		onEnd: fn(),
 	},
-	argTypes: { steps: { control: false }, text: { control: false }, prepare: { control: false }, renderCard: { control: false } },
+	argTypes: { steps: { control: false }, text: { control: false }, prepare: { control: false } },
 	parameters: { layout: 'fullscreen' },
 	render: args => (
 		<>

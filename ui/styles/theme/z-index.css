@@ -15,5 +15,6 @@
 	--z-index-sticky: 1020;
 	--z-index-menu: 1500;
 	--z-index-tour: 2000;
+	--z-index-tour-card: 2001;
 	--z-index-toast: 9999;
 }

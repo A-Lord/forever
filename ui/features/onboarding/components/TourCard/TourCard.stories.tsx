@@ -13,23 +13,15 @@ const meta = {
 		body: 'Click a slot to pick its item, enchant and gems. Hovering an item shows its tooltip.',
 		position: 3,
 		total: 13,
+		anchor: null,
 		onNext: fn(),
 		onPrevious: fn(),
 		onSkip: fn(),
 	},
 	argTypes: {
 		kind: { control: 'inline-radio', options: ['welcome', 'step', 'finish'] },
-		style: { control: false },
-		cardRef: { control: false },
-		side: { control: false },
+		anchor: { control: false },
 	},
-	decorators: [
-		Story => (
-			<div className="relative h-80">
-				<Story />
-			</div>
-		),
-	],
 } satisfies Meta<typeof TourCard>;
 
 export default meta;
@@ -37,8 +29,11 @@ type Story = StoryObj<typeof meta>;
 
 export const Step: Story = {
 	play: async ({ args, canvasElement }) => {
-		await userEvent.click(within(canvasElement).getByTestId('tour-card-next'));
+		const page = within(canvasElement.ownerDocument.body);
+		await userEvent.click(await page.findByTestId('tour-card-next'));
 		await expect(args.onNext).toHaveBeenCalledOnce();
+		await userEvent.keyboard('{Escape}');
+		await expect(args.onSkip).toHaveBeenCalledOnce();
 	},
 };
 

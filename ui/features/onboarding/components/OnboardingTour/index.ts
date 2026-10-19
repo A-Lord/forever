@@ -1,1 +1,1 @@
-export { OnboardingTour, type OnboardingTourProps, resolveTarget, type TourEnd } from './OnboardingTour';
+export { OnboardingTour, type OnboardingTourProps, type TourEnd } from './OnboardingTour';

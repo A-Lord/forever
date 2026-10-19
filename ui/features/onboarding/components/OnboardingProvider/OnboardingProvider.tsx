@@ -4,7 +4,7 @@ import { createContext, type ReactNode, use, useCallback, useEffect, useMemo, us
 import { readTourOutcome, type TourOutcome, writeTourOutcome } from '../../model/tour_steps';
 
 /** How long the page settles, once ready, before the tour opens by itself. */
-export const FIRST_OPEN_DELAY_MS = 900;
+const FIRST_OPEN_DELAY_MS = 900;
 
 /** How the tour opened: by itself on a first visit, or because the player asked for it. */
 export type TourTrigger = 'auto' | 'restart';
@@ -60,4 +60,13 @@ export const OnboardingProvider = ({ ready, storage, storageKey, renderTour, chi
 	);
 };
 
-const TourMount = ({ trigger, end, renderTour }: TourRun & { renderTour: (run: TourRun) => ReactNode }) => renderTour({ trigger, end });
+const TourMount = ({ trigger, end, renderTour }: TourRun & { renderTour: (run: TourRun) => ReactNode }) => {
+	// The focus goes back where it was when the tour closes: the toolbar's button, after a restart.
+	useEffect(() => {
+		const previous = document.activeElement;
+		return () => {
+			if (previous instanceof HTMLElement && previous.isConnected) previous.focus({ preventScroll: true });
+		};
+	}, []);
+	return renderTour({ trigger, end });
+};

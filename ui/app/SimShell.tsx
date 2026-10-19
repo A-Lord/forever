@@ -74,7 +74,7 @@ export const SimShell = ({ domRef, host, sim, className, spec, noticeText, known
 					{/* The tab root wraps the sidebar too, so the last run can open the Results tab; it renders as `display: contents`. */}
 					<SimTabsSection host={host}>
 						{/* Inside the tab root, which the tour opens tabs through; around the toolbar, which restarts it. */}
-						<SimOnboarding host={host} sim={sim}>
+						<SimOnboarding host={host} sim={sim} simReady={simReady}>
 							<div className="flex flex-1 max-lg:flex-col" data-testid="sim-container">
 								<aside
 									className="sticky -top-px z-sidebar flex h-dvh flex-1 flex-col items-stretch bg-background max-lg:relative max-lg:top-0 max-lg:h-auto max-lg:min-h-auto max-lg:w-full lg:max-w-100"

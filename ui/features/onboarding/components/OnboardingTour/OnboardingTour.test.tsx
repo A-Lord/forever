@@ -1,12 +1,13 @@
-import { ResultsPanelStage } from '@features/results/components/SimResultsPanel/results_panel_store';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { TourStep } from '../../model/tour_steps';
+import type { SimulationState, TourStep } from '../../model/tour_steps';
 import { OnboardingTour, type TourEnd } from './OnboardingTour';
 
+// happy-dom lays nothing out, and the tour passes over an element with an empty box.
 const page = () => {
 	document.body.insertAdjacentHTML('beforeend', '<div id="page"><button id="gear">Gear</button><button id="simulate">Simulate</button></div>');
+	for (const element of document.querySelectorAll('#page button')) element.getBoundingClientRect = () => new DOMRect(40, 40, 120, 30);
 };
 
 const STEPS: ReadonlyArray<TourStep> = [
@@ -19,14 +20,18 @@ const STEPS: ReadonlyArray<TourStep> = [
 
 const text = (step: TourStep) => ({ title: `title ${step.id}`, body: `body ${step.id}` });
 
-const tour = (props: { stage?: ResultsPanelStage; prepare?: (step: TourStep) => void } = {}) => {
+const tour = (props: { simulation?: SimulationState; prepare?: (step: TourStep) => void } = {}) => {
 	const onEnd = vi.fn<(end: TourEnd<TourStep>) => void>();
 	const view = render(<OnboardingTour steps={STEPS} text={text} onEnd={onEnd} {...props} />);
 	return { onEnd, view };
 };
 
 const stepId = () => screen.getByTestId('tour').getAttribute('data-step');
-const settle = (ms = 200) => act(() => vi.advanceTimersByTime(ms));
+// In short steps, so the effects a step's state change starts run before the clock moves on.
+const settle = (ms = 200) => {
+	for (let elapsed = 0; elapsed < ms; elapsed += 50) act(() => vi.advanceTimersByTime(50));
+};
+const key = (name: string) => fireEvent.keyDown(screen.getByTestId('tour-card'), { key: name });
 
 describe('OnboardingTour', () => {
 	beforeEach(() => {
@@ -53,47 +58,63 @@ describe('OnboardingTour', () => {
 
 	it('passes over a step whose part the page does not show, in the direction of travel', () => {
 		tour();
-		fireEvent.keyDown(window, { key: 'ArrowRight' });
+		key('ArrowRight');
 		settle();
-		fireEvent.keyDown(window, { key: 'ArrowRight' });
-		settle(3000);
+		key('ArrowRight');
+		settle(2000);
 		expect(stepId()).toBe('simulate');
-		fireEvent.keyDown(window, { key: 'ArrowLeft' });
-		settle(3000);
+		key('ArrowLeft');
+		settle(2000);
 		expect(stepId()).toBe('gear');
 	});
 
 	it('waits on the Simulate step until a run started there finishes, letting the page through meanwhile', () => {
-		const { view, onEnd } = tour({ stage: ResultsPanelStage.Idle });
-		const rerender = (stage: ResultsPanelStage) => view.rerender(<OnboardingTour steps={STEPS} text={text} onEnd={onEnd} stage={stage} />);
+		const { view, onEnd } = tour({ simulation: 'idle' });
+		const rerender = (simulation: SimulationState) => view.rerender(<OnboardingTour steps={STEPS} text={text} onEnd={onEnd} simulation={simulation} />);
 		for (let i = 0; i < 2; i++) {
-			fireEvent.keyDown(window, { key: 'ArrowRight' });
-			settle(3000);
+			key('ArrowRight');
+			settle(2000);
 		}
 		expect(stepId()).toBe('simulate');
 		expect(screen.getByTestId('tour').hasAttribute('data-waiting')).toBe(true);
 		// The arrow key does not pass a waiting step; a result that was there before the run does not either.
-		fireEvent.keyDown(window, { key: 'ArrowRight' });
-		rerender(ResultsPanelStage.Result);
+		key('ArrowRight');
+		rerender('done');
 		expect(stepId()).toBe('simulate');
-		rerender(ResultsPanelStage.Running);
-		rerender(ResultsPanelStage.Result);
+		rerender('running');
+		rerender('done');
 		expect(stepId()).toBe('finish');
+		// Back on the step, the run it already counted does not move it on again.
+		settle();
+		key('ArrowLeft');
+		settle(2000);
+		expect(stepId()).toBe('simulate');
+		rerender('done');
+		expect(stepId()).toBe('simulate');
+	});
+
+	it('stays where it was when the step it is on drops out of the tour', () => {
+		const { view, onEnd } = tour();
+		key('ArrowRight');
+		settle();
+		expect(stepId()).toBe('gear');
+		view.rerender(<OnboardingTour steps={STEPS.filter(step => step.id !== 'gear')} text={text} onEnd={onEnd} />);
+		expect(stepId()).toBe('missing');
 	});
 
 	it('reports how and where it ended', () => {
 		const { onEnd } = tour();
-		fireEvent.keyDown(window, { key: 'ArrowRight' });
+		key('ArrowRight');
 		settle();
-		fireEvent.keyDown(window, { key: 'Escape' });
+		key('Escape');
 		expect(onEnd).toHaveBeenCalledWith({ outcome: 'skipped', step: STEPS[1], index: 1, total: STEPS.length });
 	});
 
 	it('finishes as done from the last card', () => {
-		const { onEnd } = tour({ stage: ResultsPanelStage.Idle });
+		const { onEnd } = tour({ simulation: 'idle' });
 		for (let i = 0; i < 2; i++) {
-			fireEvent.keyDown(window, { key: 'ArrowRight' });
-			settle(3000);
+			key('ArrowRight');
+			settle(2000);
 		}
 		fireEvent.click(screen.getByTestId('tour-card-next'));
 		settle();

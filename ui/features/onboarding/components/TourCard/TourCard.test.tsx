@@ -6,7 +6,7 @@ import { TourCard, type TourCardProps } from './TourCard';
 
 const card = (props: Partial<TourCardProps> = {}) => {
 	const handlers = { onNext: vi.fn(), onPrevious: vi.fn(), onSkip: vi.fn() };
-	render(<TourCard kind="step" title="Gear" body="Click a slot." position={2} total={5} {...handlers} {...props} />);
+	render(<TourCard kind="step" title="Gear" body="Click a slot." position={2} total={5} anchor={null} {...handlers} {...props} />);
 	return handlers;
 };
 
@@ -21,6 +21,12 @@ describe('TourCard', () => {
 		fireEvent.click(screen.getByTestId('tour-card-skip'));
 		expect(onNext).toHaveBeenCalledOnce();
 		expect(onPrevious).toHaveBeenCalledOnce();
+		expect(onSkip).toHaveBeenCalledOnce();
+	});
+
+	it('leaves the tour on Escape', () => {
+		const { onSkip } = card();
+		fireEvent.keyDown(screen.getByTestId('tour-card-next'), { key: 'Escape' });
 		expect(onSkip).toHaveBeenCalledOnce();
 	});
 
