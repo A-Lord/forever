@@ -126,7 +126,7 @@ export const DefaultConsumables = ConsumesSpec.create({
 });
 
 export const OtherDefaults = {
-	distanceFromTarget: 14.67,
+	distanceFromTarget: 12.55,
 	iterationCount: 25000,
 	profession1: Profession.Engineering,
 	profession2: Profession.Blacksmithing,
@@ -150,11 +150,11 @@ const build = (
 
 // Gear, talents, rotation, pet and distance together, one per tree and playstyle.
 export const Builds = [
-	build('SV Weave', P1Gear, SurvivalWeaveTalents, WeaveAPLRotation, NoPetOptions, 14.67),
-	build('MM Weave', P1Gear, MarksmanshipWeaveTalents, WeaveAPLRotation, NoPetOptions, 14.67),
-	build('BM Weave', P1Gear, BeastMasteryWeaveTalents, WeaveHawkAPLRotation, PetOptions, 14.67),
-	build('MM', P1Gear, MarksmanshipTalents, TurretAPLRotation, NoPetOptions, 14.67),
-	build('BM', P1Gear, BeastMasteryTalents, TurretHawkAPLRotation, PetOptions, 14.67),
-	build('SV', P1Gear, SurvivalTalents, TurretMultiAPLRotation, NoPetOptions, 14.67),
+	build('SV Weave', P1Gear, SurvivalWeaveTalents, WeaveAPLRotation, NoPetOptions, 12.55),
+	build('MM Weave', P1Gear, MarksmanshipWeaveTalents, WeaveAPLRotation, NoPetOptions, 12.55),
+	build('BM Weave', P1Gear, BeastMasteryWeaveTalents, WeaveHawkAPLRotation, PetOptions, 12.55),
+	build('MM', P1Gear, MarksmanshipTalents, TurretAPLRotation, NoPetOptions, 12.55),
+	build('BM', P1Gear, BeastMasteryTalents, TurretHawkAPLRotation, PetOptions, 12.55),
+	build('SV', P1Gear, SurvivalTalents, TurretMultiAPLRotation, NoPetOptions, 12.55),
 	build('SV Melee', P1MeleeGear, SurvivalMeleeTalents, MeleeAPLRotation, PetOptions, 5),
 ];
