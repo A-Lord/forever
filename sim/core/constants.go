@@ -24,8 +24,13 @@ const RangedAutoRetryInterval = time.Millisecond * 500
 // A ranged auto winds up for this long before it fires. Haste doesn't shorten it, only the rest of the swing.
 const RangedSwingWindup = time.Millisecond * 500
 
-const MaxMeleeRange = 5.0   // in yards
-const MinRangedRange = 11.0 // in yards; bows, guns and crossbows cannot fire inside this on Forever, leaving a deadzone above melee range
+const MaxMeleeRange = 5.0 // in yards
+
+// The yards a bow, gun or crossbow cannot fire inside on Forever. The game counts the 11 yd minimum
+// from both units' combat reach, and melee range is both reaches plus 4/3 yd, so the deadzone past
+// melee range is 11 - 4/3 yd whatever the target's size, once the two reaches sum to 5 - 4/3 yd
+// or more, as every boss's do with a player's 1.5.
+const MinRangedRange = MaxMeleeRange + 11.0 - 4.0/3.0
 
 const DefaultAttackPowerPerDPS = 14.0
 

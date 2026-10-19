@@ -182,6 +182,10 @@ dps_results: {
  value: {}
 }
 dps_results: {
+ key: "TestArcane-AllItems-EnchantBoots-MinorSpeed-911"
+ value: {}
+}
+dps_results: {
  key: "TestArcane-AllItems-EnchantChest-Absorption-8220"
  value: {}
 }

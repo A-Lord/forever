@@ -364,6 +364,15 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDemonologyShadowBrand-AllItems-EnchantBoots-MinorSpeed-911"
+ value: {
+  dps: 687.4951
+  tps: 416.163
+  dtps: 11.14896
+  hps: 7.28225
+ }
+}
+dps_results: {
  key: "TestDemonologyShadowBrand-AllItems-EnchantChest-Absorption-8220"
  value: {
   dps: 687.4951

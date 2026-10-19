@@ -364,6 +364,15 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestDemonologyFireBrand-AllItems-EnchantBoots-MinorSpeed-911"
+ value: {
+  dps: 718.86928
+  tps: 415.92549
+  dtps: 8.59062
+  hps: 9.58808
+ }
+}
+dps_results: {
  key: "TestDemonologyFireBrand-AllItems-EnchantChest-Absorption-8220"
  value: {
   dps: 718.86928

@@ -278,7 +278,7 @@
 								]
 							}
 						},
-						"move": { "rangeFromTarget": { "variableRef": { "name": "Melee range" } } }
+						"move": { "rangeFromTarget": { "variableRef": { "name": "Walk-in range" } } }
 					}
 				}
 			]
@@ -299,7 +299,8 @@
 		{ "name": "Melee weave", "value": { "const": { "val": "true" } } },
 		{ "name": "Time to weave", "value": { "const": { "val": "100ms" } } },
 		{ "name": "Melee range", "value": { "const": { "val": "5.00" } } },
-		{ "name": "Ranged range", "value": { "const": { "val": "12.00" } } },
+		{ "name": "Ranged range", "value": { "const": { "val": "15.55" } } },
+		{ "name": "Walk-in range", "value": { "const": { "val": "4.37" } } },
 		{ "name": "Starting weave distance", "value": { "variableRef": { "name": "Ranged range" } } },
 		{
 			"name": "Move duration",
@@ -314,7 +315,7 @@
 								"math": {
 									"op": "OpSub",
 									"lhs": { "variableRef": { "name": "Ranged range" } },
-									"rhs": { "variableRef": { "name": "Melee range" } }
+									"rhs": { "variableRef": { "name": "Walk-in range" } }
 								}
 							},
 							"rhs": { "const": { "val": "7" } }

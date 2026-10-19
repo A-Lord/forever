@@ -5,6 +5,7 @@ import (
 	"math"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/wowsims/forever/sim/common"
 	_ "github.com/wowsims/forever/sim/common" // imported to get item effects included.
@@ -42,7 +43,7 @@ func TestHunter(t *testing.T) {
 			},
 			Consumables:      DefaultConsumables,
 			SpecOptions:      core.SpecOptionsCombo{Label: "Default", SpecOptions: DefaultOptions},
-			StartingDistance: 12,
+			StartingDistance: 15.55,
 			Profession1:      proto.Profession_Engineering,
 			Profession2:      proto.Profession_Blacksmithing,
 
@@ -105,7 +106,7 @@ func TestHunterPets(t *testing.T) {
 			Consumables:      DefaultConsumables,
 			SpecOptions:      families[0],
 			OtherSpecOptions: families[1:],
-			StartingDistance: 12,
+			StartingDistance: 15.55,
 			Rotation:         turretRotation,
 			ItemFilter:       core.ItemFilter{ArmorType: proto.ArmorType_ArmorTypeMail},
 		},
@@ -356,6 +357,85 @@ func TestLaceratingStrikesRollsItsUntickedDamageIntoTheNextBite(t *testing.T) {
 	}
 	if got := bleed.NextTickAt(); got != nextTick {
 		t.Errorf("a second bite moved the next tick to %v, want it kept at %v", got, nextTick)
+	}
+}
+
+// Strider Kick's 30% speed lasts the row's 3 seconds, and a walk that outlasts it ends where it was
+// going: a walk out to range started 2.5 seconds after the kick runs its first half second at 130%.
+func TestStriderKickSpeedRunsOutMidWalk(t *testing.T) {
+	player := &proto.Player{
+		Name:               "Kick",
+		Race:               proto.Race_RaceOrc,
+		Class:              proto.Class_ClassHunter,
+		Equipment:          &proto.EquipmentSpec{},
+		TalentsString:      DefaultSVTalents,
+		Spec:               DefaultOptions,
+		Rotation:           &proto.APLRotation{},
+		DistanceFromTarget: core.MaxMeleeRange,
+	}
+	sim := core.NewSim(&proto.RaidSimRequest{
+		Raid:       core.SinglePlayerRaidProto(player, &proto.PartyBuffs{}, &proto.RaidBuffs{}, &proto.Debuffs{}),
+		Encounter:  core.MakeSingleTargetEncounter(0),
+		SimOptions: &proto.SimOptions{RandomSeed: 1},
+	}, simsignals.CreateSignals())
+	sim.Reset()
+	hunter := sim.Raid.Parties[0].Players[0].(*Hunter)
+	kick := hunter.GetSpell(core.ActionID{SpellID: striderKickRank.ID})
+	if kick == nil {
+		t.Fatal("the SV hunter has no Strider Kick")
+	}
+
+	stepTo := func(at time.Duration) {
+		for sim.CurrentTime < at {
+			sim.AddPendingAction(&core.PendingAction{NextActionAt: at, OnAction: func(*core.Simulation) {}})
+			sim.Step()
+		}
+	}
+	kick.SkipCastAndApplyEffects(sim, sim.Encounter.AllTargetUnits[0])
+	if got, want := hunter.GetMovementSpeed(), 7*(1+striderKickRank.EffectN(3).Percent()); math.Abs(got-want) > 1e-9 {
+		t.Fatalf("after Strider Kick the hunter runs %v yd/s, want %v", got, want)
+	}
+
+	start := sim.CurrentTime + 2500*time.Millisecond
+	stepTo(start)
+	const ranged = 15.5
+	hunter.MoveTo(ranged, sim)
+	for i := 0; hunter.Moving && i < 1000; i++ {
+		sim.Step()
+	}
+	fast := 0.5 * 7 * (1 + striderKickRank.EffectN(3).Percent())
+	want := start + 500*time.Millisecond + time.Duration((ranged-core.MaxMeleeRange-fast)/7*float64(time.Second))
+	if math.Abs(hunter.DistanceFromTarget-ranged) > 1e-6 {
+		t.Errorf("the walk out ended at %v yd, want %v", hunter.DistanceFromTarget, ranged)
+	}
+	if got := sim.CurrentTime; (got - want).Abs() > 20*time.Millisecond {
+		t.Errorf("the walk out ended at %v, want about %v", got, want)
+	}
+}
+
+// Enchant Boots - Minor Speed, the boots enchant Forever offers, runs the hunter 8% faster.
+func TestMinorSpeedBootsRunFaster(t *testing.T) {
+	gear := core.GetGearSet("../../ui/specs/hunter/dps/gear_sets", "p1").GearSet
+	gear = googleProto.Clone(gear).(*proto.EquipmentSpec)
+	gear.Items[proto.ItemSlot_ItemSlotFeet].Enchant = 911
+	player := &proto.Player{
+		Name:          "Boots",
+		Race:          proto.Race_RaceOrc,
+		Class:         proto.Class_ClassHunter,
+		Equipment:     gear,
+		TalentsString: DefaultMMTalents,
+		Spec:          DefaultOptions,
+		Rotation:      &proto.APLRotation{},
+	}
+	sim := core.NewSim(&proto.RaidSimRequest{
+		Raid:       core.SinglePlayerRaidProto(player, &proto.PartyBuffs{}, &proto.RaidBuffs{}, &proto.Debuffs{}),
+		Encounter:  core.MakeSingleTargetEncounter(0),
+		SimOptions: &proto.SimOptions{RandomSeed: 1},
+	}, simsignals.CreateSignals())
+	sim.Reset()
+	hunter := sim.Raid.Parties[0].Players[0].(*Hunter)
+	if got := hunter.GetMovementSpeed(); math.Abs(got-7*1.08) > 1e-9 {
+		t.Errorf("with Minor Speed on the boots the hunter runs %v yd/s, want %v", got, 7*1.08)
 	}
 }
 

@@ -286,6 +286,7 @@ func init() {
 	})
 
 	movementSpeedEnchants := []int32{
+		911,  // Enchant Boots - Minor Speed
 		2939, // Enchant Boots - Cat's Swiftness
 		2940, // Enchant Boots - Boar's Speed
 	}

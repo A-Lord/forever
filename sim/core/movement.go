@@ -166,9 +166,9 @@ func (unit *Unit) MultiplyMovementSpeed(sim *Simulation, amount float64) {
 		unit.Log(sim, "[DEBUG] Movement speed changed from %.2f (%.2f%%) to %.2f (%.2f%%)", oldSpeed, (oldMultiplier-1)*100.0, unit.GetMovementSpeed(), (unit.PseudoStats.MovementSpeedMultiplier-1)*100.0)
 	}
 
-	// we have a pending movement action that depends on our movement speed
+	// A walk under way keeps its destination and covers the rest at the new speed.
 	if unit.movementAction != nil && unit.movementAction.speed != 0 {
-		dest := unit.movementAction.speed * float64(unit.movementAction.NextActionAt-unit.movementAction.startTime) / float64(time.Second)
+		dest := unit.movementAction.srcPosition + unit.movementAction.moveDistance
 		unit.MoveTo(dest, sim)
 	}
 }
