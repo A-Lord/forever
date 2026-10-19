@@ -1533,6 +1533,10 @@
 					"duration_tooltip": "Amount of time the character should move.",
 					"move_duration_tooltip": "The characters moves for the given duration."
 				},
+				"pet_attack": {
+					"label": "Pet Attack",
+					"tooltip": "Works like /petattack in-game. Tells the pet to move/attack."
+				},
 				"custom_rotation": {
 					"label": "Custom Rotation",
 					"tooltip": "INTERNAL ONLY"
