@@ -131,6 +131,7 @@ export const OtherDefaults = {
 	profession1: Profession.Engineering,
 	profession2: Profession.Blacksmithing,
 	race: Race.RaceOrc,
+	reactionTime: 100,
 };
 
 const build = (
@@ -145,7 +146,7 @@ const build = (
 		gear,
 		talents: talentPreset,
 		rotation,
-		settings: { name, specOptions: options, playerOptions: { distanceFromTarget } },
+		settings: { name, specOptions: options, playerOptions: { distanceFromTarget, reactionTimeMs: OtherDefaults.reactionTime } },
 	});
 
 // Gear, talents, rotation, pet and distance together, one per tree and playstyle.

@@ -560,6 +560,51 @@ func TestAutoShotWaitsAReactionWhenTheWalkEndsOnTheMinimumRange(t *testing.T) {
 	}
 }
 
+// Minor Speed and Strider Kick are both A_MOD_INCREASE_SPEED, of which only the highest counts: with
+// both the hunter runs at Strider Kick's 30%, and back at the boots' 8% once the kick runs out.
+func TestMinorSpeedDoesNotStackWithStriderKick(t *testing.T) {
+	gear := googleProto.Clone(core.GetGearSet("../../ui/specs/hunter/dps/gear_sets", "p1").GearSet).(*proto.EquipmentSpec)
+	gear.Items[proto.ItemSlot_ItemSlotFeet].Enchant = 911
+	player := &proto.Player{
+		Name:               "Boots and Kick",
+		Race:               proto.Race_RaceOrc,
+		Class:              proto.Class_ClassHunter,
+		Equipment:          gear,
+		TalentsString:      DefaultSVTalents,
+		Spec:               DefaultOptions,
+		Rotation:           &proto.APLRotation{},
+		DistanceFromTarget: core.MaxMeleeRange,
+	}
+	sim := core.NewSim(&proto.RaidSimRequest{
+		Raid:       core.SinglePlayerRaidProto(player, &proto.PartyBuffs{}, &proto.RaidBuffs{}, &proto.Debuffs{}),
+		Encounter:  core.MakeSingleTargetEncounter(0),
+		SimOptions: &proto.SimOptions{RandomSeed: 1},
+	}, simsignals.CreateSignals())
+	sim.Reset()
+	sim.PrePull()
+	hunter := sim.Raid.Parties[0].Players[0].(*Hunter)
+	for i := 0; sim.CurrentTime < 0 && i < 10000; i++ {
+		sim.Step()
+	}
+
+	if got := hunter.GetMovementSpeed(); math.Abs(got-7*1.08) > 1e-9 {
+		t.Fatalf("with the boots alone the hunter runs %v yd/s, want %v", got, 7*1.08)
+	}
+	kick := hunter.GetSpell(core.ActionID{SpellID: striderKickRank.ID})
+	kick.SkipCastAndApplyEffects(sim, sim.Encounter.AllTargetUnits[0])
+	if got, want := hunter.GetMovementSpeed(), 7*(1+striderKickRank.EffectN(3).Percent()); math.Abs(got-want) > 1e-9 {
+		t.Errorf("with the boots and Strider Kick the hunter runs %v yd/s, want Strider Kick's %v alone", got, want)
+	}
+	end := sim.CurrentTime + striderKickRank.Duration() + time.Millisecond
+	for i := 0; sim.CurrentTime < end && i < 10000; i++ {
+		sim.AddPendingAction(&core.PendingAction{NextActionAt: end, OnAction: func(*core.Simulation) {}})
+		sim.Step()
+	}
+	if got := hunter.GetMovementSpeed(); math.Abs(got-7*1.08) > 1e-9 {
+		t.Errorf("after Strider Kick runs out the hunter runs %v yd/s, want the boots' %v", got, 7*1.08)
+	}
+}
+
 // One combo per pet family, fully trained.
 // The default rotation with its "Melee weave" variable turned off: the hunter stays at range.
 func stopWeaving(rotation *proto.APLRotation) {

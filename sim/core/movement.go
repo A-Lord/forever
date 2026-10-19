@@ -202,8 +202,10 @@ func (aura *Aura) NewActiveMovementSpeedEffect(multiplier float64) *ExclusiveEff
 	return aura.newExclusiveMovementSpeedEffect("ActiveMovementSpeed", multiplier)
 }
 
+// Only the highest speed in a category applies, and the auras under it stay up: one that is outbid
+// takes over again when the higher one ends.
 func (aura *Aura) newExclusiveMovementSpeedEffect(categoryKey string, multiplier float64) *ExclusiveEffect {
-	return aura.NewExclusiveEffect(categoryKey, true, ExclusiveEffect{
+	return aura.NewExclusiveEffect(categoryKey, false, ExclusiveEffect{
 		Priority: multiplier,
 		OnGain: func(ee *ExclusiveEffect, sim *Simulation) {
 			ee.Aura.Unit.MultiplyMovementSpeed(sim, 1+multiplier)
