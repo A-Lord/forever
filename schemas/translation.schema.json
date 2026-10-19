@@ -2329,6 +2329,18 @@
 						},
 						"stamina": {
 							"type": "string"
+						},
+						"fire_resistance": {
+							"type": "string"
+						},
+						"frost_resistance": {
+							"type": "string"
+						},
+						"shadow_resistance": {
+							"type": "string"
+						},
+						"nature_resistance": {
+							"type": "string"
 						}
 					},
 					"additionalProperties": false,
@@ -2343,7 +2355,11 @@
 						"spell_power",
 						"spell_haste",
 						"crit_percent",
-						"stamina"
+						"stamina",
+						"fire_resistance",
+						"frost_resistance",
+						"shadow_resistance",
+						"nature_resistance"
 					]
 				},
 				"party_buffs": {
@@ -2451,10 +2467,39 @@
 						},
 						"spell_dmg": {
 							"type": "string"
+						},
+						"major_armor_reduction": {
+							"type": "string"
+						},
+						"minor_armor_reduction": {
+							"type": "string"
+						},
+						"attack_power_reduction": {
+							"type": "string"
+						},
+						"hit_chance_reduction": {
+							"type": "string"
+						},
+						"attack_speed_reduction": {
+							"type": "string"
 						}
 					},
 					"additionalProperties": false,
-					"required": ["title", "tooltip", "misc", "armor_reduction", "phys_dmg_reduction", "cast_speed", "phys_dmg", "spell_dmg"]
+					"required": [
+						"title",
+						"tooltip",
+						"misc",
+						"armor_reduction",
+						"phys_dmg_reduction",
+						"cast_speed",
+						"phys_dmg",
+						"spell_dmg",
+						"major_armor_reduction",
+						"minor_armor_reduction",
+						"attack_power_reduction",
+						"hit_chance_reduction",
+						"attack_speed_reduction"
+					]
 				},
 				"other": {
 					"type": "object",
