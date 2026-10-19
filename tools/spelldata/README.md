@@ -108,6 +108,13 @@ moves. The server compiles the store in; restart it after regenerating.
 
 ## Editors
 
+The editors start the server through `go run ./tools/spelldata/launch -lsp`, from the repository root.
+The launcher imports nothing from the repository, so it compiles when the server cannot. It runs
+`make sim/core/proto/api.pb.go` where a `.proto` file is newer than the generated Go code (or that code
+is missing), builds the server and runs it on the same stdio; every tool's output goes to stderr. Where
+the build fails, the launcher answers as a language server with no capabilities that shows the build
+error, so the editor keeps the server and a restart builds again.
+
 - **VS Code**: `.vscode/extensions/wowsims-spelldata`, a workspace extension built from
   `tools/vscode-spelldata` by `make vscode-spelldata` (or `npm run build:lsp` from the root, which also compiles the server).
 - **Zed**: `tools/zed-spelldata`, installed with `zed: install dev extension`.
@@ -124,7 +131,7 @@ vim.api.nvim_create_autocmd('FileType', {
 		if root and vim.uv.fs_stat(root .. '/tools/spelldata') then
 			vim.lsp.start({
 				name = 'wowsims-spelldata',
-				cmd = { 'go', 'run', './tools/spelldata', '-lsp' },
+				cmd = { 'go', 'run', './tools/spelldata/launch', '-lsp' },
 				cmd_cwd = root,
 				root_dir = root,
 				init_options = { trace = 'on' },
@@ -139,7 +146,7 @@ Helix, in `languages.toml` (the repository's `.helix/languages.toml` or the user
 ```toml
 [language-server.wowsims-spelldata]
 command = "go"
-args = ["run", "./tools/spelldata", "-lsp"]
+args = ["run", "./tools/spelldata/launch", "-lsp"]
 config = { trace = "on" }
 
 [[language]]
