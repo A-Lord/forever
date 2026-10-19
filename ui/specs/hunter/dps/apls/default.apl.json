@@ -170,7 +170,7 @@
 								"cmp": {
 									"op": "OpGt",
 									"lhs": { "autoTimeToNext": { "autoType": "MainHandAuto" } },
-									"rhs": { "variableRef": { "name": "Move duration" } }
+									"rhs": { "math": { "op": "OpSub", "lhs": { "variableRef": { "name": "Move duration" } }, "rhs": { "inputDelay": {} } } }
 								}
 							},
 							{
@@ -184,7 +184,7 @@
 												"math": {
 													"op": "OpSub",
 													"lhs": { "autoTimeToNext": { "autoType": "MainHandAuto" } },
-													"rhs": { "variableRef": { "name": "Move duration" } }
+													"rhs": { "math": { "op": "OpSub", "lhs": { "variableRef": { "name": "Move duration" } }, "rhs": { "inputDelay": {} } } }
 												}
 											},
 											"rhs": { "variableRef": { "name": "Auto Shot wait" } }
@@ -200,7 +200,7 @@
 						"math": {
 							"op": "OpSub",
 							"lhs": { "autoTimeToNext": { "autoType": "MainHandAuto" } },
-							"rhs": { "variableRef": { "name": "Move duration" } }
+							"rhs": { "math": { "op": "OpSub", "lhs": { "variableRef": { "name": "Move duration" } }, "rhs": { "inputDelay": {} } } }
 						}
 					}
 				}
