@@ -354,10 +354,21 @@
 			"name": "Wait at melee",
 			"value": { "max": { "vals": [{ "inputDelay": {} }, { "variableRef": { "name": "Time to weave" } }] } }
 		},
+		{ "name": "Max Auto Shot delay", "value": { "const": { "val": "1.2s" } } },
 		{
 			"name": "Auto Shot wait",
 			"value": {
-				"math": { "op": "OpAdd", "lhs": { "variableRef": { "name": "Move duration" } }, "rhs": { "variableRef": { "name": "Wait at melee" } } }
+				"math": {
+					"op": "OpSub",
+					"lhs": {
+						"math": {
+							"op": "OpAdd",
+							"lhs": { "math": { "op": "OpAdd", "lhs": { "variableRef": { "name": "Move duration" } }, "rhs": { "variableRef": { "name": "Move duration" } } } },
+							"rhs": { "math": { "op": "OpAdd", "lhs": { "variableRef": { "name": "Wait at melee" } }, "rhs": { "inputDelay": {} } } }
+						}
+					},
+					"rhs": { "variableRef": { "name": "Max Auto Shot delay" } }
+				}
 			}
 		},
 		{ "name": "Time to next weave", "value": { "autoTimeToNext": { "autoType": "MainHandAuto" } } },
