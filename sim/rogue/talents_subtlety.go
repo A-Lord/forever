@@ -64,6 +64,8 @@ func (rogue *Rogue) registerInitiative() {
 		})
 	trigger.ClassSpellMask = RogueSpellGarrote | RogueSpellAmbush
 	trigger.TriggerImmediately = true
+	trigger.Outcome = core.OutcomeLanded
+	trigger.RequireDamageDealt = false
 	rogue.MakeProcTriggerAura(trigger)
 }
 

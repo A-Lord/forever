@@ -1017,43 +1017,43 @@ dps_results: {
 dps_results: {
  key: "TestRogue-Settings-Human-p1_muti-Subtlety BS-Rogue-default-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 599.62672
-  tps: 298.01448
+  dps: 603.15509
+  tps: 299.76808
  }
 }
 dps_results: {
  key: "TestRogue-Settings-Human-p1_muti-Subtlety BS-Rogue-default-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 599.62672
-  tps: 298.01448
+  dps: 603.15509
+  tps: 299.76808
  }
 }
 dps_results: {
  key: "TestRogue-Settings-Human-p1_muti-Subtlety BS-Rogue-default-FullBuffs-0.0yards-ShortSingleTarget"
  value: {
-  dps: 661.91908
-  tps: 328.97379
+  dps: 672.27077
+  tps: 334.11857
  }
 }
 dps_results: {
  key: "TestRogue-Settings-Human-p1_muti-Subtlety BS-Rogue-default-NoBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 242.76781
-  tps: 172.36514
+  dps: 242.85842
+  tps: 172.42948
  }
 }
 dps_results: {
  key: "TestRogue-Settings-Human-p1_muti-Subtlety BS-Rogue-default-NoBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 242.76781
-  tps: 172.36514
+  dps: 242.85842
+  tps: 172.42948
  }
 }
 dps_results: {
  key: "TestRogue-Settings-Human-p1_muti-Subtlety BS-Rogue-default-NoBuffs-0.0yards-ShortSingleTarget"
  value: {
-  dps: 271.29582
-  tps: 192.62003
+  dps: 273.30583
+  tps: 194.04714
  }
 }
 dps_results: {
@@ -1143,43 +1143,43 @@ dps_results: {
 dps_results: {
  key: "TestRogue-Settings-Orc-p1_muti-Subtlety BS-Rogue-default-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 597.123
-  tps: 296.77013
+  dps: 600.76412
+  tps: 298.57977
  }
 }
 dps_results: {
  key: "TestRogue-Settings-Orc-p1_muti-Subtlety BS-Rogue-default-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 597.123
-  tps: 296.77013
+  dps: 600.76412
+  tps: 298.57977
  }
 }
 dps_results: {
  key: "TestRogue-Settings-Orc-p1_muti-Subtlety BS-Rogue-default-FullBuffs-0.0yards-ShortSingleTarget"
  value: {
-  dps: 666.23202
-  tps: 331.11732
+  dps: 675.47705
+  tps: 335.71209
  }
 }
 dps_results: {
  key: "TestRogue-Settings-Orc-p1_muti-Subtlety BS-Rogue-default-NoBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 240.7186
-  tps: 170.9102
+  dps: 240.96279
+  tps: 171.08358
  }
 }
 dps_results: {
  key: "TestRogue-Settings-Orc-p1_muti-Subtlety BS-Rogue-default-NoBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 240.7186
-  tps: 170.9102
+  dps: 240.96279
+  tps: 171.08358
  }
 }
 dps_results: {
  key: "TestRogue-Settings-Orc-p1_muti-Subtlety BS-Rogue-default-NoBuffs-0.0yards-ShortSingleTarget"
  value: {
-  dps: 270.27615
-  tps: 191.89607
+  dps: 272.93743
+  tps: 193.78557
  }
 }
 dps_results: {
