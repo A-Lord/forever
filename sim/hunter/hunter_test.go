@@ -4,7 +4,9 @@ import (
 	"maps"
 	"math"
 	"slices"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/wowsims/forever/sim/common"
 	_ "github.com/wowsims/forever/sim/common" // imported to get item effects included.
@@ -356,6 +358,42 @@ func TestLaceratingStrikesRollsItsUntickedDamageIntoTheNextBite(t *testing.T) {
 	}
 	if got := bleed.NextTickAt(); got != nextTick {
 		t.Errorf("a second bite moved the next tick to %v, want it kept at %v", got, nextTick)
+	}
+}
+
+// Survivalist's Discipline shortens the traps' shared cooldown by 20% a rank: a placed Explosive Trap
+// holds Immolation Trap back 30, 24 or 18 seconds.
+func TestSurvivalistsDisciplineShortensTheTrapCooldown(t *testing.T) {
+	for points, want := range []time.Duration{30 * time.Second, 24 * time.Second, 18 * time.Second} {
+		player := &proto.Player{
+			Name:          "Traps",
+			Race:          proto.Race_RaceOrc,
+			Class:         proto.Class_ClassHunter,
+			Equipment:     &proto.EquipmentSpec{},
+			TalentsString: "--" + strings.Repeat("0", 14) + strconv.Itoa(points),
+			Spec:          DefaultOptions,
+			Rotation:      &proto.APLRotation{},
+		}
+		sim := core.NewSim(&proto.RaidSimRequest{
+			Raid:       core.SinglePlayerRaidProto(player, &proto.PartyBuffs{}, &proto.RaidBuffs{}, &proto.Debuffs{}),
+			Encounter:  core.MakeSingleTargetEncounter(0),
+			SimOptions: &proto.SimOptions{RandomSeed: 1},
+		}, simsignals.CreateSignals())
+		sim.Reset()
+		hunter := sim.Raid.Parties[0].Players[0].(*Hunter)
+		target := sim.Encounter.AllTargetUnits[0]
+
+		explosive := hunter.GetSpell(core.ActionID{SpellID: explosiveTrapRank.ID})
+		immolation := hunter.GetSpell(core.ActionID{SpellID: immolationTrapRank.ID})
+		if explosive == nil || immolation == nil {
+			t.Fatal("the hunter has no Explosive Trap or no Immolation Trap")
+		}
+		if !explosive.Cast(sim, target) {
+			t.Fatalf("with %d points, Explosive Trap could not be placed", points)
+		}
+		if got := immolation.ReadyAt() - sim.CurrentTime; got != want {
+			t.Errorf("with %d points, a placed Explosive Trap held Immolation Trap back %v, want %v", points, got, want)
+		}
 	}
 }
 
