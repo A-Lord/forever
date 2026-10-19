@@ -13,6 +13,7 @@ import { SimTitleDropdown } from './header/SimTitleDropdown';
 import { SimToolbar } from './header/SimToolbar';
 import type { SimHostObject } from './individual_sim_ui';
 import { simUiAttributes, simUiClasses } from './shell_classes';
+import { SimOnboarding } from './SimOnboarding';
 import { SimImportExport } from './SimImportExport';
 import { SimRunCard } from './SimRunCard';
 import { SimTabsPanels, SimTabsStrip } from './SimTabs';
@@ -72,40 +73,43 @@ export const SimShell = ({ domRef, host, sim, className, spec, noticeText, known
 					) : null}
 					{/* The tab root wraps the sidebar too, so the last run can open the Results tab; it renders as `display: contents`. */}
 					<SimTabsSection host={host}>
-						<div className="flex flex-1 max-lg:flex-col" data-testid="sim-container">
-							<aside
-								className="sticky -top-px z-sidebar flex h-dvh flex-1 flex-col items-stretch bg-background max-lg:relative max-lg:top-0 max-lg:h-auto max-lg:min-h-auto max-lg:w-full lg:max-w-100"
-								data-testid="sim-sidebar">
-								<SimTitleDropdown currentSpec={spec} />
-								<div
-									className="@container flex flex-1 flex-col overflow-y-auto p-sidebar max-lg:min-h-0 max-lg:overflow-visible [&>*:not(:last-child)]:mb-4"
-									data-testid="sim-sidebar-content">
-									<SimRunCard host={host} sim={sim} />
-									{host && <SimWarnings warnings={host.warnings} ready={simReady} className="my-auto" />}
-									{host && <CharacterStats className="mt-auto" />}
-								</div>
-							</aside>
-							<div
-								className="z-1 mx-auto flex w-full min-w-[calc(275px+1vw)] flex-4 flex-col pt-0 pr-page pb-page pl-page max-lg:min-h-auto"
-								data-testid="sim-content">
-								<header
-									ref={header}
-									className="sticky -top-px z-header -mx-page h-sim-header pt-6 pr-page pl-page whitespace-nowrap transition-colors duration-150 ease-in-out after:absolute after:inset-x-0 after:-bottom-px after:mx-auto after:h-px after:w-page-inset-w after:bg-border after:transition-[width] after:duration-150 after:ease-in-out after:content-[''] data-stuck:bg-background data-stuck:after:w-full max-lg:pt-2"
-									data-testid="sim-header"
-									data-stuck={stuck ? '' : undefined}>
+						{/* Inside the tab root, which the tour opens tabs through; around the toolbar, which restarts it. */}
+						<SimOnboarding host={host} sim={sim}>
+							<div className="flex flex-1 max-lg:flex-col" data-testid="sim-container">
+								<aside
+									className="sticky -top-px z-sidebar flex h-dvh flex-1 flex-col items-stretch bg-background max-lg:relative max-lg:top-0 max-lg:h-auto max-lg:min-h-auto max-lg:w-full lg:max-w-100"
+									data-testid="sim-sidebar">
+									<SimTitleDropdown currentSpec={spec} />
 									<div
-										className="flex h-full flex-1 scrollbar-none items-stretch overflow-x-scroll [&::-webkit-scrollbar]:hidden"
-										data-testid="sim-header-container">
-										<SimTabsStrip />
-										{host && <SimImportExport />}
-										<SimToolbar sim={sim} knownIssues={knownIssues} onOpenSettings={onOpenSettings} />
+										className="@container flex flex-1 flex-col overflow-y-auto p-sidebar max-lg:min-h-0 max-lg:overflow-visible [&>*:not(:last-child)]:mb-4"
+										data-testid="sim-sidebar-content">
+										<SimRunCard host={host} sim={sim} />
+										{host && <SimWarnings warnings={host.warnings} ready={simReady} className="my-auto" />}
+										{host && <CharacterStats className="mt-auto" />}
 									</div>
-								</header>
-								<main className="flex h-4/5 grow" data-testid="sim-main">
-									<SimTabsPanels />
-								</main>
+								</aside>
+								<div
+									className="z-1 mx-auto flex w-full min-w-[calc(275px+1vw)] flex-4 flex-col pt-0 pr-page pb-page pl-page max-lg:min-h-auto"
+									data-testid="sim-content">
+									<header
+										ref={header}
+										className="sticky -top-px z-header -mx-page h-sim-header pt-6 pr-page pl-page whitespace-nowrap transition-colors duration-150 ease-in-out after:absolute after:inset-x-0 after:-bottom-px after:mx-auto after:h-px after:w-page-inset-w after:bg-border after:transition-[width] after:duration-150 after:ease-in-out after:content-[''] data-stuck:bg-background data-stuck:after:w-full max-lg:pt-2"
+										data-testid="sim-header"
+										data-stuck={stuck ? '' : undefined}>
+										<div
+											className="flex h-full flex-1 scrollbar-none items-stretch overflow-x-scroll [&::-webkit-scrollbar]:hidden"
+											data-testid="sim-header-container">
+											<SimTabsStrip />
+											{host && <SimImportExport />}
+											<SimToolbar sim={sim} knownIssues={knownIssues} onOpenSettings={onOpenSettings} />
+										</div>
+									</header>
+									<main className="flex h-4/5 grow" data-testid="sim-main">
+										<SimTabsPanels />
+									</main>
+								</div>
 							</div>
-						</div>
+						</SimOnboarding>
 					</SimTabsSection>
 				</div>
 				<ToastArea manager={toastManager} />

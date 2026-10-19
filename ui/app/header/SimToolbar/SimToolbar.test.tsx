@@ -25,6 +25,16 @@ describe('SimToolbarView', () => {
 		expect(onOpenSettings).toHaveBeenCalledTimes(1);
 	});
 
+	it('offers the tour only where one can be started', () => {
+		const onStartTour = vi.fn();
+		const { rerender } = render(<SimToolbarView knownIssues={[]} outdatedNativeSim={false} onOpenSettings={() => {}} />);
+		expect(screen.queryByTestId('start-tour')).toBeNull();
+
+		rerender(<SimToolbarView knownIssues={[]} outdatedNativeSim={false} onOpenSettings={() => {}} onStartTour={onStartTour} />);
+		fireEvent.click(screen.getByTestId('start-tour'));
+		expect(onStartTour).toHaveBeenCalledTimes(1);
+	});
+
 	it('links the newer native build only when the running one is outdated', () => {
 		const { rerender } = render(<SimToolbarView knownIssues={[]} outdatedNativeSim={false} onOpenSettings={() => {}} />);
 		expect(downloadLinks()).toHaveLength(0);

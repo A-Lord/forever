@@ -1,3 +1,4 @@
+import { useOnboardingRestart } from '@features/onboarding';
 import i18n from '@i18n/config';
 import { ISSUES_REPO, REPO_CHOOSE_NEW_ISSUE_URL, REPO_RELEASES_URL, SOCIALS } from '@sim/constants/other';
 import { useOutdatedNativeSim } from '@sim/hooks/useOutdatedNativeSim';
@@ -12,9 +13,11 @@ export interface SimToolbarViewProps {
 	knownIssues: ReadonlyArray<ReactNode>;
 	outdatedNativeSim: boolean;
 	onOpenSettings: () => void;
+	/** Opens the guided tour again; no button without it. */
+	onStartTour?: () => void;
 }
 
-export const SimToolbarView = ({ knownIssues, outdatedNativeSim, onOpenSettings }: SimToolbarViewProps) => (
+export const SimToolbarView = ({ knownIssues, outdatedNativeSim, onOpenSettings, onStartTour }: SimToolbarViewProps) => (
 	<>
 		<ToolbarItem
 			className="text-link-danger"
@@ -33,6 +36,8 @@ export const SimToolbarView = ({ knownIssues, outdatedNativeSim, onOpenSettings 
 		{ISSUES_REPO && <ToolbarItem href={REPO_CHOOSE_NEW_ISSUE_URL} icon="bug" tooltip={i18n.t('info.bug_report')} />}
 
 		{!isNative() && <ToolbarItem href={REPO_RELEASES_URL} icon="gauge-high" tooltip={i18n.t('info.download_native_sim')} />}
+
+		{onStartTour && <ToolbarItem testId="start-tour" icon="circle-question" tooltip={i18n.t('info.tour')} onClick={onStartTour} />}
 
 		<ToolbarItem testId="sim-options" icon="gear" tooltip={i18n.t('info.sim_options')} onClick={onOpenSettings} />
 
@@ -60,9 +65,10 @@ export interface SimToolbarProps {
 
 export const SimToolbar = ({ sim, knownIssues, onOpenSettings }: SimToolbarProps) => {
 	const outdatedNativeSim = useOutdatedNativeSim(sim);
+	const restartTour = useOnboardingRestart();
 	return (
 		<div className="ml-auto flex flex-nowrap items-end text-(length:--text-ui) font-bold" data-testid="sim-toolbar">
-			<SimToolbarView knownIssues={knownIssues} outdatedNativeSim={outdatedNativeSim} onOpenSettings={onOpenSettings} />
+			<SimToolbarView knownIssues={knownIssues} outdatedNativeSim={outdatedNativeSim} onOpenSettings={onOpenSettings} onStartTour={restartTour} />
 		</div>
 	);
 };

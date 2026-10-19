@@ -2709,6 +2709,7 @@
 		"known_issues": "Known Issues",
 		"bug_report": "Report a bug or Request a feature",
 		"sim_options": "Sim Options",
+		"tour": "Take the tour",
 		"discord": "Join us on Discord",
 		"patreon": "Support us on Patreon",
 		"github": "Contribute on GitHub",
@@ -2755,6 +2756,82 @@
 		"download_native_sim": "Download simulator for faster simulating",
 		"native_sim_outdated": "Newer version of simulator available for download",
 		"forever_notice": "Forever sims are still changing rapidly and may have issues. If your results look wrong or your sim won't run, try restoring the default settings."
+	},
+	"onboarding": {
+		"label": "Tour",
+		"progress": "{{position}} / {{total}}",
+		"start": "Show me around",
+		"next": "Next",
+		"previous": "Back",
+		"skip": "Skip tour",
+		"skip_step": "Skip this step",
+		"finish": "Done",
+		"steps": {
+			"welcome": {
+				"title": "Welcome to WoWSims",
+				"body": "Two minutes to see how a sim comes together: your gear, the fight, talents and rotation, then running it and reading the results. Skip any time; the question mark in the toolbar brings this back."
+			},
+			"spec": {
+				"title": "Class and spec",
+				"body": "Every spec has its own page. Open this to switch to another one."
+			},
+			"gear_tab": {
+				"title": "Gear",
+				"body": "Start here: the character you sim is the gear it wears."
+			},
+			"gear": {
+				"title": "Your equipment",
+				"body": "Click a slot to pick its item, enchant and gems. Hovering an item shows its tooltip."
+			},
+			"presets": {
+				"title": "Presets and saved sets",
+				"body": "Load a preset build for the current phase, or save your own gear, talents and settings to come back to."
+			},
+			"import_export": {
+				"title": "Import and export",
+				"body": "Bring your character in from the game with the addon, or share this setup as a link or JSON."
+			},
+			"settings_tab": {
+				"title": "Settings",
+				"body": "The fight to sim against, your buffs and debuffs, consumables and the options your spec has of its own."
+			},
+			"talents_tab": {
+				"title": "Talents",
+				"body": "Pick your talents here, or start from one of the preset builds."
+			},
+			"rotation_tab": {
+				"title": "Rotation",
+				"body": "How the sim plays your character. The default rotation follows the spec’s presets; the APL editor lets you write your own priority list."
+			},
+			"simulate": {
+				"title": "Run the sim",
+				"body": "Press Simulate. The tour moves on by itself when the run finishes."
+			},
+			"result": {
+				"title": "Your result",
+				"body": "The average DPS of every iteration, with its spread. Set it as the reference to compare the next run against."
+			},
+			"results_tab": {
+				"title": "Detailed results",
+				"body": "Damage by spell, buff uptimes, casts, resources, the timeline and a combat log of one iteration."
+			},
+			"bulk_tab": {
+				"title": "Batch sim",
+				"body": "Compare items, talents or whole sets against each other in one run."
+			},
+			"stat_weights": {
+				"title": "Stat weights",
+				"body": "How much each stat is worth to your character right now, to judge upgrades and drive the gear optimizer."
+			},
+			"options": {
+				"title": "Toolbar",
+				"body": "Sim options, bug reports, the native sim and our Discord. The question mark here starts this tour again."
+			},
+			"finish": {
+				"title": "You’re set",
+				"body": "That is the whole page. If something looks wrong, report it with the bug icon in the toolbar or tell us on Discord."
+			}
+		}
 	},
 	"sidebar": {
 		"iterations": "Iterations",

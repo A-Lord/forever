@@ -37,3 +37,12 @@ export const KnownIssues: Story = {
 };
 
 export const OutdatedNativeSim: Story = { args: { outdatedNativeSim: true } };
+
+/** On a spec page, where the question mark starts the guided tour again. */
+export const WithTour: Story = {
+	args: { onStartTour: fn() },
+	play: async ({ args, canvasElement }) => {
+		await userEvent.click(within(canvasElement).getByTestId('start-tour'));
+		await expect(args.onStartTour).toHaveBeenCalledOnce();
+	},
+};

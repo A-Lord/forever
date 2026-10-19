@@ -1,0 +1,27 @@
+@layer components {
+	/* The tour's layer: above dialogs, popovers and menus, below the toasts. */
+	.ui-tour {
+		@apply pointer-events-none fixed inset-0 z-tour;
+	}
+
+	.ui-tour-shield {
+		@apply pointer-events-auto absolute inset-0;
+	}
+
+	/* A step that waits for the player to act lets the page through. */
+	.ui-tour[data-waiting] .ui-tour-shield {
+		@apply pointer-events-none;
+	}
+
+	.ui-tour-dim {
+		@apply absolute inset-0 fill-black/60;
+	}
+
+	.ui-tour-ring {
+		@apply absolute top-0 left-0 rounded-lg border-2 border-primary shadow-focus-primary transition-[transform,width,height] duration-200 ease-out motion-reduce:transition-none;
+	}
+
+	.ui-tour-card {
+		@apply pointer-events-auto absolute top-0 left-0 flex w-86 max-w-modal-inset-w flex-col gap-3 border border-surface-border bg-overlay bg-clip-padding p-4 text-white shadow-popup transition-transform duration-200 ease-out motion-reduce:transition-none;
+	}
+}

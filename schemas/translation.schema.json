@@ -9657,6 +9657,9 @@
 				"sim_options": {
 					"type": "string"
 				},
+				"tour": {
+					"type": "string"
+				},
 				"discord": {
 					"type": "string"
 				},
@@ -9826,6 +9829,53 @@
 				"native_sim_outdated",
 				"forever_notice"
 			]
+		},
+		"onboarding": {
+			"type": "object",
+			"properties": {
+				"label": {
+					"type": "string"
+				},
+				"progress": {
+					"type": "string"
+				},
+				"start": {
+					"type": "string"
+				},
+				"next": {
+					"type": "string"
+				},
+				"previous": {
+					"type": "string"
+				},
+				"skip": {
+					"type": "string"
+				},
+				"skip_step": {
+					"type": "string"
+				},
+				"finish": {
+					"type": "string"
+				},
+				"steps": {
+					"type": "object",
+					"additionalProperties": {
+						"type": "object",
+						"properties": {
+							"title": {
+								"type": "string"
+							},
+							"body": {
+								"type": "string"
+							}
+						},
+						"additionalProperties": false,
+						"required": ["title", "body"]
+					}
+				}
+			},
+			"additionalProperties": false,
+			"required": ["label", "progress", "start", "next", "previous", "skip", "skip_step", "finish", "steps"]
 		},
 		"sidebar": {
 			"type": "object",
