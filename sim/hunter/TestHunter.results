@@ -224,8 +224,8 @@ dps_results: {
 dps_results: {
  key: "TestHunter-AllItems-CloakofFire-14134"
  value: {
-  dps: 751.14238
-  tps: 543.48811
+  dps: 751.46111
+  tps: 543.71122
   dtps: 7.14494
  }
 }
@@ -1139,9 +1139,9 @@ dps_results: {
 dps_results: {
  key: "TestHunter-AllItems-Thunderbrew'sBootFlask-744"
  value: {
-  dps: 762.57864
-  tps: 551.15866
-  dtps: 6.77054
+  dps: 762.21646
+  tps: 550.90513
+  dtps: 6.5365
  }
 }
 dps_results: {

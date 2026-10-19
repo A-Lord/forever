@@ -171,9 +171,9 @@ dps_results: {
 dps_results: {
  key: "TestAffliction-AllItems-CloakofFire-14134"
  value: {
-  dps: 609.39449
-  tps: 355.34525
-  dtps: 8.51189
+  dps: 599.49523
+  tps: 349.65735
+  dtps: 8.69204
   hps: 7.10771
  }
 }
@@ -1017,9 +1017,9 @@ dps_results: {
 dps_results: {
  key: "TestAffliction-AllItems-Thunderbrew'sBootFlask-744"
  value: {
-  dps: 619.53965
-  tps: 360.24231
-  dtps: 8.37395
+  dps: 621.00828
+  tps: 361.10477
+  dtps: 8.18648
   hps: 7.0649
  }
 }

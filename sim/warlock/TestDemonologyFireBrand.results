@@ -171,10 +171,10 @@ dps_results: {
 dps_results: {
  key: "TestDemonologyFireBrand-AllItems-CloakofFire-14134"
  value: {
-  dps: 701.07556
-  tps: 403.85994
-  dtps: 8.2859
-  hps: 9.58808
+  dps: 699.47538
+  tps: 402.31384
+  dtps: 7.55446
+  hps: 9.71917
  }
 }
 dps_results: {
@@ -1017,10 +1017,10 @@ dps_results: {
 dps_results: {
  key: "TestDemonologyFireBrand-AllItems-Thunderbrew'sBootFlask-744"
  value: {
-  dps: 705.04251
-  tps: 405.75553
-  dtps: 8.38227
-  hps: 9.58808
+  dps: 708.79417
+  tps: 408.63655
+  dtps: 8.19188
+  hps: 9.63266
  }
 }
 dps_results: {
