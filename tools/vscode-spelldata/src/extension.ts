@@ -77,7 +77,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 	}
 	const serverOptions: ServerOptions = {
 		command: go,
-		args: ['run', './tools/spelldata', '-lsp'],
+		args: ['run', './tools/spelldata/launch', '-lsp'],
 		options: { cwd: root },
 		transport: TransportKind.stdio,
 	};
