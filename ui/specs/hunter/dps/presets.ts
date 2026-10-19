@@ -71,7 +71,7 @@ export const BeastMasteryWeaveTalents = talents('BM Weave', '5320001505101251-00
 export const MarksmanshipTalents = talents('MM', '5-005355251152205-5');
 export const BeastMasteryTalents = talents('BM', '5320001505101251-0053250001-4');
 export const SurvivalTalents = talents('SV', '1-00531500114-52225303000021005');
-export const SurvivalMeleeTalents = talents('SV Melee', '53200005021-005005-5502000300500201');
+export const SurvivalMeleeTalents = talents('SV Melee', '53200005021-005003-5502000300500221');
 
 const classOptions = {
 	ammo: HunterOptions_Ammo.ThoriumHeadedArrow,
