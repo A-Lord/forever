@@ -105,27 +105,10 @@ export const POUNCE_APL = PresetUtils.makePresetAPLRotation('Pounce opener', Pou
 // of the fight do not need. Needs the Primal Bite talent.
 export const BEARWEAVE_APL = PresetUtils.makePresetAPLRotation('Bearweave', BearweaveApl);
 
-// Naturalist funds the full Predatory Strikes prerequisite for Rend and Tear.
-export const CatTalents = PresetUtils.makePresetTalents('Monocat', SavedTalents.create({ talentsString: '050022-55000032021031212051-054' }));
-// Primal Bite takes one additional point from Naturalist.
-export const BearweaveTalents = PresetUtils.makePresetTalents('Bearweave', SavedTalents.create({ talentsString: '050022-55000032021131212051-053' }));
-// Natural Shapeshifter and Reflection in place of the Balance points' melee hit and crit. About 47 DPS
-// behind Monocat at 180 seconds.
-export const ManaEfficientTalents = PresetUtils.makePresetTalents(
-	'Mana Efficient 0/35/16',
-	SavedTalents.create({ talentsString: '0000000000000000-35200032121032212051-0550330000000000' }),
-);
-// Tanks and plays cat on one set of talents: Thick Hide and Primal Bite, no Furor or Naturalist. About 34 DPS
-// behind Monocat at 180 seconds.
-export const HybridTalents = PresetUtils.makePresetTalents(
-	'Hybrid 9/42/0',
-	SavedTalents.create({ talentsString: '0500220000000000-35230332121132212051-0000000000000000' }),
-);
+export const CatTalents = PresetUtils.makePresetTalents('Cat', SavedTalents.create({ talentsString: '050022-35200032121131212051-05002' }));
+export const HybridTalents = PresetUtils.makePresetTalents('Hybrid', SavedTalents.create({ talentsString: '050022-05230332121131212051-04' }));
 
-// A bear form forfeits Furor's energy, so a trip costs the energy the cat went in with. Ahead of
-// Monocat only on a fight of 45 seconds exactly (+3.3); with the length varying by 15% it is 2.1
-// behind at 45 seconds and 6 to 7 behind from 60 seconds on.
 export const BearweaveBuild = PresetUtils.makePresetBuild('Bearweave (45s fights)', {
-	talents: BearweaveTalents,
+	talents: CatTalents,
 	rotation: BEARWEAVE_APL,
 });
