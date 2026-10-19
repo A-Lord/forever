@@ -40,6 +40,9 @@ const findTarget = (selector: string): Element | null => {
 	return rect && rect.width > 0 && rect.height > 0 ? element : null;
 };
 
+const missingHere = (candidate: TourStep<never>, from: TourStep<never>): boolean =>
+	!!candidate.optional && !!candidate.target && candidate.tab === from.tab && !document.querySelector(candidate.press ?? candidate.target);
+
 const viewport = () => ({ width: window.innerWidth, height: window.innerHeight });
 
 const scroller = (element: Element): Element | null => {
@@ -89,12 +92,21 @@ export const OnboardingTour = <S extends TourStep<never>>({ steps, text, prepare
 	const finish = (outcome: TourOutcome) => onEnd({ outcome, step, index, total: steps.length });
 	const leave = () => finish(kind === 'finish' ? 'done' : 'skipped');
 	const go = (delta: 1 | -1) => {
-		const next = steps[index + delta];
+		// An optional step on the tab already open is passed over at once when the page lacks its part: a run of
+		// them (the results tabs a run has nothing for) would otherwise each wait out its short look.
+		let to = index + delta;
+		const skipped: string[] = [];
+		while (steps[to] && missingHere(steps[to], step)) {
+			skipped.push(steps[to].id);
+			to += delta;
+		}
+		const next = steps[to];
+		if (skipped.length) setPassed(ids => [...ids, ...skipped]);
 		if (!next) {
 			if (delta === 1) finish('done');
 			return;
 		}
-		setCurrent({ id: next.id, index: index + delta, direction: delta });
+		setCurrent({ id: next.id, index: to, direction: delta });
 		setSawRun(null);
 	};
 

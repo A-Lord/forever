@@ -87,6 +87,23 @@ describe('OnboardingTour', () => {
 		expect(stepId()).toBe('finish');
 	});
 
+	it('passes over at once an optional step on the open tab whose part the page lacks', () => {
+		const steps: ReadonlyArray<TourStep> = [
+			{ id: 'welcome' },
+			{ id: 'gear', tab: 'results', target: '#gear' },
+			{ id: 'absent', tab: 'results', target: '#not-on-this-page', optional: true },
+			{ id: 'simulate', tab: 'results', target: '#simulate' },
+			{ id: 'finish' },
+		];
+		render(<OnboardingTour steps={steps} text={text} onEnd={vi.fn()} />);
+		key('ArrowRight');
+		settle();
+		key('ArrowRight');
+		expect(stepId()).toBe('simulate');
+		settle();
+		expect(screen.getByTestId('tour-card-progress').textContent).toContain('2 / 2');
+	});
+
 	it('waits on the Simulate step until a run started there finishes, letting the page through meanwhile', () => {
 		const { view, onEnd } = tour({ simulation: 'idle' });
 		const rerender = (simulation: SimulationState) => view.rerender(<OnboardingTour steps={STEPS} text={text} onEnd={onEnd} simulation={simulation} />);

@@ -44,6 +44,7 @@ export const SIM_TOUR_STEPS: ReadonlyArray<TourStep<SimTourContext>> = [
 	{ id: 'rotation_tab', tab: 'rotation-tab', target: tabButton('rotation-tab'), applies: canSimulate },
 	{ id: 'rotation_auto', tab: 'rotation-tab', target: testId('rotation-auto'), optional: true, applies: canSimulate },
 	{ id: 'rotation_type', tab: 'rotation-tab', target: testId('rotation-type-container'), applies: canSimulate },
+	{ id: 'rotation_presets', tab: 'rotation-tab', target: testId('rotation-presets'), applies: canSimulate },
 	{ id: 'simulate', target: testId('dps-action'), waitFor: 'simulation', applies: canSimulate },
 	{ id: 'result', target: testId('results-sim'), applies: context => context.canSimulate && context.hasResult },
 	{ id: 'results_tab', tab: RESULTS_TAB_ID, target: tabButton(RESULTS_TAB_ID), applies: canSimulate },

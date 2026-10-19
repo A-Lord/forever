@@ -2,7 +2,10 @@ import { useActivateTab } from '@features/hooks/useActivateTab';
 import { applicableSteps, OnboardingOutlet, OnboardingTour, type SimulationState, type TourEnd, type TourRun, type TourStep } from '@features/onboarding';
 import { ResultsPanelStage } from '@features/results/components/SimResultsPanel/results_panel_store';
 import i18n from '@i18n/config';
+import { ADDON_URL, DISCORD_URL } from '@sim/constants/other';
+import { Button } from '@ui-kit/Button';
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import { Trans } from 'react-i18next';
 
 import { trackEvent } from '../../tracking/utils';
 import type { SimHostObject } from '../individual_sim_ui';
@@ -27,9 +30,15 @@ export const SimOnboarding = ({ host, simReady }: SimOnboardingProps) => {
 
 const LOGO = '/forever/assets/img/WoW-Simulator-Icon.png';
 
+// The links a card's words can carry, as `<addon>…</addon>` and `<discord>…</discord>`.
+const LINKS = {
+	addon: <Button href={ADDON_URL} target="_blank" variant="link" size="none" />,
+	discord: <Button href={DISCORD_URL} target="_blank" variant="link" size="none" />,
+};
+
 const text = (step: TourStep<SimTourContext>) => ({
 	title: i18n.t(`onboarding.steps.${step.id}.title`),
-	body: i18n.t(`onboarding.steps.${step.id}.body`),
+	body: <Trans i18n={i18n} i18nKey={`onboarding.steps.${step.id}.body`} components={LINKS} />,
 	media: step.id === 'welcome' ? <img className="size-16 self-center" src={LOGO} alt="" data-testid="tour-logo" /> : undefined,
 });
 

@@ -59,7 +59,7 @@ export const RotationTabBody = ({ rotationType }: RotationTabBodyProps) => {
 						<RotationTypePicker testId="rotation-type-container" />
 						<p>{i18n.t('rotation_tab.auto.description')}</p>
 					</TabPanelColumns.Left>
-					<TabPanelColumns.Right>
+					<TabPanelColumns.Right testId="rotation-presets">
 						<RotationSidebar />
 					</TabPanelColumns.Right>
 				</TabPanelColumns.Root>
@@ -84,7 +84,7 @@ export const RotationTabBody = ({ rotationType }: RotationTabBodyProps) => {
 							)}
 						</div>
 					</TabPanelColumns.Left>
-					<TabPanelColumns.Right>
+					<TabPanelColumns.Right testId="rotation-presets">
 						<RotationSidebar />
 					</TabPanelColumns.Right>
 				</TabPanelColumns.Root>
@@ -111,7 +111,7 @@ export const RotationTabBody = ({ rotationType }: RotationTabBodyProps) => {
 							})}
 						</TabPanels>
 					</TabPanelColumns.Left>
-					<TabPanelColumns.Right>
+					<TabPanelColumns.Right testId="rotation-presets">
 						<RotationSidebar />
 					</TabPanelColumns.Right>
 				</TabPanelColumns.Root>

@@ -2777,7 +2777,7 @@
 				},
 				"import": {
 					"title": "Import",
-					"body": "Bring in your character or a build from elsewhere, such as the addon or a link someone shared."
+					"body": "Bring in your character with the <addon>WoWSims Exporter addon</addon>, or a build from a link someone shared."
 				},
 				"gear_list": {
 					"title": "Your equipment",
@@ -2838,6 +2838,10 @@
 				"rotation_type": {
 					"title": "Build your own",
 					"body": "Choose APL here to write your own rotation, action by action."
+				},
+				"rotation_presets": {
+					"title": "Preset rotations",
+					"body": "Click a preset to load a ready-made rotation. With APL selected, it shows the preset's full list of actions to read or change, and you can save your own here too."
 				},
 				"simulate": {
 					"title": "Run the sim",
@@ -2901,7 +2905,7 @@
 				},
 				"finish": {
 					"title": "You're set",
-					"body": "There is more to find on the page as you go. If you have a question or something looks wrong, ask us on Discord."
+					"body": "There is more to find on the page as you go. If you have a question or something looks wrong, ask us on <discord>Discord</discord>."
 				}
 			}
 		},
