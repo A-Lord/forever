@@ -636,7 +636,11 @@
 			"spell_power": "Spell Power",
 			"spell_haste": "Spell Haste",
 			"crit_percent": "Crit %",
-			"stamina": "Stamina"
+			"stamina": "Stamina",
+			"fire_resistance": "Fire Resistance",
+			"frost_resistance": "Frost Resistance",
+			"shadow_resistance": "Shadow Resistance",
+			"nature_resistance": "Nature Resistance"
 		},
 		"party_buffs": {
 			"title": "Party Buffs",
@@ -671,7 +675,12 @@
 			"phys_dmg_reduction": "Phys Dmg Reduction",
 			"cast_speed": "Cast Speed",
 			"phys_dmg": "Phys Dmg",
-			"spell_dmg": "Spell Dmg"
+			"spell_dmg": "Spell Dmg",
+			"major_armor_reduction": "Major Armor Reduction",
+			"minor_armor_reduction": "Minor Armor Reduction",
+			"attack_power_reduction": "Attack Power Reduction",
+			"hit_chance_reduction": "Hit Chance Reduction",
+			"attack_speed_reduction": "Attack Speed Reduction"
 		},
 		"other": {
 			"title": "Other",
