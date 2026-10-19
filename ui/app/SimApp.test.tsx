@@ -61,6 +61,8 @@ vi.mock('./SimTabsSection', async () => {
 });
 // Every import and export dialog reads the item database.
 vi.mock('./SimImportExport', () => ({ SimImportExport: () => <div className="import-export-menus" /> }));
+// The tour reads the sim's storage, which the stub sim does not have.
+vi.mock('./SimOnboarding', () => ({ SimOnboarding: ({ children }: { children: ReactNode }) => children }));
 // Both reach through the host for the run facade; SidebarActions.test.tsx asserts the sidebar's gate.
 vi.mock('@features/results/components/SimulateAction', () => ({ SimulateAction: () => <button className="dps-action" /> }));
 vi.mock('@features/stat-weights/components/StatWeightsAction', () => ({ StatWeightsAction: () => <button className="ep-weights-action" /> }));

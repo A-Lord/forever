@@ -54,6 +54,7 @@ export const Default: Story = {};
 
 /** Into the tour: the page dims except for a ring around the gear, and the card sits beside it. */
 export const RingedStep: Story = {
+	parameters: { smoke: false, smokeReason: 'The tour rings only an element with a laid-out box, and happy-dom lays nothing out.' },
 	play: async ({ canvasElement }) => {
 		const canvas = within(canvasElement.ownerDocument.body);
 		await userEvent.click(canvas.getByTestId('tour-card-next'));
