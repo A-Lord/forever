@@ -7,7 +7,11 @@ import { TourCard } from '../TourCard';
 
 /** How long a step looks for its part of the page (a tab's pane, a result) before it is passed over. */
 const TARGET_WAIT_MS = 1500;
+/** The same, for a step whose part the page may not have at all. */
+const OPTIONAL_WAIT_MS = 300;
 const TARGET_POLL_MS = 100;
+/** The room a card needs beside a tall part of the page to sit next to it. */
+const CROWDED_SIDE_ROOM = 400;
 
 export interface TourEnd<S> {
 	outcome: TourOutcome;
@@ -20,8 +24,8 @@ export interface TourEnd<S> {
 export interface OnboardingTourProps<S extends TourStep<never>> {
 	/** The steps this page has, in order (`applicableSteps`). */
 	steps: ReadonlyArray<S>;
-	/** A step's title and body. */
-	text: (step: S) => { title: ReactNode; body: ReactNode };
+	/** A step's title and body, and a picture above them (the welcome's logo). */
+	text: (step: S) => { title: ReactNode; body: ReactNode; media?: ReactNode };
 	/** Opens what a step needs before its target is looked for, such as its tab. */
 	prepare?: (step: S) => void;
 	/** For a step that waits for a simulation: it moves on once one it saw running is done. */
@@ -37,6 +41,22 @@ const findTarget = (selector: string): Element | null => {
 };
 
 const viewport = () => ({ width: window.innerWidth, height: window.innerHeight });
+
+const scroller = (element: Element): Element | null => {
+	for (let parent = element.parentElement; parent; parent = parent.parentElement) {
+		const { overflowY } = getComputedStyle(parent);
+		if ((overflowY === 'auto' || overflowY === 'scroll') && parent.scrollHeight > parent.clientHeight) return parent;
+	}
+	return document.scrollingElement;
+};
+
+// At once: a smooth scroll is cut short when a tab's pane re-renders. A part taller than most of the page
+// goes near the top rather than the middle, where its start would be lost, with room left for a sticky header.
+const bringIntoView = (element: Element) => {
+	const tall = element.getBoundingClientRect().height > window.innerHeight * 0.7;
+	element.scrollIntoView({ block: tall ? 'start' : 'center', inline: 'nearest' });
+	if (tall) scroller(element)?.scrollBy(0, -window.innerHeight * 0.15);
+};
 
 /**
  * A guided tour over the page: the page dims except for a ring around the part a card explains, and
@@ -56,9 +76,13 @@ export const OnboardingTour = <S extends TourStep<never>>({ steps, text, prepare
 	const target = located?.id === step.id ? located.element : null;
 	const box = useTrackedBox(target);
 	const ring = box && ringAround(box, viewport());
+	// A part that fills most of a narrow page leaves no side for the card, which then sits in the middle, over it.
+	const crowded = !!box && box.height > window.innerHeight * 0.6 && box.width > window.innerWidth - CROWDED_SIDE_ROOM;
 	const kind = cardKindAt(steps, index);
 	const waiting = step.waitFor === 'simulation';
 
+	// The steps passed over for want of their part, left out of the count.
+	const [passed, setPassed] = useState<ReadonlyArray<string>>([]);
 	// The step a simulation was seen running on: a run counts only once the waiting step has seen it start.
 	const [sawRun, setSawRun] = useState<string | null>(null);
 
@@ -75,23 +99,32 @@ export const OnboardingTour = <S extends TourStep<never>>({ steps, text, prepare
 	};
 
 	const open = useEffectEvent(() => prepare?.(step));
-	const passOver = useEffectEvent(() => go(current.direction));
+	const passOver = useEffectEvent(() => {
+		setPassed(ids => [...ids, step.id]);
+		go(current.direction);
+	});
 	const advance = useEffectEvent(() => go(1));
 
 	// Opens what the step needs and finds the part of the page it rings.
-	const { id: stepId, target: selector } = step;
+	const { id: stepId, target: selector, press, optional } = step;
 	useEffect(() => {
 		open();
 		if (!selector) return;
+		const giveUpAt = Math.ceil((optional ? OPTIONAL_WAIT_MS : TARGET_WAIT_MS) / TARGET_POLL_MS);
 		let tries = 0;
 		let timer = 0;
+		let pressed = !press;
 		const look = () => {
-			const element = findTarget(selector);
+			if (!pressed && press) {
+				const control = document.querySelector<HTMLElement>(press);
+				control?.click();
+				pressed = !!control;
+			}
+			const element = pressed ? findTarget(selector) : null;
 			if (element) {
-				// At once and centred: a smooth scroll is cut short when a tab's pane re-renders.
-				element.scrollIntoView({ block: 'center', inline: 'nearest' });
+				bringIntoView(element);
 				setLocated({ id: stepId, element });
-			} else if (++tries * TARGET_POLL_MS > TARGET_WAIT_MS) {
+			} else if (++tries > giveUpAt) {
 				passOver();
 			} else {
 				timer = window.setTimeout(look, TARGET_POLL_MS);
@@ -100,7 +133,7 @@ export const OnboardingTour = <S extends TourStep<never>>({ steps, text, prepare
 		// After the tab's pane has rendered.
 		timer = window.setTimeout(look, TARGET_POLL_MS / 2);
 		return () => clearTimeout(timer);
-	}, [stepId, selector]);
+	}, [stepId, selector, press, optional]);
 
 	useEffect(() => {
 		if (!waiting || simulation === undefined) return;
@@ -115,8 +148,9 @@ export const OnboardingTour = <S extends TourStep<never>>({ steps, text, prepare
 		event.preventDefault();
 	};
 
-	const { title, body } = text(step);
-	const { position, total } = stepCount(steps, index);
+	const { title, body, media } = text(step);
+	const counted = steps.filter(entry => entry === step || !passed.includes(entry.id));
+	const { position, total } = stepCount(counted, counted.indexOf(step));
 
 	return (
 		<>
@@ -141,9 +175,10 @@ export const OnboardingTour = <S extends TourStep<never>>({ steps, text, prepare
 					kind={kind}
 					title={title}
 					body={body}
+					media={media}
 					position={position}
 					total={total}
-					anchor={target}
+					anchor={crowded ? null : target}
 					waiting={waiting}
 					onNext={() => go(1)}
 					onPrevious={index > 0 ? () => go(-1) : undefined}

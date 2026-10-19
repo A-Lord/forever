@@ -9657,9 +9657,6 @@
 				"sim_options": {
 					"type": "string"
 				},
-				"tour": {
-					"type": "string"
-				},
 				"discord": {
 					"type": "string"
 				},
@@ -9785,6 +9782,9 @@
 							"additionalProperties": false,
 							"required": ["label", "tooltip", "off", "firefox_note"]
 						},
+						"restart_tour": {
+							"type": "string"
+						},
 						"restore_defaults": {
 							"type": "object",
 							"properties": {
@@ -9803,7 +9803,7 @@
 						}
 					},
 					"additionalProperties": false,
-					"required": ["title", "fixed_rng_seed", "language", "feature_toggles", "use_multiple_cpu_cores", "restore_defaults"]
+					"required": ["title", "fixed_rng_seed", "language", "feature_toggles", "use_multiple_cpu_cores", "restart_tour", "restore_defaults"]
 				},
 				"download_native_sim": {
 					"type": "string"

@@ -9,7 +9,6 @@ import type { ShellDom } from './types/shell_dom';
 vi.mock('./SimRunCard', () => ({ SimRunCard: () => <section data-testid="sim-run-card" /> }));
 vi.mock('./SimTabsSection', () => ({ SimTabsSection: ({ children }: { children: ReactNode }) => <div data-testid="tabs-root">{children}</div> }));
 vi.mock('./SimImportExport', () => ({ SimImportExport: () => <div /> }));
-vi.mock('./SimOnboarding', () => ({ SimOnboarding: ({ children }: { children: ReactNode }) => children }));
 vi.mock('@features/character-stats', () => ({ CharacterStats: () => <div data-testid="character-stats" /> }));
 vi.mock('@features/results/components/SimResultsPanel', () => ({ SimWarnings: () => <div data-testid="warning-zone" /> }));
 vi.mock('@sim/hooks/useSimStatus', () => ({ useSimStatus: () => ({ status: 'ready', error: null }) }));

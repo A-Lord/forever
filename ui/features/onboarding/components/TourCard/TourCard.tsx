@@ -16,6 +16,8 @@ export interface TourCardProps {
 	kind: TourCardKind;
 	title: ReactNode;
 	body: ReactNode;
+	/** Above the title, such as the welcome's logo. */
+	media?: ReactNode;
 	/** 1-based, of `total`: the counted steps, the welcome and the last card left out. */
 	position: number;
 	total: number;
@@ -42,7 +44,7 @@ const centred = ({ anchor, positioner }: { anchor: { height: number }; positione
  * One card of a tour, beside the ringed part of the page or in the middle of it: what that part is, how
  * far along the tour is, and the way back, on or out. While it explains, the focus stays in the card.
  */
-export const TourCard = ({ kind, title, body, position, total, anchor, onNext, onPrevious, onSkip, waiting = false, onKeyDown }: TourCardProps) => {
+export const TourCard = ({ kind, title, body, media, position, total, anchor, onNext, onPrevious, onSkip, waiting = false, onKeyDown }: TourCardProps) => {
 	const portalContainer = usePortalContainer();
 	const primary = useRef<HTMLButtonElement>(null);
 	const label =
@@ -72,6 +74,7 @@ export const TourCard = ({ kind, title, body, position, total, anchor, onNext, o
 					collisionAvoidance={anchor ? { side: 'flip', align: 'shift', fallbackAxisSide: 'end' } : { side: 'none', align: 'none' }}
 					data-testid="tour-card-positioner">
 					<BasePopover.Popup className="ui-tour-card" initialFocus={waiting ? false : primary} onKeyDown={onKeyDown} data-testid="tour-card">
+						{media}
 						{kind === 'step' && (
 							<div className="flex items-center justify-between text-xs text-muted" data-testid="tour-card-progress">
 								<span className="font-bold tracking-wide uppercase">{i18n.t('onboarding.label')}</span>

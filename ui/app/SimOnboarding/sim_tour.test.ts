@@ -22,6 +22,7 @@ describe('SIM_TOUR_STEPS', () => {
 		const planner = applicableSteps(SIM_TOUR_STEPS, { canSimulate: false, hasResult: false }).map(step => step.id);
 		expect(planner).not.toContain('simulate');
 		expect(planner).not.toContain('rotation_tab');
-		expect(planner).toContain('gear');
+		expect(planner).not.toContain('encounter');
+		expect(planner).toContain('gear_list');
 	});
 });

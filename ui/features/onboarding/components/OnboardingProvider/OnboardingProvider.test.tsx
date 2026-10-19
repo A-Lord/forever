@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { readTourOutcome } from '../../model/tour_steps';
-import { OnboardingProvider, type TourRun, useOnboardingRestart } from './OnboardingProvider';
+import { OnboardingOutlet, OnboardingProvider, type TourRun, useOnboardingRestart } from './OnboardingProvider';
 
 const RestartButton = () => {
 	const restart = useOnboardingRestart();
@@ -22,14 +22,17 @@ const Tour = ({ run }: { run: TourRun }) => (
 	</div>
 );
 
-const mount = (ready: boolean, storage = memoryEnv().storage) => {
-	const view = render(
-		<OnboardingProvider ready={ready} storage={storage} storageKey="tour" renderTour={run => <Tour run={run} />}>
-			<RestartButton />
-		</OnboardingProvider>,
-	);
-	return { storage, view };
-};
+// The restart sits outside the part of the page the tour is drawn in, as the options dialog does.
+const page = (ready: boolean, storage: ReturnType<typeof memoryEnv>['storage']) => (
+	<OnboardingProvider storage={storage} storageKey="tour">
+		<RestartButton />
+		<main>
+			<OnboardingOutlet ready={ready} renderTour={run => <Tour run={run} />} />
+		</main>
+	</OnboardingProvider>
+);
+
+const mount = (ready: boolean, storage = memoryEnv().storage) => ({ storage, view: render(page(ready, storage)) });
 
 describe('OnboardingProvider', () => {
 	beforeEach(() => vi.useFakeTimers());
@@ -39,11 +42,7 @@ describe('OnboardingProvider', () => {
 		const { storage, view } = mount(false);
 		act(() => vi.advanceTimersByTime(5000));
 		expect(screen.queryByTestId('running-tour')).toBeNull();
-		view.rerender(
-			<OnboardingProvider ready storage={storage} storageKey="tour" renderTour={run => <Tour run={run} />}>
-				<RestartButton />
-			</OnboardingProvider>,
-		);
+		view.rerender(page(true, storage));
 		act(() => vi.advanceTimersByTime(100));
 		expect(screen.queryByTestId('running-tour')).toBeNull();
 		act(() => vi.advanceTimersByTime(1000));

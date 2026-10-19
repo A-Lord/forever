@@ -68,6 +68,25 @@ describe('OnboardingTour', () => {
 		expect(stepId()).toBe('gear');
 	});
 
+	it('presses what a step needs open first, and soon passes over a part the page may not have', () => {
+		const pressed = vi.fn();
+		document.getElementById('gear')!.addEventListener('click', pressed);
+		const steps: ReadonlyArray<TourStep> = [
+			{ id: 'welcome' },
+			{ id: 'opened', press: '#gear', target: '#simulate' },
+			{ id: 'maybe', target: '#not-on-this-page', optional: true },
+			{ id: 'finish' },
+		];
+		render(<OnboardingTour steps={steps} text={text} onEnd={vi.fn()} />);
+		key('ArrowRight');
+		settle();
+		expect(stepId()).toBe('opened');
+		expect(pressed).toHaveBeenCalledOnce();
+		key('ArrowRight');
+		settle(600);
+		expect(stepId()).toBe('finish');
+	});
+
 	it('waits on the Simulate step until a run started there finishes, letting the page through meanwhile', () => {
 		const { view, onEnd } = tour({ simulation: 'idle' });
 		const rerender = (simulation: SimulationState) => view.rerender(<OnboardingTour steps={STEPS} text={text} onEnd={onEnd} simulation={simulation} />);

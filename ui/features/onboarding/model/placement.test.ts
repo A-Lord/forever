@@ -13,14 +13,8 @@ describe('ringAround', () => {
 });
 
 describe('dimPath', () => {
-	it('is the whole viewport with nothing ringed, and cuts a rounded hole for a ring', () => {
+	it('is the whole viewport with nothing ringed, and cuts a square hole for a ring', () => {
 		expect(dimPath(null, viewport)).toBe('M0 0H1600V900H0Z');
-		const path = dimPath({ left: 10, top: 20, width: 100, height: 40 }, viewport);
-		expect(path.startsWith('M0 0H1600V900H0Z')).toBe(true);
-		expect(path).toContain('M18 20H102A8 8 0 0 1 110 28');
-	});
-
-	it('keeps the corners no rounder than half a small hole', () => {
-		expect(dimPath({ left: 0, top: 0, width: 10, height: 6 }, viewport)).toContain('M3 0H7A3 3 0 0 1 10 3');
+		expect(dimPath({ left: 10, top: 20, width: 100, height: 40 }, viewport)).toBe('M0 0H1600V900H0ZM10 20H110V60H10Z');
 	});
 });

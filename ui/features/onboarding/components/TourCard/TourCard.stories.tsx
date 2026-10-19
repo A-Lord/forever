@@ -21,6 +21,7 @@ const meta = {
 	argTypes: {
 		kind: { control: 'inline-radio', options: ['welcome', 'step', 'finish'] },
 		anchor: { control: false },
+		media: { control: false },
 	},
 } satisfies Meta<typeof TourCard>;
 
@@ -40,8 +41,9 @@ export const Step: Story = {
 export const Welcome: Story = {
 	args: {
 		kind: 'welcome',
+		media: <img className="size-16 self-center" src="/forever/assets/img/WoW-Simulator-Icon.png" alt="" />,
 		title: 'Welcome to WoWSims',
-		body: 'Two minutes to see how a sim comes together. Skip any time; the question mark in the toolbar brings this back.',
+		body: 'A short look around the page, from your gear to a finished sim. Skip it any time; Sim Options can start it again.',
 		onPrevious: undefined,
 	},
 };
@@ -50,5 +52,9 @@ export const Welcome: Story = {
 export const Waiting: Story = { args: { title: 'Run the sim', body: 'Press Simulate. The tour moves on by itself when the run finishes.', waiting: true } };
 
 export const Finish: Story = {
-	args: { kind: 'finish', title: 'You’re set', body: 'If something looks wrong, report it with the bug icon in the toolbar or tell us on Discord.' },
+	args: {
+		kind: 'finish',
+		title: 'You’re set',
+		body: 'There is more to find on the page as you go. If you have a question or something looks wrong, ask us on Discord.',
+	},
 };

@@ -13,6 +13,10 @@ export interface TourStep<Context = unknown> {
 	target?: string;
 	/** The tab to open before the target is looked for. */
 	tab?: string;
+	/** A control the tour presses once the page shows it, before it looks for the target: a sub-tab only the page can open. */
+	press?: string;
+	/** The page may not have this step's part at all (a setting only some specs have): passed over after a short look. */
+	optional?: boolean;
 	/** The card waits for a simulation to finish, then moves on by itself. */
 	waitFor?: 'simulation';
 	/** False leaves the step out of the tour and its count (a gear planner has no Simulate button). */

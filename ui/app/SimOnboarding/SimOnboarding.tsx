@@ -1,42 +1,36 @@
 import { useActivateTab } from '@features/hooks/useActivateTab';
-import { applicableSteps, OnboardingProvider, OnboardingTour, type SimulationState, type TourEnd, type TourRun, type TourStep } from '@features/onboarding';
+import { applicableSteps, OnboardingOutlet, OnboardingTour, type SimulationState, type TourEnd, type TourRun, type TourStep } from '@features/onboarding';
 import { ResultsPanelStage } from '@features/results/components/SimResultsPanel/results_panel_store';
 import i18n from '@i18n/config';
-import type { Sim } from '@sim/sim';
-import { type ReactNode, useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 
 import { trackEvent } from '../../tracking/utils';
 import type { SimHostObject } from '../individual_sim_ui';
-import { ONBOARDING_STORAGE_KEY } from '../storage_keys';
 import { SIM_TOUR_STEPS, type SimTourContext } from './sim_tour';
 
 export interface SimOnboardingProps {
 	/** Null until the shell has built it; the tour waits for it. */
 	host: SimHostObject<any> | null;
-	sim: Sim;
 	/** The sim has loaded; the tour waits for it. */
 	simReady: boolean;
-	children: ReactNode;
 }
 
 /**
- * The spec page's guided tour: opens by itself the first time a player opens any spec page, once the
- * page is ready, and again from the toolbar (`useOnboardingRestart`). Inside `SimTabs`, which it opens
- * tabs through.
+ * The spec page's guided tour, drawn inside `SimTabs`, which it opens tabs through. It opens by itself the
+ * first time a player opens any spec page, once the page is ready, and again from the options dialog
+ * (`useOnboardingRestart`); the `OnboardingProvider` around the page keeps whether it has ended.
  */
-export const SimOnboarding = ({ host, sim, simReady, children }: SimOnboardingProps) => {
-	const ready = simReady && !!host;
+export const SimOnboarding = ({ host, simReady }: SimOnboardingProps) => {
 	const renderTour = useCallback((run: TourRun) => host && <SimTour host={host} run={run} />, [host]);
-	return (
-		<OnboardingProvider ready={ready} storage={sim.env.storage} storageKey={ONBOARDING_STORAGE_KEY} renderTour={renderTour}>
-			{children}
-		</OnboardingProvider>
-	);
+	return <OnboardingOutlet ready={simReady && !!host} renderTour={renderTour} />;
 };
+
+const LOGO = '/forever/assets/img/WoW-Simulator-Icon.png';
 
 const text = (step: TourStep<SimTourContext>) => ({
 	title: i18n.t(`onboarding.steps.${step.id}.title`),
 	body: i18n.t(`onboarding.steps.${step.id}.body`),
+	media: step.id === 'welcome' ? <img className="size-16 self-center" src={LOGO} alt="" data-testid="tour-logo" /> : undefined,
 });
 
 const simulationState = (stage: ResultsPanelStage): SimulationState =>

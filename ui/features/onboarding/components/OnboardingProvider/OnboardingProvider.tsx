@@ -15,33 +15,35 @@ export interface TourRun {
 	end: (outcome: TourOutcome) => void;
 }
 
-const OnboardingContext = createContext<{ restart: () => void } | null>(null);
+interface OnboardingState {
+	/** The run's number: 0 for the one that opened by itself, each restart one more; null while closed. */
+	run: number | null;
+	openFirst: () => void;
+	restart: () => void;
+	end: (outcome: TourOutcome) => void;
+	seen: () => boolean;
+}
+
+const OnboardingContext = createContext<OnboardingState | null>(null);
 
 /** Opens the tour again from its first card; undefined outside an `OnboardingProvider`. */
 export const useOnboardingRestart = (): (() => void) | undefined => use(OnboardingContext)?.restart;
 
 export interface OnboardingProviderProps {
-	/** The page is ready to be toured; the tour waits for it. */
-	ready: boolean;
 	storage: Env['storage'];
 	/** Where the outcome is kept: once a tour has ended it does not open by itself again. */
 	storageKey: string;
-	/** Draws the running tour. A new run (a restart) remounts it at its first card. */
-	renderTour: (run: TourRun) => ReactNode;
 	children: ReactNode;
 }
 
-/** Runs a tour once by itself, when the page is first ready and none has ended before, and again whenever `useOnboardingRestart` asks. */
-export const OnboardingProvider = ({ ready, storage, storageKey, renderTour, children }: OnboardingProviderProps) => {
-	// The run's number: 0 for the one that opened by itself, each restart one more; null while closed.
+/**
+ * Whether the tour is running, for an `OnboardingOutlet` below to draw and for `useOnboardingRestart` to open
+ * from anywhere under it, such as a dialog outside the part of the page the tour draws in.
+ */
+export const OnboardingProvider = ({ storage, storageKey, children }: OnboardingProviderProps) => {
 	const [run, setRun] = useState<number | null>(null);
 
-	useEffect(() => {
-		if (!ready || readTourOutcome(storage, storageKey)) return;
-		const timer = setTimeout(() => setRun(current => current ?? 0), FIRST_OPEN_DELAY_MS);
-		return () => clearTimeout(timer);
-	}, [ready, storage, storageKey]);
-
+	const openFirst = useCallback(() => setRun(current => current ?? 0), []);
 	const restart = useCallback(() => setRun(current => (current ?? 0) + 1), []);
 	const end = useCallback(
 		(outcome: TourOutcome) => {
@@ -50,18 +52,36 @@ export const OnboardingProvider = ({ ready, storage, storageKey, renderTour, chi
 		},
 		[storage, storageKey],
 	);
-	const value = useMemo(() => ({ restart }), [restart]);
+	const seen = useCallback(() => readTourOutcome(storage, storageKey) !== null, [storage, storageKey]);
+	const value = useMemo(() => ({ run, openFirst, restart, end, seen }), [run, openFirst, restart, end, seen]);
 
-	return (
-		<OnboardingContext value={value}>
-			{children}
-			{run !== null && ready && <TourMount key={run} trigger={run === 0 ? 'auto' : 'restart'} end={end} renderTour={renderTour} />}
-		</OnboardingContext>
-	);
+	return <OnboardingContext value={value}>{children}</OnboardingContext>;
+};
+
+export interface OnboardingOutletProps {
+	/** The page is ready to be toured; the tour waits for it. */
+	ready: boolean;
+	/** Draws the running tour. A new run (a restart) remounts it at its first card. */
+	renderTour: (run: TourRun) => ReactNode;
+}
+
+/** Where the running tour is drawn; nothing outside an `OnboardingProvider`. Opens it by itself once the page is first ready, unless a tour has ended before. */
+export const OnboardingOutlet = ({ ready, renderTour }: OnboardingOutletProps) => {
+	const state = use(OnboardingContext);
+	const run = state?.run ?? null;
+
+	useEffect(() => {
+		if (!state || !ready || state.seen()) return;
+		const { openFirst } = state;
+		const timer = setTimeout(openFirst, FIRST_OPEN_DELAY_MS);
+		return () => clearTimeout(timer);
+	}, [state, ready]);
+
+	return state && run !== null && ready ? <TourMount key={run} trigger={run === 0 ? 'auto' : 'restart'} end={state.end} renderTour={renderTour} /> : null;
 };
 
 const TourMount = ({ trigger, end, renderTour }: TourRun & { renderTour: (run: TourRun) => ReactNode }) => {
-	// The focus goes back where it was when the tour closes: the toolbar's button, after a restart.
+	// The focus goes back where it was when the tour closes, if that is still on the page.
 	useEffect(() => {
 		const previous = document.activeElement;
 		return () => {

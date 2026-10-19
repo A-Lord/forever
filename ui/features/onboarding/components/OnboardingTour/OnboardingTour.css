@@ -16,7 +16,7 @@
 	}
 
 	.ui-tour-ring {
-		@apply absolute top-0 left-0 rounded-lg border-2 border-primary transition-[transform,width,height] duration-200 ease-out motion-reduce:transition-none;
+		@apply absolute top-0 left-0 border-2 border-primary transition-[transform,width,height] duration-200 ease-out motion-reduce:transition-none;
 	}
 
 	.ui-tour-positioner {
