@@ -1,3 +1,4 @@
+import i18n from '@i18n/config';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -101,7 +102,7 @@ describe('OnboardingTour', () => {
 		key('ArrowRight');
 		expect(stepId()).toBe('simulate');
 		settle();
-		expect(screen.getByTestId('tour-card-progress').textContent).toContain('2 / 2');
+		expect(screen.getByTestId('tour-card-progress').textContent).toContain(i18n.t('onboarding.progress', { position: 2, total: 2 }));
 	});
 
 	it('waits on the Simulate step until a run started there finishes, letting the page through meanwhile', () => {
