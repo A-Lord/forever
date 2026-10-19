@@ -245,15 +245,41 @@
 									},
 									{
 										"cmp": {
-											"op": "OpGt",
-											"lhs": { "autoTimeToNext": { "autoType": "MainHandAuto" } },
-											"rhs": { "const": { "val": "0ms" } }
+											"op": "OpLt",
+											"lhs": { "autoTimeSinceLast": { "autoType": "MainHandAuto" } },
+											"rhs": { "variableRef": { "name": "Move duration" } }
 										}
 									}
 								]
 							}
 						},
 						"move": { "rangeFromTarget": { "variableRef": { "name": "Starting weave distance" } } }
+					}
+				},
+				{
+					"action": {
+						"condition": {
+							"and": {
+								"vals": [
+									{
+										"cmp": {
+											"op": "OpLe",
+											"lhs": { "autoTimeToNext": { "autoType": "MainHandAuto" } },
+											"rhs": { "math": { "op": "OpSub", "lhs": { "variableRef": { "name": "Move duration" } }, "rhs": { "inputDelay": {} } } }
+										}
+									},
+									{
+										"cmp": {
+											"op": "OpGe",
+											"lhs": { "autoTimeToNext": { "autoType": "RangedAuto" } },
+											"rhs": { "variableRef": { "name": "Auto Shot wait" } }
+										}
+									},
+									{ "cmp": { "op": "OpLt", "lhs": { "autoTimeSinceLast": { "autoType": "RangedAuto" } }, "rhs": { "inputDelay": {} } } }
+								]
+							}
+						},
+						"wait": { "duration": { "math": { "op": "OpSub", "lhs": { "inputDelay": {} }, "rhs": { "autoTimeSinceLast": { "autoType": "RangedAuto" } } } } }
 					}
 				},
 				{
@@ -299,8 +325,8 @@
 		{ "name": "Melee weave", "value": { "const": { "val": "true" } } },
 		{ "name": "Time to weave", "value": { "const": { "val": "100ms" } } },
 		{ "name": "Melee range", "value": { "const": { "val": "5.00" } } },
-		{ "name": "Ranged range", "value": { "const": { "val": "12.55" } } },
-		{ "name": "Walk-in range", "value": { "const": { "val": "4.37" } } },
+		{ "name": "Ranged range", "value": { "const": { "val": "11.67" } } },
+		{ "name": "Walk-in range", "value": { "const": { "val": "4.99" } } },
 		{ "name": "Starting weave distance", "value": { "variableRef": { "name": "Ranged range" } } },
 		{
 			"name": "Move duration",

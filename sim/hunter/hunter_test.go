@@ -44,7 +44,7 @@ func TestHunter(t *testing.T) {
 			},
 			Consumables:      DefaultConsumables,
 			SpecOptions:      core.SpecOptionsCombo{Label: "Default", SpecOptions: DefaultOptions},
-			StartingDistance: 12.55,
+			StartingDistance: 11.67,
 			Profession1:      proto.Profession_Engineering,
 			Profession2:      proto.Profession_Blacksmithing,
 
@@ -107,7 +107,7 @@ func TestHunterPets(t *testing.T) {
 			Consumables:      DefaultConsumables,
 			SpecOptions:      families[0],
 			OtherSpecOptions: families[1:],
-			StartingDistance: 12.55,
+			StartingDistance: 11.67,
 			Rotation:         turretRotation,
 			ItemFilter:       core.ItemFilter{ArmorType: proto.ArmorType_ArmorTypeMail},
 		},
@@ -476,8 +476,8 @@ func TestSurvivalistsDisciplineShortensTheTrapCooldown(t *testing.T) {
 	}
 }
 
-// An Auto Shot that comes due while the hunter moves winds up the moment the move ends, as the
-// player starts it again by hand, not at the hidden retry timer's next check.
+// An Auto Shot that comes due while the hunter moves winds up a reaction time after the move ends,
+// as the player starts it again by hand, not at the hidden retry timer's next check.
 func TestAutoShotWindsUpWhenTheMoveEnds(t *testing.T) {
 	player := &proto.Player{
 		Name:               "Shot",
@@ -488,6 +488,7 @@ func TestAutoShotWindsUpWhenTheMoveEnds(t *testing.T) {
 		Spec:               DefaultOptions,
 		Rotation:           &proto.APLRotation{},
 		DistanceFromTarget: 20,
+		ReactionTimeMs:     150,
 	}
 	sim := core.NewSim(&proto.RaidSimRequest{
 		Raid:       core.SinglePlayerRaidProto(player, &proto.PartyBuffs{}, &proto.RaidBuffs{}, &proto.Debuffs{}),
@@ -504,11 +505,58 @@ func TestAutoShotWindsUpWhenTheMoveEnds(t *testing.T) {
 	due := hunter.AutoAttacks.NextRangedAttackAt()
 	moveEnd := due + 300*time.Millisecond
 	hunter.MoveDuration(moveEnd-sim.CurrentTime, sim)
-	for i := 0; sim.CurrentTime <= moveEnd && i < 10000; i++ {
+	recast := moveEnd + hunter.ReactionTime
+	for i := 0; sim.CurrentTime <= recast && i < 10000; i++ {
 		sim.Step()
 	}
-	if got, want := hunter.AutoAttacks.NextRangedAttackAt(), moveEnd+core.RangedSwingWindup; got != want {
+	if got, want := hunter.AutoAttacks.NextRangedAttackAt(), recast+core.RangedSwingWindup; got != want {
 		t.Errorf("a shot due at %v during a move that ended at %v fires at %v, want %v", due, moveEnd, got, want)
+	}
+}
+
+// A hunter walking out of the deadzone who stops right on the minimum range is back in range only as
+// the walk ends; a shot that came due on the way still waits a reaction time before it winds up.
+func TestAutoShotWaitsAReactionWhenTheWalkEndsOnTheMinimumRange(t *testing.T) {
+	player := &proto.Player{
+		Name:               "Line",
+		Race:               proto.Race_RaceOrc,
+		Class:              proto.Class_ClassHunter,
+		Equipment:          core.GetGearSet("../../ui/specs/hunter/dps/gear_sets", "p1").GearSet,
+		TalentsString:      DefaultMMTalents,
+		Spec:               DefaultOptions,
+		Rotation:           &proto.APLRotation{},
+		DistanceFromTarget: 20,
+		ReactionTimeMs:     150,
+	}
+	sim := core.NewSim(&proto.RaidSimRequest{
+		Raid:       core.SinglePlayerRaidProto(player, &proto.PartyBuffs{}, &proto.RaidBuffs{}, &proto.Debuffs{}),
+		Encounter:  core.MakeSingleTargetEncounter(0),
+		SimOptions: &proto.SimOptions{RandomSeed: 1},
+	}, simsignals.CreateSignals())
+	sim.Reset()
+	sim.PrePull()
+	hunter := sim.Raid.Parties[0].Players[0].(*Hunter)
+	for i := 0; sim.CurrentTime < time.Second && i < 10000; i++ {
+		sim.Step()
+	}
+
+	// Into melee before the next shot, then out to the minimum range, arriving after it came due.
+	hunter.MoveTo(core.MaxMeleeRange, sim)
+	for i := 0; hunter.Moving && i < 10000; i++ {
+		sim.Step()
+	}
+	due := hunter.AutoAttacks.NextRangedAttackAt()
+	hunter.MoveTo(core.MinRangedRange, sim)
+	walkEnd := sim.CurrentTime + time.Duration((core.MinRangedRange-core.MaxMeleeRange)/hunter.GetMovementSpeed()*float64(time.Second))
+	if walkEnd <= due {
+		t.Fatalf("the walk out ends at %v, before the shot comes due at %v", walkEnd, due)
+	}
+	recast := walkEnd + hunter.ReactionTime
+	for i := 0; sim.CurrentTime <= recast && i < 10000; i++ {
+		sim.Step()
+	}
+	if got, want := hunter.AutoAttacks.NextRangedAttackAt(), recast+core.RangedSwingWindup; (got - want).Abs() > time.Millisecond {
+		t.Errorf("a walk out ending on the minimum range at %v fires its shot at %v, want %v", walkEnd, got, want)
 	}
 }
 
