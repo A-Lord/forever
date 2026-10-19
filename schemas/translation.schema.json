@@ -3412,10 +3412,16 @@
 							"properties": {
 								"title": {
 									"type": "string"
+								},
+								"offensive": {
+									"type": "string"
+								},
+								"defensive": {
+									"type": "string"
 								}
 							},
 							"additionalProperties": false,
-							"required": ["title"]
+							"required": ["title", "offensive", "defensive"]
 						}
 					},
 					"additionalProperties": false,

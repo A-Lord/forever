@@ -945,7 +945,9 @@
 				"title": "Scrolls"
 			},
 			"miscellaneous": {
-				"title": "Miscellaneous"
+				"title": "Miscellaneous",
+				"offensive": "Offensive",
+				"defensive": "Defensive"
 			}
 		},
 		"encounter": {
