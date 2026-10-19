@@ -33,6 +33,7 @@ func (unit *Unit) initMovement() {
 		OnExpire: func(aura *Aura, sim *Simulation) {
 			unit.Moving = false
 			unit.movementAction = nil
+			unit.AutoAttacks.resumeHeldRangedSwing(sim)
 		},
 	})
 

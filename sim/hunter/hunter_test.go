@@ -476,6 +476,42 @@ func TestSurvivalistsDisciplineShortensTheTrapCooldown(t *testing.T) {
 	}
 }
 
+// An Auto Shot that comes due while the hunter moves winds up the moment the move ends, as the
+// player starts it again by hand, not at the hidden retry timer's next check.
+func TestAutoShotWindsUpWhenTheMoveEnds(t *testing.T) {
+	player := &proto.Player{
+		Name:               "Shot",
+		Race:               proto.Race_RaceOrc,
+		Class:              proto.Class_ClassHunter,
+		Equipment:          core.GetGearSet("../../ui/specs/hunter/dps/gear_sets", "p1").GearSet,
+		TalentsString:      DefaultMMTalents,
+		Spec:               DefaultOptions,
+		Rotation:           &proto.APLRotation{},
+		DistanceFromTarget: 20,
+	}
+	sim := core.NewSim(&proto.RaidSimRequest{
+		Raid:       core.SinglePlayerRaidProto(player, &proto.PartyBuffs{}, &proto.RaidBuffs{}, &proto.Debuffs{}),
+		Encounter:  core.MakeSingleTargetEncounter(0),
+		SimOptions: &proto.SimOptions{RandomSeed: 1},
+	}, simsignals.CreateSignals())
+	sim.Reset()
+	sim.PrePull()
+	hunter := sim.Raid.Parties[0].Players[0].(*Hunter)
+	for i := 0; sim.CurrentTime < time.Second && i < 10000; i++ {
+		sim.Step()
+	}
+
+	due := hunter.AutoAttacks.NextRangedAttackAt()
+	moveEnd := due + 300*time.Millisecond
+	hunter.MoveDuration(moveEnd-sim.CurrentTime, sim)
+	for i := 0; sim.CurrentTime <= moveEnd && i < 10000; i++ {
+		sim.Step()
+	}
+	if got, want := hunter.AutoAttacks.NextRangedAttackAt(), moveEnd+core.RangedSwingWindup; got != want {
+		t.Errorf("a shot due at %v during a move that ended at %v fires at %v, want %v", due, moveEnd, got, want)
+	}
+}
+
 // One combo per pet family, fully trained.
 // The default rotation with its "Melee weave" variable turned off: the hunter stays at range.
 func stopWeaving(rotation *proto.APLRotation) {
