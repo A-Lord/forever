@@ -40,24 +40,28 @@ var hawkBaseStats = stats.Stats{
 	stats.Health: 0.05 * core.CreatureHealthMaxLevel,
 }
 
-// A swing before armor is 0.0815 of the creature dps over the 2.5 s, spanning a third either side, plus
+// A swing before armor read 0.0815 of the creature dps over the 2.5 s, spanning a third either side, plus
 // 0.0179 a point of the owner's ranged attack power: 112 attack power a point of dps at 80% of it. Both
-// are fitted (3.3-6.7 plus 0.0179 × ranged attack power at level 30), not stated in the game files.
-const hawkSwingAverage = 0.0815 * core.CreatureAutoAttackDpsMaxLevel * 2.5
+// are fitted (3.3-6.7 plus 0.0179 × ranged attack power at level 30), not stated in the game files, and
+// were read with Unleashed Fury 5/5, which reaches the hawks, so the swing here is before it.
+var hawkLogDamageMultiplier = spellData.UnleashedFury.MultiplierAt(5)
+var hawkSwingAverage = 0.0815 * core.CreatureAutoAttackDpsMaxLevel * 2.5 / hawkLogDamageMultiplier
 
 var hawkSwing = core.Weapon{
 	BaseDamageMin:     hawkSwingAverage * (1 - 1.0/3),
 	BaseDamageMax:     hawkSwingAverage * (1 + 1.0/3),
 	SwingSpeed:        2.5,
-	AttackPowerPerDPS: 112,
+	AttackPowerPerDPS: 112 * hawkLogDamageMultiplier,
 	MaxRange:          core.MaxMeleeRange,
 }
 
 // Effect 3 is the number of hawks up at once. A hawk's swing follows its owner's ranged speed while
 // it is up, a quiver's and Quick Shots' included; Berserking's attack speed does not reach it in
-// game. Its crit is the tamed pet's, the higher of melee and ranged (inheritedCrit), with none from
-// Agility, and its hit and expertise are the owner's as the tamed pet's are: 1% hit took a hawk from
-// 1 miss in 32 swings to none in 515 against a target 8 levels below it.
+// game. Its crit is half the tamed pet's, the higher of melee and ranged (inheritedCrit), with none
+// from Agility: 4340 swings with Ferocity 5/5 read 10 plus half the owner's crit against targets 2
+// levels below to 3 above it, and 0-Ferocity logs half the tamed pet's. Its hit and expertise are the
+// owner's as the tamed pet's are: 1% hit took a hawk from 1 miss in 32 swings to none in 515 against a
+// target 8 levels below it.
 func (hunter *Hunter) newHawks() []*HawkPet {
 	if !hunter.Talents.SummonHawk {
 		return nil
@@ -73,7 +77,7 @@ func (hunter *Hunter) newHawks() []*HawkPet {
 				return stats.Stats{
 					stats.Armor:               ownerStats[stats.Armor] * 0.3,
 					stats.AttackPower:         ownerStats[stats.RangedAttackPower] * 0.8,
-					stats.PhysicalCritPercent: hunter.inheritedCrit(ownerStats),
+					stats.PhysicalCritPercent: hunter.inheritedCrit(ownerStats) * 0.5,
 					stats.PhysicalHitPercent:  max(0, ownerStats[stats.PhysicalHitPercent], ownerStats[stats.PhysicalHitPercent]+ownerStats[stats.RangedHitPercent]),
 					stats.ExpertisePercent:    ownerStats[stats.ExpertisePercent],
 				}
@@ -99,6 +103,18 @@ func (hunter *Hunter) newHawks() []*HawkPet {
 		hawks[i] = hawk
 	}
 	return hawks
+}
+
+// The tamed pet and the hawks: what the talents that name pets and hawks reach.
+func (hunter *Hunter) pets() []*core.Pet {
+	var pets []*core.Pet
+	if hunter.Pet != nil {
+		pets = append(pets, &hunter.Pet.Pet)
+	}
+	for _, hawk := range hunter.Hawks {
+		pets = append(pets, &hawk.Pet)
+	}
+	return pets
 }
 
 // The dive's damage, then a hawk for 18 s. The hawks take turns, so one past the count replaces
