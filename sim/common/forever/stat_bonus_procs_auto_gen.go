@@ -299,6 +299,34 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
+	// Delivers a fatal wound for 311 Physical damage. Deals 50% increased damage to targets below 25% health.
+	// https://www.wowhead.com/forever/spell=10373
+	// unsupported: states no rate
+	// trigger 10373 (0%, core.CallbackEmpty, core.ProcMaskUnknown)
+	// shared.NewSpellDataDamageProc(shared.SpellDataProc{TriggerSpellID: 10373, BuffSpellID: 10373, IsWeaponProc: true},
+	//	[]shared.ItemVariant{
+	//	{ItemID: 9425, ItemName: "Pendulum of Doom -  - "},
+	// })
+
+	// TODO: Manual implementation required
+	//       This can be ignored if the effect has already been implemented.
+	//       With next db run the item will be removed if implemented.
+	//
+	// Each swing alternates your attack speed between 100% faster and 50% slower.
+	// https://www.wowhead.com/forever/spell=1293881
+	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
+	//	Callback:           core.CallbackEmpty,
+	//	ProcMask:           core.ProcMaskUnknown,
+	//	Outcome:            core.OutcomeEmpty,
+	//	RequireDamageDealt: false
+	// }, []shared.ItemVariant{
+	//	{ItemID: 9425, ItemName: "Pendulum of Doom -  - "},
+	// })
+
+	// TODO: Manual implementation required
+	//       This can be ignored if the effect has already been implemented.
+	//       With next db run the item will be removed if implemented.
+	//
 	// Water breathing lasts 100% longer than normal.
 	// https://www.wowhead.com/forever/spell=1320643
 	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
@@ -2170,6 +2198,19 @@ func RegisterAllProcs() {
 	// shared.NewSpellDataProc(shared.SpellDataProc{TriggerSpellID: 1294064, BuffSpellID: 1294065},
 	//	[]shared.ItemVariant{
 	//	{ItemID: 274430, ItemName: "Rock Sentinel Slicer"},
+	// })
+
+	// TODO: Manual implementation required
+	//       This can be ignored if the effect has already been implemented.
+	//       With next db run the item will be removed if implemented.
+	//
+	// Wounds the target for 168 damage.
+	// https://www.wowhead.com/forever/spell=1294226
+	// unsupported: states no rate
+	// trigger 1294226 (0%, core.CallbackEmpty, core.ProcMaskUnknown)
+	// shared.NewSpellDataDamageProc(shared.SpellDataProc{TriggerSpellID: 1294226, BuffSpellID: 1294226, IsWeaponProc: true},
+	//	[]shared.ItemVariant{
+	//	{ItemID: 274484, ItemName: "Axe of Inevitable Ruin"},
 	// })
 
 	// TODO: Manual implementation required
