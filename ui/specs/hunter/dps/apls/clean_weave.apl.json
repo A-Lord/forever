@@ -1,0 +1,210 @@
+{
+	"type": "TypeAPL",
+	"prepullActions": [
+		{ "action": { "castSpell": { "spellId": { "spellId": 14325 } } }, "doAtValue": { "const": { "val": "-22s" } } },
+		{ "action": { "castSpell": { "spellId": { "spellId": 25296 } } }, "doAtValue": { "const": { "val": "-20s" } } },
+		{
+			"action": { "move": { "rangeFromTarget": { "variableRef": { "name": "Ranged range" } } } },
+			"doAtValue": { "const": { "val": "-19s" } }
+		}
+	],
+	"priorityList": [
+		{
+			"action": {
+				"condition": {
+					"cmp": { "op": "OpGe", "lhs": { "currentTime": {} }, "rhs": { "const": { "val": "5s" } } }
+				},
+				"autocastOtherCooldowns": {}
+			}
+		},
+		{
+			"action": {
+				"condition": {
+					"not": {
+						"val": {
+							"auraIsActive": {
+								"sourceUnit": { "type": "CurrentTarget" },
+								"auraId": { "spellId": 14325 }
+							}
+						}
+					}
+				},
+				"castSpell": { "spellId": { "spellId": 14325 } }
+			}
+		},
+		{ "action": { "castSpell": { "spellId": { "spellId": 14266, "tag": 1 } } } },
+		{ "action": { "castSpell": { "spellId": { "spellId": 14271 } } } },
+		{ "action": { "castSpell": { "spellId": { "spellId": 1317257 } } } },
+		{
+			"action": {
+				"condition": {
+					"cmp": {
+						"op": "OpLe",
+						"lhs": { "unitDistance": { "sourceUnit": { "type": "Self" } } },
+						"rhs": { "const": { "val": "5" } }
+					}
+				},
+				"castSpell": { "spellId": { "spellId": 14305 } }
+			}
+		},
+		{ "action": { "castSpell": { "spellId": { "spellId": 14268 } } } },
+		{
+			"action": {
+				"condition": { "not": { "val": { "dotIsActive": { "spellId": { "spellId": 25295 } } } } },
+				"castSpell": { "spellId": { "spellId": 25295 } }
+			}
+		},
+		{ "action": { "castSpell": { "spellId": { "spellId": 14287 } } } },
+		{ "action": { "castSpell": { "spellId": { "spellId": 2643 } } } },
+		{ "action": { "groupReference": { "groupName": "Weave" } } }
+	],
+	"groups": [
+		{
+			"name": "Weave",
+			"actions": [
+				{
+					"action": {
+						"wait": {
+							"duration": {
+								"math": {
+									"op": "OpSub",
+									"lhs": { "inputDelay": {} },
+									"rhs": { "autoTimeSinceLast": { "autoType": "MainHandAuto" } }
+								}
+							}
+						}
+					}
+				},
+				{
+					"action": {
+						"condition": {
+							"cmp": {
+								"op": "OpGt",
+								"lhs": { "variableRef": { "name": "Time to walk in" } },
+								"rhs": { "const": { "val": "0s" } }
+							}
+						},
+						"move": { "rangeFromTarget": { "variableRef": { "name": "Ranged range" } } }
+					}
+				},
+				{
+					"action": {
+						"wait": {
+							"duration": {
+								"math": {
+									"op": "OpSub",
+									"lhs": { "inputDelay": {} },
+									"rhs": { "autoTimeSinceLast": { "autoType": "RangedAuto" } }
+								}
+							}
+						}
+					}
+				},
+				{
+					"action": {
+						"condition": {
+							"and": {
+								"vals": [
+									{
+										"cmp": {
+											"op": "OpLe",
+											"lhs": { "variableRef": { "name": "Time to walk in" } },
+											"rhs": { "const": { "val": "0s" } }
+										}
+									},
+									{
+										"cmp": {
+											"op": "OpGe",
+											"lhs": { "autoTimeToNext": { "autoType": "RangedAuto" } },
+											"rhs": { "variableRef": { "name": "Auto Shot wait" } }
+										}
+									}
+								]
+							}
+						},
+						"move": { "rangeFromTarget": { "variableRef": { "name": "Walk-in range" } } }
+					}
+				},
+				{
+					"action": {
+						"condition": {
+							"cmp": {
+								"op": "OpGe",
+								"lhs": {
+									"math": {
+										"op": "OpSub",
+										"lhs": { "autoTimeToNext": { "autoType": "RangedAuto" } },
+										"rhs": { "variableRef": { "name": "Time to walk in" } }
+									}
+								},
+								"rhs": { "variableRef": { "name": "Auto Shot wait" } }
+							}
+						},
+						"wait": { "duration": { "variableRef": { "name": "Time to walk in" } } }
+					}
+				}
+			]
+		}
+	],
+	"valueVariables": [
+		{ "name": "Ranged range", "value": { "const": { "val": "11.67" } } },
+		{ "name": "Walk-in range", "value": { "const": { "val": "4.99" } } },
+		{
+			"name": "Move duration",
+			"value": {
+				"math": {
+					"op": "OpMul",
+					"lhs": { "const": { "val": "1s" } },
+					"rhs": {
+						"math": {
+							"op": "OpDiv",
+							"lhs": {
+								"math": {
+									"op": "OpSub",
+									"lhs": { "variableRef": { "name": "Ranged range" } },
+									"rhs": { "variableRef": { "name": "Walk-in range" } }
+								}
+							},
+							"rhs": { "const": { "val": "7" } }
+						}
+					}
+				}
+			}
+		},
+		{
+			"name": "Time to walk in",
+			"value": {
+				"math": {
+					"op": "OpSub",
+					"lhs": { "autoTimeToNext": { "autoType": "MainHandAuto" } },
+					"rhs": { "variableRef": { "name": "Move duration" } }
+				}
+			}
+		},
+		{ "name": "Max Auto Shot delay", "value": { "const": { "val": "1.2s" } } },
+		{
+			"name": "Auto Shot wait",
+			"value": {
+				"math": {
+					"op": "OpSub",
+					"lhs": {
+						"math": {
+							"op": "OpAdd",
+							"lhs": {
+								"math": {
+									"op": "OpAdd",
+									"lhs": { "variableRef": { "name": "Move duration" } },
+									"rhs": { "variableRef": { "name": "Move duration" } }
+								}
+							},
+							"rhs": {
+								"math": { "op": "OpAdd", "lhs": { "inputDelay": {} }, "rhs": { "inputDelay": {} } }
+							}
+						}
+					},
+					"rhs": { "variableRef": { "name": "Max Auto Shot delay" } }
+				}
+			}
+		}
+	]
+}

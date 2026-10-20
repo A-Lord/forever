@@ -48,7 +48,8 @@ func TestHunter(t *testing.T) {
 			Profession1:      proto.Profession_Engineering,
 			Profession2:      proto.Profession_Blacksmithing,
 
-			Rotation: core.GetAplRotation("../../ui/specs/hunter/dps/apls", "default"),
+			Rotation:       core.GetAplRotation("../../ui/specs/hunter/dps/apls", "default"),
+			OtherRotations: []core.RotationCombo{core.GetAplRotation("../../ui/specs/hunter/dps/apls", "clean_weave")},
 
 			ItemFilter: core.ItemFilter{
 				ArmorType: proto.ArmorType_ArmorTypeMail,

@@ -13,6 +13,7 @@ import {
 } from '@generated/proto/hunter';
 import { SavedTalents } from '@generated/proto/ui';
 
+import CleanWeaveAPL from './apls/clean_weave.apl.json';
 import WeaveAPL from './apls/default.apl.json';
 import MeleeAPL from './apls/melee.apl.json';
 import TurretAPL from './apls/turret.apl.json';
@@ -50,6 +51,9 @@ export const TurretMultiAPLRotation = PresetUtils.makePresetAPLRotation(
 export const TurretHawkAPLRotation = PresetUtils.makePresetAPLRotation('Turret (Hawks)', TurretHawkAPL);
 export const WeaveAPLRotation = PresetUtils.makePresetAPLRotation('Melee Weave', WeaveAPL);
 export const WeaveHawkAPLRotation = PresetUtils.makePresetAPLRotation('Melee Weave (Hawks)', withVariables(WeaveAPL, { 'Use Summon Hawk': true }));
+// The weave with no toggles: every shot goes ahead of the weave, and a weave is a walk in for the next
+// swing that is back before the Auto Shot it delays is more than Max Auto Shot delay late.
+export const CleanWeaveAPLRotation = PresetUtils.makePresetAPLRotation('Clean Weave', CleanWeaveAPL);
 export const MeleeAPLRotation = PresetUtils.makePresetAPLRotation('Melee', MeleeAPL);
 
 export const DefaultRotation = WeaveAPLRotation;
