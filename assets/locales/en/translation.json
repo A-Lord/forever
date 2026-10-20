@@ -636,7 +636,11 @@
 			"spell_power": "Spell Power",
 			"spell_haste": "Spell Haste",
 			"crit_percent": "Crit %",
-			"stamina": "Stamina"
+			"stamina": "Stamina",
+			"fire_resistance": "Fire Resistance",
+			"frost_resistance": "Frost Resistance",
+			"shadow_resistance": "Shadow Resistance",
+			"nature_resistance": "Nature Resistance"
 		},
 		"party_buffs": {
 			"title": "Party Buffs",
@@ -671,7 +675,12 @@
 			"phys_dmg_reduction": "Phys Dmg Reduction",
 			"cast_speed": "Cast Speed",
 			"phys_dmg": "Phys Dmg",
-			"spell_dmg": "Spell Dmg"
+			"spell_dmg": "Spell Dmg",
+			"major_armor_reduction": "Major Armor Reduction",
+			"minor_armor_reduction": "Minor Armor Reduction",
+			"attack_power_reduction": "Attack Power Reduction",
+			"hit_chance_reduction": "Hit Chance Reduction",
+			"attack_speed_reduction": "Attack Speed Reduction"
 		},
 		"other": {
 			"title": "Other",
@@ -945,7 +954,9 @@
 				"title": "Scrolls"
 			},
 			"miscellaneous": {
-				"title": "Miscellaneous"
+				"title": "Miscellaneous",
+				"offensive": "Offensive",
+				"defensive": "Defensive"
 			}
 		},
 		"encounter": {
@@ -1826,6 +1837,10 @@
 					"label": "Spell in Flight",
 					"tooltip": "<b>True</b> if this spell is currently in flight, otherwise <b>False</b>."
 				},
+				"spell_expected_dpet": {
+					"label": "Spell Expected DPET",
+					"tooltip": "The expected damage of a spell if you cast it now, assuming it lands. Includes cast time, GCD time, and averaged crit."
+				},
 				"aura_known": {
 					"label": "Aura Known",
 					"tooltip": "<b>True</b> if the aura is currently known, otherwise <b>False</b>."
@@ -2015,10 +2030,6 @@
 					"label": "Dot Tick Rate Increase %",
 					"tooltip": "How much faster a new DoT would tick compared to the old."
 				},
-				"dot_expected_dps": {
-					"label": "Dot Expected DPS",
-					"tooltip": "The expected damage per second of the DoT or channel if cast now: its average tick, with crits, over its tick period. Compares spells that tick at different rates."
-				},
 				"variable_ref": {
 					"label": "Variable Reference",
 					"tooltip": "Reference a named condition variable"
@@ -2138,6 +2149,7 @@
 					"non_instant_spells": "Non-instant Spell",
 					"friendly_spells": "Friendly Spell",
 					"expected_dot_spells": "DoT Spell",
+					"expected_damage_spells": "Damage Spell",
 					"spells_with_travelTime": "Spell"
 				},
 				"field_configs": {

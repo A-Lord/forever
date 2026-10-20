@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/stats"
@@ -39,6 +40,90 @@ func (action *APLActionCastSpell) Execute(sim *Simulation) {
 }
 func (action *APLActionCastSpell) String() string {
 	return fmt.Sprintf("Cast Spell(%s)", action.spell.ActionID)
+}
+
+// Runs the action's own post-finalize step, then warns for each spell the action and its inner
+// actions cast from out of reach. The actions a group reference expands to are skipped: the
+// group's own actions warn.
+func (rot *APLRotation) postFinalize(action *APLAction) {
+	action.impl.PostFinalize(rot)
+	all := action.GetAllActions()
+	inGroup := make(map[*APLAction]bool)
+	for _, inner := range all {
+		if ref, ok := inner.impl.(*APLActionGroupReference); ok {
+			for _, grouped := range ref.GetInnerActions() {
+				inGroup[grouped] = true
+			}
+		}
+	}
+	for _, inner := range all {
+		if spell := castSpellOf(inner); spell != nil && !inGroup[inner] {
+			rot.warnIfNeverInRange(spell)
+		}
+	}
+}
+
+func castSpellOf(action *APLAction) *Spell {
+	switch impl := action.impl.(type) {
+	case *APLActionCastSpell:
+		return impl.spell
+	case *APLActionCastFriendlySpell:
+		return impl.spell
+	case *APLActionChannelSpell:
+		return impl.spell
+	case *APLActionMultidot:
+		return impl.spell
+	case *APLActionStrictMultidot:
+		return impl.spell
+	case *APLActionMultishield:
+		return impl.spell
+	}
+	return nil
+}
+
+// The range check refuses a cast from farther than the spell's MaxRange, so a spell that does not
+// reach the distance the character starts at is never cast unless the rotation moves it closer. A
+// range mod that is not active yet may still lengthen the reach, so the spell gets the benefit of it.
+func (rot *APLRotation) warnIfNeverInRange(spell *Spell) {
+	reach := spell.EffectiveMaxRange()
+	start := rot.unit.StartDistanceFromTarget
+	if reach == 0 || start <= reach || rot.canMoveCloser() || hasInactiveRangeMod(spell) {
+		return
+	}
+	rot.ValidationMessage(proto.LogLevel_Warning, "%s reaches %.0f yd and the character starts %.0f yd from the target; nothing in the rotation moves it closer, so it is never cast.", spell.ActionID, reach, start)
+}
+
+// Whether a move, a custom rotation or a cast that carries the caster to its target sits anywhere in
+// the rotation or the pre-pull. A Move Duration moves on the spot and does not count.
+func (rot *APLRotation) canMoveCloser() bool {
+	if !rot.canMoveCloserKnown {
+		rot.canMoveCloserKnown = true
+		rot.canMoveCloserValue = anyMovesCloser(rot.allAPLActions()) || anyMovesCloser(rot.allPrepullActions())
+	}
+	return rot.canMoveCloserValue
+}
+
+func anyMovesCloser(actions []*APLAction) bool {
+	for _, action := range actions {
+		switch impl := action.impl.(type) {
+		case *APLActionMove, *APLActionCustomRotation:
+			return true
+		case *APLActionCastSpell:
+			if impl.spell.Flags.Matches(SpellFlagMovesToTarget) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func hasInactiveRangeMod(spell *Spell) bool {
+	for _, mod := range spell.Unit.spellMods {
+		if !mod.IsActive && (mod.Kind == SpellMod_Range_Flat || mod.Kind == SpellMod_Range_Pct) && slices.Contains(mod.AffectedSpells, spell) {
+			return true
+		}
+	}
+	return false
 }
 
 type APLActionCastFriendlySpell struct {

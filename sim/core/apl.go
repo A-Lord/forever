@@ -15,6 +15,9 @@ type APLRotation struct {
 	valueVariables []*APLValueVariable
 	resetActions   []*APLAction
 
+	canMoveCloserKnown bool // canMoveCloser's answer is set once, as it depends only on the rotation.
+	canMoveCloserValue bool
+
 	// Shared variable caches: all APLValueVariableRef instances for the same
 	// variable name share the same cache (but each has its own expression tree).
 	variableCaches map[string]*variableCache
@@ -318,7 +321,7 @@ func (rot *APLRotation) getStats() *proto.APLStats {
 	// Perform one final round of validation after post-finalize effects.
 	for i, action := range rot.prepullActions {
 		rot.doAndRecordWarnings(&rot.prepullValidations[rot.prepullIdxMap[i]], true, func() {
-			action.impl.PostFinalize(rot)
+			rot.postFinalize(action)
 		})
 	}
 
@@ -327,14 +330,14 @@ func (rot *APLRotation) getStats() *proto.APLStats {
 		// Parse actions in the group
 		for actionIdx, action := range group.actions {
 			rot.doAndRecordWarnings(&rot.groupListValidations[groupIdx][rot.groupListIdxMap[groupIdx][actionIdx]], false, func() {
-				action.impl.PostFinalize(rot)
+				rot.postFinalize(action)
 			})
 		}
 	}
 
 	for i, action := range rot.priorityList {
 		rot.doAndRecordWarnings(&rot.priorityListValidations[rot.priorityListIdxMap[i]], false, func() {
-			action.impl.PostFinalize(rot)
+			rot.postFinalize(action)
 		})
 	}
 

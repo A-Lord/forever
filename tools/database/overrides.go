@@ -1118,6 +1118,7 @@ var ConsumableAllowList = []int32{
 	13454, // Greater Arcane Elixir
 	12662, // Demonic Rune
 	5206,  // Bogling Root
+	12217, // Dragonbreath Chili, whose proc sim/common/forever registers by hand
 	// The Natural flasks, whose zone bonus sim/common/forever registers by hand
 	274273, // Flask of Natural Accuracy
 	274274, // Flask of Natural Aggression
@@ -1199,6 +1200,14 @@ var ConsumableExclusiveGroups = []ConsumableGroup{
 		8423,  // Cerebral Cortex Compound
 		8424,  // Gizzard Gum
 		20079, // Spirit of Zanza
+	}},
+	{Group: ConsumableGroupKey{Key: "Rum", Name: "Rum"}, Items: []int32{
+		17048, // Rumsey Rum
+		18269, // Gordok Green Grog
+		18284, // Kreeg's Stout Beatdown
+		20709, // Rumsey Rum Light
+		21114, // Rumsey Rum Dark
+		21151, // Rumsey Rum Black Label
 	}},
 	{Group: ConsumableGroupKey{Key: "Hit food", Name: "Hit food"}, Items: []int32{
 		22237, // Dark Desire
