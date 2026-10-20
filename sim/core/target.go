@@ -18,10 +18,7 @@ type Encounter struct {
 	ActiveTargetUnits []*Unit
 
 	ExecuteProportion_20 float64
-	ExecuteProportion_25 float64
 	ExecuteProportion_35 float64
-	ExecuteProportion_45 float64
-	ExecuteProportion_90 float64
 
 	// Every kind of area the fight is in, deduplicated.
 	AreaTypes []proto.AreaType
@@ -52,19 +49,14 @@ func (encounter *Encounter) InArea(areaType proto.AreaType) bool {
 }
 
 func NewEncounter(options *proto.Encounter) Encounter {
-	options.ExecuteProportion_25 = max(options.ExecuteProportion_25, options.ExecuteProportion_20)
-	options.ExecuteProportion_35 = max(options.ExecuteProportion_35, options.ExecuteProportion_25)
-	options.ExecuteProportion_45 = max(options.ExecuteProportion_45, options.ExecuteProportion_35)
+	options.ExecuteProportion_35 = max(options.ExecuteProportion_35, options.ExecuteProportion_20)
 	totalTargetCount := max(len(options.Targets), 1)
 
 	encounter := Encounter{
 		Duration:             DurationFromSeconds(options.Duration),
 		DurationVariation:    DurationFromSeconds(options.DurationVariation),
 		ExecuteProportion_20: max(options.ExecuteProportion_20, 0),
-		ExecuteProportion_25: max(options.ExecuteProportion_25, 0),
 		ExecuteProportion_35: max(options.ExecuteProportion_35, 0),
-		ExecuteProportion_45: max(options.ExecuteProportion_45, 0),
-		ExecuteProportion_90: max(options.ExecuteProportion_90, 0),
 		AreaTypes:            areaTypeSet(options.AreaTypes),
 		AllTargets:           make([]*Target, 0, totalTargetCount),
 		ActiveTargets:        make([]*Target, 0, totalTargetCount),
