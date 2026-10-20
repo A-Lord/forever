@@ -264,12 +264,10 @@ func TestValueEncounter(t *testing.T) {
 		want      bool
 	}{
 		{proto.APLValueIsExecutePhase_E20, 20, true},
-		{proto.APLValueIsExecutePhase_E20, 25, false},
-		{proto.APLValueIsExecutePhase_E25, 25, true},
-		{proto.APLValueIsExecutePhase_E35, 45, false},
-		{proto.APLValueIsExecutePhase_E45, 45, true},
-		{proto.APLValueIsExecutePhase_E90, 100, true},
-		{proto.APLValueIsExecutePhase_E90, 90, false},
+		{proto.APLValueIsExecutePhase_E20, 35, false},
+		{proto.APLValueIsExecutePhase_E35, 20, true},
+		{proto.APLValueIsExecutePhase_E35, 35, true},
+		{proto.APLValueIsExecutePhase_E35, 100, false},
 	}
 	for _, tt := range thresholds {
 		value := rot.newValueIsExecutePhase(&proto.APLValueIsExecutePhase{Threshold: tt.threshold}, nil)
@@ -279,7 +277,8 @@ func TestValueEncounter(t *testing.T) {
 		}
 	}
 	wantNoValue(t, map[string]APLValue{
-		"Is Execute Phase with an unknown threshold": rot.newValueIsExecutePhase(&proto.APLValueIsExecutePhase{}, nil),
+		"Is Execute Phase with an unknown threshold":         rot.newValueIsExecutePhase(&proto.APLValueIsExecutePhase{}, nil),
+		"Is Execute Phase with a threshold outside the enum": rot.newValueIsExecutePhase(&proto.APLValueIsExecutePhase{Threshold: 4}, nil),
 	})
 }
 

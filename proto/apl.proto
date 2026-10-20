@@ -470,10 +470,9 @@ message APLValueIsExecutePhase {
     enum ExecutePhaseThreshold {
         Unknown = 0;
         E20 = 1;
-        E25 = 2;
         E35 = 3;
-        E45 = 4;
-		E90 = 5;
+        reserved 2, 4, 5;
+        reserved "E25", "E45", "E90";
     }
     ExecutePhaseThreshold threshold = 1;
 }
