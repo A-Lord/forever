@@ -50,29 +50,30 @@ func (hunter *Hunter) registerFocusedFire() {
 }
 
 // Effect 1 scales the damage done of Tamed Pet Passive (8875), which states 0: the talent's
-// amount is the whole bonus. It names Summon Hawk too, which the store carries.
+// amount is the whole bonus. Its class flags match the Summon Hawk dive too, which the store carries,
+// and no spell of the hawks'.
 func (hunter *Hunter) registerUnleashedFury() {
 	if hunter.Talents.UnleashedFury == 0 {
 		return
 	}
 
 	spelldata.ParseStatic(&hunter.Character, spellData.UnleashedFury.Rank(hunter.Talents.UnleashedFury))
-	for _, pet := range hunter.pets() {
-		pet.PseudoStats.DamageDealtMultiplier *= spellData.UnleashedFury.MultiplierAt(hunter.Talents.UnleashedFury)
+	if hunter.Pet != nil {
+		hunter.Pet.PseudoStats.DamageDealtMultiplier *= spellData.UnleashedFury.MultiplierAt(hunter.Talents.UnleashedFury)
 	}
 }
 
-// Effect 1 adds to the crit chance of Tamed Pet Passive (19591), which states 0. It names Summon
-// Hawk's damage too, which the store carries.
+// Effect 1 adds to the crit chance of Tamed Pet Passive (19591), which states 0. Its class flags
+// match the Summon Hawk dive too, which the store carries, and no spell of the hawks'.
 func (hunter *Hunter) registerFerocity() {
 	if hunter.Talents.Ferocity == 0 {
 		return
 	}
 
 	spelldata.ParseStatic(&hunter.Character, spellData.Ferocity.Rank(hunter.Talents.Ferocity))
-	crit := spellData.Ferocity.ValueAt(hunter.Talents.Ferocity)
-	for _, pet := range hunter.pets() {
-		pet.AddStats(stats.Stats{stats.PhysicalCritPercent: crit, stats.SpellCritPercent: crit})
+	if hunter.Pet != nil {
+		crit := spellData.Ferocity.ValueAt(hunter.Talents.Ferocity)
+		hunter.Pet.AddStats(stats.Stats{stats.PhysicalCritPercent: crit, stats.SpellCritPercent: crit})
 	}
 }
 
