@@ -88,9 +88,9 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 			prayerOfFortitude: true,
 			windfuryTotem: true,
 			strengthOfEarthTotem: true,
+			battleShout: TristateEffect.TristateEffectRegular,
 		}),
 		partyBuffs: PartyBuffs.create({
-			battleShout: TristateEffect.TristateEffectRegular,
 			manaSpringTotem: TristateEffect.TristateEffectRegular,
 		}),
 		individualBuffs: IndividualBuffs.create({
@@ -131,7 +131,7 @@ export default defineSpec<Spec.SpecFeralCatDruid>({
 	presets: {
 		epWeights: [Presets.DefaultEpWeights],
 		// Preset talents that the user can quickly select.
-		talents: [Presets.CatTalents, Presets.BearweaveTalents, Presets.ManaEfficientTalents, Presets.HybridTalents],
+		talents: [Presets.CatTalents, Presets.HybridTalents],
 		rotations: [
 			Presets.MONOCAT_APL,
 			Presets.SHADOWMELD_APL,
