@@ -28,10 +28,10 @@ const RangedSwingWindup = time.Millisecond * 500
 const MaxMeleeRange = 5.0 // in yards
 
 // The yards a bow, gun or crossbow cannot fire inside, in the sim's distance, where melee range is
-// 5 yd. The game counts a shot's 8 yd minimum from both units' combat reach, and melee range is
-// both reaches plus 4/3 yd, so the deadzone past melee range is 8 - 4/3 yd whatever the target's
-// size, once the two reaches sum to 5 - 4/3 yd or more, as every boss's do with a player's 1.5.
-const MinRangedRange = MaxMeleeRange + 8.0 - 4.0/3.0
+// 5 yd: the row's 8 yd minimum as a full 8 yd deadzone past melee range. The game counts the 8 yd
+// from both units' combat reach and gives melee range both reaches plus 4/3 yd, which leaves a
+// deadzone of 8 - 4/3 yd in game; the sim keeps the full 8 yd.
+const MinRangedRange = MaxMeleeRange + 8.0
 
 const DefaultAttackPowerPerDPS = 14.0
 
