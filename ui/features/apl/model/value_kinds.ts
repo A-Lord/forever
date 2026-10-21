@@ -98,6 +98,7 @@ import {
 	APLValueTotemRemainingTime,
 	APLValueUnitDistance,
 	APLValueUnitIsMoving,
+	APLValueUnitMovementSpeed,
 	APLValueWarlockActivePet,
 	APLValueWarlockAssignedCurseIsActive,
 	APLValueWarlockIsAssignedCurse,
@@ -343,6 +344,13 @@ export const valueKinds: { [f in ValidAPLValueKind]: ValueKindModel<APLValueImpl
 		submenu: ['unit'],
 		shortDescription: i18n.t('rotation_tab.apl.values.distance_to_unit.tooltip'),
 		newValue: APLValueUnitDistance.create,
+		fields: [unitFieldConfig('sourceUnit', 'aura_sources')],
+	}),
+	unitMovementSpeed: inputBuilder({
+		label: i18n.t('rotation_tab.apl.values.unit_movement_speed.label'),
+		submenu: ['unit'],
+		shortDescription: i18n.t('rotation_tab.apl.values.unit_movement_speed.tooltip'),
+		newValue: APLValueUnitMovementSpeed.create,
 		fields: [unitFieldConfig('sourceUnit', 'aura_sources')],
 	}),
 
