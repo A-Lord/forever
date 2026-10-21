@@ -1,5 +1,28 @@
 {
 	"type": "TypeAPL",
+	"prepullActions": [
+		{
+			"action": {
+				"condition": {
+					"cmp": {
+						"op": "OpLt",
+						"lhs": { "numberTargets": {} },
+						"rhs": { "const": { "val": "4" } }
+					}
+				},
+				"castSpell": {
+					"spellId": {
+						"spellId": 9912
+					}
+				}
+			},
+			"doAtValue": {
+				"const": {
+					"val": "-1.5s"
+				}
+			}
+		}
+	],
 	"priorityList": [
 		{ "action": { "autocastOtherCooldowns": {} } },
 		{ "action": { "condition": { "cmp": { "op": "OpLt", "lhs": { "currentManaPercent": {} }, "rhs": { "const": { "val": "10%" } } } }, "castSpell": { "spellId": { "spellId": 29166 } } } },
