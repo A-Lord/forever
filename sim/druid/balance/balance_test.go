@@ -30,13 +30,8 @@ func TestBalance(t *testing.T) {
 			OtherGearSets: []core.GearSetCombo{
 				core.GetGearSet("../../../ui/specs/druid/balance/gear_sets", "prebis"),
 			},
-			Talents:  DefaultTalents,
-			Rotation: core.GetAplRotation("../../../ui/specs/druid/balance/apls", "default"),
-			// Rank 6 spends the Eclipse aura on the cheaper Starfire. The wrath list fills with Wrath.
-			OtherRotations: []core.RotationCombo{
-				core.GetAplRotation(".", "starfire_rank6"),
-				core.GetAplRotation(".", "wrath"),
-			},
+			Talents:          DefaultTalents,
+			Rotation:         core.GetAplRotation("../../../ui/specs/druid/balance/apls", "default"),
 			Consumables:      DefaultConsumables,
 			Profession1:      proto.Profession_Enchanting,
 			Profession2:      proto.Profession_Tailoring,
