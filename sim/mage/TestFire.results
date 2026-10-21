@@ -281,8 +281,8 @@ dps_results: {
 dps_results: {
  key: "TestFire-AllItems-EnchantBoots-MinorSpeed-911"
  value: {
-  dps: 819.95176
-  tps: 588.41247
+  dps: 870.71326
+  tps: 612.96465
  }
 }
 dps_results: {

@@ -366,10 +366,10 @@ dps_results: {
 dps_results: {
  key: "TestDemonologyFireBrand-AllItems-EnchantBoots-MinorSpeed-911"
  value: {
-  dps: 715.32847
-  tps: 412.06532
-  dtps: 8.01741
-  hps: 9.71917
+  dps: 713.71575
+  tps: 413.00886
+  dtps: 8.09104
+  hps: 9.58808
  }
 }
 dps_results: {

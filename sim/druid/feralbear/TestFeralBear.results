@@ -399,10 +399,10 @@ dps_results: {
 dps_results: {
  key: "TestFeralBear-AllItems-EnchantBoots-MinorSpeed-911"
  value: {
-  dps: 455.21488
-  tps: 708.58017
-  dtps: 375.26425
-  hps: 58.18985
+  dps: 454.72757
+  tps: 767.32272
+  dtps: 375.97808
+  hps: 84.81231
  }
 }
 dps_results: {

@@ -366,9 +366,9 @@ dps_results: {
 dps_results: {
  key: "TestAffliction-AllItems-EnchantBoots-MinorSpeed-911"
  value: {
-  dps: 626.39963
-  tps: 363.90087
-  dtps: 8.16784
+  dps: 627.91794
+  tps: 366.27594
+  dtps: 8.13956
   hps: 7.10771
  }
 }

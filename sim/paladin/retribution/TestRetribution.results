@@ -398,9 +398,10 @@ dps_results: {
 dps_results: {
  key: "TestRetribution-AllItems-EnchantBoots-MinorSpeed-911"
  value: {
-  dps: 815.97277
-  tps: 700.4933
-  dtps: 7.83332
+  dps: 817.00551
+  tps: 702.76032
+  dtps: 7.867
+  hps: 23.04919
  }
 }
 dps_results: {

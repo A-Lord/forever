@@ -471,9 +471,9 @@ dps_results: {
  key: "TestProtectionWarrior-AllItems-EnchantBoots-MinorSpeed-911"
  value: {
   dps: 463.24697
-  tps: 997.94039
+  tps: 1025.52521
   dtps: 288.11637
-  hps: 16.4
+  hps: 36.90278
  }
 }
 dps_results: {

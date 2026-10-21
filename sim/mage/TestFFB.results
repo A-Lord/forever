@@ -281,8 +281,8 @@ dps_results: {
 dps_results: {
  key: "TestFFB-AllItems-EnchantBoots-MinorSpeed-911"
  value: {
-  dps: 843.75016
-  tps: 617.79672
+  dps: 826.66482
+  tps: 605.88299
  }
 }
 dps_results: {

@@ -312,8 +312,9 @@ dps_results: {
 dps_results: {
  key: "TestFeralCat-AllItems-EnchantBoots-MinorSpeed-911"
  value: {
-  dps: 616.18889
-  tps: 329.24226
+  dps: 614.80727
+  tps: 328.53475
+  hps: 46.13972
  }
 }
 dps_results: {
