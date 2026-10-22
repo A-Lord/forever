@@ -130,6 +130,26 @@ describe('OnboardingTour', () => {
 		expect(stepId()).toBe('simulate');
 	});
 
+	it('goes back from a waiting step on the left arrow pressed on the page, but not in a control that uses the arrows', () => {
+		tour({ simulation: 'idle' });
+		for (let i = 0; i < 2; i++) {
+			key('ArrowRight');
+			settle(2000);
+		}
+		expect(stepId()).toBe('simulate');
+
+		const field = document.body.appendChild(document.createElement('input'));
+		fireEvent.keyDown(field, { key: 'ArrowLeft' });
+		expect(stepId()).toBe('simulate');
+		field.remove();
+
+		fireEvent.keyDown(document.body, { key: 'ArrowRight' });
+		expect(stepId()).toBe('simulate');
+		fireEvent.keyDown(document.body, { key: 'ArrowLeft' });
+		settle(2000);
+		expect(stepId()).toBe('gear');
+	});
+
 	it('stays where it was when the step it is on drops out of the tour', () => {
 		const { view, onEnd } = tour();
 		key('ArrowRight');

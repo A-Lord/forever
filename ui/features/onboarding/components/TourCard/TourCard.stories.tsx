@@ -43,7 +43,7 @@ export const Welcome: Story = {
 		kind: 'welcome',
 		media: <img className="size-16 self-center" src="/forever/assets/img/WoW-Simulator-Icon.png" alt="" />,
 		title: 'Welcome to WoWSims',
-		body: 'A short look around the page, from your gear to a finished sim. Skip it any time; Sim Options can start it again.',
+		body: 'A short look around the page, from your gear to a finished sim. Move through it with the left and right arrow keys, or skip it any time; Sim Options can start it again.',
 		onPrevious: undefined,
 	},
 };

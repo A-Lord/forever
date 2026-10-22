@@ -45,6 +45,12 @@ const missingHere = (candidate: TourStep<never>, from: TourStep<never>): boolean
 
 const viewport = () => ({ width: window.innerWidth, height: window.innerHeight });
 
+// A control that moves its own value or selection with the arrow keys: a field, a select, a slider, a
+// tab list, a menu. An arrow pressed in one of them is the page's, not the tour's.
+const ARROW_KEY_CONTROLS =
+	'input, textarea, select, [contenteditable=""], [contenteditable="true"], [role="tablist"], [role="listbox"], [role="menu"], [role="menubar"], [role="radiogroup"], [role="slider"], [role="grid"], [role="tree"]';
+const takesArrowKeys = (target: EventTarget | null): boolean => target instanceof Element && !!target.closest(ARROW_KEY_CONTROLS);
+
 const scroller = (element: Element): Element | null => {
 	for (let parent = element.parentElement; parent; parent = parent.parentElement) {
 		const { overflowY } = getComputedStyle(parent);
@@ -65,7 +71,9 @@ const bringIntoView = (element: Element) => {
  * A guided tour over the page: the page dims except for a ring around the part a card explains, and
  * the card sits beside it. The page cannot be clicked while a card explains it, except on a step that
  * waits for the player to run a simulation. A step whose part the page does not show is passed over in
- * the direction of travel. In the card, the right and left arrows move on and back; Escape leaves.
+ * the direction of travel. In the card, the right and left arrows move on and back; Escape leaves. On a
+ * step that waits, the page keeps the focus, so the left arrow goes back from the page too, unless a
+ * control the page uses the arrows in has the focus.
  */
 export const OnboardingTour = <S extends TourStep<never>>({ steps, text, prepare, simulation, onEnd }: OnboardingTourProps<S>) => {
 	// By id: the steps change under the tour (a result appears once the player has run the sim). When the
@@ -152,6 +160,23 @@ export const OnboardingTour = <S extends TourStep<never>>({ steps, text, prepare
 		if (simulation === 'running') setSawRun(stepId);
 		else if (simulation === 'done' && sawRun === stepId) advance();
 	}, [waiting, simulation, sawRun, stepId]);
+
+	// The card is not modal on a waiting step and does not take the focus, so its own handler hears
+	// nothing until the player clicks into it.
+	const back = useEffectEvent(() => go(-1));
+	const canGoBack = index > 0;
+	useEffect(() => {
+		if (!waiting || !canGoBack) return;
+		const onPageKeyDown = (event: globalThis.KeyboardEvent) => {
+			if (event.key !== 'ArrowLeft' || event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+			if (event.target instanceof Element && event.target.closest('.ui-tour-card')) return;
+			if (takesArrowKeys(event.target)) return;
+			event.preventDefault();
+			back();
+		};
+		document.addEventListener('keydown', onPageKeyDown);
+		return () => document.removeEventListener('keydown', onPageKeyDown);
+	}, [waiting, canGoBack]);
 
 	const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
 		if (event.key === 'ArrowRight' && !waiting) go(1);
