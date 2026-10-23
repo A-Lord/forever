@@ -184,8 +184,8 @@ message APLValue {
         APLValueSpellIsExpertiseCapped spell_is_expertise_capped = 29;
 
         // Talent values
-        APLValueTalentIsKnown talent_is_known = 138;
-        APLValueTalentRank talent_rank = 139;
+        APLValueTalentIsKnown talent_is_known = 140;
+        APLValueTalentRank talent_rank = 141;
 
         // Aura values
         APLValueAuraIsKnown aura_is_known = 73;
