@@ -6427,6 +6427,19 @@
 									"additionalProperties": false,
 									"required": ["label", "tooltip"]
 								},
+								"is_casting": {
+									"type": "object",
+									"properties": {
+										"label": {
+											"type": "string"
+										},
+										"tooltip": {
+											"type": "string"
+										}
+									},
+									"additionalProperties": false,
+									"required": ["label", "tooltip"]
+								},
 								"is_channeling": {
 									"type": "object",
 									"properties": {
@@ -7317,6 +7330,7 @@
 								"cast_time",
 								"travel_time",
 								"cpm",
+								"is_casting",
 								"is_channeling",
 								"channeled_ticks",
 								"number_of_charges",
