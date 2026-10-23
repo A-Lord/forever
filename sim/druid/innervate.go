@@ -19,6 +19,9 @@ func (druid *Druid) registerInnervateCD() {
 		return !target.HasActiveAuraWithTag(buffs.InnervatesCategory)
 	}
 	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, _ *core.Spell) {
+		if druid.SelfBuffs.GiftInnervate {
+			return
+		}
 		aura.Activate(sim)
 	}
 	druid.Innervate = druid.RegisterSpell(config)
