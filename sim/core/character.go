@@ -10,6 +10,7 @@ import (
 	"github.com/wowsims/forever/sim/core/proto"
 	"github.com/wowsims/forever/sim/core/stats"
 	"google.golang.org/protobuf/encoding/protowire"
+	googleproto "google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
@@ -84,6 +85,8 @@ type Character struct {
 	PartyIndex int
 
 	Pets []*Pet // cached in AddPet, for advance()
+
+	talents protoreflect.Message // The class's talents proto, set by FillTalentsProto.
 
 	// Used for manually modifying a rotation before it's constructed
 	rotationTransformations []RotationTransformation
@@ -505,6 +508,7 @@ func (character *Character) FillPlayerStats(playerStats *proto.PlayerStats) {
 	playerStats.Sets = character.GetActiveSetBonusNames()
 
 	playerStats.Metadata = character.GetMetadata()
+	playerStats.Metadata.Talents = character.heldTalents()
 	for _, pet := range character.Pets {
 		playerStats.Pets = append(playerStats.Pets, &proto.PetStats{
 			Metadata: pet.GetMetadata(),
@@ -769,8 +773,14 @@ func (character *Character) GetMatchingItemProcAuras(statTypesToMatch []stats.St
 }
 
 // Uses proto reflection to set fields in a talents proto (e.g. MageTalents,
-// WarriorTalents) based on a talentsStr.
-func FillTalentsProto(data protoreflect.Message, talentsStr string, treeSizes [3]int) {
+// WarriorTalents) based on a talentsStr. The character keeps the proto, which TalentRank and the
+// unit metadata read.
+func (character *Character) FillTalentsProto(data protoreflect.Message, talentsStr string, treeSizes [3]int) {
+	fillTalentsProto(data, talentsStr, treeSizes)
+	character.talents = data
+}
+
+func fillTalentsProto(data protoreflect.Message, talentsStr string, treeSizes [3]int) {
 	treeStrs := strings.Split(talentsStr, "-")
 	fieldDescriptors := data.Descriptor().Fields()
 
@@ -791,6 +801,42 @@ func FillTalentsProto(data protoreflect.Message, talentsStr string, treeSizes [3
 		}
 		offset += treeSizes[treeIdx]
 	}
+}
+
+// The points held in the talent whose field carries this talent_spell_id, or 0.
+func (character *Character) TalentRank(spellID int32) int32 {
+	for _, talent := range character.heldTalents() {
+		if talent.GetSpellId() == spellID {
+			return talent.Rank
+		}
+	}
+	return 0
+}
+
+// Every talent with points in it, as its talent_spell_id at the rank it holds.
+func (character *Character) heldTalents() []*proto.ActionID {
+	if character.talents == nil {
+		return nil
+	}
+
+	var held []*proto.ActionID
+	fields := character.talents.Descriptor().Fields()
+	for i := range fields.Len() {
+		fd := fields.Get(i)
+		spellID := googleproto.GetExtension(fd.Options(), proto.E_TalentSpellId).(int32)
+
+		var rank int32
+		if fd.Kind() == protoreflect.BoolKind {
+			rank = TernaryInt32(character.talents.Get(fd).Bool(), 1, 0)
+		} else {
+			rank = int32(character.talents.Get(fd).Int())
+		}
+
+		if spellID != 0 && rank > 0 {
+			held = append(held, &proto.ActionID{RawId: &proto.ActionID_SpellId{SpellId: spellID}, Rank: rank})
+		}
+	}
+	return held
 }
 
 func (character *Character) RegisterRotationTransformation(transformation RotationTransformation) {

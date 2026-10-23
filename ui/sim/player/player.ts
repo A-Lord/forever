@@ -93,11 +93,13 @@ export class UnitMetadata {
 	private name: string;
 	private auras: Array<AuraStats>;
 	private spells: Array<SpellStats>;
+	private talents: Array<ActionId>;
 
 	constructor() {
 		this.name = '';
 		this.auras = [];
 		this.spells = [];
+		this.talents = [];
 	}
 
 	getName(): string {
@@ -110,6 +112,11 @@ export class UnitMetadata {
 
 	getSpells(): Array<SpellStats> {
 		return this.spells.slice();
+	}
+
+	/** The talents the unit has points in, each at the rank it holds. */
+	getTalents(): Array<ActionId> {
+		return this.talents.slice();
 	}
 
 	// Returns whether any updates were made.
@@ -127,7 +134,9 @@ export class UnitMetadata {
 			};
 		});
 
+		const talentsFill = Promise.all(metadata.talents.map(talent => ActionId.fromProto(talent).fill()));
 		await Promise.all([...newSpells, ...newAuras].map(newSpell => newSpell.id.fill().then(newId => (newSpell.id = newId))));
+		const newTalents = (await talentsFill).sort((a, b) => stringComparator(a.name, b.name));
 
 		newSpells = dropLoneRanks(newSpells).sort((a, b) => stringComparator(a.id.name, b.id.name));
 		newAuras = dropLoneRanks(newAuras).sort((a, b) => stringComparator(a.id.name, b.id.name));
@@ -143,6 +152,14 @@ export class UnitMetadata {
 		}
 		if (newAuras.length != this.auras.length || newAuras.some((newAura, i) => !newAura.id.equals(this.auras[i].id))) {
 			this.auras = newAuras;
+			anyUpdates = true;
+		}
+		// Every rank of a talent shares its spell id, so the rank is compared too.
+		if (
+			newTalents.length != this.talents.length ||
+			newTalents.some((talent, i) => !talent.equals(this.talents[i]) || talent.rank != this.talents[i].rank)
+		) {
+			this.talents = newTalents;
 			anyUpdates = true;
 		}
 
