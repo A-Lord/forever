@@ -86,7 +86,7 @@ type Character struct {
 
 	Pets []*Pet // cached in AddPet, for advance()
 
-	talents protoreflect.Message // The class's talents proto, set by FillTalentsProto.
+	talents []*proto.ActionID // Every talent with points in it, at its talent_spell_id and held rank.
 
 	// Used for manually modifying a rotation before it's constructed
 	rotationTransformations []RotationTransformation
@@ -503,7 +503,7 @@ func (character *Character) FillPlayerStats(playerStats *proto.PlayerStats) {
 	playerStats.Sets = character.GetActiveSetBonusNames()
 
 	playerStats.Metadata = character.GetMetadata()
-	playerStats.Metadata.Talents = character.heldTalents()
+	playerStats.Metadata.Talents = character.talents
 	for _, pet := range character.Pets {
 		playerStats.Pets = append(playerStats.Pets, &proto.PetStats{
 			Metadata: pet.GetMetadata(),
@@ -768,16 +768,12 @@ func (character *Character) GetMatchingItemProcAuras(statTypesToMatch []stats.St
 }
 
 // Uses proto reflection to set fields in a talents proto (e.g. MageTalents,
-// WarriorTalents) based on a talentsStr. The character keeps the proto, which TalentRank and the
-// unit metadata read.
+// WarriorTalents) based on a talentsStr. The character keeps every talent with points in it, which
+// TalentRank and the unit metadata read.
 func (character *Character) FillTalentsProto(data protoreflect.Message, talentsStr string, treeSizes [3]int) {
-	fillTalentsProto(data, talentsStr, treeSizes)
-	character.talents = data
-}
-
-func fillTalentsProto(data protoreflect.Message, talentsStr string, treeSizes [3]int) {
 	treeStrs := strings.Split(talentsStr, "-")
 	fieldDescriptors := data.Descriptor().Fields()
+	character.talents = nil
 
 	var offset int
 	for treeIdx, treeStr := range treeStrs {
@@ -788,10 +784,17 @@ func fillTalentsProto(data protoreflect.Message, talentsStr string, treeSizes [3
 			if fd == nil {
 				panic(fmt.Sprintf("Couldn't find proto field for talent #%d, full string: %s", talentOffset, talentsStr))
 			}
+			rank := int32(talentVal)
 			if fd.Kind() == protoreflect.BoolKind {
-				data.Set(fd, protoreflect.ValueOfBool(talentVal == 1))
+				rank = TernaryInt32(talentVal == 1, 1, 0)
+				data.Set(fd, protoreflect.ValueOfBool(rank == 1))
 			} else { // Int32Kind
-				data.Set(fd, protoreflect.ValueOfInt32(int32(talentVal)))
+				data.Set(fd, protoreflect.ValueOfInt32(rank))
+			}
+			if spellID := googleproto.GetExtension(fd.Options(), proto.E_TalentSpellId).(int32); spellID != 0 && rank > 0 {
+				id := ActionID{SpellID: spellID}.ToProto()
+				id.Rank = rank
+				character.talents = append(character.talents, id)
 			}
 		}
 		offset += treeSizes[treeIdx]
@@ -800,38 +803,12 @@ func fillTalentsProto(data protoreflect.Message, talentsStr string, treeSizes [3
 
 // The points held in the talent whose field carries this talent_spell_id, or 0.
 func (character *Character) TalentRank(spellID int32) int32 {
-	for _, talent := range character.heldTalents() {
+	for _, talent := range character.talents {
 		if talent.GetSpellId() == spellID {
 			return talent.Rank
 		}
 	}
 	return 0
-}
-
-// Every talent with points in it, as its talent_spell_id at the rank it holds.
-func (character *Character) heldTalents() []*proto.ActionID {
-	if character.talents == nil {
-		return nil
-	}
-
-	var held []*proto.ActionID
-	fields := character.talents.Descriptor().Fields()
-	for i := range fields.Len() {
-		fd := fields.Get(i)
-		spellID := googleproto.GetExtension(fd.Options(), proto.E_TalentSpellId).(int32)
-
-		var rank int32
-		if fd.Kind() == protoreflect.BoolKind {
-			rank = TernaryInt32(character.talents.Get(fd).Bool(), 1, 0)
-		} else {
-			rank = int32(character.talents.Get(fd).Int())
-		}
-
-		if spellID != 0 && rank > 0 {
-			held = append(held, &proto.ActionID{RawId: &proto.ActionID_SpellId{SpellId: spellID}, Rank: rank})
-		}
-	}
-	return held
 }
 
 func (character *Character) RegisterRotationTransformation(transformation RotationTransformation) {

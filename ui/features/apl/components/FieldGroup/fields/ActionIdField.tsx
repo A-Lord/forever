@@ -29,10 +29,7 @@ export interface ActionIdFieldProps {
 	getParentValue: () => any;
 }
 
-// Every rank of a talent shares one spell id, so two ranked ids also compare their ranks. An id
-// saved without a rank still matches its spell at any rank.
-const sameActionId = (a: ActionId | undefined, b: ActionId | undefined) =>
-	(a == null) == (b == null) && (!a || (a.equals(b!) && (!a.rank || !b!.rank || a.rank == b!.rank)));
+const sameActionId = (a: ActionId | undefined, b: ActionId | undefined) => (a == null) == (b == null) && (!a || a.equalsAtRank(b!));
 
 /**
  * The spell or aura a field names.

@@ -154,11 +154,7 @@ export class UnitMetadata {
 			this.auras = newAuras;
 			anyUpdates = true;
 		}
-		// Every rank of a talent shares its spell id, so the rank is compared too.
-		if (
-			newTalents.length != this.talents.length ||
-			newTalents.some((talent, i) => !talent.equals(this.talents[i]) || talent.rank != this.talents[i].rank)
-		) {
+		if (newTalents.length != this.talents.length || newTalents.some((talent, i) => !talent.equalsAtRank(this.talents[i]))) {
 			this.talents = newTalents;
 			anyUpdates = true;
 		}
