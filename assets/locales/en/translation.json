@@ -2332,26 +2332,12 @@
 				"retribution": {
 					"aura": {
 						"label": "Aura",
-						"tooltip": "The aura you turn on before the pull.",
-						"values": {
-							"retribution": "Retribution Aura",
-							"devotion": "Devotion Aura",
-							"concentration": "Concentration Aura",
-							"fire_resistance": "Fire Resistance Aura",
-							"frost_resistance": "Frost Resistance Aura",
-							"shadow_resistance": "Shadow Resistance Aura"
-						}
+						"tooltip": "The aura you turn on before the pull."
 					},
 					"assigned_seal": {
 						"label": "Assigned seal",
-						"tooltip": "The seal whose Judgement the raid assigned you. You cast it before the pull and judge it on your way in, then switch to your own seals. Pick None when no Judgement is assigned to you.",
-						"values": {
-							"none": "None",
-							"crusader": "Seal of the Crusader",
-							"light": "Seal of Light",
-							"wisdom": "Seal of Wisdom",
-							"justice": "Seal of Justice"
-						}
+						"tooltip": "The seal whose Judgement the raid assigned you. You cast it before the pull and judge it on your way in, then switch to your own seals. Leave it empty when no Judgement is assigned to you.",
+						"none": "No assigned seal"
 					},
 					"pull_range": {
 						"label": "Starting range (yd)",

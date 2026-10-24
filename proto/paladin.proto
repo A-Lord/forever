@@ -71,12 +71,13 @@ message PaladinOptions {
 
 // The auras a paladin turns on before the pull.
 enum PaladinAura {
-	RetributionAura      = 0;
-	DevotionAura         = 1;
-	ConcentrationAura    = 2;
-	FireResistanceAura   = 3;
-	FrostResistanceAura  = 4;
-	ShadowResistanceAura = 5;
+	AuraUnknown          = 0; // Not a choice: the simple rotation keeps the aura its APL casts.
+	RetributionAura      = 1;
+	DevotionAura         = 2;
+	ConcentrationAura    = 3;
+	FireResistanceAura   = 4;
+	FrostResistanceAura  = 5;
+	ShadowResistanceAura = 6;
 }
 
 // The seals whose Judgement a raid assigns a paladin to keep on the target.

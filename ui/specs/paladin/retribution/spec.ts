@@ -2,7 +2,6 @@ import * as BuffDebuffInputs from '@features/settings/model/buffs_debuffs';
 import * as OtherInputs from '@features/settings/model/other_inputs';
 import { APLGroup, APLListItem, APLRotation, APLRotation_Type, APLValueVariable } from '@generated/proto/apl';
 import { Cooldowns, ItemSlot, PseudoStat, Spec, Stat } from '@generated/proto/common';
-import { PaladinAura, PaladinSeal } from '@generated/proto/paladin';
 import { PlayerClasses } from '@sim/player/classes';
 import { Player } from '@sim/player/player';
 import { WeaponSkillGroup } from '@sim/player/weapon_skill_groups';
@@ -13,22 +12,6 @@ import { defineSpec } from '@sim/spec_config';
 
 import * as Inputs from './inputs';
 import * as Presets from './presets';
-
-// The highest rank of each aura and assigned seal; Concentration Aura and Seal of Justice have one rank.
-const AURA_SPELLS: Record<PaladinAura, { spellId: number; rank?: number }> = {
-	[PaladinAura.RetributionAura]: { spellId: 10301, rank: 5 },
-	[PaladinAura.DevotionAura]: { spellId: 10293, rank: 7 },
-	[PaladinAura.ConcentrationAura]: { spellId: 19746 },
-	[PaladinAura.FireResistanceAura]: { spellId: 19900, rank: 3 },
-	[PaladinAura.FrostResistanceAura]: { spellId: 19898, rank: 3 },
-	[PaladinAura.ShadowResistanceAura]: { spellId: 19896, rank: 3 },
-};
-const SEAL_SPELLS: Partial<Record<PaladinSeal, { spellId: number; rank?: number }>> = {
-	[PaladinSeal.SealOfTheCrusader]: { spellId: 20308, rank: 6 },
-	[PaladinSeal.SealOfLight]: { spellId: 20349, rank: 4 },
-	[PaladinSeal.SealOfWisdom]: { spellId: 20357, rank: 3 },
-	[PaladinSeal.SealOfJustice]: { spellId: 20164 },
-};
 
 const aplFor = (player: Player<Spec.SpecRetributionPaladin>): APLRotation =>
 	player.getTalents().holyShock ? Presets.HolyShockAplPreset.rotation.rotation! : Presets.TwistOfLightAplPreset.rotation.rotation!;
@@ -145,6 +128,7 @@ export default defineSpec<Spec.SpecRetributionPaladin>({
 		BuffDebuffInputs.Vindication,
 	],
 	rotationInputs: Inputs.RotationInputs,
+	rotationIconInputs: Inputs.RotationIconInputs,
 	// Inputs to include in the 'Other' section on the settings tab.
 	otherInputs: {
 		inputs: [OtherInputs.InputDelay, OtherInputs.TankAssignment, OtherInputs.InFrontOfTarget],
@@ -174,7 +158,8 @@ export default defineSpec<Spec.SpecRetributionPaladin>({
 	simpleRotation: (player: Player<Spec.SpecRetributionPaladin>, simple: SpecRotation<Spec.SpecRetributionPaladin>, cooldowns: Cooldowns): APLRotation => {
 		const actions = AplUtils.simpleCooldownActions(cooldowns);
 		const rotation = APLRotation.clone(aplFor(player));
-		const seal = SEAL_SPELLS[simple.assignedSeal];
+		const aura = Inputs.AURA_SPELLS[simple.aura];
+		const seal = Inputs.SEAL_SPELLS[simple.assignedSeal];
 
 		const values: Record<string, string> = {
 			'Has assigned seal': String(!!seal),
@@ -185,7 +170,8 @@ export default defineSpec<Spec.SpecRetributionPaladin>({
 			variable.name in values ? APLValueVariable.fromJson({ name: variable.name, value: { const: { val: values[variable.name] } } }) : variable,
 		);
 
-		const groups: Record<string, APLGroup> = { 'Activate assigned aura': castGroup('Activate assigned aura', AURA_SPELLS[simple.aura]) };
+		const groups: Record<string, APLGroup> = {};
+		if (aura) groups['Activate assigned aura'] = castGroup('Activate assigned aura', aura);
 		if (seal) groups['Cast assigned seal'] = castGroup('Cast assigned seal', seal);
 		rotation.groups = rotation.groups.map(group => groups[group.name] ?? group);
 

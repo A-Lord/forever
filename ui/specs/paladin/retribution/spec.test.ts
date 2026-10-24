@@ -49,6 +49,10 @@ describe('Retribution simple rotation', () => {
 		expect(group(rotation, 'Cast assigned seal')).toEqual(aplGroup(TwistOfLightApl, 'Cast assigned seal'));
 	});
 
+	it('leaves Activate assigned aura as the APL has it when no aura is set', () => {
+		expect(group(generate({ aura: PaladinAura.AuraUnknown }), 'Activate assigned aura')).toEqual(aplGroup(TwistOfLightApl, 'Activate assigned aura'));
+	});
+
 	it.each([
 		[PaladinAura.RetributionAura, { spellId: 10301, rank: 5 }],
 		[PaladinAura.DevotionAura, { spellId: 10293, rank: 7 }],

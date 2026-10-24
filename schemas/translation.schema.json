@@ -8309,42 +8309,10 @@
 												},
 												"tooltip": {
 													"type": "string"
-												},
-												"values": {
-													"type": "object",
-													"properties": {
-														"retribution": {
-															"type": "string"
-														},
-														"devotion": {
-															"type": "string"
-														},
-														"concentration": {
-															"type": "string"
-														},
-														"fire_resistance": {
-															"type": "string"
-														},
-														"frost_resistance": {
-															"type": "string"
-														},
-														"shadow_resistance": {
-															"type": "string"
-														}
-													},
-													"additionalProperties": false,
-													"required": [
-														"retribution",
-														"devotion",
-														"concentration",
-														"fire_resistance",
-														"frost_resistance",
-														"shadow_resistance"
-													]
 												}
 											},
 											"additionalProperties": false,
-											"required": ["label", "tooltip", "values"]
+											"required": ["label", "tooltip"]
 										},
 										"assigned_seal": {
 											"type": "object",
@@ -8355,31 +8323,12 @@
 												"tooltip": {
 													"type": "string"
 												},
-												"values": {
-													"type": "object",
-													"properties": {
-														"none": {
-															"type": "string"
-														},
-														"crusader": {
-															"type": "string"
-														},
-														"light": {
-															"type": "string"
-														},
-														"wisdom": {
-															"type": "string"
-														},
-														"justice": {
-															"type": "string"
-														}
-													},
-													"additionalProperties": false,
-													"required": ["none", "crusader", "light", "wisdom", "justice"]
+												"none": {
+													"type": "string"
 												}
 											},
 											"additionalProperties": false,
-											"required": ["label", "tooltip", "values"]
+											"required": ["label", "tooltip", "none"]
 										},
 										"pull_range": {
 											"type": "object",
