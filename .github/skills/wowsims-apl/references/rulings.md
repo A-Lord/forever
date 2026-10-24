@@ -6,10 +6,10 @@ Each line is the rule the code follows, where it lives, and the pull request tha
 
 - **At a player's hardcast end the rotation picks at the cast-end timestamp, before the cast's outcome applies; the
   pick never queues a major cooldown, which decides at the cast end with the outcome visible, a pushback re-queues, and
-  pets and enemies look after the landing.** `sim/core/gcd.go`, `docs/rotation.md`, PR #640.
+  pets and enemies look after the landing; the flow is `docs/rotation.md`.** `sim/core/gcd.go`, PR #640.
 - **During the hardcast its own dot or own-id aura reads as landed, its own cooldown as started and Current Mana after
   its cost; `Spell Is Casting` guards refresh lines, and Strict Sequence and Strict Multidot yield to major cooldowns at
-  the cast-end pass.** `sim/core/apl_values_aura.go`, `docs/rotation.md` §What the pick sees, PR #640.
+  the cast-end pass; the full table is `docs/rotation.md` §What the pick sees.** `sim/core/apl_values_aura.go`, PR #640.
 - **Include Reaction Time delays every aura change the same way, the unit's own casts included; during a hardcast the
   cast's own aura reads as landed instead.** `sim/core/apl_values_aura.go`, PR #638, PR #640.
 
