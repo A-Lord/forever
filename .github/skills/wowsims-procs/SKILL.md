@@ -29,7 +29,7 @@ the detail.
 
 | You are…                                                                               | Open                                                                    |
 | -------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| building a trigger from a row: the four chance shapes, what it fills, the rate options | `docs/spell_data/procs.md`, the opening table and the two after it      |
+| building a trigger from a row: the four chance shapes, what it fills, the rate options | `docs/spell_data/procs.md`, the opening tables                          |
 | porting a proc-chance or proc-cooldown talent, a pet's or a target-side trigger        | `docs/spell_data/procs.md`, the paragraphs on `ProcSpellClassFlags`     |
 | reading what the decoder made of a row, or a tooltip hint                              | `docs/spell_data/procs.md` §The decoder and the tooltip hints           |
 | registering an item, enchant or set proc                                               | `docs/spell_data/procs.md` §Item and enchant procs                      |
@@ -43,8 +43,7 @@ What `ProcTrigger` fills and the Enrage example are in `procs.md`. What the page
 - **Register it one of two ways.** `unit.MakeProcTriggerAura(trigger)` gives the listener an aura of its own, up all
   fight; `buff.AttachProcTriggerCallback(&unit, trigger)` hangs it on a buff, so it hears hits only while that buff is
   up. Either way `trigger.Name` is set first (see Traps).
-- **The ICD is the row's.** `ProcTrigger` takes it from `s.ICD()`, and a typed cooldown is a defect: Hack and Slash's
-  row states 200 ms where the code had 500.
+- **The ICD is the row's** (`s.ICD()`); a typed one is a defect, as Hack and Slash's 500 ms against its row's 200 was.
 - **A row with charges needs a spender.** `ProcCharges` becomes the buff's `MaxStacks` through `AuraConfig`, and
   nothing takes a stack off until `spelldata.AttachChargeSpender(character, buff, row, name)` is attached. It spends
   one charge per cast however many targets the cast hits (`core.OncePerCast`), and a channel's once at its end.
@@ -92,8 +91,9 @@ Registration, the enchant slot rules, `ItemProcUnsupportedWithRate` and the two 
 
 - **Read the tooltip before the column.** `$h%` makes the column the chance; `$mN%` or `$sN%` makes that effect's
   ladder the chance; no chance and 100 or 101 means the proc fires on its own condition, and 101 usually means no
-  proc at all; anything else is a procs-per-minute rate the game files lack, a `PPM(n)` literal with a review TODO
-  on a class proc and an override row on gear (`fillProcChance` in `resolve_proc.go`).
+  proc at all; anything else is a procs-per-minute rate the game files lack (`fillProcChance` in `resolve_proc.go`).
+  That rate is an override onto the row's `RPPM` first (`Field: PPM` in `spell_overrides.go`, Omen of Clarity is the
+  case) or an override row on gear, and a `PPM(n)` literal with a review TODO only where no override fits.
 - **An unstated rate takes the carry-over value with a TODO**, or is written and commented out until a rate exists.
   Its `Source` drives the gear tab's notice for an unvalidated rate (`rateOrigin` in `tools/database/gen_effects.go`,
   `ui/features/gear/item_notices.tsx`): `vanilla-carryover` and `tbc-carryover` name their origin, a measured rate's
