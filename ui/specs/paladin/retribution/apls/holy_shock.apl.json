@@ -107,7 +107,7 @@
 						"vals": [
 							{
 								"spellIsReady": {
-									"spellId": { "spellId": 20930, "rank": 4 }
+									"spellId": { "spellId": 25902, "rank": 4 }
 								}
 							},
 							{
@@ -126,7 +126,7 @@
 				"condition": {
 					"variableRef": { "name": "Consecrated Ground check" }
 				},
-				"castSpell": { "spellId": { "spellId": 20930, "rank": 4 } }
+				"castSpell": { "spellId": { "spellId": 25902, "rank": 4 } }
 			}
 		},
 		{
@@ -481,7 +481,7 @@
 											"lhs": {
 												"spellTimeToReady": {
 													"spellId": {
-														"spellId": 20930,
+														"spellId": 25902,
 														"rank": 4
 													}
 												}
