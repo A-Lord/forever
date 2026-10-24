@@ -108,7 +108,7 @@ every run writes `<Suite>.results.tmp`, which git ignores; its presence means no
   `sim/common/forever/class_items_test.go`; buffs and debuffs in `sim/core/buffs/meta_constructors_test.go` (shapes)
   and `sim/core/buffs/meta_test.go` (values). UI component tests are `wowsims-ui`.
 - **A snapshot test writes its list when missing** and rewrites it under an `UPDATE_*` variable, and its path joins the
-  snapshot block in `.gitignore`; `Test*.results` stay tracked.
+  snapshot block in `.gitignore`; the suites' `.results` stay tracked.
 
 ## Proving a claim at runtime
 
@@ -136,12 +136,13 @@ with the print commands in §The gates:
 - the pin helpers: `grep -n 'func withRows\|func editRow' sim/core/spelldata/spelldata_test.go sim/common/shared/spell_data_heal_proc_test.go`
 - `references/traps.md`: `grep -n 'RandomSeed + i' sim/core/sim.go`, `grep -n DiscardUnknown cmd/wowsimcli/cmd/basic_sim.go`
 
-| You changed…                                                               | Update                                    |
-| -------------------------------------------------------------------------- | ----------------------------------------- |
-| a step in `run_tests.yml`, a make test target, `database_load.go` or a tag | §The gates                                |
-| `test_suite.go`, `test_generators.go` or `proto/test.proto`                | §.results discipline                      |
-| a snapshot list, a `withDBCInputs` test or an ignored input                | `references/stale-inputs.md`              |
-| a pin helper, or where a kind of test lives                                | §What a test asserts, "Where things live" |
+| You changed…                                                                                | Update                                    |
+| ------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| a step in `run_tests.yml`, a make test target, `database_load.go` or a tag                  | §The gates                                |
+| `test_suite.go`, `test_generators.go` or `proto/test.proto`                                 | §.results discipline                      |
+| a snapshot list, a `withDBCInputs` test or an ignored input                                 | `references/stale-inputs.md`              |
+| a pin helper, or where a kind of test lives                                                 | §What a test asserts, "Where things live" |
+| `feralbear_test.go`, `mana_regen_test.go`, `encounter.ts`'s fallback target, `basic_sim.go` | `references/traps.md`                     |
 
 A ruling, trap or workflow fact learned while using this skill is written here in the same change that uses it. A
 memory file is a pointer to this skill, not a second copy.

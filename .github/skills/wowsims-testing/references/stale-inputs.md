@@ -5,9 +5,10 @@ about those files. Rebuild them before calling master red.
 
 ## A fresh checkout
 
-Nothing builds until the ignored inputs exist: build or copy `sim/core/proto/*.pb.go` and `binary_dist/dist.go`
-(`make sim/core/proto/api.pb.go binary_dist/dist.go`), `tools/database/wowsims.db`, `assets/db_inputs/dbc/` and
-`tools/db2tool/listfile.csv`, and run `npm ci`. The UI's generated files are in
+`sim/` builds and its suites run once `sim/core/proto/*.pb.go` and `binary_dist/dist.go` exist
+(`make sim/core/proto/api.pb.go binary_dist/dist.go`) and `npm ci` has run; `db.bin` is committed. The generators need
+`tools/database/wowsims.db`, `assets/db_inputs/dbc/` and `tools/db2tool/listfile.csv` too, and the `tools/database`
+tests that read the database or the DBC inputs skip without them. The UI's generated files are in
 `.github/skills/wowsims-ui/references/verification.md` §A fresh checkout needs generated files first.
 
 ## After a merge or a pull
