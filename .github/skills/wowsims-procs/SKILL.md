@@ -27,27 +27,27 @@ the detail.
 | `tools/database/overrides/weapon_procs.go`  | a chance-on-hit weapon's procs per minute, which the game files do not carry   |
 | `tools/database/overrides/enchant_procs.go` | a permanent enchant's rate where its spell states none or the 100/101 sentinel |
 
-| You are…                                                                               | Open                                                                    |
-| -------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| building a trigger from a row: the four chance shapes, what it fills, the rate options | `docs/spell_data/procs.md`, the opening tables                          |
-| porting a proc-chance or proc-cooldown talent, a pet's or a target-side trigger        | `docs/spell_data/procs.md`, the paragraphs on `ProcSpellClassFlags`     |
-| reading what the decoder made of a row, or a tooltip hint                              | `docs/spell_data/procs.md` §The decoder and the tooltip hints           |
-| registering an item, enchant or set proc                                               | `docs/spell_data/procs.md` §Item and enchant procs                      |
-| deciding what a named proc does, or which measured rate stands                         | `references/rulings.md`                                                 |
-| reviewing a proc read off the wrong effect, a hand trigger, a charge nothing spends    | `wowsims-review`, `.github/skills/wowsims-review/references/defects.md` |
+| You are…                                                                               | Open                                                                                    |
+| -------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| building a trigger from a row: the four chance shapes, what it fills, the rate options | `docs/spell_data/procs.md`, the opening tables                                          |
+| porting a proc-chance or proc-cooldown talent, a pet's or a target-side trigger        | `docs/spell_data/procs.md`, the paragraphs on `ProcSpellClassFlags`                     |
+| reading what the decoder made of a row, or a tooltip hint                              | `docs/spell_data/procs.md` §The decoder and the tooltip hints                           |
+| registering an item, enchant or set proc                                               | `docs/spell_data/procs.md` §Item and enchant procs                                      |
+| deciding what a named proc does, or which measured rate stands                         | `references/rulings.md`                                                                 |
+| the review case behind a rule below: a typed ICD, a look-alike effect, a cast listener | `.github/skills/wowsims-review/references/defects.md` §The wrong rank, the wrong effect |
+| the review case behind a charged row with no spender                                   | `.github/skills/wowsims-review/references/defects.md` §What a cast spends, and when     |
 
 ## Building a trigger from a row
 
 What `ProcTrigger` fills and the Enrage example are in `procs.md`. What the page leaves to this skill:
 
-- **Register it one of two ways.** `unit.MakeProcTriggerAura(trigger)` gives the listener an aura of its own, up all
-  fight; `buff.AttachProcTriggerCallback(&unit, trigger)` hangs it on a buff, so it hears hits only while that buff is
-  up. Either way `trigger.Name` is set first (see Traps).
-- **The ICD is the row's** (`s.ICD()`); a typed one is a defect, as Hack and Slash's 500 ms against its row's 200 was.
+- **Register it one of two ways**, name set first (see Traps): `unit.MakeProcTriggerAura(trigger)` gives it an aura
+  of its own, up all fight; `buff.AttachProcTriggerCallback(&unit, trigger)` hears hits only while that buff is up.
+- **The ICD is the row's** (`s.ICD()`); an ICD typed by hand where the row states one is a defect.
 - **A row with charges needs a spender.** `ProcCharges` becomes the buff's `MaxStacks` through `AuraConfig`, and
   nothing takes a stack off until `spelldata.AttachChargeSpender(character, buff, row, name)` is attached. It spends
   one charge per cast however many targets the cast hits (`core.OncePerCast`), and a channel's once at its end.
-  Cutthroat 462707 had no spender, so one proc paid for every Ambush in its 10 s.
+  Without a spender one proc pays for every cast in the buff's duration.
 - **An extra attack goes through `unit.ExtraAttackProc(&trigger, tagSpellID, count)`.** It sets `TriggerImmediately`
   itself, swings once the triggering hit is dealt, never hears its own swing, and returns an `OnInit` for the proc's
   aura (`.ApplyOnInit`). The item shape is `shared.NewSpellDataExtraAttackProc`.
@@ -64,14 +64,11 @@ The four `ProcChanceSource` shapes, the decoder, the proc-chance talents and the
 | `WeaponProc()`      | the listener of a chance-on-hit effect or combat enchant: every landed weapon hit, the weapon deciding which |
 | `ItemProcChance(s)` | an item or enchant proc rolls the column where it contradicts the effect's chance (Uther's Light 8397)       |
 
-- **Options run in order, after the row.** Any option that reshapes the mask comes before the rate option, because
-  `PPM` and the row's own procs per minute bind their manager to the mask they find. A `ProcMask` set on the returned
-  trigger narrows the listener but not a manager already built.
-- **A cast listener has no result.** On `CallbackOnCastComplete` the trigger's `Outcome` and `RequireDamageDealt` are
-  never read and no manager rolls (`aura_helpers.go`). Initiative 13976 built that way awarded its point on a dodged
-  Garrote; `ProcTrigger` on the rank decodes the hit listener and effect 1's 33/67/100%.
-- **Read the chance off the effect the tooltip names**, never the one whose ladder fits: Hack and Slash's chance is
-  effect 3, not effect 1's crit, though both hold 1 to 5.
+- **A `ProcMask` set on the returned trigger narrows the listener but not a manager already built.**
+- **A cast listener on a proc that depends on the hit is a defect.** On `CallbackOnCastComplete` the trigger's
+  `Outcome` and `RequireDamageDealt` are never read and no manager rolls (`aura_helpers.go`), so a dodged or missed
+  cast still procs; `ProcTrigger` on the rank decodes the hit listener the row states.
+- **Read the chance off the effect the tooltip names**, never a look-alike effect whose ladder happens to fit.
 - **A spell's own proc mask decides which listeners hear it**, and the hit table decides the mask, not the school.
   The cases (taunts on `ProcMaskEmpty`, a weapon proc's strike off either hand, oils) are in `references/rulings.md`.
 
@@ -89,13 +86,12 @@ Registration, the enchant slot rules, `ItemProcUnsupportedWithRate` and the two 
 
 ## Measuring a rate
 
-- **Read the tooltip before the column.** `$h%` makes the column the chance; `$mN%` or `$sN%` makes that effect's
-  ladder the chance; no chance and 100 or 101 means the proc fires on its own condition, and 101 usually means no
-  proc at all; anything else is a procs-per-minute rate the game files lack (`fillProcChance` in `resolve_proc.go`).
-  That rate is an override onto the row's `RPPM` first (`Field: PPM` in `spell_overrides.go`, Omen of Clarity is the
-  case) or an override row on gear, and a `PPM(n)` literal with a review TODO only where no override fits.
-- **An unstated rate takes the carry-over value with a TODO**, or is written and commented out until a rate exists.
-  Its `Source` drives the gear tab's notice for an unvalidated rate (`rateOrigin` in `tools/database/gen_effects.go`,
+- **Read the tooltip before the column.** The tooltip decides which `ProcChanceSource` shape a row is (the opening
+  table of `procs.md`); 100 and 101 are not a roll, and 101 usually means no proc at all. A rate the game files lack
+  is an override onto the row's `RPPM` first (`Field: PPM` in `spell_overrides.go`, Omen of Clarity is the case) or
+  an override row on gear, and a `PPM(n)` literal with a review TODO only where no override fits.
+- **An unstated rate follows the carry-over ruling** in `references/rulings.md` §Rates. Its `Source` drives the gear
+  tab's notice for an unvalidated rate (`rateOrigin` in `tools/database/gen_effects.go`,
   `ui/features/gear/item_notices.tsx`): `vanilla-carryover` and `tbc-carryover` name their origin, a measured rate's
   `wcl:`, `issue #` or `combat log, ` source shows none. A gear rate kept as a literal in the sim is listed in
   `literalRates` there, or the notice never names it.
@@ -110,7 +106,7 @@ Registration, the enchant slot rules, `ItemProcUnsupportedWithRate` and the two 
 
 - **A trigger named after its row never hears anything when the buff shares that name.** `ProcTrigger` names the
   trigger after the row, and `MakeProcTriggerAura` registers through `GetOrRegisterAura`, which hands back the
-  `AuraConfig` buff of the same label and drops the listener. Set `trigger.Name = "<X> - Trigger"`.
+  `AuraConfig` buff of the same label and drops the listener. Set `trigger.Name = "<X> - Trigger"` (PR #140).
 - **A periodic listener built from a row never hears a bleed.** `DecodeProcTypeMask` files
   `PROC_FLAG_DEAL_HARMFUL_PERIODIC` under `ProcMaskSpellDamage`, and a bleed tick carries a melee mask. Set
   `trigger.ProcMask = core.ProcMaskUnknown` at the call site, as Thousand Cuts does (`sim/rogue/talents_subtlety.go`).
@@ -130,6 +126,9 @@ repeating it:
 - the zero chance turned into 1: `grep -n 'ProcChance == 0' sim/core/aura_helpers.go`
 - the item proc builders: `grep -n '^func NewSpellData[A-Za-z]*Proc' sim/common/shared/*.go`
 - the bleed call sites: `grep -rn 'ProcMask = core.ProcMaskUnknown' sim/`
+- the spender and extra attacks: `grep -rn 'func AttachChargeSpender\|ExtraAttackProc(' sim/core/`
+- the override tables: `grep -nE '^var (WeaponProcs|EnchantProcs)' tools/database/overrides/*.go`
+- the notice's origins and literals: `grep -n 'func rateOrigin\|var literalRates' tools/database/gen_effects.go`
 
 | You changed…                                                | Update                                                                       |
 | ----------------------------------------------------------- | ---------------------------------------------------------------------------- |
@@ -137,6 +136,7 @@ repeating it:
 | `DecodeProcTypeMask` or a `ProcHint`                        | "Traps", `docs/spell_data/procs.md` §The decoder and the tooltip hints       |
 | `AttachChargeSpender` or `ExtraAttackProc`                  | "Building a trigger from a row"                                              |
 | a `NewSpellData*Proc` builder or an override table's fields | "Item and enchant procs", `docs/spell_data/procs.md` §Item and enchant procs |
+| `rateOrigin`, `literalRates` or `item_notices.tsx`          | "Measuring a rate", the carry-over ruling in `references/rulings.md`         |
 | a ruling's code or its measured number                      | `references/rulings.md`                                                      |
 
 Then run the shared path check:
