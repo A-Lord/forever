@@ -10,10 +10,10 @@ Each line is a trap of `sim/core` that a spell's row cannot warn about, under th
 
 ## How many targets
 
-- **A `core.Weapon{}` literal leaves `MaxRange` 0.** A melee swing's range check reads its spell's `MaxMeleeRange`
-  (`IsInRange()` in `sim/core/attack.go`), but a walk wakes the unit where it crosses the weapon's own `MaxRange`
-  (`sim/core/movement.go`), so a pet or form weapon that walks into melee range sets `MaxRange: core.MaxMeleeRange`
-  (PR #578).
+- **A `core.Weapon{}` literal leaves `MaxRange` 0.** A melee swing's range check reads its spell's `MaxRange`
+  (`MaxMeleeRange`, `IsInRange()` in `sim/core/attack.go`), but a walk wakes the unit where it crosses the weapon's own
+  `MaxRange` (`sim/core/movement.go`), so a pet or form weapon that walks into melee range sets
+  `MaxRange: core.MaxMeleeRange` (PR #578).
 
 ## Hooks
 
