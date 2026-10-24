@@ -116,7 +116,7 @@ var DefaultConsumables = &proto.ConsumesSpec{
 		13452,  // Elixir of The Mongoose
 		250337, // Elixir of The Owl
 		250351, // Elixir of The Grizzly
-		250329, // Elixir of The Grizzly
+		250329, // Elixir of The Phalanx
 		13454,  // Greater Arcane Elixir
 		250341, // Greater Mageblood Elixir
 		12460,  // Juju Might
