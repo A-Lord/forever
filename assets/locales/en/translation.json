@@ -2299,6 +2299,10 @@
 						"melee": "Melee"
 					}
 				},
+				"pull_range": {
+					"label": "Pull range (yd)",
+					"tooltip": "Where you stand when the pull starts. From there you walk to your spot (12 yd at range, melee range in melee), stopping for each Auto Shot you can fire on the way."
+				},
 				"time_to_weave": {
 					"label": "Time to weave (ms)",
 					"tooltip": "How long, in milliseconds, you stay in melee after the weave swing before walking back out. Never shorter than your input delay."

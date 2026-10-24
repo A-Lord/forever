@@ -8200,6 +8200,19 @@
 									"additionalProperties": false,
 									"required": ["label", "tooltip", "values"]
 								},
+								"pull_range": {
+									"type": "object",
+									"properties": {
+										"label": {
+											"type": "string"
+										},
+										"tooltip": {
+											"type": "string"
+										}
+									},
+									"additionalProperties": false,
+									"required": ["label", "tooltip"]
+								},
 								"time_to_weave": {
 									"type": "object",
 									"properties": {
@@ -8280,7 +8293,7 @@
 								}
 							},
 							"additionalProperties": false,
-							"required": ["playstyle", "time_to_weave", "use_aimed", "use_multi", "use_arcane", "use_sniper", "use_hawk"]
+							"required": ["playstyle", "pull_range", "time_to_weave", "use_aimed", "use_multi", "use_arcane", "use_sniper", "use_hawk"]
 						},
 						"warrior": {
 							"type": "object",
