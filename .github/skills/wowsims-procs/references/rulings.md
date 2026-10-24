@@ -13,9 +13,10 @@ Each line is the rule the code follows, where it lives, and the pull request tha
   hears its hand's melee hits and Frost Oil white hits only; a strike's own re-cast during its cast goes one batch
   later.** `sim/common/shared/shared_utils.go`, `procDamageHandler`, PR #352.
 - **Extra attacks (every `ExtraAttackProc` user, Windfury Weapon) roll on the cast result and swing after the
-  triggering hit (`sim.RunAfterCurrentEvent`); Windfury Totem grants its buff row's charges (`ProcCharges`), a landed
-  white hit spending one as it is dealt, without the attack power, and the extra swing the next; Heroic Strike may take
-  the extra swing.** `sim/core/extra_attack.go`, `sim/core/buffs/drivers.go`, PR #384.
+  triggering hit (`sim.RunAfterCurrentEvent`), each swing only when it is in range (`InRange()`); Windfury Totem grants
+  its buff row's charges (`ProcCharges`), a landed white hit spending one as it is dealt, without the attack power, and
+  the extra swing the next; Heroic Strike may take the extra swing.** `sim/core/extra_attack.go`,
+  `sim/core/buffs/drivers.go`, PRs #384 and #672.
 - **Windfury Totem (10612) and Flametongue Totem (15036) are party Proc Trigger Spell auras that follow their rows
   (damage required, 100 ms recovery, main-hand mask kept), so Not-a-Proc hits such as Seal of Command trigger Windfury
   and Seal of Righteousness does not; ferals hear both, the imbue stays under either, Windfury Totem holds over
