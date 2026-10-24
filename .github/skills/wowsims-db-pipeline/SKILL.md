@@ -14,17 +14,17 @@ pages below hold the detail, and this skill carries the traps and commands they 
 
 ## Where things live
 
-| Path                                                                        | What it is                                                                                       |
-| --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `tools/database/wowsims.db`                                                 | the game files database, gitignored, written by `tools/db2tool/` from `generator-settings.json`  |
-| `tools/database/generator-settings.json`                                    | the tables `db2tool` extracts; `ptr-generator-settings.json` differs in `Product` only           |
-| `tools/database/gen_spelldata/`                                             | the store, form and class ladder generator, a separate binary from `gen_db`                      |
-| `tools/database/gen_db/main.go`                                             | `gen_db`: the hotfix check, the numbered `.sql`, the item database, registrations, talent files  |
-| `tools/database/overrides/`                                                 | spell, weapon and enchant rate overrides, hand triggers, extra spells, and the numbered `.sql`   |
-| `tools/database/overrides.go`                                               | item, enchant and consumable overrides, allow and deny lists, `ItemSetClasses`                   |
-| `assets/db_inputs/spell_store_inputs.json`                                  | the rows the store was built from, with each group's `Builds` and `Hotfixes`; gzipped (`zcat`)   |
-| `assets/database/db.json`, `assets/database/db.bin`                         | one `proto.UIDatabase` written twice by `gen_db`; the sim embeds the binary, the UI fetches JSON |
-| `.github/workflows/check_hotfixes.yml`, `update_items.yml`, `update_db.yml` | the hourly hotfix check, the items-only regeneration it dispatches, the full one run by hand     |
+| Path                                                                        | What it is                                                                                                 |
+| --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `tools/database/wowsims.db`                                                 | the game files database, gitignored, written by `tools/db2tool/` from `generator-settings.json`            |
+| `tools/database/generator-settings.json`                                    | the tables `db2tool` extracts; `ptr-generator-settings.json` lists the same tables minus `ItemXItemEffect` |
+| `tools/database/gen_spelldata/`                                             | the store, form and class ladder generator, a separate binary from `gen_db`                                |
+| `tools/database/gen_db/main.go`                                             | `gen_db`: the hotfix check, the numbered `.sql`, the item database, registrations, talent files            |
+| `tools/database/overrides/`                                                 | spell, weapon and enchant rate overrides, hand triggers, extra spells, and the numbered `.sql`             |
+| `tools/database/overrides.go`                                               | item, enchant and consumable overrides, allow and deny lists, `ItemSetClasses`                             |
+| `assets/db_inputs/spell_store_inputs.json`                                  | the rows the store was built from, with each group's `Builds` and `Hotfixes`; gzipped (`zcat`)             |
+| `assets/database/db.json`, `assets/database/db.bin`                         | one `proto.UIDatabase` written twice by `gen_db`; the sim embeds the binary, the UI fetches JSON           |
+| `.github/workflows/check_hotfixes.yml`, `update_items.yml`, `update_db.yml` | the hourly hotfix check, the items-only regeneration it dispatches, the full one run by hand               |
 
 | You are…                                                                       | Open                                                               |
 | ------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
@@ -79,26 +79,23 @@ spells. The generator refuses an override once the game files state the value; r
 - **The table follows whose number it is.** A rate that belongs to one weapon goes in `WeaponProcs`, keyed by item and
   spell, since two weapons can share a trigger spell; an enchant's in `EnchantProcs`; a rate every carrier of the
   spell shares (Omen of Clarity, Seal of Light) in `Spells` with `Field: PPM`. Proc wiring is `wowsims-procs`.
-- **Rows are keyed struct literals, one field per line.** A value nobody measured on Forever carries
-  `// TODO: <origin> value - verify in-game` on its value line, and `Source` names the origin.
+- **Rows are keyed struct literals, one field per line.** `Source` and `Reason` name where the value comes from, and a
+  `// TODO:` on the value line marks a row still to measure in game.
 
 ## A database behind master
 
-The generators refuse a database older in hotfixes than the committed inputs (`RequireCommittedHotfixes`,
-`docs/spell_data/partial-updates.md`), since a regeneration from it deletes every row only a later hotfix adds. Match
-master's database first, from the cache the Update Items pull request names; when it cannot match, splice your own
-change into master's files and prove the splice. Both, and merge conflicts in the store, `db.json` and `db.bin`, are
-in `references/behind-master.md`. Proto field numbers on a merge are `wowsims-core-mechanics` `## Protos`.
+The generators refuse a database older in hotfixes than the committed inputs for the groups the run takes, on the
+same build; a group with no recorded push passes (`RequireCommittedHotfixes`, `docs/spell_data/partial-updates.md`).
+A regeneration from such a database deletes every row only a later hotfix adds. Match master's database first, from
+the cache the Update Items pull request names; when it cannot match, splice your own change into master's files and
+prove the splice. Both, and merge conflicts in the store, `db.json` and `db.bin`, are in `references/behind-master.md`.
+Proto field numbers on a merge are `wowsims-core-mechanics` `## Protos`.
 
 ## Hotfixes
 
-The workflows' header comments and the end of `docs/spell_data/partial-updates.md` §Commands describe them, except:
-
-- **A cache is dispatched once.** Check Hotfixes reads raidbots' verified list and fires only when the newest cache is
-  for the build the CDN serves and its URL is not yet in the actions cache.
-- **The tests run inside Update Items** (`run_tests.yml`), since a pull request the workflow token opens gets no checks.
-- **The merge job dispatches Build and Deploy only while its state reads `active`.** Read it before a dispatch by
-  hand: `gh api repos/wowsims/forever/actions/workflows/deploy.yml --jq .state`.
+The header comments of `check_hotfixes.yml` and `update_items.yml` and the end of
+`docs/spell_data/partial-updates.md` §Commands describe the hotfix flow. Before dispatching Build and Deploy by hand,
+read its state: `gh api repos/wowsims/forever/actions/workflows/deploy.yml --jq .state`.
 
 ## Tables the generator does not ship
 
@@ -125,19 +122,22 @@ repeating it:
 - the workflow steps: `grep -n 'name:' .github/workflows/check_hotfixes.yml .github/workflows/update_items.yml`
 - the full order: `grep -n 'make \|go run' .github/workflows/update_db.yml`
 - `gen_db`'s order: `grep -n 'RequireCommittedHotfixes\|RunOverrides\|WriteBinaryAndJson' tools/database/gen_db/main.go`
-- the deploy gate: `grep -n 'deploy.yml' .github/workflows/update_items.yml`
 - the go-to-ts outputs: `grep -n '^AUTO_GEN_FILES_TS' makefile`
 - the override tables: `grep -n '^var ' tools/database/overrides/*.go`
 - the item level floor and the phase: `grep -n 'MIN_EFFECT_ILVL = \|Phase = 1' tools/database/gen_effects.go tools/database/gen_db/main.go`
+- the PTR settings: `diff tools/database/generator-settings.json tools/database/ptr-generator-settings.json`
+- who embeds `db.bin`: `grep -rn 'assets/database"' --include=*.go .`, then `head -1` of each file for its `//go:build`
+- the fields `ReadDatabaseFromJson` keeps (no `Encounters`): `grep -n -A22 '^func ReadDatabaseFromJson' tools/database/database.go`
 
-| You changed…                                                               | Update                                                                                             |
-| -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| a make target, or the step order in `update_db.yml`                        | "Regenerating"                                                                                     |
-| a generator flag or the group rules                                        | `docs/spell_data/partial-updates.md` §Commands, "Regenerating"                                     |
-| an override field, table or stale rule                                     | `docs/spell_data/overrides.md`, "Overrides"                                                        |
-| `RequireCommittedHotfixes`, `WriteBinaryAndJson` or `ReadDatabaseFromJson` | "A database behind master", `references/behind-master.md`                                          |
-| `check_hotfixes.yml` or `update_items.yml`                                 | "Hotfixes", the Update Items paragraph in `docs/spell_data/partial-updates.md`                     |
-| `generator-settings.json` or `db2tool`'s flags or schema                   | "Tables the generator does not ship", `references/game-files-tables.md`, `tools/db2tool/README.md` |
+| You changed…                                                               | Update                                                                                                                                           |
+| -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| a make target, or the step order in `update_db.yml`                        | "Regenerating"                                                                                                                                   |
+| a generator flag or the group rules                                        | `docs/spell_data/partial-updates.md` §Commands, "Regenerating"                                                                                   |
+| an override field, table or stale rule                                     | `docs/spell_data/overrides.md`, "Overrides"                                                                                                      |
+| `RequireCommittedHotfixes`, `WriteBinaryAndJson` or `ReadDatabaseFromJson` | "A database behind master", `references/behind-master.md`                                                                                        |
+| `check_hotfixes.yml` or `update_items.yml`                                 | "Hotfixes", the Update Items paragraph in `docs/spell_data/partial-updates.md`                                                                   |
+| `generator-settings.json`, its PTR copy, or `db2tool`'s flags or schema    | "Where things live", "Tables the generator does not ship", `references/game-files-tables.md`, `tools/db2tool/README.md` §generator-settings.json |
+| `assets/database/loader.go` or a package importing it                      | `references/behind-master.md` §Merging                                                                                                           |
 
 Then run the shared path check:
 

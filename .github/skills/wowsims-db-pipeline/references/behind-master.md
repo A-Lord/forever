@@ -33,8 +33,10 @@ and `Hotfixes` in `spell_store_inputs.json`, so read them on the branch you rege
 - **A `db.bin` conflict.** `protojson.Unmarshal` the merged `db.json` into `proto.UIDatabase`, `proto.Marshal` it, and
   check the two proto-equal. Never `ReadDatabaseFromJson` there: it leaves out `Encounters`.
 - **`db.bin` behind an unchanged `db.json`.** `WriteBinaryAndJson` skips both files when the new `db.json` equals the
-  one on disk and `db.bin` exists. Delete `assets/database/db.bin` before `gen_db` to force the write; it is the one
-  generated file safe to delete, since only a `with_db` build embeds it and `gen_db` builds without the tag.
+  one on disk and `db.bin` exists. Delete `assets/database/db.bin` before `gen_db` to force the write; `gen_db` imports
+  no package that embeds it, so it still builds. `assets/database/loader.go` embeds `db.bin` with no build tag, and
+  the untagged `sim/core` tests load it (`sim/core/buffs_generated_test.go`), so `go test ./sim/core/` does not
+  compile until `gen_db` has written the file again.
 - **Items from the hotfix imports.** A local regeneration drops the items master took from them. Carry those over
   from master's `db.json` and check each section as master plus the branch's own rows.
 - **A change ported in another shape.** Merged back, it duplicates with no conflict (struct fields, proto field
