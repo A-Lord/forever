@@ -64,7 +64,9 @@ SPELLDATA_REPORT=1 go test --tags=with_db ./sim/<class>/ -run <Test> -count=1 -v
 
 `go run ./tools/spelldata` prints only the attributes `sim/core/spelldata/attributes.go` reads; the
 `SpellMisc` query shows the rest, such as "not usable in combat" (word 0, `0x10000000`). The Wowhead Forever
-tooltip shows the values scaled to level, which the `$s1`-style tooltip text does not.
+tooltip shows the values scaled to level, which the `$s1`-style tooltip text does not. Read the subject skill's
+rulings, `.github/skills/wowsims-<subject>/references/rulings.md` (`wowsims-spells` names the subject skills), before
+judging a number the row does not decide.
 
 Then make three comparisons for each spell:
 
@@ -81,48 +83,33 @@ Then make three comparisons for each spell:
 
 ## 4. Rules the rows cannot show
 
-Each of these has a section in `references/defects.md`.
+The first seven have a section in `references/defects.md`; the mechanic behind each is the named heading of
+`wowsims-core-mechanics`.
 
-- **Core's order.** `cast.go` runs `applyEffects` before `OnCastComplete`, and a proc trigger's handler runs
-  inside `applyEffects` only with `TriggerImmediately`; without it, which is how `spelldata.ProcTrigger`
-  builds one, the handler runs a `SpellBatchWindow` later. Which of the two a buff's proc is decides whether
-  an `OnCastComplete` handler sees the cast that procced it, so a claim about order is proven at runtime,
-  never by reading the call order alone.
-- **What a cast spends, and when.** Check combo points, extra energy, and miss refunds independently:
-  Ferocious Bite retains combo points on failure but consumes its energy. A one-charge buff is consumed
-  by the cast it modifies. Use the row's `MissRefund()` unless verified spell-specific behavior differs.
-- **What scales.** A tick that should scale with stacks or combo points; a row's `PointsPerResource`; a flat
-  weapon bonus, which is added before the weapon percent multiplies it.
-- **How many targets.** An area effect (`Effect.HitsAnArea()`, `Spell.MaxTargets`) hits every enemy, and a
-  `SPELLMOD_JUMP_TARGETS` or tooltip "up to $s3 targets" is the total, not the extra.
-- **What the row forbids.** A form or stance requirement, the weapon or shield the row needs and the "not
-  usable in combat" bit, which `CastRequirement` enforces and `ExtraCastCondition` never restates.
-- **Hooks.** Each hook is attached once, on every path that needs it (every attack that breaks stealth, a
-  queued swing wired into the auto attacks for every spec that registers it), and not re-attached on each
-  iteration's reset.
-- **Whose state.** An effect on several targets reads each hit target's auras, not the primary target's; a
-  tagged aura counts only this caster's; a map read for a key it may lack does not default to 0.
-- **What a preset line sees.** The rotation picks the cast after a hardcast before that cast lands
-  (`docs/rotation.md`): a line that reads an aura of another id the landing changes, a proc, a stack it
-  spends or a buff it refreshes, re-queues the spell unless it carries `not(Spell Is Casting(X))`; a line
-  refreshing the cast's own dot needs no guard. Judge a preset's cast counts from a debug log, not from
-  the line as written.
+- **Core's order.** Check whether an `OnCastComplete` handler sees the cast that procced it, proven at runtime;
+  `## Cast order`.
+- **What a cast spends, and when.** Check combo points, energy and the miss refund one by one, and that a
+  one-charge buff goes with the cast it modifies; `## What a cast spends`.
+- **What scales.** Check a tick against stacks and combo points, `PointsPerResource` and a flat weapon bonus;
+  `## What scales`.
+- **How many targets.** Check that an area effect hits every enemy and an "up to" count is the total;
+  `## How many targets`.
+- **What the row forbids.** Check that `ExtraCastCondition` restates no form, stance, weapon, shield or combat
+  requirement; `## What the row forbids`.
+- **Hooks.** Check each hook is attached once, at registration, on every path that needs it; `## Hooks`.
+- **Whose state.** Check a multi-target effect reads each hit target, a tag counts only this caster's auras and a
+  missing map key is not 0; `## Whose state`.
+- **What a preset line sees.** Check that a line reading something the running cast's landing changes
+  carries `not(Spell Is Casting(X))`, and judge cast counts from a debug log; `wowsims-apl` `## Timing`.
 
 ## 5. Tests
 
-- **Tests test logic, not data.** Outside `sim/<class>/`, a test asserts what an effect does (what it
-  modifies, when it fires, what it spends, how it scales), so a game build or hotfix that changes an amount
-  leaves it green and only a change in behaviour turns it red. Expected values come from the raw row
-  (`spelldata.MustFind(id).EffectN(i)`), not the generated accessor the production path reads, or a parse that
-  drops an effect still passes. A data precondition pins the column on a row copy (`editRow` in
-  `sim/common/shared/spell_data_heal_proc_test.go`, `withRows` in `sim/core/spelldata/spelldata_test.go`),
-  never `t.Skip`, so the test cannot pass while checking nothing. Test names and messages quote no game-file
-  numbers. A literal like `want 7` or `between 185 and 215` is a finding.
+The rules behind these are `wowsims-testing` `## What a test asserts` and `## .results discipline`.
+
+- **Tests test logic, not data:** expected values from the raw row, no `t.Skip`, no `want 7` literal.
 - **The class suites run** with no `t.Skip`, and a Forever talent string and gear set.
-- **The .results files carry the spell ids the change touches:** `grep <id> sim/<class>/*.results`. A file
-  that cannot move proves nothing.
-- **The cast counts are possible:** 18 Prowls, 9 Pounces and 9 Ravages in one 180-second iteration say an
-  opener repeats all fight.
+- **The suite can see the change:** its `.results` or a runtime print carries the spell the change touches.
+- **The cast counts are possible:** 18 Prowls in one 180-second iteration say an opener repeats all fight.
 - **A moved .results file has one isolated cause per move,** found by reverting one change at a time.
 
 ## 6. Verify every finding
