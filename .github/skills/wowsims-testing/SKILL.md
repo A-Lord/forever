@@ -13,7 +13,7 @@ for a reason you did not intend. Text here follows `wowsims-conventions`; the no
 
 | Path                                                    | What it is                                                                               |
 | ------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `.github/workflows/run_tests.yml`                       | the CI gates: `build-ui`, `test-ui` (four vitest shards) and `test` (four Go shards)     |
+| `.github/workflows/run_tests.yml`                       | the CI gates: `build-ui`, `test-ui` (vitest, sharded) and `test` (Go, sharded)           |
 | `makefile`                                              | `test`, `update-tests`, `spelldata-check`, `skills-check`                                |
 | `sim/core/database_load.go`                             | the `with_db` file: loads `db.bin` into the sim's item, enchant and consumable tables    |
 | `sim/core/test_suite.go`                                | runs a class suite, compares it against `<Suite>.results`, writes `<Suite>.results.tmp`  |
@@ -34,11 +34,12 @@ for a reason you did not intend. Text here follows `wowsims-conventions`; the no
 
 ## The gates
 
-The repo's rule: the gates run locally before every commit, and their results go in the pull request body. Print them
-instead of quoting them from memory; the list after the print says what each Go step of CI catches.
+The repo's rule: the gates run locally before every commit, and their results go in the pull request body; judging the
+diff before a commit is `wowsims-review`. Print the gates instead of quoting them from memory (the print gives the shard
+counts); the list after the print says what each Go step of CI catches.
 
 ```
-grep -n 'name:\|run:' .github/workflows/run_tests.yml
+grep -n 'name:\|run:\|shard:' .github/workflows/run_tests.yml
 node -e "console.log(require('./package.json').scripts)"
 grep -n -A3 '^test:\|^update-tests' makefile
 ```
