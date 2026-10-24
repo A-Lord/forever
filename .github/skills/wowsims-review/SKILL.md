@@ -83,22 +83,22 @@ Then make three comparisons for each spell:
 
 ## 4. Rules the rows cannot show
 
-The first seven have a section in `references/defects.md`; the mechanic behind each is the named heading of
-`wowsims-core-mechanics`.
+The first seven have a section in `references/defects.md`.
 
 - **Core's order.** Check whether an `OnCastComplete` handler sees the cast that procced it, proven at runtime;
-  `## Cast order`.
+  the mechanic is in `wowsims-core-mechanics` `## Cast order`.
 - **What a cast spends, and when.** Check combo points, energy and the miss refund one by one, and that a
-  one-charge buff goes with the cast it modifies; `## What a cast spends`.
+  one-charge buff goes with the cast it modifies; `wowsims-core-mechanics` `## What a cast spends`.
 - **What scales.** Check a tick against stacks and combo points, `PointsPerResource` and a flat weapon bonus;
-  `## What scales`.
+  `wowsims-core-mechanics` `## What scales`.
 - **How many targets.** Check that an area effect hits every enemy and an "up to" count is the total;
-  `## How many targets`.
+  `wowsims-core-mechanics` `## How many targets`.
 - **What the row forbids.** Check that `ExtraCastCondition` restates no form, stance, weapon, shield or combat
-  requirement; `## What the row forbids`.
-- **Hooks.** Check each hook is attached once, at registration, on every path that needs it; `## Hooks`.
+  requirement; `wowsims-core-mechanics` `## What the row forbids`.
+- **Hooks.** Check each hook is attached once, at registration, on every path that needs it;
+  `wowsims-core-mechanics` `## Hooks`.
 - **Whose state.** Check a multi-target effect reads each hit target, a tag counts only this caster's auras and a
-  missing map key is not 0; `## Whose state`.
+  missing map key is not 0; `wowsims-core-mechanics` `## Whose state`.
 - **What a preset line sees.** Check that a line reading something the running cast's landing changes
   carries `not(Spell Is Casting(X))`, and judge cast counts from a debug log; `wowsims-apl` `## Timing`.
 
