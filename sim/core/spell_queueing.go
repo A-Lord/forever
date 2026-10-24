@@ -108,8 +108,6 @@ func (spell *Spell) CanQueue(sim *Simulation, target *Unit) bool {
 		return false
 	}
 
-	// A spell off the GCD goes in the cast-end pass after the spell queued after the hardcast, a major
-	// cooldown ahead of it or, on the GCD, in its place.
 	if spell.waitsForCastEnd(sim) {
 		return false
 	}
@@ -118,7 +116,8 @@ func (spell *Spell) CanQueue(sim *Simulation, target *Unit) bool {
 }
 
 // Under a hardcast that holds the rotation, a spell off the GCD and a major cooldown are not queued: they
-// decide in the cast-end pass, once the cast has landed.
+// decide in the cast-end pass, once the cast has landed. A spell off the GCD goes there after the spell
+// queued after the hardcast, a major cooldown ahead of it or, on the GCD, in its place.
 func (spell *Spell) waitsForCastEnd(sim *Simulation) bool {
 	return (spell.DefaultCast.EffectiveTime() == 0 || spell.Flags.Matches(SpellFlagMCD)) && spell.Unit.hardcastHoldsRotation(sim)
 }

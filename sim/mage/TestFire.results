@@ -925,15 +925,15 @@ dps_results: {
 dps_results: {
  key: "TestFire-Settings-Gnome-p1Arcane-Default-deepFire-NoBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 447.10269
-  tps: 438.24298
+  dps: 437.28888
+  tps: 428.12463
  }
 }
 dps_results: {
  key: "TestFire-Settings-Gnome-p1Arcane-Default-deepFire-NoBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 447.10269
-  tps: 438.24298
+  dps: 437.28888
+  tps: 428.12463
  }
 }
 dps_results: {

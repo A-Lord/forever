@@ -112,8 +112,8 @@ dps_results: {
 dps_results: {
  key: "TestArcane-AllItems-BlazefuryMedallion-17111"
  value: {
-  dps: 706.97265
-  tps: 435.8404
+  dps: 707.4682
+  tps: 436.13539
  }
 }
 dps_results: {
@@ -189,8 +189,8 @@ dps_results: {
 dps_results: {
  key: "TestArcane-AllItems-DeathmistRaiment"
  value: {
-  dps: 730.55808
-  tps: 445.49876
+  dps: 730.56258
+  tps: 445.40437
  }
 }
 dps_results: {
@@ -238,8 +238,8 @@ dps_results: {
 dps_results: {
  key: "TestArcane-AllItems-DreadmistRaiment"
  value: {
-  dps: 706.25898
-  tps: 433.05048
+  dps: 706.27104
+  tps: 433.05231
   hps: 14.7862
  }
 }
@@ -372,15 +372,15 @@ dps_results: {
 dps_results: {
  key: "TestArcane-AllItems-EverlookDeliveryBot-274760"
  value: {
-  dps: 688.12098
-  tps: 426.22537
+  dps: 688.48578
+  tps: 426.48877
  }
 }
 dps_results: {
  key: "TestArcane-AllItems-EverlookPathcarver-274759"
  value: {
-  dps: 693.52761
-  tps: 430.64642
+  dps: 693.87207
+  tps: 430.90434
  }
 }
 dps_results: {
@@ -477,8 +477,8 @@ dps_results: {
 dps_results: {
  key: "TestArcane-AllItems-GoldenBanana-270226"
  value: {
-  dps: 684.41879
-  tps: 423.49239
+  dps: 684.82029
+  tps: 423.77596
  }
 }
 dps_results: {
@@ -568,8 +568,8 @@ dps_results: {
 dps_results: {
  key: "TestArcane-AllItems-Linken'sSwordofMastery-11902"
  value: {
-  dps: 664.66518
-  tps: 411.7613
+  dps: 665.13319
+  tps: 412.04184
  }
 }
 dps_results: {
@@ -729,15 +729,15 @@ dps_results: {
 dps_results: {
  key: "TestArcane-AllItems-Sorcerer'sRegalia"
  value: {
-  dps: 759.36766
-  tps: 464.27947
+  dps: 759.49882
+  tps: 464.34804
  }
 }
 dps_results: {
  key: "TestArcane-AllItems-SwordofZeal-6622"
  value: {
-  dps: 664.66518
-  tps: 411.7613
+  dps: 665.13319
+  tps: 412.04184
  }
 }
 dps_results: {
@@ -771,8 +771,8 @@ dps_results: {
 dps_results: {
  key: "TestArcane-AllItems-Teebu'sBlazingLongsword-1728"
  value: {
-  dps: 664.66518
-  tps: 411.7613
+  dps: 665.13319
+  tps: 412.04184
  }
 }
 dps_results: {
@@ -897,8 +897,8 @@ dps_results: {
 dps_results: {
  key: "TestArcane-Average-Default"
  value: {
-  dps: 723.72758
-  tps: 448.79706
+  dps: 723.76336
+  tps: 448.83217
  }
 }
 dps_results: {
@@ -925,22 +925,22 @@ dps_results: {
 dps_results: {
  key: "TestArcane-Settings-Gnome-p1Arcane-Default-arcaneFrostFill-NoBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 420.25677
-  tps: 362.24187
+  dps: 416.11211
+  tps: 358.63351
  }
 }
 dps_results: {
  key: "TestArcane-Settings-Gnome-p1Arcane-Default-arcaneFrostFill-NoBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 420.25677
-  tps: 362.24187
+  dps: 416.11211
+  tps: 358.63351
  }
 }
 dps_results: {
  key: "TestArcane-Settings-Gnome-p1Arcane-Default-arcaneFrostFill-NoBuffs-0.0yards-ShortSingleTarget"
  value: {
-  dps: 539.38598
-  tps: 456.41722
+  dps: 527.91129
+  tps: 446.82805
  }
 }
 dps_results: {

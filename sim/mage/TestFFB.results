@@ -687,8 +687,8 @@ dps_results: {
 dps_results: {
  key: "TestFFB-AllItems-SerenityField-272439"
  value: {
-  dps: 780.31633
-  tps: 573.50277
+  dps: 776.98101
+  tps: 571.13521
  }
 }
 dps_results: {
@@ -897,22 +897,22 @@ dps_results: {
 dps_results: {
  key: "TestFFB-Average-Default"
  value: {
-  dps: 821.72626
-  tps: 602.55676
+  dps: 821.73028
+  tps: 602.55992
  }
 }
 dps_results: {
  key: "TestFFB-Settings-Gnome-p1Arcane-Default-ffb-FullBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 799.40725
-  tps: 586.10986
+  dps: 795.65376
+  tps: 583.65179
  }
 }
 dps_results: {
  key: "TestFFB-Settings-Gnome-p1Arcane-Default-ffb-FullBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 799.40725
-  tps: 586.10986
+  dps: 795.65376
+  tps: 583.65179
  }
 }
 dps_results: {
@@ -925,22 +925,22 @@ dps_results: {
 dps_results: {
  key: "TestFFB-Settings-Gnome-p1Arcane-Default-ffb-NoBuffs-0.0yards-LongMultiTarget"
  value: {
-  dps: 313.28487
-  tps: 321.10382
+  dps: 311.73486
+  tps: 319.53915
  }
 }
 dps_results: {
  key: "TestFFB-Settings-Gnome-p1Arcane-Default-ffb-NoBuffs-0.0yards-LongSingleTarget"
  value: {
-  dps: 313.28487
-  tps: 321.10382
+  dps: 311.73486
+  tps: 319.53915
  }
 }
 dps_results: {
  key: "TestFFB-Settings-Gnome-p1Arcane-Default-ffb-NoBuffs-0.0yards-ShortSingleTarget"
  value: {
-  dps: 500.36628
-  tps: 512.89525
+  dps: 490.11242
+  tps: 502.59472
  }
 }
 dps_results: {
