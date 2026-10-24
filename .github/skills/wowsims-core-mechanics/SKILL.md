@@ -98,7 +98,7 @@ rulings the code follows are in `references/rulings.md`; text here follows `wows
 - **A dot tick rolls its amount, not its hit.** `PeriodicDamageTick` deals one `Effect.Roll` per tick, and the default
   `TickOutcome` rolls no hit, since the application rolls it once (`sim/core/spelldata/resolve_aura.go`). A spell whose
   ticks roll hit passes `Spell.OutcomeTickMagicHitAndCrit` or `Dot.OutcomeTickMagicHit` (`spell_outcome.go`), which
-  count `tick_misses`. Which row's Always Hit bit counts is `wowsims-abilities-auras` `references/rulings.md`.
+  count `tick_misses`. Always Hit on a triggered row: `.github/skills/wowsims-abilities-auras/references/rulings.md`.
 - **Within an exclusive category the enabled effect with the highest `Priority` applies**; `YieldsTies` takes the
   category only by outbidding (`exclusive_effect.go`). The `SingleAura` reset is `wowsims-abilities-auras` §Buffs and
   debuffs.
