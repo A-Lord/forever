@@ -14,9 +14,8 @@ Every change gets steps 1, 2 and 5 to 7. Spell, talent, aura, dot and proc code 
 overrides and class ladders it reads, also gets steps 3 and 4. A UI change also runs the gates in
 `.github/skills/wowsims-ui/references/verification.md`; generator internals are `wowsims-db-pipeline`'s subject.
 
-`references/defects.md` is the catalog for the spell steps: each defect class, with a case a review of a
-port found and the fix that reads the row. `references/rulings.md` holds the review's own rulings, such as which
-orphans go and which helpers stay.
+`references/defects.md` is the catalog for the spell steps: each defect class, with a case a review of a port found
+and the fix that reads the row. `references/rulings.md` holds the review's own rulings on orphans and kept helpers.
 
 ## 1. Inventory
 
