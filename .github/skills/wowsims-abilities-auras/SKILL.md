@@ -62,9 +62,8 @@ The options, the fields the row fills and the three shapes a registration takes 
 Labels, rank groups, the default tick and its outcome are in `auras-and-dots.md`; a dot kept on an `A_PERIODIC_DUMMY`
 is in `building-an-ability.md` §When not to take a default.
 
-- **A per-target debuff carries its caster in its label.** `spelldata.RankLabel(rank, &owner.Unit)` does it for a
-  ranked row, `spelldata.Label(name + " - " + priest.Label)` for an unranked one; without it two players of the class
-  panic on registration.
+- **An unranked per-target debuff takes `spelldata.Label(name + " - " + priest.Label)`**; without the caster in its
+  label, two players of the class panic on registration.
 - **`FromCaster` slots are numbered across the class.** Shadow Weaving holds slot 0 of 2 and the Discipline
   `AttachDDBC` slot 1 (`sim/priest/talents_shadow.go`, `sim/priest/talents_discipline.go`), so a new per-caster debuff
   raises the total in every call.
@@ -126,6 +125,9 @@ repeating it:
 - the GCD floor: `grep -n 'GCDMin' sim/core/cast.go sim/core/constants.go`
 - the `SPELLMOD_*` names: `grep -n 'SpellModOp = ' sim/core/dbcenums/spellmods.go`
 - the `FromCaster` slots: `grep -rn 'FromCaster(\|AttachDDBC(' sim/<class>/`
+- the `SingleAura` reset: `grep -n 'SingleAura = ' sim/core/exclusive_effect.go`
+- `Magic()`'s variance: `grep -n 'DirectVariance' sim/core/spelldata/resolve_spell.go`
+- the stance forms: `grep -n 'stanceForms' sim/core/dbcenums/forms_auto_gen.go`
 
 | You changed…                                                         | Update                                                                               |
 | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |

@@ -18,7 +18,7 @@ Each line is the rule the code follows, where it lives, and the pull request tha
   `sim/hunter/serpent_sting.go`, PR #452.
 - **DoTs do not snapshot: every tick deals damage on the stats and modifiers of the moment it lands
   (`CalcAndDealPeriodicDamage` in `OnTick`, no `OnSnapshot`), Deep Wounds' rollover pool being the one amount fixed at
-  the crit; the code carries no comment saying so.** `sim/core/spelldata/resolve_aura.go`, `DotConfig`.
+  the crit.** `sim/core/spelldata/resolve_aura.go`, `DotConfig`.
 - **Deep Wounds bleeds the talent share of average weapon damage without attack power; a new crit rolls the owed damage
   over and extends the timer without resetting it, and the ticks never crit.** `sim/warrior/talents_arms.go`, PR #231.
 
