@@ -19,8 +19,10 @@
 # `dir/{a,b}.ts` checks both files. A trailing `:<line>` is stripped, so a
 # `file.ts:123` citation is checked as the file. A path that git ignores is
 # skipped because it is absent in a clean checkout by design: that covers
-# ui/generated, dist, tmp, binary_dist, node_modules, tools/database/wowsims.db and
-# the generated protobuf files, while committed generated files stay checked.
+# ui/generated/proto, dist, tmp, binary_dist, node_modules, tools/database/wowsims.db
+# and the generated protobuf files, while committed generated files stay checked.
+# Write a directory with a trailing slash: git misses a directory-only ignore
+# pattern for a path that does not exist unless it ends in a slash.
 # Anything the skill deliberately names as *not* existing goes in its
 # absent_by_design.txt, one path per line.
 
@@ -65,7 +67,7 @@ paths=$(cat $docs |
 
 count=0
 for p in $paths; do
-	if /usr/bin/git -C "$repo" check-ignore -q -- "$p"; then
+	if git -C "$repo" check-ignore -q -- "$p"; then
 		continue
 	fi
 	if printf '%s\n' "$ABSENT_BY_DESIGN" | grep -qxF -- "$p"; then
