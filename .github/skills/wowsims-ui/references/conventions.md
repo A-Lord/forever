@@ -86,6 +86,8 @@ in `schemas/<name>.schema.json` (`verification.md`, "Locales"). With no second l
 - `PartyBuffs` (`proto/buffs.proto`) is a populated message, and its party-buff slice, subscription and picker are live.
 - A kit option with no production caller may have been requested ahead of use (Drawer `side`, the TabNav badge): list
   such options and ask before removing kit API.
+- A container's exported view, the exports the design-system pages use and Popover `container` are settled exceptions
+  to the rule that tests and stories add no production code (PR #187).
 
 ## Decisions already made
 

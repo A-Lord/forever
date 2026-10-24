@@ -92,7 +92,7 @@ every run writes `<Suite>.results.tmp`, which git ignores; its presence means no
 ## What a test asserts
 
 - **Tests add no production code**: the rule is in `AGENTS.md`, and `wowsims-review` step 2 checks for it. The
-  settled UI exceptions, kit options kept ahead of use, are in `.github/skills/wowsims-ui/references/conventions.md`.
+  settled UI exceptions are in `.github/skills/wowsims-ui/references/conventions.md`.
 - **`DynamicProcManager.Chance` stays exported for the shared tests, which read an exact proc chance through it.**
   `sim/core/procs.go:35`, PR #187.
 - **Logic, not data.** Outside `sim/<class>/` a test asserts what an effect does (what it modifies, when it fires, what
