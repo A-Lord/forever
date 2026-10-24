@@ -204,7 +204,7 @@ curve too.
 |                                          |                                                                                          |
 | ---------------------------------------- | ---------------------------------------------------------------------------------------- |
 | `Rank(n)`                                | the spell at rank n. Rank 0 is untaken and answers `Nil`, so no `if rank > 0` guard      |
-| `Highest()`                              | the top rank                                                                             |
+| `Highest()`                              | the ladder's last entry, which is not always its top rank                                |
 | `ByID(id)`                               | the rank with this spell id; panics on one the ladder does not carry                     |
 | `Len()`, `Each(fn)`                      | how many ranks, and each of them with its number                                         |
 | `Contains(spell)`                        | whether a registered spell's id is one of the ladder's ranks                             |
