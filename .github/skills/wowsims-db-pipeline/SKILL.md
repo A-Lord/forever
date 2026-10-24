@@ -92,11 +92,11 @@ in `references/behind-master.md`. Proto field numbers on a merge are `wowsims-co
 
 ## Hotfixes
 
-`check_hotfixes.yml` runs hourly, reads raidbots' verified `DBCache.bin` list, and dispatches `update_items.yml` with
-the newest Forever file once it matches the build the CDN serves and has not been seen. Update Items runs
-`make db CLASSES=none SHARED=0` from the CDN with that cache, runs `run_tests.yml` on its pull request, and merges it
-only when the hotfixes applied. The header comment of each workflow states the rest.
+The workflows' header comments and the end of `docs/spell_data/partial-updates.md` §Commands describe them, except:
 
+- **A cache is dispatched once.** Check Hotfixes reads raidbots' verified list and fires only when the newest cache is
+  for the build the CDN serves and its URL is not yet in the actions cache.
+- **The tests run inside Update Items** (`run_tests.yml`), since a pull request the workflow token opens gets no checks.
 - **The merge job dispatches Build and Deploy only while its state reads `active`.** Read it before a dispatch by
   hand: `gh api repos/wowsims/forever/actions/workflows/deploy.yml --jq .state`.
 
