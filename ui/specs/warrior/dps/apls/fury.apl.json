@@ -55,6 +55,6 @@
 	"valueVariables": [
 	{"name":"Delay Check","value":{"and":{"vals":[{"cmp":{"op":"OpGe","lhs":{"spellTimeToReady":{"spellId":{"spellId":23894}}},"rhs":{"const":{"val":"1.5s"}}}},{"cmp":{"op":"OpGe","lhs":{"spellTimeToReady":{"spellId":{"spellId":1680,"tag":1}}},"rhs":{"const":{"val":"1.5s"}}}}]}}},
 	{"name":"Overpower: Can Cast","value":{"and":{"vals":[{"actionGroupUsed":{"name":"Overpower Weaving"}},{"auraIsActive":{"auraId":{"spellId":1282733},"includeReactionTime":true}},{"cmp":{"op":"OpGe","lhs":{"currentRage":{}},"rhs":{"const":{"val":"5"}}}},{"cmp":{"op":"OpLe","lhs":{"currentRage":{}},"rhs":{"const":{"val":"73"}}}},{"spellIsReady":{"spellId":{"spellId":11585}}}]}}},
-	{"name":"Rend: Can Cast","value":{"and":{"vals":[{"actionGroupUsed":{"name":"Rend Weave ON/OFF"}},{"not":{"val":{"isExecutePhase":{"threshold":"E20"}}}},{"auraIsInactive":{"sourceUnit":{"type":"CurrentTarget"},"auraId":{"spellId":11574}}},{"cmp":{"op":"OpGe","lhs":{"currentRage":{}},"rhs":{"const":{"val":"10"}}}}]}}}
+	{"name":"Rend: Can Cast","value":{"and":{"vals":[{"actionGroupUsed":{"name":"Rend Weave ON/OFF"}},{"not":{"val":{"isExecutePhase":{"threshold":"E20"}}}},{"not":{"val":{"dotIsActive":{"spellId":{"spellId":11574}}}}},{"cmp":{"op":"OpGe","lhs":{"currentRage":{}},"rhs":{"const":{"val":"10"}}}}]}}}
 	]
 }
