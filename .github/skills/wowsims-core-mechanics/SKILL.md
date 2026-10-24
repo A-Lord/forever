@@ -40,9 +40,9 @@ rulings the code follows are in `references/rulings.md`; text here follows `wows
 - **A proc handler runs inside `applyEffects` only with `TriggerImmediately`.** Without it, which is how
   `spelldata.ProcTrigger` builds one, it is a pending action one `SpellBatchWindow` (10 ms) later (`aura_helpers.go`),
   after `OnCastComplete`; a stepped test needs `sim.Step()` to see it fire.
-- **`CallbackOnCastComplete` carries no result**, so `Outcome` on such a trigger is never read. A proc off the cast's
-  hit roll uses `CallbackOnCastResult` (`references/rulings.md` §Cast order and procs). Prove an order at runtime:
-  `wowsims-testing` `## Proving a claim at runtime`.
+- **`CallbackOnCastComplete` carries no result**, so `Outcome` and `RequireDamageDealt` are never read and no manager
+  rolls (`aura_helpers.go`). A proc off the cast's hit roll uses `CallbackOnCastResult` (`references/rulings.md`
+  §Cast order and procs). Prove an order at runtime: `wowsims-testing` `## Proving a claim at runtime`.
 
 ## What a cast spends
 

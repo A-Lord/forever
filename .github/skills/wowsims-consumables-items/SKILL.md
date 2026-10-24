@@ -66,10 +66,9 @@ registrations.
 
 What an on-use grants only against some creature types, or only in some zones, is a list on the consumable:
 `mob_type_stats` and `zone_stats` in `proto/db.proto`. How each is filled and read is `docs/consumables.md` §Stats
-db.json lists outside the parse and §What the settings offer.
+db.json lists outside the parse and §What the settings offer, which holds the EP order.
 
-- **A conditional stat never goes into `stats`.** The lists let the settings offer a consumable and weigh it in the
-  EP order only against a matching target or zone; the sim reads the rows, never the lists, so a list that is wrong
+- **A conditional stat never goes into `stats`.** The sim reads the rows, never the lists, so a list that is wrong
   moves the settings and no sim number.
 
 ## Hand-written effects

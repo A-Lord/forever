@@ -65,9 +65,8 @@ The four `ProcChanceSource` shapes, the decoder, the proc-chance talents and the
 | `ItemProcChance(s)` | an item or enchant proc rolls the column where it contradicts the effect's chance (Uther's Light 8397)       |
 
 - **A `ProcMask` set on the returned trigger narrows the listener but not a manager already built.**
-- **A cast listener on a proc that depends on the hit is a defect.** On `CallbackOnCastComplete` the trigger's
-  `Outcome` and `RequireDamageDealt` are never read and no manager rolls (`aura_helpers.go`), so a dodged or missed
-  cast still procs; `ProcTrigger` on the rank decodes the hit listener the row states.
+- **A cast listener on a proc that depends on the hit is a defect**: a dodged or missed cast still procs, for the
+  reason in `wowsims-core-mechanics` `## Cast order`. `ProcTrigger` on the rank decodes the hit listener the row states.
 - **Read the chance off the effect the tooltip names**, never a look-alike effect whose ladder happens to fit.
 - **A spell's own proc mask decides which listeners hear it**, and the hit table decides the mask, not the school.
   The cases (taunts on `ProcMaskEmpty`, a weapon proc's strike off either hand, oils) are in `references/rulings.md`.

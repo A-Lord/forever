@@ -14,21 +14,22 @@ pages below hold the detail, and this skill carries the traps and commands they 
 
 ## Where things live
 
-| Path                                                                        | What it is                                                                                                 |
-| --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `tools/database/wowsims.db`                                                 | the game files database, gitignored, written by `tools/db2tool/` from `generator-settings.json`            |
-| `tools/database/generator-settings.json`                                    | the tables `db2tool` extracts; `ptr-generator-settings.json` lists the same tables minus `ItemXItemEffect` |
-| `tools/database/gen_spelldata/`                                             | the store, form and class ladder generator, a separate binary from `gen_db`                                |
-| `tools/database/gen_db/main.go`                                             | `gen_db`: the hotfix check, the numbered `.sql`, the item database, registrations, talent files            |
-| `tools/database/overrides/`                                                 | spell, weapon and enchant rate overrides, hand triggers, extra spells, and the numbered `.sql`             |
-| `tools/database/overrides.go`                                               | item, enchant and consumable overrides, allow and deny lists, `ItemSetClasses`                             |
-| `assets/db_inputs/spell_store_inputs.json`                                  | the rows the store was built from, with each group's `Builds` and `Hotfixes`; gzipped (`zcat`)             |
-| `assets/database/db.json`, `assets/database/db.bin`                         | one `proto.UIDatabase` written twice by `gen_db`; the sim embeds the binary, the UI fetches JSON           |
-| `.github/workflows/check_hotfixes.yml`, `update_items.yml`, `update_db.yml` | the hourly hotfix check, the items-only regeneration it dispatches, the full one run by hand               |
+| Path                                                                        | What it is                                                                                                      |
+| --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `tools/database/wowsims.db`                                                 | the game files database, gitignored, written by `tools/db2tool/` from `generator-settings.json`                 |
+| `tools/database/generator-settings.json`                                    | the tables `db2tool` extracts; `ptr-generator-settings.json` lists the same tables minus `ItemXItemEffect`      |
+| `tools/database/gen_spelldata/`                                             | the store, form and class ladder generator, a separate binary from `gen_db`                                     |
+| `tools/database/gen_db/main.go`                                             | `gen_db`: the hotfix check, the numbered `.sql`, the item database, registrations, talent files                 |
+| `tools/database/overrides/`                                                 | spell, weapon and enchant rate overrides, hand triggers, extra spells, and the numbered `.sql`                  |
+| `tools/database/overrides.go`                                               | item, enchant and consumable overrides, allow and deny lists, `ItemSetClasses`                                  |
+| `assets/db_inputs/spell_store_inputs.json`                                  | the rows the store was built from, with each group's `Builds` and `Hotfixes`; gzipped despite the name (`zcat`) |
+| `assets/database/db.json`, `assets/database/db.bin`                         | one `proto.UIDatabase` written twice by `gen_db`; the sim embeds the binary, the UI fetches JSON                |
+| `.github/workflows/check_hotfixes.yml`, `update_items.yml`, `update_db.yml` | the hourly hotfix check, the items-only regeneration it dispatches, the full one run by hand                    |
 
 | You are…                                                                       | Open                                                               |
 | ------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
 | running a generator, `-check` or `-unchecked`, or reading what guards them     | `docs/spell_data/regenerating.md`                                  |
+| about to delete a generated file, or one is already gone                       | `docs/spell_data/pitfalls.md`                                      |
 | taking a class, the racials or the items onto a build, or stamping `BuildInfo` | `docs/spell_data/partial-updates.md`, its §Commands for every flag |
 | adding a number the game files do not state                                    | `docs/spell_data/overrides.md`, then "Overrides" below             |
 | adding, removing or correcting a consumable                                    | `docs/consumables.md`, then `wowsims-consumables-items`            |
@@ -55,8 +56,6 @@ go test ./sim/core/spelldata/ ./tools/database/ -count=1     # no database neede
 - **A checkout keeps its own `wowsims.db`.** `gen_db` runs every numbered `.sql` in `tools/database/overrides/`
   against the database it opens, in numeric order, before it reads a row, so a database shared with another checkout
   changes under it.
-- **Never delete a generated Go file before regenerating it.** `gen_db` imports the sim, so a class package missing
-  its file breaks the generator that would recreate it.
 - **`make db` re-extracts.** For the items alone from the database you have, run the two generators above; a new
   extraction can take hotfixes the committed rows do not hold.
 - **Edit the Go table, never its TS copy.** `make go-to-ts` writes the files in `AUTO_GEN_FILES_TS` from Go
@@ -74,8 +73,8 @@ go test ./sim/core/spelldata/ ./tools/database/ -count=1     # no database neede
 `docs/spell_data/overrides.md` holds each field, the rule that makes it stale, and the hand triggers and extra
 spells. The generator refuses an override once the game files state the value; remove the row then, never the check.
 
-- **Read the overrides before claiming the sim lacks a value.** `wowsims.db` holds only the game files' values; the
-  store also carries the hand-kept ones, each marked `// override:` in `spells_auto_gen.go`.
+- **Read the overrides before quoting a value or claiming the sim lacks one.** `wowsims.db` holds only the game
+  files' values; the store also carries the hand-kept ones, each marked `// override:` in `spells_auto_gen.go`.
 - **The table follows whose number it is.** A rate that belongs to one weapon goes in `WeaponProcs`, keyed by item and
   spell, since two weapons can share a trigger spell; an enchant's in `EnchantProcs`; a rate every carrier of the
   spell shares (Omen of Clarity, Seal of Light) in `Spells` with `Field: PPM`. Proc wiring is `wowsims-procs`.

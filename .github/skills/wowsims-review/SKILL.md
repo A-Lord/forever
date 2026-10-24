@@ -32,17 +32,14 @@ constants that no generator reads.
 
 ## 2. Every change
 
-- **Production code that only a test or story uses.** AGENTS.md: tests and stories never add code to `sim/`
-  or `ui/` so a test can reach something. For each new export, prop, parameter, branch or `index.ts`
-  re-export, find a caller outside tests and stories; with none, the test changes instead (a fixture in
-  `ui/testing/` or the test file, a stub at the module boundary).
+- **Production code that only a test or story uses** (the rule is in `AGENTS.md`). For each new export, prop,
+  parameter, branch or `index.ts` re-export, find a caller outside tests and stories; with none, the test changes
+  instead (a fixture in `ui/testing/` or the test file, a stub at the module boundary).
 - **A comment that claims what the code no longer does.** A comment naming a read, a row, a file or a
   dependency is checked against the code after the diff; one the change made untrue is a finding.
-- **An item the request does not carry.** `sim/core/database_load.go` builds only with `with_db`, so the
-  Go tests see every item while the dev server and the WASM build know only the items in the request's
-  `SimDatabase`. `core.GetItemByID` for an item the player may not wear passes every test and is nil in the
-  app. Such a read needs the request to carry the item (`PARTY_BUFF_ITEM_IDS` in `ui/sim/proto/buff_items.ts`)
-  and a loud failure when it is missing, as `driveDarkspear` in `sim/core/buffs/drivers.go` panics.
+- **An item the request does not carry.** Check that a read of an item the player may not wear has the request
+  carry it (`wowsims-consumables-items` `## The request database`) and fails loudly when it is missing, as
+  `driveDarkspear` in `sim/core/buffs/drivers.go` panics.
 - **Orphans the change made.** A function with no caller, a mask naming a spell nothing registers, an empty
   body the change left behind: remove them in the same change.
 - **A live talent never becomes a silent no-op.** An unported talent or ability keeps its stub and a
@@ -100,17 +97,19 @@ The first seven have a section in `references/defects.md`.
 - **Whose state.** Check a multi-target effect reads each hit target, a tag counts only this caster's auras and a
   missing map key is not 0; `wowsims-core-mechanics` `## Whose state`.
 - **What a preset line sees.** Check that a line reading something the running cast's landing changes
-  carries `not(Spell Is Casting(X))`, and judge cast counts from a debug log; `wowsims-apl` `## Timing`.
+  carries `not(Spell Is Casting(X))` (`wowsims-apl` `## Timing`), and that its cast counts were judged as
+  `wowsims-apl` `## Presets` says.
 
 ## 5. Tests
 
-The rules behind these are `wowsims-testing` `## What a test asserts` and `## .results discipline`.
-
-- **Tests test logic, not data:** expected values from the raw row, no `t.Skip`, no `want 7` literal.
+- **Logic, not data.** Check each test the change adds or edits against `wowsims-testing` `## What a test asserts`.
 - **The class suites run** with no `t.Skip`, and a Forever talent string and gear set.
-- **The suite can see the change:** its `.results` or a runtime print carries the spell the change touches.
-- **The cast counts are possible:** 18 Prowls in one 180-second iteration say an opener repeats all fight.
-- **A moved .results file has one isolated cause per move,** found by reverting one change at a time.
+- **The suite can see the change.** Check its `.results` or a runtime print carries the spell the change touches;
+  `wowsims-testing` `## .results discipline`.
+- **The cast counts are possible.** Check them against the fight length and each spell's cooldown;
+  `wowsims-testing` `## .results discipline`.
+- **Each moved .results file has its own cause.** Check each move was isolated; `wowsims-testing`
+  `## .results discipline`.
 
 ## 6. Verify every finding
 

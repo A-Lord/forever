@@ -51,7 +51,7 @@ grep -n -A3 '^test:\|^update-tests' makefile
 - **`go test --tags=with_db` over `./sim/...`**, `GOARCH=amd64`: every class suite against its `.results`, the shared
   and core tests, and `TestProtoVersioning`, which shells out to `npx buf` and so needs `npm ci`.
 - **`make skills-check`** in `build-ui`: every path, route and skill name the skills under `.github/skills/` mention.
-  `npm run fmt` there checks the markdown too, so both run after any docs or skill edit.
+  The format gate on markdown is `wowsims-conventions` `## Before committing`.
 
 Locally, also run `go vet -tags=with_db ./sim/... ./tools/...`, `go test --tags=with_db ./tools/spelldata/`, and
 `make spelldata-check` when a change touches spell data (it needs `wowsims.db`). A generator change regenerates and
@@ -91,10 +91,9 @@ every run writes `<Suite>.results.tmp`, which git ignores; its presence means no
 
 ## What a test asserts
 
-- **Tests add no production code** (`AGENTS.md`): no export, parameter, branch, flag or hook in `sim/` or `ui/` only so
-  a test or story reaches something; a reviewer reports one as a finding. The settled exceptions are a container's
-  exported view, the exports the design-system pages use, `DynamicProcManager.Chance`, Popover `container`, Drawer
-  `side` and the TabNav badge.
+- **Tests add no production code**: the rule is in `AGENTS.md`, and `wowsims-review` step 2 checks for it. The
+  settled exceptions are a container's exported view, the exports the design-system pages use,
+  `DynamicProcManager.Chance`, Popover `container`, Drawer `side` and the TabNav badge.
 - **Logic, not data.** Outside `sim/<class>/` a test asserts what an effect does (what it modifies, when it fires, what
   it spends, how it scales), so a game build that changes an amount leaves it green. Expected values come from the raw
   row, `spelldata.MustFind(id).EffectN(i)`, not from the generated accessor the production path reads or a literal; a

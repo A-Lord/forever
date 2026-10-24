@@ -25,7 +25,7 @@ the traps they do not carry.
 | `sim/core/spelldata/attributes.go`            | the attribute bits the sim acts on                                                              |
 | `sim/<class>/spell_data_auto_gen.go`          | a class's `spellData`: one ladder per family, no numbers of its own                             |
 | `tools/database/gen_spell_data.go`            | `discoverLadders`, which decides which rows become a family's ranks                             |
-| `tools/database/overrides/spell_overrides.go` | numbers the game files do not state; read it before quoting a value                             |
+| `tools/database/overrides/spell_overrides.go` | numbers the game files do not state                                                             |
 | `tools/spelldata/`                            | the command-line reader and the language server behind the editor hover                         |
 
 | You are…                                                                               | Open                                 |

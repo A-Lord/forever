@@ -65,7 +65,8 @@ claim is checked against `tools/database/wowsims.db` first.
 
 Where the sim and the game files disagree, decide rather than assume
 (`wowsims-spells` `## When a sim number disagrees with the game files`), and record the decision at the call site. A
-preset rotation follows `wowsims-apl` `## Timing`; check its cast counts in a debug log before taking its DPS.
+preset rotation follows `wowsims-apl` `## Timing`, and its cast counts are judged as `## Presets` there says before
+its DPS is taken.
 
 ## Keeping the branch merged
 
@@ -80,14 +81,11 @@ git status --porcelain -- '*.results'      # empty unless a number was meant to 
 make spelldata-check                       # the generated files match the database (needs wowsims.db)
 ```
 
-**A .results file that cannot move proves nothing.** Before reading a pass as evidence, grep the class's .results for
-the spell id you changed: a suite whose rotation never casts the spell passes whatever the spell does. Where the suite
-cannot see a change, dump each constructed row against the literal it replaced, field by field; that is the check that
-finds the bugs.
+Whether a suite can see the change is `wowsims-testing` `## .results discipline`, and the rest of proving the work (the
+gates, `make update-tests`, where a test goes) is that skill too. Where the suite cannot see a change, dump each
+constructed row against the literal it replaced, field by field; that is the check that finds the bugs.
 
-The rest of proving the work (the gates, `make update-tests`, where a test goes) is `wowsims-testing`.
-
-**Before committing, run the `wowsims-review` pass over the diff**, ideally from a fresh agent: every number and
+**Run the `wowsims-review` pass over your own diff before committing**, ideally from a fresh agent: every number and
 hand-built config against its row and tooltip, the rules the rows cannot show, and every finding verified before it is
 fixed. The PR body carries its "checked, not findings" and "hand numbers that stay" lists.
 

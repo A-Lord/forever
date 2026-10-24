@@ -71,7 +71,7 @@ A value or action reaches the rotation and the kind picker in five places, all i
 - **A suite runs a hidden group only when it un-hides it**, as `armsStanceDanceRotation` does in
   `sim/warrior/dps/dps_test.go`; a group no suite un-hides never reaches the `.results`.
 - **A line is written against the pick at the cast end** (`docs/rotation.md`). After an edit, dump the validations
-  (below) and check the cast counts in a debug log (`wowsims-review`).
+  (below) and judge the preset's cast counts from a debug log, not from the line as written.
 
 ## What fails silently
 

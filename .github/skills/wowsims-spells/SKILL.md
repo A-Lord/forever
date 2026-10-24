@@ -12,17 +12,17 @@ that skill. The detail lives in `docs/spell_data/` (start at its README), `docs/
 
 ## Where things live
 
-| Path                                                 | What it is                                                                                                                                       |
-| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `sim/core/spelldata/spells_auto_gen.go`              | Generated store: every spell the sim can reach, in the game files' units. `sim/core` must not import `spelldata` (the store imports core).       |
-| `sim/core/spelldata/*.go`                            | Hand-written accessors (`store.go`, `spell.go`, `effect.go`, `ladder.go`, `attributes.go`) and resolvers (`resolve_*.go`, `parse_effects*.go`).  |
-| `sim/<class>/spell_data_auto_gen.go`                 | Generated: one `spelldata.Ladder` per family, no numbers of its own.                                                                             |
-| `tools/database/overrides/spell_overrides.go`        | Numbers the game files do not state, each with a reason and a rule that refuses it once the game files catch up. Read it before quoting a value. |
-| `tools/database/overrides.go`                        | Item, enchant and consumable overrides, allow and deny lists.                                                                                    |
-| `assets/db_inputs/spell_store_inputs.json`           | The rows the store was built from, gzipped despite the name (`zcat`). Lets the store be regenerated and tested with no game files database.      |
-| `assets/database/db.json`, `db.bin`, `leftover_db.*` | The item, enchant and consumable database `gen_db` writes; `db.bin` is the same `proto.UIDatabase` encoded.                                      |
-| `sim/common/forever/*_auto_gen.go`                   | Generated item, enchant and consumable registrations; hand-written effects sit beside them (`items_*.go`, `consumables_*.go`).                   |
-| `sim/common/shared`                                  | The builders that run consumables and item effects from their rows.                                                                              |
+| Path                                                 | What it is                                                                                                                                      |
+| ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sim/core/spelldata/spells_auto_gen.go`              | Generated store: every spell the sim can reach, in the game files' units.                                                                       |
+| `sim/core/spelldata/*.go`                            | Hand-written accessors (`store.go`, `spell.go`, `effect.go`, `ladder.go`, `attributes.go`) and resolvers (`resolve_*.go`, `parse_effects*.go`). |
+| `sim/<class>/spell_data_auto_gen.go`                 | Generated: one `spelldata.Ladder` per family, no numbers of its own.                                                                            |
+| `tools/database/overrides/spell_overrides.go`        | Numbers the game files do not state, each with a reason and a rule that refuses it once the game files catch up.                                |
+| `tools/database/overrides.go`                        | Item, enchant and consumable overrides, allow and deny lists.                                                                                   |
+| `assets/db_inputs/spell_store_inputs.json`           | The rows the store was built from. Lets the store be regenerated and tested with no game files database.                                        |
+| `assets/database/db.json`, `db.bin`, `leftover_db.*` | The item, enchant and consumable database `gen_db` writes; `db.bin` is the same `proto.UIDatabase` encoded.                                     |
+| `sim/common/forever/*_auto_gen.go`                   | Generated item, enchant and consumable registrations; hand-written effects sit beside them (`items_*.go`, `consumables_*.go`).                  |
+| `sim/common/shared`                                  | The builders that run consumables and item effects from their rows.                                                                             |
 
 ## Which skill
 
