@@ -154,5 +154,13 @@ The review ends with the `humanizer:humanizer` skill when the harness knows it: 
 the comments to post, and any PR body, commit message or code comment the review added or rewrote, before
 anything is posted or pushed. The rewrite changes prose only; findings, numbers, code and paths stay.
 
-A ruling, trap or workflow fact learned while using this skill is written here, or into `references/rulings.md`, in
-the same change that uses it. A memory file is a pointer to this skill, not a second copy.
+## Keeping this skill true
+
+| You changed…                                                                  | Update                                         |
+| ----------------------------------------------------------------------------- | ---------------------------------------------- |
+| what `go run ./tools/spelldata` prints, or `sim/core/spelldata/attributes.go` | step 3's commands and the paragraph under them |
+| a defect class, or a `##` heading step 4 names in another skill               | `references/defects.md` and that step 4 bullet |
+
+Then run `sh .github/skills/check_paths.sh .github/skills/wowsims-review`. A ruling, trap or workflow fact learned
+while using this skill is written here, or into `references/rulings.md`, in the same change that uses it. A memory
+file is a pointer to this skill, not a second copy.

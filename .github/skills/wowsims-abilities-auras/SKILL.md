@@ -45,7 +45,7 @@ The options, the fields the row fills and the three shapes a registration takes 
 - **`CastRequirement` is never restated in `ExtraCastCondition`.** `SpellConfig` fills the form, stance, caster aura,
   weapon, shield, creature type and out-of-combat state, and core refuses the cast. `ExtraCastCondition` holds only
   what no row forbids; a refusal the row does not state is a defect too (Faerie Fire's recast refused while its own
-  debuff was up). An aura that lifts a requirement (Cutthroat's `A_MOD_IGNORE_SHAPESHIFT` on Ambush) sets
+  debuff is up). An aura that lifts a requirement (Cutthroat's `A_MOD_IGNORE_SHAPESHIFT` on Ambush) sets
   `CastRequirement.CasterForm` on gain and clears it on expiry.
 - **A sub-second GCD is named twice.** `Cast.GCDTime` floors a GCD at `core.GCDMin`, one second, unless the cast sets
   `GCDMin`, so a spell with a shorter GCD sets both `GCD` and `GCDMin`.

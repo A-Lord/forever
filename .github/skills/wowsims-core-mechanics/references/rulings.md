@@ -77,8 +77,8 @@ Each line is the rule the code follows, where it lives, and the pull request tha
 - **Creature-type racial slaying (aura 168: Troll Beast Slaying, the Dwarf and Skyborne rows) raises damage only
   (`applyDamageVersus`); crit damage against a creature type comes only from aura 547 rows.** `sim/core/racials.go`,
   PR #536.
-- **Touch of the Grave takes no downrank scaling from a low-level trigger and no Shadow modifiers; its amount and 25 s
-  ICD come from the row.** `sim/core/racials.go`, PR #462.
+- **Touch of the Grave takes no downrank scaling from a low-level trigger and no Shadow modifiers; its amount (5% of max
+  health), 25 s ICD and chance are the row's values typed in `applyTouchOfTheGrave`.** `sim/core/racials.go`, PR #462.
 
 ## Costs, resources and threat
 

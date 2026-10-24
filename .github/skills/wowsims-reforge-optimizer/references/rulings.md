@@ -1,7 +1,5 @@
 # Rulings
 
-- **Which enchants and slots become candidates follows SKILL.md's two Candidates sections.**
-  `sim/core/reforge_optimizer/enchants.go`, PR #222.
 - **Stored EP weights of percent stats (hit, crit, haste, expertise, school hit) are per percentage point; the stat
   weights dialog only displays them per rating point, and source writes a per-rating value as
   `x * Mechanics.*_RATING_PER_*_PERCENT`.** `ui/features/stat-weights/components/EpWeightsDialog/StatWeightRow.tsx`,

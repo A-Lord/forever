@@ -31,8 +31,9 @@ Each line is the rule the code follows, where it lives, and the pull request tha
   `sim/core/spelldata/parse_effects_table.go`, PR #378.
 - **A talent's trait curve applies with the sign the game files state, even where base points and tooltip say the
   opposite; no sign override exists.** `sim/core/spelldata/ladder.go`, PR #399.
-- **Every Lava Burst rank gives the same 20% Flame Shock bonus; a higher rank's larger value is a tooltip bug shown in
-  game, and in-game measurement beats both row and tooltip.** `sim/shaman/lava_burst.go`, `registerLavaBurstSpell`.
+- **Lava Burst's Flame Shock bonus is 20% at every rank; a higher-rank row value is a tooltip bug.**
+  `sim/shaman/lava_burst.go` reads `EffectN(2).Average()`, which gives 53% at rank 3 and disagrees with this rule;
+  PR #487.
 - **Seal of Righteousness keeps the tooltip description-variable coefficients 0.12 and 0.0765 over the rows' 0.**
   `sim/paladin/seal_of_righteousness.go`, PR #469.
 - **Revenge deals its base plus 0.28 × attack power on every rank (`APCoefDirect`), measured on ranks 1 and 2 and

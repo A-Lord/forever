@@ -99,7 +99,7 @@ Registration, the enchant slot rules, `ItemProcUnsupportedWithRate` and the two 
   `## Proving a claim at runtime`.
 - **A measured rate that disagrees with the tooltip** is decided by `wowsims-spells`
   `## When a sim number disagrees with the game files`, and the outcome goes into `references/rulings.md` with its
-  PR, as Omen of Clarity's and Revelation's did.
+  PR; Omen of Clarity's and Revelation's are there.
 
 ## Traps
 

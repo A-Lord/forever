@@ -13,21 +13,21 @@ Text here follows `wowsims-conventions`; `docs/consumables.md` holds the consuma
 
 ## Where things live
 
-| Path                                                  | What it is                                                                                                                  |
-| ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `assets/database/db.json`, `assets/database/db.bin`   | one `proto.UIDatabase` written twice by `gen_db`; nothing derives one from the other                                        |
-| `assets/database/leftover_db.json`, `leftover_db.bin` | the items and enchants the simmable filters leave out                                                                       |
-| `assets/database/loader.go`                           | embeds `db.bin` and `leftover_db.bin`; only a `with_db` build loads them (`sim/core/database_load.go`)                      |
-| `ui/sim/proto/database.ts`                            | the UI fetches `db.json` (`READ_JSON`) and the leftovers when a gear set needs them                                         |
-| `tools/database/gen_db/main.go`                       | `gen_db`, and the order of the steps below                                                                                  |
-| `tools/database/gen_consumables.go`                   | consumable routing and what ships; groups, unparsed stats and potion classes sit beside it                                  |
-| `tools/database/gen_effects.go`                       | item, enchant and set effect generation and the missing-effects list                                                        |
-| `tools/database/overrides.go`                         | item, enchant and consumable overrides, allow and deny lists, `ItemSetClasses`                                              |
-| `sim/core/consumes.go`, `sim/core/item_effects.go`    | the consumable registry and the item and enchant registries                                                                 |
-| `sim/common/forever/`                                 | generated registrations (`*_auto_gen.go`) and hand-written shared effects (`items_*.go`, `enchants.go`, `consumables_*.go`) |
-| `sim/<class>/item_<kind>.go`                          | hand-written effects only one class can use                                                                                 |
-| `ui/sim/constants/missing_effects_auto_gen.ts`        | items, enchants and set bonuses no code registers an effect for                                                             |
-| `ui/features/settings/model/consumables_auto_gen.ts`  | one named export per shipped consumable, which presets name consumables through                                             |
+| Path                                                  | What it is                                                                                                                   |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `assets/database/db.json`, `assets/database/db.bin`   | one `proto.UIDatabase` written twice by `gen_db`; nothing derives one from the other                                         |
+| `assets/database/leftover_db.json`, `leftover_db.bin` | the items and enchants the simmable filters leave out                                                                        |
+| `assets/database/loader.go`                           | embeds `db.bin` and `leftover_db.bin`; only a `with_db` build loads them into the sim's tables (`sim/core/database_load.go`) |
+| `ui/sim/proto/database.ts`                            | the UI fetches `db.json` (`READ_JSON`) and the leftovers when a gear set needs them                                          |
+| `tools/database/gen_db/main.go`                       | `gen_db`, and the order of the steps below                                                                                   |
+| `tools/database/gen_consumables.go`                   | consumable routing and what ships; groups, unparsed stats and potion classes sit beside it                                   |
+| `tools/database/gen_effects.go`                       | item, enchant and set effect generation and the missing-effects list                                                         |
+| `tools/database/overrides.go`                         | item, enchant and consumable overrides, allow and deny lists, `ItemSetClasses`                                               |
+| `sim/core/consumes.go`, `sim/core/item_effects.go`    | the consumable registry and the item and enchant registries                                                                  |
+| `sim/common/forever/`                                 | generated registrations (`*_auto_gen.go`) and hand-written shared effects (`items_*.go`, `enchants.go`, `consumables_*.go`)  |
+| `sim/<class>/item_<kind>.go`                          | hand-written effects only one class can use                                                                                  |
+| `ui/sim/constants/missing_effects_auto_gen.ts`        | items, enchants and set bonuses no code registers an effect for                                                              |
+| `ui/features/settings/model/consumables_auto_gen.ts`  | one named export per shipped consumable, which presets name consumables through                                              |
 
 | You are…                                                                       | Open                                                                                                                                                  |
 | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |

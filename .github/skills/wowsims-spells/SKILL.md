@@ -53,3 +53,12 @@ disagreement stays, say so at the call site.
   coefficient belongs to the spell its description names.
 - Where the row and the tooltip disagree, the tooltip can win (Flurry's haste ladder against its buff
   row's flat 30), and the comment names the wording it came from.
+
+## Keeping this skill true
+
+| You changed…                                | Update                                       |
+| ------------------------------------------- | -------------------------------------------- |
+| added, renamed or removed a skill           | "Which skill" here and the `AGENTS.md` table |
+| moved a path that "Where things live" names | that row                                     |
+
+Then run `sh .github/skills/check_paths.sh .github/skills/wowsims-spells`. A ruling or trap goes into its subject skill.

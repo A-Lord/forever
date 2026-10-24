@@ -92,19 +92,20 @@ every run writes `<Suite>.results.tmp`, which git ignores; its presence means no
 ## What a test asserts
 
 - **Tests add no production code**: the rule is in `AGENTS.md`, and `wowsims-review` step 2 checks for it. The
-  settled exceptions are a container's exported view, the exports the design-system pages use,
-  `DynamicProcManager.Chance`, Popover `container`, Drawer `side` and the TabNav badge.
+  kit options that stay in the UI are in `.github/skills/wowsims-ui/references/conventions.md`.
+- **`DynamicProcManager.Chance` stays exported for the shared tests, which read an exact proc chance through it.**
+  `sim/core/procs.go:35`, PR #187.
 - **Logic, not data.** Outside `sim/<class>/` a test asserts what an effect does (what it modifies, when it fires, what
   it spends, how it scales), so a game build that changes an amount leaves it green. Expected values come from the raw
   row, `spelldata.MustFind(id).EffectN(i)`, not from the generated accessor the production path reads or a literal; a
   test over the real tables checks only data-independent invariants, never counts or specific ids.
 - **Pin the precondition on a row copy** (`withRows`, `editRow`), never `t.Skip`; a needed amount that reads 0 fails
   the test. Names and messages quote no game-file numbers.
-- **Where a test goes.** A class's own tests outside the spec suites live in one `sim/<class>/<class>_test.go`, one test
-  per fixed bug or class rule; no ability-specific test file goes under `sim/<class>/` or a spec folder, and an ability
-  timing change is proven with an uncommitted run stated in the pull request. Cast requirement, form, equipment, buff
-  and proc mechanics are tested in the generic core or `sim/common/shared` tests. Item, enchant and generic aura
-  behaviour goes in `sim/common/shared/spell_data_aura_test.go`; class items together in
+- **Where a new test goes.** A new class test outside the spec suites goes into `sim/<class>/<class>_test.go`, one test
+  per fixed bug or class rule; a change adds no ability-specific test file under `sim/<class>/` or a spec folder, and
+  proves an ability timing change with an uncommitted run stated in the pull request. A new test of cast requirement,
+  form, equipment, buff or proc mechanics goes in the generic core or `sim/common/shared` tests. Item, enchant and
+  generic aura behaviour goes in `sim/common/shared/spell_data_aura_test.go`; class items together in
   `sim/common/forever/class_items_test.go`; buffs and debuffs in `sim/core/buffs/meta_constructors_test.go` (shapes)
   and `sim/core/buffs/meta_test.go` (values). UI component tests are `wowsims-ui`.
 - **A snapshot test writes its list when missing** and rewrites it under an `UPDATE_*` variable, and its path joins the
