@@ -90,24 +90,25 @@ export const TwistOfLightConsumables = ConsumesSpec.create({
 	flaskId: Consumables.FlaskOfSupremePower.id,
 	foodId: Consumables.LobsterStew.id,
 	conjuredId: Consumables.DemonicRune.id,
-	explosiveId: Consumables.EzThroDynamiteII.id,
-	extraIds: [Consumables.GoblinSapperCharge.id, Consumables.ROIDS.id],
+	extraIds: [Consumables.ROIDS.id, Consumables.GoblinSapperCharge.id, Consumables.DragonbreathChili.id, Consumables.GordokGreenGrog.id],
 	elixirIds: [
 		Consumables.ElixirOfHolyPower.id,
 		Consumables.ElixirOfSages.id,
 		Consumables.ElixirOfTheMongoose.id,
 		Consumables.ElixirOfTheOwl.id,
 		Consumables.ElixirOfTheGrizzly.id,
+		Consumables.ElixirOfThePhalanx.id,
 		Consumables.GreaterArcaneElixir.id,
 		Consumables.GreaterMagebloodElixir.id,
 		Consumables.JujuMight.id,
 	],
 	mhImbueId: Consumables.BrilliantWizardOil.id,
+	swapMhImbueId: Consumables.BrilliantWizardOil.id,
 });
 
 export const HolyShockConsumables = ConsumesSpec.create({
 	...TwistOfLightConsumables,
-	extraIds: [Consumables.GoblinSapperCharge.id, Consumables.CerebralCortexCompound.id],
+	extraIds: [Consumables.CerebralCortexCompound.id, Consumables.GoblinSapperCharge.id, Consumables.DragonbreathChili.id, Consumables.GordokGreenGrog.id],
 });
 
 export const DefaultRaidBuffs = RaidBuffs.create({
@@ -145,7 +146,7 @@ export const DefaultDebuffs = Debuffs.create({
 export const OtherDefaults = {
 	profession1: Profession.Engineering,
 	profession2: Profession.Blacksmithing,
-	distanceFromTarget: 5,
+	distanceFromTarget: 25,
 	reactionTime: 100,
 	iterationCount: 25000,
 	race: Race.RaceHuman,
