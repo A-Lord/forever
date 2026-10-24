@@ -61,6 +61,7 @@ anyway and marks what that breaks, see `references/talents.md`), and there is no
 | running real sims in a browser, taking screenshots, or running Storybook                                     | `references/running-locally.md` |
 | adding a spec, formatting code, or about to reopen a decision that was already made                          | `references/conventions.md`     |
 | touching the talent picker, the talents string, a talent preset, or the broken-talent rules                  | `references/talents.md`         |
+| changing a settled results, stat sweep or item swap behaviour                                                | `references/rulings.md`         |
 | writing a component, a container and its view, or a story                                                    | `ui/README.md`                  |
 | styling, component state as `data-*`, locating elements in a test, or a class gate failing                   | `ui/STYLING.md`                 |
 
@@ -99,3 +100,6 @@ that `SKILL.md` does not route to:
 ```
 sh .github/skills/check_paths.sh .github/skills/wowsims-ui
 ```
+
+A ruling, trap or workflow fact learned while using this skill is written here, or into `references/rulings.md`, in
+the same change that uses it. A memory file is a pointer to this skill, not a second copy.

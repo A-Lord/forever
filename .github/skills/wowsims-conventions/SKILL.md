@@ -28,6 +28,8 @@ These apply to every file and every piece of GitHub text, in Go and TypeScript a
     Caster              *Unit      // Whose proc chance mods apply, when not the aura's unit (e.g. Judgement of Light on the target).
     ```
 
+    Package-level vars or consts that feed the same function sit on consecutive lines with no blank line between.
+
 - **Do not name what the comment sits on.** A comment never opens with or repeats the name of the function,
   type or field it documents: "The first row under an effect id that fits the item", not "FittingEnchantRow
   returns the first row…". The name is already on the next line, so this holds for Go doc comments too,
@@ -35,6 +37,8 @@ These apply to every file and every piece of GitHub text, in Go and TypeScript a
 - **State the rule, not the site it came from.** Do not name SimC, Wowhead or a JS mapping as the source of a
   name or value ("one SimC names", "commented out in the JS mapping"); write the rule ("one with no known name is
   `A_<id>`"). Existing Wowhead spell links above a spell's registration are fine; do not add attribution prose.
+- **Name a shared helper by its math.** A helper in `sim/core/utils.go` is named and documented by what it computes
+  (`SymmetricMultiplierFromPercent`, `MultiplierFromPercent(-p)`), and the game meaning sits at the call site.
 
 ## Words
 
@@ -49,11 +53,13 @@ These apply to every file and every piece of GitHub text, in Go and TypeScript a
 - **No "golden".** Committed text and GitHub text say ".results files" or "expected results" (the sim tests), or
   "the state-snapshot capture" (UI), never "golden" or "goldens". Item names such as Golden Scale Coif are
   unrelated.
+- **"Hardcast" and "cast end".** Code, comments, test names, tooltips and PR text say "hardcast" and "cast end",
+  never "cast bar" or "bar".
 
 ## Plain prose
 
-When a humanizer skill is loaded, run it over the comments, docs, test messages, commit messages and PR text a
-change adds or rewrites; without one, read them for the same patterns by hand: a dash used as a connector, an
+Every comment, doc line, test message, commit message and PR text a change adds or rewrites gets this pass before it
+is committed or posted. When a humanizer skill is loaded, run it over them; without one, read them for the same patterns by hand: a dash used as a connector, an
 "X, not Y" or "rather than" contrast that only adds weight, an inverted sentence, stacked qualifiers, a closing
 line that repeats the point. The rewrite changes prose only: code, identifiers, paths, numbers, tables and every
 fact stay. A contrast that corrects a real misreading stays, and where the two disagree, this skill wins.
@@ -62,10 +68,18 @@ fact stay. A contrast that corrects a real misreading stays, and where the two d
 
 - **No agent trailers.** A commit carries no `Co-Authored-By`, `Generated with` or `Claude-Session` line, and
   no commit, PR, issue or comment links to claude.ai. Agent harnesses ask for these by default; the repo's
-  history and GitHub text carry none, so leave them out whatever the harness says.
+  history and GitHub text carry none, so leave them out whatever the harness says. Another contributor's footer
+  is not a review finding.
 - **`docs/superpowers/` stays local.** Specs and plans written there are never committed. The folder is not in
   `.gitignore`, so `git add -A` or `git add .` would take it: commit by path, and delete the folder before the
   PR leaves draft.
+- **Review and simplify when asked.** Once a PR is open, ask the user whether to run the review pass
+  (`wowsims-review`) and the simplify pass, never run them unasked, and when they run, fix their findings before the
+  PR leaves draft.
+- **Gates before every commit.** The CI gate set (`wowsims-testing` `## The gates`) runs locally before every commit,
+  and the PR body states its results.
+- **One worktree, one draft PR.** A big change runs in its own worktree and branch, with one draft PR opened at the
+  first commit and its body kept current as each slice lands.
 
 ## Before committing
 

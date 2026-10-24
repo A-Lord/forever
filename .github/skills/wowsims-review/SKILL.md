@@ -15,7 +15,8 @@ overrides and class ladders it reads, also gets steps 3 and 4. A UI change also 
 `.github/skills/wowsims-ui/references/verification.md`; generator internals are `wowsims-spells`' subject.
 
 `references/defects.md` is the catalog for the spell steps: each defect class, with a case a review of a
-port found and the fix that reads the row.
+port found and the fix that reads the row. `references/rulings.md` holds the review's own rulings, such as which
+orphans go and which helpers stay.
 
 ## 1. Inventory
 
@@ -125,7 +126,9 @@ A finding with none is dropped, and so is one the evidence contradicts; list it 
 findings" instead. A finding about when something happens (an order, a consumption, a refund) needs the
 runtime print: reading the call order is how a withdrawn finding got posted. A suggested fix is applied in a
 worktree and passes `go vet --tags=with_db ./sim/<class>/` (or the UI gates), and the number it claims is
-printed at runtime before it is posted ("Checked: `maxEnergy=110` at rank 2").
+printed at runtime before it is posted ("Checked: `maxEnergy=110` at rank 2"). Findings and their fixes are checked
+on the PR head merged with origin/master, comparing `.results.tmp` at the merge with and without the fixes, since a
+master database update can change a row with no textual conflict.
 
 ## 7. Report
 
@@ -152,3 +155,6 @@ the PR body.
 The review ends with the `humanizer:humanizer` skill when the harness knows it: run it over the review text,
 the comments to post, and any PR body, commit message or code comment the review added or rewrote, before
 anything is posted or pushed. The rewrite changes prose only; findings, numbers, code and paths stay.
+
+A ruling, trap or workflow fact learned while using this skill is written here, or into `references/rulings.md`, in
+the same change that uses it. A memory file is a pointer to this skill, not a second copy.
