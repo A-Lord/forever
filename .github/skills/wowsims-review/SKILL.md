@@ -12,7 +12,7 @@ this skill; the author then verifies each finding that comes back the way step 6
 
 Every change gets steps 1, 2 and 5 to 7. Spell, talent, aura, dot and proc code under `sim/`, with the
 overrides and class ladders it reads, also gets steps 3 and 4. A UI change also runs the gates in
-`.github/skills/wowsims-ui/references/verification.md`; generator internals are `wowsims-spells`' subject.
+`.github/skills/wowsims-ui/references/verification.md`; generator internals are `wowsims-db-pipeline`'s subject.
 
 `references/defects.md` is the catalog for the spell steps: each defect class, with a case a review of a
 port found and the fix that reads the row. `references/rulings.md` holds the review's own rulings, such as which

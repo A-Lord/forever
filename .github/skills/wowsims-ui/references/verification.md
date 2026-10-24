@@ -63,7 +63,7 @@ List the opt-outs with `/usr/bin/grep -rn "smoke: false" ui --include=*.stories.
 
 ## What CI runs
 
-`.github/workflows/run_tests.yml` has two jobs:
+`.github/workflows/run_tests.yml` has three jobs, `build-ui`, `test-ui` and `test`:
 
 - **`build-ui`**: `npm ci` and `test:locales`, then `fmt`, `lint:js`, `lint:css`, `make ui/generated/proto/api.ts
 go-to-ts`, `type-check`, `test:unit`, `storybook:build`, and `make dist/forever/.dirstamp`, with `BUILD_COMMIT` set to
