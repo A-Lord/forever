@@ -47,8 +47,8 @@ rulings the code follows are in `references/rulings.md`; text here follows `wows
 ## What a cast spends
 
 - **Core spends the cost at the cast; a refund is the spell's own call.** `spell.IssueRefund(sim)` gives back the cost's
-  `Refund` share (`SpellConfig` sets it from the row's `MissRefund()`: 0.8 where the row flags Discount Power On Miss),
-  and a mana cost refunds nothing (`mana.go`).
+  `Refund` share and a mana cost refunds nothing (`mana.go`). `SpellConfig` sets the share from the row's `MissRefund()`
+  (0.8 where the row flags Discount Power On Miss), the default unless verified spell-specific behaviour differs.
 - **Combo points are not part of the cost.** The spell spends them through `SpendComboPoints` (`energy.go`), each
   resource on its own: a failed Ferocious Bite keeps its points and loses its energy.
 - **A one-charge buff is spent by the cast it modifies**; the spender is `wowsims-procs`. A spell's own charges
@@ -56,9 +56,9 @@ rulings the code follows are in `references/rulings.md`; text here follows `wows
 
 ## What scales
 
-- **A flat weapon bonus is added before the weapon percent multiplies it** (`spelldata.Spell.WeaponStrike`,
-  `sim/core/spelldata/spell.go`).
-- **`PointsPerResource` is the amount per combo point**; a parsed stat takes it at full points (`parse_effects.go`).
+- **A flat weapon bonus is added before the weapon percent multiplies it** (`WeaponStrike` in `sim/core/spelldata/`).
+- **`PointsPerResource` is the amount per combo point** (a parsed stat takes it at full points), and a tick that should
+  scale with stacks or combo points reads them.
 - **Crit damage** is `(base × CritMultiplierPct × CritDamageMultiplier × table − 1) × (CritMultiplierAdditive + 1) + 1`
   (`spell.go`); how aura 163 and additive talents meet is in `references/rulings.md` §Hit, crit and resist.
 
@@ -71,9 +71,9 @@ rulings the code follows are in `references/rulings.md`; text here follows `wows
 
 ## What the row forbids
 
-- **Core checks `CastRequirement` on every cast** (`castRequirementFailure`), in `Cast` and through `CanCompleteCast`,
-  which `CanCast` calls (`spell.go`), before `ExtraCastCondition`, which never restates it (`wowsims-abilities-auras`
-  §An ability). A lower rank refused under a higher one is `NotUnderHigherRank` (`docs/spell_data/auras-and-dots.md`).
+- **Core checks `CastRequirement` on every cast**: form or stance, weapon or shield, "not usable in combat"
+  (`castRequirementFailure` in `shapeshift.go`), in `Cast` and in `CanCompleteCast` (so in `CanCast`), before
+  `ExtraCastCondition`, which never restates it (`wowsims-abilities-auras` §An ability; ranks: `auras-and-dots.md`).
 
 ## Hooks
 
@@ -97,8 +97,8 @@ rulings the code follows are in `references/rulings.md`; text here follows `wows
   duration 0 panics on activation (`aura.go`).
 - **A dot tick rolls its amount, not its hit.** `PeriodicDamageTick` deals one `Effect.Roll` per tick, and the default
   `TickOutcome` rolls no hit, since the application rolls it once (`sim/core/spelldata/resolve_aura.go`). A spell whose
-  ticks roll hit passes `Spell.OutcomeTickMagicHitAndCrit` or `Dot.OutcomeTickMagicHit` (`spell_outcome.go`), which
-  count `tick_misses`. Always Hit on a triggered row: `.github/skills/wowsims-abilities-auras/references/rulings.md`.
+  ticks roll hit passes `Spell.OutcomeTickMagicHitAndCrit` or `Dot.OutcomeTickMagicHit` (`spell_outcome.go`). Always
+  Hit on a triggered row: `.github/skills/wowsims-abilities-auras/references/rulings.md`.
 - **Within an exclusive category the enabled effect with the highest `Priority` applies**; `YieldsTies` takes the
   category only by outbidding (`exclusive_effect.go`). The `SingleAura` reset is `wowsims-abilities-auras` §Buffs and
   debuffs.
@@ -126,7 +126,7 @@ repeating it:
 - the area reads: `grep -n 'MaxTargets has no\|func (e \*Effect) Hits' sim/core/spelldata/resolve_spell.go`
 - the tick outcome: `grep -n 'func (s \*Spell) TickOutcome' -A9 sim/core/spelldata/spell.go`
 - the tag reads: `grep -n 'func (at \*auraTracker) [A-Za-z]*WithTag' sim/core/aura.go`
-- the aura and registration panics: `grep -n 'panic(' sim/core/spell.go sim/core/aura.go | head -20`
+- the panics: `grep -n 'Over 1000 registered\|ProcMask for spell\|Aura with 0 duration' sim/core/spell.go sim/core/aura.go`
 - the proto rules: `grep -n -A8 'message ProtoVersion' proto/common.proto`; `grep -n '^\s*optional ' proto/*.proto`
   prints nothing
 

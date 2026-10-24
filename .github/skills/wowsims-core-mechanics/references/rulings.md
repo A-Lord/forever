@@ -23,9 +23,9 @@ Each line is the rule the code follows, where it lives, and the pull request tha
   `sim/mage/talents_frost.go`, PR #430.
 - **Fingers of Frost is spent by every damaging rotation cast except channels and wand Shoot, never by DoT or burn
   ticks, and by each landed Arcane Missiles missile, a miss keeping the charge.** `sim/mage/talents_frost.go`, PR #343.
-- **The last Fingers of Frost charge is spent one `core.SpellBatchWindow` after the cast that spends it, from the
-  pending action pool, so a cast queued in the same batch is still Frozen.** `sim/mage/talents_frost.go`,
-  `SpellBatchWindow`.
+- **Every Fingers of Frost spend goes one `core.SpellBatchWindow` after the cast that spends it, from the pending
+  action pool, so a cast queued in the same batch is still Frozen; the cast that granted the charges spends none, and a
+  grant inside that batch leaves the charges full.** `sim/mage/talents_frost.go`, `SpellBatchWindow`.
 
 ## Hit, crit and resist
 
@@ -43,17 +43,16 @@ Each line is the rule the code follows, where it lives, and the pull request tha
 - **Weapon-damage specials (effects 17, 31, 58, 121) and white hits never crit when blocked (block before crit);
   school-damage specials (effect 2) roll block and crit separately; pick the outcome function by the damage effect
   type.** `sim/core/spell_outcome.go`, PR #200.
-- **Aura 163 (and aura 50 for healing) +X% multiplies `PseudoStats.CritDamageMultiplier`, so 2% gives 204% melee and
-  153% spell crits; additive crit-bonus talents apply first, so Vengeance 5/5 with 2% gives 206%.**
+- **Aura 163 (and aura 50 for healing) +X% multiplies `PseudoStats.CritDamageMultiplier`, which scales the base crit
+  multiplier, so 2% gives 204% melee and 153% spell crits; additive crit-bonus talents then scale the bonus above 100%,
+  so Vengeance 5/5 with 2% gives (1.53 − 1) × 2 + 1 = 206%.**
   `sim/core/spell.go`, PR #462.
 - **`EffectVariance` is the full roll width: spell hits and heals roll the whole amount, power included, by ±V/2
   (`Spell.DirectVariance` after power), and physical effects roll the base by the full V before attack power.**
   `sim/core/spell_result.go`, PR #267.
-- **Every DoT tick rolls its effect's amount (`PeriodicDamageTick` calls `Effect.Roll`), so a row with a spread ticks
-  for a different amount each time.** `sim/core/spelldata/resolve_aura.go`, PR #573.
-- **A spell whose ticks roll hit counts tick misses in `TargetedActionMetrics.tick_misses`, not `Misses`
-  (`OutcomeTickMagicHitAndCrit`, `Dot.OutcomeTickMagicHit`), and Consecration's own cast roll does not count
-  (`OutcomeTickMagicHitNoHitCounter`).** `sim/core/spell_outcome.go`, PR #570.
+- **Every DoT tick rolls its effect's amount.** `sim/core/spelldata/resolve_aura.go`, `PeriodicDamageTick`, PR #573.
+- **Tick misses count in `TargetedActionMetrics.tick_misses`, not `Misses`, and Consecration's own cast roll does not
+  count (`OutcomeTickMagicHitNoHitCounter`).** `sim/core/spell_outcome.go`, PR #570.
 - **Partial resists roll the 10% bucket triangle with a = R/(abs(R) + 9 × attacker level); Spell Piercing beyond the
   target's resistance is bonus damage, the target's own resistance floors at 0, and there is no level-based resist.**
   `sim/core/spell_resistances.go`, PR #436.
@@ -89,8 +88,8 @@ Each line is the rule the code follows, where it lives, and the pull request tha
   whatever casts instead; it starts at the first free rotation pass (GCD ready, no hardcast) that skips one and ends at
   the first that skips none.** `sim/core/spell.go`, `meetsCost`, PR #371.
 - **Rage from damage taken is 2.5 × (1 − A) × pre-mitigation damage / c, with A by attacker level (20% at 42 and
-  below, 30% at 44, 36% at 46, 37.9% from 50, 40% at 63, interpolated) and c the rage conversion; defender level,
-  health and armor do not matter.** `sim/core/rage.go`, PR #356.
+  below, 30% at 44, 36% at 46, 38% at 50, 40% at 63, interpolated between rows) and c the rage conversion; defender
+  level, health and armor do not matter.** `sim/core/rage.go`, PR #356.
 - **Rage threat is booked in `AddRage` at gain time, 5 × the unit's threat multiplier split across the active targets,
   and rage from white hits, hits taken and refunds carries `ResourceMetrics.NoThreat`; a new rage source that comes
   from damage sets `NoThreat`.** `sim/core/rage.go`, PR #385.
@@ -136,8 +135,7 @@ Each line is the rule the code follows, where it lives, and the pull request tha
 - **Per-hit ranges in action metrics follow their totals: damage ranges record in combat only, healing and shield
   ranges always; ranges live on the Spell and merge by Welford and Chan, so single- and multi-thread results match.**
   `sim/core/spell.go`, `sim/core/utils.go`, PR #510.
-- **The generic target presets use 3731 armor and CreatureHealth(63) × 300 health.** `sim/encounters/register_all.go`,
-  PR #442.
+- **The generic target presets use 3731 armor and 1 428 900 health.** `sim/encounters/register_all.go`, PR #442.
 - **Generic targets hit with MinBaseDamage 2601 (Chromaggus), and the protection warrior's default healing model is
   2.4 × the Defense Cap set's DTPS on that target with cadence 0.3 s and variation 0.64.**
   `sim/encounters/register_all.go`, `ui/specs/warrior/protection/presets.ts`, PR #316.
