@@ -1,0 +1,149 @@
+---
+name: wowsims-apl
+description: 'Use when a WoWSims Forever rotation (APL) misbehaves or changes: a preset line that never fires or fires every time it is ready, a cast skipped with no error, "does not know spell" or "No aura found" validations, a new or changed APL value or action in sim/core/apl_values_*.go or apl_actions_*.go and getting it into the rotation editor''s kind picker, a preset under ui/specs/<class>/<spec>/apls/ or its option groups, what a value reads at a hardcast end (Spell Is Casting, reaction time, stacks), Strict Multidot, Multiple CD Usages, Spell Expected DPET, a major cooldown waiting on the GCD, or hand-writing .apl.json with the JSON schema. Use it before trusting a class suite''s numbers after a preset edit. The order of a cast''s effects and procs is wowsims-core-mechanics; the rotation editor''s components and store are wowsims-ui; proving cast counts at runtime is wowsims-testing; judging a preset change is wowsims-review; reading a spell row is wowsims-spell-store; the map is wowsims-spells.'
+---
+
+# wowsims-apl
+
+The rotation is an APL: a prepull list, a priority list and groups of actions with conditions, parsed from
+`proto/apl.proto` by `sim/core/apl*.go` and edited in the UI or as a preset file. The rule this skill exists for: a
+preset reference the sim does not resolve fails silently in the class suites, so a preset edit is trusted only after its
+validations are dumped (§What fails silently). The rulings the code follows are in `references/rulings.md`; text here
+follows `wowsims-conventions`.
+
+## Where things live
+
+| Path                                     | What it is                                                                          |
+| ---------------------------------------- | ----------------------------------------------------------------------------------- |
+| `sim/core/apl.go`                        | parsing, the validations per line, `getStats`, the cast-end pass                    |
+| `sim/core/apl_action.go`                 | the action switch, condition resolution and pruning                                 |
+| `sim/core/apl_value.go`                  | the value switch, `APLValue` and `DefaultAPLValueImpl`                              |
+| `sim/core/apl_helpers.go`                | `GetAPLSpell`, `GetAPLAura`, `GetAPLDot`: id lookups and their warnings             |
+| `sim/core/apl_values_spell.go`           | spell values; `apl_values_aura.go`, `apl_values_dot.go` and the rest by topic       |
+| `sim/core/apl_actions_casting.go`        | Cast Spell, Multidot, Strict Multidot, Autocast Other Cooldowns, range warning      |
+| `sim/core/apl_action_group_reference.go` | Group Reference; `apl_actions_sequences.go`, `apl_actions_misc.go` likewise         |
+| `sim/warlock/apl_values.go`              | class values and actions; `sim/druid/apl_values.go`, `sim/shaman/apl_values.go`     |
+| `ui/features/apl/model/value_kinds.ts`   | the kind picker's value entries; `action_kinds.ts`, `action_id_sets.ts`             |
+| `ui/specs/`                              | presets: `<class>/<spec>/apls/<name>.apl.json`, imported by the spec's `presets.ts` |
+| `sim/core/test_utils.go`                 | `GetAplRotation`, which loads a preset into a class suite                           |
+
+| You are…                                                        | Open                                                    |
+| --------------------------------------------------------------- | ------------------------------------------------------- |
+| writing a line that reads the running cast                      | `docs/rotation.md` §Which lines need `Spell Is Casting` |
+| deciding what a value, an action or a warrior preset group does | `references/rulings.md`                                 |
+| hand-editing an `.apl.json` with completion                     | `tools/APL.md`                                          |
+| changing the rotation editor's components or store              | `wowsims-ui`                                            |
+
+## Values and actions
+
+A value or action reaches the rotation and the kind picker in five places, all in one change:
+
+1. A message and a oneof field in `proto/apl.proto`; field numbers follow `wowsims-core-mechanics` §Protos.
+2. A case in `newAPLValueWithContext` (`apl_value.go`) or `newAPLActionImpl` (`apl_action.go`). A class-only one goes in
+   the class's `NewAPLValue` or `NewAPLAction`, which runs before core's switch.
+3. The constructor in the topic file. It resolves ids through `rot.GetAPLSpell` or `rot.GetAPLAura`, which warn on a
+   miss, and returns nil when they find nothing. A value embeds `DefaultAPLValueImpl` (the switch sets its `Uuid` by
+   reflection) and implements the getter for its `Type()`; the other getters panic.
+4. The entry in `valueKinds` or `actionKinds`: label, submenu, `includeIf` (prepull, spec) and fields. The mapped type
+   fails `npm run type-check` without one.
+5. The label and tooltip keys in `assets/locales/en/translation.json`, which `ui/i18n/locale_keys.test.ts` checks.
+
+- **Nothing forces step 2.** The switch's `default` returns nil with no warning, so a oneof without a case is dropped
+  like an unresolved value.
+- **`Spell Is Known`, `Aura Is Known` and `Talent Is Known` fold to a constant at parse.** A constant false condition
+  prunes the line, a constant true one is no condition (`newAPLAction`).
+- **The kind picker lists the spells flagged `SpellFlagAPL`** and every aura with an ActionID (`metadata` in
+  `sim/core/unit.go`). A preset can still name an unflagged spell: `GetAPLSpell` falls back to any spell with the id.
+- **A major cooldown a Cast Spell names leaves Autocast Other Cooldowns** (`removeFromMajorCooldowns`, `apl.go`),
+  pruned lines included. Every other major cooldown, racials included, fires only through Autocast Other Cooldowns,
+  whose Information validation lists them; a rotation without it never casts them.
+
+## Presets
+
+- **One file serves the UI and the suite.** The spec's `presets.ts` imports `<name>.apl.json`, and the class suite loads
+  the same file with `core.GetAplRotation(dir, name)` (`sim/warrior/dps/dps_test.go`).
+- **An option is a hidden group.** The priority list holds a Group Reference with `hide: true`, and the spec's
+  `simpleRotation` finds it by group name and sets `hide` (`ui/specs/warrior/dps/spec.ts`). A group renamed in the JSON
+  alone breaks its toggle without an error.
+- **A suite runs a hidden group only when it un-hides it**, as `armsStanceDanceRotation` does in
+  `sim/warrior/dps/dps_test.go`; a group no suite un-hides never reaches the `.results`.
+- **A line is written against the pick at the cast end** (`docs/rotation.md`). After an edit, dump the validations
+  (below) and check the cast counts in a debug log (`wowsims-review`).
+
+## What fails silently
+
+The class suites run a rotation whatever its validations say. Each of these runs a different rotation from the one the
+preset names:
+
+- **An unknown spell.** A Cast Spell, Multidot or value on a spell the unit lacks logs "does not know spell" and the line
+  or value is dropped (`GetAPLSpell`). A `spellIsKnown` guard prunes the line, and the warning stays.
+- **An aura under another ActionID.** An `auraIsActive` or `auraNumStacks` naming a spell id core registers under
+  another ActionID logs "No aura found" and the value is dropped. An And drops that branch with a warning, an Or or a
+  Not drops it silently, and a condition with nothing left reads true: the line runs every time it is ready. An
+  `auraIsKnown` on such an id folds to false and the line never runs.
+- **A misspelled preset name in a suite.** `GetAplRotation` logs "no apl json file" and the suite runs no rotation.
+
+**Dump the validations** before trusting a preset: a throwaway `_test.go` in the class package builds the suite's player
+with `core.SinglePlayerRaidProto` and the preset from `core.GetAplRotation`, calls `core.ComputeStats`, and prints every
+`Validations` entry of `RotationStats`: `PrepullActions`, `PriorityList`, `Groups[i].Actions` and `UuidValidations`.
+`bearAPLWarnings` in `sim/druid/feralbear/apl_sweep_test.go` walks them the same way. Run it as `wowsims-testing`
+§The gates says, then delete it.
+
+## Timing
+
+- **The pick at a hardcast end reads the running cast as landed**; what it sees and misses is `docs/rotation.md` §What
+  the pick sees, and the order the landing runs in is `wowsims-core-mechanics` §Cast order.
+- **A major cooldown's Cast Spell is ready only at a GCD-ready look** unless it is reactive or inside a sequence
+  (`APLActionCastSpell.IsReady`), so an off-GCD cooldown can wait a GCD after its window opens; the first warrior major
+  cooldown chance comes about 4.5 s into the fight (PR #653).
+- **`Aura Is Inactive` with reaction time is the refresh check** for an aura the rotation keeps up:
+  `not(Aura Is Active)` with reaction time reads a fresh landing as inactive and recasts (`APLValueAuraIsInactive`).
+- **`Aura Num Stacks` with reaction time returns the previous stacks for a full reaction time after any change**, the
+  player's own spend included, so a stack-gated line can re-cast right after its own cast; add an `Aura Is Active`
+  check without reaction time (`APLValueAuraNumStacks`).
+
+## Traps
+
+- **An external buff copy registers as tag -1** (`actionID` in `sim/core/buffs/meta.go`): the raid's Battle Shout is
+  25289 tag -1, the player's own copy tag 0. Berserking is 20554 untagged (`sim/core/racials.go`).
+- **A talent gate reads `Talent Is Known`**, which holds for the rank or higher (`sim/core/apl_values_talent.go`). An
+  `auraIsKnown` on a talent id finds an aura only where the class registers a `core.MakePermanent` marker aura tagged
+  with the points.
+- **Recklessness needs Berserker Stance** (ShapeshiftMask bit 18): Arms casts it only with the Stance Dance group on,
+  and the dps suite never un-hides the Recklessness group, so the `.results` never show it (PR #653).
+
+## Keeping this skill true
+
+The code is right where this skill and the code disagree; fix the skill in the same change. Re-derive a claim before
+repeating it:
+
+- the files: `ls sim/core/apl_values_*.go sim/core/apl_actions_*.go`
+- the validations: `grep -n 'Validation' sim/core/apl.go | head`; the lookups:
+  `grep -n 'ValidationMessage' sim/core/apl_helpers.go`
+- the silent drops: `grep -n -A2 'default:' sim/core/apl_value.go sim/core/apl_action.go`, then
+  `grep -n 'could not be resolved' sim/core/apl_action.go sim/core/apl_values_operators.go`
+- the constant folds: `grep -n 'func (rot \*APLRotation) newValue[A-Za-z]*IsKnown' sim/core/apl_values_*.go`
+- the kind picker's lists: `grep -n 'IsCastable' sim/core/unit.go`
+- the major cooldown gate: `grep -n 'SpellFlagMCD' sim/core/apl_actions_casting.go`; the autocast list:
+  `grep -n 'removeFromMajorCooldowns' sim/core/apl.go`
+- the preset loader: `grep -n -A8 'func GetAplRotation' sim/core/test_utils.go`
+- the option groups: `grep -n 'groupName ===' ui/specs/*/*/spec.ts`
+- the dump's shape: `grep -n 'func bearAPLWarnings' sim/druid/feralbear/apl_sweep_test.go`
+
+| You changed…                                                       | Update                                                                    |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| the value or action switch, a constructor's nil path, `valueKinds` | "Values and actions"; a value's or action's rule: `references/rulings.md` |
+| a lookup's warning, condition resolution, `GetAplRotation`         | "What fails silently"                                                     |
+| the pick at the cast end, `readLanding`, `Spell Is Casting`        | `docs/rotation.md`, "Timing"                                              |
+| `APLActionCastSpell.IsReady`, the reaction-time reads              | "Timing"                                                                  |
+| a preset group name, a `simpleRotation` toggle, a suite's un-hide  | "Presets", `references/rulings.md`                                        |
+| `proto/apl.proto` or the `.vscode/settings.json` schema mapping    | `tools/APL.md`                                                            |
+
+Then run the shared path check:
+
+```
+sh .github/skills/check_paths.sh .github/skills/wowsims-apl
+```
+
+A ruling, trap or workflow fact learned while using this skill is written here, or into `references/rulings.md`, in
+the same change that uses it. A memory file is a pointer to this skill, not a second copy.
