@@ -81,6 +81,8 @@ is registered. Items and enchants work differently:
   `core.HasEnchantEffect` in `tools/database/gen_effects.go`), which works because hand-written effects register in
   `init()` and the generated ones from `common.RegisterAllEffects`. A new hand-written effect therefore lands with the
   regenerated `sim/common/forever/` files in one change; until the generator runs, the sim panics on the duplicate.
+  The first `gen_db` run still panics, since its binary was compiled from the old generated file (`sim.RegisterAll`
+  runs after `GenerateItemEffects` rewrites the files and before `db.json` is written), and a second run completes.
 - **The folder follows who can use the item**, as `references/rulings.md` states. A class test binary registers only
   its own package, so a shared set left in a class folder never reaches the other classes' AllItems suites;
   `TestGearSetsHoldOnlyTheirClassItems` in `sim/item_class_allowlist_test.go` fails a preset wearing another class's

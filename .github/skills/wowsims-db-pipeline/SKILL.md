@@ -93,17 +93,18 @@ Proto field numbers on a merge are `wowsims-core-mechanics` `## Protos`.
 ## Hotfixes
 
 The header comments of `check_hotfixes.yml` and `update_items.yml` and the end of
-`docs/spell_data/partial-updates.md` §Commands describe the hotfix flow. Before dispatching Build and Deploy by hand,
-read its state: `gh api repos/wowsims/forever/actions/workflows/deploy.yml --jq .state`.
+`docs/spell_data/partial-updates.md` §Commands describe the hotfix flow. A single-item hotfix is the items-only run
+Update Items performs, `make db CLASSES=none SHARED=0 DB2TOOL_FLAGS="--cdn --dbcache <DBCache.bin>"`. A checkout gets
+its `tools/database/wowsims.db` from `make db`, reading a WoW install (`WOW_DIR` or the settings' `BaseDir`), or from
+the same run with `DB2TOOL_FLAGS="--cdn"` and no install; the modes are `tools/db2tool/README.md` §Usage. Before
+dispatching Build and Deploy by hand, read its state: `gh api repos/wowsims/forever/actions/workflows/deploy.yml --jq .state`.
 
 ## Tables the generator does not ship
 
 `wowsims.db` holds only the tables in `generator-settings.json`'s `Tables`; a name added there is extracted on every
-run. To read another table once, copy the settings file with only that table listed and run
-`db2tool -s <copy> --output <other.db>`; never re-extract into the working `wowsims.db`. To add one table to the
-working database, `ATTACH` the other and `CREATE TABLE … AS SELECT`. A table missing from the build aborts the run,
-and one the install lacks (`not found in local CASC indices`) comes from `db2tool --cdn --dbcache <DBCache.bin>`.
-What the tables hold and how a script reads them: `references/game-files-tables.md`.
+run. Never re-extract into the working `wowsims.db` to read another table. A table missing from the build aborts the
+run, and one the install lacks (`not found in local CASC indices`) comes from `db2tool --cdn --dbcache <DBCache.bin>`.
+Reading another table once, what the tables hold and how a script reads them: `references/game-files-tables.md`.
 
 ## Traps
 
@@ -117,8 +118,8 @@ What the tables hold and how a script reads them: `references/game-files-tables.
 The code is right where this skill and the code disagree; fix the skill in the same change. Re-derive a claim before
 repeating it:
 
-- the make targets: `grep -n '^[a-z-]*:' makefile | grep -E 'db|spelldata'`
-- the workflow steps: `grep -n 'name:' .github/workflows/check_hotfixes.yml .github/workflows/update_items.yml`
+- the make targets: `grep -n '^[a-z-]*:' makefile | grep -E 'db|spelldata'`, their flags: `grep -n '^DB2TOOL_FLAGS\|^WOW_DIR' makefile`
+- the workflow steps: `grep -n 'name:\|make db' .github/workflows/check_hotfixes.yml .github/workflows/update_items.yml`
 - the full order: `grep -n 'make \|go run' .github/workflows/update_db.yml`
 - `gen_db`'s order: `grep -n 'RequireCommittedHotfixes\|RunOverrides\|WriteBinaryAndJson' tools/database/gen_db/main.go`
 - the go-to-ts outputs: `grep -n '^AUTO_GEN_FILES_TS' makefile`
@@ -128,15 +129,15 @@ repeating it:
 - who embeds `db.bin`: `grep -rn 'assets/database"' --include=*.go .`, then `head -1` of each file for its `//go:build`
 - the fields `ReadDatabaseFromJson` keeps (no `Encounters`): `grep -n -A22 '^func ReadDatabaseFromJson' tools/database/database.go`
 
-| You changed…                                                               | Update                                                                                                                                           |
-| -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| a make target, or the step order in `update_db.yml`                        | "Regenerating"                                                                                                                                   |
-| a generator flag or the group rules                                        | `docs/spell_data/partial-updates.md` §Commands, "Regenerating"                                                                                   |
-| an override field, table or stale rule                                     | `docs/spell_data/overrides.md`, "Overrides"                                                                                                      |
-| `RequireCommittedHotfixes`, `WriteBinaryAndJson` or `ReadDatabaseFromJson` | "A database behind master", `references/behind-master.md`                                                                                        |
-| `check_hotfixes.yml` or `update_items.yml`                                 | "Hotfixes", the Update Items paragraph in `docs/spell_data/partial-updates.md`                                                                   |
-| `generator-settings.json`, its PTR copy, or `db2tool`'s flags or schema    | "Where things live", "Tables the generator does not ship", `references/game-files-tables.md`, `tools/db2tool/README.md` §generator-settings.json |
-| `assets/database/loader.go` or a package importing it                      | `references/behind-master.md` §Merging                                                                                                           |
+| You changed…                                                               | Update                                                                                                                                                       |
+| -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| a make target, or the step order in `update_db.yml`                        | "Regenerating"                                                                                                                                               |
+| a generator flag or the group rules                                        | `docs/spell_data/partial-updates.md` §Commands, "Regenerating"                                                                                               |
+| an override field, table or stale rule                                     | `docs/spell_data/overrides.md`, "Overrides"                                                                                                                  |
+| `RequireCommittedHotfixes`, `WriteBinaryAndJson` or `ReadDatabaseFromJson` | "A database behind master", `references/behind-master.md`                                                                                                    |
+| `check_hotfixes.yml` or `update_items.yml`                                 | "Hotfixes", the Update Items paragraph in `docs/spell_data/partial-updates.md`                                                                               |
+| `generator-settings.json`, its PTR copy, or `db2tool`'s flags or schema    | "Where things live", "Hotfixes", "Tables the generator does not ship", `references/game-files-tables.md`, `tools/db2tool/README.md` §generator-settings.json |
+| `assets/database/loader.go` or a package importing it                      | `references/behind-master.md` §Merging                                                                                                                       |
 
 Then run the shared path check:
 

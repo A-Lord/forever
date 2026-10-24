@@ -26,18 +26,19 @@ that skill. The detail lives in `docs/spell_data/` (start at its README), `docs/
 
 ## Which skill
 
-| Task                                                                                            | Skill                         |
-| ----------------------------------------------------------------------------------------------- | ----------------------------- |
-| reading a rank, effect or value off the store, `go run ./tools/spelldata`, hand reads           | `wowsims-spell-store`         |
-| building an ability, aura, dot, talent, raid buff or debuff from its row                        | `wowsims-abilities-auras`     |
-| a proc trigger, proc chance, ICD, charged buff, item or enchant proc, a measured rate           | `wowsims-procs`               |
-| a consumable, an item, set or enchant effect, a `db.json` entry, an item the request must carry | `wowsims-consumables-items`   |
-| regenerating the store or the database, overrides, a database behind master, hotfixes           | `wowsims-db-pipeline`         |
-| what core does around a cast: order, costs, scaling, targets, hooks, auras, hit tables, protos  | `wowsims-core-mechanics`      |
-| a rotation, an APL value or action, a preset                                                    | `wowsims-apl`                 |
-| the gates, `.results` files, where a test goes, printing a value at runtime                     | `wowsims-testing`             |
-| judging a diff, your own before a commit or someone else's pull request                         | `wowsims-review`              |
-| porting a whole class or working a `[Spec]` issue                                               | `wowsims-spec-implementation` |
+| Task                                                                                            | Skill                                                             |
+| ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| reading a rank, effect or value off the store, `go run ./tools/spelldata`, hand reads           | `wowsims-spell-store`                                             |
+| a number looks wrong at rank N, or a value equals another rank's                                | `wowsims-spell-store` (its traps), then `wowsims-abilities-auras` |
+| building an ability, aura, dot, talent, raid buff or debuff from its row                        | `wowsims-abilities-auras`                                         |
+| a proc trigger, proc chance, ICD, charged buff, item or enchant proc, a measured rate           | `wowsims-procs`                                                   |
+| a consumable, an item, set or enchant effect, a `db.json` entry, an item the request must carry | `wowsims-consumables-items`                                       |
+| regenerating the store or the database, overrides, a database behind master, hotfixes           | `wowsims-db-pipeline`                                             |
+| what core does around a cast: order, costs, scaling, targets, hooks, auras, hit tables, protos  | `wowsims-core-mechanics`                                          |
+| a rotation, an APL value or action, a preset                                                    | `wowsims-apl`                                                     |
+| the gates, `.results` files, where a test goes, printing a value at runtime                     | `wowsims-testing`                                                 |
+| judging a diff, your own before a commit or someone else's pull request                         | `wowsims-review`                                                  |
+| porting a whole class or working a `[Spec]` issue                                               | `wowsims-spec-implementation`                                     |
 
 ## When a sim number disagrees with the game files
 
