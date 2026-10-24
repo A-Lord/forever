@@ -71,8 +71,8 @@ List the opt-outs with `/usr/bin/grep -rn "smoke: false" ui --include=*.stories.
   repository then gets its build deployed as a Cloudflare Pages preview at a hashed `*.wowsims-forever.pages.dev`
   address, linked from one comment on the pull request; fork pull requests skip it. `preview_cleanup.yml` deletes the
   deployments when the pull request closes.
-- **`test-ui`**: `test:unit` in 4 shards, each after `make ui/generated/proto/api.ts go-to-ts`.
-- **`test`**: the Go side in 4 shards (`go test --tags=with_db` over `./sim/...`, plus the buff generator tests), not
+- **`test-ui`**: `test:unit`, sharded, each shard after `make ui/generated/proto/api.ts go-to-ts`.
+- **`test`**: the Go side, sharded (`go test --tags=with_db` over `./sim/...`, plus the buff generator tests), not
   the UI.
 
 The cheap UI gates run first, so a formatting slip reports in about a minute. `deploy.yml` and `release.yml` reuse the
