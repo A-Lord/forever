@@ -71,6 +71,9 @@ jobs:
             - name: Check formatting 🎯
               run: npm run fmt
 
+            - name: Skill paths
+              run: make skills-check
+
             - name: Lint JS 🧹
               run: npm run lint:js
 

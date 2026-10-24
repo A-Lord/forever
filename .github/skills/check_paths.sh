@@ -1,32 +1,41 @@
 #!/bin/sh
-# Verifies that this skill still describes a tree that exists.
+# Verifies that a skill still describes a tree that exists.
 #
-#   .github/skills/wowsims-ui/check_paths.sh        (from anywhere in the repo)
+#   sh .github/skills/check_paths.sh .github/skills/<skill>    (from anywhere in the repo)
+#   make skills-check                                          (every skill)
 #
-# Checks three things:
-#   1. every repo path this skill names in backticks still exists
+# Checks four things:
+#   1. every repo path the skill names in backticks still exists
 #   2. every references/*.md is routed to from SKILL.md, and every file SKILL.md
-#      routes to exists
+#      routes to exists (a references/ name written with a path in front belongs
+#      to another skill and is checked as a path by check 1)
 #   3. the frontmatter `name:` still matches the directory name
+#   4. every `wowsims-*` skill the markdown names is a directory under .github/skills
+#      (wowsims-forever, wowsims-tbc-new and wowsims-sod are repository names and pass)
 #
 # A path is only checked when it is unambiguous: it must start with a real
 # top-level directory or be a known root file, and contain no glob or
 # placeholder character (* < … space). One `{a,b}` group is expanded, so
 # `dir/{a,b}.ts` checks both files. A trailing `:<line>` is stripped, so a
-# `file.ts:123` citation is checked as the file. Generated and build output is
+# `file.ts:123` citation is checked as the file. A path that git ignores is
 # skipped because it is absent in a clean checkout by design: that covers
-# ui/generated, dist, tmp, binary_dist, node_modules and every *_auto_gen.ts.
-# Anything this skill deliberately names as *not* existing goes in ABSENT_BY_DESIGN
-# below.
+# ui/generated, dist, tmp, binary_dist, node_modules, tools/database/wowsims.db and
+# the generated protobuf files, while committed generated files stay checked.
+# Anything the skill deliberately names as *not* existing goes in its
+# absent_by_design.txt, one path per line.
 
 set -eu
 
-here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+here=$(CDPATH= cd -- "$1" && pwd)
 repo=$(CDPATH= cd -- "$here/../../.." && pwd)
 cd "$repo"
 
-# Paths this skill names precisely because they do not exist (space-separated).
-ABSENT_BY_DESIGN=""
+ABSENT_BY_DESIGN=$(cat "$here/absent_by_design.txt" 2>/dev/null || true)
+
+# SKILL.md plus references/*.md, when the directory exists.
+set -- "$here"/references/*.md
+[ -e "$1" ] || set --
+docs="$here/SKILL.md $*"
 
 fail=0
 
@@ -44,20 +53,25 @@ expand_braces() {
 }
 
 # --- 1. paths -------------------------------------------------------------
-paths=$(cat "$here"/SKILL.md "$here"/references/*.md |
+# shellcheck disable=SC2086
+paths=$(cat $docs |
 	grep -o '`[^`]*`' |
 	tr -d '`' |
 	grep -E '^(ui|tools|assets|schemas|proto|sim|cmd|docs)/|^\.github/|^(package\.json|tsconfig\.json|makefile|test-locales\.mjs|vite\.[a-z.-]*mts|vitest\.config\.mts|\.oxlintrc\.json|\.oxfmtrc\.json)$' |
 	grep -Ev '[*< ]|…' |
 	while read -r p; do expand_braces "$p"; done |
-	grep -Ev '^(ui/generated|dist|tmp|binary_dist|node_modules)/|_auto_gen\.ts$' |
 	sed -E 's/:[0-9]+$//' |
 	sort -u)
 
+count=0
 for p in $paths; do
-	case "$ABSENT_BY_DESIGN" in
-	*"$p"*) continue ;;
-	esac
+	if /usr/bin/git -C "$repo" check-ignore -q -- "$p"; then
+		continue
+	fi
+	if printf '%s\n' "$ABSENT_BY_DESIGN" | grep -qxF -- "$p"; then
+		continue
+	fi
+	count=$((count + 1))
 	# Strip a trailing slash so a directory reference checks the directory.
 	if [ ! -e "${p%/}" ]; then
 		echo "MISSING PATH  $p"
@@ -67,13 +81,14 @@ done
 
 # --- 2. routing -----------------------------------------------------------
 for f in "$here"/references/*.md; do
+	[ -e "$f" ] || continue
 	name="references/$(basename "$f")"
 	grep -qF "$name" "$here/SKILL.md" || {
 		echo "UNROUTED      $name is not mentioned in SKILL.md"
 		fail=1
 	}
 done
-for name in $(grep -o 'references/[a-z-]*\.md' "$here/SKILL.md" | sort -u); do
+for name in $(grep -oE '(^|[^/a-z-])references/[a-z-]+\.md' "$here/SKILL.md" | sed -E 's/^[^r]//' | sort -u); do
 	[ -f "$here/$name" ] || {
 		echo "DANGLING      SKILL.md routes to $name, which does not exist"
 		fail=1
@@ -87,5 +102,17 @@ declared=$(sed -n '2s/^name: *//p' "$here/SKILL.md")
 	fail=1
 }
 
-[ "$fail" = 0 ] && echo "wowsims-ui: OK ($(echo "$paths" | wc -l | tr -d ' ') paths checked)"
+# --- 4. skill names -------------------------------------------------------
+# shellcheck disable=SC2086
+for token in $(cat $docs | grep -oE 'wowsims-[a-z-]+' | sed -E 's/-+$//' | sort -u); do
+	case $token in
+	wowsims-forever | wowsims-tbc-new | wowsims-sod) continue ;;
+	esac
+	[ -d "$repo/.github/skills/$token" ] || {
+		echo "UNKNOWN SKILL $token"
+		fail=1
+	}
+done
+
+[ "$fail" = 0 ] && echo "$(basename "$here"): OK ($count paths checked)"
 exit "$fail"

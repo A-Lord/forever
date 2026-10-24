@@ -93,9 +93,9 @@ as the code change. Copy no code and no counts that the command can print.
 | `.oxfmtrc.json`, how a spec is authored, or a decision recorded as settled                                    | `references/conventions.md`                    |
 | `ui/sim/talents/*.ts`, `ui/features/talents/**`, the broken-talent warning in `default_warnings.ts`           | `references/talents.md`                        |
 
-Then run the path check, which fails on any path this skill names that no longer exists and on any reference that
-`SKILL.md` does not route to:
+Then run the shared path check, which fails on any path this skill names that no longer exists and on any reference
+that `SKILL.md` does not route to:
 
 ```
-.github/skills/wowsims-ui/check_paths.sh
+sh .github/skills/check_paths.sh .github/skills/wowsims-ui
 ```

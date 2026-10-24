@@ -346,6 +346,10 @@ update-tests:
 spelldata-check:
 	go run ./tools/database/gen_spelldata -check
 
+.PHONY: skills-check
+skills-check:
+	@fail=0; for d in .github/skills/*/; do sh .github/skills/check_paths.sh "$$d" || fail=1; done; exit $$fail
+
 .PHONY: fmt
 fmt: tsfmt
 	gofmt -w ./sim
