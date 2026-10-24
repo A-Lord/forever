@@ -4,12 +4,11 @@ Each line is the rule the code follows, where it lives, and the pull request tha
 
 ## The pick at the cast end
 
-- **At a player's hardcast end the rotation picks at the cast-end timestamp, before the cast's outcome applies; the
-  pick never queues a major cooldown, which decides at the cast end with the outcome visible, a pushback re-queues, and
-  pets and enemies look after the landing; the flow is `docs/rotation.md`.** `sim/core/gcd.go`, PR #640.
-- **During the hardcast its own dot or own-id aura reads as landed, its own cooldown as started and Current Mana after
-  its cost; `Spell Is Casting` guards refresh lines, and Strict Sequence and Strict Multidot yield to major cooldowns at
-  the cast-end pass; the full table is `docs/rotation.md` §What the pick sees.** `sim/core/apl_values_aura.go`, PR #640.
+- **At a player's hardcast end the rotation picks at the cast-end timestamp, before the cast's outcome applies, and a
+  pushback re-queues the pick; the major cooldowns that go ahead of it and the units that look after the landing are
+  `docs/rotation.md` §The flow.** `sim/core/gcd.go`, PR #640.
+- **During the hardcast the pick reads the cast's own dot, own-id aura, cooldown and mana as landed; the full reading
+  and the lines that need `Spell Is Casting` are `docs/rotation.md`.** `sim/core/apl_values_aura.go`, PR #640.
 - **Include Reaction Time delays every aura change the same way, the unit's own casts included; during a hardcast the
   cast's own aura reads as landed instead.** `sim/core/apl_values_aura.go`, PR #638, PR #640.
 
@@ -44,7 +43,7 @@ Each line is the rule the code follows, where it lives, and the pull request tha
   first; Sequence and Schedule wrappers' Ifs only decide the start, and a gated next cast is never queued.**
   `sim/core/apl_actions_casting.go`, PR #603.
 - **The Pet Attack prepull action (hunter and warlock) starts the pets' rotation and swings from its time, even before
-  0, with damage before 0 uncounted; presets do not use it.** `sim/core/pet.go`, PR #578.
+  0, with damage before 0 uncounted; the destro and demo warlock builds use it at -1 s.** `sim/core/pet.go`, PR #578.
 
 ## Warrior presets
 

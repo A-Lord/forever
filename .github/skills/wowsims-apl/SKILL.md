@@ -24,8 +24,8 @@ follows `wowsims-conventions`.
 | `sim/core/apl_action_group_reference.go` | Group Reference; `apl_actions_sequences.go`, `apl_actions_misc.go` likewise         |
 | `sim/warlock/apl_values.go`              | class values and actions; `sim/druid/apl_values.go`, `sim/shaman/apl_values.go`     |
 | `ui/features/apl/model/value_kinds.ts`   | the kind picker's value entries; `action_kinds.ts`, `action_id_sets.ts`             |
-| `ui/specs/`                              | presets: `<class>/<spec>/apls/<name>.apl.json`, imported by the spec's `presets.ts` |
-| `sim/core/test_utils.go`                 | `GetAplRotation`, which loads a preset into a class suite                           |
+| `ui/specs/`                              | presets, in `apls/` or `builds/` per spec (§Presets)                                |
+| `sim/core/test_utils.go`                 | `GetAplRotation` and `GetTestBuildFromJSON`, which load a preset into a class suite |
 
 | You are…                                                        | Open                                                    |
 | --------------------------------------------------------------- | ------------------------------------------------------- |
@@ -42,8 +42,9 @@ A value or action reaches the rotation and the kind picker in five places, all i
 2. A case in `newAPLValueWithContext` (`apl_value.go`) or `newAPLActionImpl` (`apl_action.go`). A class-only one goes in
    the class's `NewAPLValue` or `NewAPLAction`, which runs before core's switch.
 3. The constructor in the topic file. It resolves ids through `rot.GetAPLSpell` or `rot.GetAPLAura`, which warn on a
-   miss, and returns nil when they find nothing. A value embeds `DefaultAPLValueImpl` (the switch sets its `Uuid` by
-   reflection) and implements the getter for its `Type()`; the other getters panic.
+   miss, and returns nil when they find nothing. A value embeds `DefaultAPLValueImpl` and implements the getter for its
+   `Type()`; the other getters panic. Core's switch sets `Uuid` by reflection; a class `NewAPLValue` returns before it,
+   so a class value passes `config.Uuid` along itself (`sim/shaman/apl_values.go`).
 4. The entry in `valueKinds` or `actionKinds`: label, submenu, `includeIf` (prepull, spec) and fields. The mapped type
    fails `npm run type-check` without one.
 5. The label and tooltip keys in `assets/locales/en/translation.json`, which `ui/i18n/locale_keys.test.ts` checks.
@@ -60,8 +61,10 @@ A value or action reaches the rotation and the kind picker in five places, all i
 
 ## Presets
 
-- **One file serves the UI and the suite.** The spec's `presets.ts` imports `<name>.apl.json`, and the class suite loads
-  the same file with `core.GetAplRotation(dir, name)` (`sim/warrior/dps/dps_test.go`).
+- **One file serves the UI and the suite, in one of two layouts.** `<spec>/apls/<name>.apl.json` is imported by the
+  spec's `presets.ts` and loaded by `core.GetAplRotation` (`sim/warrior/dps/dps_test.go`); `<spec>/builds/<name>.build.json`
+  holds it in `player.rotation`, passed to `makePresetAPLRotation` and loaded by `core.GetTestBuildFromJSON`
+  (`sim/warlock/warlock_test.go`). Priest, elemental shaman and warlock use builds only, enhancement shaman both.
 - **An option is a hidden group.** The priority list holds a Group Reference with `hide: true`, and the spec's
   `simpleRotation` finds it by group name and sets `hide` (`ui/specs/warrior/dps/spec.ts`). A group renamed in the JSON
   alone breaks its toggle without an error.
@@ -81,13 +84,14 @@ preset names:
   another ActionID logs "No aura found" and the value is dropped. An And drops that branch with a warning, an Or or a
   Not drops it silently, and a condition with nothing left reads true: the line runs every time it is ready. An
   `auraIsKnown` on such an id folds to false and the line never runs.
-- **A misspelled preset name in a suite.** `GetAplRotation` logs "no apl json file" and the suite runs no rotation.
+- **A misspelled preset name in a suite.** `GetAplRotation` logs "no apl json file" and the suite runs no rotation
+  (`GetTestBuildFromJSON` stops the run instead).
 
 **Dump the validations** before trusting a preset: a throwaway `_test.go` in the class package builds the suite's player
-with `core.SinglePlayerRaidProto` and the preset from `core.GetAplRotation`, calls `core.ComputeStats`, and prints every
-`Validations` entry of `RotationStats`: `PrepullActions`, `PriorityList`, `Groups[i].Actions` and `UuidValidations`.
-`bearAPLWarnings` in `sim/druid/feralbear/apl_sweep_test.go` walks them the same way. Run it as `wowsims-testing`
-§The gates says, then delete it.
+with `core.SinglePlayerRaidProto` and the rotation from the suite's loader (`core.GetAplRotation`, or the `Rotation` of
+`core.GetTestBuildFromJSON`'s config), calls `core.ComputeStats`, and prints every `Validations` entry of
+`RotationStats`: `PrepullActions`, `PriorityList`, `Groups[i].Actions` and `UuidValidations`, as `bearAPLWarnings` in
+`sim/druid/feralbear/apl_sweep_test.go` does. Run it as `wowsims-testing` §The gates says, then delete it.
 
 ## Timing
 
@@ -118,32 +122,27 @@ The code is right where this skill and the code disagree; fix the skill in the s
 repeating it:
 
 - the files: `ls sim/core/apl_values_*.go sim/core/apl_actions_*.go`
-- the validations: `grep -n 'Validation' sim/core/apl.go | head`; the lookups:
-  `grep -n 'ValidationMessage' sim/core/apl_helpers.go`
+- the validations: `grep -n 'Validation' sim/core/apl.go | head`, `grep -n 'ValidationMessage' sim/core/apl_helpers.go`
 - the silent drops: `grep -n -A2 'default:' sim/core/apl_value.go sim/core/apl_action.go`, then
   `grep -n 'could not be resolved' sim/core/apl_action.go sim/core/apl_values_operators.go`
 - the constant folds: `grep -n 'func (rot \*APLRotation) newValue[A-Za-z]*IsKnown' sim/core/apl_values_*.go`
 - the kind picker's lists: `grep -n 'IsCastable' sim/core/unit.go`
-- the major cooldown gate: `grep -n 'SpellFlagMCD' sim/core/apl_actions_casting.go`; the autocast list:
-  `grep -n 'removeFromMajorCooldowns' sim/core/apl.go`
-- the preset loader: `grep -n -A8 'func GetAplRotation' sim/core/test_utils.go`
+- the major cooldowns: `grep -n SpellFlagMCD sim/core/apl_actions_casting.go`, `grep -n removeFromMajorCooldowns sim/core/apl.go`
+- the preset loaders: `grep -n 'func GetAplRotation\|func GetTestBuildFromJSON' sim/core/test_utils.go`
+- the layouts: `ls -d ui/specs/*/*/apls ui/specs/*/*/builds`; Pet Attack: `grep -rln petAttack ui/specs/*/*/apls ui/specs/*/*/builds`
 - the option groups: `grep -n 'groupName ===' ui/specs/*/*/spec.ts`
 - the dump's shape: `grep -n 'func bearAPLWarnings' sim/druid/feralbear/apl_sweep_test.go`
 
 | You changed…                                                       | Update                                                                    |
 | ------------------------------------------------------------------ | ------------------------------------------------------------------------- |
 | the value or action switch, a constructor's nil path, `valueKinds` | "Values and actions"; a value's or action's rule: `references/rulings.md` |
-| a lookup's warning, condition resolution, `GetAplRotation`         | "What fails silently"                                                     |
+| a lookup's warning, condition resolution, a preset loader          | "What fails silently"                                                     |
 | the pick at the cast end, `readLanding`, `Spell Is Casting`        | `docs/rotation.md`, "Timing"                                              |
 | `APLActionCastSpell.IsReady`, the reaction-time reads              | "Timing"                                                                  |
 | a preset group name, a `simpleRotation` toggle, a suite's un-hide  | "Presets", `references/rulings.md`                                        |
 | `proto/apl.proto` or the `.vscode/settings.json` schema mapping    | `tools/APL.md`                                                            |
 
-Then run the shared path check:
-
-```
-sh .github/skills/check_paths.sh .github/skills/wowsims-apl
-```
+Then run the shared path check, `sh .github/skills/check_paths.sh .github/skills/wowsims-apl`.
 
 A ruling, trap or workflow fact learned while using this skill is written here, or into `references/rulings.md`, in
 the same change that uses it. A memory file is a pointer to this skill, not a second copy.
