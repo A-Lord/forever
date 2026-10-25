@@ -17,7 +17,6 @@ export const ItemNoticeIconView = ({ level, children }: ItemNoticeIconViewProps)
 		<NoticeIcon
 			level={level}
 			size="1x"
-			glow={false}
 			label={i18n.t(level === 'info' ? 'common.list_picker.additional_information' : 'common.list_picker.warnings')}
 			className="mr-2">
 			{children}

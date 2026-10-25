@@ -17,7 +17,6 @@ const meta = {
 		level: { control: 'select', options: LEVELS },
 		label: { control: 'text' },
 		size: { control: 'select', options: SIZES },
-		glow: { control: 'boolean' },
 		hidden: { control: 'boolean' },
 		className: { control: 'text' },
 		children: { control: false },
@@ -29,7 +28,6 @@ type Story = StoryObj<typeof meta>;
 
 export const Info: Story = { args: { level: 'info', label: 'Additional information', children: <p>Set bonuses count every equipped piece.</p> } };
 export const Warning: Story = {};
-export const WithoutGlow: Story = { args: { glow: false, size: '1x' } };
 export const ErrorLevel: Story = { name: 'Error', args: { level: 'error', label: 'Errors', children: <p>The rotation has an invalid action.</p> } };
 
 export const OpensOnHover: Story = {

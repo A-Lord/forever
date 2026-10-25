@@ -3,7 +3,7 @@ import { Icon, type IconSize } from '@ui-kit/Icon';
 import { Tooltip, tooltipAnchorProps } from '@ui-kit/Tooltip';
 import { type ReactNode, useId } from 'react';
 
-import { NOTICE_COLOR, NOTICE_ICON_NAME, NOTICE_TEXT_COLOR, type NoticeLevel } from './noticeLevel';
+import { NOTICE_COLOR, NOTICE_ICON_NAME, type NoticeLevel } from './noticeLevel';
 
 export interface NoticeIconProps {
 	level: NoticeLevel;
@@ -12,15 +12,13 @@ export interface NoticeIconProps {
 	/** The tooltip's content. */
 	children: ReactNode;
 	size?: IconSize;
-	/** Draws the halo around the glyph; off for an icon set inline in text, where the halo would spill past the line. */
-	glow?: boolean;
 	/** Rendered but `display: none`, so a header's element count stays stable. */
 	hidden?: boolean;
 	className?: string;
 	testId?: string;
 }
 
-export const NoticeIcon = ({ level, label, children, size = 'xl', glow = true, hidden, className, testId }: NoticeIconProps) => {
+export const NoticeIcon = ({ level, label, children, size = 'xl', hidden, className, testId }: NoticeIconProps) => {
 	const tooltipId = useId();
 	return (
 		<>
@@ -32,7 +30,7 @@ export const NoticeIcon = ({ level, label, children, size = 'xl', glow = true, h
 				data-testid={testId}
 				style={hidden === undefined ? undefined : { display: hidden ? 'none' : undefined }}
 				{...tooltipAnchorProps(tooltipId)}>
-				<Icon name={NOTICE_ICON_NAME[level]} size={size} fixedWidth className={glow ? NOTICE_COLOR[level] : NOTICE_TEXT_COLOR[level]} />
+				<Icon name={NOTICE_ICON_NAME[level]} size={size} fixedWidth className={NOTICE_COLOR[level]} />
 			</Button>
 			<Tooltip id={tooltipId} content={children} clickable />
 		</>
