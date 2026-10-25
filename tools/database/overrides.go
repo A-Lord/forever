@@ -147,8 +147,7 @@ var ItemDenyList = map[int32]struct{}{
 	22736: {},
 	23363: {}, // Titanic Breastplate
 	24265: {},
-	// Season of Discovery items the game files still carry. Forever gives what it keeps a new id.
-	202256: {}, // Privateer's Ornate Pistol
+	// Season of Discovery items the game files still carry. Forever gives most of what it keeps a new id; SoD ids whose rows Forever re-budgeted itself are not listed.
 	205218: {}, // Libram of Discovery
 	205420: {}, // Libram of Judgement
 	206376: {}, // Bulwark Icon
@@ -164,29 +163,13 @@ var ItemDenyList = map[int32]struct{}{
 	206390: {}, // Ichthyan Icon
 	206391: {}, // Syzygic Icon
 	206954: {}, // Idol of Ursine Rage
-	208222: {}, // Old Guard Retaliator
 	208414: {}, // Lunar Idol
 	208689: {}, // Ferocious Idol
 	208849: {}, // Libram of Blessings
 	208851: {}, // Libram of Justice
 	210195: {}, // Unbalanced Idol
 	210534: {}, // Idol of the Wild
-	210781: {}, // Phoenix Bindings
 	211472: {}, // Libram of Banishment
-	211500: {}, // Resilient Cloth Headband
-	211856: {}, // Resilient Mail Coif
-	211857: {}, // Resilient Leather Mask
-	211940: {}, // Ecks'av's Tribal Guardian
-	211941: {}, // Windwalker's Yari
-	212580: {}, // Lorekeeper's Staff
-	212581: {}, // Outrunner's Bow
-	212582: {}, // Protector's Sword
-	212583: {}, // Sentinel's Blade
-	212584: {}, // Advisor's Gnarled Staff
-	212585: {}, // Outrider's Bow
-	212586: {}, // Legionnaire's Sword
-	212587: {}, // Scout's Blade
-	213105: {}, // Shawarmageddon
 	213391: {}, // UNUSED Electrified Mithril Gauntlets
 	213513: {}, // Libram of Deliverance
 	213594: {}, // Idol of the Heckler
@@ -194,11 +177,6 @@ var ItemDenyList = map[int32]struct{}{
 	215113: {}, // UNUSED - Razor-Lined Shoulderpads
 	215365: {}, // Invoker's Mantle
 	215366: {}, // Invoker's Cord
-	217270: {}, // Turtle Scale Gloves
-	217273: {}, // Golden Scale Gauntlets
-	217287: {}, // Greater Mystic Wand
-	217314: {}, // Moonsight Rifle
-	217315: {}, // Precision Bow
 	219345: {}, // Infernal Lasso
 	220794: {}, // Knight's Plate Hauberk
 	220795: {}, // Knight-Lieutenant's Plate Pauldrons
@@ -228,7 +206,6 @@ var ItemDenyList = map[int32]struct{}{
 	220821: {}, // Blood Guard's Chain Helmet
 	220822: {}, // Knight-Lieutenant's Chain Helmet
 	220823: {}, // Blood Guard's Mail Epaulets
-	220824: {}, // Blood Guard's Chain Epaulets
 	220825: {}, // Knight-Lieutenant's Chain Epaulets
 	220826: {}, // Stone Guard's Mail Armor
 	220827: {}, // Stone Guard's Chain Armor
@@ -315,8 +292,6 @@ var ItemDenyList = map[int32]struct{}{
 	220908: {}, // First Sergeant's Dreadweave Gloves
 	220909: {}, // First Sergeant's Dreadweave Boots
 	220915: {}, // Idol of the Raging Shambler
-	221344: {}, // Personal Spellbook
-	221518: {}, // Whisper
 	223073: {}, // Knight-Lieutenant's Mail Epaulets
 	223074: {}, // Knight's Mail Legplates
 	223075: {}, // Knight-Lieutenant's Mail Helmet
@@ -324,150 +299,14 @@ var ItemDenyList = map[int32]struct{}{
 	223077: {}, // Sergeant Major's Mail Sabatons
 	223078: {}, // Knight's Mail Armor
 	225838: {}, // Voltaic Icon
-	226772: {}, // Feralheart Sash
-	226773: {}, // Feralheart Cowl
-	226774: {}, // Feralheart Galoshes
-	226775: {}, // Feralheart Wraps
-	226776: {}, // Feralheart Vest
-	226777: {}, // Feralheart Hands
 	226778: {}, // Feralheart Spaulders
-	226779: {}, // Feralheart Kilt
-	226780: {}, // Feralheart Cord
-	226781: {}, // Feralheart Sandals
-	226782: {}, // Feralheart Bindings
-	226783: {}, // Feralheart Embrace
-	226784: {}, // Feralheart Gauntlets
-	226785: {}, // Feralheart Mantle
-	226786: {}, // Feralheart Headdress
-	226787: {}, // Feralheart Pants
-	226788: {}, // Feralheart Bands
-	226789: {}, // Feralheart Girdle
-	226790: {}, // Feralheart Epaulets
-	226791: {}, // Feralheart Trousers
 	226792: {}, // Feralheart Cap
-	226793: {}, // Feralheart Fists
-	226794: {}, // Feralheart Walkers
-	226795: {}, // Feralheart Tunic
-	226796: {}, // Feralheart Wristguards
-	226797: {}, // Feralheart Waistguard
-	226798: {}, // Feralheart Pauldrons
-	226799: {}, // Feralheart Legguards
-	226801: {}, // Feralheart Faceguard
-	226802: {}, // Feralheart Grips
-	226803: {}, // Feralheart Treads
-	226804: {}, // Feralheart Armor
-	226825: {}, // Darkmantle Tunic
-	226826: {}, // Darkmantle Spaulders
-	226827: {}, // Darkmantle Pants
-	226828: {}, // Darkmantle Grips
-	226829: {}, // Darkmantle Cap
-	226830: {}, // Darkmantle Bracers
-	226831: {}, // Darkmantle Footpads
-	226832: {}, // Darkmantle Belt
 	226857: {}, // Battleboots of Heroism
-	226858: {}, // Spaulders of Heroism
-	226859: {}, // Legplates of Heroism
-	226860: {}, // Crown of Heroism
 	226861: {}, // Gauntlets of Heroism
 	226862: {}, // Breastplate of Heroism
-	226863: {}, // Bracers of Heroism
-	226864: {}, // Belt of Heroism
-	226865: {}, // Wristguards of Heroism
-	226866: {}, // Waistguard of Heroism
-	226867: {}, // Pauldrons of Heroism
-	226868: {}, // Legguards of Heroism
-	226869: {}, // Faceguard of Heroism
-	226870: {}, // Handguards of Heroism
-	226871: {}, // Sabatons of Heroism
-	226872: {}, // Chestguard of Heroism
 	226881: {}, // Beastmaster's Treads
-	226882: {}, // Beastmaster's Pants
-	226883: {}, // Beastmaster's Gauntlets
-	226884: {}, // Beastmaster's Mantle
-	226885: {}, // Beastmaster's Bindings
 	226886: {}, // Beastmaster's Tunic
-	226887: {}, // Beastmaster's Cap
-	226888: {}, // Beastmaster's Belt
-	226905: {}, // Deathmist Belt
-	226906: {}, // Deathmist Robe
-	226907: {}, // Deathmist Bracers
-	226908: {}, // Deathmist Sandals
-	226909: {}, // Deathmist Mask
-	226910: {}, // Deathmist Leggings
-	226911: {}, // Deathmist Wraps
-	226912: {}, // Deathmist Mantle
-	226929: {}, // Sorcerer's Bindings
-	226930: {}, // Sorcerer's Gauntlets
-	226931: {}, // Sorcerer's Sandals
-	226932: {}, // Sorcerer's Robes
-	226933: {}, // Sorcerer's Leggings
-	226934: {}, // Sorcerer's Belt
-	226935: {}, // Sorcerer's Crown
-	226936: {}, // Sorcerer's Mantle
-	226945: {}, // Virtuous Robe
-	226946: {}, // Virtuous Skirt
-	226947: {}, // Virtuous Crown
-	226948: {}, // Virtuous Belt
-	226949: {}, // Virtuous Bracers
-	226950: {}, // Virtuous Mitts
 	226951: {}, // Virtuous Mantle
-	226952: {}, // Virtuous Sandals
-	226953: {}, // Virtuous Wraps
-	226954: {}, // Virtuous Cord
-	226955: {}, // Virtuous Epaulets
-	226956: {}, // Virtuous Leggings
-	226957: {}, // Virtuous Cowl
-	226958: {}, // Virtuous Hands
-	226959: {}, // Virtuous Slippers
-	226960: {}, // Virtuous Gown
-	226969: {}, // Soulforge Spaulders
-	226970: {}, // Soulforge Bracers
-	226971: {}, // Soulforge Belt
-	226972: {}, // Soulforge Legplates
-	226973: {}, // Soulforge Breastplate
-	226974: {}, // Soulforge Warboots
-	226975: {}, // Soulforge Gauntlets
-	226976: {}, // Soulforge Greathelm
-	226977: {}, // Soulforge Bindings
-	226978: {}, // Soulforge Cord
-	226979: {}, // Soulforge Epaulets
-	226980: {}, // Soulforge Leggings
-	226981: {}, // Soulforge Crown
-	226982: {}, // Soulforge Fists
-	226983: {}, // Soulforge Treads
-	226984: {}, // Soulforge Embrace
-	226985: {}, // Soulforge Wristguards
-	226986: {}, // Soulforge Waistguard
-	226987: {}, // Soulforge Pauldrons
-	226988: {}, // Soulforge Legguards
-	226989: {}, // Soulforge Faceguard
-	226990: {}, // Soulforge Handguards
-	226991: {}, // Soulforge Sabatons
-	226992: {}, // Soulforge Chestguards
-	227001: {}, // Bindings of The Five Thunders
-	227002: {}, // Coif of The Five Thunders
-	227003: {}, // Pauldrons of The Five Thunders
-	227004: {}, // Vest of The Five Thunders
-	227005: {}, // Kilt of The Five Thunders
-	227006: {}, // Gauntlets of The Five Thunders
-	227007: {}, // Slippers of The Five Thunders
-	227008: {}, // Cord of The Five Thunders
-	227009: {}, // Bracers of The Five Thunders
-	227010: {}, // Sash of The Five Thunders
-	227011: {}, // Mantle of The Five Thunders
-	227012: {}, // Leggings of The Five Thunders
-	227013: {}, // Crown of The Five Thunders
-	227014: {}, // Grasp of The Five Thunders
-	227015: {}, // Greaves of The Five Thunders
-	227016: {}, // Tunic of The Five Thunders
-	227017: {}, // Bands of The Five Thunders
-	227018: {}, // Girdle of The Five Thunders
-	227019: {}, // Spaulders of The Five Thunders
-	227020: {}, // Legplates of The Five Thunders
-	227021: {}, // Face of The Five Thunders
-	227022: {}, // Fists of The Five Thunders
-	227023: {}, // Treads of The Five Thunders
-	227024: {}, // Chain of The Five Thunders
 	227042: {}, // Champion's Plate Shoulders
 	227043: {}, // Champion's Plate Helm
 	227044: {}, // Lieutenant Commander's Plate Helm
@@ -641,7 +480,6 @@ var ItemDenyList = map[int32]struct{}{
 	227809: {}, // Studded Timbermaw Brawlers
 	227810: {}, // Dense Timbermaw Boots
 	227814: {}, // Radiant Girdle of the Dawn
-	227815: {}, // Fine Dawn Treaders
 	227816: {}, // Argent Elite Boots
 	227817: {}, // Radiant Gloves of the Dawn
 	227818: {}, // Glowing Mantle of the Dawn
@@ -649,7 +487,6 @@ var ItemDenyList = map[int32]struct{}{
 	227862: {}, // Incandescent Mooncloth Boots
 	227888: {}, // Argent Elite Shoulders
 	227947: {}, // Golem Fitted Pauldrons
-	228175: {}, // Libram of Holy Alacrity
 	228176: {}, // Totem of Thunder
 	228190: {}, // Knowledge of the Timbermaw
 	231530: {}, // Warlord's Plate Armor
@@ -780,7 +617,6 @@ var ItemDenyList = map[int32]struct{}{
 	231668: {}, // Warlord's Mail Chestguard
 	231669: {}, // Warlord's Mail Skullcap
 	231670: {}, // General's Mail Pants
-	231671: {}, // General's Dragonhide Greaves
 	231672: {}, // Warlord's Dragonhide Pauldrons
 	231673: {}, // General's Dragonhide Legguards
 	231674: {}, // Warlord's Dragonhide Tunic
@@ -813,7 +649,6 @@ var ItemDenyList = map[int32]struct{}{
 	231701: {}, // Field Marshal's Dragonhide Headdress
 	231702: {}, // Field Marshal's Dragonhide Tunic
 	231703: {}, // Marshal's Dragonhide Legguards
-	231704: {}, // Marshal's Dragonhide Greaves
 	231705: {}, // Field Marshal's Dragonhide Pauldrons
 	231706: {}, // Marshal's Dragonhide Gauntlets
 	231877: {}, // Tyler's Balanced Bobble
@@ -854,8 +689,6 @@ var ItemDenyList = map[int32]struct{}{
 	234547: {}, // High Warlord's Pig Sticker
 	234548: {}, // High Warlord's Pig Poker
 	234549: {}, // High Warlord's War Staff
-	234550: {}, // High Warlord's Spellblade
-	234551: {}, // High Warlord's Battle Mace
 	234552: {}, // High Warlord's Blade
 	234553: {}, // High Warlord's Quickblade
 	234554: {}, // High Warlord's Cleaver
@@ -876,8 +709,6 @@ var ItemDenyList = map[int32]struct{}{
 	234569: {}, // Grand Marshal's Glaive
 	234570: {}, // Grand Marshal's Polearm
 	234571: {}, // Grand Marshal's Stave
-	234574: {}, // Grand Marshal's Mageblade
-	234576: {}, // Grand Marshal's Warhammer
 	234578: {}, // Grand Marshal's Longsword
 	234579: {}, // Grand Marshal's Swiftblade
 	234580: {}, // Grand Marshal's Handaxe
@@ -904,18 +735,6 @@ var ItemDenyList = map[int32]struct{}{
 	235479: {}, // Grand Marshal's Shiv
 	235480: {}, // Grand Marshal's Bonecracker
 	235481: {}, // Grand Marshal's Hacker
-	237814: {}, // Sentinel's Lamellar Legguards
-	237815: {}, // Sentinel's Silk Leggings
-	237817: {}, // Sentinel's Lizardhide Pants
-	237818: {}, // Sentinel's Leather Pants
-	237819: {}, // Sentinel's Chain Leggings
-	237820: {}, // Outrider's Silk Leggings
-	237821: {}, // Outrider's Lizardhide Pants
-	237822: {}, // Outrider's Leather Pants
-	237823: {}, // Outrider's Mail Leggings
-	237824: {}, // Outrider's Chain Leggings
-	237825: {}, // Sentinel's Plate Legguards
-	237826: {}, // Outrider's Plate Legguards
 	239512: {}, // Lightbreaker Wrists
 	239513: {}, // Lightbreaker Belt
 	239514: {}, // Lightbreaker Grips

@@ -792,6 +792,15 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestRetribution-AllItems-LibramofHolyAlacrity-228175"
+ value: {
+  dps: 829.72043
+  tps: 712.83287
+  dtps: 7.07962
+  hps: 23.00259
+ }
+}
+dps_results: {
  key: "TestRetribution-AllItems-LibramofInfusion-279248"
  value: {
   dps: 829.72043

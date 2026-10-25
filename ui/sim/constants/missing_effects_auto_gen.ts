@@ -1595,15 +1595,75 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		202256, // Privateer's Ornate Pistol
+		[
+			"Gain the Quick Draw ability:   |Tinterface/icons/inv_musket_02.blp:24|t  Draw your ranged weapon and fire a quick shot at an enemy, causing normal ranged weapon damage and reducing the target's movement speed by 50% for 6s. Awards 1 combo point.   Quick Draw benefits from all talents and effects that trigger from or modify Sinister Strike. ", // 398197 - https://www.wowhead.com/forever/spell=398197
+		]
+	],
+	[
+		208222, // Old Guard Retaliator
+		[
+			"On landing a killing blow that grants experience or honor, your next attack will critically strike.", // 418509 - https://www.wowhead.com/forever/spell=418509
+		]
+	],
+	[
 		208424, // Sun Shades
 		[
 			"", // 463001 - https://www.wowhead.com/forever/spell=463001
 		]
 	],
 	[
+		211500, // Resilient Cloth Headband
+		[
+			"Reduces all damage taken and chance to be critically hit by 5% in Warsong Gulch.", // 430432 - https://www.wowhead.com/forever/spell=430432
+		]
+	],
+	[
+		211856, // Resilient Mail Coif
+		[
+			"Reduces all damage taken and chance to be critically hit by 5% in Warsong Gulch.", // 430432 - https://www.wowhead.com/forever/spell=430432
+		]
+	],
+	[
+		211857, // Resilient Leather Mask
+		[
+			"Reduces all damage taken and chance to be critically hit by 5% in Warsong Gulch.", // 430432 - https://www.wowhead.com/forever/spell=430432
+		]
+	],
+	[
+		211941, // Windwalker's Yari
+		[
+			"Blasts enemies in front of you with the power of wind, fire, all that kind of thing!", // 14537 - https://www.wowhead.com/forever/spell=14537
+		]
+	],
+	[
 		221315, // Traveler's Symbols
 		[
 			"Place a Traveler's Sign that lasts for 1 min. A message can be written on the sign, causing it to last for 1 hour and making it visible to other players.", // 1306267 - https://www.wowhead.com/forever/spell=1306267
+		]
+	],
+	[
+		234550, // High Warlord's Spellblade
+		[
+			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
+		]
+	],
+	[
+		234551, // High Warlord's Battle Mace
+		[
+			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
+		]
+	],
+	[
+		234574, // Grand Marshal's Mageblade
+		[
+			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
+		]
+	],
+	[
+		234576, // Grand Marshal's Warhammer
+		[
+			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
 		]
 	],
 	[
@@ -4676,6 +4736,385 @@ export const MISSING_SET_BONUSES = new Map<number, Map<number, string[]>>([
 				4,
 				[
 					"Increases your movement speed by 15% while in Bear, Cat, or Travel Form. Only active outdoors.", // 23218 - https://www.wowhead.com/forever/spell=23218
+				],
+			],
+		]),
+	],
+	[
+		1625, // Blood Guard's Chain
+		new Map([
+			[
+				3,
+				[
+					"+15 Stamina.", // 14462 - https://www.wowhead.com/forever/spell=14462
+				],
+			],
+			[
+				6,
+				[
+					"+30 Attack Power.", // 9336 - https://www.wowhead.com/forever/spell=9336
+				],
+			],
+		]),
+	],
+	[
+		1667, // Feralheart Raiment
+		new Map([
+			[
+				2,
+				[
+					"+8 All Resistances.", // 18679 - https://www.wowhead.com/forever/spell=18679
+				],
+			],
+			[
+				3,
+				[
+					"Restores 8 mana per 5 sec.", // 18378 - https://www.wowhead.com/forever/spell=18378
+				],
+			],
+			[
+				4,
+				[
+					"Chance on spellcast to restore 200 Mana, on melee attack to regenerate 20 Energy over 5s, and when struck by a melee attack to generate 10 Rage.", // 450608 - https://www.wowhead.com/forever/spell=450608
+				],
+			],
+			[
+				5,
+				[
+					"When struck in combat, has a 5% chance to increase your movement speed by 10% for 8s. Can only occur once every 60 sec.", // 1302708 - https://www.wowhead.com/forever/spell=1302708
+				],
+			],
+			[
+				6,
+				[
+					"+40 Attack Power.", // 14049 - https://www.wowhead.com/forever/spell=14049
+					"Increases damage and healing done by magical spells and effects by up to 23.", // 14047 - https://www.wowhead.com/forever/spell=14047
+				],
+			],
+		]),
+	],
+	[
+		1669, // Beastmaster Armor
+		new Map([
+			[
+				2,
+				[
+					"+8 All Resistances.", // 18679 - https://www.wowhead.com/forever/spell=18679
+				],
+			],
+			[
+				3,
+				[
+					"Restores 8 mana per 5 sec.", // 18378 - https://www.wowhead.com/forever/spell=18378
+				],
+			],
+			[
+				4,
+				[
+					"Your melee and ranged autoattacks have a 5% chance to energize you for 200 mana.", // 450577 - https://www.wowhead.com/forever/spell=450577
+				],
+			],
+			[
+				5,
+				[
+					"When struck in combat, has a 8% chance to remove a Root effect from yourself. Can only occur once every 60 sec.", // 1302712 - https://www.wowhead.com/forever/spell=1302712
+				],
+			],
+			[
+				6,
+				[
+					"+40 Attack Power.", // 14049 - https://www.wowhead.com/forever/spell=14049
+				],
+			],
+		]),
+	],
+	[
+		1671, // Sorcerer's Regalia
+		new Map([
+			[
+				2,
+				[
+					"+8 All Resistances.", // 18679 - https://www.wowhead.com/forever/spell=18679
+				],
+			],
+			[
+				3,
+				[
+					"Restores 8 mana per 5 sec.", // 18378 - https://www.wowhead.com/forever/spell=18378
+				],
+			],
+			[
+				4,
+				[
+					"Your spellcasts have a 5% chance to energize you for 200 mana.", // 450527 - https://www.wowhead.com/forever/spell=450527
+				],
+			],
+			[
+				5,
+				[
+					"When struck in combat has a 2% chance of freezing the attacker in place for 3s. Can only occur once every 60 sec.", // 27867 - https://www.wowhead.com/forever/spell=27867
+				],
+			],
+			[
+				6,
+				[
+					"Increases damage and healing done by magical spells and effects by up to 23.", // 14047 - https://www.wowhead.com/forever/spell=14047
+				],
+			],
+		]),
+	],
+	[
+		1673, // Soulforge Armor
+		new Map([
+			[
+				2,
+				[
+					"+8 All Resistances.", // 18679 - https://www.wowhead.com/forever/spell=18679
+				],
+			],
+			[
+				3,
+				[
+					"Restores 8 mana per 5 sec.", // 18378 - https://www.wowhead.com/forever/spell=18378
+				],
+			],
+			[
+				4,
+				[
+					"Chance on melee autoattack and spellcast to increase your damage and healing done by magical spells and effects by up to 65 for 10s.", // 450625 - https://www.wowhead.com/forever/spell=450625
+				],
+			],
+			[
+				5,
+				[
+					"When struck by a harmful spell, has a 7% chance of Silencing the caster for 3s. Can only occur once every 60 sec.", // 1302716 - https://www.wowhead.com/forever/spell=1302716
+				],
+			],
+			[
+				6,
+				[
+					"Increases damage and healing done by magical spells and effects by up to 23.", // 14047 - https://www.wowhead.com/forever/spell=14047
+				],
+			],
+		]),
+	],
+	[
+		1675, // Vestments of the Virtuous
+		new Map([
+			[
+				2,
+				[
+					"+8 All Resistances.", // 18679 - https://www.wowhead.com/forever/spell=18679
+				],
+			],
+			[
+				3,
+				[
+					"Restores 8 mana per 5 sec.", // 18378 - https://www.wowhead.com/forever/spell=18378
+				],
+			],
+			[
+				4,
+				[
+					"Your spellcasts have a 5% chance to energize you for 200 mana.", // 450576 - https://www.wowhead.com/forever/spell=450576
+				],
+			],
+			[
+				5,
+				[
+					"When struck in combat has a 2% chance of shielding the wearer in a protective shield which will absorb 488 damage. Can only occur once every 60 sec.", // 27778 - https://www.wowhead.com/forever/spell=27778
+				],
+			],
+			[
+				6,
+				[
+					"Increases damage and healing done by magical spells and effects by up to 23.", // 14047 - https://www.wowhead.com/forever/spell=14047
+				],
+			],
+		]),
+	],
+	[
+		1676, // Darkmantle Armor
+		new Map([
+			[
+				2,
+				[
+					"+8 All Resistances.", // 18679 - https://www.wowhead.com/forever/spell=18679
+				],
+			],
+			[
+				3,
+				[
+					"Restores 15 health per 5 sec.", // 21347 - https://www.wowhead.com/forever/spell=21347
+				],
+			],
+			[
+				4,
+				[
+					"Chance on melee attack to restore 20 Energy.", // 27787 - https://www.wowhead.com/forever/spell=27787
+				],
+			],
+			[
+				5,
+				[
+					"When struck in combat, has a 5% chance to remove a Snare effect from yourself. Can only occur once every 60 sec.", // 1302698 - https://www.wowhead.com/forever/spell=1302698
+				],
+			],
+			[
+				6,
+				[
+					"+40 Attack Power.", // 14049 - https://www.wowhead.com/forever/spell=14049
+				],
+			],
+		]),
+	],
+	[
+		1679, // The Five Thunders
+		new Map([
+			[
+				2,
+				[
+					"+8 All Resistances.", // 18679 - https://www.wowhead.com/forever/spell=18679
+				],
+			],
+			[
+				3,
+				[
+					"Restores 8 mana per 5 sec.", // 18378 - https://www.wowhead.com/forever/spell=18378
+				],
+			],
+			[
+				4,
+				[
+					"Chance on melee autoattack and spellcast to increase your damage and healing done by magical spells and effects by up to 65 for 10s.", // 450626 - https://www.wowhead.com/forever/spell=450626
+				],
+			],
+			[
+				5,
+				[
+					"When struck in melee combat, has a 5% chance of Disarming the attacker for 4s. Can only occur once every 60 sec.", // 1302718 - https://www.wowhead.com/forever/spell=1302718
+				],
+			],
+			[
+				6,
+				[
+					"Increases damage and healing done by magical spells and effects by up to 23.", // 14047 - https://www.wowhead.com/forever/spell=14047
+				],
+			],
+		]),
+	],
+	[
+		1681, // Deathmist Raiment
+		new Map([
+			[
+				2,
+				[
+					"+8 All Resistances.", // 18679 - https://www.wowhead.com/forever/spell=18679
+				],
+			],
+			[
+				3,
+				[
+					"Restores 8 mana per 5 sec.", // 18378 - https://www.wowhead.com/forever/spell=18378
+				],
+			],
+			[
+				4,
+				[
+					"Your spellcasts have a 5% chance to heal you for 300.", // 450585 - https://www.wowhead.com/forever/spell=450585
+				],
+			],
+			[
+				5,
+				[
+					"When struck in combat has a 2% chance of causing the attacker to flee in terror for 2s. Can only occur once every 60 sec.", // 27780 - https://www.wowhead.com/forever/spell=27780
+				],
+			],
+			[
+				6,
+				[
+					"Increases damage and healing done by magical spells and effects by up to 23.", // 14047 - https://www.wowhead.com/forever/spell=14047
+				],
+			],
+		]),
+	],
+	[
+		1724, // Warlord's Refuge
+		new Map([
+			[
+				2,
+				[
+					"+20 Stamina.", // 14467 - https://www.wowhead.com/forever/spell=14467
+				],
+			],
+			[
+				3,
+				[
+					"Increases your movement speed by 15% while in Bear, Cat, or Travel Form. Only active outdoors.", // 23218 - https://www.wowhead.com/forever/spell=23218
+				],
+			],
+			[
+				6,
+				[
+					"Increases healing done by up to 44 and damage done by up to 15 for all magical spells and effects.", // 467550 - https://www.wowhead.com/forever/spell=467550
+				],
+			],
+		]),
+	],
+	[
+		1736, // Field Marshal's Refuge
+		new Map([
+			[
+				2,
+				[
+					"+20 Stamina.", // 14467 - https://www.wowhead.com/forever/spell=14467
+				],
+			],
+			[
+				3,
+				[
+					"Increases your movement speed by 15% while in Bear, Cat, or Travel Form. Only active outdoors.", // 23218 - https://www.wowhead.com/forever/spell=23218
+				],
+			],
+			[
+				6,
+				[
+					"Increases healing done by up to 44 and damage done by up to 15 for all magical spells and effects.", // 467550 - https://www.wowhead.com/forever/spell=467550
+				],
+			],
+		]),
+	],
+	[
+		1778, // Battlegear of Heroism
+		new Map([
+			[
+				2,
+				[
+					"+8 All Resistances.", // 18679 - https://www.wowhead.com/forever/spell=18679
+				],
+			],
+			[
+				3,
+				[
+					"Restores 15 health per 5 sec.", // 21347 - https://www.wowhead.com/forever/spell=21347
+				],
+			],
+			[
+				4,
+				[
+					"Chance on melee attack to heal for 110 and generate 10 Rage", // 450587 - https://www.wowhead.com/forever/spell=450587
+				],
+			],
+			[
+				5,
+				[
+					"When struck in combat, has a 10% chance to remove a Disarm effect from yourself. Can only occur once every 60 sec.", // 1302721 - https://www.wowhead.com/forever/spell=1302721
+				],
+			],
+			[
+				6,
+				[
+					"+20 Strength.", // 14492 - https://www.wowhead.com/forever/spell=14492
 				],
 			],
 		]),

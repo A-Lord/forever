@@ -95,6 +95,7 @@ func RegisterAllProcs() {
 	shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 27038},
 		[]shared.ItemVariant{
 			{ItemID: 22013, ItemName: "Beastmaster's Cap"},
+			{ItemID: 226887, ItemName: "Beastmaster's Cap"},
 		})
 
 	// Increases your pet's critical strike chance by 2%.
@@ -119,6 +120,14 @@ func RegisterAllProcs() {
 	shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 27518},
 		[]shared.ItemVariant{
 			{ItemID: 22191, ItemName: "Obsidian Mail Tunic"},
+		})
+
+	// Increases your pet's critical strike chance by 2%.
+	// https://www.wowhead.com/forever/spell=27043
+	// equip: 27043 keeps 27042 up (A_MOD_WEAPON_CRIT_PERCENT)
+	shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 27043},
+		[]shared.ItemVariant{
+			{ItemID: 226883, ItemName: "Beastmaster's Gauntlets"},
 		})
 
 	// When struck in combat, inflicts 3 Nature damage to the attacker.
@@ -1523,6 +1532,21 @@ func RegisterAllProcs() {
 	//       This can be ignored if the effect has already been implemented.
 	//       With next db run the item will be removed if implemented.
 	//
+	// On landing a killing blow that grants experience or honor, your next attack will critically strike.
+	// https://www.wowhead.com/forever/spell=418509
+	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
+	//	Callback:           core.CallbackEmpty,
+	//	ProcMask:           core.ProcMaskUnknown,
+	//	Outcome:            core.OutcomeEmpty,
+	//	RequireDamageDealt: false
+	// }, []shared.ItemVariant{
+	//	{ItemID: 208222, ItemName: "Old Guard Retaliator"},
+	// })
+
+	// TODO: Manual implementation required
+	//       This can be ignored if the effect has already been implemented.
+	//       With next db run the item will be removed if implemented.
+	//
 	// https://www.wowhead.com/forever/spell=463001
 	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
 	//	Callback:           core.CallbackEmpty,
@@ -1531,6 +1555,85 @@ func RegisterAllProcs() {
 	//	RequireDamageDealt: false
 	// }, []shared.ItemVariant{
 	//	{ItemID: 208424, ItemName: "Sun Shades"},
+	// })
+
+	// TODO: Manual implementation required
+	//       This can be ignored if the effect has already been implemented.
+	//       With next db run the item will be removed if implemented.
+	//
+	// Blasts enemies in front of you with the power of wind, fire, all that kind of thing!
+	// https://www.wowhead.com/forever/spell=14537
+	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
+	//	Callback:           core.CallbackEmpty,
+	//	ProcMask:           core.ProcMaskUnknown,
+	//	Outcome:            core.OutcomeEmpty,
+	//	RequireDamageDealt: false
+	// }, []shared.ItemVariant{
+	//	{ItemID: 211941, ItemName: "Windwalker's Yari"},
+	// })
+
+	// TODO: Manual implementation required
+	//       This can be ignored if the effect has already been implemented.
+	//       With next db run the item will be removed if implemented.
+	//
+	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
+	// sources.
+	// https://www.wowhead.com/forever/spell=1216997
+	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
+	//	Callback:           core.CallbackEmpty,
+	//	ProcMask:           core.ProcMaskUnknown,
+	//	Outcome:            core.OutcomeEmpty,
+	//	RequireDamageDealt: false
+	// }, []shared.ItemVariant{
+	//	{ItemID: 234550, ItemName: "High Warlord's Spellblade"},
+	// })
+
+	// TODO: Manual implementation required
+	//       This can be ignored if the effect has already been implemented.
+	//       With next db run the item will be removed if implemented.
+	//
+	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
+	// sources.
+	// https://www.wowhead.com/forever/spell=1216997
+	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
+	//	Callback:           core.CallbackEmpty,
+	//	ProcMask:           core.ProcMaskUnknown,
+	//	Outcome:            core.OutcomeEmpty,
+	//	RequireDamageDealt: false
+	// }, []shared.ItemVariant{
+	//	{ItemID: 234551, ItemName: "High Warlord's Battle Mace"},
+	// })
+
+	// TODO: Manual implementation required
+	//       This can be ignored if the effect has already been implemented.
+	//       With next db run the item will be removed if implemented.
+	//
+	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
+	// sources.
+	// https://www.wowhead.com/forever/spell=1216997
+	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
+	//	Callback:           core.CallbackEmpty,
+	//	ProcMask:           core.ProcMaskUnknown,
+	//	Outcome:            core.OutcomeEmpty,
+	//	RequireDamageDealt: false
+	// }, []shared.ItemVariant{
+	//	{ItemID: 234574, ItemName: "Grand Marshal's Mageblade"},
+	// })
+
+	// TODO: Manual implementation required
+	//       This can be ignored if the effect has already been implemented.
+	//       With next db run the item will be removed if implemented.
+	//
+	// Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple
+	// sources.
+	// https://www.wowhead.com/forever/spell=1216997
+	// shared.NewProcStatBonusEffectWithVariants(shared.ProcStatBonusEffect{
+	//	Callback:           core.CallbackEmpty,
+	//	ProcMask:           core.ProcMaskUnknown,
+	//	Outcome:            core.OutcomeEmpty,
+	//	RequireDamageDealt: false
+	// }, []shared.ItemVariant{
+	//	{ItemID: 234576, ItemName: "Grand Marshal's Warhammer"},
 	// })
 
 	// TODO: Manual implementation required
@@ -2911,6 +3014,10 @@ func RegisterAllProcs() {
 	// https://www.wowhead.com/forever/spell=23217
 	// Not simulated: Knight-Lieutenant's Dragonhide Grips: "Stealth Detection 10" (23217) - ignored aura type 17
 	// https://www.wowhead.com/forever/spell=23217
+	// Not simulated: Darkmantle Cap: "Stealth 08" (27037) - ignored aura type 154
+	// https://www.wowhead.com/forever/spell=27037
+	// Not simulated: Darkmantle Footpads: "Stealth 05" (1293068) - ignored aura type 154
+	// https://www.wowhead.com/forever/spell=1293068
 	// Not simulated: Premier Kodohide Gauntlets: "Stealth Detection 10" (23217) - ignored aura type 17
 	// https://www.wowhead.com/forever/spell=23217
 	// Not simulated: Premier Champion's Dragonhide Gloves: "Stealth Detection 10" (23217) - ignored aura type 17

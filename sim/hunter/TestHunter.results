@@ -144,6 +144,24 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestHunter-AllItems-Beastmaster'sCap-226887"
+ value: {
+  dps: 883.184
+  tps: 644.17451
+  dtps: 9.51294
+  hps: 19.13028
+ }
+}
+dps_results: {
+ key: "TestHunter-AllItems-Beastmaster'sGauntlets-226883"
+ value: {
+  dps: 880.58263
+  tps: 642.33717
+  dtps: 9.51294
+  hps: 19.14722
+ }
+}
+dps_results: {
  key: "TestHunter-AllItems-Beastmaster'sGloves-22015"
  value: {
   dps: 880.58263
