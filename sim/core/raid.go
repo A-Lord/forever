@@ -194,7 +194,15 @@ func NewRaid(raidConfig *proto.Raid, areaTypes []proto.AreaType) *Raid {
 		}
 	}
 
-	raid.NumTargetDummies = min(24, int(raidConfig.TargetDummies))
+	n := raidConfig.TargetDummies
+	for _, party := range raid.Parties {
+		for _, player := range party.Players {
+			if extra, ok := player.(interface{ ExtraTargetDummies() int32 }); ok {
+				n = max(n, extra.ExtraTargetDummies())
+			}
+		}
+	}
+	raid.NumTargetDummies = min(24, int(n))
 	for i := 0; i < raid.NumTargetDummies; i++ {
 		party, partyIndex := raid.GetFirstEmptyRaidIndex()
 		dummy := NewTargetDummy(i, party, partyIndex)

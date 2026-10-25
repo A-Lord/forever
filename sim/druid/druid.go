@@ -105,7 +105,7 @@ type Druid struct {
 
 type SelfBuffs struct {
 	InnervateTarget *proto.UnitReference
-	// The cast still goes out. The mana stays off this druid.
+	// The dummy receives Innervate. The mana stays off this druid.
 	GiftInnervate bool
 }
 

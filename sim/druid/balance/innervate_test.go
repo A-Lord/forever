@@ -9,7 +9,7 @@ import (
 	"github.com/wowsims/forever/sim/core/simsignals"
 )
 
-// Self keeps the mana. Someone else still spends the cast and the cooldown, and the mana stays off this druid.
+// Self keeps the mana. Someone else still spends the cast and the cooldown; a dummy receives the mana.
 func TestGiftedInnervateCastsWithoutTheMana(t *testing.T) {
 	for _, c := range []struct {
 		name       string
@@ -27,6 +27,14 @@ func TestGiftedInnervateCastsWithoutTheMana(t *testing.T) {
 			}
 
 			before := druid.ManaRegenPerSecondWhileNotCasting()
+			dummy := sim.Raid.GetFirstTargetDummy()
+			if c.wantMana && dummy != nil {
+				t.Fatal("Self still has a dummy")
+			}
+			if !c.wantMana && dummy == nil {
+				t.Fatal("Someone else has no dummy")
+			}
+
 			if !spell.Cast(sim, &druid.Unit) {
 				t.Fatal("Innervate did not cast")
 			}
@@ -41,6 +49,9 @@ func TestGiftedInnervateCastsWithoutTheMana(t *testing.T) {
 			gotMana := druid.ManaRegenPerSecondWhileNotCasting() != before
 			if active != c.wantMana || gotMana != c.wantMana {
 				t.Errorf("mana buff active = %v, regen changed = %v, want %v", active, gotMana, c.wantMana)
+			}
+			if dummy != nil && !dummy.HasActiveAuraWithTag(buffs.InnervatesCategory) {
+				t.Error("the dummy has no Innervate")
 			}
 		})
 	}
@@ -67,6 +78,13 @@ func TestGiftedInnervateCastsWithoutTheMana(t *testing.T) {
 		}
 		if got := spell.SpellMetrics[druid.UnitIndex].Casts; got != 1 {
 			t.Errorf("Innervate casts = %d, want 1", got)
+		}
+		dummy := sim.Raid.GetFirstTargetDummy()
+		if dummy == nil {
+			t.Fatal("Someone else has no dummy")
+		}
+		if !dummy.HasActiveAuraWithTag(buffs.InnervatesCategory) {
+			t.Error("the dummy has no Innervate")
 		}
 	})
 }

@@ -56,6 +56,14 @@ func (moonkin *BalanceDruid) GetDruid() *druid.Druid {
 	return moonkin.Druid
 }
 
+// Someone else needs a dummy to receive Innervate.
+func (moonkin *BalanceDruid) ExtraTargetDummies() int32 {
+	if moonkin.SelfBuffs.GiftInnervate {
+		return 1
+	}
+	return 0
+}
+
 func (moonkin *BalanceDruid) Initialize() {
 	moonkin.Druid.Initialize()
 	moonkin.Druid.RegisterBalanceSpells()

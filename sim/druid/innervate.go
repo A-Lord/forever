@@ -12,19 +12,18 @@ func (druid *Druid) registerInnervateCD() {
 	if target == nil {
 		target = &druid.Unit
 	}
+	if druid.SelfBuffs.GiftInnervate {
+		if dummy := druid.Env.Raid.GetFirstTargetDummy(); dummy != nil {
+			target = &dummy.Unit
+		}
+	}
 	aura := buffs.NewSpellDataInnervatesAura(target, true, 0)
 	config := spelldata.SpellConfig(&druid.Unit, rank)
 	config.Flags |= core.SpellFlagAPL | core.SpellFlagHelpful
 	config.ExtraCastCondition = func(_ *core.Simulation, _ *core.Unit) bool {
-		if druid.SelfBuffs.GiftInnervate {
-			return true
-		}
 		return !target.HasActiveAuraWithTag(buffs.InnervatesCategory)
 	}
 	config.ApplyEffects = func(sim *core.Simulation, _ *core.Unit, _ *core.Spell) {
-		if druid.SelfBuffs.GiftInnervate {
-			return
-		}
 		aura.Activate(sim)
 	}
 	druid.Innervate = druid.RegisterSpell(config)
