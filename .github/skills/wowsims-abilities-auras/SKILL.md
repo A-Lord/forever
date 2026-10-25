@@ -35,7 +35,7 @@ until the data moves, and then it is wrong with nothing to say so. The rulings t
 | wiring a hit, crit or damage talent bound to a weapon                                   | `docs/spell_data/weapon-requirements.md` |
 | adding a raid buff or debuff, a manifest row, a driver, totems on pets                  | `docs/spell_data/buffs-and-debuffs.md`   |
 | chasing a value that is off: class flags, a parsed row doubling a hand line, `SPCoef` 1 | `docs/spell_data/pitfalls.md`            |
-| deciding which number wins for one spell: a measured share, a form rule, a tooltip bug  | `references/rulings.md`                  |
+| deciding which number wins for one spell: a form rule, a tooltip bug                    | `references/rulings.md`                  |
 | reviewing a spell built beside its row: hand literals, scaling, targets, requirements   | `references/traps.md`                    |
 
 ## An ability
@@ -111,33 +111,8 @@ comment in `sim/warrior/talents_fury.go` quotes the wording.
 
 ## Keeping this skill true
 
-The code is right where this skill and the code disagree; fix the skill in the same change. Re-derive a claim before
-repeating it:
-
-- the resolver options: `grep -n '^func [A-Z][A-Za-z]*(' sim/core/spelldata/resolve_spell.go sim/core/spelldata/resolve_aura.go`
-- the parse options: `grep -n '^func [A-Z][A-Za-z]*(.*ParseOpt' sim/core/spelldata/parse_effects.go`
-- the GCD floor: `grep -n 'GCDMin' sim/core/cast.go sim/core/constants.go`
-- the `SPELLMOD_*` names: `grep -n 'SpellModOp = ' sim/core/dbcenums/spellmods.go`
-- the `FromCaster` slots: `grep -rn 'FromCaster(\|AttachDDBC(' sim/<class>/`
-- the `SingleAura` reset: `grep -n 'SingleAura = ' sim/core/exclusive_effect.go`
-- `Magic()`'s variance: `grep -n 'DirectVariance' sim/core/spelldata/resolve_spell.go`
-- the stance forms: `grep -n 'stanceForms' sim/core/dbcenums/forms_auto_gen.go`
-
-| You changed…                                                         | Update                                                                               |
-| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| a `SpellOpt` or `AuraOpt` in `resolve_spell.go` or `resolve_aura.go` | "An ability", the option table in `docs/spell_data/building-an-ability.md`           |
-| a class's `FromCaster` or `AttachDDBC` slots                         | "An aura or dot", the `FromCaster` example in `docs/spell_data/talents-and-auras.md` |
-| `DotConfig`, `PeriodicDamageTick` or `TickOutcome`                   | "An aura or dot", `docs/spell_data/auras-and-dots.md`                                |
-| a `ParseOpt`, `parse_effects_table.go` or the skipped report         | "A talent's modifiers", `docs/spell_data/talents-and-auras.md`                       |
-| `weapon_scope.go`                                                    | `docs/spell_data/weapon-requirements.md`, the weapon ruling                          |
-| `sim/core/buffs/` or `tools/database/buffmanifest/`                  | "Buffs and debuffs", `docs/spell_data/buffs-and-debuffs.md`, issue #36               |
-| a ruling's code or its measured number                               | `references/rulings.md`                                                              |
-
-Then run the shared path check:
-
-```
-sh .github/skills/check_paths.sh .github/skills/wowsims-abilities-auras
-```
+The code is right where this skill and the code disagree; fix the skill in the same change. The commands that
+re-derive each claim, the "You changed → Update" table and the path check are in `references/maintenance.md`.
 
 A ruling, trap or workflow fact learned while using this skill is written here, or into `references/rulings.md`, in
 the same change that uses it. A memory file is a pointer to this skill, not a second copy.

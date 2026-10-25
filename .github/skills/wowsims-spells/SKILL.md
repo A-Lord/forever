@@ -50,8 +50,7 @@ disagreement stays, say so at the call site.
 
 ## Keeping this skill true
 
-| You changed…                      | Update                                       |
-| --------------------------------- | -------------------------------------------- |
-| added, renamed or removed a skill | "Which skill" here and the `AGENTS.md` table |
+The code is right where this skill and the code disagree; fix the skill in the same change. The "You changed →
+Update" table and the path check are in `references/maintenance.md`.
 
-Then run `sh .github/skills/check_paths.sh .github/skills/wowsims-spells`. A ruling or trap goes into its subject skill.
+A ruling or trap goes into its subject skill.

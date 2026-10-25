@@ -158,11 +158,8 @@ anything is posted or pushed. The rewrite changes prose only; findings, numbers,
 
 ## Keeping this skill true
 
-| You changed…                                                                  | Update                                         |
-| ----------------------------------------------------------------------------- | ---------------------------------------------- |
-| what `go run ./tools/spelldata` prints, or `sim/core/spelldata/attributes.go` | step 3's commands and the paragraph under them |
-| a defect class, or a `##` heading step 4 names in another skill               | `references/defects.md` and that step 4 bullet |
+The code is right where this skill and the code disagree; fix the skill in the same change. The "You changed →
+Update" table and the path check are in `references/maintenance.md`.
 
-Then run `sh .github/skills/check_paths.sh .github/skills/wowsims-review`. A ruling, trap or workflow fact learned
-while using this skill is written here, or into `references/rulings.md`, in the same change that uses it. A memory
-file is a pointer to this skill, not a second copy.
+A ruling, trap or workflow fact learned while using this skill is written here, or into `references/rulings.md`, in
+the same change that uses it. A memory file is a pointer to this skill, not a second copy.

@@ -31,5 +31,14 @@ read `wowsims-conventions` before writing comments, docs, test messages, commit 
 | `wowsims-bulk-sim`            | Bulk sim, locally, on the server and in the browser                                            |
 | `wowsims-reforge-optimizer`   | The gear optimizer (EP, stat caps, HiGHS)                                                      |
 
+Pull requests:
+
+- **Review and simplify when asked.** Once a PR is open, ask the user before running the review pass
+  (`wowsims-review`) and the simplify pass; fix their findings before the PR leaves draft.
+- **Gates before every commit.** The CI gate set (`wowsims-testing` `## The gates`) runs locally before every commit,
+  and the PR body states its results.
+- **One worktree, one draft PR.** A big change runs in its own worktree and branch, with one draft PR opened at the
+  first commit and its body kept current as each slice lands.
+
 A ruling, trap or workflow fact learned while working goes into the subject skill, or its `references/rulings.md`, in
 the same change.

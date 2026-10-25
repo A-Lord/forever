@@ -37,7 +37,7 @@ Text here follows `wowsims-conventions`; `docs/consumables.md` holds the consuma
 | writing a consumable's effect by hand                                          | `docs/consumables.md` §Writing an effect by hand: the Natural flasks                                                                                  |
 | registering an item, enchant or set proc                                       | `docs/spell_data/procs.md` §Item and enchant procs, then `wowsims-procs`                                                                              |
 | running `gen_db`, adding an override, or working from a database behind master | `wowsims-db-pipeline` `## Regenerating`, `## Overrides`, `## A database behind master`                                                                |
-| deciding what a named item, potion, weapon or suffix does                      | `references/rulings.md`                                                                                                                               |
+| deciding elixir or holiday stacking, an item's folder, a caster weapon's stats | `references/rulings.md`                                                                                                                               |
 | reading an item, enchant, suffix or set row from the game files                | `references/item-data.md`                                                                                                                             |
 | testing an item or consumable effect                                           | `wowsims-testing` `## What a test asserts`                                                                                                            |
 
@@ -118,30 +118,8 @@ is registered. Items and enchants work differently:
 
 ## Keeping this skill true
 
-The code is right where this skill and the code disagree; fix the skill in the same change. Re-derive a claim before
-repeating it:
-
-- the pipeline order: `sed -n '/RouteConsumable(/,/GenerateItemEffectRandomPropPoints/p' tools/database/gen_db/main.go`,
-  and `grep -n WriteBinaryAndJson tools/database/gen_db/main.go` for when the files are written
-- what loads the database: `grep -n 'go:embed' assets/database/loader.go` and `grep -n READ_JSON ui/sim/proto/database.ts`
-- the request's extra items: `grep -n PARTY_BUFF_ITEM_IDS ui/sim/proto/buff_items.ts`
-- one effect per item, the aura lists: `grep -n 'panic(\|func implementedByHand\|AuraKinds = ' sim/core/item_effects.go tools/database/gen_effects.go`
-- the enchant row accessors: `grep -n 'func GetEnchant\|func FittingEnchantRow' sim/core/database.go`
-
-| You changed…                                                        | Update                                                          |
-| ------------------------------------------------------------------- | --------------------------------------------------------------- |
-| a step or its order in `tools/database/gen_db/main.go`              | "The pipeline"                                                  |
-| routing, shipping, groups, unparsed stats or potion classes         | `docs/consumables.md`, the matching section                     |
-| the item or enchant registries, `implementedByHand` or an aura list | "Hand-written effects"                                          |
-| the enchant row accessors, the suffix tables or the set rows read   | `references/item-data.md`                                       |
-| what the UI adds to a request                                       | "The request database", `docs/consumables.md` §The browser path |
-| a ruling's code or its number                                       | `references/rulings.md`                                         |
-
-Then run the shared path check:
-
-```
-sh .github/skills/check_paths.sh .github/skills/wowsims-consumables-items
-```
+The code is right where this skill and the code disagree; fix the skill in the same change. The commands that
+re-derive each claim, the "You changed → Update" table and the path check are in `references/maintenance.md`.
 
 A ruling, trap or workflow fact learned while using this skill is written here, or into `references/rulings.md`, in
 the same change that uses it. A memory file is a pointer to this skill, not a second copy.

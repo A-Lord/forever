@@ -33,8 +33,6 @@ Each line is the rule the code follows, where it lives, and the pull request tha
   opposite; no sign override exists.** `sim/core/spelldata/ladder.go`, PR #399.
 - **Seal of Righteousness keeps the tooltip description-variable coefficients 0.12 and 0.0765 over the rows' 0.**
   `sim/paladin/seal_of_righteousness.go`, PR #469.
-- **Revenge deals its base plus 0.28 × attack power on every rank (`APCoefDirect`), measured on ranks 1 and 2 and
-  carried to the rest with a TODO per row.** `tools/database/overrides/spell_overrides.go`, PR #256.
 - **A weapon requirement on aura 52 or 54 is per weapon; on aura 290 with a melee-weapon mask it applies while equipped
   to melee, ranged and spells, with a ranged-only mask per weapon; tooltips saying "with <weapons>" (Weaponmaster
   12700, Hack and Slash 13706) are per weapon and hand-built; weapon-scoped spell mods skip magic-defense spells.**
@@ -44,9 +42,10 @@ Each line is the rule the code follows, where it lives, and the pull request tha
 
 ## Registering
 
-- **Casters register every rank (melee registers `Highest()` only), each per-rank DoT or HoT labelled with
-  `spelldata.RankLabel(rank, &owner.Unit)` so ranks never share one aura; category cooldowns already share one timer
-  across ranks, so no hand `NewTimer()`.** `sim/core/spelldata/resolve_aura.go`, PR #246.
+- **Casters register every rank only when the implementation requires it, a question asked during integration (melee
+  registers `Highest()` only); each per-rank DoT or HoT is labelled with `spelldata.RankLabel(rank, &owner.Unit)` so
+  ranks never share one aura; category cooldowns already share one timer across ranks, so no hand `NewTimer()`.**
+  `sim/core/spelldata/resolve_aura.go`, PR #246.
 - **Devouring Plague is learnable by every race, and Inner Focus restarts its cooldown when the buff is spent
   (`OnExpire` calls `CD.Use`) though the row has no cooldown-on-event bit.** `sim/priest/devouring_plague.go`,
   `sim/priest/talents_discipline.go`, PR #246.
@@ -56,14 +55,6 @@ Each line is the rule the code follows, where it lives, and the pull request tha
 - **Weaponmaster covers a mace or staff in either hand without doubling, Anger Management comes from its aura, crit
   rage ×2 follows the row, a wand keeps `SpellFlagNoPartialResist`, and Flamestrike's burn stays a dot.**
   `sim/warrior/talents_arms.go`, `sim/mage/flamestrike.go`, PR #494.
-- **Eureka! is an 8 s buff with no charges: `applyEureka` keeps the cost and direct-damage mods up for the whole buff
-  and gives SPELLMOD_DOT channels their tick bonus only while it is up; a row with an empty SPELLMOD_DOT mask is
-  skipped.** `sim/core/racials.go`, PR #462.
-- **Cleave's flat threat splits by the targets it landed on, Revenge's `ThreatMultiplier` is 2.25, and Charge's rage
-  carries `NoThreat` from `ATTR_EX_1_NO_THREAT`.** `sim/warrior/heroic_strike_cleave.go`, `sim/warrior/revenge.go`,
-  `sim/warrior/charge.go`, PR #390.
-- **The warlock spends only Soul Shard 6265 reagents, and Decimation's `A_NO_REAGENT_USE` effect waives the shard.**
-  `sim/warlock/soul_shards.go`, PR #331.
 
 ## Forms
 
@@ -72,12 +63,3 @@ Each line is the rule the code follows, where it lives, and the pull request tha
 - **A druid's change of form keeps the current health percentage both ways and a Dire Bear guardian starts the pull at
   100%; any new form or max-health form effect sits inside `keepHealthPercentAcrossForms`.** `sim/druid/forms.go`,
   PR #149.
-
-## Buffs and debuffs
-
-- **Every debuff lands and only the strongest in its category counts (`SingleAura: false`); buff categories keep the
-  single-aura rule; Curse of Recklessness, Faerie Fire and Dust Cloud share `MinorArmorReduction`.**
-  `sim/core/buffs/meta.go`, PR #159.
-- **Dark Inspiration reaches party players only (`Character.NewPartyAuraArray`), bids in the party buff's category
-  through `buffs.NewSpellDataDarkInspirationAuraFor`, yielding ties, and never buffs pets.** `sim/core/buffs/buffs.go`,
-  PR #505.

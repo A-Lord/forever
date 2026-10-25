@@ -72,12 +72,7 @@ fact stay. A contrast that corrects a real misreading stays, and where the two d
   is not a review finding.
 - **`docs/superpowers/` stays local.** Specs and plans written there are never committed; the folder is in
   `.gitignore`. Delete it before the PR leaves draft.
-- **Review and simplify when asked.** Once a PR is open, ask the user before running the review pass
-  (`wowsims-review`) and the simplify pass; fix their findings before the PR leaves draft.
-- **Gates before every commit.** The CI gate set (`wowsims-testing` `## The gates`) runs locally before every commit,
-  and the PR body states its results.
-- **One worktree, one draft PR.** A big change runs in its own worktree and branch, with one draft PR opened at the
-  first commit and its body kept current as each slice lands.
+- **Pull-request process.** The gates, the draft-PR and the ask-before-review rules are in `AGENTS.md`.
 
 ## Before committing
 

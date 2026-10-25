@@ -8,8 +8,7 @@ argument-hint: 'Describe the bulk sim flow, stage or result behaviour, or valida
 
 The bulk sim ranks gear sets built from the worn gear plus the items and enchants the user selects. One Go
 implementation (`sim/core/bulk`) generates the candidates and runs the stages; the browser runs a TypeScript
-mirror of the stage loop because the WASM sim cannot run `bulkSimAsync`. The rulings the code follows are in
-`references/rulings.md`.
+mirror of the stage loop because the WASM sim cannot run `bulkSimAsync`.
 
 ## Where things live
 
@@ -175,5 +174,5 @@ Reproducibility: run the same `BulkSimRequest` twice through `BulkSimAsync` with
 be bit-identical. For a request-database change, run a batch against the dev server, which has no `with_db`, not
 only the Go tests.
 
-A ruling, trap or workflow fact learned while using this skill is written here, or into `references/rulings.md`, in
-the same change that uses it. A memory file is a pointer to this skill, not a second copy.
+A ruling, trap or workflow fact learned while using this skill is written here in the same change that uses it. A
+memory file is a pointer to this skill, not a second copy.

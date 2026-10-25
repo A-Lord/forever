@@ -92,28 +92,8 @@ against the row) are in `references/row-traps.md`.
 
 ## Keeping this skill true
 
-The code is right where this skill and the code disagree; fix the skill in the same change. Re-derive a claim before
-repeating it:
-
-- which files are on the resolvers: `grep -l 'spelldata.SpellConfig\|spelldata.Parse' sim/*/*.go`
-- the tool's arguments: `go run ./tools/spelldata` with no arguments prints the usage line (`usage` in
-  `tools/spelldata/main.go`)
-- the ladder readers: `grep -n '^func (l Ladder)' sim/core/spelldata/ladder.go`
-- the effect readers: `grep -n '^func (e \*Effect)' sim/core/spelldata/effect.go`
-
-| You changed…                                                    | Update                                                                                                                    |
-| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `sim/core/spelldata/ladder.go`                                  | "Reading a row", the `Highest()` trap, the ladder table (its `Highest()` row too) in `docs/spell_data/store.md`           |
-| `sim/core/spelldata/effect.go`, `spell.go` or `store.go`        | "Reading a row", `docs/spell_data/store.md`, the `-expr` example in `tools/spelldata/README.md`                           |
-| a class file moved between hand reads and the resolvers         | "Hand reads and resolvers", the opening sentences of `docs/spell_data/reading-by-hand.md` and `docs/spell_data/README.md` |
-| the tool's arguments in `tools/spelldata/main.go`, or its hover | "The spelldata tool" and the command block in `tools/spelldata/README.md`                                                 |
-| `discoverLadders` in `tools/database/gen_spell_data.go`         | `references/row-traps.md`                                                                                                 |
-
-Then run the shared path check:
-
-```
-sh .github/skills/check_paths.sh .github/skills/wowsims-spell-store
-```
+The code is right where this skill and the code disagree; fix the skill in the same change. The commands that
+re-derive each claim, the "You changed → Update" table and the path check are in `references/maintenance.md`.
 
 A ruling, trap or workflow fact learned while using this skill is written here in the same change that uses it. A
 memory file is a pointer to this skill, not a second copy.

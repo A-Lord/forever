@@ -8,8 +8,7 @@ argument-hint: 'Describe the optimizer bug, cap or EP behaviour, or solver task.
 
 The optimizer chooses one static enchant per listed slot to maximise EP within the stat caps, by solving a
 binary LP with HiGHS. The UI decides which slots and enchants are on offer; Go builds the model, solves it and
-returns the gear. It is a single-gear solve: the batch sim never runs it. The rulings the code follows are in
-`references/rulings.md`.
+returns the gear. It is a single-gear solve: the batch sim never runs it.
 
 ## Where things live
 
@@ -134,5 +133,5 @@ The optimizer's Go tests use the class-free `sim/core/testagent` (registered as 
 tag. For a change to
 what the request carries, run the optimizer against the dev server as well.
 
-A ruling, trap or workflow fact learned while using this skill is written here, or into `references/rulings.md`, in
-the same change that uses it. A memory file is a pointer to this skill, not a second copy.
+A ruling, trap or workflow fact learned while using this skill is written here in the same change that uses it. A
+memory file is a pointer to this skill, not a second copy.

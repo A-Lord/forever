@@ -34,7 +34,7 @@ for a reason you did not intend. Text here follows `wowsims-conventions`.
 
 ## The gates
 
-When the gates run and where their results go is `wowsims-conventions` (Gates before every commit); judging the diff
+When the gates run and where their results go is `AGENTS.md` (Pull requests); judging the diff
 before a commit is `wowsims-review`. Print the gates instead of quoting them from memory (the print gives the shard
 counts); the list after the print says what each Go step of CI catches.
 
@@ -125,25 +125,8 @@ delete the file before committing. Name the printed value in the claim ("`maxEne
 
 ## Keeping this skill true
 
-The code is right where this skill and the code disagree; fix the skill in the same change, then run
-`sh .github/skills/check_paths.sh .github/skills/wowsims-testing`. Re-derive a claim before repeating it, the gates
-with the print commands in §The gates:
-
-- the tagged test files: `grep -rl '^//go:build with_db' sim tools --include=*.go`; the panic without the tag:
-  `grep -n 'No DB data' sim/core/test_generators.go`
-- where `.results` live and which carry spell ids: `find sim -name '*.results'`, `grep -rl spell_id sim --include=*.results`
-- what a `.results` row holds: `grep -n -A6 'message DpsTestResult' proto/test.proto`
-- the ignored files: `grep -n 'results' .gitignore`, `grep -n -A3 '^# Baselines' .gitignore`
-- the pin helpers: `grep -n 'func withRows\|func editRow' sim/core/spelldata/spelldata_test.go sim/common/shared/spell_data_heal_proc_test.go`
-- `references/traps.md`: `grep -n 'RandomSeed + i' sim/core/sim.go`, `grep -n DiscardUnknown cmd/wowsimcli/cmd/basic_sim.go`
-
-| You changed…                                                                                | Update                                    |
-| ------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| a step in `run_tests.yml`, a make test target, `database_load.go` or a tag                  | §The gates                                |
-| `test_suite.go`, `test_generators.go` or `proto/test.proto`                                 | §.results discipline                      |
-| a snapshot list, a `withDBCInputs` test or an ignored input                                 | `references/stale-inputs.md`              |
-| a pin helper, or where a kind of test lives                                                 | §What a test asserts, "Where things live" |
-| `feralbear_test.go`, `mana_regen_test.go`, `encounter.ts`'s fallback target, `basic_sim.go` | `references/traps.md`                     |
+The code is right where this skill and the code disagree; fix the skill in the same change. The commands that
+re-derive each claim, the "You changed → Update" table and the path check are in `references/maintenance.md`.
 
 A ruling, trap or workflow fact learned while using this skill is written here in the same change that uses it. A
 memory file is a pointer to this skill, not a second copy.

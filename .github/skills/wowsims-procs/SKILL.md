@@ -33,7 +33,7 @@ the detail.
 | porting a proc-chance or proc-cooldown talent, a pet's or a target-side trigger        | `docs/spell_data/procs.md`, the paragraphs on `ProcSpellClassFlags`                     |
 | reading what the decoder made of a row, or a tooltip hint                              | `docs/spell_data/procs.md` §The decoder and the tooltip hints                           |
 | registering an item, enchant or set proc                                               | `docs/spell_data/procs.md` §Item and enchant procs                                      |
-| deciding what a named proc does, or which measured rate stands                         | `references/rulings.md`                                                                 |
+| deciding a weapon proc's mask, an unstated rate, or a charge spent by a channel        | `references/rulings.md`                                                                 |
 | the review case behind a rule below: a typed ICD, a look-alike effect, a cast listener | `.github/skills/wowsims-review/references/defects.md` §The wrong rank, the wrong effect |
 | the review case behind a charged row with no spender                                   | `.github/skills/wowsims-review/references/defects.md` §What a cast spends, and when     |
 
@@ -64,7 +64,7 @@ The four `ProcChanceSource` shapes, the decoder, the proc-chance talents and eve
   reason in `wowsims-core-mechanics` `## Cast order`. `ProcTrigger` on the rank decodes the hit listener the row states.
 - **Read the chance off the effect the tooltip names**, never a look-alike effect whose ladder happens to fit.
 - **A spell's own proc mask decides which listeners hear it**, and the hit table decides the mask, not the school.
-  The cases (taunts on `ProcMaskEmpty`, a weapon proc's strike off either hand, oils) are in `references/rulings.md`.
+  The cases (a weapon proc's strike off either hand, oils) are in `references/rulings.md`.
 
 ## Item and enchant procs
 
@@ -80,15 +80,15 @@ snapshot lists are in `procs.md` §Item and enchant procs; which builder an item
   table of `procs.md`); 101 usually means no proc at all. A rate the game files lack
   is an override onto the row's `RPPM` first (`Field: PPM` in `spell_overrides.go`, Omen of Clarity is the case) or
   an override row on gear, and a `PPM(n)` literal with a review TODO only where no override fits.
-- **An unstated rate follows the carry-over ruling** in `references/rulings.md` §Rates. Its `Source` drives the gear
+- **An unstated rate follows the carry-over ruling** in `references/rulings.md`. Its `Source` drives the gear
   tab's notice for an unvalidated rate (`rateOrigin` in `tools/database/gen_effects.go`,
   `ui/features/gear/item_notices.tsx`): `vanilla-carryover` and `tbc-carryover` name their origin, a measured rate's
   `wcl:`, `issue #` or `combat log, ` source shows none. A gear rate kept as a literal in the sim is listed in
   `literalRates` there, or the notice never names it.
 - **The class `.results` never move on a proc rate**: `wowsims-testing` `## Proving a claim at runtime`.
 - **A measured rate that disagrees with the tooltip** is decided by `wowsims-spells`
-  `## When a sim number disagrees with the game files`, and the outcome goes into `references/rulings.md` with its
-  PR; Omen of Clarity's and Revelation's are there.
+  `## When a sim number disagrees with the game files`, and the outcome is a comment at the proc's code: Omen of
+  Clarity's is in `sim/druid/omen_of_clarity.go`, Revelation's in `sim/common/forever/enchants.go`.
 
 ## Traps
 
@@ -106,32 +106,8 @@ snapshot lists are in `procs.md` §Item and enchant procs; which builder an item
 
 ## Keeping this skill true
 
-The code is right where this skill and the code disagree; fix the skill in the same change. Re-derive a claim before
-repeating it:
-
-- the trigger and its options: `grep -n 'func Proc\|) ProcOpt {' sim/core/spelldata/*.go`
-- the decoder: `grep -n 'func DecodeProcTypeMask' sim/core/proc_types.go`
-- the zero chance turned into 1: `grep -n 'ProcChance == 0' sim/core/aura_helpers.go`
-- the item proc builders: `grep -n '^func NewSpellData[A-Za-z]*Proc' sim/common/shared/*.go`
-- the bleed call sites: `grep -rn 'ProcMask = core.ProcMaskUnknown' sim/`
-- the spender and extra attacks: `grep -rn 'func AttachChargeSpender\|ExtraAttackProc(' sim/core/`
-- the override tables: `grep -nE '^var (WeaponProcs|EnchantProcs)' tools/database/overrides/*.go`
-- the notice's origins and literals: `grep -n 'func rateOrigin\|var literalRates' tools/database/gen_effects.go`
-
-| You changed…                                                | Update                                                                       |
-| ----------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| a `ProcOpt` in `resolve_proc.go`                            | "Chance and masks", the option table in `docs/spell_data/procs.md`           |
-| `DecodeProcTypeMask` or a `ProcHint`                        | "Traps", `docs/spell_data/procs.md` §The decoder and the tooltip hints       |
-| `AttachChargeSpender` or `ExtraAttackProc`                  | "Building a trigger from a row"                                              |
-| a `NewSpellData*Proc` builder or an override table's fields | "Item and enchant procs", `docs/spell_data/procs.md` §Item and enchant procs |
-| `rateOrigin`, `literalRates` or `item_notices.tsx`          | "Measuring a rate", the carry-over ruling in `references/rulings.md`         |
-| a ruling's code or its measured number                      | `references/rulings.md`                                                      |
-
-Then run the shared path check:
-
-```
-sh .github/skills/check_paths.sh .github/skills/wowsims-procs
-```
+The code is right where this skill and the code disagree; fix the skill in the same change. The commands that
+re-derive each claim, the "You changed → Update" table and the path check are in `references/maintenance.md`.
 
 A ruling, trap or workflow fact learned while using this skill is written here, or into `references/rulings.md`, in
 the same change that uses it. A memory file is a pointer to this skill, not a second copy.

@@ -30,7 +30,7 @@ rulings the code follows are in `references/rulings.md`; text here follows `wows
 | You are…                                                                     | Open                                                                        |
 | ---------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
 | asking what the rotation sees at a hardcast end                              | `docs/rotation.md`, then `wowsims-apl`                                      |
-| deciding a hit, crit, resist, cost, pet or threat number the row leaves open | `references/rulings.md`                                                     |
+| deciding a hit, roll, regen, OOM or pet rule the row leaves open             | `references/rulings.md`                                                     |
 | chasing a trap: an item swap, weapon reach, `GainHealth`, pets, a proto bool | `references/traps.md`                                                       |
 | looking for the review case behind a section below                           | `.github/skills/wowsims-review/references/defects.md`, the matching section |
 
@@ -41,8 +41,7 @@ rulings the code follows are in `references/rulings.md`; text here follows `wows
   `spelldata.ProcTrigger` builds one, it is a pending action one `SpellBatchWindow` (10 ms) later (`aura_helpers.go`),
   after `OnCastComplete`; a stepped test needs `sim.Step()` to see it fire.
 - **`CallbackOnCastComplete` carries no result**, so `Outcome` and `RequireDamageDealt` are never read and no manager
-  rolls (`aura_helpers.go`). A proc off the cast's hit roll uses `CallbackOnCastResult` (`references/rulings.md`
-  §Cast order and procs). Prove an order at runtime: `wowsims-testing` `## Proving a claim at runtime`.
+  rolls (`aura_helpers.go`). A proc off the cast's hit roll uses `CallbackOnCastResult` (`spell_result.go`). Prove an order at runtime: `wowsims-testing` `## Proving a claim at runtime`.
 
 ## What a cast spends
 
@@ -60,14 +59,13 @@ rulings the code follows are in `references/rulings.md`; text here follows `wows
 - **`PointsPerResource` is the amount per combo point** (a parsed stat takes it at full points), and a tick that should
   scale with stacks or combo points reads them.
 - **Crit damage** is `(base × CritMultiplierPct × CritDamageMultiplier × table − 1) × (CritMultiplierAdditive + 1) + 1`
-  (`spell.go`); how aura 163 and additive talents meet is in `references/rulings.md` §Hit, crit and resist.
+  (`spell.go`).
 
 ## How many targets
 
 - **An area effect reaches every enemy in it** (`Effect.HitsAnArea()`, `HitsACone()`, `HitsAroundTheCaster()` in
   `sim/core/spelldata/resolve_spell.go`). `MaxTargets` has no `SpellConfig` field: a caller that caps reads
-  `s.MaxTargets`, and "up to $s3 targets" or `SPELLMOD_JUMP_TARGETS` is the total count. Reach from a radius and
-  party-aura reach are in `references/rulings.md` §Targets and reach.
+  `s.MaxTargets`, and "up to $s3 targets" or `SPELLMOD_JUMP_TARGETS` is the total count.
 
 ## What the row forbids
 
@@ -110,39 +108,12 @@ rulings the code follows are in `references/rulings.md`; text here follows `wows
 - **No proto3 `optional` field**: the `npx protoc` behind `make ui/generated/proto/api.ts` rejects it. "Unset means X"
   is a plain field whose zero value means none or the default, or a message-typed field.
 - **No `reserved` line before launch**, and a breaking change needs no migration; the full ruling is in
-  `references/rulings.md` §Protos and saved data.
+  `references/rulings.md`.
 
 ## Keeping this skill true
 
-The code is right where this skill and the code disagree; fix the skill in the same change. Re-derive a claim before
-repeating it:
-
-- the cast order: `grep -n 'applyEffects\|OnCastComplete' sim/core/cast.go`, then
-  `grep -n SpellBatchWindow sim/core/aura_helpers.go sim/core/constants.go`
-- the requirement checks: `grep -n 'hasCastRequirement' sim/core/cast.go sim/core/spell.go`
-- the refunds: `grep -n 'func (s \*Spell) MissRefund\|IssueRefund' sim/core/spelldata/attributes.go sim/core/*.go`
-- the scaling: `grep -n 'return (flat\|CritMultiplierAdditive+1' sim/core/spelldata/spell.go sim/core/spell.go`
-- the area reads: `grep -n 'MaxTargets has no\|func (e \*Effect) Hits' sim/core/spelldata/resolve_spell.go`
-- the tick outcome: `grep -n 'func (s \*Spell) TickOutcome' -A9 sim/core/spelldata/spell.go`
-- the tag reads: `grep -n 'func (at \*auraTracker) [A-Za-z]*WithTag' sim/core/aura.go`
-- the panics: `grep -n 'Over 1000 registered\|ProcMask for spell\|Aura with 0 duration' sim/core/spell.go sim/core/aura.go`
-- the proto rules: `grep -n -A8 'message ProtoVersion' proto/common.proto`; `grep -n '^\s*optional ' proto/*.proto`
-  prints nothing
-
-| You changed…                                                 | Update                                                                            |
-| ------------------------------------------------------------ | --------------------------------------------------------------------------------- |
-| the order in `cast.go` or `applyEffects`, the proc deferral  | "Cast order", `wowsims-procs` §Building a trigger from a row                      |
-| `IssueRefund`, `MissRefund`, `WeaponStrike`, crit damage     | "What a cast spends", "What scales"                                               |
-| the `CastRequirement` checks in `cast.go` or `spell.go`      | "What the row forbids", `docs/spell_data/auras-and-dots.md`                       |
-| a tick outcome, `exclusive_effect.go`, tags, `MakePermanent` | "Whose state", "Auras and exclusive effects", `docs/spell_data/auras-and-dots.md` |
-| `ProtoVersion`, the proto toolchain, the field-number rule   | "Protos"                                                                          |
-| a trap's code, a ruling's code or its measured number        | `references/traps.md`, `references/rulings.md`                                    |
-
-Then run the shared path check:
-
-```
-sh .github/skills/check_paths.sh .github/skills/wowsims-core-mechanics
-```
+The code is right where this skill and the code disagree; fix the skill in the same change. The commands that
+re-derive each claim, the "You changed → Update" table and the path check are in `references/maintenance.md`.
 
 A ruling, trap or workflow fact learned while using this skill is written here, or into `references/rulings.md`, in
 the same change that uses it. A memory file is a pointer to this skill, not a second copy.
