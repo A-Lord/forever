@@ -174,5 +174,6 @@ Reproducibility: run the same `BulkSimRequest` twice through `BulkSimAsync` with
 be bit-identical. For a request-database change, run a batch against the dev server, which has no `with_db`, not
 only the Go tests.
 
-A ruling, trap or workflow fact learned while using this skill is written here in the same change that uses it. A
-memory file is a pointer to this skill, not a second copy.
+A ruling, trap or workflow fact learned while using this skill is written down in the same change that uses it, where
+`AGENTS.md` says: a comment at the code when one file owns the rule, this skill otherwise. A memory file is a pointer
+to this skill, not a second copy.

@@ -40,5 +40,6 @@ Pull requests:
 - **One worktree, one draft PR.** A big change runs in its own worktree and branch, with one draft PR opened at the
   first commit and its body kept current as each slice lands.
 
-A ruling, trap or workflow fact learned while working goes into the subject skill, or its `references/rulings.md`, in
-the same change.
+A ruling, trap or workflow fact learned while working is written down in the same change. A rule one spell, aura
+effect, item or component owns is a comment at its implementation (the rule in present tense, no pull request number);
+a rule no single file owns goes into the subject skill, or its `references/rulings.md`.

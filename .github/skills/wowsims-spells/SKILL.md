@@ -53,4 +53,5 @@ disagreement stays, say so at the call site.
 The code is right where this skill and the code disagree; fix the skill in the same change. The "You changed →
 Update" table and the path check are in `references/maintenance.md`.
 
-A ruling or trap goes into its subject skill.
+A ruling or trap is written down in the same change: a comment at the code when one file owns the rule, its subject
+skill otherwise.

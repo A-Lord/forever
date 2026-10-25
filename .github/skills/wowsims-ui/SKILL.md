@@ -82,5 +82,6 @@ Update" table and the path check are in `references/maintenance.md`. Every refer
 line naming the code that defines the behaviour and a command that re-derives the claim. Copy no code and no counts
 that the command can print.
 
-A ruling, trap or workflow fact learned while using this skill is written here in the same change that uses it. A
-memory file is a pointer to this skill, not a second copy.
+A ruling, trap or workflow fact learned while using this skill is written down in the same change that uses it, where
+`AGENTS.md` says: a comment at the code when one file owns the rule, this skill otherwise. A memory file is a pointer
+to this skill, not a second copy.
