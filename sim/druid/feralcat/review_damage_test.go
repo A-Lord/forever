@@ -30,6 +30,23 @@ func TestBiteDodgeKeepsExtraEnergyAndComboPoints(t *testing.T) {
 	t.Logf("dodged bite: energy=%g CP=%d", cat.CurrentEnergy(), cat.ComboPoints())
 }
 
+func TestBiteLandedSpendsExtraEnergyAndComboPoints(t *testing.T) {
+	sim, cat := newCat(t, "", nil)
+	target := cat.CurrentTarget
+	target.PseudoStats.BaseDodgeChance = 0
+	cat.AddStatDynamic(sim, stats.PhysicalHitPercent, 100)
+	cat.AddComboPoints(sim, 5, cat.NewComboPointMetrics(core.ActionID{SpellID: 1}))
+	if !cat.FerociousBite.Cast(sim, target) {
+		t.Fatal("bite did not cast")
+	}
+	if metrics := cat.FerociousBite.SpellMetrics[target.UnitIndex]; metrics.Hits+metrics.Crits != 1 {
+		t.Fatal("bite did not land")
+	}
+	if cat.CurrentEnergy() != 0 || cat.ComboPoints() != 0 {
+		t.Fatalf("landed bite leaves energy=%g CP=%d, want 0 and 0", cat.CurrentEnergy(), cat.ComboPoints())
+	}
+}
+
 // Ravage 9867 and Pounce 9827 state No Active Defense: a target that dodges everything does not dodge them.
 func TestRavageAndPounceCannotBeDodged(t *testing.T) {
 	for _, opener := range []string{"Ravage", "Pounce"} {

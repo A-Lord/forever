@@ -55,7 +55,7 @@
     "wowsims-review": {
       "source": "./.github/skills",
       "sourceType": "local",
-      "computedHash": "38dfdeeb057bb2cf8f2fadc2a342be0b613b5848769755418afa447b2ba6cdb8"
+      "computedHash": "23f00bde78e4bf9c11f2a610d8456670ebad3368c99502110cd2ab746cd60bc2"
     },
     "wowsims-spec-implementation": {
       "source": "./.github/skills",
