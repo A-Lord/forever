@@ -69,11 +69,10 @@ reads the row. The cases name the row and the numbers, so each one can be checke
 
 ## What a cast spends, and when
 
-- **Ferocious Bite** must not use one success condition for both resources. The beta report in
-  [PR #149](https://github.com/wowsims/forever/pull/149#discussion_r4178336479) says a failed Bite leaves
-  zero energy. Spend extra energy on failure too, without refunding the base cost, while retaining
-  combo points. The runtime regression checks a dodged 5-point Bite at 100 energy leaves 5 points and
-  zero energy; that test verifies the implementation of the report, not the server behavior itself.
+- **Ferocious Bite** spent all its extra energy when it missed or was dodged or parried. In game a failed
+  Bite costs its base energy, with no refund, and keeps its extra energy and its combo points. Spend both
+  inside `result.Landed()`. The runtime regression checks that a dodged 5-point Bite keeps its 5 points and
+  all the energy above its base cost.
 - **Cutthroat 462707** carries one charge, and nothing consumed it, so one proc allowed every Ambush the
   energy paid for in its 10 s.
 

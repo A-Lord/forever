@@ -12,19 +12,20 @@ import (
 	"github.com/wowsims/forever/sim/druid"
 )
 
-func TestBiteDodgeConsumesEnergyAndKeepsComboPoints(t *testing.T) {
+func TestBiteDodgeKeepsExtraEnergyAndComboPoints(t *testing.T) {
 	sim, cat := newCat(t, "", nil)
 	target := cat.CurrentTarget
 	target.PseudoStats.BaseDodgeChance = 1
 	cat.AddComboPoints(sim, 5, cat.NewComboPointMetrics(core.ActionID{SpellID: 1}))
+	want := cat.CurrentEnergy() - cat.FerociousBite.Cost.GetCurrentCost()
 	if !cat.FerociousBite.Cast(sim, target) {
 		t.Fatal("bite did not cast")
 	}
 	if cat.FerociousBite.SpellMetrics[target.UnitIndex].Dodges != 1 {
 		t.Fatal("bite was not dodged")
 	}
-	if cat.CurrentEnergy() != 0 || cat.ComboPoints() != 5 {
-		t.Fatalf("dodged bite leaves energy=%g CP=%d, want 0 and 5", cat.CurrentEnergy(), cat.ComboPoints())
+	if cat.CurrentEnergy() != want || cat.ComboPoints() != 5 {
+		t.Fatalf("dodged bite leaves energy=%g CP=%d, want %g and 5", cat.CurrentEnergy(), cat.ComboPoints(), want)
 	}
 	t.Logf("dodged bite: energy=%g CP=%d", cat.CurrentEnergy(), cat.ComboPoints())
 }
