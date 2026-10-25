@@ -24,19 +24,10 @@ Each line is the rule the code follows, where it lives, and the pull request tha
 
 ## Reading the row
 
-- **When a row's effect type and its tooltip disagree, the effect type wins (Unleashed Fury 19616 is a flat aura 107
-  modifier); a tooltip-only number is flagged, not adopted.** `sim/core/spelldata/parse_effects_table.go`, PR #468.
-- **Two aura 108 rows multiply for cost (misc 14, `SpellMod_PowerCost_Pct`), direct damage (misc 0,
-  `SpellMod_DirectDamageDone_Pct`) and periodic damage (misc 22); a flat 107 modifier applies before a 108 percent.**
-  `sim/core/spelldata/parse_effects_table.go`, PR #378.
 - **A talent's trait curve applies with the sign the game files state, even where base points and tooltip say the
   opposite; no sign override exists.** `sim/core/spelldata/ladder.go`, PR #399.
 - **Seal of Righteousness keeps the tooltip description-variable coefficients 0.12 and 0.0765 over the rows' 0.**
   `sim/paladin/seal_of_righteousness.go`, PR #469.
-- **A weapon requirement on aura 52 or 54 is per weapon; on aura 290 with a melee-weapon mask it applies while equipped
-  to melee, ranged and spells, with a ranged-only mask per weapon; tooltips saying "with <weapons>" (Weaponmaster
-  12700, Hack and Slash 13706) are per weapon and hand-built; weapon-scoped spell mods skip magic-defense spells.**
-  `sim/core/spelldata/weapon_scope.go`, PR #87.
 - **Shield Bash and Shield Slam register as `ProcMaskMeleeOHSpecial`, which keeps Windfury off them; the game files give
   no hand, so this is a ruling, not data.** `sim/warrior/shield_bash.go`.
 
