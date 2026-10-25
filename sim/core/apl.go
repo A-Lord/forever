@@ -591,12 +591,12 @@ func (apl *APLRotation) majorCooldownMayGo(sim *Simulation) bool {
 		apl.majorCooldownActionsKnown = true
 		apl.majorCooldownActions = FilterSlice(apl.priorityList, canBeMajorCooldown)
 	}
-	for _, action := range apl.majorCooldownActions {
-		if action.IsReady(sim) {
-			return true
-		}
-	}
-	return false
+	// A Strict Sequence asked whether it is ready marks the rotation as in a sequence. Nothing asked here
+	// runs, so the mark is put back.
+	inSequence := apl.inSequence
+	mayGo := slices.ContainsFunc(apl.majorCooldownActions, func(action *APLAction) bool { return action.IsReady(sim) })
+	apl.inSequence = inSequence
+	return mayGo
 }
 
 // Whether isMajorCooldown can accept the action: an autocast, a cast of a major cooldown, or a group holding
@@ -609,6 +609,8 @@ func canBeMajorCooldown(action *APLAction) bool {
 	case *APLActionCastSpell:
 		return impl.spell.Flags.Matches(SpellFlagMCD)
 	case *APLActionCastFriendlySpell:
+		return impl.spell.Flags.Matches(SpellFlagMCD)
+	case *APLActionChannelSpell:
 		return impl.spell.Flags.Matches(SpellFlagMCD)
 	case *APLActionGroupReference:
 		return impl.group != nil && slices.ContainsFunc(impl.group.actions, canBeMajorCooldown)
@@ -625,6 +627,8 @@ func (apl *APLRotation) isMajorCooldown(sim *Simulation, action *APLAction) bool
 	case *APLActionCastSpell:
 		return impl.spell.Flags.Matches(SpellFlagMCD)
 	case *APLActionCastFriendlySpell:
+		return impl.spell.Flags.Matches(SpellFlagMCD)
+	case *APLActionChannelSpell:
 		return impl.spell.Flags.Matches(SpellFlagMCD)
 	case *APLActionGroupReference:
 		if impl.group == nil {
