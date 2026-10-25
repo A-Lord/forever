@@ -9,7 +9,7 @@ Each line is the rule the code follows, where it lives, and the pull request tha
   over time on every enemy unrolled; Dragonfire's Fixed Travel Time makes its Speed a flight time in seconds, and it
   cannot be used past its cone's radius.** `sim/common/shared/consumable_explosives.go`, `cloudDamageSpell`, PR #573.
 - **Elixirs stack their stats across groups, but only the strongest elixir crit applies.**
-  `sim/common/shared/consumable_stats.go`, `consumableAura` with `spelldata.Exclusive("ElixirCrit", false)`, PR #209.
+  `sim/common/shared/consumable_stats.go`, `consumableAura` with `spelldata.Exclusive(elixirCritCategory, false)` (the category `"ElixirCrit"`), PR #209.
 - **Holiday consumables (`Consumable.holiday`) sit in their own row above Miscellaneous, are not Well Fed and stack
   with food; a Forever food's stats are the amount Nutritious Food's `A_PERIODIC_TRIGGER_SPELL_WITH_VALUE` hands Well
   Fed.** `tools/database/gen_consumables.go`, `consumableHoliday`; `sim/common/shared/consumable_stats.go`,

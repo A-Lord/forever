@@ -82,8 +82,9 @@ preset names:
   or value is dropped (`GetAPLSpell`). A `spellIsKnown` guard prunes the line, and the warning stays.
 - **An aura under another ActionID.** An `auraIsActive` or `auraNumStacks` naming a spell id core registers under
   another ActionID logs "No aura found" and the value is dropped. An And drops that branch with a warning, an Or or a
-  Not drops it silently, and a condition with nothing left reads true: the line runs every time it is ready. An
-  `auraIsKnown` on such an id folds to false and the line never runs.
+  Not drops it silently, and a condition with nothing left reads true and the line runs every time it is ready,
+  logging "Condition could not be resolved and will be treated as always true" (`sim/core/apl_action.go`); only the
+  branch inside an Or or a Not is silent. An `auraIsKnown` on such an id folds to false and the line never runs.
 - **A misspelled preset name in a suite.** `GetAplRotation` logs "no apl json file" and the suite runs no rotation
   (`GetTestBuildFromJSON` stops the run instead).
 

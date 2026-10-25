@@ -65,9 +65,10 @@ paths=$(cat $docs |
 	sed -E 's/:[0-9]+$//' |
 	sort -u)
 
+ignored=$(printf '%s\n' "$paths" | git -C "$repo" check-ignore --stdin || true)
 count=0
 for p in $paths; do
-	if git -C "$repo" check-ignore -q -- "$p"; then
+	if printf '%s\n' "$ignored" | grep -qxF -- "$p"; then
 		continue
 	fi
 	if printf '%s\n' "$ABSENT_BY_DESIGN" | grep -qxF -- "$p"; then
@@ -85,7 +86,7 @@ done
 for f in "$here"/references/*.md; do
 	[ -e "$f" ] || continue
 	name="references/$(basename "$f")"
-	grep -qF "$name" "$here/SKILL.md" || {
+	grep -qE "(^|[^/a-z-])references/$(basename "$f" .md)\.md" "$here/SKILL.md" || {
 		echo "UNROUTED      $name is not mentioned in SKILL.md"
 		fail=1
 	}

@@ -62,8 +62,8 @@ SPELLDATA_REPORT=1 go test --tags=with_db ./sim/<class>/ -run <Test> -count=1 -v
 `go run ./tools/spelldata` prints only the attributes `sim/core/spelldata/attributes.go` reads; the
 `SpellMisc` query shows the rest, such as "not usable in combat" (word 0, `0x10000000`). The Wowhead Forever
 tooltip shows the values scaled to level, which the `$s1`-style tooltip text does not. Read the subject skill's
-rulings, `.github/skills/wowsims-<subject>/references/rulings.md` (`wowsims-spells` names the subject skills), before
-judging a number the row does not decide.
+`references/` folder (`rulings.md`, or the traps file where there is none; `wowsims-spells` names the subject skills),
+before judging a number the row does not decide.
 
 Then make three comparisons for each spell:
 

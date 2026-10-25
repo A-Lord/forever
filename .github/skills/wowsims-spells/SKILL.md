@@ -52,7 +52,9 @@ disagreement stays, say so at the call site.
   time), not a run of slips. A coefficient read from another spell is not a disagreement either: a tick's
   coefficient belongs to the spell its description names.
 - Where the row and the tooltip disagree, the tooltip can win (Flurry's haste ladder against its buff
-  row's flat 30), and the comment names the wording it came from.
+  row's flat 30), and the comment names the wording it came from. An in-game measurement beats both the row and
+  the tooltip; a rank whose value jumps against its sibling ranks may be a tooltip bug, so ask the owner before
+  changing the sim to the row.
 
 ## Keeping this skill true
 

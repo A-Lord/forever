@@ -86,7 +86,7 @@ every run writes `<Suite>.results.tmp`, which git ignores; its presence means no
   `git status --porcelain -- '*.results'` is empty unless a number was meant to move.
 - **One isolated cause per move**, found by reverting one change at a time; rows that move on their own are in
   `references/traps.md`.
-- **`.results` carry no OOM metric**: `TestDPS` records DPS, TPS, DTPS and HPS (`proto/test.proto`). Compare an OOM
+- **`.results` carry no OOM metric**: `TestDPS` records DPS, TPS, DTPS, HPS and TMI (`proto/test.proto`). Compare an OOM
   change with a throwaway test on the merge base and on the branch.
 
 ## What a test asserts

@@ -54,7 +54,7 @@ These apply to every file and every piece of GitHub text, in Go and TypeScript a
   "the state-snapshot capture" (UI), never "golden" or "goldens". Item names such as Golden Scale Coif are
   unrelated.
 - **"Hardcast" and "cast end".** Code, comments, test names, tooltips and PR text say "hardcast" and "cast end",
-  never "cast bar" or "bar".
+  never "cast bar" or a bare "bar" that means one.
 
 ## Plain prose
 
