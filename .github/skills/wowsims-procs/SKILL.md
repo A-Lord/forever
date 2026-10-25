@@ -56,13 +56,8 @@ What `ProcTrigger` fills and the Enrage example are in `procs.md`. What the page
 
 ## Chance and masks
 
-The four `ProcChanceSource` shapes, the decoder, the proc-chance talents and the `PPM`, `WeaponSpeedPPM`, `Chance` and
-`ChanceFrom` options are in `procs.md`. Two options it does not list:
-
-| Option              | What it does                                                                                                 |
-| ------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `WeaponProc()`      | the listener of a chance-on-hit effect or combat enchant: every landed weapon hit, the weapon deciding which |
-| `ItemProcChance(s)` | an item or enchant proc rolls the column where it contradicts the effect's chance (Uther's Light 8397)       |
+The four `ProcChanceSource` shapes, the decoder, the proc-chance talents and every `ProcOpt` (the option table) are in
+`procs.md`.
 
 - **A `ProcMask` set on the returned trigger narrows the listener but not a manager already built.**
 - **A cast listener on a proc that depends on the hit is a defect**: a dodged or missed cast still procs, for the
@@ -73,12 +68,10 @@ The four `ProcChanceSource` shapes, the decoder, the proc-chance talents and the
 
 ## Item and enchant procs
 
-Registration, the enchant slot rules, `ItemProcUnsupportedWithRate` and the two local snapshot lists are in `procs.md`
-§Item and enchant procs; which builder an item effect routes to is `wowsims-consumables-items`.
+Registration, every `NewSpellData*Proc` shape, the enchant slot rules, `ItemProcUnsupportedWithRate` and the two local
+snapshot lists are in `procs.md` §Item and enchant procs; which builder an item effect routes to is
+`wowsims-consumables-items`.
 
-- **More shapes than the page names.** Beside `NewSpellDataProc`, `NewSpellDataDamageProc` and `NewSpellDataAuraProc`,
-  `sim/common/shared/` has `NewSpellDataHealProc`, `NewSpellDataAbsorbProc`, `NewSpellDataDebuffProc` and
-  `NewSpellDataExtraAttackProc`.
 - **A rate the game files lack is an override row**: `overrides.WeaponProcs` keyed by item and spell,
   `overrides.EnchantProcs` keyed by enchant and spell, each with `Reason` and `Source`. Rewriting the proc
   audit after new rows is `wowsims-db-pipeline`.
