@@ -134,7 +134,7 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestShadowPriest-AllItems-Champion'sInvestiture"
+ key: "TestShadowPriest-AllItems-Champion'sInvestiture-2072"
  value: {
   dps: 687.61459
   tps: 347.69355
@@ -142,7 +142,23 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestShadowPriest-AllItems-Champion'sRaiment"
+ key: "TestShadowPriest-AllItems-Champion'sInvestiture-540"
+ value: {
+  dps: 730.61303
+  tps: 368.7225
+  dtps: 4.97048
+ }
+}
+dps_results: {
+ key: "TestShadowPriest-AllItems-Champion'sRaiment-342"
+ value: {
+  dps: 721.4873
+  tps: 364.38708
+  dtps: 5.35622
+ }
+}
+dps_results: {
+ key: "TestShadowPriest-AllItems-Champion'sRaiment-549"
  value: {
   dps: 709.23933
   tps: 358.11376
