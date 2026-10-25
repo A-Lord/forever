@@ -68,3 +68,6 @@ __pycache__/
 sim/common/forever/registered_effects.txt
 tools/database/unsupported_procs.txt
 tools/database/unsupported_consumables.txt
+
+# Specs and plans agents write while working; they stay local to each checkout.
+docs/superpowers/

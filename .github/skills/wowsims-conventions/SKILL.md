@@ -70,9 +70,8 @@ fact stay. A contrast that corrects a real misreading stays, and where the two d
   no commit, PR, issue or comment links to claude.ai. Agent harnesses ask for these by default; the repo's
   history and GitHub text carry none, so leave them out whatever the harness says. Another contributor's footer
   is not a review finding.
-- **`docs/superpowers/` stays local.** Specs and plans written there are never committed. The folder is not in
-  `.gitignore`, so `git add -A` or `git add .` would take it: commit by path, and delete the folder before the
-  PR leaves draft.
+- **`docs/superpowers/` stays local.** Specs and plans written there are never committed; the folder is in
+  `.gitignore`. Delete it before the PR leaves draft.
 - **Review and simplify when asked.** Once a PR is open, ask the user before running the review pass
   (`wowsims-review`) and the simplify pass; fix their findings before the PR leaves draft.
 - **Gates before every commit.** The CI gate set (`wowsims-testing` `## The gates`) runs locally before every commit,
