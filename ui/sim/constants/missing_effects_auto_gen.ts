@@ -1595,12 +1595,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		202256, // Privateer's Ornate Pistol
-		[
-			"Gain the Quick Draw ability:   |Tinterface/icons/inv_musket_02.blp:24|t  Draw your ranged weapon and fire a quick shot at an enemy, causing normal ranged weapon damage and reducing the target's movement speed by 50% for 6s. Awards 1 combo point.   Quick Draw benefits from all talents and effects that trigger from or modify Sinister Strike. ", // 398197 - https://www.wowhead.com/forever/spell=398197
-		]
-	],
-	[
 		208222, // Old Guard Retaliator
 		[
 			"On landing a killing blow that grants experience or honor, your next attack will critically strike.", // 418509 - https://www.wowhead.com/forever/spell=418509
@@ -1613,30 +1607,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		211500, // Resilient Cloth Headband
-		[
-			"Reduces all damage taken and chance to be critically hit by 5% in Warsong Gulch.", // 430432 - https://www.wowhead.com/forever/spell=430432
-		]
-	],
-	[
-		211856, // Resilient Mail Coif
-		[
-			"Reduces all damage taken and chance to be critically hit by 5% in Warsong Gulch.", // 430432 - https://www.wowhead.com/forever/spell=430432
-		]
-	],
-	[
-		211857, // Resilient Leather Mask
-		[
-			"Reduces all damage taken and chance to be critically hit by 5% in Warsong Gulch.", // 430432 - https://www.wowhead.com/forever/spell=430432
-		]
-	],
-	[
-		211941, // Windwalker's Yari
-		[
-			"Blasts enemies in front of you with the power of wind, fire, all that kind of thing!", // 14537 - https://www.wowhead.com/forever/spell=14537
-		]
-	],
-	[
 		221315, // Traveler's Symbols
 		[
 			"Place a Traveler's Sign that lasts for 1 min. A message can be written on the sign, causing it to last for 1 hour and making it visible to other players.", // 1306267 - https://www.wowhead.com/forever/spell=1306267
@@ -1646,30 +1616,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		226886, // Beastmaster's Tunic
 		[
 			"Increases your pet's armor by 10%.", // 27225 - https://www.wowhead.com/forever/spell=27225
-		]
-	],
-	[
-		234550, // High Warlord's Spellblade
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234551, // High Warlord's Battle Mace
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234574, // Grand Marshal's Mageblade
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
-		]
-	],
-	[
-		234576, // Grand Marshal's Warhammer
-		[
-			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
 		]
 	],
 	[

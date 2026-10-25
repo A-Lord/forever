@@ -147,7 +147,8 @@ var ItemDenyList = map[int32]struct{}{
 	22736: {},
 	23363: {}, // Titanic Breastplate
 	24265: {},
-	// Season of Discovery items the game files still carry and Forever did not re-budget itself.
+	// Season of Discovery items the game files still carry. Forever gives most of what it keeps a new id; SoD ids whose rows Forever re-budgeted itself are not listed.
+	202256: {}, // Privateer's Ornate Pistol
 	205218: {}, // Libram of Discovery
 	205420: {}, // Libram of Judgement
 	206376: {}, // Bulwark Icon
@@ -169,7 +170,20 @@ var ItemDenyList = map[int32]struct{}{
 	208851: {}, // Libram of Justice
 	210195: {}, // Unbalanced Idol
 	210534: {}, // Idol of the Wild
+	210781: {}, // Phoenix Bindings
 	211472: {}, // Libram of Banishment
+	211500: {}, // Resilient Cloth Headband
+	211856: {}, // Resilient Mail Coif
+	211857: {}, // Resilient Leather Mask
+	211941: {}, // Windwalker's Yari
+	212580: {}, // Lorekeeper's Staff
+	212581: {}, // Outrunner's Bow
+	212582: {}, // Protector's Sword
+	212583: {}, // Sentinel's Blade
+	212584: {}, // Advisor's Gnarled Staff
+	212585: {}, // Outrider's Bow
+	212586: {}, // Legionnaire's Sword
+	212587: {}, // Scout's Blade
 	213391: {}, // UNUSED Electrified Mithril Gauntlets
 	213513: {}, // Libram of Deliverance
 	213594: {}, // Idol of the Heckler
@@ -177,6 +191,10 @@ var ItemDenyList = map[int32]struct{}{
 	215113: {}, // UNUSED - Razor-Lined Shoulderpads
 	215365: {}, // Invoker's Mantle
 	215366: {}, // Invoker's Cord
+	217270: {}, // Turtle Scale Gloves
+	217273: {}, // Golden Scale Gauntlets
+	217287: {}, // Greater Mystic Wand
+	217314: {}, // Moonsight Rifle
 	219345: {}, // Infernal Lasso
 	220794: {}, // Knight's Plate Hauberk
 	220795: {}, // Knight-Lieutenant's Plate Pauldrons
@@ -473,6 +491,7 @@ var ItemDenyList = map[int32]struct{}{
 	227809: {}, // Studded Timbermaw Brawlers
 	227810: {}, // Dense Timbermaw Boots
 	227814: {}, // Radiant Girdle of the Dawn
+	227815: {}, // Fine Dawn Treaders
 	227816: {}, // Argent Elite Boots
 	227817: {}, // Radiant Gloves of the Dawn
 	227818: {}, // Glowing Mantle of the Dawn
@@ -684,6 +703,8 @@ var ItemDenyList = map[int32]struct{}{
 	234547: {}, // High Warlord's Pig Sticker
 	234548: {}, // High Warlord's Pig Poker
 	234549: {}, // High Warlord's War Staff
+	234550: {}, // High Warlord's Spellblade
+	234551: {}, // High Warlord's Battle Mace
 	234552: {}, // High Warlord's Blade
 	234553: {}, // High Warlord's Quickblade
 	234554: {}, // High Warlord's Cleaver
@@ -704,6 +725,8 @@ var ItemDenyList = map[int32]struct{}{
 	234569: {}, // Grand Marshal's Glaive
 	234570: {}, // Grand Marshal's Polearm
 	234571: {}, // Grand Marshal's Stave
+	234574: {}, // Grand Marshal's Mageblade
+	234576: {}, // Grand Marshal's Warhammer
 	234578: {}, // Grand Marshal's Longsword
 	234579: {}, // Grand Marshal's Swiftblade
 	234580: {}, // Grand Marshal's Handaxe
@@ -730,6 +753,18 @@ var ItemDenyList = map[int32]struct{}{
 	235479: {}, // Grand Marshal's Shiv
 	235480: {}, // Grand Marshal's Bonecracker
 	235481: {}, // Grand Marshal's Hacker
+	237814: {}, // Sentinel's Lamellar Legguards
+	237815: {}, // Sentinel's Silk Leggings
+	237817: {}, // Sentinel's Lizardhide Pants
+	237818: {}, // Sentinel's Leather Pants
+	237819: {}, // Sentinel's Chain Leggings
+	237820: {}, // Outrider's Silk Leggings
+	237821: {}, // Outrider's Lizardhide Pants
+	237822: {}, // Outrider's Leather Pants
+	237823: {}, // Outrider's Mail Leggings
+	237824: {}, // Outrider's Chain Leggings
+	237825: {}, // Sentinel's Plate Legguards
+	237826: {}, // Outrider's Plate Legguards
 	239512: {}, // Lightbreaker Wrists
 	239513: {}, // Lightbreaker Belt
 	239514: {}, // Lightbreaker Grips
