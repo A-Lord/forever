@@ -7,7 +7,7 @@ description: 'Use when WoWSims Forever Go work has to be proven: running the gat
 
 A sim change is proven by a run that could have failed on it. The rule this skill exists for: before reading a pass as
 evidence, check that the suite exercises the change, that the tests compiled at all, and that no `.results` file moved
-for a reason you did not intend. Text here follows `wowsims-conventions`; the no-production-code rule is in `AGENTS.md`.
+for a reason you did not intend. Text here follows `wowsims-conventions`.
 
 ## Where things live
 
@@ -34,8 +34,8 @@ for a reason you did not intend. Text here follows `wowsims-conventions`; the no
 
 ## The gates
 
-The repo's rule: the gates run locally before every commit, and their results go in the pull request body; judging the
-diff before a commit is `wowsims-review`. Print the gates instead of quoting them from memory (the print gives the shard
+When the gates run and where their results go is `wowsims-conventions` (Gates before every commit); judging the diff
+before a commit is `wowsims-review`. Print the gates instead of quoting them from memory (the print gives the shard
 counts); the list after the print says what each Go step of CI catches.
 
 ```
@@ -78,8 +78,8 @@ every run writes `<Suite>.results.tmp`, which git ignores; its presence means no
 - **A file that cannot move proves nothing.** Before reading a pass as evidence, check the suite can see the change:
   `grep -rn <id> sim/<class> --include='*.results'`. Only the `*Coverage.results` files key cast counts by spell id;
   the other suites key by test name and `AllItems` by item id, so for most classes the grep finds nothing and the
-  proof is a cast count or a value printed at runtime (§Proving a claim at runtime). Cast counts must be possible: 18
-  Prowls in one 180-second iteration say an opener repeats all fight.
+  proof is a cast count or a value printed at runtime (§Proving a claim at runtime). Cast counts must be possible;
+  cases: `.github/skills/wowsims-review/references/defects.md` §What the row forbids.
 - **`make update-tests` deletes every `.results` before copying each `.results.tmp` over it**, so a suite that did not
   run loses its file, and the next run fails every one of its tests as unexpected. Run the tests, `cmp` each
   `.results.tmp` against its `.results`, and copy only the ones that moved on purpose; afterwards

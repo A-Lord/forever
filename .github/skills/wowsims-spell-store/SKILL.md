@@ -46,8 +46,8 @@ spelldata.Find(id)                               // Nil where the store lacks it
 spelldata.MustFind(id)                           // panics instead, for a spell the caller depends on
 ```
 
-- A ladder's `ValueAt`, `FractionAt`, `MultiplierAt` and `TenthsAt` panic on any rank that does not carry exactly one
-  effect. On such a row, name the effect with `EffectAt(n)` or `Effect(aura, misc)`, or let the parse read it.
+- A ladder's `...At` readers panic on a rank with more than one effect; name the effect or let the parse read it
+  (`docs/spell_data/pitfalls.md`).
 - SQL array columns in `wowsims.db` are 0-based and `EffectN` is 1-based, so `EffectMiscValue_0` is `EffectN(1)`'s
   misc value.
 - core's `SpellSchool` bits are the game files' bits, so a school mask is carried, not translated. `stats.SchoolIndex`
@@ -63,18 +63,11 @@ is in `docs/spell_data/reading-by-hand.md`.
 ## Hand reads and resolvers
 
 The resolvers (`SpellConfig`, `AuraConfig`, `DotConfig`, `ParseStatic`, `ParseEffects`, `ProcTrigger`) fill what the
-row states and nothing else. A hand read builds `core.SpellConfig` field by field from the row. Which way a file goes
-is read off the file, so match the file you touch: `grep -l 'spelldata.SpellConfig\|spelldata.Parse' sim/<class>/*.go`.
+row states and nothing else. A hand read builds `core.SpellConfig` field by field from the row (PR #42). Which way a
+file goes is read off the file, so match the file you touch:
+`grep -l 'spelldata.SpellConfig\|spelldata.Parse' sim/<class>/*.go`.
 Every class folder has files on the resolvers, and a resolver-built spell still reads some values by hand
 (Consecration's ticks). The priest builds through the resolvers, not hand reads (PR #246).
-
-A hand read (PR #42):
-
-- reads every amount as `Average()`;
-- reads `Effects[i]` as `EffectN(i+1)`, since `EffectAt(n)` is a 1-based position;
-- uses a ladder's `...At` readers only on a `Talent` ladder or where the effect's per-level gain is 0;
-- reads a borrowed tick through the family's `XTriggered` ladder or `Refs()[0]`;
-- captures an input the cast fixes (combo points, a stack) at the cast, for `OnTick` to read from a variable.
 
 ## The spelldata tool
 
@@ -88,13 +81,11 @@ states each field a resolver call fills and the step that filled it.
 
 ## Traps
 
-- **`Highest()` is the ladder's last entry, not its top rank.** `spellData.MutilateTriggered` runs in id order and
-  ends on a rank 1, and a database update that appends rows (FlametongueWeaponTriggered gaining 29469 and 29470)
-  moves it silently. Read a triggered row off the cast's top rank: `mutilateCastRank.EffectN(2).Trigger()`, or
-  `Refs()`.
-- **A hand read of `Misc` gets the wrong stat.** An `A_MOD_TOTAL_STAT_PERCENTAGE` effect names its stats in the second
-  misc value where it sets one, a bitmask, and the first then does not count (Heart of the Wild 17003 states 0 and 8).
-  `Effect.TotalStatPercentStats()` reads it, as the parse and the tool do.
+- **`Highest()` is the ladder's last entry, not its top rank**, and a database update that appends rows moves it; read
+  a triggered row off the cast's top rank with `Trigger()` or `Refs()`. The ladder readers: `docs/spell_data/store.md`;
+  the case: `.github/skills/wowsims-review/references/defects.md` §The wrong rank, the wrong effect.
+- **A hand read of `Misc` gets the wrong stat** on an `A_MOD_TOTAL_STAT_PERCENTAGE` effect;
+  `Effect.TotalStatPercentStats()` reads it. The case: Heart of the Wild in the same `defects.md` section.
 
 The traps in the rows themselves (ladders keyed by name, granted copies, talent curves, summons, Wowhead's numbers
 against the row) are in `references/row-traps.md`.

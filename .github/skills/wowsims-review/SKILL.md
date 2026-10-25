@@ -42,8 +42,10 @@ constants that no generator reads.
   `driveDarkspear` in `sim/core/buffs/drivers.go` panics.
 - **Orphans the change made.** A function with no caller, a mask naming a spell nothing registers, an empty
   body the change left behind: remove them in the same change.
-- **A live talent never becomes a silent no-op.** An unported talent or ability keeps its stub and a
-  `// TODO:`; an aura registered with no effect, or a cooldown that does nothing, is a finding.
+- **A live talent never becomes a silent no-op.** An unported talent or ability keeps its stub: the implementation
+  commented out in place under `panic("To be implemented")` and a `// TODO:` naming what is missing, never a deletion
+  or a silent return. Content Forever does not have is removed, not stubbed, once `tools/database/wowsims.db` shows no
+  data for it. An aura registered with no effect, or a cooldown that does nothing, is a finding.
 - **One copy of each rule.** Three channels differing only in their tick effect share one builder; a value
   built each iteration that never changes is built at registration.
 - **Text.** Every comment, doc line, test message, commit message and PR text the change adds or rewrites is

@@ -72,14 +72,12 @@ Registration, every `NewSpellData*Proc` shape, the enchant slot rules, `ItemProc
 snapshot lists are in `procs.md` §Item and enchant procs; which builder an item effect routes to is
 `wowsims-consumables-items`.
 
-- **A rate the game files lack is an override row**: `overrides.WeaponProcs` keyed by item and spell,
-  `overrides.EnchantProcs` keyed by enchant and spell, each with `Reason` and `Source`. Rewriting the proc
-  audit after new rows is `wowsims-db-pipeline`.
+- **A rate the game files lack**: `wowsims-db-pipeline` `## Overrides`.
 
 ## Measuring a rate
 
 - **Read the tooltip before the column.** The tooltip decides which `ProcChanceSource` shape a row is (the opening
-  table of `procs.md`); 100 and 101 are not a roll, and 101 usually means no proc at all. A rate the game files lack
+  table of `procs.md`); 101 usually means no proc at all. A rate the game files lack
   is an override onto the row's `RPPM` first (`Field: PPM` in `spell_overrides.go`, Omen of Clarity is the case) or
   an override row on gear, and a `PPM(n)` literal with a review TODO only where no override fits.
 - **An unstated rate follows the carry-over ruling** in `references/rulings.md` §Rates. Its `Source` drives the gear
@@ -87,9 +85,7 @@ snapshot lists are in `procs.md` §Item and enchant procs; which builder an item
   `ui/features/gear/item_notices.tsx`): `vanilla-carryover` and `tbc-carryover` name their origin, a measured rate's
   `wcl:`, `issue #` or `combat log, ` source shows none. A gear rate kept as a literal in the sim is listed in
   `literalRates` there, or the notice never names it.
-- **The class `.results` never move on a proc rate.** Prove one with a `sim/common/shared` test that builds the
-  listener and counts casts (`sim/common/shared/spell_data_weapon_rate_test.go`); see `wowsims-testing`
-  `## Proving a claim at runtime`.
+- **The class `.results` never move on a proc rate**: `wowsims-testing` `## Proving a claim at runtime`.
 - **A measured rate that disagrees with the tooltip** is decided by `wowsims-spells`
   `## When a sim number disagrees with the game files`, and the outcome goes into `references/rulings.md` with its
   PR; Omen of Clarity's and Revelation's are there.

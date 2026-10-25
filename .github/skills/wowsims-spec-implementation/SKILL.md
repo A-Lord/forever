@@ -64,9 +64,8 @@ rows by hand or through the resolvers decides the idiom (`wowsims-spell-store`
 whose key steps are dumping the rows before touching a call site and isolating every .results move by
 reverting one change. A talent naming a weapon, and the one hit, crit and haste rating, are
 `wowsims-abilities-auras` `## A talent's modifiers`, including the weapon-bound talents of the classes
-still to port. A stub keeps the implementation commented out in place under `panic("To be implemented")`
-and a TODO naming what is missing, never a deletion or a silent return; content Forever does not have is
-removed, not stubbed, and a "no data" claim is checked against `tools/database/wowsims.db` first.
+still to port. A stub's form, and when content is removed instead, is the silent no-op bullet of
+`wowsims-review` step 2.
 
 Where the sim and the game files disagree, decide rather than assume
 (`wowsims-spells` `## When a sim number disagrees with the game files`), and record the decision at the

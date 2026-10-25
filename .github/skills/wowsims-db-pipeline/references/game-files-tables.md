@@ -1,12 +1,11 @@
 # Reading wowsims.db
 
-Routed from `## Tables the generator does not ship` in `SKILL.md`: reading a table the settings do not list, what the
-tables in `tools/database/wowsims.db` hold and how a script reads them.
+This page covers reading a table the settings do not list, what the tables in `tools/database/wowsims.db` hold and how
+a script reads them.
 
 - **Another table, once.** Copy `tools/database/generator-settings.json` with only that table listed and run
   `db2tool -s <copy> --output <other.db>`. To add one table to the working database, `ATTACH` the other and
   `CREATE TABLE … AS SELECT`.
-
 - **Empty tables are real.** The game files ship no gem system, zero `SpellScaling` columns, no `SpellLearnSpell`, no
   procs per minute (`SpellProcsPerMinuteID` 0), no Jewelcrafting or Inscription, and `ItemSparse.AllowableClass` is -1
   on class-only items such as Atiesh.

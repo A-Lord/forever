@@ -5,7 +5,9 @@ files (`tools/database`, `sim/core/spelldata`).
 
 **Rule: tests and stories never add code to the sim or the UI.** No export, prop, parameter, branch, flag or
 hook goes into `sim/` or `ui/` only so a unit test or a Storybook story can reach or cover something. A test
-or story works through the code's real surface, and a fixture or stub it needs lives with the tests.
+or story works through the code's real surface, and a fixture or stub it needs lives with the tests. The
+settled exceptions are listed in `wowsims-testing` §What a test asserts and
+`.github/skills/wowsims-ui/references/conventions.md`.
 
 The project's skills live in `.github/skills/`. Read the one that matches the task before starting, and always
 read `wowsims-conventions` before writing comments, docs, test messages, commit messages or GitHub text.

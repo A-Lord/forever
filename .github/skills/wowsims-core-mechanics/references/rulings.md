@@ -68,10 +68,8 @@ Each line is the rule the code follows, where it lives, and the pull request tha
 
 - **Aura 674 armor is its own stat `ArmorNoMods`, added to Armor through one unmultiplied stat dependency, so percent
   armor modifiers and equip scaling never touch it.** `sim/core/unit.go`, PR #471.
-- **No game file ships class base crit; the hand-kept tables in `assets/db_inputs/basestats/` hold it (melee: paladin
-  0.7, priest 3.0, shaman 1.7, mage 3.2, warlock 2.0, druid 0.9, others 0; spell: paladin 3.5, hunter 3.6, priest 0.8,
-  shaman 2.3, mage 0.2, warlock 1.7, druid 1.8), and Agility to crit comes from `PlayerExpectedStat`.**
-  `assets/db_inputs/basestats/`, PR #203.
+- **No game file ships class base crit; the hand-kept tables in `assets/db_inputs/basestats/` hold it, and Agility to
+  crit comes from `PlayerExpectedStat`.** `assets/db_inputs/basestats/`, PR #203.
 - **Every race but Skyborne takes the stat offsets in `RaceOffsets`, Spirit included; the Skyborne rows keep their
   sheet values until fresh level 1 naked sheets show their own offsets.** `sim/core/base_stats.go`, PR #619.
 - **Creature-type racial slaying (aura 168: Troll Beast Slaying, the Dwarf and Skyborne rows) raises damage only
@@ -93,8 +91,6 @@ Each line is the rule the code follows, where it lives, and the pull request tha
 - **Rage threat is booked in `AddRage` at gain time, 5 × the unit's threat multiplier split across the active targets,
   and rage from white hits, hits taken and refunds carries `ResourceMetrics.NoThreat`; a new rage source that comes
   from damage sets `NoThreat`.** `sim/core/rage.go`, PR #385.
-- **Mana gained makes `ThreatPerManaGained` threat split between the targets in combat at the time; regen and sources
-  marked `NoThreat` make none.** `sim/core/mana.go`, `addManaGainThreat`.
 - **A healing-only on-use buff is `CooldownTypeHealing`, a Stamina-only one is survival, and Admiral's Hat is
   survival.** `sim/core/aura_helpers.go`, `CooldownTypeOf`, PR #614.
 
@@ -112,10 +108,6 @@ Each line is the rule the code follows, where it lives, and the pull request tha
 
 ## Pets
 
-- **Demons take the warlock's spell crit as both melee and spell crit, health 7.5 per warlock Stamina on top of their
-  own, 35% of the warlock's armor (Demon Armor included), and 17% (attack power) and 10% (spell damage) of the
-  warlock's spell damage; their own level-60 stats are shares of ExpectedStat.** `sim/warlock/pets.go`,
-  `petStatInheritance`.
 - **Dynamic pets (demons, hawks) refresh their inherited stats from the owner's totals at the pet heartbeat instead of
   running stat deltas through the inheritance.** `sim/core/pet.go`, PR #432.
 - **Hawks take all ranged-only haste at once through `PetConfig.HasDynamicRangedSpeedInheritance` (not at the
@@ -135,9 +127,10 @@ Each line is the rule the code follows, where it lives, and the pull request tha
 - **Per-hit ranges in action metrics follow their totals: damage ranges record in combat only, healing and shield
   ranges always; ranges live on the Spell and merge by Welford and Chan, so single- and multi-thread results match.**
   `sim/core/spell.go`, `sim/core/utils.go`, PR #510.
-- **The generic target presets use 3731 armor and 1 428 900 health.** `sim/encounters/register_all.go`, PR #442.
-- **Generic targets hit with MinBaseDamage 2601 (Chromaggus), and the protection warrior's default healing model is
-  2.4 × the Defense Cap set's DTPS on that target with cadence 0.3 s and variation 0.64.**
+- **The generic target presets take a level-63 creature's armor and health from ExpectedStat, the health times a boss
+  multiplier.** `sim/encounters/register_all.go`, PR #442.
+- **Generic targets hit with Chromaggus's MinBaseDamage, and the protection warrior's default healing model is a
+  multiple of the Defense Cap set's DTPS on that target, with its cadence and variation read off logs.**
   `sim/encounters/register_all.go`, `ui/specs/warrior/protection/presets.ts`, PR #316.
 
 ## Protos and saved data

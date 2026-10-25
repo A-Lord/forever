@@ -1,7 +1,6 @@
 # Working from a database behind master
 
-Routed from `## A database behind master` in `SKILL.md`. Try to match master's database first; splice only when it
-cannot match.
+Try to match master's database first; splice only when it cannot match.
 
 ## Matching master's database
 

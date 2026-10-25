@@ -44,9 +44,9 @@ The options, the fields the row fills and the three shapes a registration takes 
 
 - **`CastRequirement` is never restated in `ExtraCastCondition`.** `SpellConfig` fills the form, stance, caster aura,
   weapon, shield, creature type and out-of-combat state, and core refuses the cast. `ExtraCastCondition` holds only
-  what no row forbids; a refusal the row does not state is a defect too (Faerie Fire's recast refused while its own
-  debuff is up). An aura that lifts a requirement (Cutthroat's `A_MOD_IGNORE_SHAPESHIFT` on Ambush) sets
-  `CastRequirement.CasterForm` on gain and clears it on expiry.
+  what no row forbids; a refusal the row does not state is a defect too. An aura that lifts a requirement sets
+  `CastRequirement.CasterForm` on gain and clears it on expiry. Cases:
+  `.github/skills/wowsims-review/references/defects.md` §What the row forbids.
 - **A sub-second GCD is named twice.** `Cast.GCDTime` floors a GCD at `core.GCDMin`, one second, unless the cast sets
   `GCDMin`, so a spell with a shorter GCD sets both `GCD` and `GCDMin`.
 - **`Magic()` already sets the row's `DirectVariance`.** Code registered through it passes `Average()` or
@@ -107,13 +107,7 @@ The manifest, the kinds, the apply order and the drivers are in `buffs-and-debuf
 The decision rule is in `wowsims-spells`, `## When a sim number disagrees with the game files`; apply it one spell at a
 time and leave the outcome at the call site. Flurry is the case: talent 12319's tooltip names its own ladder as the
 haste ("$m1% for your next $12966n swings"), so the sim reads that ladder over buff row 12966's flat 30, and the
-comment in `sim/warrior/talents_fury.go` quotes the wording. The spells already decided are in
-`references/rulings.md`.
-
-## Traps
-
-Each section above carries the traps of a build from the row. A spell built beside its row has four more (hand
-literals, what scales, how many targets, what the row forbids), in `references/traps.md`.
+comment in `sim/warrior/talents_fury.go` quotes the wording.
 
 ## Keeping this skill true
 

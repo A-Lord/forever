@@ -109,9 +109,6 @@ is registered. Items and enchants work differently:
 
 ## Traps
 
-The traps in reading item, enchant, suffix and set rows (enchant ids with several rows, dead enchant names, items the
-game build does not ship, random suffixes, `S03 - …` set rows) are in `references/item-data.md`.
-
 - **An imbue check reads the main set and the swap set.** The swap set's imbues are their own `ConsumesSpec` fields,
   so a class effect keyed to an imbue checks the hand's temporary enchant on both (`carriesImbue` in
   `sim/rogue/poisons.go`, `ItemSwap.GetUnequippedItemBySlot`).

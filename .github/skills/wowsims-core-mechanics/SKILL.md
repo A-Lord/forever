@@ -95,10 +95,9 @@ rulings the code follows are in `references/rulings.md`; text here follows `wows
 
 - **`MakePermanent` sets `NeverExpires` and re-activates the aura in its `OnReset`** (`aura_helpers.go`); an aura with
   duration 0 panics on activation (`aura.go`).
-- **A dot tick rolls its amount, not its hit.** `PeriodicDamageTick` deals one `Effect.Roll` per tick, and the default
-  `TickOutcome` rolls no hit, since the application rolls it once (`sim/core/spelldata/resolve_aura.go`). A spell whose
-  ticks roll hit passes `Spell.OutcomeTickMagicHitAndCrit` or `Dot.OutcomeTickMagicHit` (`spell_outcome.go`). Always
-  Hit on a triggered row: `.github/skills/wowsims-abilities-auras/references/rulings.md`.
+- **A dot tick rolls its amount, not its hit** (`docs/spell_data/auras-and-dots.md`); a spell whose ticks roll hit
+  passes `Spell.OutcomeTickMagicHitAndCrit` or `Dot.OutcomeTickMagicHit`. Always Hit on a triggered row:
+  `.github/skills/wowsims-abilities-auras/references/rulings.md`.
 - **Within an exclusive category the enabled effect with the highest `Priority` applies**; `YieldsTies` takes the
   category only by outbidding (`exclusive_effect.go`). The `SingleAura` reset is `wowsims-abilities-auras` §Buffs and
   debuffs.

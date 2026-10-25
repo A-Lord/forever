@@ -61,9 +61,8 @@ go test ./sim/core/spelldata/ ./tools/database/ -count=1     # no database neede
 - **Edit the Go table, never its TS copy.** `make go-to-ts` writes the files in `AUTO_GEN_FILES_TS` from Go
   constants; the EP pseudo-stat list and `getRootStat` stay hand-kept in TS. On a fresh checkout `make go-to-ts`
   takes its outputs as up to date, so call `gen_db -gen=go-to-ts` directly.
-- **A new parse row moves generated output.** It flips `Effect.ParsedAura()` for every misc value, which
-  `wowsims-consumables-items` "The pipeline" describes. Regenerate at the base and on the branch, diff the two, and
-  grep the hand-written code for the same effect before shipping the row.
+- **A new parse row moves generated output**: `wowsims-consumables-items` `## The pipeline`. Grep the hand-written
+  code for the same effect before shipping the row.
 - **The proc audit list is a gitignored baseline its own test writes.** After new spell rows arrive, rewrite
   `tools/database/unsupported_procs.txt` with `UPDATE_UNSUPPORTED_PROCS=1` on `TestEveryReachableProcIsSupportedOrListed`
   instead of reading its diff as a regression; `UPDATE_UNSUPPORTED_CONSUMABLES` does the same for the consumables.
@@ -83,9 +82,8 @@ spells. The generator refuses an override once the game files state the value; r
 
 ## A database behind master
 
-The generators refuse a database older in hotfixes than the committed inputs for the groups the run takes, on the
-same build; a group with no recorded push passes (`RequireCommittedHotfixes`, `docs/spell_data/partial-updates.md`).
-A regeneration from such a database deletes every row only a later hotfix adds. Match master's database first, from
+The generators refuse a database older in hotfixes than the committed inputs (`RequireCommittedHotfixes`,
+`docs/spell_data/partial-updates.md`). Match master's database first, from
 the cache the Update Items pull request names; when it cannot match, splice your own change into master's files and
 prove the splice. Both, and merge conflicts in the store, `db.json` and `db.bin`, are in `references/behind-master.md`.
 Proto field numbers on a merge are `wowsims-core-mechanics` `## Protos`.
