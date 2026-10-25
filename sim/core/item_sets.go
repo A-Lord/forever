@@ -37,15 +37,18 @@ func DefaultItemSetSlots() []proto.ItemSlot {
 	}
 }
 
+// The set id decides where both sides carry one; a Season of Discovery reissue shares a Classic set's name under its own id.
+func (set *ItemSet) holds(item Item) bool {
+	if item.SetID > 0 && set.ID > 0 {
+		return item.SetID == set.ID
+	}
+	return item.SetName == set.Name || item.SetName == set.AlternativeName
+}
+
 func (set ItemSet) Items() []Item {
 	var items []Item
 	forEachSetItem(func(item Item) bool {
-		// The set id decides wherever both sides carry one, as it does for the bonus count; a Season of Discovery reissue shares a Classic set's name under its own id.
-		matches := item.SetName == set.Name || item.SetName == set.AlternativeName
-		if item.SetID > 0 && set.ID > 0 {
-			matches = item.SetID == set.ID
-		}
-		if matches {
+		if set.holds(item) {
 			items = append(items, item)
 		}
 		return true
@@ -143,10 +146,9 @@ func (equipment *Equipment) getSetBonuses() SetBonusCollection {
 			}
 		}
 
-		// Only an item or a set without a set id matches by name, so a Season of Discovery reissue never takes a Classic set's bonus.
 		if foundSet == nil {
 			for _, set := range sets {
-				if (set.ID == 0 || item.SetID == 0) && (set.Name == item.SetName || set.AlternativeName == item.SetName) {
+				if set.holds(item) {
 					foundSet = set
 					break
 				}

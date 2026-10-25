@@ -24,8 +24,8 @@ func TestSetBonusMatchesByNameOnlyWithoutSetID(t *testing.T) {
 		{"set id no registered set has", 990901, false},
 	} {
 		var equipment Equipment
-		equipment[proto.ItemSlot_ItemSlotHead] = Item{ID: 990910, SetName: setName, SetID: tc.setID}
-		equipment[proto.ItemSlot_ItemSlotChest] = Item{ID: 990911, SetName: setName, SetID: tc.setID}
+		equipment[proto.ItemSlot_ItemSlotHead] = Item{SetName: setName, SetID: tc.setID}
+		equipment[proto.ItemSlot_ItemSlotChest] = Item{SetName: setName, SetID: tc.setID}
 		if got := equipment.getSetBonuses().ContainsBonus(setName, 2); got != tc.want {
 			t.Errorf("%s: 2-piece bonus active = %v, want %v", tc.name, got, tc.want)
 		}

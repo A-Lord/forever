@@ -147,7 +147,7 @@ var ItemDenyList = map[int32]struct{}{
 	22736: {},
 	23363: {}, // Titanic Breastplate
 	24265: {},
-	// Season of Discovery items the game files still carry. Forever gives most of what it keeps a new id; SoD ids whose rows Forever re-budgeted itself are not listed.
+	// Season of Discovery items the game files still carry and Forever did not re-budget itself.
 	205218: {}, // Libram of Discovery
 	205420: {}, // Libram of Judgement
 	206376: {}, // Bulwark Icon
