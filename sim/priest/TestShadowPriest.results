@@ -134,7 +134,7 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestShadowPriest-AllItems-Champion'sInvestiture-2072"
+ key: "TestShadowPriest-AllItems-Champion'sInvestiture"
  value: {
   dps: 687.61459
   tps: 347.69355
@@ -142,23 +142,7 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestShadowPriest-AllItems-Champion'sInvestiture-540"
- value: {
-  dps: 730.61303
-  tps: 368.7225
-  dtps: 4.97048
- }
-}
-dps_results: {
- key: "TestShadowPriest-AllItems-Champion'sRaiment-342"
- value: {
-  dps: 721.4873
-  tps: 364.38708
-  dtps: 5.35622
- }
-}
-dps_results: {
- key: "TestShadowPriest-AllItems-Champion'sRaiment-549"
+ key: "TestShadowPriest-AllItems-Champion'sRaiment"
  value: {
   dps: 709.23933
   tps: 358.11376
@@ -219,14 +203,6 @@ dps_results: {
   dps: 762.51183
   tps: 384.24507
   dtps: 5.22873
- }
-}
-dps_results: {
- key: "TestShadowPriest-AllItems-DeathmistRaiment"
- value: {
-  dps: 724.20201
-  tps: 365.79773
-  dtps: 5.19766
  }
 }
 dps_results: {
@@ -831,14 +807,6 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestShadowPriest-AllItems-Sorcerer'sRegalia"
- value: {
-  dps: 730.38182
-  tps: 368.66349
-  dtps: 5.71545
- }
-}
-dps_results: {
  key: "TestShadowPriest-AllItems-Sulfuras,HandofRagnaros-17182"
  value: {
   dps: 770.1254
@@ -966,19 +934,11 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestShadowPriest-AllItems-VestmentsoftheVirtuous-1675"
+ key: "TestShadowPriest-AllItems-VestmentsoftheVirtuous"
  value: {
   dps: 744.39585
   tps: 376.42847
   dtps: 3.36873
- }
-}
-dps_results: {
- key: "TestShadowPriest-AllItems-VestmentsoftheVirtuous-514"
- value: {
-  dps: 708.53475
-  tps: 356.09445
-  dtps: 2.5975
  }
 }
 dps_results: {

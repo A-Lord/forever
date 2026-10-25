@@ -90,7 +90,6 @@ var (
 	dungeonSuddenMana  = spelldata.MustFind(450554) // Dungeon Set 1 5pc: Sudden Insight, the mana Magister's and Devout procs restore
 	dungeonTwoDamage   = spelldata.MustFind(14047)  // Dungeon Set 2 cloth 6pc: +23 spell damage and healing
 	dungeonTwoAttack   = spelldata.MustFind(14049)  // Dungeon Set 2 6pc: +40 attack power
-	dungeonTwoArmor    = spelldata.MustFind(14803)  // Dungeon Set 2 8pc: +200 armor
 )
 
 var (
@@ -127,17 +126,6 @@ var ItemSetMagistersRegalia = core.NewItemSet(core.ItemSet{
 		3: shared.ParsedSetBonus(dungeonSpellDamage),
 		5: suddenInsightMana(magisterManaProc, "Magister's Regalia - 5PC"),
 		6: shared.ParsedSetBonus(dungeonManaRegen),
-	},
-})
-
-// (2) Set: all resistances, (4) Set: a chance to freeze an attacker when struck, and (8) Set: armor,
-// none of which a boss fight tests.
-var ItemSetSorcerersRegalia = core.NewItemSet(core.ItemSet{
-	Name:  "Sorcerer's Regalia",
-	ID:    517,
-	Slots: shared.EightPieceSlots,
-	Bonuses: map[int32]core.ApplySetBonus{
-		6: shared.ParsedSetBonus(dungeonTwoDamage),
 	},
 })
 
@@ -190,21 +178,6 @@ var ItemSetVestmentsOfTheDevout = core.NewItemSet(core.ItemSet{
 		3: shared.ParsedSetBonus(dungeonSpellDamage),
 		5: devoutManaRestore("Vestments of the Devout - 5PC"),
 		6: shared.ParsedSetBonus(dungeonManaRegen),
-	},
-})
-
-// Dungeon Set 2
-// https://www.wowhead.com/forever/item-set=514/vestments-of-the-virtuous
-//
-// The 4-piece bonus (27778) shields the wearer when struck, which the sim does not model.
-var ItemSetVestmentsOfTheVirtuous = core.NewItemSet(core.ItemSet{
-	ID:    514,
-	Name:  "Vestments of the Virtuous",
-	Slots: shared.EightPieceSlots,
-	Bonuses: map[int32]core.ApplySetBonus{
-		2: shared.ParsedSetBonus(dungeonResistances),
-		6: shared.ParsedSetBonus(dungeonTwoDamage),
-		8: shared.ParsedSetBonus(dungeonTwoArmor),
 	},
 })
 
@@ -264,19 +237,6 @@ var ItemSetDreadmistRaiment = core.NewItemSet(core.ItemSet{
 		// TODO: 4pc (27780) fears an attacker when struck, which the sim does not model.
 		5: dreadmistDarkReward("Dreadmist Raiment - 5PC"),
 		6: shared.ParsedSetBonus(dungeonManaRegen),
-	},
-})
-
-// Dungeon Set 2
-var ItemSetDeathmistRaiment = core.NewItemSet(core.ItemSet{
-	ID:    518,
-	Name:  "Deathmist Raiment",
-	Slots: shared.EightPieceSlots,
-	Bonuses: map[int32]core.ApplySetBonus{
-		2: shared.ParsedSetBonus(dungeonResistances),
-		// TODO: 4pc (27780) fears an attacker when struck, which the sim does not model.
-		6: shared.ParsedSetBonus(dungeonTwoDamage),
-		8: shared.ParsedSetBonus(dungeonTwoArmor),
 	},
 })
 
@@ -407,22 +367,6 @@ var ItemSetBattlegearOfValor = core.NewItemSet(core.ItemSet{
 	},
 })
 
-// Dungeon Set 2
-// https://www.wowhead.com/forever/item-set=513/feralheart-raiment
-//
-// TODO: The 4-piece bonus returns 300 mana, 10 rage or 40 energy when struck. Its proc (27781) casts a
-// dummy (27798) and only the tooltip states the amounts, so it is not modelled.
-var ItemSetFeralheartRaiment = core.NewItemSet(core.ItemSet{
-	ID:    513,
-	Name:  "Feralheart Raiment",
-	Slots: shared.EightPieceSlots,
-	Bonuses: map[int32]core.ApplySetBonus{
-		2: shared.ParsedSetBonus(dungeonResistances),
-		6: shared.ParsedSetBonus(spelldata.MustFind(9344), spelldata.MustFind(9334)), // +15 spell damage, +26 attack power
-		8: shared.ParsedSetBonus(dungeonTwoArmor),
-	},
-})
-
 // Dungeon Set 2, Season of Discovery reissue
 //
 // The 5-piece bonus (1302708) is movement speed when struck, which has no place in the sim.
@@ -472,20 +416,6 @@ var ItemSetShadowcraftArmor = core.NewItemSet(core.ItemSet{
 		2: shared.ParsedSetBonus(dungeonResistances),
 		3: shared.ParsedSetBonus(spelldata.MustFind(9336)), // +30 attack power
 		5: rogueArmorEnergize("Shadowcraft 5-piece Proc"),
-	},
-})
-
-// Dungeon Set 2
-// https://www.wowhead.com/forever/item-set=512/darkmantle-armor
-var ItemSetDarkmantleArmor = core.NewItemSet(core.ItemSet{
-	ID:    512,
-	Name:  "Darkmantle Armor",
-	Slots: shared.EightPieceSlots,
-	Bonuses: map[int32]core.ApplySetBonus{
-		2: shared.ParsedSetBonus(dungeonResistances),
-		4: rogueArmorEnergize("Darkmantle 4-piece Proc"),
-		6: shared.ParsedSetBonus(dungeonTwoAttack),
-		8: shared.ParsedSetBonus(dungeonTwoArmor),
 	},
 })
 

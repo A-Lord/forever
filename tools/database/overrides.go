@@ -123,6 +123,24 @@ func ApplyItemSetClasses(db *WowDatabase) {
 	}
 }
 
+// Where two sets with items share a name, only the higher set id ships; an ItemAllowList item stays.
+func DropLowerSameNameSets(db *WowDatabase) {
+	highest := map[string]int32{}
+	for _, item := range db.Items {
+		if item.SetId > highest[item.SetName] {
+			highest[item.SetName] = item.SetId
+		}
+	}
+	for id, item := range db.Items {
+		if _, ok := ItemAllowList[id]; ok {
+			continue
+		}
+		if item.SetId > 0 && item.SetId < highest[item.SetName] {
+			delete(db.Items, id)
+		}
+	}
+}
+
 // Keep these sorted by item ID.
 var ItemAllowList = map[int32]struct{}{
 	1168:  {}, // Skullflame Shield

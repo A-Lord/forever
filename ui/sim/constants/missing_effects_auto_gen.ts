@@ -893,18 +893,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		16487, // Blood Guard's Silk Gloves
-		[
-			"Increases the damage absorbed by your Mana Shield by 285.", // 23037 - https://www.wowhead.com/forever/spell=23037
-		]
-	],
-	[
-		16498, // Blood Guard's Leather Treads
-		[
-			"Increases the duration of your Sprint ability by 3.0 sec.", // 23049 - https://www.wowhead.com/forever/spell=23049
-		]
-	],
-	[
 		16518, // Blood Guard's Mail Walkers
 		[
 			"Increases the speed of your Ghost Wolf ability by 15%.", // 22801 - https://www.wowhead.com/forever/spell=22801
@@ -972,12 +960,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 	],
 	[
 		17608, // Marshal's Satin Gloves
-		[
-			"Gives you a 50% chance to avoid interruption caused by damage while casting Mind Blast.", // 23043 - https://www.wowhead.com/forever/spell=23043
-		]
-	],
-	[
-		17617, // Blood Guard's Satin Gloves
 		[
 			"Gives you a 50% chance to avoid interruption caused by damage while casting Mind Blast.", // 23043 - https://www.wowhead.com/forever/spell=23043
 		]
@@ -1493,12 +1475,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
-		22060, // Beastmaster's Tunic
-		[
-			"Increases your pet's armor by 10%.", // 27225 - https://www.wowhead.com/forever/spell=27225
-		]
-	],
-	[
 		22198, // Jagged Obsidian Shield
 		[
 			"When struck by a harmful spell, the caster of that spell has a 5% chance to be silenced for 3s.", // 27559 - https://www.wowhead.com/forever/spell=27559
@@ -1538,12 +1514,6 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		22865, // Blood Guard's Dreadweave Handwraps
 		[
 			"Gives you a 50% chance to avoid interruption caused by damage while casting Searing Pain.", // 23046 - https://www.wowhead.com/forever/spell=23046
-		]
-	],
-	[
-		22869, // Blood Guard's Satin Handwraps
-		[
-			"Gives you a 50% chance to avoid interruption caused by damage while casting Mind Blast.", // 23043 - https://www.wowhead.com/forever/spell=23043
 		]
 	],
 	[
@@ -2777,40 +2747,6 @@ export const MISSING_SET_BONUSES = new Map<number, Map<number, string[]>>([
 		]),
 	],
 	[
-		341, // Champion's Regalia
-		new Map([
-			[
-				2,
-				[
-					"Increases damage and healing done by magical spells and effects by up to 23.", // 14047 - https://www.wowhead.com/forever/spell=14047
-				],
-			],
-			[
-				4,
-				[
-					"Reduces the cooldown of your Blink spell by 1.5 sec.", // 23025 - https://www.wowhead.com/forever/spell=23025
-				],
-			],
-			[
-				6,
-				[
-					"+15 Stamina.", // 14462 - https://www.wowhead.com/forever/spell=14462
-				],
-			],
-		]),
-	],
-	[
-		342, // Champion's Raiment
-		new Map([
-			[
-				4,
-				[
-					"Increases the duration of your Psychic Scream spell by 1.0 sec.", // 23044 - https://www.wowhead.com/forever/spell=23044
-				],
-			],
-		]),
-	],
-	[
 		343, // Lieutenant Commander's Regalia
 		new Map([
 			[
@@ -2840,29 +2776,6 @@ export const MISSING_SET_BONUSES = new Map<number, Map<number, string[]>>([
 				4,
 				[
 					"Increases the duration of your Psychic Scream spell by 1.0 sec.", // 23044 - https://www.wowhead.com/forever/spell=23044
-				],
-			],
-		]),
-	],
-	[
-		347, // Champion's Vestments
-		new Map([
-			[
-				2,
-				[
-					"Increases your chance to parry an attack by 1%.", // 13665 - https://www.wowhead.com/forever/spell=13665
-				],
-			],
-			[
-				4,
-				[
-					"Reduces the cooldown of your Gouge ability by 1.0 sec.", // 23048 - https://www.wowhead.com/forever/spell=23048
-				],
-			],
-			[
-				6,
-				[
-					"+15 Stamina.", // 14462 - https://www.wowhead.com/forever/spell=14462
 				],
 			],
 		]),
@@ -3965,178 +3878,6 @@ export const MISSING_SET_BONUSES = new Map<number, Map<number, string[]>>([
 		]),
 	],
 	[
-		511, // Battlegear of Heroism
-		new Map([
-			[
-				2,
-				[
-					"+8 All Resistances.", // 18679 - https://www.wowhead.com/forever/spell=18679
-				],
-			],
-			[
-				4,
-				[
-					"Chance on melee attack to heal you for 110.", // 27419 - https://www.wowhead.com/forever/spell=27419
-				],
-			],
-			[
-				6,
-				[
-					"+40 Attack Power.", // 14049 - https://www.wowhead.com/forever/spell=14049
-				],
-			],
-			[
-				8,
-				[
-					"+200 Armor.", // 14803 - https://www.wowhead.com/forever/spell=14803
-				],
-			],
-		]),
-	],
-	[
-		513, // Feralheart Raiment
-		new Map([
-			[
-				4,
-				[
-					"When struck in combat has a chance of returning 300 mana, 10 rage, or 40 energy to the wearer.", // 27781 - https://www.wowhead.com/forever/spell=27781
-				],
-			],
-		]),
-	],
-	[
-		514, // Vestments of the Virtuous
-		new Map([
-			[
-				4,
-				[
-					"When struck in combat has a 2% chance of shielding the wearer in a protective shield which will absorb 488 damage. Can only occur once every 60 sec.", // 27778 - https://www.wowhead.com/forever/spell=27778
-				],
-			],
-		]),
-	],
-	[
-		515, // Beastmaster Armor
-		new Map([
-			[
-				2,
-				[
-					"+8 All Resistances.", // 18679 - https://www.wowhead.com/forever/spell=18679
-				],
-			],
-			[
-				4,
-				[
-					"Your normal ranged attacks have a 4% chance of restoring 200 mana.", // 27785 - https://www.wowhead.com/forever/spell=27785
-				],
-			],
-			[
-				6,
-				[
-					"+40 Attack Power.", // 14049 - https://www.wowhead.com/forever/spell=14049
-				],
-			],
-			[
-				8,
-				[
-					"+200 Armor.", // 14803 - https://www.wowhead.com/forever/spell=14803
-				],
-			],
-		]),
-	],
-	[
-		516, // Soulforge Armor
-		new Map([
-			[
-				2,
-				[
-					"+8 All Resistances.", // 18679 - https://www.wowhead.com/forever/spell=18679
-				],
-			],
-			[
-				4,
-				[
-					"Chance on melee attack to increase your damage and healing done by magical spells and effects by up to 65 for 10s.", // 27498 - https://www.wowhead.com/forever/spell=27498
-				],
-			],
-			[
-				6,
-				[
-					"+40 Attack Power.", // 14049 - https://www.wowhead.com/forever/spell=14049
-				],
-			],
-			[
-				8,
-				[
-					"+200 Armor.", // 14803 - https://www.wowhead.com/forever/spell=14803
-				],
-			],
-		]),
-	],
-	[
-		517, // Sorcerer's Regalia
-		new Map([
-			[
-				2,
-				[
-					"+8 All Resistances.", // 18679 - https://www.wowhead.com/forever/spell=18679
-				],
-			],
-			[
-				4,
-				[
-					"When struck in combat has a 2% chance of freezing the attacker in place for 3s. Can only occur once every 60 sec.", // 27867 - https://www.wowhead.com/forever/spell=27867
-				],
-			],
-			[
-				8,
-				[
-					"+200 Armor.", // 14803 - https://www.wowhead.com/forever/spell=14803
-				],
-			],
-		]),
-	],
-	[
-		518, // Deathmist Raiment
-		new Map([
-			[
-				4,
-				[
-					"When struck in combat has a 2% chance of causing the attacker to flee in terror for 2s. Can only occur once every 60 sec.", // 27780 - https://www.wowhead.com/forever/spell=27780
-				],
-			],
-		]),
-	],
-	[
-		519, // The Five Thunders
-		new Map([
-			[
-				2,
-				[
-					"+8 All Resistances.", // 18679 - https://www.wowhead.com/forever/spell=18679
-				],
-			],
-			[
-				4,
-				[
-					"Chance on spell cast to increase your damage and healing by up to 65 for 10s.", // 27774 - https://www.wowhead.com/forever/spell=27774
-				],
-			],
-			[
-				6,
-				[
-					"Increases damage and healing done by magical spells and effects by up to 23.", // 14047 - https://www.wowhead.com/forever/spell=14047
-				],
-			],
-			[
-				8,
-				[
-					"+200 Armor.", // 14803 - https://www.wowhead.com/forever/spell=14803
-				],
-			],
-		]),
-	],
-	[
 		521, // Dreamwalker Raiment
 		new Map([
 			[
@@ -4422,17 +4163,6 @@ export const MISSING_SET_BONUSES = new Map<number, Map<number, string[]>>([
 				4,
 				[
 					"Increases your movement speed by 15% while in Bear, Cat, or Travel Form. Only active outdoors.", // 23218 - https://www.wowhead.com/forever/spell=23218
-				],
-			],
-		]),
-	],
-	[
-		540, // Champion's Investiture
-		new Map([
-			[
-				4,
-				[
-					"Increases the duration of your Psychic Scream spell by 1.0 sec.", // 23044 - https://www.wowhead.com/forever/spell=23044
 				],
 			],
 		]),
@@ -5819,12 +5549,6 @@ export const UNVALIDATED_RATE_SET_BONUSES = new Map<number, Map<number, Unvalida
 		184, // Shadowcraft Armor
 		new Map([
 			[5, { kind: 'ppm', origin: 'unknown' }],
-		]),
-	],
-	[
-		512, // Darkmantle Armor
-		new Map([
-			[4, { kind: 'ppm', origin: 'unknown' }],
 		]),
 	],
 	[

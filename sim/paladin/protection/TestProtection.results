@@ -126,33 +126,6 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestProtection-AllItems-Beastmaster'sBoots-22061"
- value: {
-  dps: 406.47988
-  tps: 708.01393
-  dtps: 393.44932
-  hps: 30.70333
- }
-}
-dps_results: {
- key: "TestProtection-AllItems-Beastmaster'sCap-22013"
- value: {
-  dps: 392.40699
-  tps: 681.66331
-  dtps: 389.12232
-  hps: 30.12722
- }
-}
-dps_results: {
- key: "TestProtection-AllItems-Beastmaster'sGloves-22015"
- value: {
-  dps: 407.41839
-  tps: 709.58508
-  dtps: 401.33135
-  hps: 30.70333
- }
-}
-dps_results: {
  key: "TestProtection-AllItems-BeaststalkerArmor"
  value: {
   dps: 387.90808
@@ -261,15 +234,6 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestProtection-AllItems-DarkmantleArmor"
- value: {
-  dps: 415.68635
-  tps: 710.53121
-  dtps: 433.31227
-  hps: 30.82194
- }
-}
-dps_results: {
  key: "TestProtection-AllItems-DarkmoonCard:BlueDragon-19288"
  value: {
   dps: 407.19815
@@ -294,15 +258,6 @@ dps_results: {
   tps: 713.99038
   dtps: 407.88081
   hps: 30.68639
- }
-}
-dps_results: {
- key: "TestProtection-AllItems-DeathmistRaiment"
- value: {
-  dps: 411.57603
-  tps: 729.58926
-  dtps: 557.57904
-  hps: 30.70333
  }
 }
 dps_results: {
@@ -564,15 +519,6 @@ dps_results: {
   tps: 708.72245
   dtps: 407.88081
   hps: 30.68639
- }
-}
-dps_results: {
- key: "TestProtection-AllItems-FeralheartRaiment"
- value: {
-  dps: 418.25619
-  tps: 725.53763
-  dtps: 499.53377
-  hps: 29.90694
  }
 }
 dps_results: {
@@ -1206,15 +1152,6 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestProtection-AllItems-Sorcerer'sRegalia"
- value: {
-  dps: 406.1542
-  tps: 720.49149
-  dtps: 568.39303
-  hps: 30.21194
- }
-}
-dps_results: {
  key: "TestProtection-AllItems-SoulforgeArmor"
  value: {
   dps: 396.55626
@@ -1418,15 +1355,6 @@ dps_results: {
   dps: 376.41025
   tps: 667.9904
   dtps: 574.49688
-  hps: 29.63583
- }
-}
-dps_results: {
- key: "TestProtection-AllItems-VestmentsoftheVirtuous"
- value: {
-  dps: 397.84866
-  tps: 706.3065
-  dtps: 559.13259
   hps: 29.63583
  }
 }
