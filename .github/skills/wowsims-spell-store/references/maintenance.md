@@ -21,3 +21,5 @@ Then run the shared path check:
 ```
 sh .github/skills/check_paths.sh .github/skills/wowsims-spell-store
 ```
+
+After any edit to this skill, run `npm run skills:install` and commit the refreshed `skills-lock.json` with the change: the agents read the installed copy, and the lockfile records the skill's hash.

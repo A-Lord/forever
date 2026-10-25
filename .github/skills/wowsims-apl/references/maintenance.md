@@ -24,3 +24,5 @@ Re-derive a claim before repeating it:
 | `proto/apl.proto` or the `.vscode/settings.json` schema mapping    | `tools/APL.md`                                                            |
 
 Then run the shared path check, `sh .github/skills/check_paths.sh .github/skills/wowsims-apl`.
+
+After any edit to this skill, run `npm run skills:install` and commit the refreshed `skills-lock.json` with the change: the agents read the installed copy, and the lockfile records the skill's hash.
