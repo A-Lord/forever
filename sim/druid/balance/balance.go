@@ -39,7 +39,6 @@ func NewBalanceDruid(character *core.Character, options *proto.Player) *BalanceD
 	if balanceOptions.Options.ClassOptions.InnervateTarget != nil {
 		moonkin.SelfBuffs.InnervateTarget = balanceOptions.Options.ClassOptions.InnervateTarget
 	}
-	moonkin.SelfBuffs.GiftInnervate = balanceOptions.Options.InnervateAssignment != proto.InnervateAssignment_InnervateAssignmentSelf
 
 	moonkin.RegisterMoonkinFormAura()
 	moonkin.RegisterMoonkinFormSpell()
@@ -54,14 +53,6 @@ type BalanceDruid struct {
 
 func (moonkin *BalanceDruid) GetDruid() *druid.Druid {
 	return moonkin.Druid
-}
-
-// Someone else needs a dummy to receive Innervate.
-func (moonkin *BalanceDruid) ExtraTargetDummies() int32 {
-	if moonkin.SelfBuffs.GiftInnervate {
-		return 1
-	}
-	return 0
 }
 
 func (moonkin *BalanceDruid) Initialize() {

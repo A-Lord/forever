@@ -71,18 +71,11 @@ message DruidOptions {
 	UnitReference innervate_target = 1;
 }
 
-// Self keeps the mana. Other still casts Innervate on a raid dummy, and the mana stays off this druid.
-enum InnervateAssignment {
-	InnervateAssignmentSelf = 0;
-	InnervateAssignmentOther = 1;
-}
-
 message BalanceDruid {
   message Rotation {}
 
   message Options {
     DruidOptions class_options = 1;
-    InnervateAssignment innervate_assignment = 2;
   }
   Options options = 3;
 }

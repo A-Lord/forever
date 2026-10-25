@@ -105,8 +105,6 @@ type Druid struct {
 
 type SelfBuffs struct {
 	InnervateTarget *proto.UnitReference
-	// The dummy receives Innervate. The mana stays off this druid.
-	GiftInnervate bool
 }
 
 func (druid *Druid) GetCharacter() *core.Character {
