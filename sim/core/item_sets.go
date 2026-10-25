@@ -37,10 +37,15 @@ func DefaultItemSetSlots() []proto.ItemSlot {
 	}
 }
 
+func isRegisteredSetID(id int32) bool {
+	return slices.ContainsFunc(sets, func(s *ItemSet) bool { return s.ID == id })
+}
+
 func (set ItemSet) Items() []Item {
 	var items []Item
 	forEachSetItem(func(item Item) bool {
-		if item.SetName == set.Name || item.SetName == set.AlternativeName {
+		// A Season of Discovery reissue shares a Classic set's name under a set id no registered set has, so it stays out.
+		if (item.SetName == set.Name || item.SetName == set.AlternativeName) && (item.SetID == 0 || set.ID == 0 || isRegisteredSetID(item.SetID)) {
 			items = append(items, item)
 		}
 		return true
@@ -138,9 +143,10 @@ func (equipment *Equipment) getSetBonuses() SetBonusCollection {
 			}
 		}
 
+		// Only an item or a set without a set id matches by name, so a Season of Discovery reissue never takes a Classic set's bonus.
 		if foundSet == nil {
 			for _, set := range sets {
-				if set.Name == item.SetName || set.AlternativeName == item.SetName {
+				if (set.ID == 0 || item.SetID == 0) && (set.Name == item.SetName || set.AlternativeName == item.SetName) {
 					foundSet = set
 					break
 				}
