@@ -142,6 +142,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestElemental-AllItems-BeaststalkerArmor"
+ value: {
+  dps: 433.42003
+  tps: 310.40098
+  dtps: 7.37245
+ }
+}
+dps_results: {
  key: "TestElemental-AllItems-BlackGraspoftheDestroyer-22194"
  value: {
   dps: 554.32166
@@ -1012,6 +1020,22 @@ dps_results: {
   dps: 575.28197
   tps: 405.77578
   dtps: 8.11766
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-TheElements"
+ value: {
+  dps: 504.98359
+  tps: 357.28353
+  dtps: 6.16502
+ }
+}
+dps_results: {
+ key: "TestElemental-AllItems-TheFiveThunders"
+ value: {
+  dps: 520.00837
+  tps: 368.16992
+  dtps: 6.63824
  }
 }
 dps_results: {

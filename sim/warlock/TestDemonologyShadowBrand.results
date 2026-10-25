@@ -223,7 +223,16 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestDemonologyShadowBrand-AllItems-DeathmistRaiment"
+ key: "TestDemonologyShadowBrand-AllItems-DeathmistRaiment-1681"
+ value: {
+  dps: 795.57091
+  tps: 483.98635
+  dtps: 11.10305
+  hps: 9.15665
+ }
+}
+dps_results: {
+ key: "TestDemonologyShadowBrand-AllItems-DeathmistRaiment-518"
  value: {
   dps: 800.38228
   tps: 485.42155

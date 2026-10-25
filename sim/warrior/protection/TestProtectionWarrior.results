@@ -126,6 +126,24 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestProtectionWarrior-AllItems-BattlegearofHeroism"
+ value: {
+  dps: 472.84158
+  tps: 1051.99547
+  dtps: 282.12467
+  hps: 36.44528
+ }
+}
+dps_results: {
+ key: "TestProtectionWarrior-AllItems-BattlegearofValor"
+ value: {
+  dps: 469.53713
+  tps: 1038.25994
+  dtps: 305.70862
+  hps: 36.19111
+ }
+}
+dps_results: {
  key: "TestProtectionWarrior-AllItems-BattleplateofGlory"
  value: {
   dps: 457.41605
@@ -159,6 +177,15 @@ dps_results: {
   tps: 1039.53866
   dtps: 295.43421
   hps: 36.90278
+ }
+}
+dps_results: {
+ key: "TestProtectionWarrior-AllItems-BeaststalkerArmor"
+ value: {
+  dps: 449.50358
+  tps: 992.67601
+  dtps: 332.91213
+  hps: 36.14028
  }
 }
 dps_results: {
@@ -918,6 +945,15 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestProtectionWarrior-AllItems-LightforgeArmor"
+ value: {
+  dps: 460.19268
+  tps: 1014.36966
+  dtps: 336.1697
+  hps: 36.29278
+ }
+}
+dps_results: {
  key: "TestProtectionWarrior-AllItems-Linken'sBoomerang-11905"
  value: {
   dps: 467.73191
@@ -1302,6 +1338,15 @@ dps_results: {
   tps: 1036.70472
   dtps: 288.32417
   hps: 36.95361
+ }
+}
+dps_results: {
+ key: "TestProtectionWarrior-AllItems-TheElements"
+ value: {
+  dps: 430.55528
+  tps: 949.36244
+  dtps: 387.35763
+  hps: 36.36056
  }
 }
 dps_results: {

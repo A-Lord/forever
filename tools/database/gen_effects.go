@@ -615,6 +615,15 @@ var literalRates = []literalRate{
 		Reason: "Darkmantle Armor: the energy proc's row states 100% on every melee hit with no rate per minute, " +
 			"so the sim keeps 1 per minute as a literal",
 	},
+	{
+		Gear:   "set bonus",
+		ID:     1676,
+		Pieces: 4,
+		Kind:   overrides.RatePPM,
+		Origin: "unknown",
+		Reason: "Darkmantle Armor: the energy proc's row states 100% on every melee hit with no rate per minute, " +
+			"so the sim keeps 1 per minute as a literal",
+	},
 }
 
 // The origin a rate's Source names, or "" for one measured on Forever, which needs no notice.

@@ -223,7 +223,16 @@ dps_results: {
  }
 }
 dps_results: {
- key: "TestDestruction-AllItems-DeathmistRaiment"
+ key: "TestDestruction-AllItems-DeathmistRaiment-1681"
+ value: {
+  dps: 731.44845
+  tps: 425.61043
+  dtps: 9.04827
+  hps: 9.87104
+ }
+}
+dps_results: {
+ key: "TestDestruction-AllItems-DeathmistRaiment-518"
  value: {
   dps: 724.26895
   tps: 419.60304

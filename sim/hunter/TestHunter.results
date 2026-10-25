@@ -180,6 +180,24 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestHunter-AllItems-BeastmasterArmor"
+ value: {
+  dps: 877.82878
+  tps: 643.01158
+  dtps: 9.67212
+  hps: 18.94389
+ }
+}
+dps_results: {
+ key: "TestHunter-AllItems-BeaststalkerArmor"
+ value: {
+  dps: 835.15259
+  tps: 612.52246
+  dtps: 9.5964
+  hps: 18.58806
+ }
+}
+dps_results: {
  key: "TestHunter-AllItems-BlackGraspoftheDestroyer-22194"
  value: {
   dps: 878.70545
@@ -1266,6 +1284,15 @@ dps_results: {
   tps: 640.69831
   dtps: 9.51294
   hps: 19.13028
+ }
+}
+dps_results: {
+ key: "TestHunter-AllItems-TheElements"
+ value: {
+  dps: 772.63894
+  tps: 566.65449
+  dtps: 9.95363
+  hps: 18.99472
  }
 }
 dps_results: {

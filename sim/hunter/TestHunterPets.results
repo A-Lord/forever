@@ -174,6 +174,22 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestHunterPets-AllItems-BeastmasterArmor"
+ value: {
+  dps: 686.79181
+  tps: 284.26048
+  dtps: 3.91842
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-BeaststalkerArmor"
+ value: {
+  dps: 653.24276
+  tps: 272.17476
+  dtps: 1.07542
+ }
+}
+dps_results: {
  key: "TestHunterPets-AllItems-BlackGraspoftheDestroyer-22194"
  value: {
   dps: 676.3736
@@ -1296,6 +1312,14 @@ dps_results: {
   dps: 678.81567
   tps: 283.85948
   dtps: 4.61467
+ }
+}
+dps_results: {
+ key: "TestHunterPets-AllItems-TheElements"
+ value: {
+  dps: 598.28228
+  tps: 240.90015
+  dtps: 1.07311
  }
 }
 dps_results: {

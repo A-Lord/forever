@@ -126,6 +126,15 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestEnhancement-AllItems-BeaststalkerArmor"
+ value: {
+  dps: 614.25284
+  tps: 328.02921
+  dtps: 8.93522
+  hps: 17.16472
+ }
+}
+dps_results: {
  key: "TestEnhancement-AllItems-BlackGraspoftheDestroyer-22194"
  value: {
   dps: 685.99685
@@ -942,6 +951,24 @@ dps_results: {
   tps: 361.46926
   dtps: 9.54161
   hps: 18.06278
+ }
+}
+dps_results: {
+ key: "TestEnhancement-AllItems-TheElements"
+ value: {
+  dps: 625.01725
+  tps: 331.86543
+  dtps: 8.9942
+  hps: 17.28333
+ }
+}
+dps_results: {
+ key: "TestEnhancement-AllItems-TheFiveThunders"
+ value: {
+  dps: 668.31184
+  tps: 353.23045
+  dtps: 9.27039
+  hps: 17.45278
  }
 }
 dps_results: {

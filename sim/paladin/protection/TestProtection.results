@@ -117,6 +117,15 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestProtection-AllItems-BattlegearofValor"
+ value: {
+  dps: 394.07902
+  tps: 677.34077
+  dtps: 385.08669
+  hps: 29.70361
+ }
+}
+dps_results: {
  key: "TestProtection-AllItems-Beastmaster'sBoots-22061"
  value: {
   dps: 406.47988
@@ -141,6 +150,15 @@ dps_results: {
   tps: 709.58508
   dtps: 401.33135
   hps: 30.70333
+ }
+}
+dps_results: {
+ key: "TestProtection-AllItems-BeaststalkerArmor"
+ value: {
+  dps: 387.90808
+  tps: 672.05702
+  dtps: 423.34286
+  hps: 29.90694
  }
 }
 dps_results: {
@@ -891,6 +909,15 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestProtection-AllItems-LightforgeArmor"
+ value: {
+  dps: 398.59112
+  tps: 689.22843
+  dtps: 419.98347
+  hps: 30.48306
+ }
+}
+dps_results: {
  key: "TestProtection-AllItems-Linken'sBoomerang-11905"
  value: {
   dps: 407.19815
@@ -1188,6 +1215,15 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestProtection-AllItems-SoulforgeArmor"
+ value: {
+  dps: 396.55626
+  tps: 684.33139
+  dtps: 373.60184
+  hps: 30.6525
+ }
+}
+dps_results: {
  key: "TestProtection-AllItems-SteadfastLibram-279247"
  value: {
   dps: 398.78957
@@ -1284,6 +1320,15 @@ dps_results: {
   tps: 708.72245
   dtps: 402.50043
   hps: 30.68639
+ }
+}
+dps_results: {
+ key: "TestProtection-AllItems-TheElements"
+ value: {
+  dps: 397.30729
+  tps: 701.11185
+  dtps: 488.65107
+  hps: 30.22889
  }
 }
 dps_results: {
