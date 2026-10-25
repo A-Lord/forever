@@ -91,6 +91,8 @@ Each line is the rule the code follows, where it lives, and the pull request tha
 - **Rage threat is booked in `AddRage` at gain time, 5 × the unit's threat multiplier split across the active targets,
   and rage from white hits, hits taken and refunds carries `ResourceMetrics.NoThreat`; a new rage source that comes
   from damage sets `NoThreat`.** `sim/core/rage.go`, PR #385.
+- **Mana gained makes `ThreatPerManaGained` threat split between the targets in combat at the time; regen and
+  sources marked `NoThreat` make none.** `sim/core/mana.go`, `addManaGainThreat`, PR #598.
 - **A healing-only on-use buff is `CooldownTypeHealing`, a Stamina-only one is survival, and Admiral's Hat is
   survival.** `sim/core/aura_helpers.go`, `CooldownTypeOf`, PR #614.
 
@@ -110,6 +112,10 @@ Each line is the rule the code follows, where it lives, and the pull request tha
 
 - **Dynamic pets (demons, hawks) refresh their inherited stats from the owner's totals at the pet heartbeat instead of
   running stat deltas through the inheritance.** `sim/core/pet.go`, PR #432.
+- **Demons take the warlock's spell crit as both melee and spell crit, health 7.5 per warlock Stamina on top of their
+  own, 35% of the warlock's armor (Demon Armor included), and 17% (attack power) and 10% (spell damage) of the
+  warlock's spell damage; their own level-60 stats are shares of ExpectedStat.** `sim/warlock/pets.go`,
+  `petStatInheritance`.
 - **Hawks take all ranged-only haste at once through `PetConfig.HasDynamicRangedSpeedInheritance` (not at the
   heartbeat), with a 2.5 s base swing.** `sim/hunter/summon_hawk.go`, PR #452.
 - **The Felhunter's mana regen is 10% of the warlock's Intellect, the Voidwalker's and Sayaad's share (the Imp's is
