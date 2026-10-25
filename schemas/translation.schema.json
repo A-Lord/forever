@@ -5468,6 +5468,12 @@
 										"to_range_tooltip": {
 											"type": "string"
 										},
+										"recheck": {
+											"type": "string"
+										},
+										"recheck_tooltip": {
+											"type": "string"
+										},
 										"move_duration": {
 											"type": "string"
 										},
@@ -5487,6 +5493,8 @@
 										"tooltip",
 										"to_range",
 										"to_range_tooltip",
+										"recheck",
+										"recheck_tooltip",
 										"move_duration",
 										"duration",
 										"duration_tooltip",
@@ -6327,6 +6335,22 @@
 									"required": ["label", "tooltip"]
 								},
 								"can_cast": {
+									"type": "object",
+									"properties": {
+										"label": {
+											"type": "string"
+										},
+										"tooltip": {
+											"type": "string"
+										},
+										"full_description": {
+											"type": "string"
+										}
+									},
+									"additionalProperties": false,
+									"required": ["label", "tooltip", "full_description"]
+								},
+								"in_range": {
 									"type": "object",
 									"properties": {
 										"label": {
@@ -8188,6 +8212,19 @@
 									"additionalProperties": false,
 									"required": ["label", "tooltip", "values"]
 								},
+								"pull_range": {
+									"type": "object",
+									"properties": {
+										"label": {
+											"type": "string"
+										},
+										"tooltip": {
+											"type": "string"
+										}
+									},
+									"additionalProperties": false,
+									"required": ["label", "tooltip"]
+								},
 								"time_to_weave": {
 									"type": "object",
 									"properties": {
@@ -8268,7 +8305,89 @@
 								}
 							},
 							"additionalProperties": false,
-							"required": ["playstyle", "time_to_weave", "use_aimed", "use_multi", "use_arcane", "use_sniper", "use_hawk"]
+							"required": ["playstyle", "pull_range", "time_to_weave", "use_aimed", "use_multi", "use_arcane", "use_sniper", "use_hawk"]
+						},
+						"paladin": {
+							"type": "object",
+							"properties": {
+								"retribution": {
+									"type": "object",
+									"properties": {
+										"aura": {
+											"type": "object",
+											"properties": {
+												"label": {
+													"type": "string"
+												},
+												"tooltip": {
+													"type": "string"
+												}
+											},
+											"additionalProperties": false,
+											"required": ["label", "tooltip"]
+										},
+										"assigned_judge": {
+											"type": "object",
+											"properties": {
+												"label": {
+													"type": "string"
+												},
+												"tooltip": {
+													"type": "string"
+												},
+												"none": {
+													"type": "string"
+												}
+											},
+											"additionalProperties": false,
+											"required": ["label", "tooltip", "none"]
+										},
+										"non_twist_seal": {
+											"type": "object",
+											"properties": {
+												"label": {
+													"type": "string"
+												},
+												"tooltip": {
+													"type": "string"
+												}
+											},
+											"additionalProperties": false,
+											"required": ["label", "tooltip"]
+										},
+										"pull_range": {
+											"type": "object",
+											"properties": {
+												"label": {
+													"type": "string"
+												},
+												"tooltip": {
+													"type": "string"
+												}
+											},
+											"additionalProperties": false,
+											"required": ["label", "tooltip"]
+										},
+										"delay_major_cds": {
+											"type": "object",
+											"properties": {
+												"label": {
+													"type": "string"
+												},
+												"tooltip": {
+													"type": "string"
+												}
+											},
+											"additionalProperties": false,
+											"required": ["label", "tooltip"]
+										}
+									},
+									"additionalProperties": false,
+									"required": ["aura", "assigned_judge", "non_twist_seal", "pull_range", "delay_major_cds"]
+								}
+							},
+							"additionalProperties": false,
+							"required": ["retribution"]
 						},
 						"warrior": {
 							"type": "object",
@@ -8371,7 +8490,7 @@
 						}
 					},
 					"additionalProperties": false,
-					"required": ["rogue", "shaman", "warlock", "hunter", "warrior"]
+					"required": ["rogue", "shaman", "warlock", "hunter", "paladin", "warrior"]
 				}
 			},
 			"additionalProperties": false,
