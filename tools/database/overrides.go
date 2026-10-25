@@ -206,6 +206,7 @@ var ItemDenyList = map[int32]struct{}{
 	220821: {}, // Blood Guard's Chain Helmet
 	220822: {}, // Knight-Lieutenant's Chain Helmet
 	220823: {}, // Blood Guard's Mail Epaulets
+	220824: {}, // Blood Guard's Chain Epaulets
 	220825: {}, // Knight-Lieutenant's Chain Epaulets
 	220826: {}, // Stone Guard's Mail Armor
 	220827: {}, // Stone Guard's Chain Armor
@@ -299,14 +300,6 @@ var ItemDenyList = map[int32]struct{}{
 	223077: {}, // Sergeant Major's Mail Sabatons
 	223078: {}, // Knight's Mail Armor
 	225838: {}, // Voltaic Icon
-	226778: {}, // Feralheart Spaulders
-	226792: {}, // Feralheart Cap
-	226857: {}, // Battleboots of Heroism
-	226861: {}, // Gauntlets of Heroism
-	226862: {}, // Breastplate of Heroism
-	226881: {}, // Beastmaster's Treads
-	226886: {}, // Beastmaster's Tunic
-	226951: {}, // Virtuous Mantle
 	227042: {}, // Champion's Plate Shoulders
 	227043: {}, // Champion's Plate Helm
 	227044: {}, // Lieutenant Commander's Plate Helm
@@ -617,6 +610,7 @@ var ItemDenyList = map[int32]struct{}{
 	231668: {}, // Warlord's Mail Chestguard
 	231669: {}, // Warlord's Mail Skullcap
 	231670: {}, // General's Mail Pants
+	231671: {}, // General's Dragonhide Greaves
 	231672: {}, // Warlord's Dragonhide Pauldrons
 	231673: {}, // General's Dragonhide Legguards
 	231674: {}, // Warlord's Dragonhide Tunic
@@ -649,6 +643,7 @@ var ItemDenyList = map[int32]struct{}{
 	231701: {}, // Field Marshal's Dragonhide Headdress
 	231702: {}, // Field Marshal's Dragonhide Tunic
 	231703: {}, // Marshal's Dragonhide Legguards
+	231704: {}, // Marshal's Dragonhide Greaves
 	231705: {}, // Field Marshal's Dragonhide Pauldrons
 	231706: {}, // Marshal's Dragonhide Gauntlets
 	231877: {}, // Tyler's Balanced Bobble

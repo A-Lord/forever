@@ -1643,6 +1643,12 @@ export const MISSING_ITEM_EFFECTS = new Map<number, string[]>([
 		]
 	],
 	[
+		226886, // Beastmaster's Tunic
+		[
+			"Increases your pet's armor by 10%.", // 27225 - https://www.wowhead.com/forever/spell=27225
+		]
+	],
+	[
 		234550, // High Warlord's Spellblade
 		[
 			"Reduces all damage taken from players and their pets by 1%. This effect cannot be combined from multiple sources.", // 1216997 - https://www.wowhead.com/forever/spell=1216997
@@ -4741,23 +4747,6 @@ export const MISSING_SET_BONUSES = new Map<number, Map<number, string[]>>([
 		]),
 	],
 	[
-		1625, // Blood Guard's Chain
-		new Map([
-			[
-				3,
-				[
-					"+15 Stamina.", // 14462 - https://www.wowhead.com/forever/spell=14462
-				],
-			],
-			[
-				6,
-				[
-					"+30 Attack Power.", // 9336 - https://www.wowhead.com/forever/spell=9336
-				],
-			],
-		]),
-	],
-	[
 		1667, // Feralheart Raiment
 		new Map([
 			[
@@ -5034,52 +5023,6 @@ export const MISSING_SET_BONUSES = new Map<number, Map<number, string[]>>([
 				6,
 				[
 					"Increases damage and healing done by magical spells and effects by up to 23.", // 14047 - https://www.wowhead.com/forever/spell=14047
-				],
-			],
-		]),
-	],
-	[
-		1724, // Warlord's Refuge
-		new Map([
-			[
-				2,
-				[
-					"+20 Stamina.", // 14467 - https://www.wowhead.com/forever/spell=14467
-				],
-			],
-			[
-				3,
-				[
-					"Increases your movement speed by 15% while in Bear, Cat, or Travel Form. Only active outdoors.", // 23218 - https://www.wowhead.com/forever/spell=23218
-				],
-			],
-			[
-				6,
-				[
-					"Increases healing done by up to 44 and damage done by up to 15 for all magical spells and effects.", // 467550 - https://www.wowhead.com/forever/spell=467550
-				],
-			],
-		]),
-	],
-	[
-		1736, // Field Marshal's Refuge
-		new Map([
-			[
-				2,
-				[
-					"+20 Stamina.", // 14467 - https://www.wowhead.com/forever/spell=14467
-				],
-			],
-			[
-				3,
-				[
-					"Increases your movement speed by 15% while in Bear, Cat, or Travel Form. Only active outdoors.", // 23218 - https://www.wowhead.com/forever/spell=23218
-				],
-			],
-			[
-				6,
-				[
-					"Increases healing done by up to 44 and damage done by up to 15 for all magical spells and effects.", // 467550 - https://www.wowhead.com/forever/spell=467550
 				],
 			],
 		]),

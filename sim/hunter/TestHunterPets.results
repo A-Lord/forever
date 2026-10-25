@@ -166,6 +166,14 @@ dps_results: {
  }
 }
 dps_results: {
+ key: "TestHunterPets-AllItems-Beastmaster'sTreads-226881"
+ value: {
+  dps: 687.35259
+  tps: 284.57169
+  dtps: 4.61467
+ }
+}
+dps_results: {
  key: "TestHunterPets-AllItems-BlackGraspoftheDestroyer-22194"
  value: {
   dps: 676.3736

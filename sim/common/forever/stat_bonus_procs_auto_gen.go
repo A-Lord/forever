@@ -71,6 +71,7 @@ func RegisterAllProcs() {
 	// shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 27225},
 	//	[]shared.ItemVariant{
 	//	{ItemID: 22060, ItemName: "Beastmaster's Tunic"},
+	//	{ItemID: 226886, ItemName: "Beastmaster's Tunic"},
 	// })
 
 	// Deals 7 Fire damage to anyone who strikes you with a melee attack.
@@ -120,6 +121,14 @@ func RegisterAllProcs() {
 	shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 27518},
 		[]shared.ItemVariant{
 			{ItemID: 22191, ItemName: "Obsidian Mail Tunic"},
+		})
+
+	// Increases damage dealt by your pet by 3%.
+	// https://www.wowhead.com/forever/spell=27206
+	// equip: 27206 keeps 27205 up (A_MOD_DAMAGE_PERCENT_DONE)
+	shared.NewSpellDataEquipAura(shared.SpellDataProc{TriggerSpellID: 27206},
+		[]shared.ItemVariant{
+			{ItemID: 226881, ItemName: "Beastmaster's Treads"},
 		})
 
 	// Increases your pet's critical strike chance by 2%.
