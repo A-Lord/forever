@@ -7,6 +7,9 @@ import { emptyUnitReference } from '@sim/proto/utils';
 const assignment = (key: string) => i18n.t(`settings_tab.other.innervate_assignment.${key}`);
 
 const isInnervateOnOther = (player: Player<Spec.SpecBalanceDruid>): boolean => {
+	if ((player.getRaid()?.getTargetDummies() ?? 0) < 1) {
+		return false;
+	}
 	const ref = player.getClassOptions().innervateTarget;
 	if (!ref || ref.type === UnitType.Unknown || ref.type === UnitType.Self) {
 		return false;
@@ -33,7 +36,7 @@ export const InnervateAssignmentInput: InputHelpers.TypedChoiceFieldConfig<Playe
 	type: 'enum',
 	label: i18n.t('settings_tab.other.innervate_assignment.label'),
 	labelTooltip: i18n.t('settings_tab.other.innervate_assignment.tooltip'),
-	storeField: 'specOptions',
+	storeField: ['specOptions', 'raid:targetDummies'] as const,
 	values: [
 		{ name: assignment('self'), value: 0 },
 		{ name: assignment('other'), value: 1 },
