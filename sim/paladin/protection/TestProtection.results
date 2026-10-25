@@ -848,10 +848,10 @@ dps_results: {
 dps_results: {
  key: "TestProtection-AllItems-LibramofHolyAlacrity-228175"
  value: {
-  dps: 398.88996
-  tps: 443.21439
-  dtps: 437.38398
-  hps: 30.77111
+  dps: 398.78957
+  tps: 692.01164
+  dtps: 392.94238
+  hps: 30.75417
  }
 }
 dps_results: {
