@@ -11,7 +11,9 @@ settled exceptions are listed in `wowsims-testing` §What a test asserts and
 
 The project's skills live in `.github/skills/`. Read the one that matches the task before starting, and always
 read `wowsims-conventions` before writing comments, docs, test messages, commit messages or GitHub text.
-`make skills-check` verifies every path and skill name the skills mention.
+`make skills-check` verifies every path and skill name the skills mention. `npm run skills:install` (part of
+`make setup`) installs these skills and the `humanizer` skill for the agents on this machine; rerun it after
+editing a skill, since the agents read the installed copy.
 
 | Skill                         | Use it for                                                                                     |
 | ----------------------------- | ---------------------------------------------------------------------------------------------- |

@@ -364,6 +364,7 @@ setup:
 	cp pre-commit .git/hooks
 	chmod +x .git/hooks/pre-commit
 	! command -v air && curl -sSfL https://raw.githubusercontent.com/cosmtrek/air/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin || true
+	npm run skills:install
 
 # Host a local server, for dev testing
 .PHONY: host

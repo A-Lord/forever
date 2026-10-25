@@ -152,9 +152,10 @@ After the findings, two lists: **checked, not findings** (what was examined and 
 that stay**, each with its reason. On a self-review, fix the findings, rerun the gates, and put both lists in
 the PR body.
 
-The review ends with the `humanizer:humanizer` skill when the harness knows it: run it over the review text,
-the comments to post, and any PR body, commit message or code comment the review added or rewrote, before
-anything is posted or pushed. The rewrite changes prose only; findings, numbers, code and paths stay.
+The review ends with the `humanizer` skill: run it over the review text, the comments to post, and any PR body,
+commit message or code comment the review added or rewrote, before anything is posted or pushed. When the
+harness does not know the skill, run `npm run skills:install` first; it installs the skill for the agents on
+this machine. The rewrite changes prose only; findings, numbers, code and paths stay.
 
 ## Keeping this skill true
 

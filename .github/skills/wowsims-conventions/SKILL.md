@@ -59,9 +59,10 @@ These apply to every file and every piece of GitHub text, in Go and TypeScript a
 ## Plain prose
 
 Every comment, doc line, test message, commit message and PR text a change adds or rewrites gets this pass before it
-is committed or posted. When a humanizer skill is loaded, run it over them; without one, read them for the same patterns by hand: a dash used as a connector, an
-"X, not Y" or "rather than" contrast that only adds weight, an inverted sentence, stacked qualifiers, a closing
-line that repeats the point. The rewrite changes prose only: code, identifiers, paths, numbers, tables and every
+is committed or posted. Run the `humanizer` skill over them. When the harness does not know that skill, run
+`npm run skills:install`, which installs it for the agents on this machine, and load it; only without network
+access read them for the same patterns by hand: a dash used as a connector, an "X, not Y" or "rather than"
+contrast that only adds weight, an inverted sentence, stacked qualifiers, a closing line that repeats the point. The rewrite changes prose only: code, identifiers, paths, numbers, tables and every
 fact stay. A contrast that corrects a real misreading stays, and where the two disagree, this skill wins.
 
 ## Commits and pull requests
